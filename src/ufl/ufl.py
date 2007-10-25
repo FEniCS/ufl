@@ -1,78 +1,15 @@
 
-### Integral and Form definition:
 
-class Form:
-    """Description of a weak form consisting of a sum of integrals over subdomains."""
-    def __init__(self, integrals):    
-        self.integrals = integrals
-
-    def _integrals(self, domain_type):
-        itg = []
-        for i in self.integrals:
-            if i.domain_type == domain_type:
-                itg.append(i)
-        return itg
-    
-    def cell_integrals(self):
-        return self._integrals("cell")
-    
-    def exterior_facet_integrals(self):
-        return self._integrals("exterior_facet")
-    
-    def interior_facet_integrals(self):
-        return self._integrals("interior_facet")
-
-    def __contains__(self, item):
-        """Return wether item is in the UFL expression tree. If item is a str, it is assumed to be a repr."""
-        return any(item in itg for itg in self.integrals)
-    
-    def __add__(self, other):
-        return Form(self.integrals + other.integrals)
-    
-    def __str__(self):
-        return "Form([%s])" % ", ".join(str(i) for i in self.integrals)
-    
-    def __repr__(self):
-        return "Form([%s])" % ", ".join(repr(i) for i in self.integrals)
-
-
-class Integral:
-    """Description of an integral over a single domain."""
-    def __init__(self, domain_type, domain_id, integrand=None):
-        self.domain_type = domain_type
-        self.domain_id   = domain_id
-        self.integrand   = integrand
-    
-    def __rmul__(self, other):
-        assert self.integrand is None
-        return Form( [Integral(self.domain_type, self.domain_id, other)] )
-
-    def __contains__(self, item):
-        """Return wether item is in the UFL expression tree. If item is a str, it is assumed to be a repr."""
-        return item in self.integrand
-    
-    def __str__(self):
-        return "Integral(%s, %d, %s)" % (repr(self.domain_type), self.domain_id, self.integrand)
-    
-    def __repr__(self):
-        return "Integral(%s, %s, %s)" % (repr(self.domain_type), repr(self.domain_id), repr(self.integrand))
-
-
-
-class Jacobi:
-    """Represents a linearized form, the Jacobi of a given nonlinear form wrt a given function."""
-    def __init__(self, form, function):
-        self.form = form
-        self.function = function
-
-    def __repr__(self):
-        return "Jacobi(%s, %s)" % (repr(self.form), repr(self.function))
+import operator
 
 
 ### Utility functions:
 
-def isnumber(o):
+def _isnumber(o):
     return isinstance(o, (int, float))
+
+def product(l):
+    return reduce(operator.__mul__, l)
 
 
 ### UFLObject base class:
@@ -80,7 +17,7 @@ def isnumber(o):
 class UFLObject:
     def __init__(self):
         pass
-
+    
     # ... Strings:
     
     def __str__(self):
@@ -97,59 +34,61 @@ class UFLObject:
            All UFLObject subclasses are required to implement ops ."""
         raise NotImplementedError(self.__class__.ops)
     
-    def create_from_ops(self, ops):
-        raise NotImplementedError(self.__class__.create_from_ops)
+    def fromops(self, ops):
+        """Build a new object of the same type as self but with different ops.
+           All UFLObject subclasses are required to implement fromops."""
+        raise NotImplementedError(self.__class__.fromops)
     
-    # ... Algebraic operators:    
+    # ... Algebraic operators:
     
     def __mul__(self, o):
-        if isnumber(o): o = Number(o)
+        if _isnumber(o): o = Number(o)
         if isinstance(o, Integral):
             return Form( [Integral(o.domain_type, o.domain_id, self)] )
         return Product(self, o)
     
     def __rmul__(self, o):
-        if isnumber(o): o = Number(o)
+        if _isnumber(o): o = Number(o)
         return Product(o, self)
 
     def __add__(self, o):
-        if isnumber(o): o = Number(o)
+        if _isnumber(o): o = Number(o)
         return Sum(self, o)
 
     def __radd__(self, o):
-        if isnumber(o): o = Number(o)
+        if _isnumber(o): o = Number(o)
         return Sum(o, self)
 
     def __sub__(self, o):
-        if isnumber(o): o = Number(o)
+        if _isnumber(o): o = Number(o)
         return Sub(self, o)
 
     def __rsub__(self, o):
-        if isnumber(o): o = Number(o)
+        if _isnumber(o): o = Number(o)
         return Sub(o, self)
     
     def __div__(self, o):
-        if isnumber(o): o = Number(o)
+        if _isnumber(o): o = Number(o)
         return Division(self, o)
     
     def __rdiv__(self, o):
-        if isnumber(o): o = Number(o)
+        if _isnumber(o): o = Number(o)
         return Division(o, self)
     
     def __pow__(self, o):
-        if isnumber(o): o = Number(o)
+        if _isnumber(o): o = Number(o)
         return Power(self, o)
     
     def __rpow__(self, o):
-        if isnumber(o): o = Number(o)
+        if _isnumber(o): o = Number(o)
         return Power(o, self)
 
     def __mod__(self, o):
-        if isnumber(o): o = Number(o)
+        if _isnumber(o): o = Number(o)
         return Mod(self, o)
 
     def __rmod__(self, o):
-        if isnumber(o): o = Number(o)
+        if _isnumber(o): o = Number(o)
         return Mod(o, self)
 
     def __neg__(self):
@@ -187,7 +126,7 @@ class UFLObject:
         raise NotImplementedError(self.__len__)
 
     def __getitem__(self, key):
-        # TODO: convert key OR key items to Number objects:  if isnumber(o): o = Number(o)
+        # TODO: convert key OR key items to Number objects:  if _isnumber(o): o = Number(o)
         if isinstance(key, int):
             key = Number(key)
         elif isinstance(key, Index):
@@ -228,6 +167,88 @@ class UFLObject:
     def __cmp__(self, other): # alternative to above functions
         return cmp(repr(self), repr(other))
 
+
+
+### Integral and Form definition:
+
+class Form(UFLObject):
+    """Description of a weak form consisting of a sum of integrals over subdomains."""
+    def __init__(self, integrals):    
+        self.integrals = integrals
+    
+    def ops(self):
+        return tuple(self.integrals)
+    
+    def fromops(self, ops):
+        return Form(ops)
+    
+    def _integrals(self, domain_type):
+        itg = []
+        for i in self.integrals:
+            if i.domain_type == domain_type:
+                itg.append(i)
+        return itg
+    
+    def cell_integrals(self):
+        return self._integrals("cell")
+    
+    def exterior_facet_integrals(self):
+        return self._integrals("exterior_facet")
+    
+    def interior_facet_integrals(self):
+        return self._integrals("interior_facet")
+
+    def __contains__(self, item):
+        """Return wether item is in the UFL expression tree. If item is a str, it is assumed to be a repr."""
+        return any(item in itg for itg in self.integrals)
+    
+    def __add__(self, other):
+        return Form(self.integrals + other.integrals)
+    
+    def __str__(self):
+        return "Form([%s])" % ", ".join(str(i) for i in self.integrals)
+    
+    def __repr__(self):
+        return "Form([%s])" % ", ".join(repr(i) for i in self.integrals)
+
+
+class Integral(UFLObject):
+    """Description of an integral over a single domain."""
+    def __init__(self, domain_type, domain_id, integrand=None):
+        self.domain_type = domain_type
+        self.domain_id   = domain_id
+        self.integrand   = integrand
+    
+    def ops(self):
+        return (self.integrand,)
+    
+    def fromops(self, ops):
+        return Integral(self.domain_type, self.domain_id, *ops) # TODO: Does this make sense? And in general for objects with non-ops constructor arguments?
+    
+    def __rmul__(self, other):
+        assert self.integrand is None
+        return Form( [Integral(self.domain_type, self.domain_id, other)] )
+
+    def __contains__(self, item):
+        """Return wether item is in the UFL expression tree. If item is a str, it is assumed to be a repr."""
+        return item in self.integrand
+    
+    def __str__(self):
+        return "Integral(%s, %d, %s)" % (repr(self.domain_type), self.domain_id, self.integrand)
+    
+    def __repr__(self):
+        return "Integral(%s, %s, %s)" % (repr(self.domain_type), repr(self.domain_id), repr(self.integrand))
+
+
+
+class Jacobi:
+    """Represents a linearized form, the Jacobi of a given nonlinear form wrt a given function."""
+    def __init__(self, form, function):
+        self.form = form
+        self.function = function
+
+    def __repr__(self):
+        return "Jacobi(%s, %s)" % (repr(self.form), repr(self.function))
 
 
 
@@ -288,11 +309,8 @@ class QuadratureElement(UFLFiniteElement):
 ### Variants of functions derived from finite elements
 
 class BasisFunction(UFLObject):
-    _count = 0
     def __init__(self, element):
         self.element = element
-        self.index   = UFLCoefficient._count
-        BasisFunction._count += 1
     
     def __repr__(self):
         return "BasisFunction(%s)" % repr(self.element)
@@ -300,8 +318,9 @@ class BasisFunction(UFLObject):
     def ops(self):
         return tuple()
 
-    def create_from_ops(self, ops):
+    def fromops(self, ops):
         return self
+
 
 def BasisFunctions(element):
     if isinstance(element, MixedElement):
@@ -310,8 +329,7 @@ def BasisFunctions(element):
 
 class TestFunction(BasisFunction):
     def __init__(self, element):
-        BasisFunction.__init__(element)
-        self.index = -1
+        self.element = element
 
     def __repr__(self):
         return "TestFunction(%s)" % repr(self.element)
@@ -323,8 +341,7 @@ def TestFunctions(element):
 
 class TrialFunction(BasisFunction):
     def __init__(self, element):
-        BasisFunction.__init__(element)
-        self.index = -1
+        self.element = element
 
     def __repr__(self):
         return "TrialFunction(%s)" % repr(self.element)
@@ -337,15 +354,15 @@ def TrialFunctions(element):
 class UFLCoefficient(UFLObject):
     _count = 0
     def __init__(self, element, name):
+        self.count = UFLCoefficient._count
+        self.name = name
         self.element = element
-        self.name    = name
-        self.index   = UFLCoefficient._count
         UFLCoefficient._count += 1
 
     def ops(self):
         return tuple()
 
-    def create_from_ops(self, ops):
+    def fromops(self, ops):
         return self
 
 class Function(UFLCoefficient):
@@ -376,7 +393,7 @@ class Number(UFLObject):
     def ops(self):
         return tuple()
 
-    def create_from_ops(self, ops):
+    def fromops(self, ops):
         return self
 
 class Identity(UFLObject):
@@ -389,7 +406,7 @@ class Identity(UFLObject):
     def ops(self):
         return tuple()
 
-    def create_from_ops(self, ops):
+    def fromops(self, ops):
         return self
 
 class Transpose(UFLObject):
@@ -402,7 +419,7 @@ class Transpose(UFLObject):
     def __repr__(self):
         return "Transpose(%s)" % repr(self.f)
 
-    def create_from_ops(self, ops):
+    def fromops(self, ops):
         return self.__class__(*ops)
 
 class Symbol(UFLObject): # TODO: needed for diff?
@@ -412,7 +429,7 @@ class Symbol(UFLObject): # TODO: needed for diff?
     def ops(self):
         return tuple()
     
-    def create_from_ops(self, ops):
+    def fromops(self, ops):
         return self
     
     def __str__(self):
@@ -429,7 +446,7 @@ class Variable(UFLObject):
     def ops(self):
         return (self.expression,)
     
-    def create_from_ops(self, ops):
+    def fromops(self, ops):
         return Variable(self.name, *ops)
     
     def __repr__(self):
@@ -439,50 +456,48 @@ class Variable(UFLObject):
 ### Algebraic operators
 
 class Product(UFLObject):
-    def __init__(self, a, b):
-        self.a = a
-        self.b = b
+    def __init__(self, *ops):
+        self._ops = tuple(ops)
     
     def ops(self):
-        return (self.a, self.b)
+        return self._ops
     
-    def create_from_ops(self, ops):
+    def fromops(self, ops):
         return self.__class__(*ops)
     
     def __repr__(self):
-        return "(%s * %s)" % (repr(self.a), repr(self.b))
+        return "(%s)" % " * ".join(repr(o) for o in self._ops)
     
     def __int__(self):
-        return int(self.a) * int(self.b)
+        return product(int(i) for i in self._ops)
     
     def __long__(self):
-        return long(self.a) * long(self.b)
+        return product(long(i) for i in self._ops)
     
     def __float__(self):
-        return float(self.a) * float(self.b)
+        return product(float(i) for i in self._ops)
 
 class Sum(UFLObject):
-    def __init__(self, a, b):
-        self.a = a
-        self.b = b
+    def __init__(self, *ops):
+        self._ops = tuple(ops)
     
     def ops(self):
-        return (self.a, self.b)
+        return self._ops
     
-    def create_from_ops(self, ops):
+    def fromops(self, ops):
         return self.__class__(*ops)
     
     def __repr__(self):
-        return "(%s + %s)" % (repr(self.a), repr(self.b))
+        return "(%s)" % " + ".join(repr(o) for o in self._ops)
     
     def __int__(self):
-        return int(self.a) + int(self.b)
+        return sum(int(i) for i in self._ops)
     
     def __long__(self):
-        return long(self.a) + long(self.b)
+        return sum(long(i) for i in self._ops)
     
     def __float__(self):
-        return float(self.a) + float(self.b)
+        return sum(float(i) for i in self._ops)
 
 class Sub(UFLObject):
     def __init__(self, a, b):
@@ -492,7 +507,7 @@ class Sub(UFLObject):
     def ops(self):
         return (self.a, self.b)
     
-    def create_from_ops(self, ops):
+    def fromops(self, ops):
         return self.__class__(*ops)
     
     def __repr__(self):
@@ -515,7 +530,7 @@ class Division(UFLObject):
     def ops(self):
         return (self.a, self.b)
     
-    def create_from_ops(self, ops):
+    def fromops(self, ops):
         return self.__class__(*ops)
     
     def __repr__(self):
@@ -538,7 +553,7 @@ class Power(UFLObject):
     def ops(self):
         return (self.a, self.b)
     
-    def create_from_ops(self, ops):
+    def fromops(self, ops):
         return self.__class__(*ops)
     
     def __repr__(self):
@@ -561,7 +576,7 @@ class Mod(UFLObject):
     def ops(self):
         return (self.a, self.b)
     
-    def create_from_ops(self, ops):
+    def fromops(self, ops):
         return self.__class__(*ops)
     
     def __repr__(self):
@@ -583,7 +598,7 @@ class Abs(UFLObject):
     def ops(self):
         return (self.a, )
     
-    def create_from_ops(self, ops):
+    def fromops(self, ops):
         return self.__class__(*ops)
     
     def __repr__(self):
@@ -641,7 +656,7 @@ class Outer(UFLObject):
     def ops(self):
         return (self.a, self.b)
     
-    def create_from_ops(self, ops):
+    def fromops(self, ops):
         return self.__class__(*ops)
     
     def __repr__(self):
@@ -655,7 +670,7 @@ class Inner(UFLObject):
     def ops(self):
         return (self.a, self.b)
     
-    def create_from_ops(self, ops):
+    def fromops(self, ops):
         return self.__class__(*ops)
     
     def __repr__(self):
@@ -669,7 +684,7 @@ class Contract(UFLObject):
     def ops(self):
         return (self.a, self.b)
     
-    def create_from_ops(self, ops):
+    def fromops(self, ops):
         return self.__class__(*ops)
     
     def __repr__(self):
@@ -683,7 +698,7 @@ class Dot(UFLObject):
     def ops(self):
         return (self.a, self.b)
     
-    def create_from_ops(self, ops):
+    def fromops(self, ops):
         return self.__class__(*ops)
     
     def __repr__(self):
@@ -697,7 +712,7 @@ class Cross(UFLObject):
     def ops(self):
         return (self.a, self.b)
     
-    def create_from_ops(self, ops):
+    def fromops(self, ops):
         return self.__class__(*ops)
     
     def __repr__(self):
@@ -710,7 +725,7 @@ class Trace(UFLObject):
     def ops(self):
         return (self.A, )
     
-    def create_from_ops(self, ops):
+    def fromops(self, ops):
         return self.__class__(*ops)
     
     def __repr__(self):
@@ -723,7 +738,7 @@ class Determinant(UFLObject):
     def ops(self):
         return (self.A, )
     
-    def create_from_ops(self, ops):
+    def fromops(self, ops):
         return self.__class__(*ops)
     
     def __repr__(self):
@@ -736,7 +751,7 @@ class Inverse(UFLObject):
     def ops(self):
         return (self.A, )
     
-    def create_from_ops(self, ops):
+    def fromops(self, ops):
         return self.__class__(*ops)
     
     def __repr__(self):
@@ -807,7 +822,7 @@ class Diff(UFLObject):
     def ops(self):
         return (self.f, self.x)
     
-    def create_from_ops(self, ops):
+    def fromops(self, ops):
         return self.__class__(*ops)
     
     def __repr__(self):
@@ -820,7 +835,7 @@ class Grad(UFLObject):
     def ops(self):
         return (self.f, )
     
-    def create_from_ops(self, ops):
+    def fromops(self, ops):
         return self.__class__(*ops)
     
     def __repr__(self):
@@ -833,7 +848,7 @@ class Div(UFLObject):
     def ops(self):
         return (self.f, )
     
-    def create_from_ops(self, ops):
+    def fromops(self, ops):
         return self.__class__(*ops)
     
     def __repr__(self):
@@ -846,7 +861,7 @@ class Curl(UFLObject):
     def ops(self):
         return (self.f, )
     
-    def create_from_ops(self, ops):
+    def fromops(self, ops):
         return self.__class__(*ops)
     
     def __repr__(self):
@@ -859,7 +874,7 @@ class Wedge(UFLObject):
     def ops(self):
         return (self.f, )
     
-    def create_from_ops(self, ops):
+    def fromops(self, ops):
         return self.__class__(*ops)
     
     def __repr__(self):
@@ -895,7 +910,7 @@ class UFLFunction(UFLObject):
     def ops(self):
         return (self.argument,)
     
-    def create_from_ops(self, ops):
+    def fromops(self, ops):
         return self.__class__(*ops)
     
     def __repr__(self):
@@ -931,11 +946,11 @@ class Index(UFLObject):
     
     def __repr__(self):
         return "Index(%s)" % repr(self.name)
-
+    
     def ops(self):
         return tuple()
     
-    def create_from_ops(self, ops):
+    def fromops(self, ops):
         return self
 
 class Indexed(UFLObject):
@@ -949,7 +964,7 @@ class Indexed(UFLObject):
     def ops(self):
         return tuple(self.expression, self.indices)
     
-    def create_from_ops(self, ops):
+    def fromops(self, ops):
         return self.__class__(*ops)
 
 
