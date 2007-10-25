@@ -1,7 +1,6 @@
 from ufl import *
 from ufl_utils import *
 
-
 def test_iterators():
     polygon = "triangle"
     fe1 = FiniteElement("Lagrange", polygon, 1)
