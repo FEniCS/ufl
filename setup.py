@@ -29,5 +29,5 @@ setup(name = "UFL",
       url = "http://www.fenics.org/ufl/",
       packages = ["ufl"],
       package_dir = {"ufl": "src/ufl/"},
-      data_files = [("%s/lib/pkgconfig" % prefix, ["ufc-%d.pc" % major])])
+      data_files = [("%s/lib/pkgconfig" % prefix, ["ufl-%d.pc" % major])])
 
