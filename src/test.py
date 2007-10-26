@@ -1,5 +1,5 @@
 from ufl import *
-from ufl_utils import *
+from ufl.utilities import * 
 
 def test_iterators():
     polygon = "triangle"
