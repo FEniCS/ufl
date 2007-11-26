@@ -60,14 +60,14 @@ def test_functions():
     for element in (selement, velement, telement, qelement):
         v = TestFunction(element)
         u = TrialFunction(element)
-        f = Function(element)
-        c = Constant(element.polygon)
+        f = Function(element, "f")
+        c = Constant(element.polygon, "c")
 
 def test_contains():
     element = FiniteElement("Lagrange", "triangle", 1)
     v = TestFunction(element)
     u = TrialFunction(element)
-    f = Function(element)
+    f = Function(element, "f")
 
     a = f*(u*v)*dx
     print "a =", a
@@ -85,8 +85,8 @@ def test_basic_algebra():
     element = FiniteElement("Lagrange", "triangle", 1)
     v = TestFunction(element)
     u = TrialFunction(element)
-    f = Function(element)
-    c = Constant(element.polygon)
+    f = Function(element, "f")
+    c = Constant(element.polygon, "c")
     
     a = v + u
     print a
@@ -104,18 +104,28 @@ def test_basic_algebra():
     print p
 
 
-if __name__ == "__main__":
+def test_traversal():
 
-    test_elements()
-    test_functions()
-    test_integrals()
-    test_basic_algebra()
-    test_contains()
+    ufl = grad(f) - div(u) * (curl(v) / a*s*m)
+    
+    def func(o):
+        print o
+    
+    print ""
+    print "ufl:"
+    print ufl
+    print ""
+    print "traverse_width_first:"
+    traverse_width_first(func, ufl)
+    print ""
+    print "traverse_depth_first:"
+    traverse_depth_first(func, ufl)
+    print ""
+        
 
+def foo():
     print "TODO: clean up tests"
 
-    I = Id()
-    
     Dv = grad(v)
     Du = grad(u)
     F  = I + Du.T()
@@ -151,20 +161,12 @@ if __name__ == "__main__":
     y = Symbol("y")
 
 
-    def test_traverse():
-        ufl = grad(a) - div(m) * (wedge(m) / a*s*m)
-        
-        def func(o):
-            print o
-        
-        print ""
-        print "ufl:"
-        print ufl
-        print ""
-        print "traverse_width_first:"
-        traverse_width_first(func, ufl)
-        print ""
-        print "traverse_depth_first:"
-        traverse_depth_first(func, ufl)
-        print ""
-        
+
+if __name__ == "__main__":
+
+    test_elements()
+    test_functions()
+    test_integrals()
+    test_basic_algebra()
+    test_contains()
+

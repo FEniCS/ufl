@@ -14,7 +14,7 @@ def product(l):
 
 ### UFLObject base class:
 
-class UFLObject:
+class UFLObject(object):
     def __init__(self):
         pass
     
@@ -34,10 +34,11 @@ class UFLObject:
            All UFLObject subclasses are required to implement ops ."""
         raise NotImplementedError(self.__class__.ops)
     
-    def fromops(self, ops):
+    def fromops(self, *ops):
         """Build a new object of the same type as self but with different ops.
-           All UFLObject subclasses are required to implement fromops."""
-        raise NotImplementedError(self.__class__.fromops)
+           All UFLObject subclasses are required to implement fromops IFF their
+           constructor takes a different list of arguments than ops() returns."""
+        return self.__class__(*ops)
     
     # ... Algebraic operators:
     
@@ -61,11 +62,11 @@ class UFLObject:
 
     def __sub__(self, o):
         if _isnumber(o): o = Number(o)
-        return Sub(self, o)
+        return self + (-o)
 
     def __rsub__(self, o):
         if _isnumber(o): o = Number(o)
-        return Sub(o, self)
+        return o + (-self)
     
     def __div__(self, o):
         if _isnumber(o): o = Number(o)
@@ -93,9 +94,6 @@ class UFLObject:
 
     def __neg__(self):
         return -1*self
-    
-    def __pos__(self):
-        return self
 
     def __abs__(self):
         return Abs(self)
@@ -164,8 +162,8 @@ class UFLObject:
     def __hash__(self):
         return repr(self).__hash__()
     
-    def __cmp__(self, other): # alternative to above functions
-        return cmp(repr(self), repr(other))
+    def __eq__(self, other): # alternative to above functions
+        return repr(self) == repr(other)
 
 
 
@@ -178,9 +176,6 @@ class Form(UFLObject):
     
     def ops(self):
         return tuple(self.integrals)
-    
-    def fromops(self, ops):
-        return Form(ops)
     
     def _integrals(self, domain_type):
         itg = []
@@ -222,7 +217,7 @@ class Integral(UFLObject):
     def ops(self):
         return (self.integrand,)
     
-    def fromops(self, ops):
+    def fromops(self, *ops):
         return Integral(self.domain_type, self.domain_id, *ops) # TODO: Does this make sense? And in general for objects with non-ops constructor arguments?
     
     def __rmul__(self, other):
@@ -318,7 +313,7 @@ class BasisFunction(UFLObject):
     def ops(self):
         return tuple()
 
-    def fromops(self, ops):
+    def fromops(self, *ops):
         return self
 
 
@@ -362,7 +357,7 @@ class UFLCoefficient(UFLObject):
     def ops(self):
         return tuple()
 
-    def fromops(self, ops):
+    def fromops(self, *ops):
         return self
 
 class Function(UFLCoefficient):
@@ -393,7 +388,7 @@ class Number(UFLObject):
     def ops(self):
         return tuple()
 
-    def fromops(self, ops):
+    def fromops(self, *ops):
         return self
 
 class Identity(UFLObject):
@@ -406,7 +401,7 @@ class Identity(UFLObject):
     def ops(self):
         return tuple()
 
-    def fromops(self, ops):
+    def fromops(self, *ops):
         return self
 
 class Transpose(UFLObject):
@@ -419,9 +414,6 @@ class Transpose(UFLObject):
     def __repr__(self):
         return "Transpose(%s)" % repr(self.f)
 
-    def fromops(self, ops):
-        return self.__class__(*ops)
-
 class Symbol(UFLObject): # TODO: needed for diff?
     def __init__(self, name):
         self.name = name
@@ -429,7 +421,7 @@ class Symbol(UFLObject): # TODO: needed for diff?
     def ops(self):
         return tuple()
     
-    def fromops(self, ops):
+    def fromops(self, *ops):
         return self
     
     def __str__(self):
@@ -446,7 +438,7 @@ class Variable(UFLObject):
     def ops(self):
         return (self.expression,)
     
-    def fromops(self, ops):
+    def fromops(self, *ops):
         return Variable(self.name, *ops)
     
     def __repr__(self):
@@ -461,9 +453,6 @@ class Product(UFLObject):
     
     def ops(self):
         return self._ops
-    
-    def fromops(self, ops):
-        return self.__class__(*ops)
     
     def __repr__(self):
         return "(%s)" % " * ".join(repr(o) for o in self._ops)
@@ -483,9 +472,6 @@ class Sum(UFLObject):
     
     def ops(self):
         return self._ops
-    
-    def fromops(self, ops):
-        return self.__class__(*ops)
     
     def __repr__(self):
         return "(%s)" % " + ".join(repr(o) for o in self._ops)
@@ -507,9 +493,6 @@ class Sub(UFLObject):
     def ops(self):
         return (self.a, self.b)
     
-    def fromops(self, ops):
-        return self.__class__(*ops)
-    
     def __repr__(self):
         return "(%s - %s)" % (repr(self.a), repr(self.b))
     
@@ -529,9 +512,6 @@ class Division(UFLObject):
     
     def ops(self):
         return (self.a, self.b)
-    
-    def fromops(self, ops):
-        return self.__class__(*ops)
     
     def __repr__(self):
         return "(%s / %s)" % (repr(self.a), repr(self.b))
@@ -553,9 +533,6 @@ class Power(UFLObject):
     def ops(self):
         return (self.a, self.b)
     
-    def fromops(self, ops):
-        return self.__class__(*ops)
-    
     def __repr__(self):
         return "(%s ** %s)" % (repr(self.a), repr(self.b))
     
@@ -576,9 +553,6 @@ class Mod(UFLObject):
     def ops(self):
         return (self.a, self.b)
     
-    def fromops(self, ops):
-        return self.__class__(*ops)
-    
     def __repr__(self):
         return "(%s %% %s)" % (repr(self.a), repr(self.b))
     
@@ -597,9 +571,6 @@ class Abs(UFLObject):
     
     def ops(self):
         return (self.a, )
-    
-    def fromops(self, ops):
-        return self.__class__(*ops)
     
     def __repr__(self):
         return "Abs(%s)" % repr(self.a)
@@ -656,9 +627,6 @@ class Outer(UFLObject):
     def ops(self):
         return (self.a, self.b)
     
-    def fromops(self, ops):
-        return self.__class__(*ops)
-    
     def __repr__(self):
         return "Outer(%s, %s)" % (repr(self.a), repr(self.b))
     
@@ -669,9 +637,6 @@ class Inner(UFLObject):
     
     def ops(self):
         return (self.a, self.b)
-    
-    def fromops(self, ops):
-        return self.__class__(*ops)
     
     def __repr__(self):
         return "Inner(%s, %s)" % (repr(self.a), repr(self.b))
@@ -684,9 +649,6 @@ class Contract(UFLObject):
     def ops(self):
         return (self.a, self.b)
     
-    def fromops(self, ops):
-        return self.__class__(*ops)
-    
     def __repr__(self):
         return "Contract(%s, %s)" % (repr(self.a), repr(self.b))
 
@@ -697,9 +659,6 @@ class Dot(UFLObject):
     
     def ops(self):
         return (self.a, self.b)
-    
-    def fromops(self, ops):
-        return self.__class__(*ops)
     
     def __repr__(self):
         return "Dot(%s, %s)" % (self.a, self.b)
@@ -712,9 +671,6 @@ class Cross(UFLObject):
     def ops(self):
         return (self.a, self.b)
     
-    def fromops(self, ops):
-        return self.__class__(*ops)
-    
     def __repr__(self):
         return "Cross(%s, %s)" % (repr(self.a), repr(self.b))
 
@@ -724,9 +680,6 @@ class Trace(UFLObject):
     
     def ops(self):
         return (self.A, )
-    
-    def fromops(self, ops):
-        return self.__class__(*ops)
     
     def __repr__(self):
         return "Trace(%s)" % repr(self.A)
@@ -738,9 +691,6 @@ class Determinant(UFLObject):
     def ops(self):
         return (self.A, )
     
-    def fromops(self, ops):
-        return self.__class__(*ops)
-    
     def __repr__(self):
         return "Determinant(%s)" % repr(self.A)
 
@@ -750,9 +700,6 @@ class Inverse(UFLObject):
     
     def ops(self):
         return (self.A, )
-    
-    def fromops(self, ops):
-        return self.__class__(*ops)
     
     def __repr__(self):
         return "Inverse(%s)" % repr(self.A)
@@ -822,9 +769,6 @@ class Diff(UFLObject):
     def ops(self):
         return (self.f, self.x)
     
-    def fromops(self, ops):
-        return self.__class__(*ops)
-    
     def __repr__(self):
         return "Diff(%s, %s)" % (repr(self.f), repr(self.x))
 
@@ -834,9 +778,6 @@ class Grad(UFLObject):
     
     def ops(self):
         return (self.f, )
-    
-    def fromops(self, ops):
-        return self.__class__(*ops)
     
     def __repr__(self):
         return "Grad(%s)" % repr(self.f)
@@ -848,9 +789,6 @@ class Div(UFLObject):
     def ops(self):
         return (self.f, )
     
-    def fromops(self, ops):
-        return self.__class__(*ops)
-    
     def __repr__(self):
         return "Div(%s)" % repr(self.f)
 
@@ -861,9 +799,6 @@ class Curl(UFLObject):
     def ops(self):
         return (self.f, )
     
-    def fromops(self, ops):
-        return self.__class__(*ops)
-    
     def __repr__(self):
         return "Curl(%s)" % repr(self.f)
 
@@ -873,9 +808,6 @@ class Wedge(UFLObject):
     
     def ops(self):
         return (self.f, )
-    
-    def fromops(self, ops):
-        return self.__class__(*ops)
     
     def __repr__(self):
         return "Wedge(%s)" % repr(self.f)
@@ -909,9 +841,6 @@ class UFLFunction(UFLObject):
     
     def ops(self):
         return (self.argument,)
-    
-    def fromops(self, ops):
-        return self.__class__(*ops)
     
     def __repr__(self):
         return "%s(%s)" % (self.name, repr(self.argument))
@@ -950,7 +879,7 @@ class Index(UFLObject):
     def ops(self):
         return tuple()
     
-    def fromops(self, ops):
+    def fromops(self, *ops):
         return self
 
 class Indexed(UFLObject):
@@ -963,9 +892,6 @@ class Indexed(UFLObject):
     
     def ops(self):
         return tuple(self.expression, self.indices)
-    
-    def fromops(self, ops):
-        return self.__class__(*ops)
 
 
 
@@ -993,7 +919,7 @@ class CellRadius(GeometricQuantity):
 
 # Utility objects for pretty syntax in user code
 
-Id = Identity()
+I = Identity()
 
 n = FacetNormal()
 h = CellRadius()
