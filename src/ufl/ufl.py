@@ -818,6 +818,12 @@ class Wedge(UFLObject):
 def diff(f, x):
     return Diff(f, x)
 
+def Dx(f, i):
+    return Diff(f, x[i])
+
+def Dt(f):
+    return Diff(f, t)
+
 def grad(f):
     return Grad(f)
 
