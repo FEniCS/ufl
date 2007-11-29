@@ -21,19 +21,26 @@ class UFLVisitor:
 class BasisFunctionFinder(UFLVisitor):
     def __init__(self):
         UFLVisitor.__init__(self)
-        self.register(TestFunction,  self.test_function)
+        self.register(TestFunction,  self.test_function)  # FIXME: just use BasisFunction
         self.register(TrialFunction, self.trial_function)
+        self.register(BasisFunction, self.basis_function)
         self.reset()
     
     def reset(self):
-        self.testfunctions = set()
+        self.testfunctions  = set()
         self.trialfunctions = set()
+        self.basisfunctions = set()
     
     def test_function(self, o):
         self.testfunctions.add(o)
+        self.basisfunctions.add(o)
     
     def trial_function(self, o):
         self.trialfunctions.add(o)
+        self.basisfunctions.add(o)
+    
+    def basis_function(self, o):
+        self.basisfunctions.add(o)
 
 
 class CoefficientFinder(UFLVisitor):
@@ -88,7 +95,7 @@ class UFLTransformer:
         return self._f.get(o.__class__, self._f[UFLObject])(o)
     
     def _default(self, o):
-        return o.fromops(self.visit(i) for i in o.ops())
+        return o.fromops(self.visit(oo) for oo in o.ops())
 
 
 class TreeFlattener(UFLTransformer):
@@ -99,20 +106,19 @@ class TreeFlattener(UFLTransformer):
     
     def flatten_sum_or_product(self, o):
         ops = []
-        for i in o.ops():
-            j = self.visit(i)
-            if isinstance(j, o.__class__):
-                ops.extend(j.ops())
+        for a in o.ops():
+            b = self.visit(a)
+            if isinstance(b, o.__class__):
+                ops.extend(b.ops())
             else:
-                ops.append(j)
+                ops.append(b)
         return o.fromops(ops)
 
 
-#from swiginac import *
-#from sfc.symbolic_utils import *
-class SwiginacEvaluator(UFLTransformer):
+class IndexEvaluator(UFLTransformer): # FIXME: how to do this?
     def __init__(self):
         UFLTransformer.__init__(self)
+        self.register(UFLObject,   self.default)
         
         self.register(Sum,         self.sum)
         self.register(Product,     self.product)
@@ -124,18 +130,27 @@ class SwiginacEvaluator(UFLTransformer):
         self.register(Div,         self.div)
         self.register(Curl,        self.curl)
         self.register(Wedge,       self.wedge)
-        
-        self.register(FacetNormal, self.facet_normal)
-        
-        # TODO: add a whole lot of other operations here...
-        # TODO: take some context information in constructor, add sfc.Integral object self.itg, perhaps name this class "IntegralBuilder"?
-        self.itg = None # built from context
-        self.sfc = None # sfc.symbolic_utils
-        
-        self.reset()
     
-    def reset(self):
-        self.tokens = []
+    def default(self, o):
+        ops = []
+        idx_list = []
+        idx_set  = []
+        for a in o.ops():
+            b = self.visit(a)
+            ops.append(b)
+        return o.fromops(ops)
+
+
+
+class UFL2Something(UFLTransformer):
+    def __init__(self):
+        UFLTransformer.__init__(self)
+        # default functions for all classes that use built in python operators
+        self.register(Sum,         self.sum)
+        self.register(Product,     self.product)
+        self.register(Sub,         self.sub)
+        self.register(Division,    self.division)
+        self.register(Power,       self.power)
     
     def sum(self, o):
         return sum(self.visit(i) for i in o.ops())
@@ -157,6 +172,78 @@ class SwiginacEvaluator(UFLTransformer):
         a, b = o.ops()
         a, b = self.visit(a), self.visit(b)
         return a ** b
+
+
+class UFL2UFL(UFL2Something):
+    def __init__(self):
+        UFL2Something.__init__(self)
+        self.register(UFLObject,   self.default)
+
+        # TODO: compound tensor operations (inner, dot, outer, ...)
+        
+        # compound differential operators:
+        self.register(Grad,        self.grad)
+        self.register(Div,         self.div)
+        self.register(Curl,        self.curl)
+        self.register(Wedge,       self.wedge)
+        
+        # terminal objects:
+        self.register(FacetNormal, self.facet_normal)
+        
+        # TODO: add operations for all classes here...
+    
+    def default(self, o):
+        return o.fromops(self.visit(oo) for i in o.ops())
+    
+    def grad(self, o):
+        f, = o.ops()
+        f = self.visit(f)
+        return grad(f)
+    
+    def div(self, o):
+        f, = o.ops()
+        f = self.visit(f)
+        return div(f)
+    
+    def curl(self, o):
+        f, = o.ops()
+        f = self.visit(f)
+        return curl(f)
+    
+    def wedge(self, o):
+        a, b = o.ops()
+        a = self.visit(a)
+        b = self.visit(b)
+        return wedge(a, b)
+    
+    def facet_normal(self, o):
+        return FacetNormal()
+
+
+
+# TODO: move this to SyFi code, finish and apply, then add quadrature support
+#from swiginac import *
+#from sfc.symbolic_utils import *
+class SwiginacEvaluator(UFL2Something):
+    def __init__(self):
+        UFL2Something.__init__(self)
+        
+        self.register(Grad,        self.grad)
+        self.register(Div,         self.div)
+        self.register(Curl,        self.curl)
+        self.register(Wedge,       self.wedge)
+        
+        self.register(FacetNormal, self.facet_normal)
+        
+        # TODO: add a whole lot of other operations here...
+        # TODO: take some context information in constructor, add sfc.Integral object self.itg, perhaps name this class "IntegralBuilder"?
+        self.itg = None # built from context
+        self.sfc = None # sfc.symbolic_utils
+        
+        self.reset()
+    
+    def reset(self):
+        self.tokens = []
     
     def grad(self, o):
         f, = o.ops()
@@ -184,6 +271,30 @@ class SwiginacEvaluator(UFLTransformer):
     
     def facet_normal(self, o):
         return self.itg.n()
+
+
+# Simpler user interfaces to utilities:
+
+def basisfunctions(u):
+    vis = BasisFunctionFinder()
+    vis.visit(u)
+    # TODO: sort
+    return vis.basisfunctions
+
+def coefficients(u):
+    vis = CoefficientFinder()
+    vis.visit(u)
+    # TODO: sort
+    return vis.coefficients
+
+def duplications(u):
+    vis = SubtreeFinder()
+    vis.visit(f)
+    return vis.duplicated
+
+def flatten(u):
+    vis = TreeFlattener()
+    return vis.visit(f)
 
 
 if __name__ == "__main__":
