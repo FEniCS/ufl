@@ -1,0 +1,20 @@
+Roadmap for the development of UFL
+----------------------------------
+
+- Elaborate more on the feature list on the wiki, trying to exhaust all ideas we have
+
+- Define syntactic tests
+
+- Discuss implementation approach (base on sympy? depends on the complexity we want)
+
+- Finish implementation of UFL prototype such that all the syntactic tests pass
+
+- Define tests that require a form compiler and verifies the computed element tensors
+  (can use ufc_benchmark module and compare with results from existing working form compiler implementations)
+
+- Implement utility algorithms that aid in the implementation of form compilers
+
+- Implement UFL support in form compilers
+
+- Make all tests pass for all form compiler configurations!
+

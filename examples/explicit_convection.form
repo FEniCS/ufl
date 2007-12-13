@@ -1,0 +1,9 @@
+
+element = FiniteElement("Lagrange", "triangle", 1)
+
+u = TrialFunction(element)
+v = TestFunction(element)
+w = Function(element)
+
+a = dot( dot(w, grad(u)), v ) * dx
+
