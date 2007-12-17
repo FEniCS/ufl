@@ -1,4 +1,15 @@
+#!/usr/bin/env python
 
+"""
+This module contains the UFLObject base class and all expression tree node types,
+ie all classes and objects needed to cover the UFL language specification.
+"""
+
+__version__ = "0.1"
+__authors__ = "Martin Sandve Alnes"
+__copyright__ = __authors__ + " (2007)"
+__licence__ = "GPL" # TODO: which licence?
+__date__ = "17th of December 2007"
 
 import operator
 
@@ -896,9 +907,15 @@ class Indexed(UFLObject):
     def __repr__(self):
         return "Indexed(%s, %s)" % (repr(self.expression), repr(self.indices))
     
-    def ops(self):
-        return tuple(self.expression, self.indices)
-
+    def ops(self): # FIXME: should this return the indices at all?
+        raise RuntimeError("Not sure how this should be implemented.")
+        if isinstance(self.indices, tuple):
+            return tuple([self.expression] + list(self.indices))
+        return tuple(self.expression, self.indices) # FIXME: should this return the indices at all?
+    
+    def fromops(self, *ops):
+        raise RuntimeError("Not sure how this should be implemented.")
+        return self
 
 
 ### Quantities computed from cell geometry

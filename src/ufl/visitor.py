@@ -1,5 +1,21 @@
+#!/usr/bin/env python
 
-from ufl import *
+"""
+This module contains algorithms based on the visitor pattern, which is mostly
+suited to traverse en expression tree and build up some information about the tree
+without modifying it.
+
+(Organizing algorithms by implementation technique is a temporary strategy
+only to be used during the current experimental implementation phase).
+"""
+
+__version__ = "0.1"
+__authors__ = "Martin Sandve Alnes"
+__copyright__ = __authors__ + " (2007)"
+__licence__ = "GPL" # TODO: which licence?
+__date__ = "17th of December 2007"
+
+from uflbase import *
 
 
 class UFLVisitor:
@@ -83,218 +99,6 @@ class SubtreeFinder(UFLVisitor):
                 self.visit(i)
 
 
-class UFLTransformer:
-    def __init__(self):
-        self._f = {}
-        self.register(UFLObject, self._default)
-    
-    def register(self, classobject, function):
-        self._f[classobject] = function
-    
-    def visit(self, o):
-        return self._f.get(o.__class__, self._f[UFLObject])(o)
-    
-    def _default(self, o):
-        return o.fromops(self.visit(oo) for oo in o.ops())
-
-
-class TreeFlattener(UFLTransformer):
-    def __init__(self):
-        UFLTransformer.__init__(self)
-        self.register(Sum,       self.flatten_sum_or_product)
-        self.register(Product,   self.flatten_sum_or_product)
-    
-    def flatten_sum_or_product(self, o):
-        ops = []
-        for a in o.ops():
-            b = self.visit(a)
-            if isinstance(b, o.__class__):
-                ops.extend(b.ops())
-            else:
-                ops.append(b)
-        return o.fromops(ops)
-
-
-class IndexEvaluator(UFLTransformer): # FIXME: how to do this?
-    def __init__(self):
-        UFLTransformer.__init__(self)
-        self.register(UFLObject,   self.default)
-        
-        self.register(Sum,         self.sum)
-        self.register(Product,     self.product)
-        self.register(Sub,         self.sub)
-        self.register(Division,    self.division)
-        self.register(Power,       self.power)
-        
-        self.register(Grad,        self.grad)
-        self.register(Div,         self.div)
-        self.register(Curl,        self.curl)
-        self.register(Wedge,       self.wedge)
-    
-    def default(self, o):
-        ops = []
-        idx_list = []
-        idx_set  = []
-        for a in o.ops():
-            b = self.visit(a)
-            ops.append(b)
-        return o.fromops(ops)
-
-
-
-class UFL2Something(UFLTransformer):
-    def __init__(self):
-        UFLTransformer.__init__(self)
-        # default functions for all classes that use built in python operators
-        self.register(Sum,         self.sum)
-        self.register(Product,     self.product)
-        self.register(Sub,         self.sub)
-        self.register(Division,    self.division)
-        self.register(Power,       self.power)
-    
-    def sum(self, o):
-        return sum(self.visit(i) for i in o.ops())
-    
-    def product(self, o):
-        return product(self.visit(i) for i in o.ops())
-    
-    def sub(self, o):
-        a, b = o.ops()
-        a, b = self.visit(a), self.visit(b)
-        return a - b
-    
-    def division(self, o):
-        a, b = o.ops()
-        a, b = self.visit(a), self.visit(b)
-        return a / b
-    
-    def power(self, o):
-        a, b = o.ops()
-        a, b = self.visit(a), self.visit(b)
-        return a ** b
-
-
-class UFL2UFL(UFL2Something):
-    def __init__(self):
-        UFL2Something.__init__(self)
-        self.register(UFLObject,   self.default)
-
-        # TODO: compound tensor operations (inner, dot, outer, ...)
-        
-        # compound differential operators:
-        self.register(Grad,        self.grad)
-        self.register(Div,         self.div)
-        self.register(Curl,        self.curl)
-        self.register(Wedge,       self.wedge)
-        
-        # terminal objects:
-        self.register(FacetNormal, self.facet_normal)
-        
-        # TODO: add operations for all classes here...
-    
-    def default(self, o):
-        return o.fromops(self.visit(oo) for i in o.ops())
-    
-    def grad(self, o):
-        f, = o.ops()
-        f = self.visit(f)
-        return grad(f)
-    
-    def div(self, o):
-        f, = o.ops()
-        f = self.visit(f)
-        return div(f)
-    
-    def curl(self, o):
-        f, = o.ops()
-        f = self.visit(f)
-        return curl(f)
-    
-    def wedge(self, o):
-        a, b = o.ops()
-        a = self.visit(a)
-        b = self.visit(b)
-        return wedge(a, b)
-    
-    def facet_normal(self, o):
-        return FacetNormal()
-
-
-
-# TODO: move this to SyFi code, finish and apply, then add quadrature support
-#from swiginac import *
-#from sfc.symbolic_utils import *
-class SwiginacEvaluator(UFL2Something):
-    def __init__(self):
-        UFL2Something.__init__(self)
-        
-        self.register(Grad,        self.grad)
-        self.register(Div,         self.div)
-        self.register(Curl,        self.curl)
-        self.register(Wedge,       self.wedge)
-        
-        self.register(FacetNormal, self.facet_normal)
-        
-        # TODO: add a whole lot of other operations here...
-        # TODO: take some context information in constructor, add sfc.Integral object self.itg, perhaps name this class "IntegralBuilder"?
-        self.itg = None # built from context
-        self.sfc = None # sfc.symbolic_utils
-        
-        self.reset()
-    
-    def reset(self):
-        self.tokens = []
-    
-    def grad(self, o):
-        f, = o.ops()
-        f = self.visit(f)
-        GinvT = self.itg.GinvT()
-        return self.sfc.grad(f, GinvT)
-    
-    def div(self, o):
-        f, = o.ops()
-        f = self.visit(f)
-        GinvT = self.itg.GinvT()
-        return self.sfc.div(f, GinvT)
-    
-    def curl(self, o):
-        f, = o.ops()
-        f = self.visit(f)
-        GinvT = self.itg.GinvT()
-        return self.sfc.curl(f, GinvT)
-    
-    def wedge(self, o):
-        f, = o.ops()
-        f = self.visit(f)
-        GinvT = self.itg.GinvT()
-        return self.sfc.wedge(f, GinvT)
-    
-    def facet_normal(self, o):
-        return self.itg.n()
-
-
-# Simpler user interfaces to utilities:
-
-def basisfunctions(u):
-    vis = BasisFunctionFinder()
-    vis.visit(u)
-    # TODO: sort
-    return vis.basisfunctions
-
-def coefficients(u):
-    vis = CoefficientFinder()
-    vis.visit(u)
-    # TODO: sort
-    return vis.coefficients
-
-def duplications(u):
-    vis = SubtreeFinder()
-    vis.visit(f)
-    return vis.duplicated
-
-def flatten(u):
-    vis = TreeFlattener()
-    return vis.visit(f)
 
 
 if __name__ == "__main__":
