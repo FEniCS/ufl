@@ -74,7 +74,7 @@ class TraversalTestCase(unittest.TestCase):
         f = exp(a+b*c/d)**g-e
         print f
         print ""
-        print list(ufl_objs(f))
+        print list(iter_ufl_objs(f))
         print ""
         print "iter_depth_first(f):"
         print list(iter_depth_first(f))
