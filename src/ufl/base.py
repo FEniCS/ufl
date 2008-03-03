@@ -134,27 +134,30 @@ class UFLObject(object):
     def __len__(self):
         raise NotImplementedError(self.__len__)
 
+    #def __getitem__(self, key):
+    #    # TODO: convert key OR key items to Number objects:  if _isnumber(o): o = Number(o)
+    #    if isinstance(key, int):
+    #        key = Number(key)
+    #    elif isinstance(key, Index):
+    #        pass
+    #    elif isinstance(key, tuple):
+    #        k = []
+    #        for t in key:
+    #            if isinstance(t, int):
+    #                t = Number(t)
+    #            k.append(t)
+    #        key = tuple(k)
+    #    else:
+    #        raise TypeError()
+
     def __getitem__(self, key):
-        # TODO: convert key OR key items to Number objects:  if _isnumber(o): o = Number(o)
-        if isinstance(key, int):
-            key = Number(key)
-        elif isinstance(key, Index):
-            pass
-        elif isinstance(key, tuple):
-            k = []
-            for t in key:
-                if isinstance(t, int):
-                    t = Number(t)
-                k.append(t)
-            key = tuple(k)
-        else:
-            raise TypeError()
         return Indexed(self, key)
 
-    def __setitem__(self, key, value):
-        if not isinstance(key, (int, Index, tuple)):
-            raise TypeError()
-        raise IndexError()
+    # Should we even have this? Not on general expressions, maybe in a Tensor/Matrix/Vector class or something.
+    #def __setitem__(self, key, value):
+    #    if not isinstance(key, (int, Index, tuple)):
+    #        raise TypeError()
+    #    raise IndexError()
 
     # ... Searching for an UFLObject the subexpression tree:
 
@@ -167,7 +170,7 @@ class UFLObject(object):
         if repr(self) == item:
             return True
         return any((item in o) for o in self.ops())
-
+    
     # ... Support for inserting an UFLObject in dicts and sets:
     
     def __hash__(self):
@@ -256,135 +259,6 @@ class Jacobi:
     def __repr__(self):
         return "Jacobi(%s, %s)" % (repr(self.form), repr(self.function))
 
-
-
-
-### Finite element definitions
-
-# TODO: should rather have an inheritance hierarchy here, all *Element classes interiting a single base class:
-# if isinstance(a, UFLFiniteElement)
-
-class UFLFiniteElement:
-    def __init__(self, polygon):
-        self.polygon = polygon
-
-    def __add__(self, other):
-        return MixedElement(self, other)
-
-class FiniteElement(UFLFiniteElement):
-    def __init__(self, family, polygon, order):
-        UFLFiniteElement.__init__(self, polygon)
-        self.family  = family
-        self.order   = order
-    
-    def __repr__(self):
-        return "FiniteElement(%s, %s, %d)" % (repr(self.family), repr(self.polygon), self.order)
-
-class VectorElement(UFLFiniteElement):
-    def __init__(self, family, polygon, order, size=None):
-        UFLFiniteElement.__init__(self, polygon)
-        self.family  = family
-        self.order   = order
-        self.size    = size
-    
-    def __repr__(self):
-        return "VectorElement(%s, %s, %d, %s)" % (repr(self.family), repr(self.polygon), self.order, repr(self.size))
-
-class TensorElement(UFLFiniteElement):
-    def __init__(self, family, polygon, order, shape=None):
-        UFLFiniteElement.__init__(self, polygon)
-        self.family  = family
-        self.order   = order
-        self.shape   = shape
-    
-    def __repr__(self):
-        return "TensorElement(%s, %s, %d, %s)" % (repr(self.family), repr(self.polygon), self.order, repr(self.shape))
-
-class MixedElement(UFLFiniteElement):
-    def __init__(self, *elements):
-        UFLFiniteElement.__init__(self, elements[0].polygon)
-        self.elements = elements
-
-class QuadratureElement(UFLFiniteElement):
-    def __init__(self, polygon, domain_type="cell"):
-        UFLFiniteElement.__init__(self, polygon)
-        self.domain_type = domain_type # TODO: define this better
-
-
-
-### Variants of functions derived from finite elements
-
-class BasisFunction(UFLObject):
-    def __init__(self, element):
-        self.element = element
-    
-    def __repr__(self):
-        return "BasisFunction(%s)" % repr(self.element)
-
-    def ops(self):
-        return tuple()
-
-    def fromops(self, *ops):
-        return self
-
-
-def BasisFunctions(element):
-    if isinstance(element, MixedElement):
-        return tuple(BasisFunction(fe) for fe in element.elements)
-    raise ValueError("Expecting MixedElement instance.")
-
-class TestFunction(BasisFunction):
-    def __init__(self, element):
-        self.element = element
-
-    def __repr__(self):
-        return "TestFunction(%s)" % repr(self.element)
-
-def TestFunctions(element):
-    if isinstance(element, MixedElement):
-        return tuple(TestFunction(fe) for fe in element.elements)
-    raise ValueError("Expecting MixedElement instance.")
-
-class TrialFunction(BasisFunction):
-    def __init__(self, element):
-        self.element = element
-
-    def __repr__(self):
-        return "TrialFunction(%s)" % repr(self.element)
-
-def TrialFunctions(element):
-    if isinstance(element, MixedElement):
-        return tuple(TrialFunction(fe) for fe in element.elements)
-    raise ValueError("Expecting MixedElement instance.")
-
-class UFLCoefficient(UFLObject):
-    _count = 0
-    def __init__(self, element, name):
-        self.count = UFLCoefficient._count
-        self.name = name
-        self.element = element
-        UFLCoefficient._count += 1
-
-    def ops(self):
-        return tuple()
-
-    def fromops(self, *ops):
-        return self
-
-class Function(UFLCoefficient):
-    def __init__(self, element, name):
-        UFLCoefficient.__init__(self, element, name)
-    
-    def __repr__(self):
-        return "Function(%s, %s)" % (repr(self.element), repr(self.name))
-
-class Constant(UFLCoefficient):
-    def __init__(self, polygon, name):
-        UFLCoefficient.__init__(self, FiniteElement("DiscontinuousLagrange", polygon, 0), name)
-        self.polygon = polygon
-    
-    def __repr__(self):
-        return "Constant(%s, %s)" % (repr(self.element.polygon), repr(self.name))
 
 
 ### Basic ... stuff
@@ -597,292 +471,6 @@ class Abs(UFLObject):
 
 
 
-### Algebraic operations on tensors:
-# TODO: define dot, inner, and contract clearly:
-# Scalars:
-#   dot(a,b)      = a*b
-#   inner(a,b)    = a*b
-#   contract(a,b) = a*b
-# Vectors:
-#   dot(u,v)      = u_i v_i
-#   inner(u,v)    = u_i v_i
-#   contract(u,v) = u_i v_i
-# Matrices:
-#   dot(A,B)      = A_{ik} B_{kj}
-#   inner(A,B)    = A_{ij} B_{ij}
-#   contract(A,B) = A_{ij} B_{ij}
-# Combined:
-#   dot(A,u)      = A_{ik} u_k
-#   inner(A,u)    = A_{ik} u_k
-#   contract(A,u) = A_{ik} u_k
-#   dot(u,B)      = u_k B_{ki}
-#   inner(u,B)    = u_k B_{ki}
-#   contract(u,B) = u_k B_{ki}
-#
-# Maybe in general (contract is clearly a duplicate of inner above):
-#   dot(x,y)   = contract(x, -1, y, 0)        # (last x dim) vs (first y dim)
-#   inner(x,y) = contract(A, (0,1), B, (0,1)) # (all A dims) vs (all B dims)
-#   contract(x,(xi),y,(yi)) = \sum_i x_{xi} y_{yi} # something like this, xi and yi are multiindices, TODO: need to design index stuff properly
-#
-#   dot(x,y): last index of x has same dimension as first index of y
-#   inner(x,y): shape of x equals the shape of y
-#   contract(x, xi, y, yi): len(xi) == len(yi), dimensions of indices in xi and yi match, dim(x) >= max(xi), dim(y) >= max(yi)
-
-# objects representing the operations:
-
-class Outer(UFLObject):
-    def __init__(self, a, b):
-        self.a = a
-        self.b = b
-    
-    def ops(self):
-        return (self.a, self.b)
-    
-    def __repr__(self):
-        return "Outer(%s, %s)" % (repr(self.a), repr(self.b))
-    
-class Inner(UFLObject):
-    def __init__(self, a, b):
-        self.a = a
-        self.b = b
-    
-    def ops(self):
-        return (self.a, self.b)
-    
-    def __repr__(self):
-        return "Inner(%s, %s)" % (repr(self.a), repr(self.b))
-
-class Contract(UFLObject):
-    def __init__(self, a, b):
-        self.a = a
-        self.b = b
-    
-    def ops(self):
-        return (self.a, self.b)
-    
-    def __repr__(self):
-        return "Contract(%s, %s)" % (repr(self.a), repr(self.b))
-
-class Dot(UFLObject):
-    def __init__(self, a, b):
-        self.a = a
-        self.b = b
-    
-    def ops(self):
-        return (self.a, self.b)
-    
-    def __repr__(self):
-        return "Dot(%s, %s)" % (self.a, self.b)
-
-class Cross(UFLObject):
-    def __init__(self, a, b):
-        self.a = a
-        self.b = b
-    
-    def ops(self):
-        return (self.a, self.b)
-    
-    def __repr__(self):
-        return "Cross(%s, %s)" % (repr(self.a), repr(self.b))
-
-class Trace(UFLObject):
-    def __init__(self, A):
-        self.A = A
-    
-    def ops(self):
-        return (self.A, )
-    
-    def __repr__(self):
-        return "Trace(%s)" % repr(self.A)
-
-class Determinant(UFLObject):
-    def __init__(self, A):
-        self.A = A
-    
-    def ops(self):
-        return (self.A, )
-    
-    def __repr__(self):
-        return "Determinant(%s)" % repr(self.A)
-
-class Inverse(UFLObject):
-    def __init__(self, A):
-        self.A = A
-    
-    def ops(self):
-        return (self.A, )
-    
-    def __repr__(self):
-        return "Inverse(%s)" % repr(self.A)
-
-# functions exposed to the user:
-
-def outer(a, b):
-    return Outer(a, b)
-
-def inner(a, b):
-    return Inner(a, b)
-
-def contract(a, b):
-    return Contract(a, b)
-
-def dot(a, b):
-    return Dot(a, b)
-
-def cross(a, b):
-    return Cross(a, b)
-
-def det(f):
-    return Determinant(f)
-
-def determinant(f):
-    return Determinant(f)
-
-def inverse(f):
-    return Inverse(f)
-
-def tr(f):
-    return Trace(f)
-
-def trace(f):
-    return Trace(f)
-
-def dev(A): # TODO:
-    return Deviatoric(A)
-
-#def cofactor(A): # TODO:
-#    return det(A)*inverse(A)
-
-
-### Differential operators
-
-# objects representing the differential operations:
-
-class DiffOperator(UFLObject):
-    def __init__(self, x):
-        if isinstance(x, int):
-            x = p[x]
-        elif not isinstance(x, Symbol):
-            raise ValueError("x must be a Symbol")
-        self.x = x
-    
-    def __mul__(self, o):
-        return diff(o, self.x)
-
-    def __repr__(self):
-        return "DiffOperator(%s)" % repr(self.x)
-
-class Diff(UFLObject):
-    def __init__(self, f, x):
-        self.f = f
-        self.x = x
-    
-    def ops(self):
-        return (self.f, self.x)
-    
-    def __repr__(self):
-        return "Diff(%s, %s)" % (repr(self.f), repr(self.x))
-
-class Grad(UFLObject):
-    def __init__(self, f):
-        self.f = f
-    
-    def ops(self):
-        return (self.f, )
-    
-    def __repr__(self):
-        return "Grad(%s)" % repr(self.f)
-
-class Div(UFLObject):
-    def __init__(self, f):
-        self.f = f
-    
-    def ops(self):
-        return (self.f, )
-    
-    def __repr__(self):
-        return "Div(%s)" % repr(self.f)
-
-class Curl(UFLObject):
-    def __init__(self, f):
-        self.f = f
-    
-    def ops(self):
-        return (self.f, )
-    
-    def __repr__(self):
-        return "Curl(%s)" % repr(self.f)
-
-class Wedge(UFLObject):
-    def __init__(self, f):
-        self.f = f
-    
-    def ops(self):
-        return (self.f, )
-    
-    def __repr__(self):
-        return "Wedge(%s)" % repr(self.f)
-
-
-# functions exposed to the user:
-
-def diff(f, x):
-    return Diff(f, x)
-
-def Dx(f, i):
-    return Diff(f, x[i])
-
-def Dt(f):
-    return Diff(f, t)
-
-def grad(f):
-    return Grad(f)
-
-def div(f):
-    return Div(f)
-
-def curl(f):
-    return Curl(f)
-
-def wedge(f):
-    return Wedge(f)
-
-
-
-### Functions
-
-class UFLFunction(UFLObject):
-    def __init__(self, name, argument):
-        self.name     = name
-        self.argument = argument
-    
-    def ops(self):
-        return (self.argument,)
-    
-    def __repr__(self):
-        return "%s(%s)" % (self.name, repr(self.argument))
-
-# functions exposed to the user:
-
-def sqrt(f):
-    return UFLFunction("sqrt", f)
-
-def exp(f):
-    return UFLFunction("exp", f)
-
-def ln(f):
-    return UFLFunction("ln", f)
-
-def cos(f):
-    return UFLFunction("cos", f)
-
-def sin(f):
-    return UFLFunction("sin", f)
-
-def tan(f):
-    return UFLFunction("tan", f)
-
-
 
 ### Indexing
 
@@ -916,45 +504,6 @@ class Indexed(UFLObject):
     def fromops(self, *ops):
         raise RuntimeError("Not sure how this should be implemented.")
         return self
-
-
-### Quantities computed from cell geometry
-
-class GeometricQuantity(UFLObject):
-    def __init__(self):
-        pass
-
-class FacetNormal(GeometricQuantity):
-    def __init__(self):
-        pass
-    
-    def __repr__(self):
-        return "FacetNormal()"
-
-class CellRadius(GeometricQuantity):
-    def __init__(self):
-        pass
-    
-    def __repr__(self):
-        return "CellRadius()"
-
-
-
-# Utility objects for pretty syntax in user code
-
-I = Identity()
-
-n = FacetNormal()
-h = CellRadius()
-
-# default indices
-i, j, k, l, m, n, o, p, q, r, s = [Index(name) for name in "ijklmnopqrs"]
-
-# default integrals
-dx0, dx1, dx2, dx3, dx4, dx5, dx6, dx7, dx8, dx9 = [Integral("cell", domain_id)           for domain_id in range(10)]
-ds0, ds1, ds2, ds3, ds4, ds5, ds6, ds7, ds8, ds9 = [Integral("exterior_facet", domain_id) for domain_id in range(10)]
-dS0, dS1, dS2, dS3, dS4, dS5, dS6, dS7, dS8, dS9 = [Integral("interior_facet", domain_id) for domain_id in range(10)]
-dx, ds, dS = dx0, ds0, dS0
 
 
 

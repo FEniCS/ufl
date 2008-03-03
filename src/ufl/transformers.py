@@ -13,7 +13,7 @@ __copyright__ = __authors__ + " (2007)"
 __licence__ = "GPL" # TODO: which licence?
 __date__ = "17th of December 2007"
 
-from uflbase import *
+from all import *
 
 
 class UFLTransformer:
@@ -159,16 +159,16 @@ class UFL2UFL(UFL2Something):
 
 
 # TODO: move this to SyFi code, finish and apply, then add quadrature support
-#from swiginac import *
+from swiginac import *
 #from sfc.symbolic_utils import *
 class SwiginacEvaluator(UFL2Something):
     def __init__(self):
         UFL2Something.__init__(self)
         
-        self.register(Grad,        self.grad)
-        self.register(Div,         self.div)
-        self.register(Curl,        self.curl)
-        self.register(Wedge,       self.wedge)
+        self.register(Grad,          self.grad)
+        self.register(Div,           self.div)
+        self.register(Curl,          self.curl)
+        self.register(BasisFunction, self.basis_function)
         
         self.register(FacetNormal, self.facet_normal)
         
@@ -182,30 +182,54 @@ class SwiginacEvaluator(UFL2Something):
     def reset(self):
         self.tokens = []
     
-    def grad(self, o):
+    def basis_function(self, o):
+        i = o.index # TODO: fix this
+        return self._basis_function[i]
+    
+    def grad(self, o): # TODO: must support token "barriers", build on general derivative code
         f, = o.ops()
         f = self.visit(f)
         GinvT = self.itg.GinvT()
         return self.sfc.grad(f, GinvT)
     
-    def div(self, o):
+    def div(self, o): # TODO: must support token "barriers", build on general derivative code
         f, = o.ops()
         f = self.visit(f)
         GinvT = self.itg.GinvT()
         return self.sfc.div(f, GinvT)
     
-    def curl(self, o):
+    def curl(self, o): # TODO: must support token "barriers", build on general derivative code
         f, = o.ops()
         f = self.visit(f)
         GinvT = self.itg.GinvT()
         return self.sfc.curl(f, GinvT)
     
-    def wedge(self, o):
-        f, = o.ops()
-        f = self.visit(f)
-        GinvT = self.itg.GinvT()
-        return self.sfc.wedge(f, GinvT)
-    
     def facet_normal(self, o):
-        return self.itg.n()
+        return symbol("n")
+        #return self.itg.n()
+
+
+if __name__ == "__main__":
+    a = FiniteElement("La", "tr", 1)
+    b = VectorElement("La", "tr", 1)
+    c = TensorElement("La", "tr", 1)
+    
+    u = TrialFunction(a)
+    v = TestFunction(a)
+    
+    g = Function(a, "g")
+    c = Constant(a.polygon, "c")
+    
+    e = SwiginacEvaluator()
+    u = FacetNormal()
+    n = e.visit(u)
+    print n, type(n)
+    
+    f = u + 1 + v + 2 + g + 3
+    print ""
+    print f   
+    vis = TreeFlattener()
+    print ""
+    print vis.visit(f)
+    print ""
 

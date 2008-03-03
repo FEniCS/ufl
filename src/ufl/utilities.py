@@ -17,7 +17,7 @@ __copyright__ = __authors__ + " (2007)"
 __licence__ = "GPL" # TODO: which licence?
 __date__ = "17th of December 2007"
 
-from uflbase import *
+from base import *
 
 
 ### Utilities to extract information from an expression:

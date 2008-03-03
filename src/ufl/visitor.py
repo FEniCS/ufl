@@ -15,7 +15,7 @@ __copyright__ = __authors__ + " (2007)"
 __licence__ = "GPL" # TODO: which licence?
 __date__ = "17th of December 2007"
 
-from uflbase import *
+from all import *
 
 
 class UFLVisitor:
@@ -128,12 +128,4 @@ if __name__ == "__main__":
     vis = SubtreeFinder()
     print vis.visit(f)
     print vis.duplicated
-
-    f = u + 1 + v + 2 + g + 3
-    print ""
-    print f   
-    vis = TreeFlattener()
-    print ""
-    print vis.visit(f)
-    print ""
 
