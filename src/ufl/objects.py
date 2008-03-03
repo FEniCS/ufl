@@ -6,9 +6,14 @@ Utility objects for pretty syntax in user code.
 
 from base  import *
 from geometry import *
-
+import math
 
 I = Identity()
+
+# constants
+
+e  = math.e
+pi = math.pi
 
 # default indices
 

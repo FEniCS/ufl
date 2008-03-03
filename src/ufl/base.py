@@ -5,12 +5,6 @@ This module contains the UFLObject base class and all expression tree node types
 ie all classes and objects needed to cover the UFL language specification.
 """
 
-__version__ = "0.1"
-__authors__ = "Martin Sandve Alnes"
-__copyright__ = __authors__ + " (2007)"
-__licence__ = "GPL" # TODO: which licence?
-__date__ = "17th of December 2007"
-
 import operator
 
 
@@ -38,7 +32,7 @@ class UFLObject(object):
         """It is required to implement repr for all UFLObject subclasses."""
         raise NotImplementedError(self.__class__.__repr__)
     
-    # ... Access to subtree nodes for expression traversing:
+    # ... Access to subtree nodes for expression traversal:
     
     def ops(self):
         """Returns a sequence with all subtree nodes in expression tree.
@@ -113,19 +107,6 @@ class UFLObject(object):
         return Transpose(self)
 
     T = property(transpose)
-
-    # ... Scalar casting operators, probably won't be needed for most ufl objects.
-    #     Needs to be implemented in all subclasses to work, and must
-    #     fail if a single Symbol, Function or FiniteElement is hit.
-
-    def __int__(self):
-        raise NotImplementedError(self.__int__)
-    
-    def __long__(self):
-        raise NotImplementedError(self.__long__)
-    
-    def __float__(self):
-        raise NotImplementedError(self.__float__)
 
     # ... Sequence protocol for vectors, matrices, tensors.
     #     (Iteration over small objects with len and [] is fast enough,
@@ -342,14 +323,6 @@ class Product(UFLObject):
     def __repr__(self):
         return "(%s)" % " * ".join(repr(o) for o in self._ops)
     
-    def __int__(self):
-        return product(int(i) for i in self._ops)
-    
-    def __long__(self):
-        return product(long(i) for i in self._ops)
-    
-    def __float__(self):
-        return product(float(i) for i in self._ops)
 
 class Sum(UFLObject):
     def __init__(self, *ops):
@@ -361,14 +334,6 @@ class Sum(UFLObject):
     def __repr__(self):
         return "(%s)" % " + ".join(repr(o) for o in self._ops)
     
-    def __int__(self):
-        return sum(int(i) for i in self._ops)
-    
-    def __long__(self):
-        return sum(long(i) for i in self._ops)
-    
-    def __float__(self):
-        return sum(float(i) for i in self._ops)
 
 class Sub(UFLObject):
     def __init__(self, a, b):
@@ -381,14 +346,6 @@ class Sub(UFLObject):
     def __repr__(self):
         return "(%s - %s)" % (repr(self.a), repr(self.b))
     
-    def __int__(self):
-        return int(self.a) - int(self.b)
-    
-    def __long__(self):
-        return long(self.a) - long(self.b)
-    
-    def __float__(self):
-        return float(self.a) - float(self.b)
 
 class Division(UFLObject):
     def __init__(self, a, b):
@@ -401,14 +358,6 @@ class Division(UFLObject):
     def __repr__(self):
         return "(%s / %s)" % (repr(self.a), repr(self.b))
     
-    def __int__(self):
-        return int(self.a) / int(self.b)
-    
-    def __long__(self):
-        return long(self.a) / long(self.b)
-    
-    def __float__(self):
-        return float(self.a) / float(self.b)
 
 class Power(UFLObject):
     def __init__(self, a, b):
@@ -421,14 +370,6 @@ class Power(UFLObject):
     def __repr__(self):
         return "(%s ** %s)" % (repr(self.a), repr(self.b))
     
-    def __int__(self):
-        return int(self.a) ** int(self.b)
-    
-    def __long__(self):
-        return long(self.a) ** long(self.b)
-    
-    def __float__(self):
-        return float(self.a) ** float(self.b)
 
 class Mod(UFLObject):
     def __init__(self, a, b):
@@ -441,14 +382,6 @@ class Mod(UFLObject):
     def __repr__(self):
         return "(%s %% %s)" % (repr(self.a), repr(self.b))
     
-    def __int__(self):
-        return int( float(self.a) % float(self.b) )
-    
-    def __long__(self):
-        return long( float(self.a) % float(self.b) )
-    
-    def __float__(self):
-        return float(self.a) % float(self.b)
 
 class Abs(UFLObject):
     def __init__(self, a):
@@ -460,16 +393,6 @@ class Abs(UFLObject):
     def __repr__(self):
         return "Abs(%s)" % repr(self.a)
     
-    def __int__(self):
-        return int( abs(self.a) )
-    
-    def __long__(self):
-        return long( abs(self.a) )
-    
-    def __float__(self):
-        return float( abs(self.a) )
-
-
 
 
 ### Indexing

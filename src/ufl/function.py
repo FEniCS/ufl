@@ -36,3 +36,9 @@ def cos(f):
 def sin(f):
     return UFLFunction("sin", f)
 
+def floor(f):
+    return UFLFunction("floor", f)
+
+def ceil(f):
+    return UFLFunction("ceil", f)
+
