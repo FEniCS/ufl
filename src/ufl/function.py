@@ -8,7 +8,7 @@ from base import *
 
 ### Functions
 
-class UFLFunction(UFLObject):
+class MathFunction(UFLObject):
     def __init__(self, name, argument):
         self.name     = name
         self.argument = argument
@@ -22,23 +22,23 @@ class UFLFunction(UFLObject):
 # functions exposed to the user:
 
 def sqrt(f):
-    return UFLFunction("sqrt", f)
+    return MathFunction("sqrt", f)
 
 def exp(f):
-    return UFLFunction("exp", f)
+    return MathFunction("exp", f)
 
 def ln(f):
-    return UFLFunction("ln", f)
+    return MathFunction("ln", f)
 
 def cos(f):
-    return UFLFunction("cos", f)
+    return MathFunction("cos", f)
 
 def sin(f):
-    return UFLFunction("sin", f)
+    return MathFunction("sin", f)
 
 def floor(f):
-    return UFLFunction("floor", f)
+    return MathFunction("floor", f)
 
 def ceil(f):
-    return UFLFunction("ceil", f)
+    return MathFunction("ceil", f)
 
