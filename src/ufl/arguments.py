@@ -70,7 +70,7 @@ class Function(UFLCoefficient):
 
 class Constant(UFLCoefficient):
     def __init__(self, polygon, name):
-        UFLCoefficient.__init__(self, FiniteElement("DiscontinuousLagrange", polygon, 0), name)
+        UFLCoefficient.__init__(self, FiniteElement("DG", polygon, 0), name)
         self.polygon = polygon
     
     def __repr__(self):
