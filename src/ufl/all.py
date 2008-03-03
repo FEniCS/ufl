@@ -7,6 +7,9 @@ Convenience file to import all parts of the language.
 # base system (base class and all subclasses involved in operators on the base class)
 from base import *
 
+# representations of transformed forms
+from forms import *
+
 # finite elements
 from elements import *
 

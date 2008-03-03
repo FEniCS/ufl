@@ -9,7 +9,12 @@ from base import *
 
 # objects representing the differential operations:
 
-class DiffOperator(UFLObject):
+class DifferentialOperator(UFLObject):
+    """For the moment this is just a dummy class to enable "isinstance(o, DifferentialOperator)"."""
+    def __init__(self):
+        pass
+
+class DiffOperator(DifferentialOperator):
     def __init__(self, x):
         if isinstance(x, int):
             x = p[x]
@@ -23,7 +28,8 @@ class DiffOperator(UFLObject):
     def __repr__(self):
         return "DiffOperator(%s)" % repr(self.x)
 
-class Diff(UFLObject):
+class Diff(DifferentialOperator):
+    """The derivative of f with respect to x."""
     def __init__(self, f, x):
         self.f = f
         self.x = x
@@ -34,7 +40,7 @@ class Diff(UFLObject):
     def __repr__(self):
         return "Diff(%s, %s)" % (repr(self.f), repr(self.x))
 
-class Grad(UFLObject):
+class Grad(DifferentialOperator):
     def __init__(self, f):
         self.f = f
     
@@ -44,7 +50,7 @@ class Grad(UFLObject):
     def __repr__(self):
         return "Grad(%s)" % repr(self.f)
 
-class Div(UFLObject):
+class Div(DifferentialOperator):
     def __init__(self, f):
         self.f = f
     
@@ -54,7 +60,7 @@ class Div(UFLObject):
     def __repr__(self):
         return "Div(%s)" % repr(self.f)
 
-class Curl(UFLObject):
+class Curl(DifferentialOperator):
     def __init__(self, f):
         self.f = f
     
@@ -64,16 +70,6 @@ class Curl(UFLObject):
     def __repr__(self):
         return "Curl(%s)" % repr(self.f)
 
-class Wedge(UFLObject):
-    def __init__(self, f):
-        self.f = f
-    
-    def ops(self):
-        return (self.f, )
-    
-    def __repr__(self):
-        return "Wedge(%s)" % repr(self.f)
-
 
 # functions exposed to the user:
 
@@ -81,10 +77,7 @@ def diff(f, x):
     return Diff(f, x)
 
 def Dx(f, i):
-    return Diff(f, x[i])
-
-def Dt(f):
-    return Diff(f, t)
+    return Diff(f, x[i]) # TODO: define x[] as symbols somewhere?
 
 def grad(f):
     return Grad(f)
@@ -95,6 +88,7 @@ def div(f):
 def curl(f):
     return Curl(f)
 
-def wedge(f):
-    return Wedge(f)
+# TODO: What about time derivatives? Can we do something there?
+#def Dt(f):
+#    return Diff(f, t)
 

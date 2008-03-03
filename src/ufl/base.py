@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 """
-This module contains the UFLObject base class and all expression tree node types,
-ie all classes and objects needed to cover the UFL language specification.
+This module contains the UFLObject base class and all expression
+types involved with built-in operators on any ufl object.
 """
 
 import operator
@@ -229,16 +229,6 @@ class Integral(UFLObject):
     def __repr__(self):
         return "Integral(%s, %s, %s)" % (repr(self.domain_type), repr(self.domain_id), repr(self.integrand))
 
-
-
-class Jacobi:
-    """Represents a linearized form, the Jacobi of a given nonlinear form wrt a given function."""
-    def __init__(self, form, function):
-        self.form = form
-        self.function = function
-
-    def __repr__(self):
-        return "Jacobi(%s, %s)" % (repr(self.form), repr(self.function))
 
 
 
