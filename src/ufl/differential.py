@@ -1,7 +1,11 @@
+#!/usr/bin/env python
+
+"""
+Differential operators. Needs work!
+"""
 
 from base import *
 
-### Differential operators
 
 # objects representing the differential operations:
 

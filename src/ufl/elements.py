@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 
 """
 Finite element definitions

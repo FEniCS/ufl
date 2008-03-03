@@ -1,8 +1,14 @@
+#!/usr/bin/env python
+
+"""
+Form arguments defined in finite element spaces.
+There are two groups: basisfunctions and coefficients,
+which use the baseclasses BasisFunction and Coefficient.
+"""
 
 from base import *
 from elements import *
 
-### Variants of functions derived from finite elements
 
 class BasisFunction(UFLObject):
     def __init__(self, element):
@@ -47,13 +53,13 @@ def TrialFunctions(element):
         return tuple(TrialFunction(fe) for fe in element.elements)
     raise ValueError("Expecting MixedElement instance.")
 
-class UFLCoefficient(UFLObject):
+class Coefficient(UFLObject):
     _count = 0
     def __init__(self, element, name):
-        self.count = UFLCoefficient._count
+        self.count = Coefficient._count
         self.name = name
         self.element = element
-        UFLCoefficient._count += 1
+        Coefficient._count += 1
 
     def ops(self):
         return tuple()
@@ -61,16 +67,16 @@ class UFLCoefficient(UFLObject):
     def fromops(self, *ops):
         return self
 
-class Function(UFLCoefficient):
+class Function(Coefficient):
     def __init__(self, element, name):
-        UFLCoefficient.__init__(self, element, name)
+        Coefficient.__init__(self, element, name)
     
     def __repr__(self):
         return "Function(%s, %s)" % (repr(self.element), repr(self.name))
 
-class Constant(UFLCoefficient):
+class Constant(Coefficient):
     def __init__(self, polygon, name):
-        UFLCoefficient.__init__(self, FiniteElement("DG", polygon, 0), name)
+        Coefficient.__init__(self, FiniteElement("DG", polygon, 0), name)
         self.polygon = polygon
     
     def __repr__(self):

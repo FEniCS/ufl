@@ -1,4 +1,9 @@
+#!/usr/bin/env python
 
+"""
+Polygon attributes.
+Maybe add a cell/polygon class for high order mappings like discussed earlier?
+"""
 
 valid_polygons = set(("interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
 
@@ -9,3 +14,4 @@ polygon2dim = {
                 "tetrahedron":    3,
                 "hexahedron":     3,
               }
+

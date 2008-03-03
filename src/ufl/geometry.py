@@ -1,7 +1,11 @@
+#!/usr/bin/env python
+
+"""
+Types for quantities computed from cell geometry.
+"""
 
 from base import *
 
-### Quantities computed from cell geometry
 
 class GeometricQuantity(UFLObject):
     def __init__(self):

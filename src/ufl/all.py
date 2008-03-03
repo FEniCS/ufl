@@ -1,7 +1,10 @@
+#!/usr/bin/env python
 
-#from __future__ import absolute_import
+"""
+Convenience file to import all parts of the language.
+"""
 
-# base system
+# base system (base class and all subclasses involved in operators on the base class)
 from base import *
 
 # finite elements
@@ -10,18 +13,18 @@ from elements import *
 # basisfunctions and coefficients
 from arguments import *
 
-# differential operators
+# differential operators (div, grad, curl etc)
 from differential import *
 
-# compound tensoralgebra operations
+# compound tensoralgebra operations (dot, trace, etc)
 from tensoralgebra import *
 
-# special functions (sin, cos, exp, ln etc.)
+# mathematical functions (sin, cos, exp, ln etc.)
 from function import *
 
-# geometric quantities
+# types for geometric quantities
 from geometry import *
 
-# predefined convenience objects
+# predefined convenience objects like I, n, h and i,j,k,l
 from objects import *
 

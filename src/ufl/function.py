@@ -1,3 +1,8 @@
+#!/usr/bin/env python
+
+"""
+Mathematical functions.
+"""
 
 from base import *
 
@@ -30,7 +35,4 @@ def cos(f):
 
 def sin(f):
     return UFLFunction("sin", f)
-
-def tan(f):
-    return UFLFunction("tan", f)
 

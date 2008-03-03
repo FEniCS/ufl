@@ -1,3 +1,8 @@
+#!/usr/bin/env python
+
+"""
+Compound tensor algebra operations. Needs some work!
+"""
 
 from base import *
 

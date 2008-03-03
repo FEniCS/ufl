@@ -1,9 +1,12 @@
+#!/usr/bin/env python
+
+"""
+Utility objects for pretty syntax in user code.
+"""
 
 from base  import *
 from geometry import *
 
-
-# Utility objects for pretty syntax in user code
 
 I = Identity()
 
