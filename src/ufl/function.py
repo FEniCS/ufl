@@ -13,9 +13,10 @@ from base import *
 
 class MathFunction(UFLObject):
     def __init__(self, name, argument):
+        ufl_assert(argument.rank() == 0, "Need scalar.")
         self.name     = name
         self.argument = argument
-        #self.free_indices = MultiIndex(...) # FIXME
+        self.free_indices = tuple()
     
     def operands(self):
         return (self.argument,)

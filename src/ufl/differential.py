@@ -17,37 +17,37 @@ class DifferentialOperator(UFLObject):
     def __init__(self):
         pass
 
-class DiffOperator(DifferentialOperator): # FIXME: how should this be designed?
-    def __init__(self, x):
-        if isinstance(x, int):
-            x = p[x]
-        elif not isinstance(x, Symbol):
-            raise UFLException("x must be a Symbol")
-        self.x = x
-    
-    def __mul__(self, o):
-        return diff(o, self.x)
+#class DiffOperator(DifferentialOperator): # FIXME: how should this be designed?
+#    def __init__(self, x):
+#        if isinstance(x, int):
+#            x = p[x]
+#        elif not isinstance(x, Symbol):
+#            raise UFLException("x must be a Symbol")
+#        self.x = x
+#    
+#    def __mul__(self, o):
+#        return diff(o, self.x)
+#
+#    def __repr__(self):
+#        return "DiffOperator(%s)" % repr(self.x)
 
-    def __repr__(self):
-        return "DiffOperator(%s)" % repr(self.x)
-
-class Diff(DifferentialOperator):
-    """The derivative of f with respect to x."""
-    def __init__(self, f, x):
-        self.f = f
-        self.x = x
-        #self.free_indices = MultiIndex(...) # FIXME
-    
-    def operands(self):
-        return (self.f, self.x)
-    
-    def __repr__(self):
-        return "Diff(%s, %s)" % (repr(self.f), repr(self.x))
+#class Diff(DifferentialOperator): # TODO: How to define this?
+#    """The derivative of f with respect to x."""
+#    def __init__(self, f, x):
+#        self.f = f
+#        self.x = x
+#        #self.free_indices = MultiIndex(...) # FIXME
+#    
+#    def operands(self):
+#        return (self.f, self.x)
+#    
+#    def __repr__(self):
+#        return "Diff(%s, %s)" % (repr(self.f), repr(self.x))
 
 class Grad(DifferentialOperator):
     def __init__(self, f):
         self.f = f
-        #self.free_indices = MultiIndex(...) # FIXME
+        self.free_indices = (Index(), ) + f.free_indices
     
     def operands(self):
         return (self.f, )
@@ -57,8 +57,9 @@ class Grad(DifferentialOperator):
 
 class Div(DifferentialOperator):
     def __init__(self, f):
+        ufl_assert(f.rank() >= 1, "Can't take the divergence of a scalar.")
         self.f = f
-        #self.free_indices = MultiIndex(...) # FIXME
+        self.free_indices = f.free_indices[1:]
     
     def operands(self):
         return (self.f, )
@@ -68,8 +69,9 @@ class Div(DifferentialOperator):
 
 class Curl(DifferentialOperator):
     def __init__(self, f):
+        ufl_assert(f.rank() == 1, "Need a vector.")
         self.f = f
-        #self.free_indices = MultiIndex(...) # FIXME
+        self.free_indices = (Index(),)
     
     def operands(self):
         return (self.f, )
