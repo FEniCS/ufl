@@ -10,6 +10,11 @@ import operator
 
 ### Utility functions:
 
+class UFLException(Exception):
+    def __init__(self, msg):
+        Exception.__init__(msg)
+
+
 def _isnumber(o):
     return isinstance(o, (int, float))
 
@@ -324,7 +329,7 @@ class MultiIndex(UFLObject):
         elif isinstance(indices, (Index,Integer,int)): # TODO: Might have to wrap int in Integer class, for consistent expression tree traversal.
             self.indices = (indices,)
         else:
-            raise RuntimeError("Expecting an Index, MultiIndex or integer")
+            raise UFLException("Expecting Index, or Integer objects.")
     
     def __repr__(self):
         return "MultiIndex(%s)" % repr(self.indices)

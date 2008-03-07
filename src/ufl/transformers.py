@@ -30,7 +30,10 @@ class UFLTransformer:
         return self._f.get(o.__class__, self._f[UFLObject])(o)
     
     def _default(self, o):
-        return o.fromoperands(self.visit(oo) for oo in o.operands())
+        if isinstance(o, Terminal):
+            return o
+        operandss = [self.visit(oo) for oo in o.operands()]
+        return o.__class__(*operands)
 
 
 class TreeFlattener(UFLTransformer):
@@ -40,6 +43,8 @@ class TreeFlattener(UFLTransformer):
         self.register(Product,   self.flatten_sum_or_product)
     
     def flatten_sum_or_product(self, o):
+        if isinstance(o, Terminal):
+            return o
         operands = []
         for a in o.operands():
             b = self.visit(a)
@@ -47,7 +52,7 @@ class TreeFlattener(UFLTransformer):
                 operands.extend(b.operands())
             else:
                 operands.append(b)
-        return o.fromoperands(operands)
+        return o.__class__(*operands)
 
 
 class IndexEvaluator(UFLTransformer): # FIXME: how to do this?
@@ -73,7 +78,9 @@ class IndexEvaluator(UFLTransformer): # FIXME: how to do this?
         for a in o.operands():
             b = self.visit(a)
             operands.append(b)
-        return o.fromoperands(operands)
+        if isinstance(o, Terminal):
+            return o
+        return o.__class__(*operands)
 
 
 
@@ -130,7 +137,10 @@ class UFL2UFL(UFL2Something):
         # TODO: add operations for all classes here...
     
     def default(self, o):
-        return o.fromoperands(self.visit(oo) for i in o.operands())
+        if isinstance(o, Terminal):
+            return o
+        operands = [self.visit(oo) for i in o.operands()]
+        return o.__class__(*operands)
     
     def grad(self, o):
         f, = o.operands()
