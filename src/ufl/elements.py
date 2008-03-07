@@ -7,6 +7,9 @@ Currently, all *Element classes interit single base class,
 so we can do f.ex. "if isinstance(a, FiniteElementBase)"
 """
 
+__authors__ = "Martin Sandve Alnes"
+__date__ = "March 8th 2008"
+
 from polygons import *
 
 # TODO: Finish this list

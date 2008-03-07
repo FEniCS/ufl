@@ -4,6 +4,19 @@
 Various high level ways to transform a complete Form.
 """
 
+__authors__ = "Martin Sandve Alnes"
+__date__ = "March 8th 2008"
+
+
+class Derivative:
+    """..."""
+    def __init__(self, form, function):
+        self.form = form
+        self.function = function
+    
+    def __repr__(self):
+        return "Derivative(%s, %s)" % (repr(self.form), repr(self.function))
+
 
 class Jacobi:
     """Represents a linearized form, the Jacobi of a given nonlinear form wrt a given function."""

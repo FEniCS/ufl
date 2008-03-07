@@ -11,11 +11,8 @@ This file should contain userfriendly front-ends
 to all the utility algorithms that we want to expose.)
 """
 
-__version__ = "0.1"
 __authors__ = "Martin Sandve Alnes"
-__copyright__ = __authors__ + " (2008)"
-__licence__ = "GPL" # TODO: which licence?
-__date__ = "17th of December 2008"
+__date__ = "March 8th 2008"
 
 from base import *
 

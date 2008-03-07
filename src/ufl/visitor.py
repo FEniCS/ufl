@@ -9,11 +9,8 @@ without modifying it.
 only to be used during the current experimental implementation phase).
 """
 
-__version__ = "0.1"
 __authors__ = "Martin Sandve Alnes"
-__copyright__ = __authors__ + " (2008)"
-__licence__ = "GPL" # TODO: which licence?
-__date__ = "17th of December 2008"
+__date__ = "March 8th 2008"
 
 from all import *
 

@@ -6,6 +6,9 @@ There are two groups: basisfunctions and coefficients,
 which use the baseclasses BasisFunction and Coefficient.
 """
 
+__authors__ = "Martin Sandve Alnes"
+__date__ = "March 8th 2008"
+
 from base import *
 from elements import *
 

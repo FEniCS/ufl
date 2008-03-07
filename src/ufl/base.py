@@ -5,6 +5,9 @@ This module contains the UFLObject base class and all expression
 types involved with built-in operators on any ufl object.
 """
 
+__authors__ = "Martin Sandve Alnes"
+__date__ = "March 8th 2008"
+
 import operator
 
 
@@ -28,14 +31,14 @@ class UFLObjectBase(object):
     """Interface or ufl objects, all classes should implement these."""
     def __init__(self):
         pass
-
+    
     # ... Access to subtree nodes for expression traversal:
     
     def operands(self):
         """Returns a sequence with all subtree nodes in expression tree.
            All UFLObject subclasses are required to implement operands ."""
         raise NotImplementedError(self.__class__.operands)
-
+    
     # ... FIXME: describe
     
     def free_indices(self):
@@ -43,7 +46,7 @@ class UFLObjectBase(object):
         raise NotImplementedError(self.__class__.free_indices)
     
     # ... Representation strings are required:
-
+    
     def __repr__(self):
         """It is required to implement repr for all UFLObject subclasses."""
         raise NotImplementedError(self.__class__.__repr__)
@@ -54,11 +57,6 @@ class UFLObject(UFLObjectBase):
     """An UFLObject is equipped with all relevant operators."""
     def __init__(self):
         pass
-    
-    # ... Strings:
-    
-    def __str__(self):
-        return repr(self)
     
     # ... Algebraic operators:
     
@@ -75,15 +73,15 @@ class UFLObject(UFLObjectBase):
     def __add__(self, o):
         if _isnumber(o): o = Number(o)
         return Sum(self, o)
-
+    
     def __radd__(self, o):
         if _isnumber(o): o = Number(o)
         return Sum(o, self)
-
+    
     def __sub__(self, o):
         if _isnumber(o): o = Number(o)
         return self + (-o)
-
+    
     def __rsub__(self, o):
         if _isnumber(o): o = Number(o)
         return o + (-self)
@@ -103,31 +101,36 @@ class UFLObject(UFLObjectBase):
     def __rpow__(self, o):
         if _isnumber(o): o = Number(o)
         return Power(o, self)
-
+    
     def __mod__(self, o):
         if _isnumber(o): o = Number(o)
         return Mod(self, o)
-
+    
     def __rmod__(self, o):
         if _isnumber(o): o = Number(o)
         return Mod(o, self)
-
+    
     def __neg__(self):
         return -1*self
-
+    
     def __abs__(self):
         return Abs(self)
-
+    
     def transpose(self):
         return Transpose(self)
-
+    
     T = property(transpose)
-
+    
     # ... Indexing a tensor, or relabeling the indices of a tensor
-
+    
     def __getitem__(self, key):
         return Indexed(self, key)
-
+    
+    # ... Strings:
+    
+    def __str__(self):
+        return repr(self)
+    
     # ... Support for inserting an UFLObject in dicts and sets:
     
     def __hash__(self):
@@ -135,9 +138,9 @@ class UFLObject(UFLObjectBase):
     
     def __eq__(self, other): # alternative to above functions
         return repr(self) == repr(other)
-
+    
     # ... Searching for an UFLObject the subexpression tree:
-
+    
     def __contains__(self, item):
         """Return wether item is in the UFL expression tree. If item is a str, it is assumed to be a repr."""
         if isinstance(item, UFLObject):
@@ -147,7 +150,7 @@ class UFLObject(UFLObjectBase):
         if repr(self) == item:
             return True
         return any((item in o) for o in self.operands())
-    
+
 
 
 ### Basic terminal objects
@@ -160,6 +163,7 @@ class Terminal(UFLObject):
     def operands(self):
         return tuple()
 
+
 class Integer(Terminal):
     def __init__(self, value):
         self.value = value
@@ -169,6 +173,7 @@ class Integer(Terminal):
     
     def free_indices(self):
         return MultiIndex()
+
 
 class Real(Terminal): # TODO: Do we need this? Numeric tensors?
     def __init__(self, value):
@@ -180,6 +185,7 @@ class Real(Terminal): # TODO: Do we need this? Numeric tensors?
     def free_indices(self):
         return MultiIndex()
 
+
 class Number(Terminal):
     def __init__(self, value):
         self.value = value
@@ -190,12 +196,14 @@ class Number(Terminal):
     def free_indices(self):
         return MultiIndex()
 
+
 class Identity(Terminal):
     def __init__(self):
         pass
     
     def __repr__(self):
         return "Identity()"
+
 
 class Symbol(Terminal): # TODO: Needed for diff? Tensors of symbols? Parametric symbols?
     def __init__(self, name):
@@ -206,6 +214,7 @@ class Symbol(Terminal): # TODO: Needed for diff? Tensors of symbols? Parametric 
     
     def free_indices(self):
         return MultiIndex()
+
 
 #class Variable(UFLObject): # TODO: what is this really?
 #    def __init__(self, name, expression):
@@ -232,6 +241,7 @@ class Transpose(UFLObject):
     
     def __repr__(self):
         return "Transpose(%s)" % repr(self.A)
+
 
 class Product(UFLObject):
     def __init__(self, *operands):
@@ -356,7 +366,7 @@ class Indexed(UFLObject):
             self.indices = indices
         else:
             self.indices = MultiIndex(indices)
-        self.free_indices = tuple(i for i in self.indices if isinstance(i, Index))
+        self.free_indices = tuple(i for i in self.indices if isinstance(i, Index)) # FIXME
     
     def __repr__(self):
         return "Indexed(%s, %s)" % (repr(self.expression), repr(self.indices))

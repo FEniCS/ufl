@@ -4,6 +4,9 @@
 Compound tensor algebra operations. Needs some work!
 """
 
+__authors__ = "Martin Sandve Alnes"
+__date__ = "March 8th 2008"
+
 from base import *
 
 ### Algebraic operations on tensors:

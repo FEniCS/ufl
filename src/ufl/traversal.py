@@ -8,11 +8,8 @@ generators and a kind of functional programming.
 only to be used during the current experimental implementation phase).
 """
 
-__version__ = "0.1"
 __authors__ = "Martin Sandve Alnes"
-__copyright__ = __authors__ + " (2008)"
-__licence__ = "GPL" # TODO: which licence?
-__date__ = "March 7th 2008"
+__date__ = "March 8th 2008"
 
 from base import *
 

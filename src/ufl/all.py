@@ -4,6 +4,9 @@
 Convenience file to import all parts of the language.
 """
 
+__authors__ = "Martin Sandve Alnes"
+__date__ = "March 8th 2008"
+
 # base system (base class and all subclasses involved in operators on the base class)
 from base import *
 

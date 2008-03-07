@@ -1,4 +1,11 @@
+#!/usr/bin/env python
 
+"""
+The Form and Integral objects.
+"""
+
+__authors__ = "Martin Sandve Alnes"
+__date__ = "March 8th 2008"
 
 class Form:
     """Description of a weak form consisting of a sum of integrals over subdomains."""
