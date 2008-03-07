@@ -19,7 +19,7 @@ class DiffOperator(DifferentialOperator): # FIXME: how should this be designed?
         if isinstance(x, int):
             x = p[x]
         elif not isinstance(x, Symbol):
-            raise ValueError("x must be a Symbol")
+            raise UFLException("x must be a Symbol")
         self.x = x
     
     def __mul__(self, o):

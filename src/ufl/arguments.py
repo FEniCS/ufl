@@ -33,17 +33,17 @@ def TrialFunction(element):
 
 def BasisFunctions(element):
     if not isinstance(element, MixedElement):
-        raise ValueError("Expecting MixedElement instance.")
+        raise UFLException("Expecting MixedElement instance.")
     return tuple(BasisFunction(e) for e in element.elements) # FIXME: problem with count!
 
 def TestFunctions(element):
     if not isinstance(element, MixedElement):
-        raise ValueError("Expecting MixedElement instance.")
+        raise UFLException("Expecting MixedElement instance.")
     return tuple(TestFunction(e) for e in element.elements) # FIXME: problem with count!
 
 def TrialFunctions(element):
     if not isinstance(element, MixedElement):
-        raise ValueError("Expecting MixedElement instance.")
+        raise UFLException("Expecting MixedElement instance.")
     return tuple(TrialFunction(e) for e in element.elements) # FIXME: problem with count!
 
 
