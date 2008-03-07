@@ -17,6 +17,9 @@ class UFLException(Exception):
     def __init__(self, msg):
         Exception.__init__(msg)
 
+def ufl_assert(condition, message):
+    if not condition:
+        raise UFLException(message)
 
 def _isnumber(o):
     return isinstance(o, (int, float))
@@ -39,24 +42,21 @@ class UFLObjectBase(object):
            All UFLObject subclasses are required to implement operands ."""
         raise NotImplementedError(self.__class__.operands)
     
-    # ... FIXME: describe
-    
-    def free_indices(self):
-        """..."""
-        raise NotImplementedError(self.__class__.free_indices)
-    
     # ... Representation strings are required:
     
     def __repr__(self):
         """It is required to implement repr for all UFLObject subclasses."""
         raise NotImplementedError(self.__class__.__repr__)
-    
-    
+
+
 
 class UFLObject(UFLObjectBase):
     """An UFLObject is equipped with all relevant operators."""
     def __init__(self):
         pass
+    
+    def rank(self):
+        return len(self.free_indices)
     
     # ... Algebraic operators:
     
@@ -233,8 +233,9 @@ class Symbol(Terminal): # TODO: Needed for diff? Tensors of symbols? Parametric 
 
 class Transpose(UFLObject):
     def __init__(self, A):
+        ufl_assert(A.rank() == 2, "Transpose is only defined for rank 2 tensors.")
         self.A = A
-        #self.free_indices = MultiIndex(...) # FIXME
+        self.free_indices = (A.free_indices[1], A.free_indices[0])
     
     def operands(self):
         return (self.A,)
@@ -257,8 +258,10 @@ class Product(UFLObject):
 
 class Sum(UFLObject):
     def __init__(self, *operands):
+        r = operands[0].rank()
+        ufl_assert(all(r == o.rank() for o in operands), "Rank mismatch.")
         self._operands = tuple(operands)
-        #self.free_indices = MultiIndex(...) # FIXME
+        #self.free_indices = MultiIndex(...) # FIXME: create new unless all indices of all operands are equal
     
     def operands(self):
         return self._operands
@@ -269,6 +272,7 @@ class Sum(UFLObject):
 
 class Sub(UFLObject):
     def __init__(self, a, b):
+        ufl_assert(a.rank() == b.rank(), "Rank mismatch.")
         self.a = a
         self.b = b
         #self.free_indices = MultiIndex(...) # FIXME
@@ -282,22 +286,24 @@ class Sub(UFLObject):
 
 class Division(UFLObject):
     def __init__(self, a, b):
+        ufl_assert(b.rank() == 0, "Division by non-scalar.")
         self.a = a
         self.b = b
-        #self.free_indices = MultiIndex(...) # FIXME
+        self.free_indices = a.free_indices
     
     def operands(self):
         return (self.a, self.b)
     
     def __repr__(self):
         return "(%s / %s)" % (repr(self.a), repr(self.b))
-    
+
 
 class Power(UFLObject):
     def __init__(self, a, b):
+        ufl_assert(a.rank() == 0 and b.rank() == 0, "Non-scalar power not defined.")
         self.a = a
         self.b = b
-        #self.free_indices = MultiIndex(...) # FIXME
+        self.free_indices = tuple()
     
     def operands(self):
         return (self.a, self.b)
@@ -308,9 +314,10 @@ class Power(UFLObject):
 
 class Mod(UFLObject):
     def __init__(self, a, b):
+        ufl_assert(a.rank() == 0 and b.rank() == 0, "Non-scalar mod is undefined.")
         self.a = a
         self.b = b
-        #self.free_indices = MultiIndex(...) # FIXME
+        self.free_indices = tuple()
     
     def operands(self):
         return (self.a, self.b)
@@ -321,8 +328,9 @@ class Mod(UFLObject):
 
 class Abs(UFLObject):
     def __init__(self, a):
+        ufl_assert(a.rank() == 0, "Non-scalar abs is undefined.")
         self.a = a
-        #self.free_indices = MultiIndex(...) # FIXME
+        self.free_indices = a.free_indices
     
     def operands(self):
         return (self.a, )
@@ -337,7 +345,7 @@ class Abs(UFLObject):
 class Index(Terminal):
     def __init__(self, name, dim=None): # TODO: do we need dim? 
         self.name = name
-        #self.free_indices = MultiIndex(...) # FIXME
+        self.free_indices = None # TODO: not sure if this will be needed anywhere
     
     def __repr__(self):
         return "Index(%s)" % repr(self.name)
@@ -351,7 +359,7 @@ class MultiIndex(UFLObject):
             self.indices = (indices,)
         else:
             raise UFLException("Expecting Index, or Integer objects.")
-        #self.free_indices = MultiIndex(...) # FIXME
+        self.free_indices = None # TODO: not sure if this will be needed anywhere
     
     def __repr__(self):
         return "MultiIndex(%s)" % repr(self.indices)

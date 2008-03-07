@@ -46,19 +46,20 @@ class Outer(UFLObject):
     def __init__(self, a, b):
         self.a = a
         self.b = b
-        #self.free_indices = MultiIndex(...) # FIXME
+        self.free_indices = a.free_indices + b.free_indices
     
     def operands(self):
         return (self.a, self.b)
     
     def __repr__(self):
         return "Outer(%s, %s)" % (repr(self.a), repr(self.b))
-    
+
 class Inner(UFLObject):
     def __init__(self, a, b):
+        ufl_assert(a.rank() == b.rank(), "Rank mismatch.")
         self.a = a
         self.b = b
-        #self.free_indices = MultiIndex(...) # FIXME
+        self.free_indices = tuple()
     
     def operands(self):
         return (self.a, self.b)
@@ -66,23 +67,12 @@ class Inner(UFLObject):
     def __repr__(self):
         return "Inner(%s, %s)" % (repr(self.a), repr(self.b))
 
-class Contract(UFLObject):
-    def __init__(self, a, b):
-        self.a = a
-        self.b = b
-        #self.free_indices = MultiIndex(...) # FIXME
-    
-    def operands(self):
-        return (self.a, self.b)
-    
-    def __repr__(self):
-        return "Contract(%s, %s)" % (repr(self.a), repr(self.b))
-
 class Dot(UFLObject):
     def __init__(self, a, b):
+        #ufl_assert(a.rank() >= 1 and b.rank() >= 1, "Dot product requires arguments of rank >= 1.") # TODO: maybe scalars are ok?
         self.a = a
         self.b = b
-        #self.free_indices = MultiIndex(...) # FIXME
+        self.free_indices = a.free_indices[:-1] + b.free_indices[1:]
     
     def operands(self):
         return (self.a, self.b)
@@ -92,9 +82,10 @@ class Dot(UFLObject):
 
 class Cross(UFLObject):
     def __init__(self, a, b):
+        ufl_assert(a.rank() == 1 and b.rank() == 1, "Cross product requires arguments of rank 1.")
         self.a = a
         self.b = b
-        #self.free_indices = MultiIndex(...) # FIXME
+        self.free_indices = (Index(),)
     
     def operands(self):
         return (self.a, self.b)
@@ -104,8 +95,9 @@ class Cross(UFLObject):
 
 class Trace(UFLObject):
     def __init__(self, A):
+        ufl_assert(A.rank() == 2, "Trace of tensor with rank != 2 is undefined.")
         self.A = A
-        #self.free_indices = MultiIndex(...) # FIXME
+        self.free_indices = tuple()
     
     def operands(self):
         return (self.A, )
@@ -115,8 +107,9 @@ class Trace(UFLObject):
 
 class Determinant(UFLObject):
     def __init__(self, A):
+        ufl_assert(A.rank() == 2, "Determinant of tensor with rank != 2 is undefined.")
         self.A = A
-        #self.free_indices = MultiIndex(...) # FIXME
+        self.free_indices = tuple()
     
     def operands(self):
         return (self.A, )
@@ -126,14 +119,27 @@ class Determinant(UFLObject):
 
 class Inverse(UFLObject):
     def __init__(self, A):
+        ufl_assert(A.rank() == 2, "Inverse of tensor with rank != 2 is undefined.")
         self.A = A
-        #self.free_indices = MultiIndex(...) # FIXME
+        self.free_indices = tuple(Index(), Index())
     
     def operands(self):
         return (self.A, )
     
     def __repr__(self):
         return "Inverse(%s)" % repr(self.A)
+
+class Deviatoric(UFLObject):
+    def __init__(self, A):
+        ufl_assert(A.rank() == 2, "Deviatoric part of tensor with rank != 2 is undefined.")
+        self.A = A
+        self.free_indices = tuple(Index(), Index())
+    
+    def operands(self):
+        return (self.A, )
+    
+    def __repr__(self):
+        return "Deviatoric(%s)" % repr(self.A)
 
 # functions exposed to the user:
 
@@ -167,7 +173,7 @@ def tr(f):
 def trace(f):
     return Trace(f)
 
-def dev(A): # TODO:
+def dev(A):
     return Deviatoric(A)
 
 #def cofactor(A): # TODO:
