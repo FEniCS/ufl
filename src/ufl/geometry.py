@@ -7,15 +7,9 @@ Types for quantities computed from cell geometry.
 from base import *
 
 
-class GeometricQuantity(UFLObject):
+class GeometricQuantity(Terminal):
     def __init__(self):
         pass
-
-    def ops(self):
-        return tuple()
-    
-    def fromops(self, ops):
-        return self
     
 
 class FacetNormal(GeometricQuantity):

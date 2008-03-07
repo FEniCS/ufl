@@ -10,18 +10,12 @@ from base import *
 from elements import *
 
 
-class BasisFunction(UFLObject):
+class BasisFunction(Terminal):
     def __init__(self, element):
         self.element = element
     
     def __repr__(self):
         return "BasisFunction(%s)" % repr(self.element)
-
-    def ops(self):
-        return tuple()
-
-    def fromops(self, *ops):
-        return self
 
 
 def BasisFunctions(element):
@@ -53,19 +47,13 @@ def TrialFunctions(element):
         return tuple(TrialFunction(fe) for fe in element.elements)
     raise ValueError("Expecting MixedElement instance.")
 
-class Coefficient(UFLObject):
+class Coefficient(Terminal):
     _count = 0
     def __init__(self, element, name):
         self.count = Coefficient._count
         self.name = name
         self.element = element
         Coefficient._count += 1
-
-    def ops(self):
-        return tuple()
-
-    def fromops(self, *ops):
-        return self
 
 class Function(Coefficient):
     def __init__(self, element, name):

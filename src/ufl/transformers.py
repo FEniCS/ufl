@@ -210,9 +210,9 @@ class SwiginacEvaluator(UFL2Something):
 
 
 if __name__ == "__main__":
-    a = FiniteElement("La", "tr", 1)
-    b = VectorElement("La", "tr", 1)
-    c = TensorElement("La", "tr", 1)
+    a = FiniteElement("CG", "triangle", 1)
+    b = VectorElement("CG", "triangle", 1)
+    c = TensorElement("CG", "triangle", 1)
     
     u = TrialFunction(a)
     v = TestFunction(a)
@@ -224,12 +224,18 @@ if __name__ == "__main__":
     u = FacetNormal()
     n = e.visit(u)
     print n, type(n)
+
+
+    u = TrialFunction(a)
+    v = TestFunction(a)
     
-    f = u + 1 + v + 2 + g + 3
-    print ""
+    g = Function(a, "g")
+
+    f = u + v + g + 3
+    print "f:"
     print f   
     vis = TreeFlattener()
-    print ""
+    print "f:"
     print vis.visit(f)
     print ""
 

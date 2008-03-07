@@ -161,6 +161,14 @@ class UFLObject(object):
         return repr(self) == repr(other)
 
 
+class Terminal(UFLObject):
+    def ops(self):
+        return tuple()
+
+    def fromops(self, *ops):
+        assert len(ops) == 0
+        return self
+
 
 ### Integral and Form definition:
 
@@ -234,31 +242,19 @@ class Integral(UFLObject):
 
 ### Basic ... stuff
 
-class Number(UFLObject):
+class Number(Terminal):
     def __init__(self, value):
         self.value = value
     
     def __repr__(self):
         return "Number(%s)" % repr(self.value)
 
-    def ops(self):
-        return tuple()
-
-    def fromops(self, *ops):
-        return self
-
-class Identity(UFLObject):
+class Identity(Terminal):
     def __init__(self):
         pass
     
     def __repr__(self):
         return "Identity()"
-
-    def ops(self):
-        return tuple()
-
-    def fromops(self, *ops):
-        return self
 
 class Transpose(UFLObject):
     def __init__(self, f):
@@ -270,15 +266,9 @@ class Transpose(UFLObject):
     def __repr__(self):
         return "Transpose(%s)" % repr(self.f)
 
-class Symbol(UFLObject): # TODO: needed for diff?
+class Symbol(Terminal): # TODO: needed for diff?
     def __init__(self, name):
         self.name = name
-    
-    def ops(self):
-        return tuple()
-    
-    def fromops(self, *ops):
-        return self
     
     def __str__(self):
         return self.name
@@ -286,7 +276,7 @@ class Symbol(UFLObject): # TODO: needed for diff?
     def __repr__(self):
         return "Symbol(%s)" % repr(self.name)
 
-class Variable(UFLObject):
+class Variable(UFLObject): # TODO: what is this really?
     def __init__(self, name, expression):
         self.name = name
         self.expression = expression
@@ -387,18 +377,12 @@ class Abs(UFLObject):
 
 ### Indexing
 
-class Index(UFLObject):
+class Index(Terminal):
     def __init__(self, name, dim=None): # TODO: do we need dim? 
         self.name = name
     
     def __repr__(self):
         return "Index(%s)" % repr(self.name)
-    
-    def ops(self):
-        return tuple()
-    
-    def fromops(self, *ops):
-        return self
 
 class Indexed(UFLObject):
     def __init__(self, expression, indices):

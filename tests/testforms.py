@@ -85,7 +85,7 @@ class FormsTestCase(unittest.TestCase):
         v = TestFunction(velement)
         u = TrialFunction(velement)
         M = Function(telement, "M")
-        a = dot(M*grad(u), grad(v)) * dx
+        a = inner(M*grad(u), grad(v)) * dx
 
 
     def test_navier_stokes(self):
