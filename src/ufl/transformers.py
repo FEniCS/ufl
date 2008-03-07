@@ -30,7 +30,7 @@ class UFLTransformer:
         return self._f.get(o.__class__, self._f[UFLObject])(o)
     
     def _default(self, o):
-        return o.fromops(self.visit(oo) for oo in o.ops())
+        return o.fromoperands(self.visit(oo) for oo in o.operands())
 
 
 class TreeFlattener(UFLTransformer):
@@ -40,14 +40,14 @@ class TreeFlattener(UFLTransformer):
         self.register(Product,   self.flatten_sum_or_product)
     
     def flatten_sum_or_product(self, o):
-        ops = []
-        for a in o.ops():
+        operands = []
+        for a in o.operands():
             b = self.visit(a)
             if isinstance(b, o.__class__):
-                ops.extend(b.ops())
+                operands.extend(b.operands())
             else:
-                ops.append(b)
-        return o.fromops(ops)
+                operands.append(b)
+        return o.fromoperands(operands)
 
 
 class IndexEvaluator(UFLTransformer): # FIXME: how to do this?
@@ -67,13 +67,13 @@ class IndexEvaluator(UFLTransformer): # FIXME: how to do this?
         self.register(Wedge,       self.wedge)
     
     def default(self, o):
-        ops = []
+        operands = []
         idx_list = []
         idx_set  = []
-        for a in o.ops():
+        for a in o.operands():
             b = self.visit(a)
-            ops.append(b)
-        return o.fromops(ops)
+            operands.append(b)
+        return o.fromoperands(operands)
 
 
 
@@ -90,23 +90,23 @@ class UFL2Something(UFLTransformer):
         self.register(Power,       self.power)
     
     def sum(self, o):
-        return sum(self.visit(i) for i in o.ops())
+        return sum(self.visit(i) for i in o.operands())
     
     def product(self, o):
-        return product(self.visit(i) for i in o.ops())
+        return product(self.visit(i) for i in o.operands())
     
     def sub(self, o):
-        a, b = o.ops()
+        a, b = o.operands()
         a, b = self.visit(a), self.visit(b)
         return a - b
     
     def division(self, o):
-        a, b = o.ops()
+        a, b = o.operands()
         a, b = self.visit(a), self.visit(b)
         return a / b
     
     def power(self, o):
-        a, b = o.ops()
+        a, b = o.operands()
         a, b = self.visit(a), self.visit(b)
         return a ** b
 
@@ -130,25 +130,25 @@ class UFL2UFL(UFL2Something):
         # TODO: add operations for all classes here...
     
     def default(self, o):
-        return o.fromops(self.visit(oo) for i in o.ops())
+        return o.fromoperands(self.visit(oo) for i in o.operands())
     
     def grad(self, o):
-        f, = o.ops()
+        f, = o.operands()
         f = self.visit(f)
         return grad(f)
     
     def div(self, o):
-        f, = o.ops()
+        f, = o.operands()
         f = self.visit(f)
         return div(f)
     
     def curl(self, o):
-        f, = o.ops()
+        f, = o.operands()
         f = self.visit(f)
         return curl(f)
     
     def wedge(self, o):
-        a, b = o.ops()
+        a, b = o.operands()
         a = self.visit(a)
         b = self.visit(b)
         return wedge(a, b)
@@ -187,19 +187,19 @@ class SwiginacEvaluator(UFL2Something):
         return self._basis_function[i]
     
     def grad(self, o): # TODO: must support token "barriers", build on general derivative code
-        f, = o.ops()
+        f, = o.operands()
         f = self.visit(f)
         GinvT = self.itg.GinvT()
         return self.sfc.grad(f, GinvT)
     
     def div(self, o): # TODO: must support token "barriers", build on general derivative code
-        f, = o.ops()
+        f, = o.operands()
         f = self.visit(f)
         GinvT = self.itg.GinvT()
         return self.sfc.div(f, GinvT)
     
     def curl(self, o): # TODO: must support token "barriers", build on general derivative code
-        f, = o.ops()
+        f, = o.operands()
         f = self.visit(f)
         GinvT = self.itg.GinvT()
         return self.sfc.curl(f, GinvT)

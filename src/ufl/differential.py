@@ -34,7 +34,7 @@ class Diff(DifferentialOperator):
         self.f = f
         self.x = x
     
-    def ops(self):
+    def operands(self):
         return (self.f, self.x)
     
     def __repr__(self):
@@ -44,7 +44,7 @@ class Grad(DifferentialOperator):
     def __init__(self, f):
         self.f = f
     
-    def ops(self):
+    def operands(self):
         return (self.f, )
     
     def __repr__(self):
@@ -54,7 +54,7 @@ class Div(DifferentialOperator):
     def __init__(self, f):
         self.f = f
     
-    def ops(self):
+    def operands(self):
         return (self.f, )
     
     def __repr__(self):
@@ -64,7 +64,7 @@ class Curl(DifferentialOperator):
     def __init__(self, f):
         self.f = f
     
-    def ops(self):
+    def operands(self):
         return (self.f, )
     
     def __repr__(self):

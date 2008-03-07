@@ -21,7 +21,7 @@ from base import *
 
 def iter_depth_first(u):
     """Yields o for all nodes o in expression tree u, depth first."""
-    for o in u.ops():
+    for o in u.operands():
         for i in iter_depth_first(o):
             yield i
     yield u
@@ -29,20 +29,20 @@ def iter_depth_first(u):
 def iter_width_first(u):
     """Yields o for all nodes o in expression tree u, width first."""
     yield u
-    for o in u.ops():
+    for o in u.operands():
         for i in iter_width_first(o):
             yield i
 
 def traverse_depth_first(u, func):
     """Call func(o) for all nodes o in expression tree u, depth first."""
-    for o in u.ops():
+    for o in u.operands():
         traverse_depth_first(o, func)
     func(u)
 
 def traverse_width_first(u, func):
     """Call func(o) for all nodes o in expression tree u, width first."""
     func(u)
-    for o in u.ops():
+    for o in u.operands():
         traverse_width_first(o, func)
 
 def walk(u, func):

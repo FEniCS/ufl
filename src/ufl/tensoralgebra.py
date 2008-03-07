@@ -44,7 +44,7 @@ class Outer(UFLObject):
         self.a = a
         self.b = b
     
-    def ops(self):
+    def operands(self):
         return (self.a, self.b)
     
     def __repr__(self):
@@ -55,7 +55,7 @@ class Inner(UFLObject):
         self.a = a
         self.b = b
     
-    def ops(self):
+    def operands(self):
         return (self.a, self.b)
     
     def __repr__(self):
@@ -66,7 +66,7 @@ class Contract(UFLObject):
         self.a = a
         self.b = b
     
-    def ops(self):
+    def operands(self):
         return (self.a, self.b)
     
     def __repr__(self):
@@ -77,7 +77,7 @@ class Dot(UFLObject):
         self.a = a
         self.b = b
     
-    def ops(self):
+    def operands(self):
         return (self.a, self.b)
     
     def __repr__(self):
@@ -88,7 +88,7 @@ class Cross(UFLObject):
         self.a = a
         self.b = b
     
-    def ops(self):
+    def operands(self):
         return (self.a, self.b)
     
     def __repr__(self):
@@ -98,7 +98,7 @@ class Trace(UFLObject):
     def __init__(self, A):
         self.A = A
     
-    def ops(self):
+    def operands(self):
         return (self.A, )
     
     def __repr__(self):
@@ -108,7 +108,7 @@ class Determinant(UFLObject):
     def __init__(self, A):
         self.A = A
     
-    def ops(self):
+    def operands(self):
         return (self.A, )
     
     def __repr__(self):
@@ -118,7 +118,7 @@ class Inverse(UFLObject):
     def __init__(self, A):
         self.A = A
     
-    def ops(self):
+    def operands(self):
         return (self.A, )
     
     def __repr__(self):

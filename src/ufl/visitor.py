@@ -30,7 +30,7 @@ class UFLVisitor:
         return self._f.get(o.__class__, self._f[UFLObject])(o)
     
     def _default(self, o):
-        for i in o.ops():
+        for i in o.operands():
             self.visit(i)
 
 
@@ -95,7 +95,7 @@ class SubtreeFinder(UFLVisitor):
             self.duplicated.add(ro)
         elif not isinstance(ro, (Number, Symbol, Variable)):
             self.handled.add(ro)
-            for i in o.ops():
+            for i in o.operands():
                 self.visit(i)
 
 

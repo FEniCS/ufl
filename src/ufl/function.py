@@ -13,7 +13,7 @@ class MathFunction(UFLObject):
         self.name     = name
         self.argument = argument
     
-    def ops(self):
+    def operands(self):
         return (self.argument,)
     
     def __repr__(self):

@@ -19,7 +19,34 @@ def product(l):
 
 ### UFLObject base class:
 
-class UFLObject(object):
+class UFLObjectBase(object):
+    """Interface or ufl objects, all classes should implement these."""
+    def __init__(self):
+        pass
+
+    # ... Access to subtree nodes for expression traversal:
+    
+    def operands(self):
+        """Returns a sequence with all subtree nodes in expression tree.
+           All UFLObject subclasses are required to implement operands ."""
+        raise NotImplementedError(self.__class__.operands)
+    
+    def fromoperands(self, *operands):
+        """Build a new object of the same type as self but with different operands.
+           All UFLObject subclasses are required to implement fromoperands IFF their
+           constructor takes a different list of arguments than operands() returns."""
+        return self.__class__(*operands)
+    
+    # ... Representation strings are required:
+
+    def __repr__(self):
+        """It is required to implement repr for all UFLObject subclasses."""
+        raise NotImplementedError(self.__class__.__repr__)
+    
+    
+
+class UFLObject(UFLObjectBase):
+    """An UFLObject is equipped with all relevant operators."""
     def __init__(self):
         pass
     
@@ -27,23 +54,6 @@ class UFLObject(object):
     
     def __str__(self):
         return repr(self)
-    
-    def __repr__(self):
-        """It is required to implement repr for all UFLObject subclasses."""
-        raise NotImplementedError(self.__class__.__repr__)
-    
-    # ... Access to subtree nodes for expression traversal:
-    
-    def ops(self):
-        """Returns a sequence with all subtree nodes in expression tree.
-           All UFLObject subclasses are required to implement ops ."""
-        raise NotImplementedError(self.__class__.ops)
-    
-    def fromops(self, *ops):
-        """Build a new object of the same type as self but with different ops.
-           All UFLObject subclasses are required to implement fromops IFF their
-           constructor takes a different list of arguments than ops() returns."""
-        return self.__class__(*ops)
     
     # ... Algebraic operators:
     
@@ -56,7 +66,7 @@ class UFLObject(object):
     def __rmul__(self, o):
         if _isnumber(o): o = Number(o)
         return Product(o, self)
-
+    
     def __add__(self, o):
         if _isnumber(o): o = Number(o)
         return Sum(self, o)
@@ -108,37 +118,18 @@ class UFLObject(object):
 
     T = property(transpose)
 
-    # ... Sequence protocol for vectors, matrices, tensors.
-    #     (Iteration over small objects with len and [] is fast enough,
-    #      no need to bother with creating iterator objects)
-
-    def __len__(self):
-        raise NotImplementedError(self.__len__)
-
-    #def __getitem__(self, key):
-    #    # TODO: convert key OR key items to Number objects:  if _isnumber(o): o = Number(o)
-    #    if isinstance(key, int):
-    #        key = Number(key)
-    #    elif isinstance(key, Index):
-    #        pass
-    #    elif isinstance(key, tuple):
-    #        k = []
-    #        for t in key:
-    #            if isinstance(t, int):
-    #                t = Number(t)
-    #            k.append(t)
-    #        key = tuple(k)
-    #    else:
-    #        raise TypeError()
+    # ... Indexing a tensor, or relabeling the indices of a tensor
 
     def __getitem__(self, key):
         return Indexed(self, key)
 
-    # Should we even have this? Not on general expressions, maybe in a Tensor/Matrix/Vector class or something.
-    #def __setitem__(self, key, value):
-    #    if not isinstance(key, (int, Index, tuple)):
-    #        raise TypeError()
-    #    raise IndexError()
+    # ... Support for inserting an UFLObject in dicts and sets:
+    
+    def __hash__(self):
+        return repr(self).__hash__()
+    
+    def __eq__(self, other): # alternative to above functions
+        return repr(self) == repr(other)
 
     # ... Searching for an UFLObject the subexpression tree:
 
@@ -150,97 +141,37 @@ class UFLObject(object):
             item = repr(item)
         if repr(self) == item:
             return True
-        return any((item in o) for o in self.ops())
+        return any((item in o) for o in self.operands())
     
-    # ... Support for inserting an UFLObject in dicts and sets:
-    
-    def __hash__(self):
-        return repr(self).__hash__()
-    
-    def __eq__(self, other): # alternative to above functions
-        return repr(self) == repr(other)
 
+
+### Basic terminal objects
 
 class Terminal(UFLObject):
-    def ops(self):
+    """A terminal node in the expression tree."""
+    def __init__(self):
+        pass
+    
+    def operands(self):
         return tuple()
 
-    def fromops(self, *ops):
-        assert len(ops) == 0
+    def fromoperands(self, *operands):
+        assert len(operands) == 0
         return self
 
-
-### Integral and Form definition:
-
-class Form(UFLObject):
-    """Description of a weak form consisting of a sum of integrals over subdomains."""
-    def __init__(self, integrals):    
-        self.integrals = integrals
-    
-    def ops(self):
-        return tuple(self.integrals)
-    
-    def _integrals(self, domain_type):
-        itg = []
-        for i in self.integrals:
-            if i.domain_type == domain_type:
-                itg.append(i)
-        return itg
-    
-    def cell_integrals(self):
-        return self._integrals("cell")
-    
-    def exterior_facet_integrals(self):
-        return self._integrals("exterior_facet")
-    
-    def interior_facet_integrals(self):
-        return self._integrals("interior_facet")
-
-    def __contains__(self, item):
-        """Return wether item is in the UFL expression tree. If item is a str, it is assumed to be a repr."""
-        return any(item in itg for itg in self.integrals)
-    
-    def __add__(self, other):
-        return Form(self.integrals + other.integrals)
-    
-    def __str__(self):
-        return "Form([%s])" % ", ".join(str(i) for i in self.integrals)
+class Integer(Terminal):
+    def __init__(self, value):
+        self.value = value
     
     def __repr__(self):
-        return "Form([%s])" % ", ".join(repr(i) for i in self.integrals)
+        return "Integer(%s)" % repr(self.value)
 
-
-class Integral(UFLObject):
-    """Description of an integral over a single domain."""
-    def __init__(self, domain_type, domain_id, integrand=None):
-        self.domain_type = domain_type
-        self.domain_id   = domain_id
-        self.integrand   = integrand
-    
-    def ops(self):
-        return (self.integrand,)
-    
-    def fromops(self, *ops):
-        return Integral(self.domain_type, self.domain_id, *ops) # TODO: Does this make sense? And in general for objects with non-ops constructor arguments?
-    
-    def __rmul__(self, other):
-        assert self.integrand is None
-        return Form( [Integral(self.domain_type, self.domain_id, other)] )
-
-    def __contains__(self, item):
-        """Return wether item is in the UFL expression tree. If item is a str, it is assumed to be a repr."""
-        return item in self.integrand
-    
-    def __str__(self):
-        return "Integral(%s, %d, %s)" % (repr(self.domain_type), self.domain_id, self.integrand)
+class Real(Terminal): # TODO: Do we need this? Numeric tensors?
+    def __init__(self, value):
+        self.value = value
     
     def __repr__(self):
-        return "Integral(%s, %s, %s)" % (repr(self.domain_type), repr(self.domain_id), repr(self.integrand))
-
-
-
-
-### Basic ... stuff
+        return "Real(%s)" % repr(self.value)
 
 class Number(Terminal):
     def __init__(self, value):
@@ -256,17 +187,7 @@ class Identity(Terminal):
     def __repr__(self):
         return "Identity()"
 
-class Transpose(UFLObject):
-    def __init__(self, f):
-        self.f = f
-    
-    def ops(self):
-        return (self.f,)
-    
-    def __repr__(self):
-        return "Transpose(%s)" % repr(self.f)
-
-class Symbol(Terminal): # TODO: needed for diff?
+class Symbol(Terminal): # TODO: Needed for diff? Tensors of symbols? Parametric symbols?
     def __init__(self, name):
         self.name = name
     
@@ -276,43 +197,54 @@ class Symbol(Terminal): # TODO: needed for diff?
     def __repr__(self):
         return "Symbol(%s)" % repr(self.name)
 
-class Variable(UFLObject): # TODO: what is this really?
-    def __init__(self, name, expression):
-        self.name = name
-        self.expression = expression
-    
-    def ops(self):
-        return (self.expression,)
-    
-    def fromops(self, *ops):
-        return Variable(self.name, *ops)
-    
-    def __repr__(self):
-        return "Variable(%s, %s)" % (repr(self.name), repr(self.expression))
+#class Variable(UFLObject): # TODO: what is this really?
+#    def __init__(self, name, expression):
+#        self.name = name
+#        self.expression = expression
+#    
+#    def operands(self):
+#        return (self.expression,)
+#    
+#    def fromoperands(self, *operands):
+#        return Variable(self.name, *operands)
+#    
+#    def __repr__(self):
+#        return "Variable(%s, %s)" % (repr(self.name), repr(self.expression))
+
 
 
 ### Algebraic operators
 
-class Product(UFLObject):
-    def __init__(self, *ops):
-        self._ops = tuple(ops)
+class Transpose(UFLObject):
+    def __init__(self, f):
+        self.f = f
     
-    def ops(self):
-        return self._ops
+    def operands(self):
+        return (self.f,)
     
     def __repr__(self):
-        return "(%s)" % " * ".join(repr(o) for o in self._ops)
+        return "Transpose(%s)" % repr(self.f)
+
+class Product(UFLObject):
+    def __init__(self, *operands):
+        self._operands = tuple(operands)
+    
+    def operands(self):
+        return self._operands
+    
+    def __repr__(self):
+        return "(%s)" % " * ".join(repr(o) for o in self._operands)
     
 
 class Sum(UFLObject):
-    def __init__(self, *ops):
-        self._ops = tuple(ops)
+    def __init__(self, *operands):
+        self._operands = tuple(operands)
     
-    def ops(self):
-        return self._ops
+    def operands(self):
+        return self._operands
     
     def __repr__(self):
-        return "(%s)" % " + ".join(repr(o) for o in self._ops)
+        return "(%s)" % " + ".join(repr(o) for o in self._operands)
     
 
 class Sub(UFLObject):
@@ -320,7 +252,7 @@ class Sub(UFLObject):
         self.a = a
         self.b = b
     
-    def ops(self):
+    def operands(self):
         return (self.a, self.b)
     
     def __repr__(self):
@@ -332,7 +264,7 @@ class Division(UFLObject):
         self.a = a
         self.b = b
     
-    def ops(self):
+    def operands(self):
         return (self.a, self.b)
     
     def __repr__(self):
@@ -344,7 +276,7 @@ class Power(UFLObject):
         self.a = a
         self.b = b
     
-    def ops(self):
+    def operands(self):
         return (self.a, self.b)
     
     def __repr__(self):
@@ -356,7 +288,7 @@ class Mod(UFLObject):
         self.a = a
         self.b = b
     
-    def ops(self):
+    def operands(self):
         return (self.a, self.b)
     
     def __repr__(self):
@@ -367,7 +299,7 @@ class Abs(UFLObject):
     def __init__(self, a):
         self.a = a
     
-    def ops(self):
+    def operands(self):
         return (self.a, )
     
     def __repr__(self):
@@ -384,23 +316,35 @@ class Index(Terminal):
     def __repr__(self):
         return "Index(%s)" % repr(self.name)
 
+
+class MultiIndex(UFLObject):
+    def __init__(self, indices): # FIXME: make operands and constructor consistent here
+        if isinstance(indices, tuple):
+            self.indices = indices
+        elif isinstance(indices, (Index,Integer,int)): # TODO: Might have to wrap int in Integer class, for consistent expression tree traversal.
+            self.indices = (indices,)
+        else:
+            raise RuntimeError("Expecting an Index, MultiIndex or integer")
+    
+    def __repr__(self):
+        return "MultiIndex(%s)" % repr(self.indices)
+
+    def operands(self):
+        return self.indices
+
 class Indexed(UFLObject):
     def __init__(self, expression, indices):
         self.expression = expression
-        self.indices = indices
+        if isinstance(indices, MultiIndex):
+            self.indices = indices
+        else:
+            self.indices = MultiIndex(indices)
     
     def __repr__(self):
         return "Indexed(%s, %s)" % (repr(self.expression), repr(self.indices))
     
-    def ops(self): # FIXME: should this return the indices at all?
-        raise RuntimeError("Not sure how this should be implemented.")
-        if isinstance(self.indices, tuple):
-            return tuple([self.expression] + list(self.indices))
-        return tuple(self.expression, self.indices) # FIXME: should this return the indices at all?
-    
-    def fromops(self, *ops):
-        raise RuntimeError("Not sure how this should be implemented.")
-        return self
+    def operands(self):
+        return tuple(self.expression, self.indices)
 
 
 
