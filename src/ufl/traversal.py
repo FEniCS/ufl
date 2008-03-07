@@ -10,9 +10,9 @@ only to be used during the current experimental implementation phase).
 
 __version__ = "0.1"
 __authors__ = "Martin Sandve Alnes"
-__copyright__ = __authors__ + " (2007)"
+__copyright__ = __authors__ + " (2008)"
 __licence__ = "GPL" # TODO: which licence?
-__date__ = "17th of December 2007"
+__date__ = "March 7th 2008"
 
 from base import *
 
@@ -33,17 +33,20 @@ def iter_width_first(u):
         for i in iter_width_first(o):
             yield i
 
-def traverse_depth_first(func, u):
+def traverse_depth_first(u, func):
     """Call func(o) for all nodes o in expression tree u, depth first."""
     for o in u.ops():
-        traverse_depth_first(func, o)
+        traverse_depth_first(o, func)
     func(u)
 
-def traverse_width_first(func, u):
+def traverse_width_first(u, func):
     """Call func(o) for all nodes o in expression tree u, width first."""
-    for o in u.ops():
-        traverse_depth_first(func, o)
     func(u)
+    for o in u.ops():
+        traverse_width_first(o, func)
+
+def walk(u, func):
+    traverse_width_first(u, func)
 
 
 ### Utilities for iteration over particular types

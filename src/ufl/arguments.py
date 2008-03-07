@@ -11,62 +11,61 @@ from elements import *
 
 
 class BasisFunction(Terminal):
-    def __init__(self, element):
+    count = 0
+    def __init__(self, element, count=None):
         self.element = element
+        if count is None:
+            self.count = BasisFunction.count
+            BasisFunction.count += 1
+        else:
+            self.count = count
     
     def __repr__(self):
-        return "BasisFunction(%s)" % repr(self.element)
+        return "BasisFunction(%s, %d)" % (repr(self.element), self.count)
+
+def TestFunction(element):
+    return BasisFunction(element, -2)
+
+def TrialFunction(element):
+    return BasisFunction(element, -1)
 
 
 def BasisFunctions(element):
-    if isinstance(element, MixedElement):
-        return tuple(BasisFunction(fe) for fe in element.elements)
-    raise ValueError("Expecting MixedElement instance.")
-
-class TestFunction(BasisFunction):
-    def __init__(self, element):
-        self.element = element
-
-    def __repr__(self):
-        return "TestFunction(%s)" % repr(self.element)
+    if not isinstance(element, MixedElement):
+        raise ValueError("Expecting MixedElement instance.")
+    return tuple(BasisFunction(e) for e in element.elements) # FIXME: problem with count!
 
 def TestFunctions(element):
-    if isinstance(element, MixedElement):
-        return tuple(TestFunction(fe) for fe in element.elements)
-    raise ValueError("Expecting MixedElement instance.")
-
-class TrialFunction(BasisFunction):
-    def __init__(self, element):
-        self.element = element
-
-    def __repr__(self):
-        return "TrialFunction(%s)" % repr(self.element)
+    if not isinstance(element, MixedElement):
+        raise ValueError("Expecting MixedElement instance.")
+    return tuple(TestFunction(e) for e in element.elements) # FIXME: problem with count!
 
 def TrialFunctions(element):
-    if isinstance(element, MixedElement):
-        return tuple(TrialFunction(fe) for fe in element.elements)
-    raise ValueError("Expecting MixedElement instance.")
+    if not isinstance(element, MixedElement):
+        raise ValueError("Expecting MixedElement instance.")
+    return tuple(TrialFunction(e) for e in element.elements) # FIXME: problem with count!
 
-class Coefficient(Terminal):
-    _count = 0
-    def __init__(self, element, name):
-        self.count = Coefficient._count
-        self.name = name
+
+class Function(Terminal):
+    count = 0
+    def __init__(self, element, name=None, count=None):
         self.element = element
-        Coefficient._count += 1
-
-class Function(Coefficient):
-    def __init__(self, element, name):
-        Coefficient.__init__(self, element, name)
+        self.name = name
+        if count is None:
+            self.count = Function.count
+            Function.count += 1
+        else:
+            self.count = count
     
     def __repr__(self):
-        return "Function(%s, %s)" % (repr(self.element), repr(self.name))
+        return "Function(%s, %s, %d)" % (repr(self.element), repr(self.name), self.count)
 
-class Constant(Coefficient):
-    def __init__(self, polygon, name):
-        Coefficient.__init__(self, FiniteElement("DG", polygon, 0), name)
+class Constant(Function):
+    def __init__(self, polygon, name=None, count=None):
         self.polygon = polygon
+        element = FiniteElement("DG", polygon, 0)
+        Function.__init__(self, element, name, count)
     
     def __repr__(self):
-        return "Constant(%s, %s)" % (repr(self.element.polygon), repr(self.name))
+        return "Constant(%s, %s, %d)" % (repr(self.polygon), repr(self.name), self.count)
 
