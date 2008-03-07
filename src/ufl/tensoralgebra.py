@@ -43,6 +43,7 @@ class Outer(UFLObject):
     def __init__(self, a, b):
         self.a = a
         self.b = b
+        #self.free_indices = MultiIndex(...) # FIXME
     
     def operands(self):
         return (self.a, self.b)
@@ -54,6 +55,7 @@ class Inner(UFLObject):
     def __init__(self, a, b):
         self.a = a
         self.b = b
+        #self.free_indices = MultiIndex(...) # FIXME
     
     def operands(self):
         return (self.a, self.b)
@@ -65,6 +67,7 @@ class Contract(UFLObject):
     def __init__(self, a, b):
         self.a = a
         self.b = b
+        #self.free_indices = MultiIndex(...) # FIXME
     
     def operands(self):
         return (self.a, self.b)
@@ -76,6 +79,7 @@ class Dot(UFLObject):
     def __init__(self, a, b):
         self.a = a
         self.b = b
+        #self.free_indices = MultiIndex(...) # FIXME
     
     def operands(self):
         return (self.a, self.b)
@@ -87,6 +91,7 @@ class Cross(UFLObject):
     def __init__(self, a, b):
         self.a = a
         self.b = b
+        #self.free_indices = MultiIndex(...) # FIXME
     
     def operands(self):
         return (self.a, self.b)
@@ -97,6 +102,7 @@ class Cross(UFLObject):
 class Trace(UFLObject):
     def __init__(self, A):
         self.A = A
+        #self.free_indices = MultiIndex(...) # FIXME
     
     def operands(self):
         return (self.A, )
@@ -107,6 +113,7 @@ class Trace(UFLObject):
 class Determinant(UFLObject):
     def __init__(self, A):
         self.A = A
+        #self.free_indices = MultiIndex(...) # FIXME
     
     def operands(self):
         return (self.A, )
@@ -117,6 +124,7 @@ class Determinant(UFLObject):
 class Inverse(UFLObject):
     def __init__(self, A):
         self.A = A
+        #self.free_indices = MultiIndex(...) # FIXME
     
     def operands(self):
         return (self.A, )

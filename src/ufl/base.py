@@ -35,12 +35,12 @@ class UFLObjectBase(object):
         """Returns a sequence with all subtree nodes in expression tree.
            All UFLObject subclasses are required to implement operands ."""
         raise NotImplementedError(self.__class__.operands)
+
+    # ... FIXME: describe
     
-    def fromoperands(self, *operands):
-        """Build a new object of the same type as self but with different operands.
-           All UFLObject subclasses are required to implement fromoperands IFF their
-           constructor takes a different list of arguments than operands() returns."""
-        return self.__class__(*operands)
+    def free_indices(self):
+        """..."""
+        raise NotImplementedError(self.__class__.free_indices)
     
     # ... Representation strings are required:
 
@@ -160,16 +160,15 @@ class Terminal(UFLObject):
     def operands(self):
         return tuple()
 
-    def fromoperands(self, *operands):
-        assert len(operands) == 0
-        return self
-
 class Integer(Terminal):
     def __init__(self, value):
         self.value = value
     
     def __repr__(self):
         return "Integer(%s)" % repr(self.value)
+    
+    def free_indices(self):
+        return MultiIndex()
 
 class Real(Terminal): # TODO: Do we need this? Numeric tensors?
     def __init__(self, value):
@@ -177,6 +176,9 @@ class Real(Terminal): # TODO: Do we need this? Numeric tensors?
     
     def __repr__(self):
         return "Real(%s)" % repr(self.value)
+    
+    def free_indices(self):
+        return MultiIndex()
 
 class Number(Terminal):
     def __init__(self, value):
@@ -184,6 +186,9 @@ class Number(Terminal):
     
     def __repr__(self):
         return "Number(%s)" % repr(self.value)
+    
+    def free_indices(self):
+        return MultiIndex()
 
 class Identity(Terminal):
     def __init__(self):
@@ -196,22 +201,19 @@ class Symbol(Terminal): # TODO: Needed for diff? Tensors of symbols? Parametric 
     def __init__(self, name):
         self.name = name
     
-    def __str__(self):
-        return self.name
-
     def __repr__(self):
         return "Symbol(%s)" % repr(self.name)
+    
+    def free_indices(self):
+        return MultiIndex()
 
 #class Variable(UFLObject): # TODO: what is this really?
 #    def __init__(self, name, expression):
-#        self.name = name
+#        self.name = name # TODO: must wrap in UFLString or UFLName or something
 #        self.expression = expression
 #    
 #    def operands(self):
-#        return (self.expression,)
-#    
-#    def fromoperands(self, *operands):
-#        return Variable(self.name, *operands)
+#        return (self.name, self.expression)
 #    
 #    def __repr__(self):
 #        return "Variable(%s, %s)" % (repr(self.name), repr(self.expression))
@@ -221,41 +223,45 @@ class Symbol(Terminal): # TODO: Needed for diff? Tensors of symbols? Parametric 
 ### Algebraic operators
 
 class Transpose(UFLObject):
-    def __init__(self, f):
-        self.f = f
+    def __init__(self, A):
+        self.A = A
+        #self.free_indices = MultiIndex(...) # FIXME
     
     def operands(self):
-        return (self.f,)
+        return (self.A,)
     
     def __repr__(self):
-        return "Transpose(%s)" % repr(self.f)
+        return "Transpose(%s)" % repr(self.A)
 
 class Product(UFLObject):
     def __init__(self, *operands):
         self._operands = tuple(operands)
+        #self.free_indices = MultiIndex(...) # FIXME
     
     def operands(self):
         return self._operands
     
     def __repr__(self):
         return "(%s)" % " * ".join(repr(o) for o in self._operands)
-    
+
 
 class Sum(UFLObject):
     def __init__(self, *operands):
         self._operands = tuple(operands)
+        #self.free_indices = MultiIndex(...) # FIXME
     
     def operands(self):
         return self._operands
     
     def __repr__(self):
         return "(%s)" % " + ".join(repr(o) for o in self._operands)
-    
+
 
 class Sub(UFLObject):
     def __init__(self, a, b):
         self.a = a
         self.b = b
+        #self.free_indices = MultiIndex(...) # FIXME
     
     def operands(self):
         return (self.a, self.b)
@@ -268,6 +274,7 @@ class Division(UFLObject):
     def __init__(self, a, b):
         self.a = a
         self.b = b
+        #self.free_indices = MultiIndex(...) # FIXME
     
     def operands(self):
         return (self.a, self.b)
@@ -280,6 +287,7 @@ class Power(UFLObject):
     def __init__(self, a, b):
         self.a = a
         self.b = b
+        #self.free_indices = MultiIndex(...) # FIXME
     
     def operands(self):
         return (self.a, self.b)
@@ -292,6 +300,7 @@ class Mod(UFLObject):
     def __init__(self, a, b):
         self.a = a
         self.b = b
+        #self.free_indices = MultiIndex(...) # FIXME
     
     def operands(self):
         return (self.a, self.b)
@@ -303,6 +312,7 @@ class Mod(UFLObject):
 class Abs(UFLObject):
     def __init__(self, a):
         self.a = a
+        #self.free_indices = MultiIndex(...) # FIXME
     
     def operands(self):
         return (self.a, )
@@ -317,6 +327,7 @@ class Abs(UFLObject):
 class Index(Terminal):
     def __init__(self, name, dim=None): # TODO: do we need dim? 
         self.name = name
+        #self.free_indices = MultiIndex(...) # FIXME
     
     def __repr__(self):
         return "Index(%s)" % repr(self.name)
@@ -330,6 +341,7 @@ class MultiIndex(UFLObject):
             self.indices = (indices,)
         else:
             raise UFLException("Expecting Index, or Integer objects.")
+        #self.free_indices = MultiIndex(...) # FIXME
     
     def __repr__(self):
         return "MultiIndex(%s)" % repr(self.indices)
@@ -344,6 +356,7 @@ class Indexed(UFLObject):
             self.indices = indices
         else:
             self.indices = MultiIndex(indices)
+        self.free_indices = tuple(i for i in self.indices if isinstance(i, Index))
     
     def __repr__(self):
         return "Indexed(%s, %s)" % (repr(self.expression), repr(self.indices))

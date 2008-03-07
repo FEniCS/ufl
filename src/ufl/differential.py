@@ -14,7 +14,7 @@ class DifferentialOperator(UFLObject):
     def __init__(self):
         pass
 
-class DiffOperator(DifferentialOperator):
+class DiffOperator(DifferentialOperator): # FIXME: how should this be designed?
     def __init__(self, x):
         if isinstance(x, int):
             x = p[x]
@@ -33,6 +33,7 @@ class Diff(DifferentialOperator):
     def __init__(self, f, x):
         self.f = f
         self.x = x
+        #self.free_indices = MultiIndex(...) # FIXME
     
     def operands(self):
         return (self.f, self.x)
@@ -43,6 +44,7 @@ class Diff(DifferentialOperator):
 class Grad(DifferentialOperator):
     def __init__(self, f):
         self.f = f
+        #self.free_indices = MultiIndex(...) # FIXME
     
     def operands(self):
         return (self.f, )
@@ -53,6 +55,7 @@ class Grad(DifferentialOperator):
 class Div(DifferentialOperator):
     def __init__(self, f):
         self.f = f
+        #self.free_indices = MultiIndex(...) # FIXME
     
     def operands(self):
         return (self.f, )
@@ -63,6 +66,7 @@ class Div(DifferentialOperator):
 class Curl(DifferentialOperator):
     def __init__(self, f):
         self.f = f
+        #self.free_indices = MultiIndex(...) # FIXME
     
     def operands(self):
         return (self.f, )

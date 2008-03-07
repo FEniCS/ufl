@@ -12,6 +12,7 @@ class MathFunction(UFLObject):
     def __init__(self, name, argument):
         self.name     = name
         self.argument = argument
+        #self.free_indices = MultiIndex(...) # FIXME
     
     def operands(self):
         return (self.argument,)
