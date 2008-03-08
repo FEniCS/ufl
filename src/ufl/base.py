@@ -21,7 +21,7 @@ def ufl_assert(condition, message):
     if not condition:
         raise UFLException(message)
 
-def _isnumber(o):
+def isscalar(o):
     return isinstance(o, (int, float))
 
 def product(l):
@@ -61,62 +61,62 @@ class UFLObject(UFLObjectBase):
     # ... Algebraic operators:
     
     def __mul__(self, o):
-        if _isnumber(o): o = Number(o)
+        if isscalar(o): o = Number(o)
         if not isinstance(o, UFLObject): return NotImplemented
         return Product(self, o)
     
     def __rmul__(self, o):
-        if _isnumber(o): o = Number(o)
+        if isscalar(o): o = Number(o)
         if not isinstance(o, UFLObject): return NotImplemented
         return Product(o, self)
     
     def __add__(self, o):
-        if _isnumber(o): o = Number(o)
+        if isscalar(o): o = Number(o)
         if not isinstance(o, UFLObject): return NotImplemented
         return Sum(self, o)
     
     def __radd__(self, o):
-        if _isnumber(o): o = Number(o)
+        if isscalar(o): o = Number(o)
         if not isinstance(o, UFLObject): return NotImplemented
         return Sum(o, self)
     
     def __sub__(self, o):
-        if _isnumber(o): o = Number(o)
+        if isscalar(o): o = Number(o)
         if not isinstance(o, UFLObject): return NotImplemented
         return self + (-o)
     
     def __rsub__(self, o):
-        if _isnumber(o): o = Number(o)
+        if isscalar(o): o = Number(o)
         if not isinstance(o, UFLObject): return NotImplemented
         return o + (-self)
     
     def __div__(self, o):
-        if _isnumber(o): o = Number(o)
+        if isscalar(o): o = Number(o)
         if not isinstance(o, UFLObject): return NotImplemented
         return Division(self, o)
     
     def __rdiv__(self, o):
-        if _isnumber(o): o = Number(o)
+        if isscalar(o): o = Number(o)
         if not isinstance(o, UFLObject): return NotImplemented
         return Division(o, self)
     
     def __pow__(self, o):
-        if _isnumber(o): o = Number(o)
+        if isscalar(o): o = Number(o)
         if not isinstance(o, UFLObject): return NotImplemented
         return Power(self, o)
     
     def __rpow__(self, o):
-        if _isnumber(o): o = Number(o)
+        if isscalar(o): o = Number(o)
         if not isinstance(o, UFLObject): return NotImplemented
         return Power(o, self)
     
     def __mod__(self, o):
-        if _isnumber(o): o = Number(o)
+        if isscalar(o): o = Number(o)
         if not isinstance(o, UFLObject): return NotImplemented
         return Mod(self, o)
     
     def __rmod__(self, o):
-        if _isnumber(o): o = Number(o)
+        if isscalar(o): o = Number(o)
         if not isinstance(o, UFLObject): return NotImplemented
         return Mod(o, self)
     
@@ -250,18 +250,22 @@ class Product(UFLObject):
     def __init__(self, *operands):
         self._operands = tuple(operands)
         
-        # FIXME: handle non-scalar expressions...
-        r = operands[0].rank()
-        ufl_assert(all(o.rank() == 0 for o in operands), "Currently scalars only in Product. TODO: Fix.")
+        # first implementation: check when having two operands only, this is easier for some stuff below. FIXME: Need to consider implicit sums etc here.
+        if len(operands) != 2:
+            raise NotImplementedError("Need to fix Product for more than two operands.")
         
-        # create new (relabel) indices unless all indices of all operands are equal
-        #if all(o.free_indices == operands[0].free_indices for o in operands):
-        #    self.free_indices = operands[0].free_indices
-        #else:
-        #    self.free_indices = tuple(Index() for i in range(r))
+        a, b = operands
+        ra = a.rank()
+        rb = b.rank()
+        if   (ra == 0 and rb == 0): # a*b
+            self.free_indices = tuple()
+        elif (ra == 2 and rb == 1): # A*v
+            self.free_indices = (a.free_indices[0],)
+        elif (ra == 2 and rb == 2): # A*B
+            self.free_indices = (a.free_indices[0], b.free_indices[1])
+        else:
+            ufl_assert(False, "Invalid combination of ranks.")
         
-        self.free_indices = tuple(Index() for i in range(r))
-    
     def operands(self):
         return self._operands
     
