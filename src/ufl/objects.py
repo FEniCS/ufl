@@ -7,7 +7,8 @@ Utility objects for pretty syntax in user code.
 __authors__ = "Martin Sandve Alnes"
 __date__ = "March 8th 2008"
 
-from base  import *
+from base import *
+from form import *
 from geometry import *
 import math
 

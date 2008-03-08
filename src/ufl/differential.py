@@ -17,7 +17,7 @@ class DifferentialOperator(UFLObject):
     def __init__(self):
         pass
 
-#class DiffOperator(DifferentialOperator): # FIXME: how should this be designed?
+#class DiffOperator(DifferentialOperator): # TODO: how should this be designed?
 #    def __init__(self, x):
 #        if isinstance(x, int):
 #            x = p[x]
@@ -36,7 +36,7 @@ class DifferentialOperator(UFLObject):
 #    def __init__(self, f, x):
 #        self.f = f
 #        self.x = x
-#        #self.free_indices = MultiIndex(...) # FIXME
+#        #self.free_indices = tuple(Index(...) ) # TODO
 #    
 #    def operands(self):
 #        return (self.f, self.x)

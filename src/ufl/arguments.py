@@ -22,7 +22,8 @@ class BasisFunction(Terminal):
             BasisFunction.count += 1
         else:
             self.count = count
-        #self.free_indices = MultiIndex(...) # FIXME
+        
+        self.free_indices = tuple(Index() for i in range(self.element.value_rank))
     
     def __repr__(self):
         return "BasisFunction(%s, %d)" % (repr(self.element), self.count)
@@ -60,7 +61,7 @@ class Function(Terminal):
             Function.count += 1
         else:
             self.count = count
-        #self.free_indices = MultiIndex(...) # FIXME
+        self.free_indices = tuple(Index() for i in range(self.element.value_rank))
     
     def __repr__(self):
         return "Function(%s, %s, %d)" % (repr(self.element), repr(self.name), self.count)

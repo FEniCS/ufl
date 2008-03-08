@@ -10,6 +10,9 @@ __date__ = "March 8th 2008"
 # base system (base class and all subclasses involved in operators on the base class)
 from base import *
 
+# form and integral classes
+from form import *
+
 # representations of transformed forms
 from forms import *
 

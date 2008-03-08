@@ -18,7 +18,7 @@ class GeometricQuantity(Terminal):
 class FacetNormal(GeometricQuantity):
     def __init__(self):
         pass
-        #self.free_indices = MultiIndex(...) # FIXME
+        #self.free_indices = (Index(...),) # FIXME
 
     def __repr__(self):
         return "FacetNormal()"
@@ -26,7 +26,7 @@ class FacetNormal(GeometricQuantity):
 class CellRadius(GeometricQuantity):
     def __init__(self):
         pass
-        #self.free_indices = MultiIndex(...) # FIXME
+        #self.free_indices = (Index(...),) # FIXME
 
     def __repr__(self):
         return "CellRadius()"

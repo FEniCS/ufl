@@ -34,23 +34,11 @@ class UFLVisitor:
 class BasisFunctionFinder(UFLVisitor):
     def __init__(self):
         UFLVisitor.__init__(self)
-        self.register(TestFunction,  self.test_function)  # FIXME: just use BasisFunction
-        self.register(TrialFunction, self.trial_function)
         self.register(BasisFunction, self.basis_function)
         self.reset()
     
     def reset(self):
-        self.testfunctions  = set()
-        self.trialfunctions = set()
         self.basisfunctions = set()
-    
-    def test_function(self, o):
-        self.testfunctions.add(o)
-        self.basisfunctions.add(o)
-    
-    def trial_function(self, o):
-        self.trialfunctions.add(o)
-        self.basisfunctions.add(o)
     
     def basis_function(self, o):
         self.basisfunctions.add(o)
@@ -90,7 +78,7 @@ class SubtreeFinder(UFLVisitor):
         ro = repr(o)
         if ro in self.handled:
             self.duplicated.add(ro)
-        elif not isinstance(ro, (Number, Symbol, Variable)):
+        elif not isinstance(ro, (Real, Integer, Number, Symbol)):#, Variable)):
             self.handled.add(ro)
             for i in o.operands():
                 self.visit(i)
@@ -99,9 +87,9 @@ class SubtreeFinder(UFLVisitor):
 
 
 if __name__ == "__main__":
-    a = FiniteElement("La", "tr", 1)
-    b = VectorElement("La", "tr", 1)
-    c = TensorElement("La", "tr", 1)
+    a = FiniteElement("Lagrange", "triangle", 1)
+    b = VectorElement("Lagrange", "triangle", 1)
+    c = TensorElement("Lagrange", "triangle", 1)
     
     u = TrialFunction(a)
     v = TestFunction(a)
@@ -113,8 +101,6 @@ if __name__ == "__main__":
     
     vis = BasisFunctionFinder()
     print vis.visit(f)
-    print vis.testfunctions
-    print vis.trialfunctions
     
     vis = CoefficientFinder()
     print vis.visit(f)

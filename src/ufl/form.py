@@ -7,6 +7,7 @@ The Form and Integral objects.
 __authors__ = "Martin Sandve Alnes"
 __date__ = "March 8th 2008"
 
+
 class Form:
     """Description of a weak form consisting of a sum of integrals over subdomains."""
     def __init__(self, integrals):    
@@ -40,13 +41,16 @@ class Form:
 
 class Integral(object):
     """Description of an integral over a single domain."""
-    def __init__(self, domain_type, domain_id, integrand=None):
+    def __init__(self, domain_type, domain_id, integrand = None):
         self.domain_type = domain_type
         self.domain_id   = domain_id
         self.integrand   = integrand
+
+    def __mul__(self, other):
+        raise RuntimeError("Can't multiply Integral from the left.")
     
     def __rmul__(self, other):
-        assert self.integrand is None
+        ufl_assert(self.integrand is None, "Seems to be a bug in Integral.")
         return Form( [Integral(self.domain_type, self.domain_id, other)] )
 
     def __contains__(self, item):
