@@ -15,7 +15,7 @@ import operator
 
 class UFLException(Exception):
     def __init__(self, msg):
-        Exception.__init__(msg)
+        Exception.__init__(self, msg)
 
 def ufl_assert(condition, message):
     if not condition:
@@ -62,62 +62,62 @@ class UFLObject(UFLObjectBase):
     
     def __mul__(self, o):
         if _isnumber(o): o = Number(o)
-        ufl_assert(isinstance(o, UFLObject), "Can't multiply with %s" % repr(o))
+        if not isinstance(o, UFLObject): return NotImplemented
         return Product(self, o)
     
     def __rmul__(self, o):
         if _isnumber(o): o = Number(o)
-        ufl_assert(isinstance(o, UFLObject), "Can't multiply with %s" % repr(o))
+        if not isinstance(o, UFLObject): return NotImplemented
         return Product(o, self)
     
     def __add__(self, o):
         if _isnumber(o): o = Number(o)
-        ufl_assert(isinstance(o, UFLObject), "Can't add with %s" % repr(o))
+        if not isinstance(o, UFLObject): return NotImplemented
         return Sum(self, o)
     
     def __radd__(self, o):
         if _isnumber(o): o = Number(o)
-        ufl_assert(isinstance(o, UFLObject), "Can't add with %s" % repr(o))
+        if not isinstance(o, UFLObject): return NotImplemented
         return Sum(o, self)
     
     def __sub__(self, o):
         if _isnumber(o): o = Number(o)
-        ufl_assert(isinstance(o, UFLObject), "Can't subtract with %s" % repr(o))
+        if not isinstance(o, UFLObject): return NotImplemented
         return self + (-o)
     
     def __rsub__(self, o):
         if _isnumber(o): o = Number(o)
-        ufl_assert(isinstance(o, UFLObject), "Can't subtract with %s" % repr(o))
+        if not isinstance(o, UFLObject): return NotImplemented
         return o + (-self)
     
     def __div__(self, o):
         if _isnumber(o): o = Number(o)
-        ufl_assert(isinstance(o, UFLObject), "Can't divide by %s" % repr(o))
+        if not isinstance(o, UFLObject): return NotImplemented
         return Division(self, o)
     
     def __rdiv__(self, o):
         if _isnumber(o): o = Number(o)
-        ufl_assert(isinstance(o, UFLObject), "Can't divide by %s" % repr(o))
+        if not isinstance(o, UFLObject): return NotImplemented
         return Division(o, self)
     
     def __pow__(self, o):
         if _isnumber(o): o = Number(o)
-        ufl_assert(isinstance(o, UFLObject), "Can't take power of %s" % repr(o))
+        if not isinstance(o, UFLObject): return NotImplemented
         return Power(self, o)
     
     def __rpow__(self, o):
         if _isnumber(o): o = Number(o)
-        ufl_assert(isinstance(o, UFLObject), "Can't take power of %s" % repr(o))
+        if not isinstance(o, UFLObject): return NotImplemented
         return Power(o, self)
     
     def __mod__(self, o):
         if _isnumber(o): o = Number(o)
-        ufl_assert(isinstance(o, UFLObject), "Can't take mod of %s" % repr(o))
+        if not isinstance(o, UFLObject): return NotImplemented
         return Mod(self, o)
     
     def __rmod__(self, o):
         if _isnumber(o): o = Number(o)
-        ufl_assert(isinstance(o, UFLObject), "Can't take mod of %s" % repr(o))
+        if not isinstance(o, UFLObject): return NotImplemented
         return Mod(o, self)
     
     def __neg__(self):

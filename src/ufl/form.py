@@ -8,6 +8,9 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "March 8th 2008"
 
 
+from base import ufl_assert
+
+
 class Form:
     """Description of a weak form consisting of a sum of integrals over subdomains."""
     def __init__(self, integrals):    

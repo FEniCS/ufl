@@ -30,6 +30,7 @@ class FiniteElement(FiniteElementBase):
         assert family in valid_families
         self.family  = family
         self.order   = order
+        self.value_rank = 0
     
     def __repr__(self):
         return "FiniteElement(%s, %s, %d)" % (repr(self.family), repr(self.polygon), self.order)
@@ -41,6 +42,7 @@ class VectorElement(FiniteElementBase):
         self.family  = family
         self.order   = order
         self.size    = size
+        self.value_rank = 1
     
     def __repr__(self):
         return "VectorElement(%s, %s, %d, %s)" % (repr(self.family), repr(self.polygon), self.order, repr(self.size))
@@ -52,6 +54,7 @@ class TensorElement(FiniteElementBase):
         self.family  = family
         self.order   = order
         self.shape   = shape
+        self.value_rank = 2
     
     def __repr__(self):
         return "TensorElement(%s, %s, %d, %s)" % (repr(self.family), repr(self.polygon), self.order, repr(self.shape))
