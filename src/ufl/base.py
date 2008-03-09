@@ -382,22 +382,28 @@ class MultiIndex(UFLObject):
     def __repr__(self):
         return "MultiIndex(%s)" % repr(self.indices)
 
+    def __len__(self):
+        return len(self.indices)
+
     def operands(self):
         return self.indices
 
 class Indexed(UFLObject):
     def __init__(self, expression, indices):
-        ufl_assert(expression.rank() == len(indices), "Invalid number of indices (%d) for tensor of rank %d." % (len(indices), expression.rank()))
         self.expression = expression
         if isinstance(indices, MultiIndex):
             self.indices = indices
         else:
             self.indices = MultiIndex(indices)
+        ufl_assert(expression.rank() == len(self.indices), "Invalid number of indices (%d) for tensor of rank %d." % (len(self.indices), expression.rank()))
         #self.free_indices = tuple(i for i in self.indices if isinstance(i, Index)) # FIXME
         self.free_indices = tuple() # FIXME
     
     def __repr__(self):
         return "Indexed(%s, %s)" % (repr(self.expression), repr(self.indices))
+    
+    def __getitem__(self, key):
+        ufl_assert(False, "Object is already indexed: %s" % repr(self))
     
     def operands(self):
         return tuple(self.expression, self.indices)
