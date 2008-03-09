@@ -54,6 +54,7 @@ class Integral(object):
     
     def __rmul__(self, other):
         ufl_assert(self.integrand is None, "Seems to be a bug in Integral.")
+        ufl_assert(other.rank() == 0, "Trying to integrate expression of rank %d." % other.rank())
         return Form( [Integral(self.domain_type, self.domain_id, other)] )
 
     def __contains__(self, item):

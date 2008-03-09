@@ -6,10 +6,11 @@ types involved with built-in operators on any ufl object.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "March 8th 2008"
+__date__ = "March 9th 2008"
 
 import operator
-
+from itertools import chain
+from collections import defaultdict
 
 ### Utility functions:
 
@@ -250,22 +251,24 @@ class Product(UFLObject):
     def __init__(self, *operands):
         self._operands = tuple(operands)
         
-        # first implementation: check when having two operands only, this is easier for some stuff below. FIXME: Need to consider implicit sums etc here.
-        if len(operands) != 2:
-            raise NotImplementedError("Need to fix Product for more than two operands.")
+        rep  = []
+        free = []
         
-        a, b = operands
-        ra = a.rank()
-        rb = b.rank()
-        if   (ra == 0 and rb == 0): # a*b
-            self.free_indices = tuple()
-        elif (ra == 2 and rb == 1): # A*v
-            self.free_indices = (a.free_indices[0],)
-        elif (ra == 2 and rb == 2): # A*B
-            self.free_indices = (a.free_indices[0], b.free_indices[1])
-        else:
-            ufl_assert(False, "Invalid combination of ranks.")
+        count = defaultdict(int)
+        for i in chain(o.free_indices for o in operands):
+            count[i] += 1
         
+        for k, v in count.iteritems():
+            if v == 1:
+                free.append(k)
+            elif v == 2:
+                rep.append(k)
+            else:
+                ufl_assert(v <= 2, "Index %s repeated %d times." % (str(k), v))
+        
+        self.repeated_indices = tuple(rep)
+        self.free_indices     = tuple(free)
+    
     def operands(self):
         return self._operands
     
@@ -384,12 +387,14 @@ class MultiIndex(UFLObject):
 
 class Indexed(UFLObject):
     def __init__(self, expression, indices):
+        ufl_assert(expression.rank() == len(indices), "Invalid number of indices (%d) for tensor of rank %d." % (len(indices), expression.rank()))
         self.expression = expression
         if isinstance(indices, MultiIndex):
             self.indices = indices
         else:
             self.indices = MultiIndex(indices)
-        self.free_indices = tuple(i for i in self.indices if isinstance(i, Index)) # FIXME
+        #self.free_indices = tuple(i for i in self.indices if isinstance(i, Index)) # FIXME
+        self.free_indices = tuple() # FIXME
     
     def __repr__(self):
         return "Indexed(%s, %s)" % (repr(self.expression), repr(self.indices))
