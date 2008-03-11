@@ -300,12 +300,14 @@ class Product(UFLObject):
             if current_rank == 0 or o.rank == 0:
                 # at least one scalar
                 current_rank = current_rank + o.rank
-            elif current_rank == 2 or o.rank == 2:
+            elif current_rank == 2 and o.rank == 2:
                 # matrix-matrix product
                 current_rank = 2
-            elif current_rank == 2 or o.rank == 1:
+            elif current_rank == 2 and o.rank == 1:
                 # matrix-vector product
                 current_rank = 1
+            else:
+                ufl_assert(False, "Invalid combination of tensor ranks in product.")
         
         self.rank = current_rank
     
@@ -318,8 +320,8 @@ class Product(UFLObject):
 
 class Sum(UFLObject):
     def __init__(self, *operands):
-        r = rank(operands[0])
-        ufl_assert(all(r == rank(o) for o in operands), "Rank mismatch in sum.")
+        r = operands[0].rank
+        ufl_assert(all(r == o.rank for o in operands), "Rank mismatch in sum.")
         ufl_assert(all(o.free_indices == operands[0].free_indices for o in operands), "Can't add expressions with different free indices.")
         
         self._operands = tuple(operands)
@@ -410,15 +412,17 @@ class Index(Terminal):
     def __repr__(self):
         return "Index(%s, %d)" % (repr(self.name), self.count)
 
+
 class FixedIndex(Terminal):
     def __init__(self, value):
+        ufl_assert(isinstance(value, int), "Expecting integer value for fixed index.")
         self.value = value
         # these make no sense here:
         self.rank = None
         self.free_indices = None
     
     def __repr__(self):
-        return "Index(%s, %d)" % (repr(self.name), self.count)
+        return "FixedIndex(%d)" % self.value
 
 
 class MultiIndex(UFLObject):
@@ -462,7 +466,7 @@ class Indexed(UFLObject):
         msg = "Invalid number of indices (%d) for tensor expression of rank %d:\n\t%s\n" % (len(self.indices), expression.rank, repr(expression))
         ufl_assert(expression.rank == len(self.indices), msg)
         
-        self.rank = expression.rank
+        self.rank = expression.rank - len(self.indices)
         
         self.free_indices = tuple(i for i in self.indices.indices if isinstance(i, Index))
     

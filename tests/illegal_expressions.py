@@ -14,7 +14,7 @@ from ufl.utilities import *
 class IllegalExpressionsTestCase(unittest.TestCase):
     
     def setUp(self):
-        self.selement = VectorElement("Lagrange", "triangle", 1)
+        self.selement = FiniteElement("Lagrange", "triangle", 1)
         self.velement = VectorElement("Lagrange", "triangle", 1)
         self.a = BasisFunction(self.selement)
         self.b = BasisFunction(self.selement)
@@ -76,10 +76,8 @@ class IllegalExpressionsTestCase(unittest.TestCase):
         tmp = vg+v+u+vf
         try:
             tmp+b
-            thing = False
         except (UFLException, e):
             pass
-        self.fail()
     
 
 class FormsTestCase(unittest.TestCase):
@@ -102,7 +100,7 @@ class FormsTestCase(unittest.TestCase):
         v = TestFunction(element)
         f = Function(element, "f")
         try:
-            a = dot(f[0],v)*dx
+            a = dot(f[0],v)
             self.fail()
         except (UFLException, e):
             pass
