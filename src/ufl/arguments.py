@@ -7,7 +7,7 @@ which use the baseclasses BasisFunction and Coefficient.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "March 8th 2008"
+__date__ = "March 11th 2008"
 
 from base import *
 from elements import *
@@ -23,7 +23,8 @@ class BasisFunction(Terminal):
         else:
             self.count = count
         
-        self.free_indices = tuple(Index() for i in range(self.element.value_rank))
+        self.free_indices = tuple()
+        self.rank = self.element.value_rank
     
     def __repr__(self):
         return "BasisFunction(%s, %d)" % (repr(self.element), self.count)
@@ -61,7 +62,9 @@ class Function(Terminal):
             Function.count += 1
         else:
             self.count = count
-        self.free_indices = tuple(Index() for i in range(self.element.value_rank))
+        
+        self.free_indices = tuple()
+        self.rank = self.element.value_rank
     
     def __repr__(self):
         return "Function(%s, %s, %d)" % (repr(self.element), repr(self.name), self.count)

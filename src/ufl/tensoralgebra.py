@@ -5,7 +5,7 @@ Compound tensor algebra operations. Needs some work!
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "March 8th 2008"
+__date__ = "March 11th 2008"
 
 from base import *
 
@@ -46,7 +46,8 @@ class Outer(UFLObject):
     def __init__(self, a, b):
         self.a = a
         self.b = b
-        self.free_indices = a.free_indices + b.free_indices
+        self.free_indices = a.free_indices + b.free_indices # FIXME: how to handle free indices in "non-index products" like this?
+        self.rank = a.rank + b.rank
     
     def operands(self):
         return (self.a, self.b)
@@ -59,7 +60,8 @@ class Inner(UFLObject):
         ufl_assert(a.rank() == b.rank(), "Rank mismatch.")
         self.a = a
         self.b = b
-        self.free_indices = tuple()
+        self.free_indices = a.free_indices + b.free_indices # FIXME
+        self.rank = 0
     
     def operands(self):
         return (self.a, self.b)
@@ -72,7 +74,8 @@ class Dot(UFLObject):
         #ufl_assert(a.rank() >= 1 and b.rank() >= 1, "Dot product requires arguments of rank >= 1.") # TODO: maybe scalars are ok?
         self.a = a
         self.b = b
-        self.free_indices = a.free_indices[:-1] + b.free_indices[1:]
+        self.free_indices = a.free_indices + b.free_indices # FIXME
+        self.rank = a.rank + b.rank - 2
     
     def operands(self):
         return (self.a, self.b)
@@ -85,7 +88,8 @@ class Cross(UFLObject):
         ufl_assert(a.rank() == 1 and b.rank() == 1, "Cross product requires arguments of rank 1.")
         self.a = a
         self.b = b
-        self.free_indices = (Index(),)
+        self.free_indices = a.free_indices + b.free_indices # FIXME
+        self.rank = 1
     
     def operands(self):
         return (self.a, self.b)
@@ -97,7 +101,8 @@ class Trace(UFLObject):
     def __init__(self, A):
         ufl_assert(A.rank() == 2, "Trace of tensor with rank != 2 is undefined.")
         self.A = A
-        self.free_indices = tuple()
+        self.free_indices = a.free_indices + b.free_indices # FIXME
+        self.rank = 0
     
     def operands(self):
         return (self.A, )
@@ -109,7 +114,8 @@ class Determinant(UFLObject):
     def __init__(self, A):
         ufl_assert(A.rank() == 2, "Determinant of tensor with rank != 2 is undefined.")
         self.A = A
-        self.free_indices = tuple()
+        self.free_indices = A.free_indices # FIXME
+        self.rank = 0
     
     def operands(self):
         return (self.A, )
@@ -121,7 +127,8 @@ class Inverse(UFLObject):
     def __init__(self, A):
         ufl_assert(A.rank() == 2, "Inverse of tensor with rank != 2 is undefined.")
         self.A = A
-        self.free_indices = tuple(Index(), Index())
+        self.free_indices = A.free_indices # FIXME
+        self.rank = 2
     
     def operands(self):
         return (self.A, )
@@ -133,7 +140,8 @@ class Deviatoric(UFLObject):
     def __init__(self, A):
         ufl_assert(A.rank() == 2, "Deviatoric part of tensor with rank != 2 is undefined.")
         self.A = A
-        self.free_indices = tuple(Index(), Index())
+        self.free_indices = A.free_indices # FIXME
+        self.rank = 2
     
     def operands(self):
         return (self.A, )

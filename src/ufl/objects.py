@@ -5,7 +5,7 @@ Utility objects for pretty syntax in user code.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "March 8th 2008"
+__date__ = "March 11th 2008"
 
 from base import *
 from form import *
@@ -34,5 +34,5 @@ dx, ds, dS = dx0, ds0, dS0
 # geometric entities
 
 n = FacetNormal()
-h = CellRadius()
+h = MeshSize()
 

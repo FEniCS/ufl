@@ -6,7 +6,7 @@ types involved with built-in operators on any ufl object.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "March 9th 2008"
+__date__ = "March 11th 2008"
 
 import operator
 from itertools import chain
@@ -22,11 +22,23 @@ def ufl_assert(condition, message):
     if not condition:
         raise UFLException(message)
 
-def isscalar(o):
+def is_python_scalar(o):
     return isinstance(o, (int, float))
 
 def product(l):
     return reduce(operator.__mul__, l)
+
+
+# ... Helper functions for tensor properties:
+
+def is_scalar_valued(o):
+    return o.rank == 0
+
+def is_true_scalar(o):
+    return o.rank == 0  and  len(o.free_indices) == 0
+
+def free_indices(o):
+    return o.free_indices
 
 
 ### UFLObject base class:
@@ -34,7 +46,9 @@ def product(l):
 class UFLObjectBase(object):
     """Interface or ufl objects, all classes should implement these."""
     def __init__(self):
-        pass
+        # all classes should define these variables
+        self.free_indices = None
+        self.rank = None
     
     # ... Access to subtree nodes for expression traversal:
     
@@ -50,74 +64,70 @@ class UFLObjectBase(object):
         raise NotImplementedError(self.__class__.__repr__)
 
 
-
 class UFLObject(UFLObjectBase):
     """An UFLObject is equipped with all relevant operators."""
     def __init__(self):
         pass
     
-    def rank(self):
-        return len(self.free_indices)
-    
     # ... Algebraic operators:
     
     def __mul__(self, o):
-        if isscalar(o): o = Number(o)
+        if is_python_scalar(o): o = Number(o)
         if not isinstance(o, UFLObject): return NotImplemented
         return Product(self, o)
     
     def __rmul__(self, o):
-        if isscalar(o): o = Number(o)
+        if is_python_scalar(o): o = Number(o)
         if not isinstance(o, UFLObject): return NotImplemented
         return Product(o, self)
     
     def __add__(self, o):
-        if isscalar(o): o = Number(o)
+        if is_python_scalar(o): o = Number(o)
         if not isinstance(o, UFLObject): return NotImplemented
         return Sum(self, o)
     
     def __radd__(self, o):
-        if isscalar(o): o = Number(o)
+        if is_python_scalar(o): o = Number(o)
         if not isinstance(o, UFLObject): return NotImplemented
         return Sum(o, self)
     
     def __sub__(self, o):
-        if isscalar(o): o = Number(o)
+        if is_python_scalar(o): o = Number(o)
         if not isinstance(o, UFLObject): return NotImplemented
         return self + (-o)
     
     def __rsub__(self, o):
-        if isscalar(o): o = Number(o)
+        if is_python_scalar(o): o = Number(o)
         if not isinstance(o, UFLObject): return NotImplemented
         return o + (-self)
     
     def __div__(self, o):
-        if isscalar(o): o = Number(o)
+        if is_python_scalar(o): o = Number(o)
         if not isinstance(o, UFLObject): return NotImplemented
         return Division(self, o)
     
     def __rdiv__(self, o):
-        if isscalar(o): o = Number(o)
+        if is_python_scalar(o): o = Number(o)
         if not isinstance(o, UFLObject): return NotImplemented
         return Division(o, self)
     
     def __pow__(self, o):
-        if isscalar(o): o = Number(o)
+        if is_python_scalar(o): o = Number(o)
         if not isinstance(o, UFLObject): return NotImplemented
         return Power(self, o)
     
     def __rpow__(self, o):
-        if isscalar(o): o = Number(o)
+        if is_python_scalar(o): o = Number(o)
         if not isinstance(o, UFLObject): return NotImplemented
         return Power(o, self)
     
     def __mod__(self, o):
-        if isscalar(o): o = Number(o)
+        if is_python_scalar(o): o = Number(o)
         if not isinstance(o, UFLObject): return NotImplemented
         return Mod(self, o)
     
     def __rmod__(self, o):
-        if isscalar(o): o = Number(o)
+        if is_python_scalar(o): o = Number(o)
         if not isinstance(o, UFLObject): return NotImplemented
         return Mod(o, self)
     
@@ -179,6 +189,7 @@ class Integer(Terminal):
     def __init__(self, value):
         self.value = value
         self.free_indices = tuple()
+        self.rank = 0
     
     def __repr__(self):
         return "Integer(%s)" % repr(self.value)
@@ -188,6 +199,7 @@ class Real(Terminal): # TODO: Do we need this? Numeric tensors?
     def __init__(self, value):
         self.value = value
         self.free_indices = tuple()
+        self.rank = 0
     
     def __repr__(self):
         return "Real(%s)" % repr(self.value)
@@ -197,6 +209,7 @@ class Number(Terminal):
     def __init__(self, value):
         self.value = value
         self.free_indices = tuple()
+        self.rank = 0
     
     def __repr__(self):
         return "Number(%s)" % repr(self.value)
@@ -214,6 +227,7 @@ class Symbol(Terminal): # TODO: Needed for diff? Tensors of symbols? Parametric 
     def __init__(self, name):
         self.name = name
         self.free_indices = tuple()
+        self.rank = 0
     
     def __repr__(self):
         return "Symbol(%s)" % repr(self.name)
@@ -238,7 +252,8 @@ class Transpose(UFLObject):
     def __init__(self, A):
         ufl_assert(A.rank() == 2, "Transpose is only defined for rank 2 tensors.")
         self.A = A
-        self.free_indices = (A.free_indices[1], A.free_indices[0])
+        self.free_indices = A.free_indices
+        self.rank = 2
     
     def operands(self):
         return (self.A,)
@@ -281,6 +296,7 @@ class Sum(UFLObject):
         self._operands = tuple(operands)
         
         r = operands[0].rank()
+        self.rank = r
         ufl_assert(all(r == o.rank() for o in operands), "Rank mismatch in sum.")
         
         # create new (relabel) indices unless all indices of all operands are equal
@@ -298,10 +314,11 @@ class Sum(UFLObject):
 
 class Division(UFLObject):
     def __init__(self, a, b):
-        ufl_assert(b.rank() == 0, "Division by non-scalar.")
+        ufl_assert(is_true_scalar(b), "Division by non-scalar.")
         self.a = a
         self.b = b
         self.free_indices = a.free_indices
+        self.rank = a.rank
     
     def operands(self):
         return (self.a, self.b)
@@ -312,10 +329,11 @@ class Division(UFLObject):
 
 class Power(UFLObject):
     def __init__(self, a, b):
-        ufl_assert(a.rank() == 0 and b.rank() == 0, "Non-scalar power not defined.")
+        ufl_assert(is_true_scalar(a) and is_true_scalar(b), "Non-scalar power not defined.")
         self.a = a
         self.b = b
         self.free_indices = tuple()
+        self.rank = 0
     
     def operands(self):
         return (self.a, self.b)
@@ -326,10 +344,11 @@ class Power(UFLObject):
 
 class Mod(UFLObject):
     def __init__(self, a, b):
-        ufl_assert(a.rank() == 0 and b.rank() == 0, "Non-scalar mod is undefined.")
+        ufl_assert(is_true_scalar(a) and is_true_scalar(b), "Non-scalar mod not defined.")
         self.a = a
         self.b = b
         self.free_indices = tuple()
+        self.rank = 0
     
     def operands(self):
         return (self.a, self.b)
@@ -340,9 +359,9 @@ class Mod(UFLObject):
 
 class Abs(UFLObject):
     def __init__(self, a):
-        ufl_assert(a.rank() == 0, "Non-scalar abs is undefined.")
         self.a = a
         self.free_indices = a.free_indices
+        self.rank = a.rank
     
     def operands(self):
         return (self.a, )
@@ -358,7 +377,6 @@ class Index(Terminal):
     count = 0
     def __init__(self, name = None, count = None):
         self.name = name
-        self.free_indices = None # TODO: not sure if this will be needed anywhere
         if count is None:
             self.count = Index.count
             Index.count += 1
@@ -377,7 +395,6 @@ class MultiIndex(UFLObject):
             self.indices = (indices,)
         else:
             raise UFLException("Expecting Index, or Integer objects.")
-        self.free_indices = None # TODO: not sure if this will be needed anywhere
     
     def __repr__(self):
         return "MultiIndex(%s)" % repr(self.indices)
@@ -398,6 +415,7 @@ class Indexed(UFLObject):
         ufl_assert(expression.rank() == len(self.indices), "Invalid number of indices (%d) for tensor of rank %d." % (len(self.indices), expression.rank()))
         #self.free_indices = tuple(i for i in self.indices if isinstance(i, Index)) # FIXME
         self.free_indices = tuple() # FIXME
+        self.rank = expression.rank
     
     def __repr__(self):
         return "Indexed(%s, %s)" % (repr(self.expression), repr(self.indices))

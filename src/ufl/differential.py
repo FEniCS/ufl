@@ -5,7 +5,7 @@ Differential operators. Needs work!
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "March 8th 2008"
+__date__ = "March 11th 2008"
 
 from base import *
 
@@ -47,7 +47,8 @@ class DifferentialOperator(UFLObject):
 class Grad(DifferentialOperator):
     def __init__(self, f):
         self.f = f
-        self.free_indices = (Index(), ) + f.free_indices
+        self.free_indices = f.free_indices # FIXME
+        self.rank = 1 + f.rank
     
     def operands(self):
         return (self.f, )
@@ -59,7 +60,8 @@ class Div(DifferentialOperator):
     def __init__(self, f):
         ufl_assert(f.rank() >= 1, "Can't take the divergence of a scalar.")
         self.f = f
-        self.free_indices = f.free_indices[1:]
+        self.free_indices = f.free_indices # FIXME
+        self.rank = f.rank - 1
     
     def operands(self):
         return (self.f, )
@@ -71,13 +73,27 @@ class Curl(DifferentialOperator):
     def __init__(self, f):
         ufl_assert(f.rank() == 1, "Need a vector.")
         self.f = f
-        self.free_indices = (Index(),)
+        self.free_indices = f.free_indices # FIXME
+        self.rank = 1
     
     def operands(self):
         return (self.f, )
     
     def __repr__(self):
         return "Curl(%s)" % repr(self.f)
+
+class Rot(DifferentialOperator):
+    def __init__(self, f):
+        ufl_assert(f.rank() == 1, "Need a vector.")
+        self.f = f
+        self.free_indices = f.free_indices # FIXME
+        self.rank = 1
+    
+    def operands(self):
+        return (self.f, )
+    
+    def __repr__(self):
+        return "Rot(%s)" % repr(self.f)
 
 
 # functions exposed to the user:
@@ -96,6 +112,9 @@ def div(f):
 
 def curl(f):
     return Curl(f)
+
+def rot(f):
+    return Rot(f)
 
 # TODO: What about time derivatives? Can we do something there?
 #def Dt(f):

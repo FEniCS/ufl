@@ -5,7 +5,7 @@ Mathematical functions.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "March 8th 2008"
+__date__ = "March 11th 2008"
 
 from base import *
 
@@ -13,10 +13,11 @@ from base import *
 
 class MathFunction(UFLObject):
     def __init__(self, name, argument):
-        ufl_assert(argument.rank() == 0, "Need scalar.")
+        ufl_assert(is_true_scalar(argument), "Need scalar.")
         self.name     = name
         self.argument = argument
         self.free_indices = tuple()
+        self.rank = 0
     
     def operands(self):
         return (self.argument,)
