@@ -11,6 +11,77 @@ from ufl.utilities import *
 # TODO: add more forms, covering all UFL operators
 
 
+class IllegalExpressionsTestCase(unittest.TestCase):
+    
+    def setUp(self):
+        self.selement = VectorElement("Lagrange", "triangle", 1)
+        self.velement = VectorElement("Lagrange", "triangle", 1)
+        self.a = BasisFunction(self.selement)
+        self.b = BasisFunction(self.selement)
+        self.v = BasisFunction(self.velement)
+        self.u = BasisFunction(self.velement)
+        self.f = Function(self.selement, "f")
+        self.g = Function(self.selement, "g")
+        self.vf = Function(self.velement, "vf")
+        self.vg = Function(self.velement, "vg")
+    
+    def test_1(self):
+        a, b, v,  u  = self.a, self.b, self.v,  self.u
+        f, g, vf, vg = self.f, self.g, self.vf, self.vg
+        try:
+            v*u
+            self.fail()
+        except (UFLException, e):
+            pass
+    
+    def test_2(self):
+        a, b, v,  u  = self.a, self.b, self.v,  self.u
+        f, g, vf, vg = self.f, self.g, self.vf, self.vg
+        try:
+            vf*u
+            self.fail()
+        except (UFLException, e):
+            pass
+    
+    def test_3(self):
+        a, b, v,  u  = self.a, self.b, self.v,  self.u
+        f, g, vf, vg = self.f, self.g, self.vf, self.vg
+        try:
+            vf*vg
+            self.fail()
+        except (UFLException, e):
+            pass
+    
+    def test_4(self):
+        a, b, v,  u  = self.a, self.b, self.v,  self.u
+        f, g, vf, vg = self.f, self.g, self.vf, self.vg
+        try:
+            a+v
+            self.fail()
+        except (UFLException, e):
+            pass
+
+    def test_5(self):
+        a, b, v,  u  = self.a, self.b, self.v,  self.u
+        f, g, vf, vg = self.f, self.g, self.vf, self.vg
+        try:
+            vf+b
+            self.fail()
+        except (UFLException, e):
+            pass
+    
+    def test_6(self):
+        a, b, v,  u  = self.a, self.b, self.v,  self.u
+        f, g, vf, vg = self.f, self.g, self.vf, self.vg
+        tmp = vg+v+u+vf
+        try:
+            tmp+b
+            thing = False
+        except (UFLException, e):
+            pass
+        self.fail()
+    
+
 class FormsTestCase(unittest.TestCase):
 
     def setUp(self):
@@ -23,7 +94,7 @@ class FormsTestCase(unittest.TestCase):
         try:
             a = f*v*dx
             self.fail()
-        except:
+        except (UFLException, e):
             pass
     
     def test_source2(self):
@@ -33,7 +104,7 @@ class FormsTestCase(unittest.TestCase):
         try:
             a = dot(f[0],v)*dx
             self.fail()
-        except:
+        except (UFLException, e):
             pass
     
     def test_source3(self):
@@ -43,7 +114,7 @@ class FormsTestCase(unittest.TestCase):
         try:
             a = inner(f,v[0])*dx
             self.fail()
-        except:
+        except (UFLException, e):
             pass
     
     
@@ -54,7 +125,7 @@ class FormsTestCase(unittest.TestCase):
         try:
             a = u[i]*v*dx
             self.fail()
-        except:
+        except (UFLException, e):
             pass
     
     def test_mass2(self):
@@ -64,7 +135,7 @@ class FormsTestCase(unittest.TestCase):
         try:
             a = u[i][j]
             self.fail()
-        except:
+        except (UFLException, e):
             pass
     
     def test_mass3(self):
@@ -74,7 +145,7 @@ class FormsTestCase(unittest.TestCase):
         try:
             a = dot(u[i],v[j])*dx
             self.fail()
-        except:
+        except (UFLException, e):
             pass
     
     def test_mass4(self):
@@ -132,8 +203,9 @@ class FormsTestCase(unittest.TestCase):
 
 
 suite1 = unittest.makeSuite(FormsTestCase)
+suite2 = unittest.makeSuite(IllegalExpressionsTestCase)
 
-allsuites = unittest.TestSuite((suite1, ))
+allsuites = unittest.TestSuite((suite1, suite2))
 
 if __name__ == "__main__":
     unittest.TextTestRunner(verbosity=0).run(allsuites)

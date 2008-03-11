@@ -410,6 +410,16 @@ class Index(Terminal):
     def __repr__(self):
         return "Index(%s, %d)" % (repr(self.name), self.count)
 
+class FixedIndex(Terminal):
+    def __init__(self, value):
+        self.value = value
+        # these make no sense here:
+        self.rank = None
+        self.free_indices = None
+    
+    def __repr__(self):
+        return "Index(%s, %d)" % (repr(self.name), self.count)
+
 
 class MultiIndex(UFLObject):
     def __init__(self, indices):
@@ -442,9 +452,6 @@ class MultiIndex(UFLObject):
 
 class Indexed(UFLObject):
     def __init__(self, expression, indices):
-        msg = "Invalid number of indices (%d) for tensor expression of rank %d:\n\t%s\n" % (len(self.indices), expression.rank, repr(expression))
-        ufl_assert(expression.rank == len(self.indices), msg)
-        
         self.expression = expression
         
         if isinstance(indices, MultiIndex):
@@ -452,10 +459,12 @@ class Indexed(UFLObject):
         else:
             self.indices = MultiIndex(indices)
         
+        msg = "Invalid number of indices (%d) for tensor expression of rank %d:\n\t%s\n" % (len(self.indices), expression.rank, repr(expression))
+        ufl_assert(expression.rank == len(self.indices), msg)
+        
         self.rank = expression.rank
         
-        # this makes no sense here:
-        self.free_indices = None
+        self.free_indices = tuple(i for i in self.indices.indices if isinstance(i, Index))
     
     def operands(self):
         return tuple(self.expression, self.indices)
