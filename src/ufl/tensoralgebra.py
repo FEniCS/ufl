@@ -57,7 +57,7 @@ class Outer(UFLObject):
 
 class Inner(UFLObject):
     def __init__(self, a, b):
-        ufl_assert(a.rank() == b.rank(), "Rank mismatch.")
+        ufl_assert(a.rank == b.rank, "Rank mismatch.")
         self.a = a
         self.b = b
         self.free_indices = a.free_indices + b.free_indices # FIXME
@@ -71,7 +71,7 @@ class Inner(UFLObject):
 
 class Dot(UFLObject):
     def __init__(self, a, b):
-        #ufl_assert(a.rank() >= 1 and b.rank() >= 1, "Dot product requires arguments of rank >= 1.") # TODO: maybe scalars are ok?
+        #ufl_assert(a.rank >= 1 and b.rank >= 1, "Dot product requires arguments of rank >= 1.") # TODO: maybe scalars are ok?
         self.a = a
         self.b = b
         self.free_indices = a.free_indices + b.free_indices # FIXME
@@ -85,7 +85,7 @@ class Dot(UFLObject):
 
 class Cross(UFLObject):
     def __init__(self, a, b):
-        ufl_assert(a.rank() == 1 and b.rank() == 1, "Cross product requires arguments of rank 1.")
+        ufl_assert(a.rank == 1 and b.rank == 1, "Cross product requires arguments of rank 1.")
         self.a = a
         self.b = b
         self.free_indices = a.free_indices + b.free_indices # FIXME
@@ -99,7 +99,7 @@ class Cross(UFLObject):
 
 class Trace(UFLObject):
     def __init__(self, A):
-        ufl_assert(A.rank() == 2, "Trace of tensor with rank != 2 is undefined.")
+        ufl_assert(A.rank == 2, "Trace of tensor with rank != 2 is undefined.")
         self.A = A
         self.free_indices = a.free_indices + b.free_indices # FIXME
         self.rank = 0
@@ -112,7 +112,7 @@ class Trace(UFLObject):
 
 class Determinant(UFLObject):
     def __init__(self, A):
-        ufl_assert(A.rank() == 2, "Determinant of tensor with rank != 2 is undefined.")
+        ufl_assert(A.rank == 2, "Determinant of tensor with rank != 2 is undefined.")
         self.A = A
         self.free_indices = A.free_indices # FIXME
         self.rank = 0
@@ -125,7 +125,7 @@ class Determinant(UFLObject):
 
 class Inverse(UFLObject):
     def __init__(self, A):
-        ufl_assert(A.rank() == 2, "Inverse of tensor with rank != 2 is undefined.")
+        ufl_assert(A.rank == 2, "Inverse of tensor with rank != 2 is undefined.")
         self.A = A
         self.free_indices = A.free_indices # FIXME
         self.rank = 2
@@ -138,7 +138,7 @@ class Inverse(UFLObject):
 
 class Deviatoric(UFLObject):
     def __init__(self, A):
-        ufl_assert(A.rank() == 2, "Deviatoric part of tensor with rank != 2 is undefined.")
+        ufl_assert(A.rank == 2, "Deviatoric part of tensor with rank != 2 is undefined.")
         self.A = A
         self.free_indices = A.free_indices # FIXME
         self.rank = 2

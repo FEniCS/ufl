@@ -58,7 +58,7 @@ class Grad(DifferentialOperator):
 
 class Div(DifferentialOperator):
     def __init__(self, f):
-        ufl_assert(f.rank() >= 1, "Can't take the divergence of a scalar.")
+        ufl_assert(f.rank >= 1, "Can't take the divergence of a scalar.")
         self.f = f
         self.free_indices = f.free_indices # FIXME
         self.rank = f.rank - 1
@@ -71,7 +71,7 @@ class Div(DifferentialOperator):
 
 class Curl(DifferentialOperator):
     def __init__(self, f):
-        ufl_assert(f.rank() == 1, "Need a vector.")
+        ufl_assert(f.rank == 1, "Need a vector.")
         self.f = f
         self.free_indices = f.free_indices # FIXME
         self.rank = 1
@@ -84,7 +84,7 @@ class Curl(DifferentialOperator):
 
 class Rot(DifferentialOperator):
     def __init__(self, f):
-        ufl_assert(f.rank() == 1, "Need a vector.")
+        ufl_assert(f.rank == 1, "Need a vector.")
         self.f = f
         self.free_indices = f.free_indices # FIXME
         self.rank = 1

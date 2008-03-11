@@ -250,7 +250,7 @@ class Symbol(Terminal): # TODO: Needed for diff? Tensors of symbols? Parametric 
 
 class Transpose(UFLObject):
     def __init__(self, A):
-        ufl_assert(A.rank() == 2, "Transpose is only defined for rank 2 tensors.")
+        ufl_assert(A.rank == 2, "Transpose is only defined for rank 2 tensors.")
         self.A = A
         self.free_indices = A.free_indices
         self.rank = 2
@@ -295,9 +295,9 @@ class Sum(UFLObject):
     def __init__(self, *operands):
         self._operands = tuple(operands)
         
-        r = operands[0].rank()
+        r = operands[0].rank
         self.rank = r
-        ufl_assert(all(r == o.rank() for o in operands), "Rank mismatch in sum.")
+        ufl_assert(all(r == o.rank for o in operands), "Rank mismatch in sum.")
         
         # create new (relabel) indices unless all indices of all operands are equal
         if all(o.free_indices == operands[0].free_indices for o in operands):
@@ -412,7 +412,7 @@ class Indexed(UFLObject):
             self.indices = indices
         else:
             self.indices = MultiIndex(indices)
-        ufl_assert(expression.rank() == len(self.indices), "Invalid number of indices (%d) for tensor of rank %d." % (len(self.indices), expression.rank()))
+        ufl_assert(expression.rank == len(self.indices), "Invalid number of indices (%d) for tensor of rank %d." % (len(self.indices), expression.rank))
         #self.free_indices = tuple(i for i in self.indices if isinstance(i, Index)) # FIXME
         self.free_indices = tuple() # FIXME
         self.rank = expression.rank
