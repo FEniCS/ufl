@@ -15,7 +15,9 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "March 8th 2008"
 
 from base import *
-
+from visitor import *
+from transformers import *
+from traversal import *
 
 ### Utilities to extract information from an expression:
 
