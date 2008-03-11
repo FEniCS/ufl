@@ -5,10 +5,10 @@ The Form and Integral objects.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "March 8th 2008"
+__date__ = "March 11th 2008"
 
 
-from base import ufl_assert
+from base import ufl_assert, is_true_scalar
 
 
 class Form:
@@ -48,15 +48,15 @@ class Integral(object):
         self.domain_type = domain_type
         self.domain_id   = domain_id
         self.integrand   = integrand
-
+    
     def __mul__(self, other):
         raise RuntimeError("Can't multiply Integral from the left.")
     
     def __rmul__(self, other):
         ufl_assert(self.integrand is None, "Seems to be a bug in Integral.")
-        ufl_assert(other.rank == 0, "Trying to integrate expression of rank %d." % other.rank)
+        ufl_assert(is_true_scalar(other), "Trying to integrate expression of rank %d with free indices %s." % (other.rank, repr(other.free_indices)))
         return Form( [Integral(self.domain_type, self.domain_id, other)] )
-
+    
     def __contains__(self, item):
         """Return wether item is in the UFL expression tree. If item is a str, it is assumed to be a repr."""
         return item in self.integrand

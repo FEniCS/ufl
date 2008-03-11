@@ -31,14 +31,17 @@ def product(l):
 
 # ... Helper functions for tensor properties:
 
+def rank(o):
+    return o.rank
+
+def free_indices(o):
+    return o.free_indices
+
 def is_scalar_valued(o):
     return o.rank == 0
 
 def is_true_scalar(o):
     return o.rank == 0  and  len(o.free_indices) == 0
-
-def free_indices(o):
-    return o.free_indices
 
 
 ### UFLObject base class:
@@ -250,7 +253,7 @@ class Symbol(Terminal): # TODO: Needed for diff? Tensors of symbols? Parametric 
 
 class Transpose(UFLObject):
     def __init__(self, A):
-        ufl_assert(A.rank == 2, "Transpose is only defined for rank 2 tensors.")
+        ufl_assert(rank(A) == 2, "Transpose is only defined for rank 2 tensors.")
         self.A = A
         self.free_indices = A.free_indices
         self.rank = 2
@@ -279,10 +282,32 @@ class Product(UFLObject):
             elif v == 2:
                 rep.append(k)
             else:
-                ufl_assert(v <= 2, "Index %s repeated %d times." % (str(k), v))
+                ufl_assert(v <= 2, "Undefined behaviour: Index %s is repeated %d times." % (str(k), v))
         
+        # remember repeated indices for later summation, not sure where to use this yet
         self.repeated_indices = tuple(rep)
         self.free_indices     = tuple(free)
+        
+        # Try to determine rank of this sequence of
+        # products with possibly varying ranks of each operand.
+        # Products currently defined as valid are:
+        # - something multiplied with a scalar
+        # - a scalar multiplied with something
+        # - matrix-matrix (A*B, M*grad(u))
+        # - matrix-vector (A*v)
+        current_rank = operands[0].rank
+        for o in operands[1:]:
+            if current_rank == 0 or o.rank == 0:
+                # at least one scalar
+                current_rank = current_rank + o.rank
+            elif current_rank == 2 or o.rank == 2:
+                # matrix-matrix product
+                current_rank = 2
+            elif current_rank == 2 or o.rank == 1:
+                # matrix-vector product
+                current_rank = 1
+        
+        self.rank = current_rank
     
     def operands(self):
         return self._operands
@@ -293,17 +318,13 @@ class Product(UFLObject):
 
 class Sum(UFLObject):
     def __init__(self, *operands):
+        r = rank(operands[0])
+        ufl_assert(all(r == rank(o) for o in operands), "Rank mismatch in sum.")
+        ufl_assert(all(o.free_indices == operands[0].free_indices for o in operands), "Can't add expressions with different free indices.")
+        
         self._operands = tuple(operands)
-        
-        r = operands[0].rank
         self.rank = r
-        ufl_assert(all(r == o.rank for o in operands), "Rank mismatch in sum.")
-        
-        # create new (relabel) indices unless all indices of all operands are equal
-        if all(o.free_indices == operands[0].free_indices for o in operands):
-            self.free_indices = operands[0].free_indices
-        else:
-            self.free_indices = tuple(Index() for i in range(r))
+        self.free_indices = operands[0].free_indices
     
     def operands(self):
         return self._operands
@@ -355,7 +376,7 @@ class Mod(UFLObject):
     
     def __repr__(self):
         return "(%s %% %s)" % (repr(self.a), repr(self.b))
-    
+
 
 class Abs(UFLObject):
     def __init__(self, a):
@@ -382,19 +403,35 @@ class Index(Terminal):
             Index.count += 1
         else:
             self.count = count # TODO: modify Index.count, similarly in Function etc.
+        # these make no sense here:
+        self.rank = None
+        self.free_indices = None
     
     def __repr__(self):
         return "Index(%s, %d)" % (repr(self.name), self.count)
 
 
 class MultiIndex(UFLObject):
-    def __init__(self, indices): # FIXME: make operands and constructor consistent here
-        if isinstance(indices, tuple):
-            self.indices = indices
-        elif isinstance(indices, (Index,Integer,int)): # TODO: Might have to wrap int in Integer class, for consistent expression tree traversal.
-            self.indices = (indices,)
-        else:
-            raise UFLException("Expecting Index, or Integer objects.")
+    def __init__(self, indices):
+        # use a tuple consistently
+        if not isinstance(indices, tuple):
+            indices = (indices,)
+        # use Index or FixedIndex consistently
+        ind = []
+        for i in indices:
+            if isinstance(i, Index):
+                ind.append(i)
+            elif isinstance(i, int):
+                ind.append(FixedIndex(i))
+            else:
+                ufl_assert(False, "Unfamiliar index object %s" % repr(i))
+        self.indices = tuple(ind)
+        # these make no sense here:
+        self.rank = None
+        self.free_indices = None
+    
+    def operands(self):
+        return self.indices
     
     def __repr__(self):
         return "MultiIndex(%s)" % repr(self.indices)
@@ -402,29 +439,32 @@ class MultiIndex(UFLObject):
     def __len__(self):
         return len(self.indices)
 
-    def operands(self):
-        return self.indices
 
 class Indexed(UFLObject):
     def __init__(self, expression, indices):
+        msg = "Invalid number of indices (%d) for tensor expression of rank %d:\n\t%s\n" % (len(self.indices), expression.rank, repr(expression))
+        ufl_assert(expression.rank == len(self.indices), msg)
+        
         self.expression = expression
+        
         if isinstance(indices, MultiIndex):
             self.indices = indices
         else:
             self.indices = MultiIndex(indices)
-        ufl_assert(expression.rank == len(self.indices), "Invalid number of indices (%d) for tensor of rank %d." % (len(self.indices), expression.rank))
-        #self.free_indices = tuple(i for i in self.indices if isinstance(i, Index)) # FIXME
-        self.free_indices = tuple() # FIXME
+        
         self.rank = expression.rank
+        
+        # this makes no sense here:
+        self.free_indices = None
+    
+    def operands(self):
+        return tuple(self.expression, self.indices)
     
     def __repr__(self):
         return "Indexed(%s, %s)" % (repr(self.expression), repr(self.indices))
     
     def __getitem__(self, key):
         ufl_assert(False, "Object is already indexed: %s" % repr(self))
-    
-    def operands(self):
-        return tuple(self.expression, self.indices)
 
 
 

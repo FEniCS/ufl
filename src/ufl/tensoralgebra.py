@@ -46,7 +46,7 @@ class Outer(UFLObject):
     def __init__(self, a, b):
         self.a = a
         self.b = b
-        self.free_indices = a.free_indices + b.free_indices # FIXME: how to handle free indices in "non-index products" like this?
+        self.free_indices = a.free_indices + b.free_indices # FIXME: How to handle free indices in "non-index products" like this? In particular repeated indices?
         self.rank = a.rank + b.rank
     
     def operands(self):
@@ -60,7 +60,7 @@ class Inner(UFLObject):
         ufl_assert(a.rank == b.rank, "Rank mismatch.")
         self.a = a
         self.b = b
-        self.free_indices = a.free_indices + b.free_indices # FIXME
+        self.free_indices = a.free_indices + b.free_indices # FIXME, see above
         self.rank = 0
     
     def operands(self):
@@ -71,10 +71,10 @@ class Inner(UFLObject):
 
 class Dot(UFLObject):
     def __init__(self, a, b):
-        #ufl_assert(a.rank >= 1 and b.rank >= 1, "Dot product requires arguments of rank >= 1.") # TODO: maybe scalars are ok?
+        ufl_assert(a.rank >= 1 and b.rank >= 1, "Dot product requires arguments of rank >= 1, got %d and %d." % (a.rank, b.rank)) # TODO: maybe scalars are ok?
         self.a = a
         self.b = b
-        self.free_indices = a.free_indices + b.free_indices # FIXME
+        self.free_indices = a.free_indices + b.free_indices # FIXME, see above
         self.rank = a.rank + b.rank - 2
     
     def operands(self):
@@ -88,7 +88,7 @@ class Cross(UFLObject):
         ufl_assert(a.rank == 1 and b.rank == 1, "Cross product requires arguments of rank 1.")
         self.a = a
         self.b = b
-        self.free_indices = a.free_indices + b.free_indices # FIXME
+        self.free_indices = a.free_indices + b.free_indices # FIXME, see above
         self.rank = 1
     
     def operands(self):
@@ -101,7 +101,7 @@ class Trace(UFLObject):
     def __init__(self, A):
         ufl_assert(A.rank == 2, "Trace of tensor with rank != 2 is undefined.")
         self.A = A
-        self.free_indices = a.free_indices + b.free_indices # FIXME
+        self.free_indices = a.free_indices + b.free_indices # FIXME, see above
         self.rank = 0
     
     def operands(self):
@@ -113,8 +113,9 @@ class Trace(UFLObject):
 class Determinant(UFLObject):
     def __init__(self, A):
         ufl_assert(A.rank == 2, "Determinant of tensor with rank != 2 is undefined.")
+        ufl_assert(len(A.free_indices) == 0, "Taking determinant of matrix with free indices, don't know what this means.")
         self.A = A
-        self.free_indices = A.free_indices # FIXME
+        self.free_indices = tuple()
         self.rank = 0
     
     def operands(self):
@@ -126,8 +127,9 @@ class Determinant(UFLObject):
 class Inverse(UFLObject):
     def __init__(self, A):
         ufl_assert(A.rank == 2, "Inverse of tensor with rank != 2 is undefined.")
+        ufl_assert(len(A.free_indices) == 0, "Taking inverse of matrix with free indices, don't know what this means.")
         self.A = A
-        self.free_indices = A.free_indices # FIXME
+        self.free_indices = tuple()
         self.rank = 2
     
     def operands(self):
@@ -139,8 +141,9 @@ class Inverse(UFLObject):
 class Deviatoric(UFLObject):
     def __init__(self, A):
         ufl_assert(A.rank == 2, "Deviatoric part of tensor with rank != 2 is undefined.")
+        ufl_assert(len(A.free_indices) == 0, "Taking deviatoric part of matrix with free indices, don't know what this means.")
         self.A = A
-        self.free_indices = A.free_indices # FIXME
+        self.free_indices = tuple()
         self.rank = 2
     
     def operands(self):

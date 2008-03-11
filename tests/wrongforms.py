@@ -20,68 +20,62 @@ class FormsTestCase(unittest.TestCase):
         element = VectorElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
         f = Function(element, "f")
-        fail = False
         try:
             a = f*v*dx
+            self.fail()
         except:
-            fail = True
-        assert fail
+            pass
     
     def test_source2(self):
         element = VectorElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
         f = Function(element, "f")
-        fail = False
         try:
             a = dot(f[0],v)*dx
+            self.fail()
         except:
-            fail = True
-        assert fail
-        
+            pass
+    
     def test_source3(self):
         element = TensorElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
         f = Function(element, "f")
-        fail = False
         try:
             a = inner(f,v[0])*dx
+            self.fail()
         except:
-            fail = True
-        assert fail
+            pass
     
     
     def test_mass1(self):
         element = FiniteElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
         u = TrialFunction(element)
-        fail = False
         try:
             a = u[i]*v*dx
+            self.fail()
         except:
-            fail = True
-        assert fail
+            pass
     
     def test_mass2(self):
         element = VectorElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
         u = TrialFunction(element)
-        fail = False
         try:
             a = u[i][j]
+            self.fail()
         except:
-           fail = True
-        assert fail
+            pass
     
     def test_mass3(self):
         element = VectorElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
         u = TrialFunction(element)
-        fail = False
         try:
             a = dot(u[i],v[j])*dx
+            self.fail()
         except:
-            fail = True
-        assert fail
+            pass
     
     def test_mass4(self):
         element = TensorElement("Lagrange", "triangle", 1)

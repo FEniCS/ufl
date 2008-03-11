@@ -17,7 +17,6 @@ class GeometricQuantity(Terminal):
 
 class FacetNormal(GeometricQuantity):
     def __init__(self):
-        pass
         self.free_indices = tuple()
         self.rank = 1
 
@@ -26,7 +25,6 @@ class FacetNormal(GeometricQuantity):
 
 class MeshSize(GeometricQuantity):
     def __init__(self):
-        pass
         self.free_indices = tuple()
         self.rank = 0
 

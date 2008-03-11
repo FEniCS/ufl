@@ -47,7 +47,8 @@ class DifferentialOperator(UFLObject):
 class Grad(DifferentialOperator):
     def __init__(self, f):
         self.f = f
-        self.free_indices = f.free_indices # FIXME
+        ufl_assert(len(f.free_indices) == 0, "FIXME: Taking gradient of an expression with free indices, should this be a valid expression? Please provide examples!")
+        self.free_indices = f.free_indices
         self.rank = 1 + f.rank
     
     def operands(self):
@@ -60,7 +61,8 @@ class Div(DifferentialOperator):
     def __init__(self, f):
         ufl_assert(f.rank >= 1, "Can't take the divergence of a scalar.")
         self.f = f
-        self.free_indices = f.free_indices # FIXME
+        ufl_assert(len(f.free_indices) == 0, "FIXME: Taking divergence of an expression with free indices, should this be a valid expression? Please provide examples!")
+        self.free_indices = f.free_indices
         self.rank = f.rank - 1
     
     def operands(self):
@@ -73,7 +75,8 @@ class Curl(DifferentialOperator):
     def __init__(self, f):
         ufl_assert(f.rank == 1, "Need a vector.")
         self.f = f
-        self.free_indices = f.free_indices # FIXME
+        ufl_assert(len(f.free_indices) == 0, "FIXME: Taking curl of an expression with free indices, should this be a valid expression? Please provide examples!")
+        self.free_indices = f.free_indices
         self.rank = 1
     
     def operands(self):
@@ -86,8 +89,9 @@ class Rot(DifferentialOperator):
     def __init__(self, f):
         ufl_assert(f.rank == 1, "Need a vector.")
         self.f = f
-        self.free_indices = f.free_indices # FIXME
-        self.rank = 1
+        ufl_assert(len(f.free_indices) == 0, "FIXME: Taking rot of an expression with free indices, should this be a valid expression? Please provide examples!")
+        self.free_indices = f.free_indices
+        self.rank = 0
     
     def operands(self):
         return (self.f, )
