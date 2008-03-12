@@ -1,6 +1,30 @@
 Roadmap for the development of UFL
 ----------------------------------
 
+Suggestions:
+
+ - Remove free_indices from all classes except Indexed
+ - Let Indexed have two members: free_indices and fixed_indices
+ - Add pretty-print for all classes returning simpler strings than __repr__
+ - Add module checks.py that performs checks on a finished form, things that
+   can't be checked while the form is being built from the operators
+ - Rename arguments.py --> basisfunctions.py
+ - Add information about space dimensions for elements?
+ - Add information about ranks of elements, not all elements are scalar
+ - Add modules predicates.py with True/False properties for forms,
+   including is_multilinear()
+ - Add partial derivative operator and express all other operators in terms
+   of this basic operator
+ - Put partial derivative operator in base.py
+ - Put derivative operators in diffoperators.py
+ - Put form operators in formoperators.py, not in forms.py
+ - Put tensor operators like mult, trace, dot in tensoroperators.py
+ - Put class Integral in integral.py
+ - Rename function.py --> mathfunctions.py
+ - Rename geometry.py to something else (like builtins.py or functions.py)
+ - Rename polygons.py --> shapes.py
+ - Don't understand transformers.py
+
 - Elaborate more on the feature list on the wiki, trying to exhaust all ideas we have
 
 - Define syntactic tests
