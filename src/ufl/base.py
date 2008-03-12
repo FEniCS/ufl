@@ -171,27 +171,27 @@ class UFLObject:
 class Terminal(UFLObject):
     """A terminal node in the expression tree."""
     def __init__(self):
-        pass
+        UFLObject.__init__(self)
     
     def operands(self):
         return tuple()
 
 
+# FIXME: Do we need this? Why not only Number?
 class Integer(Terminal):
     def __init__(self, value):
+        Terminal.__init__(self)
         self.value = value
-        self.free_indices = tuple()
-        self.rank = 0
     
     def __repr__(self):
         return "Integer(%s)" % repr(self.value)
 
 
+# FIXME: Do we need this? Why not only Number?
 class Real(Terminal): # TODO: Do we need this? Numeric tensors?
     def __init__(self, value):
+        Terminal.__init__(self)
         self.value = value
-        self.free_indices = tuple()
-        self.rank = 0
     
     def __repr__(self):
         return "Real(%s)" % repr(self.value)
@@ -199,6 +199,7 @@ class Real(Terminal): # TODO: Do we need this? Numeric tensors?
 
 class Number(Terminal):
     def __init__(self, value):
+        Terminal.__init__(self)
         self.value = value
         self.free_indices = tuple()
         self.rank = 0
