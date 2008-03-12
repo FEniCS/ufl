@@ -43,34 +43,23 @@ def is_scalar_valued(o):
 def is_true_scalar(o):
     return o.rank == 0  and  len(o.free_indices) == 0
 
+class UFLObject:
+    """Base class of all UFL objects"""
 
-### UFLObject base class:
-
-class UFLObjectBase:
-    """Interface or ufl objects, all classes should implement these."""
     def __init__(self):
-        # all classes should define these variables
+        # All classes should define these variables
         self.free_indices = None
         self.rank = None
-    
-    # ... Access to subtree nodes for expression traversal:
-    
+
+    # All UFL objects must implement operands
     def operands(self):
-        """Returns a sequence with all subtree nodes in expression tree.
-           All UFLObject subclasses are required to implement operands ."""
+        "Return a sequence with all subtree nodes in expression tree."
         raise NotImplementedError(self.__class__.operands)
-    
-    # ... Representation strings are required:
-    
+
+    # All UFL objects must implement __repr__
     def __repr__(self):
-        """It is required to implement repr for all UFLObject subclasses."""
+        "Return string representation of objects"
         raise NotImplementedError(self.__class__.__repr__)
-
-
-class UFLObject(UFLObjectBase):
-    """An UFLObject is equipped with all relevant operators."""
-    def __init__(self):
-        pass
     
     # ... Algebraic operators:
     
