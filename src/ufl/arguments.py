@@ -12,7 +12,6 @@ __date__ = "March 11th 2008"
 from base import *
 from elements import *
 
-
 class BasisFunction(Terminal):
     count = 0
     def __init__(self, element, count=None):

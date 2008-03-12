@@ -16,6 +16,9 @@ from polygons import *
 valid_families = set(("Lagrange", "CG", "DiscontinuousLagrange", "DG", "CR", "CrouzeixRaviart", "Bubble", "Nedelec", "BDM"))
 
 
+# FIXME: Some elements are vector-valued (BDM, RT, BDFM, Nedelec)
+# FIXME: Why do we need an extra class FiniteElementBase, should be enough with FiniteElement
+
 class FiniteElementBase:
     def __init__(self, polygon):
         assert polygon in valid_polygons
