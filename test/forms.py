@@ -113,4 +113,3 @@ allsuites = unittest.TestSuite((suite1, ))
 
 if __name__ == "__main__":
     unittest.TextTestRunner(verbosity=0).run(allsuites)
-

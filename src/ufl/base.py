@@ -46,7 +46,7 @@ def is_true_scalar(o):
 
 ### UFLObject base class:
 
-class UFLObjectBase(object):
+class UFLObjectBase:
     """Interface or ufl objects, all classes should implement these."""
     def __init__(self):
         # all classes should define these variables
@@ -486,4 +486,3 @@ class Indexed(UFLObject):
 
 if __name__ == "__main__":
     print "No tests here."
-
