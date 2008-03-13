@@ -7,6 +7,7 @@ Compound tensor algebra operations. Needs some work!
 __authors__ = "Martin Sandve Alnes"
 __date__ = "March 11th 2008"
 
+from ufl_io import *
 from base import *
 
 ### Algebraic operations on tensors:
