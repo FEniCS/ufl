@@ -21,9 +21,14 @@ class BasisFunction(Terminal):
             BasisFunction.count += 1
         else:
             self.count = count
-        
-        self.free_indices = tuple()
-        self.rank = self.element.value_rank
+            if count >= BasisFunction.count:
+                BasisFunction.count = count + 1
+    
+    def free_indices(self):
+        return tuple()
+    
+    def rank(self):
+        return self.element.value_rank
     
     def __repr__(self):
         return "BasisFunction(%s, %d)" % (repr(self.element), self.count)
@@ -35,6 +40,7 @@ def TrialFunction(element):
     return BasisFunction(element, -1)
 
 
+# FIXME: Maybe we don't need these afterall:
 def BasisFunctions(element):
     if not isinstance(element, MixedElement):
         raise UFLException("Expecting MixedElement instance.")
@@ -61,9 +67,14 @@ class Function(Terminal):
             Function.count += 1
         else:
             self.count = count
-        
-        self.free_indices = tuple()
-        self.rank = self.element.value_rank
+            if count >= Function.count:
+                Function.count = count + 1
+    
+    def free_indices(self):
+        return tuple()
+    
+    def rank(self):
+        return self.element.value_rank
     
     def __repr__(self):
         return "Function(%s, %s, %d)" % (repr(self.element), repr(self.name), self.count)

@@ -26,7 +26,7 @@ class Integral(object):
     
     def __rmul__(self, other):
         ufl_assert(self.integrand is None, "Seems to be a bug in Integral.")
-        ufl_assert(is_true_scalar(other), "Trying to integrate expression of rank %d with free indices %s." % (other.rank, repr(other.free_indices)))
+        ufl_assert(is_true_scalar(other), "Trying to integrate expression of rank %d with free indices %s." % (other.rank(), repr(other.free_indices())))
         return Form( [Integral(self.domain_type, self.domain_id, other)] )
     
     def __contains__(self, item):

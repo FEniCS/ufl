@@ -18,84 +18,77 @@ class DifferentialOperator(UFLObject):
     def __init__(self):
         pass
 
-#class DiffOperator(DifferentialOperator): # TODO: how should this be designed?
-#    def __init__(self, x):
-#        if isinstance(x, int):
-#            x = p[x]
-#        elif not isinstance(x, Symbol):
-#            raise UFLException("x must be a Symbol")
-#        self.x = x
-#    
-#    def __mul__(self, o):
-#        return diff(o, self.x)
-#
-#    def __repr__(self):
-#        return "DiffOperator(%s)" % repr(self.x)
-
-#class Diff(DifferentialOperator): # TODO: How to define this?
-#    """The derivative of f with respect to x."""
-#    def __init__(self, f, x):
-#        self.f = f
-#        self.x = x
-#        #self.free_indices = tuple(Index(...) ) # TODO
-#    
-#    def operands(self):
-#        return (self.f, self.x)
-#    
-#    def __repr__(self):
-#        return "Diff(%s, %s)" % (repr(self.f), repr(self.x))
 
 class Grad(DifferentialOperator):
     def __init__(self, f):
         self.f = f
-        ufl_assert(len(f.free_indices) == 0, "FIXME: Taking gradient of an expression with free indices, should this be a valid expression? Please provide examples!")
-        self.free_indices = f.free_indices
-        self.rank = 1 + f.rank
+        ufl_assert(len(f.free_indices()) == 0, "FIXME: Taking gradient of an expression with free indices, should this be a valid expression? Please provide examples!")
     
     def operands(self):
         return (self.f, )
     
+    def free_indices(self):
+        return self.f.free_indices()
+    
+    def rank(self):
+        return self.f.rank() + 1
+
     def __repr__(self):
         return "Grad(%s)" % repr(self.f)
 
+
 class Div(DifferentialOperator):
     def __init__(self, f):
-        ufl_assert(f.rank >= 1, "Can't take the divergence of a scalar.")
+        ufl_assert(f.rank() >= 1, "Can't take the divergence of a scalar.")
+        ufl_assert(len(f.free_indices()) == 0, "FIXME: Taking divergence of an expression with free indices, should this be a valid expression? Please provide examples!")
         self.f = f
-        ufl_assert(len(f.free_indices) == 0, "FIXME: Taking divergence of an expression with free indices, should this be a valid expression? Please provide examples!")
-        self.free_indices = f.free_indices
-        self.rank = f.rank - 1
     
     def operands(self):
         return (self.f, )
     
+    def free_indices(self):
+        return self.f.free_indices()
+    
+    def rank(self):
+        return self.f.rank() - 1
+
     def __repr__(self):
         return "Div(%s)" % repr(self.f)
 
+
 class Curl(DifferentialOperator):
     def __init__(self, f):
-        ufl_assert(f.rank == 1, "Need a vector.")
+        ufl_assert(f.rank()== 1, "Need a vector.")
+        ufl_assert(len(f.free_indices()) == 0, "FIXME: Taking curl of an expression with free indices, should this be a valid expression? Please provide examples!")
         self.f = f
-        ufl_assert(len(f.free_indices) == 0, "FIXME: Taking curl of an expression with free indices, should this be a valid expression? Please provide examples!")
-        self.free_indices = f.free_indices
-        self.rank = 1
     
     def operands(self):
         return (self.f, )
+    
+    def free_indices(self):
+        return self.f.free_indices()
+    
+    def rank(self):
+        return 1
     
     def __repr__(self):
         return "Curl(%s)" % repr(self.f)
 
+
 class Rot(DifferentialOperator):
     def __init__(self, f):
-        ufl_assert(f.rank == 1, "Need a vector.")
+        ufl_assert(f.rank() == 1, "Need a vector.")
+        ufl_assert(len(f.free_indices()) == 0, "FIXME: Taking rot of an expression with free indices, should this be a valid expression? Please provide examples!")
         self.f = f
-        ufl_assert(len(f.free_indices) == 0, "FIXME: Taking rot of an expression with free indices, should this be a valid expression? Please provide examples!")
-        self.free_indices = f.free_indices
-        self.rank = 0
     
     def operands(self):
         return (self.f, )
+    
+    def free_indices(self):
+        return self.f.free_indices()
+    
+    def rank(self):
+        return 0
     
     def __repr__(self):
         return "Rot(%s)" % repr(self.f)

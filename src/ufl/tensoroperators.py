@@ -5,7 +5,7 @@ Compound tensor algebra operations. Needs some work!
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "March 11th 2008"
+__date__ = "March 13th 2008"
 
 from ufl_io import *
 from base import *
@@ -41,117 +41,170 @@ from base import *
 #   inner(x,y): shape of x equals the shape of y
 #   contract(x, xi, y, yi): len(xi) == len(yi), dimensions of indices in xi and yi match, dim(x) >= max(xi), dim(y) >= max(yi)
 
+
+
 # objects representing the operations:
 
 class Outer(UFLObject):
     def __init__(self, a, b):
         self.a = a
         self.b = b
-        self.free_indices = a.free_indices + b.free_indices # FIXME: How to handle free indices in "non-index products" like this? In particular repeated indices?
-        self.rank = a.rank + b.rank
     
     def operands(self):
         return (self.a, self.b)
+    
+    def free_indices(self):
+        return tuple(self.a.free_indices() + self.b.free_indices()) # FIXME: How to handle free indices in "non-index products" like this? In particular repeated indices?
+    
+    def rank(self):
+        return self.a.rank() + self.b.rank()
     
     def __repr__(self):
         return "Outer(%s, %s)" % (repr(self.a), repr(self.b))
 
 class Inner(UFLObject):
     def __init__(self, a, b):
-        ufl_assert(a.rank == b.rank, "Rank mismatch.")
+        ufl_assert(a.rank() == b.rank(), "Rank mismatch.")
         self.a = a
         self.b = b
-        self.free_indices = a.free_indices + b.free_indices # FIXME, see above
-        self.rank = 0
     
     def operands(self):
         return (self.a, self.b)
+    
+    def free_indices(self):
+        return tuple(self.a.free_indices() + self.b.free_indices()) # FIXME: How to handle free indices in "non-index products" like this? In particular repeated indices?
+    
+    def rank(self):
+        return 0
     
     def __repr__(self):
         return "Inner(%s, %s)" % (repr(self.a), repr(self.b))
 
 class Dot(UFLObject):
     def __init__(self, a, b):
-        ufl_assert(a.rank >= 1 and b.rank >= 1, "Dot product requires arguments of rank >= 1, got %d and %d." % (a.rank, b.rank)) # TODO: maybe scalars are ok?
+        ufl_assert(a.rank() >= 1 and b.rank() >= 1, "Dot product requires arguments of rank >= 1, got %d and %d." % (a.rank(), b.rank())) # TODO: maybe scalars are ok?
         self.a = a
         self.b = b
-        self.free_indices = a.free_indices + b.free_indices # FIXME, see above
-        self.rank = a.rank + b.rank - 2
     
     def operands(self):
         return (self.a, self.b)
+    
+    def free_indices(self):
+        return tuple(self.a.free_indices() + self.b.free_indices()) # FIXME: How to handle free indices in "non-index products" like this? In particular repeated indices?
+    
+    def rank(self):
+        return self.a.rank() + self.b.rank() - 2
     
     def __repr__(self):
         return "Dot(%s, %s)" % (self.a, self.b)
 
 class Cross(UFLObject):
     def __init__(self, a, b):
-        ufl_assert(a.rank == 1 and b.rank == 1, "Cross product requires arguments of rank 1.")
+        ufl_assert(a.rank() == 1 and b.rank() == 1, "Cross product requires arguments of rank 1.")
         self.a = a
         self.b = b
-        self.free_indices = a.free_indices + b.free_indices # FIXME, see above
-        self.rank = 1
     
     def operands(self):
         return (self.a, self.b)
+    
+    def free_indices(self):
+        return tuple(self.a.free_indices() + self.b.free_indices()) # FIXME: How to handle free indices in "non-index products" like this? In particular repeated indices?
+    
+    def rank(self):
+        return 1
     
     def __repr__(self):
         return "Cross(%s, %s)" % (repr(self.a), repr(self.b))
 
 class Trace(UFLObject):
     def __init__(self, A):
-        ufl_assert(A.rank == 2, "Trace of tensor with rank != 2 is undefined.")
+        ufl_assert(A.rank() == 2, "Trace of tensor with rank != 2 is undefined.")
         self.A = A
-        self.free_indices = a.free_indices + b.free_indices # FIXME, see above
-        self.rank = 0
     
     def operands(self):
         return (self.A, )
+    
+    def free_indices(self):
+        return tuple(self.a.free_indices() + b.free_indices()) # FIXME: How to handle free indices in "non-index products" like this? In particular repeated indices?
+    
+    def rank(self):
+        return 0
     
     def __repr__(self):
         return "Trace(%s)" % repr(self.A)
 
 class Determinant(UFLObject):
     def __init__(self, A):
-        ufl_assert(A.rank == 2, "Determinant of tensor with rank != 2 is undefined.")
-        ufl_assert(len(A.free_indices) == 0, "Taking determinant of matrix with free indices, don't know what this means.")
+        ufl_assert(A.rank() == 2, "Determinant of tensor with rank != 2 is undefined.")
+        ufl_assert(len(A.free_indices()) == 0, "Taking determinant of matrix with free indices, don't know what this means.")
         self.A = A
-        self.free_indices = tuple()
-        self.rank = 0
     
     def operands(self):
         return (self.A, )
+    
+    def free_indices(self):
+        return tuple()
+    
+    def rank(self):
+        return 0
     
     def __repr__(self):
         return "Determinant(%s)" % repr(self.A)
 
 class Inverse(UFLObject):
     def __init__(self, A):
-        ufl_assert(A.rank == 2, "Inverse of tensor with rank != 2 is undefined.")
-        ufl_assert(len(A.free_indices) == 0, "Taking inverse of matrix with free indices, don't know what this means.")
+        ufl_assert(A.rank() == 2, "Inverse of tensor with rank != 2 is undefined.")
+        ufl_assert(len(A.free_indices()) == 0, "Taking inverse of matrix with free indices, don't know what this means.")
         self.A = A
-        self.free_indices = tuple()
-        self.rank = 2
     
     def operands(self):
         return (self.A, )
+    
+    def free_indices(self):
+        return tuple()
+    
+    def rank(self):
+        return 2
     
     def __repr__(self):
         return "Inverse(%s)" % repr(self.A)
 
 class Deviatoric(UFLObject):
     def __init__(self, A):
-        ufl_assert(A.rank == 2, "Deviatoric part of tensor with rank != 2 is undefined.")
-        ufl_assert(len(A.free_indices) == 0, "Taking deviatoric part of matrix with free indices, don't know what this means.")
+        ufl_assert(A.rank() == 2, "Deviatoric part of tensor with rank != 2 is undefined.")
+        ufl_assert(len(A.free_indices()) == 0, "Taking deviatoric part of matrix with free indices, don't know what this means.")
         self.A = A
-        self.free_indices = tuple()
-        self.rank = 2
     
     def operands(self):
         return (self.A, )
     
+    def free_indices(self):
+        return tuple()
+    
+    def rank(self):
+        return 2
+    
     def __repr__(self):
         return "Deviatoric(%s)" % repr(self.A)
+
+class Cofactor(UFLObject):
+    def __init__(self, A):
+        ufl_assert(A.rank() == 2, "Cofactor of tensor with rank != 2 is undefined.")
+        ufl_assert(len(A.free_indices()) == 0, "Taking cofactor of matrix with free indices, don't know what this means.")
+        self.A = A
+    
+    def operands(self):
+        return (self.A, )
+    
+    def free_indices(self):
+        return tuple()
+    
+    def rank(self):
+        return 2
+    
+    def __repr__(self):
+        return "Cofactor(%s)" % repr(self.A)
+
 
 # functions exposed to the user:
 
@@ -188,6 +241,7 @@ def trace(f):
 def dev(A):
     return Deviatoric(A)
 
-#def cofactor(A): # TODO:
-#    return det(A)*inverse(A)
+def cofactor(A):
+    return Cofactor(A)
+
 
