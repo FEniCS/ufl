@@ -3,23 +3,28 @@ Roadmap for the development of UFL
 
 Suggestions:
 
+# Prettyness:
  - Rename geometry.py to something else (like builtins.py or functions.py)
-
  - Add pretty-print for all classes returning simpler strings than __repr__
 
+# Elements:
  - Add information about space dimensions for elements?
- - Add information about ranks of elements, not all elements are scalar
+ - Add information about ranks of elements, not all elements are scalar WE HAVE THIS! value_rank, an element is not an expression
+ - FiniteElement("vectorfamily",...) vs VectorElement(...) feels a bit inconsistent.
 
- - Put partial derivative operator in base.py
-
-
- - Add partial derivative operator and express all other operators in terms
-   of this basic operator
-
- - Don't understand transformers.py
-
- - Remove free_indices from all classes except Indexed
+# Indexing:
+ - Add free_indices() function and rank() function instead of visible member variables. Allows easier removal of member variable later if we want to optimize for memory usage.
+   (Remove free_indices from all classes except Indexed)
  - Let Indexed have two members: free_indices and fixed_indices
+
+# Derivatives:
+ - Put partial derivative operator in base.py
+   (Like (u + v).dx(i) ?)
+ (- Add partial derivative operator and express all other operators in terms
+    of this basic operator. NOT SO SURE ABOUT THIS!)
+
+# Algorithms:
+ - Don't understand transformers.py
 
 
 

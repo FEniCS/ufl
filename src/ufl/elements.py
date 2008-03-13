@@ -8,7 +8,7 @@ so we can do f.ex. "if isinstance(a, FiniteElementBase)"
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "March 8th 2008"
+__date__ = "March 13th 2008"
 
 from shapes import *
 
@@ -65,6 +65,7 @@ class TensorElement(FiniteElementBase):
 class MixedElement(FiniteElementBase):
     def __init__(self, *elements):
         FiniteElementBase.__init__(self, elements[0].polygon)
+        ufl_assert(all(e.polygon == elements[0].polygon for e in elements))
         self.elements = elements
 
 class QuadratureElement(FiniteElementBase):

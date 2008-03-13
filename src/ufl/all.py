@@ -25,11 +25,11 @@ from elements import *
 # basisfunctions and coefficients
 from basisfunctions import *
 
-# differential operators (div, grad, curl etc)
-from diffoperators import *
-
 # compound tensoralgebra operations (dot, trace, etc)
 from tensoroperators import *
+
+# differential operators (div, grad, curl etc)
+from diffoperators import *
 
 # mathematical functions (sin, cos, exp, ln etc.)
 from mathfunctions import *

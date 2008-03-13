@@ -59,6 +59,10 @@ class UFLObject:
         "Return string representation of objects"
         raise NotImplementedError(self.__class__.__repr__)
     
+    # All UFL objects should implement __str__, as default we use repr
+    def __str__(self):
+        return repr(self)
+    
     # ... Algebraic operators:
     
     def __mul__(self, o):
@@ -127,20 +131,21 @@ class UFLObject:
     def __abs__(self):
         return Abs(self)
     
-    def transpose(self):
+    def _transpose(self):
         return Transpose(self)
     
-    T = property(transpose)
+    T = property(_transpose)
+    
+    # ... Partial derivatives
+    
+    def dx(self, i):
+        """Returns the partial derivative of this expression with respect to spatial variable number i."""
+        return PartialDerivative(self, i)
     
     # ... Indexing a tensor, or relabeling the indices of a tensor
     
     def __getitem__(self, key):
         return Indexed(self, key)
-    
-    # ... Strings:
-    
-    def __str__(self):
-        return repr(self)
     
     # ... Support for inserting an UFLObject in dicts and sets:
     
@@ -295,7 +300,7 @@ class Product(UFLObject):
                 # matrix-vector product
                 current_rank = 1
             else:
-                ufl_assert(False, "Invalid combination of tensor ranks in product.")
+                ufl_error("Invalid combination of tensor ranks in product.")
         
         self.rank = current_rank
     
@@ -413,21 +418,22 @@ class FixedIndex(Terminal):
         return "FixedIndex(%d)" % self.value
 
 
+def as_index(i): # TODO: handle ":" as well!
+    """Takes something the user might input as an index, and returns an actual UFL index object."""
+    if isinstance(i, (Index, FixedIndex)):
+        return i
+    elif isinstance(i, int):
+        return FixedIndex(i)
+    else:
+        ufl_error("Can convert this object to index: %s" % repr(i))
+
+
 class MultiIndex(UFLObject):
     def __init__(self, indices):
-        # use a tuple consistently
+        # make a consistent tuple of Index and FixedIndex objects
         if not isinstance(indices, tuple):
             indices = (indices,)
-        # use Index or FixedIndex consistently
-        ind = []
-        for i in indices:
-            if isinstance(i, Index):
-                ind.append(i)
-            elif isinstance(i, int):
-                ind.append(FixedIndex(i))
-            else:
-                ufl_assert(False, "Unfamiliar index object %s" % repr(i))
-        self.indices = tuple(ind)
+        self.indices = tuple(as_index(i) for i in indices)
         # these make no sense here:
         self.rank = None
         self.free_indices = None
@@ -453,10 +459,12 @@ class Indexed(UFLObject):
         
         msg = "Invalid number of indices (%d) for tensor expression of rank %d:\n\t%s\n" % (len(self.indices), expression.rank, repr(expression))
         ufl_assert(expression.rank == len(self.indices), msg)
-        
+        # FIXME: the above and below lines make rank = 0 always, need to take ":" into account to keep non-indexed axes in the resulting expression, i.e. A[i,:] or C[:,i,:,j]
         self.rank = expression.rank - len(self.indices)
         
-        self.free_indices = tuple(i for i in self.indices.indices if isinstance(i, Index))
+        self.fixed_indices = tuple(i for i in self.indices.indices if isinstance(i, FixedIndex))
+        self.free_indices  = tuple(i for i in self.indices.indices if isinstance(i, Index))
+        ufl_assert(len(self.fixed_indices) + len(self.free_indices) == len(self.indices), "Logic breach in Indexded.__init__.")
     
     def operands(self):
         return tuple(self.expression, self.indices)
@@ -465,12 +473,18 @@ class Indexed(UFLObject):
         return "Indexed(%s, %s)" % (repr(self.expression), repr(self.indices))
     
     def __getitem__(self, key):
-        ufl_assert(False, "Object is already indexed: %s" % repr(self))
+        ufl_error("Object is already indexed: %s" % repr(self))
 
 
+### Derivatives
 
-### How to handle tensor, subcomponents, indexing, Einstein summation? TODO: Need experiences from FFC!
+class PartialDerivative(UFLObject):
+    def __init__(self, expression, i):
+        UFLObject.__init__(self)
+        self.expression = expression
+        self.index = as_index(i)
+        
+        self.rank = expression.rank
+        self.free_indices = expression.free_indices # FIXME: check if i is repeated in expression.free_indices
 
 
-if __name__ == "__main__":
-    print "No tests here."
