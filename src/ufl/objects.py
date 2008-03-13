@@ -8,7 +8,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "March 11th 2008"
 
 from base import *
-from form import *
+from integral import *
 from geometry import *
 import math
 

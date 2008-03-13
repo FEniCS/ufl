@@ -5,31 +5,34 @@ Convenience file to import all parts of the language.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "March 8th 2008"
+__date__ = "March 13th 2008"
 
-# base system (base class and all subclasses involved in operators on the base class)
+# base system (expression base class and all subclasses involved in operators on the base class)
 from base import *
 
-# form and integral classes
+# form class
 from form import *
 
+# integral classes
+from integral import *
+
 # representations of transformed forms
-from forms import *
+from formoperators import *
 
 # finite elements
 from elements import *
 
 # basisfunctions and coefficients
-from arguments import *
+from basisfunctions import *
 
 # differential operators (div, grad, curl etc)
-from differential import *
+from diffoperators import *
 
 # compound tensoralgebra operations (dot, trace, etc)
-from tensoralgebra import *
+from tensoroperators import *
 
 # mathematical functions (sin, cos, exp, ln etc.)
-from function import *
+from mathfunctions import *
 
 # types for geometric quantities
 from geometry import *

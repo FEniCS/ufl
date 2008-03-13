@@ -10,7 +10,7 @@ so we can do f.ex. "if isinstance(a, FiniteElementBase)"
 __authors__ = "Martin Sandve Alnes"
 __date__ = "March 8th 2008"
 
-from polygons import *
+from shapes import *
 
 # TODO: Finish this list
 valid_families = set(("Lagrange", "CG", "DiscontinuousLagrange", "DG", "CR", "CrouzeixRaviart", "Bubble", "Nedelec", "BDM"))
