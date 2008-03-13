@@ -3,13 +3,6 @@ Roadmap for the development of UFL
 
 Suggestions:
 
- - Add module checks.py that performs checks on a finished form, things that
-   can't be checked while the form is being built from the operators
- 
- - Add modules predicates.py with True/False properties for forms,
-   including is_multilinear()
-
-
  - Rename geometry.py to something else (like builtins.py or functions.py)
 
  - Add pretty-print for all classes returning simpler strings than __repr__

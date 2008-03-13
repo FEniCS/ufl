@@ -11,16 +11,10 @@ __date__ = "March 11th 2008"
 import operator
 from itertools import chain
 from collections import defaultdict
+from ufl_io import *
+
 
 ### Utility functions:
-
-class UFLException(Exception):
-    def __init__(self, msg):
-        Exception.__init__(self, msg)
-
-def ufl_assert(condition, message):
-    if not condition:
-        raise UFLException(message)
 
 def is_python_scalar(o):
     return isinstance(o, (int, float))
@@ -38,10 +32,14 @@ def free_indices(o):
     return o.free_indices
 
 def is_scalar_valued(o):
+    """Checks if an expression is scalar valued, possibly still with free indices. Returns True/False."""
+    ufl_assert(isinstance(o, UFLObject), "Assuming an UFLObject.")
     return o.rank == 0
 
 def is_true_scalar(o):
-    return o.rank == 0  and  len(o.free_indices) == 0
+    """Checks if an expression represents a single scalar value, with no free indices. Returns True/False."""
+    return is_scalar_valued(o) and len(o.free_indices) == 0
+
 
 class UFLObject:
     """Base class of all UFL objects"""
