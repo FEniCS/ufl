@@ -74,6 +74,18 @@ class ElementsTestCase(unittest.TestCase):
         element = VectorElement("BDM", "tetrahedron", 1)
         self.assertTrue(element.value_rank() == 2)
 
+    def test_mixed(self):
+        velement = VectorElement("CG", "triangle", 2)
+        pelement = FiniteElement("CG", "triangle", 1)
+        TH1 = MixedElement(velement, pelement)
+        TH2 = velement + pelement
+        assert repr(TH1) == repr(TH2)
+        try:
+            TH1.value_rank()
+            self.fail()
+        except:
+            pass
+
 
 suite1 = unittest.makeSuite(ElementsTestCase)
 

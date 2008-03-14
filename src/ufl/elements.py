@@ -152,7 +152,7 @@ class TensorElement(MixedElement):
         if subelement.value_rank() != 0:
             ufl_warning("Creating a tensor element of nonscalar elements, this is not tested (if it even makes sense).")
 
-        self._value_rank = subelement.value_rank() + 2
+        self._value_rank = subelement.value_rank() + len(shape)
 
     def value_rank(self):
         return self._value_rank
