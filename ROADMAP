@@ -7,9 +7,6 @@ Suggestions:
  - Add pretty-print for all classes returning simpler strings than __repr__
  - Rename geometry.py to builtins.py or something better.
 
-# Elements:
- - Add information about space dimensions for elements?
-
 # Derivatives:
  - Test partial derivative operator found in base.py ( u.dx(i) )
  (- Probably don't: express all other operators in terms of partial derivative operator.

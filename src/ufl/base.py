@@ -258,26 +258,13 @@ class Transpose(UFLObject):
 class Product(UFLObject):
     def __init__(self, *operands):
         self._operands = tuple(operands)
-        
-        rep  = []
-        free = []
-        
-        count = defaultdict(int)
-        for i in chain(o.free_indices() for o in operands):
-            count[i] += 1
-        
-        for k, v in count.iteritems():
-            if v == 1:
-                free.append(k)
-            elif v == 2:
-                rep.append(k)
-            else:
-                ufl_assert(v <= 2, "Undefined behaviour: Index %s is repeated %d times." % (str(k), v))
-        
-        # remember repeated indices for later summation, not sure where to use this yet
-        self.repeated_indices = tuple(rep)
-        self._free_indices    = tuple(free)
-        
+       
+        # analyzing free indices
+        all_indices = tuple(chain(*(o.free_indices() for o in operands)))
+        (fixed_indices, free_indices, repeated_indices, num_unassigned_indices) = analyze_indices(all_indices)
+        self._free_indices       = free_indices
+        self._repeated_indices   = repeated_indices
+
         # Try to determine rank of this sequence of
         # products with possibly varying ranks of each operand.
         # Products currently defined as valid are:
@@ -447,6 +434,52 @@ class FixedIndex(Terminal):
         return "FixedIndex(%d)" % self.value
 
 
+def analyze_indices(indices):
+    ufl_assert(isinstance(indices, tuple), "Assuming index tuple.")
+    
+    count = defaultdict(int)
+    for i in indices:
+        count[i] += 1
+    
+    unique_indices = count.keys()
+
+    fixed_indices      = []
+    free_indices       = []
+    repeated_indices   = []
+    num_unassigned_indices = 0
+    
+    for i in unique_indices:
+        if isinstance(i, int):
+            fixed_indices.append(FixedIndex(i))
+        elif isinstance(i, FixedIndex):
+            fixed_indices.append(i)
+        elif isinstance(i, Index):
+            c = count[i]
+            if c == 1:
+                free_indices.append(i)
+            elif c == 2:
+                repeated_indices.append(i)
+            else:
+                ufl_error("Invalid index repetition count %d" % c)
+        elif isinstance(i, slice):
+            if i.start is None and i.stop is None and i.step is None:
+                num_unassigned_indices += count[i]
+            else:
+                ufl_error("Can't handle specific slice, only general ':'.")
+        elif i is Ellipsis: # '...' as in A[i, :, 0, ..., 1]
+            ufl_error("Can't handle ellipsis.")
+        else:
+            ufl_error("Invalid index type %s" % i.__class__)
+    
+    fixed_indices      = tuple(fixed_indices)
+    free_indices       = tuple(free_indices)
+    repeated_indices   = tuple(repeated_indices)
+    
+    ufl_assert(len(fixed_indices) + len(free_indices) + 2*len(repeated_indices) + num_unassigned_indices == len(indices), "Logic breach in analyze_indices.")
+    
+    return (fixed_indices, free_indices, repeated_indices, num_unassigned_indices)
+
+
 def as_index(i): # TODO: handle ":" as well!
     """Takes something the user might input as an index, and returns an actual UFL index object."""
     if isinstance(i, (Index, FixedIndex)):
@@ -484,19 +517,20 @@ class Indexed(UFLObject):
     def __init__(self, expression, indices):
         self._expression = expression
         
-        if isinstance(indices, MultiIndex):
+        if isinstance(indices, MultiIndex): # if constructed from repr?
             self._indices = indices
         else:
             self._indices = MultiIndex(indices)
         
         msg = "Invalid number of indices (%d) for tensor expression of rank %d:\n\t%s\n" % (len(self._indices), expression.rank(), repr(expression))
         ufl_assert(expression.rank() == len(self._indices), msg)
-        # FIXME: the above and below lines make rank = 0 always, need to take ":" into account to keep non-indexed axes in the resulting expression, i.e. A[i,:] or C[:,i,:,j]
-        self._rank = expression.rank() - len(self._indices)
         
-        self._fixed_indices = tuple(i for i in self._indices.indices if isinstance(i, FixedIndex))
-        self._free_indices  = tuple(i for i in self._indices.indices if isinstance(i, Index))
-        ufl_assert(len(self._fixed_indices) + len(self._free_indices) == len(self._indices), "Logic breach in Indexded.__init__.")
+        (fixed_indices, free_indices, repeated_indices, num_unassigned_indices) = analyze_indices(self._indices.indices)
+        # FIXME: We don't need to store all these here, remove the ones we don't use.
+        self._fixed_indices      = fixed_indices
+        self._free_indices       = free_indices
+        self._repeated_indices   = repeated_indices
+        self._rank = num_unassigned_indices
     
     def operands(self):
         return tuple(self._expression, self._indices)
@@ -521,13 +555,17 @@ class PartialDerivative(UFLObject):
         UFLObject.__init__(self)
         self.expression = expression
         self.index = as_index(i)
-        free = expression.free_indices()
-        ufl_warning("FIXME: In PartialDerivative.__init__: check if i is repeated in expression.free_indices()")
-        self._free_indices = tuple(free)
+        
+        (fixed_indices, free_indices, repeated_indices, num_unassigned_indices) = analyze_indices( tuple( [self.index] + expression.free_indices() ) )
+        # FIXME: We don't need all these here, remove the ones we don't use.
+        #self._fixed_indices      = fixed_indices
+        self._free_indices       = free_indices
+        #self._repeated_indices   = repeated_indices
     
     def free_indices(self):
         return self._free_indices
     
     def rank(self):
         return self.expression.rank()
+    
 

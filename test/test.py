@@ -6,7 +6,7 @@ __date__ = "2008-03-12 -- 2008-03-12"
 from os import system
 
 # Tests to run
-tests = ["elements", "forms", "illegal", "algorithms"]
+tests = ["elements", "indices", "forms", "illegal", "algorithms"]
 
 # Run tests
 for test in tests:
