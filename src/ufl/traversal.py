@@ -9,9 +9,9 @@ only to be used during the current experimental implementation phase).
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "March 13th 2008"
+__date__ = "2008-14-03"
 
-from base import *
+from all import *
 from integral import *
 from form import *
 

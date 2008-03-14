@@ -6,7 +6,7 @@ messages that can be redirected by the user of the UFL library.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "March 13th 2008"
+__date__ = "2008-14-03"
 
 
 class UFLException(Exception):

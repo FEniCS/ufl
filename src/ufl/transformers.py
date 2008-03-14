@@ -7,11 +7,8 @@ suited for transforming expression trees from one representation to another.
 only to be used during the current experimental implementation phase).
 """
 
-__version__ = "0.1"
 __authors__ = "Martin Sandve Alnes"
-__copyright__ = __authors__ + " (2008)"
-__licence__ = "GPL" # TODO: which licence?
-__date__ = "March 8th 2008"
+__date__ = "2008-14-03"
 
 from all import *
 
@@ -129,7 +126,6 @@ class UFL2UFL(UFL2Something):
         self.register(Grad,        self.grad)
         self.register(Div,         self.div)
         self.register(Curl,        self.curl)
-        self.register(Wedge,       self.wedge)
         
         # terminal objects:
         self.register(FacetNormal, self.facet_normal)
@@ -156,12 +152,6 @@ class UFL2UFL(UFL2Something):
         f, = o.operands()
         f = self.visit(f)
         return curl(f)
-    
-    def wedge(self, o):
-        a, b = o.operands()
-        a = self.visit(a)
-        b = self.visit(b)
-        return wedge(a, b)
     
     def facet_normal(self, o):
         return FacetNormal()

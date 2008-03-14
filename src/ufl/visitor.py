@@ -10,7 +10,7 @@ only to be used during the current experimental implementation phase).
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "March 8th 2008"
+__date__ = "2008-14-03"
 
 from all import *
 
@@ -44,12 +44,11 @@ class BasisFunctionFinder(UFLVisitor):
         self.basisfunctions.add(o)
 
 
-class CoefficientFinder(UFLVisitor):
+class FunctionFinder(UFLVisitor):
     def __init__(self):
         UFLVisitor.__init__(self)
         self.register(Function, self.function)
         self.register(Constant, self.constant)
-        self.register(UFLCoefficient, self.unknown_coefficient_type)
         self.reset()
     
     def reset(self):
@@ -62,9 +61,6 @@ class CoefficientFinder(UFLVisitor):
     
     def constant(self, o):
         self.constants.add(o)
-    
-    def unknown_coefficient_type(self, o):
-        self.unknown_coefficients.add(o)
 
 
 class SubtreeFinder(UFLVisitor):
@@ -102,7 +98,7 @@ if __name__ == "__main__":
     vis = BasisFunctionFinder()
     print vis.visit(f)
     
-    vis = CoefficientFinder()
+    vis = FunctionFinder()
     print vis.visit(f)
     print vis.functions
     print vis.constants

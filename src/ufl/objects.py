@@ -5,7 +5,7 @@ Utility objects for pretty syntax in user code.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "March 11th 2008"
+__date__ = "2008-14-03"
 
 from base import *
 from integral import *

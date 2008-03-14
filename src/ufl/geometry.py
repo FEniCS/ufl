@@ -5,7 +5,7 @@ Types for quantities computed from cell geometry.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "March 13th 2008"
+__date__ = "2008-14-03"
 
 from base import *
 

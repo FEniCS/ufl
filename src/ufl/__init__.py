@@ -27,7 +27,7 @@ __version__ = "0.1"
 __authors__ = "Martin Sandve Alnes"
 __copyright__ = __authors__ + " (2008)"
 __licence__ = "GPL" # TODO: which licence?
-__date__ = "March 8th 2008"
+__date__ = "2008-14-03"
 
 # form language
 from all import *
