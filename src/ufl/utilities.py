@@ -23,14 +23,18 @@ from traversal import *
 
 # TODO: test performance of visitor implementations vs functional implementations
 
-def basisfunctions(u):
+def basisfunctions(a):
+    "Build a sorted list of all BasisFunctions in Form, Integral or expression."
+    # FIXME: handle Form or Integral
     from visitor import BasisFunctionFinder
     vis = BasisFunctionFinder()
     vis.visit(u)
     # FIXME: sort by index
     return vis.basisfunctions
 
-def coefficients(u):
+def functions(a):
+    "Build a sorted list of all Functions in Form, Integral or expression."
+    # FIXME: handle Form or Integral
     from visitor import CoefficientFinder
     vis = CoefficientFinder()
     vis.visit(u)
@@ -47,8 +51,17 @@ def duplications(u):
 ### Utilities to convert expression to a different form:
 
 def flatten(u):
+    "Flatten (a+b)+(c+d) into a (a+b+c+d) and (a*b)*(c*d) into (a*b*c*d)."
     vis = TreeFlattener()
     return vis.visit(f)
 
+def apply_summation(u):
+    "Expand all repeated indices into explicit sums with fixed indices."
+    ufl_error("Not implemented")
+    # FIXME: Implement
 
+def discover_indices(u):
+    "Convert explicit sums into implicit sums (repeated indices)."
+    ufl_error("Not implemented")
+    # FIXME: Implement (like FFCs simplify done by Marie)
 
