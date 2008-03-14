@@ -28,7 +28,7 @@ class BasisFunction(Terminal):
         return tuple()
     
     def rank(self):
-        return self.element.value_rank
+        return self.element.value_rank()
     
     def __repr__(self):
         return "BasisFunction(%s, %d)" % (repr(self.element), self.count)
@@ -74,7 +74,7 @@ class Function(Terminal):
         return tuple()
     
     def rank(self):
-        return self.element.value_rank
+        return self.element.value_rank()
     
     def __repr__(self):
         return "Function(%s, %s, %d)" % (repr(self.element), repr(self.name), self.count)

@@ -6,6 +6,7 @@ Suggestions:
 # Prettyness:
  - Rename geometry.py to something else (like builtins.py or functions.py)
  - Add pretty-print for all classes returning simpler strings than __repr__
+ - Rename geometry.py to builtins.py or something better.
 
 # Elements:
  - Add information about space dimensions for elements?
