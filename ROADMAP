@@ -20,9 +20,6 @@ Suggestions:
  - Implement conversion function that converts tensoroperators Inner, Dot, etc to index notation
  - Implement contraction function that expands all implicit summations into Sums
 
-# Misc:
- - When do we raise excepion and when do we use assert?
-
 # License:
  - Which license do we pick? GPL3 or LGPL3?
 
