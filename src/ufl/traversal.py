@@ -76,7 +76,7 @@ def iter_elements(u):
     returned = set()
     for o in iter_ufl_objs(u):
         for u in iter_depth_first(o):
-            if isinstance(u, (BasisFunction, UFLCoefficient)) and not repr(u.element) in returned:
+            if isinstance(u, (BasisFunction, Function)) and not repr(u.element) in returned:
                 returned.add(repr(u.element))
                 yield u.element
 
@@ -94,7 +94,7 @@ def iter_coefficients(u):
     returned = set()
     for o in iter_ufl_objs(u):
         for u in iter_depth_first(o):
-            if isinstance(u, UFLCoefficient) and not repr(u) in returned:
+            if isinstance(u, Function) and not repr(u) in returned:
                 returned.add(repr(u))
                 yield u
 
