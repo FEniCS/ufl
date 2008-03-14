@@ -26,7 +26,12 @@ Suggestions:
 # Algorithms:
  - Don't understand transformers.py
 
+# Misc:
+ - Rename ufl_io.py --> io.py (or similar), already in ufl namespace
+ - When do we raise excepion and when do we use assert?
 
+# License:
+ - Which license do we pick? GPL3 or LGPL3?
 
 - Elaborate more on the feature list on the wiki, trying to exhaust all ideas we have
 
