@@ -9,7 +9,7 @@ new elements by calling the function register_element."""
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __date__ = "2008-03-03 -- 2008-03-13"
 
-from ufl_io import *
+from output import *
 
 import operator
 

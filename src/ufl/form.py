@@ -7,7 +7,7 @@ The Form class.
 __authors__ = "Martin Sandve Alnes"
 __date__ = "March 13th 2008"
 
-from ufl_io import *
+from output import *
 from base import is_true_scalar
 
 

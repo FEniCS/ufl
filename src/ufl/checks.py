@@ -7,7 +7,7 @@ Functions to check the validity of forms.
 __authors__ = "Martin Sandve Alnes"
 __date__ = "March 13th 2008"
 
-from ufl_io import *
+from output import *
 
 def validate_form(a):
     """Performs all implemented validations on a form. Raises exception if something fails."""

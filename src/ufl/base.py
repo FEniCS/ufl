@@ -11,7 +11,7 @@ __date__ = "March 13th 2008"
 import operator
 from itertools import chain
 from collections import defaultdict
-from ufl_io import *
+from output import *
 
 
 # ... Utility functions:
