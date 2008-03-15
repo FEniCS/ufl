@@ -15,11 +15,12 @@ from base import *
 
 class DifferentialOperator(UFLObject):
     """For the moment this is just a dummy class to enable "isinstance(o, DifferentialOperator)"."""
-    def __init__(self):
-        pass
+    __slots__ = tuple()
 
 
 class Grad(DifferentialOperator):
+    __slots__ = ("f",)
+
     def __init__(self, f):
         self.f = f
         ufl_assert(len(f.free_indices()) == 0, "FIXME: Taking gradient of an expression with free indices, should this be a valid expression? Please provide examples!")
@@ -32,12 +33,17 @@ class Grad(DifferentialOperator):
     
     def rank(self):
         return self.f.rank() + 1
+    
+    def __str__(self):
+        return "grad(%s)" % str(self.f)
 
     def __repr__(self):
         return "Grad(%s)" % repr(self.f)
 
 
 class Div(DifferentialOperator):
+    __slots__ = ("f",)
+
     def __init__(self, f):
         ufl_assert(f.rank() >= 1, "Can't take the divergence of a scalar.")
         ufl_assert(len(f.free_indices()) == 0, "FIXME: Taking divergence of an expression with free indices, should this be a valid expression? Please provide examples!")
@@ -51,12 +57,17 @@ class Div(DifferentialOperator):
     
     def rank(self):
         return self.f.rank() - 1
+    
+    def __str__(self):
+        return "div(%s)" % str(self.f)
 
     def __repr__(self):
         return "Div(%s)" % repr(self.f)
 
 
 class Curl(DifferentialOperator):
+    __slots__ = ("f",)
+
     def __init__(self, f):
         ufl_assert(f.rank()== 1, "Need a vector.")
         ufl_assert(len(f.free_indices()) == 0, "FIXME: Taking curl of an expression with free indices, should this be a valid expression? Please provide examples!")
@@ -71,11 +82,16 @@ class Curl(DifferentialOperator):
     def rank(self):
         return 1
     
+    def __str__(self):
+        return "curl(%s)" % str(self.f)
+    
     def __repr__(self):
         return "Curl(%s)" % repr(self.f)
 
 
 class Rot(DifferentialOperator):
+    __slots__ = ("f",)
+
     def __init__(self, f):
         ufl_assert(f.rank() == 1, "Need a vector.")
         ufl_assert(len(f.free_indices()) == 0, "FIXME: Taking rot of an expression with free indices, should this be a valid expression? Please provide examples!")
@@ -89,6 +105,9 @@ class Rot(DifferentialOperator):
     
     def rank(self):
         return 0
+    
+    def __str__(self):
+        return "rot(%s)" % str(self.f)
     
     def __repr__(self):
         return "Rot(%s)" % repr(self.f)

@@ -46,6 +46,8 @@ from base import *
 # objects representing the operations:
 
 class Outer(UFLObject):
+    __slots__ = ("a", "b")
+
     def __init__(self, a, b):
         self.a = a
         self.b = b
@@ -59,10 +61,15 @@ class Outer(UFLObject):
     def rank(self):
         return self.a.rank() + self.b.rank()
     
+    def __str__(self):
+        return "((%s) (x) (%s))" % (str(self.a), str(self.b))
+    
     def __repr__(self):
         return "Outer(%s, %s)" % (repr(self.a), repr(self.b))
 
 class Inner(UFLObject):
+    __slots__ = ("a", "b")
+
     def __init__(self, a, b):
         ufl_assert(a.rank() == b.rank(), "Rank mismatch.")
         self.a = a
@@ -77,10 +84,15 @@ class Inner(UFLObject):
     def rank(self):
         return 0
     
+    def __str__(self):
+        return "((%s) : (%s))" % (str(self.a), str(self.b))
+    
     def __repr__(self):
         return "Inner(%s, %s)" % (repr(self.a), repr(self.b))
 
 class Dot(UFLObject):
+    __slots__ = ("a", "b")
+
     def __init__(self, a, b):
         ufl_assert(a.rank() >= 1 and b.rank() >= 1, "Dot product requires arguments of rank >= 1, got %d and %d." % (a.rank(), b.rank())) # TODO: maybe scalars are ok?
         self.a = a
@@ -95,10 +107,15 @@ class Dot(UFLObject):
     def rank(self):
         return self.a.rank() + self.b.rank() - 2
     
+    def __str__(self):
+        return "((%s) . (%s))" % (str(self.a), str(self.b))
+    
     def __repr__(self):
         return "Dot(%s, %s)" % (self.a, self.b)
 
 class Cross(UFLObject):
+    __slots__ = ("a", "b")
+
     def __init__(self, a, b):
         ufl_assert(a.rank() == 1 and b.rank() == 1, "Cross product requires arguments of rank 1.")
         self.a = a
@@ -113,10 +130,15 @@ class Cross(UFLObject):
     def rank(self):
         return 1
     
+    def __str__(self):
+        return "((%s) x (%s))" % (str(self.a), str(self.b))
+    
     def __repr__(self):
         return "Cross(%s, %s)" % (repr(self.a), repr(self.b))
 
 class Trace(UFLObject):
+    __slots__ = ("A",)
+
     def __init__(self, A):
         ufl_assert(A.rank() == 2, "Trace of tensor with rank != 2 is undefined.")
         self.A = A
@@ -130,10 +152,15 @@ class Trace(UFLObject):
     def rank(self):
         return 0
     
+    def __str__(self):
+        return "tr(%s)" % str(self.A)
+    
     def __repr__(self):
         return "Trace(%s)" % repr(self.A)
 
 class Determinant(UFLObject):
+    __slots__ = ("A",)
+
     def __init__(self, A):
         ufl_assert(A.rank() == 2, "Determinant of tensor with rank != 2 is undefined.")
         ufl_assert(len(A.free_indices()) == 0, "Taking determinant of matrix with free indices, don't know what this means.")
@@ -148,10 +175,15 @@ class Determinant(UFLObject):
     def rank(self):
         return 0
     
+    def __str__(self):
+        return "det(%s)" % str(self.A)
+    
     def __repr__(self):
         return "Determinant(%s)" % repr(self.A)
 
 class Inverse(UFLObject):
+    __slots__ = ("A",)
+
     def __init__(self, A):
         ufl_assert(A.rank() == 2, "Inverse of tensor with rank != 2 is undefined.")
         ufl_assert(len(A.free_indices()) == 0, "Taking inverse of matrix with free indices, don't know what this means.")
@@ -166,10 +198,15 @@ class Inverse(UFLObject):
     def rank(self):
         return 2
     
+    def __str__(self):
+        return "(%s)^-1" % str(self.A)
+    
     def __repr__(self):
         return "Inverse(%s)" % repr(self.A)
 
 class Deviatoric(UFLObject):
+    __slots__ = ("A",)
+
     def __init__(self, A):
         ufl_assert(A.rank() == 2, "Deviatoric part of tensor with rank != 2 is undefined.")
         ufl_assert(len(A.free_indices()) == 0, "Taking deviatoric part of matrix with free indices, don't know what this means.")
@@ -184,10 +221,15 @@ class Deviatoric(UFLObject):
     def rank(self):
         return 2
     
+    def __str__(self):
+        return "dev(%s)" % str(self.A)
+    
     def __repr__(self):
         return "Deviatoric(%s)" % repr(self.A)
 
 class Cofactor(UFLObject):
+    __slots__ = ("A",)
+
     def __init__(self, A):
         ufl_assert(A.rank() == 2, "Cofactor of tensor with rank != 2 is undefined.")
         ufl_assert(len(A.free_indices()) == 0, "Taking cofactor of matrix with free indices, don't know what this means.")
@@ -201,6 +243,9 @@ class Cofactor(UFLObject):
     
     def rank(self):
         return 2
+    
+    def __str__(self):
+        return "cofactor(%s)" % str(self.A)
     
     def __repr__(self):
         return "Cofactor(%s)" % repr(self.A)

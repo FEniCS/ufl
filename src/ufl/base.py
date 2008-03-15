@@ -14,6 +14,11 @@ from collections import defaultdict
 from output import *
 
 
+# FIXME: I've messed up a bit on the name conventions, sometimes using "self._foo" and sometimes "self.foo".
+#        This is not consistent and should be fixed.
+#        The way to go: "self._foo" for everything the external user shouldn't use, which is most variables.
+
+
 # ... Utility functions:
 
 def is_python_scalar(o):
@@ -35,12 +40,12 @@ def is_true_scalar(o):
     return is_scalar_valued(o) and len(o.free_indices()) == 0
 
 
-class UFLObject:
+class UFLObject(object):
     """Base class of all UFL objects"""
-
-    def __init__(self):
-        pass
-
+    
+    # Freeze member variables (there are none) of objects of this class.
+    __slots__ = tuple()
+    
     # ... "Abstract" functions: Functions that subexpressions should implement.
     
     # All UFL objects must implement operands
@@ -178,16 +183,18 @@ class UFLObject:
 
 class Terminal(UFLObject):
     """A terminal node in the expression tree."""
-    def __init__(self):
-        UFLObject.__init__(self)
+    
+    # Freeze member variables (there are none) of objects of this class.
+    __slots__ = tuple()
     
     def operands(self):
         return tuple()
 
 
 class Number(Terminal):
+    __slots__ = ("value",)
+    
     def __init__(self, value):
-        Terminal.__init__(self)
         self.value = value
     
     def free_indices(self):
@@ -196,21 +203,28 @@ class Number(Terminal):
     def rank(self):
         return 0
     
+    def __str__(self):
+        return str(self.value)
+    
     def __repr__(self):
         return "Number(%s)" % repr(self.value)
 
 
 class Identity(Terminal):
-    def __init__(self):
-        pass
+    __slots__ = tuple()
+    
+    def __str__(self):
+        return "I"
     
     def __repr__(self):
         return "Identity()"
 
 
-class Symbol(Terminal): # TODO: Needed for diff? Tensors of symbols? Parametric symbols?
+class Symbol(Terminal): # TODO: What about tensors of symbols?
+    __slots__ = tuple("name")
+    
     def __init__(self, name):
-        self.name = name
+        self.name = str(name)
     
     def free_indices(self):
         return tuple()
@@ -218,26 +232,33 @@ class Symbol(Terminal): # TODO: Needed for diff? Tensors of symbols? Parametric 
     def rank(self):
         return 0
     
+    def __str__(self):
+        return self.name
+    
     def __repr__(self):
         return "Symbol(%s)" % repr(self.name)
 
 
-#class Variable(UFLObject): # TODO: what is this really?
-#    def __init__(self, name, expression):
-#        self.name = name # TODO: must wrap in UFLString or UFLName or something
-#        self.expression = expression
-#    
-#    def operands(self):
-#        return (self.name, self.expression)
-#    
-#    def __repr__(self):
-#        return "Variable(%s, %s)" % (repr(self.name), repr(self.expression))
+class Variable(UFLObject): # TODO: Use this for diff. What about tensors of variables?
+    __slots__ = ("symbol", "expression")
+    
+    def __init__(self, symbol, expression):
+        self.symbol     = symbol if isinstance(symbol, Symbol) else Symbol(symbol)
+        self.expression = expression
+    
+    def operands(self):
+        return (self.symbol, self.expression)
+    
+    def __repr__(self):
+        return "Variable(%s, %s)" % (repr(self.symbol), repr(self.expression))
 
 
 
 ### Algebraic operators
 
 class Transpose(UFLObject):
+    __slots__ = ("A",)
+    
     def __init__(self, A):
         ufl_assert(A.rank() == 2, "Transpose is only defined for rank 2 tensors.")
         self.A = A
@@ -251,11 +272,16 @@ class Transpose(UFLObject):
     def rank(self):
         return 2
     
+    def __str__(self):
+        return "(%s)^T" % str(self.A)
+    
     def __repr__(self):
         return "Transpose(%s)" % repr(self.A)
 
 
 class Product(UFLObject):
+    __slots__ = ("_operands", "_rank", "_free_indices", "_repeated_indices")
+    
     def __init__(self, *operands):
         self._operands = tuple(operands)
        
@@ -297,11 +323,16 @@ class Product(UFLObject):
     def rank(self):
         return self._rank
     
+    def __str__(self):
+        return "(%s)" % " * ".join(str(o) for o in self._operands)
+    
     def __repr__(self):
         return "(%s)" % " * ".join(repr(o) for o in self._operands)
 
 
 class Sum(UFLObject):
+    __slots__ = ("_operands",)
+    
     def __init__(self, *operands):
         ufl_assert(all(operands[0].rank()         == o.rank()         for o in operands), "Rank mismatch in sum.")
         ufl_assert(all(operands[0].free_indices() == o.free_indices() for o in operands), "Can't add expressions with different free indices.")
@@ -316,11 +347,16 @@ class Sum(UFLObject):
     def rank(self):
         return self._operands[0].rank()
     
+    def __str__(self):
+        return "(%s)" % " + ".join(str(o) for o in self._operands)
+    
     def __repr__(self):
         return "(%s)" % " + ".join(repr(o) for o in self._operands)
 
 
 class Division(UFLObject):
+    __slots__ = ("a", "b")
+    
     def __init__(self, a, b):
         ufl_assert(is_true_scalar(b), "Division by non-scalar.")
         self.a = a
@@ -335,11 +371,16 @@ class Division(UFLObject):
     def rank(self):
         return self.a.rank()
     
+    def __str__(self):
+        return "(%s / %s)" % (str(self.a), str(self.b))
+    
     def __repr__(self):
         return "(%s / %s)" % (repr(self.a), repr(self.b))
 
 
 class Power(UFLObject):
+    __slots__ = ("a", "b")
+    
     def __init__(self, a, b):
         ufl_assert(is_true_scalar(a) and is_true_scalar(b), "Non-scalar power not defined.")
         self.a = a
@@ -354,11 +395,16 @@ class Power(UFLObject):
     def rank(self):
         return 0
     
+    def __str__(self):
+        return "(%s ** %s)" % (str(self.a), str(self.b))
+    
     def __repr__(self):
         return "(%s ** %s)" % (repr(self.a), repr(self.b))
     
 
 class Mod(UFLObject):
+    __slots__ = ("a", "b")
+    
     def __init__(self, a, b):
         ufl_assert(is_true_scalar(a) and is_true_scalar(b), "Non-scalar mod not defined.")
         self.a = a
@@ -373,11 +419,16 @@ class Mod(UFLObject):
     def rank(self):
         return 0
     
+    def __str__(self):
+        return "(%s %% %s)" % (str(self.a), str(self.b))
+    
     def __repr__(self):
         return "(%s %% %s)" % (repr(self.a), repr(self.b))
 
 
 class Abs(UFLObject):
+    __slots__ = ("a",)
+    
     def __init__(self, a):
         self.a = a
     
@@ -390,6 +441,9 @@ class Abs(UFLObject):
     def rank(self):
         return self.a.rank()
     
+    def __str__(self):
+        return "| %s |" % str(self.a)
+    
     def __repr__(self):
         return "Abs(%s)" % repr(self.a)
     
@@ -398,16 +452,18 @@ class Abs(UFLObject):
 ### Indexing
 
 class Index(Terminal):
-    count = 0
+    __slots__ = ("name", "count")
+    
+    _globalcount = 0
     def __init__(self, name = None, count = None):
         self.name = name
         if count is None:
-            self.count = Index.count
-            Index.count += 1
+            self.count = Index._globalcount
+            Index._globalcount += 1
         else:
             self.count = count
-            if count >= Index.count:
-                Index.count = count + 1
+            if count >= Index._globalcount:
+                Index._globalcount = count + 1
     
     def free_indices(self):
         ufl_error("Why would you want to get the free indices of an Index? Please explain at ufl-dev@fenics.org...")
@@ -415,11 +471,16 @@ class Index(Terminal):
     def rank(self):
         ufl_error("Why would you want to get the rank of an Index? Please explain at ufl-dev@fenics.org...")
     
+    def __str__(self):
+        return "i_%d" % self.count # TODO: use name? Maybe just remove name, adds possible confusion of what ID's an Index (which is the count alone).
+    
     def __repr__(self):
         return "Index(%s, %d)" % (repr(self.name), self.count)
 
 
 class FixedIndex(Terminal):
+    __slots__ = ("value",)
+    
     def __init__(self, value):
         ufl_assert(isinstance(value, int), "Expecting integer value for fixed index.")
         self.value = value
@@ -491,6 +552,8 @@ def as_index(i): # TODO: handle ":" as well!
 
 
 class MultiIndex(UFLObject):
+    __slots__ = ("indices",)
+    
     def __init__(self, indices):
         # make a consistent tuple of Index and FixedIndex objects
         if not isinstance(indices, tuple):
@@ -506,6 +569,9 @@ class MultiIndex(UFLObject):
     def rank(self):
         ufl_error("Why would you want to get the rank of a MultiIndex? Please explain at ufl-dev@fenics.org...")
     
+    def __str__(self):
+        return ", ".join(str(i) for i in self.indices)
+    
     def __repr__(self):
         return "MultiIndex(%s)" % repr(self.indices)
 
@@ -514,6 +580,8 @@ class MultiIndex(UFLObject):
 
 
 class Indexed(UFLObject):
+    __slots__ = ("_expression", "_indices", "_fixed_indices", "_free_indices", "_repeated_indices", "_rank")
+    
     def __init__(self, expression, indices):
         self._expression = expression
         
@@ -540,7 +608,10 @@ class Indexed(UFLObject):
     
     def rank(self):
         return self._rank
-
+    
+    def __str__(self):
+        return "%s[%s]" % (str(self._expression), str(self._indices))
+    
     def __repr__(self):
         return "Indexed(%s, %s)" % (repr(self._expression), repr(self._indices))
     
@@ -551,8 +622,11 @@ class Indexed(UFLObject):
 ### Derivatives
 
 class PartialDerivative(UFLObject):
+    "Partial derivative of an expression w.r.t. a spatial direction given by an index."
+    
+    __slots__ = ("expression", "index", "_fixed_indices", "_free_indices", "_repeated_indices")
+    
     def __init__(self, expression, i):
-        UFLObject.__init__(self)
         self.expression = expression
         self.index = as_index(i)
         
@@ -568,4 +642,10 @@ class PartialDerivative(UFLObject):
     def rank(self):
         return self.expression.rank()
     
+    def __str__(self):
+        return "(d[%s] / dx_%s)" % (str(self.expression), str(self.index))
+    
+    def __repr__(self):
+        return "PartialDerivative(%s, %s)" % (repr(self.expression), repr(self.index))
+
 

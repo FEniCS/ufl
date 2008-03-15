@@ -13,22 +13,27 @@ from base import *
 from elements import *
 
 class BasisFunction(Terminal):
-    count = 0
+    __slots__ = ("element", "name", "count",)
+
+    _globalcount = 0
     def __init__(self, element, count=None):
         self.element = element
         if count is None:
-            self.count = BasisFunction.count
-            BasisFunction.count += 1
+            self.count = BasisFunction._globalcount
+            BasisFunction._globalcount += 1
         else:
             self.count = count
-            if count >= BasisFunction.count:
-                BasisFunction.count = count + 1
+            if count >= BasisFunction._globalcount:
+                BasisFunction._globalcount = count + 1
     
     def free_indices(self):
         return tuple()
     
     def rank(self):
         return self.element.value_rank()
+    
+    def __str__(self):
+        return "BasisFunction(%s)" % str(self.element)
     
     def __repr__(self):
         return "BasisFunction(%s, %d)" % (repr(self.element), self.count)
@@ -58,17 +63,19 @@ def TrialFunctions(element):
 
 
 class Function(Terminal):
-    count = 0
+    __slots__ = ("element", "name", "count",)
+
+    _globalcount = 0
     def __init__(self, element, name=None, count=None):
         self.element = element
         self.name = name
         if count is None:
-            self.count = Function.count
-            Function.count += 1
+            self.count = Function._globalcount
+            Function._globalcount += 1
         else:
             self.count = count
-            if count >= Function.count:
-                Function.count = count + 1
+            if count >= Function._globalcount:
+                Function._globalcount = count + 1
     
     def free_indices(self):
         return tuple()
@@ -76,14 +83,22 @@ class Function(Terminal):
     def rank(self):
         return self.element.value_rank()
     
+    def __str__(self):
+        return "Function(%s)" % str(self.element) # TODO: Better pretty print. Use name here?
+    
     def __repr__(self):
         return "Function(%s, %s, %d)" % (repr(self.element), repr(self.name), self.count)
 
 class Constant(Function):
+    __slots__ = ("polygon",)
+
     def __init__(self, polygon, name=None, count=None):
         self.polygon = polygon
         element = FiniteElement("DG", polygon, 0)
         Function.__init__(self, element, name, count)
+    
+    def __str__(self):
+        return "Constant(%d)" % self.count # TODO: Better pretty print. Use name here?
     
     def __repr__(self):
         return "Constant(%s, %s, %d)" % (repr(self.polygon), repr(self.name), self.count)
