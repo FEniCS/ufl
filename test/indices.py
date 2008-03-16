@@ -5,6 +5,10 @@ import unittest
 from ufl import *
 from ufl.utilities import * 
 
+# disable log output
+import logging
+logging.basicConfig(level=logging.CRITICAL)
+
 
 # TODO: add more expressions to test as many possible combinations of index notation as feasible...
 

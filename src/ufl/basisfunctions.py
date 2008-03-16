@@ -7,7 +7,7 @@ which use the baseclasses BasisFunction and Coefficient.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-14-03"
+__date__ = "2008-14-03 -- 2008-16-03"
 
 from base import *
 from elements import *

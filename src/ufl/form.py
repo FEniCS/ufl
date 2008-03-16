@@ -5,7 +5,7 @@ The Form class.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-14-03"
+__date__ = "2008-14-03 -- 2008-16-03"
 
 from output import *
 from base import is_true_scalar

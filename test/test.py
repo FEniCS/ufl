@@ -5,6 +5,11 @@ __date__ = "2008-03-12 -- 2008-03-12"
 
 from os import system
 
+# disable log output
+import logging
+logging.basicConfig(level=logging.CRITICAL)
+
+
 # Tests to run
 tests = ["elements", "indices", "forms", "illegal", "algorithms"]
 

@@ -6,7 +6,13 @@ messages that can be redirected by the user of the UFL library.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-14-03"
+__date__    = "2008-14-03 -- 2008-16-03"
+
+
+import logging
+_log     = logging.getLogger("ufl")
+_handler = logging.StreamHandler()
+_log.addHandler(_handler)
 
 
 class UFLException(Exception):
@@ -14,43 +20,33 @@ class UFLException(Exception):
         Exception.__init__(self, message)
 
 
-# TODO: Make redirection of all UFL messages easy. Use the python logging module, which seems meant for this kind of thing.
-# (we may not need all four channels though)
+def get_handler():
+    return _handler
 
-def set_all_output(out):
-    set_message_output(out)
-    set_warning_output(out)
-    set_error_output(out)
-    set_debug_output(out)
+def get_logger():
+    return _log
 
-def set_message_output(out):
-    ufl_warning("set_message_output not implemented yet.")
-
-def set_warning_output(out):
-    ufl_warning("set_warning_output not implemented yet.")
-
-def set_error_output(out):
-    ufl_warning("set_error_output not implemented yet.")
-
-def set_debug_output(out):
-    ufl_warning("set_debug_output not implemented yet.")
+def set_handler(handler):
+    _log.removeHandler(_handler)
+    _handler = handler
+    _log.addHandler(handler)
 
 
-def ufl_message(message):
-    print message
+def ufl_debug(*message):
+    _log.debug(*message)
 
-def ufl_warning(message):
-    print message
+def ufl_info(*message):
+    _log.info(*message)
 
-def ufl_error(message):
-    print message
-    raise UFLException(message)
+def ufl_warning(*message):
+    _log.warning(*message)
 
-def ufl_debug(message):
-    print message
+def ufl_error(*message):
+    _log.error(*message)
+    text = message[0] % message[1:]
+    raise UFLException(text)
 
-
-def ufl_assert(condition, message):
+def ufl_assert(condition, *message):
     if not condition:
-        ufl_error(message)
+        ufl_error(*message)
 

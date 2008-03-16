@@ -5,6 +5,10 @@ import unittest
 from ufl import *
 from ufl.utilities import * 
 
+# disable log output
+import logging
+logging.basicConfig(level=logging.CRITICAL)
+
 
 # TODO: these tests only verify that the syntax is possible, how much more can we test without a form compiler?
 

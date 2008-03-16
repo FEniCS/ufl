@@ -12,7 +12,7 @@ to all the utility algorithms that we want to expose.)
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-14-03"
+__date__ = "2008-14-03 -- 2008-16-03"
 
 from base import *
 from visitor import *

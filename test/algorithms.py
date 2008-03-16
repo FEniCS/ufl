@@ -6,6 +6,10 @@ from pprint import *
 from ufl import *
 from ufl.utilities import * 
 
+# disable log output
+import logging
+logging.basicConfig(level=logging.CRITICAL)
+
 
 # TODO: add more tests, covering all utility algorithms
 
@@ -29,7 +33,7 @@ class AlgorithmsTestCase(unittest.TestCase):
 
         for itg in a.cell_integrals():
             walk(itg.integrand, foo)
-        print "\n".join("%d:\t %s" % (k,v) for k,v in store.items())
+        logging.debug( "\n".join("%d:\t %s" % (k,v) for k,v in store.items()) )
         # TODO: test something... compare some strings perhaps.
 
     def test_flatten(self):

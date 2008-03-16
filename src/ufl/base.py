@@ -6,7 +6,7 @@ types involved with built-in operators on any ufl object.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-14-03"
+__date__ = "2008-14-03 -- 2008-16-03"
 
 import operator
 from itertools import chain

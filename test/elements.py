@@ -4,6 +4,10 @@ import unittest
 
 from ufl import *
 
+# disable log output
+import logging
+logging.basicConfig(level=logging.CRITICAL)
+
 
 # TODO: cover all valid element definitions
 
