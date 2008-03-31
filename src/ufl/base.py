@@ -523,18 +523,19 @@ def analyze_indices(indices):
             else:
                 ufl_error("Invalid index repetition count %d" % c)
         elif isinstance(i, slice):
-            if i.start is None and i.stop is None and i.step is None:
+            if (i.start is None) and (i.stop is None) and (i.step is None):
                 num_unassigned_indices += count[i]
             else:
+                print "slice error: ", i
                 ufl_error("Can't handle specific slice, only general ':'.")
         elif i is Ellipsis: # '...' as in A[i, :, 0, ..., 1]
             ufl_error("Can't handle ellipsis.")
         else:
             ufl_error("Invalid index type %s" % i.__class__)
     
-    fixed_indices      = tuple(fixed_indices)
-    free_indices       = tuple(free_indices)
-    repeated_indices   = tuple(repeated_indices)
+    fixed_indices    = tuple(fixed_indices)
+    free_indices     = tuple(free_indices)
+    repeated_indices = tuple(repeated_indices)
     
     ufl_assert(len(fixed_indices) + len(free_indices) + 2*len(repeated_indices) + num_unassigned_indices == len(indices), "Logic breach in analyze_indices.")
     

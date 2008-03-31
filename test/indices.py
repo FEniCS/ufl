@@ -129,12 +129,13 @@ class IndexTestCase(unittest.TestCase):
         self.assertTrue(C.rank() == 2)
         self.assertTrue(D.rank() == 2)
         
-        # legal
+        # create vector from list
         vv = Vector([u[0], v[0]])
         ww = vv + vv
         self.assertTrue(vv.rank() == 1)
         self.assertTrue(ww.rank() == 1)
         
+        # create matrix from list
         A  = Matrix( [ [u[0], u[1]], [v[0], v[1]] ] )
         B  = Matrix( (v[k]*v[k]) * u[i]*v[j], (j,i) )
         C  = A + A
@@ -145,14 +146,23 @@ class IndexTestCase(unittest.TestCase):
         self.assertTrue(C.rank() == 2)
         self.assertTrue(D.rank() == 2)
         
-        # components of a fourth order tensor
+        # define the components of a fourth order tensor
         Cijkl = u[i]*v[j]*f[k]*g[l]
-        # make it a tensor
-        C = Tensor(Cijkl, (i,j,k,l))
         self.assertTrue(Cijkl.rank() == 0)
         self.assertTrue(set(Cijkl.free_indices()) == set((i,j,k,l)))
+        
+        # make it a tensor
+        C = Tensor(Cijkl, (i,j,k,l))
         self.assertTrue(C.rank() == 4)
         self.assertTrue(C.free_indices() == ())
+
+        # get sub-matrix
+        A = C[:,:,0,0]
+        self.assertTrue(A.rank() == 2)
+        self.assertTrue(A.free_indices() == ())
+        A = C[:,:,i,j]
+        self.assertTrue(A.rank() == 2)
+        self.assertTrue(A.free_indices() == (i,j))
         
         # legal?
         vv = Vector([u[i], v[i]])
