@@ -1,3 +1,12 @@
+#!/usr/bin/env python
+
+"""
+Tensor, Matrix and Vector:
+used to group scalar expressions into expressions with rank > 0.
+"""
+
+__authors__ = "Martin Sandve Alnes"
+__date__ = "2008-31-03 -- 2008-31-03"
 
 
 from base import *
@@ -20,6 +29,9 @@ class ListVector(UFLObject):
     
     def free_indices(self):
         return self._free_indices
+    
+    def __repr__(self):
+        return "ListVector(%s)" % repr(self._expressions)
 
 
 class ListMatrix(UFLObject):
@@ -45,6 +57,9 @@ class ListMatrix(UFLObject):
     
     def free_indices(self):
         return self._free_indices
+    
+    def __repr__(self):
+        return "ListMatrix(%s)" % repr(self._expressions)
 
 
 class Tensor(UFLObject):
@@ -66,6 +81,9 @@ class Tensor(UFLObject):
     
     def free_indices(self):
         return self._free_indices
+    
+    def __repr__(self):
+        return "Tensor(%s, %s)" % (repr(self._expressions), repr(self._indices))
 
 
 def Vector(expressions, index = None):

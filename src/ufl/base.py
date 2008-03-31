@@ -491,78 +491,122 @@ class FixedIndex(Terminal):
     def rank(self):
         ufl_error("Why would you want to get the rank of an Index? Please explain at ufl-dev@fenics.org...")
     
+    def __str__(self):
+        return "%d" % self.value
+    
     def __repr__(self):
         return "FixedIndex(%d)" % self.value
 
 
-def analyze_indices(indices):
-    ufl_assert(isinstance(indices, tuple), "Assuming index tuple.")
+class AxisType(Terminal):
+    __slots__ = () #("value",)
     
-    count = defaultdict(int)
-    for i in indices:
-        count[i] += 1
+    def __init__(self):
+        pass
     
-    unique_indices = count.keys()
+    def free_indices(self):
+        ufl_error("Why would you want to get the free indices of an Axis? Please explain at ufl-dev@fenics.org...")
+    
+    def rank(self):
+        ufl_error("Why would you want to get the rank of an Axis? Please explain at ufl-dev@fenics.org...")
+    
+    def __str__(self):
+        return ":"
+    
+    def __repr__(self):
+        return "Axis"
+# only need one of these, like None, Ellipsis etc.
+Axis = AxisType()
 
-    fixed_indices      = []
-    free_indices       = []
-    repeated_indices   = []
-    num_unassigned_indices = 0
+
+
+def as_index(i):
+    """Takes something the user might input as part of an index tuple, and returns an actual UFL index object."""
+    if isinstance(i, (Index, FixedIndex)):
+        return i
+    elif isinstance(i, int):
+        return FixedIndex(i)
+    elif isinstance(i, slice):
+        ufl_assert((i.start is None) and (i.stop is None) and (i.step is None), "Partial slices not implemented, only [:]")
+        return Axis
+    else:
+        ufl_error("Can convert this object to index: %s" % repr(i))
+
+
+def as_index_tuple(indices, rank):
+    """Takes something the user might input as an index tuple inside [], and returns a tuple of actual UFL index objects.
     
-    for i in unique_indices:
-        if isinstance(i, int):
-            fixed_indices.append(FixedIndex(i))
-        elif isinstance(i, FixedIndex):
-            fixed_indices.append(i)
-        elif isinstance(i, Index):
-            c = count[i]
-            if c == 1:
-                free_indices.append(i)
-            elif c == 2:
-                repeated_indices.append(i)
+    These types are supported:
+    - Index
+    - int => FixedIndex
+    - Complete slice (:) => Axis
+    - Ellipsis (...) => multiple Axis
+    """
+    if not isinstance(indices, tuple):
+        indices = (indices,)
+    pre  = []
+    post = []
+    found = False
+    for j, idx in enumerate(indices):
+        if found:
+            if idx is Ellipsis:
+                found = True
             else:
-                ufl_error("Invalid index repetition count %d" % c)
-        elif isinstance(i, slice):
-            if (i.start is None) and (i.stop is None) and (i.step is None):
-                num_unassigned_indices += count[i]
-            else:
-                print "slice error: ", i
-                ufl_error("Can't handle specific slice, only general ':'.")
-        elif i is Ellipsis: # '...' as in A[i, :, 0, ..., 1]
-            ufl_error("Can't handle ellipsis.")
+                pre.append(as_index(idx))
         else:
-            ufl_error("Invalid index type %s" % i.__class__)
+            ufl_assert(not idx is Ellipsis, "Found duplicate ellipsis.")
+            post.append(as_index(idx))
     
+    # replace ellipsis with a number of Axis objects
+    indices = pre + [Axis]*(rank-len(pre)-len(post)) + post
+    return tuple(indices)
+
+
+def analyze_indices(indices):
+    ufl_assert(isinstance(indices, tuple), "Expecting index tuple.")
+    ufl_assert(all(isinstance(i, (Index, FixedIndex, AxisType)) for i in indices), "Expecting proper UFL objects.")
+
+    fixed_indices = [(i,idx) for i,idx in enumerate(indices) if isinstance(idx, FixedIndex)]
+    num_unassigned_indices = sum(1 for i in indices if i is Axis)
+
+    index_count = defaultdict(int)
+    for i in indices:
+        if isinstance(i, Index):
+            index_count[i] += 1
+    
+    unique_indices = index_count.keys()
+    handled = set()
+
+    ufl_assert(all(i <= 2 for i in index_count.values()), "Too many index repetitions in %s" % repr(indices))
+    free_indices     = [i for i in unique_indices if index_count[i] == 1]
+    repeated_indices = [i for i in unique_indices if index_count[i] == 2]
+
+    # use tuples for consistency
     fixed_indices    = tuple(fixed_indices)
     free_indices     = tuple(free_indices)
     repeated_indices = tuple(repeated_indices)
     
+    if not (len(fixed_indices) + len(free_indices) + 2*len(repeated_indices) + num_unassigned_indices == len(indices)):
+        print "Indices:"
+        print len(fixed_indices)     # 1
+        print len(free_indices)      # 0
+        print len(repeated_indices)  # 0
+        print num_unassigned_indices # 2
+        print len(indices)
     ufl_assert(len(fixed_indices) + len(free_indices) + 2*len(repeated_indices) + num_unassigned_indices == len(indices), "Logic breach in analyze_indices.")
     
     return (fixed_indices, free_indices, repeated_indices, num_unassigned_indices)
 
 
-def as_index(i): # TODO: handle ":" as well!
-    """Takes something the user might input as an index, and returns an actual UFL index object."""
-    if isinstance(i, (Index, FixedIndex)):
-        return i
-    elif isinstance(i, int):
-        return FixedIndex(i)
-    else:
-        ufl_error("Can convert this object to index: %s" % repr(i))
-
 
 class MultiIndex(UFLObject):
-    __slots__ = ("indices",)
+    __slots__ = ("_indices",)
     
-    def __init__(self, indices):
-        # make a consistent tuple of Index and FixedIndex objects
-        if not isinstance(indices, tuple):
-            indices = (indices,)
-        self.indices = tuple(as_index(i) for i in indices)
+    def __init__(self, indices, rank):
+        self._indices = as_index_tuple(indices, rank)
     
     def operands(self):
-        return self.indices
+        return self._indices
     
     def free_indices(self):
         ufl_error("Why would you want to get the free indices of a MultiIndex? Please explain at ufl-dev@fenics.org...")
@@ -571,13 +615,13 @@ class MultiIndex(UFLObject):
         ufl_error("Why would you want to get the rank of a MultiIndex? Please explain at ufl-dev@fenics.org...")
     
     def __str__(self):
-        return ", ".join(str(i) for i in self.indices)
+        return ", ".join(str(i) for i in self._indices)
     
     def __repr__(self):
-        return "MultiIndex(%s)" % repr(self.indices)
+        return "MultiIndex(%s, %d)" % (repr(self._indices), len(self._indices))
 
     def __len__(self):
-        return len(self.indices)
+        return len(self._indices)
 
 
 class Indexed(UFLObject):
@@ -586,16 +630,16 @@ class Indexed(UFLObject):
     def __init__(self, expression, indices):
         self._expression = expression
         
-        if isinstance(indices, MultiIndex): # if constructed from repr?
+        if isinstance(indices, MultiIndex): # if constructed from repr
             self._indices = indices
         else:
-            self._indices = MultiIndex(indices)
+            self._indices = MultiIndex(indices, expression.rank())
         
         msg = "Invalid number of indices (%d) for tensor expression of rank %d:\n\t%s\n" % (len(self._indices), expression.rank(), repr(expression))
         ufl_assert(expression.rank() == len(self._indices), msg)
         
-        (fixed_indices, free_indices, repeated_indices, num_unassigned_indices) = analyze_indices(self._indices.indices)
-        # FIXME: We don't need to store all these here, remove the ones we don't use.
+        (fixed_indices, free_indices, repeated_indices, num_unassigned_indices) = analyze_indices(self._indices._indices)
+        # FIXME: We don't need to store all these here, remove the ones we don't use after implementing summation expansion.
         self._fixed_indices      = fixed_indices
         self._free_indices       = free_indices
         self._repeated_indices   = repeated_indices
@@ -625,28 +669,32 @@ class Indexed(UFLObject):
 class PartialDerivative(UFLObject):
     "Partial derivative of an expression w.r.t. a spatial direction given by an index."
     
-    __slots__ = ("expression", "index", "_fixed_indices", "_free_indices", "_repeated_indices")
+    __slots__ = ("_expression", "_index", "_free_indices") #, "_fixed_indices", "_repeated_indices")
     
     def __init__(self, expression, i):
-        self.expression = expression
-        self.index = as_index(i)
+        self._expression = expression
+        self._index = as_index(i)
         
-        (fixed_indices, free_indices, repeated_indices, num_unassigned_indices) = analyze_indices( tuple( [self.index] + expression.free_indices() ) )
-        # FIXME: We don't need all these here, remove the ones we don't use.
-        #self._fixed_indices      = fixed_indices
-        self._free_indices       = free_indices
-        #self._repeated_indices   = repeated_indices
+        ufl_assert(not self._index is Axis, "Can't take partial derivative w.r.t. whole axis.")
+        
+        indices = tuple( [self._index] + expression.free_indices() )
+        (fixed_indices, free_indices, repeated_indices, num_unassigned_indices) = analyze_indices( indices )
+        self._free_indices = free_indices
+        
+        # We probably don't need these here, remove when sure.
+        #self._fixed_indices    = fixed_indices
+        #self._repeated_indices = repeated_indices
     
     def free_indices(self):
         return self._free_indices
     
     def rank(self):
-        return self.expression.rank()
+        return self._expression.rank()
     
     def __str__(self):
-        return "(d[%s] / dx_%s)" % (str(self.expression), str(self.index))
+        return "(d[%s] / dx_%s)" % (str(self._expression), str(self._index))
     
     def __repr__(self):
-        return "PartialDerivative(%s, %s)" % (repr(self.expression), repr(self.index))
+        return "PartialDerivative(%s, %s)" % (repr(self._expression), repr(self._index))
 
 

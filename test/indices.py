@@ -162,7 +162,7 @@ class IndexTestCase(unittest.TestCase):
         self.assertTrue(A.free_indices() == ())
         A = C[:,:,i,j]
         self.assertTrue(A.rank() == 2)
-        self.assertTrue(A.free_indices() == (i,j))
+        self.assertTrue(set(A.free_indices()) == set((i,j)))
         
         # legal?
         vv = Vector([u[i], v[i]])
