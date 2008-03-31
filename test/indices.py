@@ -107,6 +107,7 @@ class IndexTestCase(unittest.TestCase):
         v  = TestFunction(element)
         u  = TrialFunction(element)
         f  = Function(element)
+        g  = Function(element)
         
         # legal
         vv = Vector(u[i], i)
@@ -144,9 +145,18 @@ class IndexTestCase(unittest.TestCase):
         self.assertTrue(C.rank() == 2)
         self.assertTrue(D.rank() == 2)
         
+        # components of a fourth order tensor
+        Cijkl = u[i]*v[j]*f[k]*g[l]
+        # make it a tensor
+        C = Tensor(Cijkl, (i,j,k,l))
+        self.assertTrue(Cijkl.rank() == 0)
+        self.assertTrue(set(Cijkl.free_indices()) == set((i,j,k,l)))
+        self.assertTrue(C.rank() == 4)
+        self.assertTrue(C.free_indices() == ())
+        
         # legal?
         vv = Vector([u[i], v[i]])
-        ww = f[i]*vv # this is well formed, ww = sum_i 
+        ww = f[i]*vv # this is well defined: ww = sum_i <f_i*u_i, f_i*v_i>
         
         # illegal?
         try:
