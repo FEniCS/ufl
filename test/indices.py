@@ -115,7 +115,7 @@ class IndexTestCase(unittest.TestCase):
         ww = vv + uu
         self.assertTrue(vv.rank() == 1)
         self.assertTrue(uu.rank() == 1)
-        self.assertTrue(w.rank() == 1)
+        self.assertTrue(w.rank()  == 1)
         self.assertTrue(ww.rank() == 1)
         
         A  = Matrix(u[i]*v[j], (i,j))
@@ -131,12 +131,18 @@ class IndexTestCase(unittest.TestCase):
         # legal
         vv = Vector([u[0], v[0]])
         ww = vv + vv
+        self.assertTrue(vv.rank() == 1)
+        self.assertTrue(ww.rank() == 1)
         
-        A  = Matrix( u[i]*v[j], (i,j))
+        A  = Matrix( [ [u[0], u[1]], [v[0], v[1]] ] )
         B  = Matrix( (v[k]*v[k]) * u[i]*v[j], (j,i) )
         C  = A + A
         C  = B + B
-        C  = A + B
+        D  = A + B
+        self.assertTrue(A.rank() == 2)
+        self.assertTrue(B.rank() == 2)
+        self.assertTrue(C.rank() == 2)
+        self.assertTrue(D.rank() == 2)
         
         # legal?
         vv = Vector([u[i], v[i]])
@@ -145,6 +151,13 @@ class IndexTestCase(unittest.TestCase):
         # illegal?
         try:
             vv = Vector([u[i], v[j]])
+            self.fail()
+        except (UFLException, e):
+            pass
+
+        # illegal
+        try:
+            A  = Matrix( [ [u[0], u[1]], [v[0],] ] )
             self.fail()
         except (UFLException, e):
             pass

@@ -31,13 +31,13 @@ class ListMatrix(UFLObject):
         c = len(expressions[0])
         
         ufl_assert(all(len(row) == c for row in expressions),              "Inconsistent row size.")
-        ufl_assert(all(e.rank() == 0 for e in row for row in expressions), "Expecting scalar valued expressions.")
+        ufl_assert(all(e.rank() == 0 for row in expressions for e in row), "Expecting scalar valued expressions.")
         
-        eset = set(expressions[0].free_indices())
+        eset = set(expressions[0][0].free_indices())
         self._free_indices = tuple(eset)
         self._expressions  = expressions
         
-        ufl_assert(all(eset ^ set(e.free_indices()) for e in expressions), "Can't handle list of expressions with different free indices.")
+        ufl_assert(all(len(eset ^ set(e.free_indices())) == 0 for row in expressions for e in row), "Can't handle list of expressions with different free indices.")
         #ufl_assert(len(expressions.free_indices()) == 0,                  "Can't handle list of expressions with free indices.")
     
     def rank(self):
