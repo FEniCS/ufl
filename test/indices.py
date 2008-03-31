@@ -154,7 +154,7 @@ class IndexTestCase(unittest.TestCase):
             self.fail()
         except (UFLException, e):
             pass
-
+        
         # illegal
         try:
             A  = Matrix( [ [u[0], u[1]], [v[0],] ] )
@@ -171,3 +171,4 @@ allsuites = unittest.TestSuite((suite1, ))
 
 if __name__ == "__main__":
     unittest.TextTestRunner(verbosity=0).run(allsuites)
+

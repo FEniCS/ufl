@@ -47,7 +47,7 @@ class ListMatrix(UFLObject):
         return self._free_indices
 
 
-class IndexTensor(UFLObject):
+class Tensor(UFLObject):
     def __init__(self, expressions, indices):
         ufl_assert(isinstance(expressions, UFLObject),          "Expecting ufl expression.")
         ufl_assert(expressions.rank() == 0,                     "Expecting scalar valued expressions.")
@@ -71,13 +71,13 @@ class IndexTensor(UFLObject):
 def Vector(expressions, index = None):
     if index is None:
         return ListVector(expressions)
-    return IndexTensor(expressions, (index,))
+    return Tensor(expressions, (index,))
 
 
 def Matrix(expressions, indices = None):
     if indices is None:
         return ListMatrix(expressions)
-    return IndexTensor(expressions, indices)
+    return Tensor(expressions, indices)
 
 
 
