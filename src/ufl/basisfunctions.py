@@ -3,7 +3,7 @@
 """
 Form arguments defined in finite element spaces.
 There are two groups: basisfunctions and coefficients,
-which use the baseclasses BasisFunction and Coefficient.
+which use the baseclasses BasisFunction and Function.
 """
 
 __authors__ = "Martin Sandve Alnes"
