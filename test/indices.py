@@ -90,7 +90,7 @@ class IndexTestCase(unittest.TestCase):
         self.assertTrue( len(left.free_indices())  == 1 and left.free_indices()[0]  == i )
         self.assertTrue( len(right.free_indices()) == 1 and right.free_indices()[0] == i )
         b = left * right * dx
-
+    
     def test_indexed_function3(self):
         element = VectorElement("CG", "triangle", 1)
         v = BasisFunction(element)
@@ -101,7 +101,47 @@ class IndexTestCase(unittest.TestCase):
             self.fail()
         except (UFLException, e):
             pass
+    
+    def test_tensors(self):
+        element = VectorElement("CG", "triangle", 1)
+        v  = TestFunction(element)
+        u  = TrialFunction(element)
+        f  = Function(element)
         
+        # legal
+        vv = Vector(u[i], i)
+        uu = Vector(v[j], j)
+        w  = v + u
+        ww = vv + uu
+        
+        A  = Matrix(u[i]*v[j], (i,j))
+        B  = Matrix(v[k]*v[k]*u[i]*v[j], (j,i))
+        C  = A + A
+        C  = B + B
+        C  = A + B
+        
+        # legal
+        vv = Vector([u[0], v[0]])
+        ww = vv + vv
+        
+        A  = Matrix( u[i]*v[j], (i,j))
+        B  = Matrix( (v[k]*v[k]) * u[i]*v[j], (j,i) )
+        C  = A + A
+        C  = B + B
+        C  = A + B
+        
+        # legal?
+        vv = Vector([u[i], v[i]])
+        ww = f[i]*vv # this is well formed, ww = sum_i 
+        
+        # illegal?
+        try:
+            vv = Vector([u[i], v[j]])
+            self.fail()
+        except (UFLException, e):
+            pass
+        
+        # ...
 
 
 suite1 = unittest.makeSuite(IndexTestCase)

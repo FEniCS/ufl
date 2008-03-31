@@ -25,6 +25,9 @@ from elements import *
 # basisfunctions and coefficients
 from basisfunctions import *
 
+# "container" classes for expressions with value rank > 0
+from tensors import *
+
 # compound tensoralgebra operations (dot, trace, etc)
 from tensoroperators import *
 
