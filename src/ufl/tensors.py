@@ -62,7 +62,7 @@ class IndexTensor(UFLObject):
         self._free_indices = tuple(eset - iset)
     
     def rank(self):
-        return 1
+        return len(self._indices)
     
     def free_indices(self):
         return self._free_indices
