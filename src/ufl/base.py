@@ -6,7 +6,7 @@ types involved with built-in operators on any ufl object.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-14-03 -- 2008-16-03"
+__date__ = "2008-14-03 -- 2008-31-03"
 
 import operator
 from itertools import chain
@@ -17,6 +17,7 @@ from output import *
 # FIXME: I've messed up a bit on the name conventions, sometimes using "self._foo" and sometimes "self.foo".
 #        This is not consistent and should be fixed.
 #        The way to go: "self._foo" for everything the external user shouldn't use, which is most variables.
+#        This file should be ok.
 
 
 # ... Utility functions:
@@ -192,10 +193,10 @@ class Terminal(UFLObject):
 
 
 class Number(Terminal):
-    __slots__ = ("value",)
+    __slots__ = ("_value",)
     
     def __init__(self, value):
-        self.value = value
+        self._value = value
     
     def free_indices(self):
         return tuple()
@@ -204,10 +205,10 @@ class Number(Terminal):
         return 0
     
     def __str__(self):
-        return str(self.value)
+        return str(self._value)
     
     def __repr__(self):
-        return "Number(%s)" % repr(self.value)
+        return "Number(%s)" % repr(self._value)
 
 
 class Identity(Terminal):
@@ -221,10 +222,10 @@ class Identity(Terminal):
 
 
 class Symbol(Terminal): # TODO: What about tensors of symbols?
-    __slots__ = tuple("name")
+    __slots__ = tuple("_name")
     
     def __init__(self, name):
-        self.name = str(name)
+        self._name = str(name)
     
     def free_indices(self):
         return tuple()
@@ -233,24 +234,24 @@ class Symbol(Terminal): # TODO: What about tensors of symbols?
         return 0
     
     def __str__(self):
-        return self.name
+        return self._name
     
     def __repr__(self):
-        return "Symbol(%s)" % repr(self.name)
+        return "Symbol(%s)" % repr(self._name)
 
 
 class Variable(UFLObject): # TODO: Use this for diff. What about tensors of variables?
-    __slots__ = ("symbol", "expression")
+    __slots__ = ("_symbol", "_expression")
     
     def __init__(self, symbol, expression):
-        self.symbol     = symbol if isinstance(symbol, Symbol) else Symbol(symbol)
-        self.expression = expression
+        self._symbol     = symbol if isinstance(symbol, Symbol) else Symbol(symbol)
+        self._expression = expression
     
     def operands(self):
-        return (self.symbol, self.expression)
+        return (self._symbol, self._expression)
     
     def __repr__(self):
-        return "Variable(%s, %s)" % (repr(self.symbol), repr(self.expression))
+        return "Variable(%s, %s)" % (repr(self._symbol), repr(self._expression))
 
 
 
@@ -261,22 +262,22 @@ class Transpose(UFLObject):
     
     def __init__(self, A):
         ufl_assert(A.rank() == 2, "Transpose is only defined for rank 2 tensors.")
-        self.A = A
+        self._A = A
     
     def operands(self):
-        return (self.A,)
+        return (self._A,)
     
     def free_indices(self):
-        return A.free_indices()
+        return self._A.free_indices()
     
     def rank(self):
         return 2
     
     def __str__(self):
-        return "(%s)^T" % str(self.A)
+        return "(%s)^T" % str(self._A)
     
     def __repr__(self):
-        return "Transpose(%s)" % repr(self.A)
+        return "Transpose(%s)" % repr(self._A)
 
 
 class Product(UFLObject):
@@ -355,39 +356,39 @@ class Sum(UFLObject):
 
 
 class Division(UFLObject):
-    __slots__ = ("a", "b")
+    __slots__ = ("_a", "_b")
     
     def __init__(self, a, b):
         ufl_assert(is_true_scalar(b), "Division by non-scalar.")
-        self.a = a
-        self.b = b
+        self._a = a
+        self._b = b
     
     def operands(self):
-        return (self.a, self.b)
+        return (self._a, self._b)
     
     def free_indices(self):
-        return self.a.free_indices()
+        return self._a.free_indices()
     
     def rank(self):
-        return self.a.rank()
+        return self._a.rank()
     
     def __str__(self):
-        return "(%s / %s)" % (str(self.a), str(self.b))
+        return "(%s / %s)" % (str(self._a), str(self._b))
     
     def __repr__(self):
-        return "(%s / %s)" % (repr(self.a), repr(self.b))
+        return "(%s / %s)" % (repr(self._a), repr(self._b))
 
 
 class Power(UFLObject):
-    __slots__ = ("a", "b")
+    __slots__ = ("_a", "_b")
     
     def __init__(self, a, b):
         ufl_assert(is_true_scalar(a) and is_true_scalar(b), "Non-scalar power not defined.")
-        self.a = a
-        self.b = b
+        self._a = a
+        self._b = b
     
     def operands(self):
-        return (self.a, self.b)
+        return (self._a, self._b)
     
     def free_indices(self):
         return tuple()
@@ -396,22 +397,22 @@ class Power(UFLObject):
         return 0
     
     def __str__(self):
-        return "(%s ** %s)" % (str(self.a), str(self.b))
+        return "(%s ** %s)" % (str(self._a), str(self._b))
     
     def __repr__(self):
-        return "(%s ** %s)" % (repr(self.a), repr(self.b))
+        return "(%s ** %s)" % (repr(self._a), repr(self._b))
     
 
 class Mod(UFLObject):
-    __slots__ = ("a", "b")
+    __slots__ = ("_a", "_b")
     
     def __init__(self, a, b):
         ufl_assert(is_true_scalar(a) and is_true_scalar(b), "Non-scalar mod not defined.")
-        self.a = a
-        self.b = b
+        self._a = a
+        self._b = b
     
     def operands(self):
-        return (self.a, self.b)
+        return (self._a, self._b)
     
     def free_indices(self):
         return tuple()
@@ -420,48 +421,48 @@ class Mod(UFLObject):
         return 0
     
     def __str__(self):
-        return "(%s %% %s)" % (str(self.a), str(self.b))
+        return "(%s %% %s)" % (str(self._a), str(self._b))
     
     def __repr__(self):
-        return "(%s %% %s)" % (repr(self.a), repr(self.b))
+        return "(%s %% %s)" % (repr(self._a), repr(self._b))
 
 
 class Abs(UFLObject):
-    __slots__ = ("a",)
+    __slots__ = ("_a",)
     
     def __init__(self, a):
-        self.a = a
+        self._a = a
     
     def operands(self):
-        return (self.a, )
+        return (self._a, )
     
     def free_indices(self):
-        return self.a.free_indices()
+        return self._a.free_indices()
     
     def rank(self):
-        return self.a.rank()
+        return self._a.rank()
     
     def __str__(self):
-        return "| %s |" % str(self.a)
+        return "| %s |" % str(self._a)
     
     def __repr__(self):
-        return "Abs(%s)" % repr(self.a)
+        return "Abs(%s)" % repr(self._a)
     
 
 
 ### Indexing
 
 class Index(Terminal):
-    __slots__ = ("name", "count")
+    __slots__ = ("_name", "_count")
     
     _globalcount = 0
     def __init__(self, name = None, count = None):
-        self.name = name
+        self._name = name
         if count is None:
-            self.count = Index._globalcount
+            self._count = Index._globalcount
             Index._globalcount += 1
         else:
-            self.count = count
+            self._count = count
             if count >= Index._globalcount:
                 Index._globalcount = count + 1
     
@@ -472,18 +473,18 @@ class Index(Terminal):
         ufl_error("Why would you want to get the rank of an Index? Please explain at ufl-dev@fenics.org...")
     
     def __str__(self):
-        return "i_%d" % self.count # TODO: use name? Maybe just remove name, adds possible confusion of what ID's an Index (which is the count alone).
+        return "i_%d" % self._count # TODO: use name? Maybe just remove name, adds possible confusion of what ID's an Index (which is the count alone).
     
     def __repr__(self):
-        return "Index(%s, %d)" % (repr(self.name), self.count)
+        return "Index(%s, %d)" % (repr(self._name), self._count)
 
 
 class FixedIndex(Terminal):
-    __slots__ = ("value",)
+    __slots__ = ("_value",)
     
     def __init__(self, value):
         ufl_assert(isinstance(value, int), "Expecting integer value for fixed index.")
-        self.value = value
+        self._value = value
     
     def free_indices(self):
         ufl_error("Why would you want to get the free indices of an Index? Please explain at ufl-dev@fenics.org...")
@@ -492,10 +493,10 @@ class FixedIndex(Terminal):
         ufl_error("Why would you want to get the rank of an Index? Please explain at ufl-dev@fenics.org...")
     
     def __str__(self):
-        return "%d" % self.value
+        return "%d" % self._value
     
     def __repr__(self):
-        return "FixedIndex(%d)" % self.value
+        return "FixedIndex(%d)" % self._value
 
 
 class AxisType(Terminal):
@@ -586,17 +587,9 @@ def analyze_indices(indices):
     free_indices     = tuple(free_indices)
     repeated_indices = tuple(repeated_indices)
     
-    if not (len(fixed_indices) + len(free_indices) + 2*len(repeated_indices) + num_unassigned_indices == len(indices)):
-        print "Indices:"
-        print len(fixed_indices)     # 1
-        print len(free_indices)      # 0
-        print len(repeated_indices)  # 0
-        print num_unassigned_indices # 2
-        print len(indices)
     ufl_assert(len(fixed_indices) + len(free_indices) + 2*len(repeated_indices) + num_unassigned_indices == len(indices), "Logic breach in analyze_indices.")
     
     return (fixed_indices, free_indices, repeated_indices, num_unassigned_indices)
-
 
 
 class MultiIndex(UFLObject):
