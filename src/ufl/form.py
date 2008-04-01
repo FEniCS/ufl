@@ -5,7 +5,7 @@ The Form class.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-14-03 -- 2008-16-03"
+__date__    = "2008-03-14 -- 2008-04-01"
 
 from output import *
 from base import is_true_scalar
@@ -30,7 +30,7 @@ class Form:
 
     def __contains__(self, item):
         """Return wether item is in the UFL expression tree. If item is a str, it is assumed to be a repr."""
-        return any(item in itg for itg in self.integrals)
+        return any((item in itg) for itg in self.integrals)
     
     def __add__(self, other):
         return Form(self.integrals + other.integrals)

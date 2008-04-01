@@ -5,7 +5,7 @@ Types for quantities computed from cell geometry.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-14-03 -- 2008-16-03"
+__date__ = "2008-03-14 -- 2008-04-01"
 
 from base import *
 
@@ -20,7 +20,7 @@ class FacetNormal(GeometricQuantity):
         pass
     
     def free_indices(self):
-        return tuple()
+        return ()
     
     def rank(self):
         return 1
@@ -37,7 +37,7 @@ class MeshSize(GeometricQuantity):
         pass
     
     def free_indices(self):
-        return tuple()
+        return ()
     
     def rank(self):
         return 0

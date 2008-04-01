@@ -5,19 +5,37 @@ Utility objects for pretty syntax in user code.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-14-03 -- 2008-16-03"
+__date__ = "2008-03-14 -- 2008-04-01"
 
 from base import *
 from integral import *
 from geometry import *
 import math
 
+
+# TODO: This is only the matrix identity, support higher order Id too?
+class Identity(Terminal):
+    __slots__ = tuple()
+    
+    def free_indices(self):
+        return ()
+    
+    def rank(self):
+        return 2
+    
+    def __str__(self):
+        return "I"
+    
+    def __repr__(self):
+        return "Identity()"
+
 I = Identity()
+
 
 # constants
 
-e  = math.e
-pi = math.pi
+e  = Number(math.e)
+pi = Number(math.pi)
 
 # default indices
 

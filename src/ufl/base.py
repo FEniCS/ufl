@@ -6,18 +6,13 @@ types involved with built-in operators on any ufl object.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-14-03 -- 2008-31-03"
+__date__ = "2008-03-14 -- 2008-04-01"
 
 import operator
 from itertools import chain
 from collections import defaultdict
 from output import *
 
-
-# FIXME: I've messed up a bit on the name conventions, sometimes using "self._foo" and sometimes "self.foo".
-#        This is not consistent and should be fixed.
-#        The way to go: "self._foo" for everything the external user shouldn't use, which is most variables.
-#        This file should be ok.
 
 
 # ... Utility functions:
@@ -211,17 +206,7 @@ class Number(Terminal):
         return "Number(%s)" % repr(self._value)
 
 
-class Identity(Terminal):
-    __slots__ = tuple()
-    
-    def __str__(self):
-        return "I"
-    
-    def __repr__(self):
-        return "Identity()"
-
-
-class Symbol(Terminal): # TODO: What about tensors of symbols?
+class Symbol(Terminal):
     __slots__ = tuple("_name")
     
     def __init__(self, name):
@@ -240,7 +225,8 @@ class Symbol(Terminal): # TODO: What about tensors of symbols?
         return "Symbol(%s)" % repr(self._name)
 
 
-class Variable(UFLObject): # TODO: Use this for diff. What about tensors of variables?
+# TODO: Should we allow a single Variable to represent a tensor expression?
+class Variable(UFLObject):
     __slots__ = ("_symbol", "_expression")
     
     def __init__(self, symbol, expression):
@@ -250,9 +236,297 @@ class Variable(UFLObject): # TODO: Use this for diff. What about tensors of vari
     def operands(self):
         return (self._symbol, self._expression)
     
+    def free_indices(self):
+        return self._expression.free_indices()
+    
+    def rank(self):
+        return self._expression.rank()
+    
+    def __str__(self):
+        # NB! Doesn't print expression. Is this ok?
+        # str shouldn't be used in algorithms, so this is only a matter of choice.
+        return str(self._symbol)
+    
     def __repr__(self):
         return "Variable(%s, %s)" % (repr(self._symbol), repr(self._expression))
 
+
+
+### Indexing
+
+class Index(Terminal):
+    __slots__ = ("_name", "_count")
+    
+    _globalcount = 0
+    def __init__(self, name = None, count = None):
+        self._name = name
+        if count is None:
+            self._count = Index._globalcount
+            Index._globalcount += 1
+        else:
+            self._count = count
+            if count >= Index._globalcount:
+                Index._globalcount = count + 1
+    
+    def free_indices(self):
+        ufl_error("Why would you want to get the free indices of an Index? Please explain at ufl-dev@fenics.org...")
+    
+    def rank(self):
+        ufl_error("Why would you want to get the rank of an Index? Please explain at ufl-dev@fenics.org...")
+    
+    def __str__(self):
+        return "i_%d" % self._count # TODO: use name? Maybe just remove name, adds possible confusion of what ID's an Index (which is the count alone).
+    
+    def __repr__(self):
+        return "Index(%s, %d)" % (repr(self._name), self._count)
+
+
+class FixedIndex(Terminal):
+    __slots__ = ("_value",)
+    
+    def __init__(self, value):
+        ufl_assert(isinstance(value, int), "Expecting integer value for fixed index.")
+        self._value = value
+    
+    def free_indices(self):
+        ufl_error("Why would you want to get the free indices of an Index? Please explain at ufl-dev@fenics.org...")
+    
+    def rank(self):
+        ufl_error("Why would you want to get the rank of an Index? Please explain at ufl-dev@fenics.org...")
+    
+    def __str__(self):
+        return "%d" % self._value
+    
+    def __repr__(self):
+        return "FixedIndex(%d)" % self._value
+
+
+class AxisType(Terminal):
+    __slots__ = () #("value",)
+    
+    def __init__(self):
+        pass
+    
+    def free_indices(self):
+        ufl_error("Why would you want to get the free indices of an Axis? Please explain at ufl-dev@fenics.org...")
+    
+    def rank(self):
+        ufl_error("Why would you want to get the rank of an Axis? Please explain at ufl-dev@fenics.org...")
+    
+    def __str__(self):
+        return ":"
+    
+    def __repr__(self):
+        return "Axis"
+
+# only need one of these, like None, Ellipsis etc., can use "a is Axis" or "isinstance(a, AxisType)"
+Axis = AxisType()
+
+
+
+def as_index(i):
+    """Takes something the user might input as part of an index tuple, and returns an actual UFL index object."""
+    if isinstance(i, (Index, FixedIndex)):
+        return i
+    elif isinstance(i, int):
+        return FixedIndex(i)
+    elif isinstance(i, slice):
+        ufl_assert((i.start is None) and (i.stop is None) and (i.step is None), "Partial slices not implemented, only [:]")
+        return Axis
+    else:
+        ufl_error("Can convert this object to index: %s" % repr(i))
+
+
+def as_index_tuple(indices, rank):
+    """Takes something the user might input as an index tuple inside [], and returns a tuple of actual UFL index objects.
+    
+    These types are supported:
+    - Index
+    - int => FixedIndex
+    - Complete slice (:) => Axis
+    - Ellipsis (...) => multiple Axis
+    """
+    if not isinstance(indices, tuple):
+        indices = (indices,)
+    pre  = []
+    post = []
+    found = False
+    for j, idx in enumerate(indices):
+        if found:
+            if idx is Ellipsis:
+                found = True
+            else:
+                pre.append(as_index(idx))
+        else:
+            ufl_assert(not idx is Ellipsis, "Found duplicate ellipsis.")
+            post.append(as_index(idx))
+    
+    # replace ellipsis with a number of Axis objects
+    indices = pre + [Axis]*(rank-len(pre)-len(post)) + post
+    return tuple(indices)
+
+
+def analyze_indices(indices):
+    ufl_assert(isinstance(indices, tuple), "Expecting index tuple.")
+    ufl_assert(all(isinstance(i, (Index, FixedIndex, AxisType)) for i in indices), "Expecting proper UFL objects.")
+
+    fixed_indices = [(i,idx) for i,idx in enumerate(indices) if isinstance(idx, FixedIndex)]
+    num_unassigned_indices = sum(1 for i in indices if i is Axis)
+
+    index_count = defaultdict(int)
+    for i in indices:
+        if isinstance(i, Index):
+            index_count[i] += 1
+    
+    unique_indices = index_count.keys()
+    handled = set()
+
+    ufl_assert(all(i <= 2 for i in index_count.values()), "Too many index repetitions in %s" % repr(indices))
+    free_indices     = [i for i in unique_indices if index_count[i] == 1]
+    repeated_indices = [i for i in unique_indices if index_count[i] == 2]
+
+    # use tuples for consistency
+    fixed_indices    = tuple(fixed_indices)
+    free_indices     = tuple(free_indices)
+    repeated_indices = tuple(repeated_indices)
+    
+    ufl_assert(len(fixed_indices) + len(free_indices) + 2*len(repeated_indices) + num_unassigned_indices == len(indices), "Logic breach in analyze_indices.")
+    
+    return (fixed_indices, free_indices, repeated_indices, num_unassigned_indices)
+
+
+class MultiIndex(UFLObject):
+    __slots__ = ("_indices",)
+    
+    def __init__(self, indices, rank):
+        self._indices = as_index_tuple(indices, rank)
+    
+    def operands(self):
+        return self._indices
+    
+    def free_indices(self):
+        ufl_error("Why would you want to get the free indices of a MultiIndex? Please explain at ufl-dev@fenics.org...")
+    
+    def rank(self):
+        ufl_error("Why would you want to get the rank of a MultiIndex? Please explain at ufl-dev@fenics.org...")
+    
+    def __str__(self):
+        return ", ".join(str(i) for i in self._indices)
+    
+    def __repr__(self):
+        return "MultiIndex(%s, %d)" % (repr(self._indices), len(self._indices))
+
+    def __len__(self):
+        return len(self._indices)
+
+
+class Indexed(UFLObject):
+    __slots__ = ("_expression", "_indices", "_fixed_indices", "_free_indices", "_repeated_indices", "_rank")
+    
+    def __init__(self, expression, indices):
+        self._expression = expression
+        
+        if isinstance(indices, MultiIndex): # if constructed from repr
+            self._indices = indices
+        else:
+            self._indices = MultiIndex(indices, expression.rank())
+        
+        msg = "Invalid number of indices (%d) for tensor expression of rank %d:\n\t%s\n" % (len(self._indices), expression.rank(), repr(expression))
+        ufl_assert(expression.rank() == len(self._indices), msg)
+        
+        (fixed_indices, free_indices, repeated_indices, num_unassigned_indices) = analyze_indices(self._indices._indices)
+        # FIXME: We don't need to store all these here, remove the ones we don't use after implementing summation expansion.
+        self._fixed_indices      = fixed_indices
+        self._free_indices       = free_indices
+        self._repeated_indices   = repeated_indices
+        self._rank = num_unassigned_indices
+    
+    def operands(self):
+        return tuple(self._expression, self._indices)
+    
+    def free_indices(self):
+        return self._free_indices
+    
+    def rank(self):
+        return self._rank
+    
+    def __str__(self):
+        return "%s[%s]" % (str(self._expression), str(self._indices))
+    
+    def __repr__(self):
+        return "Indexed(%s, %s)" % (repr(self._expression), repr(self._indices))
+    
+    def __getitem__(self, key):
+        ufl_error("Object is already indexed: %s" % repr(self))
+
+
+### Derivatives
+
+class PartialDerivative(UFLObject):
+    "Partial derivative of an expression w.r.t. a spatial direction given by an index."
+    
+    __slots__ = ("_expression", "_index", "_free_indices") #, "_fixed_indices", "_repeated_indices")
+    
+    def __init__(self, expression, i):
+        self._expression = expression
+        self._index = as_index(i)
+        
+        ufl_assert(not self._index is Axis, "Can't take partial derivative w.r.t. whole axis.")
+        
+        indices = tuple( [self._index] + expression.free_indices() )
+        (fixed_indices, free_indices, repeated_indices, num_unassigned_indices) = analyze_indices( indices )
+        self._free_indices = free_indices
+        
+        # We probably don't need these here, remove when sure.
+        #self._fixed_indices    = fixed_indices
+        #self._repeated_indices = repeated_indices
+    
+    def free_indices(self):
+        return self._free_indices
+    
+    def rank(self):
+        return self._expression.rank()
+    
+    def __str__(self):
+        return "(d[%s] / dx_%s)" % (str(self._expression), str(self._index))
+    
+    def __repr__(self):
+        return "PartialDerivative(%s, %s)" % (repr(self._expression), repr(self._index))
+
+def Dx(f, i):
+    return f.dx(i)
+
+# FIXME: this is just like PartialDiff, should have
+#        the exact same behaviour or even be the same class.
+class Diff(UFLObject):
+    __slots__ = ("f", "x", "_free_indices")
+
+    def __init__(self, f, x):
+        self.f = f
+        self.x = x
+        ufl_assert(is_symbol(x), "Expecting a Symbol in Diff.")
+        fi = f.free_indices()
+        xi = x.free_indices()
+        ufl_assert(len(set(fi) ^ set(xi)) == 0, "Repeated indices in Diff NOT IMPLEMENTED. FIXME!")
+        self._free_indices = tuple(fi + xi)
+    
+    def operands(self):
+        return (self.f, self.x)
+    
+    def free_indices(self):
+        return self._free_indices
+    
+    def rank(self):
+        return self.f.rank()
+    
+    def __str__(self):
+        return "(d[%s] / d[%s])" % (str(self._expression), str(self._index))
+
+    def __repr__(self):
+        return "Diff(%s, %s)" % repr(self.f), repr(self.x)
+
+def diff(f, x):
+    return Diff(f, x)
 
 
 ### Algebraic operators
@@ -449,245 +723,5 @@ class Abs(UFLObject):
         return "Abs(%s)" % repr(self._a)
     
 
-
-### Indexing
-
-class Index(Terminal):
-    __slots__ = ("_name", "_count")
-    
-    _globalcount = 0
-    def __init__(self, name = None, count = None):
-        self._name = name
-        if count is None:
-            self._count = Index._globalcount
-            Index._globalcount += 1
-        else:
-            self._count = count
-            if count >= Index._globalcount:
-                Index._globalcount = count + 1
-    
-    def free_indices(self):
-        ufl_error("Why would you want to get the free indices of an Index? Please explain at ufl-dev@fenics.org...")
-    
-    def rank(self):
-        ufl_error("Why would you want to get the rank of an Index? Please explain at ufl-dev@fenics.org...")
-    
-    def __str__(self):
-        return "i_%d" % self._count # TODO: use name? Maybe just remove name, adds possible confusion of what ID's an Index (which is the count alone).
-    
-    def __repr__(self):
-        return "Index(%s, %d)" % (repr(self._name), self._count)
-
-
-class FixedIndex(Terminal):
-    __slots__ = ("_value",)
-    
-    def __init__(self, value):
-        ufl_assert(isinstance(value, int), "Expecting integer value for fixed index.")
-        self._value = value
-    
-    def free_indices(self):
-        ufl_error("Why would you want to get the free indices of an Index? Please explain at ufl-dev@fenics.org...")
-    
-    def rank(self):
-        ufl_error("Why would you want to get the rank of an Index? Please explain at ufl-dev@fenics.org...")
-    
-    def __str__(self):
-        return "%d" % self._value
-    
-    def __repr__(self):
-        return "FixedIndex(%d)" % self._value
-
-
-class AxisType(Terminal):
-    __slots__ = () #("value",)
-    
-    def __init__(self):
-        pass
-    
-    def free_indices(self):
-        ufl_error("Why would you want to get the free indices of an Axis? Please explain at ufl-dev@fenics.org...")
-    
-    def rank(self):
-        ufl_error("Why would you want to get the rank of an Axis? Please explain at ufl-dev@fenics.org...")
-    
-    def __str__(self):
-        return ":"
-    
-    def __repr__(self):
-        return "Axis"
-# only need one of these, like None, Ellipsis etc.
-Axis = AxisType()
-
-
-
-def as_index(i):
-    """Takes something the user might input as part of an index tuple, and returns an actual UFL index object."""
-    if isinstance(i, (Index, FixedIndex)):
-        return i
-    elif isinstance(i, int):
-        return FixedIndex(i)
-    elif isinstance(i, slice):
-        ufl_assert((i.start is None) and (i.stop is None) and (i.step is None), "Partial slices not implemented, only [:]")
-        return Axis
-    else:
-        ufl_error("Can convert this object to index: %s" % repr(i))
-
-
-def as_index_tuple(indices, rank):
-    """Takes something the user might input as an index tuple inside [], and returns a tuple of actual UFL index objects.
-    
-    These types are supported:
-    - Index
-    - int => FixedIndex
-    - Complete slice (:) => Axis
-    - Ellipsis (...) => multiple Axis
-    """
-    if not isinstance(indices, tuple):
-        indices = (indices,)
-    pre  = []
-    post = []
-    found = False
-    for j, idx in enumerate(indices):
-        if found:
-            if idx is Ellipsis:
-                found = True
-            else:
-                pre.append(as_index(idx))
-        else:
-            ufl_assert(not idx is Ellipsis, "Found duplicate ellipsis.")
-            post.append(as_index(idx))
-    
-    # replace ellipsis with a number of Axis objects
-    indices = pre + [Axis]*(rank-len(pre)-len(post)) + post
-    return tuple(indices)
-
-
-def analyze_indices(indices):
-    ufl_assert(isinstance(indices, tuple), "Expecting index tuple.")
-    ufl_assert(all(isinstance(i, (Index, FixedIndex, AxisType)) for i in indices), "Expecting proper UFL objects.")
-
-    fixed_indices = [(i,idx) for i,idx in enumerate(indices) if isinstance(idx, FixedIndex)]
-    num_unassigned_indices = sum(1 for i in indices if i is Axis)
-
-    index_count = defaultdict(int)
-    for i in indices:
-        if isinstance(i, Index):
-            index_count[i] += 1
-    
-    unique_indices = index_count.keys()
-    handled = set()
-
-    ufl_assert(all(i <= 2 for i in index_count.values()), "Too many index repetitions in %s" % repr(indices))
-    free_indices     = [i for i in unique_indices if index_count[i] == 1]
-    repeated_indices = [i for i in unique_indices if index_count[i] == 2]
-
-    # use tuples for consistency
-    fixed_indices    = tuple(fixed_indices)
-    free_indices     = tuple(free_indices)
-    repeated_indices = tuple(repeated_indices)
-    
-    ufl_assert(len(fixed_indices) + len(free_indices) + 2*len(repeated_indices) + num_unassigned_indices == len(indices), "Logic breach in analyze_indices.")
-    
-    return (fixed_indices, free_indices, repeated_indices, num_unassigned_indices)
-
-
-class MultiIndex(UFLObject):
-    __slots__ = ("_indices",)
-    
-    def __init__(self, indices, rank):
-        self._indices = as_index_tuple(indices, rank)
-    
-    def operands(self):
-        return self._indices
-    
-    def free_indices(self):
-        ufl_error("Why would you want to get the free indices of a MultiIndex? Please explain at ufl-dev@fenics.org...")
-    
-    def rank(self):
-        ufl_error("Why would you want to get the rank of a MultiIndex? Please explain at ufl-dev@fenics.org...")
-    
-    def __str__(self):
-        return ", ".join(str(i) for i in self._indices)
-    
-    def __repr__(self):
-        return "MultiIndex(%s, %d)" % (repr(self._indices), len(self._indices))
-
-    def __len__(self):
-        return len(self._indices)
-
-
-class Indexed(UFLObject):
-    __slots__ = ("_expression", "_indices", "_fixed_indices", "_free_indices", "_repeated_indices", "_rank")
-    
-    def __init__(self, expression, indices):
-        self._expression = expression
-        
-        if isinstance(indices, MultiIndex): # if constructed from repr
-            self._indices = indices
-        else:
-            self._indices = MultiIndex(indices, expression.rank())
-        
-        msg = "Invalid number of indices (%d) for tensor expression of rank %d:\n\t%s\n" % (len(self._indices), expression.rank(), repr(expression))
-        ufl_assert(expression.rank() == len(self._indices), msg)
-        
-        (fixed_indices, free_indices, repeated_indices, num_unassigned_indices) = analyze_indices(self._indices._indices)
-        # FIXME: We don't need to store all these here, remove the ones we don't use after implementing summation expansion.
-        self._fixed_indices      = fixed_indices
-        self._free_indices       = free_indices
-        self._repeated_indices   = repeated_indices
-        self._rank = num_unassigned_indices
-    
-    def operands(self):
-        return tuple(self._expression, self._indices)
-    
-    def free_indices(self):
-        return self._free_indices
-    
-    def rank(self):
-        return self._rank
-    
-    def __str__(self):
-        return "%s[%s]" % (str(self._expression), str(self._indices))
-    
-    def __repr__(self):
-        return "Indexed(%s, %s)" % (repr(self._expression), repr(self._indices))
-    
-    def __getitem__(self, key):
-        ufl_error("Object is already indexed: %s" % repr(self))
-
-
-### Derivatives
-
-class PartialDerivative(UFLObject):
-    "Partial derivative of an expression w.r.t. a spatial direction given by an index."
-    
-    __slots__ = ("_expression", "_index", "_free_indices") #, "_fixed_indices", "_repeated_indices")
-    
-    def __init__(self, expression, i):
-        self._expression = expression
-        self._index = as_index(i)
-        
-        ufl_assert(not self._index is Axis, "Can't take partial derivative w.r.t. whole axis.")
-        
-        indices = tuple( [self._index] + expression.free_indices() )
-        (fixed_indices, free_indices, repeated_indices, num_unassigned_indices) = analyze_indices( indices )
-        self._free_indices = free_indices
-        
-        # We probably don't need these here, remove when sure.
-        #self._fixed_indices    = fixed_indices
-        #self._repeated_indices = repeated_indices
-    
-    def free_indices(self):
-        return self._free_indices
-    
-    def rank(self):
-        return self._expression.rank()
-    
-    def __str__(self):
-        return "(d[%s] / dx_%s)" % (str(self._expression), str(self._index))
-    
-    def __repr__(self):
-        return "PartialDerivative(%s, %s)" % (repr(self._expression), repr(self._index))
 
 

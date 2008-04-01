@@ -7,27 +7,27 @@ which use the baseclasses BasisFunction and Function.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-14-03 -- 2008-16-03"
+__date__ = "2008-03-14 -- 2008-04-01"
 
 from base import *
 from elements import *
 
 class BasisFunction(Terminal):
-    __slots__ = ("element", "name", "count",)
+    __slots__ = ("element", "_count",)
 
     _globalcount = 0
     def __init__(self, element, count=None):
         self.element = element
         if count is None:
-            self.count = BasisFunction._globalcount
+            self._count = BasisFunction._globalcount
             BasisFunction._globalcount += 1
         else:
-            self.count = count
+            self._count = count
             if count >= BasisFunction._globalcount:
                 BasisFunction._globalcount = count + 1
     
     def free_indices(self):
-        return tuple()
+        return ()
     
     def rank(self):
         return self.element.value_rank()
@@ -36,7 +36,7 @@ class BasisFunction(Terminal):
         return "BasisFunction(%s)" % str(self.element)
     
     def __repr__(self):
-        return "BasisFunction(%s, %d)" % (repr(self.element), self.count)
+        return "BasisFunction(%s, %d)" % (repr(self.element), self._count)
 
 def TestFunction(element):
     return BasisFunction(element, -2)
@@ -47,38 +47,41 @@ def TrialFunction(element):
 
 # FIXME: Maybe we don't need these afterall:
 def BasisFunctions(element):
+    ufl_warning("BasisFunctions isn't properly implemented.")
     if not isinstance(element, MixedElement):
         raise UFLException("Expecting MixedElement instance.")
     return tuple(BasisFunction(e) for e in element.elements) # FIXME: problem with count!
 
 def TestFunctions(element):
+    ufl_warning("BasisFunctions isn't properly implemented.")
     if not isinstance(element, MixedElement):
         raise UFLException("Expecting MixedElement instance.")
     return tuple(TestFunction(e) for e in element.elements) # FIXME: problem with count!
 
 def TrialFunctions(element):
+    ufl_warning("BasisFunctions isn't properly implemented.")
     if not isinstance(element, MixedElement):
         raise UFLException("Expecting MixedElement instance.")
     return tuple(TrialFunction(e) for e in element.elements) # FIXME: problem with count!
 
 
 class Function(Terminal):
-    __slots__ = ("element", "name", "count",)
+    __slots__ = ("element", "name", "_count",)
 
     _globalcount = 0
     def __init__(self, element, name=None, count=None):
         self.element = element
         self.name = name
         if count is None:
-            self.count = Function._globalcount
+            self._count = Function._globalcount
             Function._globalcount += 1
         else:
-            self.count = count
+            self._count = count
             if count >= Function._globalcount:
                 Function._globalcount = count + 1
     
     def free_indices(self):
-        return tuple()
+        return ()
     
     def rank(self):
         return self.element.value_rank()
@@ -87,7 +90,7 @@ class Function(Terminal):
         return "Function(%s)" % str(self.element) # TODO: Better pretty print. Use name here?
     
     def __repr__(self):
-        return "Function(%s, %s, %d)" % (repr(self.element), repr(self.name), self.count)
+        return "Function(%s, %s, %d)" % (repr(self.element), repr(self.name), self._count)
 
 class Constant(Function):
     __slots__ = ("polygon",)
@@ -98,8 +101,8 @@ class Constant(Function):
         Function.__init__(self, element, name, count)
     
     def __str__(self):
-        return "Constant(%d)" % self.count # TODO: Better pretty print. Use name here?
+        return "Constant(%d)" % self._count # TODO: Better pretty print. Use name here?
     
     def __repr__(self):
-        return "Constant(%s, %s, %d)" % (repr(self.polygon), repr(self.name), self.count)
+        return "Constant(%s, %s, %d)" % (repr(self.polygon), repr(self.name), self._count)
 

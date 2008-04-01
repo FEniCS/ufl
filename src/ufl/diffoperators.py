@@ -5,7 +5,7 @@ Differential operators. Needs work!
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-14-03 -- 2008-16-03"
+__date__ = "2008-03-14 -- 2008-04-01"
 
 from output import *
 from base import *
@@ -15,7 +15,7 @@ from base import *
 
 class DifferentialOperator(UFLObject):
     """For the moment this is just a dummy class to enable "isinstance(o, DifferentialOperator)"."""
-    __slots__ = tuple()
+    __slots__ = ()
 
 
 class Grad(DifferentialOperator):

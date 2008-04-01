@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 
-"""This module defines the UFL finite element classes.
+"""
+This module defines the UFL finite element classes.
 
 UFL provides an extensive list of predefined finite element
 families. Users (or more likely form compilers) may register
-new elements by calling the function register_element."""
+new elements by calling the function register_element.
+"""
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-03 -- 2008-03-13"
+__date__ = "2008-03-03 -- 2008-04-01"
 
 from output import *
 
@@ -46,13 +48,8 @@ register_element("Quadrature",                   "Q",      0, (None, None), ("in
 #        therefore we need to have a separate space for functions evaluated in quadrature points on the boundary:
 register_element("Boundary Quadrature",          "BQ",     0, (None, None), ("interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
 
-class FiniteElementBase:
+class FiniteElementBase(object):
     "Base class for all finite elements"
-    pass
-
-    def value_rank(self):
-        ufl_error("Not implemented: value_rank().")
-    
     def __add__(self, other):
         ufl_assert(isinstance(other, FiniteElementBase), "Can't add element and %s" % other.__class__)
         return MixedElement(self, other)
@@ -77,7 +74,11 @@ class FiniteElement(FiniteElementBase):
         self.domain = domain
         self.degree = degree
 
-        # FIXME: Anders: Do we need to store this? (Martin: We don't _need_ to, but I don't see why not. It's infinitely better than depending on the structure of ufl_elements other places in the code.)
+        # FIXME:
+        # Anders: Do we need to store this?
+        # Martin: We don't _need_ to, but I don't see why not.
+        #         It's infinitely better than depending on the
+        #         structure of ufl_elements other places in the code.
         self._value_rank = value_rank
 
     def value_rank(self):
@@ -93,9 +94,6 @@ class MixedElement(FiniteElementBase):
         "Create mixed finite element from given list of elements"
         ufl_assert(all(e.domain == elements[0].domain for e in elements), "Domain mismatch for mixed element.")
         self.elements = elements
-
-    def value_rank(self):
-        ufl_error("Not implemented for general MixedElement instances.")
 
     def __repr__(self):
         return "MixedElement(*%s)" % repr(self.elements)
@@ -134,6 +132,8 @@ class TensorElement(MixedElement):
     def __init__(self, family, domain, degree, shape=None, symmetric=False):
         "Create tensor element (repeated mixed element)"
 
+        #ufl_warning("TensorElement isn't tested.")
+
         if shape is None:
             dim = _domain2dim[domain]
             shape = (dim, dim)
@@ -159,4 +159,3 @@ class TensorElement(MixedElement):
 
     def __repr__(self):
         return "TensorElement(%s, %s, %d, %s, %s)" % (repr(self.family), repr(self.domain), self.degree, repr(self.shape), repr(self.symmetric))
-

@@ -6,7 +6,7 @@ used to group scalar expressions into expressions with rank > 0.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-31-03 -- 2008-31-03"
+__date__ = "2008-31-03 -- 2008-04-01"
 
 
 from base import *
@@ -29,6 +29,9 @@ class ListVector(UFLObject):
     
     def free_indices(self):
         return self._free_indices
+    
+    def __str__(self):
+        return "<%s>" % ", ".join(str(e) for e in self._expressions)
     
     def __repr__(self):
         return "ListVector(%s)" % repr(self._expressions)
@@ -58,6 +61,12 @@ class ListMatrix(UFLObject):
     def free_indices(self):
         return self._free_indices
     
+    def __str__(self):
+        rowstrings = []
+        for row in self._expressions:
+            rowstrings.append( ("[%s]" % ", ".join(str(e) for e in row)) ) 
+        return "[ %s ]" % ", ".join(rowstrings)
+    
     def __repr__(self):
         return "ListMatrix(%s)" % repr(self._expressions)
 
@@ -81,6 +90,9 @@ class Tensor(UFLObject):
     
     def free_indices(self):
         return self._free_indices
+
+    def __str__(self):
+        return "[A | A_{%s} = %s]" % (self._indices, self._expressions)
     
     def __repr__(self):
         return "Tensor(%s, %s)" % (repr(self._expressions), repr(self._indices))
@@ -97,5 +109,23 @@ def Matrix(expressions, indices = None):
         return ListMatrix(expressions)
     return Tensor(expressions, indices)
 
+
+
+# TODO: Work out handling of containers of symbols:
+#def SymbolicVector(name, size):
+#    return Vector([Symbol("%s_%d" % (name, i)) for i in range(size)])
+#
+#
+#def SymbolicMatrix(name, rows, cols):
+#    return Matrix( [ [Symbol("%s_%d_%d" % (name, i, j)) for j in range(cols)] for i in range(rows) ] )
+#
+#
+#def is_symbol(u):
+#    if isinstance(u, Symbol) or \
+#        ( isinstance(u, Indexed) and \
+#          isinstance(u._expression, (Tensor, ListVector, ListMatrix)
+#        ):
+#        return True
+#    return False
 
 

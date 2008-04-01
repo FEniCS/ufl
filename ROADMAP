@@ -1,15 +1,42 @@
 Roadmap for the development of UFL
 ----------------------------------
 
+FIXME: 04-01 vs 01-04 !!!
+
 Suggestions:
 
+# FIXME's from code:
+
+"FIXME: Taking gradient of an expression with free indices, should this be a valid expression? Please provide examples!"
+ufl_assert(len(f.free_indices()) == 0, "")
+
+# FIXME: How to handle free indices in "non-index products" like this? In particular repeated indices?
+return tuple(self.a.free_indices() + b.free_indices())
+
+# FIXME: Maybe we don't need these afterall:
+def BasisFunctions(element):
+    if not isinstance(element, MixedElement):
+        raise UFLException("Expecting MixedElement instance.")
+    return tuple(BasisFunction(e) for e in element.elements) # FIXME: problem with count!
+
+# FIXME: is this ok? Don't need QuadratureElement.
+register_element("Quadrature",                   "Q",      0, (None, None), ("interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
+
+# FIXME: functions evaluated on the boundary can't use quadrature points from the inside of the cell,
+#        therefore we need to have a separate space for functions evaluated in quadrature points on the boundary:
+register_element("Boundary Quadrature",          "BQ",     0, (None, None), ("interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
+
+
 # Prettyness:
- - Add pretty-print for all classes returning simpler strings than __repr__
  - Rename geometry.py to builtins.py or something better.
+ - Agree on name conventions, using "self._foo" or "self.foo"
+   Suggested way to go: "self._foo" for everything the external user shouldn't use, which is most variables.
+   In this case the "user" is the end-user, not form compiler people.
+ - Improve parentesis use in __str__ and __repr__, use precedence list
 
 # Derivatives:
  - Test partial derivative operator found in base.py ( u.dx(i) )
- (- Probably don't: express all other operators in terms of partial derivative operator.
+ (- Probably shouldn't do this: express all other operators in terms of partial derivative operator.)
 
 # Algorithms:
  - Clean up existing algorithms, they're probably broken now. Define more, define tests.

@@ -5,7 +5,7 @@ Convenience file to import all parts of the language.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-14-03 -- 2008-16-03"
+__date__ = "2008-03-14 -- 2008-04-01"
 
 # base system (expression base class and all subclasses involved in operators on the base class)
 from base import *
