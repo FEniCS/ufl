@@ -17,10 +17,56 @@ logging.basicConfig(level=logging.CRITICAL)
 class AlgorithmsTestCase(unittest.TestCase):
 
     def setUp(self):
-        pass
+        element = FiniteElement("CG", "triangle", 1)
+        
+        v = TestFunction(element)
+        u = TrialFunction(element)
+        
+        c = Function(element, "c")
+        f = Function(element, "f")
+        
+        a = u*v*dx
+        L = f*v*dx
+        b = u*v*dx0 +inner(c*grad(u),grad(v))*dx1 + dot(n, grad(u))*v*ds + f*v*dx
+        
+        self.elements = (element,)
+        self.basisfunctions = (v, u)
+        self.coefficients = (c, f)
+        self.forms = (a, L, b)
+        
+        if False:
+            print 
+            print [str(c) for c in self.coefficients]
+            print 
+            print str(self.forms[2])
+            print 
+            print [str(b) for b in basisfunctions(self.forms[2])]
+            print 
+            print self.coefficients
+            print 
+            print repr(self.forms[2])
+            print 
+            print basisfunctions(self.forms[2])
+            print 
     
-    def test_walk(self):
-        element = FiniteElement("Lagrange", "triangle", 1)
+    def _test_flatten(self):
+        element = FiniteElement("CG", "triangle", 1)
+        a = Function(element, "a")
+        b = Function(element, "b")
+        c = Function(element, "c")
+        d = Function(element, "d")
+        
+        a = (a+b)+(c+d)
+
+    def _test_basisfunctions(self):
+        assert self.basisfunctions == tuple(basisfunctions(self.forms[0]))
+        assert tuple(self.basisfunctions[:1]) == tuple(basisfunctions(self.forms[1]))
+
+    def test_coefficients(self):
+        assert self.coefficients == tuple(coefficients(self.forms[2]))
+
+    def _test_walk(self):
+        element = FiniteElement("CG", "triangle", 1)
         v = TestFunction(element)
         f = Function(element, "f")
         a = f*v*dx
@@ -35,10 +81,6 @@ class AlgorithmsTestCase(unittest.TestCase):
             walk(itg.integrand, foo)
         logging.debug( "\n".join("%d:\t %s" % (k,v) for k,v in store.items()) )
         # TODO: test something... compare some strings perhaps.
-
-    def test_flatten(self):
-        pass
-
 
 
 suite1 = unittest.makeSuite(AlgorithmsTestCase)

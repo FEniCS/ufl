@@ -88,7 +88,7 @@ class Inner(UFLObject):
         return 0
     
     def __str__(self):
-        return "(%s) : (%s)" % (pstr(self.a, self), pstr(self.b, self))
+        return "(%s) : (%s)" % (str(self.a), str(self.b))
         #return "%s : %s" % (pstr(self.a, self), pstr(self.b, self))
     
     def __repr__(self):

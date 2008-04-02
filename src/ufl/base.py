@@ -6,7 +6,7 @@ types involved with built-in operators on any ufl object.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-04-01"
+__date__ = "2008-03-14 -- 2008-04-02"
 
 import operator
 from itertools import chain
@@ -64,10 +64,10 @@ class UFLObject(object):
         """Return string representation of objects"""
         raise NotImplementedError(self.__class__.__repr__)
     
-    # All UFL objects should implement __str__, as default we use repr
+    # All UFL objects should implement __str__
     def __str__(self):
         """Return pretty print string representation of objects"""
-        return repr(self)
+        raise NotImplementedError(self.__class__.__str__)
     
     # ... Algebraic operators:
     

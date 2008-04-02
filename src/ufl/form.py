@@ -5,7 +5,7 @@ The Form class.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__    = "2008-03-14 -- 2008-04-01"
+__date__    = "2008-03-14 -- 2008-04-02"
 
 from output import *
 from base import is_true_scalar
@@ -36,7 +36,7 @@ class Form:
         return Form(self.integrals + other.integrals)
     
     def __str__(self):
-        return "Form([%s])" % ", ".join(str(i) for i in self.integrals)
+        return "  +  ".join(str(i) for i in self.integrals)
     
     def __repr__(self):
         return "Form([%s])" % ", ".join(repr(i) for i in self.integrals)

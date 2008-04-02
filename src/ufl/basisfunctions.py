@@ -7,7 +7,7 @@ which use the baseclasses BasisFunction and Function.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-04-01"
+__date__ = "2008-03-14 -- 2008-04-02"
 
 from base import *
 from elements import *
@@ -33,7 +33,7 @@ class BasisFunction(Terminal):
         return self.element.value_rank()
     
     def __str__(self):
-        return "BasisFunction(%s)" % str(self.element)
+        return "v_%d" % self._count
     
     def __repr__(self):
         return "BasisFunction(%s, %d)" % (repr(self.element), self._count)
@@ -45,7 +45,7 @@ def TrialFunction(element):
     return BasisFunction(element, -1)
 
 
-# FIXME: Maybe we don't need these afterall:
+# FIXME: Maybe we don't need these after all:
 def BasisFunctions(element):
     ufl_warning("BasisFunctions isn't properly implemented.")
     if not isinstance(element, MixedElement):
@@ -87,7 +87,7 @@ class Function(Terminal):
         return self.element.value_rank()
     
     def __str__(self):
-        return "Function(%s)" % str(self.element) # TODO: Better pretty print. Use name here?
+        return "w_%d" % self._count
     
     def __repr__(self):
         return "Function(%s, %s, %d)" % (repr(self.element), repr(self.name), self._count)

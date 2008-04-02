@@ -18,84 +18,48 @@ from form import *
 
 ### Traversal utilities
 
-def iter_depth_first(u):
-    """Yields o for all nodes o in expression tree u, depth first."""
-    for o in u.operands():
-        for i in iter_depth_first(o):
-            yield i
-    yield u
-
-def iter_width_first(u):
-    """Yields o for all nodes o in expression tree u, width first."""
-    yield u
-    for o in u.operands():
-        for i in iter_width_first(o):
-            yield i
-
-def traverse_depth_first(u, func):
-    """Call func(o) for all nodes o in expression tree u, depth first."""
-    for o in u.operands():
-        traverse_depth_first(o, func)
-    func(u)
-
-def traverse_width_first(u, func):
-    """Call func(o) for all nodes o in expression tree u, width first."""
-    func(u)
-    for o in u.operands():
-        traverse_width_first(o, func)
-
-def walk(u, func):
-    traverse_width_first(u, func)
-
-
-### Utilities for iteration over particular types
-
-def iter_ufl_objs(u):
-    """Utility function to handle Form, Integral and any UFLObject the same way.
-       Returns an iterable over all Integral objects of u or the UFLObject u."""
+def iter_expressions(u):
+    """Utility function to handle Form, Integral and any UFLObject
+    the same way when inspecting expressions.
+    Returns an iterable over UFLObject instances:
+    - u is an UFLObject: (u,)
+    - u is an Integral:  the integrand expression of u
+    - u is a  Form:      all integrand expressions of all integrals
+    """
     if isinstance(u, Form):
-        objs = (itg.integrand for itg in u.integrals)
+        return (itg.integrand for itg in u.integrals)
     elif isinstance(u, Integral):
-        objs = (u.integrand,)
+        return (u.integrand,)
     else:
-        objs = (u,)
-    return objs
+        return (u,)
 
-def iter_classes(u):
-    """Returns an iterator over the unique classes used by objects in this expression."""
-    returned = set()
-    for o in iter_ufl_objs(u):
-        for u in iter_depth_first(o):
-            t = u.__class__
-            if not t in returned:
-                returned.add(t)
-                yield t
+def iter_child_first(u):
+    """Yields o for all nodes o in expression tree u, child before parent."""
+    for o in u.operands():
+        for i in iter_child_first(o):
+            yield i
+    yield u
 
-def iter_elements(u):
-    """Returns an iterator over the unique finite elements used in this form or expression."""
-    returned = set()
-    for o in iter_ufl_objs(u):
-        for u in iter_depth_first(o):
-            if isinstance(u, (BasisFunction, Function)) and not repr(u.element) in returned:
-                returned.add(repr(u.element))
-                yield u.element
+def iter_parent_first(u):
+    """Yields o for all nodes o in expression tree u, parent before child."""
+    yield u
+    for o in u.operands():
+        for i in iter_parent_first(o):
+            yield i
 
-def iter_basisfunctions(u):
-    """Returns an iterator over the unique basis functions used in this form or expression."""
-    returned = set()
-    for o in iter_ufl_objs(u):
-        for u in iter_depth_first(o):
-            if isinstance(u, BasisFunction) and not repr(u) in returned:
-                returned.add(repr(u))
-                yield u
+def traverse_child_first(u, func):
+    """Call func(o) for all nodes o in expression tree u, child before parent."""
+    for o in u.operands():
+        traverse_child_first(o, func)
+    func(u)
 
-def iter_coefficients(u):
-    """Returns an iterator over the unique coefficient functions used in this form or expression."""
-    returned = set()
-    for o in iter_ufl_objs(u):
-        for u in iter_depth_first(o):
-            if isinstance(u, Function) and not repr(u) in returned:
-                returned.add(repr(u))
-                yield u
+def traverse_parent_first(u, func):
+    """Call func(o) for all nodes o in expression tree u, parent before child."""
+    func(u)
+    for o in u.operands():
+        traverse_parent_first(o, func)
 
-
+def walk(a, func):
+    """Call func(o) for all nodes o in expression tree a."""
+    for e in iter_expressions(a):
+        traverse_parent_first(e, func)

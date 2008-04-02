@@ -5,7 +5,7 @@ The Integral class.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-04-01"
+__date__ = "2008-03-14 -- 2008-04-02"
 
 
 from output import *
@@ -34,7 +34,11 @@ class Integral(object):
         return item in self.integrand
     
     def __str__(self):
-        return "Integral(%s, %d, %s)" % (repr(self.domain_type), self.domain_id, self.integrand)
+        d = { "cell": "dx",
+              "exterior_facet": "ds",
+              "interior_facet": "dS"
+            }[self.domain_type]
+        return "{ %s } * %s%d" % (str(self.integrand), d, self.domain_id,)
     
     def __repr__(self):
         return "Integral(%s, %s, %s)" % (repr(self.domain_type), repr(self.domain_id), repr(self.integrand))
