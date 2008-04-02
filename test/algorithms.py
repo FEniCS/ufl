@@ -66,7 +66,7 @@ class AlgorithmsTestCase(unittest.TestCase):
             print basisfunctions(self.forms[2])
             print 
     
-    def _test_flatten(self):
+    def test_flatten(self):
         element = FiniteElement("CG", "triangle", 1)
         a = Function(element, "a")
         b = Function(element, "b")
@@ -74,6 +74,11 @@ class AlgorithmsTestCase(unittest.TestCase):
         d = Function(element, "d")
         
         a = (a+b)+(c+d)
+        print repr(a)
+        print str(a)
+        fa = flatten(a)
+        print repr(fa)
+        print str(fa)
 
     def test_basisfunctions(self):
         assert self.basisfunctions == tuple(basisfunctions(self.forms[0]))

@@ -79,8 +79,8 @@ def unique_elements(a):
         elements.add(f._element)
     return elements
 
-def unique_classes(a):
-    """Returns a set of all unique UFLObject subclasses used in a."""
+def classes(a):
+    """Returns a set of all unique classes used in a (subclasses of UFLObject)."""
     classes = set()
     for e in iter_expressions(a):
         for o in iter_child_first(e):
@@ -151,7 +151,7 @@ def form_info(a):
 def flatten(u):
     "Flatten (a+b)+(c+d) into a (a+b+c+d) and (a*b)*(c*d) into (a*b*c*d)."
     vis = TreeFlattener()
-    flat_u = vis.visit(f)
+    flat_u = vis.visit(u)
     return flat_u
 
 def apply_summation(u):
