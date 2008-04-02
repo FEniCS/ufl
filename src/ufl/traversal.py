@@ -27,9 +27,9 @@ def iter_expressions(u):
     - u is a  Form:      all integrand expressions of all integrals
     """
     if isinstance(u, Form):
-        return (itg.integrand for itg in u.integrals)
+        return (itg._integrand for itg in u._integrals)
     elif isinstance(u, Integral):
-        return (u.integrand,)
+        return (u._integrand,)
     else:
         return (u,)
 

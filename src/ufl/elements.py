@@ -93,10 +93,10 @@ class MixedElement(FiniteElementBase):
     def __init__(self, *elements):
         "Create mixed finite element from given list of elements"
         ufl_assert(all(e.domain == elements[0].domain for e in elements), "Domain mismatch for mixed element.")
-        self.elements = elements
+        self._elements = elements
 
     def __repr__(self):
-        return "MixedElement(*%s)" % repr(self.elements)
+        return "MixedElement(*%s)" % repr(self._elements)
 
 
 class VectorElement(MixedElement):

@@ -13,11 +13,11 @@ from base import *
 from elements import *
 
 class BasisFunction(Terminal):
-    __slots__ = ("element", "_count",)
+    __slots__ = ("_element", "_count",)
 
     _globalcount = 0
     def __init__(self, element, count=None):
-        self.element = element
+        self._element = element
         if count is None:
             self._count = BasisFunction._globalcount
             BasisFunction._globalcount += 1
@@ -30,13 +30,13 @@ class BasisFunction(Terminal):
         return ()
     
     def rank(self):
-        return self.element.value_rank()
+        return self._element.value_rank()
     
     def __str__(self):
         return "v_%d" % self._count
     
     def __repr__(self):
-        return "BasisFunction(%s, %d)" % (repr(self.element), self._count)
+        return "BasisFunction(%s, %d)" % (repr(self._element), self._count)
 
 def TestFunction(element):
     return BasisFunction(element, -2)
@@ -50,28 +50,28 @@ def BasisFunctions(element):
     ufl_warning("BasisFunctions isn't properly implemented.")
     if not isinstance(element, MixedElement):
         raise UFLException("Expecting MixedElement instance.")
-    return tuple(BasisFunction(e) for e in element.elements) # FIXME: problem with count!
+    return tuple(BasisFunction(e) for e in element._elements) # FIXME: problem with count!
 
 def TestFunctions(element):
     ufl_warning("BasisFunctions isn't properly implemented.")
     if not isinstance(element, MixedElement):
         raise UFLException("Expecting MixedElement instance.")
-    return tuple(TestFunction(e) for e in element.elements) # FIXME: problem with count!
+    return tuple(TestFunction(e) for e in element._elements) # FIXME: problem with count!
 
 def TrialFunctions(element):
     ufl_warning("BasisFunctions isn't properly implemented.")
     if not isinstance(element, MixedElement):
         raise UFLException("Expecting MixedElement instance.")
-    return tuple(TrialFunction(e) for e in element.elements) # FIXME: problem with count!
+    return tuple(TrialFunction(e) for e in element._elements) # FIXME: problem with count!
 
 
 class Function(Terminal):
-    __slots__ = ("element", "name", "_count",)
+    __slots__ = ("_element", "_name", "_count",)
 
     _globalcount = 0
     def __init__(self, element, name=None, count=None):
-        self.element = element
-        self.name = name
+        self._element = element
+        self._name = name
         if count is None:
             self._count = Function._globalcount
             Function._globalcount += 1
@@ -84,25 +84,25 @@ class Function(Terminal):
         return ()
     
     def rank(self):
-        return self.element.value_rank()
+        return self._element.value_rank()
     
     def __str__(self):
-        return "w_%d" % self._count
+        return "w_%d" % self._count # TODO: Use name here if available.
     
     def __repr__(self):
-        return "Function(%s, %s, %d)" % (repr(self.element), repr(self.name), self._count)
+        return "Function(%s, %s, %d)" % (repr(self._element), repr(self._name), self._count)
 
 class Constant(Function):
-    __slots__ = ("polygon",)
+    __slots__ = ("_polygon",)
 
     def __init__(self, polygon, name=None, count=None):
-        self.polygon = polygon
+        self._polygon = polygon
         element = FiniteElement("DG", polygon, 0)
         Function.__init__(self, element, name, count)
     
     def __str__(self):
-        return "Constant(%d)" % self._count # TODO: Better pretty print. Use name here?
+        return "c_%d" % self._count # TODO: Use name here if available.
     
     def __repr__(self):
-        return "Constant(%s, %s, %d)" % (repr(self.polygon), repr(self.name), self._count)
+        return "Constant(%s, %s, %d)" % (repr(self._polygon), repr(self._name), self._count)
 

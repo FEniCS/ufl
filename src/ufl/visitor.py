@@ -74,7 +74,16 @@ class SubtreeFinder(UFLVisitor):
         ro = repr(o)
         if ro in self.handled:
             self.duplicated.add(ro)
-        elif not isinstance(ro, (Real, Integer, Number, Symbol)):#, Variable)):
+        elif not isinstance(ro, (Number, Symbol)):#, Variable)):
+            self.handled.add(ro)
+            for i in o.operands():
+                self.visit(i)
+                
+    def _notify(self, o):
+        ro = repr(o)
+        if ro in self.handled:
+            self.duplicated.add(ro)
+        elif not isinstance(ro, (Number, Symbol)):#, Variable)):
             self.handled.add(ro)
             for i in o.operands():
                 self.visit(i)

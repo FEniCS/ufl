@@ -33,6 +33,23 @@ class AlgorithmsTestCase(unittest.TestCase):
         self.basisfunctions = (v, u)
         self.coefficients = (c, f)
         self.forms = (a, L, b)
+
+        if False:
+            print
+            print
+            print
+            print form_info(a)
+            print
+            print
+            print
+            print form_info(L)
+            print
+            print
+            print
+            print form_info(b)
+            print
+            print
+            print
         
         if False:
             print 
@@ -58,13 +75,20 @@ class AlgorithmsTestCase(unittest.TestCase):
         
         a = (a+b)+(c+d)
 
-    def _test_basisfunctions(self):
+    def test_basisfunctions(self):
         assert self.basisfunctions == tuple(basisfunctions(self.forms[0]))
         assert tuple(self.basisfunctions[:1]) == tuple(basisfunctions(self.forms[1]))
 
     def test_coefficients(self):
         assert self.coefficients == tuple(coefficients(self.forms[2]))
 
+    def test_elements(self):
+        #print elements(self.forms[2])
+        #print unique_elements(self.forms[2])
+        #print unique_classes(self.forms[2])
+        d = duplications(self.forms[2])
+        pprint(list(d))
+    
     def _test_walk(self):
         element = FiniteElement("CG", "triangle", 1)
         v = TestFunction(element)
