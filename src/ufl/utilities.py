@@ -148,11 +148,22 @@ def form_info(a):
 
 ### Utilities to convert expression to a different form:
 
-def flatten(u):
-    "Flatten (a+b)+(c+d) into a (a+b+c+d) and (a*b)*(c*d) into (a*b*c*d)."
+def flatten_form(a):
+    """Flatten (a+b)+(c+d) into a (a+b+c+d) and (a*b)*(c*d) into (a*b*c*d).
+    
+    NB! This modifies the form a in-place.
+    """
+    ufl_assert(isinstance(a, Form), "Expecting a Form.")
+    for itg in a.integrals():
+        vis = TreeFlattener()
+        itg._integrand = vis.visit(itg._integrand)
+    # deliberately not returning a, to make it clear that this is an in-place operation
+
+def flatten(a):
+    """Flatten (a+b)+(c+d) into a (a+b+c+d) and (a*b)*(c*d) into (a*b*c*d)."""
+    ufl_assert(isinstance(a, UFLObject), "Expecting an UFLObject.")
     vis = TreeFlattener()
-    flat_u = vis.visit(u)
-    return flat_u
+    return vis.visit(a)
 
 def apply_summation(u):
     "Expand all repeated indices into explicit sums with fixed indices."

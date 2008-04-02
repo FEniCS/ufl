@@ -73,12 +73,21 @@ class AlgorithmsTestCase(unittest.TestCase):
         c = Function(element, "c")
         d = Function(element, "d")
         
-        a = (a+b)+(c+d)
-        print repr(a)
-        print str(a)
+        a  = (a+b)+(c+d)
         fa = flatten(a)
-        print repr(fa)
-        print str(fa)
+        assert isinstance(fa, Sum) and len(fa.operands()) == 4
+        assert isinstance(a,  Sum) and len(a.operands())  == 2
+        aa, ab = a.operands()
+        assert isinstance(aa, Sum) and len(aa.operands()) == 2
+        assert isinstance(ab, Sum) and len(ab.operands()) == 2
+
+        a  = (a*b)*(c*d)
+        fa = flatten(a)
+        assert isinstance(fa, Product) and len(fa.operands()) == 4
+        assert isinstance(a,  Product) and len(a.operands())  == 2
+        aa, ab = a.operands()
+        assert isinstance(aa, Product) and len(aa.operands()) == 2
+        assert isinstance(ab, Product) and len(ab.operands()) == 2
 
     def test_basisfunctions(self):
         assert self.basisfunctions == tuple(basisfunctions(self.forms[0]))
@@ -92,7 +101,7 @@ class AlgorithmsTestCase(unittest.TestCase):
         #print unique_elements(self.forms[2])
         #print unique_classes(self.forms[2])
         d = duplications(self.forms[2])
-        pprint(list(d))
+        #pprint(list(d))
     
     def _test_walk(self):
         element = FiniteElement("CG", "triangle", 1)
