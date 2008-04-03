@@ -148,23 +148,46 @@ def form_info(a):
 
 ### Utilities to convert expression to a different form:
 
+def _strip_variables(a):
+    "Auxilliary procedure for strip_variables."
+    
+    if isinstance(a, Terminal):
+        return a, False
+    
+    if isinstance(a, Variable):
+        b, changed = _strip_variables(a._expression)
+        return b, changed
+    
+    operands = []
+    changed = False
+    for o in a.operands():
+        b, c = _strip_variables(o)
+        operands.append(b)
+        if c: changed = True
+    
+    if changed:
+        return a.__class__(*operands), True
+    # else: no change, reuse object
+    return a, False
+
 def strip_variables(a):
     """Strip Variable objects from a, replacing them with their expressions."""
     ufl_assert(isinstance(a, UFLObject), "Expecting an UFLObject.")
-    
-    # Possible optimization:
-    #     Reuse objects for subtrees with no
-    #     variables stripped.
-    #     This procedure will create new objects
-    #     for every single node in the tree.
+    b, changed = _strip_variables(a)
+    return b
+
+# naive version, producing lots of extra objects:
+def strip_variables2(a):
+    """Strip Variable objects from a, replacing them with their expressions."""
+    ufl_assert(isinstance(a, UFLObject), "Expecting an UFLObject.")
     
     if isinstance(a, Terminal):
         return a
     
     if isinstance(a, Variable):
-        return strip_variables(a._expression)
+        return strip_variables2(a._expression)
     
-    operands = [strip_variables(o) for o in a.operands()]
+    operands = [strip_variables2(o) for o in a.operands()]
     
     return a.__class__(*operands)
 
