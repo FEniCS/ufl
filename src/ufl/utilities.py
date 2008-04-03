@@ -148,6 +148,28 @@ def form_info(a):
 
 ### Utilities to convert expression to a different form:
 
+def strip_variables(a):
+    """Strip Variable objects from a, replacing them with their expressions."""
+    ufl_assert(isinstance(a, UFLObject), "Expecting an UFLObject.")
+    
+    # Possible optimization:
+    #     Reuse objects for subtrees with no
+    #     variables stripped.
+    #     This procedure will create new objects
+    #     for every single node in the tree.
+    
+    if isinstance(a, Terminal):
+        return a
+    
+    if isinstance(a, Variable):
+        return strip_variables(a._expression)
+    
+    operands = [strip_variables(o) for o in a.operands()]
+    
+    return a.__class__(*operands)
+
+
+# using old visitor pattern, kept for illustration (for now):
 def __flatten(a):
     """Flatten (a+b)+(c+d) into a (a+b+c+d) and (a*b)*(c*d) into (a*b*c*d)."""
     ufl_assert(isinstance(a, UFLObject), "Expecting an UFLObject.")
@@ -157,6 +179,14 @@ def __flatten(a):
 def flatten(a):
     """Flatten (a+b)+(c+d) into a (a+b+c+d) and (a*b)*(c*d) into (a*b*c*d)."""
     ufl_assert(isinstance(a, UFLObject), "Expecting an UFLObject.")
+    
+    # Possible optimization:
+    #     Reuse objects for subtrees with no
+    #     flattened sums or products.
+    #     This procedure will create new objects
+    #     for every single node in the tree.
+    
+    # TODO: Traverse variables or not?
     
     if isinstance(a, Terminal):
         return a
@@ -177,7 +207,6 @@ def flatten(a):
             operands.append(b)
     
     return myclass(*operands)
-
 
 def flatten_form(a):
     """Flatten (a+b)+(c+d) into a (a+b+c+d) and (a*b)*(c*d) into (a*b*c*d).
