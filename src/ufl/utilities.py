@@ -12,7 +12,7 @@ to all the utility algorithms that we want to expose.)
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-04-02"
+__date__ = "2008-03-14 -- 2008-04-03"
 
 from itertools import chain
 
@@ -53,7 +53,7 @@ def coefficients(a):
     l = sorted(s, cmp=lambda x,y: cmp(x._count, y._count))
     return l
 
-# alternative implementation:
+# alternative implementation, kept as an example:
 def _coefficients(a):
     """Build a sorted list of all coefficients in a,
     which can be a Form, Integral or UFLObject.
@@ -148,6 +148,37 @@ def form_info(a):
 
 ### Utilities to convert expression to a different form:
 
+def __flatten(a):
+    """Flatten (a+b)+(c+d) into a (a+b+c+d) and (a*b)*(c*d) into (a*b*c*d)."""
+    ufl_assert(isinstance(a, UFLObject), "Expecting an UFLObject.")
+    vis = TreeFlattener()
+    return vis.visit(a)
+
+def flatten(a):
+    """Flatten (a+b)+(c+d) into a (a+b+c+d) and (a*b)*(c*d) into (a*b*c*d)."""
+    ufl_assert(isinstance(a, UFLObject), "Expecting an UFLObject.")
+    
+    if isinstance(a, Terminal):
+        return a
+    
+    myclass = a.__class__
+    operands = []
+    
+    if isinstance(a, (Sum, Product)):
+        for o in a.operands():
+            b = flatten(o)
+            if isinstance(b, myclass):
+                operands.extend(b.operands())
+            else:
+                operands.append(b)
+    else:
+        for o in a.operands():
+            b = flatten(o)
+            operands.append(b)
+    
+    return myclass(*operands)
+
+
 def flatten_form(a):
     """Flatten (a+b)+(c+d) into a (a+b+c+d) and (a*b)*(c*d) into (a*b*c*d).
     
@@ -155,15 +186,8 @@ def flatten_form(a):
     """
     ufl_assert(isinstance(a, Form), "Expecting a Form.")
     for itg in a.integrals():
-        vis = TreeFlattener()
-        itg._integrand = vis.visit(itg._integrand)
+        itg._integrand = flatten(itg._integrand)
     # deliberately not returning a, to make it clear that this is an in-place operation
-
-def flatten(a):
-    """Flatten (a+b)+(c+d) into a (a+b+c+d) and (a*b)*(c*d) into (a*b*c*d)."""
-    ufl_assert(isinstance(a, UFLObject), "Expecting an UFLObject.")
-    vis = TreeFlattener()
-    return vis.visit(a)
 
 def apply_summation(u):
     "Expand all repeated indices into explicit sums with fixed indices."
@@ -174,3 +198,7 @@ def discover_indices(u):
     "Convert explicit sums into implicit sums (repeated indices)."
     ufl_error("Not implemented")
     # FIXME: Implement (like FFCs 'simplify' done by Marie)
+
+
+
+
