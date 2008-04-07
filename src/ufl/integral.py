@@ -5,12 +5,11 @@ The Integral class.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-04-02"
+__date__ = "2008-03-14 -- 2008-04-03"
 
 
 from output import *
 from base import is_true_scalar
-
 from form import Form
 
 

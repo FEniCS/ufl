@@ -12,7 +12,7 @@ to all the utility algorithms that we want to expose.)
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-04-03"
+__date__ = "2008-03-14 -- 2008-04-07"
 
 from itertools import chain
 
@@ -104,6 +104,10 @@ def duplications(a):
             handled.add(o)
     return duplicated
 
+
+
+
+
 def integral_info(itg):
     s  = "  Integral over %s domain %d:\n" % (itg._domain_type, itg._domain_id)
     s += "    Integrand expression representation:\n"
@@ -146,7 +150,109 @@ def form_info(a):
         s += integral_info(itg)
     return s
 
-### Utilities to convert expression to a different form:
+
+
+
+### Utilities to transform expression in some way:
+
+def transform_integrands(a, transformation):
+    """Transform all integrands in a form with a transformation function.
+    
+    Example usage:
+      b = transform_integrands(a, flatten)
+    """
+    
+    ufl_assert(isinstance(a, Form), "Expecting a Form.")
+    
+    integrals = []
+    for itg in a.integrals():
+        integrand = transformation(itg._integrand)
+        newitg = Integral(itg._domain_type, itg._domain_id, integrand)
+        integrals.append(newitg)
+    
+    return Form(integrals)
+
+
+
+
+def transformation_template(a):
+    """Template function for transformations of expression tree."""
+    ufl_warning("This function isn't intended for production use, only testing and instruction.")
+    
+    # Terminal objects are usually replaced by something fixed:
+    if isinstance(a, Terminal):
+        if isinstance(a, Number):
+            return a
+        if isinstance(a, Symbol):
+            return a
+        if isinstance(a, Function):
+            return a
+        if isinstance(a, BasisFunction):
+            return a
+        if isinstance(a, FacetNormal):
+            return a
+        if isinstance(a, MeshSize):
+            return a
+        ufl_error("Missing handler for Terminal subclass %s in transformation_template." % str(a.__class__))
+    
+    # May or may not pass the variable "barrier":
+    if isinstance(a, Variable):
+        return a
+    
+    # Handle all operands first:
+    operands = []
+    for o in a.operands():
+        b = transformation_template(o)
+        operands.append(b)
+    
+    
+    
+    # FIXME: change to dictionary lookup for speed and easyer extensibility: 
+    #namespace = {
+    #    Sum:                 (lambda ops: sum(ops)),
+    #    Product:             (lambda ops: product(ops)),
+    #    PartialDerivative:   (lambda ops: PartialDerivative(*ops)),
+    #    }
+    #
+    #transform = namespace.get(type(a), None)
+    #ufl_assert(not transform is None, "Missing handler for non-terminal class %s in transformation_template." % str(type(a)))
+    #return transform(*operands)
+    
+    
+    # FIXME: add handlers for all UFLObject subclasses here
+    
+    
+    namespace = ufl
+    
+    # base.py:
+    if isinstance(a, Sum):
+        return sum(operands)
+    if isinstance(a, Product):
+        return product(operands)
+    if isinstance(a, PartialDerivative):
+        return namespace.partial_derivative(*operands)
+    
+    # tensoroperators.py:
+    if isinstance(a, Inner):
+        return namespace.inner(*operands)
+    if isinstance(a, Dot):
+        return namespace.dot(*operands)
+    
+    # diffoperators.py:
+    if isinstance(a, Grad):
+        return namespace.grad(*operands)
+    if isinstance(a, Div):
+        return namespace.div(*operands)
+    if isinstance(a, Curl):
+        return namespace.curl(*operands)
+    if isinstance(a, Rot):
+        return namespace.rot(*operands)
+    
+    ufl_error("Missing handler for non-terminal class %s in transformation_template." % str(a.__class__))
+    #return a.__class__(*operands)   
+
+
+
 
 def _strip_variables(a):
     "Auxilliary procedure for strip_variables."
@@ -192,6 +298,8 @@ def strip_variables2(a):
     return a.__class__(*operands)
 
 
+
+
 # using old visitor pattern, kept for illustration (for now):
 def __flatten(a):
     """Flatten (a+b)+(c+d) into a (a+b+c+d) and (a*b)*(c*d) into (a*b*c*d)."""
@@ -231,26 +339,108 @@ def flatten(a):
     
     return myclass(*operands)
 
-def flatten_form(a):
-    """Flatten (a+b)+(c+d) into a (a+b+c+d) and (a*b)*(c*d) into (a*b*c*d).
+
+
+
+
+def renumber_indices(a):
+    "Renumber indices in a contiguous count."
     
-    NB! This modifies the form a in-place.
+    ufl_warning("Not implemented!") # FIXME
+    
+    # 1) Get all indices
+    # 2) Define a index number mapping
+    # 3) Apply number map
+    
+    return a
+
+def renumber_basisfunctions(a):
+    "Renumber indices in a contiguous count."
+    
+    ufl_warning("Not implemented!") # FIXME
+    
+    # 1) Get all basisfunctions
+    # 2) Define a basisfunction number mapping
+    # 3) Apply number map
+    
+    return a
+
+def renumber_functions(a):
+    "Renumber indices in a contiguous count."
+    
+    ufl_warning("Not implemented!") # FIXME
+    
+    # 1) Get all functions
+    # 2) Define a function number mapping
+    # 3) Apply number map
+    
+    return a
+
+
+
+def criteria_not_argument(a):
+    return not isinstance(a, (Function, BasisFunction))
+
+def criteria_not_trial_function(a):
+    return not (isinstance(a, BasisFunction) and (a._count > 0 or a._count == -1))
+
+def criteria_not_basis_function(a):
+    return not isinstance(a, BasisFunction)
+
+def _detect_argument_dependencies(a, criteria):
+    """Detect edges in expression tree where subtrees
+    depend on different stages of form arguments.
+    A Variable object is inserted at each edge.
+    
+    Stage 0:  Subtrees that does not depend on any arguments.
+    Stage 1:  Subtrees that does not depend on any basisfunctions (i.e., that only depend on coefficients).
+    Stage 2:  Subtrees that does not depend on basisfunction 1 (i.e. trial function for a matrix)
+    Stage 3:  Subtrees that does not depend on basisfunction 0 (i.e. test function)
     """
-    ufl_assert(isinstance(a, Form), "Expecting a Form.")
-    for itg in a.integrals():
-        itg._integrand = flatten(itg._integrand)
-    # deliberately not returning a, to make it clear that this is an in-place operation
+    ufl_warning("NB! Assumes renumbered basisfunctions! FIXME: Implement basisfunction renumbering.")
+    
+    if isinstance(a, Terminal):
+        return a, criteria(a)
+    
+    operands = []
+    crit = []
+    for o in a.operands():
+        b, c = _detect_argument_dependencies(o, criteria)
+        operands.append(b)
+        crit.append(c)
+    
+    # FIXME: finish this
+    
+    if False:
+        return a   
+    return a.__class__(*operands)   
+
+
+
+def convert_diff_to_indices(u):
+    "Convert differential operator objects Grad, Div, Curl and Rot to their componentwise representations"
+    ufl_error("Not implemented") # FIXME: Implement
+    
+    return u
+
+
+def substitute_indices(u, indices, values):
+    "Substitute Index objects from list indices with corresponding fixed values from list values in expression u."
+    ufl_error("Not implemented") # FIXME: Implement
+    
+    return u
+
 
 def apply_summation(u):
     "Expand all repeated indices into explicit sums with fixed indices."
-    ufl_error("Not implemented")
-    # FIXME: Implement
+    ufl_error("Not implemented") # FIXME: Implement
+    
+    return u
+
 
 def discover_indices(u):
     "Convert explicit sums into implicit sums (repeated indices)."
-    ufl_error("Not implemented")
-    # FIXME: Implement (like FFCs 'simplify' done by Marie)
-
-
-
+    ufl_error("Not implemented") # FIXME: Implement (like FFCs 'simplify' done by Marie)
+    
+    return u
 
