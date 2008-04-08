@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 This module defines the UFL finite element classes.
 
@@ -9,7 +7,7 @@ new elements by calling the function register_element.
 """
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-03 -- 2008-04-01"
+__date__ = "2008-03-03 -- 2008-04-09"
 
 # FIXME: Should we use _private members?
 

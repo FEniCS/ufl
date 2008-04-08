@@ -1,9 +1,5 @@
-#!/usr/bin/env python
-
-"""
-This module contains the UFLObject base class and all expression
-types involved with built-in operators on any ufl object.
-"""
+"""This module defines the UFLObject base class and all expression
+types involved with built-in operators on any UFL object."""
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-04-02"
@@ -13,36 +9,27 @@ from itertools import chain
 from collections import defaultdict
 from output import *
 
-
-
-# ... Utility functions:
+#--- Helper functions ---
 
 def is_python_scalar(o):
     return isinstance(o, (int, float))
 
-def product(l):
-    return reduce(operator.__mul__, l)
-
-
-# ... Helper functions for tensor properties:
-
-def is_scalar_valued(o):
-    """Checks if an expression is scalar valued, possibly still with free indices. Returns True/False."""
+def is_scalar(o):
+    """Return True iff expression is scalar-valued, possibly containing free indices"""
     ufl_assert(isinstance(o, UFLObject), "Assuming an UFLObject.")
     return o.rank() == 0
 
 def is_true_scalar(o):
-    """Checks if an expression represents a single scalar value, with no free indices. Returns True/False."""
-    return is_scalar_valued(o) and len(o.free_indices()) == 0
-
+    """Return True iff expression a single scalar value, with no free indices"""
+    return is_scalar(o) and len(o.free_indices()) == 0
 
 class UFLObject(object):
     """Base class of all UFL objects"""
     
-    # Freeze member variables (there are none) of objects of this class.
+    # Freeze member variables (there are none) for objects of this class
     __slots__ = tuple()
     
-    # ... "Abstract" functions: Functions that subexpressions should implement.
+    #--- Abstract functions that must be implemented by subclasses ---
     
     # All UFL objects must implement operands
     def operands(self):
@@ -64,12 +51,12 @@ class UFLObject(object):
         """Return string representation of objects"""
         raise NotImplementedError(self.__class__.__repr__)
     
-    # All UFL objects should implement __str__
+    # All UFL objects must implement __str__
     def __str__(self):
         """Return pretty print string representation of objects"""
         raise NotImplementedError(self.__class__.__str__)
     
-    # ... Algebraic operators:
+    #--- Basic algebraic operators ---
     
     def __mul__(self, o):
         if is_python_scalar(o): o = Number(o)
@@ -136,24 +123,22 @@ class UFLObject(object):
     
     def __abs__(self):
         return Abs(self)
+
+    def __getitem__(self, key):
+        return Indexed(self, key)
     
     def _transpose(self):
         return Transpose(self)
     
     T = property(_transpose)
     
-    # ... Partial derivatives
+    #--- Differentiation ---
     
     def dx(self, i):
-        """Returns the partial derivative of this expression with respect to spatial variable number i."""
+        """Return the partial derivative with respect to spatial variable number i"""
         return PartialDerivative(self, i)
     
-    # ... Indexing a tensor, or relabeling the indices of a tensor
-    
-    def __getitem__(self, key):
-        return Indexed(self, key)
-    
-    # ... Support for inserting an UFLObject in dicts and sets:
+    #--- Special functions used for processing expressions ---
     
     def __hash__(self):
         return repr(self).__hash__()
@@ -161,10 +146,8 @@ class UFLObject(object):
     def __eq__(self, other): # alternative to above functions
         return repr(self) == repr(other)
     
-    # ... Searching for an UFLObject the subexpression tree:
-    
     def __contains__(self, item):
-        """Return wether item is in the UFL expression tree. If item is a str, it is assumed to be a repr."""
+        """Return whether item is in the UFL expression tree. If item is a str, it is assumed to be a repr."""
         if isinstance(item, UFLObject):
             if item is self:
                 return True
@@ -173,19 +156,16 @@ class UFLObject(object):
             return True
         return any((item in o) for o in self.operands())
 
-
-
-### Basic terminal objects
+#--- Basic terminal objects ---
 
 class Terminal(UFLObject):
     """A terminal node in the expression tree."""
-    
-    # Freeze member variables (there are none) of objects of this class.
+
+    # Freeze member variables (there are none) for objects of this class
     __slots__ = tuple()
     
     def operands(self):
         return tuple()
-
 
 class Number(Terminal):
     __slots__ = ("_value",)
@@ -205,7 +185,6 @@ class Number(Terminal):
     def __repr__(self):
         return "Number(%s)" % repr(self._value)
 
-
 class Symbol(Terminal):
     __slots__ = tuple("_name")
     
@@ -223,7 +202,6 @@ class Symbol(Terminal):
     
     def __repr__(self):
         return "Symbol(%s)" % repr(self._name)
-
 
 # TODO: Should we allow a single Variable to represent a tensor expression?
 class Variable(UFLObject):
@@ -250,9 +228,7 @@ class Variable(UFLObject):
     def __repr__(self):
         return "Variable(%s, %s)" % (repr(self._symbol), repr(self._expression))
 
-
-
-### Indexing
+#--- Indexing ---
 
 class Index(Terminal):
     __slots__ = ("_name", "_count")
@@ -279,7 +255,6 @@ class Index(Terminal):
     
     def __repr__(self):
         return "Index(%s, %d)" % (repr(self._name), self._count)
-
 
 class FixedIndex(Terminal):
     __slots__ = ("_value",)
@@ -492,9 +467,6 @@ class PartialDerivative(UFLObject):
     
     def __repr__(self):
         return "PartialDerivative(%s, %s)" % (repr(self._expression), repr(self._index))
-
-def Dx(f, i):
-    return f.dx(i)
 
 # FIXME: this is just like PartialDiff, should have
 #        the exact same behaviour or even be the same class.
@@ -721,7 +693,3 @@ class Abs(UFLObject):
     
     def __repr__(self):
         return "Abs(%s)" % repr(self._a)
-    
-
-
-
