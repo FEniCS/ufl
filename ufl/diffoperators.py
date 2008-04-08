@@ -10,7 +10,6 @@ __date__ = "2008-03-14 -- 2008-04-01"
 from output import *
 from base import *
 
-
 # objects representing the differential operations:
 
 class DifferentialOperator(UFLObject):
@@ -136,4 +135,3 @@ def rot(f):
 # TODO: What about time derivatives? Can we do something there?
 #def Dt(f):
 #    return Diff(f, t)
-

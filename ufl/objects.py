@@ -10,6 +10,7 @@ __date__ = "2008-03-14 -- 2008-04-01"
 from base import *
 from integral import *
 from geometry import *
+from indexing import Index
 import math
 
 

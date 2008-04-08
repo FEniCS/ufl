@@ -61,4 +61,3 @@ def rhs(form):
 
 def lhs(form):
     return Lhs(form)
-
