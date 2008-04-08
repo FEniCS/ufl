@@ -124,13 +124,15 @@ class UFLObject(object):
     def __abs__(self):
         return Abs(self)
 
-    def __getitem__(self, key):
-        return Indexed(self, key)
-    
     def _transpose(self):
         return Transpose(self)
     
     T = property(_transpose)
+
+    #--- Indexing ---
+
+    def __getitem__(self, key):
+        return Indexed(self, key)
     
     #--- Differentiation ---
     
@@ -227,6 +229,193 @@ class Variable(UFLObject):
     
     def __repr__(self):
         return "Variable(%s, %s)" % (repr(self._symbol), repr(self._expression))
+
+#--- Algebraic operators ---
+
+class Transpose(UFLObject):
+    __slots__ = ("A",)
+    
+    def __init__(self, A):
+        ufl_assert(A.rank() == 2, "Transpose is only defined for rank 2 tensors.")
+        self._A = A
+    
+    def operands(self):
+        return (self._A,)
+    
+    def free_indices(self):
+        return self._A.free_indices()
+    
+    def rank(self):
+        return 2
+    
+    def __str__(self):
+        return "(%s)^T" % str(self._A)
+    
+    def __repr__(self):
+        return "Transpose(%s)" % repr(self._A)
+
+class Product(UFLObject):
+    __slots__ = ("_operands", "_rank", "_free_indices", "_repeated_indices")
+    
+    def __init__(self, *operands):
+        self._operands = tuple(operands)
+       
+        # analyzing free indices
+        all_indices = tuple(chain(*(o.free_indices() for o in operands)))
+        (fixed_indices, free_indices, repeated_indices, num_unassigned_indices) = analyze_indices(all_indices)
+        self._free_indices       = free_indices
+        self._repeated_indices   = repeated_indices
+
+        # Try to determine rank of this sequence of
+        # products with possibly varying ranks of each operand.
+        # Products currently defined as valid are:
+        # - something multiplied with a scalar
+        # - a scalar multiplied with something
+        # - matrix-matrix (A*B, M*grad(u))
+        # - matrix-vector (A*v)
+        current_rank = operands[0].rank()
+        for o in operands[1:]:
+            if current_rank == 0 or o.rank() == 0:
+                # at least one scalar
+                current_rank = current_rank + o.rank()
+            elif current_rank == 2 and o.rank() == 2:
+                # matrix-matrix product
+                current_rank = 2
+            elif current_rank == 2 and o.rank() == 1:
+                # matrix-vector product
+                current_rank = 1
+            else:
+                ufl_error("Invalid combination of tensor ranks in product.")
+        
+        self._rank = current_rank
+    
+    def operands(self):
+        return self._operands
+    
+    def free_indices(self):
+        return self._free_indices
+    
+    def rank(self):
+        return self._rank
+    
+    def __str__(self):
+        return "(%s)" % " * ".join(str(o) for o in self._operands)
+    
+    def __repr__(self):
+        return "(%s)" % " * ".join(repr(o) for o in self._operands)
+
+class Sum(UFLObject):
+    __slots__ = ("_operands",)
+    
+    def __init__(self, *operands):
+        ufl_assert(all(operands[0].rank()         == o.rank()         for o in operands), "Rank mismatch in sum.")
+        ufl_assert(all(operands[0].free_indices() == o.free_indices() for o in operands), "Can't add expressions with different free indices.")
+        self._operands = tuple(operands)
+    
+    def operands(self):
+        return self._operands
+    
+    def free_indices(self):
+        return self._operands[0].free_indices()
+    
+    def rank(self):
+        return self._operands[0].rank()
+    
+    def __str__(self):
+        return "(%s)" % " + ".join(str(o) for o in self._operands)
+    
+    def __repr__(self):
+        return "(%s)" % " + ".join(repr(o) for o in self._operands)
+
+class Division(UFLObject):
+    __slots__ = ("_a", "_b")
+    
+    def __init__(self, a, b):
+        ufl_assert(is_true_scalar(b), "Division by non-scalar.")
+        self._a = a
+        self._b = b
+    
+    def operands(self):
+        return (self._a, self._b)
+    
+    def free_indices(self):
+        return self._a.free_indices()
+    
+    def rank(self):
+        return self._a.rank()
+    
+    def __str__(self):
+        return "(%s / %s)" % (str(self._a), str(self._b))
+    
+    def __repr__(self):
+        return "(%s / %s)" % (repr(self._a), repr(self._b))
+
+class Power(UFLObject):
+    __slots__ = ("_a", "_b")
+    
+    def __init__(self, a, b):
+        ufl_assert(is_true_scalar(a) and is_true_scalar(b), "Non-scalar power not defined.")
+        self._a = a
+        self._b = b
+    
+    def operands(self):
+        return (self._a, self._b)
+    
+    def free_indices(self):
+        return tuple()
+    
+    def rank(self):
+        return 0
+    
+    def __str__(self):
+        return "(%s ** %s)" % (str(self._a), str(self._b))
+    
+    def __repr__(self):
+        return "(%s ** %s)" % (repr(self._a), repr(self._b))
+    
+class Mod(UFLObject):
+    __slots__ = ("_a", "_b")
+    
+    def __init__(self, a, b):
+        ufl_assert(is_true_scalar(a) and is_true_scalar(b), "Non-scalar mod not defined.")
+        self._a = a
+        self._b = b
+    
+    def operands(self):
+        return (self._a, self._b)
+    
+    def free_indices(self):
+        return tuple()
+    
+    def rank(self):
+        return 0
+    
+    def __str__(self):
+        return "(%s %% %s)" % (str(self._a), str(self._b))
+    
+    def __repr__(self):
+        return "(%s %% %s)" % (repr(self._a), repr(self._b))
+
+class Abs(UFLObject):
+    __slots__ = ("_a",)
+    
+    def __init__(self, a):
+        self._a = a
+    
+    def operands(self):
+        return (self._a, )
+    
+    def free_indices(self):
+        return self._a.free_indices()
+    
+    def rank(self):
+        return self._a.rank()
+    
+    def __str__(self):
+        return "| %s |" % str(self._a)
+    
+    def __repr__(self):
+        return "Abs(%s)" % repr(self._a)
 
 #--- Indexing ---
 
@@ -369,7 +558,6 @@ def analyze_indices(indices):
     
     return (fixed_indices, free_indices, repeated_indices, num_unassigned_indices)
 
-
 class MultiIndex(UFLObject):
     __slots__ = ("_indices",)
     
@@ -393,7 +581,6 @@ class MultiIndex(UFLObject):
 
     def __len__(self):
         return len(self._indices)
-
 
 class Indexed(UFLObject):
     __slots__ = ("_expression", "_indices", "_fixed_indices", "_free_indices", "_repeated_indices", "_rank")
@@ -434,8 +621,7 @@ class Indexed(UFLObject):
     def __getitem__(self, key):
         ufl_error("Object is already indexed: %s" % repr(self))
 
-
-### Derivatives
+#--- Differentiation ---
 
 class PartialDerivative(UFLObject):
     "Partial derivative of an expression w.r.t. a spatial direction given by an index."
@@ -468,6 +654,8 @@ class PartialDerivative(UFLObject):
     def __repr__(self):
         return "PartialDerivative(%s, %s)" % (repr(self._expression), repr(self._index))
 
+# FIXME: Anders: Can't we just remove this?
+
 # FIXME: this is just like PartialDiff, should have
 #        the exact same behaviour or even be the same class.
 class Diff(UFLObject):
@@ -499,197 +687,3 @@ class Diff(UFLObject):
 
 def diff(f, x):
     return Diff(f, x)
-
-
-### Algebraic operators
-
-class Transpose(UFLObject):
-    __slots__ = ("A",)
-    
-    def __init__(self, A):
-        ufl_assert(A.rank() == 2, "Transpose is only defined for rank 2 tensors.")
-        self._A = A
-    
-    def operands(self):
-        return (self._A,)
-    
-    def free_indices(self):
-        return self._A.free_indices()
-    
-    def rank(self):
-        return 2
-    
-    def __str__(self):
-        return "(%s)^T" % str(self._A)
-    
-    def __repr__(self):
-        return "Transpose(%s)" % repr(self._A)
-
-
-class Product(UFLObject):
-    __slots__ = ("_operands", "_rank", "_free_indices", "_repeated_indices")
-    
-    def __init__(self, *operands):
-        self._operands = tuple(operands)
-       
-        # analyzing free indices
-        all_indices = tuple(chain(*(o.free_indices() for o in operands)))
-        (fixed_indices, free_indices, repeated_indices, num_unassigned_indices) = analyze_indices(all_indices)
-        self._free_indices       = free_indices
-        self._repeated_indices   = repeated_indices
-
-        # Try to determine rank of this sequence of
-        # products with possibly varying ranks of each operand.
-        # Products currently defined as valid are:
-        # - something multiplied with a scalar
-        # - a scalar multiplied with something
-        # - matrix-matrix (A*B, M*grad(u))
-        # - matrix-vector (A*v)
-        current_rank = operands[0].rank()
-        for o in operands[1:]:
-            if current_rank == 0 or o.rank() == 0:
-                # at least one scalar
-                current_rank = current_rank + o.rank()
-            elif current_rank == 2 and o.rank() == 2:
-                # matrix-matrix product
-                current_rank = 2
-            elif current_rank == 2 and o.rank() == 1:
-                # matrix-vector product
-                current_rank = 1
-            else:
-                ufl_error("Invalid combination of tensor ranks in product.")
-        
-        self._rank = current_rank
-    
-    def operands(self):
-        return self._operands
-    
-    def free_indices(self):
-        return self._free_indices
-    
-    def rank(self):
-        return self._rank
-    
-    def __str__(self):
-        return "(%s)" % " * ".join(str(o) for o in self._operands)
-    
-    def __repr__(self):
-        return "(%s)" % " * ".join(repr(o) for o in self._operands)
-
-
-class Sum(UFLObject):
-    __slots__ = ("_operands",)
-    
-    def __init__(self, *operands):
-        ufl_assert(all(operands[0].rank()         == o.rank()         for o in operands), "Rank mismatch in sum.")
-        ufl_assert(all(operands[0].free_indices() == o.free_indices() for o in operands), "Can't add expressions with different free indices.")
-        self._operands = tuple(operands)
-    
-    def operands(self):
-        return self._operands
-    
-    def free_indices(self):
-        return self._operands[0].free_indices()
-    
-    def rank(self):
-        return self._operands[0].rank()
-    
-    def __str__(self):
-        return "(%s)" % " + ".join(str(o) for o in self._operands)
-    
-    def __repr__(self):
-        return "(%s)" % " + ".join(repr(o) for o in self._operands)
-
-
-class Division(UFLObject):
-    __slots__ = ("_a", "_b")
-    
-    def __init__(self, a, b):
-        ufl_assert(is_true_scalar(b), "Division by non-scalar.")
-        self._a = a
-        self._b = b
-    
-    def operands(self):
-        return (self._a, self._b)
-    
-    def free_indices(self):
-        return self._a.free_indices()
-    
-    def rank(self):
-        return self._a.rank()
-    
-    def __str__(self):
-        return "(%s / %s)" % (str(self._a), str(self._b))
-    
-    def __repr__(self):
-        return "(%s / %s)" % (repr(self._a), repr(self._b))
-
-
-class Power(UFLObject):
-    __slots__ = ("_a", "_b")
-    
-    def __init__(self, a, b):
-        ufl_assert(is_true_scalar(a) and is_true_scalar(b), "Non-scalar power not defined.")
-        self._a = a
-        self._b = b
-    
-    def operands(self):
-        return (self._a, self._b)
-    
-    def free_indices(self):
-        return tuple()
-    
-    def rank(self):
-        return 0
-    
-    def __str__(self):
-        return "(%s ** %s)" % (str(self._a), str(self._b))
-    
-    def __repr__(self):
-        return "(%s ** %s)" % (repr(self._a), repr(self._b))
-    
-
-class Mod(UFLObject):
-    __slots__ = ("_a", "_b")
-    
-    def __init__(self, a, b):
-        ufl_assert(is_true_scalar(a) and is_true_scalar(b), "Non-scalar mod not defined.")
-        self._a = a
-        self._b = b
-    
-    def operands(self):
-        return (self._a, self._b)
-    
-    def free_indices(self):
-        return tuple()
-    
-    def rank(self):
-        return 0
-    
-    def __str__(self):
-        return "(%s %% %s)" % (str(self._a), str(self._b))
-    
-    def __repr__(self):
-        return "(%s %% %s)" % (repr(self._a), repr(self._b))
-
-
-class Abs(UFLObject):
-    __slots__ = ("_a",)
-    
-    def __init__(self, a):
-        self._a = a
-    
-    def operands(self):
-        return (self._a, )
-    
-    def free_indices(self):
-        return self._a.free_indices()
-    
-    def rank(self):
-        return self._a.rank()
-    
-    def __str__(self):
-        return "| %s |" % str(self._a)
-    
-    def __repr__(self):
-        return "Abs(%s)" % repr(self._a)
