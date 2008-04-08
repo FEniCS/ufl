@@ -11,6 +11,8 @@ new elements by calling the function register_element.
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __date__ = "2008-03-03 -- 2008-04-01"
 
+# FIXME: Should we use _private members?
+
 from output import *
 
 import operator
@@ -42,7 +44,6 @@ register_element("Nedelec 1st kind H(div)",      "N1div",  1, (0, None),    ("tr
 register_element("Nedelec 2nd kind H(div)",      "N2div",  1, (1, None),    ("triangle", "tetrahedron"))
 register_element("Nedelec 1st kind H(curl)",     "N1curl", 1, (0, None),    ("triangle", "tetrahedron"))
 register_element("Nedelec 2nd kind H(curl)",     "N2curl", 1, (1, None),    ("triangle", "tetrahedron"))
-# FIXME: is this ok? Don't need QuadratureElement.
 register_element("Quadrature",                   "Q",      0, (None, None), ("interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
 # FIXME: functions evaluated on the boundary can't use quadrature points from the inside of the cell,
 #        therefore we need to have a separate space for functions evaluated in quadrature points on the boundary:
@@ -73,12 +74,6 @@ class FiniteElement(FiniteElementBase):
         self.family = family
         self.domain = domain
         self.degree = degree
-
-        # FIXME:
-        # Anders: Do we need to store this?
-        # Martin: We don't _need_ to, but I don't see why not.
-        #         It's infinitely better than depending on the
-        #         structure of ufl_elements other places in the code.
         self._value_rank = value_rank
 
     def value_rank(self):
