@@ -110,28 +110,3 @@ class Rot(DifferentialOperator):
     
     def __repr__(self):
         return "Rot(%s)" % repr(self.f)
-
-
-# functions exposed to the user:
-
-def diff(f, x):
-    return Diff(f, x)
-
-def Dx(f, i):
-    return Diff(f, x[i]) # TODO: define x[] as symbols somewhere?
-
-def grad(f):
-    return Grad(f)
-
-def div(f):
-    return Div(f)
-
-def curl(f):
-    return Curl(f)
-
-def rot(f):
-    return Rot(f)
-
-# TODO: What about time derivatives? Can we do something there?
-#def Dt(f):
-#    return Diff(f, t)

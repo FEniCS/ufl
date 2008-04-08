@@ -465,6 +465,8 @@ class Indexed(UFLObject):
 
 #--- Differentiation ---
 
+# FIXME: Add SpatialDerivative and TimeDerivative?
+
 class PartialDerivative(UFLObject):
     "Partial derivative of an expression w.r.t. a spatial direction given by an index."
     

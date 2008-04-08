@@ -263,33 +263,3 @@ class Cofactor(UFLObject):
     
     def __repr__(self):
         return "Cofactor(%s)" % repr(self.A)
-
-
-# functions exposed to the user:
-
-def outer(a, b):
-    return Outer(a, b)
-
-def inner(a, b):
-    return Inner(a, b)
-
-def dot(a, b):
-    return Dot(a, b)
-
-def cross(a, b):
-    return Cross(a, b)
-
-def det(f):
-    return Determinant(f)
-
-def inv(f):
-    return Inverse(f)
-
-def tr(f):
-    return Trace(f)
-
-def dev(A):
-    return Deviatoric(A)
-
-def cofac(A):
-    return Cofactor(A)

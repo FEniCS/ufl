@@ -28,11 +28,8 @@ from basisfunctions import *
 # "container" classes for expressions with value rank > 0
 from tensors import *
 
-# compound tensoralgebra operations (dot, trace, etc)
-from tensoroperators import *
-
-# differential operators (div, grad, curl etc)
-from diffoperators import *
+# operators
+from operators import *
 
 # mathematical functions (sin, cos, exp, ln etc.)
 from mathfunctions import *
