@@ -12,7 +12,7 @@ from indexing import Index, MultiIndex, extract_indices
 
 # FIXME: Move all differentiation to differentiation.py
 # FIXME: Move all indexing to indexing.py
-# FIXMEL Move all operators to operators.py
+# FIXME: Move all operators to operators.py
 
 #--- Helper functions ---
 
