@@ -127,7 +127,7 @@ class FFC(unittest.TestCase):
 
         w = Function(element)
 
-        a = v[i]*w[j]*Dx(u[i], j)*dx
+        a = v[i]*w[j]*D(u[i], j)*dx
 
     def testNeumannProblem(self):
 
