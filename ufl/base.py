@@ -401,7 +401,7 @@ class Abs(UFLObject):
         return "Abs(%s)" % repr(self._a)
 
 class Transpose(UFLObject):
-    __slots__ = ("A",)
+    __slots__ = ("_A",)
     
     def __init__(self, A):
         ufl_assert(A.rank() == 2, "Transpose is only defined for rank 2 tensors.")
