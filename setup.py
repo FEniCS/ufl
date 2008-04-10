@@ -24,10 +24,10 @@ file.close()
 setup(name = "UFL",
       version = "%d.%d" % (major, minor),
       description = "Unified Form Language",
-      author = "Martin Sandve Alnaes, Hans Petter Langtangen, Anders Logg, Kent-Andre Mardal and Ola Skavhaug",
+      author = "Martin Sandve Alnaes, Anders Logg",
       author_email = "ufl-dev@fenics.org",
       url = "http://www.fenics.org/ufl/",
       packages = ["ufl"],
-      package_dir = {"ufl": "src/ufl/"},
-      data_files = [("%s/lib/pkgconfig" % prefix, ["ufl-%d.pc" % major])])
+      package_dir = {"ufl": "ufl/"},
+      data_files = [("lib/pkgconfig", ["ufl-%d.pc" % major])])
 
