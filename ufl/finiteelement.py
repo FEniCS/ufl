@@ -80,7 +80,7 @@ class MixedElement(FiniteElementBase):
 
     def __str__(self):
         "Pretty printing"
-        return "Mixed element: [" + ",".join(str(element) for element in self._elements) + "]"
+        return "Mixed element: [" + ", ".join(str(element) for element in self._elements) + "]"
 
 class VectorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal"
@@ -130,7 +130,8 @@ class TensorElement(MixedElement):
         sub_element = FiniteElement(family, domain, degree)
         MixedElement.__init__(self, *[sub_element for i in range(product(shape))])
 
-        #print MixedElement(sub_element, sub_element)
+        print MixedElement(sub_element, sub_element)
+
         #for dim in shape:
         #    print dim
         #    sub_element = MixedElement(*[sub_element for i in range(dim)])
