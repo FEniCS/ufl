@@ -19,8 +19,11 @@ from integral import *
 # representations of transformed forms
 from formoperators import *
 
-# finite elements
-from elements import *
+# finite elements classes
+from finiteelement import *
+
+# predefined element families
+from elements import ufl_elements, register_element
 
 # basisfunctions and coefficients
 from basisfunctions import *

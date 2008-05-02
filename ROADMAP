@@ -65,3 +65,29 @@ register_element("Boundary Quadrature",          "BQ",     0, (None, None), ("in
 
 - Make all tests pass for all form compiler configurations!
 
+* Notes by Anders (trying to make sense of the implementation)
+
+  all.py
+  differentiation.py
+  geometry.py
+  mathfunctions.py
+  predicates.py
+  transformers.py
+  base.py
+  elements.py
+  indexing.py
+  objects.py
+  swiginac_code.py
+  traversal.py
+  basisfunctions.py
+  formoperators.py
+  __init__.py
+  operators.py
+  tensoralgebra.py
+  utilities.py
+  checks.py
+  form.py
+  integral.py
+  output.py
+  tensors.py
+  visitor.py

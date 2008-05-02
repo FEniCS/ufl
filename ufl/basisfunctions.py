@@ -10,7 +10,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-04-02"
 
 from base import *
-from elements import *
+from finiteelement import FiniteElement, MixedElement, VectorElement
 
 class BasisFunction(Terminal):
     __slots__ = ("_element", "_count",)
