@@ -1,6 +1,6 @@
-"""UFL provides an extensive list of predefined finite element
-families. Users (or more likely form compilers) may register new
-elements by calling the function register_element."""
+"""This module provides an extensive list of predefined finite
+element families. Users (or more likely form compilers) may
+register new elements by calling the function register_element."""
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __date__ = "2008-03-03 -- 2008-05-02"
@@ -47,6 +47,8 @@ register_element("Nedelec 1st kind H(curl)", "N1curl", 1, (0, None),
 
 register_element("Nedelec 2nd kind H(curl)", "N2curl", 1, (1, None),
                  ("triangle", "tetrahedron"))
+
+# FIXME: What should the degree range be for quadrature elements?
 
 register_element("Quadrature", "Q", 0, (None, None),
                  ("interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
