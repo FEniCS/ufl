@@ -71,16 +71,30 @@ class MixedElement(FiniteElementBase):
 
     def __init__(self, *elements):
         "Create mixed finite element from given list of elements"
-        ufl_assert(all(e.domain() == elements[0].domain() for e in elements), "Domain mismatch for mixed element.")
-        self._elements = elements
+
+        # Unnest arguments if we get a single argument with a list of elements
+        if len(elements) == 1 and (isinstance(elements[0], tuple) or isinstance(elements[0], list)):
+            elements = elements[0]
+
+        # Check that all elements are defined on the same domain
+        domain = elements[0].domain()
+        ufl_assert(all(e.domain() == domain for e in elements), "Domain mismatch for mixed element.")
+
+        # Initialize element data
+        FiniteElementBase.__init__(self, "Mixed", domain, None, len(elements))
+        self._sub_elements = list(elements)
+
+    def sub_elements(self):
+        "Return list of sub elements"
+        return self._sub_elements
 
     def __repr__(self):
         "Return string representation"
-        return "MixedElement(*%s)" % repr(self._elements)
+        return "MixedElement(*%s)" % repr(self._sub_elements)
 
     def __str__(self):
         "Pretty printing"
-        return "Mixed element: [" + ", ".join(str(element) for element in self._elements) + "]"
+        return "Mixed element: [" + ", ".join(str(element) for element in self._sub_elements) + "]"
 
 class VectorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal"
@@ -94,10 +108,12 @@ class VectorElement(MixedElement):
 
         # Create mixed element from list of finite elements
         sub_element = FiniteElement(family, domain, degree)
-        MixedElement.__init__(self, *[sub_element for i in range(dim)])
+        sub_elements = [sub_element for i in range(dim)]
 
         # Initialize element data
-        FiniteElementBase.__init__(self, family, domain, degree, sub_element.value_rank() + 1)
+        MixedElement.__init__(self, sub_elements)
+        self._degree = degree
+        self._value_rank = 1 + sub_element.value_rank()
         self._dim = dim
 
     def dim(self):
@@ -128,20 +144,14 @@ class TensorElement(MixedElement):
 
         # Create nested mixed element recursively
         sub_element = FiniteElement(family, domain, degree)
-        MixedElement.__init__(self, *[sub_element for i in range(product(shape))])
-
-        print MixedElement(sub_element, sub_element)
-
-        #for dim in shape:
-        #    print dim
-        #    sub_element = MixedElement(*[sub_element for i in range(dim)])
-        #print shape
-        
-        if sub_element.value_rank() != 0:
-            ufl_warning("Creating a tensor element of nonscalar elements, this is not tested (if it even makes sense).")
+        value_rank = sub_element.value_rank()
+        for dim in shape:
+            sub_element = MixedElement([sub_element for i in range(dim)])
 
         # Initialize element data
-        FiniteElementBase.__init__(self, family, domain, degree, sub_element.value_rank() + len(shape))
+        MixedElement.__init__(self, sub_element.sub_elements())
+        self._degree = degree
+        self._value_rank = len(shape) + value_rank
         self._shape = shape
         self._is_symmetric = is_symmetric
 
@@ -158,4 +168,8 @@ class TensorElement(MixedElement):
 
     def __str__(self):
         "Pretty printing"
+        print self.family()
+        print self.degree()
+        print self.shape()
+        print self.domain()
         return "%s tensor element of degree %d and shape %s on a %s" % (self.family(), self.degree(), str(self.shape()), self.domain())

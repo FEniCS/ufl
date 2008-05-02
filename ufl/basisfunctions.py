@@ -50,19 +50,19 @@ def BasisFunctions(element):
     ufl_warning("BasisFunctions isn't properly implemented.")
     if not isinstance(element, MixedElement):
         raise UFLException("Expecting MixedElement instance.")
-    return tuple(BasisFunction(e) for e in element._elements) # FIXME: problem with count!
+    return tuple(BasisFunction(e) for e in element.sub_elements()) # FIXME: problem with count!
 
 def TestFunctions(element):
     ufl_warning("BasisFunctions isn't properly implemented.")
     if not isinstance(element, MixedElement):
         raise UFLException("Expecting MixedElement instance.")
-    return tuple(TestFunction(e) for e in element._elements) # FIXME: problem with count!
+    return tuple(TestFunction(e) for e in element.sub_elements()) # FIXME: problem with count!
 
 def TrialFunctions(element):
     ufl_warning("BasisFunctions isn't properly implemented.")
     if not isinstance(element, MixedElement):
         raise UFLException("Expecting MixedElement instance.")
-    return tuple(TrialFunction(e) for e in element._elements) # FIXME: problem with count!
+    return tuple(TrialFunction(e) for e in element.sub_elements()) # FIXME: problem with count!
 
 
 class Function(Terminal):
