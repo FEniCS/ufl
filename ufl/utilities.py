@@ -12,7 +12,7 @@ to all the utility algorithms that we want to expose.)
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-04-07"
+__date__ = "2008-03-14 -- 2008-05-09"
 
 from itertools import chain
 
@@ -21,6 +21,39 @@ from visitor import *
 from transformers import *
 from traversal import *
 
+### Utilities to deal with form files
+
+def load_forms(filename):
+    # Read form file
+    code = "from ufl import *\n"
+    code += "\n".join(file(filename).readlines())
+    namespace = {}
+    try:
+        exec(code, namespace)
+    except:
+        tmpname = "ufl_analyse_tmp_form"
+        tmpfile = tmpname + ".py"
+        f = file(tmpfile, "w")
+        f.write(code)
+        f.close()
+        ufl_message("""\
+An exception occured during evaluation of form file.
+To find the location of the error, a temporary script
+'%s' has been created and will now be run:""" % tmpfile)
+        m = __import__(tmpname)
+        ufl_error("Aborting load_forms.")
+    
+    # Extract Form objects
+    forms = []
+    for k,v in namespace.iteritems():
+        if isinstance(v, Form):
+            forms.append((k,v))
+    
+    return forms
+
+def analyse_form(f): # TODO: Analyse validity of forms any way we can
+    errors = None
+    return errors
 
 ### Utilities to extract information from an expression:
 

@@ -2,6 +2,7 @@
 
 import sys
 import ufl
+import ufl.utilities
 
 # Get commandline options
 if len(sys.argv) != 2:
@@ -9,47 +10,14 @@ if len(sys.argv) != 2:
     sys.exit(-1)
 filename = sys.argv[1]
 
-# TODO: Move this to ufl.utilities
-def load_forms(filename):
-    # Read form file
-    code = "from ufl import *\n" + "\n".join(file(filename).readlines())
-    namespace = {}
-    try:
-        exec(code, namespace)
-    except:
-        tmpname = "ufl_analyse_tmp_form"
-        tmpfile = tmpname + ".py"
-        f = file(tmpfile, "w")
-        f.write(code)
-        f.close()
-        print
-        print "An exception occured during evaluation of form file."
-        print "To find the location of the error, a temporary script"
-        print "'%s' has been created and will now be run."
-        print
-        m = __import__(tmpname)
-        sys.exit(-1)
-    
-    # Extract ufl.Form objects
-    forms = []
-    for k,v in namespace.iteritems():
-        if isinstance(v, ufl.Form):
-            forms.append((k,v))
-    
-    return forms
-
-# TODO: Analyse validity of forms, put in ufl.utilities
-def analyse_form(f):
-    errors = None
-    return errors
-
-# Load forms from file
+# Load form file, which triggers many consistency
+# checks while the form is being built
 print "Loading form file '%s'" % filename
-forms = load_forms(filename)
+forms = ufl.utilities.load_forms(filename)
 
 # Analyse validity of forms
 for k,v in forms:
-    errors = analyse_form(v)
+    errors = ufl.utilities.analyse_form(v)
     print
     if errors:
         print "Found errors in form '%s':" % k
@@ -57,17 +25,18 @@ for k,v in forms:
     else:
         print "Found no errors in form '%s'." % k
 
-# Print information about forms
-for k,v in forms:
-    # TODO: Extract information about forms
-    rank = "TODO"
-    num_coefficients = "TODO"
-    elements = []
-    basisfunctions = []
-    coefficients = []
+# Print information about all forms
+for name, form in forms:
+    # Extract information about forms
+    basisfunctions = ufl.utilities.basisfunctions(form)
+    coefficients = ufl.utilities.coefficients(form)
+    elements = ufl.utilities.unique_elements(form)
+    rank = len(basisfunctions)
+    num_coefficients = len(coefficients)
     
+    # Pretty-print form information
     print
-    print "Form: '%s'" % k
+    print "Form: '%s'" % name
     print "Rank:", rank
     print "Number of coefficients:", num_coefficients
     print "Elements used:"
@@ -79,6 +48,8 @@ for k,v in forms:
     print "Coefficients:"
     for w in coefficients:
         print repr(w)
+    print "Form representation:"
+    print repr(form)
 
 print
 
