@@ -1,11 +1,9 @@
 
-element = FiniteElement("Lagrange", "triangle", 1)
+element = VectorElement("Lagrange", "triangle", 1)
 
 u = TrialFunction(element)
 v = TestFunction(element)
 w = Function(element)
 
-Du = grad(u)
-Dw = grad(w)
-a = dot(dot(u, Dw) + dot(w, Du), v) * dx
+b = dot(dot(u, grad(w)) + dot(w, grad(u)), v) * dx
 

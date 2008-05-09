@@ -1,0 +1,84 @@
+#!/usr/bin/env python
+
+import sys
+import ufl
+
+# Get commandline options
+if len(sys.argv) != 2:
+    print "Expecting a single argument, the form file name."
+    sys.exit(-1)
+filename = sys.argv[1]
+
+# TODO: Move this to ufl.utilities
+def load_forms(filename):
+    # Read form file
+    code = "from ufl import *\n" + "\n".join(file(filename).readlines())
+    namespace = {}
+    try:
+        exec(code, namespace)
+    except:
+        tmpname = "ufl_analyse_tmp_form"
+        tmpfile = tmpname + ".py"
+        f = file(tmpfile, "w")
+        f.write(code)
+        f.close()
+        print
+        print "An exception occured during evaluation of form file."
+        print "To find the location of the error, a temporary script"
+        print "'%s' has been created and will now be run."
+        print
+        m = __import__(tmpname)
+        sys.exit(-1)
+    
+    # Extract ufl.Form objects
+    forms = []
+    for k,v in namespace.iteritems():
+        if isinstance(v, ufl.Form):
+            forms.append((k,v))
+    
+    return forms
+
+# TODO: Analyse validity of forms, put in ufl.utilities
+def analyse_form(f):
+    errors = None
+    return errors
+
+# Load forms from file
+print "Loading form file '%s'" % filename
+forms = load_forms(filename)
+
+# Analyse validity of forms
+for k,v in forms:
+    errors = analyse_form(v)
+    print
+    if errors:
+        print "Found errors in form '%s':" % k
+        print errors
+    else:
+        print "Found no errors in form '%s'." % k
+
+# Print information about forms
+for k,v in forms:
+    # TODO: Extract information about forms
+    rank = "TODO"
+    num_coefficients = "TODO"
+    elements = []
+    basisfunctions = []
+    coefficients = []
+    
+    print
+    print "Form: '%s'" % k
+    print "Rank:", rank
+    print "Number of coefficients:", num_coefficients
+    print "Elements used:"
+    for e in elements:
+        print repr(e)
+    print "Basisfunctions:"
+    for v in basisfunctions:
+        print repr(v)
+    print "Coefficients:"
+    for w in coefficients:
+        print repr(w)
+
+print
+
