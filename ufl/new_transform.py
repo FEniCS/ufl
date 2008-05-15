@@ -96,7 +96,7 @@ def latex_handlers():
         def particular_l_binop(x, a, b):
             return ("{%s}" % a) + opstring + ("{%s}" % b)
         return particular_l_binop
-    #d[Variable]  = Variable
+    #d[Variable]  = Variable # TODO
     d[Sum]       = l_sum
     d[Product]   = l_product
     d[Division]  = lambda x, a, b: r"\frac{%s}{%s}" % (a, b)
@@ -104,17 +104,17 @@ def latex_handlers():
     d[Mod]       = l_binop("\\mod") #lambda x, a, b: r"{%s}\mod{%s}" % (a, b)
     d[Abs]       = lambda x, a: "|%s|" % a
     d[Transpose] = lambda x, a: "{%s}^T" % a
-    #d[Indexed]   = Indexed
+    #d[Indexed]   = Indexed # TODO
     d[PartialDerivative] = lambda x, f, y: "\\frac{\\partial\\left[{%s}\\right]}{\\partial{%s}}" % (f, y)
-    #d[Diff] = Diff
+    #d[Diff] = Diff # TODO: Will probably be removed?
     d[Grad] = lambda x, f: "\\Nabla (%s)" % f 
     d[Div]  = lambda x, f: "\\Nabla \\cdot (%s)" % f
     d[Curl] = lambda x, f: "\\Nabla \\times (%s)" % f
     d[Rot]  = lambda x, f: "\\rot (%s)" % f
-    #d[FiniteElement] = FiniteElement 
-    #d[MixedElement]  = MixedElement
-    #d[VectorElement] = VectorElement
-    #d[TensorElement] = TensorElement
+    #d[FiniteElement] = FiniteElement # Shouldn't be necessary to handle here
+    #d[MixedElement]  = MixedElement  # ...
+    #d[VectorElement] = VectorElement # ...
+    #d[TensorElement] = TensorElement # ...
     d[MathFunction]  = lambda x, f: "%s(%s)" % (x._name, f)
     d[Outer] = lambda x, a, b: "(%s) \\otimes (%s)" % (a, b)
     d[Inner] = lambda x, a, b: "(%s) : (%s)" % (a, b)
@@ -125,10 +125,32 @@ def latex_handlers():
     d[Inverse]     = lambda x, A: "(%s)^{-1}" % A
     d[Deviatoric]  = lambda x, A: "dev(%s)" % A
     d[Cofactor]    = lambda x, A: "cofac(%s)" % A
-    #d[ListVector]  = ListVector
-    #d[ListMatrix]  = ListMatrix
-    #d[Tensor]      = Tensor
+    #d[ListVector]  = ListVector # TODO
+    #d[ListMatrix]  = ListMatrix # TODO
+    #d[Tensor]      = Tensor # TODO
     return d
+
+def ufl2ufl(expression):
+    """Convert an UFL expression to a new UFL expression, with no changes.
+    Simply tests that objects in the expression behave as expected."""
+    handlers = ufl_handlers()
+    return transform(expression, handlers)
+
+def ufl2latex(expression):
+    """Convert an UFL expression to a LaTeX string. Very crude approach."""
+    handlers = latex_handlers()
+    return transform(expression, handlers)
+
+def ufl2ufl(expression):
+    """Convert an UFL expression to a new UFL expression, with no changes.
+    Simply tests that objects in the expression behave as expected."""
+    handlers = ufl_handlers()
+    return transform(expression, handlers)
+
+
+
+
+# These can be implemented in form compilers:
 
 def sfc_handlers():
     # Show a clear error message if we miss some types here:
@@ -138,6 +160,11 @@ def sfc_handlers():
     # FIXME
     return d
 
+def ufl2sfc(expression):
+    handlers = sfc_handlers()
+    return transform(expression, handlers)
+
+
 def ffc_handlers():
     # Show a clear error message if we miss some types here:
     def not_implemented(x):
@@ -145,18 +172,6 @@ def ffc_handlers():
     d = defaultdict(not_implemented)
     # FIXME
     return d
-
-def ufl2ufl(expression):
-    handlers = ufl_handlers()
-    return transform(expression, handlers)
-
-def ufl2latex(expression):
-    handlers = latex_handlers()
-    return transform(expression, handlers)
-
-def ufl2sfc(expression):
-    handlers = sfc_handlers()
-    return transform(expression, handlers)
 
 def ufl2ffc(expression):
     handlers = ffc_handlers()

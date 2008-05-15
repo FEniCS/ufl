@@ -6,7 +6,7 @@ messages that can be redirected by the user of the UFL library.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__    = "2008-03-14 -- 2008-04-01"
+__date__    = "2008-03-14 -- 2008-05-15"
 
 import logging
 _log     = logging.getLogger("ufl")
@@ -44,4 +44,6 @@ def ufl_error(*message):
 
 def ufl_assert(condition, *message):
     if not condition:
-        ufl_error(*message)
+        _log.error(*message)
+        text = message[0] % message[1:]
+        raise UFLException(text)
