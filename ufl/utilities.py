@@ -12,13 +12,12 @@ to all the utility algorithms that we want to expose.)
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-05-09"
+__date__ = "2008-03-14 -- 2008-05-15"
 
 from itertools import chain
 
 from base import *
 from visitor import *
-from transformers import *
 from traversal import *
 
 ### Utilities to deal with form files
@@ -331,15 +330,6 @@ def strip_variables2(a):
     return a.__class__(*operands)
 
 
-
-
-# using old visitor pattern, kept for illustration (for now):
-def __flatten(a):
-    """Flatten (a+b)+(c+d) into a (a+b+c+d) and (a*b)*(c*d) into (a*b*c*d)."""
-    ufl_assert(isinstance(a, UFLObject), "Expecting an UFLObject.")
-    vis = TreeFlattener()
-    return vis.visit(a)
-
 def flatten(a):
     """Flatten (a+b)+(c+d) into a (a+b+c+d) and (a*b)*(c*d) into (a*b*c*d)."""
     ufl_assert(isinstance(a, UFLObject), "Expecting an UFLObject.")
@@ -347,7 +337,7 @@ def flatten(a):
     # Possible optimization:
     #     Reuse objects for subtrees with no
     #     flattened sums or products.
-    #     This procedure will create new objects
+    #     The current procedure will create a new object
     #     for every single node in the tree.
     
     # TODO: Traverse variables or not?
@@ -371,8 +361,6 @@ def flatten(a):
             operands.append(b)
     
     return myclass(*operands)
-
-
 
 
 
