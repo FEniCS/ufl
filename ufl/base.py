@@ -2,7 +2,7 @@
 types involved with built-in operators on any UFL object."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-04-02"
+__date__ = "2008-03-14 -- 2008-05-15"
 
 import operator
 from itertools import chain
@@ -241,6 +241,7 @@ class Sum(UFLObject):
     __slots__ = ("_operands",)
     
     def __init__(self, *operands):
+        ufl_assert(len(operands), "Got sum of nothing.")
         ufl_assert(all(operands[0].rank()         == o.rank()         for o in operands), "Rank mismatch in sum.")
         ufl_assert(all(operands[0].free_indices() == o.free_indices() for o in operands), "Can't add expressions with different free indices.")
         self._operands = tuple(operands)
@@ -264,6 +265,7 @@ class Product(UFLObject):
     __slots__ = ("_operands", "_rank", "_free_indices", "_repeated_indices")
     
     def __init__(self, *operands):
+        ufl_assert(len(operands), "Got product of nothing.")
         self._operands = tuple(operands)
        
         # Extract indices

@@ -5,7 +5,7 @@ Convenience file to import all parts of the language.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-04-01"
+__date__ = "2008-03-14 -- 2008-05-15"
 
 # base system (expression base class and all subclasses involved in operators on the base class)
 from base import *
@@ -42,4 +42,9 @@ from geometry import *
 
 # predefined convenience objects like I, n, h and i,j,k,l
 from objects import *
+
+# TODO: describe these
+from differentiation import *
+from indexing import *
+from tensoralgebra import *
 
