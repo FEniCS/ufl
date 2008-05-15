@@ -13,7 +13,7 @@ def transform(expression, handlers):
     if isinstance(expression, Terminal):
         ops = ()
     else:
-        ops = (transform(o, handlers) for o in expression.operands())
+        ops = [transform(o, handlers) for o in expression.operands()]
     return handlers[expression.__class__](expression, *ops)
 
 def ufl_handlers():
@@ -141,12 +141,87 @@ def ufl2latex(expression):
     handlers = latex_handlers()
     return transform(expression, handlers)
 
-def ufl2ufl(expression):
-    """Convert an UFL expression to a new UFL expression, with no changes.
-    Simply tests that objects in the expression behave as expected."""
+def flatten(expression):
+    """Convert an UFL expression to a new UFL expression, with sums 
+    and products flattened from binary tree nodes to n-ary tree nodes."""
     handlers = ufl_handlers()
+    def _flatten(x, *ops):
+        newops = []
+        for o in ops:
+            if isinstance(x.__class__, o):
+                newops.extend(o.operands())
+            else:
+                newops.append(o)
+        return x.__class__(*newops)
+    handlers[Sum] = _flatten
+    handlers[Product] = _flatten
     return transform(expression, handlers)
 
+def expand_compounds(expression):
+    """Convert an UFL expression to a new UFL expression, with 
+    compound operator objects converted to indexed expressions."""
+    handlers = ufl_handlers()
+    def e_outer(x, a, b):
+        ii = tuple(Index() for kk in range(a.rank()))
+        jj = tuple(Index() for kk in range(b.rank()))
+        return a[ii]*b[jj]
+    def e_inner(x, a, b):
+        ii = tuple(Index() for jj in range(a.rank()))
+        return a[ii]*b[ii]
+    def e_dot(x, a, b):
+        ii = Index()
+        if a.rank() == 1: aa = a[ii]
+        else: aa = a[...,ii]
+        if b.rank() == 1: bb = b[ii]
+        else: bb = b[ii,...]
+        return aa*bb
+    def e_transpose(x, a):
+        ii = Index()
+        jj = Index()
+        return Tensor(a[ii, jj], (jj, ii))
+    def e_div(x, a):
+        ii = Index()
+        if a.rank() == 1: aa = a[ii]
+        else: aa = a[...,ii]
+        return aa.dx(ii)
+    def e_grad(x, a):
+        ii = Index()
+        if a.rank() > 0:
+            jj = tuple(Index() for kk in range(a.rank()))
+            return Tensor(a[jj].dx(ii), tuple((ii,)+jj))
+        else:
+            return Tensor(a.dx(ii), (ii,))
+    def e_curl(x, a):
+        ufl_error("Not implemented.")
+    def e_rot(x, a):
+        ufl_error("Not implemented.")
+    handlers[Outer] = e_outer
+    handlers[Inner] = e_inner
+    handlers[Dot]   = e_dot
+    handlers[Transpose] = e_transpose
+    handlers[Div]  = e_div
+    handlers[Grad] = e_grad
+    handlers[Curl] = e_curl
+    handlers[Rot]  = e_rot
+    return transform(expression, handlers)
+
+
+# FIXME: Maybe this is better implemented a different way? Could be a good idea to insert Variable instances around expanded sums.
+def expand_indices(expression):
+    """Convert an UFL expression to a new UFL expression, with 
+    compound operator objects converted to indexed expressions."""
+    handlers = ufl_handlers()
+    def e_product(x, *ops):
+        # TODO: Find all repeated indices:
+        ii = ()
+        a = x
+        return Product(*ops) # FIXME
+    def e_pdiff(x, *ops):
+        return PartialDerivative(*ops) # FIXME
+    handlers[Product] = e_product
+    handlers[PartialDerivative] = e_pdiff
+    # FIXME: Handle all other necessary objects here
+    return transform(expression, handlers)
 
 
 

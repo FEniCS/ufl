@@ -100,7 +100,7 @@ def as_index_tuple(indices, rank):
     post = []
     found = False
     for j, idx in enumerate(indices):
-        if found:
+        if not found:
             if idx is Ellipsis:
                 found = True
             else:

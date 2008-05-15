@@ -5,7 +5,7 @@ Compound tensor algebra operations. Needs some work!
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-04-01"
+__date__ = "2008-03-14 -- 2008-05-15"
 
 from output import *
 from base import *
@@ -120,7 +120,7 @@ class Dot(UFLObject):
         #return "%s . %s" % (pstr(self.a, self), pstr(self.b, self))
     
     def __repr__(self):
-        return "Dot(%s, %s)" % (self.a, self.b)
+        return "Dot(%s, %s)" % (repr(self.a), repr(self.b))
 
 class Cross(UFLObject):
     __slots__ = ("a", "b", "_free_indices")

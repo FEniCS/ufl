@@ -8,8 +8,9 @@ import operator
 from itertools import chain
 from collections import defaultdict
 from output import *
-from indexing import Index, MultiIndex, extract_indices
+from indexing import Index, MultiIndex, extract_indices, as_index, Axis
 
+# This might not all be possible, since UFLObject uses many of these and they in turn inherit UFLObject:
 # FIXME: Move all differentiation to differentiation.py
 # FIXME: Move all indexing to indexing.py
 # FIXME: Move all operators to operators.py
@@ -480,7 +481,7 @@ class PartialDerivative(UFLObject):
         
         ufl_assert(not self._index is Axis, "Can't take partial derivative w.r.t. whole axis.")
         
-        indices = tuple( [self._index] + expression.free_indices() )
+        indices = tuple( (self._index,) + expression.free_indices() )
         (fixed_indices, free_indices, repeated_indices, num_unassigned_indices) = extract_indices( indices )
         self._free_indices = free_indices
         
