@@ -1,0 +1,9 @@
+
+element = VectorElement("Lagrange", "triangle", 1)
+
+u = TrialFunction(element)
+v = TestFunction(element)
+w = Function(element)
+
+b = (u[j]*w[i].dx(j) + w[j]*u[i].dx(j)) * v[i] * dx
+
