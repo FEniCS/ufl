@@ -12,13 +12,14 @@ to all the utility algorithms that we want to expose.)
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-05-15"
+__date__ = "2008-03-14 -- 2008-05-16"
 
 from itertools import chain
 
 from base import *
 from visitor import *
 from traversal import *
+from output import *
 
 ### Utilities to deal with form files
 
@@ -35,7 +36,7 @@ def load_forms(filename):
         f = file(tmpfile, "w")
         f.write(code)
         f.close()
-        ufl_message("""\
+        ufl_info("""\
 An exception occured during evaluation of form file.
 To find the location of the error, a temporary script
 '%s' has been created and will now be run:""" % tmpfile)

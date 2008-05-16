@@ -2,7 +2,8 @@
 
 import sys
 import ufl
-import ufl.utilities
+from ufl.utilities import basisfunctions, coefficients, unique_elements, load_forms, analyse_form
+from ufl.new_transform import ufl2latex
 
 # Get commandline options
 if len(sys.argv) != 2:
@@ -13,11 +14,11 @@ filename = sys.argv[1]
 # Load form file, which triggers many consistency
 # checks while the form is being built
 print "Loading form file '%s'" % filename
-forms = ufl.utilities.load_forms(filename)
+forms = load_forms(filename)
 
 # Analyse validity of forms
 for k,v in forms:
-    errors = ufl.utilities.analyse_form(v)
+    errors = analyse_form(v)
     print
     if errors:
         print "Found errors in form '%s':" % k
@@ -28,9 +29,9 @@ for k,v in forms:
 # Print information about all forms
 for name, form in forms:
     # Extract information about forms
-    basisfunctions = ufl.utilities.basisfunctions(form)
-    coefficients = ufl.utilities.coefficients(form)
-    elements = ufl.utilities.unique_elements(form)
+    basisfunctions = basisfunctions(form)
+    coefficients = coefficients(form)
+    elements = unique_elements(form)
     rank = len(basisfunctions)
     num_coefficients = len(coefficients)
     
@@ -50,6 +51,10 @@ for name, form in forms:
         print repr(w)
     print "Form representation:"
     print repr(form)
+    print "Form pretty-print:"
+    print str(form)
+    print "Form LaTeX code:"
+    print ufl2latex(form)
 
 print
 

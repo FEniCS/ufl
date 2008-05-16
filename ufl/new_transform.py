@@ -3,9 +3,10 @@ either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-05-15"
+__date__ = "2008-05-07 -- 2008-05-16"
 
 from all import *
+from utilities import basisfunctions, coefficients
 
 def transform(expression, handlers):
     """Convert a UFLExpression according to rules defined by
@@ -81,12 +82,15 @@ def latex_handlers():
     # Terminal objects:
     d[Number] = lambda x: "{%s}" % str(x._value)
     d[Symbol] = lambda x: "{%s}" % x._name
-    d[BasisFunction] = lambda x: "{v^{%d}}" % x._count
+    d[BasisFunction] = lambda x: "{v^{%d}}" % x._count # Using ^ for function numbering and _ for indexing
     d[Function] = lambda x: "{w^{%d}}" % x._count
     d[Constant] = lambda x: "{w^{%d}}" % x._count
     d[FacetNormal] = lambda x: "n"
     d[MeshSize] = lambda x: "h"
     d[Identity] = lambda x: "I"
+    def l_multiindex(x):
+        return "".join("i_{%d}" % ix._count for ix in x._indices)
+    d[MultiIndex] = l_multiindex
     # Non-terminal objects:
     def l_sum(x, *ops):
         return " + ".join("(%s)" % o for o in ops)
@@ -104,9 +108,9 @@ def latex_handlers():
     d[Mod]       = l_binop("\\mod") #lambda x, a, b: r"{%s}\mod{%s}" % (a, b)
     d[Abs]       = lambda x, a: "|%s|" % a
     d[Transpose] = lambda x, a: "{%s}^T" % a
-    #d[Indexed]   = Indexed # TODO
+    d[Indexed]   = lambda x, a, b: "{%s}_{%s}" % (a, b) # TODO: Index handler is missing!
     d[PartialDerivative] = lambda x, f, y: "\\frac{\\partial\\left[{%s}\\right]}{\\partial{%s}}" % (f, y)
-    #d[Diff] = Diff # TODO: Will probably be removed?
+    #d[Diff] = Diff # TODO: May be removed?
     d[Grad] = lambda x, f: "\\Nabla (%s)" % f 
     d[Div]  = lambda x, f: "\\Nabla \\cdot (%s)" % f
     d[Curl] = lambda x, f: "\\Nabla \\times (%s)" % f
@@ -139,7 +143,29 @@ def ufl2ufl(expression):
 def ufl2latex(expression):
     """Convert an UFL expression to a LaTeX string. Very crude approach."""
     handlers = latex_handlers()
-    return transform(expression, handlers)
+    if isinstance(expression, Form):
+        integral_strings = []
+        for itg in expression.cell_integrals():
+            integral_strings.append(ufl2latex(itg))
+        for itg in expression.exterior_facet_integrals():
+            integral_strings.append(ufl2latex(itg))
+        for itg in expression.interior_facet_integrals():
+            integral_strings.append(ufl2latex(itg))
+        b = ", ".join("v_{%d}" % i for i,v in enumerate(basisfunctions(expression)))
+        c = ", ".join("w_{%d}" % i for i,w in enumerate(coefficients(expression)))
+        arguments = "; ".join((b, c))
+        latex = "a(" + arguments + ") = " + "  +  ".join(integral_strings)
+    elif isinstance(expression, Integral):
+        itg = expression
+        domain_string = { "cell": "\\Omega",
+                          "exterior facet": "\\Gamma^{ext}",
+                          "interior facet": "\\Gamma^{int}",
+                        }[itg._domain_type]
+        integrand_string = transform(itg._integrand, handlers)
+        latex = "\\int_{\\Omega_%d} \\left[ %s \\right] \,dx" % (itg._domain_id, integrand_string)
+    else:
+        latex = transform(expression, handlers)
+    return latex
 
 def flatten(expression):
     """Convert an UFL expression to a new UFL expression, with sums 

@@ -2,13 +2,13 @@
 types involved with built-in operators on any UFL object."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-05-15"
+__date__ = "2008-03-14 -- 2008-05-16"
 
 import operator
 from itertools import chain
 from collections import defaultdict
 from output import *
-from indexing import Index, MultiIndex, extract_indices, as_index, Axis
+from indexing import *
 
 # This might not all be possible, since UFLObject uses many of these and they in turn inherit UFLObject:
 # FIXME: Move all differentiation to differentiation.py
@@ -142,7 +142,7 @@ class UFLObject(object):
     
     #--- Differentiation ---
     
-    def dx(self, i):
+    def dx(self, *i):
         """Return the partial derivative with respect to spatial variable number i"""
         return PartialDerivative(self, i)
     
@@ -427,6 +427,31 @@ class Transpose(UFLObject):
 
 #--- Indexing ---
 
+class MultiIndex(Terminal): # TODO: If single indices are made Terminal subclasses, this should inherit UFLObject instead.
+    __slots__ = ("_indices",)
+    
+    def __init__(self, indices, rank):
+        self._indices = as_index_tuple(indices, rank)
+    
+    def operands(self):
+        return ()
+        #return self._indices # TODO: To return the indices here, they should be Terminal subclasses. Do we want that or not?
+    
+    def free_indices(self):
+        ufl_error("Why would you want to get the free indices of a MultiIndex? Please explain at ufl-dev@fenics.org...")
+    
+    def rank(self):
+        ufl_error("Why would you want to get the rank of a MultiIndex? Please explain at ufl-dev@fenics.org...")
+    
+    def __str__(self):
+        return ", ".join(str(i) for i in self._indices)
+    
+    def __repr__(self):
+        return "MultiIndex(%s, %d)" % (repr(self._indices), len(self._indices))
+
+    def __len__(self):
+        return len(self._indices)
+
 class Indexed(UFLObject):
     __slots__ = ("_expression", "_indices", "_fixed_indices", "_free_indices", "_repeated_indices", "_rank")
     
@@ -449,7 +474,7 @@ class Indexed(UFLObject):
         self._rank = num_unassigned_indices
     
     def operands(self):
-        return tuple(self._expression, self._indices)
+        return (self._expression, self._indices)
     
     def free_indices(self):
         return self._free_indices
@@ -473,21 +498,27 @@ class Indexed(UFLObject):
 class PartialDerivative(UFLObject):
     "Partial derivative of an expression w.r.t. a spatial direction given by an index."
     
-    __slots__ = ("_expression", "_index", "_free_indices") #, "_fixed_indices", "_repeated_indices")
+    __slots__ = ("_expression", "_rank", "_indices", "_free_indices") #, "_fixed_indices", "_repeated_indices")
     
-    def __init__(self, expression, i):
+    def __init__(self, expression, indices):
         self._expression = expression
-        self._index = as_index(i)
         
-        ufl_assert(not self._index is Axis, "Can't take partial derivative w.r.t. whole axis.")
+        if isinstance(indices, MultiIndex): # if constructed from repr
+            self._indices = indices
+        else:
+            self._indices = MultiIndex(indices, 1) # len(indices)) instead of 1 to support higher order derivatives.
         
-        indices = tuple( (self._index,) + expression.free_indices() )
-        (fixed_indices, free_indices, repeated_indices, num_unassigned_indices) = extract_indices( indices )
-        self._free_indices = free_indices
-        
-        # We probably don't need these here, remove when sure.
-        #self._fixed_indices    = fixed_indices
-        #self._repeated_indices = repeated_indices
+        # Find free and repeated indices among the combined indices of the expression and dx((i,j,k))
+        indices = expression.free_indices() + self._indices._indices
+        (fixed_indices, free_indices, repeated_indices, num_unassigned_indices) = extract_indices(indices)
+        # FIXME: We don't need to store all these here, remove the ones we don't use after implementing summation expansion.
+        #self._fixed_indices      = fixed_indices
+        self._free_indices       = free_indices
+        #self._repeated_indices   = repeated_indices
+        self._rank = num_unassigned_indices
+    
+    def operands(self):
+        return (self._expression, self._indices)
     
     def free_indices(self):
         return self._free_indices
@@ -496,15 +527,16 @@ class PartialDerivative(UFLObject):
         return self._expression.rank()
     
     def __str__(self):
-        return "(d[%s] / dx_%s)" % (str(self._expression), str(self._index))
+        # TODO: Pretty-print for higher order derivatives.
+        return "(d[%s] / dx_%s)" % (str(self._expression), str(self._indices))
     
     def __repr__(self):
-        return "PartialDerivative(%s, %s)" % (repr(self._expression), repr(self._index))
+        return "PartialDerivative(%s, %s)" % (repr(self._expression), repr(self._indices))
 
 # FIXME: Anders: Can't we just remove this?
+#        Martin: Not necessarily, not unless PartialDerivative is made more general. The idea is that Diff represents df/ds where s is a Symbol and/or Variable.
 
-# FIXME: this is just like PartialDiff, should have
-#        the exact same behaviour or even be the same class.
+# FIXME: This is the same mathematical operation as PartialDiff, should have very similar behaviour or even be the same class.
 class Diff(UFLObject):
     __slots__ = ("f", "x", "_free_indices")
 

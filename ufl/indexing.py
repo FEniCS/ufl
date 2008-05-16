@@ -1,3 +1,9 @@
+"""This module defines the single index types and some internal index utilities."""
+
+__authors__ = "Martin Sandve Alnes, Anders Logg"
+__date__ = "2008-03-14 -- 2008-05-16"
+
+
 # Python imports
 from collections import defaultdict
 
@@ -7,11 +13,10 @@ from output import ufl_assert, ufl_error
 #--- Indexing ---
 
 class Index:
-    __slots__ = ("_name", "_count")
+    __slots__ = ("_count",)
     
     _globalcount = 0
-    def __init__(self, name = None, count = None):
-        self._name = name
+    def __init__(self, count = None):
         if count is None:
             self._count = Index._globalcount
             Index._globalcount += 1
@@ -27,10 +32,10 @@ class Index:
         ufl_error("Why would you want to get the rank of an Index? Please explain at ufl-dev@fenics.org...")
     
     def __str__(self):
-        return "i_%d" % self._count # TODO: use name? Maybe just remove name, adds possible confusion of what ID's an Index (which is the count alone).
+        return "i_{%d}" % self._count
     
     def __repr__(self):
-        return "Index(%s, %d)" % (repr(self._name), self._count)
+        return "Index(%d)" % self._count
 
 class FixedIndex:
     __slots__ = ("_value",)
@@ -142,26 +147,3 @@ def extract_indices(indices):
     
     return (fixed_indices, free_indices, repeated_indices, num_unassigned_indices)
 
-class MultiIndex:
-    __slots__ = ("_indices",)
-    
-    def __init__(self, indices, rank):
-        self._indices = as_index_tuple(indices, rank)
-    
-    def operands(self):
-        return self._indices
-    
-    def free_indices(self):
-        ufl_error("Why would you want to get the free indices of a MultiIndex? Please explain at ufl-dev@fenics.org...")
-    
-    def rank(self):
-        ufl_error("Why would you want to get the rank of a MultiIndex? Please explain at ufl-dev@fenics.org...")
-    
-    def __str__(self):
-        return ", ".join(str(i) for i in self._indices)
-    
-    def __repr__(self):
-        return "MultiIndex(%s, %d)" % (repr(self._indices), len(self._indices))
-
-    def __len__(self):
-        return len(self._indices)
