@@ -1,7 +1,7 @@
 "This module defines the UFL finite element classes."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-03 -- 2008-05-02"
+__date__ = "2008-03-03 -- 2008-05-19"
 
 from output import ufl_assert
 from elements import ufl_elements
@@ -108,7 +108,7 @@ class VectorElement(MixedElement):
 
         # Create mixed element from list of finite elements
         sub_element = FiniteElement(family, domain, degree)
-        sub_elements = [sub_element for i in range(dim)]
+        sub_elements = [sub_element]*dim
 
         # Initialize element data
         MixedElement.__init__(self, sub_elements)
@@ -133,10 +133,6 @@ class TensorElement(MixedElement):
     def __init__(self, family, domain, degree, shape=None, is_symmetric=False):
         "Create tensor element (repeated mixed element)"
 
-        def product(l):
-            import operator
-            return reduce(operator.__mul__, l)
-
         # Set default shape if not specified
         if shape is None:
             dim = _domain2dim[domain]
@@ -146,8 +142,8 @@ class TensorElement(MixedElement):
         sub_element = FiniteElement(family, domain, degree)
         value_rank = sub_element.value_rank()
         for dim in shape:
-            sub_element = MixedElement([sub_element for i in range(dim)])
-
+            sub_element = MixedElement([sub_element]*dim)
+        
         # Initialize element data
         MixedElement.__init__(self, sub_element.sub_elements())
         self._degree = degree
@@ -173,3 +169,4 @@ class TensorElement(MixedElement):
         print self.shape()
         print self.domain()
         return "%s tensor element of degree %d and shape %s on a %s" % (self.family(), self.degree(), str(self.shape()), self.domain())
+

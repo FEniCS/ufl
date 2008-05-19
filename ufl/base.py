@@ -2,9 +2,8 @@
 types involved with built-in operators on any UFL object."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-05-16"
+__date__ = "2008-03-14 -- 2008-05-19"
 
-import operator
 from itertools import chain
 from collections import defaultdict
 from output import *
@@ -538,31 +537,33 @@ class PartialDerivative(UFLObject):
 
 # FIXME: This is the same mathematical operation as PartialDiff, should have very similar behaviour or even be the same class.
 class Diff(UFLObject):
-    __slots__ = ("f", "x", "_free_indices")
-
+    __slots__ = ("_f", "_x", "_index", "_free_indices")
+    
     def __init__(self, f, x):
-        self.f = f
-        self.x = x
-        ufl_assert(is_symbol(x), "Expecting a Symbol in Diff.")
+        ufl_assert(isinstance(f, UFLObject), "Expecting an UFLObject in Diff.")
+        ufl_assert(isinstance(x, (Symbol, Variable)), "Expecting a Symbol or Variable in Diff.")
+        self._f = f
+        self._x = x
         fi = f.free_indices()
         xi = x.free_indices()
-        ufl_assert(len(set(fi) ^ set(xi)) == 0, "Repeated indices in Diff NOT IMPLEMENTED. FIXME!")
+        ufl_assert(len(set(fi) ^ set(xi)) == 0, "FIXME: Repeated indices in Diff not implemented.") # FIXME
         self._free_indices = tuple(fi + xi)
     
     def operands(self):
-        return (self.f, self.x)
+        return (self._f, self._x)
     
     def free_indices(self):
         return self._free_indices
     
     def rank(self):
-        return self.f.rank()
+        return self._f.rank()
     
     def __str__(self):
-        return "(d[%s] / d[%s])" % (str(self._expression), str(self._index))
+        return "(d[%s] / d[%s])" % (str(self._f), str(self._x))
 
     def __repr__(self):
-        return "Diff(%s, %s)" % repr(self.f), repr(self.x)
+        return "Diff(%s, %s)" % (repr(self._f), repr(self._x))
 
 def diff(f, x):
     return Diff(f, x)
+

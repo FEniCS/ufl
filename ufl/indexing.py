@@ -1,7 +1,7 @@
 """This module defines the single index types and some internal index utilities."""
 
 __authors__ = "Martin Sandve Alnes, Anders Logg"
-__date__ = "2008-03-14 -- 2008-05-16"
+__date__ = "2008-03-14 -- 2008-05-19"
 
 
 # Python imports
@@ -12,7 +12,7 @@ from output import ufl_assert, ufl_error
 
 #--- Indexing ---
 
-class Index:
+class Index(object):
     __slots__ = ("_count",)
     
     _globalcount = 0
@@ -37,18 +37,15 @@ class Index:
     def __repr__(self):
         return "Index(%d)" % self._count
 
-class FixedIndex:
+# TODO: Replace this class with int? If we don't make
+#       the index classes UFLObject subclasses again, there
+#       might not be any point in having this class.
+class FixedIndex(object):
     __slots__ = ("_value",)
     
     def __init__(self, value):
         ufl_assert(isinstance(value, int), "Expecting integer value for fixed index.")
         self._value = value
-    
-    def free_indices(self):
-        ufl_error("Why would you want to get the free indices of an Index? Please explain at ufl-dev@fenics.org...")
-    
-    def rank(self):
-        ufl_error("Why would you want to get the rank of an Index? Please explain at ufl-dev@fenics.org...")
     
     def __str__(self):
         return "%d" % self._value
@@ -56,17 +53,11 @@ class FixedIndex:
     def __repr__(self):
         return "FixedIndex(%d)" % self._value
 
-class AxisType:
-    __slots__ = () #("value",)
+class AxisType(object):
+    __slots__ = ()
     
     def __init__(self):
         pass
-    
-    def free_indices(self):
-        ufl_error("Why would you want to get the free indices of an Axis? Please explain at ufl-dev@fenics.org...")
-    
-    def rank(self):
-        ufl_error("Why would you want to get the rank of an Axis? Please explain at ufl-dev@fenics.org...")
     
     def __str__(self):
         return ":"
@@ -74,24 +65,31 @@ class AxisType:
     def __repr__(self):
         return "Axis"
 
-# only need one of these, like None, Ellipsis etc., can use "a is Axis" or "isinstance(a, AxisType)"
+
+# Collect all index types to shorten isinstance(a, _indextypes)
+_indextypes = (Index, FixedIndex, AxisType)
+
+
+# Only need one of these, like None, Ellipsis etc., can use "a is Axis" or "isinstance(a, AxisType)"
 Axis = AxisType()
 
 def as_index(i):
-    """Takes something the user might input as part of an index tuple, and returns an actual UFL index object."""
-    if isinstance(i, (Index, FixedIndex)):
+    """Takes something the user might input as part of an
+    index tuple, and returns an actual UFL index object."""
+    if isinstance(i, _indextypes):
         return i
     elif isinstance(i, int):
         return FixedIndex(i)
     elif isinstance(i, slice):
-        ufl_assert((i.start is None) and (i.stop is None) and (i.step is None), "Partial slices not implemented, only [:]")
+        ufl_assert(i == slice(None), "Partial slices not implemented, only [:]")
         return Axis
     else:
         ufl_error("Can convert this object to index: %s" % repr(i))
 
 
 def as_index_tuple(indices, rank):
-    """Takes something the user might input as an index tuple inside [], and returns a tuple of actual UFL index objects.
+    """Takes something the user might input as an index tuple
+    inside [], and returns a tuple of actual UFL index objects.
     
     These types are supported:
     - Index
@@ -106,12 +104,12 @@ def as_index_tuple(indices, rank):
     found = False
     for j, idx in enumerate(indices):
         if not found:
-            if idx is Ellipsis:
+            if idx == Ellipsis:
                 found = True
             else:
                 pre.append(as_index(idx))
         else:
-            ufl_assert(not idx is Ellipsis, "Found duplicate ellipsis.")
+            ufl_assert(idx != Ellipsis, "Found duplicate ellipsis.")
             post.append(as_index(idx))
     
     # replace ellipsis with a number of Axis objects
@@ -121,7 +119,7 @@ def as_index_tuple(indices, rank):
 
 def extract_indices(indices):
     ufl_assert(isinstance(indices, tuple), "Expecting index tuple.")
-    ufl_assert(all(isinstance(i, (Index, FixedIndex, AxisType)) for i in indices), "Expecting proper UFL objects.")
+    ufl_assert(all(isinstance(i, _indextypes) for i in indices), "Expecting proper UFL objects.")
 
     fixed_indices = [(i,idx) for i,idx in enumerate(indices) if isinstance(idx, FixedIndex)]
     num_unassigned_indices = sum(1 for i in indices if i is Axis)
@@ -132,9 +130,9 @@ def extract_indices(indices):
             index_count[i] += 1
     
     unique_indices = index_count.keys()
-    handled = set()
-
-    ufl_assert(all(i <= 2 for i in index_count.values()), "Too many index repetitions in %s" % repr(indices))
+    
+    ufl_assert(all(i <= 2 for i in index_count.values()),
+               "Too many index repetitions in %s" % repr(indices))
     free_indices     = [i for i in unique_indices if index_count[i] == 1]
     repeated_indices = [i for i in unique_indices if index_count[i] == 2]
 
@@ -143,7 +141,10 @@ def extract_indices(indices):
     free_indices     = tuple(free_indices)
     repeated_indices = tuple(repeated_indices)
     
-    ufl_assert(len(fixed_indices) + len(free_indices) + 2*len(repeated_indices) + num_unassigned_indices == len(indices), "Logic breach in extract_indices.")
+    ufl_assert(len(fixed_indices)+len(free_indices) + \
+               2*len(repeated_indices)+num_unassigned_indices == len(indices),\
+               "Logic breach in extract_indices.")
     
-    return (fixed_indices, free_indices, repeated_indices, num_unassigned_indices)
+    return (fixed_indices, free_indices,
+            repeated_indices, num_unassigned_indices)
 

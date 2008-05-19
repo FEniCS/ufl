@@ -18,15 +18,17 @@ class UFLException(Exception):
         Exception.__init__(self, message)
 
 def get_handler():
+    global _handler
     return _handler
 
 def get_logger():
     return _log
 
 def set_handler(handler):
+    global _handler
     _log.removeHandler(_handler)
     _handler = handler
-    _log.addHandler(handler)
+    _log.addHandler(_handler)
 
 def ufl_debug(*message):
     _log.debug(*message)

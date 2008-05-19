@@ -61,6 +61,7 @@ def extract_type(a, ufl_type):
     """Returns a set of all objects of class ufl_type found in a.
     The argument a can be a Form, Integral or UFLObject.
     """
+    # TODO: rename iter_thing
     iter = (o for e in iter_expressions(a) \
               for o in iter_child_first(e) \
               if isinstance(o, ufl_type) )
@@ -106,17 +107,18 @@ def elements(a):
     return [f._element for f in chain(basisfunctions(a), coefficients(a))]
 
 def unique_elements(a):
-    """Returns a sorted list of all elements used in a."""
+    """Returns a set of all elements used in a."""
     elements = set()
     for f in chain(basisfunctions(a), coefficients(a)):
         elements.add(f._element)
     return elements
+    #return set(elements(a)) # TODO: replace by this?
 
 def classes(a):
     """Returns a set of all unique classes used in a (subclasses of UFLObject)."""
     classes = set()
     for e in iter_expressions(a):
-        for o in iter_child_first(e):
+        for o in iter_child_first(e): # TODO: rename
             classes.add(o.__class__)
     return classes
 
@@ -131,7 +133,7 @@ def duplications(a):
     handled = set()
     duplicated = set()
     for e in iter_expressions(a):
-        for o in iter_parent_first(e):
+        for o in iter_parent_first(e): # TODO: rename
             if o in handled:
                 duplicated.add(o)
             handled.add(o)

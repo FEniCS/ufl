@@ -4,23 +4,17 @@ or defined as compound operators involving basic operations on the UFL
 objects."""
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-04-09 -- 2008-04-09"
+__date__ = "2008-04-09 -- 2008-05-19"
 
 from base import Transpose
 from differentiation import Grad, Div, Curl, Rot
-from tensoralgebra import Inner, Outer, Dot, Cross, Determinant, Trace, Deviatoric, Cofactor
-
-#--- Algebraic operators ---
-
-# FIXME: This is a tensor operator?
-def transp(o):
-    "Return transpose of expression"
-    return Transpose(o)
-
-def abs(o):
-    return Abs(o)
+from tensoralgebra import Inner, Outer, Dot, Cross, Determinant, Inverse, Trace, Deviatoric, Cofactor
 
 #--- Tensor operators ---
+
+def transpose(o):
+    "Return transpose of expression"
+    return Transpose(o)
 
 def outer(a, b):
     return Outer(a, b)
@@ -51,16 +45,13 @@ def cofac(A):
 
 #--- Differential operators
 
-def Dx(o, i):
-    """Return the partial derivative with respect to spatial variable number i"""
-    # FIXME: Should be class as for other operators
-    #return SpatialDerivative(o, i)
+def Dx(f, i): # FIXME: Do we want this? Isn't f.dx(i) enough?
+    "Return the partial derivative with respect to spatial variable number i."
     return f.dx(i)
 
-def Dt(o):
-    # FIXME: Add class
+def Dt(o): # FIXME: Add class
     #return TimeDerivative(o)
-    return 0
+    raise NotImplementedError
 
 def grad(f):
     return Grad(f)
@@ -82,7 +73,8 @@ def jump(o):
 def avg(o):
     raise NotImplementedError
 
-#--- Suggestions ---
+#--- Suggestions --- # TODO: This is already in mathfunctions?
 
 def sqrt(o):
     raise NotImplementedError
+

@@ -5,7 +5,7 @@ Mathematical functions.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-04-01"
+__date__ = "2008-03-14 -- 2008-05-19"
 
 from output import *
 from base import *
@@ -27,6 +27,9 @@ class MathFunction(UFLObject):
     def rank(self):
         return 0
     
+    def __str__(self):
+        return "%s(%s)" % (self.name, str(self.argument))
+    
     def __repr__(self):
         return "%s(%s)" % (self.name, repr(self.argument))
 
@@ -46,3 +49,4 @@ def cos(f):
 
 def sin(f):
     return MathFunction("sin", f)
+
