@@ -12,7 +12,7 @@ to all the utility algorithms that we want to expose.)
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-05-16"
+__date__ = "2008-03-14 -- 2008-05-19"
 
 from itertools import chain
 
@@ -140,9 +140,6 @@ def duplications(a):
     return duplicated
 
 
-
-
-
 def integral_info(itg):
     s  = "  Integral over %s domain %d:\n" % (itg._domain_type, itg._domain_id)
     s += "    Integrand expression representation:\n"
@@ -186,8 +183,6 @@ def form_info(a):
     return s
 
 
-
-
 ### Utilities to transform expression in some way:
 
 def transform_integrands(a, transformation):
@@ -206,87 +201,6 @@ def transform_integrands(a, transformation):
         integrals.append(newitg)
     
     return Form(integrals)
-
-
-
-
-def transformation_template(a):
-    """Template function for transformations of expression tree."""
-    ufl_warning("This function isn't intended for production use, only testing and instruction.")
-    
-    # Terminal objects are usually replaced by something fixed:
-    if isinstance(a, Terminal):
-        if isinstance(a, Number):
-            return a
-        if isinstance(a, Symbol):
-            return a
-        if isinstance(a, Function):
-            return a
-        if isinstance(a, BasisFunction):
-            return a
-        if isinstance(a, FacetNormal):
-            return a
-        if isinstance(a, MeshSize):
-            return a
-        ufl_error("Missing handler for Terminal subclass %s in transformation_template." % str(a.__class__))
-    
-    # May or may not pass the variable "barrier":
-    if isinstance(a, Variable):
-        return a
-    
-    # Handle all operands first:
-    operands = []
-    for o in a.operands():
-        b = transformation_template(o)
-        operands.append(b)
-    
-    
-    
-    # FIXME: change to dictionary lookup for speed and easyer extensibility: 
-    #namespace = {
-    #    Sum:                 (lambda ops: sum(ops)),
-    #    Product:             (lambda ops: product(ops)),
-    #    PartialDerivative:   (lambda ops: PartialDerivative(*ops)),
-    #    }
-    #
-    #transform = namespace.get(type(a), None)
-    #ufl_assert(not transform is None, "Missing handler for non-terminal class %s in transformation_template." % str(type(a)))
-    #return transform(*operands)
-    
-    
-    # FIXME: add handlers for all UFLObject subclasses here
-    
-    
-    namespace = ufl
-    
-    # base.py:
-    if isinstance(a, Sum):
-        return sum(operands)
-    if isinstance(a, Product):
-        return product(operands)
-    if isinstance(a, PartialDerivative):
-        return namespace.partial_derivative(*operands)
-    
-    # tensoroperators.py:
-    if isinstance(a, Inner):
-        return namespace.inner(*operands)
-    if isinstance(a, Dot):
-        return namespace.dot(*operands)
-    
-    # diffoperators.py:
-    if isinstance(a, Grad):
-        return namespace.grad(*operands)
-    if isinstance(a, Div):
-        return namespace.div(*operands)
-    if isinstance(a, Curl):
-        return namespace.curl(*operands)
-    if isinstance(a, Rot):
-        return namespace.rot(*operands)
-    
-    ufl_error("Missing handler for non-terminal class %s in transformation_template." % str(a.__class__))
-    #return a.__class__(*operands)   
-
-
 
 
 def _strip_variables(a):

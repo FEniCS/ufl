@@ -5,7 +5,7 @@ The Integral class.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-04-03"
+__date__ = "2008-03-14 -- 2008-05-19"
 
 
 from output import *
