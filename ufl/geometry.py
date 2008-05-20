@@ -1,11 +1,7 @@
-#!/usr/bin/env python
-
-"""
-Types for quantities computed from cell geometry.
-"""
+"""Types for quantities computed from cell geometry."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-04-01"
+__date__ = "2008-03-14 -- 2008-05-20"
 
 from base import *
 

@@ -6,7 +6,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-05-07 -- 2008-05-20"
 
 from all import *
-from utilities import basisfunctions, coefficients
+from analysis import basisfunctions, coefficients
 
 def transform(expression, handlers):
     """Convert a UFLExpression according to rules defined by

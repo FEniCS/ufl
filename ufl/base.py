@@ -125,52 +125,6 @@ class Number(Terminal):
     def __repr__(self):
         return "Number(%s)" % repr(self._value)
 
-class Symbol(Terminal):
-    "A scalar symbol."
-    __slots__ = tuple("_name")
-    
-    def __init__(self, name):
-        self._name = str(name)
-    
-    def free_indices(self):
-        return tuple()
-    
-    def rank(self):
-        return 0
-    
-    def __str__(self):
-        return self._name
-    
-    def __repr__(self):
-        return "Symbol(%s)" % repr(self._name)
-
-
-# FIXME: Should we allow a single Variable to represent a tensor expression?
-# FIXME: Should a Variable be a Terminal, in which case it doesn't need a symbol but can use a string label,
-#        or should it be an UFLObject, in which case it must use Symbol, and we must consider what to do with tensors of Symbol and Variables.
-class Variable(UFLObject): # (Terminal):
-    __slots__ = ("_symbol", "_expression")
-    
-    def __init__(self, symbol, expression):
-        self._symbol     = symbol if isinstance(symbol, Symbol) else Symbol(symbol)
-        self._expression = expression
-    
-    def operands(self):
-        return (self._symbol, self._expression)
-    
-    def free_indices(self):
-        return self._expression.free_indices()
-    
-    def rank(self):
-        return self._expression.rank()
-    
-    def __str__(self):
-        # NB! Doesn't print expression. Is this ok?
-        # str shouldn't be used in algorithms, so this is only a matter of choice.
-        return str(self._symbol)
-    
-    def __repr__(self):
-        return "Variable(%s, %s)" % (repr(self._symbol), repr(self._expression))
 
 
 #--- Basic helper functions ---

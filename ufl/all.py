@@ -6,6 +6,9 @@ __date__ = "2008-03-14 -- 2008-05-20"
 # base system (expression base class and all subclasses involved in operators on the base class)
 from base import *
 
+# variable class
+from variable import *
+
 # indexing of tensor expressions
 from indexing import *
 
