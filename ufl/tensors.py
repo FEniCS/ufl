@@ -10,6 +10,7 @@ __date__ = "2008-31-03 -- 2008-05-19"
 
 
 from base import *
+from indexing import *
 
 
 class ListVector(UFLObject):

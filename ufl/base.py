@@ -7,12 +7,13 @@ __date__ = "2008-03-14 -- 2008-05-19"
 from itertools import chain
 from collections import defaultdict
 from output import *
-from indexing import *
+#from indexing import *
 
 # This might not all be possible, since UFLObject uses many of these and they in turn inherit UFLObject:
 # FIXME: Move all differentiation to differentiation.py
 # FIXME: Move all indexing to indexing.py
 # FIXME: Move all operators to operators.py
+# However, a solution that could work is to attach operator functions UFLObject.__foo__ in the respective foostuff.py where the type __foo__ returns is defined.
 
 #--- Helper functions ---
 
@@ -61,98 +62,16 @@ class UFLObject(object):
         """Return pretty print string representation of objects"""
         raise NotImplementedError(self.__class__.__str__)
     
-    #--- Basic algebraic operators ---
-    
-    def __add__(self, o):
-        if is_python_scalar(o): o = Number(o)
-        if not isinstance(o, UFLObject): return NotImplemented
-        return Sum(self, o)
-    
-    def __radd__(self, o):
-        if is_python_scalar(o): o = Number(o)
-        if not isinstance(o, UFLObject): return NotImplemented
-        return Sum(o, self)
-    
-    def __sub__(self, o):
-        if is_python_scalar(o): o = Number(o)
-        if not isinstance(o, UFLObject): return NotImplemented
-        return self + (-o)
-    
-    def __rsub__(self, o):
-        if is_python_scalar(o): o = Number(o)
-        if not isinstance(o, UFLObject): return NotImplemented
-        return o + (-self)
-
-    def __mul__(self, o):
-        if is_python_scalar(o): o = Number(o)
-        if not isinstance(o, UFLObject): return NotImplemented
-        return Product(self, o)
-    
-    def __rmul__(self, o):
-        if is_python_scalar(o): o = Number(o)
-        if not isinstance(o, UFLObject): return NotImplemented
-        return Product(o, self)
-    
-    def __div__(self, o):
-        if is_python_scalar(o): o = Number(o)
-        if not isinstance(o, UFLObject): return NotImplemented
-        return Division(self, o)
-    
-    def __rdiv__(self, o):
-        if is_python_scalar(o): o = Number(o)
-        if not isinstance(o, UFLObject): return NotImplemented
-        return Division(o, self)
-    
-    def __pow__(self, o):
-        if is_python_scalar(o): o = Number(o)
-        if not isinstance(o, UFLObject): return NotImplemented
-        return Power(self, o)
-    
-    def __rpow__(self, o):
-        if is_python_scalar(o): o = Number(o)
-        if not isinstance(o, UFLObject): return NotImplemented
-        return Power(o, self)
-    
-    def __mod__(self, o):
-        if is_python_scalar(o): o = Number(o)
-        if not isinstance(o, UFLObject): return NotImplemented
-        return Mod(self, o)
-    
-    def __rmod__(self, o):
-        if is_python_scalar(o): o = Number(o)
-        if not isinstance(o, UFLObject): return NotImplemented
-        return Mod(o, self)
-    
-    def __neg__(self):
-        return -1*self
-    
-    def __abs__(self):
-        return Abs(self)
-
-    def _transpose(self):
-        return Transpose(self)
-    
-    T = property(_transpose)
-
-    #--- Indexing ---
-
-    def __getitem__(self, key):
-        return Indexed(self, key)
-    
-    #--- Differentiation ---
-    
-    def dx(self, *i):
-        """Return the partial derivative with respect to spatial variable number i"""
-        return PartialDerivative(self, i)
-    
     #--- Special functions used for processing expressions ---
     
     def __hash__(self):
         return repr(self).__hash__()
     
-    def __eq__(self, other): # alternative to above functions
+    def __eq__(self, other):
+        "Checks whether the two expressions are represented the exact same way using repr."
         return repr(self) == repr(other)
     
+    # TODO: Keep or remove this? "a in b" is probably ambiguous in may ways.
     def __contains__(self, item):
         """Return whether item is in the UFL expression tree. If item is a str, it is assumed to be a repr."""
         if isinstance(item, UFLObject):
@@ -162,19 +81,103 @@ class UFLObject(object):
         if repr(self) == item:
             return True
         return any((item in o) for o in self.operands())
+    
+    #--- Basic algebraic operators ---
+    
+#    def __add__(self, o):
+#        if is_python_scalar(o): o = Number(o)
+#        if not isinstance(o, UFLObject): return NotImplemented
+#        return Sum(self, o)
+#    
+#    def __radd__(self, o):
+#        if is_python_scalar(o): o = Number(o)
+#        if not isinstance(o, UFLObject): return NotImplemented
+#        return Sum(o, self)
+#    
+#    def __sub__(self, o):
+#        if is_python_scalar(o): o = Number(o)
+#        if not isinstance(o, UFLObject): return NotImplemented
+#        return self + (-o)
+#    
+#    def __rsub__(self, o):
+#        if is_python_scalar(o): o = Number(o)
+#        if not isinstance(o, UFLObject): return NotImplemented
+#        return o + (-self)
+#
+#    def __mul__(self, o):
+#        if is_python_scalar(o): o = Number(o)
+#        if not isinstance(o, UFLObject): return NotImplemented
+#        return Product(self, o)
+#    
+#    def __rmul__(self, o):
+#        if is_python_scalar(o): o = Number(o)
+#        if not isinstance(o, UFLObject): return NotImplemented
+#        return Product(o, self)
+#    
+#    def __div__(self, o):
+#        if is_python_scalar(o): o = Number(o)
+#        if not isinstance(o, UFLObject): return NotImplemented
+#        return Division(self, o)
+#    
+#    def __rdiv__(self, o):
+#        if is_python_scalar(o): o = Number(o)
+#        if not isinstance(o, UFLObject): return NotImplemented
+#        return Division(o, self)
+#    
+#    def __pow__(self, o):
+#        if is_python_scalar(o): o = Number(o)
+#        if not isinstance(o, UFLObject): return NotImplemented
+#        return Power(self, o)
+#    
+#    def __rpow__(self, o):
+#        if is_python_scalar(o): o = Number(o)
+#        if not isinstance(o, UFLObject): return NotImplemented
+#        return Power(o, self)
+#    
+#    def __mod__(self, o):
+#        if is_python_scalar(o): o = Number(o)
+#        if not isinstance(o, UFLObject): return NotImplemented
+#        return Mod(self, o)
+#    
+#    def __rmod__(self, o):
+#        if is_python_scalar(o): o = Number(o)
+#        if not isinstance(o, UFLObject): return NotImplemented
+#        return Mod(o, self)
+#    
+#    def __neg__(self):
+#        return -1*self
+#    
+#    def __abs__(self):
+#        return Abs(self)
+
+    #def _transpose(self):
+    #    return Transpose(self)
+    
+    #T = property(_transpose)
+
+    #--- Indexing ---
+
+    #def __getitem__(self, key):
+    #    return Indexed(self, key)
+    
+    #--- Differentiation ---
+    
+    #def dx(self, *i):
+    #    """Return the partial derivative with respect to spatial variable number i"""
+    #    return PartialDerivative(self, i)
 
 #--- Basic terminal objects ---
 
 class Terminal(UFLObject):
-    """A terminal node in the expression tree."""
-
-    # Freeze member variables (there are none) for objects of this class
-    __slots__ = tuple()
+    "A terminal node in the UFL expression tree."
+    __slots__ = ()
     
     def operands(self):
+        "A Terminal object never has operands."
         return tuple()
 
 class Number(Terminal):
+    "A constant scalar numeric value."
     __slots__ = ("_value",)
     
     def __init__(self, value):
@@ -193,6 +196,7 @@ class Number(Terminal):
         return "Number(%s)" % repr(self._value)
 
 class Symbol(Terminal):
+    "A scalar symbol."
     __slots__ = tuple("_name")
     
     def __init__(self, name):
@@ -210,8 +214,11 @@ class Symbol(Terminal):
     def __repr__(self):
         return "Symbol(%s)" % repr(self._name)
 
-# TODO: Should we allow a single Variable to represent a tensor expression?
-class Variable(UFLObject):
+
+# FIXME: Should we allow a single Variable to represent a tensor expression?
+# FIXME: Should a Variable be a Terminal, in which case it doesn't need a symbol but can use a string label,
+#        or should it be an UFLObject, in which case it must use Symbol, and we must consider what to do with tensors of Symbol and Variables.
+class Variable(UFLObject): # (Terminal):
     __slots__ = ("_symbol", "_expression")
     
     def __init__(self, symbol, expression):
@@ -234,336 +241,4 @@ class Variable(UFLObject):
     
     def __repr__(self):
         return "Variable(%s, %s)" % (repr(self._symbol), repr(self._expression))
-
-#--- Algebraic operators ---
-
-class Sum(UFLObject):
-    __slots__ = ("_operands",)
-    
-    def __init__(self, *operands):
-        ufl_assert(len(operands), "Got sum of nothing.")
-        ufl_assert(all(operands[0].rank()         == o.rank()         for o in operands), "Rank mismatch in sum.")
-        ufl_assert(all(operands[0].free_indices() == o.free_indices() for o in operands), "Can't add expressions with different free indices.")
-        self._operands = tuple(operands)
-    
-    def operands(self):
-        return self._operands
-    
-    def free_indices(self):
-        return self._operands[0].free_indices()
-    
-    def rank(self):
-        return self._operands[0].rank()
-    
-    def __str__(self):
-        return "(%s)" % " + ".join(str(o) for o in self._operands)
-    
-    def __repr__(self):
-        return "(%s)" % " + ".join(repr(o) for o in self._operands)
-
-class Product(UFLObject):
-    __slots__ = ("_operands", "_rank", "_free_indices", "_repeated_indices")
-    
-    def __init__(self, *operands):
-        ufl_assert(len(operands), "Got product of nothing.")
-        self._operands = tuple(operands)
-       
-        # Extract indices
-        all_indices = tuple(chain(*(o.free_indices() for o in operands)))
-        (fixed_indices, free_indices, repeated_indices, num_unassigned_indices) = extract_indices(all_indices)
-        self._free_indices       = free_indices
-        self._repeated_indices   = repeated_indices
-
-        # Try to determine rank of this sequence of
-        # products with possibly varying ranks of each operand.
-        # Products currently defined as valid are:
-        # - something multiplied with a scalar
-        # - a scalar multiplied with something
-        # - matrix-matrix (A*B, M*grad(u))
-        # - matrix-vector (A*v)
-        current_rank = operands[0].rank()
-        for o in operands[1:]:
-            if current_rank == 0 or o.rank() == 0:
-                # at least one scalar
-                current_rank = current_rank + o.rank()
-            elif current_rank == 2 and o.rank() == 2:
-                # matrix-matrix product
-                current_rank = 2
-            elif current_rank == 2 and o.rank() == 1:
-                # matrix-vector product
-                current_rank = 1
-            else:
-                ufl_error("Invalid combination of tensor ranks in product.")
-        
-        self._rank = current_rank
-    
-    def operands(self):
-        return self._operands
-    
-    def free_indices(self):
-        return self._free_indices
-    
-    def rank(self):
-        return self._rank
-    
-    def __str__(self):
-        return "(%s)" % " * ".join(str(o) for o in self._operands)
-    
-    def __repr__(self):
-        return "(%s)" % " * ".join(repr(o) for o in self._operands)
-
-class Division(UFLObject):
-    __slots__ = ("_a", "_b")
-    
-    def __init__(self, a, b):
-        ufl_assert(is_true_scalar(b), "Division by non-scalar.")
-        self._a = a
-        self._b = b
-    
-    def operands(self):
-        return (self._a, self._b)
-    
-    def free_indices(self):
-        return self._a.free_indices()
-    
-    def rank(self):
-        return self._a.rank()
-    
-    def __str__(self):
-        return "(%s / %s)" % (str(self._a), str(self._b))
-    
-    def __repr__(self):
-        return "(%s / %s)" % (repr(self._a), repr(self._b))
-
-class Power(UFLObject):
-    __slots__ = ("_a", "_b")
-    
-    def __init__(self, a, b):
-        ufl_assert(is_true_scalar(a) and is_true_scalar(b), "Non-scalar power not defined.")
-        self._a = a
-        self._b = b
-    
-    def operands(self):
-        return (self._a, self._b)
-    
-    def free_indices(self):
-        return tuple()
-    
-    def rank(self):
-        return 0
-    
-    def __str__(self):
-        return "(%s ** %s)" % (str(self._a), str(self._b))
-    
-    def __repr__(self):
-        return "(%s ** %s)" % (repr(self._a), repr(self._b))
-    
-class Mod(UFLObject):
-    __slots__ = ("_a", "_b")
-    
-    def __init__(self, a, b):
-        ufl_assert(is_true_scalar(a) and is_true_scalar(b), "Non-scalar mod not defined.")
-        self._a = a
-        self._b = b
-    
-    def operands(self):
-        return (self._a, self._b)
-    
-    def free_indices(self):
-        return tuple()
-    
-    def rank(self):
-        return 0
-    
-    def __str__(self):
-        return "(%s %% %s)" % (str(self._a), str(self._b))
-    
-    def __repr__(self):
-        return "(%s %% %s)" % (repr(self._a), repr(self._b))
-
-class Abs(UFLObject):
-    __slots__ = ("_a",)
-    
-    def __init__(self, a):
-        self._a = a
-    
-    def operands(self):
-        return (self._a, )
-    
-    def free_indices(self):
-        return self._a.free_indices()
-    
-    def rank(self):
-        return self._a.rank()
-    
-    def __str__(self):
-        return "| %s |" % str(self._a)
-    
-    def __repr__(self):
-        return "Abs(%s)" % repr(self._a)
-
-class Transpose(UFLObject):
-    __slots__ = ("_A",)
-    
-    def __init__(self, A):
-        ufl_assert(A.rank() == 2, "Transpose is only defined for rank 2 tensors.")
-        self._A = A
-    
-    def operands(self):
-        return (self._A,)
-    
-    def free_indices(self):
-        return self._A.free_indices()
-    
-    def rank(self):
-        return 2
-    
-    def __str__(self):
-        return "(%s)^T" % str(self._A)
-    
-    def __repr__(self):
-        return "Transpose(%s)" % repr(self._A)
-
-#--- Indexing ---
-
-class MultiIndex(Terminal): # TODO: If single indices are made Terminal subclasses, this should inherit UFLObject instead.
-    __slots__ = ("_indices",)
-    
-    def __init__(self, indices, rank):
-        self._indices = as_index_tuple(indices, rank)
-    
-    def operands(self):
-        return ()
-        #return self._indices # TODO: To return the indices here, they should be Terminal subclasses. Do we want that or not?
-    
-    def free_indices(self):
-        ufl_error("Why would you want to get the free indices of a MultiIndex? Please explain at ufl-dev@fenics.org...")
-    
-    def rank(self):
-        ufl_error("Why would you want to get the rank of a MultiIndex? Please explain at ufl-dev@fenics.org...")
-    
-    def __str__(self):
-        return ", ".join(str(i) for i in self._indices)
-    
-    def __repr__(self):
-        return "MultiIndex(%s, %d)" % (repr(self._indices), len(self._indices))
-
-    def __len__(self):
-        return len(self._indices)
-
-class Indexed(UFLObject):
-    __slots__ = ("_expression", "_indices", "_fixed_indices", "_free_indices", "_repeated_indices", "_rank")
-    
-    def __init__(self, expression, indices):
-        self._expression = expression
-        
-        if isinstance(indices, MultiIndex): # if constructed from repr
-            self._indices = indices
-        else:
-            self._indices = MultiIndex(indices, expression.rank())
-        
-        msg = "Invalid number of indices (%d) for tensor expression of rank %d:\n\t%s\n" % (len(self._indices), expression.rank(), repr(expression))
-        ufl_assert(expression.rank() == len(self._indices), msg)
-        
-        (fixed_indices, free_indices, repeated_indices, num_unassigned_indices) = extract_indices(self._indices._indices)
-        # FIXME: We don't need to store all these here, remove the ones we don't use after implementing summation expansion.
-        self._fixed_indices      = fixed_indices
-        self._free_indices       = free_indices
-        self._repeated_indices   = repeated_indices
-        self._rank = num_unassigned_indices
-    
-    def operands(self):
-        return (self._expression, self._indices)
-    
-    def free_indices(self):
-        return self._free_indices
-    
-    def rank(self):
-        return self._rank
-    
-    def __str__(self):
-        return "%s[%s]" % (str(self._expression), str(self._indices))
-    
-    def __repr__(self):
-        return "Indexed(%s, %s)" % (repr(self._expression), repr(self._indices))
-    
-    def __getitem__(self, key):
-        ufl_error("Object is already indexed: %s" % repr(self))
-
-#--- Differentiation ---
-
-# FIXME: Add SpatialDerivative and TimeDerivative?
-
-class PartialDerivative(UFLObject):
-    "Partial derivative of an expression w.r.t. a spatial direction given by an index."
-    
-    __slots__ = ("_expression", "_rank", "_indices", "_free_indices") #, "_fixed_indices", "_repeated_indices")
-    
-    def __init__(self, expression, indices):
-        self._expression = expression
-        
-        if isinstance(indices, MultiIndex): # if constructed from repr
-            self._indices = indices
-        else:
-            self._indices = MultiIndex(indices, 1) # len(indices)) instead of 1 to support higher order derivatives.
-        
-        # Find free and repeated indices among the combined indices of the expression and dx((i,j,k))
-        indices = expression.free_indices() + self._indices._indices
-        (fixed_indices, free_indices, repeated_indices, num_unassigned_indices) = extract_indices(indices)
-        # FIXME: We don't need to store all these here, remove the ones we don't use after implementing summation expansion.
-        #self._fixed_indices      = fixed_indices
-        self._free_indices       = free_indices
-        #self._repeated_indices   = repeated_indices
-        self._rank = num_unassigned_indices
-    
-    def operands(self):
-        return (self._expression, self._indices)
-    
-    def free_indices(self):
-        return self._free_indices
-    
-    def rank(self):
-        return self._expression.rank()
-    
-    def __str__(self):
-        # TODO: Pretty-print for higher order derivatives.
-        return "(d[%s] / dx_%s)" % (str(self._expression), str(self._indices))
-    
-    def __repr__(self):
-        return "PartialDerivative(%s, %s)" % (repr(self._expression), repr(self._indices))
-
-# FIXME: Anders: Can't we just remove this?
-#        Martin: Not necessarily, not unless PartialDerivative is made more general. The idea is that Diff represents df/ds where s is a Symbol and/or Variable.
-
-# FIXME: This is the same mathematical operation as PartialDiff, should have very similar behaviour or even be the same class.
-class Diff(UFLObject):
-    __slots__ = ("_f", "_x", "_index", "_free_indices")
-    
-    def __init__(self, f, x):
-        ufl_assert(isinstance(f, UFLObject), "Expecting an UFLObject in Diff.")
-        ufl_assert(isinstance(x, (Symbol, Variable)), "Expecting a Symbol or Variable in Diff.")
-        self._f = f
-        self._x = x
-        fi = f.free_indices()
-        xi = x.free_indices()
-        ufl_assert(len(set(fi) ^ set(xi)) == 0, "FIXME: Repeated indices in Diff not implemented.") # FIXME
-        self._free_indices = tuple(fi + xi)
-    
-    def operands(self):
-        return (self._f, self._x)
-    
-    def free_indices(self):
-        return self._free_indices
-    
-    def rank(self):
-        return self._f.rank()
-    
-    def __str__(self):
-        return "(d[%s] / d[%s])" % (str(self._f), str(self._x))
-
-    def __repr__(self):
-        return "Diff(%s, %s)" % (repr(self._f), repr(self._x))
-
-def diff(f, x):
-    return Diff(f, x)
 

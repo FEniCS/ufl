@@ -4,11 +4,10 @@ or defined as compound operators involving basic operations on the UFL
 objects."""
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-04-09 -- 2008-05-19"
+__date__ = "2008-04-09 -- 2008-05-20"
 
-from base import Transpose
 from differentiation import Grad, Div, Curl, Rot
-from tensoralgebra import Inner, Outer, Dot, Cross, Determinant, Inverse, Trace, Deviatoric, Cofactor
+from tensoralgebra import Transpose, Inner, Outer, Dot, Cross, Determinant, Inverse, Trace, Deviatoric, Cofactor
 
 #--- Tensor operators ---
 

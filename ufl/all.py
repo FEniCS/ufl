@@ -5,10 +5,22 @@ Convenience file to import all parts of the language.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-05-15"
+__date__ = "2008-03-14 -- 2008-05-20"
 
 # base system (expression base class and all subclasses involved in operators on the base class)
 from base import *
+
+# indexing of tensor expressions
+from indexing import *
+
+# basic algebra operators
+from algebra import *
+
+# tensor algebra operators
+from tensoralgebra import *
+
+# differentiation operators
+from differentiation import *
 
 # form class
 from form import *
@@ -42,9 +54,4 @@ from geometry import *
 
 # predefined convenience objects like I, n, h and i,j,k,l
 from objects import *
-
-# TODO: describe these
-from differentiation import *
-from indexing import *
-from tensoralgebra import *
 
