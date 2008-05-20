@@ -1,11 +1,7 @@
-#!/usr/bin/env python
-
-"""
-Utility objects for pretty syntax in user code.
-"""
+"""Utility objects for pretty syntax in user code."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-05-19"
+__date__ = "2008-03-14 -- 2008-05-20"
 
 from base import *
 from integral import *

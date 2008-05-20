@@ -2,8 +2,7 @@
 
 import sys
 import ufl
-from ufl.utilities import basisfunctions, coefficients, unique_elements, load_forms, analyse_form
-from ufl.new_transform import ufl2latex
+from ufl.utilities import basisfunctions, coefficients, unique_elements, load_forms, validate_form, ufl2latex
 
 # Get commandline options
 if len(sys.argv) != 2:
@@ -18,7 +17,7 @@ forms = load_forms(filename)
 
 # Analyse validity of forms
 for k,v in forms:
-    errors = analyse_form(v)
+    errors = validate_form(v)
     print
     if errors:
         print "Found errors in form '%s':" % k

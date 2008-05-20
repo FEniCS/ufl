@@ -1,16 +1,14 @@
-#!/usr/bin/env python
-
-"""
-Form arguments defined in finite element spaces.
+"""Form arguments defined in finite element spaces.
 There are two groups: basisfunctions and coefficients,
-which use the baseclasses BasisFunction and Function.
-"""
+which use the baseclasses BasisFunction and Function."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-04-02"
+__date__ = "2008-03-14 -- 2008-05-20"
+
 
 from base import *
 from finiteelement import FiniteElement, MixedElement, VectorElement
+
 
 class BasisFunction(Terminal):
     __slots__ = ("_element", "_count",)

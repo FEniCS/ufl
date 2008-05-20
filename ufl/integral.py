@@ -1,11 +1,7 @@
-#!/usr/bin/env python
-
-"""
-The Integral class.
-"""
+"""The Integral class."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-05-19"
+__date__ = "2008-03-14 -- 2008-05-20"
 
 
 from output import *

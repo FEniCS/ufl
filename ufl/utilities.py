@@ -10,6 +10,8 @@ from output import *
 from base import *
 from traversal import *
 from analysis import *
+from predicates import *
+from checks import *
 from transformations import *
 
 

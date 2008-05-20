@@ -88,10 +88,3 @@ def duplications(a):
             handled.add(o)
     return duplicated
 
-
-
-#--- Utilities for error checking ---
-
-def analyse_form(form): # TODO: Analyse validity of forms any way we can, using utilities above and from predicates.py
-    errors = None
-    return errors

@@ -1,7 +1,4 @@
-"""
-Tensor, Matrix and Vector:
-used to group scalar expressions into expressions with rank > 0.
-"""
+"""Classes used to group scalar expressions into expressions with rank > 0."""
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-31-03 -- 2008-05-20"
@@ -122,23 +119,4 @@ def Matrix(expressions, indices = None):
     if indices is None:
         return ListMatrix(expressions)
     return Tensor(expressions, indices)
-
-
-
-# TODO: Work out handling of containers of symbols:
-#def SymbolicVector(name, size):
-#    return Vector([Symbol("%s_%d" % (name, i)) for i in range(size)])
-#
-#
-#def SymbolicMatrix(name, rows, cols):
-#    return Matrix( [ [Symbol("%s_%d_%d" % (name, i, j)) for j in range(cols)] for i in range(rows) ] )
-#
-#
-#def is_symbol(u):
-#    if isinstance(u, Symbol) or \
-#        ( isinstance(u, Indexed) and \
-#          isinstance(u._expression, (Tensor, ListVector, ListMatrix)
-#        ):
-#        return True
-#    return False
 

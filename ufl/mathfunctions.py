@@ -1,16 +1,14 @@
-#!/usr/bin/env python
-
-"""
-Mathematical functions.
-"""
+"""Mathematical functions."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-05-19"
+__date__ = "2008-03-14 -- 2008-05-20"
+
 
 from output import *
 from base import *
 
-### Functions
+
+#--- Function representations ---
 
 class MathFunction(UFLObject):
     def __init__(self, name, argument):
@@ -33,7 +31,8 @@ class MathFunction(UFLObject):
     def __repr__(self):
         return "%s(%s)" % (self.name, repr(self.argument))
 
-# functions exposed to the user:
+
+#--- Functions exposed to the user ---
 
 def sqrt(f):
     return MathFunction("sqrt", f)

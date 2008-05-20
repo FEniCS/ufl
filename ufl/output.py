@@ -1,17 +1,15 @@
-#!/usr/bin/env python
-
-"""
-Functions used by the UFL implementation to provide output
-messages that can be redirected by the user of the UFL library.
-"""
+"""Functions used by the UFL implementation to provide output
+messages that can be redirected by the user of the UFL library."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__    = "2008-03-14 -- 2008-05-15"
+__date__    = "2008-03-14 -- 2008-05-20"
+
 
 import logging
 _log     = logging.getLogger("ufl")
 _handler = logging.StreamHandler()
 _log.addHandler(_handler)
+
 
 class UFLException(Exception):
     def __init__(self, message):
@@ -49,3 +47,4 @@ def ufl_assert(condition, *message):
         _log.error(*message)
         text = message[0] % message[1:]
         raise UFLException(text)
+

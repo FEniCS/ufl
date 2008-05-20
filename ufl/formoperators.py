@@ -1,13 +1,10 @@
-#!/usr/bin/env python
-
-"""
-Various high level ways to transform a complete Form.
-"""
+"""Various high level ways to transform a complete Form."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-04-01"
+__date__ = "2008-03-14 -- 2008-05-20"
 
 
+# TODO: We should be able to take the derivative of a part of the form, doing some linearization manually.
 class Derivative:
     """..."""
     def __init__(self, form, function):
