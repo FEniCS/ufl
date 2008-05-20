@@ -2,32 +2,17 @@
 types involved with built-in operators on any UFL object."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-05-19"
+__date__ = "2008-03-14 -- 2008-05-20"
 
+# External imports
 from itertools import chain
 from collections import defaultdict
+
+# UFL imports
 from output import *
-#from indexing import *
 
-# This might not all be possible, since UFLObject uses many of these and they in turn inherit UFLObject:
-# FIXME: Move all differentiation to differentiation.py
-# FIXME: Move all indexing to indexing.py
-# FIXME: Move all operators to operators.py
-# However, a solution that could work is to attach operator functions UFLObject.__foo__ in the respective foostuff.py where the type __foo__ returns is defined.
 
-#--- Helper functions ---
-
-def is_python_scalar(o):
-    return isinstance(o, (int, float))
-
-def is_scalar(o):
-    """Return True iff expression is scalar-valued, possibly containing free indices"""
-    ufl_assert(isinstance(o, UFLObject), "Assuming an UFLObject.")
-    return o.rank() == 0
-
-def is_true_scalar(o):
-    """Return True iff expression a single scalar value, with no free indices"""
-    return is_scalar(o) and len(o.free_indices()) == 0
+#--- The base object for all UFL expression tree nodes ---
 
 class UFLObject(object):
     """Base class of all UFL objects"""
@@ -72,99 +57,44 @@ class UFLObject(object):
         return repr(self) == repr(other)
     
     # TODO: Keep or remove this? "a in b" is probably ambiguous in may ways.
-    def __contains__(self, item):
-        """Return whether item is in the UFL expression tree. If item is a str, it is assumed to be a repr."""
-        if isinstance(item, UFLObject):
-            if item is self:
-                return True
-            item = repr(item)
-        if repr(self) == item:
-            return True
-        return any((item in o) for o in self.operands())
-    
-    #--- Basic algebraic operators ---
-    
-#    def __add__(self, o):
-#        if is_python_scalar(o): o = Number(o)
-#        if not isinstance(o, UFLObject): return NotImplemented
-#        return Sum(self, o)
-#    
-#    def __radd__(self, o):
-#        if is_python_scalar(o): o = Number(o)
-#        if not isinstance(o, UFLObject): return NotImplemented
-#        return Sum(o, self)
-#    
-#    def __sub__(self, o):
-#        if is_python_scalar(o): o = Number(o)
-#        if not isinstance(o, UFLObject): return NotImplemented
-#        return self + (-o)
-#    
-#    def __rsub__(self, o):
-#        if is_python_scalar(o): o = Number(o)
-#        if not isinstance(o, UFLObject): return NotImplemented
-#        return o + (-self)
-#
-#    def __mul__(self, o):
-#        if is_python_scalar(o): o = Number(o)
-#        if not isinstance(o, UFLObject): return NotImplemented
-#        return Product(self, o)
-#    
-#    def __rmul__(self, o):
-#        if is_python_scalar(o): o = Number(o)
-#        if not isinstance(o, UFLObject): return NotImplemented
-#        return Product(o, self)
-#    
-#    def __div__(self, o):
-#        if is_python_scalar(o): o = Number(o)
-#        if not isinstance(o, UFLObject): return NotImplemented
-#        return Division(self, o)
-#    
-#    def __rdiv__(self, o):
-#        if is_python_scalar(o): o = Number(o)
-#        if not isinstance(o, UFLObject): return NotImplemented
-#        return Division(o, self)
-#    
-#    def __pow__(self, o):
-#        if is_python_scalar(o): o = Number(o)
-#        if not isinstance(o, UFLObject): return NotImplemented
-#        return Power(self, o)
-#    
-#    def __rpow__(self, o):
-#        if is_python_scalar(o): o = Number(o)
-#        if not isinstance(o, UFLObject): return NotImplemented
-#        return Power(o, self)
-#    
-#    def __mod__(self, o):
-#        if is_python_scalar(o): o = Number(o)
-#        if not isinstance(o, UFLObject): return NotImplemented
-#        return Mod(self, o)
-#    
-#    def __rmod__(self, o):
-#        if is_python_scalar(o): o = Number(o)
-#        if not isinstance(o, UFLObject): return NotImplemented
-#        return Mod(o, self)
-#    
-#    def __neg__(self):
-#        return -1*self
-#    
-#    def __abs__(self):
-#        return Abs(self)
+    #def __contains__(self, item):
+    #    """Return whether item is in the UFL expression tree. If item is a str, it is assumed to be a repr."""
+    #    if isinstance(item, UFLObject):
+    #        if item is self:
+    #            return True
+    #        item = repr(item)
+    #    if repr(self) == item:
+    #        return True
+    #    return any((item in o) for o in self.operands())
 
-    #def _transpose(self):
-    #    return Transpose(self)
-    
-    #T = property(_transpose)
 
-    #--- Indexing ---
+#--- About other operators ---
 
-    #def __getitem__(self, key):
-    #    return Indexed(self, key)
-    
-    #--- Differentiation ---
-    
-    #def dx(self, *i):
-    #    """Return the partial derivative with respect to spatial variable number i"""
-    #    return PartialDerivative(self, i)
+# For the definition of UFLObject.T, see tensoralgebra.py
+
+# For the definition of algebraic operators in UFLObject:
+#def __add__(self, o):
+#def __radd__(self, o):
+#def __sub__(self, o):
+#def __rsub__(self, o):
+#def __mul__(self, o):
+#def __rmul__(self, o):
+#def __div__(self, o):
+#def __rdiv__(self, o):
+#def __pow__(self, o):
+#def __rpow__(self, o):
+#def __mod__(self, o):
+#def __rmod__(self, o):
+#def __neg__(self):
+#def __abs__(self):
+# see algebra.py.
+
+# For indexing operations, see indexing.py
+#def __getitem__(self, key):
+
+# For differentiation operations, see differentiation.py
+#def dx(self, *i):
+
 
 #--- Basic terminal objects ---
 
@@ -241,4 +171,19 @@ class Variable(UFLObject): # (Terminal):
     
     def __repr__(self):
         return "Variable(%s, %s)" % (repr(self._symbol), repr(self._expression))
+
+
+#--- Basic helper functions ---
+
+def is_python_scalar(o):
+    return isinstance(o, (int, float))
+
+def is_scalar(o):
+    """Return True iff expression is scalar-valued, possibly containing free indices"""
+    ufl_assert(isinstance(o, UFLObject), "Assuming an UFLObject.")
+    return o.rank() == 0
+
+def is_true_scalar(o):
+    """Return True iff expression a single scalar value, with no free indices"""
+    return is_scalar(o) and len(o.free_indices()) == 0
 

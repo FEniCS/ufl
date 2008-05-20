@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 UFL - Unified Form Language
 ---------------------------
@@ -27,7 +26,7 @@ __version__ = "0.1"
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __copyright__ = __authors__ + " (2008)"
 __licence__ = "GPL" # TODO: which licence?
-__date__ = "2008-03-14 -- 2008-05-19"
+__date__ = "2008-03-14 -- 2008-05-20"
 
 # DEBUGGING: Enable PyChecker to find potential bugs by static code analysis:
 #import os, sys, glob, numpy, logging # PyChecker skips previously loaded modules 

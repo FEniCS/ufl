@@ -1,14 +1,11 @@
-#!/usr/bin/env python
-
-"""
-Compound tensor algebra operations. Needs some work!
-"""
+"""Compound tensor algebra operations."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-05-15"
+__date__ = "2008-03-14 -- 2008-05-20"
 
 from output import *
 from base import *
+
 
 ### Algebraic operations on tensors:
 # Scalars:
@@ -293,3 +290,4 @@ class Cofactor(UFLObject):
     
     def __repr__(self):
         return "Cofactor(%s)" % repr(self.A)
+

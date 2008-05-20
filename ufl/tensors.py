@@ -1,12 +1,10 @@
-#!/usr/bin/env python
-
 """
 Tensor, Matrix and Vector:
 used to group scalar expressions into expressions with rank > 0.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-31-03 -- 2008-05-19"
+__date__ = "2008-31-03 -- 2008-05-20"
 
 
 from base import *

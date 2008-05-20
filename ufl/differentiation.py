@@ -1,8 +1,4 @@
-#!/usr/bin/env python
-
-"""
-Differential operators. Needs work!
-"""
+"""Differential operators. Needs work!"""
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-05-20"
