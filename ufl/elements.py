@@ -1,6 +1,6 @@
-"""This module provides an extensive list of predefined finite
-element families. Users (or more likely form compilers) may
-register new elements by calling the function register_element."""
+"""This module provides an extensive list of predefined finite element
+families. Users (or more likely form compilers) may register new
+elements by calling the function register_element."""
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __date__ = "2008-03-03 -- 2008-05-02"

@@ -42,6 +42,8 @@ Some of the TODO's left:
 # License:
  - Which license do we pick? GPL3 or LGPL3?
 
+# Should we use "enums" or strings? For example "triangle", "tetrahedron"
+  or TRIANGLE, TETRAHEDRON
 
 # Note from Martin: Some stuff has moved around a bit now.
 * Notes by Anders (trying to make sense of the implementation)
@@ -52,7 +54,8 @@ Some of the TODO's left:
   --   = Undecided
   hmm  = Skeptical
 
-  elements.py                OK
+  elements.py                OK!
+  finiteelement.py           OK
   all.py                     --
   differentiation.py         --
   geometry.py                --
@@ -60,7 +63,6 @@ Some of the TODO's left:
   predicates.py              --
   transformers.py            --
   base.py                    --
-  finiteelement.py           --
   indexing.py                --
   objects.py                 --
   swiginac_code.py           --

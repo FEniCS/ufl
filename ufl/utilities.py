@@ -89,5 +89,3 @@ def form_info(form):
         s += "\n"
         s += integral_info(itg)
     return s
-
-

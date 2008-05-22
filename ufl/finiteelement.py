@@ -1,9 +1,10 @@
 "This module defines the UFL finite element classes."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-03 -- 2008-05-19"
+__date__ = "2008-03-03 -- 2008-05-22"
 
 from output import ufl_assert
+from permutation import compute_indices
 from elements import ufl_elements
 
 # Map from valid domains to their topological dimension
@@ -37,7 +38,7 @@ class FiniteElementBase(object):
 
     def __add__(self, other):
         "Add two elements, creating a mixed element"
-        ufl_assert(isinstance(other, FiniteElementBase), "Can't add element and %s" % other.__class__)
+        ufl_assert(isinstance(other, FiniteElementBase), "Can't add element and %s." % other.__class__)
         return MixedElement(self, other)
 
 class FiniteElement(FiniteElementBase):
@@ -46,7 +47,7 @@ class FiniteElement(FiniteElementBase):
     def __init__(self, family, domain, degree):
         "Create finite element"
 
-        # Check that element exists
+        # Check that the element family exists
         ufl_assert(family in ufl_elements, 'Unknown finite element "%s".' % family)
 
         # Check that element data is valid (and also get common family name)
@@ -78,7 +79,7 @@ class MixedElement(FiniteElementBase):
 
         # Check that all elements are defined on the same domain
         domain = elements[0].domain()
-        ufl_assert(all(e.domain() == domain for e in elements), "Domain mismatch for mixed element.")
+        ufl_assert(all(e.domain() == domain for e in elements), "Domain mismatch for sub elements of mixed element.")
 
         # Initialize element data
         FiniteElementBase.__init__(self, "Mixed", domain, None, len(elements))
@@ -121,6 +122,7 @@ class VectorElement(MixedElement):
         return self._dim
 
     def __repr__(self):
+        "Return string representation"
         return "VectorElement(%s, %s, %d, %s)" % (repr(self._family), repr(self._domain), self._degree, repr(self._dim))
 
     def __str__(self):
@@ -130,37 +132,43 @@ class VectorElement(MixedElement):
 class TensorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal"
     
-    def __init__(self, family, domain, degree, shape=None, is_symmetric=False):
+    def __init__(self, family, domain, degree, shape=None, symmetry=None):
         "Create tensor element (repeated mixed element)"
 
         # Set default shape if not specified
         if shape is None:
+            ufl_assert(symmetry == None, "Symmetry of tensor element cannot be specified unless shape has been specified.")
             dim = _domain2dim[domain]
             shape = (dim, dim)
 
-        # Create nested mixed element recursively
+        # Compute all index combinations for given shape
+        indices = compute_indices(shape)
+
+        # Compute sub elements and mapping from indices to sub elements, accounting for symmetry
         sub_element = FiniteElement(family, domain, degree)
-        value_rank = sub_element.value_rank()
-        for dim in shape:
-            sub_element = MixedElement([sub_element]*dim)
+        sub_elements = []
+        sub_element_mapping = {}
+        for index in indices:
+            if symmetry and index in symmetry:
+                continue
+            sub_element_mapping[index] = len(sub_elements)
+            sub_elements += [sub_element]
+
+        # Update mapping for symmetry
+        for index in indices:
+            if symmetry and index in symmetry:
+                sub_element_mapping[index] = sub_element_mapping[symmetry[index]]
         
         # Initialize element data
-        MixedElement.__init__(self, sub_element.sub_elements())
+        MixedElement.__init__(self, sub_elements)
         self._degree = degree
-        self._value_rank = len(shape) + value_rank
+        self._value_rank = len(shape) + sub_element.value_rank()
         self._shape = shape
-        self._is_symmetric = is_symmetric
-
-    def shape(self):
-        "Return shape of tensor element"
-        return self._shape
-
-    def is_symmetric(self):
-        "Return True iff tensor element is symmetric"
-        return self._is_symmetric
+        self._symmetry = symmetry
+        self._sub_element_mapping = sub_element_mapping
 
     def __repr__(self):
-        return "TensorElement(%s, %s, %d, %s, %s)" % (repr(self._family), repr(self._domain), self._degree, repr(self._shape), repr(self._is_symmetric))
+        return "TensorElement(%s, %s, %d, %s, %s)" % (repr(self._family), repr(self._domain), self._degree, repr(self._shape), repr(self._symmetry))
 
     def __str__(self):
         "Pretty printing"
@@ -169,4 +177,3 @@ class TensorElement(MixedElement):
         print self.shape()
         print self.domain()
         return "%s tensor element of degree %d and shape %s on a %s" % (self.family(), self.degree(), str(self.shape()), self.domain())
-
