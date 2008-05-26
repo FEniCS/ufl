@@ -1,7 +1,7 @@
 "This module defines the UFL finite element classes."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-03 -- 2008-05-22"
+__date__ = "2008-03-03 -- 2008-05-26"
 
 from output import ufl_assert
 from permutation import compute_indices
@@ -35,6 +35,13 @@ class FiniteElementBase(object):
     def value_rank(self):
         "Return value rank of finite element"
         return self._value_rank
+
+    def extract_component(self, i):
+        "Extract base component index and (simple) element for given component index"
+        r = self.value_rank()
+        ufl_assert(len(i) == r,
+                   "Illegal component (value rank %d) index for element (value rank %d)." % (len(i), r))
+        return (i, self)
 
     def __add__(self, other):
         "Add two elements, creating a mixed element"
@@ -89,6 +96,10 @@ class MixedElement(FiniteElementBase):
         "Return list of sub elements"
         return self._sub_elements
 
+    def extract_component(self, i):
+        "Extract base component index and (simple) element for given component index"
+        ufl_assert(False, "Not implemented yet.")
+
     def __repr__(self):
         "Return string representation"
         return "MixedElement(*%s)" % repr(self._sub_elements)
@@ -120,6 +131,10 @@ class VectorElement(MixedElement):
     def dim(self):
         "Return dimension of vector-valued element"
         return self._dim
+
+    def extract_component(self, i):
+        "Extract base component index and (simple) element for given component index"
+        ufl_assert(False, "Not implemented yet.")
 
     def __repr__(self):
         "Return string representation"
@@ -166,6 +181,10 @@ class TensorElement(MixedElement):
         self._shape = shape
         self._symmetry = symmetry
         self._sub_element_mapping = sub_element_mapping
+
+    def extract_component(self, i):
+        "Extract base component index and (simple) element for given component index"
+        ufl_assert(False, "Not implemented yet.")
 
     def __repr__(self):
         return "TensorElement(%s, %s, %d, %s, %s)" % (repr(self._family), repr(self._domain), self._degree, repr(self._shape), repr(self._symmetry))
