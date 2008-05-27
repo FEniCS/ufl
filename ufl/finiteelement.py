@@ -33,15 +33,31 @@ class FiniteElementBase(object):
         return self._degree
 
     def value_rank(self):
-        "Return value rank of finite element"
+        "Return the rank of the value space"
         return self._value_rank
+
+    # FIXME: Do we need this? Requires more information from the elements
+    #def value_dimension(self, i):
+    #    "Return the dimension of the value space for axis i"
+    #    ufl_assert(False, "Must be implemented by subclass.")
 
     def extract_component(self, i):
         "Extract base component index and (simple) element for given component index"
+        self._check_component(i)
+        return (i, self)
+
+    def _check_component(self, i):
+        "Check that component index i is valid"
         r = self.value_rank()
         ufl_assert(len(i) == r,
-                   "Illegal component (value rank %d) index for element (value rank %d)." % (len(i), r))
-        return (i, self)
+                   "Illegal component index (value rank %d) for element (value rank %d)." % (len(i), r))
+
+    # FIXME: Do we need this? Requires more information from the elements
+    #def _check_dimension(self, i):
+    #    "Check that value axis i is valid"
+    #    r = self.value_rank()
+    #    ufl_assert(i < r,
+    #               "Illegal value axis %d (value rank is %d)." % (i, r))
 
     def __add__(self, other):
         "Add two elements, creating a mixed element"
@@ -98,7 +114,9 @@ class MixedElement(FiniteElementBase):
 
     def extract_component(self, i):
         "Extract base component index and (simple) element for given component index"
-        ufl_assert(False, "Not implemented yet.")
+        self._check_component(i)
+        ufl_assert(i[0] < len(self._sub_elements), "Illegal component index (dimension %d)." % i[0])
+        return self._sub_elements[i].extract_component(i[1:])
 
     def __repr__(self):
         "Return string representation"
@@ -126,23 +144,17 @@ class VectorElement(MixedElement):
         MixedElement.__init__(self, sub_elements)
         self._degree = degree
         self._value_rank = 1 + sub_element.value_rank()
-        self._dim = dim
-
-    def dim(self):
-        "Return dimension of vector-valued element"
-        return self._dim
-
-    def extract_component(self, i):
-        "Extract base component index and (simple) element for given component index"
-        ufl_assert(False, "Not implemented yet.")
+        self._sub_element = sub_element
 
     def __repr__(self):
         "Return string representation"
-        return "VectorElement(%s, %s, %d, %s)" % (repr(self._family), repr(self._domain), self._degree, repr(self._dim))
+        return "VectorElement(%s, %s, %d, %s)" % \
+               (repr(self._family), repr(self._domain), self._degree, len(self._sub_elements))
 
     def __str__(self):
         "Pretty printing"
-        return "%s vector element of degree %d and dimension %d on a %s" % (self.family(), self.degree(), self.dim(), self.domain())
+        return "%s vector element of degree %d on a %s: %d x [%s]" % \
+               (self.family(), self.degree(), self.domain(), len(self._sub_elements), str(self._sub_element))
 
 class TensorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal"
@@ -178,13 +190,17 @@ class TensorElement(MixedElement):
         MixedElement.__init__(self, sub_elements)
         self._degree = degree
         self._value_rank = len(shape) + sub_element.value_rank()
+        self._sub_element = sub_element
         self._shape = shape
         self._symmetry = symmetry
         self._sub_element_mapping = sub_element_mapping
 
     def extract_component(self, i):
         "Extract base component index and (simple) element for given component index"
-        ufl_assert(False, "Not implemented yet.")
+        self._check_component(i)
+        ii = i[:len(shape)]
+        ufl_assert(i[:len(shape)] in self._sub_element_mapping, "Illegal component index %s." % str(i))
+        return self._sub_element_mapping[ii].extract_component(i[len(shape):])
 
     def __repr__(self):
         return "TensorElement(%s, %s, %d, %s, %s)" % (repr(self._family), repr(self._domain), self._degree, repr(self._shape), repr(self._symmetry))
