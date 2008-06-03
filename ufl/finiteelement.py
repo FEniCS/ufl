@@ -1,7 +1,7 @@
 "This module defines the UFL finite element classes."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-03 -- 2008-05-26"
+__date__ = "2008-03-03 -- 2008-06-03"
 
 from output import ufl_assert
 from permutation import compute_indices
