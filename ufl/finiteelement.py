@@ -173,13 +173,19 @@ class TensorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal"
     
     def __init__(self, family, domain, degree, shape=None, symmetry=None):
-        "Create tensor element (repeated mixed element)"
-
+        "Create tensor element (repeated mixed element with optional symmetries)"
+        
         # Set default shape if not specified
         if shape is None:
-            ufl_assert(symmetry is None, "Symmetry of tensor element cannot be specified unless shape has been specified.")
             dim = _domain2dim[domain]
             shape = (dim, dim)
+            
+            # Construct default symmetry for matrix elements
+            if symmetry == True:
+                symmetry = dict( ((i,j), (j,i)) for i in range(dim) for j in range(dim) if i > j )
+            else:
+                ufl_assert(symmetry in (None, True),
+                          "Symmetry of tensor element cannot be specified unless shape has been specified.")
 
         # Compute all index combinations for given shape
         indices = compute_indices(shape)
@@ -212,9 +218,11 @@ class TensorElement(MixedElement):
     def extract_component(self, i):
         "Extract base component index and (simple) element for given component index"
         self._check_component(i)
-        ii = i[:len(shape)]
-        ufl_assert(i[:len(shape)] in self._sub_element_mapping, "Illegal component index %s." % str(i))
-        return self._sub_element_mapping[ii].extract_component(i[len(shape):])
+        l = len(self._shape)
+        ii = i[:l]
+        jj = i[l:]
+        ufl_assert(ii in self._sub_element_mapping, "Illegal component index %s." % str(i))
+        return self._sub_element_mapping[ii].extract_component(jj)
 
     def __repr__(self):
         return "TensorElement(%s, %s, %d, %s, %s)" % (repr(self._family), repr(self._domain), self._degree, repr(self._shape), repr(self._symmetry))
