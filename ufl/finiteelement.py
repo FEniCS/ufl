@@ -36,10 +36,10 @@ class FiniteElementBase(object):
         "Return the rank of the value space"
         return self._value_rank
 
-    # FIXME: Do we need this? Requires more information from the elements
-    #def value_dimension(self, i):
-    #    "Return the dimension of the value space for axis i"
-    #    ufl_assert(False, "Must be implemented by subclass.")
+    def value_dimension(self, i):
+        "Return the dimension of the value space for axis i"
+        ufl_assert(not self._value_dimension is None, "Unspecified value shape.")
+        return self._value_dimension[i]
 
     def extract_component(self, i):
         "Extract base component index and (simple) element for given component index"
@@ -50,14 +50,7 @@ class FiniteElementBase(object):
         "Check that component index i is valid"
         r = self.value_rank()
         ufl_assert(len(i) == r,
-                   "Illegal component index (value rank %d) for element (value rank %d)." % (len(i), r))
-
-    # FIXME: Do we need this? Requires more information from the elements
-    #def _check_dimension(self, i):
-    #    "Check that value axis i is valid"
-    #    r = self.value_rank()
-    #    ufl_assert(i < r,
-    #               "Illegal value axis %d (value rank is %d)." % (i, r))
+                   "Illegal component index '%s' (value rank %d) for element (value rank %d)." % (repr(i), len(i), r))
 
     def __add__(self, other):
         "Add two elements, creating a mixed element"
@@ -75,12 +68,16 @@ class FiniteElement(FiniteElementBase):
 
         # Check that element data is valid (and also get common family name)
         (family, short_name, value_rank, (kmin, kmax), domains) = ufl_elements[family]
-        ufl_assert(domain in domains,          'Domain "%s" invalid for "%s" finite element.' % (domain, family))
-        ufl_assert(not kmin or degree >= kmin, 'Degree "%d" invalid for "%s" finite element.' % (degree, family))
-        ufl_assert(not kmax or degree <= kmax, 'Degree "%d" invalid for "%s" finite element.' % (degree, family))
+        ufl_assert(domain in domains,              'Domain "%s" invalid for "%s" finite element.' % (domain, family))
+        ufl_assert(kmin is None or degree >= kmin, 'Degree "%d" invalid for "%s" finite element.' % (degree, family))
+        ufl_assert(kmax is None or degree <= kmax, 'Degree "%d" invalid for "%s" finite element.' % (degree, family))
 
         # Initialize element data
         FiniteElementBase.__init__(self, family, domain, degree, value_rank)
+
+        # Set value dimension
+        dim = _domain2dim[domain]
+        self._value_dimension = tuple(dim for d in range(value_rank))
 
     def __repr__(self):
         "Return string representation"
@@ -107,6 +104,21 @@ class MixedElement(FiniteElementBase):
         # Initialize element data
         FiniteElementBase.__init__(self, "Mixed", domain, None, len(elements))
         self._sub_elements = list(elements)
+
+        # Set value dimension # FIXME: Resolve this issue for a non-vector/tensor mixed element.
+        
+        # Solution #1: Simply leave this undefined for a general MixedElement?
+        # The form compiled could check "if type(element) is MixedElement" before using element.value_dimension(i)
+        # (not "isinstance(element, MixedElement)", which would include the subclasses VectorElement/TensorElement)
+        self._value_dimension = None
+        
+        # Solution #2: Sum the dimensions of subelements. (This doesn't make sense!)
+        #self._value_dimension = sum(e._value_dimension for e in self._sub_elements)
+        
+        # Solution #3: Look to UFC!
+        # In UFC we do handle this somehow, since finite_element knows the value shape.
+        # I think we define the value rank differently there than above, and value shape
+        # should be consistent with the value rank definition.
 
     def sub_elements(self):
         "Return list of sub elements"
@@ -144,6 +156,7 @@ class VectorElement(MixedElement):
         MixedElement.__init__(self, sub_elements)
         self._degree = degree
         self._value_rank = 1 + sub_element.value_rank()
+        self._value_dimension = (dim,) + sub_element._value_dimension
         self._sub_element = sub_element
 
     def __repr__(self):
@@ -164,7 +177,7 @@ class TensorElement(MixedElement):
 
         # Set default shape if not specified
         if shape is None:
-            ufl_assert(symmetry == None, "Symmetry of tensor element cannot be specified unless shape has been specified.")
+            ufl_assert(symmetry is None, "Symmetry of tensor element cannot be specified unless shape has been specified.")
             dim = _domain2dim[domain]
             shape = (dim, dim)
 
@@ -190,6 +203,7 @@ class TensorElement(MixedElement):
         MixedElement.__init__(self, sub_elements)
         self._degree = degree
         self._value_rank = len(shape) + sub_element.value_rank()
+        self._value_dimension = shape + sub_element._value_dimension
         self._sub_element = sub_element
         self._shape = shape
         self._symmetry = symmetry

@@ -3,7 +3,7 @@ families. Users (or more likely form compilers) may register new
 elements by calling the function register_element."""
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-03 -- 2008-05-02"
+__date__ = "2008-03-03 -- 2008-06-03"
 
 from output import *
 
@@ -49,6 +49,9 @@ register_element("Nedelec 2nd kind H(curl)", "N2curl", 1, (1, None),
                  ("triangle", "tetrahedron"))
 
 # FIXME: What should the degree range be for quadrature elements?
+#        Should we specify degree at all? It should match the degree
+#        chosen for numeric integration, which is perhaps better
+#        specified as a form compiler option?
 
 register_element("Quadrature", "Q", 0, (None, None),
                  ("interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
