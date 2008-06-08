@@ -2,7 +2,7 @@
 types involved with built-in operators on any UFL object."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-05-20"
+__date__ = "2008-03-14 -- 2008-06-08"
 
 # External imports
 from itertools import chain
@@ -91,6 +91,9 @@ class UFLObject(object):
 
 # For indexing operations, see indexing.py
 #def __getitem__(self, key):
+
+# For restriction operations, see restriction.py
+#def __call__(self, side):
 
 # For differentiation operations, see differentiation.py
 #def dx(self, *i):
