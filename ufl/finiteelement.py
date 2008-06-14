@@ -39,6 +39,7 @@ class FiniteElementBase(object):
     def value_dimension(self, i):
         "Return the dimension of the value space for axis i"
         ufl_assert(not self._value_dimension is None, "Unspecified value shape.")
+        self._check_component(i)
         return self._value_dimension[i]
 
     def extract_component(self, i):
