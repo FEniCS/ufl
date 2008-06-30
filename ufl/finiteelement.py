@@ -128,6 +128,7 @@ class MixedElement(FiniteElementBase):
     def extract_component(self, i):
         "Extract base component index and (simple) element for given component index"
         self._check_component(i)
+        ufl_assert(len(i) > 0, "Illegal component index (empty).")
         ufl_assert(i[0] < len(self._sub_elements), "Illegal component index (dimension %d)." % i[0])
         return self._sub_elements[i[0]].extract_component(i[1:])
 
