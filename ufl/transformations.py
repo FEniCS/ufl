@@ -116,9 +116,9 @@ def latex_handlers():
     d[Indexed]   = lambda x, a, b: "{%s}_{%s}" % (a, b)
     d[PartialDerivative] = lambda x, f, y: "\\frac{\\partial\\left[{%s}\\right]}{\\partial{%s}}" % (f, y)
     #d[Diff] = Diff # FIXME
-    d[Grad] = lambda x, f: "\\Nabla{%s}" % par(f)
-    d[Div]  = lambda x, f: "\\Nabla{\\cdot %s}" % par(f)
-    d[Curl] = lambda x, f: "\\Nabla{\\times %s}" % par(f)
+    d[Grad] = lambda x, f: "\\nabla{%s}" % par(f)
+    d[Div]  = lambda x, f: "\\nabla{\\cdot %s}" % par(f)
+    d[Curl] = lambda x, f: "\\nabla{\\times %s}" % par(f)
     d[Rot]  = lambda x, f: "\\rot{%s}" % par(f)
     #d[FiniteElement] = FiniteElement # Shouldn't be necessary to handle here
     #d[MixedElement]  = MixedElement  # ...
