@@ -1,11 +1,15 @@
 "This module defines the UFL finite element classes."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-03 -- 2008-06-03"
+__date__ = "2008-03-03 -- 2008-08-05"
 
 from output import ufl_assert
 from permutation import compute_indices
 from elements import ufl_elements
+
+import operator
+def product(sequence):
+    return reduce(operator.__mul__, sequence, 1)
 
 # Map from valid domains to their topological dimension
 _domain2dim = {"interval": 1, "triangle": 2, "tetrahedron": 3, "quadrilateral": 2, "hexahedron": 3}
@@ -13,12 +17,12 @@ _domain2dim = {"interval": 1, "triangle": 2, "tetrahedron": 3, "quadrilateral": 
 class FiniteElementBase(object):
     "Base class for all finite elements"
 
-    def __init__(self, family, domain, degree, value_rank):
+    def __init__(self, family, domain, degree, value_shape):
         "Initialize basic finite element data"
         self._family = family
         self._domain = domain
         self._degree = degree
-        self._value_rank = value_rank
+        self._value_shape = value_shape
 
     def family(self):
         "Return finite element family"
@@ -32,15 +36,18 @@ class FiniteElementBase(object):
         "Return polynomial degree of finite element"
         return self._degree
 
+    def value_shape(self):
+        "Return the shape of the value space"
+        return self._value_shape
+
     def value_rank(self):
         "Return the rank of the value space"
-        return self._value_rank
+        return len(self._value_shape)
 
     def value_dimension(self, i):
         "Return the dimension of the value space for axis i"
-        ufl_assert(not self._value_dimension is None, "Unspecified value shape.")
         self._check_component(i)
-        return self._value_dimension[i]
+        return self._value_shape[i]
 
     def extract_component(self, i):
         "Extract base component index and (simple) element for given component index"
@@ -51,7 +58,7 @@ class FiniteElementBase(object):
         "Check that component index i is valid"
         r = self.value_rank()
         ufl_assert(len(i) == r,
-                   "Illegal component index '%s' (value rank %d) for element (value rank %d)." % (repr(i), len(i), r))
+                   "Illegal component index '%r' (value rank %d) for element (value rank %d)." % (i, len(i), r))
 
     def __add__(self, other):
         "Add two elements, creating a mixed element"
@@ -72,17 +79,17 @@ class FiniteElement(FiniteElementBase):
         ufl_assert(domain in domains,              'Domain "%s" invalid for "%s" finite element.' % (domain, family))
         ufl_assert(kmin is None or degree >= kmin, 'Degree "%d" invalid for "%s" finite element.' % (degree, family))
         ufl_assert(kmax is None or degree <= kmax, 'Degree "%d" invalid for "%s" finite element.' % (degree, family))
-
-        # Initialize element data
-        FiniteElementBase.__init__(self, family, domain, degree, value_rank)
-
-        # Set value dimension
+        
+        # Set value dimension (default to using domain dimension in each axis)
         dim = _domain2dim[domain]
-        self._value_dimension = tuple(dim for d in range(value_rank))
+        value_shape = tuple(dim for d in range(value_rank))
+        
+        # Initialize element data
+        FiniteElementBase.__init__(self, family, domain, degree, value_shape)
 
     def __repr__(self):
         "Return string representation"
-        return "FiniteElement(%s, %s, %d)" % (repr(self.family()), repr(self.domain()), self.degree())
+        return "FiniteElement(%r, %r, %d)" % (self.family(), self.domain(), self.degree())
 
     def __str__(self):
         "Pretty printing"
@@ -91,35 +98,28 @@ class FiniteElement(FiniteElementBase):
 class MixedElement(FiniteElementBase):
     "A finite element composed of a nested hierarchy of mixed or simple elements"
 
-    def __init__(self, *elements):
+    def __init__(self, *elements, **kwargs):
         "Create mixed finite element from given list of elements"
 
         # Unnest arguments if we get a single argument with a list of elements
-        if len(elements) == 1 and (isinstance(elements[0], tuple) or isinstance(elements[0], list)):
+        if len(elements) == 1 and isinstance(elements[0], (tuple, list)):
             elements = elements[0]
+        self._sub_elements = list(elements)
 
         # Check that all elements are defined on the same domain
         domain = elements[0].domain()
         ufl_assert(all(e.domain() == domain for e in elements), "Domain mismatch for sub elements of mixed element.")
+        
+        # Compute value shape
+        if "value_shape" in kwargs:
+            value_shape = kwargs["value_shape"]
+        else:
+            # Default value dimension: Treated simply as all subelement values unpacked in a vector.
+            value_sizes = (product(s.value_shape()) for s in self._sub_elements)
+            value_shape = (product(value_sizes),)
 
         # Initialize element data
-        FiniteElementBase.__init__(self, "Mixed", domain, None, len(elements))
-        self._sub_elements = list(elements)
-
-        # Set value dimension # FIXME: Resolve this issue for a non-vector/tensor mixed element.
-        
-        # Solution #1: Simply leave this undefined for a general MixedElement?
-        # The form compiled could check "if type(element) is MixedElement" before using element.value_dimension(i)
-        # (not "isinstance(element, MixedElement)", which would include the subclasses VectorElement/TensorElement)
-        self._value_dimension = None
-        
-        # Solution #2: Sum the dimensions of subelements. (This doesn't make sense!)
-        #self._value_dimension = sum(e._value_dimension for e in self._sub_elements)
-        
-        # Solution #3: Look to UFC!
-        # In UFC we do handle this somehow, since finite_element knows the value shape.
-        # I think we define the value rank differently there than above, and value shape
-        # should be consistent with the value rank definition.
+        FiniteElementBase.__init__(self, "Mixed", domain, None, value_shape)
 
     def sub_elements(self):
         "Return list of sub elements"
@@ -134,7 +134,7 @@ class MixedElement(FiniteElementBase):
 
     def __repr__(self):
         "Return string representation"
-        return "MixedElement(*%s)" % repr(self._sub_elements)
+        return "MixedElement(*%r, value_shape=%r)" % (self._sub_elements, self._value_shape)
 
     def __str__(self):
         "Pretty printing"
@@ -154,17 +154,18 @@ class VectorElement(MixedElement):
         sub_element = FiniteElement(family, domain, degree)
         sub_elements = [sub_element]*dim
 
+        # Compute value shape
+        value_shape = (dim,) + sub_element.value_shape()
+
         # Initialize element data
-        MixedElement.__init__(self, sub_elements)
+        MixedElement.__init__(self, sub_elements, value_shape=value_shape)
         self._degree = degree
-        self._value_rank = 1 + sub_element.value_rank()
-        self._value_dimension = (dim,) + sub_element._value_dimension
         self._sub_element = sub_element
 
     def __repr__(self):
         "Return string representation"
-        return "VectorElement(%s, %s, %d, %s)" % \
-               (repr(self._family), repr(self._domain), self._degree, len(self._sub_elements))
+        return "VectorElement(%r, %r, %d, %s)" % \
+               (self._family, self._domain, self._degree, len(self._sub_elements))
 
     def __str__(self):
         "Pretty printing"
@@ -207,11 +208,12 @@ class TensorElement(MixedElement):
             if symmetry and index in symmetry:
                 sub_element_mapping[index] = sub_element_mapping[symmetry[index]]
         
+        # Compute value shape
+        value_shape = shape + sub_element.value_shape()
+        
         # Initialize element data
-        MixedElement.__init__(self, sub_elements)
+        MixedElement.__init__(self, sub_elements, value_shape=value_shape)
         self._degree = degree
-        self._value_rank = len(shape) + sub_element.value_rank()
-        self._value_dimension = shape + sub_element._value_dimension
         self._sub_element = sub_element
         self._shape = shape
         self._symmetry = symmetry
@@ -227,7 +229,7 @@ class TensorElement(MixedElement):
         return self._sub_element_mapping[ii].extract_component(jj)
 
     def __repr__(self):
-        return "TensorElement(%s, %s, %d, %s, %s)" % (repr(self._family), repr(self._domain), self._degree, repr(self._shape), repr(self._symmetry))
+        return "TensorElement(%r, %r, %r, %r, %r)" % (self._family, self._domain, self._degree, self._shape, self._symmetry)
 
     def __str__(self):
         "Pretty printing"
