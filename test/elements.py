@@ -12,83 +12,63 @@ logging.basicConfig(level=logging.CRITICAL)
 # TODO: cover all valid element definitions
 
 all_polygons = ("interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron")
+domain2dim = {"interval": 1, "triangle": 2, "tetrahedron": 3, "quadrilateral": 2, "hexahedron": 3}
 
 class ElementsTestCase(unittest.TestCase):
 
     def setUp(self):
         pass
 
-    def test_scalar_cg(self):
+    def test_scalar_galerkin(self):
         for dom in all_polygons:
             for p in range(1,10):
-                element = FiniteElement("Lagrange", dom, p)
-                self.assertTrue(element.value_rank() == 0)
-                element = FiniteElement("CG",       dom, p)
-                self.assertTrue(element.value_rank() == 0)
+                for family in ("Lagrange", "CG", "Discontinuous Lagrange", "DG"):
+                    element = FiniteElement(family, dom, p)
+                    self.assertTrue(element.value_rank() == 0)
+                    self.assertTrue(element.value_shape() == ())
 
-    def test_scalar_dg(self):
+    def test_vector_galerkin(self):
         for dom in all_polygons:
+            dim = domain2dim[dom]
             for p in range(1,10):
-                element = FiniteElement("Discontinuous Lagrange", dom, p)
-                self.assertTrue(element.value_rank() == 0)
-                element = FiniteElement("DG",                     dom, p)
-                self.assertTrue(element.value_rank() == 0)
+                for family in ("Lagrange", "CG", "Discontinuous Lagrange", "DG"):
+                    element = VectorElement(family, dom, p)
+                    self.assertTrue(element.value_rank() == 1)
+                    self.assertTrue(element.value_shape() == (dim,))
 
-    def test_vector_cg(self):
+    def test_tensor_galerkin(self):
         for dom in all_polygons:
+            dim = domain2dim[dom]
             for p in range(1,10):
-                element = VectorElement("Lagrange", dom, p)
-                self.assertTrue(element.value_rank() == 1)
-                element = VectorElement("CG",       dom, p)
-                self.assertTrue(element.value_rank() == 1)
-
-    def test_vector_dg(self):
-        for dom in all_polygons:
-            for p in range(1,10):
-                element = VectorElement("Discontinuous Lagrange", dom, p)
-                self.assertTrue(element.value_rank() == 1)
-                element = VectorElement("DG",                     dom, p)
-                self.assertTrue(element.value_rank() == 1)
-
-    def test_tensor_cg(self):
-        for dom in all_polygons:
-            for p in range(1,10):
-                element = TensorElement("Lagrange", dom, p)
-                self.assertTrue(element.value_rank() == 2)
-                element = TensorElement("CG",       dom, p)
-                self.assertTrue(element.value_rank() == 2)
-
-    def test_tensor_dg(self):
-        for dom in all_polygons:
-            for p in range(1,10):
-                element = TensorElement("Discontinuous Lagrange", dom, p)
-                self.assertTrue(element.value_rank() == 2)
-                element = TensorElement("DG",                     dom, p)
-                self.assertTrue(element.value_rank() == 2)
+                for family in ("Lagrange", "CG", "Discontinuous Lagrange", "DG"):
+                    element = TensorElement(family, dom, p)
+                    self.assertTrue(element.value_rank() == 2)
+                    self.assertTrue(element.value_shape() == (dim,dim))
 
     def test_bdm(self):
-        element = FiniteElement("BDM", "triangle", 1)
-        self.assertTrue(element.value_rank() == 1)
-        element = FiniteElement("BDM", "tetrahedron", 1)
-        self.assertTrue(element.value_rank() == 1)
+        for dom in ("triangle", "tetrahedron"):
+            dim = domain2dim[dom]
+            element = FiniteElement("BDM", dom, 1)
+            self.assertTrue(element.value_rank() == 1)
+            self.assertTrue(element.value_shape() == (dim,))
 
     def test_vector_bdm(self):
-        element = VectorElement("BDM", "triangle", 1)
-        self.assertTrue(element.value_rank() == 2)
-        element = VectorElement("BDM", "tetrahedron", 1)
-        self.assertTrue(element.value_rank() == 2)
+        for dom in ("triangle", "tetrahedron"):
+            dim = domain2dim[dom]
+            element = VectorElement("BDM", dom, 1)
+            self.assertTrue(element.value_rank() == 2)
+            self.assertTrue(element.value_shape() == (dim,dim))
 
     def test_mixed(self):
-        velement = VectorElement("CG", "triangle", 2)
-        pelement = FiniteElement("CG", "triangle", 1)
-        TH1 = MixedElement(velement, pelement)
-        TH2 = velement + pelement
-        assert repr(TH1) == repr(TH2)
-        try:
-            TH1.value_rank()
-            self.fail()
-        except:
-            pass
+        for dom in ("triangle", "tetrahedron"):
+            dim = domain2dim[dom]
+            velement = VectorElement("CG", dom, 2)
+            pelement = FiniteElement("CG", dom, 1)
+            TH1 = MixedElement(velement, pelement)
+            TH2 = velement + pelement
+            self.assertTrue( repr(TH1) == repr(TH2) )
+            self.assertTrue( TH1.value_shape() == (dim+1,) )
+            self.assertTrue( TH2.value_shape() == (dim+1,) )
 
 
 suite1 = unittest.makeSuite(ElementsTestCase)
