@@ -6,10 +6,7 @@ __date__ = "2008-03-03 -- 2008-08-05"
 from output import ufl_assert
 from permutation import compute_indices
 from elements import ufl_elements
-
-import operator
-def product(sequence):
-    return reduce(operator.__mul__, sequence, 1)
+from common import product
 
 # Map from valid domains to their topological dimension
 _domain2dim = {"interval": 1, "triangle": 2, "tetrahedron": 3, "quadrilateral": 2, "hexahedron": 3}

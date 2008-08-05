@@ -14,7 +14,6 @@ from predicates import *
 from checks import *
 from transformations import *
 
-
 #--- Utilities to deal with form files ---
 
 def load_forms(filename):
@@ -44,7 +43,6 @@ To find the location of the error, a temporary script
             forms.append((k,v))
     
     return forms
-
 
 #--- Utilities for constructing informative strings from UFL objects ---
 
