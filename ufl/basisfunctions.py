@@ -3,7 +3,7 @@ There are two groups: basisfunctions and coefficients,
 which use the baseclasses BasisFunction and Function."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-05-20"
+__date__ = "2008-03-14 -- 2008-08-05"
 
 
 from base import *
@@ -34,7 +34,7 @@ class BasisFunction(Terminal):
         return "v_%d" % self._count
     
     def __repr__(self):
-        return "BasisFunction(%s, %d)" % (repr(self._element), self._count)
+        return "BasisFunction(%r, %r)" % (self._element, self._count)
 
 def TestFunction(element):
     return BasisFunction(element, -2)
@@ -88,7 +88,7 @@ class Function(Terminal):
         return "w_%d" % self._count # TODO: Use name here if available.
     
     def __repr__(self):
-        return "Function(%s, %s, %d)" % (repr(self._element), repr(self._name), self._count)
+        return "Function(%r, %r, %r)" % (self._element, self._name, self._count)
 
 class Constant(Function):
     __slots__ = ("_polygon",)
@@ -102,5 +102,5 @@ class Constant(Function):
         return "c_%d" % self._count # TODO: Use name here if available.
     
     def __repr__(self):
-        return "Constant(%s, %s, %d)" % (repr(self._polygon), repr(self._name), self._count)
+        return "Constant(%r, %r, %r)" % (self._polygon, self._name, self._count)
 

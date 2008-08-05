@@ -116,7 +116,7 @@ class MixedElement(FiniteElementBase):
         else:
             # Default value dimension: Treated simply as all subelement values unpacked in a vector.
             value_sizes = (product(s.value_shape()) for s in self._sub_elements)
-            value_shape = (product(value_sizes),)
+            value_shape = (sum(value_sizes),)
 
         # Initialize element data
         FiniteElementBase.__init__(self, "Mixed", domain, None, value_shape)
