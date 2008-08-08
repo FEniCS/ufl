@@ -3,7 +3,7 @@ families. Users (or more likely form compilers) may register new
 elements by calling the function register_element."""
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-03 -- 2008-06-03"
+__date__ = "2008-03-03 -- 2008-08-08"
 
 from output import *
 
@@ -23,6 +23,9 @@ register_element("Lagrange", "CG", 0, (1, None),
 
 register_element("Discontinuous Lagrange", "DG", 0, (0, None),
                  ("interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
+
+register_element("Bubble", "B", 0, (1, 1), # TODO: Define proper limits for Bubble element 
+                 ("interval", "triangle", "tetrahedron"))
 
 register_element("Crouzeix-Raviart", "CR", 0, (1, 1),
                  ("triangle", "tetrahedron"))
