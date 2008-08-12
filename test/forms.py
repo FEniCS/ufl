@@ -19,6 +19,15 @@ class FormsTestCase(unittest.TestCase):
 
     def setUp(self):
         pass
+     
+    def test_separated_dx(self):
+        "Tests automatic summation of integrands over same domain."
+        element = FiniteElement("Lagrange", "triangle", 1)
+        v = TestFunction(element)
+        f = Function(element, "f")
+        a = f*v*dx + 2*v*ds + 3*v*dx + 7*v*ds + 3*v*dx2 + 7*v*dx2
+        b = (f*v + 3*v)*dx + (2*v + 7*v)*ds + (3*v + 7*v)*dx2 
+        self.assertTrue(repr(a) == repr(b))
 
     def test_source1(self):
         element = FiniteElement("Lagrange", "triangle", 1)

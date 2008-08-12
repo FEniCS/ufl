@@ -1,7 +1,7 @@
 """The Form class."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__    = "2008-03-14 -- 2008-05-20"
+__date__    = "2008-03-14 -- 2008-08-12"
 
 
 class Form:
@@ -20,18 +20,29 @@ class Form:
     
     def interior_facet_integrals(self):
         return self._get_integrals("interior_facet")
-
+    
     def __add__(self, other):
-        return Form(self._integrals + other._integrals)
+        oldintegrals = self._integrals + other._integrals
+        newintegrals = []
+        dom2idx = {}
+        k = 0
+        for i, itg in enumerate(oldintegrals):
+            dom = (itg._domain_type, itg._domain_id)
+            if dom in dom2idx:
+                idx = dom2idx[dom]
+                itg1 = newintegrals[idx]
+                newintegrals[idx] = itg.__class__(itg1._domain_type, itg1._domain_id, \
+                                             itg1._integrand + itg._integrand)
+            else:
+                dom2idx[dom] = k
+                newintegrals.append(itg)
+                k += 1
+                assert len(newintegrals) == k
+        return Form(newintegrals)
+        #return Form(self._integrals + other._integrals)
     
     def __str__(self):
         return "  +  ".join(str(itg) for itg in self._integrals)
     
     def __repr__(self):
         return "Form([%s])" % ", ".join(repr(itg) for itg in self._integrals)
-
-    # TODO: Remove this?
-    #def __contains__(self, item):
-    #    """Return wether item is in the UFL expression tree. If item is a str, it is assumed to be a repr."""
-    #    return any((item in itg) for itg in self._integrals)
-
