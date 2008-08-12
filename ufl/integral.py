@@ -1,7 +1,7 @@
 """The Integral class."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-05-20"
+__date__ = "2008-03-14 -- 2008-08-12"
 
 
 from output import *
@@ -21,6 +21,8 @@ class Integral(object):
     
     def __rmul__(self, other):
         ufl_assert(self._integrand is None, "Seems to be a bug in Integral.")
+        if isinstance(other, (int,float)):
+            other = Number(other)
         ufl_assert(is_true_scalar(other), "Trying to integrate expression of rank %d with free indices %s." % (other.rank(), repr(other.free_indices())))
         return Form( [Integral(self._domain_type, self._domain_id, other)] )
     
