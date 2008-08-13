@@ -4,6 +4,10 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-05-20"
 
 
+# TODO: We should be able to apply most of these operators to parts of a form,
+#       so should they be applied to integrand expressions and be UFLObjects?
+
+
 # TODO: We should be able to take the derivative of a part of the form, doing some linearization manually.
 class Derivative:
     """..."""
@@ -12,7 +16,7 @@ class Derivative:
         self.function = function
     
     def __repr__(self):
-        return "Derivative(%s, %s)" % (repr(self.form), repr(self.function))
+        return "Derivative(%r, %r)" % (self.form, self.function)
 
 
 # Deprecated by the more general Derivative, or should we keep it for the familiar name?
@@ -32,7 +36,7 @@ class Action:
         self.form = form
 
     def __repr__(self):
-        return "Action(%s)" % repr(self.form)
+        return "Action(%r)" % self.form
 
 
 class Rhs:
@@ -41,7 +45,7 @@ class Rhs:
         self.form = form
 
     def __repr__(self):
-        return "Rhs(%s)" % repr(self.form)
+        return "Rhs(%r)" % self.form
 
 
 class Lhs:
@@ -50,7 +54,7 @@ class Lhs:
         self.form = form
 
     def __repr__(self):
-        return "Lhs(%s)" % repr(self.form)
+        return "Lhs(%r)" % self.form
 
 
 def rhs(form):

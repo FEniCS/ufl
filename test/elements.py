@@ -35,6 +35,9 @@ class ElementsTestCase(unittest.TestCase):
                     element = VectorElement(family, dom, p)
                     self.assertTrue(element.value_rank() == 1)
                     self.assertTrue(element.value_shape() == (dim,))
+                    for i in range(dim):
+                        c = element.extract_component(i)
+                        self.assertTrue(c[0] == ())
 
     def test_tensor_galerkin(self):
         for dom in all_polygons:
@@ -44,6 +47,10 @@ class ElementsTestCase(unittest.TestCase):
                     element = TensorElement(family, dom, p)
                     self.assertTrue(element.value_rank() == 2)
                     self.assertTrue(element.value_shape() == (dim,dim))
+                    for i in range(dim):
+                        for j in range(dim):
+                            c = element.extract_component((i,j))
+                            self.assertTrue(c[0] == ())
 
     def test_bdm(self):
         for dom in ("triangle", "tetrahedron"):
