@@ -1,13 +1,24 @@
 """Functions to check the validity of forms."""
 
-__authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-05"
+from __future__ import absolute_import
 
-from output import *
-from all import *
-from traversal import *
-from analysis import *
-from predicates import *
+__authors__ = "Martin Sandve Alnes"
+__date__ = "2008-03-14 -- 2008-08-13"
+
+from ..output import ufl_error, ufl_assert, ufl_info
+from ..all import UFLObject, Terminal, Number, Variable, Identity, FacetNormal
+from ..all import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
+from ..all import BasisFunction, Function, Constant
+from ..all import Indexed, MultiIndex
+from ..all import ListVector, ListMatrix, Tensor
+from ..all import Sum, Product, Division, Power, Mod, Abs, MathFunction
+from ..all import Outer, Inner, Dot, Cross, Transpose, Inverse
+from ..all import Trace, Determinant, Deviatoric, Cofactor
+from ..all import PartialDerivative, Diff, Div, Grad, Curl, Rot
+
+from .traversal import post_traversal, post_walk
+#from .analysis import *
+#from .predicates import *
 
 
 def value_shape(expression, dim):
@@ -23,7 +34,7 @@ def value_shape(expression, dim):
     if isinstance(expression, Terminal):
         if isinstance(expression, (BasisFunction, Function)):
             shape = expression._element.value_shape()
-        elif isinstance(expression, (Number, Constant, MeshSize)):
+        elif isinstance(expression, (Number, Constant)):
             shape = ()
         elif isinstance(expression, FacetNormal):
             shape = (dim,)

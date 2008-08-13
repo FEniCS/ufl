@@ -1,18 +1,15 @@
 """A collection of utility algorithms for inspection,
 conversion or transformation of UFL objects."""
 
+from __future__ import absolute_import
+
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-05-20"
+__date__ = "2008-03-14 -- 2008-08-13"
 
 from itertools import chain
 
-from output import *
-from base import *
-from traversal import *
-from analysis import *
-from predicates import *
-from checks import *
-from transformations import *
+from ..output import ufl_error, ufl_assert, ufl_info
+from ..form import Form
 
 #--- Utilities to deal with form files ---
 

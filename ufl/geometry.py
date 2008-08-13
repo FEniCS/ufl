@@ -1,17 +1,13 @@
 """Types for quantities computed from cell geometry."""
 
+from __future__ import absolute_import
+
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-05-20"
+__date__ = "2008-03-14 -- 2008-08-13"
 
-from base import *
+from .base import Terminal
 
-
-class GeometricQuantity(Terminal):
-    def __init__(self):
-        pass
-    
-
-class FacetNormal(GeometricQuantity):
+class FacetNormal(Terminal):
     def __init__(self):
         pass
     
@@ -26,24 +22,4 @@ class FacetNormal(GeometricQuantity):
     
     def __repr__(self):
         return "FacetNormal()"
-
-
-class MeshSize(GeometricQuantity):
-    def __init__(self):
-        pass
-    
-    def free_indices(self):
-        return ()
-    
-    def rank(self):
-        return 0
-    
-    def __str__(self):
-        return "h"
-    
-    def __repr__(self):
-        return "MeshSize()"
-
-
-# TODO: More mesh quantities? Local measures of mesh quality should be easy to add, if we just define what's interesting.
 

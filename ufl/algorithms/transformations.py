@@ -2,11 +2,13 @@
 either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
-__authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-05-20"
+from __future__ import absolute_import
 
-from all import *
-from analysis import basisfunctions, coefficients
+__authors__ = "Martin Sandve Alnes"
+__date__ = "2008-05-07 -- 2008-08-13"
+
+from ..all import *
+from .analysis import basisfunctions, coefficients
 
 def transform(expression, handlers):
     """Convert a UFLExpression according to rules defined by

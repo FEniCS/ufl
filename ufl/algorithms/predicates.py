@@ -1,12 +1,12 @@
 """Functions to check properties of forms and integrals."""
 
-__authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-05-20"
+from __future__ import absolute_import
 
-from output import *
-from all import *
-from traversal import *
-from analysis import *
+__authors__ = "Martin Sandve Alnes"
+__date__ = "2008-03-14 -- 2008-08-13"
+
+from ..output import ufl_error, ufl_warning, ufl_assert, ufl_info
+from ..all import Form
 
 
 #--- Utilities for checking properties of forms ---
