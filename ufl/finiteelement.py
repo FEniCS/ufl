@@ -48,6 +48,8 @@ class FiniteElementBase(object):
 
     def extract_component(self, i):
         "Extract base component index and (simple) element for given component index"
+        if isinstance(i, int):
+            i = (i,)
         self._check_component(i)
         return (i, self)
 
@@ -124,6 +126,8 @@ class MixedElement(FiniteElementBase):
 
     def extract_component(self, i):
         "Extract base component index and (simple) element for given component index"
+        if isinstance(i, int):
+            i = (i,)
         self._check_component(i)
         ufl_assert(len(i) > 0, "Illegal component index (empty).")
         ufl_assert(i[0] < len(self._sub_elements), "Illegal component index (dimension %d)." % i[0])
@@ -220,12 +224,15 @@ class TensorElement(MixedElement):
 
     def extract_component(self, i):
         "Extract base component index and (simple) element for given component index"
+        if isinstance(i, int):
+            i = (i,)
         self._check_component(i)
         l = len(self._shape)
         ii = i[:l]
         jj = i[l:]
         ufl_assert(ii in self._sub_element_mapping, "Illegal component index %s." % str(i))
-        return self._sub_element_mapping[ii].extract_component(jj)
+        subelement = self._sub_elements[self._sub_element_mapping[ii]]
+        return subelement.extract_component(jj)
 
     def __repr__(self):
         return "TensorElement(%r, %r, %r, %r, %r)" % (self._family, self._domain, self._degree, self._shape, self._symmetry)
