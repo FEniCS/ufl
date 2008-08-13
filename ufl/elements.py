@@ -1,5 +1,5 @@
 """This module provides an extensive list of predefined finite element
-families. Users (or more likely form compilers) may register new
+families. Users or more likely, form compilers, may register new
 elements by calling the function register_element."""
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"

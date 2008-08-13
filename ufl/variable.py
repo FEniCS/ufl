@@ -31,4 +31,3 @@ class Variable(UFLObject):
 
 def variable(expression):
     return Variable(expression)
-
