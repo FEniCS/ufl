@@ -55,7 +55,7 @@ class UFLObject(object):
         "Checks whether the two expressions are represented the exact same way using repr."
         return repr(self) == repr(other)
     
-#--- About other operators ---
+#--- A note about other operators ---
 
 # Operators on UFLObjects are defined in other modules as outlined below.
 #

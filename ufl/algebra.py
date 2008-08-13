@@ -7,7 +7,6 @@ from output import *
 from base import *
 from indexing import *
 
-
 #--- Algebraic operators ---
 
 class Sum(UFLObject):
@@ -175,9 +174,7 @@ class Abs(UFLObject):
     def __repr__(self):
         return "Abs(%s)" % repr(self._a)
 
-
-
-# Extend UFLObject with algebraic operators
+#--- Extend UFLObject with algebraic operators ---
 
 def _add(self, o):
     if is_python_scalar(o): o = Number(o)
@@ -258,4 +255,3 @@ UFLObject.__neg__ = _neg
 def _abs(self):
     return Abs(self)
 UFLObject.__abs__ = _abs
-

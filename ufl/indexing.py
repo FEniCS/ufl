@@ -1,8 +1,7 @@
 """This module defines the single index types and some internal index utilities."""
 
-__authors__ = "Martin Sandve Alnes, Anders Logg"
+__authors__ = "Martin Sandve Alnes and Anders Logg"
 __date__ = "2008-03-14 -- 2008-05-20"
-
 
 # Python imports
 from collections import defaultdict
@@ -10,7 +9,6 @@ from collections import defaultdict
 # UFL imports
 from output import ufl_assert, ufl_error
 from base import *
-
 
 #--- Indexing ---
 
@@ -67,15 +65,11 @@ class AxisType(object):
     def __repr__(self):
         return "Axis"
 
-
 # Collect all index types to shorten isinstance(a, _indextypes)
 _indextypes = (Index, FixedIndex, AxisType)
 
-
 # Only need one of these, like None, Ellipsis etc., can use "a is Axis" or "isinstance(a, AxisType)"
 Axis = AxisType()
-
-
 
 #--- Indexing ---
 
@@ -143,12 +137,10 @@ class Indexed(UFLObject):
     def __getitem__(self, key):
         ufl_error("Object is already indexed: %s" % repr(self))
 
-
 # Extend UFLObject with indexing operator
 def _getitem(self, key):
     return Indexed(self, key)
 UFLObject.__getitem__ = _getitem
-
 
 def as_index(i):
     """Takes something the user might input as part of an
@@ -162,7 +154,6 @@ def as_index(i):
         return Axis
     else:
         ufl_error("Can convert this object to index: %s" % repr(i))
-
 
 def as_index_tuple(indices, rank):
     """Takes something the user might input as an index tuple
@@ -192,7 +183,6 @@ def as_index_tuple(indices, rank):
     # replace ellipsis with a number of Axis objects
     indices = pre + [Axis]*(rank-len(pre)-len(post)) + post
     return tuple(indices)
-
 
 def extract_indices(indices):
     ufl_assert(isinstance(indices, tuple), "Expecting index tuple.")
@@ -224,4 +214,3 @@ def extract_indices(indices):
     
     return (fixed_indices, free_indices,
             repeated_indices, num_unassigned_indices)
-
