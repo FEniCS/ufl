@@ -56,4 +56,3 @@ from geometry import *
 
 # predefined convenience objects like I, n, h and i,j,k,l
 from objects import *
-

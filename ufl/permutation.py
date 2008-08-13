@@ -1,3 +1,6 @@
+"""This module provides utility functions for computing permutations
+and generating index lists."""
+
 __authors__ = "Anders Logg and Kent-Andre Mardal"
 __date__ = "2008-05-22 -- 2008-05-22"
 

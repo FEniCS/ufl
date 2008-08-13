@@ -39,6 +39,10 @@ Some of the TODO's left:
  
  - Write the paper (can perhaps reuse some text I have)
 
+# Don't use import * on module level
+
+# Rewrite/improve all error messages
+
 # License:
  - Which license do we pick? GPL3 or LGPL3?
 
@@ -70,10 +74,10 @@ Some of the TODO's left:
   indexing.py             --
   __init__.py             --
   integral.py             --
-  mathfunctions.py        --
+  mathfunctions.py        OK!
   objects.py              --
   operators.py            --
-  output.py               --
+  output.py               OK!
   permutation.py          OK!
   predicates.py           --
   restriction.py          --

@@ -4,9 +4,7 @@ types involved with built-in operators on any UFL object."""
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-06-08"
 
-# External imports
-from itertools import chain
-from collections import defaultdict
+# Modified by Anders Logg, 2008
 
 # UFL imports
 from output import *
