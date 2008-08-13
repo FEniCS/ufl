@@ -85,5 +85,5 @@ Some of the TODO's left:
   tensors.py              --
   transformations.py      --
   traversal.py            --
-  utilities.py            --
+  utilities.py            Rename to algorithm(s).py
   variable.py             --
