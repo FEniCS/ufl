@@ -3,7 +3,7 @@ There are two groups: basisfunctions and coefficients,
 which use the baseclasses BasisFunction and Function."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-05"
+__date__ = "2008-03-14 -- 2008-08-13"
 
 
 from base import *
@@ -23,6 +23,9 @@ class BasisFunction(Terminal):
             self._count = count
             if count >= BasisFunction._globalcount:
                 BasisFunction._globalcount = count + 1
+    
+    def element(self):
+        return self._element
     
     def free_indices(self):
         return ()
