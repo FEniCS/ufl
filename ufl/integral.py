@@ -36,5 +36,5 @@ class Integral(object):
         return "{ %s } * %s%d" % (str(self._integrand), d, self._domain_id,)
     
     def __repr__(self):
-        return "Integral(%s, %s, %s)" % (repr(self._domain_type), repr(self._domain_id), repr(self._integrand))
+        return "Integral(%r, %r, %r)" % (self._domain_type, self._domain_id, self._integrand)
 

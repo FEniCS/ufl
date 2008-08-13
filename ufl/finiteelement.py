@@ -1,7 +1,7 @@
 "This module defines the UFL finite element classes."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-03 -- 2008-08-05"
+__date__ = "2008-03-03 -- 2008-08-13"
 
 from output import ufl_assert
 from permutation import compute_indices
@@ -156,6 +156,7 @@ class VectorElement(MixedElement):
 
         # Initialize element data
         MixedElement.__init__(self, sub_elements, value_shape=value_shape)
+        self._family = family
         self._degree = degree
         self._sub_element = sub_element
 
@@ -210,6 +211,7 @@ class TensorElement(MixedElement):
         
         # Initialize element data
         MixedElement.__init__(self, sub_elements, value_shape=value_shape)
+        self._family = family
         self._degree = degree
         self._sub_element = sub_element
         self._shape = shape
