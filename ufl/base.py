@@ -11,7 +11,6 @@ from collections import defaultdict
 # UFL imports
 from output import *
 
-
 #--- The base object for all UFL expression tree nodes ---
 
 class UFLObject(object):
@@ -56,61 +55,57 @@ class UFLObject(object):
         "Checks whether the two expressions are represented the exact same way using repr."
         return repr(self) == repr(other)
     
-    # TODO: Keep or remove this? "a in b" is probably ambiguous in may ways.
-    #def __contains__(self, item):
-    #    """Return whether item is in the UFL expression tree. If item is a str, it is assumed to be a repr."""
-    #    if isinstance(item, UFLObject):
-    #        if item is self:
-    #            return True
-    #        item = repr(item)
-    #    if repr(self) == item:
-    #        return True
-    #    return any((item in o) for o in self.operands())
-
-
 #--- About other operators ---
 
-# For the definition of UFLObject.T, see tensoralgebra.py
-
-# For the definition of algebraic operators in UFLObject:
-#def __add__(self, o):
-#def __radd__(self, o):
-#def __sub__(self, o):
-#def __rsub__(self, o):
-#def __mul__(self, o):
-#def __rmul__(self, o):
-#def __div__(self, o):
-#def __rdiv__(self, o):
-#def __pow__(self, o):
-#def __rpow__(self, o):
-#def __mod__(self, o):
-#def __rmod__(self, o):
-#def __neg__(self):
-#def __abs__(self):
-# see algebra.py.
-
-# For indexing operations, see indexing.py
-#def __getitem__(self, key):
-
-# For restriction operations, see restriction.py
-#def __call__(self, side):
-
-# For differentiation operations, see differentiation.py
-#def dx(self, *i):
-
+# Operators on UFLObjects are defined in other modules as outlined below.
+#
+# 1. For the definition of UFLObject.T, see tensoralgebra.py.
+#
+# 2. For the definition of algebraic operators, see algebra.py
+#    where the following operators are defined:
+#
+#    def __add__(self, o):
+#    def __radd__(self, o):
+#    def __sub__(self, o):
+#    def __rsub__(self, o):
+#    def __mul__(self, o):
+#    def __rmul__(self, o):
+#    def __div__(self, o):
+#    def __rdiv__(self, o):
+#    def __pow__(self, o):
+#    def __rpow__(self, o):
+#    def __mod__(self, o):
+#    def __rmod__(self, o):
+#    def __neg__(self):
+#    def __abs__(self):
+#
+# 3. For indexing operations, see indexing.py
+#    where the following operator is defined:
+#
+#    def __getitem__(self, key):
+#
+# 4. For restriction operations, see restriction.py
+#    where the following operator is defined:
+#
+#    def __call__(self, side):
+#
+# 5. For differentiation operations, see differentiation.py
+#    where the following operator is defined:
+#
+#    def dx(self, *i):
 
 #--- Basic terminal objects ---
 
 class Terminal(UFLObject):
-    "A terminal node in the UFL expression tree."
+    "A terminal node in the UFL expression tree"
     __slots__ = ()
     
     def operands(self):
-        "A Terminal object never has operands."
+        "A Terminal object never has operands"
         return tuple()
 
 class Number(Terminal):
-    "A constant scalar numeric value."
+    "A constant scalar numeric value"
     __slots__ = ("_value",)
     
     def __init__(self, value):
@@ -128,8 +123,6 @@ class Number(Terminal):
     def __repr__(self):
         return "Number(%s)" % repr(self._value)
 
-
-
 #--- Basic helper functions ---
 
 def is_python_scalar(o):
@@ -143,4 +136,3 @@ def is_scalar(o):
 def is_true_scalar(o):
     """Return True iff expression a single scalar value, with no free indices"""
     return is_scalar(o) and len(o.free_indices()) == 0
-
