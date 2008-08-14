@@ -27,10 +27,10 @@ class Variable(UFLObject):
         return self._expression.rank()
     
     def __str__(self):
-        return "Variable(%s)" % str(self._expression)
+        return "Variable(%s)" % self._expression
     
     def __repr__(self):
-        return "Variable(%s)" % repr(self._expression)
+        return "Variable(%r)" % self._expression
 
 def variable(expression):
     return Variable(expression)

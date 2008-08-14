@@ -38,7 +38,7 @@ class ListVector(UFLObject):
         return "<%s>" % ", ".join(str(e) for e in self._expressions)
     
     def __repr__(self):
-        return "ListVector(%s)" % repr(self._expressions)
+        return "ListVector(%r)" % self._expressions
 
 
 class ListMatrix(UFLObject):
@@ -77,7 +77,7 @@ class ListMatrix(UFLObject):
         return "[ %s ]" % ", ".join(rowstrings)
     
     def __repr__(self):
-        return "ListMatrix(%s)" % repr(self._expressions)
+        return "ListMatrix(%r)" % self._expressions
 
 
 class Tensor(UFLObject):
@@ -109,7 +109,7 @@ class Tensor(UFLObject):
         return "[Rank %d tensor A, such that A_{%s} = %s]" % (self.rank(), self._indices, self._expressions)
     
     def __repr__(self):
-        return "Tensor(%s, %s)" % (repr(self._expressions), repr(self._indices))
+        return "Tensor(%r, %r)" % (self._expressions, self._indices)
 
 
 def Vector(expressions, index = None):

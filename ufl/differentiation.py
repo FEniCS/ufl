@@ -47,10 +47,10 @@ class PartialDerivative(UFLObject):
     
     def __str__(self):
         # TODO: Pretty-print for higher order derivatives.
-        return "(d[%s] / dx_%s)" % (str(self._expression), str(self._indices))
+        return "(d[%s] / dx_%s)" % (self._expression, self._indices)
     
     def __repr__(self):
-        return "PartialDerivative(%s, %s)" % (repr(self._expression), repr(self._indices))
+        return "PartialDerivative(%r, %r)" % (self._expression, self._indices)
 
 
 # Extend UFLObject with spatial differentiation operator a.dx(i)
@@ -87,10 +87,10 @@ class Diff(UFLObject):
         return self._f.rank()
     
     def __str__(self):
-        return "(d[%s] / d[%s])" % (str(self._f), str(self._x))
+        return "(d[%s] / d[%s])" % (self._f, self._x)
 
     def __repr__(self):
-        return "Diff(%s, %s)" % (repr(self._f), repr(self._x))
+        return "Diff(%r, %r)" % (self._f, self._x)
 
 def diff(f, x):
     return Diff(f, x)
@@ -118,10 +118,10 @@ class Grad(DifferentialOperator):
         return self.f.rank() + 1
     
     def __str__(self):
-        return "grad(%s)" % str(self.f)
+        return "grad(%s)" % self.f
 
     def __repr__(self):
-        return "Grad(%s)" % repr(self.f)
+        return "Grad(%r)" % self.f
 
 
 class Div(DifferentialOperator):
@@ -142,10 +142,10 @@ class Div(DifferentialOperator):
         return self.f.rank() - 1
     
     def __str__(self):
-        return "div(%s)" % str(self.f)
+        return "div(%s)" % self.f
 
     def __repr__(self):
-        return "Div(%s)" % repr(self.f)
+        return "Div(%r)" % self.f
 
 
 class Curl(DifferentialOperator):
@@ -166,10 +166,10 @@ class Curl(DifferentialOperator):
         return 1
     
     def __str__(self):
-        return "curl(%s)" % str(self.f)
+        return "curl(%s)" % self.f
     
     def __repr__(self):
-        return "Curl(%s)" % repr(self.f)
+        return "Curl(%r)" % self.f
 
 
 class Rot(DifferentialOperator):
@@ -190,8 +190,8 @@ class Rot(DifferentialOperator):
         return 0
     
     def __str__(self):
-        return "rot(%s)" % str(self.f)
+        return "rot(%s)" % self.f
     
     def __repr__(self):
-        return "Rot(%s)" % repr(self.f)
+        return "Rot(%r)" % self.f
 

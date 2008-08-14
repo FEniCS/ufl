@@ -26,10 +26,10 @@ class MathFunction(UFLObject):
         return 0
     
     def __str__(self):
-        return "%s(%s)" % (self.name, str(self.argument))
+        return "%s(%s)" % (self.name, self.argument)
     
     def __repr__(self):
-        return "%s(%s)" % (self.name, repr(self.argument))
+        return "%s(%r)" % (self.name, self.argument)
 
 #--- Functions exposed to the user ---
 

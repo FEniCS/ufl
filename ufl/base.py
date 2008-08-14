@@ -37,6 +37,11 @@ class UFLObject(object):
         """Return the tensor rank of the expression."""
         raise NotImplementedError(self.__class__.rank)
     
+    # All UFL objects must implement shape
+    def shape(self):
+        """Return the tensor shape of the expression."""
+        raise NotImplementedError(self.__class__.shape)
+    
     # All UFL objects must implement __repr__
     def __repr__(self):
         """Return string representation of objects"""
@@ -122,7 +127,7 @@ class Number(Terminal):
         return str(self._value)
     
     def __repr__(self):
-        return "Number(%s)" % repr(self._value)
+        return "Number(%r)" % self._value
 
 #--- Basic helper functions ---
 

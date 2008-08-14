@@ -112,7 +112,7 @@ class Division(UFLObject):
         return "(%s / %s)" % (str(self._a), str(self._b))
     
     def __repr__(self):
-        return "(%s / %s)" % (repr(self._a), repr(self._b))
+        return "(%r / %r)" % (self._a, self._b)
 
 class Power(UFLObject):
     __slots__ = ("_a", "_b")
@@ -135,7 +135,7 @@ class Power(UFLObject):
         return "(%s ** %s)" % (str(self._a), str(self._b))
     
     def __repr__(self):
-        return "(%s ** %s)" % (repr(self._a), repr(self._b))
+        return "(%r ** %r)" % (self._a, self._b)
 
 class Mod(UFLObject):
     __slots__ = ("_a", "_b")
@@ -158,7 +158,7 @@ class Mod(UFLObject):
         return "(%s %% %s)" % (str(self._a), str(self._b))
     
     def __repr__(self):
-        return "(%s %% %s)" % (repr(self._a), repr(self._b))
+        return "(%r %% %r)" % (self._a, self._b)
 
 class Abs(UFLObject):
     __slots__ = ("_a",)
@@ -179,7 +179,7 @@ class Abs(UFLObject):
         return "| %s |" % str(self._a)
     
     def __repr__(self):
-        return "Abs(%s)" % repr(self._a)
+        return "Abs(%r)" % self._a
 
 #--- Extend UFLObject with algebraic operators ---
 

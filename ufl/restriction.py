@@ -25,7 +25,7 @@ class Restricted(UFLObject):
         return self.f.free_indices()
     
     def __str__(self):
-        return "(%s)('%s')" % (str(self.f), self.side)
+        return "(%s)('%s')" % (self.f, self.side)
 
 class PositiveRestricted(Restricted):
     def __init__(self, f):
@@ -33,7 +33,7 @@ class PositiveRestricted(Restricted):
         self.side = "+"
     
     def __repr__(self):
-        return "PositiveRestricted(%s)" % repr(self.f)
+        return "PositiveRestricted(%r)" % self.f
 
 class NegativeRestricted(Restricted):
     def __init__(self, f):
@@ -41,13 +41,13 @@ class NegativeRestricted(Restricted):
         self.side = "+"
     
     def __repr__(self):
-        return "NegativeRestricted(%s)" % repr(self.f)
+        return "NegativeRestricted(%r)" % self.f
 
 def _restrict(self, side):
     if side == "+":
         return PositiveRestricted(self)
     if side == "-":
         return NegativeRestricted(self)
-    ufl_error("Invalid side %s in restriction operator." % repr(side))
+    ufl_error("Invalid side %r in restriction operator." % side)
 UFLObject.__call__ = _restrict
 

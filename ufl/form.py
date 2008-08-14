@@ -48,3 +48,4 @@ class Form:
     
     def __repr__(self):
         return "Form([%s])" % ", ".join(repr(itg) for itg in self._integrals)
+

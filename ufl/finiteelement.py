@@ -174,7 +174,7 @@ class VectorElement(MixedElement):
     def __str__(self):
         "Pretty printing"
         return "%s vector element of degree %d on a %s: %d x [%s]" % \
-               (self.family(), self.degree(), self.domain(), len(self._sub_elements), str(self._sub_element))
+               (self.family(), self.degree(), self.domain(), len(self._sub_elements), self._sub_element)
 
 class TensorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal"
@@ -232,7 +232,7 @@ class TensorElement(MixedElement):
         l = len(self._shape)
         ii = i[:l]
         jj = i[l:]
-        ufl_assert(ii in self._sub_element_mapping, "Illegal component index %s." % str(i))
+        ufl_assert(ii in self._sub_element_mapping, "Illegal component index %s." % i)
         subelement = self._sub_elements[self._sub_element_mapping[ii]]
         return subelement.extract_component(jj)
 
@@ -245,4 +245,4 @@ class TensorElement(MixedElement):
         print self.degree()
         print self.shape()
         print self.domain()
-        return "%s tensor element of degree %d and shape %s on a %s" % (self.family(), self.degree(), str(self.shape()), self.domain())
+        return "%s tensor element of degree %d and shape %s on a %s" % (self.family(), self.degree(), self.shape(), self.domain())

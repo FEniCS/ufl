@@ -73,10 +73,10 @@ class Transpose(UFLObject):
         return 2
     
     def __str__(self):
-        return "(%s)^T" % str(self._A)
+        return "(%s)^T" % self._A
     
     def __repr__(self):
-        return "Transpose(%s)" % repr(self._A)
+        return "Transpose(%r)" % self._A
 
 # Extend UFLObject with the transpose operation
 def _transpose(self):
@@ -107,11 +107,11 @@ class Outer(UFLObject):
         return self.a.rank() + self.b.rank()
     
     def __str__(self):
-        return "(%s) (x) (%s)" % (str(self.a), str(self.b))
+        return "(%s) (x) (%s)" % (self.a, self.b)
         #return "%s (x) %s" % (pstr(self.a, self), pstr(self.b, self))
     
     def __repr__(self):
-        return "Outer(%s, %s)" % (repr(self.a), repr(self.b))
+        return "Outer(%r, %r)" % (self.a, self.b)
 
 class Inner(UFLObject):
     __slots__ = ("a", "b", "_free_indices")
@@ -135,11 +135,11 @@ class Inner(UFLObject):
         return 0
     
     def __str__(self):
-        return "(%s) : (%s)" % (str(self.a), str(self.b))
+        return "(%s) : (%s)" % (self.a, self.b)
         #return "%s : %s" % (pstr(self.a, self), pstr(self.b, self))
     
     def __repr__(self):
-        return "Inner(%s, %s)" % (repr(self.a), repr(self.b))
+        return "Inner(%r, %r)" % (self.a, self.b)
 
 class Dot(UFLObject):
     __slots__ = ("a", "b", "_free_indices")
@@ -163,11 +163,11 @@ class Dot(UFLObject):
         return self.a.rank() + self.b.rank() - 2
     
     def __str__(self):
-        return "(%s) . (%s)" % (str(self.a), str(self.b))
+        return "(%s) . (%s)" % (self.a, self.b)
         #return "%s . %s" % (pstr(self.a, self), pstr(self.b, self))
     
     def __repr__(self):
-        return "Dot(%s, %s)" % (repr(self.a), repr(self.b))
+        return "Dot(%r, %r)" % (self.a, self.b)
 
 class Cross(UFLObject):
     __slots__ = ("a", "b", "_free_indices")
@@ -191,11 +191,11 @@ class Cross(UFLObject):
         return 1
     
     def __str__(self):
-        return "(%s) x (%s)" % (str(self.a), str(self.b))
+        return "(%s) x (%s)" % (self.a, self.b)
         #return "%s x %s" % (pstr(self.a, self), pstr(self.b, self))
     
     def __repr__(self):
-        return "Cross(%s, %s)" % (repr(self.a), repr(self.b))
+        return "Cross(%r, %r)" % (self.a, self.b)
 
 class Trace(UFLObject):
     __slots__ = ("A",)
@@ -214,10 +214,10 @@ class Trace(UFLObject):
         return 0
     
     def __str__(self):
-        return "tr(%s)" % str(self.A)
+        return "tr(%s)" % self.A
     
     def __repr__(self):
-        return "Trace(%s)" % repr(self.A)
+        return "Trace(%r)" % self.A
 
 class Determinant(UFLObject):
     __slots__ = ("A",)
@@ -237,10 +237,10 @@ class Determinant(UFLObject):
         return 0
     
     def __str__(self):
-        return "det(%s)" % str(self.A)
+        return "det(%s)" % self.A
     
     def __repr__(self):
-        return "Determinant(%s)" % repr(self.A)
+        return "Determinant(%r)" % self.A
 
 class Inverse(UFLObject):
     __slots__ = ("A",)
@@ -260,10 +260,10 @@ class Inverse(UFLObject):
         return 2
     
     def __str__(self):
-        return "(%s)^-1" % str(self.A)
+        return "(%s)^-1" % self.A
     
     def __repr__(self):
-        return "Inverse(%s)" % repr(self.A)
+        return "Inverse(%r)" % self.A
 
 class Deviatoric(UFLObject):
     __slots__ = ("A",)
@@ -283,10 +283,10 @@ class Deviatoric(UFLObject):
         return 2
     
     def __str__(self):
-        return "dev(%s)" % str(self.A)
+        return "dev(%s)" % self.A
     
     def __repr__(self):
-        return "Deviatoric(%s)" % repr(self.A)
+        return "Deviatoric(%r)" % self.A
 
 class Cofactor(UFLObject):
     __slots__ = ("A",)
@@ -306,8 +306,8 @@ class Cofactor(UFLObject):
         return 2
     
     def __str__(self):
-        return "cofactor(%s)" % str(self.A)
+        return "cofactor(%s)" % self.A
     
     def __repr__(self):
-        return "Cofactor(%s)" % repr(self.A)
+        return "Cofactor(%r)" % self.A
 

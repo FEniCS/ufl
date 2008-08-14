@@ -65,7 +65,7 @@ class AxisType(object):
         return ":"
     
     def __repr__(self):
-        return "Axis"
+        return "AxisType()"
 
 # Collect all index types to shorten isinstance(a, _indextypes)
 _indextypes = (Index, FixedIndex, AxisType)
@@ -95,7 +95,7 @@ class MultiIndex(Terminal): # TODO: If single indices are made Terminal subclass
         return ", ".join(str(i) for i in self._indices)
     
     def __repr__(self):
-        return "MultiIndex(%s, %d)" % (repr(self._indices), len(self._indices))
+        return "MultiIndex(%r, %d)" % (self._indices, len(self._indices))
 
     def __len__(self):
         return len(self._indices)
@@ -111,7 +111,7 @@ class Indexed(UFLObject):
         else:
             self._indices = MultiIndex(indices, expression.rank())
         
-        msg = "Invalid number of indices (%d) for tensor expression of rank %d:\n\t%s\n" % (len(self._indices), expression.rank(), repr(expression))
+        msg = "Invalid number of indices (%d) for tensor expression of rank %d:\n\t%r\n" % (len(self._indices), expression.rank(), expression)
         ufl_assert(expression.rank() == len(self._indices), msg)
         
         (fixed_indices, free_indices, repeated_indices, num_unassigned_indices) = extract_indices(self._indices._indices)
@@ -131,13 +131,13 @@ class Indexed(UFLObject):
         return self._rank
     
     def __str__(self):
-        return "%s[%s]" % (str(self._expression), str(self._indices))
+        return "%s[%s]" % (self._expression, self._indices)
     
     def __repr__(self):
-        return "Indexed(%s, %s)" % (repr(self._expression), repr(self._indices))
+        return "Indexed(%r, %r)" % (self._expression, self._indices)
     
     def __getitem__(self, key):
-        ufl_error("Object is already indexed: %s" % repr(self))
+        ufl_error("Object is already indexed: %r" % self)
 
 # Extend UFLObject with indexing operator
 def _getitem(self, key):
@@ -155,7 +155,7 @@ def as_index(i):
         ufl_assert(i == slice(None), "Partial slices not implemented, only [:]")
         return Axis
     else:
-        ufl_error("Can convert this object to index: %s" % repr(i))
+        ufl_error("Can convert this object to index: %r" % i)
 
 def as_index_tuple(indices, rank):
     """Takes something the user might input as an index tuple
@@ -201,7 +201,7 @@ def extract_indices(indices):
     unique_indices = index_count.keys()
     
     ufl_assert(all(i <= 2 for i in index_count.values()),
-               "Too many index repetitions in %s" % repr(indices))
+               "Too many index repetitions in %r" % indices)
     free_indices     = [i for i in unique_indices if index_count[i] == 1]
     repeated_indices = [i for i in unique_indices if index_count[i] == 2]
 

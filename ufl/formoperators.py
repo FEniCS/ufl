@@ -29,7 +29,7 @@ class Derivative:
 #        self.function = function
 #
 #    def __repr__(self):
-#        return "Jacobi(%s, %s)" % (repr(self.form), repr(self.function))
+#        return "Jacobi(%r, %r)" % (self.form, self.function)
 
 
 class Action:
