@@ -98,7 +98,7 @@ def latex_handlers():
     def l_sum(x, *ops):
         return " + ".join(par(o) for o in ops)
     def l_product(x, *ops):
-        return " * ".join(par(o) for o in ops)
+        return " ".join(par(o) for o in ops)
     def l_binop(opstring):
         def particular_l_binop(x, a, b):
             return "{%s}%s{%s}" % (par(a), opstring, par(b))
