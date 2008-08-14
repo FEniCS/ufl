@@ -1,7 +1,9 @@
 """Various high level ways to transform a complete Form."""
 
+from __future__ import absolute_import
+
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-05-20"
+__date__ = "2008-03-14 -- 2008-08-14"
 
 
 # TODO: We should be able to apply most of these operators to parts of a form,

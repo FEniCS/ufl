@@ -1,7 +1,9 @@
 """The Form class."""
 
+from __future__ import absolute_import
+
 __authors__ = "Martin Sandve Alnes"
-__date__    = "2008-03-14 -- 2008-08-12"
+__date__    = "2008-03-14 -- 2008-08-14"
 
 
 class Form:

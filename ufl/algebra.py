@@ -1,16 +1,17 @@
 """Basic algebra operations."""
 
+from __future__ import absolute_import
+
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2008-05-20"
+__date__ = "2008-05-20 -- 2008-08-14"
 
 # Modified by Anders Logg, 2008
 
 from itertools import chain
 from collections import defaultdict
 
-from output import *
-from base import *
-from indexing import *
+from .output import ufl_assert, ufl_error
+from .base import UFLObject
 
 #--- Algebraic operators ---
 

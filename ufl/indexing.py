@@ -1,14 +1,16 @@
 """This module defines the single index types and some internal index utilities."""
 
+from __future__ import absolute_import
+
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-14 -- 2008-05-20"
+__date__ = "2008-03-14 -- 2008-08-14"
 
 # Python imports
 from collections import defaultdict
 
 # UFL imports
-from output import ufl_assert, ufl_error
-from base import *
+from .output import ufl_assert, ufl_error
+from .base import UFLObject, Terminal
 
 #--- Indexing ---
 

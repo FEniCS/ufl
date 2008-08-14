@@ -1,12 +1,14 @@
 "This module defines the UFL finite element classes."
 
-__authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-03 -- 2008-08-13"
+from __future__ import absolute_import
 
-from output import ufl_assert
-from permutation import compute_indices
-from elements import ufl_elements
-from common import product
+__authors__ = "Martin Sandve Alnes and Anders Logg"
+__date__ = "2008-03-03 -- 2008-08-14"
+
+from .output import ufl_assert
+from .permutation import compute_indices
+from .elements import ufl_elements
+from .common import product
 
 # Map from valid domains to their topological dimension
 _domain2dim = {"interval": 1, "triangle": 2, "tetrahedron": 3, "quadrilateral": 2, "hexahedron": 3}

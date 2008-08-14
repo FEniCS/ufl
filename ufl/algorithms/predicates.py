@@ -3,10 +3,10 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-13"
+__date__ = "2008-03-14 -- 2008-08-14"
 
 from ..output import ufl_error, ufl_warning, ufl_assert, ufl_info
-from ..all import Form
+from ..form import Form
 
 
 #--- Utilities for checking properties of forms ---

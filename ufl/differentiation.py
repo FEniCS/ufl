@@ -1,11 +1,13 @@
 """Differential operators. Needs work!"""
 
-__authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-05-20"
+from __future__ import absolute_import
 
-from output import *
-from base import *
-from indexing import *
+__authors__ = "Martin Sandve Alnes"
+__date__ = "2008-03-14 -- 2008-08-14"
+
+from .output import ufl_assert
+from .base import UFLObject
+from .indexing import MultiIndex
 
 
 #--- Differentiation ---

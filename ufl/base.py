@@ -1,13 +1,16 @@
 """This module defines the UFLObject base class and all expression
 types involved with built-in operators on any UFL object."""
 
+from __future__ import absolute_import
+
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-06-08"
+__date__ = "2008-03-14 -- 2008-08-14"
 
 # Modified by Anders Logg, 2008
 
 # UFL imports
-from output import *
+from .output import ufl_assert
+
 
 #--- The base object for all UFL expression tree nodes ---
 

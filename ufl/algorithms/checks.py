@@ -6,6 +6,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-08-13"
 
 from ..output import ufl_error, ufl_assert, ufl_info
+# FIXME:
 from ..all import UFLObject, Terminal, Number, Variable, Identity, FacetNormal
 from ..all import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
 from ..all import BasisFunction, Function, Constant

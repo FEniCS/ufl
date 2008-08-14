@@ -2,12 +2,15 @@
 There are two groups: basisfunctions and coefficients,
 which use the baseclasses BasisFunction and Function."""
 
+from __future__ import absolute_import
+
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-13"
+__date__ = "2008-03-14 -- 2008-08-14"
 
 
-from base import *
-from finiteelement import FiniteElement, MixedElement, VectorElement
+from .output import UFLException, ufl_warning
+from .base import Terminal
+from .finiteelement import FiniteElement, MixedElement, VectorElement
 
 
 class BasisFunction(Terminal):

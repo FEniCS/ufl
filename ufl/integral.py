@@ -1,12 +1,14 @@
 """The Integral class."""
 
+from __future__ import absolute_import
+
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-12"
+__date__ = "2008-03-14 -- 2008-08-14"
 
 
-from output import *
-from base import is_true_scalar
-from form import Form
+from .output import ufl_assert
+from .base import is_true_scalar
+from .form import Form
 
 
 class Integral(object):

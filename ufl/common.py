@@ -7,3 +7,4 @@ import operator
 
 def product(sequence):
     return reduce(operator.__mul__, sequence, 1)
+

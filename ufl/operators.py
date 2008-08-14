@@ -3,11 +3,13 @@ which are either already available as member functions on UFL objects
 or defined as compound operators involving basic operations on the UFL
 objects."""
 
-__authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-04-09 -- 2008-05-20"
+from __future__ import absolute_import
 
-from differentiation import Grad, Div, Curl, Rot
-from tensoralgebra import Transpose, Inner, Outer, Dot, Cross, Determinant, Inverse, Trace, Deviatoric, Cofactor
+__authors__ = "Martin Sandve Alnes and Anders Logg"
+__date__ = "2008-04-09 -- 2008-08-14"
+
+from .differentiation import Grad, Div, Curl, Rot
+from .tensoralgebra import Transpose, Inner, Outer, Dot, Cross, Determinant, Inverse, Trace, Deviatoric, Cofactor
 
 #--- Tensor operators ---
 
@@ -70,10 +72,5 @@ def jump(o):
     raise NotImplementedError
 
 def avg(o):
-    raise NotImplementedError
-
-#--- Suggestions --- # TODO: This is already in mathfunctions?
-
-def sqrt(o):
     raise NotImplementedError
 

@@ -1,11 +1,12 @@
 """Classes used to group scalar expressions into expressions with rank > 0."""
 
+from __future__ import absolute_import
+
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-31-03 -- 2008-05-20"
+__date__ = "2008-03-31 -- 2008-08-14"
 
 
-from base import *
-from indexing import *
+from .base import UFLObject, Terminal
 
 
 class ListVector(UFLObject):

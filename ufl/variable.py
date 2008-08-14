@@ -1,8 +1,11 @@
 """Defines symbol and variable constructs."""
-__authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2008-05-20"
 
-from base import *
+from __future__ import absolute_import
+
+__authors__ = "Martin Sandve Alnes"
+__date__ = "2008-05-20 -- 2008-08-14"
+
+from .base import UFLObject
 
 class Variable(UFLObject):
     """A Variable is a representative for another expression.
@@ -31,3 +34,4 @@ class Variable(UFLObject):
 
 def variable(expression):
     return Variable(expression)
+
