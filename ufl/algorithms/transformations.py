@@ -2,13 +2,11 @@
 either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
-from __future__ import absolute_import
-
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-08-13"
+__date__ = "2008-05-07 -- 2008-05-20"
 
-from ..all import *
-from .analysis import basisfunctions, coefficients
+from all import *
+from analysis import basisfunctions, coefficients
 
 def transform(expression, handlers):
     """Convert a UFLExpression according to rules defined by
@@ -100,7 +98,7 @@ def latex_handlers():
     def l_sum(x, *ops):
         return " + ".join(par(o) for o in ops)
     def l_product(x, *ops):
-        return " * ".join(par(o) for o in ops)
+        return " ".join(par(o) for o in ops)
     def l_binop(opstring):
         def particular_l_binop(x, a, b):
             return "{%s}%s{%s}" % (par(a), opstring, par(b))
