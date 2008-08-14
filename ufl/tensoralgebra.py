@@ -1,10 +1,12 @@
 """Compound tensor algebra operations."""
 
-__authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-05-20"
+from __future__ import absolute_import
 
-from output import *
-from base import *
+__authors__ = "Martin Sandve Alnes"
+__date__ = "2008-03-14 -- 2008-08-14"
+
+from .output import ufl_assert
+from .base import Terminal, UFLObject
 
 
 ### Algebraic operations on tensors:
@@ -32,6 +34,24 @@ from base import *
 #   dot(x,y):   last index of x has same dimension as first index of y
 #   inner(x,y): shape of x equals the shape of y
 
+
+class Identity(Terminal):
+    __slots__ = ()
+    
+    def __init__(self, dim):
+        self._dim = dim
+    
+    def free_indices(self):
+        return ()
+    
+    def rank(self):
+        return 2
+    
+    def __str__(self):
+        return "I"
+    
+    def __repr__(self):
+        return "Identity(%d)" % self._dim
 
 
 # objects representing the operations:

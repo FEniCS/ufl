@@ -1,35 +1,14 @@
 """Utility objects for pretty syntax in user code."""
 
+from __future__ import absolute_import
+
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-05-20"
+__date__ = "2008-03-14 -- 2008-08-14"
 
-from base import *
-from integral import *
-from geometry import *
-from indexing import Index
-import math
-
-# TODO: This is only the matrix identity, support higher order Id too?
-class Identity(Terminal):
-    __slots__ = ()
-    
-    def free_indices(self):
-        return ()
-    
-    def rank(self):
-        return 2
-    
-    def __str__(self):
-        return "I"
-    
-    def __repr__(self):
-        return "Identity()"
-
-I = Identity()
-
-# Constants
-e  = Number(math.e)
-pi = Number(math.pi)
+from .base import Number
+from .integral import Integral
+from .geometry import FacetNormal
+from .indexing import Index
 
 # Default indices
 i, j, k, l = [Index() for _i in range(4)]
@@ -43,4 +22,4 @@ dx, ds, dS = dx0, ds0, dS0
 
 # Geometric entities
 n = FacetNormal()
-h = MeshSize()
+
