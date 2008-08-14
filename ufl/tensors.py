@@ -6,7 +6,9 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-31 -- 2008-08-14"
 
 
+from .output import ufl_assert
 from .base import UFLObject, Terminal
+from .indexing import Index
 
 
 class ListVector(UFLObject):

@@ -35,6 +35,14 @@ __date__ = "2008-03-14 -- 2008-08-14"
 #import pychecker.checker
 
 
+########## README
+# Imports here should be what the user sees when doing "from ufl import *",
+# which means we should _not_ import f.ex. "Grad", but "grad".
+# This way we expose the language, the operation "grad", but less
+# of the implementation, the particular class "Grad".
+##########
+
+
 # utility functions (product is the counterpart of the built-in python function sum, can be useful for users as well)
 from .common import product
 
@@ -42,16 +50,20 @@ from .common import product
 #from .permutation import compute_indices, compute_permutations, compute_permutation_pairs, compute_sign, compute_order_tuples
 
 # output control
-from .output import UFLException, get_handler, get_logger, set_handler, ufl_debug, ufl_info, ufl_warning, ufl_error, ufl_assert
+#from .output import UFLException, get_handler, get_logger, set_handler
+from .output import ufl_debug, ufl_info, ufl_warning, ufl_error, ufl_assert
 
 # base system (expression base class and all subclasses involved in operators on the base class)
-from .base import UFLObject, Terminal, Number #, is_python_scalar, is_scalar, is_true_scalar
+#from .base import UFLObject, Terminal, Number
+#from .base import is_python_scalar, is_scalar, is_true_scalar
 
 # variable class
-from .variable import Variable, variable
+#from .variable import Variable
+from .variable import variable
 
 # finite elements classes
-from .finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
+#from .finiteelement import FiniteElementBase
+from .finiteelement import FiniteElement, MixedElement, VectorElement, TensorElement
 
 # predefined element families
 from .elements import register_element #, ufl_elements
@@ -63,28 +75,33 @@ from .basisfunctions import BasisFunction, TestFunction, TrialFunction, BasisFun
 from .geometry import FacetNormal
 
 # indexing of tensor expressions
-from .indexing import Index, FixedIndex, AxisType, MultiIndex, Indexed #, as_index, as_index_tuple, extract_indices
+#from .indexing import Index, FixedIndex, AxisType, MultiIndex, Indexed
+#from .indexing import as_index, as_index_tuple, extract_indices
 
 # "container" classes for expressions with value rank > 0
-from .tensors import ListVector, ListMatrix, Tensor, Vector, Matrix
+#from .tensors import ListVector, ListMatrix
+from .tensors import Tensor, Vector, Matrix
 
 # basic algebra operators
-from .algebra import Sum, Product, Division, Power, Mod, Abs
+#from .algebra import Sum, Product, Division, Power, Mod, Abs
 
 # tensor algebra operators
-from .tensoralgebra import Identity, Transpose, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
+#from .tensoralgebra import Transpose, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
+from .tensoralgebra import Identity
 
 # mathematical functions
-from .mathfunctions import MathFunction, sqrt, exp, ln, cos, sin
+#from .mathfunctions import MathFunction
+from .mathfunctions import sqrt, exp, ln, cos, sin
 
 # restriction operators
 from .restriction import Restricted, PositiveRestricted, NegativeRestricted
 
 # differentiation operators
-from .differentiation import PartialDerivative, Diff, diff, DifferentialOperator, Grad, Div, Curl, Rot
+#from .differentiation import PartialDerivative, Diff, DifferentialOperator, Grad, Div, Curl, Rot
+from .differentiation import diff
 
-# operators (TODO: We should probably hide the above classnames from the global namespace and only make these visible)
-from .operators import transpose, outer, inner, dot, cross, det, inv, tr, dev, cofac, Dx, Dt, grad, div, curl, rot, jump, avg, sqrt
+# operators
+from .operators import transpose, outer, inner, dot, cross, det, inv, tr, dev, cofac, Dx, Dt, grad, div, curl, rot, jump, avg
 
 # form class
 from .form import Form
@@ -106,5 +123,5 @@ from .objects import dx, ds, dS
 from math import e, pi
 
 # algorithms
-import .algorithms
+import algorithms
 

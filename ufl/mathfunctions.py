@@ -6,7 +6,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-08-14"
 
 from .output import ufl_assert
-from .base import UFLObject
+from .base import UFLObject, is_true_scalar
 
 #--- Function representations ---
 
