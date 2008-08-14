@@ -201,7 +201,7 @@ def extract_indices(indices):
     unique_indices = index_count.keys()
     
     ufl_assert(all(i <= 2 for i in index_count.values()),
-               "Too many index repetitions in %r" % indices)
+               "Too many index repetitions in %s" % repr(indices))
     free_indices     = [i for i in unique_indices if index_count[i] == 1]
     repeated_indices = [i for i in unique_indices if index_count[i] == 2]
 

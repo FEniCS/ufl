@@ -232,7 +232,7 @@ class TensorElement(MixedElement):
         l = len(self._shape)
         ii = i[:l]
         jj = i[l:]
-        ufl_assert(ii in self._sub_element_mapping, "Illegal component index %s." % i)
+        ufl_assert(ii in self._sub_element_mapping, "Illegal component index %s." % repr(i))
         subelement = self._sub_elements[self._sub_element_mapping[ii]]
         return subelement.extract_component(jj)
 

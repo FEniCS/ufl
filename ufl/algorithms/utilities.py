@@ -46,9 +46,9 @@ To find the location of the error, a temporary script
 def integral_info(integral):
     s  = "  Integral over %s domain %d:\n" % (integral._domain_type, integral._domain_id)
     s += "    Integrand expression representation:\n"
-    s += "      %s\n" % repr(integral._integrand)
+    s += "      %r\n" % integral._integrand
     s += "    Integrand expression short form:\n"
-    s += "      %s" % str(integral._integrand)
+    s += "      %s" % integral._integrand
     return s
 
 def form_info(form):

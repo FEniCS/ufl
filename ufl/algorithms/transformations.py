@@ -107,7 +107,7 @@ def latex_handlers():
             return "\\left(%s\\right)" % s
         return str(s)
     # Terminal objects:
-    d[Number] = lambda x: "{%s}" % str(x._value)
+    d[Number] = lambda x: "{%s}" % x._value
     d[BasisFunction] = lambda x: "{v^{%d}}" % x._count # Using ^ for function numbering and _ for indexing
     d[Function] = lambda x: "{w^{%d}}" % x._count
     d[Constant] = lambda x: "{w^{%d}}" % x._count
