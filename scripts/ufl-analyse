@@ -3,7 +3,7 @@
 import sys
 import webbrowser
 import ufl
-from ufl.utilities import basisfunctions, coefficients, unique_elements, load_forms, validate_form, ufl2latex
+from ufl.algorithms import basisfunctions, coefficients, unique_elements, load_forms, validate_form, ufl2latex
 
 # Get commandline options
 

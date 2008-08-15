@@ -8,9 +8,9 @@ __date__ = "2008-03-14 -- 2008-08-15"
 from itertools import chain
 
 from ..basisfunctions import BasisFunction, Function
+from ..indexing import UnassignedDimType
 
 from .traversal import iter_expressions, post_traversal
-
 
 #--- Utilities to extract information from an expression ---
 
@@ -58,6 +58,11 @@ def _coefficients(a):
     l = sorted(s, cmp=lambda x,y: cmp(x._count, y._count))
     return l
 
+def domain(a):
+    """Returns the polygonal domain of form a."""
+    e = elements(a)[0]
+    return e.domain()
+
 def elements(a):
     """Returns a sorted list of all elements used in a."""
     return [f._element for f in chain(basisfunctions(a), coefficients(a))]
@@ -90,4 +95,15 @@ def duplications(a):
                 duplicated.add(o)
             handled.add(o)
     return duplicated
+
+def value_shape(expression, dim):
+    """Evaluate the value shape of expression with given implicit dimension."""
+    s = expression.shape()
+    shape = []
+    for i in s:
+        if isinstance(i, UnassignedDimType):
+            shape.append(dim)
+        else:
+            shape.append(i)
+    return tuple(shape)
 

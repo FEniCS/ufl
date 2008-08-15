@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-14"
+__date__ = "2008-03-14 -- 2008-08-15"
 
 from ..output import ufl_error, ufl_warning, ufl_assert, ufl_info
 from ..form import Form
@@ -13,7 +13,7 @@ from ..form import Form
 
 def is_multilinear(a):
     """Checks if a form is multilinear. Returns True/False."""
-    ufl_assert(isinstance(o, Form), "Assuming a Form.")
+    ufl_assert(isinstance(a, Form), "Assuming a Form.")
     ufl_warning("is_multilinear is not implemented.")
     return True
 
