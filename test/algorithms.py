@@ -4,7 +4,8 @@ import unittest
 from pprint import *
 
 from ufl import *
-from ufl.utilities import * 
+from ufl.algorithms import * 
+from ufl.classes import Sum, Product
 
 # disable log output
 import logging

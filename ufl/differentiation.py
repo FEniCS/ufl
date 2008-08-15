@@ -7,7 +7,7 @@ __date__ = "2008-03-14 -- 2008-08-15"
 
 from .output import ufl_assert
 from .base import UFLObject
-from .indexing import MultiIndex, UnassignedDim
+from .indexing import MultiIndex, UnassignedDim, extract_indices
 
 
 # FIXME: This file is not ok! Needs more work!
@@ -33,12 +33,11 @@ class PartialDerivative(UFLObject):
         # Find free and repeated indices among the combined indices of the expression and dx((i,j,k))
         indices = expression.free_indices() + self._indices._indices
         (fixed_indices, free_indices, repeated_indices, num_unassigned_indices) = extract_indices(indices)
-        # FIXME: We don't need to store all these here, remove the ones we don't use after implementing summation expansion.
+        # TODO: We don't need to store all these here, remove the ones we don't use after implementing summation expansion.
         #self._fixed_indices      = fixed_indices
         self._free_indices       = free_indices
         #self._repeated_indices   = repeated_indices
         self._rank = num_unassigned_indices
-        self._shape = FIXME
     
     def operands(self):
         return (self._expression, self._indices)
@@ -47,7 +46,7 @@ class PartialDerivative(UFLObject):
         return self._free_indices
     
     def shape(self):
-        return self._shape
+        return self._expression.shape()
     
     def __str__(self):
         # TODO: Pretty-print for higher order derivatives.
@@ -110,7 +109,7 @@ class Grad(DifferentialOperator):
 
     def __init__(self, f):
         self.f = f
-        ufl_assert(len(f.free_indices()) == 0, "FIXME: Taking gradient of an expression with free indices, should this be a valid expression? Please provide examples!")
+        ufl_assert(len(f.free_indices()) == 0, "TODO: Taking gradient of an expression with free indices, should this be a valid expression? Please provide examples!")
     
     def operands(self):
         return (self.f, )
@@ -133,7 +132,7 @@ class Div(DifferentialOperator):
 
     def __init__(self, f):
         ufl_assert(f.rank() >= 1, "Can't take the divergence of a scalar.")
-        ufl_assert(len(f.free_indices()) == 0, "FIXME: Taking divergence of an expression with free indices, should this be a valid expression? Please provide examples!")
+        ufl_assert(len(f.free_indices()) == 0, "TODO: Taking divergence of an expression with free indices, should this be a valid expression? Please provide examples!")
         self.f = f
     
     def operands(self):
@@ -157,7 +156,7 @@ class Curl(DifferentialOperator):
 
     def __init__(self, f):
         ufl_assert(f.rank()== 1, "Need a vector.")
-        ufl_assert(len(f.free_indices()) == 0, "FIXME: Taking curl of an expression with free indices, should this be a valid expression? Please provide examples!")
+        ufl_assert(len(f.free_indices()) == 0, "TODO: Taking curl of an expression with free indices, should this be a valid expression? Please provide examples!")
         self.f = f
     
     def operands(self):
@@ -181,7 +180,7 @@ class Rot(DifferentialOperator):
 
     def __init__(self, f):
         ufl_assert(f.rank() == 1, "Need a vector.")
-        ufl_assert(len(f.free_indices()) == 0, "FIXME: Taking rot of an expression with free indices, should this be a valid expression? Please provide examples!")
+        ufl_assert(len(f.free_indices()) == 0, "TODO: Taking rot of an expression with free indices, should this be a valid expression? Please provide examples!")
         self.f = f
     
     def operands(self):

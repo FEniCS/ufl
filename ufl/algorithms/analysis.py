@@ -3,12 +3,11 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-14"
+__date__ = "2008-03-14 -- 2008-08-15"
 
 from itertools import chain
 
-from ..basisfunctions import BasisFunction
-from ..functions import Function
+from ..basisfunctions import BasisFunction, Function
 
 from .traversal import iter_expressions, post_traversal
 

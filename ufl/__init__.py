@@ -50,8 +50,8 @@ from .common import product
 #from .permutation import compute_indices, compute_permutations, compute_permutation_pairs, compute_sign, compute_order_tuples
 
 # output control
-#from .output import UFLException, get_handler, get_logger, set_handler
-from .output import ufl_debug, ufl_info, ufl_warning, ufl_error, ufl_assert
+#from .output import get_handler, get_logger, set_handler
+from .output import UFLException, ufl_debug, ufl_info, ufl_warning, ufl_error, ufl_assert
 
 # base system (expression base class and all subclasses involved in operators on the base class)
 #from .base import UFLObject, Terminal, Number
@@ -123,5 +123,5 @@ from .objects import dx, ds, dS
 from math import e, pi
 
 # algorithms
-import algorithms
+from . import algorithms
 

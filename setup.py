@@ -28,7 +28,7 @@ setup(name = "UFL",
       author_email = "ufl-dev@fenics.org",
       url = "http://www.fenics.org/ufl/",
       scripts = ["scripts/ufl-analyse"],
-      packages = ["ufl"],
+      packages = ["ufl", "ufl.algorithms"],
       package_dir = {"ufl": "ufl/"},
       data_files = [("lib/pkgconfig", ["ufl-%d.pc" % major])])
 

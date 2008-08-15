@@ -3,7 +3,7 @@
 import unittest
 
 from ufl import *
-from ufl.utilities import * 
+from ufl.algorithms import * 
 
 # disable log output
 import logging
