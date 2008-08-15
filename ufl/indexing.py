@@ -3,13 +3,13 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-14 -- 2008-08-14"
+__date__ = "2008-03-14 -- 2008-08-15"
 
 # Python imports
 from collections import defaultdict
 
 # UFL imports
-from .output import ufl_assert, ufl_error
+from .output import ufl_assert, ufl_warning, ufl_error
 from .base import UFLObject, Terminal
 
 #--- Indexing ---
@@ -26,12 +26,6 @@ class Index(object):
             self._count = count
             if count >= Index._globalcount:
                 Index._globalcount = count + 1
-    
-    def free_indices(self):
-        ufl_error("Why would you want to get the free indices of an Index? Please explain at ufl-dev@fenics.org...")
-    
-    def rank(self):
-        ufl_error("Why would you want to get the rank of an Index? Please explain at ufl-dev@fenics.org...")
     
     def __str__(self):
         return "i_{%d}" % self._count
@@ -73,35 +67,32 @@ _indextypes = (Index, FixedIndex, AxisType)
 # Only need one of these, like None, Ellipsis etc., can use "a is Axis" or "isinstance(a, AxisType)"
 Axis = AxisType()
 
+
 #--- Indexing ---
 
-class MultiIndex(Terminal): # TODO: If single indices are made Terminal subclasses, this should inherit UFLObject instead.
+class MultiIndex(Terminal):
     __slots__ = ("_indices",)
     
     def __init__(self, indices, rank):
         self._indices = as_index_tuple(indices, rank)
     
-    def operands(self):
-        return ()
-        #return self._indices # TODO: To return the indices here, they should be Terminal subclasses. Do we want that or not?
-    
     def free_indices(self):
-        ufl_error("Why would you want to get the free indices of a MultiIndex? Please explain at ufl-dev@fenics.org...")
+        ufl_error("Why would you want to get the free indices of a MultiIndex? Please explain how you got this at ufl-dev@fenics.org...")
     
-    def rank(self):
-        ufl_error("Why would you want to get the rank of a MultiIndex? Please explain at ufl-dev@fenics.org...")
+    def shape(self):
+        ufl_error("Why would you want to get the shape of a MultiIndex? Please explain how you got this at ufl-dev@fenics.org...")
     
     def __str__(self):
         return ", ".join(str(i) for i in self._indices)
     
     def __repr__(self):
         return "MultiIndex(%r, %d)" % (self._indices, len(self._indices))
-
+    
     def __len__(self):
         return len(self._indices)
 
 class Indexed(UFLObject):
-    __slots__ = ("_expression", "_indices", "_fixed_indices", "_free_indices", "_repeated_indices", "_rank")
+    __slots__ = ("_expression", "_indices", "_fixed_indices", "_free_indices", "_repeated_indices", "_rank", "_shape")
     
     def __init__(self, expression, indices):
         self._expression = expression
@@ -115,11 +106,16 @@ class Indexed(UFLObject):
         ufl_assert(expression.rank() == len(self._indices), msg)
         
         (fixed_indices, free_indices, repeated_indices, num_unassigned_indices) = extract_indices(self._indices._indices)
-        # FIXME: We don't need to store all these here, remove the ones we don't use after implementing summation expansion.
+        # TODO: We don't need to store all these here, remove the ones we don't use after implementing summation expansion.
         self._fixed_indices      = fixed_indices
         self._free_indices       = free_indices
         self._repeated_indices   = repeated_indices
         self._rank = num_unassigned_indices
+        
+        s = expression.shape()
+        idx = self._indices._indices
+        self._shape = tuple(s[i] for i in range(len(idx)) if isinstance(idx[i], AxisType))
+        ufl_assert(self._rank == len(self._shape), "Logic breach in Indexed.__init__, rank is %d and shape is %r" % (self._rank, self._shape))
     
     def operands(self):
         return (self._expression, self._indices)
@@ -127,8 +123,8 @@ class Indexed(UFLObject):
     def free_indices(self):
         return self._free_indices
     
-    def rank(self):
-        return self._rank
+    def shape(self):
+        return self._shape
     
     def __str__(self):
         return "%s[%s]" % (self._expression, self._indices)
@@ -216,3 +212,30 @@ def extract_indices(indices):
     
     return (fixed_indices, free_indices,
             repeated_indices, num_unassigned_indices)
+
+
+class UnassignedDimType(object):
+    __slots__ = ()
+    
+    def __init__(self):
+        pass
+    
+    def __str__(self):
+        return "?"
+    
+    def __repr__(self):
+        return "UnassignedDimType()"
+
+UnassignedDim = UnassignedDimType()
+
+
+def compare_shapes(a, b):
+    if len(a) != len(b):
+        return False
+    return all(((i == j) or isinstance(i, UnassignedDimType) or isinstance(j, UnassignedDimType)) for (i,j) in zip(a,b))
+
+def free_index_dimensions(e):
+    # FIXME: Get the dimensions from the expression!
+    ufl_warning("free_index_dimensions just returns UnassignedDim for everything, needs better implementation.")
+    return dict((i, UnassignedDim) for i in e.free_indices())
+

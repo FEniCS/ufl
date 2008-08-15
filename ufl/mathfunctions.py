@@ -22,8 +22,8 @@ class MathFunction(UFLObject):
     def free_indices(self):
         return ()
     
-    def rank(self):
-        return 0
+    def shape(self):
+        return ()
     
     def __str__(self):
         return "%s(%s)" % (self.name, self.argument)

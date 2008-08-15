@@ -5,7 +5,7 @@ which use the baseclasses BasisFunction and Function."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-14"
+__date__ = "2008-03-14 -- 2008-08-15"
 
 
 from .output import UFLException, ufl_warning
@@ -33,8 +33,8 @@ class BasisFunction(Terminal):
     def free_indices(self):
         return ()
     
-    def rank(self):
-        return self._element.value_rank()
+    def shape(self):
+        return self._element.value_shape()
     
     def __str__(self):
         return "v_%d" % self._count
@@ -87,8 +87,8 @@ class Function(Terminal):
     def free_indices(self):
         return ()
     
-    def rank(self):
-        return self._element.value_rank()
+    def shape(self):
+        return self._element.value_shape()
     
     def __str__(self):
         return "w_%d" % self._count # TODO: Use name here if available.

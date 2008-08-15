@@ -102,12 +102,10 @@ class IndexTestCase(unittest.TestCase):
         except (UFLException, e):
             pass
     
-    def test_tensors(self):
+    def test_vector_from_indices(self):
         element = VectorElement("CG", "triangle", 1)
         v  = TestFunction(element)
         u  = TrialFunction(element)
-        f  = Function(element)
-        g  = Function(element)
         
         # legal
         vv = Vector(u[i], i)
@@ -118,6 +116,11 @@ class IndexTestCase(unittest.TestCase):
         self.assertTrue(uu.rank() == 1)
         self.assertTrue(w.rank()  == 1)
         self.assertTrue(ww.rank() == 1)
+    
+    def test_matrix_from_indices(self):
+        element = VectorElement("CG", "triangle", 1)
+        v  = TestFunction(element)
+        u  = TrialFunction(element)
         
         A  = Matrix(u[i]*v[j], (i,j))
         B  = Matrix(v[k]*v[k]*u[i]*v[j], (j,i))
@@ -129,15 +132,27 @@ class IndexTestCase(unittest.TestCase):
         self.assertTrue(C.rank() == 2)
         self.assertTrue(D.rank() == 2)
         
+    def test_vector_from_list(self):
+        element = VectorElement("CG", "triangle", 1)
+        v  = TestFunction(element)
+        u  = TrialFunction(element)
+        
         # create vector from list
         vv = Vector([u[0], v[0]])
         ww = vv + vv
         self.assertTrue(vv.rank() == 1)
         self.assertTrue(ww.rank() == 1)
+    
+    def test_matrix_from_list(self):
+        element = VectorElement("CG", "triangle", 1)
+        v  = TestFunction(element)
+        u  = TrialFunction(element)
         
         # create matrix from list
         A  = Matrix( [ [u[0], u[1]], [v[0], v[1]] ] )
+        # create matrix from indices
         B  = Matrix( (v[k]*v[k]) * u[i]*v[j], (j,i) )
+        # Test addition
         C  = A + A
         C  = B + B
         D  = A + B
@@ -146,6 +161,13 @@ class IndexTestCase(unittest.TestCase):
         self.assertTrue(C.rank() == 2)
         self.assertTrue(D.rank() == 2)
         
+    def test_tensor(self):
+        element = VectorElement("CG", "triangle", 1)
+        v  = TestFunction(element)
+        u  = TrialFunction(element)
+        f  = Function(element)
+        g  = Function(element)
+    
         # define the components of a fourth order tensor
         Cijkl = u[i]*v[j]*f[k]*g[l]
         self.assertTrue(Cijkl.rank() == 0)

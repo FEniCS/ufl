@@ -4,7 +4,7 @@ types involved with built-in operators on any UFL object."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-14"
+__date__ = "2008-03-14 -- 2008-08-15"
 
 # Modified by Anders Logg, 2008
 
@@ -32,10 +32,10 @@ class UFLObject(object):
         "Return a tuple with the free indices (unassigned) of the expression."
         raise NotImplementedError(self.__class__.free_indices)
     
-    # All UFL objects must implement rank
+    # TODO: Remove this from subclasses while adding shape.
     def rank(self):
         """Return the tensor rank of the expression."""
-        raise NotImplementedError(self.__class__.rank)
+        return len(self.shape())
     
     # All UFL objects must implement shape
     def shape(self):
@@ -120,8 +120,8 @@ class Number(Terminal):
     def free_indices(self):
         return tuple()
     
-    def rank(self):
-        return 0
+    def shape(self):
+        return ()
     
     def __str__(self):
         return str(self._value)
@@ -137,7 +137,7 @@ def is_python_scalar(o):
 def is_scalar(o):
     """Return True iff expression is scalar-valued, possibly containing free indices"""
     ufl_assert(isinstance(o, UFLObject), "Assuming an UFLObject.")
-    return o.rank() == 0
+    return o.shape() == ()
 
 def is_true_scalar(o):
     """Return True iff expression a single scalar value, with no free indices"""

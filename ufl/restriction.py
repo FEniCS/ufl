@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-06-08 -- 2008-08-14"
+__date__ = "2008-06-08 -- 2008-08-15"
 
 from .output import ufl_error
 from .base import UFLObject
@@ -15,8 +15,8 @@ class Restricted(UFLObject):
     def __init__(self, f):
         self.f = f
 
-    def rank(self):
-        return self.f.rank()
+    def shape(self):
+        return self.f.shape()
 
     def operands(self):
         return (self.f,)

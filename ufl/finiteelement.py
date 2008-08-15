@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-03 -- 2008-08-14"
+__date__ = "2008-03-03 -- 2008-08-15"
 
 from .output import ufl_assert
 from .permutation import compute_indices
@@ -39,15 +39,6 @@ class FiniteElementBase(object):
         "Return the shape of the value space"
         return self._value_shape
 
-    def value_rank(self):
-        "Return the rank of the value space"
-        return len(self._value_shape)
-
-    def value_dimension(self, i):
-        "Return the dimension of the value space for axis i"
-        self._check_component(i)
-        return self._value_shape[i]
-
     def extract_component(self, i):
         "Extract base component index and (simple) element for given component index"
         if isinstance(i, int):
@@ -57,7 +48,7 @@ class FiniteElementBase(object):
 
     def _check_component(self, i):
         "Check that component index i is valid"
-        r = self.value_rank()
+        r = len(self.value_shape())
         ufl_assert(len(i) == r,
                    "Illegal component index '%r' (value rank %d) for element (value rank %d)." % (i, len(i), r))
 

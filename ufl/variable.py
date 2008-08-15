@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2008-08-14"
+__date__ = "2008-05-20 -- 2008-08-15"
 
 from .base import UFLObject
 
@@ -23,8 +23,8 @@ class Variable(UFLObject):
     def free_indices(self):
         return self._expression.free_indices()
     
-    def rank(self):
-        return self._expression.rank()
+    def shape(self):
+        return self._expression.shape()
     
     def __str__(self):
         return "Variable(%s)" % self._expression

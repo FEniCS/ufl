@@ -3,11 +3,14 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-14"
+__date__ = "2008-03-14 -- 2008-08-15"
 
 from .output import ufl_assert
 from .base import UFLObject
-from .indexing import MultiIndex
+from .indexing import MultiIndex, UnassignedDim
+
+
+# FIXME: This file is not ok! Needs more work!
 
 
 #--- Differentiation ---
@@ -35,6 +38,7 @@ class PartialDerivative(UFLObject):
         self._free_indices       = free_indices
         #self._repeated_indices   = repeated_indices
         self._rank = num_unassigned_indices
+        self._shape = FIXME
     
     def operands(self):
         return (self._expression, self._indices)
@@ -42,8 +46,8 @@ class PartialDerivative(UFLObject):
     def free_indices(self):
         return self._free_indices
     
-    def rank(self):
-        return self._expression.rank()
+    def shape(self):
+        return self._shape
     
     def __str__(self):
         # TODO: Pretty-print for higher order derivatives.
@@ -83,8 +87,8 @@ class Diff(UFLObject):
     def free_indices(self):
         return self._free_indices
     
-    def rank(self):
-        return self._f.rank()
+    def shape(self):
+        return self._f.shape() # FIXME: Is this right? Not with repeated indices.
     
     def __str__(self):
         return "(d[%s] / d[%s])" % (self._f, self._x)
@@ -114,8 +118,8 @@ class Grad(DifferentialOperator):
     def free_indices(self):
         return self.f.free_indices()
     
-    def rank(self):
-        return self.f.rank() + 1
+    def shape(self):
+        return (UnassignedDim,) + self.f.shape()
     
     def __str__(self):
         return "grad(%s)" % self.f
@@ -138,8 +142,8 @@ class Div(DifferentialOperator):
     def free_indices(self):
         return self.f.free_indices()
     
-    def rank(self):
-        return self.f.rank() - 1
+    def shape(self):
+        return self.f.shape()[1:]
     
     def __str__(self):
         return "div(%s)" % self.f
@@ -162,8 +166,8 @@ class Curl(DifferentialOperator):
     def free_indices(self):
         return self.f.free_indices()
     
-    def rank(self):
-        return 1
+    def shape(self):
+        return (UnassignedDim,)
     
     def __str__(self):
         return "curl(%s)" % self.f
@@ -186,8 +190,8 @@ class Rot(DifferentialOperator):
     def free_indices(self):
         return self.f.free_indices()
     
-    def rank(self):
-        return 0
+    def shape(self):
+        return ()
     
     def __str__(self):
         return "rot(%s)" % self.f

@@ -44,8 +44,8 @@ class Identity(Terminal):
     def free_indices(self):
         return ()
     
-    def rank(self):
-        return 2
+    def shape(self):
+        return (self._dim, self._dim)
     
     def __str__(self):
         return "I"
@@ -69,8 +69,9 @@ class Transpose(UFLObject):
     def free_indices(self):
         return self._A.free_indices()
     
-    def rank(self):
-        return 2
+    def shape(self):
+        s = self._A.shape()
+        return (s[1], s[0])
     
     def __str__(self):
         return "(%s)^T" % self._A
@@ -103,8 +104,8 @@ class Outer(UFLObject):
     def free_indices(self):
         return self._free_indices
     
-    def rank(self):
-        return self.a.rank() + self.b.rank()
+    def shape(self):
+        return self.a.shape() + self.b.shape()
     
     def __str__(self):
         return "(%s) (x) (%s)" % (self.a, self.b)
@@ -131,8 +132,8 @@ class Inner(UFLObject):
     def free_indices(self):
         return self._free_indices
     
-    def rank(self):
-        return 0
+    def shape(self):
+        return ()
     
     def __str__(self):
         return "(%s) : (%s)" % (self.a, self.b)
@@ -159,8 +160,8 @@ class Dot(UFLObject):
     def free_indices(self):
         return self._free_indices
     
-    def rank(self):
-        return self.a.rank() + self.b.rank() - 2
+    def shape(self):
+        return self.a.shape()[:-1] + self.b.shape()[1:]
     
     def __str__(self):
         return "(%s) . (%s)" % (self.a, self.b)
@@ -187,8 +188,8 @@ class Cross(UFLObject):
     def free_indices(self):
         return self._free_indices
     
-    def rank(self):
-        return 1
+    def shape(self):
+        return (3,)
     
     def __str__(self):
         return "(%s) x (%s)" % (self.a, self.b)
@@ -210,8 +211,8 @@ class Trace(UFLObject):
     def free_indices(self):
         return self.A.free_indices()
     
-    def rank(self):
-        return 0
+    def shape(self):
+        return ()
     
     def __str__(self):
         return "tr(%s)" % self.A
@@ -233,8 +234,8 @@ class Determinant(UFLObject):
     def free_indices(self):
         return ()
     
-    def rank(self):
-        return 0
+    def shape(self):
+        return ()
     
     def __str__(self):
         return "det(%s)" % self.A
@@ -247,6 +248,8 @@ class Inverse(UFLObject):
 
     def __init__(self, A):
         ufl_assert(A.rank() == 2, "Inverse of tensor with rank != 2 is undefined.")
+        s = A.shape()
+        ufl_assert(s[0] == s[1], "Cannot take inverse of rectangular matrix with dimensions %s." % repr(s))
         ufl_assert(len(A.free_indices()) == 0, "Didn't expect free indices in Inverse.")
         self.A = A
     
@@ -256,8 +259,8 @@ class Inverse(UFLObject):
     def free_indices(self):
         return ()
     
-    def rank(self):
-        return 2
+    def shape(self):
+        return A.shape()
     
     def __str__(self):
         return "(%s)^-1" % self.A
@@ -266,48 +269,48 @@ class Inverse(UFLObject):
         return "Inverse(%r)" % self.A
 
 class Deviatoric(UFLObject):
-    __slots__ = ("A",)
+    __slots__ = ("_A",)
 
     def __init__(self, A):
         ufl_assert(A.rank() == 2, "Deviatoric part of tensor with rank != 2 is undefined.")
         ufl_assert(len(A.free_indices()) == 0, "Didn't expect free indices in Deviatoric.")
-        self.A = A
+        self._A = A
     
     def operands(self):
-        return (self.A, )
+        return (self._A, )
     
     def free_indices(self):
-        return ()
+        return self._A.free_indices()
     
-    def rank(self):
-        return 2
+    def shape(self):
+        return self._A.shape()
     
     def __str__(self):
-        return "dev(%s)" % self.A
+        return "dev(%s)" % self._A
     
     def __repr__(self):
-        return "Deviatoric(%r)" % self.A
+        return "Deviatoric(%r)" % self._A
 
 class Cofactor(UFLObject):
-    __slots__ = ("A",)
+    __slots__ = ("_A",)
 
     def __init__(self, A):
         ufl_assert(A.rank() == 2, "Cofactor of tensor with rank != 2 is undefined.")
         ufl_assert(len(A.free_indices()) == 0, "Didn't expect free indices in Cofactor.")
-        self.A = A
+        self._A = A
     
     def operands(self):
-        return (self.A, )
+        return (self._A, )
     
     def free_indices(self):
         return ()
     
-    def rank(self):
-        return 2
+    def shape(self):
+        return self._A.shape()
     
     def __str__(self):
-        return "cofactor(%s)" % self.A
+        return "cofactor(%s)" % self._A
     
     def __repr__(self):
-        return "Cofactor(%r)" % self.A
+        return "Cofactor(%r)" % self._A
 

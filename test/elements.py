@@ -24,7 +24,6 @@ class ElementsTestCase(unittest.TestCase):
             for p in range(1,10):
                 for family in ("Lagrange", "CG", "Discontinuous Lagrange", "DG"):
                     element = FiniteElement(family, dom, p)
-                    self.assertTrue(element.value_rank() == 0)
                     self.assertTrue(element.value_shape() == ())
 
     def test_vector_galerkin(self):
@@ -33,7 +32,6 @@ class ElementsTestCase(unittest.TestCase):
             for p in range(1,10):
                 for family in ("Lagrange", "CG", "Discontinuous Lagrange", "DG"):
                     element = VectorElement(family, dom, p)
-                    self.assertTrue(element.value_rank() == 1)
                     self.assertTrue(element.value_shape() == (dim,))
                     for i in range(dim):
                         c = element.extract_component(i)
@@ -45,7 +43,6 @@ class ElementsTestCase(unittest.TestCase):
             for p in range(1,10):
                 for family in ("Lagrange", "CG", "Discontinuous Lagrange", "DG"):
                     element = TensorElement(family, dom, p)
-                    self.assertTrue(element.value_rank() == 2)
                     self.assertTrue(element.value_shape() == (dim,dim))
                     for i in range(dim):
                         for j in range(dim):
@@ -56,14 +53,12 @@ class ElementsTestCase(unittest.TestCase):
         for dom in ("triangle", "tetrahedron"):
             dim = domain2dim[dom]
             element = FiniteElement("BDM", dom, 1)
-            self.assertTrue(element.value_rank() == 1)
             self.assertTrue(element.value_shape() == (dim,))
 
     def test_vector_bdm(self):
         for dom in ("triangle", "tetrahedron"):
             dim = domain2dim[dom]
             element = VectorElement("BDM", dom, 1)
-            self.assertTrue(element.value_rank() == 2)
             self.assertTrue(element.value_shape() == (dim,dim))
 
     def test_mixed(self):
