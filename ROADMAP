@@ -39,8 +39,6 @@ Some of the TODO's left:
  
  - Write the paper (can perhaps reuse some text I have)
 
-# Don't use import * on module level
-
 # Rewrite/improve all error messages
 
 # License:
@@ -49,7 +47,6 @@ Some of the TODO's left:
 # Should we use "enums" or strings? For example "triangle", "tetrahedron"
   or TRIANGLE, TETRAHEDRON
 
-# Note from Martin: Some stuff has moved around a bit now.
 * Notes by Anders (trying to make sense of the implementation)
 
   OK   = Understand it and it looks ok
@@ -59,12 +56,10 @@ Some of the TODO's left:
   hmm  = Skeptical
 
   algebra.py              OK!
-  all.py                  --
-  analysis.py             --
   base.py                 OK!
   basisfunctions.py       --
-  checks.py               --
   common.py               OK!
+  classes.py              --
   differentiation.py      --
   elements.py             OK!
   finiteelement.py        OK!
@@ -79,11 +74,15 @@ Some of the TODO's left:
   operators.py            --
   output.py               OK!
   permutation.py          OK!
-  predicates.py           --
   restriction.py          --
   tensoralgebra.py        --
   tensors.py              --
-  transformations.py      --
-  traversal.py            --
-  utilities.py            Rename to algorithm(s).py
   variable.py             --
+
+  algorithms/__init__.py         --
+  algorithms/analysis.py         --
+  algorithms/checks.py           --
+  algorithms/predicates.py       --
+  algorithms/transformations.py  --
+  algorithms/traversal.py        --
+  algorithms/utilities.py        Rename to algorithm(s).py

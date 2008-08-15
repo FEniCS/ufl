@@ -1,2 +1,69 @@
 UFL - Unified Form Language
 ---------------------------
+
+Authors:
+  Martin Sandve Alnæs <martinal@simula.no>,
+  Anders Logg <logg@simula.no>
+
+Contributors:
+  Kent-Andre Mardal <kent-and@simula.no>
+  TODO: Add more people here.
+
+
+Directories
+-----------
+
+- ufl/
+  All source code for the UFL implementation.
+
+- scripts/
+  Commandline utilities like "ufl-analyse" and "ufl2latex".
+
+- demo/
+  Several ufl form files which demonstrates the use of the form language.
+
+- doc/
+  The UFL manual resides here.
+
+- test/
+  Unit tests for the UFL implementation. Run all tests by typing "python test.py" inside the test/ directory.
+
+
+Installation
+------------
+
+Linux:
+  sudo python setup.py install
+
+
+Utilities
+---------
+
+For more information about the utilities, type
+  ufl-analyse -h
+  ufl2latex -h
+after installation.
+
+
+Python modules
+--------------
+
+The global namespace of the module ufl contains the entire UFL language:
+  from ufl import *
+
+Form compilers may want to import additional implementation details like
+  from ufl.classes import *
+and 
+  from ufl.algorithms import *
+
+Importing a .ufl file can be done easily from Python:
+  from ufl.algorithms import load_forms
+  forms = load_forms("filename.ufl")
+
+
+Contact
+-------
+
+http://www.fenics.org/ufl
+ufl-dev@fenics.org
+
