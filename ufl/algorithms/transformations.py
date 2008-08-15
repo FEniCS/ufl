@@ -35,23 +35,23 @@ from ..formoperators import Derivative, Action, Rhs, Lhs, rhs, lhs
 from .analysis import basisfunctions, coefficients
 
 
-def transform(expression, handlers):
+def _transform(expression, handlers):
     """Convert a UFLExpression according to rules defined by
     the mapping handlers = dict: class -> conversion function."""
     if isinstance(expression, Terminal):
         ops = ()
     else:
-        ops = [transform(o, handlers) for o in expression.operands()]
+        ops = [_transform(o, handlers) for o in expression.operands()]
     return handlers[expression.__class__](expression, *ops)
 
-def ufl_handlers():
-    """This function constructs a handler dict for transform
+def _ufl_handlers():
+    """This function constructs a handler dict for _transform
     which can be used to reconstruct a ufl expression through
-    transform(...), which of course makes no sense but is
+    _transform(...), which of course makes no sense but is
     useful for testing."""
     # Show a clear error message if we miss some types here:
     def not_implemented(x, ops):
-        ufl_error("No handler defined for %s in ufl_handlers." % x.__class__)
+        ufl_error("No handler defined for %s in _ufl_handlers." % x.__class__)
     d = defaultdict(not_implemented)
     # Terminal objects are simply reused:
     def this(x):
@@ -99,10 +99,10 @@ def ufl_handlers():
     d[Tensor]      = construct
     return d
 
-def latex_handlers():
+def _latex_handlers():
     # Show a clear error message if we miss some types here:
     def not_implemented(x):
-        ufl_error("No handler defined for %s in latex_handlers." % x.__class__)
+        ufl_error("No handler defined for %s in _latex_handlers." % x.__class__)
     d = defaultdict(not_implemented)
     # Utility for parentesizing string:
     def par(s, condition=True):
@@ -167,12 +167,12 @@ def latex_handlers():
 def ufl2ufl(expression):
     """Convert an UFL expression to a new UFL expression, with no changes.
     Simply tests that objects in the expression behave as expected."""
-    handlers = ufl_handlers()
-    return transform(expression, handlers)
+    handlers = _ufl_handlers()
+    return _transform(expression, handlers)
 
 def ufl2latex(expression):
     """Convert an UFL expression to a LaTeX string. Very crude approach."""
-    handlers = latex_handlers()
+    handlers = _latex_handlers()
     if isinstance(expression, Form):
         integral_strings = []
         for itg in expression.cell_integrals():
@@ -191,16 +191,16 @@ def ufl2latex(expression):
                           "exterior facet": "\\Gamma^{ext}",
                           "interior facet": "\\Gamma^{int}",
                         }[itg._domain_type]
-        integrand_string = transform(itg._integrand, handlers)
+        integrand_string = _transform(itg._integrand, handlers)
         latex = "\\int_{\\Omega_%d} \\left[ %s \\right] \,dx" % (itg._domain_id, integrand_string)
     else:
-        latex = transform(expression, handlers)
+        latex = _transform(expression, handlers)
     return latex
 
 def flatten(expression):
     """Convert an UFL expression to a new UFL expression, with sums 
     and products flattened from binary tree nodes to n-ary tree nodes."""
-    handlers = ufl_handlers()
+    handlers = _ufl_handlers()
     def _flatten(x, *ops):
         newops = []
         for o in ops:
@@ -211,12 +211,12 @@ def flatten(expression):
         return x.__class__(*newops)
     handlers[Sum] = _flatten
     handlers[Product] = _flatten
-    return transform(expression, handlers)
+    return _transform(expression, handlers)
 
 def expand_compounds(expression):
     """Convert an UFL expression to a new UFL expression, with 
     compound operator objects converted to indexed expressions."""
-    handlers = ufl_handlers()
+    handlers = _ufl_handlers()
     def e_outer(x, a, b):
         ii = tuple(Index() for kk in range(a.rank()))
         jj = tuple(Index() for kk in range(b.rank()))
@@ -261,7 +261,7 @@ def expand_compounds(expression):
     handlers[Rot]  = e_rot
     # FIXME: Some more tensor operations like Det, Dev, etc...,
     # FIXME: diff w.r.t. tensor valued variable?
-    return transform(expression, handlers)
+    return _transform(expression, handlers)
 
 
 def transform_integrands(a, transformation):
@@ -356,102 +356,4 @@ def flatten(a):
             operands.append(b)
     
     return myclass(*operands)
-
-def renumber_indices(a):
-    "Renumber indices in a contiguous count."
-    
-    ufl_warning("Not implemented!") # FIXME
-    
-    # 1) Get all indices
-    # 2) Define a index number mapping
-    # 3) Apply number map
-    
-    return a
-
-def renumber_basisfunctions(a):
-    "Renumber indices in a contiguous count."
-    
-    ufl_warning("Not implemented!") # FIXME
-    
-    # 1) Get all basisfunctions
-    # 2) Define a basisfunction number mapping
-    # 3) Apply number map
-    
-    return a
-
-def renumber_functions(a):
-    "Renumber indices in a contiguous count."
-    
-    ufl_warning("Not implemented!") # FIXME
-    
-    # 1) Get all functions
-    # 2) Define a function number mapping
-    # 3) Apply number map
-    
-    return a
-
-
-def criteria_not_argument(a):
-    return not isinstance(a, (Function, BasisFunction))
-
-def criteria_not_trial_function(a):
-    return not (isinstance(a, BasisFunction) and (a._count > 0 or a._count == -1))
-
-def criteria_not_basis_function(a):
-    return not isinstance(a, BasisFunction)
-
-def _detect_argument_dependencies(a, criteria):
-    """Detect edges in expression tree where subtrees
-    depend on different stages of form arguments.
-    A Variable object is inserted at each edge.
-    
-    Stage 0:  Subtrees that does not depend on any arguments.
-    Stage 1:  Subtrees that does not depend on any basisfunctions (i.e., that only depend on coefficients).
-    Stage 2:  Subtrees that does not depend on basisfunction 1 (i.e. trial function for a matrix)
-    Stage 3:  Subtrees that does not depend on basisfunction 0 (i.e. test function)
-    """
-    ufl_warning("NB! Assumes renumbered basisfunctions! FIXME: Implement basisfunction renumbering.")
-    
-    if isinstance(a, Terminal):
-        return a, criteria(a)
-    
-    operands = []
-    crit = []
-    for o in a.operands():
-        b, c = _detect_argument_dependencies(o, criteria)
-        operands.append(b)
-        crit.append(c)
-    
-    # FIXME: finish this
-    
-    if False:
-        return a   
-    return a.__class__(*operands)   
-
-def substitute_indices(u, indices, values):
-    "Substitute Index objects from list indices with corresponding fixed values from list values in expression u."
-    ufl_error("Not implemented") # FIXME: Implement
-    return u
-
-# FIXME: Maybe this is better implemented a different way? Could be a good idea to insert Variable instances around expanded sums.
-def expand_indices(expression):
-    """Convert an UFL expression to a new UFL expression, with 
-    compound operator objects converted to indexed expressions."""
-    handlers = ufl_handlers()
-    def e_product(x, *ops):
-        # TODO: Find all repeated indices:
-        ii = ()
-        a = x
-        return Product(*ops) # FIXME
-    def e_pdiff(x, *ops):
-        return PartialDerivative(*ops) # FIXME
-    handlers[Product] = e_product
-    handlers[PartialDerivative] = e_pdiff
-    # FIXME: Handle all other necessary objects here, f.ex. the Diff object h resulting from "g = variable(g); f = foo(g); h = diff(f[i], g[i])"
-    return transform(expression, handlers)
-
-def discover_indices(u):
-    "Convert explicit sums into implicit sums (repeated indices)."
-    ufl_error("Not implemented") # FIXME: Implement (this is like FFCs 'simplify' done by Marie)
-    return u
 
