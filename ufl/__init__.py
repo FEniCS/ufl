@@ -28,7 +28,7 @@ __version__ = "0.1"
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __copyright__ = __authors__ + " (2008)"
 __licence__ = "LGPL" # TODO: which licence?
-__date__ = "2008-03-14 -- 2008-08-14"
+__date__ = "2008-03-14 -- 2008-08-18"
 
 # DEBUGGING: Enable PyChecker to find potential bugs by static code analysis:
 #import os, sys, glob, numpy, logging # PyChecker skips previously loaded modules
@@ -54,12 +54,11 @@ from .common import product
 from .output import UFLException, ufl_debug, ufl_info, ufl_warning, ufl_error, ufl_assert
 
 # base system (expression base classes)
-#from .base import UFLObject, Terminal, Number
+from .base import UFLObject, Terminal, Number, Compound
 #from .base import is_python_scalar, is_scalar, is_true_scalar
 
 # variable class
 #from .variable import Variable
-from .variable import variable
 
 # finite elements classes
 #from .finiteelement import FiniteElementBase
@@ -100,11 +99,10 @@ from .tensoralgebra import Identity
 from .mathfunctions import sqrt, exp, ln, cos, sin
 
 # differentiation operators
-#from .differentiation import PartialDerivative, Diff, DifferentialOperator, Grad, Div, Curl, Rot
-from .differentiation import diff
+#from .differentiation import PartialDerivative, Diff, Grad, Div, Curl, Rot
 
 # operators
-from .operators import transpose, outer, inner, dot, cross, det, inv, tr, dev, cofac, Dx, Dt, grad, div, curl, rot, jump, avg
+from .operators import transpose, outer, inner, dot, cross, det, inv, tr, dev, cofac, Dx, Dt, diff, grad, div, curl, rot, jump, avg, variable
 
 # form class
 from .form import Form

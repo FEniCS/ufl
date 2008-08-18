@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-15"
+__date__ = "2008-03-14 -- 2008-08-18"
 
 from ..output import UFLException, ufl_error, ufl_assert, ufl_info
 from ..base import is_python_scalar, is_scalar, is_true_scalar
@@ -23,7 +23,7 @@ from ..algebra import Sum, Product, Division, Power, Mod, Abs
 from ..tensoralgebra import Identity, Transpose, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
 from ..mathfunctions import MathFunction
 from ..restriction import Restricted, PositiveRestricted, NegativeRestricted
-from ..differentiation import PartialDerivative, Diff, DifferentialOperator, Grad, Div, Curl, Rot
+from ..differentiation import PartialDerivative, Diff, Grad, Div, Curl, Rot
 from ..form import Form
 from ..integral import Integral
 from ..formoperators import Derivative, Action, Rhs, Lhs, rhs, lhs

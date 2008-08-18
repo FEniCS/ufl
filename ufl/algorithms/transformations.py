@@ -26,10 +26,10 @@ from ..algebra import Sum, Product, Division, Power, Mod, Abs
 from ..tensoralgebra import Identity, Transpose, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
 from ..mathfunctions import MathFunction
 from ..restriction import Restricted, PositiveRestricted, NegativeRestricted
-from ..differentiation import PartialDerivative, Diff, DifferentialOperator, Grad, Div, Curl, Rot
+from ..differentiation import PartialDerivative, Diff, Grad, Div, Curl, Rot
 from ..form import Form
 from ..integral import Integral
-from ..formoperators import Derivative, Action, Rhs, Lhs, rhs, lhs
+#from ..formoperators import Derivative, Action, Rhs, Lhs # TODO: What to do with these?
 
 # Other algorithms:
 from .analysis import basisfunctions, coefficients, indices
@@ -41,9 +41,7 @@ def transform_integrands(a, transformation):
     Example usage:
       b = transform_integrands(a, flatten)
     """
-    
     ufl_assert(isinstance(a, Form), "Expecting a Form.")
-    
     integrals = []
     for itg in a.integrals():
         integrand = transformation(itg._integrand)
@@ -119,6 +117,13 @@ def _ufl_handlers():
     return d
 
 
+def ufl2ufl(expression):
+    """Convert an UFL expression to a new UFL expression, with no changes.
+    This is used for testing that objects in the expression behave as expected."""
+    handlers = _ufl_handlers()
+    return _transform(expression, handlers)
+
+
 def _latex_handlers():
     # Show a clear error message if we miss some types here:
     def not_implemented(x):
@@ -183,13 +188,6 @@ def _latex_handlers():
     #d[ListMatrix]  = ListMatrix # FIXME
     #d[Tensor]      = Tensor # FIXME
     return d
-
-
-def ufl2ufl(expression):
-    """Convert an UFL expression to a new UFL expression, with no changes.
-    Simply tests that objects in the expression behave as expected."""
-    handlers = _ufl_handlers()
-    return _transform(expression, handlers)
 
 
 def ufl2latex(expression):
@@ -270,6 +268,9 @@ def expand_compounds(expression):
     # FIXME: diff w.r.t. tensor valued variable?
     return _transform(expression, handlers)
 
+# FIXME: Implement expand_compounds using Compound class:
+#   def e_compound(x, *ops):
+#       return x.as_basic(*ops)
 
 def _strip_variables(a):
     "Auxilliary procedure for strip_variables."

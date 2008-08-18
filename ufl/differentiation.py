@@ -6,7 +6,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-08-18"
 
 from .output import ufl_assert
-from .base import UFLObject
+from .base import UFLObject, Compound
 from .indexing import MultiIndex, UnassignedDim, extract_indices
 from .variable import Variable
 
@@ -89,106 +89,123 @@ class Diff(UFLObject):
     def __repr__(self):
         return "Diff(%r, %r)" % (self._f, self._x)
 
-def diff(f, x):
-    return Diff(f, x)
 
-
-class DifferentialOperator(UFLObject):
-    """For the moment this is just a dummy class to enable "isinstance(o, DifferentialOperator)"."""
-    __slots__ = ()
-
-
-class Grad(DifferentialOperator):
-    __slots__ = ("f",)
-
+class Grad(Compound):
+    __slots__ = ("_f",)
+    
     def __init__(self, f):
-        self.f = f
+        self._f = f
         ufl_assert(len(f.free_indices()) == 0, "TODO: Taking gradient of an expression with free indices, should this be a valid expression? Please provide examples!")
     
     def operands(self):
-        return (self.f, )
+        return (self._f, )
     
     def free_indices(self):
-        return self.f.free_indices()
+        return self._f.free_indices()
+    
+    def repeated_indices(self):
+        return self._f.repeated_indices()
     
     def shape(self):
-        return (UnassignedDim,) + self.f.shape()
+        return (UnassignedDim,) + self._f.shape()
+    
+    def as_basic(self, f):
+        ii = Index()
+        if f.rank() > 0:
+            jj = tuple(Index() for kk in range(f.rank()))
+            return Tensor(f[jj].dx(ii), tuple((ii,)+jj))
+        else:
+            return Tensor(f.dx(ii), (ii,))
     
     def __str__(self):
-        return "grad(%s)" % self.f
-
+        return "grad(%s)" % self._f
+    
     def __repr__(self):
-        return "Grad(%r)" % self.f
+        return "Grad(%r)" % self._f
 
 
-class Div(DifferentialOperator):
-    __slots__ = ("f",)
+class Div(Compound):
+    __slots__ = ("_f",)
 
     def __init__(self, f):
         ufl_assert(f.rank() >= 1, "Can't take the divergence of a scalar.")
         ufl_assert(len(f.free_indices()) == 0, "TODO: Taking divergence of an expression with free indices, should this be a valid expression? Please provide examples!")
-        self.f = f
+        self._f = f
     
     def operands(self):
-        return (self.f, )
+        return (self._f, )
     
     def free_indices(self):
-        return self.f.free_indices()
+        return self._f.free_indices()
     
     def shape(self):
-        return self.f.shape()[1:]
+        return self._f.shape()[1:]
     
+    def as_basic(self, f):
+        ii = Index()
+        if f.rank() == 1:
+            g = f[ii]
+        else:
+            g = f[...,ii]
+        return g.dx(ii)
+
     def __str__(self):
-        return "div(%s)" % self.f
+        return "div(%s)" % self._f
 
     def __repr__(self):
-        return "Div(%r)" % self.f
+        return "Div(%r)" % self._f
 
 
-class Curl(DifferentialOperator):
-    __slots__ = ("f",)
+class Curl(Compound):
+    __slots__ = ("_f",)
 
     def __init__(self, f):
         ufl_assert(f.rank()== 1, "Need a vector.")
         ufl_assert(len(f.free_indices()) == 0, "TODO: Taking curl of an expression with free indices, should this be a valid expression? Please provide examples!")
-        self.f = f
+        self._f = f
     
     def operands(self):
-        return (self.f, )
+        return (self._f, )
     
     def free_indices(self):
-        return self.f.free_indices()
+        return self._f.free_indices()
     
     def shape(self):
         return (UnassignedDim,)
     
+    #def as_basic(self, f):
+    #    return FIXME
+    
     def __str__(self):
-        return "curl(%s)" % self.f
+        return "curl(%s)" % self._f
     
     def __repr__(self):
-        return "Curl(%r)" % self.f
+        return "Curl(%r)" % self._f
 
 
-class Rot(DifferentialOperator):
-    __slots__ = ("f",)
+class Rot(Compound):
+    __slots__ = ("_f",)
 
     def __init__(self, f):
         ufl_assert(f.rank() == 1, "Need a vector.")
         ufl_assert(len(f.free_indices()) == 0, "TODO: Taking rot of an expression with free indices, should this be a valid expression? Please provide examples!")
-        self.f = f
+        self._f = f
     
     def operands(self):
-        return (self.f, )
+        return (self._f, )
     
     def free_indices(self):
-        return self.f.free_indices()
+        return self._f.free_indices()
     
     def shape(self):
         return ()
     
+    #def as_basic(self, f):
+    #    return FIXME
+    
     def __str__(self):
-        return "rot(%s)" % self.f
+        return "rot(%s)" % self._f
     
     def __repr__(self):
-        return "Rot(%r)" % self.f
+        return "Rot(%r)" % self._f
 

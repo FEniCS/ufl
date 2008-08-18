@@ -6,10 +6,11 @@ objects."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-04-09 -- 2008-08-14"
+__date__ = "2008-04-09 -- 2008-08-18"
 
-from .differentiation import Grad, Div, Curl, Rot
+from .differentiation import Diff, Grad, Div, Curl, Rot
 from .tensoralgebra import Transpose, Inner, Outer, Dot, Cross, Determinant, Inverse, Trace, Deviatoric, Cofactor
+from .variable import Variable
 
 #--- Tensor operators ---
 
@@ -54,6 +55,9 @@ def Dt(o): # FIXME: Add class
     #return TimeDerivative(o)
     raise NotImplementedError
 
+def diff(f, x):
+    return Diff(f, x)
+
 def grad(f):
     return Grad(f)
 
@@ -68,9 +72,14 @@ def rot(f):
 
 #--- DG operators ---
 
-def jump(o):
+def jump(o): # FIXME
+    raise NotImplementedError 
+
+def avg(o): # FIXME
     raise NotImplementedError
 
-def avg(o):
-    raise NotImplementedError
+#--- Other operators ---
+
+def variable(o):
+    return Variable(o)
 
