@@ -15,7 +15,7 @@ class Variable(Terminal): #UFLObject
     - To manually identify good spots to split an expression for optimized computation.
     - Internal use in library algorithms during e.g. automatic differentation.
     """
-    __slots__ = ("_expression",)
+    __slots__ = ("_expression", "_count")
     
     def __init__(self, expression):
         self._expression = expression

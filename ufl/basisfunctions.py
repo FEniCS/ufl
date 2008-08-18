@@ -5,27 +5,21 @@ which use the baseclasses BasisFunction and Function."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-15"
+__date__ = "2008-03-14 -- 2008-08-18"
 
 
 from .output import UFLException, ufl_warning
 from .base import Terminal
 from .finiteelement import FiniteElement, MixedElement, VectorElement
+from .common import Counted
 
 
-class BasisFunction(Terminal):
-    __slots__ = ("_element", "_count",)
-
+class BasisFunction(Terminal,Counted):
+    __slots__ = ("_element",)
     _globalcount = 0
     def __init__(self, element, count=None):
         self._element = element
-        if count is None:
-            self._count = BasisFunction._globalcount
-            BasisFunction._globalcount += 1
-        else:
-            self._count = count
-            if count >= BasisFunction._globalcount:
-                BasisFunction._globalcount = count + 1
+        Counted.__init__(self, count)
     
     def element(self):
         return self._element
@@ -69,20 +63,13 @@ def TrialFunctions(element):
     return tuple(TrialFunction(e) for e in element.sub_elements()) # FIXME: problem with count!
 
 
-class Function(Terminal):
-    __slots__ = ("_element", "_name", "_count",)
-
+class Function(Terminal, Counted):
+    __slots__ = ("_element", "_name")
     _globalcount = 0
     def __init__(self, element, name=None, count=None):
         self._element = element
         self._name = name
-        if count is None:
-            self._count = Function._globalcount
-            Function._globalcount += 1
-        else:
-            self._count = count
-            if count >= Function._globalcount:
-                Function._globalcount = count + 1
+        Counted.__init__(self, count)
     
     def free_indices(self):
         return ()
@@ -91,10 +78,14 @@ class Function(Terminal):
         return self._element.value_shape()
     
     def __str__(self):
-        return "w_%d" % self._count # TODO: Use name here if available.
+        if self._name is None:
+            return "w_%d" % self._count
+        else:
+            return "w_%s" % self._name
     
     def __repr__(self):
         return "Function(%r, %r, %r)" % (self._element, self._name, self._count)
+
 
 class Constant(Function):
     __slots__ = ("_polygon",)

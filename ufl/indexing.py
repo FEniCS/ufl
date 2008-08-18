@@ -11,21 +11,15 @@ from collections import defaultdict
 # UFL imports
 from .output import ufl_assert, ufl_warning, ufl_error
 from .base import UFLObject, Terminal
+from .common import Counted
 
 #--- Indexing ---
 
-class Index(object):
-    __slots__ = ("_count",)
-    
+class Index(Counted):
+    __slots__ = ()
     _globalcount = 0
     def __init__(self, count = None):
-        if count is None:
-            self._count = Index._globalcount
-            Index._globalcount += 1
-        else:
-            self._count = count
-            if count >= Index._globalcount:
-                Index._globalcount = count + 1
+        Counted.__init__(self, count)
     
     def __str__(self):
         return "i_{%d}" % self._count
