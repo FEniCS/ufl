@@ -91,7 +91,7 @@ from . import baseoperators as __baseoperators
 from .tensors import Tensor, Vector, Matrix
 
 # tensor algebra operators
-#from .tensoralgebra import Transpose, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
+#from .tensoralgebra import Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
 from .tensoralgebra import Identity
 
 # mathematical functions

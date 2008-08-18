@@ -9,14 +9,14 @@ __authors__ = "Martin Sandve Alnes and Anders Logg"
 __date__ = "2008-04-09 -- 2008-08-18"
 
 from .differentiation import Diff, Grad, Div, Curl, Rot
-from .tensoralgebra import Transpose, Inner, Outer, Dot, Cross, Determinant, Inverse, Trace, Deviatoric, Cofactor
+from .tensoralgebra import Transposed, Inner, Outer, Dot, Cross, Determinant, Inverse, Trace, Deviatoric, Cofactor
 from .variable import Variable
 
 #--- Tensor operators ---
 
 def transpose(o):
     "Return transpose of expression"
-    return Transpose(o)
+    return Transposed(o)
 
 def outer(a, b):
     return Outer(a, b)

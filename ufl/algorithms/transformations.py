@@ -23,7 +23,7 @@ from ..indexing import MultiIndex, Indexed, Index
 from ..tensors import ListVector, ListMatrix, Tensor
 #from ..tensors import Vector, Matrix
 from ..algebra import Sum, Product, Division, Power, Mod, Abs
-from ..tensoralgebra import Identity, Transpose, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
+from ..tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
 from ..mathfunctions import MathFunction
 from ..restriction import Restricted, PositiveRestricted, NegativeRestricted
 from ..differentiation import PartialDerivative, Diff, Grad, Div, Curl, Rot
@@ -82,41 +82,40 @@ def ufl_handlers():
     d[Constant]      = this
     d[FacetNormal]   = this
     d[Identity]      = this
+    d[Variable]      = this
     # The classes of non-terminal objects should already have appropriate constructors:
-    def construct(x, *ops):
+    def reconstruct(x, *ops):
         return x.__class__(*ops)
-    d[Variable]  = construct # NB! Some algorithms will not want to move into the expression referenced by a variable.
-    d[Sum]       = construct
-    d[Product]   = construct
-    d[Division]  = construct
-    d[Power]     = construct
-    d[Mod]       = construct
-    d[Abs]       = construct
-    d[Transpose] = construct
-    d[Indexed]   = construct
-    d[PartialDerivative] = construct
-    d[Diff] = construct
-    d[Grad] = construct
-    d[Div]  = construct
-    d[Curl] = construct
-    d[Rot]  = construct
-    d[FiniteElement] = construct
-    d[MixedElement]  = construct
-    d[VectorElement] = construct
-    d[TensorElement] = construct
-    d[MathFunction]  = construct
-    d[Outer] = construct
-    d[Inner] = construct
-    d[Dot]   = construct
-    d[Cross] = construct
-    d[Trace] = construct
-    d[Determinant] = construct
-    d[Inverse]     = construct
-    d[Deviatoric]  = construct
-    d[Cofactor]    = construct
-    d[ListVector]  = construct
-    d[ListMatrix]  = construct
-    d[Tensor]      = construct
+    d[Sum]       = reconstruct
+    d[Product]   = reconstruct
+    d[Division]  = reconstruct
+    d[Power]     = reconstruct
+    d[Mod]       = reconstruct
+    d[Abs]       = reconstruct
+    d[Transposed] = reconstruct
+    d[Indexed]   = reconstruct
+    d[PartialDerivative] = reconstruct
+    d[Diff] = reconstruct
+    d[Grad] = reconstruct
+    d[Div]  = reconstruct
+    d[Curl] = reconstruct
+    d[Rot]  = reconstruct
+    d[MathFunction] = reconstruct
+    d[Outer] = reconstruct
+    d[Inner] = reconstruct
+    d[Dot]   = reconstruct
+    d[Cross] = reconstruct
+    d[Trace] = reconstruct
+    d[Determinant] = reconstruct
+    d[Inverse]     = reconstruct
+    d[Deviatoric]  = reconstruct
+    d[Cofactor]    = reconstruct
+    d[ListVector] = reconstruct
+    d[ListMatrix] = reconstruct
+    d[Tensor]     = reconstruct
+    d[Restricted]         = reconstruct
+    d[PositiveRestricted] = reconstruct
+    d[NegativeRestricted] = reconstruct
     return d
 
 
@@ -165,7 +164,7 @@ def latex_handlers():
     d[Power]     = l_binop("^")
     d[Mod]       = l_binop("\\mod")
     d[Abs]       = lambda x, a: "|%s|" % a
-    d[Transpose] = lambda x, a: "{%s}^T" % a
+    d[Transposed] = lambda x, a: "{%s}^T" % a
     d[Indexed]   = lambda x, a, b: "{%s}_{%s}" % (a, b)
     d[PartialDerivative] = lambda x, f, y: "\\frac{\\partial\\left[{%s}\\right]}{\\partial{%s}}" % (f, y)
     #d[Diff] = Diff # FIXME
@@ -173,10 +172,6 @@ def latex_handlers():
     d[Div]  = lambda x, f: "\\nabla{\\cdot %s}" % par(f)
     d[Curl] = lambda x, f: "\\nabla{\\times %s}" % par(f)
     d[Rot]  = lambda x, f: "\\rot{%s}" % par(f)
-    #d[FiniteElement] = FiniteElement # Shouldn't be necessary to handle here
-    #d[MixedElement]  = MixedElement  # ...
-    #d[VectorElement] = VectorElement # ...
-    #d[TensorElement] = TensorElement # ...
     d[MathFunction]  = lambda x, f: "%s%s" % (x._name, par(f))
     d[Outer] = l_binop("\\otimes")
     d[Inner] = l_binop(":")
@@ -262,7 +257,7 @@ def expand_compounds(expression):
     handlers[Outer] = e_outer
     handlers[Inner] = e_inner
     handlers[Dot]   = e_dot
-    handlers[Transpose] = e_transpose
+    handlers[Transposed] = e_transpose
     handlers[Div]  = e_div
     handlers[Grad] = e_grad
     handlers[Curl] = e_curl

@@ -56,11 +56,11 @@ class Identity(Terminal):
 
 # objects representing the operations:
 
-class Transpose(Compound):
+class Transposed(Compound):
     __slots__ = ("_A",)
     
     def __init__(self, A):
-        ufl_assert(A.rank() == 2, "Transpose is only defined for rank 2 tensors.")
+        ufl_assert(A.rank() == 2, "Transposed is only defined for rank 2 tensors.")
         self._A = A
     
     def operands(self):
@@ -82,7 +82,7 @@ class Transpose(Compound):
         return "(%s)^T" % self._A
     
     def __repr__(self):
-        return "Transpose(%r)" % self._A
+        return "Transposed(%r)" % self._A
 
 
 class Outer(Compound):

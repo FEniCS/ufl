@@ -11,7 +11,7 @@ __date__ = "2008-08-18 -- 2008-08-18"
 from .output import ufl_error
 from .base import UFLObject, Number, is_python_scalar
 from .algebra import Sum, Product, Division, Power, Mod, Abs
-from .tensoralgebra import Transpose
+from .tensoralgebra import Transposed
 from .indexing import Indexed
 from .restriction import PositiveRestricted, NegativeRestricted
 from .differentiation import PartialDerivative
@@ -115,9 +115,9 @@ UFLObject.__call__ = _restrict
 
 #--- Extend UFLObject with the transpose operation A.T ---
 def _transpose(self):
-    """Transpose a rank two tensor expression. For more general transpose
+    """Transposed a rank two tensor expression. For more general transpose
     operations of higher order tensor expressions, use indexing and Tensor."""
-    return Transpose(self)
+    return Transposed(self)
 UFLObject.T = property(_transpose)
 
 #--- Extend UFLObject with spatial differentiation operator a.dx(i) ---
