@@ -106,6 +106,7 @@ class Indexed(UFLObject):
         
         (fixed_indices, free_indices, repeated_indices, num_unassigned_indices) = \
             extract_indices(self._indices._indices)
+        
         # TODO: We don't need to store all these here, remove the ones we
         #       don't use after implementing summation expansion.
         self._fixed_indices      = fixed_indices
@@ -165,23 +166,29 @@ def as_index_tuple(indices, rank):
     pre  = []
     post = []
     found = False
-    for j, idx in enumerate(indices):
-        if not found:
-            if idx == Ellipsis:
-                found = True
-            else:
-                pre.append(as_index(idx))
+    for idx in indices:
+        if idx == Ellipsis:
+            ufl_assert(not found, "Found duplicate ellipsis.")
+            found = True
         else:
-            ufl_assert(idx != Ellipsis, "Found duplicate ellipsis.")
-            post.append(as_index(idx))
+            if not found:
+                pre.append(as_index(idx))
+            else:
+                post.append(as_index(idx))
     
     # replace ellipsis with a number of Axis objects
-    indices = pre + [Axis]*(rank-len(pre)-len(post)) + post
-    indices = tuple(indices)
-    #ufl_assert(len(indices) == rank, "Invalid property, something is wrong.")
+    num_axis = rank - len(pre) - len(post)
+    ufl_assert(num_axis >= 0, "Invalid number of indices (%d) for given rank (%d)." % (len(indices), rank))
+    indices = tuple(pre + [Axis]*num_axis + post)
     return indices
 
 def extract_indices(indices):
+    """Analyse a tuple of indices, and return a 4-tuple with the following information:
+    - fixed_indices = tuple of indices with a constant value (FixedIndex)
+    - free_indices = tuple of unique indices with no value (Index, no implicit summation)
+    - repeated_indices = tuple of indices that occur twice (Index, implicit summation)
+    - num_unassigned_indices = int, number of axes in that have no associated index
+    """
     ufl_assert(isinstance(indices, tuple), "Expecting index tuple.")
     ufl_assert(all(isinstance(i, _indextypes) for i in indices), "Expecting proper UFL objects.")
 

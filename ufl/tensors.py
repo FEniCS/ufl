@@ -44,7 +44,8 @@ class ListMatrix(UFLObject):
     __slots__ = ("_rowexpressions", "_free_indices", "_shape")
     
     def __init__(self, *rowexpressions):
-        ufl_assert(all(isinstance(e, ListVector) for e in rowexpressions), "Expecting list of rowexpressions.")
+        ufl_assert(all(isinstance(e, ListVector) for e in rowexpressions), \
+            "Expecting list of rowexpressions.")
         
         self._rowexpressions  = rowexpressions
         r = len(rowexpressions)
@@ -54,8 +55,10 @@ class ListMatrix(UFLObject):
         
         for row in rowexpressions:
             ufl_assert(row.shape()[0] == c, "Inconsistent row size.")
-            ufl_assert(all(e.shape() == () for e in row._expressions), "Expecting scalar valued expressions.")
-            ufl_assert(all(len(eset ^ set(e.free_indices())) == 0 for e in row._expressions), "Can't handle list of expressions with different free indices.")
+            ufl_assert(all(e.shape() == () for e in row._expressions), \
+                "Expecting scalar valued expressions.")
+            ufl_assert(all(len(eset ^ set(e.free_indices())) == 0 for e in row._expressions), \
+                "Can't handle list of expressions with different free indices.")
         #ufl_assert(len(expressions.free_indices()) == 0, "Can't handle list of expressions with free indices.")
     
     def operands(self):
@@ -81,14 +84,17 @@ class Tensor(UFLObject):
     __slots__ = ("_expression", "_indices", "_free_indices", "_shape")
     
     def __init__(self, expression, indices):
-        ufl_assert(isinstance(expression, UFLObject),          "Expecting ufl expression.")
-        ufl_assert(expression.shape() == (),                   "Expecting scalar valued expression.")
-        self._expression   = expression
+        ufl_assert(isinstance(expression, UFLObject), "Expecting ufl expression.")
+        ufl_assert(expression.shape() == (), "Expecting scalar valued expression.")
+        self._expression = expression
         
         if isinstance(indices, MultiIndex): # if constructed from repr
             self._indices = indices
         else:
-            self._indices = MultiIndex(indices, expression.rank())
+            # FIXME: I'm not sure about this:
+            self._indices = MultiIndex(indices, len(expression.free_indices()))
+        
+        # Allowing Axis or FixedIndex here would make no sense
         ufl_assert(all(isinstance(i, Index) for i in self._indices._indices))
         
         eset = set(expression.free_indices())
@@ -105,7 +111,7 @@ class Tensor(UFLObject):
     
     def free_indices(self):
         return self._free_indices
-
+    
     def shape(self):
         return self._shape
     
