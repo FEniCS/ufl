@@ -35,6 +35,7 @@ from ..integral import Integral
 from .analysis import basisfunctions, coefficients, indices
 
 
+
 def transform_integrands(a, transformation):
     """Transform all integrands in a form with a transformation function.
     
@@ -51,24 +52,26 @@ def transform_integrands(a, transformation):
     return Form(integrals)
 
 
-def _transform(expression, handlers):
+# TODO: A general transform mechanism which can reuse objects when possible would be a nice optimization.
+
+def transform(expression, handlers):
     """Convert a UFLExpression according to rules defined by
     the mapping handlers = dict: class -> conversion function."""
     if isinstance(expression, Terminal):
         ops = ()
     else:
-        ops = [_transform(o, handlers) for o in expression.operands()]
+        ops = [transform(o, handlers) for o in expression.operands()]
     return handlers[expression.__class__](expression, *ops)
 
 
-def _ufl_handlers():
-    """This function constructs a handler dict for _transform
+def ufl_handlers():
+    """This function constructs a handler dict for transform
     which can be used to reconstruct a ufl expression through
-    _transform(...), which of course makes no sense but is
+    transform(...), which of course makes no sense but is
     useful for testing."""
     # Show a clear error message if we miss some types here:
     def not_implemented(x, ops):
-        ufl_error("No handler defined for %s in _ufl_handlers." % x.__class__)
+        ufl_error("No handler defined for %s in ufl_handlers." % x.__class__)
     d = defaultdict(not_implemented)
     # Terminal objects are simply reused:
     def this(x):
@@ -120,11 +123,11 @@ def _ufl_handlers():
 def ufl2ufl(expression):
     """Convert an UFL expression to a new UFL expression, with no changes.
     This is used for testing that objects in the expression behave as expected."""
-    handlers = _ufl_handlers()
-    return _transform(expression, handlers)
+    handlers = ufl_handlers()
+    return transform(expression, handlers)
 
 
-def _latex_handlers():
+def latex_handlers():
     # Show a clear error message if we miss some types here:
     def not_implemented(x):
         ufl_error("No handler defined for %s in _latex_handlers." % x.__class__)
@@ -211,17 +214,17 @@ def ufl2latex(expression):
                           "exterior facet": "\\Gamma^{ext}",
                           "interior facet": "\\Gamma^{int}",
                         }[itg._domain_type]
-        integrand_string = _transform(itg._integrand, handlers)
+        integrand_string = transform(itg._integrand, handlers)
         latex = "\\int_{\\Omega_%d} \\left[ %s \\right] \,dx" % (itg._domain_id, integrand_string)
     else:
-        latex = _transform(expression, handlers)
+        latex = transform(expression, handlers)
     return latex
 
 
 def expand_compounds(expression):
     """Convert an UFL expression to a new UFL expression, with 
     compound operator objects converted to indexed expressions."""
-    handlers = _ufl_handlers()
+    handlers = ufl_handlers()
     def e_outer(x, a, b):
         ii = tuple(Index() for kk in range(a.rank()))
         jj = tuple(Index() for kk in range(b.rank()))
@@ -266,7 +269,7 @@ def expand_compounds(expression):
     handlers[Rot]  = e_rot
     # FIXME: Some more tensor operations like Det, Dev, etc...,
     # FIXME: diff w.r.t. tensor valued variable?
-    return _transform(expression, handlers)
+    return transform(expression, handlers)
 
 # FIXME: Implement expand_compounds using Compound class:
 #   def e_compound(x, *ops):
@@ -354,7 +357,7 @@ def flatten(a): # TODO: Pick this or the below version flatten2
 def flatten2(expression):
     """Convert an UFL expression to a new UFL expression, with sums 
     and products flattened from binary tree nodes to n-ary tree nodes."""
-    handlers = _ufl_handlers()
+    handlers = ufl_handlers()
     def _flatten(x, *ops):
         newops = []
         for o in ops:
@@ -365,7 +368,7 @@ def flatten2(expression):
         return x.__class__(*newops)
     handlers[Sum] = _flatten
     handlers[Product] = _flatten
-    return _transform(expression, handlers)
+    return transform(expression, handlers)
 
 
 def renumber_indices(expression, offset=0):
@@ -384,8 +387,8 @@ def renumber_indices(expression, offset=0):
             k += 1
     
     # Apply index mapping
-    handlers = _ufl_handlers()
-    def _multi_index_handler(o):
+    handlers = ufl_handlers()
+    def multi_index_handler(o):
         ind = []
         for i in o._indices:
             if isinstance(i, Index):
@@ -393,13 +396,17 @@ def renumber_indices(expression, offset=0):
             else:
                 ind.append(i)
         return MultiIndex(tuple(ind), len(o._indices))
-    handlers[MultiIndex] = _multi_index_handler
-    return _transform(expression, handlers)
+    handlers[MultiIndex] = multi_index_handler
+    return transform(expression, handlers)
 
 
 def renumber_arguments(a):
-    "Renumber function and basisfunction count to contiguous sequences beginning at 0."
-    ufl_assert(isinstance(expression, UFLObject), "Expecting an UFLObject.")
+    "Given a Form, renumber function and basisfunction count to contiguous sequences beginning at 0."
+    ufl_assert(isinstance(a, Form), "Expecting a Form.")
+    
+    # Build sets of all basisfunctions and functions used in expression
+    bf = basisfunctions(a)
+    cf = functions(a)
     
     # Build a count renumbering mapping for basisfunctions
     bfmap = {}
@@ -409,8 +416,7 @@ def renumber_arguments(a):
             bfmap[f] = BasisFunction(f.element(), count=k)
             k += 1
     
-    # Build a set of all basisfunctions and functions used in expression
-    cf = functions(expression)
+    # Build a count renumbering mapping for coefficients
     cfmap = {}
     k = 0
     for f in cf:
@@ -418,13 +424,17 @@ def renumber_arguments(a):
             cfmap[f] = Function(element=f._element, name=f._name, count=k)
             k += 1
     
-    # Apply index mappings
-    handlers = _ufl_handlers()
-    def _basisfunction_handler(o):
+    # Build handler dict using these mappings
+    handlers = ufl_handlers()
+    def basisfunction_handler(o):
         return bfmap[o]
-    def _function_handler(o):
+    def function_handler(o):
         return cfmap[o]
-    handlers[BasisFunction] = _basisfunction_handler
-    handlers[Function] = _function_handler
-    return _transform(expression, handlers)
+    handlers[BasisFunction] = basisfunction_handler
+    handlers[Function] = function_handler
+    
+    # Apply renumbering transformation to all integrands 
+    def renumber_expression(expression):
+        return transform(expression, handlers)
+    return transform_integrands(a, renumber_expression)
 

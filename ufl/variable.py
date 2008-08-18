@@ -6,8 +6,9 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-05-20 -- 2008-08-18"
 
 from .base import Terminal #UFLObject
+from .common import Counted
 
-class Variable(Terminal): #UFLObject
+class Variable(Terminal, Counted): #UFLObject
     """A Variable is a representative for another expression.
     
     It will be used for a few different things:
@@ -15,9 +16,10 @@ class Variable(Terminal): #UFLObject
     - To manually identify good spots to split an expression for optimized computation.
     - Internal use in library algorithms during e.g. automatic differentation.
     """
-    __slots__ = ("_expression", "_count")
-    
-    def __init__(self, expression):
+    __slots__ = ("_expression",)
+    _globalcounter = 0
+    def __init__(self, expression, count=None):
+        Counted.__init__(self, count)
         self._expression = expression
     
     def operands(self):
@@ -33,8 +35,5 @@ class Variable(Terminal): #UFLObject
         return "Variable(%s)" % self._expression
     
     def __repr__(self):
-        return "Variable(%r)" % self._expression
-
-def variable(expression):
-    return Variable(expression)
+        return "Variable(%r, %r)" % (self._expression, self._count)
 
