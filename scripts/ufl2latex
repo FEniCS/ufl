@@ -1,0 +1,49 @@
+#!/usr/bin/env python
+
+import sys
+import webbrowser
+import ufl
+from ufl.algorithms import load_forms, validate_form, ufl2latex
+
+# Get commandline options
+
+args = sys.argv[1:]
+
+# Pass latex code to www.texify.com (doesn't seem to work for long forms)
+enable_browser = False
+if "-w" in args:
+    enable_browser = True
+    args.remove("-w")
+
+if len(args) != 1:
+    print "Missing form file name."
+    sys.exit(-1)
+filename = args[0]
+
+# Load form file, which triggers many consistency
+# checks while the form is being built
+forms = load_forms(filename)
+
+# Analyse validity of forms
+found_errors = False
+for k,v in forms:
+    errors = validate_form(v)
+    if errors:
+        print "Found errors in form '%s':" % k
+        print errors
+        found_errors = True
+if found_errors:
+    sys.exit(-1)
+
+# Generate latex code for each form
+latex = ""
+for name, form in forms:
+    l = ufl2latex(form)
+    latex += "%s:\n" % name
+    latex += "\[\n%s\n\]" % l
+    latex += "\n"
+    if enable_browser:
+        webbrowser.open("http://www.texify.com/$%s$" % l.replace(" ",""))
+
+print latex
+
