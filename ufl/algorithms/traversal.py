@@ -7,7 +7,7 @@ only to be used during the current experimental implementation phase)."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-14"
+__date__ = "2008-03-14 -- 2008-08-18"
 
 from ..integral import Integral
 from ..form import Form
@@ -15,45 +15,51 @@ from ..form import Form
 
 #--- Traversal utilities ---
 
-def iter_expressions(u):
+def iter_expressions(a):
     """Utility function to handle Form, Integral and any UFLObject
     the same way when inspecting expressions.
     Returns an iterable over UFLObject instances:
-    - u is an UFLObject: (u,)
-    - u is an Integral:  the integrand expression of u
-    - u is a  Form:      all integrand expressions of all integrals
+    - a is an UFLObject: (a,)
+    - a is an Integral:  the integrand expression of a
+    - a is a  Form:      all integrand expressions of all integrals
     """
-    if isinstance(u, Form):
-        return (itg._integrand for itg in u._integrals)
-    elif isinstance(u, Integral):
-        return (u._integrand,)
+    if isinstance(a, Form):
+        return (itg._integrand for itg in a._integrals)
+    elif isinstance(a, Integral):
+        return (a._integrand,)
     else:
-        return (u,)
+        return (a,)
 
-def post_traversal(u):
-    """Yields o for all nodes o in expression tree u, child before parent."""
-    for o in u.operands():
+def post_traversal(expression):
+    "Yields o for each tree node o in expression, child before parent."
+    for o in expression.operands():
         for i in post_traversal(o):
             yield i
-    yield u
+    yield expression
 
-def pre_traversal(u):
-    """Yields o for all nodes o in expression tree u, parent before child."""
-    yield u
-    for o in u.operands():
+def pre_traversal(expression):
+    "Yields o for each tree node o in expression, parent before child."""
+    yield expression
+    for o in expression.operands():
         for i in pre_traversal(o):
             yield i
 
 def post_walk(a, func):
+    """Call func on each expression tree node in a, child before parent.
+    The argument a can be a Form, Integral or UFLObject."""
     for e in iter_expressions(a):
         for o in post_traversal(e):
             func(o)
 
 def pre_walk(a, func):
+    """Call func on each expression tree node in a, parent before child.
+    The argument a can be a Form, Integral or UFLObject."""
     for e in iter_expressions(a):
         for o in pre_traversal(e):
             func(o)
 
 def walk(a, func):
+    """Call func on each expression tree node in a.
+    The argument a can be a Form, Integral or UFLObject."""
     pre_walk(a, func)
 

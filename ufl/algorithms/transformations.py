@@ -5,7 +5,7 @@ converting UFL expressions to other representations."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-08-15"
+__date__ = "2008-05-07 -- 2008-08-18"
 
 from collections import defaultdict
 
@@ -32,7 +32,25 @@ from ..integral import Integral
 from ..formoperators import Derivative, Action, Rhs, Lhs, rhs, lhs
 
 # Other algorithms:
-from .analysis import basisfunctions, coefficients
+from .analysis import basisfunctions, coefficients, indices
+
+
+def transform_integrands(a, transformation):
+    """Transform all integrands in a form with a transformation function.
+    
+    Example usage:
+      b = transform_integrands(a, flatten)
+    """
+    
+    ufl_assert(isinstance(a, Form), "Expecting a Form.")
+    
+    integrals = []
+    for itg in a.integrals():
+        integrand = transformation(itg._integrand)
+        newitg = Integral(itg._domain_type, itg._domain_id, integrand)
+        integrals.append(newitg)
+    
+    return Form(integrals)
 
 
 def _transform(expression, handlers):
@@ -43,6 +61,7 @@ def _transform(expression, handlers):
     else:
         ops = [_transform(o, handlers) for o in expression.operands()]
     return handlers[expression.__class__](expression, *ops)
+
 
 def _ufl_handlers():
     """This function constructs a handler dict for _transform
@@ -98,6 +117,7 @@ def _ufl_handlers():
     d[ListMatrix]  = construct
     d[Tensor]      = construct
     return d
+
 
 def _latex_handlers():
     # Show a clear error message if we miss some types here:
@@ -164,11 +184,13 @@ def _latex_handlers():
     #d[Tensor]      = Tensor # FIXME
     return d
 
+
 def ufl2ufl(expression):
     """Convert an UFL expression to a new UFL expression, with no changes.
     Simply tests that objects in the expression behave as expected."""
     handlers = _ufl_handlers()
     return _transform(expression, handlers)
+
 
 def ufl2latex(expression):
     """Convert an UFL expression to a LaTeX string. Very crude approach."""
@@ -197,21 +219,6 @@ def ufl2latex(expression):
         latex = _transform(expression, handlers)
     return latex
 
-def flatten(expression):
-    """Convert an UFL expression to a new UFL expression, with sums 
-    and products flattened from binary tree nodes to n-ary tree nodes."""
-    handlers = _ufl_handlers()
-    def _flatten(x, *ops):
-        newops = []
-        for o in ops:
-            if isinstance(x.__class__, o):
-                newops.extend(o.operands())
-            else:
-                newops.append(o)
-        return x.__class__(*newops)
-    handlers[Sum] = _flatten
-    handlers[Product] = _flatten
-    return _transform(expression, handlers)
 
 def expand_compounds(expression):
     """Convert an UFL expression to a new UFL expression, with 
@@ -264,24 +271,6 @@ def expand_compounds(expression):
     return _transform(expression, handlers)
 
 
-def transform_integrands(a, transformation):
-    """Transform all integrands in a form with a transformation function.
-    
-    Example usage:
-      b = transform_integrands(a, flatten)
-    """
-    
-    ufl_assert(isinstance(a, Form), "Expecting a Form.")
-    
-    integrals = []
-    for itg in a.integrals():
-        integrand = transformation(itg._integrand)
-        newitg = Integral(itg._domain_type, itg._domain_id, integrand)
-        integrals.append(newitg)
-    
-    return Form(integrals)
-
-
 def _strip_variables(a):
     "Auxilliary procedure for strip_variables."
     
@@ -304,11 +293,13 @@ def _strip_variables(a):
     # else: no change, reuse object
     return a, False
 
+
 def strip_variables(a):
     """Strip Variable objects from a, replacing them with their expressions."""
     ufl_assert(isinstance(a, UFLObject), "Expecting an UFLObject.")
     b, changed = _strip_variables(a)
     return b
+
 
 # naive version, producing lots of extra objects:
 def strip_variables2(a):
@@ -325,7 +316,8 @@ def strip_variables2(a):
     
     return a.__class__(*operands)
 
-def flatten(a):
+
+def flatten(a): # TODO: Pick this or the below version flatten2
     """Flatten (a+b)+(c+d) into a (a+b+c+d) and (a*b)*(c*d) into (a*b*c*d)."""
     ufl_assert(isinstance(a, UFLObject), "Expecting an UFLObject.")
     
@@ -356,4 +348,82 @@ def flatten(a):
             operands.append(b)
     
     return myclass(*operands)
+
+
+def flatten2(expression):
+    """Convert an UFL expression to a new UFL expression, with sums 
+    and products flattened from binary tree nodes to n-ary tree nodes."""
+    handlers = _ufl_handlers()
+    def _flatten(x, *ops):
+        newops = []
+        for o in ops:
+            if isinstance(x.__class__, o):
+                newops.extend(o.operands())
+            else:
+                newops.append(o)
+        return x.__class__(*newops)
+    handlers[Sum] = _flatten
+    handlers[Product] = _flatten
+    return _transform(expression, handlers)
+
+
+def renumber_indices(expression, offset=0):
+    "Given an expression, renumber indices in a contiguous count beginning with offset."
+    ufl_assert(isinstance(expression, UFLObject), "Expecting an UFLObject.")
+    
+    # Build a set of all indices used in expression
+    idx = indices(expression)
+    
+    # Build an index renumbering mapping
+    k = offset
+    indexmap = {}
+    for i in idx:
+        if i not in indexmap:
+            indexmap[i] = Index(count=k)
+            k += 1
+    
+    # Apply index mapping
+    handlers = _ufl_handlers()
+    def _multi_index_handler(o):
+        ind = []
+        for i in o._indices:
+            if isinstance(i, Index):
+                ind.append(indexmap[i])
+            else:
+                ind.append(i)
+        return MultiIndex(tuple(ind), len(o._indices))
+    handlers[MultiIndex] = _multi_index_handler
+    return _transform(expression, handlers)
+
+
+def renumber_arguments(a):
+    "Renumber function and basisfunction count to contiguous sequences beginning at 0."
+    ufl_assert(isinstance(expression, UFLObject), "Expecting an UFLObject.")
+    
+    # Build a count renumbering mapping for basisfunctions
+    bfmap = {}
+    k = 0
+    for f in bf:
+        if f not in bfmap:
+            bfmap[f] = BasisFunction(f.element(), count=k)
+            k += 1
+    
+    # Build a set of all basisfunctions and functions used in expression
+    cf = functions(expression)
+    cfmap = {}
+    k = 0
+    for f in cf:
+        if f not in cfmap:
+            cfmap[f] = Function(element=f._element, name=f._name, count=k)
+            k += 1
+    
+    # Apply index mappings
+    handlers = _ufl_handlers()
+    def _basisfunction_handler(o):
+        return bfmap[o]
+    def _function_handler(o):
+        return cfmap[o]
+    handlers[BasisFunction] = _basisfunction_handler
+    handlers[Function] = _function_handler
+    return _transform(expression, handlers)
 

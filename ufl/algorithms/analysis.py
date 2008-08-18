@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-15"
+__date__ = "2008-03-14 -- 2008-08-18"
 
 from itertools import chain
 
@@ -15,18 +15,42 @@ from .traversal import iter_expressions, post_traversal
 #--- Utilities to extract information from an expression ---
 
 def extract_type(a, ufl_type):
-    """Returns a set of all objects of class ufl_type found in a.
-    The argument a can be a Form, Integral or UFLObject.
-    """
+    """Build a set of all objects of class ufl_type found in a.
+    The argument a can be a Form, Integral or UFLObject."""
     iter = (o for e in iter_expressions(a) \
               for o in post_traversal(e) \
               if isinstance(o, ufl_type) )
     return set(iter)
 
+def classes(a):
+    """Build a set of all unique UFLObject subclasses used in a.
+    The argument a can be a Form, Integral or UFLObject."""
+    classes = set()
+    for e in iter_expressions(a):
+        for o in post_traversal(e):
+            classes.add(o.__class__)
+    return classes
+
+def domain(a):
+    "Find the polygonal domain of Form a."
+    el = elements(a)
+    dom = el[0].domain()
+    return dom
+
+def value_shape(expression, dimension):
+    "Evaluate the value shape of expression with given implicit dimension."
+    s = expression.shape()
+    shape = []
+    for i in s:
+        if isinstance(i, UnassignedDimType):
+            shape.append(dimension)
+        else:
+            shape.append(i)
+    return tuple(shape)
+
 def basisfunctions(a):
     """Build a sorted list of all basisfunctions in a,
-    which can be a Form, Integral or UFLObject.
-    """
+    which can be a Form, Integral or UFLObject."""
     # build set of all unique basisfunctions
     s = extract_type(a, BasisFunction)
     # sort by count
@@ -35,8 +59,7 @@ def basisfunctions(a):
 
 def coefficients(a):
     """Build a sorted list of all coefficients in a,
-    which can be a Form, Integral or UFLObject.
-    """
+    which can be a Form, Integral or UFLObject."""
     # build set of all unique coefficients
     s = extract_type(a, Function)
     # sort by count
@@ -46,8 +69,7 @@ def coefficients(a):
 # alternative implementation, kept as an example:
 def _coefficients(a):
     """Build a sorted list of all coefficients in a,
-    which can be a Form, Integral or UFLObject.
-    """
+    which can be a Form, Integral or UFLObject."""
     # build set of all unique coefficients
     s = set()
     def func(o):
@@ -58,35 +80,29 @@ def _coefficients(a):
     l = sorted(s, cmp=lambda x,y: cmp(x._count, y._count))
     return l
 
-def domain(a):
-    """Returns the polygonal domain of form a."""
-    e = elements(a)[0]
-    return e.domain()
-
 def elements(a):
-    """Returns a sorted list of all elements used in a."""
+    "Build a sorted list of all elements used in a."
     return [f._element for f in chain(basisfunctions(a), coefficients(a))]
 
 def unique_elements(a):
-    """Returns a set of all elements used in a."""
+    "Build a set of all unique elements used in a."
     return set(elements(a))
 
-def classes(a):
-    """Returns a set of all unique UFLObject subclasses used in a."""
-    classes = set()
-    for e in iter_expressions(a):
-        for o in post_traversal(e):
-            classes.add(o.__class__)
-    return classes
-
 def variables(a):
-    """Returns a set of all variables in a,
-    which can be a Form, Integral or UFLObject.
-    """
+    """Build a set of all Variable objects in a,
+    which can be a Form, Integral or UFLObject."""
     return extract_type(a, Variable)
 
+def indices(expression):
+    "Build a set of all Index objects used in expression."
+    multi_indices = extract_type(expression, MultiIndex)
+    indices = set()
+    for mi in multi_indices:
+        indices.update(i for i in mi._indices if isinstance(i, Index))
+    return indices
+
 def duplications(a):
-    """Returns a set of all repeated expressions in u."""
+    "Build a set of all repeated expressions in u."
     handled = set()
     duplicated = set()
     for e in iter_expressions(a):
@@ -95,15 +111,4 @@ def duplications(a):
                 duplicated.add(o)
             handled.add(o)
     return duplicated
-
-def value_shape(expression, dim):
-    """Evaluate the value shape of expression with given implicit dimension."""
-    s = expression.shape()
-    shape = []
-    for i in s:
-        if isinstance(i, UnassignedDimType):
-            shape.append(dim)
-        else:
-            shape.append(i)
-    return tuple(shape)
 

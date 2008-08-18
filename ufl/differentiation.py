@@ -3,11 +3,12 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-15"
+__date__ = "2008-03-14 -- 2008-08-18"
 
 from .output import ufl_assert
 from .base import UFLObject
 from .indexing import MultiIndex, UnassignedDim, extract_indices
+from .variable import Variable
 
 
 # FIXME: This file is not ok! Needs more work!
@@ -46,7 +47,7 @@ class PartialDerivative(UFLObject):
         return self._free_indices
     
     def shape(self):
-        return self._expression.shape()
+        return self._expression.shape() # FIXME: Is this right? Not with repeated indices.
     
     def __str__(self):
         # TODO: Pretty-print for higher order derivatives.
@@ -56,17 +57,10 @@ class PartialDerivative(UFLObject):
         return "PartialDerivative(%r, %r)" % (self._expression, self._indices)
 
 
-# Extend UFLObject with spatial differentiation operator a.dx(i)
-def _dx(self, *i):
-    """Return the partial derivative with respect to spatial variable number i"""
-    return PartialDerivative(self, i)
-UFLObject.dx = _dx
-
-
 
 # FIXME: Anders: Can't we just remove this?
-#        Martin: Not necessarily, not unless PartialDerivative is made more general. The idea is that Diff represents df/ds where s is a Symbol and/or Variable.
-# FIXME: This is the same mathematical operation as PartialDiff, should have very similar behaviour or even be the same class.
+#        Martin: Not necessarily, not unless PartialDerivative is made more general. The idea is that Diff represents df/ds where s is a Variable.
+# FIXME: This is the same mathematical operation as PartialDerivative, should have very similar behaviour or even be the same class.
 class Diff(UFLObject):
     __slots__ = ("_f", "_x", "_index", "_free_indices")
     

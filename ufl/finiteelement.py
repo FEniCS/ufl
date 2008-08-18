@@ -30,7 +30,7 @@ class FiniteElementBase(object):
         "Initialize basic finite element data"
         ufl_assert(isinstance(family, str), "Invalid family type.")
         ufl_assert(isinstance(domain, str), "Invalid domain type.")
-        ufl_assert(isinstance(degree, int), "Invalid degree type.")
+        ufl_assert(isinstance(degree, int) or degree is None, "Invalid degree type.")
         ufl_assert(isinstance(value_shape, tuple), "Invalid value_shape type.")
         self._family = family
         self._domain = domain
@@ -242,7 +242,8 @@ class TensorElement(MixedElement):
         return subelement.extract_component(jj)
 
     def __repr__(self):
-        return "TensorElement(%r, %r, %r, %r, %r)" % (self._family, self._domain, self._degree, self._shape, self._symmetry)
+        return "TensorElement(%r, %r, %r, %r, %r)" % \
+            (self._family, self._domain, self._degree, self._shape, self._symmetry)
 
     def __str__(self):
         "Pretty printing"
@@ -250,4 +251,6 @@ class TensorElement(MixedElement):
         print self.degree()
         print self.shape()
         print self.domain()
-        return "%s tensor element of degree %d and shape %s on a %s" % (self.family(), self.degree(), self.shape(), self.domain())
+        return "%s tensor element of degree %d and shape %s on a %s" % \
+            (self.family(), self.degree(), self.shape(), self.domain())
+

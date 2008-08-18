@@ -43,11 +43,3 @@ class NegativeRestricted(Restricted):
     def __repr__(self):
         return "NegativeRestricted(%r)" % self.f
 
-def _restrict(self, side):
-    if side == "+":
-        return PositiveRestricted(self)
-    if side == "-":
-        return NegativeRestricted(self)
-    ufl_error("Invalid side %r in restriction operator." % side)
-UFLObject.__call__ = _restrict
-

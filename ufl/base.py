@@ -63,39 +63,11 @@ class UFLObject(object):
     
 #--- A note about other operators ---
 
-# Operators on UFLObjects are defined in other modules as outlined below.
+# 1. Operators (special functions) on UFLObjects are defined in baseoperators.py.
 #
-# 1. For the definition of UFLObject.T, see tensoralgebra.py.
+# 2. For the definition of UFLObject.T, see tensoralgebra.py.
 #
-# 2. For the definition of algebraic operators, see algebra.py
-#    where the following operators are defined:
-#
-#    def __add__(self, o):
-#    def __radd__(self, o):
-#    def __sub__(self, o):
-#    def __rsub__(self, o):
-#    def __mul__(self, o):
-#    def __rmul__(self, o):
-#    def __div__(self, o):
-#    def __rdiv__(self, o):
-#    def __pow__(self, o):
-#    def __rpow__(self, o):
-#    def __mod__(self, o):
-#    def __rmod__(self, o):
-#    def __neg__(self):
-#    def __abs__(self):
-#
-# 3. For indexing operations, see indexing.py
-#    where the following operator is defined:
-#
-#    def __getitem__(self, key):
-#
-# 4. For restriction operations, see restriction.py
-#    where the following operator is defined:
-#
-#    def __call__(self, side):
-#
-# 5. For differentiation operations, see differentiation.py
+# 3. For differentiation operations, see differentiation.py
 #    where the following operator is defined:
 #
 #    def dx(self, *i):

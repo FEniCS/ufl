@@ -79,14 +79,6 @@ class Transpose(UFLObject):
     def __repr__(self):
         return "Transpose(%r)" % self._A
 
-# Extend UFLObject with the transpose operation
-def _transpose(self):
-    """Transpose a rank two tensor expression. For more general transpose
-    operations of higher order tensor expressions, use indexing and Tensor."""
-    return Transpose(self)
-UFLObject.T = property(_transpose)
-
-
 class Outer(UFLObject):
     __slots__ = ("a", "b", "_free_indices")
 

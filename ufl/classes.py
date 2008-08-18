@@ -5,7 +5,7 @@ implementation details not exposed through the default ufl namespace."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-15 -- 2008-08-15"
+__date__ = "2008-08-15 -- 2008-08-18"
 
 from .base import UFLObject, Terminal, Number
 from .variable import Variable
@@ -25,4 +25,7 @@ from .differentiation import PartialDerivative, Diff, DifferentialOperator, Grad
 from .form import Form
 from .integral import Integral
 from .formoperators import Derivative, Action, Rhs, Lhs
+
+# Make sure we import baseoperators which attaches special functions to UFLObject
+from . import baseoperators as __baseoperators
 

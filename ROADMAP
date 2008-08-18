@@ -3,49 +3,36 @@ Roadmap for the development of UFL
 
 Some of the TODO's left:
 
-# Elements:
+# Elements and Basisfunctions:
  - Agree on final design!
-
-# Basisfunctions:
- - Do we need 'BasisFunctions' etc? If so, fix count issue.
-
-# Derivatives:
- - Finish Diff, including index handling like in P.D. and Product
+ - Add Cell support?
+ - Keep or drop name from Function? Can eventually pass it to UFC if we add a "form::coefficient_name(i)" function.
+ - Do we need 'Test/Trial/BasisFunctions'? If so, fix count issue.
 
 # Algorithms:
- - Implement index expansion, converting u[i]*v[i] into u[0]*v[0]+u[0]*v[0] etc
  - Implement contraction function that expands all implicit summations into Sums
+ - Implement evaluation function for swiginac and sympy, given expressions for each basisfunction and function.
 
-# Prettyness:
+# Derivatives:
+ - Decide on Symbol / Variable design. Drop Symbol and make Variable a Terminal?
+ - Finish Diff design, including index handling like in PartialDiff. and Product.
+ - Implement something like UFLObject._shallow_diff(self, variable)
+ - Implement automatic differentiation using Variable to extract subexpressions.
+
+# Prettyness and readability:
  - Improve parentesis use in __str__ and __repr__ and ufl2latex, use precedence list
 
 # Tests:
- - Need more elaborate tests, some operators aren't tested, and few algorithms.
-
-# Form compilation:
- - Implement utility algorithms that aid in the implementation of form compilers
- 
- - Define tests that require a form compiler and verifies the computed element tensors
-   (can use ufc_benchmark module and compare with results from existing working form compiler implementations)
- 
- - Implement UFL support in form compilers!
-
- - Make all tests pass for all form compiler configurations!
+ - Implement more elaborate tests, some operators aren't tested, and only a few of the algorithms.
 
 # Documentation:
- - Ask for more ideas, 
- 
  - Write the manual (can perhaps reuse some text I have)
- 
- - Write the paper (can perhaps reuse some text I have)
-
-# Rewrite/improve all error messages
+ - Write the paper/book chapter (can perhaps reuse some text I have)
+ - Improve operator docstrings
+ - Rewrite/improve all error messages
 
 # License:
  - Which license do we pick? GPL3 or LGPL3?
-
-# Should we use "enums" or strings? For example "triangle", "tetrahedron"
-  or TRIANGLE, TETRAHEDRON
 
 * Notes by Anders (trying to make sense of the implementation)
 
@@ -86,3 +73,4 @@ Some of the TODO's left:
   algorithms/transformations.py  --
   algorithms/traversal.py        --
   algorithms/utilities.py        Rename to algorithm(s).py
+

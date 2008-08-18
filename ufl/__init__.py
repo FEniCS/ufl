@@ -53,7 +53,7 @@ from .common import product
 #from .output import get_handler, get_logger, set_handler
 from .output import UFLException, ufl_debug, ufl_info, ufl_warning, ufl_error, ufl_assert
 
-# base system (expression base class and all subclasses involved in operators on the base class)
+# base system (expression base classes)
 #from .base import UFLObject, Terminal, Number
 #from .base import is_python_scalar, is_scalar, is_true_scalar
 
@@ -78,12 +78,18 @@ from .geometry import FacetNormal
 #from .indexing import Index, FixedIndex, AxisType, MultiIndex, Indexed
 #from .indexing import as_index, as_index_tuple, extract_indices
 
+# basic algebra operators
+#from .algebra import Sum, Product, Division, Power, Mod, Abs
+
+# restriction operators
+from .restriction import Restricted, PositiveRestricted, NegativeRestricted
+
+# special functions for expression base classes
+from . import baseoperators as __baseoperators
+
 # "container" classes for expressions with value rank > 0
 #from .tensors import ListVector, ListMatrix
 from .tensors import Tensor, Vector, Matrix
-
-# basic algebra operators
-#from .algebra import Sum, Product, Division, Power, Mod, Abs
 
 # tensor algebra operators
 #from .tensoralgebra import Transpose, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
@@ -92,9 +98,6 @@ from .tensoralgebra import Identity
 # mathematical functions
 #from .mathfunctions import MathFunction
 from .mathfunctions import sqrt, exp, ln, cos, sin
-
-# restriction operators
-from .restriction import Restricted, PositiveRestricted, NegativeRestricted
 
 # differentiation operators
 #from .differentiation import PartialDerivative, Diff, DifferentialOperator, Grad, Div, Curl, Rot

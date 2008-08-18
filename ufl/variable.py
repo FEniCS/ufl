@@ -3,22 +3,25 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2008-08-15"
+__date__ = "2008-05-20 -- 2008-08-18"
 
-from .base import UFLObject
+from .base import Terminal #UFLObject
 
-class Variable(UFLObject):
+class Variable(Terminal): #UFLObject
     """A Variable is a representative for another expression.
-    It will mostly be used to define a quantity to differentiate
-    with respect to using diff. Another use is to identify good
-    spots to split an expression for optimized computation."""
+    
+    It will be used for a few different things:
+    - To define a quantity to differentiate w.r.t. using diff.
+    - To manually identify good spots to split an expression for optimized computation.
+    - Internal use in library algorithms during e.g. automatic differentation.
+    """
     __slots__ = ("_expression",)
     
     def __init__(self, expression):
         self._expression = expression
     
     def operands(self):
-        return (self._expression,)
+        return ()#self._expression,)
     
     def free_indices(self):
         return self._expression.free_indices()

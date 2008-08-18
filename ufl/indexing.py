@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-14 -- 2008-08-15"
+__date__ = "2008-03-14 -- 2008-08-18"
 
 # Python imports
 from collections import defaultdict
@@ -33,9 +33,6 @@ class Index(object):
     def __repr__(self):
         return "Index(%d)" % self._count
 
-# TODO: Replace this class with int? If we don't make
-#       the index classes UFLObject subclasses again, there
-#       might not be any point in having this class.
 class FixedIndex(object):
     __slots__ = ("_value",)
     
@@ -59,7 +56,7 @@ class AxisType(object):
         return ":"
     
     def __repr__(self):
-        return "AxisType()"
+        return "Axis"
 
 # Collect all index types to shorten isinstance(a, _indextypes)
 _indextypes = (Index, FixedIndex, AxisType)
@@ -77,10 +74,10 @@ class MultiIndex(Terminal):
         self._indices = as_index_tuple(indices, rank)
     
     def free_indices(self):
-        ufl_error("Why would you want to get the free indices of a MultiIndex? Please explain how you got this at ufl-dev@fenics.org...")
+        ufl_error("Calling free_indices on MultiIndex is undefined.")
     
     def shape(self):
-        ufl_error("Why would you want to get the shape of a MultiIndex? Please explain how you got this at ufl-dev@fenics.org...")
+        ufl_error("MultiIndex has no shape.")
     
     def __str__(self):
         return ", ".join(str(i) for i in self._indices)
@@ -92,7 +89,8 @@ class MultiIndex(Terminal):
         return len(self._indices)
 
 class Indexed(UFLObject):
-    __slots__ = ("_expression", "_indices", "_fixed_indices", "_free_indices", "_repeated_indices", "_rank", "_shape")
+    __slots__ = ("_expression", "_indices", "_fixed_indices",
+                 "_free_indices", "_repeated_indices", "_rank", "_shape")
     
     def __init__(self, expression, indices):
         self._expression = expression
@@ -102,11 +100,14 @@ class Indexed(UFLObject):
         else:
             self._indices = MultiIndex(indices, expression.rank())
         
-        msg = "Invalid number of indices (%d) for tensor expression of rank %d:\n\t%r\n" % (len(self._indices), expression.rank(), expression)
+        msg = "Invalid number of indices (%d) for tensor expression of rank %d:\n\t%r\n" % \
+            (len(self._indices), expression.rank(), expression)
         ufl_assert(expression.rank() == len(self._indices), msg)
         
-        (fixed_indices, free_indices, repeated_indices, num_unassigned_indices) = extract_indices(self._indices._indices)
-        # TODO: We don't need to store all these here, remove the ones we don't use after implementing summation expansion.
+        (fixed_indices, free_indices, repeated_indices, num_unassigned_indices) = \
+            extract_indices(self._indices._indices)
+        # TODO: We don't need to store all these here, remove the ones we
+        #       don't use after implementing summation expansion.
         self._fixed_indices      = fixed_indices
         self._free_indices       = free_indices
         self._repeated_indices   = repeated_indices
@@ -115,7 +116,8 @@ class Indexed(UFLObject):
         s = expression.shape()
         idx = self._indices._indices
         self._shape = tuple(s[i] for i in range(len(idx)) if isinstance(idx[i], AxisType))
-        ufl_assert(self._rank == len(self._shape), "Logic breach in Indexed.__init__, rank is %d and shape is %r" % (self._rank, self._shape))
+        ufl_assert(self._rank == len(self._shape),
+            "Logic breach in Indexed.__init__, rank is %d and shape is %r" % (self._rank, self._shape))
     
     def operands(self):
         return (self._expression, self._indices)
@@ -134,11 +136,6 @@ class Indexed(UFLObject):
     
     def __getitem__(self, key):
         ufl_error("Object is already indexed: %r" % self)
-
-# Extend UFLObject with indexing operator
-def _getitem(self, key):
-    return Indexed(self, key)
-UFLObject.__getitem__ = _getitem
 
 def as_index(i):
     """Takes something the user might input as part of an
@@ -180,7 +177,9 @@ def as_index_tuple(indices, rank):
     
     # replace ellipsis with a number of Axis objects
     indices = pre + [Axis]*(rank-len(pre)-len(post)) + post
-    return tuple(indices)
+    indices = tuple(indices)
+    #ufl_assert(len(indices) == rank, "Invalid property, something is wrong.")
+    return indices
 
 def extract_indices(indices):
     ufl_assert(isinstance(indices, tuple), "Expecting index tuple.")
@@ -232,7 +231,8 @@ UnassignedDim = UnassignedDimType()
 def compare_shapes(a, b):
     if len(a) != len(b):
         return False
-    return all(((i == j) or isinstance(i, UnassignedDimType) or isinstance(j, UnassignedDimType)) for (i,j) in zip(a,b))
+    return all(((i == j) or isinstance(i, UnassignedDimType) or \
+        isinstance(j, UnassignedDimType)) for (i,j) in zip(a,b))
 
 def free_index_dimensions(e):
     # FIXME: Get the dimensions from the expression!
