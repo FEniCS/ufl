@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-03 -- 2008-08-15"
+__date__ = "2008-03-03 -- 2008-08-18"
 
 from .output import ufl_assert
 from .permutation import compute_indices
@@ -13,11 +13,25 @@ from .common import product
 # Map from valid domains to their topological dimension
 _domain2dim = {"interval": 1, "triangle": 2, "tetrahedron": 3, "quadrilateral": 2, "hexahedron": 3}
 
+# TODO: Do we want this? For higher degree geometry. Is this general enough?
+class Cell(object):
+    "Representation of a finite element cell."
+
+    def __init__(self, domain, degree=1):
+        "Initialize basic cell description"
+        ufl_assert(domain in _domain2dim)
+        self._domain = domain
+        self._degree = degree
+
 class FiniteElementBase(object):
     "Base class for all finite elements"
 
     def __init__(self, family, domain, degree, value_shape):
         "Initialize basic finite element data"
+        ufl_assert(isinstance(family, str), "Invalid family type.")
+        ufl_assert(isinstance(domain, str), "Invalid domain type.")
+        ufl_assert(isinstance(degree, int), "Invalid degree type.")
+        ufl_assert(isinstance(value_shape, tuple), "Invalid value_shape type.")
         self._family = family
         self._domain = domain
         self._degree = degree
