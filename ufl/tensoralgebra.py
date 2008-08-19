@@ -209,8 +209,14 @@ class Cross(Compound):
     def shape(self):
         return (3,)
     
-    #def as_basic(self, dim, a, b):
-    #    return FIXME
+    def as_basic(self, dim, a, b):
+        if dim == 3:
+            ufl_assert(compare_shapes(a.shape(), (3,)), "Invalid shape of first argument in cross product.")
+            ufl_assert(compare_shapes(b.shape(), (3,)), "Invalid shape of second argument in cross product.")
+            def c(i, j):
+                return a[i]*b[j]-a[j]*b[i]
+            return Vector(c(1,2), c(2,0), c(0,1))
+        ufl_error("Cross product not implemented for dimension %d." % dim)
     
     def __str__(self):
         return "(%s) x (%s)" % (self._a, self._b)
@@ -251,7 +257,8 @@ class Determinant(Compound):
     __slots__ = ("_A",)
 
     def __init__(self, A):
-        ufl_assert(A.rank() == 2, "Determinant of tensor with rank != 2 is undefined.")
+        # Allowing rank 0 for det(A) in 1D
+        ufl_assert(A.rank() == 0 or A.rank() == 2, "Determinant of tensor with rank != 2 is undefined.")
         ufl_assert(len(A.free_indices()) == 0, "Didn't expect free indices in determinant.")
         self._A = A
     
@@ -264,8 +271,23 @@ class Determinant(Compound):
     def shape(self):
         return ()
     
-    #def as_basic(self, dim, A):
-    #    return FIXME
+    def as_basic(self, dim, A):
+        if dim == 1:
+            if A.rank() == 2:
+                return A[0,0]
+            if A.rank() == 0:
+                return A
+        def det2D(B, i, j, k, l):
+            return B[i,k]*B[j,l]-B[i,l]*B[j,k]
+        if dim == 2:
+            # TODO: Verify this expression
+            return det2D(A, 0, 1, 0, 1)
+        if dim == 3:
+            # TODO: Verify this expression
+            return A[0,0]*det2D(A, 1, 2, 1, 2) + \
+                   A[0,1]*det2D(A, 1, 2, 2, 0) + \
+                   A[0,2]*det2D(A, 1, 2, 0, 1)
+        ufl_error("Determinant not implemented for dimension %d." % dim)
     
     def __str__(self):
         return "det(%s)" % self._A
