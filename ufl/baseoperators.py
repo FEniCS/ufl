@@ -5,11 +5,11 @@ Sum and its superclass UFLObject."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-18 -- 2008-08-18"
+__date__ = "2008-08-18 -- 2008-08-19"
 
 # UFL imports
 from .output import ufl_error
-from .base import UFLObject, Number, is_python_scalar
+from .base import UFLObject, Number, ZeroType, is_python_scalar
 from .algebra import Sum, Product, Division, Power, Mod, Abs
 from .tensoralgebra import Transposed
 from .indexing import Indexed
@@ -22,24 +22,32 @@ from .differentiation import PartialDerivative
 def _add(self, o):
     if is_python_scalar(o): o = Number(o)
     if not isinstance(o, UFLObject): return NotImplemented
+    if isinstance(o, ZeroType): return self
+    if isinstance(self, ZeroType): return o
     return Sum(self, o)
 UFLObject.__add__ = _add
 
 def _radd(self, o):
     if is_python_scalar(o): o = Number(o)
     if not isinstance(o, UFLObject): return NotImplemented
+    if isinstance(o, ZeroType): return self
+    if isinstance(self, ZeroType): return o
     return Sum(o, self)
 UFLObject.__radd__ = _radd
 
 def _sub(self, o):
     if is_python_scalar(o): o = Number(o)
     if not isinstance(o, UFLObject): return NotImplemented
+    if isinstance(o, ZeroType): return self
+    if isinstance(self, ZeroType): return -o
     return self + (-o)
 UFLObject.__sub__ = _sub
 
 def _rsub(self, o):
     if is_python_scalar(o): o = Number(o)
     if not isinstance(o, UFLObject): return NotImplemented
+    if isinstance(self, ZeroType): return o
+    if isinstance(o, ZeroType): return -self
     return o + (-self)
 UFLObject.__rsub__ = _rsub
 

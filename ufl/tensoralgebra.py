@@ -361,7 +361,7 @@ class Deviatoric(Compound):
     def as_basic(self, dim, A):
         sh = complete_shape(A.shape(), dim)
         if sh[0] == 2:
-            return Matrix([[-A[1,1],A[0,1]],[A[1,0],-A[0,0]]])
+            return Matrix([[-A[1,1],A[0,1]],[A[1,0],-A[0,0]]]) # FIXME: This doesn't look right
         elif sh[0] == 3:
             return Matrix([[-A[1,1]-A[2,2],A[0,1],A[0,2]],[A[1,0],-A[0,0]-A[2,2],A[1,2]],[A[2,0],A[2,1],-A[0,0]-A[1,1]]])
         ufl_error("dev(A) not implemented for dimension %s." % sh[0])

@@ -36,33 +36,33 @@ def diff_handlers():
     def not_implemented(x, *ops):
         ufl_error("No handler defined for %s in diff_handlers. Add to classes.py." % x.__class__)
     d = defaultdict(not_implemented)
+    
     # Terminal objects are assumed independent of the differentiation
     # variable by default, and simply lifted to the pair (x, 0)
     def lift(x):
         return (x, zero_tensor(x.shape()))
     for c in terminal_classes:
         d[c] = lift
-    # Differentiation rules for nonterminal objects should never need to be overridden:
     
-    def diff_variable(x, *ops):
-        return (x, FIXME) # HOW?
-    d[Variable] = diff_variable
+    # This should work for all operators that commute with d/dw:
+    def diff_commute(x, *ops):
+        ufl_assert(len(ops) == 1, "Logic breach in diff_commute, len(ops) = %d." % len(ops))
+        return (x, x.__class__(ops[0][1]))
     
-    def diff_indexed(x, *ops):
-        return (x, FIXME) # LINEAR
-    d[Indexed] = diff_indexed
+    def diff_commute_multiple_arguments(x, *ops):
+        return (x, x.__class__(*[o[1] for o in ops])) # TODO: Can we use this anywhere?
     
-    def diff_listvector(x, *ops):
-        return (x, FIXME) # LINEAR
-    d[ListVector] = diff_listvector
+    # These differentiation rules for nonterminal objects should probably never need to be overridden:
+    #def diff_variable(x, *ops):
+    #    return (x, FIXME) # HOW?
+    #d[Variable] = diff_variable
+    d[Variable] = diff_commute # TODO: Is this ok for variable? What about caching and reuse?
 
-    def diff_listmatrix(x, *ops):
-        return (x, FIXME) # LINEAR
-    d[ListMatrix] = diff_listmatrix
-
-    def diff_tensor(x, *ops):
-        return (x, FIXME) # LINEAR
-    d[Tensor] = diff_tensor
+    # TODO: Can all these simply use diff_commute?
+    d[Indexed] = diff_commute 
+    d[ListVector] = diff_commute 
+    d[ListMatrix] = diff_commute 
+    d[Tensor] = diff_commute 
 
     def diff_sum(x, *ops):
         return (sum(o[0] for o in ops if not isinstance(o[0], ZeroType)),
@@ -98,9 +98,7 @@ def diff_handlers():
         return (x, FIXME) # NONLINEAR
     d[Abs] = diff_abs
 
-    def diff_transposed(x, *ops):
-        return (x, FIXME) # LINEAR
-    d[Transposed] = diff_transposed
+    d[Transposed] = diff_commute
 
     def diff_outer(x, *ops):
         return (x, FIXME) # COMPOUND
@@ -118,9 +116,7 @@ def diff_handlers():
         return (x, FIXME) # COMPOUND
     d[Cross] = diff_cross
 
-    def diff_trace(x, *ops):
-        return (x, FIXME) # LINEAR
-    d[Trace] = diff_trace
+    d[Trace] = diff_commute
 
     def diff_determinant(x, *ops):
         return (x, FIXME) # NONLINEAR
@@ -130,9 +126,10 @@ def diff_handlers():
         return (x, FIXME) # NONLINEAR
     d[Inverse] = diff_inverse
 
-    def diff_deviatoric(x, *ops):
-        return (x, FIXME) # LINEAR?
-    d[Deviatoric] = diff_deviatoric
+    #def diff_deviatoric(x, *ops):
+    #    return (x, FIXME) # LINEAR?
+    #d[Deviatoric] = diff_deviatoric
+    d[Deviatoric] = diff_commute # TODO: Ok?
 
     def diff_cofactor(x, *ops):
         return (x, FIXME) # NONLINEAR
@@ -143,7 +140,7 @@ def diff_handlers():
     d[Sqrt] = diff_sqrt
     
     def diff_exp(x, *ops):
-        return (x, ops[1]*exp(ops[0])) # NONLINEAR
+        return (x, ops[1]*exp(ops[0]))
     d[Exp] = diff_exp
     
     def diff_ln(x, *ops):
@@ -151,13 +148,14 @@ def diff_handlers():
     d[Ln] = diff_ln
     
     def diff_cos(x, *ops):
-        return (x, FIXME) # NONLINEAR
+        return (x, -ops[1]*sin(ops[0]))
     d[Cos] = diff_cos
     
     def diff_sin(x, *ops):
-        return (x, FIXME) # NONLINEAR
+        return (x, ops[1]*cos(ops[0]))
     d[Sin] = diff_sin
 
+    # TODO: What is d(v+)/dw ?
     def diff_positiverestricted(x, *ops):
         return (x, FIXME) # WHAT?
     d[PositiveRestricted] = diff_positiverestricted
@@ -166,29 +164,12 @@ def diff_handlers():
         return (x, FIXME) # WHAT?
     d[NegativeRestricted] = diff_negativerestricted
 
-    def diff_partialderivative(x, *ops):
-        return (x, FIXME) # LINEAR
-    d[PartialDerivative] = diff_partialderivative
-
-    def diff_diff(x, *ops):
-        return (x, FIXME) # LINEAR
-    d[Diff] = diff_diff
-
-    def diff_grad(x, *ops):
-        return (x, FIXME) # LINEAR
-    d[Grad] = diff_grad
-
-    def diff_div(x, *ops):
-        return (x, FIXME) # LINEAR
-    d[Div] = diff_div
-
-    def diff_curl(x, *ops):
-        return (x, FIXME) # LINEAR
-    d[Curl] = diff_curl
-
-    def diff_rot(x, *ops):
-        return (x, FIXME) # LINEAR
-    d[Rot] = diff_rot
+    d[PartialDerivative] = diff_commute
+    d[Diff] = diff_commute
+    d[Grad] = diff_commute
+    d[Div] = diff_commute
+    d[Curl] = diff_commute
+    d[Rot] = diff_commute
 
     return d
 
