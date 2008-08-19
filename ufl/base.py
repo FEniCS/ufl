@@ -108,6 +108,34 @@ class Number(Terminal):
         return "Number(%r)" % self._value
 
 
+#--- Zero tensors of different shapes ---
+
+class ZeroType(Terminal): # Experimental!
+    __slots__ = ("_shape",)
+    def __init__(self, shape):
+        self._shape = shape
+    
+    def free_indices(self):
+        return ()
+    
+    def shape(self):
+        return self._shape
+    
+    def __str__(self):
+        return "<Zero tensor with shape %s>" % repr(self._shape)
+    
+    def __repr__(self):
+        return "ZeroType(%s)" % repr(self._shape)
+
+_zero_cache = {}
+def zero_tensor(shape):
+    if shape in _zero_cache:
+        return _zero_cache[shape]
+    z = ZeroType(shape)
+    _zero_cache[shape] = z
+    return z
+
+
 #--- Base class of compound objects ---
 
 class Compound(UFLObject):

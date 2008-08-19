@@ -24,7 +24,7 @@ from ..tensors import ListVector, ListMatrix, Tensor
 #from ..tensors import Vector, Matrix
 from ..algebra import Sum, Product, Division, Power, Mod, Abs
 from ..tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
-from ..mathfunctions import MathFunction
+from ..mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
 from ..restriction import Restricted, PositiveRestricted, NegativeRestricted
 from ..differentiation import PartialDerivative, Diff, Grad, Div, Curl, Rot
 from ..form import Form

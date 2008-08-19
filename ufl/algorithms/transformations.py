@@ -24,7 +24,7 @@ from ..tensors import ListVector, ListMatrix, Tensor
 #from ..tensors import Vector, Matrix
 from ..algebra import Sum, Product, Division, Power, Mod, Abs
 from ..tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
-from ..mathfunctions import MathFunction
+from ..mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
 from ..restriction import Restricted, PositiveRestricted, NegativeRestricted
 from ..differentiation import PartialDerivative, Diff, Grad, Div, Curl, Rot
 from ..form import Form
@@ -61,6 +61,7 @@ def transform(expression, handlers):
     else:
         ops = [transform(o, handlers) for o in expression.operands()]
     return handlers[expression.__class__](expression, *ops)
+
 
 def ufl_reuse_handlers():
     """This function constructs a handler dict for transform
@@ -169,7 +170,7 @@ def latex_handlers():
     d[Div]  = lambda x, f: "\\nabla{\\cdot %s}" % par(f)
     d[Curl] = lambda x, f: "\\nabla{\\times %s}" % par(f)
     d[Rot]  = lambda x, f: "\\rot{%s}" % par(f)
-    d[MathFunction]  = lambda x, f: "%s%s" % (x._name, par(f))
+    d[MathFunction]  = lambda x, f: "%s%s" % (x._name, par(f)) # FIXME: Add particular functions here
     d[Outer] = l_binop("\\otimes")
     d[Inner] = l_binop(":")
     d[Dot]   = l_binop("\\cdot")

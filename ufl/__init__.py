@@ -95,7 +95,7 @@ from .tensors import Tensor, Vector, Matrix
 from .tensoralgebra import Identity
 
 # mathematical functions
-#from .mathfunctions import MathFunction
+#from .mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
 from .mathfunctions import sqrt, exp, ln, cos, sin
 
 # differentiation operators
