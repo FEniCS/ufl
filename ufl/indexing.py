@@ -228,12 +228,24 @@ class UnassignedDimType(object):
 
 UnassignedDim = UnassignedDimType()
 
+def complete_shape(a, dim):
+    b = list(a)
+    for i,x in enumerate(b):
+        if isinstance(x, UnassignedDimType):
+            b[i] = dim
+    return tuple(b)
 
-def compare_shapes(a, b):
+def compare_shapes(a, b, dim=None):
     if len(a) != len(b):
         return False
-    return all(((i == j) or isinstance(i, UnassignedDimType) or \
-        isinstance(j, UnassignedDimType)) for (i,j) in zip(a,b))
+    if dim is None:
+        return all(((i == j) or isinstance(i, UnassignedDimType) or \
+            isinstance(j, UnassignedDimType)) for (i,j) in zip(a,b))
+    else:
+        return all(((i == j) or \
+                    (isinstance(i, UnassignedDimType) and j == dim) or \
+                    (isinstance(j, UnassignedDimType) and i == dim)) \
+                    for (i,j) in zip(a,b))
 
 def free_index_dimensions(e):
     # FIXME: Get the dimensions from the expression!

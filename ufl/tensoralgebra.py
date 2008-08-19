@@ -36,6 +36,11 @@ from .tensors import Tensor
 #   dot(x,y):   last index of x has same dimension as first index of y
 #   inner(x,y): shape of x equals the shape of y
 
+#
+# Note:
+# To avoid typing errors, the expressions for cofactor and deviatoric parts in as_basic
+# below were created with the script tensoralgebrastrings.py under ufl/scripts/
+#
 
 class Identity(Terminal):
     __slots__ = ()
@@ -257,8 +262,10 @@ class Determinant(Compound):
     __slots__ = ("_A",)
 
     def __init__(self, A):
-        # Allowing rank 0 for det(A) in 1D
-        ufl_assert(A.rank() == 0 or A.rank() == 2, "Determinant of tensor with rank != 2 is undefined.")
+        sh = A.shape()
+        r = len(sh)
+        ufl_assert(r == 0 or r == 2, "Determinant of tensor with rank != 2 is undefined.")
+        ufl_assert(r == 0 or compare_shapes((sh[0],), (sh[1],)), "Cannot take determinant of rectangular rank 2 tensor.")
         ufl_assert(len(A.free_indices()) == 0, "Didn't expect free indices in determinant.")
         self._A = A
     
@@ -272,21 +279,24 @@ class Determinant(Compound):
         return ()
     
     def as_basic(self, dim, A):
-        if dim == 1:
-            if A.rank() == 2:
-                return A[0,0]
-            if A.rank() == 0:
-                return A
+        sh = complete_shape(A.shape(), dim)
+
+        if len(sh) == 0:
+            return A
+        
         def det2D(B, i, j, k, l):
             return B[i,k]*B[j,l]-B[i,l]*B[j,k]
-        if dim == 2:
-            # TODO: Verify this expression
+
+        if sh[0] == 2:
             return det2D(A, 0, 1, 0, 1)
-        if dim == 3:
+        
+        if sh[0] == 3:
             # TODO: Verify this expression
             return A[0,0]*det2D(A, 1, 2, 1, 2) + \
                    A[0,1]*det2D(A, 1, 2, 2, 0) + \
                    A[0,2]*det2D(A, 1, 2, 0, 1)
+        
+        # TODO: Implement generally for all dimensions?
         ufl_error("Determinant not implemented for dimension %d." % dim)
     
     def __str__(self):
@@ -296,13 +306,14 @@ class Determinant(Compound):
         return "Determinant(%r)" % self._A
 
 
-class Inverse(Compound):
+class Inverse(Compound): # TODO: Drop Inverse and represent it as product of Determinant and Cofactor?
     __slots__ = ("_A",)
 
     def __init__(self, A):
-        ufl_assert(A.rank() == 2, "Inverse of tensor with rank != 2 is undefined.")
-        s = A.shape()
-        ufl_assert(s[0] == s[1], "Cannot take inverse of rectangular matrix with dimensions %s." % repr(s))
+        sh = A.shape()
+        r = len(sh)
+        ufl_assert(r == 0 or r == 2, "Inverse of tensor with rank != 2 or 0 is undefined.")
+        ufl_assert(r == 0 or compare_shapes((sh[0],), (sh[1],)), "Cannot take inverse of rectangular matrix with dimensions %s." % repr(s))
         ufl_assert(len(A.free_indices()) == 0, "Didn't expect free indices in Inverse.")
         self._A = A
     
@@ -315,8 +326,10 @@ class Inverse(Compound):
     def shape(self):
         return A.shape()
     
-    #def as_basic(self, dim, A):
-    #    return FIXME
+    def as_basic(self, dim, A):
+        if A.rank() == 0:
+            return 1.0 / A
+        return Determinant(A).as_basic(dim, A) * Cofactor(A).as_basic(dim, A)
     
     def __str__(self):
         return "(%s)^-1" % self._A
@@ -329,7 +342,10 @@ class Deviatoric(Compound):
     __slots__ = ("_A",)
 
     def __init__(self, A):
-        ufl_assert(A.rank() == 2, "Deviatoric part of tensor with rank != 2 is undefined.")
+        sh = A.shape()
+        r = len(sh)
+        ufl_assert(r == 2, "Deviatoric part of tensor with rank != 2 is undefined.")
+        ufl_assert(compare_shapes((sh[0],), (sh[1],)), "Cannot take deviatoric part of rectangular matrix with dimensions %s." % repr(sh))
         ufl_assert(len(A.free_indices()) == 0, "Didn't expect free indices in Deviatoric.")
         self._A = A
     
@@ -342,8 +358,13 @@ class Deviatoric(Compound):
     def shape(self):
         return self._A.shape()
     
-    #def as_basic(self, dim, A):
-    #    return FIXME
+    def as_basic(self, dim, A):
+        sh = complete_shape(A.shape(), dim)
+        if sh[0] == 2:
+            return Matrix([[-A[1,1],A[0,1]],[A[1,0],-A[0,0]]])
+        elif sh[0] == 3:
+            return Matrix([[-A[1,1]-A[2,2],A[0,1],A[0,2]],[A[1,0],-A[0,0]-A[2,2],A[1,2]],[A[2,0],A[2,1],-A[0,0]-A[1,1]]])
+        ufl_error("dev(A) not implemented for dimension %s." % sh[0])
     
     def __str__(self):
         return "dev(%s)" % self._A
@@ -356,7 +377,9 @@ class Cofactor(Compound):
     __slots__ = ("_A",)
 
     def __init__(self, A):
-        ufl_assert(A.rank() == 2, "Cofactor of tensor with rank != 2 is undefined.")
+        sh = A.shape()
+        ufl_assert(len(sh) == 2, "Cofactor of tensor with rank != 2 is undefined.")
+        ufl_assert(sh[0] == sh[1], "Cannot take cofactor of rectangular matrix with dimensions %s." % repr(sh))
         ufl_assert(len(A.free_indices()) == 0, "Didn't expect free indices in Cofactor.")
         self._A = A
     
@@ -368,10 +391,17 @@ class Cofactor(Compound):
     
     def shape(self):
         return self._A.shape()
-    
-    #def as_basic(self, dim, A):
-    #    return FIXME
-    
+
+    def as_basic(self, dim, A):
+        sh = complete_shape(A.shape(), dim)
+        if sh[0] == 2:
+            return Matrix([[A[1,1],-A[0,1]],[-A[1,0],A[0,0]]])
+        elif sh[0] == 3:
+            return Matrix([[A[2,2]*A[1,1]-A[1,2]*A[2,1],-A[0,1]*A[2,2]+A[0,2]*A[2,1],A[0,1]*A[1,2]-A[0,2]*A[1,1]],[-A[2,2]*A[1,0]+A[1,2]*A[2,0],-A[0,2]*A[2,0]+A[2,2]*A[0,0],A[0,2]*A[1,0]-A[1,2]*A[0,0]],[A[1,0]*A[2,1]-A[2,0]*A[1,1],A[0,1]*A[2,0]-A[0,0]*A[2,1],A[0,0]*A[1,1]-A[0,1]*A[1,0]]])
+        elif sh[0] == 4:
+            return Matrix([[-A[3,3]*A[2,1]*A[1,2]+A[1,2]*A[3,1]*A[2,3]+A[1,1]*A[3,3]*A[2,2]-A[3,1]*A[2,2]*A[1,3]+A[2,1]*A[1,3]*A[3,2]-A[1,1]*A[3,2]*A[2,3],-A[3,1]*A[0,2]*A[2,3]+A[0,1]*A[3,2]*A[2,3]-A[0,3]*A[2,1]*A[3,2]+A[3,3]*A[2,1]*A[0,2]-A[3,3]*A[0,1]*A[2,2]+A[0,3]*A[3,1]*A[2,2],A[3,1]*A[1,3]*A[0,2]+A[1,1]*A[0,3]*A[3,2]-A[0,3]*A[1,2]*A[3,1]-A[0,1]*A[1,3]*A[3,2]+A[3,3]*A[1,2]*A[0,1]-A[1,1]*A[3,3]*A[0,2],A[1,1]*A[0,2]*A[2,3]-A[2,1]*A[1,3]*A[0,2]+A[0,3]*A[2,1]*A[1,2]-A[1,2]*A[0,1]*A[2,3]-A[1,1]*A[0,3]*A[2,2]+A[0,1]*A[2,2]*A[1,3]],[A[3,3]*A[1,2]*A[2,0]-A[3,0]*A[1,2]*A[2,3]+A[1,0]*A[3,2]*A[2,3]-A[3,3]*A[1,0]*A[2,2]-A[1,3]*A[3,2]*A[2,0]+A[3,0]*A[2,2]*A[1,3],A[0,3]*A[3,2]*A[2,0]-A[0,3]*A[3,0]*A[2,2]+A[3,3]*A[0,0]*A[2,2]+A[3,0]*A[0,2]*A[2,3]-A[0,0]*A[3,2]*A[2,3]-A[3,3]*A[0,2]*A[2,0],-A[3,3]*A[0,0]*A[1,2]+A[0,0]*A[1,3]*A[3,2]-A[3,0]*A[1,3]*A[0,2]+A[3,3]*A[1,0]*A[0,2]+A[0,3]*A[3,0]*A[1,2]-A[0,3]*A[1,0]*A[3,2],A[0,3]*A[1,0]*A[2,2]+A[1,3]*A[0,2]*A[2,0]-A[0,0]*A[2,2]*A[1,3]-A[0,3]*A[1,2]*A[2,0]+A[0,0]*A[1,2]*A[2,3]-A[1,0]*A[0,2]*A[2,3]],[A[3,1]*A[1,3]*A[2,0]+A[3,3]*A[2,1]*A[1,0]+A[1,1]*A[3,0]*A[2,3]-A[1,0]*A[3,1]*A[2,3]-A[3,0]*A[2,1]*A[1,3]-A[1,1]*A[3,3]*A[2,0],A[3,3]*A[0,1]*A[2,0]-A[3,3]*A[0,0]*A[2,1]-A[0,3]*A[3,1]*A[2,0]-A[3,0]*A[0,1]*A[2,3]+A[0,0]*A[3,1]*A[2,3]+A[0,3]*A[3,0]*A[2,1],-A[0,0]*A[3,1]*A[1,3]+A[0,3]*A[1,0]*A[3,1]-A[3,3]*A[1,0]*A[0,1]+A[1,1]*A[3,3]*A[0,0]-A[1,1]*A[0,3]*A[3,0]+A[3,0]*A[0,1]*A[1,3],A[0,0]*A[2,1]*A[1,3]+A[1,0]*A[0,1]*A[2,3]-A[0,3]*A[2,1]*A[1,0]+A[1,1]*A[0,3]*A[2,0]-A[1,1]*A[0,0]*A[2,3]-A[0,1]*A[1,3]*A[2,0]],[-A[1,2]*A[3,1]*A[2,0]-A[2,1]*A[1,0]*A[3,2]+A[3,0]*A[2,1]*A[1,2]-A[1,1]*A[3,0]*A[2,2]+A[1,0]*A[3,1]*A[2,2]+A[1,1]*A[3,2]*A[2,0],-A[3,0]*A[2,1]*A[0,2]-A[0,1]*A[3,2]*A[2,0]+A[3,1]*A[0,2]*A[2,0]-A[0,0]*A[3,1]*A[2,2]+A[3,0]*A[0,1]*A[2,2]+A[0,0]*A[2,1]*A[3,2],A[0,0]*A[1,2]*A[3,1]-A[1,0]*A[3,1]*A[0,2]+A[1,1]*A[3,0]*A[0,2]+A[1,0]*A[0,1]*A[3,2]-A[3,0]*A[1,2]*A[0,1]-A[1,1]*A[0,0]*A[3,2],-A[1,1]*A[0,2]*A[2,0]+A[2,1]*A[1,0]*A[0,2]+A[1,2]*A[0,1]*A[2,0]+A[1,1]*A[0,0]*A[2,2]-A[1,0]*A[0,1]*A[2,2]-A[0,0]*A[2,1]*A[1,2]]])
+        ufl_error("Cofactor not implemented for dimension %s." % sh[0])
+
     def __str__(self):
         return "cofactor(%s)" % self._A
     
