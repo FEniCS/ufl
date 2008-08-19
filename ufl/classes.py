@@ -33,3 +33,4 @@ from . import baseoperators as __baseoperators
 ufl_classes = [c for c in locals().values() if isinstance(c, UFLObject)]
 terminal_classes = [c for c in ufl_classes if isinstance(c, Terminal)]
 nonterminal_classes = [c for c in ufl_classes if not isinstance(c, Terminal)]
+compound_classes = [c for c in ufl_classes if isinstance(c, Compound)]

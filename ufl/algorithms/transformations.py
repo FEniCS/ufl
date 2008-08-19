@@ -32,7 +32,7 @@ from ..integral import Integral
 #from ..formoperators import Derivative, Action, Rhs, Lhs # TODO: What to do with these?
 
 # Lists of all UFLObject classes
-from ..classes import ufl_classes, terminal_classes, nonterminal_classes
+from ..classes import ufl_classes, terminal_classes, nonterminal_classes, compound_classes
 
 # Other algorithms:
 from .analysis import basisfunctions, coefficients, indices
@@ -69,7 +69,7 @@ def ufl_reuse_handlers():
     which can be used to reconstruct a ufl expression through
     transform(...). Nonterminal objects are reused if possible."""
     # Show a clear error message if we miss some types here:
-    def not_implemented(x, ops):
+    def not_implemented(x, *ops):
         ufl_error("No handler defined for %s in ufl_reuse_handlers. Add to classes.py." % x.__class__)
     d = defaultdict(not_implemented)
     # Terminal objects are simply reused:
@@ -184,8 +184,8 @@ def latex_handlers():
     #d[ListVector]  =  # FIXME
     #d[ListMatrix]  =  # FIXME
     #d[Tensor]      =  # FIXME
-    #d[PositiveRestriction] =  # FIXME
-    #d[NegativeRestriction] =  # FIXME
+    d[PositiveRestricted] = lambda x, f: "{%s}^+" % par(A)
+    d[NegativeRestricted] = lambda x, f: "{%s}^-" % par(A)
     
     # Print warnings about classes we haven't implemented:
     missing_handlers = set(ufl_classes)
@@ -224,59 +224,17 @@ def ufl2latex(expression):
     return latex
 
 
-def expand_compounds(expression):
-    """Convert an UFL expression to a new UFL expression, with 
-    compound operator objects converted to indexed expressions."""
-    handlers = ufl_reuse_handlers()
-    def e_outer(x, a, b):
-        ii = tuple(Index() for kk in range(a.rank()))
-        jj = tuple(Index() for kk in range(b.rank()))
-        return a[ii]*b[jj]
-    def e_inner(x, a, b):
-        ii = tuple(Index() for jj in range(a.rank()))
-        return a[ii]*b[ii]
-    def e_dot(x, a, b):
-        ii = Index()
-        if a.rank() == 1: aa = a[ii]
-        else: aa = a[...,ii]
-        if b.rank() == 1: bb = b[ii]
-        else: bb = b[ii,...]
-        return aa*bb
-    def e_transpose(x, a):
-        ii = Index()
-        jj = Index()
-        return Tensor(a[ii, jj], (jj, ii))
-    def e_div(x, a):
-        ii = Index()
-        if a.rank() == 1: aa = a[ii]
-        else: aa = a[...,ii]
-        return aa.dx(ii)
-    def e_grad(x, a):
-        ii = Index()
-        if a.rank() > 0:
-            jj = tuple(Index() for kk in range(a.rank()))
-            return Tensor(a[jj].dx(ii), tuple((ii,)+jj))
-        else:
-            return Tensor(a.dx(ii), (ii,))
-    def e_curl(x, a):
-        ufl_error("Not implemented.")
-    def e_rot(x, a):
-        ufl_error("Not implemented.")
-    handlers[Outer] = e_outer
-    handlers[Inner] = e_inner
-    handlers[Dot]   = e_dot
-    handlers[Transposed] = e_transpose
-    handlers[Div]  = e_div
-    handlers[Grad] = e_grad
-    handlers[Curl] = e_curl
-    handlers[Rot]  = e_rot
-    # FIXME: Some more tensor operations like Det, Dev, etc...,
-    # FIXME: diff w.r.t. tensor valued variable?
-    return transform(expression, handlers)
+def expand_compounds(expression, dim):
+    """Convert an UFL expression to a new UFL expression, with all 
+    compound operator objects converted to basic (indexed) expressions."""
+    d = ufl_reuse_handlers()
+    _dim = (dim,)
+    def e_compound(x, *ops):
+        return x.as_basic(dim, *ops)
+    for c in compound_classes:
+        d[c] = e_compound
+    return transform(expression, d)
 
-# FIXME: Implement expand_compounds using Compound class:
-#   def e_compound(x, *ops):
-#       return x.as_basic(*ops)
 
 def _strip_variables(a):
     "Auxilliary procedure for strip_variables."
