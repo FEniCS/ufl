@@ -5,7 +5,7 @@ converting UFL expressions to other representations."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-08-18"
+__date__ = "2008-05-07 -- 2008-08-19"
 
 from collections import defaultdict
 
@@ -31,9 +31,11 @@ from ..form import Form
 from ..integral import Integral
 #from ..formoperators import Derivative, Action, Rhs, Lhs # TODO: What to do with these?
 
+# Lists of all UFLObject classes
+from ..classes import ufl_classes, terminal_classes, nonterminal_classes
+
 # Other algorithms:
 from .analysis import basisfunctions, coefficients, indices
-
 
 
 def transform_integrands(a, transformation):
@@ -52,8 +54,6 @@ def transform_integrands(a, transformation):
     return Form(integrals)
 
 
-# TODO: A general transform mechanism which can reuse objects when possible would be a nice optimization.
-
 def transform(expression, handlers):
     """Convert a UFLExpression according to rules defined by
     the mapping handlers = dict: class -> conversion function."""
@@ -64,72 +64,71 @@ def transform(expression, handlers):
     return handlers[expression.__class__](expression, *ops)
 
 
-def ufl_handlers():
+def ufl_reuse_handlers():
     """This function constructs a handler dict for transform
     which can be used to reconstruct a ufl expression through
-    transform(...), which of course makes no sense but is
-    useful for testing."""
+    transform(...). Nonterminal objects are reused if possible."""
     # Show a clear error message if we miss some types here:
     def not_implemented(x, ops):
-        ufl_error("No handler defined for %s in ufl_handlers." % x.__class__)
+        ufl_error("No handler defined for %s in ufl_reuse_handlers. Add to classes.py." % x.__class__)
     d = defaultdict(not_implemented)
     # Terminal objects are simply reused:
     def this(x):
         return x
-    d[Number]        = this
-    d[BasisFunction] = this
-    d[Function]      = this
-    d[Constant]      = this
-    d[FacetNormal]   = this
-    d[Identity]      = this
-    d[Variable]      = this
-    # The classes of non-terminal objects should already have appropriate constructors:
+    for c in terminal_classes:
+        d[c] = this
+    # Non-terminal objects are reused if all their children are untouched
+    def reconstruct(x, *ops):
+        if all((a is b) for (a,b) in izip(x.operands(), ops)):
+            return x
+        else:
+            return x.__class__(*ops)
+    for c in nonterminal_classes:
+        d[c] = reconstruct
+    return d
+
+
+def ufl_copy_handlers():
+    """This function constructs a handler dict for transform
+    which can be used to reconstruct a ufl expression through
+    transform(...). Nonterminal objects are copied, such that 
+    no nonterminal objects are shared between the new and old
+    expression."""
+    # Show a clear error message if we miss some types here:
+    def not_implemented(x, ops):
+        ufl_error("No handler defined for %s in ufl_copy_handlers. Add to classes.py." % x.__class__)
+    d = defaultdict(not_implemented)
+    # Terminal objects are simply reused:
+    def this(x):
+        return x
+    for c in terminal_classes:
+        d[c] = this
+    # Non-terminal objects are reused if all their children are untouched
     def reconstruct(x, *ops):
         return x.__class__(*ops)
-    d[Sum]       = reconstruct
-    d[Product]   = reconstruct
-    d[Division]  = reconstruct
-    d[Power]     = reconstruct
-    d[Mod]       = reconstruct
-    d[Abs]       = reconstruct
-    d[Transposed] = reconstruct
-    d[Indexed]   = reconstruct
-    d[PartialDerivative] = reconstruct
-    d[Diff] = reconstruct
-    d[Grad] = reconstruct
-    d[Div]  = reconstruct
-    d[Curl] = reconstruct
-    d[Rot]  = reconstruct
-    d[MathFunction] = reconstruct
-    d[Outer] = reconstruct
-    d[Inner] = reconstruct
-    d[Dot]   = reconstruct
-    d[Cross] = reconstruct
-    d[Trace] = reconstruct
-    d[Determinant] = reconstruct
-    d[Inverse]     = reconstruct
-    d[Deviatoric]  = reconstruct
-    d[Cofactor]    = reconstruct
-    d[ListVector] = reconstruct
-    d[ListMatrix] = reconstruct
-    d[Tensor]     = reconstruct
-    d[Restricted]         = reconstruct
-    d[PositiveRestricted] = reconstruct
-    d[NegativeRestricted] = reconstruct
+    for c in nonterminal_classes:
+        d[c] = reconstruct
     return d
 
 
 def ufl2ufl(expression):
     """Convert an UFL expression to a new UFL expression, with no changes.
     This is used for testing that objects in the expression behave as expected."""
-    handlers = ufl_handlers()
+    handlers = ufl_reuse_handlers()
+    return transform(expression, handlers)
+
+
+def ufl2uflcopy(expression):
+    """Convert an UFL expression to a new UFL expression, with no changes.
+    This is used for testing that objects in the expression behave as expected."""
+    handlers = ufl_copy_handlers()
     return transform(expression, handlers)
 
 
 def latex_handlers():
     # Show a clear error message if we miss some types here:
     def not_implemented(x):
-        ufl_error("No handler defined for %s in _latex_handlers." % x.__class__)
+        ufl_error("No handler defined for %s in latex_handlers." % x.__class__)
     d = defaultdict(not_implemented)
     # Utility for parentesizing string:
     def par(s, condition=True):
@@ -137,12 +136,15 @@ def latex_handlers():
             return "\\left(%s\\right)" % s
         return str(s)
     # Terminal objects:
-    d[Number] = lambda x: "{%s}" % x._value
+    d[Number]        = lambda x: "{%s}" % x._value
     d[BasisFunction] = lambda x: "{v^{%d}}" % x._count # Using ^ for function numbering and _ for indexing
-    d[Function] = lambda x: "{w^{%d}}" % x._count
-    d[Constant] = lambda x: "{w^{%d}}" % x._count
-    d[FacetNormal] = lambda x: "n"
-    d[Identity] = lambda x: "I"
+    d[Function]      = lambda x: "{w^{%d}}" % x._count
+    d[Constant]      = lambda x: "{w^{%d}}" % x._count
+    d[FacetNormal]   = lambda x: "n"
+    d[Identity]      = lambda x: "I"
+    def l_variable(x, a):
+        return "\\left{%s\\right}" % a
+    d[Variable]  = l_variable # TODO: Should store expression some place perhaps? LaTeX can express variables!
     def l_multiindex(x):
         return "".join("i_{%d}" % ix._count for ix in x._indices)
     d[MultiIndex] = l_multiindex
@@ -155,9 +157,6 @@ def latex_handlers():
         def particular_l_binop(x, a, b):
             return "{%s}%s{%s}" % (par(a), opstring, par(b))
         return particular_l_binop
-    def l_variable(x, a):
-        return "\\left{%s\\right}" % a
-    d[Variable]  = l_variable
     d[Sum]       = l_sum
     d[Product]   = l_product
     d[Division]  = lambda x, a, b: r"\frac{%s}{%s}" % (a, b)
@@ -182,15 +181,24 @@ def latex_handlers():
     d[Inverse]     = lambda x, A: "{%s}^{-1}" % par(A)
     d[Deviatoric]  = lambda x, A: "dev{%s}" % par(A)
     d[Cofactor]    = lambda x, A: "cofac{%s}" % par(A)
-    #d[ListVector]  = ListVector # FIXME
-    #d[ListMatrix]  = ListMatrix # FIXME
-    #d[Tensor]      = Tensor # FIXME
+    #d[ListVector]  =  # FIXME
+    #d[ListMatrix]  =  # FIXME
+    #d[Tensor]      =  # FIXME
+    #d[PositiveRestriction] =  # FIXME
+    #d[NegativeRestriction] =  # FIXME
+    
+    # Print warnings about classes we haven't implemented:
+    missing_handlers = set(ufl_classes)
+    missing_handlers.difference_update(d.keys())
+    if missing_handlers:
+        ufl_warning("In ufl.algorithms.latex_handlers: Missing handlers for classes:\n{\n%s\n}" % \
+                    "\n".join(str(c) for c in sorted(missing_handlers)))
     return d
 
 
 def ufl2latex(expression):
     """Convert an UFL expression to a LaTeX string. Very crude approach."""
-    handlers = _latex_handlers()
+    handlers = latex_handlers()
     if isinstance(expression, Form):
         integral_strings = []
         for itg in expression.cell_integrals():
@@ -219,7 +227,7 @@ def ufl2latex(expression):
 def expand_compounds(expression):
     """Convert an UFL expression to a new UFL expression, with 
     compound operator objects converted to indexed expressions."""
-    handlers = ufl_handlers()
+    handlers = ufl_reuse_handlers()
     def e_outer(x, a, b):
         ii = tuple(Index() for kk in range(a.rank()))
         jj = tuple(Index() for kk in range(b.rank()))
@@ -352,7 +360,7 @@ def flatten(a): # TODO: Pick this or the below version flatten2
 def flatten2(expression):
     """Convert an UFL expression to a new UFL expression, with sums 
     and products flattened from binary tree nodes to n-ary tree nodes."""
-    handlers = ufl_handlers()
+    handlers = ufl_reuse_handlers()
     def _flatten(x, *ops):
         newops = []
         for o in ops:
@@ -382,7 +390,7 @@ def renumber_indices(expression, offset=0):
             k += 1
     
     # Apply index mapping
-    handlers = ufl_handlers()
+    handlers = ufl_reuse_handlers()
     def multi_index_handler(o):
         ind = []
         for i in o._indices:
@@ -420,7 +428,7 @@ def renumber_arguments(a):
             k += 1
     
     # Build handler dict using these mappings
-    handlers = ufl_handlers()
+    handlers = ufl_reuse_handlers()
     def basisfunction_handler(o):
         return bfmap[o]
     def function_handler(o):

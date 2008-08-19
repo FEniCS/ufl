@@ -5,7 +5,7 @@ which use the baseclasses BasisFunction and Function."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-18"
+__date__ = "2008-03-14 -- 2008-08-19"
 
 
 from .output import UFLException, ufl_warning
@@ -14,12 +14,12 @@ from .finiteelement import FiniteElement, MixedElement, VectorElement
 from .common import Counted
 
 
-class BasisFunction(Terminal,Counted):
+class BasisFunction(Terminal, Counted):
     __slots__ = ("_element",)
     _globalcount = 0
     def __init__(self, element, count=None):
-        self._element = element
         Counted.__init__(self, count)
+        self._element = element
     
     def element(self):
         return self._element
@@ -43,7 +43,7 @@ def TrialFunction(element):
     return BasisFunction(element, -1)
 
 
-# FIXME: Maybe we don't need these after all:
+# FIXME: Maybe we don't need these after all?
 def BasisFunctions(element):
     ufl_warning("BasisFunctions isn't properly implemented.")
     if not isinstance(element, MixedElement):
@@ -96,7 +96,10 @@ class Constant(Function):
         Function.__init__(self, element, name, count)
     
     def __str__(self):
-        return "c_%d" % self._count # TODO: Use name here if available.
+        if self._name is None:
+            return "c_%d" % self._count
+        else:
+            return "c_%s" % self._name
     
     def __repr__(self):
         return "Constant(%r, %r, %r)" % (self._polygon, self._name, self._count)

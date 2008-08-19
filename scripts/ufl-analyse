@@ -15,58 +15,60 @@ if "-w" in args:
     enable_browser = True
     args.remove("-w")
 
-if len(args) != 1:
-    print "Expecting a single argument, the form file name."
+if len(args) == 0:
+    print "Expecting .ufl file names."
     sys.exit(-1)
-filename = args[0]
+filenames = args
+for filename in args:
+    if not filename.endswith(".ufl"):
+        print "Warning: Filename '%s' doesn't end with .ufl." % filename
 
-# Load form file, which triggers many consistency
-# checks while the form is being built
-print "Loading form file '%s'" % filename
-forms = load_forms(filename)
+    # Load form file, which triggers many consistency
+    # checks while the form is being built
+    print "Loading form file '%s'" % filename
+    forms = load_forms(filename)
 
-# Analyse validity of forms
-for k,v in forms:
-    errors = validate_form(v)
+    # Analyse validity of forms
+    for k,v in forms:
+        errors = validate_form(v)
+        print
+        if errors:
+            print "Found errors in form '%s':" % k
+            print errors
+        else:
+            print "Found no errors in form '%s'." % k
+
+    # Print information about all forms
+    for name, form in forms:
+        # Extract information about forms
+        bf = basisfunctions(form)
+        cf = coefficients(form)
+        elements = unique_elements(form)
+        rank = len(bf)
+        num_coefficients = len(cf)
+        
+        # Pretty-print form information
+        print
+        print "Form: '%s'" % name
+        print "Rank:", rank
+        print "Number of coefficients:", num_coefficients
+        print "Elements used:"
+        for e in elements:
+            print repr(e)
+        print "Basisfunctions:"
+        for v in bf:
+            print repr(v)
+        print "Coefficients:"
+        for w in cf:
+            print repr(w)
+        print "Form representation:"
+        print repr(form)
+        print "Form pretty-print:"
+        print str(form)
+        print "Form LaTeX code:"
+        latex = ufl2latex(form)
+        print latex
+        if enable_browser:
+            webbrowser.open("http://www.texify.com/$%s$" % latex.replace(" ",""))
     print
-    if errors:
-        print "Found errors in form '%s':" % k
-        print errors
-    else:
-        print "Found no errors in form '%s'." % k
-
-# Print information about all forms
-for name, form in forms:
-    # Extract information about forms
-    basisfunctions = basisfunctions(form)
-    coefficients = coefficients(form)
-    elements = unique_elements(form)
-    rank = len(basisfunctions)
-    num_coefficients = len(coefficients)
-    
-    # Pretty-print form information
-    print
-    print "Form: '%s'" % name
-    print "Rank:", rank
-    print "Number of coefficients:", num_coefficients
-    print "Elements used:"
-    for e in elements:
-        print repr(e)
-    print "Basisfunctions:"
-    for v in basisfunctions:
-        print repr(v)
-    print "Coefficients:"
-    for w in coefficients:
-        print repr(w)
-    print "Form representation:"
-    print repr(form)
-    print "Form pretty-print:"
-    print str(form)
-    print "Form LaTeX code:"
-    latex = ufl2latex(form)
-    print latex
-    if enable_browser:
-        webbrowser.open("http://www.texify.com/$%s$" % latex.replace(" ",""))
-
-print
 
