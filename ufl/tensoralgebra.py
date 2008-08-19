@@ -3,10 +3,12 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-18"
+__date__ = "2008-03-14 -- 2008-08-19"
 
 from .output import ufl_assert
 from .base import UFLObject, Terminal, Compound
+from .indexing import Index
+from .tensors import Tensor
 
 
 ### Algebraic operations on tensors:
@@ -73,7 +75,7 @@ class Transposed(Compound):
         s = self._A.shape()
         return (s[1], s[0])
     
-    def as_basic(self, A):
+    def as_basic(self, dim, A):
         ii = Index()
         jj = Index()
         return Tensor(A[ii, jj], (jj, ii))
@@ -105,7 +107,7 @@ class Outer(Compound):
     def shape(self):
         return self._a.shape() + self._b.shape()
 
-    def as_basic(self, a, b):
+    def as_basic(self, dim, a, b):
         ii = tuple(Index() for kk in range(a.rank()))
         jj = tuple(Index() for kk in range(b.rank()))
         return a[ii]*b[jj]
@@ -139,7 +141,7 @@ class Inner(Compound):
     def shape(self):
         return ()
     
-    def as_basic(self, a, b):
+    def as_basic(self, dim, a, b):
         ii = tuple(Index() for jj in range(a.rank()))
         return a[ii]*b[ii]
     
@@ -172,7 +174,7 @@ class Dot(Compound):
     def shape(self):
         return self._a.shape()[:-1] + self._b.shape()[1:]
     
-    def as_basic(self, a, b):
+    def as_basic(self, dim, a, b):
         ii = Index()
         aa = a[ii] if (a.rank() == 1) else a[...,ii]
         bb = b[ii] if (b.rank() == 1) else b[ii,...]
@@ -207,7 +209,7 @@ class Cross(Compound):
     def shape(self):
         return (3,)
     
-    #def as_basic(self, a, b):
+    #def as_basic(self, dim, a, b):
     #    return FIXME
     
     def __str__(self):
@@ -234,7 +236,7 @@ class Trace(Compound):
     def shape(self):
         return ()
     
-    def as_basic(self, A):
+    def as_basic(self, dim, A):
         i = Index()
         return A[i,i]
     
@@ -262,7 +264,7 @@ class Determinant(Compound):
     def shape(self):
         return ()
     
-    #def as_basic(self, A):
+    #def as_basic(self, dim, A):
     #    return FIXME
     
     def __str__(self):
@@ -291,7 +293,7 @@ class Inverse(Compound):
     def shape(self):
         return A.shape()
     
-    #def as_basic(self, A):
+    #def as_basic(self, dim, A):
     #    return FIXME
     
     def __str__(self):
@@ -318,7 +320,7 @@ class Deviatoric(Compound):
     def shape(self):
         return self._A.shape()
     
-    #def as_basic(self, A):
+    #def as_basic(self, dim, A):
     #    return FIXME
     
     def __str__(self):
@@ -345,7 +347,7 @@ class Cofactor(Compound):
     def shape(self):
         return self._A.shape()
     
-    #def as_basic(self, A):
+    #def as_basic(self, dim, A):
     #    return FIXME
     
     def __str__(self):

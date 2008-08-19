@@ -3,12 +3,13 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-18"
+__date__ = "2008-03-14 -- 2008-08-19"
 
 from .output import ufl_assert
 from .base import UFLObject, Compound
-from .indexing import MultiIndex, UnassignedDim, extract_indices
+from .indexing import MultiIndex, Index, UnassignedDim, extract_indices
 from .variable import Variable
+from .tensors import Tensor
 
 
 # FIXME: This file is not ok! Needs more work!
@@ -109,7 +110,7 @@ class Grad(Compound):
     def shape(self):
         return (UnassignedDim,) + self._f.shape()
     
-    def as_basic(self, f):
+    def as_basic(self, dim, f):
         ii = Index()
         if f.rank() > 0:
             jj = tuple(Index() for kk in range(f.rank()))
@@ -141,7 +142,7 @@ class Div(Compound):
     def shape(self):
         return self._f.shape()[1:]
     
-    def as_basic(self, f):
+    def as_basic(self, dim, f):
         ii = Index()
         if f.rank() == 1:
             g = f[ii]
@@ -173,7 +174,7 @@ class Curl(Compound):
     def shape(self):
         return (UnassignedDim,)
     
-    #def as_basic(self, f):
+    #def as_basic(self, dim, f):
     #    return FIXME
     
     def __str__(self):
@@ -200,7 +201,7 @@ class Rot(Compound):
     def shape(self):
         return ()
     
-    #def as_basic(self, f):
+    #def as_basic(self, dim, f):
     #    return FIXME
     
     def __str__(self):

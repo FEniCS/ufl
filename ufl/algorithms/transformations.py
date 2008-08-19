@@ -9,7 +9,7 @@ __date__ = "2008-05-07 -- 2008-08-19"
 
 from collections import defaultdict
 
-from ..output import ufl_assert
+from ..output import ufl_assert, ufl_error
 
 # All classes:
 from ..base import UFLObject, Terminal, Number
@@ -37,7 +37,6 @@ from ..classes import ufl_classes, terminal_classes, nonterminal_classes, compou
 # Other algorithms:
 from .analysis import basisfunctions, coefficients, indices
 
-
 def transform_integrands(a, transformation):
     """Transform all integrands in a form with a transformation function.
     
@@ -62,7 +61,6 @@ def transform(expression, handlers):
     else:
         ops = [transform(o, handlers) for o in expression.operands()]
     return handlers[expression.__class__](expression, *ops)
-
 
 def ufl_reuse_handlers():
     """This function constructs a handler dict for transform
@@ -228,7 +226,6 @@ def expand_compounds(expression, dim):
     """Convert an UFL expression to a new UFL expression, with all 
     compound operator objects converted to basic (indexed) expressions."""
     d = ufl_reuse_handlers()
-    _dim = (dim,)
     def e_compound(x, *ops):
         return x.as_basic(dim, *ops)
     for c in compound_classes:
