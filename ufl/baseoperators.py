@@ -16,7 +16,6 @@ from .indexing import Indexed
 from .restriction import PositiveRestricted, NegativeRestricted
 from .differentiation import PartialDerivative
 
-
 #--- Extend UFLObject with algebraic operators ---
 
 def _add(self, o):
@@ -108,11 +107,13 @@ def _abs(self):
 UFLObject.__abs__ = _abs
 
 #--- Extend UFLObject with indexing operator a[i] ---
+
 def _getitem(self, key):
     return Indexed(self, key)
 UFLObject.__getitem__ = _getitem
 
 #--- Extend UFLObject with restiction operators a("+"), a("-") ---
+
 def _restrict(self, side):
     if side == "+":
         return PositiveRestricted(self)
@@ -122,6 +123,7 @@ def _restrict(self, side):
 UFLObject.__call__ = _restrict
 
 #--- Extend UFLObject with the transpose operation A.T ---
+
 def _transpose(self):
     """Transposed a rank two tensor expression. For more general transpose
     operations of higher order tensor expressions, use indexing and Tensor."""
@@ -129,8 +131,8 @@ def _transpose(self):
 UFLObject.T = property(_transpose)
 
 #--- Extend UFLObject with spatial differentiation operator a.dx(i) ---
+
 def _dx(self, *i):
     """Return the partial derivative with respect to spatial variable number i"""
     return PartialDerivative(self, i)
 UFLObject.dx = _dx
-

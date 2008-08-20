@@ -117,9 +117,6 @@ from .formoperators import Derivative, Action, Rhs, Lhs, rhs, lhs
 
 # predefined convenience objects
 from .objects import n, i, j, k, l, p, q, r, s
-from .objects import dx0, dx1, dx2, dx3, dx4, dx5, dx6, dx7, dx8, dx9
-from .objects import ds0, ds1, ds2, ds3, ds4, ds5, ds6, ds7, ds8, ds9
-from .objects import dS0, dS1, dS2, dS3, dS4, dS5, dS6, dS7, dS8, dS9
 from .objects import dx, ds, dS
 from .objects import interval, triangle, tetrahedron, quadrilateral, hexahedron
 

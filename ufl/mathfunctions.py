@@ -5,13 +5,23 @@ from __future__ import absolute_import
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-08-20"
 
+# Modified by Anders Logg, 2008
+
 from .output import ufl_assert
 from .base import UFLObject, is_true_scalar
 
 #--- Function representations ---
 
 class MathFunction(UFLObject):
+<<<<<<< local
     __slots__ = "_name", "_argument"
+=======
+    "Base class for all math functions"
+
+    # Freeze member variables for objects in this class
+    __slots__ = ("_name", "_argument")
+
+>>>>>>> other
     def __init__(self, name, argument):
         ufl_assert(is_true_scalar(argument), "Expecting scalar.")
         self._name     = name
@@ -52,6 +62,10 @@ class Sin(MathFunction):
     def __init__(self, argument):
         MathFunction.__init__(self, "sin", argument)
 
+class Abs(MathFunction):
+    def __init__(self, argument):
+        MathFunction.__init__(self, "abs", argument)
+
 #--- Functions exposed to the user ---
 
 def sqrt(f):
@@ -69,3 +83,5 @@ def cos(f):
 def sin(f):
     return Sin(f)
 
+def abs(f):
+    return Abs(f)
