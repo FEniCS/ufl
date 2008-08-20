@@ -29,7 +29,7 @@ class FFCTestCase(unittest.TestCase):
         a = c*dot(grad(v), grad(u))*dx
         L = dot(d, grad(v))*dx
         
-    def notworkingElasticity(self):
+    def testElasticity(self):
 
         element = VectorElement("Lagrange", "tetrahedron", 1)
 
@@ -40,7 +40,8 @@ class FFCTestCase(unittest.TestCase):
             # FFC notation: return grad(v) + transp(grad(v))
             return grad(v) + (grad(v)).T
 
-        a = 0.25*dot(eps(v), eps(u))*dx
+        # FFC notation: a = 0.25*dot(eps(v), eps(u))*dx
+        a = 0.25*inner(eps(v), eps(u))*dx
         
     def testEnergyNorm(self):
 
@@ -122,7 +123,7 @@ class FFCTestCase(unittest.TestCase):
         a = (dot(tau, sigma) - div(tau)*u + w*div(sigma))*dx
         L = w*f*dx
         
-    def notworkingNavierStokes(self):
+    def testNavierStokes(self):
 
         element = VectorElement("Lagrange", "tetrahedron", 1)
 
@@ -131,9 +132,10 @@ class FFCTestCase(unittest.TestCase):
 
         w = Function(element)
 
-        a = v[i]*w[j]*D(u[i], j)*dx
+        # FFC notation: a = v[i]*w[j]*D(u[i], j)*dx
+        a = v[i]*w[j]*Dx(u[i], j)*dx
         
-    def notworkingNeumannProblem(self):
+    def testNeumannProblem(self):
 
         element = VectorElement("Lagrange", "triangle", 1)
 
@@ -142,8 +144,11 @@ class FFCTestCase(unittest.TestCase):
         f = Function(element)
         g = Function(element)
 
-        a = dot(grad(v), grad(u))*dx
-        L = dot(v, f)*dx + dot(v, g)*ds
+        # FFC notation: a = dot(grad(v), grad(u))*dx
+        a = inner(grad(v), grad(u))*dx
+
+        # FFC notation: L = dot(v, f)*dx + dot(v, g)*ds
+        L = inner(v, f)*dx + inner(v, g)*ds
         
     def testOptimization(self):
 
@@ -160,7 +165,7 @@ class FFCTestCase(unittest.TestCase):
 
         element = FiniteElement("Lagrange", "tetrahedron", 5)
         
-    def notworkingP5tri(self):
+    def testP5tri(self):
 
         element = FiniteElement("Lagrange", "triangle", 5)
         
@@ -213,9 +218,7 @@ class FFCTestCase(unittest.TestCase):
         a = dot(grad(v), grad(u))*dx
         L = v*f*dx
         
-    def notworkingPoissonSystem(self):
-
-        # UFLException: Trying to integrate expression of rank 2 with free indices ().
+    def testPoissonSystem(self):
 
         element = VectorElement("Lagrange", "triangle", 1)
 
@@ -223,8 +226,11 @@ class FFCTestCase(unittest.TestCase):
         u = TrialFunction(element)
         f = Function(element)
 
-        a = dot(grad(v), grad(u))*dx
-        L = dot(v, f)*dx
+        # FFC notation: a = dot(grad(v), grad(u))*dx
+        a = inner(grad(v), grad(u))*dx
+
+        # FFC notation: L = dot(v, f)*dx
+        L = inner(v, f)*dx
         
     def notworkingProjection(self):
 
