@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+__authors__ = "Martin Sandve Alnes"
+__date__ = "2008-03-12 -- 2008-08-20"
+
+# Modified by Anders Logg, 2008
+
 import unittest
 
 from ufl import *
@@ -23,8 +28,8 @@ class FormsTestCase(unittest.TestCase):
         element = FiniteElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
         f = Function(element, "f")
-        a = f*v*dx + 2*v*ds + 3*v*dx + 7*v*ds + 3*v*dx2 + 7*v*dx2
-        b = (f*v + 3*v)*dx + (2*v + 7*v)*ds + (3*v + 7*v)*dx2 
+        a = f*v*dx + 2*v*ds + 3*v*dx + 7*v*ds + 3*v*dx(2) + 7*v*dx(2)
+        b = (f*v + 3*v)*dx + (2*v + 7*v)*ds + (3*v + 7*v)*dx(2)
         self.assertTrue(repr(a) == repr(b))
 
     def test_source1(self):

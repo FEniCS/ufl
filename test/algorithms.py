@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+__authors__ = "Martin Sandve Alnes"
+__date__ = "2008-03-12 -- 2008-08-20"
+
+# Modified by Anders Logg, 2008
+
 import unittest
 from pprint import *
 
@@ -11,9 +16,7 @@ from ufl.classes import Sum, Product
 import logging
 logging.basicConfig(level=logging.CRITICAL)
 
-
 # TODO: add more tests, covering all utility algorithms
-
 
 class AlgorithmsTestCase(unittest.TestCase):
 
@@ -28,7 +31,7 @@ class AlgorithmsTestCase(unittest.TestCase):
         
         a = u*v*dx
         L = f*v*dx
-        b = u*v*dx0 +inner(c*grad(u),grad(v))*dx1 + dot(n, grad(u))*v*ds + f*v*dx
+        b = u*v*dx(0) +inner(c*grad(u),grad(v))*dx(1) + dot(n, grad(u))*v*ds + f*v*dx
         
         self.elements = (element,)
         self.basisfunctions = (v, u)
