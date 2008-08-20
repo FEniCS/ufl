@@ -6,7 +6,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-08-20 -- 2008-08-20"
 
 from .output import ufl_assert
-from .base import UFLObject, Terminal
+from .base import UFLObject, Terminal, Number, is_python_scalar
 from .indexing import compare_shapes
 
 
@@ -18,29 +18,53 @@ class Condition(Terminal):
         self._left = left
         self._right = right
 
+    def shape(self):
+        ufl_error("Why would you want the shape of a Condition?")
+
+    def __str__(self):
+        return "(%s) %s (%s)" % (self._left, self._name, self._right)
+    
 class EQ(Condition):
     def __init__(self, left, right):
-        Condition.__init__("==", left, right)
+        Condition.__init__(self, "==", left, right)
+    
+    def __repr__(self):
+        return "EQ(%r, %r)" % (self._left, self._right)
 
 class NE(Condition):
     def __init__(self, left, right):
-        Condition.__init__("!=", left, right)
+        Condition.__init__(self, "!=", left, right)
+    
+    def __repr__(self):
+        return "NE(%r, %r)" % (self._left, self._right)
 
 class LE(Condition):
     def __init__(self, left, right):
-        Condition.__init__("<=", left, right)
+        Condition.__init__(self, "<=", left, right)
+    
+    def __repr__(self):
+        return "LE(%r, %r)" % (self._left, self._right)
 
 class GE(Condition):
     def __init__(self, left, right):
-        Condition.__init__(">=", left, right)
+        Condition.__init__(self, ">=", left, right)
+    
+    def __repr__(self):
+        return "GE(%r, %r)" % (self._left, self._right)
 
 class LT(Condition):
     def __init__(self, left, right):
-        Condition.__init__("<", left, right)
+        Condition.__init__(self, "<", left, right)
+    
+    def __repr__(self):
+        return "LT(%r, %r)" % (self._left, self._right)
 
 class GT(Condition):
     def __init__(self, left, right):
-        Condition.__init__(">", left, right)
+        Condition.__init__(self, ">", left, right)
+    
+    def __repr__(self):
+        return "GT(%r, %r)" % (self._left, self._right)
 
 
 #--- Conditional expression (condition ? true_value : false_value) ---
