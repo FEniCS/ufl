@@ -6,78 +6,72 @@ objects."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-04-09 -- 2008-08-18"
-
-# Modified by Anders Logg, 2008
+__date__ = "2008-04-09 -- 2008-08-20"
 
 from .differentiation import Diff, Grad, Div, Curl, Rot
 from .tensoralgebra import Transposed, Inner, Outer, Dot, Cross, Determinant, Inverse, Trace, Deviatoric, Cofactor
 from .variable import Variable
-from .restriction import PositiveRestricted, NegativeRestricted
+from .conditional import EQ, NE, LE, GE, LT, GT, Conditional
+from .mathfunctions import Sqrt, Exp, Ln, Cos, Sin
 from .geometry import FacetNormal
 
 #--- Tensor operators ---
 
-def transpose(v):
+def transpose(o):
     "Return transpose of expression"
-    return Transposed(v)
+    return Transposed(o)
 
-def outer(v, w):
-    return Outer(v, w)
+def outer(a, b):
+    return Outer(a, b)
 
-def inner(v, w):
-    return Inner(v, w)
+def inner(a, b):
+    return Inner(a, b)
 
-def dot(v, w):
-    return Dot(v, w)
+def dot(a, b):
+    return Dot(a, b)
 
-def cross(v, w):
-    return Cross(v, w)
+def cross(a, b):
+    return Cross(a, b)
 
-def det(v):
-    return Determinant(v)
+def det(f):
+    return Determinant(f)
 
-def inv(v):
-    return Inverse(v)
+def inv(f):
+    return Inverse(f)
 
-def tr(v):
-    return Trace(v)
+def tr(f):
+    return Trace(f)
 
-def dev(v):
-    return Deviatoric(v)
+def dev(A):
+    return Deviatoric(A)
 
-def cofac(v):
-    return Cofactor(v)
+def cofac(A):
+    return Cofactor(A)
 
 #--- Differential operators
 
-# FIXME: Do we want this? Isn't f.dx(i) enough?
-# It is good to have when differentiating a large expression which looks silly
-# when appending .dx():   (v*u*....).dx(i)
-
-def Dx(v, i): 
+def Dx(f, i): # FIXME: Do we want this? Isn't f.dx(i) enough?
     "Return the partial derivative with respect to spatial variable number i."
-    return v.dx(i)
+    return f.dx(i)
 
-def Dt(v): # FIXME: Add class
-    #return TimeDerivative(v)
+def Dt(o): # FIXME: Add class
+    #return TimeDerivative(o)
     raise NotImplementedError
 
-# FIXME: What is Diff?
-def diff(v, x):
-    return Diff(v, x)
+def diff(f, x):
+    return Diff(f, x)
 
-def grad(v):
-    return Grad(v)
+def grad(f):
+    return Grad(f)
 
-def div(v):
-    return Div(v)
+def div(f):
+    return Div(f)
 
-def curl(v):
-    return Curl(v)
+def curl(f):
+    return Curl(f)
 
-def rot(v):
-    return Rot(v)
+def rot(f):
+    return Rot(f)
 
 #--- DG operators ---
 
@@ -89,12 +83,59 @@ def jump(v):
         n = FacetNormal()
         return dot(v('+'), n('+')) + dot(v('-'), n('-'))
     else:
-        ufl_error("jump(v) is only defined when v scalar or a vector (not rank %d) expressions." % v.rank())
+        ufl_error("jump(v) is only defined for scalar or vector-valued expressions (not rank %d expressions)." % v.rank())
 
 def avg(v):
     return 0.5*(v('+') + v('-'))
 
 #--- Other operators ---
 
-def variable(v):
-    return Variable(v)
+def variable(o):
+    return Variable(o)
+
+#--- Conditional expressions ---
+
+def conditional(condition, true_value, false_value):
+    "A conditional expression, like the C construct (condition ? true_value : false_value)."
+    return Conditional(condition, true_value, false_value)
+
+def eq(left, right):
+    "A boolean expresion (left == right) for use with conditional."
+    return EQ(left, right)
+
+def ne(left, right):
+    "A boolean expresion (left != right) for use with conditional."
+    return NE(left, right)
+
+def le(left, right):
+    "A boolean expresion (left <= right) for use with conditional."
+    return LE(left, right)
+
+def ge(left, right):
+    "A boolean expresion (left >= right) for use with conditional."
+    return GE(left, right)
+
+def lt(left, right):
+    "A boolean expresion (left < right) for use with conditional."
+    return LT(left, right)
+
+def gt(left, right):
+    "A boolean expresion (left > right) for use with conditional."
+    return GT(left, right)
+
+#--- Math functions ---
+
+def sqrt(f):
+    return Sqrt(f)
+
+def exp(f):
+    return Exp(f)
+
+def ln(f):
+    return Ln(f)
+
+def cos(f):
+    return Cos(f)
+
+def sin(f):
+    return Sin(f) 
