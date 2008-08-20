@@ -4,23 +4,35 @@ Roadmap for the development of UFL
 Some of the TODO's left:
 
 # Elements and Basisfunctions:
- - Agree on final design!
+ - Do we need 'Test/Trial/BasisFunctions'? If so, fix count issue.
  - Add Cell support?
  - Keep or drop name from Function? Can eventually pass it to UFC if we add a "form::coefficient_name(i)" function.
- - Do we need 'Test/Trial/BasisFunctions'? If so, fix count issue.
+ - Degree range for quadrature elements?
+ - Agree on final design!
+
+# Tensor handling:
+ - Do we need UFLObject.repeated_indices()?
+ - Do we need UFLObject.free_index_dimensions()?
+ - Test and finalize class Tensor.
+
+# Derivatives:
+ - Decide on Variable design. Change Variable back to a nonterminal again?
+ - Finish Diff design, including index handling like in PartialDiff and Product.
+ - Apply Variable in automatic differentiation to define subexpressions we can reuse.
+
+# Restrictions:
+ - Implement restriction operators like jump and avg
+
+# Time derivatives
+ - Do we want something like Dt(u), Dtt(u), CR(a), FE(a), BE(a), TR(a, theta)? 
+
+# Prettyness and readability:
+ - Improve parentesis use in __str__ and __repr__ and ufl2latex, use precedence list
 
 # Algorithms:
  - Implement contraction function that expands all implicit summations into Sums
  - Implement evaluation function for swiginac and sympy, given expressions for each basisfunction and function.
-
-# Derivatives:
- - Decide on Symbol / Variable design. Drop Symbol and make Variable a Terminal?
- - Finish Diff design, including index handling like in PartialDiff. and Product.
- - Implement something like UFLObject._shallow_diff(self, variable)
- - Implement automatic differentiation using Variable to extract subexpressions.
-
-# Prettyness and readability:
- - Improve parentesis use in __str__ and __repr__ and ufl2latex, use precedence list
+ - Many small details and much testing in existing algorithms
 
 # Tests:
  - Implement more elaborate tests, some operators aren't tested, and only a few of the algorithms.
@@ -73,4 +85,3 @@ Some of the TODO's left:
   algorithms/transformations.py  --
   algorithms/traversal.py        --
   algorithms/utilities.py        Rename to algorithm(s).py
-

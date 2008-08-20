@@ -47,7 +47,6 @@ class GT(Condition):
 
 class Conditional(UFLObject):
     def __init__(self, condition, true_value, false_value):
-        # FIXME: Wrap values in Number if necessary
         if is_python_scalar(true_value):
             true_value = Number(true_value)
         if is_python_scalar(false_value):
