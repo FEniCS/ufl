@@ -8,7 +8,6 @@ __date__ = "2008-06-08 -- 2008-08-15"
 from .output import ufl_error
 from .base import UFLObject
 
-
 #--- Restriction operators ---
 
 class Restricted(UFLObject):
@@ -42,4 +41,3 @@ class NegativeRestricted(Restricted):
     
     def __repr__(self):
         return "NegativeRestricted(%r)" % self.f
-

@@ -76,14 +76,21 @@ class FFCTestCase(unittest.TestCase):
         # FFC notation: a = sqrt(1/modulus(1/f))*sqrt(g)*dot(grad(v), grad(u))*dx + v*u*sqrt(f*g)*g*dx
         a = sqrt(1/abs(1/f))*sqrt(g)*dot(grad(v), grad(u))*dx + v*u*sqrt(f*g)*g*dx
         
-    def notworkingHeat(self):
+    def testHeat(self):
 
         element = FiniteElement("Lagrange", "triangle", 1)
+
+        v  = TestFunction(element)
+        u1 = TrialFunction(element)
+        u0 = Function(element)
+        c  = Function(element)
+        f  = Function(element)
+        k  = Constant("triangle")
 
         a = v*u1*dx + k*c*dot(grad(v), grad(u1))*dx
         L = v*u0*dx + k*v*f*dx
         
-    def notworkingMass(self):
+    def testMass(self):
 
         element = FiniteElement("Lagrange", "tetrahedron", 3)
 
@@ -92,13 +99,13 @@ class FFCTestCase(unittest.TestCase):
     
         a = v*u*dx
         
-    def notworkingMixedMixedElement(self):
+    def testMixedMixedElement(self):
 
         P3 = FiniteElement("Lagrange", "triangle", 3)
 
         element = (P3 + P3) + (P3 + P3)
         
-    def notworkingMixedPoisson(self):
+    def testMixedPoisson(self):
 
         q = 1
 
@@ -138,7 +145,7 @@ class FFCTestCase(unittest.TestCase):
         a = dot(grad(v), grad(u))*dx
         L = dot(v, f)*dx + dot(v, g)*ds
         
-    def notworkingOptimization(self):
+    def testOptimization(self):
 
         element = FiniteElement("Lagrange", "triangle", 3)
 
@@ -149,7 +156,7 @@ class FFCTestCase(unittest.TestCase):
         a = dot(grad(v), grad(u))*dx
         L = v*f*dx
         
-    def notworkingP5tet(self):
+    def testP5tet(self):
 
         element = FiniteElement("Lagrange", "tetrahedron", 5)
         
@@ -165,25 +172,37 @@ class FFCTestCase(unittest.TestCase):
         u = TrialFunction(element)
         f = Function(element)
 
-        n = FacetNormal("triangle")
-        h = MeshSize("triangle")
+        # FFC notation: n = FacetNormal("triangle"), not needed here
+        #n = FacetNormal()
+        
+        # FFC notation: h = MeshSize("triangle"), not supported by UFL
+        h = Constant("triangle")
 
         gN = Function(element)
 
         alpha = 4.0
         gamma = 8.0
 
-        a = dot(grad(v), grad(u))*dx \
-            - dot(avg(grad(v)), jump(u, n))*dS \
-            - dot(jump(v, n), avg(grad(u)))*dS \
-            + alpha/h('+')*dot(jump(v, n), jump(u, n))*dS \
-            - dot(grad(v), mult(u,n))*ds \
-            - dot(mult(v,n), grad(u))*ds \
-            + gamma/h*v*u*ds
+        # FFC notation
+        #a = dot(grad(v), grad(u))*dx \
+        #    - dot(avg(grad(v)), jump(u, n))*dS \
+        #    - dot(jump(v, n), avg(grad(u)))*dS \
+        #    + alpha/h('+')*dot(jump(v, n), jump(u, n))*dS \
+        #    - dot(grad(v), mult(u,n))*ds \
+        #    - dot(mult(v,n), grad(u))*ds \
+        #    + gamma/h*v*u*ds
 
+        a = dot(grad(v), grad(u))*dx \
+            - dot(avg(grad(v)), jump(u))*dS \
+            - dot(jump(v, n), avg(grad(u)))*dS \
+            + alpha/h('+')*dot(jump(v), jump(u))*dS \
+            - dot(grad(v), mult(u, n))*ds \
+            - dot(mult(v, n), grad(u))*ds \
+            + gamma/h*v*u*ds
+        
         L = v*f*dx + v*gN*ds
         
-    def notworkingPoisson(self):
+    def testPoisson(self):
 
         element = FiniteElement("Lagrange", "triangle", 1)
 

@@ -86,7 +86,6 @@ class Function(Terminal, Counted):
     def __repr__(self):
         return "Function(%r, %r, %r)" % (self._element, self._name, self._count)
 
-
 class Constant(Function):
     __slots__ = ("_polygon",)
 
@@ -103,4 +102,3 @@ class Constant(Function):
     
     def __repr__(self):
         return "Constant(%r, %r, %r)" % (self._polygon, self._name, self._count)
-
