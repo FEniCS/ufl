@@ -8,10 +8,11 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-08-20"
 
 
-from .output import ufl_warning, ufl_error
+from .output import ufl_warning, ufl_error, ufl_assert
 from .base import Terminal
 from .finiteelement import FiniteElement, MixedElement, VectorElement
-from .common import Counted
+from .common import Counted, product
+from .tensors import Vector, Matrix, Tensor
 
 
 class BasisFunction(Terminal, Counted):
@@ -43,30 +44,6 @@ def TestFunction(element):
 def TrialFunction(element):
     return BasisFunction(element, None, -1)
 
-
-# FIXME: Maybe we don't need these after all?
-def BasisFunctions(element):
-    ufl_warning("BasisFunctions isn't properly implemented.")
-    if not isinstance(element, MixedElement):
-        ufl_error("Expecting MixedElement instance.")
-    bf = BasisFunction(element)
-    return tuple(BasisFunction(e, parent=bf, count=bf._count) for e in element.sub_elements()) # FIXME: What should count be?
-
-def TestFunctions(element):
-    ufl_warning("TestFunctions isn't properly implemented.")
-    if not isinstance(element, MixedElement):
-        ufl_error("Expecting MixedElement instance.")
-    bf = TestFunction(element)
-    return tuple(BasisFunction(e, parent=bf, count=bf._count) for e in element.sub_elements()) # FIXME: What should count be?
-
-def TrialFunctions(element):
-    ufl_warning("TrialFunctions isn't properly implemented.")
-    if not isinstance(element, MixedElement):
-        ufl_error("Expecting MixedElement instance.")
-    bf = TrialFunction(element)
-    return tuple(BasisFunction(e, parent=bf, count=bf._count) for e in element.sub_elements()) # FIXME: What should count be?
-
-
 class Function(Terminal, Counted):
     __slots__ = ("_element", "_name", "_parent")
     _globalcount = 0
@@ -91,15 +68,6 @@ class Function(Terminal, Counted):
     def __repr__(self):
         return "Function(%r, %r, %r)" % (self._element, self._name, self._count)
 
-
-# FIXME: Maybe we don't need these after all? 
-def Functions(element):
-    ufl_warning("Functions isn't properly implemented.")
-    if not isinstance(element, MixedElement):
-        ufl_error("Expecting MixedElement instance.")
-    f = Function(element)
-    return tuple(Function(e, parent=f, count=f._count) for e in element.sub_elements()) # FIXME: What should count be?
-
 class Constant(Function):
     __slots__ = ("_polygon",)
 
@@ -116,3 +84,43 @@ class Constant(Function):
     
     def __repr__(self):
         return "Constant(%r, %r, %r)" % (self._polygon, self._name, self._count)
+
+def _foo_functions(element, function_type):
+    ufl_assert(isinstance(element, MixedElement), "Expecting MixedElement instance.")
+    ufl_assert(len(element.value_shape()) == 1, "MixedElement with value shape != 1 not handled!")
+    
+    f = function_type(element)
+    value_size = product(element.value_shape())
+    
+    offset = 0
+    subfunctions = []
+    for i, e in enumerate(element.sub_elements()):
+        shape = e.value_shape()
+        rank = len(shape)
+        size = product(shape)
+        if rank == 0:
+            subf = f[offset]
+            offset += 1
+        elif rank == 1:
+            components = [f[j] for j in range(offset, offset+size)]
+            subf = Vector(components)
+            offset += size
+        else:
+            ufl_error("*Functions(element) not implemented for rank > 1 elements yet.")
+            # FIXME: Need to handle symmetries etc...
+        subfunctions.append(subf)
+    
+    ufl_assert(value_size == offset, "Logic breach in offset accumulation in *Functions.")
+    return tuple(subfunctions)
+
+def BasisFunctions(element):
+    return _foo_functions(element, BasisFunction)
+
+def TestFunctions(element):
+    return _foo_functions(element, TestFunction)
+
+def TrialFunctions(element):
+    return _foo_functions(element, TrialFunction)
+
+def Functions(element):
+    return _foo_functions(element, Function)

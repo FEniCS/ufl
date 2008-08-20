@@ -68,7 +68,8 @@ from .finiteelement import FiniteElement, MixedElement, VectorElement, TensorEle
 from .elements import register_element #, ufl_elements
 
 # basisfunctions and coefficients
-from .basisfunctions import BasisFunction, TestFunction, TrialFunction, BasisFunctions, TestFunctions, TrialFunctions, Function, Constant
+from .basisfunctions import BasisFunction, TestFunction, TrialFunction, Function, Constant
+from .basisfunctions import BasisFunctions, TestFunctions, TrialFunctions, Functions
 
 # types for geometric quantities
 from .geometry import FacetNormal
