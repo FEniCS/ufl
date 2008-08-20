@@ -12,6 +12,7 @@ from .differentiation import Diff, Grad, Div, Curl, Rot
 from .tensoralgebra import Transposed, Inner, Outer, Dot, Cross, Determinant, Inverse, Trace, Deviatoric, Cofactor
 from .variable import Variable
 from .conditional import EQ, NE, LE, GE, LT, GT, Conditional
+from .mathfunctions import Sqrt, Exp, Ln, Cos, Sin
 
 #--- Tensor operators ---
 
@@ -113,3 +114,21 @@ def lt(left, right):
 def gt(left, right):
     "A boolean expresion (left > right) for use with conditional."
     return GT(left, right)
+
+#--- Math functions ---
+
+def sqrt(f):
+    return Sqrt(f)
+
+def exp(f):
+    return Exp(f)
+
+def ln(f):
+    return Ln(f)
+
+def cos(f):
+    return Cos(f)
+
+def sin(f):
+    return Sin(f)
+

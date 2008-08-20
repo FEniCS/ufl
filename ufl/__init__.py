@@ -96,7 +96,6 @@ from .tensoralgebra import Identity
 
 # mathematical functions
 #from .mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
-from .mathfunctions import sqrt, exp, ln, cos, sin
 
 # differentiation operators
 #from .differentiation import PartialDerivative, Diff, Grad, Div, Curl, Rot
@@ -105,6 +104,7 @@ from .mathfunctions import sqrt, exp, ln, cos, sin
 from .operators import transpose, outer, inner, dot, cross, det, inv, tr, dev, cofac
 from .operators import Dx, Dt, diff, grad, div, curl, rot, jump, avg, variable
 from .operators import eq, ne, le, ge, lt, gt, conditional
+from .operators import sqrt, exp, ln, cos, sin
 
 # form class
 from .form import Form

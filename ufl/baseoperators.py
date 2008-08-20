@@ -15,7 +15,6 @@ from .tensoralgebra import Transposed
 from .indexing import Indexed
 from .restriction import PositiveRestricted, NegativeRestricted
 from .differentiation import PartialDerivative
-from .mathfunctions import Sqrt, Exp, Ln, Cos, Sin
 
 
 #--- Extend UFLObject with algebraic operators ---
@@ -138,21 +137,4 @@ def _dx(self, *i):
     """Return the partial derivative with respect to spatial variable number i"""
     return PartialDerivative(self, i)
 UFLObject.dx = _dx
-
-#--- Math functions ---
-
-def sqrt(f):
-    return Sqrt(f)
-
-def exp(f):
-    return Exp(f)
-
-def ln(f):
-    return Ln(f)
-
-def cos(f):
-    return Cos(f)
-
-def sin(f):
-    return Sin(f)
 
