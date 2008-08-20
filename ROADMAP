@@ -3,13 +3,6 @@ Roadmap for the development of UFL
 
 Some of the TODO's left:
 
-# Elements and Basisfunctions:
- - Do we need 'Test/Trial/BasisFunctions'? If so, fix count issue.
- - Add Cell support?
- - Keep or drop name from Function? Can eventually pass it to UFC if we add a "form::coefficient_name(i)" function.
- - Degree range for quadrature elements?
- - Agree on final design!
-
 # Tensor handling:
  - Do we need UFLObject.repeated_indices()?
  - Do we need UFLObject.free_index_dimensions()?
@@ -20,19 +13,23 @@ Some of the TODO's left:
  - Finish Diff design, including index handling like in PartialDiff and Product.
  - Apply Variable in automatic differentiation to define subexpressions we can reuse.
 
-# Restrictions:
- - Implement restriction operators like jump and avg
-
-# Time derivatives
- - Do we want something like Dt(u), Dtt(u), CR(a), FE(a), BE(a), TR(a, theta)? 
-
-# Prettyness and readability:
- - Improve parentesis use in __str__ and __repr__ and ufl2latex, use precedence list
-
 # Algorithms:
  - Implement contraction function that expands all implicit summations into Sums
  - Implement evaluation function for swiginac and sympy, given expressions for each basisfunction and function.
- - Many small details and much testing in existing algorithms
+ - Several small details and much testing remains in existing algorithms
+
+# Elements and Basisfunctions (only minor or rare issues left):
+ - Implement 'Test/Trial/BasisFunctions' for general tensor subelement with arbitrary symmetries
+ - Add Cell support?
+ - Keep or drop name from Function? Can eventually pass it to UFC if we add a "form::coefficient_name(i)" function.
+ - Degree range for quadrature elements?
+ - Agree on final design!
+
+# Time derivatives (can wait):
+ - Do we want something like Dt(u), Dtt(u), CR(a), FE(a), BE(a), TR(a, theta)? 
+
+# Prettyness and readability (can wait):
+ - Improve parentesis use in __str__ and __repr__ and ufl2latex, use precedence list
 
 # Tests:
  - Implement more elaborate tests, some operators aren't tested, and only a few of the algorithms.
@@ -56,9 +53,11 @@ Some of the TODO's left:
 
   algebra.py              OK!
   base.py                 OK!
+  baseoperators.py        --
   basisfunctions.py       --
   common.py               OK!
   classes.py              --
+  conditionals.py         --
   differentiation.py      --
   elements.py             OK!
   finiteelement.py        OK!
@@ -80,6 +79,7 @@ Some of the TODO's left:
 
   algorithms/__init__.py         --
   algorithms/analysis.py         --
+  algorithms/ad.py               --
   algorithms/checks.py           --
   algorithms/predicates.py       --
   algorithms/transformations.py  --
