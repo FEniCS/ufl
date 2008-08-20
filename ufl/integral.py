@@ -5,11 +5,11 @@ from __future__ import absolute_import
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-08-14"
 
+# Modified by Anders Logg, 2008
 
 from .output import ufl_assert
 from .base import is_true_scalar
 from .form import Form
-
 
 class Integral(object):
     """Description of an integral over a single domain."""
@@ -29,6 +29,10 @@ class Integral(object):
     def __contains__(self, item):
         """Return wether item is in the UFL expression tree. If item is a str, it is assumed to be a repr."""
         return item in self._integrand
+
+    def __call__(self, domain_id):
+        "Return integral of same type on given sub domain"
+        return Integral(self._domain_type, domain_id)
     
     def __str__(self):
         d = { "cell": "dx",
@@ -39,4 +43,3 @@ class Integral(object):
     
     def __repr__(self):
         return "Integral(%r, %r, %r)" % (self._domain_type, self._domain_id, self._integrand)
-

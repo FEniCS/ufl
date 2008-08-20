@@ -30,4 +30,3 @@ triangle      = "triangle"      # Cell("triangle", 1)
 tetrahedron   = "tetrahedron"   # Cell("tetrahedron", 1)
 quadrilateral = "quadrilateral" # Cell("quadrilateral", 1)
 hexahedron    = "hexahedron"    # Cell("hexahedron", 1)
-
