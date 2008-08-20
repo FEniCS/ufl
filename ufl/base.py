@@ -11,7 +11,6 @@ __date__ = "2008-03-14 -- 2008-08-18"
 # UFL imports
 from .output import ufl_assert
 
-
 #--- The base object for all UFL expression tree nodes ---
 
 class UFLObject(object):
@@ -71,12 +70,10 @@ class UFLObject(object):
         "Checks whether the two expressions are represented the exact same way using repr."
         return repr(self) == repr(other)
 
-
 #--- A note about other operators ---
 
 # More operators (special functions) on UFLObjects are defined in baseoperators.py,
 # as well as the transpose "A.T" and spatial derivative "a.dx(i)".
-
 
 #--- Basic terminal objects ---
 
@@ -107,7 +104,6 @@ class Number(Terminal):
     def __repr__(self):
         return "Number(%r)" % self._value
 
-
 #--- Zero tensors of different shapes ---
 
 class ZeroType(Terminal): # Experimental!
@@ -135,7 +131,6 @@ def zero_tensor(shape):
     _zero_cache[shape] = z
     return z
 
-
 #--- Base class of compound objects ---
 
 class Compound(UFLObject):
@@ -147,7 +142,6 @@ class Compound(UFLObject):
     def as_basic(self, *operands):
         "Return this expression expressed using basic operations."
         raise NotImplementedError(self.__class__.as_basic)
-
 
 #--- Basic helper functions ---
 
@@ -162,4 +156,3 @@ def is_scalar(o):
 def is_true_scalar(o):
     """Return True iff expression a single scalar value, with no free indices"""
     return is_scalar(o) and len(o.free_indices()) == 0
-

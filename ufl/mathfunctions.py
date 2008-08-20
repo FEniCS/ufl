@@ -58,6 +58,10 @@ class Sin(MathFunction):
     def __init__(self, argument):
         MathFunction.__init__(self, "sin", argument)
 
+class Abs(MathFunction):
+    def __init__(self, argument):
+        MathFunction.__init__(self, "abs", argument)
+
 #--- Functions exposed to the user ---
 
 def sqrt(f):
@@ -75,3 +79,5 @@ def cos(f):
 def sin(f):
     return Sin(f)
 
+def abs(f):
+    return Abs(f)
