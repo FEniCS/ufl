@@ -30,11 +30,16 @@ class UFLObject(object):
     def free_indices(self):
         "Return a tuple with the free indices (unassigned) of the expression."
         raise NotImplementedError(self.__class__.free_indices)
-    
+
     # All subclasses must implement repeated_indices
     #def repeated_indices(self): # FIXME: Add this?
     #    "Return a tuple with the free indices (unassigned) of the expression."
     #    raise NotImplementedError(self.__class__.free_indices)
+
+    # All subclasses must implement free_index_dimensions
+    #def free_index_dimensions(self): # FIXME: Add this?
+    #    "Return a tuple with the dimensions of the free indices."
+    #    raise NotImplementedError(self.__class__.free_index_dimensions)
     
     # All subclasses must implement shape
     def shape(self):
@@ -44,11 +49,6 @@ class UFLObject(object):
     def rank(self):
         "Return the tensor rank of the expression."
         return len(self.shape())
-    
-    # All subclasses must implement shallow_diff
-    #def shallow_diff(self): # FIXME: Add this? Other name? Not diff, because it would tempt users to call this...
-    #    "FIXME."
-    #    raise NotImplementedError(self.__class__.shallow_diff)
     
     # All subclasses must implement __repr__
     def __repr__(self):
@@ -112,10 +112,10 @@ def zero_tensor(shape):
     _zero_cache[shape] = z
     return z
 
-<<<<<<< local
 def zero():
     return zero_tensor(())
 
+#--- Scalar type ---
 
 class Number(Terminal):
     "A constant scalar numeric value"
@@ -136,10 +136,6 @@ class Number(Terminal):
     def __repr__(self):
         return "Number(%r)" % self._value
 
-
-
-=======
->>>>>>> other
 #--- Base class of compound objects ---
 
 class Compound(UFLObject):
