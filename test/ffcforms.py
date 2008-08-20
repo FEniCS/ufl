@@ -215,6 +215,8 @@ class FFCTestCase(unittest.TestCase):
         
     def notworkingPoissonSystem(self):
 
+        # UFLException: Trying to integrate expression of rank 2 with free indices ().
+
         element = VectorElement("Lagrange", "triangle", 1)
 
         v = TestFunction(element)
@@ -225,6 +227,8 @@ class FFCTestCase(unittest.TestCase):
         L = dot(v, f)*dx
         
     def notworkingProjection(self):
+
+        # NameError: global name 'Projection' is not defined
 
         P0 = FiniteElement("Discontinuous Lagrange", "triangle", 0)
         P1 = FiniteElement("Lagrange", "triangle", 1)
@@ -257,6 +261,8 @@ class FFCTestCase(unittest.TestCase):
 
     def notworkingStokes(self):
 
+        # UFLException: Shape mismatch in sum.
+
         P2 = VectorElement("Lagrange", "triangle", 2)
         P1 = FiniteElement("Lagrange", "triangle", 1)
         TH = P2 + P1
@@ -279,7 +285,7 @@ class FFCTestCase(unittest.TestCase):
 
         M = f*dx(2) + f*ds(5)
         
-    def notworkingSubDomains(self):
+    def testSubDomains(self):
 
         element = FiniteElement("CG", "tetrahedron", 1)
 
@@ -321,7 +327,10 @@ class FFCTestCase(unittest.TestCase):
         order = 1
 
         GRAD = FiniteElement("Lagrange", shape, order)
-        CURL = FiniteElement("Nedelec", shape, order-1)
+
+        # FFC notation: CURL = FiniteElement("Nedelec", shape, order-1)
+        CURL = FiniteElement("N1curl", shape, order-1)
+
         VectorLagrange = VectorElement("Lagrange", shape, order+1)
 
         [a, L] = HodgeLaplaceGradCurl(GRAD + CURL, VectorLagrange)
