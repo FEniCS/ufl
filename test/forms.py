@@ -122,10 +122,5 @@ class FormsTestCase(unittest.TestCase):
         L = dot(f, v)
         b = dot(u, grad(q))
 
-
-suite1 = unittest.makeSuite(FormsTestCase)
-
-allsuites = unittest.TestSuite((suite1, ))
-
 if __name__ == "__main__":
-    unittest.TextTestRunner(verbosity=0).run(allsuites)
+    unittest.main()

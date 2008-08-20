@@ -73,9 +73,5 @@ class ElementsTestCase(unittest.TestCase):
             self.assertTrue( TH2.value_shape() == (dim+1,) )
 
 
-suite1 = unittest.makeSuite(ElementsTestCase)
-
-allsuites = unittest.TestSuite((suite1, ))
-
 if __name__ == "__main__":
-    unittest.TextTestRunner(verbosity=0).run(allsuites)
+    unittest.main()

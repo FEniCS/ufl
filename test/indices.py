@@ -207,10 +207,5 @@ class IndexTestCase(unittest.TestCase):
         # ...
 
 
-suite1 = unittest.makeSuite(IndexTestCase)
-
-allsuites = unittest.TestSuite((suite1, ))
-
 if __name__ == "__main__":
-    unittest.TextTestRunner(verbosity=0).run(allsuites)
-
+    unittest.main()

@@ -204,11 +204,5 @@ class FormsTestCase(unittest.TestCase):
         b = dot(u, grad(q))
 
 
-suite1 = unittest.makeSuite(FormsTestCase)
-suite2 = unittest.makeSuite(IllegalExpressionsTestCase)
-
-allsuites = unittest.TestSuite((suite1, suite2))
-
 if __name__ == "__main__":
-    unittest.TextTestRunner(verbosity=0).run(allsuites)
-
+    unittest.main()
