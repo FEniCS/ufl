@@ -15,7 +15,7 @@ from .output import ufl_assert
 #--- The base object for all UFL expression tree nodes ---
 
 class UFLObject(object):
-    "Base class of all UFL objects"
+    "Base class for all UFL objects"
     
     # Freeze member variables (there are none) for objects of this class
     __slots__ = tuple()
