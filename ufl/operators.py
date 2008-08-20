@@ -6,11 +6,12 @@ objects."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-04-09 -- 2008-08-18"
+__date__ = "2008-04-09 -- 2008-08-20"
 
 from .differentiation import Diff, Grad, Div, Curl, Rot
 from .tensoralgebra import Transposed, Inner, Outer, Dot, Cross, Determinant, Inverse, Trace, Deviatoric, Cofactor
 from .variable import Variable
+from .conditional import EQ, NE, LE, GE, LT, GT, Conditional
 
 #--- Tensor operators ---
 
@@ -83,3 +84,32 @@ def avg(o): # FIXME
 def variable(o):
     return Variable(o)
 
+#--- Conditional expressions ---
+
+def conditional(condition, true_value, false_value):
+    "A conditional expression, like the C construct (condition ? true_value : false_value)."
+    return Conditional(condition, true_value, false_value)
+
+def eq(left, right):
+    "A boolean expresion (left == right) for use with conditional."
+    return EQ(left, right)
+
+def ne(left, right):
+    "A boolean expresion (left != right) for use with conditional."
+    return NE(left, right)
+
+def le(left, right):
+    "A boolean expresion (left <= right) for use with conditional."
+    return LE(left, right)
+
+def ge(left, right):
+    "A boolean expresion (left >= right) for use with conditional."
+    return GE(left, right)
+
+def lt(left, right):
+    "A boolean expresion (left < right) for use with conditional."
+    return LT(left, right)
+
+def gt(left, right):
+    "A boolean expresion (left > right) for use with conditional."
+    return GT(left, right)

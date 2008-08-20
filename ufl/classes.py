@@ -5,7 +5,7 @@ implementation details not exposed through the default ufl namespace."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-15 -- 2008-08-19"
+__date__ = "2008-08-15 -- 2008-08-20"
 
 from .base import UFLObject, Terminal, Number, Compound
 from .variable import Variable
@@ -22,6 +22,7 @@ from .tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace
 from .mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
 from .restriction import Restricted, PositiveRestricted, NegativeRestricted
 from .differentiation import PartialDerivative, Diff, Grad, Div, Curl, Rot
+from .conditional import Condition, EQ, NE, LE, GE, LT, GT, Conditional
 from .form import Form
 from .integral import Integral
 from .formoperators import Derivative, Action, Rhs, Lhs

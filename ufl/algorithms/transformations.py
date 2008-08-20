@@ -5,7 +5,7 @@ converting UFL expressions to other representations."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-08-19"
+__date__ = "2008-05-07 -- 2008-08-20"
 
 from collections import defaultdict
 
@@ -27,6 +27,7 @@ from ..tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trac
 from ..mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
 from ..restriction import Restricted, PositiveRestricted, NegativeRestricted
 from ..differentiation import PartialDerivative, Diff, Grad, Div, Curl, Rot
+from ..conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ..form import Form
 from ..integral import Integral
 #from ..formoperators import Derivative, Action, Rhs, Lhs # TODO: What to do with these?

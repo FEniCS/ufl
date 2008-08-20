@@ -28,7 +28,7 @@ __version__ = "0.1"
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __copyright__ = __authors__ + " (2008)"
 __licence__ = "LGPL" # TODO: which licence?
-__date__ = "2008-03-14 -- 2008-08-18"
+__date__ = "2008-03-14 -- 2008-08-20"
 
 # DEBUGGING: Enable PyChecker to find potential bugs by static code analysis:
 #import os, sys, glob, numpy, logging # PyChecker skips previously loaded modules
@@ -102,7 +102,9 @@ from .mathfunctions import sqrt, exp, ln, cos, sin
 #from .differentiation import PartialDerivative, Diff, Grad, Div, Curl, Rot
 
 # operators
-from .operators import transpose, outer, inner, dot, cross, det, inv, tr, dev, cofac, Dx, Dt, diff, grad, div, curl, rot, jump, avg, variable
+from .operators import transpose, outer, inner, dot, cross, det, inv, tr, dev, cofac
+from .operators import Dx, Dt, diff, grad, div, curl, rot, jump, avg, variable
+from .operators import eq, ne, le, ge, lt, gt, conditional
 
 # form class
 from .form import Form
@@ -126,4 +128,3 @@ from math import e, pi
 
 # algorithms
 from . import algorithms
-

@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-19"
+__date__ = "2008-03-14 -- 2008-08-20"
 
 from .output import ufl_assert
 from .base import UFLObject, is_true_scalar
@@ -11,7 +11,7 @@ from .base import UFLObject, is_true_scalar
 #--- Function representations ---
 
 class MathFunction(UFLObject):
-    __slots__("_name", "_argument")
+    __slots__ = "_name", "_argument"
     def __init__(self, name, argument):
         ufl_assert(is_true_scalar(argument), "Expecting scalar.")
         self._name     = name

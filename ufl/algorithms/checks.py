@@ -24,6 +24,7 @@ from ..tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trac
 from ..mathfunctions import MathFunction
 from ..restriction import Restricted, PositiveRestricted, NegativeRestricted
 from ..differentiation import PartialDerivative, Diff, Grad, Div, Curl, Rot
+from ..conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ..form import Form
 from ..integral import Integral
 from ..formoperators import Derivative, Action, Rhs, Lhs, rhs, lhs

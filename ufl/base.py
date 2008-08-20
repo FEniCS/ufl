@@ -4,7 +4,7 @@ types involved with built-in operators on any UFL object."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-18"
+__date__ = "2008-03-14 -- 2008-08-20"
 
 # Modified by Anders Logg, 2008
 
@@ -78,7 +78,7 @@ class UFLObject(object):
 # as well as the transpose "A.T" and spatial derivative "a.dx(i)".
 
 
-#--- Basic terminal objects ---
+#--- Base class for terminal objects ---
 
 class Terminal(UFLObject):
     "A terminal node in the UFL expression tree"
@@ -87,25 +87,6 @@ class Terminal(UFLObject):
     def operands(self):
         "A Terminal object never has operands"
         return tuple()
-
-class Number(Terminal):
-    "A constant scalar numeric value"
-    __slots__ = ("_value",)
-    
-    def __init__(self, value):
-        self._value = value
-    
-    def free_indices(self):
-        return tuple()
-    
-    def shape(self):
-        return ()
-    
-    def __str__(self):
-        return str(self._value)
-    
-    def __repr__(self):
-        return "Number(%r)" % self._value
 
 
 #--- Zero tensors of different shapes ---
@@ -134,6 +115,30 @@ def zero_tensor(shape):
     z = ZeroType(shape)
     _zero_cache[shape] = z
     return z
+
+def zero():
+    return zero_tensor(())
+
+
+class Number(Terminal):
+    "A constant scalar numeric value"
+    __slots__ = ("_value",)
+    
+    def __init__(self, value): # TODO: Use metaclass to return zero if value is 0?
+        self._value = value
+    
+    def free_indices(self):
+        return tuple()
+    
+    def shape(self):
+        return ()
+    
+    def __str__(self):
+        return str(self._value)
+    
+    def __repr__(self):
+        return "Number(%r)" % self._value
+
 
 
 #--- Base class of compound objects ---
