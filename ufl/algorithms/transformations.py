@@ -5,7 +5,7 @@ converting UFL expressions to other representations."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-08-20"
+__date__ = "2008-05-07 -- 2008-08-21"
 
 from collections import defaultdict
 
@@ -181,11 +181,18 @@ def latex_handlers():
     d[Inverse]     = lambda x, A: "{%s}^{-1}" % par(A)
     d[Deviatoric]  = lambda x, A: "dev{%s}" % par(A)
     d[Cofactor]    = lambda x, A: "cofac{%s}" % par(A)
-    #d[ListVector]  =  # FIXME
-    #d[ListMatrix]  =  # FIXME
-    #d[Tensor]      =  # FIXME
+    #d[ListVector]  =  FIXME
+    #d[ListMatrix]  =  FIXME
+    #d[Tensor]      =  FIXME
     d[PositiveRestricted] = lambda x, f: "{%s}^+" % par(A)
     d[NegativeRestricted] = lambda x, f: "{%s}^-" % par(A)
+    #d[EQ] = FIXME
+    #d[NE] = FIXME
+    #d[LE] = FIXME
+    #d[GE] = FIXME
+    #d[LT] = FIXME
+    #d[GT] = FIXME
+    #d[Conditional] = FIXME
     
     # Print warnings about classes we haven't implemented:
     missing_handlers = set(ufl_classes)
@@ -235,100 +242,60 @@ def expand_compounds(expression, dim):
     return transform(expression, d)
 
 
-def _strip_variables(a):
-    "Auxilliary procedure for strip_variables."
-    
-    if isinstance(a, Terminal):
-        return a, False
-    
-    if isinstance(a, Variable):
-        b, changed = _strip_variables(a._expression)
-        return b, changed
-    
-    operands = []
-    changed = False
-    for o in a.operands():
-        b, c = _strip_variables(o)
-        operands.append(b)
-        if c: changed = True
-    
-    if changed:
-        return a.__class__(*operands), True
-    # else: no change, reuse object
-    return a, False
+# TODO: Take care when using this, it will replace _all_ occurences of these indices,
+# so in f.ex. (a[i]*b[i]*(1.0 + c[i]*d[i]) the replacement i==0 will result in
+# (a[0]*b[0]*(1.0 + c[0]*d[0]) which is probably not what is wanted.
+# If this is a problem, a new algorithm may be needed.
+def substitute_indices(expression, indices, values):
+    """Substitute Index objects from the list 'indices' with corresponding
+    fixed values from the list 'values' in expression."""
+    d = ufl_reuse_handlers()
+
+    def s_multi_index(x, *ops):
+        newindices = []
+        for i in x._indices:
+            try:
+                idx = indices.index(i)
+                val = values[idx]
+                newindices.append(val)
+            except:
+                newindices.append(i)
+        return MultiIndex(*newindices)
+    d[MultiIndex] = s_multi_index
+
+    return transform(expression, d)
 
 
-def strip_variables(a):
-    """Strip Variable objects from a, replacing them with their expressions."""
-    ufl_assert(isinstance(a, UFLObject), "Expecting an UFLObject.")
-    b, changed = _strip_variables(a)
-    return b
+def strip_variables(expression, handled_variables=None):
+    d = ufl_reuse_handlers()
+    if handled_variables is None:
+        handled_variables = {}
+    def s_variable(x):
+        if x._count in handled_variables:
+            return handled_variables[x._count]
+        v = strip_variables(x._expression, handled_variables)
+        handled_variables[x._count] = v
+        return v
+    d[Variable] = s_variable
+    return transform(expression, d)
 
 
-# naive version, producing lots of extra objects:
-def strip_variables2(a):
-    """Strip Variable objects from a, replacing them with their expressions."""
-    ufl_assert(isinstance(a, UFLObject), "Expecting an UFLObject.")
-    
-    if isinstance(a, Terminal):
-        return a
-    
-    if isinstance(a, Variable):
-        return strip_variables2(a._expression)
-    
-    operands = [strip_variables2(o) for o in a.operands()]
-    
-    return a.__class__(*operands)
-
-
-def flatten(a): # TODO: Pick this or the below version flatten2
-    """Flatten (a+b)+(c+d) into a (a+b+c+d) and (a*b)*(c*d) into (a*b*c*d)."""
-    ufl_assert(isinstance(a, UFLObject), "Expecting an UFLObject.")
-    
-    # Possible optimization:
-    #     Reuse objects for subtrees with no
-    #     flattened sums or products.
-    #     The current procedure will create a new object
-    #     for every single node in the tree.
-    
-    # TODO: Traverse variables or not?
-    
-    if isinstance(a, Terminal):
-        return a
-    
-    myclass = a.__class__
-    operands = []
-    
-    if isinstance(a, (Sum, Product)):
-        for o in a.operands():
-            b = flatten(o)
-            if isinstance(b, myclass):
-                operands.extend(b.operands())
-            else:
-                operands.append(b)
-    else:
-        for o in a.operands():
-            b = flatten(o)
-            operands.append(b)
-    
-    return myclass(*operands)
-
-
-def flatten2(expression):
+def flatten(expression):
     """Convert an UFL expression to a new UFL expression, with sums 
     and products flattened from binary tree nodes to n-ary tree nodes."""
-    handlers = ufl_reuse_handlers()
+    d = ufl_reuse_handlers()
     def _flatten(x, *ops):
+        c = x.__class__
         newops = []
         for o in ops:
-            if isinstance(x.__class__, o):
+            if isinstance(o, c):
                 newops.extend(o.operands())
             else:
                 newops.append(o)
-        return x.__class__(*newops)
-    handlers[Sum] = _flatten
-    handlers[Product] = _flatten
-    return transform(expression, handlers)
+        return c(*newops)
+    d[Sum] = _flatten
+    d[Product] = _flatten
+    return transform(expression, d)
 
 
 def renumber_indices(expression, offset=0):

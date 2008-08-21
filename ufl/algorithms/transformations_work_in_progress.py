@@ -74,13 +74,6 @@ def _detect_argument_dependencies(a, criteria):
     return a.__class__(*operands)
 
 
-def substitute_indices(u, indices, values):
-    """Substitute Index objects from list indices with corresponding
-    fixed values from list values in expression u."""
-    ufl_error("Not implemented") # FIXME: Implement
-    return u
-
-
 def expand_indices(expression):
     "Expand implicit summations into explicit Sums of Products."
     

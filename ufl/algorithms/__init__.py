@@ -20,8 +20,9 @@ from .utilities import load_forms, integral_info, form_info
 
 # Utilites for modifying expressions and forms
 from .transformations import ufl2ufl, ufl2latex, transform_integrands
-from .transformations import expand_compounds, strip_variables, flatten, flatten2
+from .transformations import expand_compounds, strip_variables, flatten
 from .transformations import renumber_indices, renumber_arguments
+from .transformations import substitute_indices
 
-from .transformations_work_in_progress import substitute_indices, expand_indices
+from .transformations_work_in_progress import expand_indices
 

@@ -62,10 +62,12 @@ Axis = AxisType()
 #--- Indexing ---
 
 class MultiIndex(Terminal):
-    __slots__ = ("_indices",)
+    __slots__ = ("_indices", "_rank")
     
     def __init__(self, indices, rank):
         self._indices = as_index_tuple(indices, rank)
+        self._rank = rank
+        ufl_assert(len(self._indices) == rank, "No?")
     
     def free_indices(self):
         ufl_error("Calling free_indices on MultiIndex is undefined.")
@@ -77,7 +79,7 @@ class MultiIndex(Terminal):
         return ", ".join(str(i) for i in self._indices)
     
     def __repr__(self):
-        return "MultiIndex(%r, %d)" % (self._indices, len(self._indices))
+        return "MultiIndex(%r, %d)" % (self._indices, self._rank)
     
     def __len__(self):
         return len(self._indices)
