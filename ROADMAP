@@ -9,7 +9,6 @@ Some of the TODO's left:
  - Test and finalize class Tensor.
 
 # Derivatives:
- - Decide on Variable design. Change Variable back to a nonterminal again?
  - Finish Diff design, including index handling like in PartialDiff and Product.
  - Apply Variable in automatic differentiation to define subexpressions we can reuse.
 
