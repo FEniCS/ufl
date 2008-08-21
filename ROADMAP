@@ -19,16 +19,10 @@ Some of the TODO's left:
 
 # Elements and Basisfunctions (only minor or rare issues left):
  - Implement 'Test/Trial/BasisFunctions' for general tensor subelement with arbitrary symmetries
- - Add Cell support?
+ - Add Cell support for high order geometries?
  - Keep or drop name from Function? Can eventually pass it to UFC if we add a "form::coefficient_name(i)" function.
  - Degree range for quadrature elements?
  - Agree on final design!
-
-# Time derivatives (can wait):
- - Do we want something like Dt(u), Dtt(u), CR(a), FE(a), BE(a), TR(a, theta)? 
-
-# Prettyness and readability (can wait):
- - Improve parentesis use in __str__ and __repr__ and ufl2latex, use precedence list
 
 # Tests:
  - Implement more elaborate tests, some operators aren't tested, and only a few of the algorithms.
@@ -36,8 +30,14 @@ Some of the TODO's left:
 # Documentation:
  - Write the manual (can perhaps reuse some text I have)
  - Write the paper/book chapter (can perhaps reuse some text I have)
- - Improve operator docstrings
+ - Improve operator docstrings (use epydoc @param and @return?)
  - Rewrite/improve all error messages
+
+# Prettyness and readability (can wait):
+ - Improve parentesis use in __str__ and __repr__ and ufl2latex, use precedence list
+
+# Time derivatives (can wait):
+ - Do we want something like Dt(u), Dtt(u), CR(a), FE(a), BE(a), TR(a, theta)? 
 
 # License:
  - Which license do we pick? GPL3 or LGPL3?
