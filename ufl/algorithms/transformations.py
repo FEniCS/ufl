@@ -273,7 +273,7 @@ def expand_indices(expression):
     
     def e_product(x, *ops):
         rep_ind = x._repeated_indices
-        return x.__class__(*ops) # FIXME
+        return x.__class__(*ops) # FIXME 
     d[Product] = e_product
     
     def e_partial_diff(x, *ops):

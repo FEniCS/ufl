@@ -53,10 +53,10 @@ register_element("Nedelec 1st kind H(curl)", "N1curl", 1, (0, None),
 register_element("Nedelec 2nd kind H(curl)", "N2curl", 1, (1, None),
                  ("triangle", "tetrahedron"))
 
-# FIXME: What should the degree range be for quadrature elements?
-#        Should we specify degree at all? It should match the degree
-#        chosen for numeric integration, which is perhaps better
-#        specified as a form compiler option?
+# TODO: What should the degree range be for quadrature elements?
+#       Should we specify degree at all? It should match the degree
+#       chosen for numeric integration, which is perhaps better
+#       specified as a form compiler option?
 
 register_element("Quadrature", "Q", 0, (None, None),
                  ("interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
