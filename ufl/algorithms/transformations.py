@@ -9,6 +9,7 @@ __date__ = "2008-05-07 -- 2008-08-21"
 
 from collections import defaultdict
 
+from ..common import some_key, product
 from ..output import ufl_assert, ufl_error
 
 # All classes:
@@ -266,6 +267,26 @@ def substitute_indices(expression, indices, values):
     return transform(expression, d)
 
 
+def expand_indices(expression):
+    "Expand implicit summations into explicit Sums of Products."
+    d = ufl_reuse_handlers()
+    
+    def e_product(x, *ops):
+        rep_ind = x._repeated_indices
+        return x.__class__(*ops) # FIXME
+    d[Product] = e_product
+    
+    def e_partial_diff(x, *ops):
+        return x # FIXME
+    d[PartialDiff] = e_partial_diff
+    
+    def e_diff(x, *ops):
+        return x # FIXME
+    d[Diff] = e_diff
+    
+    return transform(expression, d)
+
+
 def strip_variables(expression, handled_variables=None):
     d = ufl_reuse_handlers()
     if handled_variables is None:
@@ -352,16 +373,141 @@ def renumber_arguments(a):
             k += 1
     
     # Build handler dict using these mappings
-    handlers = ufl_reuse_handlers()
+    d = ufl_reuse_handlers()
     def basisfunction_handler(o):
         return bfmap[o]
     def function_handler(o):
         return cfmap[o]
-    handlers[BasisFunction] = basisfunction_handler
-    handlers[Function] = function_handler
+    d[BasisFunction] = basisfunction_handler
+    d[Function] = function_handler
     
     # Apply renumbering transformation to all integrands 
     def renumber_expression(expression):
-        return transform(expression, handlers)
+        return transform(expression, d)
     return transform_integrands(a, renumber_expression)
 
+
+def _split_by_dependencies(expression, stacks, variable_cache, terminal_deps):
+
+    if isinstance(expression, Variable):
+        c = expression._count
+        if c in variable_cache:
+            return variable_cache[c]
+        #stacks[vdeps].append(v)
+    elif isinstance(expression, Terminal):
+        deps = terminal_deps[expression.__class__](expression)
+        ufl_assert(len(deps) == len(some_key(stacks)), "Inconsistency in dependency definitions.")
+        return expression, deps
+    
+    ops = expression.operands()
+    ops2 = [_split_by_dependencies(o, stacks, variable_cache, terminal_deps) for o in ops]
+    ops3 = []
+    deps = tuple([any(o[1][i] for o in ops2) for i in range(len(ops2[1]))])
+    for (v,vdeps) in ops2:
+        if isinstance(v, Variable):
+            # if this subexpression is a variable, it has already been added to the stack
+            ufl_assert(v._count in variable_cache, "")
+        elif not vdeps == deps:
+            # if this subexpression has other dependencies than 'expression', store a variable for it
+            v = Variable(v)
+            variable_cache[v._count] = (v, vdeps)
+            stacks[vdeps].append(v)
+        ops3.append(v)
+    
+    if isinstance(expression, Variable):
+        c = expression._count
+        ufl_assert(c not in variable_cache, "Shouldn't reach this point if the variable was already cached!")
+        variable_cache[c] = (expression, deps)
+        stacks[deps].append(expression)
+    
+    # Try to reuse expression if nothing has changed:
+    if any((o1 is not o3) for (o1,o3) in izip(ops,ops3)):
+        e = expression.__class__(*ops3)
+    else:
+        e = expression
+    return e, deps
+
+
+def split_by_dependencies(expression, basisfunction_deps, function_deps):
+    """Split an expression into stacks of variables based on the dependencies of its subexpressions.
+    
+    @type expression: UFLObject
+    @param expression: The expression to parse.
+    @type basisfunction_deps: list(tuple(bool,bool))
+    @param basisfunction_deps:
+        A list of tuples of two booleans, one tuple for each
+        BasisFunction in the form the expression originates from.
+        Each tuple tells whether this BasisFunction depends on
+        the geometry and topology of a cell, respectively.
+    @type basisfunction_deps: list(tuple(bool,bool))
+    @param function_deps:
+        A list of tuples of two booleans, one tuple for each
+        Function in the form the expression originates from.
+        Each tuple tells whether this Function depends on
+        the geometry and topology of a cell, respectively.
+    @return: 
+        TODO: Describe datastructures
+    @precondition:
+        Assumes the basisfunctions and functions have been renumbered from 0!
+        
+    If the *_deps arguments are unknown, a safe way to invoke this function is::
+    
+        split_by_dependencies(expression, [(False,False)]*rank, [(False,False)]*num_coefficients)
+    """
+    ufl_assert(isinstance(expression, UFLObject), "Expecting UFLObject.")
+    
+    ### Dependency tuple definitions
+    num_basisfunctions = len(basisfunction_deps)
+    num_functions = len(function_deps)
+    # Base dependency groups: cell geometry, cell topology, coefficients
+    num_base_deps = 3
+    # More dependencies: basisfunctions
+    num_deps = num_base_deps + num_basisfunctions
+    # Utility function to ensure consistent ordering of dependency tuples
+    def make_deps(geometry=False, topology=False, coefficients=False, basisfunction=None):
+        return (geometry, topology, coefficients) + tuple([False if i == basisfunction else True for i in range(num_basisfunctions)])
+    
+    ### Stacks: one stack of variables for each dependency configuration
+    stacks = {}
+    tmp = compute_indices((2,)*num_deps)
+    # add empty lists to stacks for each permutation of dependency groups
+    permutations = [tuple([bool(i) for i in p]) for p in tmp]
+    for p in permutations:
+        stacks[p] = []
+    
+    ### Variable cache, a place to look up if a variable has been added to the stacks already:
+    variable_cache = {}
+    
+    ### Terminal object dependency mappings:
+    terminal_deps = {}
+    _no_dep = make_deps()
+    def no_deps(x):
+        return _no_dep
+    _facet_normal_dep = make_deps(geometry=True, topology=True)
+    def facet_normal_deps(x):
+        return _cell_dep
+    def function_deps(x):
+        g, t = function_deps[x._count]
+        return make_deps(geometry=g, topology=t, coefficients=True)
+    def basisfunction_deps(x):
+        g, t = basisfunction_deps[x._count]
+        return make_deps(geometry=g, topology=t, basisfunction=x._count)
+    # List all terminal objects:
+    terminal_deps[MultiIndex] = no_deps
+    terminal_deps[Identity] = no_deps
+    terminal_deps[Constant] = no_deps
+    terminal_deps[Number] = no_deps
+    terminal_deps[FacetNormal] = facet_normal_deps
+    terminal_deps[Function] = function_deps
+    terminal_deps[BasisFunction] = basisfunction_deps
+
+    ### Do the work!
+    e, deps = _split_by_dependencies(expression, stacks, variable_cache)
+    # Add final e to stacks and return variable
+    if not isinstance(e, Variable):
+        e = Variable(e)
+    c = e._count
+    if c not in variable_cache:
+        variable_cache[c] = (e, deps)
+        stacks[deps].append(e)
+    return e, deps, stacks, variable_cache

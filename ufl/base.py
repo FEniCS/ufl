@@ -4,7 +4,7 @@ types involved with built-in operators on any UFL object."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-20"
+__date__ = "2008-03-14 -- 2008-08-21"
 
 # Modified by Anders Logg, 2008
 
@@ -14,7 +14,7 @@ from .output import ufl_assert
 #--- The base object for all UFL expression tree nodes ---
 
 class UFLObject(object):
-    "Base class for all UFL objects"
+    "Base class for all UFL objects."
     
     # Freeze member variables (there are none) for objects of this class
     __slots__ = tuple()
@@ -70,6 +70,11 @@ class UFLObject(object):
         "Checks whether the two expressions are represented the exact same way using repr."
         return repr(self) == repr(other)
 
+    def __getnewargs__(self): # TODO: Test pickle and copy with this. Must implement differently for Terminal objects though.
+        "Used for pickle and copy operations."
+        return self.operands()
+
+
 #--- A note about other operators ---
 
 # More operators (special functions) on UFLObjects are defined in baseoperators.py,
@@ -78,11 +83,11 @@ class UFLObject(object):
 #--- Base class for terminal objects ---
 
 class Terminal(UFLObject):
-    "A terminal node in the UFL expression tree"
+    "A terminal node in the UFL expression tree."
     __slots__ = ()
     
     def operands(self):
-        "A Terminal object never has operands"
+        "A Terminal object never has operands."
         return tuple()
 
 #--- Zero tensors of different shapes ---
@@ -118,7 +123,7 @@ def zero():
 #--- Scalar type ---
 
 class Number(Terminal):
-    "A constant scalar numeric value"
+    "A constant scalar numeric value."
     __slots__ = ("_value",)
     
     def __init__(self, value): # TODO: Use metaclass to return zero if value is 0?
@@ -154,10 +159,20 @@ def is_python_scalar(o):
     return isinstance(o, (int, float))
 
 def is_scalar(o):
-    """Return True iff expression is scalar-valued, possibly containing free indices"""
+    "Return True iff expression is scalar-valued, possibly containing free indices."
     ufl_assert(isinstance(o, UFLObject), "Assuming an UFLObject.")
     return o.shape() == ()
 
 def is_true_scalar(o):
-    """Return True iff expression a single scalar value, with no free indices"""
+    "Return True iff expression a single scalar value, with no free indices."
     return is_scalar(o) and len(o.free_indices()) == 0
+
+def as_ufl(o):
+    "Returns o if it is an UFLObject or an UFLObject wrapper if o is a scalar."  
+    if is_python_scalar(o):
+        if o == 0:
+            return zero()
+        return Number(o)
+    ufl_assert(isinstance(o, UFLObject), "Expecting Python scalar or UFLObject instance.")
+    return o
+    

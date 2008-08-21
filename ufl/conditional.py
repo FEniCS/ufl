@@ -3,27 +3,40 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-20 -- 2008-08-20"
+__date__ = "2008-08-20 -- 2008-08-21"
 
 from .output import ufl_assert
-from .base import UFLObject, Terminal, Number, is_python_scalar
+from .base import UFLObject, Terminal, Number, is_python_scalar, as_ufl
 from .indexing import compare_shapes
 
 
 #--- Condition classes --- 
 
-class Condition(Terminal):
+class Condition(UFLObject):
     def __init__(self, name, left, right):
         self._name = name
-        self._left = left
-        self._right = right
+        self._left = as_ufl(left)
+        self._right = as_ufl(right)
+        ufl_assert(self._left.shape() == () and self._right.shape() == (), "Expecting scalar arguments.")
+        ufl_assert(self._left.free_indices() == () and self._right.free_indices() == (), "Expecting scalar arguments.")
+        
+    def operands(self):
+        # Condition should never be constructed directly,
+        # so these two arguments correspond to the constructor
+        # arguments of the subclasses EQ etc.
+        return (self._left, self._right)
+
+    def free_indices(self):
+        ufl_warning("Why would you want the free_indices of a Condition?")
+        return ()
 
     def shape(self):
-        ufl_error("Why would you want the shape of a Condition?")
+        ufl_warning("Why would you want the shape of a Condition?")
+        return ()
 
     def __str__(self):
         return "(%s) %s (%s)" % (self._left, self._name, self._right)
-    
+
 class EQ(Condition):
     def __init__(self, left, right):
         Condition.__init__(self, "==", left, right)
@@ -71,13 +84,9 @@ class GT(Condition):
 
 class Conditional(UFLObject):
     def __init__(self, condition, true_value, false_value):
-        if is_python_scalar(true_value):
-            true_value = Number(true_value)
-        if is_python_scalar(false_value):
-            false_value = Number(false_value)
         ufl_assert(isinstance(condition, Condition), "Expectiong condition as first argument.")
-        ufl_assert(isinstance(true_value, UFLObject), "Expectiong UFL expression as second argument.")
-        ufl_assert(isinstance(false_value, UFLObject), "Expectiong UFL expression as third argument.")
+        true_value = as_ufl(true_value)
+        false_value = as_ufl(false_value)
         tsh = true_value.shape()
         fsh = false_value.shape()
         ufl_assert(compare_shapes(tsh, fsh), "Shape mismatch between conditional branches.")

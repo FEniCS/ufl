@@ -72,28 +72,3 @@ def _detect_argument_dependencies(a, criteria):
     if False:
         return a   
     return a.__class__(*operands)
-
-
-def expand_indices(expression):
-    "Expand implicit summations into explicit Sums of Products."
-    
-    # TODO: Could be a good idea to insert Variable instances around expanded sums.
-    ufl_assert(isinstance(expression, UFLObject), "Expecting UFLObject instance.")
-    
-    def e_product(x, *ops):
-        # TODO: Find all repeated indices:
-        ii = ()
-        a = x
-        return Product(*ops) # FIXME
-    
-    def e_pdiff(x, *ops):
-        return PartialDerivative(*ops) # FIXME
-    
-    handlers = _ufl_handlers()
-    handlers[Product] = e_product
-    handlers[PartialDerivative] = e_pdiff
-    
-    # FIXME: Handle all other necessary objects here, f.ex. the Diff object h resulting from "g = variable(g); f = foo(g); h = diff(f[i], g[i])"
-    
-    return transform(expression, handlers)
-
