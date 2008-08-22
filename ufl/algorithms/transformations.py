@@ -5,9 +5,10 @@ converting UFL expressions to other representations."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-08-21"
+__date__ = "2008-05-07 -- 2008-08-22"
 
 from collections import defaultdict
+from itertools import izip
 
 from ..common import some_key, product
 from ..output import ufl_assert, ufl_error
@@ -47,7 +48,7 @@ def transform_integrands(a, transformation):
     """
     ufl_assert(isinstance(a, Form), "Expecting a Form.")
     integrals = []
-    for itg in a.integrals():
+    for itg in a._integrals:
         integrand = transformation(itg._integrand)
         newitg = Integral(itg._domain_type, itg._domain_id, integrand)
         integrals.append(newitg)
@@ -354,7 +355,7 @@ def renumber_arguments(a):
     
     # Build sets of all basisfunctions and functions used in expression
     bf = basisfunctions(a)
-    cf = functions(a)
+    cf = coefficients(a)
     
     # Build a count renumbering mapping for basisfunctions
     bfmap = {}

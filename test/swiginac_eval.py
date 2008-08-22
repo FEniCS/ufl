@@ -7,19 +7,66 @@ import unittest
 
 from ufl import *
 from ufl.algorithms import * 
-from ufl.algorithms.swiginac import *
+from ufl.algorithms.swiginac_eval import *
 
 # disable log output
 import logging
 logging.basicConfig(level=logging.CRITICAL)
 
 
-class SwiginacTestCase(unittest.TestCase):
-
-    def setUp(self):
-        pass
+class Context:
+    "Context class for obtaining terminal expressions."
+    def __init__(self, x, basisfunctions, coefficients, variables):
+        self._x = x
+        self._basisfunctions = basisfunctions
+        self._coefficients = coefficients
+        self._variables = variables
     
-    def test_something(self):
+    def x(self, i):
+        return self._x[i]
+    
+    def basisfunction(self, i):
+        return self._basisfunctions[i]
+    
+    def coefficient(self, i):
+        return self._coefficients[i]
+    
+    def variable(self, i):
+        return self._variables.get(i, None)
+    
+    def facet_normal(self):
+        return NotImplemented
+
+_0 = swiginac.numeric(0.0)
+_1 = swiginac.numeric(1.0)
+
+class SwiginacTestCase(unittest.TestCase):
+    
+    def setUp(self):
+        self.x = [swiginac.symbol(name) for name in ("x", "y", "z")]
+        x, y, z = self.x
+        basisfunctions = [1.0-x-y, x, y]
+        coefficients   = []
+        variables      = {}
+        self.context = Context(x, basisfunctions, coefficients, variables)
+    
+    def test_number(self):
+        f = Number(1.23)
+        g = evaluate_as_swiginac(f, self.context)
+        self.assertTrue((g-1.23) == 0)
+
+    def test_basisfunction(self):
+        x, y, z = self.x
+        element = FiniteElement("CG", "triangle", 1)
+        v = TestFunction(element)
+        u = TrialFunction(element)
+        a = 1.23*v*dx
+        a = renumber_arguments(a)
+        f = a.cell_integrals()[0]._integrand
+        g = evaluate_as_swiginac(f, self.context)
+        self.assertTrue((g-1.23*self.context._basisfunctions[0]) == 0)
+
+    def _test_something(self):
         element = FiniteElement("CG", "triangle", 1)
         
         v = TestFunction(element)
@@ -32,13 +79,7 @@ class SwiginacTestCase(unittest.TestCase):
         F  = Derivative(f, w)
         J1 = Derivative(L, w)
         J2 = Derivative(F, w)
-
-    def test_number(self):
-        context = None
-        f = Number(1.23)
-        g = evaluate_as_swiginac(f, context)
-        self.assertTrue((g-1.23) == 0)
-
+    
 
 if __name__ == "__main__":
     unittest.main()
