@@ -11,6 +11,7 @@ Some of the TODO's left:
 # Derivatives:
  - Finish Diff design, including index handling like in PartialDiff and Product.
  - Apply Variable in automatic differentiation to define subexpressions we can reuse.
+ - Apply AD to computation of Derivative, 
 
 # Algorithms:
  - Implement contraction function that expands all implicit summations into Sums
@@ -23,6 +24,10 @@ Some of the TODO's left:
  - Keep or drop name from Function? Can eventually pass it to UFC if we add a "form::coefficient_name(i)" function.
  - Degree range for quadrature elements?
  - Agree on final design!
+
+# Form-level operators:
+ - Framework for applying these to parts of a form?
+ - Implementations of lhs, rhs, action, derivative...
 
 # Tests:
  - Implement more elaborate tests, some operators aren't tested, and only a few of the algorithms.
