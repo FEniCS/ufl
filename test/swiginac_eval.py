@@ -16,10 +16,10 @@ logging.basicConfig(level=logging.CRITICAL)
 
 class Context:
     "Context class for obtaining terminal expressions."
-    def __init__(self, x, basisfunctions, coefficients, variables):
+    def __init__(self, x, basisfunctions, functions, variables):
         self._x = x
         self._basisfunctions = basisfunctions
-        self._coefficients = coefficients
+        self._functions = functions
         self._variables = variables
     
     def x(self, i):
@@ -28,8 +28,8 @@ class Context:
     def basisfunction(self, i):
         return self._basisfunctions[i]
     
-    def coefficient(self, i):
-        return self._coefficients[i]
+    def function(self, i):
+        return self._functions[i]
     
     def variable(self, i):
         return self._variables.get(i, None)
@@ -46,9 +46,9 @@ class SwiginacTestCase(unittest.TestCase):
         self.x = [swiginac.symbol(name) for name in ("x", "y", "z")]
         x, y, z = self.x
         basisfunctions = [1.0-x-y, x, y]
-        coefficients   = []
+        functions      = [x*y]
         variables      = {}
-        self.context = Context(x, basisfunctions, coefficients, variables)
+        self.context = Context(x, basisfunctions, functions, variables)
     
     def test_number(self):
         f = Number(1.23)
@@ -65,6 +65,22 @@ class SwiginacTestCase(unittest.TestCase):
         f = a.cell_integrals()[0]._integrand
         g = evaluate_as_swiginac(f, self.context)
         self.assertTrue((g-1.23*self.context._basisfunctions[0]) == 0)
+
+    def test_mass(self):
+        x, y, z = self.x
+        element = FiniteElement("CG", "triangle", 1)
+        v = TestFunction(element)
+        u = TrialFunction(element)
+        w = Function(element)
+        a = (1.23 + w)*u*v*dx
+        a = renumber_arguments(a)
+        f = a.cell_integrals()[0]._integrand
+        g = evaluate_as_swiginac(f, self.context)
+        # Get expressions for arguments:
+        v = self.context._basisfunctions[0]
+        u = self.context._basisfunctions[1]
+        w = self.context._functions[0]
+        self.assertTrue((g - (1.23 + w)*u*v) == 0)
 
     def _test_something(self):
         element = FiniteElement("CG", "triangle", 1)
