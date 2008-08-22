@@ -74,13 +74,16 @@ class SwiginacTestCase(unittest.TestCase):
         w = Function(element)
         a = (1.23 + w)*u*v*dx
         a = renumber_arguments(a)
-        f = a.cell_integrals()[0]._integrand
-        g = evaluate_as_swiginac(f, self.context)
+        f1 = a.cell_integrals()[0]._integrand
+        f2 = flatten(f1)
+        g1 = evaluate_as_swiginac(f1, self.context)
+        g2 = evaluate_as_swiginac(f2, self.context)
         # Get expressions for arguments:
         v = self.context._basisfunctions[0]
         u = self.context._basisfunctions[1]
         w = self.context._functions[0]
-        self.assertTrue((g - (1.23 + w)*u*v) == 0)
+        self.assertTrue((g1 - (1.23 + w)*u*v) == 0)
+        self.assertTrue((g2 - (1.23 + w)*u*v) == 0)
 
     def _test_something(self):
         element = FiniteElement("CG", "triangle", 1)
