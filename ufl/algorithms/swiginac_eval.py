@@ -58,10 +58,9 @@ class Context:
 
 # FIXME: Implement for all UFL expressions!
 # Steps:
-# - Handle scalar expressions only
-# - Handle indexed tensor expressions (i.e. after expand_compounds)
-# - Handle variable lists (cannot express with swiginac, need to represent code structure)
+# - Handle indexed tensor expressions (assuming expand_compounds has been applied)
 # - Handle derivatives d/ds and d/dx with AD (need this for quadrature code)
+# - Implement outer controller which knows about code structure and variable lists
 # - Handle conditionals (cannot express with swiginac, need to represent code structure)
 
 
@@ -155,52 +154,98 @@ def swiginac_handlers(context):
     def s_sin(x, y):
         return sw.sin(y)
     d[Sin] = s_sin
+    
+    ### Index handling: 
+    def s_indexed(x, A, ii):
+        # Assertions about original UFL object x
+        ops = x.operands()
+        ufl_assert(ops[0].shape(), "Expecting tensor with some shape.")
+        ufl_assert(ops[1] is ii, "Expecting unchanged MultiIndex in s_indexed.")
 
-    ### Index handling:
-    #d[Indexed] = s_Indexed # TODO
-    #d[MultiIndex] = s_MultiIndex # TODO
+        # Assertions on handled objects A and ii:
+        ufl_assert(isinstance(ii, MultiIndex), "Expecting unchanged MultiIndex in s_indexed.")
+
+        # FIXME: What do we get in, what do we return, what's in between?
+        ufl_assert(isinstance(A, WHAT), "")
+        ri = x._repeated_indices
+
+        # For each index in ii._indices:
+        # - FixedIndex: take a slice of A (constant index in one dimension)
+        # - Axis: take a slice of A (":" in one dimension)
+        # - Index:
+        #     - Among repeated: Sum slices of A
+        #     - Free: Maybe we should have as input a mapping "I: Index -> int" and treat like FixedIndex.
+        #             If we can place variables at suitable places first, we can still avoid recomputations.
+
+        return x
+    d[Indexed] = s_indexed
+
+    # MultiIndex can't be converted to swiginac,
+    # keep as it is and handle in parent
+    def s_multi_index(x):
+        return x
+    d[MultiIndex] = s_multi_index 
 
     ### Container handling:
-    #d[ListVector] = s_ListVector # TODO
-    #d[ListMatrix] = s_ListMatrix # TODO
-    #d[Tensor] = s_Tensor # TODO
+    def s_list_vector(x, *ops):
+        return TODO
+    d[ListVector] = s_list_vector
+    
+    def s_list_matrix(x, *ops):
+        return TODO
+    d[ListMatrix] = s_list_matrix
+    
+    def s_tensor(x, *ops):
+        return TODO
+    d[Tensor] = s_tensor
     
     ### Differentiation:
-    #d[PartialDerivative] = s_PartialDerivative # TODO
-    #d[Diff] = s_Diff # TODO
+    # FIXME: We cannot just use sw.diff on the subexpression
+    # if that is a symbol or it depends on symbols.
+    # If we assume that AD has been applied for derivatives,
+    # then the expression to differentiate is always a terminal.
+    def s_partial_derivative(x, f, y):
+        return sw.diff(f, y) # FIXME
+    d[PartialDerivative] = s_partial_derivative
 
+    def s_diff(x, f, y):
+        return sw.diff(f, y) # FIXME
+    d[Diff] = s_diff
+    
     ### Interior facet stuff:
-    #d[Restricted] = s_Restricted # TODO
-    #d[PositiveRestricted] = s_PositiveRestricted # TODO
-    #d[NegativeRestricted] = s_NegativeRestricted # TODO
+    #def s_positive_restricted(x, *ops):
+    #    return TODO
+    #d[PositiveRestricted] = s_positive_restricted
+    #def s_negative_restricted(x, *ops):
+    #    return TODO
+    #d[NegativeRestricted] = s_negative_restricted
     
-    ### Requires code structure:
-    #d[EQ] = s_EQ # TODO
-    #d[NE] = s_NE # TODO
-    #d[LE] = s_LE # TODO
-    #d[GE] = s_GE # TODO
-    #d[LT] = s_LT # TODO
-    #d[GT] = s_GT # TODO
-    #d[Conditional] = s_Conditional # TODO
-
-    ### Replaced by expand_compounds:
-    #d[Identity] = s_Identity # TODO
-    #d[Transposed] = s_Transposed # TODO
-    #d[Outer] = s_Outer # TODO
-    #d[Inner] = s_Inner # TODO
-    #d[Dot] = s_Dot # TODO
-    #d[Cross] = s_Cross # TODO
-    #d[Trace] = s_Trace # TODO
-    #d[Determinant] = s_Determinant # TODO
-    #d[Inverse] = s_Inverse # TODO
-    #d[Deviatoric] = s_Deviatoric # TODO
-    #d[Cofactor] = s_Cofactor # TODO
+    ### Requires code structure and thus shouldn't occur in here
+    # (i.e. any conditionals should be wrapped in variables before coming here) # TODO
+    #d[EQ] = s_EQ
+    #d[NE] = s_NE
+    #d[LE] = s_LE
+    #d[GE] = s_GE
+    #d[LT] = s_LT
+    #d[GT] = s_GT
+    #d[Conditional] = s_Conditional
     
     ### Replaced by expand_compounds:
-    #d[Grad] = s_Grad # TODO
-    #d[Div] = s_Div # TODO
-    #d[Curl] = s_Curl # TODO
-    #d[Rot] = s_Rot # TODO
+    #d[Identity] = s_Identity
+    #d[Transposed] = s_Transposed
+    #d[Outer] = s_Outer
+    #d[Inner] = s_Inner
+    #d[Dot] = s_Dot
+    #d[Cross] = s_Cross
+    #d[Trace] = s_Trace
+    #d[Determinant] = s_Determinant
+    #d[Inverse] = s_Inverse
+    #d[Deviatoric] = s_Deviatoric
+    #d[Cofactor] = s_Cofactor
+    #d[Grad] = s_Grad
+    #d[Div] = s_Div
+    #d[Curl] = s_Curl
+    #d[Rot] = s_Rot
 
     return d
 
@@ -208,3 +253,15 @@ def swiginac_handlers(context):
 def evaluate_as_swiginac(expression, context):
     d = swiginac_handlers(context)
     return transform(expression, d)
+
+
+def evaluate_form_as_swiginac(form):
+    # transform form with form transformations, renumberings, expands, dependency splits etc.
+    # get basisfunctions etc
+    # build context
+    # for all variables in 
+    # for all basisfunctions, update context
+    evaluate_as_swiginac(expression, context)
+    d = swiginac_handlers(context)
+    return transform(expression, d)
+
