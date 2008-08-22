@@ -5,7 +5,7 @@ which use the baseclasses BasisFunction and Function."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-20"
+__date__ = "2008-03-14 -- 2008-08-22"
 
 
 from .output import ufl_warning, ufl_error, ufl_assert
@@ -16,12 +16,11 @@ from .tensors import Vector, Matrix, Tensor
 
 
 class BasisFunction(Terminal, Counted):
-    __slots__ = ("_element", "_parent")
+    __slots__ = ("_element", )
     _globalcount = 0
-    def __init__(self, element, parent=None, count=None):
+    def __init__(self, element, count=None):
         Counted.__init__(self, count)
         self._element = element
-        self._parent = parent
     
     def element(self):
         return self._element
@@ -36,22 +35,21 @@ class BasisFunction(Terminal, Counted):
         return "v_%d" % self._count
     
     def __repr__(self):
-        return "BasisFunction(%r, %r %r)" % (self._element, self._parent, self._count)
+        return "BasisFunction(%r, %r)" % (self._element, self._count)
 
 def TestFunction(element):
-    return BasisFunction(element, None, -2)
+    return BasisFunction(element, -2)
 
 def TrialFunction(element):
-    return BasisFunction(element, None, -1)
+    return BasisFunction(element, -1)
 
 class Function(Terminal, Counted):
-    __slots__ = ("_element", "_name", "_parent")
+    __slots__ = ("_element", "_name")
     _globalcount = 0
-    def __init__(self, element, name=None, parent=None, count=None):
+    def __init__(self, element, name=None, count=None):
         Counted.__init__(self, count)
         self._element = element
         self._name = name
-        self._parent = parent
     
     def free_indices(self):
         return ()
@@ -68,6 +66,8 @@ class Function(Terminal, Counted):
     def __repr__(self):
         return "Function(%r, %r, %r)" % (self._element, self._name, self._count)
 
+
+# TODO: Handle actual global constants?
 class Constant(Function):
     __slots__ = ("_polygon",)
 

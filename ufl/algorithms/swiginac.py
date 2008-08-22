@@ -38,6 +38,8 @@ from ..classes import ufl_classes, terminal_classes, nonterminal_classes, compou
 # Other algorithms:
 from .analysis import basisfunctions, coefficients, indices
 
+import swiginac
+
 
 class Context:
     "Context class for obtaining terminal expressions."
@@ -47,15 +49,162 @@ class Context:
     def coefficient(self, i):
         return NotImplemented
     
-    def n(self):
+    def facet_normal(self):
         return NotImplemented
     
+    def variable(self, i):
+        return None
+
+
+# FIXME: Implement for all UFL expressions!
+# Steps:
+# - Handle scalar expressions only
+# - Handle indexed tensor expressions (i.e. after expand_compounds)
+# - Handle variable lists (cannot express with swiginac, need to represent code structure)
+# - Handle derivatives d/ds and d/dx with AD (need this for quadrature code)
+# - Handle conditionals (cannot express with swiginac, need to represent code structure)
+
+
+def transform(expression, handlers):
+    """Convert a UFLExpression according to rules defined by
+    the mapping handlers = dict: class -> conversion function."""
+    if isinstance(expression, Terminal):
+        ops = ()
+    else:
+        ops = [transform(o, handlers) for o in expression.operands()]
+    return handlers[expression.__class__](expression, *ops)
+
+
+def swiginac_handlers(context):
+    
+    sw = swiginac
+
+    # Show a clear error message if we miss some types here:
+    def not_implemented(x, ops):
+        ufl_error("No handler defined for %s in swiginac_handlers." % x.__class__)
+    d = defaultdict(not_implemented)
+    
+    ### Basic terminal objects:
+    def s_number(x):
+        return sw.numeric(x._value)
+    d[Number] = s_number
+    
+    def s_variable(x):
+        # Lookup variable and evaluate its expression directly if not found
+        v = context.variable(x._count)
+        if v is None:
+            return evaluate_as_swiginac(x._expression, context)
+        return v
+    d[Variable] = s_variable
+
+    def s_basisfunction(x):
+        return context.basisfunction(x._count)
+    d[BasisFunction] = s_basisfunction
+
+    def s_function(x):
+        return context.function(x._count)
+    d[Function] = s_function
+    d[Constant] = s_function
+
+    def s_facet_normal(x):
+        return context.facet_normal()
+    d[FacetNormal] = s_facet_normal
+    
+    ### Basic algebra:
+    def s_sum(x, *ops):
+        return sum(ops)
+    d[Sum] = s_sum
+
+    def s_product(x, *ops):
+        return product(ops)
+    d[Product] = s_product
+
+    def s_division(x, a, b):
+        return a / b
+    d[Division] = s_division
+
+    def s_power(x, a, b):
+        return a ** b
+    d[Power] = s_power
+
+    #def s_mod(x, a, b):
+    #    return a % b
+    #d[Mod] = s_mod
+
+    def s_abs(x, a):
+        return abs(a)
+    d[Abs] = s_abs
+
+    ### Basic math functions:
+    def s_sqrt(x, y):
+        return sw.sqrt(y)
+    d[Sqrt] = s_sqrt
+    
+    def s_exp(x, y):
+        return sw.exp(y)
+    d[Exp] = s_exp
+    
+    def s_ln(x, y):
+        return sw.ln(y)
+    d[Ln] = s_ln
+    
+    def s_cos(x, y):
+        return sw.cos(y)
+    d[Cos] = s_cos
+    
+    def s_sin(x, y):
+        return sw.sin(y)
+    d[Sin] = s_sin
+
+    ### Index handling:
+    #d[Indexed] = s_Indexed # TODO
+    #d[MultiIndex] = s_MultiIndex # TODO
+
+    ### Container handling:
+    #d[ListVector] = s_ListVector # TODO
+    #d[ListMatrix] = s_ListMatrix # TODO
+    #d[Tensor] = s_Tensor # TODO
+    
+    ### Differentiation:
+    #d[PartialDerivative] = s_PartialDerivative # TODO
+    #d[Diff] = s_Diff # TODO
+
+    ### Interior facet stuff:
+    #d[Restricted] = s_Restricted # TODO
+    #d[PositiveRestricted] = s_PositiveRestricted # TODO
+    #d[NegativeRestricted] = s_NegativeRestricted # TODO
+    
+    ### Requires code structure:
+    #d[EQ] = s_EQ # TODO
+    #d[NE] = s_NE # TODO
+    #d[LE] = s_LE # TODO
+    #d[GE] = s_GE # TODO
+    #d[LT] = s_LT # TODO
+    #d[GT] = s_GT # TODO
+    #d[Conditional] = s_Conditional # TODO
+
+    ### Replaced by expand_compounds:
+    #d[Identity] = s_Identity # TODO
+    #d[Transposed] = s_Transposed # TODO
+    #d[Outer] = s_Outer # TODO
+    #d[Inner] = s_Inner # TODO
+    #d[Dot] = s_Dot # TODO
+    #d[Cross] = s_Cross # TODO
+    #d[Trace] = s_Trace # TODO
+    #d[Determinant] = s_Determinant # TODO
+    #d[Inverse] = s_Inverse # TODO
+    #d[Deviatoric] = s_Deviatoric # TODO
+    #d[Cofactor] = s_Cofactor # TODO
+    
+    ### Replaced by expand_compounds:
+    #d[Grad] = s_Grad # TODO
+    #d[Div] = s_Div # TODO
+    #d[Curl] = s_Curl # TODO
+    #d[Rot] = s_Rot # TODO
+
+    return d
+
 
 def evaluate_as_swiginac(expression, context):
-    
-    ops = expression.operands()
-    for o in ops:
-        pass
-    
-    
-    
+    d = swiginac_handlers(context)
+    return transform(expression, d)
