@@ -25,12 +25,12 @@ class MassTestCase(unittest.TestCase):
         u = TrialFunction(element)
         w = Function(element, "w")
         
-        f = (f**2/2)*dx
-        L = f*v*dx
+        f = (w**2/2)*dx
+        L = w*v*dx
         a = u*v*dx
-        F = derivative(f)
-        J1 = derivative(L)
-        J2 = derivative(F)
+        F  = Derivative(f, w)
+        J1 = Derivative(L, w)
+        J2 = Derivative(F, w)
         
         # TODO: Apply algorithms of various kinds and verify that (a, J1, J2) are equivalent, as well as (L, F).
 
