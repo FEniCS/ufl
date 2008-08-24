@@ -17,11 +17,11 @@ class ListVector(UFLObject):
     def __init__(self, *expressions):
         ufl_assert(all(e.shape() == () for e in expressions), "Expecting scalar valued expressions.")
         
-        eset = set(expressions[0].free_indices())
-        self._free_indices = tuple(eset)
+        self._free_indices = expressions[0].free_indices()
         self._expressions  = expressions
         
-        ufl_assert(all(len(eset ^ set(e.free_indices())) == 0 for e in expressions), "Can't handle list of expressions with different free indices.")
+        ufl_assert(all(len(set(self._free_indices) ^ set(e.free_indices())) == 0 for e in expressions), \
+            "Can't handle list of expressions with different free indices.")
         #ufl_assert(len(expressions.free_indices()) == 0, "Can't handle list of expressions with free indices.")
     
     def operands(self):
@@ -47,7 +47,7 @@ class ListMatrix(UFLObject):
         ufl_assert(all(isinstance(e, ListVector) for e in rowexpressions), \
             "Expecting list of rowexpressions.")
         
-        self._rowexpressions  = rowexpressions
+        self._rowexpressions = rowexpressions
         r = len(rowexpressions)
         c = rowexpressions[0].shape()[0]
         self._shape = (r, c)

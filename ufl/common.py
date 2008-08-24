@@ -1,7 +1,7 @@
 "This module contains a collection of common utilities."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-08-05 -- 2008-08-21"
+__date__ = "2008-08-05 -- 2008-08-23"
 
 import operator
 
@@ -27,4 +27,34 @@ class Counted(object):
             self._count = count
             if count >= self.__class__._globalcount:
                 self.__class__._globalcount = count + 1
+
+
+class StackDict(dict):
+    "A dict that can be changed incrementally with 'd.push(k,v)' and have changes rolled back with 'k,v = d.pop()'."
+    def __init__(self, *args, **kwargs):
+        dict.__init__(self, *args, **kwargs)
+        self._l = []
+    
+    def push(self, k, v):
+        self._l.append((k, self.get(k, None)))
+        self[k] = v
+    
+    def pop(self):
+        k, v = self._l.pop()
+        if v is None:
+            del self[k]
+        else:
+            self[k] = v
+        return k, v
+
+
+if __name__ == "__main__":
+    d = StackDict(a=1)
+    d.push("a", 2)
+    d.push("a", 3)
+    print d
+    d.pop()
+    print d
+    d.pop()
+    print d
 

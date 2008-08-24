@@ -4,11 +4,11 @@ converting UFL expressions to swiginac representation."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-22 -- 2008-08-22"
+__date__ = "2008-08-22 -- 2008-08-23"
 
 from collections import defaultdict
 
-from ..common import some_key, product
+from ..common import some_key, product, StackDict
 from ..output import ufl_assert, ufl_error
 
 # All classes:
@@ -43,29 +43,32 @@ import swiginac
 
 class Context:
     "Context class for obtaining terminal expressions."
-    def basisfunction(self, i):
+    def basisfunction(self, i, indices):
         return NotImplemented
     
-    def coefficient(self, i):
+    def coefficient(self, i, indices):
         return NotImplemented
     
-    def facet_normal(self):
+    def facet_normal(self, indices):
         return NotImplemented
     
-    def variable(self, i):
+    def variable(self, i, index_value_map, indices):
         return None
 
 
 # FIXME: Implement for all UFL expressions!
 # Steps:
+# - Implement outer controller which knows about code structure and variable lists (context object is defined by this controller)
+# - Algorithm to insert variables in Indexed objects (or do in splitting)
 # - Handle indexed tensor expressions (assuming expand_compounds has been applied)
+#   Need more special cases in transform!
 # - Handle derivatives d/ds and d/dx with AD (need this for quadrature code)
-# - Implement outer controller which knows about code structure and variable lists
 # - Handle conditionals (cannot express with swiginac, need to represent code structure)
 
 
+
 def transform(expression, handlers):
-    """Convert a UFLExpression according to rules defined by
+    """Convert a UFL Expression according to rules defined by
     the mapping handlers = dict: class -> conversion function."""
     if isinstance(expression, Terminal):
         ops = ()
@@ -74,7 +77,22 @@ def transform(expression, handlers):
     return handlers[expression.__class__](expression, *ops)
 
 
-def swiginac_handlers(context):
+def transform2(expression, pre_handlers, post_handlers, context):
+    """Convert a UFL expression according to rules defined by
+    the mapping handlers = dict: class -> conversion function."""
+    
+    handler = pre_handlers[expression.__class__]
+    if handler is None:
+        handler = post_handlers[expression.__class__]
+        ops = [transform(o, pre_handlers, post_handlers, context) for o in expression.operands()]
+    else:
+        ops = ()
+    return handler(expression, context, *ops)
+
+
+def swiginac_handlers(context):#, index_value_map): # FIXME: Where to pass these variables? In context?
+    index_value_map = StackDict()
+    indices_tuple = ()
     
     sw = swiginac
 
@@ -90,23 +108,26 @@ def swiginac_handlers(context):
     
     def s_variable(x):
         # Lookup variable and evaluate its expression directly if not found
-        v = context.variable(x._count)
+        v = context.variable(x._count, index_value_map, indices_tuple) 
         if v is None:
-            return evaluate_as_swiginac(x._expression, context)
+            return evaluate_as_swiginac(x._expression, context, index_value_map, indices_tuple)
         return v
     d[Variable] = s_variable
 
     def s_basisfunction(x):
-        return context.basisfunction(x._count)
+        ufl_assert(len(index_value_map) == 0, "Shouldn't have any indices left to map at this point!")
+        return context.basisfunction(x._count, indices_tuple)
     d[BasisFunction] = s_basisfunction
 
     def s_function(x):
-        return context.function(x._count)
+        ufl_assert(len(index_value_map) == 0, "Shouldn't have any indices left to map at this point!")
+        return context.function(x._count, indices_tuple)
     d[Function] = s_function
     d[Constant] = s_function
 
     def s_facet_normal(x):
-        return context.facet_normal()
+        ufl_assert(len(index_value_map) == 0, "Shouldn't have any indices left to map at this point!")
+        return context.facet_normal(indices_tuple)
     d[FacetNormal] = s_facet_normal
     
     ### Basic algebra:
@@ -157,8 +178,10 @@ def swiginac_handlers(context):
     
     ### Index handling: 
     def s_indexed(x, A, ii):
-        # Assertions about original UFL object x
         ops = x.operands()
+        ri = x._repeated_indices
+        
+        # Assertions about original UFL object x
         ufl_assert(ops[0].shape(), "Expecting tensor with some shape.")
         ufl_assert(ops[1] is ii, "Expecting unchanged MultiIndex in s_indexed.")
 
@@ -166,8 +189,14 @@ def swiginac_handlers(context):
         ufl_assert(isinstance(ii, MultiIndex), "Expecting unchanged MultiIndex in s_indexed.")
 
         # FIXME: What do we get in, what do we return, what's in between?
-        ufl_assert(isinstance(A, WHAT), "")
-        ri = x._repeated_indices
+        ufl_assert(isinstance(A, Variable), "Expecting indexed expression to be wrapped in a Variable (a temporary implementation issue).")
+
+        # FIXME: update indices here, evt. in a summation loop for repeated indices
+        index_value_map.push(FIXME)
+        indices_tuple = FIXME
+        B = context.variable(A._count, index_value_map, indices_tuple) 
+        # FIXME: restore indices here
+        index_value_map.pop()
 
         # For each index in ii._indices:
         # - FixedIndex: take a slice of A (constant index in one dimension)
@@ -185,32 +214,56 @@ def swiginac_handlers(context):
     def s_multi_index(x):
         return x
     d[MultiIndex] = s_multi_index 
-
+    
     ### Container handling:
     def s_list_vector(x, *ops):
-        return TODO
+        ufl_assert(len(indices_tuple) == 1, "Got %d indices for a list.")
+        i = indices_tuple[0]
+        ufl_assert(isinstance(i, int), "Can't index list with %s." % repr(i))
+        return ops[i]
     d[ListVector] = s_list_vector
     
     def s_list_matrix(x, *ops):
-        return TODO
+        ufl_assert(len(indices_tuple) == 2, "Got %d indices for a matrix.")
+        i = indices_tuple[0]
+        j = indices_tuple[1]
+        ufl_assert(isinstance(i, int), "Can't index matrix row with %s." % repr(i))
+        ufl_assert(isinstance(j, int), "Can't index matrix column with %s." % repr(j))
+        return ops[i][j]
     d[ListMatrix] = s_list_matrix
     
     def s_tensor(x, *ops):
-        return TODO
+        for i, idx in enumerate(indices_tuple):
+            index_value_map.push((ops[1][i], idx))
+        result = evaluate_as_swiginac(ops[0], index_value_map) # FIXME: Must change algorithm, using conflicting traversal directions..
+        for i in range(len(indices_tuple)):
+            indices_tuple.pop()
+        return result
     d[Tensor] = s_tensor
     
     ### Differentiation:
-    # FIXME: We cannot just use sw.diff on the subexpression
-    # if that is a symbol or it depends on symbols.
+    # We cannot just use sw.diff on the expression f since it
+    # may depend on symbols refering to functions depending on y.
     # If we assume that AD has been applied for derivatives,
     # then the expression to differentiate is always a terminal.
-    def s_partial_derivative(x, f, y):
-        return sw.diff(f, y) # FIXME
-    d[PartialDerivative] = s_partial_derivative
-
-    def s_diff(x, f, y):
-        return sw.diff(f, y) # FIXME
-    d[Diff] = s_diff
+    # TODO: Need algorithm to apply AD to all kinds of derivatives!
+    #def s_partial_derivative(x, f, y):
+    #    ufl_assert(isinstance(x, Terminal) or (isinstance(x, Variable) and isinstance(x._expression, Terminal), \
+    #        "Expecting to differentiate a Terminal object, you must apply AD first!")
+    #    
+    #    # TODO: Apply indices to get the right part of f, it may be a tensor!
+    #    # TODO: Is y a MultiIndex here? Pick the right symbol to diff with from context!
+    #    #ufl_assert(isinstance(y, sw.symbol), "Expecting a swiginac.symbol to differentate w.r.t.")
+    #    return sw.diff(f, y)
+    #d[PartialDerivative] = s_partial_derivative
+    #
+    #def s_diff(x, f, y):
+    #    ufl_assert(isinstance(x, Terminal), "Expecting to differentiate a Terminal object, you must apply AD first!")
+    #    
+    #    # TODO: Apply indices to get the right part of f and y, they may be tensors!
+    #    ufl_assert(isinstance(y, sw.symbol), "Expecting a swiginac.symbol to differentate w.r.t.")
+    #    return sw.diff(f, y)
+    #d[Diff] = s_diff
     
     ### Interior facet stuff:
     #def s_positive_restricted(x, *ops):
