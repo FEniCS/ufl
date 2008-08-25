@@ -43,16 +43,36 @@ import swiginac
 
 class Context:
     "Context class for obtaining terminal expressions."
-    def basisfunction(self, i, indices):
+    def __init__(self):
+        self._components = []
+        def none():
+            return None
+        self._index_value_map = defaultdict(none)
+    
+    def push_component(self, component):
+        self._components.append(component)
+
+    def get_component(self):
+        return self._components[-1]
+
+    def pop_component(self):
+        return self._components.pop()
+        
+    def x(self, component):
         return NotImplemented
     
-    def coefficient(self, i, indices):
+    def facet_normal(self, component):
+        return NotImplemented
+        
+    def function(self, i, component):
         return NotImplemented
     
-    def facet_normal(self, indices):
+    def basisfunction(self, i, component):
         return NotImplemented
     
-    def variable(self, i, index_value_map, indices):
+    def variable(self, i, component, index_value_map):
+        if self.allow_symbol:
+            return None
         return None
 
 
@@ -67,39 +87,34 @@ class Context:
 
 
 
-def transform(expression, handlers):
-    """Convert a UFL Expression according to rules defined by
-    the mapping handlers = dict: class -> conversion function."""
-    if isinstance(expression, Terminal):
-        ops = ()
-    else:
-        ops = [transform(o, handlers) for o in expression.operands()]
-    return handlers[expression.__class__](expression, *ops)
-
-
-def transform2(expression, pre_handlers, post_handlers, context):
-    """Convert a UFL expression according to rules defined by
-    the mapping handlers = dict: class -> conversion function."""
-    
-    handler = pre_handlers[expression.__class__]
+def transform(expression, pre_handlers, post_handlers, context):
+    """..."""
+    c = expression.__class__
+    handler = pre_handlers[c]
     if handler is None:
-        handler = post_handlers[expression.__class__]
-        ops = [transform(o, pre_handlers, post_handlers, context) for o in expression.operands()]
-    else:
-        ops = ()
-    return handler(expression, context, *ops)
+        # Convert children first: handler will take their transformed expressions as input
+        ops = tuple(transform(o, pre_handlers, post_handlers, context) for o in expression.operands())
+        handler = post_handlers[c]
+        return handler(expression, context, *ops)
+    # Do not convert children: handler will take care of its own children
+    return handler(expression, context)
 
 
-def swiginac_handlers(context):#, index_value_map): # FIXME: Where to pass these variables? In context?
+def evaluate_as_swiginac(expression, context):
     index_value_map = StackDict()
-    indices_tuple = ()
-    
-    sw = swiginac
+    pre_handlers, post_handlers = swiginac_handlers(context, index_value_map)
+    return transform(expression, pre_handlers, post_handlers, context)
 
+
+def swiginac_handlers(context, index_value_map):
+    sw = swiginac
+    
     # Show a clear error message if we miss some types here:
     def not_implemented(x, ops):
         ufl_error("No handler defined for %s in swiginac_handlers." % x.__class__)
     d = defaultdict(not_implemented)
+    
+    pre_handlers, post_handlers # FIXME: Use these instead of d
     
     ### Basic terminal objects:
     def s_number(x):
@@ -108,26 +123,26 @@ def swiginac_handlers(context):#, index_value_map): # FIXME: Where to pass these
     
     def s_variable(x):
         # Lookup variable and evaluate its expression directly if not found
-        v = context.variable(x._count, index_value_map, indices_tuple) 
+        v = context.variable(x._count, component, index_value_map) 
         if v is None:
-            return evaluate_as_swiginac(x._expression, context, index_value_map, indices_tuple)
+            return evaluate_as_swiginac(x._expression, context, index_value_map, component)
         return v
     d[Variable] = s_variable
 
     def s_basisfunction(x):
         ufl_assert(len(index_value_map) == 0, "Shouldn't have any indices left to map at this point!")
-        return context.basisfunction(x._count, indices_tuple)
+        return context.basisfunction(x._count, component)
     d[BasisFunction] = s_basisfunction
 
     def s_function(x):
         ufl_assert(len(index_value_map) == 0, "Shouldn't have any indices left to map at this point!")
-        return context.function(x._count, indices_tuple)
+        return context.function(x._count, component)
     d[Function] = s_function
     d[Constant] = s_function
 
     def s_facet_normal(x):
         ufl_assert(len(index_value_map) == 0, "Shouldn't have any indices left to map at this point!")
-        return context.facet_normal(indices_tuple)
+        return context.facet_normal(component)
     d[FacetNormal] = s_facet_normal
     
     ### Basic algebra:
@@ -193,8 +208,8 @@ def swiginac_handlers(context):#, index_value_map): # FIXME: Where to pass these
 
         # FIXME: update indices here, evt. in a summation loop for repeated indices
         index_value_map.push(FIXME)
-        indices_tuple = FIXME
-        B = context.variable(A._count, index_value_map, indices_tuple) 
+        component = FIXME
+        B = context.variable(A._count, component, index_value_map) 
         # FIXME: restore indices here
         index_value_map.pop()
 
@@ -217,27 +232,27 @@ def swiginac_handlers(context):#, index_value_map): # FIXME: Where to pass these
     
     ### Container handling:
     def s_list_vector(x, *ops):
-        ufl_assert(len(indices_tuple) == 1, "Got %d indices for a list.")
-        i = indices_tuple[0]
+        ufl_assert(len(component) == 1, "Got %d indices for a list component." % len(component))
+        i = component[0]
         ufl_assert(isinstance(i, int), "Can't index list with %s." % repr(i))
         return ops[i]
     d[ListVector] = s_list_vector
     
     def s_list_matrix(x, *ops):
-        ufl_assert(len(indices_tuple) == 2, "Got %d indices for a matrix.")
-        i = indices_tuple[0]
-        j = indices_tuple[1]
+        ufl_assert(len(component) == 2, "Got %d indices for a matrix." % len(component))
+        i = component[0]
+        j = component[1]
         ufl_assert(isinstance(i, int), "Can't index matrix row with %s." % repr(i))
         ufl_assert(isinstance(j, int), "Can't index matrix column with %s." % repr(j))
         return ops[i][j]
     d[ListMatrix] = s_list_matrix
     
     def s_tensor(x, *ops):
-        for i, idx in enumerate(indices_tuple):
+        for i, idx in enumerate(component):
             index_value_map.push((ops[1][i], idx))
         result = evaluate_as_swiginac(ops[0], index_value_map) # FIXME: Must change algorithm, using conflicting traversal directions..
-        for i in range(len(indices_tuple)):
-            indices_tuple.pop()
+        for i in range(len(component)):
+            component.pop()
         return result
     d[Tensor] = s_tensor
     
@@ -299,20 +314,17 @@ def swiginac_handlers(context):#, index_value_map): # FIXME: Where to pass these
     #d[Div] = s_Div
     #d[Curl] = s_Curl
     #d[Rot] = s_Rot
-
-    return d
-
-
-def evaluate_as_swiginac(expression, context):
-    d = swiginac_handlers(context)
-    return transform(expression, d)
+    
+    return pre_handlers, post_handlers
 
 
 def evaluate_form_as_swiginac(form):
     # transform form with form transformations, renumberings, expands, dependency splits etc.
-    # get basisfunctions etc
-    # build context
-    # for all variables in 
+    # get UFL basisfunctions etc from form
+    # build basic context with all coefficients and geometry
+    # for all variables in variable stacks independent of basisfunctions: evaluate variables
+    # for all variables in variable stacks depending on a single basisfunction: update context and evaluate variables
+    # for all variables in variable stacks depending on multiple basisfunction: update context and evaluate variables
     # for all basisfunctions, update context
     evaluate_as_swiginac(expression, context)
     d = swiginac_handlers(context)

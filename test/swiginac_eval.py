@@ -16,26 +16,29 @@ logging.basicConfig(level=logging.CRITICAL)
 
 class Context:
     "Context class for obtaining terminal expressions."
-    def __init__(self, x, basisfunctions, functions, variables):
+    def __init__(self, x, n, basisfunctions, functions, variables):
         self._x = x
-        self._basisfunctions = basisfunctions
+        self._n = n
         self._functions = functions
+        self._basisfunctions = basisfunctions
         self._variables = variables
     
-    def x(self, i):
-        return self._x[i]
+    def x(self, component):
+        return self._x[component]
     
-    def basisfunction(self, i):
-        return self._basisfunctions[i]
+    def facet_normal(self, component):
+        return self._n[component]
     
-    def function(self, i):
-        return self._functions[i]
+    def function(self, i, component):
+        return self._functions[i] # TODO: Use component
     
-    def variable(self, i):
-        return self._variables.get(i, None)
+    def basisfunction(self, i, component):
+        return self._basisfunctions[i] # TODO: Use component
     
-    def facet_normal(self):
-        return NotImplemented
+    def variable(self, i, component, index_value_map):
+        v = self._variables.get(i, None)
+        # TODO: Use component and index_value_map
+        return v
 
 _0 = swiginac.numeric(0.0)
 _1 = swiginac.numeric(1.0)
@@ -44,11 +47,12 @@ class SwiginacTestCase(unittest.TestCase):
     
     def setUp(self):
         self.x = [swiginac.symbol(name) for name in ("x", "y", "z")]
+        self.n = [swiginac.symbol(name) for name in ("nx", "ny", "nz")]
         x, y, z = self.x
         basisfunctions = [1.0-x-y, x, y]
         functions      = [x*y]
         variables      = {}
-        self.context = Context(x, basisfunctions, functions, variables)
+        self.context = Context(self.x, self.n, basisfunctions, functions, variables)
     
     def test_number(self):
         f = Number(1.23)
