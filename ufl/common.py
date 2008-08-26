@@ -1,7 +1,7 @@
 "This module contains a collection of common utilities."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-08-05 -- 2008-08-23"
+__date__ = "2008-08-05 -- 2008-08-26"
 
 import operator
 
@@ -27,6 +27,18 @@ class Counted(object):
             self._count = count
             if count >= self.__class__._globalcount:
                 self.__class__._globalcount = count + 1
+
+
+class Stack(list):
+    "A stack datastructure."
+    def __init__(self, *args):
+        list.__init__(self, *args)
+    
+    def push(self, v):
+        list.append(self, v)
+    
+    def peek(self):
+        return self[-1]
 
 
 class StackDict(dict):

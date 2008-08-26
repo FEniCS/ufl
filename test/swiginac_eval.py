@@ -4,6 +4,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-08-22 -- 2008-08-22"
 
 import unittest
+import swiginac
 
 from ufl import *
 from ufl.algorithms import * 
@@ -56,7 +57,7 @@ class SwiginacTestCase(unittest.TestCase):
     
     def test_number(self):
         f = Number(1.23)
-        g = evaluate_as_swiginac(f, self.context)
+        g = expression2swiginac(f, self.context)
         self.assertTrue((g-1.23) == 0)
 
     def test_basisfunction(self):
@@ -67,7 +68,7 @@ class SwiginacTestCase(unittest.TestCase):
         a = 1.23*v*dx
         a = renumber_arguments(a)
         f = a.cell_integrals()[0]._integrand
-        g = evaluate_as_swiginac(f, self.context)
+        g = expression2swiginac(f, self.context)
         self.assertTrue((g-1.23*self.context._basisfunctions[0]) == 0)
 
     def test_mass(self):
@@ -80,8 +81,8 @@ class SwiginacTestCase(unittest.TestCase):
         a = renumber_arguments(a)
         f1 = a.cell_integrals()[0]._integrand
         f2 = flatten(f1)
-        g1 = evaluate_as_swiginac(f1, self.context)
-        g2 = evaluate_as_swiginac(f2, self.context)
+        g1 = expression2swiginac(f1, self.context)
+        g2 = expression2swiginac(f2, self.context)
         # Get expressions for arguments:
         v = self.context._basisfunctions[0]
         u = self.context._basisfunctions[1]
