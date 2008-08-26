@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-14 -- 2008-08-21"
+__date__ = "2008-08-14 -- 2008-08-26"
 
 # Utilities for traversing over expression trees in different ways
 from .traversal import iter_expressions, post_traversal, pre_traversal, post_walk, pre_walk, walk
@@ -11,7 +11,7 @@ from .traversal import iter_expressions, post_traversal, pre_traversal, post_wal
 # Utilities for extracting information from forms and expressions
 from .analysis import extract_type, classes, domain, value_shape
 from .analysis import basisfunctions, coefficients, elements, unique_elements
-from .analysis import variables, duplications
+from .analysis import variables, duplications, FormData
 
 # Utilities for checking properties of forms
 from .predicates import is_multilinear
@@ -27,4 +27,5 @@ from .transformations import ufl2ufl, ufl2latex, transform_integrands
 from .transformations import renumber_indices, renumber_arguments
 from .transformations import expand_compounds, flatten, strip_variables
 from .transformations import substitute_indices, expand_indices
-from .transformations import split_by_dependencies
+from .transformations import split_by_dependencies, mark_duplications
+

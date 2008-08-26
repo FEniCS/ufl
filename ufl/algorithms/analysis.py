@@ -3,10 +3,12 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-18"
+__date__ = "2008-03-14 -- 2008-08-26"
 
 from itertools import chain
 
+from ..output import ufl_assert
+from ..base import UFLObject
 from ..basisfunctions import BasisFunction, Function
 from ..indexing import UnassignedDimType
 
@@ -39,6 +41,8 @@ def domain(a):
 
 def value_shape(expression, dimension):
     "Evaluate the value shape of expression with given implicit dimension."
+    ufl_assert(isinstance(expression, UFLObject), "Expecting UFLObject expression.")
+    ufl_assert(isinstance(dimension, int), "Expecting int dimension.")
     s = expression.shape()
     shape = []
     for i in s:
@@ -101,14 +105,25 @@ def indices(expression):
         indices.update(i for i in mi._indices if isinstance(i, Index))
     return indices
 
-def duplications(a):
-    "Build a set of all repeated expressions in u."
+def duplications(expression):
+    "Build a set of all repeated expressions in expression."
+    ufl_assert(isinstance(expression, UFLObject), "Expecting UFLObject.")
     handled = set()
     duplicated = set()
-    for e in iter_expressions(a):
-        for o in post_traversal(e):
-            if o in handled:
-                duplicated.add(o)
-            handled.add(o)
+    for o in post_traversal(expression):
+        if o in handled:
+            duplicated.add(o)
+        handled.add(o)
     return duplicated
+
+class FormData(object):
+    "Class collecting various information extracted from form."
+    def __init__(self, form):
+        ufl_assert(isinstance(form, Form), "Expecting Form.")
+        self.basisfunctions  = basisfunctions(form)
+        self.coefficients    = coefficients(form)
+        self.elements        = elements(form)
+        self.unique_elements = unique_elements(form)
+        self.domain          = domain(form)
+        self.classes         = classes(form)
 

@@ -49,6 +49,10 @@ class Context:
     def x(self, component):
         return NotImplemented
     
+    def ddx(self, f, i):
+        "Differentiate swiginac expression f w.r.t. x_i."
+        return NotImplemented
+    
     def facet_normal(self, component):
         return NotImplemented
         
@@ -65,14 +69,15 @@ class Context:
 
 
 # FIXME: Implement for all UFL expressions!
-# Steps:
-# - Implement outer controller which knows about code structure and variable lists (context object is defined by this controller)
-# - Algorithm to insert variables in Indexed objects (or do in splitting)
-# - Handle indexed tensor expressions (assuming expand_compounds has been applied)
-#   Need more special cases in transform!
-# - Handle derivatives d/ds and d/dx with AD (need this for quadrature code)
-# - Handle conditionals (cannot express with swiginac, need to represent code structure)
 
+# Steps:
+# - Handle indexed tensor expressions (assuming expand_compounds has been applied)
+# - Algorithm to insert variables in Indexed objects (or do in splitting)
+# - Handle derivatives d/ds and d/dx with AD (need this for quadrature code)
+
+# SFC:
+# - Implement outer controller which knows about code structure and variable lists (context object is defined by this controller)
+# - Handle conditionals (cannot express with swiginac, need to represent code structure)
 
 
 class SwiginacEvaluator(object):
@@ -96,6 +101,10 @@ class SwiginacEvaluator(object):
         h[Function] = self.h_function
         h[Constant] = self.h_function
         h[FacetNormal] = self.h_facet_normal
+        
+        # Containers:
+        h[ListVector] = self.h_list_vector
+        h[ListMatrix] = self.h_list_matrix
         
         # Repeated index objects:
         h[Product] = self.h_product
@@ -121,10 +130,6 @@ class SwiginacEvaluator(object):
         h[Cos]  = self.h_cos
         h[Sin]  = self.h_sin
         
-        # Containers:
-        h[ListVector] = self.h_list_vector
-        h[ListMatrix] = self.h_list_matrix
-        
         # Discontinuous operators:
         h[PositiveRestricted] = self.h_positive_restricted
         h[NegativeRestricted] = self.h_negative_restricted
@@ -136,7 +141,13 @@ class SwiginacEvaluator(object):
         return ()
 
     def transform(self, expression):
-        "Transform a subexpression in the current context."
+        """Transform a subexpression in the current context.
+        
+        @type expression: ufl.UFLObject
+        @param expression: A UFL expression.
+        @rtype: swiginac.basic
+        @return: Returns a scalar swiginac expression.
+        """
         c = expression.__class__
         
         # Case 1: Convert children first: handler will take their transformed expressions as input
@@ -159,43 +170,67 @@ class SwiginacEvaluator(object):
     
     def h_variable(self, x):
         # Lookup variable and evaluate its expression directly if not found
-        v = self._context.variable(x._count, self.component(), self._index2value) # FIXME: symbol flag
+        v = self._context.variable(x._count, self.component(), self._index2value) # FIXME: symbol flag to get expression
         if v is None:
+            ufl_warning("Didn't find variable in context, transforming expression directly. How did this happen?")
             v = self.transform(x._expression)
         return v
-
+    
     def h_basisfunction(self, x):
-        ufl_assert(len(self._index2value) == 0, "Shouldn't have any indices left to map at this point!")
+        ufl_assert(len(self._index2value) == 0, \
+            "Shouldn't have any indices left to map at this point!")
         return self._context.basisfunction(x._count, self.component())
 
     def h_function(self, x):
-        ufl_assert(len(self._index2value) == 0, "Shouldn't have any indices left to map at this point!")
+        ufl_assert(len(self._index2value) == 0, \
+            "Shouldn't have any indices left to map at this point!")
         return self._context.function(x._count, self.component())
     
     def h_facet_normal(self, x):
-        ufl_assert(len(self._index2value) == 0, "Shouldn't have any indices left to map at this point!")
+        ufl_assert(len(self._index2value) == 0, \
+            "Shouldn't have any indices left to map at this point!")
         return self._context.facet_normal(self.component())
     
     ### Handlers for basic algebra:
     
     def h_sum(self, x, *ops):
         return sum(ops)
-
+    
     def h_product(self, x):
+        # Note: Assuming here that expand_compounds has been called
+        ufl_assert(set(x.free_indices()) == set(self._index2value.keys()), \
+            "Index mismatch in product.")
+        ufl_assert(len(x.shape()) == len(self.component()), \
+            "Shape mismatch in product.")
+        
+        # TODO: must update component as well inside loop if this assertion fails
         ops = x.operands()
+        ufl_assert(all(o.shape() == () for o in ops), \
+            "Products haven't been expanded properly! Or do we need to handle non-scalar quantities in product?")
+        
         ri = x._repeated_indices
         if ri:
-            # FIXME: Handle repeated indices
-            ufl_error("Not implemented")
-            for i in ri: # FIXME
-                somevalue = 0 # FIXME
-                self._index2value.push(i, somevalue)
+            index_dimensions = [i.dim() for i in ri]
+            index_values = compute_indices(index_dimensions)
+            x_sum = swiginac.numeric(0.0)
+            # for all permutations of repeated index values
+            for iv in index_values:
+                # update index map 
+                for i,v in izip(ri, iv):
+                    self._index2value.push(i, v)
+                # accumulate product for this index permutation
                 ops = [self.transform(o) for o in ops]
-                self._index2value.pop()
-            return sum(FIXME)
+                x_sum += product(ops)
+                # revert index map
+                for i in ri:
+                    self._index2value.pop()
+            # return final accumulated values
+            return x_sum
         else:
+            # No repeated indices
             ops = [self.transform(o) for o in ops]
             return product(ops)
+        # ...
 
     def h_division(self, x, a, b):
         return a / b
@@ -262,12 +297,15 @@ class SwiginacEvaluator(object):
     
     ### Container handling:
     
-    def h_list_vector(self, x, *ops):
+    def h_list_vector(self, x):
         component = self.component()
         ufl_assert(len(components) == 1, "Got %d indices for a list component." % len(component))
         i = component[0]
         ufl_assert(isinstance(i, int), "Can't index list with %s." % repr(i))
-        return ops[i]
+        self._components.push(())
+        r = self.transform(x._expressions[i])
+        self._components.pop()
+        return r
     
     def h_list_matrix(self, x, *ops):
         component = self.component()
@@ -276,15 +314,28 @@ class SwiginacEvaluator(object):
         j = component[1]
         ufl_assert(isinstance(i, int), "Can't index matrix row with %s." % repr(i))
         ufl_assert(isinstance(j, int), "Can't index matrix column with %s." % repr(j))
-        return ops[i][j]
+        self._components.push(())
+        r = self.transform(x._expressions[i]._expressions[j])
+        self._components.pop()
+        return r
     
-    def h_tensor(self, x, *ops):
-        component = tuple(self.component())
-        for i, idx in enumerate(component):
-            self._index2value.push((ops[1][i], idx))
-        result = self.transform(ops[0])
-        for i in range(len(component)):
-            component.pop()
+    def h_tensor(self, x):
+        # this function evaluates the tensor expression
+        # with indices equal to the current component tuple
+        expression, indices = x.operands()
+        ufl_assert(expression.shape() == (), "Expecting scalar base expression.")
+        # update index map with component tuple values
+        comp = self.component()
+        ufl_assert(len(indices) == len(comp), "Index/component mismatch.")
+        for i, v in izip(indices, comp):
+            self._index2value.push(i, v)
+        self._components.push(())
+        # evaluate with these indices
+        result = self.transform(expression)
+        # revert index map
+        for i in range(len(comp)):
+            self._index2value.pop()
+        self._components.pop()
         return result
     
     ### Differentiation:
@@ -293,23 +344,38 @@ class SwiginacEvaluator(object):
     # If we assume that AD has been applied for derivatives,
     # then the expression to differentiate is always a terminal.
     # TODO: Need algorithm to apply AD to all kinds of derivatives!
-    def h_partial_derivative(self, x, f, y):
-        ufl_error("Not implemented")
-        ufl_assert(isinstance(x, Terminal) or (isinstance(x, Variable) and isinstance(x._expression, Terminal)), \
+    def h_partial_derivative(self, x):
+        f, y = x.operands()
+        ufl_assert(isinstance(f, Terminal), \
             "Expecting to differentiate a Terminal object, you must apply AD first!")
+        ufl_assert(isinstance(y, MultiIndex), \
+            "Expecting to indices in partial derivative!")
         
-        # TODO: Apply indices to get the right part of f, it may be a tensor!
-        # TODO: Is y a MultiIndex here? Pick the right symbol to diff with from context!
-        #ufl_assert(isinstance(y, sw.symbol), "Expecting a swiginac.symbol to differentate w.r.t.")
-        return sw.diff(f, y)
+        ri = x._repeated_indices
+        if ri:
+            ufl_error("Not implemented") 
+            x_sum = swiginac.numeric(0.0)
+            #for FIXME: # depends on wether the indices are repeated in indices alone or across the two
+            #    update_indices # FIXME: sum and stuff
+            #    f = self.transform(x._expression)
+            #    z = FIXME
+            #    x_sum += self._context.ddx(f, i)
+            #    revert_indices
+            return x_sum
+        else:
+            f = self.transform(x._expression)
+            for i in y._indices:
+                if isinstance(i, Index):
+                    z = self._index2value[i]
+                elif isinstance(i, FixedIndex):
+                    z = i._value
+                else:
+                    ufl_error("Invalid index type %s." % i.__class__)
+                f = self._context.ddx(f, i)
+            return f
     
-    def h_diff(self, x, f, y):
-        ufl_error("Not implemented")
-        ufl_assert(isinstance(x, Terminal), "Expecting to differentiate a Terminal object, you must apply AD first!")
-        
-        # TODO: Apply indices to get the right part of f and y, they may be tensors!
-        ufl_assert(isinstance(y, sw.symbol), "Expecting a swiginac.symbol to differentate w.r.t.")
-        return sw.diff(f, y)
+    def h_diff(self, x):
+        ufl_error("Diff shouldn't occur here, you must apply AD first!")
     
     ### Interior facet stuff:
     
@@ -322,53 +388,35 @@ class SwiginacEvaluator(object):
         return FIXME
  
 
-   
-### Requires code structure and thus shouldn't occur in SwiginacEvaluator
-# (i.e. any conditionals should be wrapped in variables before coming here) # TODO
-#d[EQ] = self.h_EQ
-#d[NE] = self.h_NE
-#d[LE] = self.h_LE
-#d[GE] = self.h_GE
-#d[LT] = self.h_LT
-#d[GT] = self.h_GT
-#d[Conditional] = self.h_Conditional
-
-### Replaced by expand_compounds:
-#d[Identity] = self.h_Identity
-#d[Transposed] = self.h_Transposed
-#d[Outer] = self.h_Outer
-#d[Inner] = self.h_Inner
-#d[Dot] = self.h_Dot
-#d[Cross] = self.h_Cross
-#d[Trace] = self.h_Trace
-#d[Determinant] = self.h_Determinant
-#d[Inverse] = self.h_Inverse
-#d[Deviatoric] = self.h_Deviatoric
-#d[Cofactor] = self.h_Cofactor
-#d[Grad] = self.h_Grad
-#d[Div] = self.h_Div
-#d[Curl] = self.h_Curl
-#d[Rot] = self.h_Rot
-
-
 def expression2swiginac(expression, context):
     s = SwiginacEvaluator(context)
     return s.transform(expression)
 
 
-def form2swiginac(form): # TODO: Move to SFC
-    # TODO: transform form with form transformations, renumberings, expands, dependency splits etc.
-    # TODO: get UFL basisfunctions etc from form
-    # TODO: build basic context with all coefficients and geometry
-    context = Context() # FIXME
-    s = SwiginacEvaluator(context)
-    
-    # for all variables in variable stacks independent of basisfunctions: evaluate variables
-    # for all variables in variable stacks depending on a single basisfunction: update context and evaluate variables
-    # for all variables in variable stacks depending on multiple basisfunction: update context and evaluate variables
-    # for all basisfunctions, update context
+### These require code structure and thus shouldn't occur in SwiginacEvaluator
+# (i.e. any conditionals should be handled externally)
+#d[EQ] = 
+#d[NE] = 
+#d[LE] = 
+#d[GE] = 
+#d[LT] = 
+#d[GT] = 
 
-    e = s.transform(expression, d)
+### These are replaced by expand_compounds, so we skip them here:
+#d[Identity]   = 
+#d[Transposed] = 
+#d[Outer] = 
+#d[Inner] = 
+#d[Dot]   = 
+#d[Cross] = 
+#d[Trace] = 
+#d[Determinant] = 
+#d[Inverse]     = 
+#d[Deviatoric]  = 
+#d[Cofactor]    = 
+#d[Grad] = 
+#d[Div]  = 
+#d[Curl] = 
+#d[Rot]  = 
 
-    return e
 

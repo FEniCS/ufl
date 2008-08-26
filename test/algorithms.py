@@ -104,7 +104,7 @@ class AlgorithmsTestCase(unittest.TestCase):
         #print elements(self.forms[2])
         #print unique_elements(self.forms[2])
         #print unique_classes(self.forms[2])
-        d = duplications(self.forms[2])
+        d = duplications(self.forms[2].cell_integrals()[0]._integrand)
         #pprint(list(d))
     
     def _test_walk(self):

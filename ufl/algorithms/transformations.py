@@ -270,6 +270,8 @@ def substitute_indices(expression, indices, values):
 
 def expand_indices(expression):
     "Expand implicit summations into explicit Sums of Products."
+    ufl_error("Not implemented.")
+    
     d = ufl_reuse_handlers()
     
     def e_product(x, *ops):
@@ -285,6 +287,14 @@ def expand_indices(expression):
         return x # FIXME
     d[Diff] = e_diff
     
+    return transform(expression, d)
+
+
+def mark_duplications(expression):
+    "Wrap all duplicated expressions as Variables."
+    dups = duplications(expression)
+    d = ufl_reuse_handlers()
+    # TODO: implement this
     return transform(expression, d)
 
 
