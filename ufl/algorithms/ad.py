@@ -280,3 +280,6 @@ def compute_derivative(expression, w):
             return zero_tensor(x.shape())
     return _compute_derivative(expression, handlers)
 
+
+# FIXME: Need algorithm to apply AD to all kinds of derivatives! In particular, PartialDerivative and Diff.
+

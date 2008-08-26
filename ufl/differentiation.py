@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-19"
+__date__ = "2008-03-14 -- 2008-08-26"
 
 from .output import ufl_assert
 from .base import UFLObject, Compound
@@ -20,9 +20,10 @@ from .tensors import Tensor
 # FIXME: Add SpatialDerivative and TimeDerivative?
 
 class PartialDerivative(UFLObject):
-    "Partial derivative of an expression w.r.t. a spatial direction given by an index."
+    "Partial derivative of an expression w.r.t. spatial directions given by indices."
     
-    __slots__ = ("_expression", "_rank", "_indices", "_free_indices") #, "_fixed_indices", "_repeated_indices")
+    __slots__ = ("_expression", "_rank", "_indices", "_free_indices")
+    #, "_fixed_indices", "_repeated_indices")
     
     def __init__(self, expression, indices):
         self._expression = expression
@@ -30,12 +31,16 @@ class PartialDerivative(UFLObject):
         if isinstance(indices, MultiIndex): # if constructed from repr
             self._indices = indices
         else:
-            self._indices = MultiIndex(indices, 1) # len(indices)) instead of 1 to support higher order derivatives.
+            self._indices = MultiIndex(indices, 1)
+            # TODO: len(indices)) instead of 1 to support higher order derivatives.
         
-        # Find free and repeated indices among the combined indices of the expression and dx((i,j,k))
+        # Find free and repeated indices among the combined
+        # indices of the expression and dx((i,j,k))
         indices = expression.free_indices() + self._indices._indices
-        (fixed_indices, free_indices, repeated_indices, num_unassigned_indices) = extract_indices(indices)
-        # TODO: We don't need to store all these here, remove the ones we don't use after implementing summation expansion.
+        (fixed_indices, free_indices, repeated_indices, num_unassigned_indices) \
+            = extract_indices(indices)
+        # TODO: We don't need to store all these here, remove the ones we
+        #       don't use after implementing summation expansion.
         #self._fixed_indices      = fixed_indices
         self._free_indices       = free_indices
         #self._repeated_indices   = repeated_indices
@@ -48,7 +53,7 @@ class PartialDerivative(UFLObject):
         return self._free_indices
     
     def shape(self):
-        return self._expression.shape() # FIXME: Is this right? Not with repeated indices.
+        return self._expression.shape() # FIXME: Wrong with repeated indices.
     
     def __str__(self):
         # TODO: Pretty-print for higher order derivatives.
@@ -60,19 +65,23 @@ class PartialDerivative(UFLObject):
 
 
 # FIXME: Anders: Can't we just remove this?
-#        Martin: Not necessarily, not unless PartialDerivative is made more general. The idea is that Diff represents df/ds where s is a Variable.
-# FIXME: This is the same mathematical operation as PartialDerivative, should have very similar behaviour or even be the same class.
+#        Martin: Not necessarily, not unless PartialDerivative is made more 
+#        general. The idea is that Diff represents df/ds where s is a Variable.
+# FIXME: This is the same mathematical operation as PartialDerivative, should
+#        have very similar behaviour or even be the same class.
 class Diff(UFLObject):
     __slots__ = ("_f", "_x", "_index", "_free_indices")
     
     def __init__(self, f, x):
         ufl_assert(isinstance(f, UFLObject), "Expecting an UFLObject in Diff.")
-        ufl_assert(isinstance(x, (Symbol, Variable)), "Expecting a Symbol or Variable in Diff.")
+        ufl_assert(isinstance(x, (Symbol, Variable)), \
+            "Expecting a Symbol or Variable in Diff.")
         self._f = f
         self._x = x
         fi = f.free_indices()
         xi = x.free_indices()
-        ufl_assert(len(set(fi) ^ set(xi)) == 0, "FIXME: Repeated indices in Diff not implemented.") # FIXME
+        ufl_assert(len(set(fi) ^ set(xi)) == 0, \
+            "Repeated indices in Diff not implemented.") # FIXME
         self._free_indices = tuple(fi + xi)
     
     def operands(self):
@@ -82,7 +91,7 @@ class Diff(UFLObject):
         return self._free_indices
     
     def shape(self):
-        return self._f.shape() # FIXME: Is this right? Not with repeated indices.
+        return self._f.shape() # FIXME: Wrong with repeated indices.
     
     def __str__(self):
         return "(d[%s] / d[%s])" % (self._f, self._x)
@@ -96,7 +105,8 @@ class Grad(Compound):
     
     def __init__(self, f):
         self._f = f
-        ufl_assert(len(f.free_indices()) == 0, "TODO: Taking gradient of an expression with free indices, should this be a valid expression? Please provide examples!")
+        ufl_assert(len(f.free_indices()) == 0, \
+            "TODO: Taking gradient of an expression with free indices, should this be a valid expression? Please provide examples!")
     
     def operands(self):
         return (self._f, )
@@ -130,7 +140,8 @@ class Div(Compound):
 
     def __init__(self, f):
         ufl_assert(f.rank() >= 1, "Can't take the divergence of a scalar.")
-        ufl_assert(len(f.free_indices()) == 0, "TODO: Taking divergence of an expression with free indices, should this be a valid expression? Please provide examples!")
+        ufl_assert(len(f.free_indices()) == 0, \
+            "TODO: Taking divergence of an expression with free indices, should this be a valid expression? Please provide examples!")
         self._f = f
     
     def operands(self):
@@ -162,7 +173,8 @@ class Curl(Compound):
 
     def __init__(self, f):
         ufl_assert(f.rank()== 1, "Need a vector.")
-        ufl_assert(len(f.free_indices()) == 0, "TODO: Taking curl of an expression with free indices, should this be a valid expression? Please provide examples!")
+        ufl_assert(len(f.free_indices()) == 0, \
+            "TODO: Taking curl of an expression with free indices, should this be a valid expression? Please provide examples!")
         self._f = f
     
     def operands(self):
@@ -189,7 +201,8 @@ class Rot(Compound):
 
     def __init__(self, f):
         ufl_assert(f.rank() == 1, "Need a vector.")
-        ufl_assert(len(f.free_indices()) == 0, "TODO: Taking rot of an expression with free indices, should this be a valid expression? Please provide examples!")
+        ufl_assert(len(f.free_indices()) == 0, \
+            "TODO: Taking rot of an expression with free indices, should this be a valid expression? Please provide examples!")
         self._f = f
     
     def operands(self):

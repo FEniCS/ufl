@@ -219,7 +219,7 @@ class SwiginacEvaluator(object):
                 for i,v in izip(ri, iv):
                     self._index2value.push(i, v)
                 # accumulate product for this index permutation
-                ops = [self.transform(o) for o in ops]
+                ops = (self.transform(o) for o in ops)
                 x_sum += product(ops)
                 # revert index map
                 for i in ri:
@@ -343,7 +343,6 @@ class SwiginacEvaluator(object):
     # may depend on symbols refering to functions depending on y.
     # If we assume that AD has been applied for derivatives,
     # then the expression to differentiate is always a terminal.
-    # TODO: Need algorithm to apply AD to all kinds of derivatives!
     def h_partial_derivative(self, x):
         f, y = x.operands()
         ufl_assert(isinstance(f, Terminal), \
@@ -351,28 +350,44 @@ class SwiginacEvaluator(object):
         ufl_assert(isinstance(y, MultiIndex), \
             "Expecting to indices in partial derivative!")
         
-        ri = x._repeated_indices
-        if ri:
-            ufl_error("Not implemented") 
-            x_sum = swiginac.numeric(0.0)
-            #for FIXME: # depends on wether the indices are repeated in indices alone or across the two
-            #    update_indices # FIXME: sum and stuff
-            #    f = self.transform(x._expression)
-            #    z = FIXME
-            #    x_sum += self._context.ddx(f, i)
-            #    revert_indices
-            return x_sum
-        else:
-            f = self.transform(x._expression)
-            for i in y._indices:
+        def diff_wrt_indices(f, x_indices):
+            "Differentiate f w.r.t. x_i for i in a indices."
+            g = f
+            for i in x_indices:
                 if isinstance(i, Index):
                     z = self._index2value[i]
                 elif isinstance(i, FixedIndex):
                     z = i._value
                 else:
                     ufl_error("Invalid index type %s." % i.__class__)
-                f = self._context.ddx(f, i)
-            return f
+                g = self._context.ddx(g, i)
+            return g
+        
+        ri = x._repeated_indices
+        if ri:
+            # FIXME: depends on wether the indices are repeated in 'indices' alone 
+            #        or across the two, assuming her that the latter is the case.
+            ufl_assert(all((i in f.free_indices()) and (i in y._indices) for i in ri), \
+                "Not implemented for df/dx_ii.")
+            index_dimensions = [i.dim() for i in ri]
+            index_values = compute_indices(index_dimensions)
+            x_sum = swiginac.numeric(0.0)
+            # for all permutations of repeated index values
+            for iv in index_values:
+                # update index map 
+                for i,v in izip(ri, iv):
+                    self._index2value.push(i, v)
+                # accumulate df/dx for this index permutation
+                g = self.transform(f)
+                x_sum += diff_wrt_indices(g, y._indices)
+                # revert index map
+                for i in ri:
+                    self._index2value.pop()
+            # return final accumulated values
+            return x_sum
+        else:
+            g = self.transform(f)
+            return diff_wrt_indices(g, y._indices)
     
     def h_diff(self, x):
         ufl_error("Diff shouldn't occur here, you must apply AD first!")
