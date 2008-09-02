@@ -274,7 +274,6 @@ class SwiginacEvaluator(object):
         # Assertions on handled objects A and ii:
         ufl_assert(isinstance(ii, MultiIndex), "Expecting unchanged MultiIndex in h_indexed.")
 
-        # FIXME: What do we get in, what do we return, what's in between?
         ufl_assert(isinstance(A, Variable), \
             "Expecting indexed expression to be wrapped in a Variable (a temporary implementation issue).")
 
@@ -342,7 +341,8 @@ class SwiginacEvaluator(object):
     # We cannot just use sw.diff on the expression f since it
     # may depend on symbols refering to functions depending on y.
     # If we assume that AD has been applied for derivatives,
-    # then the expression to differentiate is always a terminal.
+    # then the expression to differentiate is always a Terminal.
+    
     def h_partial_derivative(self, x):
         f, y = x.operands()
         ufl_assert(isinstance(f, Terminal), \

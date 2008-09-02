@@ -30,10 +30,6 @@ __copyright__ = __authors__ + " (2008)"
 __licence__ = "LGPL" # TODO: which licence?
 __date__ = "2008-03-14 -- 2008-08-20"
 
-# DEBUGGING: Enable PyChecker to find potential bugs by static code analysis:
-#import os, sys, glob, numpy, logging # PyChecker skips previously loaded modules
-#import pychecker.checker
-
 
 ########## README
 # Imports here should be what the user sees when doing "from ufl import *",
