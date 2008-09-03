@@ -6,7 +6,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-08-20 -- 2008-08-21"
 
 from .output import ufl_assert
-from .base import UFLObject, Terminal, Number, is_python_scalar, as_ufl
+from .base import UFLObject, Terminal, Scalar, is_python_scalar, as_ufl
 from .indexing import compare_shapes
 
 

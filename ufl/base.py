@@ -122,7 +122,7 @@ def zero():
 
 #--- Scalar type ---
 
-class Number(Terminal):
+class Scalar(Terminal):
     "A constant scalar numeric value."
     __slots__ = ("_value",)
     
@@ -139,7 +139,7 @@ class Number(Terminal):
         return str(self._value)
     
     def __repr__(self):
-        return "Number(%r)" % self._value
+        return "Scalar(%r)" % self._value
 
 #--- Base class of compound objects ---
 
@@ -172,7 +172,7 @@ def as_ufl(o):
     if is_python_scalar(o):
         if o == 0:
             return zero()
-        return Number(o)
+        return Scalar(o)
     ufl_assert(isinstance(o, UFLObject), "Expecting Python scalar or UFLObject instance.")
     return o
     

@@ -11,7 +11,7 @@ from itertools import chain
 from collections import defaultdict
 
 from .output import ufl_assert, ufl_error
-from .base import UFLObject, Number, is_true_scalar, is_python_scalar
+from .base import UFLObject, Scalar, is_true_scalar, is_python_scalar
 from .indexing import extract_indices, compare_shapes
 
 #--- Algebraic operators ---

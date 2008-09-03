@@ -12,7 +12,7 @@ from ..common import some_key, product, Stack, StackDict
 from ..output import ufl_assert, ufl_error
 
 # All classes:
-from ..base import UFLObject, Terminal, Number
+from ..base import UFLObject, Terminal, Scalar
 from ..variable import Variable
 from ..finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
 from ..basisfunctions import BasisFunction, Function, Constant
@@ -95,7 +95,7 @@ class SwiginacEvaluator(object):
         h = self._pre_handlers
         
         # Terminals:
-        h[Number] = self.h_number
+        h[Scalar] = self.h_number
         h[Variable] = self.h_variable
         h[BasisFunction] = self.h_basisfunction
         h[Function] = self.h_function

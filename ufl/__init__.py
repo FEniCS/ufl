@@ -50,7 +50,7 @@ from .common import product
 from .output import UFLException, ufl_debug, ufl_info, ufl_warning, ufl_error, ufl_assert
 
 # base system (expression base classes)
-from .base import UFLObject, Terminal, Number, Compound
+from .base import UFLObject, Terminal, Scalar, Compound
 #from .base import is_python_scalar, is_scalar, is_true_scalar
 
 # variable class

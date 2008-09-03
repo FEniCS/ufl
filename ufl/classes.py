@@ -7,7 +7,7 @@ from __future__ import absolute_import
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-08-15 -- 2008-08-20"
 
-from .base import UFLObject, Terminal, Number, Compound
+from .base import UFLObject, Terminal, Scalar, Compound
 from .variable import Variable
 from .finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
 from .basisfunctions import BasisFunction, Function, Constant

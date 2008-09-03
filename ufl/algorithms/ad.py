@@ -10,7 +10,7 @@ from collections import defaultdict
 from ..output import ufl_assert, ufl_error
 
 # All classes:
-from ..base import UFLObject, Terminal, Number
+from ..base import UFLObject, Terminal, Scalar
 from ..base import ZeroType, zero_tensor # Experimental!
 from ..variable import Variable
 from ..finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement

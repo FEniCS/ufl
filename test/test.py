@@ -14,6 +14,7 @@ logging.basicConfig(level=logging.CRITICAL)
 #tests = ["elements", "indices", "forms", "illegal", "algorithms"]
 tests = [f.replace(".py", "") for f in glob("*.py")]
 tests.remove("test")
+tests.remove("run_pychecker")
 
 # Run tests
 for test in tests:
