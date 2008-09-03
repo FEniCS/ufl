@@ -5,13 +5,13 @@ converting UFL expressions to other representations."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-08-22"
+__date__ = "2008-05-07 -- 2008-09-03"
 
 from collections import defaultdict
 from itertools import izip
 
 from ..common import some_key, product
-from ..output import ufl_assert, ufl_error
+from ..output import ufl_assert, ufl_error, ufl_warning
 
 # All classes:
 from ..base import UFLObject, Terminal, Number
@@ -173,7 +173,13 @@ def latex_handlers():
     d[Div]  = lambda x, f: "\\nabla{\\cdot %s}" % par(f)
     d[Curl] = lambda x, f: "\\nabla{\\times %s}" % par(f)
     d[Rot]  = lambda x, f: "\\rot{%s}" % par(f)
-    d[MathFunction]  = lambda x, f: "%s%s" % (x._name, par(f)) # FIXME: Add particular functions here
+    
+    d[Sqrt] = lambda x, f: "\\sqrt{%s}" % par(f)
+    d[Exp]  = lambda x, f: "e^{%s}" % par(f)
+    d[Ln]   = lambda x, f: "\\ln{%s}" % par(f)
+    d[Cos]  = lambda x, f: "\\cos{%s}" % par(f)
+    d[Sin]  = lambda x, f: "\\sin{%s}" % par(f)
+    
     d[Outer] = l_binop("\\otimes")
     d[Inner] = l_binop(":")
     d[Dot]   = l_binop("\\cdot")
