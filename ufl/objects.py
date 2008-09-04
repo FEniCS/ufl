@@ -7,7 +7,7 @@ __date__ = "2008-03-14 -- 2008-08-20"
 
 # Modified by Anders Logg, 2008
 
-from .base import Scalar
+from .base import FloatValue
 from .integral import Integral
 from .geometry import FacetNormal
 from .indexing import Index

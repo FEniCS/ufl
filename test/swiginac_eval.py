@@ -56,7 +56,7 @@ class SwiginacTestCase(unittest.TestCase):
         self.context = Context(self.x, self.n, basisfunctions, functions, variables)
     
     def test_number(self):
-        f = Scalar(1.23)
+        f = FloatValue(1.23)
         g = expression2swiginac(f, self.context)
         self.assertTrue((g-1.23) == 0)
 

@@ -9,7 +9,7 @@ __date__ = "2008-08-18 -- 2008-08-20"
 
 # UFL imports
 from .output import ufl_error
-from .base import UFLObject, Scalar, ZeroType, is_python_scalar
+from .base import UFLObject, FloatValue, ZeroType, is_python_scalar
 from .algebra import Sum, Product, Division, Power, Mod, Abs
 from .tensoralgebra import Transposed
 from .indexing import Indexed
@@ -20,7 +20,7 @@ from .differentiation import PartialDerivative
 #--- Extend UFLObject with algebraic operators ---
 
 def _add(self, o):
-    if is_python_scalar(o): o = Scalar(o)
+    if is_python_scalar(o): o = FloatValue(o)
     if not isinstance(o, UFLObject): return NotImplemented
     if isinstance(o, ZeroType): return self
     if isinstance(self, ZeroType): return o
@@ -28,7 +28,7 @@ def _add(self, o):
 UFLObject.__add__ = _add
 
 def _radd(self, o):
-    if is_python_scalar(o): o = Scalar(o)
+    if is_python_scalar(o): o = FloatValue(o)
     if not isinstance(o, UFLObject): return NotImplemented
     if isinstance(o, ZeroType): return self
     if isinstance(self, ZeroType): return o
@@ -36,7 +36,7 @@ def _radd(self, o):
 UFLObject.__radd__ = _radd
 
 def _sub(self, o):
-    if is_python_scalar(o): o = Scalar(o)
+    if is_python_scalar(o): o = FloatValue(o)
     if not isinstance(o, UFLObject): return NotImplemented
     if isinstance(o, ZeroType): return self
     if isinstance(self, ZeroType): return -o
@@ -44,7 +44,7 @@ def _sub(self, o):
 UFLObject.__sub__ = _sub
 
 def _rsub(self, o):
-    if is_python_scalar(o): o = Scalar(o)
+    if is_python_scalar(o): o = FloatValue(o)
     if not isinstance(o, UFLObject): return NotImplemented
     if isinstance(self, ZeroType): return o
     if isinstance(o, ZeroType): return -self
@@ -52,49 +52,49 @@ def _rsub(self, o):
 UFLObject.__rsub__ = _rsub
 
 def _mul(self, o):
-    if is_python_scalar(o): o = Scalar(o)
+    if is_python_scalar(o): o = FloatValue(o)
     if not isinstance(o, UFLObject): return NotImplemented
     return Product(self, o)
 UFLObject.__mul__ = _mul
 
 def _rmul(self, o):
-    if is_python_scalar(o): o = Scalar(o)
+    if is_python_scalar(o): o = FloatValue(o)
     if not isinstance(o, UFLObject): return NotImplemented
     return Product(o, self)
 UFLObject.__rmul__ = _rmul
 
 def _div(self, o):
-    if is_python_scalar(o): o = Scalar(o)
+    if is_python_scalar(o): o = FloatValue(o)
     if not isinstance(o, UFLObject): return NotImplemented
     return Division(self, o)
 UFLObject.__div__ = _div
 
 def _rdiv(self, o):
-    if is_python_scalar(o): o = Scalar(o)
+    if is_python_scalar(o): o = FloatValue(o)
     if not isinstance(o, UFLObject): return NotImplemented
     return Division(o, self)
 UFLObject.__rdiv__ = _rdiv
 
 def _pow(self, o):
-    if is_python_scalar(o): o = Scalar(o)
+    if is_python_scalar(o): o = FloatValue(o)
     if not isinstance(o, UFLObject): return NotImplemented
     return Power(self, o)
 UFLObject.__pow__ = _pow
 
 def _rpow(self, o):
-    if is_python_scalar(o): o = Scalar(o)
+    if is_python_scalar(o): o = FloatValue(o)
     if not isinstance(o, UFLObject): return NotImplemented
     return Power(o, self)
 UFLObject.__rpow__ = _rpow
 
 def _mod(self, o):
-    if is_python_scalar(o): o = Scalar(o)
+    if is_python_scalar(o): o = FloatValue(o)
     if not isinstance(o, UFLObject): return NotImplemented
     return Mod(self, o)
 UFLObject.__mod__ = _mod
 
 def _rmod(self, o):
-    if is_python_scalar(o): o = Scalar(o)
+    if is_python_scalar(o): o = FloatValue(o)
     if not isinstance(o, UFLObject): return NotImplemented
     return Mod(o, self)
 UFLObject.__rmod__ = _rmod

@@ -14,7 +14,7 @@ from ..common import some_key, product
 from ..output import ufl_assert, ufl_error, ufl_warning
 
 # All classes:
-from ..base import UFLObject, Terminal, Scalar
+from ..base import UFLObject, Terminal, FloatValue
 from ..variable import Variable
 from ..finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
 from ..basisfunctions import BasisFunction, Function, Constant
@@ -138,7 +138,7 @@ def latex_handlers():
             return "\\left(%s\\right)" % s
         return str(s)
     # Terminal objects:
-    d[Scalar]        = lambda x: "{%s}" % x._value
+    d[FloatValue]        = lambda x: "{%s}" % x._value
     d[BasisFunction] = lambda x: "{v^{%d}}" % x._count # Using ^ for function numbering and _ for indexing
     d[Function]      = lambda x: "{w^{%d}}" % x._count
     d[Constant]      = lambda x: "{w^{%d}}" % x._count
@@ -513,7 +513,7 @@ def split_by_dependencies(expression, basisfunction_deps, function_deps):
     terminal_deps[MultiIndex] = no_deps
     terminal_deps[Identity] = no_deps
     terminal_deps[Constant] = no_deps
-    terminal_deps[Scalar] = no_deps
+    terminal_deps[FloatValue] = no_deps
     terminal_deps[FacetNormal] = facet_normal_deps
     terminal_deps[Function] = function_deps
     terminal_deps[BasisFunction] = basisfunction_deps

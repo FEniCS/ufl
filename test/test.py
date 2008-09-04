@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """Run all tests"""
 
 __author__ = "Anders Logg (logg@simula.no)"

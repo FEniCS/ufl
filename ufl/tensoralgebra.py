@@ -12,7 +12,7 @@ from .tensors import Tensor
 
 
 ### Algebraic operations on tensors:
-# Scalars:
+# FloatValues:
 #   dot(a,b)      = a*b
 #   inner(a,b)    = a*b
 #   outer(a,b)    = a*b

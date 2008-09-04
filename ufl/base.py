@@ -120,9 +120,9 @@ def zero_tensor(shape):
 def zero():
     return zero_tensor(())
 
-#--- Scalar type ---
+#--- FloatValue type ---
 
-class Scalar(Terminal):
+class FloatValue(Terminal):
     "A constant scalar numeric value."
     __slots__ = ("_value",)
     
@@ -139,7 +139,7 @@ class Scalar(Terminal):
         return str(self._value)
     
     def __repr__(self):
-        return "Scalar(%r)" % self._value
+        return "FloatValue(%r)" % self._value
 
 #--- Base class of compound objects ---
 
@@ -172,7 +172,7 @@ def as_ufl(o):
     if is_python_scalar(o):
         if o == 0:
             return zero()
-        return Scalar(o)
+        return FloatValue(o)
     ufl_assert(isinstance(o, UFLObject), "Expecting Python scalar or UFLObject instance.")
     return o
     
