@@ -161,6 +161,9 @@ class VectorElement(MixedElement):
         # Create mixed element from list of finite elements
         sub_element = FiniteElement(family, domain, degree)
         sub_elements = [sub_element]*dim
+        
+        # Get common family name (checked in FiniteElement.__init__)
+        family = sub_element.family()
 
         # Compute value shape
         value_shape = (dim,) + sub_element.value_shape()
@@ -211,6 +214,9 @@ class TensorElement(MixedElement):
                 continue
             sub_element_mapping[index] = len(sub_elements)
             sub_elements += [sub_element]
+
+        # Get common family name (checked in FiniteElement.__init__)
+        family = sub_element.family()
 
         # Update mapping for symmetry
         for index in indices:
