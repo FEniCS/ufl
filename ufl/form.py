@@ -8,7 +8,7 @@ __date__    = "2008-03-14 -- 2008-09-05"
 
 class Form(object):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
-    __slots__ = ("_integrals", "_repr", "_hash")
+    __slots__ = ("_integrals", "_repr", "_hash", "_str")
     def __init__(self, integrals):
         self._integrals = integrals
         self._str = None
