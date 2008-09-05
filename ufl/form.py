@@ -3,13 +3,17 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__    = "2008-03-14 -- 2008-08-14"
+__date__    = "2008-03-14 -- 2008-09-05"
 
 
-class Form:
+class Form(object):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
+    __slots__ = ("_integrals", "_repr", "_hash")
     def __init__(self, integrals):
         self._integrals = integrals
+        self._str = None
+        self._repr = None
+        self._hash = None
     
     def _get_integrals(self, domain_type):
         return tuple([itg for itg in self._integrals if itg._domain_type == domain_type])
@@ -44,8 +48,16 @@ class Form:
         #return Form(self._integrals + other._integrals)
     
     def __str__(self):
-        return "  +  ".join(str(itg) for itg in self._integrals)
+        if self._str is None:
+            self._str = "  +  ".join(str(itg) for itg in self._integrals) 
+        return self._str
     
     def __repr__(self):
-        return "Form([%s])" % ", ".join(repr(itg) for itg in self._integrals)
+        if self._repr is None:
+            self._repr = "Form([%s])" % ", ".join(repr(itg) for itg in self._integrals)
+        return self._repr
 
+    def __hash__(self):
+        if self._hash is None:
+            self._hash = hash(repr(self))
+        return self._hash
