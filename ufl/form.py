@@ -61,3 +61,8 @@ class Form(object):
         if self._hash is None:
             self._hash = hash(repr(self))
         return self._hash
+
+    def __eq__(self, other):
+        if not isinstance(other, Form):
+            return False
+        return repr(self) == repr(other)
