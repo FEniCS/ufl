@@ -70,12 +70,12 @@ class PartialDerivative(UFLObject):
 # FIXME: This is the same mathematical operation as PartialDerivative, should
 #        have very similar behaviour or even be the same class.
 class Diff(UFLObject):
-    __slots__ = ("_f", "_x", "_index", "_free_indices")
+    __slots__ = ("_f", "_x", "_index", "_free_indices", "_shape")
     
     def __init__(self, f, x):
         ufl_assert(isinstance(f, UFLObject), "Expecting an UFLObject in Diff.")
-        ufl_assert(isinstance(x, (Symbol, Variable)), \
-            "Expecting a Symbol or Variable in Diff.")
+        ufl_assert(isinstance(x, Variable), \
+            "Expecting a Variable in Diff.")
         self._f = f
         self._x = x
         fi = f.free_indices()
@@ -83,6 +83,7 @@ class Diff(UFLObject):
         ufl_assert(len(set(fi) ^ set(xi)) == 0, \
             "Repeated indices in Diff not implemented.") # FIXME
         self._free_indices = tuple(fi + xi)
+        self._shape = f.shape() + x.shape() # - repeated_indices FIXME
     
     def operands(self):
         return (self._f, self._x)
@@ -91,7 +92,7 @@ class Diff(UFLObject):
         return self._free_indices
     
     def shape(self):
-        return self._f.shape() # FIXME: Wrong with repeated indices.
+        return self._shape
     
     def __str__(self):
         return "(d[%s] / d[%s])" % (self._f, self._x)

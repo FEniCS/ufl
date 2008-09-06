@@ -3,17 +3,18 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__    = "2008-03-14 -- 2008-09-05"
+__date__    = "2008-03-14 -- 2008-09-06"
 
 
 class Form(object):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
-    __slots__ = ("_integrals", "_repr", "_hash", "_str")
+    __slots__ = ("_integrals", "_repr", "_hash", "_str", "_metadata")
     def __init__(self, integrals):
         self._integrals = integrals
         self._str = None
         self._repr = None
         self._hash = None
+        self._metadata = ""
     
     def _get_integrals(self, domain_type):
         return tuple([itg for itg in self._integrals if itg._domain_type == domain_type])
@@ -66,3 +67,7 @@ class Form(object):
         if not isinstance(other, Form):
             return False
         return repr(self) == repr(other)
+    
+    def signature(self):
+        return "%s%s" % (repr(self), self._metadata)
+

@@ -7,7 +7,7 @@ __date__ = "2008-03-14 -- 2008-08-19"
 
 from .output import ufl_assert
 from .base import UFLObject, Terminal, Compound
-from .indexing import Index
+from .indexing import Index, compare_shapes
 from .tensors import Tensor
 
 
@@ -43,7 +43,7 @@ from .tensors import Tensor
 #
 
 class Identity(Terminal):
-    __slots__ = ()
+    __slots__ = ("_dim",)
     
     def __init__(self, dim):
         self._dim = dim

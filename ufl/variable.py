@@ -17,7 +17,7 @@ class Variable(Terminal, Counted): #UFLObject
     - Internal use in library algorithms during e.g. automatic differentation.
     """
     __slots__ = ("_expression",)
-    _globalcounter = 0
+    _globalcount = 0
     def __init__(self, expression, count=None):
         Counted.__init__(self, count)
         self._expression = expression
