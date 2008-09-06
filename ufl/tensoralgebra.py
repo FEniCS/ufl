@@ -313,7 +313,7 @@ class Inverse(Compound): # TODO: Drop Inverse and represent it as product of Det
         sh = A.shape()
         r = len(sh)
         ufl_assert(r == 0 or r == 2, "Inverse of tensor with rank != 2 or 0 is undefined.")
-        ufl_assert(r == 0 or compare_shapes((sh[0],), (sh[1],)), "Cannot take inverse of rectangular matrix with dimensions %s." % repr(s))
+        ufl_assert(r == 0 or compare_shapes((sh[0],), (sh[1],)), "Cannot take inverse of rectangular matrix with dimensions %s." % repr(sh))
         ufl_assert(len(A.free_indices()) == 0, "Didn't expect free indices in Inverse.")
         self._A = A
     

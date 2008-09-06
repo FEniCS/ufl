@@ -144,6 +144,8 @@ class Mod(UFLObject):
     __slots__ = ("_a", "_b")
     
     def __init__(self, a, b):
+        if is_python_scalar(a): a = FloatValue(a)
+        if is_python_scalar(b): b = FloatValue(b)
         ufl_assert(is_true_scalar(a) and is_true_scalar(b), "Non-scalar mod not defined.")
         self._a = a
         self._b = b

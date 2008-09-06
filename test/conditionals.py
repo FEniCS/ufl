@@ -12,7 +12,7 @@ from ufl.algorithms import *
 import logging
 logging.basicConfig(level=logging.CRITICAL)
 
-class FormsTestCase(unittest.TestCase):
+class ConditionalsTestCase(unittest.TestCase):
 
     def setUp(self):
         pass
