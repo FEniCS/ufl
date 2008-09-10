@@ -255,8 +255,8 @@ class TensorElement(MixedElement):
         "Pretty printing"
         print self.family()
         print self.degree()
-        print self.shape()
+        print self.value_shape()
         print self.domain()
         return "%s tensor element of degree %d and shape %s on a %s" % \
-            (self.family(), self.degree(), self.shape(), self.domain())
+            (self.family(), self.degree(), self.value_shape(), self.domain())
 
