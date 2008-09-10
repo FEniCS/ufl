@@ -76,12 +76,16 @@ def component_to_index(component, shape):
     return i
 
 def index_to_component(index, shape):
+    assert index >= 0
     component = []
+    a, b = -123, -123
     for s in strides(shape):
         a = index // s
         b = index % s
         index = b
         component.append(a)
+    assert all(c >= 0 for c in component)
+    assert all(c < s for (c,s) in zip(component, shape))
     return tuple(component)
 
 def test_component_indexing():
@@ -185,3 +189,4 @@ def test_stackdict():
 if __name__ == "__main__":
     test_component_indexing()
     test_stackdict()
+    
