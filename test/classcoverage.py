@@ -108,21 +108,30 @@ class ClasscoverageTest(unittest.TestCase):
                     [1.0, 2.0*f0, f0**2]])
         self.assertTrue(a.shape() == (2,3))
         
-        # TODO:
-        #a = Deviatoric()
-        #a = Transposed()
-        #a = Determinant()
-        #a = Trace()
-        #a = Cofactor()
+        a = Deviatoric(v2)
+        a = Deviatoric(f2)
+        a = Deviatoric(f2*f0+v2*3)
+        a = Transposed(v2)
+        a = Transposed(f2)
+        a = Transposed(f2*f0+v2*3)
+        a = Determinant(v2)
+        a = Determinant(f2)
+        a = Determinant(f2*f0+v2*3)
+        a = Trace(v2)
+        a = Trace(f2)
+        a = Trace(f2*f0+v2*3)
+        a = Cofactor(v2)
+        a = Cofactor(f2)
+        a = Cofactor(f2*f0+v2*3)
         
-        # TODO:
-        #a = LE()
-        #a = EQ()
-        #a = NE()
-        #a = LT()
-        #a = GE()
-        #a = GT()
-        #a = Conditional()
+        cond1 = LE(f0, 1.0)
+        cond2 = EQ(3.0, f0)
+        cond3 = NE(sin(f0), cos(f0))
+        cond4 = LT(sin(f0), cos(f0))
+        cond5 = GE(sin(f0), cos(f0))
+        cond6 = GT(sin(f0), cos(f0))
+        a = Conditional(cond1, 1, 2)
+        a = Conditional(cond2, f0**3, ln(f0))
         
         a = Abs(f0)
         a = Mod(f0, 3.0)
@@ -141,8 +150,20 @@ class ClasscoverageTest(unittest.TestCase):
         a = Ln(1.0)
         
         # TODO:
+        
         #a = PartialDerivative()
-        #a = Diff()
+        a = f0.dx(0)
+        a = f0.dx(i)
+        a = f0.dx(i,j,1)
+        
+        s0 = Variable(f0)
+        s1 = Variable(f1)
+        s2 = Variable(f2)
+        f = dot(s0*s1, s2)
+        
+        a = Diff(f, s0)
+        a = Diff(f, s1)
+        a = Diff(f, s2)
         
         a = Div(v1)
         a = Div(f1)

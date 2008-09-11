@@ -31,7 +31,7 @@ class PartialDerivative(UFLObject):
         if isinstance(indices, MultiIndex): # if constructed from repr
             self._indices = indices
         else:
-            self._indices = MultiIndex(indices, 1)
+            self._indices = MultiIndex(indices, len(indices)) # FIXME: Go over the indexing logic here
             # TODO: len(indices)) instead of 1 to support higher order derivatives.
         
         # Find free and repeated indices among the combined
