@@ -7,7 +7,7 @@ __date__ = "2008-03-31 -- 2008-08-15"
 
 
 from .output import ufl_assert, ufl_warning
-from .base import UFLObject, Terminal
+from .base import UFLObject, Terminal, as_ufl
 from .indexing import Index, MultiIndex, UnassignedDim, free_index_dimensions
 
 # TODO: This ListVector/ListMatrix structure can probably be generalized to tensors.
@@ -16,6 +16,7 @@ class ListVector(UFLObject):
     __slots__ = ("_expressions", "_free_indices")
     
     def __init__(self, *expressions):
+        expressions = [as_ufl(e) for e in expressions]
         ufl_assert(all(e.shape() == () for e in expressions), "Expecting scalar valued expressions.")
         
         self._free_indices = expressions[0].free_indices()

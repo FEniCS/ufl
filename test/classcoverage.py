@@ -61,6 +61,12 @@ class ClasscoverageTest(unittest.TestCase):
         # --- Non-terminals:
         
         #a = Indexed()
+        a = v2[i,j]
+        a = v2[0,k]
+        a = v2[l,1]
+        a = f2[i,j]
+        a = f2[0,k]
+        a = f2[l,1]
         
         a = Inverse(I)
         a = Inverse(v2)
@@ -80,20 +86,36 @@ class ClasscoverageTest(unittest.TestCase):
         a = Cross(v1, f1)
         
         #a = Sum()
+        a = v0 + f0 + v0
+        a = v1 + f1 + v1
+        a = v2 + f2 + v2
         #a = Product()
+        a = 3*v0*(2.0*v0)*f0*(v0*3.0)
         #a = Division()
+        a = v0 / 2.0
+        a = v0 / f0
+        a = v0 / (f0 + 7)
         #a = Power()
+        a = f0**3
+        a = (f0*2)**1.23
         
-        #a = Tensor()
+        a = Tensor(v1[i]*f1[j], (i,j))
         #a = ListVector()
+        a = Vector([1.0, 2.0*f0, f0**2])
+        self.assertTrue(a.shape() == (3,))
         #a = ListMatrix()
+        a = Matrix([[1.0, 2.0*f0, f0**2],
+                    [1.0, 2.0*f0, f0**2]])
+        self.assertTrue(a.shape() == (2,3))
         
+        # TODO:
         #a = Deviatoric()
         #a = Transposed()
         #a = Determinant()
         #a = Trace()
         #a = Cofactor()
         
+        # TODO:
         #a = LE()
         #a = EQ()
         #a = NE()
@@ -118,16 +140,35 @@ class ClasscoverageTest(unittest.TestCase):
         a = Exp(1.0)
         a = Ln(1.0)
         
+        # TODO:
         #a = PartialDerivative()
         #a = Diff()
-        #a = Div()
-        #a = Grad()
-        #a = Curl()
-        #a = Rot()
         
-        #a = Restricted()
-        #a = PositiveRestricted()
-        #a = NegativeRestricted()
+        a = Div(v1)
+        a = Div(f1)
+        a = Div(v2)
+        a = Div(f2)
+        a = Div(Outer(f1,f1))
+        
+        a = Grad(v0)
+        a = Grad(f0)
+        a = Grad(v1)
+        a = Grad(f1)
+        a = Grad(f0*v0)
+        a = Grad(f0*v1)
+
+        a = Curl(v1)
+        a = Curl(f1)
+        a = Rot(v1)
+        a = Rot(f1)
+        
+        a = PositiveRestricted(v0)
+        a = v0('+')
+        a = v0('+')*f0
+        
+        a = NegativeRestricted(v0)
+        a = v0('-')
+        a = v0('-') + f0
 
         # --- Integrals:
 
@@ -154,11 +195,11 @@ class ClasscoverageTest(unittest.TestCase):
         # --- Form transformations:
         
         a = f0*v0*dx + f0*v0*dot(f1,v1)*dx
-        l = Lhs(a)
-        r = Rhs(a)
+        b = Lhs(a)
+        c = Rhs(a)
         d = Derivative(a, f1)
-        b = Action(l)
-        c = Action(d)
+        e = Action(b)
+        f = Action(d)
         
 if __name__ == "__main__":
     unittest.main()
