@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-09-04"
+__date__ = "2008-03-14 -- 2008-09-13"
 
 from itertools import chain
 
@@ -11,7 +11,8 @@ from ..output import ufl_assert
 from ..base import UFLObject
 from ..basisfunctions import BasisFunction, Function
 from ..indexing import UnassignedDimType
-from ..classes import Form, Integral
+from ..form import Form
+from ..integral import Integral
 from .traversal import iter_expressions, post_traversal
 
 #--- Utilities to extract information from an expression ---
@@ -27,11 +28,11 @@ def extract_type(a, ufl_type):
 def classes(a):
     """Build a set of all unique UFLObject subclasses used in a.
     The argument a can be a Form, Integral or UFLObject."""
-    classes = set()
+    c = set()
     for e in iter_expressions(a):
         for o in post_traversal(e):
-            classes.add(o.__class__)
-    return classes
+            c.add(o.__class__)
+    return c
 
 def domain(a):
     "Find the polygonal domain of Form a."
@@ -115,15 +116,4 @@ def duplications(expression):
             duplicated.add(o)
         handled.add(o)
     return duplicated
-
-class FormData(object):
-    "Class collecting various information extracted from form."
-    def __init__(self, form):
-        ufl_assert(isinstance(form, Form), "Expecting Form.")
-        self.basisfunctions  = basisfunctions(form)
-        self.coefficients    = coefficients(form)
-        self.elements        = elements(form)
-        self.unique_elements = unique_elements(form)
-        self.domain          = domain(form)
-        self.classes         = classes(form)
 
