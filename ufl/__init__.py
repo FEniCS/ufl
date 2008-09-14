@@ -67,7 +67,7 @@ from .elements import register_element #, ufl_elements
 from .basisfunction import BasisFunction, BasisFunctions, TestFunction, TestFunctions, TrialFunction, TrialFunctions
 
 # functions
-from .function import Function, Constant, Functions
+from .function import Function, Functions, Constant, VectorConstant
 
 # types for geometric quantities
 from .geometry import FacetNormal

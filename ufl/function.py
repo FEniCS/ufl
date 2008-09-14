@@ -6,7 +6,7 @@ from __future__ import absolute_import
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-09-14"
 
-from .finiteelement import FiniteElement
+from .finiteelement import FiniteElement, VectorElement
 
 # Modified by Anders Logg, 2008
 
@@ -39,11 +39,11 @@ class Function(Terminal, Counted):
 
 # TODO: Handle actual global constants?
 class Constant(Function):
-    __slots__ = ("_polygon",)
+    __slots__ = ("_domain",)
 
-    def __init__(self, polygon, name=None, count=None):
-        self._polygon = polygon
-        element = FiniteElement("DG", polygon, 0)
+    def __init__(self, domain, name=None, count=None):
+        self._domain = domain
+        element = FiniteElement("DG", domain, 0)
         Function.__init__(self, element, name, count)
     
     def __str__(self):
@@ -53,7 +53,24 @@ class Constant(Function):
             return "c_%s" % self._name
     
     def __repr__(self):
-        return "Constant(%r, %r, %r)" % (self._polygon, self._name, self._count)
+        return "Constant(%r, %r, %r)" % (self._domain, self._name, self._count)
+
+class VectorConstant(Function):
+    __slots__ = ("_domain",)
+
+    def __init__(self, domain, name=None, count=None):
+        self._domain = domain
+        element = VectorElement("DG", domain, 0)
+        Function.__init__(self, element, name, count)
+    
+    def __str__(self):
+        if self._name is None:
+            return "c_%d" % self._count
+        else:
+            return "c_%s" % self._name
+    
+    def __repr__(self):
+        return "Constant(%r, %r, %r)" % (self._domain, self._name, self._count)
 
 def Functions(element):
     return split(Function(element))
