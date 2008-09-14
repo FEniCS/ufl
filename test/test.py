@@ -16,6 +16,7 @@ logging.basicConfig(level=logging.CRITICAL)
 tests = [f.replace(".py", "") for f in glob("*.py")]
 tests.remove("test")
 tests.remove("run_pychecker")
+tests.remove("swiginac_eval")
 
 # Run tests
 for test in tests:
