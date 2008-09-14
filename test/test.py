@@ -7,7 +7,7 @@ __date__ = "2008-03-12 -- 2008-08-20"
 from os import system
 from glob import glob
 
-# disable log output
+# Disable log output
 import logging
 logging.basicConfig(level=logging.CRITICAL)
 

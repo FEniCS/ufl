@@ -14,7 +14,8 @@ from ..base import UFLObject, Terminal, FloatValue
 from ..base import ZeroType, zero_tensor # Experimental!
 from ..variable import Variable
 from ..finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
-from ..basisfunctions import BasisFunction, Function, Constant
+from ..basisfunction import BasisFunction
+from ..function import Function
 from ..geometry import FacetNormal
 from ..indexing import MultiIndex, Indexed, Index
 from ..tensors import ListVector, ListMatrix, Tensor

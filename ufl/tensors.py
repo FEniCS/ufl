@@ -136,4 +136,3 @@ def Matrix(expressions, indices = None):
         ufl_assert(isinstance(expressions, (list, tuple)))
         return ListMatrix(*[ListVector(*e) for e in expressions])
     return Tensor(expressions, indices)
-
