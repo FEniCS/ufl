@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-14 -- 2008-09-13"
+__date__ = "2008-08-14 -- 2008-09-16"
 
 # Utilities for traversing over expression trees in different ways
 from .traversal import iter_expressions, post_traversal, pre_traversal, post_walk, pre_walk, walk
@@ -28,7 +28,7 @@ from .transformations import substitute_indices, expand_indices
 from .transformations import split_by_dependencies, mark_duplications
 
 # Utilities for UFL object printing
-from .printing import integral_info, form_info
+from .printing import integral_info, form_info, tree_format
 
 # Utilities for form file handling
 from .formfiles import load_forms

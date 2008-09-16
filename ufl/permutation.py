@@ -4,7 +4,7 @@ and generating index lists."""
 __authors__ = "Anders Logg and Kent-Andre Mardal"
 __date__ = "2008-05-22 -- 2008-08-26"
 
-# Modified by Martin Alnæs 2008
+# Modified by Martin Alnes 2008
 
 def compute_indices(shape):
     "Compute all index combinations for given shape"

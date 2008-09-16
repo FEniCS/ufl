@@ -9,12 +9,14 @@ __date__ = "2008-03-14 -- 2008-09-16"
 from itertools import chain
 
 from ..output import ufl_assert
+from ..base import UFLObject, Terminal
 from ..form import Form
+from ..integral import Integral
 
 #--- Utilities for constructing informative strings from UFL objects ---
 
 def integral_info(integral):
-    s  = "  Integral over %s domain %d:\n" % (integral._domain_type, integral._domain_id)
+    s  = "  Integral over %s domain %d:\n" % (integral.domain_type(), integral.domain_id())
     s += "    Integrand expression representation:\n"
     s += "      %r\n" % integral._integrand
     s += "    Integrand expression short form:\n"
@@ -53,5 +55,50 @@ def form_info(form):
     for itg in ii:
         s += "\n"
         s += integral_info(itg)
+    return s
+
+def _indent_string(n):
+    return "    "*n
+
+def _tree_format_expression(expression, indentation, parentheses):
+    ind = _indent_string(indentation)
+    if isinstance(expression, Terminal):
+        s = ind + "%s" % repr(expression)
+    else:
+        sops = [_tree_format_expression(o, indentation+1, parentheses) for o in expression.operands()]
+        s = ind + "%s\n" % expression.__class__.__name__ 
+        if parentheses and len(sops) > 1:
+            s += ind + "(\n"
+        s += "\n".join(sops)
+        if parentheses and len(sops) > 1:
+            s += "\n" + ind + ")"
+    return s
+
+def tree_format(expression, indentation=0, parentheses=True):
+    s = ""
+    
+    if isinstance(expression, Form):
+        ci = expression.cell_integrals()
+        ei = expression.exterior_facet_integrals()
+        ii = expression.interior_facet_integrals()
+        ind = _indent_string(indentation)
+        s += ind + "Form:\n"
+        s += "\n".join(tree_format(itg, indentation+1, parentheses) for itg in chain(ci, ei, ii))
+    
+    elif isinstance(expression, Integral):
+        ind = _indent_string(indentation)
+        s += ind + "Integral:\n"
+        ind = _indent_string(indentation+1)
+        s += ind + "domain type: %s\n" % expression.domain_type()
+        s += ind + "domain id: %d\n" % expression.domain_id()
+        s += ind + "integrand:\n"
+        s += tree_format(expression._integrand, indentation+2, parentheses)
+    
+    elif isinstance(expression, UFLObject):
+        s += _tree_format_expression(expression, indentation, parentheses)
+    
+    else:
+        ufl_error("Invalid object type %s" % type(expression))
+    
     return s
 

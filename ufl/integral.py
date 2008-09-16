@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-14"
+__date__ = "2008-03-14 -- 2008-09-16"
 
 # Modified by Anders Logg, 2008
 
@@ -13,10 +13,17 @@ from .form import Form
 
 class Integral(object):
     """Description of an integral over a single domain."""
+    __slots__ = ("_domain_type", "_domain_id", "_integrand")
     def __init__(self, domain_type, domain_id, integrand = None):
         self._domain_type = domain_type
         self._domain_id   = domain_id
         self._integrand   = integrand
+    
+    def domain_type(self):
+        return self._domain_type
+    
+    def domain_id(self):
+        return self._domain_id
     
     def __mul__(self, other):
         raise RuntimeError("Can't multiply Integral from the left.")
