@@ -20,13 +20,16 @@ from .predicates import is_multilinear
 # Utilities for error checking of forms
 from .checks import validate_form
 
-# Utilities for form file handling
-from .utilities import load_forms, integral_info, form_info
-
 # Utilites for modifying expressions and forms
 from .transformations import ufl2ufl, ufl2latex, transform_integrands
 from .transformations import renumber_indices, renumber_arguments
 from .transformations import expand_compounds, flatten, strip_variables
 from .transformations import substitute_indices, expand_indices
 from .transformations import split_by_dependencies, mark_duplications
+
+# Utilities for UFL object printing
+from .printing import integral_info, form_info
+
+# Utilities for form file handling
+from .formfiles import load_forms
 

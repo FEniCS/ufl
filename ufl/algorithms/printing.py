@@ -1,45 +1,15 @@
-"""A collection of utility algorithms for inspection,
-conversion or transformation of UFL objects."""
+"""A collection of utility algorithms for printing
+of UFL objects, mostly intended for debugging purposers."""
 
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-14"
+__date__ = "2008-03-14 -- 2008-09-16"
 
 from itertools import chain
 
-from ..output import ufl_error, ufl_assert, ufl_info
+from ..output import ufl_assert
 from ..form import Form
-
-#--- Utilities to deal with form files ---
-
-def load_forms(filename):
-    # Read form file
-    code = "from ufl import *\n"
-    code += "\n".join(file(filename).readlines())
-    namespace = {}
-    try:
-        exec(code, namespace)
-    except:
-        tmpname = "ufl_analyse_tmp_form"
-        tmpfile = tmpname + ".py"
-        f = file(tmpfile, "w")
-        f.write(code)
-        f.close()
-        ufl_info("""\
-An exception occured during evaluation of form file.
-To find the location of the error, a temporary script
-'%s' has been created and will now be run:""" % tmpfile)
-        m = __import__(tmpname)
-        ufl_error("Aborting load_forms.")
-    
-    # Extract Form objects
-    forms = []
-    for k,v in namespace.iteritems():
-        if isinstance(v, Form):
-            forms.append((k,v))
-    
-    return forms
 
 #--- Utilities for constructing informative strings from UFL objects ---
 
@@ -84,3 +54,4 @@ def form_info(form):
         s += "\n"
         s += integral_info(itg)
     return s
+
