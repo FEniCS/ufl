@@ -10,7 +10,7 @@ from itertools import chain
 from ..output import ufl_assert
 from ..base import UFLObject
 from ..basisfunctions import BasisFunction, Function
-from ..indexing import UnassignedDimType
+from ..indexing import DefaultDimType
 from ..form import Form
 from ..integral import Integral
 from .traversal import iter_expressions, post_traversal
@@ -47,7 +47,7 @@ def value_shape(expression, dimension):
     s = expression.shape()
     shape = []
     for i in s:
-        if isinstance(i, UnassignedDimType):
+        if isinstance(i, DefaultDimType):
             shape.append(dimension)
         else:
             shape.append(i)

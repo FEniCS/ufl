@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-03 -- 2008-08-18"
+__date__ = "2008-03-03 -- 2008-09-19"
 
 from .output import ufl_assert
 from .permutation import compute_indices
@@ -142,7 +142,7 @@ class MixedElement(FiniteElementBase):
 
     def __repr__(self):
         "Return string representation"
-        return "MixedElement(*%r, value_shape=%r)" % (self._sub_elements, self._value_shape)
+        return "MixedElement(*%r, **{'value_shape': %r })" % (self._sub_elements, self._value_shape)
 
     def __str__(self):
         "Pretty printing"

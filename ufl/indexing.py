@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-14 -- 2008-08-18"
+__date__ = "2008-03-14 -- 2008-09-17"
 
 # Python imports
 from collections import defaultdict
@@ -21,6 +21,14 @@ class Index(Counted):
     def __init__(self, count = None):
         Counted.__init__(self, count)
     
+    def __hash__(self):
+        return hash(repr(self))
+    
+    def __eq__(self, other):
+        if isinstance(other, Index):
+            return self._count == other._count
+        return False
+    
     def __str__(self):
         return "i_{%d}" % self._count
     
@@ -34,6 +42,16 @@ class FixedIndex(object):
         ufl_assert(isinstance(value, int), "Expecting integer value for fixed index.")
         self._value = value
     
+    def __hash__(self):
+        return hash(repr(self))
+    
+    def __eq__(self, other):
+        if isinstance(other, FixedIndex):
+            return self._value == other._value
+        elif isinstance(other, int):
+            return self._value == other
+        return False
+    
     def __str__(self):
         return "%d" % self._value
     
@@ -45,6 +63,12 @@ class AxisType(object):
     
     def __init__(self):
         pass
+    
+    def __hash__(self):
+        return hash(repr(self))
+    
+    def __eq__(self, other):
+        return isinstance(other, AxisType)
     
     def __str__(self):
         return ":"
@@ -216,7 +240,7 @@ def extract_indices(indices):
             repeated_indices, num_unassigned_indices)
 
 
-class UnassignedDimType(object):
+class DefaultDimType(object):
     __slots__ = ()
     
     def __init__(self):
@@ -226,14 +250,14 @@ class UnassignedDimType(object):
         return "?"
     
     def __repr__(self):
-        return "UnassignedDimType()"
+        return "DefaultDimType()"
 
-UnassignedDim = UnassignedDimType()
+DefaultDim = DefaultDimType()
 
 def complete_shape(a, dim):
     b = list(a)
     for i,x in enumerate(b):
-        if isinstance(x, UnassignedDimType):
+        if isinstance(x, DefaultDimType):
             b[i] = dim
     return tuple(b)
 
@@ -241,16 +265,16 @@ def compare_shapes(a, b, dim=None):
     if len(a) != len(b):
         return False
     if dim is None:
-        return all(((i == j) or isinstance(i, UnassignedDimType) or \
-            isinstance(j, UnassignedDimType)) for (i,j) in zip(a,b))
+        return all(((i == j) or isinstance(i, DefaultDimType) or \
+            isinstance(j, DefaultDimType)) for (i,j) in zip(a,b))
     else:
         return all(((i == j) or \
-                    (isinstance(i, UnassignedDimType) and j == dim) or \
-                    (isinstance(j, UnassignedDimType) and i == dim)) \
+                    (isinstance(i, DefaultDimType) and j == dim) or \
+                    (isinstance(j, DefaultDimType) and i == dim)) \
                     for (i,j) in zip(a,b))
 
 def free_index_dimensions(e):
     # FIXME: Get the dimensions from the expression!
-    ufl_warning("free_index_dimensions just returns UnassignedDim for everything, needs better implementation.")
-    return dict((i, UnassignedDim) for i in e.free_indices())
+    ufl_warning("free_index_dimensions just returns DefaultDim for everything, needs better implementation.")
+    return dict((i, DefaultDim) for i in e.free_indices())
 

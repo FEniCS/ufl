@@ -3,9 +3,9 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-20 -- 2008-08-21"
+__date__ = "2008-08-20 -- 2008-09-17"
 
-from .output import ufl_assert
+from .output import ufl_assert, ufl_warning
 from .base import UFLObject, Terminal, FloatValue, is_python_scalar, as_ufl
 from .indexing import compare_shapes
 

@@ -13,8 +13,8 @@ from .finiteelement import FiniteElementBase, FiniteElement, MixedElement, Vecto
 from .basisfunctions import BasisFunction, Function, Constant
 #from .basisfunctions import TestFunction, TrialFunction, BasisFunctions, TestFunctions, TrialFunctions
 from .geometry import FacetNormal
-from .indexing import MultiIndex, Indexed
-#from .indexing import Index, FixedIndex, AxisType, as_index, as_index_tuple, extract_indices
+from .indexing import MultiIndex, Indexed, Index, FixedIndex
+#from .indexing import AxisType, as_index, as_index_tuple, extract_indices
 from .tensors import ListVector, ListMatrix, Tensor
 #from .tensors import Vector, Matrix
 from .algebra import Sum, Product, Division, Power, Mod, Abs

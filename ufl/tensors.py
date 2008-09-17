@@ -8,7 +8,7 @@ __date__ = "2008-03-31 -- 2008-08-15"
 
 from .output import ufl_assert, ufl_warning
 from .base import UFLObject, Terminal, as_ufl
-from .indexing import Index, MultiIndex, UnassignedDim, free_index_dimensions
+from .indexing import Index, MultiIndex, DefaultDim, free_index_dimensions
 
 # TODO: This ListVector/ListMatrix structure can probably be generalized to tensors.
 

@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2008-08-15"
+__date__ = "2008-05-20 -- 2008-09-17"
 
 # Modified by Anders Logg, 2008
 
@@ -11,7 +11,7 @@ from itertools import chain
 from collections import defaultdict
 
 from .output import ufl_assert, ufl_error
-from .base import UFLObject, FloatValue, is_true_scalar, is_python_scalar
+from .base import UFLObject, FloatValue, is_true_scalar, is_python_scalar, as_ufl
 from .indexing import extract_indices, compare_shapes
 
 #--- Algebraic operators ---
@@ -98,9 +98,9 @@ class Division(UFLObject):
     __slots__ = ("_a", "_b")
     
     def __init__(self, a, b):
-        ufl_assert(is_true_scalar(b), "Division by non-scalar.")
-        self._a = a
-        self._b = b
+        self._a = as_ufl(a)
+        self._b = as_ufl(b)
+        ufl_assert(is_true_scalar(self._b), "Division by non-scalar.")
     
     def operands(self):
         return (self._a, self._b)
@@ -122,8 +122,8 @@ class Power(UFLObject):
     
     def __init__(self, a, b):
         ufl_assert(is_true_scalar(a) and is_true_scalar(b), "Non-scalar power not defined.")
-        self._a = a
-        self._b = b
+        self._a = as_ufl(a)
+        self._b = as_ufl(b)
     
     def operands(self):
         return (self._a, self._b)
@@ -144,11 +144,9 @@ class Mod(UFLObject):
     __slots__ = ("_a", "_b")
     
     def __init__(self, a, b):
-        if is_python_scalar(a): a = FloatValue(a)
-        if is_python_scalar(b): b = FloatValue(b)
-        ufl_assert(is_true_scalar(a) and is_true_scalar(b), "Non-scalar mod not defined.")
-        self._a = a
-        self._b = b
+        self._a = as_ufl(a)
+        self._b = as_ufl(b)
+        ufl_assert(is_true_scalar(self._a) and is_true_scalar(self._b), "Non-scalar mod not defined.")
     
     def operands(self):
         return (self._a, self._b)
@@ -169,7 +167,7 @@ class Abs(UFLObject):
     __slots__ = ("_a",)
     
     def __init__(self, a):
-        self._a = a
+        self._a = as_ufl(a)
     
     def operands(self):
         return (self._a, )

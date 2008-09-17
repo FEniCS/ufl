@@ -6,7 +6,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-08-15"
 
 from .base import Terminal
-from .indexing import UnassignedDim
+from .indexing import DefaultDim
 
 class FacetNormal(Terminal):
     def __init__(self):
@@ -16,7 +16,7 @@ class FacetNormal(Terminal):
         return ()
     
     def shape(self):
-        return (UnassignedDim,)
+        return (DefaultDim,)
     
     def __str__(self):
         return "n"

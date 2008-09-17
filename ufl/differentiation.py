@@ -7,7 +7,7 @@ __date__ = "2008-03-14 -- 2008-08-26"
 
 from .output import ufl_assert
 from .base import UFLObject, Compound
-from .indexing import MultiIndex, Index, UnassignedDim, extract_indices
+from .indexing import MultiIndex, Index, DefaultDim, extract_indices
 from .variable import Variable
 from .tensors import Tensor
 
@@ -119,7 +119,7 @@ class Grad(Compound):
         return self._f.repeated_indices()
     
     def shape(self):
-        return (UnassignedDim,) + self._f.shape()
+        return (DefaultDim,) + self._f.shape()
     
     def as_basic(self, dim, f):
         ii = Index()
@@ -185,7 +185,7 @@ class Curl(Compound):
         return self._f.free_indices()
     
     def shape(self):
-        return (UnassignedDim,)
+        return (DefaultDim,)
     
     #def as_basic(self, dim, f):
     #    return FIXME
