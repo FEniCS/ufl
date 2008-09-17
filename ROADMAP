@@ -3,6 +3,12 @@ Roadmap for the development of UFL
 
 Some of the TODO's left:
 
+- Main issue groups:
+  - Index handling and design of *Diff*
+  - Evaluation algorithms for form compiler use
+  - AD
+  - Other form-level transformations
+
 # Index handling:
  - Do we need UFLObject.repeated_indices()?
  - Do we need UFLObject.free_index_dimensions()?
@@ -18,25 +24,44 @@ Some of the TODO's left:
 # Algorithms:
  - Implement contraction function that expands all implicit summations into Sums (do we need this? can be merged with evaluation anyway)
  - Implement evaluation function for swiginac and sympy, given expressions for each basisfunction and function.
- - Several small details and much testing remains in existing algorithms
-
-# Elements and Basisfunctions (only minor or rare issues left):
- - Implement 'Test/Trial/BasisFunctions' for general tensor subelement with arbitrary symmetries
- - Add Cell support for high order geometries?
- - Add FunctionSpace concept?
-     element = FiniteElement("CG", polygon, 1)
-     V = FunctionSpace(element)
- - Keep or drop name in Function? Can eventually pass it to UFC if we add a "form::coefficient_name(i)" function.
- - Degree range for quadrature elements?
- - Agree on final design!
 
 # Containers:
  - Test and finalize class Tensor.
  - Generalize ListVector/ListMatrix to ListTensor.
 
+# Elements and Basisfunctions (only minor or rare issues left):
+ - Implement 'Test/Trial/BasisFunctions' for general tensor subelement with arbitrary symmetries
+ - Add Cell support for high order geometries?
+     cell = Cell("triangle", 2)
+     element = FiniteElement("CG", cell, 1)
+ - Add FunctionSpace concept?
+     g = Function(element)
+     V = FunctionSpace(element, trace=g)
+     u = BasisFunction(V)
+ - Keep or drop name in Function? Can eventually pass it to UFC if we add a "form::coefficient_name(i)" function.
+ - Degree range for quadrature elements?
+ - Agree on final design!
+
 # Form-level operators:
- - Framework for applying these to parts of a form?
- - Implementations of lhs, rhs, action, derivative...
+ - Do we need a framework for applying these to parts of a form?
+   Maybe it is good enough to do this:
+     a = lhs((...)*dx) + (u*v)*dx
+   in which case I think the form-level operators should just do the transformation instantaneously.
+
+ - Implement lhs, rhs, and is_multilinear:
+    - Start with helper function basisfunction_combinations(expression)
+    - Implement is_multilinear based on this
+    - lhs and rhs should be trivial now in the case of 
+      forms where the splitting happen at the integral
+      level or in a root-level sum in the integrand.
+      Cases like "(f + 3*u)*v*dx" needs more involved computation.
+
+ - Implement helper function replace(a, mapping) , using simple logic like "if x in mapping: return mapping[x]"
+ - Implement action(a): a(v,u; w) -> a(v; u, w) # i.e. replace(a, { u:w })
+ - Add dirichlet_functional(a): a(v,u;w) + L(v; w) -> a(v,v;w) + L(v;w) # something like this, i.e. replace(a, { u:v })
+ - Add dual(a): a(v,u;w) -> a(u,v;w) # something like this, i.e. replace(a, { u:v, v:u })
+
+ - Implement derivative(a, w): AD, F(v; w) -> J(v, u; w)
 
 # Tests:
  - Write tests for the algorithms, ideally covering all code in multiple ways.
@@ -60,7 +85,7 @@ Some of the TODO's left:
     - A mapping between Terminals (Function or BasisFunction instances)
       and physical units (using ScientificPython or something)
    Output:
-    - Validation results (list of possible problems):
+    - Validation results (list of possible problems we can detect):
         - Some operators require equal units in their operands, e.g. Sum.
         - Some operators multiply the units, e.g. Product, Dot, Inner, etc.
         - Some operators divide the units, e.g. Division, Inverse.
