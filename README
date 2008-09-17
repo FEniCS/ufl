@@ -59,11 +59,18 @@ and
 Importing a .ufl file can be done easily from Python:
   from ufl.algorithms import load_forms
   forms = load_forms("filename.ufl")
+the return value is a list of all forms found in the ufl file.
 
 
 Contact
 -------
 
-http://www.fenics.org/ufl
-ufl-dev@fenics.org
+The Mercurial source repository for UFL is located at
+  http://www.fenics.org/hg/ufl
+
+A Wikipedia page exists at:
+  http://www.fenics.org/wiki/ufl
+
+Send bug reports, feature requests, and questions to
+  ufl-dev@fenics.org
 

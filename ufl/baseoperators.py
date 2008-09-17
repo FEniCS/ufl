@@ -9,7 +9,7 @@ __date__ = "2008-08-18 -- 2008-08-20"
 
 # UFL imports
 from .output import ufl_error
-from .base import UFLObject, FloatValue, ZeroType, is_python_scalar
+from .base import UFLObject, FloatValue, ZeroType, as_ufl, is_python_scalar
 from .algebra import Sum, Product, Division, Power, Mod, Abs
 from .tensoralgebra import Transposed
 from .indexing import Indexed
@@ -100,6 +100,8 @@ def _rmod(self, o):
 UFLObject.__rmod__ = _rmod
 
 def _neg(self):
+    if isinstance(self, FloatValue):
+        return FloatValue(-self._value)
     return -1*self
 UFLObject.__neg__ = _neg
 

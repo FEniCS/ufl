@@ -10,19 +10,23 @@ Some of the TODO's left:
 
 # Derivatives:
  - Finish Diff design, including index handling like in PartialDiff and Product. Generalize index handling more?
- - Apply Variable during AD to cache subexpressions we can reuse.
- - Find a smart way to handle nested AD.
  - Apply AD to computation of Derivative, PartialDiff (really SpatialDiff) and Diff.
+ - Find a smart way to handle nested AD:
+    - Collapse nested PartialDiff (SpatialDiff) into a single SpatialDiff with multiple indices, sorted since they commute.
+ - Apply Variable during AD to cache subexpressions we can reuse.
 
 # Algorithms:
- - Implement contraction function that expands all implicit summations into Sums
+ - Implement contraction function that expands all implicit summations into Sums (do we need this? can be merged with evaluation anyway)
  - Implement evaluation function for swiginac and sympy, given expressions for each basisfunction and function.
  - Several small details and much testing remains in existing algorithms
 
 # Elements and Basisfunctions (only minor or rare issues left):
  - Implement 'Test/Trial/BasisFunctions' for general tensor subelement with arbitrary symmetries
  - Add Cell support for high order geometries?
- - Keep or drop name from Function? Can eventually pass it to UFC if we add a "form::coefficient_name(i)" function.
+ - Add FunctionSpace concept?
+     element = FiniteElement("CG", polygon, 1)
+     V = FunctionSpace(element)
+ - Keep or drop name in Function? Can eventually pass it to UFC if we add a "form::coefficient_name(i)" function.
  - Degree range for quadrature elements?
  - Agree on final design!
 
@@ -31,7 +35,7 @@ Some of the TODO's left:
  - Implementations of lhs, rhs, action, derivative...
 
 # Tests:
- - Implement more elaborate tests, some operators aren't tested, and only a few of the algorithms.
+ - Write tests for the algorithms, ideally covering all code in multiple ways.
 
 # Documentation:
  - Write the manual (can perhaps reuse some text I have)

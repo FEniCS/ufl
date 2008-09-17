@@ -243,7 +243,7 @@ def ufl2latex(expression):
         b = ", ".join("v_{%d}" % i for i,v in enumerate(basisfunctions(expression)))
         c = ", ".join("w_{%d}" % i for i,w in enumerate(coefficients(expression)))
         arguments = "; ".join((b, c))
-        latex = "a(" + arguments + ") = " + "  +  ".join(integral_strings)
+        latex = "a(" + arguments + ") = \n    " + "\n    + ".join(integral_strings)
     elif isinstance(expression, Integral):
         itg = expression
         domain_string = { "cell": "\\Omega",
@@ -255,7 +255,7 @@ def ufl2latex(expression):
                       "interior_facet": "dS",
                     }[itg._domain_type]
         integrand_string = transform(itg._integrand, handlers)
-        latex = "\\int_{%s_%d} \\left[ %s \\right] \,%s" % (domain_string, itg._domain_id, integrand_string, dx_string)
+        latex = "\\int_{%s_%d} \\left[ { %s } \\right] \,%s" % (domain_string, itg._domain_id, integrand_string, dx_string)
     else:
         latex = transform(expression, handlers)
     return latex
