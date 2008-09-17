@@ -3,13 +3,13 @@ Roadmap for the development of UFL
 
 Some of the TODO's left:
 
-# Tensor handling:
+# Index handling:
  - Do we need UFLObject.repeated_indices()?
  - Do we need UFLObject.free_index_dimensions()?
- - Test and finalize class Tensor.
+ - Generalize index handling more? Share more functionality for this between Diff, PartialDiff, Product?
 
 # Derivatives:
- - Finish Diff design, including index handling like in PartialDiff and Product. Generalize index handling more?
+ - Finish Diff design, including index handling like in PartialDiff and Product. 
  - Apply AD to computation of Derivative, PartialDiff (really SpatialDiff) and Diff.
  - Find a smart way to handle nested AD:
     - Collapse nested PartialDiff (SpatialDiff) into a single SpatialDiff with multiple indices, sorted since they commute.
@@ -30,6 +30,10 @@ Some of the TODO's left:
  - Degree range for quadrature elements?
  - Agree on final design!
 
+# Containers:
+ - Test and finalize class Tensor.
+ - Generalize ListVector/ListMatrix to ListTensor.
+
 # Form-level operators:
  - Framework for applying these to parts of a form?
  - Implementations of lhs, rhs, action, derivative...
@@ -48,6 +52,22 @@ Some of the TODO's left:
 
 # Time derivatives (can wait):
  - Do we want something like Dt(u), Dtt(u), CR(a), FE(a), BE(a), TR(a, theta)? 
+
+# Physical units (can wait):
+ - Utility algorithms for validating the physical dimensions in a form.
+   Input:
+    - A form or expression
+    - A mapping between Terminals (Function or BasisFunction instances)
+      and physical units (using ScientificPython or something)
+   Output:
+    - Validation results (list of possible problems):
+        - Some operators require equal units in their operands, e.g. Sum.
+        - Some operators multiply the units, e.g. Product, Dot, Inner, etc.
+        - Some operators divide the units, e.g. Division, Inverse.
+        - Some operators require dimensionless operands, e.g. Exp, Ln.
+      These considerations are not necessarily errors, maybe some
+      things can be defined as warnings. Also, we would have to add
+      physical units to all terminals to make this truly useful.
 
 # License:
  - Which license do we pick? GPL3 or LGPL3?
