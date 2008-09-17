@@ -250,8 +250,12 @@ def ufl2latex(expression):
                           "exterior_facet": "\\Gamma^{ext}",
                           "interior_facet": "\\Gamma^{int}",
                         }[itg._domain_type]
+        dx_string = { "cell": "dx",
+                      "exterior_facet": "ds",
+                      "interior_facet": "dS",
+                    }[itg._domain_type]
         integrand_string = transform(itg._integrand, handlers)
-        latex = "\\int_{\\Omega_%d} \\left[ %s \\right] \,dx" % (itg._domain_id, integrand_string)
+        latex = "\\int_{%s_%d} \\left[ %s \\right] \,%s" % (domain_string, itg._domain_id, integrand_string, dx_string)
     else:
         latex = transform(expression, handlers)
     return latex
