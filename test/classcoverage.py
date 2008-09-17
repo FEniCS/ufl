@@ -32,6 +32,9 @@ def test_object(a, shape, free_indices):
     if free_indices is not None:
         assert len(set(fi) ^ set(free_indices)) == 0
     if shape is not None:
+        if sh != shape:
+            print "sh:", sh
+            print "shape:", shape
         assert sh == shape # FIXME: Better comparison.
 
 def test_form(a):
@@ -267,74 +270,74 @@ class ClasscoverageTest(unittest.TestCase):
         
         #a = PartialDerivative()
         a = f0.dx(0)
-        test_object(a, None, None)
+        test_object(a, (), ())
         a = f0.dx(i)
-        test_object(a, None, None)
+        test_object(a, (), (i,))
         a = f0.dx(i,j,1)
-        test_object(a, None, None)
+        test_object(a, (), (i,j))
         
         s0 = Variable(f0)
-        test_object(a, None, None)
         s1 = Variable(f1)
-        test_object(a, None, None)
         s2 = Variable(f2)
-        test_object(a, None, None)
         f = dot(s0*s1, s2)
-        test_object(a, None, None)
+        test_object(s0, (), ())
+        test_object(s1, (dim,), ())
+        test_object(s2, (dim,dim), ())
+        test_object(f, (dim,), ())
         
         a = Diff(f, s0)
-        test_object(a, None, None)
+        test_object(a, (dim,), ())
         a = Diff(f, s1)
-        test_object(a, None, None)
+        test_object(a, (dim,dim,), ())
         a = Diff(f, s2)
-        test_object(a, None, None)
+        test_object(a, (dim,dim,dim), ())
         
         a = Div(v1)
-        test_object(a, None, None)
+        test_object(a, (), ())
         a = Div(f1)
-        test_object(a, None, None)
+        test_object(a, (), ())
         a = Div(v2)
-        test_object(a, None, None)
+        test_object(a, (dim,), ())
         a = Div(f2)
-        test_object(a, None, None)
+        test_object(a, (dim,), ())
         a = Div(Outer(f1,f1))
-        test_object(a, None, None)
+        test_object(a, (dim,), ())
         
         a = Grad(v0)
-        test_object(a, None, None)
+        test_object(a, (DefaultDim,), ())
         a = Grad(f0)
-        test_object(a, None, None)
+        test_object(a, (DefaultDim,), ())
         a = Grad(v1)
-        test_object(a, None, None)
+        test_object(a, (DefaultDim, dim), ())
         a = Grad(f1)
-        test_object(a, None, None)
+        test_object(a, (DefaultDim, dim), ())
         a = Grad(f0*v0)
-        test_object(a, None, None)
+        test_object(a, (DefaultDim,), ())
         a = Grad(f0*v1)
-        test_object(a, None, None)
+        test_object(a, (DefaultDim, dim), ())
 
         a = Curl(v1)
-        test_object(a, None, None)
+        test_object(a, (DefaultDim,), ())
         a = Curl(f1)
-        test_object(a, None, None)
+        test_object(a, (DefaultDim,), ())
         a = Rot(v1)
-        test_object(a, None, None)
+        test_object(a, (), ())
         a = Rot(f1)
-        test_object(a, None, None)
+        test_object(a, (), ())
         
         a = PositiveRestricted(v0)
-        test_object(a, None, None)
+        test_object(a, (), ())
         a = v0('+')
-        test_object(a, None, None)
+        test_object(a, (), ())
         a = v0('+')*f0
-        test_object(a, None, None)
+        test_object(a, (), ())
         
         a = NegativeRestricted(v0)
-        test_object(a, None, None)
+        test_object(a, (), ())
         a = v0('-')
-        test_object(a, None, None)
+        test_object(a, (), ())
         a = v0('-') + f0
-        test_object(a, None, None)
+        test_object(a, (), ())
 
         # --- Integrals:
 
