@@ -5,7 +5,7 @@ converting UFL expressions to other representations."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-09-03"
+__date__ = "2008-05-07 -- 2008-09-17"
 
 from collections import defaultdict
 from itertools import izip
@@ -20,8 +20,8 @@ from ..finiteelement import FiniteElementBase, FiniteElement, MixedElement, Vect
 from ..basisfunctions import BasisFunction, Function, Constant
 #from ..basisfunctions import TestFunction, TrialFunction, BasisFunctions, TestFunctions, TrialFunctions
 from ..geometry import FacetNormal
-from ..indexing import MultiIndex, Indexed, Index
-#from ..indexing import FixedIndex, AxisType, as_index, as_index_tuple, extract_indices
+from ..indexing import MultiIndex, Indexed, Index, FixedIndex
+#from ..indexing import AxisType, as_index, as_index_tuple, extract_indices
 from ..tensors import ListVector, ListMatrix, Tensor
 #from ..tensors import Vector, Matrix
 from ..algebra import Sum, Product, Division, Power, Mod, Abs
@@ -63,7 +63,9 @@ def transform(expression, handlers):
         ops = ()
     else:
         ops = [transform(o, handlers) for o in expression.operands()]
-    return handlers[expression.__class__](expression, *ops)
+    h = handlers[expression.__class__]
+    print h
+    return h(expression, *ops)
 
 
 def ufl_reuse_handlers():
@@ -73,7 +75,9 @@ def ufl_reuse_handlers():
     # Show a clear error message if we miss some types here:
     def not_implemented(x, *ops):
         ufl_error("No handler defined for %s in ufl_reuse_handlers. Add to classes.py." % x.__class__)
-    d = defaultdict(not_implemented)
+    def make_not_implemented():
+        return not_implemented
+    d = defaultdict(make_not_implemented)
     # Terminal objects are simply reused:
     def this(x):
         return x
@@ -97,9 +101,11 @@ def ufl_copy_handlers():
     no nonterminal objects are shared between the new and old
     expression."""
     # Show a clear error message if we miss some types here:
-    def not_implemented(x, ops):
+    def not_implemented(x, *ops):
         ufl_error("No handler defined for %s in ufl_copy_handlers. Add to classes.py." % x.__class__)
-    d = defaultdict(not_implemented)
+    def make_not_implemented():
+        return not_implemented
+    d = defaultdict(make_not_implemented)
     # Terminal objects are simply reused:
     def this(x):
         return x
@@ -129,9 +135,11 @@ def ufl2uflcopy(expression):
 
 def latex_handlers():
     # Show a clear error message if we miss some types here:
-    def not_implemented(x):
+    def not_implemented(x, *ops):
         ufl_error("No handler defined for %s in latex_handlers." % x.__class__)
-    d = defaultdict(not_implemented)
+    def make_not_implemented():
+        return not_implemented
+    d = defaultdict(make_not_implemented)
     # Utility for parentesizing string:
     def par(s, condition=True):
         if condition:
@@ -144,11 +152,20 @@ def latex_handlers():
     d[Constant]      = lambda x: "{w^{%d}}" % x._count
     d[FacetNormal]   = lambda x: "n"
     d[Identity]      = lambda x: "I"
-    def l_variable(x, a):
-        return "\\left{%s\\right}" % a
-    d[Variable]  = l_variable # TODO: Should store expression some place perhaps? LaTeX can express variables!
+    def l_variable(x):
+        # TODO: Should store expression some place perhaps? LaTeX can express variables! We can build a sequence of variable assignments s_i = expression if we want.
+        return "\\left{%s\\right}" % x._expression
+    d[Variable]  = l_variable
     def l_multiindex(x):
-        return "".join("i_{%d}" % ix._count for ix in x._indices)
+        s = ""
+        for ix in x._indices:
+            if isinstance(ix, FixedIndex):
+                s += "%d" % ix._value
+            elif isinstance(ix, Index):
+                s += "i_{%d}" % ix._count
+            else:
+                ufl_error("Unknown index type %s." % type(ix))
+        return s
     d[MultiIndex] = l_multiindex
     # Non-terminal objects:
     def l_sum(x, *ops):
@@ -168,7 +185,9 @@ def latex_handlers():
     d[Transposed] = lambda x, a: "{%s}^T" % a
     d[Indexed]   = lambda x, a, b: "{%s}_{%s}" % (a, b)
     d[PartialDerivative] = lambda x, f, y: "\\frac{\\partial\\left[{%s}\\right]}{\\partial{%s}}" % (f, y)
-    #d[Diff] = Diff # FIXME
+    def l_diff(x, f, v):
+        return r"\frac{d\left[%s\right]}{d\left[%s\right]}" % (f, v)
+    d[Diff] = l_diff
     d[Grad] = lambda x, f: "\\nabla{%s}" % par(f)
     d[Div]  = lambda x, f: "\\nabla{\\cdot %s}" % par(f)
     d[Curl] = lambda x, f: "\\nabla{\\times %s}" % par(f)
@@ -369,6 +388,8 @@ def renumber_arguments(a):
     "Given a Form, renumber function and basisfunction count to contiguous sequences beginning at 0."
     ufl_assert(isinstance(a, Form), "Expecting a Form.")
     
+    ufl_error("This will be removed. Don't use it!")
+    
     # Build sets of all basisfunctions and functions used in expression
     bf = basisfunctions(a)
     cf = coefficients(a)
@@ -528,3 +549,4 @@ def split_by_dependencies(expression, basisfunction_deps, function_deps):
         variable_cache[c] = (e, deps)
         stacks[deps].append(e)
     return e, deps, stacks, variable_cache
+

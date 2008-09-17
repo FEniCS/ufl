@@ -5,7 +5,7 @@ implementation details not exposed through the default ufl namespace."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-15 -- 2008-08-20"
+__date__ = "2008-08-15 -- 2008-09-17"
 
 from .base import UFLObject, Terminal, FloatValue, Compound
 from .variable import Variable
@@ -34,7 +34,10 @@ from . import baseoperators as __baseoperators
 __classobj = type(UFLObject)
 def __issubclass(x, y):
     return isinstance(x, __classobj) and issubclass(x, y)
-ufl_classes         = [c for c in locals().values() if __issubclass(c, UFLObject)]
-terminal_classes    = [c for c in ufl_classes if __issubclass(c, Terminal)]
-nonterminal_classes = [c for c in ufl_classes if not __issubclass(c, Terminal)]
-compound_classes    = [c for c in ufl_classes if __issubclass(c, Compound)]
+abstract_classes    = set([UFLObject, Terminal, Compound, Restricted, Condition, MathFunction])
+all_ufl_classes     = set([c for c in locals().values() if __issubclass(c, UFLObject)])
+ufl_classes         = set([c for c in all_ufl_classes if c not in abstract_classes])
+terminal_classes    = set([c for c in ufl_classes if __issubclass(c, Terminal)])
+nonterminal_classes = set([c for c in ufl_classes if not __issubclass(c, Terminal)])
+compound_classes    = set([c for c in ufl_classes if __issubclass(c, Compound)])
+

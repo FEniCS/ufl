@@ -3,7 +3,7 @@
 import sys
 import webbrowser
 import ufl
-from ufl.algorithms import basisfunctions, coefficients, unique_elements, load_forms, validate_form, ufl2latex
+from ufl.algorithms import basisfunctions, coefficients, unique_elements, load_forms, validate_form, ufl2latex, tree_format
 
 # Get commandline options
 
@@ -65,6 +65,9 @@ for filename in args:
         print repr(form)
         print "Form pretty-print:"
         print str(form)
+        print "Form tree formatting:"
+        tree = tree_format(form)
+        print tree
         print "Form LaTeX code:"
         latex = ufl2latex(form)
         print latex
