@@ -3,8 +3,9 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__    = "2008-03-14 -- 2008-09-06"
+__date__    = "2008-03-14 -- 2008-09-17"
 
+from .output import ufl_assert
 
 class Form(object):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
@@ -28,25 +29,42 @@ class Form(object):
     def interior_facet_integrals(self):
         return self._get_integrals("interior_facet")
     
-    def __add__(self, other):
-        oldintegrals = self._integrals + other._integrals
-        newintegrals = []
+    def _add(self, other, sign):
+        # Start with integrals in self
+        newintegrals = list(self._integrals)
+        
+        # Build domain to index map
         dom2idx = {}
-        k = 0
-        for i, itg in enumerate(oldintegrals):
+        for itg in newintegrals:
+            dom = (itg._domain_type, itg._domain_id)
+            ufl_assert(dom not in dom2idx, "Form invariant breached.")
+            dom2idx[dom] = len(dom2idx)
+        
+        # Append other integrals to list or add integrands to existing integrals
+        for itg in other._integrals:
             dom = (itg._domain_type, itg._domain_id)
             if dom in dom2idx:
                 idx = dom2idx[dom]
-                itg1 = newintegrals[idx]
-                newintegrals[idx] = itg.__class__(itg1._domain_type, itg1._domain_id, \
-                                             itg1._integrand + itg._integrand)
+                prev_itg = newintegrals[idx]
+                integrand = prev_itg._integrand
+                if sign == -1:
+                    integrand += -1*itg._integrand
+                else:
+                    integrand += itg._integrand
+                c = prev_itg.__class__
+                sum_itg = c(prev_itg._domain_type, prev_itg._domain_id, integrand)
+                newintegrals[idx] = sum_itg
             else:
-                dom2idx[dom] = k
+                dom2idx[dom] = len(newintegrals)
                 newintegrals.append(itg)
-                k += 1
-                assert len(newintegrals) == k
+        
         return Form(newintegrals)
-        #return Form(self._integrals + other._integrals)
+    
+    def __add__(self, other):
+        return self._add(other, +1)
+    
+    def __sub__(self, other):
+        return self._add(other, -1)
     
     def __str__(self):
         if self._str is None:

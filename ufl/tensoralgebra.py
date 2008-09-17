@@ -324,7 +324,7 @@ class Inverse(Compound): # TODO: Drop Inverse and represent it as product of Det
         return ()
     
     def shape(self):
-        return A.shape()
+        return self._A.shape()
     
     def as_basic(self, dim, A):
         if A.rank() == 0:

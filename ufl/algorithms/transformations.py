@@ -64,7 +64,6 @@ def transform(expression, handlers):
     else:
         ops = [transform(o, handlers) for o in expression.operands()]
     h = handlers[expression.__class__]
-    print h
     return h(expression, *ops)
 
 
@@ -248,8 +247,8 @@ def ufl2latex(expression):
     elif isinstance(expression, Integral):
         itg = expression
         domain_string = { "cell": "\\Omega",
-                          "exterior facet": "\\Gamma^{ext}",
-                          "interior facet": "\\Gamma^{int}",
+                          "exterior_facet": "\\Gamma^{ext}",
+                          "interior_facet": "\\Gamma^{int}",
                         }[itg._domain_type]
         integrand_string = transform(itg._integrand, handlers)
         latex = "\\int_{\\Omega_%d} \\left[ %s \\right] \,dx" % (itg._domain_id, integrand_string)
