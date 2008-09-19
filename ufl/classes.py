@@ -21,7 +21,7 @@ from .algebra import Sum, Product, Division, Power, Mod, Abs
 from .tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
 from .mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
 from .restriction import Restricted, PositiveRestricted, NegativeRestricted
-from .differentiation import PartialDerivative, Diff, Grad, Div, Curl, Rot
+from .differentiation import SpatialDerivative, Diff, Grad, Div, Curl, Rot
 from .conditional import Condition, EQ, NE, LE, GE, LT, GT, Conditional
 from .form import Form
 from .integral import Integral

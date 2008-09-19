@@ -5,16 +5,16 @@ Sum and its superclass UFLObject."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-18 -- 2008-08-20"
+__date__ = "2008-08-18 -- 2008-09-19"
 
 # UFL imports
-from .output import ufl_error
+from .output import ufl_error, ufl_assert
 from .base import UFLObject, FloatValue, ZeroType, as_ufl, is_python_scalar
 from .algebra import Sum, Product, Division, Power, Mod, Abs
-from .tensoralgebra import Transposed
+from .tensoralgebra import Transposed, Dot
 from .indexing import Indexed
 from .restriction import PositiveRestricted, NegativeRestricted
-from .differentiation import PartialDerivative
+from .differentiation import SpatialDerivative
 
 
 #--- Extend UFLObject with algebraic operators ---
@@ -54,12 +54,28 @@ UFLObject.__rsub__ = _rsub
 def _mul(self, o):
     if is_python_scalar(o): o = FloatValue(o)
     if not isinstance(o, UFLObject): return NotImplemented
+    s1 = self.shape()
+    s2 = o.shape()
+    # - matrix-matrix (A*B, M*grad(u))
+    # - matrix-vector (A*v)
+    if len(s1) == 2 and (len(s2) == 2 or len(s2) == 1):
+        return Dot(self, o)
+    ufl_assert(len(s1) == 0 or len(s2) == 0, \
+        "Can't use * to multiply expressions with shapes %r and %r." % (s1, s2))
     return Product(self, o)
 UFLObject.__mul__ = _mul
 
 def _rmul(self, o):
     if is_python_scalar(o): o = FloatValue(o)
     if not isinstance(o, UFLObject): return NotImplemented
+    s2 = self.shape()
+    s1 = o.shape()
+    # - matrix-matrix (A*B, M*grad(u))
+    # - matrix-vector (A*v)
+    if len(s1) == 2 and (len(s2) == 2 or len(s2) == 1):
+        return Dot(o, self)
+    ufl_assert(len(s1) == 0 or len(s2) == 0, \
+        "Can't use * to multiply expressions with shapes %r and %r." % (s1, s2))
     return Product(o, self)
 UFLObject.__rmul__ = _rmul
 
@@ -137,6 +153,6 @@ UFLObject.T = property(_transpose)
 
 def _dx(self, *i):
     """Return the partial derivative with respect to spatial variable number i"""
-    return PartialDerivative(self, i)
+    return SpatialDerivative(self, i)
 UFLObject.dx = _dx
 

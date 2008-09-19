@@ -20,8 +20,8 @@ class Context:
     def __init__(self, x, n, basisfunctions, functions, variables):
         self._x = x
         self._n = n
-        self._functions = functions
         self._basisfunctions = basisfunctions
+        self._functions = functions
         self._variables = variables
     
     def x(self, component):
@@ -30,11 +30,11 @@ class Context:
     def facet_normal(self, component):
         return self._n[component]
     
-    def function(self, i, component):
-        return self._functions[i] # TODO: Use component
-    
     def basisfunction(self, i, component):
         return self._basisfunctions[i] # TODO: Use component
+    
+    def function(self, i, component):
+        return self._functions[i] # TODO: Use component
     
     def variable(self, i, component, index_value_map):
         v = self._variables.get(i, None)
@@ -53,11 +53,12 @@ class SwiginacTestCase(unittest.TestCase):
         basisfunctions = [1.0-x-y, x, y]
         functions      = [x*y]
         variables      = {}
+        self.formdata = FIXME
         self.context = Context(self.x, self.n, basisfunctions, functions, variables)
     
     def test_number(self):
         f = FloatValue(1.23)
-        g = expression2swiginac(f, self.context)
+        g = expression2swiginac(f, self.formdata, self.context)
         self.assertTrue((g-1.23) == 0)
 
     def test_basisfunction(self):
@@ -66,7 +67,7 @@ class SwiginacTestCase(unittest.TestCase):
         v = TestFunction(element)
         u = TrialFunction(element)
         a = 1.23*v*dx
-        a = renumber_arguments(a)
+        #a = renumber_arguments(a)
         f = a.cell_integrals()[0]._integrand
         g = expression2swiginac(f, self.context)
         self.assertTrue((g-1.23*self.context._basisfunctions[0]) == 0)
@@ -78,7 +79,7 @@ class SwiginacTestCase(unittest.TestCase):
         u = TrialFunction(element)
         w = Function(element)
         a = (1.23 + w)*u*v*dx
-        a = renumber_arguments(a)
+        #a = renumber_arguments(a)
         f1 = a.cell_integrals()[0]._integrand
         f2 = flatten(f1)
         g1 = expression2swiginac(f1, self.context)

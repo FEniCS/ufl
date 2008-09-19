@@ -95,7 +95,7 @@ from .tensoralgebra import Identity
 #from .mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
 
 # differentiation operators
-#from .differentiation import PartialDerivative, Diff, Grad, Div, Curl, Rot
+#from .differentiation import SpatialDerivative, Diff, Grad, Div, Curl, Rot
 
 # operators
 from .operators import transpose, outer, inner, dot, cross, det, inv, tr, dev, cofac

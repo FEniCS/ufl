@@ -17,34 +17,26 @@ from .tensors import Tensor
 
 #--- Differentiation ---
 
-# FIXME: Add SpatialDerivative and TimeDerivative?
-
-class PartialDerivative(UFLObject):
+class SpatialDerivative(UFLObject):
     "Partial derivative of an expression w.r.t. spatial directions given by indices."
-    
-    __slots__ = ("_expression", "_rank", "_indices", "_free_indices")
-    #, "_fixed_indices", "_repeated_indices")
-    
+    __slots__ = ("_expression", "_shape", "_indices", "_free_indices", "_repeated_indices", "_dx_free_indices", "_dx_repeated_indices")
     def __init__(self, expression, indices):
         self._expression = expression
         
-        if isinstance(indices, MultiIndex): # if constructed from repr
-            self._indices = indices
-        else:
-            self._indices = MultiIndex(indices, len(indices)) # FIXME: Go over the indexing logic here
-            # TODO: len(indices)) instead of 1 to support higher order derivatives.
+        if not isinstance(indices, MultiIndex):
+            # if constructed from repr
+            indices = MultiIndex(indices, len(indices)) # FIXME: Do we need len(indices)?
+        self._indices = indices
+        
+        # Find free and repeated indices in the dx((i,i,j)) part
+        (self._dx_free_indices, self._dx_repeated_indices, dummy) = \
+            extract_indices(self._indices._indices)
         
         # Find free and repeated indices among the combined
         # indices of the expression and dx((i,j,k))
-        indices = expression.free_indices() + self._indices._indices
-        (fixed_indices, free_indices, repeated_indices, num_unassigned_indices) \
-            = extract_indices(indices)
-        # TODO: We don't need to store all these here, remove the ones we
-        #       don't use after implementing summation expansion.
-        #self._fixed_indices      = fixed_indices
-        self._free_indices       = free_indices
-        #self._repeated_indices   = repeated_indices
-        self._rank = num_unassigned_indices
+        indices = expression.free_indices() + self._dx_free_indices
+        (self._free_indices, self._repeated_indices, self._shape) = \
+            extract_indices(indices, expression.shape())
     
     def operands(self):
         return (self._expression, self._indices)
@@ -53,21 +45,21 @@ class PartialDerivative(UFLObject):
         return self._free_indices
     
     def shape(self):
-        return self._expression.shape() # FIXME: Wrong with repeated indices.
+        return self._shape
     
     def __str__(self):
         # TODO: Pretty-print for higher order derivatives.
         return "(d[%s] / dx_%s)" % (self._expression, self._indices)
     
     def __repr__(self):
-        return "PartialDerivative(%r, %r)" % (self._expression, self._indices)
+        return "SpatialDerivative(%r, %r)" % (self._expression, self._indices)
 
 
 
 # FIXME: Anders: Can't we just remove this?
-#        Martin: Not necessarily, not unless PartialDerivative is made more 
+#        Martin: Not necessarily, not unless SpatialDerivative is made more 
 #        general. The idea is that Diff represents df/ds where s is a Variable.
-# FIXME: This is the same mathematical operation as PartialDerivative, should
+# FIXME: This is the same mathematical operation as SpatialDerivative, should
 #        have very similar behaviour or even be the same class.
 class Diff(UFLObject):
     __slots__ = ("_f", "_x", "_index", "_free_indices", "_shape")
@@ -114,9 +106,6 @@ class Grad(Compound):
     
     def free_indices(self):
         return self._f.free_indices()
-    
-    def repeated_indices(self):
-        return self._f.repeated_indices()
     
     def shape(self):
         return (DefaultDim,) + self._f.shape()

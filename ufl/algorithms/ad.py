@@ -22,7 +22,7 @@ from ..algebra import Sum, Product, Division, Power, Mod, Abs
 from ..tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
 from ..mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
 from ..restriction import Restricted, PositiveRestricted, NegativeRestricted
-from ..differentiation import PartialDerivative, Diff, Grad, Div, Curl, Rot
+from ..differentiation import SpatialDerivative, Diff, Grad, Div, Curl, Rot
 from ..conditional import EQ, NE, LE, GE, LT, GT, Conditional # FIXME: Handle these
 
 # Lists of all UFLObject classes
@@ -232,7 +232,7 @@ def diff_handlers():
     d[NegativeRestricted] = diff_negativerestricted
     
     # Derivatives
-    d[PartialDerivative] = diff_commute
+    d[SpatialDerivative] = diff_commute
     d[Diff] = diff_commute
     d[Grad] = diff_commute
     d[Div] = diff_commute
@@ -281,5 +281,5 @@ def compute_derivative(expression, w):
     return _compute_derivative(expression, handlers)
 
 
-# FIXME: Need algorithm to apply AD to all kinds of derivatives! In particular, PartialDerivative and Diff.
+# FIXME: Need algorithm to apply AD to all kinds of derivatives! In particular, SpatialDerivative and Diff.
 

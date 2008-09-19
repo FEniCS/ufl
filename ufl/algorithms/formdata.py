@@ -3,13 +3,13 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-09-13 -- 2008-09-13"
+__date__ = "2008-09-13 -- 2008-09-18"
 
 from ..output import ufl_assert
 from ..form import Form
 
-
-# TODO: This can be implemented more efficiently as a single alogorithm.
+# TODO: FormData can be constructed more efficiently as a single or a few algorithms.
+from .analysis import basisfunctions, coefficients, elements, unique_elements, domain, classes
 
 class FormData(object):
     "Class collecting various information extracted from form."
@@ -22,17 +22,18 @@ class FormData(object):
         self.elements        = elements(form)
         self.unique_elements = unique_elements(form)
         
-        self.domain          = domain(form)
+        def argument_renumbering(arguments):
+            return dict((f,k) for (k,f) in enumerate(arguments))
+        self.basisfunction_renumbering = argument_renumbering(self.basisfunctions)
+        self.coefficient_renumbering = argument_renumbering(self.coefficients)
         
-        self.classes         = {}
+        self.domain = domain(form)
+        
+        self.classes = {}
         for i in form.cell_integrals():
             self.classes[i] = classes(i._integrand)
         for i in form.exterior_facet_integrals():
             self.classes[i] = classes(i._integrand)
         for i in form.interior_facet_integrals():
             self.classes[i] = classes(i._integrand)
-
-def build_form_data(form):
-    "Build an object with various data extracted from the given Form object."
-    return FormData(form)
 

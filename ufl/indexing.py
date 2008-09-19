@@ -108,43 +108,33 @@ class MultiIndex(Terminal):
     def __len__(self):
         return len(self._indices)
 
+
 class Indexed(UFLObject):
-    __slots__ = ("_expression", "_indices", "_fixed_indices",
-                 "_free_indices", "_repeated_indices", "_rank", "_shape")
-    
+    __slots__ = ("_expression", "_indices",
+                 "_free_indices", "_repeated_indices", "_shape")
     def __init__(self, expression, indices):
         self._expression = expression
         
-        if isinstance(indices, MultiIndex): # if constructed from repr
-            self._indices = indices
-        else:
-            self._indices = MultiIndex(indices, expression.rank())
+        if not isinstance(indices, MultiIndex):
+            # if constructed from repr
+            indices = MultiIndex(indices, expression.rank())
+        self._indices = indices
         
         msg = "Invalid number of indices (%d) for tensor expression of rank %d:\n\t%r\n" % \
             (len(self._indices), expression.rank(), expression)
         ufl_assert(expression.rank() == len(self._indices), msg)
         
-        (fixed_indices, free_indices, repeated_indices, num_unassigned_indices) = \
-            extract_indices(self._indices._indices)
-        
-        # TODO: We don't need to store all these here, remove the ones we
-        #       don't use after implementing summation expansion.
-        self._fixed_indices      = fixed_indices
-        self._free_indices       = free_indices
-        self._repeated_indices   = repeated_indices
-        self._rank = num_unassigned_indices
-        
-        s = expression.shape()
-        idx = self._indices._indices
-        self._shape = tuple(s[i] for i in range(len(idx)) if isinstance(idx[i], AxisType))
-        ufl_assert(self._rank == len(self._shape),
-            "Logic breach in Indexed.__init__, rank is %d and shape is %r" % (self._rank, self._shape))
+        (self._free_indices, self._repeated_indices, self._shape) = \
+            extract_indices(self._indices._indices, expression.shape())
     
     def operands(self):
         return (self._expression, self._indices)
     
     def free_indices(self):
         return self._free_indices
+    
+    def repeated_indices(self):
+        return self._repeated_indices
     
     def shape(self):
         return self._shape
@@ -202,42 +192,56 @@ def as_index_tuple(indices, rank):
     indices = tuple(pre + [Axis]*num_axis + post)
     return indices
 
-def extract_indices(indices):
-    """Analyse a tuple of indices, and return a 4-tuple with the following information:
-    - fixed_indices = tuple of indices with a constant value (FixedIndex)
-    - free_indices = tuple of unique indices with no value (Index, no implicit summation)
-    - repeated_indices = tuple of indices that occur twice (Index, implicit summation)
-    - num_unassigned_indices = int, number of axes in that have no associated index
+
+def extract_indices(indices, shape=None):
+    """Analyse a tuple of indices, and return a 3-tuple with the following information:
+    
+    @param free_indices
+        Tuple of unique indices with no value (Index, no implicit summation)
+    @param repeated_indices
+        Tuple of indices that occur twice (Index, implicit summation)
+    @param shape
+        Tuple with the combined shape computed from axes in that have no associated index
     """
     ufl_assert(isinstance(indices, tuple), "Expecting index tuple.")
-    ufl_assert(all(isinstance(i, _indextypes) for i in indices), "Expecting proper UFL objects.")
-
-    fixed_indices = [(i,idx) for i,idx in enumerate(indices) if isinstance(idx, FixedIndex)]
-    num_unassigned_indices = sum(1 for i in indices if i is Axis)
-
-    index_count = defaultdict(int)
-    for i in indices:
-        if isinstance(i, Index):
-            index_count[i] += 1
+    ufl_assert(all(isinstance(i, _indextypes) for i in indices), \
+        "Expecting objects of type Index, FixedIndex, or Axis.")
+    if shape is not None:
+        ufl_assert(isinstance(shape, tuple), "Expecting index tuple.")
+        #ufl_assert(len(shape) == len(indices), "Expecting tuples of equal length.")
+        ufl_assert(len(shape) <= len(indices), "Expecting at least as many indices as the shape is.")
     
-    unique_indices = index_count.keys()
+    index_count = defaultdict(int)
+    for i,idx in enumerate(indices):
+        if isinstance(idx, Index):
+            index_count[idx] += 1
+    
+    newshape = []
+    if shape is not None:
+        for i,idx in enumerate(indices):
+            if isinstance(idx, AxisType):
+                ufl_assert(i < len(shape), "Indexing logic is messed up.")
+                newshape.append(shape[i])
+    else:
+        ufl_assert(not any(isinstance(i, AxisType) for i in indices), \
+            "Not expecting Axis when shape is not specified.")
+    newshape = tuple(newshape)
     
     ufl_assert(all(i <= 2 for i in index_count.values()),
                "Too many index repetitions in %s" % repr(indices))
-    free_indices     = [i for i in unique_indices if index_count[i] == 1]
-    repeated_indices = [i for i in unique_indices if index_count[i] == 2]
-
-    # use tuples for consistency
-    fixed_indices    = tuple(fixed_indices)
-    free_indices     = tuple(free_indices)
-    repeated_indices = tuple(repeated_indices)
     
+    # Split based on count
+    unique_indices = index_count.keys()
+    free_indices     = tuple([i for i in unique_indices if index_count[i] == 1])
+    repeated_indices = tuple([i for i in unique_indices if index_count[i] == 2])
+    
+    # Consistency check
+    fixed_indices = [(i,idx) for (i,idx) in enumerate(indices) if isinstance(idx, FixedIndex)]
     ufl_assert(len(fixed_indices)+len(free_indices) + \
-               2*len(repeated_indices)+num_unassigned_indices == len(indices),\
+               2*len(repeated_indices)+len(newshape)== len(indices),\
                "Logic breach in extract_indices.")
     
-    return (fixed_indices, free_indices,
-            repeated_indices, num_unassigned_indices)
+    return (free_indices, repeated_indices, newshape)
 
 
 class DefaultDimType(object):

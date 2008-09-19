@@ -268,7 +268,7 @@ class ClasscoverageTest(unittest.TestCase):
         
         # TODO:
         
-        #a = PartialDerivative()
+        #a = SpatialDerivative()
         a = f0.dx(0)
         test_object(a, (), ())
         a = f0.dx(i)

@@ -43,41 +43,32 @@ class Sum(UFLObject):
         return "(%s)" % " + ".join(repr(o) for o in self._operands)
 
 class Product(UFLObject):
-    __slots__ = ("_operands", "_shape", "_free_indices", "_repeated_indices")
-    
+    """The product of two or more UFL objects."""
+    __slots__ = ("_operands", "_free_indices", "_repeated_indices", "_shape")
     def __init__(self, *operands):
-        ufl_assert(len(operands), "Got product of nothing.")
-        self._operands = tuple(operands)
-       
-        # Extract indices
-        all_indices = tuple(chain(*(o.free_indices() for o in operands)))
-        (fixed_indices, free_indices, repeated_indices, num_unassigned_indices) = extract_indices(all_indices)
-        self._free_indices       = free_indices
-        self._repeated_indices   = repeated_indices
-
-        # Try to determine shape of this sequence of
-        # products with possibly varying shapes of each operand.
         # Products currently defined as valid are:
         # - something multiplied with a scalar
         # - a scalar multiplied with something
-        # - matrix-matrix (A*B, M*grad(u))
-        # - matrix-vector (A*v)
-        # TODO: This logic is a bit shaky, feels too hacky, can we do more general?
-        current_shape = operands[0].shape()
-        for o in operands[1:]:
-            o_shape = o.shape()
-            if current_shape == () or o_shape == ():
-                # at least one scalar
-                current_shape = current_shape + o_shape
-            elif len(current_shape) == 2 and len(o_shape) == 2:
-                # matrix-matrix product
-                current_shape = (current_shape[0], o_shape[1])
-            elif len(current_shape) == 2 and len(o_shape) == 1:
-                # matrix-vector product
-                current_shape = (current_shape[0],)
-            else:
-                ufl_error("Invalid combination of tensor shapes in product.")
-        self._shape = current_shape
+        
+        ufl_assert(len(operands) >= 2, "Can't make product of nothing.")
+        self._operands = tuple(operands)
+        
+        # Check that we have only one non-scalar object
+        # among the operands and get the shape
+        shapes = 0
+        shape = ()
+        for o in operands:
+            s = o.shape()
+            if s:
+                shapes += 1
+                shape = s
+        self._shape = shape
+        ufl_assert(shapes <= 1, "Can't multiply %d non-scalar objects." % shapes)
+        
+        # Extract indices
+        all_indices = tuple(chain(*(o.free_indices() for o in operands)))
+        (self._free_indices, self._repeated_indices, dummy) = \
+            extract_indices(all_indices)
     
     def operands(self):
         return self._operands

@@ -4,7 +4,7 @@ converting UFL expressions to swiginac representation."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-22 -- 2008-08-26"
+__date__ = "2008-08-22 -- 2008-09-18"
 
 from collections import defaultdict
 
@@ -26,7 +26,7 @@ from ..algebra import Sum, Product, Division, Power, Mod, Abs
 from ..tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
 from ..mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
 from ..restriction import Restricted, PositiveRestricted, NegativeRestricted
-from ..differentiation import PartialDerivative, Diff, Grad, Div, Curl, Rot
+from ..differentiation import SpatialDerivative, Diff, Grad, Div, Curl, Rot
 from ..conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ..form import Form
 from ..integral import Integral
@@ -82,7 +82,8 @@ class Context:
 
 class SwiginacEvaluator(object):
     "Algorithm for evaluation of an UFL expression as a swiginac expression."
-    def __init__(self, context):
+    def __init__(self, formdata, context):
+        self._formdata = formdata
         self._context = context
         
         self._components = Stack()
@@ -110,7 +111,7 @@ class SwiginacEvaluator(object):
         h[Product] = self.h_product
         h[Indexed] = self.h_indexed
         h[Tensor] = self.h_tensor
-        h[PartialDerivative] = self.h_partial_derivative
+        h[SpatialDerivative] = self.h_partial_derivative
         h[Diff] = self.h_diff
  
         ### Post:
@@ -179,12 +180,12 @@ class SwiginacEvaluator(object):
     def h_basisfunction(self, x):
         ufl_assert(len(self._index2value) == 0, \
             "Shouldn't have any indices left to map at this point!")
-        return self._context.basisfunction(x._count, self.component())
-
+        return self._context.basisfunction(self._formdata.basisfunction_renumbering[x], self.component())
+    
     def h_function(self, x):
         ufl_assert(len(self._index2value) == 0, \
             "Shouldn't have any indices left to map at this point!")
-        return self._context.function(x._count, self.component())
+        return self._context.function(self._formdata.coefficient_renumbering[x], self.component())
     
     def h_facet_normal(self, x):
         ufl_assert(len(self._index2value) == 0, \
@@ -403,7 +404,7 @@ class SwiginacEvaluator(object):
         return FIXME
  
 
-def expression2swiginac(expression, context):
+def expression2swiginac(expression, formdata, context):
     s = SwiginacEvaluator(context)
     return s.transform(expression)
 
