@@ -4,21 +4,14 @@ Roadmap for the development of UFL
 Some of the TODO's left:
 
 - Main issue groups:
-  - Index handling and design of *Diff*
   - Evaluation algorithms for form compiler use
   - AD
   - Other form-level transformations
 
-# Index handling:
- - Do we need UFLObject.repeated_indices()?
- - Do we need UFLObject.free_index_dimensions()?
- - Generalize index handling more? Share more functionality for this between Diff, PartialDiff, Product?
-
 # Derivatives:
- - Finish Diff design, including index handling like in PartialDiff and Product. 
- - Apply AD to computation of Derivative, PartialDiff (really SpatialDiff) and Diff.
+ - Apply AD to computation of Derivative, SpatialDiff and Diff.
  - Find a smart way to handle nested AD:
-    - Collapse nested PartialDiff (SpatialDiff) into a single SpatialDiff with multiple indices, sorted since they commute.
+    - Collapse nested SpatialDiff into a single SpatialDiff with multiple indices, sorted since they commute.
  - Apply Variable during AD to cache subexpressions we can reuse.
 
 # Algorithms:
@@ -27,7 +20,7 @@ Some of the TODO's left:
 
 # Containers:
  - Test and finalize class Tensor.
- - Generalize ListVector/ListMatrix to ListTensor.
+ - Generalize ListVector/ListMatrix to ListTensor. (can wait)
 
 # Elements and Basisfunctions (only minor or rare issues left):
  - Implement 'Test/Trial/BasisFunctions' for general tensor subelement with arbitrary symmetries

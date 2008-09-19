@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-26"
+__date__ = "2008-03-14 -- 2008-09-19"
 
 from .output import ufl_assert
 from .base import UFLObject, Compound
@@ -55,27 +55,21 @@ class SpatialDerivative(UFLObject):
         return "SpatialDerivative(%r, %r)" % (self._expression, self._indices)
 
 
-
-# FIXME: Anders: Can't we just remove this?
-#        Martin: Not necessarily, not unless SpatialDerivative is made more 
-#        general. The idea is that Diff represents df/ds where s is a Variable.
-# FIXME: This is the same mathematical operation as SpatialDerivative, should
-#        have very similar behaviour or even be the same class.
 class Diff(UFLObject):
     __slots__ = ("_f", "_x", "_index", "_free_indices", "_shape")
     
     def __init__(self, f, x):
         ufl_assert(isinstance(f, UFLObject), "Expecting an UFLObject in Diff.")
         ufl_assert(isinstance(x, Variable), \
-            "Expecting a Variable in Diff.")
+            "Expecting a Variable in Diff.") # FIXME: Generalize somehow, should allow indexed variables and containers with variables!
         self._f = f
         self._x = x
         fi = f.free_indices()
         xi = x.free_indices()
         ufl_assert(len(set(fi) ^ set(xi)) == 0, \
-            "Repeated indices in Diff not implemented.") # FIXME
+            "Repeated indices not allowed in Diff.")
         self._free_indices = tuple(fi + xi)
-        self._shape = f.shape() + x.shape() # - repeated_indices FIXME
+        self._shape = f.shape() + x.shape()
     
     def operands(self):
         return (self._f, self._x)

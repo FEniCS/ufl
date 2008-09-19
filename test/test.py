@@ -22,3 +22,4 @@ for test in tests:
     print "Running tests: %s" % test
     system("python %s.py" % test)
     print ""
+
