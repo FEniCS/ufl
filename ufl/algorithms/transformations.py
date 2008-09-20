@@ -171,7 +171,7 @@ def replace_in_form(form, substitution_map):
     return transform_integrands(form, replace_expression)
 
 
-def compute_action(form):
+def compute_form_action(form):
     """Compute the action of a form on a Function.
     
     This works simply by replacing the last basisfunction
@@ -184,6 +184,16 @@ def compute_action(form):
     e = v.element()
     f = Function(e)
     return replace_in_form(form, {v:f})
+
+
+def compute_form_transpose(form):
+    """Compute the transpose of a form.
+    
+    This works simply by swapping the first and last basisfunctions.
+    """
+    bf = basisfunctions(form)
+    v, u = bf
+    return replace_in_form(form, {v:u, u:v})
 
 
 # TODO: Take care when using this, it will replace _all_ occurences of these indices,
