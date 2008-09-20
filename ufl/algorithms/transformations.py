@@ -143,6 +143,49 @@ def expand_compounds(expression, dim):
     return transform(expression, d)
 
 
+def replace(expression, substitution_map):
+    """Replace objects in expression.
+    
+    @param expression:
+        A UFLObject.
+    @param substitution_map:
+        A dict with from:to replacements to perform.
+    """
+    handlers = ufl_reuse_handlers()
+    orig_handlers = {}
+    def r_replace(x, *ops):
+        y = substitution_map.get(x)
+        if y is None:
+            return orig_handlers[x.__class__](x, *ops)
+        return y
+    for k in substitution_map.keys():
+        orig_handlers[k.__class__] = handlers[k.__class__]
+        handlers[k.__class__] = r_replace
+    return transform(expression, handlers)
+
+
+def replace_in_form(form, substitution_map):
+    "Apply replace to all integrands in a form."
+    def replace_expression(expression):
+        return replace(expression, substitution_map)
+    return transform_integrands(form, replace_expression)
+
+
+def compute_action(form):
+    """Compute the action of a form on a Function.
+    
+    This works simply by replacing the last basisfunction
+    with a Function on the same function space (element).
+    The form returned will thus have one BasisFunction less 
+    and one additional Function at the end.
+    """
+    bf = basisfunctions(form)
+    v = bf[-1]
+    e = v.element()
+    f = Function(e)
+    return replace_in_form(form, {v:f})
+
+
 # TODO: Take care when using this, it will replace _all_ occurences of these indices,
 # so in f.ex. (a[i]*b[i]*(1.0 + c[i]*d[i]) the replacement i==0 will result in
 # (a[0]*b[0]*(1.0 + c[0]*d[0]) which is probably not what is wanted.
