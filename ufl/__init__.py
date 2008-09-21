@@ -28,7 +28,7 @@ __version__ = "0.1"
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __copyright__ = __authors__ + " (2008)"
 __licence__ = "LGPL" # TODO: which licence?
-__date__ = "2008-03-14 -- 2008-08-20"
+__date__ = "2008-03-14 -- 2008-09-21"
 
 
 ########## README
@@ -63,19 +63,20 @@ from .finiteelement import FiniteElement, MixedElement, VectorElement, TensorEle
 # predefined element families
 from .elements import register_element #, ufl_elements
 
-# basisfunctions and coefficients
-from .basisfunctions import BasisFunction, TestFunction, TrialFunction, Function, Constant
-from .basisfunctions import BasisFunctions, TestFunctions, TrialFunctions, Functions
+# basis functions
+from .basisfunction import BasisFunction, TestFunction, TrialFunction
+from .basisfunction import BasisFunctions, TestFunctions, TrialFunctions
+
+# functions
+from .function import Function, Functions
+from .function import Constant, VectorConstant, TensorConstant
 
 # types for geometric quantities
 from .geometry import FacetNormal
 
 # indexing of tensor expressions
-#from .indexing import Index, FixedIndex, AxisType, MultiIndex, Indexed
+from .indexing import Index
 #from .indexing import as_index, as_index_tuple, extract_indices
-
-# basic algebra operators
-#from .algebra import Sum, Product, Division, Power, Mod, Abs
 
 # restriction operators
 from .restriction import Restricted, PositiveRestricted, NegativeRestricted
@@ -84,18 +85,10 @@ from .restriction import Restricted, PositiveRestricted, NegativeRestricted
 from . import baseoperators as __baseoperators
 
 # "container" classes for expressions with value rank > 0
-#from .tensors import ListVector, ListMatrix
 from .tensors import Tensor, Vector, Matrix
 
 # tensor algebra operators
-#from .tensoralgebra import Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
 from .tensoralgebra import Identity
-
-# mathematical functions
-#from .mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
-
-# differentiation operators
-#from .differentiation import SpatialDerivative, Diff, Grad, Div, Curl, Rot
 
 # operators
 from .operators import transpose, outer, inner, dot, cross, det, inv, tr, dev, cofac

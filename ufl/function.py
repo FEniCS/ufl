@@ -4,7 +4,7 @@ classes (functions), including Constant."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-09-14"
+__date__ = "2008-03-14 -- 2008-09-21"
 
 from .finiteelement import FiniteElement, VectorElement
 
@@ -12,6 +12,7 @@ from .finiteelement import FiniteElement, VectorElement
 
 from .base import Terminal
 from .common import Counted, product
+from .split import split
 
 class Function(Terminal, Counted):
     __slots__ = ("_element", "_name")
@@ -58,7 +59,7 @@ class Constant(Function):
 class VectorConstant(Function):
     __slots__ = ("_domain",)
 
-    def __init__(self, domain, name=None, count=None):
+    def __init__(self, domain, name=None, count=None): # FIXME: Size
         self._domain = domain
         element = VectorElement("DG", domain, 0)
         Function.__init__(self, element, name, count)
@@ -70,7 +71,24 @@ class VectorConstant(Function):
             return "c_%s" % self._name
     
     def __repr__(self):
-        return "Constant(%r, %r, %r)" % (self._domain, self._name, self._count)
+        return "VectorConstant(%r, %r, %r)" % (self._domain, self._name, self._count)
+
+class TensorConstant(Function):
+    __slots__ = ("_domain",)
+
+    def __init__(self, domain, name=None, count=None): # FIXME: Shape and symmetries
+        self._domain = domain
+        element = TensorElement("DG", domain, 0)
+        Function.__init__(self, element, name, count)
+    
+    def __str__(self):
+        if self._name is None:
+            return "c_%d" % self._count
+        else:
+            return "c_%s" % self._name
+    
+    def __repr__(self):
+        return "TensorConstant(%r, %r, %r)" % (self._domain, self._name, self._count)
 
 def Functions(element):
     return split(Function(element))
