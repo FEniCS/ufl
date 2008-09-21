@@ -15,7 +15,7 @@ from ufl import *
 
 class FFCTestCase(unittest.TestCase):
 
-    def notworkingConstant(self):
+    def testConstant(self):
         
         element = FiniteElement("Lagrange", "triangle", 1)
 
@@ -27,7 +27,9 @@ class FFCTestCase(unittest.TestCase):
         d = VectorConstant("triangle")
 
         a = c*dot(grad(v), grad(u))*dx
-        L = dot(d, grad(v))*dx
+
+        # FFC notation: L = dot(d, grad(v))*dx
+        L = inner(d, grad(v))*dx
         
     def testElasticity(self):
 

@@ -7,11 +7,13 @@ from __future__ import absolute_import
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-08-15 -- 2008-09-17"
 
+# Modified by Anders Logg, 2008
+
 from .base import UFLObject, Terminal, FloatValue, Compound
 from .variable import Variable
 from .finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
-from .basisfunctions import BasisFunction, Function, Constant
-#from .basisfunctions import TestFunction, TrialFunction, BasisFunctions, TestFunctions, TrialFunctions
+from .basisfunction import BasisFunction, TestFunction, TrialFunction, BasisFunctions, TestFunctions, TrialFunctions
+from .function import Function, Constant, Functions
 from .geometry import FacetNormal
 from .indexing import MultiIndex, Indexed, Index, FixedIndex
 #from .indexing import AxisType, as_index, as_index_tuple, extract_indices
