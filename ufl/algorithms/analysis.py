@@ -3,13 +3,14 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-09-13"
+__date__ = "2008-03-14 -- 2008-09-14"
 
 from itertools import chain
 
 from ..output import ufl_assert
 from ..base import UFLObject
-from ..basisfunctions import BasisFunction, Function
+from ..basisfunction import BasisFunction
+from ..function import Function
 from ..indexing import DefaultDimType
 from ..form import Form
 from ..integral import Integral
@@ -116,4 +117,3 @@ def duplications(expression):
             duplicated.add(o)
         handled.add(o)
     return duplicated
-

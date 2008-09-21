@@ -12,7 +12,8 @@ from ..base import is_python_scalar, is_scalar, is_true_scalar
 from ..base import UFLObject, Terminal, FloatValue
 from ..variable import Variable
 from ..finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
-from ..basisfunctions import BasisFunction, Function, Constant
+from ..basisfunction import BasisFunction
+from ..function import Function
 #from ..basisfunctions import TestFunction, TrialFunction, BasisFunctions, TestFunctions, TrialFunctions
 from ..geometry import FacetNormal
 from ..indexing import MultiIndex, Indexed
