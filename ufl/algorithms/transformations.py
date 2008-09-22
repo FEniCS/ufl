@@ -16,6 +16,17 @@ from ..output import ufl_assert, ufl_error, ufl_warning
 # FIXME: Lots of imports duplicated in all algorithm modules
 # FIXME: Should be cleaned up
 
+
+#- Implement lhs, rhs, and is_multilinear:
+#   - Start with helper function
+#        def basisfunction_combinations(expression):
+#   - Implement is_multilinear based on this
+#   - lhs and rhs should be trivial now in the case of 
+#     forms where the splitting happen at the integral
+#     level or in a root-level sum in the integrand.
+#     Cases like "(f + 3*u)*v*dx" needs more involved computation.
+
+
 # All classes:
 from ..base import UFLObject, Terminal, FloatValue
 from ..variable import Variable
@@ -184,10 +195,11 @@ def compute_form_action(form):
     and one additional Function at the end.
     """
     bf = basisfunctions(form)
-    v = bf[-1]
-    e = v.element()
+    ufl_assert(len(bf) == 2, "Expecting bilinear form.")
+    v, u = bf
+    e = u.element()
     f = Function(e)
-    return replace_in_form(form, {v:f})
+    return replace_in_form(form, {u:f})
 
 
 def compute_form_transpose(form):
@@ -196,8 +208,39 @@ def compute_form_transpose(form):
     This works simply by swapping the first and last basisfunctions.
     """
     bf = basisfunctions(form)
+    ufl_assert(len(bf) == 2, "Expecting bilinear form.")
     v, u = bf
     return replace_in_form(form, {v:u, u:v})
+
+
+def compute_dual_form(form): # FIXME: Don't know if this is correct.
+    """Compute the dual of a bilinear form:
+    a(v,u;...) -> a(u,v;...)
+    
+    a(v,u) = \int_\Omega u*v dx + \int_\Gamma f*v dx
+    
+    This assumes a bilinear form and works simply by
+    replacing the trial function with the test function.
+    The form returned will thus be a linear form.
+    """
+    bf = basisfunctions(form)
+    ufl_assert(len(bf) == 2, "Expecting bilinear form.")
+    v, u = bf
+    return replace_in_form(form, {u:v, v:u})
+
+
+def compute_dirichlet_functional(form): # FIXME: Don't know if this is correct or even useful, just picked up the name some place.
+    """Compute the Dirichlet functional of a form:
+    a(v,u;...) + L(v; ...) -> a(v,v;...) + L(v;...)
+    
+    This assumes a bilinear form and works simply by
+    replacing the trial function with the test function.
+    The form returned will thus be a linear form.
+    """
+    bf = basisfunctions(form)
+    ufl_assert(len(bf) == 2, "Expecting bilinear form.")
+    v, u = bf
+    return replace_in_form(form, {u:v})
 
 
 # TODO: Take care when using this, it will replace _all_ occurences of these indices,

@@ -49,11 +49,6 @@ Some of the TODO's left:
       level or in a root-level sum in the integrand.
       Cases like "(f + 3*u)*v*dx" needs more involved computation.
 
- - Implement helper function replace(a, mapping) , using simple logic like "if x in mapping: return mapping[x]"
- - Implement action(a): a(v,u; w) -> a(v; u, w) # i.e. replace(a, { u:w })
- - Add dirichlet_functional(a): a(v,u;w) + L(v; w) -> a(v,v;w) + L(v;w) # something like this, i.e. replace(a, { u:v })
- - Add dual(a): a(v,u;w) -> a(u,v;w) # something like this, i.e. replace(a, { u:v, v:u })
-
  - Implement derivative(a, w): AD, F(v; w) -> J(v, u; w)
 
 # Tests:
