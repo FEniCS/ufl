@@ -5,11 +5,11 @@ Sum and its superclass UFLObject."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-18 -- 2008-09-19"
+__date__ = "2008-08-18 -- 2008-09-24"
 
 # UFL imports
 from .output import ufl_error, ufl_assert
-from .base import UFLObject, FloatValue, float_value, ZeroType, as_ufl, is_python_scalar
+from .base import UFLObject, FloatValue, float_value, ZeroType, is_zero, zero_tensor, as_ufl, is_python_scalar
 from .algebra import Sum, Product, Division, Power, Mod, Abs
 from .tensoralgebra import Transposed, Dot
 from .indexing import Indexed
@@ -22,32 +22,32 @@ from .differentiation import SpatialDerivative
 def _add(self, o):
     if is_python_scalar(o): o = float_value(o)
     if not isinstance(o, UFLObject): return NotImplemented
-    if isinstance(o, ZeroType): return self
-    if isinstance(self, ZeroType): return o
+    if is_zero(o): return self
+    if is_zero(self): return o
     return Sum(self, o)
 UFLObject.__add__ = _add
 
 def _radd(self, o):
     if is_python_scalar(o): o = float_value(o)
     if not isinstance(o, UFLObject): return NotImplemented
-    if isinstance(o, ZeroType): return self
-    if isinstance(self, ZeroType): return o
+    if is_zero(o): return self
+    if is_zero(self): return o
     return Sum(o, self)
 UFLObject.__radd__ = _radd
 
 def _sub(self, o):
     if is_python_scalar(o): o = float_value(o)
     if not isinstance(o, UFLObject): return NotImplemented
-    if isinstance(o, ZeroType): return self
-    if isinstance(self, ZeroType): return -o
+    if is_zero(o): return self
+    if is_zero(self): return -o
     return self + (-o)
 UFLObject.__sub__ = _sub
 
 def _rsub(self, o):
     if is_python_scalar(o): o = float_value(o)
     if not isinstance(o, UFLObject): return NotImplemented
-    if isinstance(self, ZeroType): return o
-    if isinstance(o, ZeroType): return -self
+    if is_zero(self): return o
+    if is_zero(o): return -self
     return o + (-self)
 UFLObject.__rsub__ = _rsub
 
@@ -58,14 +58,14 @@ def _mult(a, b):
     # - matrix-vector (A*v)
     if len(s1) == 2 and (len(s2) == 2 or len(s2) == 1):
         shape = s1[:-1] + s2[1:]
-        if isinstance(a, ZeroType) or isinstance(b, ZeroType):
+        if is_zero(a) or is_zero(b):
             return zero_tensor(shape)
         return Dot(a, b)
     else:
         shape = s1 + s2
         ufl_assert(len(s1) == 0 or len(s2) == 0, \
             "Can't use * to multiply expressions with shapes %r and %r." % (s1, s2))
-        if isinstance(a, ZeroType) or isinstance(b, ZeroType):
+        if is_zero(a) or is_zero(b):
             return zero_tensor(shape)
         if a == 1:
             return b
@@ -134,7 +134,10 @@ UFLObject.__abs__ = _abs
 #--- Extend UFLObject with indexing operator a[i] ---
 
 def _getitem(self, key):
-    return Indexed(self, key)
+    a = Indexed(self, key)
+    if is_zero(self):
+        return zero_tensor(a.shape())
+    return a
 UFLObject.__getitem__ = _getitem
 
 #--- Extend UFLObject with restiction operators a("+"), a("-") ---

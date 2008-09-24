@@ -7,12 +7,12 @@ __date__ = "2008-08-19-- 2008-09-24"
 
 from collections import defaultdict
 
-from ..output import ufl_assert, ufl_error
-from ..common import product
+from ..output import ufl_assert, ufl_error, ufl_warning
+from ..common import product, unzip
 
 # All classes:
 from ..base import UFLObject, Terminal, FloatValue
-from ..base import ZeroType, zero_tensor # Experimental!
+from ..base import ZeroType, is_zero, zero_tensor # Experimental!
 from ..variable import Variable
 from ..finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
 from ..basisfunctions import BasisFunction, BasisFunctions
@@ -25,11 +25,12 @@ from ..tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trac
 from ..mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
 from ..restriction import Restricted, PositiveRestricted, NegativeRestricted
 from ..differentiation import SpatialDerivative, Diff, Grad, Div, Curl, Rot
-from ..conditional import EQ, NE, LE, GE, LT, GT, Conditional # FIXME: Handle these
+from ..conditional import EQ, NE, LE, GE, LT, GT, Conditional
 
 # Lists of all UFLObject classes
 #from ..classes import ufl_classes, terminal_classes, nonterminal_classes, compound_classes
 from ..classes import terminal_classes
+from ..operators import dot, inner, outer
 from .transformations import transform, transform_integrands
 
 
@@ -45,20 +46,22 @@ def diff_handlers():
     d = defaultdict(not_implemented)
     
     # Terminal objects are assumed independent of the differentiation
-    # variable by default, and simply lifted to the pair (x, 0)
+    # variable by default, and simply 'lifted' to the pair (x, 0)
     def lift(x):
         return (x, zero_tensor(x.shape()))
     for c in terminal_classes:
         d[c] = lift
     
-    # This should work for all operators that commute with d/dw:
+    # This should work for all single argument operators that commute with d/dw:
     def diff_commute(x, *ops):
         ufl_assert(len(ops) == 1, "Logic breach in diff_commute, len(ops) = %d." % len(ops))
-        return (x, x.__class__(ops[0][1]))
+        oprime = ops[0][1]
+        return (x, x.__class__(oprime))
     
     # TODO: Can we use this anywhere? A bit dangerous.
     #def diff_commute_multiple_arguments(x, *ops):
-    #    return (x, x.__class__(*[o[1] for o in ops]))
+    #    ops0, ops1 = unzip(ops)
+    #    return (x, x.__class__(*ops1))
     
     # These differentiation rules for nonterminal objects should probably never need to be overridden:
     #def diff_variable(x, *ops):
@@ -76,54 +79,39 @@ def diff_handlers():
     d[Indexed] = diff_indexed
     
     def diff_listvector(x, *ops):
-        return (x, ListVector(*[o[1] for o in ops]))
+        ops1 = [o[1] for o in ops]
+        return (x, ListVector(*ops1))
     d[ListVector] = diff_listvector 
     
     def diff_listmatrix(x, *ops):
-        return (x, ListMatrix(*[o[1] for o in ops]))
+        ops1 = [o[1] for o in ops]
+        return (x, ListMatrix(*ops1))
     d[ListMatrix] = diff_listmatrix
     
     def diff_tensor(x, *ops):
         A, i = ops
-        if isinstance(A[1], ZeroType):
+        if is_zero(A[1]):
             return (x, zero_tensor(x.shape()))
         return (x, Tensor(A[1], i[0]) )
     d[Tensor] = diff_tensor
     
     def diff_sum(x, *ops):
-        return (sum(o[0] for o in ops if not isinstance(o[0], ZeroType)),
-                sum(o[1] for o in ops if not isinstance(o[1], ZeroType)))
+        return (sum(o[0] for o in ops if not is_zero(o[0])),
+                sum(o[1] for o in ops if not is_zero(o[1])))
     d[Sum] = diff_sum
     
     def diff_product(x, *ops):
-        print "x =", x
-        
-        # is this necessary?
-        ops0 = [o[0] for o in ops]
-        if any(isinstance(o[0], ZeroType) for o in ops):
-            f = zero_tensor(x.shape())
-        else:
-            f = product(ops0) # TODO: Reuse x if possible
-        print "f =", f
-        
-        # ting?
-        ops1 = [o[1] for o in ops]
-        if any(isinstance(o[1], ZeroType) for o in ops):
-            fp = zero_tensor(x.shape())
-        else:
-            fp = sum( product(o[0] for o in ops[:i]) * ops[i][1] * product(o[0] for o in ops[i+1:]) \
-                      for i in range(len(ops)) )
-        
-        # TODO: is this good enough in general?
         fp = zero_tensor(x.shape())
+        ops0, ops1 = unzip(ops)
         for (i,o) in enumerate(ops):
-            fpoperands = [o for o in ops0[:i] + [ops1[i]] + ops0[i+1:] \
-                          if not (isinstance(o, FloatValue) and o._value == 1)]
-            if not any(isinstance(o, ZeroType) for o in fpoperands):
+            # replace operand i with its differentiated value 
+            fpoperands = ops0[:i] + [ops1[i]] + ops0[i+1:]
+            # simplify by ignoring ones
+            fpoperands = [o for o in fpoperands if not o == 1]
+            # simplify if there are zeros in the product
+            if not any(is_zero(o) for o in fpoperands):
                 fp += product(fpoperands)
-        print "fp =", fp
-        
-        return (f, fp)
+        return (x, fp)
     d[Product] = diff_product
     
     def diff_division(x, *ops):
@@ -137,49 +125,55 @@ def diff_handlers():
         g, gp = ops[1]
         ufl_assert(f.rank() == 0 and g.rank() == 0, "Expecting scalar expressions f,g in f**g.")
         # x = f**g
-        f_const = isinstance(fp, ZeroType)
-        g_const = isinstance(gp, ZeroType)
+        f_const = is_zero(fp)
+        g_const = is_zero(gp)
         # Case: x = const ** const = const
         if f_const and g_const:
             return (x, zero())
         # Case: x = f(x) ** const
         if g_const:
             # x' = g f'(x) f(x)**(g-1)
-            if isinstance(g, ZeroType) or isinstance(f, ZeroType) or f_const:
+            if is_zero(g) or is_zero(f) or f_const:
                 return (x, zero())
             return (x, g*fp*f**(g-1.0))
         # Case: x = f ** g(x)
-        if isinstance(fp, ZeroType):
+        if is_zero(fp):
             return (x, gp*ln(f)*x)
         ufl_error("diff_power not implemented for case d/dx [ f(x)**g(x) ].")
         return (x, FIXME)
     d[Power] = diff_power
-
+    
     def diff_mod(x, *ops):
         ufl_error("diff_mod not implemented")
         return (x, FIXME)
     d[Mod] = diff_mod
 
     def diff_abs(x, *ops):
-        ufl_error("diff_abs not implemented")
-        return (x, FIXME)
+        f, fprime = ops[0]
+        xprime = conditional(eq(f, 0),
+                             0,
+                             conditional(lt(f, 0), -fprime, fprime))
+        return (x, xprime)
     d[Abs] = diff_abs
     
     d[Transposed] = diff_commute
     
     def diff_outer(x, *ops):
-        ufl_error("diff_outer not implemented")
-        return (x, FIXME) # COMPOUND
+        a, ap = ops[0]
+        b, bp = ops[1]
+        return (x, outer(ap, b) + outer(a, bp))
     d[Outer] = diff_outer
 
     def diff_inner(x, *ops):
-        ufl_error("diff_inner not implemented")
-        return (x, FIXME) # COMPOUND
+        a, ap = ops[0]
+        b, bp = ops[1]
+        return (x, inner(ap, b) + inner(a, bp))
     d[Inner] = diff_inner
 
     def diff_dot(x, *ops):
-        ufl_error("diff_dot not implemented")
-        return (x, FIXME) # COMPOUND
+        a, ap = ops[0]
+        b, bp = ops[1]
+        return (x, dot(ap, b) + dot(a, bp))
     d[Dot] = diff_dot
 
     def diff_cross(x, *ops):
@@ -188,7 +182,7 @@ def diff_handlers():
         ufl_error("diff_cross not implemented")
         return (x, FIXME) # COMPOUND
     d[Cross] = diff_cross
-
+    
     d[Trace] = diff_commute
 
     def diff_determinant(x, *ops):
@@ -201,9 +195,9 @@ def diff_handlers():
     # 0 = d/dx [Ainv*A] = Ainv' * A + Ainv * A'
     # Ainv' * A = - Ainv * A'
     # Ainv' = - Ainv * A' * Ainv
-    def diff_inverse(x, *ops):
+    def diff_inverse(Ainv, *ops):
         A, Ap = ops[0]
-        return (x, -x*Ap*x)
+        return (Ainv, -Ainv*Ap*Ainv)
     d[Inverse] = diff_inverse
 
     d[Deviatoric] = diff_commute
@@ -211,58 +205,61 @@ def diff_handlers():
     def diff_cofactor(x, *ops):
         A, Ap = ops[0]
         ufl_error("diff_cofactor not implemented")
-        return (x, FIXME) # NONLINEAR
+        #cofacA_prime = detA_prime*Ainv + detA*Ainv_prime
+        return (x, FIXME)
     d[Cofactor] = diff_cofactor
 
     # Mathfunctions:
     def diff_sqrt(x, *ops):
         f, fp = ops[0]
-        if isinstance(fp, ZeroType): return (x, zero())
+        if is_zero(fp): return (x, zero())
         return (x, 0.5*fp/sqrt(f))
     d[Sqrt] = diff_sqrt
     
     def diff_exp(x, *ops):
         f, fp = ops[0]
-        if isinstance(fp, ZeroType): return (x, zero())
+        if is_zero(fp): return (x, zero())
         return (x, fp*exp(f))
     d[Exp] = diff_exp
     
     def diff_ln(x, *ops):
         f, fp = ops[0]
-        if isinstance(fp, ZeroType): return (x, zero())
-        ufl_assert(not isinstance(f, ZeroType), "Division by zero.")
+        if is_zero(fp): return (x, zero())
+        ufl_assert(not is_zero(f), "Division by zero.")
         return (x, fp/f)
     d[Ln] = diff_ln
     
     def diff_cos(x, *ops):
         f, fp = ops[0]
-        if isinstance(fp, ZeroType): return (x, zero())
+        if is_zero(fp): return (x, zero())
         return (x, -fp*sin(f))
     d[Cos] = diff_cos
     
     def diff_sin(x, *ops):
         f, fp = ops[0]
-        if isinstance(fp, ZeroType): return (x, zero())
+        if is_zero(fp): return (x, zero())
         return (x, fp*cos(f))
     d[Sin] = diff_sin
 
     # Restrictions
     def diff_positiverestricted(x, *ops):
-        return (x, FIXME) # TODO: What is d(v+)/dw ?
+        f, fp = ops[0]
+        return (x, fp('+')) # TODO: What is d(v+)/dw ?
     d[PositiveRestricted] = diff_positiverestricted
 
     def diff_negativerestricted(x, *ops):
-        return (x, FIXME) # TODO: What is d(v+)/dw ?
+        f, fp = ops[0]
+        return (x, fp('-')) # TODO: What is d(v-)/dw ?
     d[NegativeRestricted] = diff_negativerestricted
     
     # Derivatives
     d[SpatialDerivative] = diff_commute
     d[Diff] = diff_commute
     d[Grad] = diff_commute
-    d[Div] = diff_commute
+    d[Div]  = diff_commute
     d[Curl] = diff_commute
-    d[Rot] = diff_commute
-
+    d[Rot]  = diff_commute
+    
     # Conditionals
     def diff_condition(x, *ops):
         return (x, 0)
@@ -274,14 +271,15 @@ def diff_handlers():
     d[GT] = diff_condition
     def diff_conditional(x, *ops):
         c, l, r = ops
-        if not isinstance(c[1], ZeroType):
+        if not is_zero(c[1]):
             ufl_warning("Differentiating a conditional with a condition "\
-                "that is not constant w.r.t. the differentiation variable.")
-        if isinstance(l[1], ZeroType) and isinstance(r[1], ZeroType):
+                "that depends on the differentiation variable."\
+                "This is probably not a good idea!")
+        if is_zero(l[1]) and is_zero(r[1]):
             return (x, zero_tensor(x.shape()))
         return (x, conditional(c[0], l[1], r[1]))
     d[Conditional] = diff_conditional
-
+    
     return d
 
 def _compute_derivative(expression, handlers):

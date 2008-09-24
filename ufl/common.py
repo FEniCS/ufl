@@ -1,13 +1,17 @@
 "This module contains a collection of common utilities."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-08-05 -- 2008-08-26"
+__date__ = "2008-08-05 -- 2008-09-24"
 
 import operator
 
 def product(sequence):
     "Return the product of all elements in a sequence."
     return reduce(operator.__mul__, sequence, 1)
+
+def unzip(seq):
+    "Inverse operation of zip: unzip(zip(a, b)) == (a, b)"
+    return [s[0] for s in seq], [s[1] for s in seq]
 
 def some_key(a_dict):
     "Return an arbitrary key from a dictionary."

@@ -121,7 +121,7 @@ def zero():
     return zero_tensor(())
 
 def is_zero(expression):
-    return isinstance(ZeroType) or expression == 0
+    return isinstance(expression, ZeroType) or expression == 0
 
 #--- FloatValue type ---
 
