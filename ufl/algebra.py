@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2008-09-17"
+__date__ = "2008-05-20 -- 2008-09-24"
 
 # Modified by Anders Logg, 2008
 
@@ -11,7 +11,7 @@ from itertools import chain
 from collections import defaultdict
 
 from .output import ufl_assert, ufl_error
-from .base import UFLObject, FloatValue, is_true_scalar, is_python_scalar, as_ufl
+from .base import UFLObject, float_value, FloatValue, is_true_scalar, is_python_scalar, as_ufl
 from .indexing import extract_indices, compare_shapes
 
 #--- Algebraic operators ---
@@ -23,8 +23,10 @@ class Sum(UFLObject):
         ufl_assert(len(operands), "Got sum of nothing.")
         s = operands[0].shape()
         
-        ufl_assert(all(compare_shapes(s, o.shape()) for o in operands), "Shape mismatch in sum.")
-        ufl_assert(all(operands[0].free_indices() == o.free_indices() for o in operands), "Can't add expressions with different free indices.")
+        ufl_assert(all(compare_shapes(s, o.shape()) for o in operands),
+            "Shape mismatch in sum.")
+        ufl_assert(all(operands[0].free_indices() == o.free_indices() for o in operands),
+            "Can't add expressions with different free indices.")
         self._operands = tuple(operands)
     
     def operands(self):
@@ -50,7 +52,13 @@ class Product(UFLObject):
         # - something multiplied with a scalar
         # - a scalar multiplied with something
         
-        ufl_assert(len(operands) >= 2, "Can't make product of nothing.")
+        tmp = []
+        for o in operands:
+            if not (isinstance(o, FloatValue) and o._value == 1):
+                tmp.append(o)
+        operands = tmp
+        
+        ufl_assert(len(operands) >= 2, "Can't make product of nothing, should catch this before getting here.")
         self._operands = tuple(operands)
         
         # Check that we have only one non-scalar object
@@ -112,7 +120,8 @@ class Power(UFLObject):
     __slots__ = ("_a", "_b")
     
     def __init__(self, a, b):
-        ufl_assert(is_true_scalar(a) and is_true_scalar(b), "Non-scalar power not defined.")
+        ufl_assert(is_true_scalar(a) and is_true_scalar(b),
+            "Non-scalar power not defined.")
         self._a = as_ufl(a)
         self._b = as_ufl(b)
     
@@ -137,7 +146,8 @@ class Mod(UFLObject):
     def __init__(self, a, b):
         self._a = as_ufl(a)
         self._b = as_ufl(b)
-        ufl_assert(is_true_scalar(self._a) and is_true_scalar(self._b), "Non-scalar mod not defined.")
+        ufl_assert(is_true_scalar(self._a) and is_true_scalar(self._b),
+            "Non-scalar mod not defined.")
     
     def operands(self):
         return (self._a, self._b)

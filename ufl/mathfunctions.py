@@ -8,7 +8,7 @@ __date__ = "2008-03-14 -- 2008-09-06"
 # Modified by Anders Logg, 2008
 
 from .output import ufl_assert
-from .base import UFLObject, FloatValue, is_true_scalar, is_python_scalar
+from .base import UFLObject, float_value, is_true_scalar, is_python_scalar
 
 #--- Function representations ---
 
@@ -17,7 +17,7 @@ class MathFunction(UFLObject):
     # Freeze member variables for objects in this class
     __slots__ = ("_name", "_argument")
     def __init__(self, name, argument):
-        if is_python_scalar(argument): argument = FloatValue(argument)
+        if is_python_scalar(argument): argument = float_value(argument)
         ufl_assert(is_true_scalar(argument), "Expecting scalar.")
         self._name     = name
         self._argument = argument

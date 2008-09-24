@@ -4,7 +4,7 @@ types involved with built-in operators on any UFL object."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-21"
+__date__ = "2008-03-14 -- 2008-09-24"
 
 # Modified by Anders Logg, 2008
 
@@ -120,13 +120,16 @@ def zero_tensor(shape):
 def zero():
     return zero_tensor(())
 
+def is_zero(expression):
+    return isinstance(ZeroType) or expression == 0
+
 #--- FloatValue type ---
 
 class FloatValue(Terminal):
     "A constant scalar numeric value."
     __slots__ = ("_value",)
     
-    def __init__(self, value): # TODO: Use metaclass to return zero if value is 0?
+    def __init__(self, value):
         self._value = value
     
     def free_indices(self):
@@ -135,11 +138,22 @@ class FloatValue(Terminal):
     def shape(self):
         return ()
     
+    def __eq__(self, other):
+        "Allow comparison with python scalars."
+        if is_python_scalar(other):
+            return self._value == other
+        return UFLObject.__eq__(self, other)
+    
     def __str__(self):
         return str(self._value)
     
     def __repr__(self):
-        return "FloatValue(%r)" % self._value
+        return "FloatValue(%s)" % repr(self._value)
+
+def float_value(value): # TODO: Use metaclass instead to return zero if value is 0?
+    if value == 0:
+        return zero()
+    return FloatValue(value)
 
 #--- Base class of compound objects ---
 
@@ -170,9 +184,7 @@ def is_true_scalar(o):
 def as_ufl(o):
     "Returns o if it is an UFLObject or an UFLObject wrapper if o is a scalar."  
     if is_python_scalar(o):
-        if o == 0:
-            return zero()
-        return FloatValue(o)
+        return float_value(o)
     ufl_assert(isinstance(o, UFLObject), "Expecting Python scalar or UFLObject instance.")
     return o
     

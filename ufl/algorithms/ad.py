@@ -3,18 +3,20 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-19-- 2008-08-20"
+__date__ = "2008-08-19-- 2008-09-24"
 
 from collections import defaultdict
 
 from ..output import ufl_assert, ufl_error
+from ..common import product
 
 # All classes:
 from ..base import UFLObject, Terminal, FloatValue
 from ..base import ZeroType, zero_tensor # Experimental!
 from ..variable import Variable
 from ..finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
-from ..basisfunctions import BasisFunction, Function, Constant
+from ..basisfunctions import BasisFunction, BasisFunctions
+from ..function import Function, Constant
 from ..geometry import FacetNormal
 from ..indexing import MultiIndex, Indexed, Index
 from ..tensors import ListVector, ListMatrix, Tensor
@@ -28,6 +30,10 @@ from ..conditional import EQ, NE, LE, GE, LT, GT, Conditional # FIXME: Handle th
 # Lists of all UFLObject classes
 #from ..classes import ufl_classes, terminal_classes, nonterminal_classes, compound_classes
 from ..classes import terminal_classes
+from .transformations import transform, transform_integrands
+
+
+# FIXME: Need algorithm to apply AD to all kinds of derivatives! In particular, SpatialDerivative and Diff.
 
 
 def diff_handlers():
@@ -63,7 +69,7 @@ def diff_handlers():
     def diff_multi_index(x, *ops):
         return (x, None) # x' here should never be used
     d[MultiIndex] = diff_multi_index
-
+    
     def diff_indexed(x, *ops):
         A, i = ops
         return (x, A[1][i[0]])
@@ -72,11 +78,11 @@ def diff_handlers():
     def diff_listvector(x, *ops):
         return (x, ListVector(*[o[1] for o in ops]))
     d[ListVector] = diff_listvector 
-
-    def diff_matrix(x, *ops):
+    
+    def diff_listmatrix(x, *ops):
         return (x, ListMatrix(*[o[1] for o in ops]))
     d[ListMatrix] = diff_listmatrix
-
+    
     def diff_tensor(x, *ops):
         A, i = ops
         if isinstance(A[1], ZeroType):
@@ -90,24 +96,42 @@ def diff_handlers():
     d[Sum] = diff_sum
     
     def diff_product(x, *ops):
+        print "x =", x
+        
+        # is this necessary?
+        ops0 = [o[0] for o in ops]
         if any(isinstance(o[0], ZeroType) for o in ops):
             f = zero_tensor(x.shape())
         else:
-            f = sum(o[0] for o in ops) # TODO: Reuse x if possible
+            f = product(ops0) # TODO: Reuse x if possible
+        print "f =", f
+        
+        # ting?
+        ops1 = [o[1] for o in ops]
         if any(isinstance(o[1], ZeroType) for o in ops):
             fp = zero_tensor(x.shape())
         else:
             fp = sum( product(o[0] for o in ops[:i]) * ops[i][1] * product(o[0] for o in ops[i+1:]) \
                       for i in range(len(ops)) )
+        
+        # TODO: is this good enough in general?
+        fp = zero_tensor(x.shape())
+        for (i,o) in enumerate(ops):
+            fpoperands = [o for o in ops0[:i] + [ops1[i]] + ops0[i+1:] \
+                          if not (isinstance(o, FloatValue) and o._value == 1)]
+            if not any(isinstance(o, ZeroType) for o in fpoperands):
+                fp += product(fpoperands)
+        print "fp =", fp
+        
         return (f, fp)
     d[Product] = diff_product
-
+    
     def diff_division(x, *ops):
         f, fp = ops[0]
         g, gp = ops[1]
         return (x, (fp*g-f*gp)/g**2)
     d[Division] = diff_division
-
+    
     def diff_power(x, *ops):
         f, fp = ops[0]
         g, gp = ops[1]
@@ -251,7 +275,8 @@ def diff_handlers():
     def diff_conditional(x, *ops):
         c, l, r = ops
         if not isinstance(c[1], ZeroType):
-            ufl_warning("Differentiating a conditional with a condition that is not constant w.r.t. the differentiation variable.")
+            ufl_warning("Differentiating a conditional with a condition "\
+                "that is not constant w.r.t. the differentiation variable.")
         if isinstance(l[1], ZeroType) and isinstance(r[1], ZeroType):
             return (x, zero_tensor(x.shape()))
         return (x, conditional(c[0], l[1], r[1]))
@@ -281,5 +306,37 @@ def compute_derivative(expression, w):
     return _compute_derivative(expression, handlers)
 
 
-# FIXME: Need algorithm to apply AD to all kinds of derivatives! In particular, SpatialDerivative and Diff.
+def compute_form_derivative(form, function):
+    
+    if isinstance(function, tuple):
+        # We got a tuple of functions, handle it as functions
+        # over components of a mixed element.
+        ufl_assert(all(isinstance(w, Function) for w in function),
+            "Expecting a tuple of Functions to differentiate w.r.t.")
+        elements = [w.element() for w in function]
+        element = MixedElement(*elements)
+        bf = BasisFunctions(element)
+        functions = zip(function, bf)
+    else:
+        ufl_assert(isinstance(function, Function),
+            "Expecting a Function to differentiate w.r.t.")
+        w = function
+        wprime = BasisFunction(w.element())
+        functions = [(w, wprime)]
+    
+    handlers = diff_handlers()
+    
+    def diff_function(x):
+        for (w, wprime) in functions:
+            if x == w:
+                return (w, wprime)
+        return (w, zero_tensor(x.shape()))
+    
+    handlers[Function] = diff_function
+    
+    def _compute_derivative(expression):
+        F, J = transform(expression, handlers)
+        return J
+    
+    return transform_integrands(form, _compute_derivative)
 

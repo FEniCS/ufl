@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-14 -- 2008-09-20"
+__date__ = "2008-08-14 -- 2008-09-24"
 
 # Utilities for traversing over expression trees in different ways
 from .traversal import iter_expressions, post_traversal, pre_traversal, post_walk, pre_walk, walk
@@ -27,11 +27,15 @@ from .transformations import expand_compounds, flatten, strip_variables
 from .transformations import substitute_indices, expand_indices
 from .transformations import split_by_dependencies, mark_duplications
 from .transformations import replace, replace_in_form
-from .transformations import compute_form_action, compute_form_transpose
+from .transformations import compute_form_transpose, compute_form_action
+from .transformations import compute_form_lhs, compute_form_rhs
+from .transformations import compute_dirichlet_functional, compute_dual_form
 
-from .ufl2latex import ufl2latex
+# Utilities for Automatic Functional Differentiation
+from .ad import compute_form_derivative
 
 # Utilities for UFL object printing
+from .ufl2latex import ufl2latex
 from .printing import integral_info, form_info, tree_format
 
 # Utilities for form file handling

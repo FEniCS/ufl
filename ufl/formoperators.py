@@ -3,64 +3,52 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-14"
+__date__ = "2008-03-14 -- 2008-09-24"
 
-
-# TODO: We should be able to apply most of these operators to parts of a form,
-#       so should they be applied to integrand expressions and be UFLObjects?
-
-
-# TODO: We should be able to take the derivative of a part of the form, doing some linearization manually.
-class Derivative:
-    """..."""
-    def __init__(self, form, function):
-        self.form = form
-        self.function = function
-    
-    def __repr__(self):
-        return "Derivative(%r, %r)" % (self.form, self.function)
-
-
-# Deprecated by the more general Derivative, or should we keep it for the familiar name?
-#class Jacobi:
-#    """Represents a linearized form, the Jacobi of a given nonlinear form wrt a given function."""
-#    def __init__(self, form, function):
-#        self.form = form
-#        self.function = function
-#
-#    def __repr__(self):
-#        return "Jacobi(%r, %r)" % (self.form, self.function)
-
-
-class Action:
-    """Represents the action of a linear form of rank 2 on a vector."""
-    def __init__(self, form):
-        self.form = form
-
-    def __repr__(self):
-        return "Action(%r)" % self.form
-
-
-class Rhs:
-    """Represents the right hand side part of a form, that is the rank 1 part."""
-    def __init__(self, form):
-        self.form = form
-
-    def __repr__(self):
-        return "Rhs(%r)" % self.form
-
-
-class Lhs:
-    """Represents the left hand side part of a form, that is the rank 2 part."""
-    def __init__(self, form):
-        self.form = form
-
-    def __repr__(self):
-        return "Lhs(%r)" % self.form
-
+from .algorithms import compute_form_derivative
+from .algorithms import compute_form_transpose, compute_form_action
+from .algorithms import compute_form_lhs, compute_form_rhs
+from .algorithms import compute_dirichlet_functional, compute_dual_form
 
 def rhs(form):
-    return Rhs(form)
+    """Given a combined bilinear and linear form,
+    extract the linear form part (right hand side).
+
+    TODO: Given "a = u*v*dx + f*v*dx, should this
+    return "+f*v*dx" as found in the form or
+    "-f*v*dx" as the rigth hand side should
+    be when solving the equations?
+    """
+    return compute_form_rhs(form)
 
 def lhs(form):
-    return Lhs(form)
+    """Given a combined bilinear and linear form,
+    extract the bilinear form part (left hand side)."""
+    return compute_form_lhs(form)
+
+def action(form, function=None):
+    """Given a bilinear form, return a linear form
+    with an additional function coefficient, representing
+    the action of the form on the function. This can be
+    used for matrix-free methods."""
+    return compute_form_action(form, function)
+
+def derivative(form, function):
+    """Given any form, compute the linearization of the
+    form with respect to the given discrete function.
+    The resulting form has one additional basis function
+    in the same finite element space as the function.
+    A tuple of Functions may be provided in place of
+    a single Function, in which case the new BasisFunction
+    argument is based on a MixedElement created from this tuple."""
+    return compute_form_derivative(form, function)
+
+def dirichlet_functional(form):
+    return compute_dirichlet_functional(form)
+
+def dual(form):
+    return compute_dual_form(form)
+
+def form_transpose(form):
+    return compute_form_transpose(form)
+

@@ -29,7 +29,6 @@ from ..differentiation import SpatialDerivative, Diff, Grad, Div, Curl, Rot
 from ..conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ..form import Form
 from ..integral import Integral
-#from ..formoperators import Derivative, Action, Rhs, Lhs # TODO: What to do with these?
 
 # Lists of all UFLObject classes
 from ..classes import ufl_classes, terminal_classes, nonterminal_classes, compound_classes

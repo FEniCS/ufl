@@ -47,7 +47,6 @@ from ..differentiation import SpatialDerivative, Diff, Grad, Div, Curl, Rot
 from ..conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ..form import Form
 from ..integral import Integral
-#from ..formoperators import Derivative, Action, Rhs, Lhs # TODO: What to do with these?
 
 # Lists of all UFLObject classes
 from ..classes import ufl_classes, terminal_classes, nonterminal_classes, compound_classes
@@ -186,7 +185,7 @@ def replace_in_form(form, substitution_map):
     return transform_integrands(form, replace_expression)
 
 
-def compute_form_action(form):
+def compute_form_action(form, function):
     """Compute the action of a form on a Function.
     
     This works simply by replacing the last basisfunction
@@ -198,8 +197,23 @@ def compute_form_action(form):
     ufl_assert(len(bf) == 2, "Expecting bilinear form.")
     v, u = bf
     e = u.element()
-    f = Function(e)
-    return replace_in_form(form, {u:f})
+    if function is None:
+        function = Function(e)
+    else:
+        ufl_assert(function.element() == e, \
+            "Trying to compute action of form on a "\
+            "function in an incompatible element space.")
+    return replace_in_form(form, {u:function})
+
+
+def compute_form_lhs(form):
+    """Compute the left hand side of a form."""
+    FIXME
+
+
+def compute_form_rhs(form):
+    """Compute the right hand side of a form."""
+    FIXME
 
 
 def compute_form_transpose(form):
@@ -213,7 +227,7 @@ def compute_form_transpose(form):
     return replace_in_form(form, {v:u, u:v})
 
 
-def compute_dual_form(form): # FIXME: Don't know if this is correct.
+def compute_dual_form(form): # FIXME: Don't know if this is correct, or if we need it?
     """Compute the dual of a bilinear form:
     a(v,u;...) -> a(u,v;...)
     
@@ -231,16 +245,17 @@ def compute_dual_form(form): # FIXME: Don't know if this is correct.
 
 def compute_dirichlet_functional(form): # FIXME: Don't know if this is correct or even useful, just picked up the name some place.
     """Compute the Dirichlet functional of a form:
-    a(v,u;...) + L(v; ...) -> a(v,v;...) + L(v;...)
+    a(v,u;...) - L(v; ...) -> 0.5 a(v,v;...) - L(v;...)
     
     This assumes a bilinear form and works simply by
     replacing the trial function with the test function.
     The form returned will thus be a linear form.
     """
-    bf = basisfunctions(form)
-    ufl_assert(len(bf) == 2, "Expecting bilinear form.")
-    v, u = bf
-    return replace_in_form(form, {u:v})
+    return 0.5*compute_form_lhs(form) - compute_form_rhs(form)
+    #bf = basisfunctions(form)
+    #ufl_assert(len(bf) == 2, "Expecting bilinear form.")
+    #v, u = bf
+    #return replace_in_form(form, {u:v})
 
 
 # TODO: Take care when using this, it will replace _all_ occurences of these indices,

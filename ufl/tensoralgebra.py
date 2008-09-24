@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-19"
+__date__ = "2008-03-14 -- 2008-09-24"
 
 from .output import ufl_assert
 from .base import UFLObject, Terminal, Compound
@@ -162,12 +162,15 @@ class Dot(Compound):
     __slots__ = ("_a", "_b", "_free_indices")
 
     def __init__(self, a, b):
-        ufl_assert(a.rank() >= 1 and b.rank() >= 1, "Dot product requires arguments of rank >= 1, got %d and %d." % (a.rank(), b.rank())) # TODO: maybe scalars are ok?
+        ufl_assert(a.rank() >= 1 and b.rank() >= 1,
+            "Dot product requires arguments of rank >= 1, got %d and %d." % \
+            (a.rank(), b.rank())) # TODO: maybe scalars are ok?
         self._a = a
         self._b = b
         ai = self._a.free_indices()
         bi = self._b.free_indices()
-        ufl_assert( len(set(ai) ^ set(bi)) == 0, "Didn't expect repeated indices in outer product.") 
+        ufl_assert( len(set(ai) ^ set(bi)) == 0,
+            "Didn't expect repeated indices in outer product.") 
         self._free_indices = tuple(ai+bi)
     
     def operands(self):
@@ -197,12 +200,14 @@ class Cross(Compound):
     __slots__ = ("_a", "_b", "_free_indices")
 
     def __init__(self, a, b):
-        ufl_assert(a.rank() == 1 and b.rank() == 1, "Cross product requires arguments of rank 1.")
+        ufl_assert(a.rank() == 1 and b.rank() == 1,
+            "Cross product requires arguments of rank 1.")
         self._a = a
         self._b = b
         ai = self._a.free_indices()
         bi = self._b.free_indices()
-        ufl_assert( len(set(ai) ^ set(bi)) == 0, "Didn't expect repeated indices in outer product.") 
+        ufl_assert( len(set(ai) ^ set(bi)) == 0,
+            "Didn't expect repeated indices in outer product.") 
         self._free_indices = tuple(ai+bi)
     
     def operands(self):
@@ -216,8 +221,10 @@ class Cross(Compound):
     
     def as_basic(self, dim, a, b):
         if dim == 3:
-            ufl_assert(compare_shapes(a.shape(), (3,)), "Invalid shape of first argument in cross product.")
-            ufl_assert(compare_shapes(b.shape(), (3,)), "Invalid shape of second argument in cross product.")
+            ufl_assert(compare_shapes(a.shape(), (3,)),
+                "Invalid shape of first argument in cross product.")
+            ufl_assert(compare_shapes(b.shape(), (3,)),
+                "Invalid shape of second argument in cross product.")
             def c(i, j):
                 return a[i]*b[j]-a[j]*b[i]
             return Vector(c(1,2), c(2,0), c(0,1))
@@ -264,9 +271,12 @@ class Determinant(Compound):
     def __init__(self, A):
         sh = A.shape()
         r = len(sh)
-        ufl_assert(r == 0 or r == 2, "Determinant of tensor with rank != 2 is undefined.")
-        ufl_assert(r == 0 or compare_shapes((sh[0],), (sh[1],)), "Cannot take determinant of rectangular rank 2 tensor.")
-        ufl_assert(len(A.free_indices()) == 0, "Didn't expect free indices in determinant.")
+        ufl_assert(r == 0 or r == 2,
+            "Determinant of tensor with rank != 2 is undefined.")
+        ufl_assert(r == 0 or compare_shapes((sh[0],), (sh[1],)),
+            "Cannot take determinant of rectangular rank 2 tensor.")
+        ufl_assert(len(A.free_indices()) == 0,
+            "Didn't expect free indices in determinant.")
         self._A = A
     
     def operands(self):
@@ -313,7 +323,8 @@ class Inverse(Compound): # TODO: Drop Inverse and represent it as product of Det
         sh = A.shape()
         r = len(sh)
         ufl_assert(r == 0 or r == 2, "Inverse of tensor with rank != 2 or 0 is undefined.")
-        ufl_assert(r == 0 or compare_shapes((sh[0],), (sh[1],)), "Cannot take inverse of rectangular matrix with dimensions %s." % repr(sh))
+        ufl_assert(r == 0 or compare_shapes((sh[0],), (sh[1],)),
+            "Cannot take inverse of rectangular matrix with dimensions %s." % repr(sh))
         ufl_assert(len(A.free_indices()) == 0, "Didn't expect free indices in Inverse.")
         self._A = A
     
@@ -345,7 +356,8 @@ class Deviatoric(Compound):
         sh = A.shape()
         r = len(sh)
         ufl_assert(r == 2, "Deviatoric part of tensor with rank != 2 is undefined.")
-        ufl_assert(compare_shapes((sh[0],), (sh[1],)), "Cannot take deviatoric part of rectangular matrix with dimensions %s." % repr(sh))
+        ufl_assert(compare_shapes((sh[0],), (sh[1],)),
+            "Cannot take deviatoric part of rectangular matrix with dimensions %s." % repr(sh))
         ufl_assert(len(A.free_indices()) == 0, "Didn't expect free indices in Deviatoric.")
         self._A = A
     

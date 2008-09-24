@@ -23,6 +23,9 @@ class Function(Terminal, Counted):
         self._element = element
         self._name = name
     
+    def element(self):
+        return self._element
+    
     def free_indices(self):
         return ()
     
