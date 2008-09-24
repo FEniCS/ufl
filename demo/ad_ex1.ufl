@@ -4,7 +4,7 @@ element = FiniteElement("Lagrange", "triangle", 1)
 v = TestFunction(element)
 f = Function(element)
 
-a = f*f*f*f*f*f*v*dx
+a = pow(f,5)*v*dx
 print "a ", a 
 b = derivative(a, f)
 print "b ", b  
