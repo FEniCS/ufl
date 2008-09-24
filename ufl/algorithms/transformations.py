@@ -32,8 +32,8 @@ from ..base import UFLObject, Terminal, FloatValue
 from ..variable import Variable
 from ..finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
 from ..basisfunction import BasisFunction
+#from ..basisfunction import TestFunction, TrialFunction, BasisFunctions, TestFunctions, TrialFunctions
 from ..function import Function
-#from ..basisfunctions import TestFunction, TrialFunction, BasisFunctions, TestFunctions, TrialFunctions
 from ..geometry import FacetNormal
 from ..indexing import MultiIndex, Indexed, Index, FixedIndex
 #from ..indexing import AxisType, as_index, as_index_tuple, extract_indices
@@ -77,7 +77,11 @@ def transform(expression, handlers):
         ops = ()
     else:
         ops = [transform(o, handlers) for o in expression.operands()]
-    h = handlers[expression.__class__]
+    c = expression.__class__
+    if c in handlers:
+        h = handlers[c]
+    else:
+        ufl_error("Didn't find class %s among handlers." % c)
     return h(expression, *ops)
 
 

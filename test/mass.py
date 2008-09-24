@@ -28,10 +28,14 @@ class MassTestCase(unittest.TestCase):
         f = (w**2/2)*dx
         L = w*v*dx
         a = u*v*dx
-        F  = Derivative(f, w)
-        J1 = Derivative(L, w)
-        J2 = Derivative(F, w)
+        F  = derivative(f, w, v)
+        J1 = derivative(L, w, u)
+        J2 = derivative(F, w, u)
         
+        self.assertTrue(F == L)
+        self.assertTrue(J1 == J2)
+        self.assertTrue(J1 == a)
+        self.assertTrue(J2 == a)
         # TODO: Apply algorithms of various kinds and verify that (a, J1, J2) are equivalent, as well as (L, F).
 
 

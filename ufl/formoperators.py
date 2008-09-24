@@ -33,7 +33,7 @@ def action(form, function=None):
     used for matrix-free methods."""
     return compute_form_action(form, function)
 
-def derivative(form, function):
+def derivative(form, function, basisfunction=None):
     """Given any form, compute the linearization of the
     form with respect to the given discrete function.
     The resulting form has one additional basis function
@@ -41,7 +41,7 @@ def derivative(form, function):
     A tuple of Functions may be provided in place of
     a single Function, in which case the new BasisFunction
     argument is based on a MixedElement created from this tuple."""
-    return compute_form_derivative(form, function)
+    return compute_form_derivative(form, function, basisfunction)
 
 def dirichlet_functional(form):
     return compute_dirichlet_functional(form)

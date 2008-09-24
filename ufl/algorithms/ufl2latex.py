@@ -5,7 +5,7 @@ converting UFL expressions to other representations."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-09-18"
+__date__ = "2008-05-07 -- 2008-09-24"
 
 from collections import defaultdict
 
@@ -14,8 +14,9 @@ from ..output import ufl_error, ufl_warning
 # All classes:
 from ..base import FloatValue
 from ..variable import Variable
-from ..basisfunctions import BasisFunction, Function, Constant
-#from ..basisfunctions import TestFunction, TrialFunction, BasisFunctions, TestFunctions, TrialFunctions
+from ..basisfunction import BasisFunction
+from ..function import Function, Constant
+#from ..basisfunction import TestFunction, TrialFunction, BasisFunctions, TestFunctions, TrialFunctions
 from ..geometry import FacetNormal
 from ..indexing import MultiIndex, Indexed, Index, FixedIndex
 #from ..indexing import AxisType, as_index, as_index_tuple, extract_indices

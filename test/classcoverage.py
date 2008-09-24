@@ -382,11 +382,11 @@ class ClasscoverageTest(unittest.TestCase):
         # --- Form transformations:
         
         a = f0*v0*dx + f0*v0*dot(f1,v1)*dx
-        b = Lhs(a)
-        c = Rhs(a)
-        d = Derivative(a, f1)
-        e = Action(b)
-        f = Action(d)
+        b = lhs(a)
+        c = rhs(a)
+        d = derivative(a, f1)
+        e = action(b)
+        f = action(d)
         
 if __name__ == "__main__":
     unittest.main()

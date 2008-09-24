@@ -12,10 +12,10 @@ from ..common import product, unzip
 
 # All classes:
 from ..base import UFLObject, Terminal, FloatValue
-from ..base import ZeroType, is_zero, zero_tensor # Experimental!
+from ..base import ZeroType, is_zero, zero, zero_tensor # Experimental!
 from ..variable import Variable
 from ..finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
-from ..basisfunctions import BasisFunction, BasisFunctions
+from ..basisfunction import BasisFunction, BasisFunctions
 from ..function import Function, Constant
 from ..geometry import FacetNormal
 from ..indexing import MultiIndex, Indexed, Index
@@ -30,7 +30,7 @@ from ..conditional import EQ, NE, LE, GE, LT, GT, Conditional
 # Lists of all UFLObject classes
 #from ..classes import ufl_classes, terminal_classes, nonterminal_classes, compound_classes
 from ..classes import terminal_classes
-from ..operators import dot, inner, outer
+from ..operators import dot, inner, outer, lt, eq, conditional
 from .transformations import transform, transform_integrands
 
 
@@ -282,45 +282,27 @@ def diff_handlers():
     
     return d
 
-def _compute_derivative(expression, handlers):
-    "Returns a tuple (expression, expression_prime)."
-    if isinstance(expression, Terminal):
-        ops = ()
-    else:
-        ops = [_compute_derivative(o, handlers) for o in expression.operands()]
-    return handlers[expression.__class__](expression, *ops)
 
-
-def compute_derivative(expression, w):
-    "Returns a tuple (expression, expression_prime)."
-    ufl_assert(isinstance(w, Function), "Expecting Function to differentiate w.r.t.")
-    wprime = BasisFunction(w.element())
-    handlers = diff_handlers()
-    def diff_function(x):
-        if x == w:
-            return (w, wprime)
-        else:
-            return zero_tensor(x.shape())
-    return _compute_derivative(expression, handlers)
-
-
-def compute_form_derivative(form, function):
+def compute_form_derivative(form, function, basisfunction):
     
     if isinstance(function, tuple):
         # We got a tuple of functions, handle it as functions
         # over components of a mixed element.
         ufl_assert(all(isinstance(w, Function) for w in function),
             "Expecting a tuple of Functions to differentiate w.r.t.")
-        elements = [w.element() for w in function]
-        element = MixedElement(*elements)
-        bf = BasisFunctions(element)
-        functions = zip(function, bf)
+        if basisfunction is None:
+            elements = [w.element() for w in function]
+            element = MixedElement(*elements)
+            basisfunction = BasisFunctions(element)
+        else:
+            ufl_assert()
+        functions = zip(function, basisfunction)
     else:
         ufl_assert(isinstance(function, Function),
             "Expecting a Function to differentiate w.r.t.")
-        w = function
-        wprime = BasisFunction(w.element())
-        functions = [(w, wprime)]
+        if basisfunction is None:
+            basisfunction = BasisFunction(function.element())
+        functions = [(function, basisfunction)]
     
     handlers = diff_handlers()
     
