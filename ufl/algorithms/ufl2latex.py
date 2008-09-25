@@ -9,7 +9,7 @@ __date__ = "2008-05-07 -- 2008-09-24"
 
 from collections import defaultdict
 
-from ..output import ufl_error, ufl_warning
+from ..output import ufl_error, ufl_debug, ufl_warning
 
 # All classes:
 from ..base import FloatValue
@@ -133,7 +133,7 @@ def latex_handlers():
     missing_handlers = set(ufl_classes)
     missing_handlers.difference_update(d.keys())
     if missing_handlers:
-        ufl_warning("In ufl.algorithms.latex_handlers: Missing handlers for classes:\n{\n%s\n}" % \
+        ufl_debug("In ufl.algorithms.latex_handlers: Missing handlers for classes:\n{\n%s\n}" % \
                     "\n".join(str(c) for c in sorted(missing_handlers)))
     return d
 

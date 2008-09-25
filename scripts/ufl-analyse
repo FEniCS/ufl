@@ -20,6 +20,8 @@ if len(args) == 0:
     sys.exit(-1)
 filenames = args
 for filename in args:
+    print
+    
     if not filename.endswith(".ufl"):
         print "Warning: Filename '%s' doesn't end with .ufl." % filename
 
@@ -46,28 +48,39 @@ for filename in args:
         elements = unique_elements(form)
         rank = len(bf)
         num_coefficients = len(cf)
+        num_citg = len(form.cell_integrals())
+        num_eitg = len(form.exterior_facet_integrals())
+        num_iitg = len(form.interior_facet_integrals())
         
         # Pretty-print form information
         print
-        print "Form: '%s'" % name
-        print "Rank:", rank
-        print "Number of coefficients:", num_coefficients
-        print "Elements used:"
+        print "Form info:"
+        print "    Name: '%s'" % name
+        print "    Rank:", rank
+        print "    Number of coefficients:", num_coefficients
+        print "    Number of cell integrals:", num_citg
+        print "    Number of exterior facet integrals:", num_eitg
+        print "    Number of interior facet integrals:", num_iitg
+        print "    Elements used:"
         for e in elements:
-            print repr(e)
-        print "Basisfunctions:"
+            print "       ", repr(e)
+        print "    Basisfunctions:"
         for v in bf:
-            print repr(v)
-        print "Coefficients:"
+            print "       ", repr(v)
+        print "    Coefficients:"
         for w in cf:
-            print repr(w)
+            print "       ", repr(w)
+        print
         print "Form representation:"
         print repr(form)
+        print
         print "Form pretty-print:"
         print str(form)
+        print
         print "Form tree formatting:"
         tree = tree_format(form)
         print tree
+        print
         print "Form LaTeX code:"
         latex = ufl2latex(form)
         print latex
