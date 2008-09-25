@@ -5,8 +5,6 @@ v = TestFunction(element)
 f = Function(element)
 
 a = pow(f,5)*v*dx
-print "a ", a 
 b = derivative(a, f)
-print "b ", b  
 
 
