@@ -274,7 +274,7 @@ class FFCTestCase(unittest.TestCase):
         a = v.dx(i)*C*u.dx(i)*dx + v.dx(i)*2*u0*u*u0.dx(i)*dx
         L = v*f*dx - dot(grad(v), sig0)*dx
 
-    def notworkingStokes(self):
+    def testStokes(self):
 
         # UFLException: Shape mismatch in sum.
 
@@ -287,7 +287,10 @@ class FFCTestCase(unittest.TestCase):
 
         f = Function(P2)
 
-        a = (dot(grad(v), grad(u)) - div(v)*p + q*div(u))*dx
+        # FFC notation:
+        # a = (dot(grad(v), grad(u)) - div(v)*p + q*div(u))*dx
+        a = (inner(grad(v), grad(u)) - div(v)*p + q*div(u))*dx
+
         L = dot(v, f)*dx
         
     def testSubDomain(self):
@@ -309,23 +312,33 @@ class FFCTestCase(unittest.TestCase):
 
         a = v*u*dx(0) + 10.0*v*u*dx(1) + v*u*ds(0) + 2.0*v*u*ds(1) + v('+')*u('+')*dS(0) + 4.3*v('+')*u('+')*dS(1)
         
-    def notworkingTensorWeightedPoisson(self):
+    def testTensorWeightedPoisson(self):
 
+        # FFC notation:
+        #P1 = FiniteElement("Lagrange", "triangle", 1)
+        #P0 = FiniteElement("Discontinuous Lagrange", "triangle", 0)
+        #
+        #v = TestFunction(P1)
+        #u = TrialFunction(P1)
+        #f = Function(P1)
+        #
+        #c00 = Function(P0)
+        #c01 = Function(P0)
+        #c10 = Function(P0)
+        #c11 = Function(P0)
+        #
+        #C = [[c00, c01], [c10, c11]]
+        #
+        #a = dot(grad(v), mult(C, grad(u)))*dx
+        
         P1 = FiniteElement("Lagrange", "triangle", 1)
-        P0 = FiniteElement("Discontinuous Lagrange", "triangle", 0)
+        P0 = TensorElement("Discontinuous Lagrange", "triangle", 0, shape=(2, 2))
 
         v = TestFunction(P1)
         u = TrialFunction(P1)
-        f = Function(P1)
+        C = Function(P1)
 
-        c00 = Function(P0)
-        c01 = Function(P0)
-        c10 = Function(P0)
-        c11 = Function(P0)
-
-        C = [[c00, c01], [c10, c11]]
-
-        a = dot(grad(v), mult(C, grad(u)))*dx
+        a = inner(grad(v), C*grad(u))*dx
         
     def notworkingVectorLaplaceGradCurl(self):
 
