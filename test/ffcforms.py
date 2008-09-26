@@ -234,22 +234,24 @@ class FFCTestCase(unittest.TestCase):
         # FFC notation: L = dot(v, f)*dx
         L = inner(v, f)*dx
         
-    def notworkingProjection(self):
+    def testProjection(self):
 
-        # NameError: global name 'Projection' is not defined
+        # Projections are not supported by UFL and have been broken
+        # in FFC for a while. For DOLFIN, the current (global) L^2
+        # projection can be extended to handle also local projections.
 
         P0 = FiniteElement("Discontinuous Lagrange", "triangle", 0)
         P1 = FiniteElement("Lagrange", "triangle", 1)
         P2 = FiniteElement("Lagrange", "triangle", 2)
-
+        
         v = TestFunction(P1)
         f = Function(P1)
-
-        pi0 = Projection(P0)
-        pi1 = Projection(P1)
-        pi2 = Projection(P2)
-
-        a = v*(pi0(f) + pi1(f) + pi2(f))*dx
+        
+        #pi0 = Projection(P0)
+        #pi1 = Projection(P1)
+        #pi2 = Projection(P2)
+        #
+        #a = v*(pi0(f) + pi1(f) + pi2(f))*dx
         
     def notworkingQuadratureElement(self):
 
