@@ -212,13 +212,12 @@ def compute_form_action(form, function):
 
 def compute_form_lhs(form):
     """Compute the left hand side of a form."""
-    FIXME
+    #FIXME
 
 
 def compute_form_rhs(form):
     """Compute the right hand side of a form."""
-    FIXME
-
+    #FIXME
 
 def compute_form_transpose(form):
     """Compute the transpose of a form.
@@ -501,4 +500,3 @@ def split_by_dependencies(expression, basisfunction_deps, function_deps):
         variable_cache[c] = (e, deps)
         stacks[deps].append(e)
     return e, deps, stacks, variable_cache
-
