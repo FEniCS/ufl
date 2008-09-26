@@ -6,10 +6,9 @@ from __future__ import absolute_import
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-09-21"
 
-from .finiteelement import FiniteElement, VectorElement
-
 # Modified by Anders Logg, 2008
 
+from .finiteelement import FiniteElement, VectorElement
 from .base import Terminal
 from .common import Counted, product
 from .split import split

@@ -184,4 +184,3 @@ class Abs(UFLObject):
     
     def __repr__(self):
         return "Abs(%r)" % self._a
-
