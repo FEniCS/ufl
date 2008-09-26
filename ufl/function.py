@@ -33,7 +33,11 @@ class Function(Terminal, Counted):
     
     def __str__(self):
         if self._name is None:
-            return "w_%d" % self._count
+            count = str(self._count)
+            if len(count) == 1:
+                return "w_%s" % count
+            else:
+                return "w_{%s}" % count
         else:
             return "w_%s" % self._name
     
@@ -51,7 +55,11 @@ class Constant(Function):
     
     def __str__(self):
         if self._name is None:
-            return "c_%d" % self._count
+            count = str(self._count)
+            if len(count) == 1:
+                return "c_%s" % count
+            else:
+                return "c_{%s}" % count
         else:
             return "c_%s" % self._name
     
