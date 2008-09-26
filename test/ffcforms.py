@@ -253,11 +253,16 @@ class FFCTestCase(unittest.TestCase):
         #
         #a = v*(pi0(f) + pi1(f) + pi2(f))*dx
         
-    def notworkingQuadratureElement(self):
+    def testQuadratureElement(self):
 
         element = FiniteElement("Lagrange", "triangle", 2)
-        QE = QuadratureElement("triangle", 3)
-        sig = VectorQuadratureElement("triangle", 3)
+
+        # FFC notation:
+        #QE = QuadratureElement("triangle", 3)
+        #sig = VectorQuadratureElement("triangle", 3)
+
+        QE = FiniteElement("Quadrature", "triangle", 3)
+        sig = VectorElement("Quadrature", "triangle", 3)
 
         v = TestFunction(element)
         u = TrialFunction(element)
