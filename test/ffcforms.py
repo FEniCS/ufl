@@ -171,7 +171,7 @@ class FFCTestCase(unittest.TestCase):
 
         element = FiniteElement("Lagrange", "triangle", 5)
         
-    def notworkingPoissonDG(self):
+    def testPoissonDG(self):
 
         element = FiniteElement("Discontinuous Lagrange", "triangle", 1)
 
@@ -199,16 +199,16 @@ class FFCTestCase(unittest.TestCase):
         #    - dot(mult(v,n), grad(u))*ds \
         #    + gamma/h*v*u*ds
 
-        a = dot(grad(v), grad(u))*dx \
-            - dot(avg(grad(v)), jump(u))*dS \
-            - dot(jump(v, n), avg(grad(u)))*dS \
+        a = inner(grad(v), grad(u))*dx \
+            - inner(avg(grad(v)), jump(u))*dS \
+            - inner(jump(v), avg(grad(u)))*dS \
             + alpha/h('+')*dot(jump(v), jump(u))*dS \
-            - dot(grad(v), mult(u, n))*ds \
-            - dot(mult(v, n), grad(u))*ds \
+            - inner(grad(v), u*n)*ds \
+            - inner(u*n, grad(u))*ds \
             + gamma/h*v*u*ds
-        
+
         L = v*f*dx + v*gN*ds
-        
+
     def testPoisson(self):
 
         element = FiniteElement("Lagrange", "triangle", 1)
@@ -340,15 +340,19 @@ class FFCTestCase(unittest.TestCase):
 
         a = inner(grad(v), C*grad(u))*dx
         
-    def notworkingVectorLaplaceGradCurl(self):
+    def testVectorLaplaceGradCurl(self):
 
         def HodgeLaplaceGradCurl(element, felement):
             (tau, v) = TestFunctions(element)
             (sigma, u) = TrialFunctions(element)
             f = Function(felement)
-            a = (dot(tau, sigma) - dot(grad(tau), u) + \
-                 dot(v, grad(sigma)) + dot(curl(v), curl(u)))*dx
-            L = dot(v, f)*dx
+
+            # FFC notation: a = (dot(tau, sigma) - dot(grad(tau), u) + dot(v, grad(sigma)) + dot(curl(v), curl(u)))*dx
+            a = (inner(tau, sigma) - inner(grad(tau), u) + inner(v, grad(sigma)) + inner(curl(v), curl(u)))*dx
+
+            # FFC notation: L = dot(v, f)*dx
+            L = inner(v, f)*dx
+            
             return [a, L]
 
         shape = "tetrahedron"
