@@ -4,7 +4,7 @@ classes (functions), including TestFunction and TrialFunction."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-09-14"
+__date__ = "2008-03-14 -- 2008-09-26"
 
 # Modified by Anders Logg, 2008
 
@@ -30,7 +30,11 @@ class BasisFunction(Terminal, Counted):
         return self._element.value_shape()
     
     def __str__(self):
-        return "v_%d" % self._count
+        count = str(self._count)
+        if len(count) == 1:
+            return "v_%s" % count
+        else:
+            return "v_{%s}" % count
     
     def __repr__(self):
         return "BasisFunction(%r, %r)" % (self._element, self._count)

@@ -3,7 +3,7 @@ modified (with comments) to work with the UFL notation which differs
 from the FFC notation in some places."""
 
 __author__ = "Anders Logg (logg@simula.no) et al."
-__date__ = "2008-04-09 -- 2008-04-09"
+__date__ = "2008-04-09 -- 2008-09-26"
 __copyright__ = "Copyright (C) 2008 Anders Logg et al."
 __license__  = "GNU GPL version 3 or any later version"
 
@@ -208,7 +208,7 @@ class FFCTestCase(unittest.TestCase):
             + gamma/h*v*u*ds
 
         L = v*f*dx + v*gN*ds
-
+       
     def testPoisson(self):
 
         element = FiniteElement("Lagrange", "triangle", 1)
