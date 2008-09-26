@@ -3,11 +3,11 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-09-16"
+__date__ = "2008-03-14 -- 2008-09-26"
 
 # Modified by Anders Logg, 2008
 
-from .output import ufl_assert
+from .output import ufl_assert, ufl_error
 from .base import is_true_scalar
 from .form import Form
 
@@ -20,17 +20,25 @@ class Integral(object):
         self._integrand   = integrand
     
     def domain_type(self):
+        'Return the domain type ("cell", "exterior_facet" or "interior_facet").'
         return self._domain_type
     
     def domain_id(self):
+        "Return the domain id (integer)."
         return self._domain_id
     
+    def integrand(self):
+        "Return the integrand expression, a UFLObject."
+        return self._integrand
+    
     def __mul__(self, other):
-        raise RuntimeError("Can't multiply Integral from the left.")
+        ufl_error("Can't multiply Integral from the right.")
     
     def __rmul__(self, other):
         ufl_assert(self._integrand is None, "Seems to be a bug in Integral.")
-        ufl_assert(is_true_scalar(other), "Trying to integrate expression of rank %d with free indices %r." % (other.rank(), other.free_indices()))
+        ufl_assert(is_true_scalar(other),   
+            "Trying to integrate expression of rank %d with free indices %r." \
+            % (other.rank(), other.free_indices()))
         return Form( [Integral(self._domain_type, self._domain_id, other)] )
     
     def __contains__(self, item):
@@ -50,3 +58,10 @@ class Integral(object):
     
     def __repr__(self):
         return "Integral(%r, %r, %r)" % (self._domain_type, self._domain_id, self._integrand)
+    
+    def __eq__(self, other):
+        return repr(self) == repr(other)
+    
+    def __hash__(self):
+        return hash((self._domain_type, self._domain_id, id(self._integrand)))
+    

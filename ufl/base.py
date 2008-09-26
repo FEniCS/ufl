@@ -4,7 +4,7 @@ types involved with built-in operators on any UFL object."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-09-24"
+__date__ = "2008-03-14 -- 2008-09-26"
 
 # Modified by Anders Logg, 2008
 
@@ -17,7 +17,7 @@ class UFLObject(object):
     "Base class for all UFL objects."
     
     # Freeze member variables (there are none) for objects of this class
-    __slots__ = tuple()
+    __slots__ = ()
     
     #--- Abstract functions that must be implemented by subclasses ---
     
@@ -64,10 +64,13 @@ class UFLObject(object):
     
     def __hash__(self):
         "Compute a hash code for this expression."
-        return repr(self).__hash__()
+        return hash((type(self), tuple(type(o) for o in self.operands())))
+        #return hash(repr(self))
     
     def __eq__(self, other):
-        "Checks whether the two expressions are represented the exact same way using repr."
+        """Checks whether the two expressions are represented the
+        exact same way using repr. This does not check if the forms
+        are mathematically equal or equivalent!"""
         return repr(self) == repr(other)
 
     def __getnewargs__(self): # TODO: Test pickle and copy with this. Must implement differently for Terminal objects though.
@@ -88,7 +91,7 @@ class Terminal(UFLObject):
     
     def operands(self):
         "A Terminal object never has operands."
-        return tuple()
+        return ()
 
 #--- Zero tensors of different shapes ---
 
@@ -133,7 +136,7 @@ class FloatValue(Terminal):
         self._value = value
     
     def free_indices(self):
-        return tuple()
+        return ()
     
     def shape(self):
         return ()

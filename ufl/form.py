@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__    = "2008-03-14 -- 2008-09-17"
+__date__    = "2008-03-14 -- 2008-09-26"
 
 from .output import ufl_assert
 
@@ -11,14 +11,14 @@ class Form(object):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
     __slots__ = ("_integrals", "_repr", "_hash", "_str", "_metadata")
     def __init__(self, integrals):
-        self._integrals = integrals
+        self._integrals = tuple(integrals)
         self._str = None
         self._repr = None
         self._hash = None
         self._metadata = ""
     
     def _get_integrals(self, domain_type):
-        return tuple([itg for itg in self._integrals if itg._domain_type == domain_type])
+        return tuple(itg for itg in self._integrals if itg._domain_type == domain_type)
     
     def cell_integrals(self):
         return self._get_integrals("cell")
@@ -78,7 +78,8 @@ class Form(object):
 
     def __hash__(self):
         if self._hash is None:
-            self._hash = hash(repr(self))
+            self._hash = hash(tuple(type(itg) for itg in self._integrals))
+            #self._hash = hash(repr(self))
         return self._hash
 
     def __eq__(self, other):
