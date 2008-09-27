@@ -216,7 +216,8 @@ class FFCTestCase(unittest.TestCase):
         v = TestFunction(element)
         u = TrialFunction(element)
         f = Function(element)
-        
+
+        # Note: inner() also works
         a = dot(grad(v), grad(u))*dx
         L = v*f*dx
         

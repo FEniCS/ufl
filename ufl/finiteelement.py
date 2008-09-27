@@ -259,4 +259,3 @@ class TensorElement(MixedElement):
         print self.domain()
         return "[%s tensor element of degree %d and shape %s on a %s]" % \
             (self.family(), self.degree(), self.value_shape(), self.domain())
-
