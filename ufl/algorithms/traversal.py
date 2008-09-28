@@ -14,7 +14,6 @@ from ..base import UFLObject
 from ..integral import Integral
 from ..form import Form
 
-
 #--- Traversal utilities ---
 
 def iter_expressions(a):
@@ -65,4 +64,3 @@ def walk(a, func):
     """Call func on each expression tree node in a.
     The argument a can be a Form, Integral or UFLObject."""
     pre_walk(a, func)
-

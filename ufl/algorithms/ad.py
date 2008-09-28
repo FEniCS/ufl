@@ -323,4 +323,3 @@ def compute_form_derivative(form, function, basisfunction):
         return J
     
     return transform_integrands(form, _compute_derivative)
-

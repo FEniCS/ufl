@@ -41,8 +41,9 @@ def validate_form(a):
     """Performs all implemented validations on a form. Raises exception if something fails."""
     
     ufl_assert(isinstance(a, Form), "Expecting a Form.")
-    
-    ufl_assert(is_multilinear(a), "Form is not multilinear in the BasisFunction arguments.")
+
+    # FIXME: multilinearity is not required for all forms (only FFC tensor repr forms)
+    #ufl_assert(is_multilinear(a), "Form is not multilinear in the BasisFunction arguments.")
     
     dom = domain(a)
     for e in elements(a):
@@ -51,4 +52,3 @@ def validate_form(a):
     dim = _domain2dim[dom]
     for e in iter_expressions(a):
         ufl_assert(value_shape(e, dim) == (), "Got non-scalar integrand expression:\n%s" % e)
-
