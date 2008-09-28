@@ -7,8 +7,10 @@ only to be used during the current experimental implementation phase)."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-18"
+__date__ = "2008-03-14 -- 2008-09-28"
 
+from ..output import ufl_assert
+from ..base import UFLObject
 from ..integral import Integral
 from ..form import Form
 
@@ -32,6 +34,7 @@ def iter_expressions(a):
 
 def post_traversal(expression):
     "Yields o for each tree node o in expression, child before parent."
+    ufl_assert(isinstance(expression, UFLObject), "Expecting UFLObject.")
     for o in expression.operands():
         for i in post_traversal(o):
             yield i
