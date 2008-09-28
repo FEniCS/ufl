@@ -56,7 +56,7 @@ Unique elements: %s
 Domain:          %s
 Renumbering (v): %s
 Renumbering (w): %s
-Classes:         %s
+Classes:         %s\
 """ % (lstr(self.basisfunctions),
        lstr(self.coefficients),
        lstr(self.elements),
