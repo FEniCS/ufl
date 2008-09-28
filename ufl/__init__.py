@@ -57,7 +57,7 @@ from .base import UFLObject, Terminal, FloatValue, Compound
 #from .variable import Variable
 
 # finite elements classes
-#from .finiteelement import FiniteElementBase
+from .finiteelement import FiniteElementBase
 from .finiteelement import FiniteElement, MixedElement, VectorElement, TensorElement
 
 # predefined element families
