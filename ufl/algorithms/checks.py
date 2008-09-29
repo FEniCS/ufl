@@ -36,7 +36,6 @@ from .traversal import post_traversal, post_walk, iter_expressions
 from .analysis import value_shape, domain, elements
 from .predicates import is_multilinear
 
-
 def validate_form(a):
     """Performs all implemented validations on a form. Raises exception if something fails."""
     
