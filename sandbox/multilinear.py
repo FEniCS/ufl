@@ -5,11 +5,12 @@ from ufl.algorithms import is_multilinear
 
 element = FiniteElement("Lagrange", "triangle", 1)
 
-v = TestFunction(element)
-u = TrialFunction(element)
+v = BasisFunction(element)
+u = BasisFunction(element)
 
-a = v*(u + v)*dx + v*ds
-b = v/u*dx
+#a = v*(u + v)*dx + v*ds
+#b = v/u*dx
+a = v*(u + v)*dx + v*dx
 
 print is_multilinear(a)
-print is_multilinear(b)
+#print is_multilinear(b)

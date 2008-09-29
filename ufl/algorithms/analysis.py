@@ -5,6 +5,8 @@ from __future__ import absolute_import
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-09-14"
 
+# Modified by Anders Logg, 2008
+
 from itertools import chain
 
 from ..output import ufl_assert
@@ -22,7 +24,7 @@ def extract_type(a, ufl_type):
     """Build a set of all objects of class ufl_type found in a.
     The argument a can be a Form, Integral or UFLObject."""
     iter = (o for e in iter_expressions(a) \
-              for o in post_traversal(e) \
+              for (o, stack) in post_traversal(e) \
               if isinstance(o, ufl_type) )
     return set(iter)
 
@@ -31,7 +33,7 @@ def classes(a):
     The argument a can be a Form, Integral or UFLObject."""
     c = set()
     for e in iter_expressions(a):
-        for o in post_traversal(e):
+        for (o, stack) in post_traversal(e):
             c.add(o.__class__)
     return c
 
@@ -112,7 +114,7 @@ def duplications(expression):
     ufl_assert(isinstance(expression, UFLObject), "Expecting UFLObject.")
     handled = set()
     duplicated = set()
-    for o in post_traversal(expression):
+    for (o, stack) in post_traversal(expression):
         if o in handled:
             duplicated.add(o)
         handled.add(o)
