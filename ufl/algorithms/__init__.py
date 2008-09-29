@@ -12,6 +12,7 @@ from .traversal import iter_expressions, post_traversal, pre_traversal, post_wal
 from .analysis import extract_type, classes, domain, value_shape
 from .analysis import basisfunctions, coefficients, elements, unique_elements
 from .analysis import variables, duplications
+from .analysis import monomials
 from .formdata import FormData
 
 # Utilities for checking properties of forms
@@ -40,4 +41,3 @@ from .printing import integral_info, form_info, tree_format
 
 # Utilities for form file handling
 from .formfiles import load_forms
-

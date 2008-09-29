@@ -8,10 +8,7 @@ __date__ = "2008-03-14 -- 2008-09-29"
 from ..output import ufl_error, ufl_warning, ufl_assert, ufl_info
 from ..common import lstr
 from ..form import Form
-from ..base import Terminal
-from ..basisfunction import BasisFunction
-from ..algebra import Sum, Product
-from .traversal import iter_expressions, traversal, post_traversal
+from .traversal import iter_expressions, traversal
 
 #--- Utilities for checking properties of forms ---
 
