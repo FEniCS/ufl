@@ -1,7 +1,7 @@
 "This module contains a collection of common utilities."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-08-05 -- 2008-09-24"
+__date__ = "2008-08-05 -- 2008-09-29"
 
 import operator
 
@@ -16,6 +16,10 @@ def unzip(seq):
 def some_key(a_dict):
     "Return an arbitrary key from a dictionary."
     return zip((0,), a_dict.iterkeys())[0][1]
+
+def lstr(l):
+    "Pretty-print list or tuple, invoking str() on items instead of repr() like str() does."
+    return "[" + ", ".join([str(item) for item in l]) + "]"
 
 class Counted(object):
     """A class of objects identified by a global counter.

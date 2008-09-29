@@ -3,11 +3,12 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-09-13 -- 2008-09-18"
+__date__ = "2008-09-13 -- 2008-09-29"
 
 # Modified by Anders Logg, 2008
 
 from ..output import ufl_assert
+from ..common import lstr
 from ..form import Form
 
 # TODO: FormData can be constructed more efficiently as a single or a few algorithms.
@@ -43,10 +44,6 @@ class FormData(object):
 
     def __str__(self):
         "Print summary of form data"
-
-        def lstr(l):
-            "Pretty-print list, invoking str() on items instead of repr() like str(list) does."
-            return "[" + ", ".join([str(item) for item in l]) + "]"
 
         return """\
 Basis functions: %s
