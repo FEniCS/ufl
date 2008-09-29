@@ -19,7 +19,11 @@ def some_key(a_dict):
 
 def lstr(l):
     "Pretty-print list or tuple, invoking str() on items instead of repr() like str() does."
-    return "[" + ", ".join([str(item) for item in l]) + "]"
+    if isinstance(l, list):
+        return "[" + ", ".join([lstr(item) for item in l]) + "]"
+    elif isinstance(l, tuple):
+        return "(" + ", ".join([lstr(item) for item in l]) + ")"
+    return str(l)
 
 class Counted(object):
     """A class of objects identified by a global counter.
