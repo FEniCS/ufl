@@ -9,6 +9,7 @@ from ..output import ufl_assert
 from ..common import lstr
 from ..form import Form
 from ..algebra import Sum, Product
+from ..tensoralgebra import Dot
 from ..basisfunction import BasisFunction
 from .traversal import iter_expressions, traversal
 
@@ -60,11 +61,16 @@ def _extract_monomials(e):
         ufl_assert(len(operands) == 2, "Strange, expecting two terms.")
         monomials += _extract_monomials(operands[0])
         monomials += _extract_monomials(operands[1])
-    elif isinstance(e, Product):
+    # FIXME: Does this make sense (treating Dot like Product)?
+    elif isinstance(e, Product) or isinstance(e, Dot):
         ufl_assert(len(operands) == 2, "Strange, expecting two factors.")
         for m0 in _extract_monomials(operands[0]):
             for m1 in _extract_monomials(operands[1]):
                 monomials.append(m0 + m1)
+    elif len(operands) == 2:
+        print "Unknown binary operator, don't know how to handle."
+    elif len(operands) == 1:
+        monomials += _extract_monomials(operands[0])
     elif isinstance(e, BasisFunction):
         monomials.append((e,))
 
