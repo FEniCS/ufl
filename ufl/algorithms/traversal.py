@@ -33,8 +33,9 @@ def iter_expressions(a):
     else:
         return (a,)
 
-def pre_traversal(expression, stack=[]):
+def pre_traversal(expression, stack=None):
     "Yields (o, stack) for each tree node o in expression, parent before child."
+    if stack is None: stack = []
     ufl_assert(isinstance(expression, UFLObject), "Expecting UFLObject.")
     yield (expression, stack)
     is_operator = not isinstance(expression, Terminal)
@@ -44,8 +45,9 @@ def pre_traversal(expression, stack=[]):
             yield (i, stack)
     if is_operator: stack.pop()
 
-def post_traversal(expression, stack=[]):
+def post_traversal(expression, stack=None):
     "Yields (o, stack) for each tree node o in expression, parent after child."
+    if stack is None: stack = []
     ufl_assert(isinstance(expression, UFLObject), "Expecting UFLObject.")
     is_operator = not isinstance(expression, Terminal)
     if is_operator: stack.append(expression)
@@ -55,7 +57,7 @@ def post_traversal(expression, stack=[]):
     if is_operator: stack.pop()
     yield (expression, stack)
 
-def traversal(expression, stack=[]):
+def traversal(expression, stack=None):
     "Yields (o, stack) for each tree node o in expression."
     return pre_traversal(expression, stack)
 
