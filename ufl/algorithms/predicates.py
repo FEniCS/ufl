@@ -22,14 +22,7 @@ def is_multilinear(form):
 
     # Check that all operators applied to basis functions are linear
     for e in iter_expressions(form):        
-
-        # FIXME: This works
-        for (o, stack) in traversal(e, []):
-
-        # FIXME: This does not work
-        #for (o, stack) in traversal(e):
-
-            
+        for (o, stack) in traversal(e):
             if isinstance(o, BasisFunction):
                 for operator in stack:
                     if not operator.is_linear():
