@@ -12,7 +12,7 @@ from collections import defaultdict
 from ..output import ufl_error, ufl_debug, ufl_warning
 
 # All classes:
-from ..base import FloatValue
+from ..base import FloatValue, ZeroType
 from ..variable import Variable
 from ..basisfunction import BasisFunction
 from ..function import Function, Constant
@@ -54,7 +54,12 @@ def latex_handlers():
             return "\\left(%s\\right)" % s
         return str(s)
     # Terminal objects:
-    d[FloatValue]        = lambda x: "{%s}" % x._value
+    d[FloatValue]    = lambda x: "{%s}" % x._value
+    def l_zero(x):
+        if x.shape() == ():
+            return "0"
+        return r"{\mathbf 0}"
+    d[ZeroType]      = l_zero
     d[BasisFunction] = lambda x: "{v^{%d}}" % x._count # Using ^ for function numbering and _ for indexing
     d[Function]      = lambda x: "{w^{%d}}" % x._count
     d[Constant]      = lambda x: "{w^{%d}}" % x._count

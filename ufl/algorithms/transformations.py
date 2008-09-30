@@ -28,7 +28,7 @@ from ..output import ufl_assert, ufl_error, ufl_warning
 
 
 # All classes:
-from ..base import UFLObject, Terminal, FloatValue
+from ..base import UFLObject, Terminal, FloatValue, ZeroType
 from ..variable import Variable
 from ..finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
 from ..basisfunction import BasisFunction
@@ -486,6 +486,7 @@ def split_by_dependencies(expression, basisfunction_deps, function_deps):
     terminal_deps[Identity] = no_deps
     terminal_deps[Constant] = no_deps
     terminal_deps[FloatValue] = no_deps
+    terminal_deps[ZeroType] = no_deps
     terminal_deps[FacetNormal] = facet_normal_deps
     terminal_deps[Function] = function_deps
     terminal_deps[BasisFunction] = basisfunction_deps

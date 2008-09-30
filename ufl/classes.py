@@ -5,11 +5,11 @@ implementation details not exposed through the default ufl namespace."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-15 -- 2008-09-24"
+__date__ = "2008-08-15 -- 2008-09-30"
 
 # Modified by Anders Logg, 2008
 
-from .base import UFLObject, Terminal, FloatValue, Compound
+from .base import UFLObject, Terminal, FloatValue, ZeroType, Compound
 from .variable import Variable
 from .finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
 from .basisfunction import BasisFunction, TestFunction, TrialFunction

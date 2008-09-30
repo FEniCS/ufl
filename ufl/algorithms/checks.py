@@ -3,13 +3,13 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-18"
+__date__ = "2008-03-14 -- 2008-09-30"
 
 from ..output import UFLException, ufl_error, ufl_assert, ufl_info
 from ..base import is_python_scalar, is_scalar, is_true_scalar
 
 # ALl classes:
-from ..base import UFLObject, Terminal, FloatValue
+from ..base import UFLObject, Terminal, FloatValue, ZeroType
 from ..variable import Variable
 from ..finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
 from ..basisfunction import BasisFunction
