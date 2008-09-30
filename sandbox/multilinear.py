@@ -10,14 +10,17 @@ v = BasisFunction(element)
 u = BasisFunction(element)
 c = Function(element)
 
-#a = v*(u + v)*dx + v*ds
 a = v*(u + v)*dx + v*ds
-
-#b = v/u*dx
-#a = c*v*(u + v)*dx + c*v*dx
+b = v/u*dx
+c = c*v*(u + 2*u)*dx + c*dot(grad(v), grad(u))*ds
 
 print a
-
 print is_multilinear(a)
-print lstr(monomials(a))
-#print is_multilinear(b)
+print ""
+
+print b
+print is_multilinear(b)
+print ""
+
+print c
+print is_multilinear(c)
