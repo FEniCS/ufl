@@ -481,9 +481,7 @@ def split_by_dependencies(expression, formdata, basisfunction_deps, function_dep
         Function in the form the expression originates from.
         Each tuple tells whether this Function depends on
         the geometry and topology of a cell, respectively.
-    @return:
-        (e, deps, stacks, variable_cache)
-        FIXME: Describe datastructures
+    @return (e, deps, stacks, variable_cache):
         e - variable representing input expression
         deps - dependency tuple of expression
         stacks - dict of variable stacks, with keys being dependency tuples
@@ -491,7 +489,7 @@ def split_by_dependencies(expression, formdata, basisfunction_deps, function_dep
         
     If the *_deps arguments are unknown, a safe way to invoke this function is::
     
-        (e, deps, stacks, variable_cache) = split_by_dependencies(expression, [(False,False)]*rank, [(False,False)]*num_coefficients)
+        (e, deps, stacks, variable_cache) = split_by_dependencies(expression, formdata, [(True,True)]*rank, [(True,True)]*num_coefficients)
     """
     ufl_assert(isinstance(expression, UFLObject), "Expecting UFLObject.")
     
