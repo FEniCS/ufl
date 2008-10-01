@@ -308,12 +308,41 @@ def expand_indices(expression):
     return transform(expression, d)
 
 
+def _mark_duplications(expression, handlers, variables, dups):
+    """Convert a UFLExpression according to rules defined by
+    the mapping handlers = dict: class -> conversion function."""
+    
+    # check variable cache
+    var = variables.get(expression, None)
+    if var is not None:
+        return var
+    
+    # handle subexpressions
+    ops = [_mark_duplications(o, handlers, variables, dups) for o in expression.operands()]
+    
+    # get handler
+    c = expression.__class__
+    if c in handlers:
+        h = handlers[c]
+    else:
+        ufl_error("Didn't find class %s among handlers." % c)
+    
+    # transform subexpressions
+    handled = h(expression, *ops)
+    
+    if expression in dups:
+        handled = Variable(handled)
+        variables[expression] = handled
+    
+    return handled
+
+
 def mark_duplications(expression):
     "Wrap all duplicated expressions as Variables."
     dups = duplications(expression)
+    variables = {}
     d = ufl_reuse_handlers()
-    # TODO: implement this
-    return transform(expression, d)
+    return _mark_duplications(expression, d, variables, dups)
 
 
 def strip_variables(expression, handled_variables=None):
@@ -328,6 +357,23 @@ def strip_variables(expression, handled_variables=None):
         return v
     d[Variable] = s_variable
     return transform(expression, d)
+
+
+def extract_variables(expression, handled_expressions=None):
+    if handled_expressions is None:
+        handled_expressions = set()
+    vars = []
+    i = id(expression)
+    if i in handled_expressions:
+        return vars
+    handled_expressions.add(i)
+    if isinstance(expression, Variable):
+        vars.extend(extract_variables(expression._expression, handled_expressions))
+        vars.append(expression)
+    else:
+        for o in expression.operands():
+            vars.extend(extract_variables(o, handled_expressions))
+    return vars 
 
 
 def flatten(expression):

@@ -24,7 +24,7 @@ from .checks import validate_form
 # Utilites for modifying expressions and forms
 from .transformations import ufl2ufl, ufl2uflcopy, transform_integrands
 from .transformations import renumber_indices
-from .transformations import expand_compounds, flatten, strip_variables
+from .transformations import expand_compounds, flatten, strip_variables, extract_variables
 from .transformations import substitute_indices, expand_indices
 from .transformations import split_by_dependencies, mark_duplications
 from .transformations import replace, replace_in_form
