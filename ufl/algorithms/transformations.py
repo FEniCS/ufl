@@ -417,7 +417,7 @@ def _split_by_dependencies(expression, stacks, variable_cache, terminal_deps):
     return e, deps
 
 
-def split_by_dependencies(expression, basisfunction_deps, function_deps):
+def split_by_dependencies(expression, formdata, basisfunction_deps, function_deps):
     """Split an expression into stacks of variables based on the dependencies of its subexpressions.
     
     @type expression: UFLObject
@@ -434,14 +434,17 @@ def split_by_dependencies(expression, basisfunction_deps, function_deps):
         Function in the form the expression originates from.
         Each tuple tells whether this Function depends on
         the geometry and topology of a cell, respectively.
-    @return: 
-        TODO: Describe datastructures
-    @precondition:
-        Assumes the basisfunctions and functions have been renumbered from 0!
+    @return:
+        (e, deps, stacks, variable_cache)
+        FIXME: Describe datastructures
+        e - variable representing input expression
+        deps - dependency tuple of expression
+        stacks - dict of variable stacks, with keys being dependency tuples
+        variable_cache - dict of variables, with keys being variable count
         
     If the *_deps arguments are unknown, a safe way to invoke this function is::
     
-        split_by_dependencies(expression, [(False,False)]*rank, [(False,False)]*num_coefficients)
+        (e, deps, stacks, variable_cache) = split_by_dependencies(expression, [(False,False)]*rank, [(False,False)]*num_coefficients)
     """
     ufl_assert(isinstance(expression, UFLObject), "Expecting UFLObject.")
     
@@ -476,21 +479,23 @@ def split_by_dependencies(expression, basisfunction_deps, function_deps):
     def facet_normal_deps(x):
         return _cell_dep
     def function_deps(x):
-        g, t = function_deps[x._count]
+        k = formdata.coefficient_renumbering[x]
+        g, t = function_deps[k]
         return make_deps(geometry=g, topology=t, coefficients=True)
     def basisfunction_deps(x):
-        g, t = basisfunction_deps[x._count]
-        return make_deps(geometry=g, topology=t, basisfunction=x._count)
+        k = formdata.basisfunction_renumbering[x]
+        g, t = basisfunction_deps[k]
+        return make_deps(geometry=g, topology=t, basisfunction=k)
     # List all terminal objects:
     terminal_deps[MultiIndex] = no_deps
-    terminal_deps[Identity] = no_deps
-    terminal_deps[Constant] = no_deps
+    terminal_deps[Identity]   = no_deps
+    terminal_deps[Constant]   = no_deps
     terminal_deps[FloatValue] = no_deps
-    terminal_deps[ZeroType] = no_deps
-    terminal_deps[FacetNormal] = facet_normal_deps
-    terminal_deps[Function] = function_deps
+    terminal_deps[ZeroType]   = no_deps
+    terminal_deps[FacetNormal]   = facet_normal_deps
+    terminal_deps[Function]      = function_deps
     terminal_deps[BasisFunction] = basisfunction_deps
-
+    
     ### Do the work!
     e, deps = _split_by_dependencies(expression, stacks, variable_cache)
     # Add final e to stacks and return variable
@@ -500,4 +505,4 @@ def split_by_dependencies(expression, basisfunction_deps, function_deps):
     if c not in variable_cache:
         variable_cache[c] = (e, deps)
         stacks[deps].append(e)
-    return e, deps, stacks, variable_cache
+    return (e, deps, stacks, variable_cache)
