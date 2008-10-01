@@ -106,7 +106,7 @@ class AlgorithmsTestCase(unittest.TestCase):
         #print unique_classes(self.forms[2])
         d = duplications(self.forms[2].cell_integrals()[0]._integrand)
         #pprint(list(d))
-    
+
     def _test_walk(self):
         element = FiniteElement("CG", "triangle", 1)
         v = TestFunction(element)

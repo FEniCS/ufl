@@ -3,12 +3,16 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-09-14"
+__date__ = "2008-03-14 -- 2008-09-29"
+
+# Modified by Anders Logg, 2008
 
 from itertools import chain
 
 from ..output import ufl_assert
+from ..common import lstr
 from ..base import UFLObject
+from ..algebra import Sum, Product
 from ..basisfunction import BasisFunction
 from ..function import Function
 from ..indexing import DefaultDimType
@@ -22,7 +26,7 @@ def extract_type(a, ufl_type):
     """Build a set of all objects of class ufl_type found in a.
     The argument a can be a Form, Integral or UFLObject."""
     iter = (o for e in iter_expressions(a) \
-              for o in post_traversal(e) \
+              for (o, stack) in post_traversal(e) \
               if isinstance(o, ufl_type) )
     return set(iter)
 
@@ -31,7 +35,7 @@ def classes(a):
     The argument a can be a Form, Integral or UFLObject."""
     c = set()
     for e in iter_expressions(a):
-        for o in post_traversal(e):
+        for (o, stack) in post_traversal(e):
             c.add(o.__class__)
     return c
 
@@ -43,7 +47,7 @@ def domain(a):
 
 def value_shape(expression, dimension):
     "Evaluate the value shape of expression with given implicit dimension."
-    ufl_assert(isinstance(expression, UFLObject), "Expecting UFLObject expression.")
+    ufl_assert(isinstance(expression, UFLObject), "Expecting UFL expression.")
     ufl_assert(isinstance(dimension, int), "Expecting int dimension.")
     s = expression.shape()
     shape = []
@@ -109,11 +113,36 @@ def indices(expression):
 
 def duplications(expression):
     "Build a set of all repeated expressions in expression."
-    ufl_assert(isinstance(expression, UFLObject), "Expecting UFLObject.")
+    ufl_assert(isinstance(expression, UFLObject), "Expecting UFL expression.")
     handled = set()
     duplicated = set()
-    for o in post_traversal(expression):
+    for (o, stack) in post_traversal(expression):
         if o in handled:
             duplicated.add(o)
         handled.add(o)
     return duplicated
+
+def monomials(expression):
+    "Compute monomial representation of expression (if possible)."
+
+    # FIXME: Not yet working, need to include derivatives, integrals etc
+
+    ufl_assert(isinstance(expression, Form) or isinstance(expression, UFLObject), "Expecting UFL form or expression.")
+
+    # Iterate over expressions
+    m = []
+    for e in iter_expressions(expression):
+        operands = e.operands()
+        if isinstance(e, Sum):
+            ufl_assert(len(operands) == 2, "Strange, expecting two terms.")
+            m += monomials(operands[0])
+            m += monomials(operands[1])
+        elif isinstance(e, Product):
+            ufl_assert(len(operands) == 2, "Strange, expecting two factors.")
+            for m0 in monomials(operands[0]):
+                for m1 in monomials(operands[1]):
+                    m.append(m0 + m1)
+        elif isinstance(e, BasisFunction):
+            m.append((e,))
+
+    return m

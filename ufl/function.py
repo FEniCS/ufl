@@ -6,10 +6,9 @@ from __future__ import absolute_import
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-09-21"
 
-from .finiteelement import FiniteElement, VectorElement
-
 # Modified by Anders Logg, 2008
 
+from .finiteelement import FiniteElement, VectorElement
 from .base import Terminal
 from .common import Counted, product
 from .split import split
@@ -34,7 +33,11 @@ class Function(Terminal, Counted):
     
     def __str__(self):
         if self._name is None:
-            return "w_%d" % self._count
+            count = str(self._count)
+            if len(count) == 1:
+                return "w_%s" % count
+            else:
+                return "w_{%s}" % count
         else:
             return "w_%s" % self._name
     
@@ -52,7 +55,11 @@ class Constant(Function):
     
     def __str__(self):
         if self._name is None:
-            return "c_%d" % self._count
+            count = str(self._count)
+            if len(count) == 1:
+                return "c_%s" % count
+            else:
+                return "c_{%s}" % count
         else:
             return "c_%s" % self._name
     

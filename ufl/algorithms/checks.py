@@ -3,13 +3,15 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-18"
+__date__ = "2008-03-14 -- 2008-09-30"
+
+# Modified by Anders Logg, 2008.
 
 from ..output import UFLException, ufl_error, ufl_assert, ufl_info
 from ..base import is_python_scalar, is_scalar, is_true_scalar
 
 # ALl classes:
-from ..base import UFLObject, Terminal, FloatValue
+from ..base import UFLObject, Terminal, FloatValue, ZeroType
 from ..variable import Variable
 from ..finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
 from ..basisfunction import BasisFunction
@@ -36,19 +38,21 @@ from .traversal import post_traversal, post_walk, iter_expressions
 from .analysis import value_shape, domain, elements
 from .predicates import is_multilinear
 
-
-def validate_form(a):
+def validate_form(form):
     """Performs all implemented validations on a form. Raises exception if something fails."""
-    
-    ufl_assert(isinstance(a, Form), "Expecting a Form.")
-    
-    ufl_assert(is_multilinear(a), "Form is not multilinear in the BasisFunction arguments.")
-    
-    dom = domain(a)
-    for e in elements(a):
-        ufl_assert(dom == e.domain(), "Inconsistent domains in form, got both %s and %s." % (dom, e.domain()))
-    
-    dim = _domain2dim[dom]
-    for e in iter_expressions(a):
-        ufl_assert(value_shape(e, dim) == (), "Got non-scalar integrand expression:\n%s" % e)
 
+    # Check that we get a form
+    ufl_assert(isinstance(form, Form), "Expecting a Form.")
+
+    # Check that form is multilinear
+    ufl_assert(is_multilinear(form), "Form is not multilinear.")
+
+    # Check that domain is the same for all elements
+    dom = domain(form)
+    for e in elements(form):
+        ufl_assert(dom == e.domain(), "Inconsistent domains in form, got both %s and %s." % (dom, e.domain()))
+
+    # Check that all integrands are scalar
+    dim = _domain2dim[dom]
+    for e in iter_expressions(form):
+        ufl_assert(value_shape(e, dim) == (), "Got non-scalar integrand expression:\n%s" % e)

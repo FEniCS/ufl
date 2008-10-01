@@ -49,6 +49,11 @@ class UFLObject(object):
     def rank(self):
         "Return the tensor rank of the expression."
         return len(self.shape())
+
+    # Objects (operators) are linear if not overloaded otherwise by subclass
+    def is_linear(self):
+        "Return true iff object is linear."
+        return True
     
     # All subclasses must implement __repr__
     def __repr__(self):

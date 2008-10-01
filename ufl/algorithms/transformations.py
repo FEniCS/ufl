@@ -5,13 +5,14 @@ converting UFL expressions to other representations."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-09-18"
+__date__ = "2008-05-07 -- 2008-10-01"
 
 from collections import defaultdict
 from itertools import izip
 
 from ..common import some_key, product
 from ..output import ufl_assert, ufl_error, ufl_warning
+from ..permutation import compute_indices
 
 # FIXME: Lots of imports duplicated in all algorithm modules
 # FIXME: Should be cleaned up
@@ -28,12 +29,12 @@ from ..output import ufl_assert, ufl_error, ufl_warning
 
 
 # All classes:
-from ..base import UFLObject, Terminal, FloatValue
+from ..base import UFLObject, Terminal, FloatValue, ZeroType
 from ..variable import Variable
 from ..finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
 from ..basisfunction import BasisFunction
 #from ..basisfunction import TestFunction, TrialFunction, BasisFunctions, TestFunctions, TrialFunctions
-from ..function import Function
+from ..function import Function, Constant
 from ..geometry import FacetNormal
 from ..indexing import MultiIndex, Indexed, Index, FixedIndex
 #from ..indexing import AxisType, as_index, as_index_tuple, extract_indices
@@ -52,7 +53,7 @@ from ..integral import Integral
 from ..classes import ufl_classes, terminal_classes, nonterminal_classes, compound_classes
 
 # Other algorithms:
-from .analysis import basisfunctions, coefficients, indices
+from .analysis import basisfunctions, coefficients, indices, duplications
 
 def transform_integrands(a, transformation):
     """Transform all integrands in a form with a transformation function.
@@ -307,12 +308,41 @@ def expand_indices(expression):
     return transform(expression, d)
 
 
+def _mark_duplications(expression, handlers, variables, dups):
+    """Convert a UFLExpression according to rules defined by
+    the mapping handlers = dict: class -> conversion function."""
+    
+    # check variable cache
+    var = variables.get(expression, None)
+    if var is not None:
+        return var
+    
+    # handle subexpressions
+    ops = [_mark_duplications(o, handlers, variables, dups) for o in expression.operands()]
+    
+    # get handler
+    c = expression.__class__
+    if c in handlers:
+        h = handlers[c]
+    else:
+        ufl_error("Didn't find class %s among handlers." % c)
+    
+    # transform subexpressions
+    handled = h(expression, *ops)
+    
+    if expression in dups:
+        handled = Variable(handled)
+        variables[expression] = handled
+    
+    return handled
+
+
 def mark_duplications(expression):
     "Wrap all duplicated expressions as Variables."
     dups = duplications(expression)
+    variables = {}
     d = ufl_reuse_handlers()
-    # TODO: implement this
-    return transform(expression, d)
+    return _mark_duplications(expression, d, variables, dups)
 
 
 def strip_variables(expression, handled_variables=None):
@@ -327,6 +357,23 @@ def strip_variables(expression, handled_variables=None):
         return v
     d[Variable] = s_variable
     return transform(expression, d)
+
+
+def extract_variables(expression, handled_expressions=None):
+    if handled_expressions is None:
+        handled_expressions = set()
+    vars = []
+    i = id(expression)
+    if i in handled_expressions:
+        return vars
+    handled_expressions.add(i)
+    if isinstance(expression, Variable):
+        vars.extend(extract_variables(expression._expression, handled_expressions))
+        vars.append(expression)
+    else:
+        for o in expression.operands():
+            vars.extend(extract_variables(o, handled_expressions))
+    return vars 
 
 
 def flatten(expression):
@@ -417,7 +464,7 @@ def _split_by_dependencies(expression, stacks, variable_cache, terminal_deps):
     return e, deps
 
 
-def split_by_dependencies(expression, basisfunction_deps, function_deps):
+def split_by_dependencies(expression, formdata, basisfunction_deps, function_deps):
     """Split an expression into stacks of variables based on the dependencies of its subexpressions.
     
     @type expression: UFLObject
@@ -434,14 +481,15 @@ def split_by_dependencies(expression, basisfunction_deps, function_deps):
         Function in the form the expression originates from.
         Each tuple tells whether this Function depends on
         the geometry and topology of a cell, respectively.
-    @return: 
-        TODO: Describe datastructures
-    @precondition:
-        Assumes the basisfunctions and functions have been renumbered from 0!
+    @return (e, deps, stacks, variable_cache):
+        e - variable representing input expression
+        deps - dependency tuple of expression
+        stacks - dict of variable stacks, with keys being dependency tuples
+        variable_cache - dict of variables, with keys being variable count
         
     If the *_deps arguments are unknown, a safe way to invoke this function is::
     
-        split_by_dependencies(expression, [(False,False)]*rank, [(False,False)]*num_coefficients)
+        (e, deps, stacks, variable_cache) = split_by_dependencies(expression, formdata, [(True,True)]*rank, [(True,True)]*num_coefficients)
     """
     ufl_assert(isinstance(expression, UFLObject), "Expecting UFLObject.")
     
@@ -473,25 +521,28 @@ def split_by_dependencies(expression, basisfunction_deps, function_deps):
     def no_deps(x):
         return _no_dep
     _facet_normal_dep = make_deps(geometry=True, topology=True)
-    def facet_normal_deps(x):
+    def get_facet_normal_deps(x):
         return _cell_dep
-    def function_deps(x):
-        g, t = function_deps[x._count]
+    def get_function_deps(x):
+        k = formdata.coefficient_renumbering[x]
+        g, t = function_deps[k]
         return make_deps(geometry=g, topology=t, coefficients=True)
-    def basisfunction_deps(x):
-        g, t = basisfunction_deps[x._count]
-        return make_deps(geometry=g, topology=t, basisfunction=x._count)
+    def get_basisfunction_deps(x):
+        k = formdata.basisfunction_renumbering[x]
+        g, t = basisfunction_deps[k]
+        return make_deps(geometry=g, topology=t, basisfunction=k)
     # List all terminal objects:
     terminal_deps[MultiIndex] = no_deps
-    terminal_deps[Identity] = no_deps
-    terminal_deps[Constant] = no_deps
+    terminal_deps[Identity]   = no_deps
     terminal_deps[FloatValue] = no_deps
-    terminal_deps[FacetNormal] = facet_normal_deps
-    terminal_deps[Function] = function_deps
-    terminal_deps[BasisFunction] = basisfunction_deps
-
+    terminal_deps[ZeroType]   = no_deps
+    terminal_deps[FacetNormal]   = get_facet_normal_deps
+    terminal_deps[Constant]      = get_function_deps
+    terminal_deps[Function]      = get_function_deps
+    terminal_deps[BasisFunction] = get_basisfunction_deps
+    
     ### Do the work!
-    e, deps = _split_by_dependencies(expression, stacks, variable_cache)
+    e, deps = _split_by_dependencies(expression, stacks, variable_cache, terminal_deps)
     # Add final e to stacks and return variable
     if not isinstance(e, Variable):
         e = Variable(e)
@@ -499,4 +550,4 @@ def split_by_dependencies(expression, basisfunction_deps, function_deps):
     if c not in variable_cache:
         variable_cache[c] = (e, deps)
         stacks[deps].append(e)
-    return e, deps, stacks, variable_cache
+    return (e, deps, stacks, variable_cache)

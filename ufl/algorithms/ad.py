@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-19-- 2008-09-24"
+__date__ = "2008-08-19-- 2008-09-30"
 
 from collections import defaultdict
 
@@ -64,10 +64,14 @@ def diff_handlers():
     #    return (x, x.__class__(*ops1))
     
     # These differentiation rules for nonterminal objects should probably never need to be overridden:
-    #def diff_variable(x, *ops):
-    #    return (x, FIXME) # HOW?
-    #d[Variable] = diff_variable
-    d[Variable] = diff_commute # FIXME: Is this ok for variable? What about caching and reuse?
+    def diff_variable(x, *ops):
+        # FIXME: Need some cache structures and callback to custum diff routine to implement this.
+        # - Check for diff of variable in some kind of cache
+        # - If not found, apply diff to variable expression 
+        # - Add variable for differentated expression to cache
+        ufl_error("Diff of variable depends on context. You must supply a customized rule!")
+        #return (x, xprime)
+    d[Variable] = diff_variable
 
     def diff_multi_index(x, *ops):
         return (x, None) # x' here should never be used
@@ -319,4 +323,3 @@ def compute_form_derivative(form, function, basisfunction):
         return J
     
     return transform_integrands(form, _compute_derivative)
-

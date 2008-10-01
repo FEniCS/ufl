@@ -109,6 +109,9 @@ class Division(UFLObject):
     
     def shape(self):
         return self._a.shape()
+
+    def is_linear(self):
+        return False
     
     def __str__(self):
         return "(%s / %s)" % (str(self._a), str(self._b))
@@ -133,6 +136,9 @@ class Power(UFLObject):
     
     def shape(self):
         return ()
+
+    def is_linear(self):
+        return isinstance(self._b, int)
     
     def __str__(self):
         return "(%s ** %s)" % (str(self._a), str(self._b))
@@ -157,7 +163,10 @@ class Mod(UFLObject):
     
     def shape(self):
         return ()
-    
+
+    def is_linear(self):
+        return False
+
     def __str__(self):
         return "(%s %% %s)" % (str(self._a), str(self._b))
     
@@ -178,10 +187,12 @@ class Abs(UFLObject):
     
     def shape(self):
         return self._a.shape()
+
+    def is_linear(self):
+        return False
     
     def __str__(self):
         return "| %s |" % str(self._a)
     
     def __repr__(self):
         return "Abs(%r)" % self._a
-

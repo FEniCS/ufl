@@ -12,7 +12,7 @@ Some of the TODO's left:
  - Apply AD to computation of Derivative, SpatialDiff and Diff.
  - Find a smart way to handle nested AD:
     - Collapse nested SpatialDiff into a single SpatialDiff with multiple indices, sorted since they commute.
- - Apply Variable during AD to cache subexpressions we can reuse.
+ - Apply Variable during AD to cache subexpressions we can reuse. Do we want to do this on the single operation level or on groups of operations?
 
 # Algorithms:
  - Implement contraction function that expands all implicit summations into Sums (do we need this? can be merged with evaluation anyway)
@@ -31,25 +31,11 @@ Some of the TODO's left:
      g = Function(element)
      V = FunctionSpace(element, trace=g)
      u = BasisFunction(V)
- - Keep or drop name in Function? Can eventually pass it to UFC if we add a "form::coefficient_name(i)" function.
+ - Keep or drop 'name' in Function? Can eventually pass it to UFC if we add a "form::coefficient_name(i)" function.
  - Degree range for quadrature elements?
- - Agree on final design!
 
 # Form-level operators:
- - Do we need a framework for applying these to parts of a form?
-   Maybe it is good enough to do this:
-     a = lhs((...)*dx) + (u*v)*dx
-   in which case I think the form-level operators should just do the transformation instantaneously.
-
- - Implement lhs, rhs, and is_multilinear:
-    - Start with helper function basisfunction_combinations(expression)
-    - Implement is_multilinear based on this
-    - lhs and rhs should be trivial now in the case of 
-      forms where the splitting happen at the integral
-      level or in a root-level sum in the integrand.
-      Cases like "(f + 3*u)*v*dx" needs more involved computation.
-
- - Implement derivative(a, w): AD, F(v; w) -> J(v, u; w)
+ - Implement lhs, rhs, and other form transformations.
 
 # Tests:
  - Write tests for the algorithms, ideally covering all code in multiple ways.

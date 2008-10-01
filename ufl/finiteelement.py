@@ -99,7 +99,7 @@ class FiniteElement(FiniteElementBase):
 
     def __str__(self):
         "Pretty printing"
-        return "%s finite element of degree %d on a %s" % (self.family(), self.degree(), self.domain())
+        return "[%s finite element of degree %d on a %s]" % (self.family(), self.degree(), self.domain())
 
 class MixedElement(FiniteElementBase):
     "A finite element composed of a nested hierarchy of mixed or simple elements"
@@ -146,7 +146,7 @@ class MixedElement(FiniteElementBase):
 
     def __str__(self):
         "Pretty printing"
-        return "Mixed element: [" + ", ".join(str(element) for element in self._sub_elements) + "]"
+        return "[Mixed element: (" + ", ".join(str(element) for element in self._sub_elements) + ")" + "]"
 
 class VectorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal"
@@ -181,7 +181,7 @@ class VectorElement(MixedElement):
 
     def __str__(self):
         "Pretty printing"
-        return "%s vector element of degree %d on a %s: %d x [%s]" % \
+        return "[%s vector element of degree %d on a %s: %d x %s]" % \
                (self.family(), self.degree(), self.domain(), len(self._sub_elements), self._sub_element)
 
 class TensorElement(MixedElement):
@@ -257,6 +257,5 @@ class TensorElement(MixedElement):
         print self.degree()
         print self.value_shape()
         print self.domain()
-        return "%s tensor element of degree %d and shape %s on a %s" % \
+        return "[%s tensor element of degree %d and shape %s on a %s]" % \
             (self.family(), self.degree(), self.value_shape(), self.domain())
-
