@@ -5,13 +5,14 @@ converting UFL expressions to other representations."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-09-18"
+__date__ = "2008-05-07 -- 2008-10-01"
 
 from collections import defaultdict
 from itertools import izip
 
 from ..common import some_key, product
 from ..output import ufl_assert, ufl_error, ufl_warning
+from ..permutation import compute_indices
 
 # FIXME: Lots of imports duplicated in all algorithm modules
 # FIXME: Should be cleaned up
@@ -33,7 +34,7 @@ from ..variable import Variable
 from ..finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
 from ..basisfunction import BasisFunction
 #from ..basisfunction import TestFunction, TrialFunction, BasisFunctions, TestFunctions, TrialFunctions
-from ..function import Function
+from ..function import Function, Constant
 from ..geometry import FacetNormal
 from ..indexing import MultiIndex, Indexed, Index, FixedIndex
 #from ..indexing import AxisType, as_index, as_index_tuple, extract_indices
@@ -52,7 +53,7 @@ from ..integral import Integral
 from ..classes import ufl_classes, terminal_classes, nonterminal_classes, compound_classes
 
 # Other algorithms:
-from .analysis import basisfunctions, coefficients, indices
+from .analysis import basisfunctions, coefficients, indices, duplications
 
 def transform_integrands(a, transformation):
     """Transform all integrands in a form with a transformation function.
@@ -476,28 +477,28 @@ def split_by_dependencies(expression, formdata, basisfunction_deps, function_dep
     def no_deps(x):
         return _no_dep
     _facet_normal_dep = make_deps(geometry=True, topology=True)
-    def facet_normal_deps(x):
+    def get_facet_normal_deps(x):
         return _cell_dep
-    def function_deps(x):
+    def get_function_deps(x):
         k = formdata.coefficient_renumbering[x]
         g, t = function_deps[k]
         return make_deps(geometry=g, topology=t, coefficients=True)
-    def basisfunction_deps(x):
+    def get_basisfunction_deps(x):
         k = formdata.basisfunction_renumbering[x]
         g, t = basisfunction_deps[k]
         return make_deps(geometry=g, topology=t, basisfunction=k)
     # List all terminal objects:
     terminal_deps[MultiIndex] = no_deps
     terminal_deps[Identity]   = no_deps
-    terminal_deps[Constant]   = no_deps
     terminal_deps[FloatValue] = no_deps
     terminal_deps[ZeroType]   = no_deps
-    terminal_deps[FacetNormal]   = facet_normal_deps
-    terminal_deps[Function]      = function_deps
-    terminal_deps[BasisFunction] = basisfunction_deps
+    terminal_deps[FacetNormal]   = get_facet_normal_deps
+    terminal_deps[Constant]      = get_function_deps
+    terminal_deps[Function]      = get_function_deps
+    terminal_deps[BasisFunction] = get_basisfunction_deps
     
     ### Do the work!
-    e, deps = _split_by_dependencies(expression, stacks, variable_cache)
+    e, deps = _split_by_dependencies(expression, stacks, variable_cache, terminal_deps)
     # Add final e to stacks and return variable
     if not isinstance(e, Variable):
         e = Variable(e)
