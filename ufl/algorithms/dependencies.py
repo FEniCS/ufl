@@ -137,12 +137,12 @@ class CodeStructure:
         self.variableinfo = {}   # variable count -> VariableInfo
         # One stack of variables for each dependency configuration
         self.stacks = defaultdict(list) # DependencySet -> [VariableInfo]
-
+    
     def __str__(self):
         deps = DependencySet(FIXME)
         s = ""
         s += "Variables independent of spatial coordinates:\n"
-        keys = [k for k in self.stacks.keys() if not k.spatial]
+        keys = [k for k in self.stacks.keys() if not k.coordinates]
         for deps in keys:
             if k.facet:
                 stack = self.stacks[k]
@@ -202,16 +202,20 @@ class CodeStructure:
 
 
 def _split_by_dependencies(expression, codestructure, terminal_deps):
+    
     if isinstance(expression, Variable):
         c = expression._count
         info = codestructure.variableinfo.get(c, None)
         if info is not None:
             return info.variable, info.deps
         #codestructure.stacks[vdeps].append(v)
+    
     elif isinstance(expression, Terminal):
-        deps = terminal_deps[expression.__class__](expression)
+        h = terminal_deps[expression.__class__]
+        deps = h(expression)
         if codestructure.stacks:
-            ufl_assert(deps.size() == some_key(codestructure.stacks).size(), "Inconsistency in dependency definitions.")
+            ufl_assert(deps.size() == some_key(codestructure.stacks).size(),\
+                       "Inconsistency in dependency definitions.")
         return expression, deps
     
     ops = expression.operands()
@@ -226,8 +230,9 @@ def _split_by_dependencies(expression, codestructure, terminal_deps):
             # if this subexpression is a variable, it has already been added to the stack
             ufl_assert(v._count in codestructure.variableinfo, "")
         elif not vdeps == deps:
-            # if this subexpression has other dependencies than 'expression', store a variable for it
-            v = Variable(v)
+            # if this subexpression has other dependencies
+            # than 'expression', store a variable for it 
+            v = Variable(v) # FIXME: Check a variable cache to avoid duplications?
             vinfo = VariableInfo(v, vdeps)
             codestructure.variableinfo[v._count] = vinfo
             codestructure.stacks[vdeps].append(vinfo)
@@ -288,7 +293,7 @@ def split_by_dependencies(expression, formdata, basisfunction_deps, function_dep
     
     codestructure = CodeStructure()
     
-    ### Terminal object dependency mappings:
+    # Define dependencies for all Terminal objects:
     terminal_dep_handlers = {}
     _no_dep = make_deps()
     def no_deps(x):
@@ -300,24 +305,25 @@ def split_by_dependencies(expression, formdata, basisfunction_deps, function_dep
         return function_deps[formdata.coefficient_renumbering[x]]
     def get_basisfunction_deps(x):
         return basisfunction_deps[formdata.basisfunction_renumbering[x]]
-    # List all terminal objects:
     terminal_dep_handlers[MultiIndex] = no_deps
     terminal_dep_handlers[Identity]   = no_deps
     terminal_dep_handlers[FloatValue] = no_deps
     terminal_dep_handlers[ZeroType]   = no_deps
     terminal_dep_handlers[FacetNormal]   = get_facet_normal_deps
+    terminal_dep_handlers[BasisFunction] = get_basisfunction_deps
     terminal_dep_handlers[Constant]      = get_function_deps
     terminal_dep_handlers[Function]      = get_function_deps
-    terminal_dep_handlers[BasisFunction] = get_basisfunction_deps
     
     # FIXME: Introduce dependency of mapping with gradients...
+    #  BasisFunction shouldn't normally depend on the mapping, but the gradients do...
     
-    ### Do the work!
+    # Perform! This fills in codestructure and returns
+    # the final form of the expression and its dependencies
     e, deps = _split_by_dependencies(expression, codestructure, terminal_dep_handlers)
     
     # Add final e to stacks and return variable
     if not isinstance(e, Variable):
-        e = Variable(e)
+        e = Variable(e) # TODO: Check a variable cache to avoid duplications?
     vinfo = codestructure.variableinfo.get(e._count, None)
     if vinfo is None:
         vinfo = VariableInfo(e, deps)
