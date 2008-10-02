@@ -18,6 +18,7 @@ from ..variable import Variable
 from ..basisfunction import BasisFunction
 from ..function import Function, Constant
 from ..geometry import FacetNormal
+from ..tensoralgebra import Identity
 from ..indexing import MultiIndex, Indexed, Index, FixedIndex
 from ..tensors import ListVector, ListMatrix, Tensor
 
@@ -41,9 +42,9 @@ class DependencySet:
         # depends on facet
         self.facet = facet
         # depends on basis function i
-        self.basisfunctions = basisfunctions
+        self.basisfunctions = tuple(basisfunctions)
         # depends on function i
-        self.functions = functions
+        self.functions = tuple(functions)
     
     def size(self):
         return len(list(self.iter()))
@@ -100,7 +101,14 @@ class VariableInfo:
         self.deps = deps
         # DiffVarSet -> VariableInfo
         self.diffcache = {}
-
+    
+    def __str__(self):
+        s = "VariableInfo:"
+        s += "  self.variable = %s\n" % self.variable
+        s += "  self.deps = %s\n" % self.deps
+        s += "  self.diffcache = \n"
+        s += "\n".join("    %s: %s" % (k,v) for (k,v) in self.diffcache.iteritems())
+        return s
 
 class DiffVarSet:
     def __init__(self):
@@ -124,22 +132,24 @@ class DiffVarSet:
 
 
 class CodeStructure:
-    def __init__(self, rank, num_coefficients):
+    def __init__(self):
+        # A place to look up if a variable has been added to the stacks already
         self.variableinfo = {}   # variable count -> VariableInfo
-        self.variablestacks = {} # DependencySet -> [VariableInfo]
-    
+        # One stack of variables for each dependency configuration
+        self.stacks = defaultdict(list) # DependencySet -> [VariableInfo]
+
     def __str__(self):
-        deps = DependencySet(rank, num_coefficients)
+        deps = DependencySet(FIXME)
         s = ""
         s += "Variables independent of spatial coordinates:\n"
-        keys = [k for k in self.variablestacks.keys() if not k.spatial]
+        keys = [k for k in self.stacks.keys() if not k.spatial]
         for deps in keys:
             if k.facet:
-                stack = self.variablestacks[k]
+                stack = self.stacks[k]
                 s += str(stack)
         for deps in keys:
             if not k.facet:
-                stack = self.variablestacks[k]
+                stack = self.stacks[k]
                 s += str(stack)
         
         s += "Variables dependent of spatial coordinates:\n"
@@ -151,7 +161,7 @@ class CodeStructure:
     def split_stacks(self):
         
         # Start with all variable stacks
-        stacks = self.variablestacks
+        stacks = self.stacks
         
         # Split into precomputable and not
         def criteria(k):
@@ -191,38 +201,44 @@ class CodeStructure:
                         context.add_token(s, e)
 
 
-def _split_by_dependencies(expression, stacks, variable_cache, terminal_deps):
-
+def _split_by_dependencies(expression, codestructure, terminal_deps):
     if isinstance(expression, Variable):
         c = expression._count
-        if c in variable_cache:
-            return variable_cache[c]
-        #stacks[vdeps].append(v)
+        info = codestructure.variableinfo.get(c, None)
+        if info is not None:
+            return info.variable, info.deps
+        #codestructure.stacks[vdeps].append(v)
     elif isinstance(expression, Terminal):
         deps = terminal_deps[expression.__class__](expression)
-        ufl_assert(len(deps) == len(some_key(stacks)), "Inconsistency in dependency definitions.")
+        if codestructure.stacks:
+            ufl_assert(deps.size() == some_key(codestructure.stacks).size(), "Inconsistency in dependency definitions.")
         return expression, deps
     
     ops = expression.operands()
-    ops2 = [_split_by_dependencies(o, stacks, variable_cache, terminal_deps) for o in ops]
+    ops2 = [_split_by_dependencies(o, codestructure, terminal_deps) for o in ops]
+    deps = ops2[0][1]
+    for o in ops2[1:]:
+        deps |= o[1]
+        
     ops3 = []
-    deps = tuple([any(o[1][i] for o in ops2) for i in range(len(ops2[1]))])
     for (v,vdeps) in ops2:
         if isinstance(v, Variable):
             # if this subexpression is a variable, it has already been added to the stack
-            ufl_assert(v._count in variable_cache, "")
+            ufl_assert(v._count in codestructure.variableinfo, "")
         elif not vdeps == deps:
             # if this subexpression has other dependencies than 'expression', store a variable for it
             v = Variable(v)
-            variable_cache[v._count] = (v, vdeps)
-            stacks[vdeps].append(v)
+            vinfo = VariableInfo(v, vdeps)
+            codestructure.variableinfo[v._count] = vinfo
+            codestructure.stacks[vdeps].append(vinfo)
         ops3.append(v)
     
     if isinstance(expression, Variable):
         c = expression._count
-        ufl_assert(c not in variable_cache, "Shouldn't reach this point if the variable was already cached!")
-        variable_cache[c] = (expression, deps)
-        stacks[deps].append(expression)
+        ufl_assert(c not in codestructure.variableinfo, "Shouldn't reach this point if the variable was already cached!")
+        vinfo = VariableInfo(expression, deps)
+        codestructure.variableinfo[c] = vinfo
+        codestructure.stacks[deps].append(vinfo)
     
     # Try to reuse expression if nothing has changed:
     if any((o1 is not o3) for (o1,o3) in izip(ops,ops3)):
@@ -233,92 +249,81 @@ def _split_by_dependencies(expression, stacks, variable_cache, terminal_deps):
 
 
 def split_by_dependencies(expression, formdata, basisfunction_deps, function_deps):
-    """Split an expression into stacks of variables based on the dependencies of its subexpressions.
+    """Split an expression into stacks of variables based
+    on the dependencies of its subexpressions.
     
     @type expression: UFLObject
     @param expression: The expression to parse.
-    @type basisfunction_deps: list(tuple(bool,bool))
+    @type basisfunction_deps: list(DependencySet)
     @param basisfunction_deps:
-        A list of tuples of two booleans, one tuple for each
-        BasisFunction in the form the expression originates from.
-        Each tuple tells whether this BasisFunction depends on
-        the geometry and topology of a cell, respectively.
-    @type basisfunction_deps: list(tuple(bool,bool))
+        A list of DependencySet objects, one for each
+        BasisFunction in the Form the expression originates from.
+    @type function_deps: list(DependencySet)
     @param function_deps:
-        A list of tuples of two booleans, one tuple for each
-        Function in the form the expression originates from.
-        Each tuple tells whether this Function depends on
-        the geometry and topology of a cell, respectively.
-    @return (e, deps, stacks, variable_cache):
-        e - variable representing input expression
-        deps - dependency tuple of expression
-        stacks - dict of variable stacks, with keys being dependency tuples
-        variable_cache - dict of variables, with keys being variable count
+        A list of DependencySet objects, one for each
+        Function in the Form the expression originates from.
+    @return (e, deps, codestructure):
+        variableinfo: data structure with info about the final
+                      variable representing input expression
+        codestructure: data structure containing stacks of variables
         
     If the *_deps arguments are unknown, a safe way to invoke this function is::
     
-        (e, deps, stacks, variable_cache) = split_by_dependencies(expression, formdata, [(True,True)]*rank, [(True,True)]*num_coefficients)
+        (variableinfo, codestructure) = split_by_dependencies(expression, formdata, [(True,True)]*rank, [(True,True)]*num_coefficients)
     """
     ufl_assert(isinstance(expression, UFLObject), "Expecting UFLObject.")
     
-    ### Dependency tuple definitions
-    num_basisfunctions = len(basisfunction_deps)
-    num_functions = len(function_deps)
-    # Base dependency groups: cell geometry, cell topology, coefficients
-    num_base_deps = 3
-    # More dependencies: basisfunctions
-    num_deps = num_base_deps + num_basisfunctions
     # Utility function to ensure consistent ordering of dependency tuples
-    def make_deps(geometry=False, topology=False, coefficients=False, basisfunction=None):
-        return (geometry, topology, coefficients) + tuple([False if i == basisfunction else True for i in range(num_basisfunctions)])
+    bfs = (False,)*len(basisfunction_deps)
+    fs = (False,)*len(function_deps)
+    def make_deps(basisfunction=None, function=None,
+                  cell=False, mapping=False, facet=False, coordinates=False):
+        d = DependencySet(bfs, fs, cell=cell, mapping=mapping,
+                          facet=facet, coordinates=coordinates)
+        if basisfunction is not None:
+            d |= basisfunction_deps[basisfunction]
+        if function is not None:
+            d |= function_deps[function]
+        return d
     
-    ### Stacks: one stack of variables for each dependency configuration
-    stacks = {}
-    tmp = compute_indices((2,)*num_deps)
-    # add empty lists to stacks for each permutation of dependency groups
-    permutations = [tuple([bool(i) for i in p]) for p in tmp]
-    for p in permutations:
-        stacks[p] = []
-    
-    ### Variable cache, a place to look up if a variable has been added to the stacks already:
-    variable_cache = {}
+    codestructure = CodeStructure()
     
     ### Terminal object dependency mappings:
-    terminal_deps = {}
+    terminal_dep_handlers = {}
     _no_dep = make_deps()
     def no_deps(x):
         return _no_dep
-    _facet_normal_dep = make_deps(geometry=True, topology=True)
+    _facet_normal_dep = make_deps(facet=True)
     def get_facet_normal_deps(x):
-        return _cell_dep
+        return _facet_normal_dep
     def get_function_deps(x):
-        k = formdata.coefficient_renumbering[x]
-        g, t = function_deps[k]
-        return make_deps(geometry=g, topology=t, coefficients=True)
+        return function_deps[formdata.coefficient_renumbering[x]]
     def get_basisfunction_deps(x):
-        k = formdata.basisfunction_renumbering[x]
-        g, t = basisfunction_deps[k]
-        return make_deps(geometry=g, topology=t, basisfunction=k)
+        return basisfunction_deps[formdata.basisfunction_renumbering[x]]
     # List all terminal objects:
-    terminal_deps[MultiIndex] = no_deps
-    terminal_deps[Identity]   = no_deps
-    terminal_deps[FloatValue] = no_deps
-    terminal_deps[ZeroType]   = no_deps
-    terminal_deps[FacetNormal]   = get_facet_normal_deps
-    terminal_deps[Constant]      = get_function_deps
-    terminal_deps[Function]      = get_function_deps
-    terminal_deps[BasisFunction] = get_basisfunction_deps
+    terminal_dep_handlers[MultiIndex] = no_deps
+    terminal_dep_handlers[Identity]   = no_deps
+    terminal_dep_handlers[FloatValue] = no_deps
+    terminal_dep_handlers[ZeroType]   = no_deps
+    terminal_dep_handlers[FacetNormal]   = get_facet_normal_deps
+    terminal_dep_handlers[Constant]      = get_function_deps
+    terminal_dep_handlers[Function]      = get_function_deps
+    terminal_dep_handlers[BasisFunction] = get_basisfunction_deps
+    
+    # FIXME: Introduce dependency of mapping with gradients...
     
     ### Do the work!
-    e, deps = _split_by_dependencies(expression, stacks, variable_cache, terminal_deps)
+    e, deps = _split_by_dependencies(expression, codestructure, terminal_dep_handlers)
+    
     # Add final e to stacks and return variable
     if not isinstance(e, Variable):
         e = Variable(e)
-    c = e._count
-    if c not in variable_cache:
-        variable_cache[c] = (e, deps)
-        stacks[deps].append(e)
-    return (e, deps, stacks, variable_cache)
+    vinfo = codestructure.variableinfo.get(e._count, None)
+    if vinfo is None:
+        vinfo = VariableInfo(e, deps)
+        codestructure.variableinfo[e._count] = vinfo
+        codestructure.stacks[deps].append(vinfo)
+    return (vinfo, codestructure)
 
 
 def _test_dependency_set():
@@ -328,15 +333,37 @@ def _test_dependency_set():
     basisfunctions, functions = (False, True), (False, True, False, True)
     d2 = DependencySet(basisfunctions, functions, \
                  cell=True, mapping=False, facet=True, coordinates=False)
-    
     d3 = d1 | d2
     d4 = d1 & d2
-    
     print d1
     print d2
     print d3
     print d4
 
+def unit_tuple(i, n, true=True, false=False):
+    return tuple(true if i == j else false for j in xrange(n))
+
+def _test_split_by_dependencies():
+    a = FIXME
+    
+    formdata = FormData(a)
+    
+    basisfunction_deps = []
+    for i in range(formdata.rank):
+        # TODO: More depending on element
+        d = DependencySet(unit_tuple(i, formdata.rank, True, False), (False,)*formdata.num_coefficients)
+        basisfunction_deps.append(d)
+    
+    function_deps = []
+    for i in range(num_coefficients):
+        # TODO: More depending on element
+        d = DependencySet((False,)*formdata.rank, unit_tuple(i, formdata.num_coefficients, True, False))
+        basisfunction_deps.append(d)
+    
+    e, d, c = split_by_dependencies(integrand, formdata, basisfunction_deps, function_deps)
+    print e
+    print d
+    print c
 
 if __name__ == "__main__":
     _test_dependency_set()

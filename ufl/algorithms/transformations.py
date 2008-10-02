@@ -5,7 +5,7 @@ converting UFL expressions to other representations."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-10-01"
+__date__ = "2008-05-07 -- 2008-10-02"
 
 from collections import defaultdict
 from itertools import izip

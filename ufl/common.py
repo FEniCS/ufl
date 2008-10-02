@@ -3,6 +3,7 @@
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __date__ = "2008-08-05 -- 2008-10-02"
 
+from itertools import izip
 import operator
 
 def product(sequence):

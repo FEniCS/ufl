@@ -71,17 +71,42 @@ print repr(integrand)
 
 assert repr(integrand) == original_repr
 
-rank = 2
-num_coefficients = 2
-(e, deps, stacks, variable_cache) = split_by_dependencies(integrand, formdata, [(True,True)]*rank, [(True,True)]*num_coefficients)
+rank = len(formdata.basisfunctions)
+num_coefficients = len(formdata.coefficients)
 
-print
-print e
-print
-print deps
-print
-print stacks
-print
-print variable_cache
+from ufl.algorithms.dependencies import DependencySet
+
+basisfunction_deps = []
+for i in range(rank):
+    # TODO: More dependencies depending on element
+    bfs = tuple(i == j for j in range(rank))
+    fs = (False,)*num_coefficients
+    d = DependencySet(bfs, fs)
+    basisfunction_deps.append(d)
+
+function_deps = []
+for i in range(num_coefficients):
+    # TODO: More dependencies depending on element
+    bfs = (False,)*rank
+    fs = tuple(i == j for j in range(num_coefficients))
+    d = DependencySet(bfs, fs)
+    function_deps.append(d)
+
+(vinfo, code) = split_by_dependencies(integrand, formdata, basisfunction_deps, function_deps)
+
+print "------ Final variable info:"
+print vinfo
+
+print "------ Stacks:"
+for deps,stack in code.stacks.iteritems():
+    print 
+    print "Stack with deps =", deps
+    print "\n".join(str(v) for v in stack)
+
+print "------ Variable info:"
+for count, v in code.variableinfo.iteritems():
+    print
+    print "v[%d] =" % count
+    print v
 print
 

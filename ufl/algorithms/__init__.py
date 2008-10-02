@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-14 -- 2008-10-03"
+__date__ = "2008-08-14 -- 2008-10-02"
 
 # Utilities for traversing over expression trees in different ways
 from .traversal import iter_expressions
