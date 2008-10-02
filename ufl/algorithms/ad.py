@@ -34,7 +34,21 @@ from ..operators import dot, inner, outer, lt, eq, conditional
 from .transformations import transform, transform_integrands
 
 
-# FIXME: Need algorithm to apply AD to all kinds of derivatives! In particular, SpatialDerivative and Diff.
+# FIXME: Need algorithm to apply AD to all kinds of derivatives!
+#        In particular, SpatialDerivative, Diff and functional derivative.
+
+# FIXME: Need some cache structures and callback to custum diff routine to implement diff with variable
+# - Check for diff of variable in some kind of cache
+# - If not found, apply diff to variable expression 
+# - Add variable for differentated expression to cache
+
+# FIXME: Apply as_basic to Compound object with no rule before differentiating
+#d[Cofactor] = diff_cofactor
+#d[Determinant] = diff_determinant
+#d[Cross] = diff_cross
+
+# FIXME: Missing rules for:
+# Cross, Determinant, Cofactor, Mod, f(x)**g(x)
 
 
 def diff_handlers():
@@ -46,7 +60,9 @@ def diff_handlers():
     d = defaultdict(not_implemented)
     
     # Terminal objects are assumed independent of the differentiation
-    # variable by default, and simply 'lifted' to the pair (x, 0)
+    # variable by default, and simply 'lifted' to the pair (x, 0).
+    # Depending on the context, override this with custom rules for
+    # non-zero derivatives.
     def lift(x):
         return (x, zero_tensor(x.shape()))
     for c in terminal_classes:
@@ -57,22 +73,12 @@ def diff_handlers():
         ufl_assert(len(ops) == 1, "Logic breach in diff_commute, len(ops) = %d." % len(ops))
         oprime = ops[0][1]
         return (x, x.__class__(oprime))
-    
-    # TODO: Can we use this anywhere? A bit dangerous.
-    #def diff_commute_multiple_arguments(x, *ops):
-    #    ops0, ops1 = unzip(ops)
-    #    return (x, x.__class__(*ops1))
-    
-    # These differentiation rules for nonterminal objects should probably never need to be overridden:
+
     def diff_variable(x, *ops):
-        # FIXME: Need some cache structures and callback to custum diff routine to implement this.
-        # - Check for diff of variable in some kind of cache
-        # - If not found, apply diff to variable expression 
-        # - Add variable for differentated expression to cache
-        ufl_error("Diff of variable depends on context. You must supply a customized rule!")
-        #return (x, xprime)
+        ufl_error("How to handle derivative of variable depends on context. You must supply a customized rule!")
     d[Variable] = diff_variable
 
+    # These differentiation rules for nonterminal objects should probably never need to be overridden:
     def diff_multi_index(x, *ops):
         return (x, None) # x' here should never be used
     d[MultiIndex] = diff_multi_index
@@ -151,7 +157,7 @@ def diff_handlers():
         ufl_error("diff_mod not implemented")
         return (x, FIXME)
     d[Mod] = diff_mod
-
+    
     def diff_abs(x, *ops):
         f, fprime = ops[0]
         xprime = conditional(eq(f, 0),
@@ -167,34 +173,34 @@ def diff_handlers():
         b, bp = ops[1]
         return (x, outer(ap, b) + outer(a, bp))
     d[Outer] = diff_outer
-
+    
     def diff_inner(x, *ops):
         a, ap = ops[0]
         b, bp = ops[1]
         return (x, inner(ap, b) + inner(a, bp))
     d[Inner] = diff_inner
-
+    
     def diff_dot(x, *ops):
         a, ap = ops[0]
         b, bp = ops[1]
         return (x, dot(ap, b) + dot(a, bp))
     d[Dot] = diff_dot
-
+    
     def diff_cross(x, *ops):
         u, up = ops[0]
         v, vp = ops[1]
-        ufl_error("diff_cross not implemented")
+        ufl_error("diff_cross not implemented, apply expand_compounds before AD.")
         return (x, FIXME) # COMPOUND
     d[Cross] = diff_cross
     
     d[Trace] = diff_commute
-
+    
     def diff_determinant(x, *ops):
         A, Ap = ops[0]
-        ufl_error("diff_determinant not implemented")
-        return (x, FIXME)
+        ufl_error("diff_determinant not implemented, apply expand_compounds before AD.")
+        return (x, FIXME) # COMPOUND
     d[Determinant] = diff_determinant
-
+    
     # Derivation:
     # 0 = d/dx [Ainv*A] = Ainv' * A + Ainv * A'
     # Ainv' * A = - Ainv * A'
@@ -203,12 +209,12 @@ def diff_handlers():
         A, Ap = ops[0]
         return (Ainv, -Ainv*Ap*Ainv)
     d[Inverse] = diff_inverse
-
+    
     d[Deviatoric] = diff_commute
-
+    
     def diff_cofactor(x, *ops):
         A, Ap = ops[0]
-        ufl_error("diff_cofactor not implemented")
+        ufl_error("diff_cofactor not implemented, apply expand_compounds before AD.")
         #cofacA_prime = detA_prime*Ainv + detA*Ainv_prime
         return (x, FIXME)
     d[Cofactor] = diff_cofactor
@@ -287,8 +293,19 @@ def diff_handlers():
     return d
 
 
+def compute_variable_derivative(form, var):
+    "Differentiate form w.r.t Variable var."
+    FIXME
+
+
+def propagate_spatial_derivatives(form):
+    """Partially apply automatic differentiation to form
+    by propagating spatial derivatives to terminal objects."""
+    FIXME
+
+
 def compute_form_derivative(form, function, basisfunction):
-    
+    "Apply AFD (Automatic Function Differentiation) to Form."
     if isinstance(function, tuple):
         # We got a tuple of functions, handle it as functions
         # over components of a mixed element.
@@ -323,3 +340,4 @@ def compute_form_derivative(form, function, basisfunction):
         return J
     
     return transform_integrands(form, _compute_derivative)
+

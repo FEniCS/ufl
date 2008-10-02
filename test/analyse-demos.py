@@ -4,6 +4,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-09-28 -- 2008-09-28"
 
 import unittest
+import os
 
 # disable log output
 import logging

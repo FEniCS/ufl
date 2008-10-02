@@ -1,0 +1,16 @@
+
+# Author: Marie Rognes
+
+k = 1
+S = VectorElement("BDM", "triangle", k)
+V = VectorElement("Discontinuous Lagrange", "triangle", k-1)
+Q = TensorElement("Discontinuous Lagrange", "triangle", k-1) #, \
+#                  symmetry = "skew") # FIXME: Implement something like this
+MX = MixedElement(S, V, Q)
+
+(tau, v, eta) = TestFunctions(MX)
+(sigma, u, gamma) = TrialFunctions(MX)
+
+a2 = (dot(sigma, tau) - trace(sigma)*trace(tau) \
+      + div(tau)*u - div(sigma)*v + tau*gamma + eta*sigma)*dx
+
