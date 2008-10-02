@@ -1,7 +1,7 @@
 "This module contains a collection of common utilities."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-08-05 -- 2008-09-29"
+__date__ = "2008-08-05 -- 2008-10-02"
 
 import operator
 
@@ -12,6 +12,25 @@ def product(sequence):
 def unzip(seq):
     "Inverse operation of zip: unzip(zip(a, b)) == (a, b)"
     return [s[0] for s in seq], [s[1] for s in seq]
+
+def or_tuples(seqa, seqb):
+    "Return 'or' of all pairs in two sequences of same length."
+    return tuple(a or b for (a,b) in izip(seqa, seqb))
+
+def and_tuples(seqa, seqb):
+    "Return 'and' of all pairs in two sequences of same length."
+    return tuple(a and b for (a,b) in izip(seqa, seqb))
+
+def split_dict(d, criteria):
+    "Split a dict d into two dicts based on a criteria on the keys."
+    a = {}
+    b = {}
+    for (k,v) in d.iteritems():
+        if criteria(k):
+            a[k] = v
+        else:
+            b[k] = v
+    return a, b
 
 def some_key(a_dict):
     "Return an arbitrary key from a dictionary."
