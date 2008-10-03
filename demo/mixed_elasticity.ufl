@@ -1,5 +1,7 @@
-
+#
 # Author: Marie Rognes
+# Date: 2008-10-03
+#
 
 k = 1
 S = VectorElement("BDM", "triangle", k)

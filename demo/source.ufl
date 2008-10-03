@@ -1,3 +1,7 @@
+#
+# Author: Martin Sandve Alnes
+# Date: 2008-10-03
+#
 
 element = FiniteElement("Lagrange", "triangle", 1)
 

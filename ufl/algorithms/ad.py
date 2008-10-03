@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-19-- 2008-09-30"
+__date__ = "2008-08-19-- 2008-10-02"
 
 from collections import defaultdict
 
@@ -42,13 +42,9 @@ from .transformations import transform, transform_integrands
 # - If not found, apply diff to variable expression 
 # - Add variable for differentated expression to cache
 
-# FIXME: Apply as_basic to Compound object with no rule before differentiating
-#d[Cofactor] = diff_cofactor
-#d[Determinant] = diff_determinant
-#d[Cross] = diff_cross
-
 # FIXME: Missing rules for:
 # Cross, Determinant, Cofactor, Mod, f(x)**g(x)
+# FIXME: Could apply as_basic to Compound objects with no rule before differentiating
 
 
 def diff_handlers():
@@ -293,9 +289,40 @@ def diff_handlers():
     return d
 
 
-def compute_variable_derivative(form, var):
-    "Differentiate form w.r.t Variable var."
-    FIXME
+def compute_diff(expression, var):
+    "Differentiate expression w.r.t Variable var."
+    ufl_assert(var.shape() == (), "Diff w.r.t. nonscalar variable not implemented.")
+    
+    handlers = diff_handlers()
+    
+    def diff_diff(x):
+        w = compute_diff(x._expression, x._variable)
+        wdiff = compute_diff(w, var)
+        return (w, wdiff)
+    handlers[Diff] = diff_diff
+    
+    _1 = FloatValue(1.0)
+    def diff_variable(x):
+        if x is var:
+            return (x, _1)
+        else:
+            xdiff = compute_diff(x._expression, var)
+            return (x, xdiff)
+    handlers[Variable] = diff_variable
+    
+    # FIXME: Use Variable._diff_cache! 
+    
+    # Wrap compute_diff result in Variable
+    result = transform(expression, handlers)
+    result = Variable(result)
+    return result
+
+
+def compute_variable_derivatives(form):
+    "Apply AD to form, expanding all Diff w.r.t variables."
+    def _compute_diff(expression):
+        return compute_diff(expression, None)
+    return transform_integrands(form, _compute_diff)
 
 
 def propagate_spatial_derivatives(form):
@@ -334,10 +361,11 @@ def compute_form_derivative(form, function, basisfunction):
         return (w, zero_tensor(x.shape()))
     
     handlers[Function] = diff_function
+
+    #handlers[Variable] = diff_variable # FIXME
     
     def _compute_derivative(expression):
         F, J = transform(expression, handlers)
         return J
     
     return transform_integrands(form, _compute_derivative)
-

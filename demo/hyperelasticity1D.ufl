@@ -1,0 +1,20 @@
+#
+# Author: Martin Sandve Alnes
+# Date: 2008-10-03
+#
+
+polygon = "interval"
+element = FiniteElement("CG", polygon, 2)
+u = Function(element)
+b = Constant(polygon)
+K = Constant(polygon)
+
+E = u.dx(0) + u.dx(0)**2 / 2
+E = variable(E)
+Q = b*E**2
+psi = K*(exp(Q)-1)
+
+f = psi*dx
+F = derivative(f, u)
+J = derivative(-F, u)
+
