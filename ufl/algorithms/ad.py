@@ -31,6 +31,7 @@ from ..conditional import EQ, NE, LE, GE, LT, GT, Conditional
 #from ..classes import ufl_classes, terminal_classes, nonterminal_classes, compound_classes
 from ..classes import terminal_classes
 from ..operators import dot, inner, outer, lt, eq, conditional
+from ..operators import sqrt, exp, ln, cos, sin
 from .transformations import transform, transform_integrands
 
 
@@ -259,8 +260,14 @@ def diff_handlers():
     d[NegativeRestricted] = diff_negativerestricted
     
     # Derivatives
-    d[SpatialDerivative] = diff_commute
-    d[Diff] = diff_commute
+    def diff_diff(x, *ops):
+        (f, fp), (v, vp) = ops
+        # TODO: What happens if vp != 0, i.e. v depends the differentiation variable?
+        # TODO: Are there any issues with indices here? Not sure, think through it...
+        return (x, x.__class__(fp, v))
+    d[SpatialDerivative] = diff_diff
+    d[Diff] = diff_diff
+    
     d[Grad] = diff_commute
     d[Div]  = diff_commute
     d[Curl] = diff_commute
@@ -358,11 +365,13 @@ def compute_form_derivative(form, function, basisfunction):
         for (w, wprime) in functions:
             if x == w:
                 return (w, wprime)
-        return (w, zero_tensor(x.shape()))
-    
+        return (x, zero_tensor(x.shape()))
     handlers[Function] = diff_function
-
-    #handlers[Variable] = diff_variable # FIXME
+    
+    def diff_variable(x):
+        dummy, wprime = transform(x._expression, handlers)
+        return (x, wprime)
+    handlers[Variable] = diff_variable
     
     def _compute_derivative(expression):
         F, J = transform(expression, handlers)

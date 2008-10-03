@@ -3,9 +3,9 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-14 -- 2008-09-30"
+__date__ = "2008-03-14 -- 2008-10-03"
 
-from ..output import ufl_assert
+from ..output import ufl_assert, ufl_warning, ufl_debug
 from ..common import lstr
 from ..form import Form
 from ..algebra import Sum, Product
@@ -27,8 +27,7 @@ def is_multilinear(form):
             if isinstance(o, BasisFunction):
                 for operator in stack:
                     if not operator.is_linear():
-                        # FIXME: Use ufl_info or ufl_debug here
-                        print "Nonlinear operator applied to basis function:", str(operator)
+                        ufl_warning("Nonlinear operator applied to basis function:" + str(operator))
                         return False
 
     # Extract monomials
@@ -46,8 +45,7 @@ def is_multilinear(form):
     for monomial in monomials:
         for v in basisfunctions:
             if not len([w for w in monomial if w == v]) == 1:
-                # FIXME: Use ufl_info or ufl_debug here
-                print "Basis function %s does not appear exactly once in each term." % str(v)
+                ufl_warning("Basis function %s does not appear exactly once in each term." % str(v))
                 return False
 
     return True
@@ -58,9 +56,8 @@ def _extract_monomials(e):
     operands = e.operands()
     monomials = []
     if isinstance(e, Sum):
-        ufl_assert(len(operands) == 2, "Strange, expecting two terms.")
-        monomials += _extract_monomials(operands[0])
-        monomials += _extract_monomials(operands[1])
+        for o in operands:
+            monomials += _extract_monomials(o)
     # FIXME: Does this make sense (treating Dot like Product)?
     elif isinstance(e, Product) or isinstance(e, Dot):
         ufl_assert(len(operands) == 2, "Strange, expecting two factors.")
@@ -68,8 +65,8 @@ def _extract_monomials(e):
             for m1 in _extract_monomials(operands[1]):
                 monomials.append(m0 + m1)
     elif len(operands) == 2:
-        print "Unknown binary operator, don't know how to handle."
-    elif len(operands) == 1:
+        ufl_warning("Unknown binary operator, don't know how to handle.")
+    elif len(operands) == 1: # FIXME: This won't be right for lots of operators... Should at least throw errors for unsupported types.
         monomials += _extract_monomials(operands[0])
     elif isinstance(e, BasisFunction):
         monomials.append((e,))

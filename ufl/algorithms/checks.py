@@ -3,11 +3,11 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-09-30"
+__date__ = "2008-03-14 -- 2008-10-03"
 
 # Modified by Anders Logg, 2008.
 
-from ..output import UFLException, ufl_error, ufl_assert, ufl_info
+from ..output import UFLException, ufl_error, ufl_assert, ufl_info, ufl_warning
 from ..base import is_python_scalar, is_scalar, is_true_scalar
 
 # ALl classes:
@@ -45,7 +45,10 @@ def validate_form(form):
     ufl_assert(isinstance(form, Form), "Expecting a Form.")
 
     # Check that form is multilinear
-    ufl_assert(is_multilinear(form), "Form is not multilinear.")
+    is_ml = is_multilinear(form)
+    if not is_ml:
+        ufl_warning("Form is not multilinear according to buggy(!) is_multilinear function.")
+    #ufl_assert(is_ml, "Form is not multilinear.")
 
     # Check that domain is the same for all elements
     dom = domain(form)

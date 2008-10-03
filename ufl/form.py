@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__    = "2008-03-14 -- 2008-09-26"
+__date__    = "2008-03-14 -- 2008-10-03"
 
 from .output import ufl_assert
 
@@ -65,6 +65,10 @@ class Form(object):
     
     def __sub__(self, other):
         return self._add(other, -1)
+    
+    def __neg__(self):
+        newintegrals = [-itg for itg in self._integrals]
+        return Form(newintegrals)
     
     def __str__(self):
         if self._str is None:
