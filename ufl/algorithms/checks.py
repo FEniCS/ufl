@@ -48,7 +48,7 @@ def validate_form(form):
     is_ml = is_multilinear(form)
     if not is_ml:
         ufl_warning("Form is not multilinear according to buggy(!) is_multilinear function.")
-    #ufl_assert(is_ml, "Form is not multilinear.")
+    #ufl_assert(is_ml, "Form is not multilinear.") # FIXME: Re-enable when fixed.
 
     # Check that domain is the same for all elements
     dom = domain(form)
