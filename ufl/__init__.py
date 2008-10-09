@@ -28,7 +28,7 @@ __version__ = "0.1"
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __copyright__ = __authors__ + " (2008)"
 __licence__ = "LGPL" # TODO: which licence?
-__date__ = "2008-03-14 -- 2008-09-24"
+__date__ = "2008-03-14 -- 2008-10-09"
 
 
 ########## README
@@ -84,8 +84,8 @@ from .restriction import Restricted, PositiveRestricted, NegativeRestricted
 # special functions for expression base classes
 from . import baseoperators as __baseoperators
 
-# "container" classes for expressions with value rank > 0
-from .tensors import Tensor, Vector, Matrix
+# containers for expressions with value rank > 0
+from .tensors import as_tensor, as_vector, as_matrix
 
 # tensor algebra operators
 from .tensoralgebra import Identity

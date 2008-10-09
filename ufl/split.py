@@ -6,7 +6,7 @@ __date__ = "2008-03-14 -- 2008-10-09"
 # Modified by Anders Logg, 2008
 
 from .finiteelement import MixedElement
-from .tensors import Vector
+from .tensors import as_vector, as_matrix, as_tensor
 from .common import product
 from .output import ufl_assert, ufl_error
 
@@ -33,7 +33,7 @@ def split(v):
         elif rank == 1:
             size = product(shape)
             components = [v[j] for j in range(offset, offset + size)]
-            subv = Vector(components)
+            subv = as_vector(components)
             offset += size
         else:
             # FIXME: Handle general case
@@ -49,7 +49,7 @@ def split(v):
             components = []
             for j, s in shape:
                 pass #v[j] for j in range(offset, offset + size)
-            subv = Tensor(components)
+            subv = as_tensor(components)
             offset += size
         sub_functions.append(subv)
     

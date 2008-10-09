@@ -39,7 +39,6 @@ from ..geometry import FacetNormal
 from ..indexing import MultiIndex, Indexed, Index, FixedIndex
 #from ..indexing import AxisType, as_index, as_index_tuple, extract_indices
 from ..tensors import ListTensor, ComponentTensor
-#from ..tensors import Vector, Matrix, Tensor
 from ..algebra import Sum, Product, Division, Power, Mod, Abs
 from ..tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
 from ..mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin

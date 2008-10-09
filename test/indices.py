@@ -108,8 +108,8 @@ class IndexTestCase(unittest.TestCase):
         u  = TrialFunction(element)
         
         # legal
-        vv = Vector(u[i], i)
-        uu = Vector(v[j], j)
+        vv = as_vector(u[i], i)
+        uu = as_vector(v[j], j)
         w  = v + u
         ww = vv + uu
         self.assertTrue(vv.rank() == 1)
@@ -122,8 +122,8 @@ class IndexTestCase(unittest.TestCase):
         v  = TestFunction(element)
         u  = TrialFunction(element)
         
-        A  = Matrix(u[i]*v[j], (i,j))
-        B  = Matrix(v[k]*v[k]*u[i]*v[j], (j,i))
+        A  = as_matrix(u[i]*v[j], (i,j))
+        B  = as_matrix(v[k]*v[k]*u[i]*v[j], (j,i))
         C  = A + A
         C  = B + B
         D  = A + B
@@ -138,7 +138,7 @@ class IndexTestCase(unittest.TestCase):
         u  = TrialFunction(element)
         
         # create vector from list
-        vv = Vector([u[0], v[0]])
+        vv = as_vector([u[0], v[0]])
         ww = vv + vv
         self.assertTrue(vv.rank() == 1)
         self.assertTrue(ww.rank() == 1)
@@ -149,9 +149,9 @@ class IndexTestCase(unittest.TestCase):
         u  = TrialFunction(element)
         
         # create matrix from list
-        A  = Matrix( [ [u[0], u[1]], [v[0], v[1]] ] )
+        A  = as_matrix( [ [u[0], u[1]], [v[0], v[1]] ] )
         # create matrix from indices
-        B  = Matrix( (v[k]*v[k]) * u[i]*v[j], (j,i) )
+        B  = as_matrix( (v[k]*v[k]) * u[i]*v[j], (j,i) )
         # Test addition
         C  = A + A
         C  = B + B
@@ -174,7 +174,7 @@ class IndexTestCase(unittest.TestCase):
         self.assertTrue(set(Cijkl.free_indices()) == set((i,j,k,l)))
         
         # make it a tensor
-        C = Tensor(Cijkl, (i,j,k,l))
+        C = as_tensor(Cijkl, (i,j,k,l))
         self.assertTrue(C.rank() == 4)
         self.assertTrue(C.free_indices() == ())
 
@@ -187,19 +187,19 @@ class IndexTestCase(unittest.TestCase):
         self.assertTrue(set(A.free_indices()) == set((i,j)))
         
         # legal?
-        vv = Vector([u[i], v[i]])
+        vv = as_vector([u[i], v[i]])
         ww = f[i]*vv # this is well defined: ww = sum_i <f_i*u_i, f_i*v_i>
         
         # illegal?
         try:
-            vv = Vector([u[i], v[j]])
+            vv = as_vector([u[i], v[j]])
             self.fail()
         except (UFLException, e):
             pass
         
         # illegal
         try:
-            A  = Matrix( [ [u[0], u[1]], [v[0],] ] )
+            A = as_matrix( [ [u[0], u[1]], [v[0],] ] )
             self.fail()
         except (UFLException, e):
             pass

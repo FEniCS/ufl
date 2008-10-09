@@ -13,7 +13,6 @@ from ..base import UFLObject
 from ..indexing import MultiIndex, Indexed, Index, FixedIndex
 #from ..indexing import AxisType, as_index, as_index_tuple, extract_indices
 from ..tensors import ListTensor, ComponentTensor
-#from ..tensors import Vector, Matrix, Tensor
 from ..algebra import Product
 from ..differentiation import SpatialDerivative, Diff
 

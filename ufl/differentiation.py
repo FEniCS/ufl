@@ -9,7 +9,7 @@ from .output import ufl_assert
 from .base import UFLObject, Compound
 from .indexing import MultiIndex, Index, DefaultDim, extract_indices
 from .variable import Variable
-from .tensors import Tensor
+from .tensors import as_tensor
 
 
 # FIXME: This file is not ok! Needs more work!
@@ -108,9 +108,9 @@ class Grad(Compound):
         ii = Index()
         if f.rank() > 0:
             jj = tuple(Index() for kk in range(f.rank()))
-            return Tensor(f[jj].dx(ii), tuple((ii,)+jj))
+            return as_tensor(f[jj].dx(ii), tuple((ii,)+jj))
         else:
-            return Tensor(f.dx(ii), (ii,))
+            return as_tensor(f.dx(ii), (ii,))
     
     def __str__(self):
         return "grad(%s)" % self._f

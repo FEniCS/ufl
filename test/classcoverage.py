@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-09-06 -- 2008-09-17"
+__date__ = "2008-09-06 -- 2008-10-09"
 
 import unittest
 
@@ -177,26 +177,26 @@ class ClasscoverageTest(unittest.TestCase):
         a = (f0*2)**1.23
         test_object(a, (), ())
         
-        #a = ListTensor()
-        a = Vector([1.0, 2.0*f0, f0**2])
+        #a = Listas_tensor()
+        a = as_vector([1.0, 2.0*f0, f0**2])
         test_object(a, (3,), ())
-        a = Matrix([[1.0, 2.0*f0, f0**2],
+        a = as_matrix([[1.0, 2.0*f0, f0**2],
                     [1.0, 2.0*f0, f0**2]])
         test_object(a, (2,3), ())
-        a = Tensor([ [[0.00, 0.01, 0.02],
+        a = as_tensor([ [[0.00, 0.01, 0.02],
                       [0.10, 0.11, 0.12]],
                      [[1.00, 1.01, 1.02],
                       [1.10, 1.11, 1.12]] ])
         test_object(a, (2,2,3), ())
         
-        #a = ComponentTensor()
-        a = Vector(v1[i]*f1[j], i)
+        #a = Componentas_tensor()
+        a = as_vector(v1[i]*f1[j], i)
         test_object(a, (DefaultDim,), (j,))
-        a = Matrix(v1[i]*f1[j], (j,i))
+        a = as_matrix(v1[i]*f1[j], (j,i))
         test_object(a, (DefaultDim,DefaultDim), ())
-        a = Tensor(v1[i]*f1[j], (i,j))
+        a = as_tensor(v1[i]*f1[j], (i,j))
         test_object(a, (DefaultDim,DefaultDim), ())
-        a = Tensor(v2[i,j]*f2[j,k], (i,k))
+        a = as_tensor(v2[i,j]*f2[j,k], (i,k))
         test_object(a, (DefaultDim,DefaultDim), ())
         
         a = Deviatoric(v2)

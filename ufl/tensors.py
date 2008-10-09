@@ -103,26 +103,23 @@ class ComponentTensor(UFLObject):
         return "ComponentTensor(%r, %r)" % (self._expression, self._indices)
 
 
-def Vector(expressions, index = None):
-    if index is None:
+def as_tensor(expressions, indices = None):
+    if indices is None:
         ufl_assert(isinstance(expressions, (list, tuple)),
-            "Expecting list or tuple of expressions.")
+            "Expecting nested list or tuple of UFLObjects.")
         return ListTensor(*expressions)
-    return ComponentTensor(expressions, (index,))
+    return ComponentTensor(expressions, indices)
 
-def Matrix(expressions, indices = None):
+def as_matrix(expressions, indices = None):
     if indices is None:
         ufl_assert(isinstance(expressions, (list, tuple)),
             "Expecting nested list or tuple of UFLObjects.")
         ufl_assert(isinstance(expressions[0], (list, tuple)),
             "Expecting nested list or tuple of UFLObjects.")
         return ListTensor(*expressions)
+    ufl_assert(len(indices) == 2, "Expecting two indices.")
     return ComponentTensor(expressions, indices)
 
-def Tensor(expressions, indices = None):
-    if indices is None:
-        ufl_assert(isinstance(expressions, (list, tuple)),
-            "Expecting nested list or tuple of UFLObjects.")
-        return ListTensor(*expressions)
-    return ComponentTensor(expressions, indices)
+def as_vector(expressions, index = None):
+    return as_tensor(expressions, None if index is None else (index,))
 
