@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-19-- 2008-10-02"
+__date__ = "2008-08-19-- 2008-10-09"
 
 from collections import defaultdict
 
@@ -19,7 +19,7 @@ from ..basisfunction import BasisFunction, BasisFunctions
 from ..function import Function, Constant
 from ..geometry import FacetNormal
 from ..indexing import MultiIndex, Indexed, Index
-from ..tensors import ListVector, ListMatrix, Tensor
+from ..tensors import ListTensor, ComponentTensor
 from ..algebra import Sum, Product, Division, Power, Mod, Abs
 from ..tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
 from ..mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
@@ -85,22 +85,17 @@ def diff_handlers():
         return (x, A[1][i[0]])
     d[Indexed] = diff_indexed
     
-    def diff_listvector(x, *ops):
+    def diff_listtensor(x, *ops):
         ops1 = [o[1] for o in ops]
-        return (x, ListVector(*ops1))
-    d[ListVector] = diff_listvector 
-    
-    def diff_listmatrix(x, *ops):
-        ops1 = [o[1] for o in ops]
-        return (x, ListMatrix(*ops1))
-    d[ListMatrix] = diff_listmatrix
+        return (x, ListTensor(*ops1))
+    d[ListTensor] = diff_listtensor
     
     def diff_tensor(x, *ops):
         A, i = ops
         if is_zero(A[1]):
             return (x, zero_tensor(x.shape()))
-        return (x, Tensor(A[1], i[0]) )
-    d[Tensor] = diff_tensor
+        return (x, ComponentTensor(A[1], i[0]) )
+    d[ComponentTensor] = diff_tensor
     
     def diff_sum(x, *ops):
         return (sum(o[0] for o in ops if not is_zero(o[0])),

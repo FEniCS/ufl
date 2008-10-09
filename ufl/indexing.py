@@ -91,7 +91,7 @@ class MultiIndex(Terminal):
     def __init__(self, indices, rank):
         self._indices = as_index_tuple(indices, rank)
         self._rank = rank
-        ufl_assert(len(self._indices) == rank, "No?")
+        ufl_assert(len(self._indices) == rank, "No? Why?")
     
     def free_indices(self):
         ufl_error("Calling free_indices on MultiIndex is undefined.")

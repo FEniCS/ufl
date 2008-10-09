@@ -20,7 +20,7 @@ from ..function import Function, Constant
 from ..geometry import FacetNormal
 from ..tensoralgebra import Identity
 from ..indexing import MultiIndex, Indexed, Index, FixedIndex
-from ..tensors import ListVector, ListMatrix, Tensor
+from ..tensors import ListTensor, ComponentTensor
 
 # Lists of all UFLObject classes
 from ..classes import ufl_classes, terminal_classes, nonterminal_classes, compound_classes

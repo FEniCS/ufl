@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-02"
+__date__ = "2008-03-14 -- 2008-10-09"
 
 # Modified by Anders Logg, 2008
 
@@ -36,8 +36,21 @@ def split(v):
             subv = Vector(components)
             offset += size
         else:
-            # FIXME: Handle this case, including symmetries
+            # FIXME: Handle general case
+            # FIXME: Handle symmetries
             ufl_error("Don't know how to split functions with sub functions of rank %d (yet)." % rank)
+            size = product(shape) # TODO: Ignoring symmetries here, is this ok?
+            
+            def tensor_components(sh, off):
+                comp = []
+                #def tensor_components(sh, off):
+                #for 
+                
+            components = []
+            for j, s in shape:
+                pass #v[j] for j in range(offset, offset + size)
+            subv = Tensor(components)
+            offset += size
         sub_functions.append(subv)
     
     ufl_assert(value_size == offset, "Logic breach in function splitting.")

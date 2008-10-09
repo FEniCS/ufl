@@ -5,7 +5,7 @@ converting UFL expressions to other representations."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-09-24"
+__date__ = "2008-05-07 -- 2008-10-09"
 
 from collections import defaultdict
 
@@ -20,7 +20,7 @@ from ..function import Function, Constant
 from ..geometry import FacetNormal
 from ..indexing import MultiIndex, Indexed, Index, FixedIndex
 #from ..indexing import AxisType, as_index, as_index_tuple, extract_indices
-from ..tensors import ListVector, ListMatrix, Tensor
+from ..tensors import ListTensor, ComponentTensor
 #from ..tensors import Vector, Matrix
 from ..algebra import Sum, Product, Division, Power, Mod, Abs
 from ..tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
@@ -121,18 +121,22 @@ def latex_handlers():
     d[Inverse]     = lambda x, A: "{%s}^{-1}" % par(A)
     d[Deviatoric]  = lambda x, A: "dev{%s}" % par(A)
     d[Cofactor]    = lambda x, A: "cofac{%s}" % par(A)
-    #d[ListVector]  =  FIXME
-    #d[ListMatrix]  =  FIXME
-    #d[Tensor]      =  FIXME
+    def l_listtensor(*ops):
+        return "\\left{FIXME: \\LaTeX handler for ListTensor not implemented!\\right}"
+        #return "\\matrix[%s]{%s}" % ("c"*len(ops), "".join("{%s}" % o for o in ops))
+    d[ListTensor]  = l_listtensor
+    def l_componenttensor(*ops):
+        return "\\left{FIXME: \\LaTeX handler for ComponentTensor not implemented!\\right}"
+    d[ComponentTensor] = l_componenttensor
     d[PositiveRestricted] = lambda x, f: "{%s}^+" % par(A)
     d[NegativeRestricted] = lambda x, f: "{%s}^-" % par(A)
-    #d[EQ] = FIXME
-    #d[NE] = FIXME
-    #d[LE] = FIXME
-    #d[GE] = FIXME
-    #d[LT] = FIXME
-    #d[GT] = FIXME
-    #d[Conditional] = FIXME
+    d[EQ] = lambda a, b: "(%s = %s)" % (a, b)
+    d[NE] = lambda a, b: "(%s \\ne %s)" % (a, b)
+    d[LE] = lambda a, b: "(%s \\le %s)" % (a, b)
+    d[GE] = lambda a, b: "(%s \\ge %s)" % (a, b)
+    d[LT] = lambda a, b: "(%s < %s)" % (a, b)
+    d[GT] = lambda a, b: "(%s > %s)" % (a, b)
+    d[Conditional] = lambda c, t, f: "\\left{ %s if %s otherwise %s \\right}" % (t, c, f) # FIXME
     
     # Print warnings about classes we haven't implemented:
     missing_handlers = set(ufl_classes)

@@ -110,3 +110,12 @@ for count, v in code.variableinfo.iteritems():
     print v
 print
 
+#integrand = mark_dependencies(integrand)
+#integrand = expand_compounds(integrand)#, skip=(Transpose, ...)
+#integrand = compute_diffs(integrand)
+#integrand = propagate_spatial_diffs(integrand)
+##integrand = expand_compounds(integrand)
+#(vinfo1, code1) = split_by_dependencies(integrand, formadata, basisfunction_deps, function_deps)
+#integrand = mark_dependencies(integrand)
+#(vinfo2, code2) = split_by_dependencies(integrand, formadata, basisfunction_deps, function_deps)
+
