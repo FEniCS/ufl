@@ -12,15 +12,12 @@ Some of the TODO's left:
  - Apply AD to computation of Derivative, SpatialDiff and Diff.
  - Find a smart way to handle nested AD:
     - Collapse nested SpatialDiff into a single SpatialDiff with multiple indices, sorted since they commute.
- - Apply Variable during AD to cache subexpressions we can reuse. Do we want to do this on the single operation level or on groups of operations?
+ - Use Variable during AD to cache subexpressions we can reuse. Do we want to do this on the single operation level or on groups of operations?
+ - Figure out issues with diff w.r.t. tensor variable
 
 # Algorithms:
  - Implement contraction function that expands all implicit summations into Sums (do we need this? can be merged with evaluation anyway)
- - Implement evaluation function for swiginac and sympy, given expressions for each basisfunction and function.
-
-# Containers:
- - Test and finalize class Tensor.
- - Generalize ListVector/ListMatrix to ListTensor. (can wait)
+ - Implement evaluation function for swiginac and sympy, given expressions for all terminals.
 
 # Elements and Basisfunctions (only minor or rare issues left):
  - Implement 'Test/Trial/BasisFunctions' for general tensor subelement with arbitrary symmetries
@@ -41,10 +38,9 @@ Some of the TODO's left:
  - Write tests for the algorithms, ideally covering all code in multiple ways.
 
 # Documentation:
- - Write the manual (can perhaps reuse some text I have)
- - Write the paper/book chapter (can perhaps reuse some text I have)
+ - Write the manual/paper/book chapter (can perhaps reuse some text I have)
+ - Rewrite/improve all error messages (collect strings in separate file?)
  - Improve operator docstrings (use epydoc @param and @return?)
- - Rewrite/improve all error messages
 
 # Prettyness and readability (can wait):
  - Improve parentesis use in __str__ and __repr__ and ufl2latex, use precedence list
