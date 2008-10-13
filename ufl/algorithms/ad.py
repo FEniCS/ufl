@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-19-- 2008-10-09"
+__date__ = "2008-08-19-- 2008-10-13"
 
 from collections import defaultdict
 
@@ -20,7 +20,7 @@ from ..function import Function, Constant
 from ..geometry import FacetNormal
 from ..indexing import MultiIndex, Indexed, Index
 from ..tensors import ListTensor, ComponentTensor
-from ..algebra import Sum, Product, Division, Power, Mod, Abs
+from ..algebra import Sum, Product, Division, Power, Abs
 from ..tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
 from ..mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
 from ..restriction import Restricted, PositiveRestricted, NegativeRestricted
@@ -44,7 +44,7 @@ from .transformations import transform, transform_integrands
 # - Add variable for differentated expression to cache
 
 # FIXME: Missing rules for:
-# Cross, Determinant, Cofactor, Mod, f(x)**g(x)
+# Cross, Determinant, Cofactor, f(x)**g(x)
 # FIXME: Could apply as_basic to Compound objects with no rule before differentiating
 
 
@@ -144,11 +144,6 @@ def diff_handlers():
         ufl_error("diff_power not implemented for case d/dx [ f(x)**g(x) ].")
         return (x, FIXME)
     d[Power] = diff_power
-    
-    def diff_mod(x, *ops):
-        ufl_error("diff_mod not implemented")
-        return (x, FIXME)
-    d[Mod] = diff_mod
     
     def diff_abs(x, *ops):
         f, fprime = ops[0]

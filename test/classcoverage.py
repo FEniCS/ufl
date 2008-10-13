@@ -250,10 +250,6 @@ class ClasscoverageTest(unittest.TestCase):
         
         a = Abs(f0)
         test_object(a, (), ())
-        a = Mod(f0, 3.0)
-        test_object(a, (), ())
-        a = Mod(3.0, f0)
-        test_object(a, (), ())
         a = Sqrt(f0)
         test_object(a, (), ())
         a = Cos(f0)

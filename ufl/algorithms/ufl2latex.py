@@ -5,7 +5,7 @@ converting UFL expressions to other representations."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-10-09"
+__date__ = "2008-05-07 -- 2008-10-13"
 
 from collections import defaultdict
 
@@ -21,7 +21,7 @@ from ..geometry import FacetNormal
 from ..indexing import MultiIndex, Indexed, Index, FixedIndex
 #from ..indexing import AxisType, as_index, as_index_tuple, extract_indices
 from ..tensors import ListTensor, ComponentTensor
-from ..algebra import Sum, Product, Division, Power, Mod, Abs
+from ..algebra import Sum, Product, Division, Power, Abs
 from ..tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
 from ..mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
 from ..restriction import Restricted, PositiveRestricted, NegativeRestricted
@@ -92,7 +92,6 @@ def latex_handlers():
     d[Product]   = l_product
     d[Division]  = lambda x, a, b: r"\frac{%s}{%s}" % (a, b)
     d[Power]     = l_binop("^")
-    d[Mod]       = l_binop("\\mod")
     d[Abs]       = lambda x, a: "|%s|" % a
     d[Transposed] = lambda x, a: "{%s}^T" % a
     d[Indexed]   = lambda x, a, b: "{%s}_{%s}" % (a, b)

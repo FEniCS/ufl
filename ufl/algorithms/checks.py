@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-03"
+__date__ = "2008-03-14 -- 2008-10-13"
 
 # Modified by Anders Logg, 2008.
 
@@ -21,7 +21,7 @@ from ..geometry import FacetNormal
 from ..indexing import MultiIndex, Indexed
 #from ..indexing import Index, FixedIndex, AxisType, as_index, as_index_tuple, extract_indices
 from ..tensors import ListTensor, ComponentTensor
-from ..algebra import Sum, Product, Division, Power, Mod, Abs
+from ..algebra import Sum, Product, Division, Power, Abs
 from ..tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
 from ..mathfunctions import MathFunction
 from ..restriction import Restricted, PositiveRestricted, NegativeRestricted

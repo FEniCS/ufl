@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2008-09-24"
+__date__ = "2008-05-20 -- 2008-10-13"
 
 # Modified by Anders Logg, 2008
 
@@ -145,33 +145,6 @@ class Power(UFLObject):
     
     def __repr__(self):
         return "(%r ** %r)" % (self._a, self._b)
-
-class Mod(UFLObject):
-    __slots__ = ("_a", "_b")
-    
-    def __init__(self, a, b):
-        self._a = as_ufl(a)
-        self._b = as_ufl(b)
-        ufl_assert(is_true_scalar(self._a) and is_true_scalar(self._b),
-            "Non-scalar mod not defined.")
-    
-    def operands(self):
-        return (self._a, self._b)
-    
-    def free_indices(self):
-        return tuple()
-    
-    def shape(self):
-        return ()
-
-    def is_linear(self):
-        return False
-
-    def __str__(self):
-        return "(%s %% %s)" % (str(self._a), str(self._b))
-    
-    def __repr__(self):
-        return "(%r %% %r)" % (self._a, self._b)
 
 class Abs(UFLObject):
     __slots__ = ("_a",)

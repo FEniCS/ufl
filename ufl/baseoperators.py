@@ -5,12 +5,12 @@ Sum and its superclass UFLObject."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-18 -- 2008-09-24"
+__date__ = "2008-08-18 -- 2008-10-13"
 
 # UFL imports
 from .output import ufl_error, ufl_assert
 from .base import UFLObject, FloatValue, float_value, ZeroType, is_zero, zero_tensor, as_ufl, is_python_scalar
-from .algebra import Sum, Product, Division, Power, Mod, Abs
+from .algebra import Sum, Product, Division, Power, Abs
 from .tensoralgebra import Transposed, Dot
 from .indexing import Indexed
 from .restriction import PositiveRestricted, NegativeRestricted
@@ -108,18 +108,6 @@ def _rpow(self, o):
     if not isinstance(o, UFLObject): return NotImplemented
     return Power(o, self)
 UFLObject.__rpow__ = _rpow
-
-def _mod(self, o):
-    if is_python_scalar(o): o = float_value(o)
-    if not isinstance(o, UFLObject): return NotImplemented
-    return Mod(self, o)
-UFLObject.__mod__ = _mod
-
-def _rmod(self, o):
-    if is_python_scalar(o): o = float_value(o)
-    if not isinstance(o, UFLObject): return NotImplemented
-    return Mod(o, self)
-UFLObject.__rmod__ = _rmod
 
 def _neg(self):
     if isinstance(self, FloatValue):
