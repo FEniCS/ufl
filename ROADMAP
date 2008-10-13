@@ -21,6 +21,7 @@ Some of the TODO's left:
 
 # Elements and Basisfunctions (only minor or rare issues left):
  - Implement 'Test/Trial/BasisFunctions' for general tensor subelement with arbitrary symmetries
+   FIXME: Need to agree on some numbering conventions here.
  - Add Cell support for high order geometries?
      cell = Cell("triangle", 2)
      element = FiniteElement("CG", cell, 1)
@@ -46,7 +47,8 @@ Some of the TODO's left:
  - Improve parentesis use in __str__ and __repr__ and ufl2latex, use precedence list
 
 # Time derivatives (can wait):
- - Do we want something like Dt(u), Dtt(u), CR(a), FE(a), BE(a), TR(a, theta)? 
+ - Do we want something like Dt(u), Dtt(u), CR(a), FE(a), BE(a), TR(a, theta)?
+ - Interesting in combination with time elements?
 
 # Physical units (can wait):
  - Utility algorithms for validating the physical dimensions in a form.
