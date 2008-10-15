@@ -5,7 +5,7 @@ implementation details not exposed through the default ufl namespace."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-15 -- 2008-10-13"
+__date__ = "2008-08-15 -- 2008-10-15"
 
 # Modified by Anders Logg, 2008
 
@@ -15,7 +15,7 @@ from .finiteelement import FiniteElementBase, FiniteElement, MixedElement, Vecto
 from .basisfunction import BasisFunction, TestFunction, TrialFunction
 from .function import Function, VectorConstant, TensorConstant, Constant
 from .geometry import FacetNormal
-from .indexing import MultiIndex, Indexed, Index, FixedIndex
+from .indexing import MultiIndex, Indexed, Index, FixedIndex, AxisType
 #from .indexing import AxisType, as_index, as_index_tuple, extract_indices
 from .tensors import ListTensor, ComponentTensor
 from .algebra import Sum, Product, Division, Power, Abs

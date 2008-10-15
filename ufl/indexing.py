@@ -281,4 +281,3 @@ def free_index_dimensions(e):
     # FIXME: Get the dimensions from the expression!
     ufl_warning("free_index_dimensions just returns DefaultDim for everything, needs better implementation.")
     return dict((i, DefaultDim) for i in e.free_indices())
-
