@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-09-19"
+__date__ = "2008-03-14 -- 2008-10-15"
 
 from .output import ufl_assert
 from .base import UFLObject, Compound
@@ -46,6 +46,14 @@ class SpatialDerivative(UFLObject):
     
     def shape(self):
         return self._shape
+
+    def repeated_index_dimensions(self):
+        # Repeated indices here always iterate over the default
+        # spatial range, so I think this should be correct:
+        d = {}
+        for i in self._repeated_indices:
+            d[i] = DefaultDim
+        return d
     
     def __str__(self):
         # TODO: Pretty-print for higher order derivatives.

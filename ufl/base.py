@@ -31,10 +31,12 @@ class UFLObject(object):
         "Return a tuple with the free indices (unassigned) of the expression."
         raise NotImplementedError(self.__class__.free_indices)
 
-    # All subclasses must implement repeated_indices
-    #def repeated_indices(self): # FIXME: Add this?
-    #    "Return a tuple with the free indices (unassigned) of the expression."
-    #    raise NotImplementedError(self.__class__.free_indices)
+    # All subclasses must implement repeated_index_dimensions 
+    # if they can have any repeated indices
+    def repeated_index_dimensions(self):
+        """Return a dict with the repeated indices in the expression
+        as keys and the dimensions of those indices as values."""
+        return {}
 
     # All subclasses must implement free_index_dimensions
     #def free_index_dimensions(self): # FIXME: Add this?

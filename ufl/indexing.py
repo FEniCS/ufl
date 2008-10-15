@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-14 -- 2008-09-17"
+__date__ = "2008-03-14 -- 2008-10-15"
 
 # Python imports
 from collections import defaultdict
@@ -111,7 +111,8 @@ class MultiIndex(Terminal):
 
 class Indexed(UFLObject):
     __slots__ = ("_expression", "_indices",
-                 "_free_indices", "_repeated_indices", "_shape")
+                 "_free_indices", "_shape",
+                 "_repeated_indices", "_repeated_index_dims",)
     def __init__(self, expression, indices):
         self._expression = expression
         
@@ -124,8 +125,15 @@ class Indexed(UFLObject):
             (len(self._indices), expression.rank(), expression)
         ufl_assert(expression.rank() == len(self._indices), msg)
         
+        shape = expression.shape()
         (self._free_indices, self._repeated_indices, self._shape) = \
-            extract_indices(self._indices._indices, expression.shape())
+            extract_indices(self._indices._indices, shape)
+        
+        # store dimensions of repeated indices
+        self._repeated_index_dims = {}
+        for k, i in enumerate(self._indices._indices):
+            if i in self._repeated_indices:
+                self._repeated_index_dims[i] = shape[k]
     
     def operands(self):
         return (self._expression, self._indices)
@@ -133,11 +141,11 @@ class Indexed(UFLObject):
     def free_indices(self):
         return self._free_indices
     
-    def repeated_indices(self):
-        return self._repeated_indices
-    
     def shape(self):
         return self._shape
+
+    def repeated_index_dimensions(self):
+        return self._repeated_index_dims
     
     def __str__(self):
         return "%s[%s]" % (self._expression, self._indices)

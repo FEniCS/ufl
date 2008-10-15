@@ -1,6 +1,7 @@
 """Basic algebra operations."""
 
 from __future__ import absolute_import
+from ufl.indexing import DefaultDim
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-05-20 -- 2008-10-13"
@@ -86,6 +87,12 @@ class Product(UFLObject):
     
     def shape(self):
         return self._shape
+    
+    def repeated_index_dimensions(self):
+        d = {}
+        for i in self._repeated_indices:
+            d[i] = DefaultDim # FIXME: Allow other dimensions here!
+        return d
     
     def __str__(self):
         return "(%s)" % " * ".join(str(o) for o in self._operands)
