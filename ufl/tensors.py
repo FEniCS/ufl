@@ -84,8 +84,9 @@ class ComponentTensor(UFLObject):
         self._free_indices = tuple(freeset)
         ufl_assert(len(missingset) == 0, "Missing indices %s in expression %s." % (missingset, expression))
         
-        dims = free_index_dimensions(expression)
+        dims = free_index_dimensions(expression) # FIXME: Fix this!
         self._shape = tuple(dims[i] for i in self._indices._indices)
+        #self._shape = tuple(DefaultDim for i in self._indices._indices)
     
     def operands(self):
         return (self._expression, self._indices)

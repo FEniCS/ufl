@@ -33,7 +33,7 @@ class UFLObject(object):
 
     # All subclasses must implement repeated_index_dimensions 
     # if they can have any repeated indices
-    def repeated_index_dimensions(self):
+    def repeated_index_dimensions(self, default_dim):
         """Return a dict with the repeated indices in the expression
         as keys and the dimensions of those indices as values."""
         return {}

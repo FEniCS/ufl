@@ -112,7 +112,7 @@ class MultiIndex(Terminal):
 class Indexed(UFLObject):
     __slots__ = ("_expression", "_indices",
                  "_free_indices", "_shape",
-                 "_repeated_indices", "_repeated_index_dims",)
+                 "_repeated_indices",)
     def __init__(self, expression, indices):
         self._expression = expression
         
@@ -128,12 +128,6 @@ class Indexed(UFLObject):
         shape = expression.shape()
         (self._free_indices, self._repeated_indices, self._shape) = \
             extract_indices(self._indices._indices, shape)
-        
-        # store dimensions of repeated indices
-        self._repeated_index_dims = {}
-        for k, i in enumerate(self._indices._indices):
-            if i in self._repeated_indices:
-                self._repeated_index_dims[i] = shape[k]
     
     def operands(self):
         return (self._expression, self._indices)
@@ -144,9 +138,15 @@ class Indexed(UFLObject):
     def shape(self):
         return self._shape
 
-    def repeated_index_dimensions(self):
-        return self._repeated_index_dims
-    
+    def repeated_index_dimensions(self, default_dim):
+        d = {}
+        shape = self._expression.shape()
+        for k, i in enumerate(self._indices._indices):
+            if i in self._repeated_indices:
+                j = shape[k]
+                d[i] = default_dim if isinstance(j, DefaultDimType) else j
+        return d
+
     def __str__(self):
         return "%s[%s]" % (self._expression, self._indices)
     

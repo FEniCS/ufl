@@ -88,10 +88,10 @@ class Product(UFLObject):
     def shape(self):
         return self._shape
     
-    def repeated_index_dimensions(self):
+    def repeated_index_dimensions(self, default_dim):
         d = {}
         for i in self._repeated_indices:
-            d[i] = DefaultDim # FIXME: Allow other dimensions here!
+            d[i] = default_dim # FIXME: Allow other dimensions here!
         return d
     
     def __str__(self):

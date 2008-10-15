@@ -47,12 +47,12 @@ class SpatialDerivative(UFLObject):
     def shape(self):
         return self._shape
 
-    def repeated_index_dimensions(self):
+    def repeated_index_dimensions(self, default_dim):
         # Repeated indices here always iterate over the default
         # spatial range, so I think this should be correct:
         d = {}
         for i in self._repeated_indices:
-            d[i] = DefaultDim
+            d[i] = default_dim
         return d
     
     def __str__(self):
