@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-31 -- 2008-10-09"
+__date__ = "2008-03-31 -- 2008-10-13"
 
 
 from .output import ufl_assert, ufl_warning
@@ -108,6 +108,8 @@ def as_tensor(expressions, indices = None):
         ufl_assert(isinstance(expressions, (list, tuple)),
             "Expecting nested list or tuple of UFLObjects.")
         return ListTensor(*expressions)
+    ufl_assert(all(isinstance(ii, Index) for ii in indices),
+               "Expecting sequence of Index objects.")
     return ComponentTensor(expressions, indices)
 
 def as_matrix(expressions, indices = None):
@@ -117,9 +119,13 @@ def as_matrix(expressions, indices = None):
         ufl_assert(isinstance(expressions[0], (list, tuple)),
             "Expecting nested list or tuple of UFLObjects.")
         return ListTensor(*expressions)
-    ufl_assert(len(indices) == 2, "Expecting two indices.")
+    ufl_assert(all(isinstance(ii, Index) for ii in indices),
+               "Expecting sequence of Index objects.")
+    ufl_assert(len(indices) == 2, "Expecting exactly two indices.")
     return ComponentTensor(expressions, indices)
 
 def as_vector(expressions, index = None):
-    return as_tensor(expressions, None if index is None else (index,))
-
+    if index is not None:
+        ufl_assert(isinstance(index, Index), "Expecting Index object.")
+        index = (index,)
+    return as_tensor(expressions, index)
