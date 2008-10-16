@@ -4,7 +4,7 @@ types involved with built-in operators on any UFL object."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-09-26"
+__date__ = "2008-03-14 -- 2008-10-16"
 
 # Modified by Anders Logg, 2008
 
@@ -83,6 +83,9 @@ class UFLObject(object):
     def __getnewargs__(self): # TODO: Test pickle and copy with this. Must implement differently for Terminal objects though.
         "Used for pickle and copy operations."
         return self.operands()
+
+    def __iter__(self):
+        raise NotImplementedError
 
 
 #--- A note about other operators ---

@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-14 -- 2008-10-15"
+__date__ = "2008-03-14 -- 2008-10-16"
 
 # Python imports
 from collections import defaultdict
@@ -107,6 +107,9 @@ class MultiIndex(Terminal):
     
     def __len__(self):
         return len(self._indices)
+    
+    def __iter__(self):
+        return iter(self._indices)
 
 
 class Indexed(UFLObject):
