@@ -108,7 +108,7 @@ def indices(expression):
     multi_indices = extract_type(expression, MultiIndex)
     indices = set()
     for mi in multi_indices:
-        indices.update(i for i in mi._indices if isinstance(i, Index))
+        indices.update(i for i in mi if isinstance(i, Index))
     return indices
 
 def duplications(expression):

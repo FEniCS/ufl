@@ -70,7 +70,7 @@ def latex_handlers():
     d[Variable]  = l_variable
     def l_multiindex(x):
         s = ""
-        for ix in x._indices:
+        for ix in x:
             if isinstance(ix, FixedIndex):
                 s += "%d" % ix._value
             elif isinstance(ix, Index):

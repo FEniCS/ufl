@@ -35,7 +35,7 @@ def substitute_indices(expression, indices, values):
 
     def s_multi_index(x, *ops):
         newindices = []
-        for i in x._indices:
+        for i in x:
             try:
                 idx = indices.index(i)
                 val = values[idx]
@@ -89,12 +89,12 @@ def renumber_indices(expression, offset=0):
     handlers = ufl_reuse_handlers()
     def multi_index_handler(o):
         ind = []
-        for i in o._indices:
+        for i in o:
             if isinstance(i, Index):
                 ind.append(indexmap[i])
             else:
                 ind.append(i)
-        return MultiIndex(tuple(ind), len(o._indices))
+        return MultiIndex(tuple(ind), len(o))
     handlers[MultiIndex] = multi_index_handler
     return transform(expression, handlers)
 
