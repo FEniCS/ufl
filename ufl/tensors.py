@@ -74,19 +74,18 @@ class ComponentTensor(UFLObject):
             # Allowing Axis or FixedIndex here would make no sense
             ufl_assert(all(isinstance(ind, Index) for ind in indices))
             self._indices = MultiIndex(indices, len(indices))
-        ufl_assert(all(isinstance(i, Index) for i in self._indices._indices),
+        ufl_assert(all(isinstance(i, Index) for i in self._indices),
             "Expecting indices to be tuple of Index instances, not %s." % repr(indices))
         
         eset = set(expression.free_indices())
-        iset = set(self._indices._indices)
+        iset = set(self._indices)
         freeset = eset - iset
         missingset = iset - eset
         self._free_indices = tuple(freeset)
         ufl_assert(len(missingset) == 0, "Missing indices %s in expression %s." % (missingset, expression))
         
-        dims = free_index_dimensions(expression) # FIXME: Fix this!
-        self._shape = tuple(dims[i] for i in self._indices._indices)
-        #self._shape = tuple(DefaultDim for i in self._indices._indices)
+        dims = expression.free_index_dimensions()
+        self._shape = tuple(dims[i] for i in self._indices)
     
     def operands(self):
         return (self._expression, self._indices)

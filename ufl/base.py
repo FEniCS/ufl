@@ -36,12 +36,19 @@ class UFLObject(object):
     def repeated_index_dimensions(self, default_dim):
         """Return a dict with the repeated indices in the expression
         as keys and the dimensions of those indices as values."""
+        # Only a few classes need to override this
         return {}
-
-    # All subclasses must implement free_index_dimensions
-    #def free_index_dimensions(self): # FIXME: Add this?
-    #    "Return a tuple with the dimensions of the free indices."
-    #    raise NotImplementedError(self.__class__.free_index_dimensions)
+    
+    # TODO: Must all subclasses implement free_index_dimensions?
+    def free_index_dimensions(self):
+        """Return a dict with the free indices in the expression
+        as keys and the dimensions of those indices as values."""
+        # TODO: Implement this everywhere. Need it to get the right shape of ComponentTensor.
+        #raise NotImplementedError(self.__class__.free_index_dimensions)
+        # This implementation works for all types as long as the
+        # indices aren't indexing something with non-default dimensions...
+        # Perhaps we could disallow indexing of non-default dimension sizes?
+        return dict((i, DefaultDim) for i in self.free_indices())
     
     # All subclasses must implement shape
     def shape(self):
