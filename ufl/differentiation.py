@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-15"
+__date__ = "2008-03-14 -- 2008-10-16"
 
 from .output import ufl_assert
 from .base import UFLObject, Compound
@@ -43,6 +43,9 @@ class SpatialDerivative(UFLObject):
     
     def free_indices(self):
         return self._free_indices
+
+    def repeated_indices(self):
+        return self._repeated_indices
     
     def shape(self):
         return self._shape

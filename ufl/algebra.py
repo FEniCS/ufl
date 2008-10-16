@@ -85,6 +85,9 @@ class Product(UFLObject):
     def free_indices(self):
         return self._free_indices
     
+    def repeated_indices(self):
+        return self._repeated_indices
+
     def shape(self):
         return self._shape
     

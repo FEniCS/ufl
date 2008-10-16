@@ -140,6 +140,9 @@ class Indexed(UFLObject):
     
     def free_indices(self):
         return self._free_indices
+
+    def repeated_indices(self):
+        return self._repeated_indices
     
     def shape(self):
         return self._shape
@@ -290,8 +293,3 @@ def compare_shapes(a, b, dim=None):
                     (isinstance(i, DefaultDimType) and j == dim) or \
                     (isinstance(j, DefaultDimType) and i == dim)) \
                     for (i,j) in zip(a,b))
-
-def free_index_dimensions(e):
-    # FIXME: Get the dimensions from the expression!
-    ufl_warning("free_index_dimensions just returns DefaultDim for everything, needs better implementation.")
-    return dict((i, DefaultDim) for i in e.free_indices())

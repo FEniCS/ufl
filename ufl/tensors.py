@@ -3,12 +3,12 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-31 -- 2008-10-13"
+__date__ = "2008-03-31 -- 2008-10-16"
 
 
 from .output import ufl_assert, ufl_warning
 from .base import UFLObject, Terminal, as_ufl
-from .indexing import Index, MultiIndex, DefaultDim, free_index_dimensions
+from .indexing import Index, MultiIndex, DefaultDim
 
 
 class ListTensor(UFLObject):
@@ -84,7 +84,7 @@ class ComponentTensor(UFLObject):
         self._free_indices = tuple(freeset)
         ufl_assert(len(missingset) == 0, "Missing indices %s in expression %s." % (missingset, expression))
         
-        dims = expression.free_index_dimensions()
+        dims = expression.free_index_dimensions(DefaultDim)
         self._shape = tuple(dims[i] for i in self._indices)
     
     def operands(self):
