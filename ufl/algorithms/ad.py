@@ -32,6 +32,8 @@ from ..conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ..classes import terminal_classes
 from ..operators import dot, inner, outer, lt, eq, conditional
 from ..operators import sqrt, exp, ln, cos, sin
+from .traversal import iter_expressions
+from .analysis import extract_type
 from .transformations import transform, transform_integrands
 
 
@@ -325,7 +327,8 @@ def compute_variable_derivatives(form):
 def propagate_spatial_derivatives(form):
     """Partially apply automatic differentiation to form
     by propagating spatial derivatives to terminal objects."""
-    FIXME
+    ufl_assert(not extract_type(form, SpatialDerivative), "propagate_spatial_derivatives not implemented")
+    return form
 
 
 def compute_form_derivative(form, function, basisfunction):
