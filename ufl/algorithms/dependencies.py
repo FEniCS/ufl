@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-10-01 -- 2008-10-16"
+__date__ = "2008-10-01 -- 2008-10-17"
 
 from collections import defaultdict
 from itertools import izip, chain
@@ -305,6 +305,8 @@ def split_by_dependencies(expression, formdata, basisfunction_deps, function_dep
         return function_deps[formdata.coefficient_renumbering[x]]
     def get_basisfunction_deps(x):
         return basisfunction_deps[formdata.basisfunction_renumbering[x]]
+    def get_variable_deps(x):
+        return variable_deps[x.count()]
     terminal_dep_handlers[MultiIndex] = no_deps
     terminal_dep_handlers[Identity]   = no_deps
     terminal_dep_handlers[FloatValue] = no_deps
@@ -313,6 +315,7 @@ def split_by_dependencies(expression, formdata, basisfunction_deps, function_dep
     terminal_dep_handlers[BasisFunction] = get_basisfunction_deps
     terminal_dep_handlers[Constant]      = get_function_deps
     terminal_dep_handlers[Function]      = get_function_deps
+    terminal_dep_handlers[Variable] = get_variable_deps
     
     # FIXME: Introduce dependency of mapping with gradients...
     #  BasisFunction shouldn't normally depend on the mapping, but the gradients do...

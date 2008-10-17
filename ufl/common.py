@@ -1,7 +1,7 @@
 "This module contains a collection of common utilities."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-08-05 -- 2008-10-02"
+__date__ = "2008-08-05 -- 2008-10-17"
 
 from itertools import izip
 import operator
@@ -45,6 +45,7 @@ def lstr(l):
         return "(" + ", ".join([lstr(item) for item in l]) + ")"
     return str(l)
 
+
 class Counted(object):
     """A class of objects identified by a global counter.
     
@@ -59,6 +60,9 @@ class Counted(object):
             self._count = count
             if count >= self.__class__._globalcount:
                 self.__class__._globalcount = count + 1
+    
+    def count(self):
+        return _count
 
 
 class Stack(list):
