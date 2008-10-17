@@ -17,6 +17,7 @@ from ..base import UFLObject, Terminal, FloatValue, ZeroType
 from ..variable import Variable
 from ..basisfunction import BasisFunction
 from ..function import Function, Constant
+from ..differentiation import SpatialDerivative
 from ..geometry import FacetNormal
 from ..tensoralgebra import Identity
 from ..indexing import MultiIndex, Indexed, Index, FixedIndex
@@ -27,6 +28,7 @@ from ..classes import ufl_classes, terminal_classes, nonterminal_classes, compou
 
 # Other algorithms:
 from .analysis import basisfunctions, coefficients, indices, duplications
+from .variables import extract_variables
 from .transformations import transform
 
 
@@ -158,7 +160,7 @@ class CodeStructure:
         
         return s
 
-    def split_stacks(self):
+    def split_stacks(self): # TODO: Remove this or change the concept. Doesn't belong here.
         
         # Start with all variable stacks
         stacks = self.stacks
@@ -279,54 +281,6 @@ def split_by_dependencies(expression, formdata, basisfunction_deps, function_dep
     """
     ufl_assert(isinstance(expression, UFLObject), "Expecting UFLObject.")
     
-    variable_deps = {}
-    
-    # Utility function to ensure consistent ordering of dependency tuples
-    bfs = (False,)*len(basisfunction_deps)
-    fs = (False,)*len(function_deps)
-    def make_deps(basisfunction=None, function=None,
-                  cell=False, mapping=False, facet=False, coordinates=False):
-        d = DependencySet(bfs, fs, cell=cell, mapping=mapping,
-                          facet=facet, coordinates=coordinates)
-        if basisfunction is not None:
-            d |= basisfunction_deps[basisfunction]
-        if function is not None:
-            d |= function_deps[function]
-        return d
-    
-    codestructure = CodeStructure()
-    
-    # Define dependencies for all Terminal objects:
-    terminal_dep_handlers = {}
-    _no_dep = make_deps()
-    def no_deps(x):
-        return _no_dep
-    _facet_normal_dep = make_deps(facet=True)
-    def get_facet_normal_deps(x):
-        return _facet_normal_dep
-    def get_function_deps(x):
-        return function_deps[formdata.coefficient_renumbering[x]]
-    def get_basisfunction_deps(x):
-        return basisfunction_deps[formdata.basisfunction_renumbering[x]]
-    def get_variable_deps(x):
-        ufl_assert(x._count in variable_deps,
-                   "Haven't handled variable in time: %s" % repr(x))
-        return variable_deps[x._count]
-    def get_spatial_derivative_deps(x):
-        return FIXME
-    terminal_dep_handlers[MultiIndex] = no_deps
-    terminal_dep_handlers[Identity]   = no_deps
-    terminal_dep_handlers[FloatValue] = no_deps
-    terminal_dep_handlers[ZeroType]   = no_deps
-    terminal_dep_handlers[FacetNormal]   = get_facet_normal_deps
-    terminal_dep_handlers[BasisFunction] = get_basisfunction_deps
-    terminal_dep_handlers[Constant]      = get_function_deps
-    terminal_dep_handlers[Function]      = get_function_deps
-    terminal_dep_handlers[Variable] = get_variable_deps
-    #terminal_dep_handlers[SpatialDerivative] = get_spatial_derivative_deps
-    # FIXME: Introduce dependency of mapping with gradients...
-    #  BasisFunction shouldn't normally depend on the mapping, but the gradients will always do...
-    
     # Exctract a list of all variables in expression 
     variables = extract_variables(expression)
     if isinstance(expression, Variable):
@@ -336,19 +290,107 @@ def split_by_dependencies(expression, formdata, basisfunction_deps, function_dep
         expression = Variable(expression)
         variables.append(expression)
     
-    # Perform! This fills in codestructure and returns
-    # the final form of the expression and its dependencies
+    # Split each variable
+    ds = DependencySplitter(formdata, basisfunction_deps, function_deps)
     for v in variables:
-        e, deps = _split_by_dependencies(v._expression, codestructure, terminal_dep_handlers) # FIXME: Any reason this returns e?
-        variable_deps[v._count] = (e, deps)
+        vinfo = ds.handle(v)
+
+    # How can I be sure we won't mess up the expressions of v and vinfo.variable, before and after splitting?
+    # The answer is to never use v in the form compiler after this point,
+    # and let v._count identify the variable in the code structure.
     
-    # Add final form of the expression e to stacks and return variable
-    vinfo = codestructure.variableinfo.get(e._count, None)
-    if vinfo is None:
-        vinfo = VariableInfo(e, deps)
-        codestructure.variableinfo[e._count] = vinfo
-        codestructure.stacks[deps].append(vinfo)
-    return (vinfo, codestructure)
+    return (vinfo, ds.codestructure)
+
+
+class DependencySplitter:
+    def __init__(self, formdata, basisfunction_deps, function_deps):
+        self.formdata = formdata
+        self.basisfunction_deps = basisfunction_deps
+        self.function_deps = function_deps
+        self.variables = []
+        self.variable_deps = {}
+        self.codestructure = CodeStructure()
+
+        # First set default behaviour for dependencies
+        self.handlers = {}
+        for c in terminal_classes:
+            self.handlers[c] = self.no_deps
+        for c in nonterminal_classes:
+            self.handlers[c] = self.child_deps
+        # Override with specific behaviour for some classes
+        self.handlers[FacetNormal]   = self.get_facet_normal_deps
+        self.handlers[BasisFunction] = self.get_basisfunction_deps
+        self.handlers[Constant]      = self.get_function_deps
+        self.handlers[Function]      = self.get_function_deps
+        self.handlers[Variable]      = self.get_variable_deps
+        self.handlers[SpatialDerivative] = self.get_spatial_derivative_deps
+
+    def make_deps(self, basisfunction=None, function=None,
+                  cell=False, mapping=False,
+                  facet=False, coordinates=False):
+        bfs = (False,)*len(self.basisfunction_deps)
+        fs = (False,)*len(self.function_deps)
+        d = DependencySet(bfs, fs, cell=cell, mapping=mapping,
+                          facet=facet, coordinates=coordinates)
+        if basisfunction is not None:
+            d |= basisfunction_deps[basisfunction]
+        if function is not None:
+            d |= function_deps[function]
+        return d
+    
+    def no_deps(self, x):
+        return x, self.make_deps()
+    
+    def get_facet_normal_deps(self, x):
+        return x, self.make_deps(facet=True)
+    
+    def get_function_deps(self, x):
+        return x, self.function_deps[self.formdata.coefficient_renumbering[x]]
+    
+    def get_basisfunction_deps(self, x):
+        return x, self.basisfunction_deps[self.formdata.basisfunction_renumbering[x]]
+    
+    def get_variable_deps(self, x):
+        # FIXME: Create new Variable with invalid expression (must keep shape etc!) and same count?
+        ufl_assert(x._count in variable_deps,
+                   "Haven't handled variable in time: %s" % repr(x))
+        v = x # self.handled_variables[x._count]
+        return v, self.variable_deps[x._count]
+    
+    def get_spatial_derivative_deps(self, x):
+        # FIXME: Introduce dependency of mapping with gradients...
+        #  BasisFunction won't normally depend on the mapping, but the gradients will always do...
+        return FIXME
+    
+    def child_deps(self, x, *ops):
+        ufl_assert(ops, "Non-terminal with no ops should never occur.")
+        # Combine dependencies
+        d = ops[0][1]
+        for o in ops[1:]:
+            d |= o[1]
+        # Reuse expression if possible
+        ops = [o[0] for o in ops]
+        if all((a is b) for (a, b) in zip(ops, x.operands())):
+            return x, d
+        # Construct new expression
+        return x.__class__(*ops), d
+
+    def transform(self, x):
+        c = x.__class__
+        h = self.handlers[c]
+        if isinstance(x, Terminal):
+            return h(x)
+        ops = [self.transform(o) for o in x.operands()]
+        return h(x, *ops)
+        
+    def handle(self, v):
+        ufl_assert(isinstance(v, Variable), "Expecting Variable.")
+        vinfo = self.codestructure.variableinfo.get(v._count, None)
+        if vinfo is None:
+            # split v._expression 
+            v2, deps = self.transform(v._expression)
+            vinfo = VariableInfo(v2, deps)
+        return vinfo
 
 
 def _test_dependency_set():
@@ -365,10 +407,11 @@ def _test_dependency_set():
     print d3
     print d4
 
-def unit_tuple(i, n, true=True, false=False):
-    return tuple(true if i == j else false for j in xrange(n))
 
 def _test_split_by_dependencies():
+    def unit_tuple(i, n, true=True, false=False):
+        return tuple(true if i == j else false for j in xrange(n))
+    
     a = FIXME
     
     formdata = FormData(a)

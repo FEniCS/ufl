@@ -31,7 +31,7 @@ class FormData(object):
         
         self.rank = len(self.basisfunctions)
         self.num_coefficients = len(self.coefficients)
-        self.geometric_dimension = domain_to_dim[self.domain]
+        self.geometric_dimension = domain_to_dim(self.domain)
         self.topological_dimension = self.geometric_dimension
         
         def argument_renumbering(arguments):
