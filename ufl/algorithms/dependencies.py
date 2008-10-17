@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-10-01 -- 2008-10-02"
+__date__ = "2008-10-01 -- 2008-10-16"
 
 from collections import defaultdict
 from itertools import izip, chain
@@ -208,9 +208,9 @@ def _split_by_dependencies(expression, codestructure, terminal_deps):
         info = codestructure.variableinfo.get(c, None)
         if info is not None:
             return info.variable, info.deps
-        #codestructure.stacks[vdeps].append(v)
+        #codestructure.stacks[info.deps].append(info)
     
-    elif isinstance(expression, Terminal):
+    if isinstance(expression, Terminal):
         h = terminal_deps[expression.__class__]
         deps = h(expression)
         if codestructure.stacks:

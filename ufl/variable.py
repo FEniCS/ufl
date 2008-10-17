@@ -3,11 +3,12 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2008-10-02"
+__date__ = "2008-05-20 -- 2008-10-16"
 
 from collections import defaultdict
-from .base import Terminal
 from .common import Counted
+from .output import ufl_assert
+from .base import UFLObject, Terminal
 
 class Variable(Terminal, Counted):
     """A Variable is a representative for another expression.
@@ -23,6 +24,7 @@ class Variable(Terminal, Counted):
     _globalcount = 0
     def __init__(self, expression, count=None):
         Counted.__init__(self, count)
+        ufl_assert(isinstance(expression, UFLObject), "Expecting an UFLObject.")
         self._expression = expression
         self._diffcache = defaultdict(list)
     

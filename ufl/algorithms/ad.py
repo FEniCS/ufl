@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-19-- 2008-10-13"
+__date__ = "2008-08-19-- 2008-10-16"
 
 from collections import defaultdict
 
@@ -288,9 +288,9 @@ def diff_handlers():
     return d
 
 
-def compute_diff(expression, var):
+def compute_diff(expression, var): # FIXME: Is this correct? Don't understand how I was thinking myself now...
     "Differentiate expression w.r.t Variable var."
-    ufl_assert(var.shape() == (), "Diff w.r.t. nonscalar variable not implemented.")
+    ufl_assert(var is None or var.shape() == (), "Diff w.r.t. nonscalar variable not implemented.")
     
     handlers = diff_handlers()
     
@@ -312,8 +312,14 @@ def compute_diff(expression, var):
     # FIXME: Use Variable._diff_cache! 
     
     # Wrap compute_diff result in Variable
-    result = transform(expression, handlers)
-    result = Variable(result)
+    e, ediff = transform(expression, handlers)
+    if var is None:
+        result = e
+    else:
+        result = ediff
+    
+    if not isinstance(result, Variable):
+        result = Variable(result)
     return result
 
 

@@ -75,7 +75,7 @@ from .function import Constant, VectorConstant, TensorConstant
 from .geometry import FacetNormal
 
 # indexing of tensor expressions
-from .indexing import Index
+from .indexing import Index, indices
 #from .indexing import as_index, as_index_tuple, extract_indices
 
 # restriction operators

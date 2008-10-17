@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-14 -- 2008-10-16"
+__date__ = "2008-03-14 -- 2008-10-17"
 
 # Python imports
 from collections import defaultdict
@@ -293,3 +293,7 @@ def compare_shapes(a, b, dim=None):
                     (isinstance(i, DefaultDimType) and j == dim) or \
                     (isinstance(j, DefaultDimType) and i == dim)) \
                     for (i,j) in zip(a,b))
+
+def indices(n):
+    return tuple(Index() for i in range(n))
+
