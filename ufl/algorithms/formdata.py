@@ -3,12 +3,12 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-09-13 -- 2008-09-29"
+__date__ = "2008-09-13 -- 2008-10-17"
 
 # Modified by Anders Logg, 2008
 
 from ..output import ufl_assert
-from ..common import lstr
+from ..common import lstr, domain_to_dim
 from ..form import Form
 
 # TODO: FormData can be constructed more efficiently as a single or a few algorithms.
@@ -20,7 +20,7 @@ class FormData(object):
     def __init__(self, form):
         "Create form data for given form"
         ufl_assert(isinstance(form, Form), "Expecting Form.")
-
+        
         self.form = form
         
         self.basisfunctions  = basisfunctions(form)
@@ -28,6 +28,11 @@ class FormData(object):
         self.elements        = elements(form)
         self.unique_elements = unique_elements(form)
         self.domain          = domain(form)
+        
+        self.rank = len(self.basisfunctions)
+        self.num_coefficients = len(self.coefficients)
+        self.geometric_dimension = domain_to_dim[self.domain]
+        self.topological_dimension = self.geometric_dimension
         
         def argument_renumbering(arguments):
             return dict((f,k) for (k,f) in enumerate(arguments))
@@ -46,19 +51,33 @@ class FormData(object):
         "Print summary of form data"
 
         return """\
-Basis functions: %s
-Coefficients:    %s
-Finite elements: %s
-Unique elements: %s
-Domain:          %s
-Renumbering (v): %s
-Renumbering (w): %s
-Classes:         %s\
-""" % (lstr(self.basisfunctions),
+Domain:                   %s
+Geometric dimension:      %d
+Topological dimension:    %d
+Rank:                     %d
+Number of coefficients:   %d
+Number of cell integrals: %d
+Number of e.f. integrals: %d
+Number of i.f. integrals: %d
+Basis functions:          %s
+Coefficients:             %s
+Finite elements:          %s
+Unique elements:          %s
+Renumbering (v):          %s
+Renumbering (w):          %s
+Classes:                  %s\
+""" % (self.domain,
+       self.geometric_dimension,
+       self.topological_dimension,
+       self.rank,
+       self.num_coefficients,
+       len(self.form.cell_integrals()),
+       len(self.form.exterior_facet_integrals()),
+       len(self.form.interior_facet_integrals()),
+       lstr(self.basisfunctions),
        lstr(self.coefficients),
        lstr(self.elements),
        lstr(self.unique_elements),
-       str(self.domain),
        lstr(self.basisfunction_renumbering),
        lstr(self.coefficient_renumbering),
        lstr(self.classes))

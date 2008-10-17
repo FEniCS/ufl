@@ -240,13 +240,14 @@ def _split_by_dependencies(expression, codestructure, terminal_deps):
     
     if isinstance(expression, Variable):
         c = expression._count
-        ufl_assert(c not in codestructure.variableinfo, "Shouldn't reach this point if the variable was already cached!")
+        ufl_assert(c not in codestructure.variableinfo,
+            "Shouldn't reach this point if the variable was already cached!")
         vinfo = VariableInfo(expression, deps)
         codestructure.variableinfo[c] = vinfo
         codestructure.stacks[deps].append(vinfo)
     
     # Try to reuse expression if nothing has changed:
-    if any((o1 is not o3) for (o1,o3) in izip(ops,ops3)):
+    if any((o1 is not o3) for (o1,o3) in izip(ops, ops3)):
         e = expression.__class__(*ops3)
     else:
         e = expression
@@ -278,6 +279,8 @@ def split_by_dependencies(expression, formdata, basisfunction_deps, function_dep
     """
     ufl_assert(isinstance(expression, UFLObject), "Expecting UFLObject.")
     
+    variable_deps = {}
+    
     # Utility function to ensure consistent ordering of dependency tuples
     bfs = (False,)*len(basisfunction_deps)
     fs = (False,)*len(function_deps)
@@ -306,7 +309,11 @@ def split_by_dependencies(expression, formdata, basisfunction_deps, function_dep
     def get_basisfunction_deps(x):
         return basisfunction_deps[formdata.basisfunction_renumbering[x]]
     def get_variable_deps(x):
-        return variable_deps[x.count()]
+        ufl_assert(x._count in variable_deps,
+                   "Haven't handled variable in time: %s" % repr(x))
+        return variable_deps[x._count]
+    def get_spatial_derivative_deps(x):
+        return FIXME
     terminal_dep_handlers[MultiIndex] = no_deps
     terminal_dep_handlers[Identity]   = no_deps
     terminal_dep_handlers[FloatValue] = no_deps
@@ -316,17 +323,26 @@ def split_by_dependencies(expression, formdata, basisfunction_deps, function_dep
     terminal_dep_handlers[Constant]      = get_function_deps
     terminal_dep_handlers[Function]      = get_function_deps
     terminal_dep_handlers[Variable] = get_variable_deps
-    
+    #terminal_dep_handlers[SpatialDerivative] = get_spatial_derivative_deps
     # FIXME: Introduce dependency of mapping with gradients...
-    #  BasisFunction shouldn't normally depend on the mapping, but the gradients do...
+    #  BasisFunction shouldn't normally depend on the mapping, but the gradients will always do...
+    
+    # Exctract a list of all variables in expression 
+    variables = extract_variables(expression)
+    if isinstance(expression, Variable):
+        ufl_assert(expression is variables[-1],
+                   "Expecting the last result from extract_variables to be the input variable...")
+    else:
+        expression = Variable(expression)
+        variables.append(expression)
     
     # Perform! This fills in codestructure and returns
     # the final form of the expression and its dependencies
-    e, deps = _split_by_dependencies(expression, codestructure, terminal_dep_handlers)
+    for v in variables:
+        e, deps = _split_by_dependencies(v._expression, codestructure, terminal_dep_handlers) # FIXME: Any reason this returns e?
+        variable_deps[v._count] = (e, deps)
     
-    # Add final e to stacks and return variable
-    if not isinstance(e, Variable):
-        e = Variable(e) # TODO: Check a variable cache to avoid duplications?
+    # Add final form of the expression e to stacks and return variable
     vinfo = codestructure.variableinfo.get(e._count, None)
     if vinfo is None:
         vinfo = VariableInfo(e, deps)
