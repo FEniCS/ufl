@@ -24,11 +24,11 @@ class FormData(object):
         
         self.form = form
         
-        self.basisfunctions  = basisfunctions(form)
-        self.coefficients    = coefficients(form)
-        self.elements        = elements(form)
-        self.unique_elements = unique_elements(form)
-        self.domain          = domain(form)
+        self.basisfunctions  = extract_basisfunctions(form)
+        self.coefficients    = extract_coefficients(form)
+        self.elements        = extract_elements(form)
+        self.unique_elements = extract_unique_elements(form)
+        self.domain          = extract_domain(form)
         
         self.rank = len(self.basisfunctions)
         self.num_coefficients = len(self.coefficients)
