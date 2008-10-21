@@ -42,11 +42,11 @@ class FormData(object):
         
         self.classes = {}
         for i in form.cell_integrals():
-            self.classes[i] = classes(i._integrand)
+            self.classes[i] = extract_classes(i._integrand)
         for i in form.exterior_facet_integrals():
-            self.classes[i] = classes(i._integrand)
+            self.classes[i] = extract_classes(i._integrand)
         for i in form.interior_facet_integrals():
-            self.classes[i] = classes(i._integrand)
+            self.classes[i] = extract_classes(i._integrand)
 
     def __str__(self):
         "Print summary of form data"
