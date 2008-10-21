@@ -40,7 +40,7 @@ from ..indexing import MultiIndex, Indexed, Index, FixedIndex, indices, compare_
 #from ..indexing import AxisType, as_index, as_index_tuple, extract_indices
 from ..tensors import ListTensor, ComponentTensor, as_tensor, as_matrix
 from ..algebra import Sum, Product, Division, Power, Abs
-from ..tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
+from ..tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor, Skew
 from ..mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
 from ..restriction import Restricted, PositiveRestricted, NegativeRestricted
 from ..differentiation import SpatialDerivative, Diff, Grad, Div, Curl, Rot
