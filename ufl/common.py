@@ -1,7 +1,7 @@
 "This module contains a collection of common utilities."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-08-05 -- 2008-10-17"
+__date__ = "2008-08-05 -- 2008-10-21"
 
 from itertools import izip
 import operator
@@ -42,12 +42,41 @@ def some_key(a_dict):
 
 def lstr(l):
     "Pretty-print list or tuple, invoking str() on items instead of repr() like str() does."
+
     if isinstance(l, list):
         return "[" + ", ".join([lstr(item) for item in l]) + "]"
     elif isinstance(l, tuple):
         return "(" + ", ".join([lstr(item) for item in l]) + ")"
     return str(l)
 
+def dstr(d):
+    "Pretty-print dictionary of key-value pairs."
+    t = [(key, d[key]) for key in d]
+    return tstr(t)
+
+def tstr(t):
+    "Pretty-print list of tuples of key-value pairs."
+
+    # Compute maximum key length
+    colsize = 80
+    keylen = max([len(str(entry[0])) for entry in t])
+
+    # Key-length cannot be larger than colsize
+    if keylen > colsize:
+        return str(t)
+
+    # Pretty-print table
+    s = ""
+    for (key, value) in t:
+        key, value = str(key), str(value)
+        s += key + ":" + " "*(keylen - len(key) + 1)
+        space = ""
+        while len(value) > 0:
+            end = min(len(value), colsize - keylen)
+            s += space + value[:end] + "\n"
+            value = value[end:]
+            space = " "*(keylen + 2)
+    return s
 
 class Counted(object):
     """A class of objects identified by a global counter.

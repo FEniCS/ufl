@@ -3,12 +3,12 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-09-13 -- 2008-10-17"
+__date__ = "2008-09-13 -- 2008-10-21"
 
 # Modified by Anders Logg, 2008
 
 from ..output import ufl_assert
-from ..common import lstr, domain_to_dim
+from ..common import lstr, tstr, domain_to_dim
 from ..form import Form
 
 # TODO: FormData can be constructed more efficiently as a single or a few algorithms.
@@ -50,34 +50,14 @@ class FormData(object):
     def __str__(self):
         "Print summary of form data"
 
-        return """\
-Domain:                   %s
-Geometric dimension:      %d
-Topological dimension:    %d
-Rank:                     %d
-Number of coefficients:   %d
-Number of cell integrals: %d
-Number of e.f. integrals: %d
-Number of i.f. integrals: %d
-Basis functions:          %s
-Coefficients:             %s
-Finite elements:          %s
-Unique elements:          %s
-Renumbering (v):          %s
-Renumbering (w):          %s
-Classes:                  %s\
-""" % (self.domain,
-       self.geometric_dimension,
-       self.topological_dimension,
-       self.rank,
-       self.num_coefficients,
-       len(self.form.cell_integrals()),
-       len(self.form.exterior_facet_integrals()),
-       len(self.form.interior_facet_integrals()),
-       lstr(self.basisfunctions),
-       lstr(self.coefficients),
-       lstr(self.elements),
-       lstr(self.unique_elements),
-       lstr(self.basisfunction_renumbering),
-       lstr(self.coefficient_renumbering),
-       lstr(self.classes))
+        return tstr((("Domain",                   self.domain),
+                     ("Geometric dimension",      self.geometric_dimension),
+                     ("Topological dimension",    self.topological_dimension),
+                     ("Rank",                     self.rank),
+                     ("Number of coefficients",   self.num_coefficients),
+                     ("Number of cell integrals", len(self.form.cell_integrals())),
+                     ("Number of e.f. integrals", len(self.form.exterior_facet_integrals())),
+                     ("Number of i.f. integrals", len(self.form.interior_facet_integrals())),
+                     ("Basis functions",          lstr(self.basisfunctions)),
+                     ("Coefficients",             lstr(self.coefficients)),
+                     ("Unique elements",          lstr(self.unique_elements))))
