@@ -10,7 +10,6 @@ from .base import UFLObject, Terminal, Compound
 from .indexing import Index, indices, compare_shapes
 from .tensors import as_tensor
 
-
 ### Algebraic operations on tensors:
 # FloatValues:
 #   dot(a,b)      = a*b
@@ -169,8 +168,8 @@ class Dot(Compound):
         self._b = b
         ai = self._a.free_indices()
         bi = self._b.free_indices()
-        ufl_assert( len(set(ai) ^ set(bi)) == 0,
-            "Didn't expect repeated indices in outer product.") 
+        ufl_assert(len(set(ai) ^ set(bi)) == 0,
+                   "Didn't expect repeated indices in outer product.")
         self._free_indices = tuple(ai+bi)
     
     def operands(self):
@@ -194,7 +193,6 @@ class Dot(Compound):
     
     def __repr__(self):
         return "Dot(%r, %r)" % (self._a, self._b)
-
 
 class Cross(Compound):
     __slots__ = ("_a", "_b", "_free_indices")

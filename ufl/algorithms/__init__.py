@@ -14,7 +14,7 @@ from .traversal import post_walk, pre_walk, walk
 from .analysis import extract_type, classes, domain, value_shape
 from .analysis import basisfunctions, coefficients, elements, unique_elements
 from .analysis import variables, duplications
-from .analysis import monomials
+from .analysis import extract_monomials
 
 # Utility class for easy collecting of data about form
 from .formdata import FormData
