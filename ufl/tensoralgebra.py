@@ -148,8 +148,8 @@ class Dot(UFLObject):
         self._b = b
         ai = self._a.free_indices()
         bi = self._b.free_indices()
-        ufl_assert( len(set(ai) ^ set(bi)) == 0,
-            "Didn't expect repeated indices in outer product.") 
+        ufl_assert(len(set(ai) ^ set(bi)) == 0,
+                   "Didn't expect repeated indices in outer product.")
         self._free_indices = tuple(ai+bi)
     
     def operands(self):
@@ -361,4 +361,3 @@ class Skew(UFLObject):
     
     def __repr__(self):
         return "Skew(%r)" % self._A
-

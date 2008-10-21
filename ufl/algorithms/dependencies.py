@@ -27,7 +27,7 @@ from ..tensors import ListTensor, ComponentTensor
 from ..classes import ufl_classes, terminal_classes, nonterminal_classes
 
 # Other algorithms:
-from .analysis import basisfunctions, coefficients, indices, duplications
+from .analysis import extract_basisfunctions, extract_coefficients, extract_indices, extract_duplications
 from .variables import extract_variables
 from .transformations import transform
 

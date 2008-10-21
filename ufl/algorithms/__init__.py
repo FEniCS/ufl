@@ -5,16 +5,18 @@ from __future__ import absolute_import
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-08-14 -- 2008-10-16"
 
+# Modified by Anders Logg, 2008
+
 # Utilities for traversing over expression trees in different ways
 from .traversal import iter_expressions
 from .traversal import post_traversal, pre_traversal, traversal
 from .traversal import post_walk, pre_walk, walk
 
 # Utilities for extracting information from forms and expressions
-from .analysis import extract_type, classes, domain, value_shape
-from .analysis import basisfunctions, coefficients, elements, unique_elements
-from .analysis import variables, duplications
-from .analysis import monomials
+from .analysis import extract_type, extract_classes, extract_domain, extract_value_shape
+from .analysis import extract_basisfunctions, extract_coefficients, extract_elements, extract_unique_elements
+from .analysis import extract_variables, extract_duplications
+from .analysis import extract_monomials
 
 # Utility class for easy collecting of data about form
 from .formdata import FormData

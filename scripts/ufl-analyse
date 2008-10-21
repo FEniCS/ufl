@@ -3,7 +3,7 @@
 import sys
 import webbrowser
 import ufl
-from ufl.algorithms import basisfunctions, coefficients, unique_elements, load_forms, validate_form, ufl2latex, tree_format
+from ufl.algorithms import extract_basisfunctions, extract_coefficients, extract_unique_elements, load_forms, validate_form, ufl2latex, tree_format
 
 # Get commandline options
 
@@ -43,9 +43,9 @@ for filename in args:
     # Print information about all forms
     for name, form in forms:
         # Extract information about forms
-        bf = basisfunctions(form)
-        cf = coefficients(form)
-        elements = unique_elements(form)
+        bf = extract_basisfunctions(form)
+        cf = extract_coefficients(form)
+        elements = extract_unique_elements(form)
         rank = len(bf)
         num_coefficients = len(cf)
         num_citg = len(form.cell_integrals())

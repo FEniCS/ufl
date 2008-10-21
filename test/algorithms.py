@@ -61,13 +61,13 @@ class AlgorithmsTestCase(unittest.TestCase):
             print 
             print str(self.forms[2])
             print 
-            print [str(b) for b in basisfunctions(self.forms[2])]
+            print [str(b) for b in extract_basisfunctions(self.forms[2])]
             print 
             print self.coefficients
             print 
             print repr(self.forms[2])
             print 
-            print basisfunctions(self.forms[2])
+            print extract_basisfunctions(self.forms[2])
             print 
     
     def test_flatten(self):
@@ -94,17 +94,17 @@ class AlgorithmsTestCase(unittest.TestCase):
         assert isinstance(ab, Product) and len(ab.operands()) == 2
 
     def test_basisfunctions(self):
-        assert self.basisfunctions == tuple(basisfunctions(self.forms[0]))
-        assert tuple(self.basisfunctions[:1]) == tuple(basisfunctions(self.forms[1]))
+        assert self.basisfunctions == tuple(extract_basisfunctions(self.forms[0]))
+        assert tuple(self.basisfunctions[:1]) == tuple(extract_basisfunctions(self.forms[1]))
 
     def test_coefficients(self):
-        assert self.coefficients == tuple(coefficients(self.forms[2]))
+        assert self.coefficients == tuple(extract_coefficients(self.forms[2]))
 
     def test_elements(self):
         #print elements(self.forms[2])
         #print unique_elements(self.forms[2])
         #print unique_classes(self.forms[2])
-        d = duplications(self.forms[2].cell_integrals()[0]._integrand)
+        d = extract_duplications(self.forms[2].cell_integrals()[0]._integrand)
         #pprint(list(d))
 
     def _test_walk(self):

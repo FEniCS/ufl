@@ -9,7 +9,7 @@ __date__ = "2008-03-14 -- 2008-10-21"
 
 from itertools import chain
 
-from ..output import ufl_assert
+from ..output import ufl_assert, ufl_error
 from ..common import lstr
 from ..base import UFLObject
 from ..algebra import Sum, Product
@@ -30,7 +30,7 @@ def extract_type(a, ufl_type):
               if isinstance(o, ufl_type) )
     return set(iter)
 
-def classes(a):
+def extract_classes(a):
     """Build a set of all unique UFLObject subclasses used in a.
     The argument a can be a Form, Integral or UFLObject."""
     c = set()
@@ -39,13 +39,13 @@ def classes(a):
             c.add(type(o))
     return c
 
-def domain(a):
+def extract_domain(a):
     "Find the polygonal domain of Form a."
-    el = elements(a)
-    dom = el[0].domain()
-    return dom
+    element = extract_elements(a)
+    domain = element[0].domain()
+    return domain
 
-def value_shape(expression, dimension):
+def extract_value_shape(expression, dimension):
     "Evaluate the value shape of expression with given implicit dimension."
     ufl_assert(isinstance(expression, UFLObject), "Expecting UFL expression.")
     ufl_assert(isinstance(dimension, int), "Expecting int dimension.")
@@ -58,7 +58,7 @@ def value_shape(expression, dimension):
             shape.append(i)
     return tuple(shape)
 
-def basisfunctions(a):
+def extract_basisfunctions(a):
     """Build a sorted list of all basisfunctions in a,
     which can be a Form, Integral or UFLObject."""
     # build set of all unique basisfunctions
@@ -67,7 +67,7 @@ def basisfunctions(a):
     l = sorted(s, cmp=lambda x,y: cmp(x._count, y._count))
     return l
 
-def coefficients(a):
+def extract_coefficients(a):
     """Build a sorted list of all coefficients in a,
     which can be a Form, Integral or UFLObject."""
     # build set of all unique coefficients
@@ -90,20 +90,20 @@ def _coefficients(a):
     l = sorted(s, cmp=lambda x,y: cmp(x._count, y._count))
     return l
 
-def elements(a):
+def extract_elements(a):
     "Build a sorted list of all elements used in a."
-    return [f._element for f in chain(basisfunctions(a), coefficients(a))]
+    return [f._element for f in chain(extract_basisfunctions(a), extract_coefficients(a))]
 
-def unique_elements(a):
+def extract_unique_elements(a):
     "Build a set of all unique elements used in a."
-    return set(elements(a))
+    return set(extract_elements(a))
 
-def variables(a):
+def extract_variables(a):
     """Build a set of all Variable objects in a,
     which can be a Form, Integral or UFLObject."""
     return extract_type(a, Variable)
 
-def indices(expression):
+def extract_indices(expression):
     "Build a set of all Index objects used in expression."
     multi_indices = extract_type(expression, MultiIndex)
     indices = set()
@@ -111,7 +111,7 @@ def indices(expression):
         indices.update(i for i in mi if isinstance(i, Index))
     return indices
 
-def duplications(expression):
+def extract_duplications(expression):
     "Build a set of all repeated expressions in expression."
     ufl_assert(isinstance(expression, UFLObject), "Expecting UFL expression.")
     handled = set()
@@ -122,8 +122,8 @@ def duplications(expression):
         handled.add(o)
     return duplicated
 
-def monomials(expression):
-    "Compute monomial representation of expression (if possible)."
+def extract_monomials(expression, indent=""):
+    "Extract monomial representation of expression (if possible)."
 
     # FIXME: Not yet working, need to include derivatives, integrals etc
 
@@ -131,18 +131,40 @@ def monomials(expression):
 
     # Iterate over expressions
     m = []
+
+    print ""
+    print "Extracting monomials"
+
+    #cell_integrals = expression.cell_integrals()
+    #print cell_integrals
+    #print dir(cell_integrals[0].)
+    #integrals
+
     for e in iter_expressions(expression):
+
+        # Check for linearity
+        if not e.is_linear():
+            ufl_error("Operator is nonlinear, unable to extract monomials: " + str(e))
+            
+        print indent + "e =", e, str(type(e))
         operands = e.operands()
         if isinstance(e, Sum):
             ufl_assert(len(operands) == 2, "Strange, expecting two terms.")
-            m += monomials(operands[0])
-            m += monomials(operands[1])
+            m += extract_monomials(operands[0], indent + "  ")
+            m += extract_monomials(operands[1], indent + "  ")
         elif isinstance(e, Product):
             ufl_assert(len(operands) == 2, "Strange, expecting two factors.")
-            for m0 in monomials(operands[0]):
-                for m1 in monomials(operands[1]):
+            for m0 in extract_monomials(operands[0], indent + "  "):
+                for m1 in extract_monomials(operands[1], indent + "  "):
                     m.append(m0 + m1)
         elif isinstance(e, BasisFunction):
             m.append((e,))
+        elif isinstance(e, Function):
+            m.append((e,))
+        else:
+            print type(e)
+            print e.as_basic()
+            print "free indices =", e.free_indices()
+            ufl_error("Don't know how to handle expression: %s", str(e))
 
     return m

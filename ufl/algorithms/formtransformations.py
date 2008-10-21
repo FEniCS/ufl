@@ -6,6 +6,8 @@ from __future__ import absolute_import
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-10-01 -- 2008-10-21"
 
+# Modified by Anders Logg, 2008
+
 from collections import defaultdict
 from itertools import izip
 
@@ -23,7 +25,7 @@ from ..integral import Integral
 from ..classes import ufl_classes, terminal_classes, nonterminal_classes
 
 # Other algorithms:
-from .analysis import basisfunctions, coefficients
+from .analysis import extract_basisfunctions, extract_coefficients
 from .transformations import replace, replace_in_form
 
 
@@ -35,7 +37,7 @@ def compute_form_action(form, function):
     The form returned will thus have one BasisFunction less 
     and one additional Function at the end.
     """
-    bf = basisfunctions(form)
+    bf = extract_basisfunctions(form)
     ufl_assert(len(bf) == 2, "Expecting bilinear form.")
     v, u = bf
     e = u.element()
@@ -62,7 +64,7 @@ def compute_form_transpose(form):
     
     This works simply by swapping the first and last basisfunctions.
     """
-    bf = basisfunctions(form)
+    bf = extract_basisfunctions(form)
     ufl_assert(len(bf) == 2, "Expecting bilinear form.")
     v, u = bf
     return replace_in_form(form, {v:u, u:v})
@@ -78,7 +80,7 @@ def compute_dual_form(form): # FIXME: Don't know if this is correct, or if we ne
     replacing the trial function with the test function.
     The form returned will thus be a linear form.
     """
-    bf = basisfunctions(form)
+    bf = extract_basisfunctions(form)
     ufl_assert(len(bf) == 2, "Expecting bilinear form.")
     v, u = bf
     return replace_in_form(form, {u:v, v:u})
@@ -93,7 +95,7 @@ def compute_dirichlet_functional(form): # FIXME: Don't know if this is correct o
     The form returned will thus be a linear form.
     """
     return 0.5*compute_form_lhs(form) - compute_form_rhs(form)
-    #bf = basisfunctions(form)
+    #bf = extract_basisfunctions(form)
     #ufl_assert(len(bf) == 2, "Expecting bilinear form.")
     #v, u = bf
     #return replace_in_form(form, {u:v})
