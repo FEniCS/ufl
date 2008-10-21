@@ -5,7 +5,7 @@ converting UFL expressions to other representations."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-10-13"
+__date__ = "2008-05-07 -- 2008-10-21"
 
 from collections import defaultdict
 from itertools import izip
@@ -77,7 +77,7 @@ def transform(expression, handlers):
         ops = ()
     else:
         ops = [transform(o, handlers) for o in expression.operands()]
-    c = expression.__class__
+    c = type(expression)
     if c in handlers:
         h = handlers[c]
     else:
@@ -91,7 +91,7 @@ def ufl_reuse_handlers():
     transform(...). Nonterminal objects are reused if possible."""
     # Show a clear error message if we miss some types here:
     def not_implemented(x, *ops):
-        ufl_error("No handler defined for %s in ufl_reuse_handlers. Add to classes.py." % x.__class__)
+        ufl_error("No handler defined for %s in ufl_reuse_handlers. Add to classes.py." % type(x))
     def make_not_implemented():
         return not_implemented
     d = defaultdict(make_not_implemented)
@@ -105,7 +105,7 @@ def ufl_reuse_handlers():
         if all((a is b) for (a,b) in izip(x.operands(), ops)):
             return x
         else:
-            return x.__class__(*ops)
+            return type(x)(*ops)
     for c in nonterminal_classes:
         d[c] = reconstruct
     return d
@@ -119,7 +119,7 @@ def ufl_copy_handlers():
     expression."""
     # Show a clear error message if we miss some types here:
     def not_implemented(x, *ops):
-        ufl_error("No handler defined for %s in ufl_copy_handlers. Add to classes.py." % x.__class__)
+        ufl_error("No handler defined for %s in ufl_copy_handlers. Add to classes.py." % type(x))
     def make_not_implemented():
         return not_implemented
     d = defaultdict(make_not_implemented)
@@ -130,7 +130,7 @@ def ufl_copy_handlers():
         d[c] = this
     # Non-terminal objects are reused if all their children are untouched
     def reconstruct(x, *ops):
-        return x.__class__(*ops)
+        return type(x)(*ops)
     for c in nonterminal_classes:
         d[c] = reconstruct
     return d
@@ -166,7 +166,7 @@ def flatten(expression):
     and products flattened from binary tree nodes to n-ary tree nodes."""
     d = ufl_reuse_handlers()
     def _flatten(x, *ops):
-        c = x.__class__
+        c = type(x)
         newops = []
         for o in ops:
             if isinstance(o, c):
@@ -192,11 +192,12 @@ def replace(expression, substitution_map):
     def r_replace(x, *ops):
         y = substitution_map.get(x)
         if y is None:
-            return orig_handlers[x.__class__](x, *ops)
+            return orig_handlers[type(x)](x, *ops)
         return y
     for k in substitution_map.keys():
-        orig_handlers[k.__class__] = handlers[k.__class__]
-        handlers[k.__class__] = r_replace
+        c = type(k)
+        orig_handlers[c] = handlers[c]
+        handlers[c] = r_replace
     return transform(expression, handlers)
 
 

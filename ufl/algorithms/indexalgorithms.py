@@ -4,7 +4,7 @@ with indices in an expression."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-10-16"
+__date__ = "2008-05-07 -- 2008-10-21"
 
 from ..output import ufl_assert, ufl_error
 
@@ -56,7 +56,7 @@ def expand_indices(expression):
     
     def e_product(x, *ops):
         rep_ind = x.repeated_indices()
-        return x.__class__(*ops) # FIXME 
+        return type(x)(*ops) # FIXME 
     d[Product] = e_product
     
     def e_partial_diff(x, *ops):

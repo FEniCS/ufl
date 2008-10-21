@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-19-- 2008-10-16"
+__date__ = "2008-08-19-- 2008-10-21"
 
 from collections import defaultdict
 
@@ -55,7 +55,7 @@ def diff_handlers():
     compute_derivative. Nonterminal objects are reused if possible."""
     # Show a clear error message if we miss some types here:
     def not_implemented(x, *ops):
-        ufl_error("No handler defined for %s in diff_handlers. Add to classes.py." % x.__class__)
+        ufl_error("No handler defined for %s in diff_handlers. Add to classes.py." % type(x))
     d = defaultdict(not_implemented)
     
     # Terminal objects are assumed independent of the differentiation
@@ -71,7 +71,7 @@ def diff_handlers():
     def diff_commute(x, *ops):
         ufl_assert(len(ops) == 1, "Logic breach in diff_commute, len(ops) = %d." % len(ops))
         oprime = ops[0][1]
-        return (x, x.__class__(oprime))
+        return (x, type(x)(oprime))
 
     def diff_variable(x, *ops):
         ufl_error("How to handle derivative of variable depends on context. You must supply a customized rule!")
@@ -256,7 +256,7 @@ def diff_handlers():
         (f, fp), (v, vp) = ops
         # TODO: What happens if vp != 0, i.e. v depends the differentiation variable?
         # TODO: Are there any issues with indices here? Not sure, think through it...
-        return (x, x.__class__(fp, v))
+        return (x, type(x)(fp, v))
     d[SpatialDerivative] = diff_diff
     d[Diff] = diff_diff
     

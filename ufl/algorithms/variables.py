@@ -6,7 +6,7 @@ an expression."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-10-02"
+__date__ = "2008-05-07 -- 2008-10-21"
 
 from ..output import ufl_assert, ufl_error, ufl_warning
 
@@ -31,7 +31,7 @@ def _mark_duplications(expression, handlers, variables, dups):
     ops = [_mark_duplications(o, handlers, variables, dups) for o in expression.operands()]
     
     # get handler
-    c = expression.__class__
+    c = type(expression)
     if c in handlers:
         h = handlers[c]
     else:

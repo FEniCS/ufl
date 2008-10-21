@@ -4,7 +4,7 @@ of UFL objects, mostly intended for debugging purposers."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-09-16"
+__date__ = "2008-03-14 -- 2008-10-21"
 
 from itertools import chain
 
@@ -66,7 +66,7 @@ def _tree_format_expression(expression, indentation, parentheses):
         s = ind + "%s" % repr(expression)
     else:
         sops = [_tree_format_expression(o, indentation+1, parentheses) for o in expression.operands()]
-        s = ind + "%s\n" % expression.__class__.__name__ 
+        s = ind + "%s\n" % type(expression).__name__ 
         if parentheses and len(sops) > 1:
             s += ind + "(\n"
         s += "\n".join(sops)

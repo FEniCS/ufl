@@ -5,7 +5,7 @@ converting UFL expressions to other representations."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-10-13"
+__date__ = "2008-05-07 -- 2008-10-21"
 
 from collections import defaultdict
 
@@ -43,7 +43,7 @@ from .transformations import transform
 def latex_handlers():
     # Show a clear error message if we miss some types here:
     def not_implemented(x, *ops):
-        ufl_error("No handler defined for %s in latex_handlers." % x.__class__)
+        ufl_error("No handler defined for %s in latex_handlers." % type(x))
     def make_not_implemented():
         return not_implemented
     d = defaultdict(make_not_implemented)

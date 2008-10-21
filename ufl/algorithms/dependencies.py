@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-10-01 -- 2008-10-17"
+__date__ = "2008-10-01 -- 2008-10-21"
 
 from collections import defaultdict
 from itertools import izip, chain
@@ -213,7 +213,7 @@ def _split_by_dependencies(expression, codestructure, terminal_deps):
         #codestructure.stacks[info.deps].append(info)
     
     if isinstance(expression, Terminal):
-        h = terminal_deps[expression.__class__]
+        h = terminal_deps[type(expression)]
         deps = h(expression)
         if codestructure.stacks:
             ufl_assert(deps.size() == some_key(codestructure.stacks).size(),\
@@ -250,7 +250,7 @@ def _split_by_dependencies(expression, codestructure, terminal_deps):
     
     # Try to reuse expression if nothing has changed:
     if any((o1 is not o3) for (o1,o3) in izip(ops, ops3)):
-        e = expression.__class__(*ops3)
+        e = type(expression)(*ops3)
     else:
         e = expression
     return e, deps
@@ -373,10 +373,10 @@ class DependencySplitter:
         if all((a is b) for (a, b) in zip(ops, x.operands())):
             return x, d
         # Construct new expression
-        return x.__class__(*ops), d
+        return type(x)(*ops), d
 
     def transform(self, x):
-        c = x.__class__
+        c = type(x)
         h = self.handlers[c]
         if isinstance(x, Terminal):
             return h(x)
