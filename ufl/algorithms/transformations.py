@@ -52,7 +52,7 @@ from ..integral import Integral
 from ..classes import ufl_classes, terminal_classes, nonterminal_classes, compound_classes
 
 # Other algorithms:
-from .analysis import basisfunctions, coefficients, indices, duplications
+from .analysis import extract_basisfunctions, extract_coefficients, extract_indices, extract_duplications
 
 def transform_integrands(a, transformation):
     """Transform all integrands in a form with a transformation function.

@@ -34,7 +34,7 @@ from ..integral import Integral
 from ..classes import ufl_classes, terminal_classes, nonterminal_classes, compound_classes
 
 # Other algorithms:
-from .analysis import basisfunctions, coefficients, indices
+from .analysis import extract_basisfunctions, extract_coefficients, extract_indices
 
 # General dict-based transformation utility
 from .transformations import transform
@@ -157,8 +157,8 @@ def ufl2latex(expression):
             integral_strings.append(ufl2latex(itg))
         for itg in expression.interior_facet_integrals():
             integral_strings.append(ufl2latex(itg))
-        b = ", ".join("v_{%d}" % i for i,v in enumerate(basisfunctions(expression)))
-        c = ", ".join("w_{%d}" % i for i,w in enumerate(coefficients(expression)))
+        b = ", ".join("v_{%d}" % i for i,v in enumerate(extract_basisfunctions(expression)))
+        c = ", ".join("w_{%d}" % i for i,w in enumerate(extract_coefficients(expression)))
         arguments = "; ".join((b, c))
         latex = "a(" + arguments + ") = \n    " + "\n    + ".join(integral_strings)
     

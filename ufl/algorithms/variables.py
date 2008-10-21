@@ -14,7 +14,7 @@ from ..output import ufl_assert, ufl_error, ufl_warning
 from ..variable import Variable
 
 # Other algorithms:
-from .analysis import basisfunctions, coefficients, indices, duplications
+from .analysis import extract_basisfunctions, extract_coefficients, extract_indices, extract_duplications
 from .transformations import ufl_reuse_handlers, transform, transform_integrands
 
 

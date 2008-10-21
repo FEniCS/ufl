@@ -449,4 +449,3 @@ class Skew(Compound):
     
     def __repr__(self):
         return "Skew(%r)" % self._A
-

@@ -20,7 +20,7 @@ from ..differentiation import SpatialDerivative, Diff
 from ..classes import ufl_classes, terminal_classes, nonterminal_classes, compound_classes
 
 # Other algorithms:
-from .analysis import basisfunctions, coefficients, indices, duplications
+from .analysis import extract_basisfunctions, extract_coefficients, extract_indices, extract_duplications
 from .transformations import ufl_reuse_handlers, transform
 
 

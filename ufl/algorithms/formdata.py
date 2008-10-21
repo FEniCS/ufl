@@ -12,7 +12,8 @@ from ..common import lstr, tstr, domain_to_dim
 from ..form import Form
 
 # TODO: FormData can be constructed more efficiently as a single or a few algorithms.
-from .analysis import basisfunctions, coefficients, elements, unique_elements, domain, classes
+from .analysis import extract_basisfunctions, extract_coefficients, extract_classes
+from .analysis import extract_elements, extract_unique_elements, extract_domain, extract_classes
 
 class FormData(object):
     "Class collecting various information extracted from form."

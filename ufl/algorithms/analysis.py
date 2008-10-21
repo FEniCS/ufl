@@ -30,7 +30,7 @@ def extract_type(a, ufl_type):
               if isinstance(o, ufl_type) )
     return set(iter)
 
-def classes(a):
+def extract_classes(a):
     """Build a set of all unique UFLObject subclasses used in a.
     The argument a can be a Form, Integral or UFLObject."""
     c = set()
@@ -39,13 +39,13 @@ def classes(a):
             c.add(type(o))
     return c
 
-def domain(a):
+def extract_domain(a):
     "Find the polygonal domain of Form a."
-    el = elements(a)
-    dom = el[0].domain()
-    return dom
+    element = extract_elements(a)
+    domain = element[0].domain()
+    return domain
 
-def value_shape(expression, dimension):
+def extract_value_shape(expression, dimension):
     "Evaluate the value shape of expression with given implicit dimension."
     ufl_assert(isinstance(expression, UFLObject), "Expecting UFL expression.")
     ufl_assert(isinstance(dimension, int), "Expecting int dimension.")
@@ -58,7 +58,7 @@ def value_shape(expression, dimension):
             shape.append(i)
     return tuple(shape)
 
-def basisfunctions(a):
+def extract_basisfunctions(a):
     """Build a sorted list of all basisfunctions in a,
     which can be a Form, Integral or UFLObject."""
     # build set of all unique basisfunctions
@@ -67,7 +67,7 @@ def basisfunctions(a):
     l = sorted(s, cmp=lambda x,y: cmp(x._count, y._count))
     return l
 
-def coefficients(a):
+def extract_coefficients(a):
     """Build a sorted list of all coefficients in a,
     which can be a Form, Integral or UFLObject."""
     # build set of all unique coefficients
@@ -90,20 +90,20 @@ def _coefficients(a):
     l = sorted(s, cmp=lambda x,y: cmp(x._count, y._count))
     return l
 
-def elements(a):
+def extract_elements(a):
     "Build a sorted list of all elements used in a."
-    return [f._element for f in chain(basisfunctions(a), coefficients(a))]
+    return [f._element for f in chain(extract_basisfunctions(a), extract_coefficients(a))]
 
-def unique_elements(a):
+def extract_unique_elements(a):
     "Build a set of all unique elements used in a."
-    return set(elements(a))
+    return set(extract_elements(a))
 
-def variables(a):
+def extract_variables(a):
     """Build a set of all Variable objects in a,
     which can be a Form, Integral or UFLObject."""
     return extract_type(a, Variable)
 
-def indices(expression):
+def extract_indices(expression):
     "Build a set of all Index objects used in expression."
     multi_indices = extract_type(expression, MultiIndex)
     indices = set()
@@ -111,7 +111,7 @@ def indices(expression):
         indices.update(i for i in mi if isinstance(i, Index))
     return indices
 
-def duplications(expression):
+def extract_duplications(expression):
     "Build a set of all repeated expressions in expression."
     ufl_assert(isinstance(expression, UFLObject), "Expecting UFL expression.")
     handled = set()
