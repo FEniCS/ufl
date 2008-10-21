@@ -94,7 +94,7 @@ class Counted(object):
                 self.__class__._globalcount = count + 1
     
     def count(self):
-        return _count
+        return self._count
 
 
 class Stack(list):

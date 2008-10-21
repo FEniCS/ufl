@@ -49,7 +49,7 @@ def _mark_duplications(expression, handlers, variables, dups):
 
 def mark_duplications(expression):
     "Wrap all duplicated expressions as Variables."
-    dups = duplications(expression)
+    dups = extract_duplications(expression)
     variables = {}
     d = ufl_reuse_handlers()
     return _mark_duplications(expression, d, variables, dups)
