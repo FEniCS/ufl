@@ -6,10 +6,10 @@ objects."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-04-09 -- 2008-08-21"
+__date__ = "2008-04-09 -- 2008-10-21"
 
 from .differentiation import Diff, Grad, Div, Curl, Rot
-from .tensoralgebra import Transposed, Inner, Outer, Dot, Cross, Determinant, Inverse, Trace, Deviatoric, Cofactor
+from .tensoralgebra import Transposed, Inner, Outer, Dot, Cross, Determinant, Inverse, Cofactor, Trace, Deviatoric, Skew
 from .variable import Variable
 from .conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from .mathfunctions import Sqrt, Exp, Ln, Cos, Sin
@@ -45,6 +45,10 @@ def inv(A):
     "The inverse of A."
     return Inverse(A)
 
+def cofac(A):
+    "The cofactor of A."
+    return Cofactor(A)
+
 def tr(A):
     "The trace of A."
     return Trace(A)
@@ -53,9 +57,9 @@ def dev(A):
     "The deviatoric part of A."
     return Deviatoric(A)
 
-def cofac(A):
-    "The cofactor of A."
-    return Cofactor(A)
+def skew(A):
+    "The skew symmetric part of A."
+    return Skew(A)
 
 #--- Differential operators
 

@@ -3,11 +3,11 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-09"
+__date__ = "2008-03-14 -- 2008-10-21"
 
 from .output import ufl_assert
 from .base import UFLObject, Terminal, Compound
-from .indexing import Index, compare_shapes
+from .indexing import Index, indices, compare_shapes
 from .tensors import as_tensor
 
 
@@ -349,6 +349,42 @@ class Inverse(Compound): # TODO: Drop Inverse and represent it as product of Det
         return "Inverse(%r)" % self._A
 
 
+class Cofactor(Compound):
+    __slots__ = ("_A",)
+
+    def __init__(self, A):
+        sh = A.shape()
+        ufl_assert(len(sh) == 2, "Cofactor of tensor with rank != 2 is undefined.")
+        ufl_assert(sh[0] == sh[1], "Cannot take cofactor of rectangular matrix with dimensions %s." % repr(sh))
+        ufl_assert(len(A.free_indices()) == 0, "Didn't expect free indices in Cofactor.")
+        self._A = A
+    
+    def operands(self):
+        return (self._A, )
+    
+    def free_indices(self):
+        return ()
+    
+    def shape(self):
+        return self._A.shape()
+
+    def as_basic(self, dim, A):
+        sh = complete_shape(A.shape(), dim)
+        if sh[0] == 2:
+            return as_matrix([[A[1,1],-A[0,1]],[-A[1,0],A[0,0]]])
+        elif sh[0] == 3:
+            return as_matrix([[A[2,2]*A[1,1]-A[1,2]*A[2,1],-A[0,1]*A[2,2]+A[0,2]*A[2,1],A[0,1]*A[1,2]-A[0,2]*A[1,1]],[-A[2,2]*A[1,0]+A[1,2]*A[2,0],-A[0,2]*A[2,0]+A[2,2]*A[0,0],A[0,2]*A[1,0]-A[1,2]*A[0,0]],[A[1,0]*A[2,1]-A[2,0]*A[1,1],A[0,1]*A[2,0]-A[0,0]*A[2,1],A[0,0]*A[1,1]-A[0,1]*A[1,0]]])
+        elif sh[0] == 4:
+            return as_matrix([[-A[3,3]*A[2,1]*A[1,2]+A[1,2]*A[3,1]*A[2,3]+A[1,1]*A[3,3]*A[2,2]-A[3,1]*A[2,2]*A[1,3]+A[2,1]*A[1,3]*A[3,2]-A[1,1]*A[3,2]*A[2,3],-A[3,1]*A[0,2]*A[2,3]+A[0,1]*A[3,2]*A[2,3]-A[0,3]*A[2,1]*A[3,2]+A[3,3]*A[2,1]*A[0,2]-A[3,3]*A[0,1]*A[2,2]+A[0,3]*A[3,1]*A[2,2],A[3,1]*A[1,3]*A[0,2]+A[1,1]*A[0,3]*A[3,2]-A[0,3]*A[1,2]*A[3,1]-A[0,1]*A[1,3]*A[3,2]+A[3,3]*A[1,2]*A[0,1]-A[1,1]*A[3,3]*A[0,2],A[1,1]*A[0,2]*A[2,3]-A[2,1]*A[1,3]*A[0,2]+A[0,3]*A[2,1]*A[1,2]-A[1,2]*A[0,1]*A[2,3]-A[1,1]*A[0,3]*A[2,2]+A[0,1]*A[2,2]*A[1,3]],[A[3,3]*A[1,2]*A[2,0]-A[3,0]*A[1,2]*A[2,3]+A[1,0]*A[3,2]*A[2,3]-A[3,3]*A[1,0]*A[2,2]-A[1,3]*A[3,2]*A[2,0]+A[3,0]*A[2,2]*A[1,3],A[0,3]*A[3,2]*A[2,0]-A[0,3]*A[3,0]*A[2,2]+A[3,3]*A[0,0]*A[2,2]+A[3,0]*A[0,2]*A[2,3]-A[0,0]*A[3,2]*A[2,3]-A[3,3]*A[0,2]*A[2,0],-A[3,3]*A[0,0]*A[1,2]+A[0,0]*A[1,3]*A[3,2]-A[3,0]*A[1,3]*A[0,2]+A[3,3]*A[1,0]*A[0,2]+A[0,3]*A[3,0]*A[1,2]-A[0,3]*A[1,0]*A[3,2],A[0,3]*A[1,0]*A[2,2]+A[1,3]*A[0,2]*A[2,0]-A[0,0]*A[2,2]*A[1,3]-A[0,3]*A[1,2]*A[2,0]+A[0,0]*A[1,2]*A[2,3]-A[1,0]*A[0,2]*A[2,3]],[A[3,1]*A[1,3]*A[2,0]+A[3,3]*A[2,1]*A[1,0]+A[1,1]*A[3,0]*A[2,3]-A[1,0]*A[3,1]*A[2,3]-A[3,0]*A[2,1]*A[1,3]-A[1,1]*A[3,3]*A[2,0],A[3,3]*A[0,1]*A[2,0]-A[3,3]*A[0,0]*A[2,1]-A[0,3]*A[3,1]*A[2,0]-A[3,0]*A[0,1]*A[2,3]+A[0,0]*A[3,1]*A[2,3]+A[0,3]*A[3,0]*A[2,1],-A[0,0]*A[3,1]*A[1,3]+A[0,3]*A[1,0]*A[3,1]-A[3,3]*A[1,0]*A[0,1]+A[1,1]*A[3,3]*A[0,0]-A[1,1]*A[0,3]*A[3,0]+A[3,0]*A[0,1]*A[1,3],A[0,0]*A[2,1]*A[1,3]+A[1,0]*A[0,1]*A[2,3]-A[0,3]*A[2,1]*A[1,0]+A[1,1]*A[0,3]*A[2,0]-A[1,1]*A[0,0]*A[2,3]-A[0,1]*A[1,3]*A[2,0]],[-A[1,2]*A[3,1]*A[2,0]-A[2,1]*A[1,0]*A[3,2]+A[3,0]*A[2,1]*A[1,2]-A[1,1]*A[3,0]*A[2,2]+A[1,0]*A[3,1]*A[2,2]+A[1,1]*A[3,2]*A[2,0],-A[3,0]*A[2,1]*A[0,2]-A[0,1]*A[3,2]*A[2,0]+A[3,1]*A[0,2]*A[2,0]-A[0,0]*A[3,1]*A[2,2]+A[3,0]*A[0,1]*A[2,2]+A[0,0]*A[2,1]*A[3,2],A[0,0]*A[1,2]*A[3,1]-A[1,0]*A[3,1]*A[0,2]+A[1,1]*A[3,0]*A[0,2]+A[1,0]*A[0,1]*A[3,2]-A[3,0]*A[1,2]*A[0,1]-A[1,1]*A[0,0]*A[3,2],-A[1,1]*A[0,2]*A[2,0]+A[2,1]*A[1,0]*A[0,2]+A[1,2]*A[0,1]*A[2,0]+A[1,1]*A[0,0]*A[2,2]-A[1,0]*A[0,1]*A[2,2]-A[0,0]*A[2,1]*A[1,2]]])
+        ufl_error("Cofactor not implemented for dimension %s." % sh[0])
+
+    def __str__(self):
+        return "cofactor(%s)" % self._A
+    
+    def __repr__(self):
+        return "Cofactor(%r)" % self._A
+
+
 class Deviatoric(Compound):
     __slots__ = ("_A",)
 
@@ -385,38 +421,34 @@ class Deviatoric(Compound):
         return "Deviatoric(%r)" % self._A
 
 
-class Cofactor(Compound):
+class Skew(Compound):
     __slots__ = ("_A",)
 
     def __init__(self, A):
         sh = A.shape()
-        ufl_assert(len(sh) == 2, "Cofactor of tensor with rank != 2 is undefined.")
-        ufl_assert(sh[0] == sh[1], "Cannot take cofactor of rectangular matrix with dimensions %s." % repr(sh))
-        ufl_assert(len(A.free_indices()) == 0, "Didn't expect free indices in Cofactor.")
+        r = len(sh)
+        ufl_assert(r == 2, "Skew part of tensor with rank != 2 is undefined.")
+        ufl_assert(compare_shapes((sh[0],), (sh[1],)),
+            "Cannot take skew part of rectangular matrix with dimensions %s." % repr(sh))
+        ufl_assert(len(A.free_indices()) == 0, "Didn't expect free indices in Skew.")
         self._A = A
     
     def operands(self):
         return (self._A, )
     
     def free_indices(self):
-        return ()
+        return self._A.free_indices()
     
     def shape(self):
         return self._A.shape()
-
+    
     def as_basic(self, dim, A):
-        sh = complete_shape(A.shape(), dim)
-        if sh[0] == 2:
-            return as_matrix([[A[1,1],-A[0,1]],[-A[1,0],A[0,0]]])
-        elif sh[0] == 3:
-            return as_matrix([[A[2,2]*A[1,1]-A[1,2]*A[2,1],-A[0,1]*A[2,2]+A[0,2]*A[2,1],A[0,1]*A[1,2]-A[0,2]*A[1,1]],[-A[2,2]*A[1,0]+A[1,2]*A[2,0],-A[0,2]*A[2,0]+A[2,2]*A[0,0],A[0,2]*A[1,0]-A[1,2]*A[0,0]],[A[1,0]*A[2,1]-A[2,0]*A[1,1],A[0,1]*A[2,0]-A[0,0]*A[2,1],A[0,0]*A[1,1]-A[0,1]*A[1,0]]])
-        elif sh[0] == 4:
-            return as_matrix([[-A[3,3]*A[2,1]*A[1,2]+A[1,2]*A[3,1]*A[2,3]+A[1,1]*A[3,3]*A[2,2]-A[3,1]*A[2,2]*A[1,3]+A[2,1]*A[1,3]*A[3,2]-A[1,1]*A[3,2]*A[2,3],-A[3,1]*A[0,2]*A[2,3]+A[0,1]*A[3,2]*A[2,3]-A[0,3]*A[2,1]*A[3,2]+A[3,3]*A[2,1]*A[0,2]-A[3,3]*A[0,1]*A[2,2]+A[0,3]*A[3,1]*A[2,2],A[3,1]*A[1,3]*A[0,2]+A[1,1]*A[0,3]*A[3,2]-A[0,3]*A[1,2]*A[3,1]-A[0,1]*A[1,3]*A[3,2]+A[3,3]*A[1,2]*A[0,1]-A[1,1]*A[3,3]*A[0,2],A[1,1]*A[0,2]*A[2,3]-A[2,1]*A[1,3]*A[0,2]+A[0,3]*A[2,1]*A[1,2]-A[1,2]*A[0,1]*A[2,3]-A[1,1]*A[0,3]*A[2,2]+A[0,1]*A[2,2]*A[1,3]],[A[3,3]*A[1,2]*A[2,0]-A[3,0]*A[1,2]*A[2,3]+A[1,0]*A[3,2]*A[2,3]-A[3,3]*A[1,0]*A[2,2]-A[1,3]*A[3,2]*A[2,0]+A[3,0]*A[2,2]*A[1,3],A[0,3]*A[3,2]*A[2,0]-A[0,3]*A[3,0]*A[2,2]+A[3,3]*A[0,0]*A[2,2]+A[3,0]*A[0,2]*A[2,3]-A[0,0]*A[3,2]*A[2,3]-A[3,3]*A[0,2]*A[2,0],-A[3,3]*A[0,0]*A[1,2]+A[0,0]*A[1,3]*A[3,2]-A[3,0]*A[1,3]*A[0,2]+A[3,3]*A[1,0]*A[0,2]+A[0,3]*A[3,0]*A[1,2]-A[0,3]*A[1,0]*A[3,2],A[0,3]*A[1,0]*A[2,2]+A[1,3]*A[0,2]*A[2,0]-A[0,0]*A[2,2]*A[1,3]-A[0,3]*A[1,2]*A[2,0]+A[0,0]*A[1,2]*A[2,3]-A[1,0]*A[0,2]*A[2,3]],[A[3,1]*A[1,3]*A[2,0]+A[3,3]*A[2,1]*A[1,0]+A[1,1]*A[3,0]*A[2,3]-A[1,0]*A[3,1]*A[2,3]-A[3,0]*A[2,1]*A[1,3]-A[1,1]*A[3,3]*A[2,0],A[3,3]*A[0,1]*A[2,0]-A[3,3]*A[0,0]*A[2,1]-A[0,3]*A[3,1]*A[2,0]-A[3,0]*A[0,1]*A[2,3]+A[0,0]*A[3,1]*A[2,3]+A[0,3]*A[3,0]*A[2,1],-A[0,0]*A[3,1]*A[1,3]+A[0,3]*A[1,0]*A[3,1]-A[3,3]*A[1,0]*A[0,1]+A[1,1]*A[3,3]*A[0,0]-A[1,1]*A[0,3]*A[3,0]+A[3,0]*A[0,1]*A[1,3],A[0,0]*A[2,1]*A[1,3]+A[1,0]*A[0,1]*A[2,3]-A[0,3]*A[2,1]*A[1,0]+A[1,1]*A[0,3]*A[2,0]-A[1,1]*A[0,0]*A[2,3]-A[0,1]*A[1,3]*A[2,0]],[-A[1,2]*A[3,1]*A[2,0]-A[2,1]*A[1,0]*A[3,2]+A[3,0]*A[2,1]*A[1,2]-A[1,1]*A[3,0]*A[2,2]+A[1,0]*A[3,1]*A[2,2]+A[1,1]*A[3,2]*A[2,0],-A[3,0]*A[2,1]*A[0,2]-A[0,1]*A[3,2]*A[2,0]+A[3,1]*A[0,2]*A[2,0]-A[0,0]*A[3,1]*A[2,2]+A[3,0]*A[0,1]*A[2,2]+A[0,0]*A[2,1]*A[3,2],A[0,0]*A[1,2]*A[3,1]-A[1,0]*A[3,1]*A[0,2]+A[1,1]*A[3,0]*A[0,2]+A[1,0]*A[0,1]*A[3,2]-A[3,0]*A[1,2]*A[0,1]-A[1,1]*A[0,0]*A[3,2],-A[1,1]*A[0,2]*A[2,0]+A[2,1]*A[1,0]*A[0,2]+A[1,2]*A[0,1]*A[2,0]+A[1,1]*A[0,0]*A[2,2]-A[1,0]*A[0,1]*A[2,2]-A[0,0]*A[2,1]*A[1,2]]])
-        ufl_error("Cofactor not implemented for dimension %s." % sh[0])
-
+        i, j = indices(2)
+        return as_matrix( (A[i,j] - A[j,i]) / 2, (i,j) )
+    
     def __str__(self):
-        return "cofactor(%s)" % self._A
+        return "skew(%s)" % self._A
     
     def __repr__(self):
-        return "Cofactor(%r)" % self._A
+        return "Skew(%r)" % self._A
 

@@ -28,7 +28,7 @@ __version__ = "0.1"
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __copyright__ = __authors__ + " (2008)"
 __licence__ = "LGPL" # TODO: which licence?
-__date__ = "2008-03-14 -- 2008-10-09"
+__date__ = "2008-03-14 -- 2008-10-21"
 
 
 ########## README
@@ -46,11 +46,12 @@ from .common import product
 #from .permutation import compute_indices, compute_permutations, compute_permutation_pairs, compute_sign, compute_order_tuples
 
 # output control
-#from .output import get_handler, get_logger, set_handler
-from .output import UFLException, ufl_debug, ufl_info, ufl_warning, ufl_error, ufl_assert
+from .output import get_handler, get_logger, set_handler, UFLException
+#from .output import ufl_debug, ufl_info, ufl_warning, ufl_error, ufl_assert
 
 # base system (expression base classes)
-from .base import UFLObject, Terminal, FloatValue, Compound
+#from .base import UFLObject, Terminal, Compound
+#from .base import FloatValue, ZeroType, zero_tensor
 #from .base import is_python_scalar, is_scalar, is_true_scalar
 
 # variable class
@@ -79,7 +80,7 @@ from .indexing import Index, indices
 #from .indexing import as_index, as_index_tuple, extract_indices
 
 # restriction operators
-from .restriction import Restricted, PositiveRestricted, NegativeRestricted
+#from .restriction import Restricted, PositiveRestricted, NegativeRestricted
 
 # special functions for expression base classes
 from . import baseoperators as __baseoperators
@@ -91,8 +92,9 @@ from .tensors import as_tensor, as_vector, as_matrix
 from .tensoralgebra import Identity
 
 # operators
-from .operators import transpose, outer, inner, dot, cross, det, inv, tr, dev, cofac
-from .operators import Dx, Dt, diff, grad, div, curl, rot, jump, avg, variable
+from .operators import transpose, outer, inner, dot, cross, det, inv, tr, dev, cofac, skew
+from .operators import Dx, diff, grad, div, curl, rot, jump, avg, variable
+#from .operators import Dt
 from .operators import eq, ne, le, ge, lt, gt, conditional
 from .operators import sqrt, exp, ln, cos, sin
 
@@ -106,12 +108,11 @@ from .integral import Integral
 from .formoperators import derivative, action, rhs, lhs, dirichlet_functional, dual
 
 # predefined convenience objects
-from .objects import n, i, j, k, l, p, q, r, s
-from .objects import dx, ds, dS
 from .objects import interval, triangle, tetrahedron, quadrilateral, hexahedron
+from .objects import i, j, k, l, p, q, r, s
+from .objects import n
+from .objects import dx, ds, dS
 
-# Constants
+# constants
 from math import e, pi
 
-# algorithms
-from . import algorithms
