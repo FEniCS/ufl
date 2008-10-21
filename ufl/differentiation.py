@@ -3,10 +3,10 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-16"
+__date__ = "2008-03-14 -- 2008-10-21"
 
 from .output import ufl_assert
-from .base import UFLObject, Compound
+from .base import UFLObject
 from .indexing import MultiIndex, Index, DefaultDim, extract_indices
 from .variable import Variable
 from .tensors import as_tensor
@@ -98,7 +98,7 @@ class Diff(UFLObject):
         return "Diff(%r, %r)" % (self._f, self._x)
 
 
-class Grad(Compound):
+class Grad(UFLObject):
     __slots__ = ("_f",)
     
     def __init__(self, f):
@@ -115,14 +115,6 @@ class Grad(Compound):
     def shape(self):
         return (DefaultDim,) + self._f.shape()
     
-    def as_basic(self, dim, f):
-        ii = Index()
-        if f.rank() > 0:
-            jj = tuple(Index() for kk in range(f.rank()))
-            return as_tensor(f[jj].dx(ii), tuple((ii,)+jj))
-        else:
-            return as_tensor(f.dx(ii), (ii,))
-    
     def __str__(self):
         return "grad(%s)" % self._f
     
@@ -130,7 +122,7 @@ class Grad(Compound):
         return "Grad(%r)" % self._f
 
 
-class Div(Compound):
+class Div(UFLObject):
     __slots__ = ("_f",)
 
     def __init__(self, f):
@@ -148,14 +140,6 @@ class Div(Compound):
     def shape(self):
         return self._f.shape()[1:]
     
-    def as_basic(self, dim, f):
-        ii = Index()
-        if f.rank() == 1:
-            g = f[ii]
-        else:
-            g = f[...,ii]
-        return g.dx(ii)
-
     def __str__(self):
         return "div(%s)" % self._f
 
@@ -163,7 +147,7 @@ class Div(Compound):
         return "Div(%r)" % self._f
 
 
-class Curl(Compound):
+class Curl(UFLObject):
     __slots__ = ("_f",)
 
     def __init__(self, f):
@@ -181,9 +165,6 @@ class Curl(Compound):
     def shape(self):
         return (DefaultDim,)
     
-    #def as_basic(self, dim, f):
-    #    return FIXME
-    
     def __str__(self):
         return "curl(%s)" % self._f
     
@@ -191,7 +172,7 @@ class Curl(Compound):
         return "Curl(%r)" % self._f
 
 
-class Rot(Compound):
+class Rot(UFLObject):
     __slots__ = ("_f",)
 
     def __init__(self, f):
@@ -208,9 +189,6 @@ class Rot(Compound):
     
     def shape(self):
         return ()
-    
-    #def as_basic(self, dim, f):
-    #    return FIXME
     
     def __str__(self):
         return "rot(%s)" % self._f

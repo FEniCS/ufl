@@ -4,7 +4,7 @@ types involved with built-in operators on any UFL object."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-16"
+__date__ = "2008-03-14 -- 2008-10-21"
 
 # Modified by Anders Logg, 2008
 
@@ -179,18 +179,6 @@ def float_value(value): # TODO: Use metaclass instead to return zero if value is
     if value == 0:
         return zero()
     return FloatValue(value)
-
-#--- Base class of compound objects ---
-
-class Compound(UFLObject):
-    "An object that can be also expressed as a combination of simpler operations."
-    __slots__ = ()
-    def __init__(self):
-        UFLObject.__init__(self)
-    
-    def as_basic(self, *operands):
-        "Return this expression expressed using basic operations."
-        raise NotImplementedError(self.__class__.as_basic)
 
 #--- Basic helper functions ---
 

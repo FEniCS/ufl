@@ -4,7 +4,7 @@ complete Forms into new related Forms."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-10-01 -- 2008-10-02"
+__date__ = "2008-10-01 -- 2008-10-21"
 
 from collections import defaultdict
 from itertools import izip
@@ -20,7 +20,7 @@ from ..form import Form
 from ..integral import Integral
 
 # Lists of all UFLObject classes
-from ..classes import ufl_classes, terminal_classes, nonterminal_classes, compound_classes
+from ..classes import ufl_classes, terminal_classes, nonterminal_classes
 
 # Other algorithms:
 from .analysis import basisfunctions, coefficients

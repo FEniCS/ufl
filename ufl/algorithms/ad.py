@@ -28,7 +28,7 @@ from ..differentiation import SpatialDerivative, Diff, Grad, Div, Curl, Rot
 from ..conditional import EQ, NE, LE, GE, LT, GT, Conditional
 
 # Lists of all UFLObject classes
-#from ..classes import ufl_classes, terminal_classes, nonterminal_classes, compound_classes
+#from ..classes import ufl_classes, terminal_classes, nonterminal_classes
 from ..classes import terminal_classes
 from ..operators import dot, inner, outer, lt, eq, conditional
 from ..operators import sqrt, exp, ln, cos, sin

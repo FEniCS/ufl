@@ -17,7 +17,7 @@ from ..algebra import Product
 from ..differentiation import SpatialDerivative, Diff
 
 # Lists of all UFLObject classes
-from ..classes import ufl_classes, terminal_classes, nonterminal_classes, compound_classes
+from ..classes import ufl_classes, terminal_classes, nonterminal_classes
 
 # Other algorithms:
 from .analysis import basisfunctions, coefficients, indices, duplications

@@ -31,7 +31,7 @@ from ..form import Form
 from ..integral import Integral
 
 # Lists of all UFLObject classes
-from ..classes import ufl_classes, terminal_classes, nonterminal_classes, compound_classes
+from ..classes import ufl_classes, terminal_classes, nonterminal_classes
 
 # Other algorithms:
 from .analysis import basisfunctions, coefficients, indices

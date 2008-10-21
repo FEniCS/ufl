@@ -6,9 +6,8 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-10-21"
 
 from .output import ufl_assert
-from .base import UFLObject, Terminal, Compound
+from .base import UFLObject, Terminal
 from .indexing import Index, indices, compare_shapes
-from .tensors import as_tensor
 
 
 ### Algebraic operations on tensors:
@@ -36,12 +35,6 @@ from .tensors import as_tensor
 #   dot(x,y):   last index of x has same dimension as first index of y
 #   inner(x,y): shape of x equals the shape of y
 
-#
-# Note:
-# To avoid typing errors, the expressions for cofactor and deviatoric parts in as_basic
-# below were created with the script tensoralgebrastrings.py under ufl/scripts/
-#
-
 class Identity(Terminal):
     __slots__ = ("_dim",)
     
@@ -63,7 +56,7 @@ class Identity(Terminal):
 
 # objects representing the operations:
 
-class Transposed(Compound):
+class Transposed(UFLObject):
     __slots__ = ("_A",)
     
     def __init__(self, A):
@@ -80,11 +73,6 @@ class Transposed(Compound):
         s = self._A.shape()
         return (s[1], s[0])
     
-    def as_basic(self, dim, A):
-        ii = Index()
-        jj = Index()
-        return as_tensor(A[ii, jj], (jj, ii))
-    
     def __str__(self):
         return "(%s)^T" % self._A
     
@@ -92,7 +80,7 @@ class Transposed(Compound):
         return "Transposed(%r)" % self._A
 
 
-class Outer(Compound):
+class Outer(UFLObject):
     __slots__ = ("_a", "_b", "_free_indices")
 
     def __init__(self, a, b):
@@ -111,11 +99,6 @@ class Outer(Compound):
     
     def shape(self):
         return self._a.shape() + self._b.shape()
-
-    def as_basic(self, dim, a, b):
-        ii = tuple(Index() for kk in range(a.rank()))
-        jj = tuple(Index() for kk in range(b.rank()))
-        return a[ii]*b[jj]
     
     def __str__(self):
         return "(%s) (x) (%s)" % (self._a, self._b)
@@ -125,7 +108,7 @@ class Outer(Compound):
         return "Outer(%r, %r)" % (self._a, self._b)
 
 
-class Inner(Compound):
+class Inner(UFLObject):
     __slots__ = ("_a", "_b", "_free_indices")
 
     def __init__(self, a, b):
@@ -146,10 +129,6 @@ class Inner(Compound):
     def shape(self):
         return ()
     
-    def as_basic(self, dim, a, b):
-        ii = tuple(Index() for jj in range(a.rank()))
-        return a[ii]*b[ii]
-    
     def __str__(self):
         return "(%s) : (%s)" % (self._a, self._b)
         #return "%s : %s" % (pstr(self._a, self), pstr(self._b, self))
@@ -158,7 +137,7 @@ class Inner(Compound):
         return "Inner(%r, %r)" % (self._a, self._b)
 
 
-class Dot(Compound):
+class Dot(UFLObject):
     __slots__ = ("_a", "_b", "_free_indices")
 
     def __init__(self, a, b):
@@ -182,12 +161,6 @@ class Dot(Compound):
     def shape(self):
         return self._a.shape()[:-1] + self._b.shape()[1:]
     
-    def as_basic(self, dim, a, b):
-        ii = Index()
-        aa = a[ii] if (a.rank() == 1) else a[...,ii]
-        bb = b[ii] if (b.rank() == 1) else b[ii,...]
-        return aa*bb
-    
     def __str__(self):
         return "(%s) . (%s)" % (self._a, self._b)
         #return "%s . %s" % (pstr(self._a, self), pstr(self._b, self))
@@ -196,7 +169,7 @@ class Dot(Compound):
         return "Dot(%r, %r)" % (self._a, self._b)
 
 
-class Cross(Compound):
+class Cross(UFLObject):
     __slots__ = ("_a", "_b", "_free_indices")
 
     def __init__(self, a, b):
@@ -219,17 +192,6 @@ class Cross(Compound):
     def shape(self):
         return (3,)
     
-    def as_basic(self, dim, a, b):
-        if dim == 3:
-            ufl_assert(compare_shapes(a.shape(), (3,)),
-                "Invalid shape of first argument in cross product.")
-            ufl_assert(compare_shapes(b.shape(), (3,)),
-                "Invalid shape of second argument in cross product.")
-            def c(i, j):
-                return a[i]*b[j]-a[j]*b[i]
-            return as_vector(c(1,2), c(2,0), c(0,1))
-        ufl_error("Cross product not implemented for dimension %d." % dim)
-    
     def __str__(self):
         return "(%s) x (%s)" % (self._a, self._b)
         #return "%s x %s" % (pstr(self._a, self), pstr(self._b, self))
@@ -238,7 +200,7 @@ class Cross(Compound):
         return "Cross(%r, %r)" % (self._a, self._b)
 
 
-class Trace(Compound):
+class Trace(UFLObject):
     __slots__ = ("_A",)
 
     def __init__(self, A):
@@ -254,10 +216,6 @@ class Trace(Compound):
     def shape(self):
         return ()
     
-    def as_basic(self, dim, A):
-        i = Index()
-        return A[i,i]
-    
     def __str__(self):
         return "tr(%s)" % self._A
     
@@ -265,7 +223,7 @@ class Trace(Compound):
         return "Trace(%r)" % self._A
 
 
-class Determinant(Compound):
+class Determinant(UFLObject):
     __slots__ = ("_A",)
 
     def __init__(self, A):
@@ -288,27 +246,6 @@ class Determinant(Compound):
     def shape(self):
         return ()
     
-    def as_basic(self, dim, A):
-        sh = complete_shape(A.shape(), dim)
-
-        if len(sh) == 0:
-            return A
-        
-        def det2D(B, i, j, k, l):
-            return B[i,k]*B[j,l]-B[i,l]*B[j,k]
-
-        if sh[0] == 2:
-            return det2D(A, 0, 1, 0, 1)
-        
-        if sh[0] == 3:
-            # TODO: Verify this expression
-            return A[0,0]*det2D(A, 1, 2, 1, 2) + \
-                   A[0,1]*det2D(A, 1, 2, 2, 0) + \
-                   A[0,2]*det2D(A, 1, 2, 0, 1)
-        
-        # TODO: Implement generally for all dimensions?
-        ufl_error("Determinant not implemented for dimension %d." % dim)
-    
     def __str__(self):
         return "det(%s)" % self._A
     
@@ -316,7 +253,7 @@ class Determinant(Compound):
         return "Determinant(%r)" % self._A
 
 
-class Inverse(Compound): # TODO: Drop Inverse and represent it as product of Determinant and Cofactor?
+class Inverse(UFLObject): # TODO: Drop Inverse and represent it as product of Determinant and Cofactor?
     __slots__ = ("_A",)
 
     def __init__(self, A):
@@ -337,11 +274,6 @@ class Inverse(Compound): # TODO: Drop Inverse and represent it as product of Det
     def shape(self):
         return self._A.shape()
     
-    def as_basic(self, dim, A):
-        if A.rank() == 0:
-            return 1.0 / A
-        return Determinant(A).as_basic(dim, A) * Cofactor(A).as_basic(dim, A)
-    
     def __str__(self):
         return "(%s)^-1" % self._A
     
@@ -349,7 +281,7 @@ class Inverse(Compound): # TODO: Drop Inverse and represent it as product of Det
         return "Inverse(%r)" % self._A
 
 
-class Cofactor(Compound):
+class Cofactor(UFLObject):
     __slots__ = ("_A",)
 
     def __init__(self, A):
@@ -368,16 +300,6 @@ class Cofactor(Compound):
     def shape(self):
         return self._A.shape()
 
-    def as_basic(self, dim, A):
-        sh = complete_shape(A.shape(), dim)
-        if sh[0] == 2:
-            return as_matrix([[A[1,1],-A[0,1]],[-A[1,0],A[0,0]]])
-        elif sh[0] == 3:
-            return as_matrix([[A[2,2]*A[1,1]-A[1,2]*A[2,1],-A[0,1]*A[2,2]+A[0,2]*A[2,1],A[0,1]*A[1,2]-A[0,2]*A[1,1]],[-A[2,2]*A[1,0]+A[1,2]*A[2,0],-A[0,2]*A[2,0]+A[2,2]*A[0,0],A[0,2]*A[1,0]-A[1,2]*A[0,0]],[A[1,0]*A[2,1]-A[2,0]*A[1,1],A[0,1]*A[2,0]-A[0,0]*A[2,1],A[0,0]*A[1,1]-A[0,1]*A[1,0]]])
-        elif sh[0] == 4:
-            return as_matrix([[-A[3,3]*A[2,1]*A[1,2]+A[1,2]*A[3,1]*A[2,3]+A[1,1]*A[3,3]*A[2,2]-A[3,1]*A[2,2]*A[1,3]+A[2,1]*A[1,3]*A[3,2]-A[1,1]*A[3,2]*A[2,3],-A[3,1]*A[0,2]*A[2,3]+A[0,1]*A[3,2]*A[2,3]-A[0,3]*A[2,1]*A[3,2]+A[3,3]*A[2,1]*A[0,2]-A[3,3]*A[0,1]*A[2,2]+A[0,3]*A[3,1]*A[2,2],A[3,1]*A[1,3]*A[0,2]+A[1,1]*A[0,3]*A[3,2]-A[0,3]*A[1,2]*A[3,1]-A[0,1]*A[1,3]*A[3,2]+A[3,3]*A[1,2]*A[0,1]-A[1,1]*A[3,3]*A[0,2],A[1,1]*A[0,2]*A[2,3]-A[2,1]*A[1,3]*A[0,2]+A[0,3]*A[2,1]*A[1,2]-A[1,2]*A[0,1]*A[2,3]-A[1,1]*A[0,3]*A[2,2]+A[0,1]*A[2,2]*A[1,3]],[A[3,3]*A[1,2]*A[2,0]-A[3,0]*A[1,2]*A[2,3]+A[1,0]*A[3,2]*A[2,3]-A[3,3]*A[1,0]*A[2,2]-A[1,3]*A[3,2]*A[2,0]+A[3,0]*A[2,2]*A[1,3],A[0,3]*A[3,2]*A[2,0]-A[0,3]*A[3,0]*A[2,2]+A[3,3]*A[0,0]*A[2,2]+A[3,0]*A[0,2]*A[2,3]-A[0,0]*A[3,2]*A[2,3]-A[3,3]*A[0,2]*A[2,0],-A[3,3]*A[0,0]*A[1,2]+A[0,0]*A[1,3]*A[3,2]-A[3,0]*A[1,3]*A[0,2]+A[3,3]*A[1,0]*A[0,2]+A[0,3]*A[3,0]*A[1,2]-A[0,3]*A[1,0]*A[3,2],A[0,3]*A[1,0]*A[2,2]+A[1,3]*A[0,2]*A[2,0]-A[0,0]*A[2,2]*A[1,3]-A[0,3]*A[1,2]*A[2,0]+A[0,0]*A[1,2]*A[2,3]-A[1,0]*A[0,2]*A[2,3]],[A[3,1]*A[1,3]*A[2,0]+A[3,3]*A[2,1]*A[1,0]+A[1,1]*A[3,0]*A[2,3]-A[1,0]*A[3,1]*A[2,3]-A[3,0]*A[2,1]*A[1,3]-A[1,1]*A[3,3]*A[2,0],A[3,3]*A[0,1]*A[2,0]-A[3,3]*A[0,0]*A[2,1]-A[0,3]*A[3,1]*A[2,0]-A[3,0]*A[0,1]*A[2,3]+A[0,0]*A[3,1]*A[2,3]+A[0,3]*A[3,0]*A[2,1],-A[0,0]*A[3,1]*A[1,3]+A[0,3]*A[1,0]*A[3,1]-A[3,3]*A[1,0]*A[0,1]+A[1,1]*A[3,3]*A[0,0]-A[1,1]*A[0,3]*A[3,0]+A[3,0]*A[0,1]*A[1,3],A[0,0]*A[2,1]*A[1,3]+A[1,0]*A[0,1]*A[2,3]-A[0,3]*A[2,1]*A[1,0]+A[1,1]*A[0,3]*A[2,0]-A[1,1]*A[0,0]*A[2,3]-A[0,1]*A[1,3]*A[2,0]],[-A[1,2]*A[3,1]*A[2,0]-A[2,1]*A[1,0]*A[3,2]+A[3,0]*A[2,1]*A[1,2]-A[1,1]*A[3,0]*A[2,2]+A[1,0]*A[3,1]*A[2,2]+A[1,1]*A[3,2]*A[2,0],-A[3,0]*A[2,1]*A[0,2]-A[0,1]*A[3,2]*A[2,0]+A[3,1]*A[0,2]*A[2,0]-A[0,0]*A[3,1]*A[2,2]+A[3,0]*A[0,1]*A[2,2]+A[0,0]*A[2,1]*A[3,2],A[0,0]*A[1,2]*A[3,1]-A[1,0]*A[3,1]*A[0,2]+A[1,1]*A[3,0]*A[0,2]+A[1,0]*A[0,1]*A[3,2]-A[3,0]*A[1,2]*A[0,1]-A[1,1]*A[0,0]*A[3,2],-A[1,1]*A[0,2]*A[2,0]+A[2,1]*A[1,0]*A[0,2]+A[1,2]*A[0,1]*A[2,0]+A[1,1]*A[0,0]*A[2,2]-A[1,0]*A[0,1]*A[2,2]-A[0,0]*A[2,1]*A[1,2]]])
-        ufl_error("Cofactor not implemented for dimension %s." % sh[0])
-
     def __str__(self):
         return "cofactor(%s)" % self._A
     
@@ -385,7 +307,7 @@ class Cofactor(Compound):
         return "Cofactor(%r)" % self._A
 
 
-class Deviatoric(Compound):
+class Deviatoric(UFLObject):
     __slots__ = ("_A",)
 
     def __init__(self, A):
@@ -406,14 +328,6 @@ class Deviatoric(Compound):
     def shape(self):
         return self._A.shape()
     
-    def as_basic(self, dim, A):
-        sh = complete_shape(A.shape(), dim)
-        if sh[0] == 2:
-            return as_matrix([[-A[1,1],A[0,1]],[A[1,0],-A[0,0]]])
-        elif sh[0] == 3:
-            return as_matrix([[-A[1,1]-A[2,2],A[0,1],A[0,2]],[A[1,0],-A[0,0]-A[2,2],A[1,2]],[A[2,0],A[2,1],-A[0,0]-A[1,1]]])
-        ufl_error("dev(A) not implemented for dimension %s." % sh[0])
-    
     def __str__(self):
         return "dev(%s)" % self._A
     
@@ -421,7 +335,7 @@ class Deviatoric(Compound):
         return "Deviatoric(%r)" % self._A
 
 
-class Skew(Compound):
+class Skew(UFLObject):
     __slots__ = ("_A",)
 
     def __init__(self, A):
@@ -441,10 +355,6 @@ class Skew(Compound):
     
     def shape(self):
         return self._A.shape()
-    
-    def as_basic(self, dim, A):
-        i, j = indices(2)
-        return as_matrix( (A[i,j] - A[j,i]) / 2, (i,j) )
     
     def __str__(self):
         return "skew(%s)" % self._A

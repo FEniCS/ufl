@@ -36,9 +36,9 @@ from ..basisfunction import BasisFunction
 #from ..basisfunction import TestFunction, TrialFunction, BasisFunctions, TestFunctions, TrialFunctions
 from ..function import Function, Constant
 from ..geometry import FacetNormal
-from ..indexing import MultiIndex, Indexed, Index, FixedIndex
+from ..indexing import MultiIndex, Indexed, Index, FixedIndex, indices, compare_shapes
 #from ..indexing import AxisType, as_index, as_index_tuple, extract_indices
-from ..tensors import ListTensor, ComponentTensor
+from ..tensors import ListTensor, ComponentTensor, as_tensor, as_matrix
 from ..algebra import Sum, Product, Division, Power, Abs
 from ..tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
 from ..mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
@@ -49,7 +49,7 @@ from ..form import Form
 from ..integral import Integral
 
 # Lists of all UFLObject classes
-from ..classes import ufl_classes, terminal_classes, nonterminal_classes, compound_classes
+from ..classes import ufl_classes, terminal_classes, nonterminal_classes
 
 # Other algorithms:
 from .analysis import basisfunctions, coefficients, indices, duplications
@@ -153,11 +153,143 @@ def ufl2uflcopy(expression):
 def expand_compounds(expression, dim):
     """Convert an UFL expression to a new UFL expression, with all 
     compound operator objects converted to basic (indexed) expressions."""
+    
+    #
+    # Note:
+    # To avoid typing errors, the expressions for cofactor and deviatoric parts 
+    # below were created with the script tensoralgebrastrings.py under ufl/scripts/
+    #
+
     d = ufl_reuse_handlers()
-    def e_compound(x, *ops):
-        return x.as_basic(dim, *ops)
-    for c in compound_classes:
-        d[c] = e_compound
+    
+    def e_grad(x, f):
+        ii = Index()
+        if f.rank() > 0:
+            jj = tuple(indices(f.rank()))
+            return as_tensor(f[jj].dx(ii), tuple((ii,)+jj))
+        else:
+            return as_tensor(f.dx(ii), (ii,))
+    d[Grad] = e_grad
+    
+    def e_div(x, f):
+        ii = Index()
+        if f.rank() == 1:
+            g = f[ii]
+        else:
+            g = f[...,ii]
+        return g.dx(ii)
+    d[Div] = e_div
+    
+    def e_curl(x, f):
+        FIXME
+    d[Curl] = e_curl
+    
+    def e_rot(x, f):
+        FIXME
+    d[Rot] = e_rot
+    
+    def e_transposed(x, A):
+        ii, jj = indices(2)
+        return as_tensor(A[ii, jj], (jj, ii))
+    d[Transposed] = e_transposed
+    
+    def e_outer(x, a, b):
+        ii = tuple(indices(a.rank()))
+        jj = tuple(indices(b.rank()))
+        return a[ii]*b[jj]
+    d[Outer] = e_outer
+    
+    def e_inner(x, a, b):
+        ii = tuple(indices(a.rank()))
+        return a[ii]*b[ii]
+    d[Inner] = e_inner
+    
+    def e_dot(x, a, b):
+        ii = Index()
+        aa = a[ii] if (a.rank() == 1) else a[...,ii]
+        bb = b[ii] if (b.rank() == 1) else b[ii,...]
+        return aa*bb
+    d[Dot] = e_dot
+    
+    def e_cross(x, a, b):
+        if dim == 3:
+            ufl_assert(compare_shapes(a.shape(), (3,)),
+                "Invalid shape of first argument in cross product.")
+            ufl_assert(compare_shapes(b.shape(), (3,)),
+                "Invalid shape of second argument in cross product.")
+            def c(i, j):
+                return a[i]*b[j]-a[j]*b[i]
+            return as_vector(c(1,2), c(2,0), c(0,1))
+        ufl_error("Cross product not implemented for dimension %d." % dim)
+    d[Cross] = e_cross
+    
+    def e_trace(x, A):
+        i = Index()
+        return A[i,i]
+    d[Trace] = e_trace
+    
+    def e_determinant(x, A):
+        sh = complete_shape(A.shape(), dim)
+
+        if len(sh) == 0:
+            return A
+        
+        def det2D(B, i, j, k, l):
+            return B[i,k]*B[j,l]-B[i,l]*B[j,k]
+
+        if sh[0] == 2:
+            return det2D(A, 0, 1, 0, 1)
+        
+        if sh[0] == 3:
+            # TODO: Verify this expression
+            return A[0,0]*det2D(A, 1, 2, 1, 2) + \
+                   A[0,1]*det2D(A, 1, 2, 2, 0) + \
+                   A[0,2]*det2D(A, 1, 2, 0, 1)
+        
+        # TODO: Implement generally for all dimensions?
+        ufl_error("Determinant not implemented for dimension %d." % dim)
+    d[Determinant] = e_determinant
+    
+    def e_cofactor(x, A):
+        sh = complete_shape(A.shape(), dim)
+        if sh[0] == 2:
+            return as_matrix([[A[1,1],-A[0,1]],[-A[1,0],A[0,0]]])
+        elif sh[0] == 3:
+            return as_matrix([ \
+                [A[2,2]*A[1,1]-A[1,2]*A[2,1],-A[0,1]*A[2,2]+A[0,2]*A[2,1],A[0,1]*A[1,2]-A[0,2]*A[1,1]],
+                [-A[2,2]*A[1,0]+A[1,2]*A[2,0],-A[0,2]*A[2,0]+A[2,2]*A[0,0],A[0,2]*A[1,0]-A[1,2]*A[0,0]],
+                [A[1,0]*A[2,1]-A[2,0]*A[1,1],A[0,1]*A[2,0]-A[0,0]*A[2,1],A[0,0]*A[1,1]-A[0,1]*A[1,0]] \
+                ])
+        elif sh[0] == 4:
+            return as_matrix([ \
+                [-A[3,3]*A[2,1]*A[1,2]+A[1,2]*A[3,1]*A[2,3]+A[1,1]*A[3,3]*A[2,2]-A[3,1]*A[2,2]*A[1,3]+A[2,1]*A[1,3]*A[3,2]-A[1,1]*A[3,2]*A[2,3],-A[3,1]*A[0,2]*A[2,3]+A[0,1]*A[3,2]*A[2,3]-A[0,3]*A[2,1]*A[3,2]+A[3,3]*A[2,1]*A[0,2]-A[3,3]*A[0,1]*A[2,2]+A[0,3]*A[3,1]*A[2,2],A[3,1]*A[1,3]*A[0,2]+A[1,1]*A[0,3]*A[3,2]-A[0,3]*A[1,2]*A[3,1]-A[0,1]*A[1,3]*A[3,2]+A[3,3]*A[1,2]*A[0,1]-A[1,1]*A[3,3]*A[0,2],A[1,1]*A[0,2]*A[2,3]-A[2,1]*A[1,3]*A[0,2]+A[0,3]*A[2,1]*A[1,2]-A[1,2]*A[0,1]*A[2,3]-A[1,1]*A[0,3]*A[2,2]+A[0,1]*A[2,2]*A[1,3]],
+                [A[3,3]*A[1,2]*A[2,0]-A[3,0]*A[1,2]*A[2,3]+A[1,0]*A[3,2]*A[2,3]-A[3,3]*A[1,0]*A[2,2]-A[1,3]*A[3,2]*A[2,0]+A[3,0]*A[2,2]*A[1,3],A[0,3]*A[3,2]*A[2,0]-A[0,3]*A[3,0]*A[2,2]+A[3,3]*A[0,0]*A[2,2]+A[3,0]*A[0,2]*A[2,3]-A[0,0]*A[3,2]*A[2,3]-A[3,3]*A[0,2]*A[2,0],-A[3,3]*A[0,0]*A[1,2]+A[0,0]*A[1,3]*A[3,2]-A[3,0]*A[1,3]*A[0,2]+A[3,3]*A[1,0]*A[0,2]+A[0,3]*A[3,0]*A[1,2]-A[0,3]*A[1,0]*A[3,2],A[0,3]*A[1,0]*A[2,2]+A[1,3]*A[0,2]*A[2,0]-A[0,0]*A[2,2]*A[1,3]-A[0,3]*A[1,2]*A[2,0]+A[0,0]*A[1,2]*A[2,3]-A[1,0]*A[0,2]*A[2,3]],
+                [A[3,1]*A[1,3]*A[2,0]+A[3,3]*A[2,1]*A[1,0]+A[1,1]*A[3,0]*A[2,3]-A[1,0]*A[3,1]*A[2,3]-A[3,0]*A[2,1]*A[1,3]-A[1,1]*A[3,3]*A[2,0],A[3,3]*A[0,1]*A[2,0]-A[3,3]*A[0,0]*A[2,1]-A[0,3]*A[3,1]*A[2,0]-A[3,0]*A[0,1]*A[2,3]+A[0,0]*A[3,1]*A[2,3]+A[0,3]*A[3,0]*A[2,1],-A[0,0]*A[3,1]*A[1,3]+A[0,3]*A[1,0]*A[3,1]-A[3,3]*A[1,0]*A[0,1]+A[1,1]*A[3,3]*A[0,0]-A[1,1]*A[0,3]*A[3,0]+A[3,0]*A[0,1]*A[1,3],A[0,0]*A[2,1]*A[1,3]+A[1,0]*A[0,1]*A[2,3]-A[0,3]*A[2,1]*A[1,0]+A[1,1]*A[0,3]*A[2,0]-A[1,1]*A[0,0]*A[2,3]-A[0,1]*A[1,3]*A[2,0]],
+                [-A[1,2]*A[3,1]*A[2,0]-A[2,1]*A[1,0]*A[3,2]+A[3,0]*A[2,1]*A[1,2]-A[1,1]*A[3,0]*A[2,2]+A[1,0]*A[3,1]*A[2,2]+A[1,1]*A[3,2]*A[2,0],-A[3,0]*A[2,1]*A[0,2]-A[0,1]*A[3,2]*A[2,0]+A[3,1]*A[0,2]*A[2,0]-A[0,0]*A[3,1]*A[2,2]+A[3,0]*A[0,1]*A[2,2]+A[0,0]*A[2,1]*A[3,2],A[0,0]*A[1,2]*A[3,1]-A[1,0]*A[3,1]*A[0,2]+A[1,1]*A[3,0]*A[0,2]+A[1,0]*A[0,1]*A[3,2]-A[3,0]*A[1,2]*A[0,1]-A[1,1]*A[0,0]*A[3,2],-A[1,1]*A[0,2]*A[2,0]+A[2,1]*A[1,0]*A[0,2]+A[1,2]*A[0,1]*A[2,0]+A[1,1]*A[0,0]*A[2,2]-A[1,0]*A[0,1]*A[2,2]-A[0,0]*A[2,1]*A[1,2]] \
+                ])
+        ufl_error("Cofactor not implemented for dimension %s." % sh[0])
+    d[Cofactor] = e_cofactor
+    
+    def e_inverse(x, A):
+        if A.rank() == 0:
+            return 1.0 / A
+        return e_determinant(A) * e_cofactor(A)
+    d[Inverse] = e_inverse
+    
+    def e_deviatoric(x, A):
+        sh = complete_shape(A.shape(), dim)
+        if sh[0] == 2:
+            return as_matrix([[-A[1,1],A[0,1]],[A[1,0],-A[0,0]]])
+        elif sh[0] == 3:
+            return as_matrix([[-A[1,1]-A[2,2],A[0,1],A[0,2]],[A[1,0],-A[0,0]-A[2,2],A[1,2]],[A[2,0],A[2,1],-A[0,0]-A[1,1]]])
+        ufl_error("dev(A) not implemented for dimension %s." % sh[0])
+    d[Deviatoric] = e_deviatoric
+    
+    def e_skew(x, A):
+        i, j = indices(2)
+        return as_matrix( (A[i,j] - A[j,i]) / 2, (i,j) )
+    d[Skew] = e_skew
+     
     return transform(expression, d)
 
 

@@ -5,11 +5,11 @@ implementation details not exposed through the default ufl namespace."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-15 -- 2008-10-15"
+__date__ = "2008-08-15 -- 2008-10-21"
 
 # Modified by Anders Logg, 2008
 
-from .base import UFLObject, Terminal, FloatValue, ZeroType, Compound
+from .base import UFLObject, Terminal, FloatValue, ZeroType
 from .variable import Variable
 from .finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
 from .basisfunction import BasisFunction, TestFunction, TrialFunction
@@ -34,10 +34,9 @@ from . import baseoperators as __baseoperators
 __classobj = type(UFLObject)
 def __issubclass(x, y):
     return isinstance(x, __classobj) and issubclass(x, y)
-abstract_classes    = set([UFLObject, Terminal, Compound, Restricted, Condition, MathFunction])
+abstract_classes    = set([UFLObject, Terminal, Restricted, Condition, MathFunction])
 all_ufl_classes     = set([c for c in locals().values() if __issubclass(c, UFLObject)])
 ufl_classes         = set([c for c in all_ufl_classes if c not in abstract_classes])
 terminal_classes    = set([c for c in ufl_classes if __issubclass(c, Terminal)])
 nonterminal_classes = set([c for c in ufl_classes if not __issubclass(c, Terminal)])
-compound_classes    = set([c for c in ufl_classes if __issubclass(c, Compound)])
 
