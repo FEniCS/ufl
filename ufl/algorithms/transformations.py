@@ -212,15 +212,13 @@ def expand_compounds(expression, dim):
     d[Dot] = e_dot
     
     def e_cross(x, a, b):
-        if dim == 3:
-            ufl_assert(compare_shapes(a.shape(), (3,)),
-                "Invalid shape of first argument in cross product.")
-            ufl_assert(compare_shapes(b.shape(), (3,)),
-                "Invalid shape of second argument in cross product.")
-            def c(i, j):
-                return a[i]*b[j]-a[j]*b[i]
-            return as_vector(c(1,2), c(2,0), c(0,1))
-        ufl_error("Cross product not implemented for dimension %d." % dim)
+        ufl_assert(compare_shapes(a.shape(), (3,)),
+            "Invalid shape of first argument in cross product.")
+        ufl_assert(compare_shapes(b.shape(), (3,)),
+            "Invalid shape of second argument in cross product.")
+        def c(i, j):
+            return a[i]*b[j]-a[j]*b[i]
+        return as_vector((c(1,2), c(2,0), c(0,1)))
     d[Cross] = e_cross
     
     def e_trace(x, A):

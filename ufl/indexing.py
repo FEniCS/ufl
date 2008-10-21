@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-14 -- 2008-10-17"
+__date__ = "2008-03-14 -- 2008-10-21"
 
 # Python imports
 from collections import defaultdict
@@ -275,7 +275,7 @@ class DefaultDimType(object):
 
 DefaultDim = DefaultDimType()
 
-def complete_shape(a, dim):
+def complete_shape(a, dim): # FIXME: If we can get rid of DefaultDim, we can get rid of this...
     b = list(a)
     for i,x in enumerate(b):
         if isinstance(x, DefaultDimType):
