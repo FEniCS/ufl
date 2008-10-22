@@ -39,7 +39,8 @@ def _mark_duplications(expression, handlers, variables, dups):
         return var
     
     # skip some types
-    if isinstance(expression, (MultiIndex, FloatValue, ZeroType)):
+    _skiptypes = (MultiIndex, FloatValue, ZeroType)
+    if isinstance(expression, _skiptypes):
         return expression
     
     # handle subexpressions

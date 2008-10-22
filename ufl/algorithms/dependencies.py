@@ -390,9 +390,13 @@ class DependencySplitter:
         if any(o[1] != d for o in ops):
             oldops = ops
             ops = []
+            _skiptypes = (MultiIndex, FloatValue, ZeroType)
             for o in oldops:
-                vinfo = self.register_expression(o[0], o[1])
-                ops.append((vinfo.variable, vinfo.deps))
+                if isinstance(o[0], _skiptypes):
+                    ops.append(o)
+                else:
+                    vinfo = self.register_expression(o[0], o[1])
+                    ops.append((vinfo.variable, vinfo.deps))
         
         # Reuse expression if possible
         ops = [o[0] for o in ops]
