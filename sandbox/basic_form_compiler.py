@@ -1,4 +1,11 @@
 
+#
+# TODO:
+# - Make variable stacks work for mass matrix, source vector and L2norm
+# - Fix variable handling in split_by_dependencies (see get_variable_deps)
+# - Fix SpatialDerivative propagation and check with stiffness matrix, H1norm, and something that doesn't apply it directly to a terminal
+#
+
 import os, sys, pickle, shutil, glob
 
 from ufl import *
@@ -35,7 +42,7 @@ def compile_integral(integrand, formdata):
     integrand = mark_duplications(integrand)
     dump_integrand_state("d - mark_duplications", integrand)
     
-    # TODO: AD stuff
+    # TODO: Apply AD stuff for Diff and propagation of SpatialDerivative to Terminal nodes
     
     basisfunction_deps = []
     fs = (False,)*formdata.num_coefficients
@@ -51,7 +58,7 @@ def compile_integral(integrand, formdata):
         d = DependencySet(bfs, fs)
         function_deps.append(d)
     
-    do_split = False
+    do_split = True
     if do_split:
         (vinfo, code) = split_by_dependencies(integrand, formdata, basisfunction_deps, function_deps)
     

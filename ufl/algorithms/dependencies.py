@@ -293,7 +293,11 @@ def split_by_dependencies(expression, formdata, basisfunction_deps, function_dep
     # Split each variable
     ds = DependencySplitter(formdata, basisfunction_deps, function_deps)
     for v in variables:
+        print "Handling variable ", repr(v)
         vinfo = ds.handle(v)
+        print "Done handling variable ", v
+        print "Got vinfo:"
+        print vinfo
 
     # How can I be sure we won't mess up the expressions of v and vinfo.variable, before and after splitting?
     # The answer is to never use v in the form compiler after this point,
@@ -351,16 +355,26 @@ class DependencySplitter:
         return x, self.basisfunction_deps[self.formdata.basisfunction_renumbering[x]]
     
     def get_variable_deps(self, x):
-        # FIXME: Create new Variable with invalid expression (must keep shape etc!) and same count?
+        # FIXME: Create new Variable with invalid expression must keep shape etc!) and same count?
         ufl_assert(x._count in self.variable_deps,
                    "Haven't handled variable in time: %s" % repr(x))
         v = x # self.handled_variables[x._count]
         return v, self.variable_deps[x._count]
     
     def get_spatial_derivative_deps(self, x, f, ii):
-        # FIXME: Introduce dependency of mapping with gradients...
-        #  BasisFunction won't normally depend on the mapping, but the gradients will always do...
-        return FIXME
+        # BasisFunction won't normally depend on the mapping,
+        # but the spatial derivatives will always do...
+        dep = self.make_deps(cell=True, mapping=True)
+
+        # Combine dependencies
+        d = f[1] | dep
+        
+        # Reuse expression if possible
+        if f[0] is x.operands()[0]:
+            return x, d
+        
+        # Construct new expression
+        return type(x)(f[0], ii[0]), d
     
     def child_deps(self, x, *ops):
         ufl_assert(ops, "Non-terminal with no ops should never occur.")
@@ -388,8 +402,12 @@ class DependencySplitter:
         vinfo = self.codestructure.variableinfo.get(v._count, None)
         if vinfo is None:
             # split v._expression 
-            v2, deps = self.transform(v._expression)
+            e, deps = self.transform(v._expression)
+            # The expression e is now registered as the expression of variable v
+            v2 = Variable(e, count=v._count) # Is this safe?
             vinfo = VariableInfo(v2, deps)
+            self.codestructure.variableinfo[v2._count] = vinfo
+            self.variable_deps[v2._count] = vinfo.deps
         return vinfo
 
 

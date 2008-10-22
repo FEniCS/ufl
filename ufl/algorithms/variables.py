@@ -57,7 +57,8 @@ def _mark_duplications(expression, handlers, variables, dups):
     
     # wrap in variable if a duplicate
     if expression in dups or handled in dups: # TODO: Not sure if it is necessary to look for handled
-        handled = Variable(handled)
+        if not isinstance(handled, Variable):
+            handled = Variable(handled)
         variables[expression] = handled
         variables[handled] = handled
     
