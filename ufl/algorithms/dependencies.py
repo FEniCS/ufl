@@ -86,12 +86,14 @@ class DependencySet:
 
     def __str__(self):
         s = "DependencySet:\n"
-        s += "self.mapping        = %s\n" % self.mapping
-        s += "self.coordinates    = %s\n" % self.coordinates 
-        s += "self.cell           = %s\n" % self.cell
-        s += "self.facet          = %s\n" % self.facet 
-        s += "self.basisfunctions = %s\n" % str(self.basisfunctions) 
-        s += "self.functions      = %s" % str(self.functions) 
+        s += "{\n"
+        s += "  self.mapping        = %s\n" % self.mapping
+        s += "  self.coordinates    = %s\n" % self.coordinates 
+        s += "  self.cell           = %s\n" % self.cell
+        s += "  self.facet          = %s\n" % self.facet 
+        s += "  self.basisfunctions = %s\n" % str(self.basisfunctions) 
+        s += "  self.functions      = %s\n" % str(self.functions)
+        s += "}"
         return s
 
 
@@ -105,11 +107,13 @@ class VariableInfo:
         self.diffcache = {}
     
     def __str__(self):
-        s = "VariableInfo:"
+        s = "VariableInfo:\n"
+        s += "{\n"
         s += "  self.variable = %s\n" % self.variable
         s += "  self.deps = %s\n" % self.deps
         s += "  self.diffcache = \n"
         s += "\n".join("    %s: %s" % (k,v) for (k,v) in self.diffcache.iteritems())
+        s += "\n}"
         return s
 
 class DiffVarSet:
@@ -312,7 +316,6 @@ class DependencySplitter:
         self.basisfunction_deps = basisfunction_deps
         self.function_deps = function_deps
         self.variables = []
-        self.variable_deps = {}
         self.codestructure = CodeStructure()
 
         # First set default behaviour for dependencies
@@ -356,10 +359,10 @@ class DependencySplitter:
     
     def get_variable_deps(self, x):
         # FIXME: Create new Variable with invalid expression must keep shape etc!) and same count?
-        ufl_assert(x._count in self.variable_deps,
+        ufl_assert(x._count in self.codestructure.variableinfo,
                    "Haven't handled variable in time: %s" % repr(x))
         v = x # self.handled_variables[x._count]
-        return v, self.variable_deps[x._count]
+        return v, self.codestructure.variableinfo[x._count].deps
     
     def get_spatial_derivative_deps(self, x, f, ii):
         # BasisFunction won't normally depend on the mapping,
@@ -382,6 +385,15 @@ class DependencySplitter:
         d = ops[0][1]
         for o in ops[1:]:
             d |= o[1]
+        
+        # Make variables of all ops with differing dependencies
+        if any(o[1] != d for o in ops):
+            oldops = ops
+            ops = []
+            for o in oldops:
+                vinfo = self.register_expression(o[0], o[1])
+                ops.append((vinfo.variable, vinfo.deps))
+        
         # Reuse expression if possible
         ops = [o[0] for o in ops]
         if all((a is b) for (a, b) in zip(ops, x.operands())):
@@ -397,17 +409,23 @@ class DependencySplitter:
         ops = [self.transform(o) for o in x.operands()]
         return h(x, *ops)
         
+    def register_expression(self, e, deps, count=None):
+        # Is this safe?
+        v = Variable(e, count=count)
+        count = v._count
+        vinfo = VariableInfo(v, deps)
+        self.codestructure.variableinfo[count] = vinfo
+        self.codestructure.stacks[deps].append(vinfo)
+        return vinfo
+
     def handle(self, v):
         ufl_assert(isinstance(v, Variable), "Expecting Variable.")
         vinfo = self.codestructure.variableinfo.get(v._count, None)
         if vinfo is None:
             # split v._expression 
             e, deps = self.transform(v._expression)
-            # The expression e is now registered as the expression of variable v
-            v2 = Variable(e, count=v._count) # Is this safe?
-            vinfo = VariableInfo(v2, deps)
-            self.codestructure.variableinfo[v2._count] = vinfo
-            self.variable_deps[v2._count] = vinfo.deps
+            # Register expression e as the expression of variable v
+            vinfo = self.register_expression(e, deps, count=v._count)
         return vinfo
 
 

@@ -1,7 +1,8 @@
 
 #
 # TODO:
-# - Make variable stacks work for mass matrix, source vector and L2norm
+# - Make variable stacks work for mass matrix, source vector and L2norm:
+#   Current implementation doesn't split test and trial functions!
 # - Fix variable handling in split_by_dependencies (see get_variable_deps)
 # - Fix SpatialDerivative propagation and check with stiffness matrix, H1norm, and something that doesn't apply it directly to a terminal
 #
@@ -72,8 +73,9 @@ def compile_integral(integrand, formdata):
         print "------ Stacks:"
         for deps,stack in code.stacks.iteritems():
             print 
-            print "Stack with deps =", deps
-            print "\n".join(str(v) for v in stack)
+            print "Stack with deps ="
+            print deps
+            print "\n".join(str(v.variable) for v in stack)
  
         print "------ Variable info:"
         for count, v in code.variableinfo.iteritems():
