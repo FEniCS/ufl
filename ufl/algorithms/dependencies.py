@@ -419,14 +419,18 @@ def _test_split_by_dependencies():
     basisfunction_deps = []
     for i in range(formdata.rank):
         # TODO: More depending on element
-        d = DependencySet(unit_tuple(i, formdata.rank, True, False), (False,)*formdata.num_coefficients)
+        bfs = unit_tuple(i, formdata.rank, True, False)
+        cfs = (False,)*formdata.num_coefficients
+        d = DependencySet(bfs, cfs)
         basisfunction_deps.append(d)
     
     function_deps = []
     for i in range(num_coefficients):
         # TODO: More depending on element
-        d = DependencySet((False,)*formdata.rank, unit_tuple(i, formdata.num_coefficients, True, False))
-        basisfunction_deps.append(d)
+        bfs = (False,)*formdata.rank
+        cfs = unit_tuple(i, formdata.num_coefficients, True, False)
+        d = DependencySet(bfs, cfs)
+        function_deps.append(d)
     
     e, d, c = split_by_dependencies(integrand, formdata, basisfunction_deps, function_deps)
     print e

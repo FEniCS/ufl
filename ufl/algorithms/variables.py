@@ -25,9 +25,13 @@ def _mark_duplications(expression, handlers, variables, dups):
     in Variable objects to facilitate subexpression reuse."""
     
     # TODO: Indices will often mess this up.
-    # Renumber indices consistently from the leaves to make this possible?
+    # Can we renumber indices consistently from the leaves to avoid that problem?
     # This may introduce many ComponentTensor/Indexed objects for relabeling of indices though.
-    # Need better pattern matching...
+    # Probably need some kind of pattern matching to make this effective.
+    # 
+    # What this does do well is insert Variables around subexpressions that the
+    # user actually identified manually in his code like in "a = ...; b = a*(1+a)",
+    # and expressions without indices (prior to expand_compounds).
     
     # check variable cache
     var = variables.get(expression, None)

@@ -51,25 +51,29 @@ def compile_integral(integrand, formdata):
         d = DependencySet(bfs, fs)
         function_deps.append(d)
     
-    (vinfo, code) = split_by_dependencies(integrand, formdata, basisfunction_deps, function_deps)
+    do_split = False
+    if do_split:
+        (vinfo, code) = split_by_dependencies(integrand, formdata, basisfunction_deps, function_deps)
+    
     print "------ FormData:"
     print formdata
     
-    print "------ Final variable info:"
-    print vinfo
+    if do_split:
+        print "------ Final variable info:"
+        print vinfo
 
-    print "------ Stacks:"
-    for deps,stack in code.stacks.iteritems():
-        print 
-        print "Stack with deps =", deps
-        print "\n".join(str(v) for v in stack)
-
-    print "------ Variable info:"
-    for count, v in code.variableinfo.iteritems():
+        print "------ Stacks:"
+        for deps,stack in code.stacks.iteritems():
+            print 
+            print "Stack with deps =", deps
+            print "\n".join(str(v) for v in stack)
+ 
+        print "------ Variable info:"
+        for count, v in code.variableinfo.iteritems():
+            print
+            print "v[%d] =" % count
+            print v
         print
-        print "v[%d] =" % count
-        print v
-    print
 
     #integrand = mark_dependencies(integrand)
     #integrand = expand_compounds(integrand)#, skip=(Transpose, ...)
@@ -98,14 +102,34 @@ if __name__ == "__main__":
     shutil.rmtree(outputdir, ignore_errors=True)
     os.mkdir(outputdir)
     os.chdir(outputdir)
-
+    
     #---------------------------------------------------------
 
     for name, form in forms:
+        if len(forms) > 1:
+            os.mkdir("form_%s" % name)
+            os.chdir("form_%s" % name)
         formdata = FormData(form)
-        for integral in form.cell_integrals():
+        for i, integral in enumerate(form.cell_integrals()):
+            os.mkdir("cell_integral_%d" % i)
+            os.chdir("cell_integral_%d" % i)
             integrand = integral.integrand()
             compile_integral(integrand, formdata)
+            os.chdir("..")
+        for i, integral in enumerate(form.exterior_facet_integrals()):
+            os.mkdir("exterior_facet_integral_%d" % i)
+            os.chdir("exterior_facet_integral_%d" % i)
+            integrand = integral.integrand()
+            compile_integral(integrand, formdata)
+            os.chdir("..")
+        for i, integral in enumerate(form.interior_facet_integrals()):
+            os.mkdir("interior_facet_integral_%d" % i)
+            os.chdir("interior_facet_integral_%d" % i)
+            integrand = integral.integrand()
+            compile_integral(integrand, formdata)
+            os.chdir("..")
+        if len(forms) > 1:
+            os.chdir("..")
 
     #---------------------------------------------------------
 
