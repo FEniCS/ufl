@@ -6,11 +6,13 @@ an expression."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-10-21"
+__date__ = "2008-05-07 -- 2008-10-22"
 
 from ..output import ufl_assert, ufl_error, ufl_warning
 
 # Classes:
+from ..base import FloatValue, ZeroType 
+from ..indexing import MultiIndex
 from ..variable import Variable
 
 # Other algorithms:
@@ -19,13 +21,22 @@ from .transformations import ufl_reuse_handlers, transform, transform_integrands
 
 
 def _mark_duplications(expression, handlers, variables, dups):
-    """Convert a UFLExpression according to rules defined by
-    the mapping handlers = dict: class -> conversion function."""
+    """Wrap subexpressions that are equal (completely equal, not mathematically equivalent)
+    in Variable objects to facilitate subexpression reuse."""
+    
+    # TODO: Indices will often mess this up.
+    # Renumber indices consistently from the leaves to make this possible?
+    # This may introduce many ComponentTensor/Indexed objects for relabeling of indices though.
+    # Need better pattern matching...
     
     # check variable cache
     var = variables.get(expression, None)
     if var is not None:
         return var
+    
+    # skip some types
+    if isinstance(expression, (MultiIndex, FloatValue, ZeroType)):
+        return expression
     
     # handle subexpressions
     ops = [_mark_duplications(o, handlers, variables, dups) for o in expression.operands()]
@@ -40,9 +51,11 @@ def _mark_duplications(expression, handlers, variables, dups):
     # transform subexpressions
     handled = h(expression, *ops)
     
-    if expression in dups:
+    # wrap in variable if a duplicate
+    if expression in dups or handled in dups: # TODO: Not sure if it is necessary to look for handled
         handled = Variable(handled)
         variables[expression] = handled
+        variables[handled] = handled
     
     return handled
 

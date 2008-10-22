@@ -5,7 +5,7 @@ converting UFL expressions to other representations."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-10-21"
+__date__ = "2008-05-07 -- 2008-10-22"
 
 from collections import defaultdict
 
@@ -18,8 +18,8 @@ from ..basisfunction import BasisFunction
 from ..function import Function, Constant
 #from ..basisfunction import TestFunction, TrialFunction, BasisFunctions, TestFunctions, TrialFunctions
 from ..geometry import FacetNormal
-from ..indexing import MultiIndex, Indexed, Index, FixedIndex
-#from ..indexing import AxisType, as_index, as_index_tuple, extract_indices
+from ..indexing import MultiIndex, Indexed, Index, FixedIndex, AxisType
+#from ..indexing import as_index, as_index_tuple, extract_indices
 from ..tensors import ListTensor, ComponentTensor
 from ..algebra import Sum, Product, Division, Power, Abs
 from ..tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
@@ -75,6 +75,8 @@ def latex_handlers():
                 s += "%d" % ix._value
             elif isinstance(ix, Index):
                 s += "i_{%d}" % ix._count
+            elif isinstance(ix, AxisType):
+                s += ":" # TODO: How to express this in natural syntax?
             else:
                 ufl_error("Unknown index type %s." % type(ix))
         return s

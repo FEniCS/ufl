@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-10-01 -- 2008-10-21"
+__date__ = "2008-10-01 -- 2008-10-22"
 
 from collections import defaultdict
 from itertools import izip, chain
@@ -352,12 +352,12 @@ class DependencySplitter:
     
     def get_variable_deps(self, x):
         # FIXME: Create new Variable with invalid expression (must keep shape etc!) and same count?
-        ufl_assert(x._count in variable_deps,
+        ufl_assert(x._count in self.variable_deps,
                    "Haven't handled variable in time: %s" % repr(x))
         v = x # self.handled_variables[x._count]
         return v, self.variable_deps[x._count]
     
-    def get_spatial_derivative_deps(self, x):
+    def get_spatial_derivative_deps(self, x, f, ii):
         # FIXME: Introduce dependency of mapping with gradients...
         #  BasisFunction won't normally depend on the mapping, but the gradients will always do...
         return FIXME
