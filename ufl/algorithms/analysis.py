@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-21"
+__date__ = "2008-03-14 -- 2008-10-23"
 
 # Modified by Anders Logg, 2008
 
@@ -11,17 +11,24 @@ from itertools import chain
 
 from ..output import ufl_assert, ufl_error
 from ..common import lstr
-from ..base import UFLObject
-from ..algebra import Sum, Product
+
+from ..base import UFLObject, Terminal
+from ..algebra import Sum, Product, Division
 from ..basisfunction import BasisFunction
 from ..function import Function
+from ..variable import Variable
+from ..function import Function, Constant
+from ..tensors import ListTensor, ComponentTensor
+from ..tensoralgebra import Transposed, Inner, Dot, Outer, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor, Skew
+from ..restriction import PositiveRestricted, NegativeRestricted
+from ..differentiation import SpatialDerivative, Diff, Grad, Div, Curl, Rot
+from ..conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ..indexing import DefaultDimType
 from ..form import Form
 from ..integral import Integral
+from ..classes import terminal_classes, nonterminal_classes
 from .traversal import iter_expressions, post_traversal
 
-# FIXME: Many of these need to traverse Variable objects as well!
-#        (Split Variable into two classes? One for the user for diff etc, and one for internal usage? (f.ex. Token))
 
 #--- Utilities to extract information from an expression ---
 
@@ -171,3 +178,113 @@ def extract_monomials(expression, indent=""):
             ufl_error("Don't know how to handle expression: %s", str(e))
 
     return m
+
+
+def transform(expression, handlers):
+    """Convert a UFLExpression according to rules defined by
+    the mapping handlers = dict: class -> conversion function."""
+    if isinstance(expression, Terminal):
+        ops = ()
+    else:
+        ops = [transform(o, handlers) for o in expression.operands()]
+    c = type(expression)
+    if c in handlers:
+        h = handlers[c]
+    else:
+        ufl_error("Didn't find class %s among handlers." % c)
+    return h(expression, *ops)
+
+class NotMultiLinearException(Exception):
+    pass
+
+def extract_basisfunction_dependencies(expression):
+    "TODO: Document me."
+    h = {}
+    
+    # Default for terminals: no dependency on basis functions 
+    def h_terminal(x):
+        return set()
+    for c in terminal_classes:
+        h[c] = h_terminal
+    
+    def h_basisfunction(x):
+        return set((set((x,)),))
+    h[BasisFunction] = h_basisfunction
+    
+    # Default for nonterminals: nonlinear in all arguments 
+    def h_nonlinear(x, *opdeps):
+        for o in opdeps:
+            if o: raise NotMultiLinearException, repr(x)
+        return set()
+    for c in nonterminal_classes:
+        h[c] = h_nonlinear
+    
+    # Some nonterminals are linear in their single argument 
+    def h_linear(x, a):
+        return a
+    h[Grad] = h_linear
+    h[Div] = h_linear
+    h[Curl] = h_linear
+    h[Rot] = h_linear
+    h[SpatialDerivative] = h_linear
+    h[Diff] = h_linear
+    h[Transposed] = h_linear
+    h[Trace] = h_linear
+    h[Skew] = h_linear
+    h[PositiveRestricted] = h_linear
+    h[NegativeRestricted] = h_linear
+    # TODO: More linear operators?
+
+    def h_variable(x):
+        return extract_basisfunction_dependencies(x._expression)
+    h[Variable] = h_variable
+
+    def h_componenttensor(x, f, i):
+        return f
+    h[ComponentTensor] = h_componenttensor
+    
+    def h_listtensor(x, *opdeps):
+        FIXME
+    h[ListTensor] = h_listtensor
+    
+    # Considering EQ, NE, LE, GE, LT, GT nonlinear in this context. 
+    def h_conditional(x, cond, t, f):
+        if cond or (not t == f):
+            raise NotMultiLinearException, repr(x)
+        return t
+
+    # Basis functions cannot be in the denominator
+    def h_division(x, *opdeps):
+        a, b = opdeps
+        if b: raise NotMultiLinearException, repr(x)
+        return a
+    h[Division] = h_division
+
+    # Sums can contain both linear and bilinear terms (we could change this to require that all operands have the same dependencies)
+    def h_sum(x, *opdeps):
+        deps = opdeps[0]
+        for o in opdeps[1:]:
+            # o is here a set of sets
+            deps |= o
+        return deps
+    h[Sum] = h_sum
+    
+    # Product operands should not depend on the same basis functions
+    def h_product(x, *opdeps):
+        c = set()
+        adeps, bdeps = opdeps # TODO: Generalize to any number of operands
+        for ad in adeps:
+            for bd in bdeps:
+                cd = ad | bd
+                if not len(cd) == len(ad) + len(bd):
+                    raise NotMultiLinearException, repr(x)
+                c.add(cd)
+        return c
+    h[Product] = h_product
+    h[Inner] = h_product
+    h[Outer] = h_product
+    h[Dot] = h_product
+    h[Cross] = h_product
+    
+    return transform(expression, h)
+

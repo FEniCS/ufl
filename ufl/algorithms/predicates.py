@@ -12,6 +12,7 @@ from ..algebra import Sum, Product
 from ..tensoralgebra import Dot
 from ..basisfunction import BasisFunction
 from .traversal import iter_expressions, traversal
+from .analysis import extract_basisfunction_dependencies, NotMultiLinearException
 
 #--- Utilities for checking properties of forms ---
 
@@ -49,6 +50,21 @@ def is_multilinear(form):
                 return False
 
     return True
+
+
+def is_multilinear2(form): # TODO: Is this good?
+    "An attempt at implementing is_multilinear using extract_basisfunction_dependencies."
+    try:
+        for e in iter_expressions(form):
+            deps = extract_basisfunction_dependencies(e)
+            if len(deps) != 1:
+                ufl_warning("This form has more than one basis function 'configuration', i.e. it could have both linear and bilinear terms.")
+    except NotMultiLinearException, msg:
+        ufl_warning("Form is not multilinear, the offending term is: %s" % msg)
+        return False
+    return True
+
+
 
 def _extract_monomials(e):
     "Extract monomial terms (ignoring all operators except + and -)"
