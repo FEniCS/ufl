@@ -7,7 +7,7 @@ only to be used during the current experimental implementation phase)."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-09-29"
+__date__ = "2008-03-14 -- 2008-10-23"
 
 # Modified by Anders Logg, 2008
 
@@ -15,6 +15,7 @@ from ..output import ufl_assert
 from ..base import UFLObject, Terminal
 from ..integral import Integral
 from ..form import Form
+from ..variable import Variable
 
 #--- Traversal utilities ---
 
@@ -33,49 +34,63 @@ def iter_expressions(a):
     else:
         return (a,)
 
-def pre_traversal(expression, stack=None):
+def pre_traversal(expression, stack=None, traverse_into_variables=True):
     "Yields (o, stack) for each tree node o in expression, parent before child."
     if stack is None: stack = []
     ufl_assert(isinstance(expression, UFLObject), "Expecting UFLObject.")
+    # yield parent
     yield (expression, stack)
-    is_operator = not isinstance(expression, Terminal)
-    if is_operator: stack.append(expression)
-    for o in expression.operands():
-        for (i, dummy) in pre_traversal(o, stack):
+    # yield children
+    if traverse_into_variables and isinstance(expression, Variable):
+        stack.append(expression)
+        for (i, dummy) in pre_traversal(expression._expression, stack):
             yield (i, stack)
-    if is_operator: stack.pop()
+        stack.pop()
+    elif not isinstance(expression, Terminal):
+        stack.append(expression)
+        for o in expression.operands():
+            for (i, dummy) in pre_traversal(o, stack):
+                yield (i, stack)
+        stack.pop()
 
-def post_traversal(expression, stack=None):
+def post_traversal(expression, stack=None, traverse_into_variables=True):
     "Yields (o, stack) for each tree node o in expression, parent after child."
     if stack is None: stack = []
     ufl_assert(isinstance(expression, UFLObject), "Expecting UFLObject.")
-    is_operator = not isinstance(expression, Terminal)
-    if is_operator: stack.append(expression)
-    for o in expression.operands():
-        for (i, dummy) in post_traversal(o, stack):
+    # yield children
+    if traverse_into_variables and isinstance(expression, Variable):
+        stack.append(expression)
+        for (i, dummy) in post_traversal(expression._expression, stack):
             yield (i, stack)
-    if is_operator: stack.pop()
+        stack.pop()
+    elif not isinstance(expression, Terminal):
+        stack.append(expression)
+        for o in expression.operands():
+            for (i, dummy) in post_traversal(o, stack):
+                yield (i, stack)
+        stack.pop()
+    # yield parent
     yield (expression, stack)
 
 def traversal(expression, stack=None):
     "Yields (o, stack) for each tree node o in expression."
     return pre_traversal(expression, stack)
 
-def pre_walk(a, func):
+def pre_walk(a, func, traverse_into_variables=True):
     """Call func on each expression tree node in a, parent before child.
     The argument a can be a Form, Integral or UFLObject."""
     for e in iter_expressions(a):
-        for (o, stack) in pre_traversal(e):
+        for (o, stack) in pre_traversal(e, None, traverse_into_variables):
             func(o)
 
-def post_walk(a, func):
+def post_walk(a, func, traverse_into_variables=True):
     """Call func on each expression tree node in a, parent after child.
     The argument a can be a Form, Integral or UFLObject."""
     for e in iter_expressions(a):
-        for (o, stack) in post_traversal(e):
+        for (o, stack) in post_traversal(e, None, traverse_into_variables):
             func(o)
 
-def walk(a, func):
+def walk(a, func, traverse_into_variables=True):
     """Call func on each expression tree node in a.
     The argument a can be a Form, Integral or UFLObject."""
-    pre_walk(a, func)
+    pre_walk(a, func, traverse_into_variables)

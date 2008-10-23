@@ -20,6 +20,9 @@ from ..form import Form
 from ..integral import Integral
 from .traversal import iter_expressions, post_traversal
 
+# FIXME: Many of these need to traverse Variable objects as well!
+#        (Split Variable into two classes? One for the user for diff etc, and one for internal usage? (f.ex. Token))
+
 #--- Utilities to extract information from an expression ---
 
 def extract_type(a, ufl_type):

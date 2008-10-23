@@ -26,32 +26,67 @@ def dump_integrand_state(name, integrand):
     #pickle.dump(integrand, open("integrand.pickle", "w")) # Must define __getstate__ to pickle UFLObject!
     os.chdir("..")
 
+def dump_codestructure(name, vinfo, code):
+    os.mkdir(name)
+    os.chdir(name)
+     
+    write_file("vinfo", str(vinfo))
+    
+    s = ""   
+    for deps, stack in code.stacks.iteritems():
+        s += "Stack with deps =\n"
+        s += str(deps) + "\n"
+        s += "\n".join(str(v.variable) for v in stack)
+        s += "\n\n"
+    write_file("stacks", s)
+ 
+    s = ""
+    for count, v in code.variableinfo.iteritems():
+        s += "v[%d] =\n" % count
+        s += str(v)
+        s += "\n\n"
+    write_file("variables", s)
+
+    os.chdir("..")
+
 def write_file(name, contents):
     f = open(name, "w")
     f.write(contents)
     f.close()
 
 def compile_integral(integrand, formdata):
+    write_file("formdata", str(formdata))
+    
     dump_integrand_state("a - initial", integrand)
     
+    # Try to pick up duplications on the most abstract level
     integrand = mark_duplications(integrand)
     dump_integrand_state("b - mark_duplications", integrand)
     
+    # Expand grad, div, inner etc to index notation
     integrand = expand_compounds(integrand, formdata.geometric_dimension)
     dump_integrand_state("c - expand_compounds", integrand)
     
+    # Try to pick up duplications on the index notation level
     integrand = mark_duplications(integrand)
     dump_integrand_state("d - mark_duplications", integrand)
     
-    # TODO: Apply AD stuff for Diff and propagation of SpatialDerivative to Terminal nodes
+    # FIXME: Apply AD stuff for Diff and propagation of SpatialDerivative to Terminal nodes
+    #integrand = FIXME(integrand)
+    #dump_integrand_state("e - FIXME", integrand)
+
+    # Try to pick up duplications after propagating derivatives
+    #integrand = mark_duplications(integrand)
+    #dump_integrand_state("f - mark_duplications", integrand)
     
+    # Define toy input to split_by_dependencies
     basisfunction_deps = []
     fs = (False,)*formdata.num_coefficients
     for i in range(formdata.rank):
         bfs = tuple(i == j for j in range(formdata.rank)) # TODO: More dependencies depending on element
         d = DependencySet(bfs, fs)
         basisfunction_deps.append(d)
-
+ 
     function_deps = []
     bfs = (False,)*formdata.rank
     for i in range(formdata.num_coefficients):
@@ -59,30 +94,25 @@ def compile_integral(integrand, formdata):
         d = DependencySet(bfs, fs)
         function_deps.append(d)
     
-    do_split = True
-    if do_split:
-        (vinfo, code) = split_by_dependencies(integrand, formdata, basisfunction_deps, function_deps)
+    (vinfo, code) = split_by_dependencies(integrand, formdata, basisfunction_deps, function_deps)
+    dump_codestructure("code", vinfo, code)
     
-    print "------ FormData:"
-    print formdata
-    
-    if do_split:
-        print "------ Final variable info:"
-        print vinfo
-
-        print "------ Stacks:"
-        for deps,stack in code.stacks.iteritems():
-            print 
-            print "Stack with deps ="
-            print deps
-            print "\n".join(str(v.variable) for v in stack)
- 
-        print "------ Variable info:"
-        for count, v in code.variableinfo.iteritems():
-            print
-            print "v[%d] =" % count
-            print v
-        print
+    print "------ Stacks:"
+    n = 0
+    for deps,stack in code.stacks.iteritems():
+        print 
+        print "Stack with dependencies"
+        print deps
+        print "has %d items." % len(stack)
+        n += len(stack)
+    print
+    print "------ Variable info:"
+    print "In total there are %d variables." % len(code.variableinfo)
+    assert n == len(code.variableinfo)
+    print
+    print "------ Final variable info:"
+    #print vinfo
+    print
 
     #integrand = mark_dependencies(integrand)
     #integrand = expand_compounds(integrand)#, skip=(Transpose, ...)
@@ -115,6 +145,7 @@ if __name__ == "__main__":
     #---------------------------------------------------------
 
     for name, form in forms:
+        print "--- Handling form ", name
         if len(forms) > 1:
             os.mkdir("form_%s" % name)
             os.chdir("form_%s" % name)

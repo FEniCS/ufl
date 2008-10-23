@@ -352,10 +352,21 @@ class DependencySplitter:
         return x, self.make_deps(facet=True)
     
     def get_function_deps(self, x):
-        return x, self.function_deps[self.formdata.coefficient_renumbering[x]]
+        print 
+        print self.formdata.coefficient_renumbering
+        print
+        ufl_assert(x in self.formdata.coefficient_renumbering,
+                   "Can't find function %s in renumbering dict!" % repr(x))
+        i = self.formdata.coefficient_renumbering[x]
+        d = self.function_deps[i]
+        return x, d
     
     def get_basisfunction_deps(self, x):
-        return x, self.basisfunction_deps[self.formdata.basisfunction_renumbering[x]]
+        ufl_assert(x in self.formdata.basisfunction_renumbering,
+                   "Can't find basis function %s in renumbering dict!" % repr(x))
+        i = self.formdata.basisfunction_renumbering[x]
+        d = self.basisfunction_deps[i]
+        return x, d
     
     def get_variable_deps(self, x):
         # FIXME: Create new Variable with invalid expression must keep shape etc!) and same count?

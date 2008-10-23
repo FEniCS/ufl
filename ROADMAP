@@ -9,6 +9,8 @@ Some of the TODO's left:
   - Other form-level transformations
 
 # Derivatives:
+ - Rename Diff to e.g. VariableDerivative?
+ - Consider the results of splitting class Variable into two classes Variable (non-terminal, for Diff) and Token (terminal, for building code structure)
  - Apply AD to computation of Derivative, SpatialDiff and Diff.
  - Find a smart way to handle nested AD:
     - Collapse nested SpatialDiff into a single SpatialDiff with multiple indices, sorted since they commute.

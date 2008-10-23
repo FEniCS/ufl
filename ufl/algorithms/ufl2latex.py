@@ -40,7 +40,7 @@ from .analysis import extract_basisfunctions, extract_coefficients, extract_indi
 from .transformations import transform
 
 
-def latex_handlers():
+def latex_handlers(variables, handled_variables):
     # Show a clear error message if we miss some types here:
     def not_implemented(x, *ops):
         ufl_error("No handler defined for %s in latex_handlers." % type(x))
@@ -64,10 +64,18 @@ def latex_handlers():
     d[Constant]      = lambda x: "{w^{%d}}" % x._count
     d[FacetNormal]   = lambda x: "n"
     d[Identity]      = lambda x: "I"
+    
     def l_variable(x):
-        # TODO: Should store expression some place perhaps? LaTeX can express variables! We can build a sequence of variable assignments s_i = expression if we want.
-        return "\\left{%s\\right}" % x._expression
+        i = x._count
+        name = "s_{%d}" % i
+        if i not in handled_variables:
+            e = x._expression
+            varassignment = "%s = %s, \\\\\n" % (name, e)
+            variables.append(varassignment)
+            handled_variables.add(i)
+        return name
     d[Variable]  = l_variable
+    
     def l_multiindex(x):
         s = ""
         for ix in x:
@@ -149,8 +157,6 @@ def latex_handlers():
 
 def ufl2latex(expression):
     """Convert an UFL expression to a LaTeX string. Very crude approach."""
-    handlers = latex_handlers()
-    
     if isinstance(expression, Form):
         integral_strings = []
         for itg in expression.cell_integrals():
@@ -174,10 +180,23 @@ def ufl2latex(expression):
                       "exterior_facet": "ds",
                       "interior_facet": "dS",
                     }[itg._domain_type]
+        
+        handled_variables = set()
+        variables = []
+        handlers = latex_handlers(variables, handled_variables)
         integrand_string = transform(itg._integrand, handlers)
+        if variables:
+            ufl_warning("FIXME: Print out variables before integral in ufl2latex!")
         latex = "\\int_{%s_%d} \\left[ { %s } \\right] \,%s" % (domain_string, itg._domain_id, integrand_string, dx_string)
+        
     else:
+        handled_variables = set()
+        variables = []
+        handlers = latex_handlers(variables, handled_variables)
         latex = transform(expression, handlers)
+        linesplitter = ", \\\\\n"
+        variable_string = linesplitter.join(variables)
+        latex = variable_string + linesplitter + latex
     
     return latex
 
