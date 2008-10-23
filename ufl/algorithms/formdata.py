@@ -3,17 +3,17 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-09-13 -- 2008-10-21"
+__date__ = "2008-09-13 -- 2008-10-23"
 
 # Modified by Anders Logg, 2008
+
+from itertools import chain
 
 from ..output import ufl_assert
 from ..common import lstr, tstr, domain_to_dim
 from ..form import Form
 
-# TODO: FormData can be constructed more efficiently as a single or a few algorithms.
 from .analysis import extract_basisfunctions, extract_coefficients, extract_classes
-from .analysis import extract_elements, extract_unique_elements, extract_domain, extract_classes
 
 class FormData(object):
     "Class collecting various information extracted from form."
@@ -23,23 +23,29 @@ class FormData(object):
         ufl_assert(isinstance(form, Form), "Expecting Form.")
         
         self.form = form
-        
+
+        # Get arguments and their elements
         self.basisfunctions  = extract_basisfunctions(form)
         self.coefficients    = extract_coefficients(form)
-        self.elements        = extract_elements(form)
-        self.unique_elements = extract_unique_elements(form)
-        self.domain          = extract_domain(form)
+        self.elements        = [f._element for f in chain(self.basisfunctions, self.coefficients)]
+        self.unique_elements = set(self.elements)
+        self.domain          = self.elements[0].domain()
         
+        # Some useful dimensions
         self.rank = len(self.basisfunctions)
         self.num_coefficients = len(self.coefficients)
         self.geometric_dimension = domain_to_dim(self.domain)
         self.topological_dimension = self.geometric_dimension
         
+        # Build renumbering of arguments, since Function and BasisFunction
+        # count doesn't necessarily match their exact order in the argument list
         def argument_renumbering(arguments):
             return dict((f,k) for (k,f) in enumerate(arguments))
         self.basisfunction_renumbering = argument_renumbering(self.basisfunctions)
         self.coefficient_renumbering = argument_renumbering(self.coefficients)
         
+        # The set of all UFL classes used in each integral,
+        # can be used to easily check for unsupported operations
         self.classes = {}
         for i in form.cell_integrals():
             self.classes[i] = extract_classes(i._integrand)

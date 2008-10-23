@@ -96,7 +96,6 @@ class DependencySet:
         s += "}"
         return s
 
-
 class VariableInfo:
     def __init__(self, variable, deps):
         # Variable
@@ -116,7 +115,7 @@ class VariableInfo:
         s += "\n}"
         return s
 
-class DiffVarSet:
+class DiffVarSet: # TODO: Use this?
     def __init__(self):
         self.fixed_spatial_directions = set() # Set of integer indices
         self.open_spatial_directions = set() # Set of Index objects that the stored expression uses for d/dx_i
@@ -127,15 +126,15 @@ class DiffVarSet:
                     tuple(d for d in self.open_spatial_directions) + \
                     tuple(d for d in self.variables))
     
-    #def __contains__(self, other):
-    #def __sub__(self, other):
-    #def __add__(self, other):
-    #def __cmp__(self, other):
     def __eq__(self, other):
         return self.fixed_spatial_directions == other.fixed_spatial_directions and \
                len(self.open_spatial_directions) == len(other.open_spatial_directions) and \
                self.variables == other.variables
 
+    #def __contains__(self, other):
+    #def __sub__(self, other):
+    #def __add__(self, other):
+    #def __cmp__(self, other):
 
 class CodeStructure:
     def __init__(self):
@@ -144,68 +143,69 @@ class CodeStructure:
         # One stack of variables for each dependency configuration
         self.stacks = defaultdict(list) # DependencySet -> [VariableInfo]
     
-    def __str__(self):
-        deps = DependencySet(FIXME)
-        s = ""
-        s += "Variables independent of spatial coordinates:\n"
-        keys = [k for k in self.stacks.keys() if not k.coordinates]
-        for deps in keys:
-            if k.facet:
-                stack = self.stacks[k]
-                s += str(stack)
-        for deps in keys:
-            if not k.facet:
-                stack = self.stacks[k]
-                s += str(stack)
-        
-        s += "Variables dependent of spatial coordinates:\n"
-        for k in dependent:
-            s += k
-        
-        return s
-
-    def split_stacks(self): # TODO: Remove this or change the concept. Doesn't belong here.
-        
-        # Start with all variable stacks
-        stacks = self.stacks
-        
-        # Split into precomputable and not
-        def criteria(k):
-            return not (k.spatial or any(k.coefficients) or k.facet)
-        precompute_stacks, runtime_stacks = split_dict(stacks, criteria)
-        
-        # Split into outside or inside quadrature loop
-        def criteria(k):
-            return k.spatial
-        quad_precompute_stacks, precompute_stacks = split_dict(precompute_stacks, criteria)
-        quad_runtime_stacks, runtime_stacks = split_dict(runtime_stacks, criteria)
-        
-        # Example! FIXME: Make below code a function and apply to each stack group separately. 
-        stacks = quad_runtime_stacks
-        
-        # Split by basis function dependencies
-        
-        # FIXME: Does this give us the order we want?
-        # Want to iterate faster over test function, i.e. (0,0), (1,0), (0,1), (1,1) 
-        keys = set(stacks.iterkeys())
-        perms = [p for p in compute_permutations(rank, 2) if p in keys] # FIXME: NOT RIGHT!
-        for perm in perms:
-            def criteria(k):
-                return k.basisfunctions == perm
-            dep_stacks, stacks = split_dict(stacks, criteria)
-            
-            # TODO: For all permutations of basis function indices
-            # TODO: Input elementreps
-            sizes = [elementreps[i].local_dimension for i in range(self.rank) if perms[i]]
-            basis_function_perms = compute_indices(sizes)
-            for basis_function_perm in basis_function_perms:
-                context.update_basisfunction_permutation(basis_function_perm) # FIXME: Map tuple to whole range of basisfunctions.
-                for stack in dep_stacks.itervalues():
-                    for (k,v) in stack.iteritems():
-                        s = context.variable_to_symbol(k)
-                        e = ufl_to_swiginac(v, context)
-                        context.add_token(s, e)
-
+#===============================================================================
+#    def __str__(self):
+#        deps = DependencySet(TODO)
+#        s = ""
+#        s += "Variables independent of spatial coordinates:\n"
+#        keys = [k for k in self.stacks.keys() if not k.coordinates]
+#        for deps in keys:
+#            if k.facet:
+#                stack = self.stacks[k]
+#                s += str(stack)
+#        for deps in keys:
+#            if not k.facet:
+#                stack = self.stacks[k]
+#                s += str(stack)
+#        
+#        s += "Variables dependent of spatial coordinates:\n"
+#        for k in dependent:
+#            s += k
+#        
+#        return s
+# 
+#    def split_stacks(self): # TODO: Remove this or change the concept. Doesn't belong here.
+#        
+#        # Start with all variable stacks
+#        stacks = self.stacks
+#        
+#        # Split into precomputable and not
+#        def criteria(k):
+#            return not (k.spatial or any(k.coefficients) or k.facet)
+#        precompute_stacks, runtime_stacks = split_dict(stacks, criteria)
+#        
+#        # Split into outside or inside quadrature loop
+#        def criteria(k):
+#            return k.spatial
+#        quad_precompute_stacks, precompute_stacks = split_dict(precompute_stacks, criteria)
+#        quad_runtime_stacks, runtime_stacks = split_dict(runtime_stacks, criteria)
+#        
+#        # Example! TODO: Make below code a function and apply to each stack group separately. 
+#        stacks = quad_runtime_stacks
+#        
+#        # Split by basis function dependencies
+#        
+#        # TODO: Does this give us the order we want?
+#        # Want to iterate faster over test function, i.e. (0,0), (1,0), (0,1), (1,1) 
+#        keys = set(stacks.iterkeys())
+#        perms = [p for p in compute_permutations(rank, 2) if p in keys] # TODO: NOT RIGHT!
+#        for perm in perms:
+#            def criteria(k):
+#                return k.basisfunctions == perm
+#            dep_stacks, stacks = split_dict(stacks, criteria)
+#            
+#            # TODO: For all permutations of basis function indices
+#            # TODO: Input elementreps
+#            sizes = [elementreps[i].local_dimension for i in range(self.rank) if perms[i]]
+#            basis_function_perms = compute_indices(sizes)
+#            for basis_function_perm in basis_function_perms:
+#                context.update_basisfunction_permutation(basis_function_perm) # TODO: Map tuple to whole range of basisfunctions.
+#                for stack in dep_stacks.itervalues():
+#                    for (k,v) in stack.iteritems():
+#                        s = context.variable_to_symbol(k)
+#                        e = ufl_to_swiginac(v, context)
+#                        context.add_token(s, e)
+#===============================================================================
 
 def _split_by_dependencies(expression, codestructure, terminal_deps):
     
@@ -369,11 +369,9 @@ class DependencySplitter:
         return x, d
     
     def get_variable_deps(self, x):
-        # FIXME: Create new Variable with invalid expression must keep shape etc!) and same count?
-        ufl_assert(x._count in self.codestructure.variableinfo,
-                   "Haven't handled variable in time: %s" % repr(x))
-        v = x # self.handled_variables[x._count]
-        return v, self.codestructure.variableinfo[x._count].deps
+        vinfo = self.codestructure.variableinfo.get(x._count, None)
+        ufl_assert(vinfo is not None, "Haven't handled variable in time: %s" % repr(x))
+        return vinfo.variable, vinfo.deps
     
     def get_spatial_derivative_deps(self, x, f, ii):
         # BasisFunction won't normally depend on the mapping,
@@ -463,7 +461,7 @@ def _test_split_by_dependencies():
     def unit_tuple(i, n, true=True, false=False):
         return tuple(true if i == j else false for j in xrange(n))
     
-    a = FIXME
+    a = TODO
     
     formdata = FormData(a)
     

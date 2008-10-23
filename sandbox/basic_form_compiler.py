@@ -1,9 +1,7 @@
 
 #
 # TODO:
-# - Make variable stacks work for mass matrix, source vector and L2norm:
-#   Current implementation doesn't split test and trial functions!
-# - Fix variable handling in split_by_dependencies (see get_variable_deps)
+# (Done?) - Fix variable handling in split_by_dependencies (see get_variable_deps)
 # - Fix SpatialDerivative propagation and check with stiffness matrix, H1norm, and something that doesn't apply it directly to a terminal
 #
 
