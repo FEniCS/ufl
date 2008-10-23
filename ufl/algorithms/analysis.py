@@ -23,7 +23,7 @@ from ..tensoralgebra import Transposed, Inner, Dot, Outer, Cross, Trace, Determi
 from ..restriction import PositiveRestricted, NegativeRestricted
 from ..differentiation import SpatialDerivative, Diff, Grad, Div, Curl, Rot
 from ..conditional import EQ, NE, LE, GE, LT, GT, Conditional
-from ..indexing import DefaultDimType
+from ..indexing import DefaultDimType, Indexed
 from ..form import Form
 from ..integral import Integral
 from ..classes import terminal_classes, nonterminal_classes
@@ -203,19 +203,19 @@ def extract_basisfunction_dependencies(expression):
     
     # Default for terminals: no dependency on basis functions 
     def h_terminal(x):
-        return set()
+        return frozenset()
     for c in terminal_classes:
         h[c] = h_terminal
     
     def h_basisfunction(x):
-        return set((set((x,)),))
+        return frozenset((frozenset((x,)),))
     h[BasisFunction] = h_basisfunction
     
     # Default for nonterminals: nonlinear in all arguments 
     def h_nonlinear(x, *opdeps):
         for o in opdeps:
             if o: raise NotMultiLinearException, repr(x)
-        return set()
+        return frozenset()
     for c in nonterminal_classes:
         h[c] = h_nonlinear
     
@@ -226,14 +226,22 @@ def extract_basisfunction_dependencies(expression):
     h[Div] = h_linear
     h[Curl] = h_linear
     h[Rot] = h_linear
-    h[SpatialDerivative] = h_linear
-    h[Diff] = h_linear
     h[Transposed] = h_linear
     h[Trace] = h_linear
     h[Skew] = h_linear
     h[PositiveRestricted] = h_linear
     h[NegativeRestricted] = h_linear
-    # TODO: More linear operators?
+
+    def h_indexed(x, f, i):
+        if i: raise NotMultiLinearException, repr(x)
+        return f
+    h[Indexed] = h_indexed
+    
+    def h_diff(x, a, b):
+        if b: raise NotMultiLinearException, repr(x)
+        return a
+    h[SpatialDerivative] = h_diff
+    h[Diff] = h_diff
 
     def h_variable(x):
         return extract_basisfunction_dependencies(x._expression)
@@ -243,8 +251,13 @@ def extract_basisfunction_dependencies(expression):
         return f
     h[ComponentTensor] = h_componenttensor
     
+    # Require same dependencies for all listtensor entries
     def h_listtensor(x, *opdeps):
-        FIXME
+        d = opdeps[0]
+        for d2 in opdeps[1:]:
+            if not d == d2:
+                 raise NotMultiLinearException, repr(x)
+        return d
     h[ListTensor] = h_listtensor
     
     # Considering EQ, NE, LE, GE, LT, GT nonlinear in this context. 
@@ -254,32 +267,31 @@ def extract_basisfunction_dependencies(expression):
         return t
 
     # Basis functions cannot be in the denominator
-    def h_division(x, *opdeps):
-        a, b = opdeps
+    def h_division(x, a, b):
         if b: raise NotMultiLinearException, repr(x)
         return a
     h[Division] = h_division
 
     # Sums can contain both linear and bilinear terms (we could change this to require that all operands have the same dependencies)
     def h_sum(x, *opdeps):
-        deps = opdeps[0]
+        deps = set(opdeps[0])
         for o in opdeps[1:]:
             # o is here a set of sets
             deps |= o
-        return deps
+        return frozenset(deps)
     h[Sum] = h_sum
     
     # Product operands should not depend on the same basis functions
     def h_product(x, *opdeps):
-        c = set()
+        c = []
         adeps, bdeps = opdeps # TODO: Generalize to any number of operands
         for ad in adeps:
             for bd in bdeps:
                 cd = ad | bd
                 if not len(cd) == len(ad) + len(bd):
                     raise NotMultiLinearException, repr(x)
-                c.add(cd)
-        return c
+                c.append(cd)
+        return frozenset(c)
     h[Product] = h_product
     h[Inner] = h_product
     h[Outer] = h_product

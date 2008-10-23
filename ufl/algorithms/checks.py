@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-21"
+__date__ = "2008-03-14 -- 2008-10-23"
 
 # Modified by Anders Logg, 2008.
 
@@ -45,9 +45,8 @@ def validate_form(form):
 
     # Check that form is multilinear
     is_ml = is_multilinear(form)
-    if not is_ml:
-        ufl_warning("Form is not multilinear according to buggy(!) is_multilinear function.")
-    #ufl_assert(is_ml, "Form is not multilinear.") # FIXME: Re-enable when fixed.
+    #if not is_ml: ufl_warning("Form is not multilinear.")
+    ufl_assert(is_ml, "Form is not multilinear.")
 
     # Check that domain is the same for all elements
     domain = extract_domain(form)

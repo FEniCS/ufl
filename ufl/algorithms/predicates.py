@@ -16,43 +16,45 @@ from .analysis import extract_basisfunction_dependencies, NotMultiLinearExceptio
 
 #--- Utilities for checking properties of forms ---
 
+#===============================================================================
+# def is_multilinear(form):
+#    "Check if form is multilinear."
+# 
+#    # Check that we get a form
+#    ufl_assert(isinstance(form, Form), "Not a form: %s" % str(form))
+# 
+#    # Check that all operators applied to basis functions are linear
+#    for e in iter_expressions(form):        
+#        for (o, stack) in traversal(e):
+#            if isinstance(o, BasisFunction):
+#                for operator in stack:
+#                    if not operator.is_linear():
+#                        ufl_warning("Nonlinear operator applied to basis function:" + str(operator))
+#                        return False
+# 
+#    # Extract monomials
+#    monomials = []
+#    for e in iter_expressions(form):
+#        monomials += _extract_monomials(e)
+# 
+#    # Extract basis functions
+#    basisfunctions = set()
+#    for monomial in monomials:
+#        for v in monomial:
+#            basisfunctions.add(v)
+# 
+#    # Check that each basis function appears exactly once in each monomial term
+#    for monomial in monomials:
+#        for v in basisfunctions:
+#            if not len([w for w in monomial if w == v]) == 1:
+#                ufl_warning("Basis function %s does not appear exactly once in each term." % str(v))
+#                return False
+# 
+#    return True
+#===============================================================================
+
+
 def is_multilinear(form):
-    "Check if form is multilinear."
-
-    # Check that we get a form
-    ufl_assert(isinstance(form, Form), "Not a form: %s" % str(form))
-
-    # Check that all operators applied to basis functions are linear
-    for e in iter_expressions(form):        
-        for (o, stack) in traversal(e):
-            if isinstance(o, BasisFunction):
-                for operator in stack:
-                    if not operator.is_linear():
-                        ufl_warning("Nonlinear operator applied to basis function:" + str(operator))
-                        return False
-
-    # Extract monomials
-    monomials = []
-    for e in iter_expressions(form):
-        monomials += _extract_monomials(e)
-
-    # Extract basis functions
-    basisfunctions = set()
-    for monomial in monomials:
-        for v in monomial:
-            basisfunctions.add(v)
-
-    # Check that each basis function appears exactly once in each monomial term
-    for monomial in monomials:
-        for v in basisfunctions:
-            if not len([w for w in monomial if w == v]) == 1:
-                ufl_warning("Basis function %s does not appear exactly once in each term." % str(v))
-                return False
-
-    return True
-
-
-def is_multilinear2(form): # TODO: Is this good?
     "An attempt at implementing is_multilinear using extract_basisfunction_dependencies."
     try:
         for e in iter_expressions(form):
