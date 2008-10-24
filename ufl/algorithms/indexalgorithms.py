@@ -4,33 +4,30 @@ with indices in an expression."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-10-21"
+__date__ = "2008-05-07 -- 2008-10-24"
 
 from ..output import ufl_assert, ufl_error
 
 # All classes:
 from ..base import UFLObject
-from ..indexing import MultiIndex, Indexed, Index, FixedIndex
-#from ..indexing import AxisType, as_index, as_index_tuple, extract_indices
-from ..tensors import ListTensor, ComponentTensor
+from ..indexing import MultiIndex, Index
 from ..algebra import Product
 from ..differentiation import SpatialDerivative, Diff
 
-# Lists of all UFLObject classes
-from ..classes import ufl_classes, terminal_classes, nonterminal_classes
-
 # Other algorithms:
-from .analysis import extract_basisfunctions, extract_coefficients, extract_indices, extract_duplications
 from .transformations import ufl_reuse_handlers, transform
 
 
-# TODO: Take care when using this, it will replace _all_ occurences of these indices,
-# so in f.ex. (a[i]*b[i]*(1.0 + c[i]*d[i]) the replacement i==0 will result in
-# (a[0]*b[0]*(1.0 + c[0]*d[0]) which is probably not what is wanted.
-# If this is a problem, a new algorithm may be needed.
 def substitute_indices(expression, indices, values):
     """Substitute Index objects from the list 'indices' with corresponding
     fixed values from the list 'values' in expression."""
+    
+    ufl_warning("Is this algorithm used? Read comment in source code (indexalgorithms.py).")
+    # TODO: Take care when using this, it will replace _all_ occurences of these indices,
+    # so in f.ex. (a[i]*b[i]*(1.0 + c[i]*d[i]) the replacement i==0 will result in
+    # (a[0]*b[0]*(1.0 + c[0]*d[0]) which is probably not what is wanted.
+    # If this is a problem, a new algorithm may be needed.
+    
     d = ufl_reuse_handlers()
 
     def s_multi_index(x, *ops):
@@ -50,6 +47,7 @@ def substitute_indices(expression, indices, values):
 
 def expand_indices(expression):
     "Expand implicit summations into explicit Sums of Products."
+    
     ufl_error("Not implemented.")
     
     d = ufl_reuse_handlers()
@@ -73,6 +71,8 @@ def expand_indices(expression):
 def renumber_indices(expression, offset=0):
     "Given an expression, renumber indices in a contiguous count beginning with offset."
     ufl_assert(isinstance(expression, UFLObject), "Expecting an UFLObject.")
+    
+    ufl_warning("Is this algorithm used? For what reason?")
     
     # Build a set of all indices used in expression
     idx = indices(expression)

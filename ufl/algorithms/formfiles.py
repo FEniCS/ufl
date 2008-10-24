@@ -3,10 +3,11 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-09-16"
+__date__ = "2008-03-14 -- 2008-10-24"
 
 from ..output import ufl_error, ufl_info
 from ..form import Form
+from ..function import Function
 
 #--- Utilities to deal with form files ---
 
@@ -26,15 +27,18 @@ def load_forms(filename):
         ufl_info("""\
 An exception occured during evaluation of form file.
 To find the location of the error, a temporary script
-'%s' has been created and will now be run:""" % tmpfile)
+'%s' has been created and will now be executed:""" % tmpfile)
         m = __import__(tmpname)
         ufl_error("Aborting load_forms.")
     
-    # Extract Form objects
+    # Extract Form objects, and Function objects to get their names
     forms = []
+    function_names = []
     for k,v in namespace.iteritems():
         if isinstance(v, Form):
             forms.append((k,v))
+        elif isinstance(v, Function):
+            function_names.append((v,k))
     
+    # TODO: Return function_names?
     return forms
-

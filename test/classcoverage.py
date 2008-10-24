@@ -390,8 +390,8 @@ class ClasscoverageTest(unittest.TestCase):
         # --- Form transformations:
         
         a = f0*v0*dx + f0*v0*dot(f1,v1)*dx
-        b = lhs(a)
-        c = rhs(a)
+        #b = lhs(a) # TODO
+        #c = rhs(a) # TODO
         d = derivative(a, f1, v1)
         f = action(d)
         #e = action(b)

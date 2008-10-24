@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-14 -- 2008-10-03"
+__date__ = "2008-03-14 -- 2008-10-24"
 
 from ..output import ufl_assert, ufl_warning, ufl_debug
 from ..common import lstr
@@ -53,9 +53,10 @@ from .analysis import extract_basisfunction_dependencies, NotMultiLinearExceptio
 #    return True
 #===============================================================================
 
-
 def is_multilinear(form):
-    "An attempt at implementing is_multilinear using extract_basisfunction_dependencies."
+    "Check if form is multilinear in basis function arguments."
+    # An attempt at implementing is_multilinear using extract_basisfunction_dependencies.
+    # TODO: FFC probably needs a variant of this which checks for linearity in Functions as well.
     try:
         for e in iter_expressions(form):
             deps = extract_basisfunction_dependencies(e)
@@ -66,8 +67,6 @@ def is_multilinear(form):
         return False
     return True
 
-
-
 def _extract_monomials(e):
     "Extract monomial terms (ignoring all operators except + and -)"
     
@@ -76,7 +75,7 @@ def _extract_monomials(e):
     if isinstance(e, Sum):
         for o in operands:
             monomials += _extract_monomials(o)
-    # FIXME: Does this make sense (treating Dot like Product)?
+    # FIXME: Does this make sense (treating Dot like Product)? No.
     elif isinstance(e, Product) or isinstance(e, Dot):
         ufl_assert(len(operands) == 2, "Strange, expecting two factors.")
         for m0 in _extract_monomials(operands[0]):

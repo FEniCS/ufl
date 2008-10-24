@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-09-13 -- 2008-10-23"
+__date__ = "2008-09-13 -- 2008-10-24"
 
 # Modified by Anders Logg, 2008
 
@@ -16,7 +16,7 @@ from ..form import Form
 from .analysis import extract_basisfunctions, extract_coefficients, extract_classes
 
 class FormData(object):
-    "Class collecting various information extracted from form."
+    "Class collecting various information extracted from a Form."
     
     def __init__(self, form):
         "Create form data for given form"
@@ -55,16 +55,15 @@ class FormData(object):
             self.classes[i] = extract_classes(i._integrand)
 
     def __str__(self):
-        "Print summary of form data"
-
+        "Return formatted summary of form data"
         return tstr((("Domain",                   self.domain),
                      ("Geometric dimension",      self.geometric_dimension),
                      ("Topological dimension",    self.topological_dimension),
                      ("Rank",                     self.rank),
                      ("Number of coefficients",   self.num_coefficients),
                      ("Number of cell integrals", len(self.form.cell_integrals())),
-                     ("Number of e.f. integrals", len(self.form.exterior_facet_integrals())),
-                     ("Number of i.f. integrals", len(self.form.interior_facet_integrals())),
+                     ("Number of exterior facet integrals", len(self.form.exterior_facet_integrals())),
+                     ("Number of interior facet integrals", len(self.form.interior_facet_integrals())),
                      ("Basis functions",          lstr(self.basisfunctions)),
                      ("Coefficients",             lstr(self.coefficients)),
                      ("Unique elements",          lstr(self.unique_elements))))
