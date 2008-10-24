@@ -3,14 +3,14 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-23"
+__date__ = "2008-03-14 -- 2008-10-24"
 
 # Modified by Anders Logg, 2008
 
 from itertools import chain
 
 from ..output import ufl_assert, ufl_error
-from ..common import lstr
+from ..common import lstr, UFLTypeDefaultDict
 
 from ..base import UFLObject, Terminal
 from ..algebra import Sum, Product, Division
@@ -199,7 +199,9 @@ class NotMultiLinearException(Exception):
 
 def extract_basisfunction_dependencies(expression):
     "TODO: Document me."
-    h = {}
+    def not_implemented(x, *ops):
+        ufl_error("No handler implemented in extract_basisfunction_dependencies for '%s'" % str(type(x)))
+    h = UFLTypeDefaultDict(not_implemented)
     
     # Default for terminals: no dependency on basis functions 
     def h_terminal(x):

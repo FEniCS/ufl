@@ -28,7 +28,7 @@ __version__ = "0.1"
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __copyright__ = __authors__ + " (2008)"
 __licence__ = "LGPL" # TODO: which licence?
-__date__ = "2008-03-14 -- 2008-10-21"
+__date__ = "2008-03-14 -- 2008-10-24"
 
 
 ########## README

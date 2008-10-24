@@ -7,10 +7,10 @@ from __future__ import absolute_import
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-05-07 -- 2008-10-24"
 
-from collections import defaultdict
 from itertools import izip
 
 from ..output import ufl_assert, ufl_error
+from ..common import UFLTypeDefaultDict, UFLTypeDict
 
 # All classes:
 from ..base import UFLObject, Terminal, FloatValue, ZeroType
@@ -74,9 +74,8 @@ def ufl_reuse_handlers():
     # Show a clear error message if we miss some types here:
     def not_implemented(x, *ops):
         ufl_error("No handler defined for %s in ufl_reuse_handlers. Add to classes.py." % type(x))
-    def make_not_implemented():
-        return not_implemented
-    d = defaultdict(make_not_implemented)
+    d = UFLTypeDefaultDict(not_implemented)
+    
     # Terminal objects are simply reused:
     def this(x):
         return x
@@ -101,9 +100,8 @@ def ufl_copy_handlers():
     # Show a clear error message if we miss some types here:
     def not_implemented(x, *ops):
         ufl_error("No handler defined for %s in ufl_copy_handlers. Add to classes.py." % type(x))
-    def make_not_implemented():
-        return not_implemented
-    d = defaultdict(make_not_implemented)
+    d = UFLTypeDefaultDict(not_implemented)
+
     # Terminal objects are simply reused:
     def this(x):
         return x
@@ -157,7 +155,7 @@ def replace(expression, substitution_map):
     """
     ufl_assert(isinstance(expression, UFLObject), "Expecting UFLObject.")
     handlers = ufl_reuse_handlers()
-    orig_handlers = {}
+    orig_handlers = UFLTypeDict()
     def r_replace(x, *ops):
         y = substitution_map.get(x)
         if y is None:

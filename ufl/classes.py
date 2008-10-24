@@ -5,7 +5,7 @@ implementation details not exposed through the default ufl namespace."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-15 -- 2008-10-21"
+__date__ = "2008-08-15 -- 2008-10-24"
 
 # Modified by Anders Logg, 2008
 
@@ -40,3 +40,6 @@ ufl_classes         = set([c for c in all_ufl_classes if c not in abstract_class
 terminal_classes    = set([c for c in ufl_classes if __issubclass(c, Terminal)])
 nonterminal_classes = set([c for c in ufl_classes if not __issubclass(c, Terminal)])
 
+# Add _uflid to all classes:
+for c in all_ufl_classes:
+    c._uflid = c

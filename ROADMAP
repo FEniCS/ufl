@@ -6,7 +6,12 @@ Some of the TODO's left:
 - Main issue groups:
   - AD
   - Algorithms for form compiler use
-  - Other form-level transformations
+  - Missing form-level transformations
+
+# Major fix to allow subclassing Function outside UFL:
+ - DONE: (generalized in classes.py) Add "    _uflid = FooClass" to all classes 
+ - Change all algorithms to use d[FooClass._uflid] instead of d[FooClass]
+   by using UFLTypeDict instead of dict.
 
 # Derivatives:
  - Rename Diff to e.g. VariableDerivative?

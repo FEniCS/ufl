@@ -6,7 +6,7 @@ an expression."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-10-22"
+__date__ = "2008-05-07 -- 2008-10-24"
 
 from ..output import ufl_assert, ufl_error, ufl_warning
 
@@ -18,7 +18,6 @@ from ..variable import Variable
 # Other algorithms:
 from .analysis import extract_basisfunctions, extract_coefficients, extract_indices, extract_duplications
 from .transformations import ufl_reuse_handlers, transform, transform_integrands
-
 
 def _mark_duplications(expression, handlers, variables, dups):
     """Wrap subexpressions that are equal (completely equal, not mathematically equivalent)
@@ -65,14 +64,12 @@ def _mark_duplications(expression, handlers, variables, dups):
     
     return handled
 
-
 def mark_duplications(expression):
     "Wrap all duplicated expressions as Variables."
     dups = extract_duplications(expression)
     variables = {}
     d = ufl_reuse_handlers()
     return _mark_duplications(expression, d, variables, dups)
-
 
 def strip_variables(expression, handled_variables=None):
     d = ufl_reuse_handlers()
@@ -86,7 +83,6 @@ def strip_variables(expression, handled_variables=None):
         return v
     d[Variable] = s_variable
     return transform(expression, d)
-
 
 def extract_variables(expression, handled_expressions=None):
     if handled_expressions is None:

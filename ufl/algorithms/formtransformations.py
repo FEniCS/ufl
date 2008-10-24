@@ -8,7 +8,6 @@ __date__ = "2008-10-01 -- 2008-10-24"
 
 # Modified by Anders Logg, 2008
 
-from collections import defaultdict
 from itertools import izip
 
 from ..common import some_key, product

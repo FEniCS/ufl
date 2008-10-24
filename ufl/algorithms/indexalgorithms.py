@@ -17,7 +17,6 @@ from ..differentiation import SpatialDerivative, Diff
 # Other algorithms:
 from .transformations import ufl_reuse_handlers, transform
 
-
 def substitute_indices(expression, indices, values):
     """Substitute Index objects from the list 'indices' with corresponding
     fixed values from the list 'values' in expression."""
@@ -44,7 +43,6 @@ def substitute_indices(expression, indices, values):
 
     return transform(expression, d)
 
-
 def expand_indices(expression):
     "Expand implicit summations into explicit Sums of Products."
     
@@ -66,7 +64,6 @@ def expand_indices(expression):
     d[Diff] = e_diff
     
     return transform(expression, d)
-
 
 def renumber_indices(expression, offset=0):
     "Given an expression, renumber indices in a contiguous count beginning with offset."
@@ -97,4 +94,3 @@ def renumber_indices(expression, offset=0):
         return MultiIndex(tuple(ind), len(o))
     handlers[MultiIndex] = multi_index_handler
     return transform(expression, handlers)
-

@@ -3,12 +3,12 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-10-01 -- 2008-10-22"
+__date__ = "2008-10-01 -- 2008-10-24"
 
 from collections import defaultdict
 from itertools import izip, chain
 
-from ..common import some_key, split_dict, or_tuples, and_tuples
+from ..common import some_key, split_dict, or_tuples, and_tuples, UFLTypeDict
 from ..output import ufl_assert, ufl_error, ufl_warning
 from ..permutation import compute_indices
 
@@ -319,7 +319,8 @@ class DependencySplitter:
         self.codestructure = CodeStructure()
 
         # First set default behaviour for dependencies
-        self.handlers = {}
+        self.handlers = UFLTypeDict()
+        
         for c in terminal_classes:
             self.handlers[c] = self.no_deps
         for c in nonterminal_classes:

@@ -4,7 +4,7 @@ types involved with built-in operators on any UFL object."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-21"
+__date__ = "2008-03-14 -- 2008-10-24"
 
 # Modified by Anders Logg, 2008
 
@@ -15,7 +15,6 @@ from .output import ufl_assert
 
 class UFLObject(object):
     "Base class for all UFL objects."
-    
     # Freeze member variables (there are none) for objects of this class
     __slots__ = ()
     
@@ -117,7 +116,7 @@ class Terminal(UFLObject):
 
 #--- Zero tensors of different shapes ---
 
-class ZeroType(Terminal): # Experimental!
+class ZeroType(Terminal):
     __slots__ = ("_shape",)
     def __init__(self, shape):
         self._shape = shape

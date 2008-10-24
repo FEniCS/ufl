@@ -1,7 +1,7 @@
 "This module contains a collection of common utilities."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-08-05 -- 2008-10-21"
+__date__ = "2008-08-05 -- 2008-10-24"
 
 from itertools import izip
 import operator
@@ -96,7 +96,6 @@ class Counted(object):
     def count(self):
         return self._count
 
-
 class Stack(list):
     "A stack datastructure."
     def __init__(self, *args):
@@ -107,7 +106,6 @@ class Stack(list):
     
     def peek(self):
         return self[-1]
-
 
 class StackDict(dict):
     "A dict that can be changed incrementally with 'd.push(k,v)' and have changes rolled back with 'k,v = d.pop()'."
@@ -126,6 +124,41 @@ class StackDict(dict):
         else:
             self[k] = v
         return k, v
+
+class UFLTypeDict(dict):
+    def __init__(self):
+        dict.__init__(self)
+        
+    def __getitem__(self, key):
+        return dict.__getitem__(self, key._uflid)
+    
+    def __setitem__(self, key, value):
+        return dict.__setitem__(self, key._uflid, value)
+    
+    def __delitem__(self, key):
+        return dict.__delitem__(self, key._uflid)
+
+    def __contains__(self, key):
+        return dict.__contains__(self, key._uflid)
+
+class UFLTypeDefaultDict(dict):
+    def __init__(self, default):
+        dict.__init__(self)
+        def make_default():
+            return default
+        self.setdefault(make_default)
+    
+    def __getitem__(self, key):
+        return dict.__getitem__(self, key._uflid)
+    
+    def __setitem__(self, key, value):
+        return dict.__setitem__(self, key._uflid, value)
+    
+    def __delitem__(self, key):
+        return dict.__delitem__(self, key._uflid)
+
+    def __contains__(self, key):
+        return dict.__contains__(self, key._uflid)
 
 def strides(shape):
     if len(shape) == 0:

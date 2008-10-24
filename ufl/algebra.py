@@ -4,12 +4,11 @@ from __future__ import absolute_import
 from ufl.indexing import DefaultDim
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2008-10-13"
+__date__ = "2008-05-20 -- 2008-10-24"
 
 # Modified by Anders Logg, 2008
 
 from itertools import chain
-from collections import defaultdict
 
 from .output import ufl_assert, ufl_error
 from .base import UFLObject, float_value, FloatValue, is_true_scalar, is_python_scalar, as_ufl

@@ -3,12 +3,10 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-19-- 2008-10-21"
-
-from collections import defaultdict
+__date__ = "2008-08-19-- 2008-10-24"
 
 from ..output import ufl_assert, ufl_error, ufl_warning
-from ..common import product, unzip
+from ..common import product, unzip, UFLTypeDefaultDict
 
 # All classes:
 from ..base import UFLObject, Terminal, FloatValue
@@ -56,7 +54,7 @@ def diff_handlers():
     # Show a clear error message if we miss some types here:
     def not_implemented(x, *ops):
         ufl_error("No handler defined for %s in diff_handlers. Add to classes.py." % type(x))
-    d = defaultdict(not_implemented)
+    d = UFLTypeDefaultDict(not_implemented)
     
     # Terminal objects are assumed independent of the differentiation
     # variable by default, and simply 'lifted' to the pair (x, 0).
