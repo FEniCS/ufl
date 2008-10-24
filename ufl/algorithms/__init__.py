@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-14 -- 2008-10-16"
+__date__ = "2008-08-14 -- 2008-10-24"
 
 # Modified by Anders Logg, 2008
 

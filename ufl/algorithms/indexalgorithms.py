@@ -4,7 +4,7 @@ with indices in an expression."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-10-21"
+__date__ = "2008-05-07 -- 2008-10-24"
 
 from ..output import ufl_assert, ufl_error
 

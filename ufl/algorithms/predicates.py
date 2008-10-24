@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-14 -- 2008-10-03"
+__date__ = "2008-03-14 -- 2008-10-24"
 
 from ..output import ufl_assert, ufl_warning, ufl_debug
 from ..common import lstr

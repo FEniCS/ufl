@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-19-- 2008-10-21"
+__date__ = "2008-08-19-- 2008-10-24"
 
 from collections import defaultdict
 

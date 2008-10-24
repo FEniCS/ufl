@@ -5,7 +5,7 @@ converting UFL expressions to other representations."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-10-21"
+__date__ = "2008-05-07 -- 2008-10-24"
 
 from collections import defaultdict
 from itertools import izip
@@ -77,7 +77,7 @@ def transform(expression, handlers):
         ops = ()
     else:
         ops = [transform(o, handlers) for o in expression.operands()]
-    c = type(expression)
+    c = expression._uflid
     if c in handlers:
         h = handlers[c]
     else:
@@ -296,7 +296,7 @@ def flatten(expression):
     and products flattened from binary tree nodes to n-ary tree nodes."""
     d = ufl_reuse_handlers()
     def _flatten(x, *ops):
-        c = type(x)
+        c = x._uflid
         newops = []
         for o in ops:
             if isinstance(o, c):
@@ -322,10 +322,10 @@ def replace(expression, substitution_map):
     def r_replace(x, *ops):
         y = substitution_map.get(x)
         if y is None:
-            return orig_handlers[type(x)](x, *ops)
+            return orig_handlers[x._uflid](x, *ops)
         return y
     for k in substitution_map.keys():
-        c = type(k)
+        c = k._uflid
         orig_handlers[c] = handlers[c]
         handlers[c] = r_replace
     return transform(expression, handlers)
