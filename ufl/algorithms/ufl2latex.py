@@ -7,6 +7,7 @@ from __future__ import absolute_import
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-05-07 -- 2008-10-27"
 
+from itertools import chain
 from collections import defaultdict
 
 from ..output import ufl_error, ufl_debug, ufl_warning
@@ -35,45 +36,38 @@ from ..integral import Integral
 from ..classes import ufl_classes, terminal_classes, nonterminal_classes
 
 # Other algorithms:
-from .analysis import extract_basisfunctions, extract_coefficients, extract_indices
+from .analysis import extract_basisfunctions, extract_coefficients, extract_variables
+from .formdata import FormData
 
 # General dict-based transformation utility
 from .transformations import transform
 
 
-def latex_handlers(variables, handled_variables):
+def latex_handlers(basisfunction_renumbering, coefficient_renumbering):
     # Show a clear error message if we miss some types here:
     def not_implemented(x, *ops):
         ufl_error("No handler defined for %s in latex_handlers." % type(x))
     d = UFLTypeDefaultDict(not_implemented)
-    # Utility for parentesizing string:
+    
+    # Utility for parentesizing string (TODO: Finish precedence handling):
     def par(s, condition=True):
         if condition:
             return "\\left(%s\\right)" % s
         return str(s)
+    
     # Terminal objects:
-    d[FloatValue]    = lambda x: "{%s}" % x._value
     def l_zero(x):
         if x.shape() == ():
             return "0"
         return r"{\mathbf 0}"
     d[ZeroType]      = l_zero
-    d[BasisFunction] = lambda x: "{v^{%d}}" % x._count # Using ^ for function numbering and _ for indexing
-    d[Function]      = lambda x: "{w^{%d}}" % x._count
-    d[Constant]      = lambda x: "{w^{%d}}" % x._count
+    d[FloatValue]    = lambda x: "{%s}" % x._value
     d[FacetNormal]   = lambda x: "n"
     d[Identity]      = lambda x: "I"
-    
-    def l_variable(x):
-        i = x._count
-        name = "s_{%d}" % i
-        if i not in handled_variables:
-            e = x._expression
-            varassignment = "%s = %s, \\\\\n" % (name, e)
-            variables.append(varassignment)
-            handled_variables.add(i)
-        return name
-    d[Variable]  = l_variable
+    d[BasisFunction] = lambda x: "{v^{%d}}" % basisfunction_renumbering[x] # Using ^ for function numbering and _ for indexing
+    d[Function]      = lambda x: "{w^{%d}}" % coefficient_renumbering[x]
+    d[Constant]      = lambda x: "{w^{%d}}" % coefficient_renumbering[x]
+    d[Variable]      = lambda x: "s_{%d}" % x._count
     
     def l_multiindex(x):
         s = ""
@@ -88,6 +82,7 @@ def latex_handlers(variables, handled_variables):
                 ufl_error("Unknown index type %s." % type(ix))
         return s
     d[MultiIndex] = l_multiindex
+    
     # Non-terminal objects:
     def l_sum(x, *ops):
         return " + ".join(par(o) for o in ops)
@@ -153,50 +148,79 @@ def latex_handlers(variables, handled_variables):
                     "\n".join(str(c) for c in sorted(missing_handlers)))
     return d
 
+def element2latex(element):
+    return "{ %s }" % str(element)
 
-def ufl2latex(expression):
-    """Convert an UFL expression to a LaTeX string. Very crude approach."""
-    if isinstance(expression, Form):
-        integral_strings = []
-        for itg in expression.cell_integrals():
-            integral_strings.append(ufl2latex(itg))
-        for itg in expression.exterior_facet_integrals():
-            integral_strings.append(ufl2latex(itg))
-        for itg in expression.interior_facet_integrals():
-            integral_strings.append(ufl2latex(itg))
-        b = ", ".join("v_{%d}" % i for i,v in enumerate(extract_basisfunctions(expression)))
-        c = ", ".join("w_{%d}" % i for i,w in enumerate(extract_coefficients(expression)))
-        arguments = "; ".join((b, c))
-        latex = "a(" + arguments + ") = \n    " + "\n    + ".join(integral_strings)
-    
-    elif isinstance(expression, Integral):
-        itg = expression
-        domain_string = { "cell": "\\Omega",
-                          "exterior_facet": "\\Gamma^{ext}",
-                          "interior_facet": "\\Gamma^{int}",
-                        }[itg._domain_type]
-        dx_string = { "cell": "dx",
-                      "exterior_facet": "ds",
-                      "interior_facet": "dS",
-                    }[itg._domain_type]
-        
-        handled_variables = set()
-        variables = []
-        handlers = latex_handlers(variables, handled_variables)
-        integrand_string = transform(itg._integrand, handlers)
-        if variables:
-            ufl_warning("FIXME: Print out variables before integral in ufl2latex!")
-        latex = "\\int_{%s_%d} \\left[ { %s } \\right] \,%s" % (domain_string, itg._domain_id, integrand_string, dx_string)
-        
-    else:
-        handled_variables = set()
-        variables = []
-        handlers = latex_handlers(variables, handled_variables)
-        latex = transform(expression, handlers)
-        linesplitter = ", \\\\\n"
-        variable_string = linesplitter.join(variables)
-        latex = variable_string + linesplitter + latex
-    
+def expression2latex(expression, basisfunction_renumbering, coefficient_renumbering):
+    handlers = latex_handlers(basisfunction_renumbering, coefficient_renumbering)
+    latex = transform(expression, handlers)
     return latex
 
+def form2latex(form, formname="a", newline = " \\\\ \n"):
+    formdata = FormData(form)
+    
+    latex = ""
+    
+    # Define function spaces
+    for i,f in enumerate(formdata.basisfunctions):
+        e = f.element()
+        latex += "V_{%d} = %s %s" % (i, element2latex(e), newline)
+    for i,f in enumerate(formdata.coefficients):
+        e = f.element()
+        latex += "W_{%d} = %s %s" % (i, element2latex(e), newline)
+    
+    # Define basis functions and functions
+    # TODO: Get names of arguments from form file
+    for i,e in enumerate(formdata.basisfunctions):
+        latex += "v^{%d} \\in V_{%d} %s" % (i, i, newline)
+    for i,f in enumerate(formdata.coefficients):
+        latex += "w^{%d} \\in W_{%d} %s" % (i, i, newline)
+        
+    # Define variables
+    handled_variables = set()
+    integrals = list(chain(form.cell_integrals(),
+                           form.exterior_facet_integrals(),
+                           form.interior_facet_integrals()))
+    for itg in integrals:
+        vars = extract_variables(itg.integrand())
+        for v in vars:
+            if not v._count in handled_variables:
+                handled_variables.add(v._count)
+                exprlatex = expression2latex(v._expression, formdata.basisfunction_renumbering, formdata.coefficient_renumbering)
+                latex += "s_{%d} = %s %s" % (v._count, exprlatex, newline)
+    
+    # Join form arguments for "a(...) ="
+    b = ", ".join("v_{%d}" % i for (i,v) in enumerate(formdata.basisfunctions))
+    c = ", ".join("w_{%d}" % i for (i,w) in enumerate(formdata.coefficients))
+    arguments = "; ".join((b, c))
+    latex += "%s(%s) = " % (formname, arguments, )
 
+    # Define integrals
+    domain_strings = { "cell": "\\Omega",
+                       "exterior_facet": "\\Gamma^{ext}",
+                       "interior_facet": "\\Gamma^{int}",
+                     }
+    dx_strings = { "cell": "dx",
+                   "exterior_facet": "ds",
+                   "interior_facet": "dS",
+                 }
+    integral_strings = []
+    for itg in integrals:
+        integrand_string = expression2latex(itg.integrand(), formdata.basisfunction_renumbering, formdata.coefficient_renumbering)
+        itglatex = "\\int_{%s_%d} \\left[ { %s } \\right] \,%s" % \
+                (domain_strings[itg._domain_type],
+                 itg._domain_id,
+                 integrand_string,
+                 dx_strings[itg._domain_type])
+        integral_strings.append(itglatex)
+
+    # Join integral strings, and we're done!
+    latex += (" %s + " % newline).join(integral_strings)
+    return latex
+
+def ufl2latex(expression):
+    if isinstance(expression, Form):
+        return form2latex(expression)
+    basisfunction_renumbering = dict((f,f._count) for f in extract_basisfunctions(expression))
+    coefficient_renumbering = dict((f,f._count) for f in extract_coefficients(expression))
+    return expression2latex(expression, basisfunction_renumbering, coefficient_renumbering)

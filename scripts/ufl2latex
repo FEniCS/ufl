@@ -49,13 +49,15 @@ latex = r"""\documentclass{article}
 
 \section{UFL Forms from file %s}
 
-""" % filename
+""" % filename.replace("_", "\\_")
 
 # Generate latex code for each form
 for name, form in forms:
     l = ufl2latex(form)
     latex += "\\subsection{Form %s}\n" % name
-    latex += "\\[\n%s\n\\]\n" % l
+    latex += "\\begin{eqnarray}\n"
+    latex += l
+    latex += "\n\\end{eqnarray}\n"
     if enable_browser:
         webbrowser.open("http://www.texify.com/$%s$" % l.replace(" ",""))
 
