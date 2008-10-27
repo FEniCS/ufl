@@ -113,6 +113,11 @@ class MultiIndex(Terminal):
     
     def __iter__(self):
         return iter(self._indices)
+    
+    def __eq__(self, other):
+        return isinstance(other, MultiIndex) and \
+            self._indices == other._indices and \
+            self._rank == other._rank
 
 
 class Indexed(UFLObject):

@@ -52,6 +52,9 @@ class Identity(Terminal):
     
     def __repr__(self):
         return "Identity(%d)" % self._dim
+    
+    def __eq__(self, other):
+        return isinstance(other, Identity) and self._dim == other._dim
 
 
 # objects representing the operations:

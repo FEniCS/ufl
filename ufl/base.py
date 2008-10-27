@@ -4,7 +4,7 @@ types involved with built-in operators on any UFL object."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-24"
+__date__ = "2008-03-14 -- 2008-10-27"
 
 # Modified by Anders Logg, 2008
 
@@ -150,6 +150,9 @@ class ZeroType(Terminal):
     
     def __repr__(self):
         return "ZeroType(%s)" % repr(self._shape)
+    
+    def __eq__(self, other):
+        return isinstance(other, ZeroType) and self._shape == other._shape
 
 _zero_cache = {}
 def zero_tensor(shape):
@@ -182,9 +185,11 @@ class FloatValue(Terminal):
     
     def __eq__(self, other):
         "Allow comparison with python scalars."
+        if isinstance(other, FloatValue):
+            return self._value == other._value
         if is_python_scalar(other):
             return self._value == other
-        return UFLObject.__eq__(self, other)
+        return False
     
     def __str__(self):
         return str(self._value)

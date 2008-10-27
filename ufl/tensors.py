@@ -3,11 +3,11 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-31 -- 2008-10-16"
+__date__ = "2008-03-31 -- 2008-10-27"
 
 
 from .output import ufl_assert, ufl_warning
-from .base import UFLObject, Terminal, as_ufl
+from .base import UFLObject, as_ufl
 from .indexing import Index, MultiIndex, DefaultDim
 
 

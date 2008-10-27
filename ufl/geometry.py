@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-15"
+__date__ = "2008-03-14 -- 2008-10-27"
 
 from .base import Terminal
 from .indexing import DefaultDim
@@ -24,3 +24,5 @@ class FacetNormal(Terminal):
     def __repr__(self):
         return "FacetNormal()"
 
+    def __eq__(self, other):
+        return isinstance(other, FacetNormal)

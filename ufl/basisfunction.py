@@ -4,7 +4,7 @@ classes (functions), including TestFunction and TrialFunction."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-09-26"
+__date__ = "2008-03-14 -- 2008-10-27"
 
 # Modified by Anders Logg, 2008
 
@@ -13,12 +13,13 @@ from .common import Counted, product
 from .split import split
 
 class BasisFunction(Terminal, Counted):
-    __slots__ = ("_element", )
+    __slots__ = ("_element", "_repr")
     _globalcount = 0
 
     def __init__(self, element, count=None):
         Counted.__init__(self, count)
         self._element = element
+        self._repr = "BasisFunction(%r, %r)" % (self._element, self._count)
     
     def element(self):
         return self._element
@@ -37,7 +38,10 @@ class BasisFunction(Terminal, Counted):
             return "v_{%s}" % count
     
     def __repr__(self):
-        return "BasisFunction(%r, %r)" % (self._element, self._count)
+        return self._repr
+
+    def __eq__(self, other):
+        return isinstance(other, Function) and self._count == other._count
 
 def TestFunction(element):
     return BasisFunction(element, -2)

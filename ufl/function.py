@@ -44,6 +44,9 @@ class Function(Terminal, Counted):
     def __repr__(self):
         return "Function(%r, %r, %r)" % (self._element, self._name, self._count)
 
+    def __eq__(self, other):
+        return isinstance(other, Function) and self._count == other._count
+
 # TODO: Handle actual global constants?
 class Constant(Function):
     __slots__ = ("_domain",)
