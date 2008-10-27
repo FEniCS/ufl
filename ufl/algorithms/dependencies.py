@@ -27,9 +27,7 @@ from ..tensors import ListTensor, ComponentTensor
 from ..classes import ufl_classes, terminal_classes, nonterminal_classes
 
 # Other algorithms:
-from .analysis import extract_basisfunctions, extract_coefficients, extract_indices, extract_duplications
 from .variables import extract_variables
-from .transformations import transform
 
 
 class DependencySet:
@@ -217,7 +215,7 @@ def _split_by_dependencies(expression, codestructure, terminal_deps):
         #codestructure.stacks[info.deps].append(info)
     
     if isinstance(expression, Terminal):
-        h = terminal_deps[type(expression)]
+        h = terminal_deps[expression._uflid]
         deps = h(expression)
         if codestructure.stacks:
             ufl_assert(deps.size() == some_key(codestructure.stacks).size(),\
@@ -416,7 +414,7 @@ class DependencySplitter:
         return type(x)(*ops), d
 
     def transform(self, x):
-        c = type(x)
+        c = x._uflid
         h = self.handlers[c]
         if isinstance(x, Terminal):
             return h(x)

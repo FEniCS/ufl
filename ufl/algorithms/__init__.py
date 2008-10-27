@@ -15,7 +15,7 @@ from .traversal import post_walk, pre_walk, walk
 # Utilities for extracting information from forms and expressions
 from .analysis import extract_type, extract_classes, extract_domain, extract_value_shape
 from .analysis import extract_basisfunctions, extract_coefficients, extract_elements, extract_unique_elements
-from .analysis import extract_variables, extract_duplications
+from .analysis import extract_variables
 from .analysis import extract_monomials
 
 # Utility class for easy collecting of data about form
@@ -37,7 +37,7 @@ from .transformations import replace, replace_in_form
 from .indexalgorithms import renumber_indices, substitute_indices, expand_indices
 
 # Utilities for working with variables
-from .variables import strip_variables, extract_variables, mark_duplications
+from .variables import strip_variables, extract_variables, extract_duplications, mark_duplications
 
 # Utilities for working with dependencies of subexpressions
 from .dependencies import split_by_dependencies

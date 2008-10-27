@@ -40,7 +40,7 @@ from .transformations import transform
 def latex_handlers(variables, handled_variables):
     # Show a clear error message if we miss some types here:
     def not_implemented(x, *ops):
-        ufl_error("No handler defined for %s in latex_handlers." % type(x))
+        ufl_error("No handler defined for %s in latex_handlers." % x._uflid)
     d = UFLTypeDefaultDict(not_implemented)
     
     # Utility for parentesizing string:

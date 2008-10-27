@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-24"
+__date__ = "2008-03-14 -- 2008-10-27"
 
 # Modified by Anders Logg, 2008
 
@@ -40,13 +40,27 @@ def extract_type(a, ufl_type):
               if isinstance(o, ufl_type) )
     return set(iter)
 
+def get_ufl_class(c):
+    """Return input class c or the first of its subclasses
+    that is part of UFL. Handles multiple inheritance in
+    external code by recursion into all base classes."""
+    if c is object:
+        return None
+    if c.__module__.split(".")[0] == "ufl":
+        return c
+    for cb in c.__bases__:
+        uc = get_ufl_class(cb)
+        if uc is not None:
+            break
+    return uc
+
 def extract_classes(a):
     """Build a set of all unique UFLObject subclasses used in a.
     The argument a can be a Form, Integral or UFLObject."""
     c = set()
     for e in iter_expressions(a):
         for (o, stack) in post_traversal(e):
-            c.add(type(o))
+            c.add(get_ufl_class(type(o)))
     return c
 
 def extract_domain(a):
@@ -121,17 +135,6 @@ def extract_indices(expression):
         indices.update(i for i in mi if isinstance(i, Index))
     return indices
 
-def extract_duplications(expression):
-    "Build a set of all repeated expressions in expression."
-    ufl_assert(isinstance(expression, UFLObject), "Expecting UFL expression.")
-    handled = set()
-    duplicated = set()
-    for (o, stack) in post_traversal(expression):
-        if o in handled:
-            duplicated.add(o)
-        handled.add(o)
-    return duplicated
-
 def extract_monomials(expression, indent=""):
     "Extract monomial representation of expression (if possible)."
 
@@ -187,7 +190,7 @@ def transform(expression, handlers):
         ops = ()
     else:
         ops = [transform(o, handlers) for o in expression.operands()]
-    c = type(expression)
+    c = expression._uflid
     if c in handlers:
         h = handlers[c]
     else:
@@ -200,7 +203,7 @@ class NotMultiLinearException(Exception):
 def extract_basisfunction_dependencies(expression):
     "TODO: Document me."
     def not_implemented(x, *ops):
-        ufl_error("No handler implemented in extract_basisfunction_dependencies for '%s'" % str(type(x)))
+        ufl_error("No handler implemented in extract_basisfunction_dependencies for '%s'" % str(x._uflid))
     h = UFLTypeDefaultDict(not_implemented)
     
     # Default for terminals: no dependency on basis functions 

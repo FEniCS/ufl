@@ -5,7 +5,7 @@ converting UFL expressions to other representations."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-10-24"
+__date__ = "2008-05-07 -- 2008-10-27"
 
 from itertools import izip
 
@@ -17,11 +17,9 @@ from ..base import UFLObject, Terminal, FloatValue, ZeroType
 from ..variable import Variable
 from ..finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
 from ..basisfunction import BasisFunction
-#from ..basisfunction import TestFunction, TrialFunction, BasisFunctions, TestFunctions, TrialFunctions
 from ..function import Function, Constant
 from ..geometry import FacetNormal
 from ..indexing import MultiIndex, Indexed, Index, FixedIndex, indices, compare_shapes
-#from ..indexing import AxisType, as_index, as_index_tuple, extract_indices
 from ..tensors import ListTensor, ComponentTensor, as_tensor, as_matrix
 from ..algebra import Sum, Product, Division, Power, Abs
 from ..tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor, Skew
@@ -36,7 +34,7 @@ from ..integral import Integral
 from ..classes import ufl_classes, terminal_classes, nonterminal_classes
 
 # Other algorithms:
-from .analysis import extract_basisfunctions, extract_coefficients, extract_indices, extract_duplications
+from .analysis import extract_basisfunctions, extract_coefficients
 
 def transform_integrands(a, transformation):
     """Transform all integrands in a form with a transformation function.
@@ -60,7 +58,7 @@ def transform(expression, handlers):
         ops = ()
     else:
         ops = [transform(o, handlers) for o in expression.operands()]
-    c = type(expression)
+    c = expression._uflid
     if c in handlers:
         h = handlers[c]
     else:
@@ -73,7 +71,7 @@ def ufl_reuse_handlers():
     transform(...). Nonterminal objects are reused if possible."""
     # Show a clear error message if we miss some types here:
     def not_implemented(x, *ops):
-        ufl_error("No handler defined for %s in ufl_reuse_handlers. Add to classes.py." % type(x))
+        ufl_error("No handler defined for %s in ufl_reuse_handlers. Add to classes.py." % x._uflid)
     d = UFLTypeDefaultDict(not_implemented)
     
     # Terminal objects are simply reused:
@@ -99,7 +97,7 @@ def ufl_copy_handlers():
     expression."""
     # Show a clear error message if we miss some types here:
     def not_implemented(x, *ops):
-        ufl_error("No handler defined for %s in ufl_copy_handlers. Add to classes.py." % type(x))
+        ufl_error("No handler defined for %s in ufl_copy_handlers. Add to classes.py." % x._uflid)
     d = UFLTypeDefaultDict(not_implemented)
 
     # Terminal objects are simply reused:
@@ -133,7 +131,7 @@ def flatten(expression):
     and products flattened from binary tree nodes to n-ary tree nodes."""
     d = ufl_reuse_handlers()
     def _flatten(x, *ops):
-        c = type(x)
+        c = x._uflid
         newops = []
         for o in ops:
             if isinstance(o, c):
@@ -156,15 +154,20 @@ def replace(expression, substitution_map):
     ufl_assert(isinstance(expression, UFLObject), "Expecting UFLObject.")
     handlers = ufl_reuse_handlers()
     orig_handlers = UFLTypeDict()
+    
     def r_replace(x, *ops):
         y = substitution_map.get(x)
         if y is None:
-            return orig_handlers[type(x)](x, *ops)
+            c = x._uflid
+            h = orig_handlers[c]
+            return h(x, *ops)
         return y
+    
     for k in substitution_map.keys():
-        c = type(k)
+        c = k._uflid
         orig_handlers[c] = handlers[c]
         handlers[c] = r_replace
+    
     return transform(expression, handlers)
 
 def replace_in_form(form, substitution_map):
