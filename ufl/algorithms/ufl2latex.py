@@ -5,7 +5,9 @@ converting UFL expressions to other representations."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-10-22"
+__date__ = "2008-05-07 -- 2008-10-27"
+
+from collections import defaultdict
 
 from ..output import ufl_error, ufl_debug, ufl_warning
 from ..common import UFLTypeDefaultDict
@@ -34,15 +36,16 @@ from ..classes import ufl_classes, terminal_classes, nonterminal_classes
 
 # Other algorithms:
 from .analysis import extract_basisfunctions, extract_coefficients, extract_indices
+
+# General dict-based transformation utility
 from .transformations import transform
 
 
 def latex_handlers(variables, handled_variables):
     # Show a clear error message if we miss some types here:
     def not_implemented(x, *ops):
-        ufl_error("No handler defined for %s in latex_handlers." % x._uflid)
+        ufl_error("No handler defined for %s in latex_handlers." % type(x))
     d = UFLTypeDefaultDict(not_implemented)
-    
     # Utility for parentesizing string:
     def par(s, condition=True):
         if condition:

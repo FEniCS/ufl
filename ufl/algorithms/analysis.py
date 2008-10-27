@@ -3,14 +3,14 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-27"
+__date__ = "2008-03-14 -- 2008-10-24"
 
 # Modified by Anders Logg, 2008
 
 from itertools import chain
 
 from ..output import ufl_assert, ufl_error
-from ..common import lstr, UFLTypeDefaultDict
+from ..common import lstr
 
 from ..base import UFLObject, Terminal
 from ..algebra import Sum, Product, Division
@@ -101,7 +101,7 @@ def extract_coefficients(a):
     return l
 
 # alternative implementation, kept as an example:
-def _coefficients(a):
+def _extract_coefficients(a):
     """Build a sorted list of all coefficients in a,
     which can be a Form, Integral or UFLObject."""
     # build set of all unique coefficients
@@ -116,7 +116,7 @@ def _coefficients(a):
 
 def extract_elements(a):
     "Build a sorted list of all elements used in a."
-    return [f._element for f in chain(extract_basisfunctions(a), extract_coefficients(a))]
+    return tuple(f._element for f in chain(extract_basisfunctions(a), extract_coefficients(a)))
 
 def extract_unique_elements(a):
     "Build a set of all unique elements used in a."

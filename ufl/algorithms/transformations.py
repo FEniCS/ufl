@@ -143,7 +143,6 @@ def flatten(expression):
     d[Sum] = _flatten
     d[Product] = _flatten
     return transform(expression, d)
-
 def replace(expression, substitution_map):
     """Replace objects in expression.
     

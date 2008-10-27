@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-14 -- 2008-10-16"
+__date__ = "2008-08-14 -- 2008-10-24"
 
 # Modified by Anders Logg, 2008
 
@@ -37,7 +37,7 @@ from .transformations import replace, replace_in_form
 from .indexalgorithms import renumber_indices, substitute_indices, expand_indices
 
 # Utilities for working with variables
-from .variables import strip_variables, extract_variables, extract_duplications, mark_duplications
+from .variables import strip_variables, extract_variables, mark_duplications
 
 # Utilities for working with dependencies of subexpressions
 from .dependencies import split_by_dependencies

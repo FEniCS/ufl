@@ -20,7 +20,6 @@ from .traversal import post_traversal
 from .analysis import extract_basisfunctions, extract_coefficients, extract_indices
 from .transformations import ufl_reuse_handlers, transform, transform_integrands
 
-
 def strip_variables(expression, handled_variables=None):
     if handled_variables is None:
         handled_variables = {}

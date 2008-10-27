@@ -45,7 +45,6 @@ def substitute_indices(expression, indices, values):
 
 def expand_indices(expression):
     "Expand implicit summations into explicit Sums of Products."
-    
     ufl_error("Not implemented.")
     
     d = ufl_reuse_handlers()
@@ -94,3 +93,4 @@ def renumber_indices(expression, offset=0):
         return MultiIndex(tuple(ind), len(o))
     handlers[MultiIndex] = multi_index_handler
     return transform(expression, handlers)
+
