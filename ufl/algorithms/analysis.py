@@ -3,14 +3,14 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-24"
+__date__ = "2008-03-14 -- 2008-10-27"
 
 # Modified by Anders Logg, 2008
 
 from itertools import chain
 
 from ..output import ufl_assert, ufl_error
-from ..common import lstr
+from ..common import lstr, UFLTypeDefaultDict
 
 from ..base import UFLObject, Terminal
 from ..algebra import Sum, Product, Division
