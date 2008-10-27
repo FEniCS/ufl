@@ -52,16 +52,15 @@ def transform_integrands(a, transformation):
     return Form(integrals)
 
 def transform(expression, handlers):
-    """Convert a UFLObject according to rules defined by
+    """Convert a UFLExpression according to rules defined by
     the mapping handlers = dict: class -> conversion function."""
     if isinstance(expression, Terminal):
         ops = ()
     else:
         ops = [transform(o, handlers) for o in expression.operands()]
     c = expression._uflid
-    if c in handlers:
-        h = handlers[c]
-    else:
+    h = handlers.get(c, None)
+    if c is None:
         ufl_error("Didn't find class %s among handlers." % c)
     return h(expression, *ops)
 
@@ -177,13 +176,11 @@ def replace_in_form(form, substitution_map):
         return replace(expression, substitution_map)
     return transform_integrands(form, replace_expression)
 
-def expand_compounds(expression, dim):
-    """Convert an UFL expression to a new UFL expression, with all 
-    compound operator objects converted to basic (indexed) expressions."""
+def expand_compounds_handlers(dim, variables):
     # Note:
     # To avoid typing errors, the expressions for cofactor and deviatoric parts 
     # below were created with the script tensoralgebrastrings.py under ufl/scripts/
-
+    
     d = ufl_reuse_handlers()
     
     def e_grad(x, f):
@@ -311,5 +308,25 @@ def expand_compounds(expression, dim):
         i, j = indices(2)
         return as_matrix( (A[i,j] - A[j,i]) / 2, (i,j) )
     d[Skew] = e_skew
-     
-    return transform(expression, d)
+    
+    def e_variable(x):
+        return variables[x._count]
+    d[Variable] = e_variable
+
+    return d
+
+def expand_compounds(expression, dim):
+    """Convert an UFL expression to a new UFL expression, with all 
+    compound operator objects converted to basic (indexed) expressions."""
+    
+    variables = {}
+    handlers = expand_compounds_handlers(dim, variables)
+    
+    vars = extract_variables(expression)
+    for v in vars:
+        ufl_assert(v._count not in variables, "Expecting a unique sequence of variables from extract_variables.")
+        e = transform(v._expression, handlers)
+        v2 = Variable(e, v._count)
+        variables[v._count] = v2
+    
+    return transform(expression, handlers)

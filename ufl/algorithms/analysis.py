@@ -182,7 +182,6 @@ def extract_monomials(expression, indent=""):
 
     return m
 
-
 def transform(expression, handlers):
     """Convert a UFLExpression according to rules defined by
     the mapping handlers = dict: class -> conversion function."""
@@ -191,9 +190,8 @@ def transform(expression, handlers):
     else:
         ops = [transform(o, handlers) for o in expression.operands()]
     c = expression._uflid
-    if c in handlers:
-        h = handlers[c]
-    else:
+    h = handlers.get(c, None)
+    if c is None:
         ufl_error("Didn't find class %s among handlers." % c)
     return h(expression, *ops)
 

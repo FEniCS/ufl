@@ -108,7 +108,10 @@ def _mark_duplications(expression, handlers, variables, dups):
 
 def mark_duplications(expression):
     "Wrap all duplicated expressions as Variables."
-    dups = extract_duplications(expression)
+    dups = extract_duplications(expression) # FIXME: Maybe avoid iteration into variables in extract_duplications and handle variables explicitly in here?
     variables = {}
+    vars = extract_variables(expression)
+    for v in vars:
+        variables[v._expression] = v
     d = ufl_reuse_handlers()
     return _mark_duplications(expression, d, variables, dups)
