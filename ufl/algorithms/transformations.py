@@ -34,7 +34,7 @@ from ..integral import Integral
 from ..classes import ufl_classes, terminal_classes, nonterminal_classes
 
 # Other algorithms:
-from .analysis import extract_basisfunctions, extract_coefficients
+from .analysis import extract_basisfunctions, extract_coefficients, extract_variables
 
 def transform_integrands(a, transformation):
     """Transform all integrands in a form with a transformation function.
@@ -104,7 +104,7 @@ def ufl_copy_handlers():
         return x
     for c in terminal_classes:
         d[c] = this
-    # Non-terminal objects are reused if all their children are untouched
+    # Non-terminal objects are always copied
     def reconstruct(x, *ops):
         return type(x)(*ops)
     for c in nonterminal_classes:
@@ -120,7 +120,9 @@ def ufl2ufl(expression):
 
 def ufl2uflcopy(expression):
     """Convert an UFL expression to a new UFL expression, with no changes.
-    This is used for testing that objects in the expression behave as expected."""
+    All nonterminal object instances are replaced with identical copies.
+    This is used for testing that objects in the expression behave as expected.
+    Doesn't touch Variables in current implementation."""
     ufl_assert(isinstance(expression, UFLObject), "Expecting UFLObject.")
     handlers = ufl_copy_handlers()
     return transform(expression, handlers)
@@ -176,7 +178,7 @@ def replace_in_form(form, substitution_map):
         return replace(expression, substitution_map)
     return transform_integrands(form, replace_expression)
 
-def expand_compounds_handlers(dim, variables):
+def expand_compounds_handlers(dim):
     # Note:
     # To avoid typing errors, the expressions for cofactor and deviatoric parts 
     # below were created with the script tensoralgebrastrings.py under ufl/scripts/
@@ -308,10 +310,6 @@ def expand_compounds_handlers(dim, variables):
         i, j = indices(2)
         return as_matrix( (A[i,j] - A[j,i]) / 2, (i,j) )
     d[Skew] = e_skew
-    
-    def e_variable(x):
-        return variables[x._count]
-    d[Variable] = e_variable
 
     return d
 
@@ -319,14 +317,16 @@ def expand_compounds(expression, dim):
     """Convert an UFL expression to a new UFL expression, with all 
     compound operator objects converted to basic (indexed) expressions."""
     
+    handlers = expand_compounds_handlers(dim)
     variables = {}
-    handlers = expand_compounds_handlers(dim, variables)
     
-    vars = extract_variables(expression)
-    for v in vars:
-        ufl_assert(v._count not in variables, "Expecting a unique sequence of variables from extract_variables.")
-        e = transform(v._expression, handlers)
-        v2 = Variable(e, v._count)
-        variables[v._count] = v2
+    def e_variable(x):
+        e = variables.get(x._count, None)
+        if e is None:
+            e = transform(x._expression, handlers)
+            e = Variable(e, x._count)
+            variables[x._count] = e
+        return e
+    handlers[Variable] = e_variable
     
     return transform(expression, handlers)

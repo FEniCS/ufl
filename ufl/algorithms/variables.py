@@ -42,7 +42,8 @@ def extract_variables(expression, handled_vars=None):
         if i in handled_vars:
             return []
         handled_vars.add(i)
-        vars = extract_variables(expression._expression, handled_vars)
+        vars = []
+        vars.extend(extract_variables(expression._expression, handled_vars))
         vars.append(expression)
     else:
         vars = []
