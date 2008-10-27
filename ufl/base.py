@@ -82,14 +82,22 @@ class UFLObject(object):
     
     def __hash__(self):
         "Compute a hash code for this expression."
-        return hash((type(self), tuple(type(o) for o in self.operands())))
+        def typetuple(e):
+            return tuple(type(o) for o in e.operands())
+        tt = tuple((type(o), typetuple(o)) for o in self.operands())
+        return hash((type(self), tt))
         #return hash(repr(self))
     
     def __eq__(self, other):
         """Checks whether the two expressions are represented the
         exact same way using repr. This does not check if the forms
         are mathematically equal or equivalent!"""
-        return repr(self) == repr(other)
+        if type(self) != type(other):
+            return False
+        if id(self) == other:
+            return True
+        return self.operands() == other.operands()
+        #return repr(self) == repr(other)
 
     def __getnewargs__(self): # TODO: Test pickle and copy with this. Must implement differently for Terminal objects though.
         "Used for pickle and copy operations."
@@ -113,6 +121,16 @@ class Terminal(UFLObject):
     def operands(self):
         "A Terminal object never has operands."
         return ()
+    
+    def __eq__(self, other):
+        """Checks whether the two expressions are represented the
+        exact same way using repr. This does not check if the forms
+        are mathematically equal or equivalent!"""
+        if type(self) != type(other):
+            return False
+        if id(self) == other:
+            return True
+        return repr(self) == repr(other)
 
 #--- Zero tensors of different shapes ---
 

@@ -79,19 +79,19 @@ def compile_integral(integrand, formdata):
     tic("mark_duplications")
     integrand = mark_duplications(integrand)
     toc()
-    dump_integrand_state("b - mark_duplications", integrand)
+    #dump_integrand_state("b - mark_duplications", integrand)
     
     # Expand grad, div, inner etc to index notation
     tic("expand_compounds")
     integrand = expand_compounds(integrand, formdata.geometric_dimension)
     toc()
-    dump_integrand_state("c - expand_compounds", integrand)
+    #dump_integrand_state("c - expand_compounds", integrand)
     
     # Try to pick up duplications on the index notation level
     tic("mark_duplications")
     integrand = mark_duplications(integrand)
     toc()
-    dump_integrand_state("d - mark_duplications", integrand)
+    #dump_integrand_state("d - mark_duplications", integrand)
     
     # FIXME: Apply AD stuff for Diff and propagation of SpatialDerivative to Terminal nodes
     #tic("mark_duplications")
@@ -104,7 +104,8 @@ def compile_integral(integrand, formdata):
     #integrand = mark_duplications(integrand)
     #toc()
     #dump_integrand_state("f - mark_duplications", integrand)
-    
+    import sys
+    sys.exit(0)
     # Define toy input to split_by_dependencies
     basisfunction_deps = []
     fs = (False,)*formdata.num_coefficients

@@ -101,6 +101,9 @@ class Variable(Terminal, Counted):
     def shape(self):
         return self._expression.shape()
     
+    def __eq__(self, other):
+        return isinstance(other, Variable) and self._count == other._count
+        
     def __str__(self):
         return "Variable(%s, %d)" % (self._expression, self._count)
     
