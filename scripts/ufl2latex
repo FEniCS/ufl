@@ -35,15 +35,30 @@ for k,v in forms:
 if found_errors:
     sys.exit(-1)
 
+# Define template for overall document
+latex = r"""
+\documentclass{article}
+\usepackage{amsmath}
+\begin{document}
+\section{UFL Forms from file %(filename)s}
+"""
+
 # Generate latex code for each form
-latex = ""
 for name, form in forms:
     l = ufl2latex(form)
-    latex += "%s:\n" % name
-    latex += "\[\n%s\n\]" % l
-    latex += "\n"
+    latex += r"\subsection{Form %s}\n" % name
+    latex += r"\[\n%s\n\]\n" % l
     if enable_browser:
         webbrowser.open("http://www.texify.com/$%s$" % l.replace(" ",""))
 
-print latex
+latex += r"""
+\end{document}
+"""
+
+if latexfile:
+    f = open(latexfile, "w")
+    f.write(latex)
+    f.close()
+else:
+    print latex
 
