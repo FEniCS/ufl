@@ -4,7 +4,7 @@ from __future__ import absolute_import
 from ufl.indexing import DefaultDim
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2008-10-24"
+__date__ = "2008-05-20 -- 2008-10-27"
 
 # Modified by Anders Logg, 2008
 
@@ -17,7 +17,7 @@ from .indexing import extract_indices, compare_shapes
 #--- Algebraic operators ---
 
 class Sum(UFLObject):
-    __slots__ = ("_operands",)
+    __slots__ = ("_operands", "_repr")
     
     def __init__(self, *operands):
         ufl_assert(len(operands), "Got sum of nothing.")
@@ -28,6 +28,8 @@ class Sum(UFLObject):
         ufl_assert(all(operands[0].free_indices() == o.free_indices() for o in operands),
             "Can't add expressions with different free indices.")
         self._operands = tuple(operands)
+
+        self._repr = "(%s)" % " + ".join(repr(o) for o in self._operands)
     
     def operands(self):
         return self._operands
@@ -42,11 +44,11 @@ class Sum(UFLObject):
         return "(%s)" % " + ".join(str(o) for o in self._operands)
     
     def __repr__(self):
-        return "(%s)" % " + ".join(repr(o) for o in self._operands)
+        return self._repr
 
 class Product(UFLObject):
     """The product of two or more UFL objects."""
-    __slots__ = ("_operands", "_free_indices", "_repeated_indices", "_shape")
+    __slots__ = ("_operands", "_free_indices", "_repeated_indices", "_shape", "_repr")
     def __init__(self, *operands):
         # Products currently defined as valid are:
         # - something multiplied with a scalar
@@ -77,6 +79,8 @@ class Product(UFLObject):
         all_indices = tuple(chain(*(o.free_indices() for o in operands)))
         (self._free_indices, self._repeated_indices, dummy) = \
             extract_indices(all_indices)
+            
+        self._repr = "(%s)" % " * ".join(repr(o) for o in self._operands)
     
     def operands(self):
         return self._operands
@@ -100,7 +104,7 @@ class Product(UFLObject):
         return "(%s)" % " * ".join(str(o) for o in self._operands)
     
     def __repr__(self):
-        return "(%s)" % " * ".join(repr(o) for o in self._operands)
+        return self._repr
 
 class Division(UFLObject):
     __slots__ = ("_a", "_b")

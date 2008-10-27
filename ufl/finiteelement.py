@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-03 -- 2008-09-19"
+__date__ = "2008-03-03 -- 2008-10-27"
 
 from .output import ufl_assert
 from .permutation import compute_indices
@@ -25,6 +25,7 @@ class Cell(object):
 
 class FiniteElementBase(object):
     "Base class for all finite elements"
+    __slots__ = ("_family", "_domain", "_degree", "_value_shape", "_repr")
 
     def __init__(self, family, domain, degree, value_shape):
         "Initialize basic finite element data"
@@ -73,7 +74,6 @@ class FiniteElementBase(object):
 
 class FiniteElement(FiniteElementBase):
     "The basic finite element class for all simple finite elements"
-
     def __init__(self, family, domain, degree):
         "Create finite element"
 
@@ -93,16 +93,20 @@ class FiniteElement(FiniteElementBase):
         # Initialize element data
         FiniteElementBase.__init__(self, family, domain, degree, value_shape)
 
+        # Cache repr string
+        self._repr = "FiniteElement(%r, %r, %d)" % (self.family(), self.domain(), self.degree())
+
     def __repr__(self):
-        "Return string representation"
-        return "FiniteElement(%r, %r, %d)" % (self.family(), self.domain(), self.degree())
+        "Format as string for evaluation as Python object."
+        return self._repr
 
     def __str__(self):
-        "Pretty printing"
+        "Format as string for pretty printing."
         return "[%s finite element of degree %d on a %s]" % (self.family(), self.degree(), self.domain())
 
 class MixedElement(FiniteElementBase):
     "A finite element composed of a nested hierarchy of mixed or simple elements"
+    __slots__ = ("_sub_elements",)
 
     def __init__(self, *elements, **kwargs):
         "Create mixed finite element from given list of elements"
@@ -127,6 +131,9 @@ class MixedElement(FiniteElementBase):
         # Initialize element data
         FiniteElementBase.__init__(self, "Mixed", domain, None, value_shape)
 
+        # Cache repr string
+        self._repr = "MixedElement(*%r, **{'value_shape': %r })" % (self._sub_elements, self._value_shape)
+
     def sub_elements(self):
         "Return list of sub elements"
         return self._sub_elements
@@ -141,11 +148,11 @@ class MixedElement(FiniteElementBase):
         return self._sub_elements[i[0]].extract_component(i[1:])
 
     def __repr__(self):
-        "Return string representation"
-        return "MixedElement(*%r, **{'value_shape': %r })" % (self._sub_elements, self._value_shape)
+        "Format as string for evaluation as Python object."
+        return self._repr
 
     def __str__(self):
-        "Pretty printing"
+        "Format as string for pretty printing."
         return "[Mixed element: (" + ", ".join(str(element) for element in self._sub_elements) + ")" + "]"
 
 class VectorElement(MixedElement):
@@ -173,20 +180,24 @@ class VectorElement(MixedElement):
         self._family = family
         self._degree = degree
         self._sub_element = sub_element
-
-    def __repr__(self):
-        "Return string representation"
-        return "VectorElement(%r, %r, %d, %s)" % \
+        
+        self._repr = "VectorElement(%r, %r, %d, %d)" % \
                (self._family, self._domain, self._degree, len(self._sub_elements))
 
+    def __repr__(self):
+        "Format as string for evaluation as Python object."
+        return self._repr
+
     def __str__(self):
-        "Pretty printing"
+        "Format as string for pretty printing."
         return "[%s vector element of degree %d on a %s: %d x %s]" % \
                (self.family(), self.degree(), self.domain(), len(self._sub_elements), self._sub_element)
 
 class TensorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal"
-    
+    #__slots__ = ("_family", "_domain", "_degree", "_value_shape")
+    __slots__ = ("_sub_element", "_shape", "_symmetry", "_sub_element_mapping",)
+
     def __init__(self, family, domain, degree, shape=None, symmetry=None):
         "Create tensor element (repeated mixed element with optional symmetries)"
         
@@ -235,6 +246,10 @@ class TensorElement(MixedElement):
         self._symmetry = symmetry
         self._sub_element_mapping = sub_element_mapping
 
+        # Cache repr string
+        self._repr = "TensorElement(%r, %r, %r, %r, %r)" % \
+            (self._family, self._domain, self._degree, self._shape, self._symmetry)
+
     def extract_component(self, i):
         "Extract base component index and (simple) element for given component index"
         if isinstance(i, int):
@@ -248,14 +263,10 @@ class TensorElement(MixedElement):
         return subelement.extract_component(jj)
 
     def __repr__(self):
-        return "TensorElement(%r, %r, %r, %r, %r)" % \
-            (self._family, self._domain, self._degree, self._shape, self._symmetry)
+        "Format as string for evaluation as Python object."
+        return self._repr
 
     def __str__(self):
-        "Pretty printing"
-        print self.family()
-        print self.degree()
-        print self.value_shape()
-        print self.domain()
+        "Format as string for pretty printing."
         return "[%s tensor element of degree %d and shape %s on a %s]" % \
             (self.family(), self.degree(), self.value_shape(), self.domain())
