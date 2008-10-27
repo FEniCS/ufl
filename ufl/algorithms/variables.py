@@ -9,11 +9,14 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-05-07 -- 2008-10-27"
 
 from ..output import ufl_assert, ufl_error, ufl_warning
+from ..common import UFLTypeDict
 
 # Classes:
 from ..base import UFLObject, FloatValue, ZeroType 
 from ..indexing import MultiIndex
 from ..variable import Variable
+from ..classes import FacetNormal, Identity
+from ..classes import ufl_classes
 
 # Other algorithms:
 from .traversal import post_traversal
@@ -65,15 +68,6 @@ def _mark_duplications(expression, handlers, variables, dups):
     """Wrap subexpressions that are equal (completely equal, not mathematically equivalent)
     in Variable objects to facilitate subexpression reuse."""
     
-    # TODO: Indices will often mess this up.
-    # Can we renumber indices consistently from the leaves to avoid that problem?
-    # This may introduce many ComponentTensor/Indexed objects for relabeling of indices though.
-    # Probably need some kind of pattern matching to make this effective.
-    # 
-    # What this does do well is insert Variables around subexpressions that the
-    # user actually identified manually in his code like in "a = ...; b = a*(1+a)",
-    # and expressions without indices (prior to expand_compounds).
-    
     # check variable cache
     var = variables.get(expression, None)
     if var is not None:
@@ -108,10 +102,71 @@ def _mark_duplications(expression, handlers, variables, dups):
 
 def mark_duplications(expression):
     "Wrap all duplicated expressions as Variables."
-    dups = extract_duplications(expression) # FIXME: Maybe avoid iteration into variables in extract_duplications and handle variables explicitly in here?
+    # FIXME: Maybe avoid iteration into variables in extract_duplications and handle variables explicitly in here?
+    
+    # Find all trivially duplicated expressions
+    duplications = extract_duplications(expression)
+    
+    # Mapping: expression -> Variable
     variables = {}
-    vars = extract_variables(expression)
-    for v in vars:
-        variables[v._expression] = v
-    d = ufl_reuse_handlers()
-    return _mark_duplications(expression, d, variables, dups)
+    
+    handlers = UFLTypeDict()
+    
+    # Default transformation handler
+    def m_default(x, *ops):
+        v = variables.get(x, None)
+        if v is None:
+            # check if original is in duplications
+            in_duplications = (x in duplications)
+            # reconstruct if necessary
+            if ops != x.operands():
+                x = type(x)(*ops)
+                # check if reconstructed expression is in duplications (TODO: necessary?)
+                in_duplications |= (x in duplications)
+            
+            # wrap in variable if necessary, or return (possibly reconstructed) expression
+            if in_duplications:
+                v = Variable(x)
+                variables[v._expression] = v
+            else:
+                v = x
+        return v
+    for c in ufl_classes:
+        handlers[c] = m_default
+    
+    # always reuse some types
+    skip_classes = (MultiIndex, FloatValue, ZeroType, FacetNormal, Identity, )
+    def m_reuse(x):
+        return x
+    for c in skip_classes:
+        handlers[c] = m_reuse
+    
+    # recurse differently with variable
+    def m_variable(x):
+        e = x._expression
+        v = variables.get(e, None)
+        if v is None:
+            e = transform(e, handlers) # FIXME: Will return new variable...
+            #if x._expression is e:
+            v = Variable(e, x._count)
+            variables[e] = v
+        return v
+    handlers[Variable] = m_variable
+    
+    # Initialize variable dict with existing variables
+    #vars = extract_variables(expression)
+    #for v in vars:
+    #    variables[v._expression] = v
+    
+    return transform(expression, handlers)
+
+
+# TODO: Indices will often mess up extract_duplications / mark_duplications.
+# Can we renumber indices consistently from the leaves to avoid that problem?
+# This may introduce many ComponentTensor/Indexed objects for relabeling of indices though.
+# We probably need some kind of pattern matching to make this effective.
+# That's another step towards a complete symbolic library...
+# 
+# What this does do well is insert Variables around subexpressions that the
+# user actually identified manually in his code like in "a = ...; b = a*(1+a)",
+# and expressions without indices (prior to expand_compounds).
