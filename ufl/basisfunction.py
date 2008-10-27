@@ -41,7 +41,7 @@ class BasisFunction(Terminal, Counted):
         return self._repr
 
     def __eq__(self, other):
-        return isinstance(other, Function) and self._count == other._count
+        return isinstance(other, BasisFunction) and self._count == other._count
 
 def TestFunction(element):
     return BasisFunction(element, -2)
