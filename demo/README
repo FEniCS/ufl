@@ -1,4 +1,5 @@
-To run these tests from within the source tree without needing to install
-the UFL Python module, update your PYTHONPATH according to
+To run these demos from within the source tree without needing to
+install UFL system-wide, update your paths according to
 
-    export PYTHONPATH="../src:$PYTHONPATH"
+  export PATH="../scripts:$PATH"
+  export PYTHONPATH="..:$PYTHONPATH"
