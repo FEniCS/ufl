@@ -15,6 +15,12 @@ if "-w" in args:
     enable_browser = True
     args.remove("-w")
 
+latexfile = None
+if "-o" in args: # TODO: Use proper option parsing
+    i = args.index("-o")
+    latexfile = args[i+1]
+    args = args[:i] + args[i+2:]
+
 if len(args) != 1:
     print "Missing form file name."
     sys.exit(-1)
@@ -36,18 +42,20 @@ if found_errors:
     sys.exit(-1)
 
 # Define template for overall document
-latex = r"""
-\documentclass{article}
+latex = r"""\documentclass{article}
 \usepackage{amsmath}
+
 \begin{document}
-\section{UFL Forms from file %(filename)s}
-"""
+
+\section{UFL Forms from file %s}
+
+""" % filename
 
 # Generate latex code for each form
 for name, form in forms:
     l = ufl2latex(form)
-    latex += r"\subsection{Form %s}\n" % name
-    latex += r"\[\n%s\n\]\n" % l
+    latex += "\\subsection{Form %s}\n" % name
+    latex += "\\[\n%s\n\\]\n" % l
     if enable_browser:
         webbrowser.open("http://www.texify.com/$%s$" % l.replace(" ",""))
 
