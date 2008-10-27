@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-10-01 -- 2008-10-24"
+__date__ = "2008-10-01 -- 2008-10-27"
 
 from collections import defaultdict
 from itertools import izip, chain
