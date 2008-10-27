@@ -7,6 +7,8 @@ from __future__ import absolute_import
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-05-07 -- 2008-10-27"
 
+# Modified by Anders Logg, 2008.
+
 from itertools import chain
 from collections import defaultdict
 
@@ -41,7 +43,6 @@ from .formdata import FormData
 
 # General dict-based transformation utility
 from .transformations import transform
-
 
 def latex_handlers(basisfunction_renumbering, coefficient_renumbering):
     # Show a clear error message if we miss some types here:
@@ -149,7 +150,7 @@ def latex_handlers(basisfunction_renumbering, coefficient_renumbering):
     return d
 
 def element2latex(element):
-    return "{ %s }" % str(element)
+    return "{\mbox{%s}}" % str(element)
 
 def expression2latex(expression, basisfunction_renumbering, coefficient_renumbering):
     handlers = latex_handlers(basisfunction_renumbering, coefficient_renumbering)
@@ -160,21 +161,27 @@ def form2latex(form, formname="a", newline = " \\\\ \n"):
     formdata = FormData(form)
     
     latex = ""
-    
+
+    # Define elements
+    for i, f in enumerate(formdata.basisfunctions):
+        e = f.element()
+        latex += "\\mathcal{P}_{%d} = \{%s\} %s" % (i, element2latex(e), newline)
+    for i, f in enumerate(formdata.coefficients):
+        e = f.element()
+        latex += "\\mathcal{Q}_{%d} = \{%s\} %s" % (i, element2latex(e), newline)
+
     # Define function spaces
-    for i,f in enumerate(formdata.basisfunctions):
-        e = f.element()
-        latex += "V_{%d} = %s %s" % (i, element2latex(e), newline)
-    for i,f in enumerate(formdata.coefficients):
-        e = f.element()
-        latex += "W_{%d} = %s %s" % (i, element2latex(e), newline)
+    for i, f in enumerate(formdata.basisfunctions):
+        latex += "V_h^{%d} = \{v : v \\vert_K \in \\mathcal{P}_{%d}(K) \\quad \\forall K \in \\mathcal{T}\}%s" % (i, i, newline)
+    for i, f in enumerate(formdata.coefficients):
+        latex += "W_h^{%d} = \{v : v \\vert_K \in \\mathcal{Q}_{%d}(K) \\quad \\forall K \in \\mathcal{T}\}%s" % (i, i, newline)
     
     # Define basis functions and functions
     # TODO: Get names of arguments from form file
     for i,e in enumerate(formdata.basisfunctions):
-        latex += "v^{%d} \\in V_{%d} %s" % (i, i, newline)
+        latex += "v^{%d} \\in V_h^{%d} %s" % (i, i, newline)
     for i,f in enumerate(formdata.coefficients):
-        latex += "w^{%d} \\in W_{%d} %s" % (i, i, newline)
+        latex += "w^{%d} \\in W_h^{%d} %s" % (i, i, newline)
         
     # Define variables
     handled_variables = set()
