@@ -12,6 +12,24 @@ from ufl.classes import *
 from ufl.algorithms import *
 from ufl.algorithms.dependencies import DependencySet
 
+from time import time
+
+_tic_t = None
+_tic_msg = None
+
+def tic(msg):
+    global _tic_t, _tic_msg
+    if _tic_t is not None:
+        toc()
+    _tic_msg = msg
+    _tic_t = time()
+
+def toc():
+    global _tic_t, _tic_msg
+    t = time() - _tic_t
+    _tic_t = None
+    print "Time: %.4f s (%s)" % (t, _tic_msg)
+
 #---------------------------------------------------------
 
 def dump_integrand_state(name, integrand):
@@ -58,23 +76,33 @@ def compile_integral(integrand, formdata):
     dump_integrand_state("a - initial", integrand)
     
     # Try to pick up duplications on the most abstract level
+    tic("mark_duplications")
     integrand = mark_duplications(integrand)
+    toc()
     dump_integrand_state("b - mark_duplications", integrand)
     
     # Expand grad, div, inner etc to index notation
+    tic("expand_compounds")
     integrand = expand_compounds(integrand, formdata.geometric_dimension)
+    toc()
     dump_integrand_state("c - expand_compounds", integrand)
     
     # Try to pick up duplications on the index notation level
+    tic("mark_duplications")
     integrand = mark_duplications(integrand)
+    toc()
     dump_integrand_state("d - mark_duplications", integrand)
     
     # FIXME: Apply AD stuff for Diff and propagation of SpatialDerivative to Terminal nodes
+    #tic("mark_duplications")
     #integrand = FIXME(integrand)
+    #toc()
     #dump_integrand_state("e - FIXME", integrand)
 
     # Try to pick up duplications after propagating derivatives
+    #tic("mark_duplications")
     #integrand = mark_duplications(integrand)
+    #toc()
     #dump_integrand_state("f - mark_duplications", integrand)
     
     # Define toy input to split_by_dependencies
@@ -92,7 +120,9 @@ def compile_integral(integrand, formdata):
         d = DependencySet(bfs, fs)
         function_deps.append(d)
     
+    tic("split_by_dependencies")
     (vinfo, code) = split_by_dependencies(integrand, formdata, basisfunction_deps, function_deps)
+    toc()
     dump_codestructure("code", vinfo, code)
     
     print "------ Stacks:"

@@ -22,32 +22,32 @@ from .transformations import ufl_reuse_handlers, transform, transform_integrands
 
 
 def strip_variables(expression, handled_variables=None):
-    d = ufl_reuse_handlers()
     if handled_variables is None:
         handled_variables = {}
+    d = ufl_reuse_handlers()
     def s_variable(x):
-        if x._count in handled_variables:
-            return handled_variables[x._count]
+        v = handled_variables.get(x._count, None)
+        if v is not None: return v
         v = strip_variables(x._expression, handled_variables)
         handled_variables[x._count] = v
         return v
     d[Variable] = s_variable
     return transform(expression, d)
 
-def extract_variables(expression, handled_expressions=None):
-    if handled_expressions is None:
-        handled_expressions = set()
-    vars = []
-    i = id(expression)
-    if i in handled_expressions:
-        return vars
-    handled_expressions.add(i)
+def extract_variables(expression, handled_vars=None):
+    if handled_vars is None:
+        handled_vars = set()
     if isinstance(expression, Variable):
-        vars.extend(extract_variables(expression._expression, handled_expressions))
+        i = expression._count
+        if i in handled_vars:
+            return []
+        handled_vars.add(i)
+        vars = extract_variables(expression._expression, handled_vars)
         vars.append(expression)
     else:
+        vars = []
         for o in expression.operands():
-            vars.extend(extract_variables(o, handled_expressions))
+            vars.extend(extract_variables(o, handled_vars))
     return vars 
 
 def extract_duplications(expression):
