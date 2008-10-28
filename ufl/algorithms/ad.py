@@ -70,7 +70,7 @@ def diff_handlers():
         ufl_assert(len(ops) == 1, "Logic breach in diff_commute, len(ops) = %d." % len(ops))
         oprime = ops[0][1]
         return (x, type(x)(oprime))
-
+    
     def diff_variable(x, *ops):
         ufl_error("How to handle derivative of variable depends on context. You must supply a customized rule!")
     d[Variable] = diff_variable
@@ -119,7 +119,8 @@ def diff_handlers():
     def diff_division(x, *ops):
         f, fp = ops[0]
         g, gp = ops[1]
-        return (x, (fp*g-f*gp)/g**2)
+        return (x, (fp-f*gp/g)/g)
+        #return (x, (fp*g-f*gp)/g**2)
     d[Division] = diff_division
     
     def diff_power(x, *ops):

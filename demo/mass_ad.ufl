@@ -1,0 +1,16 @@
+#
+# Author: Martin Sandve Alnes
+# Date: 2008-10-28
+#
+
+element = FiniteElement("Lagrange", "triangle", 1)
+
+u = Function(element)
+
+# L2 norm
+f = u**2/2*dx
+# source vector
+b = derivative(f, u)
+# mass matrix
+a = derivative(b, u)
+

@@ -1,0 +1,16 @@
+#
+# Author: Martin Sandve Alnes
+# Date: 2008-10-28
+#
+
+element = FiniteElement("Lagrange", "triangle", 1)
+
+w = Function(element)
+
+# H1 semi-norm
+f = inner(grad(w), grad(w))/2*dx
+# "stiffness vector", what is this called?
+b = derivative(f, w)
+# stiffness matrix
+a = derivative(b, w)
+
