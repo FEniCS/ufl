@@ -176,47 +176,67 @@ def expression2latex(expression, basisfunction_renumbering, coefficient_renumber
 
 def form2latex(form, formname="a", newline = " \\\\ \n"):
     formdata = FormData(form)
+
+    ba = "\n\\begin{align}\n"
+    ea = "\n\\end{align}\n"
+
+    def make_align(lines):
+        if strings:
+            latex = ba
+            latex += newline.join(lines)
+            latex += ea
+            return latex
+        return ""
     
     latex = ""
 
     # Define elements
+    strings = []
     for i, f in enumerate(formdata.basisfunctions):
         e = f.element()
-        latex += "\\mathcal{P}_{%d} = \{%s\} %s" % (i, element2latex(e), newline)
+        strings.append("\\mathcal{P}_{%d} = \{%s\} " % (i, element2latex(e)))
     for i, f in enumerate(formdata.coefficients):
         e = f.element()
-        latex += "\\mathcal{Q}_{%d} = \{%s\} %s" % (i, element2latex(e), newline)
+        strings.append("\\mathcal{Q}_{%d} = \{%s\} " % (i, element2latex(e)))
+    latex += make_align(strings)
 
     # Define function spaces
+    strings = []
     for i, f in enumerate(formdata.basisfunctions):
-        latex += "V_h^{%d} = \{v : v \\vert_K \in \\mathcal{P}_{%d}(K) \\quad \\forall K \in \\mathcal{T}\}%s" % (i, i, newline)
+        strings.append("V_h^{%d} = \{v : v \\vert_K \in \\mathcal{P}_{%d}(K) \\quad \\forall K \in \\mathcal{T}\} " % (i, i))
     for i, f in enumerate(formdata.coefficients):
-        latex += "W_h^{%d} = \{v : v \\vert_K \in \\mathcal{Q}_{%d}(K) \\quad \\forall K \in \\mathcal{T}\}%s" % (i, i, newline)
+        strings.append("W_h^{%d} = \{v : v \\vert_K \in \\mathcal{Q}_{%d}(K) \\quad \\forall K \in \\mathcal{T}\} " % (i, i))
+    latex += make_align(strings)
     
     # Define basis functions and functions
     # TODO: Get names of arguments from form file
+    strings = []
     for i,e in enumerate(formdata.basisfunctions):
-        latex += "v^{%d} \\in V_h^{%d} %s" % (i, i, newline)
+        strings.append("v_h^{%d} \\in V_h^{%d} " % (i, i))
     for i,f in enumerate(formdata.coefficients):
-        latex += "w^{%d} \\in W_h^{%d} %s" % (i, i, newline)
-        
+        strings.append("w_h^{%d} \\in W_h^{%d} " % (i, i))
+    latex += make_align(strings)
+    
     # Define variables
     handled_variables = set()
     integrals = list(chain(form.cell_integrals(),
                            form.exterior_facet_integrals(),
                            form.interior_facet_integrals()))
+    strings = []
     for itg in integrals:
         vars = extract_variables(itg.integrand())
         for v in vars:
             if not v._count in handled_variables:
                 handled_variables.add(v._count)
                 exprlatex = expression2latex(v._expression, formdata.basisfunction_renumbering, formdata.coefficient_renumbering)
-                latex += "s_{%d} = %s %s" % (v._count, exprlatex, newline)
+                strings.append("s_{%d} &= %s " % (v._count, exprlatex))
+    latex += make_align(strings)
     
     # Join form arguments for "a(...) ="
-    b = ", ".join("v_{%d}" % i for (i,v) in enumerate(formdata.basisfunctions))
-    c = ", ".join("w_{%d}" % i for (i,w) in enumerate(formdata.coefficients))
+    b = ", ".join("v_h^{%d}" % i for (i,v) in enumerate(formdata.basisfunctions))
+    c = ", ".join("w_h^{%d}" % i for (i,w) in enumerate(formdata.coefficients))
     arguments = "; ".join((b, c))
+    latex += ba
     latex += "%s(%s) = " % (formname, arguments, )
 
     # Define integrals
@@ -231,7 +251,7 @@ def form2latex(form, formname="a", newline = " \\\\ \n"):
     integral_strings = []
     for itg in integrals:
         integrand_string = expression2latex(itg.integrand(), formdata.basisfunction_renumbering, formdata.coefficient_renumbering)
-        itglatex = "\\int_{%s_%d} \\left[ { %s } \\right] \,%s" % \
+        itglatex = "\\int_{%s_%d} & \\left[ { %s } \\right] \,%s" % \
                 (domain_strings[itg._domain_type],
                  itg._domain_id,
                  integrand_string,
@@ -239,7 +259,8 @@ def form2latex(form, formname="a", newline = " \\\\ \n"):
         integral_strings.append(itglatex)
 
     # Join integral strings, and we're done!
-    latex += (" %s + " % newline).join(integral_strings)
+    latex += (newline + " & {}+ ").join(integral_strings)
+    latex += ea
     return latex
 
 def ufl2latex(expression):
