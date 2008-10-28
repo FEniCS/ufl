@@ -5,7 +5,7 @@ converting UFL expressions to other representations."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-10-27"
+__date__ = "2008-05-07 -- 2008-10-28"
 
 # Modified by Anders Logg, 2008.
 
@@ -70,18 +70,20 @@ def latex_handlers(basisfunction_renumbering, coefficient_renumbering):
     d[Constant]      = lambda x: "{w^{%d}}" % coefficient_renumbering[x]
     d[Variable]      = lambda x: "s_{%d}" % x._count
     
-    def l_multiindex(x):
-        s = ""
-        for ix in x:
-            if isinstance(ix, FixedIndex):
-                s += "%d" % ix._value
-            elif isinstance(ix, Index):
-                s += "i_{%d}" % ix._count
-            elif isinstance(ix, AxisType):
-                s += ":" # TODO: How to express this in natural syntax?
-            else:
-                ufl_error("Unknown index type %s." % type(ix))
+    def l_index(ix):
+        if isinstance(ix, FixedIndex):
+            s = "%d" % ix._value
+        elif isinstance(ix, Index):
+            s = "i_{%d}" % ix._count
+        elif isinstance(ix, AxisType):
+            s = ":" # TODO: How to express this in natural syntax?
+        else:
+            ufl_error("Unknown index type %s." % type(ix))
         return s
+    #d[Index] = l_index # not UFLOjbect, used below as helper
+    
+    def l_multiindex(x):
+        return "".join(l_index(ix) for ix in x)
     d[MultiIndex] = l_multiindex
     
     # Non-terminal objects:
@@ -100,10 +102,25 @@ def latex_handlers(basisfunction_renumbering, coefficient_renumbering):
     d[Abs]       = lambda x, a: "|%s|" % a
     d[Transposed] = lambda x, a: "{%s}^T" % a
     d[Indexed]   = lambda x, a, b: "{%s}_{%s}" % (a, b)
-    d[SpatialDerivative] = lambda x, f, y: "\\frac{\\partial\\left[{%s}\\right]}{\\partial{%s}}" % (f, y)
+    
+    def l_spatial_diff(x, f, ii):
+        ii = x.operands()[1]
+        n = len(ii)
+        y = "".join("\partial{}x_{%s}" % l_index(i) for i in ii)
+        l = r"\left["
+        r = r"\right]"
+        d = "" if (n == 1) else (r"^%d" % n)
+        nom = r"\partial%s%s%s%s" % (l, f, r, d)
+        denom = r"%s" % y
+        return r"\frac{%s}{%s}" % (nom, denom)
+    d[SpatialDerivative] = l_spatial_diff
+    
     def l_diff(x, f, v):
-        return r"\frac{d\left[%s\right]}{d\left[%s\right]}" % (f, v)
+        nom = r"\partial\left[%s\right]" % f
+        denom = r"\partial\left[%s\right]" % v
+        return r"\frac{%s}{%s}" % (nom, denom)
     d[Diff] = l_diff
+    
     d[Grad] = lambda x, f: "\\nabla{%s}" % par(f)
     d[Div]  = lambda x, f: "\\nabla{\\cdot %s}" % par(f)
     d[Curl] = lambda x, f: "\\nabla{\\times %s}" % par(f)
