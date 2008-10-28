@@ -44,6 +44,9 @@ from .formdata import FormData
 # General dict-based transformation utility
 from .transformations import transform
 
+
+# TODO: Must rewrite LaTeX expression compiler to handle parent before child.
+
 def latex_handlers(basisfunction_renumbering, coefficient_renumbering):
     # Show a clear error message if we miss some types here:
     def not_implemented(x, *ops):
@@ -141,22 +144,40 @@ def latex_handlers(basisfunction_renumbering, coefficient_renumbering):
     d[Inverse]     = lambda x, A: "{%s}^{-1}" % par(A)
     d[Deviatoric]  = lambda x, A: "dev{%s}" % par(A)
     d[Cofactor]    = lambda x, A: "cofac{%s}" % par(A)
-    def l_listtensor(*ops):
-        return "\\left{FIXME: \\LaTeX handler for ListTensor not implemented!\\right}"
-        #return "\\matrix[%s]{%s}" % ("c"*len(ops), "".join("{%s}" % o for o in ops))
+    
+    def l_listtensor(x, *ops):
+        shape = x.shape()
+        if len(shape) == 1:
+            l = " \\\\ \n ".join(ops)
+        elif len(shape) == 2:
+            ufl_error("LaTeX handler for list matrix currently gives transposed output... Need to know parent!")
+            l = " & \n ".join(ops)            
+        else:
+            ufl_error("TODO: LaTeX handler for list tensor of rank 3 or higher not implemented!")
+        return "\\left[\\begin{matrix}{%s}\\end{matrix}\\right]^T" % l
     d[ListTensor]  = l_listtensor
-    def l_componenttensor(*ops):
+    
+    def l_componenttensor(x, *ops):
         return "\\left{FIXME: \\LaTeX handler for ComponentTensor not implemented!\\right}"
     d[ComponentTensor] = l_componenttensor
+    
     d[PositiveRestricted] = lambda x, f: "{%s}^+" % par(A)
     d[NegativeRestricted] = lambda x, f: "{%s}^-" % par(A)
+    
     d[EQ] = lambda a, b: "(%s = %s)" % (a, b)
     d[NE] = lambda a, b: "(%s \\ne %s)" % (a, b)
     d[LE] = lambda a, b: "(%s \\le %s)" % (a, b)
     d[GE] = lambda a, b: "(%s \\ge %s)" % (a, b)
     d[LT] = lambda a, b: "(%s < %s)" % (a, b)
     d[GT] = lambda a, b: "(%s > %s)" % (a, b)
-    d[Conditional] = lambda c, t, f: "\\left{ %s if %s otherwise %s \\right}" % (t, c, f) # FIXME
+    
+    def l_conditional(x, c, t, f):
+        l = "\\begin{cases}\n"
+        l += "%s, &\text{if }\quad %s, \\\\\n" % (t, c)
+        l += "%s, &\text{otherwise.}\n" % f
+        l += "\\end{cases}"
+        return l
+    d[Conditional] = l_conditional
     
     # Print warnings about classes we haven't implemented:
     missing_handlers = set(ufl_classes)
@@ -198,7 +219,9 @@ def form2latex(form, formname="a", newline = " \\\\ \n"):
     for i, f in enumerate(formdata.coefficients):
         e = f.element()
         strings.append("\\mathcal{Q}_{%d} = \{%s\} " % (i, element2latex(e)))
-    latex += make_align(strings)
+    if strings:
+        latex += "Finite elements:\n"
+        latex += make_align(strings)
 
     # Define function spaces
     strings = []
@@ -206,7 +229,9 @@ def form2latex(form, formname="a", newline = " \\\\ \n"):
         strings.append("V_h^{%d} = \{v : v \\vert_K \in \\mathcal{P}_{%d}(K) \\quad \\forall K \in \\mathcal{T}\} " % (i, i))
     for i, f in enumerate(formdata.coefficients):
         strings.append("W_h^{%d} = \{v : v \\vert_K \in \\mathcal{Q}_{%d}(K) \\quad \\forall K \in \\mathcal{T}\} " % (i, i))
-    latex += make_align(strings)
+    if strings:
+        latex += "Function spaces:\n"
+        latex += make_align(strings)
     
     # Define basis functions and functions
     # TODO: Get names of arguments from form file
@@ -215,7 +240,9 @@ def form2latex(form, formname="a", newline = " \\\\ \n"):
         strings.append("v_h^{%d} \\in V_h^{%d} " % (i, i))
     for i,f in enumerate(formdata.coefficients):
         strings.append("w_h^{%d} \\in W_h^{%d} " % (i, i))
-    latex += make_align(strings)
+    if strings:
+        latex += "Form arguments:\n"
+        latex += make_align(strings)
     
     # Define variables
     handled_variables = set()
@@ -230,12 +257,15 @@ def form2latex(form, formname="a", newline = " \\\\ \n"):
                 handled_variables.add(v._count)
                 exprlatex = expression2latex(v._expression, formdata.basisfunction_renumbering, formdata.coefficient_renumbering)
                 strings.append("s_{%d} &= %s " % (v._count, exprlatex))
-    latex += make_align(strings)
+    if strings:
+        latex += "Variables:\n"
+        latex += make_align(strings)
     
     # Join form arguments for "a(...) ="
     b = ", ".join("v_h^{%d}" % i for (i,v) in enumerate(formdata.basisfunctions))
     c = ", ".join("w_h^{%d}" % i for (i,w) in enumerate(formdata.coefficients))
     arguments = "; ".join((b, c))
+    latex += "Form:\n"
     latex += ba
     latex += "%s(%s) = " % (formname, arguments, )
 

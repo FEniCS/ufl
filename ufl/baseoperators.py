@@ -5,7 +5,7 @@ Sum and its superclass UFLObject."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-18 -- 2008-10-13"
+__date__ = "2008-08-18 -- 2008-10-28"
 
 # UFL imports
 from .output import ufl_error, ufl_assert
@@ -24,6 +24,8 @@ def _add(self, o):
     if not isinstance(o, UFLObject): return NotImplemented
     if is_zero(o): return self
     if is_zero(self): return o
+    if isinstance(self, FloatValue) and isinstance(o, FloatValue):
+        return FloatValue(self._value + o._value)
     return Sum(self, o)
 UFLObject.__add__ = _add
 
@@ -32,6 +34,8 @@ def _radd(self, o):
     if not isinstance(o, UFLObject): return NotImplemented
     if is_zero(o): return self
     if is_zero(self): return o
+    if isinstance(self, FloatValue) and isinstance(o, FloatValue):
+        return FloatValue(self._value + o._value)
     return Sum(o, self)
 UFLObject.__radd__ = _radd
 
@@ -40,6 +44,8 @@ def _sub(self, o):
     if not isinstance(o, UFLObject): return NotImplemented
     if is_zero(o): return self
     if is_zero(self): return -o
+    if isinstance(self, FloatValue) and isinstance(o, FloatValue):
+        return FloatValue(self._value - o._value)
     return self + (-o)
 UFLObject.__sub__ = _sub
 
@@ -48,6 +54,8 @@ def _rsub(self, o):
     if not isinstance(o, UFLObject): return NotImplemented
     if is_zero(self): return o
     if is_zero(o): return -self
+    if isinstance(self, FloatValue) and isinstance(o, FloatValue):
+        return FloatValue(o._value - self._value)
     return o + (-self)
 UFLObject.__rsub__ = _rsub
 
@@ -71,6 +79,8 @@ def _mult(a, b):
             return b
         if b == 1:
             return a
+        if isinstance(a, FloatValue) and isinstance(b, FloatValue):
+            return FloatValue(a._value * b._value)
         return Product(a, b)
 
 def _mul(self, o):
@@ -88,24 +98,36 @@ UFLObject.__rmul__ = _rmul
 def _div(self, o):
     if is_python_scalar(o): o = float_value(o)
     if not isinstance(o, UFLObject): return NotImplemented
+    if isinstance(self, FloatValue) and isinstance(o, FloatValue):
+        return FloatValue(self._value / o._value)
     return Division(self, o)
 UFLObject.__div__ = _div
 
 def _rdiv(self, o):
     if is_python_scalar(o): o = float_value(o)
     if not isinstance(o, UFLObject): return NotImplemented
+    if isinstance(self, FloatValue) and isinstance(o, FloatValue):
+        return FloatValue(o._value / self._value)
     return Division(o, self)
 UFLObject.__rdiv__ = _rdiv
 
 def _pow(self, o):
     if is_python_scalar(o): o = float_value(o)
     if not isinstance(o, UFLObject): return NotImplemented
+    if isinstance(self, FloatValue) and isinstance(o, FloatValue):
+        return FloatValue(self._value ** o._value)
+    if o == 0: return FloatValue(1)
+    if o == 1: return self
     return Power(self, o)
 UFLObject.__pow__ = _pow
 
 def _rpow(self, o):
     if is_python_scalar(o): o = float_value(o)
     if not isinstance(o, UFLObject): return NotImplemented
+    if isinstance(self, FloatValue) and isinstance(o, FloatValue):
+        return FloatValue(o._value ** self._value)
+    if self == 0: return FloatValue(1)
+    if self == 1: return o
     return Power(o, self)
 UFLObject.__rpow__ = _rpow
 
@@ -116,6 +138,8 @@ def _neg(self):
 UFLObject.__neg__ = _neg
 
 def _abs(self):
+    if isinstance(self, FloatValue):
+        return FloatValue(abs(self._value))
     return Abs(self)
 UFLObject.__abs__ = _abs
 
@@ -152,4 +176,3 @@ def _dx(self, *i):
     """Return the partial derivative with respect to spatial variable number i"""
     return SpatialDerivative(self, i)
 UFLObject.dx = _dx
-

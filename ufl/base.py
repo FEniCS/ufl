@@ -4,12 +4,18 @@ types involved with built-in operators on any UFL object."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-27"
+__date__ = "2008-03-14 -- 2008-10-28"
 
 # Modified by Anders Logg, 2008
 
 # UFL imports
 from .output import ufl_assert
+
+try:
+    import numpy
+    float_type = numpy.float96
+except:
+    float_type = float
 
 #--- The base object for all UFL expression tree nodes ---
 
@@ -175,7 +181,7 @@ class FloatValue(Terminal):
     __slots__ = ("_value",)
     
     def __init__(self, value):
-        self._value = value
+        self._value = float_type(value)
     
     def free_indices(self):
         return ()

@@ -134,14 +134,14 @@ def mark_duplications(expression):
     for c in ufl_classes:
         handlers[c] = m_default
     
-    # always reuse some types
-    skip_classes = (MultiIndex, FloatValue, ZeroType, FacetNormal, Identity, )
+    # Always reuse some constant types
     def m_reuse(x):
         return x
+    skip_classes = (MultiIndex, FloatValue, ZeroType, Identity, )
     for c in skip_classes:
         handlers[c] = m_reuse
     
-    # recurse differently with variable
+    # Recurse differently with variable
     def m_variable(x):
         e = x._expression
         v = variables.get(e, None)
