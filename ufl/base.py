@@ -1,4 +1,4 @@
-"""This module defines the UFLObject base class and all expression
+"""This module defines the Expr base class and all expression
 types involved with built-in operators on any UFL object."""
 
 from __future__ import absolute_import
@@ -19,7 +19,7 @@ except:
 
 #--- The base object for all UFL expression tree nodes ---
 
-class UFLObject(object):
+class Expr(object):
     "Base class for all UFL objects."
     # Freeze member variables (there are none) for objects of this class
     __slots__ = ()
@@ -115,12 +115,12 @@ class UFLObject(object):
 
 #--- A note about other operators ---
 
-# More operators (special functions) on UFLObjects are defined in baseoperators.py,
+# More operators (special functions) on Exprs are defined in baseoperators.py,
 # as well as the transpose "A.T" and spatial derivative "a.dx(i)".
 
 #--- Base class for terminal objects ---
 
-class Terminal(UFLObject):
+class Terminal(Expr):
     "A terminal node in the UFL expression tree."
     __slots__ = ()
     
@@ -215,7 +215,7 @@ def is_python_scalar(o):
 
 def is_scalar(o):
     "Return True iff expression is scalar-valued, possibly containing free indices."
-    ufl_assert(isinstance(o, UFLObject), "Assuming an UFLObject.")
+    ufl_assert(isinstance(o, Expr), "Assuming an Expr.")
     return o.shape() == ()
 
 def is_true_scalar(o):
@@ -223,9 +223,9 @@ def is_true_scalar(o):
     return is_scalar(o) and len(o.free_indices()) == 0
 
 def as_ufl(o):
-    "Returns o if it is an UFLObject or an UFLObject wrapper if o is a scalar."  
+    "Returns o if it is an Expr or an Expr wrapper if o is a scalar."  
     if is_python_scalar(o):
         return float_value(o)
-    ufl_assert(isinstance(o, UFLObject), "Expecting Python scalar or UFLObject instance.")
+    ufl_assert(isinstance(o, Expr), "Expecting Python scalar or Expr instance.")
     return o
     

@@ -6,13 +6,13 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-08-20 -- 2008-09-17"
 
 from .output import ufl_assert, ufl_warning
-from .base import UFLObject, as_ufl
+from .base import Expr, as_ufl
 from .indexing import compare_shapes
 
 
 #--- Condition classes --- 
 
-class Condition(UFLObject):
+class Condition(Expr):
     def __init__(self, name, left, right):
         self._name = name
         self._left = as_ufl(left)
@@ -82,7 +82,7 @@ class GT(Condition):
 
 #--- Conditional expression (condition ? true_value : false_value) ---
 
-class Conditional(UFLObject):
+class Conditional(Expr):
     def __init__(self, condition, true_value, false_value):
         ufl_assert(isinstance(condition, Condition), "Expectiong condition as first argument.")
         true_value = as_ufl(true_value)

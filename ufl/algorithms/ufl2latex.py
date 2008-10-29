@@ -34,7 +34,7 @@ from ..conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ..form import Form
 from ..integral import Integral
 
-# Lists of all UFLObject classes
+# Lists of all Expr classes
 from ..classes import ufl_classes, terminal_classes, nonterminal_classes
 
 # Other algorithms:

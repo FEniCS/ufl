@@ -9,7 +9,7 @@ from ..output import ufl_assert, ufl_error, ufl_warning
 from ..common import product, unzip, UFLTypeDefaultDict
 
 # All classes:
-from ..base import UFLObject, Terminal, FloatValue
+from ..base import Expr, Terminal, FloatValue
 from ..base import ZeroType, is_zero, zero, zero_tensor # Experimental!
 from ..variable import Variable
 from ..finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
@@ -25,7 +25,7 @@ from ..restriction import Restricted, PositiveRestricted, NegativeRestricted
 from ..differentiation import SpatialDerivative, Diff, Grad, Div, Curl, Rot
 from ..conditional import EQ, NE, LE, GE, LT, GT, Conditional
 
-# Lists of all UFLObject classes
+# Lists of all Expr classes
 #from ..classes import ufl_classes, terminal_classes, nonterminal_classes
 from ..classes import terminal_classes
 from ..operators import dot, inner, outer, lt, eq, conditional

@@ -11,12 +11,12 @@ __date__ = "2008-05-20 -- 2008-10-27"
 from itertools import chain
 
 from .output import ufl_assert, ufl_error
-from .base import UFLObject, float_value, FloatValue, is_true_scalar, is_python_scalar, as_ufl
+from .base import Expr, float_value, FloatValue, is_true_scalar, is_python_scalar, as_ufl
 from .indexing import extract_indices, compare_shapes
 
 #--- Algebraic operators ---
 
-class Sum(UFLObject):
+class Sum(Expr):
     __slots__ = ("_operands", "_repr")
     
     def __init__(self, *operands):
@@ -46,7 +46,7 @@ class Sum(UFLObject):
     def __repr__(self):
         return self._repr
 
-class Product(UFLObject):
+class Product(Expr):
     """The product of two or more UFL objects."""
     __slots__ = ("_operands", "_free_indices", "_repeated_indices", "_shape", "_repr")
     def __init__(self, *operands):
@@ -106,7 +106,7 @@ class Product(UFLObject):
     def __repr__(self):
         return self._repr
 
-class Division(UFLObject):
+class Division(Expr):
     __slots__ = ("_a", "_b")
     
     def __init__(self, a, b):
@@ -132,7 +132,7 @@ class Division(UFLObject):
     def __repr__(self):
         return "(%r / %r)" % (self._a, self._b)
 
-class Power(UFLObject):
+class Power(Expr):
     __slots__ = ("_a", "_b")
     
     def __init__(self, a, b):
@@ -159,7 +159,7 @@ class Power(UFLObject):
     def __repr__(self):
         return "(%r ** %r)" % (self._a, self._b)
 
-class Abs(UFLObject):
+class Abs(Expr):
     __slots__ = ("_a",)
     
     def __init__(self, a):

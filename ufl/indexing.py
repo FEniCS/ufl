@@ -10,7 +10,7 @@ from collections import defaultdict
 
 # UFL imports
 from .output import ufl_assert, ufl_warning, ufl_error
-from .base import UFLObject, Terminal
+from .base import Expr, Terminal
 from .common import Counted
 
 #--- Indexing ---
@@ -120,7 +120,7 @@ class MultiIndex(Terminal):
             self._rank == other._rank
 
 
-class Indexed(UFLObject):
+class Indexed(Expr):
     __slots__ = ("_expression", "_indices",
                  "_free_indices", "_shape",
                  "_repeated_indices",)

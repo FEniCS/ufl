@@ -8,11 +8,11 @@ __date__ = "2008-03-14 -- 2008-09-06"
 # Modified by Anders Logg, 2008
 
 from .output import ufl_assert
-from .base import UFLObject, float_value, is_true_scalar, is_python_scalar
+from .base import Expr, float_value, is_true_scalar, is_python_scalar
 
 #--- Function representations ---
 
-class MathFunction(UFLObject):
+class MathFunction(Expr):
     "Base class for all math functions"
     # Freeze member variables for objects in this class
     __slots__ = ("_name", "_argument")

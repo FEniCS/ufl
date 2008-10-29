@@ -39,7 +39,7 @@ def dump_integrand_state(name, integrand):
     write_file("str", str(integrand))
     write_file("latex", ufl2latex(integrand))
     write_file("tree", tree_format(integrand))
-    #pickle.dump(integrand, open("integrand.pickle", "w")) # Must define __getstate__ to pickle UFLObject!
+    #pickle.dump(integrand, open("integrand.pickle", "w")) # Must define __getstate__ to pickle Expr!
     os.chdir("..")
 
 def dump_codestructure(name, vinfo, code):

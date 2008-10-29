@@ -50,7 +50,7 @@ from .output import get_handler, get_logger, set_handler, UFLException
 #from .output import ufl_debug, ufl_info, ufl_warning, ufl_error, ufl_assert
 
 # base system (expression base classes)
-#from .base import UFLObject, Terminal, Compound
+#from .base import Expr, Terminal, Compound
 #from .base import FloatValue, ZeroType, zero_tensor
 #from .base import is_python_scalar, is_scalar, is_true_scalar
 

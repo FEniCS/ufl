@@ -7,11 +7,11 @@ __date__ = "2008-03-31 -- 2008-10-27"
 
 
 from .output import ufl_assert, ufl_warning
-from .base import UFLObject, as_ufl
+from .base import Expr, as_ufl
 from .indexing import Index, MultiIndex, DefaultDim
 
 
-class ListTensor(UFLObject):
+class ListTensor(Expr):
     __slots__ = ("_expressions", "_free_indices", "_shape")
     
     def __init__(self, *expressions):
@@ -20,7 +20,7 @@ class ListTensor(UFLObject):
         
         if not all(isinstance(e, ListTensor) for e in expressions):
             expressions = [as_ufl(e) for e in expressions]
-            ufl_assert(all(isinstance(e, UFLObject) for e in expressions), \
+            ufl_assert(all(isinstance(e, Expr) for e in expressions), \
                 "Expecting list of subtensors or expressions.")
         
         self._expressions = tuple(expressions)
@@ -60,11 +60,11 @@ class ListTensor(UFLObject):
         return "ListTensor(%s)" % ", ".join(repr(e) for e in self._expressions)
 
 
-class ComponentTensor(UFLObject):
+class ComponentTensor(Expr):
     __slots__ = ("_expression", "_indices", "_free_indices", "_shape")
     
     def __init__(self, expression, indices):
-        ufl_assert(isinstance(expression, UFLObject), "Expecting ufl expression.")
+        ufl_assert(isinstance(expression, Expr), "Expecting ufl expression.")
         ufl_assert(expression.shape() == (), "Expecting scalar valued expression.")
         self._expression = expression
         
@@ -106,7 +106,7 @@ class ComponentTensor(UFLObject):
 def as_tensor(expressions, indices = None):
     if indices is None:
         ufl_assert(isinstance(expressions, (list, tuple)),
-            "Expecting nested list or tuple of UFLObjects.")
+            "Expecting nested list or tuple of Exprs.")
         return ListTensor(*expressions)
     ufl_assert(all(isinstance(ii, Index) for ii in indices),
                "Expecting sequence of Index objects.")
@@ -115,9 +115,9 @@ def as_tensor(expressions, indices = None):
 def as_matrix(expressions, indices = None):
     if indices is None:
         ufl_assert(isinstance(expressions, (list, tuple)),
-            "Expecting nested list or tuple of UFLObjects.")
+            "Expecting nested list or tuple of Exprs.")
         ufl_assert(isinstance(expressions[0], (list, tuple)),
-            "Expecting nested list or tuple of UFLObjects.")
+            "Expecting nested list or tuple of Exprs.")
         return ListTensor(*expressions)
     ufl_assert(all(isinstance(ii, Index) for ii in indices),
                "Expecting sequence of Index objects.")

@@ -11,7 +11,7 @@ from ..output import UFLException, ufl_error, ufl_assert, ufl_info, ufl_warning
 from ..base import is_python_scalar, is_scalar, is_true_scalar
 
 # ALl classes:
-from ..base import UFLObject, Terminal, FloatValue, ZeroType
+from ..base import Expr, Terminal, FloatValue, ZeroType
 from ..variable import Variable
 from ..finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
 from ..basisfunction import BasisFunction

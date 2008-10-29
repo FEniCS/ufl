@@ -12,7 +12,7 @@ from ..output import ufl_assert, ufl_error, ufl_warning
 from ..common import UFLTypeDict
 
 # Classes:
-from ..base import UFLObject, FloatValue, ZeroType 
+from ..base import Expr, FloatValue, ZeroType 
 from ..indexing import MultiIndex
 from ..variable import Variable
 from ..classes import FacetNormal, Identity
@@ -55,7 +55,7 @@ def extract_variables(expression, handled_vars=None):
 
 def extract_duplications(expression):
     "Build a set of all repeated expressions in expression."
-    ufl_assert(isinstance(expression, UFLObject), "Expecting UFL expression.")
+    ufl_assert(isinstance(expression, Expr), "Expecting UFL expression.")
     handled = set()
     duplicated = set()
     for (o, stack) in post_traversal(expression):

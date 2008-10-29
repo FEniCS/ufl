@@ -1,6 +1,6 @@
-"""This module attaches special functions to UFLObject.
+"""This module attaches special functions to Expr.
 This way we avoid circular dependencies between e.g.
-Sum and its superclass UFLObject."""
+Sum and its superclass Expr."""
 
 from __future__ import absolute_import
 
@@ -9,7 +9,7 @@ __date__ = "2008-08-18 -- 2008-10-28"
 
 # UFL imports
 from .output import ufl_error, ufl_assert
-from .base import UFLObject, FloatValue, float_value, ZeroType, is_zero, zero_tensor, as_ufl, is_python_scalar
+from .base import Expr, FloatValue, float_value, ZeroType, is_zero, zero_tensor, as_ufl, is_python_scalar
 from .algebra import Sum, Product, Division, Power, Abs
 from .tensoralgebra import Transposed, Dot
 from .indexing import Indexed
@@ -17,47 +17,47 @@ from .restriction import PositiveRestricted, NegativeRestricted
 from .differentiation import SpatialDerivative
 
 
-#--- Extend UFLObject with algebraic operators ---
+#--- Extend Expr with algebraic operators ---
 
 def _add(self, o):
     if is_python_scalar(o): o = float_value(o)
-    if not isinstance(o, UFLObject): return NotImplemented
+    if not isinstance(o, Expr): return NotImplemented
     if is_zero(o): return self
     if is_zero(self): return o
     if isinstance(self, FloatValue) and isinstance(o, FloatValue):
         return FloatValue(self._value + o._value)
     return Sum(self, o)
-UFLObject.__add__ = _add
+Expr.__add__ = _add
 
 def _radd(self, o):
     if is_python_scalar(o): o = float_value(o)
-    if not isinstance(o, UFLObject): return NotImplemented
+    if not isinstance(o, Expr): return NotImplemented
     if is_zero(o): return self
     if is_zero(self): return o
     if isinstance(self, FloatValue) and isinstance(o, FloatValue):
         return FloatValue(self._value + o._value)
     return Sum(o, self)
-UFLObject.__radd__ = _radd
+Expr.__radd__ = _radd
 
 def _sub(self, o):
     if is_python_scalar(o): o = float_value(o)
-    if not isinstance(o, UFLObject): return NotImplemented
+    if not isinstance(o, Expr): return NotImplemented
     if is_zero(o): return self
     if is_zero(self): return -o
     if isinstance(self, FloatValue) and isinstance(o, FloatValue):
         return FloatValue(self._value - o._value)
     return self + (-o)
-UFLObject.__sub__ = _sub
+Expr.__sub__ = _sub
 
 def _rsub(self, o):
     if is_python_scalar(o): o = float_value(o)
-    if not isinstance(o, UFLObject): return NotImplemented
+    if not isinstance(o, Expr): return NotImplemented
     if is_zero(self): return o
     if is_zero(o): return -self
     if isinstance(self, FloatValue) and isinstance(o, FloatValue):
         return FloatValue(o._value - self._value)
     return o + (-self)
-UFLObject.__rsub__ = _rsub
+Expr.__rsub__ = _rsub
 
 def _mult(a, b):
     s1 = a.shape()
@@ -85,74 +85,74 @@ def _mult(a, b):
 
 def _mul(self, o):
     if is_python_scalar(o): o = float_value(o)
-    if not isinstance(o, UFLObject): return NotImplemented
+    if not isinstance(o, Expr): return NotImplemented
     return _mult(self, o)
-UFLObject.__mul__ = _mul
+Expr.__mul__ = _mul
 
 def _rmul(self, o):
     if is_python_scalar(o): o = float_value(o)
-    if not isinstance(o, UFLObject): return NotImplemented
+    if not isinstance(o, Expr): return NotImplemented
     return _mult(o, self)
-UFLObject.__rmul__ = _rmul
+Expr.__rmul__ = _rmul
 
 def _div(self, o):
     if is_python_scalar(o): o = float_value(o)
-    if not isinstance(o, UFLObject): return NotImplemented
+    if not isinstance(o, Expr): return NotImplemented
     if isinstance(self, FloatValue) and isinstance(o, FloatValue):
         return FloatValue(self._value / o._value)
     return Division(self, o)
-UFLObject.__div__ = _div
+Expr.__div__ = _div
 
 def _rdiv(self, o):
     if is_python_scalar(o): o = float_value(o)
-    if not isinstance(o, UFLObject): return NotImplemented
+    if not isinstance(o, Expr): return NotImplemented
     if isinstance(self, FloatValue) and isinstance(o, FloatValue):
         return FloatValue(o._value / self._value)
     return Division(o, self)
-UFLObject.__rdiv__ = _rdiv
+Expr.__rdiv__ = _rdiv
 
 def _pow(self, o):
     if is_python_scalar(o): o = float_value(o)
-    if not isinstance(o, UFLObject): return NotImplemented
+    if not isinstance(o, Expr): return NotImplemented
     if isinstance(self, FloatValue) and isinstance(o, FloatValue):
         return FloatValue(self._value ** o._value)
     if o == 0: return FloatValue(1)
     if o == 1: return self
     return Power(self, o)
-UFLObject.__pow__ = _pow
+Expr.__pow__ = _pow
 
 def _rpow(self, o):
     if is_python_scalar(o): o = float_value(o)
-    if not isinstance(o, UFLObject): return NotImplemented
+    if not isinstance(o, Expr): return NotImplemented
     if isinstance(self, FloatValue) and isinstance(o, FloatValue):
         return FloatValue(o._value ** self._value)
     if self == 0: return FloatValue(1)
     if self == 1: return o
     return Power(o, self)
-UFLObject.__rpow__ = _rpow
+Expr.__rpow__ = _rpow
 
 def _neg(self):
     if isinstance(self, FloatValue):
         return FloatValue(-self._value)
     return -1*self
-UFLObject.__neg__ = _neg
+Expr.__neg__ = _neg
 
 def _abs(self):
     if isinstance(self, FloatValue):
         return FloatValue(abs(self._value))
     return Abs(self)
-UFLObject.__abs__ = _abs
+Expr.__abs__ = _abs
 
-#--- Extend UFLObject with indexing operator a[i] ---
+#--- Extend Expr with indexing operator a[i] ---
 
 def _getitem(self, key):
     a = Indexed(self, key)
     if is_zero(self):
         return zero_tensor(a.shape())
     return a
-UFLObject.__getitem__ = _getitem
+Expr.__getitem__ = _getitem
 
-#--- Extend UFLObject with restiction operators a("+"), a("-") ---
+#--- Extend Expr with restiction operators a("+"), a("-") ---
 
 def _restrict(self, side):
     if side == "+":
@@ -160,19 +160,19 @@ def _restrict(self, side):
     if side == "-":
         return NegativeRestricted(self)
     ufl_error("Invalid side %r in restriction operator." % side)
-UFLObject.__call__ = _restrict
+Expr.__call__ = _restrict
 
-#--- Extend UFLObject with the transpose operation A.T ---
+#--- Extend Expr with the transpose operation A.T ---
 
 def _transpose(self):
     """Transposed a rank two tensor expression. For more general transpose
     operations of higher order tensor expressions, use indexing and Tensor."""
     return Transposed(self)
-UFLObject.T = property(_transpose)
+Expr.T = property(_transpose)
 
-#--- Extend UFLObject with spatial differentiation operator a.dx(i) ---
+#--- Extend Expr with spatial differentiation operator a.dx(i) ---
 
 def _dx(self, *i):
     """Return the partial derivative with respect to spatial variable number i"""
     return SpatialDerivative(self, i)
-UFLObject.dx = _dx
+Expr.dx = _dx

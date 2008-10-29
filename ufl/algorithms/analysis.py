@@ -12,7 +12,7 @@ from itertools import chain
 from ..output import ufl_assert, ufl_error
 from ..common import lstr, UFLTypeDefaultDict
 
-from ..base import UFLObject, Terminal
+from ..base import Expr, Terminal
 from ..algebra import Sum, Product, Division
 from ..basisfunction import BasisFunction
 from ..function import Function
@@ -34,7 +34,7 @@ from .traversal import iter_expressions, post_traversal
 
 def extract_type(a, ufl_type):
     """Build a set of all objects of class ufl_type found in a.
-    The argument a can be a Form, Integral or UFLObject."""
+    The argument a can be a Form, Integral or Expr."""
     iter = (o for e in iter_expressions(a) \
               for (o, stack) in post_traversal(e) \
               if isinstance(o, ufl_type) )
@@ -55,8 +55,8 @@ def get_ufl_class(c):
     return uc
 
 def extract_classes(a):
-    """Build a set of all unique UFLObject subclasses used in a.
-    The argument a can be a Form, Integral or UFLObject."""
+    """Build a set of all unique Expr subclasses used in a.
+    The argument a can be a Form, Integral or Expr."""
     c = set()
     for e in iter_expressions(a):
         for (o, stack) in post_traversal(e):
@@ -71,7 +71,7 @@ def extract_domain(a):
 
 def extract_value_shape(expression, dimension):
     "Evaluate the value shape of expression with given implicit dimension."
-    ufl_assert(isinstance(expression, UFLObject), "Expecting UFL expression.")
+    ufl_assert(isinstance(expression, Expr), "Expecting UFL expression.")
     ufl_assert(isinstance(dimension, int), "Expecting int dimension.")
     s = expression.shape()
     shape = []
@@ -84,7 +84,7 @@ def extract_value_shape(expression, dimension):
 
 def extract_basisfunctions(a):
     """Build a sorted list of all basisfunctions in a,
-    which can be a Form, Integral or UFLObject."""
+    which can be a Form, Integral or Expr."""
     # build set of all unique basisfunctions
     s = extract_type(a, BasisFunction)
     # sort by count
@@ -93,7 +93,7 @@ def extract_basisfunctions(a):
 
 def extract_coefficients(a):
     """Build a sorted list of all coefficients in a,
-    which can be a Form, Integral or UFLObject."""
+    which can be a Form, Integral or Expr."""
     # build set of all unique coefficients
     s = extract_type(a, Function)
     # sort by count
@@ -103,7 +103,7 @@ def extract_coefficients(a):
 # alternative implementation, kept as an example:
 def _extract_coefficients(a):
     """Build a sorted list of all coefficients in a,
-    which can be a Form, Integral or UFLObject."""
+    which can be a Form, Integral or Expr."""
     # build set of all unique coefficients
     s = set()
     def func(o):
@@ -124,7 +124,7 @@ def extract_unique_elements(a):
 
 def extract_variables(a):
     """Build a set of all Variable objects in a,
-    which can be a Form, Integral or UFLObject."""
+    which can be a Form, Integral or Expr."""
     return extract_type(a, Variable)
 
 def extract_indices(expression):
@@ -140,7 +140,7 @@ def extract_monomials(expression, indent=""):
 
     # FIXME: Not yet working, need to include derivatives, integrals etc
 
-    ufl_assert(isinstance(expression, Form) or isinstance(expression, UFLObject), "Expecting UFL form or expression.")
+    ufl_assert(isinstance(expression, Form) or isinstance(expression, Expr), "Expecting UFL form or expression.")
 
     # Iterate over expressions
     m = []

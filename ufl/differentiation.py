@@ -6,7 +6,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-10-21"
 
 from .output import ufl_assert
-from .base import UFLObject
+from .base import Expr
 from .indexing import MultiIndex, Index, DefaultDim, extract_indices
 from .variable import Variable
 from .tensors import as_tensor
@@ -17,7 +17,7 @@ from .tensors import as_tensor
 
 #--- Differentiation ---
 
-class SpatialDerivative(UFLObject):
+class SpatialDerivative(Expr):
     "Partial derivative of an expression w.r.t. spatial directions given by indices."
     __slots__ = ("_expression", "_shape", "_indices", "_free_indices", "_repeated_indices", "_dx_free_indices", "_dx_repeated_indices")
     def __init__(self, expression, indices):
@@ -66,11 +66,11 @@ class SpatialDerivative(UFLObject):
         return "SpatialDerivative(%r, %r)" % (self._expression, self._indices)
 
 
-class Diff(UFLObject):
+class Diff(Expr):
     __slots__ = ("_f", "_x", "_index", "_free_indices", "_shape")
     
     def __init__(self, f, x):
-        ufl_assert(isinstance(f, UFLObject), "Expecting an UFLObject in Diff.")
+        ufl_assert(isinstance(f, Expr), "Expecting an Expr in Diff.")
         ufl_assert(isinstance(x, Variable), \
             "Expecting a Variable in Diff.") # FIXME: Generalize somehow, should allow indexed variables and containers with variables!
         self._f = f
@@ -98,7 +98,7 @@ class Diff(UFLObject):
         return "Diff(%r, %r)" % (self._f, self._x)
 
 
-class Grad(UFLObject):
+class Grad(Expr):
     __slots__ = ("_f",)
     
     def __init__(self, f):
@@ -122,7 +122,7 @@ class Grad(UFLObject):
         return "Grad(%r)" % self._f
 
 
-class Div(UFLObject):
+class Div(Expr):
     __slots__ = ("_f",)
 
     def __init__(self, f):
@@ -147,7 +147,7 @@ class Div(UFLObject):
         return "Div(%r)" % self._f
 
 
-class Curl(UFLObject):
+class Curl(Expr):
     __slots__ = ("_f",)
 
     def __init__(self, f):
@@ -172,7 +172,7 @@ class Curl(UFLObject):
         return "Curl(%r)" % self._f
 
 
-class Rot(UFLObject):
+class Rot(Expr):
     __slots__ = ("_f",)
 
     def __init__(self, f):

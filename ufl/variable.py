@@ -8,7 +8,7 @@ __date__ = "2008-05-20 -- 2008-10-27"
 from collections import defaultdict
 from .common import Counted
 from .output import ufl_assert
-from .base import UFLObject, Terminal
+from .base import Expr, Terminal
 
 class Variable(Terminal, Counted):
     """A Variable is a representative for another expression.
@@ -24,7 +24,7 @@ class Variable(Terminal, Counted):
     _globalcount = 0
     def __init__(self, expression, count=None):
         Counted.__init__(self, count)
-        ufl_assert(isinstance(expression, UFLObject), "Expecting an UFLObject.")
+        ufl_assert(isinstance(expression, Expr), "Expecting an Expr.")
         self._expression = expression
         self._diffcache = defaultdict(list)
     

@@ -28,7 +28,7 @@ class Integral(object):
         return self._domain_id
     
     def integrand(self):
-        "Return the integrand expression, a UFLObject."
+        "Return the integrand expression, a Expr."
         return self._integrand
     
     def __mul__(self, other):

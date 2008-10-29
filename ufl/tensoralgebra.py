@@ -6,7 +6,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-10-21"
 
 from .output import ufl_assert
-from .base import UFLObject, Terminal
+from .base import Expr, Terminal
 from .indexing import Index, indices, compare_shapes
 
 
@@ -59,7 +59,7 @@ class Identity(Terminal):
 
 # objects representing the operations:
 
-class Transposed(UFLObject):
+class Transposed(Expr):
     __slots__ = ("_A",)
     
     def __init__(self, A):
@@ -83,7 +83,7 @@ class Transposed(UFLObject):
         return "Transposed(%r)" % self._A
 
 
-class Outer(UFLObject):
+class Outer(Expr):
     __slots__ = ("_a", "_b", "_free_indices")
 
     def __init__(self, a, b):
@@ -111,7 +111,7 @@ class Outer(UFLObject):
         return "Outer(%r, %r)" % (self._a, self._b)
 
 
-class Inner(UFLObject):
+class Inner(Expr):
     __slots__ = ("_a", "_b", "_free_indices")
 
     def __init__(self, a, b):
@@ -140,7 +140,7 @@ class Inner(UFLObject):
         return "Inner(%r, %r)" % (self._a, self._b)
 
 
-class Dot(UFLObject):
+class Dot(Expr):
     __slots__ = ("_a", "_b", "_free_indices")
 
     def __init__(self, a, b):
@@ -172,7 +172,7 @@ class Dot(UFLObject):
         return "Dot(%r, %r)" % (self._a, self._b)
 
 
-class Cross(UFLObject):
+class Cross(Expr):
     __slots__ = ("_a", "_b", "_free_indices")
 
     def __init__(self, a, b):
@@ -203,7 +203,7 @@ class Cross(UFLObject):
         return "Cross(%r, %r)" % (self._a, self._b)
 
 
-class Trace(UFLObject):
+class Trace(Expr):
     __slots__ = ("_A",)
 
     def __init__(self, A):
@@ -226,7 +226,7 @@ class Trace(UFLObject):
         return "Trace(%r)" % self._A
 
 
-class Determinant(UFLObject):
+class Determinant(Expr):
     __slots__ = ("_A",)
 
     def __init__(self, A):
@@ -256,7 +256,7 @@ class Determinant(UFLObject):
         return "Determinant(%r)" % self._A
 
 
-class Inverse(UFLObject): # TODO: Drop Inverse and represent it as product of Determinant and Cofactor?
+class Inverse(Expr): # TODO: Drop Inverse and represent it as product of Determinant and Cofactor?
     __slots__ = ("_A",)
 
     def __init__(self, A):
@@ -284,7 +284,7 @@ class Inverse(UFLObject): # TODO: Drop Inverse and represent it as product of De
         return "Inverse(%r)" % self._A
 
 
-class Cofactor(UFLObject):
+class Cofactor(Expr):
     __slots__ = ("_A",)
 
     def __init__(self, A):
@@ -310,7 +310,7 @@ class Cofactor(UFLObject):
         return "Cofactor(%r)" % self._A
 
 
-class Deviatoric(UFLObject):
+class Deviatoric(Expr):
     __slots__ = ("_A",)
 
     def __init__(self, A):
@@ -338,7 +338,7 @@ class Deviatoric(UFLObject):
         return "Deviatoric(%r)" % self._A
 
 
-class Skew(UFLObject):
+class Skew(Expr):
     __slots__ = ("_A",)
 
     def __init__(self, A):

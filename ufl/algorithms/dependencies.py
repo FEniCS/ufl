@@ -13,7 +13,7 @@ from ..output import ufl_assert, ufl_error, ufl_warning
 from ..permutation import compute_indices
 
 # All classes:
-from ..base import UFLObject, Terminal, FloatValue, ZeroType
+from ..base import Expr, Terminal, FloatValue, ZeroType
 from ..variable import Variable
 from ..basisfunction import BasisFunction
 from ..function import Function, Constant
@@ -23,7 +23,7 @@ from ..tensoralgebra import Identity
 from ..indexing import MultiIndex, Indexed, Index, FixedIndex
 from ..tensors import ListTensor, ComponentTensor
 
-# Lists of all UFLObject classes
+# Lists of all Expr classes
 from ..classes import ufl_classes, terminal_classes, nonterminal_classes
 
 # Other algorithms:
@@ -262,7 +262,7 @@ def split_by_dependencies(expression, formdata, basisfunction_deps, function_dep
     """Split an expression into stacks of variables based
     on the dependencies of its subexpressions.
     
-    @type expression: UFLObject
+    @type expression: Expr
     @param expression: The expression to parse.
     @type basisfunction_deps: list(DependencySet)
     @param basisfunction_deps:
@@ -281,7 +281,7 @@ def split_by_dependencies(expression, formdata, basisfunction_deps, function_dep
     
         (variableinfo, codestructure) = split_by_dependencies(expression, formdata, [(True,True)]*rank, [(True,True)]*num_coefficients)
     """
-    ufl_assert(isinstance(expression, UFLObject), "Expecting UFLObject.")
+    ufl_assert(isinstance(expression, Expr), "Expecting Expr.")
     
     # Exctract a list of all variables in expression 
     variables = extract_variables(expression)

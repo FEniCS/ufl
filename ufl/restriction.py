@@ -6,11 +6,11 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-06-08 -- 2008-08-15"
 
 from .output import ufl_error
-from .base import UFLObject
+from .base import Expr
 
 #--- Restriction operators ---
 
-class Restricted(UFLObject):
+class Restricted(Expr):
     def __init__(self, f):
         self.f = f
 

@@ -13,7 +13,7 @@ from ..output import ufl_assert, ufl_error
 from ..common import UFLTypeDefaultDict, UFLTypeDict
 
 # All classes:
-from ..base import UFLObject, Terminal, FloatValue, ZeroType
+from ..base import Expr, Terminal, FloatValue, ZeroType
 from ..variable import Variable
 from ..finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
 from ..basisfunction import BasisFunction
@@ -30,7 +30,7 @@ from ..conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ..form import Form
 from ..integral import Integral
 
-# Lists of all UFLObject classes
+# Lists of all Expr classes
 from ..classes import ufl_classes, terminal_classes, nonterminal_classes
 
 # Other algorithms:
@@ -114,7 +114,7 @@ def ufl_copy_handlers():
 def ufl2ufl(expression):
     """Convert an UFL expression to a new UFL expression, with no changes.
     This is used for testing that objects in the expression behave as expected."""
-    ufl_assert(isinstance(expression, UFLObject), "Expecting UFLObject.")
+    ufl_assert(isinstance(expression, Expr), "Expecting Expr.")
     handlers = ufl_reuse_handlers()
     return transform(expression, handlers)
 
@@ -123,7 +123,7 @@ def ufl2uflcopy(expression):
     All nonterminal object instances are replaced with identical copies.
     This is used for testing that objects in the expression behave as expected.
     Doesn't touch Variables in current implementation."""
-    ufl_assert(isinstance(expression, UFLObject), "Expecting UFLObject.")
+    ufl_assert(isinstance(expression, Expr), "Expecting Expr.")
     handlers = ufl_copy_handlers()
     return transform(expression, handlers)
 
@@ -147,11 +147,11 @@ def replace(expression, substitution_map):
     """Replace objects in expression.
     
     @param expression:
-        A UFLObject.
+        A Expr.
     @param substitution_map:
         A dict with from:to replacements to perform.
     """
-    ufl_assert(isinstance(expression, UFLObject), "Expecting UFLObject.")
+    ufl_assert(isinstance(expression, Expr), "Expecting Expr.")
     handlers = ufl_reuse_handlers()
     orig_handlers = UFLTypeDict()
     

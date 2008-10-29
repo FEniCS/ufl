@@ -12,7 +12,7 @@ __date__ = "2008-03-14 -- 2008-10-23"
 # Modified by Anders Logg, 2008
 
 from ..output import ufl_assert
-from ..base import UFLObject, Terminal
+from ..base import Expr, Terminal
 from ..integral import Integral
 from ..form import Form
 from ..variable import Variable
@@ -20,10 +20,10 @@ from ..variable import Variable
 #--- Traversal utilities ---
 
 def iter_expressions(a):
-    """Utility function to handle Form, Integral and any UFLObject
+    """Utility function to handle Form, Integral and any Expr
     the same way when inspecting expressions.
-    Returns an iterable over UFLObject instances:
-    - a is an UFLObject: (a,)
+    Returns an iterable over Expr instances:
+    - a is an Expr: (a,)
     - a is an Integral:  the integrand expression of a
     - a is a  Form:      all integrand expressions of all integrals
     """
@@ -37,7 +37,7 @@ def iter_expressions(a):
 def pre_traversal(expression, stack=None, traverse_into_variables=True):
     "Yields (o, stack) for each tree node o in expression, parent before child."
     if stack is None: stack = []
-    ufl_assert(isinstance(expression, UFLObject), "Expecting UFLObject.")
+    ufl_assert(isinstance(expression, Expr), "Expecting Expr.")
     # yield parent
     yield (expression, stack)
     # yield children
@@ -56,7 +56,7 @@ def pre_traversal(expression, stack=None, traverse_into_variables=True):
 def post_traversal(expression, stack=None, traverse_into_variables=True):
     "Yields (o, stack) for each tree node o in expression, parent after child."
     if stack is None: stack = []
-    ufl_assert(isinstance(expression, UFLObject), "Expecting UFLObject.")
+    ufl_assert(isinstance(expression, Expr), "Expecting Expr.")
     # yield children
     if traverse_into_variables and isinstance(expression, Variable):
         stack.append(expression)
@@ -78,19 +78,19 @@ def traversal(expression, stack=None):
 
 def pre_walk(a, func, traverse_into_variables=True):
     """Call func on each expression tree node in a, parent before child.
-    The argument a can be a Form, Integral or UFLObject."""
+    The argument a can be a Form, Integral or Expr."""
     for e in iter_expressions(a):
         for (o, stack) in pre_traversal(e, None, traverse_into_variables):
             func(o)
 
 def post_walk(a, func, traverse_into_variables=True):
     """Call func on each expression tree node in a, parent after child.
-    The argument a can be a Form, Integral or UFLObject."""
+    The argument a can be a Form, Integral or Expr."""
     for e in iter_expressions(a):
         for (o, stack) in post_traversal(e, None, traverse_into_variables):
             func(o)
 
 def walk(a, func, traverse_into_variables=True):
     """Call func on each expression tree node in a.
-    The argument a can be a Form, Integral or UFLObject."""
+    The argument a can be a Form, Integral or Expr."""
     pre_walk(a, func, traverse_into_variables)

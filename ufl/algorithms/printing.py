@@ -9,7 +9,7 @@ __date__ = "2008-03-14 -- 2008-10-21"
 from itertools import chain
 
 from ..output import ufl_assert
-from ..base import UFLObject, Terminal
+from ..base import Expr, Terminal
 from ..form import Form
 from ..integral import Integral
 
@@ -94,7 +94,7 @@ def tree_format(expression, indentation=0, parentheses=True):
         s += ind + "integrand:\n"
         s += tree_format(expression._integrand, indentation+2, parentheses)
     
-    elif isinstance(expression, UFLObject):
+    elif isinstance(expression, Expr):
         s += _tree_format_expression(expression, indentation, parentheses)
     
     else:

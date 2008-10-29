@@ -9,7 +9,7 @@ __date__ = "2008-05-07 -- 2008-10-24"
 from ..output import ufl_assert, ufl_error
 
 # All classes:
-from ..base import UFLObject
+from ..base import Expr
 from ..indexing import MultiIndex, Index
 from ..algebra import Product
 from ..differentiation import SpatialDerivative, Diff
@@ -66,7 +66,7 @@ def expand_indices(expression):
 
 def renumber_indices(expression, offset=0):
     "Given an expression, renumber indices in a contiguous count beginning with offset."
-    ufl_assert(isinstance(expression, UFLObject), "Expecting an UFLObject.")
+    ufl_assert(isinstance(expression, Expr), "Expecting an Expr.")
     
     ufl_warning("Is this algorithm used? For what reason?")
     
