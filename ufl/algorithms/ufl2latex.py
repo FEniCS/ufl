@@ -5,7 +5,7 @@ converting UFL expressions to other representations."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-10-28"
+__date__ = "2008-05-07 -- 2008-10-29"
 
 # Modified by Anders Logg, 2008.
 
@@ -16,7 +16,7 @@ from ..output import ufl_error, ufl_debug, ufl_warning
 from ..common import UFLTypeDefaultDict
 
 # All classes:
-from ..base import FloatValue, ZeroType
+from ..base import ZeroType, FloatValue, IntValue
 from ..variable import Variable
 from ..basisfunction import BasisFunction
 from ..function import Function, Constant
@@ -66,6 +66,7 @@ def latex_handlers(basisfunction_renumbering, coefficient_renumbering):
         return r"{\mathbf 0}"
     d[ZeroType]      = l_zero
     d[FloatValue]    = lambda x: "{%s}" % x._value
+    d[IntValue]      = lambda x: "{%s}" % x._value
     d[FacetNormal]   = lambda x: "n"
     d[Identity]      = lambda x: "I"
     d[BasisFunction] = lambda x: "{v^{%d}}" % basisfunction_renumbering[x] # Using ^ for function numbering and _ for indexing

@@ -3,12 +3,12 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-09-06"
+__date__ = "2008-03-14 -- 2008-10-29"
 
 # Modified by Anders Logg, 2008
 
 from .output import ufl_assert
-from .base import Expr, float_value, is_true_scalar, is_python_scalar
+from .base import Expr, FloatValue, is_true_scalar, is_python_scalar, as_ufl
 
 #--- Function representations ---
 
@@ -17,8 +17,9 @@ class MathFunction(Expr):
     # Freeze member variables for objects in this class
     __slots__ = ("_name", "_argument")
     def __init__(self, name, argument):
-        if is_python_scalar(argument): argument = float_value(argument)
-        ufl_assert(is_true_scalar(argument), "Expecting scalar.")
+        argument = as_ufl(argument)
+        # TODO: if isinstance(argument, FloatValue): ...
+        ufl_assert(is_true_scalar(argument), "Expecting scalar argument.")
         self._name     = name
         self._argument = argument
     

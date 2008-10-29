@@ -6,13 +6,13 @@ an expression."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-10-27"
+__date__ = "2008-05-07 -- 2008-10-29"
 
 from ..output import ufl_assert, ufl_error, ufl_warning
 from ..common import UFLTypeDict
 
 # Classes:
-from ..base import Expr, FloatValue, ZeroType 
+from ..base import Expr, ZeroType, FloatValue, IntValue 
 from ..indexing import MultiIndex
 from ..variable import Variable
 from ..classes import FacetNormal, Identity
@@ -74,8 +74,8 @@ def _mark_duplications(expression, handlers, variables, dups):
         return var
     
     # skip some types
-    _skiptypes = (MultiIndex, FloatValue, ZeroType)
-    if isinstance(expression, _skiptypes):
+    skip_classes = (MultiIndex, ZeroType, FloatValue, IntValue, Identity)
+    if isinstance(expression, skip_classes):
         return expression
     
     # handle subexpressions
@@ -137,7 +137,7 @@ def mark_duplications(expression):
     # Always reuse some constant types
     def m_reuse(x):
         return x
-    skip_classes = (MultiIndex, FloatValue, ZeroType, Identity, )
+    skip_classes = (MultiIndex, ZeroType, FloatValue, IntValue, Identity)
     for c in skip_classes:
         handlers[c] = m_reuse
     

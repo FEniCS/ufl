@@ -13,7 +13,7 @@ from ..output import ufl_assert, ufl_error
 from ..common import UFLTypeDefaultDict, UFLTypeDict
 
 # All classes:
-from ..base import Expr, Terminal, FloatValue, ZeroType
+from ..base import Expr, Terminal
 from ..variable import Variable
 from ..finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
 from ..basisfunction import BasisFunction

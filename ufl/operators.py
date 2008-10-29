@@ -6,7 +6,7 @@ objects."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-04-09 -- 2008-10-21"
+__date__ = "2008-04-09 -- 2008-10-29"
 
 from .differentiation import Diff, Grad, Div, Curl, Rot
 from .tensoralgebra import Transposed, Inner, Outer, Dot, Cross, Determinant, Inverse, Cofactor, Trace, Deviatoric, Skew
@@ -19,7 +19,7 @@ from .geometry import FacetNormal
 
 def transpose(A):
     "The transposed of A."
-    return Transposed(o)
+    return Transposed(A)
 
 def outer(a, b):
     "The outer product of a and b."

@@ -35,21 +35,24 @@ class DemoTestCase(unittest.TestCase):
     
     def test_something(self):
         result = 0
+        skiplist = ()
+        #skiplist = glob("../demo/*_ad.ufl") + ["../demo/hyperelasticity1D.ufl"] # TODO: Re-enable!
         for f in glob("../demo/*.ufl"):
-            cmd = "ufl-analyse %s" % f
-            status, output = get_status_output(cmd)
-            if status == 0:
-                print "Successfully analysed %s without problems" % f
-            else:
-                result = status
-                name = "%s.analysis" % f
-                print "Encountered problems when analysing %s (return code %s), see output in file %s" % (f, status, name)
-                of = open(name, "w")
-                of.write(output)
-                of.close()
-                print 
-                print output
-                print
+            if not f in skiplist:
+                cmd = "ufl-analyse %s" % f
+                status, output = get_status_output(cmd)
+                if status == 0:
+                    print "Successfully analysed %s without problems" % f
+                else:
+                    result = status
+                    name = "%s.analysis" % f
+                    print "Encountered problems when analysing %s (return code %s), see output in file %s" % (f, status, name)
+                    of = open(name, "w")
+                    of.write(output)
+                    of.close()
+                    print 
+                    print output
+                    print
         self.assertTrue(result == 0)
 
 if __name__ == "__main__":

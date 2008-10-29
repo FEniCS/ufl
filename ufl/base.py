@@ -4,18 +4,11 @@ types involved with built-in operators on any UFL object."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-28"
+__date__ = "2008-03-14 -- 2008-10-29"
 
 # Modified by Anders Logg, 2008
 
-# UFL imports
 from .output import ufl_assert
-
-try:
-    import numpy
-    float_type = numpy.float96
-except:
-    float_type = float
 
 #--- The base object for all UFL expression tree nodes ---
 
@@ -104,13 +97,17 @@ class Expr(object):
             return True
         return self.operands() == other.operands()
         #return repr(self) == repr(other)
-
-    def __getnewargs__(self): # TODO: Test pickle and copy with this. Must implement differently for Terminal objects though.
-        "Used for pickle and copy operations."
-        return self.operands()
+    
+    def __nonzero__(self):
+        "By default, all Expr are nonzero."
+        return True 
 
     def __iter__(self):
         raise NotImplementedError
+    
+    def __getnewargs__(self): # TODO: Test pickle and copy with this. Must implement differently for Terminal objects though.
+        "Used for pickle and copy operations."
+        return self.operands()
 
 
 #--- A note about other operators ---
@@ -137,6 +134,10 @@ class Terminal(Expr):
         if id(self) == other:
             return True
         return repr(self) == repr(other)
+    
+    def __getnewargs__(self): # TODO: Test pickle and copy with this. Must implement differently for Terminal objects though.
+        "Used for pickle and copy operations."
+        raise NotImplementedError, "Must reimplement in each Terminal, or?"
 
 #--- Zero tensors of different shapes ---
 
@@ -152,20 +153,30 @@ class ZeroType(Terminal):
         return self._shape
     
     def __str__(self):
-        return "<Zero tensor with shape %s>" % repr(self._shape)
+        return "[Zero tensor with shape %s]" % repr(self._shape)
     
     def __repr__(self):
         return "ZeroType(%s)" % repr(self._shape)
     
     def __eq__(self, other):
+        if self._shape == () and other == 0: return True 
         return isinstance(other, ZeroType) and self._shape == other._shape
+    
+    def __neg__(self):
+        return self
+    
+    def __abs__(self):
+        return self
+
+    def __nonzero__(self):
+        return False 
 
 _zero_cache = {}
 def zero_tensor(shape):
-    if shape in _zero_cache:
-        return _zero_cache[shape]
-    z = ZeroType(shape)
-    _zero_cache[shape] = z
+    z = _zero_cache.get(shape, None)
+    if z is None:
+        z = ZeroType(shape)
+        _zero_cache[shape] = z
     return z
 
 def zero():
@@ -174,44 +185,23 @@ def zero():
 def is_zero(expression):
     return isinstance(expression, ZeroType) or expression == 0
 
-#--- FloatValue type ---
+#--- "Low level" scalar types ---
 
-class FloatValue(Terminal):
-    "A constant scalar numeric value."
-    __slots__ = ("_value",)
-    
-    def __init__(self, value):
-        self._value = float_type(value)
-    
-    def free_indices(self):
-        return ()
-    
-    def shape(self):
-        return ()
-    
-    def __eq__(self, other):
-        "Allow comparison with python scalars."
-        if isinstance(other, FloatValue):
-            return self._value == other._value
-        if is_python_scalar(other):
-            return self._value == other
-        return False
-    
-    def __str__(self):
-        return str(self._value)
-    
-    def __repr__(self):
-        return "FloatValue(%s)" % repr(self._value)
+_python_scalar_types = (int, float,)
 
-def float_value(value): # TODO: Use metaclass instead to return zero if value is 0?
-    if value == 0:
-        return zero()
-    return FloatValue(value)
+float_type = float
+int_type = int
 
-#--- Basic helper functions ---
+# TODO: Use high precision float from numpy?
+#try:
+#    import numpy
+#    float_type = numpy.float96
+#    int_type = numpy. 
+#except:
+#    pass
 
 def is_python_scalar(o):
-    return isinstance(o, (int, float))
+    return isinstance(o, _python_scalar_types)
 
 def is_scalar(o):
     "Return True iff expression is scalar-valued, possibly containing free indices."
@@ -222,10 +212,78 @@ def is_true_scalar(o):
     "Return True iff expression a single scalar value, with no free indices."
     return is_scalar(o) and len(o.free_indices()) == 0
 
+#--- ScalarValue, FloatValue and IntValue types ---
+
+class ScalarValue(Terminal):
+    "A constant scalar value."
+    def free_indices(self):
+        return ()
+    
+    def shape(self):
+        return ()
+    
+    def __eq__(self, other):
+        "Allow comparison with python scalars."
+        if isinstance(other, ScalarValue):
+            return self._value == other._value
+        if is_python_scalar(other):
+            return self._value == other
+        return False
+    
+    def __str__(self):
+        return str(self._value)
+
+class FloatValue(ScalarValue):
+    "A constant scalar numeric value."
+    __slots__ = ("_value",)
+    
+    def __new__(cls, value):
+        ufl_assert(is_python_scalar(value), "Expecting Python scalar.")
+        if value == 0:
+            return zero()
+        return ScalarValue.__new__(cls, value)
+    
+    def __init__(self, value):
+        self._value = float_type(value)
+    
+    def __repr__(self):
+        return "FloatValue(%s)" % repr(self._value)
+    
+    def __neg__(self):
+        return FloatValue(-self._value)
+
+    def __abs__(self):
+        return FloatValue(abs(self._value))
+
+class IntValue(ScalarValue):
+    "A constant scalar integer value."
+    __slots__ = ("_value",)
+    
+    def __new__(cls, value):
+        ufl_assert(is_python_scalar(value), "Expecting Python scalar.")
+        if value == 0:
+            return zero()
+        return ScalarValue.__new__(cls, value)
+    
+    def __init__(self, value):
+        self._value = int_type(value)
+    
+    def __repr__(self):
+        return "IntValue(%s)" % repr(self._value)
+    
+    def __neg__(self):
+        return IntValue(-self._value)
+
+    def __abs__(self):
+        return FloatValue(abs(self._value))
+
+#--- Basic helper functions ---
+
 def as_ufl(o):
-    "Returns o if it is an Expr or an Expr wrapper if o is a scalar."  
-    if is_python_scalar(o):
-        return float_value(o)
+    "Returns expression if it is an Expr or an Expr wrapper (FloatValue, ZeroType) if it is a scalar."
+    if isinstance(o, float):  
+        o = FloatValue(o)
+    elif isinstance(o, int):  
+        o = IntValue(o)
     ufl_assert(isinstance(o, Expr), "Expecting Python scalar or Expr instance.")
     return o
-    

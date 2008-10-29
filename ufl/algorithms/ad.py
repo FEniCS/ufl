@@ -3,13 +3,13 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-19-- 2008-10-24"
+__date__ = "2008-08-19-- 2008-10-29"
 
 from ..output import ufl_assert, ufl_error, ufl_warning
 from ..common import product, unzip, UFLTypeDefaultDict
 
 # All classes:
-from ..base import Expr, Terminal, FloatValue
+from ..base import Expr, Terminal, FloatValue, IntValue
 from ..base import ZeroType, is_zero, zero, zero_tensor # Experimental!
 from ..variable import Variable
 from ..finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
@@ -98,8 +98,8 @@ def diff_handlers():
     d[ComponentTensor] = diff_tensor
     
     def diff_sum(x, *ops):
-        return (sum(o[0] for o in ops if not is_zero(o[0])),
-                sum(o[1] for o in ops if not is_zero(o[1])))
+        return (sum((o[0] for o in ops[1:]), ops[0][0]),
+                sum((o[1] for o in ops[1:]), ops[0][1]))
     d[Sum] = diff_sum
     
     def diff_product(x, *ops):
@@ -299,7 +299,7 @@ def compute_diff(expression, var): # FIXME: Is this correct? Don't understand ho
         return (w, wdiff)
     handlers[Diff] = diff_diff
     
-    _1 = FloatValue(1.0)
+    _1 = IntValue(1)
     def diff_variable(x):
         if x is var:
             return (x, _1)

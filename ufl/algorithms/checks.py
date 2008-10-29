@@ -10,26 +10,8 @@ __date__ = "2008-03-14 -- 2008-10-23"
 from ..output import UFLException, ufl_error, ufl_assert, ufl_info, ufl_warning
 from ..base import is_python_scalar, is_scalar, is_true_scalar
 
-# ALl classes:
-from ..base import Expr, Terminal, FloatValue, ZeroType
-from ..variable import Variable
-from ..finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
-from ..basisfunction import BasisFunction
-from ..function import Function
-#from ..basisfunctions import TestFunction, TrialFunction, BasisFunctions, TestFunctions, TrialFunctions
-from ..geometry import FacetNormal
-from ..indexing import MultiIndex, Indexed
-#from ..indexing import Index, FixedIndex, AxisType, as_index, as_index_tuple, extract_indices
-from ..tensors import ListTensor, ComponentTensor
-from ..algebra import Sum, Product, Division, Power, Abs
-from ..tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
-from ..mathfunctions import MathFunction
-from ..restriction import Restricted, PositiveRestricted, NegativeRestricted
-from ..differentiation import SpatialDerivative, Diff, Grad, Div, Curl, Rot
-from ..conditional import EQ, NE, LE, GE, LT, GT, Conditional
+# All classes:
 from ..form import Form
-from ..integral import Integral
-
 from ..finiteelement import _domain2dim
 
 # Other algorithms
