@@ -8,7 +8,7 @@ from __future__ import absolute_import
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __date__ = "2008-04-09 -- 2008-10-29"
 
-from .base import ScalarValue, as_ufl
+from .base import ZeroType, ScalarValue, as_ufl
 from .differentiation import Diff, Grad, Div, Curl, Rot
 from .tensoralgebra import Transposed, Inner, Outer, Dot, Cross, Determinant, Inverse, Cofactor, Trace, Deviatoric, Skew
 from .variable import Variable
