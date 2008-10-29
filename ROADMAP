@@ -8,6 +8,10 @@ Some of the TODO's left:
   - Algorithms for form compiler use
   - Missing form-level transformations
 
+# Expression simplifications:
+ - Detect constants and zeros in all operators, e.g. differential operators, math functions, ..., may not need to do with compounds though.
+ - Sort expressions by repr in Product and Sum?
+
 # Derivatives:
  - Rename Diff to e.g. VariableDerivative?
  - Consider the results of splitting class Variable into two classes Variable (non-terminal, for Diff) and Token (terminal, for building code structure)
@@ -19,11 +23,9 @@ Some of the TODO's left:
 
 # Algorithms:
  - Update these algorithms with better Variable handling:
- 	- mark_duplications (needs variable cache)
- 	- expand_compounds (needs variable cache)
+ 	- mark_duplications (has some issues after adding variable cache)
  	- AD algorithms (needs variable cache and diff cache)
  	- split_by_dependencies (?)
- 	- ufl2latex (define variables from all integrals first)
  	- other?
  (- Implement contraction function that expands all implicit summations
     into Sums (do we need this? can be merged with evaluation anyway))
