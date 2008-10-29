@@ -17,8 +17,6 @@ class MathFunction(Expr):
     # Freeze member variables for objects in this class
     __slots__ = ("_name", "_argument")
     def __init__(self, name, argument):
-        argument = as_ufl(argument)
-        # TODO: if isinstance(argument, FloatValue): ...
         ufl_assert(is_true_scalar(argument), "Expecting scalar argument.")
         self._name     = name
         self._argument = argument
