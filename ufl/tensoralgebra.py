@@ -232,9 +232,9 @@ class Cross(Expr):
 class Trace(Expr):
     __slots__ = ("_A",)
 
-    def __new__(cls, a, b):
-        if isinstance(a, ZeroType) or isinstance(b, ZeroType):
-            ufl_warning("Returning zero from Trace not implemented.")
+    def __new__(cls, A):
+        if isinstance(A, ZeroType):
+            return ZeroType(())
         return Terminal.__new__(cls)
 
     def __init__(self, A):
@@ -260,7 +260,7 @@ class Determinant(Expr):
     __slots__ = ("_A",)
 
     def __new__(cls, A):
-        if isinstance(a, ZeroType) or isinstance(b, ZeroType):
+        if isinstance(A, ZeroType):
             return ZeroType(())
         return Terminal.__new__(cls)
 
