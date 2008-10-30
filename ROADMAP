@@ -9,8 +9,10 @@ Some of the TODO's left:
   - Missing form-level transformations
 
 # Expression simplifications:
- - Detect constants and zeros in all operators, e.g. differential operators, math functions, ..., may not need to do with compounds though.
- - Sort expressions by repr in Product and Sum?
+ - Figure out implications of a Variable with free indices and make a decision...
+ - Sort expressions by something (e.g. repr) in Product and Sum?
+ - Detect zeros in all operators, some may still be missing.
+ [- Detect non-zero constants in all operators? I think we should leave some parts to the form compilers...]
 
 # Derivatives:
  - Apply AD to computation of
