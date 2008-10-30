@@ -9,8 +9,7 @@ from ..output import ufl_assert, ufl_error, ufl_warning
 from ..common import product, unzip, UFLTypeDefaultDict
 
 # All classes:
-from ..base import Expr, Terminal, FloatValue, IntValue
-from ..base import ZeroType, is_zero, zero, zero_tensor # Experimental!
+from ..base import Expr, Terminal, FloatValue, IntValue, ZeroType
 from ..variable import Variable
 from ..finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
 from ..basisfunction import BasisFunction, BasisFunctions
@@ -61,7 +60,7 @@ def diff_handlers():
     # Depending on the context, override this with custom rules for
     # non-zero derivatives.
     def lift(x):
-        return (x, zero_tensor(x.shape()))
+        return (x, ZeroType(x.shape()))
     for c in terminal_classes:
         d[c] = lift
     
@@ -92,8 +91,8 @@ def diff_handlers():
     
     def diff_tensor(x, *ops):
         A, i = ops
-        if is_zero(A[1]):
-            return (x, zero_tensor(x.shape()))
+        if isinstance(A[1], ZeroType):
+            return (x, ZeroType(x.shape()))
         return (x, ComponentTensor(A[1], i[0]) )
     d[ComponentTensor] = diff_tensor
     
@@ -103,7 +102,7 @@ def diff_handlers():
     d[Sum] = diff_sum
     
     def diff_product(x, *ops):
-        fp = zero_tensor(x.shape())
+        fp = ZeroType(x.shape())
         ops0, ops1 = unzip(ops)
         for (i,o) in enumerate(ops):
             # replace operand i with its differentiated value 
@@ -111,7 +110,7 @@ def diff_handlers():
             # simplify by ignoring ones
             fpoperands = [o for o in fpoperands if not o == 1]
             # simplify if there are zeros in the product
-            if not any(is_zero(o) for o in fpoperands):
+            if not any(isinstance(o, ZeroType) for o in fpoperands):
                 fp += product(fpoperands)
         return (x, fp)
     d[Product] = diff_product
@@ -128,19 +127,19 @@ def diff_handlers():
         g, gp = ops[1]
         ufl_assert(f.rank() == 0 and g.rank() == 0, "Expecting scalar expressions f,g in f**g.")
         # x = f**g
-        f_const = is_zero(fp)
-        g_const = is_zero(gp)
+        f_const = isinstance(fp, ZeroType)
+        g_const = isinstance(gp, ZeroType)
         # Case: x = const ** const = const
         if f_const and g_const:
-            return (x, zero())
+            return (x, ZeroType(()))
         # Case: x = f(x) ** const
         if g_const:
             # x' = g f'(x) f(x)**(g-1)
-            if is_zero(g) or is_zero(f) or f_const:
-                return (x, zero())
+            if isinstance(g, ZeroType) or isinstance(f, ZeroType) or f_const:
+                return (x, ZeroType(()))
             return (x, g*fp*f**(g-1.0))
         # Case: x = f ** g(x)
-        if is_zero(fp):
+        if isinstance(fp, ZeroType):
             return (x, gp*ln(f)*x)
         ufl_error("diff_power not implemented for case d/dx [ f(x)**g(x) ].")
         return (x, FIXME)
@@ -210,32 +209,32 @@ def diff_handlers():
     # Mathfunctions:
     def diff_sqrt(x, *ops):
         f, fp = ops[0]
-        if is_zero(fp): return (x, zero())
+        if isinstance(fp, ZeroType): return (x, ZeroType(()))
         return (x, 0.5*fp/sqrt(f))
     d[Sqrt] = diff_sqrt
     
     def diff_exp(x, *ops):
         f, fp = ops[0]
-        if is_zero(fp): return (x, zero())
+        if isinstance(fp, ZeroType): return (x, ZeroType(()))
         return (x, fp*exp(f))
     d[Exp] = diff_exp
     
     def diff_ln(x, *ops):
         f, fp = ops[0]
-        if is_zero(fp): return (x, zero())
-        ufl_assert(not is_zero(f), "Division by zero.")
+        if isinstance(fp, ZeroType): return (x, ZeroType(()))
+        ufl_assert(not isinstance(f, ZeroType), "Division by zero.")
         return (x, fp/f)
     d[Ln] = diff_ln
     
     def diff_cos(x, *ops):
         f, fp = ops[0]
-        if is_zero(fp): return (x, zero())
+        if isinstance(fp, ZeroType): return (x, ZeroType(()))
         return (x, -fp*sin(f))
     d[Cos] = diff_cos
     
     def diff_sin(x, *ops):
         f, fp = ops[0]
-        if is_zero(fp): return (x, zero())
+        if isinstance(fp, ZeroType): return (x, ZeroType(()))
         return (x, fp*cos(f))
     d[Sin] = diff_sin
 
@@ -275,12 +274,12 @@ def diff_handlers():
     d[GT] = diff_condition
     def diff_conditional(x, *ops):
         c, l, r = ops
-        if not is_zero(c[1]):
+        if not isinstance(c[1], ZeroType):
             ufl_warning("Differentiating a conditional with a condition "\
                 "that depends on the differentiation variable."\
                 "This is probably not a good idea!")
-        if is_zero(l[1]) and is_zero(r[1]):
-            return (x, zero_tensor(x.shape()))
+        if isinstance(l[1], ZeroType) and isinstance(r[1], ZeroType):
+            return (x, ZeroType(x.shape()))
         return (x, conditional(c[0], l[1], r[1]))
     d[Conditional] = diff_conditional
     
@@ -363,7 +362,7 @@ def compute_form_derivative(form, function, basisfunction):
         for (w, wprime) in functions:
             if x == w:
                 return (w, wprime)
-        return (x, zero_tensor(x.shape()))
+        return (x, ZeroType(x.shape()))
     handlers[Function] = diff_function
     
     def diff_variable(x):

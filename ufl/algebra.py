@@ -5,7 +5,7 @@ from ufl.indexing import DefaultDim
 from decimal import DivisionByZero
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2008-10-29"
+__date__ = "2008-05-20 -- 2008-10-30"
 
 # Modified by Anders Logg, 2008
 
@@ -14,7 +14,7 @@ from itertools import chain
 from .output import ufl_assert, ufl_error
 from .common import product
 from .base import Expr, ZeroType, ScalarValue, FloatValue, IntValue
-from .base import zero_tensor, zero, is_true_scalar, is_python_scalar, as_ufl
+from .base import is_true_scalar, is_python_scalar, as_ufl
 from .indexing import extract_indices, compare_shapes
 
 #--- Algebraic operators ---
@@ -54,7 +54,7 @@ class Sum(Expr):
         
         # have we purged everything? (TODO: can this ever happen?) 
         if len(operands) == 0:
-            return zero_tensor(sh)
+            return ZeroType(sh)
         
         # left with one operand only?
         if len(operands) == 1:
@@ -98,7 +98,7 @@ class Product(Expr):
         
         # simplify if zero
         if any(o == 0 for o in operands):
-            return zero()
+            return ZeroType(())
         
         # merge scalars, but keep nonscalars sorted
         scalars = [o for o in operands if isinstance(o, ScalarValue)]

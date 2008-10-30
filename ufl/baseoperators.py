@@ -5,11 +5,11 @@ Sum and its superclass Expr."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-18 -- 2008-10-29"
+__date__ = "2008-08-18 -- 2008-10-30"
 
 # UFL imports
 from .output import ufl_error, ufl_assert
-from .base import Expr, ZeroType, ScalarValue, FloatValue, IntValue, is_python_scalar, is_zero, zero_tensor, as_ufl
+from .base import Expr, ZeroType, ScalarValue, FloatValue, IntValue, is_python_scalar, as_ufl
 from .algebra import Sum, Product, Division, Power, Abs
 from .tensoralgebra import Transposed, Dot
 from .indexing import Indexed
@@ -55,8 +55,8 @@ def _mult(a, b):
     # - matrix-vector (A*v) => A . v
     if len(s1) == 2 and (len(s2) == 2 or len(s2) == 1):
         shape = s1[:-1] + s2[1:]
-        if is_zero(a) or is_zero(b):
-            return zero_tensor(shape)
+        if isinstance(a, ZeroType) or isinstance(b, ZeroType):
+            return ZeroType(shape)
         return Dot(a, b)
         # TODO: Use index notation instead here?
         #i = Index()
@@ -115,8 +115,8 @@ Expr.__abs__ = _abs
 
 def _getitem(self, key):
     a = Indexed(self, key)
-    if is_zero(self):
-        return zero_tensor(a.shape())
+    if isinstance(self, ZeroType):
+        return ZeroType(a.shape())
     return a
 Expr.__getitem__ = _getitem
 

@@ -141,10 +141,26 @@ class Terminal(Expr):
 
 #--- Zero tensors of different shapes ---
 
+_zero_cache = {}
 class ZeroType(Terminal):
     __slots__ = ("_shape",)
-    def __init__(self, shape):
+    
+    def __new__(cls, shape):
+        global _zero_cache
+        # check cache to reuse objects
+        z = _zero_cache.get(shape, None)
+        if z is not None: return z
+        # construct new instance
+        self = Terminal.__new__(cls)
+        self._init(shape)
+        _zero_cache[shape] = self
+        return self
+    
+    def _init(self, shape):
         self._shape = shape
+    
+    def __init__(self, shape):
+        pass
     
     def free_indices(self):
         return ()
@@ -170,20 +186,6 @@ class ZeroType(Terminal):
 
     def __nonzero__(self):
         return False 
-
-_zero_cache = {}
-def zero_tensor(shape):
-    z = _zero_cache.get(shape, None)
-    if z is None:
-        z = ZeroType(shape)
-        _zero_cache[shape] = z
-    return z
-
-def zero():
-    return zero_tensor(())
-
-def is_zero(expression):
-    return isinstance(expression, ZeroType) or expression == 0
 
 #--- "Low level" scalar types ---
 
@@ -240,7 +242,7 @@ class FloatValue(ScalarValue):
     def __new__(cls, value):
         ufl_assert(is_python_scalar(value), "Expecting Python scalar.")
         if value == 0:
-            return zero()
+            return ZeroType(())
         return ScalarValue.__new__(cls, value)
     
     def __init__(self, value):
@@ -262,7 +264,7 @@ class IntValue(ScalarValue):
     def __new__(cls, value):
         ufl_assert(is_python_scalar(value), "Expecting Python scalar.")
         if value == 0:
-            return zero()
+            return ZeroType(())
         return ScalarValue.__new__(cls, value)
     
     def __init__(self, value):
