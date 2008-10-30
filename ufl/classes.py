@@ -5,7 +5,7 @@ implementation details not exposed through the default ufl namespace."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-15 -- 2008-10-29"
+__date__ = "2008-08-15 -- 2008-10-30"
 
 # Modified by Anders Logg, 2008
 
@@ -22,7 +22,7 @@ from .algebra import Sum, Product, Division, Power, Abs
 from .tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
 from .mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
 from .restriction import Restricted, PositiveRestricted, NegativeRestricted
-from .differentiation import SpatialDerivative, Diff, Grad, Div, Curl, Rot
+from .differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot
 from .conditional import Condition, EQ, NE, LE, GE, LT, GT, Conditional
 from .form import Form
 from .integral import Integral

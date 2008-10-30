@@ -1,9 +1,9 @@
-"""Differential operators. Needs work!"""
+"Differential operators."
 
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-21"
+__date__ = "2008-03-14 -- 2008-10-30"
 
 from .output import ufl_assert
 from .base import Expr
@@ -11,11 +11,7 @@ from .indexing import MultiIndex, Index, DefaultDim, extract_indices
 from .variable import Variable
 from .tensors import as_tensor
 
-
-# FIXME: This file is not ok! Needs more work!
-
-
-#--- Differentiation ---
+#--- Basic differentiation objects ---
 
 class SpatialDerivative(Expr):
     "Partial derivative of an expression w.r.t. spatial directions given by indices."
@@ -65,20 +61,19 @@ class SpatialDerivative(Expr):
     def __repr__(self):
         return "SpatialDerivative(%r, %r)" % (self._expression, self._indices)
 
-
-class Diff(Expr):
+class VariableDerivative(Expr):
     __slots__ = ("_f", "_x", "_index", "_free_indices", "_shape")
     
     def __init__(self, f, x):
-        ufl_assert(isinstance(f, Expr), "Expecting an Expr in Diff.")
+        ufl_assert(isinstance(f, Expr), "Expecting an Expr in VariableDerivative.")
         ufl_assert(isinstance(x, Variable), \
-            "Expecting a Variable in Diff.") # FIXME: Generalize somehow, should allow indexed variables and containers with variables!
+            "Expecting a Variable in VariableDerivative.") # FIXME: Generalize somehow, should allow indexed variables and containers with variables!
         self._f = f
         self._x = x
         fi = f.free_indices()
         xi = x.free_indices()
         ufl_assert(len(set(fi) ^ set(xi)) == 0, \
-            "Repeated indices not allowed in Diff.")
+            "Repeated indices not allowed in VariableDerivative.")
         self._free_indices = tuple(fi + xi)
         self._shape = f.shape() + x.shape()
     
@@ -95,8 +90,9 @@ class Diff(Expr):
         return "(d[%s] / d[%s])" % (self._f, self._x)
 
     def __repr__(self):
-        return "Diff(%r, %r)" % (self._f, self._x)
+        return "VariableDerivative(%r, %r)" % (self._f, self._x)
 
+#--- Compound differentiation objects ---
 
 class Grad(Expr):
     __slots__ = ("_f",)
@@ -120,7 +116,6 @@ class Grad(Expr):
     
     def __repr__(self):
         return "Grad(%r)" % self._f
-
 
 class Div(Expr):
     __slots__ = ("_f",)
@@ -146,7 +141,6 @@ class Div(Expr):
     def __repr__(self):
         return "Div(%r)" % self._f
 
-
 class Curl(Expr):
     __slots__ = ("_f",)
 
@@ -170,7 +164,6 @@ class Curl(Expr):
     
     def __repr__(self):
         return "Curl(%r)" % self._f
-
 
 class Rot(Expr):
     __slots__ = ("_f",)

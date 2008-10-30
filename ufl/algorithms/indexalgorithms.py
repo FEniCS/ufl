@@ -4,7 +4,7 @@ with indices in an expression."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-10-24"
+__date__ = "2008-05-07 -- 2008-10-30"
 
 from ..output import ufl_assert, ufl_error
 
@@ -12,7 +12,7 @@ from ..output import ufl_assert, ufl_error
 from ..base import Expr
 from ..indexing import MultiIndex, Index
 from ..algebra import Product
-from ..differentiation import SpatialDerivative, Diff
+from ..differentiation import SpatialDerivative, VariableDerivative
 
 # Other algorithms:
 from .transformations import ufl_reuse_handlers, transform
@@ -56,11 +56,11 @@ def expand_indices(expression):
     
     def e_partial_diff(x, *ops):
         return x # FIXME
-    d[PartialDiff] = e_partial_diff
+    d[PartialVariableDerivative] = e_partial_diff
     
     def e_diff(x, *ops):
         return x # FIXME
-    d[Diff] = e_diff
+    d[VariableDerivative] = e_diff
     
     return transform(expression, d)
 

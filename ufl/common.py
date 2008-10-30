@@ -1,7 +1,7 @@
 "This module contains a collection of common utilities."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-08-05 -- 2008-10-24"
+__date__ = "2008-08-05 -- 2008-10-30"
 
 from itertools import izip
 import operator
@@ -24,6 +24,16 @@ def or_tuples(seqa, seqb):
 def and_tuples(seqa, seqb):
     "Return 'and' of all pairs in two sequences of same length."
     return tuple(a and b for (a,b) in izip(seqa, seqb))
+
+def iter_tree(tree):
+    """Iterate over all nodes in a tree represented
+    by lists of lists of leaves."""
+    if isinstance(tree, list):
+        for node in tree:
+            for i in iter_tree(node):
+                yield i
+    else:
+        yield tree
 
 def split_dict(d, criteria):
     "Split a dict d into two dicts based on a criteria on the keys."

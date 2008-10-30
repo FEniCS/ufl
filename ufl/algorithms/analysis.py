@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-27"
+__date__ = "2008-03-14 -- 2008-10-30"
 
 # Modified by Anders Logg, 2008
 
@@ -21,7 +21,7 @@ from ..function import Function, Constant
 from ..tensors import ListTensor, ComponentTensor
 from ..tensoralgebra import Transposed, Inner, Dot, Outer, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor, Skew
 from ..restriction import PositiveRestricted, NegativeRestricted
-from ..differentiation import SpatialDerivative, Diff, Grad, Div, Curl, Rot
+from ..differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot
 from ..conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ..indexing import DefaultDimType, Indexed
 from ..form import Form
@@ -244,7 +244,7 @@ def extract_basisfunction_dependencies(expression):
         if b: raise NotMultiLinearException, repr(x)
         return a
     h[SpatialDerivative] = h_diff
-    h[Diff] = h_diff
+    h[VariableDerivative] = h_diff
 
     def h_variable(x):
         return extract_basisfunction_dependencies(x._expression)

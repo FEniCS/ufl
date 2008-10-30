@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-19-- 2008-10-29"
+__date__ = "2008-08-19-- 2008-10-30"
 
 from ..output import ufl_assert, ufl_error, ufl_warning
 from ..common import product, unzip, UFLTypeDefaultDict
@@ -22,7 +22,7 @@ from ..algebra import Sum, Product, Division, Power, Abs
 from ..tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
 from ..mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
 from ..restriction import Restricted, PositiveRestricted, NegativeRestricted
-from ..differentiation import SpatialDerivative, Diff, Grad, Div, Curl, Rot
+from ..differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot
 from ..conditional import EQ, NE, LE, GE, LT, GT, Conditional
 
 # Lists of all Expr classes
@@ -36,7 +36,7 @@ from .transformations import transform, transform_integrands
 
 
 # FIXME: Need algorithm to apply AD to all kinds of derivatives!
-#        In particular, SpatialDerivative, Diff and functional derivative.
+#        In particular, SpatialDerivative, VariableDerivative and functional derivative.
 
 # FIXME: Need some cache structures and callback to custum diff routine to implement diff with variable
 # - Check for diff of variable in some kind of cache
@@ -257,7 +257,7 @@ def diff_handlers():
         # TODO: Are there any issues with indices here? Not sure, think through it...
         return (x, type(x)(fp, v))
     d[SpatialDerivative] = diff_diff
-    d[Diff] = diff_diff
+    d[VariableDerivative] = diff_diff
     
     d[Grad] = diff_commute
     d[Div]  = diff_commute
@@ -289,7 +289,7 @@ def diff_handlers():
 
 def compute_diff(expression, var): # FIXME: Is this correct? Don't understand how I was thinking myself now...
     "Differentiate expression w.r.t Variable var."
-    ufl_assert(var is None or var.shape() == (), "Diff w.r.t. nonscalar variable not implemented.")
+    ufl_assert(var is None or var.shape() == (), "VariableDerivative w.r.t. nonscalar variable not implemented.")
     
     handlers = diff_handlers()
     
@@ -297,7 +297,7 @@ def compute_diff(expression, var): # FIXME: Is this correct? Don't understand ho
         w = compute_diff(x._expression, x._variable)
         wdiff = compute_diff(w, var)
         return (w, wdiff)
-    handlers[Diff] = diff_diff
+    handlers[VariableDerivative] = diff_diff
     
     _1 = IntValue(1)
     def diff_variable(x):
@@ -323,7 +323,7 @@ def compute_diff(expression, var): # FIXME: Is this correct? Don't understand ho
 
 
 def compute_variable_derivatives(form):
-    "Apply AD to form, expanding all Diff w.r.t variables."
+    "Apply AD to form, expanding all VariableDerivative w.r.t variables."
     def _compute_diff(expression):
         return compute_diff(expression, None)
     return transform_integrands(form, _compute_diff)

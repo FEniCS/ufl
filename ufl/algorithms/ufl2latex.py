@@ -5,7 +5,7 @@ converting UFL expressions to other representations."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-10-29"
+__date__ = "2008-05-07 -- 2008-10-30"
 
 # Modified by Anders Logg, 2008.
 
@@ -29,7 +29,7 @@ from ..algebra import Sum, Product, Division, Power, Abs
 from ..tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
 from ..mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
 from ..restriction import Restricted, PositiveRestricted, NegativeRestricted
-from ..differentiation import SpatialDerivative, Diff, Grad, Div, Curl, Rot
+from ..differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot
 from ..conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ..form import Form
 from ..integral import Integral
@@ -45,7 +45,7 @@ from .formdata import FormData
 from .transformations import transform
 
 
-# TODO: Must rewrite LaTeX expression compiler to handle parent before child.
+# TODO: Must rewrite LaTeX expression compiler to handle parent before child, to handle line wrapping, ListTensors of rank > 1, +++
 
 def latex_handlers(basisfunction_renumbering, coefficient_renumbering):
     # Show a clear error message if we miss some types here:
@@ -123,7 +123,7 @@ def latex_handlers(basisfunction_renumbering, coefficient_renumbering):
         nom = r"\partial\left[%s\right]" % f
         denom = r"\partial\left[%s\right]" % v
         return r"\frac{%s}{%s}" % (nom, denom)
-    d[Diff] = l_diff
+    d[VariableDerivative] = l_diff
     
     d[Grad] = lambda x, f: "\\nabla{%s}" % par(f)
     d[Div]  = lambda x, f: "\\nabla{\\cdot %s}" % par(f)

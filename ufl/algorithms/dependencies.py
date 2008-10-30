@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-10-01 -- 2008-10-27"
+__date__ = "2008-10-01 -- 2008-10-30"
 
 from collections import defaultdict
 from itertools import izip, chain
@@ -100,7 +100,7 @@ class VariableInfo:
         self.variable = variable
         # DependencySet
         self.deps = deps
-        # DiffVarSet -> VariableInfo
+        # VariableDerivativeVarSet -> VariableInfo
         self.diffcache = {}
     
     def __str__(self):
@@ -113,7 +113,7 @@ class VariableInfo:
         s += "\n}"
         return s
 
-class DiffVarSet: # TODO: Use this?
+class VariableDerivativeVarSet: # TODO: Use this?
     def __init__(self):
         self.fixed_spatial_directions = set() # Set of integer indices
         self.open_spatial_directions = set() # Set of Index objects that the stored expression uses for d/dx_i

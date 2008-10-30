@@ -6,10 +6,10 @@ objects."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-04-09 -- 2008-10-29"
+__date__ = "2008-04-09 -- 2008-10-30"
 
 from .base import ZeroType, ScalarValue, as_ufl
-from .differentiation import Diff, Grad, Div, Curl, Rot
+from .differentiation import VariableDerivative, Grad, Div, Curl, Rot
 from .tensoralgebra import Transposed, Inner, Outer, Dot, Cross, Determinant, Inverse, Cofactor, Trace, Deviatoric, Skew
 from .variable import Variable
 from .conditional import EQ, NE, LE, GE, LT, GT, Conditional
@@ -74,7 +74,7 @@ def Dt(f):
 
 def diff(f, x):
     "The derivative of f with respect to the variable x."
-    return Diff(f, x)
+    return VariableDerivative(f, x)
 
 def grad(f):
     "The gradient of f."
