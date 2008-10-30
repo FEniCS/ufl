@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2008-10-27"
+__date__ = "2008-05-20 -- 2008-10-30"
 
 from collections import defaultdict
 from .common import Counted
@@ -25,6 +25,7 @@ class Variable(Terminal, Counted):
     def __init__(self, expression, count=None):
         Counted.__init__(self, count)
         ufl_assert(isinstance(expression, Expr), "Expecting an Expr.")
+        ufl_assert(not expression.free_indices(), "Cannot make variable of expression with free indices, or do we want this?")
         self._expression = expression
         self._diffcache = defaultdict(list)
     
@@ -32,7 +33,7 @@ class Variable(Terminal, Counted):
         return ()
     
     def free_indices(self):
-        return self._expression.free_indices()
+        return () #self._expression.free_indices()
     
     def shape(self):
         return self._expression.shape()

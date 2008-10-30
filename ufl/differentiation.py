@@ -6,16 +6,31 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-10-30"
 
 from .output import ufl_assert
-from .base import Expr
+from .base import Expr, Terminal, ScalarValue, ZeroType
 from .indexing import MultiIndex, Index, DefaultDim, extract_indices
 from .variable import Variable
 from .tensors import as_tensor
+from .tensoralgebra import Identity
+from .function import Function, Constant, VectorConstant, TensorConstant
 
 #--- Basic differentiation objects ---
 
 class SpatialDerivative(Expr):
     "Partial derivative of an expression w.r.t. spatial directions given by indices."
     __slots__ = ("_expression", "_shape", "_indices", "_free_indices", "_repeated_indices", "_dx_free_indices", "_dx_repeated_indices")
+    def __new__(cls, expression, indices):
+        if isinstance(expression, Terminal):
+            # Return zero if expression is trivially 
+            # constant, and there are no free indices.
+            # (there are no expression.free_indices() in terminal types)
+            ind = [i for i in indices if isinstance(i, Index)]
+            si = set(ind)
+            if len(ind) == 2*len(si):
+                constant_types = (ScalarValue, ZeroType, Identity, Constant, VectorConstant, TensorConstant) # FacetNormal: not for higher order geometry!
+                if isinstance(expression, constant_types):
+                    return ZeroType(expression.shape())
+        return Expr.__new__(cls)
+    
     def __init__(self, expression, indices):
         self._expression = expression
         
@@ -63,6 +78,15 @@ class SpatialDerivative(Expr):
 
 class VariableDerivative(Expr):
     __slots__ = ("_f", "_x", "_index", "_free_indices", "_shape")
+    def __new__(cls, f, x):
+        # Return zero if expression is trivially independent 
+        # of Function, and there are no free indices
+        if (not isinstance(f, Function)) and isinstance(f, Terminal):
+            # Remove repeated indices to get the free 
+            free_indices = set(f.free_indices()) ^ set(x.free_indices())
+            if not free_indices:
+                return ZeroType(f.shape())
+        return Expr.__new__(cls)
     
     def __init__(self, f, x):
         ufl_assert(isinstance(f, Expr), "Expecting an Expr in VariableDerivative.")
@@ -188,4 +212,3 @@ class Rot(Expr):
     
     def __repr__(self):
         return "Rot(%r)" % self._f
-

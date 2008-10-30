@@ -269,7 +269,7 @@ def form2latex(form, formname="a", newline = " \\\\ \n"):
     latex += "Form:\n"
     latex += ba
     latex += "%s(%s) = " % (formname, arguments, )
-
+    
     # Define integrals
     domain_strings = { "cell": "\\Omega",
                        "exterior_facet": "\\Gamma^{ext}",
