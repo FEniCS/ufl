@@ -13,13 +13,16 @@ Some of the TODO's left:
  - Sort expressions by repr in Product and Sum?
 
 # Derivatives:
- - Rename Diff to e.g. VariableDerivative?
- - Consider the results of splitting class Variable into two classes Variable (non-terminal, for Diff) and Token (terminal, for building code structure)
- - Apply AD to computation of Derivative, SpatialDiff and Diff.
- - Find a smart way to handle nested AD:
-    - Collapse nested SpatialDiff into a single SpatialDiff with multiple indices, sorted since they commute.
- - Use Variable during AD to cache subexpressions we can reuse. Do we want to do this on the single operation level or on groups of operations?
- - Figure out issues with diff w.r.t. tensor variable
+ - Apply AD to computation of
+    - SpatialDerivative (propagating to terminal nodes)
+        - Find a smart way to handle nested AD:
+            - Collapse nested SpatialDerivative into a single SpatialDerivative with multiple indices, sorted since they commute.
+    - VariableDerivative (no traces left afterwards)
+        - Figure out issues with diff w.r.t. tensor variable
+ - Use Variable during AD to cache subexpressions we can reuse.
+   Do we want to do this on the single operation level or on groups of operations?
+   Groups of operations where possible would be nice.
+ [Probably not: - Consider the results of splitting class Variable into two classes Variable (non-terminal, for VariableDerivative) and Token (terminal, for building code structure)]
 
 # Algorithms:
  - Update these algorithms with better Variable handling:

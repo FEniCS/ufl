@@ -43,9 +43,9 @@ from .variables import strip_variables, extract_variables, extract_duplications,
 from .dependencies import split_by_dependencies
 
 # Utilities for transforming complete Forms into other Forms
-from .formtransformations import compute_form_transpose, compute_form_action
+from .formtransformations import compute_form_adjoint, compute_form_action
 from .formtransformations import compute_form_lhs, compute_form_rhs
-from .formtransformations import compute_dirichlet_functional, compute_dual_form
+#from .formtransformations import compute_dirichlet_functional
 
 # Utilities for Automatic Functional Differentiation
 from .ad import compute_form_derivative, compute_diff, propagate_spatial_derivatives
