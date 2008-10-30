@@ -15,6 +15,8 @@ from .function import Function, Constant, VectorConstant, TensorConstant
 
 #--- Basic differentiation objects ---
 
+spatially_constant_types = (ScalarValue, ZeroType, Identity, Constant, VectorConstant, TensorConstant) # FacetNormal: not for higher order geometry!
+
 class SpatialDerivative(Expr):
     "Partial derivative of an expression w.r.t. spatial directions given by indices."
     __slots__ = ("_expression", "_shape", "_indices", "_free_indices", "_repeated_indices", "_dx_free_indices", "_dx_repeated_indices")
@@ -26,8 +28,7 @@ class SpatialDerivative(Expr):
             ind = [i for i in indices if isinstance(i, Index)]
             si = set(ind)
             if len(ind) == 2*len(si):
-                constant_types = (ScalarValue, ZeroType, Identity, Constant, VectorConstant, TensorConstant) # FacetNormal: not for higher order geometry!
-                if isinstance(expression, constant_types):
+                if isinstance(expression, spatially_constant_types):
                     return ZeroType(expression.shape())
         return Expr.__new__(cls)
     
@@ -81,7 +82,7 @@ class VariableDerivative(Expr):
     def __new__(cls, f, x):
         # Return zero if expression is trivially independent 
         # of Function, and there are no free indices
-        if (not isinstance(f, Function)) and isinstance(f, Terminal):
+        if (not isinstance(f, Variable)) and isinstance(f, Terminal):
             # Remove repeated indices to get the free 
             free_indices = set(f.free_indices()) ^ set(x.free_indices())
             if not free_indices:
@@ -120,6 +121,12 @@ class VariableDerivative(Expr):
 
 class Grad(Expr):
     __slots__ = ("_f",)
+
+    def __new__(cls, f):
+        # Return zero if expression is trivially constant
+        if isinstance(f, spatially_constant_types):
+            return ZeroType((DefaultDim,) + f.shape())
+        return Expr.__new__(cls)
     
     def __init__(self, f):
         self._f = f
@@ -144,6 +151,12 @@ class Grad(Expr):
 class Div(Expr):
     __slots__ = ("_f",)
 
+    def __new__(cls, f):
+        # Return zero if expression is trivially constant
+        if isinstance(f, spatially_constant_types):
+            return ZeroType(f.shape()[1:])
+        return Expr.__new__(cls)
+
     def __init__(self, f):
         ufl_assert(f.rank() >= 1, "Can't take the divergence of a scalar.")
         ufl_assert(len(f.free_indices()) == 0, \
@@ -167,9 +180,9 @@ class Div(Expr):
 
 class Curl(Expr):
     __slots__ = ("_f",)
-
+    
     def __init__(self, f):
-        ufl_assert(f.rank()== 1, "Need a vector.")
+        ufl_assert(f.rank() == 1, "Need a vector.")
         ufl_assert(len(f.free_indices()) == 0, \
             "TODO: Taking curl of an expression with free indices, should this be a valid expression? Please provide examples!")
         self._f = f
