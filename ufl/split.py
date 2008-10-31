@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-09"
+__date__ = "2008-03-14 -- 2008-10-31"
 
 # Modified by Anders Logg, 2008
 
@@ -38,8 +38,8 @@ def split(v):
         else:
             # FIXME: Handle general case
             # FIXME: Handle symmetries
+            size = product(shape) # FIXME: Ignoring symmetries here, is this ok?
             ufl_error("Don't know how to split functions with sub functions of rank %d (yet)." % rank)
-            size = product(shape) # TODO: Ignoring symmetries here, is this ok?
             
             def tensor_components(sh, off):
                 comp = []

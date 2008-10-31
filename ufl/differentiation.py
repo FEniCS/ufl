@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-30"
+__date__ = "2008-03-14 -- 2008-10-31"
 
 from .output import ufl_assert
 from .base import Expr, Terminal, ScalarValue, ZeroType
@@ -37,7 +37,7 @@ class SpatialDerivative(Expr):
         
         if not isinstance(indices, MultiIndex):
             # if constructed from repr
-            indices = MultiIndex(indices, len(indices)) # FIXME: Do we need len(indices)?
+            indices = MultiIndex(indices, len(indices)) # TODO: Do we need len(indices) in MultiIndex?
         self._indices = indices
         
         # Find free and repeated indices in the dx((i,i,j)) part
@@ -89,21 +89,26 @@ class VariableDerivative(Expr):
                 return ZeroType(f.shape())
         return Expr.__new__(cls)
     
-    def __init__(self, f, x):
+    def __init__(self, f, v):
         ufl_assert(isinstance(f, Expr), "Expecting an Expr in VariableDerivative.")
-        ufl_assert(isinstance(x, Variable), \
-            "Expecting a Variable in VariableDerivative.") # FIXME: Generalize somehow, should allow indexed variables and containers with variables!
+        if isinstance(v, Indexed):
+            ufl_assert(isinstance(v._expression, Variable), \
+                "Expecting a Variable in VariableDerivative.")
+            ufl_warning("diff(f, v[i]) probably isn't handled properly in all code.") # FIXME
+        else:
+            ufl_assert(isinstance(v, Variable), \
+                "Expecting a Variable in VariableDerivative.")
         self._f = f
-        self._x = x
+        self._v = v
         fi = f.free_indices()
-        xi = x.free_indices()
-        ufl_assert(len(set(fi) ^ set(xi)) == 0, \
-            "Repeated indices not allowed in VariableDerivative.")
-        self._free_indices = tuple(fi + xi)
-        self._shape = f.shape() + x.shape()
+        vi = v.free_indices()
+        ufl_assert(len(set(fi) ^ set(vi)) == 0, \
+            "Repeated indices not allowed in VariableDerivative.") # TODO: Allow diff(f[i], v[i])?
+        self._free_indices = tuple(fi + vi)
+        self._shape = f.shape() + v.shape()
     
     def operands(self):
-        return (self._f, self._x)
+        return (self._f, self._v)
     
     def free_indices(self):
         return self._free_indices
@@ -112,10 +117,10 @@ class VariableDerivative(Expr):
         return self._shape
     
     def __str__(self):
-        return "(d[%s] / d[%s])" % (self._f, self._x)
+        return "(d[%s] / d[%s])" % (self._f, self._v)
 
     def __repr__(self):
-        return "VariableDerivative(%r, %r)" % (self._f, self._x)
+        return "VariableDerivative(%r, %r)" % (self._f, self._v)
 
 #--- Compound differentiation objects ---
 

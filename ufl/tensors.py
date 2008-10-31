@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-31 -- 2008-10-27"
+__date__ = "2008-03-31 -- 2008-10-31"
 
 
 from .output import ufl_assert, ufl_warning
@@ -34,7 +34,7 @@ class ListTensor(Expr):
         
         indexset = set(e.free_indices())
         ufl_assert(all(len(indexset ^ set(sub.free_indices())) == 0 for sub in expressions), \
-            "FIXME: Can we combine subtensor expressions with different sets of free indices?")
+            "Can't combine subtensor expressions with different sets of free indices.") # TODO: Does this make sense?
     
     def operands(self):
         return self._expressions
@@ -58,7 +58,6 @@ class ListTensor(Expr):
     
     def __repr__(self):
         return "ListTensor(%s)" % ", ".join(repr(e) for e in self._expressions)
-
 
 class ComponentTensor(Expr):
     __slots__ = ("_expression", "_indices", "_free_indices", "_shape")
@@ -101,7 +100,6 @@ class ComponentTensor(Expr):
     
     def __repr__(self):
         return "ComponentTensor(%r, %r)" % (self._expression, self._indices)
-
 
 def as_tensor(expressions, indices = None):
     if indices is None:

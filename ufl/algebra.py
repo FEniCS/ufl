@@ -1,11 +1,9 @@
 """Basic algebra operations."""
 
 from __future__ import absolute_import
-from ufl.indexing import DefaultDim
-from decimal import DivisionByZero
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2008-10-30"
+__date__ = "2008-05-20 -- 2008-10-31"
 
 # Modified by Anders Logg, 2008
 
@@ -168,7 +166,7 @@ class Product(Expr):
     def repeated_index_dimensions(self, default_dim):
         d = {}
         for i in self._repeated_indices:
-            d[i] = default_dim # FIXME: Allow other dimensions here!
+            d[i] = default_dim # TODO: Allow other dimensions here!
         return d
     
     def __str__(self):

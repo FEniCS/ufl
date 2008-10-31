@@ -58,7 +58,7 @@ def _mult(a, b):
         if isinstance(a, ZeroType) or isinstance(b, ZeroType):
             return ZeroType(shape)
         return Dot(a, b)
-        # TODO: Use index notation instead here?
+        # TODO: Use index notation instead here? If * is used in algorithms _after_ expand_compounds has been applied, returning Dot here may cause problems.
         #i = Index()
         #return a[...,i]*b[i,...]
     

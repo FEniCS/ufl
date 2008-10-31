@@ -27,7 +27,7 @@ Roadmap for the development of UFL
  - Figure out implications of a Variable with free indices.
    How does various algorithms deal with this?
    Will it affect expression simplification?
- - Figure out issues with diff w.r.t. tensor variable.
+ - Figure out issues with diff w.r.t. tensor variable and indexed tensor variable.
  - Consider the results of splitting class Variable into two classes:
      - Variable (non-terminal, for VariableDerivative use)
      - Token (terminal, for building code structure)
@@ -54,7 +54,7 @@ Roadmap for the development of UFL
  - Detect zeros in all operators, some may still be missing.
 
 # Elements and Basisfunctions (only minor or rare issues left):
- - Implement 'Test/Trial/BasisFunctions' for general tensor subelement with arbitrary symmetries. FIXME: Need to agree on some numbering conventions here.
+ - Implement 'Test/Trial/BasisFunctions' for general tensor subelement with arbitrary symmetries (see split.py). Need to agree on some numbering conventions here.
  - Add Cell support for high order geometries?
      cell = Cell("triangle", 2)
      element = FiniteElement("CG", cell, 1)
