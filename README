@@ -10,6 +10,13 @@ Contributors:
   TODO: Add more people here.
 
 
+Installation
+------------
+
+Linux:
+  sudo python setup.py install
+
+
 Directories
 -----------
 
@@ -17,7 +24,7 @@ Directories
   All source code for the UFL implementation.
 
 - scripts/
-  Commandline utilities like "ufl-analyse" and "ufl2latex".
+  Commandline utilities like "ufl-analyse", "ufl2latex" and "ufl2pdf".
 
 - demo/
   Several ufl form files which demonstrates the use of the form language.
@@ -29,13 +36,6 @@ Directories
   Unit tests for the UFL implementation. Run all tests by typing "python test.py" inside the test/ directory.
 
 
-Installation
-------------
-
-Linux:
-  sudo python setup.py install
-
-
 Utilities
 ---------
 
@@ -45,8 +45,8 @@ For more information about the utilities, type
 after installation.
 
 
-Python modules
---------------
+About the Python modules
+------------------------
 
 The global namespace of the module ufl contains the entire UFL language:
   from ufl import *
@@ -65,12 +65,12 @@ the return value is a list of all forms found in the ufl file.
 Contact
 -------
 
+Send bug reports, feature requests, and questions to
+  ufl-dev@fenics.org
+
 The Mercurial source repository for UFL is located at
   http://www.fenics.org/hg/ufl
 
 A Wikipedia page exists at:
   http://www.fenics.org/wiki/ufl
-
-Send bug reports, feature requests, and questions to
-  ufl-dev@fenics.org
 

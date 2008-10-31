@@ -1,19 +1,6 @@
 Roadmap for the development of UFL
 ----------------------------------
 
-Some of the TODO's left:
-
-- Main issue groups:
-  - AD
-  - Algorithms for form compiler use
-  - Missing form-level transformations
-
-# Expression simplifications:
- - Figure out implications of a Variable with free indices and make a decision...
- - Sort expressions by something (e.g. repr) in Product and Sum?
- - Detect zeros in all operators, some may still be missing.
- [- Detect non-zero constants in all operators? I think we should leave some parts to the form compilers...]
-
 # Derivatives:
  - Apply AD to computation of
     - SpatialDerivative (propagating to terminal nodes)
@@ -23,17 +10,30 @@ Some of the TODO's left:
         - Figure out issues with diff w.r.t. tensor variable
  - Use Variable during AD to cache subexpressions we can reuse.
    Do we want to do this on the single operation level or on groups of operations?
-   Groups of operations where possible would be nice.
- [Probably not: - Consider the results of splitting class Variable into two classes Variable (non-terminal, for VariableDerivative) and Token (terminal, for building code structure)]
+   Groups of operations where possible would be best, e.g. same abstraction level as the input expression tree.
 
 # Algorithms:
  - Update these algorithms with better Variable handling:
  	- mark_duplications (has some issues after adding variable cache)
  	- AD algorithms (needs variable cache and diff cache)
- 	- split_by_dependencies (?)
+ 	- split_by_dependencies (might be SFC specific)
+    - replace_in_form (replace inside variables!)
  	- other?
  (- Implement contraction function that expands all implicit summations
-    into Sums (do we need this? can be merged with evaluation anyway))
+    into Sums (do we need this? can be merged with evaluation anyway) )
+ - Implement lhs, rhs, and other form transformations.
+
+# Various issues with Variable: (write down issues as they occur here to get a better overview!)
+ - Figure out implications of a Variable with free indices.
+   How does various algorithms deal with this?
+   Will it affect expression simplification?
+ - Figure out issues with diff w.r.t. tensor variable.
+ - Consider the results of splitting class Variable into two classes:
+     - Variable (non-terminal, for VariableDerivative use)
+     - Token (terminal, for building code structure)
+   One problem is that Variable needs to be identified by something,
+   currently a global counter, and algorithms that modify expression
+   trees needs 
 
 # Tensors:
  - ComponentTensor needs to get the dimensions of its expression 
@@ -42,9 +42,19 @@ Some of the TODO's left:
    which will be wrong in some cases. This is a tricky issue,
    but won't be a problem for most applications.
 
+# Expression simplifications:
+   (It is important not to modify existing subexpressions since it
+   removes information from the user which cannot be recovered.
+   Flattening sums and products does this, and makes detection of e.g.
+   "a + c" in "a + b + c" much more difficult.
+   The steps below are consistent with this design goal, and 
+   can in fact lead to easier detection of equal subexpressions.)
+ - Sort expressions by something (e.g. repr, must be independent of all external factors) in Product and Sum?
+ - Collapse "foo + foo" into "2*foo" without modifying foo.
+ - Detect zeros in all operators, some may still be missing.
+
 # Elements and Basisfunctions (only minor or rare issues left):
- - Implement 'Test/Trial/BasisFunctions' for general tensor subelement with arbitrary symmetries
-   FIXME: Need to agree on some numbering conventions here.
+ - Implement 'Test/Trial/BasisFunctions' for general tensor subelement with arbitrary symmetries. FIXME: Need to agree on some numbering conventions here.
  - Add Cell support for high order geometries?
      cell = Cell("triangle", 2)
      element = FiniteElement("CG", cell, 1)
@@ -55,8 +65,9 @@ Some of the TODO's left:
  - Keep or drop 'name' in Function? Can eventually pass it to UFC if we add a "form::coefficient_name(i)" function.
  - Degree range for quadrature elements?
 
-# Form-level operators:
- - Implement lhs, rhs, and other form transformations.
+# Prettyness and readability (low priority, but useful while debugging...):
+ - Rewrite ufl2latex as described in its comments.
+ - Use precedence list to improve parentesis use in __str__ and __repr__ and ufl2latex. 
 
 # Tests:
  - Write tests for the algorithms, ideally covering all code in multiple ways.
@@ -66,14 +77,11 @@ Some of the TODO's left:
  - Rewrite/improve all error messages (collect strings in separate file?)
  - Improve operator docstrings (use epydoc @param and @return?)
 
-# Prettyness and readability (can wait):
- - Improve parentesis use in __str__ and __repr__ and ufl2latex, use precedence list
-
-# Time derivatives (can wait):
+# Time derivatives (low priority):
  - Do we want something like Dt(u), Dtt(u), CR(a), FE(a), BE(a), TR(a, theta)?
  - Interesting in combination with time elements?
 
-# Physical units (can wait):
+# Physical units (very low priority):
  - Utility algorithms for validating the physical dimensions in a form.
    Input:
     - A form or expression
@@ -81,16 +89,33 @@ Some of the TODO's left:
       and physical units (using ScientificPython or something)
    Output:
     - Validation results (list of possible problems we can detect):
-        - Some operators require equal units in their operands, e.g. Sum.
-        - Some operators multiply the units, e.g. Product, Dot, Inner, etc.
-        - Some operators divide the units, e.g. Division, Inverse.
-        - Some operators require dimensionless operands, e.g. Exp, Ln.
+      - Some operators require equal units in their operands, e.g. Sum.
+      - Some operators multiply the units, e.g. Product, Dot, Inner, etc.
+      - Some operators divide the units, e.g. Division, Inverse.
+      - Some operators require dimensionless operands, e.g. Exp, Ln.
       These considerations are not necessarily errors, maybe some
       things can be defined as warnings. Also, we would have to add
       physical units to all terminals to make this truly useful.
 
 # License:
  - Which license do we pick? GPL3 or LGPL3?
+
+   I (Martin) chose GPL3 for now, but if another licence is
+   requested for a good reason I'm not a fanatic.
+   I would like to understand the implications of choosing
+   one over the other for a Python module. In particular, GPL can't
+   inhibit importing and using UFL in another library, right?
+   
+   What I want to achieve is this:
+   If someone wants to make modifications to UFL without sharing
+   them with the FEniCS community, and use their modified version in 
+   a proprietary library or program, they should at least pay for it.
+   Thus GPL seems the right choice. Does this inhibit any usage we want?
+
+   Of course, UFL will be a central part of FEniCS, so objections
+   from main developers in FEniCS will carry much weight even though
+   they are not UFL developers.
+
 
 * Notes by Anders (trying to make sense of the implementation)
 
@@ -99,6 +124,8 @@ Some of the TODO's left:
   ??   = Don't understand this module (yet)
   --   = Undecided
   hmm  = Skeptical
+
+Martin to Anders: I entered the new filenames below without comments.
 
   algebra.py              OK!
   base.py                 OK!
@@ -134,3 +161,51 @@ Some of the TODO's left:
   algorithms/transformations.py  --
   algorithms/traversal.py        --
   algorithms/utilities.py        Rename to algorithm(s).py
+
+New filenames:
+
+  algebra.py             --
+  baseoperators.py       --
+  base.py                --
+  basisfunction.py       --
+  classes.py             --
+  common.py              --
+  conditional.py         --
+  differentiation.py     --
+  elements.py            --
+  finiteelement.py       --
+  formoperators.py       --
+  form.py                --
+  function.py            --
+  geometry.py            --
+  indexing.py            --
+  __init__.py            --
+  integral.py            --
+  mathfunctions.py       --
+  objects.py             --
+  operators.py           --
+  output.py              --
+  permutation.py         --
+  restriction.py         --
+  split.py               --
+  tensoralgebra.py       --
+  tensors.py             --
+  variable.py            --
+
+  algorithms/
+    ad.py                    --
+    analysis.py              --
+    checks.py                --
+    dependencies.py          --
+    formdata.py              --
+    formfiles.py             --
+    formtransformations.py   --
+    indexalgorithms.py       --
+    __init__.py              --
+    predicates.py            --
+    printing.py              --
+    transformations.py       --
+    traversal.py             --
+    ufl2latex.py             --
+    variables.py             --
+
