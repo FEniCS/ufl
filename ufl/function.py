@@ -4,7 +4,7 @@ classes (functions), including Constant."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-09-21"
+__date__ = "2008-03-14 -- 2008-10-31"
 
 # Modified by Anders Logg, 2008
 
@@ -72,9 +72,9 @@ class Constant(Function):
 class VectorConstant(Function):
     __slots__ = ("_domain",)
 
-    def __init__(self, domain, name=None, count=None): # FIXME: Size
+    def __init__(self, domain, dim=None, name=None, count=None):
         self._domain = domain
-        element = VectorElement("DG", domain, 0)
+        element = VectorElement("DG", domain, 0, dim=dim)
         Function.__init__(self, element, name, count)
     
     def __str__(self):
@@ -89,9 +89,9 @@ class VectorConstant(Function):
 class TensorConstant(Function):
     __slots__ = ("_domain",)
 
-    def __init__(self, domain, name=None, count=None): # FIXME: Shape and symmetries
+    def __init__(self, domain, shape=None, symmetry=None, name=None, count=None):
         self._domain = domain
-        element = TensorElement("DG", domain, 0)
+        element = TensorElement("DG", domain, 0, shape=shape, symmetry=symmetry)
         Function.__init__(self, element, name, count)
     
     def __str__(self):
