@@ -8,7 +8,7 @@ __date__ = "2008-03-14 -- 2008-10-03"
 # Modified by Anders Logg, 2008
 
 from .output import ufl_assert, ufl_error
-from .base import is_true_scalar
+from .base import is_true_ufl_scalar
 from .form import Form
 
 class Integral(object):
@@ -36,7 +36,7 @@ class Integral(object):
     
     def __rmul__(self, other):
         ufl_assert(self._integrand is None, "Seems to be a bug in Integral.")
-        ufl_assert(is_true_scalar(other),   
+        ufl_assert(is_true_ufl_scalar(other),   
             "Trying to integrate expression of rank %d with free indices %r." \
             % (other.rank(), other.free_indices()))
         return Form( [Integral(self._domain_type, self._domain_id, other)] )

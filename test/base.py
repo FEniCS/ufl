@@ -6,7 +6,7 @@ __date__ = "2008-10-29 -- 2008-10-29"
 import unittest
 
 from ufl import *
-from ufl.base import ZeroType, FloatValue, IntValue, as_ufl
+from ufl.base import Zero, FloatValue, IntValue, as_ufl
 
 # disable log output
 import logging
@@ -19,8 +19,8 @@ class BaseTestCase(unittest.TestCase):
         pass
     
     def test_zero(self):
-        z1 = ZeroType(())
-        z2 = ZeroType(())
+        z1 = Zero(())
+        z2 = Zero(())
         z3 = as_ufl(0)
         z4 = as_ufl(0.0)
         z5 = FloatValue(0)

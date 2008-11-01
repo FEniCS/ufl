@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2008-10-31"
+__date__ = "2008-05-20 -- 2008-11-01"
 
 # Modified by Anders Logg, 2008
 
@@ -11,8 +11,8 @@ from itertools import chain
 
 from .output import ufl_assert, ufl_error
 from .common import product
-from .base import Expr, ZeroType, ScalarValue, FloatValue, IntValue
-from .base import is_true_scalar, is_python_scalar, as_ufl
+from .base import Expr, Zero, ScalarValue, FloatValue, IntValue
+from .base import is_true_ufl_scalar, is_python_scalar, as_ufl
 from .indexing import extract_indices, compare_shapes
 
 #--- Algebraic operators ---
@@ -35,7 +35,7 @@ class Sum(Expr):
             "Can't add expressions with different free indices.")
         
         # purge zeros
-        operands = [o for o in operands if not isinstance(o, ZeroType)]
+        operands = [o for o in operands if not isinstance(o, Zero)]
         
         # sort scalars to beginning and merge them
         scalars = [o for o in operands if isinstance(o, ScalarValue)]
@@ -45,14 +45,14 @@ class Sum(Expr):
             nonscalars = [o for o in operands if not isinstance(o, ScalarValue)]
             if not nonscalars:
                 return f
-            if isinstance(f, ZeroType):
+            if isinstance(f, Zero):
                 operands = nonscalars
             else:
                 operands = [f] + nonscalars
         
         # have we purged everything? (TODO: can this ever happen?) 
-        if len(operands) == 0:
-            return ZeroType(sh)
+        if not operands:
+            return Zero(sh)
         
         # left with one operand only?
         if len(operands) == 1:
@@ -92,11 +92,12 @@ class Product(Expr):
     
     def __new__(cls, *operands):
         ufl_assert(len(operands) >= 2, "Can't make product of nothing, should catch this before getting here.")
-        operands = [as_ufl(o) for o in operands]
-        
+
         # simplify if zero
         if any(o == 0 for o in operands):
-            return ZeroType(())
+            return Zero()
+
+        operands = [as_ufl(o) for o in operands]
         
         # merge scalars, but keep nonscalars sorted
         scalars = [o for o in operands if isinstance(o, ScalarValue)]
@@ -183,9 +184,9 @@ class Division(Expr):
         b = as_ufl(b)
 
         ufl_assert(b != 0, "Division by zero!")
-        ufl_assert(is_true_scalar(b), "Division by non-scalar.")
+        ufl_assert(is_true_ufl_scalar(b), "Division by non-scalar.")
         
-        if isinstance(a, ZeroType):
+        if isinstance(a, Zero):
             return a
         
         # TODO: Handling int/int specially here to avoid "2/3 == 0", do we want this?
@@ -232,7 +233,7 @@ class Power(Expr):
     def __new__(cls, a, b):
         a = as_ufl(a)
         b = as_ufl(b)
-        ufl_assert(is_true_scalar(a) and is_true_scalar(b),
+        ufl_assert(is_true_ufl_scalar(a) and is_true_ufl_scalar(b),
             "Non-scalar power not defined.")
         if isinstance(a, ScalarValue) and isinstance(b, ScalarValue):
             return as_ufl(a._value ** b._value)

@@ -16,7 +16,7 @@ from ..output import ufl_error, ufl_debug, ufl_warning
 from ..common import UFLTypeDefaultDict
 
 # All classes:
-from ..base import ZeroType, FloatValue, IntValue
+from ..base import Zero, FloatValue, IntValue
 from ..variable import Variable
 from ..basisfunction import BasisFunction
 from ..function import Function, Constant
@@ -64,7 +64,7 @@ def latex_handlers(basisfunction_renumbering, coefficient_renumbering):
         if x.shape() == ():
             return "0"
         return r"{\mathbf 0}"
-    d[ZeroType]      = l_zero
+    d[Zero]      = l_zero
     d[FloatValue]    = lambda x: "{%s}" % x._value
     d[IntValue]      = lambda x: "{%s}" % x._value
     d[FacetNormal]   = lambda x: "n"

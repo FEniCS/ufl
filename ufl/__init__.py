@@ -33,8 +33,7 @@ __version__ = "0.1"
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __copyright__ = __authors__ + " (2008)"
 __licence__ = "GPL3"
-__date__ = "2008-03-14 -- 2008-10-31"
-
+__date__ = "2008-03-14 -- 2008-11-01"
 
 ########## README
 # Imports here should be what the user sees when doing "from ufl import *",
@@ -42,7 +41,6 @@ __date__ = "2008-03-14 -- 2008-10-31"
 # This way we expose the language, the operation "grad", but less
 # of the implementation, the particular class "Grad".
 ##########
-
 
 # utility functions (product is the counterpart of the built-in python function sum, can be useful for users as well)
 from .common import product
@@ -103,4 +101,3 @@ from .objects import dx, ds, dS
 
 # constants
 from math import e, pi
-

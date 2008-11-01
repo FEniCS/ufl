@@ -5,11 +5,12 @@ Sum and its superclass Expr."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-18 -- 2008-10-30"
+__date__ = "2008-08-18 -- 2008-11-01"
 
 # UFL imports
 from .output import ufl_error, ufl_assert
-from .base import Expr, ZeroType, ScalarValue, FloatValue, IntValue, is_python_scalar, as_ufl
+from .base import Expr, Zero
+from .scalar import ScalarValue, FloatValue, IntValue, is_python_scalar, as_ufl, python_scalar_types
 from .algebra import Sum, Product, Division, Power, Abs
 from .tensoralgebra import Transposed, Dot
 from .indexing import Indexed
@@ -19,8 +20,7 @@ from .differentiation import SpatialDerivative
 
 #--- Extend Expr with algebraic operators ---
 
-from .base import _python_scalar_types
-_valid_types = (Expr,) + _python_scalar_types
+_valid_types = (Expr,) + python_scalar_types
 
 def _add(self, o):
     if not isinstance(o, _valid_types):
@@ -55,8 +55,8 @@ def _mult(a, b):
     # - matrix-vector (A*v) => A . v
     if len(s1) == 2 and (len(s2) == 2 or len(s2) == 1):
         shape = s1[:-1] + s2[1:]
-        if isinstance(a, ZeroType) or isinstance(b, ZeroType):
-            return ZeroType(shape)
+        if isinstance(a, Zero) or isinstance(b, Zero):
+            return Zero(shape)
         return Dot(a, b)
         # TODO: Use index notation instead here? If * is used in algorithms _after_ expand_compounds has been applied, returning Dot here may cause problems.
         #i = Index()
@@ -115,8 +115,8 @@ Expr.__abs__ = _abs
 
 def _getitem(self, key):
     a = Indexed(self, key)
-    if isinstance(self, ZeroType):
-        return ZeroType(a.shape())
+    if isinstance(self, Zero):
+        return Zero(a.shape())
     return a
 Expr.__getitem__ = _getitem
 

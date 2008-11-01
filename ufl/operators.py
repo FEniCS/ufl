@@ -8,7 +8,7 @@ from __future__ import absolute_import
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __date__ = "2008-04-09 -- 2008-10-30"
 
-from .base import ZeroType, ScalarValue, as_ufl
+from .base import Zero, ScalarValue, as_ufl
 from .differentiation import VariableDerivative, Grad, Div, Curl, Rot
 from .tensoralgebra import Transposed, Inner, Outer, Dot, Cross, Determinant, Inverse, Cofactor, Trace, Deviatoric, Skew
 from .variable import Variable
@@ -152,7 +152,7 @@ import math
 def _mathfunction(f, cls, fun):
     f = as_ufl(f)
     if isinstance(f, ScalarValue): return as_ufl(fun(f._value))
-    if isinstance(f, ZeroType): return as_ufl(fun(0))
+    if isinstance(f, Zero): return as_ufl(fun(0))
     return cls(f)
 
 def sqrt(f):

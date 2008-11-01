@@ -12,7 +12,7 @@ from ..output import ufl_assert, ufl_error, ufl_warning
 from ..common import UFLTypeDict
 
 # Classes:
-from ..base import Expr, ZeroType, FloatValue, IntValue 
+from ..base import Expr, Zero, FloatValue, IntValue 
 from ..indexing import MultiIndex
 from ..variable import Variable
 from ..classes import FacetNormal, Identity
@@ -74,7 +74,7 @@ def _mark_duplications(expression, handlers, variables, dups):
         return var
     
     # skip some types
-    skip_classes = (MultiIndex, ZeroType, FloatValue, IntValue, Identity)
+    skip_classes = (MultiIndex, Zero, FloatValue, IntValue, Identity)
     if isinstance(expression, skip_classes):
         return expression
     
@@ -137,7 +137,7 @@ def mark_duplications(expression):
     # Always reuse some constant types
     def m_reuse(x):
         return x
-    skip_classes = (MultiIndex, ZeroType, FloatValue, IntValue, Identity)
+    skip_classes = (MultiIndex, Zero, FloatValue, IntValue, Identity)
     for c in skip_classes:
         handlers[c] = m_reuse
     

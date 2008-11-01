@@ -3,12 +3,12 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-20 -- 2008-09-17"
+__date__ = "2008-08-20 -- 2008-11-01"
 
 from .output import ufl_assert, ufl_warning
-from .base import Expr, as_ufl
+from .base import Expr
+from .scalar import as_ufl
 from .indexing import compare_shapes
-
 
 #--- Condition classes --- 
 
