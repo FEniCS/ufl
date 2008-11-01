@@ -8,7 +8,7 @@ __date__ = "2008-03-14 -- 2008-10-03"
 # Modified by Anders Logg, 2008
 
 from .output import ufl_assert, ufl_error
-from .base import is_true_ufl_scalar
+from .scalar import is_true_ufl_scalar
 from .form import Form
 
 class Integral(object):

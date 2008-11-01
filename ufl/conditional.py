@@ -79,7 +79,6 @@ class GT(Condition):
     def __repr__(self):
         return "GT(%r, %r)" % (self._left, self._right)
 
-
 #--- Conditional expression (condition ? true_value : false_value) ---
 
 class Conditional(Expr):

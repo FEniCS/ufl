@@ -6,7 +6,8 @@ __date__ = "2008-10-29 -- 2008-10-29"
 import unittest
 
 from ufl import *
-from ufl.base import Zero, FloatValue, IntValue, as_ufl
+from ufl.zero import Zero
+from ufl.scalar import FloatValue, IntValue, as_ufl
 
 # disable log output
 import logging

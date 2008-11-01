@@ -3,12 +3,11 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-23"
+__date__ = "2008-03-14 -- 2008-11-01"
 
 # Modified by Anders Logg, 2008.
 
-from ..output import UFLException, ufl_error, ufl_assert, ufl_info, ufl_warning
-from ..base import is_python_scalar, is_ufl_scalar, is_true_ufl_scalar
+from ..output import ufl_assert, ufl_warning
 
 # All classes:
 from ..form import Form

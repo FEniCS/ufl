@@ -6,9 +6,10 @@ objects."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-04-09 -- 2008-10-30"
+__date__ = "2008-04-09 -- 2008-11-01"
 
-from .base import Zero, ScalarValue, as_ufl
+from .zero import Zero
+from .scalar import ScalarValue, as_ufl
 from .differentiation import VariableDerivative, Grad, Div, Curl, Rot
 from .tensoralgebra import Transposed, Inner, Outer, Dot, Cross, Determinant, Inverse, Cofactor, Trace, Deviatoric, Skew
 from .variable import Variable

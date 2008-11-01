@@ -6,7 +6,7 @@ __date__ = "2008-09-06 -- 2008-10-29"
 import unittest
 
 from ufl import *
-from ufl.base import as_ufl
+from ufl.scalar import as_ufl
 from ufl.classes import * 
 from ufl.algorithms import * 
 from ufl.indexing import DefaultDim

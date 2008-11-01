@@ -13,7 +13,9 @@ from ..output import ufl_assert, ufl_error, ufl_warning
 from ..permutation import compute_indices
 
 # All classes:
-from ..base import Expr, Terminal, Zero, FloatValue, IntValue
+from ..base import Expr, Terminal
+from ..zero import Zero
+from ..scalar import FloatValue, IntValue
 from ..variable import Variable
 from ..basisfunction import BasisFunction
 from ..function import Function, Constant

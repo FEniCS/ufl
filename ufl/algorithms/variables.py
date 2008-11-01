@@ -12,7 +12,9 @@ from ..output import ufl_assert, ufl_error, ufl_warning
 from ..common import UFLTypeDict
 
 # Classes:
-from ..base import Expr, Zero, FloatValue, IntValue 
+from ..base import Expr
+from ..zero import Zero
+from ..scalar import FloatValue, IntValue 
 from ..indexing import MultiIndex
 from ..variable import Variable
 from ..classes import FacetNormal, Identity

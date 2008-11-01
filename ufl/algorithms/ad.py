@@ -9,7 +9,9 @@ from ..output import ufl_assert, ufl_error, ufl_warning
 from ..common import product, unzip, UFLTypeDefaultDict
 
 # All classes:
-from ..base import Expr, Terminal, FloatValue, IntValue, Zero
+from ..base import Expr, Terminal
+from ..zero import Zero
+from ..scalar import FloatValue, IntValue
 from ..variable import Variable
 from ..finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
 from ..basisfunction import BasisFunction, BasisFunctions

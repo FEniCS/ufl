@@ -51,19 +51,16 @@ from .output import get_handler, get_logger, set_handler, UFLException
 # finite elements classes
 from .finiteelement import FiniteElement, MixedElement, VectorElement, TensorElement
 
-# predefined element families
+# hook to extend predefined element families
 from .elements import register_element #, ufl_elements
 
 # basis functions
-from .basisfunction import BasisFunction, TestFunction, TrialFunction
-from .basisfunction import BasisFunctions, TestFunctions, TrialFunctions
+from .basisfunction import BasisFunction, TestFunction, TrialFunction, \
+                           BasisFunctions, TestFunctions, TrialFunctions
 
-# functions
-from .function import Function, Functions
-from .function import Constant, VectorConstant, TensorConstant
-
-# types for geometric quantities
-from .geometry import FacetNormal
+# coefficient functions
+from .function import Function, Functions, \
+                      Constant, VectorConstant, TensorConstant
 
 # indexing of tensor expressions
 from .indexing import Index, indices
@@ -74,15 +71,19 @@ from . import baseoperators as __baseoperators
 # containers for expressions with value rank > 0
 from .tensors import as_tensor, as_vector, as_matrix
 
+# types for geometric quantities
+from .geometry import FacetNormal
+
 # tensor algebra operators
 from .tensoralgebra import Identity
 
 # operators
-from .operators import transpose, outer, inner, dot, cross, det, inv, tr, dev, cofac, skew
-from .operators import Dx, diff, grad, div, curl, rot, jump, avg, variable
-#from .operators import Dt
-from .operators import eq, ne, le, ge, lt, gt, conditional
-from .operators import sqrt, exp, ln, cos, sin
+from .operators import transpose, outer, inner, dot, cross, det, inv, tr, dev, cofac, skew, \
+                       sqrt, exp, ln, cos, sin, \
+                       eq, ne, le, ge, lt, gt, conditional, \
+                       jump, avg, \
+                       variable, \
+                       Dx, diff, grad, div, curl, rot #, Dt
 
 # form class
 from .form import Form
@@ -94,10 +95,10 @@ from .integral import Integral
 from .formoperators import derivative, action, rhs, lhs, adjoint #, dirichlet_functional
 
 # predefined convenience objects
-from .objects import interval, triangle, tetrahedron, quadrilateral, hexahedron
-from .objects import i, j, k, l, p, q, r, s
-from .objects import n
-from .objects import dx, ds, dS
+from .objects import interval, triangle, tetrahedron, quadrilateral, hexahedron, \
+                     i, j, k, l, p, q, r, s, \
+                     n, \
+                     dx, ds, dS
 
 # constants
 from math import e, pi

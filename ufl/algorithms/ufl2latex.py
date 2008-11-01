@@ -16,7 +16,8 @@ from ..output import ufl_error, ufl_debug, ufl_warning
 from ..common import UFLTypeDefaultDict
 
 # All classes:
-from ..base import Zero, FloatValue, IntValue
+from ..zero import Zero
+from ..scalar import FloatValue, IntValue
 from ..variable import Variable
 from ..basisfunction import BasisFunction
 from ..function import Function, Constant

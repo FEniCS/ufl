@@ -6,7 +6,8 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-11-01"
 
 from .output import ufl_assert
-from .base import Expr, Terminal, Zero
+from .base import Expr, Terminal
+from .zero import Zero
 from .indexing import Index, indices, compare_shapes
 
 

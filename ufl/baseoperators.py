@@ -9,7 +9,8 @@ __date__ = "2008-08-18 -- 2008-11-01"
 
 # UFL imports
 from .output import ufl_error, ufl_assert
-from .base import Expr, Zero
+from .base import Expr
+from .zero import Zero
 from .scalar import ScalarValue, FloatValue, IntValue, is_python_scalar, as_ufl, python_scalar_types
 from .algebra import Sum, Product, Division, Power, Abs
 from .tensoralgebra import Transposed, Dot

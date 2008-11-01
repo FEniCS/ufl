@@ -6,9 +6,10 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-11-01"
 
 from .output import ufl_assert
-from .base import Expr, Terminal, Zero
+from .base import Expr, Terminal
+from .zero import Zero
 from .scalar import ScalarValue
-from .indexing import MultiIndex, Index, DefaultDim, extract_indices
+from .indexing import Indexed, MultiIndex, Index, DefaultDim, extract_indices
 from .variable import Variable
 from .tensors import as_tensor
 from .tensoralgebra import Identity
@@ -79,13 +80,13 @@ class SpatialDerivative(Expr):
         return "SpatialDerivative(%r, %r)" % (self._expression, self._indices)
 
 class VariableDerivative(Expr):
-    __slots__ = ("_f", "_x", "_index", "_free_indices", "_shape")
-    def __new__(cls, f, x):
+    __slots__ = ("_f", "_v", "_index", "_free_indices", "_shape")
+    def __new__(cls, f, v):
         # Return zero if expression is trivially independent 
         # of Function, and there are no free indices
         if (not isinstance(f, Variable)) and isinstance(f, Terminal):
             # Remove repeated indices to get the free 
-            free_indices = set(f.free_indices()) ^ set(x.free_indices())
+            free_indices = set(f.free_indices()) ^ set(v.free_indices())
             if not free_indices:
                 return Zero(f.shape())
         return Expr.__new__(cls)

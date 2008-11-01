@@ -3,13 +3,14 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-31 -- 2008-10-31"
-
+__date__ = "2008-03-31 -- 2008-11-01"
 
 from .output import ufl_assert, ufl_warning
-from .base import Expr, as_ufl
+from .base import Expr
+from .scalar import as_ufl
 from .indexing import Index, MultiIndex, DefaultDim
 
+# --- Classes representing tensors of UFL expressions ---
 
 class ListTensor(Expr):
     __slots__ = ("_expressions", "_free_indices", "_shape")
@@ -100,6 +101,8 @@ class ComponentTensor(Expr):
     
     def __repr__(self):
         return "ComponentTensor(%r, %r)" % (self._expression, self._indices)
+
+# --- User-level functions to wrap expressions in the correct way ---
 
 def as_tensor(expressions, indices = None):
     if indices is None:

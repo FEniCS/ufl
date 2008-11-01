@@ -11,8 +11,9 @@ from itertools import chain
 
 from .output import ufl_assert, ufl_error
 from .common import product
-from .base import Expr, Zero, ScalarValue, FloatValue, IntValue
-from .base import is_true_ufl_scalar, is_python_scalar, as_ufl
+from .base import Expr
+from .zero import Zero
+from .scalar import ScalarValue, FloatValue, IntValue, is_true_ufl_scalar, is_python_scalar, as_ufl
 from .indexing import extract_indices, compare_shapes
 
 #--- Algebraic operators ---

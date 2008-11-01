@@ -3,12 +3,13 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-29"
+__date__ = "2008-03-14 -- 2008-11-01"
 
 # Modified by Anders Logg, 2008
 
 from .output import ufl_assert
-from .base import Expr, FloatValue, is_true_ufl_scalar, is_python_scalar, as_ufl
+from .base import Expr
+from .scalar import FloatValue, is_true_ufl_scalar, is_python_scalar, as_ufl
 
 #--- Function representations ---
 

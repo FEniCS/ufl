@@ -7,19 +7,20 @@ __date__ = "2008-11-01 -- 2008-11-01"
 
 from .output import ufl_assert
 from .base import Expr, Terminal
+from .zero import Zero
 
 #--- "Low level" scalar types ---
 
 int_type = int
 float_type = float
-_python_scalar_types = (int_type, float_type)
+python_scalar_types = (int_type, float_type)
 
 # TODO: Use high precision float from numpy?
 #try:
 #    import numpy
 #    int_type = numpy.int64
 #    float_type = numpy.float96
-#    _python_scalar_types += (int_type, float_type)
+#    python_scalar_types += (int_type, float_type)
 #except:
 #    pass
 
@@ -87,7 +88,7 @@ class IntValue(ScalarValue):
 
 def is_python_scalar(expression):
     "Return True iff expression is of a Python scalar type."
-    return isinstance(expression, _python_scalar_types)
+    return isinstance(expression, python_scalar_types)
 
 def is_ufl_scalar(expression):
     "Return True iff expression is scalar-valued, but possibly containing free indices."
@@ -95,7 +96,7 @@ def is_ufl_scalar(expression):
 
 def is_true_ufl_scalar(expression):
     "Return True iff expression is scalar-valued, with no free indices."
-    return isinstance(o, Expr) and not (expression.shape() or expression.free_indices())
+    return isinstance(expression, Expr) and not (expression.shape() or expression.free_indices())
 
 def as_ufl(expression):
     "Converts expression to an Expr if possible."
