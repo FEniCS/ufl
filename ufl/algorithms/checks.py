@@ -8,7 +8,7 @@ __date__ = "2008-03-14 -- 2008-10-23"
 # Modified by Anders Logg, 2008.
 
 from ..output import UFLException, ufl_error, ufl_assert, ufl_info, ufl_warning
-from ..base import is_python_scalar, is_scalar, is_true_scalar
+from ..base import is_python_scalar, is_ufl_scalar, is_true_ufl_scalar
 
 # All classes:
 from ..form import Form

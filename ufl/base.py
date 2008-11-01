@@ -109,7 +109,6 @@ class Expr(object):
         "Used for pickle and copy operations."
         return self.operands()
 
-
 #--- A note about other operators ---
 
 # More operators (special functions) on Exprs are defined in baseoperators.py,
@@ -123,6 +122,10 @@ class Terminal(Expr):
     
     def operands(self):
         "A Terminal object never has operands."
+        return ()
+    
+    def free_indices(self):
+        "A Terminal object never has free indices."
         return ()
     
     def __eq__(self, other):
@@ -162,9 +165,6 @@ class Zero(Terminal):
     def __init__(self, shape=()):
         pass
     
-    def free_indices(self):
-        return ()
-    
     def shape(self):
         return self._shape
     
@@ -187,105 +187,3 @@ class Zero(Terminal):
     def __nonzero__(self):
         return False 
 
-#--- "Low level" scalar types ---
-
-_python_scalar_types = (int, float,)
-
-float_type = float
-int_type = int
-
-# TODO: Use high precision float from numpy?
-#try:
-#    import numpy
-#    float_type = numpy.float96
-#    int_type = numpy. 
-#except:
-#    pass
-
-def is_python_scalar(o):
-    return isinstance(o, _python_scalar_types)
-
-def is_scalar(o):
-    "Return True iff expression is scalar-valued, possibly containing free indices."
-    ufl_assert(isinstance(o, Expr), "Assuming an Expr.")
-    return o.shape() == ()
-
-def is_true_scalar(o):
-    "Return True iff expression a single scalar value, with no free indices."
-    return is_scalar(o) and len(o.free_indices()) == 0
-
-#--- ScalarValue, FloatValue and IntValue types ---
-
-class ScalarValue(Terminal):
-    "A constant scalar value."
-    def free_indices(self):
-        return ()
-    
-    def shape(self):
-        return ()
-    
-    def __eq__(self, other):
-        "Allow comparison with python scalars."
-        if isinstance(other, ScalarValue):
-            return self._value == other._value
-        if is_python_scalar(other):
-            return self._value == other
-        return False
-    
-    def __str__(self):
-        return str(self._value)
-
-class FloatValue(ScalarValue):
-    "A constant scalar numeric value."
-    __slots__ = ("_value",)
-    
-    def __new__(cls, value):
-        ufl_assert(is_python_scalar(value), "Expecting Python scalar.")
-        if value == 0:
-            return Zero()
-        return ScalarValue.__new__(cls, value)
-    
-    def __init__(self, value):
-        self._value = float_type(value)
-    
-    def __repr__(self):
-        return "FloatValue(%s)" % repr(self._value)
-    
-    def __neg__(self):
-        return FloatValue(-self._value)
-
-    def __abs__(self):
-        return FloatValue(abs(self._value))
-
-class IntValue(ScalarValue):
-    "A constant scalar integer value."
-    __slots__ = ("_value",)
-    
-    def __new__(cls, value):
-        ufl_assert(is_python_scalar(value), "Expecting Python scalar.")
-        if value == 0:
-            return Zero()
-        return ScalarValue.__new__(cls, value)
-    
-    def __init__(self, value):
-        self._value = int_type(value)
-    
-    def __repr__(self):
-        return "IntValue(%s)" % repr(self._value)
-    
-    def __neg__(self):
-        return IntValue(-self._value)
-
-    def __abs__(self):
-        return FloatValue(abs(self._value))
-
-#--- Basic helper functions ---
-
-def as_ufl(o):
-    "Returns expression if it is an Expr or an Expr wrapper (FloatValue, Zero) if it is a scalar."
-    if isinstance(o, float):  
-        o = FloatValue(o)
-    elif isinstance(o, int):  
-        o = IntValue(o)
-    ufl_assert(isinstance(o, Expr), "Expecting Python scalar or Expr instance.")
-    return o

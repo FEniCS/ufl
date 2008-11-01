@@ -6,7 +6,8 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-10-30"
 
 from .output import ufl_assert
-from .base import Expr, Terminal, ScalarValue, Zero
+from .base import Expr, Terminal, Zero
+from .scalar import ScalarValue
 from .indexing import MultiIndex, Index, DefaultDim, extract_indices
 from .variable import Variable
 from .tensors import as_tensor

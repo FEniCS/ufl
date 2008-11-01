@@ -28,8 +28,7 @@ __version__ = "0.1"
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __copyright__ = __authors__ + " (2008)"
 __licence__ = "LGPL" # TODO: which licence?
-__date__ = "2008-03-14 -- 2008-10-30"
-
+__date__ = "2008-03-14 -- 2008-11-01"
 
 ########## README
 # Imports here should be what the user sees when doing "from ufl import *",
@@ -38,27 +37,17 @@ __date__ = "2008-03-14 -- 2008-10-30"
 # of the implementation, the particular class "Grad".
 ##########
 
-
 # utility functions (product is the counterpart of the built-in python function sum, can be useful for users as well)
 from .common import product
 
-# permuation tools
-#from .permutation import compute_indices, compute_permutations, compute_permutation_pairs, compute_sign, compute_order_tuples
-
 # output control
 from .output import get_handler, get_logger, set_handler, UFLException
-#from .output import ufl_debug, ufl_info, ufl_warning, ufl_error, ufl_assert
 
 # base system (expression base classes)
-#from .base import Expr, Terminal, Compound
-#from .base import FloatValue, Zero, IntValue, ScalarValue
-#from .base import is_python_scalar, is_scalar, is_true_scalar
-
-# variable class
-#from .variable import Variable
+#from .base import Expr, Terminal, Zero
+#from .scalar import as_ufl
 
 # finite elements classes
-#from .finiteelement import FiniteElementBase
 from .finiteelement import FiniteElement, MixedElement, VectorElement, TensorElement
 
 # predefined element families
@@ -77,10 +66,6 @@ from .geometry import FacetNormal
 
 # indexing of tensor expressions
 from .indexing import Index, indices
-#from .indexing import as_index, as_index_tuple, extract_indices
-
-# restriction operators
-#from .restriction import Restricted, PositiveRestricted, NegativeRestricted
 
 # special functions for expression base classes
 from . import baseoperators as __baseoperators

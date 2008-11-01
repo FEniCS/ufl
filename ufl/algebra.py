@@ -14,7 +14,7 @@ from itertools import chain
 from .output import ufl_assert, ufl_error
 from .common import product
 from .base import Expr, Zero, ScalarValue, FloatValue, IntValue
-from .base import is_true_scalar, is_python_scalar, as_ufl
+from .base import is_true_ufl_scalar, is_python_scalar, as_ufl
 from .indexing import extract_indices, compare_shapes
 
 #--- Algebraic operators ---
@@ -186,7 +186,7 @@ class Division(Expr):
         b = as_ufl(b)
 
         ufl_assert(b != 0, "Division by zero!")
-        ufl_assert(is_true_scalar(b), "Division by non-scalar.")
+        ufl_assert(is_true_ufl_scalar(b), "Division by non-scalar.")
         
         if isinstance(a, Zero):
             return a
@@ -235,7 +235,7 @@ class Power(Expr):
     def __new__(cls, a, b):
         a = as_ufl(a)
         b = as_ufl(b)
-        ufl_assert(is_true_scalar(a) and is_true_scalar(b),
+        ufl_assert(is_true_ufl_scalar(a) and is_true_ufl_scalar(b),
             "Non-scalar power not defined.")
         if isinstance(a, ScalarValue) and isinstance(b, ScalarValue):
             return as_ufl(a._value ** b._value)
