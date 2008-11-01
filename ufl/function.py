@@ -1,5 +1,5 @@
-"""This module defines the Function class and a number of related
-classes (functions), including Constant."""
+"""This module defines the Function class and a number 
+of related classes (functions), including Constant."""
 
 from __future__ import absolute_import
 
@@ -12,6 +12,8 @@ from .finiteelement import FiniteElement, VectorElement
 from .base import Terminal
 from .common import Counted, product
 from .split import split
+
+# --- The Function class represents a coefficient function argument to a form ---
 
 class Function(Terminal, Counted):
     __slots__ = ("_element", "_name")
@@ -47,7 +49,10 @@ class Function(Terminal, Counted):
     def __eq__(self, other):
         return isinstance(other, Function) and self._count == other._count
 
+# --- Subclasses for defining constant functions without specifying element ---
+
 # TODO: Handle actual global constants?
+
 class Constant(Function):
     __slots__ = ("_domain",)
 
@@ -102,6 +107,8 @@ class TensorConstant(Function):
     
     def __repr__(self):
         return "TensorConstant(%r, %r, %r)" % (self._domain, self._name, self._count)
+
+# --- Helper functions for subfunctions on mixed elements ---
 
 def Functions(element):
     return split(Function(element))

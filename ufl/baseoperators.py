@@ -18,7 +18,6 @@ from .indexing import Indexed
 from .restriction import PositiveRestricted, NegativeRestricted
 from .differentiation import SpatialDerivative
 
-
 #--- Extend Expr with algebraic operators ---
 
 _valid_types = (Expr,) + python_scalar_types

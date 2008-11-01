@@ -104,7 +104,7 @@ class VariableDerivative(Expr):
         self._v = v
         fi = f.free_indices()
         vi = v.free_indices()
-        ufl_assert(len(set(fi) ^ set(vi)) == 0, \
+        ufl_assert(not (set(fi) ^ set(vi)), \
             "Repeated indices not allowed in VariableDerivative.") # TODO: Allow diff(f[i], v[i])?
         self._free_indices = tuple(fi + vi)
         self._shape = f.shape() + v.shape()
@@ -137,7 +137,7 @@ class Grad(Expr):
     
     def __init__(self, f):
         self._f = f
-        ufl_assert(len(f.free_indices()) == 0, \
+        ufl_assert(not (f.free_indices()), \
             "TODO: Taking gradient of an expression with free indices, should this be a valid expression? Please provide examples!")
     
     def operands(self):
@@ -166,7 +166,7 @@ class Div(Expr):
 
     def __init__(self, f):
         ufl_assert(f.rank() >= 1, "Can't take the divergence of a scalar.")
-        ufl_assert(len(f.free_indices()) == 0, \
+        ufl_assert(not (f.free_indices()), \
             "TODO: Taking divergence of an expression with free indices, should this be a valid expression? Please provide examples!")
         self._f = f
     
@@ -190,7 +190,7 @@ class Curl(Expr):
     
     def __init__(self, f):
         ufl_assert(f.rank() == 1, "Need a vector.")
-        ufl_assert(len(f.free_indices()) == 0, \
+        ufl_assert(not f.free_indices(), \
             "TODO: Taking curl of an expression with free indices, should this be a valid expression? Please provide examples!")
         self._f = f
     
@@ -214,7 +214,7 @@ class Rot(Expr):
 
     def __init__(self, f):
         ufl_assert(f.rank() == 1, "Need a vector.")
-        ufl_assert(len(f.free_indices()) == 0, \
+        ufl_assert(not f.free_indices(), \
             "TODO: Taking rot of an expression with free indices, should this be a valid expression? Please provide examples!")
         self._f = f
     

@@ -1,11 +1,13 @@
-"""The Form class."""
+"The Form class."
 
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__    = "2008-03-14 -- 2008-10-03"
+__date__    = "2008-03-14 -- 2008-11-01"
 
 from .output import ufl_assert
+
+# --- The Form class, representing a complete variational form or functional ---
 
 class Form(object):
     """Description of a weak form consisting of a sum of integrals over subdomains."""

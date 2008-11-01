@@ -5,10 +5,7 @@ from __future__ import absolute_import
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __date__ = "2008-03-14 -- 2008-10-31"
 
-# Python imports
 from collections import defaultdict
-
-# UFL imports
 from .output import ufl_assert, ufl_warning, ufl_error
 from .base import Expr, Terminal
 from .common import Counted
@@ -82,7 +79,6 @@ _indextypes = (Index, FixedIndex, AxisType)
 # Only need one of these, like None, Ellipsis etc., can use "a is Axis" or "isinstance(a, AxisType)"
 Axis = AxisType()
 
-
 #--- Indexing ---
 
 class MultiIndex(Terminal):
@@ -118,7 +114,6 @@ class MultiIndex(Terminal):
         return isinstance(other, MultiIndex) and \
             self._indices == other._indices and \
             self._rank == other._rank
-
 
 class Indexed(Expr):
     __slots__ = ("_expression", "_indices",
@@ -214,7 +209,6 @@ def as_index_tuple(indices, rank):
     indices = tuple(pre + [Axis]*num_axis + post)
     return indices
 
-
 def extract_indices(indices, shape=None):
     """Analyse a tuple of indices, and return a 3-tuple with the following information:
     
@@ -264,7 +258,6 @@ def extract_indices(indices, shape=None):
                "Logic breach in extract_indices.")
     
     return (free_indices, repeated_indices, newshape)
-
 
 class DefaultDimType(object):
     __slots__ = ()

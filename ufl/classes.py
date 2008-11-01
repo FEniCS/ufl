@@ -18,7 +18,6 @@ from .basisfunction import BasisFunction, TestFunction, TrialFunction
 from .function import Function, VectorConstant, TensorConstant, Constant
 from .geometry import FacetNormal
 from .indexing import MultiIndex, Indexed, Index, FixedIndex, AxisType
-#from .indexing import AxisType, as_index, as_index_tuple, extract_indices
 from .tensors import ListTensor, ComponentTensor
 from .algebra import Sum, Product, Division, Power, Abs
 from .tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor

@@ -8,6 +8,7 @@ from __future__ import absolute_import
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __date__ = "2008-04-09 -- 2008-11-01"
 
+import math
 from .zero import Zero
 from .scalar import ScalarValue, as_ufl
 from .differentiation import VariableDerivative, Grad, Div, Curl, Rot
@@ -147,8 +148,6 @@ def gt(left, right):
     return GT(left, right)
 
 #--- Math functions ---
-
-import math
 
 def _mathfunction(f, cls, fun):
     f = as_ufl(f)

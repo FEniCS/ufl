@@ -171,7 +171,7 @@ class UFLTypeDefaultDict(dict):
         return dict.__contains__(self, key._uflid)
 
 def strides(shape):
-    if len(shape) == 0:
+    if not shape:
         return ()
     stride = 1
     result = [1]

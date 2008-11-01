@@ -4,13 +4,15 @@ classes (functions), including TestFunction and TrialFunction."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-27"
+__date__ = "2008-03-14 -- 2008-11-01"
 
 # Modified by Anders Logg, 2008
 
 from .base import Terminal
 from .common import Counted, product
 from .split import split
+
+# --- Class representing a basis function argument in a form ---
 
 class BasisFunction(Terminal, Counted):
     __slots__ = ("_element", "_repr")
@@ -43,11 +45,15 @@ class BasisFunction(Terminal, Counted):
     def __eq__(self, other):
         return isinstance(other, BasisFunction) and self._count == other._count
 
+# --- Helper functions for pretty syntax ---
+
 def TestFunction(element):
     return BasisFunction(element, -2)
 
 def TrialFunction(element):
     return BasisFunction(element, -1)
+
+# --- Helper functions for creating subfunctions on mixed elements ---
 
 def BasisFunctions(element):
     return split(BasisFunction(element))

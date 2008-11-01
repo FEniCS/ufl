@@ -34,7 +34,7 @@ class ListTensor(Expr):
             "Inconsistent subtensor size.")
         
         indexset = set(e.free_indices())
-        ufl_assert(all(len(indexset ^ set(sub.free_indices())) == 0 for sub in expressions), \
+        ufl_assert(all(not (indexset ^ set(sub.free_indices())) for sub in expressions), \
             "Can't combine subtensor expressions with different sets of free indices.") # TODO: Does this make sense?
     
     def operands(self):

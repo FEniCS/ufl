@@ -10,7 +10,6 @@ from .base import Expr, Terminal
 from .zero import Zero
 from .indexing import Index, indices, compare_shapes
 
-
 ### Algebraic operations on tensors:
 # FloatValues:
 #   dot(a,b)      = a*b
@@ -120,7 +119,6 @@ class Outer(Expr):
     
     def __repr__(self):
         return "Outer(%r, %r)" % (self._a, self._b)
-
 
 class Inner(Expr):
     __slots__ = ("_a", "_b", "_free_indices")
