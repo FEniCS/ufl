@@ -13,7 +13,7 @@ from ..output import ufl_assert, ufl_error, ufl_warning
 from ..permutation import compute_indices
 
 # All classes:
-from ..base import Expr, Terminal, ZeroType, FloatValue, IntValue
+from ..base import Expr, Terminal, Zero, FloatValue, IntValue
 from ..variable import Variable
 from ..basisfunction import BasisFunction
 from ..function import Function, Constant
@@ -398,7 +398,7 @@ class DependencySplitter:
         if any(o[1] != d for o in ops):
             oldops = ops
             ops = []
-            _skiptypes = (MultiIndex, ZeroType, FloatValue, IntValue)
+            _skiptypes = (MultiIndex, Zero, FloatValue, IntValue)
             for o in oldops:
                 if isinstance(o[0], _skiptypes):
                     ops.append(o)

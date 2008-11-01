@@ -6,7 +6,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-10-30"
 
 from .output import ufl_assert
-from .base import Expr, Terminal, ScalarValue, ZeroType
+from .base import Expr, Terminal, ScalarValue, Zero
 from .indexing import MultiIndex, Index, DefaultDim, extract_indices
 from .variable import Variable
 from .tensors import as_tensor
@@ -15,7 +15,7 @@ from .function import Function, Constant, VectorConstant, TensorConstant
 
 #--- Basic differentiation objects ---
 
-spatially_constant_types = (ScalarValue, ZeroType, Identity, Constant, VectorConstant, TensorConstant) # FacetNormal: not for higher order geometry!
+spatially_constant_types = (ScalarValue, Zero, Identity, Constant, VectorConstant, TensorConstant) # FacetNormal: not for higher order geometry!
 
 class SpatialDerivative(Expr):
     "Partial derivative of an expression w.r.t. spatial directions given by indices."
@@ -29,7 +29,7 @@ class SpatialDerivative(Expr):
             si = set(ind)
             if len(ind) == 2*len(si):
                 if isinstance(expression, spatially_constant_types):
-                    return ZeroType(expression.shape())
+                    return Zero(expression.shape())
         return Expr.__new__(cls)
     
     def __init__(self, expression, indices):
@@ -86,7 +86,7 @@ class VariableDerivative(Expr):
             # Remove repeated indices to get the free 
             free_indices = set(f.free_indices()) ^ set(x.free_indices())
             if not free_indices:
-                return ZeroType(f.shape())
+                return Zero(f.shape())
         return Expr.__new__(cls)
     
     def __init__(self, f, x):
@@ -125,7 +125,7 @@ class Grad(Expr):
     def __new__(cls, f):
         # Return zero if expression is trivially constant
         if isinstance(f, spatially_constant_types):
-            return ZeroType((DefaultDim,) + f.shape())
+            return Zero((DefaultDim,) + f.shape())
         return Expr.__new__(cls)
     
     def __init__(self, f):
@@ -154,7 +154,7 @@ class Div(Expr):
     def __new__(cls, f):
         # Return zero if expression is trivially constant
         if isinstance(f, spatially_constant_types):
-            return ZeroType(f.shape()[1:])
+            return Zero(f.shape()[1:])
         return Expr.__new__(cls)
 
     def __init__(self, f):

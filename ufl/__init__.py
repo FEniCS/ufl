@@ -51,7 +51,7 @@ from .output import get_handler, get_logger, set_handler, UFLException
 
 # base system (expression base classes)
 #from .base import Expr, Terminal, Compound
-#from .base import FloatValue, ZeroType, IntValue, ScalarValue
+#from .base import FloatValue, Zero, IntValue, ScalarValue
 #from .base import is_python_scalar, is_scalar, is_true_scalar
 
 # variable class

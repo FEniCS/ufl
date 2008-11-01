@@ -4,7 +4,7 @@ types involved with built-in operators on any UFL object."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-29"
+__date__ = "2008-03-14 -- 2008-11-01"
 
 # Modified by Anders Logg, 2008
 
@@ -142,10 +142,10 @@ class Terminal(Expr):
 #--- Zero tensors of different shapes ---
 
 _zero_cache = {}
-class ZeroType(Terminal):
+class Zero(Terminal):
     __slots__ = ("_shape",)
     
-    def __new__(cls, shape):
+    def __new__(cls, shape=()):
         global _zero_cache
         # check cache to reuse objects
         z = _zero_cache.get(shape, None)
@@ -159,7 +159,7 @@ class ZeroType(Terminal):
     def _init(self, shape):
         self._shape = shape
     
-    def __init__(self, shape):
+    def __init__(self, shape=()):
         pass
     
     def free_indices(self):
@@ -172,11 +172,11 @@ class ZeroType(Terminal):
         return "[Zero tensor with shape %s]" % repr(self._shape)
     
     def __repr__(self):
-        return "ZeroType(%s)" % repr(self._shape)
+        return "Zero(%s)" % repr(self._shape)
     
     def __eq__(self, other):
         if self._shape == () and other == 0: return True 
-        return isinstance(other, ZeroType) and self._shape == other._shape
+        return isinstance(other, Zero) and self._shape == other._shape
     
     def __neg__(self):
         return self
@@ -242,7 +242,7 @@ class FloatValue(ScalarValue):
     def __new__(cls, value):
         ufl_assert(is_python_scalar(value), "Expecting Python scalar.")
         if value == 0:
-            return ZeroType(())
+            return Zero()
         return ScalarValue.__new__(cls, value)
     
     def __init__(self, value):
@@ -264,7 +264,7 @@ class IntValue(ScalarValue):
     def __new__(cls, value):
         ufl_assert(is_python_scalar(value), "Expecting Python scalar.")
         if value == 0:
-            return ZeroType(())
+            return Zero()
         return ScalarValue.__new__(cls, value)
     
     def __init__(self, value):
@@ -282,7 +282,7 @@ class IntValue(ScalarValue):
 #--- Basic helper functions ---
 
 def as_ufl(o):
-    "Returns expression if it is an Expr or an Expr wrapper (FloatValue, ZeroType) if it is a scalar."
+    "Returns expression if it is an Expr or an Expr wrapper (FloatValue, Zero) if it is a scalar."
     if isinstance(o, float):  
         o = FloatValue(o)
     elif isinstance(o, int):  

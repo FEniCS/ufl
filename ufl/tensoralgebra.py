@@ -3,10 +3,10 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-30"
+__date__ = "2008-03-14 -- 2008-11-01"
 
 from .output import ufl_assert
-from .base import Expr, Terminal, ZeroType
+from .base import Expr, Terminal, Zero
 from .indexing import Index, indices, compare_shapes
 
 
@@ -63,9 +63,9 @@ class Transposed(Expr):
     __slots__ = ("_A",)
 
     def __new__(cls, A):
-        if isinstance(A, ZeroType):
+        if isinstance(A, Zero):
             a, b = A.shape()
-            return ZeroType((b, a))
+            return Zero((b, a))
         return Terminal.__new__(cls)
     
     def __init__(self, A):
@@ -92,8 +92,8 @@ class Outer(Expr):
     __slots__ = ("_a", "_b", "_free_indices")
 
     def __new__(cls, a, b):
-        if isinstance(a, ZeroType) or isinstance(b, ZeroType):
-            return ZeroType(a.shape() + b.shape())
+        if isinstance(a, Zero) or isinstance(b, Zero):
+            return Zero(a.shape() + b.shape())
         return Terminal.__new__(cls)
 
     def __init__(self, a, b):
@@ -101,7 +101,7 @@ class Outer(Expr):
         self._b = b
         ai = a.free_indices()
         bi = b.free_indices()
-        ufl_assert( len(set(ai) ^ set(bi)) == 0, "Didn't expect repeated indices in outer product.") 
+        ufl_assert(not (set(ai) ^ set(bi)), "Didn't expect repeated indices in outer product.") 
         self._free_indices = tuple(ai+bi)
     
     def operands(self):
@@ -125,10 +125,10 @@ class Inner(Expr):
     __slots__ = ("_a", "_b", "_free_indices")
 
     def __new__(cls, a, b):
-        ufl_assert(a.rank() == b.rank(), "Rank mismatch.")
-        if (isinstance(a, ZeroType) or isinstance(b, ZeroType)):
-            if (a.free_indices() == () and b.free_indices() == ()):
-                return ZeroType(())
+        ufl_assert(compare_shapes(a.shape(), b.shape()), "Shape mismatch.")
+        if isinstance(a, Zero) or isinstance(b, Zero):
+            if not (a.free_indices() or b.free_indices()):
+                return Zero()
         return Terminal.__new__(cls)
 
     def __init__(self, a, b):
@@ -136,7 +136,7 @@ class Inner(Expr):
         self._b = b
         ai = a.free_indices()
         bi = b.free_indices()
-        ufl_assert( len(set(ai) ^ set(bi)) == 0, "Didn't expect repeated indices in outer product.") 
+        ufl_assert(not (set(ai) ^ set(bi)), "Didn't expect repeated indices in outer product.") 
         self._free_indices = tuple(ai+bi)
     
     def operands(self):
@@ -164,12 +164,12 @@ class Dot(Expr):
             (a.rank(), b.rank())) # TODO: maybe scalars are ok?
         ai = a.free_indices()
         bi = b.free_indices()
-        ufl_assert(len(set(ai) ^ set(bi)) == 0,
+        ufl_assert(not (set(ai) ^ set(bi)),
                    "Didn't expect repeated indices in outer product.")
         
-        if isinstance(a, ZeroType) or isinstance(b, ZeroType):
+        if isinstance(a, Zero) or isinstance(b, Zero):
             if not (ai or bi):
-                return ZeroType(a.shape()[:-1] + b.shape()[1:])
+                return Zero(a.shape()[:-1] + b.shape()[1:])
         
         return Terminal.__new__(cls)
 
@@ -198,7 +198,7 @@ class Cross(Expr):
     __slots__ = ("_a", "_b", "_free_indices")
 
     def __new__(cls, a, b):
-        if isinstance(a, ZeroType) or isinstance(b, ZeroType):
+        if isinstance(a, Zero) or isinstance(b, Zero):
             ufl_warning("Returning zero from Cross not implemented.")
         return Terminal.__new__(cls)
 
@@ -209,7 +209,7 @@ class Cross(Expr):
         self._b = b
         ai = self._a.free_indices()
         bi = self._b.free_indices()
-        ufl_assert( len(set(ai) ^ set(bi)) == 0,
+        ufl_assert(not (set(ai) ^ set(bi)),
             "Didn't expect repeated indices in outer product.") 
         self._free_indices = tuple(ai+bi)
     
@@ -233,12 +233,12 @@ class Trace(Expr):
     __slots__ = ("_A",)
 
     def __new__(cls, A):
-        if isinstance(A, ZeroType):
-            return ZeroType(())
+        ufl_assert(A.rank() == 2, "Trace of tensor with rank != 2 is undefined.")
+        if isinstance(A, Zero):
+            return Zero()
         return Terminal.__new__(cls)
 
     def __init__(self, A):
-        ufl_assert(A.rank() == 2, "Trace of tensor with rank != 2 is undefined.")
         self._A = A
     
     def operands(self):
@@ -260,19 +260,19 @@ class Determinant(Expr):
     __slots__ = ("_A",)
 
     def __new__(cls, A):
-        if isinstance(A, ZeroType):
-            return ZeroType(())
-        return Terminal.__new__(cls)
-
-    def __init__(self, A):
         sh = A.shape()
         r = len(sh)
         ufl_assert(r == 0 or r == 2,
             "Determinant of tensor with rank != 2 is undefined.")
         ufl_assert(r == 0 or compare_shapes((sh[0],), (sh[1],)),
             "Cannot take determinant of rectangular rank 2 tensor.")
-        ufl_assert(len(A.free_indices()) == 0,
+        ufl_assert(not A.free_indices(),
             "Didn't expect free indices in determinant.")
+        if isinstance(A, Zero):
+            return Zero()
+        return Terminal.__new__(cls)
+
+    def __init__(self, A):
         self._A = A
     
     def operands(self):
@@ -299,7 +299,7 @@ class Inverse(Expr): # TODO: Drop Inverse and represent it as product of Determi
         ufl_assert(r == 0 or r == 2, "Inverse of tensor with rank != 2 or 0 is undefined.")
         ufl_assert(r == 0 or compare_shapes((sh[0],), (sh[1],)),
             "Cannot take inverse of rectangular matrix with dimensions %s." % repr(sh))
-        ufl_assert(len(A.free_indices()) == 0, "Didn't expect free indices in Inverse.")
+        ufl_assert(not A.free_indices(), "Didn't expect free indices in Inverse.")
         self._A = A
     
     def operands(self):
@@ -324,7 +324,7 @@ class Cofactor(Expr):
         sh = A.shape()
         ufl_assert(len(sh) == 2, "Cofactor of tensor with rank != 2 is undefined.")
         ufl_assert(sh[0] == sh[1], "Cannot take cofactor of rectangular matrix with dimensions %s." % repr(sh))
-        ufl_assert(len(A.free_indices()) == 0, "Didn't expect free indices in Cofactor.")
+        ufl_assert(not A.free_indices(), "Didn't expect free indices in Cofactor.")
         self._A = A
     
     def operands(self):
@@ -351,7 +351,7 @@ class Deviatoric(Expr):
         ufl_assert(r == 2, "Deviatoric part of tensor with rank != 2 is undefined.")
         ufl_assert(compare_shapes((sh[0],), (sh[1],)),
             "Cannot take deviatoric part of rectangular matrix with dimensions %s." % repr(sh))
-        ufl_assert(len(A.free_indices()) == 0, "Didn't expect free indices in Deviatoric.")
+        ufl_assert(not A.free_indices(), "Didn't expect free indices in Deviatoric.")
         self._A = A
     
     def operands(self):
@@ -378,7 +378,7 @@ class Skew(Expr):
         ufl_assert(r == 2, "Skew part of tensor with rank != 2 is undefined.")
         ufl_assert(compare_shapes((sh[0],), (sh[1],)),
             "Cannot take skew part of rectangular matrix with dimensions %s." % repr(sh))
-        ufl_assert(len(A.free_indices()) == 0, "Didn't expect free indices in Skew.")
+        ufl_assert(not A.free_indices(), "Didn't expect free indices in Skew.")
         self._A = A
     
     def operands(self):
