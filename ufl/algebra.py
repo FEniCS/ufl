@@ -38,6 +38,9 @@ class Sum(Expr):
         # purge zeros
         operands = [o for o in operands if not isinstance(o, Zero)]
         
+        # sort operands by its repr TODO: This may be slow, can we do better? Needs to be completely independent of the outside world.
+        operands = sorted(operands, key = lambda x: repr(x))
+        
         # sort scalars to beginning and merge them
         scalars = [o for o in operands if isinstance(o, ScalarValue)]
         if scalars:
@@ -60,17 +63,21 @@ class Sum(Expr):
             return operands[0]
         
         # Replace n-repeated operands foo with n*foo
-        #newoperands = []
-        #op = operands[0]
-        #n = 1
-        #for o in operands[1:] + [None]:
-        #    if o == op:
-        #        n += 1
-        #    else:
-        #        newoperands.append(op if n == 1 else n*op)
-        #        op = o
-        #        n = 1
-        #operands = newoperands
+        newoperands = []
+        op = operands[0]
+        n = 1
+        for o in operands[1:] + [None]:
+            if o == op:
+                n += 1
+            else:
+                newoperands.append(op if n == 1 else n*op)
+                op = o
+                n = 1
+        operands = newoperands
+        
+        # left with one operand only?
+        if len(operands) == 1:
+            return operands[0]
         
         # construct and initialize a new Sum object
         self = Expr.__new__(cls)

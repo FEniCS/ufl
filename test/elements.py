@@ -49,6 +49,22 @@ class ElementsTestCase(unittest.TestCase):
                             c = element.extract_component((i,j))
                             self.assertTrue(c[0] == ())
 
+    def test_tensor_symmetry(self):
+        for dom in all_polygons:
+            dim = domain2dim[dom]
+            for p in range(1,10):
+                for s in (None, True, {(0,1): (1,0)}):
+                    for family in ("Lagrange", "CG", "Discontinuous Lagrange", "DG"):
+                        if isinstance(s, dict):
+                            element = TensorElement(family, dom, p, shape=(dim,dim), symmetry=s)
+                        else:
+                            element = TensorElement(family, dom, p, symmetry=s)
+                        self.assertTrue(element.value_shape() == (dim,dim))
+                        for i in range(dim):
+                            for j in range(dim):
+                                c = element.extract_component((i,j))
+                                self.assertTrue(c[0] == ())
+
     def test_bdm(self):
         for dom in ("triangle", "tetrahedron"):
             dim = domain2dim[dom]
