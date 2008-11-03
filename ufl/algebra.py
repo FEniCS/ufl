@@ -59,6 +59,19 @@ class Sum(Expr):
         if len(operands) == 1:
             return operands[0]
         
+        # Replace n-repeated operands foo with n*foo
+        #newoperands = []
+        #op = operands[0]
+        #n = 1
+        #for o in operands[1:] + [None]:
+        #    if o == op:
+        #        n += 1
+        #    else:
+        #        newoperands.append(op if n == 1 else n*op)
+        #        op = o
+        #        n = 1
+        #operands = newoperands
+        
         # construct and initialize a new Sum object
         self = Expr.__new__(cls)
         self._init(*operands)

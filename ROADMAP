@@ -45,11 +45,13 @@ Roadmap for the development of UFL
 # Expression simplifications:
    (It is important not to modify existing subexpressions since it
    removes information from the user which cannot be recovered.
-   Flattening sums and products does this, and makes detection of e.g.
-   "a + c" in "a + b + c" much more difficult.
+   Flattening sums and products does this, and makes detection 
+   of e.g. "a + c" in "a + b + c" much more difficult/expensive.
    The steps below are consistent with this design goal, and 
    can in fact lead to easier detection of equal subexpressions.)
- - Sort expressions by something (e.g. repr, must be independent of all external factors) in Product and Sum?
+ - Sort expressions by something in Product and Sum?
+   (e.g. by repr, must be independent of all external factors
+   unlike in ginac... but should preferably not be too expensive)
  - Collapse "foo + foo" into "2*foo" without modifying foo.
  - Detect zeros in all operators, some may still be missing.
 
