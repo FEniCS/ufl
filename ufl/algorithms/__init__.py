@@ -51,8 +51,9 @@ from .formtransformations import compute_form_lhs, compute_form_rhs
 from .ad import compute_form_derivative, compute_diff, propagate_spatial_derivatives
 
 # Utilities for UFL object printing
-from .ufl2latex import ufl2latex
+from .ufl2latex import ufl2latex, forms2latexdocument, uflfile2pdf, uflfile2latex
 from .printing import integral_info, form_info, tree_format
 
 # Utilities for form file handling
 from .formfiles import load_forms
+

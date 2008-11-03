@@ -11,6 +11,7 @@ from ufl import *
 from ufl.classes import *
 from ufl.algorithms import *
 from ufl.algorithms.dependencies import DependencySet
+from ufl.algorithms.ufl2latex import codestructure2pdf
 
 from time import time
 
@@ -141,7 +142,12 @@ def compile_integral(integrand, formdata):
     print "------ Final variable info:"
     #print vinfo
     print
-
+    
+    # Compile pdf file
+    latexfilename = "codestructure.tex"
+    pdffilename = "codestructure.pdf"
+    codestructure2pdf(code, formdata, latexfilename, pdffilename)
+    
     #integrand = mark_dependencies(integrand)
     #integrand = expand_compounds(integrand)#, skip=(Transpose, ...)
     #integrand = compute_diffs(integrand)
@@ -196,6 +202,7 @@ if __name__ == "__main__":
             integrand = integral.integrand()
             compile_integral(integrand, formdata)
             os.chdir("..")
+        
         if len(forms) > 1:
             os.chdir("..")
 

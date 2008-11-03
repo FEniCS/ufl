@@ -1,6 +1,10 @@
 Roadmap for the development of UFL
 ----------------------------------
 
+# Prettyness and readability (low priority, but useful while debugging...):
+ - Rewrite ufl2latex as described in its comments.
+ - Use precedence list to improve parentesis use in __str__ and __repr__ and ufl2latex. 
+
 # Derivatives:
  - Apply AD to computation of
     - SpatialDerivative (propagating to terminal nodes)
@@ -35,28 +39,16 @@ Roadmap for the development of UFL
    currently a global counter, and algorithms that modify expression
    trees needs 
 
+# Elements and Basisfunctions:
+ - Implement 'Test/Trial/BasisFunctions' for general tensor subelement with arbitrary symmetries (see split.py). Need to agree on some numbering conventions here.
+ - Degree range for quadrature elements?
+
 # Tensors:
  - ComponentTensor needs to get the dimensions of its expression 
    in its "free index axes" to determine its shape correctly.
    Currently this is done using only default dimensions,
    which will be wrong in some cases. This is a tricky issue,
    but won't be a problem for most applications.
-
-# Elements and Basisfunctions (only minor or rare issues left):
- - Implement 'Test/Trial/BasisFunctions' for general tensor subelement with arbitrary symmetries (see split.py). Need to agree on some numbering conventions here.
- - Add Cell support for high order geometries?
-     cell = Cell("triangle", 2)
-     element = FiniteElement("CG", cell, 1)
- - Add FunctionSpace concept?
-     g = Function(element)
-     V = FunctionSpace(element, trace=g)
-     u = BasisFunction(V)
- - Keep or drop 'name' in Function? Can eventually pass it to UFC if we add a "form::coefficient_name(i)" function.
- - Degree range for quadrature elements?
-
-# Prettyness and readability (low priority, but useful while debugging...):
- - Rewrite ufl2latex as described in its comments.
- - Use precedence list to improve parentesis use in __str__ and __repr__ and ufl2latex. 
 
 # Tests:
  - Write tests for the algorithms, ideally covering all code in multiple ways.
@@ -66,9 +58,14 @@ Roadmap for the development of UFL
  - Rewrite/improve all error messages (collect strings in separate file?)
  - Improve operator docstrings (use epydoc @param and @return?)
 
+# High order geometries (low priority):
+ - Add Cell support for high order geometries?
+     cell = Cell("triangle", 2)
+     element = FiniteElement("CG", cell, 1)
+
 # Time derivatives (low priority):
  - Do we want something like Dt(u), Dtt(u), CR(a), FE(a), BE(a), TR(a, theta)?
- - Interesting in combination with time elements?
+ - In particular, this can be interesting in combination with time elements?
      es = FiniteElement("CG", "triangle", 1)
      et = TimeElement(1) # Any point in non-Galerkin elements?
      e = es*et
@@ -79,6 +76,14 @@ Roadmap for the development of UFL
      a = f*u*v*dx
    Need to extend ufc::cell for this, perhaps adding time interval [t0,t1] as part 
    of ufc::cell, new shapes time_triangle etc and bool is_time_dependent() to form.
+
+# Dirichlet boundary conditions (low priority):
+ - Add FunctionSpace concept?
+     g = Function(element)
+     V = FunctionSpace(element, trace=g)
+     u = BasisFunction(V)
+   Must also handle traces of functions on any subboundary.
+   The code gain versus defining a DirichletBC in PyDOLFIN seems minimal.
 
 # Physical units (very low priority):
  - Utility algorithms for validating the physical dimensions in a form.

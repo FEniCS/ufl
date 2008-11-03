@@ -1,72 +1,20 @@
 #!/usr/bin/env python
 
+# Get commandline options # TODO: Use proper option parsing
 import sys
-import webbrowser
-import ufl
-from ufl.algorithms import load_forms, validate_form, ufl2latex
-
-# Get commandline options
-
 args = sys.argv[1:]
-
-# Pass latex code to www.texify.com (doesn't seem to work for long forms)
-enable_browser = False
-if "-w" in args:
-    enable_browser = True
-    args.remove("-w")
-
-latexfile = None
-if "-o" in args: # TODO: Use proper option parsing
-    i = args.index("-o")
-    latexfile = args[i+1]
-    args = args[:i] + args[i+2:]
-
 if len(args) != 1:
     print "Missing form file name."
+    print "Got args: ", " ".join(args)
     sys.exit(-1)
-filename = args[0]
+uflfilename = args[0]
 
-# Load form file, which triggers many consistency
-# checks while the form is being built
-forms = load_forms(filename)
+# TODO: safer filename conversion
+basename = uflfilename.replace(".ufl", "")
+latexfilename = basename + ".tex"
+pdffilename = basename + ".pdf"
 
-# Analyse validity of forms
-found_errors = False
-for k,v in forms:
-    errors = validate_form(v)
-    if errors:
-        print "Found errors in form '%s':" % k
-        print errors
-        found_errors = True
-if found_errors:
-    sys.exit(-1)
-
-# Define template for overall document
-latex = r"""\documentclass{article}
-\usepackage{amsmath}
-
-\begin{document}
-
-\section{UFL Forms from file %s}
-
-""" % filename.replace("_", "\\_")
-
-# Generate latex code for each form
-for name, form in forms:
-    l = ufl2latex(form)
-    latex += "\\subsection{Form %s}\n" % name
-    latex += l
-    if enable_browser:
-        webbrowser.open("http://www.texify.com/$%s$" % l.replace(" ",""))
-
-latex += r"""
-\end{document}
-"""
-
-if latexfile:
-    f = open(latexfile, "w")
-    f.write(latex)
-    f.close()
-else:
-    print latex
+# Compile LaTeX file
+from ufl.algorithms import uflfile2latex
+uflfile2latex(uflfilename, latexfilename)
 

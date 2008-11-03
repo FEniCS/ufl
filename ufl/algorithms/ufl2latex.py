@@ -5,10 +5,11 @@ converting UFL expressions to other representations."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-10-30"
+__date__ = "2008-05-07 -- 2008-11-03"
 
 # Modified by Anders Logg, 2008.
 
+import os
 from itertools import chain
 from collections import defaultdict
 
@@ -21,10 +22,8 @@ from ..scalar import FloatValue, IntValue
 from ..variable import Variable
 from ..basisfunction import BasisFunction
 from ..function import Function, Constant
-#from ..basisfunction import TestFunction, TrialFunction, BasisFunctions, TestFunctions, TrialFunctions
 from ..geometry import FacetNormal
 from ..indexing import MultiIndex, Indexed, Index, FixedIndex, AxisType
-#from ..indexing import as_index, as_index_tuple, extract_indices
 from ..tensors import ListTensor, ComponentTensor
 from ..algebra import Sum, Product, Division, Power, Abs
 from ..tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
@@ -39,12 +38,11 @@ from ..integral import Integral
 from ..classes import ufl_classes, terminal_classes, nonterminal_classes
 
 # Other algorithms:
+from .transformations import transform
 from .analysis import extract_basisfunctions, extract_coefficients, extract_variables
 from .formdata import FormData
-
-# General dict-based transformation utility
-from .transformations import transform
-
+from .checks import validate_form
+from .formfiles import load_forms
 
 # TODO: Must rewrite LaTeX expression compiler to handle parent before child, to handle line wrapping, ListTensors of rank > 1, +++
 
@@ -94,16 +92,13 @@ def latex_handlers(basisfunction_renumbering, coefficient_renumbering):
     # Non-terminal objects:
     def l_sum(x, *ops):
         return " + ".join(par(o) for o in ops)
+    d[Sum]       = l_sum
+
     def l_product(x, *ops):
         return " ".join(par(o) for o in ops)
-    def l_binop(opstring):
-        def particular_l_binop(x, a, b):
-            return "{%s}%s{%s}" % (par(a), opstring, par(b))
-        return particular_l_binop
-    d[Sum]       = l_sum
     d[Product]   = l_product
+    
     d[Division]  = lambda x, a, b: r"\frac{%s}{%s}" % (a, b)
-    d[Power]     = l_binop("^")
     d[Abs]       = lambda x, a: "|%s|" % a
     d[Transposed] = lambda x, a: "{%s}^T" % a
     d[Indexed]   = lambda x, a, b: "{%s}_{%s}" % (a, b)
@@ -131,17 +126,23 @@ def latex_handlers(basisfunction_renumbering, coefficient_renumbering):
     d[Curl] = lambda x, f: "\\nabla{\\times %s}" % par(f)
     d[Rot]  = lambda x, f: "\\rot{%s}" % par(f)
     
-    d[Sqrt] = lambda x, f: "\\sqrt{%s}" % par(f)
+    d[Sqrt] = lambda x, f: "%s^{\frac 1 2}" % par(f)
     d[Exp]  = lambda x, f: "e^{%s}" % par(f)
     d[Ln]   = lambda x, f: "\\ln{%s}" % par(f)
     d[Cos]  = lambda x, f: "\\cos{%s}" % par(f)
     d[Sin]  = lambda x, f: "\\sin{%s}" % par(f)
     
+    def l_binop(opstring):
+        def particular_l_binop(x, a, b):
+            return "{%s}%s{%s}" % (par(a), opstring, par(b))
+        return particular_l_binop
+    d[Power] = l_binop("^")
     d[Outer] = l_binop("\\otimes")
     d[Inner] = l_binop(":")
     d[Dot]   = l_binop("\\cdot")
     d[Cross] = l_binop("\\times")
-    d[Trace] = lambda x, A: "tr{%s}" % par(A)
+    
+    d[Trace]       = lambda x, A: "tr{%s}" % par(A)
     d[Determinant] = lambda x, A: "det{%s}" % par(A)
     d[Inverse]     = lambda x, A: "{%s}^{-1}" % par(A)
     d[Deviatoric]  = lambda x, A: "dev{%s}" % par(A)
@@ -296,8 +297,121 @@ def form2latex(form, formname="a", newline = " \\\\ \n"):
     return latex
 
 def ufl2latex(expression):
+    "Generate LaTeX code for a UFL expression or form."
     if isinstance(expression, Form):
         return form2latex(expression)
     basisfunction_renumbering = dict((f,f._count) for f in extract_basisfunctions(expression))
     coefficient_renumbering = dict((f,f._count) for f in extract_coefficients(expression))
     return expression2latex(expression, basisfunction_renumbering, coefficient_renumbering)
+
+def forms2latexdocument(forms, uflfilename):
+    "Generate a complete LaTeX document for a list of UFL forms."
+    # Analyse validity of forms
+    for k,v in forms:
+        errors = validate_form(v)
+        if errors:
+            msg = "Found errors in form '%s':\n%s" % (k, errors)
+            raise RuntimeError, msg
+    
+    # Define template for overall document
+    latex = r"""\documentclass{article}
+    \usepackage{amsmath}
+    
+    \begin{document}
+    
+    \section{UFL Forms from file %s}
+    
+    """ % uflfilename.replace("_", "\\_")
+    
+    # Generate latex code for each form
+    for name, form in forms:
+        l = ufl2latex(form)
+        latex += "\\subsection{Form %s}\n" % name
+        latex += l
+    
+    latex += r"""
+    \end{document}
+    """
+    return latex
+
+def write_file(filename, text):
+    f = open(filename, "w")
+    f.write(text)
+    f.close()
+
+def openpdf(pdffilename):
+    # TODO: Add option for this. Is there a portable way to do this? like "open foo.pdf in pdf viewer"
+    os.system("evince %s &" % pdffilename)
+
+def uflfile2latex(uflfilename, latexfilename):
+    "Compile a LaTeX file from a .ufl file."
+    forms = load_forms(uflfilename)
+    latex = forms2latexdocument(forms, uflfilename) 
+    write_file(latexfilename, latex)
+
+def latex2pdf(latexfilename, pdffilename):
+    os.system("pdflatex %s %s" % (latexfilename, pdffilename)) # TODO: Use subprocess
+    openpdf(pdffilename)
+
+def uflfile2pdf(uflfilename, latexfilename, pdffilename):
+    "Compile a .pdf file from a .ufl file."
+    uflfile2latex(uflfilename, latexfilename)
+    latex2pdf(latexfilename, pdffilename)
+
+def codestructure2latex(code, formdata):
+    "TODO: Document me"
+    
+    bfn = formdata.basisfunction_renumbering
+    cfn = formdata.coefficient_renumbering
+    
+    def dep2latex(dep):
+        # TODO: Better formatting of dependencies
+        return "Dependencies:\n\\begin{verbatim}\n%s\n\\end{verbatim}" % str(dep)
+    
+    latex = ""
+    newline = "\\\\\n"
+    for dep, stack in code.stacks.iteritems():
+        latex += "\n\n"
+        latex += dep2latex(dep)
+        latex += "\n\\begin{align}\n"
+        
+        for vinfo in stack[:-1]:
+            vl = expression2latex(vinfo.variable, bfn, cfn)
+            el = expression2latex(vinfo.variable._expression, bfn, cfn)
+            latex += "%s &= %s %s" % (vl, el, newline)
+        
+        vinfo = stack[-1]
+        vl = expression2latex(vinfo.variable, bfn, cfn)
+        el = expression2latex(vinfo.variable._expression, bfn, cfn)
+        latex += "%s &= %s" % (vl, el)
+        
+        latex += "\n\\end{align}\n"
+    
+    return latex
+
+def codestructure2pdf(code, formdata, latexfilename, pdffilename):
+    "Compile a .pdf file from a CodeStructure."
+    
+    # FIXME: Add final variable representing integrand
+    # FIXME: Handle lists of named forms (code / formdata)
+    # FIXME: Sort dependency sets in a sensible way (preclude to a good quadrature code generator)
+    # FIXME: We're generating a lot of "Variable(Variable(...))" expressions!
+    
+    # Define template for overall document
+    latex = r"""\documentclass{article}
+    \usepackage{amsmath}
+    
+    \begin{document}
+    
+    \section{Code structure}
+    
+    """ # % uflfilename.replace("_", "\\_")
+
+    latex += codestructure2latex(code, formdata)
+    
+    latex += r"""
+    \end{document}
+    """
+    
+    write_file(latexfilename, latex)
+    latex2pdf(latexfilename, pdffilename)
