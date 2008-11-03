@@ -3,13 +3,13 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2008-11-01"
+__date__ = "2008-05-20 -- 2008-11-03"
 
 # Modified by Anders Logg, 2008
 
 from itertools import chain
 
-from .output import ufl_assert, ufl_error
+from .output import ufl_assert, ufl_error, ufl_warning
 from .common import product
 from .base import Expr
 from .zero import Zero
@@ -21,7 +21,7 @@ from .indexing import extract_indices, compare_shapes
 class Sum(Expr):
     __slots__ = ("_operands", "_repr")
     
-    def __new__(cls, *operands): # TODO: This seems a bit complicated... Can it be simplified?
+    def __new__(cls, *operands): # TODO: This seems a bit complicated... Can it be simplified? Maybe we can merge some loops for efficiency?
         ufl_assert(len(operands), "Can't take sum of nothing.")
         
         # make sure everything is an Expr
@@ -38,7 +38,7 @@ class Sum(Expr):
         # purge zeros
         operands = [o for o in operands if not isinstance(o, Zero)]
         
-        # sort operands by its repr TODO: This may be slow, can we do better? Needs to be completely independent of the outside world.
+        # sort operands by their repr TODO: This may be slow, can we do better? Needs to be completely independent of the outside world.
         operands = sorted(operands, key = lambda x: repr(x))
         
         # sort scalars to beginning and merge them
@@ -54,8 +54,9 @@ class Sum(Expr):
             else:
                 operands = [f] + nonscalars
         
-        # have we purged everything? (TODO: can this ever happen?) 
+        # have we purged everything? 
         if not operands:
+            ufl_warning("TODO: This shouldn't happen. Please email ufl-dev@fenics.org with an example that produces this message.")
             return Zero(sh)
         
         # left with one operand only?
@@ -120,25 +121,8 @@ class Product(Expr):
 
         operands = [as_ufl(o) for o in operands]
         
-        # merge scalars, but keep nonscalars sorted
-        scalars = [o for o in operands if isinstance(o, ScalarValue)]
-        if scalars:
-            p = as_ufl(product(s._value for s in scalars))
-            nonscalars = [o for o in operands if not isinstance(o, ScalarValue)]
-            if not nonscalars:
-                return p
-            if p == 1:
-                operands = nonscalars
-            else:
-                operands = [p] + nonscalars
-        
-        if len(operands) == 1:
-            return operands[0]
-        
-        # TODO: As long as we don't flatten the tree, sorting operands
-        # by some criteria should always lead to better subexpression recognition! 
-        # TODO: Merge below and above loops over operands, and sort non-ScalarValue
-        # operands with shape () by some criteria (repr is ideal but perhaps slow)
+        # sort operands by their repr TODO: This may be slow, can we do better? Needs to be completely independent of the outside world.
+        operands = sorted(operands, key = lambda x: repr(x))
         
         #ufl_assert(all(o.shape() == () for o in operands), "Expecting scalar valued operands.")
         # Get shape and move nonscalar operand to the end
@@ -151,7 +135,41 @@ class Product(Expr):
                 sh = sh2
                 j = i
         if j is not None:
+            # We have a non-scalar expression in this product
             operands = operands[:j] + operands[j+1:] + [operands[j]]  
+        
+        # Replace n-repeated operands foo with foo**n
+        newoperands = []
+        op = operands[0]
+        n = 1
+        for o in operands[1:] + [None]:
+            if o == op:
+                n += 1
+            else:
+                newoperands.extend([op]*n if (n == 1 or op.free_indices()) else (op**n,))
+                op = o
+                n = 1
+        operands = newoperands
+        
+        # left with one operand only?
+        if len(operands) == 1:
+            return operands[0]
+        
+        # merge scalars, but keep nonscalars sorted
+        scalars = [o for o in operands if isinstance(o, ScalarValue)]
+        if scalars:
+            p = as_ufl(product(s._value for s in scalars))
+            nonscalars = [o for o in operands if not isinstance(o, ScalarValue)]
+            if not nonscalars:
+                return p
+            if p == 1:
+                operands = nonscalars
+            else:
+                operands = [p] + nonscalars
+        
+        # left with one operand only?
+        if len(operands) == 1:
+            return operands[0]
         
         # construct and initialize a new Product object
         self = Expr.__new__(cls)
@@ -254,6 +272,13 @@ class Power(Expr):
     def __new__(cls, a, b):
         a = as_ufl(a)
         b = as_ufl(b)
+        if not (is_true_ufl_scalar(a) and is_true_ufl_scalar(b)):
+            print 
+            print "Non-scalar power error:"
+            print a
+            print b
+            print 
+        
         ufl_assert(is_true_ufl_scalar(a) and is_true_ufl_scalar(b),
             "Non-scalar power not defined.")
         if isinstance(a, ScalarValue) and isinstance(b, ScalarValue):

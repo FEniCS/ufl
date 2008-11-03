@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-11-01"
+__date__ = "2008-03-14 -- 2008-11-03"
 
 from .output import ufl_assert
 from .base import Expr, Terminal
@@ -101,7 +101,7 @@ class Outer(Expr):
         self._b = b
         ai = a.free_indices()
         bi = b.free_indices()
-        ufl_assert(not (set(ai) ^ set(bi)), "Didn't expect repeated indices in outer product.") 
+        ufl_assert(not (set(ai) ^ set(bi)), "Not expecting repeated indices in outer product.") 
         self._free_indices = tuple(ai+bi)
     
     def operands(self):
@@ -131,11 +131,14 @@ class Inner(Expr):
         return Terminal.__new__(cls)
 
     def __init__(self, a, b):
+        # sort operands by their repr TODO: This may be slow, can we do better? Needs to be completely independent of the outside world.
+        a, b = sorted((a,b), key = lambda x: repr(x))
+        
         self._a = a
         self._b = b
         ai = a.free_indices()
         bi = b.free_indices()
-        ufl_assert(not (set(ai) ^ set(bi)), "Didn't expect repeated indices in outer product.") 
+        ufl_assert(not (set(ai) ^ set(bi)), "Not expecting repeated indices in outer product.") 
         self._free_indices = tuple(ai+bi)
     
     def operands(self):
@@ -164,7 +167,7 @@ class Dot(Expr):
         ai = a.free_indices()
         bi = b.free_indices()
         ufl_assert(not (set(ai) ^ set(bi)),
-                   "Didn't expect repeated indices in outer product.")
+                   "Not expecting repeated indices in outer product.")
         
         if isinstance(a, Zero) or isinstance(b, Zero):
             if not (ai or bi):
@@ -209,7 +212,7 @@ class Cross(Expr):
         ai = self._a.free_indices()
         bi = self._b.free_indices()
         ufl_assert(not (set(ai) ^ set(bi)),
-            "Didn't expect repeated indices in outer product.") 
+            "Not expecting repeated indices in outer product.") 
         self._free_indices = tuple(ai+bi)
     
     def operands(self):
@@ -266,7 +269,7 @@ class Determinant(Expr):
         ufl_assert(r == 0 or compare_shapes((sh[0],), (sh[1],)),
             "Cannot take determinant of rectangular rank 2 tensor.")
         ufl_assert(not A.free_indices(),
-            "Didn't expect free indices in determinant.")
+            "Not expecting free indices in determinant.")
         if isinstance(A, Zero):
             return Zero()
         return Terminal.__new__(cls)
@@ -298,7 +301,7 @@ class Inverse(Expr): # TODO: Drop Inverse and represent it as product of Determi
         ufl_assert(r == 0 or r == 2, "Inverse of tensor with rank != 2 or 0 is undefined.")
         ufl_assert(r == 0 or compare_shapes((sh[0],), (sh[1],)),
             "Cannot take inverse of rectangular matrix with dimensions %s." % repr(sh))
-        ufl_assert(not A.free_indices(), "Didn't expect free indices in Inverse.")
+        ufl_assert(not A.free_indices(), "Not expecting free indices in Inverse.")
         self._A = A
     
     def operands(self):
@@ -323,7 +326,7 @@ class Cofactor(Expr):
         sh = A.shape()
         ufl_assert(len(sh) == 2, "Cofactor of tensor with rank != 2 is undefined.")
         ufl_assert(sh[0] == sh[1], "Cannot take cofactor of rectangular matrix with dimensions %s." % repr(sh))
-        ufl_assert(not A.free_indices(), "Didn't expect free indices in Cofactor.")
+        ufl_assert(not A.free_indices(), "Not expecting free indices in Cofactor.")
         self._A = A
     
     def operands(self):
@@ -350,7 +353,7 @@ class Deviatoric(Expr):
         ufl_assert(r == 2, "Deviatoric part of tensor with rank != 2 is undefined.")
         ufl_assert(compare_shapes((sh[0],), (sh[1],)),
             "Cannot take deviatoric part of rectangular matrix with dimensions %s." % repr(sh))
-        ufl_assert(not A.free_indices(), "Didn't expect free indices in Deviatoric.")
+        ufl_assert(not A.free_indices(), "Not expecting free indices in Deviatoric.")
         self._A = A
     
     def operands(self):
@@ -377,7 +380,7 @@ class Skew(Expr):
         ufl_assert(r == 2, "Skew part of tensor with rank != 2 is undefined.")
         ufl_assert(compare_shapes((sh[0],), (sh[1],)),
             "Cannot take skew part of rectangular matrix with dimensions %s." % repr(sh))
-        ufl_assert(not A.free_indices(), "Didn't expect free indices in Skew.")
+        ufl_assert(not A.free_indices(), "Not expecting free indices in Skew.")
         self._A = A
     
     def operands(self):

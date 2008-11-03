@@ -42,19 +42,6 @@ Roadmap for the development of UFL
    which will be wrong in some cases. This is a tricky issue,
    but won't be a problem for most applications.
 
-# Expression simplifications:
-   (It is important not to modify existing subexpressions since it
-   removes information from the user which cannot be recovered.
-   Flattening sums and products does this, and makes detection 
-   of e.g. "a + c" in "a + b + c" much more difficult/expensive.
-   The steps below are consistent with this design goal, and 
-   can in fact lead to easier detection of equal subexpressions.)
- - Sort expressions by something in Product and Sum?
-   (e.g. by repr, must be independent of all external factors
-   unlike in ginac... but should preferably not be too expensive)
- - Collapse "foo + foo" into "2*foo" without modifying foo.
- - Detect zeros in all operators, some may still be missing.
-
 # Elements and Basisfunctions (only minor or rare issues left):
  - Implement 'Test/Trial/BasisFunctions' for general tensor subelement with arbitrary symmetries (see split.py). Need to agree on some numbering conventions here.
  - Add Cell support for high order geometries?

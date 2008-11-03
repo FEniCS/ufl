@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import unittest
+from ufl.classes import Sum, Product
 
 from ufl import *
 
@@ -24,6 +25,21 @@ class ElementsTestCase(unittest.TestCase):
         b = 1*f
         self.assertTrue(a == b)
         
+        # Test simplification of self-multiplication
+        a = f*f
+        b = f**2
+        self.assertTrue(a == b)
+        
+        # Test simplification of flattened self-multiplication (may occur in algorithms)
+        a = Product(f,f,f)
+        b = f**3
+        self.assertTrue(a == b)
+        
+        # Test simplification of flattened self-multiplication (may occur in algorithms)
+        a = Product(f,f,f,f)
+        b = f**4
+        self.assertTrue(a == b)
+        
     def test_sums(self):
         element = FiniteElement("CG", "triangle", 1)
         f = Function(element)
@@ -35,7 +51,6 @@ class ElementsTestCase(unittest.TestCase):
         self.assertTrue(a == b)
         
         # Test collapsing of flattened sum (may occur in algorithms)
-        from ufl.classes import Sum
         a = Sum(f, f, f)
         b = 3*f
         self.assertTrue(a == b)
