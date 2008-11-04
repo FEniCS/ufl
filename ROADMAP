@@ -1,6 +1,16 @@
 Roadmap for the development of UFL
 ----------------------------------
 
+# Martins plan:
+- Improve ufl2latex with pre- and post-handlers.
+- Improve ufl2latex with precedence lists.
+- Test and fix mark_duplications.
+- Test and fix split_by_dependencies.
+- Test and fix replace_in_form.
+- Test and fix AD algorithms on spatial derivatives.
+- Test and fix AD algorithms on variable derivatives.
+- Test and fix AD algorithms on functional derivatives.
+
 # Prettyness and readability (low priority, but useful while debugging...):
  - Rewrite ufl2latex as described in its comments.
  - Use precedence list to improve parentesis use in __str__ and __repr__ and ufl2latex. 
