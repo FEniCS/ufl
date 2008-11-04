@@ -52,7 +52,7 @@ class DependencySet:
         return len(list(self.iter()))
     
     def iter(self):
-        return chain((self.mapping, self.coordinates, self.cell, self.facet),
+        return chain((self.cell, self.facet, self.mapping, self.coordinates),
                   self.basisfunctions, self.functions)
     
     def __hash__(self):

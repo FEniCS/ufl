@@ -1,13 +1,27 @@
 "This module contains a collection of common utilities."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-08-05 -- 2008-10-30"
+__date__ = "2008-08-05 -- 2008-11-04"
 
+import os
 from itertools import izip
 import operator
 
 def domain_to_dim(domain):
     return { "interval": 1, "triangle": 2, "tetrahedron": 3, "quadrilateral": 2, "hexahedron": 3 }[domain]
+
+def write_file(filename, text):
+    f = open(filename, "w")
+    f.write(text)
+    f.close()
+
+def openpdf(pdffilename):
+    "Open PDF file in external pdf viewer."
+    # TODO: Is there a portable way to do this?
+    # TODO: Use subprocess
+    # TODO: Add option for doing this or not.
+    # TODO: Add option for which reader to use.
+    os.system("evince %s &" % pdffilename)
 
 def product(sequence):
     "Return the product of all elements in a sequence."

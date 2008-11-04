@@ -5,7 +5,7 @@ converting UFL expressions to other representations."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-11-03"
+__date__ = "2008-05-07 -- 2008-11-04"
 
 # Modified by Anders Logg, 2008.
 
@@ -14,7 +14,7 @@ from itertools import chain
 from collections import defaultdict
 
 from ..output import ufl_error, ufl_debug, ufl_warning
-from ..common import UFLTypeDefaultDict
+from ..common import UFLTypeDefaultDict, write_file, openpdf
 
 # All classes:
 from ..zero import Zero
@@ -43,9 +43,16 @@ from .analysis import extract_basisfunctions, extract_coefficients, extract_vari
 from .formdata import FormData
 from .checks import validate_form
 from .formfiles import load_forms
+from .latextools import align, document, verbatim
 
+from .dependencies import DependencySet, CodeStructure, split_by_dependencies
+from .variables import mark_duplications
+from .transformations import expand_compounds
+
+
+# --- Tools for LaTeX rendering of UFL expressions ---
+# TODO: Precedence handling
 # TODO: Must rewrite LaTeX expression compiler to handle parent before child, to handle line wrapping, ListTensors of rank > 1, +++
-
 def latex_handlers(basisfunction_renumbering, coefficient_renumbering):
     # Show a clear error message if we miss some types here:
     def not_implemented(x, *ops):
@@ -59,18 +66,14 @@ def latex_handlers(basisfunction_renumbering, coefficient_renumbering):
         return str(s)
     
     # Terminal objects:
-    def l_zero(x):
-        if x.shape() == ():
-            return "0"
-        return r"{\mathbf 0}"
-    d[Zero]      = l_zero
+    d[Zero]          = lambda x: "0" if not x.shape() else r"{\mathbf 0}"
     d[FloatValue]    = lambda x: "{%s}" % x._value
     d[IntValue]      = lambda x: "{%s}" % x._value
     d[FacetNormal]   = lambda x: "n"
     d[Identity]      = lambda x: "I"
-    d[BasisFunction] = lambda x: "{v^{%d}}" % basisfunction_renumbering[x] # Using ^ for function numbering and _ for indexing
-    d[Function]      = lambda x: "{w^{%d}}" % coefficient_renumbering[x]
-    d[Constant]      = lambda x: "{w^{%d}}" % coefficient_renumbering[x]
+    d[BasisFunction] = lambda x: "{v_h^{%d}}" % basisfunction_renumbering[x] # Using ^ for function numbering and _ for indexing
+    d[Function]      = lambda x: "{w_h^{%d}}" % coefficient_renumbering[x]
+    d[Constant]      = lambda x: "{w_h^{%d}}" % coefficient_renumbering[x]
     d[Variable]      = lambda x: "s_{%d}" % x._count
     
     def l_index(ix):
@@ -190,228 +193,249 @@ def latex_handlers(basisfunction_renumbering, coefficient_renumbering):
                     "\n".join(str(c) for c in sorted(missing_handlers)))
     return d
 
-def element2latex(element):
-    return "{\mbox{%s}}" % str(element)
-
 def expression2latex(expression, basisfunction_renumbering, coefficient_renumbering):
     handlers = latex_handlers(basisfunction_renumbering, coefficient_renumbering)
     latex = transform(expression, handlers)
     return latex
 
-def form2latex(form, formname="a", newline = " \\\\ \n"):
+def element2latex(element):
+    return "{\mbox{%s}}" % str(element)
+
+domain_strings = { "cell": "\\Omega", "exterior_facet": "\\Gamma^{ext}", "interior_facet": "\\Gamma^{int}" }
+dx_strings = { "cell": "dx", "exterior_facet": "ds", "interior_facet": "dS" }
+
+def form2latex(form, formname="a", basisfunction_names = {}, function_names = {}):
     formdata = FormData(form)
-
-    ba = "\n\\begin{align}\n"
-    ea = "\n\\end{align}\n"
-
-    def make_align(lines):
-        if strings:
-            latex = ba
-            latex += newline.join(lines)
-            latex += ea
-            return latex
-        return ""
+    sections = []
     
-    latex = ""
-
     # Define elements
-    strings = []
+    lines = []
     for i, f in enumerate(formdata.basisfunctions):
-        e = f.element()
-        strings.append("\\mathcal{P}_{%d} = \{%s\} " % (i, element2latex(e)))
+        lines.append("\\mathcal{P}_{%d} = \{%s\} " % (i, element2latex(f.element())))
     for i, f in enumerate(formdata.coefficients):
-        e = f.element()
-        strings.append("\\mathcal{Q}_{%d} = \{%s\} " % (i, element2latex(e)))
-    if strings:
-        latex += "Finite elements:\n"
-        latex += make_align(strings)
-
+        lines.append("\\mathcal{Q}_{%d} = \{%s\} " % (i, element2latex(f.element())))
+    if lines:
+        sections.append(("Finite elements", align(lines)))
+    
     # Define function spaces
-    strings = []
+    lines = []
     for i, f in enumerate(formdata.basisfunctions):
-        strings.append("V_h^{%d} = \{v : v \\vert_K \in \\mathcal{P}_{%d}(K) \\quad \\forall K \in \\mathcal{T}\} " % (i, i))
+        lines.append("V_h^{%d} = \{v : v \\vert_K \in \\mathcal{P}_{%d}(K) \\quad \\forall K \in \\mathcal{T}\} " % (i, i))
     for i, f in enumerate(formdata.coefficients):
-        strings.append("W_h^{%d} = \{v : v \\vert_K \in \\mathcal{Q}_{%d}(K) \\quad \\forall K \in \\mathcal{T}\} " % (i, i))
-    if strings:
-        latex += "Function spaces:\n"
-        latex += make_align(strings)
+        lines.append("W_h^{%d} = \{v : v \\vert_K \in \\mathcal{Q}_{%d}(K) \\quad \\forall K \in \\mathcal{T}\} " % (i, i))
+    if lines:
+        sections.append(("Function spaces", align(lines)))
     
     # Define basis functions and functions
-    # TODO: Get names of arguments from form file
-    strings = []
+    lines = []
     for i,e in enumerate(formdata.basisfunctions):
-        strings.append("v_h^{%d} \\in V_h^{%d} " % (i, i))
+        name = basisfunction_names.get(f, None)
+        name = "" if name is None else (name + " = ")
+        lines.append("%sv_h^{%d} \\in V_h^{%d} " % (name, i, i))
     for i,f in enumerate(formdata.coefficients):
-        strings.append("w_h^{%d} \\in W_h^{%d} " % (i, i))
-    if strings:
-        latex += "Form arguments:\n"
-        latex += make_align(strings)
+        name = function_names.get(f, None)
+        name = "" if name is None else (name + " = ")
+        lines.append("%sw_h^{%d} \\in W_h^{%d} " % (name, i, i))
+    if lines:
+        sections.append(("Form arguments", align(lines)))
     
     # Define variables
     handled_variables = set()
     integrals = list(chain(form.cell_integrals(),
                            form.exterior_facet_integrals(),
                            form.interior_facet_integrals()))
-    strings = []
+    lines = []
     for itg in integrals:
         vars = extract_variables(itg.integrand())
         for v in vars:
             if not v._count in handled_variables:
                 handled_variables.add(v._count)
                 exprlatex = expression2latex(v._expression, formdata.basisfunction_renumbering, formdata.coefficient_renumbering)
-                strings.append("s_{%d} &= %s " % (v._count, exprlatex))
-    if strings:
-        latex += "Variables:\n"
-        latex += make_align(strings)
+                lines.append(("s_{%d}" % v._count, "= %s" % exprlatex))
+    if lines:
+        sections.append(("Variables", align(lines)))
     
-    # Join form arguments for "a(...) ="
+    # Join form arguments for signature "a(...) ="
     b = ", ".join("v_h^{%d}" % i for (i,v) in enumerate(formdata.basisfunctions))
     c = ", ".join("w_h^{%d}" % i for (i,w) in enumerate(formdata.coefficients))
     arguments = "; ".join((b, c))
-    latex += "Form:\n"
-    latex += ba
-    latex += "%s(%s) = " % (formname, arguments, )
+    signature = "%s(%s) = " % (formname, arguments, )
     
-    # Define integrals
-    domain_strings = { "cell": "\\Omega",
-                       "exterior_facet": "\\Gamma^{ext}",
-                       "interior_facet": "\\Gamma^{int}",
-                     }
-    dx_strings = { "cell": "dx",
-                   "exterior_facet": "ds",
-                   "interior_facet": "dS",
-                 }
-    integral_strings = []
+    # Define form as sum of integrals
+    lines = []
+    a = signature; p = ""
     for itg in integrals:
+        # TODO: Get list of expression strings instead of single expression!
         integrand_string = expression2latex(itg.integrand(), formdata.basisfunction_renumbering, formdata.coefficient_renumbering)
-        itglatex = "\\int_{%s_%d} & \\left[ { %s } \\right] \,%s" % \
-                (domain_strings[itg._domain_type],
-                 itg._domain_id,
-                 integrand_string,
-                 dx_strings[itg._domain_type])
-        integral_strings.append(itglatex)
-
-    # Join integral strings, and we're done!
-    latex += (newline + " & {}+ ").join(integral_strings)
-    latex += ea
-    return latex
+        b = p + "\\int_{%s_%d}" % (domain_strings[itg._domain_type], itg._domain_id)
+        c = "\\left[ { %s } \\right] \,%s" % (integrand_string, dx_strings[itg._domain_type])
+        lines.append((a, b, c))
+        a = "{}"; p = "{}+ "
+    sections.append(("Form", align(lines)))
+    
+    return sections
 
 def ufl2latex(expression):
-    "Generate LaTeX code for a UFL expression or form."
+    "Generate LaTeX code for a UFL expression or form (wrapper for form2latex and expression2latex)."
     if isinstance(expression, Form):
         return form2latex(expression)
     basisfunction_renumbering = dict((f,f._count) for f in extract_basisfunctions(expression))
     coefficient_renumbering = dict((f,f._count) for f in extract_coefficients(expression))
     return expression2latex(expression, basisfunction_renumbering, coefficient_renumbering)
 
-def forms2latexdocument(forms, uflfilename):
-    "Generate a complete LaTeX document for a list of UFL forms."
-    # Analyse validity of forms
-    for k,v in forms:
-        errors = validate_form(v)
-        if errors:
-            msg = "Found errors in form '%s':\n%s" % (k, errors)
-            raise RuntimeError, msg
-    
-    # Define template for overall document
-    latex = r"""\documentclass{article}
-    \usepackage{amsmath}
-    
-    \begin{document}
-    
-    \section{UFL Forms from file %s}
-    
-    """ % uflfilename.replace("_", "\\_")
-    
-    # Generate latex code for each form
-    for name, form in forms:
-        l = ufl2latex(form)
-        latex += "\\subsection{Form %s}\n" % name
-        latex += l
-    
-    latex += r"""
-    \end{document}
-    """
-    return latex
+# --- LaTeX rendering of composite UFL objects ---
 
-def write_file(filename, text):
-    f = open(filename, "w")
-    f.write(text)
-    f.close()
+def bfname(i):
+    return "{v_h^%d}" % i
 
-def openpdf(pdffilename):
-    # TODO: Add option for this. Is there a portable way to do this? like "open foo.pdf in pdf viewer"
-    os.system("evince %s &" % pdffilename)
+def cfname(i):
+    return "{w_h^%d}" % i
 
-def uflfile2latex(uflfilename, latexfilename):
-    "Compile a LaTeX file from a .ufl file."
-    forms = load_forms(uflfilename)
-    latex = forms2latexdocument(forms, uflfilename) 
-    write_file(latexfilename, latex)
+def dep2latex(dep):
+    deps = []
+    if dep.cell:
+        deps.append("K") # TODO: Better symbol
+    if dep.mapping:
+        deps.append("G") # TODO: Better symbol
+    if dep.facet:
+        deps.append("n") # TODO: Better symbol
+    if dep.coordinates:
+        deps.append("x") # TODO: Better symbol
+    for i,v in enumerate(dep.basisfunctions):
+        if v: deps.append(bfname(i))
+    for i,w in enumerate(dep.functions):
+        if w: deps.append(cfname(i))
+    return "Dependencies: ${ %s }$." % ", ".join(deps)
 
-def latex2pdf(latexfilename, pdffilename):
-    os.system("pdflatex %s %s" % (latexfilename, pdffilename)) # TODO: Use subprocess
-    openpdf(pdffilename)
-
-def uflfile2pdf(uflfilename, latexfilename, pdffilename):
-    "Compile a .pdf file from a .ufl file."
-    uflfile2latex(uflfilename, latexfilename)
-    latex2pdf(latexfilename, pdffilename)
-
-def codestructure2latex(code, formdata):
+def code2latex(vinfo, code, formdata):
     "TODO: Document me"
-    
     bfn = formdata.basisfunction_renumbering
     cfn = formdata.coefficient_renumbering
+
+    deplist = code.stacks.keys()
+    # FIXME: Sort dependency sets in a sensible way (preclude to a good quadrature code generator)
+    deplist = sorted(deplist)
     
-    def dep2latex(dep):
-        # TODO: Better formatting of dependencies
-        return "Dependencies:\n\\begin{verbatim}\n%s\n\\end{verbatim}" % str(dep)
-    
-    latex = ""
-    newline = "\\\\\n"
-    for dep, stack in code.stacks.iteritems():
-        latex += "\n\n"
-        latex += dep2latex(dep)
-        latex += "\n\\begin{align}\n"
+    pieces = []
+    for dep in deplist:
+        stack = code.stacks[dep]
         
+        lines = []
         for vinfo in stack[:-1]:
             vl = expression2latex(vinfo.variable, bfn, cfn)
             el = expression2latex(vinfo.variable._expression, bfn, cfn)
-            latex += "%s &= %s %s" % (vl, el, newline)
+            lines.append((vl, "= " + el))
         
         vinfo = stack[-1]
         vl = expression2latex(vinfo.variable, bfn, cfn)
         el = expression2latex(vinfo.variable._expression, bfn, cfn)
-        latex += "%s &= %s" % (vl, el)
+        lines.append((vl, "= " + el))
         
-        latex += "\n\\end{align}\n"
+        pieces.append("\n")
+        pieces.append(dep2latex(dep))
+        pieces.append(align(lines))
     
-    return latex
+    # Add final variable representing integrand
+    pieces.append("\n")
+    pieces.append("Variable representing integrand. " + dep2latex(vinfo.deps))
+    vl = expression2latex(vinfo.variable, bfn, cfn)
+    el = expression2latex(vinfo.variable._expression, bfn, cfn)
+    lines = [(vl, "= " + el)]
+    pieces.append(align(lines))
+    
+    # Could also return list of (title, body) parts for subsections if wanted
+    body = "\n".join(pieces)
+    return body
 
-def codestructure2pdf(code, formdata, latexfilename, pdffilename):
-    "Compile a .pdf file from a CodeStructure."
+def integrand2code(integrand, formdata, basisfunction_deps, function_deps):
+    # Try to pick up duplications on the most abstract level
+    integrand = mark_duplications(integrand)
     
-    # FIXME: Add final variable representing integrand
-    # FIXME: Handle lists of named forms (code / formdata)
-    # FIXME: Sort dependency sets in a sensible way (preclude to a good quadrature code generator)
-    # FIXME: We're generating a lot of "Variable(Variable(...))" expressions!
+    # Expand grad, div, inner etc to index notation
+    integrand = expand_compounds(integrand, formdata.geometric_dimension)
     
-    # Define template for overall document
-    latex = r"""\documentclass{article}
-    \usepackage{amsmath}
+    # Try to pick up duplications on the index notation level
+    integrand = mark_duplications(integrand)
     
-    \begin{document}
+    # FIXME: Apply AD stuff for Diff and propagation of SpatialDerivative to Terminal nodes. Or do we need to build code structure first to do this better?
+    #integrand = FIXME(integrand)
+    #integrand = compute_diffs(integrand)
+    #integrand = propagate_spatial_diffs(integrand)
     
-    \section{Code structure}
+    # Try to pick up duplications after propagating derivatives
+    #integrand = mark_duplications(integrand)
     
-    """ # % uflfilename.replace("_", "\\_")
+    (vinfo, code) = split_by_dependencies(integrand, formdata, basisfunction_deps, function_deps)
+    
+    return vinfo, code
 
-    latex += codestructure2latex(code, formdata)
+def formdata2latex(formdata):
+    return verbatim(str(formdata)) # TODO
+
+def form2code2latex(form):
+    formdata = FormData(form)
+        
+    # Define toy input to split_by_dependencies
+    basisfunction_deps = []
+    fs = (False,)*formdata.num_coefficients
+    for i in range(formdata.rank):
+        bfs = tuple(i == j for j in range(formdata.rank)) # TODO: More dependencies depending on element
+        d = DependencySet(bfs, fs)
+        basisfunction_deps.append(d)
     
-    latex += r"""
-    \end{document}
-    """
+    function_deps = []
+    bfs = (False,)*formdata.rank
+    for i in range(formdata.num_coefficients):
+        fs = tuple(i == j for j in range(formdata.num_coefficients)) # TODO: More dependencies depending on element
+        d = DependencySet(bfs, fs)
+        function_deps.append(d)
     
+    title = "Form data"
+    body = formdata2latex(formdata)
+    sections = [(title, body)]
+    
+    for itg in form.cell_integrals():
+        vinfo, itgcode = integrand2code(itg.integrand(), formdata, basisfunction_deps, function_deps)
+        title = "%s integral over domain %d" % (itg.domain_type(), itg.domain_id())
+        body = code2latex(vinfo, itgcode, formdata)
+        sections.append((title, body))
+    
+    return sections
+
+# --- Creating complete documents ---
+
+def forms2latexdocument(forms, uflfilename, compile=False):
+    "Render forms from a .ufl file as a LaTeX document."
+    sections = []
+    for name, form in forms:
+        title = "Form %s" % name
+        if compile:
+            body = form2code2latex(form)
+        else:
+            body = form2latex(form) #, formname, basisfunction_names, function_names) # TODO
+        sections.append((title, body))
+
+    if compile:
+        title = "Compiled forms from UFL file %s" % uflfilename.replace("_", "\\_")
+    else:
+        title = "Forms from UFL file %s" % uflfilename.replace("_", "\\_")
+    return document(title, sections)
+
+# --- File operations ---
+
+def ufl2tex(uflfilename, latexfilename, compile=False):
+    "Compile a .tex file from a .ufl file."
+    forms = load_forms(uflfilename) # TODO: Get function names from this
+    latex = forms2latexdocument(forms, uflfilename, compile) 
     write_file(latexfilename, latex)
-    latex2pdf(latexfilename, pdffilename)
+
+def tex2pdf(latexfilename, pdffilename):
+    # TODO: Use subprocess.
+    # TODO: Options for this.
+    os.system("pdflatex %s %s" % (latexfilename, pdffilename))
+    openpdf(pdffilename)
+
+def ufl2pdf(uflfilename, latexfilename, pdffilename, compile=False):
+    "Compile a .pdf file from a .ufl file."
+    ufl2tex(uflfilename, latexfilename, compile)
+    tex2pdf(latexfilename, pdffilename)

@@ -3,13 +3,18 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-24"
+__date__ = "2008-03-14 -- 2008-11-04"
 
 from ..output import ufl_error, ufl_info
 from ..form import Form
 from ..function import Function
+from .checks import validate_form
 
 #--- Utilities to deal with form files ---
+
+infostring = """An exception occured during evaluation of form file.
+To find the location of the error, a temporary script
+'%s' has been created and will now be executed:"""
 
 def load_forms(filename):
     # Read form file
@@ -24,10 +29,7 @@ def load_forms(filename):
         f = file(tmpfile, "w")
         f.write(code)
         f.close()
-        ufl_info("""\
-An exception occured during evaluation of form file.
-To find the location of the error, a temporary script
-'%s' has been created and will now be executed:""" % tmpfile)
+        ufl_info(infostring % tmpfile)
         m = __import__(tmpname)
         ufl_error("Aborting load_forms.")
     
@@ -40,5 +42,11 @@ To find the location of the error, a temporary script
         elif isinstance(v, Function):
             function_names.append((v,k))
     
-    # TODO: Return function_names?
-    return forms
+    # Analyse validity of forms
+    for k,v in forms:
+        errors = validate_form(v)
+        if errors:
+            msg = "Found errors in form '%s':\n%s" % (k, errors)
+            raise RuntimeError, msg
+    
+    return forms#, function_names # TODO: Return function_names?
