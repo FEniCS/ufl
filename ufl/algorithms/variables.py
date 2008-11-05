@@ -6,7 +6,7 @@ an expression."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-10-29"
+__date__ = "2008-05-07 -- 2008-11-05"
 
 from ..output import ufl_assert, ufl_error, ufl_warning
 from ..common import UFLTypeDict
@@ -17,7 +17,7 @@ from ..zero import Zero
 from ..scalar import FloatValue, IntValue 
 from ..indexing import MultiIndex
 from ..variable import Variable
-from ..classes import FacetNormal, Identity
+from ..classes import Identity
 from ..classes import ufl_classes
 
 # Other algorithms:
@@ -94,7 +94,9 @@ def _mark_duplications(expression, handlers, variables, dups):
     handled = h(expression, *ops)
     
     # wrap in variable if a duplicate
-    if expression in dups or handled in dups: # TODO: Not sure if it is necessary to look for handled
+    const_terminals = (ScalarValue, FloatValue, IntValue, Identity) # FacetNormal: depends on order of geometry!
+    if not isinstance(expression, const_terminals) and \
+        (expression in dups or handled in dups): # TODO: Not sure if it is necessary to look for handled
         if not isinstance(handled, Variable):
             handled = Variable(handled)
         variables[expression] = handled

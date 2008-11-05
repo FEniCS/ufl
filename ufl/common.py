@@ -1,14 +1,13 @@
 "This module contains a collection of common utilities."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-08-05 -- 2008-11-04"
+__date__ = "2008-08-05 -- 2008-11-05"
 
 import os
 from itertools import izip
 import operator
 
-def domain_to_dim(domain):
-    return { "interval": 1, "triangle": 2, "tetrahedron": 3, "quadrilateral": 2, "hexahedron": 3 }[domain]
+domain2dim = { "interval": 1, "triangle": 2, "tetrahedron": 3, "quadrilateral": 2, "hexahedron": 3 }
 
 def write_file(filename, text):
     f = open(filename, "w")

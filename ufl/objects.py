@@ -1,14 +1,13 @@
-"""Utility objects for pretty syntax in user code."""
+"Utility objects for pretty syntax in user code."
 
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-08-20"
+__date__ = "2008-03-14 -- 2008-11-05"
 
 # Modified by Anders Logg, 2008
 
 from .integral import Integral
-from .geometry import FacetNormal
 from .indexing import Index
 
 # Default indices
@@ -19,9 +18,6 @@ p, q, r, s = [Index() for _i in range(4)]
 dx = Integral("cell", 0)
 ds = Integral("exterior_facet", 0)
 dS = Integral("interior_facet", 0)
-
-# Geometric entities
-n = FacetNormal()
 
 # Cell types
 interval      = "interval"      # Cell("interval", 1)

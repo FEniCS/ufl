@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-09-06 -- 2008-10-29"
+__date__ = "2008-09-06 -- 2008-11-05"
 
 import unittest
 
@@ -9,7 +9,7 @@ from ufl import *
 from ufl.scalar import as_ufl
 from ufl.classes import * 
 from ufl.algorithms import * 
-from ufl.indexing import DefaultDim
+from ufl.common import domain2dim
 
 # disable log output
 import logging
@@ -28,6 +28,7 @@ def test_object(a, shape, free_indices):
     # Check that some properties are at least available
     fi = a.free_indices()
     sh = a.shape()
+    do = a.domain()
     
     # Compare with provided properties
     if free_indices is not None:
@@ -36,7 +37,7 @@ def test_object(a, shape, free_indices):
         if sh != shape:
             print "sh:", sh
             print "shape:", shape
-        assert sh == shape # FIXME: Better comparison.
+        assert sh == shape
 
 def test_form(a):
     # Test reproduction via repr string
@@ -55,7 +56,8 @@ class ClasscoverageTest(unittest.TestCase):
     def testAll(self):
         
         # --- Elements:
-        polygon, dim = "triangle", 2
+        polygon = "triangle"
+        dim = domain2dim[polygon]
         
         e0 = FiniteElement("CG", polygon, 1)
         e1 = VectorElement("CG", polygon, 1)
@@ -96,8 +98,8 @@ class ClasscoverageTest(unittest.TestCase):
         I = Identity(2)
         test_object(I, (dim,dim), ())
         
-        n = FacetNormal()
-        test_object(n, (DefaultDim,), ())
+        n = FacetNormal(polygon)
+        test_object(n, (dim,), ())
         
         a = variable(v0)
         test_object(a, (), ())
@@ -188,20 +190,20 @@ class ClasscoverageTest(unittest.TestCase):
                     [1.0, 2.0*f0, f0**2]])
         test_object(a, (2,3), ())
         a = as_tensor([ [[0.00, 0.01, 0.02],
-                      [0.10, 0.11, 0.12]],
-                     [[1.00, 1.01, 1.02],
-                      [1.10, 1.11, 1.12]] ])
+                         [0.10, 0.11, 0.12] ],
+                      [ [1.00, 1.01, 1.02],
+                        [1.10, 1.11, 1.12]] ])
         test_object(a, (2,2,3), ())
         
         #a = Componentas_tensor()
         a = as_vector(v1[i]*f1[j], i)
-        test_object(a, (DefaultDim,), (j,))
+        test_object(a, (dim,), (j,))
         a = as_matrix(v1[i]*f1[j], (j,i))
-        test_object(a, (DefaultDim,DefaultDim), ())
+        test_object(a, (dim, dim), ())
         a = as_tensor(v1[i]*f1[j], (i,j))
-        test_object(a, (DefaultDim,DefaultDim), ())
+        test_object(a, (dim, dim), ())
         a = as_tensor(v2[i,j]*f2[j,k], (i,k))
-        test_object(a, (DefaultDim,DefaultDim), ())
+        test_object(a, (dim, dim), ())
         
         a = dev(v2)
         test_object(a, (dim,dim), ())
@@ -321,22 +323,22 @@ class ClasscoverageTest(unittest.TestCase):
         test_object(a, (dim,), ())
         
         a = grad(v0)
-        test_object(a, (DefaultDim,), ())
+        test_object(a, (dim,), ())
         a = grad(f0)
-        test_object(a, (DefaultDim,), ())
+        test_object(a, (dim,), ())
         a = grad(v1)
-        test_object(a, (DefaultDim, dim), ())
+        test_object(a, (dim, dim), ())
         a = grad(f1)
-        test_object(a, (DefaultDim, dim), ())
+        test_object(a, (dim, dim), ())
         a = grad(f0*v0)
-        test_object(a, (DefaultDim,), ())
+        test_object(a, (dim,), ())
         a = grad(f0*v1)
-        test_object(a, (DefaultDim, dim), ())
+        test_object(a, (dim, dim), ())
 
         a = curl(v1)
-        test_object(a, (DefaultDim,), ())
+        test_object(a, (dim,), ())
         a = curl(f1)
-        test_object(a, (DefaultDim,), ())
+        test_object(a, (dim,), ())
         a = rot(v1)
         test_object(a, (), ())
         a = rot(f1)

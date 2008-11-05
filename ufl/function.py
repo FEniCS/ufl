@@ -33,6 +33,9 @@ class Function(Terminal, Counted):
     def shape(self):
         return self._element.value_shape()
     
+    def domain(self):
+        return self._element.domain()
+    
     def __str__(self):
         if self._name is None:
             count = str(self._count)

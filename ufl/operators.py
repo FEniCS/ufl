@@ -6,9 +6,10 @@ objects."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-04-09 -- 2008-11-01"
+__date__ = "2008-04-09 -- 2008-11-05"
 
 import math
+from .output import ufl_assert
 from .zero import Zero
 from .scalar import ScalarValue, as_ufl
 from .differentiation import VariableDerivative, Grad, Div, Curl, Rot
@@ -99,7 +100,9 @@ def rot(f):
 def jump(v):
     "The jump of v."
     r = v.rank()
-    n = FacetNormal()
+    domain = v.domain()
+    ufl_assert(domain is not None, "FIXME: Not all expressions have a domain. How should this be done? What does FFC do?")
+    n = FacetNormal(domain)
     if r == 0:
         return v('+')*n('+') + v('-')*n('-')
     elif r == 1:

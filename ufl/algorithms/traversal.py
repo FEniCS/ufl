@@ -34,6 +34,14 @@ def iter_expressions(a):
     else:
         return (a,)
 
+def traverse_terminals(expression, traverse_into_variables=True):
+    if isinstance(expression, Terminal) and not (traverse_into_variables and isinstance(expression, Variable)):
+        yield expression
+    else:
+        for o in expression.operands():
+            for t in traverse_terminals(o, traverse_into_variables):
+                yield t
+
 def pre_traversal(expression, stack=None, traverse_into_variables=True):
     "Yields (o, stack) for each tree node o in expression, parent before child."
     if stack is None: stack = []

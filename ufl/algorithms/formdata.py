@@ -3,14 +3,14 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-09-13 -- 2008-10-24"
+__date__ = "2008-09-13 -- 2008-11-05"
 
 # Modified by Anders Logg, 2008
 
 from itertools import chain
 
 from ..output import ufl_assert
-from ..common import lstr, tstr, domain_to_dim
+from ..common import lstr, tstr, domain2dim
 from ..form import Form
 
 from .analysis import extract_basisfunctions, extract_coefficients, extract_classes
@@ -34,7 +34,7 @@ class FormData(object):
         # Some useful dimensions
         self.rank = len(self.basisfunctions)
         self.num_coefficients = len(self.coefficients)
-        self.geometric_dimension = domain_to_dim(self.domain)
+        self.geometric_dimension = domain2dim[self.domain]
         self.topological_dimension = self.geometric_dimension
         
         # Build renumbering of arguments, since Function and BasisFunction

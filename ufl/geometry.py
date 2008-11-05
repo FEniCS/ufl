@@ -1,28 +1,31 @@
-"""Types for quantities computed from cell geometry."""
+"Types for quantities computed from cell geometry."
 
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-27"
+__date__ = "2008-03-14 -- 2008-11-05"
 
 from .base import Terminal
-from .indexing import DefaultDim
+from .common import domain2dim
 
 class FacetNormal(Terminal):
-    def __init__(self):
-        pass
+    def __init__(self, domain):
+        self._domain = domain
     
     def free_indices(self):
         return ()
     
     def shape(self):
-        return (DefaultDim,)
+        return (domain2dim[self._domain],)
+    
+    def domain(self):
+        return self._domain
     
     def __str__(self):
         return "n"
     
     def __repr__(self):
-        return "FacetNormal()"
+        return "FacetNormal(%r)" % self._domain
 
     def __eq__(self, other):
-        return isinstance(other, FacetNormal)
+        return isinstance(other, FacetNormal) and other._domain == self._domain

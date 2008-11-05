@@ -3,17 +3,19 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-11-01"
+__date__ = "2008-03-14 -- 2008-11-05"
 
 from .output import ufl_assert
 from .base import Expr, Terminal
 from .zero import Zero
 from .scalar import ScalarValue
-from .indexing import Indexed, MultiIndex, Index, DefaultDim, extract_indices
+from .indexing import Indexed, MultiIndex, Index, extract_indices
 from .variable import Variable
 from .tensors import as_tensor
 from .tensoralgebra import Identity
 from .function import Function, Constant, VectorConstant, TensorConstant
+
+from .common import domain2dim
 
 #--- Basic differentiation objects ---
 
@@ -127,16 +129,22 @@ class VariableDerivative(Expr):
 #--- Compound differentiation objects ---
 
 class Grad(Expr):
-    __slots__ = ("_f",)
+    __slots__ = ("_f", "_dim",)
 
     def __new__(cls, f):
         # Return zero if expression is trivially constant
         if isinstance(f, spatially_constant_types):
-            return Zero((DefaultDim,) + f.shape())
+            domain = f.domain()
+            ufl_assert(domain is not None, "Can't take gradient of expression with undefined domain...")
+            dim = domain2dim[domain]
+            return Zero((dim,) + f.shape())
         return Expr.__new__(cls)
     
     def __init__(self, f):
         self._f = f
+        domain = f.domain()
+        ufl_assert(domain is not None, "Can't take gradient of expression with undefined domain. How did this happen?")
+        self._dim = domain2dim[domain]
         ufl_assert(not (f.free_indices()), \
             "TODO: Taking gradient of an expression with free indices, should this be a valid expression? Please provide examples!")
     
@@ -147,7 +155,7 @@ class Grad(Expr):
         return self._f.free_indices()
     
     def shape(self):
-        return (DefaultDim,) + self._f.shape()
+        return (self._dim,) + self._f.shape()
     
     def __str__(self):
         return "grad(%s)" % self._f
@@ -186,13 +194,18 @@ class Div(Expr):
         return "Div(%r)" % self._f
 
 class Curl(Expr):
-    __slots__ = ("_f",)
+    __slots__ = ("_f", "_dim",)
+    
+    # TODO: Implement __new__ to discover trivial zeros
     
     def __init__(self, f):
-        ufl_assert(f.rank() == 1, "Need a vector.")
+        ufl_assert(f.rank() == 1, "Need a vector.") # TODO: Is curl always 3D?
         ufl_assert(not f.free_indices(), \
             "TODO: Taking curl of an expression with free indices, should this be a valid expression? Please provide examples!")
         self._f = f
+        domain = f.domain()
+        ufl_assert(domain is not None, "Can't take curl of expression with undefined domain...") # TODO: Is curl always 3D?
+        self._dim = domain2dim[domain]
     
     def operands(self):
         return (self._f, )
@@ -201,7 +214,7 @@ class Curl(Expr):
         return self._f.free_indices()
     
     def shape(self):
-        return (DefaultDim,)
+        return (self._dim,)
     
     def __str__(self):
         return "curl(%s)" % self._f
@@ -211,6 +224,8 @@ class Curl(Expr):
 
 class Rot(Expr):
     __slots__ = ("_f",)
+    
+    # TODO: Implement __new__ to discover trivial zeros
 
     def __init__(self, f):
         ufl_assert(f.rank() == 1, "Need a vector.")

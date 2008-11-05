@@ -16,7 +16,6 @@ from ..variable import Variable
 from ..finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
 from ..basisfunction import BasisFunction, BasisFunctions
 from ..function import Function, Constant
-from ..geometry import FacetNormal
 from ..indexing import MultiIndex, Indexed, Index
 from ..tensors import ListTensor, ComponentTensor
 from ..algebra import Sum, Product, Division, Power, Abs
@@ -262,7 +261,12 @@ def diff_handlers():
     d[SpatialDerivative] = diff_diff
     d[VariableDerivative] = diff_diff
     
-    d[Grad] = diff_commute
+    def diff_grad(x, *ops):
+        ufl_assert(len(ops) == 1, "Logic breach in diff_commute, len(ops) = %d." % len(ops))
+        oprime = ops[0][1]
+        ufl_assert(oprime.domain() is not None, "FIXME: How can we handle this?")
+        return (x, type(x)(oprime))
+    d[Grad] = diff_grad
     d[Div]  = diff_commute
     d[Curl] = diff_commute
     d[Rot]  = diff_commute

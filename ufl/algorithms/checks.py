@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-11-01"
+__date__ = "2008-03-14 -- 2008-11-05"
 
 # Modified by Anders Logg, 2008.
 
@@ -11,11 +11,10 @@ from ..output import ufl_assert, ufl_warning
 
 # All classes:
 from ..form import Form
-from ..finiteelement import _domain2dim
 
 # Other algorithms
-from .traversal import post_traversal, post_walk, iter_expressions
-from .analysis import extract_value_shape, extract_domain, extract_elements
+from .traversal import post_traversal, post_walk, iter_expressions, traverse_terminals
+from .analysis import extract_elements
 from .predicates import is_multilinear
 
 def validate_form(form):
@@ -28,13 +27,16 @@ def validate_form(form):
     is_ml = is_multilinear(form)
     #if not is_ml: ufl_warning("Form is not multilinear.")
     ufl_assert(is_ml, "Form is not multilinear.")
-
-    # Check that domain is the same for all elements
-    domain = extract_domain(form)
-    for element in extract_elements(form):
-        ufl_assert(domain == element.domain(), "Inconsistent domains in form, got both %s and %s." % (domain, element.domain()))
-
+    
+    # Check that domain is the same everywhere
+    domains = set()
+    for e in iter_expressions(form):
+        for t in traverse_terminals(e):
+            domains.add(t.domain())
+    if None in domains:
+        domains.remove(None)
+    ufl_assert(len(domains) == 1, "Inconsistent or missing domain in form, found %s." % str(domains))
+    
     # Check that all integrands are scalar
-    dim = _domain2dim[domain]
     for expression in iter_expressions(form):
-        ufl_assert(extract_value_shape(expression, dim) == (), "Got non-scalar integrand expression:\n%s" % expression)
+        ufl_assert(expression.shape() == (), "Got non-scalar integrand expression:\n%s" % expression)

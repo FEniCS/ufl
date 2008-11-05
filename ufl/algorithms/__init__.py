@@ -3,17 +3,17 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-14 -- 2008-10-30"
+__date__ = "2008-08-14 -- 2008-11-05"
 
 # Modified by Anders Logg, 2008
 
 # Utilities for traversing over expression trees in different ways
 from .traversal import iter_expressions
-from .traversal import post_traversal, pre_traversal, traversal
+from .traversal import post_traversal, pre_traversal, traversal, traverse_terminals
 from .traversal import post_walk, pre_walk, walk
 
 # Utilities for extracting information from forms and expressions
-from .analysis import extract_type, extract_classes, extract_domain, extract_value_shape
+from .analysis import extract_type, extract_classes
 from .analysis import extract_basisfunctions, extract_coefficients, extract_elements, extract_unique_elements
 from .analysis import extract_variables
 from .analysis import extract_monomials

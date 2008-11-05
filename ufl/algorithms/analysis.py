@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-30"
+__date__ = "2008-03-14 -- 2008-11-05"
 
 # Modified by Anders Logg, 2008
 
@@ -23,7 +23,7 @@ from ..tensoralgebra import Transposed, Inner, Dot, Outer, Cross, Trace, Determi
 from ..restriction import PositiveRestricted, NegativeRestricted
 from ..differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot
 from ..conditional import EQ, NE, LE, GE, LT, GT, Conditional
-from ..indexing import DefaultDimType, Indexed
+from ..indexing import Indexed
 from ..form import Form
 from ..integral import Integral
 from ..classes import terminal_classes, nonterminal_classes
@@ -62,25 +62,6 @@ def extract_classes(a):
         for (o, stack) in post_traversal(e):
             c.add(get_ufl_class(type(o)))
     return c
-
-def extract_domain(a):
-    "Find the polygonal domain of Form a."
-    element = extract_elements(a)
-    domain = element[0].domain()
-    return domain
-
-def extract_value_shape(expression, dimension):
-    "Evaluate the value shape of expression with given implicit dimension."
-    ufl_assert(isinstance(expression, Expr), "Expecting UFL expression.")
-    ufl_assert(isinstance(dimension, int), "Expecting int dimension.")
-    s = expression.shape()
-    shape = []
-    for i in s:
-        if isinstance(i, DefaultDimType):
-            shape.append(dimension)
-        else:
-            shape.append(i)
-    return tuple(shape)
 
 def extract_basisfunctions(a):
     """Build a sorted list of all basisfunctions in a,

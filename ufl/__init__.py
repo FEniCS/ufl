@@ -33,7 +33,7 @@ __version__ = "0.1"
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __copyright__ = __authors__ + " (2008)"
 __licence__ = "GPL3"
-__date__ = "2008-03-14 -- 2008-11-01"
+__date__ = "2008-03-14 -- 2008-11-05"
 
 ########## README
 # Imports here should be what the user sees when doing "from ufl import *",
@@ -97,7 +97,6 @@ from .formoperators import derivative, action, rhs, lhs, adjoint #, dirichlet_fu
 # predefined convenience objects
 from .objects import interval, triangle, tetrahedron, quadrilateral, hexahedron, \
                      i, j, k, l, p, q, r, s, \
-                     n, \
                      dx, ds, dS
 
 # constants

@@ -5,7 +5,7 @@ converting UFL expressions to other representations."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-10-30"
+__date__ = "2008-05-07 -- 2008-11-05"
 
 from itertools import izip
 
@@ -18,8 +18,7 @@ from ..variable import Variable
 from ..finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
 from ..basisfunction import BasisFunction
 from ..function import Function, Constant
-from ..geometry import FacetNormal
-from ..indexing import MultiIndex, Indexed, Index, FixedIndex, indices, compare_shapes
+from ..indexing import MultiIndex, Indexed, Index, FixedIndex, indices
 from ..tensors import ListTensor, ComponentTensor, as_tensor, as_matrix
 from ..algebra import Sum, Product, Division, Power, Abs
 from ..tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor, Skew
@@ -234,9 +233,9 @@ def expand_compounds_handlers(dim):
     d[Dot] = e_dot
     
     def e_cross(x, a, b):
-        ufl_assert(compare_shapes(a.shape(), (3,)),
+        ufl_assert(a.shape() == (3,),
             "Invalid shape of first argument in cross product.")
-        ufl_assert(compare_shapes(b.shape(), (3,)),
+        ufl_assert(b.shape() == (3,),
             "Invalid shape of second argument in cross product.")
         def c(i, j):
             return a[i]*b[j]-a[j]*b[i]

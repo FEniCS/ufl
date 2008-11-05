@@ -29,6 +29,8 @@ class AlgorithmsTestCase(unittest.TestCase):
         c = Function(element, "c")
         f = Function(element, "f")
         
+        n = FacetNormal("triangle")
+        
         a = u*v*dx
         L = f*v*dx
         b = u*v*dx(0) +inner(c*grad(u),grad(v))*dx(1) + dot(n, grad(u))*v*ds + f*v*dx

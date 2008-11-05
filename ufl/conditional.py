@@ -8,7 +8,6 @@ __date__ = "2008-08-20 -- 2008-11-01"
 from .output import ufl_assert, ufl_warning
 from .base import Expr
 from .scalar import as_ufl
-from .indexing import compare_shapes
 
 #--- Condition classes --- 
 
@@ -88,7 +87,7 @@ class Conditional(Expr):
         false_value = as_ufl(false_value)
         tsh = true_value.shape()
         fsh = false_value.shape()
-        ufl_assert(compare_shapes(tsh, fsh), "Shape mismatch between conditional branches.")
+        ufl_assert(tsh == fsh, "Shape mismatch between conditional branches.")
         tfi = true_value.free_indices()
         ffi = false_value.free_indices()
         ufl_assert(tfi == ffi, "Free index mismatch between conditional branches.")

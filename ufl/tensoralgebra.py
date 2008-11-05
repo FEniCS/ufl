@@ -3,12 +3,12 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-11-03"
+__date__ = "2008-03-14 -- 2008-11-05"
 
 from .output import ufl_assert
 from .base import Expr, Terminal
 from .zero import Zero
-from .indexing import Index, indices, compare_shapes
+from .indexing import Index, indices
 
 ### Algebraic operations on tensors:
 # FloatValues:
@@ -124,7 +124,7 @@ class Inner(Expr):
     __slots__ = ("_a", "_b", "_free_indices")
 
     def __new__(cls, a, b):
-        ufl_assert(compare_shapes(a.shape(), b.shape()), "Shape mismatch.")
+        ufl_assert(a.shape() == b.shape(), "Shape mismatch.")
         if isinstance(a, Zero) or isinstance(b, Zero):
             if not (a.free_indices() or b.free_indices()):
                 return Zero()
@@ -266,7 +266,7 @@ class Determinant(Expr):
         r = len(sh)
         ufl_assert(r == 0 or r == 2,
             "Determinant of tensor with rank != 2 is undefined.")
-        ufl_assert(r == 0 or compare_shapes((sh[0],), (sh[1],)),
+        ufl_assert(r == 0 or sh[0] == sh[1],
             "Cannot take determinant of rectangular rank 2 tensor.")
         ufl_assert(not A.free_indices(),
             "Not expecting free indices in determinant.")
@@ -299,7 +299,7 @@ class Inverse(Expr): # TODO: Drop Inverse and represent it as product of Determi
         sh = A.shape()
         r = len(sh)
         ufl_assert(r == 0 or r == 2, "Inverse of tensor with rank != 2 or 0 is undefined.")
-        ufl_assert(r == 0 or compare_shapes((sh[0],), (sh[1],)),
+        ufl_assert(r == 0 or sh[0] == sh[1],
             "Cannot take inverse of rectangular matrix with dimensions %s." % repr(sh))
         ufl_assert(not A.free_indices(), "Not expecting free indices in Inverse.")
         self._A = A
@@ -351,7 +351,7 @@ class Deviatoric(Expr):
         sh = A.shape()
         r = len(sh)
         ufl_assert(r == 2, "Deviatoric part of tensor with rank != 2 is undefined.")
-        ufl_assert(compare_shapes((sh[0],), (sh[1],)),
+        ufl_assert(sh[0] == sh[1],
             "Cannot take deviatoric part of rectangular matrix with dimensions %s." % repr(sh))
         ufl_assert(not A.free_indices(), "Not expecting free indices in Deviatoric.")
         self._A = A
@@ -378,7 +378,7 @@ class Skew(Expr):
         sh = A.shape()
         r = len(sh)
         ufl_assert(r == 2, "Skew part of tensor with rank != 2 is undefined.")
-        ufl_assert(compare_shapes((sh[0],), (sh[1],)),
+        ufl_assert(sh[0] == sh[1],
             "Cannot take skew part of rectangular matrix with dimensions %s." % repr(sh))
         ufl_assert(not A.free_indices(), "Not expecting free indices in Skew.")
         self._A = A

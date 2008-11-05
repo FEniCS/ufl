@@ -6,6 +6,8 @@ from __future__ import absolute_import
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-11-01"
 
+from .common import domain2dim
+
 # Modified by Anders Logg, 2008
 
 #--- The base object for all UFL expression tree nodes ---
@@ -28,7 +30,7 @@ class Expr(object):
         raise NotImplementedError(self.__class__.free_indices)
     
     # TODO: Must all subclasses implement free_index_dimensions?
-    def free_index_dimensions(self, default_dim):
+    def free_index_dimensions(self):
         """Return a dict with the free indices in the expression
         as keys and the dimensions of those indices as values."""
         # TODO: Implement this everywhere. Need it to get the right shape of ComponentTensor.
@@ -36,6 +38,7 @@ class Expr(object):
         # This implementation works for all types as long as the
         # indices aren't indexing something with non-default dimensions...
         # Perhaps we could disallow indexing of non-default dimension sizes?
+        default_dim = domain2dim[self.domain()]
         return dict((i, default_dim) for i in self.free_indices())
     
     # Subclasses that can have repeated indices
@@ -59,7 +62,14 @@ class Expr(object):
     def rank(self):
         "Return the tensor rank of the expression."
         return len(self.shape())
-
+    
+    def domain(self):
+        for o in self.operands():
+            d = o.domain()
+            if d is not None:
+                return d
+        return None
+    
     # Objects (operators) are linear if not overloaded otherwise by subclass
     def is_linear(self):
         "Return true iff object is linear."

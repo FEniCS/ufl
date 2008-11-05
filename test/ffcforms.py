@@ -182,8 +182,7 @@ class FFCTestCase(unittest.TestCase):
         u = TrialFunction(element)
         f = Function(element)
 
-        # FFC notation: n = FacetNormal("triangle"), not needed here
-        #n = FacetNormal()
+        n = FacetNormal("triangle")
         
         # FFC notation: h = MeshSize("triangle"), not supported by UFL
         h = Constant("triangle")

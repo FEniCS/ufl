@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2008-11-03"
+__date__ = "2008-05-20 -- 2008-11-05"
 
 # Modified by Anders Logg, 2008
 
@@ -14,7 +14,7 @@ from .common import product
 from .base import Expr
 from .zero import Zero
 from .scalar import ScalarValue, FloatValue, IntValue, is_true_ufl_scalar, is_python_scalar, as_ufl
-from .indexing import extract_indices, compare_shapes
+from .indexing import extract_indices
 
 #--- Algebraic operators ---
 
@@ -30,7 +30,7 @@ class Sum(Expr):
         # assert consistent tensor properties
         sh = operands[0].shape()
         fi = operands[0].free_indices()
-        ufl_assert(all(compare_shapes(sh, o.shape()) for o in operands[1:]),
+        ufl_assert(all(sh == o.shape() for o in operands[1:]),
             "Shape mismatch in Sum.")
         ufl_assert(all(fi == o.free_indices() for o in operands[1:]),
             "Can't add expressions with different free indices.")

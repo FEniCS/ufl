@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-14 -- 2008-10-31"
+__date__ = "2008-03-14 -- 2008-11-05"
 
 from collections import defaultdict
 from .output import ufl_assert, ufl_warning, ufl_error
@@ -147,13 +147,12 @@ class Indexed(Expr):
     def shape(self):
         return self._shape
 
-    def repeated_index_dimensions(self, default_dim):
+    def repeated_index_dimensions(self):
         d = {}
         shape = self._expression.shape()
         for k, i in enumerate(self._indices._indices):
             if i in self._repeated_indices:
-                j = shape[k]
-                d[i] = default_dim if isinstance(j, DefaultDimType) else j
+                d[i] = shape[k]
         return d
 
     def __str__(self):
@@ -258,39 +257,6 @@ def extract_indices(indices, shape=None):
                "Logic breach in extract_indices.")
     
     return (free_indices, repeated_indices, newshape)
-
-class DefaultDimType(object):
-    __slots__ = ()
-    
-    def __init__(self):
-        pass
-    
-    def __str__(self):
-        return "?"
-    
-    def __repr__(self):
-        return "DefaultDimType()"
-
-DefaultDim = DefaultDimType()
-
-def complete_shape(a, dim): # TODO: If we can get rid of DefaultDim, we can get rid of this...
-    b = list(a)
-    for i,x in enumerate(b):
-        if isinstance(x, DefaultDimType):
-            b[i] = dim
-    return tuple(b)
-
-def compare_shapes(a, b, dim=None):
-    if len(a) != len(b):
-        return False
-    if dim is None:
-        return all(((i == j) or isinstance(i, DefaultDimType) or \
-            isinstance(j, DefaultDimType)) for (i,j) in zip(a,b))
-    else:
-        return all(((i == j) or \
-                    (isinstance(i, DefaultDimType) and j == dim) or \
-                    (isinstance(j, DefaultDimType) and i == dim)) \
-                    for (i,j) in zip(a,b))
 
 def indices(n):
     return tuple(Index() for i in range(n))

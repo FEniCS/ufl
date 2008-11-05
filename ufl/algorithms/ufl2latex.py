@@ -5,7 +5,7 @@ converting UFL expressions to other representations."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-11-04"
+__date__ = "2008-05-07 -- 2008-11-05"
 
 # Modified by Anders Logg, 2008.
 
@@ -52,6 +52,37 @@ from .transformations import expand_compounds
 
 # --- Tools for LaTeX rendering of UFL expressions ---
 # TODO: Precedence handling
+
+def build_precedence_map():
+    precedence_list = [] # FIXME: Review this list very carefully!
+
+    precedence_list.append((Sum,))
+    
+    # FIXME: What to do with these?
+    precedence_list.append((ListTensor, ComponentTensor))
+    precedence_list.append((NegativeRestricted, PositiveRestricted))
+    precedence_list.append((Conditional,))
+    precedence_list.append((LE, GT, GE, NE, EQ, LT))
+    
+    precedence_list.append((Div, Grad, Curl, Rot, SpatialDerivative, VariableDerivative,
+        Determinant, Trace, Cofactor, Inverse, Deviatoric))
+    precedence_list.append((Product, Division, Cross, Dot, Outer, Inner))
+    precedence_list.append((Indexed, Transposed, Power))
+    precedence_list.append((Abs, Cos, Exp, Ln, Sin, Sqrt))
+    precedence_list.append((Variable,))
+    precedence_list.append((IntValue, FloatValue, ScalarValue, Zero, Identity,
+        FacetNormal, Constant, VectorConstant, TensorConstant,
+        BasisFunction, Function, MultiIndex))
+    
+    precedence_map = {}
+    k = 0
+    for p in precedence_list:
+        for c in p:
+            precedence_map[c] = k
+        k += 1
+    return precedence_map
+
+
 # TODO: Must rewrite LaTeX expression compiler to handle parent before child, to handle line wrapping, ListTensors of rank > 1, +++
 def latex_handlers(basisfunction_renumbering, coefficient_renumbering):
     # Show a clear error message if we miss some types here:
