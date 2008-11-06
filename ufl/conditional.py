@@ -3,9 +3,9 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-20 -- 2008-11-01"
+__date__ = "2008-08-20 -- 2008-11-06"
 
-from .output import ufl_assert, ufl_warning
+from .output import ufl_assert, ufl_warning, ufl_error
 from .base import Expr
 from .scalar import as_ufl
 
@@ -26,12 +26,13 @@ class Condition(Expr):
         return (self._left, self._right)
 
     def free_indices(self):
-        ufl_warning("Why would you want the free_indices of a Condition?")
-        return ()
+        ufl_error("Calling free_indices on Condition is an error.")
+    
+    def free_index_dimensions(self):
+        ufl_error("Calling free_index_dimensions on Condition is an error.")
 
     def shape(self):
-        ufl_warning("Why would you want the shape of a Condition?")
-        return ()
+        ufl_error("Calling shape on Condition is an error.")
 
     def __str__(self):
         return "(%s) %s (%s)" % (self._left, self._name, self._right)
@@ -81,6 +82,8 @@ class GT(Condition):
 #--- Conditional expression (condition ? true_value : false_value) ---
 
 class Conditional(Expr):
+    __slots__ = ("_condition", "_true_value", "_false_value")
+    
     def __init__(self, condition, true_value, false_value):
         ufl_assert(isinstance(condition, Condition), "Expectiong condition as first argument.")
         true_value = as_ufl(true_value)
@@ -94,17 +97,18 @@ class Conditional(Expr):
         self._condition = condition
         self._true_value = true_value
         self._false_value = false_value
-        self._shape = tsh
-        self._free_indices = tfi
 
     def operands(self):
         return (self._condition, self._true_value, self._false_value)
 
     def free_indices(self):
-        return self._free_indices
+        return self._true_value.free_indices()
+
+    def free_index_dimensions(self):
+        return self._true_value.free_index_dimensions()
 
     def shape(self):
-        return self._shape
+        return self._true_value.shape()
 
     def __str__(self):
         return "(%s) ? (%s) : (%s)" % self.operands()

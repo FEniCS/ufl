@@ -26,9 +26,6 @@ class BasisFunction(Terminal, Counted):
     def element(self):
         return self._element
     
-    def free_indices(self):
-        return ()
-    
     def shape(self):
         return self._element.value_shape()
     

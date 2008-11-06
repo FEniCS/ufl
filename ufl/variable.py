@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2008-10-30"
+__date__ = "2008-05-20 -- 2008-11-06"
 
 from collections import defaultdict
 from .common import Counted
@@ -34,6 +34,9 @@ class Variable(Terminal, Counted):
     
     def free_indices(self):
         return () #self._expression.free_indices()
+    
+    def free_index_dimensions(self):
+        return {} #self._expression.free_index_dimensions()
     
     def shape(self):
         return self._expression.shape()

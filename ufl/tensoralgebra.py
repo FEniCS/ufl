@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-11-05"
+__date__ = "2008-03-14 -- 2008-11-06"
 
 from .output import ufl_assert
 from .base import Expr, Terminal
@@ -41,9 +41,6 @@ class Identity(Terminal):
     def __init__(self, dim):
         self._dim = dim
     
-    def free_indices(self):
-        return ()
-    
     def shape(self):
         return (self._dim, self._dim)
     
@@ -78,6 +75,9 @@ class Transposed(Expr):
     def free_indices(self):
         return self._A.free_indices()
     
+    def free_index_dimensions(self):
+        return self._A.free_index_dimensions()
+    
     def shape(self):
         s = self._A.shape()
         return (s[1], s[0])
@@ -89,7 +89,7 @@ class Transposed(Expr):
         return "Transposed(%r)" % self._A
 
 class Outer(Expr):
-    __slots__ = ("_a", "_b", "_free_indices")
+    __slots__ = ("_a", "_b", "_free_indices", "_free_index_dimensions")
 
     def __new__(cls, a, b):
         if isinstance(a, Zero) or isinstance(b, Zero):
@@ -102,13 +102,18 @@ class Outer(Expr):
         ai = a.free_indices()
         bi = b.free_indices()
         ufl_assert(not (set(ai) ^ set(bi)), "Not expecting repeated indices in outer product.") 
-        self._free_indices = tuple(ai+bi)
+        self._free_indices = ai+bi
+        self._free_index_dimensions = dict(a.free_index_dimensions())
+        self._free_index_dimensions.update(b.free_index_dimensions())
     
     def operands(self):
         return (self._a, self._b)
     
     def free_indices(self):
         return self._free_indices
+    
+    def free_index_dimensions(self):
+        return self._free_index_dimensions
     
     def shape(self):
         return self._a.shape() + self._b.shape()
@@ -121,7 +126,7 @@ class Outer(Expr):
         return "Outer(%r, %r)" % (self._a, self._b)
 
 class Inner(Expr):
-    __slots__ = ("_a", "_b", "_free_indices")
+    __slots__ = ("_a", "_b", "_free_indices", "_free_index_dimensions")
 
     def __new__(cls, a, b):
         ufl_assert(a.shape() == b.shape(), "Shape mismatch.")
@@ -140,12 +145,17 @@ class Inner(Expr):
         bi = b.free_indices()
         ufl_assert(not (set(ai) ^ set(bi)), "Not expecting repeated indices in outer product.") 
         self._free_indices = tuple(ai+bi)
+        self._free_index_dimensions = dict(a.free_index_dimensions())
+        self._free_index_dimensions.update(b.free_index_dimensions())
     
     def operands(self):
         return (self._a, self._b)
     
     def free_indices(self):
         return self._free_indices
+    
+    def free_index_dimensions(self):
+        return self._free_index_dimensions
     
     def shape(self):
         return ()
@@ -158,7 +168,7 @@ class Inner(Expr):
         return "Inner(%r, %r)" % (self._a, self._b)
 
 class Dot(Expr):
-    __slots__ = ("_a", "_b", "_free_indices")
+    __slots__ = ("_a", "_b", "_free_indices", "_free_index_dimensions")
 
     def __new__(cls, a, b):
         ufl_assert(a.rank() >= 1 and b.rank() >= 1,
@@ -179,12 +189,17 @@ class Dot(Expr):
         self._a = a
         self._b = b
         self._free_indices = a.free_indices() + b.free_indices()
+        self._free_index_dimensions = dict(a.free_index_dimensions())
+        self._free_index_dimensions.update(b.free_index_dimensions())
     
     def operands(self):
         return (self._a, self._b)
     
     def free_indices(self):
         return self._free_indices
+    
+    def free_index_dimensions(self):
+        return self._free_index_dimensions
     
     def shape(self):
         return self._a.shape()[:-1] + self._b.shape()[1:]
@@ -197,7 +212,7 @@ class Dot(Expr):
         return "Dot(%r, %r)" % (self._a, self._b)
 
 class Cross(Expr):
-    __slots__ = ("_a", "_b", "_free_indices")
+    __slots__ = ("_a", "_b", "_free_indices", "_free_index_dimensions")
 
     def __new__(cls, a, b):
         if isinstance(a, Zero) or isinstance(b, Zero):
@@ -213,13 +228,18 @@ class Cross(Expr):
         bi = self._b.free_indices()
         ufl_assert(not (set(ai) ^ set(bi)),
             "Not expecting repeated indices in outer product.") 
-        self._free_indices = tuple(ai+bi)
+        self._free_indices = ai+bi
+        self._free_index_dimensions = dict(a.free_index_dimensions())
+        self._free_index_dimensions.update(b.free_index_dimensions())
     
     def operands(self):
         return (self._a, self._b)
     
     def free_indices(self):
         return self._free_indices
+    
+    def free_index_dimensions(self):
+        return self._free_index_dimensions
     
     def shape(self):
         return (3,)
@@ -248,6 +268,9 @@ class Trace(Expr):
     
     def free_indices(self):
         return self._A.free_indices()
+    
+    def free_index_dimensions(self):
+        return self._A.free_index_dimensions()
     
     def shape(self):
         return ()
@@ -283,6 +306,9 @@ class Determinant(Expr):
     def free_indices(self):
         return ()
     
+    def free_index_dimensions(self):
+        return {}
+    
     def shape(self):
         return ()
     
@@ -310,6 +336,9 @@ class Inverse(Expr): # TODO: Drop Inverse and represent it as product of Determi
     def free_indices(self):
         return ()
     
+    def free_index_dimensions(self):
+        return {}
+    
     def shape(self):
         return self._A.shape()
     
@@ -334,6 +363,9 @@ class Cofactor(Expr):
     
     def free_indices(self):
         return ()
+    
+    def free_index_dimensions(self):
+        return {}
     
     def shape(self):
         return self._A.shape()
@@ -362,6 +394,9 @@ class Deviatoric(Expr):
     def free_indices(self):
         return self._A.free_indices()
     
+    def free_index_dimensions(self):
+        return self._A.free_index_dimensions()
+    
     def shape(self):
         return self._A.shape()
     
@@ -388,6 +423,9 @@ class Skew(Expr):
     
     def free_indices(self):
         return self._A.free_indices()
+    
+    def free_index_dimensions(self):
+        return self._A.free_index_dimensions()
     
     def shape(self):
         return self._A.shape()

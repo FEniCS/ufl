@@ -39,6 +39,18 @@ def test_object(a, shape, free_indices):
             print "shape:", shape
         assert sh == shape
 
+def test_object2(a):
+    # Test reproduction via repr string
+    r = repr(a)
+    e = eval(r, globals())
+    assert hash(a) == hash(e)
+    
+    # Can't really test str more than that it exists
+    s = str(a)
+    
+    # Check that some properties are at least available
+    do = a.domain()
+
 def test_form(a):
     # Test reproduction via repr string
     r = repr(a)
@@ -249,12 +261,12 @@ class ClasscoverageTest(unittest.TestCase):
         a = conditional(cond1, 1, 2)
         b = conditional(cond2, f0**3, ln(f0))
         
-        test_object(cond1, None, None)
-        test_object(cond2, None, None)
-        test_object(cond3, None, None)
-        test_object(cond4, None, None)
-        test_object(cond5, None, None)
-        test_object(cond6, None, None)
+        test_object2(cond1)
+        test_object2(cond2)
+        test_object2(cond3)
+        test_object2(cond4)
+        test_object2(cond5)
+        test_object2(cond6)
         test_object(a, (), ())
         test_object(b, (), ())
         

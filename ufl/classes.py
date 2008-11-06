@@ -5,13 +5,13 @@ implementation details not exposed through the default ufl namespace."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-15 -- 2008-11-01"
+__date__ = "2008-08-15 -- 2008-11-06"
 
 # Modified by Anders Logg, 2008
 
 from .base import Expr, Terminal
 from .zero import Zero
-from .scalar import ScalarValue, FloatValue, IntValue 
+from .scalar import ScalarValue, FloatValue, IntValue, ScalarSomething
 from .variable import Variable
 from .finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
 from .basisfunction import BasisFunction, TestFunction, TrialFunction

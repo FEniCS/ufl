@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-11-01 -- 2008-11-01"
+__date__ = "2008-11-01 -- 2008-11-06"
 
 from .output import ufl_assert
 from .base import Expr, Terminal
@@ -84,6 +84,22 @@ class IntValue(ScalarValue):
     def __abs__(self):
         return IntValue(abs(self._value))
 
+class ScalarSomething(ScalarValue):
+    "A constant scalar integer value."
+    __slots__ = ("_value",)
+    
+    def __init__(self, value):
+        self._value = value
+    
+    def __repr__(self):
+        return "ScalarSomething(%s)" % repr(self._value)
+    
+    def __neg__(self):
+        return ScalarSomething(-self._value)
+    
+    def __abs__(self):
+        return ScalarSomething(abs(self._value))
+
 #--- Basic helper functions ---
 
 def is_python_scalar(expression):
@@ -106,4 +122,5 @@ def as_ufl(expression):
         return IntValue(expression)
     if isinstance(expression, float):  
         return FloatValue(expression)
-    ufl_error("Expecting a Python scalar or Expr instance.")
+    ufl_warning("Wrapping non-UFL expression. This is experimental!")
+    return ScalarSomething(expression)

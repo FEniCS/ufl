@@ -3,10 +3,10 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-19-- 2008-11-01"
+__date__ = "2008-08-19-- 2008-11-06"
 
 from ..output import ufl_assert, ufl_error, ufl_warning
-from ..common import product, unzip, UFLTypeDefaultDict
+from ..common import product, unzip, UFLTypeDefaultDict, domain2dim
 
 # All classes:
 from ..base import Expr, Terminal
@@ -32,8 +32,7 @@ from ..operators import dot, inner, outer, lt, eq, conditional
 from ..operators import sqrt, exp, ln, cos, sin
 from .traversal import iter_expressions
 from .analysis import extract_type
-from .transformations import transform, transform_integrands
-
+from .transformations import transform, transform_integrands, expand_compounds
 
 # FIXME: Need algorithm to apply AD to all kinds of derivatives!
 #        In particular, SpatialDerivative, VariableDerivative and functional derivative.
@@ -331,7 +330,10 @@ def compute_diff(expression, var): # FIXME: Is this correct? Don't understand ho
 
 def compute_variable_derivatives(form):
     "Apply AD to form, expanding all VariableDerivative w.r.t variables."
+    domain = extract_domain(form)
+    dim = domain2dim[domain]
     def _compute_diff(expression):
+        expression = expand_compounds(expression, dim)
         return compute_diff(expression, None)
     return transform_integrands(form, _compute_diff)
 
@@ -340,7 +342,13 @@ def propagate_spatial_derivatives(form):
     """Partially apply automatic differentiation to form
     by propagating spatial derivatives to terminal objects."""
     ufl_assert(not extract_type(form, SpatialDerivative), "propagate_spatial_derivatives not implemented")
-    return form
+    domain = extract_domain(form)
+    dim = domain2dim[domain]
+    def _compute_diff(expression):
+        expression = expand_compounds(expression, dim)
+        # FIXME: Implement!
+        return expression
+    return transform_integrands(form, _compute_diff)
 
 
 def compute_form_derivative(form, function, basisfunction):
@@ -378,7 +386,11 @@ def compute_form_derivative(form, function, basisfunction):
         return (x, wprime)
     handlers[Variable] = diff_variable
     
+    domain = form.domain()
+    dim = domain2dim[domain]
+    
     def _compute_derivative(expression):
+        expression = expand_compounds(expression, dim)
         F, J = transform(expression, handlers)
         return J
     

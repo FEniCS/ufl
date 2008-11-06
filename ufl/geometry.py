@@ -12,9 +12,6 @@ class FacetNormal(Terminal):
     def __init__(self, domain):
         self._domain = domain
     
-    def free_indices(self):
-        return ()
-    
     def shape(self):
         return (domain2dim[self._domain],)
     

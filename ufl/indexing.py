@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-14 -- 2008-11-05"
+__date__ = "2008-03-14 -- 2008-11-06"
 
 from collections import defaultdict
 from .output import ufl_assert, ufl_warning, ufl_error
@@ -90,10 +90,14 @@ class MultiIndex(Terminal):
         ufl_assert(len(self._indices) == rank, "No? Why?")
     
     def free_indices(self):
-        ufl_error("Calling free_indices on MultiIndex is undefined.")
+        # This reflects the fact that a MultiIndex isn't a tensor expression
+        ufl_error("Calling free_indices on MultiIndex is an error.")
+    
+    def free_index_dimensions(self):
+        ufl_error("Calling free_index_dimensions on MultiIndex is an error.")
     
     def shape(self):
-        ufl_error("MultiIndex has no shape.")
+        ufl_error("Calling shape on MultiIndex is an error.")
     
     def __str__(self):
         return ", ".join(str(i) for i in self._indices)
@@ -117,7 +121,7 @@ class MultiIndex(Terminal):
 
 class Indexed(Expr):
     __slots__ = ("_expression", "_indices",
-                 "_free_indices", "_shape",
+                 "_free_indices", "_free_index_dimensions", "_shape",
                  "_repeated_indices",)
     def __init__(self, expression, indices):
         self._expression = expression
@@ -132,7 +136,7 @@ class Indexed(Expr):
         ufl_assert(expression.rank() == len(self._indices), msg)
         
         shape = expression.shape()
-        (self._free_indices, self._repeated_indices, self._shape) = \
+        (self._free_indices, self._repeated_indices, self._shape, self._free_index_dimensions) = \
             extract_indices(self._indices._indices, shape)
     
     def operands(self):
@@ -140,6 +144,9 @@ class Indexed(Expr):
     
     def free_indices(self):
         return self._free_indices
+
+    def free_index_dimensions(self):
+        return self._free_index_dimensions
 
     def repeated_indices(self):
         return self._repeated_indices
@@ -226,10 +233,13 @@ def extract_indices(indices, shape=None):
         #ufl_assert(len(shape) == len(indices), "Expecting tuples of equal length.")
         ufl_assert(len(shape) <= len(indices), "Expecting at least as many indices as the shape is.")
     
+    index_dimensions = {}
     index_count = defaultdict(int)
     for i,idx in enumerate(indices):
         if isinstance(idx, Index):
             index_count[idx] += 1
+            if shape is not None:
+                index_dimensions[idx] = shape[i]
     
     newshape = []
     if shape is not None:
@@ -249,14 +259,19 @@ def extract_indices(indices, shape=None):
     unique_indices = index_count.keys()
     free_indices     = tuple([i for i in unique_indices if index_count[i] == 1])
     repeated_indices = tuple([i for i in unique_indices if index_count[i] == 2])
+
+    free_index_dimensions = {}
+    if shape is not None:
+        for i in free_indices:
+            free_index_dimensions[i] = index_dimensions[i]
     
     # Consistency check
     fixed_indices = [(i,idx) for (i,idx) in enumerate(indices) if isinstance(idx, FixedIndex)]
     ufl_assert(len(fixed_indices)+len(free_indices) + \
                2*len(repeated_indices)+len(newshape)== len(indices),\
                "Logic breach in extract_indices.")
-    
-    return (free_indices, repeated_indices, newshape)
+ 
+    return (free_indices, repeated_indices, newshape, free_index_dimensions)
 
 def indices(n):
     return tuple(Index() for i in range(n))

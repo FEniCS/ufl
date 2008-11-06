@@ -1,6 +1,8 @@
 Roadmap for the development of UFL
 ----------------------------------
 
+- Work out various issues with extract_indices!
+
 # Martins plan:
 - Improve ufl2latex with pre- and post-handlers.
 - Improve ufl2latex with precedence lists.

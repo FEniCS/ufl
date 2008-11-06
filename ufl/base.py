@@ -33,13 +33,14 @@ class Expr(object):
     def free_index_dimensions(self):
         """Return a dict with the free indices in the expression
         as keys and the dimensions of those indices as values."""
-        # TODO: Implement this everywhere. Need it to get the right shape of ComponentTensor.
-        #raise NotImplementedError(self.__class__.free_index_dimensions)
+        # We need this to get the right shape of ComponentTensor.
+        raise NotImplementedError(self.__class__.free_index_dimensions)
+        
         # This implementation works for all types as long as the
         # indices aren't indexing something with non-default dimensions...
         # Perhaps we could disallow indexing of non-default dimension sizes?
-        default_dim = domain2dim[self.domain()]
-        return dict((i, default_dim) for i in self.free_indices())
+        #default_dim = domain2dim[self.domain()] # FIXME: This doesn't work for constant subtrees
+        #return dict((i, default_dim) for i in self.free_indices())
     
     # Subclasses that can have repeated indices
     # must implement repeated_indices
@@ -136,6 +137,10 @@ class Terminal(Expr):
     def free_indices(self):
         "A Terminal object never has free indices."
         return ()
+    
+    def free_index_dimensions(self):
+        "A Terminal object never has free indices."
+        return {}
     
     def __eq__(self, other):
         """Checks whether the two expressions are represented the

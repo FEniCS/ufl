@@ -1,16 +1,16 @@
-"""Basic algebra operations."""
+"Basic algebra operations."
 
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2008-11-05"
+__date__ = "2008-05-20 -- 2008-11-06"
 
 # Modified by Anders Logg, 2008
 
 from itertools import chain
 
 from .output import ufl_assert, ufl_error, ufl_warning
-from .common import product
+from .common import product, mergedicts
 from .base import Expr
 from .zero import Zero
 from .scalar import ScalarValue, FloatValue, IntValue, is_true_ufl_scalar, is_python_scalar, as_ufl
@@ -99,6 +99,9 @@ class Sum(Expr):
     def free_indices(self):
         return self._operands[0].free_indices()
     
+    def free_index_dimensions(self):
+        return self._operands[0].free_index_dimensions()
+    
     def shape(self):
         return self._operands[0].shape()
     
@@ -110,7 +113,7 @@ class Sum(Expr):
 
 class Product(Expr):
     """The product of two or more UFL objects."""
-    __slots__ = ("_operands", "_free_indices", "_repeated_indices", "_shape", "_repr")
+    __slots__ = ("_operands", "_free_indices", "_free_index_dimensions", "_repeated_indices", "_shape", "_repr")
     
     def __new__(cls, *operands):
         ufl_assert(len(operands) >= 2, "Can't make product of nothing, should catch this before getting here.")
@@ -183,9 +186,11 @@ class Product(Expr):
         
         # Extract indices
         all_indices = tuple(chain(*(o.free_indices() for o in operands)))
-        (self._free_indices, self._repeated_indices, dummy) = \
+        all_index_dimensions = mergedicts([o.free_index_dimensions() for o in operands])
+        (self._free_indices, self._repeated_indices, dummy, dummy) = \
             extract_indices(all_indices)
-            
+        self._free_index_dimensions = dict((i,all_index_dimensions[i]) for i in self._free_indices)
+        
         self._repr = "(%s)" % " * ".join(repr(o) for o in self._operands)
     
     def __init__(self, *operands):
@@ -196,6 +201,9 @@ class Product(Expr):
     
     def free_indices(self):
         return self._free_indices
+    
+    def free_index_dimensions(self):
+        return self._free_index_dimensions
     
     def repeated_indices(self):
         return self._repeated_indices
@@ -254,6 +262,9 @@ class Division(Expr):
     def free_indices(self):
         return self._a.free_indices()
     
+    def free_index_dimensions(self):
+        return self._a.free_index_dimensions()
+    
     def shape(self):
         return self._a.shape()
 
@@ -305,7 +316,10 @@ class Power(Expr):
         return (self._a, self._b)
     
     def free_indices(self):
-        return tuple()
+        return ()
+    
+    def free_index_dimensions(self):
+        return {}
     
     def shape(self):
         return ()
@@ -331,6 +345,9 @@ class Abs(Expr):
     
     def free_indices(self):
         return self._a.free_indices()
+    
+    def free_index_dimensions(self):
+        return self._a.free_index_dimensions()
     
     def shape(self):
         return self._a.shape()

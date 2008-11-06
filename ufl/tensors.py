@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-31 -- 2008-11-05"
+__date__ = "2008-03-31 -- 2008-11-06"
 
 from .output import ufl_assert, ufl_warning
 from .base import Expr
@@ -43,6 +43,9 @@ class ListTensor(Expr):
     def free_indices(self):
         return self._expressions[0].free_indices()
     
+    def free_index_dimensions(self):
+        return self._expressions[0].free_index_dimensions()
+    
     def shape(self):
         return self._shape
     
@@ -61,7 +64,7 @@ class ListTensor(Expr):
         return "ListTensor(%s)" % ", ".join(repr(e) for e in self._expressions)
 
 class ComponentTensor(Expr):
-    __slots__ = ("_expression", "_indices", "_free_indices", "_shape")
+    __slots__ = ("_expression", "_indices", "_free_indices", "_free_index_dimensions", "_shape")
     
     def __init__(self, expression, indices):
         ufl_assert(isinstance(expression, Expr), "Expecting ufl expression.")
@@ -85,6 +88,8 @@ class ComponentTensor(Expr):
         ufl_assert(len(missingset) == 0, "Missing indices %s in expression %s." % (missingset, expression))
         
         dims = expression.free_index_dimensions()
+        self._free_index_dimensions = dict((i, dims[i]) for i in self._free_indices)
+        
         self._shape = tuple(dims[i] for i in self._indices)
     
     def operands(self):
@@ -92,6 +97,9 @@ class ComponentTensor(Expr):
     
     def free_indices(self):
         return self._free_indices
+    
+    def free_index_dimensions(self):
+        return self._free_index_dimensions
     
     def shape(self):
         return self._shape
