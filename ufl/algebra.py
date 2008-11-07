@@ -3,14 +3,14 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2008-11-06"
+__date__ = "2008-05-20 -- 2008-11-07"
 
 # Modified by Anders Logg, 2008
 
 from itertools import chain
 
 from .output import ufl_assert, ufl_error, ufl_warning
-from .common import product, mergedicts
+from .common import product, mergedicts, subdict
 from .base import Expr
 from .zero import Zero
 from .scalar import ScalarValue, FloatValue, IntValue, is_true_ufl_scalar, is_python_scalar, as_ufl
@@ -29,10 +29,11 @@ class Sum(Expr):
         
         # assert consistent tensor properties
         sh = operands[0].shape()
-        fi = operands[0].free_indices()
+        fi = set(operands[0].free_indices())
+        fid = set(operands[0].index_dimensions())
         ufl_assert(all(sh == o.shape() for o in operands[1:]),
             "Shape mismatch in Sum.")
-        ufl_assert(all(fi == o.free_indices() for o in operands[1:]),
+        ufl_assert(not any((fi ^ set(o.free_indices())) for o in operands[1:]),
             "Can't add expressions with different free indices.")
         
         # purge zeros
@@ -56,8 +57,7 @@ class Sum(Expr):
         
         # have we purged everything? 
         if not operands:
-            ufl_warning("TODO: This shouldn't happen. Please email ufl-dev@fenics.org with an example that produces this message.")
-            return Zero(sh)
+            return Zero(sh, tuple(fi), fid)
         
         # left with one operand only?
         if len(operands) == 1:
@@ -118,10 +118,6 @@ class Product(Expr):
     def __new__(cls, *operands):
         ufl_assert(len(operands) >= 2, "Can't make product of nothing, should catch this before getting here.")
 
-        # simplify if zero
-        if any(o == 0 for o in operands):
-            return Zero()
-
         operands = [as_ufl(o) for o in operands]
         
         # sort operands by their repr TODO: This may be slow, can we do better? Needs to be completely independent of the outside world.
@@ -141,7 +137,17 @@ class Product(Expr):
             # We have a non-scalar expression in this product
             operands = operands[:j] + operands[j+1:] + [operands[j]]  
         
-        # Replace n-repeated operands foo with foo**n
+        # simplify if zero
+        if any(o == 0 for o in operands):
+            # Extract indices
+            all_indices = tuple(chain(*(o.free_indices() for o in operands)))
+            index_dimensions = mergedicts([o.index_dimensions() for o in operands])
+            (free_indices, repeated_indices, dummy1, dummy2) = \
+                extract_indices(all_indices)
+            index_dimensions = subdict(index_dimensions, free_indices)
+            return Zero(sh, free_indices, index_dimensions)
+        
+        # Replace n-repeated operands foo with foo**n (as long as they have no free indices)
         newoperands = []
         op = operands[0]
         n = 1

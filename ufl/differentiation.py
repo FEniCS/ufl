@@ -6,6 +6,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-11-07"
 
 from .output import ufl_assert
+from .common import subdict
 from .base import Expr, Terminal
 from .zero import Zero
 from .scalar import ScalarValue
@@ -26,14 +27,21 @@ class SpatialDerivative(Expr):
     __slots__ = ("_expression", "_shape", "_indices", "_free_indices", "_index_dimensions", "_repeated_indices", "_dx_free_indices", "_dx_repeated_indices")
     def __new__(cls, expression, indices):
         if isinstance(expression, Terminal):
-            # Return zero if expression is trivially 
-            # constant, and there are no free indices.
-            # (there are no expression.free_indices() in terminal types)
-            ind = [i for i in indices if isinstance(i, Index)]
-            si = set(ind)
-            if len(ind) == 2*len(si):
-                if isinstance(expression, spatially_constant_types):
-                    return Zero(expression.shape())
+            # Return zero if expression is trivially constant
+            if isinstance(expression, spatially_constant_types):
+                domain = expression.domain()
+                ufl_assert(domain is not None, "Need domain to know spatial dimension in SpatialDerivative.")
+                spatial_dim = domain2dim[domain]
+                
+                # Compute free indices and their dimensions
+                si = set(i for i in indices if isinstance(i, Index))
+                free_indices = expression.free_indices() ^ si
+                index_dimensions = dict(expression.index_dimensions())
+                index_dimensions.update((i, spatial_dim) for i in si)
+                index_dimensions = subdict(index_dimensions, free_indices)
+                
+                return Zero(expression.shape(), free_indices, index_dimensions)
+
         return Expr.__new__(cls)
     
     def __init__(self, expression, indices):
@@ -75,13 +83,6 @@ class SpatialDerivative(Expr):
         return self._repeated_indices
     
     def index_dimensions(self):
-        # FIXME: Can we remove this now?
-        # Repeated indices here always iterate over the default
-        # spatial range, so I think this should be correct:
-        #d = {}
-        #for i in self._repeated_indices:
-        #    d[i] = default_dim
-        #return d
         return self._index_dimensions
 
     def shape(self):
@@ -97,13 +98,12 @@ class SpatialDerivative(Expr):
 class VariableDerivative(Expr):
     __slots__ = ("_f", "_v", "_index", "_free_indices", "_index_dimensions", "_shape")
     def __new__(cls, f, v):
-        # Return zero if expression is trivially independent 
-        # of Function, and there are no free indices
-        if (not isinstance(f, Variable)) and isinstance(f, Terminal):
-            # Remove repeated indices to get the free 
+        # Return zero if expression is trivially independent of Function
+        if isinstance(f, Terminal) and not isinstance(f, Variable):
             free_indices = set(f.free_indices()) ^ set(v.free_indices())
-            if not free_indices:
-                return Zero(f.shape())
+            index_dimensions = mergedicts([f.index_dimensions(), v.index_dimensions()])
+            index_dimensions = subdict(index_dimensions, free_indices)
+            return Zero(f.shape(), free_indices, index_dimensions)
         return Expr.__new__(cls)
     
     def __init__(self, f, v):
@@ -157,7 +157,9 @@ class Grad(Expr):
             domain = f.domain()
             ufl_assert(domain is not None, "Can't take gradient of expression with undefined domain...")
             dim = domain2dim[domain]
-            return Zero((dim,) + f.shape())
+            free_indices = f.free_indices()
+            index_dimensions = subdict(f.index_dimensions(), free_indices)
+            return Zero((dim,) + f.shape(), free_indices, index_dimensions)
         return Expr.__new__(cls)
     
     def __init__(self, f):
@@ -190,15 +192,15 @@ class Div(Expr):
     __slots__ = ("_f",)
 
     def __new__(cls, f):
-        # Return zero if expression is trivially constant
-        if isinstance(f, spatially_constant_types):
-            return Zero(f.shape()[1:])
-        return Expr.__new__(cls)
-
-    def __init__(self, f):
         ufl_assert(f.rank() >= 1, "Can't take the divergence of a scalar.")
         ufl_assert(not (f.free_indices()), \
             "TODO: Taking divergence of an expression with free indices, should this be a valid expression? Please provide examples!")
+        # Return zero if expression is trivially constant
+        if isinstance(f, spatially_constant_types):
+            return Zero(f.shape()[1:]) # No free indices
+        return Expr.__new__(cls)
+
+    def __init__(self, f):
         self._f = f
     
     def operands(self):

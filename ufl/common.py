@@ -32,6 +32,9 @@ def mergedicts(dicts):
         d.update(d2)
     return d
 
+def subdict(superdict, keys):
+    return dict((k, superdict[k]) for k in keys)
+
 def unzip(seq):
     "Inverse operation of zip: unzip(zip(a, b)) == (a, b)"
     return [s[0] for s in seq], [s[1] for s in seq]

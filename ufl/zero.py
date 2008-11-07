@@ -3,43 +3,59 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-11-01 -- 2008-11-01"
+__date__ = "2008-11-01 -- 2008-11-07"
 
+from .output import ufl_assert
 from .base import Terminal
+from .indexing import Index
 
 #--- Class for representing zero tensors of different shapes ---
 
 _zero_cache = {}
 class Zero(Terminal):
-    __slots__ = ("_shape",)
+    __slots__ = ("_shape", "_free_indices", "_index_dimensions")
     
-    def __new__(cls, shape=()):
+    def __new__(cls, shape=(), free_indices=(), index_dimensions={}):
         global _zero_cache
         # check cache to reuse objects
-        z = _zero_cache.get(shape, None)
+        index_dimensions = dict(index_dimensions)
+        ufl_assert(all(isinstance(i, Index) for i in free_indices),
+                   "Expecting tuple if Index objects.")
+        ufl_assert(not(set(free_indices) ^ set(index_dimensions.keys())), "Index set mismatch.")
+        key = (shape, free_indices, tuple(index_dimensions.items()))
+        z = _zero_cache.get(key, None)
         if z is not None: return z
         # construct new instance
         self = Terminal.__new__(cls)
-        self._init(shape)
-        _zero_cache[shape] = self
+        self._init(shape, free_indices, index_dimensions)
+        _zero_cache[key] = self
         return self
     
-    def _init(self, shape):
+    def _init(self, shape, free_indices, index_dimensions):
         self._shape = shape
+        self._free_indices = free_indices
+        self._index_dimensions = index_dimensions
     
-    def __init__(self, shape=()):
+    def __init__(self, shape=(), free_indices=(), index_dimensions={}):
         pass
+    
+    def free_indices(self):
+        return self._free_indices
     
     def shape(self):
         return self._shape
     
+    def index_dimensions(self):
+        return self._index_dimensions
+    
     def __str__(self):
-        return "[Zero tensor with shape %s]" % repr(self._shape)
+        return "[Zero tensor with shape %s and free indices %s]" % (repr(self._shape), repr(self._free_indices))
     
     def __repr__(self):
-        return "Zero(%s)" % repr(self._shape)
+        return "Zero(%s, %s, %s)" % (repr(self._shape), repr(self._free_indices), repr(self._index_dimensions))
     
     def __eq__(self, other):
+        # zero is zero no matter which free indices you look at
         if self._shape == () and other == 0:
             return True
         return isinstance(other, Zero) and self._shape == other._shape

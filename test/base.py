@@ -79,6 +79,12 @@ class BaseTestCase(unittest.TestCase):
             self.assertTrue(s[i] == i)
         
         for i in range(n):
+            self.assertTrue(0 + s[i] == i)
+        
+        for i in range(n):
+            self.assertTrue(s[i] + 0 == i)
+        
+        for i in range(n):
             self.assertTrue(0 + s[i] + 0 == i)
         
         for i in range(n):

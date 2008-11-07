@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2008-11-06"
+__date__ = "2008-05-20 -- 2008-11-07"
 
 from collections import defaultdict
 from .common import Counted

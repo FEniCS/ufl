@@ -3,10 +3,10 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-19-- 2008-11-06"
+__date__ = "2008-08-19-- 2008-11-07"
 
 from ..output import ufl_assert, ufl_error, ufl_warning
-from ..common import product, unzip, UFLTypeDefaultDict, domain2dim
+from ..common import product, unzip, UFLTypeDefaultDict, domain2dim, subdict, mergedicts
 
 # All classes:
 from ..base import Expr, Terminal
@@ -50,7 +50,7 @@ from .transformations import transform, transform_integrands, expand_compounds
 
 spatially_constant_types = (ScalarValue, Zero, Identity, Constant, VectorConstant, TensorConstant) # FacetNormal: not for higher order geometry!
 
-def diff_handlers():
+def diff_handlers(spatial_dim):
     """This function constructs a default handler dict for 
     compute_derivative. Nonterminal objects are reused if possible."""
     # Show a clear error message if we miss some types here:
@@ -85,8 +85,8 @@ def diff_handlers():
     d[MultiIndex] = diff_multi_index
     
     def diff_indexed(x, *ops):
-        A, i = ops
-        return (x, A[1][i[0]])
+        A, ii = ops
+        return (x, A[1][ii[0]])
     d[Indexed] = diff_indexed
     
     def diff_listtensor(x, *ops):
@@ -94,12 +94,14 @@ def diff_handlers():
         return (x, ListTensor(*ops1))
     d[ListTensor] = diff_listtensor
     
-    def diff_tensor(x, *ops):
-        A, i = ops
+    def diff_componenttensor(x, *ops):
+        A, ii = ops
         if isinstance(A[1], Zero):
-            return (x, Zero(x.shape()))
-        return (x, ComponentTensor(A[1], i[0]) )
-    d[ComponentTensor] = diff_tensor
+            fi = x.free_indices()
+            fid = subdict(x.index_dimensions(), fi)
+            return (x, Zero(x.shape(), fi, fid))
+        return (x, ComponentTensor(A[1], ii[0]) )
+    d[ComponentTensor] = diff_componenttensor
     
     def diff_sum(x, *ops):
         return (sum((o[0] for o in ops[1:]), ops[0][0]),
@@ -107,7 +109,9 @@ def diff_handlers():
     d[Sum] = diff_sum
     
     def diff_product(x, *ops):
-        fp = Zero(x.shape())
+        fi = x.free_indices()
+        fid = subdict(x.index_dimensions(), fi)
+        fp = Zero(x.shape(), fi, fid)
         ops0, ops1 = unzip(ops)
         for (i,o) in enumerate(ops):
             # replace operand i with its differentiated value 
@@ -147,7 +151,7 @@ def diff_handlers():
         if isinstance(fp, Zero):
             return (x, gp*ln(f)*x)
         ufl_error("diff_power not implemented for case d/dx [ f(x)**g(x) ].")
-        return (x, FIXME)
+        return (x, TODO)
     d[Power] = diff_power
     
     def diff_abs(x, *ops):
@@ -182,7 +186,7 @@ def diff_handlers():
         u, up = ops[0]
         v, vp = ops[1]
         ufl_error("diff_cross not implemented, apply expand_compounds before AD.")
-        return (x, FIXME) # COMPOUND
+        return (x, TODO) # COMPOUND
     d[Cross] = diff_cross
     
     d[Trace] = diff_commute
@@ -190,7 +194,7 @@ def diff_handlers():
     def diff_determinant(x, *ops):
         A, Ap = ops[0]
         ufl_error("diff_determinant not implemented, apply expand_compounds before AD.")
-        return (x, FIXME) # COMPOUND
+        return (x, TODO) # COMPOUND
     d[Determinant] = diff_determinant
     
     # Derivation:
@@ -199,7 +203,7 @@ def diff_handlers():
     # Ainv' = - Ainv * A' * Ainv
     def diff_inverse(Ainv, *ops):
         A, Ap = ops[0]
-        return (Ainv, -Ainv*Ap*Ainv)
+        return (Ainv, -Ainv*Ap*Ainv) # COMPOUND
     d[Inverse] = diff_inverse
     
     d[Deviatoric] = diff_commute
@@ -208,7 +212,7 @@ def diff_handlers():
         A, Ap = ops[0]
         ufl_error("diff_cofactor not implemented, apply expand_compounds before AD.")
         #cofacA_prime = detA_prime*Ainv + detA*Ainv_prime
-        return (x, FIXME) # COMPOUND
+        return (x, TODO) # COMPOUND
     d[Cofactor] = diff_cofactor
 
     # Mathfunctions:
@@ -222,7 +226,7 @@ def diff_handlers():
         f, fp = ops[0]
         if isinstance(fp, Zero):
             ufl_assert(not isinstance(fp*exp(f), Zero), "If this fails, we can remove this code.")
-            return (x, _zero)# TODO: don't need this anymore?
+            return (x, _zero) # TODO: don't need this anymore?
         return (x, fp*exp(f))
     d[Exp] = diff_exp
     
@@ -258,16 +262,16 @@ def diff_handlers():
     
     # Derivatives
     def diff_spatialderivative(x, *ops):
-        (f, fp), (i, ip) = ops
-        ufl_assert(ip is None, "TODO: What happens if ip != 0, i.e. v depends the differentiation variable?")
+        (f, fp), (ii, iip) = ops
         # TODO: Are there any issues with indices here? Not sure, think through it...
         if isinstance(fp, spatially_constant_types):
-            sh = fp.shape()
-            fi = tuple(set(f.free_indices()) ^ set(i))
-            ufl_assert(not fi, "FIXME: I think we need free indices in Zero as well...") 
-            xp = Zero(sh) 
+            # throw away repeated indices
+            fi = tuple(set(f.free_indices()) ^ set(i for i in ii if isinstance(i, Index)))
+            fid = f.index_dimensions()
+            index_dimensions = dict((i, fid.get(i, spatial_dim)) for i in fi)
+            xp = Zero(fp.shape(), fi, index_dimensions)
         else:
-            xp = type(x)(fp, i)
+            xp = type(x)(fp, ii)
         return (x, xp)
     d[SpatialDerivative] = diff_spatialderivative
     
@@ -282,7 +286,7 @@ def diff_handlers():
     def diff_grad(x, *ops):
         ufl_assert(len(ops) == 1, "Logic breach in diff_commute, len(ops) = %d." % len(ops))
         oprime = ops[0][1]
-        ufl_assert(oprime.domain() is not None, "FIXME: How can we handle this?") # Currently calling expand_compounds before AD to avoid this
+        ufl_assert(oprime.domain() is not None, "TODO: How can we handle this?") # Currently calling expand_compounds before AD to avoid this
         return (x, type(x)(oprime))
     d[Grad] = diff_grad
     d[Div]  = diff_commute
@@ -291,21 +295,24 @@ def diff_handlers():
     
     # Conditionals
     def diff_condition(x, *ops):
-        return (x, 0)
+        if any(not isinstance(o[1], Zero) for o in ops):
+            ufl_warning("Differentiating a conditional with a condition "\
+                        "that depends on the differentiation variable."\
+                        "This is probably not a good idea!")
+        return (x, None)
     d[EQ] = diff_condition
     d[NE] = diff_condition
     d[LE] = diff_condition
     d[GE] = diff_condition
     d[LT] = diff_condition
     d[GT] = diff_condition
+    
     def diff_conditional(x, *ops):
         c, l, r = ops
-        if not isinstance(c[1], Zero):
-            ufl_warning("Differentiating a conditional with a condition "\
-                "that depends on the differentiation variable."\
-                "This is probably not a good idea!")
         if isinstance(l[1], Zero) and isinstance(r[1], Zero):
-            return (x, Zero(x.shape()))
+            fi = x.free_indices()
+            fid = subdict(x.index_dimensions(), fi)
+            return (x, Zero(x.shape(), fi, fid))
         return (x, conditional(c[0], l[1], r[1]))
     d[Conditional] = diff_conditional
     
@@ -316,10 +323,10 @@ def compute_diff(expression, var): # FIXME: Is this correct? Don't understand ho
     "Differentiate expression w.r.t Variable var."
     ufl_assert(var is None or var.shape() == (), "VariableDerivative w.r.t. nonscalar variable not implemented.")
     
-    handlers = diff_handlers()
+    handlers = diff_handlers() # FIXME: Need spatial_dim
     
     def diff_diff(x):
-        w = compute_diff(x._expression, x._variable)
+        w = compute_diff(x._expression, x._variable) # FIXME: Ouch! Reconstructing all handlers!
         wdiff = compute_diff(w, var)
         return (w, wdiff)
     handlers[VariableDerivative] = diff_diff
@@ -329,7 +336,7 @@ def compute_diff(expression, var): # FIXME: Is this correct? Don't understand ho
         if x is var:
             return (x, _1)
         else:
-            xdiff = compute_diff(x._expression, var)
+            xdiff = compute_diff(x._expression, var) # FIXME: Ouch! Reconstructing all handlers!
             return (x, xdiff)
     handlers[Variable] = diff_variable
     
@@ -351,9 +358,9 @@ def compute_variable_derivatives(form):
     "Apply AD to form, expanding all VariableDerivative w.r.t variables."
     domain = extract_domain(form)
     ufl_assert(domain is not None, "Need to know the spatial dimension to compute derivatives.")
-    dim = domain2dim[domain]
+    spatial_dim = domain2dim[domain]
     def _compute_diff(expression):
-        expression = expand_compounds(expression, dim)
+        expression = expand_compounds(expression, spatial_dim)
         return compute_diff(expression, None)
     return transform_integrands(form, _compute_diff)
 
@@ -364,9 +371,9 @@ def propagate_spatial_derivatives(form):
     ufl_assert(not extract_type(form, SpatialDerivative), "propagate_spatial_derivatives not implemented")
     domain = extract_domain(form)
     ufl_assert(domain is not None, "Need to know the spatial dimension to compute derivatives.")
-    dim = domain2dim[domain]
+    spatial_dim = domain2dim[domain]
     def _compute_diff(expression):
-        expression = expand_compounds(expression, dim)
+        expression = expand_compounds(expression, spatial_dim)
         # FIXME: Implement!
         return expression
     return transform_integrands(form, _compute_diff)
@@ -392,8 +399,12 @@ def compute_form_derivative(form, function, basisfunction):
         if basisfunction is None:
             basisfunction = BasisFunction(function.element())
         functions = [(function, basisfunction)]
+
+    domain = form.domain()
+    ufl_assert(domain is not None, "Need to know the spatial dimension to compute derivatives.")
+    spatial_dim = domain2dim[domain]
     
-    handlers = diff_handlers()
+    handlers = diff_handlers(spatial_dim)
     
     def diff_function(x):
         for (w, wprime) in functions:
@@ -407,12 +418,8 @@ def compute_form_derivative(form, function, basisfunction):
         return (x, wprime)
     handlers[Variable] = diff_variable
     
-    domain = form.domain()
-    ufl_assert(domain is not None, "Need to know the spatial dimension to compute derivatives.")
-    dim = domain2dim[domain]
-    
     def _compute_derivative(expression):
-        expression = expand_compounds(expression, dim)
+        expression = expand_compounds(expression, spatial_dim)
         F, J = transform(expression, handlers)
         return J
     

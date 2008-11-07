@@ -5,10 +5,11 @@ Sum and its superclass Expr."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-18 -- 2008-11-01"
+__date__ = "2008-08-18 -- 2008-11-07"
 
 # UFL imports
 from .output import ufl_error, ufl_assert
+from .common import subdict
 from .base import Expr
 from .zero import Zero
 from .scalar import ScalarValue, FloatValue, IntValue, is_python_scalar, as_ufl, python_scalar_types
@@ -56,7 +57,11 @@ def _mult(a, b):
     if len(s1) == 2 and (len(s2) == 2 or len(s2) == 1):
         shape = s1[:-1] + s2[1:]
         if isinstance(a, Zero) or isinstance(b, Zero):
-            return Zero(shape)
+            # Get free indices and their dimensions
+            free_indices = tuple(set(a.free_indices()) ^ set(b.free_indices()))
+            index_dimensions = mergedicts([a.free_index_dimensions(), b.free_index_dimensions()])
+            index_dimensions = subdict(index_dimensions, free_indices)
+            return Zero(shape, free_indices, index_dimensions)
         return Dot(a, b)
         # TODO: Use index notation instead here? If * is used in algorithms _after_ expand_compounds has been applied, returning Dot here may cause problems.
         #i = Index()
@@ -116,7 +121,9 @@ Expr.__abs__ = _abs
 def _getitem(self, key):
     a = Indexed(self, key)
     if isinstance(self, Zero):
-        return Zero(a.shape())
+        free_indices, index_dimensions = a.free_indices(), a.index_dimensions()
+        index_dimensions = subdict(index_dimensions, free_indices)
+        return Zero(a.shape(), free_indices, index_dimensions)
     return a
 Expr.__getitem__ = _getitem
 

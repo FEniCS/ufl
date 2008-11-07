@@ -10,6 +10,19 @@ from .base import Expr, Terminal
 from .zero import Zero
 from .indexing import Index, indices
 
+def merge_free_indices(a, b):
+    ai = a.free_indices()
+    bi = b.free_indices()
+    ufl_assert(not (set(ai) ^ set(bi)), "Not expecting repeated indices.")
+    free_indices = ai+bi
+    
+    aid = a.index_dimensions()
+    bid = b.index_dimensions()
+    index_dimensions = dict((i, aid[i]) for i in ai)
+    index_dimensions.update((i, bid[i]) for i in bi)
+    
+    return free_indices, index_dimensions 
+
 ### Algebraic operations on tensors:
 # FloatValues:
 #   dot(a,b)      = a*b
@@ -62,7 +75,7 @@ class Transposed(Expr):
     def __new__(cls, A):
         if isinstance(A, Zero):
             a, b = A.shape()
-            return Zero((b, a))
+            return Zero((b, a), A.free_indices(), A.index_dimensions())
         return Terminal.__new__(cls)
     
     def __init__(self, A):
@@ -93,18 +106,14 @@ class Outer(Expr):
 
     def __new__(cls, a, b):
         if isinstance(a, Zero) or isinstance(b, Zero):
-            return Zero(a.shape() + b.shape())
+            free_indices, index_dimensions = merge_free_indices(a, b)
+            return Zero(a.shape() + b.shape(), free_indices, index_dimensions)
         return Terminal.__new__(cls)
 
     def __init__(self, a, b):
         self._a = a
         self._b = b
-        ai = a.free_indices()
-        bi = b.free_indices()
-        ufl_assert(not (set(ai) ^ set(bi)), "Not expecting repeated indices in outer product.") 
-        self._free_indices = ai+bi
-        self._index_dimensions = dict(a.index_dimensions())
-        self._index_dimensions.update(b.index_dimensions())
+        self._free_indices, self._index_dimensions = merge_free_indices(a, b)
     
     def operands(self):
         return (self._a, self._b)
@@ -131,22 +140,16 @@ class Inner(Expr):
     def __new__(cls, a, b):
         ufl_assert(a.shape() == b.shape(), "Shape mismatch.")
         if isinstance(a, Zero) or isinstance(b, Zero):
-            if not (a.free_indices() or b.free_indices()):
-                return Zero()
+            free_indices, index_dimensions = merge_free_indices(a, b)
+            return Zero((), free_indices, index_dimensions)
         return Terminal.__new__(cls)
 
     def __init__(self, a, b):
         # sort operands by their repr TODO: This may be slow, can we do better? Needs to be completely independent of the outside world.
         a, b = sorted((a,b), key = lambda x: repr(x))
-        
         self._a = a
         self._b = b
-        ai = a.free_indices()
-        bi = b.free_indices()
-        ufl_assert(not (set(ai) ^ set(bi)), "Not expecting repeated indices in outer product.") 
-        self._free_indices = tuple(ai+bi)
-        self._index_dimensions = dict(a.index_dimensions())
-        self._index_dimensions.update(b.index_dimensions())
+        self._free_indices, self._index_dimensions = merge_free_indices(a, b)
     
     def operands(self):
         return (self._a, self._b)
@@ -174,23 +177,18 @@ class Dot(Expr):
         ufl_assert(a.rank() >= 1 and b.rank() >= 1,
             "Dot product requires arguments of rank >= 1, got %d and %d." % \
             (a.rank(), b.rank())) # TODO: maybe scalars are ok?
-        ai = a.free_indices()
-        bi = b.free_indices()
-        ufl_assert(not (set(ai) ^ set(bi)),
-                   "Not expecting repeated indices in outer product.")
         
         if isinstance(a, Zero) or isinstance(b, Zero):
-            if not (ai or bi):
-                return Zero(a.shape()[:-1] + b.shape()[1:])
+            shape = a.shape()[:-1] + b.shape()[1:]
+            free_indices, index_dimensions = merge_free_indices(a, b)
+            return Zero(shape, free_indices, index_dimensions)
         
         return Terminal.__new__(cls)
 
     def __init__(self, a, b):
         self._a = a
         self._b = b
-        self._free_indices = a.free_indices() + b.free_indices()
-        self._index_dimensions = dict(a.index_dimensions())
-        self._index_dimensions.update(b.index_dimensions())
+        self._free_indices, self._index_dimensions = merge_free_indices(a, b)
     
     def operands(self):
         return (self._a, self._b)
@@ -257,7 +255,7 @@ class Trace(Expr):
     def __new__(cls, A):
         ufl_assert(A.rank() == 2, "Trace of tensor with rank != 2 is undefined.")
         if isinstance(A, Zero):
-            return Zero()
+            return Zero((), A.free_indices(), A.index_dimensions())
         return Terminal.__new__(cls)
 
     def __init__(self, A):
@@ -294,7 +292,7 @@ class Determinant(Expr):
         ufl_assert(not A.free_indices(),
             "Not expecting free indices in determinant.")
         if isinstance(A, Zero):
-            return Zero()
+            return Zero((), A.free_indices(), A.index_dimensions())
         return Terminal.__new__(cls)
 
     def __init__(self, A):
