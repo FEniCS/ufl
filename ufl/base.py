@@ -29,31 +29,17 @@ class Expr(object):
         "Return a tuple with the free indices (unassigned) of the expression."
         raise NotImplementedError(self.__class__.free_indices)
     
-    # TODO: Must all subclasses implement free_index_dimensions?
-    def free_index_dimensions(self):
-        """Return a dict with the free indices in the expression
-        as keys and the dimensions of those indices as values."""
-        # We need this to get the right shape of ComponentTensor.
-        raise NotImplementedError(self.__class__.free_index_dimensions)
-        
-        # This implementation works for all types as long as the
-        # indices aren't indexing something with non-default dimensions...
-        # Perhaps we could disallow indexing of non-default dimension sizes?
-        #default_dim = domain2dim[self.domain()] # FIXME: This doesn't work for constant subtrees
-        #return dict((i, default_dim) for i in self.free_indices())
-    
     # Subclasses that can have repeated indices
     # must implement repeated_indices
     def repeated_indices(self):
         "Return a tuple with the repeated indices of the expression."
         return ()
     
-    # Subclasses that can have repeated indices
-    # must implement repeated_index_dimensions
-    def repeated_index_dimensions(self, default_dim):
-        """Return a dict with the repeated indices in the expression
+    # All subclasses must implement index_dimensions
+    def index_dimensions(self, default_dim):
+        """Return a dict with the free or repeated indices in the expression
         as keys and the dimensions of those indices as values."""
-        return {}
+        raise NotImplementedError(self.__class__.index_dimensions)
     
     # All subclasses must implement shape
     def shape(self):
@@ -138,7 +124,7 @@ class Terminal(Expr):
         "A Terminal object never has free indices."
         return ()
     
-    def free_index_dimensions(self):
+    def index_dimensions(self):
         "A Terminal object never has free indices."
         return {}
     

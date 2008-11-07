@@ -25,6 +25,8 @@ from ..restriction import Restricted, PositiveRestricted, NegativeRestricted
 from ..differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot
 from ..conditional import EQ, NE, LE, GE, LT, GT, Conditional
 
+from ..classes import ScalarValue, Zero, Identity, Constant, VectorConstant, TensorConstant
+
 # Lists of all Expr classes
 #from ..classes import ufl_classes, terminal_classes, nonterminal_classes
 from ..classes import terminal_classes
@@ -46,6 +48,7 @@ from .transformations import transform, transform_integrands, expand_compounds
 # Cross, Determinant, Cofactor, f(x)**g(x)
 # FIXME: Could apply as_basic to Compound objects with no rule before differentiating
 
+spatially_constant_types = (ScalarValue, Zero, Identity, Constant, VectorConstant, TensorConstant) # FacetNormal: not for higher order geometry!
 
 def diff_handlers():
     """This function constructs a default handler dict for 
@@ -205,7 +208,7 @@ def diff_handlers():
         A, Ap = ops[0]
         ufl_error("diff_cofactor not implemented, apply expand_compounds before AD.")
         #cofacA_prime = detA_prime*Ainv + detA*Ainv_prime
-        return (x, FIXME)
+        return (x, FIXME) # COMPOUND
     d[Cofactor] = diff_cofactor
 
     # Mathfunctions:
@@ -217,7 +220,9 @@ def diff_handlers():
     
     def diff_exp(x, *ops):
         f, fp = ops[0]
-        if isinstance(fp, Zero): return (x, _zero)
+        if isinstance(fp, Zero):
+            ufl_assert(not isinstance(fp*exp(f), Zero), "If this fails, we can remove this code.")
+            return (x, _zero)# TODO: don't need this anymore?
         return (x, fp*exp(f))
     d[Exp] = diff_exp
     
@@ -243,27 +248,41 @@ def diff_handlers():
     # Restrictions
     def diff_positiverestricted(x, *ops):
         f, fp = ops[0]
-        return (x, fp('+')) # TODO: What is d(v+)/dw ?
+        return (x, fp('+')) # TODO: What is d(v+)/dw ? Assuming here that restriction and differentiation commutes.
     d[PositiveRestricted] = diff_positiverestricted
 
     def diff_negativerestricted(x, *ops):
         f, fp = ops[0]
-        return (x, fp('-')) # TODO: What is d(v-)/dw ?
+        return (x, fp('-')) # TODO: What is d(v-)/dw ? Assuming here that restriction and differentiation commutes.
     d[NegativeRestricted] = diff_negativerestricted
     
     # Derivatives
-    def diff_diff(x, *ops):
-        (f, fp), (v, vp) = ops
-        # TODO: What happens if vp != 0, i.e. v depends the differentiation variable?
+    def diff_spatialderivative(x, *ops):
+        (f, fp), (i, ip) = ops
+        ufl_assert(ip is None, "TODO: What happens if ip != 0, i.e. v depends the differentiation variable?")
         # TODO: Are there any issues with indices here? Not sure, think through it...
-        return (x, type(x)(fp, v))
-    d[SpatialDerivative] = diff_diff
-    d[VariableDerivative] = diff_diff
+        if isinstance(fp, spatially_constant_types):
+            sh = fp.shape()
+            fi = tuple(set(f.free_indices()) ^ set(i))
+            ufl_assert(not fi, "FIXME: I think we need free indices in Zero as well...") 
+            xp = Zero(sh) 
+        else:
+            xp = type(x)(fp, i)
+        return (x, xp)
+    d[SpatialDerivative] = diff_spatialderivative
+    
+    def diff_variablederivative(x, *ops):
+        (f, fp), (v, vp) = ops
+        ufl_assert(isinstance(vp, Zero), "TODO: What happens if vp != 0, i.e. v depends the differentiation variable?")
+        # TODO: Are there any issues with indices here? Not sure, think through it...
+        xp = type(x)(fp, v)
+        return (x, xp)
+    d[VariableDerivative] = diff_variablederivative
     
     def diff_grad(x, *ops):
         ufl_assert(len(ops) == 1, "Logic breach in diff_commute, len(ops) = %d." % len(ops))
         oprime = ops[0][1]
-        ufl_assert(oprime.domain() is not None, "FIXME: How can we handle this?")
+        ufl_assert(oprime.domain() is not None, "FIXME: How can we handle this?") # Currently calling expand_compounds before AD to avoid this
         return (x, type(x)(oprime))
     d[Grad] = diff_grad
     d[Div]  = diff_commute
@@ -331,6 +350,7 @@ def compute_diff(expression, var): # FIXME: Is this correct? Don't understand ho
 def compute_variable_derivatives(form):
     "Apply AD to form, expanding all VariableDerivative w.r.t variables."
     domain = extract_domain(form)
+    ufl_assert(domain is not None, "Need to know the spatial dimension to compute derivatives.")
     dim = domain2dim[domain]
     def _compute_diff(expression):
         expression = expand_compounds(expression, dim)
@@ -343,6 +363,7 @@ def propagate_spatial_derivatives(form):
     by propagating spatial derivatives to terminal objects."""
     ufl_assert(not extract_type(form, SpatialDerivative), "propagate_spatial_derivatives not implemented")
     domain = extract_domain(form)
+    ufl_assert(domain is not None, "Need to know the spatial dimension to compute derivatives.")
     dim = domain2dim[domain]
     def _compute_diff(expression):
         expression = expand_compounds(expression, dim)
@@ -387,6 +408,7 @@ def compute_form_derivative(form, function, basisfunction):
     handlers[Variable] = diff_variable
     
     domain = form.domain()
+    ufl_assert(domain is not None, "Need to know the spatial dimension to compute derivatives.")
     dim = domain2dim[domain]
     
     def _compute_derivative(expression):

@@ -26,8 +26,8 @@ class Restricted(Expr):
     def free_indices(self):
         return self._f.free_indices()
     
-    def free_index_dimensions(self):
-        return self._f.free_index_dimensions()
+    def index_dimensions(self):
+        return self._f.index_dimensions()
     
     def __str__(self):
         return "(%s)('%s')" % (self._f, self._side)

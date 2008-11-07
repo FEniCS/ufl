@@ -28,8 +28,8 @@ class Condition(Expr):
     def free_indices(self):
         ufl_error("Calling free_indices on Condition is an error.")
     
-    def free_index_dimensions(self):
-        ufl_error("Calling free_index_dimensions on Condition is an error.")
+    def index_dimensions(self):
+        ufl_error("Calling index_dimensions on Condition is an error.")
 
     def shape(self):
         ufl_error("Calling shape on Condition is an error.")
@@ -104,8 +104,8 @@ class Conditional(Expr):
     def free_indices(self):
         return self._true_value.free_indices()
 
-    def free_index_dimensions(self):
-        return self._true_value.free_index_dimensions()
+    def index_dimensions(self):
+        return self._true_value.index_dimensions()
 
     def shape(self):
         return self._true_value.shape()

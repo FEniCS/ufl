@@ -99,8 +99,8 @@ class Sum(Expr):
     def free_indices(self):
         return self._operands[0].free_indices()
     
-    def free_index_dimensions(self):
-        return self._operands[0].free_index_dimensions()
+    def index_dimensions(self):
+        return self._operands[0].index_dimensions()
     
     def shape(self):
         return self._operands[0].shape()
@@ -113,7 +113,7 @@ class Sum(Expr):
 
 class Product(Expr):
     """The product of two or more UFL objects."""
-    __slots__ = ("_operands", "_free_indices", "_free_index_dimensions", "_repeated_indices", "_shape", "_repr")
+    __slots__ = ("_operands", "_free_indices", "_index_dimensions", "_repeated_indices", "_shape", "_repr")
     
     def __new__(cls, *operands):
         ufl_assert(len(operands) >= 2, "Can't make product of nothing, should catch this before getting here.")
@@ -186,10 +186,9 @@ class Product(Expr):
         
         # Extract indices
         all_indices = tuple(chain(*(o.free_indices() for o in operands)))
-        all_index_dimensions = mergedicts([o.free_index_dimensions() for o in operands])
+        self._index_dimensions = mergedicts([o.index_dimensions() for o in operands])
         (self._free_indices, self._repeated_indices, dummy, dummy) = \
             extract_indices(all_indices)
-        self._free_index_dimensions = dict((i,all_index_dimensions[i]) for i in self._free_indices)
         
         self._repr = "(%s)" % " * ".join(repr(o) for o in self._operands)
     
@@ -202,20 +201,14 @@ class Product(Expr):
     def free_indices(self):
         return self._free_indices
     
-    def free_index_dimensions(self):
-        return self._free_index_dimensions
-    
     def repeated_indices(self):
         return self._repeated_indices
-
+    
+    def index_dimensions(self):
+        return self._index_dimensions
+    
     def shape(self):
         return self._shape
-    
-    def repeated_index_dimensions(self, default_dim):
-        d = {}
-        for i in self._repeated_indices:
-            d[i] = default_dim # TODO: Allow other dimensions here!
-        return d
     
     def __str__(self):
         return "(%s)" % " * ".join(str(o) for o in self._operands)
@@ -262,8 +255,8 @@ class Division(Expr):
     def free_indices(self):
         return self._a.free_indices()
     
-    def free_index_dimensions(self):
-        return self._a.free_index_dimensions()
+    def index_dimensions(self):
+        return self._a.index_dimensions()
     
     def shape(self):
         return self._a.shape()
@@ -318,7 +311,7 @@ class Power(Expr):
     def free_indices(self):
         return ()
     
-    def free_index_dimensions(self):
+    def index_dimensions(self):
         return {}
     
     def shape(self):
@@ -346,8 +339,8 @@ class Abs(Expr):
     def free_indices(self):
         return self._a.free_indices()
     
-    def free_index_dimensions(self):
-        return self._a.free_index_dimensions()
+    def index_dimensions(self):
+        return self._a.index_dimensions()
     
     def shape(self):
         return self._a.shape()

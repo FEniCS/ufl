@@ -33,10 +33,10 @@ class Variable(Terminal, Counted):
         return ()
     
     def free_indices(self):
-        return () #self._expression.free_indices()
+        return self._expression.free_indices()
     
-    def free_index_dimensions(self):
-        return {} #self._expression.free_index_dimensions()
+    def index_dimensions(self):
+        return self._expression.index_dimensions()
     
     def shape(self):
         return self._expression.shape()

@@ -96,8 +96,8 @@ class MultiIndex(Terminal):
         # This reflects the fact that a MultiIndex isn't a tensor expression
         ufl_error("Calling free_indices on MultiIndex is an error.")
     
-    def free_index_dimensions(self):
-        ufl_error("Calling free_index_dimensions on MultiIndex is an error.")
+    def index_dimensions(self):
+        ufl_error("Calling index_dimensions on MultiIndex is an error.")
     
     def shape(self):
         ufl_error("Calling shape on MultiIndex is an error.")
@@ -124,7 +124,7 @@ class MultiIndex(Terminal):
 
 class Indexed(Expr):
     __slots__ = ("_expression", "_indices",
-                 "_free_indices", "_free_index_dimensions", "_shape",
+                 "_free_indices", "_index_dimensions", "_shape",
                  "_repeated_indices",)
     def __init__(self, expression, indices):
         self._expression = expression
@@ -139,7 +139,7 @@ class Indexed(Expr):
         ufl_assert(expression.rank() == len(self._indices), msg)
         
         shape = expression.shape()
-        (self._free_indices, self._repeated_indices, self._shape, self._free_index_dimensions) = \
+        (self._free_indices, self._repeated_indices, self._shape, self._index_dimensions) = \
             extract_indices(self._indices._indices, shape)
     
     def operands(self):
@@ -148,22 +148,21 @@ class Indexed(Expr):
     def free_indices(self):
         return self._free_indices
 
-    def free_index_dimensions(self):
-        return self._free_index_dimensions
-
     def repeated_indices(self):
         return self._repeated_indices
+
+    def index_dimensions(self):
+        # FIXME: Can we remove this now?
+        #d = {}
+        #shape = self._expression.shape()
+        #for k, i in enumerate(self._indices._indices):
+        #    if i in self._repeated_indices:
+        #        d[i] = shape[k]
+        #return d
+        return self._index_dimensions
     
     def shape(self):
         return self._shape
-
-    def repeated_index_dimensions(self):
-        d = {}
-        shape = self._expression.shape()
-        for k, i in enumerate(self._indices._indices):
-            if i in self._repeated_indices:
-                d[i] = shape[k]
-        return d
 
     def __str__(self):
         return "%s[%s]" % (self._expression, self._indices)
@@ -185,7 +184,7 @@ def as_index(i):
         ufl_assert(i == slice(None), "Partial slices not implemented, only [:]")
         return Axis
     else:
-        ufl_error("Can convert this object to index: %r" % i)
+        ufl_error("Can't convert this object to index: %r" % i)
 
 def as_index_tuple(indices, rank):
     """Takes something the user might input as an index tuple
@@ -263,16 +262,11 @@ def extract_indices(indices, shape=None):
     free_indices     = tuple([i for i in unique_indices if index_count[i] == 1])
     repeated_indices = tuple([i for i in unique_indices if index_count[i] == 2])
 
-    free_index_dimensions = {}
-    if shape is not None:
-        for i in free_indices:
-            free_index_dimensions[i] = index_dimensions[i]
-    
     # Consistency check
     fixed_indices = [(i,idx) for (i,idx) in enumerate(indices) if isinstance(idx, FixedIndex)]
     ufl_assert(len(fixed_indices)+len(free_indices) + \
                2*len(repeated_indices)+len(newshape)== len(indices),\
                "Logic breach in extract_indices.")
  
-    return (free_indices, repeated_indices, newshape, free_index_dimensions)
+    return (free_indices, repeated_indices, newshape, index_dimensions)
 

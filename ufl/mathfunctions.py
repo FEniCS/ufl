@@ -28,7 +28,7 @@ class MathFunction(Expr):
     def free_indices(self):
         return ()
     
-    def free_index_dimensions(self):
+    def index_dimensions(self):
         return {}
     
     def shape(self):

@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-11-05"
+__date__ = "2008-03-14 -- 2008-11-07"
 
 from .output import ufl_assert
 from .base import Expr, Terminal
@@ -23,7 +23,7 @@ spatially_constant_types = (ScalarValue, Zero, Identity, Constant, VectorConstan
 
 class SpatialDerivative(Expr):
     "Partial derivative of an expression w.r.t. spatial directions given by indices."
-    __slots__ = ("_expression", "_shape", "_indices", "_free_indices", "_free_index_dimensions", "_repeated_indices", "_dx_free_indices", "_dx_repeated_indices")
+    __slots__ = ("_expression", "_shape", "_indices", "_free_indices", "_index_dimensions", "_repeated_indices", "_dx_free_indices", "_dx_repeated_indices")
     def __new__(cls, expression, indices):
         if isinstance(expression, Terminal):
             # Return zero if expression is trivially 
@@ -48,20 +48,21 @@ class SpatialDerivative(Expr):
         (self._dx_free_indices, self._dx_repeated_indices, dummy, dummy) = \
             extract_indices(self._indices._indices)
         
-        domain = expression.domain() # FIXME: This won't always work out?
+        domain = expression.domain()
+        ufl_assert(domain is not None, "Need to know the spatial dimension to compute the shape of derivatives.")
         dim = domain2dim[domain]
-        self._free_index_dimensions = {}
+        self._index_dimensions = {}
         for i in self._dx_free_indices:
             # set free index dimensions to the spatial dimension 
-            self._free_index_dimensions[i] = dim
+            self._index_dimensions[i] = dim
         
         # Find free and repeated indices among the combined
         # indices of the expression and dx((i,j,k))
         fi = expression.free_indices()
-        fid = expression.free_index_dimensions()
+        fid = expression.index_dimensions()
         indices = fi + self._dx_free_indices
         dimensions = tuple(fid[i] for i in fi) + (dim,)*len(self._dx_free_indices)
-        (self._free_indices, self._repeated_indices, self._shape, self._free_index_dimensions) = \
+        (self._free_indices, self._repeated_indices, self._shape, self._index_dimensions) = \
             extract_indices(indices, dimensions)
     
     def operands(self):
@@ -70,23 +71,22 @@ class SpatialDerivative(Expr):
     def free_indices(self):
         return self._free_indices
     
-    def free_index_dimensions(self):
-        return self._free_index_dimensions
-
     def repeated_indices(self):
         return self._repeated_indices
     
+    def index_dimensions(self):
+        # FIXME: Can we remove this now?
+        # Repeated indices here always iterate over the default
+        # spatial range, so I think this should be correct:
+        #d = {}
+        #for i in self._repeated_indices:
+        #    d[i] = default_dim
+        #return d
+        return self._index_dimensions
+
     def shape(self):
         return self._shape
 
-    def repeated_index_dimensions(self, default_dim):
-        # Repeated indices here always iterate over the default
-        # spatial range, so I think this should be correct:
-        d = {}
-        for i in self._repeated_indices:
-            d[i] = default_dim
-        return d
-    
     def __str__(self):
         # TODO: Pretty-print for higher order derivatives.
         return "(d[%s] / dx_%s)" % (self._expression, self._indices)
@@ -95,7 +95,7 @@ class SpatialDerivative(Expr):
         return "SpatialDerivative(%r, %r)" % (self._expression, self._indices)
 
 class VariableDerivative(Expr):
-    __slots__ = ("_f", "_v", "_index", "_free_indices", "_free_index_dimensions", "_shape")
+    __slots__ = ("_f", "_v", "_index", "_free_indices", "_index_dimensions", "_shape")
     def __new__(cls, f, v):
         # Return zero if expression is trivially independent 
         # of Function, and there are no free indices
@@ -119,13 +119,13 @@ class VariableDerivative(Expr):
         self._v = v
         fi = f.free_indices()
         vi = v.free_indices()
-        fid = f.free_index_dimensions()
-        vid = v.free_index_dimensions()
+        fid = f.index_dimensions()
+        vid = v.index_dimensions()
         ufl_assert(not (set(fi) ^ set(vi)), \
             "Repeated indices not allowed in VariableDerivative.") # TODO: Allow diff(f[i], v[i])?
         self._free_indices = tuple(fi + vi)
-        self._free_index_dimensions = dict(fid)
-        self._free_index_dimensions.update(vid)
+        self._index_dimensions = dict(fid)
+        self._index_dimensions.update(vid)
         self._shape = f.shape() + v.shape()
     
     def operands(self):
@@ -134,8 +134,8 @@ class VariableDerivative(Expr):
     def free_indices(self):
         return self._free_indices
 
-    def free_index_dimensions(self):
-        return self._free_index_dimensions
+    def index_dimensions(self):
+        return self._index_dimensions
     
     def shape(self):
         return self._shape
@@ -174,8 +174,8 @@ class Grad(Expr):
     def free_indices(self):
         return self._f.free_indices()
     
-    def free_index_dimensions(self):
-        return self._f.free_index_dimensions()
+    def index_dimensions(self):
+        return self._f.index_dimensions()
     
     def shape(self):
         return (self._dim,) + self._f.shape()
@@ -207,8 +207,8 @@ class Div(Expr):
     def free_indices(self):
         return self._f.free_indices()
     
-    def free_index_dimensions(self):
-        return self._f.free_index_dimensions()
+    def index_dimensions(self):
+        return self._f.index_dimensions()
     
     def shape(self):
         return self._f.shape()[1:]
@@ -239,8 +239,8 @@ class Curl(Expr):
     def free_indices(self):
         return self._f.free_indices()
     
-    def free_index_dimensions(self):
-        return self._f.free_index_dimensions()
+    def index_dimensions(self):
+        return self._f.index_dimensions()
     
     def shape(self):
         return (self._dim,)
@@ -268,8 +268,8 @@ class Rot(Expr):
     def free_indices(self):
         return self._f.free_indices()
     
-    def free_index_dimensions(self):
-        return self._f.free_index_dimensions()
+    def index_dimensions(self):
+        return self._f.index_dimensions()
     
     def shape(self):
         return ()
