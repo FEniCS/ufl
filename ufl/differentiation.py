@@ -57,10 +57,12 @@ class SpatialDerivative(Expr):
         
         # Find free and repeated indices among the combined
         # indices of the expression and dx((i,j,k))
-        indices = expression.free_indices() + self._dx_free_indices
+        fi = expression.free_indices()
+        fid = expression.free_index_dimensions()
+        indices = fi + self._dx_free_indices
+        dimensions = tuple(fid[i] for i in fi) + (dim,)*len(self._dx_free_indices)
         (self._free_indices, self._repeated_indices, self._shape, self._free_index_dimensions) = \
-            extract_indices(indices, expression.shape()) # FIXME: This will break down!
-    
+            extract_indices(indices, dimensions)
     
     def operands(self):
         return (self._expression, self._indices)
@@ -117,11 +119,13 @@ class VariableDerivative(Expr):
         self._v = v
         fi = f.free_indices()
         vi = v.free_indices()
+        fid = f.free_index_dimensions()
+        vid = v.free_index_dimensions()
         ufl_assert(not (set(fi) ^ set(vi)), \
             "Repeated indices not allowed in VariableDerivative.") # TODO: Allow diff(f[i], v[i])?
         self._free_indices = tuple(fi + vi)
-        self._free_index_dimensions = dict(fi.free_index_dimensions())
-        self._free_index_dimensions.update(vi.free_index_dimensions())
+        self._free_index_dimensions = dict(fid)
+        self._free_index_dimensions.update(vid)
         self._shape = f.shape() + v.shape()
     
     def operands(self):

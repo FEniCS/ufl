@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-14 -- 2008-11-06"
+__date__ = "2008-03-14 -- 2008-11-07"
 
 from collections import defaultdict
 from .output import ufl_assert, ufl_warning, ufl_error
@@ -31,6 +31,9 @@ class Index(Counted):
     
     def __repr__(self):
         return "Index(%d)" % self._count
+
+def indices(n):
+    return tuple(Index() for i in range(n))
 
 class FixedIndex(object):
     __slots__ = ("_value",)
@@ -272,7 +275,4 @@ def extract_indices(indices, shape=None):
                "Logic breach in extract_indices.")
  
     return (free_indices, repeated_indices, newshape, free_index_dimensions)
-
-def indices(n):
-    return tuple(Index() for i in range(n))
 
