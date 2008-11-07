@@ -20,14 +20,13 @@ class Variable(Terminal, Counted):
     - Marking good spots to split an expression for optimized computation.
     - Reuse of expressions during e.g. automatic differentation.
     """
-    __slots__ = ("_expression", "_diffcache")
+    __slots__ = ("_expression",)# "_diffcache")
     _globalcount = 0
     def __init__(self, expression, count=None):
         Counted.__init__(self, count)
         ufl_assert(isinstance(expression, Expr), "Expecting an Expr.")
-        ufl_assert(not expression.free_indices(), "Cannot make variable of expression with free indices, or do we want this?")
         self._expression = expression
-        self._diffcache = defaultdict(list)
+        #self._diffcache = defaultdict(list) # FIXME: This needs better definition...
     
     def operands(self):
         return ()
@@ -40,6 +39,9 @@ class Variable(Terminal, Counted):
     
     def shape(self):
         return self._expression.shape()
+    
+    def domain(self):
+        return self._expression.domain()
     
     def __eq__(self, other):
         return isinstance(other, Variable) and self._count == other._count

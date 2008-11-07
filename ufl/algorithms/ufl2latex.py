@@ -195,7 +195,8 @@ def latex_handlers(basisfunction_renumbering, coefficient_renumbering):
     d[ListTensor]  = l_listtensor
     
     def l_componenttensor(x, *ops):
-        return "\\left{FIXME: \\LaTeX handler for ComponentTensor not implemented!\\right}"
+        A, ii = ops
+        return "\\left[A \\quad | \\quad A_{%s} = {%s} \\quad \\forall {%s} \\right]" % (ii, A, ii)
     d[ComponentTensor] = l_componenttensor
     
     d[PositiveRestricted] = lambda x, f: "{%s}^+" % par(A)

@@ -36,11 +36,11 @@ class Sum(Expr):
         ufl_assert(not any((fi ^ set(o.free_indices())) for o in operands[1:]),
             "Can't add expressions with different free indices.")
         
-        # purge zeros
-        operands = [o for o in operands if not isinstance(o, Zero)]
-        
         # sort operands by their repr TODO: This may be slow, can we do better? Needs to be completely independent of the outside world.
         operands = sorted(operands, key = lambda x: repr(x))
+        
+        # purge zeros
+        operands = [o for o in operands if not isinstance(o, Zero)]
         
         # sort scalars to beginning and merge them
         scalars = [o for o in operands if isinstance(o, ScalarValue)]
