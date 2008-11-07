@@ -224,9 +224,7 @@ def diff_handlers(spatial_dim):
     
     def diff_exp(x, *ops):
         f, fp = ops[0]
-        if isinstance(fp, Zero):
-            ufl_assert(not isinstance(fp*exp(f), Zero), "If this fails, we can remove this code.")
-            return (x, _zero) # TODO: don't need this anymore?
+        if isinstance(fp, Zero): return (x, _zero)
         return (x, fp*exp(f))
     d[Exp] = diff_exp
     

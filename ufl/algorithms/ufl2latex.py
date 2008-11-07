@@ -5,7 +5,7 @@ converting UFL expressions to other representations."""
 from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-11-05"
+__date__ = "2008-05-07 -- 2008-11-07"
 
 # Modified by Anders Logg, 2008.
 
@@ -13,7 +13,7 @@ import os
 from itertools import chain
 from collections import defaultdict
 
-from ..output import ufl_error, ufl_debug, ufl_warning
+from ..output import ufl_error, ufl_debug, ufl_warning, ufl_assert
 from ..common import UFLTypeDefaultDict, write_file, openpdf
 
 # All classes:
@@ -339,14 +339,66 @@ def dep2latex(dep):
         if w: deps.append(cfname(i))
     return "Dependencies: ${ %s }$." % ", ".join(deps)
 
+def dependency_sorting(deplist, rank, num_coefficients): # FIXME: Improve and apply!
+    def split(deps, state):
+        left = []
+        todo = []
+        for dep in deps:
+            if state.covers(dep):
+                todo.append(dep)
+            else:
+                left.append(dep)
+        return todo, left
+    
+    deplistlist = []
+    state = DependencySet((False,)*rank, (False,)*num_coefficients)
+    
+    left = deplist
+    precompute, left = split(left, state)
+    deplistlist.append(precompute)
+    
+    state.coordinates = True
+    precompute_quad, left = split(left, state)
+    deplistlist.append(precompute_quad)
+    
+    state.coordinates = False
+    state.cell = True
+    state.mapping = True
+    state.facet = True
+    state.functions = (True,)*num_coefficients
+    runtime, left = split(left, state)
+    deplistlist.append(runtime)
+
+    state.coordinates = True
+    runtime_quad, left = split(left, state)
+    deplistlist.append(runtime_quad)
+    
+    state.basisfunctions = (True,)*rank # TODO: Multiple loop stages
+    final, left = split(left, state)
+    deplistlist.append(final)
+    
+    ufl_assert(not left, "Shouldn't have anything left!")
+    
+    print
+    print "Created deplistlist:"
+    for deps in deplistlist:
+        print
+        print "--- new stage:"
+        print "\n".join(map(str, deps))
+    print
+
+    return deplistlist
+
 def code2latex(vinfo, code, formdata):
     "TODO: Document me"
     bfn = formdata.basisfunction_renumbering
     cfn = formdata.coefficient_renumbering
 
     deplist = code.stacks.keys()
+    
     # FIXME: Sort dependency sets in a sensible way (preclude to a good quadrature code generator)
     deplist = sorted(deplist)
+    #depdeplist = dependency_sorting(deplist, len(bfn), len(cfn))
     
     pieces = []
     for dep in deplist:

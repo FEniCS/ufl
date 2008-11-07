@@ -2,18 +2,12 @@ Roadmap for the development of UFL
 ----------------------------------
 
 # Martins plan:
-- Improve ufl2latex with pre- and post-handlers.
-- Improve ufl2latex with precedence lists.
 - Test and fix mark_duplications.
 - Test and fix split_by_dependencies.
 - Test and fix replace_in_form.
 - Test and fix AD algorithms on spatial derivatives.
 - Test and fix AD algorithms on variable derivatives.
 - Test and fix AD algorithms on functional derivatives.
-
-# Prettyness and readability (low priority, but useful while debugging...):
- - Rewrite ufl2latex as described in its comments.
- - Use precedence list to improve parentesis use in __str__ and __repr__ and ufl2latex. 
 
 # Derivatives:
  - Apply AD to computation of
@@ -47,18 +41,16 @@ Roadmap for the development of UFL
      - Token (terminal, for building code structure)
    One problem is that Variable needs to be identified by something,
    currently a global counter, and algorithms that modify expression
-   trees needs 
+   trees needs to be able to create new Variable objects with the same
+   identifier that represents a transformed version of the same variable.
 
-# Elements and Basisfunctions:
+# Elements and Basisfunctions (medium priority, needed for non-trivial applications):
  - Implement 'Test/Trial/BasisFunctions' for general tensor subelement with arbitrary symmetries (see split.py). Need to agree on some numbering conventions here.
  - Degree range for quadrature elements?
 
-# Tensors:
- - ComponentTensor needs to get the dimensions of its expression 
-   in its "free index axes" to determine its shape correctly.
-   Currently this is done using only default dimensions,
-   which will be wrong in some cases. This is a tricky issue,
-   but won't be a problem for most applications.
+# Prettyness and readability (medium priority, useful while debugging...):
+ - Rewrite ufl2latex as described in its comments (use pre- and post-handlers)
+ - Use precedence list to improve parentesis use in __str__ and __repr__ and ufl2latex. 
 
 # Tests:
  - Write tests for the algorithms, ideally covering all code in multiple ways.

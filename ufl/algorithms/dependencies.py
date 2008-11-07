@@ -55,6 +55,13 @@ class DependencySet:
         return chain((self.cell, self.facet, self.mapping, self.coordinates),
                   self.basisfunctions, self.functions)
     
+    def covers(self, other):
+        "Return True if all dependencies of other are covered by this dependency set."
+        for a, o in zip(self.iter(), other.iter()):
+            if o and not a:
+                return False
+        return True
+            
     def __hash__(self):
         return hash(tuple(self.iter()))
     
