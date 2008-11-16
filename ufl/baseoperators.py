@@ -2,22 +2,21 @@
 This way we avoid circular dependencies between e.g.
 Sum and its superclass Expr."""
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-08-18 -- 2008-11-07"
 
 # UFL imports
-from .output import ufl_error, ufl_assert
-from .common import subdict
-from .base import Expr
-from .zero import Zero
-from .scalar import ScalarValue, FloatValue, IntValue, is_python_scalar, as_ufl, python_scalar_types
-from .algebra import Sum, Product, Division, Power, Abs
-from .tensoralgebra import Transposed, Dot
-from .indexing import Indexed
-from .restriction import PositiveRestricted, NegativeRestricted
-from .differentiation import SpatialDerivative
+from ufl.output import ufl_error, ufl_assert
+from ufl.common import subdict, mergedicts
+from ufl.base import Expr
+from ufl.zero import Zero
+from ufl.scalar import ScalarValue, FloatValue, IntValue, is_python_scalar, as_ufl, python_scalar_types
+from ufl.algebra import Sum, Product, Division, Power, Abs
+from ufl.tensoralgebra import Transposed, Dot
+from ufl.indexing import Indexed
+from ufl.restriction import PositiveRestricted, NegativeRestricted
+from ufl.differentiation import SpatialDerivative
 
 #--- Extend Expr with algebraic operators ---
 

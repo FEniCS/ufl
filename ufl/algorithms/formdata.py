@@ -1,6 +1,5 @@
 """FormData class easy for collecting of various data about a form."""
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-09-13 -- 2008-11-05"
@@ -9,11 +8,11 @@ __date__ = "2008-09-13 -- 2008-11-05"
 
 from itertools import chain
 
-from ..output import ufl_assert
-from ..common import lstr, tstr, domain2dim
-from ..form import Form
+from ufl.output import ufl_assert
+from ufl.common import lstr, tstr, domain2dim
+from ufl.form import Form
 
-from .analysis import extract_basisfunctions, extract_coefficients, extract_classes
+from ufl.algorithms.analysis import extract_basisfunctions, extract_coefficients, extract_classes
 
 class FormData(object):
     "Class collecting various information extracted from a Form."

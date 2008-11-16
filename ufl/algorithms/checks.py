@@ -1,21 +1,20 @@
 """Functions to check the validity of forms."""
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-11-05"
 
 # Modified by Anders Logg, 2008.
 
-from ..output import ufl_assert, ufl_warning
+from ufl.output import ufl_assert, ufl_warning
 
 # All classes:
-from ..form import Form
+from ufl.form import Form
 
 # Other algorithms
-from .traversal import post_traversal, post_walk, iter_expressions, traverse_terminals
-from .analysis import extract_elements
-from .predicates import is_multilinear
+from ufl.algorithms.traversal import post_traversal, post_walk, iter_expressions, traverse_terminals
+from ufl.algorithms.analysis import extract_elements
+from ufl.algorithms.predicates import is_multilinear
 
 def validate_form(form):
     """Performs all implemented validations on a form. Raises exception if something fails."""

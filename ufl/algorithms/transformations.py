@@ -2,38 +2,37 @@
 either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-05-07 -- 2008-11-05"
 
 from itertools import izip
 
-from ..output import ufl_assert, ufl_error
-from ..common import UFLTypeDefaultDict, UFLTypeDict
+from ufl.output import ufl_assert, ufl_error
+from ufl.common import UFLTypeDefaultDict, UFLTypeDict
 
 # All classes:
-from ..base import Expr, Terminal
-from ..variable import Variable
-from ..finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
-from ..basisfunction import BasisFunction
-from ..function import Function, Constant
-from ..indexing import MultiIndex, Indexed, Index, FixedIndex, indices
-from ..tensors import ListTensor, ComponentTensor, as_tensor, as_matrix
-from ..algebra import Sum, Product, Division, Power, Abs
-from ..tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor, Skew
-from ..mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
-from ..restriction import Restricted, PositiveRestricted, NegativeRestricted
-from ..differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot
-from ..conditional import EQ, NE, LE, GE, LT, GT, Conditional
-from ..form import Form
-from ..integral import Integral
+from ufl.base import Expr, Terminal
+from ufl.variable import Variable
+from ufl.finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
+from ufl.basisfunction import BasisFunction
+from ufl.function import Function, Constant
+from ufl.indexing import MultiIndex, Indexed, Index, FixedIndex, indices, complete_shape
+from ufl.tensors import ListTensor, ComponentTensor, as_tensor, as_matrix, as_vector
+from ufl.algebra import Sum, Product, Division, Power, Abs
+from ufl.tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor, Skew
+from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
+from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
+from ufl.differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot
+from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
+from ufl.form import Form
+from ufl.integral import Integral
 
 # Lists of all Expr classes
-from ..classes import ufl_classes, terminal_classes, nonterminal_classes
+from ufl.classes import ufl_classes, terminal_classes, nonterminal_classes
 
 # Other algorithms:
-from .analysis import extract_basisfunctions, extract_coefficients, extract_variables
+from ufl.algorithms.analysis import extract_basisfunctions, extract_coefficients, extract_variables
 
 def transform_integrands(a, transformation):
     """Transform all integrands in a form with a transformation function.
@@ -202,11 +201,11 @@ def expand_compounds_handlers(dim):
     d[Div] = e_div
     
     def e_curl(x, f):
-        FIXME
+        raise NotImplementedError # FIXME
     d[Curl] = e_curl
     
     def e_rot(x, f):
-        FIXME
+        raise NotImplementedError # FIXME
     d[Rot] = e_rot
     
     def e_transposed(x, A):

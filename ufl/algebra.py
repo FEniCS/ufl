@@ -1,6 +1,5 @@
 "Basic algebra operations."
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-05-20 -- 2008-11-07"
@@ -9,12 +8,12 @@ __date__ = "2008-05-20 -- 2008-11-07"
 
 from itertools import chain
 
-from .output import ufl_assert, ufl_error, ufl_warning
-from .common import product, mergedicts, subdict
-from .base import Expr
-from .zero import Zero
-from .scalar import ScalarValue, FloatValue, IntValue, is_true_ufl_scalar, is_python_scalar, as_ufl
-from .indexing import extract_indices
+from ufl.output import ufl_assert, ufl_error, ufl_warning
+from ufl.common import product, mergedicts, subdict
+from ufl.base import Expr
+from ufl.zero import Zero
+from ufl.scalar import ScalarValue, FloatValue, IntValue, is_true_ufl_scalar, is_python_scalar, as_ufl
+from ufl.indexing import extract_indices
 
 #--- Algebraic operators ---
 

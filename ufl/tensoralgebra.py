@@ -1,14 +1,13 @@
 """Compound tensor algebra operations."""
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-11-06"
 
-from .output import ufl_assert
-from .base import Expr, Terminal
-from .zero import Zero
-from .indexing import Index, indices
+from ufl.output import ufl_assert, ufl_warning
+from ufl.base import Expr, Terminal
+from ufl.zero import Zero
+from ufl.indexing import Index, indices
 
 def merge_free_indices(a, b):
     ai = a.free_indices()

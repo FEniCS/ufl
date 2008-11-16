@@ -1,14 +1,13 @@
 """A collection of utility algorithms for handling UFL files."""
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-11-04"
 
-from ..output import ufl_error, ufl_info
-from ..form import Form
-from ..function import Function
-from .checks import validate_form
+from ufl.output import ufl_error, ufl_info
+from ufl.form import Form
+from ufl.function import Function
+from ufl.algorithms.checks import validate_form
 
 #--- Utilities to deal with form files ---
 

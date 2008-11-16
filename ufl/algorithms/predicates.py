@@ -1,18 +1,17 @@
 """Functions to check properties of forms and integrals."""
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __date__ = "2008-03-14 -- 2008-10-24"
 
-from ..output import ufl_assert, ufl_warning, ufl_debug
-from ..common import lstr
-from ..form import Form
-from ..algebra import Sum, Product
-from ..tensoralgebra import Dot
-from ..basisfunction import BasisFunction
-from .traversal import iter_expressions, traversal
-from .analysis import extract_basisfunction_dependencies, NotMultiLinearException
+from ufl.output import ufl_assert, ufl_warning, ufl_debug
+from ufl.common import lstr
+from ufl.form import Form
+from ufl.algebra import Sum, Product
+from ufl.tensoralgebra import Dot
+from ufl.basisfunction import BasisFunction
+from ufl.algorithms.traversal import iter_expressions, traversal
+from ufl.algorithms.analysis import extract_basisfunction_dependencies, NotMultiLinearException
 
 #--- Utilities for checking properties of forms ---
 

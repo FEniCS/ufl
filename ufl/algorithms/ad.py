@@ -1,40 +1,39 @@
 """This module defines automatic differentiation utilities."""
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-08-19-- 2008-11-07"
 
-from ..output import ufl_assert, ufl_error, ufl_warning
-from ..common import product, unzip, UFLTypeDefaultDict, domain2dim, subdict, mergedicts
+from ufl.output import ufl_assert, ufl_error, ufl_warning
+from ufl.common import product, unzip, UFLTypeDefaultDict, domain2dim, subdict, mergedicts
 
 # All classes:
-from ..base import Expr, Terminal
-from ..zero import Zero
-from ..scalar import FloatValue, IntValue
-from ..variable import Variable
-from ..finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
-from ..basisfunction import BasisFunction, BasisFunctions
-from ..function import Function, Constant
-from ..indexing import MultiIndex, Indexed, Index
-from ..tensors import ListTensor, ComponentTensor
-from ..algebra import Sum, Product, Division, Power, Abs
-from ..tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
-from ..mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
-from ..restriction import Restricted, PositiveRestricted, NegativeRestricted
-from ..differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot
-from ..conditional import EQ, NE, LE, GE, LT, GT, Conditional
+from ufl.base import Expr, Terminal
+from ufl.zero import Zero
+from ufl.scalar import FloatValue, IntValue
+from ufl.variable import Variable
+from ufl.finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
+from ufl.basisfunction import BasisFunction, BasisFunctions
+from ufl.function import Function, Constant
+from ufl.indexing import MultiIndex, Indexed, Index
+from ufl.tensors import ListTensor, ComponentTensor
+from ufl.algebra import Sum, Product, Division, Power, Abs
+from ufl.tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
+from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
+from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
+from ufl.differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot
+from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 
-from ..classes import ScalarValue, Zero, Identity, Constant, VectorConstant, TensorConstant
+from ufl.classes import ScalarValue, Zero, Identity, Constant, VectorConstant, TensorConstant
 
 # Lists of all Expr classes
-#from ..classes import ufl_classes, terminal_classes, nonterminal_classes
-from ..classes import terminal_classes
-from ..operators import dot, inner, outer, lt, eq, conditional
-from ..operators import sqrt, exp, ln, cos, sin
-from .traversal import iter_expressions
-from .analysis import extract_type
-from .transformations import transform, transform_integrands, expand_compounds
+#from ufl.classes import ufl_classes, terminal_classes, nonterminal_classes
+from ufl.classes import terminal_classes
+from ufl.operators import dot, inner, outer, lt, eq, conditional
+from ufl.operators import sqrt, exp, ln, cos, sin
+from ufl.algorithms.traversal import iter_expressions
+from ufl.algorithms.analysis import extract_type
+from ufl.algorithms.transformations import transform, transform_integrands, expand_compounds
 
 # FIXME: Need algorithm to apply AD to all kinds of derivatives!
 #        In particular, SpatialDerivative, VariableDerivative and functional derivative.
@@ -151,7 +150,8 @@ def diff_handlers(spatial_dim):
         if isinstance(fp, Zero):
             return (x, gp*ln(f)*x)
         ufl_error("diff_power not implemented for case d/dx [ f(x)**g(x) ].")
-        return (x, TODO)
+        xp = None # TODO
+        return (x, xp)
     d[Power] = diff_power
     
     def diff_abs(x, *ops):
@@ -186,7 +186,8 @@ def diff_handlers(spatial_dim):
         u, up = ops[0]
         v, vp = ops[1]
         ufl_error("diff_cross not implemented, apply expand_compounds before AD.")
-        return (x, TODO) # COMPOUND
+        xp = None # TODO
+        return (x, xp) # COMPOUND
     d[Cross] = diff_cross
     
     d[Trace] = diff_commute
@@ -194,7 +195,8 @@ def diff_handlers(spatial_dim):
     def diff_determinant(x, *ops):
         A, Ap = ops[0]
         ufl_error("diff_determinant not implemented, apply expand_compounds before AD.")
-        return (x, TODO) # COMPOUND
+        xp = None # TODO
+        return (x, xp) # COMPOUND
     d[Determinant] = diff_determinant
     
     # Derivation:
@@ -212,7 +214,8 @@ def diff_handlers(spatial_dim):
         A, Ap = ops[0]
         ufl_error("diff_cofactor not implemented, apply expand_compounds before AD.")
         #cofacA_prime = detA_prime*Ainv + detA*Ainv_prime
-        return (x, TODO) # COMPOUND
+        xp = None # TODO
+        return (x, xp) # COMPOUND
     d[Cofactor] = diff_cofactor
 
     # Mathfunctions:
@@ -354,7 +357,7 @@ def compute_diff(expression, var): # FIXME: Is this correct? Don't understand ho
 
 def compute_variable_derivatives(form):
     "Apply AD to form, expanding all VariableDerivative w.r.t variables."
-    domain = extract_domain(form)
+    domain = form.domain()
     ufl_assert(domain is not None, "Need to know the spatial dimension to compute derivatives.")
     spatial_dim = domain2dim[domain]
     def _compute_diff(expression):
@@ -367,7 +370,7 @@ def propagate_spatial_derivatives(form):
     """Partially apply automatic differentiation to form
     by propagating spatial derivatives to terminal objects."""
     ufl_assert(not extract_type(form, SpatialDerivative), "propagate_spatial_derivatives not implemented")
-    domain = extract_domain(form)
+    domain = form.domain()
     ufl_assert(domain is not None, "Need to know the spatial dimension to compute derivatives.")
     spatial_dim = domain2dim[domain]
     def _compute_diff(expression):

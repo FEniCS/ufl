@@ -1,7 +1,6 @@
 """This module defines utilities for transforming
 complete Forms into new related Forms."""
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-10-01 -- 2008-10-30"
@@ -10,22 +9,22 @@ __date__ = "2008-10-01 -- 2008-10-30"
 
 from itertools import izip
 
-from ..common import some_key, product
-from ..output import ufl_assert, ufl_error, ufl_warning
+from ufl.common import some_key, product
+from ufl.output import ufl_assert, ufl_error, ufl_warning
 
 # All classes:
-from ..basisfunction import BasisFunction
-#from ..basisfunction import TestFunction, TrialFunction, BasisFunctions, TestFunctions, TrialFunctions
-from ..function import Function, Constant
-from ..form import Form
-from ..integral import Integral
+from ufl.basisfunction import BasisFunction
+#from ufl.basisfunction import TestFunction, TrialFunction, BasisFunctions, TestFunctions, TrialFunctions
+from ufl.function import Function, Constant
+from ufl.form import Form
+from ufl.integral import Integral
 
 # Lists of all Expr classes
-from ..classes import ufl_classes, terminal_classes, nonterminal_classes
+from ufl.classes import ufl_classes, terminal_classes, nonterminal_classes
 
 # Other algorithms:
-from .analysis import extract_basisfunctions, extract_coefficients
-from .transformations import replace, replace_in_form
+from ufl.algorithms.analysis import extract_basisfunctions, extract_coefficients
+from ufl.algorithms.transformations import replace, replace_in_form
 
 
 def compute_form_action(form, function):

@@ -1,14 +1,13 @@
 """This module defines the single index types and some internal index utilities."""
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __date__ = "2008-03-14 -- 2008-11-07"
 
 from collections import defaultdict
-from .output import ufl_assert, ufl_warning, ufl_error
-from .base import Expr, Terminal
-from .common import Counted
+from ufl.output import ufl_assert, ufl_warning, ufl_error
+from ufl.base import Expr, Terminal
+from ufl.common import Counted
 
 #--- Indexing ---
 
@@ -270,3 +269,6 @@ def extract_indices(indices, shape=None):
  
     return (free_indices, repeated_indices, newshape, index_dimensions)
 
+def complete_shape(shape, default_dim):
+    "Complete shape tuple by replacing non-integers with a default dimension."
+    return tuple((s if isinstance(s, int) else default_dim) for s in shape)

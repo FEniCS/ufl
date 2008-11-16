@@ -1,13 +1,12 @@
 """This module defines classes for conditional expressions."""
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-08-20 -- 2008-11-06"
 
-from .output import ufl_assert, ufl_warning, ufl_error
-from .base import Expr
-from .scalar import as_ufl
+from ufl.output import ufl_assert, ufl_warning, ufl_error
+from ufl.base import Expr
+from ufl.scalar import as_ufl
 
 #--- Condition classes --- 
 

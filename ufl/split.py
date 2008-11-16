@@ -1,14 +1,13 @@
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-10-31"
 
 # Modified by Anders Logg, 2008
 
-from .finiteelement import MixedElement
-from .tensors import as_vector, as_matrix, as_tensor
-from .common import product
-from .output import ufl_assert, ufl_error
+from ufl.finiteelement import MixedElement
+from ufl.tensors import as_vector, as_matrix, as_tensor
+from ufl.common import product
+from ufl.output import ufl_assert, ufl_error
 
 def split(v):
     "Split function into its sub functions if any"

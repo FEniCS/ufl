@@ -1,22 +1,21 @@
 "Differential operators."
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-11-07"
 
-from .output import ufl_assert
-from .common import subdict
-from .base import Expr, Terminal
-from .zero import Zero
-from .scalar import ScalarValue
-from .indexing import Indexed, MultiIndex, Index, extract_indices
-from .variable import Variable
-from .tensors import as_tensor
-from .tensoralgebra import Identity
-from .function import Function, Constant, VectorConstant, TensorConstant
+from ufl.output import ufl_assert, ufl_warning
+from ufl.common import subdict, mergedicts
+from ufl.base import Expr, Terminal
+from ufl.zero import Zero
+from ufl.scalar import ScalarValue
+from ufl.indexing import Indexed, MultiIndex, Index, extract_indices
+from ufl.variable import Variable
+from ufl.tensors import as_tensor
+from ufl.tensoralgebra import Identity
+from ufl.function import Function, Constant, VectorConstant, TensorConstant
 
-from .common import domain2dim
+from ufl.common import domain2dim
 
 #--- Basic differentiation objects ---
 

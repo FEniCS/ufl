@@ -3,27 +3,25 @@ in UFL expressions, either by inserting variables in an
 expression or extracting information about variables in
 an expression."""
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-05-07 -- 2008-11-05"
 
-from ..output import ufl_assert, ufl_error, ufl_warning
-from ..common import UFLTypeDict
+from ufl.output import ufl_assert, ufl_error
+from ufl.common import UFLTypeDict
 
 # Classes:
-from ..base import Expr
-from ..zero import Zero
-from ..scalar import FloatValue, IntValue 
-from ..indexing import MultiIndex
-from ..variable import Variable
-from ..classes import Identity
-from ..classes import ufl_classes
+from ufl.base import Expr
+from ufl.zero import Zero
+from ufl.scalar import FloatValue, IntValue, ScalarValue
+from ufl.indexing import MultiIndex
+from ufl.variable import Variable
+from ufl.classes import Identity
+from ufl.classes import ufl_classes
 
 # Other algorithms:
-from .traversal import post_traversal
-from .analysis import extract_basisfunctions, extract_coefficients, extract_indices
-from .transformations import ufl_reuse_handlers, transform, transform_integrands
+from ufl.algorithms.traversal import post_traversal
+from ufl.algorithms.transformations import ufl_reuse_handlers, transform
 
 def strip_variables(expression, handled_variables=None):
     if handled_variables is None:
@@ -31,7 +29,8 @@ def strip_variables(expression, handled_variables=None):
     d = ufl_reuse_handlers()
     def s_variable(x):
         v = handled_variables.get(x._count, None)
-        if v is not None: return v
+        if v is not None:
+            return v
         v = strip_variables(x._expression, handled_variables)
         handled_variables[x._count] = v
         return v
@@ -46,14 +45,13 @@ def extract_variables(expression, handled_vars=None):
         if i in handled_vars:
             return []
         handled_vars.add(i)
-        vars = []
-        vars.extend(extract_variables(expression._expression, handled_vars))
-        vars.append(expression)
+        variables = list(extract_variables(expression._expression, handled_vars))
+        variables.append(expression)
     else:
-        vars = []
+        variables = []
         for o in expression.operands():
-            vars.extend(extract_variables(o, handled_vars))
-    return vars 
+            variables.extend(extract_variables(o, handled_vars))
+    return variables
 
 def extract_duplications(expression):
     "Build a set of all repeated expressions in expression."
@@ -67,8 +65,8 @@ def extract_duplications(expression):
     return duplicated
 
 def _mark_duplications(expression, handlers, variables, dups):
-    """Wrap subexpressions that are equal (completely equal, not mathematically equivalent)
-    in Variable objects to facilitate subexpression reuse."""
+    """Wrap subexpressions that are equal (completely equal, not mathematically
+    equivalent) in Variable objects to facilitate subexpression reuse."""
     
     # check variable cache
     var = variables.get(expression, None)
@@ -81,7 +79,8 @@ def _mark_duplications(expression, handlers, variables, dups):
         return expression
     
     # handle subexpressions
-    ops = [_mark_duplications(o, handlers, variables, dups) for o in expression.operands()]
+    ops = [_mark_duplications(o, handlers, variables, dups) \
+           for o in expression.operands()]
     
     # get handler
     c = expression._uflid
@@ -94,7 +93,8 @@ def _mark_duplications(expression, handlers, variables, dups):
     handled = h(expression, *ops)
     
     # wrap in variable if a duplicate
-    const_terminals = (ScalarValue, FloatValue, IntValue, Identity) # FacetNormal: depends on order of geometry!
+    # (FacetNormal? depends on order of geometry!)
+    const_terminals = (ScalarValue, FloatValue, IntValue, Identity)
     if not isinstance(expression, const_terminals) and \
         (expression in dups or handled in dups): # TODO: Not sure if it is necessary to look for handled
         if not isinstance(handled, Variable):
@@ -128,7 +128,8 @@ def mark_duplications(expression):
                 # check if reconstructed expression is in duplications (TODO: necessary?)
                 in_duplications |= (x in duplications)
             
-            # wrap in variable if necessary, or return (possibly reconstructed) expression
+            # wrap in variable if necessary, or return
+            # (possibly reconstructed) expression
             if in_duplications:
                 v = Variable(x)
                 variables[v._expression] = v

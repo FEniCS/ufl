@@ -2,7 +2,6 @@
 either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-05-07 -- 2008-11-07"
@@ -13,41 +12,41 @@ import os
 from itertools import chain
 from collections import defaultdict
 
-from ..output import ufl_error, ufl_debug, ufl_warning, ufl_assert
-from ..common import UFLTypeDefaultDict, write_file, openpdf
+from ufl.output import ufl_error, ufl_debug, ufl_warning, ufl_assert
+from ufl.common import UFLTypeDefaultDict, write_file, openpdf
 
 # All classes:
-from ..zero import Zero
-from ..scalar import FloatValue, IntValue
-from ..variable import Variable
-from ..basisfunction import BasisFunction
-from ..function import Function, Constant
-from ..geometry import FacetNormal
-from ..indexing import MultiIndex, Indexed, Index, FixedIndex, AxisType
-from ..tensors import ListTensor, ComponentTensor
-from ..algebra import Sum, Product, Division, Power, Abs
-from ..tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
-from ..mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
-from ..restriction import Restricted, PositiveRestricted, NegativeRestricted
-from ..differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot
-from ..conditional import EQ, NE, LE, GE, LT, GT, Conditional
-from ..form import Form
-from ..integral import Integral
+from ufl.zero import Zero
+from ufl.scalar import ScalarValue, FloatValue, IntValue, ScalarSomething
+from ufl.variable import Variable
+from ufl.basisfunction import BasisFunction
+from ufl.function import Function, Constant, VectorConstant, TensorConstant
+from ufl.geometry import FacetNormal
+from ufl.indexing import MultiIndex, Indexed, Index, FixedIndex, AxisType
+from ufl.tensors import ListTensor, ComponentTensor
+from ufl.algebra import Sum, Product, Division, Power, Abs
+from ufl.tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
+from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
+from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
+from ufl.differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot
+from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
+from ufl.form import Form
+from ufl.integral import Integral
 
 # Lists of all Expr classes
-from ..classes import ufl_classes, terminal_classes, nonterminal_classes
+from ufl.classes import ufl_classes, terminal_classes, nonterminal_classes
 
 # Other algorithms:
-from .transformations import transform
-from .analysis import extract_basisfunctions, extract_coefficients, extract_variables
-from .formdata import FormData
-from .checks import validate_form
-from .formfiles import load_forms
-from .latextools import align, document, verbatim
+from ufl.algorithms.transformations import transform
+from ufl.algorithms.analysis import extract_basisfunctions, extract_coefficients, extract_variables
+from ufl.algorithms.formdata import FormData
+from ufl.algorithms.checks import validate_form
+from ufl.algorithms.formfiles import load_forms
+from ufl.algorithms.latextools import align, document, verbatim
 
-from .dependencies import DependencySet, CodeStructure, split_by_dependencies
-from .variables import mark_duplications
-from .transformations import expand_compounds
+from ufl.algorithms.dependencies import DependencySet, CodeStructure, split_by_dependencies
+from ufl.algorithms.variables import mark_duplications
+from ufl.algorithms.transformations import expand_compounds
 
 
 # --- Tools for LaTeX rendering of UFL expressions ---
@@ -199,8 +198,8 @@ def latex_handlers(basisfunction_renumbering, coefficient_renumbering):
         return "\\left[A \\quad | \\quad A_{%s} = {%s} \\quad \\forall {%s} \\right]" % (ii, A, ii)
     d[ComponentTensor] = l_componenttensor
     
-    d[PositiveRestricted] = lambda x, f: "{%s}^+" % par(A)
-    d[NegativeRestricted] = lambda x, f: "{%s}^-" % par(A)
+    d[PositiveRestricted] = lambda x, f: "{%s}^+" % par(f)
+    d[NegativeRestricted] = lambda x, f: "{%s}^-" % par(f)
     
     d[EQ] = lambda a, b: "(%s = %s)" % (a, b)
     d[NE] = lambda a, b: "(%s \\ne %s)" % (a, b)
@@ -236,7 +235,9 @@ def element2latex(element):
 domain_strings = { "cell": "\\Omega", "exterior_facet": "\\Gamma^{ext}", "interior_facet": "\\Gamma^{int}" }
 dx_strings = { "cell": "dx", "exterior_facet": "ds", "interior_facet": "dS" }
 
-def form2latex(form, formname="a", basisfunction_names = {}, function_names = {}):
+def form2latex(form, formname="a", basisfunction_names = None, function_names = None):
+    if basisfunction_names is None: basisfunction_names = {}
+    if function_names is None: function_names = {}
     formdata = FormData(form)
     sections = []
     
@@ -260,11 +261,11 @@ def form2latex(form, formname="a", basisfunction_names = {}, function_names = {}
     
     # Define basis functions and functions
     lines = []
-    for i,e in enumerate(formdata.basisfunctions):
+    for i, f in enumerate(formdata.basisfunctions):
         name = basisfunction_names.get(f, None)
         name = "" if name is None else (name + " = ")
         lines.append("%sv_h^{%d} \\in V_h^{%d} " % (name, i, i))
-    for i,f in enumerate(formdata.coefficients):
+    for i, f in enumerate(formdata.coefficients):
         name = function_names.get(f, None)
         name = "" if name is None else (name + " = ")
         lines.append("%sw_h^{%d} \\in W_h^{%d} " % (name, i, i))
@@ -278,8 +279,8 @@ def form2latex(form, formname="a", basisfunction_names = {}, function_names = {}
                            form.interior_facet_integrals()))
     lines = []
     for itg in integrals:
-        vars = extract_variables(itg.integrand())
-        for v in vars:
+        variables = extract_variables(itg.integrand())
+        for v in variables:
             if not v._count in handled_variables:
                 handled_variables.add(v._count)
                 exprlatex = expression2latex(v._expression, formdata.basisfunction_renumbering, formdata.coefficient_renumbering)

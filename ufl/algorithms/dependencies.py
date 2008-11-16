@@ -1,6 +1,5 @@
 """This module defines utilities for working with dependencies of subexpressions."""
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-10-01 -- 2008-10-30"
@@ -8,28 +7,28 @@ __date__ = "2008-10-01 -- 2008-10-30"
 from collections import defaultdict
 from itertools import izip, chain
 
-from ..common import some_key, split_dict, or_tuples, and_tuples, UFLTypeDict
-from ..output import ufl_assert, ufl_error, ufl_warning
-from ..permutation import compute_indices
+from ufl.common import some_key, split_dict, or_tuples, and_tuples, UFLTypeDict
+from ufl.output import ufl_assert, ufl_error, ufl_warning
+from ufl.permutation import compute_indices
 
 # All classes:
-from ..base import Expr, Terminal
-from ..zero import Zero
-from ..scalar import FloatValue, IntValue
-from ..variable import Variable
-from ..basisfunction import BasisFunction
-from ..function import Function, Constant
-from ..differentiation import SpatialDerivative
-from ..geometry import FacetNormal
-from ..tensoralgebra import Identity
-from ..indexing import MultiIndex, Indexed, Index, FixedIndex
-from ..tensors import ListTensor, ComponentTensor
+from ufl.base import Expr, Terminal
+from ufl.zero import Zero
+from ufl.scalar import FloatValue, IntValue
+from ufl.variable import Variable
+from ufl.basisfunction import BasisFunction
+from ufl.function import Function, Constant
+from ufl.differentiation import SpatialDerivative
+from ufl.geometry import FacetNormal
+from ufl.tensoralgebra import Identity
+from ufl.indexing import MultiIndex, Indexed, Index, FixedIndex
+from ufl.tensors import ListTensor, ComponentTensor
 
 # Lists of all Expr classes
-from ..classes import ufl_classes, terminal_classes, nonterminal_classes
+from ufl.classes import ufl_classes, terminal_classes, nonterminal_classes
 
 # Other algorithms:
-from .variables import extract_variables
+from ufl.algorithms.variables import extract_variables
 
 
 class DependencySet:
@@ -348,9 +347,9 @@ class DependencySplitter:
         d = DependencySet(bfs, fs, cell=cell, mapping=mapping,
                           facet=facet, coordinates=coordinates)
         if basisfunction is not None:
-            d |= basisfunction_deps[basisfunction]
+            d |= self.basisfunction_deps[basisfunction]
         if function is not None:
-            d |= function_deps[function]
+            d |= self.function_deps[function]
         return d
     
     def no_deps(self, x):
@@ -466,33 +465,37 @@ def _test_dependency_set():
 
 
 def _test_split_by_dependencies():
-    def unit_tuple(i, n, true=True, false=False):
-        return tuple(true if i == j else false for j in xrange(n))
-    
-    a = TODO
-    
-    formdata = FormData(a)
-    
-    basisfunction_deps = []
-    for i in range(formdata.rank):
-        # TODO: More depending on element
-        bfs = unit_tuple(i, formdata.rank, True, False)
-        cfs = (False,)*formdata.num_coefficients
-        d = DependencySet(bfs, cfs)
-        basisfunction_deps.append(d)
-    
-    function_deps = []
-    for i in range(num_coefficients):
-        # TODO: More depending on element
-        bfs = (False,)*formdata.rank
-        cfs = unit_tuple(i, formdata.num_coefficients, True, False)
-        d = DependencySet(bfs, cfs)
-        function_deps.append(d)
-    
-    e, d, c = split_by_dependencies(integrand, formdata, basisfunction_deps, function_deps)
-    print e
-    print d
-    print c
+    pass
+#===============================================================================
+#    def unit_tuple(i, n, true=True, false=False):
+#        return tuple(true if i == j else false for j in xrange(n))
+#    
+#    a = ...
+#    
+#    from ufl.algorithms.formdata import FormData
+#    formdata = FormData(a)
+#    
+#    basisfunction_deps = []
+#    for i in range(formdata.rank):
+#        # ...: More depending on element
+#        bfs = unit_tuple(i, formdata.rank, True, False)
+#        cfs = (False,)*formdata.num_coefficients
+#        d = DependencySet(bfs, cfs)
+#        basisfunction_deps.append(d)
+#    
+#    function_deps = []
+#    for i in range(num_coefficients):
+#        # ...: More depending on element
+#        bfs = (False,)*formdata.rank
+#        cfs = unit_tuple(i, formdata.num_coefficients, True, False)
+#        d = DependencySet(bfs, cfs)
+#        function_deps.append(d)
+#    
+#    e, d, c = split_by_dependencies(integrand, formdata, basisfunction_deps, function_deps)
+#    print e
+#    print d
+#    print c
+#===============================================================================
 
 if __name__ == "__main__":
     _test_dependency_set()

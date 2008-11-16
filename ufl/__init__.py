@@ -1,5 +1,4 @@
-"""
-UFL - Unified Form Language
+"""UFL - Unified Form Language
 ---------------------------
 
 NB! This is a preliminary prototype version of UFL, which is still work in progress.
@@ -27,13 +26,11 @@ http://www.fenics.org/ufl/
 But at the moment we only have some unfinished wiki pages with preliminary and incomplete feature descriptions.
 """
 
-from __future__ import absolute_import
-
 __version__ = "0.1"
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __copyright__ = __authors__ + " (2008)"
 __licence__ = "GPL3"
-__date__ = "2008-03-14 -- 2008-11-05"
+__date__ = "2008-03-14 -- 2008-11-16"
 
 ########## README
 # Imports here should be what the user sees when doing "from ufl import *",
@@ -43,42 +40,42 @@ __date__ = "2008-03-14 -- 2008-11-05"
 ##########
 
 # utility functions (product is the counterpart of the built-in python function sum, can be useful for users as well)
-from .common import product
+from ufl.common import product
 
 # output control
-from .output import get_handler, get_logger, set_handler, UFLException
+from ufl.output import get_handler, get_logger, set_handler, UFLException
 
 # finite elements classes
-from .finiteelement import FiniteElement, MixedElement, VectorElement, TensorElement
+from ufl.finiteelement import FiniteElement, MixedElement, VectorElement, TensorElement
 
 # hook to extend predefined element families
-from .elements import register_element #, ufl_elements
+from ufl.elements import register_element #, ufl_elements
 
 # basis functions
-from .basisfunction import BasisFunction, TestFunction, TrialFunction, \
+from ufl.basisfunction import BasisFunction, TestFunction, TrialFunction, \
                            BasisFunctions, TestFunctions, TrialFunctions
 
 # coefficient functions
-from .function import Function, Functions, \
+from ufl.function import Function, Functions, \
                       Constant, VectorConstant, TensorConstant
 
 # indexing of tensor expressions
-from .indexing import Index, indices
+from ufl.indexing import Index, indices
 
 # special functions for expression base classes
-from . import baseoperators as __baseoperators
+from ufl import baseoperators as __baseoperators
 
 # containers for expressions with value rank > 0
-from .tensors import as_tensor, as_vector, as_matrix
+from ufl.tensors import as_tensor, as_vector, as_matrix
 
 # types for geometric quantities
-from .geometry import FacetNormal
+from ufl.geometry import FacetNormal
 
 # tensor algebra operators
-from .tensoralgebra import Identity
+from ufl.tensoralgebra import Identity
 
 # operators
-from .operators import transpose, outer, inner, dot, cross, det, inv, tr, dev, cofac, skew, \
+from ufl.operators import transpose, outer, inner, dot, cross, det, inv, tr, dev, cofac, skew, \
                        sqrt, exp, ln, cos, sin, \
                        eq, ne, le, ge, lt, gt, conditional, \
                        jump, avg, \
@@ -86,16 +83,16 @@ from .operators import transpose, outer, inner, dot, cross, det, inv, tr, dev, c
                        Dx, diff, grad, div, curl, rot #, Dt
 
 # form class
-from .form import Form
+from ufl.form import Form
 
 # integral classes
-from .integral import Integral
+from ufl.integral import Integral
 
 # representations of transformed forms
-from .formoperators import derivative, action, rhs, lhs, adjoint #, dirichlet_functional
+from ufl.formoperators import derivative, action, rhs, lhs, adjoint #, dirichlet_functional
 
 # predefined convenience objects
-from .objects import interval, triangle, tetrahedron, quadrilateral, hexahedron, \
+from ufl.objects import interval, triangle, tetrahedron, quadrilateral, hexahedron, \
                      i, j, k, l, p, q, r, s, \
                      dx, ds, dS
 

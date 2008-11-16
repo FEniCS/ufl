@@ -1,17 +1,17 @@
 """A collection of utility algorithms for printing
 of UFL objects, mostly intended for debugging purposers."""
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-10-21"
 
 from itertools import chain
 
-from ..output import ufl_assert
-from ..base import Expr, Terminal
-from ..form import Form
-from ..integral import Integral
+from ufl.output import ufl_assert, ufl_error
+from ufl.base import Expr, Terminal
+from ufl.form import Form
+from ufl.integral import Integral
+from ufl.algorithms.analysis import extract_basisfunctions, extract_coefficients
 
 #--- Utilities for constructing informative strings from UFL objects ---
 
@@ -26,8 +26,8 @@ def integral_info(integral):
 def form_info(form):
     ufl_assert(isinstance(form, Form), "Expecting a Form.")
     
-    bf = basisfunctions(form)
-    cf = coefficients(form)
+    bf = extract_basisfunctions(form)
+    cf = extract_coefficients(form)
     
     ci = form.cell_integrals()
     ei = form.exterior_facet_integrals()

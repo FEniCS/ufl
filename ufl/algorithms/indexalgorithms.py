@@ -1,21 +1,20 @@
 """This module defines utilities for working
 with indices in an expression."""
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-05-07 -- 2008-10-30"
 
-from ..output import ufl_assert, ufl_error
+from ufl.output import ufl_assert, ufl_error, ufl_warning
 
 # All classes:
-from ..base import Expr
-from ..indexing import MultiIndex, Index
-from ..algebra import Product
-from ..differentiation import SpatialDerivative, VariableDerivative
+from ufl.base import Expr
+from ufl.indexing import MultiIndex, Index, Indexed, indices
+from ufl.algebra import Product
+from ufl.differentiation import SpatialDerivative, VariableDerivative
 
 # Other algorithms:
-from .transformations import ufl_reuse_handlers, transform
+from ufl.algorithms.transformations import ufl_reuse_handlers, transform
 
 def substitute_indices(expression, indices, values):
     """Substitute Index objects from the list 'indices' with corresponding
@@ -54,13 +53,18 @@ def expand_indices(expression):
         return type(x)(*ops) # FIXME 
     d[Product] = e_product
     
-    def e_partial_diff(x, *ops):
+    def e_spatial_derivative(x, *ops):
         return x # FIXME
-    d[PartialVariableDerivative] = e_partial_diff
+    d[SpatialDerivative] = e_spatial_derivative
     
-    def e_diff(x, *ops):
+    def e_variable_derivative(x, *ops):
         return x # FIXME
-    d[VariableDerivative] = e_diff
+    d[VariableDerivative] = e_variable_derivative
+    
+    def e_indexed(x, *ops):
+        rep_ind = x.repeated_indices()
+        return type(x)(*ops) # FIXME 
+    d[Indexed] = e_indexed
     
     return transform(expression, d)
 

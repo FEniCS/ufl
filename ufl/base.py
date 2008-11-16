@@ -1,12 +1,11 @@
 """This module defines the Expr base class and all expression
 types involved with built-in operators on any UFL object."""
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-11-01"
 
-from .common import domain2dim
+from ufl.common import domain2dim
 
 # Modified by Anders Logg, 2008
 
@@ -36,7 +35,7 @@ class Expr(object):
         return ()
     
     # All subclasses must implement index_dimensions
-    def index_dimensions(self, default_dim):
+    def index_dimensions(self):
         """Return a dict with the free or repeated indices in the expression
         as keys and the dimensions of those indices as values."""
         raise NotImplementedError(self.__class__.index_dimensions)
@@ -51,11 +50,16 @@ class Expr(object):
         return len(self.shape())
     
     def domain(self):
+        "Return the polygonal domain this expression is defined on."
         for o in self.operands():
             d = o.domain()
             if d is not None:
                 return d
         return None
+    
+    def geometric_dimension(self):
+        "Return the geometric dimension this tensor expression lives in."
+        return domain2dim[self.domain()]
     
     # Objects (operators) are linear if not overloaded otherwise by subclass
     def is_linear(self):
@@ -100,9 +104,9 @@ class Expr(object):
     def __iter__(self):
         raise NotImplementedError
     
-    def __getnewargs__(self): # TODO: Test pickle and copy with this. Must implement differently for Terminal objects though.
-        "Used for pickle and copy operations."
-        return self.operands()
+    #def __getnewargs__(self): # TODO: Test pickle and copy with this. Must implement differently for Terminal objects though.
+    #    "Used for pickle and copy operations."
+    #    return self.operands()
 
 #--- A note about other operators ---
 
@@ -137,8 +141,11 @@ class Terminal(Expr):
         if id(self) == other:
             return True
         return repr(self) == repr(other)
+
+    def __iter__(self):
+        return iter(())
     
-    def __getnewargs__(self): # TODO: Test pickle and copy with this. Must implement differently for Terminal objects though.
-        "Used for pickle and copy operations."
-        raise NotImplementedError, "Must reimplement in each Terminal, or?"
+    #def __getnewargs__(self): # TODO: Test pickle and copy with this. Must implement differently for Terminal objects though.
+    #    "Used for pickle and copy operations."
+    #    raise NotImplementedError, "Must reimplement in each Terminal, or?"
 

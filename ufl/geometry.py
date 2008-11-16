@@ -1,12 +1,11 @@
 "Types for quantities computed from cell geometry."
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-11-05"
 
-from .base import Terminal
-from .common import domain2dim
+from ufl.base import Terminal
+from ufl.common import domain2dim
 
 class FacetNormal(Terminal):
     def __init__(self, domain):

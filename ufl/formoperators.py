@@ -1,14 +1,13 @@
 "Various high level ways to transform a complete Form into a new Form."
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-10-30"
 
-from .algorithms import compute_form_derivative
-from .algorithms import compute_form_adjoint, compute_form_action
-from .algorithms import compute_form_lhs, compute_form_rhs
-#from .algorithms import compute_dirichlet_functional
+from ufl.algorithms import compute_form_derivative
+from ufl.algorithms import compute_form_adjoint, compute_form_action
+from ufl.algorithms import compute_form_lhs, compute_form_rhs
+#from ufl.algorithms import compute_dirichlet_functional
 
 def rhs(form):
     """Given a combined bilinear and linear form,

@@ -1,16 +1,15 @@
 """This module defines the class BasisFunction and a number of related
 classes (functions), including TestFunction and TrialFunction."""
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-11-05"
 
 # Modified by Anders Logg, 2008
 
-from .base import Terminal
-from .common import Counted, product
-from .split import split
+from ufl.base import Terminal
+from ufl.common import Counted, product
+from ufl.split import split
 
 # --- Class representing a basis function argument in a form ---
 

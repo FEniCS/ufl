@@ -1,14 +1,13 @@
 """Classes used to group scalar expressions into expressions with rank > 0."""
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-31 -- 2008-11-06"
 
-from .output import ufl_assert, ufl_warning
-from .base import Expr
-from .scalar import as_ufl
-from .indexing import Index, MultiIndex
+from ufl.output import ufl_assert, ufl_warning
+from ufl.base import Expr
+from ufl.scalar import as_ufl
+from ufl.indexing import Index, MultiIndex
 
 # --- Classes representing tensors of UFL expressions ---
 

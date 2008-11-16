@@ -1,15 +1,14 @@
 """This module provides basic mathematical functions."""
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-11-06"
 
 # Modified by Anders Logg, 2008
 
-from .output import ufl_assert
-from .base import Expr
-from .scalar import FloatValue, is_true_ufl_scalar, is_python_scalar, as_ufl
+from ufl.output import ufl_assert
+from ufl.base import Expr
+from ufl.scalar import FloatValue, is_true_ufl_scalar, is_python_scalar, as_ufl
 
 #--- Function representations ---
 

@@ -3,21 +3,20 @@ which are either already available as member functions on UFL objects
 or defined as compound operators involving basic operations on the UFL
 objects."""
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __date__ = "2008-04-09 -- 2008-11-05"
 
 import math
-from .output import ufl_assert
-from .zero import Zero
-from .scalar import ScalarValue, as_ufl
-from .differentiation import VariableDerivative, Grad, Div, Curl, Rot
-from .tensoralgebra import Transposed, Inner, Outer, Dot, Cross, Determinant, Inverse, Cofactor, Trace, Deviatoric, Skew
-from .variable import Variable
-from .conditional import EQ, NE, LE, GE, LT, GT, Conditional
-from .mathfunctions import Sqrt, Exp, Ln, Cos, Sin
-from .geometry import FacetNormal
+from ufl.output import ufl_assert, ufl_error
+from ufl.zero import Zero
+from ufl.scalar import ScalarValue, as_ufl
+from ufl.differentiation import VariableDerivative, Grad, Div, Curl, Rot
+from ufl.tensoralgebra import Transposed, Inner, Outer, Dot, Cross, Determinant, Inverse, Cofactor, Trace, Deviatoric, Skew
+from ufl.variable import Variable
+from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
+from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin
+from ufl.geometry import FacetNormal
 
 #--- Tensor operators ---
 

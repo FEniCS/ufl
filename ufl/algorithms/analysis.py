@@ -1,6 +1,5 @@
 """Utility algorithms for inspection of and information extraction from UFL objects in various ways."""
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-11-05"
@@ -9,25 +8,25 @@ __date__ = "2008-03-14 -- 2008-11-05"
 
 from itertools import chain
 
-from ..output import ufl_assert, ufl_error
-from ..common import lstr, UFLTypeDefaultDict
+from ufl.output import ufl_assert, ufl_error
+from ufl.common import lstr, UFLTypeDefaultDict
 
-from ..base import Expr, Terminal
-from ..algebra import Sum, Product, Division
-from ..basisfunction import BasisFunction
-from ..function import Function
-from ..variable import Variable
-from ..function import Function, Constant
-from ..tensors import ListTensor, ComponentTensor
-from ..tensoralgebra import Transposed, Inner, Dot, Outer, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor, Skew
-from ..restriction import PositiveRestricted, NegativeRestricted
-from ..differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot
-from ..conditional import EQ, NE, LE, GE, LT, GT, Conditional
-from ..indexing import Indexed
-from ..form import Form
-from ..integral import Integral
-from ..classes import terminal_classes, nonterminal_classes
-from .traversal import iter_expressions, post_traversal
+from ufl.base import Expr, Terminal
+from ufl.algebra import Sum, Product, Division
+from ufl.basisfunction import BasisFunction
+from ufl.function import Function
+from ufl.variable import Variable
+from ufl.function import Function, Constant
+from ufl.tensors import ListTensor, ComponentTensor
+from ufl.tensoralgebra import Transposed, Inner, Dot, Outer, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor, Skew
+from ufl.restriction import PositiveRestricted, NegativeRestricted
+from ufl.differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot
+from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
+from ufl.indexing import Indexed, Index, MultiIndex
+from ufl.form import Form
+from ufl.integral import Integral
+from ufl.classes import terminal_classes, nonterminal_classes
+from ufl.algorithms.traversal import iter_expressions, post_traversal, walk
 
 
 #--- Utilities to extract information from an expression ---
@@ -92,12 +91,12 @@ def _extract_coefficients(a):
             s.add(o)
     walk(a, func)
     # sort by count
-    l = sorted(s, cmp=lambda x,y: cmp(x._count, y._count))
+    l = sorted(s, cmp=lambda x,y: cmp(x.count(), y.count()))
     return l
 
 def extract_elements(a):
     "Build a sorted list of all elements used in a."
-    return tuple(f._element for f in chain(extract_basisfunctions(a), extract_coefficients(a)))
+    return tuple(f.element() for f in chain(extract_basisfunctions(a), extract_coefficients(a)))
 
 def extract_unique_elements(a):
     "Build a set of all unique elements used in a."
@@ -240,7 +239,7 @@ def extract_basisfunction_dependencies(expression):
         d = opdeps[0]
         for d2 in opdeps[1:]:
             if not d == d2:
-                 raise NotMultiLinearException, repr(x)
+                raise NotMultiLinearException, repr(x)
         return d
     h[ListTensor] = h_listtensor
     

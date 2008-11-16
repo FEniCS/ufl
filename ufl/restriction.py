@@ -1,12 +1,11 @@
 """Restriction operations."""
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-06-08 -- 2008-11-06"
 
-from .output import ufl_error
-from .base import Expr
+from ufl.output import ufl_error
+from ufl.base import Expr
 
 #--- Restriction operators ---
 

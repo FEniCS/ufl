@@ -1,11 +1,10 @@
 "The Form class."
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
 __date__    = "2008-03-14 -- 2008-11-06"
 
-from .output import ufl_assert
+from ufl.output import ufl_assert
 
 # --- The Form class, representing a complete variational form or functional ---
 

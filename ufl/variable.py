@@ -1,14 +1,12 @@
 """Defines symbol and variable constructs."""
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-05-20 -- 2008-11-07"
 
-from collections import defaultdict
-from .common import Counted
-from .output import ufl_assert
-from .base import Expr, Terminal
+from ufl.common import Counted
+from ufl.output import ufl_assert
+from ufl.base import Expr, Terminal
 
 class Variable(Terminal, Counted):
     """A Variable is a representative for another expression.

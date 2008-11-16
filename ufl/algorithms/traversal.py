@@ -4,18 +4,17 @@ generators and a kind of functional programming.
 (Organizing algorithms by implementation technique is a temporary strategy
 only to be used during the current experimental implementation phase)."""
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-10-23"
 
 # Modified by Anders Logg, 2008
 
-from ..output import ufl_assert
-from ..base import Expr, Terminal
-from ..integral import Integral
-from ..form import Form
-from ..variable import Variable
+from ufl.output import ufl_assert
+from ufl.base import Expr, Terminal
+from ufl.integral import Integral
+from ufl.form import Form
+from ufl.variable import Variable
 
 #--- Traversal utilities ---
 

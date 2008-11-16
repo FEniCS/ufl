@@ -1,17 +1,16 @@
 """This module defines the Function class and a number 
 of related classes (functions), including Constant."""
 
-from __future__ import absolute_import
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-10-31"
 
 # Modified by Anders Logg, 2008
 
-from .finiteelement import FiniteElement, VectorElement
-from .base import Terminal
-from .common import Counted, product
-from .split import split
+from ufl.finiteelement import FiniteElement, VectorElement, TensorElement
+from ufl.base import Terminal
+from ufl.common import Counted, product
+from ufl.split import split
 
 # --- The Function class represents a coefficient function argument to a form ---
 
