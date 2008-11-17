@@ -441,9 +441,13 @@ class DependencySplitter:
         else:
             v = Variable(e, count=count)
         count = v._count
-        vinfo = VariableInfo(v, deps)
-        self.codestructure.variableinfo[count] = vinfo
-        self.codestructure.stacks[deps].append(vinfo)
+        vinfo = self.codestructure.variableinfo.get(count, None)
+        if vinfo is None:
+            vinfo = VariableInfo(v, deps)
+            self.codestructure.variableinfo[count] = vinfo
+            self.codestructure.stacks[deps].append(vinfo)
+        else:
+            ufl_debug("When does this happen? Need an algorithm revision to trust this fully.") # FIXME
         return vinfo
 
     def handle(self, v):
