@@ -98,7 +98,7 @@ def _mark_duplications(expression, handlers, variables, dups):
     if not isinstance(expression, const_terminals) and \
         (expression in dups or handled in dups): # TODO: Not sure if it is necessary to look for handled
         if not isinstance(handled, Variable):
-            handled = Variable(handled)
+            handled = Variable(handled) # XXX
         variables[expression] = handled
         variables[handled] = handled
     
@@ -131,8 +131,9 @@ def mark_duplications(expression):
             # wrap in variable if necessary, or return
             # (possibly reconstructed) expression
             if in_duplications:
+                ufl_assert(not isinstance(x, Variable), "Variable should be handled elsewhere!")
                 v = Variable(x)
-                variables[v._expression] = v
+                variables[x] = v
             else:
                 v = x
         return v
@@ -151,13 +152,20 @@ def mark_duplications(expression):
         e = x._expression
         v = variables.get(e, None)
         if v is None:
-            e = transform(e, handlers) # FIXME: Will return new variable...
-            #if x._expression is e:
-            v = Variable(e, x._count)
+            e_is_variable = isinstance(e, Variable)
+            e2 = transform(e, handlers)
+            # Unwrap expression from the newly created Variable wrapper
+            # unless the original expression was a Variable, in which
+            # case we possibly need to keep the count for correctness
+            if (not e_is_variable) and isinstance(e2, Variable):
+                e2 = e2._expression
+            v = Variable(e2, x._count)
             variables[e] = v
+            variables[e2] = v
         return v
     handlers[Variable] = m_variable
     
+    # NOT doing it this way since the variables themselves needs to be transformed:
     # Initialize variable dict with existing variables
     #vars = extract_variables(expression)
     #for v in vars:

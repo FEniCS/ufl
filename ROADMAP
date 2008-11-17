@@ -9,6 +9,17 @@ Roadmap for the development of UFL
 - Test and fix AD algorithms on variable derivatives.
 - Test and fix AD algorithms on functional derivatives.
 
+# Commandline scripts:
+ - Improve DOT rendering (very very useful for visual debugging!)
+ - Create ufl2dot commandline utility like ufl2tex (ufl2pdf becomes dubious...)
+ - Implement proper commandline input in ufl-analyse, and add multiple output formats including DOT rendering:
+   - Optionally compiled
+   - Repr dump, str dump, DOT rendering or LaTeX rendering
+   - Output file format: .tex, .pdf, .dot, .ps, .png
+   - Open directly in viewer (like evince), keep stored file, or both
+   - Output directory
+   - Full output, doing all output variants in one run
+
 # Derivatives:
  - Apply AD to computation of
     - SpatialDerivative (propagating to terminal nodes)

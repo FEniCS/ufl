@@ -244,7 +244,7 @@ def _split_by_dependencies(expression, codestructure, terminal_deps):
         elif not vdeps == deps:
             # if this subexpression has other dependencies
             # than 'expression', store a variable for it 
-            v = Variable(v) # FIXME: Check a variable cache to avoid duplications?
+            v = Variable(v) # FIXME: Check a variable cache to avoid duplications? XXX
             vinfo = VariableInfo(v, vdeps)
             codestructure.variableinfo[v._count] = vinfo
             codestructure.stacks[vdeps].append(vinfo)
@@ -264,7 +264,6 @@ def _split_by_dependencies(expression, codestructure, terminal_deps):
     else:
         e = expression
     return e, deps
-
 
 def split_by_dependencies(expression, formdata, basisfunction_deps, function_deps):
     """Split an expression into stacks of variables based
@@ -297,7 +296,7 @@ def split_by_dependencies(expression, formdata, basisfunction_deps, function_dep
         ufl_assert(expression is variables[-1],
                    "Expecting the last result from extract_variables to be the input variable...")
     else:
-        expression = Variable(expression)
+        expression = Variable(expression) # XXX
         variables.append(expression)
     
     # Split each variable
@@ -431,7 +430,7 @@ class DependencySplitter:
         
     def register_expression(self, e, deps, count=None):
         # Is this safe?
-        v = Variable(e, count=count)
+        v = Variable(e, count=count) # XXX
         count = v._count
         vinfo = VariableInfo(v, deps)
         self.codestructure.variableinfo[count] = vinfo

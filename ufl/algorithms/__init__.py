@@ -2,7 +2,7 @@
 
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-14 -- 2008-11-05"
+__date__ = "2008-08-14 -- 2008-11-17"
 
 # Modified by Anders Logg, 2008
 
@@ -52,6 +52,7 @@ from ufl.algorithms.ad import compute_form_derivative, compute_diff, propagate_s
 # Utilities for UFL object printing
 from ufl.algorithms.ufl2latex import ufl2latex, ufl2tex, ufl2pdf
 from ufl.algorithms.printing import integral_info, form_info, tree_format
+from ufl.algorithms.ufl2dot import ufl2dot
 
 # Utilities for form file handling
 from ufl.algorithms.formfiles import load_forms

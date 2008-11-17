@@ -2,7 +2,7 @@
 
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-11-05"
+__date__ = "2008-03-14 -- 2008-11-17"
 
 # Modified by Anders Logg, 2008
 
@@ -61,6 +61,10 @@ def extract_classes(a):
         for (o, stack) in post_traversal(e):
             c.add(get_ufl_class(type(o)))
     return c
+
+def extract_terminals(a):
+    """Build a set of all Terminal objects in a."""
+    return set(o for e in iter_expressions(a) for (o,stack) in post_traversal(e) if isinstance(o, Terminal))
 
 def extract_basisfunctions(a):
     """Build a sorted list of all basisfunctions in a,
