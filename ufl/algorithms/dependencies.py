@@ -2,7 +2,7 @@
 
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-10-01 -- 2008-10-30"
+__date__ = "2008-10-01 -- 2008-11-17"
 
 from collections import defaultdict
 from itertools import izip, chain
@@ -244,7 +244,7 @@ def _split_by_dependencies(expression, codestructure, terminal_deps):
         elif not vdeps == deps:
             # if this subexpression has other dependencies
             # than 'expression', store a variable for it 
-            v = Variable(v) # FIXME: Check a variable cache to avoid duplications? XXX
+            v = Variable(v) # FIXME: Check a variable cache to avoid duplications?
             vinfo = VariableInfo(v, vdeps)
             codestructure.variableinfo[v._count] = vinfo
             codestructure.stacks[vdeps].append(vinfo)
@@ -296,7 +296,8 @@ def split_by_dependencies(expression, formdata, basisfunction_deps, function_dep
         ufl_assert(expression is variables[-1],
                    "Expecting the last result from extract_variables to be the input variable...")
     else:
-        expression = Variable(expression) # XXX
+        # Wrap root node in Variable for consistency below
+        expression = Variable(expression)
         variables.append(expression)
     
     # Split each variable
@@ -429,8 +430,16 @@ class DependencySplitter:
         return h(x, *ops)
         
     def register_expression(self, e, deps, count=None):
-        # Is this safe?
-        v = Variable(e, count=count) # XXX
+        """Register expression as a variable with dependency
+        data, reusing variable count if necessary.
+        If the expression is already a variable, reuse it."""
+        if count is None:
+            if isinstance(e, Variable):
+                v = e
+            else:
+                v = Variable(e)
+        else:
+            v = Variable(e, count=count)
         count = v._count
         vinfo = VariableInfo(v, deps)
         self.codestructure.variableinfo[count] = vinfo

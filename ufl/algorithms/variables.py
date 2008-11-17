@@ -5,7 +5,7 @@ an expression."""
 
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-11-05"
+__date__ = "2008-05-07 -- 2008-11-27"
 
 from ufl.output import ufl_assert, ufl_error
 from ufl.common import UFLTypeDict
@@ -98,7 +98,7 @@ def _mark_duplications(expression, handlers, variables, dups):
     if not isinstance(expression, const_terminals) and \
         (expression in dups or handled in dups): # TODO: Not sure if it is necessary to look for handled
         if not isinstance(handled, Variable):
-            handled = Variable(handled) # XXX
+            handled = Variable(handled)
         variables[expression] = handled
         variables[handled] = handled
     
@@ -131,7 +131,6 @@ def mark_duplications(expression):
             # wrap in variable if necessary, or return
             # (possibly reconstructed) expression
             if in_duplications:
-                ufl_assert(not isinstance(x, Variable), "Variable should be handled elsewhere!")
                 v = Variable(x)
                 variables[x] = v
             else:
