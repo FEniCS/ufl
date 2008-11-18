@@ -334,7 +334,7 @@ def dep2latex(dep):
         if v: deps.append(bfname(i))
     return "Dependencies: ${ %s }$." % ", ".join(deps)
 
-def dependency_sorting(deplist, rank, num_coefficients): # FIXME: Improve and apply!
+def dependency_sorting(deplist, rank): # TODO: Use this in SFC
     def split(deps, state):
         left = []
         todo = []
@@ -396,30 +396,30 @@ def code2latex(vinfo, code, formdata):
     bfn = formdata.basisfunction_renumbering
     cfn = formdata.coefficient_renumbering
 
-    deplist = code.stacks.keys()
-    
-    # FIXME: Sort dependency sets in a sensible way (preclude to a good quadrature code generator)
-    deplist = sorted(deplist)
-    #depdeplist = dependency_sorting(deplist, len(bfn), len(cfn))
+    # Sort dependency sets in a sensible way (preclude to a good quadrature code generator)
+    #deplistlist = [sorted(code.stacks.keys())]
+    deplistlist = dependency_sorting(code.stacks.keys(), len(bfn))
     
     pieces = []
-    for dep in deplist:
-        stack = code.stacks[dep]
-        
-        lines = []
-        for vinfo in stack[:-1]:
+    for deplist in deplistlist:
+        pieces.append("\n\n(Debugging: getting next list of dependencies)")
+        for dep in deplist:
+            stack = code.stacks[dep]
+            
+            lines = []
+            for vinfo in stack[:-1]:
+                vl = expression2latex(vinfo.variable, bfn, cfn)
+                el = expression2latex(vinfo.variable._expression, bfn, cfn)
+                lines.append((vl, "= " + el))
+            
+            vinfo = stack[-1]
             vl = expression2latex(vinfo.variable, bfn, cfn)
             el = expression2latex(vinfo.variable._expression, bfn, cfn)
             lines.append((vl, "= " + el))
-        
-        vinfo = stack[-1]
-        vl = expression2latex(vinfo.variable, bfn, cfn)
-        el = expression2latex(vinfo.variable._expression, bfn, cfn)
-        lines.append((vl, "= " + el))
-        
-        pieces.append("\n")
-        pieces.append(dep2latex(dep))
-        pieces.append(align(lines))
+            
+            pieces.append("\n")
+            pieces.append(dep2latex(dep))
+            pieces.append(align(lines))
     
     # Add final variable representing integrand
     pieces.append("\n")
@@ -464,14 +464,14 @@ def form2code2latex(form):
     # Define toy input to split_by_dependencies
     basisfunction_deps = []
     for i in range(formdata.rank):
-        bfs = tuple(i == j for j in range(formdata.rank)) # TODO: More dependencies depending on element
-        d = DependencySet(bfs)
+        bfs = tuple(i == j for j in range(formdata.rank)) 
+        d = DependencySet(bfs, coordinates=True) # TODO: Toggle coordinates depending on element
         basisfunction_deps.append(d)
     
     function_deps = []
     bfs = (False,)*formdata.rank
     for i in range(formdata.num_coefficients):
-        d = DependencySet(bfs)
+        d = DependencySet(bfs, runtime=True, coordinates=True) # TODO: Toggle coordinates depending on element
         function_deps.append(d)
     
     title = "Form data"

@@ -8,5 +8,8 @@ rm -f *.analysis
 rm -f *.pyc
 
 # latex files
-rm -f *.aux *.log *.pdf *.tex
+rm -f *.aux *.log *.pdf *.tex *.ps *.dvi
+
+# dot files
+rm -f *.dot *.png
 
