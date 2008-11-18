@@ -4,7 +4,6 @@ Roadmap for the development of UFL
 # Martins plan:
 - Test and fix mark_duplications.
 - Test and fix split_by_dependencies.
-- Test and fix replace_in_form.
 - Test and fix AD algorithms on spatial derivatives.
 - Test and fix AD algorithms on variable derivatives.
 - Test and fix AD algorithms on functional derivatives.
@@ -36,7 +35,6 @@ Roadmap for the development of UFL
  	- mark_duplications (has some issues after adding variable cache)
  	- AD algorithms (needs variable cache and diff cache)
  	- split_by_dependencies (might be SFC specific)
-    - replace_in_form (replace inside variables!)
  	- other?
  (- Implement contraction function that expands all implicit summations
     into Sums (do we need this? can be merged with evaluation anyway) )
