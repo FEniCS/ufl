@@ -32,27 +32,22 @@ from ufl.algorithms.variables import extract_variables
 
 
 class DependencySet:
-    def __init__(self, basisfunctions, functions, \
-                 cell=False, mapping=False, facet=False, coordinates=False):
-        # depends on reference cell mapping
-        self.mapping = mapping
-        # inside quadrature loop or integral
+    def __init__(self, basisfunctions, runtime=False, coordinates=False):
+        
+        # depends on runtime arguments (i.e. should be inside tabulate_tensor, otherwise it can be precomputed)
+        self.runtime = runtime
+        
+        # depends on spatial coordinates (i.e. should be inside quadrature loop or integral)
         self.coordinates = coordinates
-        # depends on global cell
-        self.cell = cell
-        # depends on facet
-        self.facet = facet
-        # depends on basis function i
+        
+        # depends on basis function i (i.e. should be inside a loop where this basis function is defined)
         self.basisfunctions = tuple(basisfunctions)
-        # depends on function i
-        self.functions = tuple(functions)
+    
+    def iter(self):
+        return chain((self.runtime, self.coordinates), self.basisfunctions)
     
     def size(self):
         return len(list(self.iter()))
-    
-    def iter(self):
-        return chain((self.cell, self.facet, self.mapping, self.coordinates),
-                  self.basisfunctions, self.functions)
     
     def covers(self, other):
         "Return True if all dependencies of other are covered by this dependency set."
@@ -60,7 +55,7 @@ class DependencySet:
             if o and not a:
                 return False
         return True
-            
+    
     def __hash__(self):
         return hash(tuple(self.iter()))
     
@@ -72,33 +67,24 @@ class DependencySet:
     
     def __or__(self, other):
         basisfunctions = or_tuples(self.basisfunctions, other.basisfunctions)
-        functions = or_tuples(self.functions, other.functions)
-        d = DependencySet(basisfunctions, functions)
-        d.mapping = self.mapping or other.mapping
-        d.coordinates = self.coordinates or other.coordinates
-        d.cell = self.cell or other.cell
-        d.facet = self.facet or other.facet
+        d = DependencySet(basisfunctions,
+                          self.runtime     or other.runtime,
+                          self.coordinates or other.coordinates)
         return d
 
     def __and__(self, other):
         basisfunctions = and_tuples(self.basisfunctions, other.basisfunctions)
-        functions = and_tuples(self.functions, other.functions)
-        d = DependencySet(basisfunctions, functions)
-        d.mapping = self.mapping and other.mapping
-        d.coordinates = self.coordinates and other.coordinates
-        d.cell = self.cell and other.cell
-        d.facet = self.facet and other.facet
+        d = DependencySet(basisfunctions,
+                          runtime = self.runtime and other.runtime,
+                          coordinates = self.coordinates and other.coordinates)
         return d
 
     def __str__(self):
         s = "DependencySet:\n"
         s += "{\n"
-        s += "  self.mapping        = %s\n" % self.mapping
+        s += "  self.runtime        = %s\n" % self.runtime
         s += "  self.coordinates    = %s\n" % self.coordinates 
-        s += "  self.cell           = %s\n" % self.cell
-        s += "  self.facet          = %s\n" % self.facet 
         s += "  self.basisfunctions = %s\n" % str(self.basisfunctions) 
-        s += "  self.functions      = %s\n" % str(self.functions)
         s += "}"
         return s
 
@@ -338,25 +324,18 @@ class DependencySplitter:
         self.handlers[Function]      = self.get_function_deps
         self.handlers[Variable]      = self.get_variable_deps
         self.handlers[SpatialDerivative] = self.get_spatial_derivative_deps
-
-    def make_deps(self, basisfunction=None, function=None,
-                  cell=False, mapping=False,
-                  facet=False, coordinates=False):
-        bfs = (False,)*len(self.basisfunction_deps)
-        fs = (False,)*len(self.function_deps)
-        d = DependencySet(bfs, fs, cell=cell, mapping=mapping,
-                          facet=facet, coordinates=coordinates)
-        if basisfunction is not None:
-            d |= self.basisfunction_deps[basisfunction]
-        if function is not None:
-            d |= self.function_deps[function]
-        return d
+    
+    def make_empty_deps(self):
+        return DependencySet((False,)*len(self.basisfunction_deps))
     
     def no_deps(self, x):
-        return x, self.make_deps()
+        return x, self.make_empty_deps()
     
     def get_facet_normal_deps(self, x):
-        return x, self.make_deps(facet=True)
+        deps = self.make_empty_deps()
+        deps.runtime = True
+        #deps.coordinates = True # TODO: Enable for higher order geometries.
+        return x, deps
     
     def get_function_deps(self, x):
         print 
@@ -383,10 +362,16 @@ class DependencySplitter:
     def get_spatial_derivative_deps(self, x, f, ii):
         # BasisFunction won't normally depend on the mapping,
         # but the spatial derivatives will always do...
-        dep = self.make_deps(cell=True, mapping=True)
-
+        # FIXME: Don't just reuse deps from f[1], the form compiler needs
+        # to consider whether df/dx depends on coordinates or not!
+        # I.e. for gradients of a linear basis function.
+        
+        deps = self.make_empty_deps()
+        deps.runtime = True
+        #deps.coordinates = True # TODO: Enable for higher order mappings.
+        
         # Combine dependencies
-        d = f[1] | dep
+        d = f[1] | deps
         
         # Reuse expression if possible
         if f[0] is x.operands()[0]:
@@ -462,12 +447,10 @@ class DependencySplitter:
 
 
 def _test_dependency_set():
-    basisfunctions, functions = (True, False), (True, False, False, True)
-    d1 = DependencySet(basisfunctions, functions, \
-                 cell=False, mapping=True, facet=True, coordinates=False)
-    basisfunctions, functions = (False, True), (False, True, False, True)
-    d2 = DependencySet(basisfunctions, functions, \
-                 cell=True, mapping=False, facet=True, coordinates=False)
+    basisfunctions = (True, False)
+    d1 = DependencySet(basisfunctions, runtime=True, coordinates=False)
+    basisfunctions = (False, True)
+    d2 = DependencySet(basisfunctions, runtime=True, coordinates=False)
     d3 = d1 | d2
     d4 = d1 & d2
     print d1
@@ -489,18 +472,14 @@ def _test_split_by_dependencies():
 #    
 #    basisfunction_deps = []
 #    for i in range(formdata.rank):
-#        # ...: More depending on element
 #        bfs = unit_tuple(i, formdata.rank, True, False)
-#        cfs = (False,)*formdata.num_coefficients
-#        d = DependencySet(bfs, cfs)
+#        d = DependencySet(bfs, coordinates=True) # Disable coordinates depending on element
 #        basisfunction_deps.append(d)
 #    
 #    function_deps = []
+#    bfs = (False,)*formdata.rank
 #    for i in range(num_coefficients):
-#        # ...: More depending on element
-#        bfs = (False,)*formdata.rank
-#        cfs = unit_tuple(i, formdata.num_coefficients, True, False)
-#        d = DependencySet(bfs, cfs)
+#        d = DependencySet(bfs, runtime=True, coordinates=True) # Disable coordinates depending on element
 #        function_deps.append(d)
 #    
 #    e, d, c = split_by_dependencies(integrand, formdata, basisfunction_deps, function_deps)

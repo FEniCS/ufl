@@ -326,18 +326,12 @@ def cfname(i):
 
 def dep2latex(dep):
     deps = []
-    if dep.cell:
-        deps.append("K") # TODO: Better symbol
-    if dep.mapping:
-        deps.append("G") # TODO: Better symbol
-    if dep.facet:
-        deps.append("n") # TODO: Better symbol
+    if dep.runtime:
+        deps.append("K")
     if dep.coordinates:
-        deps.append("x") # TODO: Better symbol
+        deps.append("x")
     for i,v in enumerate(dep.basisfunctions):
         if v: deps.append(bfname(i))
-    for i,w in enumerate(dep.functions):
-        if w: deps.append(cfname(i))
     return "Dependencies: ${ %s }$." % ", ".join(deps)
 
 def dependency_sorting(deplist, rank, num_coefficients): # FIXME: Improve and apply!
@@ -352,9 +346,13 @@ def dependency_sorting(deplist, rank, num_coefficients): # FIXME: Improve and ap
         return todo, left
     
     deplistlist = []
-    state = DependencySet((False,)*rank, (False,)*num_coefficients)
-    
+    state = DependencySet((False,)*rank)
     left = deplist
+    
+    # --- Initialization time
+    state.runtime = False
+    
+    state.coordinates = False
     precompute, left = split(left, state)
     deplistlist.append(precompute)
     
@@ -362,14 +360,17 @@ def dependency_sorting(deplist, rank, num_coefficients): # FIXME: Improve and ap
     precompute_quad, left = split(left, state)
     deplistlist.append(precompute_quad)
     
+    state.basisfunctions = (True,)*rank # TODO: Multiple loop stages
+    final, left = split(left, state)
+    deplistlist.append(final)
+    
+    # --- Runtime
+    state.runtime = True
+    
     state.coordinates = False
-    state.cell = True
-    state.mapping = True
-    state.facet = True
-    state.functions = (True,)*num_coefficients
     runtime, left = split(left, state)
     deplistlist.append(runtime)
-
+    
     state.coordinates = True
     runtime_quad, left = split(left, state)
     deplistlist.append(runtime_quad)
@@ -462,17 +463,15 @@ def form2code2latex(form):
         
     # Define toy input to split_by_dependencies
     basisfunction_deps = []
-    fs = (False,)*formdata.num_coefficients
     for i in range(formdata.rank):
         bfs = tuple(i == j for j in range(formdata.rank)) # TODO: More dependencies depending on element
-        d = DependencySet(bfs, fs)
+        d = DependencySet(bfs)
         basisfunction_deps.append(d)
     
     function_deps = []
     bfs = (False,)*formdata.rank
     for i in range(formdata.num_coefficients):
-        fs = tuple(i == j for j in range(formdata.num_coefficients)) # TODO: More dependencies depending on element
-        d = DependencySet(bfs, fs)
+        d = DependencySet(bfs)
         function_deps.append(d)
     
     title = "Form data"
