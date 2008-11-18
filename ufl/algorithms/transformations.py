@@ -141,8 +141,9 @@ def flatten(expression):
     d[Sum] = _flatten
     d[Product] = _flatten
     return transform(expression, d)
+
 def replace(expression, substitution_map):
-    """Replace objects in expression.
+    """Replace terminal objects in expression.
     
     @param expression:
         A Expr.
@@ -161,7 +162,21 @@ def replace(expression, substitution_map):
             return h(x, *ops)
         return y
     
+    # Cache for already handled variables, identified by count
+    variables = {}
+    def r_variable(x, *ops):
+        "Replace content of variable."
+        v = variables.get(x._count)
+        if v is None:
+            e = transform(x._expression, handlers)
+            v = Variable(e, x._count)
+            variables[x._count] = v
+        return v
+    handlers[Variable] = r_variable
+    
     for k in substitution_map.keys():
+        ufl_assert(isinstance(k, Terminal), "replace() is only intended to "\
+            "substitute Terminal objects, not %s." % str(type(k)))
         c = k._uflid
         orig_handlers[c] = handlers[c]
         handlers[c] = r_replace
