@@ -1,23 +1,10 @@
 Roadmap for the development of UFL
 ----------------------------------
 
-# Martins plan:
-- Test and fix mark_duplications.
-- Test and fix split_by_dependencies.
-- Test and fix AD algorithms on spatial derivatives.
-- Test and fix AD algorithms on variable derivatives.
-- Test and fix AD algorithms on functional derivatives.
-
-# Commandline scripts:
- - Improve DOT rendering (very very useful for visual debugging!)
- - Create ufl2dot commandline utility like ufl2tex (ufl2pdf becomes dubious...)
- - Implement proper commandline input in ufl-analyse, and add multiple output formats including DOT rendering:
-   - Optionally compiled
-   - Repr dump, str dump, DOT rendering or LaTeX rendering
-   - Output file format: .tex, .pdf, .dot, .ps, .png
-   - Open directly in viewer (like evince), keep stored file, or both
-   - Output directory
-   - Full output, doing all output variants in one run
+# Utilities:
+ - Enable compilation in ufl-convert, deprecating ufl2latex and ufl2pdf
+ - Improve dot-rendering with compact symbols for all node types (evt add option to switch between repr style and greek style)
+ - Plug compiler pipeline into SFC!
 
 # Derivatives:
  - Apply AD to computation of
@@ -26,19 +13,10 @@ Roadmap for the development of UFL
             - Collapse nested SpatialDerivative into a single SpatialDerivative with multiple indices, sorted since they commute.
     - VariableDerivative (no traces left afterwards)
         - Figure out issues with diff w.r.t. tensor variable
- - Use Variable during AD to cache subexpressions we can reuse.
-   Do we want to do this on the single operation level or on groups of operations?
+ - Implement Variable cache in AD.
+ - Do we want to do this on the single operation level or on groups of operations?
    Groups of operations where possible would be best, e.g. same abstraction level as the input expression tree.
-
-# Algorithms:
- - Update these algorithms with better Variable handling:
- 	- mark_duplications (has some issues after adding variable cache)
- 	- AD algorithms (needs variable cache and diff cache)
- 	- split_by_dependencies (might be SFC specific)
- 	- other?
- (- Implement contraction function that expands all implicit summations
-    into Sums (do we need this? can be merged with evaluation anyway) )
- - Implement lhs, rhs, and other form transformations.
+ - Read up on AD and improve implementation (actually, currently it's more like pure symbolic differentiation)
 
 # Various issues with Variable: (write down issues as they occur here to get a better overview!)
  - Figure out implications of a Variable with free indices.
@@ -56,6 +34,11 @@ Roadmap for the development of UFL
 # Elements and Basisfunctions (medium priority, needed for non-trivial applications):
  - Implement 'Test/Trial/BasisFunctions' for general tensor subelement with arbitrary symmetries (see split.py). Need to agree on some numbering conventions here.
  - Degree range for quadrature elements?
+
+# Algorithms:
+ (- Implement contraction function that expands all implicit summations
+    into Sums (do we need this? can be merged with evaluation anyway) )
+ - Implement lhs, rhs, and other form transformations.
 
 # Prettyness and readability (medium priority, useful while debugging...):
  - Rewrite ufl2latex as described in its comments (use pre- and post-handlers)
