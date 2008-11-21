@@ -17,7 +17,8 @@ from ufl.integral import Integral
 from ufl.classes import all_ufl_classes
 from ufl.algorithms.analysis import extract_duplications
 
-# TODO: Remove these in time
+
+# TODO: Might remove these in time, if all algorithms are converted to Transformers
 def transform(expression, handlers):
     """Convert a UFLExpression according to rules defined by
     the mapping handlers = dict: class -> conversion function."""
@@ -30,7 +31,6 @@ def transform(expression, handlers):
     if c is None:
         ufl_error("Didn't find class %s among handlers." % c)
     return h(expression, *ops)
-
 
 def transform_integrands(form, transformer):
     if isinstance(form, Form):
