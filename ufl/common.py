@@ -1,7 +1,7 @@
 "This module contains a collection of common utilities."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-08-05 -- 2008-11-05"
+__date__ = "2008-08-05 -- 2008-11-21"
 
 import os
 from itertools import izip
@@ -71,6 +71,21 @@ def split_dict(d, criteria):
 def some_key(a_dict):
     "Return an arbitrary key from a dictionary."
     return zip((0,), a_dict.iterkeys())[0][1]
+
+def camel2underscore(name):
+    "Convert a CamelCaps string to underscore_syntax."
+    letters = []
+    lastlower = False
+    for l in name:
+        thislower = l.islower()
+        if not thislower:
+            # Don't insert _ between multiple upper case letters
+            if lastlower:
+                letters.append("_")
+            l = l.lower()
+        lastlower = thislower
+        letters.append(l)
+    return "".join(letters)
 
 def lstr(l):
     "Pretty-print list or tuple, invoking str() on items instead of repr() like str() does."

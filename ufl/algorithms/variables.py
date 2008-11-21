@@ -3,9 +3,10 @@ in UFL expressions, either by inserting variables in an
 expression or extracting information about variables in
 an expression."""
 
+# FIXME: Replace these with new transformers.
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-11-27"
+__date__ = "2008-05-07 -- 2008-11-21"
 
 from ufl.output import ufl_assert, ufl_error
 from ufl.common import UFLTypeDict
@@ -20,8 +21,8 @@ from ufl.classes import Identity
 from ufl.classes import ufl_classes
 
 # Other algorithms:
-from ufl.algorithms.traversal import post_traversal
 from ufl.algorithms.transformations import ufl_reuse_handlers, transform
+from ufl.algorithms.analysis import extract_duplications
 
 def strip_variables(expression, handled_variables=None):
     if handled_variables is None:
@@ -36,33 +37,6 @@ def strip_variables(expression, handled_variables=None):
         return v
     d[Variable] = s_variable
     return transform(expression, d)
-
-def extract_variables(expression, handled_vars=None):
-    if handled_vars is None:
-        handled_vars = set()
-    if isinstance(expression, Variable):
-        i = expression._count
-        if i in handled_vars:
-            return []
-        handled_vars.add(i)
-        variables = list(extract_variables(expression._expression, handled_vars))
-        variables.append(expression)
-    else:
-        variables = []
-        for o in expression.operands():
-            variables.extend(extract_variables(o, handled_vars))
-    return variables
-
-def extract_duplications(expression):
-    "Build a set of all repeated expressions in expression."
-    ufl_assert(isinstance(expression, Expr), "Expecting UFL expression.")
-    handled = set()
-    duplicated = set()
-    for (o, stack) in post_traversal(expression):
-        if o in handled:
-            duplicated.add(o)
-        handled.add(o)
-    return duplicated
 
 def _mark_duplications(expression, handlers, variables, dups):
     """Wrap subexpressions that are equal (completely equal, not mathematically

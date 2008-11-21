@@ -2,7 +2,7 @@
 
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-11-17"
+__date__ = "2008-03-14 -- 2008-11-21"
 
 # Modified by Anders Logg, 2008
 
@@ -31,58 +31,38 @@ from ufl.algorithms.traversal import iter_expressions, post_traversal, walk
 
 #--- Utilities to extract information from an expression ---
 
-def extract_type(a, ufl_type):
-    """Build a set of all objects of class ufl_type found in a.
-    The argument a can be a Form, Integral or Expr."""
-    iter = (o for e in iter_expressions(a) \
-              for (o, stack) in post_traversal(e) \
-              if isinstance(o, ufl_type) )
-    return set(iter)
-
-def get_ufl_class(c):
-    """Return input class c or the first of its subclasses
-    that is part of UFL. Handles multiple inheritance in
-    external code by recursion into all base classes."""
-    if c is object:
-        return None
-    if c.__module__.split(".")[0] == "ufl":
-        return c
-    for cb in c.__bases__:
-        uc = get_ufl_class(cb)
-        if uc is not None:
-            break
-    return uc
-
 def extract_classes(a):
     """Build a set of all unique Expr subclasses used in a.
     The argument a can be a Form, Integral or Expr."""
-    c = set()
-    for e in iter_expressions(a):
-        for (o, stack) in post_traversal(e):
-            c.add(get_ufl_class(type(o)))
-    return c
+    return set(o._uflid for e in iter_expressions(a) \
+                        for (o, stack) in post_traversal(e))
+
+def extract_type(a, ufl_type):
+    """Build a set of all objects of class ufl_type found in a.
+    The argument a can be a Form, Integral or Expr."""
+    return set(o for e in iter_expressions(a) \
+                 for (o, stack) in post_traversal(e) \
+                 if isinstance(o, ufl_type))
 
 def extract_terminals(a):
-    """Build a set of all Terminal objects in a."""
-    return set(o for e in iter_expressions(a) for (o,stack) in post_traversal(e) if isinstance(o, Terminal))
+    "Build a set of all Terminal objects in a."
+    return set(o for e in iter_expressions(a) \
+                 for (o,stack) in post_traversal(e) \
+                 if isinstance(o, Terminal))
 
 def extract_basisfunctions(a):
     """Build a sorted list of all basisfunctions in a,
     which can be a Form, Integral or Expr."""
-    # build set of all unique basisfunctions
-    s = extract_type(a, BasisFunction)
-    # sort by count
-    l = sorted(s, cmp=lambda x,y: cmp(x._count, y._count))
-    return l
+    def c(x,y):
+        return cmp(x._count, y._count)
+    return sorted(extract_type(a, BasisFunction), cmp=c)
 
 def extract_coefficients(a):
     """Build a sorted list of all coefficients in a,
     which can be a Form, Integral or Expr."""
-    # build set of all unique coefficients
-    s = extract_type(a, Function)
-    # sort by count
-    l = sorted(s, cmp=lambda x,y: cmp(x._count, y._count))
-    return l
+    def c(x,y):
+        return cmp(x._count, y._count)
+    return sorted(extract_type(a, Function), cmp=c)
 
 # alternative implementation, kept as an example:
 def _extract_coefficients(a):
@@ -100,71 +80,56 @@ def _extract_coefficients(a):
 
 def extract_elements(a):
     "Build a sorted list of all elements used in a."
-    return tuple(f.element() for f in chain(extract_basisfunctions(a), extract_coefficients(a)))
+    args = chain(extract_basisfunctions(a), extract_coefficients(a))
+    return tuple(f.element() for f in args)
 
 def extract_unique_elements(a):
     "Build a set of all unique elements used in a."
     return set(extract_elements(a))
 
-def extract_variables(a):
-    """Build a set of all Variable objects in a,
-    which can be a Form, Integral or Expr."""
-    return extract_type(a, Variable)
-
 def extract_indices(expression):
     "Build a set of all Index objects used in expression."
+    ufl_info("Is this used for anything? Doesn't make much sense.")
     multi_indices = extract_type(expression, MultiIndex)
     indices = set()
     for mi in multi_indices:
         indices.update(i for i in mi if isinstance(i, Index))
     return indices
 
-def extract_monomials(expression, indent=""):
-    "Extract monomial representation of expression (if possible)."
+def extract_variables(a):
+    """Build a set of all Variable objects in a,
+    which can be a Form, Integral or Expr."""
+    return extract_type(a, Variable)
+# FIXME: Does these two do the exact same thing?
+def extract_variables(expression, handled_vars=None):
+    if handled_vars is None:
+        handled_vars = set()
+    if isinstance(expression, Variable):
+        i = expression._count
+        if i in handled_vars:
+            return []
+        handled_vars.add(i)
+        variables = list(extract_variables(expression._expression, handled_vars))
+        variables.append(expression)
+    else:
+        variables = []
+        for o in expression.operands():
+            variables.extend(extract_variables(o, handled_vars))
+    return variables
 
-    # FIXME: Not yet working, need to include derivatives, integrals etc
+def extract_duplications(expression):
+    "Build a set of all repeated expressions in expression."
+    # TODO: Handle indices in a canonical way, maybe create a transformation that does this to apply before extract_duplications?
+    ufl_assert(isinstance(expression, Expr), "Expecting UFL expression.")
+    handled = set()
+    duplicated = set()
+    for (o, stack) in post_traversal(expression):
+        if o in handled:
+            duplicated.add(o)
+        handled.add(o)
+    return duplicated
 
-    ufl_assert(isinstance(expression, Form) or isinstance(expression, Expr), "Expecting UFL form or expression.")
 
-    # Iterate over expressions
-    m = []
-
-    print ""
-    print "Extracting monomials"
-
-    #cell_integrals = expression.cell_integrals()
-    #print cell_integrals
-    #print dir(cell_integrals[0].)
-    #integrals
-
-    for e in iter_expressions(expression):
-
-        # Check for linearity
-        if not e.is_linear():
-            ufl_error("Operator is nonlinear, unable to extract monomials: " + str(e))
-            
-        print indent + "e =", e, str(type(e))
-        operands = e.operands()
-        if isinstance(e, Sum):
-            ufl_assert(len(operands) == 2, "Strange, expecting two terms.")
-            m += extract_monomials(operands[0], indent + "  ")
-            m += extract_monomials(operands[1], indent + "  ")
-        elif isinstance(e, Product):
-            ufl_assert(len(operands) == 2, "Strange, expecting two factors.")
-            for m0 in extract_monomials(operands[0], indent + "  "):
-                for m1 in extract_monomials(operands[1], indent + "  "):
-                    m.append(m0 + m1)
-        elif isinstance(e, BasisFunction):
-            m.append((e,))
-        elif isinstance(e, Function):
-            m.append((e,))
-        else:
-            print type(e)
-            print e.as_basic()
-            print "free indices =", e.free_indices()
-            ufl_error("Don't know how to handle expression: %s", str(e))
-
-    return m
 
 def transform(expression, handlers):
     """Convert a UFLExpression according to rules defined by
@@ -182,7 +147,7 @@ def transform(expression, handlers):
 class NotMultiLinearException(Exception):
     pass
 
-def extract_basisfunction_dependencies(expression):
+def extract_basisfunction_dependencies(expression): # TODO: Reimplement as a Transformer
     "TODO: Document me."
     def not_implemented(x, *ops):
         ufl_error("No handler implemented in extract_basisfunction_dependencies for '%s'" % str(x._uflid))

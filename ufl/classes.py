@@ -4,7 +4,7 @@ implementation details not exposed through the default ufl namespace."""
 
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-15 -- 2008-11-06"
+__date__ = "2008-08-15 -- 2008-11-21"
 
 # Modified by Anders Logg, 2008
 
@@ -19,7 +19,7 @@ from ufl.geometry import FacetNormal
 from ufl.indexing import MultiIndex, Indexed, Index, FixedIndex, AxisType
 from ufl.tensors import ListTensor, ComponentTensor
 from ufl.algebra import Sum, Product, Division, Power, Abs
-from ufl.tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
+from ufl.tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Cofactor, Inverse, Deviatoric, Skew
 from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
 from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
 from ufl.differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot

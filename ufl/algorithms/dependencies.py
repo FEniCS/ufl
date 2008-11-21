@@ -2,7 +2,7 @@
 
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-10-01 -- 2008-11-17"
+__date__ = "2008-10-01 -- 2008-11-21"
 
 from collections import defaultdict
 from itertools import izip, chain
@@ -28,7 +28,7 @@ from ufl.tensors import ListTensor, ComponentTensor
 from ufl.classes import ufl_classes, terminal_classes, nonterminal_classes
 
 # Other algorithms:
-from ufl.algorithms.variables import extract_variables
+from ufl.algorithms.analysis import extract_variables
 
 
 class DependencySet:
