@@ -26,8 +26,8 @@ class AlgorithmsTestCase(unittest.TestCase):
         v = TestFunction(element)
         u = TrialFunction(element)
         
-        c = Function(element, "c")
-        f = Function(element, "f")
+        c = Function(element)
+        f = Function(element)
         
         n = FacetNormal("triangle")
         
@@ -74,10 +74,10 @@ class AlgorithmsTestCase(unittest.TestCase):
     
     def test_flatten(self):
         element = FiniteElement("CG", "triangle", 1)
-        a = Function(element, "a")
-        b = Function(element, "b")
-        c = Function(element, "c")
-        d = Function(element, "d")
+        a = Function(element)
+        b = Function(element)
+        c = Function(element)
+        d = Function(element)
         
         a  = (a+b)+(c+d)
         fa = flatten(a)
@@ -112,7 +112,7 @@ class AlgorithmsTestCase(unittest.TestCase):
     def _test_walk(self):
         element = FiniteElement("CG", "triangle", 1)
         v = TestFunction(element)
-        f = Function(element, "f")
+        f = Function(element)
         a = f*v*dx
 
         store = {}

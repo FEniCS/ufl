@@ -23,7 +23,7 @@ class MassTestCase(unittest.TestCase):
         
         v = TestFunction(element)
         u = TrialFunction(element)
-        w = Function(element, "w")
+        w = Function(element)
         
         f = (w**2/2)*dx
         L = w*v*dx

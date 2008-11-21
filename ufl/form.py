@@ -2,7 +2,7 @@
 
 
 __authors__ = "Martin Sandve Alnes"
-__date__    = "2008-03-14 -- 2008-11-06"
+__date__    = "2008-03-14 -- 2008-11-21"
 
 from ufl.output import ufl_assert
 
@@ -20,6 +20,9 @@ class Form(object):
     
     def domain(self):
         return self._integrals[0].integrand().domain()
+    
+    def integrals(self):
+        return self._integrals
     
     def _get_integrals(self, domain_type):
         return tuple(itg for itg in self._integrals if itg._domain_type == domain_type)

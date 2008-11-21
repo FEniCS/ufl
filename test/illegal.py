@@ -24,10 +24,10 @@ class IllegalExpressionsTestCase(unittest.TestCase):
         self.b = BasisFunction(self.selement)
         self.v = BasisFunction(self.velement)
         self.u = BasisFunction(self.velement)
-        self.f = Function(self.selement, "f")
-        self.g = Function(self.selement, "g")
-        self.vf = Function(self.velement, "vf")
-        self.vg = Function(self.velement, "vg")
+        self.f = Function(self.selement)
+        self.g = Function(self.selement)
+        self.vf = Function(self.velement)
+        self.vg = Function(self.velement)
     
     def test_1(self):
         a, b, v,  u  = self.a, self.b, self.v,  self.u
@@ -92,7 +92,7 @@ class FormsTestCase(unittest.TestCase):
     def test_source1(self):
         element = VectorElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
-        f = Function(element, "f")
+        f = Function(element)
         try:
             a = f*v*dx
             self.fail()
@@ -102,7 +102,7 @@ class FormsTestCase(unittest.TestCase):
     def test_source2(self):
         element = VectorElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
-        f = Function(element, "f")
+        f = Function(element)
         try:
             a = dot(f[0],v)
             self.fail()
@@ -112,7 +112,7 @@ class FormsTestCase(unittest.TestCase):
     def test_source3(self):
         element = TensorElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
-        f = Function(element, "f")
+        f = Function(element)
         try:
             a = inner(f,v[0])*dx
             self.fail()
@@ -181,7 +181,7 @@ class FormsTestCase(unittest.TestCase):
         telement = TensorElement("Lagrange", "triangle", 1)
         v = TestFunction(velement)
         u = TrialFunction(velement)
-        M = Function(telement, "M")
+        M = Function(telement)
         a = inner(M*grad(u), grad(v)) * dx
 
 
@@ -194,10 +194,10 @@ class FormsTestCase(unittest.TestCase):
         v, q = TestFunctions(TH)
         u, p = TrialFunctions(TH)
 
-        f = Function(velement, "f")
-        w = Function(velement, "w")
-        Re = Constant(polygon, "w")
-        dt = Constant(polygon, "dt")
+        f = Function(velement)
+        w = Function(velement)
+        Re = Constant(polygon)
+        dt = Constant(polygon)
 
         a = dot(u, v) + dt*dot(dot(w, grad(u)), v) - dt*Re*inner(grad(u), grad(v)) + dt*dot(grad(p), v)
         L = dot(f, v)

@@ -3,7 +3,7 @@ of related classes (functions), including Constant."""
 
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-31"
+__date__ = "2008-03-14 -- 2008-11-21"
 
 # Modified by Anders Logg, 2008
 
@@ -15,13 +15,12 @@ from ufl.split import split
 # --- The Function class represents a coefficient function argument to a form ---
 
 class Function(Terminal, Counted):
-    __slots__ = ("_element", "_name")
+    __slots__ = ("_element",)
     _globalcount = 0
 
-    def __init__(self, element, name=None, count=None):
+    def __init__(self, element, count=None):
         Counted.__init__(self, count)
         self._element = element
-        self._name = name
     
     def element(self):
         return self._element
@@ -33,17 +32,14 @@ class Function(Terminal, Counted):
         return self._element.domain()
     
     def __str__(self):
-        if self._name is None:
-            count = str(self._count)
-            if len(count) == 1:
-                return "w_%s" % count
-            else:
-                return "w_{%s}" % count
+        count = str(self._count)
+        if len(count) == 1:
+            return "w_%s" % count
         else:
-            return "w_%s" % self._name
+            return "w_{%s}" % count
     
     def __repr__(self):
-        return "Function(%r, %r, %r)" % (self._element, self._name, self._count)
+        return "Function(%r, %r)" % (self._element, self._count)
 
     def __eq__(self, other):
         return isinstance(other, Function) and self._count == other._count
@@ -55,57 +51,46 @@ class Function(Terminal, Counted):
 class Constant(Function):
     __slots__ = ("_domain",)
 
-    def __init__(self, domain, name=None, count=None):
+    def __init__(self, domain, count=None):
         self._domain = domain
         element = FiniteElement("DG", domain, 0)
-        Function.__init__(self, element, name, count)
+        Function.__init__(self, element, count)
     
     def __str__(self):
-        if self._name is None:
-            count = str(self._count)
-            if len(count) == 1:
-                return "c_%s" % count
-            else:
-                return "c_{%s}" % count
+        count = str(self._count)
+        if len(count) == 1:
+            return "c_%s" % count
         else:
-            return "c_%s" % self._name
+            return "c_{%s}" % count
     
     def __repr__(self):
-        return "Constant(%r, %r, %r)" % (self._domain, self._name, self._count)
+        return "Constant(%r, %r)" % (self._domain, self._count)
 
 class VectorConstant(Function):
-    __slots__ = ("_domain",)
-
-    def __init__(self, domain, dim=None, name=None, count=None):
-        self._domain = domain
-        element = VectorElement("DG", domain, 0, dim=dim)
-        Function.__init__(self, element, name, count)
+    __slots__ = ()
+    def __init__(self, domain, dim=None, count=None):
+        element = VectorElement("DG", domain, 0, dim)
+        Function.__init__(self, element, count)
     
     def __str__(self):
-        if self._name is None:
-            return "c_%d" % self._count
-        else:
-            return "c_%s" % self._name
+        return "c_%d" % self._count
     
     def __repr__(self):
-        return "VectorConstant(%r, %r, %r)" % (self._domain, self._name, self._count)
+        e = self.element()
+        return "VectorConstant(%r, %r, %r)" % (e.domain(), e.value_shape()[0], self._count)
 
 class TensorConstant(Function):
-    __slots__ = ("_domain",)
-
-    def __init__(self, domain, shape=None, symmetry=None, name=None, count=None):
-        self._domain = domain
+    __slots__ = ()
+    def __init__(self, domain, shape=None, symmetry=None, count=None):
         element = TensorElement("DG", domain, 0, shape=shape, symmetry=symmetry)
-        Function.__init__(self, element, name, count)
+        Function.__init__(self, element, count)
     
     def __str__(self):
-        if self._name is None:
-            return "c_%d" % self._count
-        else:
-            return "c_%s" % self._name
+        return "c_%d" % self._count
     
     def __repr__(self):
-        return "TensorConstant(%r, %r, %r)" % (self._domain, self._name, self._count)
+        e = self.element()
+        return "TensorConstant(%r, %r, %r, %r)" % (e.domain(), e.value_shape(), e._symmetry, self._count)
 
 # --- Helper functions for subfunctions on mixed elements ---
 
