@@ -81,16 +81,16 @@ class AlgorithmsTestCase(unittest.TestCase):
         
         a  = (a+b)+(c+d)
         fa = flatten(a)
-        assert isinstance(fa, Sum) and len(fa.operands()) == 4
         assert isinstance(a,  Sum) and len(a.operands())  == 2
+        assert isinstance(fa, Sum) and len(fa.operands()) == 4
         aa, ab = a.operands()
         assert isinstance(aa, Sum) and len(aa.operands()) == 2
         assert isinstance(ab, Sum) and len(ab.operands()) == 2
-
+        
         a  = (a*b)*(c*d)
         fa = flatten(a)
-        assert isinstance(fa, Product) and len(fa.operands()) == 4
         assert isinstance(a,  Product) and len(a.operands())  == 2
+        assert isinstance(fa, Product) and len(fa.operands()) == 4
         aa, ab = a.operands()
         assert isinstance(aa, Product) and len(aa.operands()) == 2
         assert isinstance(ab, Product) and len(ab.operands()) == 2

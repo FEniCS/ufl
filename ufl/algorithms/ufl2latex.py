@@ -4,7 +4,7 @@ converting UFL expressions to other representations."""
 
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-11-07"
+__date__ = "2008-05-07 -- 2008-11-21"
 
 # Modified by Anders Logg, 2008.
 
@@ -45,8 +45,7 @@ from ufl.algorithms.formfiles import load_forms
 from ufl.algorithms.latextools import align, document, verbatim
 
 from ufl.algorithms.dependencies import DependencySet, CodeStructure, split_by_dependencies
-from ufl.algorithms.variables import mark_duplications
-from ufl.algorithms.transformations import expand_compounds
+from ufl.algorithms.transformations import expand_compounds, mark_duplications
 
 
 # --- Tools for LaTeX rendering of UFL expressions ---

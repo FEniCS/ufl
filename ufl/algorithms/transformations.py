@@ -6,8 +6,9 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-05-07 -- 2008-11-21"
 
 from itertools import izip, chain
-from ufl.output import ufl_assert, ufl_error
+from ufl.output import ufl_assert, ufl_error, ufl_warning
 from ufl.common import camel2underscore, domain2dim
+from ufl.base import Expr, Terminal
 from ufl.indexing import Index, indices, complete_shape
 from ufl.tensors import as_tensor, as_matrix, as_vector
 from ufl.variable import Variable
@@ -15,6 +16,31 @@ from ufl.form import Form
 from ufl.integral import Integral
 from ufl.classes import all_ufl_classes
 from ufl.algorithms.analysis import extract_duplications
+
+# TODO: Remove these in time
+def transform(expression, handlers):
+    """Convert a UFLExpression according to rules defined by
+    the mapping handlers = dict: class -> conversion function."""
+    if isinstance(expression, Terminal):
+        ops = ()
+    else:
+        ops = [transform(o, handlers) for o in expression.operands()]
+    c = expression._uflid
+    h = handlers.get(c, None)
+    if c is None:
+        ufl_error("Didn't find class %s among handlers." % c)
+    return h(expression, *ops)
+
+
+def transform_integrands(form, transformer):
+    if isinstance(form, Form):
+        newintegrals = []
+        for integral in form.integrals():
+            newintegrand = transformer(integral.integrand())
+            newintegral= Integral(integral.domain_type(), integral.domain_id(), newintegrand)
+            newintegrals.append(newintegral)
+        newform = Form(newintegrals)
+        return newform
 
 
 class Transformer(object):
@@ -32,6 +58,7 @@ class Transformer(object):
                 fname = camel2underscore(c.__name__)
                 if hasattr(self, fname):
                     self.register(uc, getattr(self, fname))
+                    break
     
     def register(self, classobject, function):
         self._handlers[classobject] = function
@@ -48,16 +75,14 @@ class Transformer(object):
         # Failed to find a handler!
         raise RuntimeError("Can't handle objects of type %s" % str(type(o)))
     
-    def reuse(self, o):
-        # Always reuse
-        return o
-    
     def reuse_if_possible(self, o, *operands):
         # Reuse o if possible, otherwise recreate
         return o if operands == o.operands() else type(o)(*operands)
-    
-    # Set default behaviour for Expr and Terminal subclasses
     expr = reuse_if_possible
+    
+    def reuse(self, o):
+        # Always reuse
+        return o
     terminal = reuse
     
     def variable(self, o):
@@ -93,6 +118,7 @@ class TreeFlattener(Transformer):
         Transformer.__init__(self)
     
     def sum_or_product(self, o, *ops):
+        # FIXME: This is error prone for indexed products, consider: (u[i]*u[i])*(v[i]*v[i])
         c = type(o)
         operands = []
         for b in ops:
@@ -101,11 +127,8 @@ class TreeFlattener(Transformer):
             else:
                 operands.append(b)
         return c(*operands)
-    
-    # Reuse same implementation for sum and product
     sum = sum_or_product
-    product = sum_or_product # FIXME: This is error prone for indexed products, consider: (u[i]*u[i])*(v[i]*v[i])
-
+    product = sum_or_product
 
 class Copier(Transformer):
     def __init__(self, mapping):
@@ -332,8 +355,7 @@ class CompoundExpander(Transformer):
         if a.rank() > 0:
             jj = tuple(indices(a.rank()))
             return as_tensor(a[jj].dx(ii), tuple((ii,)+jj))
-        else:
-            return as_tensor(a.dx(ii), (ii,))
+        return as_tensor(a.dx(ii), (ii,))
     
     def curl(self, o, a):
         raise NotImplementedError # TODO
@@ -344,28 +366,28 @@ class CompoundExpander(Transformer):
 
 # ------------ User interface functions
 
-def transform(e, transformer):
+def apply_transformer(e, transformer):
     if isinstance(e, Form):
         newintegrals = []
-        for integral in form.integrals():
+        for itg in e.integrals():
             newintegrand = transformer.visit(itg.integrand())
-            newintegral= Integral(integral.domain_type(), integral.domain_id(), newintegrand)
-            newintegrals.append(newintegral)
-        newform = Form(*newintegrals)
-        return newform
+            newitg = Integral(itg.domain_type(), itg.domain_id(), newintegrand)
+            newintegrals.append(newitg)
+        return Form(newintegrals)
+    ufl_assert(isinstance(e, Expr), "Expecting Form or Expr.")
     return transformer.visit(e)
 
 def ufl2ufl(e):
     """Convert an UFL expression to a new UFL expression, with no changes.
     This is used for testing that objects in the expression behave as expected."""
-    return transform(e, Transformer())
+    return apply_transformer(e, Transformer())
 
 def ufl2uflcopy(e):
     """Convert an UFL expression to a new UFL expression.
     All nonterminal object instances are replaced with identical
     copies, while terminal objects are kept. This is used for
     testing that objects in the expression behave as expected."""
-    return transform(e, Copier())
+    return apply_transformer(e, Copier())
 
 def replace(e, mapping):
     """Replace terminal objects in expression.
@@ -375,27 +397,27 @@ def replace(e, mapping):
     @param mapping:
         A dict with from:to replacements to perform.
     """
-    return transform(e, Replacer(mapping))
+    return apply_transformer(e, Replacer(mapping))
 
 def flatten(e):
     """Convert an UFL expression to a new UFL expression, with sums 
     and products flattened from binary tree nodes to n-ary tree nodes."""
     ufl_warning("flatten doesn't work correctly for some indexed products, like (u[i]*v[i])*(q[i]*r[i])")
-    return transform(e, TreeFlattener())
+    return apply_transformer(e, TreeFlattener())
 
-def expand_compounds(e):
+def expand_compounds(e, dim=None):
     """Expand compound objects into basic operators.
     Requires e to have a well defined domain, 
     for the geometric dimension to be defined."""
-    dim = domain2dim[e.domain()]
-    return transform(e, CompoundExpander(dim))
+    if dim is None: dim = domain2dim[e.domain()]
+    return apply_transformer(e, CompoundExpander(dim))
 
 def strip_variables(e):
-    return transform(e, VariableStripper())
+    return apply_transformer(e, VariableStripper())
 
 def mark_duplications(e):
     """Wrap subexpressions that are equal (completely equal, not mathematically
     equivalent) in Variable objects to facilitate subexpression reuse."""
     duplications = extract_duplications(e)
-    return transform(e, DuplicationMarker(duplications))
+    return apply_transformer(e, DuplicationMarker(duplications))
 

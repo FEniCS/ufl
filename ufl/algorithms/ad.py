@@ -10,6 +10,8 @@ from ufl.common import product, unzip, UFLTypeDefaultDict, domain2dim, subdict, 
 # All classes:
 from ufl.base import Expr, Terminal
 from ufl.zero import Zero
+from ufl.form import Form
+from ufl.integral import Integral
 from ufl.scalar import FloatValue, IntValue
 from ufl.variable import Variable
 from ufl.finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
@@ -33,7 +35,7 @@ from ufl.operators import dot, inner, outer, lt, eq, conditional
 from ufl.operators import sqrt, exp, ln, cos, sin
 from ufl.algorithms.traversal import iter_expressions
 from ufl.algorithms.analysis import extract_type
-from ufl.algorithms.transformations import transform, transform_integrands, expand_compounds
+from ufl.algorithms.transformations import expand_compounds, transform, transform_integrands
 
 # FIXME: Need algorithm to apply AD to all kinds of derivatives!
 #        In particular, SpatialDerivative, VariableDerivative and functional derivative.
@@ -48,6 +50,9 @@ from ufl.algorithms.transformations import transform, transform_integrands, expa
 # FIXME: Could apply as_basic to Compound objects with no rule before differentiating
 
 spatially_constant_types = (ScalarValue, Zero, Identity, Constant, VectorConstant, TensorConstant) # FacetNormal: not for higher order geometry!
+
+# FIXME: Rewrite using Transformer
+
 
 def diff_handlers(spatial_dim):
     """This function constructs a default handler dict for 
