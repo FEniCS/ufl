@@ -2,7 +2,7 @@
 
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-14 -- 2008-11-17"
+__date__ = "2008-08-14 -- 2008-11-21"
 
 # Modified by Anders Logg, 2008
 
@@ -31,9 +31,6 @@ from ufl.algorithms.transformations import transform, transform_integrands
 from ufl.algorithms.transformations import ufl2ufl, ufl2uflcopy
 from ufl.algorithms.transformations import expand_compounds, flatten
 from ufl.algorithms.transformations import replace, replace_in_form
-
-# Utilities for working with indices
-from ufl.algorithms.indexalgorithms import renumber_indices, substitute_indices, expand_indices
 
 # Utilities for working with variables
 from ufl.algorithms.variables import strip_variables, extract_variables, extract_duplications, mark_duplications
