@@ -24,7 +24,7 @@ from ufl.classes import ufl_classes, terminal_classes, nonterminal_classes
 
 # Other algorithms:
 from ufl.algorithms.analysis import extract_basisfunctions, extract_coefficients
-from ufl.algorithms.transformations import replace, replace_in_form
+from ufl.algorithms.transformations import replace
 
 
 def compute_form_action(form, function):
@@ -45,7 +45,7 @@ def compute_form_action(form, function):
         ufl_assert(function.element() == e, \
             "Trying to compute action of form on a "\
             "function in an incompatible element space.")
-    return replace_in_form(form, {u:function})
+    return replace(form, {u:function})
 
 def compute_form_lhs(form):
     """Compute the left hand side of a form."""
@@ -65,7 +65,7 @@ def compute_form_adjoint(form):
     bf = extract_basisfunctions(form)
     ufl_assert(len(bf) == 2, "Expecting bilinear form.")
     v, u = bf
-    return replace_in_form(form, {v:u, u:v})
+    return replace(form, {v:u, u:v})
 
 #def compute_dirichlet_functional(form):
 #    """Compute the Dirichlet functional of a form:
@@ -80,4 +80,4 @@ def compute_form_adjoint(form):
 #    #bf = extract_basisfunctions(form)
 #    #ufl_assert(len(bf) == 2, "Expecting bilinear form.")
 #    #v, u = bf
-#    #return replace_in_form(form, {u:v})
+#    #return replace(form, {u:v})

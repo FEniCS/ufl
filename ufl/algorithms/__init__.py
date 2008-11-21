@@ -29,11 +29,8 @@ from ufl.algorithms.checks import validate_form
 # Utilites for modifying expressions and forms
 from ufl.algorithms.transformations import transform, transform_integrands, \
                                            ufl2ufl, ufl2uflcopy, \
-                                           expand_compounds, flatten, \
-                                           replace, replace_in_form
-
-# Utilities for working with variables
-from ufl.algorithms.variables import strip_variables, mark_duplications
+                                           replace, flatten, strip_variables, \
+                                           expand_compounds, mark_duplications
 
 # Utilities for working with dependencies of subexpressions
 from ufl.algorithms.dependencies import split_by_dependencies

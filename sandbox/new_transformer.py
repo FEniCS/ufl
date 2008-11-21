@@ -77,12 +77,12 @@ class Replacer(Transformer):
     def __init__(self, mapping):
         Transformer.__init__(self)
         self._mapping = mapping
+        ufl_assert(all(isinstance(k, Terminal) for k in mapping.keys()), \
+                "Can only replace Terminal objects.")
     
     def terminal(self, o):
         e = self._mapping.get(o)
-        if e is None:
-            return o
-        return e
+        return o if e is None else e
 
 
 class TreeFlattener(Transformer):
@@ -128,28 +128,28 @@ class VariableStripper(Transformer):
         return self.visit(o._expression)
 
 
-class OperatorApplier(Transformer):
-    "Implements mappings that can be defined through Python operators."
-    def __init__(self):
-        Transformer.__init__(self)
-    
-    def abs(self, o, a):
-        return abs(a)
-    
-    def sum(self, o, *ops):
-        return sum(ops)
-    
-    def division(self, o, a, b):
-        return a / b
-    
-    def power(self, o, a, b):
-        return a ** b
-    
-    def product(self, o, *ops):
-        return product(ops)
-    
-    def indexed(self, o, a, b):
-        return a[*b] if isinstance(b, tuple) else a[b]
+#class OperatorApplier(Transformer):
+#    "Implements mappings that can be defined through Python operators."
+#    def __init__(self):
+#        Transformer.__init__(self)
+#    
+#    def abs(self, o, a):
+#        return abs(a)
+#    
+#    def sum(self, o, *ops):
+#        return sum(ops)
+#    
+#    def division(self, o, a, b):
+#        return a / b
+#    
+#    def power(self, o, a, b):
+#        return a ** b
+#    
+#    def product(self, o, *ops):
+#        return product(ops)
+#    
+#    def indexed(self, o, a, b):
+#        return a[*b] if isinstance(b, tuple) else a[b]
 
 
 # TODO: Indices will often mess up extract_duplications / mark_duplications.
@@ -341,33 +341,42 @@ class CompoundExpander(Transformer):
 
 # ------------ User interface functions
 
-def transform_integrands(form, transformer):
-    newintegrals = []
-    for integral in form.integrals():
-        newintegrand = transformer.visit(itg.integrand())
-        newintegral= Integral(integral.domain_type(), integral.domain_id(), newintegrand)
-        newintegrals.append(newintegral)
-    newform = Form(*newintegrals)
-    return newform
-
 def transform(e, transformer):
     if isinstance(e, Form):
-        return transform_integrands(e, transformer)
+        newintegrals = []
+        for integral in form.integrals():
+            newintegrand = transformer.visit(itg.integrand())
+            newintegral= Integral(integral.domain_type(), integral.domain_id(), newintegrand)
+            newintegrals.append(newintegral)
+        newform = Form(*newintegrals)
+        return newform
     return transformer.visit(e)
 
 def ufl2ufl(e):
+    """Convert an UFL expression to a new UFL expression, with no changes.
+    This is used for testing that objects in the expression behave as expected."""
     return transform(e, Transformer())
 
 def ufl2uflcopy(e):
+    """Convert an UFL expression to a new UFL expression.
+    All nonterminal object instances are replaced with identical
+    copies, while terminal objects are kept. This is used for
+    testing that objects in the expression behave as expected."""
     return transform(e, Copier())
 
 def replace(e, mapping):
+    """Replace terminal objects in expression.
+    
+    @param e:
+        An Expr or Form.
+    @param mapping:
+        A dict with from:to replacements to perform.
+    """
     return transform(e, Replacer(mapping))
 
-def replace_in_form(e, mapping):
-    ufl_error("replace_in_form is deprecated, use replace.")
-
 def flatten(e):
+    """Convert an UFL expression to a new UFL expression, with sums 
+    and products flattened from binary tree nodes to n-ary tree nodes."""
     ufl_warning("flatten doesn't work correctly for some indexed products, like (u[i]*v[i])*(q[i]*r[i])")
     return transform(e, TreeFlattener())
 
