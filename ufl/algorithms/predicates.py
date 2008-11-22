@@ -11,7 +11,7 @@ from ufl.algebra import Sum, Product
 from ufl.tensoralgebra import Dot
 from ufl.basisfunction import BasisFunction
 from ufl.algorithms.traversal import iter_expressions, traversal
-from ufl.algorithms.analysis import extract_basisfunction_dependencies, NotMultiLinearException
+from ufl.algorithms.transformations import extract_basisfunction_dependencies, NotMultiLinearException
 
 #--- Utilities for checking properties of forms ---
 
@@ -55,15 +55,25 @@ from ufl.algorithms.analysis import extract_basisfunction_dependencies, NotMulti
 def is_multilinear(form):
     "Check if form is multilinear in basis function arguments."
     # An attempt at implementing is_multilinear using extract_basisfunction_dependencies.
-    # TODO: FFC probably needs a variant of this which checks for linearity in Functions as well.
+    # TODO: This has some false negatives for "multiple configurations".
+    # TODO: FFC probably needs a variant of this which checks for linearity in Functions as well, this should be a fairly simple extension of the current algorithm.
     try:
         for e in iter_expressions(form):
             deps = extract_basisfunction_dependencies(e)
-            if len(deps) != 1:
-                ufl_warning("This form has more than one basis function 'configuration', i.e. it could have both linear and bilinear terms.")
+            nargs = [len(d) for d in deps]
+            if len(nargs) == 0:
+                ufl_debug("This form is a functional.")
+            if len(nargs) == 1:
+                ufl_debug("This form is linear in %d arguments." % nargs[0])
+            if len(nargs) > 1:
+                ufl_warning("This form has more than one basis function "\
+                    "'configuration', it has terms that are linear in %s "\
+                    "arguments respectively." % str(nargs))
+    
     except NotMultiLinearException, msg:
         ufl_warning("Form is not multilinear, the offending term is: %s" % msg)
         return False
+    
     return True
 
 def _extract_monomials(e):

@@ -3,7 +3,7 @@ either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-11-21"
+__date__ = "2008-05-07 -- 2008-11-22"
 
 from itertools import izip, chain
 from ufl.output import ufl_assert, ufl_error, ufl_warning
@@ -363,6 +363,129 @@ class CompoundExpander(Transformer):
     def rot(self, o, a):
         raise NotImplementedError # TODO
 
+class NotMultiLinearException(Exception):
+    def __init__(self, *args, **kwargs):
+        Exception.__init__(self, *args, **kwargs)
+
+class BasisFunctionDependencyExtracter(Transformer):
+    def __init__(self):
+        Transformer.__init__(self)
+        self._empty = frozenset()
+    
+    def variable(self, o):
+        # Check variable cache to reuse previously transformed variable if possible
+        c = o._count
+        d = self._variable_cache.get(c)
+        if d is None:
+            # Visit the expression our variable represents
+            d = self.visit(o._expression)
+            self._variable_cache[c] = d
+        return d
+    
+    def terminal(self, o):
+        "Default for terminals: no dependency on basis functions."
+        return self._empty
+    
+    def basis_function(self, o):
+        d = frozenset((o,))
+        return frozenset((d,))
+    
+    def expr(self, o, *opdeps):
+        "Default for nonterminals: nonlinear in all arguments."
+        for d in opdeps:
+            if d:
+                raise NotMultiLinearException, repr(o)
+        return self._empty
+    
+    def linear(self, o, a):
+        "Nonterminals that are linear with a single argument."
+        return a
+    grad = linear
+    div = linear
+    curl = linear
+    rot = linear
+    transposed = linear
+    trace = linear
+    skew = linear
+    positive_restricted = linear
+    negative_restricted = linear
+    
+    def indexed(self, o, f, i):
+        return f
+    
+    def spatial_derivative(self, o, a, b):
+        return a
+    
+    def variable_derivative(self, o, a, b):
+        if b:
+            raise NotMultiLinearException, repr(o)
+        return a
+    
+    def component_tensor(self, o, f, i):
+        return f
+    
+    def list_tensor(self, o, *opdeps):
+        "Require same dependencies for all listtensor entries."
+        d = opdeps[0]
+        for d2 in opdeps[1:]:
+            if not d == d2:
+                raise NotMultiLinearException, repr(o)
+        return d
+    
+    def conditional(self, o, cond, t, f):
+        "Considering EQ, NE, LE, GE, LT, GT nonlinear in this context."
+        if cond or (not t == f):
+            raise NotMultiLinearException, repr(o)
+        return t
+
+    def division(self, o, a, b):
+        "Basis functions cannot be in the denominator."
+        if b:
+            raise NotMultiLinearException, repr(o)
+        return a
+
+    def sum(self, o, *opdeps):
+        """Sums can contain both linear and bilinear terms (we could change
+        this to require that all operands have the same dependencies)."""
+        # convert frozenset to a mutable set
+        deps = set(opdeps[0])
+        for d in opdeps[1:]:
+            # d is a frozenset of frozensets
+            deps.update(d)
+        return frozenset(deps)
+    
+    # Product operands should not depend on the same basis functions
+    def product(self, o, *opdeps):
+        c = []
+        adeps, bdeps = opdeps # TODO: Generalize to any number of operands using permutations
+        # for each frozenset ad in the frozenset adeps
+        ufl_assert(isinstance(adeps, frozenset), "Type error")
+        ufl_assert(isinstance(bdeps, frozenset), "Type error")
+        ufl_assert(all(isinstance(ad, frozenset) for ad in adeps), "Type error")
+        ufl_assert(all(isinstance(bd, frozenset) for bd in bdeps), "Type error")
+        none = frozenset((None,))
+        noneset = frozenset((none,))
+        if not adeps:
+            adeps = noneset
+        if not bdeps:
+            bdeps = noneset
+        for ad in adeps:
+            # for each frozenset bd in the frozenset bdeps
+            for bd in bdeps:
+                # build frozenset cd with the combined BasisFunction dependencies from ad and bd
+                cd = (ad | bd) - none
+                # build frozenset cd with the combined BasisFunction dependencies from ad and bd
+                if not len(cd) == len(ad - none) + len(bd - none):
+                    raise NotMultiLinearException, repr(o)
+                # remember this dependency combination
+                if cd:
+                    c.append(cd)
+        return frozenset(c)
+    inner = product
+    outer = product
+    dot = product
+    cross = product
+
 
 # ------------ User interface functions
 
@@ -420,4 +543,9 @@ def mark_duplications(e):
     equivalent) in Variable objects to facilitate subexpression reuse."""
     duplications = extract_duplications(e)
     return apply_transformer(e, DuplicationMarker(duplications))
+
+def extract_basisfunction_dependencies(e):
+    "Extract a set of sets of basisfunctions."
+    ufl_assert(isinstance(e, Expr), "Expecting an Expr.")
+    return BasisFunctionDependencyExtracter().visit(e)
 

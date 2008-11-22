@@ -37,7 +37,6 @@ from ufl.integral import Integral
 from ufl.classes import ufl_classes, terminal_classes, nonterminal_classes
 
 # Other algorithms:
-from ufl.algorithms.transformations import transform
 from ufl.algorithms.analysis import extract_basisfunctions, extract_coefficients, extract_variables
 from ufl.algorithms.formdata import FormData
 from ufl.algorithms.checks import validate_form
@@ -45,7 +44,7 @@ from ufl.algorithms.formfiles import load_forms
 from ufl.algorithms.latextools import align, document, verbatim
 
 from ufl.algorithms.dependencies import DependencySet, CodeStructure, split_by_dependencies
-from ufl.algorithms.transformations import expand_compounds, mark_duplications
+from ufl.algorithms.transformations import transform, expand_compounds, mark_duplications
 
 
 # --- Tools for LaTeX rendering of UFL expressions ---

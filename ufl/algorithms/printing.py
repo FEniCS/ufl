@@ -1,6 +1,5 @@
 """A collection of utility algorithms for printing
-of UFL objects, mostly intended for debugging purposers."""
-
+of UFL objects, mostly intended for debugging purposes."""
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-10-21"
