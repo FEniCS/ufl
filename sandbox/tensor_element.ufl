@@ -1,7 +1,8 @@
 
-# Create to elements
-element0 = FiniteElement("Lagrange", "triangle", 1)
-element1 = FiniteElement("Lagrange", "interval", 1)
+# Create two elements
+space_element = FiniteElement("Lagrange", "triangle", 1)
+time_element = FiniteElement("Lagrange", "interval", 1)
 
-# create tensor element 
-element2 = element0*element1 
+# Create tensor product element 
+element = space_element*time_element
+

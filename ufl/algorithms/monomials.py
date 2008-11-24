@@ -1,3 +1,20 @@
+"""Utility algorithms for monomial representation of expressions."""
+
+__authors__ = "Anders Logg"
+__date__ = "2008-08-01 -- 2008-11-24"
+
+# Modified by Martin Alnes, 2008
+
+from ufl.output import ufl_assert, ufl_error
+from ufl.base import Expr
+from ufl.algebra import Sum, Product
+from ufl.basisfunction import BasisFunction
+from ufl.function import Function
+from ufl.form import Form
+from ufl.algorithms.traversal import iter_expressions
+
+
+#--- Utilities to extract information from an expression ---
 
 def extract_monomials(expression, indent=""):
     "Extract monomial representation of expression (if possible)."
@@ -39,8 +56,7 @@ def extract_monomials(expression, indent=""):
         elif isinstance(e, Function):
             m.append((e,))
         else:
-            print type(e)
-            print e.as_basic()
+            print "type =", type(e)
             print "free indices =", e.free_indices()
             ufl_error("Don't know how to handle expression: %s", str(e))
 

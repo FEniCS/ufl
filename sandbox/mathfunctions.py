@@ -1,6 +1,6 @@
 
 from ufl import *
-from ufl.base import as_ufl
+from ufl.scalar import as_ufl
 
 a = as_ufl(pi)
 print "sin(pi) =", sin(a)
