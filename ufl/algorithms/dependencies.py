@@ -2,7 +2,7 @@
 
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-10-01 -- 2008-11-21"
+__date__ = "2008-10-01 -- 2008-11-25"
 
 from collections import defaultdict
 from itertools import izip, chain
@@ -29,6 +29,7 @@ from ufl.classes import ufl_classes, terminal_classes, nonterminal_classes
 
 # Other algorithms:
 from ufl.algorithms.analysis import extract_variables
+from ufl.algorithms.transformations import Transformer
 
 
 class DependencySet:
@@ -87,6 +88,21 @@ class DependencySet:
         s += "  self.basisfunctions = %s\n" % str(self.basisfunctions) 
         s += "}"
         return s
+
+
+def _test_dependency_set():
+    basisfunctions = (True, False)
+    d1 = DependencySet(basisfunctions, runtime=True, coordinates=False)
+    basisfunctions = (False, True)
+    d2 = DependencySet(basisfunctions, runtime=True, coordinates=False)
+    d3 = d1 | d2
+    d4 = d1 & d2
+    print d1
+    print d2
+    print d3
+    print d4
+
+
 
 class VariableInfo:
     def __init__(self, variable, deps):
@@ -199,57 +215,126 @@ class CodeStructure:
 #                        context.add_token(s, e)
 #===============================================================================
 
-def _split_by_dependencies(expression, codestructure, terminal_deps):
+class DependencySplitter(Transformer):
+    def __init__(self, formdata, basisfunction_deps, function_deps):
+        Transformer.__init__(self)
+        self.formdata = formdata
+        self.basisfunction_deps = basisfunction_deps
+        self.function_deps = function_deps
+        self.variables = []
+        self.codestructure = CodeStructure()
     
-    if isinstance(expression, Variable):
-        c = expression._count
-        info = codestructure.variableinfo.get(c, None)
-        if info is not None:
-            return info.variable, info.deps
-        #codestructure.stacks[info.deps].append(info)
+    def make_empty_deps(self):
+        return DependencySet((False,)*len(self.basisfunction_deps))
     
-    if isinstance(expression, Terminal):
-        h = terminal_deps[expression._uflid]
-        deps = h(expression)
-        if codestructure.stacks:
-            ufl_assert(deps.size() == some_key(codestructure.stacks).size(),\
-                       "Inconsistency in dependency definitions.")
-        return expression, deps
+    def terminal(self, x):
+        return x, self.make_empty_deps()
     
-    ops = expression.operands()
-    ops2 = [_split_by_dependencies(o, codestructure, terminal_deps) for o in ops]
-    deps = ops2[0][1]
-    for o in ops2[1:]:
-        deps |= o[1]
+    def basis_function(self, x):
+        ufl_assert(x in self.formdata.basisfunction_renumbering,
+                   "Can't find basis function %s in renumbering dict!" % repr(x))
+        i = self.formdata.basisfunction_renumbering[x]
+        d = self.basisfunction_deps[i]
+        return x, d
+    
+    def function(self, x):
+        print 
+        print self.formdata.coefficient_renumbering
+        print
+        ufl_assert(x in self.formdata.coefficient_renumbering,
+                   "Can't find function %s in renumbering dict!" % repr(x))
+        i = self.formdata.coefficient_renumbering[x]
+        d = self.function_deps[i]
+        return x, d
+    
+    def facet_normal(self, x):
+        deps = self.make_empty_deps()
+        deps.runtime = True
+        #deps.coordinates = True # TODO: Enable for higher order geometries.
+        return x, deps
+    
+    def variable(self, x):
+        vinfo = self.codestructure.variableinfo.get(x._count, None)
+        ufl_assert(vinfo is not None, "Haven't handled variable in time: %s" % repr(x))
+        return vinfo.variable, vinfo.deps
+    
+    def spatial_derivative(self, x, f, ii):
+        # BasisFunction won't normally depend on the mapping,
+        # but the spatial derivatives will always do...
+        # FIXME: Don't just reuse deps from f[1], the form compiler needs
+        # to consider whether df/dx depends on coordinates or not!
+        # I.e. for gradients of a linear basis function.
         
-    ops3 = []
-    for (v,vdeps) in ops2:
-        if isinstance(v, Variable):
-            # if this subexpression is a variable, it has already been added to the stack
-            ufl_assert(v._count in codestructure.variableinfo, "")
-        elif not vdeps == deps:
-            # if this subexpression has other dependencies
-            # than 'expression', store a variable for it 
-            v = Variable(v) # FIXME: Check a variable cache to avoid duplications?
-            vinfo = VariableInfo(v, vdeps)
-            codestructure.variableinfo[v._count] = vinfo
-            codestructure.stacks[vdeps].append(vinfo)
-        ops3.append(v)
+        deps = self.make_empty_deps()
+        deps.runtime = True
+        #deps.coordinates = True # TODO: Enable for higher order mappings.
+        
+        # Combine dependencies
+        d = f[1] | deps
+        
+        # Reuse expression if possible
+        if f[0] is x.operands()[0]:
+            return x, d
+        
+        # Construct new expression
+        return type(x)(f[0], ii[0]), d
     
-    if isinstance(expression, Variable):
-        c = expression._count
-        ufl_assert(c not in codestructure.variableinfo,
-            "Shouldn't reach this point if the variable was already cached!")
-        vinfo = VariableInfo(expression, deps)
-        codestructure.variableinfo[c] = vinfo
-        codestructure.stacks[deps].append(vinfo)
-    
-    # Try to reuse expression if nothing has changed:
-    if any((o1 is not o3) for (o1,o3) in izip(ops, ops3)):
-        e = type(expression)(*ops3)
-    else:
-        e = expression
-    return e, deps
+    def expr(self, x, *ops):
+        ufl_assert(ops, "Non-terminal with no ops should never occur.")
+        # Combine dependencies
+        d = ops[0][1]
+        for o in ops[1:]:
+            d |= o[1]
+        
+        # Make variables of all ops with differing dependencies
+        if any(o[1] != d for o in ops):
+            oldops = ops
+            ops = []
+            _skiptypes = (MultiIndex, Zero, FloatValue, IntValue)
+            for o in oldops:
+                if isinstance(o[0], _skiptypes):
+                    ops.append(o)
+                else:
+                    vinfo = self.register_expression(o[0], o[1])
+                    ops.append((vinfo.variable, vinfo.deps))
+        
+        # Reuse expression if possible
+        ops = [o[0] for o in ops]
+        if all((a is b) for (a, b) in zip(ops, x.operands())):
+            return x, d
+        # Construct new expression
+        return type(x)(*ops), d
+
+    def register_expression(self, e, deps, count=None):
+        """Register expression as a variable with dependency
+        data, reusing variable count if necessary.
+        If the expression is already a variable, reuse it."""
+        if count is None:
+            if isinstance(e, Variable):
+                v = e
+            else:
+                v = Variable(e)
+        else:
+            v = Variable(e, count=count)
+        count = v._count
+        vinfo = self.codestructure.variableinfo.get(count, None)
+        if vinfo is None:
+            vinfo = VariableInfo(v, deps)
+            self.codestructure.variableinfo[count] = vinfo
+            self.codestructure.stacks[deps].append(vinfo)
+        else:
+            ufl_debug("When does this happen? Need an algorithm revision to trust this fully.") # FIXME
+        return vinfo
+
+    def handle(self, v):
+        ufl_assert(isinstance(v, Variable), "Expecting Variable.")
+        vinfo = self.codestructure.variableinfo.get(v._count, None)
+        if vinfo is None:
+            # split v._expression 
+            e, deps = self.visit(v._expression)
+            # Register expression e as the expression of variable v
+            vinfo = self.register_expression(e, deps, count=v._count)
+        return vinfo
 
 def split_by_dependencies(expression, formdata, basisfunction_deps, function_deps):
     """Split an expression into stacks of variables based
@@ -294,169 +379,13 @@ def split_by_dependencies(expression, formdata, basisfunction_deps, function_dep
         print "Done handling variable ", v
         print "Got vinfo:"
         print vinfo
-
+    
     # How can I be sure we won't mess up the expressions of v and vinfo.variable, before and after splitting?
     # The answer is to never use v in the form compiler after this point,
     # and let v._count identify the variable in the code structure.
     
     return (vinfo, ds.codestructure)
 
-
-class DependencySplitter:
-    def __init__(self, formdata, basisfunction_deps, function_deps):
-        self.formdata = formdata
-        self.basisfunction_deps = basisfunction_deps
-        self.function_deps = function_deps
-        self.variables = []
-        self.codestructure = CodeStructure()
-
-        # First set default behaviour for dependencies
-        self.handlers = UFLTypeDict()
-        
-        for c in terminal_classes:
-            self.handlers[c] = self.no_deps
-        for c in nonterminal_classes:
-            self.handlers[c] = self.child_deps
-        # Override with specific behaviour for some classes
-        self.handlers[FacetNormal]   = self.get_facet_normal_deps
-        self.handlers[BasisFunction] = self.get_basisfunction_deps
-        self.handlers[Constant]      = self.get_function_deps
-        self.handlers[Function]      = self.get_function_deps
-        self.handlers[Variable]      = self.get_variable_deps
-        self.handlers[SpatialDerivative] = self.get_spatial_derivative_deps
-    
-    def make_empty_deps(self):
-        return DependencySet((False,)*len(self.basisfunction_deps))
-    
-    def no_deps(self, x):
-        return x, self.make_empty_deps()
-    
-    def get_facet_normal_deps(self, x):
-        deps = self.make_empty_deps()
-        deps.runtime = True
-        #deps.coordinates = True # TODO: Enable for higher order geometries.
-        return x, deps
-    
-    def get_function_deps(self, x):
-        print 
-        print self.formdata.coefficient_renumbering
-        print
-        ufl_assert(x in self.formdata.coefficient_renumbering,
-                   "Can't find function %s in renumbering dict!" % repr(x))
-        i = self.formdata.coefficient_renumbering[x]
-        d = self.function_deps[i]
-        return x, d
-    
-    def get_basisfunction_deps(self, x):
-        ufl_assert(x in self.formdata.basisfunction_renumbering,
-                   "Can't find basis function %s in renumbering dict!" % repr(x))
-        i = self.formdata.basisfunction_renumbering[x]
-        d = self.basisfunction_deps[i]
-        return x, d
-    
-    def get_variable_deps(self, x):
-        vinfo = self.codestructure.variableinfo.get(x._count, None)
-        ufl_assert(vinfo is not None, "Haven't handled variable in time: %s" % repr(x))
-        return vinfo.variable, vinfo.deps
-    
-    def get_spatial_derivative_deps(self, x, f, ii):
-        # BasisFunction won't normally depend on the mapping,
-        # but the spatial derivatives will always do...
-        # FIXME: Don't just reuse deps from f[1], the form compiler needs
-        # to consider whether df/dx depends on coordinates or not!
-        # I.e. for gradients of a linear basis function.
-        
-        deps = self.make_empty_deps()
-        deps.runtime = True
-        #deps.coordinates = True # TODO: Enable for higher order mappings.
-        
-        # Combine dependencies
-        d = f[1] | deps
-        
-        # Reuse expression if possible
-        if f[0] is x.operands()[0]:
-            return x, d
-        
-        # Construct new expression
-        return type(x)(f[0], ii[0]), d
-    
-    def child_deps(self, x, *ops):
-        ufl_assert(ops, "Non-terminal with no ops should never occur.")
-        # Combine dependencies
-        d = ops[0][1]
-        for o in ops[1:]:
-            d |= o[1]
-        
-        # Make variables of all ops with differing dependencies
-        if any(o[1] != d for o in ops):
-            oldops = ops
-            ops = []
-            _skiptypes = (MultiIndex, Zero, FloatValue, IntValue)
-            for o in oldops:
-                if isinstance(o[0], _skiptypes):
-                    ops.append(o)
-                else:
-                    vinfo = self.register_expression(o[0], o[1])
-                    ops.append((vinfo.variable, vinfo.deps))
-        
-        # Reuse expression if possible
-        ops = [o[0] for o in ops]
-        if all((a is b) for (a, b) in zip(ops, x.operands())):
-            return x, d
-        # Construct new expression
-        return type(x)(*ops), d
-
-    def transform(self, x):
-        c = x._uflid
-        h = self.handlers[c]
-        if isinstance(x, Terminal):
-            return h(x)
-        ops = [self.transform(o) for o in x.operands()]
-        return h(x, *ops)
-        
-    def register_expression(self, e, deps, count=None):
-        """Register expression as a variable with dependency
-        data, reusing variable count if necessary.
-        If the expression is already a variable, reuse it."""
-        if count is None:
-            if isinstance(e, Variable):
-                v = e
-            else:
-                v = Variable(e)
-        else:
-            v = Variable(e, count=count)
-        count = v._count
-        vinfo = self.codestructure.variableinfo.get(count, None)
-        if vinfo is None:
-            vinfo = VariableInfo(v, deps)
-            self.codestructure.variableinfo[count] = vinfo
-            self.codestructure.stacks[deps].append(vinfo)
-        else:
-            ufl_debug("When does this happen? Need an algorithm revision to trust this fully.") # FIXME
-        return vinfo
-
-    def handle(self, v):
-        ufl_assert(isinstance(v, Variable), "Expecting Variable.")
-        vinfo = self.codestructure.variableinfo.get(v._count, None)
-        if vinfo is None:
-            # split v._expression 
-            e, deps = self.transform(v._expression)
-            # Register expression e as the expression of variable v
-            vinfo = self.register_expression(e, deps, count=v._count)
-        return vinfo
-
-
-def _test_dependency_set():
-    basisfunctions = (True, False)
-    d1 = DependencySet(basisfunctions, runtime=True, coordinates=False)
-    basisfunctions = (False, True)
-    d2 = DependencySet(basisfunctions, runtime=True, coordinates=False)
-    d3 = d1 | d2
-    d4 = d1 & d2
-    print d1
-    print d2
-    print d3
-    print d4
 
 
 def _test_split_by_dependencies():
