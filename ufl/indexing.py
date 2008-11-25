@@ -21,9 +21,7 @@ class Index(Counted):
         return hash(repr(self))
     
     def __eq__(self, other):
-        if isinstance(other, Index):
-            return self._count == other._count
-        return False
+        return isinstance(other, Index) and (self._count == other._count)
     
     def __str__(self):
         return "i_{%d}" % self._count
@@ -32,7 +30,16 @@ class Index(Counted):
         return "Index(%d)" % self._count
 
 def indices(n):
+    "Return a tuple of n new Index objects."
     return tuple(Index() for i in range(n))
+
+def relabel(A, indexmap):
+    "Relabel free indices of A with new indices, using the given mapping."
+    ii = tuple(sorted(indexmap.keys()))
+    jj = tuple(indexmap[i] for i in ii)
+    ufl_assert(all(isinstance(i, Index) for i in ii), "Expecting Index objects.")
+    ufl_assert(all(isinstance(j, Index) for j in jj), "Expecting Index objects.")
+    return as_tensor(A, ii)[jj]
 
 class FixedIndex(object):
     __slots__ = ("_value",)

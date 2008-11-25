@@ -12,6 +12,7 @@ from itertools import chain
 
 from ufl.output import ufl_error, ufl_assert
 from ufl.common import write_file, openpdf
+from ufl.permutation import compute_indices
 
 # All classes:
 from ufl.zero import Zero
@@ -413,9 +414,11 @@ def dependency_sorting(deplist, rank): # TODO: Use this in SFC
     precompute_quad, left = split(left, state)
     deplistlist.append(precompute_quad)
     
-    state.basisfunctions = (True,)*rank # TODO: Multiple loop stages
-    final, left = split(left, state)
-    deplistlist.append(final)
+    indices = compute_indices((2,)*rank)
+    for bfs in indices[1:]: # skip (0,...,0)
+        state.basisfunctions = map(bool, reversed(bfs))
+        next, left = split(left, state)
+        deplistlist.append(next)
     
     # --- Runtime
     state.runtime = True
@@ -428,9 +431,11 @@ def dependency_sorting(deplist, rank): # TODO: Use this in SFC
     runtime_quad, left = split(left, state)
     deplistlist.append(runtime_quad)
     
-    state.basisfunctions = (True,)*rank # TODO: Multiple loop stages
-    final, left = split(left, state)
-    deplistlist.append(final)
+    indices = compute_indices((2,)*rank)
+    for bfs in indices[1:]: # skip (0,...,0)
+        state.basisfunctions = map(bool, reversed(bfs))
+        next, left = split(left, state)
+        deplistlist.append(next)
     
     ufl_assert(not left, "Shouldn't have anything left!")
     
@@ -444,7 +449,7 @@ def dependency_sorting(deplist, rank): # TODO: Use this in SFC
 
     return deplistlist
 
-def code2latex(vinfo, code, formdata):
+def code2latex(integrand_vinfo, code, formdata):
     "TODO: Document me"
     bfn = formdata.basisfunction_renumbering
     cfn = formdata.coefficient_renumbering
@@ -457,30 +462,19 @@ def code2latex(vinfo, code, formdata):
     for deplist in deplistlist:
         pieces.append("\n\n(Debugging: getting next list of dependencies)")
         for dep in deplist:
-            stack = code.stacks[dep]
-            
             lines = []
-            for vinfo in stack[:-1]:
+            for vinfo in code.stacks[dep]:
                 vl = expression2latex(vinfo.variable, bfn, cfn)
                 el = expression2latex(vinfo.variable._expression, bfn, cfn)
                 lines.append((vl, "= " + el))
-            
-            vinfo = stack[-1]
-            vl = expression2latex(vinfo.variable, bfn, cfn)
-            el = expression2latex(vinfo.variable._expression, bfn, cfn)
-            lines.append((vl, "= " + el))
-            
-            pieces.append("\n")
-            pieces.append(dep2latex(dep))
-            pieces.append(align(lines))
+            pieces.extend(("\n", dep2latex(dep), align(lines)))
     
     # Add final variable representing integrand
+    vl = expression2latex(integrand_vinfo.variable, bfn, cfn)
+    el = expression2latex(integrand_vinfo.variable._expression, bfn, cfn)
     pieces.append("\n")
-    pieces.append("Variable representing integrand. " + dep2latex(vinfo.deps))
-    vl = expression2latex(vinfo.variable, bfn, cfn)
-    el = expression2latex(vinfo.variable._expression, bfn, cfn)
-    lines = [(vl, "= " + el)]
-    pieces.append(align(lines))
+    pieces.append("Variable representing integrand. " + dep2latex(integrand_vinfo.deps))
+    pieces.append(align([(vl, "= " + el)]))
     
     # Could also return list of (title, body) parts for subsections if wanted
     body = "\n".join(pieces)

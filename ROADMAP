@@ -2,11 +2,12 @@ Roadmap for the development of UFL
 ----------------------------------
 
 # Utilities:
- - Enable compilation in ufl-convert, deprecating ufl2latex and ufl2pdf
- - Improve dot-rendering with compact symbols for all node types (evt add option to switch between repr style and greek style)
+ - Clean up split_by_dependencies code using Transformer
+ - Clean up AD code using Transformer
  - Plug compiler pipeline into SFC!
 
 # Derivatives:
+ - Clean up AD code using Transformer
  - Apply AD to computation of
     - SpatialDerivative (propagating to terminal nodes)
         - Find a smart way to handle nested AD:
@@ -43,6 +44,7 @@ Roadmap for the development of UFL
 # Prettyness and readability (medium priority, useful while debugging...):
  - Rewrite ufl2latex as described in its comments (use pre- and post-handlers)
  - Use precedence list to improve parentesis use in __str__ and __repr__ and ufl2latex. 
+ - Improve dot-rendering with compact symbols for all node types (evt add option to switch between repr style and greek style)
 
 # Tests:
  - Write tests for the algorithms, ideally covering all code in multiple ways.
