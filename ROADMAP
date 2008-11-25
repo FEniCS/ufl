@@ -1,11 +1,6 @@
 Roadmap for the development of UFL
 ----------------------------------
 
-# Utilities:
- - Clean up split_by_dependencies code using Transformer
- - Clean up AD code using Transformer
- - Plug compiler pipeline into SFC!
-
 # Derivatives:
  - Clean up AD code using Transformer
  - Apply AD to computation of
