@@ -2,9 +2,8 @@
 of UFL objects in the DOT graph visualization language,
 mostly intended for debugging purposers."""
 
-
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-11-17 -- 2008-11-18"
+__date__ = "2008-11-17 -- 2008-11-25"
 
 from itertools import chain
 
@@ -35,7 +34,7 @@ def build_entities(e, nodes, edges, nodeoffset):
     # Special-case Variable instances
     if isinstance(e, Variable):
         ops = (e._expression,)
-        label = "Variable(..., %d)" % e.count()
+        label = "var %d" % e.count()
     else:
         ops = e.operands()
         if isinstance(e, Terminal):
@@ -46,7 +45,7 @@ def build_entities(e, nodes, edges, nodeoffset):
             else:
                 label = repr(e)
         else:
-            label = e._uflid.__name__.split(".")[-1] # TODO: Is this ok?
+            label = e._uflid.__name__.split(".")[-1]
             if label in class2label:
                 label = class2label[label]
     
@@ -55,12 +54,17 @@ def build_entities(e, nodes, edges, nodeoffset):
     nodes[id(e)] = (nodename, label)
     
     # Handle all children recursively
+    n = len(ops)
+    oplabels = [None]*n
+    if n == 2:
+        oplabels = ["left", "right"]
+    elif n > 2:
+        oplabels = ["op%d" % i for i in range(n)]
     for i, o in enumerate(ops):
         # Handle entire subtree for expression o
         build_entities(o, nodes, edges, nodeoffset)
         # Add edge between e and child node o
-        label = "op %d" % i
-        edges.append((id(e), id(o), label))
+        edges.append((id(e), id(o), oplabels[i]))
 
 def format_entities(nodes, edges):
     entities = []
@@ -70,7 +74,10 @@ def format_entities(nodes, edges):
     for (aid, bid, label) in edges:
         anodename = nodes[aid][0]
         bnodename = nodes[bid][0]
-        edge = '  %s -> %s [label="%s"] ;' % (anodename, bnodename, label)
+        if label is None:
+            edge = '  %s -> %s ;' % (anodename, bnodename)
+        else:
+            edge = '  %s -> %s [label="%s"] ;' % (anodename, bnodename, label)
         entities.append(edge)
     return "\n".join(entities)
 
@@ -112,7 +119,6 @@ def ufl2dot(expression, formname="a", nodeoffset=0, begin=True, end=True):
             s += "\n}"
     
     elif isinstance(expression, Expr):
-        
         nodes = {}
         edges = []
         build_entities(integrand, nodes, edges, nodeoffset)

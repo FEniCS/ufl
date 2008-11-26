@@ -3,7 +3,7 @@ either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-11-22"
+__date__ = "2008-05-07 -- 2008-11-25"
 
 from itertools import izip, chain
 from ufl.output import ufl_assert, ufl_error, ufl_warning
@@ -130,6 +130,7 @@ class TreeFlattener(Transformer):
     sum = sum_or_product
     product = sum_or_product
 
+
 class Copier(Transformer):
     def __init__(self, mapping):
         Transformer.__init__(self)
@@ -191,10 +192,10 @@ class DuplicationMarker(Transformer):
     def __init__(self, duplications):
         Transformer.__init__(self)
         self._duplications = duplications
-        self._variables = {}
+        self._expr2variable = {}
     
     def expr(self, o, *ops):
-        v = self._variables.get(o)
+        v = self._expr2variable.get(o)
         if v is None:
             oo = o
             # reconstruct if necessary
@@ -202,8 +203,8 @@ class DuplicationMarker(Transformer):
                 o = type(o)(*ops)
             if (oo in self._duplications) or (o in self._duplications):
                 v = Variable(o)
-                self._variables[o] = v
-                self._variables[oo] = v
+                self._expr2variable[o] = v
+                self._expr2variable[oo] = v
             else:
                 v = o
         return v
@@ -211,9 +212,23 @@ class DuplicationMarker(Transformer):
     def terminal(self, o):
         return o
     
+    def wrap_terminal(self, o):
+        v = self._expr2variable.get(o)
+        if v is None:
+            if o in self._duplications:
+                v = Variable(o)
+                self._expr2variable[o] = v
+            else:
+                v = o
+        return v
+    basis_function = wrap_terminal
+    function = wrap_terminal
+    constant = wrap_terminal
+    facet_normal = wrap_terminal
+    
     def variable(self, o):
         e = o._expression
-        v = self._variables.get(e)
+        v = self._expr2variable.get(e)
         if v is None:
             e2 = self.visit(e)
             # Unwrap expression from the newly created Variable wrapper
@@ -221,11 +236,11 @@ class DuplicationMarker(Transformer):
             # case we possibly need to keep the count for correctness.
             if (not isinstance(e, Variable)) and isinstance(e2, Variable):
                 e2 = e2._expression
-            v = self._variables.get(e2)
+            v = self._expr2variable.get(e2)
             if v is None:
                 v = Variable(e2, o._count)
-                self._variables[e] = v
-                self._variables[e2] = v
+                self._expr2variable[e] = v
+                self._expr2variable[e2] = v
         return v
 
 

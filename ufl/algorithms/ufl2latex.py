@@ -2,18 +2,17 @@
 either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
-
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-11-21"
+__date__ = "2008-05-07 -- 2008-11-25"
 
 # Modified by Anders Logg, 2008.
 
 import os
 from itertools import chain
-from collections import defaultdict
 
-from ufl.output import ufl_error, ufl_debug, ufl_warning, ufl_assert
-from ufl.common import UFLTypeDefaultDict, write_file, openpdf
+from ufl.output import ufl_error, ufl_assert
+from ufl.common import write_file, openpdf
+from ufl.permutation import compute_indices
 
 # All classes:
 from ufl.zero import Zero
@@ -31,25 +30,20 @@ from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
 from ufl.differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.form import Form
-from ufl.integral import Integral
-
-# Lists of all Expr classes
-from ufl.classes import ufl_classes, terminal_classes, nonterminal_classes
 
 # Other algorithms:
 from ufl.algorithms.analysis import extract_basisfunctions, extract_coefficients, extract_variables
 from ufl.algorithms.formdata import FormData
-from ufl.algorithms.checks import validate_form
 from ufl.algorithms.formfiles import load_forms
 from ufl.algorithms.latextools import align, document, verbatim
 
-from ufl.algorithms.dependencies import DependencySet, CodeStructure, split_by_dependencies
-from ufl.algorithms.transformations import transform, expand_compounds, mark_duplications
+from ufl.algorithms.dependencies import DependencySet, split_by_dependencies
+from ufl.algorithms.transformations import expand_compounds, mark_duplications, Transformer
 
 
 # --- Tools for LaTeX rendering of UFL expressions ---
-# TODO: Precedence handling
 
+# TODO: Finish precedence mapping
 def build_precedence_map():
     precedence_list = [] # FIXME: Review this list very carefully!
 
@@ -79,108 +73,160 @@ def build_precedence_map():
         k += 1
     return precedence_map
 
+# Utility for parentesizing string (TODO: Finish precedence handling):
+def par(s, condition=True):
+    if condition:
+        return "\\left(%s\\right)" % s
+    return str(s)
+    
+def format_index(ii):
+    if isinstance(ii, FixedIndex):
+        s = "%d" % ii._value
+    elif isinstance(ii, Index):
+        s = "i_{%d}" % ii._count
+    elif isinstance(ii, AxisType):
+        s = ":" # TODO: How to express this in natural syntax?
+    else:
+        ufl_error("Unknown index type %s." % type(ii))
+    return s
 
-# TODO: Must rewrite LaTeX expression compiler to handle parent before child, to handle line wrapping, ListTensors of rank > 1, +++
-def latex_handlers(basisfunction_renumbering, coefficient_renumbering):
-    # Show a clear error message if we miss some types here:
-    def not_implemented(x, *ops):
-        ufl_error("No handler defined for %s in latex_handlers." % type(x))
-    d = UFLTypeDefaultDict(not_implemented)
-    
-    # Utility for parentesizing string (TODO: Finish precedence handling):
-    def par(s, condition=True):
-        if condition:
-            return "\\left(%s\\right)" % s
-        return str(s)
-    
-    # Terminal objects:
-    d[Zero]          = lambda x: "0" if not x.shape() else r"{\mathbf 0}"
-    d[FloatValue]    = lambda x: "{%s}" % x._value
-    d[IntValue]      = lambda x: "{%s}" % x._value
-    d[FacetNormal]   = lambda x: "n"
-    d[Identity]      = lambda x: "I"
-    d[BasisFunction] = lambda x: "{v_h^{%d}}" % basisfunction_renumbering[x] # Using ^ for function numbering and _ for indexing
-    d[Function]      = lambda x: "{w_h^{%d}}" % coefficient_renumbering[x]
-    d[Constant]      = lambda x: "{w_h^{%d}}" % coefficient_renumbering[x]
-    d[Variable]      = lambda x: "s_{%d}" % x._count
-    
-    def l_index(ix):
-        if isinstance(ix, FixedIndex):
-            s = "%d" % ix._value
-        elif isinstance(ix, Index):
-            s = "i_{%d}" % ix._count
-        elif isinstance(ix, AxisType):
-            s = ":" # TODO: How to express this in natural syntax?
-        else:
-            ufl_error("Unknown index type %s." % type(ix))
-        return s
-    #d[Index] = l_index # not UFLOjbect, used below as helper
-    
-    def l_multiindex(x):
-        return "".join(l_index(ix) for ix in x)
-    d[MultiIndex] = l_multiindex
-    
-    # Non-terminal objects:
-    def l_sum(x, *ops):
-        return " + ".join(par(o) for o in ops)
-    d[Sum]       = l_sum
+def format_multi_index(ii, formatstring="%s"):
+    return "".join(formatstring % format_index(i) for i in ii)
 
-    def l_product(x, *ops):
-        return " ".join(par(o) for o in ops)
-    d[Product]   = l_product
+# TODO: Handle parantesizing based on precedence
+# TODO: Handle line wrapping
+# TODO: Handle ListTensors of rank > 1 correctly
+class Expression2LatexHandler(Transformer):
+    def __init__(self, basisfunction_renumbering, coefficient_renumbering):
+        Transformer.__init__(self)
+        self.basisfunction_renumbering = basisfunction_renumbering
+        self.coefficient_renumbering = coefficient_renumbering
     
-    d[Division]  = lambda x, a, b: r"\frac{%s}{%s}" % (a, b)
-    d[Abs]       = lambda x, a: "|%s|" % a
-    d[Transposed] = lambda x, a: "{%s}^T" % a
-    d[Indexed]   = lambda x, a, b: "{%s}_{%s}" % (a, b)
+    # --- Terminal objects ---
     
-    def l_spatial_diff(x, f, ii):
-        ii = x.operands()[1]
+    def scalar_value(self, o):
+        return "{%s}" % o._value
+    
+    def zero(self, o):
+        return "0" if not o.shape() else r"{\mathbf 0}"
+    
+    def identity(self, o):
+        return "I"
+    
+    def facet_normal(self, o):
+        return "n"
+    
+    def basis_function(self, o):
+        return "{v_h^{%d}}" % self.basisfunction_renumbering[o] # Using ^ for function numbering and _ for indexing
+    
+    def function(self, o):
+        return "{w_h^{%d}}" % self.coefficient_renumbering[o]
+    
+    def constant(self, o):
+        return "{w_h^{%d}}" % self.coefficient_renumbering[o]
+    
+    def multi_index(self, o):
+        return format_multi_index(o, formatstring="{%s}")
+    
+    def variable(self, o):
+        # TODO: Ensure variable has been handled
+        return "s_{%d}" % o._count
+    
+    # --- Non-terminal objects ---
+    
+    def sum(self, o, *ops):
+        return " + ".join(par(op) for op in ops)
+    
+    def product(self, o, *ops):
+        return " ".join(par(op) for op in ops)
+    
+    def division(self, o, a, b):
+        return r"\frac{%s}{%s}" % (a, b)
+    
+    def abs(self, o, a):
+        return "|%s|" % a
+    
+    def transposed(self, o, a):
+        return "{%s}^T" % par(a)
+    
+    def indexed(self, o, a, b):
+        return "{%s}_{%s}" % (par(a), b)
+    
+    def spatial_derivative(self, o, f, ii):
+        ii = o.operands()[1]
         n = len(ii)
-        y = "".join("\partial{}x_{%s}" % l_index(i) for i in ii)
+        y = format_multi_index(ii, formatstring="\partial{}x_{%s}")
         l = r"\left["
         r = r"\right]"
         d = "" if (n == 1) else (r"^%d" % n)
         nom = r"\partial%s%s%s%s" % (l, f, r, d)
         denom = r"%s" % y
         return r"\frac{%s}{%s}" % (nom, denom)
-    d[SpatialDerivative] = l_spatial_diff
     
-    def l_diff(x, f, v):
-        nom = r"\partial\left[%s\right]" % f
+    def variable_derivative(self, o, f, v):
+        nom   = r"\partial\left[%s\right]" % f
         denom = r"\partial\left[%s\right]" % v
         return r"\frac{%s}{%s}" % (nom, denom)
-    d[VariableDerivative] = l_diff
     
-    d[Grad] = lambda x, f: "\\nabla{%s}" % par(f)
-    d[Div]  = lambda x, f: "\\nabla{\\cdot %s}" % par(f)
-    d[Curl] = lambda x, f: "\\nabla{\\times %s}" % par(f)
-    d[Rot]  = lambda x, f: "\\rot{%s}" % par(f)
+    def grad(self, o, f):
+        return "\\nabla{%s}" % par(f)
     
-    d[Sqrt] = lambda x, f: "%s^{\frac 1 2}" % par(f)
-    d[Exp]  = lambda x, f: "e^{%s}" % par(f)
-    d[Ln]   = lambda x, f: "\\ln{%s}" % par(f)
-    d[Cos]  = lambda x, f: "\\cos{%s}" % par(f)
-    d[Sin]  = lambda x, f: "\\sin{%s}" % par(f)
+    def div(self, o, f):
+        return "\\nabla{\\cdot %s}" % par(f)
     
-    def l_binop(opstring):
-        def particular_l_binop(x, a, b):
-            return "{%s}%s{%s}" % (par(a), opstring, par(b))
-        return particular_l_binop
-    d[Power] = l_binop("^")
-    d[Outer] = l_binop("\\otimes")
-    d[Inner] = l_binop(":")
-    d[Dot]   = l_binop("\\cdot")
-    d[Cross] = l_binop("\\times")
+    def curl(self, o, f):
+        return "\\nabla{\\times %s}" % par(f)
     
-    d[Trace]       = lambda x, A: "tr{%s}" % par(A)
-    d[Determinant] = lambda x, A: "det{%s}" % par(A)
-    d[Inverse]     = lambda x, A: "{%s}^{-1}" % par(A)
-    d[Deviatoric]  = lambda x, A: "dev{%s}" % par(A)
-    d[Cofactor]    = lambda x, A: "cofac{%s}" % par(A)
+    def rot(self, o, f):
+        return "\\rot{%s}" % par(f)
     
-    def l_listtensor(x, *ops):
-        shape = x.shape()
+    def sqrt(self, o, f):
+        return "%s^{\frac 1 2}" % par(f)
+    
+    def exp(self, o, f):
+        return "e^{%s}" % par(f)
+    
+    def ln(self, o, f):
+        return "\\ln{%s}" % par(f)
+    
+    def cos(self, o, f):
+        return "\\cos{%s}" % par(f)
+    
+    def sin(self, o, f):
+        return "\\sin{%s}" % par(f)
+    
+    def power(self, o, a, b):
+        return "{%s}^{%s}" % (par(a), par(b))
+    
+    def outer(self, o, a, b):
+        return "{%s}\\otimes{%s}" % (par(a), par(b))
+    
+    def inner(self, o, a, b):
+        return "{%s}:{%s}" % (par(a), par(b))
+    
+    def dot(self, o, a, b):
+        return "{%s}\\cdot{%s}" % (par(a), par(b))
+    
+    def cross(self, o, a, b):
+        return "{%s}\\times{%s}" % (par(a), par(b))
+    
+    def trace(self, o, A):
+        return "tr{%s}" % par(A)
+    
+    def determinant(self, o, A):
+        return "det{%s}" % par(A)
+    
+    def inverse(self, o, A):
+        return "{%s}^{-1}" % par(A)
+    
+    def deviatoric(self, o, A):
+        return "dev{%s}" % par(A)
+    
+    def cofactor(self, o, A):
+        return "cofac{%s}" % par(A)
+    
+    def list_tensor(self, o, *ops): # FIXME: Use pre-handler for this
+        shape = o.shape()
         if len(shape) == 1:
             l = " \\\\ \n ".join(ops)
         elif len(shape) == 2:
@@ -189,43 +235,51 @@ def latex_handlers(basisfunction_renumbering, coefficient_renumbering):
         else:
             ufl_error("TODO: LaTeX handler for list tensor of rank 3 or higher not implemented!")
         return "\\left[\\begin{matrix}{%s}\\end{matrix}\\right]^T" % l
-    d[ListTensor]  = l_listtensor
     
-    def l_componenttensor(x, *ops):
+    def component_tensor(self, o, *ops):
         A, ii = ops
         return "\\left[A \\quad | \\quad A_{%s} = {%s} \\quad \\forall {%s} \\right]" % (ii, A, ii)
-    d[ComponentTensor] = l_componenttensor
     
-    d[PositiveRestricted] = lambda x, f: "{%s}^+" % par(f)
-    d[NegativeRestricted] = lambda x, f: "{%s}^-" % par(f)
+    def positive_restricted(self, o, f):
+        return "{%s}^+" % par(f)
     
-    d[EQ] = lambda a, b: "(%s = %s)" % (a, b)
-    d[NE] = lambda a, b: "(%s \\ne %s)" % (a, b)
-    d[LE] = lambda a, b: "(%s \\le %s)" % (a, b)
-    d[GE] = lambda a, b: "(%s \\ge %s)" % (a, b)
-    d[LT] = lambda a, b: "(%s < %s)" % (a, b)
-    d[GT] = lambda a, b: "(%s > %s)" % (a, b)
+    def negative_restricted(self, o, f):
+        return "{%s}^-" % par(f)
     
-    def l_conditional(x, c, t, f):
+    def conditional(self, o, a, b):
+        return "(%s %s %s)" % (a, o._name, b)
+    
+    def eq(self, o, a, b):
+        return "(%s = %s)" % (a, b)
+    
+    def ne(self, o, a, b):
+        return "(%s \\ne %s)" % (a, b)
+    
+    def le(self, o, a, b):
+        return "(%s \\le %s)" % (a, b)
+    
+    def ge(self, o, a, b):
+        return "(%s \\ge %s)" % (a, b)
+    
+    def lt(self, o, a, b):
+        return "(%s < %s)" % (a, b)
+    
+    def gt(self, o, a, b):
+        return "(%s > %s)" % (a, b)
+    
+    def conditional(self, o, c, t, f):
         l = "\\begin{cases}\n"
         l += "%s, &\text{if }\quad %s, \\\\\n" % (t, c)
         l += "%s, &\text{otherwise.}\n" % f
         l += "\\end{cases}"
         return l
-    d[Conditional] = l_conditional
     
-    # Print warnings about classes we haven't implemented:
-    missing_handlers = set(ufl_classes)
-    missing_handlers.difference_update(d.keys())
-    if missing_handlers:
-        ufl_debug("In ufl.algorithms.latex_handlers: Missing handlers for classes:\n{\n%s\n}" % \
-                    "\n".join(str(c) for c in sorted(missing_handlers)))
-    return d
-
+    def expr(self, o, *ops):
+        ufl_error("Missing handler for type %s" % str(type(o)))
+    
 def expression2latex(expression, basisfunction_renumbering, coefficient_renumbering):
-    handlers = latex_handlers(basisfunction_renumbering, coefficient_renumbering)
-    latex = transform(expression, handlers)
-    return latex
+    visitor = Expression2LatexHandler(basisfunction_renumbering, coefficient_renumbering)
+    return visitor.visit(expression)
 
 def element2latex(element):
     return "{\mbox{%s}}" % str(element)
@@ -269,6 +323,8 @@ def form2latex(form, formname="a", basisfunction_names = None, function_names = 
         lines.append("%sw_h^{%d} \\in W_h^{%d} " % (name, i, i))
     if lines:
         sections.append(("Form arguments", align(lines)))
+    
+    # TODO: Wrap ListTensors, ComponentTensor and Conditionals in expression as variables before transformation
     
     # Define variables
     handled_variables = set()
@@ -358,9 +414,11 @@ def dependency_sorting(deplist, rank): # TODO: Use this in SFC
     precompute_quad, left = split(left, state)
     deplistlist.append(precompute_quad)
     
-    state.basisfunctions = (True,)*rank # TODO: Multiple loop stages
-    final, left = split(left, state)
-    deplistlist.append(final)
+    indices = compute_indices((2,)*rank)
+    for bfs in indices[1:]: # skip (0,...,0)
+        state.basisfunctions = map(bool, reversed(bfs))
+        next, left = split(left, state)
+        deplistlist.append(next)
     
     # --- Runtime
     state.runtime = True
@@ -373,9 +431,11 @@ def dependency_sorting(deplist, rank): # TODO: Use this in SFC
     runtime_quad, left = split(left, state)
     deplistlist.append(runtime_quad)
     
-    state.basisfunctions = (True,)*rank # TODO: Multiple loop stages
-    final, left = split(left, state)
-    deplistlist.append(final)
+    indices = compute_indices((2,)*rank)
+    for bfs in indices[1:]: # skip (0,...,0)
+        state.basisfunctions = map(bool, reversed(bfs))
+        next, left = split(left, state)
+        deplistlist.append(next)
     
     ufl_assert(not left, "Shouldn't have anything left!")
     
@@ -389,7 +449,7 @@ def dependency_sorting(deplist, rank): # TODO: Use this in SFC
 
     return deplistlist
 
-def code2latex(vinfo, code, formdata):
+def code2latex(integrand_vinfo, code, formdata):
     "TODO: Document me"
     bfn = formdata.basisfunction_renumbering
     cfn = formdata.coefficient_renumbering
@@ -402,30 +462,19 @@ def code2latex(vinfo, code, formdata):
     for deplist in deplistlist:
         pieces.append("\n\n(Debugging: getting next list of dependencies)")
         for dep in deplist:
-            stack = code.stacks[dep]
-            
             lines = []
-            for vinfo in stack[:-1]:
+            for vinfo in code.stacks[dep]:
                 vl = expression2latex(vinfo.variable, bfn, cfn)
                 el = expression2latex(vinfo.variable._expression, bfn, cfn)
                 lines.append((vl, "= " + el))
-            
-            vinfo = stack[-1]
-            vl = expression2latex(vinfo.variable, bfn, cfn)
-            el = expression2latex(vinfo.variable._expression, bfn, cfn)
-            lines.append((vl, "= " + el))
-            
-            pieces.append("\n")
-            pieces.append(dep2latex(dep))
-            pieces.append(align(lines))
+            pieces.extend(("\n", dep2latex(dep), align(lines)))
     
     # Add final variable representing integrand
+    vl = expression2latex(integrand_vinfo.variable, bfn, cfn)
+    el = expression2latex(integrand_vinfo.variable._expression, bfn, cfn)
     pieces.append("\n")
-    pieces.append("Variable representing integrand. " + dep2latex(vinfo.deps))
-    vl = expression2latex(vinfo.variable, bfn, cfn)
-    el = expression2latex(vinfo.variable._expression, bfn, cfn)
-    lines = [(vl, "= " + el)]
-    pieces.append(align(lines))
+    pieces.append("Variable representing integrand. " + dep2latex(integrand_vinfo.deps))
+    pieces.append(align([(vl, "= " + el)]))
     
     # Could also return list of (title, body) parts for subsections if wanted
     body = "\n".join(pieces)
@@ -514,7 +563,8 @@ def ufl2tex(uflfilename, latexfilename, compile=False):
 def tex2pdf(latexfilename, pdffilename):
     # TODO: Use subprocess.
     # TODO: Options for this.
-    os.system("pdflatex %s %s" % (latexfilename, pdffilename))
+    flags = " -file-line-error-style -interaction=nonstopmode"
+    os.system("pdflatex %s %s %s" % (flags, latexfilename, pdffilename))
     openpdf(pdffilename)
 
 def ufl2pdf(uflfilename, latexfilename, pdffilename, compile=False):
