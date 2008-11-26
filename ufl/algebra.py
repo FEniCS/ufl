@@ -1,8 +1,7 @@
 "Basic algebra operations."
 
-
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2008-11-07"
+__date__ = "2008-05-20 -- 2008-11-26"
 
 # Modified by Anders Logg, 2008
 
@@ -14,6 +13,7 @@ from ufl.base import Expr
 from ufl.zero import Zero
 from ufl.scalar import ScalarValue, FloatValue, IntValue, is_true_ufl_scalar, is_python_scalar, as_ufl
 from ufl.indexing import extract_indices
+from ufl.sorting import cmp_expr
 
 #--- Algebraic operators ---
 
@@ -35,8 +35,8 @@ class Sum(Expr):
         ufl_assert(not any((fi ^ set(o.free_indices())) for o in operands[1:]),
             "Can't add expressions with different free indices.")
         
-        # sort operands by their repr TODO: This may be slow, can we do better? Needs to be completely independent of the outside world.
-        operands = sorted(operands, key = lambda x: repr(x))
+        # sort operands in a canonical order
+        operands = sorted(operands, cmp=cmp_expr)
         
         # purge zeros
         operands = [o for o in operands if not isinstance(o, Zero)]
@@ -119,8 +119,8 @@ class Product(Expr):
 
         operands = [as_ufl(o) for o in operands]
         
-        # sort operands by their repr TODO: This may be slow, can we do better? Needs to be completely independent of the outside world.
-        operands = sorted(operands, key = lambda x: repr(x))
+        # sort operands in a canonical order
+        operands = sorted(operands, cmp=cmp_expr)
         
         #ufl_assert(all(o.shape() == () for o in operands), "Expecting scalar valued operands.")
         # Get shape and move nonscalar operand to the end

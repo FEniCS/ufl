@@ -1,6 +1,17 @@
 Roadmap for the development of UFL
 ----------------------------------
 
+# About canonical form of forms and expressions:
+ The current way of comparing forms and expressions using repr isn't
+ good enough, since repr depends on the global counters of Counted
+ objects (that is, Index, BasisFunction and Function with subclasses).
+ Some ideas to get around this:
+ - Implement renumbering of BasisFunction and Function objects to
+   correctly compare forms (this is mostly for form compiler cache)
+   (can extract original BF and F objects in FormData before applying this)
+ - Implement a consistent renumbering of indices to compare arbitrary
+   expressions better (apply before mark_duplications to improve cse as well?)
+
 # Derivatives:
  - Clean up AD code using Transformer
  - Apply AD to computation of
