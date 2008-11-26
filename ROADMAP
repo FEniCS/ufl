@@ -19,7 +19,6 @@ Roadmap for the development of UFL
    can simplify some algorithms?
 
 # Derivatives:
- - Clean up AD code using Transformer
  - Apply AD to computation of
     - SpatialDerivative (propagating to terminal nodes)
         - Find a smart way to handle nested AD:
