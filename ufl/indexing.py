@@ -38,7 +38,8 @@ class FixedIndex(object):
     __slots__ = ("_value",)
     
     def __init__(self, value):
-        ufl_assert(isinstance(value, int), "Expecting integer value for fixed index.")
+        ufl_assert(isinstance(value, int),
+            "Expecting integer value for fixed index.")
         self._value = value
     
     def __hash__(self):
@@ -76,9 +77,10 @@ class AxisType(object):
         return "Axis"
 
 # Collect all index types to shorten isinstance(a, _indextypes)
-_indextypes = (Index, FixedIndex, AxisType)
+_indextypes = (Index, FixedIndex, AxisType) # TODO: Use superclass instead
 
-# Only need one of these, like None, Ellipsis etc., can use "a is Axis" or "isinstance(a, AxisType)"
+# Only need one of these, like None, Ellipsis etc., we can
+# then use either "a is Axis" or "isinstance(a, AxisType)"
 Axis = AxisType()
 
 #--- Indexing ---
@@ -133,13 +135,17 @@ class Indexed(Expr):
             indices = MultiIndex(indices, expression.rank())
         self._indices = indices
         
-        msg = "Invalid number of indices (%d) for tensor expression of rank %d:\n\t%r\n" % \
+        msg = "Invalid number of indices (%d) for tensor "\
+            "expression of rank %d:\n\t%r\n" % \
             (len(self._indices), expression.rank(), expression)
         ufl_assert(expression.rank() == len(self._indices), msg)
         
         shape = expression.shape()
-        (self._free_indices, self._repeated_indices, self._shape, self._index_dimensions) = \
-            extract_indices(self._indices._indices, shape)
+        f, r, s, d = extract_indices(self._indices._indices, shape)
+        self._free_indices = f
+        self._repeated_indices = r
+        self._shape = s
+        self._index_dimensions = d
     
     def operands(self):
         return (self._expression, self._indices)
@@ -212,19 +218,24 @@ def as_index_tuple(indices, rank):
     
     # replace ellipsis with a number of Axis objects
     num_axis = rank - len(pre) - len(post)
-    ufl_assert(num_axis >= 0, "Invalid number of indices (%d) for given rank (%d)." % (len(indices), rank))
+    ufl_assert(num_axis >= 0, "Invalid number of indices "\
+        "(%d) for given rank (%d)." % (len(indices), rank))
     indices = tuple(pre + [Axis]*num_axis + post)
     return indices
 
 def extract_indices(indices, shape=None):
-    """Analyse a tuple of indices, and return a 3-tuple with the following information:
+    """Analyse a tuple of indices, and return a
+    3-tuple with the following information:
     
     @param free_indices
-        Tuple of unique indices with no value (Index, no implicit summation)
+        Tuple of unique indices with no value
+        (Index, no implicit summation)
     @param repeated_indices
-        Tuple of indices that occur twice (Index, implicit summation)
+        Tuple of indices that occur twice
+        (Index, implicit summation)
     @param shape
-        Tuple with the combined shape computed from axes in that have no associated index
+        Tuple with the combined shape computed 
+        from axes that have no associated index
     """
     ufl_assert(isinstance(indices, tuple), "Expecting index tuple.")
     ufl_assert(all(isinstance(i, _indextypes) for i in indices), \
@@ -232,7 +243,8 @@ def extract_indices(indices, shape=None):
     if shape is not None:
         ufl_assert(isinstance(shape, tuple), "Expecting index tuple.")
         #ufl_assert(len(shape) == len(indices), "Expecting tuples of equal length.")
-        ufl_assert(len(shape) <= len(indices), "Expecting at least as many indices as the shape is.")
+        ufl_assert(len(shape) <= len(indices),
+            "Expecting at least as many indices as the shape is.")
     
     index_dimensions = {}
     index_count = defaultdict(int)
@@ -262,7 +274,8 @@ def extract_indices(indices, shape=None):
     repeated_indices = tuple([i for i in unique_indices if index_count[i] == 2])
 
     # Consistency check
-    fixed_indices = [(i,idx) for (i,idx) in enumerate(indices) if isinstance(idx, FixedIndex)]
+    fixed_indices = [(i,idx) for (i,idx) in enumerate(indices) \
+                     if isinstance(idx, FixedIndex)]
     ufl_assert(len(fixed_indices)+len(free_indices) + \
                2*len(repeated_indices)+len(newshape)== len(indices),\
                "Logic breach in extract_indices.")
@@ -272,3 +285,30 @@ def extract_indices(indices, shape=None):
 def complete_shape(shape, default_dim):
     "Complete shape tuple by replacing non-integers with a default dimension."
     return tuple((s if isinstance(s, int) else default_dim) for s in shape)
+
+
+# TODO: Use these to simplify index handling code?
+def get_common_indices(a, b):
+    ai = a.free_indices()
+    bi = b.free_indices()
+    cis = set(ai) ^ set(bi)
+    return cis
+
+def get_free_indices(a, b):
+    ai = a.free_indices()
+    bi = b.free_indices()
+    cis = set(ai) ^ set(bi)
+    return tuple(i for i in chain(ai,bi) if not i in cis)
+
+# TODO: Use this to simplify index handling code?
+def split_indices(a, b):
+    ai = a.free_indices()
+    bi = b.free_indices()
+    ais = set(ai)
+    bis = set(bi)
+    ris = ais ^ bis
+    fis = tuple(i for i in chain(ai,bi) if not i in ris)
+    #n = len(ris) + len(fis)
+    #ufl_assert(n == ?)
+    return (fis, ris)
+
