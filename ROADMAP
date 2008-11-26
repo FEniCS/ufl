@@ -11,6 +11,12 @@ Roadmap for the development of UFL
    (can extract original BF and F objects in FormData before applying this)
  - Implement a consistent renumbering of indices to compare arbitrary
    expressions better (apply before mark_duplications to improve cse as well?)
+   A complication w.r.t. renumbering of indices is that indices may need
+   to be relabeled to match, which can of course be handled by inserting
+   ComponentTensor and Indexed objects.
+ - Maybe introducing a class ImplicitSum which represents the sum of an
+   expression (product or derivative or indexed) over its repeated indices
+   can simplify some algorithms?
 
 # Derivatives:
  - Clean up AD code using Transformer
