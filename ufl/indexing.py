@@ -96,6 +96,7 @@ class MultiIndex(Terminal):
     __slots__ = ("_indices", "_rank")
     
     def __init__(self, indices, rank):
+        Terminal.__init__(self)
         self._indices = as_index_tuple(indices, rank)
         self._rank = rank
         ufl_assert(len(self._indices) == rank, "No? Why?")
@@ -135,6 +136,7 @@ class Indexed(Expr):
                  "_free_indices", "_index_dimensions", "_shape",
                  "_repeated_indices",)
     def __init__(self, expression, indices):
+        Expr.__init__(self)
         self._expression = expression
         
         if not isinstance(indices, MultiIndex):

@@ -19,6 +19,7 @@ class Function(Terminal, Counted):
     _globalcount = 0
 
     def __init__(self, element, count=None):
+        Terminal.__init__(self)
         Counted.__init__(self, count)
         self._element = element
     

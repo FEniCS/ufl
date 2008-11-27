@@ -21,6 +21,7 @@ class Variable(Terminal, Counted):
     __slots__ = ("_expression",)# "_diffcache")
     _globalcount = 0
     def __init__(self, expression, count=None):
+        Terminal.__init__(self)
         Counted.__init__(self, count)
         ufl_assert(isinstance(expression, Expr), "Expecting an Expr.")
         self._expression = expression

@@ -40,7 +40,7 @@ class Zero(Terminal):
         self._index_dimensions = index_dimensions
     
     def __init__(self, shape=(), free_indices=(), index_dimensions=None):
-        pass
+        Terminal.__init__(self)
     
     def free_indices(self):
         return self._free_indices

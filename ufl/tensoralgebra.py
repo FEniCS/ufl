@@ -51,6 +51,7 @@ class Identity(Terminal):
     __slots__ = ("_dim",)
 
     def __init__(self, dim):
+        Terminal.__init__(self)
         self._dim = dim
     
     def shape(self):
@@ -78,6 +79,7 @@ class Transposed(Expr):
         return Terminal.__new__(cls)
     
     def __init__(self, A):
+        Expr.__init__(self)
         ufl_assert(A.rank() == 2, "Transposed is only defined for rank 2 tensors.")
         self._A = A
     
@@ -110,6 +112,7 @@ class Outer(Expr):
         return Terminal.__new__(cls)
 
     def __init__(self, a, b):
+        Expr.__init__(self)
         self._a = a
         self._b = b
         self._free_indices, self._index_dimensions = merge_free_indices(a, b)
@@ -144,6 +147,7 @@ class Inner(Expr):
         return Terminal.__new__(cls)
 
     def __init__(self, a, b):
+        Expr.__init__(self)
         # sort operands by their repr TODO: This may be slow, can we do better? Needs to be completely independent of the outside world.
         a, b = sorted((a,b), key = lambda x: repr(x))
         self._a = a
@@ -185,6 +189,7 @@ class Dot(Expr):
         return Terminal.__new__(cls)
 
     def __init__(self, a, b):
+        Expr.__init__(self)
         self._a = a
         self._b = b
         self._free_indices, self._index_dimensions = merge_free_indices(a, b)
@@ -217,6 +222,7 @@ class Cross(Expr):
         return Terminal.__new__(cls)
 
     def __init__(self, a, b):
+        Expr.__init__(self)
         ufl_assert(a.rank() == 1 and b.rank() == 1,
             "Cross product requires arguments of rank 1.")
         self._a = a
@@ -258,6 +264,7 @@ class Trace(Expr):
         return Terminal.__new__(cls)
 
     def __init__(self, A):
+        Expr.__init__(self)
         self._A = A
     
     def operands(self):
@@ -295,6 +302,7 @@ class Determinant(Expr):
         return Terminal.__new__(cls)
 
     def __init__(self, A):
+        Expr.__init__(self)
         self._A = A
     
     def operands(self):
@@ -319,6 +327,7 @@ class Inverse(Expr): # TODO: Drop Inverse and represent it as product of Determi
     __slots__ = ("_A",)
 
     def __init__(self, A):
+        Expr.__init__(self)
         sh = A.shape()
         r = len(sh)
         ufl_assert(r == 0 or r == 2, "Inverse of tensor with rank != 2 or 0 is undefined.")
@@ -349,6 +358,7 @@ class Cofactor(Expr):
     __slots__ = ("_A",)
 
     def __init__(self, A):
+        Expr.__init__(self)
         sh = A.shape()
         ufl_assert(len(sh) == 2, "Cofactor of tensor with rank != 2 is undefined.")
         ufl_assert(sh[0] == sh[1], "Cannot take cofactor of rectangular matrix with dimensions %s." % repr(sh))
@@ -377,6 +387,7 @@ class Deviatoric(Expr):
     __slots__ = ("_A",)
 
     def __init__(self, A):
+        Expr.__init__(self)
         sh = A.shape()
         r = len(sh)
         ufl_assert(r == 2, "Deviatoric part of tensor with rank != 2 is undefined.")
@@ -407,6 +418,7 @@ class Skew(Expr):
     __slots__ = ("_A",)
 
     def __init__(self, A):
+        Expr.__init__(self)
         sh = A.shape()
         r = len(sh)
         ufl_assert(r == 2, "Skew part of tensor with rank != 2 is undefined.")

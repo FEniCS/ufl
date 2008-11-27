@@ -15,6 +15,7 @@ class ListTensor(Expr):
     __slots__ = ("_expressions", "_free_indices", "_shape")
     
     def __init__(self, *expressions):
+        Expr.__init__(self)
         if isinstance(expressions[0], (list, tuple)):
             expressions = [ListTensor(*sub) for sub in expressions]
         
@@ -66,6 +67,7 @@ class ComponentTensor(Expr):
     __slots__ = ("_expression", "_indices", "_free_indices", "_index_dimensions", "_shape")
     
     def __init__(self, expression, indices):
+        Expr.__init__(self)
         ufl_assert(isinstance(expression, Expr), "Expecting ufl expression.")
         ufl_assert(expression.shape() == (), "Expecting scalar valued expression.")
         self._expression = expression

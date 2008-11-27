@@ -11,10 +11,17 @@ from ufl.common import domain2dim
 
 #--- The base object for all UFL expression tree nodes ---
 
+from collections import defaultdict
+_class_usage_statistics = defaultdict(int)
+
 class Expr(object):
     "Base class for all UFL objects."
     # Freeze member variables (there are none) for objects of this class
     __slots__ = ()
+    
+    def __init__(self):
+        _class_usage_statistics[self._uflid] += 1
+        pass
     
     #--- Abstract functions that must be implemented by subclasses ---
     
@@ -119,6 +126,9 @@ class Expr(object):
 class Terminal(Expr):
     "A terminal node in the UFL expression tree."
     __slots__ = ()
+    
+    def __init__(self):
+        Expr.__init__(self)
     
     def operands(self):
         "A Terminal object never has operands."

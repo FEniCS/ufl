@@ -9,6 +9,7 @@ from ufl.common import domain2dim
 
 class FacetNormal(Terminal):
     def __init__(self, domain):
+        Terminal.__init__(self)
         self._domain = domain
     
     def shape(self):

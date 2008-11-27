@@ -90,7 +90,7 @@ class Sum(Expr):
         self._repr = "(%s)" % " + ".join(repr(o) for o in operands)
     
     def __init__(self, *operands):
-        pass
+        Expr.__init__(self)
     
     def operands(self):
         return self._operands
@@ -198,7 +198,7 @@ class Product(Expr):
         self._repr = "(%s)" % " * ".join(repr(o) for o in self._operands)
     
     def __init__(self, *operands):
-        pass
+        Expr.__init__(self)
     
     def operands(self):
         return self._operands
@@ -252,7 +252,7 @@ class Division(Expr):
         self._b = b
 
     def __init__(self, a, b):
-        pass
+        Expr.__init__(self)
     
     def operands(self):
         return (self._a, self._b)
@@ -308,7 +308,7 @@ class Power(Expr):
         self._b = b
 
     def __init__(self, a, b):
-        pass
+        Expr.__init__(self)
     
     def operands(self):
         return (self._a, self._b)
@@ -335,6 +335,7 @@ class Abs(Expr):
     __slots__ = ("_a",)
     
     def __init__(self, a):
+        Expr.__init__(self)
         ufl_assert(isinstance(a, Expr), "Expecting Expr instance.")
         self._a = a
     

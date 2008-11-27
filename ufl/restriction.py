@@ -13,6 +13,7 @@ class Restricted(Expr):
     __slots__ = ("_f", "_side")
     
     def __init__(self, f, side):
+        Expr.__init__(self)
         self._f = f
         self._side = side
 

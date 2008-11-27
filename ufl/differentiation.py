@@ -44,6 +44,7 @@ class SpatialDerivative(Expr):
         return Expr.__new__(cls)
     
     def __init__(self, expression, indices):
+        Expr.__init__(self)
         self._expression = expression
         
         if not isinstance(indices, MultiIndex):
@@ -106,6 +107,7 @@ class VariableDerivative(Expr):
         return Expr.__new__(cls)
     
     def __init__(self, f, v):
+        Expr.__init__(self)
         ufl_assert(isinstance(f, Expr), "Expecting an Expr in VariableDerivative.")
         if isinstance(v, Indexed):
             ufl_assert(isinstance(v._expression, Variable), \
@@ -162,6 +164,7 @@ class Grad(Expr):
         return Expr.__new__(cls)
     
     def __init__(self, f):
+        Expr.__init__(self)
         self._f = f
         domain = f.domain()
         ufl_assert(domain is not None, "Can't take gradient of expression with undefined domain. How did this happen?")
@@ -200,6 +203,7 @@ class Div(Expr):
         return Expr.__new__(cls)
 
     def __init__(self, f):
+        Expr.__init__(self)
         self._f = f
     
     def operands(self):
@@ -226,6 +230,7 @@ class Curl(Expr):
     # TODO: Implement __new__ to discover trivial zeros
     
     def __init__(self, f):
+        Expr.__init__(self)
         ufl_assert(f.rank() == 1, "Need a vector.") # TODO: Is curl always 3D?
         ufl_assert(not f.free_indices(), \
             "TODO: Taking curl of an expression with free indices, should this be a valid expression? Please provide examples!")
@@ -258,6 +263,7 @@ class Rot(Expr):
     # TODO: Implement __new__ to discover trivial zeros
 
     def __init__(self, f):
+        Expr.__init__(self)
         ufl_assert(f.rank() == 1, "Need a vector.")
         ufl_assert(not f.free_indices(), \
             "TODO: Taking rot of an expression with free indices, should this be a valid expression? Please provide examples!")

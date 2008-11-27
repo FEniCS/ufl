@@ -12,6 +12,7 @@ from ufl.scalar import as_ufl
 
 class Condition(Expr):
     def __init__(self, name, left, right):
+        Expr.__init__(self)
         self._name = name
         self._left = as_ufl(left)
         self._right = as_ufl(right)
@@ -84,6 +85,7 @@ class Conditional(Expr):
     __slots__ = ("_condition", "_true_value", "_false_value")
     
     def __init__(self, condition, true_value, false_value):
+        Expr.__init__(self)
         ufl_assert(isinstance(condition, Condition), "Expectiong condition as first argument.")
         true_value = as_ufl(true_value)
         false_value = as_ufl(false_value)

@@ -18,6 +18,7 @@ class BasisFunction(Terminal, Counted):
     _globalcount = 0
 
     def __init__(self, element, count=None):
+        Terminal.__init__(self)
         Counted.__init__(self, count)
         self._element = element
         self._repr = "BasisFunction(%r, %r)" % (self._element, self._count)

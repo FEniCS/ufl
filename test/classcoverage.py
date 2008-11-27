@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-09-06 -- 2008-11-05"
+__date__ = "2008-09-06 -- 2008-11-27"
 
 import unittest
 
+import ufl
 from ufl import *
 from ufl.scalar import as_ufl
 from ufl.classes import * 
@@ -418,7 +419,21 @@ class ClasscoverageTest(unittest.TestCase):
         d = derivative(a, f1, v1)
         f = action(d)
         #e = action(b)
+
+        # TODO: Add tests for TensorConstant, VectorConstant, ScalarSomething, Skew
         
+        # --- Check which classes have been created
+        if ufl.base._class_usage_statistics:
+            s = ufl.base._class_usage_statistics
+            constructed = set(s.keys())
+            abstract = set((Expr, Terminal, Condition, MathFunction, Restricted, ScalarValue))
+            unused = set(ufl.classes.all_ufl_classes) - constructed - abstract
+            if unused:
+                print 
+                print "The following classes were never instantiated:"
+                print "\n".join(sorted(map(str,unused)))
+                print 
+
 if __name__ == "__main__":
     unittest.main()
 

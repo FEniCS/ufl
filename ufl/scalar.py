@@ -29,6 +29,7 @@ class ScalarValue(Terminal):
     "A constant scalar value."
     __slots__ = ("_value",)
     def __init__(self, value):
+        Terminal.__init__(self)
         self._value = value
     
     def shape(self):
