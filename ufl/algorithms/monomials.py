@@ -37,6 +37,8 @@ def extract_monomials(expression, indent=""):
     for e in iter_expressions(expression):
 
         # Check for linearity
+        ufl_error("is_linear has been removed, only had a partial and flawed implementation.")
+
         if not e.is_linear():
             ufl_error("Operator is nonlinear, unable to extract monomials: " + str(e))
             

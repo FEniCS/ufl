@@ -68,11 +68,6 @@ class Expr(object):
         "Return the geometric dimension this tensor expression lives in."
         return domain2dim[self.domain()]
     
-    # Objects (operators) are linear if not overloaded otherwise by subclass
-    def is_linear(self):
-        "Return true iff object is linear."
-        return True
-    
     # All subclasses must implement __repr__
     def __repr__(self):
         "Return string representation this object can be reconstructed from."

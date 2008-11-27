@@ -1,0 +1,92 @@
+
+------ Terminal classes:
+BasisFunction
+Constant
+FacetNormal
+FloatValue
+Function
+Identity
+IntValue
+MultiIndex
+ScalarSomething
+ScalarValue
+TensorConstant
+Variable
+VectorConstant
+Zero
+
+------ Nonterminal classes:
+
+--- Unary operators:
+
+Abs
+Cofactor
+Cos
+Curl
+Determinant
+Deviatoric
+Div
+Exp
+Grad
+Inverse
+Ln
+NegativeRestricted
+PositiveRestricted
+Rot
+Sin
+Skew
+Sqrt
+Trace
+Transposed
+
+--- Binary operators:
+
+ComponentTensor -> Only removes indices, trivial direct mapping!
+
+Indexed -> Introduces indices, these are the ones that must be renumbered!
+
+SpatialDerivative -> Introduces indices, these are the ones that must be renumbered! Can also remove indices.
+
+VariableDerivative -> Can this affect indices? (Is diff(A[i], v[i]) allowed?)
+
+Cross
+Division
+Dot
+Inner
+Outer
+Power
+EQ
+GE
+GT
+LE
+LT
+NE
+
+--- Ternary operators:
+
+Conditional
+
+--- N-ary operators:
+
+ListTensor
+
+Product -> Only removes indices, trivial direct mapping!
+
+Sum ->
+Requires indices to be equal like before, must in general do relabeling.
+Sort operands before relabeling (unique by induction?),
+define new index mapping based on this operand sorting.
+(When constructing the Sum, relabeled operands will be
+sorted again by Sum.__new__, but that sorting should also 
+be unique since the relabeling is uniquely defined.)
+(Make relabel() do nothing if index mapping does nothing!)
+(Make ComponentTensor do nothing if expression is Indexed and its indices equal component tensor indices!)
+So:
+  - Map operands to canonical forms, yielding new expressions and corresponding index mappings for each
+  - Sort canonical operand expressions
+  - Build relabeling map from sorted canonical operand expressions... How?
+  - Apply relabeling map to canonical operand expressions (possibly a do-nothing operation for some or all operands)
+  - Recreate Sum with relabeled canonical operand expressions
+  - Build final relabeling map from original indices to final indices... How?
+  - Return recreated Sum and final relabeling map
+
