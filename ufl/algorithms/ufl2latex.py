@@ -3,14 +3,14 @@ either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-11-25"
+__date__ = "2008-05-07 -- 2008-11-27"
 
 # Modified by Anders Logg, 2008.
 
 import os
 from itertools import chain
 
-from ufl.output import ufl_error, ufl_assert
+from ufl.output import ufl_error, ufl_assert, ufl_warning
 from ufl.common import write_file, openpdf
 from ufl.permutation import compute_indices
 
@@ -225,13 +225,17 @@ class Expression2LatexHandler(Transformer):
     def cofactor(self, o, A):
         return "cofac{%s}" % par(A)
     
-    def list_tensor(self, o, *ops): # FIXME: Use pre-handler for this
+    def list_tensor(self, o):
         shape = o.shape()
         if len(shape) == 1:
+            ops = [self.visit(op) for op in o.operands()]
             l = " \\\\ \n ".join(ops)
         elif len(shape) == 2:
-            ufl_error("LaTeX handler for list matrix currently gives transposed output... Need to know parent!")
-            l = " & \n ".join(ops)            
+            rows = []
+            for row in o.operands():
+                cols = (self.visit(op) for op in row.operands())
+                rows.append( " & \n ".join(cols) )
+            l = " \\\\ \n ".join(rows)
         else:
             ufl_error("TODO: LaTeX handler for list tensor of rank 3 or higher not implemented!")
         return "\\left[\\begin{matrix}{%s}\\end{matrix}\\right]^T" % l

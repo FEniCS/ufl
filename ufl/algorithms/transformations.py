@@ -3,8 +3,9 @@ either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-11-25"
+__date__ = "2008-05-07 -- 2008-11-27"
 
+from inspect import getargspec
 from itertools import izip, chain
 from ufl.output import ufl_assert, ufl_error, ufl_warning
 from ufl.common import camel2underscore, domain2dim
@@ -62,13 +63,15 @@ class Transformer(object):
     
     def register(self, classobject, function):
         self._handlers[classobject] = function
-    
+
     def visit(self, o):
         # Get handler for the UFL class of o (type(o) may be an external subclass of the actual UFL class)
         h = self._handlers.get(o._uflid)
         if h:
             # Did we find a handler that expects transformed children as input?
-            if len(h.func_code.co_varnames) > 2:
+            insp = getargspec(h)
+            num_args = len(insp[0]) + int(insp[1] is not None)
+            if num_args > 2:
                 return h(o, *[self.visit(oo) for oo in o.operands()])
             # No, this is a handler that handles its own children (arguments self and o, where self is already bound).
             return h(o)
