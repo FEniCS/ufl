@@ -59,9 +59,11 @@ Roadmap for the development of UFL
  - Degree range for quadrature elements?
 
 # Algorithms:
+ - If AD needs to be applied in a compiler context, we need a framework
+   for representing unapplied form transformations.
+ - Implement lhs, rhs, and other form transformations.
  (- Implement contraction function that expands all implicit summations
     into Sums (do we need this? can be merged with evaluation anyway) )
- - Implement lhs, rhs, and other form transformations.
 
 # Prettyness and readability (medium priority, useful while debugging...):
  - Rewrite ufl2latex as described in its comments (use pre- and post-handlers)
