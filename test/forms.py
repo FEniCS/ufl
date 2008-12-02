@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-12 -- 2008-08-20"
+__date__ = "2008-03-12 -- 2008-12-02"
 
 # Modified by Anders Logg, 2008
 
@@ -25,7 +25,7 @@ class FormsTestCase(unittest.TestCase):
      
     def test_separated_dx(self):
         "Tests automatic summation of integrands over same domain."
-        element = FiniteElement("Lagrange", "triangle", 1)
+        element = FiniteElement("Lagrange", triangle, 1)
         v = TestFunction(element)
         f = Function(element)
         a = f*v*dx + 2*v*ds + 3*v*dx + 7*v*ds + 3*v*dx(2) + 7*v*dx(2)
@@ -33,71 +33,77 @@ class FormsTestCase(unittest.TestCase):
         self.assertTrue(repr(a) == repr(b))
 
     def test_source1(self):
-        element = FiniteElement("Lagrange", "triangle", 1)
+        element = FiniteElement("Lagrange", triangle, 1)
         v = TestFunction(element)
         f = Function(element)
         a = f*v*dx
         
     def test_source2(self):
-        element = VectorElement("Lagrange", "triangle", 1)
+        element = VectorElement("Lagrange", triangle, 1)
         v = TestFunction(element)
         f = Function(element)
         a = dot(f,v)*dx
         
     def test_source3(self):
-        element = TensorElement("Lagrange", "triangle", 1)
+        element = TensorElement("Lagrange", triangle, 1)
         v = TestFunction(element)
         f = Function(element)
         a = inner(f,v)*dx
 
+    def test_source4(self):
+        element = FiniteElement("Lagrange", triangle, 1)
+        v = TestFunction(element)
+        x = SpatialCoordinate(triangle)
+        f = sin(x[0])
+        a = f*v*dx
 
     def test_mass1(self):
-        element = FiniteElement("Lagrange", "triangle", 1)
+        element = FiniteElement("Lagrange", triangle, 1)
         v = TestFunction(element)
         u = TrialFunction(element)
         a = u*v*dx
 
     def test_mass2(self):
-        element = FiniteElement("Lagrange", "triangle", 1)
+        element = FiniteElement("Lagrange", triangle, 1)
         v = TestFunction(element)
         u = TrialFunction(element)
         a = u*v*dx
         
     def test_mass3(self):
-        element = VectorElement("Lagrange", "triangle", 1)
+        element = VectorElement("Lagrange", triangle, 1)
         v = TestFunction(element)
         u = TrialFunction(element)
         a = dot(u,v)*dx
         
     def test_mass4(self):
-        element = TensorElement("Lagrange", "triangle", 1)
+        element = TensorElement("Lagrange", triangle, 1)
         v = TestFunction(element)
         u = TrialFunction(element)
         a = inner(u,v)*dx
 
 
     def test_stiffness1(self):
-        element = FiniteElement("Lagrange", "triangle", 1)
+        element = FiniteElement("Lagrange", triangle, 1)
         v = TestFunction(element)
         u = TrialFunction(element)
         a = dot(grad(u), grad(v)) * dx
 
     def test_stiffness2(self):
-        element = FiniteElement("Lagrange", "triangle", 1)
+        element = FiniteElement("Lagrange", triangle, 1)
         v = TestFunction(element)
         u = TrialFunction(element)
         a = inner(grad(u), grad(v)) * dx
 
     def test_stiffness3(self):
-        element = VectorElement("Lagrange", "triangle", 1)
+        element = VectorElement("Lagrange", triangle, 1)
         v = TestFunction(element)
         u = TrialFunction(element)
         a = inner(grad(u), grad(v)) * dx
 
 
     def test_stiffness_with_conductivity(self):
-        velement = VectorElement("Lagrange", "triangle", 1)
-        telement = TensorElement("Lagrange", "triangle", 1)
+        velement = VectorElement("Lagrange", triangle, 1)
+        telement = TensorElement("Lagrange", triangle, 1)
         v = TestFunction(velement)
         u = TrialFunction(velement)
         M = Function(telement)
@@ -105,7 +111,7 @@ class FormsTestCase(unittest.TestCase):
 
 
     def test_navier_stokes(self):
-        polygon = "triangle"
+        polygon = triangle
         velement = VectorElement("Lagrange", polygon, 2)
         pelement = FiniteElement("Lagrange", polygon, 1)
         TH = velement + pelement
