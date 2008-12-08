@@ -560,7 +560,8 @@ def forms2latexdocument(forms, uflfilename, compile=False):
 
 def ufl2tex(uflfilename, latexfilename, compile=False):
     "Compile a .tex file from a .ufl file."
-    forms = load_forms(uflfilename) # TODO: Get function names from this
+    formdatas = load_forms(uflfilename)
+    forms = [f.form for f in formdatas] # TODO: Get function names from this
     latex = forms2latexdocument(forms, uflfilename, compile) 
     write_file(latexfilename, latex)
 

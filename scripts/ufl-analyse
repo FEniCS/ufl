@@ -19,20 +19,26 @@ for filename in args:
     # Load form file, which triggers many consistency
     # checks while the form is being built
     print "Loading form file '%s'" % filename
-    forms = load_forms(filename)
+    formdatas = load_forms(filename)
 
     # Analyse validity of forms
-    for k,v in forms:
-        errors = validate_form(v)
+    for fd in formdatas:
+        form = fd.form
+        name = fd.name
+        
+        errors = validate_form(form)
         print
         if errors:
-            print "Found errors in form '%s':" % k
+            print "Found errors in form '%s':" % name
             print errors
         else:
-            print "Found no errors in form '%s'." % k
-
+            print "Found no errors in form '%s'." % name
+    
     # Print information about all forms
-    for name, form in forms:
+    for fd in formdatas:
+        form = fd.form
+        name = fd.name
+        
         # Extract information about forms
         fd = FormData(form)
         

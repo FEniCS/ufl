@@ -80,7 +80,8 @@ for arg in args:
     #print "ext =", ext
     
     # 1) Load forms
-    forms = load_forms(uflfilename)
+    formdatas = load_forms(uflfilename)
+    forms = [f.form for f in formdatas]
     
     # 2) Transform forms
     compiled_forms = []

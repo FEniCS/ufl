@@ -1,12 +1,12 @@
 """A collection of utility algorithms for handling UFL files."""
 
-
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-11-04"
+__date__ = "2008-03-14 -- 2008-12-08"
 
 from ufl.output import ufl_error, ufl_info
 from ufl.form import Form
 from ufl.function import Function
+from ufl.algorithms.formdata import FormData
 from ufl.algorithms.checks import validate_form
 
 #--- Utilities to deal with form files ---
@@ -34,18 +34,27 @@ def load_forms(filename):
     
     # Extract Form objects, and Function objects to get their names
     forms = []
-    function_names = []
+    function_names = {}
     for k,v in namespace.iteritems():
         if isinstance(v, Form):
             forms.append((k,v))
         elif isinstance(v, Function):
-            function_names.append((v,k))
+            function_names[v] = k
     
     # Analyse validity of forms
-    for k,v in forms:
+    for k, v in forms:
         errors = validate_form(v)
         if errors:
             msg = "Found errors in form '%s':\n%s" % (k, errors)
             raise RuntimeError, msg
     
-    return forms#, function_names # TODO: Return function_names?
+    # Construct FormData for each object
+    formdatas = []
+    for name, form in forms:
+        fd = FormData(form, name)
+        coefficient_names = [function_names.get(c, "w%d"%i) for (i,c) in enumerate(fd.coefficients)]
+        fd.coefficient_names = coefficient_names
+        formdatas.append(fd)
+    
+    return formdatas
+
