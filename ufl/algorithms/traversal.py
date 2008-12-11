@@ -6,11 +6,11 @@ only to be used during the current experimental implementation phase)."""
 
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-23"
+__date__ = "2008-03-14 -- 2008-12-11"
 
 # Modified by Anders Logg, 2008
 
-from ufl.output import ufl_assert
+from ufl.output import ufl_assert, ufl_error
 from ufl.base import Expr, Terminal
 from ufl.integral import Integral
 from ufl.form import Form
@@ -30,8 +30,9 @@ def iter_expressions(a):
         return (itg._integrand for itg in a._integrals)
     elif isinstance(a, Integral):
         return (a._integrand,)
-    else:
+    elif isinstance(a, Expr):
         return (a,)
+    ufl_error("Not an UFL type: %s" % str(type(a)))
 
 def traverse_terminals(expression, traverse_into_variables=True):
     if isinstance(expression, Terminal) and not (traverse_into_variables and isinstance(expression, Variable)):
