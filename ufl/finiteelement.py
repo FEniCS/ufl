@@ -2,7 +2,7 @@
 
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-03 -- 2008-10-27"
+__date__ = "2008-03-03 -- 2008-12-12"
 
 from ufl.output import ufl_assert
 from ufl.permutation import compute_indices
@@ -126,10 +126,11 @@ class MixedElement(FiniteElementBase):
             # Default value dimension: Treated simply as all subelement values unpacked in a vector.
             value_sizes = (product(s.value_shape()) for s in self._sub_elements)
             value_shape = (sum(value_sizes),)
-
+        
         # Initialize element data
-        FiniteElementBase.__init__(self, "Mixed", domain, None, value_shape)
-
+        degree = max(e.degree() for e in self._sub_elements)
+        FiniteElementBase.__init__(self, "Mixed", domain, degree, value_shape)
+        
         # Cache repr string
         self._repr = "MixedElement(*%r, **{'value_shape': %r })" % (self._sub_elements, self._value_shape)
 

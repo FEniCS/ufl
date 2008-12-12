@@ -31,6 +31,19 @@ class FormData(object):
         self.sub_elements    = set(chain(*[extract_sub_elements(sub) for sub in self.unique_elements]))
         self.domain          = self.elements[0].domain()
         
+        # Estimate a default integration order, form compiler can overrule
+        # TODO: Provide a better estimate
+        quadrature_elements = [e for e in self.sub_elements if "Quadrature" in e.family()]
+        if quadrature_elements:
+            # Either take the order from quadrature elements among the coefficients...
+            quad_order = quadrature_elements[0].degree()
+            ufl_assert(all(quad_order == e.degree() for e in quadrature_elements),
+                "Incompatible quadrature elements specified (orders must be equal).")
+        else:
+            # Use sum of basisfunction degrees
+            quad_order = sum(b.element().degree() for b in self.basisfunctions)
+        self.quad_order = quad_order
+        
         # Some useful dimensions
         self.rank = len(self.basisfunctions)
         self.num_coefficients = len(self.coefficients)
