@@ -62,6 +62,7 @@ Roadmap for the development of UFL
  - Degree range for quadrature elements?
 
 # Algorithms:
+ - Computing quadrature degree.
  - If AD needs to be applied in a compiler context, we need a framework
    for representing unapplied form transformations.
  - Implement lhs, rhs, and other form transformations.
