@@ -2,17 +2,18 @@
 
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-11-21"
+__date__ = "2008-03-14 -- 2008-12-12"
 
 # Modified by Anders Logg, 2008
 
 from itertools import chain
 
-from ufl.output import ufl_assert, ufl_error
+from ufl.output import ufl_assert, ufl_error, ufl_info
 from ufl.common import lstr, UFLTypeDefaultDict
 
 from ufl.base import Expr, Terminal
 from ufl.algebra import Sum, Product, Division
+from ufl.finiteelement import MixedElement
 from ufl.basisfunction import BasisFunction
 from ufl.function import Function
 from ufl.variable import Variable
@@ -86,6 +87,14 @@ def extract_elements(a):
 def extract_unique_elements(a):
     "Build a set of all unique elements used in a."
     return set(extract_elements(a))
+
+def extract_sub_elements(element):
+    "Build a set of all unique subelements, including parent element." 
+    res = set((element,))
+    if isinstance(element, MixedElement):
+        for sub in element.sub_elements():
+            res.update(extract_sub_elements(sub))
+    return res
 
 def extract_indices(expression):
     "Build a set of all Index objects used in expression."

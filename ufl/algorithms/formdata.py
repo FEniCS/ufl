@@ -1,7 +1,7 @@
 """FormData class easy for collecting of various data about a form."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-09-13 -- 2008-12-08"
+__date__ = "2008-09-13 -- 2008-12-12"
 
 # Modified by Anders Logg, 2008
 
@@ -11,7 +11,7 @@ from ufl.output import ufl_assert
 from ufl.common import lstr, tstr, domain2dim
 from ufl.form import Form
 
-from ufl.algorithms.analysis import extract_basisfunctions, extract_coefficients, extract_classes
+from ufl.algorithms.analysis import extract_basisfunctions, extract_coefficients, extract_classes, extract_sub_elements
 
 class FormData(object):
     "Class collecting various information extracted from a Form."
@@ -28,6 +28,7 @@ class FormData(object):
         self.coefficients    = extract_coefficients(form)
         self.elements        = [f._element for f in chain(self.basisfunctions, self.coefficients)]
         self.unique_elements = set(self.elements)
+        self.sub_elements    = set(chain(*[extract_sub_elements(sub) for sub in self.unique_elements]))
         self.domain          = self.elements[0].domain()
         
         # Some useful dimensions

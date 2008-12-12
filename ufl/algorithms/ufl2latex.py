@@ -250,9 +250,6 @@ class Expression2LatexHandler(Transformer):
     def negative_restricted(self, o, f):
         return "{%s}^-" % par(f)
     
-    def conditional(self, o, a, b):
-        return "(%s %s %s)" % (a, o._name, b)
-    
     def eq(self, o, a, b):
         return "(%s = %s)" % (a, b)
     
@@ -270,7 +267,7 @@ class Expression2LatexHandler(Transformer):
     
     def gt(self, o, a, b):
         return "(%s > %s)" % (a, b)
-    
+
     def conditional(self, o, c, t, f):
         l = "\\begin{cases}\n"
         l += "%s, &\text{if }\quad %s, \\\\\n" % (t, c)
