@@ -2,25 +2,14 @@
 
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-03 -- 2008-12-12"
+__date__ = "2008-03-03 -- 2008-12-18"
 
 from ufl.output import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.elements import ufl_elements
-from ufl.common import product
+from ufl.common import product, domain2dim
+#from ufl.geometry import Cell, as_cell # TODO: Use this instead of domain string?
 
-# Map from valid domains to their topological dimension
-_domain2dim = {"interval": 1, "triangle": 2, "tetrahedron": 3, "quadrilateral": 2, "hexahedron": 3}
-
-# TODO: Do we want this? For higher degree geometry. Is this general enough?
-class Cell(object):
-    "Representation of a finite element cell."
-
-    def __init__(self, domain, degree=1):
-        "Initialize basic cell description"
-        ufl_assert(domain in _domain2dim)
-        self._domain = domain
-        self._degree = degree
 
 class FiniteElementBase(object):
     "Base class for all finite elements"
@@ -86,7 +75,7 @@ class FiniteElement(FiniteElementBase):
         ufl_assert(kmax is None or degree <= kmax, 'Degree "%d" invalid for "%s" finite element.' % (degree, family))
         
         # Set value dimension (default to using domain dimension in each axis)
-        dim = _domain2dim[domain]
+        dim = domain2dim[domain]
         value_shape = tuple(dim for d in range(value_rank))
         
         # Initialize element data
@@ -163,7 +152,7 @@ class VectorElement(MixedElement):
 
         # Set default size if not specified
         if dim is None:
-            dim = _domain2dim[domain]
+            dim = domain2dim[domain]
 
         # Create mixed element from list of finite elements
         sub_element = FiniteElement(family, domain, degree)
@@ -203,7 +192,7 @@ class TensorElement(MixedElement):
         
         # Set default shape if not specified
         if shape is None:
-            dim = _domain2dim[domain]
+            dim = domain2dim[domain]
             shape = (dim, dim)
             
             # Construct default symmetry for matrix elements
