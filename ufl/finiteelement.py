@@ -7,7 +7,7 @@ __date__ = "2008-03-03 -- 2008-12-18"
 from ufl.output import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.elements import ufl_elements
-from ufl.common import product, domain2dim
+from ufl.common import product, domain2dim, index_to_component, component_to_index
 #from ufl.geometry import Cell, as_cell # TODO: Use this instead of domain string?
 
 
@@ -133,6 +133,24 @@ class MixedElement(FiniteElementBase):
             i = (i,)
         self._check_component(i)
         ufl_assert(len(i) > 0, "Illegal component index (empty).")
+        
+        # Indexing into a long vector
+        if len(self.value_shape()) == 1:
+            j, = i
+            ufl_assert(j < product(self.value_shape()), "Illegal component index (value %d)." % j)
+            # Find subelement for this index
+            for e in self._sub_elements:
+                sh = e.value_shape()
+                si = product(sh)
+                if j < si:
+                    break
+                j -= si
+            ufl_assert(j >= 0, "Moved past last value component!")
+            # Convert index into a shape tuple
+            i = index_to_component(j, sh)
+            return e.extract_component(i)
+        
+        # Indexing into a multidimensional tensor
         ufl_assert(i[0] < len(self._sub_elements), "Illegal component index (dimension %d)." % i[0])
         return self._sub_elements[i[0]].extract_component(i[1:])
 

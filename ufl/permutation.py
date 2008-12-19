@@ -2,29 +2,33 @@
 and generating index lists."""
 
 __authors__ = "Anders Logg and Kent-Andre Mardal"
-__date__ = "2008-05-22 -- 2008-08-26"
+__date__ = "2008-05-22 -- 2008-12-18"
 
 # Modified by Martin Alnes 2008
 
 def compute_indices(shape):
     "Compute all index combinations for given shape"
     if len(shape) == 0:
-        return [()]
-    indices = []
+        return ((),)
     sub_indices = compute_indices(shape[1:])
+    indices = []
     for i in range(shape[0]):
         for sub_index in sub_indices:
             indices.append((i,) + sub_index)
-    return indices
+    return tuple(indices)
 
-def compute_permutations(k, n, skip = []):
+# functional version:
+def compute_indices2(shape):
+    "Compute all index combinations for given shape"
+    return ((),) if len(shape) == 0 else tuple((i,) + sub_index for i in range(shape[0]) for sub_index in compute_indices2(shape[1:]))
+
+def compute_permutations(k, n, skip = None):
     """Compute all permutations of k elements from (0, n) in rising order.
     Any elements that are contained in the list skip are not included."""
     if k == 0:
         return []
-    # Possible optimization, depends a bit on size of skip:
-    #if skip and isinstance(skip, list):
-    #    skip = set(skip)
+    if skip is None:
+        skip = []
     if k == 1:
         return [(i,) for i in range(n) if not i in skip]
     pp = compute_permutations(k - 1, n, skip)
@@ -62,13 +66,13 @@ def compute_sign(permutation):
                 return 0 
     return sign
 
-def compute_order_tuples(k, n, order_tuples = []):
+def compute_order_tuples(k, n):
     "Compute all tuples of n integers such that the sum is k"
     if n == 1:
-        return [(k,)]
+        return ((k,),)
     order_tuples = []
     for i in range(k + 1):
         for order_tuple in compute_order_tuples(k - i, n - 1):
             order_tuples.append(order_tuple + (i,))
-    return order_tuples
+    return tuple(order_tuples)
 
