@@ -82,15 +82,10 @@ Roadmap for the development of UFL
  - Rewrite/improve all error messages (collect strings in separate file?)
  - Improve operator docstrings (use epydoc @param and @return?)
 
-# High order geometries (low priority):
- - Add Cell support for high order geometries?
-     cell = Cell("triangle", 2)
-     element = FiniteElement("CG", cell, 1)
-
 # Time derivatives (low priority):
  - Do we want something like Dt(u), Dtt(u), CR(a), FE(a), BE(a), TR(a, theta)?
  - In particular, this can be interesting in combination with time elements?
-     es = FiniteElement("CG", "triangle", 1)
+     es = FiniteElement("CG", triangle, 1)
      et = TimeElement(1) # Any point in non-Galerkin elements?
      e = es*et
      v = TestFunction(e)
@@ -100,30 +95,6 @@ Roadmap for the development of UFL
      a = f*u*v*dx
    Need to extend ufc::cell for this, perhaps adding time interval [t0,t1] as part 
    of ufc::cell, new shapes time_triangle etc and bool is_time_dependent() to form.
-
-# Dirichlet boundary conditions (low priority):
- - Add FunctionSpace concept?
-     g = Function(element)
-     V = FunctionSpace(element, trace=g)
-     u = BasisFunction(V)
-   Must also handle traces of functions on any subboundary.
-   The code gain versus defining a DirichletBC in PyDOLFIN seems minimal.
-
-# Physical units (very low priority):
- - Utility algorithms for validating the physical dimensions in a form.
-   Input:
-    - A form or expression
-    - A mapping between Terminals (Function or BasisFunction instances)
-      and physical units (using ScientificPython or something)
-   Output:
-    - Validation results (list of possible problems we can detect):
-      - Some operators require equal units in their operands, e.g. Sum.
-      - Some operators multiply the units, e.g. Product, Dot, Inner, etc.
-      - Some operators divide the units, e.g. Division, Inverse.
-      - Some operators require dimensionless operands, e.g. Exp, Ln.
-      These considerations are not necessarily errors, maybe some
-      things can be defined as warnings. Also, we would have to add
-      physical units to all terminals to make this truly useful.
 
 # License:
  - Which license do we pick? GPL3 or LGPL3?
