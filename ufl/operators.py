@@ -5,7 +5,7 @@ objects."""
 
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-04-09 -- 2008-11-05"
+__date__ = "2008-04-09 -- 2008-12-22"
 
 import math
 from ufl.output import ufl_assert, ufl_error
@@ -16,7 +16,6 @@ from ufl.tensoralgebra import Transposed, Inner, Outer, Dot, Cross, Determinant,
 from ufl.variable import Variable
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin
-from ufl.geometry import FacetNormal
 
 #--- Tensor operators ---
 
@@ -99,9 +98,9 @@ def rot(f):
 def jump(v):
     "The jump of v."
     r = v.rank()
-    domain = v.domain()
-    ufl_assert(domain is not None, "FIXME: Not all expressions have a domain. How should this be done? What does FFC do?")
-    n = FacetNormal(domain)
+    cell = v.cell()
+    ufl_assert(cell is not None, "FIXME: Not all expressions have a cell. How should this be done? What does FFC do?")
+    n = cell.n()
     if r == 0:
         return v('+')*n('+') + v('-')*n('-')
     elif r == 1:

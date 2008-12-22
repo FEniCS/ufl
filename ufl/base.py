@@ -3,9 +3,7 @@ types involved with built-in operators on any UFL object."""
 
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-11-01"
-
-from ufl.common import domain2dim
+__date__ = "2008-03-14 -- 2008-12-22"
 
 # Modified by Anders Logg, 2008
 
@@ -56,17 +54,13 @@ class Expr(object):
         "Return the tensor rank of the expression."
         return len(self.shape())
     
-    def domain(self):
-        "Return the polygonal domain this expression is defined on."
+    def cell(self):
+        "Return the cell this expression is defined on."
         for o in self.operands():
-            d = o.domain()
+            d = o.cell()
             if d is not None:
                 return d
         return None
-    
-    def geometric_dimension(self):
-        "Return the geometric dimension this tensor expression lives in."
-        return domain2dim[self.domain()]
     
     # All subclasses must implement __repr__
     def __repr__(self):

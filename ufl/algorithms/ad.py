@@ -1,10 +1,10 @@
 """This module defines automatic differentiation utilities."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-19-- 2008-11-26"
+__date__ = "2008-08-19-- 2008-12-22"
 
 from ufl.output import ufl_assert, ufl_error, ufl_warning
-from ufl.common import product, unzip, UFLTypeDefaultDict, domain2dim, subdict, mergedicts
+from ufl.common import product, unzip, UFLTypeDefaultDict, subdict, mergedicts
 
 # All classes:
 from ufl.base import Expr, Terminal
@@ -49,7 +49,7 @@ from ufl.algorithms.transformations import expand_compounds, Transformer, transf
 # FIXME: Could apply as_basic to Compound objects with no rule before differentiating
 
 def is_spatially_constant(o):
-    return (isinstance(o, Terminal) and o.domain() is None) or isinstance(o, Constant)
+    return (isinstance(o, Terminal) and o.cell() is None) or isinstance(o, Constant)
 
 _0 = Zero()
 _1 = IntValue(1)
@@ -283,7 +283,7 @@ class AD(Transformer):
     
     def grad(self, o, a):
         a, aprime = a
-        if aprime.domain() is None:
+        if aprime.cell() is None:
             ufl_error("TODO: Shape of gradient is undefined.") # Currently calling expand_compounds before AD to avoid this
             oprime = Zero(TODO)
         else:
@@ -312,16 +312,16 @@ class VariableAD(AD):
 def compute_diff(expression, var):
     "Differentiate expression w.r.t Variable var."
     ufl_assert(var is None or var.shape() == (), "VariableDerivative w.r.t. nonscalar variable not implemented.")
-    dim = domain2dim[expression.domain()]
+    dim = expression.cell().dim()
     e, ediff = VariableAD(dim, var).visit(expression)
     return ediff
 
 
 def compute_variable_derivatives(form):
     "Apply AD to form, expanding all VariableDerivative w.r.t variables."
-    domain = form.domain()
-    ufl_assert(domain is not None, "Need to know the spatial dimension to compute derivatives.")
-    spatial_dim = domain2dim[domain]
+    cell = form.cell()
+    ufl_assert(cell is not None, "Need to know the spatial dimension to compute derivatives.")
+    spatial_dim = cell.dim()
     def _compute_diff(expression):
         expression = expand_compounds(expression, spatial_dim)
         return compute_diff(expression, None)
@@ -334,9 +334,9 @@ def propagate_spatial_derivatives(form):
 
     ufl_assert(not extract_type(form, SpatialDerivative), "propagate_spatial_derivatives not implemented")
 
-    domain = form.domain()
-    ufl_assert(domain is not None, "Need to know the spatial dimension to compute derivatives.")
-    spatial_dim = domain2dim[domain]
+    cell = form.cell()
+    ufl_assert(cell is not None, "Need to know the spatial dimension to compute derivatives.")
+    spatial_dim = cell.dim()
 
     def _compute_diff(expression):
         expression = expand_compounds(expression, spatial_dim)
@@ -395,9 +395,9 @@ class FunctionalAD(AD):
 def compute_form_derivative(form, function, basisfunction):
     "Apply AFD (Automatic Function Differentiation) to Form."
     
-    domain = form.domain()
-    ufl_assert(domain is not None, "Need to know the spatial dimension to compute derivatives.")
-    spatial_dim = domain2dim[domain]
+    cell = form.cell()
+    ufl_assert(cell is not None, "Need to know the spatial dimension to compute derivatives.")
+    spatial_dim = cell.dim()
     
     visitor = FunctionalAD(spatial_dim, function, basisfunction)
     

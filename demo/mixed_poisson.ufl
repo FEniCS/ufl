@@ -3,14 +3,15 @@
 # Date: 2008-10-03
 #
 
-RT = FiniteElement("Raviart-Thomas", "tetrahedron", 1)
-DG = FiniteElement("DG", "tetrahedron", 0)
+cell = tetrahedron
+RT = FiniteElement("Raviart-Thomas", cell, 1)
+DG = FiniteElement("DG", cell, 0)
 MX = RT + DG
 
 (u, p) = TrialFunctions(MX)
 (v, q) = TestFunctions(MX)
 
-n = FacetNormal("tetrahedron")
+n = cell.n()
 
 a0 = (dot(u, v) + div(u)*q + div(v)*p)*dx
 

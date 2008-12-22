@@ -168,24 +168,24 @@ class FFCTestCase(unittest.TestCase):
         
     def testP5tet(self):
 
-        element = FiniteElement("Lagrange", "tetrahedron", 5)
+        element = FiniteElement("Lagrange", tetrahedron, 5)
         
     def testP5tri(self):
 
-        element = FiniteElement("Lagrange", "triangle", 5)
+        element = FiniteElement("Lagrange", triangle, 5)
         
     def testPoissonDG(self):
 
-        element = FiniteElement("Discontinuous Lagrange", "triangle", 1)
+        element = FiniteElement("Discontinuous Lagrange", triangle, 1)
 
         v = TestFunction(element)
         u = TrialFunction(element)
         f = Function(element)
 
-        n = FacetNormal("triangle")
+        n = triangle.n()
         
         # FFC notation: h = MeshSize("triangle"), not supported by UFL
-        h = Constant("triangle")
+        h = Constant(triangle)
 
         gN = Function(element)
 

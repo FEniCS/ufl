@@ -69,7 +69,7 @@ from ufl import baseoperators as __baseoperators
 from ufl.tensors import as_tensor, as_vector, as_matrix
 
 # types for geometric quantities
-from ufl.geometry import SpatialCoordinate, FacetNormal
+from ufl.geometry import Cell # , SpatialCoordinate, FacetNormal # use cell = Cell("triangle"); x = cell.x(); n = cell.n()
 
 # tensor algebra operators
 from ufl.tensoralgebra import Identity

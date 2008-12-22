@@ -1,14 +1,14 @@
 """FormData class easy for collecting of various data about a form."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-09-13 -- 2008-12-12"
+__date__ = "2008-09-13 -- 2008-12-22"
 
 # Modified by Anders Logg, 2008
 
 from itertools import chain
 
 from ufl.output import ufl_assert
-from ufl.common import lstr, tstr, domain2dim
+from ufl.common import lstr, tstr
 from ufl.form import Form
 
 from ufl.algorithms.analysis import extract_basisfunctions, extract_coefficients, extract_classes, extract_sub_elements
@@ -29,7 +29,7 @@ class FormData(object):
         self.elements        = [f._element for f in chain(self.basisfunctions, self.coefficients)]
         self.unique_elements = set(self.elements)
         self.sub_elements    = set(chain(*[extract_sub_elements(sub) for sub in self.unique_elements]))
-        self.domain          = self.elements[0].domain()
+        self.cell            = self.elements[0].cell()
         
         # Estimate a default integration order, form compiler can overrule
         # TODO: Provide a better estimate
@@ -47,7 +47,7 @@ class FormData(object):
         # Some useful dimensions
         self.rank = len(self.basisfunctions)
         self.num_coefficients = len(self.coefficients)
-        self.geometric_dimension = domain2dim[self.domain]
+        self.geometric_dimension = self.cell.dim()
         self.topological_dimension = self.geometric_dimension
         
         # Set coefficient names to default if necessary
@@ -76,7 +76,7 @@ class FormData(object):
     def __str__(self):
         "Return formatted summary of form data"
         return tstr((("Name",                     self.name),
-                     ("Domain",                   self.domain),
+                     ("Domain",                   self.cell),
                      ("Geometric dimension",      self.geometric_dimension),
                      ("Topological dimension",    self.topological_dimension),
                      ("Rank",                     self.rank),

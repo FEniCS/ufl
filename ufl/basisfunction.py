@@ -1,9 +1,8 @@
 """This module defines the class BasisFunction and a number of related
 classes (functions), including TestFunction and TrialFunction."""
 
-
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-11-05"
+__date__ = "2008-03-14 -- 2008-12-22"
 
 # Modified by Anders Logg, 2008
 
@@ -29,8 +28,8 @@ class BasisFunction(Terminal, Counted):
     def shape(self):
         return self._element.value_shape()
     
-    def domain(self):
-        return self._element.domain()
+    def cell(self):
+        return self._element.cell()
     
     def __str__(self):
         count = str(self._count)

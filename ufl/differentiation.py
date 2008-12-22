@@ -1,8 +1,7 @@
 "Differential operators."
 
-
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-11-07"
+__date__ = "2008-03-14 -- 2008-12-22"
 
 from ufl.output import ufl_assert, ufl_warning
 from ufl.common import subdict, mergedicts
@@ -15,8 +14,6 @@ from ufl.tensors import as_tensor
 from ufl.tensoralgebra import Identity
 from ufl.function import Function, Constant, VectorConstant, TensorConstant
 
-from ufl.common import domain2dim
-
 #--- Basic differentiation objects ---
 
 spatially_constant_types = (ScalarValue, Zero, Identity, Constant, VectorConstant, TensorConstant) # FacetNormal: not for higher order geometry!
@@ -28,9 +25,9 @@ class SpatialDerivative(Expr):
         if isinstance(expression, Terminal):
             # Return zero if expression is trivially constant
             if isinstance(expression, spatially_constant_types):
-                domain = expression.domain()
-                ufl_assert(domain is not None, "Need domain to know spatial dimension in SpatialDerivative.")
-                spatial_dim = domain2dim[domain]
+                cell = expression.cell()
+                ufl_assert(cell is not None, "Need cell to know spatial dimension in SpatialDerivative.")
+                spatial_dim = cell.dim()
                 
                 # Compute free indices and their dimensions
                 si = set(i for i in indices if isinstance(i, Index))
@@ -56,9 +53,9 @@ class SpatialDerivative(Expr):
         (self._dx_free_indices, self._dx_repeated_indices, dummy, dummy) = \
             extract_indices(self._indices._indices)
         
-        domain = expression.domain()
-        ufl_assert(domain is not None, "Need to know the spatial dimension to compute the shape of derivatives.")
-        dim = domain2dim[domain]
+        cell = expression.cell()
+        ufl_assert(cell is not None, "Need to know the spatial dimension to compute the shape of derivatives.")
+        dim = cell.dim()
         self._index_dimensions = {}
         for i in self._dx_free_indices:
             # set free index dimensions to the spatial dimension 
@@ -155,9 +152,9 @@ class Grad(Expr):
     def __new__(cls, f):
         # Return zero if expression is trivially constant
         if isinstance(f, spatially_constant_types):
-            domain = f.domain()
-            ufl_assert(domain is not None, "Can't take gradient of expression with undefined domain...")
-            dim = domain2dim[domain]
+            cell = f.cell()
+            ufl_assert(cell is not None, "Can't take gradient of expression with undefined cell...")
+            dim = cell.dim()
             free_indices = f.free_indices()
             index_dimensions = subdict(f.index_dimensions(), free_indices)
             return Zero((dim,) + f.shape(), free_indices, index_dimensions)
@@ -166,9 +163,9 @@ class Grad(Expr):
     def __init__(self, f):
         Expr.__init__(self)
         self._f = f
-        domain = f.domain()
-        ufl_assert(domain is not None, "Can't take gradient of expression with undefined domain. How did this happen?")
-        self._dim = domain2dim[domain]
+        cell = f.cell()
+        ufl_assert(cell is not None, "Can't take gradient of expression with undefined cell. How did this happen?")
+        self._dim = cell.dim()
         ufl_assert(not (f.free_indices()), \
             "TODO: Taking gradient of an expression with free indices, should this be a valid expression? Please provide examples!")
     
@@ -235,9 +232,9 @@ class Curl(Expr):
         ufl_assert(not f.free_indices(), \
             "TODO: Taking curl of an expression with free indices, should this be a valid expression? Please provide examples!")
         self._f = f
-        domain = f.domain()
-        ufl_assert(domain is not None, "Can't take curl of expression with undefined domain...") # TODO: Is curl always 3D?
-        self._dim = domain2dim[domain]
+        cell = f.cell()
+        ufl_assert(cell is not None, "Can't take curl of expression with undefined cell...") # TODO: Is curl always 3D?
+        self._dim = cell.dim()
     
     def operands(self):
         return (self._f, )

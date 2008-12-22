@@ -1,8 +1,7 @@
 """Defines symbol and variable constructs."""
 
-
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2008-11-07"
+__date__ = "2008-05-20 -- 2008-12-22"
 
 from ufl.common import Counted
 from ufl.output import ufl_assert
@@ -39,8 +38,8 @@ class Variable(Terminal, Counted):
     def shape(self):
         return self._expression.shape()
     
-    def domain(self):
-        return self._expression.domain()
+    def cell(self):
+        return self._expression.cell()
     
     def __eq__(self, other):
         return isinstance(other, Variable) and self._count == other._count

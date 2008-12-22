@@ -3,12 +3,12 @@ either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-11-27"
+__date__ = "2008-05-07 -- 2008-12-22"
 
 from inspect import getargspec
 from itertools import izip, chain
 from ufl.output import ufl_assert, ufl_error, ufl_warning
-from ufl.common import camel2underscore, domain2dim
+from ufl.common import camel2underscore
 from ufl.base import Expr, Terminal
 from ufl.indexing import Index, indices, complete_shape
 from ufl.tensors import as_tensor, as_matrix, as_vector
@@ -550,7 +550,8 @@ def expand_compounds(e, dim=None):
     """Expand compound objects into basic operators.
     Requires e to have a well defined domain, 
     for the geometric dimension to be defined."""
-    if dim is None: dim = domain2dim[e.domain()]
+    if dim is None:
+        dim = e.cell().dim()
     return apply_transformer(e, CompoundExpander(dim))
 
 def strip_variables(e):

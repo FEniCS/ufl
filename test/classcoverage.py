@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-09-06 -- 2008-11-27"
+__date__ = "2008-09-06 -- 2008-12-22"
 
 import unittest
 
@@ -10,7 +10,6 @@ from ufl import *
 from ufl.scalar import as_ufl
 from ufl.classes import * 
 from ufl.algorithms import * 
-from ufl.common import domain2dim
 
 # disable log output
 import logging
@@ -29,7 +28,7 @@ def test_object(a, shape, free_indices):
     # Check that some properties are at least available
     fi = a.free_indices()
     sh = a.shape()
-    do = a.domain()
+    ce = a.cell()
     
     # Compare with provided properties
     if free_indices is not None:
@@ -50,7 +49,7 @@ def test_object2(a):
     s = str(a)
     
     # Check that some properties are at least available
-    do = a.domain()
+    ce = a.cell()
 
 def test_form(a):
     # Test reproduction via repr string
@@ -69,12 +68,12 @@ class ClasscoverageTest(unittest.TestCase):
     def testAll(self):
         
         # --- Elements:
-        polygon = "triangle"
-        dim = domain2dim[polygon]
+        cell = triangle
+        dim = cell.dim()
         
-        e0 = FiniteElement("CG", polygon, 1)
-        e1 = VectorElement("CG", polygon, 1)
-        e2 = TensorElement("CG", polygon, 1)
+        e0 = FiniteElement("CG", cell, 1)
+        e1 = VectorElement("CG", cell, 1)
+        e2 = TensorElement("CG", cell, 1)
         e3 = MixedElement(e0, e1, e2)
         
         # --- Terminals:
@@ -99,7 +98,7 @@ class ClasscoverageTest(unittest.TestCase):
         test_object(f2, (dim,dim), ())
         test_object(f3, (dim*dim+dim+1,), ())
         
-        c = Constant(polygon)
+        c = Constant(cell)
         test_object(c, (), ())
         
         a = FloatValue(1.23)
@@ -111,7 +110,7 @@ class ClasscoverageTest(unittest.TestCase):
         I = Identity(2)
         test_object(I, (dim,dim), ())
         
-        n = FacetNormal(polygon)
+        n = cell.n()
         test_object(n, (dim,), ())
         
         a = variable(v0)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-12 -- 2008-08-20"
+__date__ = "2008-03-12 -- 2008-12-22"
 
 # Modified by Anders Logg, 2008
 
@@ -21,7 +21,7 @@ logging.basicConfig(level=logging.CRITICAL)
 class AlgorithmsTestCase(unittest.TestCase):
 
     def setUp(self):
-        element = FiniteElement("CG", "triangle", 1)
+        element = FiniteElement("CG", triangle, 1)
         
         v = TestFunction(element)
         u = TrialFunction(element)
@@ -29,7 +29,7 @@ class AlgorithmsTestCase(unittest.TestCase):
         c = Function(element)
         f = Function(element)
         
-        n = FacetNormal("triangle")
+        n = triangle.n()
         
         a = u*v*dx
         L = f*v*dx

@@ -1,8 +1,7 @@
 """Functions to check the validity of forms."""
 
-
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-11-05"
+__date__ = "2008-03-14 -- 2008-12-22"
 
 # Modified by Anders Logg, 2008.
 
@@ -27,14 +26,14 @@ def validate_form(form):
     #if not is_ml: ufl_warning("Form is not multilinear.")
     ufl_assert(is_ml, "Form is not multilinear.")
     
-    # Check that domain is the same everywhere
-    domains = set()
+    # Check that cell is the same everywhere
+    cells = set()
     for e in iter_expressions(form):
         for t in traverse_terminals(e):
-            domains.add(t.domain())
-    if None in domains:
-        domains.remove(None)
-    ufl_assert(len(domains) == 1, "Inconsistent or missing domain in form, found %s." % str(domains))
+            cells.add(t.cell())
+    if None in cells:
+        cells.remove(None)
+    ufl_assert(len(cells) == 1, "Inconsistent or missing cell in form, found %s." % str(cells))
     
     # Check that all integrands are scalar
     for expression in iter_expressions(form):
