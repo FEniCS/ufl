@@ -2,7 +2,7 @@
 
 
 __authors__ = "Martin Sandve Alnes"
-__date__    = "2008-03-14 -- 2008-12-22"
+__date__    = "2008-03-14 -- 2008-12-30"
 
 from ufl.output import ufl_assert
 
@@ -10,13 +10,13 @@ from ufl.output import ufl_assert
 
 class Form(object):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
-    __slots__ = ("_integrals", "_repr", "_hash", "_str", "_metadata")
+    __slots__ = ("_integrals", "_repr", "_hash", "_str",)# "_metadata") # TODO: Sure this is necessary?
     def __init__(self, integrals):
         self._integrals = tuple(integrals)
         self._str = None
         self._repr = None
         self._hash = None
-        self._metadata = ""
+        #self._metadata = ""
     
     def cell(self):
         return self._integrals[0].integrand().cell()
@@ -99,5 +99,6 @@ class Form(object):
         return repr(self) == repr(other)
     
     def signature(self):
-        return "%s%s" % (repr(self), self._metadata)
+        return "%s" % (repr(self), )
+        #return "%s%s" % (repr(self), self._metadata)
 

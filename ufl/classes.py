@@ -2,9 +2,8 @@
 since it enables the syntax "from ufl.classes import FooBar" for getting
 implementation details not exposed through the default ufl namespace."""
 
-
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-15 -- 2008-11-21"
+__date__ = "2008-08-15 -- 2008-12-30"
 
 # Modified by Anders Logg, 2008
 
@@ -23,7 +22,7 @@ from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Cofactor, Inverse, Deviatoric, Skew
 from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
 from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
-from ufl.differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot
+from ufl.differentiation import Derivative, FunctionDerivative, SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot
 from ufl.conditional import Condition, EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.form import Form
 from ufl.integral import Integral
