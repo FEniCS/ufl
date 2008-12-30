@@ -8,7 +8,7 @@ from ufl.common import subdict, mergedicts
 from ufl.expr import Expr
 from ufl.terminal import Terminal
 from ufl.zero import Zero
-from ufl.scalar import ScalarValue
+from ufl.scalar import ScalarValue, is_true_ufl_scalar
 from ufl.indexing import Indexed, MultiIndex, Index, extract_indices
 from ufl.variable import Variable
 from ufl.tensors import as_tensor
@@ -24,6 +24,38 @@ class Derivative(Expr):
     __slots__ = ()
     def __init__(self):
         Expr.__init__(self)
+
+class FunctionDerivative(Derivative):
+    """Derivative of the integrand of a form w.r.t. the 
+    degrees of freedom in a discrete Function."""
+    __slots__ = ("_form", "_function", "_basisfunction")
+    def __init__(self, integrand, function, basisfunction):
+        Derivative.__init__(self)
+        ufl_assert(is_true_ufl_scalar(integrand),
+            "Expecting true UFL scalar expression.")
+        ufl_assert(isinstance(function, Function),
+            "Expecting Function instance.")
+        ufl_assert(isinstance(basisfunction, BasisFunction),
+            "Expecting BasisFunction instance.")
+        self._integrand = integrand
+        self._function = function
+        self._basisfunction = basisfunction
+    
+    def operands(self):
+        raise RuntimeError, "Probably don't want to call operands on FunctionDerivative, can we avoid this?"
+        return (self._integrand, self._function, self._basisfunction)
+    
+    def free_indices(self):
+        return ()
+    
+    def shape(self):
+        return ()
+    
+    def __str__(self):
+        return "FunctionDerivative (w.r.t. function %r and using basis function %r) of \n%s" % (self._function, self._basisfunction, self._integrand)
+    
+    def __repr__(self):
+        return "FunctionDerivative(%r, %r, %r)" % (self._integrand, self._function, self._basisfunction)
 
 class SpatialDerivative(Derivative):
     "Partial derivative of an expression w.r.t. spatial directions given by indices."
@@ -48,7 +80,7 @@ class SpatialDerivative(Derivative):
         return Expr.__new__(cls)
     
     def __init__(self, expression, indices):
-        Expr.__init__(self)
+        Derivative.__init__(self)
         self._expression = expression
         
         if not isinstance(indices, MultiIndex):
@@ -111,7 +143,7 @@ class VariableDerivative(Derivative):
         return Expr.__new__(cls)
     
     def __init__(self, f, v):
-        Expr.__init__(self)
+        Derivative.__init__(self)
         ufl_assert(isinstance(f, Expr), "Expecting an Expr in VariableDerivative.")
         if isinstance(v, Indexed):
             ufl_assert(isinstance(v._expression, Variable), \
@@ -168,7 +200,7 @@ class Grad(Derivative):
         return Expr.__new__(cls)
     
     def __init__(self, f):
-        Expr.__init__(self)
+        Derivative.__init__(self)
         self._f = f
         cell = f.cell()
         ufl_assert(cell is not None, "Can't take gradient of expression with undefined cell. How did this happen?")
@@ -207,7 +239,7 @@ class Div(Derivative):
         return Expr.__new__(cls)
 
     def __init__(self, f):
-        Expr.__init__(self)
+        Derivative.__init__(self)
         self._f = f
     
     def operands(self):
@@ -234,7 +266,7 @@ class Curl(Derivative):
     # TODO: Implement __new__ to discover trivial zeros
     
     def __init__(self, f):
-        Expr.__init__(self)
+        Derivative.__init__(self)
         ufl_assert(f.rank() == 1, "Need a vector.") # TODO: Is curl always 3D?
         ufl_assert(not f.free_indices(), \
             "TODO: Taking curl of an expression with free indices, should this be a valid expression? Please provide examples!")
@@ -267,7 +299,7 @@ class Rot(Derivative):
     # TODO: Implement __new__ to discover trivial zeros
 
     def __init__(self, f):
-        Expr.__init__(self)
+        Derivative.__init__(self)
         ufl_assert(f.rank() == 1, "Need a vector.")
         ufl_assert(not f.free_indices(), \
             "TODO: Taking rot of an expression with free indices, should this be a valid expression? Please provide examples!")

@@ -67,10 +67,11 @@ class Expr(object):
 
     #--- Functions for index handling ---
     
-    # All subclasses must implement free_indices
+    # All subclasses that can have free indices
+    # must implement free_indices
     def free_indices(self):
         "Return a tuple with the free indices (unassigned) of the expression."
-        raise NotImplementedError(self.__class__.free_indices)
+        return ()
     
     # Subclasses that can have repeated indices
     # must implement repeated_indices
@@ -82,7 +83,9 @@ class Expr(object):
     def index_dimensions(self):
         """Return a dict with the free or repeated indices in the expression
         as keys and the dimensions of those indices as values."""
-        raise NotImplementedError(self.__class__.index_dimensions) 
+        raise NotImplementedError(self.__class__.index_dimensions)
+        #return {} # TODO: Might make this optional to implement?
+    
     #--- Special functions for string representations ---
     
     # All subclasses must implement __repr__
