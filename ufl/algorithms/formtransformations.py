@@ -3,7 +3,7 @@ complete Forms into new related Forms."""
 
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-10-01 -- 2008-10-30"
+__date__ = "2008-10-01 -- 2008-12-30"
 
 # Modified by Anders Logg, 2008
 
@@ -15,6 +15,7 @@ from ufl.output import ufl_assert, ufl_error, ufl_warning
 # All classes:
 from ufl.basisfunction import BasisFunction
 #from ufl.basisfunction import TestFunction, TrialFunction, BasisFunctions, TestFunctions, TrialFunctions
+from ufl.scalar import IntValue
 from ufl.function import Function, Constant
 from ufl.form import Form
 from ufl.integral import Integral
@@ -24,8 +25,7 @@ from ufl.classes import ufl_classes, terminal_classes, nonterminal_classes
 
 # Other algorithms:
 from ufl.algorithms.analysis import extract_basisfunctions, extract_coefficients
-from ufl.algorithms.transformations import replace
-
+from ufl.algorithms.transformations import replace, Transformer, apply_transformer, transform_integrands
 
 def compute_form_action(form, function):
     """Compute the action of a form on a Function.
@@ -47,15 +47,128 @@ def compute_form_action(form, function):
             "function in an incompatible element space.")
     return replace(form, {u:function})
 
+class ArityAnalyser(Transformer):
+    def __init__(self, arity):
+        Transformer.__init__(self)
+        self._arity_cache = {}
+        self._arity = arity
+    
+    def expr(self, x, *ops):
+        # FIXME: Other operators to implement particularly? Will see when this triggers...
+        # The default is a nonlinear operator not accepting arity > 0
+        for o in ops:
+            arity = self._arity_cache[id(o)]
+            ufl_assert(arity == 0, "Invalid arity %d for an operand of a %s." % (arity, x._uflid))
+        self._arity_cache[id(x)] = 0
+        return x
+    
+    def terminal(self, x):
+        # Default terminal behaviour doesn't modify
+        self._arity_cache[id(x)] = 0
+        return x
+    
+    def basis_function(self, x):
+        self._arity_cache[id(x)] = 1
+        return x
+    
+    def linear_operator(self, x, arg):
+        # A linear operator in a single argument accepting arity > 0, just passing it on
+        arity = self._arity_cache[id(arg)]
+        
+        # Reuse or reconstruct
+        if arg is x.operands()[0]:
+            result = x
+        else:
+            result = x._uflid(arg)
+        
+        self._arity_cache[id(result)] = arity
+        return result
+    
+    # FIXME: List all linear operators (use subclassing to simplify stuff like this?)
+    derivative = linear_operator
+    transposed = linear_operator
+    
+    def product(self, x, *ops):
+        # Sum the arities of all operands
+        arity = 0
+        for o in ops:
+            arity += self._arity_cache[id(o)]
+        
+        # Reuse or reconstruct
+        if all((a is b) for (a, b) in zip(ops, x.operands())):
+            result = x
+        else:
+            result = x._uflid(*ops)
+        
+        self._arity_cache[id(result)] = arity
+        return result
+    inner = product
+    outer = product
+    dot = product
+    
+    def sum(self, x, *ops):
+        # Split operands into separate lists based on form arity
+        opgroups = {}
+        for o in ops:
+            arity = self._arity_cache[id(o)]
+            if not arity in opgroups:
+                opgroups[arity] = []
+            opgroups[arity].append(o)
+
+        # (TODO: The correctness of this needs to be verified/proven)
+        
+        # Delete operands with arity higher than we want
+        k = opgroups.keys()
+        for i in k:
+            if i > self._arity:
+                del opgroups[i]
+        
+        # If we got more than one arity left, pick the one we're after TODO: This can fail
+        if len(opgroups) > 1:
+            arity = self._arity
+        else:
+            arity = opgroups.keys()[0]
+        ops = opgroups[arity]
+        
+        # Reuse or reconstruct
+        ops2 = x.operands()
+        if len(ops) == len(ops2) and all((a is b) for (a, b) in zip(ops, ops2)):
+            result = x
+        else:
+            result = x._uflid(*ops)
+        
+        self._arity_cache[id(result)] = arity
+        return result
+
 def compute_form_lhs(form):
     """Compute the left hand side of a form."""
+    # TODO: Does this work? Test and finish!
     # TODO: Can we use extract_basisfunction_dependencies for this?
-    ufl_error("Not implemented.")
+    #return apply_transformer(form, ArityAnalyser(2))
+    r = 2
+    aa = ArityAnalyser(r)
+    def _transform(e):
+        e = aa.visit(e)
+        if r == aa._arity_cache[id(e)]:
+            return e
+        return IntValue(0)
+    res = transform_integrands(form, _transform)
+    return res
 
 def compute_form_rhs(form):
     """Compute the right hand side of a form."""
+    # TODO: Does this work? Test and finish!
     # TODO: Can we use extract_basisfunction_dependencies for this?
-    ufl_error("Not implemented.")
+    #return apply_transformer(form, ArityAnalyser(1))
+    r = 1
+    aa = ArityAnalyser(r)
+    def _transform(e):
+        e = aa.visit(e)
+        if r == aa._arity_cache[id(e)]:
+            return e
+        return IntValue(0)
+    res = transform_integrands(form, _transform)
+    return res
 
 def compute_form_adjoint(form):
     """Compute the adjoint of a bilinear form.

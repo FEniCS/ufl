@@ -44,7 +44,6 @@ def transform_integrands(form, transformer):
         newform = Form(newintegrals)
         return newform
 
-
 class Transformer(object):
     """Base class for a visitor-like algorithm design pattern used to 
     transform expression trees from one representation to another."""

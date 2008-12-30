@@ -56,8 +56,7 @@ def derivative(form, function, basisfunction=None):
         return compute_form_derivative(form, function, basisfunction) # TODO: Replace by apply_ad when that code is finished
         
         # TODO: Must move the basis function extraction logic here to make it equal for all integrals
-        if basisfunction is None or function is None:
-            ufl_error("work in progress!")
+        if basisfunction is None or function is None: ufl_error("work in progress!")
         
         integrals = []
         for itg in form._integrals:
