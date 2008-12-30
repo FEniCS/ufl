@@ -3,7 +3,7 @@ for all expression tree node types in UFL.
 
 NB! A note about other operators not implemented here:
 
-More operators (special functions) on Exprs are defined in baseoperators.py,
+More operators (special functions) on Exprs are defined in exproperators.py,
 as well as the transpose "A.T" and spatial derivative "a.dx(i)".
 This is to avoid circular dependencies between Expr and its subclasses.
 """

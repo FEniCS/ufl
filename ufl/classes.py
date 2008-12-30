@@ -28,8 +28,8 @@ from ufl.conditional import Condition, EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.form import Form
 from ufl.integral import Integral
 
-# Make sure we import baseoperators which attaches special functions to Expr
-from ufl import baseoperators as __baseoperators
+# Make sure we import exproperators which attaches special functions to Expr
+from ufl import exproperators as __exproperators
 
 # Collect all classes in lists
 __classobj = type(Expr)
