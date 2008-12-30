@@ -1,7 +1,7 @@
 "Differential operators."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-12-22"
+__date__ = "2008-03-14 -- 2008-12-30"
 
 from ufl.output import ufl_assert, ufl_warning
 from ufl.common import subdict, mergedicts
@@ -19,7 +19,13 @@ from ufl.function import Function, Constant, VectorConstant, TensorConstant
 
 spatially_constant_types = (ScalarValue, Zero, Identity, Constant, VectorConstant, TensorConstant) # FacetNormal: not for higher order geometry!
 
-class SpatialDerivative(Expr):
+class Derivative(Expr):
+    "Base class for all derivative types."
+    __slots__ = ()
+    def __init__(self):
+        Expr.__init__(self)
+
+class SpatialDerivative(Derivative):
     "Partial derivative of an expression w.r.t. spatial directions given by indices."
     __slots__ = ("_expression", "_shape", "_indices", "_free_indices", "_index_dimensions", "_repeated_indices", "_dx_free_indices", "_dx_repeated_indices")
     def __new__(cls, expression, indices):
@@ -93,7 +99,7 @@ class SpatialDerivative(Expr):
     def __repr__(self):
         return "SpatialDerivative(%r, %r)" % (self._expression, self._indices)
 
-class VariableDerivative(Expr):
+class VariableDerivative(Derivative):
     __slots__ = ("_f", "_v", "_index", "_free_indices", "_index_dimensions", "_shape")
     def __new__(cls, f, v):
         # Return zero if expression is trivially independent of Function
@@ -147,7 +153,7 @@ class VariableDerivative(Expr):
 
 #--- Compound differentiation objects ---
 
-class Grad(Expr):
+class Grad(Derivative):
     __slots__ = ("_f", "_dim",)
 
     def __new__(cls, f):
@@ -188,7 +194,7 @@ class Grad(Expr):
     def __repr__(self):
         return "Grad(%r)" % self._f
 
-class Div(Expr):
+class Div(Derivative):
     __slots__ = ("_f",)
 
     def __new__(cls, f):
@@ -222,7 +228,7 @@ class Div(Expr):
     def __repr__(self):
         return "Div(%r)" % self._f
 
-class Curl(Expr):
+class Curl(Derivative):
     __slots__ = ("_f", "_dim",)
     
     # TODO: Implement __new__ to discover trivial zeros
@@ -255,7 +261,7 @@ class Curl(Expr):
     def __repr__(self):
         return "Curl(%r)" % self._f
 
-class Rot(Expr):
+class Rot(Derivative):
     __slots__ = ("_f",)
     
     # TODO: Implement __new__ to discover trivial zeros
