@@ -8,7 +8,8 @@ __date__ = "2008-08-15 -- 2008-11-21"
 
 # Modified by Anders Logg, 2008
 
-from ufl.base import Expr, Terminal
+from ufl.expr import Expr
+from ufl.terminal import Terminal
 from ufl.zero import Zero
 from ufl.scalar import ScalarValue, FloatValue, IntValue, ScalarSomething
 from ufl.variable import Variable

@@ -6,7 +6,8 @@ __date__ = "2008-03-14 -- 2008-11-26"
 
 from collections import defaultdict
 from ufl.output import ufl_assert, ufl_warning, ufl_error
-from ufl.base import Expr, Terminal
+from ufl.expr import Expr
+from ufl.terminal import Terminal
 from ufl.common import Counted
 
 #--- Indexing ---

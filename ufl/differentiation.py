@@ -5,7 +5,8 @@ __date__ = "2008-03-14 -- 2008-12-22"
 
 from ufl.output import ufl_assert, ufl_warning
 from ufl.common import subdict, mergedicts
-from ufl.base import Expr, Terminal
+from ufl.expr import Expr
+from ufl.terminal import Terminal
 from ufl.zero import Zero
 from ufl.scalar import ScalarValue
 from ufl.indexing import Indexed, MultiIndex, Index, extract_indices

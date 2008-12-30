@@ -2,18 +2,18 @@
 classes (functions), including TestFunction and TrialFunction."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-12-22"
+__date__ = "2008-03-14 -- 2008-12-29"
 
 # Modified by Anders Logg, 2008
 
-from ufl.base import Terminal
+from ufl.terminal import Terminal
 from ufl.common import Counted, product
 from ufl.split import split
 
 # --- Class representing a basis function argument in a form ---
 
 class BasisFunction(Terminal, Counted):
-    __slots__ = ("_element", "_repr")
+    __slots__ = ("_repr", "_element",)
     _globalcount = 0
 
     def __init__(self, element, count=None):

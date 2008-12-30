@@ -5,7 +5,7 @@ __date__ = "2008-03-14 -- 2008-12-22"
 
 from ufl.output import ufl_assert
 from ufl.common import domain2dim
-from ufl.base import Terminal
+from ufl.terminal import Terminal
 
 class SpatialCoordinate(Terminal):
     __slots__ = ("_cell",)

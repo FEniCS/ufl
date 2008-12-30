@@ -5,7 +5,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-11-01 -- 2008-11-07"
 
 from ufl.output import ufl_assert
-from ufl.base import Terminal
+from ufl.terminal import Terminal
 from ufl.indexing import Index
 
 #--- Class for representing zero tensors of different shapes ---

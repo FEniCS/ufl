@@ -7,7 +7,8 @@ __date__ = "2008-03-14 -- 2008-10-21"
 from itertools import chain
 
 from ufl.output import ufl_assert, ufl_error
-from ufl.base import Expr, Terminal
+from ufl.expr import Expr
+from ufl.terminal import Terminal
 from ufl.form import Form
 from ufl.integral import Integral
 from ufl.algorithms.analysis import extract_basisfunctions, extract_coefficients

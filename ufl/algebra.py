@@ -9,7 +9,7 @@ from itertools import chain
 
 from ufl.output import ufl_assert, ufl_error, ufl_warning
 from ufl.common import product, mergedicts, subdict
-from ufl.base import Expr
+from ufl.expr import Expr
 from ufl.zero import Zero
 from ufl.scalar import ScalarValue, FloatValue, IntValue, is_true_ufl_scalar, is_python_scalar, as_ufl
 from ufl.indexing import extract_indices

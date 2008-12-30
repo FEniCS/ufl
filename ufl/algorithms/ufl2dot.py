@@ -8,7 +8,8 @@ __date__ = "2008-11-17 -- 2008-11-25"
 from itertools import chain
 
 from ufl.output import ufl_error
-from ufl.base import Expr, Terminal
+from ufl.expr import Expr
+from ufl.terminal import Terminal
 from ufl.form import Form
 from ufl.variable import Variable
 from ufl.scalar import ScalarValue

@@ -62,7 +62,7 @@ from ufl.function import Function, Functions, \
 # indexing of tensor expressions
 from ufl.indexing import Index, indices
 
-# special functions for expression base classes
+# special functions for expression base classes (ensure this is imported, since it attaches operators to Expr)
 from ufl import baseoperators as __baseoperators
 
 # containers for expressions with value rank > 0

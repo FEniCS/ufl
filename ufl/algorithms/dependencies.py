@@ -12,7 +12,8 @@ from ufl.output import ufl_assert, ufl_error, ufl_warning, ufl_debug
 from ufl.permutation import compute_indices
 
 # All classes:
-from ufl.base import Expr, Terminal
+from ufl.expr import Expr
+from ufl.terminal import Terminal
 from ufl.zero import Zero
 from ufl.scalar import FloatValue, IntValue
 from ufl.variable import Variable

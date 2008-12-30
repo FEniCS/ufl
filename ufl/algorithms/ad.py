@@ -7,7 +7,8 @@ from ufl.output import ufl_assert, ufl_error, ufl_warning
 from ufl.common import product, unzip, UFLTypeDefaultDict, subdict, mergedicts
 
 # All classes:
-from ufl.base import Expr, Terminal
+from ufl.expr import Expr
+from ufl.terminal import Terminal
 from ufl.zero import Zero
 from ufl.form import Form
 from ufl.integral import Integral

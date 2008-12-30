@@ -1,8 +1,15 @@
-"""This module defines the Expr base class and all expression
-types involved with built-in operators on any UFL object."""
+"""This module defines the Expr class, the superclass 
+for all expression tree node types in UFL.
+
+NB! A note about other operators not implemented here:
+
+More operators (special functions) on Exprs are defined in baseoperators.py,
+as well as the transpose "A.T" and spatial derivative "a.dx(i)".
+This is to avoid circular dependencies between Expr and its subclasses.
+"""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-12-29"
+__date__ = "2008-03-14 -- 2008-12-30"
 
 # Modified by Anders Logg, 2008
 
@@ -51,13 +58,13 @@ class Expr(object):
                 return d
         return None
     
-    #--- Functions for index handling ---
+    #--- Functions for computing derivatives ---
     
-    def partial_derivatives(self): # FIXME: Implement everywhere, and figure out conventions for tensor differentiation
-        """Return a tuple with the partial derivatives
-        of this expression w.r.t. each of its operands."""
-        raise NotImplementedError(self.__class__.partial_derivatives)
-    
+    #def partial_derivatives(self): # TODO: Do we want this here? If so, implement everywhere. (Must figure out conventions for tensor differentiation!)
+    #    """Return a tuple with the partial derivatives
+    #    of this expression w.r.t. each of its operands."""
+    #    raise NotImplementedError(self.__class__.partial_derivatives)
+
     #--- Functions for index handling ---
     
     # All subclasses must implement free_indices
@@ -75,8 +82,7 @@ class Expr(object):
     def index_dimensions(self):
         """Return a dict with the free or repeated indices in the expression
         as keys and the dimensions of those indices as values."""
-        raise NotImplementedError(self.__class__.index_dimensions)
-    
+        raise NotImplementedError(self.__class__.index_dimensions) 
     #--- Special functions for string representations ---
     
     # All subclasses must implement __repr__
@@ -130,48 +136,4 @@ class Expr(object):
     #def __getnewargs__(self): # TODO: Test pickle and copy with this. Must implement differently for Terminal objects though.
     #    "Used for pickle and copy operations."
     #    return self.operands()
-
-#--- A note about other operators ---
-
-# More operators (special functions) on Exprs are defined in baseoperators.py,
-# as well as the transpose "A.T" and spatial derivative "a.dx(i)".
-# This is to avoid circular dependencies between Expr and its subclasses.
-
-#--- Base class for terminal objects ---
-
-class Terminal(Expr):
-    "A terminal node in the UFL expression tree."
-    __slots__ = ()
-    
-    def __init__(self):
-        Expr.__init__(self)
-    
-    def operands(self):
-        "A Terminal object never has operands."
-        return ()
-    
-    def free_indices(self):
-        "A Terminal object never has free indices."
-        return ()
-    
-    def index_dimensions(self):
-        "A Terminal object never has free indices."
-        return {}
-    
-    def __eq__(self, other):
-        """Checks whether the two expressions are represented the
-        exact same way using repr. This does not check if the forms
-        are mathematically equal or equivalent!"""
-        if type(self) != type(other):
-            return False
-        if id(self) == other:
-            return True
-        return repr(self) == repr(other)
-
-    def __iter__(self):
-        return iter(())
-    
-    #def __getnewargs__(self): # TODO: Test pickle and copy with this. Must implement differently for Terminal objects though.
-    #    "Used for pickle and copy operations."
-    #    raise NotImplementedError, "Must reimplement in each Terminal, or?"
 

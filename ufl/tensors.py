@@ -5,7 +5,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-31 -- 2008-11-06"
 
 from ufl.output import ufl_assert, ufl_warning
-from ufl.base import Expr
+from ufl.expr import Expr
 from ufl.scalar import as_ufl
 from ufl.indexing import Index, MultiIndex
 

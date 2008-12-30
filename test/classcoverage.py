@@ -422,8 +422,8 @@ class ClasscoverageTest(unittest.TestCase):
         # TODO: Add tests for TensorConstant, VectorConstant, ScalarSomething, Skew
         
         # --- Check which classes have been created
-        if ufl.base._class_usage_statistics:
-            s = ufl.base._class_usage_statistics
+        if ufl.expr._class_usage_statistics:
+            s = ufl.expr._class_usage_statistics
             constructed = set(s.keys())
             abstract = set((Expr, Terminal, Condition, MathFunction, Restricted, ScalarValue))
             unused = set(ufl.classes.all_ufl_classes) - constructed - abstract

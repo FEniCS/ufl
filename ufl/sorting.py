@@ -5,7 +5,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-11-26 -- 2008-11-26"
 
 from ufl.common import Counted
-from ufl.base import Terminal
+from ufl.terminal import Terminal
 
 #--- Sorting rule ---
 

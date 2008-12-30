@@ -5,7 +5,8 @@ __date__ = "2008-05-20 -- 2008-12-22"
 
 from ufl.common import Counted
 from ufl.output import ufl_assert
-from ufl.base import Expr, Terminal
+from ufl.expr import Expr
+from ufl.terminal import Terminal
 
 class Variable(Terminal, Counted):
     """A Variable is a representative for another expression.

@@ -9,7 +9,8 @@ from inspect import getargspec
 from itertools import izip, chain
 from ufl.output import ufl_assert, ufl_error, ufl_warning
 from ufl.common import camel2underscore
-from ufl.base import Expr, Terminal
+from ufl.expr import Expr
+from ufl.terminal import Terminal
 from ufl.indexing import Index, indices, complete_shape
 from ufl.tensors import as_tensor, as_matrix, as_vector
 from ufl.variable import Variable

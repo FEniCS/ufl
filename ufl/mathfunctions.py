@@ -7,7 +7,7 @@ __date__ = "2008-03-14 -- 2008-11-06"
 # Modified by Anders Logg, 2008
 
 from ufl.output import ufl_assert
-from ufl.base import Expr
+from ufl.expr import Expr
 from ufl.scalar import FloatValue, is_true_ufl_scalar, is_python_scalar, as_ufl
 
 #--- Function representations ---

@@ -11,7 +11,8 @@ from itertools import chain
 from ufl.output import ufl_assert, ufl_error, ufl_info
 from ufl.common import lstr, UFLTypeDefaultDict
 
-from ufl.base import Expr, Terminal
+from ufl.expr import Expr
+from ufl.terminal import Terminal
 from ufl.algebra import Sum, Product, Division
 from ufl.finiteelement import MixedElement
 from ufl.basisfunction import BasisFunction

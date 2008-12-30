@@ -9,7 +9,7 @@ __date__ = "2008-08-18 -- 2008-11-07"
 # UFL imports
 from ufl.output import ufl_error, ufl_assert
 from ufl.common import subdict, mergedicts
-from ufl.base import Expr
+from ufl.expr import Expr
 from ufl.zero import Zero
 from ufl.scalar import ScalarValue, FloatValue, IntValue, is_python_scalar, as_ufl, python_scalar_types
 from ufl.algebra import Sum, Product, Division, Power, Abs

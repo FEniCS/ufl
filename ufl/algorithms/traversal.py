@@ -11,7 +11,8 @@ __date__ = "2008-03-14 -- 2008-12-11"
 # Modified by Anders Logg, 2008
 
 from ufl.output import ufl_assert, ufl_error
-from ufl.base import Expr, Terminal
+from ufl.expr import Expr
+from ufl.terminal import Terminal
 from ufl.integral import Integral
 from ufl.form import Form
 from ufl.variable import Variable

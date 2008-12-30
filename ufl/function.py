@@ -7,7 +7,7 @@ __date__ = "2008-03-14 -- 2008-12-22"
 # Modified by Anders Logg, 2008
 
 from ufl.finiteelement import FiniteElement, VectorElement, TensorElement
-from ufl.base import Terminal
+from ufl.terminal import Terminal
 from ufl.common import Counted, product
 from ufl.split import split
 from ufl.geometry import as_cell

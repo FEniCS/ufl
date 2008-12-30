@@ -6,7 +6,7 @@ __date__ = "2008-08-01 -- 2008-11-24"
 # Modified by Martin Alnes, 2008
 
 from ufl.output import ufl_assert, ufl_error
-from ufl.base import Expr
+from ufl.expr import Expr
 from ufl.algebra import Sum, Product
 from ufl.basisfunction import BasisFunction
 from ufl.function import Function
