@@ -1,8 +1,7 @@
 """Utility algorithms for inspection of and information extraction from UFL objects in various ways."""
 
-
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-12-12"
+__date__ = "2008-03-14 -- 2009-01-02"
 
 # Modified by Anders Logg, 2008
 
@@ -110,22 +109,6 @@ def extract_variables(a):
     """Build a set of all Variable objects in a,
     which can be a Form, Integral or Expr."""
     return extract_type(a, Variable)
-# FIXME: Does these two do the exact same thing?
-def extract_variables(expression, handled_vars=None):
-    if handled_vars is None:
-        handled_vars = set()
-    if isinstance(expression, Variable):
-        i = expression._count
-        if i in handled_vars:
-            return []
-        handled_vars.add(i)
-        variables = list(extract_variables(expression._expression, handled_vars))
-        variables.append(expression)
-    else:
-        variables = []
-        for o in expression.operands():
-            variables.extend(extract_variables(o, handled_vars))
-    return variables
 
 def extract_duplications(expression):
     "Build a set of all repeated expressions in expression."
@@ -133,7 +116,7 @@ def extract_duplications(expression):
     ufl_assert(isinstance(expression, Expr), "Expecting UFL expression.")
     handled = set()
     duplicated = set()
-    for (o, stack) in post_traversal(expression):
+    for o, stack in post_traversal(expression):
         if o in handled:
             duplicated.add(o)
         handled.add(o)

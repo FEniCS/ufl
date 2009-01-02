@@ -12,6 +12,7 @@ from ufl.terminal import Terminal
 from ufl.zero import Zero
 from ufl.scalar import ScalarValue, FloatValue, IntValue, ScalarSomething
 from ufl.variable import Variable
+from ufl.variable2 import NewVariable, Label
 from ufl.finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
 from ufl.basisfunction import BasisFunction, TestFunction, TrialFunction
 from ufl.function import Function, VectorConstant, TensorConstant, Constant

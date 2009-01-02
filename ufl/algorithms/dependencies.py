@@ -2,7 +2,7 @@
 
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-10-01 -- 2008-11-25"
+__date__ = "2008-10-01 -- 2009-01-02"
 
 from collections import defaultdict
 from itertools import izip, chain
