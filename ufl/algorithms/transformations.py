@@ -93,8 +93,7 @@ class Transformer(object):
         v = self._variable_cache.get(c)
         if v is None:
             # Visit the expression our variable represents
-            e = o._expression
-            e2 = self.visit(o._expression)
+            e2 = self.visit(e)
             # Recreate Variable with same count if necessary
             if e is e2:
                 return o
@@ -145,7 +144,7 @@ class Copier(Transformer):
         c = l._count
         v = self._variable_cache.get(c)
         if v is None:
-            e = self.visit(o._expression)
+            e = self.visit(e)
             v = Variable(e, c)
             self._variable_cache[c] = v
         return v
@@ -398,7 +397,7 @@ class BasisFunctionDependencyExtracter(Transformer):
         d = self._variable_cache.get(c)
         if d is None:
             # Visit the expression our variable represents
-            d = self.visit(o._expression)
+            d = self.visit(e)
             self._variable_cache[c] = d
         return d
     

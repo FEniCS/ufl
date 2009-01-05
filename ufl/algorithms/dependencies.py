@@ -15,7 +15,7 @@ from ufl.expr import Expr
 from ufl.terminal import Terminal
 from ufl.zero import Zero
 from ufl.scalar import FloatValue, IntValue
-from ufl.variable import Variable
+from ufl.variable import Variable, Label
 from ufl.basisfunction import BasisFunction
 from ufl.function import Function, Constant
 from ufl.differentiation import SpatialDerivative
@@ -254,7 +254,7 @@ class DependencySplitter(Transformer):
         return x, deps
     
     def variable(self, x):
-        vinfo = self.codestructure.variableinfo.get(x._count, None)
+        vinfo = self.codestructure.variableinfo.get(x.label()._count, None)
         ufl_assert(vinfo is not None, "Haven't handled variable in time: %s" % repr(x))
         return vinfo.variable, vinfo.deps
     
@@ -315,8 +315,8 @@ class DependencySplitter(Transformer):
             else:
                 v = Variable(e)
         else:
-            v = Variable(e, count=count)
-        count = v._count
+            v = Variable(e, label=Label(count))
+        count = v.label()._count
         vinfo = self.codestructure.variableinfo.get(count, None)
         if vinfo is None:
             vinfo = VariableInfo(v, deps)
@@ -325,15 +325,15 @@ class DependencySplitter(Transformer):
         else:
             ufl_debug("When does this happen? Need an algorithm revision to trust this fully.") # FIXME
         return vinfo
-
+    
     def handle(self, v):
         ufl_assert(isinstance(v, Variable), "Expecting Variable.")
-        vinfo = self.codestructure.variableinfo.get(v._count, None)
+        vinfo = self.codestructure.variableinfo.get(v.label()._count, None)
         if vinfo is None:
             # split v._expression 
             e, deps = self.visit(v._expression)
             # Register expression e as the expression of variable v
-            vinfo = self.register_expression(e, deps, count=v._count)
+            vinfo = self.register_expression(e, deps, count=v.label()._count)
         return vinfo
 
 def split_by_dependencies(expression, formdata, basisfunction_deps, function_deps):

@@ -1,9 +1,8 @@
 """This module defines utilities for transforming
 complete Forms into new related Forms."""
 
-
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-10-01 -- 2008-12-30"
+__date__ = "2008-10-01 -- 2009-01-05"
 
 # Modified by Anders Logg, 2008
 
