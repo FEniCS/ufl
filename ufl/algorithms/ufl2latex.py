@@ -3,7 +3,7 @@ either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-11-27"
+__date__ = "2008-05-07 -- 2009-01-05"
 
 # Modified by Anders Logg, 2008.
 
@@ -30,6 +30,7 @@ from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
 from ufl.differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.form import Form
+from ufl.classes import terminal_classes
 
 # Other algorithms:
 from ufl.algorithms.analysis import extract_basisfunctions, extract_coefficients, extract_variables
@@ -39,6 +40,8 @@ from ufl.algorithms.latextools import align, document, verbatim
 
 from ufl.algorithms.dependencies import DependencySet, split_by_dependencies
 from ufl.algorithms.transformations import expand_compounds, mark_duplications, Transformer
+
+# TODO: Maybe this can be cleaner written using the graph utilities
 
 
 # --- Tools for LaTeX rendering of UFL expressions ---
@@ -56,14 +59,12 @@ def build_precedence_map():
     precedence_list.append((LE, GT, GE, NE, EQ, LT))
     
     precedence_list.append((Div, Grad, Curl, Rot, SpatialDerivative, VariableDerivative,
-        Determinant, Trace, Cofactor, Inverse, Deviatoric))
+                            Determinant, Trace, Cofactor, Inverse, Deviatoric))
     precedence_list.append((Product, Division, Cross, Dot, Outer, Inner))
     precedence_list.append((Indexed, Transposed, Power))
     precedence_list.append((Abs, Cos, Exp, Ln, Sin, Sqrt))
     precedence_list.append((Variable,))
-    precedence_list.append((IntValue, FloatValue, ScalarValue, Zero, Identity,
-        FacetNormal, Constant, VectorConstant, TensorConstant,
-        BasisFunction, Function, MultiIndex))
+    precedence_list.append(terminal_classes)
     
     precedence_map = {}
     k = 0
@@ -130,7 +131,8 @@ class Expression2LatexHandler(Transformer):
     
     def variable(self, o):
         # TODO: Ensure variable has been handled
-        return "s_{%d}" % o._count
+        e, l = o.operands()
+        return "s_{%d}" % l._count
     
     # --- Non-terminal objects ---
     
@@ -336,16 +338,17 @@ def form2latex(form, formname="a", basisfunction_names = None, function_names = 
     for itg in integrals:
         variables = extract_variables(itg.integrand())
         for v in variables:
-            if not v._count in handled_variables:
-                handled_variables.add(v._count)
+            l = v._label
+            if not l in handled_variables:
+                handled_variables.add(l)
                 exprlatex = expression2latex(v._expression, formdata.basisfunction_renumbering, formdata.coefficient_renumbering)
-                lines.append(("s_{%d}" % v._count, "= %s" % exprlatex))
+                lines.append(("s_{%d}" % l._count, "= %s" % exprlatex))
     if lines:
         sections.append(("Variables", align(lines)))
     
     # Join form arguments for signature "a(...) ="
-    b = ", ".join("v_h^{%d}" % i for (i,v) in enumerate(formdata.basisfunctions))
-    c = ", ".join("w_h^{%d}" % i for (i,w) in enumerate(formdata.coefficients))
+    b = ", ".join("v_h^{%d}" % i for (i, v) in enumerate(formdata.basisfunctions))
+    c = ", ".join("w_h^{%d}" % i for (i, w) in enumerate(formdata.coefficients))
     arguments = "; ".join((b, c))
     signature = "%s(%s) = " % (formname, arguments, )
     
@@ -367,8 +370,8 @@ def ufl2latex(expression):
     "Generate LaTeX code for a UFL expression or form (wrapper for form2latex and expression2latex)."
     if isinstance(expression, Form):
         return form2latex(expression)
-    basisfunction_renumbering = dict((f,f._count) for f in extract_basisfunctions(expression))
-    coefficient_renumbering = dict((f,f._count) for f in extract_coefficients(expression))
+    basisfunction_renumbering = dict((f, f._count) for f in extract_basisfunctions(expression))
+    coefficient_renumbering = dict((f, f._count) for f in extract_coefficients(expression))
     return expression2latex(expression, basisfunction_renumbering, coefficient_renumbering)
 
 # --- LaTeX rendering of composite UFL objects ---
@@ -385,8 +388,9 @@ def dep2latex(dep):
         deps.append("K")
     if dep.coordinates:
         deps.append("x")
-    for i,v in enumerate(dep.basisfunctions):
-        if v: deps.append(bfname(i))
+    for i, v in enumerate(dep.basisfunctions):
+        if v:
+            deps.append(bfname(i))
     return "Dependencies: ${ %s }$." % ", ".join(deps)
 
 def dependency_sorting(deplist, rank): # TODO: Use this in SFC

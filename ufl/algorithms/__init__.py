@@ -1,13 +1,13 @@
 "This module collects algorithms and utility functions operating on UFL objects."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-14 -- 2008-11-21"
+__date__ = "2008-08-14 -- 2009-01-05"
 
 # Modified by Anders Logg, 2008
 
 # Utilities for traversing over expression trees in different ways
 from ufl.algorithms.traversal import iter_expressions, traverse_terminals, \
-                                     post_traversal, pre_traversal, traversal, \
+                                     post_traversal, pre_traversal, \
                                      post_walk, pre_walk, walk
 
 # Utilities for extracting information from forms and expressions

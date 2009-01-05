@@ -62,6 +62,12 @@ class Variable(Expr):
     def cell(self):
         return self._expression.cell()
     
+    def expression(self):
+        return self._expression
+    
+    def label(self):
+        return self._label
+    
     def __eq__(self, other):
         return isinstance(other, Variable) and self._label._count == other._label._count
         

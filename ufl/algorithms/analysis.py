@@ -1,7 +1,7 @@
 """Utility algorithms for inspection of and information extraction from UFL objects in various ways."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-01-02"
+__date__ = "2008-03-14 -- 2009-01-05"
 
 # Modified by Anders Logg, 2008
 
@@ -51,19 +51,18 @@ def extract_terminals(a):
                  for (o,stack) in post_traversal(e) \
                  if isinstance(o, Terminal))
 
+def cmp_counted(x, y):
+    return cmp(x._count, y._count)
+
 def extract_basisfunctions(a):
     """Build a sorted list of all basisfunctions in a,
     which can be a Form, Integral or Expr."""
-    def c(x,y):
-        return cmp(x._count, y._count)
-    return sorted(extract_type(a, BasisFunction), cmp=c)
+    return sorted(extract_type(a, BasisFunction), cmp=cmp_counted)
 
 def extract_coefficients(a):
     """Build a sorted list of all coefficients in a,
     which can be a Form, Integral or Expr."""
-    def c(x,y):
-        return cmp(x._count, y._count)
-    return sorted(extract_type(a, Function), cmp=c)
+    return sorted(extract_type(a, Function), cmp=cmp_counted)
 
 # alternative implementation, kept as an example:
 def _extract_coefficients(a):
@@ -114,12 +113,10 @@ def extract_variables(a):
     for e in iter_expressions(a):
         for o, stack in post_traversal(e):
             if isinstance(o, Variable):
-                l = o._count
-                #l = o.operands()[1]
-                #l = o.label()
-                if not l in handled:
+                expr, label = o.operands()
+                if not label in handled:
                     variables.append(o)
-                    handled.add(l)
+                    handled.add(label)
     return variables    
 
 def extract_duplications(expression):

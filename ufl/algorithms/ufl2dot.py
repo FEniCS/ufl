@@ -3,7 +3,7 @@ of UFL objects in the DOT graph visualization language,
 mostly intended for debugging purposers."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-11-17 -- 2008-11-25"
+__date__ = "2008-11-17 -- 2009-01-05"
 
 from itertools import chain
 
@@ -14,6 +14,8 @@ from ufl.form import Form
 from ufl.variable import Variable
 from ufl.scalar import ScalarValue
 from ufl.geometry import FacetNormal
+
+# TODO: Maybe this can be cleaner written using the graph utilities
 
 class2label = { \
     "Sum": "&sum;",
@@ -35,7 +37,7 @@ def build_entities(e, nodes, edges, nodeoffset):
     # Special-case Variable instances
     if isinstance(e, Variable):
         ops = (e._expression,)
-        label = "var %d" % e.count()
+        label = "var %d" % e._label._count
     else:
         ops = e.operands()
         if isinstance(e, Terminal):

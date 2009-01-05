@@ -29,7 +29,7 @@ class AlgorithmsTestCase(unittest.TestCase):
         c = Function(element)
         f = Function(element)
         
-        n = triangle.n()
+        n = triangle.n
         
         a = u*v*dx
         L = f*v*dx

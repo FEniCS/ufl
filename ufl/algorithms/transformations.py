@@ -19,8 +19,6 @@ from ufl.integral import Integral
 from ufl.classes import all_ufl_classes
 from ufl.algorithms.analysis import extract_duplications
 
-
-# TODO: Might remove these in time, if all algorithms are converted to Transformers
 def transform(expression, handlers):
     """Convert a UFLExpression according to rules defined by
     the mapping handlers = dict: class -> conversion function."""
@@ -90,7 +88,8 @@ class Transformer(object):
     
     def variable(self, o):
         # Check variable cache to reuse previously transformed variable if possible
-        c = o._count
+        e, l = o.operands()
+        c = l._count
         v = self._variable_cache.get(c)
         if v is None:
             # Visit the expression our variable represents
@@ -142,11 +141,13 @@ class Copier(Transformer):
         return type(o)(*ops)
     
     def variable(self, o):
-        v = self._variable_cache.get(o._count)
+        e, l = o.operands()
+        c = l._count
+        v = self._variable_cache.get(c)
         if v is None:
             e = self.visit(o._expression)
-            v = Variable(e, o._count)
-            self._variable_cache[o._count] = v
+            v = Variable(e, c)
+            self._variable_cache[c] = v
         return v
 
 
@@ -230,7 +231,7 @@ class DuplicationMarker(Transformer):
     facet_normal = wrap_terminal
     
     def variable(self, o):
-        e = o._expression
+        e, l = o.operands()
         v = self._expr2variable.get(e)
         if v is None:
             e2 = self.visit(e)
@@ -241,7 +242,7 @@ class DuplicationMarker(Transformer):
                 e2 = e2._expression
             v = self._expr2variable.get(e2)
             if v is None:
-                v = Variable(e2, o._count)
+                v = Variable(e2, l._count)
                 self._expr2variable[e] = v
                 self._expr2variable[e2] = v
         return v
@@ -392,7 +393,8 @@ class BasisFunctionDependencyExtracter(Transformer):
     
     def variable(self, o):
         # Check variable cache to reuse previously transformed variable if possible
-        c = o._count
+        e, l = o.operands()
+        c = l._count
         d = self._variable_cache.get(c)
         if d is None:
             # Visit the expression our variable represents

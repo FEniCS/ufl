@@ -11,7 +11,7 @@ MX = RT + DG
 (u, p) = TrialFunctions(MX)
 (v, q) = TestFunctions(MX)
 
-n = cell.n()
+n = cell.n
 
 a0 = (dot(u, v) + div(u)*q + div(v)*p)*dx
 

@@ -110,7 +110,7 @@ class ClasscoverageTest(unittest.TestCase):
         I = Identity(2)
         test_object(I, (dim,dim), ())
         
-        n = cell.n()
+        n = cell.n
         test_object(n, (dim,), ())
         
         a = variable(v0)

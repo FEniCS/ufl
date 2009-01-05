@@ -1,8 +1,7 @@
 """This module defines utilities for working with dependencies of subexpressions."""
 
-
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-10-01 -- 2009-01-02"
+__date__ = "2008-10-01 -- 2009-01-05"
 
 from collections import defaultdict
 from itertools import izip, chain

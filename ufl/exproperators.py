@@ -2,9 +2,8 @@
 This way we avoid circular dependencies between e.g.
 Sum and its superclass Expr."""
 
-
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-18 -- 2008-11-07"
+__date__ = "2008-08-18 -- 2009-01-05"
 
 # UFL imports
 from ufl.output import ufl_error, ufl_assert
@@ -150,7 +149,7 @@ def _dx(self, *ii):
     "Return the partial derivative with respect to spatial variable number i."
     d = self
     for i in ii:
-        d = SpatialDerivative(self, i)
+        d = SpatialDerivative(d, i)
     return d
 Expr.dx = _dx
 

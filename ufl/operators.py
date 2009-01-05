@@ -3,9 +3,8 @@ which are either already available as member functions on UFL objects
 or defined as compound operators involving basic operations on the UFL
 objects."""
 
-
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-04-09 -- 2008-12-22"
+__date__ = "2008-04-09 -- 2009-01-05"
 
 import math
 from ufl.output import ufl_assert, ufl_error
@@ -65,17 +64,17 @@ def skew(A):
 
 #--- Differential operators
 
-def Dx(f, i):
+def Dx(f, *i):
     "The partial derivative of f with respect to spatial variable number i."
-    return f.dx(i)
+    return f.dx(*i)
 
 def Dt(f):
     #return TimeDerivative(f) # TODO: Add class
     raise NotImplementedError
 
-def diff(f, x):
-    "The derivative of f with respect to the variable x."
-    return VariableDerivative(f, x)
+def diff(f, v):
+    "The derivative of f with respect to the variable v."
+    return VariableDerivative(f, v)
 
 def grad(f):
     "The gradient of f."
@@ -100,7 +99,7 @@ def jump(v):
     r = v.rank()
     cell = v.cell()
     ufl_assert(cell is not None, "FIXME: Not all expressions have a cell. How should this be done? What does FFC do?")
-    n = cell.n()
+    n = cell.n
     if r == 0:
         return v('+')*n('+') + v('-')*n('-')
     elif r == 1:
@@ -114,9 +113,9 @@ def avg(v):
 
 #--- Other operators ---
 
-def variable(o):
+def variable(e):
     "A variable representing the given expression."
-    return Variable(o)
+    return Variable(e)
 
 #--- Conditional expressions ---
 

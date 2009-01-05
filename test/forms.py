@@ -53,7 +53,7 @@ class FormsTestCase(unittest.TestCase):
     def test_source4(self):
         element = FiniteElement("Lagrange", triangle, 1)
         v = TestFunction(element)
-        x = triangle.x()
+        x = triangle.x
         f = sin(x[0])
         a = f*v*dx
 

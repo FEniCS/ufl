@@ -1,7 +1,7 @@
 "Types for quantities computed from cell geometry."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-12-22"
+__date__ = "2008-03-14 -- 2009-01-05"
 
 from ufl.output import ufl_assert
 from ufl.common import domain2dim
@@ -49,7 +49,7 @@ class FacetNormal(Terminal):
 
 class Cell(object):
     "Representation of a finite element cell."
-    __slots__ = ("_domain", "_degree")
+    __slots__ = ("_domain", "_degree", "n", "x")
     
     def __init__(self, domain, degree=1):
         "Initialize basic cell description"
@@ -58,8 +58,8 @@ class Cell(object):
             ufl_warning("High order geometries aren't implemented anywhere yet.")
         self._domain = domain
         self._degree = degree
-        #self.n = FacetNormal(self)
-        #self.x = SpatialCoordinate(self)
+        self.n = FacetNormal(self)
+        self.x = SpatialCoordinate(self)
     
     def domain(self):
         return self._domain
@@ -70,12 +70,6 @@ class Cell(object):
     # TODO: Swap this with geometric_dimension and topological_dimension
     def dim(self):
         return domain2dim[self._domain]
-    
-    def n(self):
-        return FacetNormal(self)
-    
-    def x(self):
-        return SpatialCoordinate(self)
     
     def __eq__(self, other):
         return isinstance(other, Cell) and self._domain == other._domain and self._degree == other._degree

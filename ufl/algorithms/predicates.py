@@ -10,7 +10,7 @@ from ufl.form import Form
 from ufl.algebra import Sum, Product
 from ufl.tensoralgebra import Dot
 from ufl.basisfunction import BasisFunction
-from ufl.algorithms.traversal import iter_expressions, traversal
+from ufl.algorithms.traversal import iter_expressions, pre_traversal
 from ufl.algorithms.transformations import extract_basisfunction_dependencies, NotMultiLinearException
 
 #--- Utilities for checking properties of forms ---
@@ -24,7 +24,7 @@ from ufl.algorithms.transformations import extract_basisfunction_dependencies, N
 # 
 #    # Check that all operators applied to basis functions are linear
 #    for e in iter_expressions(form):        
-#        for (o, stack) in traversal(e):
+#        for (o, stack) in pre_traversal(e):
 #            if isinstance(o, BasisFunction):
 #                for operator in stack:
 #                    if not operator.is_linear():

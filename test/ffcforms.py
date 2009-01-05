@@ -181,8 +181,8 @@ class FFCTestCase(unittest.TestCase):
         v = TestFunction(element)
         u = TrialFunction(element)
         f = Function(element)
-
-        n = triangle.n()
+        
+        n = triangle.n
         
         # FFC notation: h = MeshSize("triangle"), not supported by UFL
         h = Constant(triangle)
