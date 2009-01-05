@@ -106,9 +106,21 @@ def extract_indices(expression):
     return indices
 
 def extract_variables(a):
-    """Build a set of all Variable objects in a,
-    which can be a Form, Integral or Expr."""
-    return extract_type(a, Variable)
+    """Build a list of all Variable objects in a,
+    which can be a Form, Integral or Expr.
+    The ordering in the list obeys dependency order."""
+    handled = set()
+    variables = []
+    for e in iter_expressions(a):
+        for o, stack in post_traversal(e):
+            if isinstance(o, Variable):
+                l = o._count
+                #l = o.operands()[1]
+                #l = o.label()
+                if not l in handled:
+                    variables.append(o)
+                    handled.add(l)
+    return variables    
 
 def extract_duplications(expression):
     "Build a set of all repeated expressions in expression."
