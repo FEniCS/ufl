@@ -3,7 +3,7 @@
 # Date: 2008-10-03
 #
 
-element = FiniteElement("Lagrange", "triangle", 1)
+element = FiniteElement("Lagrange", triangle, 1)
 
 v = TestFunction(element)
 f = Function(element)

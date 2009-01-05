@@ -3,7 +3,7 @@
 # Date: 2008-10-03
 #
 
-element = VectorElement("Lagrange", "triangle", 1)
+element = VectorElement("Lagrange", triangle, 1)
 
 v = TestFunction(element)
 w = Function(element)

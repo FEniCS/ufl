@@ -3,19 +3,21 @@
 # Date: 2008-10-03
 #
 
+cell = triangle
 k = 1
-S = VectorElement("BDM", "triangle", k)
-V = VectorElement("Discontinuous Lagrange", "triangle", k-1)
-Q = TensorElement("Discontinuous Lagrange", "triangle", k-1) #, \
+S = VectorElement("BDM", cell, k)
+V = VectorElement("Discontinuous Lagrange", cell, k-1)
+Q = TensorElement("Discontinuous Lagrange", cell, k-1) #, \
 #                  symmetry = "skew") # FIXME: Implement something like this
 MX = MixedElement(S, V, Q)
 
 (tau, v, eta) = TestFunctions(MX)
 (sigma, u, gamma) = TrialFunctions(MX)
 
-print sigma.shape()
-print u.shape()
-print gamma.shape()
+#print sigma.shape()
+#print u.shape()
+#print gamma.shape()
 
 a2 = (inner(sigma, tau) - tr(sigma)*tr(tau) \
-      + dot(div(tau), u) - dot(div(sigma), v) + inner(tau,gamma) + inner(eta,sigma))*dx
+      + dot(div(tau), u) - dot(div(sigma), v) \
+      + inner(tau,gamma) + inner(eta,sigma))*dx

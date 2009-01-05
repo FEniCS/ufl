@@ -3,7 +3,7 @@
 # Date: 2008-10-30
 #
 
-element = FiniteElement("Lagrange", "triangle", 1)
+element = FiniteElement("Lagrange", triangle, 1)
 
 w = Function(element)
 

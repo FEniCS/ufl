@@ -3,11 +3,11 @@
 # Date: 2008-10-03
 #
 
-polygon = "interval"
-element = FiniteElement("CG", polygon, 2)
+cell = interval
+element = FiniteElement("CG", cell, 2)
 u = Function(element)
-b = Constant(polygon)
-K = Constant(polygon)
+b = Constant(cell)
+K = Constant(cell)
 
 E = u.dx(0) + u.dx(0)**2 / 2
 E = variable(E)
