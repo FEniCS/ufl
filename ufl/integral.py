@@ -1,8 +1,7 @@
 """The Integral class."""
 
-
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-03"
+__date__ = "2008-03-14 -- 2009-01-05"
 
 # Modified by Anders Logg, 2008
 
@@ -43,7 +42,7 @@ class Integral(object):
     def __neg__(self):
         return Integral(self._domain_type, self._domain_id, -self._integrand)
     
-    def __call__(self, domain_id):
+    def __call__(self, domain_id): # TODO: Add integration data here: , quadrature_rule):
         "Return integral of same type on given sub domain"
         return Integral(self._domain_type, domain_id)
     

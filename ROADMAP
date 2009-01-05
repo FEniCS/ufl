@@ -1,32 +1,6 @@
 Roadmap for the development of UFL
 ----------------------------------
 
-# Update all files with new Variable:
-
-ufl/
-differentiation.py
-
-exproperators.py
-expr.py
-__init__.py
-mathfunctions.py
-operators.py
-variable2.py
-variable.py
-
-martinal@martinal-xps:~/dev/fenics/ufl/ufl/algorithms$ egrep -l variable *
-ad.py
-analysis.py
-dependencies.py
-extract_basisfunction_dependencies.py
-__init__.py
-transformations.py
-traversal.py
-ufl2dot.py
-ufl2latex.py
-
-
-
 # About canonical form of forms and expressions:
  - Maybe we should keep a more conservative representation of expressions,
    and move simplifications from __new__ to separate functions?
@@ -70,28 +44,23 @@ ufl2latex.py
    Groups of operations where possible would be best, e.g. same abstraction level as the input expression tree.
  - Read up on AD and improve implementation (actually, currently it's more like pure symbolic differentiation)
 
-# Various issues with Variable: (write down issues as they occur here to get a better overview!)
- - Figure out implications of a Variable with free indices.
-   How does various algorithms deal with this?
-   Will it affect expression simplification?
- - Figure out issues with diff w.r.t. tensor variable and indexed tensor variable.
- - Consider the results of splitting class Variable into two classes:
-     - Variable (non-terminal, for VariableDerivative use)
-     - Token (terminal, for building code structure)
-   One problem is that Variable needs to be identified by something,
-   currently a global counter, and algorithms that modify expression
-   trees needs to be able to create new Variable objects with the same
-   identifier that represents a transformed version of the same variable.
-
 # Elements and Basisfunctions (medium priority, needed for non-trivial applications):
  - Implement 'Test/Trial/BasisFunctions' for general tensor subelement with arbitrary symmetries (see split.py). Need to agree on some numbering conventions here.
  - Degree range for quadrature elements?
+ - Add integration method information to Integral. In particular we want to add
+   quadrature order or weights/points, but maybe also other metadata is possible.
+ - Implement
+    class ElementUnion(FiniteElementBase):
+        def __init__(self, *elements):
+            ...
+   to represent the enrichment of a finite element space with another.
+ - Time elements
 
 # Algorithms:
  - Computing quadrature degree.
  - If AD needs to be applied in a compiler context, we need a framework
    for representing unapplied form transformations.
- - Implement lhs, rhs, and other form transformations.
+ - Test implementations of lhs, rhs, and other form transformations.
  (- Implement contraction function that expands all implicit summations
     into Sums (do we need this? can be merged with evaluation anyway) )
 
