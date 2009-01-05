@@ -27,8 +27,7 @@ from ufl.indexing import Indexed, Index, MultiIndex
 from ufl.form import Form
 from ufl.integral import Integral
 from ufl.classes import terminal_classes, nonterminal_classes
-from ufl.algorithms.traversal import iter_expressions, post_traversal, walk
-
+from ufl.algorithms.traversal import iter_expressions, post_traversal, post_walk
 
 #--- Utilities to extract information from an expression ---
 
@@ -73,10 +72,9 @@ def _extract_coefficients(a):
     def func(o):
         if isinstance(o, Function):
             s.add(o)
-    walk(a, func)
+    post_walk(a, func)
     # sort by count
-    l = sorted(s, cmp=lambda x,y: cmp(x.count(), y.count()))
-    return l
+    return sorted(s, cmp=cmp_counted)
 
 def extract_elements(a):
     "Build a sorted list of all elements used in a."

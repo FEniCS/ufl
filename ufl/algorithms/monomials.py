@@ -14,14 +14,21 @@ from ufl.form import Form
 from ufl.algorithms.traversal import iter_expressions
 
 
+# Martin to Marie and Anders:
+#    I wouldn't trust these functions,
+#    things have changed since Anders first wrote them
+#    and they only seem like sketches anyway.
+
+
 #--- Utilities to extract information from an expression ---
 
 def extract_monomials(expression, indent=""):
     "Extract monomial representation of expression (if possible)."
 
-    # FIXME: Not yet working, need to include derivatives, integrals etc
+    # TODO: Not yet working, need to include derivatives, integrals etc
 
-    ufl_assert(isinstance(expression, Form) or isinstance(expression, Expr), "Expecting UFL form or expression.")
+    ufl_assert(isinstance(expression, Form) or isinstance(expression, Expr),
+        "Expecting UFL form or expression.")
 
     # Iterate over expressions
     m = []
@@ -63,4 +70,27 @@ def extract_monomials(expression, indent=""):
             ufl_error("Don't know how to handle expression: %s", str(e))
 
     return m
+
+def _extract_monomials(e): 
+    "Extract monomial terms (ignoring all operators except + and -)"
+    
+    operands = e.operands()
+    monomials = []
+    if isinstance(e, Sum):
+        for o in operands:
+            monomials += _extract_monomials(o)
+    # TODO: Does this make sense (treating Dot like Product)? No. Use expand_compounds first, then there are no Dot, Inner, Outer, Cross, etc.
+    elif isinstance(e, Product) or isinstance(e, Dot):
+        ufl_assert(len(operands) == 2, "Strange, expecting two factors.")
+        for m0 in _extract_monomials(operands[0]):
+            for m1 in _extract_monomials(operands[1]):
+                monomials.append(m0 + m1)
+    elif len(operands) == 2:
+        ufl_warning("Unknown binary operator, don't know how to handle.")
+    elif len(operands) == 1: # TODO: This won't be right for lots of operators... Should at least throw errors for unsupported types.
+        monomials += _extract_monomials(operands[0])
+    elif isinstance(e, BasisFunction):
+        monomials.append((e,))
+
+    return monomials
 

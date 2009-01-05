@@ -46,7 +46,7 @@ def compute_form_action(form, function):
             "function in an incompatible element space.")
     return replace(form, {u:function})
 
-class ArityAnalyser(Transformer):
+class ArityAnalyser(Transformer): # TODO: Can we avoid the cache stuff? Seems a bit clumsy in retrospect.
     def __init__(self, arity):
         Transformer.__init__(self)
         self._arity_cache = {}
@@ -65,6 +65,23 @@ class ArityAnalyser(Transformer):
         # Default terminal behaviour doesn't modify
         self._arity_cache[id(x)] = 0
         return x
+    
+    def variable(self, x):
+        e, l = x.operands()
+        result = self._variable_cache.get(l)
+        if result is None:
+            e2 = self.visit(e)
+            arity = self._arity_cache[id(e)]
+            
+            # Reuse or reconstruct variable
+            if e is e2:
+                result = x
+            else:
+                result = Variable(2, l)
+            self._variable_cache[l] = result
+            
+            self._arity_cache[id(result)] = arity
+        return result
     
     def basis_function(self, x):
         self._arity_cache[id(x)] = 1

@@ -1,8 +1,7 @@
 """Functions to check properties of forms and integrals."""
 
-
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-14 -- 2008-10-24"
+__date__ = "2008-03-14 -- 2009-01-05"
 
 from ufl.output import ufl_assert, ufl_warning, ufl_debug
 from ufl.common import lstr
@@ -15,6 +14,33 @@ from ufl.algorithms.transformations import extract_basisfunction_dependencies, N
 
 #--- Utilities for checking properties of forms ---
 
+def is_multilinear(form):
+    "Check if form is multilinear in basis function arguments."
+    # An attempt at implementing is_multilinear using extract_basisfunction_dependencies.
+    # TODO: This has some false negatives for "multiple configurations". (Does it still? Needs testing!)
+    # TODO: FFC probably needs a variant of this which checks for some sorts of linearity
+    #       in Functions as well, this should be a fairly simple extension of the current algorithm.
+    try:
+        for e in iter_expressions(form):
+            deps = extract_basisfunction_dependencies(e)
+            nargs = [len(d) for d in deps]
+            if len(nargs) == 0:
+                ufl_debug("This form is a functional.")
+            if len(nargs) == 1:
+                ufl_debug("This form is linear in %d arguments." % nargs[0])
+            if len(nargs) > 1:
+                ufl_warning("This form has more than one basis function "\
+                    "'configuration', it has terms that are linear in %s "\
+                    "arguments respectively." % str(nargs))
+    
+    except NotMultiLinearException, msg:
+        ufl_warning("Form is not multilinear, the offending term is: %s" % msg)
+        return False
+    
+    return True
+
+
+# TODO: Remove this code if nobody needs it for anything:
 #===============================================================================
 # def is_multilinear(form):
 #    "Check if form is multilinear."
@@ -52,49 +78,3 @@ from ufl.algorithms.transformations import extract_basisfunction_dependencies, N
 #    return True
 #===============================================================================
 
-def is_multilinear(form):
-    "Check if form is multilinear in basis function arguments."
-    # An attempt at implementing is_multilinear using extract_basisfunction_dependencies.
-    # TODO: This has some false negatives for "multiple configurations".
-    # TODO: FFC probably needs a variant of this which checks for linearity in Functions as well, this should be a fairly simple extension of the current algorithm.
-    try:
-        for e in iter_expressions(form):
-            deps = extract_basisfunction_dependencies(e)
-            nargs = [len(d) for d in deps]
-            if len(nargs) == 0:
-                ufl_debug("This form is a functional.")
-            if len(nargs) == 1:
-                ufl_debug("This form is linear in %d arguments." % nargs[0])
-            if len(nargs) > 1:
-                ufl_warning("This form has more than one basis function "\
-                    "'configuration', it has terms that are linear in %s "\
-                    "arguments respectively." % str(nargs))
-    
-    except NotMultiLinearException, msg:
-        ufl_warning("Form is not multilinear, the offending term is: %s" % msg)
-        return False
-    
-    return True
-
-def _extract_monomials(e):
-    "Extract monomial terms (ignoring all operators except + and -)"
-    
-    operands = e.operands()
-    monomials = []
-    if isinstance(e, Sum):
-        for o in operands:
-            monomials += _extract_monomials(o)
-    # FIXME: Does this make sense (treating Dot like Product)? No.
-    elif isinstance(e, Product) or isinstance(e, Dot):
-        ufl_assert(len(operands) == 2, "Strange, expecting two factors.")
-        for m0 in _extract_monomials(operands[0]):
-            for m1 in _extract_monomials(operands[1]):
-                monomials.append(m0 + m1)
-    elif len(operands) == 2:
-        ufl_warning("Unknown binary operator, don't know how to handle.")
-    elif len(operands) == 1: # FIXME: This won't be right for lots of operators... Should at least throw errors for unsupported types.
-        monomials += _extract_monomials(operands[0])
-    elif isinstance(e, BasisFunction):
-        monomials.append((e,))
-
-    return monomials

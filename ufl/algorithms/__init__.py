@@ -49,3 +49,22 @@ from ufl.algorithms.ufl2dot import ufl2dot
 
 # Utilities for form file handling
 from ufl.algorithms.formfiles import load_forms
+
+# State of files (in the opinion of Martin):
+#    traversal.py           - Ok.
+#    analysis.py            - Ok, some unused stuff.
+#    formdata.py            - Probably don't need both self.unique_elements and self.sub_elements?
+#                             Need to improve quadrature order estimation.
+#    predicates.py          - is_multilinear seems ok but needs testing, extract_monomials is garbage.
+#    checks.py              - Ok, more checks are welcome.
+#    formfiles.py           - Ok.
+#    transformations.py     - Ok.
+#    monomials.py           - Not working. FFC specific?
+#    dependencies.py        - ? Rework!
+#    formtransformations.py - Ok?
+#    ad.py                  - ? Rework!
+#    printing.py            - Ok.
+#    latextools.py          - Ok.
+#    ufl2latex.py           - Not bad. Fix precedence stuff.
+#    ufl2dot.py             - Not bad. Rework with graph tools.
+

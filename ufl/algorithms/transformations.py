@@ -3,10 +3,11 @@ either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2008-12-22"
+__date__ = "2008-05-07 -- 2009-01-05"
 
 from inspect import getargspec
 from itertools import izip, chain
+
 from ufl.output import ufl_assert, ufl_error, ufl_warning
 from ufl.common import camel2underscore
 from ufl.expr import Expr
@@ -33,6 +34,7 @@ def transform(expression, handlers):
     return h(expression, *ops)
 
 def transform_integrands(form, transformer):
+    ufl_assert(isinstance(form, Form), "Expecting Form.")
     if isinstance(form, Form):
         newintegrals = []
         for integral in form.integrals():
@@ -61,7 +63,7 @@ class Transformer(object):
     
     def register(self, classobject, function):
         self._handlers[classobject] = function
-
+    
     def visit(self, o):
         # Get handler for the UFL class of o (type(o) may be an external subclass of the actual UFL class)
         h = self._handlers.get(o._uflid)
@@ -75,52 +77,80 @@ class Transformer(object):
             return h(o)
         # Failed to find a handler!
         raise RuntimeError("Can't handle objects of type %s" % str(type(o)))
+
+    def reuse(self, o):
+        "Always reuse Expr (ignore children)"
+        return o
     
     def reuse_if_possible(self, o, *operands):
-        # Reuse o if possible, otherwise recreate
-        return o if operands == o.operands() else type(o)(*operands)
-    expr = reuse_if_possible
+        "Reuse Expr if possible, otherwise recreate."
+        return o if operands == o.operands() else o._uflid(*operands)
     
-    def reuse(self, o):
-        # Always reuse
-        return o
+    def always_recreate(self, o, *operands):
+        "Always recreate expr."
+        return o._uflid(*operands)
+    
+    # Set default behaviour for terminals
     terminal = reuse
+
+class ReuseTransformer(Transformer):
+    def __init__(self, variable_cache=None):
+        Transformer.__init__(self, variable_cache)
+    
+    # Set default Expr behaviour
+    expr = Transformer.reuse_if_possible
     
     def variable(self, o):
         # Check variable cache to reuse previously transformed variable if possible
         e, l = o.operands()
-        c = l._count
-        v = self._variable_cache.get(c)
+        v = self._variable_cache.get(l)
         if v is None:
             # Visit the expression our variable represents
             e2 = self.visit(e)
-            # Recreate Variable with same count if necessary
+            # Recreate Variable (with same label) only if necessary
             if e is e2:
                 return o
-            v = Variable(e2, c)
-            self._variable_cache[c] = v
+            v = Variable(e2, l)
+            self._variable_cache[l] = v
         return v
 
+class CopyTransformer(Transformer):
+    def __init__(self, variable_cache=None):
+        Transformer.__init__(self, variable_cache)
+    
+    # Set default Expr behaviour
+    expr = Transformer.always_recreate
+    
+    def variable(self, o):
+        # Check variable cache to reuse previously transformed variable if possible
+        e, l = o.operands()
+        v = self._variable_cache.get(l)
+        if v is None:
+            # Visit the expression our variable represents
+            e2 = self.visit(e)
+            # Always recreate Variable (with same label)
+            v = Variable(e2, l)
+            self._variable_cache[l] = v
+        return v
 
-class Replacer(Transformer):
+class Replacer(ReuseTransformer):
     def __init__(self, mapping):
-        Transformer.__init__(self)
+        ReuseTransformer.__init__(self)
         self._mapping = mapping
         ufl_assert(all(isinstance(k, Terminal) for k in mapping.keys()), \
-                "Can only replace Terminal objects.")
+            "This implementation can only replace Terminal objects.")
     
     def terminal(self, o):
         e = self._mapping.get(o)
         return o if e is None else e
 
-
-class TreeFlattener(Transformer):
+class TreeFlattener(ReuseTransformer):
     def __init__(self):
-        Transformer.__init__(self)
+        ReuseTransformer.__init__(self)
     
     def sum_or_product(self, o, *ops):
         # FIXME: This is error prone for indexed products, consider: (u[i]*u[i])*(v[i]*v[i])
-        c = type(o)
+        c = o._uflid
         operands = []
         for b in ops:
             if isinstance(b, c):
@@ -131,37 +161,17 @@ class TreeFlattener(Transformer):
     sum = sum_or_product
     product = sum_or_product
 
-
-class Copier(Transformer):
+class VariableStripper(ReuseTransformer):
     def __init__(self, mapping):
-        Transformer.__init__(self)
-    
-    def expr(self, o, *ops):
-        return type(o)(*ops)
-    
-    def variable(self, o):
-        e, l = o.operands()
-        c = l._count
-        v = self._variable_cache.get(c)
-        if v is None:
-            e = self.visit(e)
-            v = Variable(e, c)
-            self._variable_cache[c] = v
-        return v
-
-
-class VariableStripper(Transformer):
-    def __init__(self, mapping):
-        Transformer.__init__(self)
+        ReuseTransformer.__init__(self)
     
     def variable(self, o):
         return self.visit(o._expression)
 
-
-#class OperatorApplier(Transformer):
+#class OperatorApplier(ReuseTransformer):
 #    "Implements mappings that can be defined through Python operators."
 #    def __init__(self):
-#        Transformer.__init__(self)
+#        ReuseTransformer.__init__(self)
 #    
 #    def abs(self, o, a):
 #        return abs(a)
@@ -191,9 +201,9 @@ class VariableStripper(Transformer):
 # What this does do well is insert Variables around subexpressions that the
 # user actually identified manually in his code like in "a = ...; b = a*(1+a)",
 # and expressions without indices (prior to expand_compounds).
-class DuplicationMarker(Transformer):
+class DuplicationMarker(ReuseTransformer):
     def __init__(self, duplications):
-        Transformer.__init__(self)
+        ReuseTransformer.__init__(self)
         self._duplications = duplications
         self._expr2variable = {}
     
@@ -203,7 +213,8 @@ class DuplicationMarker(Transformer):
             oo = o
             # reconstruct if necessary
             if not ops == o.operands():
-                o = type(o)(*ops)
+                o = o._uflid(*ops)
+            
             if (oo in self._duplications) or (o in self._duplications):
                 v = Variable(o)
                 self._expr2variable[o] = v
@@ -211,9 +222,6 @@ class DuplicationMarker(Transformer):
             else:
                 v = o
         return v
-    
-    def terminal(self, o):
-        return o
     
     def wrap_terminal(self, o):
         v = self._expr2variable.get(o)
@@ -236,24 +244,23 @@ class DuplicationMarker(Transformer):
             e2 = self.visit(e)
             # Unwrap expression from the newly created Variable wrapper
             # unless the original expression was a Variable, in which
-            # case we possibly need to keep the count for correctness.
+            # case we possibly need to keep the label for correctness.
             if (not isinstance(e, Variable)) and isinstance(e2, Variable):
                 e2 = e2._expression
             v = self._expr2variable.get(e2)
             if v is None:
-                v = Variable(e2, l._count)
+                v = Variable(e2, l)
                 self._expr2variable[e] = v
                 self._expr2variable[e2] = v
         return v
 
-
 # Note:
 # To avoid typing errors, the expressions for cofactor and deviatoric parts 
 # below were created with the script tensoralgebrastrings.py under ufl/scripts/
-class CompoundExpander(Transformer):
+class CompoundExpander(ReuseTransformer):
     "Expands compound expressions to equivalent representations using basic operators."
     def __init__(self, geometric_dimension):
-        Transformer.__init__(self)
+        ReuseTransformer.__init__(self)
         self._dim = geometric_dimension
     
     # ------------ Compound tensor operators
@@ -390,31 +397,30 @@ class BasisFunctionDependencyExtracter(Transformer):
         Transformer.__init__(self)
         self._empty = frozenset()
     
-    def variable(self, o):
-        # Check variable cache to reuse previously transformed variable if possible
-        e, l = o.operands()
-        c = l._count
-        d = self._variable_cache.get(c)
-        if d is None:
-            # Visit the expression our variable represents
-            d = self.visit(e)
-            self._variable_cache[c] = d
-        return d
-    
-    def terminal(self, o):
-        "Default for terminals: no dependency on basis functions."
-        return self._empty
-    
-    def basis_function(self, o):
-        d = frozenset((o,))
-        return frozenset((d,))
-    
     def expr(self, o, *opdeps):
         "Default for nonterminals: nonlinear in all arguments."
         for d in opdeps:
             if d:
                 raise NotMultiLinearException, repr(o)
         return self._empty
+    
+    def terminal(self, o):
+        "Default for terminals: no dependency on basis functions."
+        return self._empty
+    
+    def variable(self, o):
+        # Check variable cache to reuse previously transformed variable if possible
+        e, l = o.operands()
+        d = self._variable_cache.get(l)
+        if d is None:
+            # Visit the expression our variable represents
+            d = self.visit(e)
+            self._variable_cache[l] = d
+        return d
+    
+    def basis_function(self, o):
+        d = frozenset((o,))
+        return frozenset((d,))
     
     def linear(self, o, a):
         "Nonterminals that are linear with a single argument."
@@ -522,14 +528,14 @@ def apply_transformer(e, transformer):
 def ufl2ufl(e):
     """Convert an UFL expression to a new UFL expression, with no changes.
     This is used for testing that objects in the expression behave as expected."""
-    return apply_transformer(e, Transformer())
+    return apply_transformer(e, ReuseTransformer())
 
 def ufl2uflcopy(e):
     """Convert an UFL expression to a new UFL expression.
     All nonterminal object instances are replaced with identical
     copies, while terminal objects are kept. This is used for
     testing that objects in the expression behave as expected."""
-    return apply_transformer(e, Copier())
+    return apply_transformer(e, CopyTransformer())
 
 def replace(e, mapping):
     """Replace terminal objects in expression.
