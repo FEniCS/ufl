@@ -1,6 +1,32 @@
 Roadmap for the development of UFL
 ----------------------------------
 
+# Update all files with new Variable:
+
+ufl/
+differentiation.py
+
+exproperators.py
+expr.py
+__init__.py
+mathfunctions.py
+operators.py
+variable2.py
+variable.py
+
+martinal@martinal-xps:~/dev/fenics/ufl/ufl/algorithms$ egrep -l variable *
+ad.py
+analysis.py
+dependencies.py
+extract_basisfunction_dependencies.py
+__init__.py
+transformations.py
+traversal.py
+ufl2dot.py
+ufl2latex.py
+
+
+
 # About canonical form of forms and expressions:
  - Maybe we should keep a more conservative representation of expressions,
    and move simplifications from __new__ to separate functions?

@@ -35,6 +35,15 @@ def iter_expressions(a):
         return (a,)
     ufl_error("Not an UFL type: %s" % str(type(a)))
 
+def traverse_terminals(expression):
+    if isinstance(expression, Terminal):
+        yield expression
+    else:
+        for o in expression.operands():
+            for t in traverse_terminals(o):
+                yield t
+# TODO: Remove below version
+
 def traverse_terminals(expression, traverse_into_variables=True):
     if isinstance(expression, Terminal) and not (traverse_into_variables and isinstance(expression, Variable)):
         yield expression

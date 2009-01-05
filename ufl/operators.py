@@ -96,7 +96,7 @@ def rot(f):
 #--- DG operators ---
 
 def jump(v):
-    "The jump of v."
+    "The jump of v across a facet."
     r = v.rank()
     cell = v.cell()
     ufl_assert(cell is not None, "FIXME: Not all expressions have a cell. How should this be done? What does FFC do?")
@@ -109,7 +109,7 @@ def jump(v):
         ufl_error("jump(v) is only defined for scalar or vector-valued expressions (not rank %d expressions)." % r)
 
 def avg(v):
-    "The average of v."
+    "The average of v across a facet."
     return 0.5*(v('+') + v('-'))
 
 #--- Other operators ---

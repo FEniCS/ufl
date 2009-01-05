@@ -58,6 +58,8 @@ class Cell(object):
             ufl_warning("High order geometries aren't implemented anywhere yet.")
         self._domain = domain
         self._degree = degree
+        #self.n = FacetNormal(self)
+        #self.x = SpatialCoordinate(self)
     
     def domain(self):
         return self._domain

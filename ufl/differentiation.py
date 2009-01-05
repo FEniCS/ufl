@@ -1,7 +1,7 @@
 "Differential operators."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-12-30"
+__date__ = "2008-03-14 -- 2009-01-05"
 
 from ufl.output import ufl_assert, ufl_warning
 from ufl.common import subdict, mergedicts
@@ -60,7 +60,9 @@ class FunctionDerivative(Derivative):
 class SpatialDerivative(Derivative):
     "Partial derivative of an expression w.r.t. spatial directions given by indices."
     __slots__ = ("_expression", "_shape", "_indices", "_free_indices", "_index_dimensions", "_repeated_indices", "_dx_free_indices", "_dx_repeated_indices")
-    def __new__(cls, expression, indices):
+    def __new__(cls, expression, indices): # FIXME: Update this to only allow a single index, repeated indices can only occur in combination with argument
+        if not isinstance(indices, tuple): # temporary hack during transition
+            indices = (indices,)
         if isinstance(expression, Terminal):
             # Return zero if expression is trivially constant
             if isinstance(expression, spatially_constant_types):
@@ -84,6 +86,8 @@ class SpatialDerivative(Derivative):
         self._expression = expression
         
         if not isinstance(indices, MultiIndex):
+            if not isinstance(indices, tuple): # temporary hack during transition
+                indices = (indices,)
             # if constructed from repr
             indices = MultiIndex(indices, len(indices)) # TODO: Do we need len(indices) in MultiIndex?
         self._indices = indices
@@ -135,7 +139,7 @@ class VariableDerivative(Derivative):
     __slots__ = ("_f", "_v", "_index", "_free_indices", "_index_dimensions", "_shape")
     def __new__(cls, f, v):
         # Return zero if expression is trivially independent of Function
-        if isinstance(f, Terminal) and not isinstance(f, Variable):
+        if isinstance(f, Terminal):# and not isinstance(f, Variable):
             free_indices = set(f.free_indices()) ^ set(v.free_indices())
             index_dimensions = mergedicts([f.index_dimensions(), v.index_dimensions()])
             index_dimensions = subdict(index_dimensions, free_indices)
@@ -148,7 +152,7 @@ class VariableDerivative(Derivative):
         if isinstance(v, Indexed):
             ufl_assert(isinstance(v._expression, Variable), \
                 "Expecting a Variable in VariableDerivative.")
-            ufl_warning("diff(f, v[i]) probably isn't handled properly in all code.") # FIXME
+            ufl_warning("diff(f, v[i]) isn't handled properly in all code.") # FIXME
         else:
             ufl_assert(isinstance(v, Variable), \
                 "Expecting a Variable in VariableDerivative.")

@@ -39,9 +39,6 @@ for filename in args:
         form = fd.form
         name = fd.name
         
-        # Extract information about forms
-        fd = FormData(form)
-        
         # Pretty-print form information
         print
         print "Form info:"

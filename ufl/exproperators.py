@@ -146,7 +146,16 @@ Expr.T = property(_transpose)
 
 #--- Extend Expr with spatial differentiation operator a.dx(i) ---
 
-def _dx(self, *i):
-    """Return the partial derivative with respect to spatial variable number i"""
-    return SpatialDerivative(self, i)
+def _dx(self, *ii):
+    "Return the partial derivative with respect to spatial variable number i."
+    d = self
+    for i in ii:
+        d = SpatialDerivative(self, i)
+    return d
 Expr.dx = _dx
+
+def _d(self, v):
+    "Return the partial derivative with respect to variable v."
+    return VariableDerivative(self, i)
+Expr.d = _d
+
