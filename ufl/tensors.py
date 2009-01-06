@@ -1,6 +1,5 @@
 """Classes used to group scalar expressions into expressions with rank > 0."""
 
-
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-31 -- 2008-11-06"
 
@@ -139,3 +138,43 @@ def as_vector(expressions, index = None):
         ufl_assert(isinstance(index, Index), "Expecting Index object.")
         index = (index,)
     return as_tensor(expressions, index)
+
+# --- Experimental support for dyadic notation:
+
+def unit_list(i, n):
+    return [(1 if i == j else 0) for j in xrange(n)]
+
+def unit_list2(i, j, n):
+    return [[(1 if (i == i0 and j == j0) else 0) for j0 in xrange(n)] for i0 in xrange(n)]
+
+def unit_vector(i, d):
+    return as_vector(unit_list(i, d))
+
+def unit_vectors(d):
+    return tuple(unit_vector(i, d) for i in range(d))
+
+def unit_matrix(i, j, d):
+    return as_matrix(unit_list2(i, j, d))
+
+def unit_matrices(d):
+    return tuple(unit_matrix(i, j, d) for i in range(d) for j in range(d))
+
+def _test():
+    from ufl.tensors import unit_vector, unit_vectors, unit_matrix, unit_matrices
+    cell = triangle
+    d = cell.dim()
+    ei, ej, ek = unit_vectors(d)
+    eii, eij, eik, eji, ejj, ejk, eki, ekj, ekk = unit_matrices(d)
+    print ei
+    print ej
+    print ek
+    print eii
+    print eij
+    print eik
+    print eji
+    print ejj
+    print ejk
+    print eki
+    print ekj
+    print ekk
+

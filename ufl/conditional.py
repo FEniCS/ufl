@@ -1,8 +1,7 @@
 """This module defines classes for conditional expressions."""
 
-
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-20 -- 2008-11-06"
+__date__ = "2008-08-20 -- 2009-01-06"
 
 from ufl.output import ufl_assert, ufl_warning, ufl_error
 from ufl.expr import Expr
@@ -117,3 +116,6 @@ class Conditional(Expr):
     def __repr__(self):
         return "Conditional(%r, %r, %r)" % self.operands()
     
+def sign(x):
+    return conditional(eq(x, 0), 0, conditional(lt(x, 0), -1, +1))
+
