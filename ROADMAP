@@ -2,9 +2,6 @@ Roadmap for the development of UFL
 ----------------------------------
 
 # About canonical form of forms and expressions:
- - Maybe we should keep a more conservative representation of expressions,
-   and move simplifications from __new__ to separate functions?
-   Pros and cons?
  - The current way of comparing forms and expressions using repr isn't
    good enough, since repr depends on the global counters of Counted
    objects (that is, Index, BasisFunction and Function with subclasses).
@@ -20,17 +17,20 @@ Roadmap for the development of UFL
      - In an index renumbering algorithm, we must take great care to avoid
        implicit dependencies of the index numbering on the previous numberings!
        (The ordering of operands may depend on previous numbering!)
-     - Indices may be introduced in the expression tree in the following node types only:
+     - Indices may be _introduced_ in the expression tree in the following node types only:
        - Indexed
        - SpatialDerivative
      - Indices may be mapped from free to repeated in the following node types only:
        - Indexed (A[i,i])
-       - SpatialDerivative (A[i].dx(i) or A.dx(i,i))
+       - SpatialDerivative (A[i].dx(i))
        - Product (A[i,j]*B[j,k])
        In all other nodes, indices just fall through
-   (- Maybe introducing a class ImplicitSum which represents the sum of an
-     expression (product or derivative or indexed) over its repeated indices
+   (- Maybe introducing a class ImplicitSum (which represents the sum of an
+     expression (product/spatialderivative/indexed) over its repeated indices)
      can simplify some algorithms?)
+ (- Maybe we should keep a more conservative representation of expressions,
+   and move simplifications from __new__ to separate functions?
+   Pros and cons? Bad during AD, lots of expressions created automatically that can cancel out.)
 
 # Derivatives:
  - Apply AD to computation of

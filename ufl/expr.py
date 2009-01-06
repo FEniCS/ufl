@@ -9,7 +9,7 @@ This is to avoid circular dependencies between Expr and its subclasses.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-12-30"
+__date__ = "2008-03-14 -- 2009-01-05"
 
 # Modified by Anders Logg, 2008
 

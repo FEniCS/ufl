@@ -3,7 +3,7 @@ either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2009-01-05"
+__date__ = "2008-05-07 -- 2009-01-06"
 
 from inspect import getargspec
 from itertools import izip, chain
@@ -511,6 +511,39 @@ class BasisFunctionDependencyExtracter(Transformer):
     dot = product
     cross = product
 
+class DuplicationPurger(ReuseTransformer):
+    "Replace all duplicated nodes from an UFL Expr."
+    def __init__(self):
+        ReuseTransformer.__init__(self)
+        self._handled = {}
+        #self._duplications = set()
+    
+    def expr(self, x, *ops):
+        # Check cache
+        e = self._handled.get(x)
+        if e is None:
+            # Reuse or reconstruct
+            if ops == x.operands():
+                e = x
+            else:
+                e = x._uflid(*ops2)
+            # Update cache
+            self._handled[x] = e
+        #else:
+        #    self._duplications.add(e)
+        assert repr(x) == repr(e)
+        return e
+    
+    def terminal(self, x):
+        e = self._handled.get(x)
+        if e is None:
+            # Reuse
+            e = x
+            # Update cache
+            self._handled[x] = e
+        #else:
+        #    self._duplications.add(e)
+        return e
 
 # ------------ User interface functions
 
@@ -547,10 +580,10 @@ def replace(e, mapping):
     """
     return apply_transformer(e, Replacer(mapping))
 
-def flatten(e):
+def flatten(e): # TODO: Fix or remove!
     """Convert an UFL expression to a new UFL expression, with sums 
     and products flattened from binary tree nodes to n-ary tree nodes."""
-    ufl_warning("flatten doesn't work correctly for some indexed products, like (u[i]*v[i])*(q[i]*r[i])")
+    ufl_warning("flatten doesn't work correctly for some indexed products, like (u[i]*v[i])*(q[i]*r[i])") 
     return apply_transformer(e, TreeFlattener())
 
 def expand_compounds(e, dim=None):
@@ -562,13 +595,20 @@ def expand_compounds(e, dim=None):
     return apply_transformer(e, CompoundExpander(dim))
 
 def strip_variables(e):
+    "Replace all Variable instances with the expression they represent."
     return apply_transformer(e, VariableStripper())
 
 def mark_duplications(e):
-    """Wrap subexpressions that are equal (completely equal, not mathematically
-    equivalent) in Variable objects to facilitate subexpression reuse."""
+    """Wrap subexpressions that are equal
+    (completely equal, not mathematically equivalent)
+    in Variable objects to facilitate subexpression reuse."""
     duplications = extract_duplications(e)
     return apply_transformer(e, DuplicationMarker(duplications))
+
+def purge_duplications(expression):
+    """Replace any subexpressions in expression that
+    occur more than once with a single instance."""
+    return apply_transformer(expression, DuplicationPurger())
 
 def extract_basisfunction_dependencies(e):
     "Extract a set of sets of basisfunctions."

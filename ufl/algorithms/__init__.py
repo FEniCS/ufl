@@ -40,7 +40,7 @@ from ufl.algorithms.formtransformations import compute_form_adjoint, compute_for
                                                compute_form_lhs, compute_form_rhs #, compute_dirichlet_functional
 
 # Utilities for Automatic Functional Differentiation
-from ufl.algorithms.ad import compute_diff, propagate_spatial_derivatives, compute_form_derivative
+from ufl.algorithms.ad import expand_derivatives, compute_diff, propagate_spatial_derivatives, compute_form_derivative
 
 # Utilities for UFL object printing
 from ufl.algorithms.printing import integral_info, form_info, tree_format
@@ -55,16 +55,16 @@ from ufl.algorithms.formfiles import load_forms
 #    analysis.py            - Ok, some unused stuff.
 #    formdata.py            - Probably don't need both self.unique_elements and self.sub_elements?
 #                             Need to improve quadrature order estimation.
-#    predicates.py          - is_multilinear seems ok but needs testing, extract_monomials is garbage.
+#    predicates.py          - is_multilinear seems ok but needs testing, extract_monomials is just a sketch.
 #    checks.py              - Ok, more checks are welcome.
 #    formfiles.py           - Ok.
 #    transformations.py     - Ok.
 #    monomials.py           - Not working. FFC specific?
-#    dependencies.py        - ? Rework!
-#    formtransformations.py - Ok?
-#    ad.py                  - ? Rework!
+#    dependencies.py        - Rework with computational graphs!
+#    formtransformations.py - Ok? Needs testing.
+#    ad.py                  - In horrible state. Rework!
 #    printing.py            - Ok.
 #    latextools.py          - Ok.
-#    ufl2latex.py           - Not bad. Fix precedence stuff.
-#    ufl2dot.py             - Not bad. Rework with graph tools.
+#    ufl2latex.py           - Fix precedence stuff.
+#    ufl2dot.py             - Rework with graph tools.
 

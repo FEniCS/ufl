@@ -1,7 +1,7 @@
 """Utility algorithms for inspection of and information extraction from UFL objects in various ways."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-01-05"
+__date__ = "2008-03-14 -- 2009-01-06"
 
 # Modified by Anders Logg, 2008
 
@@ -128,4 +128,18 @@ def extract_duplications(expression):
             duplicated.add(o)
         handled.add(o)
     return duplicated
+
+def count_nodes(expr, ids=None):
+    "Count the number of unique Expr instances in expression."
+    i = id(expr)
+    if ids is None:
+        ids = set()
+    elif i in ids:
+        # Skip already visited subtrees
+        return
+    # Extend set with children recursively
+    for o in expr.operands():
+        count_nodes(o, ids)
+    ids.add(i)
+    return len(ids)
 
