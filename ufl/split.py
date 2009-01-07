@@ -1,7 +1,7 @@
 "Algorithm for splitting a Function into sub functions."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-10-31"
+__date__ = "2008-03-14 -- 2009-01-07"
 
 # Modified by Anders Logg, 2008
 
@@ -11,12 +11,12 @@ from ufl.common import product
 from ufl.output import ufl_assert, ufl_error
 
 def split(v):
-    "Split Function into its sub Functions if any"
+    "Split Function into its sub Functions if any."
     
     # Special case: simple element, return function
     element = v.element()
     if not isinstance(element, MixedElement):
-        return v
+        return (v,)
     
     # Compute value size
     value_size = product(element.value_shape())

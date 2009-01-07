@@ -40,7 +40,7 @@ from ufl.algorithms.formtransformations import compute_form_adjoint, compute_for
                                                compute_form_lhs, compute_form_rhs #, compute_dirichlet_functional
 
 # Utilities for Automatic Functional Differentiation
-from ufl.algorithms.ad import expand_derivatives, compute_diff, propagate_spatial_derivatives, compute_form_derivative
+from ufl.algorithms.ad import expand_derivatives #, compute_diff, propagate_spatial_derivatives, compute_form_derivative
 
 # Utilities for UFL object printing
 from ufl.algorithms.printing import integral_info, form_info, tree_format

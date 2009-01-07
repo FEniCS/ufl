@@ -170,6 +170,11 @@ class Expression2LatexHandler(Transformer):
         denom = r"\partial\left[%s\right]" % v
         return r"\frac{%s}{%s}" % (nom, denom)
     
+    def function_derivative(self, o, f, w, v):
+        nom   = r"\partial\left[%s\right]" % f
+        denom = r"\partial\left[%s\right]" % w
+        return r"\frac{%s}{%s}[%s]" % (nom, denom, v)
+    
     def grad(self, o, f):
         return "\\nabla{%s}" % par(f)
     

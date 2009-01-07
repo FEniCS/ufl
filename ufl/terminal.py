@@ -2,11 +2,12 @@
 for all types that are terminal nodes in the expression trees."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-12-30"
+__date__ = "2008-03-14 -- 2008-01-07"
 
 # Modified by Anders Logg, 2008
 
 from ufl.expr import Expr
+from ufl.common import lstr
 
 #--- Base class for terminal objects ---
 
@@ -45,4 +46,25 @@ class Terminal(Expr):
     #def __getnewargs__(self): # TODO: Test pickle and copy with this. Must implement differently for Terminal objects though.
     #    "Used for pickle and copy operations."
     #    raise NotImplementedError, "Must reimplement in each Terminal, or?"
+
+class Tuple(Terminal):
+    "For internal use, never to be created by users."
+    def __init__(self, *items):
+        Expr.__init__(self)
+        self._items = items
+    
+    def __getitem__(self, i):
+        return self._items[i]
+    
+    def __len__(self):
+        return len(self._items)
+    
+    def __iter__(self):
+        return iter(self._items)
+    
+    def __str__(self):
+        return "Tuple(*%s)" % lstr(self._items)
+    
+    def __repr__(self):
+        return "Tuple(*%s)" % repr(self._items)
 

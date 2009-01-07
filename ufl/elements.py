@@ -25,7 +25,7 @@ register_element("Lagrange", "CG", 0, (1, None),
 register_element("Discontinuous Lagrange", "DG", 0, (0, None),
                  ("interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
 
-register_element("Bubble", "B", 0, (1, 1), # TODO: Define proper limits for Bubble element 
+register_element("Bubble", "B", 0, (1, 1), # TODO: Define proper limits for Bubble element. TODO: Add ElementUnion concept.
                  ("interval", "triangle", "tetrahedron"))
 
 register_element("Crouzeix-Raviart", "CR", 0, (1, 1),

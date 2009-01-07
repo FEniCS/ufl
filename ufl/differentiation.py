@@ -1,12 +1,12 @@
 "Differential operators."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-01-05"
+__date__ = "2008-03-14 -- 2009-01-07"
 
 from ufl.output import ufl_assert, ufl_warning
 from ufl.common import subdict, mergedicts
 from ufl.expr import Expr
-from ufl.terminal import Terminal
+from ufl.terminal import Terminal, Tuple
 from ufl.zero import Zero
 from ufl.scalar import ScalarValue, is_true_ufl_scalar
 from ufl.indexing import Indexed, MultiIndex, Index, extract_indices
@@ -14,6 +14,7 @@ from ufl.variable import Variable
 from ufl.tensors import as_tensor
 from ufl.tensoralgebra import Identity
 from ufl.function import Function, Constant, VectorConstant, TensorConstant
+from ufl.basisfunction import BasisFunction
 
 #--- Basic differentiation objects ---
 
@@ -28,34 +29,36 @@ class Derivative(Expr):
 class FunctionDerivative(Derivative):
     """Derivative of the integrand of a form w.r.t. the 
     degrees of freedom in a discrete Function."""
-    __slots__ = ("_form", "_function", "_basisfunction")
-    def __init__(self, integrand, function, basisfunction):
+    __slots__ = ("_integrand", "_functions", "_basisfunctions")
+    def __init__(self, integrand, functions, basisfunctions):
         Derivative.__init__(self)
         ufl_assert(is_true_ufl_scalar(integrand),
             "Expecting true UFL scalar expression.")
-        ufl_assert(isinstance(function, Function),
-            "Expecting Function instance.")
-        ufl_assert(isinstance(basisfunction, BasisFunction),
-            "Expecting BasisFunction instance.")
+        ufl_assert(isinstance(functions, Tuple), #and all(isinstance(f, (Function,Indexed)) for f in functions),
+            "Expecting Tuple instance with Functions.")
+        ufl_assert(isinstance(basisfunctions, Tuple), #and all(isinstance(f, BasisFunction) for f in basisfunctions),
+            "Expecting Tuple instance with BasisFunctions.")
         self._integrand = integrand
-        self._function = function
-        self._basisfunction = basisfunction
+        self._functions = functions
+        self._basisfunctions = basisfunctions
     
     def operands(self):
-        raise RuntimeError, "Probably don't want to call operands on FunctionDerivative, can we avoid this?"
-        return (self._integrand, self._function, self._basisfunction)
-    
-    def free_indices(self):
-        return ()
+        return (self._integrand, self._functions, self._basisfunctions)
     
     def shape(self):
         return ()
     
+    def free_indices(self):
+        return ()
+    
+    def index_dimensions(self):
+        return {}
+    
     def __str__(self):
-        return "FunctionDerivative (w.r.t. function %r and using basis function %r) of \n%s" % (self._function, self._basisfunction, self._integrand)
+        return "FunctionDerivative (w.r.t. function %r and using basis function %r) of \n%s" % (self._functions, self._basisfunctions, self._integrand)
     
     def __repr__(self):
-        return "FunctionDerivative(%r, %r, %r)" % (self._integrand, self._function, self._basisfunction)
+        return "FunctionDerivative(%r, %r, %r)" % (self._integrand, self._functions, self._basisfunctions)
 
 class SpatialDerivative(Derivative):
     "Partial derivative of an expression w.r.t. spatial directions given by indices."
@@ -110,9 +113,10 @@ class SpatialDerivative(Derivative):
         fid = expression.index_dimensions()
         indices = fi + self._dx_free_indices
         dimensions = tuple(fid[i] for i in fi) + (dim,)*len(self._dx_free_indices)
+        
         (self._free_indices, self._repeated_indices, self._shape, self._index_dimensions) = \
             extract_indices(indices, dimensions)
-    
+
     def operands(self):
         return (self._expression, self._indices)
     

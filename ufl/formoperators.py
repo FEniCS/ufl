@@ -1,13 +1,17 @@
 "Various high level ways to transform a complete Form into a new Form."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-12-30"
+__date__ = "2008-03-14 -- 2008-01-07"
 
 from ufl.form import Form
+from ufl.terminal import Tuple
+from ufl.integral import Integral
+from ufl.function import Function
+from ufl.basisfunction import BasisFunction, BasisFunctions
+from ufl.differentiation import FunctionDerivative
 
 # An exception to the rule that ufl.* does not depend on ufl.algorithms.* ...
-from ufl.algorithms import compute_form_derivative, \
-                           compute_form_adjoint, compute_form_action, \
+from ufl.algorithms import compute_form_adjoint, compute_form_action, \
                            compute_form_lhs, compute_form_rhs
 
 def rhs(form):
@@ -42,6 +46,47 @@ def adjoint(form):
     # TODO: May need to compute form derivatives before applying this!
     return compute_form_adjoint(form)
 
+def _handle_derivative_arguments(function, basisfunction):
+    if isinstance(function, Function):
+        functions = (function,)
+        
+        # Get element
+        element = function.element()
+        
+        # Create basis function if necessary
+        if basisfunction is None:
+            basisfunctions = BasisFunction(element)
+        else:
+            basisfunctions = (basisfunction,)
+    
+    elif isinstance(function, tuple):
+        functions = function
+        
+        # We got a tuple of functions, handle it as 
+        # functions over components of a mixed element.
+        ufl_assert(all(isinstance(w, Function) for w in functions),
+            "Expecting a tuple of Functions to differentiate w.r.t.")
+        
+        # Create mixed element
+        elements = [w.element() for w in functions]
+        element = MixedElement(*elements)
+        
+        # Create basis functions if necessary
+        if basisfunction is None:
+            basisfunctions = BasisFunctions(element)
+        else:
+            basisfunctions = (basisfunction,)
+            ufl_assert(isinstance(basisfunction, BasisFunction) \
+                and basisfunction.element() == element,
+                "Basis function over wrong element supplied, "\
+                "got %s but expecting %s." % \
+                (repr(basisfunction.element()), repr(element)))
+    
+    functions      = Tuple(functions)
+    basisfunctions = Tuple(basisfunctions)
+    
+    return functions, basisfunctions
+
 def derivative(form, function, basisfunction=None):
     """Given any form, compute the linearization of the
     form with respect to the given discrete function.
@@ -51,21 +96,20 @@ def derivative(form, function, basisfunction=None):
     a single Function, in which case the new BasisFunction
     argument is based on a MixedElement created from this tuple."""
     
+    functions, basisfunctions = _handle_derivative_arguments(function, basisfunction)
+    
     # Got a form? Apply derivatives to the integrands in turn.
     if isinstance(form, Form):
-        return compute_form_derivative(form, function, basisfunction) # TODO: Replace by apply_ad when that code is finished
-        
-        # TODO: Must move the basis function extraction logic here to make it equal for all integrals
-        if basisfunction is None or function is None: ufl_error("work in progress!")
-        
         integrals = []
         for itg in form._integrals:
-            fd = FunctionDerivative(itg.integrand(), function, basisfunction)
+            fd = FunctionDerivative(itg.integrand(), functions, basisfunctions)
             newitg = Integral(itg.domain_type(), itg.domain_id(), fd)
             integrals.append(newitg)
         return Form(integrals)
     
-    # What we got was in fact an integrand
-    integrand = form
-    return FunctionDerivative(integrand, function, basisfunction)
+    elif isinstance(form, Expr):
+        # What we got was in fact an integrand
+        return FunctionDerivative(form, functions, basisfunctions)
+    
+    ufl_error("Invalid argument type %s." % str(type(form)))
 

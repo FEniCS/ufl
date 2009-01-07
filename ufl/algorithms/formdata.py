@@ -13,6 +13,8 @@ from ufl.form import Form
 
 from ufl.algorithms.analysis import extract_basisfunctions, extract_coefficients, extract_classes, extract_sub_elements
 
+from ufl.algorithms.ad import expand_derivatives
+
 class FormData(object):
     "Class collecting various information extracted from a Form."
     
@@ -20,7 +22,8 @@ class FormData(object):
         "Create form data for given form"
         ufl_assert(isinstance(form, Form), "Expecting Form.")
         
-        self.form = form
+        self.original_form = form
+        self.form = expand_derivatives(form)
         self.name = name
 
         # Get arguments and their elements
