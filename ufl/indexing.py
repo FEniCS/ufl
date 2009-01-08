@@ -139,6 +139,8 @@ class Indexed(Expr):
         Expr.__init__(self)
         self._expression = expression
         
+        ufl_assert(expression.free_indices() == (), "Currently not accepting free indices in indexed expression.") # FIXME: Figure this out!!!
+        
         if not isinstance(indices, MultiIndex):
             # if constructed from repr
             indices = MultiIndex(indices, expression.rank())

@@ -255,10 +255,14 @@ class IndexTestCase(unittest.TestCase):
         self.assertTrue(set(a.free_indices()) == set((i,j))) # indices change place because of sorting, I guess this may be ok
         self.assertTrue(a.repeated_indices() == ())
         
-        a = v.dx(i)[i] # FIXME: Should we allow v.dx(i) when v is a vector?
-        self.assertTrue(a.free_indices() == ())
-        self.assertTrue(a.repeated_indices() == (i,))
-        
+        try:
+            a = v.dx(i)[i] # FIXME: Should we allow v.dx(i) when v is a vector?
+            success = True
+        except:
+            success = False
+        self.assertFalse(success)
+        #self.assertTrue(a.free_indices() == ())
+        #self.assertTrue(a.repeated_indices() == (i,))
 
 if __name__ == "__main__":
     unittest.main()
