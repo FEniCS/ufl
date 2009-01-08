@@ -205,7 +205,54 @@ class IndexTestCase(unittest.TestCase):
             pass
         
         # ...
-
+    
+    def test_indexed(self):
+        element = VectorElement("CG", "triangle", 1)
+        v  = TestFunction(element)
+        u  = TrialFunction(element)
+        i, j, k, l = indices(4) 
+        
+        a = v[i]
+        self.assertTrue(a.free_indices() == (i,))
+        self.assertTrue(a.repeated_indices() == ())
+        
+        a = outer(v,u)[i,j]
+        self.assertTrue(a.free_indices() == (i,j))
+        self.assertTrue(a.repeated_indices() == ())
+        
+        a = outer(v,u)[i,i]
+        self.assertTrue(a.free_indices() == ())
+        self.assertTrue(a.repeated_indices() == (i,))
+    
+    def test_spatial_derivative(self):
+        element = VectorElement("CG", "triangle", 1)
+        v  = TestFunction(element)
+        u  = TrialFunction(element)
+        i, j, k, l = indices(4) 
+        
+        a = v[i].dx(i)
+        self.assertTrue(a.free_indices() == ())
+        self.assertTrue(a.repeated_indices() == (i,))
+        
+        a = v[i].dx(j)
+        self.assertTrue(a.free_indices() == (i,j))
+        self.assertTrue(a.repeated_indices() == ())
+        
+        a = (v[i]*u[j]).dx(i,j)
+        self.assertTrue(a.free_indices() == ())
+        self.assertTrue(a.repeated_indices() == (j,))
+        
+        a = v.dx(i,j)
+        self.assertTrue(a.free_indices() == (i,j))
+        self.assertTrue(a.repeated_indices() == ())
+        
+        a = v[i].dx(0)
+        self.assertTrue(a.free_indices() == (i,))
+        self.assertTrue(a.repeated_indices() == ())
+        
+        a = (v[i]*u[j]).dx(0, 1)
+        self.assertTrue(set(a.free_indices()) == set((i,j))) # indices change place because of sorting, I guess this may be ok
+        self.assertTrue(a.repeated_indices() == ())
 
 if __name__ == "__main__":
     unittest.main()

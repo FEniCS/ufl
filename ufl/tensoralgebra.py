@@ -13,7 +13,9 @@ from ufl.indexing import Index, indices
 def merge_free_indices(a, b):
     ai = a.free_indices()
     bi = b.free_indices()
-    ufl_assert(not (set(ai) ^ set(bi)), "Not expecting repeated indices.")
+    ri = set(ai) & set(bi)
+    print ri
+    ufl_assert(not ri, "Not expecting repeated indices.")
     free_indices = ai+bi
     
     aid = a.index_dimensions()

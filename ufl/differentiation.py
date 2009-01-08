@@ -1,7 +1,7 @@
 "Differential operators."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-01-07"
+__date__ = "2008-03-14 -- 2009-01-08"
 
 from ufl.output import ufl_assert, ufl_warning
 from ufl.common import subdict, mergedicts
@@ -9,7 +9,7 @@ from ufl.expr import Expr
 from ufl.terminal import Terminal, Tuple
 from ufl.zero import Zero
 from ufl.scalar import ScalarValue, is_true_ufl_scalar
-from ufl.indexing import Indexed, MultiIndex, Index, extract_indices
+from ufl.indexing import Indexed, MultiIndex, Index, FixedIndex
 from ufl.variable import Variable
 from ufl.tensors import as_tensor
 from ufl.tensoralgebra import Identity
@@ -62,64 +62,90 @@ class FunctionDerivative(Derivative):
 
 class SpatialDerivative(Derivative):
     "Partial derivative of an expression w.r.t. spatial directions given by indices."
-    __slots__ = ("_expression", "_shape", "_indices", "_free_indices", "_index_dimensions", "_repeated_indices", "_dx_free_indices", "_dx_repeated_indices")
-    def __new__(cls, expression, indices): # FIXME: Update this to only allow a single index, repeated indices can only occur in combination with argument
-        if not isinstance(indices, tuple): # temporary hack during transition
-            indices = (indices,)
+    __slots__ = ("_expression", "_index", "_shape", "_free_indices", "_repeated_indices", "_index_dimensions")
+    def __new__(cls, expression, index):
+        
+        # Make sure we have a single valid index
+        if isinstance(index, int):
+            index = FixedIndex(index)
+        if isinstance(index, (FixedIndex, Index)):
+            index = MultiIndex(index, 1)
+        ufl_assert(isinstance(index, MultiIndex), "Expecting a valid index type.")
+        ufl_assert(len(index) == 1, "Can only handle one differentiation index!")
+        idx = index[0]
+        
+        # Return zero if expression is trivially constant
         if isinstance(expression, Terminal):
-            # Return zero if expression is trivially constant
+            # TODO: Check for BasisFunction or Function and attach indices to them directly?
             if isinstance(expression, spatially_constant_types):
+                # TODO: This code is duplicated in __init__
+                # Get spatial dimension
                 cell = expression.cell()
-                ufl_assert(cell is not None, "Need cell to know spatial dimension in SpatialDerivative.")
-                spatial_dim = cell.dim()
+                ufl_assert(cell is not None,
+                    "Need to know the spatial dimension to compute the shape of derivatives.")
+                dim = cell.dim()
                 
-                # Compute free indices and their dimensions
-                si = set(i for i in indices if isinstance(i, Index))
-                free_indices = expression.free_indices() ^ si
-                index_dimensions = dict(expression.index_dimensions())
-                index_dimensions.update((i, spatial_dim) for i in si)
-                index_dimensions = subdict(index_dimensions, free_indices)
+                # TODO: This code is duplicated in __init__
+                # Find repeated index
+                efi = expression.free_indices()
+                fi = tuple(i for i in efi if not i == idx)
+                ri = ()
+                idim = dict(expression.index_dimensions())
+                if isinstance(idx, Index):
+                    if len(fi) == len(efi):
+                        fi += (idx,) # idx is not repeated
+                        idim.update(((idx, dim),))
+                    else:
+                        ri += (idx,) # idx is repeated
                 
-                return Zero(expression.shape(), free_indices, index_dimensions)
+                return Zero(expression.shape(), fi, idim)
 
         return Expr.__new__(cls)
     
-    def __init__(self, expression, indices):
+    def __init__(self, expression, index):
         Derivative.__init__(self)
         self._expression = expression
         
-        if not isinstance(indices, MultiIndex):
-            if not isinstance(indices, tuple): # temporary hack during transition
-                indices = (indices,)
-            # if constructed from repr
-            indices = MultiIndex(indices, len(indices)) # TODO: Do we need len(indices) in MultiIndex?
-        self._indices = indices
+        # Make sure we have a single valid index
+        if isinstance(index, int):
+            index = FixedIndex(index)
+        if isinstance(index, (FixedIndex, Index)):
+            index = MultiIndex(index, 1)
+        ufl_assert(isinstance(index, MultiIndex), "Expecting a valid index type.")
+        ufl_assert(len(index) == 1, "Can only handle one differentiation index!")
         
-        # Find free and repeated indices in the dx((i,i,j)) part
-        (self._dx_free_indices, self._dx_repeated_indices, dummy, dummy) = \
-            extract_indices(self._indices._indices)
+        idx = index[0]
+        self._index = index
         
+        # TODO: This code is duplicated in __new__
+        # Get spatial dimension
         cell = expression.cell()
-        ufl_assert(cell is not None, "Need to know the spatial dimension to compute the shape of derivatives.")
+        ufl_assert(cell is not None,
+            "Need to know the spatial dimension to compute the shape of derivatives.")
         dim = cell.dim()
-        self._index_dimensions = {}
-        for i in self._dx_free_indices:
-            # set free index dimensions to the spatial dimension 
-            self._index_dimensions[i] = dim
         
-        # Find free and repeated indices among the combined
-        # indices of the expression and dx((i,j,k))
-        fi = expression.free_indices()
-        fid = expression.index_dimensions()
-        indices = fi + self._dx_free_indices
-        dimensions = tuple(fid[i] for i in fi) + (dim,)*len(self._dx_free_indices)
+        # TODO: This code is duplicated in __init__
+        # Find repeated index
+        efi = expression.free_indices()
+        fi = tuple(i for i in efi if not i == idx)
+        ri = ()
+        idim = dict(expression.index_dimensions())
+        if isinstance(idx, Index):
+            if len(fi) == len(efi):
+                fi += (idx,) # idx is not repeated
+                idim.update(((idx, dim),))
+            else:
+                ri += (idx,) # idx is repeated
         
-        (self._free_indices, self._repeated_indices, self._shape, self._index_dimensions) = \
-            extract_indices(indices, dimensions)
-
-    def operands(self):
-        return (self._expression, self._indices)
+        # Store what we need
+        self._free_indices = fi
+        self._repeated_indices = ri
+        self._index_dimensions = idim
+        self._shape = expression.shape()
     
+    def operands(self):
+        return (self._expression, self._index)
+   
     def free_indices(self):
         return self._free_indices
     
@@ -134,13 +160,13 @@ class SpatialDerivative(Derivative):
 
     def __str__(self):
         # TODO: Pretty-print for higher order derivatives.
-        return "(d[%s] / dx_%s)" % (self._expression, self._indices)
+        return "(d[%s] / dx_%s)" % (self._expression, self._index)
     
     def __repr__(self):
-        return "SpatialDerivative(%r, %r)" % (self._expression, self._indices)
+        return "SpatialDerivative(%r, %r)" % (self._expression, self._index)
 
 class VariableDerivative(Derivative):
-    __slots__ = ("_f", "_v", "_index", "_free_indices", "_index_dimensions", "_shape")
+    __slots__ = ("_f", "_v", "_free_indices", "_index_dimensions", "_shape")
     def __new__(cls, f, v):
         # Return zero if expression is trivially independent of Function
         if isinstance(f, Terminal):# and not isinstance(f, Variable):

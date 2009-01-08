@@ -201,7 +201,7 @@ def as_index(i):
     else:
         ufl_error("Can't convert this object to index: %r" % i)
 
-def as_index_tuple(indices, rank):
+def as_index_tuple(indices, rank): # TODO: Incomplete slices!
     """Takes something the user might input as an index tuple
     inside [], and returns a tuple of actual UFL index objects.
     
@@ -296,7 +296,6 @@ def complete_shape(shape, default_dim):
     "Complete shape tuple by replacing non-integers with a default dimension."
     return tuple((s if isinstance(s, int) else default_dim) for s in shape)
 
-
 # TODO: Use these to simplify index handling code?
 def get_common_indices(a, b):
     ai = a.free_indices()
@@ -317,8 +316,9 @@ def split_indices(a, b):
     ais = set(ai)
     bis = set(bi)
     ris = ais ^ bis
-    fis = tuple(i for i in chain(ai,bi) if not i in ris)
-    #n = len(ris) + len(fis)
+    fi  = tuple(i for i in chain(ai,bi) if not i in ris)
+    ri  = tuple(i for i in chain(ai,bi) if     i in ris)
+    #n = len(ri) + len(fi)
     #ufl_assert(n == ?)
-    return (fis, ris)
+    return (fi, ri)
 
