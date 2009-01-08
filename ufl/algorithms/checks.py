@@ -36,5 +36,5 @@ def validate_form(form):
     # Check that all integrands are scalar
     for expression in iter_expressions(form):
         ufl_assert(is_true_ufl_scalar(expression),
-            "Got non-scalar integrand expression:\n%s" % expression)
+            "Got non-scalar integrand expression:\n%s\n%s" % (str(expression), repr(expression)))
 

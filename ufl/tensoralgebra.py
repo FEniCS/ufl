@@ -1,8 +1,7 @@
 """Compound tensor algebra operations."""
 
-
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-11-06"
+__date__ = "2008-03-14 -- 2009-01-08"
 
 from ufl.output import ufl_assert, ufl_warning
 from ufl.expr import Expr
@@ -14,7 +13,6 @@ def merge_free_indices(a, b):
     ai = a.free_indices()
     bi = b.free_indices()
     ri = set(ai) & set(bi)
-    print ri
     ufl_assert(not ri, "Not expecting repeated indices.")
     free_indices = ai+bi
     

@@ -210,6 +210,7 @@ class IndexTestCase(unittest.TestCase):
         element = VectorElement("CG", "triangle", 1)
         v  = TestFunction(element)
         u  = TrialFunction(element)
+        f  = Function(element)
         i, j, k, l = indices(4) 
         
         a = v[i]
@@ -223,7 +224,7 @@ class IndexTestCase(unittest.TestCase):
         a = outer(v,u)[i,i]
         self.assertTrue(a.free_indices() == ())
         self.assertTrue(a.repeated_indices() == (i,))
-    
+        
     def test_spatial_derivative(self):
         element = VectorElement("CG", "triangle", 1)
         v  = TestFunction(element)
@@ -253,6 +254,11 @@ class IndexTestCase(unittest.TestCase):
         a = (v[i]*u[j]).dx(0, 1)
         self.assertTrue(set(a.free_indices()) == set((i,j))) # indices change place because of sorting, I guess this may be ok
         self.assertTrue(a.repeated_indices() == ())
+        
+        a = v.dx(i)[i] # FIXME: Should we allow v.dx(i) when v is a vector?
+        self.assertTrue(a.free_indices() == ())
+        self.assertTrue(a.repeated_indices() == (i,))
+        
 
 if __name__ == "__main__":
     unittest.main()

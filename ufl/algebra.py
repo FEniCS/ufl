@@ -12,7 +12,7 @@ from ufl.common import product, mergedicts, subdict
 from ufl.expr import Expr
 from ufl.zero import Zero
 from ufl.scalar import ScalarValue, FloatValue, IntValue, is_true_ufl_scalar, is_python_scalar, as_ufl
-from ufl.indexing import extract_indices
+from ufl.indexing import extract_indices_for_product
 from ufl.sorting import cmp_expr
 
 #--- Algebraic operators ---
@@ -141,8 +141,7 @@ class Product(Expr):
             # Extract indices
             all_indices = tuple(chain(*(o.free_indices() for o in operands)))
             index_dimensions = mergedicts([o.index_dimensions() for o in operands])
-            (free_indices, repeated_indices, dummy1, dummy2) = \
-                extract_indices(all_indices)
+            free_indices, repeated_indices = extract_indices_for_product(all_indices)
             index_dimensions = subdict(index_dimensions, free_indices)
             return Zero(sh, free_indices, index_dimensions)
         
@@ -192,8 +191,7 @@ class Product(Expr):
         # Extract indices
         all_indices = tuple(chain(*(o.free_indices() for o in operands)))
         self._index_dimensions = mergedicts([o.index_dimensions() for o in operands])
-        (self._free_indices, self._repeated_indices, dummy, dummy) = \
-            extract_indices(all_indices)
+        self._free_indices, self._repeated_indices = extract_indices_for_product(all_indices)
         
         self._repr = "(%s)" % " * ".join(repr(o) for o in self._operands)
     
