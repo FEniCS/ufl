@@ -1,7 +1,7 @@
 """Forward mode AD implementation."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-19-- 2009-01-07"
+__date__ = "2008-08-19-- 2009-01-08"
 
 from ufl.output import ufl_assert, ufl_error, ufl_warning
 from ufl.common import product, unzip, UFLTypeDefaultDict, subdict, mergedicts
@@ -38,16 +38,12 @@ from ufl.algorithms.traversal import iter_expressions
 from ufl.algorithms.analysis import extract_type
 from ufl.algorithms.transformations import expand_compounds, Transformer, transform, transform_integrands
 
-# FIXME: Handle differentiation w.r.t. Variable properly
-# Old comment (maybe deprecated):
-# Need some cache structures and callback to custum diff routine to implement diff with variable
-# - Check for diff of variable in some kind of cache
-# - If not found, apply diff to variable expression 
-# - Add variable for differentated expression to cache
-
-# FIXME: Missing rules for: Cross, Determinant, Cofactor, f(x)**g(x)
-
-# FIXME: Could expand only the compound objects that have no rule before differentiating, to make the AD work on a coarser graph
+#
+# TODO: Missing rule for: f(x)**g(x))
+# TODO: We could expand only the compound objects that have no rule
+#       before differentiating, to make the AD work on a coarser graph
+#       (Missing rules for: Cross, Determinant, Cofactor)
+#
 
 def is_spatially_constant(o):
     return (isinstance(o, Terminal) and o.cell() is None) or isinstance(o, Constant)
@@ -60,11 +56,10 @@ class AD(Transformer):
         Transformer.__init__(self)
         self._spatial_dim = spatial_dim
     
-    def expr(self, o, *ops):
-        ufl_error("Missing AD handler for type %s" % str(type(o)))
+    # --- Default rules
     
-    def variable(self, o):
-        ufl_error("How to handle derivative of variable depends on context. You must supply a customized rule!")
+    def expr(self, o):
+        ufl_error("Missing AD handler for type %s" % str(type(o)))
     
     def terminal(self, o):
         """Terminal objects are assumed independent of the differentiation
@@ -73,17 +68,26 @@ class AD(Transformer):
         non-zero derivatives."""
         return (o, Zero(o.shape()))
     
-    def commute(self, o, a):
-        "This should work for all single argument operators that commute with d/dw."
-        aprime = a[1]
-        return (o, type(o)(aprime))
+    def variable(self, o):
+        """Variable objects are just 'labels', so by default the derivative
+        of a variable is the derivative of its referenced expression."""
+        # Check variable cache to reuse previously transformed variable if possible
+        e, l = o.operands()
+        r = self._variable_cache.get(l) # cache contains (v, vp) tuple
+        if r is None:
+            # Visit the expression our variable represents
+            e2, vp = self.visit(e)
+            # Recreate Variable (with same label) only if necessary
+            if e is e2:
+                v = o
+            else:
+                v = Variable(e2, l)
+            # Cache and return (v, vp) tuple
+            r = (v, vp)
+            self._variable_cache[l] = r
+        return r
     
-    transposed = commute
-    trace = commute
-    deviatoric = commute
-    div  = commute
-    curl = commute
-    rot  = commute
+    # --- Indexing and component handling
     
     def multi_index(self, o):
         return (o, None) # oprime here should never be used
@@ -102,6 +106,8 @@ class AD(Transformer):
             fid = subdict(o.index_dimensions(), fi)
             return (o, Zero(o.shape(), fi, fid))
         return (o, ComponentTensor(Ap, ii[0]) )
+    
+    # --- Algebra operators
     
     def sum(self, o, *ops):
         return (sum((op[0] for op in ops[1:]), ops[0][0]),
@@ -158,78 +164,31 @@ class AD(Transformer):
                              conditional(lt(f, 0), -fprime, fprime))
         return (o, oprime)
     
-    # --- Compound operators
-    
-    def outer(self, o, a, b): # COMPOUND
-        a, ap = a
-        b, bp = b
-        return (o, outer(ap, b) + outer(a, bp))
-    
-    def inner(self, o, a, b): # COMPOUND
-        a, ap = a
-        b, bp = b
-        return (o, inner(ap, b) + inner(a, bp))
-    
-    def dot(self, o, a, b): # COMPOUND
-        a, ap = a
-        b, bp = b
-        return (o, dot(ap, b) + dot(a, bp))
-    
-    def cross(self, o, a, b): # COMPOUND
-        ufl_error("Derivative of cross product not implemented, apply expand_compounds before AD.")
-        u, up = a
-        v, vp = b
-        oprime = None # TODO
-        return (o, oprime)
-    
-    def determinant(self, o, a): # COMPOUND
-        ufl_error("Derivative of determinant not implemented, apply expand_compounds before AD.")
-        A, Ap = a
-        oprime = None # TODO
-        return (o, oprime)
-    
-    def cofactor(self, o, a): # COMPOUND
-        ufl_error("Derivative of cofactor not implemented, apply expand_compounds before AD.")
-        A, Ap = a
-        #cofacA_prime = detA_prime*Ainv + detA*Ainv_prime
-        oprime = None # TODO
-        return (o, oprime)
-    
-    def inverse(self, o, a): # COMPOUND
-        """Derivation:
-        0 = d/dx [Ainv*A] = Ainv' * A + Ainv * A'
-        Ainv' * A = - Ainv * A'
-        Ainv' = - Ainv * A' * Ainv
-        """
-        A, Ap = a
-        return (o, -o*Ap*o)
-    
     # --- Mathfunctions
     
     def math_function(self, o, a):
         f, fp = a
-        return (o, _0) if isinstance(fp, Zero) else (o, 0.5*fp/sqrt(f))
+        return (o, 0.5*fp/sqrt(f))
     
     def sqrt(self, o, a):
         f, fp = a
-        return (o, _0) if isinstance(fp, Zero) else (o, 0.5*fp/sqrt(f))
+        return (o, 0.5*fp/sqrt(f))
     
     def exp(self, o, a):
         f, fp = a
-        return (o, _0) if isinstance(fp, Zero) else (o, fp*exp(f))
+        return (o, fp*exp(f))
     
     def ln(self, o, a):
         f, fp = a
         ufl_assert(not isinstance(f, Zero), "Division by zero.")
-        return (o, _0) if isinstance(fp, Zero) else (o, fp/f)
+        return (o, fp/f)
     
     def cos(self, o, a):
         f, fp = a
-        return (o, _0) if isinstance(fp, Zero) else (o, -fp*sin(f))
+        return (o, -fp*sin(f))
     
     def sin(self, o, a):
         f, fp = a
-        if isinstance(fp, Zero): return (o, _0)
         return (o, fp*cos(f))
     
     # --- Restrictions
@@ -237,7 +196,7 @@ class AD(Transformer):
     def positive_restricted(self, o, a):
         f, fp = a
         return (o, fp('+')) # TODO: What is d(v+)/dw ? Assuming here that restriction and differentiation commutes.
-
+    
     def negative_restricted(self, o, a):
         f, fp = a
         return (o, fp('-')) # TODO: What is d(v-)/dw ? Assuming here that restriction and differentiation commutes.
@@ -259,9 +218,27 @@ class AD(Transformer):
             return (o, Zero(o.shape(), fi, fid))
         return (o, conditional(c[0], t[1], f[1]))
     
-    # --- Derivatives
+    # --- Other derivatives
     
-    def spatial_derivative(self, o, f, ii):
+    def derivative(self, o):
+        ufl_error("This should never occur.")
+    
+    def spatial_derivative(self, o):
+        # If everything else works as it should, this should now 
+        # be treated as a "terminal" in the context of AD.
+        # TODO: Document the reason for this well!
+        op = FIXME
+        return (o, op)
+        
+class SpatialAD(AD):
+    def __init__(self, dim, index):
+        AD.__init__(self, dim)
+        self._index = index
+    
+    def spatial_derivative(self, o): # FIXME: Fix me!
+        # If we hit this type, it is already applied to a terminal (+ evt indexing stuff),
+        # so we should simply apply our derivative to it again! Right?
+        
         f, fp = f
         ii, iip = ii
         # TODO: Are there any issues with indices here? Not sure, think through it...
@@ -275,29 +252,8 @@ class AD(Transformer):
             oprime = type(o)(fp, ii)
         return (o, oprime)
     
-    def variable_derivative(self, o, f, v):
-        f, fp = f
-        v, vp = v
-        ufl_assert(isinstance(vp, Zero), "TODO: What happens if vp != 0, i.e. v depends the differentiation variable?")
-        # TODO: Are there any issues with indices here? Not sure, think through it...
-        oprime = type(o)(fp, v)
-        return (o, oprime)
-    
-    def grad(self, o, a):
-        a, aprime = a
-        if aprime.cell() is None:
-            ufl_error("TODO: Shape of gradient is undefined.") # Currently calling expand_compounds before AD to avoid this
-            oprime = Zero(TODO)
-        else:
-            oprime = type(o)(aprime)
-        return (o, oprime)
-
-class SpatialAD(AD):
-    def __init__(self, dim, index):
-        AD.__init__(self, dim)
-        self._index = index
-    
     def spatial_coordinate(self, o):
+        # TODO: Need to define dx_i/dx_j = delta_ij?
         ufl_error("Not implemented!")
         I = Id(self._spatial_dim)
         oprime = I[:, self._index] # TODO: Is this right?
@@ -316,15 +272,12 @@ class SpatialAD(AD):
     constant = AD.terminal # returns zero
     
     #def facet_normal(self, o):
-    #    ...
+    #    pass # TODO: With higher order cells the facet normal isn't constant anymore
 
 class VariableAD(AD):
     def __init__(self, dim, variable):
         AD.__init__(self, dim)
         self._variable = variable
-    
-    def variable_derivative(self, o):
-        ufl_error("Nested variable derivatives not implemented!")
     
     def variable(self, o):
         if o is self._variable:
@@ -340,6 +293,7 @@ class FunctionAD(AD):
     def __init__(self, spatial_dim, functions, basisfunctions):
         AD.__init__(self, spatial_dim)
         self._functions = zip(functions, basisfunctions)
+        # Define dw/dw := v (what we really mean by d/dw is d/dw_j where w = sum_j w_j phi_j, and what we really mean by v is phi_j for any j)
     
     def function(self, o):
         for (w, wprime) in self._functions:
@@ -351,14 +305,14 @@ class FunctionAD(AD):
         dummy, wprime = self.visit(o._expression)
         return (o, wprime)
 
-def compute_spatial_forward_ad(expr): # TODO: Is this truly forward AD?
+def compute_spatial_forward_ad(expr):
     dim = expr.cell().dim()
     expr = expand_compounds(expr, dim)
     f, v = expr.operands()
     e, ediff = SpatialAD(dim, v).visit(f)
     return ediff
 
-def compute_variable_forward_ad(expr): # TODO: Is this truly forward AD?
+def compute_variable_forward_ad(expr):
     dim = expr.cell().dim()
     expr = expand_compounds(expr, dim)
     f, v = expr.operands()
@@ -366,7 +320,7 @@ def compute_variable_forward_ad(expr): # TODO: Is this truly forward AD?
     e, ediff = VariableAD(dim, v).visit(f)
     return ediff
 
-def compute_function_forward_ad(expr): # TODO: Is this truly forward AD?
+def compute_function_forward_ad(expr):
     dim = expr.cell().dim()
     expr = expand_compounds(expr, dim)
     f, w, v = expr.operands()
@@ -374,17 +328,97 @@ def compute_function_forward_ad(expr): # TODO: Is this truly forward AD?
     return ediff
 
 def forward_ad(expr):
+    """Assuming expr is a derivative and contains no other
+    unresolved derivatives, apply forward mode AD and
+    return the computed derivative."""
     if isinstance(expr, SpatialDerivative):
-        # Need to define dx_i/dx_j = delta_ij?
         result = compute_spatial_forward_ad(expr)
     
     if isinstance(expr, VariableDerivative):
-        # Avoid putting contents of the differentiation Variable in graph, since it's not a Terminal anymore... TODO
         result = compute_variable_forward_ad(expr)
     
     if isinstance(expr, FunctionDerivative):
-        # Define dw/dw := v (what we really mean by d/dw is d/dw_j where w = sum_j w_j phi_j, and what we really mean by v is phi_j for any j)
         result = compute_function_forward_ad(expr)
     
     return result
 
+
+
+
+class UnusedADRules(AD):
+    
+    def _variable_derivative(self, o, f, v):
+        f, fp = f
+        v, vp = v
+        ufl_assert(isinstance(vp, Zero), "TODO: What happens if vp != 0, i.e. v depends the differentiation variable?")
+        # TODO: Are there any issues with indices here? Not sure, think through it...
+        oprime = type(o)(fp, v)
+        return (o, oprime)
+    
+    # --- Compound operators
+    
+    def commute(self, o, a):
+        "This should work for all single argument operators that commute with d/dw."
+        aprime = a[1]
+        return (o, type(o)(aprime))
+    
+    transposed = commute
+    trace = commute
+    deviatoric = commute
+    
+    div  = commute
+    curl = commute
+    rot  = commute
+    def grad(self, o, a):
+        a, aprime = a
+        if aprime.cell() is None:
+            ufl_error("TODO: Shape of gradient is undefined.") # Currently calling expand_compounds before AD to avoid this
+            oprime = Zero(TODO)
+        else:
+            oprime = type(o)(aprime)
+        return (o, oprime)
+    
+    def outer(self, o, a, b):
+        a, ap = a
+        b, bp = b
+        return (o, outer(ap, b) + outer(a, bp))
+    
+    def inner(self, o, a, b):
+        a, ap = a
+        b, bp = b
+        return (o, inner(ap, b) + inner(a, bp))
+    
+    def dot(self, o, a, b):
+        a, ap = a
+        b, bp = b
+        return (o, dot(ap, b) + dot(a, bp))
+    
+    def cross(self, o, a, b):
+        ufl_error("Derivative of cross product not implemented, apply expand_compounds before AD.")
+        u, up = a
+        v, vp = b
+        oprime = None # TODO
+        return (o, oprime)
+    
+    def determinant(self, o, a):
+        ufl_error("Derivative of determinant not implemented, apply expand_compounds before AD.")
+        A, Ap = a
+        oprime = None # TODO
+        return (o, oprime)
+    
+    def cofactor(self, o, a):
+        ufl_error("Derivative of cofactor not implemented, apply expand_compounds before AD.")
+        A, Ap = a
+        #cofacA_prime = detA_prime*Ainv + detA*Ainv_prime
+        oprime = None # TODO
+        return (o, oprime)
+    
+    def inverse(self, o, a):
+        """Derivation:
+        0 = d/dx [Ainv*A] = Ainv' * A + Ainv * A'
+        Ainv' * A = - Ainv * A'
+        Ainv' = - Ainv * A' * Ainv
+        """
+        A, Ap = a
+        return (o, -o*Ap*o)
+    
