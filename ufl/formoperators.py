@@ -1,11 +1,10 @@
 "Various high level ways to transform a complete Form into a new Form."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-01-07"
+__date__ = "2008-03-14 -- 2008-01-09"
 
 from ufl.form import Form
 from ufl.terminal import Tuple
-from ufl.integral import Integral
 from ufl.function import Function
 from ufl.basisfunction import BasisFunction, BasisFunctions
 from ufl.differentiation import FunctionDerivative
@@ -103,7 +102,7 @@ def derivative(form, function, basisfunction=None):
         integrals = []
         for itg in form._integrals:
             fd = FunctionDerivative(itg.integrand(), functions, basisfunctions)
-            newitg = Integral(itg.domain_type(), itg.domain_id(), fd)
+            newitg = itg.reconstruct(integrand=fd)
             integrals.append(newitg)
         return Form(integrals)
     

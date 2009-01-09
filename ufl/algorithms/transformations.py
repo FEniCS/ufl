@@ -39,7 +39,7 @@ def transform_integrands(form, transformer):
         newintegrals = []
         for integral in form.integrals():
             newintegrand = transformer(integral.integrand())
-            newintegral= Integral(integral.domain_type(), integral.domain_id(), newintegrand)
+            newintegral= integral.reconstruct(integrand = newintegrand)
             newintegrals.append(newintegral)
         newform = Form(newintegrals)
         return newform
@@ -552,7 +552,7 @@ def apply_transformer(e, transformer):
         newintegrals = []
         for itg in e.integrals():
             newintegrand = transformer.visit(itg.integrand())
-            newitg = Integral(itg.domain_type(), itg.domain_id(), newintegrand)
+            newitg = itg.reconstruct(integrand = newintegrand)
             newintegrals.append(newitg)
         return Form(newintegrals)
     ufl_assert(isinstance(e, Expr), "Expecting Form or Expr.")
