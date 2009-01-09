@@ -1,8 +1,7 @@
 "The Form class."
 
-
 __authors__ = "Martin Sandve Alnes"
-__date__    = "2008-03-14 -- 2008-12-30"
+__date__    = "2008-03-14 -- 2009-01-09"
 
 from ufl.output import ufl_assert
 
@@ -28,13 +27,16 @@ class Form(object):
         return tuple(itg for itg in self._integrals if itg._domain_type == domain_type)
     
     def cell_integrals(self):
-        return self._get_integrals("cell")
+        from ufl.integral import Integral
+        return self._get_integrals(Integral.CELL)
     
     def exterior_facet_integrals(self):
-        return self._get_integrals("exterior_facet")
+        from ufl.integral import Integral
+        return self._get_integrals(Integral.EXTERIOR_FACET)
     
     def interior_facet_integrals(self):
-        return self._get_integrals("interior_facet")
+        from ufl.integral import Integral
+        return self._get_integrals(Integral.INTERIOR_FACET)
     
     def _add(self, other, sign):
         # Start with integrals in self

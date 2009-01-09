@@ -1,7 +1,7 @@
 """The Integral class."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-01-05"
+__date__ = "2008-03-14 -- 2009-01-08"
 
 # Modified by Anders Logg, 2008
 
@@ -16,6 +16,11 @@ class Integral(object):
         self._domain_type = domain_type
         self._domain_id   = domain_id
         self._integrand   = integrand
+    
+    # Enumeration of valid domain types
+    CELL = "cell"
+    EXTERIOR_FACET = "exterior_facet"
+    INTERIOR_FACET = "interior_facet"
     
     def domain_type(self):
         'Return the domain type ("cell", "exterior_facet" or "interior_facet").'
@@ -47,9 +52,9 @@ class Integral(object):
         return Integral(self._domain_type, domain_id)
     
     def __str__(self):
-        d = { "cell": "dx",
-              "exterior_facet": "ds",
-              "interior_facet": "dS"
+        d = { Integral.CELL: "dx",
+              Integral.EXTERIOR_FACET: "ds",
+              Integral.INTERIOR_FACET: "dS"
             }[self._domain_type]
         return "{ %s } * %s%d" % (self._integrand, d, self._domain_id,)
     

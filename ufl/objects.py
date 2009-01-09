@@ -1,7 +1,7 @@
 "Utility objects for pretty syntax in user code."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-12-22"
+__date__ = "2008-03-14 -- 2009-01-09"
 
 # Modified by Anders Logg, 2008
 
@@ -14,9 +14,9 @@ i, j, k, l = [Index() for _i in range(4)]
 p, q, r, s = [Index() for _i in range(4)]
 
 # Default integrals
-dx = Integral("cell", 0)
-ds = Integral("exterior_facet", 0)
-dS = Integral("interior_facet", 0)
+dx = Integral(Integral.CELL, 0)
+ds = Integral(Integral.EXTERIOR_FACET, 0)
+dS = Integral(Integral.INTERIOR_FACET, 0)
 
 # Cell types
 interval      = Cell("interval", 1)
