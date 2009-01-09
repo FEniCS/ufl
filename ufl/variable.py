@@ -5,7 +5,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-05-20 -- 2009-01-09"
 
 from ufl.common import Counted
-from ufl.output import ufl_assert
+from ufl.output import ufl_assert, ufl_error
 from ufl.expr import Expr
 from ufl.terminal import Terminal
 

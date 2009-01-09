@@ -32,7 +32,7 @@ class Index(Counted):
 
 def indices(n):
     "Return a tuple of n new Index objects."
-    return tuple(Index() for i in range(n))
+    return tuple(Index() for _i in range(n))
 
 class FixedIndex(object):
     __slots__ = ("_value",)

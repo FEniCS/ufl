@@ -8,6 +8,7 @@ __date__ = "2008-03-14 -- 2008-01-09"
 
 from ufl.expr import Expr
 from ufl.common import lstr
+from ufl.output import ufl_error
 
 #--- Base class for terminal objects ---
 

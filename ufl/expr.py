@@ -107,8 +107,8 @@ class Expr(object):
         # Using hash cache to avoid recomputation
         #if self._hash is None:
         
-        def typetuple(e):
-            return tuple(type(o) for o in e.operands())
+        def typetuple(expr):
+            return tuple(type(o) for o in expr.operands())
         tt = tuple((type(o), typetuple(o)) for o in self.operands())
         h = hash((type(self), tt))
         return h
