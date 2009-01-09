@@ -33,16 +33,8 @@ Roadmap for the development of UFL
    Pros and cons? Bad during AD, lots of expressions created automatically that can cancel out.)
 
 # Derivatives:
- - Apply AD to computation of
-    - SpatialDerivative (propagating to terminal nodes)
-        - Find a smart way to handle nested AD:
-            - Collapse nested SpatialDerivative into a single SpatialDerivative with multiple indices, sorted since they commute.
-    - VariableDerivative (no traces left afterwards)
-        - Figure out issues with diff w.r.t. tensor variable
- - Implement Variable cache in AD.
- - Do we want to do this on the single operation level or on groups of operations?
-   Groups of operations where possible would be best, e.g. same abstraction level as the input expression tree.
- - Read up on AD and improve implementation (actually, currently it's more like pure symbolic differentiation)
+ - Finish forward mode AD implementation
+ - Finish reverse mode AD implementation
 
 # Elements and Basisfunctions (medium priority, needed for non-trivial applications):
  - Implement 'Test/Trial/BasisFunctions' for general tensor subelement with arbitrary symmetries (see split.py). Need to agree on some numbering conventions here.
@@ -53,7 +45,7 @@ Roadmap for the development of UFL
     class ElementUnion(FiniteElementBase):
         def __init__(self, *elements):
             ...
-   to represent the enrichment of a finite element space with another.
+   to represent the enrichment of a finite element space with another. (Idea from Marie)
  - Time elements
 
 # Algorithms:
@@ -75,7 +67,7 @@ Roadmap for the development of UFL
 # Documentation:
  - Write the manual/paper/book chapter (can perhaps reuse some text I have)
  - Rewrite/improve all error messages (collect strings in separate file?)
- - Improve operator docstrings (use epydoc @param and @return?)
+ - Improve operator docstrings (use epydoc @param and @return for the more complicated functions)
 
 # Time derivatives (low priority):
  - Do we want something like Dt(u), Dtt(u), CR(a), FE(a), BE(a), TR(a, theta)?
