@@ -235,7 +235,7 @@ class SpatialAD(AD):
         AD.__init__(self, dim)
         self._index = index
     
-    def spatial_derivative(self, o): # FIXME: Fix me!
+    def spatial_derivative(self, o, f, ii): # FIXME: Fix me!
         # If we hit this type, it is already applied to a terminal (+ evt indexing stuff),
         # so we should simply apply our derivative to it again! Right?
         
@@ -249,13 +249,13 @@ class SpatialAD(AD):
             index_dimensions = dict((i, fid.get(i, self._spatial_dim)) for i in fi)
             oprime = Zero(fp.shape(), fi, index_dimensions)
         else:
-            oprime = type(o)(fp, ii)
+            oprime = o._uflid(fp, ii)
         return (o, oprime)
     
     def spatial_coordinate(self, o):
         # TODO: Need to define dx_i/dx_j = delta_ij?
         ufl_error("Not implemented!")
-        I = Id(self._spatial_dim)
+        I = Identity(self._spatial_dim)
         oprime = I[:, self._index] # TODO: Is this right?
         return (o, oprime)
     

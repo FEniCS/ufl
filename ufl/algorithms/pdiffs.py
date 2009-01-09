@@ -26,7 +26,7 @@ class PartialDerivativeComputer(Transformer):
     def sum(self, f):
         "d/dx_i sum_j x_j = 1"
         _1 = IntValue(1) # TODO: Handle non-scalars
-        return tuple(_1 for o in f.operands())
+        return (_1,)*len(f.operands())
     
     def product(self, f):
         a, b = f.operands() # TODO: Assuming binary operator for now

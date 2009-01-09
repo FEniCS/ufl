@@ -15,7 +15,6 @@ from ufl.terminal import Terminal
 from ufl.algebra import Sum, Product, Division
 from ufl.finiteelement import MixedElement
 from ufl.basisfunction import BasisFunction
-from ufl.function import Function
 from ufl.variable import Variable
 from ufl.function import Function, Constant
 from ufl.tensors import ListTensor, ComponentTensor

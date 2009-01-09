@@ -282,7 +282,7 @@ class Expression2LatexHandler(Transformer):
         l += "\\end{cases}"
         return l
     
-    def expr(self, o, *ops):
+    def expr(self, o):
         ufl_error("Missing handler for type %s" % str(type(o)))
     
 def expression2latex(expression, basisfunction_renumbering, coefficient_renumbering):

@@ -1,9 +1,10 @@
 """Algorithms for working with linearlized computational graphs."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-12-28 -- 2009-01-06"
+__date__ = "2008-12-28 -- 2009-01-09"
 
 from itertools import chain, imap, izip
+from heapq import heapify, heappop, heappush
 
 from ufl import *
 from ufl.algorithms import post_traversal, tree_format
@@ -96,8 +97,6 @@ def test_expr():
     expr = (f+g)*u*(g-1)*v
     return expr
 
-from heapq import *
-
 class HeapItem:
     def __init__(self, ins, outs, i):
         self.ins = ins
@@ -160,14 +159,13 @@ def rebuild_tree(G):
             # and reconstruct non-terminal node from them
             ops = tuple(subtrees[E[j][1]] for j in Eout[i])
             if all_is(ops, v.operands()):
-                v = v
+                pass
             else:
                 v = v._uflid(*ops)
         subtrees[i] = v
     # Assuming last vertex is the root!
     return v
 
-from heapq import heapify, heappop, heappush
 def find_dependencies(G, targets): 
     """Find the set of vertices in a computational
     graph that a set of target vertices depend on."""
