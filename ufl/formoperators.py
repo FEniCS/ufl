@@ -3,8 +3,11 @@
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-01-09"
 
+from ufl.output import ufl_assert, ufl_error
 from ufl.form import Form
+from ufl.expr import Expr
 from ufl.terminal import Tuple
+from ufl.finiteelement import MixedElement
 from ufl.function import Function
 from ufl.basisfunction import BasisFunction, BasisFunctions
 from ufl.differentiation import FunctionDerivative

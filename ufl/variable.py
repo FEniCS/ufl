@@ -2,7 +2,7 @@
 expressions as variables for differentiation."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2009-01-05"
+__date__ = "2008-05-20 -- 2009-01-09"
 
 from ufl.common import Counted
 from ufl.output import ufl_assert
@@ -14,6 +14,9 @@ class Label(Terminal, Counted):
     __slots__ = ()
     def __init__(self, count=None):
         Counted.__init__(self, count)
+    
+    def shape(self):
+        ufl_error("Calling shape on Label is an error.")
     
     def __str__(self):
         return "Label(%d)" % self._count

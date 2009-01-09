@@ -4,7 +4,7 @@ or defined as compound operators involving basic operations on the UFL
 objects."""
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-04-09 -- 2009-01-05"
+__date__ = "2008-04-09 -- 2009-01-09"
 
 import math
 from ufl.output import ufl_assert, ufl_error
@@ -146,6 +146,10 @@ def lt(left, right):
 def gt(left, right):
     "A boolean expresion (left > right) for use with conditional."
     return GT(left, right)
+
+def sign(x):
+    "The sign (+1 or -1) of x."
+    return conditional(eq(x, 0), 0, conditional(lt(x, 0), -1, +1))
 
 #--- Math functions ---
 

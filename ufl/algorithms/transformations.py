@@ -3,7 +3,7 @@ either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2009-01-06"
+__date__ = "2008-05-07 -- 2009-01-09"
 
 from inspect import getargspec
 from itertools import izip, chain
@@ -162,7 +162,7 @@ class TreeFlattener(ReuseTransformer):
     product = sum_or_product
 
 class VariableStripper(ReuseTransformer):
-    def __init__(self, mapping):
+    def __init__(self):
         ReuseTransformer.__init__(self)
     
     def variable(self, o):
@@ -526,7 +526,7 @@ class DuplicationPurger(ReuseTransformer):
             if ops == x.operands():
                 e = x
             else:
-                e = x._uflid(*ops2)
+                e = x._uflid(*ops)
             # Update cache
             self._handled[x] = e
         #else:

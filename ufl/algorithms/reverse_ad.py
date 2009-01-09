@@ -6,6 +6,7 @@ __date__ = "2008-12-28 -- 2009-01-07"
 # TODO: Imports!
 
 from ufl.algorithms.pdiffs import PartialDerivativeComputer
+from ufl.differentiation import SpatialDerivative, VariableDerivative, FunctionDerivative
 
 def reverse_ad(expr, G): # FIXME: Finish this!
     # --- Forward sweep expressions have already been recorded as vertices in the DAG

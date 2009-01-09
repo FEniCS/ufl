@@ -1,13 +1,14 @@
 """This module defines the single index types and some internal index utilities."""
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-14 -- 2009-01-08"
+__date__ = "2008-03-14 -- 2009-01-09"
 
+from itertools import chain
 from collections import defaultdict
 from ufl.output import ufl_assert, ufl_warning, ufl_error
+from ufl.common import Counted
 from ufl.expr import Expr
 from ufl.terminal import Terminal
-from ufl.common import Counted
 
 #--- Indexing ---
 
@@ -32,14 +33,6 @@ class Index(Counted):
 def indices(n):
     "Return a tuple of n new Index objects."
     return tuple(Index() for i in range(n))
-
-def relabel(A, indexmap):
-    "Relabel free indices of A with new indices, using the given mapping."
-    ii = tuple(sorted(indexmap.keys()))
-    jj = tuple(indexmap[i] for i in ii)
-    ufl_assert(all(isinstance(i, Index) for i in ii), "Expecting Index objects.")
-    ufl_assert(all(isinstance(j, Index) for j in jj), "Expecting Index objects.")
-    return as_tensor(A, ii)[jj]
 
 class FixedIndex(object):
     __slots__ = ("_value",)
@@ -187,7 +180,7 @@ class Indexed(Expr):
         return "Indexed(%r, %r)" % (self._expression, self._indices)
     
     def __getitem__(self, key):
-        ufl_error("Object is already indexed: %r" % self)
+        ufl_error("Attempting to index with %r, but object is already indexed: %r" % (key, self))
 
 def as_index(i):
     """Takes something the user might input as part of an

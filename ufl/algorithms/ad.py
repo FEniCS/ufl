@@ -1,11 +1,11 @@
 """Front-end for AD routines."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-12-28 -- 2009-01-07"
+__date__ = "2008-12-28 -- 2009-01-09"
 
 from itertools import izip
 from ufl.output import ufl_assert
-from ufl.classes import Terminal, Expr, Derivative, Tuple, SpatialDerivative, VariableDerivative, FunctionDerivative
+from ufl.classes import Terminal, Expr, Derivative, Tuple, SpatialDerivative, VariableDerivative, FunctionDerivative, FiniteElement, TestFunction, Function
 #from ufl.algorithms import *
 from ufl.algorithms.transformations import Transformer, transform_integrands, expand_compounds
 
@@ -90,7 +90,7 @@ def expand_derivatives(form):
     return transform_integrands(form, _expand_derivatives)
 
 if __name__ == "__main__":
-    from ufl import *
+    from ufl import triangle, FiniteElement, TestFunction, Function, expand_derivatives
     e = FiniteElement("CG", triangle, 1)
     v = TestFunction(e)
     f = Function(e)
@@ -149,3 +149,4 @@ if __name__ == "__main__":
 #i_{9}
 #Missing indices set([Index(9)]) in expression [Zero tensor with shape () and free indices ()].
 #
+

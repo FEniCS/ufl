@@ -2,13 +2,12 @@
 all relevant operands for use with reverse mode AD."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2009-01-06 -- 2009-01-06"
+__date__ = "2009-01-06 -- 2009-01-09"
 
 from ufl.output import ufl_assert, ufl_error
 from ufl.classes import Zero, IntValue, FloatValue
-from ufl.operators import sin, cos, exp, ln, sqrt
-from ufl.tensors import unit_vectors
-from ufl.conditional import sign
+from ufl.operators import sin, cos, exp, ln, sqrt, conditional, sign
+from ufl.tensors import unit_vectors, ListTensor
 from ufl.algorithms.transformations import Transformer
 
 class PartialDerivativeComputer(Transformer):
@@ -82,7 +81,7 @@ class PartialDerivativeComputer(Transformer):
         x, = f.operands()
         return (-sin(x),)
     
-    def sin(self, o, a):
+    def sin(self, f):
         "d/dx sin x = cos(x)"
         x, = f.operands()
         return (cos(x),)
@@ -108,6 +107,7 @@ class PartialDerivativeComputer(Transformer):
         x, i = f.operands()
         s = f.shape()
         ufl_assert(len(s) == 1, "TODO: Assuming a vector, i.e. scalar operands.")
+        n, = s
         d = ListTensor([1]*n) # TODO: Non-scalars
         return (d, None)
     

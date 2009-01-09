@@ -1,9 +1,9 @@
 "Types for quantities computed from cell geometry."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-01-05"
+__date__ = "2008-03-14 -- 2009-01-09"
 
-from ufl.output import ufl_assert
+from ufl.output import ufl_assert, ufl_warning
 from ufl.common import domain2dim
 from ufl.terminal import Terminal
 

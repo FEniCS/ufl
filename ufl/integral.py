@@ -56,7 +56,7 @@ class Integral(object):
         return self.reconstruct(domain_id=domain_id, metadata=metadata)
     
     def __mul__(self, other):
-        ufl_error("Can't multiply Integral from the right.")
+        ufl_error("Can't multiply Integral from the right (with %r)." % (other,))
     
     def __rmul__(self, integrand):
         ufl_assert(self._integrand is None, "Integrand is already defined, can't integrate twice.")
@@ -85,4 +85,4 @@ class Integral(object):
     
     def __hash__(self):
         return hash((self._domain_type, self._domain_id, id(self._integrand)))
-    
+

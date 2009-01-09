@@ -3,7 +3,7 @@ This way we avoid circular dependencies between e.g.
 Sum and its superclass Expr."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-18 -- 2009-01-05"
+__date__ = "2008-08-18 -- 2009-01-09"
 
 # UFL imports
 from ufl.output import ufl_error, ufl_assert
@@ -15,7 +15,7 @@ from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import Transposed, Dot
 from ufl.indexing import Indexed
 from ufl.restriction import PositiveRestricted, NegativeRestricted
-from ufl.differentiation import SpatialDerivative
+from ufl.differentiation import SpatialDerivative, VariableDerivative
 
 #--- Extend Expr with algebraic operators ---
 
@@ -155,6 +155,6 @@ Expr.dx = _dx
 
 def _d(self, v):
     "Return the partial derivative with respect to variable v."
-    return VariableDerivative(self, i)
+    return VariableDerivative(self, v)
 Expr.d = _d
 

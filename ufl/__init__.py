@@ -28,9 +28,9 @@ But at the moment we only have some unfinished wiki pages with preliminary and i
 
 __version__ = "0.1"
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__copyright__ = __authors__ + " (2008)"
+__copyright__ = __authors__ + " (2009)"
 __licence__ = "GPL3"
-__date__ = "2008-03-14 -- 2008-12-15"
+__date__ = "2008-03-14 -- 2009-01-09"
 
 ########## README
 # Imports here should be what the user sees when doing "from ufl import *",
@@ -66,7 +66,8 @@ from ufl.indexing import Index, indices
 from ufl import exproperators as __exproperators
 
 # containers for expressions with value rank > 0
-from ufl.tensors import as_tensor, as_vector, as_matrix
+from ufl.tensors import as_tensor, as_vector, as_matrix, relabel
+from ufl.tensors import unit_vector, unit_vectors, unit_matrix, unit_matrices
 
 # types for geometric quantities
 from ufl.geometry import Cell # , SpatialCoordinate, FacetNormal # use cell = Cell("triangle"); x = cell.x(); n = cell.n()
@@ -77,7 +78,7 @@ from ufl.tensoralgebra import Identity
 # operators
 from ufl.operators import transpose, outer, inner, dot, cross, det, inv, tr, dev, cofac, skew, \
                        sqrt, exp, ln, cos, sin, \
-                       eq, ne, le, ge, lt, gt, conditional, \
+                       eq, ne, le, ge, lt, gt, conditional, sign, \
                        jump, avg, \
                        variable, \
                        Dx, diff, grad, div, curl, rot #, Dt

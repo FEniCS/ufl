@@ -1,7 +1,7 @@
 """Classes used to group scalar expressions into expressions with rank > 0."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-31 -- 2008-11-06"
+__date__ = "2008-03-31 -- 2009-01-09"
 
 from ufl.output import ufl_assert, ufl_warning
 from ufl.expr import Expr
@@ -139,6 +139,14 @@ def as_vector(expressions, index = None):
         index = (index,)
     return as_tensor(expressions, index)
 
+def relabel(A, indexmap):
+    "Relabel free indices of A with new indices, using the given mapping."
+    ii = tuple(sorted(indexmap.keys()))
+    jj = tuple(indexmap[i] for i in ii)
+    ufl_assert(all(isinstance(i, Index) for i in ii), "Expecting Index objects.")
+    ufl_assert(all(isinstance(j, Index) for j in jj), "Expecting Index objects.")
+    return as_tensor(A, ii)[jj]
+
 # --- Experimental support for dyadic notation:
 
 def unit_list(i, n):
@@ -160,7 +168,8 @@ def unit_matrices(d):
     return tuple(unit_matrix(i, j, d) for i in range(d) for j in range(d))
 
 def _test():
-    from ufl.tensors import unit_vector, unit_vectors, unit_matrix, unit_matrices
+    #from ufl.tensors import unit_vector, unit_vectors, unit_matrix, unit_matrices
+    from ufl.objects import triangle
     cell = triangle
     d = cell.dim()
     ei, ej, ek = unit_vectors(d)

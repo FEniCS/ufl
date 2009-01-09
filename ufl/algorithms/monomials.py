@@ -1,13 +1,14 @@
 """Utility algorithms for monomial representation of expressions."""
 
 __authors__ = "Anders Logg"
-__date__ = "2008-08-01 -- 2008-11-24"
+__date__ = "2008-08-01 -- 2009-01-09"
 
 # Modified by Martin Alnes, 2008
 
-from ufl.output import ufl_assert, ufl_error
+from ufl.output import ufl_assert, ufl_error, ufl_warning
 from ufl.expr import Expr
 from ufl.algebra import Sum, Product
+from ufl.tensoralgebra import Dot
 from ufl.basisfunction import BasisFunction
 from ufl.function import Function
 from ufl.form import Form

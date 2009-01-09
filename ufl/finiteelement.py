@@ -76,7 +76,7 @@ class FiniteElement(FiniteElementBase):
         
         # Set value dimension (default to using domain dimension in each axis)
         dim = cell.dim()
-        value_shape = tuple(dim for d in range(value_rank))
+        value_shape = (dim,)*(value_rank)
         
         # Initialize element data
         FiniteElementBase.__init__(self, family, cell, degree, value_shape)

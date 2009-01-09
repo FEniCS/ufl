@@ -2,7 +2,7 @@
 complete Forms into new related Forms."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-10-01 -- 2009-01-05"
+__date__ = "2008-10-01 -- 2009-01-09"
 
 # Modified by Anders Logg, 2008
 
@@ -17,6 +17,7 @@ from ufl.basisfunction import BasisFunction
 from ufl.scalar import IntValue
 from ufl.function import Function, Constant
 from ufl.form import Form
+from ufl.variable import Variable
 from ufl.integral import Integral
 
 # Lists of all Expr classes

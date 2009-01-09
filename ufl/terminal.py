@@ -2,7 +2,7 @@
 for all types that are terminal nodes in the expression trees."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-01-07"
+__date__ = "2008-03-14 -- 2008-01-09"
 
 # Modified by Anders Logg, 2008
 
@@ -52,6 +52,9 @@ class Tuple(Terminal):
     def __init__(self, *items):
         Expr.__init__(self)
         self._items = items
+    
+    def shape(self):
+        ufl_error("Calling shape on Label is and error.")
     
     def __getitem__(self, i):
         return self._items[i]

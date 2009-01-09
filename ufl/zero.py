@@ -1,12 +1,11 @@
 "This module defines the Zero class."
 
-
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-11-01 -- 2008-11-07"
+__date__ = "2008-11-01 -- 2009-01-09"
 
 from ufl.output import ufl_assert
 from ufl.terminal import Terminal
-from ufl.indexing import Index
+#from ufl.indexing import Index # circular dependency
 
 #--- Class for representing zero tensors of different shapes ---
 
@@ -20,8 +19,8 @@ class Zero(Terminal):
             index_dimensions = {}
         else:
             index_dimensions = dict(index_dimensions)
-        ufl_assert(all(isinstance(i, Index) for i in free_indices),
-                   "Expecting tuple if Index objects.")
+        #ufl_assert(all(isinstance(i, Index) for i in free_indices),
+        #           "Expecting tuple if Index objects.")
         ufl_assert(not(set(free_indices) ^ set(index_dimensions.keys())),
                    "Index set mismatch.")
         key = (shape, free_indices, tuple(index_dimensions.items()))
