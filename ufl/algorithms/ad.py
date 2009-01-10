@@ -87,6 +87,8 @@ def expand_derivatives(form):
         return apply_ad(expression, forward_ad)
         #return apply_ad(expression, reverse_ad)
     
+    if isinstance(form, Expr):
+        return _expand_derivatives(form)
     return transform_integrands(form, _expand_derivatives)
 
 if __name__ == "__main__":

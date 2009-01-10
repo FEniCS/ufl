@@ -109,11 +109,17 @@ class ComponentTensor(Expr):
         return self._shape
     
     def evaluate(self, x, mapping, component, index_values):
-        self._indices
-        component = FIXME
-        index_values = FIXME # Use StackDict!
+        indices = self._indices
         a = self._expression
-        a = a.evaluate(x, mapping, component, index_values)
+        
+        for i, c in enumerate(indices, component):
+            index_values.push(i, c)
+        
+        a = a.evaluate(x, mapping, (), index_values)
+        
+        for i in indices:
+            index_values.pop()
+        
         return a
     
     def __str__(self):

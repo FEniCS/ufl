@@ -155,7 +155,9 @@ def _call(self, arg, mapping=None):
         mapping = {}
     component = ()
     index_values = StackDict()
-    return self.evaluate(arg, mapping, component, index_values)
+    from ufl.algorithms import expand_derivatives
+    f = expand_derivatives(self)
+    return f.evaluate(arg, mapping, component, index_values)
 Expr.__call__ = _call
     
 #--- Extend Expr with the transpose operation A.T ---

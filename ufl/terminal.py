@@ -34,6 +34,8 @@ class Terminal(Expr):
     def evaluate(self, x, mapping, component, index_values):
         "Get self from mapping and return the component asked for."
         f = mapping.get(self, self)
+        if callable(f):
+            f = f(x)
         return f[component] if component else f
     
     def __eq__(self, other):
