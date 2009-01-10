@@ -58,6 +58,10 @@ class Identity(Terminal):
     def shape(self):
         return (self._dim, self._dim)
     
+    def evaluate(self, x, mapping, component, index_values):
+        a, b = component
+        return 1 if a == b else 0
+    
     def __str__(self):
         return "I"
     
@@ -206,7 +210,7 @@ class Dot(Expr):
     
     def shape(self):
         return self._a.shape()[:-1] + self._b.shape()[1:]
-    
+
     def __str__(self):
         return "(%s) . (%s)" % (self._a, self._b)
         #return "%s . %s" % (pstr(self._a, self), pstr(self._b, self))
@@ -247,7 +251,7 @@ class Cross(Expr):
     
     def shape(self):
         return (3,)
-    
+
     def __str__(self):
         return "(%s) x (%s)" % (self._a, self._b)
         #return "%s x %s" % (pstr(self._a, self), pstr(self._b, self))

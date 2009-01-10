@@ -1,11 +1,11 @@
 """This module provides basic mathematical functions."""
 
-
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-11-06"
+__date__ = "2008-03-14 -- 2009-01-10"
 
 # Modified by Anders Logg, 2008
 
+import math
 from ufl.output import ufl_assert
 from ufl.expr import Expr
 from ufl.scalar import FloatValue, is_true_ufl_scalar, is_python_scalar, as_ufl
@@ -34,6 +34,10 @@ class MathFunction(Expr):
     def shape(self):
         return ()
     
+    def evaluate(self, x, mapping, component, index_values):    
+        a = self._argument.evaluate(x, mapping, component, index_values)
+        return getattr(math, self._name)(a)
+    
     def __str__(self):
         return "%s(%s)" % (self._name, self._argument)
     
@@ -51,6 +55,10 @@ class Exp(MathFunction):
 class Ln(MathFunction):
     def __init__(self, argument):
         MathFunction.__init__(self, "ln", argument)
+    
+    def evaluate(self, x, mapping, component, index_values):    
+        a = self._argument.evaluate(x, mapping, component, index_values)
+        return math.log(a)
 
 class Cos(MathFunction):
     def __init__(self, argument):

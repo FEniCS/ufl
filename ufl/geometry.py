@@ -18,6 +18,9 @@ class SpatialCoordinate(Terminal):
     def cell(self):
         return self._cell
     
+    def evaluate(self, x, mapping, component, index_values):
+        return x[component[0]]
+    
     def __str__(self):
         return "x"
     

@@ -56,6 +56,9 @@ class FloatValue(ScalarValue):
     def __init__(self, value):
         ScalarValue.__init__(self, float_type(value))
     
+    def evaluate(self, x, mapping, component, index_values):
+        return float(self)
+    
     def __eq__(self, other):
         "This is implemented to allow comparison with python scalars."
         return self._value == other
@@ -80,6 +83,9 @@ class IntValue(ScalarValue):
     def __init__(self, value):
         ScalarValue.__init__(self, int_type(value))
     
+    def evaluate(self, x, mapping, component, index_values):
+        return int(self)
+    
     def __eq__(self, other):
         "This is implemented to allow comparison with python scalars."
         return self._value == other
@@ -98,6 +104,9 @@ class ScalarSomething(ScalarValue):
     __slots__ = ()
     def __init__(self, value):
         ScalarValue.__init__(self, value)
+    
+    def evaluate(self, x, mapping, component, index_values):
+        return float(self)
     
     def __repr__(self):
         return "ScalarSomething(%s)" % repr(self._value)

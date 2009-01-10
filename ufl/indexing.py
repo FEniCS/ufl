@@ -151,6 +151,12 @@ class Indexed(Expr):
     
     def shape(self):
         return self._shape
+    
+    def evaluate(self, x, mapping, component, index_values):
+        index_values = FIXME
+        component = FIXME
+        a = self._expression.evaluate(x, mapping, component, index_values)
+        return a
 
     def __str__(self):
         return "%s[%s]" % (self._expression, self._indices)

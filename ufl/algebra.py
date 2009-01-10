@@ -1,7 +1,7 @@
 "Basic algebra operations."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2008-11-26"
+__date__ = "2008-05-20 -- 2009-01-10"
 
 # Modified by Anders Logg, 2008
 
@@ -103,6 +103,9 @@ class Sum(Expr):
     
     def shape(self):
         return self._operands[0].shape()
+    
+    def evaluate(self, x, mapping, component, index_values):
+        return sum(o.evaluate(x, mapping, component, index_values) for o in self.operands())
     
     def __str__(self):
         return "(%s)" % " + ".join(str(o) for o in self._operands)
@@ -213,6 +216,10 @@ class Product(Expr):
     def shape(self):
         return self._shape
     
+    def evaluate(self, x, mapping, component, index_values):
+        ufl_assert(self.shape() == () and self.repeated_indices() == (), "FIXME")
+        return product(o.evaluate(x, mapping, component, index_values) for o in self.operands())
+    
     def __str__(self):
         return "(%s)" % " * ".join(str(o) for o in self._operands)
     
@@ -263,6 +270,12 @@ class Division(Expr):
     
     def shape(self):
         return self._a.shape()
+    
+    def evaluate(self, x, mapping, component, index_values):    
+        a, b = self.operands()
+        a = a.evaluate(x, mapping, component, index_values)
+        b = b.evaluate(x, mapping, component, index_values)
+        return a/b
     
     def __str__(self):
         return "(%s / %s)" % (str(self._a), str(self._b))
@@ -317,6 +330,12 @@ class Power(Expr):
     def shape(self):
         return ()
     
+    def evaluate(self, x, mapping, component, index_values):    
+        a, b = self.operands()
+        a = a.evaluate(x, mapping, component, index_values)
+        b = b.evaluate(x, mapping, component, index_values)
+        return a**b
+    
     def __str__(self):
         return "(%s ** %s)" % (str(self._a), str(self._b))
     
@@ -342,6 +361,10 @@ class Abs(Expr):
     
     def shape(self):
         return self._a.shape()
+    
+    def evaluate(self, x, mapping, component, index_values):    
+        a = self._a.evaluate(x, mapping, component, index_values)
+        return abs(a)
     
     def __str__(self):
         return "| %s |" % str(self._a)

@@ -7,7 +7,7 @@ __date__ = "2008-08-18 -- 2009-01-10"
 
 # UFL imports
 from ufl.output import ufl_error, ufl_assert
-from ufl.common import subdict, mergedicts
+from ufl.common import subdict, mergedicts, StackDict
 from ufl.expr import Expr
 from ufl.zero import Zero
 from ufl.scalar import ScalarValue, FloatValue, IntValue, is_python_scalar, as_ufl, python_scalar_types
@@ -143,12 +143,21 @@ def _restrict(self, side):
     ufl_error("Invalid side %r in restriction operator." % side)
 #Expr.__call__ = _restrict
 
-def _call(self, *args):
-    if len(args) == 1 and args[0] in ("+", "-"):
-        return _restrict(self, args[0])
-    return as_tensor(self, args)
+def _call(self, arg, mapping=None):
+    # Taking the restriction?
+    if arg in ("+", "-"):
+        ufl_assert(mapping is None, "Not expecting a mapping when taking restriction.")
+        return _restrict(self, arg)
+    
+    # Evaluate expression at this particular coordinate,
+    # with provided values for other terminals in mapping
+    if mapping is None:
+        mapping = {}
+    component = ()
+    index_values = StackDict()
+    return self.evaluate(arg, mapping, component, index_values)
 Expr.__call__ = _call
-
+    
 #--- Extend Expr with the transpose operation A.T ---
 
 def _transpose(self):

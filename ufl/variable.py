@@ -65,6 +65,10 @@ class Variable(Expr):
     def cell(self):
         return self._expression.cell()
     
+    def evaluate(self, x, mapping, component, index_values):
+        a = self._expression.evaluate(x, mapping, component, index_values)
+        return a
+    
     def expression(self):
         return self._expression
     

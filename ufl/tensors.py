@@ -48,6 +48,12 @@ class ListTensor(Expr):
     def shape(self):
         return self._shape
     
+    def evaluate(self, x, mapping, component, index_values):
+        a = self._expressions[component[0]]
+        component = component[1:]
+        a = a.evaluate(x, mapping, component, index_values)
+        return a
+    
     def __str__(self):
         def substring(expressions, indent):
             ind = " "*indent
@@ -101,6 +107,14 @@ class ComponentTensor(Expr):
     
     def shape(self):
         return self._shape
+    
+    def evaluate(self, x, mapping, component, index_values):
+        self._indices
+        component = FIXME
+        index_values = FIXME # Use StackDict!
+        a = self._expression
+        a = a.evaluate(x, mapping, component, index_values)
+        return a
     
     def __str__(self):
         return "[Rank %d tensor A, such that A_{%s} = %s]" % (self.rank(), self._indices, self._expression)

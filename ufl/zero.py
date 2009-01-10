@@ -50,6 +50,9 @@ class Zero(Terminal):
     def index_dimensions(self):
         return self._index_dimensions
     
+    def evaluate(self, x, mapping, component, index_values):    
+        return 0.0
+    
     def __str__(self):
         return "[Zero tensor with shape %s and free indices %s]" % \
             (repr(self._shape), repr(self._free_indices))

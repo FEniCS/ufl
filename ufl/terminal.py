@@ -2,7 +2,7 @@
 for all types that are terminal nodes in the expression trees."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-01-09"
+__date__ = "2008-03-14 -- 2008-01-10"
 
 # Modified by Anders Logg, 2008
 
@@ -30,6 +30,11 @@ class Terminal(Expr):
     def index_dimensions(self):
         "A Terminal object never has free indices."
         return {}
+    
+    def evaluate(self, x, mapping, component, index_values):
+        "Get self from mapping and return the component asked for."
+        f = mapping.get(self, self)
+        return f[component] if component else f
     
     def __eq__(self, other):
         """Checks whether the two expressions are represented the

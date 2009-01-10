@@ -15,8 +15,12 @@ class Condition(Expr):
         self._name = name
         self._left = as_ufl(left)
         self._right = as_ufl(right)
-        ufl_assert(self._left.shape() == () and self._right.shape() == (), "Expecting scalar arguments.")
-        ufl_assert(self._left.free_indices() == () and self._right.free_indices() == (), "Expecting scalar arguments.")
+        ufl_assert(self._left.shape() == () \
+            and  self._right.shape() == (),
+            "Expecting scalar arguments.")
+        ufl_assert(self._left.free_indices() == () \
+            and self._right.free_indices() == (),
+            "Expecting scalar arguments.")
         
     def operands(self):
         # Condition should never be constructed directly,
@@ -32,7 +36,7 @@ class Condition(Expr):
 
     def shape(self):
         ufl_error("Calling shape on Condition is an error.")
-
+    
     def __str__(self):
         return "(%s) %s (%s)" % (self._left, self._name, self._right)
 
@@ -40,12 +44,22 @@ class EQ(Condition):
     def __init__(self, left, right):
         Condition.__init__(self, "==", left, right)
     
+    def evaluate(self, x, mapping, component, index_values):
+        a = self._left.evaluate(x, mapping, component, index_values)
+        b = self._right.evaluate(x, mapping, component, index_values)
+        return a == b
+
     def __repr__(self):
         return "EQ(%r, %r)" % (self._left, self._right)
 
 class NE(Condition):
     def __init__(self, left, right):
         Condition.__init__(self, "!=", left, right)
+    
+    def evaluate(self, x, mapping, component, index_values):
+        a = self._left.evaluate(x, mapping, component, index_values)
+        b = self._right.evaluate(x, mapping, component, index_values)
+        return a != b
     
     def __repr__(self):
         return "NE(%r, %r)" % (self._left, self._right)
@@ -54,12 +68,22 @@ class LE(Condition):
     def __init__(self, left, right):
         Condition.__init__(self, "<=", left, right)
     
+    def evaluate(self, x, mapping, component, index_values):
+        a = self._left.evaluate(x, mapping, component, index_values)
+        b = self._right.evaluate(x, mapping, component, index_values)
+        return a <= b
+    
     def __repr__(self):
         return "LE(%r, %r)" % (self._left, self._right)
 
 class GE(Condition):
     def __init__(self, left, right):
         Condition.__init__(self, ">=", left, right)
+    
+    def evaluate(self, x, mapping, component, index_values):
+        a = self._left.evaluate(x, mapping, component, index_values)
+        b = self._right.evaluate(x, mapping, component, index_values)
+        return a >= b
     
     def __repr__(self):
         return "GE(%r, %r)" % (self._left, self._right)
@@ -68,12 +92,22 @@ class LT(Condition):
     def __init__(self, left, right):
         Condition.__init__(self, "<", left, right)
     
+    def evaluate(self, x, mapping, component, index_values):
+        a = self._left.evaluate(x, mapping, component, index_values)
+        b = self._right.evaluate(x, mapping, component, index_values)
+        return a < b
+    
     def __repr__(self):
         return "LT(%r, %r)" % (self._left, self._right)
 
 class GT(Condition):
     def __init__(self, left, right):
         Condition.__init__(self, ">", left, right)
+    
+    def evaluate(self, x, mapping, component, index_values):
+        a = self._left.evaluate(x, mapping, component, index_values)
+        b = self._right.evaluate(x, mapping, component, index_values)
+        return a > b
     
     def __repr__(self):
         return "GT(%r, %r)" % (self._left, self._right)
@@ -109,6 +143,14 @@ class Conditional(Expr):
 
     def shape(self):
         return self._true_value.shape()
+    
+    def evaluate(self, x, mapping, component, index_values):
+        c = self._condition.evaluate(x, mapping, component, index_values)
+        if c:
+            a = self._true_value
+        else:
+            a = self._false_value
+        return a.evaluate(x, mapping, component, index_values)
 
     def __str__(self):
         return "(%s) ? (%s) : (%s)" % self.operands()

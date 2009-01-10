@@ -29,6 +29,10 @@ class Restricted(Expr):
     def index_dimensions(self):
         return self._f.index_dimensions()
     
+    def evaluate(self, x, mapping, component, index_values):    
+        a = self._f.evaluate(x, mapping, component, index_values)
+        return a
+    
     def __str__(self):
         return "(%s)('%s')" % (self._f, self._side)
 

@@ -58,6 +58,12 @@ class Expr(object):
                 return d
         return None
     
+    #--- Functions for float evaluation ---
+    
+    def evaluate(self, x, mapping, component, index_values):
+        """Evaluate expression at given coordinate with given values for terminals."""
+        raise NotImplementedError(self.__class__.evaluate)
+    
     #--- Functions for computing derivatives ---
     
     #def partial_derivatives(self): # TODO: Do we want this here? If so, implement everywhere. (Must figure out conventions for tensor differentiation!)
