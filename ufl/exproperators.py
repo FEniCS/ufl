@@ -3,7 +3,7 @@ This way we avoid circular dependencies between e.g.
 Sum and its superclass Expr."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-18 -- 2009-01-09"
+__date__ = "2008-08-18 -- 2009-01-10"
 
 # UFL imports
 from ufl.output import ufl_error, ufl_assert
@@ -13,7 +13,7 @@ from ufl.zero import Zero
 from ufl.scalar import ScalarValue, FloatValue, IntValue, is_python_scalar, as_ufl, python_scalar_types
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import Transposed, Dot
-from ufl.indexing import Indexed
+from ufl.indexing import Indexed, as_index_tuple
 from ufl.tensors import as_tensor
 from ufl.restriction import PositiveRestricted, NegativeRestricted
 from ufl.differentiation import SpatialDerivative, VariableDerivative
@@ -118,11 +118,18 @@ Expr.__abs__ = _abs
 #--- Extend Expr with indexing operator a[i] ---
 
 def _getitem(self, key):
-    a = Indexed(self, key)
+    indices, axes = as_index_tuple(key)
+    
+    a = Indexed(self, indices)
+    
     if isinstance(self, Zero):
-        free_indices, index_dimensions = a.free_indices(), a.index_dimensions()
-        index_dimensions = subdict(index_dimensions, free_indices)
-        return Zero(a.shape(), free_indices, index_dimensions)
+        free_indices = a.free_indices()
+        index_dimensions = subdict(a.index_dimensions(), free_indices)
+        a = Zero(a.shape(), free_indices, index_dimensions)
+    
+    if axes: # TODO: what happens with both Zero and axes?
+        a = as_tensor(a, axes)
+    
     return a
 Expr.__getitem__ = _getitem
 

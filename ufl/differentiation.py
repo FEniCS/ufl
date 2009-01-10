@@ -69,7 +69,7 @@ class SpatialDerivative(Derivative):
         if isinstance(index, int):
             index = FixedIndex(index)
         if isinstance(index, (FixedIndex, Index)):
-            index = MultiIndex(index, 1)
+            index = MultiIndex((index,))
         ufl_assert(isinstance(index, MultiIndex), "Expecting a valid index type.")
         ufl_assert(len(index) == 1, "Can only handle one differentiation index!")
         idx = index[0]
@@ -110,7 +110,7 @@ class SpatialDerivative(Derivative):
         if isinstance(index, int):
             index = FixedIndex(index)
         if isinstance(index, (FixedIndex, Index)):
-            index = MultiIndex(index, 1)
+            index = MultiIndex((index,))
         ufl_assert(isinstance(index, MultiIndex), "Expecting a valid index type.")
         ufl_assert(len(index) == 1, "Can only handle one differentiation index!")
         

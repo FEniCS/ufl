@@ -16,7 +16,7 @@ from ufl.finiteelement import FiniteElementBase, FiniteElement, MixedElement, Ve
 from ufl.basisfunction import BasisFunction, TestFunction, TrialFunction
 from ufl.function import Function, VectorConstant, TensorConstant, Constant
 from ufl.geometry import SpatialCoordinate, FacetNormal
-from ufl.indexing import MultiIndex, Indexed, Index, FixedIndex, AxisType
+from ufl.indexing import MultiIndex, Indexed, Index, FixedIndex
 from ufl.tensors import ListTensor, ComponentTensor
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Cofactor, Inverse, Deviatoric, Skew

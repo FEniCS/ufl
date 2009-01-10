@@ -1,7 +1,7 @@
 """Classes used to group scalar expressions into expressions with rank > 0."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-31 -- 2009-01-09"
+__date__ = "2008-03-31 -- 2009-01-10"
 
 from ufl.output import ufl_assert, ufl_warning
 from ufl.expr import Expr
@@ -71,14 +71,12 @@ class ComponentTensor(Expr):
         ufl_assert(expression.shape() == (), "Expecting scalar valued expression.")
         self._expression = expression
         
-        if isinstance(indices, MultiIndex): # if constructed from repr
-            self._indices = indices
-        else:
-            # Allowing Axis or FixedIndex here would make no sense
-            ufl_assert(all(isinstance(ind, Index) for ind in indices))
-            self._indices = MultiIndex(indices, len(indices))
-        ufl_assert(all(isinstance(i, Index) for i in self._indices),
-            "Expecting indices to be tuple of Index instances, not %s." % repr(indices))
+        ufl_assert(all(isinstance(i, Index) for i in indices),
+           "Expecting sequence of Index objects, not %s." % repr(indices))
+        
+        if not isinstance(indices, MultiIndex): # if constructed from repr
+            indices = MultiIndex(indices)
+        self._indices = indices
         
         eset = set(expression.free_indices())
         iset = set(self._indices)
@@ -117,8 +115,8 @@ def as_tensor(expressions, indices = None):
         ufl_assert(isinstance(expressions, (list, tuple)),
             "Expecting nested list or tuple of Exprs.")
         return ListTensor(*expressions)
-    ufl_assert(all(isinstance(ii, Index) for ii in indices),
-               "Expecting sequence of Index objects.")
+    if not hasattr(indices, "__len__"):
+        indices = (indices,)
     return ComponentTensor(expressions, indices)
 
 def as_matrix(expressions, indices = None):
@@ -128,8 +126,6 @@ def as_matrix(expressions, indices = None):
         ufl_assert(isinstance(expressions[0], (list, tuple)),
             "Expecting nested list or tuple of Exprs.")
         return ListTensor(*expressions)
-    ufl_assert(all(isinstance(ii, Index) for ii in indices),
-               "Expecting sequence of Index objects.")
     ufl_assert(len(indices) == 2, "Expecting exactly two indices.")
     return ComponentTensor(expressions, indices)
 

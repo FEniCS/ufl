@@ -1,7 +1,7 @@
 """This module defines the single index types and some internal index utilities."""
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-14 -- 2009-01-09"
+__date__ = "2008-03-14 -- 2009-01-10"
 
 from itertools import chain
 from collections import defaultdict
@@ -27,7 +27,7 @@ class Index(Counted):
     def __str__(self):
         c = str(self._count)
         if len(c) > 1:
-            c = "{%s}" % s
+            c = "{%s}" % c
         return "i_%s" % c
     
     def __repr__(self):
@@ -61,41 +61,18 @@ class FixedIndex(object):
     def __repr__(self):
         return "FixedIndex(%d)" % self._value
 
-class AxisType(object):
-    __slots__ = ()
-    
-    def __init__(self):
-        pass
-    
-    def __hash__(self):
-        return hash(repr(self))
-    
-    def __eq__(self, other):
-        return isinstance(other, AxisType)
-    
-    def __str__(self):
-        return ":"
-    
-    def __repr__(self):
-        return "Axis"
-
 # Collect all index types to shorten isinstance(a, _indextypes)
-_indextypes = (Index, FixedIndex, AxisType) # TODO: Use superclass instead
-
-# Only need one of these, like None, Ellipsis etc., we can
-# then use either "a is Axis" or "isinstance(a, AxisType)"
-Axis = AxisType()
+_indextypes = (Index, FixedIndex) # TODO: Use superclass instead? Index, FreeIndex(Index), FixedIndex(Index)
 
 #--- Indexing ---
 
 class MultiIndex(Terminal):
-    __slots__ = ("_indices", "_rank")
+    __slots__ = ("_indices",)
     
-    def __init__(self, indices, rank):
+    def __init__(self, ii):
         Terminal.__init__(self)
-        self._indices = as_index_tuple(indices, rank)
-        self._rank = rank
-        ufl_assert(len(self._indices) == rank, "No? Why?")
+        self._indices, axes = as_index_tuple(ii)
+        ufl_assert(axes == (), "Not expecting slices at this point.")
     
     def free_indices(self):
         # This reflects the fact that a MultiIndex isn't a tensor expression
@@ -111,7 +88,7 @@ class MultiIndex(Terminal):
         return ", ".join(str(i) for i in self._indices)
     
     def __repr__(self):
-        return "MultiIndex(%r, %d)" % (self._indices, self._rank)
+        return "MultiIndex(%r)" % (self._indices,)
     
     def __len__(self):
         return len(self._indices)
@@ -124,8 +101,7 @@ class MultiIndex(Terminal):
     
     def __eq__(self, other):
         return isinstance(other, MultiIndex) and \
-            self._indices == other._indices and \
-            self._rank == other._rank
+            self._indices == other._indices
 
 class Indexed(Expr):
     __slots__ = ("_expression", "_indices",
@@ -138,8 +114,8 @@ class Indexed(Expr):
         ufl_assert(expression.free_indices() == (), "Currently not accepting free indices in indexed expression.") # FIXME: Figure this out!!!
         
         if not isinstance(indices, MultiIndex):
-            # if constructed from repr
-            indices = MultiIndex(indices, expression.rank())
+            # unless constructed from repr
+            indices = MultiIndex(indices)
         self._indices = indices
         
         msg = "Invalid number of indices (%d) for tensor "\
@@ -185,20 +161,7 @@ class Indexed(Expr):
     def __getitem__(self, key):
         ufl_error("Attempting to index with %r, but object is already indexed: %r" % (key, self))
 
-def as_index(i):
-    """Takes something the user might input as part of an
-    index tuple, and returns an actual UFL index object."""
-    if isinstance(i, _indextypes):
-        return i
-    elif isinstance(i, int):
-        return FixedIndex(i)
-    elif isinstance(i, slice):
-        ufl_assert(i == slice(None), "Partial slices not implemented, only [:]")
-        return Axis
-    else:
-        ufl_error("Can't convert this object to index: %r" % i)
-
-def as_index_tuple(indices, rank): # TODO: Incomplete slices!
+def as_index_tuple(ii):
     """Takes something the user might input as an index tuple
     inside [], and returns a tuple of actual UFL index objects.
     
@@ -208,27 +171,51 @@ def as_index_tuple(indices, rank): # TODO: Incomplete slices!
     - Complete slice (:) => Axis
     - Ellipsis (...) => multiple Axis
     """
-    if not isinstance(indices, tuple):
-        indices = (indices,)
+    if not isinstance(ii, tuple):
+        ii = (ii,)
+    
+    # Convert all indices to Index or FixedIndex objects.
+    # If there is an ellipsis, split the indices into before and after.
     pre  = []
     post = []
+    axes = set()
     found = False
-    for idx in indices:
-        if idx == Ellipsis:
+    for i in ii:
+        if i == Ellipsis:
             ufl_assert(not found, "Found duplicate ellipsis.")
             found = True
         else:
-            if not found:
-                pre.append(as_index(idx))
+            if isinstance(i, int):
+                idx = FixedIndex(i)
+            elif isinstance(i, (FixedIndex, Index)):
+                idx = i
+            elif isinstance(i, slice):
+                if i == slice(None):
+                    idx = Index()
+                    axes.add(idx)
+                else:
+                    # TODO: Use ListTensor for partial slices?
+                    ufl_error("Partial slices not implemented, only [:]")
             else:
-                post.append(as_index(idx))
+                ufl_error("Can't convert this object to index: %r" % i)
+            
+            if found:
+                post.append(idx)
+            else:
+                pre.append(idx)
     
-    # replace ellipsis with a number of Axis objects
-    num_axis = rank - len(pre) - len(post)
-    ufl_assert(num_axis >= 0, "Invalid number of indices "\
-        "(%d) for given rank (%d)." % (len(indices), rank))
-    indices = tuple(pre + [Axis]*num_axis + post)
-    return indices
+    # Handle ellipsis as a number of complete slices
+    num_axis = len(ii) - len(pre) - len(post)
+    ii = indices(num_axis)
+    axes.update(ii)
+    
+    # Construct final tuples to return
+    pre.extend(ii)
+    pre.extend(post)
+    ii = tuple(pre)
+    axes = tuple(i for i in ii if i in axes)
+    
+    return ii, axes
 
 def extract_indices_for_indexed(indices, shape):
     """Analyse a tuple of indices and a shape tuple,
@@ -249,7 +236,7 @@ def extract_indices_for_indexed(indices, shape):
     # Validate input
     ufl_assert(isinstance(indices, tuple), "Expecting index tuple.")
     ufl_assert(all(isinstance(i, _indextypes) for i in indices), \
-        "Expecting objects of type Index, FixedIndex, or Axis.")
+        "Expecting objects of type Index or FixedIndex, not %s." % repr(indices))
     ufl_assert(isinstance(shape, tuple), "Expecting index tuple.")
     ufl_assert(len(shape) == len(indices), "Expecting tuples of equal length.")
     
@@ -258,8 +245,9 @@ def extract_indices_for_indexed(indices, shape):
                             if isinstance(idx, Index))
     
     # Build new shape
-    newshape = tuple(dim for (idx, dim) in zip(indices, shape)
-                     if isinstance(idx, AxisType))
+    #newshape = tuple(dim for (idx, dim) in zip(indices, shape)
+    #                 if isinstance(idx, AxisType)) # TODO: This will always be empty now, so skip it
+    newshape = ()
     
     # Count repetitions of indices
     index_count = defaultdict(int)
@@ -278,8 +266,8 @@ def extract_indices_for_indexed(indices, shape):
     # Consistency check
     fixed_indices = tuple(idx for idx in indices 
                           if isinstance(idx, FixedIndex))
-    ufl_assert(len(fixed_indices)+len(free_indices) + \
-               2*len(repeated_indices)+len(newshape) == len(indices),
+    ufl_assert(len(fixed_indices) + len(free_indices) + \
+               2*len(repeated_indices) + len(newshape) == len(indices),
                "Logic breach in extract_indices_for_indexed.")
     
     return (newshape, free_indices, repeated_indices, index_dimensions)
@@ -298,9 +286,7 @@ def extract_indices_for_product(indices):
     # Validate input
     ufl_assert(isinstance(indices, tuple), "Expecting index tuple.")
     ufl_assert(all(isinstance(i, _indextypes) for i in indices), \
-        "Expecting objects of type Index, FixedIndex, or Axis.")
-    ufl_assert(not any(isinstance(i, AxisType) for i in indices), \
-        "Not expecting Axis when shape is not specified.")
+        "Expecting objects of type Index or FixedIndex.")
     
     # Count repetitions of indices
     index_count = defaultdict(int)

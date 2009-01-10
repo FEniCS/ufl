@@ -21,7 +21,7 @@ from ufl.variable import Variable
 from ufl.basisfunction import BasisFunction
 from ufl.function import Function, Constant, VectorConstant, TensorConstant
 from ufl.geometry import FacetNormal
-from ufl.indexing import MultiIndex, Indexed, Index, FixedIndex, AxisType
+from ufl.indexing import MultiIndex, Indexed, Index, FixedIndex
 from ufl.tensors import ListTensor, ComponentTensor
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
@@ -85,8 +85,6 @@ def format_index(ii):
         s = "%d" % ii._value
     elif isinstance(ii, Index):
         s = "i_{%d}" % ii._count
-    elif isinstance(ii, AxisType):
-        s = ":" # TODO: How to express this in natural syntax?
     else:
         ufl_error("Unknown index type %s." % type(ii))
     return s
