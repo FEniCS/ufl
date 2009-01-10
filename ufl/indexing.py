@@ -25,7 +25,10 @@ class Index(Counted):
         return isinstance(other, Index) and (self._count == other._count)
     
     def __str__(self):
-        return "i_{%d}" % self._count
+        c = str(self._count)
+        if len(c) > 1:
+            c = "{%s}" % s
+        return "i_%s" % c
     
     def __repr__(self):
         return "Index(%d)" % self._count

@@ -14,6 +14,7 @@ from ufl.scalar import ScalarValue, FloatValue, IntValue, is_python_scalar, as_u
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import Transposed, Dot
 from ufl.indexing import Indexed
+from ufl.tensors import as_tensor
 from ufl.restriction import PositiveRestricted, NegativeRestricted
 from ufl.differentiation import SpatialDerivative, VariableDerivative
 
@@ -133,7 +134,13 @@ def _restrict(self, side):
     if side == "-":
         return NegativeRestricted(self)
     ufl_error("Invalid side %r in restriction operator." % side)
-Expr.__call__ = _restrict
+#Expr.__call__ = _restrict
+
+def _call(self, *args):
+    if len(args) == 1 and args[0] in ("+", "-"):
+        return _restrict(self, args[0])
+    return as_tensor(self, args)
+Expr.__call__ = _call
 
 #--- Extend Expr with the transpose operation A.T ---
 
