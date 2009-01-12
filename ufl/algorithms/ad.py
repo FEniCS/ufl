@@ -4,7 +4,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-12-28 -- 2009-01-09"
 
 from itertools import izip
-from ufl.output import ufl_assert
+from ufl.output import ufl_assert, ufl_debug
 from ufl.classes import Terminal, Expr, Derivative, Tuple, SpatialDerivative, VariableDerivative, FunctionDerivative, FiniteElement, TestFunction, Function
 #from ufl.algorithms import *
 from ufl.algorithms.transformations import Transformer, transform_integrands, expand_compounds
@@ -23,13 +23,13 @@ def apply_ad(expr, ad_routine):
     global indentation
     indentation += " "*4
 
-    print
-    print indentation, "In apply_ad, expr =", str(expr)
-    print indentation, repr(expr)
+    ufl_debug("")
+    ufl_debug(indentation + "In apply_ad, expr = " + str(expr))
+    ufl_debug(indentation + repr(expr))
     
     # Return terminals
     if isinstance(expr, Terminal):
-        print indentation, "Returning terminal", repr(expr)
+        ufl_debug("indentation" + "Returning terminal" + repr(expr))
         indentation = indentation[:-4]
         return expr
     
@@ -40,24 +40,24 @@ def apply_ad(expr, ad_routine):
     # Reuse or reconstruct
     #if all(a is b for (a,b) in izip(ops, ops2)):
     if ops == ops2:
-        print indentation, "Reusing", expr
+        ufl_debug(indentation + "Reusing " + str(expr))
         expr2 = expr
     else:
         c = expr._uflid
-        print indentation, "Reconstructing from type and ops:"
-        print indentation, "  c =", c
-        print indentation, "  ops2 =", "\n".join(map(str,ops2))
+        ufl_debug(indentation + "Reconstructing from type and ops: ")
+        ufl_debug(indentation +  "  c = " + str(c))
+        ufl_debug(indentation +  "  ops2 = " + "\n".join(map(str,ops2)))
         expr2 = c(*ops2)
     
     # Evaluate derivative before returning
     if isinstance(expr, Derivative):
-        print indentation, "AD in:", expr
+        ufl_debug(indentation + "AD in: " + str(expr))
         expr2 = ad_routine(expr2)
-        print indentation, "AD out:", expr2
+        ufl_debug(indentation + "AD out: " + str(expr2))
     
-    print indentation, "Returning expr2 =", str(expr2)
-    print indentation, repr(expr2)
-    print 
+    ufl_debug(indentation + "Returning expr2 = " + str(expr2))
+    ufl_debug(indentation + repr(expr2))
+    ufl_debug("")
     indentation = indentation[:-4]
     return expr2
 

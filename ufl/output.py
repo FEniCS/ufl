@@ -4,6 +4,8 @@ output messages. These may be redirected by the user of UFL."""
 __authors__ = "Martin Sandve Alnes"
 __date__    = "2008-03-14 -- 2008-05-20"
 
+# Modified by Anders Logg, 2009.
+
 import logging
 _log     = logging.getLogger("ufl")
 _handler = logging.StreamHandler()
@@ -14,10 +16,10 @@ class UFLException(Exception):
         Exception.__init__(self, message)
 
 def get_handler():
-    global _handler
     return _handler
 
 def get_logger():
+    global _log
     return _log
 
 def set_handler(handler):
@@ -25,6 +27,9 @@ def set_handler(handler):
     _log.removeHandler(_handler)
     _handler = handler
     _log.addHandler(_handler)
+
+def set_loglevel(level):
+    _log.setLevel(level)
 
 def ufl_debug(*message):
     _log.debug(*message)
