@@ -1,6 +1,11 @@
 Roadmap for the development of UFL
 ----------------------------------
 
+# Derivatives:
+ - Finish forward mode AD implementation and verify correctness
+ - Finish reverse mode AD implementation and compare performance
+ - Currently, FunctionDerivative doesn't work multiple times. Fix that!
+
 # About canonical form of forms and expressions:
  - The current way of comparing forms and expressions using repr isn't
    good enough, since repr depends on the global counters of Counted
@@ -31,10 +36,6 @@ Roadmap for the development of UFL
  (- Maybe we should keep a more conservative representation of expressions,
    and move simplifications from __new__ to separate functions?
    Pros and cons? Bad during AD, lots of expressions created automatically that can cancel out.)
-
-# Derivatives:
- - Finish forward mode AD implementation
- - Finish reverse mode AD implementation
 
 # Elements and Basisfunctions (medium priority, needed for non-trivial applications):
  - Implement 'Test/Trial/BasisFunctions' for general tensor subelement with arbitrary symmetries (see split.py). Need to agree on some numbering conventions here.

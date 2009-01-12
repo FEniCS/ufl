@@ -181,7 +181,7 @@ class Indexed(Expr):
     
     def evaluate(self, x, mapping, component, index_values):
         A, ii = self.operands()
-        sh = self.shape()
+        sh = A.shape()
         ri = self.repeated_indices()
         
         # Build component from indices
@@ -200,7 +200,6 @@ class Indexed(Expr):
         
         # Handle implicit sums over repeated indices if necessary
         if ri:
-            ri = tuple(ri)
             if len(ri) > 1: # TODO: Implement to allow A[i,i,j,j] etc
                 ufl_error("TODO: Multiple repeated indices not implemented yet."\
                     " Note that A[i,i,j,j] = A[i,i,:,:][j,j].")
