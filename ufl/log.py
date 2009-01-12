@@ -15,8 +15,9 @@ __all__ = ["debug", "info", "warning", "error", "begin", "end",
            "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 
 # Set up logger and handler
-_log = logging.getLogger("ufl")
-_handler = None
+_log = logging.getLogger("UFL")
+_handler = logging.StreamHandler()
+_log.addHandler(_handler)
 
 # Set initial indentation level
 _indent_level = 0
@@ -95,10 +96,9 @@ def get_handler():
 def set_handler(handler):
     "Set stream handler for logging."
     global _handler
-    if not _handler is None:
-        _log.removeHandler(_handler)    
-    _handler = handler
+    _log.removeHandler(_handler)    
     _log.addHandler(_handler)
+    _handler = handler
 
 def get_logger():
     "Return message logger."
@@ -107,7 +107,10 @@ def get_logger():
 def set_logger(logger):
     "Set message logger."
     global _logger
-    _logger = logger
+    if isinstance(logger, logging.Logger):
+        _logger = logger
+    else:
+        _logger = logging.getLogger(logger)
 
 #--- Special functions used by logger ---
 
