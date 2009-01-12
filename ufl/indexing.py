@@ -1,7 +1,7 @@
 """This module defines the single index types and some internal index utilities."""
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-14 -- 2009-01-10"
+__date__ = "2008-03-14 -- 2009-01-12"
 
 from itertools import chain
 from collections import defaultdict
@@ -67,12 +67,29 @@ _indextypes = (Index, FixedIndex) # TODO: Use superclass instead? Index, FreeInd
 #--- Indexing ---
 
 class MultiIndex(Terminal):
-    __slots__ = ("_indices",)
+    __slots__ = ("_indices", "_repeated_indices")
     
     def __init__(self, ii):
         Terminal.__init__(self)
+        # Convert ii to a tuple of valid objects
         self._indices, axes = as_index_tuple(ii)
         ufl_assert(axes == (), "Not expecting slices at this point.")
+        
+        # Extract repeated indices (no context here, so we're not judging what's valid)
+        ri = []
+        count = {}
+        for i in self._indices:
+            if i in count:
+                count[i] += 1
+                ri.append(i)
+            else:
+                count[i] = 1
+        if any(c > 2 for c in count.values()):
+            ufl_warning("Found more than two repeated indices in MultiIndex, this will likely fail later?")
+        self._repeated_indices = tuple(ri)
+    
+    def repeated_indices(self):
+        return self._repeated_indices
     
     def free_indices(self):
         # This reflects the fact that a MultiIndex isn't a tensor expression
@@ -105,13 +122,10 @@ class MultiIndex(Terminal):
 
 class Indexed(Expr):
     __slots__ = ("_expression", "_indices",
-                 "_shape",
                  "_free_indices", "_repeated_indices", "_index_dimensions")
     def __init__(self, expression, indices):
         Expr.__init__(self)
         self._expression = expression
-        
-        ufl_assert(expression.free_indices() == (), "Currently not accepting free indices in indexed expression.") # FIXME: Figure this out!!!
         
         if not isinstance(indices, MultiIndex):
             # unless constructed from repr
@@ -124,10 +138,23 @@ class Indexed(Expr):
         ufl_assert(expression.rank() == len(self._indices), msg)
         
         shape = expression.shape()
-        s, f, r, d = extract_indices_for_indexed(self._indices._indices, shape)
-        self._free_indices = f
-        self._repeated_indices = r
-        self._shape = s
+        f, r, d = extract_indices_for_indexed(self._indices._indices, shape)
+        
+        # Find additional free and repeated indices from expression # TODO: Merge with extract_indices_for_indexed?
+        efi = expression.free_indices()
+        eid = expression.index_dimensions()
+        fi = list(f)
+        ri = list(r)
+        for i in efi:
+            if i in f:
+                ri.append(i)
+                fi.remove(i)
+            else:
+                fi.append(i)
+                d[i] = eid[i]
+        
+        self._free_indices = tuple(fi)
+        self._repeated_indices = tuple(ri)
         self._index_dimensions = d
     
     def operands(self):
@@ -135,12 +162,12 @@ class Indexed(Expr):
     
     def free_indices(self):
         return self._free_indices
-
+    
     def repeated_indices(self):
         return self._repeated_indices
-
+    
     def index_dimensions(self):
-        # FIXME: Can we remove this now?
+        # TODO: Can we remove this now?
         #d = {}
         #shape = self._expression.shape()
         #for k, i in enumerate(self._indices._indices):
@@ -150,7 +177,7 @@ class Indexed(Expr):
         return self._index_dimensions
     
     def shape(self):
-        return self._shape
+        return ()
     
     def evaluate(self, x, mapping, component, index_values):
         A, ii = self.operands()
@@ -174,13 +201,18 @@ class Indexed(Expr):
         # Handle implicit sums over repeated indices if necessary
         if ri:
             ri = tuple(ri)
-            if len(ri) > 1:
-                ufl_error("TODO: Multiple repeated indices not implemented yet.") # TODO: Implement to allow A[i,i,j,j], but for now, note that A[i,i,j,j] == A[i,i,:,:][j,j]
+            if len(ri) > 1: # TODO: Implement to allow A[i,i,j,j] etc
+                ufl_error("TODO: Multiple repeated indices not implemented yet."\
+                    " Note that A[i,i,j,j] = A[i,i,:,:][j,j].")
             
             # Get summation range
             idx, = ri # TODO: Only one! Need permutations to do more.
-            i0, i1 = ri_pos[idx]
-            ufl_assert(sh[i0] == sh[i1], "Dimension mismatch in implicit sum over Indexed object.")
+            if len(ri_pos[idx]) == 2:
+                i0, i1 = ri_pos[idx]
+                ufl_assert(sh[i0] == sh[i1], "Dimension mismatch in implicit sum over Indexed object.")
+            else:
+                i0, = ri_pos[idx]
+                i1 = idx
             dim = sh[i0]
             
             # Accumulate values
@@ -192,8 +224,15 @@ class Indexed(Expr):
                 #    subcomp[i0] = jj[...]
                 #    subcomp[i1] = jj[...]
                 subcomp[i0] = j
-                subcomp[i1] = j
+                if isinstance(i1, int):
+                    subcomp[i1] = j
+                    pushed = False
+                else: # isinstance(i1, Index):
+                    pushed = True
+                    index_values.push(i1, j)
                 result += A.evaluate(x, mapping, tuple(subcomp), index_values)
+                if pushed:
+                    index_values.pop()
         else:
             # No repeated indices makes this simple
             result = A.evaluate(x, mapping, tuple(subcomp), index_values)
@@ -219,6 +258,9 @@ def as_index_tuple(ii):
     - Complete slice (:) => Axis
     - Ellipsis (...) => multiple Axis
     """
+    if isinstance(ii, MultiIndex):
+        return ii._indices, ()
+    
     if not isinstance(ii, tuple):
         ii = (ii,)
     
@@ -292,11 +334,6 @@ def extract_indices_for_indexed(indices, shape):
     index_dimensions = dict((idx, dim) for (idx, dim) in zip(indices, shape)
                             if isinstance(idx, Index))
     
-    # Build new shape
-    #newshape = tuple(dim for (idx, dim) in zip(indices, shape)
-    #                 if isinstance(idx, AxisType)) # TODO: This will always be empty now, so skip it
-    newshape = ()
-    
     # Count repetitions of indices
     index_count = defaultdict(int)
     for idx in indices:
@@ -314,11 +351,11 @@ def extract_indices_for_indexed(indices, shape):
     # Consistency check
     fixed_indices = tuple(idx for idx in indices 
                           if isinstance(idx, FixedIndex))
-    ufl_assert(len(fixed_indices) + len(free_indices) + \
-               2*len(repeated_indices) + len(newshape) == len(indices),
+    n = len(fixed_indices) + len(free_indices) + 2*len(repeated_indices)
+    ufl_assert(n == len(indices),
                "Logic breach in extract_indices_for_indexed.")
     
-    return (newshape, free_indices, repeated_indices, index_dimensions)
+    return (free_indices, repeated_indices, index_dimensions)
 
 def extract_indices_for_product(indices):
     """Analyse a tuple of indices, and return a

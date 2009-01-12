@@ -226,43 +226,47 @@ class IndexTestCase(unittest.TestCase):
         self.assertTrue(a.repeated_indices() == (i,))
         
     def test_spatial_derivative(self):
-        element = VectorElement("CG", "triangle", 1)
+        cell = triangle
+        element = VectorElement("CG", cell, 1)
         v  = TestFunction(element)
         u  = TrialFunction(element)
-        i, j, k, l = indices(4) 
+        i, j, k, l = indices(4)
+        d = cell.dim()
         
         a = v[i].dx(i)
         self.assertTrue(a.free_indices() == ())
         self.assertTrue(a.repeated_indices() == (i,))
+        self.assertTrue(a.shape() == ())
         
         a = v[i].dx(j)
         self.assertTrue(a.free_indices() == (i,j))
         self.assertTrue(a.repeated_indices() == ())
+        self.assertTrue(a.shape() == ())
         
         a = (v[i]*u[j]).dx(i,j)
         self.assertTrue(a.free_indices() == ())
         self.assertTrue(a.repeated_indices() == (j,))
+        self.assertTrue(a.shape() == ())
         
         a = v.dx(i,j)
         self.assertTrue(a.free_indices() == (i,j))
         self.assertTrue(a.repeated_indices() == ())
+        self.assertTrue(a.shape() == (d,))
         
         a = v[i].dx(0)
         self.assertTrue(a.free_indices() == (i,))
         self.assertTrue(a.repeated_indices() == ())
+        self.assertTrue(a.shape() == ())
         
         a = (v[i]*u[j]).dx(0, 1)
         self.assertTrue(set(a.free_indices()) == set((i,j))) # indices change place because of sorting, I guess this may be ok
         self.assertTrue(a.repeated_indices() == ())
+        self.assertTrue(a.shape() == ())
         
-        try:
-            a = v.dx(i)[i] # FIXME: Should we allow v.dx(i) when v is a vector?
-            success = True
-        except:
-            success = False
-        self.assertFalse(success)
-        #self.assertTrue(a.free_indices() == ())
-        #self.assertTrue(a.repeated_indices() == (i,))
+        a = v.dx(i)[i]
+        self.assertTrue(a.free_indices() == ())
+        self.assertTrue(a.repeated_indices() == (i,))
+        self.assertTrue(a.shape() == ())
 
 if __name__ == "__main__":
     unittest.main()
