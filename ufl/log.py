@@ -100,7 +100,7 @@ class Logger:
     def _format(self, *message):
         "Format message including indentation."
         indent = 2*self._indent_level*" "
-        return indent + message[0] % message[1:]
+        return "\n".join([indent + line for line in (message[0] % message[1:]).split("\n")])
 
     def _format_raw(self, *message):
         "Format message without indentation."
