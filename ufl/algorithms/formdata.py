@@ -3,12 +3,12 @@
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-09-13 -- 2008-12-22"
 
-# Modified by Anders Logg, 2008
+# Modified by Anders Logg, 2008.
 
 from itertools import chain
 
 from ufl.output import ufl_assert
-from ufl.common import lstr, tstr
+from ufl.common import lstr, tstr, sstr
 from ufl.form import Form
 
 from ufl.algorithms.analysis import extract_basisfunctions, extract_coefficients, extract_classes, extract_sub_elements
@@ -90,4 +90,4 @@ class FormData(object):
                      ("Basis functions",          lstr(self.basisfunctions)),
                      ("Coefficients",             lstr(self.coefficients)),
                      ("Coefficient names",        lstr(self.coefficient_names)),
-                     ("Unique elements",          lstr(self.unique_elements))))
+                     ("Unique elements",          sstr(self.unique_elements))))

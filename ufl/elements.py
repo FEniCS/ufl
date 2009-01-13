@@ -4,7 +4,7 @@ elements by calling the function register_element."""
 
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-03 -- 2008-08-14"
+__date__ = "2008-03-03 -- 2009-01-13"
 
 from ufl.output import ufl_assert
 

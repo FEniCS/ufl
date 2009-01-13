@@ -69,7 +69,7 @@ class FiniteElement(FiniteElementBase):
         ufl_assert(family in ufl_elements, 'Unknown finite element "%s".' % family)
 
         # Check that element data is valid (and also get common family name)
-        (family, short_name, value_rank, (kmin, kmax), domains) = ufl_elements[family]
+        (family, self._short_name, value_rank, (kmin, kmax), domains) = ufl_elements[family]
         ufl_assert(domain in domains,              'Domain "%s" invalid for "%s" finite element.' % (domain, family))
         ufl_assert(kmin is None or degree >= kmin, 'Degree "%d" invalid for "%s" finite element.' % (degree, family))
         ufl_assert(kmax is None or degree <= kmax, 'Degree "%d" invalid for "%s" finite element.' % (degree, family))
@@ -83,14 +83,14 @@ class FiniteElement(FiniteElementBase):
         
         # Cache repr string
         self._repr = "FiniteElement(%r, %r, %d)" % (self.family(), self.cell(), self.degree())
-    
+
     def __repr__(self):
         "Format as string for evaluation as Python object."
         return self._repr
     
     def __str__(self):
         "Format as string for pretty printing."
-        return "[%s finite element of degree %d on a %s]" % (self.family(), self.degree(), self.cell())
+        return "<%s%d on a %s>" % (self._short_name, self.degree(), self.cell())
 
 class MixedElement(FiniteElementBase):
     "A finite element composed of a nested hierarchy of mixed or simple elements"

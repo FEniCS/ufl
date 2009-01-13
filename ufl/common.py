@@ -1,7 +1,7 @@
 "This module contains a collection of common utilities."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-08-05 -- 2008-11-21"
+__date__ = "2008-08-05 -- 2009-01-13"
 
 import os
 from itertools import izip
@@ -124,6 +124,10 @@ def tstr(t):
             value = value[end:]
             space = " "*(keylen + 2)
     return s
+
+def sstr(s):
+    "Pretty-print set."
+    return ", ".join([str(x) for x in s])
 
 class Counted(object):
     """A class of objects identified by a global counter.
