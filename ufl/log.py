@@ -107,6 +107,7 @@ def get_logger():
 def set_logger(logger):
     "Set message logger."
     global _logger
+    print "DO NOT USE THIS! WILL BE REMOVED!"
     if isinstance(logger, logging.Logger):
         _logger = logger
     else:
