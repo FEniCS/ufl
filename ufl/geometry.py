@@ -1,7 +1,9 @@
 "Types for quantities computed from cell geometry."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-01-09"
+__date__ = "2008-03-14 -- 2009-01-13"
+
+# Modified by Anders Logg, 2009.
 
 from ufl.output import ufl_assert, ufl_warning
 from ufl.common import domain2dim
@@ -81,7 +83,7 @@ class Cell(object):
         return hash(("Cell", self._domain, self._degree))
     
     def __str__(self):
-        return "[%s of degree %d]" % (self._domain, self._degree)
+        return "<%s of degree %d>" % (self._domain, self._degree)
     
     def __repr__(self):
         return "Cell(%r, %r)" % (self._domain, self._degree)
@@ -91,4 +93,3 @@ class Cell(object):
 def as_cell(cell):
     "Convert any valid object to a Cell (in particular, domain string)."
     return cell if isinstance(cell, Cell) else Cell(cell)
-
