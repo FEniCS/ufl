@@ -2,7 +2,7 @@
 output messages. These may be redirected by the user of UFL."""
 
 __author__ = "Martin Sandve Alnaes and Anders Logg"
-__date__ = "2005-02-04 -- 2009-01-13"
+__date__ = "2005-02-04 -- 2009-01-14"
 __copyright__ = "Copyright (C) 2005-2009 Anders Logg and Martin Sandve Alnaes"
 __license__  = "GNU GPL version 3 or any later version"
 
@@ -84,12 +84,17 @@ class Logger:
         self._indent_level += increment
 
     def get_handler(self):
-        "Get stream handler for logging."
+        "Get handler for logging."
         return self._handler
 
     def set_handler(self, handler):
-        "Set stream handler for logging."
-        self._log.removeHandler(_handler)    
+        """Replace handler for logging.
+        To add additional handlers instead
+        of replacing the existing, use
+        log.get_logger().addHandler(myhandler).
+        See the logging module for more details.
+        """
+        self._log.removeHandler(self._handler)    
         self._log.addHandler(handler)
         self._handler = handler
 
