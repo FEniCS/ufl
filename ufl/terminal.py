@@ -2,13 +2,13 @@
 for all types that are terminal nodes in the expression trees."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-01-10"
+__date__ = "2008-03-14 -- 2008-01-16"
 
 # Modified by Anders Logg, 2008
 
 from ufl.expr import Expr
 from ufl.common import lstr
-from ufl.output import ufl_error
+from ufl.output import ufl_error, ufl_warning
 
 #--- Base class for terminal objects ---
 
@@ -59,6 +59,8 @@ class Tuple(Terminal):
     "For internal use, never to be created by users."
     def __init__(self, *items):
         Expr.__init__(self)
+        if not all(isinstance(i, Expr) for i in items):
+            ufl_warning("Got non-Expr in Tuple, is this intended? If so, remove this warning.")
         self._items = items
     
     def shape(self):
@@ -74,7 +76,7 @@ class Tuple(Terminal):
         return iter(self._items)
     
     def __str__(self):
-        return "Tuple(*%s)" % lstr(self._items)
+        return "Tuple(*(%s,))" % ", ".join(str(i) for i in self._items)
     
     def __repr__(self):
         return "Tuple(*%s)" % repr(self._items)

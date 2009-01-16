@@ -1,7 +1,7 @@
 """Forward mode AD implementation."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-19-- 2009-01-08"
+__date__ = "2008-08-19-- 2009-01-16"
 
 from ufl.output import ufl_assert, ufl_error, ufl_warning
 from ufl.common import product, unzip, UFLTypeDefaultDict, subdict, mergedicts
@@ -225,11 +225,16 @@ class AD(Transformer):
     
     def spatial_derivative(self, o):
         # If everything else works as it should, this should now 
-        # be treated as a "terminal" in the context of AD.
-        # TODO: Document the reason for this well!
-        op = FIXME
-        return (o, op)
+        # be treated as a "terminal" in the context of AD,
+        # i.e. the differentiation this represents has already
+        # been applied. TODO: Document the reason for this well!
         
+        # TODO: Although differentiation commutes, can we get repeated index issues here?
+        f, i = o.operands()
+        f, fp = self.visit(f)
+        op = o._uflid(fp, i)
+        return (o, op)
+
 class SpatialAD(AD):
     def __init__(self, dim, index):
         AD.__init__(self, dim)
@@ -293,14 +298,22 @@ class FunctionAD(AD):
     def __init__(self, spatial_dim, functions, basisfunctions):
         AD.__init__(self, spatial_dim)
         self._functions = zip(functions, basisfunctions)
+        self._w = functions
+        self._v = basisfunctions
+        ufl_assert(isinstance(self._w, Tuple), "Eh?")
+        ufl_assert(isinstance(self._v, Tuple), "Eh?")
         # Define dw/dw := v (what we really mean by d/dw is d/dw_j where w = sum_j w_j phi_j, and what we really mean by v is phi_j for any j)
     
     def function(self, o):
-        for (w, wprime) in self._functions:
+        print "In FunctionAD.function:"
+        print "o = ", o
+        print "self._w = ", self._w
+        print "self._v = ", self._v
+        for (w, v) in zip(self._w, self._v): #self._functions:
             if o == w:
-                return (w, wprime)
+                return (w, v)
         return (o, Zero(o.shape()))
-    
+
     def variable(self, o):
         dummy, wprime = self.visit(o._expression)
         return (o, wprime)
@@ -339,16 +352,14 @@ def forward_ad(expr):
     return the computed derivative."""
     if isinstance(expr, SpatialDerivative):
         result = compute_spatial_forward_ad(expr)
-    
-    if isinstance(expr, VariableDerivative):
+    elif isinstance(expr, VariableDerivative):
         result = compute_variable_forward_ad(expr)
-    
-    if isinstance(expr, FunctionDerivative):
+    elif isinstance(expr, FunctionDerivative):
         result = compute_function_forward_ad(expr)
-    
+    else:
+        ufl_warning("How did this happen? expr is %s" % repr(expr))
+        result = expr
     return result
-
-
 
 
 class UnusedADRules(AD):

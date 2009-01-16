@@ -2,7 +2,7 @@
 of related classes (functions), including Constant."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-12-30"
+__date__ = "2008-03-14 -- 2009-01-16"
 
 # Modified by Anders Logg, 2008
 
@@ -77,7 +77,11 @@ class VectorConstant(Function):
         Function.__init__(self, element, count)
     
     def __str__(self):
-        return "c_%d" % self._count
+        count = str(self._count)
+        if len(count) == 1:
+            return "C_%s" % count
+        else:
+            return "C_{%s}" % count
     
     def __repr__(self):
         e = self.element()
@@ -90,7 +94,11 @@ class TensorConstant(Function):
         Function.__init__(self, element, count)
     
     def __str__(self):
-        return "c_%d" % self._count
+        count = str(self._count)
+        if len(count) == 1:
+            return "C_%s" % count
+        else:
+            return "C_{%s}" % count
     
     def __repr__(self):
         e = self.element()

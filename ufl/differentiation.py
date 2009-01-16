@@ -1,7 +1,7 @@
 "Differential operators."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-01-08"
+__date__ = "2008-03-14 -- 2009-01-16"
 
 from ufl.output import ufl_assert, ufl_warning
 from ufl.common import subdict, mergedicts
@@ -30,14 +30,20 @@ class FunctionDerivative(Derivative):
     """Derivative of the integrand of a form w.r.t. the 
     degrees of freedom in a discrete Function."""
     __slots__ = ("_integrand", "_functions", "_basisfunctions")
-    def __init__(self, integrand, functions, basisfunctions):
-        Derivative.__init__(self)
+    
+    def __new__(cls, integrand, functions, basisfunctions):
         ufl_assert(is_true_ufl_scalar(integrand),
             "Expecting true UFL scalar expression.")
         ufl_assert(isinstance(functions, Tuple), #and all(isinstance(f, (Function,Indexed)) for f in functions),
             "Expecting Tuple instance with Functions.")
         ufl_assert(isinstance(basisfunctions, Tuple), #and all(isinstance(f, BasisFunction) for f in basisfunctions),
             "Expecting Tuple instance with BasisFunctions.")
+        if isinstance(integrand, Zero):
+            return Zero()
+        return Derivative.__new__(cls)
+    
+    def __init__(self, integrand, functions, basisfunctions):
+        Derivative.__init__(self)
         self._integrand = integrand
         self._functions = functions
         self._basisfunctions = basisfunctions
@@ -55,7 +61,7 @@ class FunctionDerivative(Derivative):
         return {}
     
     def __str__(self):
-        return "FunctionDerivative (w.r.t. function %r and using basis function %r) of \n%s" % (self._functions, self._basisfunctions, self._integrand)
+        return "FunctionDerivative (w.r.t. function %s and using basis function %s) of \n%s" % (self._functions, self._basisfunctions, self._integrand)
     
     def __repr__(self):
         return "FunctionDerivative(%r, %r, %r)" % (self._integrand, self._functions, self._basisfunctions)
@@ -100,7 +106,7 @@ class SpatialDerivative(Derivative):
                 
                 return Zero(expression.shape(), fi, idim)
 
-        return Expr.__new__(cls)
+        return Derivative.__new__(cls)
     
     def __init__(self, expression, index):
         Derivative.__init__(self)
@@ -174,7 +180,7 @@ class VariableDerivative(Derivative):
             index_dimensions = mergedicts([f.index_dimensions(), v.index_dimensions()])
             index_dimensions = subdict(index_dimensions, free_indices)
             return Zero(f.shape(), free_indices, index_dimensions)
-        return Expr.__new__(cls)
+        return Derivative.__new__(cls)
     
     def __init__(self, f, v):
         Derivative.__init__(self)
@@ -231,7 +237,7 @@ class Grad(Derivative):
             free_indices = f.free_indices()
             index_dimensions = subdict(f.index_dimensions(), free_indices)
             return Zero((dim,) + f.shape(), free_indices, index_dimensions)
-        return Expr.__new__(cls)
+        return Derivative.__new__(cls)
     
     def __init__(self, f):
         Derivative.__init__(self)
@@ -270,7 +276,7 @@ class Div(Derivative):
         # Return zero if expression is trivially constant
         if isinstance(f, spatially_constant_types):
             return Zero(f.shape()[1:]) # No free indices
-        return Expr.__new__(cls)
+        return Derivative.__new__(cls)
 
     def __init__(self, f):
         Derivative.__init__(self)

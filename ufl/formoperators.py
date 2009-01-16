@@ -57,7 +57,7 @@ def _handle_derivative_arguments(function, basisfunction):
         
         # Create basis function if necessary
         if basisfunction is None:
-            basisfunctions = BasisFunction(element)
+            basisfunctions = (BasisFunction(element),)
         else:
             basisfunctions = (basisfunction,)
     
@@ -84,8 +84,8 @@ def _handle_derivative_arguments(function, basisfunction):
                 "got %s but expecting %s." % \
                 (repr(basisfunction.element()), repr(element)))
     
-    functions      = Tuple(functions)
-    basisfunctions = Tuple(basisfunctions)
+    functions      = Tuple(*functions)
+    basisfunctions = Tuple(*basisfunctions)
     
     return functions, basisfunctions
 
