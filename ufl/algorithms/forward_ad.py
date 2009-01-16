@@ -113,7 +113,7 @@ class AD(Transformer):
         return (sum((op[0] for op in ops[1:]), ops[0][0]),
                 sum((op[1] for op in ops[1:]), ops[0][1]))
     
-    def product(self, o, *ops):
+    def _product(self, o, *ops):
         fi = o.free_indices()
         fid = subdict(o.index_dimensions(), fi)
         fp = Zero(o.shape(), fi, fid)
@@ -126,6 +126,22 @@ class AD(Transformer):
             # simplify if there are zeros in the product
             if not any(isinstance(fpop, Zero) for fpop in fpoperands):
                 fp += product(fpoperands)
+        return (o, fp)
+    
+    def product(self, o, *ops):
+        fi = o.free_indices()
+        fid = subdict(o.index_dimensions(), fi)
+        fp = Zero(o.shape(), fi, fid)
+        ops2, dops2 = unzip(ops)
+        
+        for (i, op) in enumerate(ops):
+            # replace operand i with its differentiated value 
+            fpoperands = ops2[:i] + [dops2[i]] + ops2[i+1:]
+            # simplify by ignoring ones
+            fpoperands = [fpop for fpop in fpoperands if not fpop == 1]
+            # simplify if there are zeros in the product
+            if not any(isinstance(fpop, Zero) for fpop in fpoperands):
+                fp += product(fpoperands) # FIXME: fp and product(fpoperands) may have different free indices, causing this to fail!
         return (o, fp)
     
     def division(self, o, a, b):
@@ -223,7 +239,7 @@ class AD(Transformer):
     def derivative(self, o):
         ufl_error("This should never occur.")
     
-    def spatial_derivative(self, o):
+    def _spatial_derivative(self, o):
         # If everything else works as it should, this should now 
         # be treated as a "terminal" in the context of AD,
         # i.e. the differentiation this represents has already
@@ -232,20 +248,16 @@ class AD(Transformer):
         # TODO: Although differentiation commutes, can we get repeated index issues here?
         f, i = o.operands()
         f, fp = self.visit(f)
-        op = o._uflid(fp, i)
+        op = o._uflid(fp, i) # FIXME
         return (o, op)
-
-class SpatialAD(AD):
-    def __init__(self, dim, index):
-        AD.__init__(self, dim)
-        self._index = index
     
-    def spatial_derivative(self, o, f, ii): # FIXME: Fix me!
-        # If we hit this type, it is already applied to a terminal (+ evt indexing stuff),
-        # so we should simply apply our derivative to it again! Right?
+    def spatial_derivative(self, o): # FIXME: Fix me!
+        # If we hit this type, it has already been propagated
+        # to a terminal, so we can simply apply our derivative
+        # to its operand since differentiation commutes. Right?
+        f, ii = o.operands()
+        f, fp = self.visit(f)
         
-        f, fp = f
-        ii, iip = ii
         # TODO: Are there any issues with indices here? Not sure, think through it...
         if is_spatially_constant(fp):
             # throw away repeated indices
@@ -256,6 +268,11 @@ class SpatialAD(AD):
         else:
             oprime = o._uflid(fp, ii)
         return (o, oprime)
+
+class SpatialAD(AD):
+    def __init__(self, dim, index):
+        AD.__init__(self, dim)
+        self._index = index
     
     def spatial_coordinate(self, o):
         # TODO: Need to define dx_i/dx_j = delta_ij?

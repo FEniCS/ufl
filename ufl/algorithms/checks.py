@@ -1,7 +1,7 @@
 """Functions to check the validity of forms."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-01-05"
+__date__ = "2008-03-14 -- 2009-01-16"
 
 # Modified by Anders Logg, 2008.
 
@@ -15,12 +15,15 @@ from ufl.scalar import is_true_ufl_scalar
 from ufl.algorithms.traversal import post_traversal, post_walk, iter_expressions, traverse_terminals
 from ufl.algorithms.analysis import extract_elements
 from ufl.algorithms.predicates import is_multilinear
+from ufl.algorithms.ad import expand_derivatives
 
 def validate_form(form):
     """Performs all implemented validations on a form. Raises exception if something fails."""
     
     ufl_assert(isinstance(form, Form), "Expecting a Form.")
     
+    # TODO: Can we check for multilinearity without expanding function derivatives?
+    form = expand_derivatives(form)
     ufl_assert(is_multilinear(form), "Form is not multilinear in basis function arguments.")
     #if not is_multilinear(form): ufl_warning("Form is not multilinear.")
     

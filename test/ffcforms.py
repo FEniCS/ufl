@@ -63,12 +63,9 @@ class FFCTestCase(unittest.TestCase):
         u0 = Function(element)
 
         F = v*(u - u0)*dx + k*dot(grad(v), grad(0.5*(u0 + u)))*dx
-	
-	try: # FIXME!
-            a = lhs(F)
-            L = rhs(F)
-        except:
-            pass
+
+        a = lhs(F)
+        L = rhs(F)
 
     def testFunctionOperators(self):
 

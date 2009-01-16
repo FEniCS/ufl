@@ -1,7 +1,7 @@
 "Various high level ways to transform a complete Form into a new Form."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-01-09"
+__date__ = "2008-03-14 -- 2008-01-16"
 
 from ufl.output import ufl_assert, ufl_error
 from ufl.form import Form
@@ -14,7 +14,7 @@ from ufl.differentiation import FunctionDerivative
 
 # An exception to the rule that ufl.* does not depend on ufl.algorithms.* ...
 from ufl.algorithms import compute_form_adjoint, compute_form_action, \
-                           compute_form_lhs, compute_form_rhs
+                           compute_form_lhs, compute_form_rhs, expand_derivatives
 
 def rhs(form):
     """Given a combined bilinear and linear form,
@@ -25,13 +25,13 @@ def rhs(form):
     "-f*v*dx" as the rigth hand side should
     be when solving the equations?
     """
-    # TODO: May need to compute form derivatives before applying this!
+    form = expand_derivatives(form)
     return compute_form_rhs(form)
 
 def lhs(form):
     """Given a combined bilinear and linear form,
     extract the bilinear form part (left hand side)."""
-    # TODO: May need to compute form derivatives before applying this!
+    form = expand_derivatives(form)
     return compute_form_lhs(form)
 
 def action(form, function=None):
@@ -39,13 +39,13 @@ def action(form, function=None):
     with an additional function coefficient, representing
     the action of the form on the function. This can be
     used for matrix-free methods."""
-    # TODO: May need to compute form derivatives before applying this!
+    form = expand_derivatives(form)
     return compute_form_action(form, function)
 
 def adjoint(form):
     """Given a combined bilinear form, compute the adjoint
     form by swapping the test and trial functions."""
-    # TODO: May need to compute form derivatives before applying this!
+    form = expand_derivatives(form)
     return compute_form_adjoint(form)
 
 def _handle_derivative_arguments(function, basisfunction):
