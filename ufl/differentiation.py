@@ -87,9 +87,10 @@ class SpatialDerivative(Derivative):
                 # TODO: This code is duplicated in __init__
                 # Get spatial dimension
                 cell = expression.cell()
-                ufl_assert(cell is not None,
-                    "Need to know the spatial dimension to compute the shape of derivatives.")
-                dim = cell.dim()
+                if cell is None:
+                    dim = None
+                else:
+                    dim = cell.dim()
                 
                 # TODO: This code is duplicated in __init__
                 # Find repeated index
@@ -99,6 +100,8 @@ class SpatialDerivative(Derivative):
                 idim = dict(expression.index_dimensions())
                 if isinstance(idx, Index):
                     if len(fi) == len(efi):
+                        ufl_assert(dim is not None,
+                            "Need to know the spatial dimension to compute the shape of derivatives.")
                         fi += (idx,) # idx is not repeated
                         idim.update(((idx, dim),))
                     else:
@@ -126,9 +129,10 @@ class SpatialDerivative(Derivative):
         # TODO: This code is duplicated in __new__
         # Get spatial dimension
         cell = expression.cell()
-        ufl_assert(cell is not None,
-            "Need to know the spatial dimension to compute the shape of derivatives.")
-        dim = cell.dim()
+        if cell is None:
+            dim = None
+        else:
+            dim = cell.dim()
         
         # TODO: This code is duplicated in __init__
         # Find repeated index
@@ -138,6 +142,8 @@ class SpatialDerivative(Derivative):
         idim = dict(expression.index_dimensions())
         if isinstance(idx, Index):
             if len(fi) == len(efi):
+                ufl_assert(dim is not None,
+                    "Need to know the spatial dimension to compute the shape of derivatives.")
                 fi += (idx,) # idx is not repeated
                 idim.update(((idx, dim),))
             else:
