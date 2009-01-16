@@ -56,6 +56,11 @@ class AD(Transformer):
         Transformer.__init__(self)
         self._spatial_dim = spatial_dim
     
+    def visit(*args):
+        result = Transformer.visit(*args)
+        # FIXME: Inspect results here for debugging
+        return result
+    
     # --- Default rules
     
     def expr(self, o):

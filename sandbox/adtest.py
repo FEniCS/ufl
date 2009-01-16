@@ -42,9 +42,13 @@ print "1 =======================================================================
 #F = as_vector(u.dx(i), i)[i] * I[i,0] * dx
 #show(F)
 
-# Fail:
+# :
 F = (0.5*u).dx(i) * I[i,0] * dx
 show(F)
+
+# Fail:
+#F = (0.5*u).dx(i) * I[i,0] * dx
+#show(F)
 
 # Fail:
 #F = as_vector((0.5*u).dx(i), i)[i] * I[i,0] * dx
