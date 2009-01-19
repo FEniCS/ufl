@@ -1,10 +1,10 @@
 """Forward mode AD implementation."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-19-- 2009-01-16"
+__date__ = "2008-08-19-- 2009-01-19"
 
 from ufl.output import ufl_assert, ufl_error, ufl_warning
-from ufl.common import product, unzip, UFLTypeDefaultDict, subdict, mergedicts
+from ufl.common import product, unzip, UFLTypeDefaultDict, subdict, mergedicts, lstr
 
 # All classes:
 from ufl.expr import Expr
@@ -52,14 +52,37 @@ _0 = Zero()
 _1 = IntValue(1)
 
 class AD(Transformer):
-    def __init__(self, spatial_dim):
+    def __init__(self, spatial_dim, var_shape=(), var_free_indices=(), var_index_dimensions=None):
         Transformer.__init__(self)
         self._spatial_dim = spatial_dim
+        # FIXME: Use self._var_* or not?
+        self._var_shape = var_shape
+        self._var_free_indices = var_free_indices
+        self._var_index_dimensions = {} if var_index_dimensions is None else dict(var_index_dimensions)
     
-    def visit(*args):
-        result = Transformer.visit(*args)
+    def visit(self, o):
+        r = Transformer.visit(self, o)
         # FIXME: Inspect results here for debugging
-        return result
+        f, df = r
+        if not f is o:
+            print 
+            print "In AD.visit, didn't get back o:"
+            print "  o:  ", str(o)
+            print "  f:  ", str(f)
+            print "  df: ", str(df)
+            print 
+        fi_diff = set(f.free_indices()) ^ set(df.free_indices())
+        if fi_diff:
+            print 
+            print "In AD.visit, got free indices diff:"
+            print "  o:  ", str(o)
+            print "  f:  ", str(f)
+            print "  df: ", str(df)
+            print "  f.fi():  ", lstr(f.free_indices())
+            print "  df.fi(): ", lstr(df.free_indices())
+            print "  fi_diff: ", str(fi_diff)
+            print 
+        return r
     
     # --- Default rules
     
@@ -71,6 +94,8 @@ class AD(Transformer):
         variable by default, and simply 'lifted' to the pair (o, 0).
         Depending on the context, override this with custom rules for
         non-zero derivatives."""
+        # FIXME: Use self._var* or not?
+        #return (o, Zero(o.shape() + self._var_shape, self._var_free_indices, self._var_index_dimensions))
         return (o, Zero(o.shape()))
     
     def variable(self, o):
@@ -276,7 +301,8 @@ class AD(Transformer):
 
 class SpatialAD(AD):
     def __init__(self, dim, index):
-        AD.__init__(self, dim)
+        # FIXME: Use self._var* or not?
+        AD.__init__(self, dim, var_shape=(), var_free_indices=(index,), var_index_dimensions={index:dim})
         self._index = index
     
     def spatial_coordinate(self, o):
@@ -303,6 +329,8 @@ class SpatialAD(AD):
 
 class VariableAD(AD):
     def __init__(self, dim, variable):
+        # FIXME: Use self._var* or not?
+        #AD.__init__(self, dim, var_shape=(), var_free_indices=(), var_index_dimensions={})
         AD.__init__(self, dim)
         self._variable = variable
     
@@ -318,6 +346,8 @@ class VariableAD(AD):
 class FunctionAD(AD):
     "Apply AFD (Automatic Function Differentiation) to expression."
     def __init__(self, spatial_dim, functions, basisfunctions):
+        # FIXME: Use self._var* or not?
+        #AD.__init__(self, dim, var_shape=(), var_free_indices=(), var_index_dimensions={})
         AD.__init__(self, spatial_dim)
         self._functions = zip(functions, basisfunctions)
         self._w = functions
