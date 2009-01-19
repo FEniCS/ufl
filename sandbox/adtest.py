@@ -42,16 +42,16 @@ print "1 =======================================================================
 #F = as_vector(u.dx(i), i)[i] * I[i,0] * dx
 #show(F)
 
-# :
+# Fail:
 F = (0.5*u).dx(i) * I[i,0] * dx
-show(F)
+#show(F)
 
 # Fail:
 #F = (0.5*u).dx(i) * I[i,0] * dx
 #show(F)
 
 # Fail:
-#F = as_vector((0.5*u).dx(i), i)[i] * I[i,0] * dx
+#F = as_vector((0.5*u).dx(i), i)[j] * I[j,0] * dx
 #show(F)
 
 # Fail:
@@ -62,3 +62,4 @@ show(F)
 #F = dot(grad(0.5*u), grad(0.5*u))*dx
 #show(F)
 
+show(F)

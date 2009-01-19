@@ -48,19 +48,35 @@ from ufl.algorithms.transformations import expand_compounds, Transformer, transf
 def is_spatially_constant(o):
     return (isinstance(o, Terminal) and o.cell() is None) or isinstance(o, Constant)
 
-_0 = Zero()
 _1 = IntValue(1)
 
 class AD(Transformer):
-    def __init__(self, spatial_dim, var_shape=(), var_free_indices=(), var_index_dimensions=None):
+    def __init__(self, spatial_dim, var_shape, var_free_indices, var_index_dimensions):
         Transformer.__init__(self)
         self._spatial_dim = spatial_dim
-        # FIXME: Use self._var_* or not?
+        
+        # FIXME: Use self._var_* or not? Do we ever need more than one? Maybe diff(psi, E[i,j]) is easier to handle using indices than as tensor differentiation.
         self._var_shape = var_shape
         self._var_free_indices = var_free_indices
-        self._var_index_dimensions = {} if var_index_dimensions is None else dict(var_index_dimensions)
+        self._var_index_dimensions = dict(var_index_dimensions)
     
-    def visit(self, o):
+    def _make_zero_diff(self, o):
+        # Define a zero with the right indices (kind of cumbersome this... any simpler way?)
+        fi  = o.free_indices()
+        fid = subdict(o.index_dimensions(), fi)
+        if self._var_free_indices:
+            i, = self._var_free_indices
+            if i in fi:
+                fi = list(fi)
+                fi.remove(i)
+                fi = tuple(fi)
+            else:
+                fi += (i,)
+                fid[i] = self._var_index_dimensions[i]
+        fp = Zero(o.shape(), fi, fid)
+        return fp   
+    
+    def _visit(self, o):
         r = Transformer.visit(self, o)
         # FIXME: Inspect results here for debugging
         f, df = r
@@ -95,8 +111,10 @@ class AD(Transformer):
         Depending on the context, override this with custom rules for
         non-zero derivatives."""
         # FIXME: Use self._var* or not?
+        #return (o, Zero(o.shape()))
         #return (o, Zero(o.shape() + self._var_shape, self._var_free_indices, self._var_index_dimensions))
-        return (o, Zero(o.shape()))
+        fp = self._make_zero_diff(o)
+        return (o, fp)
     
     def variable(self, o):
         """Variable objects are just 'labels', so by default the derivative
@@ -132,9 +150,8 @@ class AD(Transformer):
     def component_tensor(self, o, A, ii):
         A, Ap = A
         if isinstance(Ap, Zero):
-            fi = o.free_indices()
-            fid = subdict(o.index_dimensions(), fi)
-            return (o, Zero(o.shape(), fi, fid))
+            fp = self._make_zero_diff(o)
+            return (o, fp)
         return (o, ComponentTensor(Ap, ii[0]) )
     
     # --- Algebra operators
@@ -143,35 +160,19 @@ class AD(Transformer):
         return (sum((op[0] for op in ops[1:]), ops[0][0]),
                 sum((op[1] for op in ops[1:]), ops[0][1]))
     
-    def _product(self, o, *ops):
-        fi = o.free_indices()
-        fid = subdict(o.index_dimensions(), fi)
-        fp = Zero(o.shape(), fi, fid)
-        ops0, ops1 = unzip(ops)
-        for (i,op) in enumerate(ops):
-            # replace operand i with its differentiated value 
-            fpoperands = ops0[:i] + [ops1[i]] + ops0[i+1:]
-            # simplify by ignoring ones
-            fpoperands = [fpop for fpop in fpoperands if not fpop == 1]
-            # simplify if there are zeros in the product
-            if not any(isinstance(fpop, Zero) for fpop in fpoperands):
-                fp += product(fpoperands)
-        return (o, fp)
-    
     def product(self, o, *ops):
-        fi = o.free_indices()
-        fid = subdict(o.index_dimensions(), fi)
-        fp = Zero(o.shape(), fi, fid)
+        # Define a zero with the right indices
+        fp = self._make_zero_diff(o)
+        # Get operands and their derivatives
         ops2, dops2 = unzip(ops)
-        
         for (i, op) in enumerate(ops):
-            # replace operand i with its differentiated value 
+            # Replace operand i with its differentiated value 
             fpoperands = ops2[:i] + [dops2[i]] + ops2[i+1:]
-            # simplify by ignoring ones
+            # Simplify by ignoring ones
             fpoperands = [fpop for fpop in fpoperands if not fpop == 1]
-            # simplify if there are zeros in the product
+            # Simplify if there are zeros in the product
             if not any(isinstance(fpop, Zero) for fpop in fpoperands):
-                fp += product(fpoperands) # FIXME: fp and product(fpoperands) may have different free indices, causing this to fail!
+                fp += product(fpoperands) 
         return (o, fp)
     
     def division(self, o, a, b):
@@ -189,12 +190,12 @@ class AD(Transformer):
         g_const = isinstance(gp, Zero)
         # Case: o = const ** const = const
         if f_const and g_const:
-            return (o, _0)
+            return (o, self._make_zero_diff(o))
         # Case: o = f(x) ** const
         if g_const:
             # o' = g f'(x) f(x)**(g-1)
             if isinstance(g, Zero) or isinstance(f, Zero) or f_const:
-                return (o, _0)
+                return (o, self._make_zero_diff(o))
             return (o, g*fp*f**(g-1.0))
         # Case: o = f ** g(x)
         if isinstance(fp, Zero):
@@ -300,9 +301,8 @@ class AD(Transformer):
         return (o, oprime)
 
 class SpatialAD(AD):
-    def __init__(self, dim, index):
-        # FIXME: Use self._var* or not?
-        AD.__init__(self, dim, var_shape=(), var_free_indices=(index,), var_index_dimensions={index:dim})
+    def __init__(self, spatial_dim, index):
+        AD.__init__(self, spatial_dim, var_shape=(), var_free_indices=(index,), var_index_dimensions={index:spatial_dim})
         self._index = index
     
     def spatial_coordinate(self, o):
@@ -328,15 +328,13 @@ class SpatialAD(AD):
     #    pass # TODO: With higher order cells the facet normal isn't constant anymore
 
 class VariableAD(AD):
-    def __init__(self, dim, variable):
-        # FIXME: Use self._var* or not?
-        #AD.__init__(self, dim, var_shape=(), var_free_indices=(), var_index_dimensions={})
-        AD.__init__(self, dim)
+    def __init__(self, spatial_dim, variable):
+        AD.__init__(self, spatial_dim, var_shape=(), var_free_indices=(), var_index_dimensions={})
         self._variable = variable
     
     def variable(self, o):
         if o is self._variable:
-            return (o, _1) # FIXME: This assumes variable is scalar!
+            return (o, _1) # TODO: This assumes variable is scalar! Maybe we can use self._var_free_indices to index into tensor differentiation variable?
         else:
             self._variable_cache[o._expression] = o
             x2, xdiff = self.visit(o._expression)
@@ -346,9 +344,7 @@ class VariableAD(AD):
 class FunctionAD(AD):
     "Apply AFD (Automatic Function Differentiation) to expression."
     def __init__(self, spatial_dim, functions, basisfunctions):
-        # FIXME: Use self._var* or not?
-        #AD.__init__(self, dim, var_shape=(), var_free_indices=(), var_index_dimensions={})
-        AD.__init__(self, spatial_dim)
+        AD.__init__(self, spatial_dim, var_shape=(), var_free_indices=(), var_index_dimensions={})
         self._functions = zip(functions, basisfunctions)
         self._w = functions
         self._v = basisfunctions
@@ -365,7 +361,7 @@ class FunctionAD(AD):
             if o == w:
                 return (w, v)
         return (o, Zero(o.shape()))
-
+    
     def variable(self, o):
         dummy, wprime = self.visit(o._expression)
         return (o, wprime)

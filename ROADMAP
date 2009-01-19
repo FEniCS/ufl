@@ -1,6 +1,34 @@
 Roadmap for the development of UFL
 ----------------------------------
 
+# Figure out allowed shape/free index combinations:
+ - Are sums of operands with different free indices allowed? Probably not. Need to work around in AD!
+
+   Examples:
+
+   A)  a = 5 + v[i]; b = a*c[i] 
+
+       Expanding the implicit sum, this gives us:
+         b = sum_i [ (5+v_i) c_i ]      # remember, 'a = 5 + v[i]' is an Add object
+          != 5 c_i + sum_i [ v_i c_i ]  # this would still have a free index
+       or
+         (5+v[i])*c[i] != 5*c[i] + v[i]*c[i]
+
+       - Clearly, this last line isn't what we would expect!
+       - We really don't want to inspect the contents of "a" further,
+         or we get a blowup of special cases!
+
+   B)  a = b(x) + c
+       f = da/dx_i
+         = db/dx_i + dc/dx_i
+         = db/dx_i + zero(i) # we have currently special-cased zero to carry free indices
+
+   C)  a = b(x) * c
+       f = da/dx_i
+         = db/dx_i * c + b * dc/dx_i
+         = db/dx_i * c + b * zero(i)
+         = db/dx_i * c
+
 # Derivatives:
  - Finish forward mode AD implementation and verify correctness
  - Finish reverse mode AD implementation and compare performance
