@@ -87,7 +87,7 @@ class Sum(Expr):
     def _init(self, *operands):
         ufl_assert(all(isinstance(o, Expr) for o in operands), "Expecting Expr instances.")
         self._operands = operands
-        self._repr = "(%s)" % " + ".join(repr(o) for o in operands)
+        self._repr = "Sum(%s)" % ", ".join(repr(o) for o in operands)
     
     def __init__(self, *operands):
         Expr.__init__(self)
@@ -196,7 +196,7 @@ class Product(Expr):
         self._index_dimensions = mergedicts([o.index_dimensions() for o in operands])
         self._free_indices, self._repeated_indices = extract_indices_for_product(all_indices)
         
-        self._repr = "(%s)" % " * ".join(repr(o) for o in self._operands)
+        self._repr = "Product(%s)" % ", ".join(repr(o) for o in self._operands)
     
     def __init__(self, *operands):
         Expr.__init__(self)
@@ -281,7 +281,7 @@ class Division(Expr):
         return "(%s / %s)" % (str(self._a), str(self._b))
     
     def __repr__(self):
-        return "(%r / %r)" % (self._a, self._b)
+        return "Division(%r, %r)" % (self._a, self._b)
 
 class Power(Expr):
     __slots__ = ("_a", "_b")
@@ -340,7 +340,7 @@ class Power(Expr):
         return "(%s ** %s)" % (str(self._a), str(self._b))
     
     def __repr__(self):
-        return "(%r ** %r)" % (self._a, self._b)
+        return "Power(%r, %r)" % (self._a, self._b)
 
 class Abs(Expr):
     __slots__ = ("_a",)

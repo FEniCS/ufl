@@ -64,23 +64,14 @@ class Expr(object):
         """Evaluate expression at given coordinate with given values for terminals."""
         raise NotImplementedError(self.__class__.evaluate)
     
-    #--- Functions for computing derivatives ---
-    
-    #def partial_derivatives(self): # TODO: Do we want this here? If so, implement everywhere. (Must figure out conventions for tensor differentiation!)
-    #    """Return a tuple with the partial derivatives
-    #    of this expression w.r.t. each of its operands."""
-    #    raise NotImplementedError(self.__class__.partial_derivatives)
-
     #--- Functions for index handling ---
     
-    # All subclasses that can have free indices
-    # must implement free_indices
+    # All subclasses that can have indices must implement free_indices
     def free_indices(self):
         "Return a tuple with the free indices (unassigned) of the expression."
         return ()
     
-    # Subclasses that can have repeated indices
-    # must implement repeated_indices
+    # Subclasses that can have repeated indices must implement repeated_indices
     def repeated_indices(self):
         "Return a tuple with the repeated indices of the expression."
         return ()
