@@ -76,4 +76,82 @@ class IndexSum(Expr):
     def __repr__(self):
         return self._repr
 
+def build_unique_indices(operands):
+    "Build tuple of unique indices, including repeated ones."
+    s = set()
+    fi = []
+    idims = {}
+    for o in operands:
+        if isinstance(o, MultiIndex):
+            ofi = o._indices
+            oid = dict((i, None) for i in ofi) # TODO: This introduces None, better way?
+        else:
+            ofi = o.free_indices()
+            oid = o.index_dimensions()
+        for i in ofi:
+            if not i in s:
+                fi.append(i)
+                idims[i] = oid[i]
+                s.add(i)
+    return fi, idims
+
+def alternative_build_unique_indices(operands):
+    "Build set of unique indices, including repeated ones."
+    fi = set()
+    idims = {}
+    for o in operands:
+        if isinstance(o, MultiIndex):
+            ofi = o._indices
+            oid = dict((i, None) for i in ofi)
+        else:
+            ofi = o.free_indices()
+            oid = o.index_dimensions()
+        for i in ofi:
+            fi.add(i)
+            idims[i] = oid[i]
+    return fi, idims
+
+class NewProduct(Expr):
+    def __init__(self, *operands):
+        fi, idims = build_unique_indices(operands)
+        self._fi = fi
+        self._idims = idims
+    
+    def free_indices(self):
+        return self._fi
+    
+    def index_dimensions(self):
+        return self._idims
+
+class NewIndexed(Expr):
+    def __init__(self, A, ii):
+        fi, idims = build_unique_indices((A, ii))
+        self._fi = fi
+        self._idims = idims
+    
+    def free_indices(self):
+        return self._fi
+    
+    def index_dimensions(self):
+        return self._idims
+
+class NewSpatialDerivative(Expr):
+    def __init__(self, f, ii):
+        fi, idims = build_unique_indices((f, ii))
+        self._fi = fi
+        self._idims = idims
+    
+    def free_indices(self):
+        return self._fi
+    
+    def index_dimensions(self):
+        return self._idims
+
+class NewMultiIndex(Expr):
+    def __init__(self, ii):
+        fi = set(ii)
+        self._fi = fi
+    
+    def free_indices(self):
+        return self._fi
 
