@@ -1,4 +1,5 @@
 
+#
 # FIXME: Decide on this thingy. If we decide to go for it, here's the plan:
 #
 # --- Step A: Doing no harm, can be done before final decision ---
@@ -6,24 +7,18 @@
 # - Implement self.new_free_indices() in Product to return all unique indices.
 # - Implement self.new_free_indices() in Indexed to return all unique indices.
 # - Implement self.new_free_indices() in SpatialDerivative to return all unique indices.
+# - Implement new __mul__ to use IndexSum
+# - Implement new __getitem__ to use IndexSum
+# - Implement new .dx to use IndexSum
+# - Step through the rest of the free_indices() implementations. Most if not all should just be the same as before, make new_free_indices where needed.
 #
-# At this point, reconsider 
+# --- Step B: Set modifications to use ---
 #
-# --- Step B: Core modifications ---
+# - Remove repeated_indices() everywhere
+# - Rename new_free_indices to free_indices() everywhere needed
+# - Replace old __mul__, __getitem__, .dx with new ones
 #
-# - Update __mul__ to use IndexSum
-# - Update Product: remove repeated_indices() and free_indices(), rename new_free_indices to free_indices
-#
-# - Update __getitem__ to use IndexSum
-# - Update Indexed: remove repeated_indices() and free_indices(), rename new_free_indices to free_indices
-#
-# - Update .dx to use IndexSum
-# - Update SpatialDerivative: remove repeated_indices() and free_indices(), rename new_free_indices to free_indices
-#
-# --- Step C: Update all small stuff ---
-#
-# - Remove repeated_indices() from Expr and everywhere else.
-# - Step through the rest of the free_indices() implementations. Most if not all should just be the same as before.
+# Test!
 #
 # --- Step D: Update algorithms ---
 #
@@ -39,6 +34,9 @@
 #
 # - Expr.evaluate  (depends on expand_compounds and expand_derivatives)
 #
+
+
+# --- New:
 
 class IndexSum(Expr):
     __slots__ = ("_summand", "_index", "_repr")
@@ -76,6 +74,8 @@ class IndexSum(Expr):
     def __repr__(self):
         return self._repr
 
+# --- In indexing.py:
+
 def build_unique_indices(operands):
     "Build tuple of unique indices, including repeated ones."
     s = set()
@@ -89,69 +89,105 @@ def build_unique_indices(operands):
             ofi = o.free_indices()
             oid = o.index_dimensions()
         for i in ofi:
-            if not i in s:
+            if i in s:
+                ri.append(i)
+            else:
                 fi.append(i)
                 idims[i] = oid[i]
                 s.add(i)
-    return fi, idims
+    return fi, ri, idims
 
-def alternative_build_unique_indices(operands):
-    "Build set of unique indices, including repeated ones."
-    fi = set()
-    idims = {}
-    for o in operands:
-        if isinstance(o, MultiIndex):
-            ofi = o._indices
-            oid = dict((i, None) for i in ofi)
-        else:
-            ofi = o.free_indices()
-            oid = o.index_dimensions()
-        for i in ofi:
-            fi.add(i)
-            idims[i] = oid[i]
-    return fi, idims
-
-class NewProduct(Expr):
-    def __init__(self, *operands):
-        fi, idims = build_unique_indices(operands)
-        self._fi = fi
-        self._idims = idims
-    
-    def free_indices(self):
-        return self._fi
-    
-    def index_dimensions(self):
-        return self._idims
-
-class NewIndexed(Expr):
-    def __init__(self, A, ii):
-        fi, idims = build_unique_indices((A, ii))
-        self._fi = fi
-        self._idims = idims
-    
-    def free_indices(self):
-        return self._fi
-    
-    def index_dimensions(self):
-        return self._idims
-
-class NewSpatialDerivative(Expr):
-    def __init__(self, f, ii):
-        fi, idims = build_unique_indices((f, ii))
-        self._fi = fi
-        self._idims = idims
-    
-    def free_indices(self):
-        return self._fi
-    
-    def index_dimensions(self):
-        return self._idims
-
-class NewMultiIndex(Expr):
+class MultiIndex(Expr):
     def __init__(self, ii):
         fi = set(ii)
         self._fi = fi
     
     def free_indices(self):
         return self._fi
+
+class Indexed(Expr):
+    def __init__(self, A, ii):
+        fi, ri, idims = build_unique_indices((A, ii))
+        self._fi = fi
+        self._idims = idims
+    
+    def free_indices(self):
+        return self._fi
+    
+    def index_dimensions(self):
+        return self._idims
+
+# --- In algebra.py:
+
+class Product(Expr):
+    def __init__(self, *operands):
+        fi, ri, idims = build_unique_indices(operands)
+        self._fi = fi
+        self._idims = idims
+    
+    def free_indices(self):
+        return self._fi
+    
+    def index_dimensions(self):
+        return self._idims
+
+# --- In differentiation.py:
+
+class SpatialDerivative(Expr):
+    def __init__(self, f, ii):
+        fi, ri, idims = build_unique_indices((f, ii))
+        self._fi = fi
+        self._idims = idims
+    
+    def free_indices(self):
+        return self._fi
+    
+    def index_dimensions(self):
+        return self._idims
+
+# --- In exproperators.py:
+
+def _mult(a, b): # TODO: Rewrite
+    
+    fi, ri, idims = build_unique_indices((a, b))
+    
+    # Pick out valid non-scalar products here (dot products):
+    # - matrix-matrix (A*B, M*grad(u)) => A . B
+    # - matrix-vector (A*v) => A . v
+    s1 = a.shape()
+    s2 = b.shape()
+    l1 = len(s1)
+    l2 = len(s2)
+    if l1 == 2 and (l2 == 2 or l2 == 1):
+        ufl_assert(not ri, "Not expecting repeated indices in non-scalar product.")
+        shape = s1[:-1] + s2[1:]
+        if isinstance(a, Zero) or isinstance(b, Zero):
+            return Zero(shape, fi, idims)
+        i = Index()
+        return a[...,i]*b[i,...] # TODO: Does [...,i] work with vectors?
+    
+    # Scalar products use Product and IndexSum for implicit sums:
+    p = Product(a, b)
+    for i in ri:
+        p = IndexSum(p, i)
+    return p
+
+def _dx(self, *ii): # TODO: Rewrite
+    "Return the partial derivative with respect to spatial variable number i."
+    fi, ri, idims = build_unique_indices((ii,))
+    d = self
+    # Apply all derivatives
+    for i in ii:
+        d = SpatialDerivative(d, i)
+    # Apply all implicit sums
+    for i in ri:
+        d = IndexSum(d, i)
+    return d
+Expr.dx = _dx
+
+def _d(self, v): # TODO: Rewrite
+    "Return the partial derivative with respect to variable v."
+    # TODO: Maybe v can be an Indexed of a Variable, in which case we can use indexing to extract the right component?
+    return VariableDerivative(self, v)
+Expr.d = _d
 
