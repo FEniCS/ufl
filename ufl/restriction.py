@@ -4,7 +4,7 @@
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-06-08 -- 2008-11-06"
 
-from ufl.output import ufl_error
+from ufl.log import error
 from ufl.expr import Expr
 
 #--- Restriction operators ---

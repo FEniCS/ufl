@@ -3,7 +3,7 @@
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-01-16"
 
-from ufl.output import ufl_assert, ufl_error
+from ufl.log import ufl_assert, error
 from ufl.form import Form
 from ufl.expr import Expr
 from ufl.terminal import Tuple
@@ -113,5 +113,5 @@ def derivative(form, function, basisfunction=None):
         # What we got was in fact an integrand
         return FunctionDerivative(form, functions, basisfunctions)
     
-    ufl_error("Invalid argument type %s." % str(type(form)))
+    error("Invalid argument type %s." % str(type(form)))
 

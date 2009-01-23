@@ -8,7 +8,7 @@ __date__ = "2008-03-14 -- 2009-01-07"
 from ufl.finiteelement import MixedElement
 from ufl.tensors import as_vector, as_matrix, as_tensor
 from ufl.common import product
-from ufl.output import ufl_assert, ufl_error
+from ufl.log import ufl_assert, error
 
 def split(v):
     "Split Function into its sub Functions if any."
@@ -61,7 +61,7 @@ def split(v):
         
         else:
             # TODO: Handle rank > 2.
-            ufl_error("Don't know how to split functions with sub functions of rank %d (yet)." % rank)
+            error("Don't know how to split functions with sub functions of rank %d (yet)." % rank)
             #for indices in compute_indices(shape):
             #    #k = offset + sum(i*s for (i,s) in zip(indices, shape[1:] + (1,)))
             #    vs.append(v[indices])

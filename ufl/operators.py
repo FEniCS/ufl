@@ -7,7 +7,7 @@ __authors__ = "Martin Sandve Alnes and Anders Logg"
 __date__ = "2008-04-09 -- 2009-01-09"
 
 import math
-from ufl.output import ufl_assert, ufl_error
+from ufl.log import ufl_assert, error
 from ufl.zero import Zero
 from ufl.scalar import ScalarValue, as_ufl
 from ufl.differentiation import VariableDerivative, Grad, Div, Curl, Rot
@@ -105,7 +105,7 @@ def jump(v):
     elif r == 1:
         return dot(v('+'), n('+')) + dot(v('-'), n('-'))
     else:
-        ufl_error("jump(v) is only defined for scalar or vector-valued expressions (not rank %d expressions)." % r)
+        error("jump(v) is only defined for scalar or vector-valued expressions (not rank %d expressions)." % r)
 
 def avg(v):
     "The average of v across a facet."

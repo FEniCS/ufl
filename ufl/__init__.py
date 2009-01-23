@@ -8,13 +8,15 @@ This module contains a model implementation of the Unified Form Language.
 - The user interface is in the global UFL namespace:
     from ufl import *
 
-- Various algorithms for working with UFL
-  expression trees can be found in:
-    from ufl.algorithms import *
-
 - The underlying classes an UFL expression tree
   is built from can be imported by:
     from ufl.classes import *
+  These are considered implementation details 
+  and should not be used in form definitions.
+
+- Various algorithms for working with UFL
+  expression trees can be found in:
+    from ufl.algorithms import *
   These are considered implementation details 
   and should not be used in form definitions.
 
@@ -28,9 +30,9 @@ But at the moment we only have some unfinished wiki pages with preliminary and i
 
 __version__ = "0.1"
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__copyright__ = __authors__ + " (2009)"
-__licence__ = "GPL3"
-__date__ = "2008-03-14 -- 2009-01-09"
+__copyright__ = "Copyright (C) 2008-2009 " + __authors__
+__license__  = "GNU GPL version 3 or any later version"
+__date__ = "2008-03-14 -- 2009-01-23"
 
 ########## README
 # Imports here should be what the user sees when doing "from ufl import *",
@@ -43,7 +45,7 @@ __date__ = "2008-03-14 -- 2009-01-09"
 from ufl.common import product
 
 # output control
-from ufl.output import get_handler, get_logger, set_handler, UFLException
+from ufl.log import get_handler, get_logger, set_handler, UFLException
 
 # finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement

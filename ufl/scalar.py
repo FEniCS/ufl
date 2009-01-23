@@ -4,7 +4,7 @@
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-11-01 -- 2008-11-06"
 
-from ufl.output import ufl_assert, ufl_warning
+from ufl.log import ufl_assert, warning
 from ufl.expr import Expr
 from ufl.terminal import Terminal
 from ufl.zero import Zero
@@ -142,5 +142,5 @@ def as_ufl(expression):
         return IntValue(expression)
     if isinstance(expression, float):  
         return FloatValue(expression)
-    ufl_warning("Wrapping non-UFL expression. This is experimental!")
+    warning("Wrapping non-UFL expression. This is experimental!")
     return ScalarSomething(expression)

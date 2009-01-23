@@ -5,7 +5,7 @@ __date__ = "2008-03-14 -- 2009-01-05"
 
 # Modified by Anders Logg, 2008
 
-from ufl.output import ufl_assert, ufl_error
+from ufl.log import ufl_assert, error
 from ufl.expr import Expr
 from ufl.terminal import Terminal
 from ufl.integral import Integral
@@ -28,7 +28,7 @@ def iter_expressions(a):
         return (a._integrand,)
     elif isinstance(a, Expr):
         return (a,)
-    ufl_error("Not an UFL type: %s" % str(type(a)))
+    error("Not an UFL type: %s" % str(type(a)))
 
 def traverse_terminals(expr):
     if isinstance(expr, Terminal):

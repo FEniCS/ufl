@@ -3,7 +3,7 @@
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2009-01-08"
 
-from ufl.output import ufl_assert, ufl_warning
+from ufl.log import ufl_assert, warning
 from ufl.expr import Expr
 from ufl.terminal import Terminal
 from ufl.zero import Zero
@@ -223,7 +223,7 @@ class Cross(Expr):
 
     def __new__(cls, a, b):
         if isinstance(a, Zero) or isinstance(b, Zero):
-            ufl_warning("Returning zero from Cross not implemented.")
+            warning("Returning zero from Cross not implemented.")
         return Terminal.__new__(cls)
 
     def __init__(self, a, b):

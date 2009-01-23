@@ -3,7 +3,7 @@
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-12-08"
 
-from ufl.output import ufl_error, ufl_info
+from ufl.log import error, info
 from ufl.form import Form
 from ufl.function import Function
 from ufl.algorithms.formdata import FormData
@@ -28,9 +28,9 @@ def load_forms(filename):
         f = file(tmpfile, "w")
         f.write(code)
         f.close()
-        ufl_info(infostring % tmpfile)
+        info(infostring % tmpfile)
         m = __import__(tmpname)
-        ufl_error("Aborting load_forms.")
+        error("Aborting load_forms.")
     
     # Extract Form objects, and Function objects to get their names
     forms = []

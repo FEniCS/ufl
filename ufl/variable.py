@@ -5,7 +5,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-05-20 -- 2009-01-09"
 
 from ufl.common import Counted
-from ufl.output import ufl_assert, ufl_error
+from ufl.log import ufl_assert, error
 from ufl.expr import Expr
 from ufl.terminal import Terminal
 
@@ -16,7 +16,7 @@ class Label(Terminal, Counted):
         Counted.__init__(self, count)
     
     def shape(self):
-        ufl_error("Calling shape on Label is an error.")
+        error("Calling shape on Label is an error.")
     
     def __str__(self):
         return "Label(%d)" % self._count

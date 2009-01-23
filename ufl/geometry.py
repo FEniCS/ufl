@@ -5,7 +5,7 @@ __date__ = "2008-03-14 -- 2009-01-13"
 
 # Modified by Anders Logg, 2009.
 
-from ufl.output import ufl_assert, ufl_warning
+from ufl.log import ufl_assert, warning
 from ufl.common import domain2dim
 from ufl.terminal import Terminal
 
@@ -60,7 +60,7 @@ class Cell(object):
         "Initialize basic cell description"
         ufl_assert(domain in domain2dim, "Invalid domain %s." % (domain,))
         if degree != 1:
-            ufl_warning("High order geometries aren't implemented anywhere yet.")
+            warning("High order geometries aren't implemented anywhere yet.")
         self._domain = domain
         self._degree = degree
         self.n = FacetNormal(self)

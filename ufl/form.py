@@ -3,7 +3,7 @@
 __authors__ = "Martin Sandve Alnes"
 __date__    = "2008-03-14 -- 2009-01-09"
 
-from ufl.output import ufl_assert
+from ufl.log import ufl_assert
 
 # --- The Form class, representing a complete variational form or functional ---
 

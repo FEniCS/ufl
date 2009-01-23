@@ -7,7 +7,7 @@ __date__ = "2008-11-17 -- 2009-01-05"
 
 from itertools import chain
 
-from ufl.output import ufl_error
+from ufl.log import error
 from ufl.expr import Expr
 from ufl.terminal import Terminal
 from ufl.form import Form
@@ -129,7 +129,7 @@ def ufl2dot(expression, formname="a", nodeoffset=0, begin=True, end=True):
         s = exprgraphformat % entitylist
     
     else:
-        ufl_error("Invalid object type %s" % type(expression))
+        error("Invalid object type %s" % type(expression))
     
     return s, len(nodes) + nodeoffset
 

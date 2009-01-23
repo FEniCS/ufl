@@ -10,7 +10,7 @@ __date__ = "2008-05-07 -- 2009-01-05"
 import os
 from itertools import chain
 
-from ufl.output import ufl_error, ufl_assert, ufl_warning
+from ufl.log import error, ufl_assert, warning
 from ufl.common import write_file, openpdf
 from ufl.permutation import compute_indices
 
@@ -86,7 +86,7 @@ def format_index(ii):
     elif isinstance(ii, Index):
         s = "i_{%d}" % ii._count
     else:
-        ufl_error("Unknown index type %s." % type(ii))
+        error("Unknown index type %s." % type(ii))
     return s
 
 def format_multi_index(ii, formatstring="%s"):
@@ -242,7 +242,7 @@ class Expression2LatexHandler(Transformer):
                 rows.append( " & \n ".join(cols) )
             l = " \\\\ \n ".join(rows)
         else:
-            ufl_error("TODO: LaTeX handler for list tensor of rank 3 or higher not implemented!")
+            error("TODO: LaTeX handler for list tensor of rank 3 or higher not implemented!")
         return "\\left[\\begin{matrix}{%s}\\end{matrix}\\right]^T" % l
     
     def component_tensor(self, o, *ops):
@@ -281,7 +281,7 @@ class Expression2LatexHandler(Transformer):
         return l
     
     def expr(self, o):
-        ufl_error("Missing handler for type %s" % str(type(o)))
+        error("Missing handler for type %s" % str(type(o)))
     
 def expression2latex(expression, basisfunction_renumbering, coefficient_renumbering):
     visitor = Expression2LatexHandler(basisfunction_renumbering, coefficient_renumbering)

@@ -3,7 +3,7 @@
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-08-20 -- 2009-01-09"
 
-from ufl.output import ufl_assert, ufl_warning, ufl_error
+from ufl.log import ufl_assert, warning, error
 from ufl.expr import Expr
 from ufl.scalar import as_ufl
 
@@ -29,13 +29,13 @@ class Condition(Expr):
         return (self._left, self._right)
 
     def free_indices(self):
-        ufl_error("Calling free_indices on Condition is an error.")
+        error("Calling free_indices on Condition is an error.")
     
     def index_dimensions(self):
-        ufl_error("Calling index_dimensions on Condition is an error.")
+        error("Calling index_dimensions on Condition is an error.")
 
     def shape(self):
-        ufl_error("Calling shape on Condition is an error.")
+        error("Calling shape on Condition is an error.")
     
     def __str__(self):
         return "(%s) %s (%s)" % (self._left, self._name, self._right)

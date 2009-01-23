@@ -6,7 +6,7 @@ __date__ = "2008-03-14 -- 2008-10-21"
 
 from itertools import chain
 
-from ufl.output import ufl_assert, ufl_error
+from ufl.log import ufl_assert, error
 from ufl.expr import Expr
 from ufl.terminal import Terminal
 from ufl.form import Form
@@ -98,7 +98,7 @@ def tree_format(expression, indentation=0, parentheses=True):
         s += _tree_format_expression(expression, indentation, parentheses)
     
     else:
-        ufl_error("Invalid object type %s" % type(expression))
+        error("Invalid object type %s" % type(expression))
     
     return s
 

@@ -3,7 +3,7 @@
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2009-01-16"
 
-from ufl.output import ufl_assert, ufl_warning
+from ufl.log import ufl_assert, warning
 from ufl.common import subdict, mergedicts
 from ufl.expr import Expr
 from ufl.terminal import Terminal, Tuple
@@ -194,7 +194,7 @@ class VariableDerivative(Derivative):
         if isinstance(v, Indexed):
             ufl_assert(isinstance(v._expression, Variable), \
                 "Expecting a Variable in VariableDerivative.")
-            ufl_warning("diff(f, v[i]) isn't handled properly in all code.") # FIXME
+            warning("diff(f, v[i]) isn't handled properly in all code.") # FIXME
         else:
             ufl_assert(isinstance(v, Variable), \
                 "Expecting a Variable in VariableDerivative.")

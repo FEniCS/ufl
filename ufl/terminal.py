@@ -8,7 +8,7 @@ __date__ = "2008-03-14 -- 2008-01-16"
 
 from ufl.expr import Expr
 from ufl.common import lstr
-from ufl.output import ufl_error, ufl_warning
+from ufl.log import error, warning
 
 #--- Base class for terminal objects ---
 
@@ -60,11 +60,11 @@ class Tuple(Terminal):
     def __init__(self, *items):
         Expr.__init__(self)
         if not all(isinstance(i, Expr) for i in items):
-            ufl_warning("Got non-Expr in Tuple, is this intended? If so, remove this warning.")
+            warning("Got non-Expr in Tuple, is this intended? If so, remove this warning.")
         self._items = items
     
     def shape(self):
-        ufl_error("Calling shape on Label is and error.")
+        error("Calling shape on Label is and error.")
     
     def __getitem__(self, i):
         return self._items[i]

@@ -6,7 +6,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-08-18 -- 2009-01-10"
 
 # UFL imports
-from ufl.output import ufl_error, ufl_assert
+from ufl.log import error, ufl_assert
 from ufl.common import subdict, mergedicts, StackDict
 from ufl.expr import Expr
 from ufl.zero import Zero
@@ -140,7 +140,7 @@ def _restrict(self, side):
         return PositiveRestricted(self)
     if side == "-":
         return NegativeRestricted(self)
-    ufl_error("Invalid side %r in restriction operator." % side)
+    error("Invalid side %r in restriction operator." % side)
 #Expr.__call__ = _restrict
 
 def _call(self, arg, mapping=None):

@@ -5,7 +5,7 @@ __date__ = "2008-03-14 -- 2009-01-09"
 
 # Modified by Anders Logg, 2008
 
-from ufl.output import ufl_assert, ufl_error
+from ufl.log import ufl_assert, error
 from ufl.scalar import is_true_ufl_scalar
 
 class Integral(object):
@@ -56,7 +56,7 @@ class Integral(object):
         return self.reconstruct(domain_id=domain_id, metadata=metadata)
     
     def __mul__(self, other):
-        ufl_error("Can't multiply Integral from the right (with %r)." % (other,))
+        error("Can't multiply Integral from the right (with %r)." % (other,))
     
     def __rmul__(self, integrand):
         ufl_assert(self._integrand is None, "Integrand is already defined, can't integrate twice.")

@@ -7,7 +7,7 @@ __date__ = "2008-03-14 -- 2009-01-06"
 
 from itertools import chain
 
-from ufl.output import ufl_assert, ufl_error, ufl_info
+from ufl.log import ufl_assert, error, info
 from ufl.common import lstr, UFLTypeDefaultDict
 
 from ufl.expr import Expr
@@ -94,7 +94,7 @@ def extract_sub_elements(element):
 
 def extract_indices(expression):
     "Build a set of all Index objects used in expression."
-    ufl_info("Is this used for anything? Doesn't make much sense.")
+    info("Is this used for anything? Doesn't make much sense.")
     multi_indices = extract_type(expression, MultiIndex)
     indices = set()
     for mi in multi_indices:

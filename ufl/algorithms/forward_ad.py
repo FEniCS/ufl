@@ -3,7 +3,7 @@
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-08-19-- 2009-01-19"
 
-from ufl.output import ufl_assert, ufl_error, ufl_warning
+from ufl.log import ufl_assert, error, warning
 from ufl.common import product, unzip, UFLTypeDefaultDict, subdict, mergedicts, lstr
 
 # All classes:
@@ -103,7 +103,7 @@ class AD(Transformer):
     # --- Default rules
     
     def expr(self, o):
-        ufl_error("Missing AD handler for type %s" % str(type(o)))
+        error("Missing AD handler for type %s" % str(type(o)))
     
     def terminal(self, o):
         """Terminal objects are assumed independent of the differentiation
@@ -200,7 +200,7 @@ class AD(Transformer):
         # Case: o = f ** g(x)
         if isinstance(fp, Zero):
             return (o, gp*ln(f)*o)
-        ufl_error("diff_power not implemented for case d/dx [ f(x)**g(x) ].")
+        error("diff_power not implemented for case d/dx [ f(x)**g(x) ].")
         oprime = None # TODO
         return (o, oprime)
     
@@ -252,7 +252,7 @@ class AD(Transformer):
     
     def condition(self, o, l, r):
         if any(not isinstance(op[1], Zero) for op in (l, r)):
-            ufl_warning("Differentiating a conditional with a condition "\
+            warning("Differentiating a conditional with a condition "\
                         "that depends on the differentiation variable."\
                         "This is probably not a good idea!")
         oprime = None # Shouldn't be used anywhere
@@ -268,7 +268,7 @@ class AD(Transformer):
     # --- Other derivatives
     
     def derivative(self, o):
-        ufl_error("This should never occur.")
+        error("This should never occur.")
     
     def _spatial_derivative(self, o):
         # If everything else works as it should, this should now 
@@ -307,7 +307,7 @@ class SpatialAD(AD):
     
     def spatial_coordinate(self, o):
         # TODO: Need to define dx_i/dx_j = delta_ij?
-        ufl_error("Not implemented!")
+        error("Not implemented!")
         I = Identity(self._spatial_dim)
         oprime = I[:, self._index] # TODO: Is this right?
         return (o, oprime)
@@ -405,7 +405,7 @@ def forward_ad(expr):
     elif isinstance(expr, FunctionDerivative):
         result = compute_function_forward_ad(expr)
     else:
-        ufl_warning("How did this happen? expr is %s" % repr(expr))
+        warning("How did this happen? expr is %s" % repr(expr))
         result = expr
     return result
 
@@ -437,7 +437,7 @@ class UnusedADRules(AD):
     def grad(self, o, a):
         a, aprime = a
         if aprime.cell() is None:
-            ufl_error("TODO: Shape of gradient is undefined.") # Currently calling expand_compounds before AD to avoid this
+            error("TODO: Shape of gradient is undefined.") # Currently calling expand_compounds before AD to avoid this
             oprime = Zero(TODO)
         else:
             oprime = type(o)(aprime)
@@ -459,20 +459,20 @@ class UnusedADRules(AD):
         return (o, dot(ap, b) + dot(a, bp))
     
     def cross(self, o, a, b):
-        ufl_error("Derivative of cross product not implemented, apply expand_compounds before AD.")
+        error("Derivative of cross product not implemented, apply expand_compounds before AD.")
         u, up = a
         v, vp = b
         oprime = None # TODO
         return (o, oprime)
     
     def determinant(self, o, a):
-        ufl_error("Derivative of determinant not implemented, apply expand_compounds before AD.")
+        error("Derivative of determinant not implemented, apply expand_compounds before AD.")
         A, Ap = a
         oprime = None # TODO
         return (o, oprime)
     
     def cofactor(self, o, a):
-        ufl_error("Derivative of cofactor not implemented, apply expand_compounds before AD.")
+        error("Derivative of cofactor not implemented, apply expand_compounds before AD.")
         A, Ap = a
         #cofacA_prime = detA_prime*Ainv + detA*Ainv_prime
         oprime = None # TODO

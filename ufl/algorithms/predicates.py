@@ -3,7 +3,7 @@
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __date__ = "2008-03-14 -- 2009-01-05"
 
-from ufl.output import ufl_assert, ufl_warning, ufl_debug
+from ufl.log import ufl_assert, warning, debug
 from ufl.common import lstr
 from ufl.form import Form
 from ufl.algebra import Sum, Product
@@ -25,16 +25,16 @@ def is_multilinear(form):
             deps = extract_basisfunction_dependencies(e)
             nargs = [len(d) for d in deps]
             if len(nargs) == 0:
-                ufl_debug("This form is a functional.")
+                debug("This form is a functional.")
             if len(nargs) == 1:
-                ufl_debug("This form is linear in %d arguments." % nargs[0])
+                debug("This form is linear in %d arguments." % nargs[0])
             if len(nargs) > 1:
-                ufl_warning("This form has more than one basis function "\
+                warning("This form has more than one basis function "\
                     "'configuration', it has terms that are linear in %s "\
                     "arguments respectively." % str(nargs))
     
     except NotMultiLinearException, msg:
-        ufl_warning("Form is not multilinear, the offending term is: %s" % msg)
+        warning("Form is not multilinear, the offending term is: %s" % msg)
         return False
     
     return True
@@ -54,7 +54,7 @@ def is_multilinear(form):
 #            if isinstance(o, BasisFunction):
 #                for operator in stack:
 #                    if not operator.is_linear():
-#                        ufl_warning("Nonlinear operator applied to basis function:" + str(operator))
+#                        warning("Nonlinear operator applied to basis function:" + str(operator))
 #                        return False
 # 
 #    # Extract monomials
@@ -72,7 +72,7 @@ def is_multilinear(form):
 #    for monomial in monomials:
 #        for v in basisfunctions:
 #            if not len([w for w in monomial if w == v]) == 1:
-#                ufl_warning("Basis function %s does not appear exactly once in each term." % str(v))
+#                warning("Basis function %s does not appear exactly once in each term." % str(v))
 #                return False
 # 
 #    return True

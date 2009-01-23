@@ -78,7 +78,7 @@ class Expr(object):
     def repeated_indices(self):
         "Return a tuple with the repeated indices of the expression."
         return ()
-        #ufl_error("This shouldn't be called anymore!")
+        #error("This shouldn't be called anymore!")
     
     # All subclasses must implement index_dimensions
     def index_dimensions(self):

@@ -8,7 +8,7 @@ __date__ = "2008-05-07 -- 2009-01-09"
 from inspect import getargspec
 from itertools import izip, chain
 
-from ufl.output import ufl_assert, ufl_error, ufl_warning
+from ufl.log import ufl_assert, error, warning
 from ufl.common import camel2underscore
 from ufl.expr import Expr
 from ufl.terminal import Terminal
@@ -30,7 +30,7 @@ def transform(expression, handlers):
     c = expression._uflid
     h = handlers.get(c, None)
     if c is None:
-        ufl_error("Didn't find class %s among handlers." % c)
+        error("Didn't find class %s among handlers." % c)
     return h(expression, *ops)
 
 def transform_integrands(form, transformer):
@@ -279,7 +279,7 @@ class CompoundExpander(ReuseTransformer):
             return as_matrix([[-A[1,1],A[0,1]],[A[1,0],-A[0,0]]])
         elif sh[0] == 3:
             return as_matrix([[-A[1,1]-A[2,2],A[0,1],A[0,2]],[A[1,0],-A[0,0]-A[2,2],A[1,2]],[A[2,0],A[2,1],-A[0,0]-A[1,1]]])
-        ufl_error("dev(A) not implemented for dimension %s." % sh[0])
+        error("dev(A) not implemented for dimension %s." % sh[0])
     
     def skew(self, o, A):
         i, j = indices(2)
@@ -321,7 +321,7 @@ class CompoundExpander(ReuseTransformer):
                    A[0,1]*det2D(A, 1, 2, 2, 0) + \
                    A[0,2]*det2D(A, 1, 2, 0, 1)
         # TODO: Implement generally for all dimensions?
-        ufl_error("Determinant not implemented for dimension %d." % self._dim)
+        error("Determinant not implemented for dimension %d." % self._dim)
     
     def cofactor(self, o, A):
         sh = complete_shape(A.shape(), self._dim)
@@ -361,7 +361,7 @@ class CompoundExpander(ReuseTransformer):
                   A[0,0]*A[1,2]*A[3,1] - A[1,0]*A[3,1]*A[0,2] + A[1,1]*A[3,0]*A[0,2] + A[1,0]*A[0,1]*A[3,2] - A[3,0]*A[1,2]*A[0,1] - A[1,1]*A[0,0]*A[3,2],
                  -A[1,1]*A[0,2]*A[2,0] + A[2,1]*A[1,0]*A[0,2] + A[1,2]*A[0,1]*A[2,0] + A[1,1]*A[0,0]*A[2,2] - A[1,0]*A[0,1]*A[2,2] - A[0,0]*A[2,1]*A[1,2]] \
                 ])
-        ufl_error("Cofactor not implemented for dimension %s." % sh[0])
+        error("Cofactor not implemented for dimension %s." % sh[0])
     
     def inverse(self, o, A):
         if A.rank() == 0:
@@ -583,7 +583,7 @@ def replace(e, mapping):
 def flatten(e): # TODO: Fix or remove!
     """Convert an UFL expression to a new UFL expression, with sums 
     and products flattened from binary tree nodes to n-ary tree nodes."""
-    ufl_warning("flatten doesn't work correctly for some indexed products, like (u[i]*v[i])*(q[i]*r[i])") 
+    warning("flatten doesn't work correctly for some indexed products, like (u[i]*v[i])*(q[i]*r[i])") 
     return apply_transformer(e, TreeFlattener())
 
 def expand_compounds(e, dim=None):

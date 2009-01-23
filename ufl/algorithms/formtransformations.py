@@ -9,7 +9,7 @@ __date__ = "2008-10-01 -- 2009-01-09"
 from itertools import izip
 
 from ufl.common import some_key, product
-from ufl.output import ufl_assert, ufl_error, ufl_warning
+from ufl.log import ufl_assert, error, warning
 
 # All classes:
 from ufl.basisfunction import BasisFunction
@@ -205,7 +205,7 @@ def compute_form_adjoint(form):
 #    replacing the trial function with the test function.
 #    The form returned will thus be a linear form.
 #    """
-#    ufl_warning("TODO: Don't know if this is correct or even useful, just picked up the name some place.")
+#    warning("TODO: Don't know if this is correct or even useful, just picked up the name some place.")
 #    return 0.5*compute_form_lhs(form) - compute_form_rhs(form)
 #    #bf = extract_basisfunctions(form)
 #    #ufl_assert(len(bf) == 2, "Expecting bilinear form.")

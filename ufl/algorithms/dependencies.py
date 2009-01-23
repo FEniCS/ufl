@@ -7,7 +7,7 @@ from collections import defaultdict
 from itertools import izip, chain
 
 from ufl.common import some_key, split_dict, or_tuples, and_tuples, UFLTypeDict
-from ufl.output import ufl_assert, ufl_error, ufl_warning, ufl_debug
+from ufl.log import ufl_assert, error, warning, debug
 from ufl.permutation import compute_indices
 
 # All classes:
@@ -323,7 +323,7 @@ class DependencySplitter(Transformer):
             self.codestructure.variableinfo[count] = vinfo
             self.codestructure.stacks[deps].append(vinfo)
         else:
-            ufl_debug("When does this happen? Need an algorithm revision to trust this fully.") # FIXME
+            debug("When does this happen? Need an algorithm revision to trust this fully.") # FIXME
         return vinfo
     
     def handle(self, v):

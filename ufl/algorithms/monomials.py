@@ -5,7 +5,7 @@ __date__ = "2008-08-01 -- 2009-01-09"
 
 # Modified by Martin Alnes, 2008
 
-from ufl.output import ufl_assert, ufl_error, ufl_warning
+from ufl.log import ufl_assert, error, warning
 from ufl.expr import Expr
 from ufl.algebra import Sum, Product
 from ufl.tensoralgebra import Dot
@@ -45,10 +45,10 @@ def extract_monomials(expression, indent=""):
     for e in iter_expressions(expression):
 
         # Check for linearity
-        ufl_error("is_linear has been removed, only had a partial and flawed implementation.")
+        error("is_linear has been removed, only had a partial and flawed implementation.")
 
         if not e.is_linear():
-            ufl_error("Operator is nonlinear, unable to extract monomials: " + str(e))
+            error("Operator is nonlinear, unable to extract monomials: " + str(e))
             
         print indent + "e =", e, str(type(e))
         operands = e.operands()
@@ -68,7 +68,7 @@ def extract_monomials(expression, indent=""):
         else:
             print "type =", type(e)
             print "free indices =", e.free_indices()
-            ufl_error("Don't know how to handle expression: %s", str(e))
+            error("Don't know how to handle expression: %s", str(e))
 
     return m
 
@@ -87,7 +87,7 @@ def _extract_monomials(e):
             for m1 in _extract_monomials(operands[1]):
                 monomials.append(m0 + m1)
     elif len(operands) == 2:
-        ufl_warning("Unknown binary operator, don't know how to handle.")
+        warning("Unknown binary operator, don't know how to handle.")
     elif len(operands) == 1: # TODO: This won't be right for lots of operators... Should at least throw errors for unsupported types.
         monomials += _extract_monomials(operands[0])
     elif isinstance(e, BasisFunction):

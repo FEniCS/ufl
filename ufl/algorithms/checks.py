@@ -5,7 +5,7 @@ __date__ = "2008-03-14 -- 2009-01-16"
 
 # Modified by Anders Logg, 2008.
 
-from ufl.output import ufl_assert, ufl_warning
+from ufl.log import ufl_assert, warning
 
 # All classes:
 from ufl.form import Form
@@ -25,7 +25,7 @@ def validate_form(form):
     # TODO: Can we check for multilinearity without expanding function derivatives?
     form = expand_derivatives(form)
     ufl_assert(is_multilinear(form), "Form is not multilinear in basis function arguments.")
-    #if not is_multilinear(form): ufl_warning("Form is not multilinear.")
+    #if not is_multilinear(form): warning("Form is not multilinear.")
     
     # Check that cell is the same everywhere
     cells = set()

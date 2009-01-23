@@ -5,7 +5,7 @@ __date__ = "2008-03-14 -- 2009-01-12"
 
 from itertools import chain
 from collections import defaultdict
-from ufl.output import ufl_assert, ufl_warning, ufl_error
+from ufl.log import ufl_assert, warning, error
 from ufl.common import Counted
 from ufl.expr import Expr
 from ufl.terminal import Terminal
@@ -18,7 +18,7 @@ class NewIndex(Terminal):
         Terminal.__init__(self)
     
     def shape(self):
-        ufl_error("")
+        error("")
     
     def __hash__(self):
         return hash(repr(self))
@@ -134,7 +134,7 @@ class MultiIndex(Terminal):
             else:
                 count[i] = 1
         if any(c > 2 for c in count.values()):
-            ufl_warning("Found more than two repeated indices in MultiIndex, this will likely fail later?")
+            warning("Found more than two repeated indices in MultiIndex, this will likely fail later?")
         self._repeated_indices = tuple(ri)
     
     def repeated_indices(self):
@@ -142,13 +142,13 @@ class MultiIndex(Terminal):
     
     def free_indices(self):
         # This reflects the fact that a MultiIndex isn't a tensor expression
-        ufl_error("Calling free_indices on MultiIndex is an error.")
+        error("Calling free_indices on MultiIndex is an error.")
     
     def index_dimensions(self):
-        ufl_error("Calling index_dimensions on MultiIndex is an error.")
+        error("Calling index_dimensions on MultiIndex is an error.")
     
     def shape(self):
-        ufl_error("Calling shape on MultiIndex is an error.")
+        error("Calling shape on MultiIndex is an error.")
     
     def __str__(self):
         return ", ".join(str(i) for i in self._indices)
@@ -250,7 +250,7 @@ class Indexed(Expr):
         # Handle implicit sums over repeated indices if necessary
         if ri:
             if len(ri) > 1: # TODO: Implement to allow A[i,i,j,j] etc
-                ufl_error("TODO: Multiple repeated indices not implemented yet."\
+                error("TODO: Multiple repeated indices not implemented yet."\
                     " Note that A[i,i,j,j] = A[i,i,:,:][j,j].")
             
             # Get summation range
@@ -294,7 +294,7 @@ class Indexed(Expr):
         return "Indexed(%r, %r)" % (self._expression, self._indices)
     
     def __getitem__(self, key):
-        ufl_error("Attempting to index with %r, but object is already indexed: %r" % (key, self))
+        error("Attempting to index with %r, but object is already indexed: %r" % (key, self))
 
 def as_index_tuple(ii):
     """Takes something the user might input as an index tuple
@@ -333,9 +333,9 @@ def as_index_tuple(ii):
                     axes.add(idx)
                 else:
                     # TODO: Use ListTensor for partial slices?
-                    ufl_error("Partial slices not implemented, only [:]")
+                    error("Partial slices not implemented, only [:]")
             else:
-                ufl_error("Can't convert this object to index: %r" % i)
+                error("Can't convert this object to index: %r" % i)
             
             if found:
                 post.append(idx)

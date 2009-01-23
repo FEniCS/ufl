@@ -4,7 +4,7 @@ all relevant operands for use with reverse mode AD."""
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2009-01-06 -- 2009-01-09"
 
-from ufl.output import ufl_assert, ufl_error
+from ufl.log import ufl_assert, error
 from ufl.classes import Zero, IntValue, FloatValue
 from ufl.operators import sin, cos, exp, ln, sqrt, conditional, sign
 from ufl.tensors import unit_vectors, ListTensor
@@ -139,17 +139,17 @@ class PartialDerivativeComputer(Transformer):
     # --- Derivatives
     
     def spatial_derivative(self, f):
-        ufl_error("Partial derivative of spatial_derivative not implemented, when is this called? apply_ad should make sure it isn't called.")
+        error("Partial derivative of spatial_derivative not implemented, when is this called? apply_ad should make sure it isn't called.")
         x, i = f.operands()
         return (None, None)
     
     def variable_derivative(self, f):
-        ufl_error("Partial derivative of variable_derivative not implemented, when is this called? apply_ad should make sure it isn't called.")
+        error("Partial derivative of variable_derivative not implemented, when is this called? apply_ad should make sure it isn't called.")
         x, v = f.operands()
         return (None, None)
     
     def function_derivative(self, f):
-        ufl_error("Partial derivative of function_derivative not implemented, when is this called? apply_ad should make sure it isn't called.")
+        error("Partial derivative of function_derivative not implemented, when is this called? apply_ad should make sure it isn't called.")
         a, w, v = f.operands()
         return (None, None, None)
 

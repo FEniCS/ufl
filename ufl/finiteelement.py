@@ -3,7 +3,7 @@
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __date__ = "2008-03-03 -- 2008-12-22"
 
-from ufl.output import ufl_assert
+from ufl.log import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.elements import ufl_elements
 from ufl.common import product, index_to_component, component_to_index

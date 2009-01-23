@@ -2,7 +2,7 @@
 output messages. These may be redirected by the user of UFL."""
 
 __author__ = "Martin Sandve Alnaes and Anders Logg"
-__date__ = "2005-02-04 -- 2009-01-14"
+__date__ = "2005-02-04 -- 2009-01-23"
 __copyright__ = "Copyright (C) 2005-2009 Anders Logg and Martin Sandve Alnaes"
 __license__  = "GNU GPL version 3 or any later version"
 
@@ -116,10 +116,11 @@ class Logger:
 ufl_logger = Logger("UFL")
 
 for foo in log_functions:
-    exec("%s = lambda *message : ufl_logger.%s(*message)" % (foo, foo))
+    exec("%s = ufl_logger.%s" % (foo, foo))
 
 #--- Set up assertion ---
 def ufl_assert(condition, *message):
     "Assert that condition is true and otherwise issue an error with given message."
     if not condition:
         error(*message)
+

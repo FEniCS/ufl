@@ -6,7 +6,7 @@ __date__ = "2008-03-14 -- 2009-01-10"
 # Modified by Anders Logg, 2008
 
 import math
-from ufl.output import ufl_assert
+from ufl.log import ufl_assert
 from ufl.expr import Expr
 from ufl.scalar import FloatValue, is_true_ufl_scalar, is_python_scalar, as_ufl
 
