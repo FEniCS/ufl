@@ -11,7 +11,7 @@ import logging
 
 log_functions = ["debug", "info", "warning", "error", "begin", "end",
                  "set_level", "set_indent", "add_indent",
-                 "set_handler", "get_handler", "set_logger", "get_logger"]
+                 "set_handler", "get_handler", "get_logger"]
 
 __all__ = log_functions + ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL", "Logger", "log_functions"]
 
