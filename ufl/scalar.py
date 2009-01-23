@@ -100,7 +100,10 @@ class IntValue(ScalarValue):
         return IntValue(abs(self._value))
 
 class ScalarSomething(ScalarValue):
-    "A constant scalar integer value."
+    """A scalar value of some externally defined type.
+    
+    Using this will likely break many algorithms, in particular
+    AD can't possibly know what to do with it."""
     __slots__ = ()
     def __init__(self, value):
         ScalarValue.__init__(self, value)

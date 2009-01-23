@@ -2,12 +2,12 @@
 is more robust w.r.t. argument numbering than using repr."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-11-26 -- 2009-01-05"
+__date__ = "2008-11-26 -- 2009-01-23"
 
 from ufl.log import ufl_assert
 from ufl.common import Counted
 from ufl.terminal import Terminal
-from ufl.indexing import MultiIndex
+from ufl.indexing import MultiIndex, Index
 from ufl.variable import Label
 from ufl.function import Function
 from ufl.basisfunction import BasisFunction
@@ -24,16 +24,16 @@ def cmp_expr(a, b):
     
     # Type is the same, is it a ...
     # ... MultiIndex object?
-    if isinstance(a, MultiIndex):
+    if isinstance(a, MultiIndex): # FIXME: Remove this!
         # Don't compare counts! Causes circular problems when renumbering to get a canonical form.
-        return cmp(len(a), len(b))
+        return cmp(tuple(type(i) for i in a), tuple(type(i) for i in b))
     
-    # ... Label object?
-    if isinstance(a, Label):
+    # ... Label or Index object?
+    if isinstance(a, (Label, Index)):
         # Don't compare counts! Causes circular problems when renumbering to get a canonical form.
-        return 0 # Not equal in general (__eq__ won't be True), but for this purpose they are.
+        return 0 # Not equal in general (__eq__ won't be True), but for this purpose they are considered equal.
     
-    # ... Counted object? (Function or BasisFunction)
+    # ... Other Counted object? (Function or BasisFunction)
     if isinstance(a, Counted):
         ufl_assert(isinstance(a, (Function, BasisFunction)),
             "Expecting a Function or BasisFunction here, got %s instead. Please tell at ufl-dev@fenics.org." % str(type(a)))

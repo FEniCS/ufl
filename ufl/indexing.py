@@ -1,7 +1,7 @@
 """This module defines the single index types and some internal index utilities."""
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-14 -- 2009-01-12"
+__date__ = "2008-03-14 -- 2009-01-23"
 
 from itertools import chain
 from collections import defaultdict
@@ -10,10 +10,10 @@ from ufl.common import Counted
 from ufl.expr import Expr
 from ufl.terminal import Terminal
 
-#--- Indexing ---
+#--- Index types ---
 
 # TODO: Make new index hierarchy? Do we need MultiIndex?
-class NewIndex(Terminal):
+class NewIndexBase(Terminal):
     def __init__(self):
         Terminal.__init__(self)
     
@@ -23,48 +23,15 @@ class NewIndex(Terminal):
     def __hash__(self):
         return hash(repr(self))
 
-class NewFreeIndex(NewIndex, Counted):
-    _globalcount = 0
-    def __init__(self, count = None):
-        NewIndex.__init__(self)
-        Counted.__init__(self, count)
-    
-    def __eq__(self, other):
-        return isinstance(other, Index) and (self._count == other._count)
-    
-    def __str__(self):
-        c = str(self._count)
-        if len(c) > 1:
-            c = "{%s}" % c
-        return "i_%s" % c
-    
-    def __repr__(self):
-        return "NewFreeIndex(%d)" % self._count
+class IndexBase(object):
+    def __init__(self):
+        pass
 
-class NewFixedIndex(NewFreeIndex):
-    __slots__ = ("_value",)
-    def __init__(self, value):
-        ufl_assert(isinstance(value, int),
-            "Expecting integer value for fixed index.")
-        self._value = value
-    
-    def __eq__(self, other):
-        if isinstance(other, FixedIndex):
-            return self._value == other._value
-        elif isinstance(other, int):
-            return self._value == other
-        return False
-    
-    def __str__(self):
-        return "%d" % self._value
-    
-    def __repr__(self):
-        return "NewFixedIndex(%d)" % self._value
-
-class Index(Counted):
+class Index(IndexBase, Counted):
     __slots__ = ()
     _globalcount = 0
     def __init__(self, count = None):
+        IndexBase.__init__(self)
         Counted.__init__(self, count)
     
     def __hash__(self):
@@ -86,10 +53,11 @@ def indices(n):
     "Return a tuple of n new Index objects."
     return tuple(Index() for _i in range(n))
 
-class FixedIndex(object):
+class FixedIndex(IndexBase):
     __slots__ = ("_value",)
     
     def __init__(self, value):
+        IndexBase.__init__(self)
         ufl_assert(isinstance(value, int),
             "Expecting integer value for fixed index.")
         self._value = value
@@ -109,11 +77,6 @@ class FixedIndex(object):
     
     def __repr__(self):
         return "FixedIndex(%d)" % self._value
-
-# Collect all index types to shorten isinstance(a, _indextypes)
-_indextypes = (Index, FixedIndex) # TODO: Use superclass instead? Index, FreeIndex(Index), FixedIndex(Index)
-
-#--- Indexing ---
 
 class MultiIndex(Terminal):
     __slots__ = ("_indices", "_repeated_indices")
@@ -168,6 +131,46 @@ class MultiIndex(Terminal):
     def __eq__(self, other):
         return isinstance(other, MultiIndex) and \
             self._indices == other._indices
+
+#--- Sum over an index ---
+
+class IndexSum(Expr):
+    __slots__ = ("_summand", "_index", "_repr")
+    
+    def __init__(self, summand, index):
+        Expr.__init__(self)
+        ufl_assert(isinstance(summand, Expr), "Expecting Expr instances.")
+        if isinstance(index, Index):
+            index = MultiIndex((index,))
+        ufl_assert(isinstance(index, MultiIndex), "Expecting (Multi)Index instance.")
+        ufl_assert(len(index) == 1, "Expecting single Index.")
+        self._summand = summand
+        self._index = index
+        self._repr = "IndexSum(%r, %r)" % (summand, index)
+    
+    def operands(self):
+        return (self._summand, self._index)
+    
+    def indices(self):
+        j = self._index[0]
+        return tuple(i for i in self._summand.free_indices() if not i == j)
+    
+    def index_dimensions(self):
+        return self._operands[0].index_dimensions()
+    
+    def shape(self):
+        return self._summand.shape()
+    
+    def evaluate(self, x, mapping, component, index_values):
+        return sum(o.evaluate(x, mapping, component, index_values) for o in self.operands())
+    
+    def __str__(self):
+        return "sum_{%s}< %s >" % (str(self._index), str(self._summand))
+    
+    def __repr__(self):
+        return self._repr
+
+#--- Indexing an expression ---
 
 class Indexed(Expr):
     __slots__ = ("_expression", "_indices",
@@ -296,6 +299,8 @@ class Indexed(Expr):
     def __getitem__(self, key):
         error("Attempting to index with %r, but object is already indexed: %r" % (key, self))
 
+#--- Utility functions ---
+
 def as_index_tuple(ii):
     """Takes something the user might input as an index tuple
     inside [], and returns a tuple of actual UFL index objects.
@@ -373,7 +378,7 @@ def extract_indices_for_indexed(indices, shape):
     """
     # Validate input
     ufl_assert(isinstance(indices, tuple), "Expecting index tuple.")
-    ufl_assert(all(isinstance(i, _indextypes) for i in indices), \
+    ufl_assert(all(isinstance(i, IndexBase) for i in indices), \
         "Expecting objects of type Index or FixedIndex, not %s." % repr(indices))
     ufl_assert(isinstance(shape, tuple), "Expecting index tuple.")
     ufl_assert(len(shape) == len(indices), "Expecting tuples of equal length.")
@@ -418,7 +423,7 @@ def extract_indices_for_product(indices):
     """
     # Validate input
     ufl_assert(isinstance(indices, tuple), "Expecting index tuple.")
-    ufl_assert(all(isinstance(i, _indextypes) for i in indices), \
+    ufl_assert(all(isinstance(i, IndexBase) for i in indices), \
         "Expecting objects of type Index or FixedIndex.")
     
     # Count repetitions of indices

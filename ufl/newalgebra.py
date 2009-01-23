@@ -36,47 +36,9 @@
 #
 
 
-# --- New:
-
-class IndexSum(Expr):
-    __slots__ = ("_summand", "_index", "_repr")
-    
-    def __init__(self, summand, index):
-        Expr.__init__(self)
-        ufl_assert(isinstance(summand, Expr), "Expecting Expr instances.")
-        if isinstance(index, Index):
-            index = MultiIndex((index,))
-        ufl_assert(isinstance(index, MultiIndex), "Expecting (Multi)Index instance.")
-        ufl_assert(len(index) == 1, "Expecting single Index.")
-        self._summand = summand
-        self._index = index
-        self._repr = "IndexSum(%r, %r)" % (summand, index)
-    
-    def operands(self):
-        return (self._summand, self._index)
-    
-    def indices(self):
-        j = self._index[0]
-        return tuple(i for i in self._summand.free_indices() if not i == j)
-    
-    def index_dimensions(self):
-        return self._operands[0].index_dimensions()
-    
-    def shape(self):
-        return self._summand.shape()
-    
-    def evaluate(self, x, mapping, component, index_values):
-        return sum(o.evaluate(x, mapping, component, index_values) for o in self.operands())
-    
-    def __str__(self):
-        return "sum_{%s}< %s >" % (str(self._index), str(self._summand))
-    
-    def __repr__(self):
-        return self._repr
-
 # --- In indexing.py:
 
-def build_unique_indices(operands):
+def build_unique_indices(operands, multiindex=None):
     "Build tuple of unique indices, including repeated ones."
     s = set()
     fi = []
@@ -107,7 +69,7 @@ class MultiIndex(Expr):
 
 class Indexed(Expr):
     def __init__(self, A, ii):
-        fi, ri, idims = build_unique_indices((A, ii))
+        fi, ri, idims = build_unique_indices((A,), ii, A.shape())
         self._fi = fi
         self._idims = idims
     
@@ -135,7 +97,7 @@ class Product(Expr):
 
 class SpatialDerivative(Expr):
     def __init__(self, f, ii):
-        fi, ri, idims = build_unique_indices((f, ii))
+        fi, ri, idims = build_unique_indices((f,), ii)
         self._fi = fi
         self._idims = idims
     
@@ -174,7 +136,7 @@ def _mult(a, b): # TODO: Rewrite
 
 def _dx(self, *ii): # TODO: Rewrite
     "Return the partial derivative with respect to spatial variable number i."
-    fi, ri, idims = build_unique_indices((ii,))
+    fi, ri, idims = build_unique_indices((self,), ii)
     d = self
     # Apply all derivatives
     for i in ii:

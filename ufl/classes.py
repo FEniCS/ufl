@@ -3,7 +3,7 @@ since it enables the syntax "from ufl.classes import FooBar" for getting
 implementation details not exposed through the default ufl namespace."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-15 -- 2009-01-05"
+__date__ = "2008-08-15 -- 2009-01-23"
 
 # Modified by Anders Logg, 2008
 
@@ -16,7 +16,7 @@ from ufl.finiteelement import FiniteElementBase, FiniteElement, MixedElement, Ve
 from ufl.basisfunction import BasisFunction, TestFunction, TrialFunction
 from ufl.function import Function, VectorConstant, TensorConstant, Constant
 from ufl.geometry import SpatialCoordinate, FacetNormal
-from ufl.indexing import MultiIndex, Indexed, Index, FixedIndex
+from ufl.indexing import MultiIndex, Indexed, IndexBase, Index, FixedIndex, IndexSum
 from ufl.tensors import ListTensor, ComponentTensor
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Cofactor, Inverse, Deviatoric, Skew

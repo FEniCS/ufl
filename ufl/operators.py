@@ -65,7 +65,7 @@ def skew(A):
 #--- Differential operators
 
 def Dx(f, *i):
-    "The partial derivative of f with respect to spatial variable number i."
+    "The partial derivative of f with respect to spatial variable number i. Equivalent to f.dx(*i)."
     return f.dx(*i)
 
 def Dt(f):

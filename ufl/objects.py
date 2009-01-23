@@ -1,12 +1,12 @@
 "Utility objects for pretty syntax in user code."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-01-09"
+__date__ = "2008-03-14 -- 2009-01-23"
 
 # Modified by Anders Logg, 2008
 
+from ufl.indexing import indices
 from ufl.integral import Integral
-from ufl.indexing import Index, indices
 from ufl.geometry import Cell
 
 # Default indices
