@@ -9,7 +9,7 @@ This is to avoid circular dependencies between Expr and its subclasses.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-01-05"
+__date__ = "2008-03-14 -- 2009-01-23"
 
 # Modified by Anders Logg, 2008
 
@@ -21,10 +21,10 @@ _class_usage_statistics = defaultdict(int)
 class Expr(object):
     "Base class for all UFL objects."
     # Freeze member variables for objects of this class
-    __slots__ = ()#"_hash", "_repr")
+    __slots__ = ()#"_operands", "_hash")
     
     def __init__(self):
-        # Comment out this line to disable class construction statistics
+        # Comment out this line to disable class construction statistics (used in some unit tests)
         _class_usage_statistics[self._uflid] += 1
         #self._hash = None
     
@@ -36,6 +36,7 @@ class Expr(object):
     def operands(self):
         "Return a sequence with all subtree nodes in expression tree."
         raise NotImplementedError(self.__class__.operands)
+        #return self._operands
     
     #--- Functions for general properties of expression ---
     
@@ -43,6 +44,7 @@ class Expr(object):
     def shape(self):
         "Return the tensor shape of the expression."
         raise NotImplementedError(self.__class__.shape)
+        #return self._shape
     
     # Subclasses can implement rank if it is known directly (TODO: Is this used anywhere? Usually want to compare shapes anyway.)
     def rank(self):
@@ -70,11 +72,13 @@ class Expr(object):
     def free_indices(self):
         "Return a tuple with the free indices (unassigned) of the expression."
         return ()
+        #return self._free_indices
     
     # Subclasses that can have repeated indices must implement repeated_indices
     def repeated_indices(self):
         "Return a tuple with the repeated indices of the expression."
         return ()
+        #ufl_error("This shouldn't be called anymore!")
     
     # All subclasses must implement index_dimensions
     def index_dimensions(self):
@@ -82,20 +86,21 @@ class Expr(object):
         as keys and the dimensions of those indices as values."""
         raise NotImplementedError(self.__class__.index_dimensions)
         #return {} # TODO: Might make this optional to implement?
+        #return self._index_dimensions
     
     #--- Special functions for string representations ---
     
     # All subclasses must implement __repr__
     def __repr__(self):
         "Return string representation this object can be reconstructed from."
-        #return self._repr
         raise NotImplementedError(self.__class__.__repr__)
+        #return self._repr
     
     # All subclasses must implement __str__
     def __str__(self):
         "Return pretty print string representation of this object."
-        #return self._str
         raise NotImplementedError(self.__class__.__str__)
+        #return self._str
     
     #--- Special functions used for processing expressions ---
     

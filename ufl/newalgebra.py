@@ -191,3 +191,65 @@ def _d(self, v): # TODO: Rewrite
     return VariableDerivative(self, v)
 Expr.d = _d
 
+
+
+# TODO: Check this out:
+class ComponentTensor(Expr):
+    __slots__ = ("_expression", "_indices", "_free_indices", "_index_dimensions", "_shape")
+    
+    def __init__(self, expression, indices):
+        Expr.__init__(self)
+        ufl_assert(isinstance(expression, Expr), "Expecting ufl expression.")
+        ufl_assert(expression.shape() == (), "Expecting scalar valued expression.")
+        self._expression = expression
+        
+        ufl_assert(all(isinstance(i, Index) for i in indices),
+           "Expecting sequence of Index objects, not %s." % repr(indices))
+        
+        if not isinstance(indices, MultiIndex): # if constructed from repr
+            indices = MultiIndex(indices)
+        self._indices = indices
+        
+        eset = set(expression.free_indices())
+        iset = set(self._indices)
+        freeset = eset - iset
+        missingset = iset - eset
+        self._free_indices = tuple(freeset)
+        ufl_assert(len(missingset) == 0, "Missing indices %s in expression %s." % (missingset, expression))
+        
+        dims = expression.index_dimensions()
+        self._index_dimensions = dict((i, dims[i]) for i in self._free_indices)
+        
+        self._shape = tuple(dims[i] for i in self._indices)
+    
+    def operands(self):
+        return (self._expression, self._indices)
+    
+    def free_indices(self):
+        return self._free_indices
+    
+    def index_dimensions(self):
+        return self._index_dimensions
+    
+    def shape(self):
+        return self._shape
+    
+    def evaluate(self, x, mapping, component, index_values):
+        indices = self._indices
+        a = self._expression
+        
+        for i, c in enumerate(indices, component):
+            index_values.push(i, c)
+        
+        a = a.evaluate(x, mapping, (), index_values)
+        
+        for i in indices:
+            index_values.pop()
+        
+        return a
+    
+    def __str__(self):
+        return "[Rank %d tensor A, such that A_{%s} = %s]" % (self.rank(), self._indices, self._expression)
+    
+    def __repr__(self):
+        return "ComponentTensor(%r, %r)" % (self._expression, self._indices)

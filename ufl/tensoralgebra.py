@@ -72,7 +72,7 @@ class Identity(Terminal):
         return isinstance(other, Identity) and self._dim == other._dim
 
 
-# objects representing the operations:
+# --- Classes representing compound tensor algebra operations ---
 
 class Transposed(Expr):
     __slots__ = ("_A",)

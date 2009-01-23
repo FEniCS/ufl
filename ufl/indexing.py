@@ -12,6 +12,55 @@ from ufl.terminal import Terminal
 
 #--- Indexing ---
 
+# TODO: Make new index hierarchy? Do we need MultiIndex?
+class NewIndex(Terminal):
+    def __init__(self):
+        Terminal.__init__(self)
+    
+    def shape(self):
+        ufl_error("")
+    
+    def __hash__(self):
+        return hash(repr(self))
+
+class NewFreeIndex(NewIndex, Counted):
+    _globalcount = 0
+    def __init__(self, count = None):
+        NewIndex.__init__(self)
+        Counted.__init__(self, count)
+    
+    def __eq__(self, other):
+        return isinstance(other, Index) and (self._count == other._count)
+    
+    def __str__(self):
+        c = str(self._count)
+        if len(c) > 1:
+            c = "{%s}" % c
+        return "i_%s" % c
+    
+    def __repr__(self):
+        return "NewFreeIndex(%d)" % self._count
+
+class NewFixedIndex(NewFreeIndex):
+    __slots__ = ("_value",)
+    def __init__(self, value):
+        ufl_assert(isinstance(value, int),
+            "Expecting integer value for fixed index.")
+        self._value = value
+    
+    def __eq__(self, other):
+        if isinstance(other, FixedIndex):
+            return self._value == other._value
+        elif isinstance(other, int):
+            return self._value == other
+        return False
+    
+    def __str__(self):
+        return "%d" % self._value
+    
+    def __repr__(self):
+        return "NewFixedIndex(%d)" % self._value
+
 class Index(Counted):
     __slots__ = ()
     _globalcount = 0

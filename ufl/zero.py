@@ -44,11 +44,11 @@ class Zero(Terminal):
     def free_indices(self):
         return self._free_indices
     
-    def shape(self):
-        return self._shape
-    
     def index_dimensions(self):
         return self._index_dimensions
+    
+    def shape(self):
+        return self._shape
     
     def evaluate(self, x, mapping, component, index_values):    
         return 0.0

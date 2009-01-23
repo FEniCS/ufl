@@ -133,8 +133,9 @@ class Counted(object):
     """A class of objects identified by a global counter.
     
     Requires that the subclass has a class variable
-    _globalcount = 0"""
-    __slots__ = ("_count",)
+    _globalcount = 0
+    Can we enforce this somehow? Metaclasses? Probably overkill...
+    """
     def __init__(self, count = None):
         if count is None:
             self._count = self.__class__._globalcount
