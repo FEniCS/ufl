@@ -9,7 +9,7 @@ from ufl.expr import Expr
 from ufl.terminal import Terminal, Tuple
 from ufl.zero import Zero
 from ufl.scalar import ScalarValue, is_true_ufl_scalar
-from ufl.indexing import Indexed, MultiIndex, Index, FixedIndex
+from ufl.indexing import Indexed, MultiIndex, Index, FixedIndex, extract_indices_for_dx
 from ufl.variable import Variable
 from ufl.tensors import as_tensor
 from ufl.tensoralgebra import Identity
@@ -92,20 +92,7 @@ class SpatialDerivative(Derivative):
                 else:
                     dim = cell.dim()
                 
-                # TODO: This code is duplicated in __init__
-                # Find repeated index
-                efi = expression.free_indices()
-                fi = tuple(i for i in efi if not i == idx)
-                ri = ()
-                idim = dict(expression.index_dimensions())
-                if isinstance(idx, Index):
-                    if len(fi) == len(efi):
-                        ufl_assert(dim is not None,
-                            "Need to know the spatial dimension to compute the shape of derivatives.")
-                        fi += (idx,) # idx is not repeated
-                        idim.update(((idx, dim),))
-                    else:
-                        ri += (idx,) # idx is repeated
+                fi, ri, idim = extract_indices_for_dx(expression, idx)
                 
                 return Zero(expression.shape(), fi, idim)
 
@@ -134,20 +121,7 @@ class SpatialDerivative(Derivative):
         else:
             dim = cell.dim()
         
-        # TODO: This code is duplicated in __init__
-        # Find repeated index
-        efi = expression.free_indices()
-        fi = tuple(i for i in efi if not i == idx)
-        ri = ()
-        idim = dict(expression.index_dimensions())
-        if isinstance(idx, Index):
-            if len(fi) == len(efi):
-                ufl_assert(dim is not None,
-                    "Need to know the spatial dimension to compute the shape of derivatives.")
-                fi += (idx,) # idx is not repeated
-                idim.update(((idx, dim),))
-            else:
-                ri += (idx,) # idx is repeated
+        fi, ri, idim = extract_indices_for_dx(expression, idx)
         
         # Store what we need
         self._free_indices = fi

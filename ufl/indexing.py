@@ -449,6 +449,22 @@ def extract_indices_for_product(indices):
     
     return free_indices, repeated_indices
 
+def extract_indices_for_dx(expression, idx):
+    # Find repeated index
+    efi = expression.free_indices()
+    fi = tuple(i for i in efi if not i == idx)
+    ri = ()
+    idim = dict(expression.index_dimensions())
+    if isinstance(idx, Index):
+        if len(fi) == len(efi):
+            ufl_assert(dim is not None,
+                "Need to know the spatial dimension to compute the shape of derivatives.")
+            fi += (idx,) # idx is not repeated
+            idim.update(((idx, dim),))
+        else:
+            ri += (idx,) # idx is repeated
+    return fi, ri, idim
+
 def complete_shape(shape, default_dim):
     "Complete shape tuple by replacing non-integers with a default dimension."
     return tuple((s if isinstance(s, int) else default_dim) for s in shape)

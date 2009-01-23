@@ -3,60 +3,26 @@ from ufl.expr import Expr
 from ufl import triangle
 
 class Mock(Expr):
-    def __init__(self, ops=(), sh=(), fi=(), ri=(), idim={}, c=triangle, r="", s="", h=0):
+    def __init__(self, **kwargs):
         Expr.__init__(self)
-        self.ops = ops
-        self.sh = sh
-        self.fi = fi
-        self.ri = ri
-        self.idim = idim
-        self.c = c
-        self.r = r
-        self.s = s
-        self.h = h
-        self.fields = ("ops", "sh", "fi", "ri", "idim", "c", "r", "s", "h")
-    
-    def operands(self):
-        return self.ops
-    
-    def shape(self):
-        return self.sh
-    
-    def rank(self):
-        return len(self.shape())
-    
-    def cell(self):
-        return self.c
-    
-    def free_indices(self):
-        return self.fi
-    
-    def repeated_indices(self):
-        return self.ri
-    
-    def index_dimensions(self):
-        return self.idim
-    
-    def __repr__(self):
-        return self.r
-    
-    def __str__(self):
-        return self.s
-    
-    def __hash__(self):
-        return self.h
-    
-    def get_fields(self):
-        return tuple(getattr(self, f) for f in self.fields)
+        self.fields = []
+        for k,v in kwargs.items():
+            assert hasattr(Expr, k) # Invalid function name
+            def foo(s):
+                return getattr(s, "_%s" % k)
+            setattr(self, "_%s" % k, v)
+            setattr(self, k, foo)
+            self.fields.append(k)
     
     def __eq__(self, other):
-        for f in self.fields:
-            a, b = getattr(self, f), getattr(other, f)
-            if not a == b:
-                print "self.%s != other.%s" % (f, f)
-                print a, b
+        fields = set(self.fields) | set(other.fields)
+        for field in fields:
+            a = getattr(self, field)(self)
+            b = getattr(other, field)(other)
+            if a != b:
+                return False
         return True
-
+    
     def __nonzero__(self):
         return True 
     
@@ -64,11 +30,11 @@ class Mock(Expr):
         raise NotImplementedError
 
 def _test():
-    a = Mock(ops=(), sh=(1,), fi=(), ri=(), idim={}, c=triangle, r="", s="", h=0)
-    b = Mock(ops=(), sh=(2,), fi=(), ri=(), idim={}, c=triangle, r="", s="", h=0)
-    c = Mock(ops=(a, b), sh=(), fi=(), ri=(), idim={}, c=triangle, r="", s="", h=0)
-    d = Mock(ops=(b, a), sh=(), fi=(), ri=(), idim={}, c=triangle, r="", s="", h=0)
-    assert a == b
+    a = Mock(operands=(), shape=(1,))
+    b = Mock(operands=(), shape=(2,))
+    c = Mock(operands=(a, b), shape=(), free_indices=(), index_dimensions={}, cell=triangle)
+    d = Mock(operands=(b, a), shape=(), free_indices=(), index_dimensions={}, cell=triangle)
+    assert a != b
     assert c == d
 
 if __name__ == "__main__":
