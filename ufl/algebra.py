@@ -1,10 +1,11 @@
 "Basic algebra operations."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2009-01-10"
+__date__ = "2008-05-20 -- 2009-01-28"
 
 # Modified by Anders Logg, 2008
 
+from collections import defaultdict
 from itertools import chain
 
 from ufl.log import ufl_assert, error, warning
@@ -12,7 +13,7 @@ from ufl.common import product, mergedicts, subdict
 from ufl.expr import Expr
 from ufl.zero import Zero
 from ufl.scalar import ScalarValue, FloatValue, IntValue, is_true_ufl_scalar, is_python_scalar, as_ufl
-from ufl.indexing import extract_indices_for_product
+from ufl.indexing import IndexBase, Index, FixedIndex
 from ufl.sorting import cmp_expr
 
 #--- Algebraic operators ---
@@ -113,9 +114,90 @@ class Sum(Expr):
     def __repr__(self):
         return self._repr
 
+
+def build_unique_indices(operands, multiindex=None, shape=None): # FIXME: Adjust this to match Product requirements
+    "Build tuple of unique indices, including repeated ones."
+    s = set()
+    fi = []
+    idims = {}
+    for o in operands:
+        if isinstance(o, MultiIndex):
+            # TODO: This introduces None, better way? 
+            ofi = o._indices
+            oid = dict((i, None) for i in o) 
+            #if shape is None:
+            #    shape = (None,)*len(o)
+            #oid = dict((i, shape[j]) for (j, i) in enumerate(ofi))
+        else:
+            ofi = o.free_indices()
+            oid = o.index_dimensions()
+        
+        for i in ofi:
+            if i in s:
+                ri.append(i)
+            else:
+                fi.append(i)
+                idims[i] = oid[i]
+                s.add(i)
+    return fi, ri, idims
+
+# --- In algebra.py:
+
+class Product(Expr):
+    def __init__(self, *operands):
+        fi, ri, idims = build_unique_indices(operands)
+        self._fi = fi
+        self._idims = idims
+    
+    def free_indices(self):
+        return self._fi
+    
+    def index_dimensions(self):
+        return self._idims
+
+def extract_indices_for_product(indices):
+    """Analyse a tuple of indices, and return a
+    2-tuple with the following information:
+    
+    @param free_indices
+        Tuple of unique indices with no value
+        (Index, no implicit summation)
+    @param repeated_indices
+        Tuple of indices that occur twice
+        (Index, implicit summation)
+    """
+    # Validate input
+    ufl_assert(isinstance(indices, tuple), "Expecting index tuple.")
+    ufl_assert(all(isinstance(i, IndexBase) for i in indices), \
+        "Expecting objects of type Index or FixedIndex.")
+    
+    # Count repetitions of indices
+    index_count = defaultdict(int)
+    for idx in indices:
+        if isinstance(idx, Index):
+            index_count[idx] += 1
+    ufl_assert(all(i <= 2 for i in index_count.values()),
+               "Too many index repetitions in %s" % repr(indices))
+    
+    # Split indices based on repetition count
+    free_indices     = tuple(idx for idx in indices
+                             if index_count[idx] == 1)
+    repeated_indices = tuple(idx for idx in index_count.keys()
+                             if index_count[idx] == 2)
+
+    # Consistency check
+    fixed_indices = tuple(idx for idx in indices 
+                          if isinstance(idx, FixedIndex))
+    ufl_assert(len(fixed_indices) + len(free_indices) + \
+               2*len(repeated_indices) == len(indices),
+               "Logic breach in extract_indices_for_product.")
+    
+    return free_indices, repeated_indices
+
+
 class Product(Expr):
     """The product of two or more UFL objects."""
-    __slots__ = ("_operands", "_free_indices", "_index_dimensions", "_repeated_indices", "_shape", "_repr")
+    __slots__ = ("_operands", "_free_indices", "_index_dimensions", "_shape", "_repr")
     
     def __new__(cls, *operands):
         ufl_assert(len(operands) >= 2, "Can't make product of nothing, should catch this before getting here.")
@@ -194,7 +276,7 @@ class Product(Expr):
         # Extract indices
         all_indices = tuple(chain(*(o.free_indices() for o in operands)))
         self._index_dimensions = mergedicts([o.index_dimensions() for o in operands])
-        self._free_indices, self._repeated_indices = extract_indices_for_product(all_indices)
+        self._free_indices, dummy_repeated_indices = extract_indices_for_product(all_indices)
         
         self._repr = "Product(%s)" % ", ".join(repr(o) for o in self._operands)
     
@@ -207,9 +289,6 @@ class Product(Expr):
     def free_indices(self):
         return self._free_indices
     
-    def repeated_indices(self):
-        return self._repeated_indices
-    
     def index_dimensions(self):
         return self._index_dimensions
     
@@ -217,7 +296,7 @@ class Product(Expr):
         return self._shape
     
     def evaluate(self, x, mapping, component, index_values):
-        ufl_assert(self.shape() == () and self.repeated_indices() == (), "FIXME")
+        ufl_assert(self.shape() == (), "FIXME")
         return product(o.evaluate(x, mapping, component, index_values) for o in self.operands())
     
     def __str__(self):

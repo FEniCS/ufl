@@ -1,8 +1,12 @@
 Roadmap for the development of UFL
 ----------------------------------
 
+# Make IndexBase an Expr? Affects the following in particular:
+    indexing.py - Make IndexBase an Expr?
+    sorting.py - Remove MultiIndex handling if we make IndexBase an Expr.
+
 # Figure out allowed shape/free index combinations:
- - Are sums of operands with different free indices allowed? Probably not. Need to work around in AD!
+ - Sums of operands with different free indices can not be allowed. Need to work around in AD!
 
    Examples:
 
