@@ -1,0 +1,48 @@
+
+newalgebra.py - Implement stuff from here in various other files below.
+
+indexing.py - Index etc OK
+indexsum.py - IndexSum OK
+indexed.py - Indexed 
+algebra.py - Product 
+differentiation.py - SpatialDerivative 
+
+exproperators.py - Implement new .dx, _mult, _getitem 
+
+
+#
+# - Get overview of algorithms, consider the following new issues:
+#   - repeated_indices is gone
+#   - no implicit sums
+#   - Must add indexed_sum support
+#   - Dot(a, b) -> a[i]*b[i] will still work through __mul__
+#   - Dot(a, b) -> Product(a[i], b[i]) will be wrong!
+#
+# - Write up all algorithms here with notes:
+#   - TODO: Need a more thourough plan for this.
+#
+# - Expr.evaluate  (depends on expand_compounds and expand_derivatives)
+#
+
+algorithms:
+ad.py
+analysis.py
+checks.py
+dependencies.py
+formdata.py
+formfiles.py
+formtransformations.py
+forward_ad.py
+graph.py
+__init__.py
+latextools.py
+monomials.py
+pdiffs.py
+predicates.py
+printing.py
+reverse_ad.py
+transformations.py
+traversal.py
+ufl2dot.py
+ufl2latex.py
+
