@@ -53,6 +53,12 @@ class FiniteElementBase(object):
         ufl_assert(len(i) == r,
                    "Illegal component index '%r' (value rank %d) for element (value rank %d)." % (i, len(i), r))
 
+    def __hash__(self):
+        return hash(repr(self))
+
+    def __eq__(self, other):
+        return repr(self) == repr(other)
+
     def __add__(self, other):
         "Add two elements, creating a mixed element"
         ufl_assert(isinstance(other, FiniteElementBase), "Can't add element and %s." % other.__class__)
