@@ -450,6 +450,13 @@ def extract_indices_for_product(indices):
     return free_indices, repeated_indices
 
 def extract_indices_for_dx(expression, idx):
+    # Get spatial dimension
+    cell = expression.cell()
+    if cell is None:
+        dim = None
+    else:
+        dim = cell.dim()
+                
     # Find repeated index
     efi = expression.free_indices()
     fi = tuple(i for i in efi if not i == idx)

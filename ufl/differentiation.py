@@ -81,21 +81,10 @@ class SpatialDerivative(Derivative):
         idx = index[0]
         
         # Return zero if expression is trivially constant
-        if isinstance(expression, Terminal):
-            # TODO: Check for BasisFunction or Function and attach indices to them directly?
-            if isinstance(expression, spatially_constant_types):
-                # TODO: This code is duplicated in __init__
-                # Get spatial dimension
-                cell = expression.cell()
-                if cell is None:
-                    dim = None
-                else:
-                    dim = cell.dim()
-                
-                fi, ri, idim = extract_indices_for_dx(expression, idx)
-                
-                return Zero(expression.shape(), fi, idim)
-
+        if isinstance(expression, spatially_constant_types):
+            fi, ri, idim = extract_indices_for_dx(expression, idx)
+            return Zero(expression.shape(), fi, idim)
+        
         return Derivative.__new__(cls)
     
     def __init__(self, expression, index):
@@ -112,14 +101,6 @@ class SpatialDerivative(Derivative):
         
         idx = index[0]
         self._index = index
-        
-        # TODO: This code is duplicated in __new__
-        # Get spatial dimension
-        cell = expression.cell()
-        if cell is None:
-            dim = None
-        else:
-            dim = cell.dim()
         
         fi, ri, idim = extract_indices_for_dx(expression, idx)
         
