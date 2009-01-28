@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-12 -- 2008-12-22"
+__date__ = "2008-03-12 -- 2009-01-28"
 
 # Modified by Anders Logg, 2008
 
@@ -108,6 +108,16 @@ class AlgorithmsTestCase(unittest.TestCase):
         #print unique_classes(self.forms[2])
         d = extract_duplications(self.forms[2].cell_integrals()[0]._integrand)
         #pprint(list(d))
+
+        element1 = FiniteElement("CG", triangle, 1)
+        element2 = FiniteElement("CG", triangle, 1)
+
+        v = TestFunction(element1)
+        u = TrialFunction(element2)
+
+        a = u*v*dx
+        self.assertTrue( (element1, element2) == extract_elements(a) )
+        self.assertTrue( set([element1]) == extract_unique_elements(a) )
 
     def _test_walk(self):
         element = FiniteElement("CG", "triangle", 1)
