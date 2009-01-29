@@ -3,7 +3,7 @@ of UFL objects in the DOT graph visualization language,
 mostly intended for debugging purposers."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-11-17 -- 2009-01-05"
+__date__ = "2008-11-17 -- 2009-01-29"
 
 from itertools import chain
 
@@ -18,6 +18,7 @@ from ufl.geometry import FacetNormal
 # TODO: Maybe this can be cleaner written using the graph utilities
 
 class2label = { \
+    "IndexSum": "&sum;",
     "Sum": "&sum;",
     "Product": "&prod;",
     "Division": "/",

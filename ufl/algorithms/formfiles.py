@@ -16,9 +16,14 @@ To find the location of the error, a temporary script
 '%s' has been created and will now be executed:"""
 
 def load_forms(filename):
+    try:
+        f = open(filename)
+    except IOError:
+        f = open(filename + ".ufl")
+    
     # Read form file
     code = "from ufl import *\n"
-    code += "\n".join(file(filename).readlines())
+    code += "\n".join(f.readlines())
     namespace = {}
     try:
         exec(code, namespace)

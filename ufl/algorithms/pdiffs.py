@@ -24,14 +24,18 @@ class PartialDerivativeComputer(Transformer):
     
     # --- Basic algebra operators
     
+    def index_sum(self, f):
+        "d/dx sum_j x = FIXME"
+        FIXME
+    
     def sum(self, f):
         "d/dx_i sum_j x_j = 1"
         _1 = IntValue(1) # TODO: Handle non-scalars
         return (_1,)*len(f.operands())
     
     def product(self, f):
-        a, b = f.operands() # TODO: Assuming binary operator for now
-        da = b # TODO: Is this right even for non-scalar b? And implicit sums?
+        a, b = f.operands() # FIXME: Assuming binary operator for now
+        da = b # FIXME: Is this right even for non-scalar b?
         db = a
         return (da, db)
     

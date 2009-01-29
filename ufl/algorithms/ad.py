@@ -8,7 +8,7 @@ from ufl.log import debug
 from ufl.assertions import ufl_assert
 from ufl.classes import Terminal, Expr, Derivative, Tuple, SpatialDerivative, VariableDerivative, FunctionDerivative, FiniteElement, TestFunction, Function
 #from ufl.algorithms import *
-from ufl.algorithms.transformations import Transformer, transform_integrands, expand_compounds
+from ufl.algorithms.transformations import transform_integrands, expand_compounds
 
 from ufl.algorithms.reverse_ad import reverse_ad
 from ufl.algorithms.forward_ad import forward_ad

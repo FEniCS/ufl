@@ -157,6 +157,9 @@ class AD(Transformer):
     
     # --- Algebra operators
     
+    def index_sum(self, o, f, i):
+        FIXME
+    
     def sum(self, o, *ops):
         return (sum((op[0] for op in ops[1:]), ops[0][0]),
                 sum((op[1] for op in ops[1:]), ops[0][1]))

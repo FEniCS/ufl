@@ -53,6 +53,7 @@ class ArityAnalyser(Transformer): # TODO: Can we avoid the cache stuff? Seems a 
         Transformer.__init__(self)
         self._arity_cache = {}
         self._arity = arity
+        print "X\n"*100
     
     def expr(self, x, *ops):
         # FIXME: Other operators to implement particularly? Will see when this triggers...
@@ -123,6 +124,10 @@ class ArityAnalyser(Transformer): # TODO: Can we avoid the cache stuff? Seems a 
     inner = product
     outer = product
     dot = product
+    
+    def index_sum(self, o, f, i):
+        print "\n"*100
+        FIXME
     
     def sum(self, x, *ops):
         # Split operands into separate lists based on form arity

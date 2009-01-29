@@ -150,7 +150,6 @@ class TreeFlattener(ReuseTransformer):
         ReuseTransformer.__init__(self)
     
     def sum_or_product(self, o, *ops):
-        # FIXME: This is error prone for indexed products, consider: (u[i]*u[i])*(v[i]*v[i])
         c = o._uflid
         operands = []
         for b in ops:
@@ -469,6 +468,10 @@ class BasisFunctionDependencyExtracter(Transformer):
         if b:
             raise NotMultiLinearException, repr(o)
         return a
+
+    def index_sum(self, o, f, i):
+        "Index sums inherit the dependencies of their summand."
+        return f
 
     def sum(self, o, *opdeps):
         """Sums can contain both linear and bilinear terms (we could change

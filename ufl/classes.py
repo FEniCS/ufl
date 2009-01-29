@@ -31,14 +31,12 @@ from ufl.integral import Integral
 from ufl import exproperators as __exproperators
 
 # Collect all classes in lists
-__classobj = type(Expr)
-def __issubclass(x, y):
-    return isinstance(x, __classobj) and issubclass(x, y)
-abstract_classes    = set([Expr, Terminal, Restricted, Condition, MathFunction])
-all_ufl_classes     = set([c for c in locals().values() if __issubclass(c, Expr)])
-ufl_classes         = set([c for c in all_ufl_classes if c not in abstract_classes])
-terminal_classes    = set([c for c in ufl_classes if __issubclass(c, Terminal)])
-nonterminal_classes = set([c for c in ufl_classes if not __issubclass(c, Terminal)])
+__all_classes       = (c for c in locals().values() if isinstance(c, type))
+all_ufl_classes     = set(c for c in __all_classes if issubclass(c, Expr))
+abstract_classes    = set((Expr, Terminal, Restricted, Condition, MathFunction)) # TODO: Can we extract this as well by looking at the subclasses of 
+ufl_classes         = set(c for c in all_ufl_classes if c not in abstract_classes)
+terminal_classes    = set(c for c in all_ufl_classes if issubclass(c, Terminal))
+nonterminal_classes = set(c for c in all_ufl_classes if not issubclass(c, Terminal))
 
 # Add _uflid to all classes:
 for c in all_ufl_classes:

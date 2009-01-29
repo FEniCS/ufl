@@ -3,7 +3,7 @@ either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2009-01-05"
+__date__ = "2008-05-07 -- 2009-01-29"
 
 # Modified by Anders Logg, 2008.
 
@@ -25,6 +25,7 @@ from ufl.geometry import FacetNormal
 from ufl.indexing import MultiIndex, Indexed, Index, FixedIndex
 from ufl.tensors import ListTensor, ComponentTensor
 from ufl.algebra import Sum, Product, Division, Power, Abs
+from ufl.indexsum import IndexSum
 from ufl.tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
 from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
 from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
@@ -49,11 +50,12 @@ from ufl.algorithms.transformations import expand_compounds, mark_duplications, 
 
 # TODO: Finish precedence mapping
 def build_precedence_map():
-    precedence_list = [] # FIXME: Review this list very carefully!
+    precedence_list = [] # TODO: Review this list very carefully!
 
     precedence_list.append((Sum,))
+    precedence_list.append((IndexSum,))
     
-    # FIXME: What to do with these?
+    # TODO: What to do with these?
     precedence_list.append((ListTensor, ComponentTensor))
     precedence_list.append((NegativeRestricted, PositiveRestricted))
     precedence_list.append((Conditional,))
@@ -134,6 +136,9 @@ class Expression2LatexHandler(Transformer):
         return "s_{%d}" % l._count
     
     # --- Non-terminal objects ---
+    
+    def index_sum(self, o, f, i):
+        return r"\sum_{%s}%s" % (i, par(f))
     
     def sum(self, o, *ops):
         return " + ".join(par(op) for op in ops)

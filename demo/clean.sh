@@ -3,6 +3,7 @@
 # ufl-analyse output
 rm -f ufl_analyse_tmp_form*
 rm -f *.analysis
+rm -f *.repr
 
 # python compiled files
 rm -f *.pyc
