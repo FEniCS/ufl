@@ -142,7 +142,7 @@ class AD(Transformer):
         return (o, None) # oprime here should never be used
     
     def indexed(self, o, A, ii):
-        return (o, A[1][ii[0]])
+        return (o, A[1][ii[0]._indices])
     
     def list_tensor(self, o, *ops):
         opprimes = [op[1] for op in ops]
@@ -295,11 +295,14 @@ class AD(Transformer):
         
         # TODO: Are there any issues with indices here? Not sure, think through it...
         if is_spatially_constant(fp):
-            # throw away repeated indices
-            fi = tuple(set(f.free_indices()) ^ set(i for i in ii if isinstance(i, Index)))
-            fid = f.index_dimensions()
-            index_dimensions = dict((i, fid.get(i, self._spatial_dim)) for i in fi)
-            oprime = Zero(fp.shape(), fi, index_dimensions)
+            fi = f.free_indices()
+            idims = f.index_dimensions()
+            
+            # throw away repeated indices # TODO: Think these can be removed now
+            #fi = tuple(set(fi) ^ set(i for i in ii if isinstance(i, Index)))
+            #idims= dict((i, idims.get(i, self._spatial_dim)) for i in fi)
+            
+            oprime = Zero(fp.shape(), fi, idims)
         else:
             oprime = o._uflid(fp, ii)
         return (o, oprime)
