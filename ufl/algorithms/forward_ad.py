@@ -142,7 +142,8 @@ class AD(Transformer):
         return (o, None) # oprime here should never be used
     
     def indexed(self, o, A, ii):
-        return (o, A[1][ii[0]._indices])
+        op = o._uflid(A[1], ii[0])
+        return (o, op)
     
     def list_tensor(self, o, *ops):
         opprimes = [op[1] for op in ops]
