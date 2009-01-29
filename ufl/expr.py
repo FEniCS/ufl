@@ -9,7 +9,7 @@ This is to avoid circular dependencies between Expr and its subclasses.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-01-23"
+__date__ = "2008-03-14 -- 2009-01-28"
 
 # Modified by Anders Logg, 2008
 
@@ -77,8 +77,8 @@ class Expr(object):
     # Subclasses that can have repeated indices must implement repeated_indices
     def repeated_indices(self):
         "Return a tuple with the repeated indices of the expression."
+        warning("repeated_indices shouldn't be called anymore!")
         return ()
-        #error("This shouldn't be called anymore!")
     
     # All subclasses must implement index_dimensions
     def index_dimensions(self):

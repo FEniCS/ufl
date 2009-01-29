@@ -1,7 +1,7 @@
 "Differential operators."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-01-16"
+__date__ = "2008-03-14 -- 2009-01-28"
 
 from ufl.log import ufl_assert, warning
 from ufl.common import subdict, mergedicts
@@ -9,7 +9,7 @@ from ufl.expr import Expr
 from ufl.terminal import Terminal, Tuple
 from ufl.zero import Zero
 from ufl.scalar import ScalarValue, is_true_ufl_scalar
-from ufl.indexing import Indexed, MultiIndex, Index, FixedIndex, extract_indices_for_dx
+from ufl.indexing import IndexBase, Index, FixedIndex, MultiIndex, Indexed
 from ufl.variable import Variable
 from ufl.tensors import as_tensor
 from ufl.tensoralgebra import Identity
@@ -66,15 +66,77 @@ class FunctionDerivative(Derivative):
     def __repr__(self):
         return "FunctionDerivative(%r, %r, %r)" % (self._integrand, self._functions, self._basisfunctions)
 
+
+def build_unique_indices(operands, multiindex=None, shape=None): # FIXME: Adjust this to match SpatialDerivative requirements
+    "Build tuple of unique indices, including repeated ones."
+    s = set()
+    fi = []
+    idims = {}
+    for o in operands:
+        if isinstance(o, MultiIndex):
+            # TODO: This introduces None, better way? 
+            ofi = o._indices
+            oid = dict((i, None) for i in o) 
+            #if shape is None:
+            #    shape = (None,)*len(o)
+            #oid = dict((i, shape[j]) for (j, i) in enumerate(ofi))
+        else:
+            ofi = o.free_indices()
+            oid = o.index_dimensions()
+        
+        for i in ofi:
+            if i in s:
+                ri.append(i)
+            else:
+                fi.append(i)
+                idims[i] = oid[i]
+                s.add(i)
+    return fi, ri, idims
+
+class SpatialDerivative(Expr):
+    def __init__(self, f, ii):
+        fi, ri, idims = build_unique_indices((f,), ii)
+        self._fi = fi
+        self._idims = idims
+    
+    def free_indices(self):
+        return self._fi
+    
+    def index_dimensions(self):
+        return self._idims
+
+def extract_indices_for_dx(expression, idx):
+    # Get spatial dimension
+    cell = expression.cell()
+    if cell is None:
+        dim = None
+    else:
+        dim = cell.dim()
+                
+    # Find repeated index
+    efi = expression.free_indices()
+    fi = tuple(i for i in efi if not i == idx)
+    ri = ()
+    idim = dict(expression.index_dimensions())
+    if isinstance(idx, Index):
+        if len(fi) == len(efi):
+            ufl_assert(dim is not None,
+                "Need to know the spatial dimension to compute the shape of derivatives.")
+            fi += (idx,) # idx is not repeated
+            idim.update(((idx, dim),))
+        else:
+            ri += (idx,) # idx is repeated
+    return fi, ri, idim
+
 class SpatialDerivative(Derivative):
     "Partial derivative of an expression w.r.t. spatial directions given by indices."
-    __slots__ = ("_expression", "_index", "_shape", "_free_indices", "_repeated_indices", "_index_dimensions")
+    __slots__ = ("_expression", "_index", "_shape", "_free_indices", "_index_dimensions")
     def __new__(cls, expression, index):
         
         # Make sure we have a single valid index
         if isinstance(index, int):
             index = FixedIndex(index)
-        if isinstance(index, (FixedIndex, Index)):
+        if isinstance(index, IndexBase):
             index = MultiIndex((index,))
         ufl_assert(isinstance(index, MultiIndex), "Expecting a valid index type.")
         ufl_assert(len(index) == 1, "Can only handle one differentiation index!")
@@ -102,11 +164,10 @@ class SpatialDerivative(Derivative):
         idx = index[0]
         self._index = index
         
-        fi, ri, idim = extract_indices_for_dx(expression, idx)
+        fi, ri, idim = extract_indices_for_dx(expression, idx) # FIXME: Replace this
         
         # Store what we need
         self._free_indices = fi
-        self._repeated_indices = ri
         self._index_dimensions = idim
         self._shape = expression.shape()
     
@@ -115,9 +176,6 @@ class SpatialDerivative(Derivative):
    
     def free_indices(self):
         return self._free_indices
-    
-    def repeated_indices(self):
-        return self._repeated_indices
     
     def index_dimensions(self):
         return self._index_dimensions
