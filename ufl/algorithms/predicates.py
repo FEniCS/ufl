@@ -3,7 +3,8 @@
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __date__ = "2008-03-14 -- 2009-01-05"
 
-from ufl.log import ufl_assert, warning, debug
+from ufl.log import warning, debug
+from ufl.assertions import ufl_assert
 from ufl.common import lstr
 from ufl.form import Form
 from ufl.algebra import Sum, Product

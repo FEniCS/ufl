@@ -3,7 +3,7 @@
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-11-01 -- 2009-01-09"
 
-from ufl.log import ufl_assert
+from ufl.assertions import ufl_assert
 from ufl.terminal import Terminal
 #from ufl.indexing import Index # circular dependency
 

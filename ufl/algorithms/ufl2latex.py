@@ -10,7 +10,8 @@ __date__ = "2008-05-07 -- 2009-01-05"
 import os
 from itertools import chain
 
-from ufl.log import error, ufl_assert, warning
+from ufl.log import error, warning
+from ufl.assertions import ufl_assert
 from ufl.common import write_file, openpdf
 from ufl.permutation import compute_indices
 

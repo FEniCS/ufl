@@ -8,7 +8,8 @@ __date__ = "2008-05-07 -- 2009-01-09"
 from inspect import getargspec
 from itertools import izip, chain
 
-from ufl.log import ufl_assert, error, warning
+from ufl.log import error, warning
+from ufl.assertions import ufl_assert
 from ufl.common import camel2underscore
 from ufl.expr import Expr
 from ufl.terminal import Terminal

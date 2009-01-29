@@ -6,7 +6,7 @@ __date__ = "2008-03-14 -- 2009-01-16"
 
 # Modified by Anders Logg, 2008
 
-from ufl.log import ufl_assert
+from ufl.assertions import ufl_assert
 from ufl.common import Counted, product
 from ufl.terminal import Terminal
 from ufl.finiteelement import FiniteElementBase, FiniteElement, VectorElement, TensorElement

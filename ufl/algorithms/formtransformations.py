@@ -9,7 +9,8 @@ __date__ = "2008-10-01 -- 2009-01-09"
 from itertools import izip
 
 from ufl.common import some_key, product
-from ufl.log import ufl_assert, error, warning
+from ufl.log import error, warning
+from ufl.assertions import ufl_assert
 
 # All classes:
 from ufl.basisfunction import BasisFunction

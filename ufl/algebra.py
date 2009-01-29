@@ -8,12 +8,14 @@ __date__ = "2008-05-20 -- 2009-01-28"
 from collections import defaultdict
 from itertools import chain
 
-from ufl.log import ufl_assert, error, warning
+from ufl.log import error, warning
+from ufl.assertions import ufl_assert
 from ufl.common import product, mergedicts, subdict
 from ufl.expr import Expr
 from ufl.zero import Zero
 from ufl.scalar import ScalarValue, FloatValue, IntValue, is_true_ufl_scalar, is_python_scalar, as_ufl
 from ufl.indexing import IndexBase, Index, FixedIndex
+from ufl.indexutils import unique_indices
 from ufl.sorting import cmp_expr
 
 #--- Algebraic operators ---
@@ -114,101 +116,23 @@ class Sum(Expr):
     def __repr__(self):
         return self._repr
 
-
-def build_unique_indices(operands, multiindex=None, shape=None): # FIXME: Adjust this to match Product requirements
-    "Build tuple of unique indices, including repeated ones."
-    s = set()
-    fi = []
-    idims = {}
-    for o in operands:
-        if isinstance(o, MultiIndex):
-            # TODO: This introduces None, better way? 
-            ofi = o._indices
-            oid = dict((i, None) for i in o) 
-            #if shape is None:
-            #    shape = (None,)*len(o)
-            #oid = dict((i, shape[j]) for (j, i) in enumerate(ofi))
-        else:
-            ofi = o.free_indices()
-            oid = o.index_dimensions()
-        
-        for i in ofi:
-            if i in s:
-                ri.append(i)
-            else:
-                fi.append(i)
-                idims[i] = oid[i]
-                s.add(i)
-    return fi, ri, idims
-
-# --- In algebra.py:
-
-class Product(Expr):
-    def __init__(self, *operands):
-        fi, ri, idims = build_unique_indices(operands)
-        self._fi = fi
-        self._idims = idims
-    
-    def free_indices(self):
-        return self._fi
-    
-    def index_dimensions(self):
-        return self._idims
-
-def extract_indices_for_product(indices):
-    """Analyse a tuple of indices, and return a
-    2-tuple with the following information:
-    
-    @param free_indices
-        Tuple of unique indices with no value
-        (Index, no implicit summation)
-    @param repeated_indices
-        Tuple of indices that occur twice
-        (Index, implicit summation)
-    """
-    # Validate input
-    ufl_assert(isinstance(indices, tuple), "Expecting index tuple.")
-    ufl_assert(all(isinstance(i, IndexBase) for i in indices), \
-        "Expecting objects of type Index or FixedIndex.")
-    
-    # Count repetitions of indices
-    index_count = defaultdict(int)
-    for idx in indices:
-        if isinstance(idx, Index):
-            index_count[idx] += 1
-    ufl_assert(all(i <= 2 for i in index_count.values()),
-               "Too many index repetitions in %s" % repr(indices))
-    
-    # Split indices based on repetition count
-    free_indices     = tuple(idx for idx in indices
-                             if index_count[idx] == 1)
-    repeated_indices = tuple(idx for idx in index_count.keys()
-                             if index_count[idx] == 2)
-
-    # Consistency check
-    fixed_indices = tuple(idx for idx in indices 
-                          if isinstance(idx, FixedIndex))
-    ufl_assert(len(fixed_indices) + len(free_indices) + \
-               2*len(repeated_indices) == len(indices),
-               "Logic breach in extract_indices_for_product.")
-    
-    return free_indices, repeated_indices
-
-
 class Product(Expr):
     """The product of two or more UFL objects."""
     __slots__ = ("_operands", "_free_indices", "_index_dimensions", "_shape", "_repr")
     
     def __new__(cls, *operands):
+        # Got one operand only? Do nothing then.
+        if len(operands) == 1:
+            return operands[0]
+        
+        # Assert valid input types
         ufl_assert(len(operands) >= 2, "Can't make product of nothing, should catch this before getting here.")
-
         operands = [as_ufl(o) for o in operands]
         
-        # sort operands in a canonical order
+        # Sort operands in a canonical order (NB! This is fragile! Small changes here can have large effects.)
         operands = sorted(operands, cmp=cmp_expr)
         
-        #ufl_assert(all(o.shape() == () for o in operands), "Expecting scalar valued operands.")
-        # Get shape and move nonscalar operand to the end
+        # Get shape and move an eventual single nonscalar operand to the end
         sh = ()
         j = None
         for i, o in enumerate(operands):
@@ -219,18 +143,16 @@ class Product(Expr):
                 j = i
         if j is not None:
             # We have a non-scalar expression in this product
-            operands = operands[:j] + operands[j+1:] + [operands[j]]  
+            operands = operands[:j] + operands[j+1:] + [operands[j]]
         
-        # simplify if zero
-        if any(o == 0 for o in operands):
-            # Extract indices
-            all_indices = tuple(chain(*(o.free_indices() for o in operands)))
+        # Check for zeros
+        if any(isinstance(o, Zero) for o in operands):
+            free_indices = unique_indices(tuple(chain(*(o.free_indices() for o in operands))))
             index_dimensions = mergedicts([o.index_dimensions() for o in operands])
-            free_indices, repeated_indices = extract_indices_for_product(all_indices)
-            index_dimensions = subdict(index_dimensions, free_indices)
             return Zero(sh, free_indices, index_dimensions)
         
         # Replace n-repeated operands foo with foo**n (as long as they have no free indices)
+        # TODO: Maybe we can support u[i]**n now, since IndexSum was introduced. Then we get u[i]*u[i] => sum_i< u[i]**2 >
         newoperands = []
         op = operands[0]
         n = 1
@@ -238,16 +160,21 @@ class Product(Expr):
             if o == op:
                 n += 1
             else:
-                newoperands.extend([op]*n if (n == 1 or op.free_indices()) else (op**n,))
+                if n == 1:
+                    newoperands.append(op)
+                elif op.free_indices():
+                    newoperands.extend([op]*n)
+                else:
+                    newoperands.append(op**n)
                 op = o
                 n = 1
         operands = newoperands
         
-        # left with one operand only?
+        # Left with one operand only?
         if len(operands) == 1:
             return operands[0]
         
-        # merge scalars, but keep nonscalars sorted
+        # Merge scalars, but keep nonscalars sorted
         scalars = [o for o in operands if isinstance(o, ScalarValue)]
         if scalars:
             p = as_ufl(product(s._value for s in scalars))
@@ -269,14 +196,14 @@ class Product(Expr):
         return self
     
     def _init(self, sh, *operands):
-        ufl_assert(all(isinstance(o, Expr) for o in operands), "Expecting Expr instances.")
+        "Constructor, called by __new__ with already checked arguments."
+        # Store basic properties
         self._operands = operands
         self._shape = sh
         
         # Extract indices
-        all_indices = tuple(chain(*(o.free_indices() for o in operands)))
+        self._free_indices = unique_indices(tuple(chain(*(o.free_indices() for o in operands))))
         self._index_dimensions = mergedicts([o.index_dimensions() for o in operands])
-        self._free_indices, dummy_repeated_indices = extract_indices_for_product(all_indices)
         
         self._repr = "Product(%s)" % ", ".join(repr(o) for o in self._operands)
     
@@ -373,6 +300,7 @@ class Power(Expr):
             print "Non-scalar power error:"
             print a
             print b
+            print "TODO: Maybe we can support this."
             print 
         
         ufl_assert(is_true_ufl_scalar(a) and is_true_ufl_scalar(b),

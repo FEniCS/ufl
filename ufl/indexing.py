@@ -1,9 +1,10 @@
 """This module defines the single index types and some internal index utilities."""
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-14 -- 2009-01-28"
+__date__ = "2008-03-14 -- 2009-01-29"
 
-from ufl.log import ufl_assert, error
+from ufl.log import error
+from ufl.assertions import ufl_assert
 from ufl.common import Counted
 from ufl.terminal import Terminal
 
@@ -46,10 +47,6 @@ class Index(IndexBase, Counted):
     def __repr__(self):
         return "Index(%d)" % self._count
 
-def indices(n):
-    "Return a tuple of n new Index objects."
-    return tuple(Index() for _i in range(n))
-
 class FixedIndex(IndexBase):
     __slots__ = ("_value",)
     
@@ -74,74 +71,21 @@ class FixedIndex(IndexBase):
     
     def __repr__(self):
         return "FixedIndex(%d)" % self._value
- 
-def as_index_tuple(ii):
-    """Takes something the user might input as an index tuple
-    inside [], and returns a tuple of actual UFL index objects.
-    TODO: Document return value better, in particular 'axes'.
-    
-    These types are supported:
-    - Index
-    - int => FixedIndex
-    - Complete slice (:) => Axis
-    - Ellipsis (...) => multiple Axis
-    """
-    if isinstance(ii, MultiIndex):
-        return ii._indices, ()
-    
-    if not isinstance(ii, tuple):
-        ii = (ii,)
-    
-    # Convert all indices to Index or FixedIndex objects.
-    # If there is an ellipsis, split the indices into before and after.
-    pre  = []
-    post = []
-    axes = set()
-    found = False
-    for i in ii:
-        if i == Ellipsis:
-            ufl_assert(not found, "Found duplicate ellipsis.")
-            found = True
-        else:
-            if isinstance(i, int):
-                idx = FixedIndex(i)
-            elif isinstance(i, (FixedIndex, Index)):
-                idx = i
-            elif isinstance(i, slice):
-                if i == slice(None):
-                    idx = Index()
-                    axes.add(idx)
-                else:
-                    # TODO: Use ListTensor for partial slices?
-                    error("Partial slices not implemented, only [:]")
-            else:
-                error("Can't convert this object to index: %r" % i)
-            
-            if found:
-                post.append(idx)
-            else:
-                pre.append(idx)
-    
-    # Handle ellipsis as a number of complete slices
-    num_axis = len(ii) - len(pre) - len(post)
-    ii = indices(num_axis)
-    axes.update(ii)
-    
-    # Construct final tuples to return
-    pre.extend(ii)
-    pre.extend(post)
-    ii = tuple(pre)
-    axes = tuple(i for i in ii if i in axes)
-    
-    return ii, axes
 
 class MultiIndex(Terminal):
     __slots__ = ("_indices",)
     
     def __init__(self, ii):
         Terminal.__init__(self)
-        self._indices, axes = as_index_tuple(ii)
-        ufl_assert(axes == (), "Not expecting slices at this point.")
+        if isinstance(ii, int):
+            ii = (FixedIndex(ii),)
+        elif isinstance(ii, IndexBase):
+            ii = (ii,)
+        elif isinstance(ii, tuple):
+            ii = tuple(as_index(j) for j in ii)
+        else:
+            error("Expecting tuple of UFL indices.")
+        self._indices = ii
     
     def free_indices(self):
         # This reflects the fact that a MultiIndex isn't a tensor expression
@@ -172,7 +116,25 @@ class MultiIndex(Terminal):
         return isinstance(other, MultiIndex) and \
             self._indices == other._indices
 
+def as_index(i):
+    if isinstance(i, IndexBase):
+        return i
+    elif isinstance(i, int):
+        return FixedIndex(i)
+    elif isinstance(i, IndexBase):
+        return (i,)
+    error("Invalid object %s to create index from." % repr(i))
+
+def as_multi_index(i):
+    if isinstance(i, MultiIndex):
+        return i
+    return MultiIndex(i)
+
+def indices(n):
+    "Return a tuple of n new Index objects."
+    return tuple(Index() for _i in range(n))
+
 # TODO: Fix imports everywhere else instead
 from ufl.indexutils import complete_shape
 from ufl.indexed import Indexed
-
+from ufl.indexsum import IndexSum

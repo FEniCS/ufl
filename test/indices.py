@@ -3,7 +3,9 @@
 import unittest
 
 from ufl import *
+from ufl.indexutils import * 
 from ufl.algorithms import * 
+from ufl.classes import IndexSum
 
 # disable log output
 import logging
@@ -17,6 +19,25 @@ class IndexTestCase(unittest.TestCase):
 
     def setUp(self):
         pass
+    
+    def test_index_utils(self):
+        shape = (1,2,None,4,None)
+        self.assertTrue( (1,2,3,4,3) == complete_shape(shape, 3) )
+        
+        ii = indices(3)
+        self.assertTrue( ii == unique_indices(ii) )
+        self.assertTrue( ii == unique_indices(ii+ii) )
+        
+        self.assertTrue( () == repeated_indices(ii) )
+        self.assertTrue( ii == repeated_indices(ii+ii) )
+        
+        self.assertTrue( ii == shared_indices(ii, ii) )
+        self.assertTrue( ii == shared_indices(ii, ii+ii) )
+        self.assertTrue( ii == shared_indices(ii+ii, ii) )
+        self.assertTrue( ii == shared_indices(ii+ii, ii+ii) )
+        
+        self.assertTrue( ii == single_indices(ii) )
+        self.assertTrue( () == single_indices(ii+ii) )
 
     def test_vector_indices(self):
         element = VectorElement("CG", "triangle", 1)
@@ -215,15 +236,13 @@ class IndexTestCase(unittest.TestCase):
         
         a = v[i]
         self.assertTrue(a.free_indices() == (i,))
-        self.assertTrue(a.repeated_indices() == ())
         
         a = outer(v,u)[i,j]
         self.assertTrue(a.free_indices() == (i,j))
-        self.assertTrue(a.repeated_indices() == ())
         
         a = outer(v,u)[i,i]
         self.assertTrue(a.free_indices() == ())
-        self.assertTrue(a.repeated_indices() == (i,))
+        self.assertTrue(isinstance(a, IndexSum))
         
     def test_spatial_derivative(self):
         cell = triangle
@@ -235,37 +254,37 @@ class IndexTestCase(unittest.TestCase):
         
         a = v[i].dx(i)
         self.assertTrue(a.free_indices() == ())
-        self.assertTrue(a.repeated_indices() == (i,))
+        self.assertTrue(isinstance(a, IndexSum))
         self.assertTrue(a.shape() == ())
         
         a = v[i].dx(j)
         self.assertTrue(a.free_indices() == (i,j))
-        self.assertTrue(a.repeated_indices() == ())
+        self.assertTrue(not isinstance(a, IndexSum))
         self.assertTrue(a.shape() == ())
         
         a = (v[i]*u[j]).dx(i,j)
         self.assertTrue(a.free_indices() == ())
-        self.assertTrue(a.repeated_indices() == (j,))
+        self.assertTrue(isinstance(a, IndexSum))
         self.assertTrue(a.shape() == ())
         
         a = v.dx(i,j)
         self.assertTrue(a.free_indices() == (i,j))
-        self.assertTrue(a.repeated_indices() == ())
+        self.assertTrue(not isinstance(a, IndexSum))
         self.assertTrue(a.shape() == (d,))
         
         a = v[i].dx(0)
         self.assertTrue(a.free_indices() == (i,))
-        self.assertTrue(a.repeated_indices() == ())
+        self.assertTrue(not isinstance(a, IndexSum))
         self.assertTrue(a.shape() == ())
         
         a = (v[i]*u[j]).dx(0, 1)
         self.assertTrue(set(a.free_indices()) == set((i,j))) # indices change place because of sorting, I guess this may be ok
-        self.assertTrue(a.repeated_indices() == ())
+        self.assertTrue(not isinstance(a, IndexSum))
         self.assertTrue(a.shape() == ())
         
         a = v.dx(i)[i]
         self.assertTrue(a.free_indices() == ())
-        self.assertTrue(a.repeated_indices() == (i,))
+        self.assertTrue(isinstance(a, IndexSum))
         self.assertTrue(a.shape() == ())
 
 if __name__ == "__main__":

@@ -4,7 +4,8 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-12-28 -- 2009-01-09"
 
 from itertools import izip
-from ufl.log import ufl_assert, debug
+from ufl.log import debug
+from ufl.assertions import ufl_assert
 from ufl.classes import Terminal, Expr, Derivative, Tuple, SpatialDerivative, VariableDerivative, FunctionDerivative, FiniteElement, TestFunction, Function
 #from ufl.algorithms import *
 from ufl.algorithms.transformations import Transformer, transform_integrands, expand_compounds

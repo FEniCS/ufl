@@ -7,7 +7,8 @@ from collections import defaultdict
 from itertools import izip, chain
 
 from ufl.common import some_key, split_dict, or_tuples, and_tuples, UFLTypeDict
-from ufl.log import ufl_assert, error, warning, debug
+from ufl.log import error, warning, debug
+from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 
 # All classes:

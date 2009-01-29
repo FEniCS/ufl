@@ -1,44 +1,46 @@
 
-#--- Utility functions ---
+from collections import defaultdict
+from ufl.indexing import Index
 
-#       # Extract repeated indices (no context here, so we're not judging what's valid)
-#       ri = []
-#       count = {}
-#       for i in self._indices:
-#           if i in count:
-#               count[i] += 1
-#               ri.append(i)
-#           else:
-#               count[i] = 1
-#       if any(c > 2 for c in count.values()):
-#           warning("Found more than two repeated indices in MultiIndex, this will likely fail later?")
-#       self._repeated_indices = tuple(ri)
+#--- Utility functions ---
 
 def complete_shape(shape, default_dim):
     "Complete shape tuple by replacing non-integers with a default dimension."
     return tuple((s if isinstance(s, int) else default_dim) for s in shape)
 
-def get_common_indices(a, b): # Not in use
-    ai = a.free_indices()
-    bi = b.free_indices()
-    cis = set(ai) ^ set(bi)
-    return cis
+def unique_indices(indices):
+    """Return a tuple of all indices from input, with
+    no single index occuring more than once in output."""
+    s = set()
+    newindices = []
+    for i in indices:
+        if isinstance(i, Index):
+            if not i in s:
+                s.add(i)
+                newindices.append(i)
+    return tuple(newindices)
 
-def get_free_indices(a, b): # Not in use
-    ai = a.free_indices()
-    bi = b.free_indices()
-    cis = set(ai) ^ set(bi)
-    return tuple(i for i in chain(ai,bi) if not i in cis)
+def repeated_indices(indices):
+    "Return tuple of indices occuring more than once in input."
+    ri = []
+    s = set()
+    for i in indices:
+        if isinstance(i, Index):
+            if i in s:
+                ri.append(i)
+            else:
+                s.add(i)
+    return tuple(ri)
 
-def split_indices(a, b): # Not in use
-    ai = a.free_indices()
-    bi = b.free_indices()
-    ais = set(ai)
+def shared_indices(ai, bi):
+    "Return a tuple of indices occuring in both index tuples ai and bi."
     bis = set(bi)
-    ris = ais ^ bis
-    fi  = tuple(i for i in chain(ai,bi) if not i in ris)
-    ri  = tuple(i for i in chain(ai,bi) if     i in ris)
-    #n = len(ri) + len(fi)
-    #ufl_assert(n == ?)
-    return (fi, ri)
+    return tuple(i for i in unique_indices(ai) if i in bis)
+
+def single_indices(indices):
+    "Return a tuple of all indices occuring exactly once in input."
+    count = defaultdict(int)
+    for i in indices:
+        count[i] += 1
+    return tuple(i for i in unique_indices(indices) if count[i] == 1)
 

@@ -3,7 +3,8 @@
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2008-01-16"
 
-from ufl.log import ufl_assert, error
+from ufl.log import error
+from ufl.assertions import ufl_assert
 from ufl.form import Form
 from ufl.expr import Expr
 from ufl.terminal import Tuple

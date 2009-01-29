@@ -5,7 +5,8 @@ __date__ = "2008-03-14 -- 2009-01-09"
 
 # Modified by Anders Logg, 2008
 
-from ufl.log import ufl_assert, error
+from ufl.log import error
+from ufl.assertions import ufl_assert
 from ufl.scalar import is_true_ufl_scalar
 
 class Integral(object):

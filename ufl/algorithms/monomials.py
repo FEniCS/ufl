@@ -5,7 +5,8 @@ __date__ = "2008-08-01 -- 2009-01-09"
 
 # Modified by Martin Alnes, 2008
 
-from ufl.log import ufl_assert, error, warning
+from ufl.log import error, warning
+from ufl.assertions import ufl_assert
 from ufl.expr import Expr
 from ufl.algebra import Sum, Product
 from ufl.tensoralgebra import Dot

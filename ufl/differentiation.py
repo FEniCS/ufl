@@ -3,13 +3,15 @@
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2009-01-28"
 
-from ufl.log import ufl_assert, warning
+from ufl.log import warning
+from ufl.assertions import ufl_assert
 from ufl.common import subdict, mergedicts
 from ufl.expr import Expr
 from ufl.terminal import Terminal, Tuple
 from ufl.zero import Zero
 from ufl.scalar import ScalarValue, is_true_ufl_scalar
-from ufl.indexing import IndexBase, Index, FixedIndex, MultiIndex, Indexed
+from ufl.indexing import IndexBase, Index, FixedIndex, MultiIndex, Indexed, as_multi_index
+from ufl.indexutils import unique_indices
 from ufl.variable import Variable
 from ufl.tensors import as_tensor
 from ufl.tensoralgebra import Identity
@@ -66,86 +68,30 @@ class FunctionDerivative(Derivative):
     def __repr__(self):
         return "FunctionDerivative(%r, %r, %r)" % (self._integrand, self._functions, self._basisfunctions)
 
-
-def build_unique_indices(operands, multiindex=None, shape=None): # FIXME: Adjust this to match SpatialDerivative requirements
-    "Build tuple of unique indices, including repeated ones."
-    s = set()
-    fi = []
+def foobar(expression, idx):
     idims = {}
-    for o in operands:
-        if isinstance(o, MultiIndex):
-            # TODO: This introduces None, better way? 
-            ofi = o._indices
-            oid = dict((i, None) for i in o) 
-            #if shape is None:
-            #    shape = (None,)*len(o)
-            #oid = dict((i, shape[j]) for (j, i) in enumerate(ofi))
-        else:
-            ofi = o.free_indices()
-            oid = o.index_dimensions()
-        
-        for i in ofi:
-            if i in s:
-                ri.append(i)
-            else:
-                fi.append(i)
-                idims[i] = oid[i]
-                s.add(i)
-    return fi, ri, idims
-
-class SpatialDerivative(Expr):
-    def __init__(self, f, ii):
-        fi, ri, idims = build_unique_indices((f,), ii)
-        self._fi = fi
-        self._idims = idims
-    
-    def free_indices(self):
-        return self._fi
-    
-    def index_dimensions(self):
-        return self._idims
-
-def extract_indices_for_dx(expression, idx):
-    # Get spatial dimension
-    cell = expression.cell()
-    if cell is None:
-        dim = None
-    else:
-        dim = cell.dim()
-                
-    # Find repeated index
-    efi = expression.free_indices()
-    fi = tuple(i for i in efi if not i == idx)
-    ri = ()
-    idim = dict(expression.index_dimensions())
     if isinstance(idx, Index):
-        if len(fi) == len(efi):
-            ufl_assert(dim is not None,
-                "Need to know the spatial dimension to compute the shape of derivatives.")
-            fi += (idx,) # idx is not repeated
-            idim.update(((idx, dim),))
-        else:
-            ri += (idx,) # idx is repeated
-    return fi, ri, idim
+        cell = expression.cell()
+        ufl_assert(cell is not None,
+            "Need to know the spatial dimension to "\
+            "compute the shape of derivatives.")
+        dim = cell.dim()
+        idims[idx] = dim
+    idims.update(expression.index_dimensions())
+    fi = unique_indices(expression.free_indices() + (idx,))
+    return fi, idims
 
 class SpatialDerivative(Derivative):
     "Partial derivative of an expression w.r.t. spatial directions given by indices."
     __slots__ = ("_expression", "_index", "_shape", "_free_indices", "_index_dimensions")
     def __new__(cls, expression, index):
         
-        # Make sure we have a single valid index
-        if isinstance(index, int):
-            index = FixedIndex(index)
-        if isinstance(index, IndexBase):
-            index = MultiIndex((index,))
-        ufl_assert(isinstance(index, MultiIndex), "Expecting a valid index type.")
-        ufl_assert(len(index) == 1, "Can only handle one differentiation index!")
-        idx = index[0]
-        
         # Return zero if expression is trivially constant
         if isinstance(expression, spatially_constant_types):
-            fi, ri, idim = extract_indices_for_dx(expression, idx)
-            return Zero(expression.shape(), fi, idim)
+            index = as_multi_index(index)
+            idx, = index
+            fi, idims = foobar(expression, idx)
+            return Zero(expression.shape(), fi, idims)
         
         return Derivative.__new__(cls)
     
@@ -154,21 +100,13 @@ class SpatialDerivative(Derivative):
         self._expression = expression
         
         # Make sure we have a single valid index
-        if isinstance(index, int):
-            index = FixedIndex(index)
-        if isinstance(index, (FixedIndex, Index)):
-            index = MultiIndex((index,))
-        ufl_assert(isinstance(index, MultiIndex), "Expecting a valid index type.")
-        ufl_assert(len(index) == 1, "Can only handle one differentiation index!")
-        
-        idx = index[0]
-        self._index = index
-        
-        fi, ri, idim = extract_indices_for_dx(expression, idx) # FIXME: Replace this
+        self._index = as_multi_index(index)
+        ufl_assert(len(self._index) == 1, "Expecting a single index.")
+        fi, idims = foobar(expression, self._index[0])
         
         # Store what we need
         self._free_indices = fi
-        self._index_dimensions = idim
+        self._index_dimensions = idims
         self._shape = expression.shape()
     
     def operands(self):
@@ -207,7 +145,7 @@ class VariableDerivative(Derivative):
         if isinstance(v, Indexed):
             ufl_assert(isinstance(v._expression, Variable), \
                 "Expecting a Variable in VariableDerivative.")
-            warning("diff(f, v[i]) isn't handled properly in all code.") # FIXME
+            warning("diff(f, v[i]) isn't handled properly in all code.") # TODO
         else:
             ufl_assert(isinstance(v, Variable), \
                 "Expecting a Variable in VariableDerivative.")

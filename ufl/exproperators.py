@@ -3,17 +3,20 @@ This way we avoid circular dependencies between e.g.
 Sum and its superclass Expr."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-18 -- 2009-01-10"
+__date__ = "2008-08-18 -- 2009-01-29"
 
-# UFL imports
-from ufl.log import error, ufl_assert
-from ufl.common import subdict, mergedicts, StackDict
+from itertools import chain
+
+from ufl.log import error
+from ufl.assertions import ufl_assert
+from ufl.common import mergedicts, subdict, StackDict
 from ufl.expr import Expr
 from ufl.zero import Zero
 from ufl.scalar import ScalarValue, FloatValue, IntValue, is_python_scalar, as_ufl, python_scalar_types
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import Transposed, Dot
-from ufl.indexing import Indexed, as_index_tuple
+from ufl.indexing import MultiIndex, IndexBase, FixedIndex, Index, Indexed, IndexSum, indices
+from ufl.indexutils import repeated_indices, unique_indices
 from ufl.tensors import as_tensor
 from ufl.restriction import PositiveRestricted, NegativeRestricted
 from ufl.differentiation import SpatialDerivative, VariableDerivative
@@ -21,85 +24,59 @@ from ufl.differentiation import SpatialDerivative, VariableDerivative
 
 #--- Helper functions for product handling ---
 
-def build_unique_indices(operands, multiindex=None, shape=None): # FIXME: Adjust for purposes below, or reuse from algebra/differentiation/indexed
-    "Build tuple of unique indices, including repeated ones."
-    s = set()
-    fi = []
-    idims = {}
-    for o in operands:
-        if isinstance(o, MultiIndex):
-            # TODO: This introduces None, better way? 
-            ofi = o._indices
-            oid = dict((i, None) for i in o) 
-            #if shape is None:
-            #    shape = (None,)*len(o)
-            #oid = dict((i, shape[j]) for (j, i) in enumerate(ofi))
-        else:
-            ofi = o.free_indices()
-            oid = o.index_dimensions()
-        
-        for i in ofi:
-            if i in s:
-                ri.append(i)
-            else:
-                fi.append(i)
-                idims[i] = oid[i]
-                s.add(i)
-    return fi, ri, idims
-
-def _mult(a, b): # FIXME: Update and use this version
-    
-    fi, ri, idims = build_unique_indices((a, b)) # FIXME: Adjust to fit here
+def _mult(a, b):
+    # Discover repeated indices, which results in index sums
+    ai = a.free_indices()
+    bi = b.free_indices()
+    ii = ai + bi
+    ri = repeated_indices(ii)
     
     # Pick out valid non-scalar products here (dot products):
     # - matrix-matrix (A*B, M*grad(u)) => A . B
     # - matrix-vector (A*v) => A . v
-    s1 = a.shape()
-    s2 = b.shape()
-    l1 = len(s1)
-    l2 = len(s2)
-    if l1 == 2 and (l2 == 2 or l2 == 1):
+    s1, s2 = a.shape(), b.shape()
+    if len(s1) == 2 and len(s2) in (1, 2):
         ufl_assert(not ri, "Not expecting repeated indices in non-scalar product.")
-        shape = s1[:-1] + s2[1:]
+        
+        # Check for zero, simplifying early if possible
         if isinstance(a, Zero) or isinstance(b, Zero):
+            shape = s1[:-1] + s2[1:]
+            fi = single_indices(ii)
+            idims = mergedicts((a.index_dimensions(), b.index_dimensions()))
+            idims = subdict(idims, fi)
             return Zero(shape, fi, idims)
-        i = Index()
-        return a[...,i]*b[i,...] # FIXME: Does [...,i] work with vectors?
-    
+        
+        # Return dot product in index notation
+        if False:
+            i = Index()
+            aa = a[i] if (a.rank() == 1) else a[...,i]
+            bb = b[i] if (b.rank() == 1) else b[i,...]
+            return aa*bb
+        return Dot(a, b)
+
     # Scalar products use Product and IndexSum for implicit sums:
     p = Product(a, b)
     for i in ri:
         p = IndexSum(p, i)
     return p
 
-# TODO: Delete this old code when done
-#def _mult(a, b):
-#    s1 = a.shape()
-#    s2 = b.shape()
-#    
-#    # Pick out valid non-scalar products here:
-#    # - matrix-matrix (A*B, M*grad(u)) => A . B
-#    # - matrix-vector (A*v) => A . v
-#    if len(s1) == 2 and (len(s2) == 2 or len(s2) == 1):
-#        shape = s1[:-1] + s2[1:]
-#        if isinstance(a, Zero) or isinstance(b, Zero):
-#            # Get free indices and their dimensions
-#            free_indices = tuple(set(a.free_indices()) ^ set(b.free_indices()))
-#            index_dimensions = mergedicts([a.free_index_dimensions(), b.free_index_dimensions()])
-#            index_dimensions = subdict(index_dimensions, free_indices)
-#            return Zero(shape, free_indices, index_dimensions)
-#        return Dot(a, b)
-#        # TODO: Use index notation instead here? If * is used in algorithms _after_ expand_compounds has been applied, returning Dot here may cause problems.
-#        #i = Index()
-#        #return a[...,i]*b[i,...]
-#    
-#    # Scalar products use Product:
-#    return Product(a, b)
-
-
 #--- Extend Expr with algebraic operators ---
 
 _valid_types = (Expr,) + python_scalar_types
+
+def _mul(self, o):
+    if not isinstance(o, _valid_types):
+        return NotImplemented
+    o = as_ufl(o)
+    return _mult(self, o)
+Expr.__mul__ = _mul
+
+def _rmul(self, o):
+    if not isinstance(o, _valid_types):
+        return NotImplemented
+    o = as_ufl(o)
+    return _mult(o, self)
+Expr.__rmul__ = _rmul
 
 def _add(self, o):
     if not isinstance(o, _valid_types):
@@ -124,20 +101,6 @@ def _rsub(self, o):
         return NotImplemented
     return Sum(o, -self)
 Expr.__rsub__ = _rsub
-
-def _mul(self, o):
-    if not isinstance(o, _valid_types):
-        return NotImplemented
-    o = as_ufl(o)
-    return _mult(self, o)
-Expr.__mul__ = _mul
-
-def _rmul(self, o):
-    if not isinstance(o, _valid_types):
-        return NotImplemented
-    o = as_ufl(o)
-    return _mult(o, self)
-Expr.__rmul__ = _rmul
 
 def _div(self, o):
     if not isinstance(o, _valid_types):
@@ -172,31 +135,6 @@ def _abs(self):
     return Abs(self)
 Expr.__abs__ = _abs
 
-#--- Extend Expr with indexing operator a[i] ---
-
-def _getitem(self, key):
-    indices, axes = as_index_tuple(key)
-    
-    a = Indexed(self, indices)
-    
-    if isinstance(self, Zero):
-        free_indices = a.free_indices()
-        index_dimensions = subdict(a.index_dimensions(), free_indices)
-        if axes: # TODO: what happens with both Zero and axes?
-            error("FIXME")
-        a = Zero(a.shape(), free_indices, index_dimensions)
-    
-    if axes: # TODO: what happens with both Zero and axes?
-        a = as_tensor(a, axes)
-    
-    # Apply sum for each repeated index
-    ri = get_repeated_indices(indices) # FIXME: Implement this
-    for i in ri:
-        a = IndexSum(a, i)
-    
-    return a
-Expr.__getitem__ = _getitem
-
 #--- Extend Expr with restiction operators a("+"), a("-") ---
 
 def _restrict(self, side):
@@ -223,7 +161,7 @@ def _call(self, arg, mapping=None):
     f = expand_derivatives(self)
     return f.evaluate(arg, mapping, component, index_values)
 Expr.__call__ = _call
-    
+
 #--- Extend Expr with the transpose operation A.T ---
 
 def _transpose(self):
@@ -232,18 +170,114 @@ def _transpose(self):
     return Transposed(self)
 Expr.T = property(_transpose)
 
+#--- Extend Expr with indexing operator a[i] ---
+ 
+def analyse_key(ii):
+    """Takes something the user might input as an index tuple
+    inside [], which could include complete slices (:) and
+    ellipsis (...), and returns tuples of actual UFL index objects.
+    
+    The return value is a tuple (indices, axis_indices),
+    each being a tuple of IndexBase instances.
+    
+    The return value 'indices' corresponds to all 
+    input objects of these types:
+    - Index
+    - FixedIndex
+    - int => Wrapped in FixedIndex
+    
+    The return value 'axis_indices' corresponds to all 
+    input objects of these types:
+    - Complete slice (:) => Replaced by a single new index
+    - Ellipsis (...) => Replaced by multiple new indices
+    """
+    if not isinstance(ii, tuple):
+        ii = (ii,)
+    
+    # Convert all indices to Index or FixedIndex objects.
+    # If there is an ellipsis, split the indices into before and after.
+    axis_indices = set()
+    pre  = []
+    post = []
+    indexlist = pre
+    for i in ii:
+        if i == Ellipsis:
+            # Switch from pre to post list when an ellipsis is encountered
+            ufl_assert(indexlist is pre, "Found duplicate ellipsis.")
+            indexlist = post
+        else:
+            # Convert index to a proper type
+            if isinstance(i, int):
+                idx = FixedIndex(i)
+            elif isinstance(i, IndexBase):
+                idx = i
+            elif isinstance(i, slice):
+                if i == slice(None):
+                    idx = Index()
+                    axis_indices.add(idx)
+                else:
+                    # TODO: Use ListTensor to support partial slices?
+                    error("Partial slices not implemented, only complete slices like [:]")
+            else:
+                error("Can't convert this object to index: %r" % i)
+            
+            # Store index in pre or post list
+            indexlist.append(idx)
+    
+    # Handle ellipsis as a number of complete slices,
+    # that is create a number of new axis indices
+    num_axis = len(ii) - len(pre) - len(post)
+    ellipsis_indices = indices(num_axis)
+    axis_indices.update(ellipsis_indices)
+    
+    # Construct final tuples to return
+    all_indices = tuple(chain(pre, ellipsis_indices, post))
+    axis_indices = tuple(i for i in all_indices if i in axis_indices)
+    return all_indices, axis_indices
+
+def _getitem(self, key):
+    # Analyse key, getting rid of slices and the ellipsis
+    indices, axis_indices = analyse_key(key)
+    
+    # Index self, yielding scalar valued expressions
+    a = Indexed(self, indices)
+    
+    # Make a tensor from components designated by axis indices
+    if axis_indices:
+        a = as_tensor(a, axis_indices)
+    
+    # TODO: Should we apply IndexSum or as_tensor first?
+    
+    # Apply sum for each repeated index
+    ri = repeated_indices(self.free_indices() + indices)
+    for i in ri:
+        a = IndexSum(a, i)
+    
+    # Check for zero (last so we can get indices etc from a)
+    if isinstance(self, Zero):
+        shape = a.shape()
+        fi = a.free_indices()
+        idims = subdict(a.index_dimensions(), fi)
+        a = Zero(shape, fi, idims)
+    
+    return a
+Expr.__getitem__ = _getitem
+
 #--- Extend Expr with spatial differentiation operator a.dx(i) ---
 
 def _dx(self, *ii):
     "Return the partial derivative with respect to spatial variable number i."
-    fi, ri, idims = build_unique_indices((self,), ii) # FIXME: Adjust to fit here
+    
     d = self
     # Apply all derivatives
     for i in ii:
         d = SpatialDerivative(d, i)
+    
     # Apply all implicit sums
+    ri = repeated_indices(self.free_indices() + ii)
     for i in ri:
         d = IndexSum(d, i)
+    
     return d
 Expr.dx = _dx
 

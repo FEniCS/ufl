@@ -1,11 +1,11 @@
 """This module defines the IndexSum class."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2009-01-28 -- 2009-01-28"
+__date__ = "2009-01-28 -- 2009-01-29"
 
-from ufl.expr import Expr
-from ufl.indexing import Index, MultiIndex
 from ufl.assertions import ufl_assert, assert_expr, assert_instance
+from ufl.expr import Expr
+from ufl.indexing import Index, MultiIndex, as_multi_index
 
 #--- Sum over an index ---
 
@@ -15,9 +15,7 @@ class IndexSum(Expr):
     def __init__(self, summand, index):
         Expr.__init__(self)
         assert_expr(summand)
-        if isinstance(index, Index):
-            index = MultiIndex((index,))
-        assert_instance(index, MultiIndex)
+        index = as_multi_index(index)
         ufl_assert(len(index) == 1, "Expecting a single Index only.")
         self._summand = summand
         self._index = index
@@ -31,7 +29,7 @@ class IndexSum(Expr):
         return tuple(i for i in self._summand.free_indices() if not i == j)
     
     def index_dimensions(self):
-        return self._operands[0].index_dimensions()
+        return self._summand.index_dimensions()
     
     def shape(self):
         return self._summand.shape()

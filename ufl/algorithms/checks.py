@@ -5,7 +5,8 @@ __date__ = "2008-03-14 -- 2009-01-16"
 
 # Modified by Anders Logg, 2008.
 
-from ufl.log import ufl_assert, warning
+from ufl.log import warning
+from ufl.assertions import ufl_assert
 
 # All classes:
 from ufl.form import Form

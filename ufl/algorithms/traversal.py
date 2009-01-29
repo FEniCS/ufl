@@ -5,7 +5,8 @@ __date__ = "2008-03-14 -- 2009-01-05"
 
 # Modified by Anders Logg, 2008
 
-from ufl.log import ufl_assert, error
+from ufl.log import error
+from ufl.assertions import ufl_assert
 from ufl.expr import Expr
 from ufl.terminal import Terminal
 from ufl.integral import Integral

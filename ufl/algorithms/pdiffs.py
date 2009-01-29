@@ -4,7 +4,8 @@ all relevant operands for use with reverse mode AD."""
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2009-01-06 -- 2009-01-09"
 
-from ufl.log import ufl_assert, error
+from ufl.log import error
+from ufl.assertions import ufl_assert
 from ufl.classes import Zero, IntValue, FloatValue
 from ufl.operators import sin, cos, exp, ln, sqrt, conditional, sign
 from ufl.tensors import unit_vectors, ListTensor

@@ -7,7 +7,7 @@ __date__ = "2008-09-13 -- 2008-12-22"
 
 from itertools import chain
 
-from ufl.log import ufl_assert
+from ufl.assertions import ufl_assert
 from ufl.common import lstr, tstr, sstr
 from ufl.form import Form
 

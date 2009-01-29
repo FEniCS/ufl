@@ -4,7 +4,7 @@ is more robust w.r.t. argument numbering than using repr."""
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-11-26 -- 2009-01-23"
 
-from ufl.log import ufl_assert
+from ufl.assertions import ufl_assert
 from ufl.common import Counted
 from ufl.terminal import Terminal
 from ufl.indexing import MultiIndex, Index

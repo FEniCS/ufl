@@ -6,7 +6,7 @@ elements by calling the function register_element."""
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __date__ = "2008-03-03 -- 2009-01-13"
 
-from ufl.log import ufl_assert
+from ufl.assertions import ufl_assert
 
 # List of valid elements
 ufl_elements = {}

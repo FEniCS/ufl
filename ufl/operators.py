@@ -4,10 +4,11 @@ or defined as compound operators involving basic operations on the UFL
 objects."""
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-04-09 -- 2009-01-09"
+__date__ = "2008-04-09 -- 2009-01-29"
 
 import math
-from ufl.log import ufl_assert, error
+from ufl.log import error
+from ufl.assertions import ufl_assert
 from ufl.zero import Zero
 from ufl.scalar import ScalarValue, as_ufl
 from ufl.differentiation import VariableDerivative, Grad, Div, Curl, Rot
@@ -72,7 +73,7 @@ def Dt(f):
     #return TimeDerivative(f) # TODO: Add class
     raise NotImplementedError
 
-def diff(f, v):
+def diff(f, v): # TODO: We have "derivative", "diff", "Dx", and "f.dx(i)", can we unify these with more intuitive consistent naming?
     "The derivative of f with respect to the variable v."
     return VariableDerivative(f, v)
 

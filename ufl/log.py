@@ -118,9 +118,3 @@ ufl_logger = Logger("UFL")
 for foo in log_functions:
     exec("%s = ufl_logger.%s" % (foo, foo))
 
-# TODO: Remove this and import the one in assertions.py everywhere
-def ufl_assert(condition, *message):
-    "Assert that condition is true and otherwise issue an error with given message."
-    if not condition:
-        error(*message)
-

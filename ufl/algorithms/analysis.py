@@ -7,7 +7,8 @@ __date__ = "2008-03-14 -- 2009-01-06"
 
 from itertools import chain
 
-from ufl.log import ufl_assert, error, info
+from ufl.log import error, info
+from ufl.assertions import ufl_assert
 from ufl.common import lstr, UFLTypeDefaultDict
 
 from ufl.expr import Expr

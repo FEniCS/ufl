@@ -5,10 +5,11 @@ __date__ = "2008-03-14 -- 2009-01-07"
 
 # Modified by Anders Logg, 2008
 
+from ufl.log import error
+from ufl.assertions import ufl_assert
+from ufl.common import product
 from ufl.finiteelement import MixedElement
 from ufl.tensors import as_vector, as_matrix, as_tensor
-from ufl.common import product
-from ufl.log import ufl_assert, error
 
 def split(v):
     "Split Function into its sub Functions if any."

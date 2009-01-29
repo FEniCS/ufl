@@ -4,7 +4,8 @@
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-11-01 -- 2008-11-06"
 
-from ufl.log import ufl_assert, warning
+from ufl.log import warning
+from ufl.assertions import ufl_assert
 from ufl.expr import Expr
 from ufl.terminal import Terminal
 from ufl.zero import Zero

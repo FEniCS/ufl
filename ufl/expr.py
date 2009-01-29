@@ -16,6 +16,7 @@ __date__ = "2008-03-14 -- 2009-01-28"
 #--- The base object for all UFL expression tree nodes ---
 
 from collections import defaultdict
+from ufl.log import warning
 _class_usage_statistics = defaultdict(int)
 
 class Expr(object):
@@ -77,7 +78,7 @@ class Expr(object):
     # Subclasses that can have repeated indices must implement repeated_indices
     def repeated_indices(self):
         "Return a tuple with the repeated indices of the expression."
-        warning("repeated_indices shouldn't be called anymore!")
+        error("repeated_indices shouldn't be called anymore!")
         return ()
     
     # All subclasses must implement index_dimensions

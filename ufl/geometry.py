@@ -5,7 +5,8 @@ __date__ = "2008-03-14 -- 2009-01-13"
 
 # Modified by Anders Logg, 2009.
 
-from ufl.log import ufl_assert, warning
+from ufl.log import warning
+from ufl.assertions import ufl_assert
 from ufl.common import domain2dim
 from ufl.terminal import Terminal
 
