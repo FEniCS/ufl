@@ -1,7 +1,7 @@
 """Classes used to group scalar expressions into expressions with rank > 0."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-31 -- 2009-01-10"
+__date__ = "2008-03-31 -- 2009-01-29"
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
@@ -35,7 +35,7 @@ class ListTensor(Expr):
         
         indexset = set(e.free_indices())
         ufl_assert(all(not (indexset ^ set(sub.free_indices())) for sub in expressions), \
-            "Can't combine subtensor expressions with different sets of free indices.") # TODO: Does this make sense?
+            "Can't combine subtensor expressions with different sets of free indices.")
     
     def operands(self):
         return self._expressions
@@ -113,12 +113,13 @@ class ComponentTensor(Expr):
         indices = self._indices
         a = self._expression
         
-        for i, c in enumerate(indices, component):
+        # Map component to indices
+        for i, c in zip(indices, component):
             index_values.push(i, c)
         
         a = a.evaluate(x, mapping, (), index_values)
         
-        for i in indices:
+        for _ in component:
             index_values.pop()
         
         return a

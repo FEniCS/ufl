@@ -49,62 +49,9 @@ class Indexed(Expr):
     
     def evaluate(self, x, mapping, component, index_values):
         A, ii = self.operands()
-        sh = A.shape()
-        ri = self.repeated_indices() # FIXME: Rewrite below code, no implicit sums needed
         
-        # Build component from indices
-        subcomp = []
-        ri_pos = defaultdict(tuple)
-        for k, i in enumerate(ii):
-            if isinstance(i, FixedIndex):
-                subcomp.append(i._value)
-            elif isinstance(i, Index):
-                if i in ri:
-                    # Postphone assignment of component item to repeated index summation
-                    subcomp.append(None)
-                    ri_pos[i] += (k,)
-                else:
-                    subcomp.append(index_values[i])
-        
-        # Handle implicit sums over repeated indices if necessary
-        if ri:
-            if len(ri) > 1: # TODO: Implement to allow A[i,i,j,j] etc
-                error("TODO: Multiple repeated indices not implemented yet."\
-                    " Note that A[i,i,j,j] = A[i,i,:,:][j,j].")
-            
-            # Get summation range
-            idx, = ri # TODO: Only one! Need permutations to do more.
-            if len(ri_pos[idx]) == 2:
-                i0, i1 = ri_pos[idx]
-                ufl_assert(sh[i0] == sh[i1], "Dimension mismatch in implicit sum over Indexed object.")
-            else:
-                i0, = ri_pos[idx]
-                i1 = idx
-            dim = sh[i0]
-            
-            # Accumulate values
-            result = 0
-            #for jj in permutations: # TODO: Only one! Need permutations to do more.
-            for j in range(dim):
-                #for ii in ri:
-                #    i0, i1 = ri_pos[ii]
-                #    subcomp[i0] = jj[...]
-                #    subcomp[i1] = jj[...]
-                subcomp[i0] = j
-                if isinstance(i1, int):
-                    subcomp[i1] = j
-                    pushed = False
-                else: # isinstance(i1, Index):
-                    pushed = True
-                    index_values.push(i1, j)
-                result += A.evaluate(x, mapping, tuple(subcomp), index_values)
-                if pushed:
-                    index_values.pop()
-        else:
-            # No repeated indices makes this simple
-            result = A.evaluate(x, mapping, tuple(subcomp), index_values)
-        
-        return result
+        component = ii.evaluate(x, mapping, None, index_values)
+        return A.evaluate(x, mapping, component, index_values)
 
     def __str__(self):
         return "%s[%s]" % (self._expression, self._indices)

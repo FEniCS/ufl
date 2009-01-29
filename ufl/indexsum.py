@@ -24,7 +24,7 @@ class IndexSum(Expr):
     def operands(self):
         return (self._summand, self._index)
     
-    def indices(self):
+    def free_indices(self):
         j = self._index[0]
         return tuple(i for i in self._summand.free_indices() if not i == j)
     
@@ -35,8 +35,14 @@ class IndexSum(Expr):
         return self._summand.shape()
     
     def evaluate(self, x, mapping, component, index_values):
-        return sum(o.evaluate(x, mapping, component, index_values) for o in self.operands())
-    
+        d = self._summand.index_dimensions()[self._index]
+        tmp = 0
+        for i in range(d):
+            index_values.push(self._index, i)
+            tmp += self._summand.evaluate(x, mapping, component, index_values)
+            index_values.pop()
+        return tmp
+
     def __str__(self):
         return "sum_{%s}< %s >" % (str(self._index), str(self._summand))
     

@@ -1,7 +1,7 @@
 """Compound tensor algebra operations."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-01-08"
+__date__ = "2008-03-14 -- 2009-01-29"
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
@@ -10,17 +10,18 @@ from ufl.terminal import Terminal
 from ufl.zero import Zero
 from ufl.indexing import Index, indices
 
-def merge_free_indices(a, b):
+def merge_indices(a, b):
     ai = a.free_indices()
     bi = b.free_indices()
+    #free_indices = unique_indices(ai + bi) # if repeated indices are allowed, do this instead of the next three lines
     ri = set(ai) & set(bi)
     ufl_assert(not ri, "Not expecting repeated indices.")
     free_indices = ai+bi
     
     aid = a.index_dimensions()
     bid = b.index_dimensions()
-    index_dimensions = dict((i, aid[i]) for i in ai)
-    index_dimensions.update((i, bid[i]) for i in bi)
+    index_dimensions = dict(aid)
+    index_dimensions.update(bid)
     
     return free_indices, index_dimensions 
 
@@ -113,7 +114,7 @@ class Outer(Expr):
 
     def __new__(cls, a, b):
         if isinstance(a, Zero) or isinstance(b, Zero):
-            free_indices, index_dimensions = merge_free_indices(a, b)
+            free_indices, index_dimensions = merge_indices(a, b)
             return Zero(a.shape() + b.shape(), free_indices, index_dimensions)
         return Terminal.__new__(cls)
 
@@ -121,7 +122,7 @@ class Outer(Expr):
         Expr.__init__(self)
         self._a = a
         self._b = b
-        self._free_indices, self._index_dimensions = merge_free_indices(a, b)
+        self._free_indices, self._index_dimensions = merge_indices(a, b)
     
     def operands(self):
         return (self._a, self._b)
@@ -148,7 +149,7 @@ class Inner(Expr):
     def __new__(cls, a, b):
         ufl_assert(a.shape() == b.shape(), "Shape mismatch.")
         if isinstance(a, Zero) or isinstance(b, Zero):
-            free_indices, index_dimensions = merge_free_indices(a, b)
+            free_indices, index_dimensions = merge_indices(a, b)
             return Zero((), free_indices, index_dimensions)
         return Terminal.__new__(cls)
 
@@ -158,7 +159,7 @@ class Inner(Expr):
         a, b = sorted((a,b), key = lambda x: repr(x))
         self._a = a
         self._b = b
-        self._free_indices, self._index_dimensions = merge_free_indices(a, b)
+        self._free_indices, self._index_dimensions = merge_indices(a, b)
     
     def operands(self):
         return (self._a, self._b)
@@ -189,7 +190,7 @@ class Dot(Expr):
         
         if isinstance(a, Zero) or isinstance(b, Zero):
             shape = a.shape()[:-1] + b.shape()[1:]
-            free_indices, index_dimensions = merge_free_indices(a, b)
+            free_indices, index_dimensions = merge_indices(a, b)
             return Zero(shape, free_indices, index_dimensions)
         
         return Terminal.__new__(cls)
@@ -198,7 +199,7 @@ class Dot(Expr):
         Expr.__init__(self)
         self._a = a
         self._b = b
-        self._free_indices, self._index_dimensions = merge_free_indices(a, b)
+        self._free_indices, self._index_dimensions = merge_indices(a, b)
     
     def operands(self):
         return (self._a, self._b)

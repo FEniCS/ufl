@@ -96,6 +96,16 @@ class MultiIndex(Terminal):
     
     def shape(self):
         error("Calling shape on MultiIndex is an error.")
+        
+    def evaluate(self, x, mapping, component, index_values):
+        # Build component from index values
+        component = []
+        for i in self._indices:
+            if isinstance(i, FixedIndex):
+                component.append(i._value)
+            elif isinstance(i, Index):
+                component.append(index_values[i])
+        return tuple(component)
     
     def __str__(self):
         return ", ".join(str(i) for i in self._indices)

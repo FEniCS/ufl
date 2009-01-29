@@ -223,8 +223,17 @@ class Product(Expr):
         return self._shape
     
     def evaluate(self, x, mapping, component, index_values):
-        ufl_assert(self.shape() == (), "FIXME")
-        return product(o.evaluate(x, mapping, component, index_values) for o in self.operands())
+        ops = self.operands()
+        sh = self.shape()
+        if sh:
+            ufl_assert(sh == ops[-1].shape(), "Expecting nonscalar product operand to be the last by convention.")
+            tmp = ops[-1].evaluate(x, mapping, component, index_values)
+            ops = ops[:-1]
+        else:
+            tmp = 1
+        for o in ops:
+            tmp *= o.evaluate(x, mapping, (), index_values)
+        return tmp
     
     def __str__(self):
         return "(%s)" % " * ".join(str(o) for o in self._operands)
