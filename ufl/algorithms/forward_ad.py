@@ -175,7 +175,7 @@ class AD(Transformer):
         op = sum(opsp[1:], opsp[0])
         return (o2, op)
     
-    def product(self, o, *ops): # FIXME
+    def product(self, o, *ops): # FIXME: Adding expressions with different free indices here
         # Define a zero with the right indices
         fp = self._make_zero_diff(o)
         # Get operands and their derivatives
