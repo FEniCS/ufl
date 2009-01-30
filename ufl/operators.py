@@ -4,7 +4,7 @@ or defined as compound operators involving basic operations on the UFL
 objects."""
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-04-09 -- 2009-01-29"
+__date__ = "2008-04-09 -- 2009-01-30"
 
 import math
 from ufl.log import error
@@ -99,14 +99,21 @@ def jump(v):
     "The jump of v across a facet."
     r = v.rank()
     cell = v.cell()
-    ufl_assert(cell is not None, "FIXME: Not all expressions have a cell. How should this be done? What does FFC do?")
-    n = cell.n
-    if r == 0:
-        return v('+')*n('+') + v('-')*n('-')
-    elif r == 1:
-        return dot(v('+'), n('+')) + dot(v('-'), n('-'))
+    if cell is None:
+        warning("TODO: Not all expressions have a cell. Is it right to return zero from jump then?")
+        # TODO: Is this right? If v has no cell, it doesn't depend on
+        # anything spatially variable or any form arguments, and thus
+        # the jump is zero. In other words, I'm assuming that
+        # "v.cell() is None" is equivalent with "v is a constant".
+        return Zero(v.shape(), v.free_indices(), v.index_dimensions())
     else:
-        error("jump(v) is only defined for scalar or vector-valued expressions (not rank %d expressions)." % r)
+        n = cell.n
+        if r == 0:
+            return v('+')*n('+') + v('-')*n('-')
+        elif r == 1:
+            return dot(v('+'), n('+')) + dot(v('-'), n('-'))
+    
+    error("jump(v) is only defined for scalar or vector-valued expressions (not rank %d expressions)." % r)
 
 def avg(v):
     "The average of v across a facet."
@@ -150,14 +157,17 @@ def gt(left, right):
 
 def sign(x):
     "The sign (+1 or -1) of x."
+    # TODO: Add a Sign type for this?
     return conditional(eq(x, 0), 0, conditional(lt(x, 0), -1, +1))
 
 #--- Math functions ---
 
 def _mathfunction(f, cls, fun):
     f = as_ufl(f)
-    if isinstance(f, ScalarValue): return as_ufl(fun(f._value))
-    if isinstance(f, Zero): return as_ufl(fun(0))
+    if isinstance(f, ScalarValue):
+        return as_ufl(fun(f._value))
+    if isinstance(f, Zero):
+        return as_ufl(fun(0))
     return cls(f)
 
 def sqrt(f):
