@@ -38,6 +38,6 @@ ufl_classes         = set(c for c in all_ufl_classes if c not in abstract_classe
 terminal_classes    = set(c for c in all_ufl_classes if issubclass(c, Terminal))
 nonterminal_classes = set(c for c in all_ufl_classes if not issubclass(c, Terminal))
 
-# Add _uflid to all classes:
+# Add _uflclass to all classes:
 for c in all_ufl_classes:
-    c._uflid = c
+    c._uflclass = c

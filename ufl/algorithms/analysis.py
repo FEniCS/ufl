@@ -34,7 +34,7 @@ from ufl.algorithms.traversal import iter_expressions, post_traversal, post_walk
 def extract_classes(a):
     """Build a set of all unique Expr subclasses used in a.
     The argument a can be a Form, Integral or Expr."""
-    return set(o._uflid for e in iter_expressions(a) \
+    return set(o._uflclass for e in iter_expressions(a) \
                         for (o, stack) in post_traversal(e))
 
 def extract_type(a, ufl_type):

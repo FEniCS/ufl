@@ -148,7 +148,7 @@ class Product(Expr):
         # Check for zeros
         if any(isinstance(o, Zero) for o in operands):
             free_indices = unique_indices(tuple(chain(*(o.free_indices() for o in operands))))
-            index_dimensions = mergedicts([o.index_dimensions() for o in operands])
+            index_dimensions = subdict(mergedicts([o.index_dimensions() for o in operands]), free_indices)
             return Zero(sh, free_indices, index_dimensions)
         
         # Replace n-repeated operands foo with foo**n (as long as they have no free indices)

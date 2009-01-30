@@ -17,7 +17,7 @@ from ufl.basisfunction import BasisFunction
 def cmp_expr(a, b):
     "Sorting rule for Expr objects."
     # First sort by type name
-    aname, bname = a._uflid.__name__, b._uflid.__name__
+    aname, bname = a._uflclass.__name__, b._uflclass.__name__
     c = cmp(aname, bname)
     if c != 0:
         return c

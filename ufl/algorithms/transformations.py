@@ -28,7 +28,7 @@ def transform(expression, handlers):
         ops = ()
     else:
         ops = [transform(o, handlers) for o in expression.operands()]
-    c = expression._uflid
+    c = expression._uflclass
     h = handlers.get(c, None)
     if c is None:
         error("Didn't find class %s among handlers." % c)
@@ -67,7 +67,7 @@ class Transformer(object):
     
     def visit(self, o):
         # Get handler for the UFL class of o (type(o) may be an external subclass of the actual UFL class)
-        h = self._handlers.get(o._uflid)
+        h = self._handlers.get(o._uflclass)
         if h:
             # Did we find a handler that expects transformed children as input?
             insp = getargspec(h)
@@ -85,11 +85,11 @@ class Transformer(object):
     
     def reuse_if_possible(self, o, *operands):
         "Reuse Expr if possible, otherwise recreate."
-        return o if operands == o.operands() else o._uflid(*operands)
+        return o if operands == o.operands() else o._uflclass(*operands)
     
     def always_recreate(self, o, *operands):
         "Always recreate expr."
-        return o._uflid(*operands)
+        return o._uflclass(*operands)
     
     # Set default behaviour for terminals
     terminal = reuse
@@ -150,7 +150,7 @@ class TreeFlattener(ReuseTransformer):
         ReuseTransformer.__init__(self)
     
     def sum_or_product(self, o, *ops):
-        c = o._uflid
+        c = o._uflclass
         operands = []
         for b in ops:
             if isinstance(b, c):
@@ -213,7 +213,7 @@ class DuplicationMarker(ReuseTransformer):
             oo = o
             # reconstruct if necessary
             if not ops == o.operands():
-                o = o._uflid(*ops)
+                o = o._uflclass(*ops)
             
             if (oo in self._duplications) or (o in self._duplications):
                 v = Variable(o)
@@ -530,7 +530,7 @@ class DuplicationPurger(ReuseTransformer):
             if ops == x.operands():
                 e = x
             else:
-                e = x._uflid(*ops)
+                e = x._uflclass(*ops)
             # Update cache
             self._handled[x] = e
         #else:

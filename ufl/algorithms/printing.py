@@ -67,7 +67,7 @@ def _tree_format_expression(expression, indentation, parentheses):
         s = ind + "%s" % repr(expression)
     else:
         sops = [_tree_format_expression(o, indentation+1, parentheses) for o in expression.operands()]
-        s = ind + "%s\n" % expression._uflid.__name__ 
+        s = ind + "%s\n" % expression._uflclass.__name__ 
         if parentheses and len(sops) > 1:
             s += ind + "(\n"
         s += "\n".join(sops)

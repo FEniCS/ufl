@@ -26,7 +26,7 @@ class Expr(object):
     
     def __init__(self):
         # Comment out this line to disable class construction statistics (used in some unit tests)
-        _class_usage_statistics[self._uflid] += 1
+        _class_usage_statistics[self._uflclass] += 1
         #self._hash = None
     
     #=== Abstract functions that must be implemented by subclasses ===

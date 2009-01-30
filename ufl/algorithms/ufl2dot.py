@@ -49,7 +49,7 @@ def build_entities(e, nodes, edges, nodeoffset):
             else:
                 label = repr(e)
         else:
-            label = e._uflid.__name__.split(".")[-1]
+            label = e._uflclass.__name__.split(".")[-1]
             if label in class2label:
                 label = class2label[label]
     

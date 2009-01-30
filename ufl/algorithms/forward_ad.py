@@ -33,7 +33,7 @@ from ufl.classes import Terminal, Expr, Derivative, Tuple, SpatialDerivative, Va
 # Lists of all Expr classes
 #from ufl.classes import ufl_classes, terminal_classes, nonterminal_classes
 from ufl.classes import terminal_classes
-from ufl.operators import dot, inner, outer, lt, eq, conditional
+from ufl.operators import dot, inner, outer, lt, eq, conditional, sign
 from ufl.operators import sqrt, exp, ln, cos, sin
 from ufl.algorithms.traversal import iter_expressions
 from ufl.algorithms.analysis import extract_type
@@ -56,30 +56,28 @@ class AD(Transformer):
         Transformer.__init__(self)
         self._spatial_dim = spatial_dim
         
-        # FIXME: Use self._var_* or not? Do we ever need more than one? Maybe diff(psi, E[i,j]) is easier to handle using indices than as tensor differentiation.
+        # TODO: Use self._var_* or not? Do we ever need more than one? Maybe diff(psi, E[i,j]) is easier to handle using indices than as tensor differentiation.
         self._var_shape = var_shape
         self._var_free_indices = var_free_indices
         self._var_index_dimensions = dict(var_index_dimensions)
+        ufl_assert(self._var_shape == (), "TODO: Step through implementation to make sure we handle differentiation w.r.t. variables with shape everywhere needed.")
     
     def _make_zero_diff(self, o):
         # Define a zero with the right indices (kind of cumbersome this... any simpler way?)
-        fi  = o.free_indices()
-        fid = subdict(o.index_dimensions(), fi)
+        sh = o.shape() + self._var_shape
+        fi = o.free_indices()
+        idims = dict(o.index_dimensions())
         if self._var_free_indices:
             i, = self._var_free_indices
-            if i in fi:
-                fi = list(fi)
-                fi.remove(i)
-                fi = tuple(fi)
-            else:
+            if i not in idims:
                 fi += (i,)
-                fid[i] = self._var_index_dimensions[i]
-        fp = Zero(o.shape(), fi, fid)
+                idims[i] = self._var_index_dimensions[i]
+        fp = Zero(sh, fi, idims)
         return fp   
     
     def _visit(self, o):
+        "Debugging hook, enable this by renaming to 'visit'."
         r = Transformer.visit(self, o)
-        # FIXME: Inspect results here for debugging
         f, df = r
         if not f is o:
             print 
@@ -111,13 +109,10 @@ class AD(Transformer):
         variable by default, and simply 'lifted' to the pair (o, 0).
         Depending on the context, override this with custom rules for
         non-zero derivatives."""
-        # FIXME: Use self._var* or not?
-        #return (o, Zero(o.shape()))
-        #return (o, Zero(o.shape() + self._var_shape, self._var_free_indices, self._var_index_dimensions))
         fp = self._make_zero_diff(o)
         return (o, fp)
     
-    def variable(self, o):
+    def variable(self, o): # XXX: This is an example of a function that may return something else than the input!
         """Variable objects are just 'labels', so by default the derivative
         of a variable is the derivative of its referenced expression."""
         # Check variable cache to reuse previously transformed variable if possible
@@ -141,8 +136,16 @@ class AD(Transformer):
     def multi_index(self, o):
         return (o, None) # oprime here should never be used
     
-    def indexed(self, o, A, ii):
-        op = o._uflid(A[1], ii[0])
+    def indexed(self, o):
+        A, jj = o.operands()
+        A2, Ap = self.visit(A)
+        if not A is A2:
+            print "\n"*3
+            print "A  =", str(A)
+            print "A2 =", str(A2)
+            print "\n"*3
+        ufl_assert(A is A2, "This is a surprise, please provide example!")
+        op = o._uflclass(Ap, jj)
         return (o, op)
     
     def list_tensor(self, o, *ops):
@@ -153,19 +156,26 @@ class AD(Transformer):
         A, Ap = A
         if isinstance(Ap, Zero):
             fp = self._make_zero_diff(o)
-            return (o, fp)
-        return (o, ComponentTensor(Ap, ii[0]) )
+        else:
+            fp = ComponentTensor(Ap, ii[0])
+        return (o, fp)
     
     # --- Algebra operators
     
-    def index_sum(self, o, f, i):
-        FIXME
-    
+    def index_sum(self, o):
+        A, i = o.operands()
+        A2, Ap = self.visit(A)
+        ufl_assert(A is A2, "This is a surprise, please provide example!")
+        op = o._uflclass(Ap, i)
+        return (o, op)
+
     def sum(self, o, *ops):
-        return (sum((op[0] for op in ops[1:]), ops[0][0]),
-                sum((op[1] for op in ops[1:]), ops[0][1]))
+        ops, opsp = unzip(ops)
+        o2 = self.reuse_if_possible(o, *ops)
+        op = sum(opsp[1:], opsp[0])
+        return (o2, op)
     
-    def product(self, o, *ops):
+    def product(self, o, *ops): # FIXME
         # Define a zero with the right indices
         fp = self._make_zero_diff(o)
         # Get operands and their derivatives
@@ -173,18 +183,15 @@ class AD(Transformer):
         for (i, op) in enumerate(ops):
             # Replace operand i with its differentiated value 
             fpoperands = ops2[:i] + [dops2[i]] + ops2[i+1:]
-            # Simplify by ignoring ones
-            fpoperands = [fpop for fpop in fpoperands if not fpop == 1]
-            # Simplify if there are zeros in the product
-            if not any(isinstance(fpop, Zero) for fpop in fpoperands):
-                fp += product(fpoperands) 
+            tmp = o._uflclass(*fpoperands)
+            fp += tmp
         return (o, fp)
     
     def division(self, o, a, b):
         f, fp = a
         g, gp = b
-        return (o, (fp-f*gp/g)/g)
         #return (o, (fp*g-f*gp)/g**2)
+        return (o, (fp-f*gp/g)/g)
     
     def power(self, o, a, b):
         f, fp = a
@@ -205,6 +212,7 @@ class AD(Transformer):
         # Case: o = f ** g(x)
         if isinstance(fp, Zero):
             return (o, gp*ln(f)*o)
+        # Case: o = f(x)**g(x)
         error("diff_power not implemented for case d/dx [ f(x)**g(x) ].")
         oprime = None # TODO
         return (o, oprime)
@@ -213,7 +221,7 @@ class AD(Transformer):
         f, fprime = a
         oprime = conditional(eq(f, 0),
                              0,
-                             conditional(lt(f, 0), -fprime, fprime))
+                             sign(f)*fprime) #conditional(lt(f, 0), -fprime, fprime))
         return (o, oprime)
     
     # --- Mathfunctions
@@ -247,11 +255,11 @@ class AD(Transformer):
     
     def positive_restricted(self, o, a):
         f, fp = a
-        return (o, fp('+')) # TODO: What is d(v+)/dw ? Assuming here that restriction and differentiation commutes.
+        return (o, fp('+')) # TODO: Assuming here that restriction and differentiation commutes. Is this correct?
     
     def negative_restricted(self, o, a):
         f, fp = a
-        return (o, fp('-')) # TODO: What is d(v-)/dw ? Assuming here that restriction and differentiation commutes.
+        return (o, fp('-')) # TODO: Assuming here that restriction and differentiation commutes. Is this correct?
     
     # --- Conditionals
     
@@ -284,7 +292,7 @@ class AD(Transformer):
         # TODO: Although differentiation commutes, can we get repeated index issues here?
         f, i = o.operands()
         f, fp = self.visit(f)
-        op = o._uflid(fp, i) # FIXME
+        op = o._uflclass(fp, i) # FIXME
         return (o, op)
     
     def spatial_derivative(self, o): # FIXME: Fix me!
@@ -305,7 +313,7 @@ class AD(Transformer):
             
             oprime = Zero(fp.shape(), fi, idims)
         else:
-            oprime = o._uflid(fp, ii)
+            oprime = o._uflclass(fp, ii)
         return (o, oprime)
 
 class SpatialAD(AD):

@@ -60,7 +60,7 @@ class ArityAnalyser(Transformer): # TODO: Can we avoid the cache stuff? Seems a 
         # The default is a nonlinear operator not accepting arity > 0
         for o in ops:
             arity = self._arity_cache[id(o)]
-            ufl_assert(arity == 0, "Invalid arity %d for an operand of a %s." % (arity, x._uflid))
+            ufl_assert(arity == 0, "Invalid arity %d for an operand of a %s." % (arity, x._uflclass))
         self._arity_cache[id(x)] = 0
         return x
     
@@ -98,7 +98,7 @@ class ArityAnalyser(Transformer): # TODO: Can we avoid the cache stuff? Seems a 
         if arg is x.operands()[0]:
             result = x
         else:
-            result = x._uflid(arg)
+            result = x._uflclass(arg)
         
         self._arity_cache[id(result)] = arity
         return result
@@ -117,7 +117,7 @@ class ArityAnalyser(Transformer): # TODO: Can we avoid the cache stuff? Seems a 
         if all((a is b) for (a, b) in zip(ops, x.operands())):
             result = x
         else:
-            result = x._uflid(*ops)
+            result = x._uflclass(*ops)
         
         self._arity_cache[id(result)] = arity
         return result
@@ -158,7 +158,7 @@ class ArityAnalyser(Transformer): # TODO: Can we avoid the cache stuff? Seems a 
         if len(ops) == len(ops2) and all((a is b) for (a, b) in zip(ops, ops2)):
             result = x
         else:
-            result = x._uflid(*ops)
+            result = x._uflclass(*ops)
         
         self._arity_cache[id(result)] = arity
         return result

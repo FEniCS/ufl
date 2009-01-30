@@ -161,7 +161,7 @@ def rebuild_tree(G):
             if all_is(ops, v.operands()):
                 pass
             else:
-                v = v._uflid(*ops)
+                v = v._uflclass(*ops)
         subtrees[i] = v
     # Assuming last vertex is the root!
     return v
