@@ -1,7 +1,13 @@
 Roadmap for the development of UFL
 ----------------------------------
 
-# Make IndexBase an Expr? Affects the following in particular:
+# Improve form validation:
+ - Check for different BasisFunctions with same count
+
+# Class hierarchy changes:
+ - Add a ConstantValue subclass of ScalarValue, Zero, Identity, ...
+ - Add an Argument subclass of BasisFunction and Function
+ - Make IndexBase an Expr? Affects the following in particular:
     indexing.py - Make IndexBase an Expr?
     sorting.py - Remove MultiIndex handling if we make IndexBase an Expr.
 
@@ -40,8 +46,8 @@ Roadmap for the development of UFL
 
 # About canonical form of forms and expressions:
  - The current way of comparing forms and expressions using repr isn't
-   good enough, since repr depends on the global counters of Counted
-   objects (that is, Index, BasisFunction and Function with subclasses).
+   good enough for all purposes, since repr depends on the global counters 
+   of Counted objects (that is, Index, BasisFunction and Function with subclasses).
    Some ideas to get around this:
    - Implement renumbering of BasisFunction and Function objects to
      correctly compare forms (this is mostly for form compiler cache)
