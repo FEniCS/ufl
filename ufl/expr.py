@@ -9,7 +9,7 @@ This is to avoid circular dependencies between Expr and its subclasses.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-01-28"
+__date__ = "2008-03-14 -- 2009-02-03"
 
 # Modified by Anders Logg, 2008
 
@@ -142,4 +142,8 @@ class Expr(object):
     #def __getnewargs__(self): # TODO: Test pickle and copy with this. Must implement differently for Terminal objects though.
     #    "Used for pickle and copy operations."
     #    return self.operands()
+
+class Wrapper(Expr):
+    def __init__(self):
+        Expr.__init__(self)
 

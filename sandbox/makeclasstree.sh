@@ -1,4 +1,7 @@
 #!/bin/bash
 FORMAT=pdf
-python printclasstree.py | dot -T$FORMAT -oclassgraph.$FORMAT
+APP=twopi
+APP=circo
+APP=dot
+python printclasstree.py | $APP -T$FORMAT -oclassgraph.$FORMAT
 evince classgraph.$FORMAT &

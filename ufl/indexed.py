@@ -1,22 +1,22 @@
 """This module defines the Indexed class."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2009-01-28 -- 2009-01-29"
+__date__ = "2009-01-28 -- 2009-02-03"
 
 from collections import defaultdict
 from ufl.log import error
-from ufl.expr import Expr
+from ufl.expr import Wrapper
 from ufl.indexing import IndexBase, Index, FixedIndex, MultiIndex, as_multi_index
 from ufl.indexutils import unique_indices
 from ufl.assertions import ufl_assert, assert_expr, assert_instance
 
 #--- Indexed expression ---
 
-class Indexed(Expr):
+class Indexed(Wrapper):
     __slots__ = ("_expression", "_indices",
                  "_free_indices", "_index_dimensions")
     def __init__(self, expression, indices):
-        Expr.__init__(self)
+        Wrapper.__init__(self)
         assert_expr(expression)
         self._expression = expression
         self._indices = as_multi_index(indices)

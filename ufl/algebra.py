@@ -1,7 +1,7 @@
 "Basic algebra operations."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2009-01-28"
+__date__ = "2008-05-20 -- 2009-02-03"
 
 # Modified by Anders Logg, 2008
 
@@ -20,7 +20,11 @@ from ufl.sorting import cmp_expr
 
 #--- Algebraic operators ---
 
-class Sum(Expr):
+class AlgebraOperator(Expr):
+    def __init__(self):
+        Expr.__init__(self)
+
+class Sum(AlgebraOperator):
     __slots__ = ("_operands", "_repr")
     
     def __new__(cls, *operands): # TODO: This seems a bit complicated... Can it be simplified? Maybe we can merge some loops for efficiency?
@@ -83,7 +87,7 @@ class Sum(Expr):
             return operands[0]
         
         # construct and initialize a new Sum object
-        self = Expr.__new__(cls)
+        self = AlgebraOperator.__new__(cls)
         self._init(*operands)
         return self
 
@@ -93,7 +97,7 @@ class Sum(Expr):
         self._repr = "Sum(%s)" % ", ".join(repr(o) for o in operands)
     
     def __init__(self, *operands):
-        Expr.__init__(self)
+        AlgebraOperator.__init__(self)
     
     def operands(self):
         return self._operands
@@ -116,7 +120,7 @@ class Sum(Expr):
     def __repr__(self):
         return self._repr
 
-class Product(Expr):
+class Product(AlgebraOperator):
     """The product of two or more UFL objects."""
     __slots__ = ("_operands", "_free_indices", "_index_dimensions", "_shape", "_repr")
     
@@ -191,7 +195,7 @@ class Product(Expr):
             return operands[0]
         
         # construct and initialize a new Product object
-        self = Expr.__new__(cls)
+        self = AlgebraOperator.__new__(cls)
         self._init(sh, *operands)
         return self
     
@@ -208,7 +212,7 @@ class Product(Expr):
         self._repr = "Product(%s)" % ", ".join(repr(o) for o in self._operands)
     
     def __init__(self, *operands):
-        Expr.__init__(self)
+        AlgebraOperator.__init__(self)
     
     def operands(self):
         return self._operands
@@ -241,7 +245,7 @@ class Product(Expr):
     def __repr__(self):
         return self._repr
 
-class Division(Expr):
+class Division(AlgebraOperator):
     __slots__ = ("_a", "_b")
     
     def __new__(cls, a, b):
@@ -262,7 +266,7 @@ class Division(Expr):
             return as_ufl(a._value / b._value)
         
         # construct and initialize a new Division object
-        self = Expr.__new__(cls)
+        self = AlgebraOperator.__new__(cls)
         self._init(a, b)
         return self
     
@@ -272,7 +276,7 @@ class Division(Expr):
         self._b = b
 
     def __init__(self, a, b):
-        Expr.__init__(self)
+        AlgebraOperator.__init__(self)
     
     def operands(self):
         return (self._a, self._b)
@@ -298,7 +302,7 @@ class Division(Expr):
     def __repr__(self):
         return "Division(%r, %r)" % (self._a, self._b)
 
-class Power(Expr):
+class Power(AlgebraOperator):
     __slots__ = ("_a", "_b")
     
     def __new__(cls, a, b):
@@ -322,7 +326,7 @@ class Power(Expr):
             return IntValue(1)
         
         # construct and initialize a new Power object
-        self = Expr.__new__(cls)
+        self = AlgebraOperator.__new__(cls)
         self._init(a, b)
         return self
     
@@ -332,7 +336,7 @@ class Power(Expr):
         self._b = b
 
     def __init__(self, a, b):
-        Expr.__init__(self)
+        AlgebraOperator.__init__(self)
     
     def operands(self):
         return (self._a, self._b)
@@ -358,11 +362,11 @@ class Power(Expr):
     def __repr__(self):
         return "Power(%r, %r)" % (self._a, self._b)
 
-class Abs(Expr):
+class Abs(AlgebraOperator):
     __slots__ = ("_a",)
     
     def __init__(self, a):
-        Expr.__init__(self)
+        AlgebraOperator.__init__(self)
         ufl_assert(isinstance(a, Expr), "Expecting Expr instance.")
         self._a = a
     

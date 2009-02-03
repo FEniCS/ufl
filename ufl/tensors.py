@@ -1,21 +1,21 @@
 """Classes used to group scalar expressions into expressions with rank > 0."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-31 -- 2009-01-29"
+__date__ = "2008-03-31 -- 2009-02-03"
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
-from ufl.expr import Expr
+from ufl.expr import Expr, Wrapper
 from ufl.scalar import as_ufl
 from ufl.indexing import Index, MultiIndex
 
 # --- Classes representing tensors of UFL expressions ---
 
-class ListTensor(Expr):
+class ListTensor(Wrapper):
     __slots__ = ("_expressions", "_free_indices", "_shape")
     
     def __init__(self, *expressions):
-        Expr.__init__(self)
+        Wrapper.__init__(self)
         if isinstance(expressions[0], (list, tuple)):
             expressions = [ListTensor(*sub) for sub in expressions]
         
@@ -69,11 +69,11 @@ class ListTensor(Expr):
     def __repr__(self):
         return "ListTensor(%s)" % ", ".join(repr(e) for e in self._expressions)
 
-class ComponentTensor(Expr):
+class ComponentTensor(Wrapper):
     __slots__ = ("_expression", "_indices", "_free_indices", "_index_dimensions", "_shape")
     
     def __init__(self, expression, indices):
-        Expr.__init__(self)
+        Wrapper.__init__(self)
         ufl_assert(isinstance(expression, Expr), "Expecting ufl expression.")
         ufl_assert(expression.shape() == (), "Expecting scalar valued expression.")
         self._expression = expression

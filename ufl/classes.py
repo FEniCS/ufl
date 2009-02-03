@@ -7,7 +7,7 @@ __date__ = "2008-08-15 -- 2009-02-03"
 
 # Modified by Anders Logg, 2008
 
-from ufl.expr import Expr
+from ufl.expr import Expr, Wrapper
 from ufl.terminal import Terminal, FormArgument, ConstantValue, GeometricQuantity, Tuple
 from ufl.zero import Zero
 from ufl.scalar import ScalarValue, FloatValue, IntValue, ScalarSomething
@@ -18,11 +18,11 @@ from ufl.function import Function, VectorConstant, TensorConstant, Constant
 from ufl.geometry import SpatialCoordinate, FacetNormal
 from ufl.indexing import MultiIndex, Indexed, IndexBase, Index, FixedIndex, IndexSum
 from ufl.tensors import ListTensor, ComponentTensor
-from ufl.algebra import Sum, Product, Division, Power, Abs
+from ufl.algebra import AlgebraOperator, Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import CompoundTensorOperator, Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Cofactor, Inverse, Deviatoric, Skew
 from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
 from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
-from ufl.differentiation import Derivative, FunctionDerivative, SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot
+from ufl.differentiation import Derivative, CompoundDerivative, FunctionDerivative, SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot
 from ufl.conditional import Condition, EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.form import Form
 from ufl.integral import Integral
@@ -34,6 +34,7 @@ from ufl import exproperators as __exproperators
 __all_classes       = (c for c in locals().values() if isinstance(c, type))
 all_ufl_classes     = set(c for c in __all_classes if issubclass(c, Expr))
 abstract_classes    = set(s for c in all_ufl_classes for s in c.mro()[1:-1])
+abstract_classes.remove(Function)
 ufl_classes         = set(c for c in all_ufl_classes if c not in abstract_classes)
 terminal_classes    = set(c for c in all_ufl_classes if issubclass(c, Terminal))
 nonterminal_classes = set(c for c in all_ufl_classes if not issubclass(c, Terminal))

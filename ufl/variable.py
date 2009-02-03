@@ -2,12 +2,12 @@
 expressions as variables for differentiation."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2009-01-09"
+__date__ = "2008-05-20 -- 2009-02-03"
 
 from ufl.common import Counted
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.expr import Expr
+from ufl.expr import Expr, Wrapper
 from ufl.terminal import Terminal
 
 class Label(Terminal, Counted):
@@ -28,7 +28,7 @@ class Label(Terminal, Counted):
     def __hash__(self):
         return hash(repr(self))
 
-class Variable(Expr):
+class Variable(Wrapper):
     """A Variable is a representative for another expression.
     
     It will be used by the end-user mainly for defining
@@ -41,7 +41,7 @@ class Variable(Expr):
     """
     __slots__ = ("_expression", "_label")
     def __init__(self, expression, label=None):
-        Expr.__init__(self)
+        Wrapper.__init__(self)
         
         ufl_assert(isinstance(expression, Expr), "Expecting an Expr.")
         self._expression = expression
