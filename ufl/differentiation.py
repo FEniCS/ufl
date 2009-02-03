@@ -1,13 +1,13 @@
 "Differential operators."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-01-28"
+__date__ = "2008-03-14 -- 2009-02-03"
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
 from ufl.common import subdict, mergedicts
 from ufl.expr import Expr
-from ufl.terminal import Terminal, Tuple
+from ufl.terminal import Terminal, ConstantValue, Tuple
 from ufl.zero import Zero
 from ufl.scalar import ScalarValue, is_true_ufl_scalar
 from ufl.indexing import IndexBase, Index, FixedIndex, MultiIndex, Indexed, as_multi_index
@@ -20,7 +20,7 @@ from ufl.basisfunction import BasisFunction
 
 #--- Basic differentiation objects ---
 
-spatially_constant_types = (ScalarValue, Zero, Identity, Constant, VectorConstant, TensorConstant) # FacetNormal: not for higher order geometry!
+spatially_constant_types = (ConstantValue, Constant, VectorConstant, TensorConstant) # FacetNormal: not for higher order geometry!
 
 class Derivative(Expr):
     "Base class for all derivative types."
@@ -182,7 +182,13 @@ class VariableDerivative(Derivative):
 
 #--- Compound differentiation objects ---
 
-class Grad(Derivative):
+class CompoundDerivative(Derivative):
+    "Base class for all compound derivative types."
+    __slots__ = ()
+    def __init__(self):
+        Derivative.__init__(self)
+
+class Grad(CompoundDerivative):
     __slots__ = ("_f", "_dim",)
 
     def __new__(cls, f):
@@ -194,10 +200,10 @@ class Grad(Derivative):
             free_indices = f.free_indices()
             index_dimensions = subdict(f.index_dimensions(), free_indices)
             return Zero((dim,) + f.shape(), free_indices, index_dimensions)
-        return Derivative.__new__(cls)
+        return CompoundDerivative.__new__(cls)
     
     def __init__(self, f):
-        Derivative.__init__(self)
+        CompoundDerivative.__init__(self)
         self._f = f
         cell = f.cell()
         ufl_assert(cell is not None, "Can't take gradient of expression with undefined cell. How did this happen?")
@@ -223,7 +229,7 @@ class Grad(Derivative):
     def __repr__(self):
         return "Grad(%r)" % self._f
 
-class Div(Derivative):
+class Div(CompoundDerivative):
     __slots__ = ("_f",)
 
     def __new__(cls, f):
@@ -233,10 +239,10 @@ class Div(Derivative):
         # Return zero if expression is trivially constant
         if isinstance(f, spatially_constant_types):
             return Zero(f.shape()[1:]) # No free indices
-        return Derivative.__new__(cls)
+        return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):
-        Derivative.__init__(self)
+        CompoundDerivative.__init__(self)
         self._f = f
     
     def operands(self):
@@ -257,13 +263,13 @@ class Div(Derivative):
     def __repr__(self):
         return "Div(%r)" % self._f
 
-class Curl(Derivative):
+class Curl(CompoundDerivative):
     __slots__ = ("_f", "_dim",)
     
-    # TODO: Implement __new__ to discover trivial zeros
+    # TODO: Implement __new__ to simplify trivial zeros
     
     def __init__(self, f):
-        Derivative.__init__(self)
+        CompoundDerivative.__init__(self)
         ufl_assert(f.rank() == 1, "Need a vector.") # TODO: Is curl always 3D?
         ufl_assert(not f.free_indices(), \
             "TODO: Taking curl of an expression with free indices, should this be a valid expression? Please provide examples!")
@@ -290,13 +296,13 @@ class Curl(Derivative):
     def __repr__(self):
         return "Curl(%r)" % self._f
 
-class Rot(Derivative):
+class Rot(CompoundDerivative):
     __slots__ = ("_f",)
     
-    # TODO: Implement __new__ to discover trivial zeros
+    # TODO: Implement __new__ to simplify trivial zeros
 
     def __init__(self, f):
-        Derivative.__init__(self)
+        CompoundDerivative.__init__(self)
         ufl_assert(f.rank() == 1, "Need a vector.")
         ufl_assert(not f.free_indices(), \
             "TODO: Taking rot of an expression with free indices, should this be a valid expression? Please provide examples!")

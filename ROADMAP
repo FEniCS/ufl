@@ -1,14 +1,6 @@
 Roadmap for the development of UFL
 ----------------------------------
 
-# Improve form validation:
- - Check for different BasisFunctions with same count
-
-# Class hierarchy changes:
- - Make IndexBase an Expr? Affects the following in particular:
-    indexing.py - Make IndexBase an Expr?
-    sorting.py - Remove MultiIndex handling if we make IndexBase an Expr.
-
 # Figure out allowed shape/free index combinations:
  - Sums of operands with different free indices can not be allowed. Need to work around in AD!
 
@@ -97,6 +89,11 @@ Roadmap for the development of UFL
  - Rewrite ufl2latex as described in its comments (use pre- and post-handlers)
  - Use precedence list to improve parentesis use in __str__ and __repr__ and ufl2latex. 
  - Improve dot-rendering with compact symbols for all node types (evt add option to switch between repr style and greek style)
+
+# Class hierarchy changes:
+ - Make IndexBase an Expr? Affects the following in particular:
+    indexing.py - Make IndexBase an Expr?
+    sorting.py - Remove MultiIndex handling if we make IndexBase an Expr.
 
 # Tests:
  - Write tests for the algorithms, ideally covering all code in multiple ways.
