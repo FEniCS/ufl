@@ -3,12 +3,12 @@ since it enables the syntax "from ufl.classes import FooBar" for getting
 implementation details not exposed through the default ufl namespace."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-15 -- 2009-01-23"
+__date__ = "2008-08-15 -- 2009-02-03"
 
 # Modified by Anders Logg, 2008
 
 from ufl.expr import Expr
-from ufl.terminal import Terminal, Tuple
+from ufl.terminal import Terminal, FormArgument, ConstantValue, GeometricQuantity, Tuple
 from ufl.zero import Zero
 from ufl.scalar import ScalarValue, FloatValue, IntValue, ScalarSomething
 from ufl.variable import Variable, Label
@@ -19,7 +19,7 @@ from ufl.geometry import SpatialCoordinate, FacetNormal
 from ufl.indexing import MultiIndex, Indexed, IndexBase, Index, FixedIndex, IndexSum
 from ufl.tensors import ListTensor, ComponentTensor
 from ufl.algebra import Sum, Product, Division, Power, Abs
-from ufl.tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Cofactor, Inverse, Deviatoric, Skew
+from ufl.tensoralgebra import CompoundTensorOperator, Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Cofactor, Inverse, Deviatoric, Skew
 from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
 from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
 from ufl.differentiation import Derivative, FunctionDerivative, SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot
@@ -33,7 +33,7 @@ from ufl import exproperators as __exproperators
 # Collect all classes in lists
 __all_classes       = (c for c in locals().values() if isinstance(c, type))
 all_ufl_classes     = set(c for c in __all_classes if issubclass(c, Expr))
-abstract_classes    = set((Expr, Terminal, Restricted, Condition, MathFunction)) # TODO: Can we extract this as well by looking at the subclasses of 
+abstract_classes    = set(s for c in all_ufl_classes for s in c.mro()[1:-1]) #set((Expr, Terminal, FormArgument, ConstantValue, GeometricQuantity, Restricted, Condition, MathFunction)) # TODO: Can we extract this as well by looking at the subclasses of 
 ufl_classes         = set(c for c in all_ufl_classes if c not in abstract_classes)
 terminal_classes    = set(c for c in all_ufl_classes if issubclass(c, Terminal))
 nonterminal_classes = set(c for c in all_ufl_classes if not issubclass(c, Terminal))
