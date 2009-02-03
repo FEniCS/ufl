@@ -46,7 +46,7 @@ class Function(FormArgument, Counted):
         return "Function(%r, %r)" % (self._element, self._count)
 
     def __eq__(self, other):
-        return isinstance(other, Function) and self._count == other._count
+        return isinstance(other, Function) and self._element == other._element and self._count == other._count
 
 # --- Subclasses for defining constant functions without specifying element ---
 

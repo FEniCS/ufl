@@ -33,7 +33,7 @@ from ufl import exproperators as __exproperators
 # Collect all classes in lists
 __all_classes       = (c for c in locals().values() if isinstance(c, type))
 all_ufl_classes     = set(c for c in __all_classes if issubclass(c, Expr))
-abstract_classes    = set(s for c in all_ufl_classes for s in c.mro()[1:-1]) #set((Expr, Terminal, FormArgument, ConstantValue, GeometricQuantity, Restricted, Condition, MathFunction)) # TODO: Can we extract this as well by looking at the subclasses of 
+abstract_classes    = set(s for c in all_ufl_classes for s in c.mro()[1:-1])
 ufl_classes         = set(c for c in all_ufl_classes if c not in abstract_classes)
 terminal_classes    = set(c for c in all_ufl_classes if issubclass(c, Terminal))
 nonterminal_classes = set(c for c in all_ufl_classes if not issubclass(c, Terminal))

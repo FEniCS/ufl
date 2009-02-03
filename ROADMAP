@@ -5,8 +5,6 @@ Roadmap for the development of UFL
  - Check for different BasisFunctions with same count
 
 # Class hierarchy changes:
- - Add a ConstantValue subclass of ScalarValue, Zero, Identity, ...
- - Add an Argument subclass of BasisFunction and Function
  - Make IndexBase an Expr? Affects the following in particular:
     indexing.py - Make IndexBase an Expr?
     sorting.py - Remove MultiIndex handling if we make IndexBase an Expr.

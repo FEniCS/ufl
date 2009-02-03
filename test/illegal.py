@@ -156,6 +156,35 @@ class FormsTestCase(unittest.TestCase):
         u = TrialFunction(element)
         a = inner(u,v)*dx
 
+    def test_duplicated_args(self):
+        element = FiniteElement("Lagrange", "triangle", 1)
+        element2 = FiniteElement("Lagrange", "triangle", 2)
+        v = TestFunction(element)
+        u = TrialFunction(element)
+        V = TestFunction(element2)
+        U = TrialFunction(element2)
+        a = inner(u,v)*dx + inner(V,U)*dx
+        try:
+            validate_form(a)
+            print "FAIL:", repr(a)
+            print "FAIL:", str(a)
+            self.fail()
+        except (UFLException, e):
+            pass
+
+    def test_duplicated_args2(self):
+        element = FiniteElement("Lagrange", "triangle", 1)
+        element2 = FiniteElement("Lagrange", "triangle", 2)
+        f = Function(element)
+        g = Function(element2, count=f.count())
+        a = (f+g)*dx
+        try:
+            validate_form(a)
+            print "FAIL:", repr(a)
+            print "FAIL:", str(a)
+            self.fail()
+        except (UFLException, e):
+            pass
 
     def test_stiffness1(self):
         element = FiniteElement("Lagrange", "triangle", 1)

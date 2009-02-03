@@ -2,7 +2,7 @@
 classes (functions), including TestFunction and TrialFunction."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-12-29"
+__date__ = "2008-03-14 -- 2009-02-03"
 
 # Modified by Anders Logg, 2008
 
@@ -46,7 +46,7 @@ class BasisFunction(FormArgument, Counted):
         return self._repr
 
     def __eq__(self, other):
-        return isinstance(other, BasisFunction) and self._count == other._count
+        return isinstance(other, BasisFunction) and self._element == other._element and self._count == other._count
 
 # --- Helper functions for pretty syntax ---
 
