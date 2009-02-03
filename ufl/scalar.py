@@ -2,12 +2,12 @@
 
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-11-01 -- 2008-11-06"
+__date__ = "2008-11-01 -- 2009-02-03"
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
 from ufl.expr import Expr
-from ufl.terminal import Terminal
+from ufl.terminal import ConstantValue
 from ufl.zero import Zero
 
 #--- "Low level" scalar types ---
@@ -27,11 +27,11 @@ python_scalar_types = (int_type, float_type)
 
 #--- ScalarValue, FloatValue and IntValue types ---
 
-class ScalarValue(Terminal):
+class ScalarValue(ConstantValue):
     "A constant scalar value."
     __slots__ = ("_value",)
     def __init__(self, value):
-        Terminal.__init__(self)
+        ConstantValue.__init__(self)
         self._value = value
     
     def shape(self):

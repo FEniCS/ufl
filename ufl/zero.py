@@ -1,16 +1,16 @@
 "This module defines the Zero class."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-11-01 -- 2009-01-09"
+__date__ = "2008-11-01 -- 2009-02-03"
 
 from ufl.assertions import ufl_assert
-from ufl.terminal import Terminal
+from ufl.terminal import ConstantValue
 #from ufl.indexing import Index # circular dependency
 
 #--- Class for representing zero tensors of different shapes ---
 
 _zero_cache = {}
-class Zero(Terminal):
+class Zero(ConstantValue):
     __slots__ = ("_shape", "_free_indices", "_index_dimensions")
     
     def __new__(cls, shape=(), free_indices=(), index_dimensions=None):
@@ -28,7 +28,7 @@ class Zero(Terminal):
         if z is not None:
             return z
         # construct new instance
-        self = Terminal.__new__(cls)
+        self = ConstantValue.__new__(cls)
         self._init(shape, free_indices, index_dimensions)
         _zero_cache[key] = self
         return self
@@ -39,7 +39,7 @@ class Zero(Terminal):
         self._index_dimensions = index_dimensions
     
     def __init__(self, shape=(), free_indices=(), index_dimensions=None):
-        Terminal.__init__(self)
+        ConstantValue.__init__(self)
     
     def free_indices(self):
         return self._free_indices

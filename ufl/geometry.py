@@ -1,18 +1,19 @@
 "Types for quantities computed from cell geometry."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-01-13"
+__date__ = "2008-03-14 -- 2009-02-03"
 
 # Modified by Anders Logg, 2009.
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
 from ufl.common import domain2dim
-from ufl.terminal import Terminal
+from ufl.terminal import GeometricQuantity
 
-class SpatialCoordinate(Terminal):
+class SpatialCoordinate(GeometricQuantity):
     __slots__ = ("_cell",)
     def __init__(self, cell):
+        GeometricQuantity.__init__(self)
         self._cell = as_cell(cell)
 
     def shape(self):
@@ -33,9 +34,9 @@ class SpatialCoordinate(Terminal):
     def __eq__(self, other):
         return isinstance(other, SpatialCoordinate) and other._cell == self._cell
 
-class FacetNormal(Terminal):
+class FacetNormal(GeometricQuantity):
     def __init__(self, cell):
-        Terminal.__init__(self)
+        GeometricQuantity.__init__(self)
         self._cell = as_cell(cell)
     
     def shape(self):

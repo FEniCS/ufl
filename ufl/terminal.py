@@ -2,7 +2,7 @@
 for all types that are terminal nodes in the expression trees."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-01-16"
+__date__ = "2008-03-14 -- 2008-02-03"
 
 # Modified by Anders Logg, 2008
 
@@ -54,6 +54,22 @@ class Terminal(Expr):
     #def __getnewargs__(self): # TODO: Test pickle and copy with this. Must implement differently for Terminal objects though.
     #    "Used for pickle and copy operations."
     #    raise NotImplementedError, "Must reimplement in each Terminal, or?"
+
+#--- Subgroups of terminals ---
+
+class FormArgument(Terminal):
+    def __init__(self):
+        Terminal.__init__(self)
+
+class ConstantValue(Terminal):
+    def __init__(self):
+        Terminal.__init__(self)
+
+class GeometricQuantity(Terminal):
+    def __init__(self):
+        Terminal.__init__(self)
+
+#--- Non-tensor terminal nodes ---
 
 class Tuple(Terminal):
     "For internal use, never to be created by users."

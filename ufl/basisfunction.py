@@ -8,18 +8,18 @@ __date__ = "2008-03-14 -- 2008-12-29"
 
 from ufl.assertions import ufl_assert
 from ufl.common import Counted, product
-from ufl.terminal import Terminal
+from ufl.terminal import FormArgument
 from ufl.split import split
 from ufl.finiteelement import FiniteElementBase
 
 # --- Class representing a basis function argument in a form ---
 
-class BasisFunction(Terminal, Counted):
+class BasisFunction(FormArgument, Counted):
     __slots__ = ("_repr", "_element",)
     _globalcount = 0
 
     def __init__(self, element, count=None):
-        Terminal.__init__(self)
+        FormArgument.__init__(self)
         Counted.__init__(self, count)
         ufl_assert(isinstance(element, FiniteElementBase),
             "Expecting a FiniteElementBase instance.")

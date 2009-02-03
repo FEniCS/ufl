@@ -2,25 +2,25 @@
 of related classes (functions), including Constant."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-01-16"
+__date__ = "2008-03-14 -- 2009-02-03"
 
 # Modified by Anders Logg, 2008
 
 from ufl.assertions import ufl_assert
 from ufl.common import Counted, product
-from ufl.terminal import Terminal
+from ufl.terminal import FormArgument
 from ufl.finiteelement import FiniteElementBase, FiniteElement, VectorElement, TensorElement
 from ufl.split import split
 from ufl.geometry import as_cell
 
 # --- The Function class represents a coefficient function argument to a form ---
 
-class Function(Terminal, Counted):
+class Function(FormArgument, Counted):
     __slots__ = ("_element",)
     _globalcount = 0
 
     def __init__(self, element, count=None):
-        Terminal.__init__(self)
+        FormArgument.__init__(self)
         Counted.__init__(self, count)
         ufl_assert(isinstance(element, FiniteElementBase),
             "Expecting a FiniteElementBase instance.")

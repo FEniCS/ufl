@@ -1,12 +1,12 @@
 """Compound tensor algebra operations."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-01-29"
+__date__ = "2008-03-14 -- 2009-02-03"
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
 from ufl.expr import Expr
-from ufl.terminal import Terminal
+from ufl.terminal import ConstantValue
 from ufl.zero import Zero
 from ufl.indexing import Index, indices
 
@@ -50,11 +50,11 @@ def merge_indices(a, b):
 #   dot(x,y):   last index of x has same dimension as first index of y
 #   inner(x,y): shape of x equals the shape of y
 
-class Identity(Terminal):
+class Identity(ConstantValue):
     __slots__ = ("_dim",)
 
     def __init__(self, dim):
-        Terminal.__init__(self)
+        ConstantValue.__init__(self)
         self._dim = dim
     
     def shape(self):
@@ -76,17 +76,21 @@ class Identity(Terminal):
 
 # --- Classes representing compound tensor algebra operations ---
 
-class Transposed(Expr):
+class CompoundTensorOperator(Expr):
+    def __init__(self):
+        Expr.__init__(self)
+
+class Transposed(CompoundTensorOperator):
     __slots__ = ("_A",)
 
     def __new__(cls, A):
         if isinstance(A, Zero):
             a, b = A.shape()
             return Zero((b, a), A.free_indices(), A.index_dimensions())
-        return Terminal.__new__(cls)
+        return CompoundTensorOperator.__new__(cls)
     
     def __init__(self, A):
-        Expr.__init__(self)
+        CompoundTensorOperator.__init__(self)
         ufl_assert(A.rank() == 2, "Transposed is only defined for rank 2 tensors.")
         self._A = A
     
@@ -109,17 +113,17 @@ class Transposed(Expr):
     def __repr__(self):
         return "Transposed(%r)" % self._A
 
-class Outer(Expr):
+class Outer(CompoundTensorOperator):
     __slots__ = ("_a", "_b", "_free_indices", "_index_dimensions")
 
     def __new__(cls, a, b):
         if isinstance(a, Zero) or isinstance(b, Zero):
             free_indices, index_dimensions = merge_indices(a, b)
             return Zero(a.shape() + b.shape(), free_indices, index_dimensions)
-        return Terminal.__new__(cls)
+        return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, a, b):
-        Expr.__init__(self)
+        CompoundTensorOperator.__init__(self)
         self._a = a
         self._b = b
         self._free_indices, self._index_dimensions = merge_indices(a, b)
@@ -143,7 +147,7 @@ class Outer(Expr):
     def __repr__(self):
         return "Outer(%r, %r)" % (self._a, self._b)
 
-class Inner(Expr):
+class Inner(CompoundTensorOperator):
     __slots__ = ("_a", "_b", "_free_indices", "_index_dimensions")
 
     def __new__(cls, a, b):
@@ -151,10 +155,10 @@ class Inner(Expr):
         if isinstance(a, Zero) or isinstance(b, Zero):
             free_indices, index_dimensions = merge_indices(a, b)
             return Zero((), free_indices, index_dimensions)
-        return Terminal.__new__(cls)
+        return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, a, b):
-        Expr.__init__(self)
+        CompoundTensorOperator.__init__(self)
         # sort operands by their repr TODO: This may be slow, can we do better? Needs to be completely independent of the outside world.
         a, b = sorted((a,b), key = lambda x: repr(x))
         self._a = a
@@ -180,7 +184,7 @@ class Inner(Expr):
     def __repr__(self):
         return "Inner(%r, %r)" % (self._a, self._b)
 
-class Dot(Expr):
+class Dot(CompoundTensorOperator):
     __slots__ = ("_a", "_b", "_free_indices", "_index_dimensions")
 
     def __new__(cls, a, b):
@@ -193,10 +197,10 @@ class Dot(Expr):
             free_indices, index_dimensions = merge_indices(a, b)
             return Zero(shape, free_indices, index_dimensions)
         
-        return Terminal.__new__(cls)
+        return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, a, b):
-        Expr.__init__(self)
+        CompoundTensorOperator.__init__(self)
         self._a = a
         self._b = b
         self._free_indices, self._index_dimensions = merge_indices(a, b)
@@ -220,16 +224,16 @@ class Dot(Expr):
     def __repr__(self):
         return "Dot(%r, %r)" % (self._a, self._b)
 
-class Cross(Expr):
+class Cross(CompoundTensorOperator):
     __slots__ = ("_a", "_b", "_free_indices", "_index_dimensions")
 
     def __new__(cls, a, b):
         if isinstance(a, Zero) or isinstance(b, Zero):
             warning("Returning zero from Cross not implemented.")
-        return Terminal.__new__(cls)
+        return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, a, b):
-        Expr.__init__(self)
+        CompoundTensorOperator.__init__(self)
         ufl_assert(a.rank() == 1 and b.rank() == 1,
             "Cross product requires arguments of rank 1.")
         self._a = a
@@ -261,17 +265,17 @@ class Cross(Expr):
     def __repr__(self):
         return "Cross(%r, %r)" % (self._a, self._b)
 
-class Trace(Expr):
+class Trace(CompoundTensorOperator):
     __slots__ = ("_A",)
 
     def __new__(cls, A):
         ufl_assert(A.rank() == 2, "Trace of tensor with rank != 2 is undefined.")
         if isinstance(A, Zero):
             return Zero((), A.free_indices(), A.index_dimensions())
-        return Terminal.__new__(cls)
+        return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, A):
-        Expr.__init__(self)
+        CompoundTensorOperator.__init__(self)
         self._A = A
     
     def operands(self):
@@ -292,7 +296,7 @@ class Trace(Expr):
     def __repr__(self):
         return "Trace(%r)" % self._A
 
-class Determinant(Expr):
+class Determinant(CompoundTensorOperator):
     __slots__ = ("_A",)
 
     def __new__(cls, A):
@@ -306,10 +310,10 @@ class Determinant(Expr):
             "Not expecting free indices in determinant.")
         if isinstance(A, Zero):
             return Zero((), A.free_indices(), A.index_dimensions())
-        return Terminal.__new__(cls)
+        return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, A):
-        Expr.__init__(self)
+        CompoundTensorOperator.__init__(self)
         self._A = A
     
     def operands(self):
@@ -330,11 +334,11 @@ class Determinant(Expr):
     def __repr__(self):
         return "Determinant(%r)" % self._A
 
-class Inverse(Expr): # TODO: Drop Inverse and represent it as product of Determinant and Cofactor?
+class Inverse(CompoundTensorOperator): # TODO: Drop Inverse and represent it as product of Determinant and Cofactor?
     __slots__ = ("_A",)
 
     def __init__(self, A):
-        Expr.__init__(self)
+        CompoundTensorOperator.__init__(self)
         sh = A.shape()
         r = len(sh)
         ufl_assert(r == 0 or r == 2, "Inverse of tensor with rank != 2 or 0 is undefined.")
@@ -361,11 +365,11 @@ class Inverse(Expr): # TODO: Drop Inverse and represent it as product of Determi
     def __repr__(self):
         return "Inverse(%r)" % self._A
 
-class Cofactor(Expr):
+class Cofactor(CompoundTensorOperator):
     __slots__ = ("_A",)
 
     def __init__(self, A):
-        Expr.__init__(self)
+        CompoundTensorOperator.__init__(self)
         sh = A.shape()
         ufl_assert(len(sh) == 2, "Cofactor of tensor with rank != 2 is undefined.")
         ufl_assert(sh[0] == sh[1], "Cannot take cofactor of rectangular matrix with dimensions %s." % repr(sh))
@@ -390,11 +394,11 @@ class Cofactor(Expr):
     def __repr__(self):
         return "Cofactor(%r)" % self._A
 
-class Deviatoric(Expr):
+class Deviatoric(CompoundTensorOperator):
     __slots__ = ("_A",)
 
     def __init__(self, A):
-        Expr.__init__(self)
+        CompoundTensorOperator.__init__(self)
         sh = A.shape()
         r = len(sh)
         ufl_assert(r == 2, "Deviatoric part of tensor with rank != 2 is undefined.")
@@ -421,11 +425,11 @@ class Deviatoric(Expr):
     def __repr__(self):
         return "Deviatoric(%r)" % self._A
 
-class Skew(Expr):
+class Skew(CompoundTensorOperator):
     __slots__ = ("_A",)
 
     def __init__(self, A):
-        Expr.__init__(self)
+        CompoundTensorOperator.__init__(self)
         sh = A.shape()
         r = len(sh)
         ufl_assert(r == 2, "Skew part of tensor with rank != 2 is undefined.")
