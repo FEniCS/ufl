@@ -12,17 +12,20 @@ for subclass in all_ufl_classes:
     if not superclass is object:
         edges.append((subclass.__name__, superclass.__name__))
 
-format1= ""
+format1 = ""
 format2 = """
   node [shape=box];
 """
 format3 = """
+  node [shape=box, style=filled, color=lightgrey];
+"""
+format4 = """
   root=Expr;
   maxiter=100000;
   splines=true;
-  node [shape=box];
+  node [shape=box, style=filled, color=lightgrey];
 """
-format = format3
+format = format4
 
 dot = """strict digraph {
 %s

@@ -125,8 +125,7 @@ class ArityAnalyser(Transformer): # TODO: Can we avoid the cache stuff? Seems a 
     dot = product
     
     def index_sum(self, o, f, i):
-        print "\n"*100
-        FIXME
+        error("FIXME")
     
     def sum(self, x, *ops):
         # Split operands into separate lists based on form arity
@@ -145,7 +144,7 @@ class ArityAnalyser(Transformer): # TODO: Can we avoid the cache stuff? Seems a 
             if i > self._arity:
                 del opgroups[i]
         
-        # If we got more than one arity left, pick the one we're after TODO: This can fail
+        # If we got more than one arity left, pick the one we're after FIXME: This fails
         if len(opgroups) > 1:
             arity = self._arity
         else:

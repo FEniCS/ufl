@@ -23,11 +23,15 @@ Roadmap for the development of UFL
          = db/dx_i + dc/dx_i
          = db/dx_i + zero(i) # we have currently special-cased zero to carry free indices
 
-   C)  a = b(x) * c
+   C)  a = b(x) * x_i
        f = da/dx_i
-         = db/dx_i * c + b * dc/dx_i
-         = db/dx_i * c + b * zero(i)
-         = db/dx_i * c
+         = db/dx_i * c + b * dx_i/dx_i # no implicit summation
+         = db/dx_i * c + b * 1 # index gone in one term! need to assign indices to scalar values
+
+   D)  a = b(v) * v
+       f = da/dv
+         = db/dv * c + b * dv/dv
+         = db/dv * c + b * 1
 
 # Derivatives:
  - Finish forward mode AD implementation and verify correctness
