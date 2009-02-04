@@ -143,7 +143,13 @@ class Expr(object):
     #    "Used for pickle and copy operations."
     #    return self.operands()
 
-class Wrapper(Expr):
+#--- Subtypes of Expr, used to logically group class hierarchy ---
+
+class WrapperType(Expr):
+    def __init__(self):
+        Expr.__init__(self)
+
+class AlgebraOperator(Expr):
     def __init__(self):
         Expr.__init__(self)
 

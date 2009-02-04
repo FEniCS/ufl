@@ -9,26 +9,22 @@ from ufl.common import product, unzip, UFLTypeDefaultDict, subdict, mergedicts, 
 
 # All classes:
 from ufl.expr import Expr
-from ufl.terminal import Terminal
-from ufl.zero import Zero
+from ufl.terminal import Terminal, Tuple
+from ufl.constantvalue import Zero, ScalarValue, FloatValue, IntValue, Identity, is_true_ufl_scalar
 from ufl.form import Form
 from ufl.integral import Integral
-from ufl.scalar import FloatValue, IntValue
 from ufl.variable import Variable
 from ufl.finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
 from ufl.basisfunction import BasisFunction, BasisFunctions
-from ufl.function import Function, Constant
+from ufl.function import Function, Constant, VectorConstant, TensorConstant
 from ufl.indexing import MultiIndex, Indexed, Index
 from ufl.tensors import ListTensor, ComponentTensor
 from ufl.algebra import Sum, Product, Division, Power, Abs
-from ufl.tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
+from ufl.tensoralgebra import Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
 from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
 from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
-from ufl.differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot
+from ufl.differentiation import Derivative, FunctionDerivative, SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
-
-from ufl.classes import ScalarValue, Zero, Identity, Constant, VectorConstant, TensorConstant
-from ufl.classes import Terminal, Expr, Derivative, Tuple, SpatialDerivative, VariableDerivative, FunctionDerivative
 
 # Lists of all Expr classes
 #from ufl.classes import ufl_classes, terminal_classes, nonterminal_classes
@@ -49,8 +45,6 @@ from ufl.algorithms.transformations import expand_compounds, Transformer, transf
 def is_spatially_constant(o):
     return (isinstance(o, Terminal) and o.cell() is None) or isinstance(o, Constant)
 
-_1 = IntValue(1)
-
 class AD(Transformer):
     def __init__(self, spatial_dim, var_shape, var_free_indices, var_index_dimensions):
         Transformer.__init__(self)
@@ -68,12 +62,25 @@ class AD(Transformer):
         fi = o.free_indices()
         idims = dict(o.index_dimensions())
         if self._var_free_indices:
-            i, = self._var_free_indices
+            i, = self._var_free_indices # currently assuming only one free variable index
             if i not in idims:
                 fi += (i,)
                 idims[i] = self._var_index_dimensions[i]
         fp = Zero(sh, fi, idims)
         return fp   
+
+    def _make_ones_diff(self, o):
+        # Define a scalar value with the right indices (kind of cumbersome this... any simpler way?)
+        sh = o.shape() + self._var_shape
+        fi = o.free_indices()
+        idims = dict(o.index_dimensions())
+        if self._var_free_indices:
+            i, = self._var_free_indices
+            if i not in idims:
+                fi += (i,)
+                idims[i] = self._var_index_dimensions[i]
+        fp = IntValue(1, sh, fi, idims)
+        return fp
     
     def _visit(self, o):
         "Debugging hook, enable this by renaming to 'visit'."
@@ -196,7 +203,8 @@ class AD(Transformer):
     def power(self, o, a, b):
         f, fp = a
         g, gp = b
-        ufl_assert(not (f.shape() or g.shape()), "Expecting scalar expressions f,g in f**g.")
+        ufl_assert(is_true_ufl_scalar(f), "Expecting scalar expression f in f**g.")
+        ufl_assert(is_true_ufl_scalar(g), "Expecting scalar expression g in f**g.")
         # o = f**g
         f_const = isinstance(fp, Zero)
         g_const = isinstance(gp, Zero)
@@ -318,6 +326,8 @@ class AD(Transformer):
 
 class SpatialAD(AD):
     def __init__(self, spatial_dim, index):
+        if isinstance(index, MultiIndex): # FIXME: Iron out this, decide where to use MultiIndex and Index properly
+            index, = index
         AD.__init__(self, spatial_dim, var_shape=(), var_free_indices=(index,), var_index_dimensions={index:spatial_dim})
         self._index = index
     
@@ -350,7 +360,8 @@ class VariableAD(AD):
     
     def variable(self, o):
         if o is self._variable:
-            return (o, _1) # TODO: This assumes variable is scalar! Maybe we can use self._var_free_indices to index into tensor differentiation variable?
+            op = self._make_ones_diff(o)
+            return (o, op)
         else:
             self._variable_cache[o._expression] = o
             x2, xdiff = self.visit(o._expression)

@@ -1,12 +1,12 @@
 """This module defines the single index types and some internal index utilities."""
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-14 -- 2009-01-29"
+__date__ = "2008-03-14 -- 2009-02-04"
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.common import Counted
-from ufl.terminal import Terminal
+from ufl.terminal import UtilityType
 
 #--- Index types ---
 
@@ -72,11 +72,11 @@ class FixedIndex(IndexBase):
     def __repr__(self):
         return "FixedIndex(%d)" % self._value
 
-class MultiIndex(Terminal):
+class MultiIndex(UtilityType):
     __slots__ = ("_indices",)
     
     def __init__(self, ii):
-        Terminal.__init__(self)
+        UtilityType.__init__(self)
         if isinstance(ii, int):
             ii = (FixedIndex(ii),)
         elif isinstance(ii, IndexBase):
@@ -87,16 +87,6 @@ class MultiIndex(Terminal):
             error("Expecting tuple of UFL indices.")
         self._indices = ii
     
-    def free_indices(self):
-        # This reflects the fact that a MultiIndex isn't a tensor expression
-        error("Calling free_indices on MultiIndex is an error.")
-    
-    def index_dimensions(self):
-        error("Calling index_dimensions on MultiIndex is an error.")
-    
-    def shape(self):
-        error("Calling shape on MultiIndex is an error.")
-        
     def evaluate(self, x, mapping, component, index_values):
         # Build component from index values
         component = []

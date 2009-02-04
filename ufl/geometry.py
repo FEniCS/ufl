@@ -8,7 +8,11 @@ __date__ = "2008-03-14 -- 2009-02-03"
 from ufl.log import warning
 from ufl.assertions import ufl_assert
 from ufl.common import domain2dim
-from ufl.terminal import GeometricQuantity
+from ufl.terminal import Terminal
+
+class GeometricQuantity(Terminal):
+    def __init__(self):
+        Terminal.__init__(self)
 
 class SpatialCoordinate(GeometricQuantity):
     __slots__ = ("_cell",)

@@ -16,8 +16,7 @@ from ufl.common import write_file, openpdf
 from ufl.permutation import compute_indices
 
 # All classes:
-from ufl.zero import Zero
-from ufl.scalar import ScalarValue, FloatValue, IntValue, ScalarSomething
+from ufl.constantvalue import Zero, ScalarValue, FloatValue, IntValue, ScalarSomething, Identity
 from ufl.variable import Variable
 from ufl.basisfunction import BasisFunction
 from ufl.function import Function, Constant, VectorConstant, TensorConstant
@@ -26,7 +25,7 @@ from ufl.indexing import MultiIndex, Indexed, Index, FixedIndex
 from ufl.tensors import ListTensor, ComponentTensor
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.indexsum import IndexSum
-from ufl.tensoralgebra import Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
+from ufl.tensoralgebra import Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
 from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
 from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
 from ufl.differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot

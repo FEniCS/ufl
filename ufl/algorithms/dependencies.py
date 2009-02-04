@@ -14,14 +14,12 @@ from ufl.permutation import compute_indices
 # All classes:
 from ufl.expr import Expr
 from ufl.terminal import Terminal
-from ufl.zero import Zero
-from ufl.scalar import FloatValue, IntValue
+from ufl.constantvalue import Zero, FloatValue, IntValue, Identity
 from ufl.variable import Variable, Label
 from ufl.basisfunction import BasisFunction
 from ufl.function import Function, Constant
 from ufl.differentiation import SpatialDerivative
 from ufl.geometry import FacetNormal
-from ufl.tensoralgebra import Identity
 from ufl.indexing import MultiIndex, Indexed, Index, FixedIndex
 from ufl.tensors import ListTensor, ComponentTensor
 

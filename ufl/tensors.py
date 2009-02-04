@@ -5,17 +5,17 @@ __date__ = "2008-03-31 -- 2009-02-03"
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
-from ufl.expr import Expr, Wrapper
-from ufl.scalar import as_ufl
+from ufl.expr import Expr, WrapperType
+from ufl.constantvalue import as_ufl
 from ufl.indexing import Index, MultiIndex
 
 # --- Classes representing tensors of UFL expressions ---
 
-class ListTensor(Wrapper):
+class ListTensor(WrapperType):
     __slots__ = ("_expressions", "_free_indices", "_shape")
     
     def __init__(self, *expressions):
-        Wrapper.__init__(self)
+        WrapperType.__init__(self)
         if isinstance(expressions[0], (list, tuple)):
             expressions = [ListTensor(*sub) for sub in expressions]
         
@@ -69,11 +69,11 @@ class ListTensor(Wrapper):
     def __repr__(self):
         return "ListTensor(%s)" % ", ".join(repr(e) for e in self._expressions)
 
-class ComponentTensor(Wrapper):
+class ComponentTensor(WrapperType):
     __slots__ = ("_expression", "_indices", "_free_indices", "_index_dimensions", "_shape")
     
     def __init__(self, expression, indices):
-        Wrapper.__init__(self)
+        WrapperType.__init__(self)
         ufl_assert(isinstance(expression, Expr), "Expecting ufl expression.")
         ufl_assert(expression.shape() == (), "Expecting scalar valued expression.")
         self._expression = expression

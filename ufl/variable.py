@@ -7,17 +7,14 @@ __date__ = "2008-05-20 -- 2009-02-03"
 from ufl.common import Counted
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.expr import Expr, Wrapper
-from ufl.terminal import Terminal
+from ufl.expr import Expr, WrapperType
+from ufl.terminal import UtilityType
 
-class Label(Terminal, Counted):
+class Label(UtilityType, Counted):
     _globalcount = 0
     __slots__ = ()
     def __init__(self, count=None):
         Counted.__init__(self, count)
-    
-    def shape(self):
-        error("Calling shape on Label is an error.")
     
     def __str__(self):
         return "Label(%d)" % self._count
@@ -28,7 +25,7 @@ class Label(Terminal, Counted):
     def __hash__(self):
         return hash(repr(self))
 
-class Variable(Wrapper):
+class Variable(WrapperType):
     """A Variable is a representative for another expression.
     
     It will be used by the end-user mainly for defining
@@ -41,7 +38,7 @@ class Variable(Wrapper):
     """
     __slots__ = ("_expression", "_label")
     def __init__(self, expression, label=None):
-        Wrapper.__init__(self)
+        WrapperType.__init__(self)
         
         ufl_assert(isinstance(expression, Expr), "Expecting an Expr.")
         self._expression = expression

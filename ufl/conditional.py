@@ -6,7 +6,7 @@ __date__ = "2008-08-20 -- 2009-01-09"
 from ufl.log import warning, error
 from ufl.assertions import ufl_assert
 from ufl.expr import Expr
-from ufl.scalar import as_ufl
+from ufl.constantvalue import as_ufl 
 
 #--- Condition classes --- 
 

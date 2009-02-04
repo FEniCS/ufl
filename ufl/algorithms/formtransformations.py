@@ -15,7 +15,7 @@ from ufl.assertions import ufl_assert
 # All classes:
 from ufl.basisfunction import BasisFunction
 #from ufl.basisfunction import TestFunction, TrialFunction, BasisFunctions, TestFunctions, TrialFunctions
-from ufl.scalar import IntValue
+from ufl.constantvalue import IntValue
 from ufl.function import Function, Constant
 from ufl.form import Form
 from ufl.variable import Variable
@@ -53,7 +53,6 @@ class ArityAnalyser(Transformer): # TODO: Can we avoid the cache stuff? Seems a 
         Transformer.__init__(self)
         self._arity_cache = {}
         self._arity = arity
-        print "X\n"*100
     
     def expr(self, x, *ops):
         # FIXME: Other operators to implement particularly? Will see when this triggers...

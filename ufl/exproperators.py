@@ -11,8 +11,7 @@ from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.common import mergedicts, subdict, StackDict
 from ufl.expr import Expr
-from ufl.zero import Zero
-from ufl.scalar import ScalarValue, FloatValue, IntValue, is_python_scalar, as_ufl, python_scalar_types
+from ufl.constantvalue import Zero, ScalarValue, FloatValue, IntValue, is_python_scalar, as_ufl, python_scalar_types
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import Transposed, Dot
 from ufl.indexing import MultiIndex, IndexBase, FixedIndex, Index, Indexed, IndexSum, indices

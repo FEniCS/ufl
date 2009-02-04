@@ -61,26 +61,28 @@ class FormArgument(Terminal):
     def __init__(self):
         Terminal.__init__(self)
 
-class ConstantValue(Terminal):
+class UtilityType(Terminal):
     def __init__(self):
         Terminal.__init__(self)
-
-class GeometricQuantity(Terminal):
-    def __init__(self):
-        Terminal.__init__(self)
+    
+    def shape(self):
+        error("Calling shape on a utility type is an error.")
+    
+    def free_indices(self):
+        error("Calling free_indices on a utility type is an error.")
+    
+    def index_dimensions(self):
+        error("Calling free_indices on a utility type is an error.")
 
 #--- Non-tensor terminal nodes ---
 
-class Tuple(Terminal):
+class Tuple(UtilityType):
     "For internal use, never to be created by users."
     def __init__(self, *items):
-        Expr.__init__(self)
+        UtilityType.__init__(self)
         if not all(isinstance(i, Expr) for i in items):
             warning("Got non-Expr in Tuple, is this intended? If so, remove this warning.")
         self._items = items
-    
-    def shape(self):
-        error("Calling shape on Label is and error.")
     
     def __getitem__(self, i):
         return self._items[i]

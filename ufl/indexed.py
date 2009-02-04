@@ -5,18 +5,18 @@ __date__ = "2009-01-28 -- 2009-02-03"
 
 from collections import defaultdict
 from ufl.log import error
-from ufl.expr import Wrapper
+from ufl.expr import WrapperType
 from ufl.indexing import IndexBase, Index, FixedIndex, MultiIndex, as_multi_index
 from ufl.indexutils import unique_indices
 from ufl.assertions import ufl_assert, assert_expr, assert_instance
 
 #--- Indexed expression ---
 
-class Indexed(Wrapper):
+class Indexed(WrapperType):
     __slots__ = ("_expression", "_indices",
                  "_free_indices", "_index_dimensions")
     def __init__(self, expression, indices):
-        Wrapper.__init__(self)
+        WrapperType.__init__(self)
         assert_expr(expression)
         self._expression = expression
         self._indices = as_multi_index(indices)

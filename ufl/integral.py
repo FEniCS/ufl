@@ -7,7 +7,7 @@ __date__ = "2008-03-14 -- 2009-01-09"
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.scalar import is_true_ufl_scalar
+from ufl.constantvalue import is_true_ufl_scalar
 
 class Integral(object):
     """Description of an integral over a single domain."""

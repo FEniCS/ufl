@@ -32,7 +32,7 @@ __version__ = "0.1"
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __copyright__ = "Copyright (C) 2008-2009 " + __authors__
 __license__  = "GNU GPL version 3 or any later version"
-__date__ = "2008-03-14 -- 2009-01-29"
+__date__ = "2008-03-14 -- 2009-02-04"
 
 ########## README
 # Imports here should be what the user sees when doing "from ufl import *",
@@ -61,6 +61,9 @@ from ufl.basisfunction import BasisFunction, TestFunction, TrialFunction, \
 from ufl.function import Function, Functions, \
                       Constant, VectorConstant, TensorConstant
 
+# literal constants
+from ufl.constantvalue import Identity
+
 # indexing of tensor expressions
 from ufl.indexing import Index, indices
 
@@ -73,9 +76,6 @@ from ufl.tensors import unit_vector, unit_vectors, unit_matrix, unit_matrices
 
 # types for geometric quantities
 from ufl.geometry import Cell # , SpatialCoordinate, FacetNormal # use cell = Cell("triangle"); x = cell.x(); n = cell.n()
-
-# tensor algebra operators
-from ufl.tensoralgebra import Identity
 
 # operators
 from ufl.operators import transpose, outer, inner, dot, cross, det, inv, tr, dev, cofac, skew, \

@@ -11,18 +11,13 @@ from itertools import chain
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.common import product, mergedicts, subdict
-from ufl.expr import Expr
-from ufl.zero import Zero
-from ufl.scalar import ScalarValue, FloatValue, IntValue, is_true_ufl_scalar, is_python_scalar, as_ufl
+from ufl.expr import Expr, AlgebraOperator
+from ufl.constantvalue import Zero, ScalarValue, FloatValue, IntValue, is_true_ufl_scalar, is_python_scalar, as_ufl
 from ufl.indexing import IndexBase, Index, FixedIndex
 from ufl.indexutils import unique_indices
 from ufl.sorting import cmp_expr
 
 #--- Algebraic operators ---
-
-class AlgebraOperator(Expr):
-    def __init__(self):
-        Expr.__init__(self)
 
 class Sum(AlgebraOperator):
     __slots__ = ("_operands", "_repr")
@@ -35,11 +30,11 @@ class Sum(AlgebraOperator):
         
         # assert consistent tensor properties
         sh = operands[0].shape()
-        fi = set(operands[0].free_indices())
-        fid = set(operands[0].index_dimensions())
+        fi = operands[0].free_indices()
+        fid = operands[0].index_dimensions()
         ufl_assert(all(sh == o.shape() for o in operands[1:]),
             "Shape mismatch in Sum.")
-        ufl_assert(not any((fi ^ set(o.free_indices())) for o in operands[1:]),
+        ufl_assert(not any((set(fi) ^ set(o.free_indices())) for o in operands[1:]),
             "Can't add expressions with different free indices.")
         
         # sort operands in a canonical order
@@ -63,7 +58,7 @@ class Sum(AlgebraOperator):
         
         # have we purged everything? 
         if not operands:
-            return Zero(sh, tuple(fi), fid)
+            return Zero(sh, fi, fid)
         
         # left with one operand only?
         if len(operands) == 1:

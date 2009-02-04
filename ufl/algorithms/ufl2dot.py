@@ -12,7 +12,7 @@ from ufl.expr import Expr
 from ufl.terminal import Terminal
 from ufl.form import Form
 from ufl.variable import Variable
-from ufl.scalar import ScalarValue
+from ufl.constantvalue import ScalarValue
 from ufl.geometry import FacetNormal
 
 # TODO: Maybe this can be cleaner written using the graph utilities

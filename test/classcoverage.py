@@ -7,7 +7,7 @@ import unittest
 
 import ufl
 from ufl import *
-from ufl.scalar import as_ufl
+from ufl.constantvalue import as_ufl
 from ufl.classes import * 
 from ufl.algorithms import * 
 

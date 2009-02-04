@@ -3,23 +3,22 @@ since it enables the syntax "from ufl.classes import FooBar" for getting
 implementation details not exposed through the default ufl namespace."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-15 -- 2009-02-03"
+__date__ = "2008-08-15 -- 2009-02-04"
 
 # Modified by Anders Logg, 2008
 
-from ufl.expr import Expr, Wrapper
-from ufl.terminal import Terminal, FormArgument, ConstantValue, GeometricQuantity, Tuple
-from ufl.zero import Zero
-from ufl.scalar import ScalarValue, FloatValue, IntValue, ScalarSomething
+from ufl.expr import Expr, WrapperType, AlgebraOperator
+from ufl.terminal import Terminal, FormArgument, UtilityType, Tuple
+from ufl.constantvalue import ConstantValue, Zero, ScalarValue, FloatValue, IntValue, ScalarSomething, Identity
 from ufl.variable import Variable, Label
 from ufl.finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
 from ufl.basisfunction import BasisFunction, TestFunction, TrialFunction
 from ufl.function import Function, VectorConstant, TensorConstant, Constant
-from ufl.geometry import SpatialCoordinate, FacetNormal
+from ufl.geometry import GeometricQuantity, SpatialCoordinate, FacetNormal
 from ufl.indexing import MultiIndex, Indexed, IndexBase, Index, FixedIndex, IndexSum
 from ufl.tensors import ListTensor, ComponentTensor
-from ufl.algebra import AlgebraOperator, Sum, Product, Division, Power, Abs
-from ufl.tensoralgebra import CompoundTensorOperator, Identity, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Cofactor, Inverse, Deviatoric, Skew
+from ufl.algebra import Sum, Product, Division, Power, Abs
+from ufl.tensoralgebra import CompoundTensorOperator, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Cofactor, Inverse, Deviatoric, Skew
 from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
 from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
 from ufl.differentiation import Derivative, CompoundDerivative, FunctionDerivative, SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot

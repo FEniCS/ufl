@@ -6,9 +6,9 @@ __date__ = "2008-03-14 -- 2009-02-03"
 from ufl.log import warning
 from ufl.assertions import ufl_assert
 from ufl.expr import Expr
-from ufl.terminal import ConstantValue
-from ufl.zero import Zero
+from ufl.constantvalue import ConstantValue, Zero
 from ufl.indexing import Index, indices
+from ufl.algebra import AlgebraOperator
 
 def merge_indices(a, b):
     ai = a.free_indices()
@@ -50,35 +50,11 @@ def merge_indices(a, b):
 #   dot(x,y):   last index of x has same dimension as first index of y
 #   inner(x,y): shape of x equals the shape of y
 
-class Identity(ConstantValue):
-    __slots__ = ("_dim",)
-
-    def __init__(self, dim):
-        ConstantValue.__init__(self)
-        self._dim = dim
-    
-    def shape(self):
-        return (self._dim, self._dim)
-    
-    def evaluate(self, x, mapping, component, index_values):
-        a, b = component
-        return 1 if a == b else 0
-    
-    def __str__(self):
-        return "I"
-    
-    def __repr__(self):
-        return "Identity(%d)" % self._dim
-    
-    def __eq__(self, other):
-        return isinstance(other, Identity) and self._dim == other._dim
-
-
 # --- Classes representing compound tensor algebra operations ---
 
-class CompoundTensorOperator(Expr):
+class CompoundTensorOperator(AlgebraOperator):
     def __init__(self):
-        Expr.__init__(self)
+        AlgebraOperator.__init__(self)
 
 class Transposed(CompoundTensorOperator):
     __slots__ = ("_A",)

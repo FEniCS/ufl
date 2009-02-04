@@ -9,8 +9,7 @@ __date__ = "2008-04-09 -- 2009-01-30"
 import math
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.zero import Zero
-from ufl.scalar import ScalarValue, as_ufl
+from ufl.constantvalue import Zero, ScalarValue, as_ufl
 from ufl.differentiation import VariableDerivative, Grad, Div, Curl, Rot
 from ufl.tensoralgebra import Transposed, Inner, Outer, Dot, Cross, Determinant, Inverse, Cofactor, Trace, Deviatoric, Skew
 from ufl.variable import Variable

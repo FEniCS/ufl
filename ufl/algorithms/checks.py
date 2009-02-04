@@ -12,7 +12,7 @@ from ufl.assertions import ufl_assert
 from ufl.form import Form
 from ufl.function import Function
 from ufl.basisfunction import BasisFunction
-from ufl.scalar import is_true_ufl_scalar
+from ufl.constantvalue import is_true_ufl_scalar
 
 # Other algorithms
 from ufl.algorithms.traversal import post_traversal, post_walk, iter_expressions, traverse_terminals
