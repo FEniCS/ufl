@@ -1,7 +1,13 @@
 #!/bin/bash
 FORMAT=pdf
-APP=twopi
-APP=circo
+#APP=circo # not good
+#APP=twopi # not good
+
+# select hierarchial structure:
 APP=dot
+
+# select circular structure:
+#APP=fdp
+
 python printclasstree.py | $APP -T$FORMAT -oclassgraph.$FORMAT
 evince classgraph.$FORMAT &

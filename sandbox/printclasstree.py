@@ -1,36 +1,41 @@
 #!/usr/bin/env python
 
+from collections import defaultdict
 from ufl.classes import all_ufl_classes
 
-vertices = []
-for subclass in all_ufl_classes:
-    vertices.append(subclass.__name__)
+# Build lists of subclasses
+subgraphs = defaultdict(list)
+for c in all_ufl_classes:
+    subgraphs[c.mro()[1].__name__].append(c.__name__)
 
-edges = []
-for subclass in all_ufl_classes:
-    superclass = subclass.mro()[1]
-    if not superclass is object:
-        edges.append((subclass.__name__, superclass.__name__))
+# Recursive graph formatting
+def format_children(parent, level, skipparent=False):
+    children = subgraphs[parent]
+    t = "  "*level
+    begin = t + "subgraph {\n"
+    end   = t + "}\n"
+    g = ""
+    for child in children:
+        if child in subgraphs:
+            g += begin
+            g += format_children(child, level+1)
+            g += end
+        if not skipparent:
+            g += t + "%s -> %s;\n" % (child, parent)
+    return g
 
-format1 = ""
-format2 = """
-  node [shape=box];
-"""
-format3 = """
+# Render graph body!
+body = format_children("object", 1, True)
+
+# Set global formatting options
+format = """
   node [shape=box, style=filled, color=lightgrey];
-"""
-format4 = """
-  root=Expr;
-  maxiter=100000;
   splines=true;
-  node [shape=box, style=filled, color=lightgrey];
 """
-format = format4
 
+# Combine everythig to a global graph
 dot = """strict digraph {
 %s
 %s
-%s
-}""" % (format, "\n".join("  %s;" % v for v in vertices), "\n".join("  %s -> %s;" % e for e in edges))
+}""" % (format, body)
 print dot
-
