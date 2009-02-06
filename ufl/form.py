@@ -4,6 +4,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__    = "2008-03-14 -- 2009-01-09"
 
 from ufl.assertions import ufl_assert
+from ufl.constantvalue import as_ufl, is_python_scalar
 
 # --- The Form class, representing a complete variational form or functional ---
 
@@ -76,7 +77,14 @@ class Form(object):
         return self._add(other, -1)
     
     def __neg__(self):
-        newintegrals = [-itg for itg in self._integrals]
+        # This enables the handy "-form" syntax for e.g. the linearized system (J, -F) from a nonlinear form F
+        newintegrals = [itg.reconstruct(integrand=-itg.integrand()) for itg in self._integrals]
+        return Form(newintegrals)
+    
+    def __rmul__(self, other):
+        # This enables the handy "0*form" syntax
+        ufl_assert(is_python_scalar(other), "Only multiplication by scalar literals currently supported.")
+        newintegrals = [itg.reconstruct(integrand=other*itg.integrand()) for itg in self._integrals]
         return Form(newintegrals)
     
     def __str__(self):

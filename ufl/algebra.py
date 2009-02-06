@@ -23,10 +23,16 @@ class Sum(AlgebraOperator):
     __slots__ = ("_operands", "_repr")
     
     def __new__(cls, *operands): # TODO: This seems a bit complicated... Can it be simplified? Maybe we can merge some loops for efficiency?
-        ufl_assert(len(operands), "Can't take sum of nothing.")
+        #ufl_assert(len(operands), "Can't take sum of nothing.")
+        if not operands:
+            return Zero()
         
         # make sure everything is an Expr
         operands = [as_ufl(o) for o in operands]
+        
+        # Got one operand only? Do nothing then.
+        if len(operands) == 1:
+            return operands[0]
         
         # assert consistent tensor properties
         sh = operands[0].shape()
@@ -120,13 +126,16 @@ class Product(AlgebraOperator):
     __slots__ = ("_operands", "_free_indices", "_index_dimensions", "_shape", "_repr")
     
     def __new__(cls, *operands):
+        # make sure everything is an Expr
+        operands = [as_ufl(o) for o in operands]
+        
+        # Got nothing? The result is one.
+        if not operands:
+            return IntValue(1)
+        
         # Got one operand only? Do nothing then.
         if len(operands) == 1:
             return operands[0]
-        
-        # Assert valid input types
-        ufl_assert(len(operands) >= 2, "Can't make product of nothing, should catch this before getting here.")
-        operands = [as_ufl(o) for o in operands]
         
         # Sort operands in a canonical order (NB! This is fragile! Small changes here can have large effects.)
         operands = sorted(operands, cmp=cmp_expr)

@@ -15,7 +15,13 @@ from ufl.differentiation import FunctionDerivative
 
 # An exception to the rule that ufl.* does not depend on ufl.algorithms.* ...
 from ufl.algorithms import compute_form_adjoint, compute_form_action, \
-                           compute_form_lhs, compute_form_rhs, expand_derivatives
+                           compute_form_lhs, compute_form_rhs, compute_form_functional, expand_derivatives
+
+def lhs(form):
+    """Given a combined bilinear and linear form,
+    extract the bilinear form part (left hand side)."""
+    form = expand_derivatives(form)
+    return compute_form_lhs(form)
 
 def rhs(form):
     """Given a combined bilinear and linear form,
@@ -29,11 +35,10 @@ def rhs(form):
     form = expand_derivatives(form)
     return compute_form_rhs(form)
 
-def lhs(form):
-    """Given a combined bilinear and linear form,
-    extract the bilinear form part (left hand side)."""
+def functional(form): # TODO: Does this make sense for anything other than testing?
+    """Extract the functional part of form."""
     form = expand_derivatives(form)
-    return compute_form_lhs(form)
+    return compute_form_functional(form)
 
 def action(form, function=None):
     """Given a bilinear form, return a linear form

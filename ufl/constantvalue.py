@@ -1,7 +1,7 @@
 "This module defines classes representing constant values."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-11-01 -- 2009-02-04"
+__date__ = "2008-11-01 -- 2009-02-06"
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
@@ -68,6 +68,8 @@ class Zero(ConstantValue, IndexAnnotated):
         return 0.0
     
     def __str__(self):
+        if self._shape == () and self._free_indices == ():
+            return "0"
         return "[Zero tensor with shape %s and free indices %s]" % \
             (repr(self._shape), repr(self._free_indices))
     

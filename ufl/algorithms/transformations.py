@@ -78,30 +78,30 @@ class Transformer(object):
             return h(o)
         # Failed to find a handler!
         raise RuntimeError("Can't handle objects of type %s" % str(type(o)))
-
+    
+    def undefined(self, o):
+        "Trigger error."
+        error("No handler defined for %s." % o._uflclass.__name__)
+    
     def reuse(self, o):
         "Always reuse Expr (ignore children)"
         return o
     
     def reuse_if_possible(self, o, *operands):
-        "Reuse Expr if possible, otherwise recreate."
+        "Reuse Expr if possible, otherwise recreate from given operands."
         return o if operands == o.operands() else o._uflclass(*operands)
     
     def always_recreate(self, o, *operands):
         "Always recreate expr."
         return o._uflclass(*operands)
     
-    # Set default behaviour for terminals
+    # Set default behaviour for any Expr
+    expr = undefined
+    
+    # Set default behaviour for any Terminal
     terminal = reuse
-
-class ReuseTransformer(Transformer):
-    def __init__(self, variable_cache=None):
-        Transformer.__init__(self, variable_cache)
     
-    # Set default Expr behaviour
-    expr = Transformer.reuse_if_possible
-    
-    def variable(self, o):
+    def reuse_variable(self, o):
         # Check variable cache to reuse previously transformed variable if possible
         e, l = o.operands()
         v = self._variable_cache.get(l)
@@ -115,14 +115,7 @@ class ReuseTransformer(Transformer):
             self._variable_cache[l] = v
         return v
 
-class CopyTransformer(Transformer):
-    def __init__(self, variable_cache=None):
-        Transformer.__init__(self, variable_cache)
-    
-    # Set default Expr behaviour
-    expr = Transformer.always_recreate
-    
-    def variable(self, o):
+    def recreate_variable(self, o):
         # Check variable cache to reuse previously transformed variable if possible
         e, l = o.operands()
         v = self._variable_cache.get(l)
@@ -133,6 +126,32 @@ class CopyTransformer(Transformer):
             v = Variable(e2, l)
             self._variable_cache[l] = v
         return v
+
+class ReuseTransformer(Transformer):
+    def __init__(self, variable_cache=None):
+        Transformer.__init__(self, variable_cache)
+    
+    # Set default behaviour for any Expr
+    expr = Transformer.reuse_if_possible
+    
+    # Set default behaviour for any Terminal
+    terminal = Transformer.reuse
+    
+    # Set default behaviour for Variable 
+    variable = Transformer.reuse_variable
+
+class CopyTransformer(Transformer):
+    def __init__(self, variable_cache=None):
+        Transformer.__init__(self, variable_cache)
+    
+    # Set default behaviour for any Expr
+    expr = Transformer.always_recreate
+
+    # Set default behaviour for any Terminal
+    terminal = Transformer.reuse
+    
+    # Set default behaviour for Variable 
+    variable = Transformer.recreate_variable
 
 class Replacer(ReuseTransformer):
     def __init__(self, mapping):
