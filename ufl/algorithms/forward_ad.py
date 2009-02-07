@@ -1,9 +1,9 @@
 """Forward mode AD implementation."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-19-- 2009-01-19"
+__date__ = "2008-08-19-- 2009-02-07"
 
-from ufl.log import error, warning
+from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert
 from ufl.common import product, unzip, UFLTypeDefaultDict, subdict, mergedicts, lstr
 
@@ -87,23 +87,19 @@ class AD(Transformer):
         r = Transformer.visit(self, o)
         f, df = r
         if not f is o:
-            print 
-            print "In AD.visit, didn't get back o:"
-            print "  o:  ", str(o)
-            print "  f:  ", str(f)
-            print "  df: ", str(df)
-            print 
+            debug("In AD.visit, didn't get back o:")
+            debug("  o:  %s" % str(o))
+            debug("  f:  %s" % str(f))
+            debug("  df: %s" % str(df))
         fi_diff = set(f.free_indices()) ^ set(df.free_indices())
         if fi_diff:
-            print 
-            print "In AD.visit, got free indices diff:"
-            print "  o:  ", str(o)
-            print "  f:  ", str(f)
-            print "  df: ", str(df)
-            print "  f.fi():  ", lstr(f.free_indices())
-            print "  df.fi(): ", lstr(df.free_indices())
-            print "  fi_diff: ", str(fi_diff)
-            print 
+            debug("In AD.visit, got free indices diff:")
+            debug("  o:  %s" % str(o))
+            debug("  f:  %s" % str(f))
+            debug("  df: %s" % str(df))
+            debug("  f.fi():  %s" % lstr(f.free_indices()))
+            debug("  df.fi(): %s" % lstr(df.free_indices()))
+            debug("  fi_diff: %s" % str(fi_diff))
         return r
     
     # --- Default rules
@@ -147,10 +143,10 @@ class AD(Transformer):
         A, jj = o.operands()
         A2, Ap = self.visit(A)
         if not A is A2:
-            print "\n"*3
-            print "A  =", str(A)
-            print "A2 =", str(A2)
-            print "\n"*3
+            debug("\n"*3)
+            debug("A  = %s" % str(A))
+            debug("A2 = %s" % str(A2))
+            debug("\n"*3)
         ufl_assert(A is A2, "This is a surprise, please provide example!")
         op = o._uflclass(Ap, jj)
         return (o, op)
@@ -198,7 +194,8 @@ class AD(Transformer):
         f, fp = a
         g, gp = b
         #return (o, (fp*g-f*gp)/g**2)
-        return (o, (fp-f*gp/g)/g)
+        #return (o, (fp-f*gp/g)/g) # I think this may introduce additional index sums we don't want?
+        return (o, (fp-Product(f,gp)/g)/g)
     
     def power(self, o, a, b):
         f, fp = a
@@ -216,10 +213,11 @@ class AD(Transformer):
             # o' = g f'(x) f(x)**(g-1)
             if isinstance(g, Zero) or isinstance(f, Zero) or f_const:
                 return (o, self._make_zero_diff(o))
-            return (o, g*fp*f**(g-1.0))
+            #return (o, g*fp*f**(g-1.0))
+            return (o, Product(Product(g, fp), f**(g-1.0)))
         # Case: o = f ** g(x)
         if isinstance(fp, Zero):
-            return (o, gp*ln(f)*o)
+            return (o, Product(Product(gp, ln(f)), o))
         # Case: o = f(x)**g(x)
         error("diff_power not implemented for case d/dx [ f(x)**g(x) ].")
         oprime = None # TODO
@@ -341,11 +339,13 @@ class SpatialAD(AD):
     def basis_function(self, o):
         # FIXME: Using this index in here may collide with the same index on the outside!
         # FIXME: Can this give recursion in apply_ad?
-        oprime = o.dx(self._index) # TODO: Add derivatives field to BasisFunction?
+        #oprime = o.dx(self._index)
+        oprime = SpatialDerivative(o, self._index)
         return (o, oprime)
     
     def function(self, o):
-        oprime = o.dx(self._index) # TODO: Add derivatives field to Function?
+        #oprime = o.dx(self._index)
+        oprime = SpatialDerivative(o, self._index)
         return (o, oprime)
     
     constant = AD.terminal # returns zero
@@ -380,10 +380,10 @@ class FunctionAD(AD):
         # Define dw/dw := v (what we really mean by d/dw is d/dw_j where w = sum_j w_j phi_j, and what we really mean by v is phi_j for any j)
     
     def function(self, o):
-        print "In FunctionAD.function:"
-        print "o = ", o
-        print "self._w = ", self._w
-        print "self._v = ", self._v
+        debug("In FunctionAD.function:")
+        debug("o = %s" % o)
+        debug("self._w = %s" % self._w)
+        debug("self._v = %s" % self._v)
         for (w, v) in zip(self._w, self._v): #self._functions:
             if o == w:
                 return (w, v)
@@ -512,5 +512,5 @@ class UnusedADRules(AD):
         Ainv' = - Ainv * A' * Ainv
         """
         A, Ap = a
-        return (o, -o*Ap*o)
+        return (o, -o*Ap*o) # TODO: Any potential index problems here?
     
