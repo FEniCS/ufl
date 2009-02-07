@@ -2,7 +2,7 @@
 """Run all tests"""
 
 __author__ = "Anders Logg (logg@simula.no)"
-__date__ = "2008-03-12 -- 2008-10-29"
+__date__ = "2008-03-12 -- 2009-02-07"
 
 from os import system
 from glob import glob
@@ -17,6 +17,7 @@ tests = [f.replace(".py", "") for f in glob("*.py")]
 tests.remove("test")
 tests.remove("run_pychecker")
 #tests.remove("analyse-demos")
+tests.remove("makemanualtestcase")
 
 # Run tests
 for test in tests:
