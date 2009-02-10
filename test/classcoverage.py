@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-09-06 -- 2008-12-22"
+__date__ = "2008-09-06 -- 2009-02-10"
 
 import unittest
 
@@ -64,7 +64,21 @@ class ClasscoverageTest(unittest.TestCase):
 
     def setUp(self):
         pass
-
+    
+    def testExports(self):
+        "Verify that ufl.classes exports all Expr subclasses."
+        all_expr_classes = []
+        for m in vars(ufl).values():
+            if isinstance(m, type(ufl)):
+                for c in vars(m).values():
+                    if isinstance(c, type) and issubclass(c, Expr):
+                        all_expr_classes.append(c)
+        missing_classes = set(c.__name__ for c in all_expr_classes) - set(c.__name__ for c in all_ufl_classes)
+        if missing_classes:
+            print "The following subclasses of Expr were not exported from ufl.classes:"
+            print "\n".join(sorted(missing_classes))
+        self.assertFalse(missing_classes)
+    
     def testAll(self):
         
         # --- Elements:
@@ -429,7 +443,7 @@ class ClasscoverageTest(unittest.TestCase):
             unused = set(ufl.classes.all_ufl_classes) - constructed - abstract
             if unused:
                 print 
-                print "The following classes were never instantiated:"
+                print "The following classes were never instantiated in class coverage test:"
                 print "\n".join(sorted(map(str,unused)))
                 print 
 
