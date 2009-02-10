@@ -1,38 +1,6 @@
 Roadmap for the development of UFL
 ----------------------------------
 
-# Figure out allowed shape/free index combinations:
- - Sums of operands with different free indices can not be allowed. Need to work around in AD!
-
-   Examples:
-
-   A)  a = 5 + v[i]; b = a*c[i] 
-
-       Expanding the implicit sum, this gives us:
-         b = sum_i [ (5+v_i) c_i ]      # remember, 'a = 5 + v[i]' is an Add object
-          != 5 c_i + sum_i [ v_i c_i ]  # this would still have a free index
-       or
-         (5+v[i])*c[i] != 5*c[i] + v[i]*c[i]
-
-       - Clearly, this last line isn't what we would expect!
-       - We really don't want to inspect the contents of "a" further,
-         or we get a blowup of special cases!
-
-   B)  a = b(x) + c
-       f = da/dx_i
-         = db/dx_i + dc/dx_i
-         = db/dx_i + zero(i) # we have currently special-cased zero to carry free indices
-
-   C)  a = b(x) * x_i
-       f = da/dx_i
-         = db/dx_i * c + b * dx_i/dx_i # no implicit summation
-         = db/dx_i * c + b * 1 # index gone in one term! need to assign indices to scalar values
-
-   D)  a = b(v) * v
-       f = da/dv
-         = db/dv * c + b * dv/dv
-         = db/dv * c + b * 1
-
 # Derivatives:
  - Finish forward mode AD implementation and verify correctness
  - Finish reverse mode AD implementation and compare performance
@@ -69,6 +37,40 @@ Roadmap for the development of UFL
    and move simplifications from __new__ to separate functions?
    Pros and cons? Bad during AD, lots of expressions created automatically that can cancel out.)
 
+# Add parts of this stuff to technical part of documentation (about allowed shape/free index combinations):
+ - Sums of operands with different free indices can not be allowed.
+   Some places in AD algorithms this causes problems.
+   The solution was to equip constant values (zero and scalars) with indices.
+
+   Examples:
+
+   A)  a = 5 + v[i]; b = a*c[i] 
+
+       Expanding the implicit sum, this gives us:
+         b = sum_i [ (5+v_i) c_i ]      # remember, 'a = 5 + v[i]' is an Add object
+          != 5 c_i + sum_i [ v_i c_i ]  # this would still have a free index
+       or
+         (5+v[i])*c[i] != 5*c[i] + v[i]*c[i]
+
+       - Clearly, this last line isn't what we would expect!
+       - We really don't want to inspect the contents of "a" further,
+         or we get a blowup of special cases!
+
+   B)  a = b(x) + c
+       f = da/dx_i
+         = db/dx_i + dc/dx_i
+         = db/dx_i + zero(i) # we have currently special-cased zero to carry free indices
+
+   C)  a = b(x) * x_i
+       f = da/dx_i
+         = db/dx_i * c + b * dx_i/dx_i # no implicit summation
+         = db/dx_i * c + b * 1 # index gone in one term! need to assign indices to scalar values
+
+   D)  a = b(v) * v
+       f = da/dv
+         = db/dv * c + b * dv/dv
+         = db/dv * c + b * 1
+
 # Elements and Basisfunctions (medium priority, needed for non-trivial applications):
  - Implement 'Test/Trial/BasisFunctions' for general tensor subelement with arbitrary symmetries (see split.py). Need to agree on some numbering conventions here.
  - Degree range for quadrature elements?
@@ -82,12 +84,9 @@ Roadmap for the development of UFL
  - Time elements
 
 # Algorithms:
- - Computing quadrature degree.
+ - Computing quadrature degree (only crude version in formdata at present)
  - If AD needs to be applied in a compiler context, we need a framework
    for representing unapplied form transformations.
- - Test implementations of lhs, rhs, and other form transformations.
- (- Implement contraction function that expands all implicit summations
-    into Sums (do we need this? can be merged with evaluation anyway) )
 
 # Prettyness and readability (medium priority, useful while debugging...):
  - Rewrite ufl2latex as described in its comments (use pre- and post-handlers)
@@ -103,7 +102,9 @@ Roadmap for the development of UFL
  - Write tests for the algorithms, ideally covering all code in multiple ways.
 
 # Documentation:
- - Write the manual/paper/book chapter (can perhaps reuse some text I have)
+ - Write the manual
+ - Write the paper
+ - Write the book chapter
  - Rewrite/improve all error messages (collect strings in separate file?)
  - Improve operator docstrings (use epydoc @param and @return for the more complicated functions)
 
