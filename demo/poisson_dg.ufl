@@ -14,6 +14,8 @@ f = Function(DG1)
 g = Function(DG1)
 #h = MeshSize(cell) # TODO: Do we include MeshSize in UFL?
 h = Constant(cell)
+alpha = 1 # TODO: Where does this come from? Arbitrarily set to 1 to make this compile.
+gamma = 1 # TODO: Where does this come from? Arbitrarily set to 1 to make this compile.
 
 a = dot(grad(v), grad(u))*dx \
   - dot(avg(grad(v)), jump(u))*dS \
