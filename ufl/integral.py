@@ -1,7 +1,7 @@
 """The Integral class."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-01-09"
+__date__ = "2008-03-14 -- 2009-02-12"
 
 # Modified by Anders Logg, 2008
 
@@ -13,7 +13,7 @@ class Integral(object):
     """Description of an integral over a single domain."""
     __slots__ = ("_domain_type", "_domain_id", "_integrand", "_metadata")
     def __init__(self, domain_type, domain_id, integrand = None, metadata = None):
-        self._domain_type = domain_type
+        self._domain_type = domain_type.replace(" ", "_")
         self._domain_id   = domain_id
         self._integrand   = integrand
         self._metadata    = metadata
@@ -37,7 +37,7 @@ class Integral(object):
     INTERIOR_FACET = "interior_facet"
     
     def domain_type(self):
-        'Return the domain type ("cell", "exterior_facet" or "interior_facet").'
+        'Return the domain type, one of "cell", "exterior_facet" or "interior_facet".'
         return self._domain_type
     
     def domain_id(self):

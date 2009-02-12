@@ -45,7 +45,7 @@ class Logger:
         "Write info message."
         text = self._format_raw(*message)
         if len(text) >= 3 and text[-3:] == "...":
-            # FIXME: Using print directly here, don't know how to write without newline using logging
+            # TODO: Using print directly here, don't know how to write without newline using logging
             print self._format(text),
             sys.stdout.flush()
         else:

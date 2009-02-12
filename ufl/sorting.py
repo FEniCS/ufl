@@ -2,7 +2,7 @@
 is more robust w.r.t. argument numbering than using repr."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-11-26 -- 2009-01-23"
+__date__ = "2008-11-26 -- 2009-02-12"
 
 from ufl.assertions import ufl_assert
 from ufl.common import Counted
@@ -23,10 +23,6 @@ def cmp_expr(a, b):
         return c
     
     # Type is the same, is it a ...
-    # ... MultiIndex object?
-    if isinstance(a, MultiIndex): # FIXME: Remove this!
-        # Don't compare counts! Causes circular problems when renumbering to get a canonical form.
-        return cmp(tuple(type(i) for i in a), tuple(type(i) for i in b))
     
     # ... Label or Index object?
     if isinstance(a, (Label, Index)):
@@ -41,7 +37,7 @@ def cmp_expr(a, b):
         return cmp(a.count(), b.count())
     
     # ... another kind of Terminal object?
-    elif isinstance(a, Terminal):
+    elif isinstance(a, Terminal) and not isinstance(a, MultiIndex):
         c = cmp(repr(a), repr(b))
     
     # Not a terminal, sort by number of children (usually the same)
