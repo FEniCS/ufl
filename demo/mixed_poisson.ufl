@@ -1,19 +1,19 @@
 #
-# Author: Marie Rognes
-# Date: 2008-10-03
+# Author: Anders Logg
+# Modified by: Martin Sandve Alnes
+# Date: 2009-01-12
 #
 
-cell = tetrahedron
-RT = FiniteElement("Raviart-Thomas", cell, 1)
-DG = FiniteElement("DG", cell, 0)
-MX = RT + DG
+cell = triangle
+BDM1 = FiniteElement("Brezzi-Douglas-Marini", cell, 1)
+DG0  = FiniteElement("Discontinuous Lagrange", cell, 0)
 
-(u, p) = TrialFunctions(MX)
-(v, q) = TestFunctions(MX)
+element = BDM1 + DG0
 
-n = cell.n
+(tau, w) = TestFunctions(element)
+(sigma, u) = TrialFunctions(element)
 
-a0 = (dot(u, v) + div(u)*q + div(v)*p)*dx
+f = Function(DG0)
 
-a1 = (dot(u, v) + div(u)*q + div(v)*p)*dx - p*dot(v, n)*ds
-
+a = (dot(tau, sigma) - div(tau)*u + w*div(sigma))*dx
+L = w*f*dx
