@@ -28,7 +28,7 @@ class ElementsTestCase(unittest.TestCase):
 
     def test_vector_galerkin(self):
         for cell in all_cells:
-            dim = cell.dim()
+            dim = cell.d
             for p in range(1,10):
                 for family in ("Lagrange", "CG", "Discontinuous Lagrange", "DG"):
                     element = VectorElement(family, cell, p)
@@ -39,7 +39,7 @@ class ElementsTestCase(unittest.TestCase):
 
     def test_tensor_galerkin(self):
         for cell in all_cells:
-            dim = cell.dim()
+            dim = cell.d
             for p in range(1,10):
                 for family in ("Lagrange", "CG", "Discontinuous Lagrange", "DG"):
                     element = TensorElement(family, cell, p)
@@ -51,7 +51,7 @@ class ElementsTestCase(unittest.TestCase):
 
     def test_tensor_symmetry(self):
         for cell in all_cells:
-            dim = cell.dim()
+            dim = cell.d
             for p in range(1,10):
                 for s in (None, True, {(0,1): (1,0)}):
                     for family in ("Lagrange", "CG", "Discontinuous Lagrange", "DG"):
@@ -67,19 +67,19 @@ class ElementsTestCase(unittest.TestCase):
 
     def test_bdm(self):
         for cell in (triangle, tetrahedron):
-            dim = cell.dim()
+            dim = cell.d
             element = FiniteElement("BDM", cell, 1)
             self.assertTrue(element.value_shape() == (dim,))
 
     def test_vector_bdm(self):
         for cell in (triangle, tetrahedron):
-            dim = cell.dim()
+            dim = cell.d
             element = VectorElement("BDM", cell, 1)
             self.assertTrue(element.value_shape() == (dim,dim))
 
     def test_mixed(self):
         for cell in (triangle, tetrahedron):
-            dim = cell.dim()
+            dim = cell.d
             velement = VectorElement("CG", cell, 2)
             pelement = FiniteElement("CG", cell, 1)
             TH1 = MixedElement(velement, pelement)

@@ -396,7 +396,7 @@ class FunctionAD(AD):
 def compute_spatial_forward_ad(expr):
     cell = expr.cell()
     ufl_assert(cell is not None, "Need spatial dimension to compute derivatives, can't get that from %s." % repr(expr))
-    dim = cell.dim()
+    dim = cell.d
     expr = expand_compounds(expr, dim)
     f, v = expr.operands()
     e, ediff = SpatialAD(dim, v).visit(f)
@@ -405,7 +405,7 @@ def compute_spatial_forward_ad(expr):
 def compute_variable_forward_ad(expr):
     cell = expr.cell()
     ufl_assert(cell is not None, "Need spatial dimension to compute derivatives, can't get that from %s." % repr(expr))
-    dim = cell.dim()
+    dim = cell.d
     expr = expand_compounds(expr, dim)
     f, v = expr.operands()
     ufl_assert(v.shape() == (), "compute_variable_forward_ad with nonscalar Variable not implemented.")
@@ -415,7 +415,7 @@ def compute_variable_forward_ad(expr):
 def compute_function_forward_ad(expr):
     cell = expr.cell()
     ufl_assert(cell is not None, "Need spatial dimension to compute derivatives, can't get that from %s." % repr(expr))
-    dim = cell.dim()
+    dim = cell.d
     expr = expand_compounds(expr, dim)
     f, w, v = expr.operands()
     e, ediff = FunctionAD(dim, w, v).visit(f)

@@ -16,6 +16,12 @@ from ufl.variable import Variable
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin
 
+#--- Basic operators ---
+
+def rank(f):
+    "The rank of f."
+    return len(f.shape())
+
 #--- Tensor operators ---
 
 def transpose(A):
@@ -94,7 +100,7 @@ def rot(f):
 
 #--- DG operators ---
 
-def jump(v):
+def jump(v, n=None):
     "The jump of v across a facet."
     r = v.rank()
     cell = v.cell()
@@ -106,7 +112,8 @@ def jump(v):
         # "v.cell() is None" is equivalent with "v is a constant".
         return Zero(v.shape(), v.free_indices(), v.index_dimensions())
     else:
-        n = cell.n
+        if n is None: # TODO: Is this right? Like FFC did it?
+            n = cell.n
         if r == 0:
             return v('+')*n('+') + v('-')*n('-')
         elif r == 1:

@@ -81,7 +81,7 @@ def expand_derivatives(form):
     
     cell = form.cell()
     ufl_assert(cell is not None, "Need to know the spatial dimension to compute derivatives.")
-    spatial_dim = cell.dim()
+    spatial_dim = cell.d
     
     def _expand_derivatives(expression):
         expression = expand_compounds(expression, spatial_dim)

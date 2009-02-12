@@ -83,7 +83,7 @@ class ClasscoverageTest(unittest.TestCase):
         
         # --- Elements:
         cell = triangle
-        dim = cell.dim()
+        dim = cell.d
         
         e0 = FiniteElement("CG", cell, 1)
         e1 = VectorElement("CG", cell, 1)

@@ -11,20 +11,20 @@ from ufl.common import domain2dim
 from ufl.terminal import Terminal
 
 class GeometricQuantity(Terminal):
-    def __init__(self):
-        Terminal.__init__(self)
-
-class SpatialCoordinate(GeometricQuantity):
     __slots__ = ("_cell",)
     def __init__(self, cell):
-        GeometricQuantity.__init__(self)
+        Terminal.__init__(self)
         self._cell = as_cell(cell)
-
-    def shape(self):
-        return (self._cell.dim(),)
     
     def cell(self):
         return self._cell
+
+class SpatialCoordinate(GeometricQuantity):
+    def __init__(self, cell):
+        GeometricQuantity.__init__(self, cell)
+
+    def shape(self):
+        return (self._cell.d,)
     
     def evaluate(self, x, mapping, component, index_values):
         return x[component[0]]
@@ -40,14 +40,10 @@ class SpatialCoordinate(GeometricQuantity):
 
 class FacetNormal(GeometricQuantity):
     def __init__(self, cell):
-        GeometricQuantity.__init__(self)
-        self._cell = as_cell(cell)
+        GeometricQuantity.__init__(self, cell)
     
     def shape(self):
-        return (self._cell.dim(),)
-    
-    def cell(self):
-        return self._cell
+        return (self._cell.d,)
     
     def __str__(self):
         return "n"
@@ -58,9 +54,26 @@ class FacetNormal(GeometricQuantity):
     def __eq__(self, other):
         return isinstance(other, FacetNormal) and other._cell == self._cell
 
+# TODO: If we include this here, we must define exactly what is meant by the mesh size, possibly adding multiple kinds of mesh sizes (hmin, hmax, havg, ?) 
+#class MeshSize(GeometricQuantity):
+#    def __init__(self, cell):
+#        GeometricQuantity.__init__(self, cell)
+#    
+#    def shape(self):
+#        return ()
+#    
+#    def __str__(self):
+#        return "h"
+#    
+#    def __repr__(self):
+#        return "MeshSize(%r)" % self._cell
+#
+#    def __eq__(self, other):
+#        return isinstance(other, MeshSize) and other._cell == self._cell
+
 class Cell(object):
     "Representation of a finite element cell."
-    __slots__ = ("_domain", "_degree", "n", "x")
+    __slots__ = ("_domain", "_degree", "d", "n", "x")
     
     def __init__(self, domain, degree=1):
         "Initialize basic cell description"
@@ -69,18 +82,24 @@ class Cell(object):
             warning("High order geometries aren't implemented anywhere yet.")
         self._domain = domain
         self._degree = degree
+        self.d = domain2dim[self._domain]
         self.n = FacetNormal(self)
         self.x = SpatialCoordinate(self)
+        #self.h = MeshSize(self)
+        #self.hmin = MeshSizeMin(self)
+        #self.hmax = MeshSizeMax(self)
+    
+    def geometric_dimension(self):
+        return self.d
+    
+    def topological_dimension(self):
+        return self.d
     
     def domain(self):
         return self._domain
     
     def degree(self):
         return self._degree
-    
-    # TODO: Swap this with geometric_dimension and topological_dimension
-    def dim(self):
-        return domain2dim[self._domain]
     
     def __eq__(self, other):
         return isinstance(other, Cell) and self._domain == other._domain and self._degree == other._degree

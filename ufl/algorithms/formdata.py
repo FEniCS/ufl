@@ -50,7 +50,7 @@ class FormData(object):
         # Some useful dimensions
         self.rank = len(self.basisfunctions)
         self.num_coefficients = len(self.coefficients)
-        self.geometric_dimension = self.cell.dim()
+        self.geometric_dimension = self.cell.d
         self.topological_dimension = self.geometric_dimension
         
         # Set coefficient names to default if necessary

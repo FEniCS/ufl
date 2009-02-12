@@ -250,7 +250,7 @@ class IndexTestCase(unittest.TestCase):
         v  = TestFunction(element)
         u  = TrialFunction(element)
         i, j, k, l = indices(4)
-        d = cell.dim()
+        d = cell.d
         
         a = v[i].dx(i)
         self.assertTrue(a.free_indices() == ())

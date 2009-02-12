@@ -614,7 +614,7 @@ def expand_compounds(e, dim=None):
     Requires e to have a well defined domain, 
     for the geometric dimension to be defined."""
     if dim is None:
-        dim = e.cell().dim()
+        dim = e.cell().d
     return apply_transformer(e, CompoundExpander(dim))
 
 def strip_variables(e):

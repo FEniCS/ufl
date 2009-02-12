@@ -73,7 +73,7 @@ def foobar(expression, idx):
         ufl_assert(cell is not None,
             "Need to know the spatial dimension to "\
             "compute the shape of derivatives.")
-        dim = cell.dim()
+        dim = cell.d
         idims[idx] = dim
     idims.update(expression.index_dimensions())
     fi = unique_indices(expression.free_indices() + (idx,))
@@ -194,7 +194,7 @@ class Grad(CompoundDerivative):
         if isinstance(f, spatially_constant_types):
             cell = f.cell()
             ufl_assert(cell is not None, "Can't take gradient of expression with undefined cell...")
-            dim = cell.dim()
+            dim = cell.d
             free_indices = f.free_indices()
             index_dimensions = subdict(f.index_dimensions(), free_indices)
             return Zero((dim,) + f.shape(), free_indices, index_dimensions)
@@ -205,7 +205,7 @@ class Grad(CompoundDerivative):
         self._f = f
         cell = f.cell()
         ufl_assert(cell is not None, "Can't take gradient of expression with undefined cell. How did this happen?")
-        self._dim = cell.dim()
+        self._dim = cell.d
         ufl_assert(not (f.free_indices()), \
             "TODO: Taking gradient of an expression with free indices, should this be a valid expression? Please provide examples!")
     
@@ -274,7 +274,7 @@ class Curl(CompoundDerivative):
         self._f = f
         cell = f.cell()
         ufl_assert(cell is not None, "Can't take curl of expression with undefined cell...") # TODO: Is curl always 3D?
-        self._dim = cell.dim()
+        self._dim = cell.d
     
     def operands(self):
         return (self._f, )
