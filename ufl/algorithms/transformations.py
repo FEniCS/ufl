@@ -45,6 +45,13 @@ def transform_integrands(form, transformer):
         newform = Form(newintegrals)
         return newform
 
+def is_post_handler(function):
+    "Is this a handler that expects transformed children as input?"
+    insp = getargspec(function)
+    num_args = len(insp[0]) + int(insp[1] is not None)
+    visit_children_first = num_args > 2
+    return visit_children_first
+
 class Transformer(object):
     """Base class for a visitor-like algorithm design pattern used to 
     transform expression trees from one representation to another."""
@@ -54,39 +61,32 @@ class Transformer(object):
             variable_cache = {}
         self._variable_cache = variable_cache
         
-        # Cache handlers first time this is run for a particular class
-        handlers = Transformer._handlers_cache.get(type(self))
-        handlers = None # TODO: This cache is disabled since it had side effects, no idea how or why...
-        if handlers:
-            self._handlers = handlers
-        else:
-            self._handlers = [None]*len(all_ufl_classes)
-            
+        # Analyse class properties and cache handler data the
+        # first time this is run for a particular class
+        cache_data = Transformer._handlers_cache.get(type(self))
+        if not cache_data:
+            cache_data = [None]*len(all_ufl_classes)
             # For all UFL classes
-            for uc in all_ufl_classes:
+            for classobject in all_ufl_classes:
                 # Iterate over the inheritance chain (NB! This assumes that all UFL classes inherits a single Expr subclass and that this is the first superclass!)
-                for c in uc.mro():
-                    # Register class uc with handler for the first encountered superclass
-                    h = getattr(self, c._handlername, None)
-                    if h:
-                        self.register(uc, h)
+                for c in classobject.mro():
+                    # Register classobject with handler for the first encountered superclass
+                    name = c._handlername
+                    function = getattr(self, name, None)
+                    if function:
+                        cache_data[classobject._classid] = name, is_post_handler(function)
                         break
-            Transformer._handlers_cache[type(self)] = self._handlers
-    
-    def register(self, classobject, function):
-        # Is this a handler that expects transformed children as input?
-        insp = getargspec(function)
-        num_args = len(insp[0]) + int(insp[1] is not None)
-        visit_children = num_args > 2
+            Transformer._handlers_cache[type(self)] = cache_data
         
-        self._handlers[classobject._classid] = function, visit_children
+        # Build handler list for this particular class (functions must bind to self)
+        self._handlers = [(getattr(self, name), post) for (name, post) in cache_data]
     
     def visit(self, o):
         # Get handler for the UFL class of o (type(o) may be an external subclass of the actual UFL class)
-        h, visit_children = self._handlers[o._classid]
+        h, visit_children_first = self._handlers[o._classid]
         if h:
             # Is this a handler that expects transformed children as input?
-            if visit_children:
+            if visit_children_first:
                 # Yes, visit all children first and then call h.
                 return h(o, *[self.visit(oo) for oo in o.operands()])
             # No, this is a handler that handles its own children
