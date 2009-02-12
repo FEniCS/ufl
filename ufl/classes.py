@@ -3,7 +3,7 @@ since it enables the syntax "from ufl.classes import FooBar" for getting
 implementation details not exposed through the default ufl namespace."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-15 -- 2009-02-04"
+__date__ = "2008-08-15 -- 2009-02-12"
 
 # Modified by Anders Logg, 2008
 
@@ -39,9 +39,11 @@ terminal_classes    = set(c for c in all_ufl_classes if issubclass(c, Terminal))
 nonterminal_classes = set(c for c in all_ufl_classes if not issubclass(c, Terminal))
 
 # Add _uflclass and _classid to all classes:
+from ufl.common import camel2underscore as _camel2underscore
 for _i, _c in enumerate(all_ufl_classes):
     _c._classid = _i
     _c._uflclass = _c
+    _c._handlername = _camel2underscore(_c.__name__)
 
 #__all__ = all_ufl_classes
 

@@ -1,8 +1,12 @@
 """A collection of utility algorithms for handling UFL files."""
 
-__authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-12-08"
+from __future__ import with_statement
 
+__authors__ = "Martin Sandve Alnes"
+__date__ = "2008-03-14 -- 2009-02-12"
+
+import os
+import time
 from ufl.log import error, info
 from ufl.form import Form
 from ufl.function import Function
@@ -16,25 +20,28 @@ To find the location of the error, a temporary script
 '%s' has been created and will now be executed:"""
 
 def load_forms(filename):
-    try:
-        f = open(filename)
-    except IOError:
-        f = open(filename + ".ufl")
+    if not os.path.exists(filename):
+        filename = filename + ".ufl"
+    if not os.path.exists(filename):
+        error("File '%s' doesn't exists." % filename)
     
-    # Read form file
-    code = "from ufl import *\n"
-    code += "\n".join(f.readlines())
+    # Read form file and prepend import
+    with open(filename) as f:
+        code = "from ufl import *\n" + f.read()
+    
+    # Execute code
     namespace = {}
     try:
-        exec(code, namespace)
+        exec code in namespace
     except:
-        tmpname = "ufl_analyse_tmp_form"
-        tmpfile = tmpname + ".py"
-        f = file(tmpfile, "w")
-        f.write(code)
-        f.close()
-        info(infostring % tmpfile)
-        m = __import__(tmpname)
+        # Dump code for debugging if this fails
+        basename = os.path.splitext(os.path.basename(filename))[0]
+        basename = "%s_debug" % basename
+        pyname = "%s.py" % basename
+        with file(pyname, "w") as f:
+            f.write(code)
+        info(infostring % pyname)
+        m = __import__(basename)
         error("Aborting load_forms.")
     
     # Extract Form objects, and Function objects to get their names
@@ -50,8 +57,7 @@ def load_forms(filename):
     for k, v in forms:
         errors = validate_form(v)
         if errors:
-            msg = "Found errors in form '%s':\n%s" % (k, errors)
-            raise RuntimeError, msg
+            error("Found errors in form '%s':\n%s" % (k, errors))
     
     # Construct FormData for each object
     formdatas = []

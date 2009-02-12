@@ -89,24 +89,23 @@ def camel2underscore(name):
 
 def lstr(l):
     "Pretty-print list or tuple, invoking str() on items instead of repr() like str() does."
-
     if isinstance(l, list):
-        return "[" + ", ".join([lstr(item) for item in l]) + "]"
+        return "[" + ", ".join(lstr(item) for item in l) + "]"
     elif isinstance(l, tuple):
-        return "(" + ", ".join([lstr(item) for item in l]) + ")"
+        return "(" + ", ".join(lstr(item) for item in l) + ")"
     return str(l)
 
-def dstr(d):
+def dstr(d, colsize=80):
     "Pretty-print dictionary of key-value pairs."
-    t = [(key, d[key]) for key in d]
-    return tstr(t)
+    return tstr(d.items(), colsize)
 
-def tstr(t):
+def tstr(t, colsize=80):
     "Pretty-print list of tuples of key-value pairs."
+    if not t:
+        return ""
 
     # Compute maximum key length
-    colsize = 80
-    keylen = max([len(str(entry[0])) for entry in t])
+    keylen = max([len(str(k)) for (k,v) in t])
 
     # Key-length cannot be larger than colsize
     if keylen > colsize:

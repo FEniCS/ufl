@@ -10,7 +10,7 @@ from itertools import izip, chain
 
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
-from ufl.common import camel2underscore
+from ufl.common import camel2underscore, dstr
 from ufl.expr import Expr
 from ufl.terminal import Terminal
 from ufl.indexing import Index, indices, complete_shape
@@ -48,36 +48,52 @@ def transform_integrands(form, transformer):
 class Transformer(object):
     """Base class for a visitor-like algorithm design pattern used to 
     transform expression trees from one representation to another."""
+    _handlers_cache = {}
     def __init__(self, variable_cache=None):
-        self._variable_cache = {} if variable_cache is None else variable_cache
-        self._handlers = {}
+        if variable_cache is None:
+            variable_cache = {}
+        self._variable_cache = variable_cache
         
-        # For all UFL classes
-        for uc in all_ufl_classes:
-            # Iterate over the inheritance chain (assumes that all UFL classes has an Expr subclass as the first superclass)
-            for c in uc.mro():
-                # Register class uc with handler for the first encountered superclass
-                fname = camel2underscore(c.__name__)
-                if hasattr(self, fname):
-                    self.register(uc, getattr(self, fname))
-                    break
+        # Cache handlers first time this is run for a particular class
+        handlers = Transformer._handlers_cache.get(type(self))
+        handlers = None # TODO: This cache is disabled since it had side effects, no idea how or why...
+        if handlers:
+            self._handlers = handlers
+        else:
+            self._handlers = [None]*len(all_ufl_classes)
+            
+            # For all UFL classes
+            for uc in all_ufl_classes:
+                # Iterate over the inheritance chain (NB! This assumes that all UFL classes inherits a single Expr subclass and that this is the first superclass!)
+                for c in uc.mro():
+                    # Register class uc with handler for the first encountered superclass
+                    h = getattr(self, c._handlername, None)
+                    if h:
+                        self.register(uc, h)
+                        break
+            Transformer._handlers_cache[type(self)] = self._handlers
     
     def register(self, classobject, function):
-        self._handlers[classobject] = function
+        # Is this a handler that expects transformed children as input?
+        insp = getargspec(function)
+        num_args = len(insp[0]) + int(insp[1] is not None)
+        visit_children = num_args > 2
+        
+        self._handlers[classobject._classid] = function, visit_children
     
     def visit(self, o):
         # Get handler for the UFL class of o (type(o) may be an external subclass of the actual UFL class)
-        h = self._handlers.get(o._uflclass)
+        h, visit_children = self._handlers[o._classid]
         if h:
-            # Did we find a handler that expects transformed children as input?
-            insp = getargspec(h)
-            num_args = len(insp[0]) + int(insp[1] is not None)
-            if num_args > 2:
+            # Is this a handler that expects transformed children as input?
+            if visit_children:
+                # Yes, visit all children first and then call h.
                 return h(o, *[self.visit(oo) for oo in o.operands()])
-            # No, this is a handler that handles its own children (arguments self and o, where self is already bound).
+            # No, this is a handler that handles its own children
+            # (arguments self and o, where self is already bound)
             return h(o)
-        # Failed to find a handler!
-        raise RuntimeError("Can't handle objects of type %s" % str(type(o)))
+        # Failed to find a handler! Should never happen, but will happen if a non-Expr object is visited.
+        error("Can't handle objects of type %s" % str(type(o)))
     
     def undefined(self, o):
         "Trigger error."
