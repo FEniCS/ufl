@@ -8,4 +8,4 @@ element = FiniteElement("Lagrange", triangle, 1)
 u = TrialFunction(element)
 v = TestFunction(element)
 
-a = u*v*dx
+a = v*u*dx

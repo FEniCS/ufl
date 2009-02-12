@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ufl-analyse output
-rm -f *.ufl_debug.py
+rm -f *_debug.py
 rm -f *.analysis
 rm -f *.repr
 
