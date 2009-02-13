@@ -5,6 +5,7 @@ __date__    = "2008-03-14 -- 2009-01-09"
 
 from ufl.assertions import ufl_assert
 from ufl.constantvalue import as_ufl, is_python_scalar
+from ufl.sorting import cmp_expr
 
 # --- The Form class, representing a complete variational form or functional ---
 
@@ -25,67 +26,62 @@ class Form(object):
         return self._integrals
     
     def _get_integrals(self, domain_type):
-        return tuple(itg for itg in self._integrals if itg._domain_type == domain_type)
+        return tuple(itg for itg in self._integrals if itg.domain_type() == domain_type)
     
     def cell_integrals(self):
-        from ufl.integral import Integral
-        return self._get_integrals(Integral.CELL)
+        from ufl.integral import Measure
+        return self._get_integrals(Measure.CELL)
     
     def exterior_facet_integrals(self):
-        from ufl.integral import Integral
-        return self._get_integrals(Integral.EXTERIOR_FACET)
+        from ufl.integral import Measure
+        return self._get_integrals(Measure.EXTERIOR_FACET)
     
     def interior_facet_integrals(self):
-        from ufl.integral import Integral
-        return self._get_integrals(Integral.INTERIOR_FACET)
+        from ufl.integral import Measure
+        return self._get_integrals(Measure.INTERIOR_FACET)
     
-    def _add(self, other, sign):
+    def __add__(self, other):
+        
+        # --- Add integrands of integrals with the same measure
+        
         # Start with integrals in self
         newintegrals = list(self._integrals)
         
-        # Build domain to index map
-        dom2idx = {}
-        for itg in newintegrals:
-            dom = (itg._domain_type, itg._domain_id)
-            ufl_assert(dom not in dom2idx, "Form invariant breached.")
-            dom2idx[dom] = len(dom2idx)
+        # Build mapping: (measure -> self._integrals index)
+        measure2idx = {}
+        for i, itg in enumerate(newintegrals):
+            ufl_assert(itg.measure() not in measure2idx, "Form invariant breached.")
+            measure2idx[itg.measure()] = i
         
-        # Append other integrals to list or add integrands to existing integrals
         for itg in other._integrals:
-            dom = (itg._domain_type, itg._domain_id)
-            if dom in dom2idx:
-                idx = dom2idx[dom]
-                prev_itg = newintegrals[idx]
-                integrand = prev_itg._integrand
-                if sign == -1:
-                    integrand += -1*itg._integrand
-                else:
-                    integrand += itg._integrand
-                c = prev_itg.__class__
-                sum_itg = c(prev_itg._domain_type, prev_itg._domain_id, integrand)
-                newintegrals[idx] = sum_itg
-            else:
-                dom2idx[dom] = len(newintegrals)
+            idx = measure2idx.get(itg.measure())
+            if idx is None:
+                # Append integral with new measure to list 
+                idx = len(newintegrals)
+                measure2idx[itg.measure()] = idx
                 newintegrals.append(itg)
+            else:
+                # Accumulate integrands with same measure
+                a = newintegrals[idx].integrand()
+                b = itg.integrand()
+                # Invariant ordering of terms (shouldn't Sum fix this?)
+                #if cmp_expr(a, b) > 0:
+                #    a, b = b, a
+                newintegrals[idx] = itg.reconstruct(a + b)
         
         return Form(newintegrals)
     
-    def __add__(self, other):
-        return self._add(other, +1)
-    
     def __sub__(self, other):
-        return self._add(other, -1)
+        return self + (-other)
     
     def __neg__(self):
         # This enables the handy "-form" syntax for e.g. the linearized system (J, -F) from a nonlinear form F
-        newintegrals = [itg.reconstruct(integrand=-itg.integrand()) for itg in self._integrals]
-        return Form(newintegrals)
+        return Form([-itg for itg in self._integrals])
     
-    def __rmul__(self, other):
+    def __rmul__(self, scalar):
         # This enables the handy "0*form" syntax
-        ufl_assert(is_python_scalar(other), "Only multiplication by scalar literals currently supported.")
-        newintegrals = [itg.reconstruct(integrand=other*itg.integrand()) for itg in self._integrals]
-        return Form(newintegrals)
+        ufl_assert(is_python_scalar(scalar), "Only multiplication by scalar literals currently supported.")
+        return Form([scalar*itg for itg in self._integrals])
     
     def __str__(self):
         if self._str is None:

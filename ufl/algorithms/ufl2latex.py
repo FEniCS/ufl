@@ -366,8 +366,8 @@ def form2latex(form, formname="a", basisfunction_names = None, function_names = 
     for itg in integrals:
         # TODO: Get list of expression strings instead of single expression!
         integrand_string = expression2latex(itg.integrand(), formdata.basisfunction_renumbering, formdata.coefficient_renumbering)
-        b = p + "\\int_{%s_%d}" % (domain_strings[itg._domain_type], itg._domain_id)
-        c = "\\left[ { %s } \\right] \,%s" % (integrand_string, dx_strings[itg._domain_type])
+        b = p + "\\int_{%s_%d}" % (domain_strings[itg.domain_type()], itg.domain_id())
+        c = "\\left[ { %s } \\right] \,%s" % (integrand_string, dx_strings[itg.domain_type()])
         lines.append((a, b, c))
         a = "{}"; p = "{}+ "
     sections.append(("Form", align(lines)))

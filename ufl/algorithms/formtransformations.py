@@ -14,12 +14,8 @@ from ufl.assertions import ufl_assert
 
 # All classes:
 from ufl.basisfunction import BasisFunction
-#from ufl.basisfunction import TestFunction, TrialFunction, BasisFunctions, TestFunctions, TrialFunctions
-from ufl.constantvalue import IntValue, Zero
-from ufl.function import Function, Constant
-from ufl.form import Form
-from ufl.variable import Variable
-from ufl.integral import Integral
+from ufl.constantvalue import Zero
+from ufl.function import Function
 
 # Lists of all Expr classes
 from ufl.classes import ufl_classes, terminal_classes, nonterminal_classes

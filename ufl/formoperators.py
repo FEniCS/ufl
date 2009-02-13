@@ -111,8 +111,7 @@ def derivative(form, function, basisfunction=None):
         integrals = []
         for itg in form._integrals:
             fd = FunctionDerivative(itg.integrand(), functions, basisfunctions)
-            newitg = itg.reconstruct(integrand=fd)
-            integrals.append(newitg)
+            integrals.append(itg.reconstruct(fd))
         return Form(integrals)
     
     elif isinstance(form, Expr):

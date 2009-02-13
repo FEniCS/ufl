@@ -12,7 +12,6 @@ from ufl.expr import Expr
 from ufl.terminal import Terminal, Tuple
 from ufl.constantvalue import Zero, ScalarValue, FloatValue, IntValue, Identity, is_true_ufl_scalar
 from ufl.form import Form
-from ufl.integral import Integral
 from ufl.variable import Variable
 from ufl.finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
 from ufl.basisfunction import BasisFunction, BasisFunctions

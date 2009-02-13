@@ -24,7 +24,7 @@ from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
 from ufl.differentiation import Derivative, CompoundDerivative, FunctionDerivative, SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot
 from ufl.conditional import Condition, EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.form import Form
-from ufl.integral import Integral
+from ufl.integral import Measure, Integral
 
 # Make sure we import exproperators which attaches special functions to Expr
 from ufl import exproperators as __exproperators

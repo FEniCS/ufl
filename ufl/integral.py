@@ -1,7 +1,7 @@
 """The Integral class."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-02-12"
+__date__ = "2008-03-14 -- 2009-02-13"
 
 # Modified by Anders Logg, 2008
 
@@ -9,27 +9,29 @@ from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.constantvalue import is_true_ufl_scalar
 
-class Integral(object):
-    """Description of an integral over a single domain."""
-    __slots__ = ("_domain_type", "_domain_id", "_integrand", "_metadata")
-    def __init__(self, domain_type, domain_id, integrand = None, metadata = None):
+class Measure(object):
+    """A measure for integration."""
+    __slots__ = ("_domain_type", "_domain_id", "_metadata")
+    def __init__(self, domain_type, domain_id, metadata = None):
         self._domain_type = domain_type.replace(" ", "_")
         self._domain_id   = domain_id
-        self._integrand   = integrand
         self._metadata    = metadata
     
-    def reconstruct(self, domain_id=None, integrand=None, metadata=None):
-        """Construct a new Integral object with some properties replaced with new values.
+    def reconstruct(self, domain_id=None, metadata=None):
+        """Construct a new Measure object with some properties replaced with new values.
         
         Example:
-            <a = Integral instance>
-            b = a.reconstruct(integrand=expand_compounds(a))
+            <a = Measure instance>
+            b = a.reconstruct(domain_id=2)
             c = a.reconstruct(metadata={"quadrature_order":3})
+        
+        Used by the call operator, so this is equivalent:
+            b = a(2)
+            c = a(0, {"quadrature_order":3})
         """
         if domain_id is None: domain_id = self._domain_id
-        if integrand is None: integrand = self._integrand
         if metadata  is None: metadata  = self._metadata
-        return Integral(self._domain_type, domain_id, integrand, metadata)
+        return Measure(self._domain_type, domain_id, metadata)
     
     # Enumeration of valid domain types
     CELL = "cell"
@@ -44,10 +46,6 @@ class Integral(object):
         "Return the domain id (integer)."
         return self._domain_id
     
-    def integrand(self):
-        "Return the integrand expression, a Expr."
-        return self._integrand
-    
     def metadata(self):
         "Return the integral metadata. What this can be is currently undefined." # TODO!
         return self._metadata
@@ -57,33 +55,96 @@ class Integral(object):
         return self.reconstruct(domain_id=domain_id, metadata=metadata)
     
     def __mul__(self, other):
-        error("Can't multiply Integral from the right (with %r)." % (other,))
+        error("Can't multiply Measure from the right (with %r)." % (other,))
     
     def __rmul__(self, integrand):
-        ufl_assert(self._integrand is None, "Integrand is already defined, can't integrate twice.")
         ufl_assert(is_true_ufl_scalar(integrand),   
             "Trying to integrate expression of rank %d with free indices %r." \
             % (integrand.rank(), integrand.free_indices()))
         from ufl.form import Form
-        return Form( [self.reconstruct(integrand=integrand)] )
-    
-    def __neg__(self):
-        return Integral(self._domain_type, self._domain_id, -self._integrand)
+        return Form( [Integral(integrand, self)] )
     
     def __str__(self):
-        d = { Integral.CELL: "dx",
-              Integral.EXTERIOR_FACET: "ds",
-              Integral.INTERIOR_FACET: "dS"
+        d = { Measure.CELL: "dx",
+              Measure.EXTERIOR_FACET: "ds",
+              Measure.INTERIOR_FACET: "dS"
             }[self._domain_type]
-        metastring = "" if self._metadata is None else ("[%s]" % repr(self._metadata))
-        return "{ %s } * %s%d%s" % (self._integrand, d, self._domain_id, metastring)
+        metastring = "" if self._metadata is None else ("<%s>" % repr(self._metadata))
+        return "%s%d%s" % (d, self._domain_id, metastring)
     
     def __repr__(self):
-        return "Integral(%r, %r, %r, %r)" % (self._domain_type, self._domain_id, self._integrand, self._metadata)
+        return "Measure(%r, %r, %r)" % (self._domain_type, self._domain_id, self._metadata)
     
     def __eq__(self, other):
-        return repr(self) == repr(other)
+        return isinstance(other, Measure) and\
+            self._domain_type == other._domain_type and\
+            self._domain_id   == other._domain_id and\
+            self._metadata    == other._metadata
     
     def __hash__(self):
-        return hash((self._domain_type, self._domain_id, id(self._integrand)))
+        return hash((type(self), self._domain_type, self._domain_id, self._metadata))
+
+class Integral(object):
+    """An integral over a single domain."""
+    __slots__ = ("_integrand", "_measure")
+    def __init__(self, integrand, measure):
+        from ufl.expr import Expr
+        ufl_assert(isinstance(integrand, Expr), "Expecting integrand to be an Expr instance.")
+        ufl_assert(isinstance(measure, Measure), "Expecting measure to be a Measure instance.")
+        self._integrand   = integrand
+        self._measure     = measure
+    
+    def reconstruct(self, integrand):
+        """Construct a new Integral object with some properties replaced with new values.
+        
+        Example:
+            <a = Integral instance>
+            b = a.reconstruct(expand_compounds(a.integrand()))
+        """
+        return Integral(integrand, self._measure)
+    
+    # Enumeration of valid domain types
+    CELL = Measure.CELL
+    EXTERIOR_FACET = Measure.EXTERIOR_FACET
+    INTERIOR_FACET = Measure.INTERIOR_FACET
+    
+    def domain_type(self):
+        'Return the domain type, one of "cell", "exterior_facet" or "interior_facet".'
+        return self._measure._domain_type
+    
+    def domain_id(self):
+        "Return the domain id (integer)."
+        return self._measure._domain_id
+    
+    def metadata(self):
+        "Return the integral metadata. What this can be is currently undefined." # TODO!
+        return self._measure._metadata
+    
+    def integrand(self):
+        "Return the integrand expression, a Expr."
+        return self._integrand
+    
+    def measure(self):
+        "Return the integral metadata. What this can be is currently undefined." # TODO!
+        return self._measure
+    
+    def __neg__(self):
+        return self.reconstruct(-self._integrand)
+    
+    def __mul__(self, scalar):
+        ufl_assert(is_python_scalar(scalar), "Cannot multiply an integral with non-constant values.")
+        return self.reconstruct(scalar*self._integrand)
+    
+    def __str__(self):
+        return "{ %s } * %s" % (self._integrand, self._measure)
+    
+    def __repr__(self):
+        return "Integral(%r, %r)" % (self._integrand, self._measure)
+    
+    def __eq__(self, other):
+        return self._integrand == other._integrand and\
+               self._measure == other._measure
+    
+    def __hash__(self):
+        return hash((type(self), self._integrand, self._measure))
 
