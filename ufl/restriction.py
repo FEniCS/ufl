@@ -1,19 +1,18 @@
 """Restriction operations."""
 
-
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-06-08 -- 2008-11-06"
+__date__ = "2008-06-08 -- 2009-02-13"
 
 from ufl.log import error
-from ufl.expr import Expr
+from ufl.expr import Operator
 
 #--- Restriction operators ---
 
-class Restricted(Expr):
+class Restricted(Operator):
     __slots__ = ("_f", "_side")
     
     def __init__(self, f, side):
-        Expr.__init__(self)
+        Operator.__init__(self)
         self._f = f
         self._side = side
 

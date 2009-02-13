@@ -44,11 +44,10 @@ def apply_ad(expr, ad_routine):
         debug(indentation + "Reusing " + str(expr))
         expr2 = expr
     else:
-        c = expr._uflclass
         debug(indentation + "Reconstructing from type and ops: ")
-        debug(indentation +  "  c = " + str(c))
+        debug(indentation +  "  class = " + str(expr._uflclass))
         debug(indentation +  "  ops2 = " + "\n".join(map(str,ops2)))
-        expr2 = c(*ops2)
+        expr2 = expr.reconstruct(*ops2)
     
     # Evaluate derivative before returning
     if isinstance(expr, Derivative):

@@ -1,18 +1,18 @@
 """This module defines classes for conditional expressions."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-20 -- 2009-01-09"
+__date__ = "2008-08-20 -- 2009-02-13"
 
 from ufl.log import warning, error
 from ufl.assertions import ufl_assert
-from ufl.expr import Expr
+from ufl.expr import Operator
 from ufl.constantvalue import as_ufl 
 
 #--- Condition classes --- 
 
-class Condition(Expr):
+class Condition(Operator):
     def __init__(self, name, left, right):
-        Expr.__init__(self)
+        Operator.__init__(self)
         self._name = name
         self._left = as_ufl(left)
         self._right = as_ufl(right)
@@ -115,11 +115,11 @@ class GT(Condition):
 
 #--- Conditional expression (condition ? true_value : false_value) ---
 
-class Conditional(Expr):
+class Conditional(Operator):
     __slots__ = ("_condition", "_true_value", "_false_value")
     
     def __init__(self, condition, true_value, false_value):
-        Expr.__init__(self)
+        Operator.__init__(self)
         ufl_assert(isinstance(condition, Condition), "Expectiong condition as first argument.")
         true_value = as_ufl(true_value)
         false_value = as_ufl(false_value)

@@ -1,23 +1,23 @@
 """This module provides basic mathematical functions."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-01-10"
+__date__ = "2008-03-14 -- 2009-02-13"
 
 # Modified by Anders Logg, 2008
 
 import math
 from ufl.assertions import ufl_assert
-from ufl.expr import Expr
+from ufl.expr import Operator
 from ufl.constantvalue import FloatValue, is_true_ufl_scalar, is_python_scalar, as_ufl
 
 #--- Function representations ---
 
-class MathFunction(Expr):
+class MathFunction(Operator):
     "Base class for all math functions"
     # Freeze member variables for objects in this class
     __slots__ = ("_name", "_argument")
     def __init__(self, name, argument):
-        Expr.__init__(self)
+        Operator.__init__(self)
         ufl_assert(is_true_ufl_scalar(argument), "Expecting scalar argument.")
         self._name     = name
         self._argument = argument

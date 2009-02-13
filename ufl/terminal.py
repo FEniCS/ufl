@@ -19,6 +19,11 @@ class Terminal(Expr):
     def __init__(self):
         Expr.__init__(self)
     
+    def reconstruct(self, *operands):
+        "Return self."
+        operands and error("Got call to reconstruct in a terminal with non-empty operands.")
+        return self
+    
     def operands(self):
         "A Terminal object never has operands."
         return ()

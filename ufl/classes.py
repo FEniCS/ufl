@@ -7,7 +7,7 @@ __date__ = "2008-08-15 -- 2009-02-12"
 
 # Modified by Anders Logg, 2008
 
-from ufl.expr import Expr, WrapperType, AlgebraOperator
+from ufl.expr import Expr, Operator, WrapperType, AlgebraOperator
 from ufl.terminal import Terminal, FormArgument, UtilityType, Tuple
 from ufl.constantvalue import ConstantValue, Zero, ScalarValue, FloatValue, IntValue, ScalarSomething, Identity
 from ufl.variable import Variable, Label

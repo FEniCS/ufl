@@ -105,11 +105,11 @@ class Transformer(object):
     
     def reuse_if_possible(self, o, *operands):
         "Reuse Expr if possible, otherwise recreate from given operands."
-        return o if operands == o.operands() else o._uflclass(*operands)
+        return o if operands == o.operands() else o.reconstruct(*operands)
     
     def always_recreate(self, o, *operands):
         "Always recreate expr."
-        return o._uflclass(*operands)
+        return o.reconstruct(*operands)
     
     # Set default behaviour for any Expr
     expr = undefined
@@ -192,7 +192,7 @@ class TreeFlattener(ReuseTransformer):
                 operands.extend(b.operands())
             else:
                 operands.append(b)
-        return c(*operands)
+        return o.reconstruct(*operands)
     sum = sum_or_product
     product = sum_or_product
 

@@ -1,12 +1,12 @@
 "Differential operators."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-02-04"
+__date__ = "2008-03-14 -- 2009-02-13"
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
 from ufl.common import subdict, mergedicts
-from ufl.expr import Expr
+from ufl.expr import Expr, Operator
 from ufl.terminal import Terminal, Tuple
 from ufl.constantvalue import ConstantValue, Zero, ScalarValue, Identity, is_true_ufl_scalar
 from ufl.indexing import IndexBase, Index, FixedIndex, MultiIndex, Indexed, as_multi_index
@@ -20,11 +20,11 @@ from ufl.basisfunction import BasisFunction
 
 spatially_constant_types = (ConstantValue, Constant, VectorConstant, TensorConstant) # FacetNormal: not for higher order geometry!
 
-class Derivative(Expr):
+class Derivative(Operator):
     "Base class for all derivative types."
     __slots__ = ()
     def __init__(self):
-        Expr.__init__(self)
+        Operator.__init__(self)
 
 class FunctionDerivative(Derivative):
     """Derivative of the integrand of a form w.r.t. the 

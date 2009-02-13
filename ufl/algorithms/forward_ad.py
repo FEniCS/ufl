@@ -148,7 +148,7 @@ class AD(Transformer):
             debug("A2 = %s" % str(A2))
             debug("\n"*3)
         ufl_assert(A is A2, "This is a surprise, please provide example!")
-        op = o._uflclass(Ap, jj)
+        op = o.reconstruct(Ap, jj)
         return (o, op)
     
     def list_tensor(self, o, *ops):
@@ -169,7 +169,7 @@ class AD(Transformer):
         A, i = o.operands()
         A2, Ap = self.visit(A)
         ufl_assert(A is A2, "This is a surprise, please provide example!")
-        op = o._uflclass(Ap, i)
+        op = o.reconstruct(Ap, i)
         return (o, op)
 
     def sum(self, o, *ops):
@@ -186,7 +186,7 @@ class AD(Transformer):
         for (i, op) in enumerate(ops):
             # Replace operand i with its differentiated value 
             fpoperands = ops2[:i] + [dops2[i]] + ops2[i+1:]
-            tmp = o._uflclass(*fpoperands)
+            tmp = o.reconstruct(*fpoperands)
             fp += tmp
         return (o, fp)
     
@@ -298,7 +298,7 @@ class AD(Transformer):
         # TODO: Although differentiation commutes, can we get repeated index issues here?
         f, i = o.operands()
         f, fp = self.visit(f)
-        op = o._uflclass(fp, i) # FIXME
+        op = o.reconstruct(fp, i) # FIXME
         return (o, op)
     
     def spatial_derivative(self, o): # FIXME: Fix me!
@@ -319,7 +319,7 @@ class AD(Transformer):
             
             oprime = Zero(fp.shape(), fi, idims)
         else:
-            oprime = o._uflclass(fp, ii)
+            oprime = o.reconstruct(fp, ii)
         return (o, oprime)
 
 class SpatialAD(AD):

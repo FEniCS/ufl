@@ -31,6 +31,13 @@ class Expr(object):
     
     #=== Abstract functions that must be implemented by subclasses ===
     
+    #--- Functions for reconstructing expression ---
+    
+    # All subclasses must implement reconstruct
+    def reconstruct(self, *operands):
+        "Return a new object of the same type with new operands."
+        raise NotImplementedError(self.__class__.reconstruct)
+    
     #--- Functions for expression tree traversal ---
     
     # All subclasses must implement operands
@@ -145,11 +152,19 @@ class Expr(object):
 
 #--- Subtypes of Expr, used to logically group class hierarchy ---
 
-class WrapperType(Expr):
+class Operator(Expr):
     def __init__(self):
         Expr.__init__(self)
+    
+    def reconstruct(self, *operands):
+        "Return a new object of the same type with new operands."
+        return self._uflclass(*operands)
 
-class AlgebraOperator(Expr):
+class WrapperType(Operator):
     def __init__(self):
-        Expr.__init__(self)
+        Operator.__init__(self)
+
+class AlgebraOperator(Operator):
+    def __init__(self):
+        Operator.__init__(self)
 
