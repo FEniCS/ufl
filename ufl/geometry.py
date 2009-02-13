@@ -27,7 +27,7 @@ class SpatialCoordinate(GeometricQuantity):
         return (self._cell.d,)
     
     def evaluate(self, x, mapping, component, index_values):
-        return x[component[0]]
+        return float(x[component[0]])
     
     def __str__(self):
         return "x"

@@ -8,6 +8,7 @@ from ufl.log import debug
 from ufl.assertions import ufl_assert
 from ufl.classes import Terminal, Expr, Derivative, Tuple, SpatialDerivative, VariableDerivative, FunctionDerivative, FiniteElement, TestFunction, Function
 #from ufl.algorithms import *
+from ufl.algorithms.analysis import extract_classes
 from ufl.algorithms.transformations import transform_integrands, expand_compounds
 
 from ufl.algorithms.reverse_ad import reverse_ad
@@ -79,7 +80,10 @@ def expand_derivatives(form):
     objects have been propagated to Terminal nodes."""
     
     cell = form.cell()
-    ufl_assert(cell is not None, "Need to know the spatial dimension to compute derivatives.")
+    if cell is None:
+        if any(isinstance(c, Derivative) for c in extract_classes(form)):
+            error("Need to know the spatial dimension to compute derivatives.")
+        return form
     spatial_dim = cell.d
     
     def _expand_derivatives(expression):

@@ -18,10 +18,7 @@ class ManualTestCase(unittest.TestCase):
     def setUp(self):
         pass
 
-    def test_0(self):
-        element = FiniteElement("CG", triangle, 1)
-        element = FiniteElement("DG", tetrahedron, 0)
-        
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -39,10 +39,11 @@ class IndexSum(AlgebraOperator):
         return self._summand.shape()
     
     def evaluate(self, x, mapping, component, index_values):
-        d = self._summand.index_dimensions()[self._index]
+        i, = self._index
+        d = self._summand.index_dimensions()[i]
         tmp = 0
-        for i in range(d):
-            index_values.push(self._index, i)
+        for k in range(d):
+            index_values.push(i, k)
             tmp += self._summand.evaluate(x, mapping, component, index_values)
             index_values.pop()
         return tmp
