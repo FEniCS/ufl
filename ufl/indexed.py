@@ -49,12 +49,11 @@ class Indexed(WrapperType):
     
     def evaluate(self, x, mapping, component, index_values):
         A, ii = self.operands()
-        
         component = ii.evaluate(x, mapping, None, index_values)
         return A.evaluate(x, mapping, component, index_values)
 
     def __str__(self):
-        return "%s[%s]" % (self._expression, self._indices)
+        return "(%s)[%s]" % (self._expression, self._indices)
     
     def __repr__(self):
         return "Indexed(%r, %r)" % (self._expression, self._indices)

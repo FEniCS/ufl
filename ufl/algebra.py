@@ -298,7 +298,8 @@ class Division(AlgebraOperator):
         a, b = self.operands()
         a = a.evaluate(x, mapping, component, index_values)
         b = b.evaluate(x, mapping, component, index_values)
-        return a/b
+        # Avoid integer division
+        return float(a) / float(b)
     
     def __str__(self):
         return "(%s / %s)" % (str(self._a), str(self._b))

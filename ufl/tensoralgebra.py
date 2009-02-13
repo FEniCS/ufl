@@ -117,8 +117,8 @@ class Outer(CompoundTensorOperator):
         return self._a.shape() + self._b.shape()
     
     def __str__(self):
-        return "(%s) (x) (%s)" % (self._a, self._b)
-        #return "%s (x) %s" % (pstr(self._a, self), pstr(self._b, self))
+        return "(%s) (X) (%s)" % (self._a, self._b)
+        #return "%s (X) %s" % (pstr(self._a, self), pstr(self._b, self))
     
     def __repr__(self):
         return "Outer(%r, %r)" % (self._a, self._b)

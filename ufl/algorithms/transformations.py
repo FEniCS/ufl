@@ -8,7 +8,7 @@ __date__ = "2008-05-07 -- 2009-01-09"
 from inspect import getargspec
 from itertools import izip, chain
 
-from ufl.log import error, warning
+from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert
 from ufl.common import camel2underscore, dstr
 from ufl.expr import Expr
@@ -82,13 +82,15 @@ class Transformer(object):
         self._handlers = [(getattr(self, name), post) for (name, post) in cache_data]
     
     def visit(self, o):
+        debug("Visiting object of type %s." % type(o).__name__)
         # Get handler for the UFL class of o (type(o) may be an external subclass of the actual UFL class)
         h, visit_children_first = self._handlers[o._classid]
         if h:
             # Is this a handler that expects transformed children as input?
             if visit_children_first:
                 # Yes, visit all children first and then call h.
-                return h(o, *[self.visit(oo) for oo in o.operands()])
+                children = [self.visit(oo) for oo in o.operands()]
+                return h(o, *children)
             # No, this is a handler that handles its own children
             # (arguments self and o, where self is already bound)
             return h(o)
@@ -339,7 +341,7 @@ class CompoundExpander(ReuseTransformer):
     def outer(self, o, a, b):
         ii = indices(a.rank())
         jj = indices(b.rank())
-        return a[ii]*b[jj]
+        return as_tensor(a[ii]*b[jj], ii+jj)
     
     def determinant(self, o, A):
         sh = complete_shape(A.shape(), self._dim)
@@ -630,7 +632,10 @@ def expand_compounds(e, dim=None):
     Requires e to have a well defined domain, 
     for the geometric dimension to be defined."""
     if dim is None:
-        dim = e.cell().d
+        cell = e.cell()
+        if cell is None:
+            error("Missing cell, can't expand compounds without dimension.")
+        dim = cell.d
     return apply_transformer(e, CompoundExpander(dim))
 
 def strip_variables(e):
