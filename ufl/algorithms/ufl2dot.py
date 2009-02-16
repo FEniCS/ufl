@@ -106,7 +106,7 @@ def ufl2dot(expression, formname="a", nodeoffset=0, begin=True, end=True):
         nodes = {}
         edges = []
         for itg in chain(ci, ei, ii):
-            integrallabel = "%s%s" % (itg.domain_type(), itg.domain_id())
+            integrallabel = "%s%s" % (itg.measure().domain_type(), itg.measure().domain_id())
             integrand = itg.integrand()
             build_entities(integrand, nodes, edges, nodeoffset)
             rootnode = nodes[id(integrand)][0]

@@ -369,8 +369,8 @@ def form2latex(form, formname="a", basisfunction_names = None, function_names = 
     for itg in integrals:
         # TODO: Get list of expression strings instead of single expression!
         integrand_string = expression2latex(itg.integrand(), formdata.basisfunction_renumbering, formdata.coefficient_renumbering)
-        b = p + "\\int_{%s_%d}" % (domain_strings[itg.domain_type()], itg.domain_id())
-        c = "\\left[ { %s } \\right] \,%s" % (integrand_string, dx_strings[itg.domain_type()])
+        b = p + "\\int_{%s_%d}" % (domain_strings[itg.measure().domain_type()], itg.measure().domain_id())
+        c = "\\left[ { %s } \\right] \,%s" % (integrand_string, dx_strings[itg.measure().domain_type()])
         lines.append((a, b, c))
         a = "{}"; p = "{}+ "
     sections.append(("Form", align(lines)))
@@ -543,7 +543,7 @@ def form2code2latex(form):
     
     for itg in form.cell_integrals():
         vinfo, itgcode = integrand2code(itg.integrand(), formdata, basisfunction_deps, function_deps)
-        title = "%s integral over domain %d" % (itg.domain_type(), itg.domain_id())
+        title = "%s integral over domain %d" % (itg.measure().domain_type(), itg.measure().domain_id())
         body = code2latex(vinfo, itgcode, formdata)
         sections.append((title, body))
     

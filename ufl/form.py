@@ -25,7 +25,7 @@ class Form(object):
         return self._integrals
     
     def _get_integrals(self, domain_type):
-        return tuple(itg for itg in self._integrals if itg.domain_type() == domain_type)
+        return tuple(itg for itg in self._integrals if itg.measure().domain_type() == domain_type)
     
     def cell_integrals(self):
         from ufl.integral import Measure

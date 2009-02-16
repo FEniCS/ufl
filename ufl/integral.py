@@ -85,14 +85,14 @@ class Measure(object):
         return hash((type(self), self._domain_type, self._domain_id, self._metadata))
 
 class Integral(object):
-    """An integral over a single domain."""
+    "An integral over a single domain."
     __slots__ = ("_integrand", "_measure")
     def __init__(self, integrand, measure):
         from ufl.expr import Expr
         ufl_assert(isinstance(integrand, Expr), "Expecting integrand to be an Expr instance.")
         ufl_assert(isinstance(measure, Measure), "Expecting measure to be a Measure instance.")
-        self._integrand   = integrand
-        self._measure     = measure
+        self._integrand = integrand
+        self._measure   = measure
     
     def reconstruct(self, integrand):
         """Construct a new Integral object with some properties replaced with new values.
@@ -103,29 +103,12 @@ class Integral(object):
         """
         return Integral(integrand, self._measure)
     
-    # Enumeration of valid domain types
-    CELL = Measure.CELL
-    EXTERIOR_FACET = Measure.EXTERIOR_FACET
-    INTERIOR_FACET = Measure.INTERIOR_FACET
-    
-    def domain_type(self):
-        'Return the domain type, one of "cell", "exterior_facet" or "interior_facet".'
-        return self._measure._domain_type
-    
-    def domain_id(self):
-        "Return the domain id (integer)."
-        return self._measure._domain_id
-    
-    def metadata(self):
-        "Return the integral metadata. What this can be is currently undefined." # TODO!
-        return self._measure._metadata
-    
     def integrand(self):
-        "Return the integrand expression, a Expr."
+        "Return the integrand expression, which is an Expr instance."
         return self._integrand
     
     def measure(self):
-        "Return the integral metadata. What this can be is currently undefined." # TODO!
+        "Return the measure associated with this integral."
         return self._measure
     
     def __neg__(self):

@@ -17,11 +17,14 @@ from ufl.algorithms.analysis import extract_basisfunctions, extract_coefficients
 #--- Utilities for constructing informative strings from UFL objects ---
 
 def integral_info(integral):
-    s  = "  Integral over %s domain %d:\n" % (integral.domain_type(), integral.domain_id())
+    ufl_assert(isinstance(integral, Integral), "Expecting an Integral.")
+    s  = "  Integral:\n"
+    s += "    Measure representation:\n"
+    s += "      %r\n" % integral.measure()
     s += "    Integrand expression representation:\n"
-    s += "      %r\n" % integral._integrand
+    s += "      %r\n" % integral.integrand()
     s += "    Integrand expression short form:\n"
-    s += "      %s" % integral._integrand
+    s += "      %s" % integral.integrand()
     return s
 
 def form_info(form):
@@ -90,8 +93,8 @@ def tree_format(expression, indentation=0, parentheses=True):
         ind = _indent_string(indentation)
         s += ind + "Integral:\n"
         ind = _indent_string(indentation+1)
-        s += ind + "domain type: %s\n" % expression.domain_type()
-        s += ind + "domain id: %d\n" % expression.domain_id()
+        s += ind + "domain type: %s\n" % expression.measure().domain_type()
+        s += ind + "domain id: %d\n" % expression.measure().domain_id()
         s += ind + "integrand:\n"
         s += tree_format(expression._integrand, indentation+2, parentheses)
     
