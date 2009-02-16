@@ -82,12 +82,6 @@ class Expr(object):
         return ()
         #return self._free_indices
     
-    # Subclasses that can have repeated indices must implement repeated_indices
-    def repeated_indices(self):
-        "Return a tuple with the repeated indices of the expression."
-        error("repeated_indices shouldn't be called anymore!")
-        return ()
-    
     # All subclasses must implement index_dimensions
     def index_dimensions(self):
         """Return a dict with the free or repeated indices in the expression
@@ -144,6 +138,10 @@ class Expr(object):
         return True 
     
     def __iter__(self):
+        raise NotImplementedError
+    
+    def __len__(self):
+        "If this is implemented, Python will allow iteration using this and __getitem__."
         raise NotImplementedError
     
     #def __getnewargs__(self): # TODO: Test pickle and copy with this. Must implement differently for Terminal objects though.
