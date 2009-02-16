@@ -1,11 +1,24 @@
 "This module contains a collection of common utilities."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-08-05 -- 2009-01-13"
+__date__ = "2008-08-05 -- 2009-02-16"
 
 import os
 from itertools import izip
 import operator
+
+# Taken from http://ivory.idyll.org/blog/mar-07/replacing-commands-with-subprocess
+from subprocess import Popen, PIPE, STDOUT
+def get_status_output(cmd, input=None, cwd=None, env=None):
+    pipe = Popen(cmd, shell=True, cwd=cwd, env=env, stdout=PIPE, stderr=STDOUT)
+
+    (output, errout) = pipe.communicate(input=input)
+    assert not errout
+
+    status = pipe.returncode
+
+    return (status, output)
+
 
 domain2dim = { "interval": 1, "triangle": 2, "tetrahedron": 3, "quadrilateral": 2, "hexahedron": 3 }
 
@@ -14,13 +27,15 @@ def write_file(filename, text):
     f.write(text)
     f.close()
 
+def pdf_reader_cmd():
+    # TODO: Add option for which reader to use. Is there a portable way to do this? Like "get default pdf reader from os"?
+    reader_cmd = "evince %s &"
+    return reader_cmd 
+
 def openpdf(pdffilename):
     "Open PDF file in external pdf viewer."
-    # TODO: Is there a portable way to do this?
-    # TODO: Use subprocess
-    # TODO: Add option for doing this or not.
-    # TODO: Add option for which reader to use.
-    os.system("evince %s &" % pdffilename)
+    cmd = pdf_reader_cmd() % pdffilename
+    s, o = get_status_output(cmd)
 
 def product(sequence):
     "Return the product of all elements in a sequence."

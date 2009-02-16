@@ -3,7 +3,7 @@ either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2009-01-29"
+__date__ = "2008-05-07 -- 2009-02-16"
 
 # Modified by Anders Logg, 2008.
 
@@ -293,7 +293,10 @@ def expression2latex(expression, basisfunction_renumbering, coefficient_renumber
     return visitor.visit(expression)
 
 def element2latex(element):
-    return "{\mbox{%s}}" % str(element)
+    e = str(element)
+    e = e.replace("<", "")
+    e = e.replace(">", "")
+    return "{\mbox{%s}}" % e
 
 domain_strings = { "cell": "\\Omega", "exterior_facet": "\\Gamma^{ext}", "interior_facet": "\\Gamma^{int}" }
 dx_strings = { "cell": "dx", "exterior_facet": "ds", "interior_facet": "dS" }
@@ -307,9 +310,9 @@ def form2latex(form, formname="a", basisfunction_names = None, function_names = 
     # Define elements
     lines = []
     for i, f in enumerate(formdata.basisfunctions):
-        lines.append("\\mathcal{P}_{%d} = \{%s\} " % (i, element2latex(f.element())))
+        lines.append("\\mathcal{P}_{%d} = \\{%s\\} " % (i, element2latex(f.element())))
     for i, f in enumerate(formdata.coefficients):
-        lines.append("\\mathcal{Q}_{%d} = \{%s\} " % (i, element2latex(f.element())))
+        lines.append("\\mathcal{Q}_{%d} = \\{%s\\} " % (i, element2latex(f.element())))
     if lines:
         sections.append(("Finite elements", align(lines)))
     

@@ -1,7 +1,7 @@
 """Compound tensor algebra operations."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-02-03"
+__date__ = "2008-03-14 -- 2009-02-16"
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
@@ -165,8 +165,8 @@ class Dot(CompoundTensorOperator):
 
     def __new__(cls, a, b):
         ufl_assert(a.rank() >= 1 and b.rank() >= 1,
-            "Dot product requires arguments of rank >= 1, got %d and %d." % \
-            (a.rank(), b.rank())) # TODO: maybe scalars are ok?
+            "Dot product requires non-scalar arguments, got arguments with ranks %d and %d." % \
+            (a.rank(), b.rank()))
         
         if isinstance(a, Zero) or isinstance(b, Zero):
             shape = a.shape()[:-1] + b.shape()[1:]

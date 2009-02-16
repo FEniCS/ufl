@@ -1,7 +1,7 @@
 "Algorithm for splitting a Function into sub functions."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-01-07"
+__date__ = "2008-03-14 -- 2009-02-16"
 
 # Modified by Anders Logg, 2008
 
@@ -46,7 +46,7 @@ def split(v):
             offset += sub_size
         
         elif rank == 2:
-            # TODO: Handle symmetries here?
+            # FIXME: Handle symmetries here?
             sub_size = product(shape)
             
             components = []
@@ -61,7 +61,7 @@ def split(v):
             offset += sub_size
         
         else:
-            # TODO: Handle rank > 2.
+            # FIXME: Handle rank > 2.
             error("Don't know how to split functions with sub functions of rank %d (yet)." % rank)
             #for indices in compute_indices(shape):
             #    #k = offset + sum(i*s for (i,s) in zip(indices, shape[1:] + (1,)))
@@ -69,7 +69,7 @@ def split(v):
         
         sub_functions.append(subv)
     
-    ufl_assert(value_size == offset, "Logic breach in function splitting.") # TODO: Not true with symmetries.
+    ufl_assert(value_size == offset, "Logic breach in function splitting.") # FIXME: Not true with symmetries.
     
     return tuple(sub_functions)
 

@@ -1,7 +1,7 @@
 "Differential operators."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-02-13"
+__date__ = "2008-03-14 -- 2009-02-16"
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
@@ -143,7 +143,7 @@ class VariableDerivative(Derivative):
         if isinstance(v, Indexed):
             ufl_assert(isinstance(v._expression, Variable), \
                 "Expecting a Variable in VariableDerivative.")
-            warning("diff(f, v[i]) isn't handled properly in all code.") # TODO
+            warning("diff(f, v[i]) isn't handled properly in all code.") # FIXME
         else:
             ufl_assert(isinstance(v, Variable), \
                 "Expecting a Variable in VariableDerivative.")
@@ -154,7 +154,7 @@ class VariableDerivative(Derivative):
         fid = f.index_dimensions()
         vid = v.index_dimensions()
         ufl_assert(not (set(fi) ^ set(vi)), \
-            "Repeated indices not allowed in VariableDerivative.") # TODO: Allow diff(f[i], v[i])?
+            "Repeated indices not allowed in VariableDerivative.") # FIXME: Allow diff(f[i], v[i])?
         self._free_indices = tuple(fi + vi)
         self._index_dimensions = dict(fid)
         self._index_dimensions.update(vid)
@@ -264,16 +264,16 @@ class Div(CompoundDerivative):
 class Curl(CompoundDerivative):
     __slots__ = ("_f", "_dim",)
     
-    # TODO: Implement __new__ to simplify trivial zeros
+    # FIXME: Implement __new__ to simplify trivial zeros
     
     def __init__(self, f):
         CompoundDerivative.__init__(self)
-        ufl_assert(f.rank() == 1, "Need a vector.") # TODO: Is curl always 3D?
+        ufl_assert(f.rank() == 1, "Need a vector.")
         ufl_assert(not f.free_indices(), \
             "TODO: Taking curl of an expression with free indices, should this be a valid expression? Please provide examples!")
         self._f = f
         cell = f.cell()
-        ufl_assert(cell is not None, "Can't take curl of expression with undefined cell...") # TODO: Is curl always 3D?
+        ufl_assert(cell is not None, "Can't take curl of expression with undefined cell...")
         self._dim = cell.d
     
     def operands(self):
@@ -297,7 +297,7 @@ class Curl(CompoundDerivative):
 class Rot(CompoundDerivative):
     __slots__ = ("_f",)
     
-    # TODO: Implement __new__ to simplify trivial zeros
+    # FIXME: Implement __new__ to simplify trivial zeros
 
     def __init__(self, f):
         CompoundDerivative.__init__(self)
