@@ -5,6 +5,7 @@ rm -f *_debug.py
 rm -f *.analysis
 rm -f *.repr
 rm -f *.str
+rm -f *.tree
 
 # python compiled files
 rm -f *.pyc
