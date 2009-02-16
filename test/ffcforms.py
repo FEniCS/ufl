@@ -336,7 +336,7 @@ class FFCTestCase(unittest.TestCase):
 
         v = TestFunction(P1)
         u = TrialFunction(P1)
-        C = Function(P1)
+        C = Function(P0)
 
         a = inner(grad(v), C*grad(u))*dx
         
