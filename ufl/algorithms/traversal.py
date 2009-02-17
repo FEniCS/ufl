@@ -1,7 +1,7 @@
 """This module contains algorithms for traversing expression trees in different ways."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-01-05"
+__date__ = "2008-03-14 -- 2009-02-17"
 
 # Modified by Anders Logg, 2008
 
@@ -40,68 +40,70 @@ def traverse_terminals(expr):
                 yield t
 
 def pre_traversal(expr, stack=None):
-    "Yields (o, stack) for each tree node o in expr, parent before child."
+    """Yields o for each tree node o in expr, parent before child.
+    If a list is provided, the stack is updated while iterating."""
     ufl_assert(isinstance(expr, Expr), "Expecting Expr.")
-    if stack is None:
-        stack = []
     # yield parent
-    yield (expr, stack)
+    yield expr
     # yield children
     if not isinstance(expr, Terminal):
-        stack.append(expr)
+        if stack is not None:
+            stack.append(expr)
         for o in expr.operands():
-            for (i, dummy) in pre_traversal(o, stack):
-                yield (i, stack)
-        stack.pop()
+            for i in pre_traversal(o, stack):
+                yield i
+        if stack is not None:
+            stack.pop()
 
 def post_traversal(expr, stack=None):
-    "Yields (o, stack) for each tree node o in expr, parent after child."
+    """Yields o for each tree node o in expr, parent after child.
+    If a list is provided, the stack is updated while iterating."""
     ufl_assert(isinstance(expr, Expr), "Expecting Expr.")
-    if stack is None:
-        stack = []
     # yield children
-    stack.append(expr)
+    if stack is not None:
+        stack.append(expr)
     for o in expr.operands():
-        for (i, dummy) in post_traversal(o, stack):
-            yield (i, stack)
-    stack.pop()
+        for i in post_traversal(o, stack):
+            yield i
+    if stack is not None:
+        stack.pop()
     # yield parent
-    yield (expr, stack)
+    yield expr
 
 def pre_walk(a, func):
     """Call func on each expression tree node in a, parent before child.
     The argument a can be a Form, Integral or Expr."""
     for e in iter_expressions(a):
-        for (o, stack) in pre_traversal(e, None):
+        for o in pre_traversal(e):
             func(o)
 
 def post_walk(a, func):
     """Call func on each expression tree node in a, parent after child.
     The argument a can be a Form, Integral or Expr."""
     for e in iter_expressions(a):
-        for (o, stack) in post_traversal(e, None):
+        for o in post_traversal(e):
             func(o)
 
-def _walk(expr, pre_func, post_func, stack=None):
-    if stack is None:
-        stack = []
+def _walk(expr, pre_func, post_func, stack):
     # visit parent on the way in
     pre_func(expr, stack)
     # visit children
     stack.append(expr)
     for o in expr.operands():
-        _walk(o, pre_func, post_traversal, stack)
+        _walk(o, pre_func, post_func, stack)
     stack.pop()
     # visit parent on the way out
     post_func(expr, stack)
 
-def walk(a, pre_func, post_func):
+def walk(a, pre_func, post_func, stack=None):
     """Call pre_func and post_func on each expression tree node in a.
     
     The functions are called on a node before and 
     after its children are visited respectively.
     
     The argument a can be a Form, Integral or Expr."""
+    if stack is None:
+        stack = []
     for e in iter_expressions(a):
-        _walk(e, pre_func, post_func)
+        _walk(e, pre_func, post_func, stack)
 

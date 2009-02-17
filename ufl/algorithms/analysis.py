@@ -35,19 +35,19 @@ def extract_classes(a):
     """Build a set of all unique Expr subclasses used in a.
     The argument a can be a Form, Integral or Expr."""
     return set(o._uflclass for e in iter_expressions(a) \
-                        for (o, stack) in post_traversal(e))
+                        for o in post_traversal(e))
 
 def extract_type(a, ufl_type):
     """Build a set of all objects of class ufl_type found in a.
     The argument a can be a Form, Integral or Expr."""
     return set(o for e in iter_expressions(a) \
-                 for (o, stack) in post_traversal(e) \
+                 for o in post_traversal(e) \
                  if isinstance(o, ufl_type))
 
 def extract_terminals(a):
     "Build a set of all Terminal objects in a."
     return set(o for e in iter_expressions(a) \
-                 for (o,stack) in post_traversal(e) \
+                 for o in post_traversal(e) \
                  if isinstance(o, Terminal))
 
 def cmp_counted(x, y):
@@ -109,7 +109,7 @@ def extract_variables(a):
     handled = set()
     variables = []
     for e in iter_expressions(a):
-        for o, stack in post_traversal(e):
+        for o in post_traversal(e):
             if isinstance(o, Variable):
                 expr, label = o.operands()
                 if not label in handled:
@@ -123,7 +123,7 @@ def extract_duplications(expression):
     ufl_assert(isinstance(expression, Expr), "Expecting UFL expression.")
     handled = set()
     duplicated = set()
-    for o, stack in post_traversal(expression):
+    for o in post_traversal(expression):
         if o in handled:
             duplicated.add(o)
         handled.add(o)

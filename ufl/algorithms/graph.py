@@ -22,7 +22,7 @@ def build_graph(expr):
     V = []
     E = []
     handled = {}
-    for v, stack in post_traversal(expr):
+    for v in post_traversal(expr):
         i = handled.get(v)
         if i is None:
             i = len(V)

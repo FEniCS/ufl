@@ -50,8 +50,9 @@ def is_multilinear(form):
 #    ufl_assert(isinstance(form, Form), "Not a form: %s" % str(form))
 # 
 #    # Check that all operators applied to basis functions are linear
-#    for e in iter_expressions(form):        
-#        for (o, stack) in pre_traversal(e):
+#    for e in iter_expressions(form):   
+#        stack = []     
+#        for o in pre_traversal(e, stack):
 #            if isinstance(o, BasisFunction):
 #                for operator in stack:
 #                    if not operator.is_linear():

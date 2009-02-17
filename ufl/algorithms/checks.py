@@ -15,7 +15,7 @@ from ufl.basisfunction import BasisFunction
 from ufl.constantvalue import is_true_ufl_scalar
 
 # Other algorithms
-from ufl.algorithms.traversal import post_traversal, post_walk, iter_expressions, traverse_terminals
+from ufl.algorithms.traversal import iter_expressions, traverse_terminals
 from ufl.algorithms.analysis import extract_elements
 from ufl.algorithms.predicates import is_multilinear
 from ufl.algorithms.ad import expand_derivatives
