@@ -7,7 +7,7 @@ from ufl.log import warning
 from ufl.assertions import ufl_assert
 from ufl.expr import Expr, WrapperType
 from ufl.constantvalue import as_ufl
-from ufl.indexing import Index, MultiIndex
+from ufl.indexing import Index, FixedIndex, MultiIndex
 
 # --- Classes representing tensors of UFL expressions ---
 
@@ -54,6 +54,15 @@ class ListTensor(WrapperType):
         component = component[1:]
         a = a.evaluate(x, mapping, component, index_values)
         return a
+    
+    def __getitem__(self, key):
+        if not isinstance(key, tuple):
+            key = (key,)
+        k = key[0]
+        if isinstance(k, (int, FixedIndex)):
+            sub = self._expressions[int(k)]
+            return sub if len(key) == 1 else sub[key[1:]]
+        return Expr.__getitem__(self, key)
     
     def __str__(self):
         def substring(expressions, indent):
