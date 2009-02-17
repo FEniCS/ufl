@@ -1,7 +1,7 @@
 """This module defines the IndexSum class."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2009-01-28 -- 2009-02-04"
+__date__ = "2009-01-28 -- 2009-02-17"
 
 from ufl.assertions import ufl_assert, assert_expr, assert_instance
 from ufl.indexing import Index, MultiIndex, as_multi_index
@@ -10,7 +10,7 @@ from ufl.expr import AlgebraOperator
 #--- Sum over an index ---
 
 class IndexSum(AlgebraOperator):
-    __slots__ = ("_summand", "_index", "_repr", "_free_indices", "_index_dimensions")
+    __slots__ = ("_summand", "_index", "_dimension", "_repr", "_free_indices", "_index_dimensions")
     
     def __init__(self, summand, index):
         AlgebraOperator.__init__(self)
@@ -24,7 +24,11 @@ class IndexSum(AlgebraOperator):
         j = self._index[0]
         self._free_indices = tuple(i for i in self._summand.free_indices() if not i == j)
         self._index_dimensions = dict(self._summand.index_dimensions())
+        self._dimension = self._index_dimensions[j]
         del self._index_dimensions[j]
+    
+    def dimension(self):
+        return self._dimension
     
     def operands(self):
         return (self._summand, self._index)
