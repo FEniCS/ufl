@@ -2,13 +2,14 @@
 expressions as variables for differentiation."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2009-02-03"
+__date__ = "2008-05-20 -- 2009-02-17"
 
 from ufl.common import Counted
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.expr import Expr, WrapperType
+from ufl.expr import WrapperType
 from ufl.terminal import UtilityType
+from ufl.constantvalue import as_ufl
 
 class Label(UtilityType, Counted):
     _globalcount = 0
@@ -40,8 +41,7 @@ class Variable(WrapperType):
     def __init__(self, expression, label=None):
         WrapperType.__init__(self)
         
-        ufl_assert(isinstance(expression, Expr), "Expecting an Expr.")
-        self._expression = expression
+        self._expression = as_ufl(expression)
         
         if label is None:
             label = Label()
