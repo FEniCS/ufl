@@ -119,22 +119,41 @@ class AlgorithmsTestCase(unittest.TestCase):
         self.assertTrue( (element1, element2) == extract_elements(a) )
         self.assertTrue( set([element1]) == extract_unique_elements(a) )
 
-    def _test_walk(self):
+    def test_walk(self):
         element = FiniteElement("CG", "triangle", 1)
         v = TestFunction(element)
         f = Function(element)
-        a = f*v*dx
+        p = f*v
+        a = p*dx
 
-        store = {}
-        def foo(o):
-            store[foo.count] = o
-            foo.count += 1
-        foo.count = 0
-
+        prestore = []
+        def pre(o, stack):
+            prestore.append((o, len(stack)))
+        poststore = []
+        def post(o, stack):
+            poststore.append((o, len(stack)))
+        
         for itg in a.cell_integrals():
-            walk(itg.integrand, foo)
-        logging.debug( "\n".join("%d:\t %s" % (k,v) for k,v in store.items()) )
-        # TODO: test something... compare some strings perhaps.
+            walk(itg.integrand(), pre, post)
+        
+        self.assertTrue(prestore == [(p, 0), (v, 1), (f, 1)]) # NB! Sensitive to ordering of expressions.
+        self.assertTrue(poststore == [(v, 1), (f, 1), (p, 0)]) # NB! Sensitive to ordering of expressions.
+        #print "\n"*2 + "\n".join(map(str,prestore))
+        #print "\n"*2 + "\n".join(map(str,poststore))
+
+    def test_traversal(self):
+        element = FiniteElement("CG", "triangle", 1)
+        v = TestFunction(element)
+        f = Function(element)
+        g = Function(element)
+        p1 = f*v
+        p2 = g*v
+        s = p1 + p2
+        pre_traverse = list(pre_traversal(s))
+        post_traverse = list(post_traversal(s))
+        
+        self.assertTrue(pre_traverse  == [s, p1, v, f, p2, v, g]) # NB! Sensitive to ordering of expressions.
+        self.assertTrue(post_traverse == [v, f, p1, v, g, p2, s]) # NB! Sensitive to ordering of expressions.
 
 
 if __name__ == "__main__":
