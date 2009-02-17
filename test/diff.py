@@ -31,8 +31,8 @@ class DiffTestCase(unittest.TestCase):
         dfv2 = dfv2(x)
         self.assertTrue(dfv1 == dfv2)
         
-        dfv1 = diff(f(7*v), v)(x)
-        dfv2 = 7*df(v)(x)
+        dfv1 = diff(f(7*v), v)
+        dfv2 = 7*df(7*v)
         dfv1 = dfv1(x)
         dfv2 = dfv2(x)
         self.assertTrue(dfv1 == dfv2)
@@ -66,6 +66,38 @@ class DiffTestCase(unittest.TestCase):
         def f(v):  return 3.0 / v
         def df(v): return -3.0 / v**2
         self._test(f, df)
+    
+    def testExp(self):
+        def f(v):  return exp(v)
+        def df(v): return exp(v)
+        self._test(f, df)
+    
+    def testLn(self):
+        def f(v):  return ln(v)
+        def df(v): return 1.0/v
+        self._test(f, df)
+    
+    def testSin(self):
+        def f(v):  return sin(v)
+        def df(v): return cos(v)
+        self._test(f, df)
+    
+    def testCos(self):
+        def f(v):  return cos(v)
+        def df(v): return -sin(v)
+        self._test(f, df)
 
+    def testIndexSum(self):
+        def f(v):
+            # 3*v + 4*v**2 + 5*v**3
+            a = as_vector((v, v**2, v**3))
+            b = as_vector((3, 4, 5))
+            i, = indices(1)
+            return a[i]*b[i]
+        def df(v): return 3 + 4*2*v + 5*3*v**2
+        self._test(f, df)
+
+    # TODO: More tests involving wrapper types and indices
+    
 if __name__ == "__main__":
     unittest.main()
