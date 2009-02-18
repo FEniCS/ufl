@@ -31,19 +31,6 @@ def transform(expression, handlers):
         error("Didn't find class %s among handlers." % c)
     return h(expression, *ops)
 
-def transform_integrands(form, transformer):
-    if isinstance(form, Form):
-        newintegrals = []
-        for integral in form.integrals():
-            newintegrand = transformer(integral.integrand())
-            newintegral= integral.reconstruct(integrand = newintegrand)
-            newintegrals.append(newintegral)
-        newform = Form(newintegrals)
-        return newform
-    if isinstance(form, Expr):
-        return transformer(form)
-    error("Expecting Form or Expr.")
-
 def is_post_handler(function):
     "Is this a handler that expects transformed children as input?"
     insp = getargspec(function)
@@ -106,7 +93,9 @@ class Transformer(object):
     
     def reuse_if_possible(self, o, *operands):
         "Reuse Expr if possible, otherwise reconstruct from given operands."
-        return o if operands == o.operands() else o.reconstruct(*operands)
+        if all(a == b for (a, b) in zip(operands, o.operands())):
+            return o
+        return o.reconstruct(*operands)
     
     def always_reconstruct(self, o, *operands):
         "Always reconstruct expr."
@@ -122,26 +111,34 @@ class Transformer(object):
         # Check variable cache to reuse previously transformed variable if possible
         e, l = o.operands()
         v = self._variable_cache.get(l)
-        if v is None:
-            # Visit the expression our variable represents
-            e2 = self.visit(e)
-            # Recreate Variable (with same label) only if necessary
-            if e is e2:
-                return o
-            v = Variable(e2, l)
-            self._variable_cache[l] = v
+        if v is not None:
+            return v
+        
+        # Visit the expression our variable represents
+        e2 = self.visit(e)
+
+        # If the expression is the same, reuse Variable object
+        if e is e2:
+            return o
+
+        # Recreate Variable (with same label) and cache it
+        v = Variable(e2, l)
+        self._variable_cache[l] = v
         return v
 
     def reconstruct_variable(self, o):
         # Check variable cache to reuse previously transformed variable if possible
         e, l = o.operands()
         v = self._variable_cache.get(l)
-        if v is None:
-            # Visit the expression our variable represents
-            e2 = self.visit(e)
-            # Always reconstruct Variable (with same label)
-            v = Variable(e2, l)
-            self._variable_cache[l] = v
+        if v is not None:
+            return v
+
+        # Visit the expression our variable represents
+        e2 = self.visit(e)
+
+        # Always reconstruct Variable (with same label)
+        v = Variable(e2, l)
+        self._variable_cache[l] = v
         return v
 
 class ReuseTransformer(Transformer):
@@ -300,7 +297,7 @@ class CompoundExpander(ReuseTransformer):
         self._dim = geometric_dimension
         if self._dim is None:
             warning("Got None for dimension, some compounds cannot be expanded.")
-    
+
     # ------------ Compound tensor operators
     
     def trace(self, o, A):
@@ -598,16 +595,24 @@ class DuplicationPurger(ReuseTransformer):
 
 # ------------ User interface functions
 
-def apply_transformer(e, transformer):
-    if isinstance(e, Form):
-        newintegrals = []
-        for itg in e.integrals():
-            newintegrand = transformer.visit(itg.integrand())
-            newitg = itg.reconstruct(integrand = newintegrand)
-            newintegrals.append(newitg)
+def transform_integrands(form, transform):
+    """Apply transform(expression) to each integrand 
+    expression in form, or to form if it is an Expr."""
+    if isinstance(form, Form):
+        newintegrals = [itg.reconstruct(transform(itg.integrand()))\
+                        for itg in form.integrals()]
         return Form(newintegrals)
-    ufl_assert(isinstance(e, Expr), "Expecting Form or Expr.")
-    return transformer.visit(e)
+    elif isinstance(form, Expr):
+        return transform(form)
+    else:
+        error("Expecting Form or Expr.")
+
+def apply_transformer(e, transformer):
+    """Apply transformer.visit(expression) to each integrand 
+    expression in form, or to form if it is an Expr."""
+    def _transform(expr):
+        return transformer.visit(expr)
+    return transform_integrands(e, _transform)
 
 def ufl2ufl(e):
     """Convert an UFL expression to a new UFL expression, with no changes.

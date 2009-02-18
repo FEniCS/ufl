@@ -393,20 +393,17 @@ class FunctionAD(AD):
         return (o, wprime)
 
 def compute_spatial_forward_ad(expr, dim):
-    expr = expand_compounds(expr, dim)
     f, v = expr.operands()
     e, ediff = SpatialAD(dim, v).visit(f)
     return ediff
 
 def compute_variable_forward_ad(expr, dim):
-    expr = expand_compounds(expr, dim)
     f, v = expr.operands()
     ufl_assert(v.shape() == (), "compute_variable_forward_ad with nonscalar Variable not implemented.")
     e, ediff = VariableAD(dim, v).visit(f)
     return ediff
 
 def compute_function_forward_ad(expr, dim):
-    expr = expand_compounds(expr, dim)
     f, w, v = expr.operands()
     e, ediff = FunctionAD(dim, w, v).visit(f)
     return ediff
@@ -422,8 +419,7 @@ def forward_ad(expr, dim):
     elif isinstance(expr, FunctionDerivative):
         result = compute_function_forward_ad(expr, dim)
     else:
-        warning("How did this happen? expr is %s" % repr(expr))
-        result = expr
+        error("This shouldn't happen: expr is %s" % repr(expr))
     return result
 
 

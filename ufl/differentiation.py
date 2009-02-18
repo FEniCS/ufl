@@ -66,16 +66,15 @@ class FunctionDerivative(Derivative):
     def __repr__(self):
         return "FunctionDerivative(%r, %r, %r)" % (self._integrand, self._functions, self._basisfunctions)
 
-def foobar(expression, idx):
-    idims = {}
-    if isinstance(idx, Index):
+def split_indices(expression, idx):
+    idims = dict(expression.index_dimensions())
+    if isinstance(idx, Index) and idims.get(idx) is None:
         cell = expression.cell()
         ufl_assert(cell is not None,
             "Need to know the spatial dimension to "\
             "compute the shape of derivatives.")
         dim = cell.d
         idims[idx] = dim
-    idims.update(expression.index_dimensions())
     fi = unique_indices(expression.free_indices() + (idx,))
     return fi, idims
 
@@ -88,7 +87,7 @@ class SpatialDerivative(Derivative):
         if isinstance(expression, spatially_constant_types):
             index = as_multi_index(index)
             idx, = index
-            fi, idims = foobar(expression, idx)
+            fi, idims = split_indices(expression, idx)
             return Zero(expression.shape(), fi, idims)
         
         return Derivative.__new__(cls)
@@ -100,7 +99,7 @@ class SpatialDerivative(Derivative):
         # Make sure we have a single valid index
         self._index = as_multi_index(index)
         ufl_assert(len(self._index) == 1, "Expecting a single index.")
-        fi, idims = foobar(expression, self._index[0])
+        fi, idims = split_indices(expression, self._index[0])
         
         # Store what we need
         self._free_indices = fi
