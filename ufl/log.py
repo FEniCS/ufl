@@ -2,7 +2,7 @@
 output messages. These may be redirected by the user of UFL."""
 
 __author__ = "Martin Sandve Alnaes and Anders Logg"
-__date__ = "2005-02-04 -- 2009-01-23"
+__date__ = "2005-02-04 -- 2009-02-18"
 __copyright__ = "Copyright (C) 2005-2009 Anders Logg and Martin Sandve Alnaes"
 __license__  = "GNU GPL version 3 or any later version"
 
@@ -10,7 +10,7 @@ import sys
 import logging
 
 log_functions = ["debug", "info", "warning", "error", "begin", "end",
-                 "set_level", "set_indent", "add_indent",
+                 "set_level", "push_level", "pop_level", "set_indent", "add_indent",
                  "set_handler", "get_handler", "get_logger"]
 
 __all__ = log_functions + ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL", "Logger", "log_functions"]
@@ -36,6 +36,9 @@ class Logger:
 
         # Set initial indentation level
         self._indent_level = 0
+        
+        # Setup stack with default logging level
+        self._level_stack = [WARNING]
 
     def debug(self, *message):
         "Write debug message."
@@ -70,6 +73,17 @@ class Logger:
         "End task: write a newline and decrease indentation level."
         self.info("")
         self.add_indent(-1)
+
+    def push_level(self, level):
+        "Push a log level on the level stack."
+        self._level_stack.append(level)
+        self.set_level(level)
+
+    def pop_level(self):
+        "Pop log level from the level stack, reverting to before the last push_level."
+        self._level_stack.pop()
+        level = self._level_stack[-1]
+        self.set_level(level)
 
     def set_level(self, level):
         "Set log level."
