@@ -381,10 +381,6 @@ class VariableAD(AD):
         if o.label() == self._variable.label():
             # dv/dv = 1
             op = self._make_ones_diff(o)
-            
-            c = (o, op)
-            self._variable_cache[l] = c
-            return c
         else:
             # differentiate expression behind variable
             e2, ep = self.visit(e)
@@ -392,10 +388,10 @@ class VariableAD(AD):
             if e2 != e:
                 o = Variable(e2, l)
                 error("Expression has changed during visit, how did this happen? Might be ok, just wondering.")
-            
-            c = (o, op)
-            self._variable_cache[l] = c
-            return c
+        # return variable and derivative of its expression
+        c = (o, op)
+        self._variable_cache[l] = c
+        return c
 
 class FunctionAD(AD):
     "Apply AFD (Automatic Function Differentiation) to expression."
@@ -419,8 +415,24 @@ class FunctionAD(AD):
         return (o, Zero(o.shape()))
     
     def variable(self, o):
-        dummy, wprime = self.visit(o._expression)
-        return (o, wprime)
+        # Check variable cache to reuse previously transformed variable if possible
+        e, l = o.operands()
+        c = self._variable_cache.get(l)
+        if c is not None:
+            return c
+        
+        # Visit the expression our variable represents
+        e2, ep = self.visit(e)
+        op = ep
+
+        # If the expression is not the same, reconstruct Variable object
+        if e != e2:
+            o = Variable(e2, l)
+
+        # Recreate Variable (with same label) and cache it
+        c = (o, op)
+        self._variable_cache[l] = c
+        return c
 
 def compute_spatial_forward_ad(expr, dim):
     f, v = expr.operands()
