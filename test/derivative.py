@@ -104,6 +104,7 @@ class DerivativeTestCase(unittest.TestCase):
         def df(w, v): return 3*v + 4*2*w*v + 5*3*w**2*v
         self._test(f, df)
 
+tests = [DerivativeTestCase]
 
 if __name__ == "__main__":
     unittest.main()

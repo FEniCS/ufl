@@ -24,5 +24,7 @@ class ConditionalsTestCase(unittest.TestCase):
         g = conditional(lt(f, pi), f, pi)
         a = g*v*dx
 
+tests = [ConditionalsTestCase]
+
 if __name__ == "__main__":
     unittest.main()

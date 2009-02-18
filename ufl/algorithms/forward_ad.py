@@ -1,7 +1,7 @@
 """Forward mode AD implementation."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-19-- 2009-02-07"
+__date__ = "2008-08-19-- 2009-02-18"
 
 from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert
@@ -392,44 +392,35 @@ class FunctionAD(AD):
         dummy, wprime = self.visit(o._expression)
         return (o, wprime)
 
-def compute_spatial_forward_ad(expr):
-    cell = expr.cell()
-    ufl_assert(cell is not None, "Need spatial dimension to compute derivatives, can't get that from %s." % repr(expr))
-    dim = cell.d
+def compute_spatial_forward_ad(expr, dim):
     expr = expand_compounds(expr, dim)
     f, v = expr.operands()
     e, ediff = SpatialAD(dim, v).visit(f)
     return ediff
 
-def compute_variable_forward_ad(expr):
-    cell = expr.cell()
-    ufl_assert(cell is not None, "Need spatial dimension to compute derivatives, can't get that from %s." % repr(expr))
-    dim = cell.d
+def compute_variable_forward_ad(expr, dim):
     expr = expand_compounds(expr, dim)
     f, v = expr.operands()
     ufl_assert(v.shape() == (), "compute_variable_forward_ad with nonscalar Variable not implemented.")
     e, ediff = VariableAD(dim, v).visit(f)
     return ediff
 
-def compute_function_forward_ad(expr):
-    cell = expr.cell()
-    ufl_assert(cell is not None, "Need spatial dimension to compute derivatives, can't get that from %s." % repr(expr))
-    dim = cell.d
+def compute_function_forward_ad(expr, dim):
     expr = expand_compounds(expr, dim)
     f, w, v = expr.operands()
     e, ediff = FunctionAD(dim, w, v).visit(f)
     return ediff
 
-def forward_ad(expr):
+def forward_ad(expr, dim):
     """Assuming expr is a derivative and contains no other
     unresolved derivatives, apply forward mode AD and
     return the computed derivative."""
     if isinstance(expr, SpatialDerivative):
-        result = compute_spatial_forward_ad(expr)
+        result = compute_spatial_forward_ad(expr, dim)
     elif isinstance(expr, VariableDerivative):
-        result = compute_variable_forward_ad(expr)
+        result = compute_variable_forward_ad(expr, dim)
     elif isinstance(expr, FunctionDerivative):
-        result = compute_function_forward_ad(expr)
+        result = compute_function_forward_ad(expr, dim)
     else:
         warning("How did this happen? expr is %s" % repr(expr))
         result = expr

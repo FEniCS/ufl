@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.CRITICAL)
 
 
 class MassTestCase(unittest.TestCase):
-
+    
     def setUp(self):
         pass
     

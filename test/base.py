@@ -97,5 +97,7 @@ class BaseTestCase(unittest.TestCase):
         self.assertTrue(2*s[5] == 10)
         self.assertTrue(s[6]/3 == 2)
 
+tests = [BaseTestCase]
+
 if __name__ == "__main__":
     unittest.main()

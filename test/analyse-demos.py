@@ -55,5 +55,7 @@ class DemoTestCase(unittest.TestCase):
                     print
         self.assertTrue(result == 0)
 
+tests = [DemoTestCase]
+
 if __name__ == "__main__":
     unittest.main()

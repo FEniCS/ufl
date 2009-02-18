@@ -3,21 +3,18 @@ either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2009-01-09"
+__date__ = "2008-05-07 -- 2009-02-18"
 
 from inspect import getargspec
-from itertools import izip, chain
 
 from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert
-from ufl.common import camel2underscore, dstr
 from ufl.expr import Expr
 from ufl.terminal import Terminal
 from ufl.indexing import Index, indices, complete_shape
 from ufl.tensors import as_tensor, as_matrix, as_vector
 from ufl.variable import Variable
 from ufl.form import Form
-from ufl.integral import Integral
 from ufl.classes import all_ufl_classes
 from ufl.algorithms.analysis import extract_duplications
 
@@ -35,7 +32,6 @@ def transform(expression, handlers):
     return h(expression, *ops)
 
 def transform_integrands(form, transformer):
-    ufl_assert(isinstance(form, Form), "Expecting Form.")
     if isinstance(form, Form):
         newintegrals = []
         for integral in form.integrals():
@@ -44,6 +40,9 @@ def transform_integrands(form, transformer):
             newintegrals.append(newintegral)
         newform = Form(newintegrals)
         return newform
+    if isinstance(form, Expr):
+        return transformer(form)
+    error("Expecting Form or Expr.")
 
 def is_post_handler(function):
     "Is this a handler that expects transformed children as input?"
@@ -106,11 +105,11 @@ class Transformer(object):
         return o
     
     def reuse_if_possible(self, o, *operands):
-        "Reuse Expr if possible, otherwise recreate from given operands."
+        "Reuse Expr if possible, otherwise reconstruct from given operands."
         return o if operands == o.operands() else o.reconstruct(*operands)
     
-    def always_recreate(self, o, *operands):
-        "Always recreate expr."
+    def always_reconstruct(self, o, *operands):
+        "Always reconstruct expr."
         return o.reconstruct(*operands)
     
     # Set default behaviour for any Expr
@@ -133,14 +132,14 @@ class Transformer(object):
             self._variable_cache[l] = v
         return v
 
-    def recreate_variable(self, o):
+    def reconstruct_variable(self, o):
         # Check variable cache to reuse previously transformed variable if possible
         e, l = o.operands()
         v = self._variable_cache.get(l)
         if v is None:
             # Visit the expression our variable represents
             e2 = self.visit(e)
-            # Always recreate Variable (with same label)
+            # Always reconstruct Variable (with same label)
             v = Variable(e2, l)
             self._variable_cache[l] = v
         return v
@@ -163,13 +162,13 @@ class CopyTransformer(Transformer):
         Transformer.__init__(self, variable_cache)
     
     # Set default behaviour for any Expr
-    expr = Transformer.always_recreate
+    expr = Transformer.always_reconstruct
 
     # Set default behaviour for any Terminal
     terminal = Transformer.reuse
     
     # Set default behaviour for Variable 
-    variable = Transformer.recreate_variable
+    variable = Transformer.reconstruct_variable
 
 class Replacer(ReuseTransformer):
     def __init__(self, mapping):
@@ -299,6 +298,8 @@ class CompoundExpander(ReuseTransformer):
     def __init__(self, geometric_dimension):
         ReuseTransformer.__init__(self)
         self._dim = geometric_dimension
+        if self._dim is None:
+            warning("Got None for dimension, some compounds cannot be expanded.")
     
     # ------------ Compound tensor operators
     
@@ -309,9 +310,17 @@ class CompoundExpander(ReuseTransformer):
     def transposed(self, o, A):
         i, j = indices(2)
         return as_tensor(A[i, j], (j, i))
+
+    def _square_matrix_shape(self, A):
+        sh = A.shape()
+        if self._dim is not None:
+            sh = complete_shape(sh, self._dim)
+        ufl_assert(sh[0] == sh[1], "Expecting square matrix.")
+        ufl_assert(sh[0] is not None, "Unknown dimension.")
+        return sh
     
     def deviatoric(self, o, A):
-        sh = complete_shape(A.shape(), self._dim)
+        sh = self._square_matrix_shape(A)
         if sh[0] == 2:
             return as_matrix([[-A[1,1],A[0,1]],[A[1,0],-A[0,0]]])
         elif sh[0] == 3:
@@ -344,16 +353,17 @@ class CompoundExpander(ReuseTransformer):
         return as_tensor(a[ii]*b[jj], ii+jj)
     
     def determinant(self, o, A):
-        sh = complete_shape(A.shape(), self._dim)
-        if len(sh) == 0:
-            return A
-        ufl_assert(sh[0] == sh[1], "Expecting square matrix.")
+        sh = self._square_matrix_shape(A)
+
         def det2D(B, i, j, k, l):
             return B[i,k]*B[j,l]-B[i,l]*B[j,k]
+    
+        if len(sh) == 0:
+            return A
         if sh[0] == 2:
             return det2D(A, 0, 1, 0, 1)
         if sh[0] == 3:
-            # TODO: Verify this expression
+            # TODO: Verify signs in this expression
             return A[0,0]*det2D(A, 1, 2, 1, 2) + \
                    A[0,1]*det2D(A, 1, 2, 2, 0) + \
                    A[0,2]*det2D(A, 1, 2, 0, 1)
@@ -361,8 +371,8 @@ class CompoundExpander(ReuseTransformer):
         error("Determinant not implemented for dimension %d." % self._dim)
     
     def cofactor(self, o, A):
-        sh = complete_shape(A.shape(), self._dim)
-        ufl_assert(sh[0] == sh[1], "Expecting square matrix.")
+        sh = self._square_matrix_shape(A)
+
         if sh[0] == 2:
             return as_matrix([[A[1,1], -A[0,1]], [-A[1,0], A[0,0]]])
         elif sh[0] == 3:
@@ -621,7 +631,7 @@ def replace(e, mapping):
     """
     return apply_transformer(e, Replacer(mapping))
 
-def flatten(e): # TODO: Fix or remove!
+def flatten(e): # TODO: Fix or remove! Maybe this works better now with IndexSum marking implicit summations.
     """Convert an UFL expression to a new UFL expression, with sums 
     and products flattened from binary tree nodes to n-ary tree nodes."""
     warning("flatten doesn't work correctly for some indexed products, like (u[i]*v[i])*(q[i]*r[i])") 
@@ -633,9 +643,8 @@ def expand_compounds(e, dim=None):
     for the geometric dimension to be defined."""
     if dim is None:
         cell = e.cell()
-        if cell is None:
-            error("Missing cell, can't expand compounds without dimension.")
-        dim = cell.d
+        if cell is not None:
+            dim = cell.d
     return apply_transformer(e, CompoundExpander(dim))
 
 def strip_variables(e):

@@ -155,6 +155,7 @@ class AlgorithmsTestCase(unittest.TestCase):
         self.assertTrue(pre_traverse  == [s, p1, v, f, p2, v, g]) # NB! Sensitive to ordering of expressions.
         self.assertTrue(post_traverse == [v, f, p1, v, g, p2, s]) # NB! Sensitive to ordering of expressions.
 
+tests = [AlgorithmsTestCase]
 
 if __name__ == "__main__":
     unittest.main()

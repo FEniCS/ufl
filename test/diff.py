@@ -21,7 +21,7 @@ class DiffTestCase(unittest.TestCase):
         self.xv = ()
         self.vv = 5.0
         self.v = variable(self.vv)
-
+    
     def _test(self, f, df):
         x, v = self.xv, self.v
 
@@ -29,13 +29,13 @@ class DiffTestCase(unittest.TestCase):
         dfv2 = df(v)
         dfv1 = dfv1(x)
         dfv2 = dfv2(x)
-        self.assertTrue(dfv1 == dfv2)
+        self.assertAlmostEqual(dfv1, dfv2)
         
         dfv1 = diff(f(7*v), v)
         dfv2 = 7*df(7*v)
         dfv1 = dfv1(x)
         dfv2 = dfv2(x)
-        self.assertTrue(dfv1 == dfv2)
+        self.assertAlmostEqual(dfv1, dfv2)
 
     def testVariable(self):
         def f(v):  return v

@@ -447,6 +447,8 @@ class ClasscoverageTest(unittest.TestCase):
                 print "\n".join(sorted(map(str,unused)))
                 print 
 
+tests = [ClasscoverageTest]
+
 if __name__ == "__main__":
     unittest.main()
 
