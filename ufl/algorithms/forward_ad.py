@@ -371,15 +371,31 @@ class VariableAD(AD):
         self._variable = variable
     
     def variable(self, o):
+        # Check cache
+        e, l = o.operands()
+        c = self._variable_cache.get(l)
+        if c is not None:
+            # Cache hit
+            return c
+
         if o.label() == self._variable.label():
+            # dv/dv = 1
             op = self._make_ones_diff(o)
-            return (o, op)
-        else:
-            self._variable_cache[o._expression] = o
-            x2, xdiff = self.visit(o._expression)
             
-            ufl_assert(o is x2, "How did this happen?")
-            return (o, xdiff)
+            c = (o, op)
+            self._variable_cache[l] = c
+            return c
+        else:
+            # differentiate expression behind variable
+            e2, ep = self.visit(e)
+            op = ep
+            if e2 != e:
+                o = Variable(e2, l)
+                error("Expression has changed during visit, how did this happen? Might be ok, just wondering.")
+            
+            c = (o, op)
+            self._variable_cache[l] = c
+            return c
 
 class FunctionAD(AD):
     "Apply AFD (Automatic Function Differentiation) to expression."
