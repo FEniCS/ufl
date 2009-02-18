@@ -69,17 +69,7 @@ class AD(Transformer):
             if i not in idims:
                 fi = unique_indices(fi + (i,))
                 idims[i] = self._var_index_dimensions[i]
-        try:
-            fp = Zero(sh, fi, idims)
-        except:
-            print "----"
-            print "FAIL"
-            print o
-            print sh
-            print fi
-            print idims
-            print "----"
-            fp = Zero(sh, fi, idims)
+        fp = Zero(sh, fi, idims)
         return fp   
 
     def _make_ones_diff(self, o):
@@ -194,7 +184,7 @@ class AD(Transformer):
         op = sum(opsp[1:], opsp[0])
         return (o2, op)
     
-    def product(self, o, *ops): # FIXME: Adding expressions with different free indices here
+    def product(self, o, *ops):
         # Define a zero with the right indices
         fp = self._make_zero_diff(o)
         # Get operands and their derivatives
@@ -381,12 +371,13 @@ class VariableAD(AD):
         self._variable = variable
     
     def variable(self, o):
-        if o is self._variable:
+        if o.label() == self._variable.label():
             op = self._make_ones_diff(o)
             return (o, op)
         else:
             self._variable_cache[o._expression] = o
             x2, xdiff = self.visit(o._expression)
+            
             ufl_assert(o is x2, "How did this happen?")
             return (o, xdiff)
 

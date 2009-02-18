@@ -16,8 +16,9 @@ from ufl.algorithms.checks import validate_form
 #--- Utilities to deal with form files ---
 
 infostring = """An exception occured during evaluation of form file.
-To find the location of the error, a temporary script
-'%s' has been created and will now be executed:"""
+To help you find the location of the error, a temporary script
+'%s'
+has been created and will now be executed with debug output enabled:"""
 
 def load_forms(filename):
     if not os.path.exists(filename):
@@ -27,7 +28,8 @@ def load_forms(filename):
     
     # Read form file and prepend import
     with open(filename) as f:
-        code = "from ufl import *\n" + f.read()
+        fcode = f.read()
+        code = "from ufl import *\n" + fcode
     
     # Execute code
     namespace = {}
@@ -38,6 +40,7 @@ def load_forms(filename):
         basename = os.path.splitext(os.path.basename(filename))[0]
         basename = "%s_debug" % basename
         pyname = "%s.py" % basename
+        code = "#!/usr/bin/env python\nfrom ufl import *\nset_level(DEBUG)\n" + fcode
         with file(pyname, "w") as f:
             f.write(code)
         info(infostring % pyname)

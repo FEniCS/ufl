@@ -46,6 +46,7 @@ from ufl.common import product
 
 # output control
 from ufl.log import get_handler, get_logger, set_handler, UFLException
+from ufl.log import set_level, DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 # finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
