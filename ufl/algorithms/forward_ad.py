@@ -6,6 +6,7 @@ __date__ = "2008-08-19-- 2009-02-18"
 from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert
 from ufl.common import product, unzip, UFLTypeDefaultDict, subdict, mergedicts, lstr
+from ufl.indexutils import unique_indices
 
 # All classes:
 from ufl.expr import Expr
@@ -50,6 +51,8 @@ class AD(Transformer):
         self._spatial_dim = spatial_dim
         
         # TODO: Use self._var_* or not? Do we ever need more than one? Maybe diff(psi, E[i,j]) is easier to handle using indices than as tensor differentiation.
+        ufl_assert(all(isinstance(i, Index) for i in var_free_indices), "Expecting Index objects.")
+        ufl_assert(all(isinstance(i, Index) for i in var_index_dimensions.keys()), "Expecting Index objects.")
         self._var_shape = var_shape
         self._var_free_indices = var_free_indices
         self._var_index_dimensions = dict(var_index_dimensions)
@@ -60,12 +63,23 @@ class AD(Transformer):
         sh = o.shape() + self._var_shape
         fi = o.free_indices()
         idims = dict(o.index_dimensions())
+        
         if self._var_free_indices:
             i, = self._var_free_indices # currently assuming only one free variable index
             if i not in idims:
-                fi += (i,)
+                fi = unique_indices(fi + (i,))
                 idims[i] = self._var_index_dimensions[i]
-        fp = Zero(sh, fi, idims)
+        try:
+            fp = Zero(sh, fi, idims)
+        except:
+            print "----"
+            print "FAIL"
+            print o
+            print sh
+            print fi
+            print idims
+            print "----"
+            fp = Zero(sh, fi, idims)
         return fp   
 
     def _make_ones_diff(self, o):
@@ -76,7 +90,7 @@ class AD(Transformer):
         if self._var_free_indices:
             i, = self._var_free_indices
             if i not in idims:
-                fi += (i,)
+                fi = unique_indices(fi + (i,))
                 idims[i] = self._var_index_dimensions[i]
         fp = IntValue(1, sh, fi, idims)
         return fp
@@ -147,7 +161,10 @@ class AD(Transformer):
             debug("A2 = %s" % str(A2))
             debug("\n"*3)
         ufl_assert(A is A2, "This is a surprise, please provide example!")
-        op = o.reconstruct(Ap, jj)
+        if isinstance(Ap, Zero):
+            op = self._make_zero_diff(o)
+        else:
+            op = Indexed(Ap, jj)
         return (o, op)
     
     def list_tensor(self, o, *ops):
@@ -325,7 +342,13 @@ class SpatialAD(AD):
     def __init__(self, spatial_dim, index):
         if isinstance(index, MultiIndex): # FIXME: Iron out this, decide where to use MultiIndex and Index properly
             index, = index
-        AD.__init__(self, spatial_dim, var_shape=(), var_free_indices=(index,), var_index_dimensions={index:spatial_dim})
+        if isinstance(index, Index):
+            vfi = (index,)
+            vid = { index: spatial_dim }
+        else:
+            vfi = ()
+            vid = {}
+        AD.__init__(self, spatial_dim, var_shape=(), var_free_indices=vfi, var_index_dimensions=vid)
         self._index = index
     
     def spatial_coordinate(self, o):

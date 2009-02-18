@@ -28,7 +28,7 @@ class Indexed(WrapperType):
         ufl_assert(r == n, msg)
         
         shape = expression.shape()
-        idims = dict((i, s) for (i, s) in zip(self._indices._indices, shape))
+        idims = dict((i, s) for (i, s) in zip(self._indices._indices, shape) if isinstance(i, Index))
         idims.update(expression.index_dimensions())
         fi = unique_indices(expression.free_indices() + self._indices._indices)
         
