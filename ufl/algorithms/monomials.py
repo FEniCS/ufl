@@ -21,6 +21,8 @@ from ufl.differentiation import SpatialDerivative
 from ufl.form import Form
 from ufl.algorithms.traversal import iter_expressions
 from ufl.algorithms.transformations import expand_compounds
+from ufl.algorithms.transformations import ReuseTransformer, apply_transformer
+from ufl.algorithms.ad import expand_derivatives
 
 # Martin to Marie and Anders:
 #    I wouldn't trust these functions,
@@ -33,7 +35,54 @@ class MonomialException(Exception):
     def __init__(self, *args, **kwargs):
         Exception.__init__(self, *args, **kwargs)
 
-#--- Utilities to extract information from an expression ---
+class MonomialTransformer(ReuseTransformer):
+
+    def __init__(self):
+        print "Creating TestTransformer"
+        ReuseTransformer.__init__(self)
+        
+    def expr(self, o, *ops):
+        raise MonomialException, ("No handler defined for %s." % o._uflclass.__name__)
+
+    def sum(self, o, *ops):
+        (monomials0, monomials1) = ops
+        monomials = monomials0 + monomials1
+        return monomials
+
+    def product(self, o, *ops):
+        (monomials0, monomials1) = ops
+        monomials = []
+        for monomial0 in monomials0:
+            for monomial1 in monomials1:
+                monomials.append(monomial0 + monomial1)
+        return monomials
+        
+    def index_sum(self, o, *ops):
+        (monomials, index) = ops
+        return monomials
+
+    def indexed(self, o, *ops):
+        (monomials, indices) = ops
+        #operators["c"].append(indices)
+        return monomials
+    
+    def component_tensor(self, o, *ops):
+        (monomials, indices) = ops
+        return monomials
+        
+    def spatial_derivative(self, o, *ops):
+        (monomials, index) = ops
+        for monomial in monomials:
+            if len(monomial) > 1:
+                error("Expecting a single basis function.")
+            for v in monomial:
+                v[1]["d"] = index
+        return monomials
+
+    def basis_function(self, o, *operands):
+        v = [o, {"d": []}]
+        monomials = [[v]]
+        return monomials
 
 def extract_monomials(form, indent=""):
     """Extract monomial representation of form (if possible). When
@@ -63,17 +112,22 @@ def extract_monomials(form, indent=""):
         integrand = integral.integrand()
 
         # Expand compounds
-        integrand = expand_compounds(integrand)
+        integrand = expand_derivatives(integrand)
 
-        print "m =", measure
-        print "I1 =", integral.integrand
-        print "I2 =", integrand
+        print ""
+        print "Original integrand: " + str(integrand)
 
-        try:
-            monomials = _extract_monomials(integrand)
-        except MonomialException:
-            warning("Unable to extract monomial")
-            return None
+        monomials = apply_transformer(integrand, MonomialTransformer())
+
+        #print "m =", measure
+        #print "I1 =", integral.integrand
+        #print "I2 =", integrand
+
+        #try:
+        #    monomials = _extract_monomials(integrand)
+        #except MonomialException:
+        #    warning("Unable to extract monomial")
+        #    return None
 
     # Print monomial
     print ""
@@ -84,57 +138,3 @@ def extract_monomials(form, indent=""):
             print "  ", v, ops
 
     return
-
-def _extract_monomials(expr, operators={"i": [], "c": [], "d": []}):
-    "Recursively extract monomials from expression."
-
-    # Check that we get an Expression
-    ufl_assert(isinstance(expr, Expr), "Expecting a UFL expression.")
-
-    # Make copy to avoid recursively accumulating operators
-    operators = deepcopy(operators)
-
-    # Handle expression
-    if isinstance(expr, Sum):
-        begin("Sum")
-        v, w = expr.operands()
-        monomials = _extract_monomials(v, operators) + _extract_monomials(w, operators)
-    elif isinstance(expr, Product):
-        begin("Product")
-        v, w = expr.operands()
-        monomials = []
-        for m0 in _extract_monomials(v, operators):
-            for m1 in _extract_monomials(w, operators):
-                monomials.append(m0 + m1)
-        monomials = tuple(monomials)
-    elif isinstance(expr, IndexSum):
-        begin("IndexSum, ignoring for now")
-        (summand, index) = expr.operands()
-        monomials = _extract_monomials(summand, operators)
-    elif isinstance(expr, Indexed):
-        begin("Indexed")
-        (expression, indices) = expr.operands()
-        operators["c"].append(indices)
-        monomials = _extract_monomials(expression, operators)
-    elif isinstance(expr, ComponentTensor):
-        begin("ComponentTensor, ignoring for now")
-        (expression, indices) = expr.operands()
-        monomials = _extract_monomials(expression, operators)
-    elif isinstance(expr, SpatialDerivative):
-        begin("SpatialDerivative")
-        (expression, index) = expr.operands()
-        operators["d"].append(index)
-        monomials = _extract_monomials(expression, operators)
-    elif isinstance(expr, BasisFunction):
-        begin("BasisFunction")
-        operators["i"] = expr.count()
-        v = (expr, operators)
-        info("v = " + str(expr))
-        info("ops = " + str(operators))
-        monomials = ((v,),)
-    else:
-        raise MonomialException, "Unhandled expression: " + str(expr)
-
-    end()
-
-    return monomials
