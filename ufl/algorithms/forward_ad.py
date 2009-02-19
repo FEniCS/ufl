@@ -57,7 +57,7 @@ class AD(Transformer):
         self._var_shape = var_shape
         self._var_free_indices = var_free_indices
         self._var_index_dimensions = dict(var_index_dimensions)
-        ufl_assert(self._var_shape == (), "TODO: Step through implementation to make sure we handle differentiation w.r.t. variables with shape everywhere needed.")
+        if self._var_shape == (): warning("TODO: Step through implementation to make sure we handle differentiation w.r.t. variables with shape everywhere needed.")
     
     def _make_zero_diff(self, o):
         # Define a zero with the right indices (kind of cumbersome this... any simpler way?)
@@ -178,7 +178,7 @@ class AD(Transformer):
         ufl_assert(A is A2, "This is a surprise, please provide example!")
         op = IndexSum(Ap, i)
         return (o, op)
-
+    
     def sum(self, o, *ops):
         ops, opsp = unzip(ops)
         o2 = self.reuse_if_possible(o, *ops)
@@ -367,9 +367,9 @@ class SpatialAD(AD):
     #    pass # TODO: With higher order cells the facet normal isn't constant anymore
 
 class VariableAD(AD):
-    def __init__(self, spatial_dim, variable):
-        AD.__init__(self, spatial_dim, var_shape=(), var_free_indices=(), var_index_dimensions={})
-        self._variable = variable
+    def __init__(self, spatial_dim, var):
+        AD.__init__(self, spatial_dim, var_shape=var.shape(), var_free_indices=var.free_indices(), var_index_dimensions=var.index_dimensions())
+        self._variable = var
     
     def variable(self, o):
         # Check cache
@@ -437,18 +437,22 @@ class FunctionAD(AD):
 
 def compute_spatial_forward_ad(expr, dim):
     f, v = expr.operands()
-    e, ediff = SpatialAD(dim, v).visit(f)
+    alg = SpatialAD(dim, v)
+    e, ediff = alg.visit(f)
     return ediff
 
 def compute_variable_forward_ad(expr, dim):
     f, v = expr.operands()
-    ufl_assert(v.shape() == (), "compute_variable_forward_ad with nonscalar Variable not implemented.")
-    e, ediff = VariableAD(dim, v).visit(f)
+    if v.shape() == ():
+        warning("compute_variable_forward_ad with nonscalar Variable not implemented, will likely break.")
+    alg = VariableAD(dim, v)
+    e, ediff = alg.visit(f)
     return ediff
 
 def compute_function_forward_ad(expr, dim):
     f, w, v = expr.operands()
-    e, ediff = FunctionAD(dim, w, v).visit(f)
+    alg = FunctionAD(dim, w, v)
+    e, ediff = alg.visit(f)
     return ediff
 
 def forward_ad(expr, dim):

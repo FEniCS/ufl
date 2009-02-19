@@ -35,10 +35,32 @@ def outer(a, b):
 def inner(a, b):
     "The inner product of a and b."
     return Inner(a, b)
+    #return contraction(a, range(a.rank()), b, range(b.rank()))
 
 def dot(a, b):
     "The dot product of a and b."
     return Dot(a, b)
+    #return contraction(a, (a.rank()-1,), b, (b.rank()-1,))
+
+def contraction(a, ai, b, bi):
+    "The contraction of a and b over given axes."
+    ufl_assert(len(ai) == len(bi), "Contraction must be over the same number of axes.")
+    ash = a.shape()
+    bsh = b.shape()
+    aii = indices(a.rank())
+    bii = indices(b.rank())
+    cii = indices(len(ai))
+    shape = [None]*len(ai)
+    for i,j in enumerate(ai):
+        aii[j] = cii[i]
+        shape[i] = ash[j]
+    for i,j in enumerate(bi):
+        bii[j] = cii[i]
+        ufl_assert(shape[i] == bsh[j], "Shape mismatch in contraction.")
+    s = a[aii]*b[bii]
+    cii = set(cii)
+    ii = tuple(i for i in (aii + bii) if not i in cii)
+    return as_tensor(s, ii)
 
 def cross(a, b):
     "The cross product of a and b."
