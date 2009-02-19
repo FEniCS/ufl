@@ -34,7 +34,8 @@ def _mult(a, b):
     # - matrix-matrix (A*B, M*grad(u)) => A . B
     # - matrix-vector (A*v) => A . v
     s1, s2 = a.shape(), b.shape()
-    if len(s1) == 2 and len(s2) in (1, 2):
+    r1, r2 = len(s1), len(s2)
+    if r1 == 2 and r2 in (1, 2):
         ufl_assert(not ri, "Not expecting repeated indices in non-scalar product.")
         
         # Check for zero, simplifying early if possible
@@ -46,13 +47,44 @@ def _mult(a, b):
             return Zero(shape, fi, idims)
         
         # Return dot product in index notation
-        if False:
-            i = Index()
-            aa = a[i] if (a.rank() == 1) else a[...,i]
-            bb = b[i] if (b.rank() == 1) else b[i,...]
-            return aa*bb
-        else:
-            return Dot(a, b)
+        ai = indices(a.rank()-1)
+        bi = indices(b.rank()-1)
+        k = indices(1)
+        # Create an IndexSum over a Product
+        s = a[ai+k]*b[k+bi]
+        return as_tensor(s, ai+bi)
+    
+    elif not (r1 == 0 and r2 == 0):
+        # Scalar - tensor product
+        if r2 == 0:
+            a, b = b, a
+            s1, s2 = s2, s1
+        
+        # Check for zero, simplifying early if possible
+        if isinstance(a, Zero) or isinstance(b, Zero):
+            shape = s2
+            fi = single_indices(ii)
+            idims = mergedicts((a.index_dimensions(), b.index_dimensions()))
+            idims = subdict(idims, fi)
+            return Zero(shape, fi, idims)
+
+        # Repeated indices are allowed, like in:
+        #v[i]*M[i,:]
+        
+        # Apply product to scalar components
+        ii = indices(b.rank())
+        p = Product(a, b[ii])
+    
+        # Wrap as tensor again
+        p = as_tensor(p, ii)
+    
+        # TODO: Should we apply IndexSum or as_tensor first?
+    
+        # Apply index sums
+        for i in ri:
+            p = IndexSum(p, i)
+        
+        return p
 
     # Scalar products use Product and IndexSum for implicit sums:
     p = Product(a, b)

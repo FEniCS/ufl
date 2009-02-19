@@ -334,23 +334,26 @@ class CompoundExpander(ReuseTransformer):
         return as_vector((c(1,2), c(2,0), c(0,1)))
     
     def dot(self, o, a, b):
-        ar = a.rank()
-        br = b.rank()
-        
-        i = Index()
-        aa = a[i] if (a.rank() == 1) else a[...,i]
-        bb = b[i] if (b.rank() == 1) else b[i,...]
-        return aa*bb
+        ai = indices(a.rank()-1)
+        bi = indices(b.rank()-1)
+        k  = indices(1)
+        # Create an IndexSum over a Product
+        s = a[ai+k]*b[k+bi] 
+        return as_tensor(s, ai+bi)
     
     def inner(self, o, a, b):
         ufl_assert(a.rank() == b.rank())
         ii = indices(a.rank())
-        return a[ii]*b[ii]
+        # Create multiple IndexSums over a Product
+        s = a[ii]*b[ii]
+        return s
     
     def outer(self, o, a, b):
         ii = indices(a.rank())
         jj = indices(b.rank())
-        return as_tensor(a[ii]*b[jj], ii+jj)
+        # Create a Product with no shared indices
+        s = a[ii]*b[jj]
+        return as_tensor(s, ii+jj)
     
     def determinant(self, o, A):
         sh = self._square_matrix_shape(A)

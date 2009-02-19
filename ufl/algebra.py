@@ -12,7 +12,7 @@ from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.common import product, mergedicts, subdict
 from ufl.expr import Expr, AlgebraOperator
-from ufl.constantvalue import Zero, ScalarValue, FloatValue, IntValue, is_true_ufl_scalar, is_python_scalar, as_ufl
+from ufl.constantvalue import Zero, ScalarValue, FloatValue, IntValue, is_ufl_scalar, is_true_ufl_scalar, is_python_scalar, as_ufl
 from ufl.indexing import IndexBase, Index, FixedIndex
 from ufl.indexutils import unique_indices
 from ufl.sorting import cmp_expr
@@ -123,94 +123,94 @@ class Sum(AlgebraOperator):
 
 class Product(AlgebraOperator):
     """The product of two or more UFL objects."""
-    __slots__ = ("_operands", "_free_indices", "_index_dimensions", "_shape", "_repr")
+    __slots__ = ("_operands", "_free_indices", "_index_dimensions", "_repr")
     
     def __new__(cls, *operands):
-        # make sure everything is an Expr
+        # Make sure everything is an Expr
         operands = [as_ufl(o) for o in operands]
         
-        # Got nothing? The result is one.
+        # Make sure everything is scalar
+        ufl_assert(all(o.rank() == 0 for o in operands),
+            "Product can only represent products of scalars.")
+        
+        # No operands? Return one.
         if not operands:
             return IntValue(1)
         
-        # Got one operand only? Do nothing then.
+        # Got one operand only? Just return it.
         if len(operands) == 1:
             return operands[0]
         
-        # Sort operands in a canonical order (NB! This is fragile! Small changes here can have large effects.)
-        operands = sorted(operands, cmp=cmp_expr)
-        
-        # Get shape and move an eventual single nonscalar operand to the end
-        sh = ()
-        j = None
-        for i, o in enumerate(operands):
-            sh2 = o.shape()
-            if sh2 != ():
-                ufl_assert(sh == (), "Found two nonscalar operands in Product, this is undefined.")
-                sh = sh2
-                j = i
-        if j is not None:
-            # We have a non-scalar expression in this product
-            operands = operands[:j] + operands[j+1:] + [operands[j]]
-        
-        # Check for zeros
+        # Got any zeros? Return zero.
         if any(isinstance(o, Zero) for o in operands):
-            free_indices = unique_indices(tuple(chain(*(o.free_indices() for o in operands))))
+            free_indices     = unique_indices(tuple(chain(*(o.free_indices() for o in operands))))
             index_dimensions = subdict(mergedicts([o.index_dimensions() for o in operands]), free_indices)
-            return Zero(sh, free_indices, index_dimensions)
-        
-        # Replace n-repeated operands foo with foo**n (as long as they have no free indices)
-        # TODO: Maybe we can support u[i]**n now, since IndexSum was introduced. Then we get u[i]*u[i] => sum_i< u[i]**2 >
-        newoperands = []
-        op = operands[0]
-        n = 1
-        for o in operands[1:] + [None]:
-            if o == op:
-                n += 1
-            else:
-                if n == 1:
-                    newoperands.append(op)
-                elif op.free_indices():
-                    newoperands.extend([op]*n)
-                else:
-                    newoperands.append(op**n)
-                op = o
-                n = 1
-        operands = newoperands
-        
-        # Left with one operand only?
-        if len(operands) == 1:
-            return operands[0]
+            return Zero((), free_indices, index_dimensions)
         
         # Merge scalars, but keep nonscalars sorted
-        scalars = [o for o in operands if isinstance(o, ScalarValue)]
+        scalars = []
+        nonscalars = []
+        for o in operands:
+            if isinstance(o, ScalarValue):
+                scalars.append(o)
+            else:
+                nonscalars.append(o)
         if scalars:
+            # merge scalars
             p = as_ufl(product(s._value for s in scalars))
-            nonscalars = [o for o in operands if not isinstance(o, ScalarValue)]
+            # only scalars?
             if not nonscalars:
                 return p
+            # merged scalar is unity?
             if p == 1:
-                operands = nonscalars
+                scalars = []
+                # Left with one nonscalar operand only after merging scalars?
+                if len(nonscalars) == 1:
+                    return nonscalars[0]
             else:
-                operands = [p] + nonscalars
+                scalars = [p]
         
-        # left with one operand only?
+        # Sort operands in a canonical order (NB! This is fragile! Small changes here can have large effects.)
+        operands = scalars + sorted(nonscalars, cmp=cmp_expr)
+        
+        # Replace n-repeated operands foo with foo**n
+        newoperands = []
+        op, nop = operands[0], 1
+        for o in operands[1:] + [None]:
+            if o == op:
+                # op is repeated, count number of repetitions
+                nop += 1
+            else:
+                if nop == 1:
+                    # op is not repeated
+                    newoperands.append(op)
+                # Before IndexSum was introduced, we couldn't simplify powers with free indices, but now we can!
+                #elif op.free_indices():
+                #    # op repeated, but has free indices, so we don't simplify
+                #    newoperands.extend([op]*nop)
+                else:
+                    # op repeated, make it a power
+                    newoperands.append(op**nop)
+                # Reset op as o
+                op, nop = o, 1
+        operands = newoperands
+        
+        # Left with one operand only after simplifications?
         if len(operands) == 1:
             return operands[0]
         
-        # construct and initialize a new Product object
+        # Construct and initialize a new Product object
         self = AlgebraOperator.__new__(cls)
-        self._init(sh, *operands)
+        self._init(*operands)
         return self
     
-    def _init(self, sh, *operands):
+    def _init(self, *operands):
         "Constructor, called by __new__ with already checked arguments."
         # Store basic properties
         self._operands = operands
-        self._shape = sh
         
         # Extract indices
-        self._free_indices = unique_indices(tuple(chain(*(o.free_indices() for o in operands))))
+        self._free_indices     = unique_indices(tuple(chain(*(o.free_indices() for o in operands))))
         self._index_dimensions = mergedicts([o.index_dimensions() for o in operands])
         
         self._repr = "Product(%s)" % ", ".join(repr(o) for o in self._operands)
@@ -228,7 +228,7 @@ class Product(AlgebraOperator):
         return self._index_dimensions
     
     def shape(self):
-        return self._shape
+        return ()
     
     def evaluate(self, x, mapping, component, index_values):
         ops = self.operands()
@@ -313,16 +313,9 @@ class Power(AlgebraOperator):
     def __new__(cls, a, b):
         a = as_ufl(a)
         b = as_ufl(b)
-        if not (is_true_ufl_scalar(a) and is_true_ufl_scalar(b)):
-            print 
-            print "Non-scalar power error:"
-            print a
-            print b
-            print "TODO: Maybe we can support this."
-            print 
+        ufl_assert(is_true_ufl_scalar(b), "Expecting scalar exponent.")
+        ufl_assert(is_ufl_scalar(b), "Expecting scalar exponent.")
         
-        ufl_assert(is_true_ufl_scalar(a) and is_true_ufl_scalar(b),
-            "Non-scalar power not defined.")
         if isinstance(a, ScalarValue) and isinstance(b, ScalarValue):
             return as_ufl(a._value ** b._value)
         if b == 1:
@@ -347,10 +340,10 @@ class Power(AlgebraOperator):
         return (self._a, self._b)
     
     def free_indices(self):
-        return ()
+        return self._a.free_indices()
     
     def index_dimensions(self):
-        return {}
+        return self._a.index_dimensions()
     
     def shape(self):
         return ()
