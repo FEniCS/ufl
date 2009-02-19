@@ -7,6 +7,7 @@ __date__ = "2008-03-12 -- 2009-02-18"
 # Modified by Martin Alnes 2009
 
 import unittest
+import sys
 from os import system
 from glob import glob
 
@@ -19,7 +20,8 @@ logging.basicConfig(level=logging.CRITICAL)
 tests = [f.replace(".py", "") for f in glob("*.py")]
 tests.remove("test")
 tests.remove("run_pychecker")
-#tests.remove("analyse-demos")
+if "skipdemos" in sys.argv:
+    tests.remove("analyse-demos")
 tests.remove("makemanualtestcase")
 
 # Run tests

@@ -193,16 +193,19 @@ class AD(Transformer):
         for (i, op) in enumerate(ops):
             # Replace operand i with its differentiated value 
             fpoperands = ops2[:i] + [dops2[i]] + ops2[i+1:]
-            tmp = Product(*fpoperands)
+            tmp = Product(*fpoperands) # FIXME
             fp += tmp
         return (o, fp)
     
     def division(self, o, a, b):
         f, fp = a
         g, gp = b
-        #return (o, (fp*g-f*gp)/g**2)
-        #return (o, (fp-f*gp/g)/g) # I think this may introduce additional index sums we don't want?
-        return (o, (fp-Product(f,gp)/g)/g)
+        fp_g = Product(fp, g) # FIXME
+        f_gp = Product(f, gp) # FIXME
+        g2 = g**2
+        #op = (fp_g - f_gp) / g**2
+        op = (fp   - f_gp/g) / g    
+        return (o, op)
     
     def power(self, o, a, b):
         f, fp = a
@@ -221,10 +224,15 @@ class AD(Transformer):
             if isinstance(g, Zero) or isinstance(f, Zero) or f_const:
                 return (o, self._make_zero_diff(o))
             #return (o, g*fp*f**(g-1.0))
-            return (o, Product(Product(g, fp), f**(g-1.0)))
+            g_fp = Product(g, fp) # FIXME
+            fpow = f**(g-1)
+            op = Product(g_fp, fpow) # FIXME
+            return (o, op)
         # Case: o = f ** g(x)
         if isinstance(fp, Zero):
-            return (o, Product(Product(gp, ln(f)), o))
+            g_ln_f = Product(gp, ln(f)) # FIXME
+            op = Product(gp_ln_f, o) # FIXME
+            return (o, op)
         # Case: o = f(x)**g(x)
         error("diff_power not implemented for case d/dx [ f(x)**g(x) ].")
         oprime = None # TODO
@@ -234,22 +242,23 @@ class AD(Transformer):
         f, fprime = a
         oprime = conditional(eq(f, 0),
                              0,
-                             sign(f)*fprime) #conditional(lt(f, 0), -fprime, fprime))
+                             Product(sign(f), fprime)) #conditional(lt(f, 0), -fprime, fprime))
         return (o, oprime)
     
     # --- Mathfunctions
     
     def math_function(self, o, a):
-        f, fp = a
-        return (o, 0.5*fp/sqrt(f))
+        error("Unknown math function.")
     
     def sqrt(self, o, a):
         f, fp = a
-        return (o, 0.5*fp/sqrt(f))
+        op = fp / (2*sqrt(f)) # FIXME
+        return (o, op)
     
     def exp(self, o, a):
         f, fp = a
-        return (o, fp*exp(f))
+        op = fp*exp(f) # FIXME
+        return (o, op)
     
     def ln(self, o, a):
         f, fp = a
@@ -258,11 +267,13 @@ class AD(Transformer):
     
     def cos(self, o, a):
         f, fp = a
-        return (o, -fp*sin(f))
+        op = -fp*sin(f) # FIXME
+        return (o, op)
     
     def sin(self, o, a):
         f, fp = a
-        return (o, fp*cos(f))
+        op = fp*cos(f) # FIXME
+        return (o, op)
     
     # --- Restrictions
     
@@ -476,7 +487,7 @@ class UnusedADRules(AD):
         f, fp = f
         v, vp = v
         ufl_assert(isinstance(vp, Zero), "TODO: What happens if vp != 0, i.e. v depends the differentiation variable?")
-        # TODO: Are there any issues with indices here? Not sure, think through it...
+        # Are there any issues with indices here? Not sure, think through it...
         oprime = type(o)(fp, v)
         return (o, oprime)
     
@@ -522,20 +533,20 @@ class UnusedADRules(AD):
         error("Derivative of cross product not implemented, apply expand_compounds before AD.")
         u, up = a
         v, vp = b
-        oprime = None # TODO
+        #oprime = ...
         return (o, oprime)
     
     def determinant(self, o, a):
         error("Derivative of determinant not implemented, apply expand_compounds before AD.")
         A, Ap = a
-        oprime = None # TODO
+        #oprime = ...
         return (o, oprime)
     
     def cofactor(self, o, a):
         error("Derivative of cofactor not implemented, apply expand_compounds before AD.")
         A, Ap = a
         #cofacA_prime = detA_prime*Ainv + detA*Ainv_prime
-        oprime = None # TODO
+        #oprime = ...
         return (o, oprime)
     
     def inverse(self, o, a):
@@ -545,5 +556,5 @@ class UnusedADRules(AD):
         Ainv' = - Ainv * A' * Ainv
         """
         A, Ap = a
-        return (o, -o*Ap*o) # TODO: Any potential index problems here?
+        return (o, -o*Ap*o) # Any potential index problems here?
     
