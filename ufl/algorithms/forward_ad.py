@@ -18,6 +18,7 @@ from ufl.finiteelement import FiniteElementBase, FiniteElement, MixedElement, Ve
 from ufl.basisfunction import BasisFunction, BasisFunctions
 from ufl.function import Function, Constant, VectorConstant, TensorConstant
 from ufl.indexing import MultiIndex, Indexed, Index
+from ufl.indexsum import IndexSum
 from ufl.tensors import ListTensor, ComponentTensor
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
@@ -175,7 +176,7 @@ class AD(Transformer):
         A, i = o.operands()
         A2, Ap = self.visit(A)
         ufl_assert(A is A2, "This is a surprise, please provide example!")
-        op = o.reconstruct(Ap, i)
+        op = IndexSum(Ap, i)
         return (o, op)
 
     def sum(self, o, *ops):
@@ -185,14 +186,14 @@ class AD(Transformer):
         return (o2, op)
     
     def product(self, o, *ops):
-        # Define a zero with the right indices
+        # Start with a zero with the right shape and indices
         fp = self._make_zero_diff(o)
         # Get operands and their derivatives
         ops2, dops2 = unzip(ops)
         for (i, op) in enumerate(ops):
             # Replace operand i with its differentiated value 
             fpoperands = ops2[:i] + [dops2[i]] + ops2[i+1:]
-            tmp = o.reconstruct(*fpoperands)
+            tmp = Product(*fpoperands)
             fp += tmp
         return (o, fp)
     
@@ -304,7 +305,7 @@ class AD(Transformer):
         # TODO: Although differentiation commutes, can we get repeated index issues here?
         f, i = o.operands()
         f, fp = self.visit(f)
-        op = o.reconstruct(fp, i) # FIXME
+        op = SpatialDerivative(fp, i) # FIXME
         return (o, op)
     
     def spatial_derivative(self, o): # FIXME: Fix me!
@@ -325,7 +326,7 @@ class AD(Transformer):
             
             oprime = Zero(fp.shape(), fi, idims)
         else:
-            oprime = o.reconstruct(fp, ii)
+            oprime = SpatialDerivative(fp, ii)
         return (o, oprime)
 
 class SpatialAD(AD):

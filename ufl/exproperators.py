@@ -51,7 +51,8 @@ def _mult(a, b):
             aa = a[i] if (a.rank() == 1) else a[...,i]
             bb = b[i] if (b.rank() == 1) else b[i,...]
             return aa*bb
-        return Dot(a, b)
+        else:
+            return Dot(a, b)
 
     # Scalar products use Product and IndexSum for implicit sums:
     p = Product(a, b)
@@ -171,7 +172,7 @@ Expr.T = property(_transpose)
 
 #--- Extend Expr with indexing operator a[i] ---
  
-def analyse_key(ii):
+def analyse_key(ii, rank):
     """Takes something the user might input as an index tuple
     inside [], which could include complete slices (:) and
     ellipsis (...), and returns tuples of actual UFL index objects.
@@ -225,7 +226,7 @@ def analyse_key(ii):
     
     # Handle ellipsis as a number of complete slices,
     # that is create a number of new axis indices
-    num_axis = len(ii) - len(pre) - len(post)
+    num_axis = rank - len(pre) - len(post)
     ellipsis_indices = indices(num_axis)
     axis_indices.update(ellipsis_indices)
     
@@ -236,7 +237,12 @@ def analyse_key(ii):
 
 def _getitem(self, key):
     # Analyse key, getting rid of slices and the ellipsis
-    indices, axis_indices = analyse_key(key)
+    r = self.rank()
+    indices, axis_indices = analyse_key(key, r)
+    
+    # Special case for foo[...] => foo
+    if len(indices) == len(axis_indices):
+        return self
     
     # Index self, yielding scalar valued expressions
     a = Indexed(self, indices)

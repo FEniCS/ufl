@@ -330,10 +330,13 @@ class CompoundExpander(ReuseTransformer):
     
     def cross(self, o, a, b):
         def c(i, j):
-            return a[i]*b[j]-a[j]*b[i]
+            return Product(a[i],b[j]) - Product(a[j],b[i])
         return as_vector((c(1,2), c(2,0), c(0,1)))
     
     def dot(self, o, a, b):
+        ar = a.rank()
+        br = b.rank()
+        
         i = Index()
         aa = a[i] if (a.rank() == 1) else a[...,i]
         bb = b[i] if (b.rank() == 1) else b[i,...]
