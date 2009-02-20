@@ -22,6 +22,7 @@ class GeometricQuantity(Terminal):
 class SpatialCoordinate(GeometricQuantity):
     def __init__(self, cell):
         GeometricQuantity.__init__(self, cell)
+        self._repr = "SpatialCoordinate(%r)" % self._cell
 
     def shape(self):
         return (self._cell.d,)
@@ -33,7 +34,7 @@ class SpatialCoordinate(GeometricQuantity):
         return "x"
     
     def __repr__(self):
-        return "SpatialCoordinate(%r)" % self._cell
+        return self._repr
     
     def __eq__(self, other):
         return isinstance(other, SpatialCoordinate) and other._cell == self._cell
@@ -41,6 +42,7 @@ class SpatialCoordinate(GeometricQuantity):
 class FacetNormal(GeometricQuantity):
     def __init__(self, cell):
         GeometricQuantity.__init__(self, cell)
+        self._repr = "FacetNormal(%r)" % self._cell
     
     def shape(self):
         return (self._cell.d,)
@@ -49,7 +51,7 @@ class FacetNormal(GeometricQuantity):
         return "n"
     
     def __repr__(self):
-        return "FacetNormal(%r)" % self._cell
+        return self._repr
 
     def __eq__(self, other):
         return isinstance(other, FacetNormal) and other._cell == self._cell
@@ -73,7 +75,7 @@ class FacetNormal(GeometricQuantity):
 
 class Cell(object):
     "Representation of a finite element cell."
-    __slots__ = ("_domain", "_degree", "d", "n", "x")
+    __slots__ = ("_domain", "_degree", "_repr", "d", "n", "x")
     
     def __init__(self, domain, degree=1):
         "Initialize basic cell description"
@@ -82,6 +84,7 @@ class Cell(object):
             warning("High order geometries aren't implemented anywhere yet.")
         self._domain = domain
         self._degree = degree
+        self._repr = "Cell(%r, %r)" % (self._domain, self._degree)
         self.d = domain2dim[self._domain]
         self.n = FacetNormal(self)
         self.x = SpatialCoordinate(self)
@@ -111,7 +114,7 @@ class Cell(object):
         return "<%s of degree %d>" % (self._domain, self._degree)
     
     def __repr__(self):
-        return "Cell(%r, %r)" % (self._domain, self._degree)
+        return self._repr
 
 # --- Utility conversion functions
 

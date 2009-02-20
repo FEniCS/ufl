@@ -9,20 +9,29 @@ This is to avoid circular dependencies between Expr and its subclasses.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-02-03"
+__date__ = "2008-03-14 -- 2009-02-20"
 
 # Modified by Anders Logg, 2008
 
 #--- The base object for all UFL expression tree nodes ---
 
 from collections import defaultdict
+from itertools import izip
 from ufl.log import warning
 _class_usage_statistics = defaultdict(int)
+
+def typetuple(e):
+    return tuple(type(o) for o in e.operands())
+
+def compute_hash(expr):
+    tt = tuple((type(o), typetuple(o)) for o in expr.operands())
+    return hash((type(expr), tt))
 
 class Expr(object):
     "Base class for all UFL objects."
     # Freeze member variables for objects of this class
-    __slots__ = ()#"_operands", "_hash")
+    __slots__ = ()
+    #__slots__ = ("_operands", "_hash", "_str", "_repr", "_shape", "_free_indices", "_index_dimensions")
     
     def __init__(self):
         # Comment out this line to disable class construction statistics (used in some unit tests)
@@ -43,16 +52,16 @@ class Expr(object):
     # All subclasses must implement operands
     def operands(self):
         "Return a sequence with all subtree nodes in expression tree."
-        raise NotImplementedError(self.__class__.operands)
         #return self._operands
+        raise NotImplementedError(self.__class__.operands)
     
     #--- Functions for general properties of expression ---
     
     # All subclasses must implement shape
     def shape(self):
         "Return the tensor shape of the expression."
-        raise NotImplementedError(self.__class__.shape)
         #return self._shape
+        raise NotImplementedError(self.__class__.shape)
     
     # Subclasses can implement rank if it is known directly (TODO: Is this used anywhere? Usually want to compare shapes anyway.)
     def rank(self):
@@ -79,30 +88,29 @@ class Expr(object):
     # All subclasses that can have indices must implement free_indices
     def free_indices(self):
         "Return a tuple with the free indices (unassigned) of the expression."
-        return ()
         #return self._free_indices
+        raise NotImplementedError(self.__class__.free_indices)
     
     # All subclasses must implement index_dimensions
     def index_dimensions(self):
         """Return a dict with the free or repeated indices in the expression
         as keys and the dimensions of those indices as values."""
-        raise NotImplementedError(self.__class__.index_dimensions)
-        #return {} # TODO: Might make this optional to implement?
         #return self._index_dimensions
+        raise NotImplementedError(self.__class__.index_dimensions)
     
     #--- Special functions for string representations ---
     
     # All subclasses must implement __repr__
     def __repr__(self):
         "Return string representation this object can be reconstructed from."
-        raise NotImplementedError(self.__class__.__repr__)
         #return self._repr
+        raise NotImplementedError(self.__class__.__repr__)
     
     # All subclasses must implement __str__
     def __str__(self):
         "Return pretty print string representation of this object."
-        raise NotImplementedError(self.__class__.__str__)
         #return self._str
+        raise NotImplementedError(self.__class__.__str__)
     
     #--- Special functions used for processing expressions ---
     
@@ -111,10 +119,7 @@ class Expr(object):
         # Using hash cache to avoid recomputation
         #if self._hash is None:
         
-        def typetuple(expr):
-            return tuple(type(o) for o in expr.operands())
-        tt = tuple((type(o), typetuple(o)) for o in self.operands())
-        h = hash((type(self), tt))
+        h = compute_hash(self)
         return h
 
         #self._hash = h
@@ -125,14 +130,9 @@ class Expr(object):
         """Checks whether the two expressions are represented the
         exact same way using repr. This does not check if the forms
         are mathematically equal or equivalent! Used by sets and dicts."""
-        if type(self) != type(other):
-            return False
-        if id(self) == other:
-            return True
-        return self.operands() == other.operands()
-        #return (type(self) != type(other)) and ((id(self) == other) or (self.operands() == other.operands()))
-        #return repr(self) == repr(other)
-    
+        #return (type(self) == type(other)) and ((self is other) or (self.operands() == other.operands()))
+        return repr(self) == repr(other)
+
     def __nonzero__(self):
         "By default, all Expr are nonzero."
         return True 

@@ -14,7 +14,7 @@ from ufl.assertions import ufl_assert, assert_expr, assert_instance
 
 class Indexed(WrapperType):
     __slots__ = ("_expression", "_indices",
-                 "_free_indices", "_index_dimensions")
+                 "_free_indices", "_index_dimensions", "_repr")
     def __init__(self, expression, indices):
         WrapperType.__init__(self)
         assert_expr(expression)
@@ -34,6 +34,8 @@ class Indexed(WrapperType):
         
         self._free_indices = fi
         self._index_dimensions = idims
+
+        self._repr = "Indexed(%r, %r)" % (self._expression, self._indices)
     
     def operands(self):
         return (self._expression, self._indices)
@@ -56,7 +58,7 @@ class Indexed(WrapperType):
         return "(%s)[%s]" % (self._expression, self._indices)
     
     def __repr__(self):
-        return "Indexed(%r, %r)" % (self._expression, self._indices)
+        return self._repr
     
     def __getitem__(self, key):
         error("Attempting to index with %r, but object is already indexed: %r" % (key, self))

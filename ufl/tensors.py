@@ -1,7 +1,7 @@
 """Classes used to group scalar expressions into expressions with rank > 0."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-31 -- 2009-02-03"
+__date__ = "2008-03-31 -- 2009-02-20"
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
@@ -12,7 +12,7 @@ from ufl.indexing import Index, FixedIndex, MultiIndex, indices
 # --- Classes representing tensors of UFL expressions ---
 
 class ListTensor(WrapperType):
-    __slots__ = ("_expressions", "_free_indices", "_shape")
+    __slots__ = ("_expressions", "_free_indices", "_shape", "_repr")
     
     def __init__(self, *expressions):
         WrapperType.__init__(self)
@@ -36,6 +36,8 @@ class ListTensor(WrapperType):
         indexset = set(e.free_indices())
         ufl_assert(all(not (indexset ^ set(sub.free_indices())) for sub in expressions), \
             "Can't combine subtensor expressions with different sets of free indices.")
+
+        self._repr = "ListTensor(%s)" % ", ".join(repr(e) for e in self._expressions)
     
     def operands(self):
         return self._expressions
@@ -76,7 +78,7 @@ class ListTensor(WrapperType):
         return "ListTensor(%s)" % sub
     
     def __repr__(self):
-        return "ListTensor(%s)" % ", ".join(repr(e) for e in self._expressions)
+        return self._repr
 
 class ComponentTensor(WrapperType):
     __slots__ = ("_expression", "_indices", "_free_indices", "_index_dimensions", "_shape", "_str", "_repr")

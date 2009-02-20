@@ -2,7 +2,7 @@
 of related classes (functions), including Constant."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-02-03"
+__date__ = "2008-03-14 -- 2009-02-20"
 
 # Modified by Anders Logg, 2008
 
@@ -16,7 +16,7 @@ from ufl.geometry import as_cell
 # --- The Function class represents a coefficient function argument to a form ---
 
 class Function(FormArgument, Counted):
-    __slots__ = ("_element",)
+    __slots__ = ("_element", "_repr")
     _globalcount = 0
 
     def __init__(self, element, count=None):
@@ -25,6 +25,7 @@ class Function(FormArgument, Counted):
         ufl_assert(isinstance(element, FiniteElementBase),
             "Expecting a FiniteElementBase instance.")
         self._element = element
+        self._repr = None
     
     def element(self):
         return self._element
@@ -43,7 +44,9 @@ class Function(FormArgument, Counted):
             return "w_{%s}" % count
     
     def __repr__(self):
-        return "Function(%r, %r)" % (self._element, self._count)
+        if self._repr is None:
+            self._repr = "Function(%r, %r)" % (self._element, self._count)
+        return self._repr
 
     def __eq__(self, other):
         return isinstance(other, Function) and self._element == other._element and self._count == other._count
@@ -59,6 +62,7 @@ class Constant(Function):
         self._cell = as_cell(cell)
         element = FiniteElement("DG", cell, 0)
         Function.__init__(self, element, count)
+        self._repr = "Constant(%r, %r)" % (self._cell, self._count)
     
     def __str__(self):
         count = str(self._count)
@@ -66,15 +70,13 @@ class Constant(Function):
             return "c_%s" % count
         else:
             return "c_{%s}" % count
-    
-    def __repr__(self):
-        return "Constant(%r, %r)" % (self._cell, self._count)
 
 class VectorConstant(Function):
     __slots__ = ()
     def __init__(self, cell, dim=None, count=None):
         element = VectorElement("DG", cell, 0, dim)
         Function.__init__(self, element, count)
+        self._repr = "VectorConstant(%r, %r, %r)" % (element.cell(), element.value_shape()[0], self._count)
     
     def __str__(self):
         count = str(self._count)
@@ -82,16 +84,13 @@ class VectorConstant(Function):
             return "C_%s" % count
         else:
             return "C_{%s}" % count
-    
-    def __repr__(self):
-        e = self.element()
-        return "VectorConstant(%r, %r, %r)" % (e.cell(), e.value_shape()[0], self._count)
 
 class TensorConstant(Function):
     __slots__ = ()
     def __init__(self, cell, shape=None, symmetry=None, count=None):
         element = TensorElement("DG", cell, 0, shape=shape, symmetry=symmetry)
         Function.__init__(self, element, count)
+        self._repr = "TensorConstant(%r, %r, %r, %r)" % (element.cell(), element.value_shape(), element._symmetry, self._count)
     
     def __str__(self):
         count = str(self._count)
@@ -99,10 +98,6 @@ class TensorConstant(Function):
             return "C_%s" % count
         else:
             return "C_{%s}" % count
-    
-    def __repr__(self):
-        e = self.element()
-        return "TensorConstant(%r, %r, %r, %r)" % (e.cell(), e.value_shape(), e._symmetry, self._count)
 
 # --- Helper functions for subfunctions on mixed elements ---
 

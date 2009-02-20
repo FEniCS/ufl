@@ -52,13 +52,14 @@ class Index(IndexBase, Counted):
         return self._repr
 
 class FixedIndex(IndexBase):
-    __slots__ = ("_value",)
+    __slots__ = ("_value", "_repr")
     
     def __init__(self, value):
         IndexBase.__init__(self)
         ufl_assert(isinstance(value, int),
             "Expecting integer value for fixed index.")
         self._value = value
+        self._repr = "FixedIndex(%d)" % self._value
     
     def __hash__(self):
         return hash(repr(self))
@@ -74,7 +75,7 @@ class FixedIndex(IndexBase):
         return "%d" % self._value
     
     def __repr__(self):
-        return "FixedIndex(%d)" % self._value
+        return self._repr
 
 class MultiIndex(UtilityType):
     __slots__ = ("_indices", "_str", "_repr")

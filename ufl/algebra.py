@@ -250,7 +250,7 @@ class Product(AlgebraOperator):
         return self._repr
 
 class Division(AlgebraOperator):
-    __slots__ = ("_a", "_b")
+    __slots__ = ("_a", "_b", "_repr")
     
     def __new__(cls, a, b):
         a = as_ufl(a)
@@ -278,6 +278,7 @@ class Division(AlgebraOperator):
         ufl_assert(all(isinstance(o, Expr) for o in (a, b)), "Expecting Expr instances.")
         self._a = a
         self._b = b
+        self._repr = "Division(%r, %r)" % (self._a, self._b)
 
     def __init__(self, a, b):
         AlgebraOperator.__init__(self)
@@ -305,10 +306,10 @@ class Division(AlgebraOperator):
         return "(%s / %s)" % (str(self._a), str(self._b))
     
     def __repr__(self):
-        return "Division(%r, %r)" % (self._a, self._b)
+        return self._repr
 
 class Power(AlgebraOperator):
-    __slots__ = ("_a", "_b")
+    __slots__ = ("_a", "_b", "_repr")
     
     def __new__(cls, a, b):
         a = as_ufl(a)
@@ -332,6 +333,7 @@ class Power(AlgebraOperator):
         ufl_assert(all(isinstance(o, Expr) for o in (a, b)), "Expecting Expr instances.")
         self._a = a
         self._b = b
+        self._repr = "Power(%r, %r)" % (self._a, self._b)
 
     def __init__(self, a, b):
         AlgebraOperator.__init__(self)
@@ -358,15 +360,16 @@ class Power(AlgebraOperator):
         return "(%s ** %s)" % (str(self._a), str(self._b))
     
     def __repr__(self):
-        return "Power(%r, %r)" % (self._a, self._b)
+        return self._repr
 
 class Abs(AlgebraOperator):
-    __slots__ = ("_a",)
+    __slots__ = ("_a", "_repr")
     
     def __init__(self, a):
         AlgebraOperator.__init__(self)
         ufl_assert(isinstance(a, Expr), "Expecting Expr instance.")
         self._a = a
+        self._repr = "Abs(%r)" % self._a
     
     def operands(self):
         return (self._a, )
@@ -388,4 +391,4 @@ class Abs(AlgebraOperator):
         return "| %s |" % str(self._a)
     
     def __repr__(self):
-        return "Abs(%r)" % self._a
+        return self._repr

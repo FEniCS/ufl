@@ -13,18 +13,20 @@ from ufl.constantvalue import as_ufl
 
 class Label(UtilityType, Counted):
     _globalcount = 0
-    __slots__ = ()
+    __slots__ = ("_repr", "_hash")
     def __init__(self, count=None):
         Counted.__init__(self, count)
+        self._repr = "Label(%d)" % self._count
+        self._hash = hash(self._repr)
     
     def __str__(self):
         return "Label(%d)" % self._count
     
     def __repr__(self):
-        return "Label(%d)" % self._count
+        return self._repr
     
     def __hash__(self):
-        return hash(repr(self))
+        return self._hash
 
 class Variable(WrapperType):
     """A Variable is a representative for another expression.
@@ -37,7 +39,7 @@ class Variable(WrapperType):
         f = exp(e**2)
         df = diff(f, e)
     """
-    __slots__ = ("_expression", "_label")
+    __slots__ = ("_expression", "_label", "_repr")
     def __init__(self, expression, label=None):
         WrapperType.__init__(self)
         expression = as_ufl(expression)
@@ -48,6 +50,7 @@ class Variable(WrapperType):
             label = Label()
         ufl_assert(isinstance(label, Label), "Expecting a Label.")
         self._label = label
+        self._repr = "Variable(%r, %r)" % (self._expression, self._label)
     
     def operands(self):
         return (self._expression, self._label)
@@ -81,5 +84,5 @@ class Variable(WrapperType):
         return "Variable(%s, %s)" % (self._expression, self._label)
     
     def __repr__(self):
-        return "Variable(%r, %r)" % (self._expression, self._label)
+        return self._repr
 

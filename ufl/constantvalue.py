@@ -144,19 +144,21 @@ class ScalarValue(ConstantValue, IndexAnnotated):
         return type(self)(abs(self._value))
     
     def __repr__(self):
-        return "%s(%s, %s, %s, %s)" % (type(self).__name__, repr(self._value), repr(self._shape), repr(self._free_indices), repr(self._index_dimensions))
+        return self._repr
 
 class FloatValue(ScalarValue):
     "A constant scalar numeric value."
     __slots__ = ()
     def __init__(self, value, shape=(), free_indices=(), index_dimensions=None):
         ScalarValue.__init__(self, float_type(value), shape, free_indices, index_dimensions)
+        self._repr = "%s(%s, %s, %s, %s)" % (type(self).__name__, repr(self._value), repr(self._shape), repr(self._free_indices), repr(self._index_dimensions))
     
 class IntValue(ScalarValue):
     "A constant scalar integer value."
     __slots__ = ()
     def __init__(self, value, shape=(), free_indices=(), index_dimensions=None):
         ScalarValue.__init__(self, int_type(value), shape, free_indices, index_dimensions)
+        self._repr = "%s(%s, %s, %s, %s)" % (type(self).__name__, repr(self._value), repr(self._shape), repr(self._free_indices), repr(self._index_dimensions))
 
 class ScalarSomething(ScalarValue):
     """A scalar value of some externally defined type.
@@ -166,21 +168,23 @@ class ScalarSomething(ScalarValue):
     __slots__ = ()
     def __init__(self, value):
         ScalarValue.__init__(self, value)
+        self._repr = "ScalarSomething(%s)" % repr(self._value)
     
     def evaluate(self, x, mapping, component, index_values):
         return float(self)
     
     def __repr__(self):
-        return "ScalarSomething(%s)" % repr(self._value)
+        return self._repr
 
 #--- Identity matrix ---
 
 class Identity(ConstantValue):
-    __slots__ = ("_dim",)
+    __slots__ = ("_dim", "_repr")
 
     def __init__(self, dim):
         ConstantValue.__init__(self)
         self._dim = dim
+        self._repr = "Identity(%d)" % self._dim
     
     def shape(self):
         return (self._dim, self._dim)
@@ -193,7 +197,7 @@ class Identity(ConstantValue):
         return "I"
     
     def __repr__(self):
-        return "Identity(%d)" % self._dim
+        return self._repr
     
     def __eq__(self, other):
         return isinstance(other, Identity) and self._dim == other._dim

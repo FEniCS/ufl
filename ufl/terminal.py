@@ -83,11 +83,13 @@ class UtilityType(Terminal):
 
 class Tuple(UtilityType):
     "For internal use, never to be created by users."
+    __slots__ = ("_items", "_repr")
     def __init__(self, *items):
         UtilityType.__init__(self)
         if not all(isinstance(i, Expr) for i in items):
             warning("Got non-Expr in Tuple, is this intended? If so, remove this warning.")
         self._items = items
+        self._repr = "Tuple(*%s)" % repr(self._items)
     
     def __getitem__(self, i):
         return self._items[i]
@@ -102,5 +104,5 @@ class Tuple(UtilityType):
         return "Tuple(*(%s,))" % ", ".join(str(i) for i in self._items)
     
     def __repr__(self):
-        return "Tuple(*%s)" % repr(self._items)
+        return self._repr
 

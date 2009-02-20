@@ -22,6 +22,7 @@ class Condition(Operator):
         ufl_assert(self._left.free_indices() == () \
             and self._right.free_indices() == (),
             "Expecting scalar arguments.")
+        self._repr = "%s(%r, %r)" % (type(self).__name__, self._left, self._right)
         
     def operands(self):
         # Condition should never be constructed directly,
@@ -41,6 +42,9 @@ class Condition(Operator):
     def __str__(self):
         return "(%s) %s (%s)" % (self._left, self._name, self._right)
 
+    def __repr__(self):
+        return self._repr
+
 class EQ(Condition):
     def __init__(self, left, right):
         Condition.__init__(self, "==", left, right)
@@ -50,9 +54,6 @@ class EQ(Condition):
         b = self._right.evaluate(x, mapping, component, index_values)
         return a == b
 
-    def __repr__(self):
-        return "EQ(%r, %r)" % (self._left, self._right)
-
 class NE(Condition):
     def __init__(self, left, right):
         Condition.__init__(self, "!=", left, right)
@@ -61,9 +62,6 @@ class NE(Condition):
         a = self._left.evaluate(x, mapping, component, index_values)
         b = self._right.evaluate(x, mapping, component, index_values)
         return a != b
-    
-    def __repr__(self):
-        return "NE(%r, %r)" % (self._left, self._right)
 
 class LE(Condition):
     def __init__(self, left, right):
@@ -73,9 +71,6 @@ class LE(Condition):
         a = self._left.evaluate(x, mapping, component, index_values)
         b = self._right.evaluate(x, mapping, component, index_values)
         return a <= b
-    
-    def __repr__(self):
-        return "LE(%r, %r)" % (self._left, self._right)
 
 class GE(Condition):
     def __init__(self, left, right):
@@ -85,9 +80,6 @@ class GE(Condition):
         a = self._left.evaluate(x, mapping, component, index_values)
         b = self._right.evaluate(x, mapping, component, index_values)
         return a >= b
-    
-    def __repr__(self):
-        return "GE(%r, %r)" % (self._left, self._right)
 
 class LT(Condition):
     def __init__(self, left, right):
@@ -97,9 +89,6 @@ class LT(Condition):
         a = self._left.evaluate(x, mapping, component, index_values)
         b = self._right.evaluate(x, mapping, component, index_values)
         return a < b
-    
-    def __repr__(self):
-        return "LT(%r, %r)" % (self._left, self._right)
 
 class GT(Condition):
     def __init__(self, left, right):
@@ -109,14 +98,11 @@ class GT(Condition):
         a = self._left.evaluate(x, mapping, component, index_values)
         b = self._right.evaluate(x, mapping, component, index_values)
         return a > b
-    
-    def __repr__(self):
-        return "GT(%r, %r)" % (self._left, self._right)
 
 #--- Conditional expression (condition ? true_value : false_value) ---
 
 class Conditional(Operator):
-    __slots__ = ("_condition", "_true_value", "_false_value")
+    __slots__ = ("_condition", "_true_value", "_false_value", "_repr")
     
     def __init__(self, condition, true_value, false_value):
         Operator.__init__(self)
@@ -132,6 +118,7 @@ class Conditional(Operator):
         self._condition = condition
         self._true_value = true_value
         self._false_value = false_value
+        self._repr = "Conditional(%r, %r, %r)" % self.operands()
 
     def operands(self):
         return (self._condition, self._true_value, self._false_value)
@@ -157,5 +144,4 @@ class Conditional(Operator):
         return "(%s) ? (%s) : (%s)" % self.operands()
     
     def __repr__(self):
-        return "Conditional(%r, %r, %r)" % self.operands()
-    
+        return self._repr

@@ -11,11 +11,12 @@ from ufl.constantvalue import is_true_ufl_scalar
 
 class Measure(object):
     """A measure for integration."""
-    __slots__ = ("_domain_type", "_domain_id", "_metadata")
+    __slots__ = ("_domain_type", "_domain_id", "_metadata", "_repr")
     def __init__(self, domain_type, domain_id, metadata = None):
         self._domain_type = domain_type.replace(" ", "_")
         self._domain_id   = domain_id
         self._metadata    = metadata
+        self._repr        = "Measure(%r, %r, %r)" % (self._domain_type, self._domain_id, self._metadata)
     
     def reconstruct(self, domain_id=None, metadata=None):
         """Construct a new Measure object with some properties replaced with new values.
@@ -73,26 +74,24 @@ class Measure(object):
         return "%s%d%s" % (d, self._domain_id, metastring)
     
     def __repr__(self):
-        return "Measure(%r, %r, %r)" % (self._domain_type, self._domain_id, self._metadata)
-    
-    def __eq__(self, other):
-        return isinstance(other, Measure) and\
-            self._domain_type == other._domain_type and\
-            self._domain_id   == other._domain_id and\
-            self._metadata    == other._metadata
+        return self._repr
     
     def __hash__(self):
-        return hash((type(self), self._domain_type, self._domain_id, self._metadata))
+        return hash(self._repr)
+    
+    def __eq__(self, other):
+        return repr(self) == repr(other)
 
 class Integral(object):
     "An integral over a single domain."
-    __slots__ = ("_integrand", "_measure")
+    __slots__ = ("_integrand", "_measure", "_repr")
     def __init__(self, integrand, measure):
         from ufl.expr import Expr
         ufl_assert(isinstance(integrand, Expr), "Expecting integrand to be an Expr instance.")
         ufl_assert(isinstance(measure, Measure), "Expecting measure to be a Measure instance.")
         self._integrand = integrand
         self._measure   = measure
+        self._repr = "Integral(%r, %r)" % (self._integrand, self._measure)
     
     def reconstruct(self, integrand):
         """Construct a new Integral object with some properties replaced with new values.
@@ -122,12 +121,11 @@ class Integral(object):
         return "{ %s } * %s" % (self._integrand, self._measure)
     
     def __repr__(self):
-        return "Integral(%r, %r)" % (self._integrand, self._measure)
+        return self._repr
     
     def __eq__(self, other):
-        return self._integrand == other._integrand and\
-               self._measure == other._measure
+        return repr(self) == repr(other)
     
     def __hash__(self):
-        return hash((type(self), self._integrand, self._measure))
+        return hash(repr)
 

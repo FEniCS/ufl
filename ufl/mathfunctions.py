@@ -1,7 +1,7 @@
 """This module provides basic mathematical functions."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-02-13"
+__date__ = "2008-03-14 -- 2009-02-20"
 
 # Modified by Anders Logg, 2008
 
@@ -15,12 +15,13 @@ from ufl.constantvalue import FloatValue, is_true_ufl_scalar, is_python_scalar, 
 class MathFunction(Operator):
     "Base class for all math functions"
     # Freeze member variables for objects in this class
-    __slots__ = ("_name", "_argument")
+    __slots__ = ("_name", "_argument", "_repr")
     def __init__(self, name, argument):
         Operator.__init__(self)
         ufl_assert(is_true_ufl_scalar(argument), "Expecting scalar argument.")
         self._name     = name
         self._argument = argument
+        self._repr = "%s(%r)" % (name, argument)
     
     def operands(self):
         return (self._argument,)
@@ -42,7 +43,7 @@ class MathFunction(Operator):
         return "%s(%s)" % (self._name, self._argument)
     
     def __repr__(self):
-        return "%s(%r)" % (self._name, self._argument)
+        return self._repr
 
 class Sqrt(MathFunction):
     def __init__(self, argument):
