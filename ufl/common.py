@@ -140,7 +140,7 @@ def tstr(t, colsize=80):
 
 def sstr(s):
     "Pretty-print set."
-    return ", ".join([str(x) for x in s])
+    return ", ".join(str(x) for x in s)
 
 class Counted(object):
     """A class of objects identified by a global counter.
