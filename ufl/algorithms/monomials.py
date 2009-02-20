@@ -44,34 +44,28 @@ class MonomialTransformer(ReuseTransformer):
     def expr(self, o, *ops):
         raise MonomialException, ("No handler defined for %s." % o._uflclass.__name__)
 
-    def sum(self, o, *ops):
-        (monomials0, monomials1) = ops
+    def sum(self, o, monomials0, monomials1):
         monomials = monomials0 + monomials1
         return monomials
 
-    def product(self, o, *ops):
-        (monomials0, monomials1) = ops
+    def product(self, o, monomials0, monomials1):
         monomials = []
         for monomial0 in monomials0:
             for monomial1 in monomials1:
                 monomials.append(monomial0 + monomial1)
         return monomials
         
-    def index_sum(self, o, *ops):
-        (monomials, index) = ops
+    def index_sum(self, o, monomials, index):
         return monomials
 
-    def indexed(self, o, *ops):
-        (monomials, indices) = ops
+    def indexed(self, o, monomials, indices):
         #operators["c"].append(indices)
         return monomials
     
-    def component_tensor(self, o, *ops):
-        (monomials, indices) = ops
+    def component_tensor(self, o, monomials, indices):
         return monomials
         
-    def spatial_derivative(self, o, *ops):
-        (monomials, index) = ops
+    def spatial_derivative(self, o, monomials, index):
         for monomial in monomials:
             if len(monomial) > 1:
                 error("Expecting a single basis function.")
@@ -79,7 +73,7 @@ class MonomialTransformer(ReuseTransformer):
                 v[1]["d"] = index
         return monomials
 
-    def basis_function(self, o, *operands):
+    def basis_function(self, o):
         v = [o, {"d": []}]
         monomials = [[v]]
         return monomials
