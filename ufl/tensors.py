@@ -7,7 +7,7 @@ from ufl.log import warning
 from ufl.assertions import ufl_assert
 from ufl.expr import Expr, WrapperType
 from ufl.constantvalue import as_ufl
-from ufl.indexing import Index, FixedIndex, MultiIndex
+from ufl.indexing import Index, FixedIndex, MultiIndex, indices
 
 # --- Classes representing tensors of UFL expressions ---
 
@@ -169,6 +169,12 @@ def as_vector(expressions, index = None):
         ufl_assert(isinstance(index, Index), "Expecting Index object.")
         index = (index,)
     return as_tensor(expressions, index)
+
+def as_scalar(expression):
+    ii = indices(expression.rank())
+    if ii:
+        expression = expression[ii]
+    return expression, ii
 
 def relabel(A, indexmap):
     "Relabel free indices of A with new indices, using the given mapping."

@@ -1,7 +1,7 @@
 """Forward mode AD implementation."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-19-- 2009-02-18"
+__date__ = "2008-08-19-- 2009-02-20"
 
 from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert
@@ -11,15 +11,15 @@ from ufl.indexutils import unique_indices
 # All classes:
 from ufl.expr import Expr
 from ufl.terminal import Terminal, Tuple
-from ufl.constantvalue import Zero, ScalarValue, FloatValue, IntValue, Identity, is_true_ufl_scalar
+from ufl.constantvalue import Zero, ScalarValue, FloatValue, IntValue, Identity, is_true_ufl_scalar, is_ufl_scalar
 from ufl.form import Form
 from ufl.variable import Variable
 from ufl.finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
 from ufl.basisfunction import BasisFunction, BasisFunctions
 from ufl.function import Function, Constant, VectorConstant, TensorConstant
-from ufl.indexing import MultiIndex, Indexed, Index
+from ufl.indexing import MultiIndex, Indexed, Index, indices
 from ufl.indexsum import IndexSum
-from ufl.tensors import ListTensor, ComponentTensor
+from ufl.tensors import ListTensor, ComponentTensor, as_tensor, as_scalar
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
 from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
@@ -57,7 +57,6 @@ class AD(Transformer):
         self._var_shape = var_shape
         self._var_free_indices = var_free_indices
         self._var_index_dimensions = dict(var_index_dimensions)
-        if self._var_shape == (): warning("TODO: Step through implementation to make sure we handle differentiation w.r.t. variables with shape everywhere needed.")
     
     def _make_zero_diff(self, o):
         # Define a zero with the right indices (kind of cumbersome this... any simpler way?)
@@ -119,63 +118,70 @@ class AD(Transformer):
         fp = self._make_zero_diff(o)
         return (o, fp)
     
-    def variable(self, o): # XXX: This is an example of a function that may return something else than the input!
+    def variable(self, o):
         """Variable objects are just 'labels', so by default the derivative
         of a variable is the derivative of its referenced expression."""
         # Check variable cache to reuse previously transformed variable if possible
         e, l = o.operands()
         r = self._variable_cache.get(l) # cache contains (v, vp) tuple
-        if r is None:
-            # Visit the expression our variable represents
-            e2, vp = self.visit(e)
-            # Recreate Variable (with same label) only if necessary
-            if e is e2:
-                v = o
-            else:
-                v = Variable(e2, l)
-            # Cache and return (v, vp) tuple
-            r = (v, vp)
-            self._variable_cache[l] = r
+        if r is not None:
+            return r
+        
+        # Visit the expression our variable represents
+        e2, vp = self.visit(e)
+
+        # Recreate Variable (with same label) only if necessary
+        v = self.reuse_if_possible(o, e2, l)
+
+        # Cache and return (v, vp) tuple
+        r = (v, vp)
+        self._variable_cache[l] = r
         return r
     
     # --- Indexing and component handling
     
     def multi_index(self, o):
-        return (o, None) # oprime here should never be used
+        return (o, None) # oprime here should never be used, this might even not be called?
     
     def indexed(self, o):
         A, jj = o.operands()
         A2, Ap = self.visit(A)
-        if not A is A2:
-            debug("\n"*3)
-            debug("A  = %s" % str(A))
-            debug("A2 = %s" % str(A2))
-            debug("\n"*3)
-        ufl_assert(A is A2, "This is a surprise, please provide example!")
+        o = self.reuse_if_possible(o, A2, jj)
+        
         if isinstance(Ap, Zero):
             op = self._make_zero_diff(o)
         else:
-            op = Indexed(Ap, jj)
+            r = Ap.rank() - len(jj)
+            ii = indices(r)
+            op = Indexed(Ap, jj + ii)
+            if ii:
+                op = as_tensor(op, ii)
         return (o, op)
     
     def list_tensor(self, o, *ops):
-        opprimes = [op[1] for op in ops]
-        return (o, ListTensor(*opprimes))
+        ops, dops = unzip(ops)
+        o = self.reuse_if_possible(o, *ops)
+        op = ListTensor(*dops)
+        return (o, op)
     
-    def component_tensor(self, o, A, ii):
-        A, Ap = A
+    def component_tensor(self, o):
+        A, ii = o.operands()
+        A, Ap = self.visit(A)
+        o = self.reuse_if_possible(o, A, ii)
+        
         if isinstance(Ap, Zero):
-            fp = self._make_zero_diff(o)
+            op = self._make_zero_diff(o)
         else:
-            fp = ComponentTensor(Ap, ii[0])
-        return (o, fp)
+            Ap, jj = as_scalar(Ap)
+            op = ComponentTensor(Ap, ii + jj)
+        return (o, op)
     
     # --- Algebra operators
     
     def index_sum(self, o):
         A, i = o.operands()
         A2, Ap = self.visit(A)
-        ufl_assert(A is A2, "This is a surprise, please provide example!")
+        o = self.reuse_if_possible(o, A2, i)
         op = IndexSum(Ap, i)
         return (o, op)
     
@@ -190,56 +196,67 @@ class AD(Transformer):
         fp = self._make_zero_diff(o)
         # Get operands and their derivatives
         ops2, dops2 = unzip(ops)
+        o = self.reuse_if_possible(o, *ops2)
         for (i, op) in enumerate(ops):
-            # Replace operand i with its differentiated value 
-            fpoperands = ops2[:i] + [dops2[i]] + ops2[i+1:]
-            tmp = Product(*fpoperands) # FIXME
-            fp += tmp
+            # Get scalar representation of differentiated value of operand i
+            dop = dops2[i]
+            dop, ii = as_scalar(dop)
+            # Replace operand i with its differentiated value in product
+            fpoperands = ops2[:i] + [dop] + ops2[i+1:]
+            p = Product(*fpoperands)
+            # Wrap product in tensor again
+            if ii:
+                p = as_tensor(p, ii)
+            # Accumulate terms
+            fp += p
         return (o, fp)
     
     def division(self, o, a, b):
         f, fp = a
         g, gp = b
-        fp_g = Product(fp, g) # FIXME
-        f_gp = Product(f, gp) # FIXME
-        g2 = g**2
-        #op = (fp_g - f_gp) / g**2
-        op = (fp   - f_gp/g) / g    
+        o = self.reuse_if_possible(o, f, g)
+        
+        ufl_assert(is_true_ufl_scalar(g), "Not expecting nonscalar denominator")
+        
+        #do_df = 1/g
+        #do_dg = -h/g
+        #op = do_df*fp + do_df*gp
+        #op = (fp - o*gp) / g
+        
+        # Get o and gp as scalars, multiply, then wrap as a tensor again
+        so, oi = as_scalar(o)
+        sgp, gi = as_scalar(gp)
+        o_gp = so*sgp
+        if oi or gi:
+            o_gp = as_tensor(o_gp, oi + gi)
+        op = (fp - o_gp) / g
         return (o, op)
     
     def power(self, o, a, b):
         f, fp = a
         g, gp = b
+        o = self.reuse_if_possible(o, f, g)
+        
         ufl_assert(is_true_ufl_scalar(f), "Expecting scalar expression f in f**g.")
         ufl_assert(is_true_ufl_scalar(g), "Expecting scalar expression g in f**g.")
-        # o = f**g
-        f_const = isinstance(fp, Zero)
-        g_const = isinstance(gp, Zero)
-        # Case: o = const ** const = const
-        if f_const and g_const:
-            return (o, self._make_zero_diff(o))
-        # Case: o = f(x) ** const
-        if g_const:
-            # o' = g f'(x) f(x)**(g-1)
-            if isinstance(g, Zero) or isinstance(f, Zero) or f_const:
-                return (o, self._make_zero_diff(o))
-            #return (o, g*fp*f**(g-1.0))
-            g_fp = Product(g, fp) # FIXME
-            fpow = f**(g-1)
-            op = Product(g_fp, fpow) # FIXME
-            return (o, op)
-        # Case: o = f ** g(x)
-        if isinstance(fp, Zero):
-            g_ln_f = Product(gp, ln(f)) # FIXME
-            op = Product(gp_ln_f, o) # FIXME
-            return (o, op)
-        # Case: o = f(x)**g(x)
-        error("diff_power not implemented for case d/dx [ f(x)**g(x) ].")
-        oprime = None # TODO
-        return (o, oprime)
+        
+        # General case: o = f(x)**g(x)
+        
+        #do_df = g * f**(g-1)
+        #do_dg = ln(f) * f**g
+        #op = do_df*fp + do_dg*gp
+        
+        #do_df = o * g / f # f**g * g / f
+        #do_dg = ln(f) * o
+        #op = do_df*fp + do_dg*gp
+        
+        # Pulling o out gives:
+        op = o*(fp*g/f + ln(f)*gp)
+        return (o, op)
     
     def abs(self, o, a):
         f, fprime = a
+        o = self.reuse_if_possible(o, f)
         oprime = conditional(eq(f, 0),
                              0,
                              Product(sign(f), fprime)) #conditional(lt(f, 0), -fprime, fprime))
@@ -252,42 +269,50 @@ class AD(Transformer):
     
     def sqrt(self, o, a):
         f, fp = a
-        op = fp / (2*sqrt(f)) # FIXME
+        o = self.reuse_if_possible(o, f)
+        op = fp / (2*o)
         return (o, op)
     
     def exp(self, o, a):
         f, fp = a
-        op = fp*exp(f) # FIXME
+        o = self.reuse_if_possible(o, f)
+        op = fp*o
         return (o, op)
     
     def ln(self, o, a):
         f, fp = a
+        o = self.reuse_if_possible(o, f)
         ufl_assert(not isinstance(f, Zero), "Division by zero.")
         return (o, fp/f)
     
     def cos(self, o, a):
         f, fp = a
-        op = -fp*sin(f) # FIXME
+        o = self.reuse_if_possible(o, f)
+        op = -fp*sin(f)
         return (o, op)
     
     def sin(self, o, a):
         f, fp = a
-        op = fp*cos(f) # FIXME
+        o = self.reuse_if_possible(o, f)
+        op = fp*cos(f)
         return (o, op)
     
     # --- Restrictions
     
     def positive_restricted(self, o, a):
         f, fp = a
+        o = self.reuse_if_possible(o, f)
         return (o, fp('+')) # TODO: Assuming here that restriction and differentiation commutes. Is this correct?
     
     def negative_restricted(self, o, a):
         f, fp = a
+        o = self.reuse_if_possible(o, f)
         return (o, fp('-')) # TODO: Assuming here that restriction and differentiation commutes. Is this correct?
     
     # --- Conditionals
     
     def condition(self, o, l, r):
+        o = self.reuse_if_possible(o, l[0], r[0])
         if any(not isinstance(op[1], Zero) for op in (l, r)):
             warning("Differentiating a conditional with a condition "\
                         "that depends on the differentiation variable."\
@@ -296,11 +321,14 @@ class AD(Transformer):
         return (o, oprime)
     
     def conditional(self, o, c, t, f):
+        o = self.reuse_if_possible(o, c[0], t[0], f[0])
         if isinstance(t[1], Zero) and isinstance(f[1], Zero):
             fi = o.free_indices()
             fid = subdict(o.index_dimensions(), fi)
-            return (o, Zero(o.shape(), fi, fid))
-        return (o, conditional(c[0], t[1], f[1]))
+            op = Zero(o.shape(), fi, fid)
+        else:
+            op = conditional(c[0], t[1], f[1])
+        return (o, op)
     
     # --- Other derivatives
     
@@ -316,6 +344,7 @@ class AD(Transformer):
         # TODO: Although differentiation commutes, can we get repeated index issues here?
         f, i = o.operands()
         f, fp = self.visit(f)
+        o = self.reuse_if_possible(o, f, i)
         op = SpatialDerivative(fp, i) # FIXME
         return (o, op)
     
@@ -325,6 +354,7 @@ class AD(Transformer):
         # to its operand since differentiation commutes. Right?
         f, ii = o.operands()
         f, fp = self.visit(f)
+        o = self.reuse_if_possible(o, f, ii)
         
         # TODO: Are there any issues with indices here? Not sure, think through it...
         if is_spatially_constant(fp):
@@ -382,14 +412,14 @@ class VariableAD(AD):
         AD.__init__(self, spatial_dim, var_shape=var.shape(), var_free_indices=var.free_indices(), var_index_dimensions=var.index_dimensions())
         self._variable = var
     
-    def variable(self, o):
+    def variable(self, o): # XXX: This is another example
         # Check cache
         e, l = o.operands()
         c = self._variable_cache.get(l)
+        
         if c is not None:
-            # Cache hit
             return c
-
+        
         if o.label() == self._variable.label():
             # dv/dv = 1
             op = self._make_ones_diff(o)
@@ -397,9 +427,8 @@ class VariableAD(AD):
             # differentiate expression behind variable
             e2, ep = self.visit(e)
             op = ep
-            if e2 != e:
+            if not e2 == e:
                 o = Variable(e2, l)
-                error("Expression has changed during visit, how did this happen? Might be ok, just wondering.")
         # return variable and derivative of its expression
         c = (o, op)
         self._variable_cache[l] = c
@@ -438,8 +467,7 @@ class FunctionAD(AD):
         op = ep
 
         # If the expression is not the same, reconstruct Variable object
-        if e != e2:
-            o = Variable(e2, l)
+        o = self.reuse_if_possible(o, e2, l)
 
         # Recreate Variable (with same label) and cache it
         c = (o, op)

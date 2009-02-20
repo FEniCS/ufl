@@ -15,7 +15,7 @@ from ufl.constantvalue import Zero, ScalarValue, FloatValue, IntValue, is_python
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import Transposed, Dot
 from ufl.indexing import MultiIndex, IndexBase, FixedIndex, Index, Indexed, IndexSum, indices
-from ufl.indexutils import repeated_indices, unique_indices
+from ufl.indexutils import repeated_indices, unique_indices, single_indices
 from ufl.tensors import as_tensor
 from ufl.restriction import PositiveRestricted, NegativeRestricted
 from ufl.differentiation import SpatialDerivative, VariableDerivative

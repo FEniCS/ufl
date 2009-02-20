@@ -96,7 +96,21 @@ class MultiIndex(UtilityType):
             elif isinstance(i, Index):
                 component.append(index_values[i])
         return tuple(component)
-    
+
+    def __add__(self, other):
+        if isinstance(other, tuple):
+            return MultiIndex(self._indices + other)
+        elif isinstance(other, MultiIndex):
+            return MultiIndex(self._indices + other._indices)
+        return NotImplemented
+
+    def __radd__(self, other):
+        if isinstance(other, tuple):
+            return MultiIndex(other + self._indices)
+        elif isinstance(other, MultiIndex):
+            return MultiIndex(other._indices + self._indices)
+        return NotImplemented
+
     def __str__(self):
         return ", ".join(str(i) for i in self._indices)
     

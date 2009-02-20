@@ -1,7 +1,7 @@
 "This module contains a collection of common utilities."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-08-05 -- 2009-02-16"
+__date__ = "2008-08-05 -- 2009-02-20"
 
 import os
 from itertools import izip
@@ -18,7 +18,6 @@ def get_status_output(cmd, input=None, cwd=None, env=None):
     status = pipe.returncode
 
     return (status, output)
-
 
 domain2dim = { "interval": 1, "triangle": 2, "tetrahedron": 3, "quadrilateral": 2, "hexahedron": 3 }
 

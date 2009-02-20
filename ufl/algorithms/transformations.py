@@ -116,13 +116,15 @@ class Transformer(object):
         
         # Visit the expression our variable represents
         e2 = self.visit(e)
-
+        
         # If the expression is the same, reuse Variable object
-        if e is e2:
-            return o
-
-        # Recreate Variable (with same label) and cache it
-        v = Variable(e2, l)
+        if e == e2:
+            v = o
+        else:
+            # Recreate Variable (with same label) 
+            v = Variable(e2, l)
+        
+        # Cache variable
         self._variable_cache[l] = v
         return v
 
