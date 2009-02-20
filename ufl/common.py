@@ -149,14 +149,18 @@ class Counted(object):
     _globalcount = 0
     Can we enforce this somehow? Metaclasses? Probably overkill...
     """
-    def __init__(self, count = None):
+    def __init__(self, count = None, countedclass = None):
+        if countedclass is None:
+            countedclass = type(self)
+        self._countedclass = countedclass
+
         if count is None:
-            self._count = self.__class__._globalcount
-            self.__class__._globalcount += 1
+            self._count = self._countedclass._globalcount
+            self._countedclass._globalcount += 1
         else:
             self._count = count
-            if count >= self.__class__._globalcount:
-                self.__class__._globalcount = count + 1
+            if count >= self._countedclass._globalcount:
+                self._countedclass._globalcount = count + 1
     
     def count(self):
         return self._count

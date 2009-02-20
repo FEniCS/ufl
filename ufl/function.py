@@ -21,7 +21,7 @@ class Function(FormArgument, Counted):
 
     def __init__(self, element, count=None):
         FormArgument.__init__(self)
-        Counted.__init__(self, count)
+        Counted.__init__(self, count, Function)
         ufl_assert(isinstance(element, FiniteElementBase),
             "Expecting a FiniteElementBase instance.")
         self._element = element
