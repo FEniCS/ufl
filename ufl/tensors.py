@@ -79,7 +79,7 @@ class ListTensor(WrapperType):
         return "ListTensor(%s)" % ", ".join(repr(e) for e in self._expressions)
 
 class ComponentTensor(WrapperType):
-    __slots__ = ("_expression", "_indices", "_free_indices", "_index_dimensions", "_shape")
+    __slots__ = ("_expression", "_indices", "_free_indices", "_index_dimensions", "_shape", "_str", "_repr")
     
     def __init__(self, expression, indices):
         WrapperType.__init__(self)
@@ -105,6 +105,9 @@ class ComponentTensor(WrapperType):
         self._index_dimensions = dict((i, dims[i]) for i in self._free_indices)
         
         self._shape = tuple(dims[i] for i in self._indices)
+
+        self._str = "[Rank %d tensor A, such that A_{%s} = %s]" % (self.rank(), self._indices, self._expression)
+        self._repr = "ComponentTensor(%r, %r)" % (self._expression, self._indices)
     
     def operands(self):
         return (self._expression, self._indices)
@@ -134,10 +137,10 @@ class ComponentTensor(WrapperType):
         return a
     
     def __str__(self):
-        return "[Rank %d tensor A, such that A_{%s} = %s]" % (self.rank(), self._indices, self._expression)
+        return self._str
     
     def __repr__(self):
-        return "ComponentTensor(%r, %r)" % (self._expression, self._indices)
+        return self._repr
 
 # --- User-level functions to wrap expressions in the correct way ---
 

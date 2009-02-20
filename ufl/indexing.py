@@ -1,7 +1,7 @@
 """This module defines the single index types and some internal index utilities."""
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-14 -- 2009-02-04"
+__date__ = "2008-03-14 -- 2009-02-20"
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
@@ -26,26 +26,30 @@ class IndexBase(object):
         pass
 
 class Index(IndexBase, Counted):
-    __slots__ = ()
+    __slots__ = ("_str", "_repr", "_hash")
     _globalcount = 0
     def __init__(self, count = None):
         IndexBase.__init__(self)
         Counted.__init__(self, count)
+
+        c = str(self._count)
+        if len(c) > 1:
+            c = "{%s}" % c
+        self._str = "i_%s" % c
+        self._repr = "Index(%d)" % self._count
+        self._hash = hash(self._repr)
     
     def __hash__(self):
-        return hash(repr(self))
+        return self._hash
     
     def __eq__(self, other):
         return isinstance(other, Index) and (self._count == other._count)
     
     def __str__(self):
-        c = str(self._count)
-        if len(c) > 1:
-            c = "{%s}" % c
-        return "i_%s" % c
+        return self._str
     
     def __repr__(self):
-        return "Index(%d)" % self._count
+        return self._repr
 
 class FixedIndex(IndexBase):
     __slots__ = ("_value",)
@@ -73,7 +77,7 @@ class FixedIndex(IndexBase):
         return "FixedIndex(%d)" % self._value
 
 class MultiIndex(UtilityType):
-    __slots__ = ("_indices",)
+    __slots__ = ("_indices", "_str", "_repr")
     
     def __init__(self, ii):
         UtilityType.__init__(self)
@@ -86,6 +90,8 @@ class MultiIndex(UtilityType):
         else:
             error("Expecting tuple of UFL indices.")
         self._indices = ii
+        self._str = ", ".join(str(i) for i in self._indices)
+        self._repr = "MultiIndex(%r)" % (self._indices,)
     
     def evaluate(self, x, mapping, component, index_values):
         # Build component from index values
@@ -112,10 +118,10 @@ class MultiIndex(UtilityType):
         return NotImplemented
 
     def __str__(self):
-        return ", ".join(str(i) for i in self._indices)
+        return self._str
     
     def __repr__(self):
-        return "MultiIndex(%r)" % (self._indices,)
+        return self._repr
     
     def __len__(self):
         return len(self._indices)
