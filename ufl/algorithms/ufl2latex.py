@@ -5,7 +5,7 @@ converting UFL expressions to other representations."""
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-05-07 -- 2009-02-16"
 
-# Modified by Anders Logg, 2008.
+# Modified by Anders Logg, 2008-2009.
 
 import os
 from itertools import chain
@@ -573,7 +573,7 @@ def forms2latexdocument(forms, uflfilename, compile=False):
 def ufl2tex(uflfilename, latexfilename, compile=False):
     "Compile a .tex file from a .ufl file."
     formdatas = load_forms(uflfilename)
-    forms = [f.form for f in formdatas] # TODO: Get function names from this
+    forms = [(f.name, f.form) for f in formdatas] # TODO: Get function names from this
     latex = forms2latexdocument(forms, uflfilename, compile) 
     write_file(latexfilename, latex)
 
