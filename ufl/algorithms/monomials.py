@@ -59,7 +59,11 @@ class MonomialTransformer(ReuseTransformer):
         return monomials
 
     def indexed(self, o, monomials, indices):
-        #operators["c"].append(indices)
+        for monomial in monomials:
+            for v in monomial:
+                if len(v[1]["component"]) > 0:
+                    raise MonomialException, "Basis function already indexed."
+                v[1]["component"] = indices
         return monomials
     
     def component_tensor(self, o, monomials, indices):
@@ -68,13 +72,15 @@ class MonomialTransformer(ReuseTransformer):
     def spatial_derivative(self, o, monomials, index):
         for monomial in monomials:
             if len(monomial) > 1:
-                error("Expecting a single basis function.")
-            for v in monomial:
-                v[1]["d"] = index
+                raise MonomialException, "Expecting a single basis function."
+            if len(monomial[0][1]["derivative"]) > 0:
+                raise MonomialException, "Basis function already differentiated."
+            monomial[0][1]["derivative"] = index
         return monomials
 
     def basis_function(self, o):
-        v = [o, {"d": []}]
+        operators = {"derivative": [], "component": []}
+        v = [o, operators]
         monomials = [[v]]
         return monomials
 
