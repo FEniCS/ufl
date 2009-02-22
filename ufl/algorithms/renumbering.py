@@ -22,8 +22,7 @@ class RenumberingTransformer(ReuseTransformer):
     #    return o
 
     def multi_index(self, o):
-        new_index = MultiIndex(tuple([self.index(index) for index in o]))
-        return new_index
+        return MultiIndex(tuple([self.index(index) for index in o]))
 
     def index(self, o):
         if o in self._map:
