@@ -151,7 +151,7 @@ def extract_monomials(form, indent=""):
         print new_integrand
         print ""
 
-        print tree_format(integrand)
+        #print tree_format(integrand)
         
         monomials = apply_transformer(new_integrand, MonomialTransformer())
 
