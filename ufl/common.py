@@ -165,9 +165,6 @@ class Counted(object):
     def count(self):
         return self._count
 
-    def set_count(self, count):
-        self._count = count
-
 class Stack(list):
     "A stack datastructure."
     def __init__(self, *args):
