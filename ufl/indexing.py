@@ -32,24 +32,31 @@ class Index(IndexBase, Counted):
         IndexBase.__init__(self)
         Counted.__init__(self, count)
 
-        c = str(self._count)
-        if len(c) > 1:
-            c = "{%s}" % c
-        self._str = "i_%s" % c
+        # FIXME: Disabled optimization here temporarily
+        #c = str(self._count)
+        #if len(c) > 1:
+        #    c = "{%s}" % c
+        #self._str = "i_%s" % c
         self._repr = "Index(%d)" % self._count
-        self._hash = hash(self._repr)
+        #self._hash = hash(self._repr)
     
     def __hash__(self):
-        return self._hash
-    
+        #return self._hash
+        return hash(self.__repr__())
+
     def __eq__(self, other):
         return isinstance(other, Index) and (self._count == other._count)
     
     def __str__(self):
-        return self._str
+        c = str(self._count)
+        if len(c) > 1:
+            return "i_{%s}" % c
+        return "i_%s" % c        
     
     def __repr__(self):
         return self._repr
+        # FIXME: Breaks
+        #return "Index(%d)" % self._count
 
 class FixedIndex(IndexBase):
     __slots__ = ("_value", "_repr")

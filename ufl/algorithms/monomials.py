@@ -23,6 +23,8 @@ from ufl.algorithms.traversal import iter_expressions
 from ufl.algorithms.transformations import expand_compounds
 from ufl.algorithms.transformations import ReuseTransformer, apply_transformer
 from ufl.algorithms.ad import expand_derivatives
+from ufl.algorithms.printing import tree_format
+from ufl.algorithms.renumbering import renumber_indices
 
 # Martin to Marie and Anders:
 #    I wouldn't trust these functions,
@@ -38,17 +40,23 @@ class MonomialException(Exception):
 class MonomialTransformer(ReuseTransformer):
 
     def __init__(self):
-        print "Creating TestTransformer"
         ReuseTransformer.__init__(self)
-        
+    
     def expr(self, o, *ops):
-        raise MonomialException, ("No handler defined for %s." % o._uflclass.__name__)
+        raise MonomialException, ("No handler defined for expression %s." % o._uflclass.__name__)
+
+    def terminal(self, o):
+        raise MonomialException, ("No handler defined for terminal %s." % o._uflclass.__name__)
+
+    def variable(self, o):
+        raise MonomialException, ("No handler defined for variable %s." % o._uflclass.__name__)
 
     def sum(self, o, monomials0, monomials1):
         monomials = monomials0 + monomials1
         return monomials
 
     def product(self, o, monomials0, monomials1):
+        print "Product:", o
         monomials = []
         for monomial0 in monomials0:
             for monomial1 in monomials1:
@@ -78,11 +86,22 @@ class MonomialTransformer(ReuseTransformer):
             monomial[0][1]["derivative"] = index
         return monomials
 
+    def multi_index(self, o):
+        print "Ignoring MultiIndex terminal for now"
+        return o
+
     def basis_function(self, o):
-        operators = {"derivative": [], "component": []}
-        v = [o, operators]
+        v = [o, self.empty_operators()]
         monomials = [[v]]
         return monomials
+
+    def function(self, o):
+        v = [BasisFunction(o.element()), self.empty_operators()]
+        monomials = [[v]]
+        return monomials
+
+    def empty_operators(self):
+        return {"derivative": [], "component": []}
 
 def extract_monomials(form, indent=""):
     """Extract monomial representation of form (if possible). When
@@ -111,13 +130,30 @@ def extract_monomials(form, indent=""):
         measure = integral.measure()
         integrand = integral.integrand()
 
+        print ""
+        print "Original integrand:"
+        print integrand
+        print ""
+
         # Expand compounds
-        integrand = expand_derivatives(integrand)
+        new_integrand = expand_derivatives(integrand)
+
+        # Renumber indices
+        new_integrand = renumber_indices(integrand)
 
         print ""
-        print "Original integrand: " + str(integrand)
+        print "Original integrand (again, should be the same):"
+        print integrand
+        print ""
 
-        monomials = apply_transformer(integrand, MonomialTransformer())
+        print ""
+        print "Transformed integrand:"
+        print new_integrand
+        print ""
+
+        print tree_format(integrand)
+        
+        monomials = apply_transformer(new_integrand, MonomialTransformer())
 
         #print "m =", measure
         #print "I1 =", integral.integrand
