@@ -37,6 +37,80 @@ class MonomialException(Exception):
     def __init__(self, *args, **kwargs):
         Exception.__init__(self, *args, **kwargs)
 
+class MonomialFactor:
+
+    def __init__(self, arg=None):
+        if isinstance(arg, MonomialFactor):
+            self.basis_function = arg.basis_function
+            self.component = [c for c in arg.component]
+            self.derivative = [d for d in arg.derivative]
+        elif isinstance(arg, BasisFunction):
+            self.basis_function = arg
+            self.component = []
+            self.derivative = []
+        elif arg is None:
+            self.basis_function = None
+            self.component = []
+            self.derivative = []
+        else:
+            raise MonomialException, ("Unable to create monomial from expression: " + str(arg))
+
+    def dx(self, index):
+        v = MonomialFactor(self)
+        v.derivative.append(index)
+        return v
+
+    def __getitem__(self, index):
+        if len(self.component) > 0:
+            raise MonomialException, "Basis function already indexed."
+        v = MonomialFactor(self)
+        v.component.append(index)
+        return v
+
+    def __str__(self):
+        c = ""
+        if len(self.component) > 0:
+            c = "[%s]" % ", ".join(str(c) for c in self.component)
+        d0 = ""
+        if len(self.derivative) > 0:
+            d0 = "(" + " ".join("d/dx_%s" % str(d) for d in self.derivative) + " "
+            d1 = ")"
+        return d0 + str(self.basis_function) + d1 + c
+
+class Monomial:
+    
+    def __init__(self, arg=None):
+        if isinstance(arg, Monomial):
+            self.factors = [MonomialFactor(v) for v in arg.factors]
+        elif isinstance(arg, MonomialFactor):
+            self.factors = [MonomialFactor(arg)]
+        elif arg is None:
+            self.factors = []
+        else:
+            raise MonomialException, ("Unable to create monomial from expression: " + str(arg))
+
+    def dx(self, index):
+        if len(self.factors) > 1:
+            raise MonomialException, "Expecting a single basis function."
+        m = Monomial(self)
+        m.factors[0] = m.factors[0].dx(index)
+        return m
+
+    def __getitem__(self, index):
+        if len(self.factors) > 1:
+            raise MonomialException, "Expecting a single basis function."
+        m = Monomial(self)
+        m.factors[0] = m.factors[0][index]
+        return m
+
+    def __mul__(self, other):
+        m = Monomial()
+        m.factors = self.factors + other.factors
+        return m
+
+    def __str__(self):
+        return "*".join(str(v) for v in self.factors)
+
 class MonomialTransformer(ReuseTransformer):
 
     def __init__(self):
@@ -56,52 +130,41 @@ class MonomialTransformer(ReuseTransformer):
         return monomials
 
     def product(self, o, monomials0, monomials1):
-        print "Product:", o
-        monomials = []
+        m = []
         for monomial0 in monomials0:
             for monomial1 in monomials1:
-                monomials.append(monomial0 + monomial1)
-        return monomials
+                m.append(monomial0*monomial1)
+        return m
         
     def index_sum(self, o, monomials, index):
         return monomials
 
-    def indexed(self, o, monomials, indices):
+    def indexed(self, o, monomials, index):
+        m = []
         for monomial in monomials:
-            for v in monomial:
-                if len(v[1]["component"]) > 0:
-                    raise MonomialException, "Basis function already indexed."
-                v[1]["component"] = indices
-        return monomials
+            m.append(monomial[index])
+        return m
     
     def component_tensor(self, o, monomials, indices):
         return monomials
         
     def spatial_derivative(self, o, monomials, index):
+        m = []
         for monomial in monomials:
-            if len(monomial) > 1:
-                raise MonomialException, "Expecting a single basis function."
-            if len(monomial[0][1]["derivative"]) > 0:
-                raise MonomialException, "Basis function already differentiated."
-            monomial[0][1]["derivative"] = index
-        return monomials
+            m.append(monomial.dx(index))
+        return m
 
     def multi_index(self, o):
         print "Ignoring MultiIndex terminal for now"
         return o
 
     def basis_function(self, o):
-        v = [o, self.empty_operators()]
-        monomials = [[v]]
-        return monomials
+        return [Monomial(MonomialFactor(o))]
 
-    def function(self, o):
-        v = [BasisFunction(o.element()), self.empty_operators()]
-        monomials = [[v]]
-        return monomials
-
-    def empty_operators(self):
-        return {"derivative": [], "component": []}
+#    def function(self, o):
+#        v = [BasisFunction(o.element()), self.empty_operators()]
+#        monomials = [[v]]
+#        return monomials
 
 def extract_monomials(form, indent=""):
     """Extract monomial representation of form (if possible). When
@@ -136,24 +199,20 @@ def extract_monomials(form, indent=""):
         print ""
 
         # Expand compounds
-        new_integrand = expand_derivatives(integrand)
+        integrand = expand_derivatives(integrand)
 
         # Renumber indices
-        new_integrand = renumber_indices(integrand)
-
-        print ""
-        print "Original integrand (again, should be the same):"
-        print integrand
-        print ""
+        integrand = renumber_indices(integrand)
 
         print ""
         print "Transformed integrand:"
-        print new_integrand
+        print integrand
         print ""
 
         #print tree_format(integrand)
-        
-        monomials = apply_transformer(new_integrand, MonomialTransformer())
+
+        # Extract monomial representation
+        monomials = apply_transformer(integrand, MonomialTransformer())
 
         #print "m =", measure
         #print "I1 =", integral.integrand
@@ -165,12 +224,10 @@ def extract_monomials(form, indent=""):
         #    warning("Unable to extract monomial")
         #    return None
 
-    # Print monomial
+    # Print monomial representation
     print ""
     print "Number of terms:", len(monomials)
-    for (i, m) in enumerate(monomials):
-        print "term", i
-        for (v, ops) in m:
-            print "  ", v, ops
+    for monomial in monomials:
+        print "  ", monomial
 
     return
