@@ -13,6 +13,7 @@ from ufl.expr import Expr
 from ufl.algebra import Sum, Product
 from ufl.indexsum import IndexSum
 from ufl.indexed import Indexed
+from ufl.indexing import Index
 from ufl.tensors import ComponentTensor
 from ufl.tensoralgebra import Dot
 from ufl.basisfunction import BasisFunction
@@ -72,6 +73,7 @@ class MonomialFactor:
         if len(self.component) > 0:
             c = "[%s]" % ", ".join(str(c) for c in self.component)
         d0 = ""
+        d1 = ""
         if len(self.derivative) > 0:
             d0 = "(" + " ".join("d/dx_%s" % str(d) for d in self.derivative) + " "
             d1 = ")"
@@ -82,10 +84,13 @@ class Monomial:
     def __init__(self, arg=None):
         if isinstance(arg, Monomial):
             self.factors = [MonomialFactor(v) for v in arg.factors]
+            self.coefficients = [c for c in arg.coefficients]
         elif isinstance(arg, MonomialFactor):
             self.factors = [MonomialFactor(arg)]
+            self.coefficients = []
         elif arg is None:
             self.factors = []
+            self.coefficients = []
         else:
             raise MonomialException, ("Unable to create monomial from expression: " + str(arg))
 
@@ -106,10 +111,12 @@ class Monomial:
     def __mul__(self, other):
         m = Monomial()
         m.factors = self.factors + other.factors
+        m.coefficients = self.coefficients + other.coefficients
         return m
 
     def __str__(self):
-        return "*".join(str(v) for v in self.factors)
+        return " ".join("w_%d" % c.count() for c in self.coefficients) + "|" + \
+               "*".join(str(v) for v in self.factors)
 
 class MonomialTransformer(ReuseTransformer):
 
@@ -158,13 +165,13 @@ class MonomialTransformer(ReuseTransformer):
         print "Ignoring MultiIndex terminal for now"
         return o
 
-    def basis_function(self, o):
-        return [Monomial(MonomialFactor(o))]
+    def basis_function(self, v):
+        return [Monomial(MonomialFactor(v))]
 
-#    def function(self, o):
-#        v = [BasisFunction(o.element()), self.empty_operators()]
-#        monomials = [[v]]
-#        return monomials
+    def function(self, f):
+        monomial = Monomial(MonomialFactor(BasisFunction(f.element())))
+        monomial.coefficients.append(Index(f.count()))
+        return [monomial]
 
 def extract_monomials(form, indent=""):
     """Extract monomial representation of form (if possible). When
