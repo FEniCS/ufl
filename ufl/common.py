@@ -1,7 +1,7 @@
 "This module contains a collection of common utilities."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-08-05 -- 2009-02-20"
+__date__ = "2008-08-05 -- 2009-02-23"
 
 import os
 from itertools import izip
@@ -143,11 +143,35 @@ def sstr(s):
     return ", ".join(str(x) for x in s)
 
 class Counted(object):
-    """A class of objects identified by a global counter.
+    """A superclass for classes of objects identified by a global counter.
+
+    Intended to be inherited to provide consistent counting logic.
+
+    Usage:
+    1) Inherit this class
+    2) Declare a static class _globalcount variable in your subclass:
+    3) Call Counted.__init__ at initialization.
     
-    Requires that the subclass has a class variable
-    _globalcount = 0
-    Can we enforce this somehow? Metaclasses? Probably overkill...
+    Minimal example:
+
+        class MyClass(Counted):
+            _globalcount = 0
+            def __init__(self):
+                Counted.__init__(self)
+    
+    If MyClass is further inherited, each subclass may get a
+    different global counter, causing problems. Therefore
+    it is recommended to pass the class to hold the global
+    counter as an argument to Counted.__init__ like this:
+
+        class MyClass(Counted):
+            _globalcount = 0
+            def __init__(self):
+                Counted.__init__(self, count=None, countedclass=MyClass)
+
+        class OtherClass(MyClass):
+            def __init__(self):
+                MyClass.__init__(self)
     """
     def __init__(self, count = None, countedclass = None):
         if countedclass is None:

@@ -1,7 +1,7 @@
 "Types for quantities computed from cell geometry."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-02-03"
+__date__ = "2008-03-14 -- 2009-02-20"
 
 # Modified by Anders Logg, 2009.
 

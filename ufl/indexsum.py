@@ -1,7 +1,7 @@
 """This module defines the IndexSum class."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2009-01-28 -- 2009-02-17"
+__date__ = "2009-01-28 -- 2009-02-20"
 
 from ufl.assertions import ufl_assert, assert_expr, assert_instance
 from ufl.indexing import Index, MultiIndex, as_multi_index
@@ -16,7 +16,10 @@ class IndexSum(AlgebraOperator):
         AlgebraOperator.__init__(self)
         assert_expr(summand)
         index = as_multi_index(index)
-        ufl_assert(len(index) == 1, "Expecting a single Index only.")
+
+        if len(index) != 1:
+            error("Expecting a single Index only.")
+
         self._summand = summand
         self._index = index
         self._repr = "IndexSum(%r, %r)" % (summand, index)

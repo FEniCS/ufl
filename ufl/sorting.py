@@ -4,7 +4,6 @@ is more robust w.r.t. argument numbering than using repr."""
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-11-26 -- 2009-02-12"
 
-from ufl.assertions import ufl_assert
 from ufl.common import Counted
 from ufl.terminal import Terminal
 from ufl.indexing import MultiIndex, Index
@@ -31,8 +30,8 @@ def cmp_expr(a, b):
     
     # ... Other Counted object? (Function or BasisFunction)
     if isinstance(a, Counted):
-        ufl_assert(isinstance(a, (Function, BasisFunction)),
-            "Expecting a Function or BasisFunction here, got %s instead. Please tell at ufl-dev@fenics.org." % str(type(a)))
+        if not isinstance(a, (Function, BasisFunction)):
+            error("Expecting a Function or BasisFunction here, got %s instead. Please tell at ufl-dev@fenics.org." % str(type(a)))
         # It's ok to compare counts for form arguments, since their order is a property of the form
         return cmp(a.count(), b.count())
     

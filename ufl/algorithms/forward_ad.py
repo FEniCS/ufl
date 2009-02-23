@@ -36,13 +36,6 @@ from ufl.algorithms.traversal import iter_expressions
 from ufl.algorithms.analysis import extract_type
 from ufl.algorithms.transformations import expand_compounds, Transformer, transform, transform_integrands
 
-#
-# TODO: Missing rule for: f(x)**g(x))
-# TODO: We could expand only the compound objects that have no rule
-#       before differentiating, to make the AD work on a coarser graph
-#       (Missing rules for: Cross, Determinant, Cofactor)
-#
-
 def is_spatially_constant(o):
     return (isinstance(o, Terminal) and o.cell() is None) or isinstance(o, Constant)
 
@@ -509,6 +502,11 @@ def forward_ad(expr, dim):
     return result
 
 
+#
+# TODO: We could expand only the compound objects that have no rule
+#       before differentiating, to allow the AD to work on a coarser graph
+#       (Missing rules for: Cross, Determinant, Cofactor)
+#
 class UnusedADRules(AD):
     
     def _variable_derivative(self, o, f, v):

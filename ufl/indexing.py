@@ -56,8 +56,8 @@ class FixedIndex(IndexBase):
     
     def __init__(self, value):
         IndexBase.__init__(self)
-        ufl_assert(isinstance(value, int),
-            "Expecting integer value for fixed index.")
+        if not isinstance(value, int):
+            error("Expecting integer value for fixed index.")
         self._value = value
         self._repr = "FixedIndex(%d)" % self._value
     

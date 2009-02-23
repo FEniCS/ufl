@@ -1,7 +1,7 @@
 """This module defines the Indexed class."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2009-01-28 -- 2009-02-03"
+__date__ = "2009-01-28 -- 2009-02-20"
 
 from collections import defaultdict
 from ufl.log import error
@@ -21,11 +21,10 @@ class Indexed(WrapperType):
         self._expression = expression
         self._indices = as_multi_index(indices)
         
-        n = len(self._indices)
-        r = expression.rank()
-        msg = "Invalid number of indices (%d) for tensor "\
-              "expression of rank %d:\n\t%r\n" % (n, r, expression)
-        ufl_assert(r == n, msg)
+        if expression.rank() != len(self._indices):
+            error("Invalid number of indices (%d) for tensor "\
+                "expression of rank %d:\n\t%r\n"\
+                % (len(self._indices), expression.rank(), expression))
         
         shape = expression.shape()
         idims = dict((i, s) for (i, s) in zip(self._indices._indices, shape) if isinstance(i, Index))

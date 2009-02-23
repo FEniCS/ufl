@@ -1,7 +1,7 @@
 "This module defines classes representing constant values."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-11-01 -- 2009-02-06"
+__date__ = "2008-11-01 -- 2009-02-20"
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
@@ -36,15 +36,21 @@ class IndexAnnotated(object):
     #__slots__ = ("_shape", "_free_indices", "_index_dimensions")
     
     def __init__(self, shape=(), free_indices=(), index_dimensions=None):
-        ufl_assert(all(isinstance(i, int) for i in shape),
-                   "Expecting tuple of int.")
-        ufl_assert(all(isinstance(i, Index) for i in free_indices),
-                   "Expecting tuple of Index objects.")
+        #ufl_assert(all(isinstance(i, int) for i in shape),
+        #           "Expecting tuple of int.")
+        #ufl_assert(all(isinstance(i, Index) for i in free_indices),
+        #           "Expecting tuple of Index objects.")
+        all(isinstance(i, int) for i in shape)\
+            or error("Expecting tuple of int.")
+        all(isinstance(i, Index) for i in free_indices)\
+            or error("Expecting tuple of Index objects.")
         self._shape = shape
         self._free_indices = free_indices
         self._index_dimensions = dict(index_dimensions or {})
-        ufl_assert(not (set(self._free_indices) ^ set(self._index_dimensions.keys())),
-                   "Index set mismatch.")
+        #ufl_assert(not (set(self._free_indices) ^ set(self._index_dimensions.keys())),
+        #           "Index set mismatch.")
+        not (set(self._free_indices) ^ set(self._index_dimensions.keys()))\
+            or error("Index set mismatch.")
 
 #--- Class for representing zero tensors of different shapes ---
 

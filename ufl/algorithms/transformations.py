@@ -68,7 +68,8 @@ class Transformer(object):
         self._handlers = [(getattr(self, name), post) for (name, post) in cache_data]
     
     def visit(self, o):
-        debug("Visiting object of type %s." % type(o).__name__)
+        #debug("Visiting object of type %s." % type(o).__name__)
+        
         # Get handler for the UFL class of o (type(o) may be an external subclass of the actual UFL class)
         h, visit_children_first = self._handlers[o._classid]
         if h:
@@ -77,9 +78,11 @@ class Transformer(object):
                 # Yes, visit all children first and then call h.
                 children = [self.visit(oo) for oo in o.operands()]
                 return h(o, *children)
+            
             # No, this is a handler that handles its own children
             # (arguments self and o, where self is already bound)
             return h(o)
+        
         # Failed to find a handler! Should never happen, but will happen if a non-Expr object is visited.
         error("Can't handle objects of type %s" % str(type(o)))
     

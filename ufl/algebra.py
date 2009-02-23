@@ -1,7 +1,7 @@
 "Basic algebra operations."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2009-02-03"
+__date__ = "2008-05-20 -- 2009-02-20"
 
 # Modified by Anders Logg, 2008
 
@@ -23,7 +23,7 @@ class Sum(AlgebraOperator):
     __slots__ = ("_operands", "_repr")
     
     def __new__(cls, *operands): # TODO: This seems a bit complicated... Can it be simplified? Maybe we can merge some loops for efficiency?
-        #ufl_assert(len(operands), "Can't take sum of nothing.")
+        #len(operands)  or  error("Can't take sum of nothing.")
         if not operands:
             return Zero()
         
@@ -38,10 +38,14 @@ class Sum(AlgebraOperator):
         sh = operands[0].shape()
         fi = operands[0].free_indices()
         fid = operands[0].index_dimensions()
-        ufl_assert(all(sh == o.shape() for o in operands[1:]),
-            "Shape mismatch in Sum.")
-        ufl_assert(not any((set(fi) ^ set(o.free_indices())) for o in operands[1:]),
-            "Can't add expressions with different free indices.")
+        #ufl_assert(all(sh == o.shape() for o in operands[1:]),
+        #    "Shape mismatch in Sum.")
+        #ufl_assert(not any((set(fi) ^ set(o.free_indices())) for o in operands[1:]),
+        #    "Can't add expressions with different free indices.")
+        all(sh == o.shape() for o in operands[1:])\
+            or error("Shape mismatch in Sum.")
+        (not any((set(fi) ^ set(o.free_indices())) for o in operands[1:]))\
+            or error("Can't add expressions with different free indices.")
         
         # sort operands in a canonical order
         operands = sorted(operands, cmp=cmp_expr)
@@ -93,7 +97,6 @@ class Sum(AlgebraOperator):
         return self
 
     def _init(self, *operands):
-        ufl_assert(all(isinstance(o, Expr) for o in operands), "Expecting Expr instances.")
         self._operands = operands
         self._repr = "Sum(%s)" % ", ".join(repr(o) for o in operands)
     
@@ -130,8 +133,10 @@ class Product(AlgebraOperator):
         operands = [as_ufl(o) for o in operands]
         
         # Make sure everything is scalar
-        ufl_assert(all(o.rank() == 0 for o in operands),
-            "Product can only represent products of scalars.")
+        #ufl_assert(not any(o.shape() for o in operands),
+        #    "Product can only represent products of scalars.")
+        not any(o.shape() for o in operands)\
+            or error("Product can only represent products of scalars.")
         
         # No operands? Return one.
         if not operands:
@@ -256,8 +261,10 @@ class Division(AlgebraOperator):
         a = as_ufl(a)
         b = as_ufl(b)
 
-        ufl_assert(b != 0, "Division by zero!")
-        ufl_assert(is_true_ufl_scalar(b), "Division by non-scalar.")
+        #ufl_assert(b != 0, "Division by zero!")
+        #ufl_assert(is_true_ufl_scalar(b), "Division by non-scalar.")
+        (b != 0) or error("Division by zero!")
+        is_true_ufl_scalar(b) or error("Division by non-scalar.")
         
         if isinstance(a, Zero):
             return a
@@ -275,7 +282,8 @@ class Division(AlgebraOperator):
         return self
     
     def _init(self, a, b):
-        ufl_assert(all(isinstance(o, Expr) for o in (a, b)), "Expecting Expr instances.")
+        #ufl_assert(isinstance(a, Expr) and isinstance(b, Expr), "Expecting Expr instances.")
+        (isinstance(a, Expr) and isinstance(b, Expr)) or error("Expecting Expr instances.")
         self._a = a
         self._b = b
         self._repr = "Division(%r, %r)" % (self._a, self._b)
@@ -314,8 +322,10 @@ class Power(AlgebraOperator):
     def __new__(cls, a, b):
         a = as_ufl(a)
         b = as_ufl(b)
-        ufl_assert(is_true_ufl_scalar(b), "Expecting scalar exponent.")
-        ufl_assert(is_ufl_scalar(b), "Expecting scalar exponent.")
+        #ufl_assert(is_true_ufl_scalar(b), "Expecting scalar exponent.")
+        #ufl_assert(is_ufl_scalar(b), "Expecting scalar exponent.")
+        is_true_ufl_scalar(b) or error("Expecting scalar exponent.")
+        is_ufl_scalar(b) or error("Expecting scalar exponent.")
         
         if isinstance(a, ScalarValue) and isinstance(b, ScalarValue):
             return as_ufl(a._value ** b._value)
@@ -330,7 +340,8 @@ class Power(AlgebraOperator):
         return self
     
     def _init(self, a, b):
-        ufl_assert(all(isinstance(o, Expr) for o in (a, b)), "Expecting Expr instances.")
+        #ufl_assert(isinstance(a, Expr) and isinstance(b, Expr), "Expecting Expr instances.")
+        (isinstance(a, Expr) and isinstance(b, Expr)) or error("Expecting Expr instances.")
         self._a = a
         self._b = b
         self._repr = "Power(%r, %r)" % (self._a, self._b)
@@ -368,6 +379,7 @@ class Abs(AlgebraOperator):
     def __init__(self, a):
         AlgebraOperator.__init__(self)
         ufl_assert(isinstance(a, Expr), "Expecting Expr instance.")
+        isinstance(a, Expr) or error("Expecting Expr instances.")
         self._a = a
         self._repr = "Abs(%r)" % self._a
     

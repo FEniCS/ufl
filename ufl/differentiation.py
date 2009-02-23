@@ -1,7 +1,7 @@
 "Differential operators."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-02-16"
+__date__ = "2008-03-14 -- 2009-02-20"
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
@@ -80,7 +80,7 @@ def split_indices(expression, idx):
 
 class SpatialDerivative(Derivative):
     "Partial derivative of an expression w.r.t. spatial directions given by indices."
-    __slots__ = ("_expression", "_index", "_shape", "_free_indices", "_index_dimensions")
+    __slots__ = ("_expression", "_index", "_shape", "_free_indices", "_index_dimensions", "_repr")
     def __new__(cls, expression, index):
         
         # Return zero if expression is trivially constant
@@ -105,6 +105,8 @@ class SpatialDerivative(Derivative):
         self._free_indices = fi
         self._index_dimensions = idims
         self._shape = expression.shape()
+
+        self._repr = "SpatialDerivative(%r, %r)" % (self._expression, self._index)
     
     def operands(self):
         return (self._expression, self._index)
@@ -123,10 +125,10 @@ class SpatialDerivative(Derivative):
         return "(d[%s] / dx_%s)" % (self._expression, self._index)
     
     def __repr__(self):
-        return "SpatialDerivative(%r, %r)" % (self._expression, self._index)
+        return self._repr
 
 class VariableDerivative(Derivative):
-    __slots__ = ("_f", "_v", "_free_indices", "_index_dimensions", "_shape")
+    __slots__ = ("_f", "_v", "_free_indices", "_index_dimensions", "_shape", "_repr")
     def __new__(cls, f, v):
         # Return zero if expression is trivially independent of Function
         if isinstance(f, Terminal):# and not isinstance(f, Variable):
@@ -158,6 +160,7 @@ class VariableDerivative(Derivative):
         self._index_dimensions = dict(fid)
         self._index_dimensions.update(vid)
         self._shape = f.shape() + v.shape()
+        self._repr = "VariableDerivative(%r, %r)" % (self._f, self._v)
     
     def operands(self):
         return (self._f, self._v)
@@ -175,7 +178,7 @@ class VariableDerivative(Derivative):
         return "(d[%s] / d[%s])" % (self._f, self._v)
 
     def __repr__(self):
-        return "VariableDerivative(%r, %r)" % (self._f, self._v)
+        return self._repr
 
 #--- Compound differentiation objects ---
 
@@ -186,7 +189,7 @@ class CompoundDerivative(Derivative):
         Derivative.__init__(self)
 
 class Grad(CompoundDerivative):
-    __slots__ = ("_f", "_dim",)
+    __slots__ = ("_f", "_dim", "_repr")
 
     def __new__(cls, f):
         # Return zero if expression is trivially constant
@@ -207,6 +210,7 @@ class Grad(CompoundDerivative):
         self._dim = cell.d
         ufl_assert(not (f.free_indices()), \
             "TODO: Taking gradient of an expression with free indices, should this be a valid expression? Please provide examples!")
+        self._repr = "Grad(%r)" % self._f
     
     def operands(self):
         return (self._f, )
@@ -224,10 +228,10 @@ class Grad(CompoundDerivative):
         return "grad(%s)" % self._f
     
     def __repr__(self):
-        return "Grad(%r)" % self._f
+        return self._repr
 
 class Div(CompoundDerivative):
-    __slots__ = ("_f",)
+    __slots__ = ("_f", "_repr")
 
     def __new__(cls, f):
         ufl_assert(f.rank() >= 1, "Can't take the divergence of a scalar.")
@@ -241,6 +245,7 @@ class Div(CompoundDerivative):
     def __init__(self, f):
         CompoundDerivative.__init__(self)
         self._f = f
+        self._repr = "Div(%r)" % self._f
     
     def operands(self):
         return (self._f, )
@@ -258,10 +263,10 @@ class Div(CompoundDerivative):
         return "div(%s)" % self._f
 
     def __repr__(self):
-        return "Div(%r)" % self._f
+        return self._repr
 
 class Curl(CompoundDerivative):
-    __slots__ = ("_f", "_dim",)
+    __slots__ = ("_f", "_dim", "_repr")
     
     # FIXME: Implement __new__ to simplify trivial zeros
     
@@ -274,6 +279,7 @@ class Curl(CompoundDerivative):
         cell = f.cell()
         ufl_assert(cell is not None, "Can't take curl of expression with undefined cell...")
         self._dim = cell.d
+        self._repr = "Curl(%r)" % self._f
     
     def operands(self):
         return (self._f, )
@@ -291,19 +297,20 @@ class Curl(CompoundDerivative):
         return "curl(%s)" % self._f
     
     def __repr__(self):
-        return "Curl(%r)" % self._f
+        return self._repr
 
 class Rot(CompoundDerivative):
-    __slots__ = ("_f",)
+    __slots__ = ("_f", "_repr")
     
     # FIXME: Implement __new__ to simplify trivial zeros
-
+    
     def __init__(self, f):
         CompoundDerivative.__init__(self)
         ufl_assert(f.rank() == 1, "Need a vector.")
         ufl_assert(not f.free_indices(), \
             "TODO: Taking rot of an expression with free indices, should this be a valid expression? Please provide examples!")
         self._f = f
+        self._repr = "Rot(%r)" % self._f
     
     def operands(self):
         return (self._f, )
@@ -321,4 +328,4 @@ class Rot(CompoundDerivative):
         return "rot(%s)" % self._f
     
     def __repr__(self):
-        return "Rot(%r)" % self._f
+        return self._repr
