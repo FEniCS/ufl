@@ -6,9 +6,8 @@
 element = FiniteElement("Lagrange", triangle, 1)
 
 v = TestFunction(element)
-f = Function(element)
+u = TrialFunction(element)
+w = Function(element)
 
-a = pow(f,5)*v*dx
-b = derivative(a, f)
-
-
+a = w**5*v*dx
+b = derivative(a, w)

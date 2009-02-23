@@ -27,7 +27,7 @@ class BasisFunction(FormArgument, Counted):
         self._repr = "BasisFunction(%r, %r)" % (self._element, self._count)
     
     def reconstruct(self, count=None):
-        if count is None:
+        if count is None or count == self._count:
             return self
         return BasisFunction(self.element(), count)
     

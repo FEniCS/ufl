@@ -2,7 +2,7 @@
 for all types that are terminal nodes in the expression trees."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-02-03"
+__date__ = "2008-03-14 -- 2008-02-23"
 
 # Modified by Anders Logg, 2008
 
@@ -81,15 +81,30 @@ class UtilityType(Terminal):
 
 #--- Non-tensor terminal nodes ---
 
-class Tuple(UtilityType):
+class Tuple(Expr):
     "For internal use, never to be created by users."
     __slots__ = ("_items", "_repr")
     def __init__(self, *items):
-        UtilityType.__init__(self)
+        Expr.__init__(self)
         if not all(isinstance(i, Expr) for i in items):
-            warning("Got non-Expr in Tuple, is this intended? If so, remove this warning.")
-        self._items = items
+            error("Got non-Expr in Tuple, is this intended? If so, remove this error.")
+        self._items = tuple(items)
         self._repr = "Tuple(*%s)" % repr(self._items)
+    
+    def operands(self):
+        return self._items
+    
+    def shape(self):
+        error("Calling shape on a utility type is an error.")
+    
+    def free_indices(self):
+        error("Calling free_indices on a utility type is an error.")
+    
+    def index_dimensions(self):
+        error("Calling free_indices on a utility type is an error.")
+    
+    def __getitem__(self, i):
+        return self._items[i]
     
     def __getitem__(self, i):
         return self._items[i]

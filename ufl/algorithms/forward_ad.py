@@ -228,8 +228,6 @@ class AD(Transformer):
     def power(self, o, a, b):
         f, fp = a
         g, gp = b
-        o = self.reuse_if_possible(o, f, g)
-        
         ufl_assert(is_true_ufl_scalar(f), "Expecting scalar expression f in f**g.")
         ufl_assert(is_true_ufl_scalar(g), "Expecting scalar expression g in f**g.")
         
@@ -243,8 +241,20 @@ class AD(Transformer):
         #do_dg = ln(f) * o
         #op = do_df*fp + do_dg*gp
         
-        # Pulling o out gives:
-        op = o*(fp*g/f + ln(f)*gp)
+        # Got two possible alternatives here:
+        if False:
+            # Pulling o out gives:
+            op = o*(fp*g/f + ln(f)*gp)
+            # This produces expressions like (1/w)*w**5 instead of w**4
+            # If we do this, we reuse o
+            o = self.reuse_if_possible(o, f, g)
+        else:
+            # Rewriting o as f*f**(g-1) we can do:
+            f_g_m1 = f**(g-1)
+            op = f_g_m1*(fp*g + f*ln(f)*gp)
+            # In this case we can rewrite o using new subexpression
+            o = f*f_g_m1
+        
         return (o, op)
     
     def abs(self, o, a):

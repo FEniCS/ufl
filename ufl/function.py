@@ -28,7 +28,7 @@ class Function(FormArgument, Counted):
         self._repr = None
     
     def reconstruct(self, count=None):
-        if count is None:
+        if count is None or count == self._count:
             return self
         return Function(self._element, count)
     
@@ -70,7 +70,7 @@ class Constant(Function):
         self._repr = "Constant(%r, %r)" % (self._cell, self._count)
     
     def reconstruct(self, count=None):
-        if count is None:
+        if count is None or count == self._count:
             return self
         return Constant(self._cell, count)
     
@@ -89,7 +89,7 @@ class VectorConstant(Function):
         self._repr = "VectorConstant(%r, %r, %r)" % (e.cell(), e.value_shape()[0], self._count)
     
     def reconstruct(self, count=None):
-        if count is None:
+        if count is None or count == self._count:
             return self
         return VectorConstant(self._cell, self._element.value_shape()[0], count)
     
@@ -108,7 +108,7 @@ class TensorConstant(Function):
         self._repr = "TensorConstant(%r, %r, %r, %r)" % (e.cell(), e.value_shape(), e._symmetry, self._count)
     
     def reconstruct(self, count=None):
-        if count is None:
+        if count is None or count == self._count:
             return self
         e = self._element
         return TensorConstant(e.cell(), e.value_shape(), e._symmetry, count)

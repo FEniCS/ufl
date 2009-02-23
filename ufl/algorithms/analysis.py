@@ -74,13 +74,6 @@ def build_argument_replace_map(basis_functions, functions):
     replace_map = {}
     replace_map.update(zip(basis_functions, new_basis_functions))
     replace_map.update(zip(functions, new_functions))
-    print "\n"*3
-    print lstr(basis_functions)
-    print lstr(functions)
-    print dstr(replace_map)
-    print lstr(new_basis_functions)
-    print lstr(new_functions)
-    print "\n"*3
     return replace_map, new_basis_functions, new_functions
 
 # alternative implementation, kept as an example:

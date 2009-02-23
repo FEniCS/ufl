@@ -439,13 +439,17 @@ class ClasscoverageTest(unittest.TestCase):
         if ufl.expr._class_usage_statistics:
             s = ufl.expr._class_usage_statistics
             constructed = set(s.keys())
-            abstract = set((Expr, Terminal, Condition, MathFunction, Restricted, ScalarValue))
+            abstract = set((Expr, Terminal, Operator, FormArgument, AlgebraOperator,
+                            Condition, MathFunction, Restricted, ScalarValue,
+                            ConstantValue, CompoundDerivative, Derivative,
+                            WrapperType, GeometricQuantity, CompoundTensorOperator, UtilityType))
             unused = set(ufl.classes.all_ufl_classes) - constructed - abstract
             if unused:
                 print 
                 print "The following classes were never instantiated in class coverage test:"
                 print "\n".join(sorted(map(str,unused)))
                 print 
+
 
 tests = [ClasscoverageTest]
 
