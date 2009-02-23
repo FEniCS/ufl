@@ -1,8 +1,8 @@
-__authors__ = "Anders Logg"
+__authors__ = "Martin Sandve Alnes and Anders Logg"
 __date__ = "2009-02-22 -- 2009-02-23"
 
 from ufl.common import Counted
-from ufl.indexing import Index, MultiIndex
+from ufl.indexing import Index, FixedIndex, MultiIndex
 from ufl.basisfunction import BasisFunction
 from ufl.algorithms.transformations import ReuseTransformer, apply_transformer
 
