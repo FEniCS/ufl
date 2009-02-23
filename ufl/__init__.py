@@ -32,7 +32,7 @@ __version__ = "0.1"
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __copyright__ = "Copyright (C) 2008-2009 " + __authors__
 __license__  = "GNU GPL version 3 or any later version"
-__date__ = "2008-03-14 -- 2009-02-04"
+__date__ = "2008-03-14 -- 2009-02-23"
 
 ########## README
 # Imports here should be what the user sees when doing "from ufl import *",
@@ -69,7 +69,7 @@ from ufl.constantvalue import Identity
 from ufl.indexing import Index, indices
 
 # special functions for expression base classes (ensure this is imported, since it attaches operators to Expr)
-from ufl import exproperators as __exproperators
+import ufl.exproperators as __exproperators
 
 # containers for expressions with value rank > 0
 from ufl.tensors import as_tensor, as_vector, as_matrix, relabel
