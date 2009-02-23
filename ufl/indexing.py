@@ -4,7 +4,6 @@ __authors__ = "Martin Sandve Alnes and Anders Logg"
 __date__ = "2008-03-14 -- 2009-02-20"
 
 from ufl.log import error
-from ufl.assertions import ufl_assert
 from ufl.common import Counted
 from ufl.terminal import UtilityType
 

@@ -1,11 +1,11 @@
 """This module defines the IndexSum class."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2009-01-28 -- 2009-02-20"
+__date__ = "2009-01-28 -- 2009-02-23"
 
-from ufl.assertions import ufl_assert, assert_expr, assert_instance
+from ufl.log import error
+from ufl.expr import Expr, AlgebraOperator
 from ufl.indexing import Index, MultiIndex, as_multi_index
-from ufl.expr import AlgebraOperator
 
 #--- Sum over an index ---
 
@@ -14,7 +14,8 @@ class IndexSum(AlgebraOperator):
     
     def __init__(self, summand, index):
         AlgebraOperator.__init__(self)
-        assert_expr(summand)
+        if not isinstance(summand, Expr):
+            error("Expecting Expr instance, not %s." % repr(summand))
         index = as_multi_index(index)
 
         if len(index) != 1:
