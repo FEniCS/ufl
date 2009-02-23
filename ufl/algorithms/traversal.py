@@ -112,15 +112,6 @@ def post_traversal(expr, stack=None):
     # yield parent
     yield expr
 
-def post_traversal(expr, stack=None):
-    input = [[expr]]
-    while input:
-        e = input.pop()
-        if isinstance(e, Terminal):
-            yield e
-        else:
-            input.extend(e.operands())
-
 def pre_walk(a, func):
     """Call func on each expression tree node in a, parent before child.
     The argument a can be a Form, Integral or Expr."""
