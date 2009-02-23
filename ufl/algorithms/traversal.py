@@ -42,13 +42,29 @@ def __old_traverse_terminals(expr):
 
 # Faster (factor 10 or so) non-recursive version using a table instead of recursion (dynamic programming)
 def traverse_terminals(expr):
-    stack = [expr]
-    while stack:
-        e = stack.pop()
+    input = [expr]
+    while input:
+        e = input.pop()
         if isinstance(e, Terminal):
             yield e
         else:
-            stack.extend(e.operands())
+            input.extend(e.operands())
+
+def __old_pre_traversal(expr, stack=None):
+    """Yields o for each tree node o in expr, parent before child.
+    If a list is provided, the stack is updated while iterating."""
+    ufl_assert(isinstance(expr, Expr), "Expecting Expr.")
+    # yield parent
+    yield expr
+    # yield children
+    if not isinstance(expr, Terminal):
+        if stack is not None:
+            stack.append(expr)
+        for o in expr.operands():
+            for i in pre_traversal(o, stack):
+                yield i
+        if stack is not None:
+            stack.pop()
 
 def pre_traversal(expr, stack=None):
     """Yields o for each tree node o in expr, parent before child.
@@ -66,6 +82,21 @@ def pre_traversal(expr, stack=None):
         if stack is not None:
             stack.pop()
 
+def __old_post_traversal(expr, stack=None):
+    """Yields o for each tree node o in expr, parent after child.
+    If a list is provided, the stack is updated while iterating."""
+    ufl_assert(isinstance(expr, Expr), "Expecting Expr.")
+    # yield children
+    if stack is not None:
+        stack.append(expr)
+    for o in expr.operands():
+        for i in post_traversal(o, stack):
+            yield i
+    if stack is not None:
+        stack.pop()
+    # yield parent
+    yield expr
+
 def post_traversal(expr, stack=None):
     """Yields o for each tree node o in expr, parent after child.
     If a list is provided, the stack is updated while iterating."""
@@ -80,6 +111,15 @@ def post_traversal(expr, stack=None):
         stack.pop()
     # yield parent
     yield expr
+
+def post_traversal(expr, stack=None):
+    input = [[expr]]
+    while input:
+        e = input.pop()
+        if isinstance(e, Terminal):
+            yield e
+        else:
+            input.extend(e.operands())
 
 def pre_walk(a, func):
     """Call func on each expression tree node in a, parent before child.

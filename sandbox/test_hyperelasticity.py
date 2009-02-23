@@ -10,7 +10,7 @@ for fd in formdatas:
     x = itg._integrand
     #print repr(x)
     #print str(x)
-    #print ufl2ufl(x)
+    y = ufl2ufl(x)
     #print ufl2latex(x)
     #print expand_compounds(x)
 

@@ -11,7 +11,7 @@ from ufl.assertions import ufl_assert
 from ufl.common import lstr, tstr, sstr
 from ufl.form import Form
 
-from ufl.algorithms.analysis import extract_basisfunctions, extract_coefficients, extract_classes, extract_sub_elements, build_argument_replace_map
+from ufl.algorithms.analysis import extract_arguments, extract_sub_elements, build_argument_replace_map
 from ufl.algorithms.transformations import replace
 
 from ufl.algorithms.ad import expand_derivatives
@@ -39,8 +39,7 @@ class FormData(object):
         self.form = expand_derivatives(self.original_form) 
 
         # Get arguments and their elements
-        coefficients   = extract_coefficients(self.form)
-        basisfunctions = extract_basisfunctions(self.form)
+        basisfunctions, coefficients = extract_arguments(self.form)
 
         # Replace arguments with new objects renumbered with count internal to the form
         replace_map, self.basisfunctions, self.coefficients = \

@@ -12,7 +12,7 @@ from ufl.assertions import ufl_assert
 from ufl.common import lstr, dstr, UFLTypeDefaultDict
 
 from ufl.expr import Expr
-from ufl.terminal import Terminal
+from ufl.terminal import Terminal, FormArgument
 from ufl.algebra import Sum, Product, Division
 from ufl.finiteelement import MixedElement
 from ufl.basisfunction import BasisFunction
@@ -27,7 +27,7 @@ from ufl.indexing import Indexed, Index, MultiIndex
 from ufl.form import Form
 from ufl.integral import Integral
 from ufl.classes import terminal_classes, nonterminal_classes
-from ufl.algorithms.traversal import iter_expressions, post_traversal, post_walk
+from ufl.algorithms.traversal import iter_expressions, post_traversal, post_walk, traverse_terminals
 
 #--- Utilities to extract information from an expression ---
 
@@ -40,6 +40,10 @@ def extract_classes(a):
 def extract_type(a, ufl_type):
     """Build a set of all objects of class ufl_type found in a.
     The argument a can be a Form, Integral or Expr."""
+    if issubclass(ufl_type, Terminal):
+        return set(o for e in iter_expressions(a) \
+                     for o in traverse_terminals(e) \
+                     if isinstance(o, ufl_type))
     return set(o for e in iter_expressions(a) \
                  for o in post_traversal(e) \
                  if isinstance(o, ufl_type))
@@ -62,6 +66,16 @@ def extract_coefficients(a):
     """Build a sorted list of all coefficients in a,
     which can be a Form, Integral or Expr."""
     return sorted(extract_type(a, Function), cmp=cmp_counted)
+
+def extract_arguments(a):
+    """Build two sorted lists of all basis functions and functions 
+    in a, which can be a Form, Integral or Expr."""
+    terminals = extract_type(a, FormArgument)
+    basis_functions = [f for f in terminals if isinstance(f, BasisFunction)]
+    functions = [f for f in terminals if isinstance(f, Function)]
+    basis_functions = sorted(basis_functions, cmp=cmp_counted)
+    functions = sorted(functions, cmp=cmp_counted)
+    return basis_functions, functions
 
 def build_argument_replace_map(basis_functions, functions):
     """Create new BasisFunction and Function objects
