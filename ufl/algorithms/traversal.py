@@ -50,6 +50,14 @@ def traverse_terminals(expr):
         else:
             input.extend(e.operands())
 
+def fast_pre_traversal(expr):
+    """Yields o for each tree node o in expr, parent before child."""
+    input = [expr]
+    while input:
+        l = input.pop()
+        yield l
+        input.extend(l.operands())
+
 def pre_traversal(expr, stack=None):
     """Yields o for each tree node o in expr, parent before child.
     If a list is provided, the stack is updated while iterating."""

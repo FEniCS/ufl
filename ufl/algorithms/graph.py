@@ -1,7 +1,7 @@
-"""Algorithms for working with linearlized computational graphs."""
+"""Algorithms for working with linearized computational graphs."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-12-28 -- 2009-01-09"
+__date__ = "2008-12-28 -- 2009-02-23"
 
 from itertools import chain, imap, izip
 from heapq import heapify, heappop, heappush
@@ -10,18 +10,41 @@ from ufl import *
 from ufl.algorithms import post_traversal, tree_format
 from ufl.classes import Terminal, Variable
 
-def build_graph(expr):
+# O(n) = O(|V|) = O(|E|), since |E| < c|V| for a fairly small c.
+
+#--- Basic utility functions ---
+
+def lists(n):
+    return [[] for i in xrange(n)]
+
+def len_items(sequence):
+    return map(len, sequence)
+
+def join_lines(sequence):
+    return "\n".join(imap(str, sequence))
+
+def all_is(seq1, seq2):
+    return all(a is b for (a, b) in izip(seq1, seq2))
+
+def reorder(sequence, ordering):
+    "Rearrange the items in a sequence."
+    return [sequence[i] for i in ordering]
+
+#--- Graph building functions ---
+
+def build_graph(expr): # O(n)
     """Build a linearized graph from an UFL Expr.
 
     Returns G = (V, E), with V being a list of
     graph nodes (Expr objects) in post traversal
-    order and E being a list of edges. Each edge
+    ordering and E being a list of edges. Each edge
     is represented as a (i, j) tuple where i and j
     are vertex indices into V.
     """
     V = []
     E = []
     handled = {}
+    #for v in reversed(fast_pre_traversal(expr)):
     for v in post_traversal(expr):
         i = handled.get(v)
         if i is None:
@@ -35,136 +58,51 @@ def build_graph(expr):
     G = V, E
     return G
 
-def extract_incoming_edges(G):
+def extract_incoming_edges(G): # O(n)
     "Build lists of incoming edges to each vertex in a linearized graph."
     V, E = G
     n = len(V)
-    Ein  = [[] for i in xrange(n)]
+    Ein = lists(n)
     for i, e in enumerate(E):
         a, b = e
         Ein[b].append(i)
     return Ein
 
-def extract_outgoing_edges(G):
+def extract_outgoing_edges(G): # O(n)
     "Build list of outgoing edges from each vertex in a linearized graph."
     V, E = G
     n = len(V)
-    Eout = [[] for i in xrange(n)]
+    Eout = lists(n)
     for i, e in enumerate(E):
         a, b = e
         Eout[a].append(i)
     return Eout
 
-def extract_edges(G):
+def extract_edges(G): # O(n)
     """Build lists of incoming and outgoing edges
     to and from each vertex in a linearized graph.
     
     Returns lists Ein and Eout."""
     V, E = G
     n = len(V)
-    Ein  = [[] for i in xrange(n)]
-    Eout = [[] for i in xrange(n)]
+    Ein  = lists(n)
+    Eout = lists(n)
     for i, e in enumerate(E):
         a, b = e
         Ein[b].append(i)
         Eout[a].append(i)
     return Ein, Eout
 
-def len_items(sequence):
-    lens = [len(s) for s in sequence] 
-    return lens
+#--- Graph algorithms ---
 
-def sjoin(sequence):
-    return "\n".join(imap(str, sequence))
-
-def print_graph(G):
+def format_graph(G):
     V, E = G
-    print
-    print "V:"
-    print "\n".join("v%d: \t%s" % (i, v) for (i, v) in enumerate(V))
-    print
-    print "E:"
-    print "\n".join("e%d: \tv%d -> v%d" % (i, e[0], e[1]) for (i, e) in enumerate(E))
-    print
-
-def test_expr():
-    cell = triangle
-    element = FiniteElement("CG", cell, 1)
-    v = TestFunction(element)
-    u = TrialFunction(element)
-    f = Function(element)
-    g = Function(element)
-    expr = (f+g)*u*(g-1)*v
-    return expr
-
-class HeapItem:
-    def __init__(self, ins, outs, i):
-        self.ins = ins
-        self.outs = outs
-        self.i = i
-
-    def __cmp__(self, other):
-        a, b = self.outs[self.i], other.outs[other.i]
-        if a == b:
-            b, a = self.ins[self.i], other.ins[other.i] # FIXME: The other way around?
-        return cmp(a, b)
-
-def depth_first_order(G, Ein=None, Eout=None):
-    V, E = G
-    if Ein is None or Eout is None:
-        Ein, Eout = extract_edges(G)
-    Ein_count = len_items(Ein)
-    Eout_count = len_items(Eout)
-    
-    # Make a list and a heap of the same items
-    q = [HeapItem(Ein_count, Eout_count, i) for i in xrange(len(V))]
-    heapify(q)
-    
-    order = []
-    
-    while q:
-        item = heappop(q)
-        iv = item.i
-        order.append(iv)
-        for ie in Ein[iv]:
-            e = E[ie]
-            i, j = e
-            assert j == iv
-            Eout_count[i] -= 1
-        # Resort heap, linear time, makes this algorithm O(n^2)...
-        heapify(q)
-    
-    # TODO: Can later accumulate dependencies as well during dft-like algorithm.
-    return order
-
-def all_is(seq1, seq2):
-    return all(a is b for (a, b) in izip(seq1, seq2))
-
-def rebuild_tree(G):
-    """Rebuild expression tree from linearized graph.
-    
-    Does not touch the input graph. Assumes the graph
-    is directed, acyclic, and connected, such that there
-    is only one root node.
-    """
-    V, E = G
-    n = len(V)
-    Ein, Eout = extract_edges(G)
-    dfo = depth_first_order(G, Ein, Eout)
-    subtrees = [None]*n
-    for i in dfo:
-        v = V[i]
-        if not isinstance(v, Terminal):
-            # Fetch already reconstructed child vertices
-            # and reconstruct non-terminal node from them
-            ops = tuple(subtrees[E[j][1]] for j in Eout[i])
-            if all_is(ops, v.operands()):
-                pass
-            else:
-                v = v.reconstruct(*ops)
-        subtrees[i] = v
-    # Assuming last vertex is the root!
-    return v
+    lines = ["Graph with %d vertices and %d edges:" % (len(V), sum(map(len, E)))]
+    lines.extend(("", "Vertices:"))
+    lines.extend("v%d: \t%s" % (i, v) for (i, v) in enumerate(V))
+    lines.extend(("", "Edges:"))
+    lines.extend("e%d: \tv%d -> v%d" % (i, e[0], e[1]) for (i, e) in enumerate(E))
+    return join_lines(lines)
 
 def find_dependencies(G, targets): 
     """Find the set of vertices in a computational
@@ -186,9 +124,87 @@ def find_dependencies(G, targets):
                     heappush(todo, e[1])
     return keep
 
-def reorder(sequence, order):
-    "Rearrange the items in a sequence."
-    return [sequence[i] for i in order]
+#--- Scheduling algorithms ---
+
+class HeapItem(object):
+    def __init__(self, incoming, outgoing, i):
+        self.incoming = incoming
+        self.outgoing = outgoing
+        self.i = i
+
+    def __cmp__(self, other):
+        a = self.outgoing[self.i]
+        b = other.outgoing[other.i]
+        if a == b:
+            a = self.incoming[self.i]   # FIXME: The other way around?
+            b = other.incoming[other.i] # FIXME: The other way around?
+        return cmp(a, b)
+
+def depth_first_ordering(G, Ein=None, Eout=None):
+    V, E = G
+    if Ein is None or Eout is None:
+        Ein, Eout = extract_edges(G)
+    Ein_count = len_items(Ein)
+    Eout_count = len_items(Eout)
+    
+    # Make a list and a heap of the same items
+    n = len(V)
+    q = [HeapItem(Ein_count, Eout_count, i) for i in xrange(n)]
+    heapify(q)
+    
+    ordering = []
+    while q:
+        item = heappop(q)
+        iv = item.i
+        ordering.append(iv)
+        for ie in Ein[iv]:
+            e = E[ie]
+            i, j = e
+            assert j == iv
+            Eout_count[i] -= 1
+        # Resort heap, worst case linear time, makes this algorithm O(n^2)... Not good!
+        heapify(q)
+    
+    # TODO: Can later accumulate dependencies as well during dft-like algorithm.
+    return ordering
+
+#--- Expression tree reconstruction algorithms ---
+
+def rebuild_tree(G):
+    """Rebuild expression tree from linearized graph.
+    
+    Does not touch the input graph. Assumes the graph
+    is directed, acyclic, and connected, such that there
+    is only one root node.
+    """
+    V, E = G
+    n = len(V)
+    Ein, Eout = extract_edges(G)
+    dfo = depth_first_ordering(G, Ein, Eout)
+    subtrees = [None]*n
+    for i in dfo:
+        v = V[i]
+        if not isinstance(v, Terminal):
+            # Fetch already reconstructed child vertices
+            # and reconstruct non-terminal node from them
+            ops = tuple(subtrees[E[j][1]] for j in Eout[i])
+            if all_is(ops, v.operands()):
+                pass
+            else:
+                v = v.reconstruct(*ops)
+        subtrees[i] = v
+    # Assuming last vertex is the root!
+    return v
+
+def test_expr():
+    cell = triangle
+    element = FiniteElement("CG", cell, 1)
+    v = TestFunction(element)
+    u = TrialFunction(element)
+    f = Function(element)
+    g = Function(element)
+    expr = (f+g)*u*(g-1)*v
+    return expr
 
 if __name__ == "__main__":
     
@@ -201,7 +217,7 @@ if __name__ == "__main__":
     Ein, Eout = extract_edges(G)
     Ein_count = len_items(Ein)
     Eout_count = len_items(Eout)
-    dfo = depth_first_order(G)
+    dfo = depth_first_ordering(G)
 
     print 
     print "expr:"
@@ -212,20 +228,20 @@ if __name__ == "__main__":
     print 
     print tree_format(expr)
     print 
-    print_graph(G)
+    print format_graph(G)
     print 
     print "Ein:"
-    print sjoin(Ein)
+    print join_lines(Ein)
     print 
     print "Eout:"
-    print sjoin(Eout)
+    print join_lines(Eout)
     print 
     print "Ein_count:"
-    print sjoin(Ein_count)
+    print join_lines(Ein_count)
     print 
     print "Eout_count:"
-    print sjoin(Eout_count)
+    print join_lines(Eout_count)
     print 
     print "dfo:"
-    print sjoin(reorder(V, dfo))
+    print join_lines(reorder(V, dfo))
 
