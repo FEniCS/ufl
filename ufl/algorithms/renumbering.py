@@ -16,6 +16,8 @@ class IndexRenumberingTransformer(ReuseTransformer):
         return MultiIndex(tuple(self.index(index) for index in o))
 
     def index(self, o):
+        if isinstance(o, FixedIndex):
+            return o
         i = self._index_map.get(o)
         if i is not None:
             return i
