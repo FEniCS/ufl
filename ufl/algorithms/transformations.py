@@ -3,8 +3,9 @@ either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2009-02-18"
+__date__ = "2008-05-07 -- 2009-02-23"
 
+from itertools import izip
 from inspect import getargspec
 
 from ufl.log import error, warning, debug
@@ -95,7 +96,8 @@ class Transformer(object):
     
     def reuse_if_possible(self, o, *operands):
         "Reuse Expr if possible, otherwise reconstruct from given operands."
-        if all(a == b for (a, b) in zip(operands, o.operands())):
+        #if all(a is b for (a, b) in izip(operands, o.operands())):
+        if operands == o.operands():
             return o
         return o.reconstruct(*operands)
     
