@@ -118,13 +118,13 @@ class Expression2LatexHandler(Transformer):
         return "n"
     
     def basis_function(self, o):
-        return "{v_h^{%d}}" % self.basisfunction_renumbering[o] # Using ^ for function numbering and _ for indexing
+        return "{v_h^{%d}}" % o.count() # self.basisfunction_renumbering[o] # Using ^ for function numbering and _ for indexing
     
     def function(self, o):
-        return "{w_h^{%d}}" % self.coefficient_renumbering[o]
+        return "{w_h^{%d}}" % o.count() # self.coefficient_renumbering[o]
     
     def constant(self, o):
-        return "{w_h^{%d}}" % self.coefficient_renumbering[o]
+        return "{w_h^{%d}}" % o.count() # self.coefficient_renumbering[o]
     
     def multi_index(self, o):
         return format_multi_index(o, formatstring="{%s}")
@@ -339,6 +339,10 @@ def form2latex(form, formname="a", basisfunction_names = None, function_names = 
         sections.append(("Form arguments", align(lines)))
     
     # TODO: Wrap ListTensors, ComponentTensor and Conditionals in expression as variables before transformation
+
+    # Temporary hack for transition: removed formdata.*_renumbering...
+    basisfunction_renumbering = dict((f,i) for (i,f) in enumerate(formdata.basisfunctions))
+    coefficient_renumbering   = dict((f,i) for (i,f) in enumerate(formdata.coefficients))
     
     # Define variables
     handled_variables = set()
@@ -352,7 +356,7 @@ def form2latex(form, formname="a", basisfunction_names = None, function_names = 
             l = v._label
             if not l in handled_variables:
                 handled_variables.add(l)
-                exprlatex = expression2latex(v._expression, formdata.basisfunction_renumbering, formdata.coefficient_renumbering)
+                exprlatex = expression2latex(v._expression, basisfunction_renumbering, coefficient_renumbering)
                 lines.append(("s_{%d}" % l._count, "= %s" % exprlatex))
     if lines:
         sections.append(("Variables", align(lines)))
@@ -368,7 +372,7 @@ def form2latex(form, formname="a", basisfunction_names = None, function_names = 
     a = signature; p = ""
     for itg in integrals:
         # TODO: Get list of expression strings instead of single expression!
-        integrand_string = expression2latex(itg.integrand(), formdata.basisfunction_renumbering, formdata.coefficient_renumbering)
+        integrand_string = expression2latex(itg.integrand(), basisfunction_renumbering, coefficient_renumbering)
         b = p + "\\int_{%s_%d}" % (domain_strings[itg.measure().domain_type()], itg.measure().domain_id())
         c = "\\left[ { %s } \\right] \,%s" % (integrand_string, dx_strings[itg.measure().domain_type()])
         lines.append((a, b, c))
@@ -381,8 +385,8 @@ def ufl2latex(expression):
     "Generate LaTeX code for a UFL expression or form (wrapper for form2latex and expression2latex)."
     if isinstance(expression, Form):
         return form2latex(expression)
-    basisfunction_renumbering = dict((f, f._count) for f in extract_basisfunctions(expression))
-    coefficient_renumbering = dict((f, f._count) for f in extract_coefficients(expression))
+    basisfunction_renumbering = dict((f,i) for (i,f) in enumerate(extract_basisfunctions(expression)))
+    coefficient_renumbering   = dict((f,i) for (i,f) in enumerate(extract_coefficients(expression)))
     return expression2latex(expression, basisfunction_renumbering, coefficient_renumbering)
 
 # --- LaTeX rendering of composite UFL objects ---

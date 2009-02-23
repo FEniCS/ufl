@@ -230,19 +230,21 @@ class DependencySplitter(Transformer):
         return x, self.make_empty_deps()
     
     def basis_function(self, x):
-        ufl_assert(x in self.formdata.basisfunction_renumbering,
-                   "Can't find basis function %s in renumbering dict!" % repr(x))
-        i = self.formdata.basisfunction_renumbering[x]
+        #ufl_assert(x in self.formdata.basisfunction_renumbering,
+        #           "Can't find basis function %s in renumbering dict!" % repr(x))
+        #i = self.formdata.basisfunction_renumbering[x]
+        i = x.count()
         d = self.basisfunction_deps[i]
         return x, d
     
     def function(self, x):
-        print 
-        print self.formdata.coefficient_renumbering
-        print
-        ufl_assert(x in self.formdata.coefficient_renumbering,
-                   "Can't find function %s in renumbering dict!" % repr(x))
-        i = self.formdata.coefficient_renumbering[x]
+        #print 
+        #print self.formdata.coefficient_renumbering
+        #print
+        #ufl_assert(x in self.formdata.coefficient_renumbering,
+        #           "Can't find function %s in renumbering dict!" % repr(x))
+        #i = self.formdata.coefficient_renumbering[x]   
+        i = x.count()
         d = self.function_deps[i]
         return x, d
     

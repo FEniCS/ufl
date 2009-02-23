@@ -1,7 +1,7 @@
 """Utility algorithms for inspection of and information extraction from UFL objects in various ways."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-01-06"
+__date__ = "2008-03-14 -- 2009-02-23"
 
 # Modified by Anders Logg, 2008
 
@@ -9,7 +9,7 @@ from itertools import chain
 
 from ufl.log import error, info
 from ufl.assertions import ufl_assert
-from ufl.common import lstr, UFLTypeDefaultDict
+from ufl.common import lstr, dstr, UFLTypeDefaultDict
 
 from ufl.expr import Expr
 from ufl.terminal import Terminal
@@ -62,6 +62,26 @@ def extract_coefficients(a):
     """Build a sorted list of all coefficients in a,
     which can be a Form, Integral or Expr."""
     return sorted(extract_type(a, Function), cmp=cmp_counted)
+
+def build_argument_replace_map(basis_functions, functions):
+    """Create new BasisFunction and Function objects
+    with count starting at 0. Return mapping from old
+    to new objects, and lists of the new objects."""
+    new_basis_functions = [f.reconstruct(count=i)\
+                           for (i, f) in enumerate(basis_functions)]
+    new_functions       = [f.reconstruct(count=i)\
+                           for (i, f) in enumerate(functions)]
+    replace_map = {}
+    replace_map.update(zip(basis_functions, new_basis_functions))
+    replace_map.update(zip(functions, new_functions))
+    print "\n"*3
+    print lstr(basis_functions)
+    print lstr(functions)
+    print dstr(replace_map)
+    print lstr(new_basis_functions)
+    print lstr(new_functions)
+    print "\n"*3
+    return replace_map, new_basis_functions, new_functions
 
 # alternative implementation, kept as an example:
 def _extract_coefficients(a):

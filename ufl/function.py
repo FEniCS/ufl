@@ -2,7 +2,7 @@
 of related classes (functions), including Constant."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-02-20"
+__date__ = "2008-03-14 -- 2009-02-23"
 
 # Modified by Anders Logg, 2008
 
@@ -26,6 +26,11 @@ class Function(FormArgument, Counted):
             "Expecting a FiniteElementBase instance.")
         self._element = element
         self._repr = None
+    
+    def reconstruct(self, count=None):
+        if count is None:
+            return self
+        return Function(self._element, count)
     
     def element(self):
         return self._element
@@ -60,9 +65,14 @@ class Constant(Function):
 
     def __init__(self, cell, count=None):
         self._cell = as_cell(cell)
-        element = FiniteElement("DG", cell, 0)
-        Function.__init__(self, element, count)
+        e = FiniteElement("DG", cell, 0)
+        Function.__init__(self, e, count)
         self._repr = "Constant(%r, %r)" % (self._cell, self._count)
+    
+    def reconstruct(self, count=None):
+        if count is None:
+            return self
+        return Constant(self._cell, count)
     
     def __str__(self):
         count = str(self._count)
@@ -74,9 +84,14 @@ class Constant(Function):
 class VectorConstant(Function):
     __slots__ = ()
     def __init__(self, cell, dim=None, count=None):
-        element = VectorElement("DG", cell, 0, dim)
-        Function.__init__(self, element, count)
-        self._repr = "VectorConstant(%r, %r, %r)" % (element.cell(), element.value_shape()[0], self._count)
+        e = VectorElement("DG", cell, 0, dim)
+        Function.__init__(self, e, count)
+        self._repr = "VectorConstant(%r, %r, %r)" % (e.cell(), e.value_shape()[0], self._count)
+    
+    def reconstruct(self, count=None):
+        if count is None:
+            return self
+        return VectorConstant(self._cell, self._element.value_shape()[0], count)
     
     def __str__(self):
         count = str(self._count)
@@ -88,9 +103,15 @@ class VectorConstant(Function):
 class TensorConstant(Function):
     __slots__ = ()
     def __init__(self, cell, shape=None, symmetry=None, count=None):
-        element = TensorElement("DG", cell, 0, shape=shape, symmetry=symmetry)
-        Function.__init__(self, element, count)
-        self._repr = "TensorConstant(%r, %r, %r, %r)" % (element.cell(), element.value_shape(), element._symmetry, self._count)
+        e = TensorElement("DG", cell, 0, shape=shape, symmetry=symmetry)
+        Function.__init__(self, e, count)
+        self._repr = "TensorConstant(%r, %r, %r, %r)" % (e.cell(), e.value_shape(), e._symmetry, self._count)
+    
+    def reconstruct(self, count=None):
+        if count is None:
+            return self
+        e = self._element
+        return TensorConstant(e.cell(), e.value_shape(), e._symmetry, count)
     
     def __str__(self):
         count = str(self._count)

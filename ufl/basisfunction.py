@@ -2,7 +2,7 @@
 classes (functions), including TestFunction and TrialFunction."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-02-03"
+__date__ = "2008-03-14 -- 2009-02-23"
 
 # Modified by Anders Logg, 2008
 
@@ -25,6 +25,11 @@ class BasisFunction(FormArgument, Counted):
             "Expecting a FiniteElementBase instance.")
         self._element = element
         self._repr = "BasisFunction(%r, %r)" % (self._element, self._count)
+    
+    def reconstruct(self, count=None):
+        if count is None:
+            return self
+        return BasisFunction(self.element(), count)
     
     def element(self):
         return self._element
