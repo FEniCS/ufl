@@ -3,6 +3,7 @@
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-12-28 -- 2009-02-23"
 
+from collections import defaultdict
 from itertools import chain, imap, izip
 from heapq import heapify, heappop, heappush
 
@@ -93,6 +94,81 @@ def extract_edges(G): # O(n)
         Eout[a].append(i)
     return Ein, Eout
 
+def extract_incoming_vertex_connections(G): # O(n)
+    """Build lists of vertices in incoming and outgoing 
+    edges to and from each vertex in a linearized graph.
+    
+    Returns lists Vin and Vout."""
+    V, E = G
+    n = len(V)
+    Vin  = lists(n)
+    for a, b in E:
+        Vin[b].append(a)
+    return Vin
+
+def extract_outgoing_vertex_connections(G): # O(n)
+    """Build lists of vertices in incoming and outgoing 
+    edges to and from each vertex in a linearized graph.
+    
+    Returns lists Vin and Vout."""
+    V, E = G
+    n = len(V)
+    Vout = lists(n)
+    for a, b in E:
+        Vout[a].append(b)
+    return Vout
+
+def extract_vertex_connections(G): # O(n)
+    """Build lists of vertices in incoming and outgoing 
+    edges to and from each vertex in a linearized graph.
+    
+    Returns lists Vin and Vout."""
+    V, E = G
+    n = len(V)
+    Vin  = lists(n)
+    Vout = lists(n)
+    for a, b in E:
+        Vin[b].append(a)
+        Vout[a].append(b)
+    return Vin, Vout
+
+#--- TODO: Use a graph class like this which computes connectivity on demand? ---
+
+class Graph:
+    def __init__(self):
+        self.V = None
+        self.E = None
+        self.Ein = None
+        self.Eout = None
+        self.Vin = None
+        self.Vout = None
+    
+    def V(self):
+        return self.V
+
+    def E(self):
+        return self.E
+    
+    def Ein(self):
+        if self.Ein is None:
+            self.Ein = extract_incoming_edges((self.V, self.E))
+        return self.Ein
+    
+    def Eout(self):
+        if self.Eout is None:
+            self.Eout = extract_outgoing_edges((self.V, self.E))
+        return self.Eout
+    
+    def Vin(self):
+        if self.Vin is None:
+            self.Vin = extract_incoming_vertex_connections((self.V, self.E))
+        return self.Vin
+    
+    def Vout(self):
+        if self.Vout is None:
+            self.Vout = extract_outgoing_vertex_connections((self.V, self.E))
+        return self.Vout
+
 #--- Graph algorithms ---
 
 def format_graph(G):
@@ -143,7 +219,7 @@ class HeapItem(object):
 def depth_first_ordering(G, Ein=None, Eout=None):
     V, E = G
     if Ein is None or Eout is None:
-        Ein, Eout = extract_edges(G)
+        Ein, Eout = extract_edges(G) # TODO: Can use extract_vertex_connections
     Ein_count = len_items(Ein)
     Eout_count = len_items(Eout)
     
@@ -157,12 +233,14 @@ def depth_first_ordering(G, Ein=None, Eout=None):
         item = heappop(q)
         iv = item.i
         ordering.append(iv)
+        #for i in Vin[iv]: # TODO: Faster to use this
+        #    Eout_count[i] -= 1
         for ie in Ein[iv]:
             e = E[ie]
             i, j = e
             assert j == iv
             Eout_count[i] -= 1
-        # Resort heap, worst case linear time, makes this algorithm O(n^2)... Not good!
+        # Resort heap, worst case linear time, makes this algorithm O(n^2)... FIXME: Not good!
         heapify(q)
     
     # TODO: Can later accumulate dependencies as well during dft-like algorithm.
@@ -179,7 +257,7 @@ def rebuild_tree(G):
     """
     V, E = G
     n = len(V)
-    Ein, Eout = extract_edges(G)
+    Ein, Eout = extract_edges(G) # TODO: Can use extract_vertex_connections
     dfo = depth_first_ordering(G, Ein, Eout)
     subtrees = [None]*n
     for i in dfo:
@@ -188,6 +266,7 @@ def rebuild_tree(G):
             # Fetch already reconstructed child vertices
             # and reconstruct non-terminal node from them
             ops = tuple(subtrees[E[j][1]] for j in Eout[i])
+            #ops = tuple(subtrees[j] for j in Vout[i]) # TODO: Use this instead (is it Vout or Vin?)
             if all_is(ops, v.operands()):
                 pass
             else:
@@ -195,6 +274,44 @@ def rebuild_tree(G):
         subtrees[i] = v
     # Assuming last vertex is the root!
     return v
+
+#--- Graph partitoning ---
+
+def bit_criteria(v, keys):
+    print v, keys
+    # Using bitflags
+    if keys:
+        iv = keys[0]
+        for k in keys[1:]:
+            iv |= k
+    else:
+        iv = 0
+        for i, c in enumerate((Function, BasisFunction)):
+            if isinstance(v, c):
+                iv = 1 << i
+                break
+    print "iv =", iv
+    return iv
+
+def partition(G, criteria): # TODO: Take vertex connections as input
+    V, E = G
+    n = len(V)
+    Vin, Vout = extract_vertex_connections(G) # TODO: Can use faster one-way extraction
+    partitions = defaultdict(list)
+    keys = [None]*n
+    for iv, v in enumerate(V):
+        # Get keys from all outgoing edges
+        edge_keys = [keys[ii] for ii in Vout[iv]]
+        
+        # Calculate key for this vertex
+        key = criteria(v, edge_keys)
+        
+        # Store mappings from key to vertex and back
+        partitions[key].append(iv)
+        keys[iv] = key
+    return partitions, keys
+
+#--- Test code ---
 
 def test_expr():
     cell = triangle
@@ -207,6 +324,33 @@ def test_expr():
     return expr
 
 if __name__ == "__main__":
+    expr = test_expr()
+    G = build_graph(expr)
+    V, E = G
+    n = len(V)
+    Ein, Eout = extract_edges(G)
+
+    print
+    print "Entire graph:"
+    for iv, v in enumerate(V):
+        print "Vertex %03d: %s" % (iv, v)
+    for ie, e in enumerate(E):
+        print "Edge %03d: %s" % (ie, e)
+    for iv, eout in enumerate(Eout):
+        print "Edges out for vertex %03d: %s" % (iv, eout)
+    for iv, ein in enumerate(Ein):
+        print "Edges in for vertex %03d: %s" % (iv, ein)
+    print
+
+    partitions, keys = partition(G, bit_criteria)
+    for k in partitions:
+        print
+        print "Partition with key", k
+        for iv in partitions[k]:
+            print "Vertex %03d: %s" % (iv, V[iv])
+
+if __name__ == "__main_":
+#if __name__ == "__main__":
     
     expr = test_expr()
     
