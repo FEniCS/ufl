@@ -707,8 +707,8 @@ def purge_duplications(expression):
     occur more than once with a single instance."""
     return apply_transformer(expression, DuplicationPurger())
 
-def extract_basisfunction_dependencies(e):
-    "Extract a set of sets of basisfunctions."
+def extract_basis_function_dependencies(e):
+    "Extract a set of sets of basis_functions."
     ufl_assert(isinstance(e, Expr), "Expecting an Expr.")
     return BasisFunctionDependencyExtracter().visit(e)
 

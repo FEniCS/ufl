@@ -54,7 +54,7 @@ def adjoint(form):
     form = expand_derivatives(form)
     return compute_form_adjoint(form)
 
-def _handle_derivative_arguments(function, basisfunction):
+def _handle_derivative_arguments(function, basis_function):
     if isinstance(function, Function):
         functions = (function,)
         
@@ -62,10 +62,10 @@ def _handle_derivative_arguments(function, basisfunction):
         element = function.element()
         
         # Create basis function if necessary
-        if basisfunction is None:
-            basisfunctions = (BasisFunction(element),)
+        if basis_function is None:
+            basis_functions = (BasisFunction(element),)
         else:
-            basisfunctions = (basisfunction,)
+            basis_functions = (basis_function,)
     
     elif isinstance(function, tuple):
         functions = function
@@ -80,22 +80,22 @@ def _handle_derivative_arguments(function, basisfunction):
         element = MixedElement(*elements)
         
         # Create basis functions if necessary
-        if basisfunction is None:
-            basisfunctions = BasisFunctions(element)
+        if basis_function is None:
+            basis_functions = BasisFunctions(element)
         else:
-            basisfunctions = (basisfunction,)
-            ufl_assert(isinstance(basisfunction, BasisFunction) \
-                and basisfunction.element() == element,
+            basis_functions = (basis_function,)
+            ufl_assert(isinstance(basis_function, BasisFunction) \
+                and basis_function.element() == element,
                 "Basis function over wrong element supplied, "\
                 "got %s but expecting %s." % \
-                (repr(basisfunction.element()), repr(element)))
+                (repr(basis_function.element()), repr(element)))
     
     functions      = Tuple(*functions)
-    basisfunctions = Tuple(*basisfunctions)
+    basis_functions = Tuple(*basis_functions)
     
-    return functions, basisfunctions
+    return functions, basis_functions
 
-def derivative(form, function, basisfunction=None):
+def derivative(form, function, basis_function=None):
     """Given any form, compute the linearization of the
     form with respect to the given discrete function.
     The resulting form has one additional basis function
@@ -104,19 +104,19 @@ def derivative(form, function, basisfunction=None):
     a single Function, in which case the new BasisFunction
     argument is based on a MixedElement created from this tuple."""
     
-    functions, basisfunctions = _handle_derivative_arguments(function, basisfunction)
+    functions, basis_functions = _handle_derivative_arguments(function, basis_function)
     
     # Got a form? Apply derivatives to the integrands in turn.
     if isinstance(form, Form):
         integrals = []
         for itg in form._integrals:
-            fd = FunctionDerivative(itg.integrand(), functions, basisfunctions)
+            fd = FunctionDerivative(itg.integrand(), functions, basis_functions)
             integrals.append(itg.reconstruct(fd))
         return Form(integrals)
     
     elif isinstance(form, Expr):
         # What we got was in fact an integrand
-        return FunctionDerivative(form, functions, basisfunctions)
+        return FunctionDerivative(form, functions, basis_functions)
     
     error("Invalid argument type %s." % str(type(form)))
 

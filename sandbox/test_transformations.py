@@ -71,18 +71,18 @@ print repr(integrand)
 
 assert repr(integrand) == original_repr
 
-rank = len(formdata.basisfunctions)
+rank = len(formdata.basis_functions)
 num_coefficients = len(formdata.coefficients)
 
 from ufl.algorithms.dependencies import DependencySet
 
-basisfunction_deps = []
+basis_function_deps = []
 for i in range(rank):
     # TODO: More dependencies depending on element
     bfs = tuple(i == j for j in range(rank))
     fs = (False,)*num_coefficients
     d = DependencySet(bfs, fs)
-    basisfunction_deps.append(d)
+    basis_function_deps.append(d)
 
 function_deps = []
 for i in range(num_coefficients):
@@ -92,7 +92,7 @@ for i in range(num_coefficients):
     d = DependencySet(bfs, fs)
     function_deps.append(d)
 
-(vinfo, code) = split_by_dependencies(integrand, formdata, basisfunction_deps, function_deps)
+(vinfo, code) = split_by_dependencies(integrand, formdata, basis_function_deps, function_deps)
 
 print "------ Final variable info:"
 print vinfo
@@ -115,7 +115,7 @@ print
 #integrand = compute_diffs(integrand)
 #integrand = propagate_spatial_diffs(integrand)
 ##integrand = expand_compounds(integrand)
-#(vinfo1, code1) = split_by_dependencies(integrand, formadata, basisfunction_deps, function_deps)
+#(vinfo1, code1) = split_by_dependencies(integrand, formadata, basis_function_deps, function_deps)
 #integrand = mark_dependencies(integrand)
-#(vinfo2, code2) = split_by_dependencies(integrand, formadata, basisfunction_deps, function_deps)
+#(vinfo2, code2) = split_by_dependencies(integrand, formadata, basis_function_deps, function_deps)
 

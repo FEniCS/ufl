@@ -57,8 +57,8 @@ def extract_terminals(a):
 def cmp_counted(x, y):
     return cmp(x._count, y._count)
 
-def extract_basisfunctions(a):
-    """Build a sorted list of all basisfunctions in a,
+def extract_basis_functions(a):
+    """Build a sorted list of all basis_functions in a,
     which can be a Form, Integral or Expr."""
     return sorted(extract_type(a, BasisFunction), cmp=cmp_counted)
 
@@ -105,7 +105,7 @@ def _extract_coefficients(a):
 
 def extract_elements(a):
     "Build a sorted list of all elements used in a."
-    args = chain(extract_basisfunctions(a), extract_coefficients(a))
+    args = chain(extract_basis_functions(a), extract_coefficients(a))
     return tuple(f.element() for f in args)
 
 def extract_unique_elements(a):

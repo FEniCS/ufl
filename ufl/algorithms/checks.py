@@ -43,7 +43,7 @@ def validate_form(form):
     # Check that no Function or BasisFunction instance
     # have the same count unless they are the same
     functions = {}
-    basisfunctions = {}
+    basis_functions = {}
     for e in iter_expressions(form):
         for f in traverse_terminals(e):
             if isinstance(f, Function):
@@ -56,15 +56,15 @@ def validate_form(form):
             
             elif isinstance(f, BasisFunction):
                 c = f.count()
-                if c in basisfunctions:
-                    g = basisfunctions[c]
+                if c in basis_functions:
+                    g = basis_functions[c]
                     if c == -2: msg = "TestFunctions"
                     elif c == -1: msg = "TrialFunctions"
                     else: msg = "BasisFunctions with same count"
                     msg = "Got different %s: %s and %s." % (msg, repr(f), repr(g))
                     ufl_assert(f is g, msg)
                 else:
-                    basisfunctions[c] = f
+                    basis_functions[c] = f
             
     # Check that all integrands are scalar
     for expression in iter_expressions(form):

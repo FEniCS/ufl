@@ -32,7 +32,7 @@ from ufl.algorithms.variables import extract_variables
 
 
 class DependencySet:
-    def __init__(self, basisfunctions, runtime=False, coordinates=False):
+    def __init__(self, basis_functions, runtime=False, coordinates=False):
         
         # depends on runtime arguments (i.e. should be inside tabulate_tensor, otherwise it can be precomputed)
         self.runtime = runtime
@@ -41,10 +41,10 @@ class DependencySet:
         self.coordinates = coordinates
         
         # depends on basis function i (i.e. should be inside a loop where this basis function is defined)
-        self.basisfunctions = tuple(basisfunctions)
+        self.basis_functions = tuple(basis_functions)
     
     def iter(self):
-        return chain((self.runtime, self.coordinates), self.basisfunctions)
+        return chain((self.runtime, self.coordinates), self.basis_functions)
     
     def size(self):
         return len(list(self.iter()))
@@ -66,15 +66,15 @@ class DependencySet:
         return 0
     
     def __or__(self, other):
-        basisfunctions = or_tuples(self.basisfunctions, other.basisfunctions)
-        d = DependencySet(basisfunctions,
+        basis_functions = or_tuples(self.basis_functions, other.basisfunctions)
+        d = DependencySet(basis_functions,
                           self.runtime     or other.runtime,
                           self.coordinates or other.coordinates)
         return d
 
     def __and__(self, other):
-        basisfunctions = and_tuples(self.basisfunctions, other.basisfunctions)
-        d = DependencySet(basisfunctions,
+        basis_functions = and_tuples(self.basis_functions, other.basisfunctions)
+        d = DependencySet(basis_functions,
                           self.runtime     and other.runtime,
                           self.coordinates and other.coordinates)
         return d
@@ -84,7 +84,7 @@ class DependencySet:
         s += "{\n"
         s += "  self.runtime        = %s\n" % self.runtime
         s += "  self.coordinates    = %s\n" % self.coordinates 
-        s += "  self.basisfunctions = %s\n" % str(self.basisfunctions) 
+        s += "  self.basis_functions = %s\n" % str(self.basis_functions) 
         s += "}"
         return s
 
@@ -183,7 +183,7 @@ class CodeStructure:
 #        perms = [p for p in compute_permutations(rank, 2) if p in keys] # TODO: NOT RIGHT!
 #        for perm in perms:
 #            def criteria(k):
-#                return k.basisfunctions == perm
+#                return k.basis_functions == perm
 #            dep_stacks, stacks = split_dict(stacks, criteria)
 #            
 #            # TODO: For all permutations of basis function indices
@@ -191,7 +191,7 @@ class CodeStructure:
 #            sizes = [elementreps[i].local_dimension for i in range(self.rank) if perms[i]]
 #            basis_function_perms = compute_indices(sizes)
 #            for basis_function_perm in basis_function_perms:
-#                context.update_basisfunction_permutation(basis_function_perm) # TODO: Map tuple to whole range of basisfunctions.
+#                context.update_basis_function_permutation(basis_function_perm) # TODO: Map tuple to whole range of basis_functions.
 #                for stack in dep_stacks.itervalues():
 #                    for (k,v) in stack.iteritems():
 #                        s = context.variable_to_symbol(k)
@@ -251,14 +251,14 @@ def _split_by_dependencies(expression, codestructure, terminal_deps):
         e = expression
     return e, deps
 
-def split_by_dependencies(expression, formdata, basisfunction_deps, function_deps):
+def split_by_dependencies(expression, formdata, basis_function_deps, function_deps):
     """Split an expression into stacks of variables based
     on the dependencies of its subexpressions.
     
     @type expression: Expr
     @param expression: The expression to parse.
-    @type basisfunction_deps: list(DependencySet)
-    @param basisfunction_deps:
+    @type basis_function_deps: list(DependencySet)
+    @param basis_function_deps:
         A list of DependencySet objects, one for each
         BasisFunction in the Form the expression originates from.
     @type function_deps: list(DependencySet)
@@ -287,7 +287,7 @@ def split_by_dependencies(expression, formdata, basisfunction_deps, function_dep
         variables.append(expression)
     
     # Split each variable
-    ds = DependencySplitter(formdata, basisfunction_deps, function_deps)
+    ds = DependencySplitter(formdata, basis_function_deps, function_deps)
     for v in variables:
         print "Handling variable ", repr(v)
         vinfo = ds.handle(v)
@@ -303,9 +303,9 @@ def split_by_dependencies(expression, formdata, basisfunction_deps, function_dep
 
 
 class DependencySplitter:
-    def __init__(self, formdata, basisfunction_deps, function_deps):
+    def __init__(self, formdata, basis_function_deps, function_deps):
         self.formdata = formdata
-        self.basisfunction_deps = basisfunction_deps
+        self.basis_function_deps = basis_function_deps
         self.function_deps = function_deps
         self.variables = []
         self.codestructure = CodeStructure()
@@ -319,35 +319,35 @@ class DependencySplitter:
             self.handlers[c] = self.child_deps
         # Override with specific behaviour for some classes
         self.handlers[FacetNormal]   = self.get_facet_normal_deps
-        self.handlers[BasisFunction] = self.get_basisfunction_deps
+        self.handlers[BasisFunction] = self.get_basis_function_deps
         self.handlers[Constant]      = self.get_function_deps
         self.handlers[Function]      = self.get_function_deps
         self.handlers[Variable]      = self.get_variable_deps
         self.handlers[SpatialDerivative] = self.get_spatial_derivative_deps
 
-    def make_deps(self, basisfunction=None, function=None, # XXX
+    def make_deps(self, basis_function=None, function=None, # XXX
                   cell=False, mapping=False,
                   facet=False, coordinates=False):
         
-        bfs = (False,)*len(self.basisfunction_deps)
+        bfs = (False,)*len(self.basis_function_deps)
         fs = (False,)*len(self.function_deps)
         d = DependencySet(bfs, fs, cell=cell, mapping=mapping, # XXX
                           facet=facet, coordinates=coordinates)
-        if basisfunction is not None:
-            d |= self.basisfunction_deps[basisfunction]
+        if basis_function is not None:
+            d |= self.basis_function_deps[basis_function]
         if function is not None:
             d |= self.function_deps[function]
         return d
     
-    def make_deps(self, basisfunction=None, function=None, # XXX
+    def make_deps(self, basis_function=None, function=None, # XXX
                   mapping=False, runtime=False, coordinates=False):
         
-        bfs = (False,)*len(self.basisfunction_deps)
+        bfs = (False,)*len(self.basis_function_deps)
         
         d = DependencySet(bfs, runtime=runtime, coordinates=coordinates)
         
-        if basisfunction is not None:
-            d |= self.basisfunction_deps[basisfunction]
+        if basis_function is not None:
+            d |= self.basis_function_deps[basis_function]
         if function is not None:
             d |= self.function_deps[function]
         if mapping:
@@ -370,11 +370,11 @@ class DependencySplitter:
         d = self.function_deps[i]
         return x, d
     
-    def get_basisfunction_deps(self, x):
-        ufl_assert(x in self.formdata.basisfunction_renumbering,
+    def get_basis_function_deps(self, x):
+        ufl_assert(x in self.formdata.basis_function_renumbering,
                    "Can't find basis function %s in renumbering dict!" % repr(x))
-        i = self.formdata.basisfunction_renumbering[x]
-        d = self.basisfunction_deps[i]
+        i = self.formdata.basis_function_renumbering[x]
+        d = self.basis_function_deps[i]
         return x, d
     
     def get_variable_deps(self, x):
@@ -464,11 +464,11 @@ class DependencySplitter:
 
 
 def _test_dependency_set():
-    basisfunctions, functions = (True, False), (True, False, False, True)
-    d1 = DependencySet(basisfunctions, functions, \ # XXX
+    basis_functions, functions = (True, False), (True, False, False, True)
+    d1 = DependencySet(basis_functions, functions, \ # XXX
                  cell=False, mapping=True, facet=True, coordinates=False)
-    basisfunctions, functions = (False, True), (False, True, False, True)
-    d2 = DependencySet(basisfunctions, functions, \ # XXX
+    basis_functions, functions = (False, True), (False, True, False, True)
+    d2 = DependencySet(basis_functions, functions, \ # XXX
                  cell=True, mapping=False, facet=True, coordinates=False)
     d3 = d1 | d2
     d4 = d1 & d2
@@ -489,13 +489,13 @@ def _test_split_by_dependencies():
 #    from ufl.algorithms.formdata import FormData
 #    formdata = FormData(a)
 #    
-#    basisfunction_deps = []
+#    basis_function_deps = []
 #    for i in range(formdata.rank):
 #        # ...: More depending on element
 #        bfs = unit_tuple(i, formdata.rank, True, False)
 #        cfs = (False,)*formdata.num_coefficients
 #        d = DependencySet(bfs, cfs) # XXX
-#        basisfunction_deps.append(d)
+#        basis_function_deps.append(d)
 #    
 #    function_deps = []
 #    for i in range(num_coefficients):
@@ -505,7 +505,7 @@ def _test_split_by_dependencies():
 #        d = DependencySet(bfs, cfs) # XXX
 #        function_deps.append(d)
 #    
-#    e, d, c = split_by_dependencies(integrand, formdata, basisfunction_deps, function_deps)
+#    e, d, c = split_by_dependencies(integrand, formdata, basis_function_deps, function_deps)
 #    print e
 #    print d
 #    print c

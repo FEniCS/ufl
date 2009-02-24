@@ -11,19 +11,19 @@ from ufl.algebra import Sum, Product
 from ufl.tensoralgebra import Dot
 from ufl.basisfunction import BasisFunction
 from ufl.algorithms.traversal import iter_expressions, pre_traversal
-from ufl.algorithms.transformations import extract_basisfunction_dependencies, NotMultiLinearException
+from ufl.algorithms.transformations import extract_basis_function_dependencies, NotMultiLinearException
 
 #--- Utilities for checking properties of forms ---
 
 def is_multilinear(form):
     "Check if form is multilinear in basis function arguments."
-    # An attempt at implementing is_multilinear using extract_basisfunction_dependencies.
+    # An attempt at implementing is_multilinear using extract_basis_function_dependencies.
     # TODO: This has some false negatives for "multiple configurations". (Does it still? Needs testing!)
     # TODO: FFC probably needs a variant of this which checks for some sorts of linearity
     #       in Functions as well, this should be a fairly simple extension of the current algorithm.
     try:
         for e in iter_expressions(form):
-            deps = extract_basisfunction_dependencies(e)
+            deps = extract_basis_function_dependencies(e)
             nargs = [len(d) for d in deps]
             if len(nargs) == 0:
                 debug("This form is a functional.")
@@ -65,14 +65,14 @@ def is_multilinear(form):
 #        monomials += _extract_monomials(e)
 # 
 #    # Extract basis functions
-#    basisfunctions = set()
+#    basis_functions = set()
 #    for monomial in monomials:
 #        for v in monomial:
-#            basisfunctions.add(v)
+#            basis_functions.add(v)
 # 
 #    # Check that each basis function appears exactly once in each monomial term
 #    for monomial in monomials:
-#        for v in basisfunctions:
+#        for v in basis_functions:
 #            if not len([w for w in monomial if w == v]) == 1:
 #                warning("Basis function %s does not appear exactly once in each term." % str(v))
 #                return False

@@ -439,11 +439,11 @@ class VariableAD(AD):
 
 class FunctionAD(AD):
     "Apply AFD (Automatic Function Differentiation) to expression."
-    def __init__(self, spatial_dim, functions, basisfunctions):
+    def __init__(self, spatial_dim, functions, basis_functions):
         AD.__init__(self, spatial_dim, var_shape=(), var_free_indices=(), var_index_dimensions={})
-        self._functions = zip(functions, basisfunctions)
+        self._functions = zip(functions, basis_functions)
         self._w = functions
-        self._v = basisfunctions
+        self._v = basis_functions
         ufl_assert(isinstance(self._w, Tuple), "Eh?")
         ufl_assert(isinstance(self._v, Tuple), "Eh?")
         # Define dw/dw := v (what we really mean by d/dw is d/dw_j where w = sum_j w_j phi_j, and what we really mean by v is phi_j for any j)

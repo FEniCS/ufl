@@ -34,12 +34,11 @@ from ufl.form import Form
 from ufl.classes import terminal_classes
 
 # Other algorithms:
-from ufl.algorithms.analysis import extract_basisfunctions, extract_coefficients, extract_variables
+from ufl.algorithms.analysis import extract_basis_functions, extract_coefficients, extract_variables
 from ufl.algorithms.formdata import FormData
 from ufl.algorithms.formfiles import load_forms
 from ufl.algorithms.latextools import align, document, verbatim
 
-from ufl.algorithms.dependencies import DependencySet, split_by_dependencies
 from ufl.algorithms.transformations import expand_compounds, mark_duplications, Transformer
 
 # TODO: Maybe this can be cleaner written using the graph utilities
@@ -98,9 +97,9 @@ def format_multi_index(ii, formatstring="%s"):
 # TODO: Handle line wrapping
 # TODO: Handle ListTensors of rank > 1 correctly
 class Expression2LatexHandler(Transformer):
-    def __init__(self, basisfunction_renumbering, coefficient_renumbering):
+    def __init__(self, basis_function_renumbering, coefficient_renumbering):
         Transformer.__init__(self)
-        self.basisfunction_renumbering = basisfunction_renumbering
+        self.basis_function_renumbering = basis_function_renumbering
         self.coefficient_renumbering = coefficient_renumbering
     
     # --- Terminal objects ---
@@ -118,7 +117,7 @@ class Expression2LatexHandler(Transformer):
         return "n"
     
     def basis_function(self, o):
-        return "{v_h^{%d}}" % o.count() # self.basisfunction_renumbering[o] # Using ^ for function numbering and _ for indexing
+        return "{v_h^{%d}}" % o.count() # self.basis_function_renumbering[o] # Using ^ for function numbering and _ for indexing
     
     def function(self, o):
         return "{w_h^{%d}}" % o.count() # self.coefficient_renumbering[o]
@@ -288,8 +287,8 @@ class Expression2LatexHandler(Transformer):
     def expr(self, o):
         error("Missing handler for type %s" % str(type(o)))
     
-def expression2latex(expression, basisfunction_renumbering, coefficient_renumbering):
-    visitor = Expression2LatexHandler(basisfunction_renumbering, coefficient_renumbering)
+def expression2latex(expression, basis_function_renumbering, coefficient_renumbering):
+    visitor = Expression2LatexHandler(basis_function_renumbering, coefficient_renumbering)
     return visitor.visit(expression)
 
 def element2latex(element):
@@ -301,15 +300,15 @@ def element2latex(element):
 domain_strings = { "cell": "\\Omega", "exterior_facet": "\\Gamma^{ext}", "interior_facet": "\\Gamma^{int}" }
 dx_strings = { "cell": "dx", "exterior_facet": "ds", "interior_facet": "dS" }
 
-def form2latex(form, formname="a", basisfunction_names = None, function_names = None):
-    if basisfunction_names is None: basisfunction_names = {}
+def form2latex(form, formname="a", basis_function_names = None, function_names = None):
+    if basis_function_names is None: basis_function_names = {}
     if function_names is None: function_names = {}
     formdata = FormData(form)
     sections = []
     
     # Define elements
     lines = []
-    for i, f in enumerate(formdata.basisfunctions):
+    for i, f in enumerate(formdata.basis_functions):
         lines.append("\\mathcal{P}_{%d} = \\{%s\\} " % (i, element2latex(f.element())))
     for i, f in enumerate(formdata.coefficients):
         lines.append("\\mathcal{Q}_{%d} = \\{%s\\} " % (i, element2latex(f.element())))
@@ -318,7 +317,7 @@ def form2latex(form, formname="a", basisfunction_names = None, function_names = 
     
     # Define function spaces
     lines = []
-    for i, f in enumerate(formdata.basisfunctions):
+    for i, f in enumerate(formdata.basis_functions):
         lines.append("V_h^{%d} = \{v : v \\vert_K \in \\mathcal{P}_{%d}(K) \\quad \\forall K \in \\mathcal{T}\} " % (i, i))
     for i, f in enumerate(formdata.coefficients):
         lines.append("W_h^{%d} = \{v : v \\vert_K \in \\mathcal{Q}_{%d}(K) \\quad \\forall K \in \\mathcal{T}\} " % (i, i))
@@ -327,8 +326,8 @@ def form2latex(form, formname="a", basisfunction_names = None, function_names = 
     
     # Define basis functions and functions
     lines = []
-    for i, f in enumerate(formdata.basisfunctions):
-        name = basisfunction_names.get(f, None)
+    for i, f in enumerate(formdata.basis_functions):
+        name = basis_function_names.get(f, None)
         name = "" if name is None else (name + " = ")
         lines.append("%sv_h^{%d} \\in V_h^{%d} " % (name, i, i))
     for i, f in enumerate(formdata.coefficients):
@@ -341,7 +340,7 @@ def form2latex(form, formname="a", basisfunction_names = None, function_names = 
     # TODO: Wrap ListTensors, ComponentTensor and Conditionals in expression as variables before transformation
 
     # Temporary hack for transition: removed formdata.*_renumbering...
-    basisfunction_renumbering = dict((f,i) for (i,f) in enumerate(formdata.basisfunctions))
+    basis_function_renumbering = dict((f,i) for (i,f) in enumerate(formdata.basis_functions))
     coefficient_renumbering   = dict((f,i) for (i,f) in enumerate(formdata.coefficients))
     
     # Define variables
@@ -356,13 +355,13 @@ def form2latex(form, formname="a", basisfunction_names = None, function_names = 
             l = v._label
             if not l in handled_variables:
                 handled_variables.add(l)
-                exprlatex = expression2latex(v._expression, basisfunction_renumbering, coefficient_renumbering)
+                exprlatex = expression2latex(v._expression, basis_function_renumbering, coefficient_renumbering)
                 lines.append(("s_{%d}" % l._count, "= %s" % exprlatex))
     if lines:
         sections.append(("Variables", align(lines)))
     
     # Join form arguments for signature "a(...) ="
-    b = ", ".join("v_h^{%d}" % i for (i, v) in enumerate(formdata.basisfunctions))
+    b = ", ".join("v_h^{%d}" % i for (i, v) in enumerate(formdata.basis_functions))
     c = ", ".join("w_h^{%d}" % i for (i, w) in enumerate(formdata.coefficients))
     arguments = "; ".join((b, c))
     signature = "%s(%s) = " % (formname, arguments, )
@@ -372,7 +371,7 @@ def form2latex(form, formname="a", basisfunction_names = None, function_names = 
     a = signature; p = ""
     for itg in integrals:
         # TODO: Get list of expression strings instead of single expression!
-        integrand_string = expression2latex(itg.integrand(), basisfunction_renumbering, coefficient_renumbering)
+        integrand_string = expression2latex(itg.integrand(), basis_function_renumbering, coefficient_renumbering)
         b = p + "\\int_{%s_%d}" % (domain_strings[itg.measure().domain_type()], itg.measure().domain_id())
         c = "\\left[ { %s } \\right] \,%s" % (integrand_string, dx_strings[itg.measure().domain_type()])
         lines.append((a, b, c))
@@ -385,9 +384,9 @@ def ufl2latex(expression):
     "Generate LaTeX code for a UFL expression or form (wrapper for form2latex and expression2latex)."
     if isinstance(expression, Form):
         return form2latex(expression)
-    basisfunction_renumbering = dict((f,i) for (i,f) in enumerate(extract_basisfunctions(expression)))
+    basis_function_renumbering = dict((f,i) for (i,f) in enumerate(extract_basis_functions(expression)))
     coefficient_renumbering   = dict((f,i) for (i,f) in enumerate(extract_coefficients(expression)))
-    return expression2latex(expression, basisfunction_renumbering, coefficient_renumbering)
+    return expression2latex(expression, basis_function_renumbering, coefficient_renumbering)
 
 # --- LaTeX rendering of composite UFL objects ---
 
@@ -403,12 +402,13 @@ def dep2latex(dep):
         deps.append("K")
     if dep.coordinates:
         deps.append("x")
-    for i, v in enumerate(dep.basisfunctions):
+    for i, v in enumerate(dep.basis_functions):
         if v:
             deps.append(bfname(i))
     return "Dependencies: ${ %s }$." % ", ".join(deps)
 
-def dependency_sorting(deplist, rank): # TODO: Use this in SFC
+def dependency_sorting(deplist, rank):
+    error("Rework using graphs.") # FIXME
     def split(deps, state):
         left = []
         todo = []
@@ -436,7 +436,7 @@ def dependency_sorting(deplist, rank): # TODO: Use this in SFC
     
     indices = compute_indices((2,)*rank)
     for bfs in indices[1:]: # skip (0,...,0)
-        state.basisfunctions = map(bool, reversed(bfs))
+        state.basis_functions = map(bool, reversed(bfs))
         next, left = split(left, state)
         deplistlist.append(next)
     
@@ -453,7 +453,7 @@ def dependency_sorting(deplist, rank): # TODO: Use this in SFC
     
     indices = compute_indices((2,)*rank)
     for bfs in indices[1:]: # skip (0,...,0)
-        state.basisfunctions = map(bool, reversed(bfs))
+        state.basis_functions = map(bool, reversed(bfs))
         next, left = split(left, state)
         deplistlist.append(next)
     
@@ -471,7 +471,7 @@ def dependency_sorting(deplist, rank): # TODO: Use this in SFC
 
 def code2latex(integrand_vinfo, code, formdata):
     "TODO: Document me"
-    bfn = formdata.basisfunction_renumbering
+    bfn = formdata.basis_function_renumbering
     cfn = formdata.coefficient_renumbering
 
     # Sort dependency sets in a sensible way (preclude to a good quadrature code generator)
@@ -500,7 +500,8 @@ def code2latex(integrand_vinfo, code, formdata):
     body = "\n".join(pieces)
     return body
 
-def integrand2code(integrand, formdata, basisfunction_deps, function_deps):
+def integrand2code(integrand, formdata, basis_function_deps, function_deps):
+    error("Rework using graphs.") # FIXME
     # Try to pick up duplications on the most abstract level
     integrand = mark_duplications(integrand)
     
@@ -518,7 +519,7 @@ def integrand2code(integrand, formdata, basisfunction_deps, function_deps):
     # Try to pick up duplications after propagating derivatives
     #integrand = mark_duplications(integrand)
     
-    (vinfo, code) = split_by_dependencies(integrand, formdata, basisfunction_deps, function_deps)
+    (vinfo, code) = split_by_dependencies(integrand, formdata, basis_function_deps, function_deps)
     
     return vinfo, code
 
@@ -526,14 +527,15 @@ def formdata2latex(formdata):
     return verbatim(str(formdata)) # TODO
 
 def form2code2latex(form):
+    error("Rework using graphs.") # FIXME
     formdata = FormData(form)
         
     # Define toy input to split_by_dependencies
-    basisfunction_deps = []
+    basis_function_deps = []
     for i in range(formdata.rank):
         bfs = tuple(i == j for j in range(formdata.rank)) 
         d = DependencySet(bfs, coordinates=True) # TODO: Toggle coordinates depending on element
-        basisfunction_deps.append(d)
+        basis_function_deps.append(d)
     
     function_deps = []
     bfs = (False,)*formdata.rank
@@ -546,7 +548,7 @@ def form2code2latex(form):
     sections = [(title, body)]
     
     for itg in form.cell_integrals():
-        vinfo, itgcode = integrand2code(itg.integrand(), formdata, basisfunction_deps, function_deps)
+        vinfo, itgcode = integrand2code(itg.integrand(), formdata, basis_function_deps, function_deps)
         title = "%s integral over domain %d" % (itg.measure().domain_type(), itg.measure().domain_id())
         body = code2latex(vinfo, itgcode, formdata)
         sections.append((title, body))
@@ -563,7 +565,7 @@ def forms2latexdocument(forms, uflfilename, compile=False):
         if compile:
             body = form2code2latex(form)
         else:
-            body = form2latex(form) #, formname, basisfunction_names, function_names) # TODO
+            body = form2latex(form) #, formname, basis_function_names, function_names) # TODO
         sections.append((title, body))
 
     if compile:

@@ -29,27 +29,27 @@ class Derivative(Operator):
 class FunctionDerivative(Derivative):
     """Derivative of the integrand of a form w.r.t. the 
     degrees of freedom in a discrete Function."""
-    __slots__ = ("_integrand", "_functions", "_basisfunctions")
+    __slots__ = ("_integrand", "_functions", "_basis_functions")
     
-    def __new__(cls, integrand, functions, basisfunctions):
+    def __new__(cls, integrand, functions, basis_functions):
         ufl_assert(is_true_ufl_scalar(integrand),
             "Expecting true UFL scalar expression.")
         ufl_assert(isinstance(functions, Tuple), #and all(isinstance(f, (Function,Indexed)) for f in functions),
             "Expecting Tuple instance with Functions.")
-        ufl_assert(isinstance(basisfunctions, Tuple), #and all(isinstance(f, BasisFunction) for f in basisfunctions),
+        ufl_assert(isinstance(basis_functions, Tuple), #and all(isinstance(f, BasisFunction) for f in basis_functions),
             "Expecting Tuple instance with BasisFunctions.")
         if isinstance(integrand, Zero):
             return Zero()
         return Derivative.__new__(cls)
     
-    def __init__(self, integrand, functions, basisfunctions):
+    def __init__(self, integrand, functions, basis_functions):
         Derivative.__init__(self)
         self._integrand = integrand
         self._functions = functions
-        self._basisfunctions = basisfunctions
+        self._basis_functions = basis_functions
     
     def operands(self):
-        return (self._integrand, self._functions, self._basisfunctions)
+        return (self._integrand, self._functions, self._basis_functions)
     
     def shape(self):
         return ()
@@ -61,10 +61,10 @@ class FunctionDerivative(Derivative):
         return {}
     
     def __str__(self):
-        return "FunctionDerivative (w.r.t. function %s and using basis function %s) of \n%s" % (self._functions, self._basisfunctions, self._integrand)
+        return "FunctionDerivative (w.r.t. function %s and using basis function %s) of \n%s" % (self._functions, self._basis_functions, self._integrand)
     
     def __repr__(self):
-        return "FunctionDerivative(%r, %r, %r)" % (self._integrand, self._functions, self._basisfunctions)
+        return "FunctionDerivative(%r, %r, %r)" % (self._integrand, self._functions, self._basis_functions)
 
 def split_indices(expression, idx):
     idims = dict(expression.index_dimensions())

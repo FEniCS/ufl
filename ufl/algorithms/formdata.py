@@ -39,13 +39,13 @@ class FormData(object):
         self.form = expand_derivatives(self.original_form) 
 
         # Get arguments and their elements
-        basisfunctions, coefficients = extract_arguments(self.form)
+        basis_functions, coefficients = extract_arguments(self.form)
 
         # Replace arguments with new objects renumbered with count internal to the form
-        replace_map, self.basisfunctions, self.coefficients = \
-            build_argument_replace_map(basisfunctions, coefficients)
+        replace_map, self.basis_functions, self.coefficients = \
+            build_argument_replace_map(basis_functions, coefficients)
         self.form = replace(self.form, replace_map)
-        del basisfunctions # to avoid bugs
+        del basis_functions # to avoid bugs
         del coefficients # to avoid bugs
 
         # Build mapping from new form argument objects to the
@@ -57,7 +57,7 @@ class FormData(object):
             self.original_arguments[v] = k
 
         # Some useful dimensions
-        self.rank = len(self.basisfunctions)
+        self.rank = len(self.basis_functions)
         self.num_coefficients = len(self.coefficients)
 
         # Set coefficient names to default if necessary
@@ -67,7 +67,7 @@ class FormData(object):
             self.coefficient_names = coefficient_names
 
         # Get all elements
-        self.elements = [f._element for f in chain(self.basisfunctions, self.coefficients)]
+        self.elements = [f._element for f in chain(self.basis_functions, self.coefficients)]
 
         # Make a set of all unique top-level elements
         self.unique_elements = set(self.elements)
@@ -89,8 +89,8 @@ class FormData(object):
             ufl_assert(all(quad_order == e.degree() for e in quadrature_elements),
                 "Incompatible quadrature elements specified (orders must be equal).")
         else:
-            # Use sum of basisfunction degrees
-            quad_order = sum(b.element().degree() for b in self.basisfunctions)
+            # Use sum of basis_function degrees
+            quad_order = sum(b.element().degree() for b in self.basis_functions)
         self.quad_order = quad_order
 
     def __str__(self):
@@ -104,7 +104,7 @@ class FormData(object):
                      ("Number of cell integrals",           len(self.form.cell_integrals())),
                      ("Number of exterior facet integrals", len(self.form.exterior_facet_integrals())),
                      ("Number of interior facet integrals", len(self.form.interior_facet_integrals())),
-                     ("Basis functions",                    lstr(self.basisfunctions)),
+                     ("Basis functions",                    lstr(self.basis_functions)),
                      ("Coefficients",                       lstr(self.coefficients)),
                      ("Coefficient names",                  lstr(self.coefficient_names)),
                      ("Unique elements",                    sstr(self.unique_elements)),

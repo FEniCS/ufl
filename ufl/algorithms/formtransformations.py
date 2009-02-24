@@ -22,14 +22,14 @@ from ufl.classes import ufl_classes, terminal_classes, nonterminal_classes
 
 # Other algorithms:
 from ufl.algorithms.traversal import traverse_terminals
-from ufl.algorithms.analysis import extract_basisfunctions, extract_coefficients
+from ufl.algorithms.analysis import extract_basis_functions, extract_coefficients
 from ufl.algorithms.transformations import replace, Transformer, apply_transformer, transform_integrands
 
 class PartExtracter(Transformer):
-    def __init__(self, basisfunctions):
+    def __init__(self, basis_functions):
         Transformer.__init__(self)
         self._want = Stack()
-        self._want.push(set(basisfunctions))
+        self._want.push(set(basis_functions))
     
     def expr(self, x):
         "The default is a nonlinear operator not accepting any basis functions in its children."
@@ -116,7 +116,7 @@ class PartExtracter(Transformer):
 
 def compute_form_with_arity(form, arity): # TODO: Test and finish
     """Compute the left hand side of a form."""
-    bf = extract_basisfunctions(form)
+    bf = extract_basis_functions(form)
     if len(bf) < arity:
         warning("Form has no parts with arity %d." % arity)
         return 0*form
@@ -146,12 +146,12 @@ def compute_form_functional(form):
 def compute_form_action(form, function):
     """Compute the action of a form on a Function.
     
-    This works simply by replacing the last basisfunction
+    This works simply by replacing the last basis_function
     with a Function on the same function space (element).
     The form returned will thus have one BasisFunction less 
     and one additional Function at the end.
     """
-    bf = extract_basisfunctions(form)
+    bf = extract_basis_functions(form)
     ufl_assert(len(bf) == 2, "Expecting bilinear form.")
     v, u = bf
     e = u.element()
@@ -166,9 +166,9 @@ def compute_form_action(form, function):
 def compute_form_adjoint(form):
     """Compute the adjoint of a bilinear form.
     
-    This works simply by swapping the first and last basisfunctions.
+    This works simply by swapping the first and last basis_functions.
     """
-    bf = extract_basisfunctions(form)
+    bf = extract_basis_functions(form)
     ufl_assert(len(bf) == 2, "Expecting bilinear form.")
     v, u = bf
     return replace(form, {v:u, u:v})
@@ -183,7 +183,7 @@ def compute_form_adjoint(form):
 #    """
 #    warning("TODO: Don't know if this is correct or even useful, just picked up the name some place.")
 #    return 0.5*compute_form_lhs(form) - compute_form_rhs(form)
-#    #bf = extract_basisfunctions(form)
+#    #bf = extract_basis_functions(form)
 #    #ufl_assert(len(bf) == 2, "Expecting bilinear form.")
 #    #v, u = bf
 #    #return replace(form, {u:v})

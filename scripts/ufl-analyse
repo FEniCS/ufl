@@ -52,7 +52,7 @@ for filename in args:
         for e in fd.unique_elements:
             print "       ", repr(e)
         print "    Basisfunctions:"
-        for v in fd.basisfunctions:
+        for v in fd.basis_functions:
             print "       ", repr(v)
         print "    Coefficients:"
         for w in fd.coefficients:

@@ -36,7 +36,7 @@ class AlgorithmsTestCase(unittest.TestCase):
         b = u*v*dx(0) +inner(c*grad(u),grad(v))*dx(1) + dot(n, grad(u))*v*ds + f*v*dx
         
         self.elements = (element,)
-        self.basisfunctions = (v, u)
+        self.basis_functions = (v, u)
         self.coefficients = (c, f)
         self.forms = (a, L, b)
 
@@ -63,13 +63,13 @@ class AlgorithmsTestCase(unittest.TestCase):
             print 
             print str(self.forms[2])
             print 
-            print [str(b) for b in extract_basisfunctions(self.forms[2])]
+            print [str(b) for b in extract_basis_functions(self.forms[2])]
             print 
             print self.coefficients
             print 
             print repr(self.forms[2])
             print 
-            print extract_basisfunctions(self.forms[2])
+            print extract_basis_functions(self.forms[2])
             print 
     
     def test_flatten(self):
@@ -95,9 +95,9 @@ class AlgorithmsTestCase(unittest.TestCase):
         assert isinstance(aa, Product) and len(aa.operands()) == 2
         assert isinstance(ab, Product) and len(ab.operands()) == 2
 
-    def test_basisfunctions(self):
-        assert self.basisfunctions == tuple(extract_basisfunctions(self.forms[0]))
-        assert tuple(self.basisfunctions[:1]) == tuple(extract_basisfunctions(self.forms[1]))
+    def test_basis_functions(self):
+        assert self.basis_functions == tuple(extract_basis_functions(self.forms[0]))
+        assert tuple(self.basis_functions[:1]) == tuple(extract_basis_functions(self.forms[1]))
 
     def test_coefficients(self):
         assert self.coefficients == tuple(extract_coefficients(self.forms[2]))

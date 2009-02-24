@@ -12,7 +12,7 @@ from ufl.expr import Expr
 from ufl.terminal import Terminal
 from ufl.form import Form
 from ufl.integral import Integral
-from ufl.algorithms.analysis import extract_basisfunctions, extract_coefficients
+from ufl.algorithms.analysis import extract_basis_functions, extract_coefficients
 
 #--- Utilities for constructing informative strings from UFL objects ---
 
@@ -30,7 +30,7 @@ def integral_info(integral):
 def form_info(form):
     ufl_assert(isinstance(form, Form), "Expecting a Form.")
     
-    bf = extract_basisfunctions(form)
+    bf = extract_basis_functions(form)
     cf = extract_coefficients(form)
     
     ci = form.cell_integrals()
