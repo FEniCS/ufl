@@ -8,7 +8,9 @@ from itertools import chain, imap, izip
 from heapq import heapify, heappop, heappush
 
 from ufl import *
-from ufl.algorithms import post_traversal, tree_format
+from ufl.algorithms.traversal import post_traversal
+from ufl.algorithms.printing import tree_format
+from ufl.algorithms.transformations import MultiFunction
 from ufl.classes import Terminal, Variable
 
 # O(n) = O(|V|) = O(|E|), since |E| < c|V| for a fairly small c.
@@ -277,21 +279,30 @@ def rebuild_tree(G):
 
 #--- Graph partitoning ---
 
-def bit_criteria(v, keys):
-    print v, keys
-    # Using bitflags
-    if keys:
-        iv = keys[0]
-        for k in keys[1:]:
-            iv |= k
-    else:
-        iv = 0
-        for i, c in enumerate((Function, BasisFunction)):
-            if isinstance(v, c):
-                iv = 1 << i
-                break
-    print "iv =", iv
-    return iv
+class DependencyDefiner(MultiFunction):
+    def __init__(self):
+        MultiFunction.__init__(self)
+    
+    def expr(self, o):
+        return set()
+    
+    def function(self, o):
+        return set((o,))
+    
+    def basis_function(self, o):
+        return set((o,))
+    
+    def spatial_derivative(self, o):
+        return set((o.cell(),))
+
+dd = DependencyDefiner()
+
+def expr_set_criteria(v, keys):
+    # Using sets of ufl objects
+    key = dd(v)
+    for k in keys:
+        key |= k
+    return frozenset(key)
 
 def partition(G, criteria): # TODO: Take vertex connections as input
     V, E = G
@@ -320,7 +331,7 @@ def test_expr():
     u = TrialFunction(element)
     f = Function(element)
     g = Function(element)
-    expr = (f+g)*u*(g-1)*v
+    expr = (f+g)*u.dx(0)*(g-1)*v
     return expr
 
 if __name__ == "__main__":
@@ -341,11 +352,12 @@ if __name__ == "__main__":
     for iv, ein in enumerate(Ein):
         print "Edges in for vertex %03d: %s" % (iv, ein)
     print
-
-    partitions, keys = partition(G, bit_criteria)
+    
+    from ufl.common import sstr
+    partitions, keys = partition(G, expr_set_criteria)
     for k in partitions:
         print
-        print "Partition with key", k
+        print "Partition with key", sstr(k)
         for iv in partitions[k]:
             print "Vertex %03d: %s" % (iv, V[iv])
 

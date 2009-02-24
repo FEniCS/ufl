@@ -32,6 +32,32 @@ def transform(expression, handlers):
         error("Didn't find class %s among handlers." % c)
     return h(expression, *ops)
 
+class MultiFunction(object):
+    """Base class for collections of nonrecursive expression node handlers."""
+    _handlers_cache = {}
+    def __init__(self):
+        # Analyse class properties and cache handler data the
+        # first time this is run for a particular class
+        cache_data = MultiFunction._handlers_cache.get(type(self))
+        if not cache_data:
+            cache_data = [None]*len(all_ufl_classes)
+            # For all UFL classes
+            for classobject in all_ufl_classes:
+                # Iterate over the inheritance chain (NB! This assumes that all UFL classes inherits a single Expr subclass and that this is the first superclass!)
+                for c in classobject.mro():
+                    # Register classobject with handler for the first encountered superclass
+                    name = c._handlername
+                    if getattr(self, name, None):
+                        cache_data[classobject._classid] = name
+                        break
+            MultiFunction._handlers_cache[type(self)] = cache_data
+        # Build handler list for this particular class (get functions bound to self)
+        self._handlers = [getattr(self, name) for name in cache_data]
+    
+    def __call__(self, o, *args, **kwargs):
+        h = self._handlers[o._classid]
+        return h(o, *args, **kwargs)
+
 def is_post_handler(function):
     "Is this a handler that expects transformed children as input?"
     insp = getargspec(function)
@@ -65,7 +91,7 @@ class Transformer(object):
                         break
             Transformer._handlers_cache[type(self)] = cache_data
         
-        # Build handler list for this particular class (functions must bind to self)
+        # Build handler list for this particular class (get functions bound to self)
         self._handlers = [(getattr(self, name), post) for (name, post) in cache_data]
     
     def visit(self, o):
@@ -73,18 +99,19 @@ class Transformer(object):
         
         # Get handler for the UFL class of o (type(o) may be an external subclass of the actual UFL class)
         h, visit_children_first = self._handlers[o._classid]
-        if h:
-            # Is this a handler that expects transformed children as input?
-            if visit_children_first:
-                # Yes, visit all children first and then call h.
-                return h(o, *map(self.visit, o.operands()))
-            
-            # No, this is a handler that handles its own children
-            # (arguments self and o, where self is already bound)
-            return h(o)
         
-        # Failed to find a handler! Should never happen, but will happen if a non-Expr object is visited.
-        error("Can't handle objects of type %s" % str(type(o)))
+        #if not h:
+        #    # Failed to find a handler! Should never happen, but will happen if a non-Expr object is visited.
+        #    error("Can't handle objects of type %s" % str(type(o)))
+        
+        # Is this a handler that expects transformed children as input?
+        if visit_children_first:
+            # Yes, visit all children first and then call h.
+            return h(o, *map(self.visit, o.operands()))
+        
+        # No, this is a handler that handles its own children
+        # (arguments self and o, where self is already bound)
+        return h(o)
     
     def undefined(self, o):
         "Trigger error."

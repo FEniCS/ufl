@@ -2,25 +2,29 @@
 all relevant operands for use with reverse mode AD."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2009-01-06 -- 2009-01-09"
+__date__ = "2009-01-06 -- 2009-02-24"
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.classes import Zero, IntValue, FloatValue
 from ufl.operators import sin, cos, exp, ln, sqrt, conditional, sign
 from ufl.tensors import unit_vectors, ListTensor
-from ufl.algorithms.transformations import Transformer
+from ufl.algorithms.transformations import MultiFunction
 
-class PartialDerivativeComputer(Transformer):
+
+class PartialDerivativeComputer(MultiFunction):
     """NB! The main reason for keeping this out of the Expr hierarchy is
     to avoid user mistakes in the form of mixups with total derivatives,
     and to allow both reverse and forward mode AD."""
-    #def __init__(self, spatial_dim):
     def __init__(self):
-        Transformer.__init__(self)
+    #def __init__(self, spatial_dim):
         #self._spatial_dim = spatial_dim
+        MultiFunction.__init__(self)
     
     # TODO: Make sure we have implemented partial derivatives of all operators. At least non-compound ones should be covered, but compound ones may be a good idea in future versions.
+    
+    def expr(self, o):
+        error("No partial derivative defined for %s" % type(o))
     
     # --- Basic algebra operators
     
@@ -30,6 +34,7 @@ class PartialDerivativeComputer(Transformer):
     
     def sum(self, f):
         "d/dx_i sum_j x_j = 1"
+        #_1 = IntValue(1, o.free_indices(), o.index_dimensions())
         _1 = IntValue(1) # TODO: Handle non-scalars
         return (_1,)*len(f.operands())
     
@@ -157,4 +162,9 @@ class PartialDerivativeComputer(Transformer):
         error("Partial derivative of function_derivative not implemented, when is this called? apply_ad should make sure it isn't called.")
         a, w, v = f.operands()
         return (None, None, None)
+
+# Example usage:
+def pdiffs(exprs):
+    pd = PartialDerivativeComputer()
+    return [pd(e) for e in exprs]
 
