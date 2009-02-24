@@ -15,7 +15,7 @@ from ufl.algorithms.analysis import extract_arguments, extract_sub_elements, bui
 from ufl.algorithms.transformations import replace
 
 from ufl.algorithms.ad import expand_derivatives
-
+from ufl.algorithms.renumbering import renumber_indices
 
 class FormData(object):
     "Class collecting various information extracted from a Form."
@@ -36,7 +36,13 @@ class FormData(object):
         # One reason for putting it here is that functional derivatives
         # may change the number of form arguments, which is critical
         # for the rest of this function.
-        self.form = expand_derivatives(self.original_form) 
+        self.form = expand_derivatives(self.original_form)
+        
+        # Renumber indices to start from 0, as a simple attempt at making
+        # the form signature (repr) consistent independent of when in the
+        # application a form is created. This is not foolproof, but better
+        # than nothing.
+        self.form = renumber_indices(self.form)
 
         # Get arguments and their elements
         basis_functions, coefficients = extract_arguments(self.form)

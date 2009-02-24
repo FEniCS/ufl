@@ -1,7 +1,7 @@
 "This module defines classes representing constant values."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-11-01 -- 2009-02-20"
+__date__ = "2008-11-01 -- 2009-02-24"
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
@@ -61,6 +61,13 @@ class Zero(ConstantValue, IndexAnnotated):
         ConstantValue.__init__(self)
         IndexAnnotated.__init__(self, shape, free_indices, index_dimensions)
     
+    def reconstruct(self, free_indices=None):
+        if not free_indices:
+            return self
+        ufl_assert(len(free_indices) == len(self._free_indices), "Size mismatch between old and new indices.")
+        new_index_dimensions = dict((b, self._index_dimensions[a]) for (a,b) in zip(self._free_indices, free_indices))
+        return Zero(self._shape, free_indices, new_index_dimensions)
+    
     def shape(self):
         return self._shape
     
@@ -114,6 +121,14 @@ class ScalarValue(ConstantValue, IndexAnnotated):
         ConstantValue.__init__(self)
         IndexAnnotated.__init__(self, shape, free_indices, index_dimensions)
         self._value = value
+    
+    def reconstruct(self, free_indices=None):
+        "Reconstruct with new free indices."
+        if not free_indices:
+            return self
+        ufl_assert(len(free_indices) == len(self._free_indices), "Size mismatch between old and new indices.")
+        new_index_dimensions = dict((b, self._index_dimensions[a]) for (a,b) in zip(self._free_indices, free_indices))
+        return self._uflclass(self._value, self._shape, free_indices, new_index_dimensions)
     
     def shape(self):
         return self._shape

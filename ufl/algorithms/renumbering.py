@@ -1,5 +1,5 @@
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2009-02-22 -- 2009-02-23"
+__date__ = "2009-02-22 -- 2009-02-24"
 
 from ufl.common import Counted
 from ufl.indexing import Index, FixedIndex, MultiIndex
@@ -12,19 +12,25 @@ class IndexRenumberingTransformer(ReuseTransformer):
         ReuseTransformer.__init__(self)
         self._index_map = {}
 
+    def index_annotated(self, o):
+        free_indices = tuple(map(self.index, o.free_indices()))
+        return o.reconstruct(free_indices)
+    zero = index_annotated
+    scalar_value = index_annotated
+    
     def multi_index(self, o):
-        return MultiIndex(tuple(self.index(index) for index in o))
+        return MultiIndex(tuple(map(self.index, o._indices)))
 
     def index(self, o):
         if isinstance(o, FixedIndex):
             return o
-        i = self._index_map.get(o)
+        c = o._count
+        i = self._index_map.get(c)
         if i is not None:
             return i
-        new_count = len(self._index_map)
-        new_index = Index(new_count)
-        print "Renumbering: %d --> %d" % (o.count(), new_count)
-        self._index_map[o] = new_index
+        new_index = Index(len(self._index_map))
+        #print "Renumbering: %d --> %d" % (o.count(), new_index.count())
+        self._index_map[c] = new_index
         return new_index
 
 def renumber_indices(expr):
