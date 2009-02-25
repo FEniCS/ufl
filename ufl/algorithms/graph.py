@@ -311,7 +311,7 @@ class DependencyDefiner(MultiFunction):
         cell = o.cell()
         deps = set((cell,))
         # Enabling coordinate dependency for higher order geometries (not handled anywhere else though).
-        if cell.order() > 1:
+        if cell.degree() > 1:
             deps.add(cell.x)
         return deps
     
@@ -319,13 +319,62 @@ class DependencyDefiner(MultiFunction):
         cell = o.cell()
         deps = set((cell,))
         # Enabling coordinate dependency for higher order geometries (not handled anywhere else though).
-        if cell.order() > 1:
+        if cell.degree() > 1:
             deps.add(cell.x)
         return deps
 
-dd = DependencyDefiner()
+class StringDependencyDefiner(MultiFunction):
+    """Returns a set of direct dependencies (as strings) given an expr.
+    
+    Possible dependency values are:
+        "c"  - depends on cell
+        "n"  - depends on facet
+        "v%d" % i - depends on basis function i
+        "w"  - depends on coefficients
+        "xi" - depends on local coordinates
+        "x"  - depends on global coordinates
+    """
+    def __init__(self, basis_function_deps = None, function_deps = None):
+        MultiFunction.__init__(self)
+        if basis_function_deps is None:
+            basis_function_deps = {}
+        if function_deps is None:
+            function_deps = {}
+        self.basis_function_deps = basis_function_deps
+        self.function_deps = function_deps
+    
+    def expr(self, o):
+        return set()
+    
+    def basis_function(self, x):
+        default = set(("v%d" % x.count(),))
+        return self.basis_function_deps.get(x, default)
+    
+    def function(self, x):
+        default = set(("w", "c", "x"))
+        return self.function_deps.get(x, default)
+    
+    def constant(self, x):
+        default = set(("w", "c"))
+        return self.function_deps.get(x, default)
+    
+    def facet_normal(self, o):
+        deps = set(("c",))
+        # Enabling coordinate dependency for higher order geometries (not handled anywhere else though).
+        if o.cell().degree() > 1:
+            deps.add("x")
+        return deps
+    
+    def spatial_derivative(self, o): # FIXME: What about (basis) functions of which derivatives are constant?
+        deps = set(("c",))
+        # Enabling coordinate dependency for higher order geometries (not handled anywhere else though).
+        if o.cell().degree() > 1:
+            deps.add("x")
+        return deps
 
-def expr_set_criteria(v, keys):
+dd = StringDependencyDefiner()
+
+def string_set_criteria(v, keys):
     # Using sets of ufl objects
     key = dd(v)
     for k in keys:
@@ -385,7 +434,7 @@ if __name__ == "__main__":
     print
     
     from ufl.common import sstr
-    partitions, keys = partition(G, expr_set_criteria)
+    partitions, keys = partition(G, string_set_criteria)
     for k in partitions:
         print
         print "Partition with key", sstr(k)

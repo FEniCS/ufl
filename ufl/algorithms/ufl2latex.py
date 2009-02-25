@@ -3,7 +3,7 @@ either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2009-02-16"
+__date__ = "2008-05-07 -- 2009-02-25"
 
 # Modified by Anders Logg, 2008-2009.
 
@@ -31,6 +31,7 @@ from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
 from ufl.differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.form import Form
+from ufl.integral import Measure
 from ufl.classes import terminal_classes
 
 # Other algorithms:
@@ -303,8 +304,12 @@ def element2latex(element):
     e = e.replace(">", "")
     return "{\mbox{%s}}" % e
 
-domain_strings = { "cell": "\\Omega", "exterior_facet": "\\Gamma^{ext}", "interior_facet": "\\Gamma^{int}" }
-dx_strings = { "cell": "dx", "exterior_facet": "ds", "interior_facet": "dS" }
+domain_strings = { Measure.CELL: r"\Omega",
+                   Measure.EXTERIOR_FACET: r"\Gamma^{ext}",
+                   Measure.INTERIOR_FACET: r"\Gamma^{int}" }
+dx_strings = { Measure.CELL: "dx",
+               Measure.EXTERIOR_FACET: "ds",
+               Measure.INTERIOR_FACET: "dS" }
 
 def form2latex(formdata):
     form = formdata.form
@@ -363,8 +368,8 @@ def form2latex(formdata):
         sections.append(("Variables", align(lines)))
     
     # Join form arguments for signature "a(...) ="
-    b = ", ".join(bfname(i) for (i, v) in enumerate(formdata.basis_functions))
-    c = ", ".join(cfname(i) for (i, w) in enumerate(formdata.functions))
+    b = ", ".join(formdata.basis_function_names)
+    c = ", ".join(formdata.function_names)
     arguments = "; ".join((b, c))
     signature = "%s(%s) = " % (formname, arguments, )
     
@@ -375,7 +380,7 @@ def form2latex(formdata):
         # TODO: Get list of expression strings instead of single expression!
         integrand_string = expression2latex(itg.integrand(), formdata.basis_function_names, formdata.function_names)
         b = p + "\\int_{%s_%d}" % (domain_strings[itg.measure().domain_type()], itg.measure().domain_id())
-        c = "\\left[ { %s } \\right] \,%s" % (integrand_string, dx_strings[itg.measure().domain_type()])
+        c = "{ %s } \,%s" % (integrand_string, dx_strings[itg.measure().domain_type()])
         lines.append((a, b, c))
         a = "{}"; p = "{}+ "
     sections.append(("Form", align(lines)))
@@ -495,8 +500,22 @@ def code2latex(integrand_vinfo, code, formdata): # XXX
     body = "\n".join(pieces)
     return body
 
-def integrand2code(integrand, formdata, basis_function_deps, function_deps): # XXX
+def integrand2code(integrand, formdata): # XXX
     error("Rework using graphs.") # FIXME
+
+    # Define toy input to split_by_dependencies
+    basis_function_deps = []
+    for i in range(formdata.rank):
+        bfs = tuple(i == j for j in range(formdata.rank)) 
+        d = DependencySet(bfs, coordinates=True) # TODO: Toggle coordinates depending on element
+        basis_function_deps.append(d)
+    
+    function_deps = []
+    bfs = (False,)*formdata.rank
+    for i in range(formdata.num_functions):
+        d = DependencySet(bfs, runtime=True, coordinates=True) # TODO: Toggle coordinates depending on element
+        function_deps.append(d)
+
     # Try to pick up duplications on the most abstract level
     integrand = mark_duplications(integrand)
     
@@ -518,26 +537,10 @@ def integrand2code(integrand, formdata, basis_function_deps, function_deps): # X
     
     return vinfo, code
 
-def formdata2latex(formdata):
-    return verbatim(str(formdata)) # TODO: Format better
+def formdata2latex(formdata): # TODO: Format better
+    return verbatim(str(formdata)) 
 
 def form2code2latex(formdata):
-
-    # XXX This is where we start:
-
-    # Define toy input to split_by_dependencies
-    basis_function_deps = []
-    for i in range(formdata.rank):
-        bfs = tuple(i == j for j in range(formdata.rank)) 
-        d = DependencySet(bfs, coordinates=True) # TODO: Toggle coordinates depending on element
-        basis_function_deps.append(d)
-    
-    function_deps = []
-    bfs = (False,)*formdata.rank
-    for i in range(formdata.num_functions):
-        d = DependencySet(bfs, runtime=True, coordinates=True) # TODO: Toggle coordinates depending on element
-        function_deps.append(d)
-    
     # Render introductory sections
     title = "Form data"
     body = formdata2latex(formdata)
@@ -545,9 +548,15 @@ def form2code2latex(formdata):
     
     # Render each integral as a separate section
     for itg in form.cell_integrals():
-        vinfo, itgcode = integrand2code(itg.integrand(), formdata, basis_function_deps, function_deps) # XXX
-        title = "%s integral over domain %d" % (itg.measure().domain_type(), itg.measure().domain_id())
+        m = itg.measure()
+        title = "%s integral over domain %d" % (m.domain_type(), m.domain_id())
+        
+        vinfo, itgcode = integrand2code(itg.integrand(), formdata) # XXX
         body = code2latex(vinfo, itgcode, formdata) # XXX
+        
+        #G, partitions = integrand2code(itg.integrand(), formdata) # XXX
+        #body = code2latex(G, partitions, formdata) # XXX
+        
         sections.append((title, body))
     
     return sections
@@ -556,10 +565,11 @@ def form2code2latex(formdata):
 
 def forms2latexdocument(forms, uflfilename, compile=False):
     "Render forms from a .ufl file as a LaTeX document."
+    # Render one section for each form
     sections = []
     for form in forms:
         formdata = form.form_data()
-        # Note that form == formdata.original_form, and formdata.form has had expand_derivatives applied to it.
+        
         title = "Form %s" % formdata.name
         if compile:
             body = form2code2latex(formdata)
@@ -567,10 +577,12 @@ def forms2latexdocument(forms, uflfilename, compile=False):
             body = form2latex(formdata)
         sections.append((title, body))
 
+    # Render title
+    suffix = "from UFL file %s" % uflfilename.replace("_", "\\_")
     if compile:
-        title = "Compiled forms from UFL file %s" % uflfilename.replace("_", "\\_")
+        title = "Compiled forms " + suffix
     else:
-        title = "Forms from UFL file %s" % uflfilename.replace("_", "\\_")
+        title = "Forms " + suffix
     return document(title, sections)
 
 # --- File operations ---
@@ -590,3 +602,4 @@ def ufl2pdf(uflfilename, latexfilename, pdffilename, compile=False):
     "Compile a .pdf file from a .ufl file."
     ufl2tex(uflfilename, latexfilename, compile)
     tex2pdf(latexfilename, pdffilename)
+
