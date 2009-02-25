@@ -97,7 +97,11 @@ class FiniteElement(FiniteElementBase):
     def __str__(self):
         "Format as string for pretty printing."
         return "<%s%d on a %s>" % (self._short_name, self.degree(), self.cell())
-
+    
+    def shortstr(self):
+        "Format as string for pretty printing."
+        return "%s%d" % (self._short_name, self.degree())
+    
 class MixedElement(FiniteElementBase):
     "A finite element composed of a nested hierarchy of mixed or simple elements"
     __slots__ = ("_sub_elements",)
@@ -166,7 +170,11 @@ class MixedElement(FiniteElementBase):
 
     def __str__(self):
         "Format as string for pretty printing."
-        return "[Mixed element: (" + ", ".join(str(element) for element in self._sub_elements) + ")" + "]"
+        return "<Mixed element: (" + ", ".join(str(element) for element in self._sub_elements) + ")" + ">"
+    
+    def shortstr(self):
+        "Format as string for pretty printing."
+        return "Mixed<" + ", ".join(element.shortstr() for element in self._sub_elements) + ">"
 
 class VectorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal"
@@ -205,8 +213,12 @@ class VectorElement(MixedElement):
 
     def __str__(self):
         "Format as string for pretty printing."
-        return "[%s vector element of degree %d on a %s: %d x %s]" % \
+        return "<%s vector element of degree %d on a %s: %d x %s>" % \
                (self.family(), self.degree(), self.cell(), len(self._sub_elements), self._sub_element)
+    
+    def shortstr(self):
+        "Format as string for pretty printing."
+        return "Vector<%d x %s>" % (len(self._sub_elements), self._sub_element.shortstr())
 
 class TensorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal"
@@ -284,5 +296,9 @@ class TensorElement(MixedElement):
 
     def __str__(self):
         "Format as string for pretty printing."
-        return "[%s tensor element of degree %d and shape %s on a %s]" % \
-            (self.family(), self.degree(), self.value_shape(), self.cell())
+        return "<%s tensor element of degree %d and shape %s on a %s>" % \
+            (self.family(), self.degree(), self.value_shape(), self.cell()) # TODO: add symmetries
+    
+    def shortstr(self):
+        "Format as string for pretty printing."
+        return "Tensor<%d x %s>" % (self.value_shape(), self._sub_element.shortstr()) # TODO: add symmetries

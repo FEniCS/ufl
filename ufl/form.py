@@ -1,8 +1,9 @@
 "The Form class."
 
 __authors__ = "Martin Sandve Alnes"
-__date__    = "2008-03-14 -- 2009-02-16"
+__date__    = "2008-03-14 -- 2009-02-25"
 
+from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.constantvalue import as_ufl, is_python_scalar
 from ufl.sorting import cmp_expr
@@ -11,12 +12,18 @@ from ufl.sorting import cmp_expr
 
 class Form(object):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
-    __slots__ = ("_integrals", "_repr", "_hash", "_str",)
+    __slots__ = ("_integrals", "_repr", "_hash", "_str", "_form_data")
     def __init__(self, integrals):
         self._integrals = tuple(integrals)
         self._str = None
         self._repr = None
         self._hash = None
+        self._form_data = None
+
+    def form_data(self):
+        if self._form_data is None:
+            error("Form data not initialized.")
+        return self._form_data
     
     def cell(self):
         return self._integrals[0].integrand().cell()

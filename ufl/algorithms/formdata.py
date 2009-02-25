@@ -1,7 +1,7 @@
 """FormData class easy for collecting of various data about a form."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-09-13 -- 2009-02-23"
+__date__ = "2008-09-13 -- 2009-02-25"
 
 # Modified by Anders Logg, 2008.
 
@@ -16,6 +16,10 @@ from ufl.algorithms.transformations import replace
 
 from ufl.algorithms.ad import expand_derivatives
 from ufl.algorithms.renumbering import renumber_indices
+
+
+def estr(elements):
+    return ", ".join(e.shortstr() for e in elements)
 
 class FormData(object):
     "Class collecting various information extracted from a Form."
@@ -98,6 +102,9 @@ class FormData(object):
             # Use sum of basis_function degrees
             quad_order = sum(b.element().degree() for b in self.basis_functions)
         self.quad_order = quad_order
+        
+        # Attach form data to original form
+        self.original_form._form_data = self
 
     def __str__(self):
         "Return formatted summary of form data"
@@ -113,7 +120,7 @@ class FormData(object):
                      ("Basis functions",                    lstr(self.basis_functions)),
                      ("Coefficients",                       lstr(self.coefficients)),
                      ("Coefficient names",                  lstr(self.coefficient_names)),
-                     ("Unique elements",                    sstr(self.unique_elements)),
-                     ("Unique sub elements",                sstr(self.sub_elements)),
+                     ("Unique elements",                    estr(self.unique_elements)),
+                     ("Unique sub elements",                estr(self.sub_elements)),
                      ("Estimated quadrature order",         self.quad_order),
                     ))
