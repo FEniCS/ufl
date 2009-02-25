@@ -89,19 +89,6 @@ class FormData(object):
         self.cell = self.elements[0].cell()
         self.geometric_dimension = self.cell.d
         self.topological_dimension = self.geometric_dimension
-
-        # Estimate a default integration order, form compiler can overrule
-        # TODO: Provide a better estimate
-        quadrature_elements = [e for e in self.sub_elements if "Quadrature" in e.family()]
-        if quadrature_elements:
-            # Either take the order from quadrature elements among the coefficients...
-            quad_order = quadrature_elements[0].degree()
-            ufl_assert(all(quad_order == e.degree() for e in quadrature_elements),
-                "Incompatible quadrature elements specified (orders must be equal).")
-        else:
-            # Use sum of basis_function degrees
-            quad_order = sum(b.element().degree() for b in self.basis_functions)
-        self.quad_order = quad_order
         
         # Attach form data to original form
         self.original_form._form_data = self
@@ -122,5 +109,5 @@ class FormData(object):
                      ("Coefficient names",                  lstr(self.coefficient_names)),
                      ("Unique elements",                    estr(self.unique_elements)),
                      ("Unique sub elements",                estr(self.sub_elements)),
-                     ("Estimated quadrature order",         self.quad_order),
                     ))
+

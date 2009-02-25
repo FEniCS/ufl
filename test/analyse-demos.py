@@ -36,9 +36,11 @@ class DemoTestCase(unittest.TestCase):
     def test_something(self):
         result = 0
         skiplist = ()
-        #skiplist = glob("../demo/*_ad.ufl") + ["../demo/hyperelasticity1D.ufl"] # TODO: Re-enable!
-        for f in glob("../demo/*.ufl"):
-            if not f in skiplist:
+        skiplist = glob("../demo/_*.ufl") #+ ["../demo/Hyperelasticity3D.ufl"]
+        for f in sorted(glob("../demo/*.ufl")):
+            if f in skiplist:
+                print "Skipping demo %s" % f
+            else:
                 cmd = "ufl-analyse %s" % f
                 status, output = get_status_output(cmd)
                 if status == 0:

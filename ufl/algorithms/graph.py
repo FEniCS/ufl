@@ -332,10 +332,13 @@ def expr_set_criteria(v, keys):
         key |= k
     return frozenset(key)
 
-def partition(G, criteria): # TODO: Take vertex connections as input
+def partition(G, criteria, Vout = None):
     V, E = G
     n = len(V)
-    Vin, Vout = extract_vertex_connections(G) # TODO: Can use faster one-way extraction
+
+    if Vout is None:
+        Vout = extract_outgoing_vertex_connections(G)
+    
     partitions = defaultdict(list)
     keys = [None]*n
     for iv, v in enumerate(V):

@@ -14,7 +14,9 @@ from ufl.algorithms.traversal import iter_expressions, traverse_terminals, \
 from ufl.algorithms.analysis import extract_classes, extract_type, \
                                     extract_basis_functions, extract_coefficients, \
                                     extract_elements, extract_unique_elements, \
-                                    extract_variables, extract_duplications
+                                    extract_variables, extract_duplications, \
+                                    extract_quadrature_order, estimate_quadrature_order, estimate_max_quadrature_order
+
 from ufl.algorithms.monomials import extract_monomials
 
 # Utility class for easy collecting of data about form
