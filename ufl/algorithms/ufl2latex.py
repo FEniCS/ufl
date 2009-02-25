@@ -41,6 +41,8 @@ from ufl.algorithms.formfiles import load_forms
 from ufl.algorithms.latextools import align, document, verbatim
 
 from ufl.algorithms.transformations import expand_compounds, mark_duplications, Transformer
+from ufl.algorithms.graph import build_graph, partition, extract_outgoing_vertex_connections
+
 
 # TODO: Maybe this can be cleaner written using the graph utilities
 
@@ -302,7 +304,7 @@ def element2latex(element):
     e = str(element)
     e = e.replace("<", "")
     e = e.replace(">", "")
-    return "{\mbox{%s}}" % e
+    return r"{\mbox{%s}}" % e
 
 domain_strings = { Measure.CELL: r"\Omega",
                    Measure.EXTERIOR_FACET: r"\Gamma^{ext}",
@@ -395,147 +397,128 @@ def ufl2latex(expression):
 
 # --- LaTeX rendering of composite UFL objects ---
 
-def dep2latex(dep): # XXX
-    deps = []
-    if dep.runtime:
-        deps.append("K")
-    if dep.coordinates:
-        deps.append("x")
-    for i, v in enumerate(dep.basis_functions):
-        if v:
-            deps.append(bfname(i))
-    return "Dependencies: ${ %s }$." % ", ".join(deps)
+def deps2latex(deps):
+    return "Dependencies: ${ %s }$." % ", ".join(sorted(deps))
 
-def dependency_sorting(deplist, rank): # XXX
-    error("Rework using graphs.") # FIXME
+def dependency_sorting(deplist, rank):
+    #print "deplist = ", deplist    
+
     def split(deps, state):
         left = []
         todo = []
         for dep in deps:
-            if state.covers(dep):
-                todo.append(dep)
-            else:
+            if dep - state:
                 left.append(dep)
+            else:
+                todo.append(dep)
         return todo, left
     
     deplistlist = []
-    state = DependencySet((False,)*rank)
+    state = set()
     left = deplist
     
     # --- Initialization time
-    state.runtime = False
-    
-    state.coordinates = False
+    #state.remove("x")
     precompute, left = split(left, state)
     deplistlist.append(precompute)
     
-    state.coordinates = True
+    state.add("x")
     precompute_quad, left = split(left, state)
     deplistlist.append(precompute_quad)
     
+    # Permutations of 0/1 dependence of basis functions
     indices = compute_indices((2,)*rank)
-    for bfs in indices[1:]: # skip (0,...,0)
-        state.basis_functions = map(bool, reversed(bfs))
+    for bfs in indices[1:]: # skip (0,...,0), already handled that
+        for i, bf in reversed(list(enumerate(bfs))):
+            n = "v%d" % i
+            if bf:
+                if n in state:
+                    state.remove(n)
+            else:
+                state.add(n)
         next, left = split(left, state)
         deplistlist.append(next)
     
     # --- Runtime
-    state.runtime = True
+    state.add("c")
+    state.add("w")
     
-    state.coordinates = False
+    state.remove("x")
     runtime, left = split(left, state)
     deplistlist.append(runtime)
     
-    state.coordinates = True
+    state.add("x")
     runtime_quad, left = split(left, state)
     deplistlist.append(runtime_quad)
     
     indices = compute_indices((2,)*rank)
-    for bfs in indices[1:]: # skip (0,...,0)
-        state.basis_functions = map(bool, reversed(bfs))
+    for bfs in indices[1:]: # skip (0,...,0), already handled that
+        for i, bf in reversed(list(enumerate(bfs))):
+            n = "v%d" % i
+            if bf:
+                state.add(n)
+            else:
+                if n in state:
+                    state.remove(n)
         next, left = split(left, state)
         deplistlist.append(next)
     
     ufl_assert(not left, "Shouldn't have anything left!")
     
-    print
-    print "Created deplistlist:"
-    for deps in deplistlist:
-        print
-        print "--- new stage:"
-        print "\n".join(map(str, deps))
-    print
+    #print
+    #print "Created deplistlist:"
+    #for deps in deplistlist:
+    #    print
+    #    print "--- New stage:"
+    #    print "\n".join(map(str, deps))
+    #print
 
     return deplistlist
 
-def code2latex(integrand_vinfo, code, formdata): # XXX
+def code2latex(G, partitions, formdata):
     "TODO: Document me"
-    error("Rework, arguments here make no sense anymore.") # FIXME
     bfn = formdata.basis_function_names
     cfn = formdata.function_names
-
+    
+    V, E = G
+    Vout = extract_outgoing_vertex_connections(G)
+    
     # Sort dependency sets in a sensible way (preclude to a good quadrature code generator)
-    #deplistlist = [sorted(code.stacks.keys())]
-    deplistlist = dependency_sorting(code.stacks.keys(), len(bfn)) # XXX
+    deplistlist = dependency_sorting(partitions.keys(), len(bfn))
+    
+    def format_v(i):
+        return "s_%d" % i    
     
     pieces = []
     for deplist in deplistlist:
-        pieces.append("\n\n(Debugging: getting next list of dependencies)")
+        #pieces.append("\n\n(Debugging: getting next list of dependencies)")
         for dep in deplist:
             lines = []
-            for vinfo in code.stacks[dep]:
-                vl = expression2latex(vinfo.variable, bfn, cfn)
-                el = expression2latex(vinfo.variable._expression, bfn, cfn)
+            for iv in partitions[dep]:
+                v = V[iv]
+                vout = Vout[iv]
+                vl = format_v(iv)
+                args = ", ".join(format_v(i) for i in vout)
+                if args:
+                    el = r"{\mbox{%s}}(%s)" % (v._uflclass.__name__, args)
+                else: # terminal
+                    el = r"{\mbox{%s}}" % (repr(v),)
                 lines.append((vl, "= " + el))
-            pieces.extend(("\n", dep2latex(dep), align(lines)))
+            pieces.extend(("\n", deps2latex(dep), align(lines)))
     
     # Add final variable representing integrand
-    vl = expression2latex(integrand_vinfo.variable, bfn, cfn)
-    el = expression2latex(integrand_vinfo.variable._expression, bfn, cfn)
+    vl = format_v(len(V)-1)
     pieces.append("\n")
-    pieces.append("Variable representing integrand. " + dep2latex(integrand_vinfo.deps))
-    pieces.append(align([(vl, "= " + el)]))
+    pieces.append("Variable representing integrand: %s" % vl)
     
     # Could also return list of (title, body) parts for subsections if wanted
     body = "\n".join(pieces)
     return body
 
-def integrand2code(integrand, formdata): # XXX
-    error("Rework using graphs.") # FIXME
-
-    # Define toy input to split_by_dependencies
-    basis_function_deps = []
-    for i in range(formdata.rank):
-        bfs = tuple(i == j for j in range(formdata.rank)) 
-        d = DependencySet(bfs, coordinates=True) # TODO: Toggle coordinates depending on element
-        basis_function_deps.append(d)
-    
-    function_deps = []
-    bfs = (False,)*formdata.rank
-    for i in range(formdata.num_functions):
-        d = DependencySet(bfs, runtime=True, coordinates=True) # TODO: Toggle coordinates depending on element
-        function_deps.append(d)
-
-    # Try to pick up duplications on the most abstract level
-    integrand = mark_duplications(integrand)
-    
-    # Expand grad, div, inner etc to index notation
-    integrand = expand_compounds(integrand, formdata.geometric_dimension)
-    
-    # Try to pick up duplications on the index notation level
-    integrand = mark_duplications(integrand)
-    
-    # FIXME: Apply AD stuff for Diff and propagation of SpatialDerivative to Terminal nodes. Or do we need to build code structure first to do this better?
-    #integrand = FIXME(integrand)
-    #integrand = compute_diffs(integrand)
-    #integrand = propagate_spatial_diffs(integrand)
-    
-    # Try to pick up duplications after propagating derivatives
-    #integrand = mark_duplications(integrand)
-    
-    (vinfo, code) = split_by_dependencies(integrand, formdata, basis_function_deps, function_deps)
-    
-    return vinfo, code
+def integrand2code(integrand, formdata):
+    G = build_graph(integrand)
+    partitions, keys = partition(G)
+    return G, partitions
 
 def formdata2latex(formdata): # TODO: Format better
     return verbatim(str(formdata)) 
@@ -547,15 +530,13 @@ def form2code2latex(formdata):
     sections = [(title, body)]
     
     # Render each integral as a separate section
-    for itg in form.cell_integrals():
+    for itg in formdata.form.cell_integrals():
         m = itg.measure()
         title = "%s integral over domain %d" % (m.domain_type(), m.domain_id())
         
-        vinfo, itgcode = integrand2code(itg.integrand(), formdata) # XXX
-        body = code2latex(vinfo, itgcode, formdata) # XXX
+        G, partitions = integrand2code(itg.integrand(), formdata)
         
-        #G, partitions = integrand2code(itg.integrand(), formdata) # XXX
-        #body = code2latex(G, partitions, formdata) # XXX
+        body = code2latex(G, partitions, formdata)
         
         sections.append((title, body))
     
