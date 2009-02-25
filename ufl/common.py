@@ -1,7 +1,7 @@
 "This module contains a collection of common utilities."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-08-05 -- 2009-02-23"
+__date__ = "2008-08-05 -- 2009-02-25"
 
 import os
 from itertools import izip
@@ -26,14 +26,17 @@ def write_file(filename, text):
     f.write(text)
     f.close()
 
-def pdf_reader_cmd():
-    # TODO: Add option for which reader to use. Is there a portable way to do this? Like "get default pdf reader from os"?
-    reader_cmd = "evince %s &"
-    return reader_cmd 
+def pdflatex(latexfilename, pdffilename, flags): # TODO: Options for this.
+    "Execute pdflatex to compile a latex file into pdf."
+    flags = "-file-line-error-style -interaction=nonstopmode"
+    latexcmd = "pdflatex"
+    cmd = "%s %s %s %s" % (latexcmd, flags, latexfilename, pdffilename)
+    s, o = get_status_output(cmd)
 
 def openpdf(pdffilename):
     "Open PDF file in external pdf viewer."
-    cmd = pdf_reader_cmd() % pdffilename
+    reader_cmd = "evince %s &" # TODO: Add option for which reader to use. Is there a portable way to do this? Like "get default pdf reader from os"?
+    cmd = reader_cmd % pdffilename
     s, o = get_status_output(cmd)
 
 def product(sequence):

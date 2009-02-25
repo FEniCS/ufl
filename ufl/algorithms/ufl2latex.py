@@ -12,7 +12,7 @@ from itertools import chain
 
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
-from ufl.common import write_file, openpdf
+from ufl.common import write_file, pdflatex, openpdf
 from ufl.permutation import compute_indices
 
 # All classes:
@@ -529,7 +529,7 @@ def formdata2latex(formdata):
 def form2code2latex(form):
     error("Rework using graphs.") # FIXME
     formdata = FormData(form)
-        
+    
     # Define toy input to split_by_dependencies
     basis_function_deps = []
     for i in range(formdata.rank):
@@ -560,12 +560,14 @@ def form2code2latex(form):
 def forms2latexdocument(forms, uflfilename, compile=False):
     "Render forms from a .ufl file as a LaTeX document."
     sections = []
-    for name, form in forms:
-        title = "Form %s" % name
+    for form in forms:
+        formdata = form.form_data()
+        # Note that form == formdata.original_form, and formdata.form has had expand_derivatives applied to it.
+        title = "Form %s" % formdata.name
         if compile:
-            body = form2code2latex(form)
+            body = form2code2latex(formdata.form)
         else:
-            body = form2latex(form) #, formname, basis_function_names, function_names) # TODO
+            body = form2latex(formdata.form, formdata.name, basis_function_names=None, function_names=formdata.coefficient_names)
         sections.append((title, body))
 
     if compile:
@@ -578,16 +580,13 @@ def forms2latexdocument(forms, uflfilename, compile=False):
 
 def ufl2tex(uflfilename, latexfilename, compile=False):
     "Compile a .tex file from a .ufl file."
-    formdatas = load_forms(uflfilename)
-    forms = [(f.name, f.form) for f in formdatas] # TODO: Get function names from this
+    forms = load_forms(uflfilename)
     latex = forms2latexdocument(forms, uflfilename, compile) 
     write_file(latexfilename, latex)
 
 def tex2pdf(latexfilename, pdffilename):
-    # TODO: Use subprocess.
-    # TODO: Options for this.
-    flags = " -file-line-error-style -interaction=nonstopmode"
-    os.system("pdflatex %s %s %s" % (flags, latexfilename, pdffilename))
+    "Compile a .pdf file from a .tex file."
+    pdflatex(latexfilename, pdffilename)
     openpdf(pdffilename)
 
 def ufl2pdf(uflfilename, latexfilename, pdffilename, compile=False):

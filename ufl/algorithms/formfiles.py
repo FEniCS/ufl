@@ -3,13 +3,14 @@
 from __future__ import with_statement
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-02-12"
+__date__ = "2008-03-14 -- 2009-02-25"
 
 import os
 import time
 from ufl.log import error, info
 from ufl.form import Form
 from ufl.function import Function
+from ufl.basisfunction import BasisFunction
 from ufl.algorithms.formdata import FormData
 from ufl.algorithms.checks import validate_form
 
@@ -21,10 +22,10 @@ To help you find the location of the error, a temporary script
 has been created and will now be executed with debug output enabled:"""
 
 def load_forms(filename):
-    if not os.path.exists(filename):
+    if not os.path.exists(filename) and filename[-4:] != ".ufl":
         filename = filename + ".ufl"
     if not os.path.exists(filename):
-        error("File '%s' doesn't exists." % filename)
+        error("File '%s' doesn't exist." % filename)
     
     # Read form file and prepend import
     with open(filename) as f:
@@ -49,27 +50,35 @@ def load_forms(filename):
     
     # Extract Form objects, and Function objects to get their names
     forms = []
+    form_names = []
     function_names = {}
-    for k,v in namespace.iteritems():
-        if isinstance(v, Form):
-            forms.append((k,v))
-        elif isinstance(v, Function):
-            function_names[v] = k
+    basis_function_names = {}
+    for name, value in namespace.iteritems():
+        if isinstance(value, Form):
+            forms.append(value)
+            form_names.append(name)
+        elif isinstance(value, Function):
+            function_names[value] = name
+        elif isinstance(value, BasisFunction):
+            basis_function_names[value] = name
     
     # Analyse validity of forms
-    for k, v in forms:
+    for k, v in zip(form_names, forms):
         errors = validate_form(v)
         if errors:
             error("Found errors in form '%s':\n%s" % (k, errors))
     
     # Construct FormData for each object
     formdatas = []
-    for name, form in forms:
+    for name, form in zip(form_names, forms):
         fd = FormData(form, name)
-        for (i,c) in enumerate(fd.coefficients):
+        for (i, c) in enumerate(fd.coefficients):
             orig_c = fd.original_arguments[c]
             fd.coefficient_names[i] = function_names.get(orig_c, "w%d"%i)
+        #for (i, c) in enumerate(fd.basis_functions): # TODO: Make this happen
+        #    orig_c = fd.original_arguments[c]
+        #    fd.basis_function_names[i] = basis_function_names.get(orig_c, "w%d"%i)
         formdatas.append(fd)
     
-    return formdatas
+    return forms
 
