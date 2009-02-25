@@ -12,7 +12,7 @@ from ufl.algorithms.traversal import iter_expressions, traverse_terminals, \
 
 # Utilities for extracting information from forms and expressions
 from ufl.algorithms.analysis import extract_classes, extract_type, \
-                                    extract_basis_functions, extract_coefficients, \
+                                    extract_basis_functions, extract_functions, \
                                     extract_elements, extract_unique_elements, \
                                     extract_variables, extract_duplications, \
                                     extract_quadrature_order, estimate_quadrature_order, estimate_max_quadrature_order

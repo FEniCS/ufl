@@ -24,7 +24,7 @@ def estr(elements):
 class FormData(object):
     "Class collecting various information extracted from a Form."
     
-    def __init__(self, form, name="a", coefficient_names=None):
+    def __init__(self, form, name="a"):
         "Create form data for given form"
         ufl_assert(isinstance(form, Form), "Expecting Form.")
         
@@ -49,14 +49,14 @@ class FormData(object):
         self.form = renumber_indices(self.form)
 
         # Get arguments and their elements
-        basis_functions, coefficients = extract_arguments(self.form)
+        basis_functions, functions = extract_arguments(self.form)
 
         # Replace arguments with new objects renumbered with count internal to the form
-        replace_map, self.basis_functions, self.coefficients = \
-            build_argument_replace_map(basis_functions, coefficients)
+        replace_map, self.basis_functions, self.functions = \
+            build_argument_replace_map(basis_functions, functions)
         self.form = replace(self.form, replace_map)
         del basis_functions # to avoid bugs
-        del coefficients # to avoid bugs
+        del functions # to avoid bugs
 
         # Build mapping from new form argument objects to the
         # original form argument objects, in case the original
@@ -68,16 +68,14 @@ class FormData(object):
 
         # Some useful dimensions
         self.rank = len(self.basis_functions)
-        self.num_coefficients = len(self.coefficients)
+        self.num_functions = len(self.functions)
 
-        # Set coefficient names to default if necessary
-        if coefficient_names is None:
-            self.coefficient_names = ["w%d" % i for i in range(self.num_coefficients)]
-        else:
-            self.coefficient_names = coefficient_names
+        # Define default function names
+        self.function_names = ["w%d" % i for i in range(self.num_functions)]
+        self.basis_function_names = ["v%d" % i for i in range(self.rank)]
 
         # Get all elements
-        self.elements = [f._element for f in chain(self.basis_functions, self.coefficients)]
+        self.elements = [f._element for f in chain(self.basis_functions, self.functions)]
 
         # Make a set of all unique top-level elements
         self.unique_elements = set(self.elements)
@@ -100,13 +98,13 @@ class FormData(object):
                      ("Geometric dimension",                self.geometric_dimension),
                      ("Topological dimension",              self.topological_dimension),
                      ("Rank",                               self.rank),
-                     ("Number of coefficients",             self.num_coefficients),
+                     ("Number of functions",             self.num_functions),
                      ("Number of cell integrals",           len(self.form.cell_integrals())),
                      ("Number of exterior facet integrals", len(self.form.exterior_facet_integrals())),
                      ("Number of interior facet integrals", len(self.form.interior_facet_integrals())),
                      ("Basis functions",                    lstr(self.basis_functions)),
-                     ("Coefficients",                       lstr(self.coefficients)),
-                     ("Coefficient names",                  lstr(self.coefficient_names)),
+                     ("Coefficients",                       lstr(self.functions)),
+                     ("Coefficient names",                  lstr(self.function_names)),
                      ("Unique elements",                    estr(self.unique_elements)),
                      ("Unique sub elements",                estr(self.sub_elements)),
                     ))

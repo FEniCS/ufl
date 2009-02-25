@@ -34,7 +34,7 @@ from ufl.form import Form
 from ufl.classes import terminal_classes
 
 # Other algorithms:
-from ufl.algorithms.analysis import extract_basis_functions, extract_coefficients, extract_variables
+from ufl.algorithms.analysis import extract_basis_functions, extract_functions, extract_variables
 from ufl.algorithms.formdata import FormData
 from ufl.algorithms.formfiles import load_forms
 from ufl.algorithms.latextools import align, document, verbatim
@@ -75,61 +75,72 @@ def build_precedence_map():
         k += 1
     return precedence_map
 
-# Utility for parentesizing string (TODO: Finish precedence handling):
-def par(s, condition=True):
+# Utility for parentesizing string 
+def par(s, condition=True): # TODO: Finish precedence handling by adding condition argument to calls to this function!
     if condition:
         return "\\left(%s\\right)" % s
     return str(s)
-    
+
 def format_index(ii):
     if isinstance(ii, FixedIndex):
         s = "%d" % ii._value
     elif isinstance(ii, Index):
         s = "i_{%d}" % ii._count
     else:
-        error("Unknown index type %s." % type(ii))
+        error("Invalid index type %s." % type(ii))
     return s
 
 def format_multi_index(ii, formatstring="%s"):
     return "".join(formatstring % format_index(i) for i in ii)
 
-# TODO: Handle parantesizing based on precedence
+def bfname(i):
+    return "{v_h^%d}" % i
+
+def cfname(i):
+    return "{w_h^%d}" % i
+
 # TODO: Handle line wrapping
 # TODO: Handle ListTensors of rank > 1 correctly
 class Expression2LatexHandler(Transformer):
-    def __init__(self, basis_function_renumbering, coefficient_renumbering):
+    def __init__(self, basis_function_names = None, function_names = None):
         Transformer.__init__(self)
-        self.basis_function_renumbering = basis_function_renumbering
-        self.coefficient_renumbering = coefficient_renumbering
+        self.basis_function_names = basis_function_names
+        self.function_names = function_names
     
     # --- Terminal objects ---
     
     def scalar_value(self, o):
+        if o.shape():
+            return r"{\mathbf %s}" % o._value
         return "{%s}" % o._value
     
     def zero(self, o):
         return "0" if not o.shape() else r"{\mathbf 0}"
     
     def identity(self, o):
-        return "I"
+        return "{\mathbf I}"
     
     def facet_normal(self, o):
-        return "n"
+        return "{\mathbf n}"
     
     def basis_function(self, o):
-        return "{v_h^{%d}}" % o.count() # self.basis_function_renumbering[o] # Using ^ for function numbering and _ for indexing
+        # Using ^ for function numbering and _ for indexing since indexing is more common than exponentiation
+        if self.basis_function_names is None:
+            return bfname(o.count())
+        return self.basis_function_names[o.count()]
     
     def function(self, o):
-        return "{w_h^{%d}}" % o.count() # self.coefficient_renumbering[o]
-    
-    def constant(self, o):
-        return "{w_h^{%d}}" % o.count() # self.coefficient_renumbering[o]
+        # Using ^ for function numbering and _ for indexing since indexing is more common than exponentiation
+        if self.function_names is None:
+            return cfname(o.count())
+        return self.function_names[o.count()]
+    constant = function
     
     def multi_index(self, o):
         return format_multi_index(o, formatstring="{%s}")
     
     def variable(self, o):
-        # TODO: Ensure variable has been handled
+        # FIXME: Ensure variable has been handled
         e, l = o.operands()
         return "s_{%d}" % l._count
     
@@ -148,7 +159,7 @@ class Expression2LatexHandler(Transformer):
         return r"\frac{%s}{%s}" % (a, b)
     
     def abs(self, o, a):
-        return "|%s|" % a
+        return r"\|%s\|" % a
     
     def transposed(self, o, a):
         return "{%s}^T" % par(a)
@@ -158,81 +169,76 @@ class Expression2LatexHandler(Transformer):
     
     def spatial_derivative(self, o, f, ii):
         ii = o.operands()[1]
-        n = len(ii)
-        y = format_multi_index(ii, formatstring="\partial{}x_{%s}")
-        l = r"\left["
-        r = r"\right]"
-        d = "" if (n == 1) else (r"^%d" % n)
-        nom = r"\partial%s%s%s%s" % (l, f, r, d)
-        denom = r"%s" % y
+        nom = r"\partial%s" % par(f)
+        denom = format_multi_index(ii, formatstring="\partial{}x_{%s}")
         return r"\frac{%s}{%s}" % (nom, denom)
-    
+
     def variable_derivative(self, o, f, v):
-        nom   = r"\partial\left[%s\right]" % f
-        denom = r"\partial\left[%s\right]" % v
+        nom   = r"\partial%s" % par(f)
+        denom = r"\partial%s" % par(v)
         return r"\frac{%s}{%s}" % (nom, denom)
-    
+   
     def function_derivative(self, o, f, w, v):
-        nom   = r"\partial\left[%s\right]" % f
-        denom = r"\partial\left[%s\right]" % w
-        return r"\frac{%s}{%s}[%s]" % (nom, denom, v)
+        nom   = r"\partial%s" % par(f)
+        denom = r"\partial%s" % par(w)
+        return r"\frac{%s}{%s}[%s]" % (nom, denom, v) # TODO: Fix this syntax...
     
     def grad(self, o, f):
-        return "\\nabla{%s}" % par(f)
+        return r"\nabla{%s}" % par(f)
     
     def div(self, o, f):
-        return "\\nabla{\\cdot %s}" % par(f)
+        return r"\nabla{\cdot %s}" % par(f)
     
     def curl(self, o, f):
-        return "\\nabla{\\times %s}" % par(f)
+        return r"\nabla{\times %s}" % par(f)
     
     def rot(self, o, f):
-        return "\\rot{%s}" % par(f)
+        return r"\rot{%s}" % par(f)
     
     def sqrt(self, o, f):
-        return "%s^{\frac 1 2}" % par(f)
+        return r"%s^{\frac 1 2}" % par(f)
     
     def exp(self, o, f):
-        return "e^{%s}" % par(f)
+        return "e^{%s}" % f
     
     def ln(self, o, f):
-        return "\\ln{%s}" % par(f)
+        return r"\ln{%s}" % par(f)
     
     def cos(self, o, f):
-        return "\\cos{%s}" % par(f)
+        return r"\cos{%s}" % par(f)
     
     def sin(self, o, f):
-        return "\\sin{%s}" % par(f)
+        return r"\sin{%s}" % par(f)
     
     def power(self, o, a, b):
         return "{%s}^{%s}" % (par(a), par(b))
     
     def outer(self, o, a, b):
-        return "{%s}\\otimes{%s}" % (par(a), par(b))
+        return r"{%s}\otimes{%s}" % (par(a), par(b))
     
     def inner(self, o, a, b):
         return "{%s}:{%s}" % (par(a), par(b))
     
     def dot(self, o, a, b):
-        return "{%s}\\cdot{%s}" % (par(a), par(b))
+        return r"{%s}\cdot{%s}" % (par(a), par(b))
     
     def cross(self, o, a, b):
-        return "{%s}\\times{%s}" % (par(a), par(b))
+        return r"{%s}\times{%s}" % (par(a), par(b))
     
     def trace(self, o, A):
-        return "tr{%s}" % par(A)
+        return "tr{%s}" % par(A) # TODO: Get built-in function syntax like \sin for this
     
     def determinant(self, o, A):
-        return "det{%s}" % par(A)
+        return "det{%s}" % par(A) # TODO: Get built-in function syntax like \sin for this
     
     def inverse(self, o, A):
         return "{%s}^{-1}" % par(A)
     
     def deviatoric(self, o, A):
-        return "dev{%s}" % par(A)
+        return "dev{%s}" % par(A) # TODO: Get built-in function syntax like \sin for this
     
     def cofactor(self, o, A):
-        return "cofac{%s}" % par(A)
+        return "cofac{%s}" % par(A) # TODO: Get built-in function syntax like \sin for this
     
     def list_tensor(self, o):
         shape = o.shape()
@@ -286,9 +292,9 @@ class Expression2LatexHandler(Transformer):
     
     def expr(self, o):
         error("Missing handler for type %s" % str(type(o)))
-    
-def expression2latex(expression, basis_function_renumbering, coefficient_renumbering):
-    visitor = Expression2LatexHandler(basis_function_renumbering, coefficient_renumbering)
+
+def expression2latex(expression, basis_function_names=None, function_names=None):
+    visitor = Expression2LatexHandler(basis_function_names, function_names)
     return visitor.visit(expression)
 
 def element2latex(element):
@@ -300,17 +306,21 @@ def element2latex(element):
 domain_strings = { "cell": "\\Omega", "exterior_facet": "\\Gamma^{ext}", "interior_facet": "\\Gamma^{int}" }
 dx_strings = { "cell": "dx", "exterior_facet": "ds", "interior_facet": "dS" }
 
-def form2latex(form, formname="a", basis_function_names = None, function_names = None):
-    if basis_function_names is None: basis_function_names = {}
-    if function_names is None: function_names = {}
-    formdata = FormData(form)
+def form2latex(formdata):
+    form = formdata.form
+    formname = formdata.name
+    original_form = formdata.original_form
+    basis_function_names = formdata.basis_function_names
+    function_names = formdata.function_names
+    
+    # List of sections to make latex document from
     sections = []
     
     # Define elements
     lines = []
     for i, f in enumerate(formdata.basis_functions):
         lines.append("\\mathcal{P}_{%d} = \\{%s\\} " % (i, element2latex(f.element())))
-    for i, f in enumerate(formdata.coefficients):
+    for i, f in enumerate(formdata.functions):
         lines.append("\\mathcal{Q}_{%d} = \\{%s\\} " % (i, element2latex(f.element())))
     if lines:
         sections.append(("Finite elements", align(lines)))
@@ -319,7 +329,7 @@ def form2latex(form, formname="a", basis_function_names = None, function_names =
     lines = []
     for i, f in enumerate(formdata.basis_functions):
         lines.append("V_h^{%d} = \{v : v \\vert_K \in \\mathcal{P}_{%d}(K) \\quad \\forall K \in \\mathcal{T}\} " % (i, i))
-    for i, f in enumerate(formdata.coefficients):
+    for i, f in enumerate(formdata.functions):
         lines.append("W_h^{%d} = \{v : v \\vert_K \in \\mathcal{Q}_{%d}(K) \\quad \\forall K \in \\mathcal{T}\} " % (i, i))
     if lines:
         sections.append(("Function spaces", align(lines)))
@@ -327,21 +337,13 @@ def form2latex(form, formname="a", basis_function_names = None, function_names =
     # Define basis functions and functions
     lines = []
     for i, f in enumerate(formdata.basis_functions):
-        name = basis_function_names.get(f, None)
-        name = "" if name is None else (name + " = ")
-        lines.append("%sv_h^{%d} \\in V_h^{%d} " % (name, i, i))
-    for i, f in enumerate(formdata.coefficients):
-        name = function_names.get(f, None)
-        name = "" if name is None else (name + " = ")
-        lines.append("%sw_h^{%d} \\in W_h^{%d} " % (name, i, i))
+        lines.append("%s = %s \\in V_h^{%d} " % (basis_function_names[i], bfname(i), i))
+    for i, f in enumerate(formdata.functions):
+        lines.append("%s = %s \\in W_h^{%d} " % (function_names[i], cfname(i), i))
     if lines:
         sections.append(("Form arguments", align(lines)))
     
     # TODO: Wrap ListTensors, ComponentTensor and Conditionals in expression as variables before transformation
-
-    # Temporary hack for transition: removed formdata.*_renumbering...
-    basis_function_renumbering = dict((f,i) for (i,f) in enumerate(formdata.basis_functions))
-    coefficient_renumbering   = dict((f,i) for (i,f) in enumerate(formdata.coefficients))
     
     # Define variables
     handled_variables = set()
@@ -355,14 +357,14 @@ def form2latex(form, formname="a", basis_function_names = None, function_names =
             l = v._label
             if not l in handled_variables:
                 handled_variables.add(l)
-                exprlatex = expression2latex(v._expression, basis_function_renumbering, coefficient_renumbering)
+                exprlatex = expression2latex(v._expression, formdata.basis_function_names, formdata.function_names)
                 lines.append(("s_{%d}" % l._count, "= %s" % exprlatex))
     if lines:
         sections.append(("Variables", align(lines)))
     
     # Join form arguments for signature "a(...) ="
-    b = ", ".join("v_h^{%d}" % i for (i, v) in enumerate(formdata.basis_functions))
-    c = ", ".join("w_h^{%d}" % i for (i, w) in enumerate(formdata.coefficients))
+    b = ", ".join(bfname(i) for (i, v) in enumerate(formdata.basis_functions))
+    c = ", ".join(cfname(i) for (i, w) in enumerate(formdata.functions))
     arguments = "; ".join((b, c))
     signature = "%s(%s) = " % (formname, arguments, )
     
@@ -371,7 +373,7 @@ def form2latex(form, formname="a", basis_function_names = None, function_names =
     a = signature; p = ""
     for itg in integrals:
         # TODO: Get list of expression strings instead of single expression!
-        integrand_string = expression2latex(itg.integrand(), basis_function_renumbering, coefficient_renumbering)
+        integrand_string = expression2latex(itg.integrand(), formdata.basis_function_names, formdata.function_names)
         b = p + "\\int_{%s_%d}" % (domain_strings[itg.measure().domain_type()], itg.measure().domain_id())
         c = "\\left[ { %s } \\right] \,%s" % (integrand_string, dx_strings[itg.measure().domain_type()])
         lines.append((a, b, c))
@@ -383,20 +385,12 @@ def form2latex(form, formname="a", basis_function_names = None, function_names =
 def ufl2latex(expression):
     "Generate LaTeX code for a UFL expression or form (wrapper for form2latex and expression2latex)."
     if isinstance(expression, Form):
-        return form2latex(expression)
-    basis_function_renumbering = dict((f,i) for (i,f) in enumerate(extract_basis_functions(expression)))
-    coefficient_renumbering   = dict((f,i) for (i,f) in enumerate(extract_coefficients(expression)))
-    return expression2latex(expression, basis_function_renumbering, coefficient_renumbering)
+        return form2latex(expression.form_data())
+    return expression2latex(expression)
 
 # --- LaTeX rendering of composite UFL objects ---
 
-def bfname(i):
-    return "{v_h^%d}" % i
-
-def cfname(i):
-    return "{w_h^%d}" % i
-
-def dep2latex(dep):
+def dep2latex(dep): # XXX
     deps = []
     if dep.runtime:
         deps.append("K")
@@ -407,7 +401,7 @@ def dep2latex(dep):
             deps.append(bfname(i))
     return "Dependencies: ${ %s }$." % ", ".join(deps)
 
-def dependency_sorting(deplist, rank):
+def dependency_sorting(deplist, rank): # XXX
     error("Rework using graphs.") # FIXME
     def split(deps, state):
         left = []
@@ -469,14 +463,15 @@ def dependency_sorting(deplist, rank):
 
     return deplistlist
 
-def code2latex(integrand_vinfo, code, formdata):
+def code2latex(integrand_vinfo, code, formdata): # XXX
     "TODO: Document me"
-    bfn = formdata.basis_function_renumbering
-    cfn = formdata.coefficient_renumbering
+    error("Rework, arguments here make no sense anymore.") # FIXME
+    bfn = formdata.basis_function_names
+    cfn = formdata.function_names
 
     # Sort dependency sets in a sensible way (preclude to a good quadrature code generator)
     #deplistlist = [sorted(code.stacks.keys())]
-    deplistlist = dependency_sorting(code.stacks.keys(), len(bfn))
+    deplistlist = dependency_sorting(code.stacks.keys(), len(bfn)) # XXX
     
     pieces = []
     for deplist in deplistlist:
@@ -500,7 +495,7 @@ def code2latex(integrand_vinfo, code, formdata):
     body = "\n".join(pieces)
     return body
 
-def integrand2code(integrand, formdata, basis_function_deps, function_deps):
+def integrand2code(integrand, formdata, basis_function_deps, function_deps): # XXX
     error("Rework using graphs.") # FIXME
     # Try to pick up duplications on the most abstract level
     integrand = mark_duplications(integrand)
@@ -524,12 +519,12 @@ def integrand2code(integrand, formdata, basis_function_deps, function_deps):
     return vinfo, code
 
 def formdata2latex(formdata):
-    return verbatim(str(formdata)) # TODO
+    return verbatim(str(formdata)) # TODO: Format better
 
-def form2code2latex(form):
-    error("Rework using graphs.") # FIXME
-    formdata = FormData(form)
-    
+def form2code2latex(formdata):
+
+    # XXX This is where we start:
+
     # Define toy input to split_by_dependencies
     basis_function_deps = []
     for i in range(formdata.rank):
@@ -539,18 +534,20 @@ def form2code2latex(form):
     
     function_deps = []
     bfs = (False,)*formdata.rank
-    for i in range(formdata.num_coefficients):
+    for i in range(formdata.num_functions):
         d = DependencySet(bfs, runtime=True, coordinates=True) # TODO: Toggle coordinates depending on element
         function_deps.append(d)
     
+    # Render introductory sections
     title = "Form data"
     body = formdata2latex(formdata)
     sections = [(title, body)]
     
+    # Render each integral as a separate section
     for itg in form.cell_integrals():
-        vinfo, itgcode = integrand2code(itg.integrand(), formdata, basis_function_deps, function_deps)
+        vinfo, itgcode = integrand2code(itg.integrand(), formdata, basis_function_deps, function_deps) # XXX
         title = "%s integral over domain %d" % (itg.measure().domain_type(), itg.measure().domain_id())
-        body = code2latex(vinfo, itgcode, formdata)
+        body = code2latex(vinfo, itgcode, formdata) # XXX
         sections.append((title, body))
     
     return sections
@@ -565,9 +562,9 @@ def forms2latexdocument(forms, uflfilename, compile=False):
         # Note that form == formdata.original_form, and formdata.form has had expand_derivatives applied to it.
         title = "Form %s" % formdata.name
         if compile:
-            body = form2code2latex(formdata.form)
+            body = form2code2latex(formdata)
         else:
-            body = form2latex(formdata.form, formdata.name, basis_function_names=None, function_names=formdata.coefficient_names)
+            body = form2latex(formdata)
         sections.append((title, body))
 
     if compile:

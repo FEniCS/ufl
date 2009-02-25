@@ -22,7 +22,7 @@ from ufl.classes import ufl_classes, terminal_classes, nonterminal_classes
 
 # Other algorithms:
 from ufl.algorithms.traversal import traverse_terminals
-from ufl.algorithms.analysis import extract_basis_functions, extract_coefficients
+from ufl.algorithms.analysis import extract_basis_functions, extract_functions
 from ufl.algorithms.transformations import replace, Transformer, apply_transformer, transform_integrands
 
 class PartExtracter(Transformer):

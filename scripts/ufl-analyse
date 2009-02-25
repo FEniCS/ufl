@@ -19,7 +19,8 @@ for filename in args:
     # Load form file, which triggers many consistency
     # checks while the form is being built
     print "Loading form file '%s'" % filename
-    formdatas = load_forms(filename)
+    forms = load_forms(filename)
+    formdatas = [f.form_data() for f in forms]
 
     # Analyse validity of forms
     for fd in formdatas:
@@ -44,7 +45,7 @@ for filename in args:
         print "Form info:"
         print "    Name: '%s'" % name
         print "    Rank:", fd.rank
-        print "    Number of coefficients:", fd.num_coefficients
+        print "    Number of functions:", fd.num_functions
         print "    Number of cell integrals:", len(form.cell_integrals())
         print "    Number of exterior facet integrals:", len(form.exterior_facet_integrals())
         print "    Number of interior facet integrals:", len(form.interior_facet_integrals())
@@ -55,7 +56,7 @@ for filename in args:
         for v in fd.basis_functions:
             print "       ", repr(v)
         print "    Coefficients:"
-        for w in fd.coefficients:
+        for w in fd.functions:
             print "       ", repr(w)
         print
         print "Form representation:"

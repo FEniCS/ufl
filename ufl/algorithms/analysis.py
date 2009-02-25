@@ -62,8 +62,8 @@ def extract_basis_functions(a):
     which can be a Form, Integral or Expr."""
     return sorted(extract_type(a, BasisFunction), cmp=cmp_counted)
 
-def extract_coefficients(a):
-    """Build a sorted list of all coefficients in a,
+def extract_functions(a):
+    """Build a sorted list of all functions in a,
     which can be a Form, Integral or Expr."""
     return sorted(extract_type(a, Function), cmp=cmp_counted)
 
@@ -91,10 +91,10 @@ def build_argument_replace_map(basis_functions, functions):
     return replace_map, new_basis_functions, new_functions
 
 # alternative implementation, kept as an example:
-def _extract_coefficients(a):
-    """Build a sorted list of all coefficients in a,
+def _extract_functions(a):
+    """Build a sorted list of all functions in a,
     which can be a Form, Integral or Expr."""
-    # build set of all unique coefficients
+    # build set of all unique functions
     s = set()
     def func(o):
         if isinstance(o, Function):
@@ -105,7 +105,7 @@ def _extract_coefficients(a):
 
 def extract_elements(a):
     "Build a sorted list of all elements used in a."
-    args = chain(extract_basis_functions(a), extract_coefficients(a))
+    args = chain(extract_basis_functions(a), extract_functions(a))
     return tuple(f.element() for f in args)
 
 def extract_unique_elements(a):

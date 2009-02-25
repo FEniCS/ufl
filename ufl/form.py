@@ -22,7 +22,8 @@ class Form(object):
 
     def form_data(self):
         if self._form_data is None:
-            error("Form data not initialized.")
+            from ufl.algorithms.formdata import FormData
+            self._form_data = FormData(self)
         return self._form_data
     
     def cell(self):

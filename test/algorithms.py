@@ -37,7 +37,7 @@ class AlgorithmsTestCase(unittest.TestCase):
         
         self.elements = (element,)
         self.basis_functions = (v, u)
-        self.coefficients = (c, f)
+        self.functions = (c, f)
         self.forms = (a, L, b)
 
         if False:
@@ -59,13 +59,13 @@ class AlgorithmsTestCase(unittest.TestCase):
         
         if False:
             print 
-            print [str(c) for c in self.coefficients]
+            print [str(c) for c in self.functions]
             print 
             print str(self.forms[2])
             print 
             print [str(b) for b in extract_basis_functions(self.forms[2])]
             print 
-            print self.coefficients
+            print self.functions
             print 
             print repr(self.forms[2])
             print 
@@ -99,8 +99,8 @@ class AlgorithmsTestCase(unittest.TestCase):
         assert self.basis_functions == tuple(extract_basis_functions(self.forms[0]))
         assert tuple(self.basis_functions[:1]) == tuple(extract_basis_functions(self.forms[1]))
 
-    def test_coefficients(self):
-        assert self.coefficients == tuple(extract_coefficients(self.forms[2]))
+    def test_functions(self):
+        assert self.functions == tuple(extract_functions(self.forms[2]))
 
     def test_elements(self):
         #print elements(self.forms[2])

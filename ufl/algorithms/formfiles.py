@@ -72,12 +72,12 @@ def load_forms(filename):
     formdatas = []
     for name, form in zip(form_names, forms):
         fd = FormData(form, name)
-        for (i, c) in enumerate(fd.coefficients):
+        for (i, c) in enumerate(fd.functions):
             orig_c = fd.original_arguments[c]
-            fd.coefficient_names[i] = function_names.get(orig_c, "w%d"%i)
-        #for (i, c) in enumerate(fd.basis_functions): # TODO: Make this happen
-        #    orig_c = fd.original_arguments[c]
-        #    fd.basis_function_names[i] = basis_function_names.get(orig_c, "w%d"%i)
+            fd.function_names[i] = function_names.get(orig_c, "w%d"%i)
+        for (i, c) in enumerate(fd.basis_functions):
+            orig_c = fd.original_arguments[c]
+            fd.basis_function_names[i] = basis_function_names.get(orig_c, "w%d"%i)
         formdatas.append(fd)
     
     return forms
