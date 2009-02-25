@@ -65,8 +65,8 @@ class FormData(object):
         original_arguments = {}
         for k,v in replace_map.iteritems():
             original_arguments[v] = k
-        self.original_basis_functions = [self.original_arguments[f] for f in self.basis_functions]
-        self.original_functions = [self.original_arguments[f] for f in self.functions]
+        self.original_basis_functions = [original_arguments[f] for f in self.basis_functions]
+        self.original_functions = [original_arguments[f] for f in self.functions]
         del original_arguments # debugging, to avoid bugs below
 
         # Some useful dimensions
