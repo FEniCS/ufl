@@ -487,7 +487,7 @@ def code2latex(G, partitions, formdata):
     deplistlist = dependency_sorting(partitions.keys(), len(bfn))
     
     def format_v(i):
-        return "s_%d" % i    
+        return "s_{%d}" % i    
     
     pieces = []
     for deplist in deplistlist:

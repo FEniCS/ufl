@@ -301,4 +301,4 @@ class TensorElement(MixedElement):
     
     def shortstr(self):
         "Format as string for pretty printing."
-        return "Tensor<%d x %s>" % (self.value_shape(), self._sub_element.shortstr()) # TODO: add symmetries
+        return "Tensor<%s x %s>" % (self.value_shape(), self._sub_element.shortstr()) # TODO: add symmetries
