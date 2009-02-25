@@ -55,16 +55,19 @@ class FormData(object):
         replace_map, self.basis_functions, self.functions = \
             build_argument_replace_map(basis_functions, functions)
         self.form = replace(self.form, replace_map)
-        del basis_functions # to avoid bugs
-        del functions # to avoid bugs
+        del basis_functions # debugging, to avoid bugs below
+        del functions # debugging, to avoid bugs below
 
         # Build mapping from new form argument objects to the
         # original form argument objects, in case the original
         # objects had external data attached to them
         # (PyDOLFIN does that)
-        self.original_arguments = {}
+        original_arguments = {}
         for k,v in replace_map.iteritems():
-            self.original_arguments[v] = k
+            original_arguments[v] = k
+        self.original_basis_functions = [self.original_arguments[f] for f in self.basis_functions]
+        self.original_functions = [self.original_arguments[f] for f in self.functions]
+        del original_arguments # debugging, to avoid bugs below
 
         # Some useful dimensions
         self.rank = len(self.basis_functions)
