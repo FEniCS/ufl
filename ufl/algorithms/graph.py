@@ -341,7 +341,7 @@ def string_set_criteria(v, keys):
         key |= k
     return frozenset(key)
 
-def partition(G, criteria):
+def partition(G, criteria=string_set_criteria):
     V, E = G
     n = len(V)
 

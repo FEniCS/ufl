@@ -42,7 +42,7 @@ from ufl.algorithms.formtransformations import compute_form_adjoint, compute_for
 from ufl.algorithms.ad import expand_derivatives #, compute_diff, propagate_spatial_derivatives, compute_form_derivative
 
 # Utilities for working with linearized computational graphs
-from ufl.algorithms.graph import build_graph, format_graph, rebuild_tree, partition # TODO: add more imports here
+from ufl.algorithms.graph import Graph, format_graph, rebuild_tree, partition # TODO: Add more imports here
 
 # Utilities for UFL object printing
 from ufl.algorithms.printing import integral_info, form_info, tree_format
