@@ -1,7 +1,7 @@
 """Algorithms for working with linearized computational graphs."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-12-28 -- 2009-02-23"
+__date__ = "2008-12-28 -- 2009-02-26"
 
 from collections import defaultdict
 from itertools import chain, imap, izip
@@ -283,50 +283,6 @@ def rebuild_tree(G):
 
 #--- Graph partitoning ---
 
-class DependencyDefiner(MultiFunction):
-    def __init__(self, basis_function_deps=None, function_deps=None):
-        MultiFunction.__init__(self)
-        if basis_function_deps is None:
-            basis_function_deps = {}
-        if function_deps is None:
-            function_deps = {}
-        self.basis_function_deps = basis_function_deps
-        self.function_deps = function_deps
-    
-    def expr(self, o):
-        return set()
-    
-    def function(self, o):
-        return set((o,))
-    
-    def basis_function(self, o):
-        return set((o,))
-    
-    def spatial_derivative(self, o):
-        return set((o.cell(),))
-    
-    def basis_function(self, x):
-        return self.basis_function_deps.get(x, x)
-    
-    def function(self, x):
-        return self.function_deps.get(x, x)
-    
-    def facet_normal(self, o):
-        cell = o.cell()
-        deps = set((cell,))
-        # Enabling coordinate dependency for higher order geometries (not handled anywhere else though).
-        if cell.degree() > 1:
-            deps.add(cell.x)
-        return deps
-    
-    def spatial_derivative(self, o):
-        cell = o.cell()
-        deps = set((cell,))
-        # Enabling coordinate dependency for higher order geometries (not handled anywhere else though).
-        if cell.degree() > 1:
-            deps.add(cell.x)
-        return deps
-
 class StringDependencyDefiner(MultiFunction):
     """Returns a set of direct dependencies (as strings) given an expr.
     
@@ -369,7 +325,7 @@ class StringDependencyDefiner(MultiFunction):
             deps.add("x")
         return deps
     
-    def spatial_derivative(self, o): # FIXME: What about (basis) functions of which derivatives are constant?
+    def spatial_derivative(self, o): # FIXME: What about (basis) functions of which derivatives are constant? Should special-case spatial_derivative in partition().
         deps = set(("c",))
         # Enabling coordinate dependency for higher order geometries (not handled anywhere else though).
         if o.cell().degree() > 1:
