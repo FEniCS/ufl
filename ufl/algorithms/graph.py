@@ -134,42 +134,45 @@ def extract_vertex_connections(G): # O(n)
         Vout[a].append(b)
     return Vin, Vout
 
-#--- TODO: Use a graph class like this which computes connectivity on demand? ---
+#--- Graph class ---
 
 class Graph:
-    def __init__(self):
-        self.V = None
-        self.E = None
-        self.Ein = None
-        self.Eout = None
-        self.Vin = None
-        self.Vout = None
+    "Graph class which computes connectivity on demand."
+    def __init__(self, expression):
+        self._V, self._E = build_graph(expression)
+        self._Ein = None
+        self._Eout = None
+        self._Vin = None
+        self._Vout = None
     
     def V(self):
-        return self.V
+        return self._V
 
     def E(self):
-        return self.E
+        return self._E
     
     def Ein(self):
-        if self.Ein is None:
-            self.Ein = extract_incoming_edges((self.V, self.E))
-        return self.Ein
+        if self._Ein is None:
+            self._Ein = extract_incoming_edges((self._V, self._E))
+        return self._Ein
     
     def Eout(self):
-        if self.Eout is None:
-            self.Eout = extract_outgoing_edges((self.V, self.E))
-        return self.Eout
+        if self._Eout is None:
+            self._Eout = extract_outgoing_edges((self._V, self._E))
+        return self._Eout
     
     def Vin(self):
-        if self.Vin is None:
-            self.Vin = extract_incoming_vertex_connections((self.V, self.E))
-        return self.Vin
+        if self._Vin is None:
+            self._Vin = extract_incoming_vertex_connections((self._V, self._E))
+        return self._Vin
     
     def Vout(self):
-        if self.Vout is None:
-            self.Vout = extract_outgoing_vertex_connections((self.V, self.E))
-        return self.Vout
+        if self._Vout is None:
+            self._Vout = extract_outgoing_vertex_connections((self._V, self._E))
+        return self._Vout
+    
+    def __iter__(self):
+        return iter((self._V, self._E))
 
 #--- Graph algorithms ---
 
@@ -218,10 +221,10 @@ class HeapItem(object):
             b = other.incoming[other.i] # FIXME: The other way around?
         return cmp(a, b)
 
-def depth_first_ordering(G, Ein=None, Eout=None):
+def depth_first_ordering(G):
     V, E = G
-    if Ein is None or Eout is None:
-        Ein, Eout = extract_edges(G) # TODO: Can use extract_vertex_connections
+    Ein = G.Ein() # TODO: Can use extract_vertex_connections
+    Eout = G.Eout()
     Ein_count = len_items(Ein)
     Eout_count = len_items(Eout)
     
@@ -257,10 +260,11 @@ def rebuild_tree(G):
     is directed, acyclic, and connected, such that there
     is only one root node.
     """
-    V, E = G
+    V = G.V()
+    E = G.E()
     n = len(V)
-    Ein, Eout = extract_edges(G) # TODO: Can use extract_vertex_connections
-    dfo = depth_first_ordering(G, Ein, Eout)
+    Eout = G.Eout()# TODO: Can use extract_vertex_connections
+    dfo = depth_first_ordering(G)
     subtrees = [None]*n
     for i in dfo:
         v = V[i]
@@ -381,12 +385,11 @@ def string_set_criteria(v, keys):
         key |= k
     return frozenset(key)
 
-def partition(G, criteria=string_set_criteria, Vout = None):
+def partition(G, criteria):
     V, E = G
     n = len(V)
 
-    if Vout is None:
-        Vout = extract_outgoing_vertex_connections(G)
+    Vout = G.Vout()
     
     partitions = defaultdict(list)
     keys = [None]*n
@@ -416,10 +419,11 @@ def test_expr():
 
 if __name__ == "__main__":
     expr = test_expr()
-    G = build_graph(expr)
+    G = Graph(expr)
     V, E = G
     n = len(V)
-    Ein, Eout = extract_edges(G)
+    Ein = G.Ein()
+    Eout = G.Eout()
 
     print
     print "Entire graph:"
@@ -446,12 +450,13 @@ if __name__ == "__main_":
     
     expr = test_expr()
     
-    G = build_graph(expr)
+    G = Graph(expr)
     V, E = G
     e2 = rebuild_tree(G)
 
-    Ein, Eout = extract_edges(G)
-    Ein_count = len_items(Ein)
+    Ein  = G.Ein()
+    Eout = G.Eout()
+    Ein_count  = len_items(Ein)
     Eout_count = len_items(Eout)
     dfo = depth_first_ordering(G)
 
