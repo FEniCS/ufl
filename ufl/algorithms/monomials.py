@@ -178,8 +178,7 @@ def extract_monomials(form, indent=""):
     successful, the form is represented as a sum of products of scalar
     components of basis functions of derivatives of basis functions.
     The sum of products is represented as a tuple of tuples of basis
-    functions. If unsuccessful, None is returned, indicating that it
-    is not possible to extract a monomial representation of the form."""
+    functions. If unsuccessful, MonomialException is raised."""
 
     # FIXME: In progress
 
@@ -218,18 +217,14 @@ def extract_monomials(form, indent=""):
 
         #print tree_format(integrand)
 
-        # Extract monomial representation
+        # Extract monomial representation if possible
         monomials = apply_transformer(integrand, MonomialTransformer())
 
         #print "m =", measure
         #print "I1 =", integral.integrand
         #print "I2 =", integrand
 
-        #try:
-        #    monomials = _extract_monomials(integrand)
-        #except MonomialException:
-        #    warning("Unable to extract monomial")
-        #    return None
+        return monomials
 
     # Print monomial representation
     print ""
@@ -237,4 +232,13 @@ def extract_monomials(form, indent=""):
     for monomial in monomials:
         print "  ", monomial
 
-    return
+    return monomials
+
+def print_monomials(monomials):
+    "Pretty-print list of monomials."
+
+    info("Monomial representation")
+    info("-----------------------")
+    info("  Number of terms: %d" % len(monomials))
+    for (i, monomial) in enumerate(monomials):
+        info("  Term %d: %s" % (i, str(monomial)))
