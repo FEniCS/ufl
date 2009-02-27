@@ -29,23 +29,46 @@ class Form(object):
     def cell(self):
         return self._integrals[0].integrand().cell()
     
-    def integrals(self):
-        return self._integrals
+    def integral_groups(self):
+        """Return a dict, which is a mapping from domains to integrals.
+        
+        In particular, each key of the dict is a distinct tuple
+        (domain_type, domain_id), and each value is a list of
+        Integral instances. The Integrals in each list share the
+        same domain (the key), but have different measures."""
+        d = {}
+        for itg in self.integrals():
+            m = itg.measure()
+            k = (m.domain_type(), m.domain_id())
+            l = d.get(k)
+            if not l:
+                l = []
+                d[k] = l
+            l.append(itg)
+        return d
     
-    def _get_integrals(self, domain_type):
+    def integrals(self, domain_type = None):
+        if domain_type is None:
+            return self._integrals
         return tuple(itg for itg in self._integrals if itg.measure().domain_type() == domain_type)
+    
+    def measures(self, domain_type = None):
+        return tuple(itg.measure() for itg in self.integrals(domain_type))
+    
+    def domains(self, domain_type = None):
+        return tuple((m.domain_type(), m.domain_id()) for m in self.measures(domain_type))
     
     def cell_integrals(self):
         from ufl.integral import Measure
-        return self._get_integrals(Measure.CELL)
+        return self.integrals(Measure.CELL)
     
     def exterior_facet_integrals(self):
         from ufl.integral import Measure
-        return self._get_integrals(Measure.EXTERIOR_FACET)
+        return self.integrals(Measure.EXTERIOR_FACET)
     
     def interior_facet_integrals(self):
         from ufl.integral import Measure
-        return self._get_integrals(Measure.INTERIOR_FACET)
+        return self.integrals(Measure.INTERIOR_FACET)
     
     def __add__(self, other):
         
