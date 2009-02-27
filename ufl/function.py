@@ -61,18 +61,17 @@ class Function(FormArgument, Counted):
 # TODO: Handle actual global constants?
 
 class Constant(Function):
-    __slots__ = ("_cell",)
+    __slots__ = ()
 
     def __init__(self, cell, count=None):
-        self._cell = as_cell(cell)
         e = FiniteElement("DG", cell, 0)
         Function.__init__(self, e, count)
-        self._repr = "Constant(%r, %r)" % (self._cell, self._count)
+        self._repr = "Constant(%r, %r)" % (e.cell(), self._count)
     
     def reconstruct(self, count=None):
         if count is None or count == self._count:
             return self
-        return Constant(self._cell, count)
+        return Constant(self._element.cell(), count)
     
     def __str__(self):
         count = str(self._count)
@@ -83,6 +82,7 @@ class Constant(Function):
 
 class VectorConstant(Function):
     __slots__ = ()
+    
     def __init__(self, cell, dim=None, count=None):
         e = VectorElement("DG", cell, 0, dim)
         Function.__init__(self, e, count)
@@ -91,7 +91,8 @@ class VectorConstant(Function):
     def reconstruct(self, count=None):
         if count is None or count == self._count:
             return self
-        return VectorConstant(self._cell, self._element.value_shape()[0], count)
+        e = self._element
+        return VectorConstant(e.cell(), e.value_shape()[0], count)
     
     def __str__(self):
         count = str(self._count)
