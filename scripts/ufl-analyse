@@ -10,57 +10,66 @@ if not args:
     sys.exit(-1)
 filenames = args
 
-quiet = True # TODO: Make this an commandline argument
+# TODO: Commandline arguments!
+quiet = True
+write_file = True
 
 # Handle each form file separately
 for filename in args:
-    print
     if not filename.endswith(".ufl"):
         print "Warning: Filename '%s' doesn't end with .ufl." % filename
 
     # Load form file, which triggers many consistency
     # checks while the form is being built
     print "Loading form file '%s'" % filename
-    forms = load_forms(filename)
+    try:
+        # TODO: Forms that fail will usually fail inside this, which doesn't produce any log... Perhaps we should pass a log file to load_forms?
+        forms = load_forms(filename)
+    except:
+        print "Failed to load form file."
+        raise
     formdatas = [f.form_data() for f in forms]
 
-    # Analyse validity of forms
-    for fd in formdatas:
-        form = fd.form
-        name = fd.name
-        
-        errors = validate_form(form)
-        print
-        if errors:
-            print "Found errors in form '%s':" % name
-            print errors
-        else:
-            print "Found no errors in form '%s'." % name
+    outputfilename = filename + ".log"
+    if write_file:
+        outputfile = open(outputfilename, "w")
+
+    def write(*items):
+        text = " ".join(str(s) for s in items)
+        if write_file:
+            outputfile.write(text)
+            outputfile.flush()
+        if not quiet:
+            print text
     
-    # Print information about all forms
+    # Analyse each form separately
     for fd in formdatas:
-        form = fd.form
-        name = fd.name
-        
-        # Pretty-print form information
-        print
-        print "Form data:"
-        print str(fd)
-        
-        r = repr(form)
-        if not quiet:
-            print "\nForm representation:\n", r
-        
-        s = str(form)
-        if not quiet:
-            print "\nForm pretty-print:\n", s
-        
-        tree = tree_format(form)
-        if not quiet:
-            print "\nForm tree formatting:\n", tree
-        
-        latex = ufl2latex(form)
-        if not quiet:
-            print "\nForm LaTeX code:\n", latex
-    print
+        # Check both original form and transformed version
+        for (form, name) in [(fd.original_form, fd.name), (fd.form, fd.name + "<modified>")]:
+            # Analyse validity of form
+            errors = validate_form(form) 
+            if errors:
+                write("Found errors in form '%s':" % name)
+                write(errors)
+            else:
+                write("Found no errors in form '%s'." % name)
+            
+            # Print form information
+            s = str(fd)
+            write("\nForm data:\n", s)
+            
+            s = str(form)
+            write("\nForm pretty-print:\n", s)
+            
+            r = repr(form)
+            write("\nForm representation:\n", r)
+            
+            tree = tree_format(form)
+            write("\nForm tree formatting:\n", tree)
+            
+            latex = ufl2latex(form)
+            write("\nForm LaTeX code:\n", latex)
+    
+    if write_file:
+        outputfile.close()
 
