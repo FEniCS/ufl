@@ -2,8 +2,9 @@
 from ufl import *
 from ufl.algorithms import *
 
-formdatas = load_forms("../demo/HyperElasticity.ufl")
-for fd in formdatas:
+forms = load_forms("../demo/HyperElasticity.ufl")
+for orig_form in forms:
+    fd = orig_form.form_data()
     form = fd.form
     name = fd.name
     itg = form.cell_integrals()[0]

@@ -10,6 +10,8 @@ if not args:
     sys.exit(-1)
 filenames = args
 
+quiet = True # TODO: Make this an commandline argument
+
 # Handle each form file separately
 for filename in args:
     print
@@ -42,35 +44,23 @@ for filename in args:
         
         # Pretty-print form information
         print
-        print "Form info:"
-        print "    Name: '%s'" % name
-        print "    Rank:", fd.rank
-        print "    Number of functions:", fd.num_functions
-        print "    Number of cell integrals:", len(form.cell_integrals())
-        print "    Number of exterior facet integrals:", len(form.exterior_facet_integrals())
-        print "    Number of interior facet integrals:", len(form.interior_facet_integrals())
-        print "    Elements used:"
-        for e in fd.unique_elements:
-            print "       ", repr(e)
-        print "    Basisfunctions:"
-        for v in fd.basis_functions:
-            print "       ", repr(v)
-        print "    Coefficients:"
-        for w in fd.functions:
-            print "       ", repr(w)
-        print
-        print "Form representation:"
-        print repr(form)
-        print
-        print "Form pretty-print:"
-        print str(form)
-        print
-        print "Form tree formatting:"
+        print "Form data:"
+        print str(fd)
+        
+        r = repr(form)
+        if not quiet:
+            print "\nForm representation:\n", r
+        
+        s = str(form)
+        if not quiet:
+            print "\nForm pretty-print:\n", s
+        
         tree = tree_format(form)
-        print tree
-        print
-        print "Form LaTeX code:"
+        if not quiet:
+            print "\nForm tree formatting:\n", tree
+        
         latex = ufl2latex(form)
-        print latex
+        if not quiet:
+            print "\nForm LaTeX code:\n", latex
     print
 
