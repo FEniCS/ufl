@@ -38,10 +38,10 @@ class MonomialException(Exception):
     def __init__(self, *args, **kwargs):
         Exception.__init__(self, *args, **kwargs)
 
-class MonomialFactor:
+class MonomialBasisFunction:
 
     def __init__(self, arg=None):
-        if isinstance(arg, MonomialFactor):
+        if isinstance(arg, MonomialBasisFunction):
             self.basis_function = arg.basis_function
             self.component = [c for c in arg.component]
             self.derivative = [d for d in arg.derivative]
@@ -57,14 +57,14 @@ class MonomialFactor:
             raise MonomialException, ("Unable to create monomial from expression: " + str(arg))
 
     def dx(self, index):
-        v = MonomialFactor(self)
+        v = MonomialBasisFunction(self)
         v.derivative.append(index)
         return v
 
     def __getitem__(self, index):
         if len(self.component) > 0:
             raise MonomialException, "Basis function already indexed."
-        v = MonomialFactor(self)
+        v = MonomialBasisFunction(self)
         v.component.append(index)
         return v
 
@@ -83,40 +83,40 @@ class Monomial:
     
     def __init__(self, arg=None):
         if isinstance(arg, Monomial):
-            self.factors = [MonomialFactor(v) for v in arg.factors]
-            self.coefficients = [c for c in arg.coefficients]
-        elif isinstance(arg, MonomialFactor):
-            self.factors = [MonomialFactor(arg)]
-            self.coefficients = []
+            self.basis_functions = [MonomialBasisFunction(v) for v in arg.basis_functions]
+            self.functions = [f for f in arg.functions]
+        elif isinstance(arg, MonomialBasisFunction):
+            self.basis_functions = [MonomialBasisFunction(arg)]
+            self.functions = []
         elif arg is None:
-            self.factors = []
-            self.coefficients = []
+            self.basis_functions = []
+            self.functions = []
         else:
             raise MonomialException, ("Unable to create monomial from expression: " + str(arg))
 
     def dx(self, index):
-        if len(self.factors) > 1:
+        if len(self.basis_functions) > 1:
             raise MonomialException, "Expecting a single basis function."
         m = Monomial(self)
-        m.factors[0] = m.factors[0].dx(index)
+        m.basis_functions[0] = m.basis_functions[0].dx(index)
         return m
 
     def __getitem__(self, index):
-        if len(self.factors) > 1:
+        if len(self.basis_functions) > 1:
             raise MonomialException, "Expecting a single basis function."
         m = Monomial(self)
-        m.factors[0] = m.factors[0][index]
+        m.basis_functions[0] = m.basis_functions[0][index]
         return m
 
     def __mul__(self, other):
         m = Monomial()
-        m.factors = self.factors + other.factors
-        m.coefficients = self.coefficients + other.coefficients
+        m.basis_functions = self.basis_functions + other.basis_functions
+        m.functions = self.functions + other.functions
         return m
 
     def __str__(self):
-        return " ".join("w_%d" % c.count() for c in self.coefficients) + "|" + \
-               "*".join(str(v) for v in self.factors)
+        factors = self.basis_functions + self.functions
+        return "*".join(str(v) for v in factors)
 
 class MonomialTransformer(ReuseTransformer):
 
@@ -166,11 +166,11 @@ class MonomialTransformer(ReuseTransformer):
         return o
 
     def basis_function(self, v):
-        return [Monomial(MonomialFactor(v))]
+        return [Monomial(MonomialBasisFunction(v))]
 
     def function(self, f):
-        monomial = Monomial(MonomialFactor(BasisFunction(f.element())))
-        monomial.coefficients.append(Index(f.count()))
+        monomial = Monomial()
+        monomial.functions.append(f)
         return [monomial]
 
 def extract_monomials(form, indent=""):
