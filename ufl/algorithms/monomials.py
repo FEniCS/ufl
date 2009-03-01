@@ -18,6 +18,7 @@ from ufl.tensors import ComponentTensor
 from ufl.tensoralgebra import Dot
 from ufl.basisfunction import BasisFunction
 from ufl.function import Function
+from ufl.constantvalue import FloatValue
 from ufl.differentiation import SpatialDerivative
 from ufl.form import Form
 from ufl.algorithms.traversal import iter_expressions
@@ -85,15 +86,23 @@ class Monomial:
     
     def __init__(self, arg=None):
         if isinstance(arg, Monomial):
+            self.float_value = arg.float_value
             self.basis_functions = [MonomialBasisFunction(v) for v in arg.basis_functions]
             self.functions = [f for f in arg.functions]
         elif isinstance(arg, MonomialBasisFunction) or isinstance(arg, BasisFunction):
+            self.float_value = 1.0
             self.basis_functions = [MonomialBasisFunction(arg)]
             self.functions = []
         elif isinstance(arg, Function):
+            self.float_value = 1.0
             self.basis_functions = []
             self.functions = [arg]
+        elif isinstance(arg, FloatValue):
+            self.float_value = float(arg)
+            self.basis_functions = []
+            self.functions = []
         elif arg is None:
+            self.float_value = 1.0
             self.basis_functions = []
             self.functions = []
         else:
@@ -112,13 +121,18 @@ class Monomial:
 
     def __mul__(self, other):
         m = Monomial()
+        m.float_value = self.float_value * other.float_value
         m.basis_functions = self.basis_functions + other.basis_functions
         m.functions = self.functions + other.functions
         return m
 
     def __str__(self):
+        if self.float_value == 1.0:
+            float_value = ""
+        else:
+            float_value = "%g * " % self.float_value
         factors = self.basis_functions + self.functions
-        return "*".join(str(v) for v in factors)
+        return float_value + " * ".join(str(v) for v in factors)
 
 class MonomialForm:
 
@@ -191,7 +205,7 @@ class MonomialTransformer(ReuseTransformer):
         return form0 + form1
 
     def product(self, o, form0, form1):
-        print "Product"
+        print "Product: [%s] * [%s]" % (str(form0), str(form1))
         return form0 * form1
         
     def index_sum(self, o, form, index):
@@ -230,6 +244,10 @@ class MonomialTransformer(ReuseTransformer):
     def function(self, f):
         print "Function", v
         return MonomialForm(v)
+
+    def float_value(self, x):
+        print "FloatValue", x
+        return MonomialForm(x)
 
 def extract_monomials(form, indent=""):
     """Extract monomial representation of form (if possible). When
