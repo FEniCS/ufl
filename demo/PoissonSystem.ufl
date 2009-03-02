@@ -1,7 +1,11 @@
+# Copyright (C) 2005-2007 Anders Logg (logg@simula.no)
+# Licensed under the GNU GPL version 3 or any later version
 #
-# Author: Martin Sandve Alnes
-# Date: 2009-01-12
+# Modified by: Martin Sandve Alnes (2009)
+# Date: 2009-03-02
 #
+# The bilinear form a(v, u) and linear form L(v) for
+# Poisson's equation in system form (vector-valued).
 
 cell = triangle
 element = VectorElement("Lagrange", cell, 1)

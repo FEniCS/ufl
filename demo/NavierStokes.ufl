@@ -1,10 +1,14 @@
+# Copyright (C) 2004-2007 Anders Logg (logg@simula.no)
+# Licensed under the GNU GPL version 3 or any later version
 #
-# Author: Anders Logg
 # Modified by: Martin Sandve Alnes
-# Date: 2009-01-12
+# Date: 2009-03-02
 #
+# The bilinear form for the nonlinear term in the
+# Navier-Stokes equations with fixed convective velocity.
 
-element = VectorElement("Lagrange", tetrahedron, 1)
+cell = tetrahedron
+element = VectorElement("Lagrange", cell, 1)
 
 v = TestFunction(element)
 u = TrialFunction(element)
@@ -12,3 +16,4 @@ w = Function(element)
 
 Du = grad(u)
 a = dot( dot(w, Du), v )*dx
+

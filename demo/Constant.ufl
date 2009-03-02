@@ -1,0 +1,20 @@
+# Copyright (C) 2007 Anders Logg (logg@simula.no)
+# Licensed under the GNU GPL version 3 or any later version
+#
+# Modified by: Martin Sandve Alnes (2009)
+#
+# Test form for scalar and vector constants.
+
+cell = triangle
+element = FiniteElement("Lagrange", cell, 1)
+
+v = TestFunction(element)
+u = TrialFunction(element)
+f = Function(element)
+
+c = Constant(cell)
+d = VectorConstant(cell)
+
+a = c*dot(grad(v), grad(u))*dx
+L = inner(d, grad(v))*dx
+

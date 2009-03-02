@@ -1,7 +1,13 @@
 #
-# Author: Anders Logg
-# Modified by: Martin Sandve Alnes
+# Copyright (C) 2006-2009 Anders Logg (logg@simula.no) and Marie Rognes (meg@math.uio.no)
+# Licensed under the GNU GPL version 3 or any later version
+#
+# Modified by: Martin Sandve Alnes (2009)
 # Date: 2009-01-12
+#
+# The bilinear form a(v, u) and linear form L(v) for
+# a mixed formulation of Poisson's equation with BDM
+# (Brezzi-Douglas-Marini) elements.
 #
 
 cell = triangle
@@ -17,3 +23,4 @@ f = Function(DG0)
 
 a = (dot(tau, sigma) - div(tau)*u + w*div(sigma))*dx
 L = w*f*dx
+
