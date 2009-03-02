@@ -4,7 +4,7 @@ or defined as compound operators involving basic operations on the UFL
 objects."""
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-04-09 -- 2009-01-30"
+__date__ = "2008-04-09 -- 2009-03-02"
 
 import math
 from ufl.log import error
@@ -30,15 +30,21 @@ def transpose(A):
 
 def outer(a, b):
     "The outer product of a and b."
+    if a.shape() == () and b.shape() == ():
+        return a*b
     return Outer(a, b)
 
 def inner(a, b):
     "The inner product of a and b."
+    if a.shape() == () and b.shape() == ():
+        return a*b
     return Inner(a, b)
     #return contraction(a, range(a.rank()), b, range(b.rank()))
 
 def dot(a, b):
     "The dot product of a and b."
+    if a.shape() == () and b.shape() == ():
+        return a*b
     return Dot(a, b)
     #return contraction(a, (a.rank()-1,), b, (b.rank()-1,))
 

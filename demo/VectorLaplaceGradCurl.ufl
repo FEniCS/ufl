@@ -6,22 +6,23 @@
 # elements. 
 
 def HodgeLaplaceGradCurl(element, felement):
-    (tau, v) = TestFunctions(element)
-    (sigma, u) = TrialFunctions(element)
+    tau, v = TestFunctions(element)
+    sigma, u = TrialFunctions(element)
     f = Function(felement)
 
-    a = (inner(tau, sigma) - inner(grad(tau), u) + inner(v, grad(sigma)) + inner(curl(v), curl(u)))*dx
+    a = ( inner(tau, sigma) - inner(grad(tau), u) +\
+          inner(v, grad(sigma)) + inner(curl(v), curl(u)) )*dx
     L = inner(v, f)*dx
     
-    return [a, L]
+    return a, L
 
-shape = "tetrahedron"
+cell = tetrahedron
 order = 1
 
-GRAD = FiniteElement("Lagrange", shape, order)
-CURL = FiniteElement("N1curl", shape, order-1)
+GRAD = FiniteElement("Lagrange", cell, order)
+CURL = FiniteElement("N1curl", cell, order-1)
 
-VectorLagrange = VectorElement("Lagrange", shape, order+1)
+VectorLagrange = VectorElement("Lagrange", cell, order+1)
 
-[a, L] = HodgeLaplaceGradCurl(GRAD + CURL, VectorLagrange)
+a, L = HodgeLaplaceGradCurl(GRAD + CURL, VectorLagrange)
 

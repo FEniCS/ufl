@@ -73,9 +73,9 @@ class ListTensor(WrapperType):
                 s = (ind+",\n").join(substring(e._expressions, indent+2) for e in expressions)
                 return ind + "[" + "\n" + s + "\n" + ind + "]"
             else:
-                return ind + "[ %s ]" % ", ".join(repr(e) for e in expressions)
+                return ind + "[ %s ]" % ", ".join(str(e) for e in expressions)
         sub = substring(self._expressions, 0)
-        return "ListTensor(%s)" % sub
+        return "[%s]" % sub
     
     def __repr__(self):
         return self._repr
