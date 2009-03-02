@@ -48,33 +48,32 @@ class MonomialBasisFunction:
             self.derivative = arg.derivative
         elif isinstance(arg, BasisFunction):
             self.basis_function = arg
-            self.component = None
-            self.derivative = None
+            self.component = []
+            self.derivative = []
         elif arg is None:
             self.basis_function = None
-            self.component = None
-            self.derivative = None
+            self.component = []
+            self.derivative = []
         else:
             raise MonomialException, ("Unable to create monomial from expression: " + str(arg))
 
     def apply_derivative(self, indices):
-        if not self.derivative is None:
-            raise MonomialException, "Basis function already differentiated."
-        self.derivative = indices
+        self.derivative += indices
 
     def replace_indices(self, old_indices, new_indices):
-        if self.component == old_indices:
+        if old_indices is None:
             self.component = new_indices
-        if self.derivative == old_indices:
-            self.derivative = new_indices
+        else:
+            _replace_indices(self.component, old_indices, new_indices)
+            _replace_indices(self.derivative, old_indices, new_indices)
 
     def __str__(self):
         c = ""
-        if self.component is None:
+        if len(self.component) == 0:
             c = ""
         else:
             c = "[%s]" % ", ".join(str(c) for c in self.component)
-        if self.derivative is None:
+        if len(self.derivative) == 0:
             d0 = ""
             d1 = ""
         else:
@@ -158,11 +157,7 @@ class MonomialForm:
         print "Index slots after apply_tensor:", self.index_slots
 
     def apply_indices(self, indices):
-        print "Applying indices:", indices, self.index_slots
-        if self.index_slots is None:
-            raise MonomialException, "Expecting tensor-valued expression."
-        if not len(indices) == len(self.index_slots):
-            raise MonomialException, "Mismatching index dimensions for expression."
+        print "Applying indices:", self.index_slots, "-->", indices
         for m in self.monomials:
             m.replace_indices(self.index_slots, indices)
         self.index_slots = None
@@ -201,53 +196,69 @@ class MonomialTransformer(ReuseTransformer):
         raise MonomialException, ("No handler defined for variable %s." % o._uflclass.__name__)
 
     def sum(self, o, form0, form1):
-        print "Sum"
-        return form0 + form1
+        print "\nSum"
+        form = form0 + form1
+        print "Result:", form
+        return form
 
     def product(self, o, form0, form1):
-        print "Product: [%s] * [%s]" % (str(form0), str(form1))
-        return form0 * form1
+        print "\nProduct: [%s] * [%s]" % (str(form0), str(form1))
+        form = form0 * form1
+        print "Result:", form
+        return form
         
     def index_sum(self, o, form, index):
-        print "Ignoring IndexSum expression for now"
+        print "\nIgnoring IndexSum expression for now"
+        print "Result:", form
         return form
 
     def indexed(self, o, form, indices):
-        print "Indexed", form, indices
+        print "\nIndexed", form, indices
         form = MonomialForm(form)
         form.apply_indices(indices)
+        print "Result:", form
         return form
     
     def component_tensor(self, o, form, indices):
-        print "ComponentTensor", form, indices
+        print "\nComponentTensor", form, indices
         form = MonomialForm(form)
         form.apply_tensor(indices)
+        print "Result:", form
         return form
         
     def spatial_derivative(self, o, form, indices):
-        print "SpatialDerivative", form, indices
+        print "\nSpatialDerivative", form, indices
         form = MonomialForm(form)
         form.apply_derivative(indices)
+        print "Result:", form
         return form
 
-    def multi_index(self, o):
-        print "Ignoring MultiIndex terminal for now"
-        return o
+    def multi_index(self, multi_index):
+        print "\nMultiIndex"
+        indices = [index for index in multi_index]
+        print indices
+        return indices
 
     def index(self, o):
         raise MonomialException, "Not expecting to see an Index terminal."
 
     def basis_function(self, v):
-        print "BasisFunction", v
-        return MonomialForm(v)
+        print "\nBasisFunction", v
+        form = MonomialForm(v)
+        print "Result:", form
+        return form
 
     def function(self, f):
         print "Function", v
-        return MonomialForm(v)
+        form = MonomialForm(v)
+        print "Result:", form
+        return form
 
     def float_value(self, x):
         print "FloatValue", x
-        return MonomialForm(x)
+        form = MonomialForm(x)
+        print "Result:", form
+        return form
 
 def extract_monomials(form, indent=""):
     """Extract monomial representation of form (if possible). When
@@ -308,3 +319,20 @@ def extract_monomials(form, indent=""):
         print "  ", monomial
 
     return monomials
+
+def _replace_indices(indices, old_indices, new_indices):
+    "Handle replacement of subsets of multi indices."
+
+    # Old and new indices must match
+    if not len(old_indices) == len(new_indices):
+        raise MonomialException, "Unable to replace indices, mismatching index dimensions."
+
+    # Build index map
+    index_map = {}
+    for (i, index) in enumerate(old_indices):
+        index_map[index] = new_indices[i]
+
+    # Check all indices and replace
+    for (i, index) in enumerate(indices):
+        if index in old_indices:
+            indices[i] = index_map[index]
