@@ -88,22 +88,27 @@ class Monomial:
             self.float_value = arg.float_value
             self.basis_functions = [MonomialBasisFunction(v) for v in arg.basis_functions]
             self.functions = [f for f in arg.functions]
+            self.index_slots = arg.index_slots
         elif isinstance(arg, MonomialBasisFunction) or isinstance(arg, BasisFunction):
             self.float_value = 1.0
             self.basis_functions = [MonomialBasisFunction(arg)]
             self.functions = []
+            self.index_slots = None
         elif isinstance(arg, Function):
             self.float_value = 1.0
             self.basis_functions = []
             self.functions = [arg]
+            self.index_slots = None
         elif isinstance(arg, ScalarValue):
             self.float_value = float(arg)
             self.basis_functions = []
             self.functions = []
+            self.index_slots = None
         elif arg is None:
             self.float_value = 1.0
             self.basis_functions = []
             self.functions = []
+            self.index_slots = None
         else:
             raise MonomialException, ("Unable to create monomial from expression: " + str(arg))
 
@@ -112,11 +117,18 @@ class Monomial:
             raise MonomialException, "Expecting a single basis function."
         self.basis_functions[0].apply_derivative(indices)
 
-    def replace_indices(self, old_indices, new_indices):
+    def apply_tensor(self, indices):
+        if not self.index_slots is None:
+            raise MonomialException, "Expecting scalar-valued expression."
+        self.index_slots = indices
+    
+    def apply_indices(self, indices):
+        print "Applying indices:", self.index_slots, "-->", indices
         for v in self.basis_functions:
-            v.replace_indices(old_indices, new_indices)
+            v.replace_indices(self.index_slots, indices)
         for f in self.functions:
-            f.replace_indices(old_indices, new_indices)
+            f.replace_indices(self.index_slots, indices)
+        self.index_slots = None
 
     def __mul__(self, other):
         m = Monomial()
@@ -138,40 +150,29 @@ class MonomialForm:
     def __init__(self, arg=None):
         if isinstance(arg, MonomialForm):
             self.monomials = [Monomial(m) for m in arg.monomials]
-            self.index_slots = arg.index_slots
         elif arg is None:
             self.monomials = []
-            self.index_slots = None
         else:
             self.monomials = [Monomial(arg)]
-            self.index_slots = None            
 
     def apply_derivative(self, indices):
         for m in self.monomials:
             m.apply_derivative(indices)
 
     def apply_tensor(self, indices):
-        if not self.index_slots is None:
-            raise MonomialException, "Expecting scalar-valued expression."
-        self.index_slots = indices
-        print "Index slots after apply_tensor:", self.index_slots
+        for m in self.monomials:
+            m.apply_tensor(indices)
 
     def apply_indices(self, indices):
-        print "Applying indices:", self.index_slots, "-->", indices
         for m in self.monomials:
-            m.replace_indices(self.index_slots, indices)
-        self.index_slots = None
+            m.apply_indices(indices)
 
-    def __sum__(self, other):
-        if not (self.index_slots is None and other.index_slots) is None:
-            raise MonomialException, "Expecting scalar-valued expression."
+    def __add__(self, other):
         form = MonomialForm()
         form.monomials = [Monomial(m) for m in self.monomials] + [Monomial(m) for m in other.monomials]
         return form
 
     def __mul__(self, other):
-        if not (self.index_slots is None and other.index_slots) is None:
-            raise MonomialException, "Expecting scalar-valued expression."
         form = MonomialForm()
         for m0 in self.monomials:
             for m1 in other.monomials:
@@ -179,7 +180,7 @@ class MonomialForm:
         return form
 
     def __str__(self):
-        return " + ".join(str(m) for m in self.monomials) + " index_slots = " + str(self.index_slots)
+        return " + ".join(str(m) for m in self.monomials)
 
 class MonomialTransformer(ReuseTransformer):
 
