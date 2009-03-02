@@ -132,15 +132,28 @@ def compute_form_with_arity(form, arity): # TODO: Test and finish
     return res
 
 def compute_form_lhs(form):
-    """Compute the left hand side of a form."""
+    """Compute the left hand side of a form.
+    
+    Example:
+        a = (u+f)*v*dx
+        lhs(a) == u*v*dx
+    """
     return compute_form_with_arity(form, 2)
 
 def compute_form_rhs(form):
-    """Compute the right hand side of a form."""
-    return compute_form_with_arity(form, 1)
+    """Compute the right hand side of a form.
+    
+    Example:
+        a = (u+f)*v*dx
+        rhs(a) == -f*v*dx
+    """
+    return -compute_form_with_arity(form, 1)
 
 def compute_form_functional(form):
-    """Compute the right hand side of a form."""
+    """Compute the functional part of a form, that
+    is the terms independent of basis functions.
+    
+    (Used for testing, not sure if it's useful for anything?)"""
     return compute_form_with_arity(form, 0)
 
 def compute_form_action(form, function):
