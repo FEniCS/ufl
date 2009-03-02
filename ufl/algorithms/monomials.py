@@ -18,7 +18,7 @@ from ufl.tensors import ComponentTensor
 from ufl.tensoralgebra import Dot
 from ufl.basisfunction import BasisFunction
 from ufl.function import Function
-from ufl.constantvalue import FloatValue
+from ufl.constantvalue import ScalarValue
 from ufl.differentiation import SpatialDerivative
 from ufl.form import Form
 from ufl.algorithms.traversal import iter_expressions
@@ -96,7 +96,7 @@ class Monomial:
             self.float_value = 1.0
             self.basis_functions = []
             self.functions = [arg]
-        elif isinstance(arg, FloatValue):
+        elif isinstance(arg, ScalarValue):
             self.float_value = float(arg)
             self.basis_functions = []
             self.functions = []
@@ -255,6 +255,12 @@ class MonomialTransformer(ReuseTransformer):
         return form
 
     def float_value(self, x):
+        print "FloatValue", x
+        form = MonomialForm(x)
+        print "Result:", form
+        return form
+
+    def int_value(self, x):
         print "FloatValue", x
         form = MonomialForm(x)
         print "Result:", form
