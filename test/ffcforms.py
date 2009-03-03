@@ -199,9 +199,9 @@ class FFCTestCase(unittest.TestCase):
         #    + gamma/h*v*u*ds
 
         a = inner(grad(v), grad(u))*dx \
-            - inner(avg(grad(v)), jump(u))*dS \
-            - inner(jump(v), avg(grad(u)))*dS \
-            + alpha/h('+')*dot(jump(v), jump(u))*dS \
+            - inner(avg(grad(v)), jump(u, n))*dS \
+            - inner(jump(v, n), avg(grad(u)))*dS \
+            + alpha/h('+')*dot(jump(v, n), jump(u, n))*dS \
             - inner(grad(v), u*n)*ds \
             - inner(u*n, grad(u))*ds \
             + gamma/h*v*u*ds
