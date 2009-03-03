@@ -28,12 +28,6 @@ from ufl.algorithms.ad import expand_derivatives
 from ufl.algorithms.printing import tree_format
 from ufl.algorithms.renumbering import renumber_indices
 
-# Martin to Marie and Anders:
-#    I wouldn't trust these functions,
-#    things have changed since Anders first wrote them
-#    and they only seem like sketches anyway.
-# Note from Anders to Martin: Work in progress
-
 # Exception raised when monomial extraction fails
 class MonomialException(Exception):
     def __init__(self, *args, **kwargs):
@@ -250,19 +244,19 @@ class MonomialTransformer(ReuseTransformer):
         return form
 
     def function(self, v):
-        print "Function", v
+        print "\nFunction", v
         form = MonomialForm(v)
         print "Result:", form
         return form
 
     def float_value(self, x):
-        print "FloatValue", x
+        print "\nFloatValue", x
         form = MonomialForm(x)
         print "Result:", form
         return form
 
     def int_value(self, x):
-        print "IntValue", x
+        print "\nIntValue", x
         form = MonomialForm(x)
         print "Result:", form
         return form
@@ -284,6 +278,13 @@ def extract_monomials(form, indent=""):
     print "Extracting monomials"
     print "--------------------"
     print "a = " + str(form)
+    
+    # Suggestion from Martin:
+    suggestion_accepted = False
+    if suggestion_accepted:
+        form_data = form.form_data()
+        form = form_data.form
+        # + skip expand_derivatives and renumber_indices below, they're already applied to form_data.form
 
     monomials = []    
     for integral in form.cell_integrals():

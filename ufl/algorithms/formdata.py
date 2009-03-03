@@ -91,8 +91,10 @@ class FormData(object):
         self.geometric_dimension = self.cell.d
         self.topological_dimension = self.geometric_dimension
         
-        # Attach form data to original form
+        # Attach form data to both original form and transformed form,
+        # to ensure the invariant "form_data.form.form_data() is form_data"
         self.original_form._form_data = self
+        self.form._form_data = self
 
     def __str__(self):
         "Return formatted summary of form data"
