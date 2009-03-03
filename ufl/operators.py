@@ -130,7 +130,6 @@ def rot(f):
 
 def jump(v, n=None):
     "The jump of v across a facet."
-    r = v.rank()
     cell = v.cell()
     if cell is None:
         warning("TODO: Not all expressions have a cell. Is it right to return zero from jump then?")
@@ -140,14 +139,15 @@ def jump(v, n=None):
         # "v.cell() is None" is equivalent with "v is a constant".
         return Zero(v.shape(), v.free_indices(), v.index_dimensions())
     else:
-        if n is None: # TODO: Is this right? Like FFC did it?
-            n = cell.n
+        if n is None:
+            return v('+') - v('-')
+        r = v.rank()
         if r == 0:
             return v('+')*n('+') + v('-')*n('-')
         elif r == 1:
             return dot(v('+'), n('+')) + dot(v('-'), n('-'))
     
-    error("jump(v) is only defined for scalar or vector-valued expressions (not rank %d expressions)." % r)
+    error("jump(v, n) is only defined for scalar or vector-valued expressions (not rank %d expressions)." % r)
 
 def avg(v):
     "The average of v across a facet."
