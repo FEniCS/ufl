@@ -635,6 +635,34 @@ class DuplicationPurger(ReuseTransformer):
         #    self._duplications.add(e)
         return e
 
+class ListTensorPurger(Transformer):
+    """Get rid of all ListTensor instances by expanding
+    expressions to use their components directly.
+    Will usually increase the size of the expression."""
+    def __init__(self):
+        Transformer.__init__(self)
+    
+    def terminal(self, x):
+        return x
+    
+    #def variable(self, x):
+    #    return x.expression()
+    
+    def expr(self, x, *ops):
+        return self.reuse_if_possible(x, *ops)
+    
+    def index_sum(self, x):
+        FIXME
+    
+    def component_tensor(self, x):
+        FIXME
+    
+    def indexed(self, x):
+        FIXME
+    
+    def spatial_derivative(self, x):
+        FIXME
+    
 # ------------ User interface functions
 
 def transform_integrands(form, transform):

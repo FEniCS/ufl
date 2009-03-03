@@ -249,6 +249,13 @@ class MonomialTransformer(ReuseTransformer):
         print "Result:", form
         return form
 
+    # Comment from Martin: This function can replace float_value and int_value if you wish
+    def scalar_value(self, x):
+        print "\nScalarValue", x
+        form = MonomialForm(x)
+        print "Result:", form
+        return form
+
     def float_value(self, x):
         print "\nFloatValue", x
         form = MonomialForm(x)
