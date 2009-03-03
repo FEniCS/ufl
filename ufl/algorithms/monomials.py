@@ -194,7 +194,7 @@ class MonomialTransformer(ReuseTransformer):
         raise MonomialException, ("No handler defined for terminal %s." % o._uflclass.__name__)
 
     def variable(self, o):
-        raise MonomialException, ("No handler defined for variable %s." % o._uflclass.__name__)
+        return self.visit(o.expression())
 
     def sum(self, o, form0, form1):
         print "\nSum"
@@ -207,26 +207,26 @@ class MonomialTransformer(ReuseTransformer):
         form = form0 * form1
         print "Result:", form
         return form
-        
+
     def index_sum(self, o, form, index):
         print "\nIgnoring IndexSum expression for now"
         print "Result:", form
         return form
 
-    def indexed(self, o, form, indices):
+    def indexed(self, o, form, indices): 
         print "\nIndexed", form, indices
         form = MonomialForm(form)
         form.apply_indices(indices)
         print "Result:", form
         return form
-    
+
     def component_tensor(self, o, form, indices):
         print "\nComponentTensor", form, indices
         form = MonomialForm(form)
         form.apply_tensor(indices)
         print "Result:", form
         return form
-        
+
     def spatial_derivative(self, o, form, indices):
         print "\nSpatialDerivative", form, indices
         form = MonomialForm(form)
@@ -249,7 +249,7 @@ class MonomialTransformer(ReuseTransformer):
         print "Result:", form
         return form
 
-    def function(self, f):
+    def function(self, v):
         print "Function", v
         form = MonomialForm(v)
         print "Result:", form
@@ -262,7 +262,7 @@ class MonomialTransformer(ReuseTransformer):
         return form
 
     def int_value(self, x):
-        print "FloatValue", x
+        print "IntValue", x
         form = MonomialForm(x)
         print "Result:", form
         return form
