@@ -1,11 +1,6 @@
 Roadmap for the development of UFL
 ----------------------------------
 
-# Derivatives:
- - Finish forward mode AD implementation and verify correctness
- - Finish reverse mode AD implementation and compare performance
- - Currently, FunctionDerivative doesn't work multiple times. Fix that!
-
 # About canonical form of forms and expressions:
  - The current way of comparing forms and expressions using repr isn't
    good enough for all purposes, since repr depends on the global counters 
@@ -36,6 +31,10 @@ Roadmap for the development of UFL
  (- Maybe we should keep a more conservative representation of expressions,
    and move simplifications from __new__ to separate functions?
    Pros and cons? Bad during AD, lots of expressions created automatically that can cancel out.)
+
+# Derivatives:
+ - Finish forward mode AD implementation and verify correctness
+ - Finish reverse mode AD implementation and compare performance
 
 # Add parts of this stuff to technical part of documentation (about allowed shape/free index combinations):
  - Sums of operands with different free indices can not be allowed.
@@ -71,22 +70,20 @@ Roadmap for the development of UFL
          = db/dv * c + b * dv/dv
          = db/dv * c + b * 1
 
-# Elements and Basisfunctions (medium priority, needed for non-trivial applications):
- - Implement 'Test/Trial/BasisFunctions' for general tensor subelement with arbitrary symmetries (see split.py). Need to agree on some numbering conventions here.
- - Degree range for quadrature elements?
- - Add integration method information to Integral. In particular we want to add
-   quadrature order or weights/points, but maybe also other metadata is possible.
- - Implement
+# Elements and Basisfunctions (medium/low priority, needed for some non-trivial applications):
+ - (medium) Implement 'Test/Trial/BasisFunctions' for general tensor subelement with arbitrary symmetries (see split.py). Need to agree on some numbering conventions here.
+ - (medium) Degree range for quadrature elements?
+ - (low) Implement
     class ElementUnion(FiniteElementBase):
         def __init__(self, *elements):
             ...
    to represent the enrichment of a finite element space with another. (Idea from Marie)
- - Time elements
+ - (low) Time elements
 
 # Algorithms:
- - Computing quadrature degree (only crude version in formdata at present)
- - If AD needs to be applied in a compiler context, we need a framework
-   for representing unapplied form transformations.
+ - If AD needs to be applied in a compiler context, we need a 
+   framework for representing unapplied form transformations.
+ - Algorithm for computing worst case quadrature degree
 
 # Prettyness and readability (medium priority, useful while debugging...):
  - Rewrite ufl2latex as described in its comments (use pre- and post-handlers)
@@ -97,6 +94,8 @@ Roadmap for the development of UFL
  - Make IndexBase an Expr? Affects the following in particular:
     indexing.py - Make IndexBase an Expr?
     sorting.py - Remove MultiIndex handling if we make IndexBase an Expr.
+    IndexSum - use Index, not MultiIndex
+    SpatialDerivative - use Index, not MultiIndex
 
 # Tests:
  - Write tests for the algorithms, ideally covering all code in multiple ways.
@@ -121,6 +120,10 @@ Roadmap for the development of UFL
      a = f*u*v*dx
    Need to extend ufc::cell for this, perhaps adding time interval [t0,t1] as part 
    of ufc::cell, new shapes time_triangle etc and bool is_time_dependent() to form.
+
+# Complex numbers (low priority):
+ - Allowing complex values and functions, which operations would be affected?
+   Is it mostly about multiplication and division?
 
 # License:
  - Which license do we pick? GPL3 or LGPL3?
