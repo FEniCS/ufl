@@ -635,6 +635,88 @@ class DuplicationPurger(ReuseTransformer):
         #    self._duplications.add(e)
         return e
 
+class IndexExpander(ReuseTransformer):
+    """..."""
+    def __init__(self):
+        ReuseTransformer.__init__(self)
+        self._components = Stack()
+        self._index2value = StackDict()
+    
+    def component(self):
+        "Return current component tuple."
+        if self._components:
+            return self._components.peek()
+        return ()
+    
+    def index_sum(self, x):
+        ops = []
+        summand, multiindex = x.operands()
+        index, = multiindex
+        # TODO: For list tensor purging, do something like: if index not in self._to_expand: return self.expr(x, *[self.visit(o) for o in x.operands()])
+        for value in range(x.dimension()):
+            self._index2value.push(index, value)
+            ops.append(self.visit(summand))
+            self._index2value.pop()
+        return sum(ops)
+    
+    def _multi_index(self, x):
+        comp = []
+        for i in x:
+            if isinstance(i, FixedIndex):
+                comp.append(i._value)
+            elif isinstance(i, Index):
+                comp.append(self._index2value[i])
+        return tuple(comp)
+    
+    def multi_index(self, x):
+        return MultiIndex(self._multi_index(x))
+    
+    def indexed(self, x):
+        A, ii = x.operands()
+        self._components.push(self._multi_index(ii))
+        result = self.visit(A)
+        self._components.pop()
+        return result
+    
+    def component_tensor(self, x):
+        # This function evaluates the tensor expression
+        # with indices equal to the current component tuple
+        expression, indices = x.operands()
+        ufl_assert(expression.shape() == (), "Expecting scalar base expression.")
+        
+        # Update index map with component tuple values
+        comp = self.component()
+        ufl_assert(len(indices) == len(comp), "Index/component mismatch.")
+        for i, v in izip(indices._indices, comp):
+            self._index2value.push(i, v)
+        self._components.push(())
+        
+        # Evaluate with these indices
+        result = self.visit(expression)
+        
+        # Revert index map
+        for _ in comp:
+            self._index2value.pop()
+        self._components.pop()
+        return result
+    
+    def list_tensor(self, x):
+        # Pick the right subtensor and subcomponent
+        c = self.component()
+        c0, c1 = c[0], c[1:]
+        op = x.operands()[c0]
+        # Evaluate subtensor with this subcomponent
+        self._components.push(c1)
+        r = self.visit(op)
+        self._components.pop()
+        return r
+    
+    def spatial_derivative(self, x):
+        f, i = x.operands()
+        ufl_assert(isinstance(f, (Terminal, SpatialDerivative)), "Expecting expand_derivatives to have been applied.")
+        j = self.visit(i)
+        return self.reuse_if_possible(x, f, j)
+
 class ListTensorPurger(Transformer):
     """Get rid of all ListTensor instances by expanding
     expressions to use their components directly.
@@ -722,6 +804,9 @@ def expand_compounds(e, dim=None):
             dim = cell.d
     return apply_transformer(e, CompoundExpander(dim))
 
+def expand_indices(expression):
+    return apply_transformer(expression, IndexExpander())
+    
 def strip_variables(e):
     "Replace all Variable instances with the expression they represent."
     return apply_transformer(e, VariableStripper())

@@ -33,7 +33,8 @@ from ufl.algorithms.checks import validate_form
 from ufl.algorithms.transformations import transform, \
                                            ufl2ufl, ufl2uflcopy, \
                                            replace, flatten, strip_variables, \
-                                           expand_compounds, mark_duplications
+                                           expand_compounds, expand_indices, \
+                                           mark_duplications
 
 # Utilities for transforming complete Forms into other Forms
 from ufl.algorithms.formtransformations import compute_form_adjoint, compute_form_action, \

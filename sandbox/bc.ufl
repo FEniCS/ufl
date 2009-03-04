@@ -1,8 +1,0 @@
-
-# Assign boundary conditions (T must be a special object similar to dx) 
-
-element = FiniteElement("Lagrange", "triangle", 1)
-f = Function(element)
-u = TrialFunction(element)
-T*u == f 
-
