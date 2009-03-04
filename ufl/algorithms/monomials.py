@@ -1,7 +1,7 @@
 """Utility algorithms for monomial representation of expressions."""
 
 __authors__ = "Anders Logg"
-__date__ = "2008-08-01 -- 2009-01-09"
+__date__ = "2008-08-01 -- 2009-03-04"
 
 # Modified by Martin Alnes, 2008
 
@@ -236,21 +236,8 @@ class MonomialTransformer(ReuseTransformer):
         print "Result:", form
         return form
 
-    # Comment from Martin: This function can replace float_value and int_value if you wish
     def scalar_value(self, x):
         print "\nScalarValue", x
-        form = MonomialForm(x)
-        print "Result:", form
-        return form
-
-    def float_value(self, x):
-        print "\nFloatValue", x
-        form = MonomialForm(x)
-        print "Result:", form
-        return form
-
-    def int_value(self, x):
-        print "\nIntValue", x
         form = MonomialForm(x)
         print "Result:", form
         return form
