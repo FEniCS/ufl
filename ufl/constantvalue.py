@@ -1,13 +1,13 @@
 "This module defines classes representing constant values."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-11-01 -- 2009-02-24"
+__date__ = "2008-11-01 -- 2009-03-04"
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
 from ufl.expr import Expr
 from ufl.terminal import Terminal
-from ufl.indexing import Index
+from ufl.indexing import Index, FixedIndex
 
 #--- "Low level" scalar types ---
 
@@ -213,6 +213,11 @@ class Identity(ConstantValue):
     def evaluate(self, x, mapping, component, index_values):
         a, b = component
         return 1 if a == b else 0
+    
+    def __getitem__(self, key):
+        if isinstance(key[0], (int, FixedIndex)) and isinstance(key[1], (int, FixedIndex)):
+            return IntValue(1) if (int(key[0]) == int(key[1])) else Zero()
+        return Expr.__getitem__(self, key)
     
     def __str__(self):
         return "I"
