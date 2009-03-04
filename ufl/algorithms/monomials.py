@@ -22,7 +22,7 @@ from ufl.constantvalue import ScalarValue
 from ufl.differentiation import SpatialDerivative
 from ufl.form import Form
 from ufl.algorithms.traversal import iter_expressions
-from ufl.algorithms.transformations import expand_compounds
+from ufl.algorithms.transformations import purge_list_tensors
 from ufl.algorithms.transformations import ReuseTransformer, apply_transformer
 from ufl.algorithms.ad import expand_derivatives
 from ufl.algorithms.printing import tree_format
@@ -33,19 +33,19 @@ class MonomialException(Exception):
     def __init__(self, *args, **kwargs):
         Exception.__init__(self, *args, **kwargs)
 
-class MonomialBasisFunction:
+class MonomialFactor:
 
     def __init__(self, arg=None):
-        if isinstance(arg, MonomialBasisFunction):
-            self.basis_function = arg.basis_function
+        if isinstance(arg, MonomialFactor):
+            self.function = arg.function
             self.component = arg.component
             self.derivative = arg.derivative
-        elif isinstance(arg, BasisFunction):
-            self.basis_function = arg
+        elif isinstance(arg, BasisFunction) or isinstance(arg, Function):
+            self.function = arg
             self.component = []
             self.derivative = []
         elif arg is None:
-            self.basis_function = None
+            self.function = None
             self.component = []
             self.derivative = []
         else:
@@ -73,43 +73,34 @@ class MonomialBasisFunction:
         else:
             d0 = "(" + " ".join("d/dx_%s" % str(d) for d in self.derivative) + " "
             d1 = ")"
-        return d0 + str(self.basis_function) + d1 + c
+        return d0 + str(self.function) + c + d1
 
 class Monomial:
     
     def __init__(self, arg=None):
         if isinstance(arg, Monomial):
             self.float_value = arg.float_value
-            self.basis_functions = [MonomialBasisFunction(v) for v in arg.basis_functions]
-            self.functions = [f for f in arg.functions]
+            self.factors = [MonomialFactor(v) for v in arg.factors]
             self.index_slots = arg.index_slots
-        elif isinstance(arg, MonomialBasisFunction) or isinstance(arg, BasisFunction):
+        elif isinstance(arg, MonomialFactor) or isinstance(arg, BasisFunction) or isinstance(arg, Function):
             self.float_value = 1.0
-            self.basis_functions = [MonomialBasisFunction(arg)]
-            self.functions = []
-            self.index_slots = None
-        elif isinstance(arg, Function):
-            self.float_value = 1.0
-            self.basis_functions = []
-            self.functions = [arg]
+            self.factors = [MonomialFactor(arg)]
             self.index_slots = None
         elif isinstance(arg, ScalarValue):
             self.float_value = float(arg)
-            self.basis_functions = []
-            self.functions = []
+            self.factors = []
             self.index_slots = None
         elif arg is None:
             self.float_value = 1.0
-            self.basis_functions = []
-            self.functions = []
+            self.factors = []
             self.index_slots = None
         else:
             raise MonomialException, ("Unable to create monomial from expression: " + str(arg))
 
     def apply_derivative(self, indices):
-        if not len(self.basis_functions) == 1 and len(self.functions) == 0:
-            raise MonomialException, "Expecting a single basis function."
-        self.basis_functions[0].apply_derivative(indices)
+        if not len(self.factors) == 1:
+            raise MonomialException, "Expecting a single factor."
+        self.factors[0].apply_derivative(indices)
 
     def apply_tensor(self, indices):
         if not self.index_slots is None:
@@ -118,17 +109,14 @@ class Monomial:
     
     def apply_indices(self, indices):
         print "Applying indices:", self.index_slots, "-->", indices
-        for v in self.basis_functions:
+        for v in self.factors:
             v.replace_indices(self.index_slots, indices)
-        for f in self.functions:
-            f.replace_indices(self.index_slots, indices)
         self.index_slots = None
 
     def __mul__(self, other):
         m = Monomial()
         m.float_value = self.float_value * other.float_value
-        m.basis_functions = self.basis_functions + other.basis_functions
-        m.functions = self.functions + other.functions
+        m.factors = self.factors + other.factors
         return m
 
     def __str__(self):
@@ -136,8 +124,7 @@ class Monomial:
             float_value = ""
         else:
             float_value = "%g * " % self.float_value
-        factors = self.basis_functions + self.functions
-        return float_value + " * ".join(str(v) for v in factors)
+        return float_value + " * ".join(str(v) for v in self.factors)
 
 class MonomialForm:
 
@@ -286,12 +273,9 @@ def extract_monomials(form, indent=""):
     print "--------------------"
     print "a = " + str(form)
     
-    # Suggestion from Martin:
-    suggestion_accepted = False
-    if suggestion_accepted:
-        form_data = form.form_data()
-        form = form_data.form
-        # + skip expand_derivatives and renumber_indices below, they're already applied to form_data.form
+    # Extract processed form
+    form_data = form.form_data()
+    form = form_data.form
 
     monomials = []    
     for integral in form.cell_integrals():
@@ -305,11 +289,8 @@ def extract_monomials(form, indent=""):
         print integrand
         print ""
 
-        # Expand compounds
-        integrand = expand_derivatives(integrand)
-
-        # Renumber indices
-        #integrand = renumber_indices(integrand)
+        # Purge list tensors from expression tree
+        integrand = purge_list_tensors(integrand)
 
         print ""
         print "Transformed integrand:"
