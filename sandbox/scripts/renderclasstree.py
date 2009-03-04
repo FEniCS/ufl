@@ -27,15 +27,15 @@ def format_children(parent, level, skipparent=True, maxlevels=None):
     return g
 
 # Render graph body!
-# All:
-body = format_children("object", 1)
-body = format_children("Expr", 1, False)
 # Root + some:
 body = format_children("object", 1, maxlevels=2)
 # Terminals:
 body = format_children("Terminal", 1, False)
 # Operators:
 body = format_children("Operator", 1, False)
+# All:
+body = format_children("object", 1)
+body = format_children("Expr", 1, False)
 
 # Set global formatting options
 format = """

@@ -1,4 +1,0 @@
-To run these tests from within the source tree without needing to install
-the UFL Python module, update your PYTHONPATH according to
-
-    export PYTHONPATH="..:$PYTHONPATH"

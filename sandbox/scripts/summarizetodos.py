@@ -2,8 +2,9 @@
 import os
 from glob import glob
 
+files = sorted(glob("*.py"))
 lines = []
-for f in sorted(glob("*.py")):
+for f in files:
     todos = []
     fixmes = []
     for l in open(f):
