@@ -18,7 +18,7 @@ from ufl.tensors import ComponentTensor
 from ufl.tensoralgebra import Dot
 from ufl.basisfunction import BasisFunction
 from ufl.function import Function
-from ufl.constantvalue import ScalarValue
+from ufl.constantvalue import ScalarValue, IntValue
 from ufl.differentiation import SpatialDerivative
 from ufl.form import Form
 from ufl.algorithms.traversal import iter_expressions
@@ -177,6 +177,8 @@ class MonomialTransformer(ReuseTransformer):
     def variable(self, o):
         return self.visit(o.expression())
 
+    #--- Operator handles ---
+
     def sum(self, o, form0, form1):
         print "\nSum"
         form = form0 + form1
@@ -215,6 +217,18 @@ class MonomialTransformer(ReuseTransformer):
         print "Result:", form
         return form
 
+    def power(self, o, form, ignored_exponent_expressed_as_form):
+        print "\nPower", form, ignored_exponent_expressed_as_form
+        (expr, exponent) = o.operands()
+        if not isinstance(exponent, IntValue):
+            raise MonomialException, "Cannot handle non-integer exponents."
+        p = MonomialForm(Monomial())
+        for i in range(int(exponent)):
+            p = p * form
+        return p
+
+    #--- Terminal handlers ---
+
     def multi_index(self, multi_index):
         print "\nMultiIndex"
         indices = [index for index in multi_index]
@@ -242,7 +256,7 @@ class MonomialTransformer(ReuseTransformer):
         print "Result:", form
         return form
 
-def extract_monomials(form, indent=""):
+def extract_monomials(form):
     """Extract monomial representation of form (if possible). When
     successful, the form is represented as a sum of products of scalar
     components of basis functions of derivatives of basis functions.
@@ -256,9 +270,10 @@ def extract_monomials(form, indent=""):
 
     set_level(INFO)
 
+    print ""
     print "Extracting monomials"
     print "--------------------"
-    print "a = " + str(form)
+    print ""
     
     # Extract processed form
     form_data = form.form_data()
@@ -271,18 +286,8 @@ def extract_monomials(form, indent=""):
         measure = integral.measure()
         integrand = integral.integrand()
 
-        print ""
-        print "Original integrand:"
-        print integrand
-        print ""
-
         # Purge list tensors from expression tree
         integrand = purge_list_tensors(integrand)
-
-        print ""
-        print "Transformed integrand:"
-        print integrand
-        print ""
 
         print tree_format(integrand)
 
