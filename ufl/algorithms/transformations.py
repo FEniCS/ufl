@@ -127,7 +127,22 @@ class Transformer(object):
         #if all(a is b for (a, b) in izip(operands, o.operands())):
         if operands == o.operands():
             return o
-        return o.reconstruct(*operands)
+        #return o.reconstruct(*operands)
+        # Debugging version:
+        try:
+            r = o.reconstruct(*operands)
+        except:
+            print 
+            print 
+            print 
+            print "FAILURE in reuse_if_possible:"
+            print "type(o) =", type(o)
+            print "operands ="
+            print 
+            print "\n\n".join(map(str,operands))
+            print 
+            raise
+        return r
     
     def always_reconstruct(self, o, *operands):
         "Always reconstruct expr."
@@ -649,11 +664,16 @@ class IndexExpander(ReuseTransformer):
             return self._components.peek()
         return ()
     
+    def terminal(self, x):
+        if x.shape():
+            return x[self.component()]
+        return x
+    
     def index_sum(self, x):
         ops = []
         summand, multiindex = x.operands()
         index, = multiindex
-        # TODO: For list tensor purging, do something like: if index not in self._to_expand: return self.expr(x, *[self.visit(o) for o in x.operands()])
+        # TODO: For the list tensor purging algorithm, do something like: if index not in self._to_expand: return self.expr(x, *[self.visit(o) for o in x.operands()])
         for value in range(x.dimension()):
             self._index2value.push(index, value)
             ops.append(self.visit(summand))

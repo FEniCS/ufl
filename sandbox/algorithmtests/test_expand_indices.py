@@ -1,8 +1,8 @@
 
 from ufl.algorithms import load_forms, expand_indices
 
-name = "../../demo/MassAD.ufl"
 #name = "../../demo/StiffnessAD.ufl"
+name = "../../demo/Constant.ufl"
 forms = load_forms(name)
 
 for f in forms:
