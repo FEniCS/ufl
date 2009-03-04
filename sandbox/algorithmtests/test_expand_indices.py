@@ -1,7 +1,9 @@
 
 from ufl.algorithms import load_forms, expand_indices
 
-forms = load_forms("../../demo/StiffnessAD.ufl")
+name = "../../demo/MassAD.ufl"
+#name = "../../demo/StiffnessAD.ufl"
+forms = load_forms(name)
 
 for f in forms:
     fd = f.form_data()

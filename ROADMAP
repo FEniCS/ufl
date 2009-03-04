@@ -35,6 +35,25 @@ Roadmap for the development of UFL
 # Derivatives:
  - Finish forward mode AD implementation and verify correctness
  - Finish reverse mode AD implementation and compare performance
+ - Attaching derivatives to Functions:
+        It would be nice if the user could supply the derivative of a Function as another Function.
+        Maybe we can do:
+
+         Df = Function(element2)
+         f = Function(element1, gradient=Df)
+
+        and perhaps for linearization:
+
+         g = Function(element3)
+         df_dg = Function(element2)
+         f = Function(element1, derivatives = { g: df_dg })
+
+        then you could do:
+
+         F = derivative(f**2*dx, f)
+         J = derivative(F, f)
+
+        even if f is defined on a quadrature element.
 
 # Add parts of this stuff to technical part of documentation (about allowed shape/free index combinations):
  - Sums of operands with different free indices can not be allowed.
