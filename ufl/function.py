@@ -2,7 +2,7 @@
 of related classes (functions), including Constant."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-02-23"
+__date__ = "2008-03-14 -- 2009-03-04"
 
 # Modified by Anders Logg, 2008
 
@@ -16,21 +16,35 @@ from ufl.geometry import as_cell
 # --- The Function class represents a coefficient function argument to a form ---
 
 class Function(FormArgument, Counted):
-    __slots__ = ("_element", "_repr")
+    __slots__ = ("_element", "_repr", "_gradient", "_derivatives")
     _globalcount = 0
 
-    def __init__(self, element, count=None):
+    def __init__(self, element, count=None, gradient=None, derivatives=None):
         FormArgument.__init__(self)
         Counted.__init__(self, count, Function)
         ufl_assert(isinstance(element, FiniteElementBase),
             "Expecting a FiniteElementBase instance.")
         self._element = element
         self._repr = None
+        self._gradient = gradient
+        self._derivatives = {} if derivatives is None else dict(derivatives)
+        if gradient or derivatives:
+            # TODO: Use gradient and derivatives in AD
+            # TODO: Check shapes of gradient and derivatives
+            warning("Specifying the gradient or derivatives of a Function is not yet implemented anywhere.")
     
     def reconstruct(self, count=None):
         if count is None or count == self._count:
             return self
         return Function(self._element, count)
+    
+    def gradient(self):
+        "Hook for experimental feature, do not use!"
+        return self._gradient
+    
+    def derivative(self, f):
+        "Hook for experimental feature, do not use!"
+        return self._derivatives.get(f)
     
     def element(self):
         return self._element
