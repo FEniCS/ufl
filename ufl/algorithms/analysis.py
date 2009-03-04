@@ -48,6 +48,19 @@ def extract_type(a, ufl_type):
                  for o in post_traversal(e) \
                  if isinstance(o, ufl_type))
 
+def has_type(a, ufl_types):
+    """Check if any class from ufl_types is found in a.
+    The argument a can be a Form, Integral or Expr."""
+    if issubclass(ufl_types, Expr):
+        ufl_types = (ufl_types,)
+    if all(issubclass(ufl_type, Terminal) for ufl_type in ufl_types):
+        return any(isinstance(o, ufl_types) \
+                   for e in iter_expressions(a) \
+                   for o in traverse_terminals(e))
+    return any(isinstance(o, ufl_types) \
+               for e in iter_expressions(a) \
+               for o in post_traversal(e))
+
 def extract_terminals(a):
     "Build a set of all Terminal objects in a."
     return set(o for e in iter_expressions(a) \

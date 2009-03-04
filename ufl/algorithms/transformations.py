@@ -14,11 +14,11 @@ from ufl.assertions import ufl_assert
 from ufl.expr import Expr
 from ufl.terminal import Terminal
 from ufl.indexing import Index, FixedIndex, indices, complete_shape
-from ufl.tensors import as_tensor, as_matrix, as_vector
+from ufl.tensors import as_tensor, as_matrix, as_vector, ListTensor
 from ufl.variable import Variable
 from ufl.form import Form
 from ufl.classes import all_ufl_classes
-from ufl.algorithms.analysis import extract_duplications
+from ufl.algorithms.analysis import has_type, extract_duplications
 
 def transform(expression, handlers):
     """Convert a UFLExpression according to rules defined by
@@ -738,34 +738,6 @@ class IndexExpander(ReuseTransformer):
         j = self.visit(i)
         return self.reuse_if_possible(x, f, j)
 
-class ListTensorPurger(Transformer):
-    """Get rid of all ListTensor instances by expanding
-    expressions to use their components directly.
-    Will usually increase the size of the expression."""
-    def __init__(self):
-        Transformer.__init__(self)
-    
-    def terminal(self, x):
-        return x
-    
-    #def variable(self, x):
-    #    return x.expression()
-    
-    def expr(self, x, *ops):
-        return self.reuse_if_possible(x, *ops)
-    
-    def index_sum(self, x):
-        FIXME
-    
-    def component_tensor(self, x):
-        FIXME
-    
-    def indexed(self, x):
-        FIXME
-    
-    def spatial_derivative(self, x):
-        FIXME
-    
 # ------------ User interface functions
 
 def transform_integrands(form, transform):
@@ -825,9 +797,17 @@ def expand_compounds(e, dim=None):
             dim = cell.d
     return apply_transformer(e, CompoundExpander(dim))
 
-def expand_indices(expression):
-    return apply_transformer(expression, IndexExpander())
-    
+def expand_indices(e):
+    return apply_transformer(e, IndexExpander())
+
+def purge_list_tensors(e):
+    """Get rid of all ListTensor instances by expanding
+    expressions to use their components directly.
+    Will usually increase the size of the expression."""
+    if has_type(e, ListTensor):
+        return expand_indices(e) # FIXME: Only expand what's necessary to get rid of list tensors
+    return e
+
 def strip_variables(e):
     "Replace all Variable instances with the expression they represent."
     return apply_transformer(e, VariableStripper())
@@ -839,10 +819,10 @@ def mark_duplications(e):
     duplications = extract_duplications(e)
     return apply_transformer(e, DuplicationMarker(duplications))
 
-def purge_duplications(expression):
+def purge_duplications(e):
     """Replace any subexpressions in expression that
     occur more than once with a single instance."""
-    return apply_transformer(expression, DuplicationPurger())
+    return apply_transformer(e, DuplicationPurger())
 
 def extract_basis_function_dependencies(e):
     "Extract a set of sets of basis_functions."

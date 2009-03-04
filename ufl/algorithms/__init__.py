@@ -1,7 +1,7 @@
 "This module collects algorithms and utility functions operating on UFL objects."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-14 -- 2009-02-24"
+__date__ = "2008-08-14 -- 2009-03-04"
 
 # Modified by Anders Logg, 2008
 
@@ -11,7 +11,7 @@ from ufl.algorithms.traversal import iter_expressions, traverse_terminals, \
                                      post_walk, pre_walk, walk
 
 # Utilities for extracting information from forms and expressions
-from ufl.algorithms.analysis import extract_classes, extract_type, \
+from ufl.algorithms.analysis import extract_classes, extract_type, has_type, \
                                     extract_basis_functions, extract_functions, \
                                     extract_elements, extract_unique_elements, \
                                     extract_variables, extract_duplications, \
@@ -34,7 +34,7 @@ from ufl.algorithms.transformations import transform, \
                                            ufl2ufl, ufl2uflcopy, \
                                            replace, flatten, strip_variables, \
                                            expand_compounds, expand_indices, \
-                                           mark_duplications
+                                           purge_list_tensors, mark_duplications
 
 # Utilities for transforming complete Forms into other Forms
 from ufl.algorithms.formtransformations import compute_form_adjoint, compute_form_action, \
