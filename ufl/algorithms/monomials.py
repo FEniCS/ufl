@@ -300,12 +300,6 @@ def extract_monomials(form):
 
         return monomials
 
-    # Print monomial representation
-    print ""
-    print "Number of terms:", len(monomials)
-    for monomial in monomials:
-        print "  ", monomial
-
     return monomials
 
 def _replace_indices(indices, old_indices, new_indices):
