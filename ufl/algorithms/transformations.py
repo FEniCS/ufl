@@ -3,16 +3,17 @@ either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2009-02-23"
+__date__ = "2008-05-07 -- 2009-03-04"
 
 from itertools import izip
 from inspect import getargspec
 
 from ufl.log import error, warning, debug
+from ufl.common import Stack, StackDict
 from ufl.assertions import ufl_assert
 from ufl.expr import Expr
 from ufl.terminal import Terminal
-from ufl.indexing import Index, indices, complete_shape
+from ufl.indexing import Index, FixedIndex, indices, complete_shape
 from ufl.tensors import as_tensor, as_matrix, as_vector
 from ufl.variable import Variable
 from ufl.form import Form
@@ -669,7 +670,7 @@ class IndexExpander(ReuseTransformer):
         return tuple(comp)
     
     def multi_index(self, x):
-        return MultiIndex(self._multi_index(x))
+        return x._uflclass(self._multi_index(x))
     
     def indexed(self, x):
         A, ii = x.operands()
@@ -713,7 +714,7 @@ class IndexExpander(ReuseTransformer):
     
     def spatial_derivative(self, x):
         f, i = x.operands()
-        ufl_assert(isinstance(f, (Terminal, SpatialDerivative)), "Expecting expand_derivatives to have been applied.")
+        ufl_assert(isinstance(f, (Terminal, x._uflclass)), "Expecting expand_derivatives to have been applied.")
         j = self.visit(i)
         return self.reuse_if_possible(x, f, j)
 
