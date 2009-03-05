@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+"""Rename .ufl files from lower_score_naming to CamelCapsNaming."""
 
 import os
 from glob import glob
@@ -20,5 +22,5 @@ for f in files2:
     jobs.append(cmd)
 
 for cmd in jobs:
-    print cmd
+    print cmd 
     os.system(cmd)

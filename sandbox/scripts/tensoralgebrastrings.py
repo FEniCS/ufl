@@ -1,8 +1,10 @@
-#
-# To avoid typing errors, this code was used to generate expressions 
-# for the expansion of compound expressions like the cofactor, inverse,
-# and deviatoric part of a matrix.
-#
+#!/usr/bin/env python
+"""
+To avoid typing errors, this code was used to generate expressions 
+for the expansion of compound expressions like the cofactor, inverse,
+and deviatoric part of a matrix.
+"""
+
 import re
 from swiginac import *
 

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+"""Print list of terminal and nonterminal ufl.Expr subclasses."""
 
 from ufl.classes import *
 
