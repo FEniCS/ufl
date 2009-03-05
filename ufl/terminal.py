@@ -2,7 +2,7 @@
 for all types that are terminal nodes in the expression trees."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-02-23"
+__date__ = "2008-03-14 -- 2008-03-05"
 
 # Modified by Anders Logg, 2008
 
@@ -102,9 +102,6 @@ class Tuple(Expr):
     
     def index_dimensions(self):
         error("Calling free_indices on a utility type is an error.")
-    
-    def __getitem__(self, i):
-        return self._items[i]
     
     def __getitem__(self, i):
         return self._items[i]

@@ -4,17 +4,19 @@ or defined as compound operators involving basic operations on the UFL
 objects."""
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-04-09 -- 2009-03-02"
+__date__ = "2008-04-09 -- 2009-03-05"
 
 import math
-from ufl.log import error
+from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.constantvalue import Zero, ScalarValue, as_ufl
 from ufl.differentiation import VariableDerivative, Grad, Div, Curl, Rot
 from ufl.tensoralgebra import Transposed, Inner, Outer, Dot, Cross, Determinant, Inverse, Cofactor, Trace, Deviatoric, Skew
 from ufl.variable import Variable
+from ufl.tensors import as_tensor
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin
+from ufl.indexing import indices
 
 #--- Basic operators ---
 
