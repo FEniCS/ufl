@@ -5,32 +5,14 @@ Roadmap for the development of UFL
  - The current way of comparing forms and expressions using repr isn't
    good enough for all purposes, since repr depends on the global counters 
    of Counted objects (that is, Index, BasisFunction and Function with subclasses).
-   Some ideas to get around this:
-   - Implement renumbering of BasisFunction and Function objects to
-     correctly compare forms (this is mostly for form compiler cache)
-     (can extract original BF and F objects in FormData before applying this)
-   - Implement a consistent renumbering of indices to compare arbitrary
-     expressions better (apply before mark_duplications to improve cse as well?)
-     A complication w.r.t. renumbering of indices is that indices may need
-     to be relabeled to match, which can of course be handled by inserting
-     ComponentTensor and Indexed objects.
-     - In an index renumbering algorithm, we must take great care to avoid
-       implicit dependencies of the index numbering on the previous numberings!
-       (The ordering of operands may depend on previous numbering!)
-     - Indices may be _introduced_ in the expression tree in the following node types only:
-       - Indexed
-       - SpatialDerivative
-     - Indices may be mapped from free to repeated in the following node types only:
-       - Indexed (A[i,i])
-       - SpatialDerivative (A[i].dx(i))
-       - Product (A[i,j]*B[j,k])
-       In all other nodes, indices just fall through
-   (- Maybe introducing a class ImplicitSum (which represents the sum of an
-     expression (product/spatialderivative/indexed) over its repeated indices)
-     can simplify some algorithms?)
- (- Maybe we should keep a more conservative representation of expressions,
-   and move simplifications from __new__ to separate functions?
-   Pros and cons? Bad during AD, lots of expressions created automatically that can cancel out.)
+    - Implement a canonical renumbering of indices to compare arbitrary expressions better.
+      A complication w.r.t. renumbering of indices is that indices may need
+      to be relabeled to match, which can of course be handled by inserting
+      ComponentTensor and Indexed objects.
+      In an index renumbering algorithm, we must take great care to avoid
+      circular implicit dependencies of the index numbering on the previous numberings!
+      This is why the ordering of operands may not depend on the counts of Counted objects.
+    - Implement renumbering of variable Labels
 
 # Derivatives:
  - Finish forward mode AD implementation and verify correctness

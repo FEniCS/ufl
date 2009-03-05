@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+"""Print all TestCase subclasses found in *.py."""
+
 import os
 from glob import glob
 

@@ -1,13 +1,13 @@
 """The Integral class."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-02-13"
+__date__ = "2008-03-14 -- 2009-03-05"
 
 # Modified by Anders Logg, 2008
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.constantvalue import is_true_ufl_scalar
+from ufl.constantvalue import is_true_ufl_scalar, is_python_scalar
 
 class Measure(object):
     """A measure for integration."""

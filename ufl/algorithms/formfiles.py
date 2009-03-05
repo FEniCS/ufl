@@ -3,7 +3,7 @@
 from __future__ import with_statement
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-02-25"
+__date__ = "2008-03-14 -- 2009-03-05"
 
 import os
 import time
@@ -64,7 +64,7 @@ def load_forms(filename):
     
     # Analyse validity of forms
     for k, v in zip(form_names, forms):
-        errors = validate_form(v)
+        errors = validate_form(v) # FIXME: validate_form raises exception, it doesn't return errors
         if errors:
             error("Found errors in form '%s':\n%s" % (k, errors))
     

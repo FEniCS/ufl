@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Render the ufl.Expr class hierarchy in .dot format."""
 
 from collections import defaultdict
 from ufl.classes import all_ufl_classes

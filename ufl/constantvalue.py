@@ -1,10 +1,10 @@
 "This module defines classes representing constant values."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-11-01 -- 2009-03-04"
+__date__ = "2008-11-01 -- 2009-03-05"
 
-from ufl.log import warning
-from ufl.assertions import ufl_assert
+from ufl.log import warning, error
+from ufl.assertions import ufl_assert, expecting_python_scalar
 from ufl.expr import Expr
 from ufl.terminal import Terminal
 from ufl.indexing import Index, FixedIndex
@@ -128,7 +128,7 @@ class ScalarValue(ConstantValue, IndexAnnotated):
             return self
         ufl_assert(len(free_indices) == len(self._free_indices), "Size mismatch between old and new indices.")
         new_index_dimensions = dict((b, self._index_dimensions[a]) for (a,b) in zip(self._free_indices, free_indices))
-        return self._uflclass(self._value, self._shape, free_indices, new_index_dimensions)
+        return ScalarValue(self._value, self._shape, free_indices, new_index_dimensions)
     
     def shape(self):
         return self._shape
@@ -163,9 +163,6 @@ class ScalarValue(ConstantValue, IndexAnnotated):
 
     def __abs__(self):
         return type(self)(abs(self._value))
-    
-    def __repr__(self):
-        return self._repr
 
 class FloatValue(ScalarValue):
     "A constant scalar numeric value."
@@ -174,6 +171,9 @@ class FloatValue(ScalarValue):
         ScalarValue.__init__(self, float_type(value), shape, free_indices, index_dimensions)
         self._repr = "%s(%s, %s, %s, %s)" % (type(self).__name__, repr(self._value), repr(self._shape), repr(self._free_indices), repr(self._index_dimensions))
     
+    def __repr__(self):
+        return self._repr
+    
 class IntValue(ScalarValue):
     "A constant scalar integer value."
     __slots__ = ()
@@ -181,6 +181,9 @@ class IntValue(ScalarValue):
         ScalarValue.__init__(self, int_type(value), shape, free_indices, index_dimensions)
         self._repr = "%s(%s, %s, %s, %s)" % (type(self).__name__, repr(self._value), repr(self._shape), repr(self._free_indices), repr(self._index_dimensions))
 
+    def __repr__(self):
+        return self._repr
+    
 class ScalarSomething(ScalarValue):
     """A scalar value of some externally defined type.
     

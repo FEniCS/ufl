@@ -13,6 +13,7 @@ from ufl.common import Stack, StackDict
 from ufl.assertions import ufl_assert
 from ufl.expr import Expr
 from ufl.terminal import Terminal
+from ufl.algebra import Product
 from ufl.indexing import Index, FixedIndex, indices, complete_shape
 from ufl.tensors import as_tensor, as_matrix, as_vector, ListTensor
 from ufl.variable import Variable

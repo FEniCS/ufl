@@ -2,10 +2,11 @@
 of related classes (functions), including Constant."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-03-04"
+__date__ = "2008-03-14 -- 2009-03-05"
 
 # Modified by Anders Logg, 2008
 
+from ufl.log import warning
 from ufl.assertions import ufl_assert
 from ufl.common import Counted, product
 from ufl.terminal import FormArgument

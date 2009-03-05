@@ -1,7 +1,7 @@
 """Front-end for AD routines."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-12-28 -- 2009-02-18"
+__date__ = "2008-12-28 -- 2009-03-05"
 
 from itertools import izip
 from ufl.log import debug, error
@@ -58,7 +58,7 @@ def expand_derivatives(form):
     return transform_integrands(form, _expand_derivatives)
 
 if __name__ == "__main__":
-    from ufl import triangle, FiniteElement, TestFunction, Function, expand_derivatives
+    from ufl import triangle, FiniteElement, TestFunction, Function, dx
     e = FiniteElement("CG", triangle, 1)
     v = TestFunction(e)
     f = Function(e)

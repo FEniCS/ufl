@@ -17,10 +17,10 @@ class IndexRenumberingTransformer(ReuseTransformer):
         return o.reconstruct(free_indices)
     zero = index_annotated
     scalar_value = index_annotated
-    
+
     def multi_index(self, o):
         return MultiIndex(tuple(map(self.index, o._indices)))
-
+    
     def index(self, o):
         if isinstance(o, FixedIndex):
             return o
@@ -29,7 +29,6 @@ class IndexRenumberingTransformer(ReuseTransformer):
         if i is not None:
             return i
         new_index = Index(len(self._index_map))
-        #print "Renumbering: %d --> %d" % (o.count(), new_index.count())
         self._index_map[c] = new_index
         return new_index
 

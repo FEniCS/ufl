@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+"""Print summary of TODO and FIXME lines in files *.py."""
+
 import os
 from glob import glob
 

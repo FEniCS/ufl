@@ -2,10 +2,11 @@
 is more robust w.r.t. argument numbering than using repr."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-11-26 -- 2009-02-23"
+__date__ = "2008-11-26 -- 2009-03-05"
 
 from itertools import izip
 
+from ufl.log import error
 from ufl.common import Counted
 from ufl.terminal import Terminal, FormArgument
 from ufl.indexing import MultiIndex, Index
