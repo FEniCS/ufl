@@ -35,7 +35,7 @@ class Expr(object):
     
     def __init__(self):
         # Comment out this line to disable class construction statistics (used in some unit tests)
-        _class_usage_statistics[self._uflclass] += 1
+        _class_usage_statistics[self.__class__._uflclass] += 1
         #self._hash = None
     
     #=== Abstract functions that must be implemented by subclasses ===
@@ -156,7 +156,7 @@ class Operator(Expr):
     
     def reconstruct(self, *operands):
         "Return a new object of the same type with new operands."
-        return self._uflclass(*operands)
+        return self.__class__._uflclass(*operands)
 
 class WrapperType(Operator):
     def __init__(self):

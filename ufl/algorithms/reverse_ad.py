@@ -58,7 +58,7 @@ def reverse_ad(expr, G): # FIXME: Finish this!
     pdc = PartialDerivativeComputer()
     c = {}
     for i, v in enumerate(V):
-        pdiffs = pdc.visit(v)
+        pdiffs = pdc(v)
         vi_edges = FIXME
         for (j, dvidvj) in zip(vi_edges, pdiffs):
             c[(i,j)] = dvidvj
