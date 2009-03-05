@@ -35,8 +35,11 @@ setup(name = "UFL",
       author = "Martin Sandve Alnaes, Anders Logg",
       author_email = "ufl-dev@fenics.org",
       url = "http://www.fenics.org/ufl/",
-      scripts = ["scripts/ufl-analyse", "scripts/ufl2latex", "scripts/ufl2pdf", "scripts/ufl-convert"],
+      scripts = ["scripts/ufl-analyse",
+                 "scripts/ufl2latex",
+                 "scripts/ufl2pdf",
+                 "scripts/ufl-convert",
+                 "scripts/form2ufl"],
       packages = ["ufl", "ufl.algorithms"],
       package_dir = {"ufl": "ufl/"},
       data_files = [("lib/pkgconfig", ["ufl-%d.pc" % major])])
-
