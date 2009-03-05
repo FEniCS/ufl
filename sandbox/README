@@ -1,0 +1,13 @@
+This directory contains unofficial scripts,
+snippets, test codes, and whatnot.
+Main structure of this directory:
+
+  operatortests/    - test snippets for operators (these should usually become unit tests)
+  algorithmtests/   - test snippets for algorithms
+  scripts/          - utility scripts that perform some minor task
+  suggestions/      - for .ufl files with new suggested syntax
+  profiling/        - scripts doing something to be profiled
+  pylintlog/        - pylint script for doing static code analysis on ufl
+
+Please try to keep it tidy by at least
+making a personal folder for messy stuff.
