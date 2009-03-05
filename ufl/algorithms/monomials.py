@@ -5,28 +5,15 @@ __date__ = "2008-08-01 -- 2009-03-04"
 
 # Modified by Martin Alnes, 2008
 
-from copy import deepcopy
-
-from ufl.log import info, error, warning, begin, end, set_level, INFO
+from ufl.log import set_level, INFO
 from ufl.assertions import ufl_assert
-from ufl.expr import Expr
-from ufl.algebra import Sum, Product
-from ufl.indexsum import IndexSum
-from ufl.indexed import Indexed
-from ufl.indexing import Index, MultiIndex
-from ufl.tensors import ComponentTensor
-from ufl.tensoralgebra import Dot
 from ufl.basisfunction import BasisFunction
 from ufl.function import Function
 from ufl.constantvalue import ScalarValue, IntValue
-from ufl.differentiation import SpatialDerivative
 from ufl.form import Form
-from ufl.algorithms.traversal import iter_expressions
 from ufl.algorithms.transformations import purge_list_tensors
 from ufl.algorithms.transformations import ReuseTransformer, apply_transformer
-from ufl.algorithms.ad import expand_derivatives
 from ufl.algorithms.printing import tree_format
-from ufl.algorithms.renumbering import renumber_indices
 
 # Exception raised when monomial extraction fails
 class MonomialException(Exception):
@@ -299,12 +286,6 @@ def extract_monomials(form):
         #print "I2 =", integrand
 
         return monomials
-
-    # Print monomial representation
-    print ""
-    print "Number of terms:", len(monomials)
-    for monomial in monomials:
-        print "  ", monomial
 
     return monomials
 
