@@ -1,14 +1,14 @@
 """Algorithms for working with linearized computational graphs."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-12-28 -- 2009-02-26"
+__date__ = "2008-12-28 -- 2009-03-05"
 
 from collections import defaultdict
 from itertools import chain, imap, izip
 from heapq import heapify, heappop, heappush
 
 from ufl import *
-from ufl.algorithms.traversal import post_traversal
+from ufl.algorithms.traversal import post_traversal, fast_pre_traversal
 from ufl.algorithms.printing import tree_format
 from ufl.algorithms.transformations import MultiFunction
 from ufl.classes import Terminal, Variable
@@ -47,8 +47,8 @@ def build_graph(expr): # O(n)
     V = []
     E = []
     handled = {}
-    #for v in reversed(fast_pre_traversal(expr)):
-    for v in post_traversal(expr):
+    #for v in post_traversal(expr):
+    for v in reversed(list(fast_pre_traversal(expr))):
         i = handled.get(v)
         if i is None:
             i = len(V)
@@ -223,10 +223,10 @@ class HeapItem(object):
 
 def depth_first_ordering(G):
     V, E = G
-    Ein = G.Ein() # TODO: Can use extract_vertex_connections
-    Eout = G.Eout()
-    Ein_count = len_items(Ein)
-    Eout_count = len_items(Eout)
+    Vin = G.Vin()
+    Vout = G.Vout()
+    Ein_count = len_items(Vin)
+    Eout_count = len_items(Vout)
     
     # Make a list and a heap of the same items
     n = len(V)
@@ -238,12 +238,7 @@ def depth_first_ordering(G):
         item = heappop(q)
         iv = item.i
         ordering.append(iv)
-        #for i in Vin[iv]: # TODO: Faster to use this
-        #    Eout_count[i] -= 1
-        for ie in Ein[iv]:
-            e = E[ie]
-            i, j = e
-            assert j == iv
+        for i in Vin[iv]:
             Eout_count[i] -= 1
         # Resort heap, worst case linear time, makes this algorithm O(n^2)... FIXME: Not good!
         heapify(q)
@@ -263,7 +258,7 @@ def rebuild_tree(G):
     V = G.V()
     E = G.E()
     n = len(V)
-    Eout = G.Eout()# TODO: Can use extract_vertex_connections
+    Vout = G.Vout()
     dfo = depth_first_ordering(G)
     subtrees = [None]*n
     for i in dfo:
@@ -271,8 +266,7 @@ def rebuild_tree(G):
         if not isinstance(v, Terminal):
             # Fetch already reconstructed child vertices
             # and reconstruct non-terminal node from them
-            ops = tuple(subtrees[E[j][1]] for j in Eout[i])
-            #ops = tuple(subtrees[j] for j in Vout[i]) # TODO: Use this instead (is it Vout or Vin?)
+            ops = tuple(subtrees[j] for j in Vout[i])
             if all_is(ops, v.operands()):
                 pass
             else:
