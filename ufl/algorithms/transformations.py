@@ -3,7 +3,7 @@ either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2009-03-04"
+__date__ = "2008-05-07 -- 2009-03-05"
 
 from itertools import izip
 from inspect import getargspec

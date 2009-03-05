@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 "Find potential bugs in UFL by static code analysis."
 
 # PyChecker skips previously loaded modules
