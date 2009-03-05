@@ -19,7 +19,6 @@ logging.basicConfig(level=logging.CRITICAL)
 #tests = ["elements", "indices", "forms", "illegal", "algorithms"]
 tests = [f.replace(".py", "") for f in glob("*.py")]
 tests.remove("test")
-tests.remove("run_pychecker")
 if "skipdemos" in sys.argv:
     tests.remove("analyse-demos")
 tests.remove("makemanualtestcase")
