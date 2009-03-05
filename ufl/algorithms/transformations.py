@@ -670,6 +670,20 @@ class IndexExpander(ReuseTransformer):
             return x[self.component()]
         return x
     
+    def zero(self, x):
+        # FIXME: These assertions may not always work out, figure out why!
+        #ufl_assert(len(x.shape()) == len(self.component()), "Component size mismatch.")
+        #s = set(x.free_indices()) - set(self._index2value.keys())
+        #ufl_assert(not s, "Free index set mismatch.")
+        return x._uflclass()
+    
+    def scalar_value(self, x):
+        # FIXME: These assertions may not always work out, figure out why!
+        #ufl_assert(len(x.shape()) == len(self.component()), "Component size mismatch.")
+        #s = set(x.free_indices()) - set(self._index2value.keys())
+        #ufl_assert(not s, "Free index set mismatch.")
+        return x._uflclass(x.value())
+    
     def index_sum(self, x):
         ops = []
         summand, multiindex = x.operands()
@@ -695,8 +709,18 @@ class IndexExpander(ReuseTransformer):
     
     def indexed(self, x):
         A, ii = x.operands()
+        # Push new component built from index value map
         self._components.push(self._multi_index(ii))
+        # Hide index values
+        for i in ii:
+            if isinstance(i, Index):
+                self._index2value.push(i, None)
         result = self.visit(A)
+        # Un-hide index values
+        for i in ii:
+            if isinstance(i, Index):
+                self._index2value.pop()
+        # Reset component
         self._components.pop()
         return result
     
