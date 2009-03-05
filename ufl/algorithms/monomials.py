@@ -266,28 +266,23 @@ def extract_monomials(form):
     form_data = form.form_data()
     form = form_data.form
 
-    monomials = []    
+    # Purge list tensors from expression tree
+    form = purge_list_tensors(form)
+
+    # Iterate over all integrals
+    monomial_integrals = []
     for integral in form.cell_integrals():
 
         # Get measure and integrand
         measure = integral.measure()
         integrand = integral.integrand()
-
-        # Purge list tensors from expression tree
-        integrand = purge_list_tensors(integrand)
-
         print tree_format(integrand)
 
         # Extract monomial representation if possible
-        monomials = apply_transformer(integrand, MonomialTransformer())
+        integrand = apply_transformer(integrand, MonomialTransformer())
+        monomial_integrals.append((integrand, measure))
 
-        #print "m =", measure
-        #print "I1 =", integral.integrand
-        #print "I2 =", integrand
-
-        return monomials
-
-    return monomials
+    return monomial_integrals
 
 def _replace_indices(indices, old_indices, new_indices):
     "Handle replacement of subsets of multi indices."
