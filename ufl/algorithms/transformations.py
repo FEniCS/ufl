@@ -756,7 +756,7 @@ class IndexExpander(ReuseTransformer):
         r = self.visit(op)
         self._components.pop()
         return r
-    
+
     def spatial_derivative(self, x):
         f, i = x.operands()
         ufl_assert(isinstance(f, (Terminal, x._uflclass)), "Expecting expand_derivatives to have been applied.")

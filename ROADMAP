@@ -1,6 +1,23 @@
 Roadmap for the development of UFL
 ----------------------------------
 
+# Simplification:
+ - Implement better simplification as an algorithm, or add 
+   more simplification features to __new__ implementations?
+   One important such basic simplification is to extract constant 
+   factors from all operands in a sum, e.g. from:
+           (-1 * (v_1)[0])
+           +
+           (
+           (2 * (v_1)[0])
+           +
+           (-1 * (v_1)[0])
+   to:
+           (-1+2-1) * (v_1)[0]) = 0
+   Once form compilers and regression tests are up and running,
+   we can consider wether the backside of this (which is complicated)
+   is important enough to avoid doing this by default...
+
 # About canonical form of forms and expressions:
  - The current way of comparing forms and expressions using repr isn't
    good enough for all purposes, since repr depends on the global counters 

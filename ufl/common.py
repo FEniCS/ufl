@@ -1,7 +1,7 @@
 "This module contains a collection of common utilities."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-08-05 -- 2009-02-25"
+__date__ = "2008-08-05 -- 2009-03-05"
 
 import os
 from itertools import izip
@@ -55,6 +55,9 @@ def subdict(superdict, keys):
 def unzip(seq):
     "Inverse operation of zip: unzip(zip(a, b)) == (a, b)"
     return [s[0] for s in seq], [s[1] for s in seq]
+
+def xor(a, b):
+    return bool(a) if b else not a
 
 def or_tuples(seqa, seqb):
     "Return 'or' of all pairs in two sequences of same length."
