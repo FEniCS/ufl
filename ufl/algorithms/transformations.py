@@ -711,15 +711,15 @@ class IndexExpander(ReuseTransformer):
         A, ii = x.operands()
         # Push new component built from index value map
         self._components.push(self._multi_index(ii))
-        # Hide index values
-        for i in ii:
-            if isinstance(i, Index):
-                self._index2value.push(i, None)
+        # Hide index values # TODO: This causes None to occur in _multi_index, need to make sure I've got this whole thing right...
+        #for i in ii:
+        #    if isinstance(i, Index):
+        #        self._index2value.push(i, None)
         result = self.visit(A)
         # Un-hide index values
-        for i in ii:
-            if isinstance(i, Index):
-                self._index2value.pop()
+        #for i in ii:
+        #    if isinstance(i, Index):
+        #        self._index2value.pop()
         # Reset component
         self._components.pop()
         return result

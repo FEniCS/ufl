@@ -155,6 +155,23 @@ class AlgorithmsTestCase(unittest.TestCase):
         self.assertTrue(pre_traverse  == [s, p1, v, f, p2, v, g]) # NB! Sensitive to ordering of expressions.
         self.assertTrue(post_traverse == [v, f, p1, v, g, p2, s]) # NB! Sensitive to ordering of expressions.
 
+    def test_expand_indices(self):
+        element = FiniteElement("Lagrange", triangle, 2)
+        v = TestFunction(element)
+        u = TrialFunction(element)
+        
+        def evaluate(form):
+            return form.cell_integral()[0].integrand()((), { v: 3, u: 5 }) # TODO: How to define values of derivatives?
+        
+        a = div(grad(v))*u*dx
+        #a1 = evaluate(a)
+        a = expand_derivatives(a)
+        #a2 = evaluate(a)
+        a = expand_indices(a)
+        #a3 = evaluate(a)
+        # TODO: Compare a1, a2, a3
+        # TODO: Test something more
+
 tests = [AlgorithmsTestCase]
 
 if __name__ == "__main__":
