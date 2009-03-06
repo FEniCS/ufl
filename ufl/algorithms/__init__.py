@@ -17,9 +17,6 @@ from ufl.algorithms.analysis import extract_classes, extract_type, has_type, \
                                     extract_variables, extract_duplications, \
                                     extract_quadrature_order, estimate_quadrature_order, estimate_max_quadrature_order
 
-# Utilities for extracting monomial representation
-from ufl.algorithms.monomials import extract_monomial_form, MonomialException, MonomialForm
-
 # Utility class for easy collecting of data about form
 from ufl.algorithms.formdata import FormData
 
@@ -64,7 +61,6 @@ from ufl.algorithms.formfiles import load_forms
 #    checks.py              - Ok, more checks are welcome.
 #    formfiles.py           - Ok.
 #    transformations.py     - Ok.
-#    monomials.py           - Not working. FFC specific?
 #    formtransformations.py - Ok? Needs testing.
 #    ad.py                  - Ok?
 #    printing.py            - Ok.
