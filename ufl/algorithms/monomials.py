@@ -158,6 +158,15 @@ class MonomialForm:
     def append(self, integral, measure):
         self.integrals.append((integral, measure))
 
+    def __len__(self):
+        return len(self.integrals)
+
+    def __getitem__(self, i):
+        return self.integrals[i]
+
+    def __iter__(self):
+        return iter(self.integrals)
+
     def __str__(self):
         s  = "Monomial form of %d integrals\n" % len(self.integrals)
         s += len(s) * "-" + "\n"
