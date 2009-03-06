@@ -27,7 +27,7 @@ class MonomialFactor:
             self.function = arg.function
             self.component = arg.component
             self.derivative = arg.derivative
-        elif isinstance(arg, BasisFunction) or isinstance(arg, Function):
+        elif isinstance(arg, (BasisFunction, Function)):
             self.function = arg
             self.component = []
             self.derivative = []
@@ -69,7 +69,7 @@ class Monomial:
             self.float_value = arg.float_value
             self.factors = [MonomialFactor(v) for v in arg.factors]
             self.index_slots = arg.index_slots
-        elif isinstance(arg, MonomialFactor) or isinstance(arg, BasisFunction) or isinstance(arg, Function):
+        elif isinstance(arg, (MonomialFactor, BasisFunction, Function)):
             self.float_value = 1.0
             self.factors = [MonomialFactor(arg)]
             self.index_slots = None
@@ -113,10 +113,10 @@ class Monomial:
             float_value = "%g * " % self.float_value
         return float_value + " * ".join(str(v) for v in self.factors)
 
-class MonomialForm:
+class MonomialSum:
 
     def __init__(self, arg=None):
-        if isinstance(arg, MonomialForm):
+        if isinstance(arg, MonomialSum):
             self.monomials = [Monomial(m) for m in arg.monomials]
         elif arg is None:
             self.monomials = []
@@ -136,19 +136,35 @@ class MonomialForm:
             m.apply_indices(indices)
 
     def __add__(self, other):
-        form = MonomialForm()
-        form.monomials = [Monomial(m) for m in self.monomials] + [Monomial(m) for m in other.monomials]
-        return form
+        sum = MonomialSum()
+        sum.monomials = [Monomial(m) for m in self.monomials] + [Monomial(m) for m in other.monomials]
+        return sum
 
     def __mul__(self, other):
-        form = MonomialForm()
+        sum = MonomialSum()
         for m0 in self.monomials:
             for m1 in other.monomials:
-                form.monomials.append(m0 * m1)
-        return form
+                sum.monomials.append(m0 * m1)
+        return sum
 
     def __str__(self):
         return " + ".join(str(m) for m in self.monomials)
+
+class MonomialForm:
+
+    def __init__(self):
+        self.integrals = []
+
+    def append(self, integral, measure):
+        self.integrals.append((integral, measure))
+
+    def __str__(self):
+        s  = "Monomial form of %d integrals\n" % len(self.integrals)
+        s += len(s) * "-" + "\n"
+        for (integrand, measure) in self.integrals:
+            s += "Integrand: " + str(integrand) + "\n"
+            s += "Measure:   " + str(measure) + "\n"
+        return s
 
 class MonomialTransformer(ReuseTransformer):
 
@@ -166,52 +182,52 @@ class MonomialTransformer(ReuseTransformer):
 
     #--- Operator handles ---
 
-    def sum(self, o, form0, form1):
+    def sum(self, o, s0, s1):
         print "\nSum"
-        form = form0 + form1
-        print "Result:", form
-        return form
+        s = s0 + s1
+        print "Result:", s
+        return s
 
-    def product(self, o, form0, form1):
-        print "\nProduct: [%s] * [%s]" % (str(form0), str(form1))
-        form = form0 * form1
-        print "Result:", form
-        return form
+    def product(self, o, s0, s1):
+        print "\nProduct: [%s] * [%s]" % (str(s0), str(s1))
+        s = s0 * s1
+        print "Result:", s
+        return s
 
-    def index_sum(self, o, form, index):
+    def index_sum(self, o, s, index):
         print "\nIgnoring IndexSum expression for now"
-        print "Result:", form
-        return form
+        print "Result:", s
+        return s
 
-    def indexed(self, o, form, indices): 
-        print "\nIndexed", form, indices
-        form = MonomialForm(form)
-        form.apply_indices(indices)
-        print "Result:", form
-        return form
+    def indexed(self, o, s, indices): 
+        print "\nIndexed", s, indices
+        s = MonomialSum(s)
+        s.apply_indices(indices)
+        print "Result:", s
+        return s
 
-    def component_tensor(self, o, form, indices):
-        print "\nComponentTensor", form, indices
-        form = MonomialForm(form)
-        form.apply_tensor(indices)
-        print "Result:", form
-        return form
+    def component_tensor(self, o, s, indices):
+        print "\nComponentTensor", s, indices
+        s = MonomialSum(s)
+        s.apply_tensor(indices)
+        print "Result:", s
+        return s
 
-    def spatial_derivative(self, o, form, indices):
-        print "\nSpatialDerivative", form, indices
-        form = MonomialForm(form)
-        form.apply_derivative(indices)
-        print "Result:", form
-        return form
+    def spatial_derivative(self, o, s, indices):
+        print "\nSpatialDerivative", s, indices
+        s = MonomialSum(s)
+        s.apply_derivative(indices)
+        print "Result:", s
+        return s
 
-    def power(self, o, form, ignored_exponent_expressed_as_form):
-        print "\nPower", form, ignored_exponent_expressed_as_form
+    def power(self, o, s, ignored_exponent_expressed_as_sum):
+        print "\nPower", s, ignored_exponent_expressed_as_sum
         (expr, exponent) = o.operands()
         if not isinstance(exponent, IntValue):
             raise MonomialException, "Cannot handle non-integer exponents."
-        p = MonomialForm(Monomial())
+        p = MonomialSum(Monomial())
         for i in range(int(exponent)):
-            p = p * form
+            p = p * s
         return p
 
     #--- Terminal handlers ---
@@ -227,30 +243,28 @@ class MonomialTransformer(ReuseTransformer):
 
     def basis_function(self, v):
         print "\nBasisFunction", v
-        form = MonomialForm(v)
-        print "Result:", form
-        return form
+        s = MonomialSum(v)
+        print "Result:", s
+        return s
 
     def function(self, v):
         print "\nFunction", v
-        form = MonomialForm(v)
-        print "Result:", form
-        return form
+        s = MonomialSum(v)
+        print "Result:", s
+        return s
 
     def scalar_value(self, x):
         print "\nScalarValue", x
-        form = MonomialForm(x)
-        print "Result:", form
-        return form
+        s = MonomialSum(x)
+        print "Result:", s
+        return s
 
-def extract_monomials(form):
+def extract_monomial_form(form):
     """Extract monomial representation of form (if possible). When
     successful, the form is represented as a sum of products of scalar
-    components of basis functions of derivatives of basis functions.
+    components of basis functions or derivatives of basis functions.
     The sum of products is represented as a tuple of tuples of basis
     functions. If unsuccessful, MonomialException is raised."""
-
-    # FIXME: In progress
 
     # Check that we get a Form
     ufl_assert(isinstance(form, Form), "Expecting a UFL form.")
@@ -270,7 +284,7 @@ def extract_monomials(form):
     form = purge_list_tensors(form)
 
     # Iterate over all integrals
-    monomial_integrals = []
+    monomial_form = MonomialForm()
     for integral in form.cell_integrals():
 
         # Get measure and integrand
@@ -280,9 +294,9 @@ def extract_monomials(form):
 
         # Extract monomial representation if possible
         integrand = apply_transformer(integrand, MonomialTransformer())
-        monomial_integrals.append((integrand, measure))
+        monomial_form.append(integrand, measure)
 
-    return monomial_integrals
+    return monomial_form
 
 def _replace_indices(indices, old_indices, new_indices):
     "Handle replacement of subsets of multi indices."
