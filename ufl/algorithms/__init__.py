@@ -18,7 +18,7 @@ from ufl.algorithms.analysis import extract_classes, extract_type, has_type, \
                                     extract_quadrature_order, estimate_quadrature_order, estimate_max_quadrature_order
 
 # Utilities for extracting monomial representation
-from ufl.algorithms.monomials import extract_monomial_form, MonomialException
+from ufl.algorithms.monomials import extract_monomial_form, MonomialException, MonomialForm
 
 # Utility class for easy collecting of data about form
 from ufl.algorithms.formdata import FormData

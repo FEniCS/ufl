@@ -57,7 +57,7 @@ def form2ufl(code):
                            (r"VectorQuadratureElement\(", 'VectorElement("Quadrature", '))
 
     # List of complex replacements
-    complex_replacements = ((r"\btransp(.*)\b",                  replace_transp),
+    complex_replacements = ((r"\btransp(.*)",                    replace_transp),
                             (r"\bmult\(\s*(.*)\s*,\s*(.*)\s*\)", replace_mult))
     
     # Iterate over replacemens
