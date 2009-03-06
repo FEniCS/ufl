@@ -79,6 +79,9 @@ for form in forms:
         G = Graph(e)
         V, E = G
 
+        tic("Vout %s" % idstr)
+        Vout = G.Vout()
+
         tic("partition %s" % idstr)
         P, keys = partition(G)
         toc()
@@ -90,7 +93,7 @@ for form in forms:
         print "|E| =", len(G.E())
         print "|P| =", len(P)
         for i, p in enumerate(P):
-            print "|p%d| =" % i, len(p), "\t\tv =", V[i]
+            print "|p%d| =" % i, len(p)
 
         print
         print "="*80
@@ -99,7 +102,12 @@ for form in forms:
             print "-"*60
             print "-- Partition", key
             for i in part:
-                print V[i]
+                v = V[i]
+                if Vout[i]:
+                    ops = " applied to (%s)" % ", ".join("s%d" % j for j in Vout[i])
+                else:
+                    ops = ""
+                print "s%d = %s%s" % (i, v._uflclass.__name__, ops)
 print
 print "="*80
 print "== Timing summary:"
