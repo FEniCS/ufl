@@ -1,7 +1,7 @@
 """FormData class easy for collecting of various data about a form."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-09-13 -- 2009-02-25"
+__date__ = "2008-09-13 -- 2009-03-08"
 
 # Modified by Anders Logg, 2008.
 
@@ -99,10 +99,10 @@ class FormData(object):
     def __str__(self):
         "Return formatted summary of form data"
         return tstr((("Name",                               self.name),
+                     ("Rank",                               self.rank),                     
                      ("Cell",                               self.cell),
                      ("Geometric dimension",                self.geometric_dimension),
                      ("Topological dimension",              self.topological_dimension),
-                     ("Rank",                               self.rank),
                      ("Number of functions",                self.num_functions),
                      ("Number of cell integrals",           len(self.form.cell_integrals())),
                      ("Number of exterior facet integrals", len(self.form.exterior_facet_integrals())),
