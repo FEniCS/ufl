@@ -114,4 +114,3 @@ class FormData(object):
                      ("Unique elements",                    estr(self.unique_elements)),
                      ("Unique sub elements",                estr(self.sub_elements)),
                     ))
-

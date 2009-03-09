@@ -2,7 +2,7 @@
 output messages. These may be redirected by the user of UFL."""
 
 __author__ = "Martin Sandve Alnaes and Anders Logg"
-__date__ = "2005-02-04 -- 2009-02-18"
+__date__ = "2005-02-04 -- 2009-03-09"
 __copyright__ = "Copyright (C) 2005-2009 Anders Logg and Martin Sandve Alnaes"
 __license__  = "GNU GPL version 3 or any later version"
 
@@ -29,6 +29,14 @@ class Logger:
     def __init__(self, name):
         "Create logger instance."
 
+        # Set up logging to handle printing without newline
+        def emit(self, record):
+            message = self.format(record)
+            format_string = "%s" if getattr(record, "continued", False) else "%s\n"
+            self.stream.write(format_string % message)
+            self.flush()
+        logging.StreamHandler.emit = emit
+
         # Set up logger and handler
         self._log = logging.getLogger(name)        
         self._handler = logging.StreamHandler()
@@ -48,9 +56,7 @@ class Logger:
         "Write info message."
         text = self._format_raw(*message)
         if len(text) >= 3 and text[-3:] == "...":
-            # FIXME: Using print directly here, don't know how to write without newline using logging 
-            print self._format(text), # FIXME: Can probably use a logging.Formatter, this breaks log files and the whole modular logging system
-            sys.stdout.flush()
+            self._log.info(self._format(*message), extra={"continued": True})
         else:
             self._log.info(self._format(*message))
 
