@@ -7,6 +7,7 @@ __copyright__ = "Copyright (C) 2005-2009 Anders Logg and Martin Sandve Alnaes"
 __license__  = "GNU GPL version 3 or any later version"
 
 import sys
+import new
 import logging
 
 log_functions = ["debug", "info", "warning", "error", "begin", "end",
@@ -23,23 +24,23 @@ class UFLException(Exception):
     "Base class for UFL exceptions"
     pass
 
+# This is used to override emit() in StreamHandler for printing without newline
+def emit(self, record):
+    message = self.format(record)
+    format_string = "%s" if getattr(record, "continued", False) else "%s\n"
+    self.stream.write(format_string % message)
+    self.flush()
+
 # Logger class
 class Logger:
 
     def __init__(self, name):
         "Create logger instance."
 
-        # Set up logging to handle printing without newline
-        def emit(self, record):
-            message = self.format(record)
-            format_string = "%s" if getattr(record, "continued", False) else "%s\n"
-            self.stream.write(format_string % message)
-            self.flush()
-        logging.StreamHandler.emit = emit
 
         # Set up logger and handler
         self._log = logging.getLogger(name)        
-        self._handler = logging.StreamHandler()
+        self._handler = logging.StreamHandler()        
         self._log.addHandler(self._handler)
 
         # Set initial indentation level
@@ -47,6 +48,9 @@ class Logger:
         
         # Setup stack with default logging level
         self._level_stack = [WARNING]
+
+        # Override emit() in handler
+        self._handler.emit = new.instancemethod(emit, self._handler, self._handler.__class__)
 
     def debug(self, *message):
         "Write debug message."
