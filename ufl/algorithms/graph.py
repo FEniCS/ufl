@@ -278,15 +278,12 @@ def rebuild_tree(G):
 #--- Graph partitoning ---
 
 class StringDependencyDefiner(MultiFunction):
-    """Returns a set of direct dependencies (as strings) given an expr.
+    """Given an expr, returns a frozenset of its dependencies.
     
     Possible dependency values are:
-        "c"  - depends on cell
-        "n"  - depends on facet
-        "v%d" % i - depends on basis function i
-        "w"  - depends on coefficients
-        "xi" - depends on local coordinates
-        "x"  - depends on global coordinates
+        "c"       - depends on runtime information like the cell or coefficients
+        "x"       - depends on global coordinates
+        "v%d" % i - depends on basis function i, for i in [0,rank)
     """
     def __init__(self, basis_function_deps = None, function_deps = None):
         MultiFunction.__init__(self)
@@ -298,29 +295,29 @@ class StringDependencyDefiner(MultiFunction):
         self.function_deps = function_deps
     
     def expr(self, o):
-        return set()
+        return frozenset()
     
     def basis_function(self, x):
-        default = set(("v%d" % x.count(),))
+        default = frozenset(("v%d" % x.count(),))
         return self.basis_function_deps.get(x, default)
     
     def function(self, x):
-        default = set(("w", "c", "x"))
+        default = frozenset(("c", "x"))
         return self.function_deps.get(x, default)
     
     def constant(self, x):
-        default = set(("w", "c"))
+        default = frozenset(("c",))
         return self.function_deps.get(x, default)
     
     def facet_normal(self, o):
-        deps = set(("c",))
+        deps = frozenset(("c",))
         # Enabling coordinate dependency for higher order geometries (not handled anywhere else though).
         if o.cell().degree() > 1:
             deps.add("x")
         return deps
     
     def spatial_derivative(self, o): # FIXME: What about (basis) functions of which derivatives are constant? Should special-case spatial_derivative in partition().
-        deps = set(("c",))
+        deps = frozenset(("c",))
         # Enabling coordinate dependency for higher order geometries (not handled anywhere else though).
         if o.cell().degree() > 1:
             deps.add("x")
