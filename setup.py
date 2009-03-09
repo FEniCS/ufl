@@ -41,5 +41,6 @@ setup(name = "UFL",
                  "scripts/ufl-convert",
                  "scripts/form2ufl"],
       packages = ["ufl", "ufl.algorithms"],
-      package_dir = {"ufl": "ufl/"},
+      package_dir = {"ufl": "ufl"},
       data_files = [("lib/pkgconfig", ["ufl-%d.pc" % major])])
+
