@@ -17,7 +17,8 @@ class BaseTestCase(unittest.TestCase):
 
     def setUp(self):
         pass
-    
+    def test_fail(self):
+        self.fail()
     def test_zero(self):
         z1 = Zero(())
         z2 = Zero(())
