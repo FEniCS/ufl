@@ -48,8 +48,8 @@ class Logger:
         "Write info message."
         text = self._format_raw(*message)
         if len(text) >= 3 and text[-3:] == "...":
-            # TODO: Using print directly here, don't know how to write without newline using logging
-            print self._format(text),
+            # FIXME: Using print directly here, don't know how to write without newline using logging 
+            print self._format(text), # FIXME: Can probably use a logging.Formatter, this breaks log files and the whole modular logging system
             sys.stdout.flush()
         else:
             self._log.info(self._format(*message))
