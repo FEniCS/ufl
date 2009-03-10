@@ -2,8 +2,9 @@
 
 from distutils.core import setup
 from distutils import sysconfig
-from os.path import join as pjoin
+from os.path import join as pjoin, split as psplit
 import sys
+import platform
 
 # Version number
 major = 0
@@ -29,18 +30,33 @@ file.write("Cflags: -I%s\n" % repr(pjoin(prefix,"include"))[1:-1])
 # FIXME: better way for this? ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 file.close()
 
+scripts = [pjoin("scripts", "ufl-analyse"),
+           pjoin("scripts", "ufl2latex"),
+           pjoin("scripts", "ufl2pdf"),
+           pjoin("scripts", "ufl-convert"),
+           pjoin("scripts", "form2ufl")]
+
+if platform.system() == "Windows" or "bdist_wininst" in sys.argv:
+    # In the Windows command prompt we can't execute Python scripts 
+    # without a .py extension. A solution is to create batch files
+    # that runs the different scripts.
+    batch_files = []
+    for script in scripts:
+        batch_file = script + ".bat"
+        f = open(batch_file, "w")
+        f.write('python "%%~dp0\%s" %%*' % psplit(script)[1])
+        f.close()
+        batch_files.append(batch_file)
+    scripts.extend(batch_files)
+
 setup(name = "UFL",
       version = "%d.%d" % (major, minor),
       description = "Unified Form Language",
       author = "Martin Sandve Alnaes, Anders Logg",
       author_email = "ufl-dev@fenics.org",
       url = "http://www.fenics.org/ufl/",
-      scripts = ["scripts/ufl-analyse",
-                 "scripts/ufl2latex",
-                 "scripts/ufl2pdf",
-                 "scripts/ufl-convert",
-                 "scripts/form2ufl"],
+      scripts = scripts,
       packages = ["ufl", "ufl.algorithms"],
       package_dir = {"ufl": "ufl"},
-      data_files = [("lib/pkgconfig", ["ufl-%d.pc" % major])])
+      data_files = [(pjoin("lib", "pkgconfig"), ["ufl-%d.pc" % major])])
 
