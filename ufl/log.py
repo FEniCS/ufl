@@ -2,12 +2,12 @@
 output messages. These may be redirected by the user of UFL."""
 
 __author__ = "Martin Sandve Alnaes and Anders Logg"
-__date__ = "2005-02-04 -- 2009-03-09"
+__date__ = "2005-02-04 -- 2009-03-10"
 __copyright__ = "Copyright (C) 2005-2009 Anders Logg and Martin Sandve Alnaes"
 __license__  = "GNU GPL version 3 or any later version"
 
 import sys
-import new
+import types
 import logging
 
 log_functions = ["debug", "info", "warning", "error", "begin", "end",
@@ -37,7 +37,6 @@ class Logger:
     def __init__(self, name):
         "Create logger instance."
 
-
         # Set up logger and handler
         self._log = logging.getLogger(name)        
         self._handler = logging.StreamHandler()        
@@ -50,7 +49,7 @@ class Logger:
         self._level_stack = [WARNING]
 
         # Override emit() in handler
-        self._handler.emit = new.instancemethod(emit, self._handler, self._handler.__class__)
+        self._handler.emit = types.MethodType(emit, self._handler, self._handler.__class__)
 
     def debug(self, *message):
         "Write debug message."
