@@ -24,10 +24,13 @@ if "skipdemos" in sys.argv:
 tests.remove("makemanualtestcase")
 
 # Run tests
+failed_tests = []
 for test in tests:
-    print "Running tests: %s" % test
-    system("python %s.py" % test)
-    print ""
+   print "Running tests: %s" % test
+   failure = system("python %s.py" % test)
+   if failure:
+       failed_tests.append(test)
+   print ""
 
 # Run tests TODO: Make this work, to speed up test suite and get more compact output. Currently fails when instantiating testcases.
 #all_tests = []
@@ -40,3 +43,5 @@ for test in tests:
 #runner = unittest.TextTestRunner(suite)
 #runner.run()
 
+# Exit with error message
+sys.exit(len(failed_tests))
