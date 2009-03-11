@@ -281,8 +281,8 @@ class StringDependencyDefiner(MultiFunction):
     """Given an expr, returns a frozenset of its dependencies.
     
     Possible dependency values are:
-        "c"       - depends on runtime information like the cell or coefficients
-        "x"       - depends on global coordinates
+        "c"       - depends on runtime information like the cell, local<->global coordinate mappings, facet normals, or coefficients
+        "x"       - depends on local coordinates
         "v%d" % i - depends on basis function i, for i in [0,rank)
     """
     def __init__(self, basis_function_deps = None, function_deps = None):
@@ -298,7 +298,7 @@ class StringDependencyDefiner(MultiFunction):
         return frozenset()
     
     def basis_function(self, x):
-        default = frozenset(("v%d" % x.count(),))
+        default = frozenset(("v%d" % x.count(), "x"))
         return self.basis_function_deps.get(x, default)
     
     def function(self, x):

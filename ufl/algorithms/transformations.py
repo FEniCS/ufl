@@ -18,6 +18,7 @@ from ufl.indexing import Index, FixedIndex, indices, complete_shape
 from ufl.tensors import as_tensor, as_matrix, as_vector, ListTensor
 from ufl.variable import Variable
 from ufl.form import Form
+from ufl.integral import Integral
 from ufl.classes import all_ufl_classes
 from ufl.algorithms.analysis import has_type, extract_duplications
 
