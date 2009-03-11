@@ -87,7 +87,11 @@ class FormData(object):
         self.sub_elements = set(chain(*[extract_sub_elements(sub) for sub in self.unique_elements]))
 
         # Get geometric information
-        self.cell = self.elements[0].cell()
+        if self.elements:
+            self.cell = self.elements[0].cell()
+        else:
+            # Special case for functionals only depending on geometric variables
+            self.cell = self.form._integrals[0].integrand().cell()
         self.geometric_dimension = self.cell.d
         self.topological_dimension = self.geometric_dimension
         

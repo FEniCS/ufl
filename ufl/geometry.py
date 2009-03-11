@@ -1,7 +1,7 @@
 "Types for quantities computed from cell geometry."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-02-20"
+__date__ = "2008-03-14 -- 2009-03-11"
 
 # Modified by Anders Logg, 2009.
 
@@ -45,7 +45,10 @@ class FacetNormal(GeometricQuantity):
         self._repr = "FacetNormal(%r)" % self._cell
     
     def shape(self):
-        return (self._cell.d,)
+        d = self._cell.d
+        if d == 1:
+            return ()
+        return (d,)
     
     def __str__(self):
         return "n"
