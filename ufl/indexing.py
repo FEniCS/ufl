@@ -70,6 +70,9 @@ class FixedIndex(IndexBase):
             return self._value == other
         return False
     
+    def __int__(self):
+        return self._value
+    
     def __str__(self):
         return "%d" % self._value
     
