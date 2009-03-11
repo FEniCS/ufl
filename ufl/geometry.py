@@ -25,7 +25,10 @@ class SpatialCoordinate(GeometricQuantity):
         self._repr = "SpatialCoordinate(%r)" % self._cell
 
     def shape(self):
-        return (self._cell.d,)
+        d = self._cell.d
+        if d == 1:
+            return ()
+        return (d,)
     
     def evaluate(self, x, mapping, component, index_values):
         return float(x[component[0]])
