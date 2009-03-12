@@ -290,6 +290,11 @@ class TensorElement(MixedElement):
         subelement = self._sub_elements[self._sub_element_mapping[ii]]
         return subelement.extract_component(jj)
 
+    def symmetry(self):
+        """Return the symmetry dict, which is a mapping c0 -> c1
+        meaning that component c0 is represented by component c1."""
+        return self._symmetry
+
     def __repr__(self):
         "Format as string for evaluation as Python object."
         return self._repr

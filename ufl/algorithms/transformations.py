@@ -3,7 +3,7 @@ either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2009-03-05"
+__date__ = "2008-05-07 -- 2009-03-12"
 
 from itertools import izip
 from inspect import getargspec
@@ -11,12 +11,10 @@ from inspect import getargspec
 from ufl.log import error, warning, debug
 from ufl.common import Stack, StackDict
 from ufl.assertions import ufl_assert
-from ufl.expr import Expr
-from ufl.terminal import Terminal
-from ufl.algebra import Product
-from ufl.indexing import Index, FixedIndex, indices, complete_shape
-from ufl.tensors import as_tensor, as_matrix, as_vector, ListTensor
-from ufl.variable import Variable
+from ufl.finiteelement import TensorElement
+from ufl.classes import Expr, Terminal, Product, Index, FixedIndex, ListTensor, Variable, Function
+from ufl.indexing import indices, complete_shape
+from ufl.tensors import as_tensor, as_matrix, as_vector
 from ufl.form import Form
 from ufl.integral import Integral
 from ufl.classes import all_ufl_classes
@@ -669,6 +667,20 @@ class IndexExpander(ReuseTransformer):
     def terminal(self, x):
         if x.shape():
             return x[self.component()]
+        return x
+    
+    def form_argument(self, x):
+        if x.shape():
+            # Get symmetry mapping if any
+            e = x.element()
+            if isinstance(e, TensorElement):
+                s = e.symmetry()
+            else:
+                s = {}
+            # Map component throught the symmetry mapping
+            c = self.component()
+            c = s.get(c, c)
+            return x[c]
         return x
     
     def zero(self, x):
