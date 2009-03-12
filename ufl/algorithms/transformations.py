@@ -676,7 +676,7 @@ class IndexExpander(ReuseTransformer):
             s = None
             if isinstance(e, TensorElement):
                 s = e.symmetry()
-            if isinstance(s, None):
+            if s is None:
                 s = {}
             # Map component throught the symmetry mapping
             c = self.component()
