@@ -27,7 +27,8 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
     ufl_assert(isinstance(form, Form), "Expecting a Form.")
     
     # TODO: Can we check for multilinearity without expanding function derivatives?
-    form = expand_derivatives(form)
+    #form = expand_derivatives(form) # If we do this, expand_derivatives will be called twice since it's called in FormData...
+    form = form.form_data().form # Is this ok? Unsure about the program flow here...
     ufl_assert(is_multilinear(form), "Form is not multilinear in basis function arguments.")
     #if not is_multilinear(form): warning("Form is not multilinear.")
     

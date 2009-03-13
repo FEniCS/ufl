@@ -12,7 +12,7 @@ from ufl.log import error, warning, debug
 from ufl.common import Stack, StackDict
 from ufl.assertions import ufl_assert
 from ufl.finiteelement import TensorElement
-from ufl.classes import Expr, Terminal, Product, Index, FixedIndex, ListTensor, Variable, Function
+from ufl.classes import Expr, Terminal, Product, Index, FixedIndex, ListTensor, Variable, Function, Zero
 from ufl.indexing import indices, complete_shape
 from ufl.tensors import as_tensor, as_matrix, as_vector
 from ufl.form import Form
@@ -784,8 +784,14 @@ def transform_integrands(form, transform):
     """Apply transform(expression) to each integrand 
     expression in form, or to form if it is an Expr."""
     if isinstance(form, Form):
-        newintegrals = [itg.reconstruct(transform(itg.integrand()))\
-                        for itg in form.integrals()]
+        newintegrals = []
+        for itg in form.integrals():
+            integrand = transform(itg.integrand())
+            if not isinstance(integrand, Zero):
+                newitg = itg.reconstruct(integrand)
+                newintegrals.append(newitg)
+        if not newintegrals:
+            error("No integrals left after transformation, cannot reconstruct form.") # TODO: Is this the right behaviour?
         return Form(newintegrals)
     elif isinstance(form, Expr):
         return transform(form)

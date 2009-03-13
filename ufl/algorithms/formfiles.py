@@ -71,7 +71,9 @@ def load_forms(filename):
     # Construct FormData for each object
     formdatas = []
     for name, form in zip(form_names, forms):
-        fd = FormData(form, name)
+        # Using form_data() ensures FormData is only constructed once
+        fd = form.form_data()
+        fd.name = name
         for (i, f) in enumerate(fd.original_functions):
             fd.function_names[i] = function_names.get(f, "w%d"%i)
         for (i, f) in enumerate(fd.original_basis_functions):

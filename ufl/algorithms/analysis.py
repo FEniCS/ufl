@@ -83,9 +83,29 @@ def extract_functions(a):
 def extract_arguments(a):
     """Build two sorted lists of all basis functions and functions 
     in a, which can be a Form, Integral or Expr."""
+    # Extract lists of all form argument instances
     terminals = extract_type(a, FormArgument)
     basis_functions = [f for f in terminals if isinstance(f, BasisFunction)]
     functions = [f for f in terminals if isinstance(f, Function)]
+    
+    # Build count: instance mappings, should be one to one
+    bfcounts = dict((f, f.count()) for f in basis_functions)
+    fcounts = dict((f, f.count()) for f in functions)
+
+    if len(bfcounts) != len(set(bfcounts.values())):
+        msg = """\
+Found different basis function arguments with same counts.
+Did you combine test or trial functions from different spaces?
+The arguments found are:\n%s""" % "\n".join("  %s" % f for f in basis_functions)
+        error(msg)
+
+    if len(fcounts) != len(set(fcounts.values())):
+        msg = """\
+Found different functions with same counts.
+The arguments found are:\n%s""" % "\n".join("  %s" % f for f in functions)
+        error(msg)
+
+    # Passed checks, so we can safely sort the instances by count
     basis_functions = sorted(basis_functions, cmp=cmp_counted)
     functions = sorted(functions, cmp=cmp_counted)
     return basis_functions, functions
