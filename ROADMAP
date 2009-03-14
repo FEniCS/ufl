@@ -29,7 +29,6 @@ Roadmap for the development of UFL
       In an index renumbering algorithm, we must take great care to avoid
       circular implicit dependencies of the index numbering on the previous numberings!
       This is why the ordering of operands may not depend on the counts of Counted objects.
-    - Implement renumbering of variable Labels
 
 # Derivatives:
  - Finish forward mode AD implementation and verify correctness
