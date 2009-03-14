@@ -1,256 +1,146 @@
 Roadmap for the development of UFL
 ----------------------------------
 
-# Simplification:
- - Implement better simplification as an algorithm, or add 
-   more simplification features to __new__ implementations?
-   One important such basic simplification is to extract constant 
-   factors from all operands in a sum, e.g. from:
-           (-1 * (v_1)[0])
-           +
-           (
-           (2 * (v_1)[0])
-           +
-           (-1 * (v_1)[0])
-   to:
-           (-1+2-1) * (v_1)[0]) = 0
-   Once form compilers and regression tests are up and running,
-   we can consider wether the backside of this (which is complicated)
-   is important enough to avoid doing this by default...
-
-# About canonical form of forms and expressions:
- - The current way of comparing forms and expressions using repr isn't
-   good enough for all purposes, since repr depends on the global counters 
-   of Counted objects (that is, Index, BasisFunction and Function with subclasses).
-    - Implement a canonical renumbering of indices to compare arbitrary expressions better.
-      A complication w.r.t. renumbering of indices is that indices may need
-      to be relabeled to match, which can of course be handled by inserting
-      ComponentTensor and Indexed objects.
-      In an index renumbering algorithm, we must take great care to avoid
-      circular implicit dependencies of the index numbering on the previous numberings!
-      This is why the ordering of operands may not depend on the counts of Counted objects.
-
 # Derivatives:
- - Finish forward mode AD implementation and verify correctness
- - Finish reverse mode AD implementation and compare performance
- - Attaching derivatives to Functions:
-        It would be nice if the user could supply the derivative of a Function as another Function.
-        Maybe we can do:
-
-         Df = Function(element2)
-         f = Function(element1, gradient=Df)
-
-        and perhaps for linearization:
-
-         g = Function(element3)
-         df_dg = Function(element2)
-         f = Function(element1, derivatives = { g: df_dg })
-
-        then you could do:
-
-         F = derivative(f**2*dx, f)
-         J = derivative(F, f)
-
-        even if f is defined on a quadrature element.
-
-# Add parts of this stuff to technical part of documentation (about allowed shape/free index combinations):
- - Sums of operands with different free indices can not be allowed.
-   Some places in AD algorithms this causes problems.
-   The solution was to equip constant values (zero and scalars) with indices.
-
-   Examples:
-
-   A)  a = 5 + v[i]; b = a*c[i] 
-
-       Expanding the implicit sum, this gives us:
-         b = sum_i [ (5+v_i) c_i ]      # remember, 'a = 5 + v[i]' is an Add object
-          != 5 c_i + sum_i [ v_i c_i ]  # this would still have a free index
-       or
-         (5+v[i])*c[i] != 5*c[i] + v[i]*c[i]
-
-       - Clearly, this last line isn't what we would expect!
-       - We really don't want to inspect the contents of "a" further,
-         or we get a blowup of special cases!
-
-   B)  a = b(x) + c
-       f = da/dx_i
-         = db/dx_i + dc/dx_i
-         = db/dx_i + zero(i) # we have currently special-cased zero to carry free indices
-
-   C)  a = b(x) * x_i
-       f = da/dx_i
-         = db/dx_i * c + b * dx_i/dx_i # no implicit summation
-         = db/dx_i * c + b * 1 # index gone in one term! need to assign indices to scalar values
-
-   D)  a = b(v) * v
-       f = da/dv
-         = db/dv * c + b * dv/dv
-         = db/dv * c + b * 1
-
-# Elements and Basisfunctions (medium/low priority, needed for some non-trivial applications):
- - (medium) Implement 'Test/Trial/BasisFunctions' for general tensor subelement with arbitrary symmetries (see split.py). Need to agree on some numbering conventions here.
- - (medium) Degree range for quadrature elements?
- - (low) Implement
-    class ElementUnion(FiniteElementBase):
-        def __init__(self, *elements):
-            ...
-   to represent the enrichment of a finite element space with another. (Idea from Marie)
- - (low) Time elements
+    - Finish forward mode AD implementation and verify correctness
+      (just some more validation needed) 
+    - Finish reverse mode AD implementation and compare performance
+      (implement after orthotropic hyperelasticity is validated)
+    - The best is probably a mix of the two, using reverse mode
+      within some partitions and forward mode to connect them
 
 # Algorithms:
- - If AD needs to be applied in a compiler context, we need a 
-   framework for representing unapplied form transformations.
- - Algorithm for computing worst case quadrature degree
+    - Algorithm for computing worst case quadrature degree
+    - (hopefully not) If AD needs to be applied in a compiler context, we need a 
+      framework for representing unapplied form transformations.
 
 # Prettyness and readability (medium priority, useful while debugging...):
- - Rewrite ufl2latex as described in its comments (use pre- and post-handlers)
- - Use precedence list to improve parentesis use in __str__ and __repr__ and ufl2latex. 
- - Improve dot-rendering with compact symbols for all node types (evt add option to switch between repr style and greek style)
-
-# Class hierarchy changes:
- - Make IndexBase an Expr? Affects the following in particular:
-    indexing.py - Make IndexBase an Expr?
-    sorting.py - Remove MultiIndex handling if we make IndexBase an Expr.
-    IndexSum - use Index, not MultiIndex
-    SpatialDerivative - use Index, not MultiIndex
+    - Rewrite ufl2latex as described in its comments (use pre- and post-handlers)
+    - Use precedence list to improve parentesis use in __str__ and __repr__ and ufl2latex. 
+    - Improve dot-rendering with compact symbols for all node types (evt add option to switch between repr style and greek style)
 
 # Tests:
- - Write tests for the algorithms, ideally covering all code in multiple ways.
+    - Write tests for the algorithms, ideally covering all code in multiple ways.
 
 # Documentation:
- - Write the manual
- - Write the paper
- - Write the book chapter
- - Rewrite/improve all error messages (collect strings in separate file?)
- - Improve operator docstrings (use epydoc @param and @return for the more complicated functions)
+    - Write the manual
+    - Write the paper
+    - Write the book chapter
+    - Rewrite/improve all error messages (collect strings in separate file?)
+    - Improve operator docstrings (use epydoc @param and @return for the more complicated functions)
+
+# Class hierarchy changes:
+    - Make IndexBase an Expr? Affects the following in particular:
+       indexing.py - Make IndexBase an Expr?
+       sorting.py - Remove MultiIndex handling if we make IndexBase an Expr.
+       IndexSum - use Index, not MultiIndex
+       SpatialDerivative - use Index, not MultiIndex
+
+# Simplification:
+    - Implement better simplification as an algorithm, or add 
+      more simplification features to __new__ implementations?
+      One important such basic simplification is to extract constant 
+      factors from all operands in a sum, e.g. from:
+              (-1 * (v_1)[0])
+              +
+              (
+              (2 * (v_1)[0])
+              +
+              (-1 * (v_1)[0])
+      to:
+              (-1+2-1) * (v_1)[0]) = 0
+      Once form compilers and regression tests are up and running,
+      we can consider wether the backside of this (which is complicated)
+      is important enough to avoid doing this by default...
+
+# Add parts of this stuff to technical part of documentation (about allowed shape/free index combinations):
+    - Sums of operands with different free indices can not be allowed.
+      Some places in AD algorithms this causes problems.
+      The solution was to equip constant values (zero and scalars) with indices.
+
+      Examples:
+   
+      A)  a = 5 + v[i]; b = a*c[i] 
+   
+          Expanding the implicit sum, this gives us:
+            b = sum_i [ (5+v_i) c_i ]      # remember, 'a = 5 + v[i]' is an Add object
+             != 5 c_i + sum_i [ v_i c_i ]  # this would still have a free index
+          or
+            (5+v[i])*c[i] != 5*c[i] + v[i]*c[i]
+   
+          - Clearly, this last line isn't what we would expect!
+          - We really don't want to inspect the contents of "a" further,
+            or we get a blowup of special cases!
+   
+      B)  a = b(x) + c
+          f = da/dx_i
+            = db/dx_i + dc/dx_i
+            = db/dx_i + zero(i) # we have currently special-cased zero to carry free indices
+   
+      C)  a = b(x) * x_i
+          f = da/dx_i
+            = db/dx_i * c + b * dx_i/dx_i # no implicit summation
+            = db/dx_i * c + b * 1 # index gone in one term! need to assign indices to scalar values
+   
+      D)  a = b(v) * v
+          f = da/dv
+            = db/dv * c + b * dv/dv
+            = db/dv * c + b * 1
+
+# Elements and Basisfunctions (medium/low priority, needed for some non-trivial applications):
+    - (medium) Degree range for quadrature elements?
+    - (low) Implement
+       class ElementUnion(FiniteElementBase):
+           def __init__(self, *elements):
+               ...
+      to represent the enrichment of a finite element space with another. (Idea from Marie)
+    - (low) Time elements
+
+# Functions:
+    - (low) Attaching derivatives to Functions:
+      It would be nice if the user could supply the derivative of a Function as another Function.
+      Maybe we can do:
+   
+        Df = Function(element2)
+        f = Function(element1, gradient=Df)
+   
+      and perhaps for linearization:
+   
+        g = Function(element3)
+        df_dg = Function(element2)
+        f = Function(element1, derivatives = { g: df_dg })
+   
+      then you could do:
+   
+        F = derivative(f**2*dx, f)
+        J = derivative(F, f)
+   
+      even if f is defined on a quadrature element.
 
 # Time derivatives (low priority):
- - Do we want something like Dt(u), Dtt(u), CR(a), FE(a), BE(a), TR(a, theta)?
- - In particular, this can be interesting in combination with time elements?
-     es = FiniteElement("CG", triangle, 1)
-     et = TimeElement(1) # Any point in non-Galerkin elements?
-     e = es*et
-     v = TestFunction(e)
-     u = TrialFunction(e)
-     f = Function(es)
-     g = Function(e)
-     a = f*u*v*dx
-   Need to extend ufc::cell for this, perhaps adding time interval [t0,t1] as part 
-   of ufc::cell, new shapes time_triangle etc and bool is_time_dependent() to form.
+    - Do we want something like Dt(u), Dtt(u), CR(a), FE(a), BE(a), TR(a, theta)?
+    - In particular, this can be interesting in combination with time elements?
+        es = FiniteElement("CG", triangle, 1)
+        et = TimeElement(1) # Any point in non-Galerkin elements?
+        e = es*et
+        v = TestFunction(e)
+        u = TrialFunction(e)
+        f = Function(es)
+        g = Function(e)
+        a = f*u*v*dx
+      Need to extend ufc::cell for this, perhaps adding time interval [t0,t1] as part 
+      of ufc::cell, new shapes time_triangle etc and bool is_time_dependent() to form.
 
 # Complex numbers (low priority):
- - Allowing complex values and functions, which operations would be affected?
-   Is it mostly about multiplication and division?
+    - Allowing complex values and functions, which operations would be affected?
+      Is it mostly about multiplication and division?
 
-# License:
- - Which license do we pick? GPL3 or LGPL3?
-
-   I (Martin) chose GPL3 for now, but if another licence is
-   requested for a good reason I'm not a fanatic.
-   I would like to understand the implications of choosing
-   one over the other for a Python module. In particular, GPL can't
-   inhibit importing and using UFL in another library, right?
-   
-   What I want to achieve is this:
-   If someone wants to make modifications to UFL without sharing
-   them with the FEniCS community, and use their modified version in 
-   a proprietary library or program, they should at least pay for it.
-   Thus GPL seems the right choice. Does this inhibit any usage we want?
-
-   Of course, UFL will be a central part of FEniCS, so objections
-   from main developers in FEniCS will carry much weight even though
-   they are not UFL developers.
-
-
-* Notes by Anders (trying to make sense of the implementation)
+# Notes by Anders (trying to make sense of the implementation)
 
   OK   = Understand it and it looks ok
   OK!  = Understand it and it looks really good (done)
   ??   = Don't understand this module (yet)
   --   = Undecided
   hmm  = Skeptical
-
-Martin to Anders: I entered the new filenames below without comments.
-
-  algebra.py              OK!
-  base.py                 OK!
-  baseoperators.py        --
-  basisfunctions.py       --
-  common.py               OK!
-  classes.py              --
-  conditionals.py         --
-  differentiation.py      --
-  elements.py             OK!
-  finiteelement.py        OK!
-  formoperators.py        --
-  form.py                 --
-  geometry.py             --
-  indexing.py             --
-  __init__.py             --
-  integral.py             --
-  mathfunctions.py        OK!
-  objects.py              --
-  operators.py            --
-  output.py               OK!
-  permutation.py          OK!
-  restriction.py          --
-  tensoralgebra.py        --
-  tensors.py              --
-  variable.py             --
-
-  algorithms/__init__.py         --
-  algorithms/analysis.py         --
-  algorithms/ad.py               --
-  algorithms/checks.py           --
-  algorithms/predicates.py       --
-  algorithms/transformations.py  --
-  algorithms/traversal.py        --
-  algorithms/utilities.py        Rename to algorithm(s).py
-
-New filenames:
-
-  algebra.py             --
-  baseoperators.py       --
-  base.py                --
-  basisfunction.py       --
-  classes.py             --
-  common.py              --
-  conditional.py         --
-  differentiation.py     --
-  elements.py            --
-  finiteelement.py       --
-  formoperators.py       --
-  form.py                --
-  function.py            --
-  geometry.py            --
-  indexing.py            --
-  __init__.py            --
-  integral.py            --
-  mathfunctions.py       --
-  objects.py             --
-  operators.py           --
-  output.py              --
-  permutation.py         --
-  restriction.py         --
-  split.py               --
-  tensoralgebra.py       --
-  tensors.py             --
-  variable.py            --
-
-  algorithms/
-    ad.py                    --
-    analysis.py              --
-    checks.py                --
-    dependencies.py          --
-    formdata.py              --
-    formfiles.py             --
-    formtransformations.py   --
-    indexalgorithms.py       --
-    __init__.py              --
-    predicates.py            --
-    printing.py              --
-    transformations.py       --
-    traversal.py             --
-    ufl2latex.py             --
-    variables.py             --
+... (removed filenames here because they have changed quite a bit since the list was written)
 
