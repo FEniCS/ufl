@@ -11,7 +11,7 @@ from ufl.assertions import ufl_assert
 from ufl.common import Counted, product
 from ufl.terminal import FormArgument
 from ufl.finiteelement import FiniteElementBase, FiniteElement, VectorElement, TensorElement
-from ufl.split import split
+from ufl.split_functions import split
 from ufl.geometry import as_cell
 
 # --- The Function class represents a coefficient function argument to a form ---

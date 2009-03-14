@@ -9,7 +9,7 @@ __date__ = "2008-03-14 -- 2009-02-23"
 from ufl.assertions import ufl_assert
 from ufl.common import Counted, product
 from ufl.terminal import FormArgument
-from ufl.split import split
+from ufl.split_functions import split
 from ufl.finiteelement import FiniteElementBase
 
 # --- Class representing a basis function argument in a form ---

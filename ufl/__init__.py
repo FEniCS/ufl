@@ -102,3 +102,7 @@ from ufl.objects import interval, triangle, tetrahedron, quadrilateral, hexahedr
 
 # constants
 from math import e, pi
+
+# split
+from ufl.split_functions import split
+
