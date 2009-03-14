@@ -1,7 +1,7 @@
 "This module defines the UFL finite element classes."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-03 -- 2008-12-22"
+__date__ = "2008-03-03 -- 2009-03-14"
 
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
@@ -307,3 +307,35 @@ class TensorElement(MixedElement):
     def shortstr(self):
         "Format as string for pretty printing."
         return "Tensor<%s x %s>" % (self.value_shape(), self._sub_element.shortstr()) # TODO: add symmetries
+
+class ElementUnion(FiniteElementBase):
+    "The union of two finite element spaces."
+    def __init__(self, *elements):
+        self._elements = elements
+    
+        cell = elements[0].cell()
+        ufl_assert(all(e.cell() == cell for e in elements), "Element cell mismatch.")
+
+        degree = max(e.degree() for e in elements)
+
+        value_shape = elements[0].shape()
+        ufl_assert(all(e.value_shape() == value_shape for e in elements), "Element value shape mismatch.")
+        
+        # Initialize element data
+        FiniteElementBase.__init__(self, "ElementUnion", cell, degree, value_shape)
+        
+        # Cache repr string
+        self._repr = "ElementUnion(%s)" % ", ".join(repr(e) for e in self._elements)
+
+    def __repr__(self):
+        "Format as string for evaluation as Python object."
+        return self._repr
+    
+    def __str__(self):
+        "Format as string for pretty printing."
+        return FIXME
+    
+    def shortstr(self):
+        "Format as string for pretty printing."
+        return FIXME
+

@@ -14,13 +14,11 @@ for f in files:
             todos.append(l.strip())
         if "FIXME" in l:
             fixmes.append(l.strip())
-    lines.append("")
-    lines.append(f)
+    if todos or fixmes:
+        lines += ["", f]
     if todos:
-        lines.append("TODOs:")
-        lines.extend(todos)
+        lines += ["TODOs:"] + todos
     if fixmes:
-        lines.append("FIXMEs:")
-        lines.extend(fixmes)
+        lines += ["FIXMEs:"] + fixmes
 
 print "\n".join(lines)

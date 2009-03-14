@@ -88,7 +88,6 @@ Roadmap for the development of UFL
             = db/dv * c + b * 1
 
 # Elements and Basisfunctions (medium/low priority, needed for some non-trivial applications):
-    - (medium) Degree range for quadrature elements?
     - (low) Implement
        class ElementUnion(FiniteElementBase):
            def __init__(self, *elements):

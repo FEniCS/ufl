@@ -32,7 +32,7 @@ __version__ = "0.1"
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __copyright__ = "Copyright (C) 2008-2009 " + __authors__
 __license__  = "GNU GPL version 3 or any later version"
-__date__ = "2008-03-14 -- 2009-02-23"
+__date__ = "2008-03-14 -- 2009-03-14"
 
 ########## README
 # Imports here should be what the user sees when doing "from ufl import *",
@@ -49,7 +49,7 @@ from ufl.log import get_handler, get_logger, set_handler, UFLException
 from ufl.log import set_level, DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 # finite elements classes
-from ufl.finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
+from ufl.finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement, ElementUnion
 
 # hook to extend predefined element families
 from ufl.elements import register_element #, ufl_elements

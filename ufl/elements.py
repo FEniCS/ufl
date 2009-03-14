@@ -4,7 +4,7 @@ elements by calling the function register_element."""
 
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-03 -- 2009-01-13"
+__date__ = "2008-03-03 -- 2009-03-14"
 
 from ufl.assertions import ufl_assert
 
@@ -25,7 +25,7 @@ register_element("Lagrange", "CG", 0, (1, None),
 register_element("Discontinuous Lagrange", "DG", 0, (0, None),
                  ("interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
 
-register_element("Bubble", "B", 0, (1, 1), # TODO: Define proper limits for Bubble element. TODO: Add ElementUnion concept.
+register_element("Bubble", "B", 0, (1, None),
                  ("interval", "triangle", "tetrahedron"))
 
 register_element("Crouzeix-Raviart", "CR", 0, (1, 1),
@@ -52,13 +52,8 @@ register_element("Nedelec 1st kind H(curl)", "N1curl", 1, (0, None),
 register_element("Nedelec 2nd kind H(curl)", "N2curl", 1, (1, None),
                  ("triangle", "tetrahedron"))
 
-# TODO: What should the degree range be for quadrature elements?
-#       Should we specify degree at all? It should match the degree
-#       chosen for numeric integration, which is perhaps better
-#       specified as a form compiler option?
-
-register_element("Quadrature", "Q", 0, (None, None),
+register_element("Quadrature", "Q", 0, (1, None),
                  ("interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
 
-register_element("Boundary Quadrature", "BQ", 0, (None, None),
+register_element("Boundary Quadrature", "BQ", 0, (1, None),
                  ("interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
