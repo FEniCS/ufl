@@ -3,7 +3,7 @@
 # Simple conversion script from old FFC .form format to UFL format
 
 __authors__ = "Anders Logg"
-__date__ = "2008-08-01 -- 2009-03-04"
+__date__ = "2008-08-01 -- 2009-03-15"
 
 import sys
 import re
@@ -47,12 +47,14 @@ def replace_mult(match):
 def form2ufl(code):
 
     # List of simple replacements
-    simple_replacements = ((r"\bdot\b",                   "inner"),
+    simple_replacements = ((r"\.form",                    ".ufl"),
+                           (r"\bdot\b",                   "inner"),
                            (r"\bD\b",                     "Dx"),
                            (r"\babs\b",                   "modulus"),
                            (r'"interval"',                "interval"),
                            (r'"triangle"',                "triangle"),
                            (r'"tetrahedron"',             "tetrahedron"),
+                           (r"Nedelec",                   "N1curl"),
                            (r"QuadratureElement\(",       'FiniteElement("Quadrature", '),
                            (r"VectorQuadratureElement\(", 'VectorElement("Quadrature", '))
 
