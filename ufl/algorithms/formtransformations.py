@@ -37,7 +37,29 @@ class PartExtracter(Transformer):
             error("Found basis function in %s, this is an invalid expression." % repr(x)) # FIXME: Other operators to implement particularly? Will see when errors here trigger...
         return (x, set())
     terminal = expr
-    variable = Transformer.reuse_variable
+    
+    def variable(self, o):
+        # Check variable cache to reuse previously transformed variable if possible
+        e, l = o.operands()
+        res = self._variable_cache.get(l)
+        if res is not None:
+            return res
+        
+        # Visit the expression our variable represents
+        e2, provides = self.visit(e)
+
+        # If the expression is the same, reuse Variable object
+        if e == e2:
+            v = o
+        else:
+            # Strip Variable (expression does not represent the same value here in PartExtracter)
+            v = e2
+        
+        res = v, provides
+        
+        # Cache variable
+        self._variable_cache[l] = res
+        return res
     
     def basis_function(self, x):
         "A basis function provides itself, and the requirement can't include any more than itself."
