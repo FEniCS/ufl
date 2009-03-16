@@ -4,7 +4,7 @@ or defined as compound operators involving basic operations on the UFL
 objects."""
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-04-09 -- 2009-03-05"
+__date__ = "2008-04-09 -- 2009-03-16"
 
 import math
 from ufl.log import error, warning
@@ -28,6 +28,8 @@ def rank(f):
 
 def transpose(A):
     "The transposed of A."
+    if A.shape() == ():
+        return A
     return Transposed(A)
 
 def outer(a, b):
@@ -76,10 +78,14 @@ def cross(a, b):
 
 def det(A):
     "The determinant of A."
+    if A.shape() == ():
+        return A
     return Determinant(A)
 
 def inv(A):
     "The inverse of A."
+    if A.shape() == ():
+        return 1/A
     return Inverse(A)
 
 def cofac(A):

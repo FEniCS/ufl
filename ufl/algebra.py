@@ -189,10 +189,11 @@ class Product(AlgebraOperator):
                 if nop == 1:
                     # op is not repeated
                     newoperands.append(op)
-                # Before IndexSum was introduced, we couldn't simplify powers with free indices, but now we can!
-                #elif op.free_indices():
-                #    # op repeated, but has free indices, so we don't simplify
-                #    newoperands.extend([op]*nop)
+                elif op.free_indices():
+                    # We can't simplify products to powers if the operands has
+                    # free indices, because of complications in differentiation.
+                    # op repeated, but has free indices, so we don't simplify
+                    newoperands.extend([op]*nop)
                 else:
                     # op repeated, make it a power
                     newoperands.append(op**nop)

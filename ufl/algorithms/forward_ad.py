@@ -228,6 +228,11 @@ class AD(Transformer):
     def power(self, o, a, b):
         f, fp = a
         g, gp = b
+        if not is_true_ufl_scalar(f):
+            print ":"*80
+            print "f =", str(f)
+            print "g =", str(g)
+            print ":"*80
         ufl_assert(is_true_ufl_scalar(f), "Expecting scalar expression f in f**g.")
         ufl_assert(is_true_ufl_scalar(g), "Expecting scalar expression g in f**g.")
         
