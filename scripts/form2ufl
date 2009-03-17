@@ -37,12 +37,14 @@ def replace_transp(match):
     return expr1 + ".T" + expr2
 
 def replace_mult(match):
-    expr1, expr2 = match.groups()
+    start, end = split_at_closing_brace(match.groups()[0])
+    expr1 = start.split(",")[0][1:].strip()
+    expr2 = start.split(",")[1][:-1].strip()
     if "+" in expr1:
         expr1 = "(%s)" % expr1
     if "+" in expr2:
         expr2 = "(%s)" % expr2
-    return expr1 + "*" + expr2
+    return expr1 + "*" + expr2 + end
 
 def form2ufl(code):
 
@@ -59,8 +61,8 @@ def form2ufl(code):
                            (r"VectorQuadratureElement\(", 'VectorElement("Quadrature", '))
 
     # List of complex replacements
-    complex_replacements = ((r"\btransp(.*)",                    replace_transp),
-                            (r"\bmult\(\s*(.*)\s*,\s*(.*)\s*\)", replace_mult))
+    complex_replacements = ((r"\btransp(.*)", replace_transp),
+                            (r"\bmult(.*)",   replace_mult))
     
     # Iterate over replacemens
     for (a, b) in simple_replacements + complex_replacements:
