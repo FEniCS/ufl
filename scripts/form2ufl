@@ -52,13 +52,15 @@ def form2ufl(code):
     simple_replacements = ((r"\.form",                    ".ufl"),
                            (r"\bdot\b",                   "inner"),
                            (r"\bD\b",                     "Dx"),
-                           (r"\babs\b",                   "modulus"),
+                           (r"\bmodulus\b",               "abs"),
                            (r'"interval"',                "interval"),
                            (r'"triangle"',                "triangle"),
                            (r'"tetrahedron"',             "tetrahedron"),
+                           (r'MeshSize',                  "Constant"),
+                           (r'FacetNormal',               "VectorConstant"),
                            (r"Nedelec",                   "N1curl"),
-                           (r"QuadratureElement\(",       'FiniteElement("Quadrature", '),
-                           (r"VectorQuadratureElement\(", 'VectorElement("Quadrature", '))
+                           (r"VectorQuadratureElement\(", 'VectorElement("Quadrature", '),
+                           (r"QuadratureElement\(",       'FiniteElement("Quadrature", '))
 
     # List of complex replacements
     complex_replacements = ((r"\btransp(.*)", replace_transp),
