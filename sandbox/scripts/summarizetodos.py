@@ -17,17 +17,20 @@ for f in files:
         if "FIXME" in l:
             fixmes.append(l.strip())
     if todos or fixmes:
-        lines += ["", f]
+        lines += ["", "-"*80, f]
     if todos:
-        lines += ["TODOs:"] + todos
-        num_todos += len(todos)
+        n = len(todos)
+        lines += ["%d TODOs:" % n] + todos
+        num_todos += n
     if fixmes:
-        lines += ["FIXMEs:"] + fixmes
-        num_fixmes += len(fixmes)
+        n = len(fixmes)
+        lines += ["%d FIXMEs:" % n] + fixmes
+        num_fixmes += n
 
 print "\n".join(lines)
 
 print
+print "-"*80
 print "Number of TODOs: ", num_todos
 print "Number of FIXMEs:", num_fixmes
 print
