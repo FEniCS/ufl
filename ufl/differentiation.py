@@ -116,10 +116,31 @@ class SpatialDerivative(Derivative):
     
     def index_dimensions(self):
         return self._index_dimensions
-
+    
     def shape(self):
         return self._shape
+    
+    def evaluate(self, x, mapping, component, index_values, derivatives=()):
+        "Get child from mapping and return the component asked for."
+        
+        i = self._index[0]
 
+        if isinstance(i, FixedIndex):
+            i = int(i)
+        
+        pushed = False
+        if isinstance(i, Index):
+            i = index_values[i]
+            pushed = True
+            index_values.push(self._index[0], None)
+        
+        result = self._expression.evaluate(x, mapping, component, index_values, derivatives=derivatives + (i,))
+        
+        if pushed:
+            index_values.pop()
+        
+        return result
+    
     def __str__(self):
         # TODO: Pretty-print for higher order derivatives.
         return "(d[%s] / dx_%s)" % (self._expression, self._index)

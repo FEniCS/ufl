@@ -2,7 +2,7 @@
 output messages. These may be redirected by the user of UFL."""
 
 __author__ = "Martin Sandve Alnaes and Anders Logg"
-__date__ = "2005-02-04 -- 2009-03-10"
+__date__ = "2005-02-04 -- 2009-03-19"
 __copyright__ = "Copyright (C) 2005-2009 Anders Logg and Martin Sandve Alnaes"
 __license__  = "GNU GPL version 3 or any later version"
 
@@ -39,7 +39,7 @@ class Logger:
 
         # Set up logger and handler
         self._log = logging.getLogger(name)        
-        self._handler = logging.StreamHandler()        
+        self._handler = logging.StreamHandler(sys.stdout)        
         self._log.addHandler(self._handler)
 
         # Set initial indentation level

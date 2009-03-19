@@ -2,7 +2,7 @@
 for all types that are terminal nodes in the expression trees."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-03-05"
+__date__ = "2008-03-14 -- 2008-03-19"
 
 # Modified by Anders Logg, 2008
 
@@ -36,15 +36,30 @@ class Terminal(Expr):
         "A Terminal object never has free indices."
         return {}
     
-    def evaluate(self, x, mapping, component, index_values):
+    def evaluate(self, x, mapping, component, index_values, derivatives=()):
         "Get self from mapping and return the component asked for."
-        f = mapping.get(self, self)
+        f = mapping.get(self)
+        
+        # No mapping, trying to map to a constant
+        if f is None:
+            value = float(f)
+            if derivatives:
+                value = 0.0
+            return value
+        
+        # Callable, call it!
         if callable(f):
-            f = f(x)
-        if component:
-            if len(component) == 1:
-                component, = component
-            return f[component]
+            if derivatives:
+                f = f(x, derivatives)
+            else:
+                f = f(x)
+        else:
+            if derivatives:
+                return 0.0
+        
+        # Take component if any (expecting nested tuple)
+        for c in component:
+            f = f[c]
         return f
     
     def __eq__(self, other):

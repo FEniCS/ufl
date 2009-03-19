@@ -778,9 +778,14 @@ class IndexExpander(ReuseTransformer):
     def spatial_derivative(self, x):
         f, i = x.operands()
         ufl_assert(isinstance(f, (Terminal, x._uflclass)), "Expecting expand_derivatives to have been applied.")
+        
         f = self.visit(f) # taking component if necessary
+        
         j = self.visit(i) # mapping to constant if necessary
-        return self.reuse_if_possible(x, f, j)
+        
+        result = self.reuse_if_possible(x, f, j)
+        
+        return result
 
 # ------------ User interface functions
 

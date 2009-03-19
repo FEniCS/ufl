@@ -48,9 +48,11 @@ class Indexed(WrapperType):
     def shape(self):
         return ()
     
-    def evaluate(self, x, mapping, component, index_values):
+    def evaluate(self, x, mapping, component, index_values, derivatives=()):
         A, ii = self.operands()
         component = ii.evaluate(x, mapping, None, index_values)
+        if derivatives:
+            return A.evaluate(x, mapping, component, index_values, derivatives)
         return A.evaluate(x, mapping, component, index_values)
 
     def __str__(self):
