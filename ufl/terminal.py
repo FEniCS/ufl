@@ -41,7 +41,11 @@ class Terminal(Expr):
         f = mapping.get(self, self)
         if callable(f):
             f = f(x)
-        return f[component] if component else f
+        if component:
+            if len(component) == 1:
+                component, = component
+            return f[component]
+        return f
     
     def __eq__(self, other):
         """Checks whether the two expressions are represented the

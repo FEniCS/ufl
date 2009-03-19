@@ -686,14 +686,14 @@ class IndexExpander(ReuseTransformer):
     
     def zero(self, x):
         # FIXME: These assertions may not always work out, figure out why!
-        #ufl_assert(len(x.shape()) == len(self.component()), "Component size mismatch.")
+        ufl_assert(len(x.shape()) == len(self.component()), "Component size mismatch.")
         #s = set(x.free_indices()) - set(self._index2value.keys())
         #ufl_assert(not s, "Free index set mismatch.")
         return x._uflclass()
     
     def scalar_value(self, x):
         # FIXME: These assertions may not always work out, figure out why!
-        #ufl_assert(len(x.shape()) == len(self.component()), "Component size mismatch.")
+        ufl_assert(len(x.shape()) == len(self.component()), "Component size mismatch.")
         #s = set(x.free_indices()) - set(self._index2value.keys())
         #ufl_assert(not s, "Free index set mismatch.")
         return x._uflclass(x.value())
@@ -702,7 +702,11 @@ class IndexExpander(ReuseTransformer):
         ops = []
         summand, multiindex = x.operands()
         index, = multiindex
-        # TODO: For the list tensor purging algorithm, do something like: if index not in self._to_expand: return self.expr(x, *[self.visit(o) for o in x.operands()])
+
+        # TODO: For the list tensor purging algorithm, do something like:
+        # if index not in self._to_expand:
+        #     return self.expr(x, *[self.visit(o) for o in x.operands()])
+
         for value in range(x.dimension()):
             self._index2value.push(index, value)
             ops.append(self.visit(summand))
