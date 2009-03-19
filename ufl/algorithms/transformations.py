@@ -94,9 +94,24 @@ class Transformer(object):
         
         # Build handler list for this particular class (get functions bound to self)
         self._handlers = [(getattr(self, name), post) for (name, post) in cache_data]
+
+        # Keep a stack of objects visit is called on, to ease backtracking
+        self._visit_stack = []
+
+    def print_visit_stack(self):
+        print "/"*80
+        print "Visit stack in Transformer:"
+        def sstr(s):
+            ss = str(type(s)) + " ; "
+            n = 80 - len(ss)
+            return ss + str(s)[:n]
+        print "\n".join(sstr(s) for s in self._visit_stack)
+        print "\\"*80
     
     def visit(self, o):
         #debug("Visiting object of type %s." % type(o).__name__)
+        # Update stack
+        self._visit_stack.append(o)
         
         # Get handler for the UFL class of o (type(o) may be an external subclass of the actual UFL class)
         h, visit_children_first = self._handlers[o._classid]
@@ -108,11 +123,15 @@ class Transformer(object):
         # Is this a handler that expects transformed children as input?
         if visit_children_first:
             # Yes, visit all children first and then call h.
-            return h(o, *map(self.visit, o.operands()))
-        
-        # No, this is a handler that handles its own children
-        # (arguments self and o, where self is already bound)
-        return h(o)
+            r = h(o, *map(self.visit, o.operands()))
+        else:
+            # No, this is a handler that handles its own children
+            # (arguments self and o, where self is already bound)
+            r = h(o)
+
+        # Update stack and return
+        self._visit_stack.pop()
+        return r
     
     def undefined(self, o):
         "Trigger error."
@@ -666,7 +685,9 @@ class IndexExpander(ReuseTransformer):
     
     def terminal(self, x):
         if x.shape():
-            return x[self.component()]
+            c = self.component()
+            ufl_assert(len(x.shape()) == len(c), "Component size mismatch.")
+            return x[c]
         return x
     
     def form_argument(self, x):
@@ -680,24 +701,39 @@ class IndexExpander(ReuseTransformer):
                 s = {}
             # Map component throught the symmetry mapping
             c = self.component()
-            c = s.get(c, c)
-            return x[c]
+            ufl_assert(len(x.shape()) == len(c), "Component size mismatch.")
+            c2 = s.get(c, c)
+            ufl_assert(len(c) == len(c2), "Component size mismatch after symmetry mapping.")
+            return x[c2]
         return x
     
     def zero(self, x):
-        # FIXME: These assertions may not always work out, figure out why!
         ufl_assert(len(x.shape()) == len(self.component()), "Component size mismatch.")
-        #s = set(x.free_indices()) - set(self._index2value.keys())
-        #ufl_assert(not s, "Free index set mismatch.")
+        
+        s = set(x.free_indices()) - set(self._index2value.keys())
+        if s: error("Free index set mismatch, these indices have no value assigned: %s." % str(s))
+        
         return x._uflclass()
     
     def scalar_value(self, x):
-        # FIXME: These assertions may not always work out, figure out why!
+        if len(x.shape()) != len(self.component()):
+            self.print_visit_stack()
         ufl_assert(len(x.shape()) == len(self.component()), "Component size mismatch.")
-        #s = set(x.free_indices()) - set(self._index2value.keys())
-        #ufl_assert(not s, "Free index set mismatch.")
+        
+        s = set(x.free_indices()) - set(self._index2value.keys())
+        if s: error("Free index set mismatch, these indices have no value assigned: %s." % str(s))
+
         return x._uflclass(x.value())
-    
+
+    def division(self, x):
+        a, b = x.operands()
+        ufl_assert(b.shape() == (), "Not expecting division by tensor.")
+        a = self.visit(a)
+        self._components.push(())
+        b = self.visit(b)
+        self._components.pop()
+        return self.reuse_if_possible(x, a, b)
+
     def index_sum(self, x):
         ops = []
         summand, multiindex = x.operands()
@@ -727,17 +763,22 @@ class IndexExpander(ReuseTransformer):
     
     def indexed(self, x):
         A, ii = x.operands()
+
         # Push new component built from index value map
         self._components.push(self._multi_index(ii))
-        # Hide index values # TODO: This causes None to occur in _multi_index, need to make sure I've got this whole thing right...
+
+        # Hide index values (doing this is not correct behaviour)
         #for i in ii:
         #    if isinstance(i, Index):
         #        self._index2value.push(i, None)
+
         result = self.visit(A)
+
         # Un-hide index values
         #for i in ii:
         #    if isinstance(i, Index):
         #        self._index2value.pop()
+
         # Reset component
         self._components.pop()
         return result
@@ -776,14 +817,31 @@ class IndexExpander(ReuseTransformer):
         return r
 
     def spatial_derivative(self, x):
-        f, i = x.operands()
+        f, ii = x.operands()
         ufl_assert(isinstance(f, (Terminal, x._uflclass)), "Expecting expand_derivatives to have been applied.")
         
-        f = self.visit(f) # taking component if necessary
+        # Taking component if necessary
+        f = self.visit(f) 
         
-        j = self.visit(i) # mapping to constant if necessary
+        #ii = self.visit(ii) # mapping to constant if necessary
+
+        # Map free index to a value
+        i, = ii
+        if isinstance(i, Index):
+            ii = ii._uflclass((FixedIndex(self._index2value[i]),))
+
+        # Hide used index i (doing this is not correct behaviour)
+        #if isinstance(i, Index):
+        #    self._index2value.push(i, None)
+        #    pushed = True
+        #else:
+        #    pushed = False
         
-        result = self.reuse_if_possible(x, f, j)
+        result = self.reuse_if_possible(x, f, ii)
+        
+        # Unhide used index i
+        #if pushed:
+        #    self._index2value.pop()
         
         return result
 

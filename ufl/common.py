@@ -214,12 +214,17 @@ class StackDict(dict):
     
     def push(self, k, v):
         self._l.append((k, self.get(k, None)))
-        self[k] = v
+        if v is None:
+            if k in self:
+                del self[k]
+        else:
+            self[k] = v
     
     def pop(self):
         k, v = self._l.pop()
         if v is None:
-            del self[k]
+            if k in self:
+                del self[k]
         else:
             self[k] = v
         return k, v
