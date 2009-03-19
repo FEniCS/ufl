@@ -6,6 +6,8 @@ from glob import glob
 
 files = sorted(glob("*.py"))
 lines = []
+num_todos = 0
+num_fixmes = 0
 for f in files:
     todos = []
     fixmes = []
@@ -18,7 +20,14 @@ for f in files:
         lines += ["", f]
     if todos:
         lines += ["TODOs:"] + todos
+        num_todos += len(todos)
     if fixmes:
         lines += ["FIXMEs:"] + fixmes
+        num_fixmes += len(fixmes)
 
 print "\n".join(lines)
+
+print
+print "Number of TODOs: ", num_todos
+print "Number of FIXMEs:", num_fixmes
+print

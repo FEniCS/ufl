@@ -11,6 +11,7 @@ from ufl.common import product
 from ufl.finiteelement import MixedElement, TensorElement
 from ufl.tensors import as_vector, as_matrix, as_tensor
 
+
 def split(v):
     "Split Function into its sub Functions if any."
     
@@ -22,7 +23,9 @@ def split(v):
     if isinstance(element, TensorElement):
         s = element.symmetry()
         if s:
-            error("Split not implemented for symmetric tensor elements, how is this defined?") # FIXME
+            # TODO: How should this be defined? Should we return one subfunction
+            # for each value component or only for those not mapped to another?
+            error("Split not implemented for symmetric tensor elements.")
     
     # Compute value size
     value_size = product(element.value_shape())

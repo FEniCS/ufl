@@ -1,7 +1,7 @@
 "Differential operators."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-02-20"
+__date__ = "2008-03-14 -- 2009-03-19"
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
@@ -289,13 +289,24 @@ class Div(CompoundDerivative):
 class Curl(CompoundDerivative):
     __slots__ = ("_f", "_dim", "_repr")
     
-    # FIXME: Implement __new__ to simplify trivial zeros
-    
-    def __init__(self, f):
-        CompoundDerivative.__init__(self)
+    def __new__(cls, f):
+        # Validate input
         ufl_assert(f.rank() == 1, "Need a vector.")
         ufl_assert(not f.free_indices(), \
             "TODO: Taking curl of an expression with free indices, should this be a valid expression? Please provide examples!")
+        
+        # Return zero if expression is trivially constant
+        if isinstance(f, spatially_constant_types):
+            cell = f.cell()
+            ufl_assert(cell is not None, "Can't take curl of expression with undefined cell...")
+            #free_indices = f.free_indices()
+            #index_dimensions = subdict(f.index_dimensions(), free_indices)
+            #return Zero((cell.d,), free_indices, index_dimensions)
+            return Zero((cell.d,))
+        return CompoundDerivative.__new__(cls)
+    
+    def __init__(self, f):
+        CompoundDerivative.__init__(self)
         self._f = f
         cell = f.cell()
         ufl_assert(cell is not None, "Can't take curl of expression with undefined cell...")

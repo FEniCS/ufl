@@ -301,12 +301,22 @@ class TensorElement(MixedElement):
 
     def __str__(self):
         "Format as string for pretty printing."
-        return "<%s tensor element of degree %d and shape %s on a %s>" % \
-            (self.family(), self.degree(), self.value_shape(), self.cell()) # TODO: add symmetries
+        sym = ""
+        if isinstance(self._symmetry, dict):
+            sym = " with symmetries (%s)" % ", ".join("%s -> %s" % (a,b) for (a,b) in self._symmetry.iteritems())
+        elif self._symmetry:
+            sym = " with symmetry"
+        return "<%s tensor element of degree %d and shape %s on a %s%s>" % \
+            (self.family(), self.degree(), self.value_shape(), self.cell(), sym)
     
     def shortstr(self):
         "Format as string for pretty printing."
-        return "Tensor<%s x %s>" % (self.value_shape(), self._sub_element.shortstr()) # TODO: add symmetries
+        sym = ""
+        if isinstance(self._symmetry, dict):
+            sym = " with symmetries (%s)" % ", ".join("%s -> %s" % (a,b) for (a,b) in self._symmetry.iteritems())
+        elif self._symmetry:
+            sym = " with symmetry"
+        return "Tensor<%s x %s%s>" % (self.value_shape(), self._sub_element.shortstr(), sym)
 
 class ElementUnion(FiniteElementBase):
     "The union of two finite element spaces."
@@ -333,9 +343,9 @@ class ElementUnion(FiniteElementBase):
     
     def __str__(self):
         "Format as string for pretty printing."
-        return FIXME
+        return "<%s>" % " U ".join(str(e) for e in self._elements)
     
     def shortstr(self):
         "Format as string for pretty printing."
-        return FIXME
+        return "<%s>" % " U ".join(str(e) for e in self._elements)
 
