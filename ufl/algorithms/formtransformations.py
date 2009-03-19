@@ -34,7 +34,7 @@ class PartExtracter(Transformer):
     def expr(self, x):
         "The default is a nonlinear operator not accepting any basis functions in its children."
         if any(isinstance(t, BasisFunction) for t in traverse_terminals(x)):
-            error("Found basis function in %s, this is an invalid expression." % repr(x)) # FIXME: Other operators to implement particularly? Will see when errors here trigger...
+            error("Found basis function in %s, this is an invalid expression." % repr(x)) # TODO: Other operators to implement particularly? Will see when errors here trigger...
         return (x, set())
     terminal = expr
     
@@ -118,7 +118,7 @@ class PartExtracter(Transformer):
         o, provides = arg
         x = self.reuse_if_possible(x, (o,))
         return (x, provides)
-    # FIXME: List all linear operators (use subclassing to simplify stuff like this?)
+    # TODO: List all linear operators (use subclassing to simplify stuff like this?)
     
     def linear_indexed_type(self, x):
         f, i = x.operands()

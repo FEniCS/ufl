@@ -38,12 +38,8 @@ def expand_derivatives(form):
     equivalent to expr, there are no VariableDerivative
     or FunctionDerivative objects left, and SpatialDerivative
     objects have been propagated to Terminal nodes."""
-    
-    # No derivatives? Then we do nothing. TODO: Can enable this later for efficiency, but omitting it is a good test of the algorithms.
-    #if not any(issubclass(c, Derivative) for c in extract_classes(form)):
-    #    return form
 
-    # TODO: How to switch between forward and reverse mode? Can we pick the best in each context?
+    # TODO: How to switch between forward and reverse mode? Can we pick the best in each context? Want to try a mixed implementation on the graph.
     ad_routine = forward_ad
     #ad_routine = reverse_ad
 

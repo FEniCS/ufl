@@ -65,7 +65,7 @@ def load_forms(filename):
     # Analyse validity of forms
     for k, v in zip(form_names, forms):
         validate_form(v)
-        #errors = validate_form(v) # FIXME: validate_form raises exception, it doesn't return errors
+        #errors = validate_form(v) # TODO: validate_form raises exception, it doesn't return errors
         #if errors:
         #    error("Found errors in form '%s':\n%s" % (k, errors))
     
