@@ -1,13 +1,13 @@
 """Utility algorithms for inspection of and information extraction from UFL objects in various ways."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-02-25"
+__date__ = "2008-03-14 -- 2009-03-20"
 
 # Modified by Anders Logg, 2008
 
 from itertools import chain
 
-from ufl.log import error, info
+from ufl.log import error, warning, info
 from ufl.assertions import ufl_assert
 from ufl.common import lstr, dstr, UFLTypeDefaultDict
 
@@ -216,10 +216,17 @@ def extract_quadrature_order(integral):
 
 def estimate_quadrature_order(integral):
     "Estimate the necessary quadrature order for integral using the sum of basis function degrees."
-    return sum(b.element().degree() for b in extract_basis_functions(integral))
+    bf = extract_basis_functions(integral)
+    degrees = [b.element().degree() for b in bf]
+    if len(bf) == 0:
+        warning("Trying to estimate the quadrature order of a functional based on zero basis functions makes no sense...")
+        return 3
+    if len(bf) == 1:
+        return 2*degrees[0]
+    return sum(degrees)
 
 def estimate_max_quadrature_order(integral):
     "Estimate the maximum needed quadrature order for integral using the highest polynomial degree of any term."
-    # TODO: Provide a different estimate as an additional algorithm, finding the actual max polynomial order including order of functions.
+    # FIXME: Provide a different estimate as an additional algorithm, finding the actual max polynomial order including order of functions.
     return estimate_quadrature_order(integral)
 
