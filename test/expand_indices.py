@@ -27,38 +27,57 @@ class ExpandIndicesTestCase(unittest.TestCase):
         velement = VectorElement("Lagrange", cell, 1)
         telement = TensorElement("Lagrange", cell, 1)
         self.sf = Function(element)
+        self.sf2 = Function(element)
         self.vf = Function(velement)
         self.tf = Function(telement)
         
-        def SF(x, derivatives=()):
+        # Note: the derivatives of these functions make no sense, but
+        #       their unique constant values are used for validation.
+        
+        def SF(x, derivatives=()): 
             if derivatives == ():
                 return 3
             elif derivatives == (0,):
-                return 0.3
+                return 0.30
             elif derivatives == (1,):
-                return 0.3
+                return 0.31
+            return 0
+        
+        def SF2(x, derivatives=()):
+            if derivatives == ():
+                return 3
+            elif derivatives == (0,):
+                return 0.30
+            elif derivatives == (1,):
+                return 0.31
+            elif derivatives == (0,0):
+                return 3.300
+            elif derivatives in ((1,0), (0,1)):
+                return 3.310
+            elif derivatives == (1,1):
+                return 3.311
             return 0
         
         def VF(x, derivatives=()):
             if derivatives == ():
                 return (5, 7)
             elif derivatives == (0,):
-                return (0.5, 0.7)
+                return (0.50, 0.70)
             elif derivatives == (1,):
-                return (0.5, 0.7)
+                return (0.51, 0.71)
             return (0, 0)
         
         def TF(x, derivatives=()):
             if derivatives == ():
                 return ((11, 13), (17, 19))
             elif derivatives == (0,):
-                return ((1.1, 1.3), (1.7, 1.9))
+                return ((1.10, 1.30), (1.70, 1.90))
             elif derivatives == (1,):
-                return ((1.1, 1.3), (1.7, 1.9))
+                return ((1.11, 1.31), (1.71, 1.91))
             return ((0, 0), (0, 0))
         
         self.x = (1.23, 3.14)
-        self.mapping = { self.sf: SF, self.vf: VF, self.tf: TF }
+        self.mapping = { self.sf: SF, self.sf2: SF2, self.vf: VF, self.tf: TF }
         
     def compare(self, f, value):
         g1 = expand_derivatives(f)
@@ -146,24 +165,77 @@ class ExpandIndicesTestCase(unittest.TestCase):
 
         # Basic derivatives
         compare(sf.dx(0), 0.3)
-        compare(sf.dx(1), 0.3)
-        compare(sf.dx(i)*vf[i], 0.3*5 + 0.3*7)
+        compare(sf.dx(1), 0.31)
+        compare(sf.dx(i)*vf[i], 0.30*5 + 0.31*7)
+        compare(vf[j].dx(i)*vf[i].dx(j), 0.50*0.50 + 0.51*0.70 + 0.70*0.51 + 0.71*0.71)
 
-    def _test_expand_indices2(self): # Derivatives are currently a problem
-        cell = triangle
-        element = FiniteElement("Lagrange", cell, 1)
-        f = Function(element)
-        v = TestFunction(element)
-        u = TrialFunction(element)
+    def test_expand_indices_hyperelasticity(self):
+        sf = self.sf
+        vf = self.vf
+        tf = self.tf
+        compare = self.compare
 
-        a = div(grad(v))*u*dx
-        #a1 = evaluate(a)
-        a = expand_derivatives(a)
-        #a2 = evaluate(a)
-        a = expand_indices(a)
-        #a3 = evaluate(a) # TODO: How to define values of derivatives?
-        # TODO: Compare a1, a2, a3
-        # TODO: Test something more
+        # Deformation gradient
+        I = Identity(2)
+        u = vf
+        F = I + grad(u).T
+        # F = (1 + vf[0].dx(0), vf[0].dx(1), vf[1].dx(0), 1 + vf[1].dx(1))
+        # F = (1 + 0.50,        0.51,        0.70,        1 + 0.71)
+        F00 = 1 + 0.50
+        F01 = 0.51
+        F10 = 0.70
+        F11 = 1 + 0.71
+        compare(F[0,0], F00)
+        compare(F[0,1], F01)
+        compare(F[1,0], F10)
+        compare(F[1,1], F11)
+
+        J = det(F)
+        compare(J, (1 + 0.50)*(1 + 0.71) - 0.70*0.51)
+        
+        # Strain tensors
+        C = F.T*F
+        # Cij = sum_k Fki Fkj
+        C00 = F00*F00 + F10*F10
+        C01 = F00*F01 + F10*F11
+        C10 = F01*F00 + F11*F10
+        C11 = F01*F01 + F11*F11
+        compare(C[0,0], C00)
+        compare(C[0,1], C01)
+        compare(C[1,0], C10)
+        compare(C[1,1], C11)
+        
+        E = (C-I)/2
+        E00 = (C00-1)/2
+        E01 = (C01  )/2
+        E10 = (C10  )/2
+        E11 = (C11-1)/2
+        compare(E[0,0], E00)
+        compare(E[0,1], E01)
+        compare(E[1,0], E10)
+        compare(E[1,1], E11)
+        
+        # Strain energy
+        Q = inner(E, E)
+        Qvalue = E00**2 + E01**2 + E10**2 + E11**2
+        compare(Q, Qvalue)
+
+        K = 0.5
+        psi = (K/2)*exp(Q)
+        compare(psi, 0.25*math.exp(Qvalue))
+
+    def test_expand_indices_div_grad(self):
+        sf = self.sf
+        sf2 = self.sf2
+        vf = self.vf
+        tf = self.tf
+        compare = self.compare
+
+        a = div(grad(sf))
+        compare(a, 0)
+
+        a = div(grad(sf2))
+        compare(a, 3.300 + 3.311)
 
 tests = [ExpandIndicesTestCase]
 
