@@ -1,7 +1,7 @@
 "Differential operators."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-03-19"
+__date__ = "2008-03-14 -- 2009-03-20"
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
@@ -165,7 +165,7 @@ class VariableDerivative(Derivative):
         if isinstance(v, Indexed):
             ufl_assert(isinstance(v._expression, Variable), \
                 "Expecting a Variable in VariableDerivative.")
-            warning("diff(f, v[i]) isn't handled properly in all code.") # FIXME
+            error("diff(f, v[i]) isn't handled properly in all code.") # TODO: Should we allow this? Can do diff(f, v)[..., i], which leads to additional work but does the same.
         else:
             ufl_assert(isinstance(v, Variable), \
                 "Expecting a Variable in VariableDerivative.")
@@ -176,7 +176,7 @@ class VariableDerivative(Derivative):
         fid = f.index_dimensions()
         vid = v.index_dimensions()
         ufl_assert(not (set(fi) ^ set(vi)), \
-            "Repeated indices not allowed in VariableDerivative.") # FIXME: Allow diff(f[i], v[i])?
+            "Repeated indices not allowed in VariableDerivative.") # TODO: Allow diff(f[i], v[i]) = sum_i VariableDerivative(f[i], v[i])? Can implement direct expansion in diff as a first approximation.
         self._free_indices = tuple(fi + vi)
         self._index_dimensions = dict(fid)
         self._index_dimensions.update(vid)
@@ -334,13 +334,24 @@ class Curl(CompoundDerivative):
 class Rot(CompoundDerivative):
     __slots__ = ("_f", "_repr")
     
-    # FIXME: Implement __new__ to simplify trivial zeros
-    
-    def __init__(self, f):
-        CompoundDerivative.__init__(self)
+    def __new__(cls, f):
+        # Validate input
         ufl_assert(f.rank() == 1, "Need a vector.")
         ufl_assert(not f.free_indices(), \
             "TODO: Taking rot of an expression with free indices, should this be a valid expression? Please provide examples!")
+        
+        # Return zero if expression is trivially constant
+        if isinstance(f, spatially_constant_types):
+            #cell = f.cell()
+            #ufl_assert(cell is not None, "Can't take rot of expression with undefined cell...")
+            #free_indices = f.free_indices()
+            #index_dimensions = subdict(f.index_dimensions(), free_indices)
+            #return Zero((cell.d,), free_indices, index_dimensions)
+            return Zero()
+        return CompoundDerivative.__new__(cls)
+    
+    def __init__(self, f):
+        CompoundDerivative.__init__(self)
         self._f = f
         self._repr = "Rot(%r)" % self._f
     
