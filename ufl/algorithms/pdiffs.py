@@ -16,12 +16,14 @@ class PartialDerivativeComputer(MultiFunction):
     """NB! The main reason for keeping this out of the Expr hierarchy is
     to avoid user mistakes in the form of mixups with total derivatives,
     and to allow both reverse and forward mode AD."""
-    def __init__(self):
     #def __init__(self, spatial_dim):
         #self._spatial_dim = spatial_dim
+    def __init__(self):
         MultiFunction.__init__(self)
     
-    # FIXME: Make sure we have implemented partial derivatives of all operators. At least non-compound ones should be covered, but compound ones may be a good idea in future versions.
+    # FIXME: Make sure we have implemented partial derivatives of all operators.
+    #        At least non-compound ones should be covered, but compound ones
+    #        may be a good idea in future versions.
     
     def expr(self, o):
         error("No partial derivative defined for %s" % type(o))
@@ -124,7 +126,7 @@ class PartialDerivativeComputer(MultiFunction):
     # --- Restrictions
     
     def positive_restricted(self, f):
-        _1 = IntValue(1) 
+        _1 = IntValue(1)
         return (_1,) # or _1('+')? TODO: is this right? 
         # Note that _1('+') would become 0 with the current implementation
     

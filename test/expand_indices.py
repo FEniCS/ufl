@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2009-03-19 -- 2009-03-19"
+__date__ = "2009-03-19 -- 2009-03-24"
 
 # Modified by Anders Logg, 2008
 
@@ -80,14 +80,17 @@ class ExpandIndicesTestCase(unittest.TestCase):
         self.mapping = { self.sf: SF, self.sf2: SF2, self.vf: VF, self.tf: TF }
         
     def compare(self, f, value):
-        g1 = expand_derivatives(f)
-        g2 = expand_indices(g1)
-        
-        g1v = g1(self.x, self.mapping)
-        g2v = g2(self.x, self.mapping)
-        
-        self.assertAlmostEqual( g1v, value )
-        self.assertAlmostEqual( g2v, value )
+        g = expand_derivatives(f)
+        gv = g(self.x, self.mapping)
+        self.assertAlmostEqual(gv, value)
+
+        g = expand_indices(g)
+        gv = g(self.x, self.mapping)
+        self.assertAlmostEqual(gv, value)
+
+        g = renumber_indices(g)
+        gv = g(self.x, self.mapping)
+        self.assertAlmostEqual(gv, value)
 
     def test_basic_expand_indices(self):
         sf = self.sf

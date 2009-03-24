@@ -32,6 +32,7 @@ from ufl.algorithms.transformations import transform, \
                                            replace, flatten, strip_variables, \
                                            expand_compounds, expand_indices, \
                                            purge_list_tensors, mark_duplications
+from ufl.algorithms.renumbering import renumber_indices
 
 # Utilities for transforming complete Forms into other Forms
 from ufl.algorithms.formtransformations import compute_form_adjoint, compute_form_action, \

@@ -108,7 +108,7 @@ class ComponentTensor(WrapperType):
         
         self._shape = tuple(dims[i] for i in self._indices)
 
-        self._str = "[Rank %d tensor A, such that A_{%s} = %s]" % (self.rank(), self._indices, self._expression)
+        self._str = "< Rank %d tensor A, such that A_{%s} = %s >" % (self.rank(), self._indices, self._expression)
         self._repr = "ComponentTensor(%r, %r)" % (self._expression, self._indices)
     
     def operands(self):
