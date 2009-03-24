@@ -17,7 +17,8 @@ from ufl.geometry import as_cell
 # --- The Function class represents a coefficient function argument to a form ---
 
 class Function(FormArgument, Counted):
-    __slots__ = ("_element", "_repr", "_gradient", "_derivatives")
+    # Slots are disabled here because they cause trouble in PyDOLFIN multiple inheritance pattern:
+    #__slots__ = ("_element", "_repr", "_gradient", "_derivatives") 
     _globalcount = 0
 
     def __init__(self, element, count=None, gradient=None, derivatives=None):

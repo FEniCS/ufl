@@ -1,3 +1,6 @@
+
+from dolfin import cpp
+
 import ufl
 
 class SomeFunction(object):
@@ -10,11 +13,11 @@ class SomeFunction(object):
 
 def init(self, V, value):
     ufl.Function.__init__(self, V)
-    SomeFunction.__init__(self, value)
+    cpp.Function.__init__(self)
     self._V = V
 
 def Function_factory():
-    return type("MyFunction", (ufl.Function, SomeFunction, Function), { "__init__": init })
+    return type("MyFunction", (ufl.Function, cpp.Function, Function), { "__init__": init })
 
 class Function(object):
     def __new__(cls, V, value):

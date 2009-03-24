@@ -21,7 +21,7 @@ class PartialDerivativeComputer(MultiFunction):
         #self._spatial_dim = spatial_dim
         MultiFunction.__init__(self)
     
-    # TODO: Make sure we have implemented partial derivatives of all operators. At least non-compound ones should be covered, but compound ones may be a good idea in future versions.
+    # FIXME: Make sure we have implemented partial derivatives of all operators. At least non-compound ones should be covered, but compound ones may be a good idea in future versions.
     
     def expr(self, o):
         error("No partial derivative defined for %s" % type(o))
@@ -35,7 +35,7 @@ class PartialDerivativeComputer(MultiFunction):
     def sum(self, f):
         "d/dx_i sum_j x_j = 1"
         #_1 = IntValue(1, o.free_indices(), o.index_dimensions())
-        _1 = IntValue(1) # TODO: Handle non-scalars
+        _1 = IntValue(1) # FIXME: Handle non-scalars
         return (_1,)*len(f.operands())
     
     def product(self, f):
@@ -49,7 +49,7 @@ class PartialDerivativeComputer(MultiFunction):
         d/dx x/y = 1/y
         d/dy x/y = -x/y**2 = -f/y"""
         x, y = f.operands()
-        d = 1/y
+        d = 1 / y # FIXME: Nonscalar x
         return (d, -f*d)
     
     def power(self, f):
@@ -98,15 +98,15 @@ class PartialDerivativeComputer(MultiFunction):
     
     # --- Shape and indexing manipulators
     
-    def indexed(self, f):
-        "d/dx x_i = (1)_i = 1" # TODO: Is this right? Fix for non-scalars too.
+    def indexed(self, f): # TODO: Is this right? Fix for non-scalars too.
+        "d/dx x_i = (1)_i = 1"
         s = f.shape()
         ufl_assert(s == (), "TODO: Assuming a scalar expression.")
         _1 = IntValue(1) # TODO: Non-scalars
         return (_1, None)
     
-    def list_tensor(self, f):
-        "d/dx_i [x_0, ..., x_n-1] = e_i (unit vector)" # TODO: Is this right? Fix for higher order tensors too.
+    def list_tensor(self, f): # TODO: Is this right? Fix for higher order tensors too.
+        "d/dx_i [x_0, ..., x_n-1] = e_i (unit vector)"
         ops = f.operands()
         n = len(ops)
         s = ops[0].shape()
@@ -125,7 +125,8 @@ class PartialDerivativeComputer(MultiFunction):
     
     def positive_restricted(self, f):
         _1 = IntValue(1) 
-        return (_1,) # or _1('+')? TODO: is this right?
+        return (_1,) # or _1('+')? TODO: is this right? 
+        # Note that _1('+') would become 0 with the current implementation
     
     def negative_restricted(self, f):
         _1 = IntValue(1)
@@ -149,17 +150,20 @@ class PartialDerivativeComputer(MultiFunction):
     # --- Derivatives
     
     def spatial_derivative(self, f):
-        error("Partial derivative of spatial_derivative not implemented, when is this called? apply_ad should make sure it isn't called.")
+        error("Partial derivative of spatial_derivative not implemented, "\
+              "when is this called? apply_ad should make sure it isn't called.")
         x, i = f.operands()
         return (None, None)
     
     def variable_derivative(self, f):
-        error("Partial derivative of variable_derivative not implemented, when is this called? apply_ad should make sure it isn't called.")
+        error("Partial derivative of variable_derivative not implemented, "\
+              "when is this called? apply_ad should make sure it isn't called.")
         x, v = f.operands()
         return (None, None)
     
     def function_derivative(self, f):
-        error("Partial derivative of function_derivative not implemented, when is this called? apply_ad should make sure it isn't called.")
+        error("Partial derivative of function_derivative not implemented, "\
+              "when is this called? apply_ad should make sure it isn't called.")
         a, w, v = f.operands()
         return (None, None, None)
 
