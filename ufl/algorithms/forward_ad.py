@@ -1,22 +1,18 @@
 """Forward mode AD implementation."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-19-- 2009-02-20"
+__date__ = "2008-08-19-- 2009-03-25"
 
 from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert
-from ufl.common import product, unzip, UFLTypeDefaultDict, subdict, mergedicts, lstr
+from ufl.common import unzip, subdict, lstr
 from ufl.indexutils import unique_indices
 
 # All classes:
-from ufl.expr import Expr
 from ufl.terminal import Terminal, Tuple
-from ufl.constantvalue import Zero, ScalarValue, FloatValue, IntValue, Identity, is_true_ufl_scalar, is_ufl_scalar
-from ufl.form import Form
+from ufl.constantvalue import Zero, IntValue, Identity, is_true_ufl_scalar
 from ufl.variable import Variable
-from ufl.finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
-from ufl.basisfunction import BasisFunction, BasisFunctions
-from ufl.function import Function, Constant, VectorConstant, TensorConstant
+from ufl.function import ConstantBase
 from ufl.indexing import MultiIndex, Indexed, Index, indices
 from ufl.indexsum import IndexSum
 from ufl.tensors import ListTensor, ComponentTensor, as_tensor, as_scalar
@@ -37,7 +33,7 @@ from ufl.algorithms.analysis import extract_type
 from ufl.algorithms.transformations import expand_compounds, Transformer, transform, transform_integrands
 
 def is_spatially_constant(o):
-    return (isinstance(o, Terminal) and o.cell() is None) or isinstance(o, Constant)
+    return (isinstance(o, Terminal) and o.cell() is None) or isinstance(o, ConstantBase)
 
 class AD(Transformer):
     def __init__(self, spatial_dim, var_shape, var_free_indices, var_index_dimensions):

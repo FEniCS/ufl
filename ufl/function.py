@@ -2,7 +2,7 @@
 of related classes (functions), including Constant."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-03-05"
+__date__ = "2008-03-14 -- 2009-03-25"
 
 # Modified by Anders Logg, 2008
 
@@ -76,12 +76,17 @@ class Function(FormArgument, Counted):
 
 # TODO: Handle actual global constants?
 
-class Constant(Function):
+class ConstantBase(Function):
+    __slots__ = ()
+    def __init__(self, element, count):
+        Function.__init__(self, element, count)
+
+class Constant(ConstantBase):
     __slots__ = ()
 
     def __init__(self, cell, count=None):
         e = FiniteElement("DG", cell, 0)
-        Function.__init__(self, e, count)
+        ConstantBase.__init__(self, e, count)
         self._repr = "Constant(%r, %r)" % (e.cell(), self._count)
     
     def reconstruct(self, count=None):
@@ -96,12 +101,12 @@ class Constant(Function):
         else:
             return "c_{%s}" % count
 
-class VectorConstant(Function):
+class VectorConstant(ConstantBase):
     __slots__ = ()
     
     def __init__(self, cell, dim=None, count=None):
         e = VectorElement("DG", cell, 0, dim)
-        Function.__init__(self, e, count)
+        ConstantBase.__init__(self, e, count)
         self._repr = "VectorConstant(%r, %r, %r)" % (e.cell(), e.value_shape()[0], self._count)
     
     def reconstruct(self, count=None):
@@ -117,11 +122,11 @@ class VectorConstant(Function):
         else:
             return "C_{%s}" % count
 
-class TensorConstant(Function):
+class TensorConstant(ConstantBase):
     __slots__ = ()
     def __init__(self, cell, shape=None, symmetry=None, count=None):
         e = TensorElement("DG", cell, 0, shape=shape, symmetry=symmetry)
-        Function.__init__(self, e, count)
+        ConstantBase.__init__(self, e, count)
         self._repr = "TensorConstant(%r, %r, %r, %r)" % (e.cell(), e.value_shape(), e._symmetry, self._count)
     
     def reconstruct(self, count=None):

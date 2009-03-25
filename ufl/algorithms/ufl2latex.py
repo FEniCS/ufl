@@ -3,7 +3,7 @@ either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2009-02-25"
+__date__ = "2008-05-07 -- 2009-03-25"
 
 # Modified by Anders Logg, 2008-2009.
 
@@ -16,18 +16,14 @@ from ufl.common import write_file, pdflatex, openpdf
 from ufl.permutation import compute_indices
 
 # All classes:
-from ufl.constantvalue import Zero, ScalarValue, FloatValue, IntValue, ScalarSomething, Identity
 from ufl.variable import Variable
-from ufl.basisfunction import BasisFunction
-from ufl.function import Function, Constant, VectorConstant, TensorConstant
-from ufl.geometry import FacetNormal
-from ufl.indexing import MultiIndex, Indexed, Index, FixedIndex
+from ufl.indexing import Indexed, Index, FixedIndex
 from ufl.tensors import ListTensor, ComponentTensor
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.indexsum import IndexSum
 from ufl.tensoralgebra import Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
-from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
-from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
+from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin
+from ufl.restriction import PositiveRestricted, NegativeRestricted
 from ufl.differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.form import Form

@@ -32,7 +32,7 @@ __version__ = "0.1"
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __copyright__ = "Copyright (C) 2008-2009 " + __authors__
 __license__  = "GNU GPL version 3 or any later version"
-__date__ = "2008-03-14 -- 2009-03-19"
+__date__ = "2008-03-14 -- 2009-03-25"
 
 ########## README
 # Imports here should be what the user sees when doing "from ufl import *",
@@ -41,68 +41,74 @@ __date__ = "2008-03-14 -- 2009-03-19"
 # of the implementation, the particular class "Grad".
 ##########
 
-# utility functions (product is the counterpart of the built-in python function sum, can be useful for users as well)
+# Utility functions (product is the counterpart of the built-in
+# python function sum, can be useful for users as well?)
 from ufl.common import product
 
-# output control
-from ufl.log import get_handler, get_logger, set_handler, UFLException
-from ufl.log import set_level, DEBUG, INFO, WARNING, ERROR, CRITICAL
+# Output control
+from ufl.log import get_handler, get_logger, set_handler, set_level, \
+    UFLException, DEBUG, INFO, WARNING, ERROR, CRITICAL
 
-# finite elements classes
-from ufl.finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement, ElementUnion
+# Finite elements classes
+from ufl.finiteelement import FiniteElementBase, FiniteElement, \
+    MixedElement, VectorElement, TensorElement, ElementUnion
 
-# hook to extend predefined element families
+# Hook to extend predefined element families
 from ufl.elements import register_element #, ufl_elements
 
-# basis functions
+# Basis functions
 from ufl.basisfunction import BasisFunction, TestFunction, TrialFunction, \
-                           BasisFunctions, TestFunctions, TrialFunctions
+    BasisFunctions, TestFunctions, TrialFunctions
 
-# coefficient functions
+# Coefficient functions
 from ufl.function import Function, Functions, \
-                      Constant, VectorConstant, TensorConstant
+    Constant, VectorConstant, TensorConstant
 
-# literal constants
+# Literal constants
 from ufl.constantvalue import Identity
 
-# indexing of tensor expressions
+# Indexing of tensor expressions
 from ufl.indexing import Index, indices
 
-# special functions for expression base classes (ensure this is imported, since it attaches operators to Expr)
+# Special functions for expression base classes
+# (ensure this is imported, since it attaches operators to Expr)
 import ufl.exproperators as __exproperators
 
-# containers for expressions with value rank > 0
+# Containers for expressions with value rank > 0
 from ufl.tensors import as_tensor, as_vector, as_matrix, relabel
 from ufl.tensors import unit_vector, unit_vectors, unit_matrix, unit_matrices
 
-# types for geometric quantities
-from ufl.geometry import Cell # , SpatialCoordinate, FacetNormal # use cell = Cell("triangle"); x = cell.x(); n = cell.n()
+# Types for geometric quantities
+# Currently disabled to encourage use of syntax
+# x = cell.x; n = cell.n
+from ufl.geometry import Cell # , SpatialCoordinate, FacetNormal 
 
-# operators
-from ufl.operators import transpose, outer, inner, dot, cross, det, inv, tr, dev, cofac, skew, \
+# Operators
+from ufl.operators import transpose, outer, inner, dot, cross, det, \
+                       inv, tr, dev, cofac, skew, \
                        sqrt, exp, ln, cos, sin, \
                        eq, ne, le, ge, lt, gt, conditional, sign, \
                        jump, avg, \
                        variable, \
                        Dx, diff, grad, div, curl, rot #, Dt
 
-# form class
+# Form class
 from ufl.form import Form
 
-# integral classes
+# Integral classes
 from ufl.integral import Integral
 
-# representations of transformed forms
+# Representations of transformed forms
 from ufl.formoperators import derivative, action, rhs, lhs, functional, adjoint #, dirichlet_functional
 
-# predefined convenience objects
+# Predefined convenience objects
 from ufl.objects import interval, triangle, tetrahedron, quadrilateral, hexahedron, \
                      i, j, k, l, p, q, r, s, \
                      dx, ds, dS
 
-# constants
+# Constants
 from math import e, pi
 
-# split
+# Split function
 from ufl.split_functions import split
 

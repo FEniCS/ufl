@@ -17,7 +17,7 @@ from ufl.algebra import Sum, Product, Division
 from ufl.finiteelement import MixedElement
 from ufl.basisfunction import BasisFunction
 from ufl.variable import Variable
-from ufl.function import Function, Constant
+from ufl.function import Function
 from ufl.tensors import ListTensor, ComponentTensor
 from ufl.tensoralgebra import Transposed, Inner, Dot, Outer, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor, Skew
 from ufl.restriction import PositiveRestricted, NegativeRestricted

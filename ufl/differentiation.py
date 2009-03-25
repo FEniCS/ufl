@@ -1,7 +1,7 @@
 "Differential operators."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-03-20"
+__date__ = "2008-03-14 -- 2009-03-25"
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
@@ -11,14 +11,18 @@ from ufl.terminal import Terminal, Tuple
 from ufl.constantvalue import ConstantValue, Zero, ScalarValue, Identity, is_true_ufl_scalar
 from ufl.indexing import IndexBase, Index, FixedIndex, MultiIndex, Indexed, as_multi_index
 from ufl.indexutils import unique_indices
+from ufl.geometry import FacetNormal
 from ufl.variable import Variable
 from ufl.tensors import as_tensor
-from ufl.function import Function, Constant, VectorConstant, TensorConstant
+from ufl.function import Function, ConstantBase
 from ufl.basisfunction import BasisFunction
 
 #--- Basic differentiation objects ---
 
-spatially_constant_types = (ConstantValue, Constant, VectorConstant, TensorConstant) # FacetNormal: not for higher order geometry!
+def is_spatially_constant(expression):
+    return isinstance(expression, (ConstantValue, ConstantBase)) \
+           or (isinstance(expression, FacetNormal) \
+               and expression.cell().degree() == 1)
 
 class Derivative(Operator):
     "Base class for all derivative types."
@@ -82,14 +86,12 @@ class SpatialDerivative(Derivative):
     "Partial derivative of an expression w.r.t. spatial directions given by indices."
     __slots__ = ("_expression", "_index", "_shape", "_free_indices", "_index_dimensions", "_repr")
     def __new__(cls, expression, index):
-        
         # Return zero if expression is trivially constant
-        if isinstance(expression, spatially_constant_types):
+        if is_spatially_constant(expression):
             index = as_multi_index(index)
             idx, = index
             fi, idims = split_indices(expression, idx)
             return Zero(expression.shape(), fi, idims)
-        
         return Derivative.__new__(cls)
     
     def __init__(self, expression, index):
@@ -214,7 +216,7 @@ class Grad(CompoundDerivative):
 
     def __new__(cls, f):
         # Return zero if expression is trivially constant
-        if isinstance(f, spatially_constant_types):
+        if is_spatially_constant(f):
             cell = f.cell()
             ufl_assert(cell is not None, "Can't take gradient of expression with undefined cell...")
             dim = cell.d
@@ -259,7 +261,7 @@ class Div(CompoundDerivative):
         ufl_assert(not (f.free_indices()), \
             "TODO: Taking divergence of an expression with free indices, should this be a valid expression? Please provide examples!")
         # Return zero if expression is trivially constant
-        if isinstance(f, spatially_constant_types):
+        if is_spatially_constant(f):
             return Zero(f.shape()[1:]) # No free indices
         return CompoundDerivative.__new__(cls)
 
@@ -296,7 +298,7 @@ class Curl(CompoundDerivative):
             "TODO: Taking curl of an expression with free indices, should this be a valid expression? Please provide examples!")
         
         # Return zero if expression is trivially constant
-        if isinstance(f, spatially_constant_types):
+        if is_spatially_constant(f):
             cell = f.cell()
             ufl_assert(cell is not None, "Can't take curl of expression with undefined cell...")
             #free_indices = f.free_indices()
@@ -341,7 +343,7 @@ class Rot(CompoundDerivative):
             "TODO: Taking rot of an expression with free indices, should this be a valid expression? Please provide examples!")
         
         # Return zero if expression is trivially constant
-        if isinstance(f, spatially_constant_types):
+        if is_spatially_constant(f):
             #cell = f.cell()
             #ufl_assert(cell is not None, "Can't take rot of expression with undefined cell...")
             #free_indices = f.free_indices()

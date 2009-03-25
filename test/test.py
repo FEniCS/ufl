@@ -2,7 +2,7 @@
 """Run all tests"""
 
 __author__ = "Anders Logg (logg@simula.no)"
-__date__ = "2008-03-12 -- 2009-02-18"
+__date__ = "2008-03-12 -- 2009-03-25"
 
 # Modified by Martin Alnes 2009
 
@@ -11,18 +11,19 @@ import sys
 from os import system
 from glob import glob
 
-# disable log output
+# Set log output level
 import logging
-logging.basicConfig(level=logging.CRITICAL)
+logging.basicConfig(level=logging.WARNING)
 
 # Tests to run
 #tests = ["elements", "indices", "forms", "illegal", "algorithms"]
 tests = [f.replace(".py", "") for f in glob("*.py")]
+tests = [f for f in tests if not "debug" in f]
 
-skip = set(("test", "testrunner", "makemanualtestcase"))
-if "skipdemos" in sys.argv:
-    skip.add("analyse_demos")
+skip = set(("test", "testrunner", "makemanualtestcase", "analyse_demos"))
 tests = sorted(list(set(tests) - skip))
+if not "skipdemos" in sys.argv:
+    tests.append("analyse_demos")
 
 using_testrunner = True
 
