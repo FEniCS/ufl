@@ -173,6 +173,19 @@ class ForwardAD(Transformer):
     
     def index_sum(self, o):
         A, i = o.operands()
+
+        # Consider the following case:
+        #   (v[i]*u[i]).dx(i)
+        # which is represented like
+        #   SpatialDerivative(IndexSum(..., i), i)
+        # if we move the derivative inside the sum,
+        # then the derivative suddenly gets accumulated,
+        # which is completely wrong!
+        if self._var_free_indices:
+            i0, = self._var_free_indices
+            i1, = i
+            ufl_assert(i0 != i1, "FIXME: This case doesn't work!")
+
         A2, Ap = self.visit(A)
         o = self.reuse_if_possible(o, A2, i)
         op = IndexSum(Ap, i)
