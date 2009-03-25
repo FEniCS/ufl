@@ -263,7 +263,8 @@ class Division(AlgebraOperator):
         b = as_ufl(b)
 
         # Assertions
-        is_ufl_scalar(a) or error("Expecting scalar nominator in Division.") # TODO: Enabled workaround for nonscalar division in __div__, so maybe we can keep this assertion
+        # TODO: Enabled workaround for nonscalar division in __div__, so maybe we can keep this assertion. Some algorithms may need updating.
+        is_ufl_scalar(a) or error("Expecting scalar nominator in Division.")
         is_true_ufl_scalar(b) or error("Division by non-scalar is undefined.")
         (b != 0) or error("Division by zero!")
         
@@ -302,7 +303,7 @@ class Division(AlgebraOperator):
         return self._a.index_dimensions()
     
     def shape(self):
-        return self._a.shape()
+        return () # self._a.shape()
     
     def evaluate(self, x, mapping, component, index_values):    
         a, b = self.operands()

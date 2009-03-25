@@ -42,9 +42,13 @@ class Terminal(Expr):
         
         # No mapping, trying to map to a constant
         if f is None:
-            value = float(f)
-            if derivatives:
-                value = 0.0
+            try:
+                value = float(f)
+                if derivatives:
+                    value = 0.0
+            except:
+                warning("Couldn't map '%s' to a float, returning object unchanged." % str(f))
+                value = f
             return value
         
         # Callable, call it!
