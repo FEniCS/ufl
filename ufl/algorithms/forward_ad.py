@@ -45,8 +45,8 @@ class ForwardAD(Transformer):
         self._var_shape = var_shape
         self._var_free_indices = var_free_indices
         self._var_index_dimensions = dict(var_index_dimensions)
-        if self._var_free_indices:
-            warning("TODO: Free indices in differentiation variable may be buggy!")
+        #if self._var_free_indices:
+        #    warning("TODO: Free indices in differentiation variable may be buggy!")
     
     def _make_zero_diff(self, o):
         # Define a zero with the right indices
@@ -380,7 +380,8 @@ class ForwardAD(Transformer):
 
 class SpatialAD(ForwardAD):
     def __init__(self, spatial_dim, index):
-        if isinstance(index, MultiIndex): # FIXME: Iron out this, decide where to use MultiIndex and Index properly
+        # FIXME: Iron out this, decide where to use MultiIndex and Index properly
+        if isinstance(index, MultiIndex):
             index, = index
         if isinstance(index, Index):
             vfi = (index,)
