@@ -262,10 +262,10 @@ class Division(AlgebraOperator):
         a = as_ufl(a)
         b = as_ufl(b)
 
-        #ufl_assert(b != 0, "Division by zero!")
-        #ufl_assert(is_true_ufl_scalar(b), "Division by non-scalar.")
+        # Assertions
+        is_ufl_scalar(a) or error("Expecting scalar nominator in Division.") # TODO: Enabled workaround for nonscalar division in __div__, so maybe we can keep this assertion
+        is_true_ufl_scalar(b) or error("Division by non-scalar is undefined.")
         (b != 0) or error("Division by zero!")
-        is_true_ufl_scalar(b) or error("Division by non-scalar.")
         
         if isinstance(a, Zero):
             return a

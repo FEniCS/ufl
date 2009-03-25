@@ -145,10 +145,12 @@ class ForwardAD(Transformer):
             op = self._make_zero_diff(o)
         else:
             r = Ap.rank() - len(jj)
-            ii = indices(r)
-            op = Indexed(Ap, jj + ii)
-            if ii:
+            if r:
+                ii = indices(r)
+                op = Indexed(Ap, jj + ii)
                 op = as_tensor(op, ii)
+            else:
+                op = Indexed(Ap, jj)
         return (o, op)
     
     def list_tensor(self, o, *ops):

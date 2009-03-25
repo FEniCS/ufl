@@ -137,6 +137,11 @@ Expr.__rsub__ = _rsub
 def _div(self, o):
     if not isinstance(o, _valid_types):
         return NotImplemented
+    sh = self.shape()
+    if sh:
+        ii = indices(len(sh))
+        d = Division(self[ii], o)
+        return as_tensor(d, ii)
     return Division(self, o)
 Expr.__div__ = _div
 
