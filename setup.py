@@ -31,8 +31,6 @@ file.write("Cflags: -I%s\n" % repr(pjoin(prefix,"include"))[1:-1])
 file.close()
 
 scripts = [pjoin("scripts", "ufl-analyse"),
-           pjoin("scripts", "ufl2latex"),
-           pjoin("scripts", "ufl2pdf"),
            pjoin("scripts", "ufl-convert"),
            pjoin("scripts", "form2ufl")]
 
