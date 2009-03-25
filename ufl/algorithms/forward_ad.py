@@ -32,29 +32,31 @@ from ufl.algorithms.traversal import iter_expressions
 from ufl.algorithms.analysis import extract_type
 from ufl.algorithms.transformations import expand_compounds, Transformer, transform, transform_integrands
 
-def is_spatially_constant(o):
-    return (isinstance(o, Terminal) and o.cell() is None) or isinstance(o, ConstantBase)
+from ufl.differentiation import is_spatially_constant
 
-class AD(Transformer):
+class ForwardAD(Transformer):
     def __init__(self, spatial_dim, var_shape, var_free_indices, var_index_dimensions):
         Transformer.__init__(self)
+        ufl_assert(all(isinstance(i, Index) for i in var_free_indices), \
+            "Expecting Index objects.")
+        ufl_assert(all(isinstance(i, Index) for i in var_index_dimensions.keys()), \
+            "Expecting Index objects.")
         self._spatial_dim = spatial_dim
-        
-        # TODO: Use self._var_* or not? Do we ever need more than one? Maybe diff(psi, E[i,j]) is easier to handle using indices than as tensor differentiation.
-        ufl_assert(all(isinstance(i, Index) for i in var_free_indices), "Expecting Index objects.")
-        ufl_assert(all(isinstance(i, Index) for i in var_index_dimensions.keys()), "Expecting Index objects.")
         self._var_shape = var_shape
         self._var_free_indices = var_free_indices
         self._var_index_dimensions = dict(var_index_dimensions)
+        if self._var_free_indices:
+            warning("TODO: Free indices in differentiation variable may be buggy!")
     
     def _make_zero_diff(self, o):
-        # Define a zero with the right indices (kind of cumbersome this... any simpler way?)
+        # Define a zero with the right indices
+        # (kind of cumbersome this... any simpler way?)
         sh = o.shape() + self._var_shape
         fi = o.free_indices()
         idims = dict(o.index_dimensions())
-        
         if self._var_free_indices:
-            i, = self._var_free_indices # currently assuming only one free variable index
+            # Currently assuming only one free variable index
+            i, = self._var_free_indices 
             if i not in idims:
                 fi = unique_indices(fi + (i,))
                 idims[i] = self._var_index_dimensions[i]
@@ -62,11 +64,13 @@ class AD(Transformer):
         return fp   
 
     def _make_ones_diff(self, o):
-        # Define a scalar value with the right indices (kind of cumbersome this... any simpler way?)
+        # Define a scalar value with the right indices
+        # (kind of cumbersome this... any simpler way?)
         sh = o.shape() + self._var_shape
         fi = o.free_indices()
         idims = dict(o.index_dimensions())
         if self._var_free_indices:
+            # Currently assuming only one free variable index
             i, = self._var_free_indices
             if i not in idims:
                 fi = unique_indices(fi + (i,))
@@ -79,13 +83,13 @@ class AD(Transformer):
         r = Transformer.visit(self, o)
         f, df = r
         if not f is o:
-            debug("In AD.visit, didn't get back o:")
+            debug("In ForwardAD.visit, didn't get back o:")
             debug("  o:  %s" % str(o))
             debug("  f:  %s" % str(f))
             debug("  df: %s" % str(df))
         fi_diff = set(f.free_indices()) ^ set(df.free_indices())
         if fi_diff:
-            debug("In AD.visit, got free indices diff:")
+            debug("In ForwardAD.visit, got free indices diff:")
             debug("  o:  %s" % str(o))
             debug("  f:  %s" % str(f))
             debug("  df: %s" % str(df))
@@ -97,7 +101,7 @@ class AD(Transformer):
     # --- Default rules
     
     def expr(self, o):
-        error("Missing AD handler for type %s" % str(type(o)))
+        error("Missing ForwardAD handler for type %s" % str(type(o)))
     
     def terminal(self, o):
         """Terminal objects are assumed independent of the differentiation
@@ -374,7 +378,7 @@ class AD(Transformer):
             oprime = SpatialDerivative(fp, ii)
         return (o, oprime)
 
-class SpatialAD(AD):
+class SpatialAD(ForwardAD):
     def __init__(self, spatial_dim, index):
         if isinstance(index, MultiIndex): # FIXME: Iron out this, decide where to use MultiIndex and Index properly
             index, = index
@@ -384,7 +388,7 @@ class SpatialAD(AD):
         else:
             vfi = ()
             vid = {}
-        AD.__init__(self, spatial_dim, var_shape=(), var_free_indices=vfi, var_index_dimensions=vid)
+        ForwardAD.__init__(self, spatial_dim, var_shape=(), var_free_indices=vfi, var_index_dimensions=vid)
         self._index = index
     
     def spatial_coordinate(self, o):
@@ -406,14 +410,14 @@ class SpatialAD(AD):
         oprime = SpatialDerivative(o, self._index)
         return (o, oprime)
     
-    constant = AD.terminal # returns zero
+    constant = ForwardAD.terminal # returns zero
     
     #def facet_normal(self, o):
     #    pass # TODO: With higher order cells the facet normal isn't constant anymore
 
-class VariableAD(AD):
+class VariableAD(ForwardAD):
     def __init__(self, spatial_dim, var):
-        AD.__init__(self, spatial_dim, var_shape=var.shape(), var_free_indices=var.free_indices(), var_index_dimensions=var.index_dimensions())
+        ForwardAD.__init__(self, spatial_dim, var_shape=var.shape(), var_free_indices=var.free_indices(), var_index_dimensions=var.index_dimensions())
         self._variable = var
     
     def variable(self, o): # XXX: This is another example
@@ -438,10 +442,10 @@ class VariableAD(AD):
         self._variable_cache[l] = c
         return c
 
-class FunctionAD(AD):
+class FunctionAD(ForwardAD):
     "Apply AFD (Automatic Function Differentiation) to expression."
     def __init__(self, spatial_dim, functions, basis_functions):
-        AD.__init__(self, spatial_dim, var_shape=(), var_free_indices=(), var_index_dimensions={})
+        ForwardAD.__init__(self, spatial_dim, var_shape=(), var_free_indices=(), var_index_dimensions={})
         self._functions = zip(functions, basis_functions)
         self._w = functions
         self._v = basis_functions
@@ -486,8 +490,6 @@ def compute_spatial_forward_ad(expr, dim):
 
 def compute_variable_forward_ad(expr, dim):
     f, v = expr.operands()
-    if v.shape() == ():
-        warning("compute_variable_forward_ad with nonscalar Variable not implemented, will likely break.")
     alg = VariableAD(dim, v)
     e, ediff = alg.visit(f)
     return ediff
@@ -518,7 +520,7 @@ def forward_ad(expr, dim):
 #       before differentiating, to allow the AD to work on a coarser graph
 #       (Missing rules for: Cross, Determinant, Cofactor)
 #
-class UnusedADRules(AD):
+class UnusedADRules(ForwardAD):
     
     def _variable_derivative(self, o, f, v):
         f, fp = f

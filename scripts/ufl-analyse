@@ -15,7 +15,7 @@ quiet = True
 write_file = True
 
 # Handle each form file separately
-for filename in args:
+for filename in filenames:
     if not filename.endswith(".ufl"):
         print "Warning: Filename '%s' doesn't end with .ufl." % filename
 

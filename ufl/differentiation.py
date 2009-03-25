@@ -20,9 +20,16 @@ from ufl.basisfunction import BasisFunction
 #--- Basic differentiation objects ---
 
 def is_spatially_constant(expression):
-    return isinstance(expression, (ConstantValue, ConstantBase)) \
-           or (isinstance(expression, FacetNormal) \
-               and expression.cell().degree() == 1)
+    "Check if a terminal object is spatially constant, such that expression.dx(i) == 0."
+    if isinstance(expression, (ConstantValue, ConstantBase)):
+        return True
+    if isinstance(expression, FacetNormal) and expression.cell().degree() == 1:
+        return True
+    if isinstance(expression, Function):
+        e = expression.element()
+        if e.family() == "Discontinuous Lagrange" and e.degree() == 0:
+            return True
+    return False
 
 class Derivative(Operator):
     "Base class for all derivative types."

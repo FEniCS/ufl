@@ -30,32 +30,46 @@ class DemoTestCase(unittest.TestCase):
         pass
     
     def tearDown(self):
-        for f in glob("ufl_analyse_tmp_form*"):
-            os.remove(f)
+        #for f in glob("ufl_analyse_tmp_form*"):
+        #    os.remove(f)
+        pass
     
-    def test_something(self):
-        result = 0
+    def test_all_demos(self):
+        # Check all at once
+        skip = set(glob("../demo/_*.ufl"))
+        filenames = [f for f in sorted(glob("../demo/*.ufl")) if not f in skip]
+        cmd = "ufl-analyse %s" % " ".join(filenames)
+        status, output = get_status_output(cmd)
+        self.assertFalse(status)
+        
+    def _test_something(self):
+        status = 0
         skiplist = ()
         skiplist = glob("../demo/_*.ufl") #+ ["../demo/Hyperelasticity3D.ufl"]
+        filenames = []
         for f in sorted(glob("../demo/*.ufl")):
             if f in skiplist:
                 print "Skipping demo %s" % f
             else:
-                cmd = "ufl-analyse %s" % f
-                status, output = get_status_output(cmd)
-                if status == 0:
-                    print "Successfully analysed %s without problems" % f
-                else:
-                    result = status
-                    name = "%s.analysis" % f
-                    print "Encountered problems when analysing %s (return code %s), see output in file %s" % (f, status, name)
-                    of = open(name, "w")
-                    of.write(output)
-                    of.close()
-                    print 
-                    print output
-                    print
-        self.assertTrue(result == 0)
+                filenames.append(f)
+        # Check each file individually
+        filenames = [] # Turned off
+        for f in filenames:
+            cmd = "ufl-analyse %s" % f
+            status, output = get_status_output(cmd)
+            if status == 0:
+                print "Successfully analysed %s without problems" % f
+            else:
+                name = "%s.analysis" % f
+                print "Encountered problems when analysing %s "\
+                      "(return code %s), see output in file %s" % (f, status, name)
+                of = open(name, "w")
+                of.write(output)
+                of.close()
+                print 
+                print output
+                print
+        self.assertTrue(status == 0)
 
 tests = [DemoTestCase]
 
