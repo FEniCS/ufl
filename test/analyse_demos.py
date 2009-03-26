@@ -41,19 +41,21 @@ class DemoTestCase(unittest.TestCase):
         cmd = "ufl-analyse %s" % " ".join(filenames)
         status, output = get_status_output(cmd)
         self.assertFalse(status)
-        
-    def _test_something(self):
+    
+    def _test_each_demo(self):
         status = 0
+
         skiplist = ()
         skiplist = glob("../demo/_*.ufl") #+ ["../demo/Hyperelasticity3D.ufl"]
+
         filenames = []
         for f in sorted(glob("../demo/*.ufl")):
             if f in skiplist:
                 print "Skipping demo %s" % f
             else:
                 filenames.append(f)
+
         # Check each file individually
-        filenames = [] # Turned off
         for f in filenames:
             cmd = "ufl-analyse %s" % f
             status, output = get_status_output(cmd)

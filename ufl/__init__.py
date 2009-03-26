@@ -1,38 +1,30 @@
-"""UFL - Unified Form Language
----------------------------
+"""The Unified Form Language is an embedded domain specific language for definition of variational forms intended for finite element discretization. More precisely, it defines a fixed interface for choosing finite element spaces and defining expressions for weak forms in a notation close to mathematical notation.
 
-NB! This is a preliminary prototype version of UFL, which is still work in progress.
+This python module contains the language as well as algorithms to work with it.
 
-This module contains a model implementation of the Unified Form Language.
+- To import the language, type:
+      from ufl import *
 
-- The user interface is in the global UFL namespace:
-    from ufl import *
+- To import the underlying classes an UFL expression tree is built from, type:
+      from ufl.classes import *
 
-- The underlying classes an UFL expression tree
-  is built from can be imported by:
-    from ufl.classes import *
-  These are considered implementation details 
-  and should not be used in form definitions.
+- Various algorithms for working with UFL expression trees can be found in:
+      from ufl.algorithms import *
 
-- Various algorithms for working with UFL
-  expression trees can be found in:
-    from ufl.algorithms import *
-  These are considered implementation details 
-  and should not be used in form definitions.
+The classes and algorithms are considered implementation 
+details and should not be used in form definitions.
 
+For more details on the language, see the manual or the wiki pages at
 
-A full manual should later become available at:
+  http://www.fenics.org/wiki/UFL/
 
-http://www.fenics.org/ufl/
-
-But at the moment we only have some unfinished wiki pages with preliminary and incomplete feature descriptions.
 """
 
 __version__ = "0.1"
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __copyright__ = "Copyright (C) 2008-2009 " + __authors__
 __license__  = "GNU GPL version 3 or any later version"
-__date__ = "2008-03-14 -- 2009-03-25"
+__date__ = "2008-03-14 -- 2009-03-26"
 
 ########## README
 # Imports here should be what the user sees when doing "from ufl import *",
@@ -49,6 +41,11 @@ from ufl.common import product
 from ufl.log import get_handler, get_logger, set_handler, set_level, \
     UFLException, DEBUG, INFO, WARNING, ERROR, CRITICAL
 
+# Types for geometric quantities
+# Currently disabled to encourage use of syntax
+# x = cell.x; n = cell.n
+from ufl.geometry import Cell # , SpatialCoordinate, FacetNormal 
+
 # Finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
     MixedElement, VectorElement, TensorElement, ElementUnion
@@ -64,6 +61,9 @@ from ufl.basisfunction import BasisFunction, TestFunction, TrialFunction, \
 from ufl.function import Function, Functions, \
     Constant, VectorConstant, TensorConstant
 
+# Split function
+from ufl.split_functions import split
+
 # Literal constants
 from ufl.constantvalue import Identity
 
@@ -77,11 +77,6 @@ import ufl.exproperators as __exproperators
 # Containers for expressions with value rank > 0
 from ufl.tensors import as_tensor, as_vector, as_matrix, relabel
 from ufl.tensors import unit_vector, unit_vectors, unit_matrix, unit_matrices
-
-# Types for geometric quantities
-# Currently disabled to encourage use of syntax
-# x = cell.x; n = cell.n
-from ufl.geometry import Cell # , SpatialCoordinate, FacetNormal 
 
 # Operators
 from ufl.operators import transpose, outer, inner, dot, cross, det, \
@@ -106,9 +101,6 @@ from ufl.objects import interval, triangle, tetrahedron, quadrilateral, hexahedr
                      i, j, k, l, p, q, r, s, \
                      dx, ds, dS
 
-# Constants
+# Useful constants
 from math import e, pi
-
-# Split function
-from ufl.split_functions import split
 

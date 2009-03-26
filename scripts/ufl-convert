@@ -29,13 +29,11 @@ def write_file(filename, text):
 
 # --- Option parsing
 
-usage = """
-Convert a .ufl file to some other format.
+usage = """Convert a .ufl file to some other format.
 
 Examples:
 
-  ufl-convert -omydir -iyourdir -c -f -tpdf -s mass.ufl
-"""
+  ufl-convert -omydir -iyourdir -c -f -tpdf -s mass.ufl"""
 
 def opt(long, short, t, default, help):
     return optparse.make_option("--%s" % long, "-%s" % short, action="store", type=t, dest=long, default=default, help=help)
@@ -58,7 +56,9 @@ args = sys.argv[1:]
 (options, args) = parser.parse_args(args=args)
 
 if not args:
-    print "Got no files, run '%s --help' for usage." % sys.argv[0]
+    print "Missing files!"
+    print
+    parser.print_usage()
     sys.exit(-1)
 
 

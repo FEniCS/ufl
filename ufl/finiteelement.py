@@ -119,12 +119,17 @@ class MixedElement(FiniteElementBase):
         ufl_assert(all(e.cell() == cell for e in elements), "Cell mismatch for sub elements of mixed element.")
         
         # Compute value shape
+        value_size_sum= sum(product(s.value_shape()) for s in self._sub_elements)
         if "value_shape" in kwargs:
             value_shape = kwargs["value_shape"]
+            # Validate value_shape
+            if type(self) is MixedElement:
+                ufl_assert(product(value_shape) == value_size_sum,
+                    "Provided value_shape doesn't match the total "\
+                    "value size of all subelements.")
         else:
             # Default value dimension: Treated simply as all subelement values unpacked in a vector.
-            value_sizes = (product(s.value_shape()) for s in self._sub_elements)
-            value_shape = (sum(value_sizes),)
+            value_shape = (value_size_sum,)
         
         # Initialize element data
         degree = max(e.degree() for e in self._sub_elements)
