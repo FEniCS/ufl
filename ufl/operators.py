@@ -11,7 +11,7 @@ from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.constantvalue import Zero, ScalarValue, as_ufl
 from ufl.differentiation import VariableDerivative, Grad, Div, Curl, Rot
-from ufl.tensoralgebra import Transposed, Inner, Outer, Dot, Cross, Determinant, Inverse, Cofactor, Trace, Deviatoric, Skew
+from ufl.tensoralgebra import Transposed, Inner, Outer, Dot, Cross, Determinant, Inverse, Cofactor, Trace, Deviatoric, Skew, Sym
 from ufl.variable import Variable
 from ufl.tensors import as_tensor
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
@@ -103,6 +103,10 @@ def dev(A):
 def skew(A):
     "The skew symmetric part of A."
     return Skew(A)
+
+def sym(A):
+    "The symmetric part of A."
+    return Sym(A)
 
 #--- Differential operators
 

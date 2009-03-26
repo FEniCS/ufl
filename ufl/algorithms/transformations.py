@@ -3,7 +3,7 @@ either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2009-03-12"
+__date__ = "2008-05-07 -- 2009-03-26"
 
 from itertools import izip
 from inspect import getargspec
@@ -395,6 +395,10 @@ class CompoundExpander(ReuseTransformer):
     def skew(self, o, A):
         i, j = indices(2)
         return as_matrix( (A[i,j] - A[j,i]) / 2, (i,j) )
+    
+    def sym(self, o, A):
+        i, j = indices(2)
+        return as_matrix( (A[i,j] + A[j,i]) / 2, (i,j) )
     
     def cross(self, o, a, b):
         def c(i, j):

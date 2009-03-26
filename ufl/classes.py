@@ -18,7 +18,7 @@ from ufl.geometry import GeometricQuantity, SpatialCoordinate, FacetNormal
 from ufl.indexing import MultiIndex, Indexed, IndexBase, Index, FixedIndex, IndexSum
 from ufl.tensors import ListTensor, ComponentTensor
 from ufl.algebra import Sum, Product, Division, Power, Abs
-from ufl.tensoralgebra import CompoundTensorOperator, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Cofactor, Inverse, Deviatoric, Skew
+from ufl.tensoralgebra import CompoundTensorOperator, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Cofactor, Inverse, Deviatoric, Skew, Sym
 from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
 from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
 from ufl.differentiation import Derivative, CompoundDerivative, FunctionDerivative, SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot

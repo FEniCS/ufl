@@ -408,7 +408,7 @@ class Skew(CompoundTensorOperator):
         CompoundTensorOperator.__init__(self)
         sh = A.shape()
         r = len(sh)
-        ufl_assert(r == 2, "Skew part of tensor with rank != 2 is undefined.")
+        ufl_assert(r == 2, "Skew symmetric part of tensor with rank != 2 is undefined.")
         ufl_assert(sh[0] == sh[1],
             "Cannot take skew part of rectangular matrix with dimensions %s." % repr(sh))
         ufl_assert(not A.free_indices(), "Not expecting free indices in Skew.")
@@ -431,3 +431,34 @@ class Skew(CompoundTensorOperator):
     
     def __repr__(self):
         return "Skew(%r)" % self._A
+
+class Sym(CompoundTensorOperator):
+    __slots__ = ("_A",)
+
+    def __init__(self, A):
+        CompoundTensorOperator.__init__(self)
+        sh = A.shape()
+        r = len(sh)
+        ufl_assert(r == 2, "Symmetric part of tensor with rank != 2 is undefined.")
+        ufl_assert(sh[0] == sh[1],
+            "Cannot take symmetric part of rectangular matrix with dimensions %s." % repr(sh))
+        ufl_assert(not A.free_indices(), "Not expecting free indices in Sym.")
+        self._A = A
+    
+    def operands(self):
+        return (self._A, )
+    
+    def free_indices(self):
+        return self._A.free_indices()
+    
+    def index_dimensions(self):
+        return self._A.index_dimensions()
+    
+    def shape(self):
+        return self._A.shape()
+    
+    def __str__(self):
+        return "sym(%s)" % self._A
+    
+    def __repr__(self):
+        return "Sym(%r)" % self._A
