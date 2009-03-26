@@ -2,7 +2,9 @@ __authors__ = "Martin Sandve Alnes and Anders Logg"
 __date__ = "2009-02-22 -- 2009-03-24"
 
 from ufl.common import Counted
-from ufl.indexing import Index, FixedIndex, MultiIndex
+from ufl.expr import Expr
+from ufl.indexing import Index, FixedIndex, MultiIndex, Indexed
+from ufl.tensors import ComponentTensor
 from ufl.basisfunction import BasisFunction
 from ufl.variable import Label, Variable
 from ufl.algorithms.transformations import ReuseTransformer, apply_transformer
@@ -44,7 +46,25 @@ class IndexRenumberingTransformer(ReuseTransformer):
             i = Index(len(self._index_map))
             self._index_map[c] = i
         return i
-    
+
+    def _indexed(self, f):
+        g, fi = f.operands()
+        if isinstance(g, ComponentTensor):
+            h, gi = g.operands()
+            if isinstance(h, Indexed):
+                A, hi = h.operands()
+                A = self.visit(A)
+                m = dict((i,j) for (i,j) in zip(gi,fi))
+                #Ai = tuple(self.index(m.get(i,i)) for i in hi)
+                Ai = tuple(m.get(i,i) for i in hi)
+                Ai = tuple(self.index(i) for i in Ai)
+                # Note that Ai may contain repeated indices, so don't use []!
+                return Indexed(A, Ai)
+        g  = self.visit(g)
+        fi = self.visit(fi)
+        r  = self.reuse_if_possible(f, g, fi)
+        return r
+
     def _index_sum(self, o, *ops):
         r = self.reuse_if_possible(o, *ops)
         print "=== In index_sum, transformed"
@@ -61,14 +81,6 @@ class IndexRenumberingTransformer(ReuseTransformer):
         print
         return r
 
-    def _indexed(self, o, *ops):
-        r = self.reuse_if_possible(o, *ops)
-        print "=== In indexed, transformed"
-        print "      ", str(o)
-        print "  to ", str(r)
-        print
-        return r
-
     def _spatial_derivative(self, o, *ops):
         r = self.reuse_if_possible(o, *ops)
         print "=== In spatial_derivative, transformed"
@@ -78,4 +90,7 @@ class IndexRenumberingTransformer(ReuseTransformer):
         return r
 
 def renumber_indices(expr):
+    if isinstance(expr, Expr) and expr.free_indices():
+        error("Not expecting any free indices left in expression.")
     return apply_transformer(expr, IndexRenumberingTransformer())
+

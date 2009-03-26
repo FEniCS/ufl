@@ -287,5 +287,8 @@ class IndexTestCase(unittest.TestCase):
         self.assertTrue(isinstance(a, IndexSum))
         self.assertTrue(a.shape() == ())
 
+    def test_renumbering(self):
+        pass
+
 if __name__ == "__main__":
     unittest.main()

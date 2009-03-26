@@ -34,7 +34,7 @@ class DemoTestCase(unittest.TestCase):
         #    os.remove(f)
         pass
     
-    def test_all_demos(self):
+    def _test_all_demos(self):
         # Check all at once
         skip = set(glob("../demo/_*.ufl"))
         filenames = [f for f in sorted(glob("../demo/*.ufl")) if not f in skip]
@@ -42,7 +42,7 @@ class DemoTestCase(unittest.TestCase):
         status, output = get_status_output(cmd)
         self.assertFalse(status)
     
-    def _test_each_demo(self):
+    def test_each_demo(self):
         status = 0
 
         skiplist = ()
