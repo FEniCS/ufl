@@ -51,7 +51,10 @@ class PartialDerivativeComputer(MultiFunction):
         d/dx x/y = 1/y
         d/dy x/y = -x/y**2 = -f/y"""
         x, y = f.operands()
-        d = 1 / y # FIXME: Nonscalar x
+        # Nonscalar x not supported
+        ufl_assert(x.shape() == (), "Expecting scalars in division.")
+        ufl_assert(y.shape() == (), "Expecting scalars in division.")
+        d = 1 / y
         return (d, -f*d)
     
     def power(self, f):

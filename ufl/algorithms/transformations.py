@@ -731,11 +731,18 @@ class IndexExpander(ReuseTransformer):
 
     def division(self, x):
         a, b = x.operands()
+
+        # Not accepting nonscalars in division anymore
+        ufl_assert(a.shape() == (), "Not expecting tensor in division.")
+        ufl_assert(self.component() == (), "Not expecting component in division.")
+        
         ufl_assert(b.shape() == (), "Not expecting division by tensor.")
         a = self.visit(a)
-        self._components.push(())
+
+        #self._components.push(())
         b = self.visit(b)
-        self._components.pop()
+        #self._components.pop()
+
         return self.reuse_if_possible(x, a, b)
 
     def index_sum(self, x):

@@ -239,6 +239,12 @@ class Expression2LatexHandler(Transformer):
     def cofactor(self, o, A):
         return "cofac{%s}" % par(A) # TODO: Get built-in function syntax like \sin for this
     
+    def skew(self, o, A):
+        return "skew{%s}" % par(A) # TODO: Get built-in function syntax like \sin for this
+    
+    def sym(self, o, A):
+        return "sym{%s}" % par(A) # TODO: Get built-in function syntax like \sin for this
+    
     def list_tensor(self, o):
         shape = o.shape()
         if len(shape) == 1:

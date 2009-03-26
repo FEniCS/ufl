@@ -1,7 +1,7 @@
 """Forward mode AD implementation."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-19-- 2009-03-25"
+__date__ = "2008-08-19-- 2009-03-26"
 
 from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert
@@ -10,7 +10,7 @@ from ufl.indexutils import unique_indices
 
 # All classes:
 from ufl.terminal import Terminal, Tuple
-from ufl.constantvalue import Zero, IntValue, Identity, is_true_ufl_scalar
+from ufl.constantvalue import Zero, IntValue, Identity, is_true_ufl_scalar, is_ufl_scalar
 from ufl.variable import Variable
 from ufl.function import ConstantBase
 from ufl.indexing import MultiIndex, Indexed, Index, indices
@@ -224,6 +224,7 @@ class ForwardAD(Transformer):
         g, gp = b
         o = self.reuse_if_possible(o, f, g)
         
+        ufl_assert(is_ufl_scalar(f), "Not expecting nonscalar nominator")
         ufl_assert(is_true_ufl_scalar(g), "Not expecting nonscalar denominator")
         
         #do_df = 1/g
@@ -238,6 +239,7 @@ class ForwardAD(Transformer):
         if oi or gi:
             o_gp = as_tensor(o_gp, oi + gi)
         op = (fp - o_gp) / g
+        
         return (o, op)
     
     def power(self, o, a, b):
