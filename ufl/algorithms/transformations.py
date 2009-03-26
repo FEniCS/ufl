@@ -160,6 +160,9 @@ class Transformer(object):
             print 
             print "\n\n".join(map(str,operands))
             print 
+            print "stack ="
+            self.print_visit_stack()
+            print 
             raise
         return r
     

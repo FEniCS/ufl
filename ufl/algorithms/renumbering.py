@@ -1,7 +1,8 @@
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2009-02-22 -- 2009-03-24"
+__date__ = "2009-02-22 -- 2009-03-26"
 
 from ufl.common import Counted
+from ufl.log import error
 from ufl.expr import Expr
 from ufl.indexing import Index, FixedIndex, MultiIndex, Indexed
 from ufl.tensors import ComponentTensor
@@ -28,14 +29,14 @@ class IndexRenumberingTransformer(ReuseTransformer):
         return v
 
     def index_annotated(self, o):
-        free_indices = tuple(map(self.index, o.free_indices()))
-        return o.reconstruct(free_indices)
+        new_indices = tuple(map(self.index, o.free_indices()))
+        return o.reconstruct(new_indices)
     zero = index_annotated
     scalar_value = index_annotated
 
     def multi_index(self, o):
-        free_indices = tuple(map(self.index, o._indices))
-        return MultiIndex(free_indices)
+        new_indices = tuple(map(self.index, o._indices))
+        return MultiIndex(new_indices)
     
     def index(self, o):
         if isinstance(o, FixedIndex):
@@ -52,6 +53,8 @@ class IndexRenumberingTransformer(ReuseTransformer):
         if isinstance(g, ComponentTensor):
             h, gi = g.operands()
             if isinstance(h, Indexed):
+                # FIXME: This doesn't work when having two levels if this structure, something
+                #        like Indexed(ComponentTensor(Indexed(ComponentTensor(Indexed(...)))))
                 A, hi = h.operands()
                 A = self.visit(A)
                 m = dict((i,j) for (i,j) in zip(gi,fi))
@@ -59,17 +62,24 @@ class IndexRenumberingTransformer(ReuseTransformer):
                 Ai = tuple(m.get(i,i) for i in hi)
                 Ai = tuple(self.index(i) for i in Ai)
                 # Note that Ai may contain repeated indices, so don't use []!
-                return Indexed(A, Ai)
+                # TODO: If A is a ListTensor, and Ai has fixed indices, try to extract subtensor.
+                r = Indexed(A, Ai)
+                return r
         g  = self.visit(g)
         fi = self.visit(fi)
         r  = self.reuse_if_possible(f, g, fi)
         return r
 
-    def _index_sum(self, o, *ops):
+    def index_sum(self, o, *ops):
         r = self.reuse_if_possible(o, *ops)
         print "=== In index_sum, transformed"
         print "      ", str(o)
         print "  to ", str(r)
+        print
+        print "operands were:"
+        print "\n".join("  " + str(o) for o in o.operands())
+        print "operands are now:"
+        print "\n".join("  " + str(o) for o in ops)
         print
         return r
 

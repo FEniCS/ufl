@@ -3,67 +3,75 @@ from ufl import *
 from ufl.classes import *
 from ufl.algorithms import *
 
-def test1():
-    element = VectorElement("Lagrange", triangle, 1)
-    f = Function(element)
-    
-    a = f[j]*as_tensor(f[i], i)[j]
-    print str(a)
-    print tree_format(a)
+velement = VectorElement("Lagrange", triangle, 1)
+v = Function(velement)
+telement = TensorElement("Lagrange", triangle, 1)
+A = Function(telement)
+I = Identity(2)
 
-    a = expand_derivatives(a)
+def printit(a, tree=False):
+    print "-"*80
+    print 
     print str(a)
-    print tree_format(a)
-
-    a = renumber_indices(a)
-    print str(a)
-    print tree_format(a)
-
-    a = expand_indices(a)
-    print str(a)
-    print tree_format(a)
-
-def test2():
-    element = TensorElement("Lagrange", triangle, 1)
-    f = Function(element)
-    
-    a = as_tensor(f[k,l], (l,k))[j,i] * as_tensor(f[k,l], (l,k))[i,j]
-    print str(a)
-    print tree_format(a)
-
-    a = expand_derivatives(a)
-    print str(a)
-    print tree_format(a)
+    if isinstance(a, str):
+        return
+    if tree:
+        print 
+        print tree_format(a)
 
     a = renumber_indices(a)
+    print 
     print str(a)
-    print tree_format(a)
+    if tree:
+        print 
+        print tree_format(a)
 
     a = expand_indices(a)
+    print 
     print str(a)
-    print tree_format(a)
-
-def test():
-    element = TensorElement("Lagrange", triangle, 1)
-    A = Function(element)
-    
-    a = as_tensor(A[i,j], j)[i] # => sum_i
-    
-    print str(a)
-    print tree_format(a)
-
-    a = expand_derivatives(a)
-    print str(a)
-    print tree_format(a)
-
-    a = renumber_indices(a)
-    print str(a)
-    print tree_format(a)
-
-    a = expand_indices(a)
-    print str(a)
-    print tree_format(a)
+    if tree:
+        print 
+        print tree_format(a)
+    print 
 
 if __name__ == "__main__":
-    test()
+    tests = [ \
+        # constant
+        v[0],
+        A[0,0],
+        # constant to index mapping
+        as_tensor(v[i], i)[0] ,
+        as_tensor(A[i,j], (j,i))[1,2] ,
+        # index to index mapping
+        as_tensor(v[i], i)[j] * v[j] ,
+        as_tensor(A[k,l], (l,k))[j,i] * as_tensor(A[k,l], (l,k))[i,j] ,
+        # hidden implicit sum!
+        as_tensor(A[i,j], j)[i] , # => sum_i
+        # partial mapping
+        as_tensor(A[i,0], i)[1] ,
+        as_tensor(A[1,i], i)[2] ,
+        "failure...",
+        as_tensor(A[j,:][i], (j, i))[k,l]*I[k,l]
+        ]
+    
+    for a in tests:
+        printit(a, True)
+    
+    #test2()
+
+# Failure on this one:
+#mixed = MixedElement(*[VectorElement('Lagrange', Cell('triangle', 1), 2, 2),
+#                       FiniteElement('Lagrange', Cell('triangle', 1), 1)],
+#                     **{'value_shape': (3,) })
+#Indexed(
+#    ComponentTensor(
+#        Indexed(
+#            ListTensor(Indexed(SpatialDerivative(BasisFunction(mixed, -2), MultiIndex((Index(12),))), MultiIndex((FixedIndex(0),))),
+#                       Indexed(SpatialDerivative(BasisFunction(mixed, -2), MultiIndex((Index(12),))), MultiIndex((FixedIndex(1),)))),
+#            MultiIndex((Index(13),))
+#        ),
+#        MultiIndex((Index(12), Index(13)))
+#    ),
+#    MultiIndex((Index(14), Index(15)))
+#)
 

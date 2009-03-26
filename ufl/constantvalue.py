@@ -1,7 +1,7 @@
 "This module defines classes representing constant values."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-11-01 -- 2009-03-05"
+__date__ = "2008-11-01 -- 2009-03-26"
 
 from ufl.log import warning, error
 from ufl.assertions import ufl_assert, expecting_python_scalar
@@ -128,7 +128,7 @@ class ScalarValue(ConstantValue, IndexAnnotated):
             return self
         ufl_assert(len(free_indices) == len(self._free_indices), "Size mismatch between old and new indices.")
         new_index_dimensions = dict((b, self._index_dimensions[a]) for (a,b) in zip(self._free_indices, free_indices))
-        return ScalarValue(self._value, self._shape, free_indices, new_index_dimensions)
+        return self._uflclass(self._value, self._shape, free_indices, new_index_dimensions)
     
     def shape(self):
         return self._shape
