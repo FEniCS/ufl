@@ -11,10 +11,6 @@ from ufl.constantvalue import as_ufl
 #from ufl.classes import *
 from ufl.algorithms import expand_derivatives
 
-# disable log output
-import logging
-logging.basicConfig(level=logging.CRITICAL)
-
 class DiffTestCase(unittest.TestCase):
 
     def setUp(self):

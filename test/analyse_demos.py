@@ -6,10 +6,6 @@ __date__ = "2008-09-28 -- 2008-09-28"
 import unittest
 import os
 
-# disable log output
-import logging
-logging.basicConfig(level=logging.CRITICAL)
-
 # Taken from http://ivory.idyll.org/blog/mar-07/replacing-commands-with-subprocess
 from subprocess import Popen, PIPE, STDOUT
 def get_status_output(cmd, input=None, cwd=None, env=None):

@@ -2,7 +2,7 @@
 output messages. These may be redirected by the user of UFL."""
 
 __author__ = "Martin Sandve Alnaes and Anders Logg"
-__date__ = "2005-02-04 -- 2009-03-19"
+__date__ = "2005-02-04 -- 2009-03-27"
 __copyright__ = "Copyright (C) 2005-2009 Anders Logg and Martin Sandve Alnaes"
 __license__  = "GNU GPL version 3 or any later version"
 
@@ -12,7 +12,7 @@ import logging
 
 log_functions = ["debug", "info", "warning", "error", "begin", "end",
                  "set_level", "push_level", "pop_level", "set_indent", "add_indent",
-                 "set_handler", "get_handler", "get_logger"]
+                 "set_handler", "get_handler", "get_logger", "add_logfile"]
 
 __all__ = log_functions + ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL", "Logger", "log_functions"]
 
@@ -36,20 +36,44 @@ class Logger:
 
     def __init__(self, name):
         "Create logger instance."
+        self._name = name
 
-        # Set up logger and handler
-        self._log = logging.getLogger(name)        
-        self._handler = logging.StreamHandler(sys.stdout)        
-        self._log.addHandler(self._handler)
+        # Set up handler
+        h = logging.StreamHandler(sys.stdout)        
+        h.setLevel(WARNING)
+        # Override emit() in handler for indentation
+        h.emit = types.MethodType(emit, h, h.__class__)
+        self._handler = h
+
+        # Set up logger
+        self._log = logging.getLogger(name)
+        assert len(self._log.handlers) == 0
+        self._log.addHandler(h)
+        self._log.setLevel(DEBUG)
+
+        self._logfiles = {}
 
         # Set initial indentation level
         self._indent_level = 0
         
         # Setup stack with default logging level
-        self._level_stack = [WARNING]
+        self._level_stack = [DEBUG]
 
-        # Override emit() in handler
-        self._handler.emit = types.MethodType(emit, self._handler, self._handler.__class__)
+    def add_logfile(self, filename=None, mode="a"):
+        if filename is None:
+            filename = "%s.log" % self._name
+        if filename in self._logfiles:
+            self.warning("Trying to add logfile %s multiple times." % filename)
+            return
+        h = logging.FileHandler(filename, mode)
+        h.emit = types.MethodType(emit, h, h.__class__)
+        h.setLevel(DEBUG)
+        self._log.addHandler(h)
+        self._logfiles[filename] = h
+        return h
+    
+    def get_logfile_handler(self, filename):
+        return self._logfiles[filename]
 
     def debug(self, *message):
         "Write debug message."
@@ -96,8 +120,9 @@ class Logger:
 
     def set_level(self, level):
         "Set log level."
+        self._level_stack[-1] = level
         self._log.setLevel(level)
-        
+    
     def set_indent(self, level):
         "Set indentation level."
         self._indent_level = level
@@ -109,7 +134,7 @@ class Logger:
     def get_handler(self):
         "Get handler for logging."
         return self._handler
-
+    
     def set_handler(self, handler):
         """Replace handler for logging.
         To add additional handlers instead
@@ -120,6 +145,7 @@ class Logger:
         self._log.removeHandler(self._handler)    
         self._log.addHandler(handler)
         self._handler = handler
+        handler.emit = types.MethodType(emit, self._handler, self._handler.__class__)
 
     def get_logger(self):
         "Return message logger."

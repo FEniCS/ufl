@@ -11,11 +11,6 @@ from ufl.constantvalue import as_ufl
 from ufl.classes import * 
 from ufl.algorithms import * 
 
-# disable log output
-import logging
-logging.basicConfig(level=logging.CRITICAL)
-
-
 def test_object(a, shape, free_indices):
     # Test reproduction via repr string
     r = repr(a)

@@ -5,11 +5,6 @@ from ufl.classes import Sum, Product
 
 from ufl import *
 
-# disable log output
-import logging
-logging.basicConfig(level=logging.CRITICAL)
-
-
 class ElementsTestCase(unittest.TestCase):
 
     def setUp(self):

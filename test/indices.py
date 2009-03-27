@@ -7,13 +7,7 @@ from ufl.indexutils import *
 from ufl.algorithms import * 
 from ufl.classes import IndexSum
 
-# disable log output
-import logging
-logging.basicConfig(level=logging.CRITICAL)
-
-
 # TODO: add more expressions to test as many possible combinations of index notation as feasible...
-
 
 class IndexTestCase(unittest.TestCase):
 

@@ -8,10 +8,6 @@ import unittest
 from ufl import *
 from ufl.algorithms import * 
 
-# disable log output
-import logging
-logging.basicConfig(level=logging.CRITICAL)
-
 class ConditionalsTestCase(unittest.TestCase):
 
     def setUp(self):

@@ -38,7 +38,7 @@ __date__ = "2008-03-14 -- 2009-03-26"
 from ufl.common import product
 
 # Output control
-from ufl.log import get_handler, get_logger, set_handler, set_level, \
+from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile, \
     UFLException, DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 # Types for geometric quantities

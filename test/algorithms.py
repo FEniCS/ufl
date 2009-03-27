@@ -12,10 +12,6 @@ from ufl import *
 from ufl.algorithms import * 
 from ufl.classes import Sum, Product
 
-# disable log output
-import logging
-logging.basicConfig(level=logging.CRITICAL)
-
 # TODO: add more tests, covering all utility algorithms
 
 class AlgorithmsTestCase(unittest.TestCase):

@@ -8,11 +8,6 @@ import unittest
 from ufl import *
 from ufl.constantvalue import Zero, FloatValue, IntValue, as_ufl
 
-# disable log output
-import logging
-logging.basicConfig(level=logging.CRITICAL)
-
-
 class BaseTestCase(unittest.TestCase):
 
     def setUp(self):

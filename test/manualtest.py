@@ -9,10 +9,6 @@ from ufl import *
 from ufl.classes import *
 from ufl.algorithms import * 
 
-# disable log output
-import logging
-logging.basicConfig(level=logging.CRITICAL)
-
 class ManualTestCase(unittest.TestCase):
 
     def setUp(self):
