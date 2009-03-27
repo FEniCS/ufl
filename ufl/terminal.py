@@ -2,11 +2,11 @@
 for all types that are terminal nodes in the expression trees."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-03-19"
+__date__ = "2008-03-14 -- 2008-03-27"
 
 # Modified by Anders Logg, 2008
 
-from ufl.expr import Expr
+from ufl.expr import Expr, WrapperType
 from ufl.common import lstr
 from ufl.log import error, warning
 
@@ -104,7 +104,7 @@ class UtilityType(Terminal):
 
 #--- Non-tensor terminal nodes ---
 
-class Tuple(Expr):
+class Tuple(WrapperType):
     "For internal use, never to be created by users."
     __slots__ = ("_items", "_repr")
     def __init__(self, *items):

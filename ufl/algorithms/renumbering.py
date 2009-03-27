@@ -48,10 +48,9 @@ class IndexRenumberingTransformer(ReuseTransformer):
             self._index_map[c] = i
         return i
 
-    def indexed(self, f):
+    def _indexed(self, f):
         g, fi = f.operands()
-        #if isinstance(g, ComponentTensor):
-        if False:
+        if isinstance(g, ComponentTensor):
             h, gi = g.operands()
             if isinstance(h, Indexed):
                 # FIXME: This doesn't work when having two levels if this structure, something
@@ -94,6 +93,7 @@ class IndexRenumberingTransformer(ReuseTransformer):
                 print "r:"
                 print str(r)
                 return r
+        # Handle like any expr
         g  = self.visit(g)
         fi = self.visit(fi)
         r  = self.reuse_if_possible(f, g, fi)
