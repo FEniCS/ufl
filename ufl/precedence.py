@@ -9,11 +9,12 @@ from ufl.common import product, mergedicts, subdict
 from ufl.expr import Expr
 from ufl.terminal import Terminal
 
-# TODO: Move precedence lists here from ufl2latex
-
 def parstr(child, parent, pre="(", post=")"):
     s = str(child)
-    if not isinstance(child, Terminal): # TODO: Replace by precedence check
+    # We want child to be evaluated fully first,
+    # so if the parent has higher precedence
+    # we wrap in ().
+    #if parent._precedence > child._precedence: # FIXME: Need proper precedence map, and perhaps >=
+    if not isinstance(child, Terminal):
         return pre + s + post
     return s
-

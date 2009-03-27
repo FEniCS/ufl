@@ -45,5 +45,49 @@ for _i, _c in enumerate(all_ufl_classes):
     _c._uflclass = _c
     _c._handlername = _camel2underscore(_c.__name__)
 
+# FIXME: Finish precedence mapping, review this list very carefully!
+def _build_precedences():
+    precedence_list = [] 
+
+    # TODO: Can use base classes here to shorten the list
+
+    precedence_list.append((Sum,))
+    precedence_list.append((IndexSum,))
+    
+    # TODO: What to do with these?
+    precedence_list.append((ListTensor, ComponentTensor))
+    precedence_list.append((Restriction,)) # NegativeRestricted, PositiveRestricted
+    precedence_list.append((Conditional,))
+    precedence_list.append((Condition,)) # LE, GT, GE, NE, EQ, LT
+    
+    precedence_list.append((Div, Grad, Curl, Rot, SpatialDerivative, VariableDerivative,
+                            Determinant, Trace, Cofactor, Inverse, Deviatoric, Skew, Sym))
+    precedence_list.append((Product, Division, Cross, Dot, Outer, Inner))
+    precedence_list.append((Indexed, Transposed, Power))
+    precedence_list.append((Abs, MathFunction,)) # Abs, Sqrt, Exp, Ln, Cos, Sin
+    precedence_list.append((Variable,))
+
+    precedence_list.append((Terminal,)) # terminal_classes
+    
+    k = 0
+    for p in precedence_list:
+        for c in p:
+            c._precedence = k
+        k += 1
+
+def build_precedences():
+    precedence_list = []
+    
+    precedence_list.append((Operator,)) # tuple(nonterminal_classes))
+    precedence_list.append((Terminal,)) # tuple(terminal_classes))
+    
+    k = 0
+    for p in precedence_list:
+        for c in p:
+            c._precedence = k
+        k += 1
+
+build_precedences()
+
 #__all__ = all_ufl_classes
 
