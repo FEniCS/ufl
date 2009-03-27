@@ -7,7 +7,7 @@ from ufl.log import warning
 from ufl.assertions import ufl_assert
 from ufl.expr import Expr, WrapperType
 from ufl.constantvalue import as_ufl
-from ufl.indexing import Index, FixedIndex, MultiIndex, indices
+from ufl.indexing import Indexed, Index, FixedIndex, MultiIndex, indices
 
 # --- Classes representing tensors of UFL expressions ---
 
@@ -137,7 +137,7 @@ class ComponentTensor(WrapperType):
             index_values.pop()
         
         return a
-    
+
     def __str__(self):
         return self._str
     
@@ -157,6 +157,12 @@ def as_tensor(expressions, indices = None):
         indices = (indices,)
     if indices == ():
         return expressions
+
+    if isinstance(expressions, Indexed):
+        A, ii = expressions.operands()
+        if indices == ii._indices:
+            return A
+
     return ComponentTensor(expressions, indices)
 
 def as_matrix(expressions, indices = None):

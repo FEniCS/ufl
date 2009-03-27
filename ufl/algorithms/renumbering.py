@@ -48,9 +48,9 @@ class IndexRenumberingTransformer(ReuseTransformer):
             self._index_map[c] = i
         return i
 
-    def _indexed(self, f):
+    def indexed(self, f):
         g, fi = f.operands()
-        if isinstance(g, ComponentTensor):
+        if False:# isinstance(g, ComponentTensor):
             h, gi = g.operands()
             if isinstance(h, Indexed):
                 # FIXME: This doesn't work when having two levels if this structure, something
