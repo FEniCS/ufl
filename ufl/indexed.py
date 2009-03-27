@@ -8,6 +8,7 @@ from ufl.log import error
 from ufl.expr import Expr, WrapperType
 from ufl.indexing import IndexBase, Index, FixedIndex, MultiIndex, as_multi_index
 from ufl.indexutils import unique_indices
+from ufl.precedence import parstr
 
 #--- Indexed expression ---
 
@@ -56,7 +57,7 @@ class Indexed(WrapperType):
         return A.evaluate(x, mapping, component, index_values)
 
     def __str__(self):
-        return "(%s)[%s]" % (self._expression, self._indices)
+        return "%s[%s]" % (parstr(self._expression, self), self._indices)
     
     def __repr__(self):
         return self._repr

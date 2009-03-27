@@ -9,6 +9,7 @@ from ufl.expr import Expr
 from ufl.constantvalue import ConstantValue, Zero
 from ufl.indexing import Index, indices
 from ufl.algebra import AlgebraOperator
+from ufl.precedence import parstr
 
 def merge_indices(a, b):
     ai = a.free_indices()
@@ -84,7 +85,7 @@ class Transposed(CompoundTensorOperator):
         return (s[1], s[0])
     
     def __str__(self):
-        return "(%s)^T" % self._A
+        return "%s^T" % parstr(self._A, self)
     
     def __repr__(self):
         return "Transposed(%r)" % self._A
@@ -117,8 +118,7 @@ class Outer(CompoundTensorOperator):
         return self._a.shape() + self._b.shape()
     
     def __str__(self):
-        return "(%s) (X) (%s)" % (self._a, self._b)
-        #return "%s (X) %s" % (pstr(self._a, self), pstr(self._b, self))
+        return "%s (X) %s" % (parstr(self._a, self), parstr(self._b, self))
     
     def __repr__(self):
         return "Outer(%r, %r)" % (self._a, self._b)
@@ -154,8 +154,7 @@ class Inner(CompoundTensorOperator):
         return ()
     
     def __str__(self):
-        return "(%s) : (%s)" % (self._a, self._b)
-        #return "%s : %s" % (pstr(self._a, self), pstr(self._b, self))
+        return "%s : %s" % (parstr(self._a, self), parstr(self._b, self))
     
     def __repr__(self):
         return "Inner(%r, %r)" % (self._a, self._b)
@@ -194,8 +193,7 @@ class Dot(CompoundTensorOperator):
         return self._a.shape()[:-1] + self._b.shape()[1:]
 
     def __str__(self):
-        return "(%s) . (%s)" % (self._a, self._b)
-        #return "%s . %s" % (pstr(self._a, self), pstr(self._b, self))
+        return "%s . %s" % (parstr(self._a, self), parstr(self._b, self))
     
     def __repr__(self):
         return "Dot(%r, %r)" % (self._a, self._b)
@@ -235,8 +233,7 @@ class Cross(CompoundTensorOperator):
         return (3,)
 
     def __str__(self):
-        return "(%s) x (%s)" % (self._a, self._b)
-        #return "%s x %s" % (pstr(self._a, self), pstr(self._b, self))
+        return "%s x %s" % (parstr(self._a, self), parstr(self._b, self))
     
     def __repr__(self):
         return "Cross(%r, %r)" % (self._a, self._b)
@@ -336,7 +333,7 @@ class Inverse(CompoundTensorOperator): # TODO: Drop Inverse and represent it as 
         return self._A.shape()
     
     def __str__(self):
-        return "(%s)^-1" % self._A
+        return "%s^-1" % parstr(self._A, self)
     
     def __repr__(self):
         return "Inverse(%r)" % self._A

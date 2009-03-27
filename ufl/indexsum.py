@@ -6,6 +6,7 @@ __date__ = "2009-01-28 -- 2009-02-23"
 from ufl.log import error
 from ufl.expr import Expr, AlgebraOperator
 from ufl.indexing import Index, MultiIndex, as_multi_index
+from ufl.precedence import parstr
 
 #--- Sum over an index ---
 
@@ -56,7 +57,7 @@ class IndexSum(AlgebraOperator):
         return tmp
 
     def __str__(self):
-        return "sum_{%s}< %s >" % (str(self._index), str(self._summand))
+        return "sum_{%s} %s " % (str(self._index), parstr(self._summand, self))
     
     def __repr__(self):
         return self._repr

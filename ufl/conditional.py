@@ -7,6 +7,7 @@ from ufl.log import warning, error
 from ufl.assertions import ufl_assert
 from ufl.expr import Operator
 from ufl.constantvalue import as_ufl 
+from ufl.precedence import parstr
 
 #--- Condition classes --- 
 
@@ -40,7 +41,7 @@ class Condition(Operator):
         error("Calling shape on Condition is an error.")
     
     def __str__(self):
-        return "(%s) %s (%s)" % (self._left, self._name, self._right)
+        return "%s %s %s" % (parstr(self._left, self), self._name, parstr(self._right, self))
 
     def __repr__(self):
         return self._repr
@@ -141,7 +142,7 @@ class Conditional(Operator):
         return a.evaluate(x, mapping, component, index_values)
 
     def __str__(self):
-        return "(%s) ? (%s) : (%s)" % self.operands()
+        return "%s ? %s : %s" % tuple(parstr(o, self) for o in self.operands())
     
     def __repr__(self):
         return self._repr

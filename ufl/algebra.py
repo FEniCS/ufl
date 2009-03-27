@@ -1,7 +1,7 @@
 "Basic algebra operations."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2009-02-20"
+__date__ = "2008-05-20 -- 2009-03-27"
 
 # Modified by Anders Logg, 2008
 
@@ -12,10 +12,12 @@ from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.common import product, mergedicts, subdict
 from ufl.expr import Expr, AlgebraOperator
+from ufl.terminal import Terminal
 from ufl.constantvalue import Zero, ScalarValue, FloatValue, IntValue, is_ufl_scalar, is_true_ufl_scalar, is_python_scalar, as_ufl
 from ufl.indexing import IndexBase, Index, FixedIndex
 from ufl.indexutils import unique_indices
 from ufl.sorting import cmp_expr
+from ufl.precedence import parstr
 
 #--- Algebraic operators ---
 
@@ -119,7 +121,7 @@ class Sum(AlgebraOperator):
         return sum(o.evaluate(x, mapping, component, index_values) for o in self.operands())
     
     def __str__(self):
-        return "(%s)" % " + ".join(str(o) for o in self._operands)
+        return "%s" % " + ".join(parstr(o, self) for o in self._operands)
     
     def __repr__(self):
         return self._repr
@@ -250,7 +252,7 @@ class Product(AlgebraOperator):
         return tmp
     
     def __str__(self):
-        return "(%s)" % " * ".join(str(o) for o in self._operands)
+        return "%s" % " * ".join(parstr(o, self) for o in self._operands)
     
     def __repr__(self):
         return self._repr
@@ -313,7 +315,7 @@ class Division(AlgebraOperator):
         return float(a) / float(b)
     
     def __str__(self):
-        return "(%s / %s)" % (str(self._a), str(self._b))
+        return "%s / %s" % (parstr(self._a, self), parstr(self._b, self))
     
     def __repr__(self):
         return self._repr
@@ -370,7 +372,7 @@ class Power(AlgebraOperator):
         return a**b
     
     def __str__(self):
-        return "(%s ** %s)" % (str(self._a), str(self._b))
+        return "%s ** %s" % (parstr(self._a, self), parstr(self._b, self))
     
     def __repr__(self):
         return self._repr
@@ -402,7 +404,7 @@ class Abs(AlgebraOperator):
         return abs(a)
     
     def __str__(self):
-        return "| %s |" % str(self._a)
+        return "| %s |" % parstr(self._a, self)
     
     def __repr__(self):
         return self._repr

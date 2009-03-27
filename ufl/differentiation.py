@@ -151,8 +151,7 @@ class SpatialDerivative(Derivative):
         return result
     
     def __str__(self):
-        # TODO: Pretty-print for higher order derivatives.
-        return "(d[%s] / dx_%s)" % (self._expression, self._index)
+        return "d[%s] / d[x_%s]" % (self._expression, self._index)
     
     def __repr__(self):
         return self._repr
@@ -205,7 +204,7 @@ class VariableDerivative(Derivative):
         return self._shape
     
     def __str__(self):
-        return "(d[%s] / d[%s])" % (self._f, self._v)
+        return "d[%s] / d[%s]" % (self._f, self._v)
 
     def __repr__(self):
         return self._repr

@@ -115,7 +115,7 @@ class Form(object):
     
     def __str__(self):
         if self._str is None:
-            self._str = "  +  ".join(str(itg) for itg in self._integrals) 
+            self._str = "\n  +  ".join(str(itg) for itg in self._integrals) 
         return self._str
     
     def __repr__(self):

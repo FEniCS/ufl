@@ -5,6 +5,7 @@ __date__ = "2008-06-08 -- 2009-02-13"
 
 from ufl.log import error
 from ufl.expr import Operator
+from ufl.precedence import parstr
 
 #--- Restriction operators ---
 
@@ -33,7 +34,7 @@ class Restricted(Operator):
         return a
     
     def __str__(self):
-        return "(%s)('%s')" % (self._f, self._side)
+        return "%s('%s')" % (parstr(self._f, self), self._side)
 
 class PositiveRestricted(Restricted):
     def __init__(self, f):

@@ -55,15 +55,43 @@ class IndexRenumberingTransformer(ReuseTransformer):
             if isinstance(h, Indexed):
                 # FIXME: This doesn't work when having two levels if this structure, something
                 #        like Indexed(ComponentTensor(Indexed(ComponentTensor(Indexed(...)))))
+                print "=:"*40
+                print "f:"
+                print str(f)
+                print "fi:"
+                print str(fi)
+                print 
+                print "g:"
+                print str(g)
+                print "gi:"
+                print str(gi)
+                print 
                 A, hi = h.operands()
+                print "h:"
+                print str(h)
+                print "hi:"
+                print str(hi)
+                print 
+                print "A before:"
+                print str(A)
                 A = self.visit(A)
+                print "A after:"
+                print str(A)
                 m = dict((i,j) for (i,j) in zip(gi,fi))
+                print "m:"
+                print str(m)
                 #Ai = tuple(self.index(m.get(i,i)) for i in hi)
                 Ai = tuple(m.get(i,i) for i in hi)
+                print "Ai before:"
+                print str(Ai)
                 Ai = tuple(self.index(i) for i in Ai)
+                print "Ai after:"
+                print str(Ai)
                 # Note that Ai may contain repeated indices, so don't use []!
                 # TODO: If A is a ListTensor, and Ai has fixed indices, try to extract subtensor.
                 r = Indexed(A, Ai)
+                print "r:"
+                print str(r)
                 return r
         g  = self.visit(g)
         fi = self.visit(fi)
