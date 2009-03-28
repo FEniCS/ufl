@@ -1,10 +1,9 @@
 #!/bin/bash
 CMD=neato
 CMD=twopi
-
+CMD=fdp
 CMD=circo
 CMD=dot
-CMD=fdp
 
 ./rendertrees.py -pExpr -s0 -m1          | $CMD -Tpdf -o figures/exprsub.pdf
 ./rendertrees.py -pTerminal -s0 -m1      | $CMD -Tpdf -o figures/terminalsub.pdf

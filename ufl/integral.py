@@ -117,6 +117,10 @@ class Integral(object):
         ufl_assert(is_python_scalar(scalar), "Cannot multiply an integral with non-constant values.")
         return self.reconstruct(scalar*self._integrand)
     
+    def __rmul__(self, scalar):
+        ufl_assert(is_python_scalar(scalar), "Cannot multiply an integral with non-constant values.")
+        return self.reconstruct(scalar*self._integrand)
+    
     def __str__(self):
         return "{ %s } * %s" % (self._integrand, self._measure)
     
