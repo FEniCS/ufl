@@ -99,7 +99,7 @@ class IndexRenumberingTransformer(ReuseTransformer):
         r  = self.reuse_if_possible(f, g, fi)
         return r
 
-    def index_sum(self, o, *ops):
+    def _index_sum(self, o, *ops):
         r = self.reuse_if_possible(o, *ops)
         print "=== In index_sum, transformed"
         print "      ", str(o)
