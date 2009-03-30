@@ -16,14 +16,12 @@ f = p*dx
 F = derivative(f, u, v)
 J = derivative(F, u)
 
+forms = [f, F, J]
 
-from ufl.algorithms import expand_derivatives
-
-a = J
-f, F, J = [None]*3
-
-print "------"
-print a
-print str(expand_derivatives(a))
-print repr(expand_derivatives(a))
-print "------"
+#from ufl.algorithms import expand_derivatives
+#a = J
+#print "------"
+#print a
+#print str(expand_derivatives(a))
+#print repr(expand_derivatives(a))
+#print "------"

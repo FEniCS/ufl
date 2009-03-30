@@ -3,12 +3,14 @@
 from __future__ import with_statement
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-03-05"
+__date__ = "2008-03-14 -- 2009-03-30"
 
 import os
 import time
 from ufl.log import error, info
-from ufl.form import Form
+from ufl.assertions import ufl_assert
+from ufl.form import Form, as_form
+from ufl.finiteelement import FiniteElementBase
 from ufl.function import Function
 from ufl.basisfunction import BasisFunction
 from ufl.algorithms.formdata import FormData
@@ -49,37 +51,67 @@ def load_forms(filename):
         error("Aborting load_forms.")
 
     # Extract Form objects, and Function objects to get their names
-    forms = []
-    form_names = []
+    all_forms = []
+    form_names = {}
     function_names = {}
     basis_function_names = {}
     for name, value in namespace.iteritems():
-        if isinstance(value, Form):
-            forms.append(value)
-            form_names.append(name)
+        if isinstance(value, (Form, tuple)):
+            all_forms.append(value)
+            form_names[value] = name
         elif isinstance(value, Function):
             function_names[value] = name
         elif isinstance(value, BasisFunction):
             basis_function_names[value] = name
 
-    # Analyse validity of forms
-    for k, v in zip(form_names, forms):
-        validate_form(v)
-        #errors = validate_form(v) # TODO: validate_form raises exception, it doesn't return errors
-        #if errors:
-        #    error("Found errors in form '%s':\n%s" % (k, errors))
+    # Get list of forms
+    forms = namespace.get("forms")
+    if forms is None:
+        forms = [namespace.get(name) for name in ("a", "L", "M")]
+        forms = [a for a in forms if not a is None]
+    # Convert tuple type forms to Form instances
+    ufl_assert(isinstance(forms, (list, tuple)), "Expecting 'forms' to be a list or tuple, not '%s'." % type(forms))
+    ufl_assert(all(isinstance(a, (Form,tuple)) for a in forms), "Expecting 'forms' to be a list of Form instances.")
+    forms = [as_form(form) for form in forms]
+    ufl_assert(all(isinstance(a, Form) for a in forms), "Expecting 'forms' to be a list of Form instances.")
 
-    # Construct FormData for each object
+    # Get list of elements
+    elements = namespace.get("elements")
+    if elements is None:
+        elements = [namespace.get(name) for name in ("element",)]
+        elements = [e for e in elements if not e is None]
+    ufl_assert(isinstance(elements,  (list, tuple)), "Expecting 'elements' to be a list or tuple, not '%s'." % type(elements))
+    ufl_assert(all(isinstance(e, FiniteElementBase) for e in elements), "Expecting 'elements' to be a list of FiniteElementBase instances.")
+
+    # TODO: Get a list of functions as well?
+    # Relevant functions will be extracted from forms
+    functions = namespace.get("functions", [])
+    if functions:
+        warning("List of functions not implemented.")
+    ufl_assert(isinstance(functions, (list, tuple)), "Expecting 'functions' to be a list or tuple, not '%s'." % type(functions))
+    ufl_assert(all(isinstance(e, Function) for e in functions), "Expecting 'functions' to be a list of Function instances.")
+    
+    # Analyse validity of forms
+    for form in forms:
+        validate_form(form)
+        #errors = validate_form(form) # TODO: validate_form raises exception, it doesn't return errors
+        #if errors:
+        #    error("Found errors in form '%s':\n%s" % (form_names[form], errors))
+
+    # Construct FormData for each object and attach names
     formdatas = []
-    for name, form in zip(form_names, forms):
+    for form in forms:
         # Using form_data() ensures FormData is only constructed once
         fd = form.form_data()
-        fd.name = name
+        fd.name = form_names[form]
         for (i, f) in enumerate(fd.original_functions):
             fd.function_names[i] = function_names.get(f, "w%d"%i)
         for (i, f) in enumerate(fd.original_basis_functions):
             fd.basis_function_names[i] = basis_function_names.get(f, "w%d"%i)
         formdatas.append(fd)
 
+    # FIXME: Return elements as well (postphoned since it will break other code)
+    #return elements, forms
+    #return elements, functions, forms
     return forms
 

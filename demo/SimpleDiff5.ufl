@@ -13,19 +13,16 @@ Du = grad(u)
 Du = variable(Du)
 p = exp(Du[0,0]**2)
 S = diff(p, Du)
-F2 = inner(S, grad(v))
+F2 = inner(S, grad(v))*dx
 J2 = derivative(F2, u)
 
+a = J2
+L = F2
 
-from ufl.algorithms import expand_derivatives
-
-a = F2
-del F2
-del J2
-
-print "------"
-print a
-print str(expand_derivatives(a))
-print repr(expand_derivatives(a))
-print "------"
+#from ufl.algorithms import expand_derivatives
+#print "------"
+#print a
+#print str(expand_derivatives(a))
+#print repr(expand_derivatives(a))
+#print "------"
 

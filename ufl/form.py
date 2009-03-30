@@ -1,7 +1,7 @@
 "The Form class."
 
 __authors__ = "Martin Sandve Alnes"
-__date__    = "2008-03-14 -- 2009-03-29"
+__date__    = "2008-03-14 -- 2009-03-30"
 
 # Modified by Anders Logg, 2009.
 
@@ -77,6 +77,8 @@ class Form(object):
         return self.integrals(Measure.INTERIOR_FACET)
     
     def __add__(self, other):
+        
+        other = as_form(other)
         
         # --- Add integrands of integrals with the same measure
         
@@ -197,3 +199,13 @@ def _extract_integrals(objects):
         integrals += form.integrals()
 
     return tuple(integrals)
+
+def as_form(form):
+    if isinstance(form, tuple):
+        form = Form(form)
+    
+    if isinstance(form, Form):
+        return form
+    
+    error("Expecting a Form, not a '%s'" % repr(form))
+

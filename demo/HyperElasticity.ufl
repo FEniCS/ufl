@@ -74,11 +74,17 @@ W = (K/2)*(exp(Q) - 1) # + p stuff
 P = diff(W, F)
 
 # Acceleration term discretized with finite differences
-a = (u - 2*up + upp) / dt
+k = dt/rho
+acc = (u - 2*up + upp)
 
-# Residual equation
-a_F = dot(rho*a, v)*dx + inner(P, grad(v))*dx - dot(J*Finv*T, v)*ds(0) - dot(J*Finv*p0*N, v)*ds(0) # FIXME: Correct these mappings
+# Residual equation # FIXME: Can contain errors, not tested!
+a_F =   (acc, v)*dx \
+      + k*inner(P, grad(v))*dx \
+      - k*dot(J*Finv*T, v)*ds(0) \
+      - k*dot(J*Finv*p0*N, v)*ds(1)
 
 # Jacobi matrix of residual equation
 a_J = derivative(a_F, u, w)
 
+# Export forms
+forms = [a_F, a_J]

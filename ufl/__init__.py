@@ -51,7 +51,7 @@ from ufl.finiteelement import FiniteElementBase, FiniteElement, \
     MixedElement, VectorElement, TensorElement, ElementUnion
 
 # Hook to extend predefined element families
-from ufl.elements import register_element #, ufl_elements
+from ufl.elementlist import register_element #, ufl_elements
 
 # Basis functions
 from ufl.basisfunction import BasisFunction, TestFunction, TrialFunction, \
