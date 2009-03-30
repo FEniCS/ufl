@@ -72,7 +72,14 @@ def load_forms(filename):
     # Convert tuple type forms to Form instances
     ufl_assert(isinstance(forms, (list, tuple)), "Expecting 'forms' to be a list or tuple, not '%s'." % type(forms))
     ufl_assert(all(isinstance(a, (Form,tuple)) for a in forms), "Expecting 'forms' to be a list of Form instances.")
-    forms = [as_form(form) for form in forms]
+    newforms = []
+    for form in forms:
+        if not isinstance(form, Form):
+            name = form_names[form]
+            form = as_form(form)
+            form_names[form] = name
+        newforms.append(form) 
+    forms = newforms
     ufl_assert(all(isinstance(a, Form) for a in forms), "Expecting 'forms' to be a list of Form instances.")
 
     # Get list of elements
