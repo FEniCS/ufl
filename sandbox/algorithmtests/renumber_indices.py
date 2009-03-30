@@ -12,6 +12,7 @@ I = Identity(2)
 def printit(a, tree=False):
     print "-"*80
     print 
+    print "a ="
     print str(a)
     if isinstance(a, str):
         return
@@ -21,6 +22,7 @@ def printit(a, tree=False):
 
     a = renumber_indices(a)
     print 
+    print "renumbered a ="
     print str(a)
     if tree:
         print 
@@ -28,6 +30,7 @@ def printit(a, tree=False):
 
     a = expand_indices(a)
     print 
+    print "expanded a ="
     print str(a)
     if tree:
         print 
@@ -50,8 +53,11 @@ if __name__ == "__main__":
         # partial mapping
         as_tensor(A[i,0], i)[1] ,
         as_tensor(A[1,i], i)[2] ,
-        "failure...",
-        as_tensor(A[j,:][i], (j, i))[k,l]*I[k,l]
+        # double layers
+        as_tensor(A[j,:][i], (j, i))[k,l]*I[k,l],
+        # double index meaning
+        (v[i]*v[i]) * (v[i]*v[i]),
+        (v[i]*v[i]) * (2*v[i]*v[i]),
         ]
     
     for a in tests:

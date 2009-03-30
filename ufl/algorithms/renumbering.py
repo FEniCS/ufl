@@ -1,32 +1,35 @@
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __date__ = "2009-02-22 -- 2009-03-26"
 
-from ufl.common import Counted
+from ufl.common import Counted, Stack, StackDict
 from ufl.log import error
 from ufl.expr import Expr
 from ufl.indexing import Index, FixedIndex, MultiIndex, Indexed
-from ufl.tensors import ComponentTensor
+from ufl.tensors import ComponentTensor, ListTensor
 from ufl.basisfunction import BasisFunction
 from ufl.variable import Label, Variable
 from ufl.algorithms.transformations import ReuseTransformer, apply_transformer
 
-class IndexRenumberingTransformer(ReuseTransformer):
-
+class VariableRenumberingTransformer(ReuseTransformer):
     def __init__(self):
         ReuseTransformer.__init__(self)
-        self._index_map = {}
-        self._variable_map = {}
+        self.variable_map = {}
 
     def variable(self, o):
         e, l = o.operands()
-        c = l.count()
-        v = self._variable_map.get(c)
+        v = self.variable_map.get(l)
         if v is None:
             e = self.visit(e)
-            l = Label(len(self._variable_map))
-            v = Variable(e, l)
-            self._variable_map[c] = v
+            l2 = Label(len(self.variable_map))
+            v = Variable(e, l2)
+            self.variable_map[l] = v
         return v
+
+class IndexRenumberingTransformer(VariableRenumberingTransformer):
+
+    def __init__(self):
+        VariableRenumberingTransformer.__init__(self)
+        self.index_map = {}
 
     def index_annotated(self, o):
         new_indices = tuple(map(self.index, o.free_indices()))
@@ -42,94 +45,211 @@ class IndexRenumberingTransformer(ReuseTransformer):
         if isinstance(o, FixedIndex):
             return o
         c = o._count
-        i = self._index_map.get(c)
+        i = self.index_map.get(c)
         if i is None:
-            i = Index(len(self._index_map))
-            self._index_map[c] = i
+            i = Index(len(self.index_map))
+            self.index_map[c] = i
         return i
 
-    def _indexed(self, f):
-        g, fi = f.operands()
-        if isinstance(g, ComponentTensor):
-            h, gi = g.operands()
-            if isinstance(h, Indexed):
-                # FIXME: This doesn't work when having two levels if this structure, something
-                #        like Indexed(ComponentTensor(Indexed(ComponentTensor(Indexed(...)))))
-                print "=:"*40
-                print "f:"
-                print str(f)
-                print "fi:"
-                print str(fi)
-                print 
-                print "g:"
-                print str(g)
-                print "gi:"
-                print str(gi)
-                print 
-                A, hi = h.operands()
-                print "h:"
-                print str(h)
-                print "hi:"
-                print str(hi)
-                print 
-                print "A before:"
-                print str(A)
-                A = self.visit(A)
-                print "A after:"
-                print str(A)
-                m = dict((i,j) for (i,j) in zip(gi,fi))
-                print "m:"
-                print str(m)
-                #Ai = tuple(self.index(m.get(i,i)) for i in hi)
-                Ai = tuple(m.get(i,i) for i in hi)
-                print "Ai before:"
-                print str(Ai)
-                Ai = tuple(self.index(i) for i in Ai)
-                print "Ai after:"
-                print str(Ai)
-                # Note that Ai may contain repeated indices, so don't use []!
-                # TODO: If A is a ListTensor, and Ai has fixed indices, try to extract subtensor.
-                r = Indexed(A, Ai)
-                print "r:"
-                print str(r)
-                return r
-        # Handle like any expr
-        g  = self.visit(g)
-        fi = self.visit(fi)
-        r  = self.reuse_if_possible(f, g, fi)
+# TODO: Concepts in this implementation can handle unique 
+#       renumbering of indices used multiple places, like
+#           (v[i]*v[i] + u[i]*u[i]) -> (v[i]*v[i] + u[j]*u[j])
+#       which could be a useful invariant some other places.
+#       However, there are bugs here.
+class IndexRenumberingTransformer2(VariableRenumberingTransformer):
+
+    def __init__(self):
+        VariableRenumberingTransformer.__init__(self)
+
+        # The number of indices labeled up to now
+        self.index_counter = 0
+
+        # A stack of dicts holding an "old Index" -> "new Index"
+        # mapping, with "old Index" -> None meaning undefined in
+        # the current scope. Indices get defined and numbered
+        # in 
+        self.index_map = StackDict()
+
+        # Current component, a tuple of FixedIndex and Index
+        # objects, which are in the new numbering.
+        self.components = Stack()
+        self.components.push(())
+
+    def new_index(self):
+        "Create a new index using our contiguous numbering."
+        i = Index(self.index_counter)
+        self.index_counter += 1
+        #print "::: Making new index", repr(i)
+        return i
+
+    def define_new_indices(self, ii):
+        #self.define_indices(ii, [self.new_index() for i in ii])
+        ni = []
+        for i in ii:
+            v = self.new_index()
+            ni.append(v)
+            #print "::: Defining new index", repr(i), "= ", repr(v)
+            if self.index_map.get(i) is not None:
+                print ";"*80
+                print i
+                self.print_visit_stack()
+                error("Trying to define already defined index!")
+            self.index_map.push(i, v)
+        return tuple(ni)
+
+    def define_indices(self, ii, values):
+        for i, v in zip(ii, values):
+            #print "::: Defining index", repr(i), "= ", repr(v)
+            if v is None:
+                if self.index_map.get(i) is None:
+                    print ";"*80
+                    print i
+                    self.print_visit_stack()
+                    error("Trying to undefine index that isn't defined!")
+            else:
+                if self.index_map.get(i) is not None:
+                    print ";"*80
+                    print i
+                    self.print_visit_stack()
+                    error("Trying to define already defined index!")
+            self.index_map.push(i, v)
+
+    def revert_indices(self, ii):
+        for i in ii:
+            j = self.index_map.pop()
+            #print "::: Reverting index", repr(i), "(j =", repr(j), ")"
+
+    #    as_tensor(
+    #                 u[i,j]
+    #              *  v[i]
+    #             , j )
+    #             [i]
+    # *  (
+    #       u[i,j]
+    #     * (v + w)[j])
+
+    def index(self, o):
+        if isinstance(o, FixedIndex):
+            return o
+        i = self.index_map.get(o)
+        if i is None:
+            print ";"*80
+            print o
+            self.print_visit_stack()
+            error("Index %s isn't defined!" % repr(o))
+        return i
+
+    def multi_index(self, o):
+        new_indices = tuple(map(self.index, o._indices))
+        return MultiIndex(new_indices)
+
+    def index_annotated(self, o):
+        new_indices = tuple(map(self.index, o.free_indices()))
+        return o.reconstruct(new_indices)
+    zero = index_annotated
+    scalar_value = index_annotated
+
+    def expr(self, o, *ops):
+        r = self.reuse_if_possible(o, *ops)
+        c = self.components.peek()
+        if c:
+            #if isinstance(r, ListTensor):
+            #    pass # TODO: If c has FixedIndex objects, extract subtensor, or evt. move this functionality from ListTensor.__getitem__ to Indexed.__new__
+            # Take component
+            r = Indexed(r, c)
         return r
 
-    def _index_sum(self, o, *ops):
-        r = self.reuse_if_possible(o, *ops)
-        print "=== In index_sum, transformed"
-        print "      ", str(o)
-        print "  to ", str(r)
-        print
-        print "operands were:"
-        print "\n".join("  " + str(o) for o in o.operands())
-        print "operands are now:"
-        print "\n".join("  " + str(o) for o in ops)
-        print
-        return r
-
-    def _component_tensor(self, o, *ops):
-        r = self.reuse_if_possible(o, *ops)
-        print "=== In component_tensor, transformed"
-        print "      ", str(o)
-        print "  to ", str(r)
-        print
+    def terminal(self, o):
+        r = o
+        c = self.components.peek()
+        if c:
+            r = Indexed(r, c)
         return r
 
     def _spatial_derivative(self, o, *ops):
         r = self.reuse_if_possible(o, *ops)
-        print "=== In spatial_derivative, transformed"
-        print "      ", str(o)
-        print "  to ", str(r)
-        print
         return r
 
-def renumber_indices(expr):
+    def _sum(self, o, *ops):
+        r = self.reuse_if_possible(o, *ops)
+        return r
+
+    def indexed(self, f):
+        """Binds indices to component, ending their scope as free indices.
+        If indices with the same count occur later in a subexpression,
+        they represent new indices in a different scope."""
+
+        # Get expression and indices
+        g, ii = f.operands()
+
+        # Get values of indices
+        c = self.multi_index(ii)
+
+        # Define indices as missing
+        jj = [i for i in ii if isinstance(i, Index)]
+        jj = tuple(jj)
+        #print "::: NOT defining indices as None:", jj
+        #self.define_indices(jj, (None,)*len(jj))
+
+        # Push new component
+        self.components.push(c)
+
+        # Evaluate expression
+        r = self.visit(g)
+
+        # Pop component
+        self.components.pop()
+
+        # Revert indices to previous state
+        #self.revert_indices(jj)
+
+        return r
+
+    def index_sum(self, o):
+        "Defines a new index."
+        f, ii = o.operands()
+        ni = self.define_new_indices(ii)
+        g = self.visit(f)
+        r = o._uflclass(g, ni)
+        self.revert_indices(ii)
+        return r
+
+    def component_tensor(self, o):
+        """Maps component to indices."""
+        f, ii = o.operands()
+
+        # Read component and push new one
+        c = self.components.peek()
+        self.components.push(())
+
+        # Map component to indices
+        self.define_indices(ii, c)
+
+        # Evaluate!
+        r = self.visit(f)
+
+        # Pop component to revert to the old
+        self.components.pop()
+
+        # Revert index definitions
+        self.revert_indices(ii)
+
+        return r
+
+def renumber_indices1(expr):
     if isinstance(expr, Expr) and expr.free_indices():
         error("Not expecting any free indices left in expression.")
     return apply_transformer(expr, IndexRenumberingTransformer())
+
+def renumber_indices2(expr):
+    if isinstance(expr, Expr) and expr.free_indices():
+        error("Not expecting any free indices left in expression.")
+    return apply_transformer(expr, IndexRenumberingTransformer2())
+
+renumber_indices = renumber_indices1
+
+def renumber_variables(expr):
+    if isinstance(expr, Expr) and expr.free_indices():
+        error("Not expecting any free indices left in expression.")
+    return apply_transformer(expr, VariableRenumberingTransformer())
 
