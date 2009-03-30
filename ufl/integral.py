@@ -59,6 +59,16 @@ class Measure(object):
         error("Can't multiply Measure from the right (with %r)." % (other,))
     
     def __rmul__(self, integrand):
+        if isinstance(integrand, tuple):
+            from ufl.expr import Expr
+            from ufl import inner
+            # Experimental syntax like a = (u,v)*dx + (f,v)*ds
+            ufl_assert(len(integrand) == 2 \
+                and isinstance(integrand[0], Expr) \
+                and isinstance(integrand[1], Expr),
+                "Invalid integrand %s." % repr(integrand))
+            integrand = inner(integrand[0], integrand[1])
+        
         ufl_assert(is_true_ufl_scalar(integrand),   
             "Trying to integrate expression of rank %d with free indices %r." \
             % (integrand.rank(), integrand.free_indices()))

@@ -26,12 +26,12 @@ def load_forms(filename):
         filename = filename + ".ufl"
     if not os.path.exists(filename):
         error("File '%s' doesn't exist." % filename)
-    
+
     # Read form file and prepend import
     with open(filename) as f:
         fcode = f.read()
         code = "from ufl import *\n" + fcode
-    
+
     # Execute code
     namespace = {}
     try:
@@ -47,7 +47,7 @@ def load_forms(filename):
         info(infostring % pyname)
         m = __import__(basename)
         error("Aborting load_forms.")
-    
+
     # Extract Form objects, and Function objects to get their names
     forms = []
     form_names = []
@@ -61,14 +61,14 @@ def load_forms(filename):
             function_names[value] = name
         elif isinstance(value, BasisFunction):
             basis_function_names[value] = name
-    
+
     # Analyse validity of forms
     for k, v in zip(form_names, forms):
         validate_form(v)
         #errors = validate_form(v) # TODO: validate_form raises exception, it doesn't return errors
         #if errors:
         #    error("Found errors in form '%s':\n%s" % (k, errors))
-    
+
     # Construct FormData for each object
     formdatas = []
     for name, form in zip(form_names, forms):
@@ -80,6 +80,6 @@ def load_forms(filename):
         for (i, f) in enumerate(fd.original_basis_functions):
             fd.basis_function_names[i] = basis_function_names.get(f, "w%d"%i)
         formdatas.append(fd)
-    
+
     return forms
 
