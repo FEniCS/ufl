@@ -1,0 +1,16 @@
+#
+# Author: Martin Sandve Alnes
+# Date: 2009-03-31
+#
+
+element = FiniteElement("Lagrange", triangle, 1)
+
+v = TestFunction(element)
+u = TrialFunction(element)
+f = Function(element)
+g = Function(element)
+h = Function(element)
+
+a = (u,v)*dx(0) + (grad(u), grad(v))*dx(1) - (f,v)*dx(0) - (g, v)*ds(0) + (h-u, v)*ds(1)
+a, L = lhs(a), rhs(a)
+
