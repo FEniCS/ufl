@@ -3,14 +3,14 @@
 from __future__ import with_statement
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-03-30"
+__date__ = "2008-03-14 -- 2009-03-31"
 
 import os
 import time
 
 from ufl.log import error, info
 from ufl.assertions import ufl_assert
-from ufl.form import Form, as_form
+from ufl.form import Form
 from ufl.finiteelement import FiniteElementBase
 from ufl.function import Function
 from ufl.basisfunction import BasisFunction
@@ -73,21 +73,8 @@ def load_forms(filename):
     # Convert tuple type forms to Form instances
     ufl_assert(isinstance(forms, (list, tuple)),
         "Expecting 'forms' to be a list or tuple, not '%s'." % type(forms))
-    newforms = []
-    for form in forms:
-        if not isinstance(form, Form):
-            name = form_names[id(form)]
-            form = as_form(form)
-            form_names[id(form)] = name
-        newforms.append(form) 
-    forms = newforms
     ufl_assert(all(isinstance(a, Form) for a in forms),
         "Expecting 'forms' to be a list of Form instances.")
-    
-    for f in forms:
-        print ":"*80
-        print form_names[id(f)]
-        print str(f)
     
     # Get list of elements
     elements = namespace.get("elements")

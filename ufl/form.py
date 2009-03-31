@@ -1,7 +1,7 @@
 "The Form class."
 
 __authors__ = "Martin Sandve Alnes"
-__date__    = "2008-03-14 -- 2009-03-30"
+__date__    = "2008-03-14 -- 2009-03-31"
 
 # Modified by Anders Logg, 2009.
 
@@ -19,8 +19,8 @@ class Form(object):
     __slots__ = ("_integrals", "_repr", "_hash", "_str", "_form_data")
 
     def __init__(self, integrals):
-        #self._integrals = tuple(integrals)
-        self._integrals = _extract_integrals(integrals)
+        self._integrals = tuple(integrals)
+        ufl_assert(all(isinstance(itg, Integral) for itg in integrals), "Expecting list of integrals.")
         self._str = None
         self._repr = None
         self._hash = None
@@ -77,9 +77,6 @@ class Form(object):
         return self.integrals(Measure.INTERIOR_FACET)
     
     def __add__(self, other):
-        
-        other = as_form(other)
-        
         # --- Add integrands of integrals with the same measure
         
         # Start with integrals in self
@@ -144,68 +141,4 @@ class Form(object):
     
     def signature(self):
         return "%s" % (repr(self), )
-
-def _extract_integrals(objects):
-    "Extract integrals from single integral of tuple of integrals."
-
-    # Make sure we get a list or tuple
-    if not isinstance(objects, (list, tuple)):
-        objects = [objects]
-
-    # Operands and default measure
-    v = w = None
-    dx = Measure(Measure.CELL, 0)
-
-    # Iterate over objects and extract integrals
-    integrals = []
-    for object in objects:
-
-        # Found plain integral, just append
-        if isinstance(object, Integral):
-            integrals.append(object)
-
-        # Found measure, append inner(v, w)*dm
-        elif isinstance(object, Measure):
-            dm = object
-            if v is None or w is None:
-                error("Found measure without matching integrands: " + str(dm))
-            else:
-                form = inner(v, w)*dm
-                integrals += form.integrals()
-                v = w = None
-
-        # Found first operand, store v
-        elif v is None and w is None:
-            v = object
-
-        # Found second operand, store w
-        elif w is None:
-            w = object
-
-        # Found new operand, assume measure is dx
-        elif not v is None and not w is None:
-            form = inner(v, w)*dx
-            integrals += form.integrals()
-            v = object
-            w = None
-
-        # Default case, should not get here
-        else:
-            error("Unable to extract form, expression does not make sense.")
-
-    # Add last inner product if any
-    if not v is None and not w is None:
-        form = inner(v, w)*dx
-        integrals += form.integrals()
-
-    return tuple(integrals)
-
-def as_form(form):
-    if isinstance(form, tuple):
-        form = Form(form)
-    
-    if isinstance(form, Form):
-        return form
-    
-    error("Expecting a Form, not a '%s'" % repr(form))
 
