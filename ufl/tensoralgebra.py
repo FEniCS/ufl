@@ -1,7 +1,7 @@
 """Compound tensor algebra operations."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-02-16"
+__date__ = "2008-03-14 -- 2009-04-02"
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
@@ -56,6 +56,38 @@ def merge_indices(a, b):
 class CompoundTensorOperator(AlgebraOperator):
     def __init__(self):
         AlgebraOperator.__init__(self)
+
+# TODO: Use this and make Sum handle scalars only?
+#       This would simplify some algorithms. The only
+#       problem is we can't use + in many algorithms because 
+#       this type should be expanded by expand_compounds.
+class TensorSum(CompoundTensorOperator):
+    "Sum of nonscalar expressions."
+    pass
+
+# TODO: Use this similarly to TensorSum?
+#       This would simplify some algorithms. The only
+#       problem is we can't use / in many algorithms because 
+#       this type should be expanded by expand_compounds.
+class TensorDivision(CompoundTensorOperator):
+    "Division of nonscalar expression with a scalar expression."
+    pass
+
+# TODO: Use this similarly to TensorSum?
+#       This would simplify some algorithms. The only
+#       problem is we can't use * in many algorithms because 
+#       this type should be expanded by expand_compounds.
+class MatrixProduct(CompoundTensorOperator):
+    "Product of a matrix with a matrix or vector."
+    pass
+
+# TODO: Use this similarly to TensorSum?
+#       This would simplify some algorithms. The only
+#       problem is we can't use abs in many algorithms because 
+#       this type should be expanded by expand_compounds.
+class TensorAbs(CompoundTensorOperator):
+    "Absolute value of nonscalar expression."
+    pass
 
 class Transposed(CompoundTensorOperator):
     __slots__ = ("_A",)
@@ -307,7 +339,8 @@ class Determinant(CompoundTensorOperator):
     def __repr__(self):
         return "Determinant(%r)" % self._A
 
-class Inverse(CompoundTensorOperator): # TODO: Drop Inverse and represent it as product of Determinant and Cofactor?
+# TODO: Drop Inverse and represent it as product of Determinant and Cofactor?
+class Inverse(CompoundTensorOperator):
     __slots__ = ("_A",)
 
     def __init__(self, A):
