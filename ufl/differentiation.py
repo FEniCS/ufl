@@ -1,7 +1,7 @@
 "Differential operators."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-03-25"
+__date__ = "2008-03-14 -- 2009-04-03"
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
@@ -13,7 +13,7 @@ from ufl.indexing import IndexBase, Index, FixedIndex, MultiIndex, Indexed, as_m
 from ufl.indexutils import unique_indices
 from ufl.geometry import FacetNormal
 from ufl.variable import Variable
-from ufl.tensors import as_tensor
+from ufl.tensors import as_tensor, ComponentTensor, ListTensor
 from ufl.function import Function, ConstantBase
 from ufl.basisfunction import BasisFunction
 
@@ -23,12 +23,17 @@ def is_spatially_constant(expression):
     "Check if a terminal object is spatially constant, such that expression.dx(i) == 0."
     if isinstance(expression, (ConstantValue, ConstantBase)):
         return True
-    if isinstance(expression, FacetNormal) and expression.cell().degree() == 1:
+    elif isinstance(expression, FacetNormal) and expression.cell().degree() == 1:
         return True
-    if isinstance(expression, Function):
+    elif isinstance(expression, Function):
         e = expression.element()
-        if e.family() == "Discontinuous Lagrange" and e.degree() == 0:
+        if e.family() == "Discontinuous Lagrange" and e.degree() == 0: # TODO: Only e.degree() == 0?
             return True
+    elif isinstance(expression, ListTensor):
+        return all(is_spatially_constant(e) for e in expression.operands())
+    elif isinstance(expression, (Indexed, ComponentTensor)):
+        return is_spatially_constant(expression.operands()[0])
+    
     return False
 
 class Derivative(Operator):
