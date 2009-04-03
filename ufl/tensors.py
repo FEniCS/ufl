@@ -6,13 +6,24 @@ __date__ = "2008-03-31 -- 2009-02-20"
 from ufl.log import warning
 from ufl.assertions import ufl_assert
 from ufl.expr import Expr, WrapperType
-from ufl.constantvalue import as_ufl
+from ufl.constantvalue import as_ufl, Zero
 from ufl.indexing import Indexed, Index, FixedIndex, MultiIndex, indices
 
 # --- Classes representing tensors of UFL expressions ---
 
 class ListTensor(WrapperType):
     __slots__ = ("_expressions", "_free_indices", "_shape", "_repr")
+    
+    def __new__(cls, *expressions):
+        
+        if all(isinstance(e, Zero) for e in expressions):
+            e = expressions[0]
+            shape = (len(expressions),) + e.shape()
+            fi    = e.free_indices()
+            idim  = e.index_dimensions()
+            return Zero(shape, fi, idim)
+        
+        return WrapperType.__new__(cls)
     
     def __init__(self, *expressions):
         WrapperType.__init__(self)
@@ -82,6 +93,19 @@ class ListTensor(WrapperType):
 
 class ComponentTensor(WrapperType):
     __slots__ = ("_expression", "_indices", "_free_indices", "_index_dimensions", "_shape", "_str", "_repr")
+
+    def __new__(cls, expression, indices):
+        
+        if isinstance(expression, Zero):
+            if not isinstance(indices, MultiIndex): # if constructed from repr
+                indices = MultiIndex(indices)
+            dims = expression.index_dimensions()
+            shape = tuple(dims[i] for i in indices)
+            fi = tuple(set(expression.free_indices()) - set(indices))
+            idim  = dict((i, dims[i]) for i in fi)
+            return Zero(shape, fi, idim)
+        
+        return WrapperType.__new__(cls)
     
     def __init__(self, expression, indices):
         WrapperType.__init__(self)
@@ -99,8 +123,9 @@ class ComponentTensor(WrapperType):
         eset = set(expression.free_indices())
         iset = set(self._indices)
         freeset = eset - iset
-        missingset = iset - eset
         self._free_indices = tuple(freeset)
+
+        missingset = iset - eset
         ufl_assert(len(missingset) == 0, "Missing indices %s in expression %s." % (missingset, expression))
         
         dims = expression.index_dimensions()

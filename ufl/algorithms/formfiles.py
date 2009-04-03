@@ -9,7 +9,7 @@ import os
 import time
 import re
 
-from ufl.log import error, info
+from ufl.log import error, warning, info
 from ufl.assertions import ufl_assert
 from ufl.form import Form
 from ufl.finiteelement import FiniteElementBase
@@ -20,16 +20,26 @@ from ufl.algorithms.checks import validate_form
 
 #--- Utilities to deal with form files ---
 
+class FileData(object):
+    def __init__(self):
+        self.elements  = [] # alternative: {} # { name: FiniteElement }
+        self.functions = [] # alternative: {} # { name: Function      }
+        self.forms     = [] # alternative: {} # { name: Form          }
+
 infostring = """An exception occured during evaluation of form file.
 To help you find the location of the error, a temporary script
 '%s'
 has been created and will now be executed with debug output enabled:"""
 
-def load_forms(filename):
+def load_ufl_file(filename):
+    "Load a .ufl file with elements, functions and forms."
     if not os.path.exists(filename) and filename[-4:] != ".ufl":
         filename = filename + ".ufl"
     if not os.path.exists(filename):
         error("File '%s' doesn't exist." % filename)
+
+    # Object to hold all returned data
+    ufd = FileData()
 
     # Read form file and prepend import
     with open(filename) as f:
@@ -63,9 +73,9 @@ def load_forms(filename):
         code = "#!/usr/bin/env python\nfrom ufl import *\nset_level(DEBUG)\n" + fcode
         with file(pyname, "w") as f:
             f.write(code)
-        info(infostring % pyname)
+        warning(infostring % pyname)
         m = __import__(basename)
-        error("Aborting load_forms.")
+        error("An error occured, aborting load_forms.")
 
     # Extract Form objects, and Function objects to get their names
     all_forms = []
@@ -91,7 +101,8 @@ def load_forms(filename):
         "Expecting 'forms' to be a list or tuple, not '%s'." % type(forms))
     ufl_assert(all(isinstance(a, Form) for a in forms),
         "Expecting 'forms' to be a list of Form instances.")
-    
+    ufd.forms = forms
+
     # Get list of elements
     elements = namespace.get("elements")
     if elements is None:
@@ -101,8 +112,8 @@ def load_forms(filename):
         "Expecting 'elements' to be a list or tuple, not '%s'." % type(elements))
     ufl_assert(all(isinstance(e, FiniteElementBase) for e in elements),
         "Expecting 'elements' to be a list of FiniteElementBase instances.")
+    ufd.elements = elements
 
-    # TODO: Get a list of functions as well?
     # Relevant functions will be extracted from forms
     functions = namespace.get("functions", [])
     if functions:
@@ -111,6 +122,7 @@ def load_forms(filename):
         "Expecting 'functions' to be a list or tuple, not '%s'." % type(functions))
     ufl_assert(all(isinstance(e, Function) for e in functions),
         "Expecting 'functions' to be a list of Function instances.")
+    ufd.functions = functions
 
     # Analyse validity of forms
     for form in forms:
@@ -120,7 +132,6 @@ def load_forms(filename):
         #    error("Found errors in form '%s':\n%s" % (form_names[id(form)], errors))
 
     # Construct FormData for each object and attach names
-    formdatas = []
     for form in forms:
         # Using form_data() ensures FormData is only constructed once
         fd = form.form_data()
@@ -129,10 +140,12 @@ def load_forms(filename):
             fd.function_names[i] = function_names.get(id(f), "w%d"%i)
         for (i, f) in enumerate(fd.original_basis_functions):
             fd.basis_function_names[i] = basis_function_names.get(id(f), "w%d"%i)
-        formdatas.append(fd)
 
-    # FIXME: Return elements as well (postphoned since it will break other code)
-    #return elements, forms
-    #return elements, functions, forms
-    return forms
+    # Return file data
+    return ufd
+
+def load_forms(filename):
+    "Return a list of all forms in a file."
+    ufd = load_ufl_file(filename)
+    return ufd.forms
 

@@ -438,7 +438,7 @@ class VariableAD(ForwardAD):
         ForwardAD.__init__(self, spatial_dim, var_shape=var.shape(), var_free_indices=var.free_indices(), var_index_dimensions=var.index_dimensions())
         self._variable = var
     
-    def variable(self, o): # XXX: This is another example
+    def variable(self, o):
         # Check cache
         e, l = o.operands()
         c = self._variable_cache.get(l)
