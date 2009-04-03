@@ -35,7 +35,7 @@ from ufl.algorithms.transformations import transform, \
 from ufl.algorithms.renumbering import renumber_indices
 
 # Utilities for transforming complete Forms into other Forms
-from ufl.algorithms.formtransformations import compute_form_adjoint, compute_form_action, \
+from ufl.algorithms.formtransformations import compute_form_adjoint, compute_form_action, compute_energy_norm, \
                                                compute_form_lhs, compute_form_rhs, compute_form_functional #, compute_dirichlet_functional
 
 # Utilities for Automatic Functional Differentiation

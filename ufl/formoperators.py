@@ -14,7 +14,7 @@ from ufl.basisfunction import BasisFunction, BasisFunctions
 from ufl.differentiation import FunctionDerivative
 
 # An exception to the rule that ufl.* does not depend on ufl.algorithms.* ...
-from ufl.algorithms import compute_form_adjoint, compute_form_action, \
+from ufl.algorithms import compute_form_adjoint, compute_form_action, compute_energy_norm, \
                            compute_form_lhs, compute_form_rhs, compute_form_functional, expand_derivatives
 
 def lhs(form):
@@ -47,6 +47,14 @@ def action(form, function=None):
     used for matrix-free methods."""
     form = expand_derivatives(form)
     return compute_form_action(form, function)
+
+def energy_norm(form, function=None):
+    """Given a bilinear form, return a linear form
+    with an additional function coefficient, representing
+    the action of the form on the function. This can be
+    used for matrix-free methods."""
+    form = expand_derivatives(form)
+    return compute_energy_norm(form, function)
 
 def adjoint(form):
     """Given a combined bilinear form, compute the adjoint

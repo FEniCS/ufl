@@ -94,7 +94,7 @@ from ufl.form import Form
 from ufl.integral import Integral
 
 # Representations of transformed forms
-from ufl.formoperators import derivative, action, rhs, lhs, functional, adjoint #, dirichlet_functional
+from ufl.formoperators import derivative, action, energy_norm, rhs, lhs, functional, adjoint #, dirichlet_functional
 
 # Predefined convenience objects
 from ufl.objects import interval, triangle, tetrahedron, quadrilateral, hexahedron, \

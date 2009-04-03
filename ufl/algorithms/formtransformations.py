@@ -184,11 +184,17 @@ def compute_form_action(form, function):
     This works simply by replacing the last basis_function
     with a Function on the same function space (element).
     The form returned will thus have one BasisFunction less 
-    and one additional Function at the end.
+    and one additional Function at the end if no function
+    has been provided.
     """
     bf = extract_basis_functions(form)
-    ufl_assert(len(bf) == 2, "Expecting bilinear form.")
-    v, u = bf
+    if len(bf) == 2:
+        v, u = bf
+    elif len(bf) == 1:
+        u, = bf
+    else:
+        error("Expecting bilinear or linear form.")
+
     e = u.element()
     if function is None:
         function = Function(e)
@@ -196,7 +202,30 @@ def compute_form_action(form, function):
         ufl_assert(function.element() == e, \
             "Trying to compute action of form on a "\
             "function in an incompatible element space.")
-    return replace(form, {u:function})
+    return replace(form, { u: function })
+
+def compute_energy_norm(form, function):
+    """Compute the a-norm of a Function given a form a.
+    
+    This works simply by replacing the two basis functions
+    with a Function on the same function space (element).
+    The Form returned will thus be a functional with no
+    basis functions, and one additional Function at the
+    end if no function has been provided.
+    """
+    bf = extract_basis_functions(form)
+    ufl_assert(len(bf) == 2, "Expecting bilinear form.")
+    v, u = bf
+    e = u.element()
+    e2 = v.element()
+    ufl_assert(e == e2, "Expecting equal finite elements for test and trial functions, got '%s' and '%s'." % (str(e), str(e2)))
+    if function is None:
+        function = Function(e)
+    else:
+        ufl_assert(function.element() == e, \
+            "Trying to compute action of form on a "\
+            "function in an incompatible element space.")
+    return replace(form, { u: function, v: function })
 
 def compute_form_adjoint(form):
     """Compute the adjoint of a bilinear form.
@@ -206,7 +235,7 @@ def compute_form_adjoint(form):
     bf = extract_basis_functions(form)
     ufl_assert(len(bf) == 2, "Expecting bilinear form.")
     v, u = bf
-    return replace(form, {v:u, u:v})
+    return replace(form, { v: u, u: v })
 
 #def compute_dirichlet_functional(form):
 #    """Compute the Dirichlet functional of a form:

@@ -61,33 +61,33 @@ class CompoundTensorOperator(AlgebraOperator):
 #       This would simplify some algorithms. The only
 #       problem is we can't use + in many algorithms because 
 #       this type should be expanded by expand_compounds.
-class TensorSum(CompoundTensorOperator):
-    "Sum of nonscalar expressions."
-    pass
+#class TensorSum(CompoundTensorOperator):
+#    "Sum of nonscalar expressions."
+#    pass
 
 # TODO: Use this similarly to TensorSum?
 #       This would simplify some algorithms. The only
 #       problem is we can't use / in many algorithms because 
 #       this type should be expanded by expand_compounds.
-class TensorDivision(CompoundTensorOperator):
-    "Division of nonscalar expression with a scalar expression."
-    pass
+#class TensorDivision(CompoundTensorOperator):
+#    "Division of nonscalar expression with a scalar expression."
+#    pass
 
 # TODO: Use this similarly to TensorSum?
 #       This would simplify some algorithms. The only
 #       problem is we can't use * in many algorithms because 
 #       this type should be expanded by expand_compounds.
-class MatrixProduct(CompoundTensorOperator):
-    "Product of a matrix with a matrix or vector."
-    pass
+#class MatrixProduct(CompoundTensorOperator):
+#    "Product of a matrix with a matrix or vector."
+#    pass
 
 # TODO: Use this similarly to TensorSum?
 #       This would simplify some algorithms. The only
 #       problem is we can't use abs in many algorithms because 
 #       this type should be expanded by expand_compounds.
-class TensorAbs(CompoundTensorOperator):
-    "Absolute value of nonscalar expression."
-    pass
+#class TensorAbs(CompoundTensorOperator):
+#    "Absolute value of nonscalar expression."
+#    pass
 
 class Transposed(CompoundTensorOperator):
     __slots__ = ("_A",)
