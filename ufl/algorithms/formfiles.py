@@ -3,10 +3,11 @@
 from __future__ import with_statement
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-03-31"
+__date__ = "2008-03-14 -- 2009-04-03"
 
 import os
 import time
+import re
 
 from ufl.log import error, info
 from ufl.assertions import ufl_assert
@@ -33,6 +34,21 @@ def load_forms(filename):
     # Read form file and prepend import
     with open(filename) as f:
         fcode = f.read()
+        # Replace #include foo.ufl statements with contents of foo.ufl
+        if "#include" in fcode:
+            lines = fcode.split("\n")
+            newlines = []
+            regexp = re.compile(r"^#include (.*)$")
+            for l in lines:
+                m = regexp.search(l)
+                if m:
+                    fn = m.groups()[0]
+                    newlines.append("# --- begin %s" % fn)
+                    newlines.extend(open(fn).readlines())
+                    newlines.append("# --- end %s" % fn)
+                else:
+                    newlines.append(l)
+            fcode = "\n".join(l.rstrip() for l in newlines)
         code = "from ufl import *\n" + fcode
 
     # Execute code
