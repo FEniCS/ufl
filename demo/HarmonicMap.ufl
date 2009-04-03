@@ -1,0 +1,18 @@
+
+from ufl import *
+
+cell = triangle
+xfe = VectorElement('CG', cell, 1)
+lfe = FiniteElement('CG', cell, 1)
+
+x = Function(xfe) 
+lmbda = Function(lfe)
+
+L = inner(grad(x), grad(x))*dx + dot(x,x)*lmbda*dx  
+
+F = derivative(L,(x,lmbda))
+J = derivative(F,(x,lmbda))
+
+forms = [L,F,J]
+
+
