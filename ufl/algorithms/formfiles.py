@@ -136,10 +136,10 @@ def load_ufl_file(filename):
         # Using form_data() ensures FormData is only constructed once
         fd = form.form_data()
         fd.name = form_names[id(form)]
+        for (i, f) in enumerate(fd.original_basis_functions):
+            fd.basis_function_names[i] = basis_function_names.get(id(f), "v%d"%i)
         for (i, f) in enumerate(fd.original_functions):
             fd.function_names[i] = function_names.get(id(f), "w%d"%i)
-        for (i, f) in enumerate(fd.original_basis_functions):
-            fd.basis_function_names[i] = basis_function_names.get(id(f), "w%d"%i)
 
     # Return file data
     return ufd
