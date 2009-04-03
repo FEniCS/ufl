@@ -50,7 +50,7 @@ from ufl.algorithms.ufl2latex import ufl2latex, ufl2tex, ufl2pdf, forms2latexdoc
 from ufl.algorithms.ufl2dot import ufl2dot
 
 # Utilities for form file handling
-from ufl.algorithms.formfiles import load_forms
+from ufl.algorithms.formfiles import load_ufl_file, load_forms
 
 # State of files (in the opinion of Martin):
 #    traversal.py           - Ok.
