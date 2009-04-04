@@ -14,7 +14,7 @@ from ufl.assertions import ufl_assert
 from ufl.finiteelement import TensorElement
 from ufl.classes import Expr, Terminal, Product, Index, FixedIndex, ListTensor, Variable, Function, Zero
 from ufl.indexing import indices, complete_shape
-from ufl.tensors import as_tensor, as_matrix, as_vector
+from ufl.tensors import as_tensor, as_matrix, as_vector, ListTensor, ComponentTensor
 from ufl.form import Form
 from ufl.integral import Integral
 from ufl.classes import all_ufl_classes
@@ -832,7 +832,7 @@ class IndexExpander(ReuseTransformer):
 
     def spatial_derivative(self, x):
         f, ii = x.operands()
-        ufl_assert(isinstance(f, (Terminal, x._uflclass)), "Expecting expand_derivatives to have been applied.")
+        ufl_assert(isinstance(f, (Terminal, x._uflclass, ListTensor, ComponentTensor)), "Expecting expand_derivatives to have been applied.")
         
         # Taking component if necessary
         f = self.visit(f) 
