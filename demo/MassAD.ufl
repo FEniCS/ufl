@@ -8,9 +8,9 @@ element = FiniteElement("Lagrange", triangle, 1)
 u = Function(element)
 
 # L2 norm
-f = u**2/2*dx
+M = u**2/2*dx
 # source vector
-b = derivative(f, u)
+L = derivative(M, u)
 # mass matrix
-a = derivative(b, u)
+a = derivative(L, u)
 

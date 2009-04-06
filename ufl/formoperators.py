@@ -25,19 +25,25 @@ from ufl.algorithms import compute_form_adjoint, \
 
 def lhs(form):
     """Given a combined bilinear and linear form,
-    extract the bilinear form part (left hand side)."""
+    extract the left hand side (bilinear form part).
+
+    Example:
+
+        a = u*v*dx + f*v*dx
+        a = lhs(a) -> u*v*dx
+    """
     form = as_form(form)
     form = expand_derivatives(form)
     return compute_form_lhs(form)
 
 def rhs(form):
     """Given a combined bilinear and linear form,
-    extract the linear form part (right hand side).
+    extract the right hand side (negated linear form part)."
 
-    TODO: Given "a = u*v*dx + f*v*dx, should this
-    return "+f*v*dx" as found in the form or
-    "-f*v*dx" as the rigth hand side should
-    be when solving the equations?
+    Example:
+
+        a = u*v*dx + f*v*dx
+        L = rhs(a) -> -f*v*dx
     """
     form = as_form(form)
     form = expand_derivatives(form)

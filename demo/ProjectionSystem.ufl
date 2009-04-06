@@ -6,5 +6,4 @@ f = Function(element)
 
 a = u*v*dx
 L = f*v*dx
-b = a + L
 

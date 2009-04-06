@@ -18,3 +18,5 @@ f = psi*dx
 F = derivative(f, u)
 J = derivative(-F, u)
 
+forms = [f, F, J]
+

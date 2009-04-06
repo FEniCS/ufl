@@ -18,6 +18,7 @@ MX = MixedElement(S, V, Q)
 #print u.shape()
 #print gamma.shape()
 
-a2 = (inner(sigma, tau) - tr(sigma)*tr(tau) \
-      + dot(div(tau), u) - dot(div(sigma), v) \
-      + inner(tau,gamma) + inner(eta,sigma))*dx
+a = (inner(sigma, tau) - tr(sigma)*tr(tau) \
+    + dot(div(tau), u) - dot(div(sigma), v) \
+    + inner(tau,gamma) + inner(eta,sigma))*dx
+

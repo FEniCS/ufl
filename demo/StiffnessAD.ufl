@@ -19,3 +19,4 @@ astar = adjoint(a)
 # action of adjoint, grad(v) : grad(w)
 astaraction = action(astar)
 
+forms = [f, b, a, astar, astaraction]

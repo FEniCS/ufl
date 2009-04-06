@@ -9,5 +9,5 @@ v = TestFunction(element)
 u = TrialFunction(element)
 w = Function(element)
 
-a = w**5*v*dx
-b = derivative(a, w)
+L = w**5*v*dx
+a = derivative(L, w)

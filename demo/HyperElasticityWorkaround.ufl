@@ -6,7 +6,7 @@
 # Cell and its properties
 cell = tetrahedron
 d = cell.d
-n = cell.n
+n = VectorConstant(cell)
 x = cell.x
 
 # Elements
@@ -32,7 +32,7 @@ A = Function(A_element)
 # External forces
 T = Function(u_element)
 p0 = Function(p_element)
-N = cell.n
+N = n
 
 # Material parameters FIXME
 rho = Constant(cell)
@@ -86,6 +86,10 @@ a_F =   inner(acc, v)*dx \
 # Jacobi matrix of residual equation
 a_J = derivative(a_F, u, w)
 
+from ufl.algorithms import expand_derivatives, strip_variables
+a_F = strip_variables(expand_derivatives(a_F))
+a_J = strip_variables(expand_derivatives(a_J))
+
 # Export forms
 forms = [a_F, a_J]
-
+a, L = a_J, a_F
