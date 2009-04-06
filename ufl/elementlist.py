@@ -2,9 +2,8 @@
 families. Users or more likely, form compilers, may register new
 elements by calling the function register_element."""
 
-
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-03 -- 2009-03-14"
+__date__ = "2008-03-03 -- 2009-04-06"
 
 from ufl.assertions import ufl_assert
 
@@ -17,6 +16,16 @@ def register_element(family, short_name, value_rank, degree_range, domains):
     ufl_assert(family not in ufl_elements, 'Finite element \"%s\" has already been registered.' % family)
     ufl_elements[family] = (family, short_name, value_rank, degree_range, domains)
     ufl_elements[short_name] = (family, short_name, value_rank, degree_range, domains)
+
+def show_elements():
+    print "Showing all registered elements:"
+    for k in sorted(ufl_elements.keys()):
+        (family, short_name, value_rank, degree_range, domains) = ufl_elements[k]
+        print
+        print "Finite Element Family: %s, %s" % (repr(family), repr(short_name))
+        print "Value rank:   ", value_rank
+        print "Degree range: ", degree_range
+        print "Defined on domains:" , domains
 
 # Register valid elements
 register_element("Lagrange", "CG", 0, (1, None),
