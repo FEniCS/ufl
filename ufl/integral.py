@@ -1,9 +1,9 @@
 """The Integral class."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-03-05"
+__date__ = "2008-03-14 -- 2009-03-06"
 
-# Modified by Anders Logg, 2008
+# Modified by Anders Logg, 2008-2009.
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
@@ -60,14 +60,15 @@ class Measure(object):
     
     def __rmul__(self, integrand):
         if isinstance(integrand, tuple):
-            from ufl.expr import Expr
-            from ufl import inner
-            # Experimental syntax like a = (u,v)*dx + (f,v)*ds
-            ufl_assert(len(integrand) == 2 \
-                and isinstance(integrand[0], Expr) \
-                and isinstance(integrand[1], Expr),
-                "Invalid integrand %s." % repr(integrand))
-            integrand = inner(integrand[0], integrand[1])
+            error("Mixing tuple and integrand notation not allowed.")
+        #    from ufl.expr import Expr
+        #    from ufl import inner
+        #    # Experimental syntax like a = (u,v)*dx + (f,v)*ds
+        #    ufl_assert(len(integrand) == 2 \
+        #        and isinstance(integrand[0], Expr) \
+        #        and isinstance(integrand[1], Expr),
+        #        "Invalid integrand %s." % repr(integrand))
+        #    integrand = inner(integrand[0], integrand[1])
         
         ufl_assert(is_true_ufl_scalar(integrand),   
             "Trying to integrate expression of rank %d with free indices %r." \

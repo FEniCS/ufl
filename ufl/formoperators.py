@@ -14,12 +14,19 @@ from ufl.basisfunction import BasisFunction, BasisFunctions
 from ufl.differentiation import FunctionDerivative
 
 # An exception to the rule that ufl.* does not depend on ufl.algorithms.* ...
-from ufl.algorithms import compute_form_adjoint, compute_form_action, compute_energy_norm, \
-                           compute_form_lhs, compute_form_rhs, compute_form_functional, expand_derivatives
+from ufl.algorithms import compute_form_adjoint, \
+                           compute_form_action, \
+                           compute_energy_norm, \
+                           compute_form_lhs, \
+                           compute_form_rhs, \
+                           compute_form_functional, \
+                           expand_derivatives, \
+                           as_form
 
 def lhs(form):
     """Given a combined bilinear and linear form,
     extract the bilinear form part (left hand side)."""
+    form = as_form(form)
     form = expand_derivatives(form)
     return compute_form_lhs(form)
 
@@ -32,11 +39,13 @@ def rhs(form):
     "-f*v*dx" as the rigth hand side should
     be when solving the equations?
     """
+    form = as_form(form)
     form = expand_derivatives(form)
     return compute_form_rhs(form)
 
 def functional(form): # TODO: Does this make sense for anything other than testing?
     """Extract the functional part of form."""
+    form = as_form(form)
     form = expand_derivatives(form)
     return compute_form_functional(form)
 
@@ -45,6 +54,7 @@ def action(form, function=None):
     with an additional function coefficient, representing
     the action of the form on the function. This can be
     used for matrix-free methods."""
+    form = as_form(form)
     form = expand_derivatives(form)
     return compute_form_action(form, function)
 
@@ -53,12 +63,14 @@ def energy_norm(form, function=None):
     with an additional function coefficient, representing
     the action of the form on the function. This can be
     used for matrix-free methods."""
+    form = as_form(form)
     form = expand_derivatives(form)
     return compute_energy_norm(form, function)
 
 def adjoint(form):
     """Given a combined bilinear form, compute the adjoint
     form by swapping the test and trial functions."""
+    form = as_form(form)
     form = expand_derivatives(form)
     return compute_form_adjoint(form)
 
@@ -127,4 +139,3 @@ def derivative(form, function, basis_function=None):
         return FunctionDerivative(form, functions, basis_functions)
     
     error("Invalid argument type %s." % str(type(form)))
-

@@ -141,4 +141,3 @@ class Form(object):
     
     def signature(self):
         return "%s" % (repr(self), )
-

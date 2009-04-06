@@ -103,4 +103,3 @@ from ufl.objects import interval, triangle, tetrahedron, quadrilateral, hexahedr
 
 # Useful constants
 from math import e, pi
-

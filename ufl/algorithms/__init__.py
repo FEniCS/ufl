@@ -44,6 +44,9 @@ from ufl.algorithms.ad import expand_derivatives #, compute_diff, propagate_spat
 # Utilities for working with linearized computational graphs
 from ufl.algorithms.graph import Graph, format_graph, rebuild_tree, partition # TODO: Add more imports here
 
+# Utilities for tuple notation
+from ufl.algorithms.tuplenotation import tuple2form, as_form
+
 # Utilities for UFL object printing
 from ufl.algorithms.printing import integral_info, form_info, tree_format
 from ufl.algorithms.ufl2latex import ufl2latex, ufl2tex, ufl2pdf, forms2latexdocument
@@ -68,4 +71,3 @@ from ufl.algorithms.formfiles import load_ufl_file, load_forms
 #    latextools.py          - Ok.
 #    ufl2latex.py           - Fix precedence stuff.
 #    ufl2dot.py             - Rework with graph tools.
-
