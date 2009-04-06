@@ -9,7 +9,7 @@ This is to avoid circular dependencies between Expr and its subclasses.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-02-20"
+__date__ = "2008-03-14 -- 2009-04-06"
 
 # Modified by Anders Logg, 2008
 
@@ -17,7 +17,7 @@ __date__ = "2008-03-14 -- 2009-02-20"
 
 from collections import defaultdict
 from itertools import izip
-from ufl.log import warning
+from ufl.log import warning, error
 _class_usage_statistics = defaultdict(int)
 
 def typetuple(e):
@@ -137,12 +137,17 @@ class Expr(object):
         "By default, all Expr are nonzero."
         return True 
     
-    def __iter__(self):
-        raise NotImplementedError
-    
     def __len__(self):
-        "If this is implemented, Python will allow iteration using this and __getitem__."
-        raise NotImplementedError
+        "Length of expression. Used for iteration over vector expressions."
+        s = self.shape()
+        if len(s) == 1:
+            return s[0]
+        error("Cannot take length of non-vector expression.")
+    
+    def __iter__(self):
+        "Iteration over vector expressions."
+        for i in range(len(self)):
+            yield self[i]
     
     #def __getnewargs__(self): # TODO: Test pickle and copy with this. Must implement differently for Terminal objects though.
     #    "Used for pickle and copy operations."

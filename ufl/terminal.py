@@ -75,9 +75,6 @@ class Terminal(Expr):
         if id(self) == other:
             return True
         return repr(self) == repr(other)
-
-    def __iter__(self):
-        return iter(())
     
     #def __getnewargs__(self): # TODO: Test pickle and copy with this. Must implement differently for Terminal objects though.
     #    "Used for pickle and copy operations."
