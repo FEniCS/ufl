@@ -4,7 +4,7 @@ or defined as compound operators involving basic operations on the UFL
 objects."""
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-04-09 -- 2009-03-16"
+__date__ = "2008-04-09 -- 2009-04-07"
 
 import math
 from ufl.log import error, warning
@@ -17,6 +17,7 @@ from ufl.tensors import as_tensor
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin
 from ufl.indexing import indices
+from ufl.geometry import SpatialCoordinate
 
 #--- Basic operators ---
 
@@ -120,6 +121,10 @@ def Dt(f):
 
 def diff(f, v): # TODO: We have "derivative", "diff", "Dx", and "f.dx(i)", can we unify these with more intuitive consistent naming?
     "The derivative of f with respect to the variable v."
+    if isinstance(v, SpatialCoordinate):
+        ii = indices(v.rank() + 1)
+        dv = v[ii[:-1]].dx(ii[-1])
+        return as_tensor(dv, ii)
     return VariableDerivative(f, v)
 
 def grad(f):
