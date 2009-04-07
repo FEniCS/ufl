@@ -55,28 +55,33 @@ read
 #cd ../
 
 # Tag repository
-echo X hg tag $VERSION
+hg tag $VERSION
 
 # Commit changes to hg
 echo '--- Pushing changes to parent repository'
 sleep 1
-echo X hg commit
-echo X hg push ssh://ufl@fenics.org/hg/ufl
+hg commit
+hg push ssh://ufl@fenics.org/hg/ufl
 
 # Create archive
 hg archive -t tgz ufl-$VERSION.tar.gz
 
 # Copy files to web page
 echo '--- Copying files to web server'
-echo X scp ufl-$VERSION.tar.gz fenics@fenics.org:www.fenics.org/pub/software/ufl/v$VERSION
-echo X scp ChangeLog fenics@fenics.org:www.fenics.org/pub/software/ufl/
-echo X scp TODO fenics@fenics.org:www.fenics.org/pub/software/ufl/
+scp ufl-$VERSION.tar.gz fenics@fenics.org:www.fenics.org/pub/software/ufl/v$VERSION
+scp ChangeLog fenics@fenics.org:www.fenics.org/pub/software/ufl/
+scp TODO fenics@fenics.org:www.fenics.org/pub/software/ufl/
 
 # Notify ufl-dev of the new version
 echo '--- Notifying mailing list'
 SUBJECT="Version "$VERSION" of UFL released"
 #cat ChangeLog | mail -s "$SUBJECT" ufl-dev@fenics.org
-echo X cat ChangeLog pipe mail -s "$SUBJECT" ufl-dev@fenics.org
+echo Please send the following email:
+echo Subject: $SUBJECT
+echo To: ufl-dev@fenics.org
+echo Contents:
+cat ChangeLog
+echo End of email.
 
 # Edit web pages
 echo '--- Edit web pages'
@@ -84,4 +89,4 @@ ssh -t fenics@fenics.org '/home/fenics/local/bin/news'
 firefox http://www.fenics.org/wiki/Download
 
 # Notify pypi
-echo X python setup.py register
+#python setup.py register

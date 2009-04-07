@@ -8,7 +8,7 @@ import platform
 
 # Version number
 major = 0
-minor = 1
+minor = 2
 
 # Set prefix
 try:
