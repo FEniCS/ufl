@@ -22,23 +22,24 @@ sudo python setup.py install
 # Update version numbers
 echo '--- Update version number in ChangeLog'
 sleep 1
-emacs -nw ChangeLog
+vim ChangeLog
 echo '--- Update version number in __init__.py'
 sleep 1
-emacs -nw ufl/__init__.py
+vim ufl/__init__.py
 echo '--- Update version number in setup.py'
 sleep 1
-emacs -nw setup.py
+vim setup.py
 
 # Get the version number
-VERSION=`grep '__version__' ufl/__init__.py | cut -d'"' -f2`
+SVERSION=`grep '__version__' ufl/__init__.py | cut -d'"' -f2`
+VERSION=$SVERSION.0
 echo "--- Version number is $VERSION"
 
 # Run tests
 echo '--- Running tests'
 cd test
 python test.py
-echo '--- Have all tests passed? Press return to continue'
+echo '--- Have all tests passed? Press return to continue or Ctrl+C to abort.'
 read
 #echo '--- Only version numbers should differ, press return to continue'
 #read
@@ -68,7 +69,7 @@ hg archive -t tgz ufl-$VERSION.tar.gz
 
 # Copy files to web page
 echo '--- Copying files to web server'
-scp ufl-$VERSION.tar.gz fenics@fenics.org:www.fenics.org/pub/software/ufl/v$VERSION
+scp ufl-$VERSION.tar.gz fenics@fenics.org:www.fenics.org/pub/software/ufl/v$SVERSION
 scp ChangeLog fenics@fenics.org:www.fenics.org/pub/software/ufl/
 scp TODO fenics@fenics.org:www.fenics.org/pub/software/ufl/
 
@@ -89,4 +90,4 @@ ssh -t fenics@fenics.org '/home/fenics/local/bin/news'
 firefox http://www.fenics.org/wiki/Download
 
 # Notify pypi
-#python setup.py register
+python setup.py register
