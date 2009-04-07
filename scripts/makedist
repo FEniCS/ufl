@@ -16,7 +16,7 @@ hg update
 hg push ssh://ufl@fenics.org/hg/ufl
 
 # Make sure UFL is installed (so we may run unit tests)
-echo '--- Uninstalling UFL'
+echo '--- Installing UFL'
 sudo python setup.py install
 
 # Update version numbers
