@@ -1,7 +1,7 @@
 """Forward mode AD implementation."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-19-- 2009-03-26"
+__date__ = "2008-08-19-- 2009-04-07"
 
 from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert
@@ -52,6 +52,7 @@ class ForwardAD(Transformer):
         # Define a zero with the right indices
         # (kind of cumbersome this... any simpler way?)
         sh = o.shape() + self._var_shape
+        #sh = self._var_shape + o.shape() # DIFFSHAPE TODO: Use this version instead?
         fi = o.free_indices()
         idims = dict(o.index_dimensions())
         if self._var_free_indices:
@@ -67,6 +68,7 @@ class ForwardAD(Transformer):
         # Define a scalar value with the right indices
         # (kind of cumbersome this... any simpler way?)
         sh = o.shape() + self._var_shape
+        #sh = self._var_shape + o.shape() # DIFFSHAPE TODO: Use this version instead?
         fi = o.free_indices()
         idims = dict(o.index_dimensions())
         if self._var_free_indices:

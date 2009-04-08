@@ -122,8 +122,21 @@ def Dt(f):
 def diff(f, v): # TODO: We have "derivative", "diff", "Dx", and "f.dx(i)", can we unify these with more intuitive consistent naming?
     "The derivative of f with respect to the variable v."
     if isinstance(v, SpatialCoordinate):
-        ii = indices(v.rank() + 1)
-        dv = v[ii[:-1]].dx(ii[-1])
+        r = v.rank()
+        ii = indices(r + 1)
+        if r:
+            v = v[ii[:-1]]
+        dv = v.dx(ii[-1])
+    return VariableDerivative(f, v)
+
+def diff2(f, v): # DIFFSHAPE TODO: Replace diff with this? The difference is that the shape of v comes before the shape of f in this version.
+    "The derivative of f with respect to the variable v."
+    if isinstance(v, SpatialCoordinate):
+        r = v.rank()
+        ii = indices(r + 1)
+        if r:
+            v = v[ii[1:]]
+        dv = v.dx(ii[0])
         return as_tensor(dv, ii)
     return VariableDerivative(f, v)
 
