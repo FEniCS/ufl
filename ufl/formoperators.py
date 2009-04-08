@@ -1,12 +1,13 @@
 "Various high level ways to transform a complete Form into a new Form."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2008-01-16"
+__date__ = "2008-03-14 -- 2009-04-08"
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.form import Form
 from ufl.expr import Expr
+from ufl.split_functions import split
 from ufl.terminal import Tuple
 from ufl.finiteelement import MixedElement
 from ufl.function import Function
@@ -109,14 +110,14 @@ def _handle_derivative_arguments(function, basis_function):
         if basis_function is None:
             basis_functions = BasisFunctions(element)
         else:
-            basis_functions = (basis_function,)
+            basis_functions = split(basis_function)
             ufl_assert(isinstance(basis_function, BasisFunction) \
                 and basis_function.element() == element,
                 "Basis function over wrong element supplied, "\
                 "got %s but expecting %s." % \
                 (repr(basis_function.element()), repr(element)))
     
-    functions      = Tuple(*functions)
+    functions       = Tuple(*functions)
     basis_functions = Tuple(*basis_functions)
     
     return functions, basis_functions

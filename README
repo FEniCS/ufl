@@ -63,9 +63,14 @@ and
   from ufl.algorithms import *
 
 Importing a .ufl file can be done easily from Python:
+  from ufl.algorithms import load_ufl_file
+  filedata = load_ufl_file("filename.ufl")
+  forms = filedata.forms
+  elements = filedata.elements
+to get lists of forms and elements from the .ufl file, or
   from ufl.algorithms import load_forms
   forms = load_forms("filename.ufl")
-the return value is a list of all forms found in the ufl file.
+to get a list of forms in the .ufl file.
 
 
 Contact
@@ -77,6 +82,6 @@ Send bug reports, feature requests, and questions to
 The Mercurial source repository for UFL is located at
   http://www.fenics.org/hg/ufl
 
-A Wikipedia page exists at:
-  http://www.fenics.org/wiki/ufl
+A Wikipedia page with a brief overview of UFL exists at
+  http://www.fenics.org/wiki/UFL
 
