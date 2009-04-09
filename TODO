@@ -6,10 +6,12 @@ Roadmap for the development of UFL
     - tan(f)
     - log(f,base)
 
-cofactor = cofac
-deviatoric = dev
-inverse = inv
-trace = tr
+# Naming of operators:
+    ?
+    cofactor = cofac
+    deviatoric = dev
+    inverse = inv
+    trace = tr
 
 # Mappings:
     - Do we still need mappings? This is cut from the old WIKI pages:
@@ -17,6 +19,7 @@ trace = tr
             * mapping = "affine"
             * mapping = "isoparametric"
             * mapping = "Piola" (FIXME: how to handle covariant/contravariant/symmetric Piola here?)
+      Should they be attached to the cell or the elements?
 
 # Derivatives:
     - Finish forward mode AD implementation and verify correctness
@@ -28,15 +31,17 @@ trace = tr
 
 # Algorithms:
     - Algorithm for computing worst case quadrature degree
-    - (hopefully not) If AD needs to be applied in a compiler context, we need a 
+    - (hopefully not...) If AD needs to be applied in a compiler context, we need a 
       framework for representing unapplied form transformations.
     - Determine whether or not a bilinear form is self-adjoint (symmetric)
 
 # Prettyness and readability (medium priority, useful while debugging...):
     - Rewrite ufl2latex as described in its comments (use pre- and post-handlers)
-    - Use precedence list to improve parentesis use in __str__ and __repr__ and ufl2latex. 
+    - Use precedence list to improve parentesis use in __str__ and __repr__ and ufl2latex.
     - Improve dot-rendering with compact symbols for all node types
       (evt add option to switch between repr style and greek style)
+    - Add dot-rendering to graph class: G = Graph(e); print G.dot_format()
+    - Add utility "showdot(e)" for experimentation.
 
 # Tests:
     - Write tests for the algorithms, ideally covering all code in multiple ways.
@@ -54,6 +59,7 @@ trace = tr
        sorting.py - Remove MultiIndex handling if we make IndexBase an Expr.
        IndexSum - use Index, not MultiIndex
        SpatialDerivative - use Index, not MultiIndex
+    - Add TensorSum, TensorDivision, ProductOfTensors, compound types just like Grad, Div.
 
 # Simplification:
     - Implement better simplification as an algorithm, or add 
@@ -152,6 +158,9 @@ trace = tr
 # Complex numbers (low priority):
     - Allowing complex values and functions, which operations would be affected?
       Is it mostly about multiplication and division?
+
+# Optimization (low priority unless critical bottlenecks are found):
+    - Optimize expand_indices, currently one of the bottlenecks for quadrature compilers. (see sandbox)
 
 # Notes by Anders (trying to make sense of the implementation)
 
