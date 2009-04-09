@@ -97,7 +97,7 @@ class UtilityType(Terminal):
         error("Calling free_indices on a utility type is an error.")
     
     def index_dimensions(self):
-        error("Calling free_indices on a utility type is an error.")
+        error("Calling index_dimensions on a utility type is an error.")
 
 #--- Non-tensor terminal nodes ---
 
