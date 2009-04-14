@@ -35,5 +35,8 @@ setup(name = "UFL",
       url = "http://www.fenics.org/ufl/",
       scripts = scripts,
       packages = ["ufl", "ufl.algorithms"],
-      package_dir = {"ufl": "ufl"})
-
+      package_dir = {"ufl": "ufl"},
+      data_files = [(pjoin("share", "man", "man1"),
+                     [pjoin("doc", "man", "man1", "ufl-analyse.1.gz"),
+                      pjoin("doc", "man", "man1", "ufl-convert.1.gz"),
+                      pjoin("doc", "man", "man1", "form2ufl.1.gz")])])
