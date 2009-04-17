@@ -8,10 +8,11 @@ import platform
 
 # Version number
 major = 0
-minor = 2
+minor = 3
 
 scripts = [pjoin("scripts", "ufl-analyse"),
            pjoin("scripts", "ufl-convert"),
+           pjoin("scripts", "ufl2py"),
            pjoin("scripts", "form2ufl")]
 
 if platform.system() == "Windows" or "bdist_wininst" in sys.argv:
@@ -39,4 +40,5 @@ setup(name = "UFL",
       data_files = [(pjoin("share", "man", "man1"),
                      [pjoin("doc", "man", "man1", "ufl-analyse.1.gz"),
                       pjoin("doc", "man", "man1", "ufl-convert.1.gz"),
+                      pjoin("doc", "man", "man1", "ufl2py.1.gz"),
                       pjoin("doc", "man", "man1", "form2ufl.1.gz")])])

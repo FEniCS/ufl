@@ -3,7 +3,7 @@
 from __future__ import with_statement
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-04-03"
+__date__ = "2008-03-14 -- 2009-04-17"
 
 import os
 import time
@@ -31,15 +31,12 @@ To help you find the location of the error, a temporary script
 '%s'
 has been created and will now be executed with debug output enabled:"""
 
-def load_ufl_file(filename):
+def read_ufl_file(filename):
     "Load a .ufl file with elements, functions and forms."
     if not os.path.exists(filename) and filename[-4:] != ".ufl":
         filename = filename + ".ufl"
     if not os.path.exists(filename):
         error("File '%s' doesn't exist." % filename)
-
-    # Object to hold all returned data
-    ufd = FileData()
 
     # Read form file and prepend import
     with open(filename) as f:
@@ -59,11 +56,23 @@ def load_ufl_file(filename):
                 else:
                     newlines.append(l)
             fcode = "\n".join(l.rstrip() for l in newlines)
-        code = "from ufl import *\n" + fcode
+
+    return fcode
+
+def load_ufl_file(filename):
+    "Load a .ufl file with elements, functions and forms."
+    if not os.path.exists(filename) and filename[-4:] != ".ufl":
+        filename = filename + ".ufl"
+    if not os.path.exists(filename):
+        error("File '%s' doesn't exist." % filename)
+
+    # Read code
+    fcode = read_ufl_file(filename)
 
     # Execute code
     namespace = {}
     try:
+        code = "from ufl import *\n" + fcode
         exec code in namespace
     except:
         # Dump code for debugging if this fails
@@ -101,6 +110,9 @@ def load_ufl_file(filename):
         "Expecting 'forms' to be a list or tuple, not '%s'." % type(forms))
     ufl_assert(all(isinstance(a, Form) for a in forms),
         "Expecting 'forms' to be a list of Form instances.")
+
+    # Object to hold all returned data
+    ufd = FileData()
     ufd.forms = forms
 
     # Get list of elements
