@@ -1,7 +1,7 @@
 """Utility algorithms for inspection of and information extraction from UFL objects in various ways."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-03-20"
+__date__ = "2008-03-14 -- 2009-04-17"
 
 # Modified by Anders Logg, 2008
 
@@ -224,9 +224,4 @@ def estimate_quadrature_order(integral):
     if len(bf) == 1:
         return 2*degrees[0]
     return sum(degrees)
-
-def estimate_max_quadrature_order(integral):
-    "Estimate the maximum needed quadrature order for integral using the highest polynomial degree of any term."
-    # FIXME: Provide a different estimate as an additional algorithm, finding the actual max polynomial order including order of functions.
-    return estimate_quadrature_order(integral)
 

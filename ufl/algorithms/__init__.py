@@ -1,7 +1,7 @@
 "This module collects algorithms and utility functions operating on UFL objects."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-14 -- 2009-03-04"
+__date__ = "2008-08-14 -- 2009-04-17"
 
 # Modified by Anders Logg, 2008
 
@@ -15,7 +15,7 @@ from ufl.algorithms.analysis import extract_classes, extract_type, has_type, \
                                     extract_basis_functions, extract_functions, \
                                     extract_elements, extract_unique_elements, \
                                     extract_variables, extract_duplications, \
-                                    extract_quadrature_order, estimate_quadrature_order, estimate_max_quadrature_order
+                                    extract_quadrature_order, estimate_quadrature_order
 
 # Utility class for easy collecting of data about form
 from ufl.algorithms.formdata import FormData
@@ -27,11 +27,12 @@ from ufl.algorithms.predicates import is_multilinear
 from ufl.algorithms.checks import validate_form
 
 # Utilites for modifying expressions and forms
-from ufl.algorithms.transformations import transform, \
+from ufl.algorithms.transformations import transform, Transformer, apply_transformer, \
                                            ufl2ufl, ufl2uflcopy, \
                                            replace, flatten, strip_variables, \
                                            expand_compounds, expand_indices, \
-                                           purge_list_tensors, mark_duplications
+                                           purge_list_tensors, mark_duplications, \
+                                           estimate_max_quadrature_order
 from ufl.algorithms.renumbering import renumber_indices
 
 # Utilities for transforming complete Forms into other Forms

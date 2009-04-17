@@ -1,7 +1,7 @@
 """This module defines the single index types and some internal index utilities."""
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-14 -- 2009-02-20"
+__date__ = "2008-03-14 -- 2009-04-17"
 
 from ufl.log import error
 from ufl.common import Counted
@@ -82,8 +82,9 @@ class FixedIndex(IndexBase):
 class MultiIndex(UtilityType):
     __slots__ = ("_indices", "_str", "_repr")
     
-    def __init__(self, ii):
+    def __init__(self, ii, idims=None):
         UtilityType.__init__(self)
+        
         if isinstance(ii, int):
             ii = (FixedIndex(ii),)
         elif isinstance(ii, IndexBase):
@@ -92,7 +93,17 @@ class MultiIndex(UtilityType):
             ii = tuple(as_index(j) for j in ii)
         else:
             error("Expecting tuple of UFL indices.")
+        
+        # TODO: Remove "idims is None" when it can no longer occur
+        if not idims is None:
+            idims = dict(idims)
+            for k in ii:
+                if isinstance(k, Index):
+                    if not k in idims:
+                        error("Missing index in the provided idims.")
+        
         self._indices = ii
+        self._idims = idims
         self._str = ", ".join(str(i) for i in self._indices)
         self._repr = "MultiIndex(%r)" % (self._indices,)
     
@@ -105,6 +116,14 @@ class MultiIndex(UtilityType):
             elif isinstance(i, Index):
                 component.append(index_values[i])
         return tuple(component)
+    
+    def free_indices(self):
+        return tuple(i for i in set(self._indices) if isinstance(i, Index))
+    
+    def index_dimensions(self):
+        if self._idims is None:
+            error("No index dimensions were provided for this multiindex.")
+        return self._idims
 
     def __add__(self, other):
         if isinstance(other, tuple):

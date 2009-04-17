@@ -33,11 +33,11 @@ The development version can be found in the repository at
 
 """
 
-__version__ = "0.2"
+__version__ = "0.3"
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __copyright__ = "Copyright (C) 2008-2009 " + __authors__
 __license__  = "GNU GPL version 3 or any later version"
-__date__ = "2008-03-14 -- 2009-04-07"
+__date__ = "2008-03-14 -- 2009-04-17"
 
 ########## README
 # Imports here should be what the user sees when doing "from ufl import *",

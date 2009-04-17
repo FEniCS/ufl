@@ -22,21 +22,6 @@ class DegreeEstimator(Transformer):
     def spatial_derivative(self, v, f, i):
         return max(f-1, 0)
     
-    def component_tensor(self, v, f, i):
-        return f
-    
-    def list_tensor(self, v, *ops):
-        return max(ops)
-    
-    def indexed(self, v, f, i):
-        return f
-    
-    def indexed(self, v, f, i):
-        return f
-    
-    def sum(self, v, *ops):
-        return max(ops)
-    
     def product(self, v, *ops):
         return sum(ops)
     

@@ -3,7 +3,7 @@ either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2009-03-26"
+__date__ = "2008-05-07 -- 2009-04-17"
 
 from itertools import izip
 from inspect import getargspec
@@ -859,6 +859,37 @@ class IndexExpander(ReuseTransformer):
         
         return result
 
+class DegreeEstimator(Transformer):
+    def __init__(self):
+        Transformer.__init__(self)
+    
+    def terminal(self, v):
+        return 0
+    
+    def expr(self, v, *ops):
+        return max(ops)
+    
+    def form_argument(self, v):
+        return v.element().degree()
+    
+    def spatial_derivative(self, v, f, i):
+        return max(f-1, 0)
+    
+    def product(self, v, *ops):
+        return sum(ops)
+    
+    def power(self, v, a, b):
+        f, g = v.operands()
+        try:
+            gi = int(g)
+            return a*gi
+        except:
+            pass
+        # Something to a non-integer power... TODO: How to handle this?
+        if b > 0:
+            return a*b
+        return a
+
 # ------------ User interface functions
 
 def transform_integrands(form, transform):
@@ -955,4 +986,11 @@ def extract_basis_function_dependencies(e):
     "Extract a set of sets of basis_functions."
     ufl_assert(isinstance(e, Expr), "Expecting an Expr.")
     return BasisFunctionDependencyExtracter().visit(e)
+
+
+def estimate_max_quadrature_order(e):
+    """Estimate the maximum needed quadrature order for
+    expression, integral or form using the highest polynomial
+    degree of any term."""
+    return apply_transformer(e, DegreeEstimator())
 
