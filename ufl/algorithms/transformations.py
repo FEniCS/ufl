@@ -5,6 +5,8 @@ converting UFL expressions to other representations."""
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-05-07 -- 2009-04-17"
 
+# Modified by Anders Logg, 2009.
+
 from itertools import izip
 from inspect import getargspec
 
@@ -895,6 +897,11 @@ class DegreeEstimator(Transformer):
 def transform_integrands(form, transform):
     """Apply transform(expression) to each integrand 
     expression in form, or to form if it is an Expr."""
+
+    # FIXME: Strange behavior here. For a Form, the result is Form,
+    # FIXME: but for Integral and Expr the result may be something
+    # FIXME: completely different like an int
+    
     if isinstance(form, Form):
         newintegrals = []
         for itg in form.integrals():
@@ -905,8 +912,16 @@ def transform_integrands(form, transform):
         if not newintegrals:
             error("No integrals left after transformation, cannot reconstruct form.") # TODO: Is this the right behaviour?
         return Form(newintegrals)
+    elif isinstance(form, Integral):
+        integral = form
+        integrand = transform(integral.integrand())
+        return integrand
+        # FIXME: Should do this if we want to return an integral
+        #new_integral = integral.reconstruct(integrand)
+        #return new_integral
     elif isinstance(form, Expr):
-        return transform(form)
+        expr = form
+        return transform(expr)
     else:
         error("Expecting Form or Expr.")
 
@@ -993,4 +1008,3 @@ def estimate_max_polynomial_degree(e):
     expression, integral or form using the highest polynomial
     degree of any term."""
     return apply_transformer(e, DegreeEstimator())
-
