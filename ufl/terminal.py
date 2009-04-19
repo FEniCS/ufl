@@ -40,18 +40,22 @@ class Terminal(Expr):
         "Get self from mapping and return the component asked for."
         f = mapping.get(self)
         
-        # No mapping, trying to map to a constant
+        # No mapping, trying to evaluate self as a constant
         if f is None:
             try:
-                value = float(f)
+                f = float(self)
                 if derivatives:
-                    value = 0.0
+                    f = 0.0
+                return f
             except:
-                warning("Couldn't map '%s' to a float, returning object unchanged." % str(f))
-                value = f
-            return value
+                warning("Couldn't map '%s' to a float, returning object unchanged." % str(self))
+            # Take component if any
+            f = self
+            if component:
+                f = f[component]
+            return f
         
-        # Callable, call it!
+        # Found a callable in the mapping
         if callable(f):
             if derivatives:
                 f = f(x, derivatives)
