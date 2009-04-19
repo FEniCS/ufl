@@ -1,6 +1,7 @@
 0.3.0 [2009-0?-??]
  - Added script ufl2py, mainly for debugging purposes.
- - Crude implementation of estimate_max_quadrature_order.
+ - Crude implementation of estimate_max_polynomial_degree
+   for quadrature degree estimation.
  - Improved manual.
  - Some bugfixes.
 0.2.0 [2009-04-07]

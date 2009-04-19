@@ -3,10 +3,11 @@ since it enables the syntax "from ufl.classes import FooBar" for getting
 implementation details not exposed through the default ufl namespace."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-15 -- 2009-03-25"
+__date__ = "2008-08-15 -- 2009-04-19"
 
 # Modified by Anders Logg, 2008
 
+from ufl.assertions import ufl_assert
 from ufl.expr import Expr, Operator, WrapperType, AlgebraOperator
 from ufl.terminal import Terminal, FormArgument, UtilityType, Tuple
 from ufl.constantvalue import ConstantValue, Zero, ScalarValue, FloatValue, IntValue, ScalarSomething, Identity
@@ -45,9 +46,84 @@ for _i, _c in enumerate(all_ufl_classes):
     _c._uflclass = _c
     _c._handlername = _camel2underscore(_c.__name__)
 
+
 # FIXME: Finish precedence mapping, review this list very carefully!
 def _build_precedences():
-    precedence_list = [] 
+    # --- From Wikipedia, precedence of operators in C:
+    #1 	()   []   ->   .   :: 	Grouping, scope, array/member access
+    #2 	 !   ~   -   +   *   &   sizeof   type cast ++x   --x   	(most) unary operations, sizeof and type casts
+    #3 	*   /   % 	Multiplication, division, modulo
+    #4 	+   - 	Addition and subtraction
+    #5 	<<   >> 	Bitwise shift left and right
+    #6 	<   <=   >   >= 	Comparisons: less-than, ...
+    #7 	==   != 	Comparisons: equal and not equal
+    #8 	& 	Bitwise AND
+    #9 	^ 	Bitwise exclusive OR
+    #10 	| 	Bitwise inclusive (normal) OR
+    #11 	&& 	Logical AND
+    #12 	|| 	Logical OR
+    #13 	 ?: 	Conditional expression (ternary operator)
+    #14 	=   +=   -=   *=   /=   %=   &=   |=   ^=   <<=   >>= 	Assignment operators
+    
+    # --- From python documetation, precedence of operators in python:
+    precedence_list = []
+
+    #Operator 	Description
+    #lambda 	Lambda expression
+    #or 	Boolean OR
+    #and 	Boolean AND
+    #not x 	Boolean NOT
+    #in, not in, is, is not, <, <=, >, >=, <>, !=, == 	Comparisons, including membership tests and identity tests,
+    precedence_list.append((Condition,))
+
+    #| 	Bitwise OR
+    #^ 	Bitwise XOR
+    #& 	Bitwise AND
+    #<<, >> 	Shifts
+
+    #+, - 	Addition and subtraction
+
+    #sum_i a + b != sum_i (a + b) -> sum_i binds more than +
+    precedence_list.append((Sum,))
+    precedence_list.append((IndexSum,))
+    
+    #*, /, //, % 	Multiplication, division, remainder
+    precedence_list.append((Product, Division, Inner, Outer, Dot, Cross,))
+
+    #+x, -x, ~x 	Positive, negative, bitwise NOT
+
+    #** 	Exponentiation [8]
+    precedence_list.append((Power,))
+
+    #x[index], x[index:index], x(arguments...), x.attribute 	Subscription, slicing, call, attribute reference
+    precedence_list.append((Indexed,))
+
+    #(expressions...), [expressions...], {key:datum...}, `expressions...` 	Binding or tuple display, list display, dictionary display, string conversion
+
+    precedence_list.append((Div, Grad, Curl, Rot,))
+
+    precedence_list.append((Conditional, Abs, MathFunction)) # operands always needs parenthesis unless terminal
+    precedence_list.append((Operator,)) # Operands always needs parenthesis unless terminal
+    precedence_list.append((Terminal,)) # Never needs parenthesis around it
+
+    # --- Obvious:
+    # Example: (terminal) + (terminal) == terminal + terminal
+    # -> terminal has higher precedence than sum, so no parenthesis are needed around it
+    # Example: (a*b) + (c*d) == a*b + c*d
+    # -> product has higher precedence than sum, so no parenthesis are needed around it
+
+    # --- Alternatives (choose!):
+    # Example: sin(a*b) == sin a*b
+    # -> product has higher precedence than sin, so no parenthesis are needed around it
+    # Example: sin(a*b) != sin a*b
+    # -> product has lower precedence than sin, so parenthesis _are_ needed around it
+
+    # Example: sin(a+b) == sin a*b
+    # -> sum has higher precedence than sin, so no parenthesis are needed around it
+    # Example: sin(a+b) != sin a*b
+    # -> sum has lower precedence than sin, so parenthesis _are_ needed around it
+
+    precedence_list = []
 
     # TODO: Can use base classes here to shorten the list
 
@@ -64,16 +140,21 @@ def _build_precedences():
                             Determinant, Trace, Cofactor, Inverse, Deviatoric, Skew, Sym))
     precedence_list.append((Product, Division, Cross, Dot, Outer, Inner))
     precedence_list.append((Indexed, Transposed, Power))
+
     precedence_list.append((Abs, MathFunction,)) # Abs, Sqrt, Exp, Ln, Cos, Sin
     precedence_list.append((Variable,))
 
     precedence_list.append((Terminal,)) # terminal_classes
-    
+
     k = 0
     for p in precedence_list:
         for c in p:
             c._precedence = k
         k += 1
+    
+    for c in all_ufl_classes:
+        if not c in abstract_classes:
+            ufl_assert(hasattr(c, "_precedence") and isinstance(c._precedence, int), "No precedence assigned to %s" % c.__name__)
 
 def build_precedences():
     precedence_list = []
@@ -86,6 +167,10 @@ def build_precedences():
         for c in p:
             c._precedence = k
         k += 1
+    
+    for c in all_ufl_classes:
+        if not c in abstract_classes:
+            ufl_assert(hasattr(c, "_precedence") and isinstance(c._precedence, int), "No precedence assigned to %s" % c.__name__)
 
 build_precedences()
 

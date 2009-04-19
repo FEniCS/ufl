@@ -121,7 +121,26 @@ class Sum(AlgebraOperator):
         return sum(o.evaluate(x, mapping, component, index_values) for o in self.operands())
     
     def __str__(self):
-        return "%s" % " + ".join(parstr(o, self) for o in self._operands)
+        ops = [parstr(o, self) for o in self._operands]
+        if False:
+            # Implementation with line splitting:
+            limit = 70
+            delimop = " + \\\n    + "
+            op = " + "
+            s = ops[0]
+            n = len(s)
+            for o in ops[1:]:
+                m = len(o)
+                if n+m > limit:
+                    s += delimop
+                    n = m
+                else:
+                    s += op
+                    n += m
+                s += o
+            return s
+        # Implementation with no line splitting:
+        return "%s" % " + ".join(ops)
     
     def __repr__(self):
         return self._repr
@@ -252,7 +271,26 @@ class Product(AlgebraOperator):
         return tmp
     
     def __str__(self):
-        return "%s" % " * ".join(parstr(o, self) for o in self._operands)
+        ops = [parstr(o, self) for o in self._operands]
+        if False:
+            # Implementation with line splitting:
+            limit = 70
+            delimop = " * \\\n    * "
+            op = " * "
+            s = ops[0]
+            n = len(s)
+            for o in ops[1:]:
+                m = len(o)
+                if n+m > limit:
+                    s += delimop
+                    n = m
+                else:
+                    s += op
+                    n += m
+                s += o
+            return s
+        # Implementation with no line splitting:
+        return "%s" % " * ".join(ops)
     
     def __repr__(self):
         return self._repr
