@@ -1,9 +1,10 @@
 """Classes used to group scalar expressions into expressions with rank > 0."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-31 -- 2009-02-20"
+__date__ = "2008-03-31 -- 2009-04-19"
 
 from ufl.log import warning
+from ufl.common import subdict
 from ufl.assertions import ufl_assert
 from ufl.expr import Expr, WrapperType
 from ufl.constantvalue import as_ufl, Zero
@@ -97,12 +98,13 @@ class ComponentTensor(WrapperType):
     def __new__(cls, expression, indices):
         
         if isinstance(expression, Zero):
-            if not isinstance(indices, MultiIndex): # if constructed from repr
-                indices = MultiIndex(indices)
+            if not isinstance(indices, (tuple, MultiIndex)):
+                indices = (indices,)
+            indices = tuple(indices)
             dims = expression.index_dimensions()
             shape = tuple(dims[i] for i in indices)
             fi = tuple(set(expression.free_indices()) - set(indices))
-            idim  = dict((i, dims[i]) for i in fi)
+            idim = dict((i, dims[i]) for i in fi)
             return Zero(shape, fi, idim)
         
         return WrapperType.__new__(cls)
@@ -116,8 +118,10 @@ class ComponentTensor(WrapperType):
         ufl_assert(all(isinstance(i, Index) for i in indices),
            "Expecting sequence of Index objects, not %s." % repr(indices))
         
+        dims = expression.index_dimensions()
+        
         if not isinstance(indices, MultiIndex): # if constructed from repr
-            indices = MultiIndex(indices)
+            indices = MultiIndex(indices, subdict(dims, indices))
         self._indices = indices
         
         eset = set(expression.free_indices())
@@ -128,7 +132,6 @@ class ComponentTensor(WrapperType):
         missingset = iset - eset
         ufl_assert(len(missingset) == 0, "Missing indices %s in expression %s." % (missingset, expression))
         
-        dims = expression.index_dimensions()
         self._index_dimensions = dict((i, dims[i]) for i in self._free_indices)
         
         self._shape = tuple(dims[i] for i in self._indices)

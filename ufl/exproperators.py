@@ -3,7 +3,7 @@ This way we avoid circular dependencies between e.g.
 Sum and its superclass Expr."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-18 -- 2009-01-29"
+__date__ = "2008-08-18 -- 2009-04-19"
 
 from itertools import chain
 
@@ -14,7 +14,7 @@ from ufl.expr import Expr
 from ufl.constantvalue import Zero, ScalarValue, FloatValue, IntValue, is_python_scalar, as_ufl, python_scalar_types
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import Transposed, Dot
-from ufl.indexing import MultiIndex, IndexBase, FixedIndex, Index, Indexed, IndexSum, indices
+from ufl.indexing import IndexBase, FixedIndex, Index, Indexed, IndexSum, indices
 from ufl.indexutils import repeated_indices, unique_indices, single_indices
 from ufl.tensors import as_tensor
 from ufl.restriction import PositiveRestricted, NegativeRestricted

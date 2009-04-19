@@ -167,10 +167,13 @@ def as_index(i):
         return (i,)
     error("Invalid object %s to create index from." % repr(i))
 
-def as_multi_index(i):
-    if isinstance(i, MultiIndex):
-        return i
-    return MultiIndex(i)
+def as_multi_index(ii, shape=None):
+    if isinstance(ii, MultiIndex):
+        return ii
+    if not isinstance(ii, tuple):
+        ii = (ii,)
+    idims = None if shape is None else dict((j,d) for (j,d) in zip(ii, shape))
+    return MultiIndex(ii, idims)
 
 def indices(n):
     "Return a tuple of n new Index objects."
