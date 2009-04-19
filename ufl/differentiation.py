@@ -101,9 +101,9 @@ class SpatialDerivative(Derivative):
     def __new__(cls, expression, index):
         # Return zero if expression is trivially constant
         if is_spatially_constant(expression):
-            index = as_multi_index(index) # FIXME
-            idx, = index
-            fi, idims = split_indices(expression, idx)
+            if isinstance(index, (tuple, MultiIndex)):
+                index, = index
+            fi, idims = split_indices(expression, index)
             return Zero(expression.shape(), fi, idims)
         return Derivative.__new__(cls)
     
@@ -111,8 +111,12 @@ class SpatialDerivative(Derivative):
         Derivative.__init__(self)
         self._expression = expression
         
+        # Make a MultiIndex with knowledge of the dimensions
+        cell = expression.cell()
+        sh = None if cell is None else (cell.d,)
+        self._index = as_multi_index(index, sh)
+
         # Make sure we have a single valid index
-        self._index = as_multi_index(index) # FIXME
         ufl_assert(len(self._index) == 1, "Expecting a single index.")
         fi, idims = split_indices(expression, self._index[0])
         

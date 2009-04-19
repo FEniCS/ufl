@@ -174,11 +174,23 @@ class ComponentTensor(WrapperType):
 
 # --- User-level functions to wrap expressions in the correct way ---
 
+def numpy2nestedlists(arr):
+    from numpy import ndarray
+    if not isinstance(arr, ndarray):
+        return arr
+    return [numpy2nestedlists(arr[k]) for k in range(arr.shape[0])]
+
 def as_tensor(expressions, indices = None):
     if indices is None:
+        # To avoid importing numpy unneeded, it's quite slow...
+        if not isinstance(expressions, (list, tuple)):
+            import numpy
+            if isinstance(expressions, numpy.ndarray):
+                expressions = numpy2nestedlists(expressions)
         ufl_assert(isinstance(expressions, (list, tuple)),
             "Expecting nested list or tuple of Exprs.")
         return ListTensor(*expressions)
+
     if isinstance(indices, list):
         indices = tuple(indices)
     elif not isinstance(indices, tuple):
@@ -195,11 +207,17 @@ def as_tensor(expressions, indices = None):
 
 def as_matrix(expressions, indices = None):
     if indices is None:
+        # To avoid importing numpy unneeded, it's quite slow...
+        if not isinstance(expressions, (list, tuple)):
+            import numpy
+            if isinstance(expressions, numpy.ndarray):
+                expressions = numpy2nestedlists(expressions)
         ufl_assert(isinstance(expressions, (list, tuple)),
             "Expecting nested list or tuple of Exprs.")
         ufl_assert(isinstance(expressions[0], (list, tuple)),
             "Expecting nested list or tuple of Exprs.")
-        return ListTensor(*expressions)
+        return as_tensor(expressions)
+
     ufl_assert(len(indices) == 2, "Expecting exactly two indices.")
     return as_tensor(expressions, indices)
 

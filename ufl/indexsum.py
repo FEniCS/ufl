@@ -47,6 +47,9 @@ class IndexSum(AlgebraOperator):
 
         self._repr = "IndexSum(%r, %r)" % (summand, index)
     
+    def index(self):
+        return self._index[0]
+    
     def dimension(self):
         return self._dimension
     
