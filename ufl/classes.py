@@ -47,8 +47,8 @@ for _i, _c in enumerate(all_ufl_classes):
     _c._handlername = _camel2underscore(_c.__name__)
 
 
-# FIXME: Finish precedence mapping, review this list very carefully!
-def _build_precedences():
+# TOOD: Finish precedence list with all necessary types!
+def _build_precedence_list():
     # --- From Wikipedia, precedence of operators in C:
     #1 	()   []   ->   .   :: 	Grouping, scope, array/member access
     #2 	 !   ~   -   +   *   &   sizeof   type cast ++x   --x   	(most) unary operations, sizeof and type casts
@@ -64,10 +64,8 @@ def _build_precedences():
     #12 	|| 	Logical OR
     #13 	 ?: 	Conditional expression (ternary operator)
     #14 	=   +=   -=   *=   /=   %=   &=   |=   ^=   <<=   >>= 	Assignment operators
-    
-    # --- From python documetation, precedence of operators in python:
-    precedence_list = []
 
+    # --- From python documetation, precedence of operators in python:
     #Operator 	Description
     #lambda 	Lambda expression
     #or 	Boolean OR
@@ -90,6 +88,8 @@ def _build_precedences():
     #*, /, //, % 	Multiplication, division, remainder
     precedence_list.append((Product, Division, Inner, Outer, Dot, Cross,))
 
+    precedence_list.append((Div, Grad, Curl, Rot,))
+
     #+x, -x, ~x 	Positive, negative, bitwise NOT
 
     #** 	Exponentiation [8]
@@ -100,10 +100,7 @@ def _build_precedences():
 
     #(expressions...), [expressions...], {key:datum...}, `expressions...` 	Binding or tuple display, list display, dictionary display, string conversion
 
-    precedence_list.append((Div, Grad, Curl, Rot,))
-
     precedence_list.append((Conditional, Abs, MathFunction)) # operands always needs parenthesis unless terminal
-    precedence_list.append((Operator,)) # Operands always needs parenthesis unless terminal
     precedence_list.append((Terminal,)) # Never needs parenthesis around it
 
     # --- Obvious:
@@ -125,21 +122,22 @@ def _build_precedences():
 
     precedence_list = []
 
-    # TODO: Can use base classes here to shorten the list
-
     precedence_list.append((Sum,))
     precedence_list.append((IndexSum,))
     
     # TODO: What to do with these?
     precedence_list.append((ListTensor, ComponentTensor))
-    precedence_list.append((Restriction,)) # NegativeRestricted, PositiveRestricted
+    precedence_list.append((Restriction,))
     precedence_list.append((Conditional,))
-    precedence_list.append((Condition,)) # LE, GT, GE, NE, EQ, LT
+    precedence_list.append((Condition,))
     
-    precedence_list.append((Div, Grad, Curl, Rot, SpatialDerivative, VariableDerivative,
+    precedence_list.append((Div, Grad, Curl, Rot,
+                            SpatialDerivative, VariableDerivative,
                             Determinant, Trace, Cofactor, Inverse, Deviatoric, Skew, Sym))
     precedence_list.append((Product, Division, Cross, Dot, Outer, Inner))
     precedence_list.append((Indexed, Transposed, Power))
+
+    # If parent operator binds stronger than child, must parenthesize child
 
     precedence_list.append((Abs, MathFunction,)) # Abs, Sqrt, Exp, Ln, Cos, Sin
     precedence_list.append((Variable,))
@@ -156,12 +154,26 @@ def _build_precedences():
         if not c in abstract_classes:
             ufl_assert(hasattr(c, "_precedence") and isinstance(c._precedence, int), "No precedence assigned to %s" % c.__name__)
 
-def build_precedences():
+def build_precedence_list():
+
+    # foo(a+b) == foo((a+b)) if pres(foo) < pres(+)
+
+    # What do we know about other types?
+    #Power <= Indexed
+    #Power <= Transposed
+
     precedence_list = []
-    
-    precedence_list.append((Operator,)) # tuple(nonterminal_classes))
-    precedence_list.append((Terminal,)) # tuple(terminal_classes))
-    
+    precedence_list.append((Operator,)) # Default behaviour: should always add parentheses
+    precedence_list.append((Sum,))
+    precedence_list.append((IndexSum,)) # sum_i a + b = (sum_i a) + b != sum_i (a + b), sum_i binds stronger than +, but weaker than product
+    precedence_list.append((Product, Division,))
+    precedence_list.append((Power,))
+    precedence_list.append((Terminal,))
+    return precedence_list
+
+def build_precedences():
+    precedence_list = build_precedence_list()
+
     k = 0
     for p in precedence_list:
         for c in p:

@@ -1,7 +1,7 @@
 "Precedence handling."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2009-03-27 -- 2009-03-27"
+__date__ = "2009-03-27 -- 2009-04-19"
 
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
@@ -14,7 +14,14 @@ def parstr(child, parent, pre="(", post=")"):
     # We want child to be evaluated fully first,
     # so if the parent has higher precedence
     # we wrap in ().
-    #if parent._precedence > child._precedence: # FIXME: Need proper precedence map, and perhaps >=
-    if not isinstance(child, Terminal):
+
+    # Operators where operands are always parenthesized 
+    if parent._precedence == 0:
         return pre + s + post
+
+    # If parent operator binds stronger than child, must parenthesize child
+    if parent._precedence > child._precedence:
+        return pre + s + post
+
+    # Nothing needed
     return s

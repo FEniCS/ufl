@@ -1,7 +1,7 @@
 "Differential operators."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-04-03"
+__date__ = "2008-03-14 -- 2009-04-19"
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
@@ -16,6 +16,7 @@ from ufl.variable import Variable
 from ufl.tensors import as_tensor, ComponentTensor, ListTensor
 from ufl.function import Function, ConstantBase
 from ufl.basisfunction import BasisFunction
+from ufl.precedence import parstr
 
 #--- Basic differentiation objects ---
 
@@ -77,7 +78,7 @@ class FunctionDerivative(Derivative):
         return {}
     
     def __str__(self):
-        return "FunctionDerivative (w.r.t. function %s and using basis function %s) of \n%s" % (self._functions, self._basis_functions, self._integrand)
+        return "FunctionDerivative (w.r.t. function %s and using basis function %s) of \n%s" % (self._functions, self._basis_functions, self._integrand) # TODO: Short notation
     
     def __repr__(self):
         return "FunctionDerivative(%r, %r, %r)" % (self._integrand, self._functions, self._basis_functions)
@@ -156,7 +157,9 @@ class SpatialDerivative(Derivative):
         return result
     
     def __str__(self):
-        return "d[%s] / d[x_%s]" % (self._expression, self._index)
+        if isinstance(self._expression, Terminal):
+            return "d%s/dx_%s" % (self._expression, self._index)
+        return "d/dx_%s %s" % (self._index, parstr(self._expression, self))
     
     def __repr__(self):
         return self._repr
@@ -211,7 +214,9 @@ class VariableDerivative(Derivative):
         return self._shape
     
     def __str__(self):
-        return "d[%s] / d[%s]" % (self._f, self._v)
+        if isinstance(self._f, Terminal):
+            return "d%s/dx_%s" % (self._f, self._f)
+        return "d/dx_%s %s" % (self._v, parstr(self._f, self))
 
     def __repr__(self):
         return self._repr

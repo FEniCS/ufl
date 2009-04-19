@@ -1,7 +1,7 @@
 """This module defines the IndexSum class."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2009-01-28 -- 2009-02-23"
+__date__ = "2009-01-28 -- 2009-04-19"
 
 from ufl.log import error
 from ufl.expr import Expr, AlgebraOperator
@@ -13,6 +13,17 @@ from ufl.precedence import parstr
 class IndexSum(AlgebraOperator):
     __slots__ = ("_summand", "_index", "_dimension", "_repr", "_free_indices", "_index_dimensions")
     
+    def __new__(cls, summand, index):
+        from ufl.constantvalue import Zero
+        if isinstance(summand, Zero):
+            sh = summand.shape()
+            j, = index
+            fi = tuple(i for i in summand.free_indices() if not i == j)
+            idims = dict(summand.index_dimensions())
+            del idims[j]
+            return Zero(sh, fi, idims)
+        return AlgebraOperator.__new__(cls)
+
     def __init__(self, summand, index):
         AlgebraOperator.__init__(self)
         if not isinstance(summand, Expr):

@@ -1,4 +1,5 @@
 0.3.0 [2009-0?-??]
+ - Rudimentary precedence handling for better use of parentheses in str(expression).
  - Added script ufl2py, mainly for debugging purposes.
  - Crude implementation of estimate_max_polynomial_degree
    for quadrature degree estimation.
