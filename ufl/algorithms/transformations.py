@@ -3,7 +3,7 @@ either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2009-04-17"
+__date__ = "2008-05-07 -- 2009-04-19"
 
 # Modified by Anders Logg, 2009.
 
@@ -898,10 +898,6 @@ def transform_integrands(form, transform):
     """Apply transform(expression) to each integrand 
     expression in form, or to form if it is an Expr."""
 
-    # FIXME: Strange behavior here. For a Form, the result is Form,
-    # FIXME: but for Integral and Expr the result may be something
-    # FIXME: completely different like an int
-    
     if isinstance(form, Form):
         newintegrals = []
         for itg in form.integrals():
@@ -910,15 +906,15 @@ def transform_integrands(form, transform):
                 newitg = itg.reconstruct(integrand)
                 newintegrals.append(newitg)
         if not newintegrals:
-            error("No integrals left after transformation, cannot reconstruct form.") # TODO: Is this the right behaviour?
+            error("No integrals left after transformation, cannot reconstruct form.") # TODO: Can this be a problem? We could for example return Form([]), but problems would likely arise later anyway.
         return Form(newintegrals)
+
     elif isinstance(form, Integral):
         integral = form
         integrand = transform(integral.integrand())
-        return integrand
-        # FIXME: Should do this if we want to return an integral
-        #new_integral = integral.reconstruct(integrand)
-        #return new_integral
+        new_integral = integral.reconstruct(integrand)
+        return new_integral
+
     elif isinstance(form, Expr):
         expr = form
         return transform(expr)
@@ -1007,4 +1003,12 @@ def estimate_max_polynomial_degree(e):
     """Estimate the maximum needed quadrature order for
     expression, integral or form using the highest polynomial
     degree of any term."""
-    return apply_transformer(e, DegreeEstimator())
+    de = DegreeEstimator()
+    if isinstance(e, Form):
+        degrees = [de.visit(integral.integrand()) for integral in e.integrals()]
+    elif isinstance(e, Integral):
+        degrees = [de.visit(e.integrand())]
+    else:
+        degrees = [de.visit(e)]
+    return max(degrees)
+
