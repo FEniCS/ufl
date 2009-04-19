@@ -121,16 +121,13 @@ class DerivativeTestCase(unittest.TestCase):
 
         f = psi*dx
         F = derivative(f, w, v)
-        J = derivative(-F, w, u)
+        J = derivative(F, w, u)
 
         f_expression = strip_variables(f.form_data().form.cell_integrals()[0].integrand())
         F_expression = strip_variables(F.form_data().form.cell_integrals()[0].integrand())
         J_expression = strip_variables(J.form_data().form.cell_integrals()[0].integrand())
-        print ".........", f_expression
-        print ".........", F_expression
-        print ".........", J_expression
-        classes = set(c.__class__ for c in post_traversal(f_expression))
-        print classes
+        
+        #classes = set(c.__class__ for c in post_traversal(f_expression))
 
         Kv = .2
         bv = .3
@@ -139,19 +136,11 @@ class DerivativeTestCase(unittest.TestCase):
         du = .11
         E = dw + dw**2 / 2.
         Q = bv*E**2
-        print ".........", Kv
-        print ".........", bv
-        print ".........", dv
-        print ".........", du
-        print ".........", dw
-        print ".........", E
-        print ".........", Q
-        print ".........", "exp =", exp(Q)
-        psi = Kv*(exp(Q)-1)
-        f = psi
-        F = 2*Kv*bv*E*(1+dw)*exp(Q)*dv
-        J = 2*Kv*bv*exp(Q)*dv*du*(E + (1+dw)**2*(2*bv*E**2 + 1))
-        print psi, f, F, J
+        expQ = float(exp(Q))
+        psi = Kv*(expQ-1)
+        fv = psi
+        Fv = 2*Kv*bv*E*(1+dw)*expQ*dv
+        Jv = 2*Kv*bv*expQ*dv*du*(E + (1+dw)**2*(2*bv*E**2 + 1))
 
         def Nv(x, derivatives):
             assert derivatives == (0,)
@@ -165,11 +154,22 @@ class DerivativeTestCase(unittest.TestCase):
             assert derivatives == (0,)
             return dw
         
-        mapping = { K: Kv, b: bv, v: Nv, u: Nu, w: Nw }
+        w, b, K = f.form_data().functions
+        mapping = { K: Kv, b: bv, w: Nw }
+        fv2 = f_expression((0,), mapping)
+        self.assertAlmostEqual(fv, fv2)
         
-        self.assertAlmostEqual(f, f_expression((0,), mapping))
-        self.assertAlmostEqual(F, F_expression((0,), mapping))
-        self.assertAlmostEqual(J, J_expression((0,), mapping))
+        w, b, K = F.form_data().functions
+        v, = F.form_data().basis_functions
+        mapping = { K: Kv, b: bv, v: Nv, w: Nw }
+        Fv2 = F_expression((0,), mapping)
+        self.assertAlmostEqual(Fv, Fv2)
+
+        w, b, K = J.form_data().functions
+        v, u = J.form_data().basis_functions
+        mapping = { K: Kv, b: bv, v: Nv, u: Nu, w: Nw }
+        Jv2 = J_expression((0,), mapping)
+        self.assertAlmostEqual(Jv, Jv2)
 
 tests = [DerivativeTestCase]
 
