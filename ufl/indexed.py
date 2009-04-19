@@ -1,12 +1,12 @@
 """This module defines the Indexed class."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2009-01-28 -- 2009-02-23"
+__date__ = "2009-01-28 -- 2009-04-19"
 
 from collections import defaultdict
 from ufl.log import error
 from ufl.expr import Expr, WrapperType
-from ufl.indexing import IndexBase, Index, FixedIndex, MultiIndex, as_multi_index
+from ufl.indexing import IndexBase, Index, as_multi_index
 from ufl.indexutils import unique_indices
 from ufl.precedence import parstr
 
@@ -20,14 +20,14 @@ class Indexed(WrapperType):
         if not isinstance(expression, Expr):
             error("Expecting Expr instance, not %s." % repr(expression))
         self._expression = expression
-        self._indices = as_multi_index(indices)
+        shape = expression.shape()
+        self._indices = as_multi_index(indices, shape)
         
         if expression.rank() != len(self._indices):
             error("Invalid number of indices (%d) for tensor "\
                 "expression of rank %d:\n\t%r\n"\
                 % (len(self._indices), expression.rank(), expression))
         
-        shape = expression.shape()
         idims = dict((i, s) for (i, s) in zip(self._indices._indices, shape) if isinstance(i, Index))
         idims.update(expression.index_dimensions())
         fi = unique_indices(expression.free_indices() + self._indices._indices)

@@ -28,20 +28,24 @@ class IndexSum(AlgebraOperator):
         AlgebraOperator.__init__(self)
         if not isinstance(summand, Expr):
             error("Expecting Expr instance, not %s." % repr(summand))
-        index = as_multi_index(index)
-
-        if len(index) != 1:
-            error("Expecting a single Index only.")
+        
+        if isinstance(index, Index):
+            j = index
+        elif isinstance(index, MultiIndex):
+            if len(index) != 1:
+                error("Expecting a single Index only.")
+            j, = index
 
         self._summand = summand
-        self._index = index
-        self._repr = "IndexSum(%r, %r)" % (summand, index)
-        
-        j = self._index[0]
-        self._free_indices = tuple(i for i in self._summand.free_indices() if not i == j)
-        self._index_dimensions = dict(self._summand.index_dimensions())
-        self._dimension = self._index_dimensions[j]
+        self._index_dimensions = dict(summand.index_dimensions())
+        self._free_indices = tuple(i for i in summand.free_indices() if not i == j)
+
+        d = self._index_dimensions[j]
+        self._index = as_multi_index(index, (d,))
+        self._dimension = d
         del self._index_dimensions[j]
+
+        self._repr = "IndexSum(%r, %r)" % (summand, index)
     
     def dimension(self):
         return self._dimension

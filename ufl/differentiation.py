@@ -9,7 +9,7 @@ from ufl.common import subdict, mergedicts
 from ufl.expr import Expr, Operator
 from ufl.terminal import Terminal, Tuple
 from ufl.constantvalue import ConstantValue, Zero, ScalarValue, Identity, is_true_ufl_scalar
-from ufl.indexing import IndexBase, Index, FixedIndex, MultiIndex, Indexed, as_multi_index
+from ufl.indexing import Index, FixedIndex, Indexed, as_multi_index
 from ufl.indexutils import unique_indices
 from ufl.geometry import FacetNormal
 from ufl.variable import Variable
@@ -101,7 +101,7 @@ class SpatialDerivative(Derivative):
     def __new__(cls, expression, index):
         # Return zero if expression is trivially constant
         if is_spatially_constant(expression):
-            index = as_multi_index(index)
+            index = as_multi_index(index) # FIXME
             idx, = index
             fi, idims = split_indices(expression, idx)
             return Zero(expression.shape(), fi, idims)
@@ -112,7 +112,7 @@ class SpatialDerivative(Derivative):
         self._expression = expression
         
         # Make sure we have a single valid index
-        self._index = as_multi_index(index)
+        self._index = as_multi_index(index) # FIXME
         ufl_assert(len(self._index) == 1, "Expecting a single index.")
         fi, idims = split_indices(expression, self._index[0])
         
