@@ -203,7 +203,7 @@ def count_nodes(expr, ids=None):
     ids.add(i)
     return len(ids)
 
-def extract_quadrature_order(integral):
+def extract_max_quadrature_element_degree(integral):
     """Extract quadrature integration order from quadrature
     elements in integral. Returns None if not found."""
     quadrature_elements = [e for e in extract_elements(integral) if "Quadrature" in e.family()]
@@ -214,13 +214,12 @@ def extract_quadrature_order(integral):
         "Incompatible quadrature elements specified (orders must be equal).")
     return quad_order
 
-def estimate_quadrature_order(integral):
+def estimate_quadrature_degree(integral):
     "Estimate the necessary quadrature order for integral using the sum of basis function degrees."
     bf = extract_basis_functions(integral)
     degrees = [b.element().degree() for b in bf]
     if len(bf) == 0:
-        warning("Trying to estimate the quadrature order of a functional based on zero basis functions makes no sense...")
-        return 3
+        return None
     if len(bf) == 1:
         return 2*degrees[0]
     return sum(degrees)

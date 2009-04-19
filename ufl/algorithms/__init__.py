@@ -15,7 +15,7 @@ from ufl.algorithms.analysis import extract_classes, extract_type, has_type, \
                                     extract_basis_functions, extract_functions, \
                                     extract_elements, extract_unique_elements, \
                                     extract_variables, extract_duplications, \
-                                    extract_quadrature_order, estimate_quadrature_order
+                                    extract_max_quadrature_element_degree, estimate_quadrature_degree
 
 # Utility class for easy collecting of data about form
 from ufl.algorithms.formdata import FormData
@@ -32,7 +32,7 @@ from ufl.algorithms.transformations import transform, Transformer, apply_transfo
                                            replace, flatten, strip_variables, \
                                            expand_compounds, expand_indices, \
                                            purge_list_tensors, mark_duplications, \
-                                           estimate_max_quadrature_order
+                                           estimate_max_polynomial_degree
 from ufl.algorithms.renumbering import renumber_indices
 
 # Utilities for transforming complete Forms into other Forms

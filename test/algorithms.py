@@ -168,6 +168,34 @@ class AlgorithmsTestCase(unittest.TestCase):
         # TODO: Compare a1, a2, a3
         # TODO: Test something more
 
+    def test_degree_estimation(self):
+        V1 = FiniteElement("CG", triangle, 1)
+        V2 = FiniteElement("CG", triangle, 2)
+        VV = VectorElement("CG", triangle, 3)
+        VM = V1 + V2
+        v1 = BasisFunction(V1)
+        v2 = BasisFunction(V2)
+        f1, f2 = Functions(VM)
+        vv = BasisFunction(VV)
+        vu = BasisFunction(VV)
+    
+        self.assertEqual(estimate_max_polynomial_degree(vv[0]), 3)
+        self.assertEqual(estimate_max_polynomial_degree(v2*vv[0]), 2+3)
+        self.assertEqual(estimate_max_polynomial_degree(vu[0]*vv[0]), 3+3)
+        self.assertEqual(estimate_max_polynomial_degree(vu[i]*vv[i]), 3+3)
+
+        self.assertEqual(estimate_max_polynomial_degree(v1), 1)
+        self.assertEqual(estimate_max_polynomial_degree(v2), 2)
+        self.assertEqual(estimate_max_polynomial_degree(f1), 2) # TODO: This should be 1, but 2 is expected behaviour now.
+        self.assertEqual(estimate_max_polynomial_degree(f2), 2)
+        self.assertEqual(estimate_max_polynomial_degree(v2*v1), 3)
+        self.assertEqual(estimate_max_polynomial_degree(f1*v1), 2+1) # TODO: This should be 1+1, but 2+1 is expected behaviour now.
+        self.assertEqual(estimate_max_polynomial_degree(f2*v1), 2+1)
+        self.assertEqual(estimate_max_polynomial_degree(f2*v2*v1), 2+2+1)
+        self.assertEqual(estimate_max_polynomial_degree(f1*f2*v2.dx(0)*v1.dx(0)), 2+2+2-1+1-1) # TODO: This should be 1+2+2-1+1-1, but 2+1 is expected behaviour now.
+        self.assertEqual(estimate_max_polynomial_degree(f2**3*v1 + f1*v1), 2*3+1)
+
+
 tests = [AlgorithmsTestCase]
 
 if __name__ == "__main__":

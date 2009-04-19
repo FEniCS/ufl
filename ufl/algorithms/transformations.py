@@ -988,7 +988,7 @@ def extract_basis_function_dependencies(e):
     return BasisFunctionDependencyExtracter().visit(e)
 
 
-def estimate_max_quadrature_order(e):
+def estimate_max_polynomial_degree(e):
     """Estimate the maximum needed quadrature order for
     expression, integral or form using the highest polynomial
     degree of any term."""
