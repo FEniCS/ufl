@@ -1,7 +1,7 @@
 "The Form class."
 
 __authors__ = "Martin Sandve Alnes"
-__date__    = "2008-03-14 -- 2009-03-31"
+__date__    = "2008-03-14 -- 2009-04-20"
 
 # Modified by Anders Logg, 2009.
 
@@ -116,6 +116,11 @@ class Form(object):
         # This enables the handy "0*form" syntax
         ufl_assert(is_python_scalar(scalar), "Only multiplication by scalar literals currently supported.")
         return Form([scalar*itg for itg in self._integrals])
+    
+    def __mul__(self, function):
+        "The action of this form on the given function."
+        from ufl.formoperators import action
+        return action(self, function)
     
     def __str__(self):
         if self._str is None:
