@@ -93,7 +93,7 @@ from ufl.tensors import unit_vector, unit_vectors, unit_matrix, unit_matrices
 
 # Operators
 from ufl.operators import transpose, outer, inner, dot, cross, det, \
-                       inv, tr, dev, cofac, skew, \
+                       inv, tr, dev, cofac, skew, sym, \
                        sqrt, exp, ln, cos, sin, \
                        eq, ne, le, ge, lt, gt, conditional, sign, \
                        jump, avg, \

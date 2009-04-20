@@ -1,5 +1,8 @@
 0.3.0 [2009-0?-??]
- - Rudimentary precedence handling for better use of parentheses in str(expression).
+ - Added form operators system and sensitiviy_rhs.
+ - diff can take form as argument.
+ - Rudimentary precedence handling for better
+   use of parentheses in str(expression).
  - Added script ufl2py, mainly for debugging purposes.
  - Crude implementation of estimate_max_polynomial_degree
    for quadrature degree estimation.
