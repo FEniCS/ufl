@@ -21,6 +21,7 @@ from ufl.indexing import MultiIndex
 from ufl.differentiation import SpatialDerivative
 from ufl.algorithms.graph import Graph
 from ufl.algorithms.transformations import ReuseTransformer, apply_transformer
+from ufl.algorithms.analysis import has_type
 
 class IndexExpander(ReuseTransformer):
     """..."""
