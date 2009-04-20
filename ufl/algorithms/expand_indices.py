@@ -18,6 +18,7 @@ from ufl.tensors import as_tensor, ComponentTensor
 from ufl.permutation import compute_indices
 from ufl.constantvalue import Zero
 from ufl.indexing import MultiIndex
+from ufl.differentiation import SpatialDerivative
 from ufl.algorithms.graph import Graph
 from ufl.algorithms.transformations import ReuseTransformer, apply_transformer
 
@@ -174,7 +175,7 @@ class IndexExpander(ReuseTransformer):
 
     def spatial_derivative(self, x):
         f, ii = x.operands()
-        ufl_assert(isinstance(f, (Terminal, x._uflclass, ListTensor, ComponentTensor)), "Expecting expand_derivatives to have been applied.")
+        ufl_assert(isinstance(f, (Terminal, SpatialDerivative, ListTensor, ComponentTensor)), "Expecting expand_derivatives to have been applied.")
         
         # Taking component if necessary
         f = self.visit(f) 
@@ -184,7 +185,7 @@ class IndexExpander(ReuseTransformer):
         # Map free index to a value
         i, = ii
         if isinstance(i, Index):
-            ii = ii._uflclass((FixedIndex(self._index2value[i]),))
+            ii = MultiIndex((FixedIndex(self._index2value[i]),), {})
 
         # Hide used index i (doing this is not correct behaviour)
         #if isinstance(i, Index):
@@ -312,7 +313,17 @@ def expand_indices2(e):
                     ufl_assert(len(A.shape()) == len(c), "Component size mismatch.")
                     comp = s.get(c, c)
                     ufl_assert(len(c) == len(comp), "Component size mismatch after symmetry mapping.")
+
                 e = A[comp]
+                if isinstance(A, ListTensor) and isinstance(e, Indexed) and not isinstance(e.operands()[0], (Terminal, SpatialDerivative)):
+                    print "="*80
+                    print "This is a case where expand_indices2 doesn't work as it should:" # TODO: Must fix before we can employ and optimize this!
+                    print str(A)
+                    print repr(comp)
+                    print str(e)
+                    print "="*80
+                    import sys
+                    sys.exit(-1)
 
             elif isinstance(v, ComponentTensor):
                 import numpy

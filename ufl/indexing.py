@@ -97,6 +97,7 @@ class MultiIndex(UtilityType):
         # TODO: Remove "idims is None" when it can no longer occur
         if idims is None:
             warning("No index dimensions provided in MultiIndex.")
+            #error("No index dimensions provided in MultiIndex.")
         else:
             idims = dict(idims)
             for k in ii:
@@ -107,7 +108,7 @@ class MultiIndex(UtilityType):
         self._indices = ii
         self._idims = idims
         self._str = ", ".join(str(i) for i in self._indices)
-        self._repr = "MultiIndex(%r)" % (self._indices,)
+        self._repr = "MultiIndex(%r, %r)" % (self._indices, self._idims)
     
     def evaluate(self, x, mapping, component, index_values):
         # Build component from index values

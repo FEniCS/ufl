@@ -1,10 +1,11 @@
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2009-02-22 -- 2009-03-26"
+__date__ = "2009-02-22 -- 2009-04-20"
 
 from ufl.common import Counted, Stack, StackDict
 from ufl.log import error
 from ufl.expr import Expr
 from ufl.indexing import Index, FixedIndex, MultiIndex, Indexed
+from ufl.indexsum import IndexSum
 from ufl.tensors import ComponentTensor, ListTensor
 from ufl.basisfunction import BasisFunction
 from ufl.variable import Label, Variable
@@ -214,7 +215,7 @@ class IndexRenumberingTransformer2(VariableRenumberingTransformer):
         f, ii = o.operands()
         ni = self.define_new_indices(ii)
         g = self.visit(f)
-        r = o._uflclass(g, ni)
+        r = IndexSum(g, ni)
         self.revert_indices(ii)
         return r
 

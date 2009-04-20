@@ -70,13 +70,18 @@ class ListTensor(WrapperType):
         return a
     
     def __getitem__(self, key):
+        origkey = key
+
+        if isinstance(key, MultiIndex):
+            key = key._indices
         if not isinstance(key, tuple):
             key = (key,)
         k = key[0]
         if isinstance(k, (int, FixedIndex)):
             sub = self._expressions[int(k)]
             return sub if len(key) == 1 else sub[key[1:]]
-        return Expr.__getitem__(self, key)
+
+        return Expr.__getitem__(self, origkey)
     
     def __str__(self):
         def substring(expressions, indent):
