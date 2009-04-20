@@ -789,6 +789,7 @@ def purge_list_tensors(e):
     expressions to use their components directly.
     Will usually increase the size of the expression."""
     if has_type(e, ListTensor):
+        from ufl.algorithms.expand_indices import expand_indices
         return expand_indices(e) # FIXME: Only expand what's necessary to get rid of list tensors
     return e
 
