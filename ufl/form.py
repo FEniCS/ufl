@@ -10,7 +10,6 @@ from ufl.assertions import ufl_assert
 from ufl.constantvalue import as_ufl, is_python_scalar
 from ufl.sorting import cmp_expr
 from ufl.integral import Integral, Measure
-from ufl.operators import inner
 
 # --- The Form class, representing a complete variational form or functional ---
 

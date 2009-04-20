@@ -37,7 +37,7 @@ __version__ = "0.3"
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __copyright__ = "Copyright (C) 2008-2009 " + __authors__
 __license__  = "GNU GPL version 3 or any later version"
-__date__ = "2008-03-14 -- 2009-04-19"
+__date__ = "2008-03-14 -- 2009-04-20"
 
 ########## README
 # Imports here should be what the user sees when doing "from ufl import *",
@@ -107,7 +107,7 @@ from ufl.form import Form
 from ufl.integral import Integral
 
 # Representations of transformed forms
-from ufl.formoperators import derivative, action, energy_norm, rhs, lhs, functional, adjoint #, dirichlet_functional
+from ufl.formoperators import derivative, action, energy_norm, rhs, lhs, system, functional, adjoint, sensitivity_rhs #, dirichlet_functional
 
 # Predefined convenience objects
 from ufl.objects import interval, triangle, tetrahedron, quadrilateral, hexahedron, \

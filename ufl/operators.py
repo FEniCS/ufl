@@ -9,6 +9,7 @@ __date__ = "2008-04-09 -- 2009-04-07"
 import math
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
+from ufl.form import Form
 from ufl.constantvalue import Zero, ScalarValue, as_ufl
 from ufl.differentiation import VariableDerivative, Grad, Div, Curl, Rot
 from ufl.tensoralgebra import Transposed, Inner, Outer, Dot, Cross, Determinant, Inverse, Cofactor, Trace, Deviatoric, Skew, Sym
@@ -118,19 +119,36 @@ def Dx(f, *i):
 def Dt(f):
     #return TimeDerivative(f) # TODO: Add class
     raise NotImplementedError
+ 
+# TODO: We have "derivative", "diff", "Dx", and "f.dx(i)", can we unify these with more intuitive consistent naming?
+def diff(f, v):
+    """The derivative of f with respect to the variable v.
+    
+    If f is a form, diff is applied to each integrand.
+    """
+    if isinstance(f, Form):
+        from ufl.algorithms.transformations import transform_integrands
+        def _diff(e):
+            return diff(e, v)
+        return transform_integrands(f, _diff)
 
-def diff(f, v): # TODO: We have "derivative", "diff", "Dx", and "f.dx(i)", can we unify these with more intuitive consistent naming?
-    "The derivative of f with respect to the variable v."
     if isinstance(v, SpatialCoordinate):
         r = v.rank()
         ii = indices(r + 1)
         if r:
             v = v[ii[:-1]]
         dv = v.dx(ii[-1])
+
     return VariableDerivative(f, v)
 
 def diff2(f, v): # DIFFSHAPE TODO: Replace diff with this? The difference is that the shape of v comes before the shape of f in this version.
     "The derivative of f with respect to the variable v."
+    if isinstance(f, Form):
+        from ufl.algorithms.transformations import transform_integrands
+        def _diff(e):
+            return diff(e, v)
+        return transform_integrands(f, _diff)
+    
     if isinstance(v, SpatialCoordinate):
         r = v.rank()
         ii = indices(r + 1)

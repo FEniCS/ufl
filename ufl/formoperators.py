@@ -1,7 +1,7 @@
 "Various high level ways to transform a complete Form into a new Form."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-04-08"
+__date__ = "2008-03-14 -- 2009-04-20"
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
@@ -9,10 +9,12 @@ from ufl.form import Form
 from ufl.expr import Expr
 from ufl.split_functions import split
 from ufl.terminal import Tuple
+from ufl.variable import Variable
 from ufl.finiteelement import MixedElement
 from ufl.function import Function
 from ufl.basisfunction import BasisFunction, BasisFunctions
 from ufl.differentiation import FunctionDerivative
+from ufl.constantvalue import is_true_ufl_scalar
 
 # An exception to the rule that ufl.* does not depend on ufl.algorithms.* ...
 from ufl.algorithms import compute_form_adjoint, \
@@ -49,6 +51,10 @@ def rhs(form):
     form = as_form(form)
     form = expand_derivatives(form)
     return compute_form_rhs(form)
+
+def system(form):
+    "Split a form into the left hand side and right hand side, see lhs and rhs."
+    return lhs(form), rhs(form)
 
 def functional(form): # TODO: Does this make sense for anything other than testing?
     """Extract the functional part of form."""
@@ -146,3 +152,58 @@ def derivative(form, function, basis_function=None):
         return FunctionDerivative(form, functions, basis_functions)
     
     error("Invalid argument type %s." % str(type(form)))
+
+def sensitivity_rhs(a, u, L, v):
+    """Compute the right hand side for a sensitivity calculation system.
+
+    The derivation behind this computation is as follows.
+    Assume a, L to be bilinear and linear forms
+    corresponding to the assembled linear system
+
+        Ax = b.
+
+    Where x is the vector of the discrete function corresponding to u.
+    Let v be some scalar variable this equation depends on.
+    Then we can write
+        
+        0 = d/dv[Ax-b] = dA/dv x + A dx/dv - db/dv,
+        A dx/dv = db/dv - dA/dv x,
+    
+    and solve this system for dx/dv, using the same bilinear form a
+    and matrix A from the original system.
+    Assume the forms are written
+    
+        v = variable(v_expression)
+        L = IL(v)*dx
+        a = Ia(v)*dx
+    
+    where IL and Ia are integrand expressions.
+    Define a Function u representing the solution
+    to the equations. Then we can compute db/dv
+    and dA/dv from the forms
+
+        da = diff(a, v)
+        dL = diff(L, v)
+
+    and the action of da on u by
+
+        dau = action(da, u)
+
+    In total, we can build the right hand side of the system
+    to compute du/dv with the single line
+        
+        dL = diff(L, v) - action(diff(a, v), u)
+
+    or, using this function
+
+        dL = sensitivity_rhs(a, u, L, v)
+    """
+    msg = "Expecting (a, u, L, v), (bilinear form, function, linear form and scalar variable)."
+    ufl_assert(isinstance(a, Form), msg)
+    ufl_assert(isinstance(u, Function), msg)
+    ufl_assert(isinstance(L, Form), msg)
+    ufl_assert(isinstance(v, Variable), msg)
+    ufl_assert(is_true_ufl_scalar(v), "Expecting scalar variable.")
+    from ufl.operators import diff
+    return diff(L, v) - action(diff(a, v), u)
+
