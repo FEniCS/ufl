@@ -113,7 +113,11 @@ class SpatialDerivative(Derivative):
         
         # Make a MultiIndex with knowledge of the dimensions
         cell = expression.cell()
-        sh = None if cell is None else (cell.d,)
+        if cell is None:
+            sh = None
+            error("Couldn't get cell, this shouldn't happen at this point since spatially constant types are handled in __new__.")
+        else:
+            sh = (cell.d,)
         self._index = as_multi_index(index, sh)
 
         # Make sure we have a single valid index

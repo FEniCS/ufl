@@ -230,6 +230,7 @@ def as_vector(expressions, index = None):
 def as_scalar(expression):
     ii = indices(expression.rank())
     if ii:
+        #mi = MultiIndex(ii, expression.shape())
         expression = expression[ii]
     return expression, ii
 

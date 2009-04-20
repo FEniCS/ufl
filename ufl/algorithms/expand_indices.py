@@ -212,17 +212,27 @@ def expand_indices2(e):
     V, E = G
     n = len(V)
     Vout = G.Vout()
-    #Vin = G.Vin()
+    Vin = G.Vin()
     
     # Cache free indices
     fi   = []
     idim = []
-    for v in V:
+    for i, v in enumerate(V):
         if isinstance(v, MultiIndex):
             #ii = tuple(j for j in v._indices if isinstance(j, Index))
             #idims = {} # Hard problem: Need index dimensions but they're defined by the parent.
             ii = v.free_indices()
-            idims = v.index_dimensions()
+            try:
+                idims = v.index_dimensions()
+            except:
+                print "The type in question is", type(v)
+                print str(v)
+                print repr(v)
+                print "expression type: ", type(e)
+                print "parent types: ", [type(V[j]) for j in Vin[i]]
+                print "parents children: ", [type(V[k]) for j in Vin[i] for k in Vout[j]]
+                idims = {}
+                raise
         else:
             ii = v.free_indices()
             idims = v.index_dimensions()
@@ -321,7 +331,7 @@ def expand_indices2(e):
             elif isinstance(v, ListTensor):
                 ops = [getv(j, indmap) for j in Vout[i]]
                 e = v.reconstruct(*ops)
-    
+
             elif isinstance(v, Terminal):
                 # Simply reuse
                 e = v
@@ -338,6 +348,6 @@ def expand_indices2(e):
                 indmap.pop()
 
             V2[i][p] = e
-        
+
     return V2[-1][()]
 

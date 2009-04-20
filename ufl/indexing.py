@@ -101,7 +101,9 @@ class MultiIndex(UtilityType):
                 if isinstance(k, Index):
                     if not k in idims:
                         error("Missing index in the provided idims.")
-        
+        else:
+            error("Missing index dimensions.")
+
         self._indices = ii
         self._idims = idims
         self._str = ", ".join(str(i) for i in self._indices)
@@ -126,17 +128,21 @@ class MultiIndex(UtilityType):
         return self._idims
 
     def __add__(self, other):
+        idims = dict(self.index_dimensions())
+        idims.update(other.index_dimensions())
         if isinstance(other, tuple):
-            return MultiIndex(self._indices + other)
+            return MultiIndex(self._indices + other, idims)
         elif isinstance(other, MultiIndex):
-            return MultiIndex(self._indices + other._indices)
+            return MultiIndex(self._indices + other._indices, idims)
         return NotImplemented
 
     def __radd__(self, other):
+        idims = dict(self.index_dimensions())
+        idims.update(other.index_dimensions())
         if isinstance(other, tuple):
-            return MultiIndex(other + self._indices)
+            return MultiIndex(other + self._indices, idims)
         elif isinstance(other, MultiIndex):
-            return MultiIndex(other._indices + self._indices)
+            return MultiIndex(other._indices + self._indices, idims)
         return NotImplemented
 
     def __str__(self):
@@ -169,6 +175,9 @@ def as_index(i):
 
 def as_multi_index(ii, shape=None):
     if isinstance(ii, MultiIndex):
+        if not ii._idims:
+            idims = None if shape is None else dict((j,d) for (j,d) in zip(ii, shape))
+            ii._idims = idims
         return ii
     if not isinstance(ii, tuple):
         ii = (ii,)

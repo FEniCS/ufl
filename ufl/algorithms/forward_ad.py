@@ -152,7 +152,7 @@ class ForwardAD(Transformer):
             r = Ap.rank() - len(jj)
             if r:
                 ii = indices(r)
-                op = Indexed(Ap, jj + ii)
+                op = Indexed(Ap, jj._indices + ii)
                 op = as_tensor(op, ii)
             else:
                 op = Indexed(Ap, jj)
@@ -173,7 +173,7 @@ class ForwardAD(Transformer):
             op = self._make_zero_diff(o)
         else:
             Ap, jj = as_scalar(Ap)
-            op = ComponentTensor(Ap, ii + jj)
+            op = ComponentTensor(Ap, ii._indices + jj)
         return (o, op)
     
     # --- Algebra operators
@@ -365,20 +365,7 @@ class ForwardAD(Transformer):
     def derivative(self, o):
         error("This should never occur.")
     
-    def _spatial_derivative(self, o):
-        # If everything else works as it should, this should now 
-        # be treated as a "terminal" in the context of AD,
-        # i.e. the differentiation this represents has already
-        # been applied. TODO: Document the reason for this well!
-        
-        # TODO: Although differentiation commutes, can we get repeated index issues here?
-        f, i = o.operands()
-        f, fp = self.visit(f)
-        o = self.reuse_if_possible(o, f, i)
-        op = SpatialDerivative(fp, i) # FIXME
-        return (o, op)
-    
-    def spatial_derivative(self, o): # FIXME: Fix me!
+    def spatial_derivative(self, o):
         # If we hit this type, it has already been propagated
         # to a terminal, so we can simply apply our derivative
         # to its operand since differentiation commutes. Right?
@@ -386,25 +373,22 @@ class ForwardAD(Transformer):
         f, fp = self.visit(f)
         o = self.reuse_if_possible(o, f, ii)
         
-        # TODO: Are there any issues with indices here? Not sure, think through it...
         if is_spatially_constant(fp):
-            fi = f.free_indices()
-            idims = f.index_dimensions()
-            
-            # throw away repeated indices # TODO: Think these can be removed now
-            #fi = tuple(set(fi) ^ set(i for i in ii if isinstance(i, Index)))
-            #idims= dict((i, idims.get(i, self._spatial_dim)) for i in fi)
-            
-            oprime = Zero(fp.shape(), fi, idims)
+            sh = fp.shape()
+            fi = fp.free_indices()
+            idims = fp.index_dimensions()
+            j, = ii
+            if isinstance(j, Index) and j not in idims:
+                fi = fi + (j,)
+                idims.update(ii.index_dimensions())
+            oprime = Zero(sh, fi, idims)
         else:
             oprime = SpatialDerivative(fp, ii)
         return (o, oprime)
 
 class SpatialAD(ForwardAD):
     def __init__(self, spatial_dim, index):
-        # FIXME: Iron out this, decide where to use MultiIndex and Index properly
-        if isinstance(index, MultiIndex):
-            index, = index
+        index, = index
         if isinstance(index, Index):
             vfi = (index,)
             vid = { index: spatial_dim }
@@ -415,28 +399,29 @@ class SpatialAD(ForwardAD):
         self._index = index
     
     def spatial_coordinate(self, o):
-        # TODO: Need to define dx_i/dx_j = delta_ij?
-        error("Not implemented!")
+        # Need to define dx_i/dx_j = delta_ij?
         I = Identity(self._spatial_dim)
         oprime = I[:, self._index] # TODO: Is this right?
         return (o, oprime)
-    
+
     def basis_function(self, o):
-        # FIXME: Using this index in here may collide with the same index on the outside!
-        # FIXME: Can this give recursion in apply_ad?
+        # Using this index in here may collide with the same index on the outside! (There's a check for this situation in index_sum above.)
         #oprime = o.dx(self._index)
         oprime = SpatialDerivative(o, self._index)
         return (o, oprime)
     
     def function(self, o):
+        # Using this index in here may collide with the same index on the outside! (There's a check for this situation in index_sum above.)
         #oprime = o.dx(self._index)
         oprime = SpatialDerivative(o, self._index)
         return (o, oprime)
     
     constant = ForwardAD.terminal # returns zero
     
-    #def facet_normal(self, o):
-    #    pass # TODO: With higher order cells the facet normal isn't constant anymore
+    def facet_normal(self, o):
+        if o.cell().degree() > 1:
+            warning("Treating facet normal as a constant in differentiation!")
+        return ForwardAD.terminal(self, o) # returns zero
 
 class VariableAD(ForwardAD):
     def __init__(self, spatial_dim, var):
