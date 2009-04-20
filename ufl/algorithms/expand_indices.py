@@ -16,6 +16,7 @@ from ufl.finiteelement import TensorElement
 from ufl.classes import Expr, Terminal, Index, FixedIndex, ListTensor, IndexSum, Indexed, FormArgument
 from ufl.tensors import as_tensor, ComponentTensor
 from ufl.permutation import compute_indices
+from ufl.constantvalue import Zero
 from ufl.indexing import MultiIndex
 from ufl.algorithms.graph import Graph
 from ufl.algorithms.transformations import ReuseTransformer, apply_transformer
@@ -59,11 +60,9 @@ class IndexExpander(ReuseTransformer):
     
     def zero(self, x):
         ufl_assert(len(x.shape()) == len(self.component()), "Component size mismatch.")
-        
         s = set(x.free_indices()) - set(self._index2value.keys())
         if s: error("Free index set mismatch, these indices have no value assigned: %s." % str(s))
-        
-        return x._uflclass()
+        return Zero()
     
     def scalar_value(self, x):
         if len(x.shape()) != len(self.component()):
@@ -116,7 +115,7 @@ class IndexExpander(ReuseTransformer):
         return tuple(comp)
     
     def multi_index(self, x):
-        return x._uflclass(self._multi_index(x))
+        return MultiIndex(self._multi_index(x), {})
     
     def indexed(self, x):
         A, ii = x.operands()

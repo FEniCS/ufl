@@ -1,9 +1,9 @@
 """This module defines the single index types and some internal index utilities."""
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-14 -- 2009-04-17"
+__date__ = "2008-03-14 -- 2009-04-20"
 
-from ufl.log import error
+from ufl.log import error, warning
 from ufl.common import Counted
 from ufl.terminal import UtilityType
 
@@ -95,14 +95,14 @@ class MultiIndex(UtilityType):
             error("Expecting tuple of UFL indices.")
         
         # TODO: Remove "idims is None" when it can no longer occur
-        if not idims is None:
+        if idims is None:
+            warning("No index dimensions provided in MultiIndex.")
+        else:
             idims = dict(idims)
             for k in ii:
                 if isinstance(k, Index):
                     if not k in idims:
                         error("Missing index in the provided idims.")
-        else:
-            error("Missing index dimensions.")
 
         self._indices = ii
         self._idims = idims
