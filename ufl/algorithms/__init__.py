@@ -27,7 +27,7 @@ from ufl.algorithms.predicates import is_multilinear
 from ufl.algorithms.checks import validate_form
 
 # Utilites for modifying expressions and forms
-from ufl.algorithms.transformations import transform, Transformer, apply_transformer, \
+from ufl.algorithms.transformations import transform, Transformer, ReuseTransformer, apply_transformer, \
                                            ufl2ufl, ufl2uflcopy, \
                                            replace, flatten, strip_variables, \
                                            expand_compounds, \
