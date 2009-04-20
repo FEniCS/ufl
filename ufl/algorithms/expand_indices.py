@@ -361,3 +361,11 @@ def expand_indices2(e):
 
     return V2[-1][()]
 
+def purge_list_tensors(e):
+    """Get rid of all ListTensor instances by expanding
+    expressions to use their components directly.
+    Will usually increase the size of the expression."""
+    if has_type(e, ListTensor):
+        return expand_indices(e) # FIXME: Only expand what's necessary to get rid of list tensors
+    return e
+
