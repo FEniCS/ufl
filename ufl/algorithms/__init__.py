@@ -1,7 +1,7 @@
 "This module collects algorithms and utility functions operating on UFL objects."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-14 -- 2009-04-19"
+__date__ = "2008-08-14 -- 2009-04-20"
 
 # Modified by Anders Logg, 2008
 
@@ -31,10 +31,10 @@ from ufl.algorithms.transformations import transform, Transformer, apply_transfo
                                            ufl2ufl, ufl2uflcopy, \
                                            replace, flatten, strip_variables, \
                                            expand_compounds, \
-                                           purge_list_tensors, mark_duplications, \
+                                           mark_duplications, \
                                            estimate_max_polynomial_degree
 from ufl.algorithms.renumbering import renumber_indices
-from ufl.algorithms.expand_indices import expand_indices, expand_indices2
+from ufl.algorithms.expand_indices import expand_indices, expand_indices2, purge_list_tensors
 
 # Utilities for transforming complete Forms into other Forms
 from ufl.algorithms.formtransformations import compute_form_adjoint, compute_form_action, compute_energy_norm, \

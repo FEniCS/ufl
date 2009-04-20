@@ -783,15 +783,6 @@ def expand_compounds(e, dim=None):
         if cell is not None:
             dim = cell.d
     return apply_transformer(e, CompoundExpander(dim))
-    
-def purge_list_tensors(e):
-    """Get rid of all ListTensor instances by expanding
-    expressions to use their components directly.
-    Will usually increase the size of the expression."""
-    if has_type(e, ListTensor):
-        from ufl.algorithms.expand_indices import expand_indices
-        return expand_indices(e) # FIXME: Only expand what's necessary to get rid of list tensors
-    return e
 
 def strip_variables(e):
     "Replace all Variable instances with the expression they represent."
