@@ -121,7 +121,8 @@ class Logger:
     def set_level(self, level):
         "Set log level."
         self._level_stack[-1] = level
-        self._log.setLevel(level)
+        #self._log.setLevel(level)
+        self._handler.setLevel(level)
     
     def set_indent(self, level):
         "Set indentation level."
