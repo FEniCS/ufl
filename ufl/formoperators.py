@@ -26,6 +26,8 @@ from ufl.algorithms import compute_form_adjoint, \
                            expand_derivatives, \
                            as_form
 
+from ufl.algorithms import replace
+
 def lhs(form):
     """Given a combined bilinear and linear form,
     extract the left hand side (bilinear form part).

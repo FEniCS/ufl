@@ -104,6 +104,12 @@ class Zero(ConstantValue, IndexAnnotated):
     
     def __nonzero__(self):
         return False 
+    
+    def __float__(self):
+        return 0.0
+    
+    def __int__(self):
+        return 0
 
 #--- Scalar value types ---
 

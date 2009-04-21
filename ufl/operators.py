@@ -26,6 +26,10 @@ def rank(f):
     "The rank of f."
     return len(f.shape())
 
+def shape(f):
+    "The shape of f."
+    return f.shape()
+
 #--- Tensor operators ---
 
 def transpose(A):
@@ -246,11 +250,14 @@ def sign(x):
 
 def _mathfunction(f, cls, fun):
     f = as_ufl(f)
-    if isinstance(f, ScalarValue):
-        return as_ufl(fun(f._value))
-    if isinstance(f, Zero):
-        return as_ufl(fun(0))
-    return cls(f)
+    #if isinstance(f, ScalarValue):
+    #    return as_ufl(fun(f._value))
+    #if isinstance(f, Zero):
+    #    return as_ufl(fun(0))
+    r = cls(f)
+    if isinstance(r, (ScalarValue, Zero, int, float)):
+        return float(r)
+    return r
 
 def sqrt(f):
     "The square root of f."

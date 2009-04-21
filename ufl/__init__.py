@@ -92,7 +92,7 @@ from ufl.tensors import as_tensor, as_vector, as_matrix, relabel
 from ufl.tensors import unit_vector, unit_vectors, unit_matrix, unit_matrices
 
 # Operators
-from ufl.operators import transpose, outer, inner, dot, cross, det, \
+from ufl.operators import rank, shape, transpose, outer, inner, dot, cross, det, \
                        inv, tr, dev, cofac, skew, sym, \
                        sqrt, exp, ln, cos, sin, \
                        eq, ne, le, ge, lt, gt, conditional, sign, \
@@ -107,7 +107,7 @@ from ufl.form import Form
 from ufl.integral import Integral
 
 # Representations of transformed forms
-from ufl.formoperators import derivative, action, energy_norm, rhs, lhs, system, functional, adjoint, sensitivity_rhs #, dirichlet_functional
+from ufl.formoperators import replace, derivative, action, energy_norm, rhs, lhs, system, functional, adjoint, sensitivity_rhs #, dirichlet_functional
 
 # Predefined convenience objects
 from ufl.objects import interval, triangle, tetrahedron, quadrilateral, hexahedron, \

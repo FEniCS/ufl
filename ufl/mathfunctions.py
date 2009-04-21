@@ -1,14 +1,14 @@
 """This module provides basic mathematical functions."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-02-20"
+__date__ = "2008-03-14 -- 2009-04-21"
 
 # Modified by Anders Logg, 2008
 
 import math
 from ufl.assertions import ufl_assert
 from ufl.expr import Operator
-from ufl.constantvalue import FloatValue, is_true_ufl_scalar, is_python_scalar, as_ufl
+from ufl.constantvalue import is_true_ufl_scalar, ScalarValue, Zero, FloatValue
 
 #--- Function representations ---
 
@@ -46,14 +46,29 @@ class MathFunction(Operator):
         return self._repr
 
 class Sqrt(MathFunction):
+    def __new__(cls, argument):
+        if isinstance(argument, (ScalarValue, Zero)):
+            return FloatValue(math.sqrt(float(argument)))
+        return MathFunction.__new__(cls)
+    
     def __init__(self, argument):
         MathFunction.__init__(self, "sqrt", argument)
 
 class Exp(MathFunction):
+    def __new__(cls, argument):
+        if isinstance(argument, (ScalarValue, Zero)):
+            return FloatValue(math.exp(float(argument)))
+        return MathFunction.__new__(cls)
+    
     def __init__(self, argument):
         MathFunction.__init__(self, "exp", argument)
 
 class Ln(MathFunction):
+    def __new__(cls, argument):
+        if isinstance(argument, (ScalarValue, Zero)):
+            return FloatValue(math.log(float(argument)))
+        return MathFunction.__new__(cls)
+    
     def __init__(self, argument):
         MathFunction.__init__(self, "ln", argument)
     
@@ -62,10 +77,20 @@ class Ln(MathFunction):
         return math.log(a)
 
 class Cos(MathFunction):
+    def __new__(cls, argument):
+        if isinstance(argument, (ScalarValue, Zero)):
+            return FloatValue(math.cos(float(argument)))
+        return MathFunction.__new__(cls)
+    
     def __init__(self, argument):
         MathFunction.__init__(self, "cos", argument)
 
 class Sin(MathFunction):
+    def __new__(cls, argument):
+        if isinstance(argument, (ScalarValue, Zero)):
+            return FloatValue(math.sin(float(argument)))
+        return MathFunction.__new__(cls)
+    
     def __init__(self, argument):
         MathFunction.__init__(self, "sin", argument)
 
