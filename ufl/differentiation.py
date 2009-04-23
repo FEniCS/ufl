@@ -1,15 +1,15 @@
 "Differential operators."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-04-19"
+__date__ = "2008-03-14 -- 2009-04-23"
 
-from ufl.log import warning
+from ufl.log import warning, error
 from ufl.assertions import ufl_assert
 from ufl.common import subdict, mergedicts
 from ufl.expr import Expr, Operator
 from ufl.terminal import Terminal, Tuple
 from ufl.constantvalue import ConstantValue, Zero, ScalarValue, Identity, is_true_ufl_scalar
-from ufl.indexing import Index, FixedIndex, Indexed, as_multi_index
+from ufl.indexing import Index, FixedIndex, Indexed, as_multi_index, MultiIndex
 from ufl.indexutils import unique_indices
 from ufl.geometry import FacetNormal
 from ufl.variable import Variable

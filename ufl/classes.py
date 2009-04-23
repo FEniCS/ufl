@@ -3,7 +3,7 @@ since it enables the syntax "from ufl.classes import FooBar" for getting
 implementation details not exposed through the default ufl namespace."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-15 -- 2009-04-19"
+__date__ = "2008-08-15 -- 2009-04-23"
 
 # Modified by Anders Logg, 2008
 
@@ -49,6 +49,7 @@ for _i, _c in enumerate(all_ufl_classes):
 
 # TOOD: Finish precedence list with all necessary types!
 def _build_precedence_list():
+    precedence_list = []
     # --- From Wikipedia, precedence of operators in C:
     #1 	()   []   ->   .   :: 	Grouping, scope, array/member access
     #2 	 !   ~   -   +   *   &   sizeof   type cast ++x   --x   	(most) unary operations, sizeof and type casts
@@ -127,7 +128,7 @@ def _build_precedence_list():
     
     # TODO: What to do with these?
     precedence_list.append((ListTensor, ComponentTensor))
-    precedence_list.append((Restriction,))
+    precedence_list.append((Restricted,))
     precedence_list.append((Conditional,))
     precedence_list.append((Condition,))
     
