@@ -139,7 +139,7 @@ class Expression2LatexHandler(Transformer):
         return format_multi_index(o, formatstring="{%s}")
     
     def variable(self, o):
-        # FIXME: Ensure variable has been handled
+        # TODO: Ensure variable has been handled
         e, l = o.operands()
         return "s_{%d}" % l._count
     

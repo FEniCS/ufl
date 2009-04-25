@@ -217,8 +217,8 @@ class HeapItem(object):
         a = self.outgoing[self.i]
         b = other.outgoing[other.i]
         if a == b:
-            a = self.incoming[self.i]   # FIXME: The other way around?
-            b = other.incoming[other.i] # FIXME: The other way around?
+            a = self.incoming[self.i]   # TODO: The other way around?
+            b = other.incoming[other.i] # TODO: The other way around?
         return cmp(a, b)
 
 def depth_first_ordering(G):
@@ -240,7 +240,7 @@ def depth_first_ordering(G):
         ordering.append(iv)
         for i in Vin[iv]:
             Eout_count[i] -= 1
-        # Resort heap, worst case linear time, makes this algorithm O(n^2)... FIXME: Not good!
+        # Resort heap, worst case linear time, makes this algorithm O(n^2)... TODO: Not good!
         heapify(q)
     
     # TODO: Can later accumulate dependencies as well during dft-like algorithm.
@@ -316,7 +316,7 @@ class StringDependencyDefiner(MultiFunction):
             deps = deps | frozenset(("x",))
         return deps
     
-    def spatial_derivative(self, o): # FIXME: What about (basis) functions of which derivatives are constant? Should special-case spatial_derivative in partition().
+    def spatial_derivative(self, o): # TODO: What about (basis) functions of which derivatives are constant? Should special-case spatial_derivative in partition().
         deps = frozenset(("c",))
         # Enabling coordinate dependency for higher order geometries (not handled anywhere else though).
         if o.cell().degree() > 1:

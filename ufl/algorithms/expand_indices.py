@@ -367,6 +367,6 @@ def purge_list_tensors(e):
     expressions to use their components directly.
     Will usually increase the size of the expression."""
     if has_type(e, ListTensor):
-        return expand_indices(e) # FIXME: Only expand what's necessary to get rid of list tensors
+        return expand_indices(e) # TODO: Only expand what's necessary to get rid of list tensors
     return e
 

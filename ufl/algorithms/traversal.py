@@ -74,7 +74,7 @@ def pre_traversal(expr, stack=None):
         if stack is not None:
             stack.pop()
 
-def post_traversal(expr, stack=None): # FIXME: Implement fast version of this?
+def post_traversal(expr, stack=None): # TODO: Implement fast version of this?
     """Yields o for each tree node o in expr, parent after child.
     If a list is provided, the stack is updated while iterating."""
     ufl_assert(isinstance(expr, Expr), "Expecting Expr.")

@@ -34,7 +34,7 @@ class FormData(object):
         
         # Expanding all derivatives. This (currently) also has
         # the side effect that compounds are expanded.
-        # FIXME: Should we really apply this here?
+        # TODO: Should we really apply this here?
         # This was a convenient place to put it for temporary testing,
         # but we should discuss global application data flow!
         # One reason for putting it here is that functional derivatives

@@ -66,8 +66,8 @@ def tuple2form(objects):
 
     return form
 
-# FIXME: This might fit better in form.py but I wasn't able
-# FIXME: to place it there because of a recursive import.
+# TODO: This might fit better in form.py but I wasn't able
+# TODO: to place it there because of a recursive import.
 
 def as_form(form):
     "Convert to form if not a form, otherwise return form."

@@ -8,10 +8,10 @@ __date__ = "2008-12-28 -- 2009-01-07"
 from ufl.algorithms.pdiffs import PartialDerivativeComputer
 from ufl.differentiation import SpatialDerivative, VariableDerivative, FunctionDerivative
 
-def reverse_ad(expr, G): # FIXME: Finish this!
+def reverse_ad(expr, G): # TODO: Finish this!
     # --- Forward sweep expressions have already been recorded as vertices in the DAG
     
-    # FIXME: Can't we just build the graph from expr in here? Need special treatement if a VariableDerivative!
+    # TODO: Can't we just build the graph from expr in here? Need special treatement if a VariableDerivative!
     #G = build_graph(expr)
     V, E = G
     m = len(V)
@@ -36,7 +36,7 @@ def reverse_ad(expr, G): # FIXME: Finish this!
     
     # Size of v, could be larger if v is multiple thingys
     n = 1
-    x[:n] = FIXME
+    x[:n] = TODO
     # Actually, we don't have these variables...
     # v is a MultiIndex instead of SpatialCoordinate,
     # or a Function instead of a dof,
@@ -54,19 +54,19 @@ def reverse_ad(expr, G): # FIXME: Finish this!
     xd[m-1] = gamma
     xd[:n] = g
     
-    # Compute c[i,j] = df_i/dx_j FIXME
+    # Compute c[i,j] = df_i/dx_j TODO
     pdc = PartialDerivativeComputer()
     c = {}
     for i, v in enumerate(V):
         pdiffs = pdc(v)
-        vi_edges = FIXME
+        vi_edges = TODO
         for (j, dvidvj) in zip(vi_edges, pdiffs):
             c[(i,j)] = dvidvj
     
     # Reverse accumulation
     for i in range(m-1, n-1, -1):
         xdi = xd[i]
-        for j in Eout[i-n]: # FIXME: Correct edges, j should be the x indices of the operands of x[i]
+        for j in Eout[i-n]: # TODO: Correct edges, j should be the x indices of the operands of x[i]
             xd[j] += xdi*c[i,j]
     result = xd[:n]
     

@@ -191,7 +191,7 @@ class ForwardAD(Transformer):
         if self._var_free_indices:
             i0, = self._var_free_indices
             i1, = i
-            ufl_assert(i0 != i1, "FIXME: This case doesn't work!")
+            ufl_assert(i0 != i1, "TODO: This case doesn't work!")
 
         A2, Ap = self.visit(A)
         o = self.reuse_if_possible(o, A2, i)

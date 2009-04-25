@@ -21,7 +21,7 @@ class PartialDerivativeComputer(MultiFunction):
     def __init__(self):
         MultiFunction.__init__(self)
     
-    # FIXME: Make sure we have implemented partial derivatives of all operators.
+    # TODO: Make sure we have implemented partial derivatives of all operators.
     #        At least non-compound ones should be covered, but compound ones
     #        may be a good idea in future versions.
     
@@ -31,18 +31,18 @@ class PartialDerivativeComputer(MultiFunction):
     # --- Basic algebra operators
     
     def index_sum(self, f):
-        "d/dx sum_j x = FIXME"
-        FIXME
+        "d/dx sum_j x = TODO"
+        TODO
     
     def sum(self, f):
         "d/dx_i sum_j x_j = 1"
         #_1 = IntValue(1, o.free_indices(), o.index_dimensions())
-        _1 = IntValue(1) # FIXME: Handle non-scalars
+        _1 = IntValue(1) # TODO: Handle non-scalars
         return (_1,)*len(f.operands())
     
     def product(self, f):
-        a, b = f.operands() # FIXME: Assuming binary operator for now
-        da = b # FIXME: Is this right even for non-scalar b?
+        a, b = f.operands() # TODO: Assuming binary operator for now
+        da = b # TODO: Is this right even for non-scalar b?
         db = a
         return (da, db)
     
