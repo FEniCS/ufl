@@ -124,7 +124,10 @@ class Form(object):
     
     def __str__(self):
         if self._str is None:
-            self._str = "\n  +  ".join(str(itg) for itg in self._integrals) 
+            if self._integrals:
+                self._str = "\n  +  ".join(str(itg) for itg in self._integrals) 
+            else:
+                self._str = "<empty Form>"
         return self._str
     
     def __repr__(self):

@@ -3,7 +3,7 @@ either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2009-04-19"
+__date__ = "2008-05-07 -- 2009-04-25"
 
 # Modified by Anders Logg, 2009.
 
@@ -727,7 +727,8 @@ def transform_integrands(form, transform):
                 newitg = itg.reconstruct(integrand)
                 newintegrals.append(newitg)
         if not newintegrals:
-            error("No integrals left after transformation, cannot reconstruct form.") # TODO: Can this be a problem? We could for example return Form([]), but problems would likely arise later anyway.
+            # TODO: Can this be a problem? We could for example return Form([]), but problems would likely arise later anyway.
+            warning("No integrals left after transformation, cannot reconstruct form.") 
         return Form(newintegrals)
 
     elif isinstance(form, Integral):

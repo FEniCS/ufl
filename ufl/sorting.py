@@ -2,21 +2,20 @@
 is more robust w.r.t. argument numbering than using repr."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-11-26 -- 2009-03-05"
+__date__ = "2008-11-26 -- 2009-04-25"
 
 from itertools import izip
 
 from ufl.log import error
 from ufl.common import Counted
 from ufl.terminal import Terminal, FormArgument
-from ufl.indexing import MultiIndex, Index
+from ufl.indexing import MultiIndex
 from ufl.variable import Label
 from ufl.function import Function
 from ufl.basisfunction import BasisFunction
 
 #--- Sorting rule ---
 
-_li = (Label, Index)
 def cmp_expr(a, b):
     "Sorting rule for Expr objects."
     # First sort quickly by type name
@@ -26,8 +25,8 @@ def cmp_expr(a, b):
 
     # Type is the same, but is it a ...
     
-    # ... Label or Index object?
-    if isinstance(a, _li):
+    # ... Label object?
+    if isinstance(a, Label):
         # Don't compare counts! Causes circular problems when renumbering to get a canonical form.
         return 0 # Not equal in general (__eq__ won't be True), but for this purpose they are considered equal.
     

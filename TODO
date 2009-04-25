@@ -1,67 +1,36 @@
 Roadmap for the development of UFL
 ----------------------------------
 
-# Additional operators:
-    Taken from the old WIKI pages:
-    - tan(f)
-    - log(f,base)
+# Tests:
+    - Write more tests!
+    - In particular write tests for the core algorithms, ideally covering all operators.
 
-# Naming of operators:
-    ?
-    cofactor = cofac
-    deviatoric = dev
-    inverse = inv
-    trace = tr
+# Documentation:
+    - Rewrite/improve all error messages (collect strings in separate file?)
+    - Improve operator docstrings (use epydoc @param and @return for the more complicated functions)
+    - Improve manual.
 
-# Mappings:
-    - Do we still need mappings? This is cut from the old WIKI pages:
-            Alternatives for basis function mapping:
-            * mapping = "affine"
-            * mapping = "isoparametric"
-            * mapping = "Piola" (FIXME: how to handle covariant/contravariant/symmetric Piola here?)
-      Should they be attached to the cell or the elements?
+# Prettyness and readability (medium priority, useful while debugging...):
+    - Finish precedence list to improve parentesis use in __str__ and __repr__ and ufl2latex.
+    - Rewrite ufl2latex as described in its comments (use pre- and post-handlers)
+    - Improve dot-rendering with compact symbols for all node types
+      (evt add option to switch between repr style and greek style)
+    - Add dot-rendering to graph class: G = Graph(e); print G.dot_format()
+    - Add utility "showdot(e)" for interactive experimentation. Need a good way to show images to do this.
 
-# Derivatives:
-    - Finish forward mode AD implementation and verify correctness
-      (just some more validation needed) 
-    - Finish reverse mode AD implementation and compare performance
-      (implement after orthotropic hyperelasticity is validated)
-    - The best is probably a mix of the two, using reverse mode
-      within some partitions and forward mode to connect them
+# Class hierarchy changes:
+    - Streamline design when we have good tests. Need a clear line between compounds and non-compounds.
+    - Add TensorSum, TensorDivision, ProductOfTensors, compound types just like Grad, Div. (evt CompoundSum, CompoundDivision, CompoundProduct, perhaps there are others)
 
 # Algorithms:
-    - Algorithm for computing worst case quadrature degree
+    - Attaching flags to expression nodes to make effective application of expansions more streamlined.
+    - Improve algorithm for computing worst case quadrature degree with more rules
     - (hopefully not...) If AD needs to be applied in a compiler context, we need a 
       framework for representing unapplied form transformations.
     - Determine whether or not a bilinear form is self-adjoint (symmetric)
 
-# Prettyness and readability (medium priority, useful while debugging...):
-    - Rewrite ufl2latex as described in its comments (use pre- and post-handlers)
-    - Use precedence list to improve parentesis use in __str__ and __repr__ and ufl2latex.
-    - Improve dot-rendering with compact symbols for all node types
-      (evt add option to switch between repr style and greek style)
-    - Add dot-rendering to graph class: G = Graph(e); print G.dot_format()
-    - Add utility "showdot(e)" for experimentation.
-
-# Tests:
-    - Write tests for the algorithms, ideally covering all code in multiple ways.
-
-# Documentation:
-    - Write the manual
-    - Write the paper
-    - Write the book chapter
-    - Rewrite/improve all error messages (collect strings in separate file?)
-    - Improve operator docstrings (use epydoc @param and @return for the more complicated functions)
-
-# Class hierarchy changes:
-    - Make IndexBase an Expr? Affects the following in particular:
-       indexing.py - Make IndexBase an Expr?
-       sorting.py - Remove MultiIndex handling if we make IndexBase an Expr.
-       IndexSum - use Index, not MultiIndex
-       SpatialDerivative - use Index, not MultiIndex
-    - Add TensorSum, TensorDivision, ProductOfTensors, compound types just like Grad, Div.
-
 # Simplification:
+    - Improved simplification of Indexed/ComponentTensor combinations.
     - Implement better simplification as an algorithm, or add 
       more simplification features to __new__ implementations?
       One important such basic simplification is to extract constant 
@@ -78,39 +47,28 @@ Roadmap for the development of UFL
       we can consider wether the backside of this (which is complicated)
       is important enough to avoid doing this by default...
 
-# Add parts of this stuff to technical part of documentation (about allowed shape/free index combinations):
-    - Sums of operands with different free indices can not be allowed.
-      Some places in AD algorithms this causes problems.
-      The solution was to equip constant values (zero and scalars) with indices.
+# Optimization (low priority unless critical bottlenecks are found):
+    - Optimize expand_indices, currently one of the bottlenecks for quadrature compilers with complex equations. (see expand_indices2, almost working)
+      within some partitions and forward mode to connect them
 
-      Examples:
-   
-      A)  a = 5 + v[i]; b = a*c[i] 
-   
-          Expanding the implicit sum, this gives us:
-            b = sum_i [ (5+v_i) c_i ]      # remember, 'a = 5 + v[i]' is an Add object
-             != 5 c_i + sum_i [ v_i c_i ]  # this would still have a free index
-          or
-            (5+v[i])*c[i] != 5*c[i] + v[i]*c[i]
-   
-          - Clearly, this last line isn't what we would expect!
-          - We really don't want to inspect the contents of "a" further,
-            or we get a blowup of special cases!
-   
-      B)  a = b(x) + c
-          f = da/dx_i
-            = db/dx_i + dc/dx_i
-            = db/dx_i + zero(i) # we have currently special-cased zero to carry free indices
-   
-      C)  a = b(x) * x_i
-          f = da/dx_i
-            = db/dx_i * c + b * dx_i/dx_i # no implicit summation
-            = db/dx_i * c + b * 1 # index gone in one term! need to assign indices to scalar values
-   
-      D)  a = b(v) * v
-          f = da/dv
-            = db/dv * c + b * dv/dv
-            = db/dv * c + b * 1
+# Derivatives (low priority):
+    Forward mode AD seems to work well. More validation is always welcome though.
+    - Finish reverse mode AD implementation and compare performance
+      (implement after orthotropic hyperelasticity is validated)
+    - The best is probably a mix of the two, using reverse mode
+
+# Mappings:
+    - This is cut from the old WIKI pages:
+            Alternatives for basis function mapping:
+            * mapping = "affine"
+            * mapping = "isoparametric"
+            * mapping = "Piola" (FIXME: how to handle covariant/contravariant/symmetric Piola here?)
+      Should they be attached to the cell or the elements?
+
+# Additional operators:
+    - tan(f)
+    - log(f, base)
+    - other mathematical functions in <cmath> (need derivatives)
 
 # Elements and Basisfunctions (medium/low priority, needed for some non-trivial applications):
     - (low) Implement
@@ -158,9 +116,6 @@ Roadmap for the development of UFL
 # Complex numbers (low priority):
     - Allowing complex values and functions, which operations would be affected?
       Is it mostly about multiplication and division?
-
-# Optimization (low priority unless critical bottlenecks are found):
-    - Optimize expand_indices, currently one of the bottlenecks for quadrature compilers. (see sandbox)
 
 # Notes by Anders (trying to make sense of the implementation)
 

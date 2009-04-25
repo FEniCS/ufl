@@ -1,12 +1,13 @@
 """FormData class easy for collecting of various data about a form."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-09-13 -- 2009-03-08"
+__date__ = "2008-09-13 -- 2009-04-25"
 
 # Modified by Anders Logg, 2008.
 
 from itertools import chain
 
+from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.common import lstr, tstr, sstr
 from ufl.form import Form
@@ -42,6 +43,9 @@ class FormData(object):
         # for the rest of this function.
         self.form = expand_derivatives(self.original_form)
         
+        if not self.form._integrals:
+            error("Form is empty after transformations, can't extract form data.")
+
         # Renumber indices to start from 0, as a simple attempt at making
         # the form signature (repr) consistent independent of when in the
         # application a form is created. This is not foolproof, but better
@@ -90,7 +94,7 @@ class FormData(object):
         if self.elements:
             self.cell = self.elements[0].cell()
         else:
-            # Special case for functionals only depending on geometric variables
+            # Special case to allow functionals only depending on geometric variables, with no elements
             self.cell = self.form._integrals[0].integrand().cell()
         self.geometric_dimension = self.cell.d
         self.topological_dimension = self.geometric_dimension

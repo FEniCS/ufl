@@ -1,24 +1,13 @@
 """This module defines the single index types and some internal index utilities."""
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-14 -- 2009-04-20"
+__date__ = "2008-03-14 -- 2009-04-25"
 
 from ufl.log import error, warning
 from ufl.common import Counted
 from ufl.terminal import UtilityType
 
 #--- Index types ---
-
-# TODO: Should we make IndexBase a Terminal? The IndexSum and SpatialDerivative can have an Index instead of a MultiIndex.
-#class NewIndexBase(Terminal):
-#    def __init__(self):
-#        Terminal.__init__(self)
-#    
-#    def shape(self):
-#        error("")
-#    
-#    def __hash__(self):
-#        return hash(repr(self))
 
 class IndexBase(object):
     def __init__(self):
