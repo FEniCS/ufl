@@ -319,7 +319,7 @@ class Curl(CompoundDerivative):
     
     def __new__(cls, f):
         # Validate input
-        ufl_assert(f.rank() == 1, "Need a vector.")
+        ufl_assert(f.shape() == (3,), "Need a 3D vector.")
         ufl_assert(not f.free_indices(), \
             "TODO: Taking curl of an expression with free indices, should this be a valid expression? Please provide examples!")
         
@@ -364,7 +364,7 @@ class Rot(CompoundDerivative):
     
     def __new__(cls, f):
         # Validate input
-        ufl_assert(f.rank() == 1, "Need a vector.")
+        ufl_assert(f.shape() == (2,), "Need a 2D vector.")
         ufl_assert(not f.free_indices(), \
             "TODO: Taking rot of an expression with free indices, should this be a valid expression? Please provide examples!")
         

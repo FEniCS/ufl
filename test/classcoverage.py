@@ -84,8 +84,13 @@ class ClasscoverageTest(unittest.TestCase):
         e1 = VectorElement("CG", cell, 1)
         e2 = TensorElement("CG", cell, 1)
         e3 = MixedElement(e0, e1, e2)
+
+        e13D = VectorElement("CG", tetrahedron, 1)
         
         # --- Terminals:
+        
+        v13D = BasisFunction(e13D)
+        f13D = Function(e13D)
         
         v0 = BasisFunction(e0)
         v1 = BasisFunction(e1)
@@ -356,10 +361,10 @@ class ClasscoverageTest(unittest.TestCase):
         a = grad(f0*v1)
         test_object(a, (dim, dim), ())
 
-        a = curl(v1)
-        test_object(a, (dim,), ())
-        a = curl(f1)
-        test_object(a, (dim,), ())
+        a = curl(v13D)
+        test_object(a, (3,), ())
+        a = curl(f13D)
+        test_object(a, (3,), ())
         a = rot(v1)
         test_object(a, (), ())
         a = rot(f1)
