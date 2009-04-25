@@ -513,10 +513,13 @@ class CompoundExpander(ReuseTransformer):
         # o = curl a = "cross(nabla, a)"
         def c(i, j):
             return a[j].dx(i) - a[i].dx(j)
-        return as_vector((c(1,2), c(2,0), c(0,1))) # FIXME: Verify this
+        return as_vector((c(1,2), c(2,0), c(0,1)))
     
     def rot(self, o, a):
-        raise NotImplementedError # FIXME
+        # o = rot a = "cross(nabla, (a0, a1, 0))[2]"
+        def c(i, j):
+            return a[j].dx(i) - a[i].dx(j)
+        return c(0,1)
 
 class NotMultiLinearException(Exception):
     def __init__(self, *args, **kwargs):
