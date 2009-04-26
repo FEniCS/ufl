@@ -20,7 +20,7 @@ from ufl.constantvalue import Zero
 from ufl.indexing import MultiIndex
 from ufl.differentiation import SpatialDerivative
 from ufl.algorithms.graph import Graph
-from ufl.algorithms.transformations import ReuseTransformer, apply_transformer
+from ufl.algorithms.transformations import ReuseTransformer, apply_transformer, transform_integrands
 from ufl.algorithms.analysis import has_type
 
 class IndexExpander(ReuseTransformer):
@@ -176,7 +176,7 @@ class IndexExpander(ReuseTransformer):
 
     def spatial_derivative(self, x):
         f, ii = x.operands()
-        ufl_assert(isinstance(f, (Terminal, SpatialDerivative, ListTensor, ComponentTensor)), "Expecting expand_derivatives to have been applied.")
+        ufl_assert(isinstance(f, (Terminal, SpatialDerivative, Indexed, ListTensor, ComponentTensor)), "Expecting expand_derivatives to have been applied.")
         
         # Taking component if necessary
         f = self.visit(f) 
@@ -207,6 +207,9 @@ def expand_indices(e):
     return apply_transformer(e, IndexExpander())
 
 def expand_indices2(e):
+    return transform_integrands(e, expand_indices2_alg)
+
+def expand_indices2_alg(e):
     assert isinstance(e, Expr)
 
     G = Graph(e)
@@ -235,8 +238,12 @@ def expand_indices2(e):
                 idims = {}
                 raise
         else:
-            ii = v.free_indices()
-            idims = v.index_dimensions()
+            try:
+                ii = v.free_indices()
+                idims = v.index_dimensions()
+            except:
+                ii = ()
+                idims = {}
         fi.append(ii)
         idim.append(idims)
 
@@ -300,7 +307,7 @@ def expand_indices2(e):
                 ops = [getv(j, indmap) for j in Vout[i]]
                 A = ops[0]
                 comp = ops[1]._indices
-
+                comp = tuple(int(c) for c in comp) # need ints for symmetry mapping
                 if isinstance(A, FormArgument) and A.shape():
                     # Get symmetry mapping if any
                     e = A.element()
