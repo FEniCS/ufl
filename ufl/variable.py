@@ -2,7 +2,7 @@
 expressions as variables for differentiation."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2009-02-20"
+__date__ = "2008-05-20 -- 2009-04-27"
 
 from ufl.common import Counted
 from ufl.log import error
@@ -81,7 +81,8 @@ class Variable(WrapperType):
         return isinstance(other, Variable) and self._label == other._label and self._expression == other._expression
         
     def __str__(self):
-        return "Variable(%s, %s)" % (self._expression, self._label)
+        #return "Variable(%s, %s)" % (self._expression, self._label)
+        return "var%d(%s)" % (self._label.count(), self._expression)
     
     def __repr__(self):
         return self._repr

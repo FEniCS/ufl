@@ -1,7 +1,7 @@
 "Differential operators."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-04-23"
+__date__ = "2008-03-14 -- 2009-04-27"
 
 from ufl.log import warning, error
 from ufl.assertions import ufl_assert
@@ -223,8 +223,8 @@ class VariableDerivative(Derivative):
     
     def __str__(self):
         if isinstance(self._f, Terminal):
-            return "d%s/dx_%s" % (self._f, self._f)
-        return "d/dx_%s %s" % (self._v, parstr(self._f, self))
+            return "d%s/d[%s]" % (self._f, self._v)
+        return "d/d[%s] %s" % (self._v, parstr(self._f, self))
 
     def __repr__(self):
         return self._repr
