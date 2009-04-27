@@ -11,7 +11,7 @@ from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.form import Form
 from ufl.constantvalue import Zero, ScalarValue, as_ufl
-from ufl.differentiation import VariableDerivative, Grad, Div, Curl, Rot
+from ufl.differentiation import VariableDerivative, Grad, Div, Curl
 from ufl.tensoralgebra import Transposed, Inner, Outer, Dot, Cross, Determinant, Inverse, Cofactor, Trace, Deviatoric, Skew, Sym
 from ufl.variable import Variable
 from ufl.tensors import as_tensor
@@ -173,10 +173,7 @@ def div(f):
 def curl(f):
     "The curl of f."
     return Curl(f)
-
-def rot(f):
-    "The rot of f."
-    return Rot(f)
+rot = curl
 
 #--- DG operators ---
 

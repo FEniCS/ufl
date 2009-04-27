@@ -510,16 +510,19 @@ class CompoundExpander(ReuseTransformer):
         return as_tensor(a.dx(ii), (ii,))
     
     def curl(self, o, a):
-        # o = curl a = "cross(nabla, a)"
+        # o = curl a = "a0.dx(1)-a1.dx(0)"            if a.shape() == ()
+        # o = curl a = "cross(nabla, (a0, a1, 0))[2]" if a.shape() == (2,)
+        # o = curl a = "cross(nabla, a)"              if a.shape() == (3,)
         def c(i, j):
             return a[j].dx(i) - a[i].dx(j)
-        return as_vector((c(1,2), c(2,0), c(0,1)))
-    
-    def rot(self, o, a):
-        # o = rot a = "cross(nabla, (a0, a1, 0))[2]"
-        def c(i, j):
-            return a[j].dx(i) - a[i].dx(j)
-        return c(0,1)
+        sh = a.shape()
+        if sh == ():
+            return as_vector(a.dx(0), -a.dx(0))
+        if sh == (2,):
+            return c(0,1)
+        if sh == (3,):
+            return as_vector((c(1,2), c(2,0), c(0,1)))
+        error("Invalid shape %s of curl argument." % (sh,))
 
 class NotMultiLinearException(Exception):
     def __init__(self, *args, **kwargs):
@@ -561,7 +564,6 @@ class BasisFunctionDependencyExtracter(Transformer):
     grad = linear
     div = linear
     curl = linear
-    rot = linear
     transposed = linear
     trace = linear
     skew = linear

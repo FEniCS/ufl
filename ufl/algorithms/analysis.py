@@ -21,7 +21,7 @@ from ufl.function import Function
 from ufl.tensors import ListTensor, ComponentTensor
 from ufl.tensoralgebra import Transposed, Inner, Dot, Outer, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor, Skew
 from ufl.restriction import PositiveRestricted, NegativeRestricted
-from ufl.differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot
+from ufl.differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.indexing import Indexed, Index, MultiIndex
 from ufl.form import Form

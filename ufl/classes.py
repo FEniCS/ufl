@@ -22,7 +22,7 @@ from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import CompoundTensorOperator, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Cofactor, Inverse, Deviatoric, Skew, Sym
 from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
 from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
-from ufl.differentiation import Derivative, CompoundDerivative, FunctionDerivative, SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot
+from ufl.differentiation import Derivative, CompoundDerivative, FunctionDerivative, SpatialDerivative, VariableDerivative, Grad, Div, Curl
 from ufl.conditional import Condition, EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.form import Form
 from ufl.integral import Measure, Integral
@@ -89,7 +89,7 @@ def _build_precedence_list():
     #*, /, //, % 	Multiplication, division, remainder
     precedence_list.append((Product, Division, Inner, Outer, Dot, Cross,))
 
-    precedence_list.append((Div, Grad, Curl, Rot,))
+    precedence_list.append((Div, Grad, Curl,))
 
     #+x, -x, ~x 	Positive, negative, bitwise NOT
 
@@ -132,7 +132,7 @@ def _build_precedence_list():
     precedence_list.append((Conditional,))
     precedence_list.append((Condition,))
     
-    precedence_list.append((Div, Grad, Curl, Rot,
+    precedence_list.append((Div, Grad, Curl,
                             SpatialDerivative, VariableDerivative,
                             Determinant, Trace, Cofactor, Inverse, Deviatoric, Skew, Sym))
     precedence_list.append((Product, Division, Cross, Dot, Outer, Inner))

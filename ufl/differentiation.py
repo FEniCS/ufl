@@ -319,7 +319,8 @@ class Curl(CompoundDerivative):
     
     def __new__(cls, f):
         # Validate input
-        ufl_assert(f.shape() == (3,), "Need a 3D vector.")
+        sh = f.shape()
+        ufl_assert(f.shape() in ((), (2,), (3,)), "Expecting a scalar, 2D vector or 3D vector.")
         ufl_assert(not f.free_indices(), \
             "TODO: Taking curl of an expression with free indices, should this be a valid expression? Please provide examples!")
         
@@ -327,18 +328,20 @@ class Curl(CompoundDerivative):
         if is_spatially_constant(f):
             cell = f.cell()
             ufl_assert(cell is not None, "Can't take curl of expression with undefined cell...")
+            sh = { (): (2,), (2,): (), (3,): (3,) }[sh]
             #free_indices = f.free_indices()
             #index_dimensions = subdict(f.index_dimensions(), free_indices)
             #return Zero((cell.d,), free_indices, index_dimensions)
-            return Zero((cell.d,))
+            return Zero(sh)
         return CompoundDerivative.__new__(cls)
     
     def __init__(self, f):
         CompoundDerivative.__init__(self)
-        self._f = f
         cell = f.cell()
         ufl_assert(cell is not None, "Can't take curl of expression with undefined cell...")
-        self._dim = cell.d
+        sh = { (): (2,), (2,): (), (3,): (3,) }[f.shape()]
+        self._f = f
+        self._shape = sh
         self._repr = "Curl(%r)" % self._f
     
     def operands(self):
@@ -351,7 +354,7 @@ class Curl(CompoundDerivative):
         return self._f.index_dimensions()
     
     def shape(self):
-        return (self._dim,)
+        return self._shape
     
     def __str__(self):
         return "curl(%s)" % self._f
@@ -359,44 +362,3 @@ class Curl(CompoundDerivative):
     def __repr__(self):
         return self._repr
 
-class Rot(CompoundDerivative):
-    __slots__ = ("_f", "_repr")
-    
-    def __new__(cls, f):
-        # Validate input
-        ufl_assert(f.shape() == (2,), "Need a 2D vector.")
-        ufl_assert(not f.free_indices(), \
-            "TODO: Taking rot of an expression with free indices, should this be a valid expression? Please provide examples!")
-        
-        # Return zero if expression is trivially constant
-        if is_spatially_constant(f):
-            #cell = f.cell()
-            #ufl_assert(cell is not None, "Can't take rot of expression with undefined cell...")
-            #free_indices = f.free_indices()
-            #index_dimensions = subdict(f.index_dimensions(), free_indices)
-            #return Zero((cell.d,), free_indices, index_dimensions)
-            return Zero()
-        return CompoundDerivative.__new__(cls)
-    
-    def __init__(self, f):
-        CompoundDerivative.__init__(self)
-        self._f = f
-        self._repr = "Rot(%r)" % self._f
-    
-    def operands(self):
-        return (self._f, )
-    
-    def free_indices(self):
-        return self._f.free_indices()
-    
-    def index_dimensions(self):
-        return self._f.index_dimensions()
-    
-    def shape(self):
-        return ()
-    
-    def __str__(self):
-        return "rot(%s)" % self._f
-    
-    def __repr__(self):
-        return self._repr

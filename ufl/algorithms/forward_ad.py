@@ -551,7 +551,6 @@ class UnusedADRules(ForwardAD):
     
     div  = commute
     curl = commute
-    rot  = commute
     def grad(self, o, a):
         a, aprime = a
         if aprime.cell() is None:

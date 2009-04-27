@@ -24,7 +24,7 @@ from ufl.indexsum import IndexSum
 from ufl.tensoralgebra import Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
 from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin
 from ufl.restriction import PositiveRestricted, NegativeRestricted
-from ufl.differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl, Rot
+from ufl.differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.form import Form
 from ufl.integral import Measure
@@ -58,7 +58,7 @@ def build_precedence_map():
     precedence_list.append((Conditional,))
     precedence_list.append((LE, GT, GE, NE, EQ, LT))
     
-    precedence_list.append((Div, Grad, Curl, Rot, SpatialDerivative, VariableDerivative,
+    precedence_list.append((Div, Grad, Curl, SpatialDerivative, VariableDerivative,
                             Determinant, Trace, Cofactor, Inverse, Deviatoric))
     precedence_list.append((Product, Division, Cross, Dot, Outer, Inner))
     precedence_list.append((Indexed, Transposed, Power))
@@ -190,9 +190,6 @@ class Expression2LatexHandler(Transformer):
     
     def curl(self, o, f):
         return r"\nabla{\times %s}" % par(f)
-    
-    def rot(self, o, f):
-        return r"\rot{%s}" % par(f)
     
     def sqrt(self, o, f):
         return r"%s^{\frac 1 2}" % par(f)
