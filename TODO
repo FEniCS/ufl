@@ -1,6 +1,9 @@
 Roadmap for the development of UFL
 ----------------------------------
 
+Make diff(u, cell.n) -> dot(cell.n, grad(u))
+and Dn(u) -> diff(u, u.cell().n) -> dot(cell.n, grad(u))
+
 # Tests:
     - Write more tests!
     - In particular write tests for the core algorithms, ideally covering all operators.
