@@ -1,7 +1,7 @@
 "Differential operators."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-04-27"
+__date__ = "2008-03-14 -- 2009-05-05"
 
 from ufl.log import warning, error
 from ufl.assertions import ufl_assert
@@ -200,7 +200,10 @@ class VariableDerivative(Derivative):
         vi = v.free_indices()
         fid = f.index_dimensions()
         vid = v.index_dimensions()
-        ufl_assert(not (set(fi) ^ set(vi)), \
+        #print "set(fi)", set(fi)
+        #print "set(vi)", set(vi)
+        #print "^", (set(fi) ^ set(vi))
+        ufl_assert(not (set(fi) & set(vi)), \
             "Repeated indices not allowed in VariableDerivative.") # TODO: Allow diff(f[i], v[i]) = sum_i VariableDerivative(f[i], v[i])? Can implement direct expansion in diff as a first approximation.
         self._free_indices = tuple(fi + vi)
         self._index_dimensions = dict(fid)
