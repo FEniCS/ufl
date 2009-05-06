@@ -1,7 +1,7 @@
 """Classes used to group scalar expressions into expressions with rank > 0."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-31 -- 2009-04-19"
+__date__ = "2008-03-31 -- 2009-05-06"
 
 from ufl.log import warning
 from ufl.common import subdict
@@ -186,6 +186,8 @@ def numpy2nestedlists(arr):
     return [numpy2nestedlists(arr[k]) for k in range(arr.shape[0])]
 
 def as_tensor(expressions, indices = None):
+    ufl_assert(isinstance(expressions, (Expr, list, tuple)),
+        "Expecting Expr or list of Expr instances.")
     if indices is None:
         # To avoid importing numpy unneeded, it's quite slow...
         if not isinstance(expressions, (list, tuple)):

@@ -1,7 +1,7 @@
 """Forward mode AD implementation."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-19-- 2009-04-07"
+__date__ = "2008-08-19-- 2009-05-06"
 
 from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert
@@ -67,27 +67,6 @@ class ForwardAD(Transformer):
         fp = Zero(sh, fi, idims)
         return fp   
 
-    def _make_ones_diff_old(self, o):
-        ufl_assert(o.shape() == self._var_shape, "This is only used by VariableDerivative, yes?")
-        # Define a scalar value with the right indices
-        # (kind of cumbersome this... any simpler way?)
-
-        sh = o.shape() + self._var_shape
-        #sh = self._var_shape + o.shape() # DIFFSHAPE TODO: Use this version instead?
-
-        fi = o.free_indices()
-        idims = dict(o.index_dimensions())
-
-        if self._var_free_indices:
-            # Currently assuming only one free variable index
-            i, = self._var_free_indices
-            if i not in idims:
-                fi = unique_indices(fi + (i,))
-                idims[i] = self._var_index_dimensions[i]
-
-        fp = IntValue(1, sh, fi, idims)
-        return fp
-
     def _make_ones_diff(self, o):
         ufl_assert(o.shape() == self._var_shape, "This is only used by VariableDerivative, yes?")
         # Define a scalar value with the right indices
@@ -105,6 +84,10 @@ class ForwardAD(Transformer):
                 fi = unique_indices(fi + (i,))
                 idims[i] = self._var_index_dimensions[i]
         
+        one = IntValue(1, (), fi, idims)
+        if not sh:
+            return one
+        
         res = None
         ind1 = ()
         ind2 = ()
@@ -117,12 +100,13 @@ class ForwardAD(Transformer):
                 res *= dij
             ind1 += (i,)
             ind2 += (j,)
+        
         allind = ind1 + ind2
         #allind = ind2 + ind1 # DIFFSHAPE TODO: Use this version instead?
 
         fp = as_tensor(res, allind)
         if fi:
-            fp *= IntValue(1, (), fi, idims)
+            fp *= one
         return fp
     
     def _visit(self, o):
