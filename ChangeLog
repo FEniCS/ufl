@@ -1,6 +1,6 @@
-0.3.0 [2009-0?-??]
- - Added form operators system and sensitiviy_rhs.
- - diff can take form as argument.
+0.3.0 [2009-05-??]
+ - Added form operators "system" and "sensitivity_rhs".
+ - diff can take form as argument, applies to all integrands.
  - Rudimentary precedence handling for better
    use of parentheses in str(expression).
  - Added script ufl2py, mainly for debugging purposes.

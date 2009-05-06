@@ -1,7 +1,7 @@
 "This module collects algorithms and utility functions operating on UFL objects."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-14 -- 2009-04-20"
+__date__ = "2008-08-14 -- 2009-05-06"
 
 # Modified by Anders Logg, 2008
 
