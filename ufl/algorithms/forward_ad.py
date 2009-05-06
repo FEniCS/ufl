@@ -67,20 +67,62 @@ class ForwardAD(Transformer):
         fp = Zero(sh, fi, idims)
         return fp   
 
-    def _make_ones_diff(self, o):
+    def _make_ones_diff_old(self, o):
+        ufl_assert(o.shape() == self._var_shape, "This is only used by VariableDerivative, yes?")
         # Define a scalar value with the right indices
         # (kind of cumbersome this... any simpler way?)
+
         sh = o.shape() + self._var_shape
         #sh = self._var_shape + o.shape() # DIFFSHAPE TODO: Use this version instead?
+
         fi = o.free_indices()
         idims = dict(o.index_dimensions())
+
         if self._var_free_indices:
             # Currently assuming only one free variable index
             i, = self._var_free_indices
             if i not in idims:
                 fi = unique_indices(fi + (i,))
                 idims[i] = self._var_index_dimensions[i]
+
         fp = IntValue(1, sh, fi, idims)
+        return fp
+
+    def _make_ones_diff(self, o):
+        ufl_assert(o.shape() == self._var_shape, "This is only used by VariableDerivative, yes?")
+        # Define a scalar value with the right indices
+        # (kind of cumbersome this... any simpler way?)
+
+        sh = o.shape()
+
+        fi = o.free_indices()
+        idims = dict(o.index_dimensions())
+
+        if self._var_free_indices:
+            # Currently assuming only one free variable index
+            i, = self._var_free_indices
+            if i not in idims:
+                fi = unique_indices(fi + (i,))
+                idims[i] = self._var_index_dimensions[i]
+        
+        res = None
+        ind1 = ()
+        ind2 = ()
+        for d in sh:
+            i, j = indices(2)
+            dij = Identity(d)[i, j]
+            if res is None:
+                res = dij
+            else:
+                res *= dij
+            ind1 += (i,)
+            ind2 += (j,)
+        allind = ind1 + ind2
+        #allind = ind2 + ind1 # DIFFSHAPE TODO: Use this version instead?
+
+        fp = as_tensor(res, allind)
+        if fi:
+            fp *= IntValue(1, (), fi, idims)
         return fp
     
     def _visit(self, o):
@@ -435,9 +477,9 @@ class VariableAD(ForwardAD):
         
         if c is not None:
             return c
-        
+
         if o.label() == self._variable.label():
-            # dv/dv = 1
+            # dv/dv = "1"
             op = self._make_ones_diff(o)
         else:
             # differentiate expression behind variable
