@@ -44,10 +44,10 @@ class Sum(AlgebraOperator):
         #    "Shape mismatch in Sum.")
         #ufl_assert(not any((set(fi) ^ set(o.free_indices())) for o in operands[1:]),
         #    "Can't add expressions with different free indices.")
-        all(sh == o.shape() for o in operands[1:])\
-            or error("Shape mismatch in Sum.")
-        (not any((set(fi) ^ set(o.free_indices())) for o in operands[1:]))\
-            or error("Can't add expressions with different free indices.")
+        if any(sh != o.shape() for o in operands[1:]):
+            error("Shape mismatch in Sum.")
+        if any((set(fi) ^ set(o.free_indices())) for o in operands[1:]):
+            error("Can't add expressions with different free indices.")
         
         # sort operands in a canonical order
         operands = sorted(operands, cmp=cmp_expr)
@@ -156,8 +156,8 @@ class Product(AlgebraOperator):
         # Make sure everything is scalar
         #ufl_assert(not any(o.shape() for o in operands),
         #    "Product can only represent products of scalars.")
-        not any(o.shape() for o in operands)\
-            or error("Product can only represent products of scalars.")
+        if any(o.shape() for o in operands):
+            error("Product can only represent products of scalars.")
         
         # No operands? Return one.
         if not operands:
@@ -304,9 +304,9 @@ class Division(AlgebraOperator):
 
         # Assertions
         # TODO: Enabled workaround for nonscalar division in __div__, so maybe we can keep this assertion. Some algorithms may need updating.
-        is_ufl_scalar(a) or error("Expecting scalar nominator in Division.")
-        is_true_ufl_scalar(b) or error("Division by non-scalar is undefined.")
-        (b != 0) or error("Division by zero!")
+        if not is_ufl_scalar(a): error("Expecting scalar nominator in Division.")
+        if not is_true_ufl_scalar(b): error("Division by non-scalar is undefined.")
+        if (b == 0): error("Division by zero!")
         
         if isinstance(a, Zero):
             return a
@@ -325,7 +325,8 @@ class Division(AlgebraOperator):
     
     def _init(self, a, b):
         #ufl_assert(isinstance(a, Expr) and isinstance(b, Expr), "Expecting Expr instances.")
-        (isinstance(a, Expr) and isinstance(b, Expr)) or error("Expecting Expr instances.")
+        if not (isinstance(a, Expr) and isinstance(b, Expr)):
+            error("Expecting Expr instances.")
         self._a = a
         self._b = b
         self._repr = "Division(%r, %r)" % (self._a, self._b)
@@ -366,8 +367,8 @@ class Power(AlgebraOperator):
         b = as_ufl(b)
         #ufl_assert(is_true_ufl_scalar(b), "Expecting scalar exponent.")
         #ufl_assert(is_ufl_scalar(b), "Expecting scalar exponent.")
-        is_true_ufl_scalar(b) or error("Expecting scalar exponent.")
-        is_ufl_scalar(b) or error("Expecting scalar exponent.")
+        if not is_true_ufl_scalar(b): error("Expecting scalar exponent.")
+        if not is_ufl_scalar(b): error("Expecting scalar exponent.")
         
         if isinstance(a, ScalarValue) and isinstance(b, ScalarValue):
             return as_ufl(a._value ** b._value)
@@ -383,7 +384,7 @@ class Power(AlgebraOperator):
     
     def _init(self, a, b):
         #ufl_assert(isinstance(a, Expr) and isinstance(b, Expr), "Expecting Expr instances.")
-        (isinstance(a, Expr) and isinstance(b, Expr)) or error("Expecting Expr instances.")
+        if not (isinstance(a, Expr) and isinstance(b, Expr)): error("Expecting Expr instances.")
         self._a = a
         self._b = b
         self._repr = "Power(%r, %r)" % (self._a, self._b)
@@ -421,7 +422,7 @@ class Abs(AlgebraOperator):
     def __init__(self, a):
         AlgebraOperator.__init__(self)
         ufl_assert(isinstance(a, Expr), "Expecting Expr instance.")
-        isinstance(a, Expr) or error("Expecting Expr instances.")
+        if not isinstance(a, Expr): error("Expecting Expr instances.")
         self._a = a
         self._repr = "Abs(%r)" % self._a
     

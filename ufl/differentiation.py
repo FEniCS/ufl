@@ -115,7 +115,7 @@ class SpatialDerivative(Derivative):
         cell = expression.cell()
         if cell is None:
             sh = None
-            error("Couldn't get cell, this shouldn't happen at this point since spatially constant types are handled in __new__.")
+            error("Cannot compute derivatives of expressions with no cell.")
         else:
             sh = (cell.d,)
         self._index = as_multi_index(index, sh)

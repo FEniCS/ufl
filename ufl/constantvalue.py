@@ -40,17 +40,17 @@ class IndexAnnotated(object):
         #           "Expecting tuple of int.")
         #ufl_assert(all(isinstance(i, Index) for i in free_indices),
         #           "Expecting tuple of Index objects.")
-        all(isinstance(i, int) for i in shape)\
-            or error("Expecting tuple of int.")
-        all(isinstance(i, Index) for i in free_indices)\
-            or error("Expecting tuple of Index objects.")
+        if not all(isinstance(i, int) for i in shape):
+            error("Expecting tuple of int.")
+        if not all(isinstance(i, Index) for i in free_indices):
+            error("Expecting tuple of Index objects.")
         self._shape = shape
         self._free_indices = free_indices
         self._index_dimensions = dict(index_dimensions or {})
         #ufl_assert(not (set(self._free_indices) ^ set(self._index_dimensions.keys())),
         #           "Index set mismatch.")
-        not (set(self._free_indices) ^ set(self._index_dimensions.keys()))\
-            or error("Index set mismatch.")
+        if (set(self._free_indices) ^ set(self._index_dimensions.keys())):
+            error("Index set mismatch.")
 
 #--- Class for representing zero tensors of different shapes ---
 
