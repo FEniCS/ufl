@@ -117,7 +117,7 @@ class FormData(object):
                      ("Number of interior facet integrals", len(self.form.interior_facet_integrals())),
                      ("Basis functions",                    lstr(self.basis_functions)),
                      ("Functions",                          lstr(self.functions)),
-                     ("Basis function names",               lstr(self.function_names)),
+                     ("Basis function names",               lstr(self.basis_function_names)),
                      ("Function names",                     lstr(self.function_names)),
                      ("Unique elements",                    estr(self.unique_elements)),
                      ("Unique sub elements",                estr(self.sub_elements)),
