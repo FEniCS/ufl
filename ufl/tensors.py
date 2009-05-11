@@ -269,6 +269,15 @@ def unit_matrix(i, j, d):
 def unit_matrices(d):
     return tuple(unit_matrix(i, j, d) for i in range(d) for j in range(d))
 
+def dyad(d, *iota):
+    "TODO: Develop this concept, can e.g. write A[i,j]*dyad(j,i) for the transpose."
+    I = Identity(d)
+    i = iota[0]
+    e = as_vector(I[i,:], i)
+    for i in iota[1:]:
+        e = outer(e, as_vector(I[i,:], i))
+    return e
+
 def _test():
     #from ufl.tensors import unit_vector, unit_vectors, unit_matrix, unit_matrices
     from ufl.objects import triangle
