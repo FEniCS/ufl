@@ -38,7 +38,7 @@ from ufl.algorithms.transformations import expand_compounds, Transformer, transf
 from ufl.differentiation import is_spatially_constant
 
 class ForwardAD(Transformer):
-    def __init__(self, spatial_dim, var_shape, var_free_indices, var_index_dimensions):
+    def __init__(self, spatial_dim, var_shape, var_free_indices, var_index_dimensions, cache=None):
         Transformer.__init__(self)
         ufl_assert(all(isinstance(i, Index) for i in var_free_indices), \
             "Expecting Index objects.")
@@ -50,6 +50,69 @@ class ForwardAD(Transformer):
         self._var_index_dimensions = dict(var_index_dimensions)
         #if self._var_free_indices:
         #    warning("TODO: Free indices in differentiation variable may be buggy!")
+        self._cache = {} if cache is None else cache
+    
+    def _cache_visit(self, o):
+        "Cache hook, disable this by renaming to something else than 'visit'."
+        #debug("Visiting object of type %s." % type(o).__name__)
+
+        # TODO: This doesn't work, why?
+
+        # NB! Cache added in after copying from Transformer
+        c = self._cache.get(o)
+        if c is not None:
+            return c
+
+        # Reuse default visit function
+        r = Transformer.visit(self, o)
+
+        if (c is not None):
+            if r[0].free_indices() != c[0].free_indices():
+                print "="*70
+                print "=== f: Difference between cache and recomputed indices:"
+                print str(c[0].free_indices())
+                print str(r[0].free_indices())
+                print "="*70
+            if r[1].free_indices() != c[1].free_indices():
+                print "="*70
+                print "=== df: Difference between cache and recomputed indices:"
+                print str(c[1].free_indices())
+                print str(r[1].free_indices())
+                print "="*70
+            if (r != c):
+                print "="*70
+                print "=== Difference between cache and recomputed:"
+                print str(c[0])
+                print str(c[1])
+                print "-"*40
+                print str(r[0])
+                print str(r[1])
+                print "="*70
+        
+        # NB! Cache added in after copying from Transformer
+        self._cache[o] = r
+        
+        return r
+    
+    def _debug_visit(self, o):
+        "Debugging hook, enable this by renaming to 'visit'."
+        r = Transformer.visit(self, o)
+        f, df = r
+        if not f is o:
+            debug("In ForwardAD.visit, didn't get back o:")
+            debug("  o:  %s" % str(o))
+            debug("  f:  %s" % str(f))
+            debug("  df: %s" % str(df))
+        fi_diff = set(f.free_indices()) ^ set(df.free_indices())
+        if fi_diff:
+            debug("In ForwardAD.visit, got free indices diff:")
+            debug("  o:  %s" % str(o))
+            debug("  f:  %s" % str(f))
+            debug("  df: %s" % str(df))
+            debug("  f.fi():  %s" % lstr(f.free_indices()))
+            debug("  df.fi(): %s" % lstr(df.free_indices()))
+            debug("  fi_diff: %s" % str(fi_diff))
+        return r
     
     def _make_zero_diff(self, o):
         # Define a zero with the right indices
@@ -65,7 +128,7 @@ class ForwardAD(Transformer):
                 fi = unique_indices(fi + (i,))
                 idims[i] = self._var_index_dimensions[i]
         fp = Zero(sh, fi, idims)
-        return fp   
+        return fp
 
     def _make_ones_diff(self, o):
         ufl_assert(o.shape() == self._var_shape, "This is only used by VariableDerivative, yes?")
@@ -108,26 +171,6 @@ class ForwardAD(Transformer):
         if fi:
             fp *= one
         return fp
-    
-    def _visit(self, o):
-        "Debugging hook, enable this by renaming to 'visit'."
-        r = Transformer.visit(self, o)
-        f, df = r
-        if not f is o:
-            debug("In ForwardAD.visit, didn't get back o:")
-            debug("  o:  %s" % str(o))
-            debug("  f:  %s" % str(f))
-            debug("  df: %s" % str(df))
-        fi_diff = set(f.free_indices()) ^ set(df.free_indices())
-        if fi_diff:
-            debug("In ForwardAD.visit, got free indices diff:")
-            debug("  o:  %s" % str(o))
-            debug("  f:  %s" % str(f))
-            debug("  df: %s" % str(df))
-            debug("  f.fi():  %s" % lstr(f.free_indices()))
-            debug("  df.fi(): %s" % lstr(df.free_indices()))
-            debug("  fi_diff: %s" % str(fi_diff))
-        return r
     
     # --- Default rules
     
@@ -416,7 +459,7 @@ class ForwardAD(Transformer):
         return (o, oprime)
 
 class SpatialAD(ForwardAD):
-    def __init__(self, spatial_dim, index):
+    def __init__(self, spatial_dim, index, cache=None):
         index, = index
         if isinstance(index, Index):
             vfi = (index,)
@@ -424,7 +467,7 @@ class SpatialAD(ForwardAD):
         else:
             vfi = ()
             vid = {}
-        ForwardAD.__init__(self, spatial_dim, var_shape=(), var_free_indices=vfi, var_index_dimensions=vid)
+        ForwardAD.__init__(self, spatial_dim, var_shape=(), var_free_indices=vfi, var_index_dimensions=vid, cache=cache)
         self._index = index
     
     def spatial_coordinate(self, o):
@@ -453,8 +496,8 @@ class SpatialAD(ForwardAD):
         return ForwardAD.terminal(self, o) # returns zero
 
 class VariableAD(ForwardAD):
-    def __init__(self, spatial_dim, var):
-        ForwardAD.__init__(self, spatial_dim, var_shape=var.shape(), var_free_indices=var.free_indices(), var_index_dimensions=var.index_dimensions())
+    def __init__(self, spatial_dim, var, cache=None):
+        ForwardAD.__init__(self, spatial_dim, var_shape=var.shape(), var_free_indices=var.free_indices(), var_index_dimensions=var.index_dimensions(), cache=cache)
         self._variable = var
     
     def variable(self, o):
@@ -481,8 +524,8 @@ class VariableAD(ForwardAD):
 
 class FunctionAD(ForwardAD):
     "Apply AFD (Automatic Function Differentiation) to expression."
-    def __init__(self, spatial_dim, functions, basis_functions):
-        ForwardAD.__init__(self, spatial_dim, var_shape=(), var_free_indices=(), var_index_dimensions={})
+    def __init__(self, spatial_dim, functions, basis_functions, cache=None):
+        ForwardAD.__init__(self, spatial_dim, var_shape=(), var_free_indices=(), var_index_dimensions={}, cache=cache)
         self._functions = zip(functions, basis_functions)
         self._w = functions
         self._v = basis_functions
