@@ -1,7 +1,7 @@
 "The Form class."
 
 __authors__ = "Martin Sandve Alnes"
-__date__    = "2008-03-14 -- 2009-04-20"
+__date__    = "2008-03-14 -- 2009-05-28"
 
 # Modified by Anders Logg, 2009.
 
@@ -32,7 +32,11 @@ class Form(object):
         return self._form_data
     
     def cell(self):
-        return self._integrals[0].integrand().cell()
+        for itg in self._integrals:
+            c = itg.integrand().cell()
+            if c is not None:
+                return c
+        return None
     
     def integral_groups(self):
         """Return a dict, which is a mapping from domains to integrals.
