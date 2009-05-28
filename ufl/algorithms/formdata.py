@@ -1,13 +1,13 @@
 """FormData class easy for collecting of various data about a form."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-09-13 -- 2009-04-25"
+__date__ = "2008-09-13 -- 2009-05-28"
 
 # Modified by Anders Logg, 2008.
 
 from itertools import chain
 
-from ufl.log import error
+from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.common import lstr, tstr, sstr
 from ufl.form import Form
@@ -93,10 +93,18 @@ class FormData(object):
         # Get geometric information
         if self.elements:
             self.cell = self.elements[0].cell()
-        else:
+        elif self.form._integrals:
             # Special case to allow functionals only depending on geometric variables, with no elements
             self.cell = self.form._integrals[0].integrand().cell()
-        self.geometric_dimension = self.cell.d
+        else:
+            # Special case to allow integral of constants to pass through without crashing
+            self.cell = None
+            warning("Form is empty, no elements or integrals, cell is undefined.")
+        if self.cell is None:
+            warning("No cell is defined in form.")
+            self.geometric_dimension = None
+        else:
+            self.geometric_dimension = self.cell.d
         self.topological_dimension = self.geometric_dimension
         
         # Attach form data to both original form and transformed form,
