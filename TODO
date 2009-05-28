@@ -69,6 +69,10 @@ and Dn(u) -> diff(u, u.cell().n) -> dot(cell.n, grad(u))
             * mapping = "Piola" (FIXME: how to handle covariant/contravariant/symmetric Piola here?)
       Should they be attached to the cell or the elements?
 
+# Functions on subdomains:
+    - Function(element, domain=dx(0))
+    - BasisFunction(element, domain=dx(1))
+
 # Additional operators:
     - tan(f)
     - log(f, base)
