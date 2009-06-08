@@ -20,7 +20,6 @@ from ufl.algorithms.analysis import extract_elements
 from ufl.algorithms.predicates import is_multilinear
 from ufl.algorithms.ad import expand_derivatives
 
-
 def validate_form(form): # TODO: Can we make this return a list of errors instead of raising exception?
     """Performs all implemented validations on a form. Raises exception if something fails."""
     

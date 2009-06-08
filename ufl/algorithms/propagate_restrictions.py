@@ -1,7 +1,7 @@
 "Algorithms related to restrictions."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2009-05-14 -- 2009-05-14"
+__date__ = "2009-05-14 -- 2009-06-08"
 
 from ufl.expr import Expr
 from ufl.assertions import ufl_assert
@@ -22,13 +22,15 @@ class RestrictionPropagator(ReuseTransformer):
         return r
 
     def facet_normal(self, o):
-        if self.current_restriction is None:
-            return o
+        ufl_assert(self.current_restriction is not None, "Facet normal must be restricted.")
+        #if self.current_restriction is None:
+        #    return o
         return o(self.current_restriction)
 
     def form_argument(self, o):
-        if self.current_restriction is None:
-            return o
+        ufl_assert(self.current_restriction is not None, "Form argument must be restricted.")
+        #if self.current_restriction is None:
+        #    return o
         return o(self.current_restriction)
 
 def propagate_restrictions(expression):
