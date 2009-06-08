@@ -365,8 +365,6 @@ class Power(AlgebraOperator):
     def __new__(cls, a, b):
         a = as_ufl(a)
         b = as_ufl(b)
-        #ufl_assert(is_true_ufl_scalar(b), "Expecting scalar exponent.")
-        #ufl_assert(is_ufl_scalar(b), "Expecting scalar exponent.")
         if not is_true_ufl_scalar(b): error("Expecting scalar exponent.")
         if not is_ufl_scalar(b): error("Expecting scalar exponent.")
         
@@ -384,7 +382,8 @@ class Power(AlgebraOperator):
     
     def _init(self, a, b):
         #ufl_assert(isinstance(a, Expr) and isinstance(b, Expr), "Expecting Expr instances.")
-        if not (isinstance(a, Expr) and isinstance(b, Expr)): error("Expecting Expr instances.")
+        if not (isinstance(a, Expr) and isinstance(b, Expr)):
+            error("Expecting Expr instances.")
         self._a = a
         self._b = b
         self._repr = "Power(%r, %r)" % (self._a, self._b)

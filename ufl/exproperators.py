@@ -3,7 +3,7 @@ This way we avoid circular dependencies between e.g.
 Sum and its superclass Expr."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-18 -- 2009-04-19"
+__date__ = "2008-08-18 -- 2009-06-08"
 
 from itertools import chain
 
@@ -11,7 +11,7 @@ from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.common import mergedicts, subdict, StackDict
 from ufl.expr import Expr
-from ufl.constantvalue import Zero, ScalarValue, FloatValue, IntValue, is_python_scalar, as_ufl, python_scalar_types
+from ufl.constantvalue import Zero, ScalarValue, FloatValue, IntValue, is_python_scalar, is_true_ufl_scalar, as_ufl, python_scalar_types
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import Transposed, Dot
 from ufl.indexing import IndexBase, FixedIndex, Index, Indexed, IndexSum, indices
@@ -154,12 +154,14 @@ Expr.__rdiv__ = _rdiv
 def _pow(self, o):
     if not isinstance(o, _valid_types):
         return NotImplemented
+    ufl_assert(is_true_ufl_scalar(self), "Cannot take the power of a non-scalar expression.")
     return Power(self, o)
 Expr.__pow__ = _pow
 
 def _rpow(self, o):
     if not isinstance(o, _valid_types):
         return NotImplemented
+    ufl_assert(is_true_ufl_scalar(self), "Cannot raise an expression to a non-scalar power.")
     return Power(o, self)
 Expr.__rpow__ = _rpow
 
