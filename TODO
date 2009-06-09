@@ -1,6 +1,13 @@
 Roadmap for the development of UFL
 ----------------------------------
 
+############# Priority features for next release:
+    - Document M, L, a vs forms, elements feature
+    - Check for mixed linear/bilinear form when making FormData.
+
+
+############# Unprioritized features:
+
 Make diff(u, cell.n) -> dot(cell.n, grad(u))
 and Dn(u) -> diff(u, u.cell().n) -> dot(cell.n, grad(u))
 
