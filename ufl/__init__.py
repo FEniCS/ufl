@@ -104,7 +104,7 @@ from ufl.operators import rank, shape, transpose, outer, inner, dot, cross, det,
 from ufl.form import Form
 
 # Integral classes
-from ufl.integral import Integral
+from ufl.integral import Integral, register_domain_type
 
 # Representations of transformed forms
 from ufl.formoperators import replace, derivative, action, energy_norm, rhs, lhs, system, functional, adjoint, sensitivity_rhs #, dirichlet_functional

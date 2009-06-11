@@ -1,7 +1,7 @@
 """The Integral class."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-03-06"
+__date__ = "2008-03-14 -- 2009-06-11"
 
 # Modified by Anders Logg, 2008-2009.
 
@@ -9,11 +9,21 @@ from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.constantvalue import is_true_ufl_scalar, is_python_scalar
 
+def register_domain_type(domain_type, measure_name):
+    domain_type = domain_type.replace(" ", "_")
+    if domain_type in Measure._domain_types:
+        ufl_assert(Measure._domain_types[domain_type] == measure_name, "Domain type already added with different measure name!")
+        # Nothing to do
+    else:
+        ufl_assert(measure_name not in Measure._domain_types.values(), "Measure name already used for another domain type!")
+        Measure._domain_types[domain_type] = measure_name
+
 class Measure(object):
     """A measure for integration."""
     __slots__ = ("_domain_type", "_domain_id", "_metadata", "_repr")
     def __init__(self, domain_type, domain_id, metadata = None):
         self._domain_type = domain_type.replace(" ", "_")
+        ufl_assert(self._domain_type in Measure._domain_types, "Invalid domain type.")
         self._domain_id   = domain_id
         self._metadata    = metadata
         self._repr        = "Measure(%r, %r, %r)" % (self._domain_type, self._domain_id, self._metadata)
@@ -38,6 +48,11 @@ class Measure(object):
     CELL = "cell"
     EXTERIOR_FACET = "exterior_facet"
     INTERIOR_FACET = "interior_facet"
+    _domain_types = { \
+        CELL: "dx",
+        EXTERIOR_FACET: "ds",
+        INTERIOR_FACET: "dS",
+        }
     
     def domain_type(self):
         'Return the domain type, one of "cell", "exterior_facet" or "interior_facet".'
@@ -77,10 +92,7 @@ class Measure(object):
         return Form( [Integral(integrand, self)] )
     
     def __str__(self):
-        d = { Measure.CELL: "dx",
-              Measure.EXTERIOR_FACET: "ds",
-              Measure.INTERIOR_FACET: "dS"
-            }[self._domain_type]
+        d = Measure._domain_types[self._domain_type]
         metastring = "" if self._metadata is None else ("<%s>" % repr(self._metadata))
         return "%s%d%s" % (d, self._domain_id, metastring)
     

@@ -3,7 +3,7 @@ either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2009-03-25"
+__date__ = "2008-05-07 -- 2009-06-11"
 
 # Modified by Anders Logg, 2008-2009.
 
@@ -307,10 +307,13 @@ def element2latex(element):
 
 domain_strings = { Measure.CELL: r"\Omega",
                    Measure.EXTERIOR_FACET: r"\Gamma^{ext}",
-                   Measure.INTERIOR_FACET: r"\Gamma^{int}" }
+                   Measure.INTERIOR_FACET: r"\Gamma^{int}",
+                 }
+default_domain_string = "D"
 dx_strings = { Measure.CELL: "dx",
                Measure.EXTERIOR_FACET: "ds",
-               Measure.INTERIOR_FACET: "dS" }
+               Measure.INTERIOR_FACET: "dS",
+             }
 
 def form2latex(formdata):
     form = formdata.form
@@ -380,8 +383,12 @@ def form2latex(formdata):
     for itg in integrals:
         # TODO: Get list of expression strings instead of single expression!
         integrand_string = expression2latex(itg.integrand(), formdata.basis_function_names, formdata.function_names)
-        b = p + "\\int_{%s_%d}" % (domain_strings[itg.measure().domain_type()], itg.measure().domain_id())
-        c = "{ %s } \,%s" % (integrand_string, dx_strings[itg.measure().domain_type()])
+        dtyp = itg.measure().domain_type()
+        dstr = domain_strings.get(dtyp, default_domain_string)
+        b = p + "\\int_{%s_%d}" % (dstr, itg.measure().domain_id())
+        dxstr = Measure._domain_types[dtyp]
+        dxstr = dx_strings[dtyp]
+        c = "{ %s } \,%s" % (integrand_string, dxstr)
         lines.append((a, b, c))
         a = "{}"; p = "{}+ "
     sections.append(("Form", align(lines)))
