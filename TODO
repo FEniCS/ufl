@@ -2,7 +2,10 @@ Roadmap for the development of UFL
 ----------------------------------
 
 ############# Priority features for next release:
+
     - Check for mixed linear/bilinear form when making FormData.
+
+    - Make derivative handle subfunctions better
 
 
 ############# Unprioritized features:
@@ -11,12 +14,16 @@ Roadmap for the development of UFL
     - Write more unit tests!
     - In particular write tests for the core algorithms, ideally covering all operators.
 
-# Documentation (for a better user experience):
+# Assertions (for a better user experience):
+    - Improve error checks and assertions in code.
+    - Improve error recovery and reporting mechanism (can for example look at stack to determine context?)
     - Rewrite/improve all error messages (collect strings in separate file?)
+
+# Documentation (for getting users started faster with less problems):
     - Improve operator docstrings (use epydoc @param and @return for the more complicated functions)
     - Improve manual.
 
-# Pretty printing (for a better user experience and easier debugging):
+# Pretty printing (for easier debugging and better support for code generation):
     - Finish precedence list to improve parenthesis use in __str__ and __repr__ and ufl2latex.
     - Implement C renderer
     - Rewrite ufl2latex as described in its comments (use pre- and post-handlers)
@@ -30,24 +37,10 @@ Roadmap for the development of UFL
     - Add TensorSum, TensorDivision, ProductOfTensors, compound types just like Grad, Div. (evt CompoundSum, CompoundDivision, CompoundProduct, perhaps there are others)
 
 # Algorithms:
-    - Improve algorithm for computing worst case quadrature degree with more rules
-
     - Attaching flags to expression nodes to make effective application of
       expansions more streamlined, i.e. such that expand_compounds and
       expand_derivatives can be applied multiple times with no additional
       performance penalty.
-
-    - Implement algorithm to determine whether or not a bilinear form is self-adjoint (symmetric).
-      Pseudo-steps for such an algorithm could be:
-          def canonical_form(expression):
-              return expression transformed to a truly canonical form, i.e. a representation that is completely unique
-          self_adjoint = True
-          for each integrand:
-              a = canonical_form(integrand)
-              b = canonical_form(replace(integrand, {v:u}))
-              if not a == b:
-                  self_adjoint = False
-                  break
 
     - (hopefully not...) If AD needs to be applied in a compiler context, we need a 
       framework for representing unapplied form transformations.
@@ -85,6 +78,21 @@ Roadmap for the development of UFL
 
 
 ############# Unprioritized language features:
+
+# Algorithms (medium priority, better analysis enables better form compiler results):
+    - Improve algorithm for computing worst case quadrature degree with more rules
+
+    - Implement algorithm to determine whether or not a bilinear form is self-adjoint (symmetric).
+      Pseudo-steps for such an algorithm could be:
+          def canonical_form(expression):
+              return expression transformed to a truly canonical form, i.e. a representation that is completely unique
+          self_adjoint = True
+          for each integrand:
+              a = canonical_form(integrand)
+              b = canonical_form(replace(integrand, {v:u}))
+              if not a == b:
+                  self_adjoint = False
+                  break
 
 # Functions on subdomains (medium priority, several people have requested something like this):
     - Function(element, domain=dx(0))
