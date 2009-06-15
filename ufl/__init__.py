@@ -57,7 +57,7 @@ from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile
 # Types for geometric quantities
 # Currently disabled to encourage use of syntax
 # x = cell.x; n = cell.n
-from ufl.geometry import Cell # , SpatialCoordinate, FacetNormal 
+from ufl.geometry import Cell, Space # , SpatialCoordinate, FacetNormal 
 
 # Finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
@@ -112,6 +112,7 @@ from ufl.formoperators import replace, derivative, action, energy_norm, rhs, lhs
 # Predefined convenience objects
 from ufl.objects import interval, triangle, tetrahedron, quadrilateral, hexahedron, \
                      i, j, k, l, p, q, r, s, \
+                     R1, R2, R3, \
                      dx, ds, dS
 
 # Useful constants
