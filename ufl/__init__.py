@@ -97,7 +97,7 @@ Form transformations:
 
 """
 
-__version__ = "0.3"
+__version__ = "0.35-dev"
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __copyright__ = "Copyright (C) 2008-2009 " + __authors__
 __license__  = "GNU GPL version 3 or any later version"
@@ -140,7 +140,7 @@ from ufl.function import Function, Functions, \
 from ufl.split_functions import split
 
 # Literal constants
-from ufl.constantvalue import Identity
+from ufl.constantvalue import Identity, as_ufl
 
 # Indexing of tensor expressions
 from ufl.indexing import Index, indices
@@ -179,11 +179,4 @@ from ufl.objects import interval, triangle, tetrahedron, quadrilateral, hexahedr
 
 # Useful constants
 from math import e, pi
-
-
-
-
-
-
-
 
