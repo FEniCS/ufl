@@ -31,13 +31,77 @@ The development version can be found in the repository at
 
   http://www.fenics.org/hg/ufl/
 
+
+A very brief overview of the language contents follows:
+
+Cells and Euclidean spaces:
+    interval, triangle, tetrahedron, quadrilateral, hexahedron,
+    R1, R2, R3,
+    Cell, Space
+
+Elements:
+    FiniteElement, MixedElement, VectorElement, TensorElement
+
+Basis functions:
+    BasisFunction, TestFunction, TrialFunction
+
+Coefficient functions:
+    Function, Constant, VectorConstant, TensorConstant
+
+Splitting form arguments in mixed spaces:
+    split
+
+Literal constants:
+    Identity
+
+Geometric quantities:
+    SpatialCoordinate, FacetNormal
+
+Indices:
+    Index, indices,
+    i, j, k, l, p, q, r, s
+
+Scalar to tensor expression conversion:
+    as_tensor, as_vector, as_matrix
+
+Unit vectors and matrices:
+    unit_vector, unit_vectors,
+    unit_matrix, unit_matrices
+
+Tensor algebra operators:
+    outer, inner, dot, cross,
+    transpose, tr,
+    det, inv, cofac,
+    dev, skew, sym,
+
+Differential operators:
+    variable, diff,
+    Dx, grad, div, curl, rot, Dn
+
+Nonlinear functions:
+    abs, sign, sqrt, exp, ln, cos, sin, 
+
+Discontinuous Galerkin operators:
+    jump, avg, v('+'), v('-')
+
+Conditional operators:
+    eq, ne, le, ge, lt, gt, conditional,
+
+Integral measures:
+    dx, ds, dS
+
+Form transformations:
+    rhs, lhs, system, functional,
+    replace, adjoint, action, energy_norm,
+    sensitivity_rhs, derivative
+
 """
 
 __version__ = "0.3"
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __copyright__ = "Copyright (C) 2008-2009 " + __authors__
 __license__  = "GNU GPL version 3 or any later version"
-__date__ = "2008-03-14 -- 2009-05-28"
+__date__ = "2008-03-14 -- 2009-06-15"
 
 ########## README
 # Imports here should be what the user sees when doing "from ufl import *",
@@ -55,9 +119,7 @@ from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile
     UFLException, DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 # Types for geometric quantities
-# Currently disabled to encourage use of syntax
-# x = cell.x; n = cell.n
-from ufl.geometry import Cell, Space # , SpatialCoordinate, FacetNormal 
+from ufl.geometry import Cell, Space, SpatialCoordinate, FacetNormal 
 
 # Finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
@@ -98,7 +160,7 @@ from ufl.operators import rank, shape, transpose, outer, inner, dot, cross, det,
                        eq, ne, le, ge, lt, gt, conditional, sign, \
                        jump, avg, \
                        variable, \
-                       Dx, diff, grad, div, curl, rot #, Dt
+                       Dx, diff, grad, div, curl, rot, Dn #, Dt
 
 # Form class
 from ufl.form import Form
@@ -117,3 +179,11 @@ from ufl.objects import interval, triangle, tetrahedron, quadrilateral, hexahedr
 
 # Useful constants
 from math import e, pi
+
+
+
+
+
+
+
+

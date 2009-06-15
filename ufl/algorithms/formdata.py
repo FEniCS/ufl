@@ -55,6 +55,8 @@ class FormData(object):
         # Get arguments and their elements
         basis_functions, functions = extract_arguments(self.form)
 
+        # FIXME: Check that all terms in self.form uses all basis_functions, either here or somewhere else
+
         # Replace arguments with new objects renumbered with count internal to the form
         replace_map, self.basis_functions, self.functions = \
             build_argument_replace_map(basis_functions, functions)

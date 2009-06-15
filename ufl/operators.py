@@ -124,6 +124,13 @@ def Dt(f):
     #return TimeDerivative(f) # TODO: Add class
     raise NotImplementedError
  
+def Dn(f):
+    "The directional derivative of f in the facet normal direction, Dn(f) := dot(n, grad(f))."
+    cell = f.cell()
+    if cell is None:
+        return Zero(f.shape(), f.free_indices(), f.index_dimensions())
+    return dot(cell.n, grad(f))
+
 # TODO: We have "derivative", "diff", "Dx", and "f.dx(i)", can we unify these with more intuitive consistent naming?
 def diff(f, v):
     """The derivative of f with respect to the variable v.

@@ -7,11 +7,6 @@ Roadmap for the development of UFL
 
 ############# Unprioritized features:
 
-- Implement AND/OR
-
-Make diff(u, cell.n) -> dot(cell.n, grad(u))
-and Dn(u) -> diff(u, u.cell().n) -> dot(cell.n, grad(u))
-
 # Tests:
     - Write more tests!
     - In particular write tests for the core algorithms, ideally covering all operators.
@@ -69,24 +64,14 @@ and Dn(u) -> diff(u, u.cell().n) -> dot(cell.n, grad(u))
       (implement after orthotropic hyperelasticity is validated)
     - The best is probably a mix of the two, using reverse mode
 
-# Mappings:
-    - This is cut from the old WIKI pages:
-            Alternatives for basis function mapping:
-            * mapping = "affine"
-            * mapping = "isoparametric"
-            * mapping = "Piola" (FIXME: how to handle covariant/contravariant/symmetric Piola here?)
-      Should they be attached to the cell or the elements?
 
-# Functions on subdomains:
+############# Unprioritized language features:
+
+# Functions on subdomains (medium priority, several people have requested something like this):
     - Function(element, domain=dx(0))
     - BasisFunction(element, domain=dx(1))
 
-# Additional operators:
-    - tan(f)
-    - log(f, base)
-    - other mathematical functions in <cmath> (need derivatives)
-
-# Elements and Basisfunctions (medium/low priority, needed for some non-trivial applications):
+# Elements (low priority):
     - (low) Implement
        class ElementUnion(FiniteElementBase):
            def __init__(self, *elements):
@@ -94,7 +79,7 @@ and Dn(u) -> diff(u, u.cell().n) -> dot(cell.n, grad(u))
       to represent the enrichment of a finite element space with another. (Idea from Marie)
     - (low) Time elements
 
-# Functions:
+# Functions (low priority, could allow automatic linearization w.r.t. functions not in a finite element space?):
     - (low) Attaching derivatives to Functions:
       It would be nice if the user could supply the derivative of a Function as another Function.
       Maybe we can do:
@@ -115,6 +100,23 @@ and Dn(u) -> diff(u, u.cell().n) -> dot(cell.n, grad(u))
    
       even if f is defined on a quadrature element.
 
+# Additional operators (low priority):
+    - tan(f)
+    - log(f, base)
+    - other mathematical functions in <cmath> (need derivatives)
+    - bessel functions (needs non-standard library code)
+
+# Geometry mappings (low priority):
+    - Specification of geometry mapping in Cell?
+      This is cut from the old WIKI pages:
+            Alternatives for basis function mapping:
+            * mapping = "affine"
+            * mapping = "isoparametric"
+            * mapping = "Piola" (FIXME: how to handle covariant/contravariant/symmetric Piola here?)
+
+# Improved conditionals (low priority, no use until basic conditionals are supported by form compilers):
+    - Implement AND/OR
+
 # Time derivatives (low priority):
     - Do we want something like Dt(u), Dtt(u), CR(a), FE(a), BE(a), TR(a, theta)?
     - In particular, this can be interesting in combination with time elements?
@@ -133,7 +135,8 @@ and Dn(u) -> diff(u, u.cell().n) -> dot(cell.n, grad(u))
     - Allowing complex values and functions, which operations would be affected?
       Is it mostly about multiplication and division?
 
-# Notes by Anders (trying to make sense of the implementation)
+
+############# Notes by Anders (trying to make sense of the implementation)
 
   OK   = Understand it and it looks ok
   OK!  = Understand it and it looks really good (done)
