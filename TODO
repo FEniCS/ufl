@@ -7,37 +7,64 @@ Roadmap for the development of UFL
 
 ############# Unprioritized features:
 
-# Tests:
-    - Write more tests!
+# Tests (for code health and stability):
+    - Write more unit tests!
     - In particular write tests for the core algorithms, ideally covering all operators.
 
-# Documentation:
-    - Add grouped lists of operators to ufl module docstring!
+# Documentation (for a better user experience):
     - Rewrite/improve all error messages (collect strings in separate file?)
     - Improve operator docstrings (use epydoc @param and @return for the more complicated functions)
     - Improve manual.
 
-# Prettyness and readability (medium priority, useful while debugging...):
-    - Finish precedence list to improve parentesis use in __str__ and __repr__ and ufl2latex.
+# Pretty printing (for a better user experience and easier debugging):
+    - Finish precedence list to improve parenthesis use in __str__ and __repr__ and ufl2latex.
+    - Implement C renderer
     - Rewrite ufl2latex as described in its comments (use pre- and post-handlers)
     - Improve dot-rendering with compact symbols for all node types
       (evt add option to switch between repr style and greek style)
     - Add dot-rendering to graph class: G = Graph(e); print G.dot_format()
     - Add utility "showdot(e)" for interactive experimentation. Need a good way to show images to do this.
 
-# Class hierarchy changes:
+# Class hierarchy changes (keeping the code healthy):
     - Streamline design when we have good tests. Need a clear line between compounds and non-compounds.
     - Add TensorSum, TensorDivision, ProductOfTensors, compound types just like Grad, Div. (evt CompoundSum, CompoundDivision, CompoundProduct, perhaps there are others)
 
 # Algorithms:
-    - Attaching flags to expression nodes to make effective application of expansions more streamlined.
     - Improve algorithm for computing worst case quadrature degree with more rules
+
+    - Attaching flags to expression nodes to make effective application of
+      expansions more streamlined, i.e. such that expand_compounds and
+      expand_derivatives can be applied multiple times with no additional
+      performance penalty.
+
+    - Implement algorithm to determine whether or not a bilinear form is self-adjoint (symmetric).
+      Pseudo-steps for such an algorithm could be:
+          def canonical_form(expression):
+              return expression transformed to a truly canonical form, i.e. a representation that is completely unique
+          self_adjoint = True
+          for each integrand:
+              a = canonical_form(integrand)
+              b = canonical_form(replace(integrand, {v:u}))
+              if not a == b:
+                  self_adjoint = False
+                  break
+
     - (hopefully not...) If AD needs to be applied in a compiler context, we need a 
       framework for representing unapplied form transformations.
-    - Determine whether or not a bilinear form is self-adjoint (symmetric)
 
-# Simplification:
+# Improved derivative computations (important only if critical bottlenecks are found):
+    Forward mode AD seems to work well.
+    More validation is always welcome though.
+    Finish reverse mode AD implementation and compare performance.
+    The best might be a mix of forward and reverse.
+
+# Optimization of ufl run time (important only if critical bottlenecks are found):
+    - Optimize expand_indices, currently one of the bottlenecks for quadrature compilers with complex equations. (see expand_indices2, almost working)
+      within some partitions and forward mode to connect them
+
+# Simplification of expressions (important only if critical bottlenecks are found):
     - Improved simplification of Indexed/ComponentTensor combinations.
+
     - Implement better simplification as an algorithm, or add 
       more simplification features to __new__ implementations?
       One important such basic simplification is to extract constant 
@@ -53,16 +80,8 @@ Roadmap for the development of UFL
       Once form compilers and regression tests are up and running,
       we can consider wether the backside of this (which is complicated)
       is important enough to avoid doing this by default...
-
-# Optimization (low priority unless critical bottlenecks are found):
-    - Optimize expand_indices, currently one of the bottlenecks for quadrature compilers with complex equations. (see expand_indices2, almost working)
-      within some partitions and forward mode to connect them
-
-# Derivatives (low priority):
-    Forward mode AD seems to work well. More validation is always welcome though.
-    - Finish reverse mode AD implementation and compare performance
-      (implement after orthotropic hyperelasticity is validated)
-    - The best is probably a mix of the two, using reverse mode
+      IT IS VERY IMPORTANT TO HAVE A GOOD AND __COMPLICATED__
+      SET OF TESTS IN PLACE BEFORE DOING THIS!
 
 
 ############# Unprioritized language features:
