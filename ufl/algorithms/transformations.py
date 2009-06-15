@@ -787,7 +787,7 @@ def expand_compounds(e, dim=None):
     if dim is None:
         cell = e.cell()
         if cell is not None:
-            dim = cell.d
+            dim = cell.geometric_dimension()
     return apply_transformer(e, CompoundExpander(dim))
 
 def strip_variables(e):

@@ -282,7 +282,7 @@ def _test():
     #from ufl.tensors import unit_vector, unit_vectors, unit_matrix, unit_matrices
     from ufl.objects import triangle
     cell = triangle
-    d = cell.d
+    d = cell.geometric_dimension()
     ei, ej, ek = unit_vectors(d)
     eii, eij, eik, eji, ejj, ejk, eki, ekj, ekk = unit_matrices(d)
     print ei

@@ -1,7 +1,7 @@
 "Types for quantities computed from cell geometry."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-03-11"
+__date__ = "2008-03-14 -- 2009-06-15"
 
 # Modified by Anders Logg, 2009.
 
@@ -9,6 +9,8 @@ from ufl.log import warning
 from ufl.assertions import ufl_assert
 from ufl.common import domain2dim
 from ufl.terminal import Terminal
+
+# --- Expression node types
 
 class GeometricQuantity(Terminal):
     __slots__ = ("_cell",)
@@ -20,6 +22,8 @@ class GeometricQuantity(Terminal):
         return self._cell
 
 class SpatialCoordinate(GeometricQuantity):
+    "Representation of a spatial coordinate."
+    __slots__ = ("_repr",)
     def __init__(self, cell):
         GeometricQuantity.__init__(self, cell)
         self._repr = "SpatialCoordinate(%r)" % self._cell
@@ -43,6 +47,8 @@ class SpatialCoordinate(GeometricQuantity):
         return isinstance(other, SpatialCoordinate) and other._cell == self._cell
 
 class FacetNormal(GeometricQuantity):
+    "Representation of a facet normal."
+    __slots__ = ("_repr",)
     def __init__(self, cell):
         GeometricQuantity.__init__(self, cell)
         self._repr = "FacetNormal(%r)" % self._cell
@@ -79,25 +85,60 @@ class FacetNormal(GeometricQuantity):
 #    def __eq__(self, other):
 #        return isinstance(other, MeshSize) and other._cell == self._cell
 
+# --- Basic space and cell representation classes
+
+class Space(object):
+    "Representation of an Euclidean space."
+    __slots__ = ("_dimension",)
+
+    def __init__(self, dimension):
+        self._dimension = dimension
+
+    def dimension(self):
+        return self._dimension
+
+    def __str__(self):
+        return "R%d" % self._dimension
+
+    def __repr__(self):
+        return "Space(%d)" % self._dimension
+
 class Cell(object):
     "Representation of a finite element cell."
-    __slots__ = ("_domain", "_degree", "_repr", "d", "n", "x")
+    __slots__ = ("_domain", "_degree", "_space", "_geometric_dimension", "_topological_dimension", "_repr", "d", "n", "x")
     
-    def __init__(self, domain, degree=1):
+    def __init__(self, domain, degree=1, space=None):
         "Initialize basic cell description"
         ufl_assert(domain in domain2dim, "Invalid domain %s." % (domain,))
-        if degree != 1:
-            warning("High order geometries aren't implemented anywhere yet.")
         self._domain = domain
+        self._topological_dimension = domain2dim[self._domain]
+
+        if degree != 1:
+            warning("Note: High order geometries are not implemented in the form compilers yet.") # TODO: Remove when implemented
         self._degree = degree
-        self._repr = "Cell(%r, %r)" % (self._domain, self._degree)
-        self.d = domain2dim[self._domain]
+
+        # Get geometric dimension 
+        if space is None:
+            space = Space(self._topological_dimension)
+        self._space = space
+        self._geometric_dimension = self._space.dimension()
+
+        # FIXME: Make self.d a property, deprecate or make valid only in this case. Don't use inside UFL!
+        if self._topological_dimension == self._geometric_dimension:
+            self.d = self._geometric_dimension
+        else:
+            self.d = None
+
+        # Cache repr string
+        self._repr = "Cell(%r, %r, %r)" % (self._domain, self._degree, self._space)
+
+        # Attach expression nodes derived from this cell
         self.n = FacetNormal(self)
         self.x = SpatialCoordinate(self)
         #self.h = MeshSize(self)
         #self.hmin = MeshSizeMin(self)
         #self.hmax = MeshSizeMax(self)
-    
+
     def geometric_dimension(self):
         return self.d
     
@@ -127,3 +168,4 @@ class Cell(object):
 def as_cell(cell):
     "Convert any valid object to a Cell (in particular, domain string)."
     return cell if isinstance(cell, Cell) else Cell(cell)
+

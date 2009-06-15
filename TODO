@@ -8,6 +8,9 @@ Roadmap for the development of UFL
 
 ############# Unprioritized features:
 
+- Add geometric dimension to Cell
+- Implement AND/OR
+
 Make diff(u, cell.n) -> dot(cell.n, grad(u))
 and Dn(u) -> diff(u, u.cell().n) -> dot(cell.n, grad(u))
 

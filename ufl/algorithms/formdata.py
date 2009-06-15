@@ -1,7 +1,7 @@
 """FormData class easy for collecting of various data about a form."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-09-13 -- 2009-05-28"
+__date__ = "2008-09-13 -- 2009-06-15"
 
 # Modified by Anders Logg, 2008.
 
@@ -103,9 +103,10 @@ class FormData(object):
         if self.cell is None:
             warning("No cell is defined in form.")
             self.geometric_dimension = None
+            self.topological_dimension = None
         else:
-            self.geometric_dimension = self.cell.d
-        self.topological_dimension = self.geometric_dimension
+            self.geometric_dimension = self.cell.geometric_dimension()
+            self.topological_dimension = self.cell.topological_dimension()
         
         # Attach form data to both original form and transformed form,
         # to ensure the invariant "form_data.form.form_data() is form_data"

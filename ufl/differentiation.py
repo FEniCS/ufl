@@ -90,8 +90,7 @@ def split_indices(expression, idx):
         ufl_assert(cell is not None,
             "Need to know the spatial dimension to "\
             "compute the shape of derivatives.")
-        dim = cell.d
-        idims[idx] = dim
+        idims[idx] = cell.geometric_dimension()
     fi = unique_indices(expression.free_indices() + (idx,))
     return fi, idims
 
@@ -117,7 +116,7 @@ class SpatialDerivative(Derivative):
             sh = None
             error("Cannot compute derivatives of expressions with no cell.")
         else:
-            sh = (cell.d,)
+            sh = (cell.geometric_dimension(),)
         self._index = as_multi_index(index, sh)
 
         # Make sure we have a single valid index
@@ -248,7 +247,7 @@ class Grad(CompoundDerivative):
         if is_spatially_constant(f):
             cell = f.cell()
             ufl_assert(cell is not None, "Can't take gradient of expression with undefined cell...")
-            dim = cell.d
+            dim = cell.geometric_dimension()
             free_indices = f.free_indices()
             index_dimensions = subdict(f.index_dimensions(), free_indices)
             return Zero((dim,) + f.shape(), free_indices, index_dimensions)
@@ -259,7 +258,7 @@ class Grad(CompoundDerivative):
         self._f = f
         cell = f.cell()
         ufl_assert(cell is not None, "Can't take gradient of expression with undefined cell. How did this happen?")
-        self._dim = cell.d
+        self._dim = cell.geometric_dimension()
         ufl_assert(not (f.free_indices()), \
             "TODO: Taking gradient of an expression with free indices, should this be a valid expression? Please provide examples!")
         self._repr = "Grad(%r)" % self._f
@@ -334,7 +333,7 @@ class Curl(CompoundDerivative):
             sh = { (): (2,), (2,): (), (3,): (3,) }[sh]
             #free_indices = f.free_indices()
             #index_dimensions = subdict(f.index_dimensions(), free_indices)
-            #return Zero((cell.d,), free_indices, index_dimensions)
+            #return Zero((cell.geometric_dimension(),), free_indices, index_dimensions)
             return Zero(sh)
         return CompoundDerivative.__new__(cls)
     

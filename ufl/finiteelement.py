@@ -81,7 +81,7 @@ class FiniteElement(FiniteElementBase):
         ufl_assert(kmax is None or degree <= kmax, 'Degree "%d" invalid for "%s" finite element.' % (degree, family))
         
         # Set value dimension (default to using domain dimension in each axis)
-        dim = cell.d
+        dim = cell.geometric_dimension()
         value_shape = (dim,)*(value_rank)
         
         # Initialize element data
@@ -191,7 +191,7 @@ class VectorElement(MixedElement):
         
         # Set default size if not specified
         if dim is None:
-            dim = cell.d
+            dim = cell.geometric_dimension()
 
         # Create mixed element from list of finite elements
         sub_element = FiniteElement(family, cell, degree)
@@ -236,7 +236,7 @@ class TensorElement(MixedElement):
         
         # Set default shape if not specified
         if shape is None:
-            dim = cell.d
+            dim = cell.geometric_dimension()
             shape = (dim, dim)
             
             # Construct default symmetry for matrix elements

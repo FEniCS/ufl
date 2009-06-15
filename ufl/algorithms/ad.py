@@ -50,7 +50,7 @@ def expand_derivatives(form):
     objects have been propagated to Terminal nodes."""
 
     cell = form.cell()
-    dim = None if cell is None else cell.d
+    dim = None if cell is None else cell.geometric_dimension()
 
     def ad_routine(e):
         # TODO: How to switch between forward and reverse mode? Can we pick the best in each context? Want to try a mixed implementation on the graph.
