@@ -365,8 +365,8 @@ class Power(AlgebraOperator):
     def __new__(cls, a, b):
         a = as_ufl(a)
         b = as_ufl(b)
-        if not is_true_ufl_scalar(b): error("Expecting scalar exponent.")
-        if not is_ufl_scalar(b): error("Expecting scalar exponent.")
+        if not is_true_ufl_scalar(a): error("Cannot take the power of a non-scalar expression.")
+        if not is_true_ufl_scalar(b): error("Cannot raise an expression to a non-scalar power.")
         
         if isinstance(a, ScalarValue) and isinstance(b, ScalarValue):
             return as_ufl(a._value ** b._value)

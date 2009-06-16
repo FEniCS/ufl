@@ -154,14 +154,12 @@ Expr.__rdiv__ = _rdiv
 def _pow(self, o):
     if not isinstance(o, _valid_types):
         return NotImplemented
-    ufl_assert(is_true_ufl_scalar(self), "Cannot take the power of a non-scalar expression.")
     return Power(self, o)
 Expr.__pow__ = _pow
 
 def _rpow(self, o):
     if not isinstance(o, _valid_types):
         return NotImplemented
-    ufl_assert(is_true_ufl_scalar(self), "Cannot raise an expression to a non-scalar power.")
     return Power(o, self)
 Expr.__rpow__ = _rpow
 
