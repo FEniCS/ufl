@@ -30,4 +30,3 @@ def test_element_construction():
                     yield construct_vector_element, name, domain, degree, value_rank
                     yield construct_tensor_element, name, domain, degree, value_rank
 
-

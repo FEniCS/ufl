@@ -2,8 +2,8 @@
 This way we avoid circular dependencies between e.g.
 Sum and its superclass Expr."""
 
-__authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-18 -- 2009-06-08"
+_authors__ = "Martin Sandve Alnes"
+__date__ = "2008-08-18 -- 2009-06-17"
 
 from itertools import chain
 
@@ -323,9 +323,9 @@ def _dx(self, *ii):
     return d
 Expr.dx = _dx
 
-def _d(self, v):
-    "Return the partial derivative with respect to variable v."
-    # TODO: Maybe v can be an Indexed of a Variable, in which case we can use indexing to extract the right component?
-    return VariableDerivative(self, v)
-Expr.d = _d
+#def _d(self, v):
+#    "Return the partial derivative with respect to variable v."
+#    # TODO: Maybe v can be an Indexed of a Variable, in which case we can use indexing to extract the right component?
+#    return VariableDerivative(self, v)
+#Expr.d = _d
 

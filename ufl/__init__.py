@@ -41,6 +41,7 @@ Cells and Euclidean spaces:
 
 Elements:
     FiniteElement, MixedElement, VectorElement, TensorElement
+    ElementUnion, RestrictedElement
 
 Basis functions:
     BasisFunction, TestFunction, TrialFunction
@@ -101,7 +102,7 @@ __version__ = "0.35-dev"
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __copyright__ = "Copyright (C) 2008-2009 " + __authors__
 __license__  = "GNU GPL version 3 or any later version"
-__date__ = "2008-03-14 -- 2009-06-15"
+__date__ = "2008-03-14 -- 2009-06-17"
 
 ########## README
 # Imports here should be what the user sees when doing "from ufl import *",
@@ -123,7 +124,7 @@ from ufl.geometry import Cell, Space, SpatialCoordinate, FacetNormal
 
 # Finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
-    MixedElement, VectorElement, TensorElement, ElementUnion
+    MixedElement, VectorElement, TensorElement, ElementUnion, ElementRestriction
 
 # Hook to extend predefined element families
 from ufl.elementlist import register_element, show_elements #, ufl_elements

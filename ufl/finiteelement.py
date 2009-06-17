@@ -1,7 +1,7 @@
 "This module defines the UFL finite element classes."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-03 -- 2009-03-30"
+__date__ = "2008-03-03 -- 2009-06-17"
 
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
@@ -63,6 +63,20 @@ class FiniteElementBase(object):
         "Add two elements, creating a mixed element"
         ufl_assert(isinstance(other, FiniteElementBase), "Can't add element and %s." % other.__class__)
         return MixedElement(self, other)
+
+    #def __mul__(self, other): # TODO: Make __mul__ -> mixed and __add__ -> union?
+    #    "Multiply two elements, creating a mixed element"
+    #    ufl_assert(isinstance(other, FiniteElementBase), "Can't multiply element and %s." % other.__class__)
+    #    return MixedElement(self, other)
+
+    def __getitem__(self, index):
+        "Restrict finite element to a subdomain or subcomponent."
+        from ufl.integral import Measure
+        if isinstance(index, Measure):
+            return ElementRestriction(self, index)
+        #if isinstance(index, int):
+        #    return SubElement(self, index)
+        return NotImplemented
 
 class FiniteElement(FiniteElementBase):
     "The basic finite element class for all simple finite elements"
@@ -333,7 +347,7 @@ class ElementUnion(FiniteElementBase):
 
         degree = max(e.degree() for e in elements)
 
-        value_shape = elements[0].shape()
+        value_shape = elements[0].value_shape()
         ufl_assert(all(e.value_shape() == value_shape for e in elements), "Element value shape mismatch.")
         
         # Initialize element data
@@ -352,5 +366,28 @@ class ElementUnion(FiniteElementBase):
     
     def shortstr(self):
         "Format as string for pretty printing."
-        return "<%s>" % " U ".join(str(e) for e in self._elements)
+        return "<%s>" % " U ".join(e.shortstr() for e in self._elements)
+
+class ElementRestriction(FiniteElementBase):
+    def __init__(self, element, domain):
+        ufl_assert(isinstance(element, FiniteElementBase), "Expecting a finite element instance.")
+        from ufl.integral import Measure
+        ufl_assert(isinstance(domain, Measure), "Expecting a subdomain represented by a Measure instance.")
+        FiniteElementBase.__init__(self, "ElementRestriction", element.cell(), element.degree(), element.value_shape())
+        self._element = element
+        self._domain = domain
+
+        self._repr = "ElementRestriction(%r, %r)" % (element, domain)
+
+    def __repr__(self):
+        "Format as string for evaluation as Python object."
+        return self._repr
+    
+    def __str__(self):
+        "Format as string for pretty printing."
+        return "<%s>|_{%s}" % (self._element, self._domain)
+    
+    def shortstr(self):
+        "Format as string for pretty printing."
+        return "<%s>|_{%s}" % (self._element.shortstr(), self._domain)
 
