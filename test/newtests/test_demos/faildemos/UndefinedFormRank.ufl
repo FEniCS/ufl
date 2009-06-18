@@ -1,0 +1,10 @@
+
+# FIXME: This form currently passes validation but should fail since it mixes linear and bilinear terms.
+
+e = FiniteElement("CG", triangle, 1)
+f = Function(e)
+v = TestFunction(e)
+u = TrialFunction(e)
+
+a = f*v*dx + u*v*dx
+

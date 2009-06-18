@@ -3,7 +3,7 @@
 from __future__ import with_statement
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-04-17"
+__date__ = "2008-03-14 -- 2009-06-17"
 
 import os
 import time
@@ -25,6 +25,10 @@ class FileData(object):
         self.elements  = [] # alternative: {} # { name: FiniteElement }
         self.functions = [] # alternative: {} # { name: Function      }
         self.forms     = [] # alternative: {} # { name: Form          }
+        
+    def __nonzero__(self):
+        return bool(self.elements or self.functions or self.forms)
+
 
 infostring = """An exception occured during evaluation of form file.
 To help you find the location of the error, a temporary script

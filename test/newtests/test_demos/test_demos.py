@@ -1,23 +1,43 @@
 
-def analyse_demo(demo):
-    #from ufl import validate # TODO: Implement some generic function like validate that encompasses all validation that we can do in general for both elements, expressions, and forms.
-    def validate(something): pass
+def analyse_demo(name, shouldfail=False):
+    import os
     from ufl.algorithms import load_ufl_file
-    data = load_ufl_file(demo)
-    for d in data:
-        validate(d)
+    data = load_ufl_file(name)
 
+    assert data, "Found no exported data in .ufl file."
 
+    #for f in data.elements:
+    #    validate(f)
 
-        self.elements  = [] # alternative: {} # { name: FiniteElement }
-        self.functions = [] # alternative: {} # { name: Function      }
-        self.forms     = [] # alternative: {} # { name: Form          }
+    #for f in data.functions:
+    #    validate(f)
+
+    from ufl.algorithms import validate_form
+    for f in data.forms:
+        failed = True
+        try:
+            validate_form(f)
+            failed = False
+        finally:   
+            if shouldfail:
+                assert failed, "The demo '%s' should fail validation, which means the form analysis is broken." % os.path.basename(name)
 
 def test_demos():
-    print "test_demos"
-    import glob
-    files = glob.glob("../../demo/*.ufl")
-    assert files, "No demos to test!"
-    for demo in files:
-        yield analyse_demo, demo
+    import os, glob
+    p = os.path.split(__file__)[0]
+    
+    files = glob.glob(os.path.join(p, "../../../demo/*.ufl"))
+    assert files, "No main demos to test!"
+    for name in files:
+        yield analyse_demo, name
+    
+    files = glob.glob(os.path.join(p, "okdemos/*.ufl"))
+    assert files, "No ok demos to test!"
+    for name in files:
+        yield analyse_demo, name
+    
+    files = glob.glob(os.path.join(p, "faildemos/*.ufl"))
+    assert files, "No fail demos to test!"
+    for name in files:
+        yield analyse_demo, name, True
 
