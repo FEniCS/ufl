@@ -92,6 +92,7 @@ class Space(object):
     __slots__ = ("_dimension",)
 
     def __init__(self, dimension):
+        ufl_assert(isinstance(dimension, int), "Expecting integer.")
         self._dimension = dimension
 
     def dimension(self):
@@ -105,25 +106,36 @@ class Space(object):
 
 class Cell(object):
     "Representation of a finite element cell."
-    __slots__ = ("_domain", "_degree", "_space", "_geometric_dimension", "_topological_dimension", "_repr", "d", "n", "x")
+    __slots__ = ("_domain", "_degree", "_space", "_geometric_dimension",
+                 "_topological_dimension", "_repr", "d", "n", "x")
     
     def __init__(self, domain, degree=1, space=None):
         "Initialize basic cell description"
+
+        # Handle domain
         ufl_assert(domain in domain2dim, "Invalid domain %s." % (domain,))
         self._domain = domain
         self._topological_dimension = domain2dim[self._domain]
 
-        if degree != 1:
-            warning("Note: High order geometries are not implemented in the form compilers yet.") # TODO: Remove when implemented
+        # Handle degree
+        ufl_assert(isinstance(degree, int) and degree >= 1, "Invalid degree '%r'." % (degree,))
+        if degree != 1: # TODO: Remove warning when implemented
+            warning("Note: High order geometries are not implemented in the form compilers yet.")
         self._degree = degree
 
         # Get geometric dimension 
         if space is None:
             space = Space(self._topological_dimension)
+        ufl_assert(isinstance(space, Space), "Expecting a Space instance, not '%r'" % (space,))
         self._space = space
         self._geometric_dimension = self._space.dimension()
 
-        # FIXME: Make self.d a property, deprecate or make valid only in this case. Don't use inside UFL!
+
+        ufl_assert(self._topological_dimension >= self._geometric_dimension,
+            "Cannot embed a %dD cell in %s" % (self._topological_dimension, self._space))
+
+        # TODO: Make self.d a property, deprecate or make valid
+        #       only in this case. Don't use inside UFL!
         if self._topological_dimension == self._geometric_dimension:
             self.d = self._geometric_dimension
         else:
