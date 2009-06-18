@@ -1,0 +1,23 @@
+Test files completely migrated to newtests:
+   analyse_demos.py
+   elements.py
+
+Test files left:
+    algorithms.py
+    base.py
+    classcoverage.py
+    conditionals.py
+    derivative.py
+    diff.py
+    evaluate.py
+    expand_indices.py
+    ffcforms.py
+    forms.py
+    illegal.py
+    indices.py
+    makemanualtestcase.py
+    manualtest.py
+    mass.py
+    mock.py
+    simplify.py
+    split.py
