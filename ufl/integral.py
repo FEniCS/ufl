@@ -1,7 +1,7 @@
 """The Integral class."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-06-11"
+__date__ = "2008-03-14 -- 2009-06-19"
 
 # Modified by Anders Logg, 2008-2009.
 
@@ -48,10 +48,12 @@ class Measure(object):
     CELL = "cell"
     EXTERIOR_FACET = "exterior_facet"
     INTERIOR_FACET = "interior_facet"
+    MACRO_CELL = "macro_cell"
     _domain_types = { \
         CELL: "dx",
         EXTERIOR_FACET: "ds",
         INTERIOR_FACET: "dS",
+        MACRO_CELL: "dE",
         }
     
     def domain_type(self):

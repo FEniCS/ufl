@@ -1,7 +1,7 @@
 "Utility objects for pretty syntax in user code."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-06-15"
+__date__ = "2008-03-14 -- 2009-06-19"
 
 # Modified by Anders Logg, 2008
 
@@ -17,6 +17,7 @@ p, q, r, s = indices(4)
 dx = Measure(Measure.CELL, 0)
 ds = Measure(Measure.EXTERIOR_FACET, 0)
 dS = Measure(Measure.INTERIOR_FACET, 0)
+dE = Measure(Measure.MACRO_CELL, 0)
 
 # Euclidean spaces
 R1 = Space(1)

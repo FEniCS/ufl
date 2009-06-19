@@ -79,6 +79,10 @@ class Form(object):
         from ufl.integral import Measure
         return self.integrals(Measure.INTERIOR_FACET)
     
+    def macro_cell_integrals(self):
+        from ufl.integral import Measure
+        return self.integrals(Measure.MACRO_CELL)
+    
     def __add__(self, other):
         # --- Add integrands of integrals with the same measure
         
