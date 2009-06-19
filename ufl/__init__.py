@@ -89,7 +89,7 @@ Conditional operators:
     eq, ne, le, ge, lt, gt, conditional,
 
 Integral measures:
-    dx, ds, dS
+    dx, ds, dS, dE
 
 Form transformations:
     rhs, lhs, system, functional,
@@ -102,7 +102,7 @@ __version__ = "0.35-dev"
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __copyright__ = "Copyright (C) 2008-2009 " + __authors__
 __license__  = "GNU GPL version 3 or any later version"
-__date__ = "2008-03-14 -- 2009-06-17"
+__date__ = "2008-03-14 -- 2009-06-19"
 
 ########## README
 # Imports here should be what the user sees when doing "from ufl import *",
@@ -155,13 +155,18 @@ from ufl.tensors import as_tensor, as_vector, as_matrix, relabel
 from ufl.tensors import unit_vector, unit_vectors, unit_matrix, unit_matrices
 
 # Operators
-from ufl.operators import rank, shape, transpose, outer, inner, dot, cross, det, \
-                       inv, tr, dev, cofac, skew, sym, \
+from ufl.operators import rank, shape, \
+                       outer, inner, dot, cross, \
+                       det, inv, cofac, \
+                       transpose, tr, dev, skew, sym, \
                        sqrt, exp, ln, cos, sin, \
                        eq, ne, le, ge, lt, gt, conditional, sign, \
-                       jump, avg, \
-                       variable, \
-                       Dx, diff, grad, div, curl, rot, Dn #, Dt
+                       variable, diff, \
+                       Dx,  grad, div, curl, rot, Dn, \
+                       jump, avg
+
+# Lifting
+from ufl.lifting import LiftingFunction, LiftingOperator
 
 # Form class
 from ufl.form import Form
@@ -176,7 +181,7 @@ from ufl.formoperators import replace, derivative, action, energy_norm, rhs, lhs
 from ufl.objects import interval, triangle, tetrahedron, quadrilateral, hexahedron, \
                      i, j, k, l, p, q, r, s, \
                      R1, R2, R3, \
-                     dx, ds, dS
+                     dx, ds, dS, dE
 
 # Useful constants
 from math import e, pi

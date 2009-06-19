@@ -1,7 +1,7 @@
 """FormData class easy for collecting of various data about a form."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-09-13 -- 2009-06-15"
+__date__ = "2008-09-13 -- 2009-06-19"
 
 # Modified by Anders Logg, 2008.
 
@@ -126,6 +126,7 @@ class FormData(object):
                      ("Number of cell integrals",           len(self.form.cell_integrals())),
                      ("Number of exterior facet integrals", len(self.form.exterior_facet_integrals())),
                      ("Number of interior facet integrals", len(self.form.interior_facet_integrals())),
+                     ("Number of macro cell integrals",     len(self.form.macro_cell_integrals())),
                      ("Basis functions",                    lstr(self.basis_functions)),
                      ("Functions",                          lstr(self.functions)),
                      ("Basis function names",               lstr(self.basis_function_names)),

@@ -1,12 +1,13 @@
 "Algorithms for tuple notation a = (v, u) + (grad(v), grad(u))."
 
 __authors__ = "Anders Logg (logg@simula.no)"
-__date__    = "2009-04-05 -- 2009-04-05"
+__date__    = "2009-04-05 -- 2009-06-19"
 
 from ufl.log import error
 from ufl.form import Form
 from ufl.integral import Measure, Integral
 from ufl.operators import inner
+from ufl.objects import dx
 
 def tuple2form(objects):
     "Convert given tuple (or list) to a UFL form."
@@ -15,9 +16,8 @@ def tuple2form(objects):
     if not isinstance(objects, (list, tuple)):
         error("Unable to extract UFL form, expecting a tuple: %s" % repr(objects))
 
-    # Operands and default measure
+    # Operands
     v = w = None
-    dx = Measure(Measure.CELL, 0)
 
     # Iterate over objects and extract integrals
     integrals = []
