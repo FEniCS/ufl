@@ -70,9 +70,10 @@ class FiniteElementBase(object):
     #    return MixedElement(self, other)
 
     def __getitem__(self, index):
-        "Restrict finite element to a subdomain or subcomponent."
+        "Restrict finite element to a subdomain, subcomponent or topology (cell)."
         from ufl.integral import Measure
-        if isinstance(index, Measure):
+        from ufl.geometry import Cell
+        if isinstance(index, Measure) or isinstance(as_cell(index), Cell):
             return ElementRestriction(self, index)
         #if isinstance(index, int):
         #    return SubElement(self, index)
@@ -372,7 +373,9 @@ class ElementRestriction(FiniteElementBase):
     def __init__(self, element, domain):
         ufl_assert(isinstance(element, FiniteElementBase), "Expecting a finite element instance.")
         from ufl.integral import Measure
-        ufl_assert(isinstance(domain, Measure), "Expecting a subdomain represented by a Measure instance.")
+        from ufl.geometry import Cell
+        ufl_assert(isinstance(domain, Measure) or isinstance(as_cell(domain), Cell),\
+            "Expecting a subdomain represented by a Measure or Cell instance.")
         FiniteElementBase.__init__(self, "ElementRestriction", element.cell(), element.degree(), element.value_shape())
         self._element = element
         self._domain = domain
