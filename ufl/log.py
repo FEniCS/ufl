@@ -14,7 +14,7 @@ import logging
 
 log_functions = ["log", "debug", "info", "warning", "error", "begin", "end",
                  "set_level", "push_level", "pop_level", "set_indent", "add_indent",
-                 "set_handler", "get_handler", "get_logger", "add_logfile"]
+                 "set_handler", "get_handler", "get_logger", "add_logfile", "set_prefix"]
 
 __all__ = log_functions + ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL", "Logger", "log_functions"]
 
@@ -60,6 +60,9 @@ class Logger:
 
         # Setup stack with default logging level
         self._level_stack = [DEBUG]
+
+        # Set prefix
+        self._prefix = ""
 
     def add_logfile(self, filename=None, mode="a"):
         if filename is None:
@@ -158,9 +161,13 @@ class Logger:
         "Return message logger."
         return self._log
 
+    def set_prefix(self, prefix):
+        "Set prefix for log messages."
+        self._prefix = prefix
+
     def _format(self, *message):
         "Format message including indentation."
-        indent = 2*self._indent_level*" "
+        indent = self._prefix + 2*self._indent_level*" "
         return "\n".join([indent + line for line in (message[0] % message[1:]).split("\n")])
 
     def _format_raw(self, *message):
@@ -173,4 +180,3 @@ ufl_logger = Logger("UFL")
 
 for foo in log_functions:
     exec("%s = ufl_logger.%s" % (foo, foo))
-
