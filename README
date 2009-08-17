@@ -10,6 +10,7 @@ Contributors:
   Garth Wells,
   Marie Rognes,
   Kent-Andre Mardal <kent-and@simula.no>
+  Johan Hake
 
 
 Installation
@@ -59,7 +60,7 @@ The global namespace of the module ufl contains the entire UFL language:
 
 Form compilers may want to import additional implementation details like
   from ufl.classes import *
-and 
+and
   from ufl.algorithms import *
 
 Importing a .ufl file can be done easily from Python:

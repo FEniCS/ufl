@@ -2,15 +2,17 @@
 output messages. These may be redirected by the user of UFL."""
 
 __author__ = "Martin Sandve Alnaes and Anders Logg"
-__date__ = "2005-02-04 -- 2009-03-27"
+__date__ = "2005-02-04 -- 2009-08-17"
 __copyright__ = "Copyright (C) 2005-2009 Anders Logg and Martin Sandve Alnaes"
 __license__  = "GNU GPL version 3 or any later version"
+
+# Modified by Johan Hake, 2009.
 
 import sys
 import types
 import logging
 
-log_functions = ["debug", "info", "warning", "error", "begin", "end",
+log_functions = ["log", "debug", "info", "warning", "error", "begin", "end",
                  "set_level", "push_level", "pop_level", "set_indent", "add_indent",
                  "set_handler", "get_handler", "get_logger", "add_logfile"]
 
@@ -39,7 +41,7 @@ class Logger:
         self._name = name
 
         # Set up handler
-        h = logging.StreamHandler(sys.stdout)        
+        h = logging.StreamHandler(sys.stdout)
         h.setLevel(WARNING)
         # Override emit() in handler for indentation
         h.emit = types.MethodType(emit, h, h.__class__)
@@ -55,7 +57,7 @@ class Logger:
 
         # Set initial indentation level
         self._indent_level = 0
-        
+
         # Setup stack with default logging level
         self._level_stack = [DEBUG]
 
@@ -71,21 +73,25 @@ class Logger:
         self._log.addHandler(h)
         self._logfiles[filename] = h
         return h
-    
+
     def get_logfile_handler(self, filename):
         return self._logfiles[filename]
 
+    def log(self, level, *message):
+        "Write a log message on given log level"
+        text = self._format_raw(*message)
+        if len(text) >= 3 and text[-3:] == "...":
+            self._log.log(level, self._format(*message), extra={"continued": True})
+        else:
+            self._log.log(level, self._format(*message))
+
     def debug(self, *message):
         "Write debug message."
-        self._log.debug(self._format(*message))
+        self.log(DEBUG, *message)
 
     def info(self, *message):
         "Write info message."
-        text = self._format_raw(*message)
-        if len(text) >= 3 and text[-3:] == "...":
-            self._log.info(self._format(*message), extra={"continued": True})
-        else:
-            self._log.info(self._format(*message))
+        self.log(INFO, *message)
 
     def warning(self, *message):
         "Write warning message."
@@ -123,7 +129,7 @@ class Logger:
         self._level_stack[-1] = level
         #self._log.setLevel(level)
         self._handler.setLevel(level)
-    
+
     def set_indent(self, level):
         "Set indentation level."
         self._indent_level = level
@@ -135,7 +141,7 @@ class Logger:
     def get_handler(self):
         "Get handler for logging."
         return self._handler
-    
+
     def set_handler(self, handler):
         """Replace handler for logging.
         To add additional handlers instead
@@ -143,7 +149,7 @@ class Logger:
         log.get_logger().addHandler(myhandler).
         See the logging module for more details.
         """
-        self._log.removeHandler(self._handler)    
+        self._log.removeHandler(self._handler)
         self._log.addHandler(handler)
         self._handler = handler
         handler.emit = types.MethodType(emit, self._handler, self._handler.__class__)
