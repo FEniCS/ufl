@@ -104,6 +104,8 @@ __copyright__ = "Copyright (C) 2008-2009 " + __authors__
 __license__  = "GNU GPL version 3 or any later version"
 __date__ = "2008-03-14 -- 2009-06-19"
 
+# Modified by Kristian Oelgaard, 2009
+
 ########## README
 # Imports here should be what the user sees when doing "from ufl import *",
 # which means we should _not_ import f.ex. "Grad", but "grad".
@@ -178,7 +180,7 @@ from ufl.integral import Integral, register_domain_type
 from ufl.formoperators import replace, derivative, action, energy_norm, rhs, lhs, system, functional, adjoint, sensitivity_rhs #, dirichlet_functional
 
 # Predefined convenience objects
-from ufl.objects import interval, triangle, tetrahedron, quadrilateral, hexahedron, \
+from ufl.objects import vertex, interval, triangle, tetrahedron, quadrilateral, hexahedron, facet,\
                      i, j, k, l, p, q, r, s, \
                      R1, R2, R3, \
                      dx, ds, dS, dE

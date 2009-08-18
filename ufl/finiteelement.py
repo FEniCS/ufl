@@ -3,10 +3,12 @@
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __date__ = "2008-03-03 -- 2009-06-17"
 
+# Modified by Kristian Oelgaard, 2009
+
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.elementlist import ufl_elements
-from ufl.common import product, index_to_component, component_to_index
+from ufl.common import product, index_to_component, component_to_index, domain2facet
 from ufl.geometry import as_cell
 
 class FiniteElementBase(object):
@@ -378,6 +380,13 @@ class ElementRestriction(FiniteElementBase):
             "Expecting a subdomain represented by a Measure or Cell instance.")
         FiniteElementBase.__init__(self, "ElementRestriction", element.cell(), element.degree(), element.value_shape())
         self._element = element
+
+        # Check for Cell instance and 'facet'
+        if isinstance(as_cell(domain), Cell):
+            domain = as_cell(domain)
+            if domain.domain() == "facet":
+                domain = Cell(domain2facet[self.cell().domain()])
+
         self._domain = domain
 
         self._repr = "ElementRestriction(%r, %r)" % (element, domain)

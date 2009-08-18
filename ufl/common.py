@@ -3,6 +3,8 @@
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __date__ = "2008-08-05 -- 2009-03-05"
 
+# Modified by Kristian Oelgaard, 2009
+
 import os
 from itertools import izip
 import operator
@@ -19,7 +21,12 @@ def get_status_output(cmd, input=None, cwd=None, env=None):
 
     return (status, output)
 
-domain2dim = { "interval": 1, "triangle": 2, "tetrahedron": 3, "quadrilateral": 2, "hexahedron": 3 }
+# TODO: The facet dim is just a dummy for now
+domain2dim = {"vertex" : 0, "interval": 1, "triangle": 2, "tetrahedron": 3,\
+              "quadrilateral": 2, "hexahedron": 3, "facet": 0 }
+domain2facet = {"interval": "vertex", "triangle": "interval",\
+                "tetrahedron": "triangle", "quadrilateral": "interval",\
+                "hexahedron": "quadrilateral" }
 
 def write_file(filename, text):
     f = open(filename, "w")
