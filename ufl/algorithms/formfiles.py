@@ -17,6 +17,7 @@ from ufl.function import Function
 from ufl.basisfunction import BasisFunction
 from ufl.algorithms.formdata import FormData
 from ufl.algorithms.checks import validate_form
+from ufl.algorithms.tuplenotation import as_form
 
 #--- Utilities to deal with form files ---
 
@@ -97,8 +98,9 @@ def load_ufl_file(filename):
     basis_function_names = {}
     for name, value in namespace.iteritems():
         if isinstance(value, (Form, tuple)):
-            all_forms.append(value)
-            form_names[id(value)] = name
+            # Convert tuple notation to form
+            all_forms.append(as_form(value))
+            form_names[as_form(value)] = name
         elif isinstance(value, Function):
             function_names[id(value)] = name
         elif isinstance(value, BasisFunction):
@@ -108,7 +110,8 @@ def load_ufl_file(filename):
     forms = namespace.get("forms")
     if forms is None:
         forms = [namespace.get(name) for name in ("a", "L", "M")]
-        forms = [a for a in forms if a is not None]
+        # Convert tuple notation to form
+        forms = [as_form(a) for a in forms if a is not None]
     # Convert tuple type forms to Form instances
     ufl_assert(isinstance(forms, (list, tuple)),
         "Expecting 'forms' to be a list or tuple, not '%s'." % type(forms))
@@ -151,7 +154,7 @@ def load_ufl_file(filename):
     for form in forms:
         # Using form_data() ensures FormData is only constructed once
         fd = form.form_data()
-        fd.name = form_names[id(form)]
+        fd.name = form_names[form]
         for (i, f) in enumerate(fd.original_basis_functions):
             fd.basis_function_names[i] = basis_function_names.get(id(f), "v%d"%i)
         for (i, f) in enumerate(fd.original_functions):
