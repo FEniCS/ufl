@@ -1,9 +1,9 @@
 "This module defines the UFL finite element classes."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-03 -- 2009-06-17"
+__date__ = "2008-03-03 -- 2009-08-25"
 
-# Modified by Kristian Oelgaard, 2009
+# Modified by Kristian B. Oelgaard, 2009
 
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
@@ -381,15 +381,24 @@ class ElementRestriction(FiniteElementBase):
         FiniteElementBase.__init__(self, "ElementRestriction", element.cell(), element.degree(), element.value_shape())
         self._element = element
 
-        # Check for Cell instance and 'facet'
-        if isinstance(as_cell(domain), Cell):
+        # Just attach domain if it is a Measure
+        if isinstance(domain, Measure):
+            self._domain = domain
+        else:
+            # Create Cell (if we get a string)
             domain = as_cell(domain)
+            # Check for facet and handle it
             if domain.domain() == "facet":
                 domain = Cell(domain2facet[self.cell().domain()])
-
-        self._domain = domain
+            self._domain = domain
 
         self._repr = "ElementRestriction(%r, %r)" % (element, domain)
+
+    def element(self):
+        return self._element
+
+    def domain(self):
+        return self._domain
 
     def __repr__(self):
         "Format as string for evaluation as Python object."
