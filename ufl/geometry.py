@@ -1,9 +1,10 @@
 "Types for quantities computed from cell geometry."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-06-15"
+__date__ = "2008-03-14 -- 2009-08-26"
 
 # Modified by Anders Logg, 2009.
+# Modified by Kristian B. Oelgaard, 2009
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
@@ -165,6 +166,9 @@ class Cell(object):
     
     def __eq__(self, other):
         return isinstance(other, Cell) and self._domain == other._domain and self._degree == other._degree
+
+    def __ne__(self, other):
+        return not self == other
     
     def __hash__(self):
         return hash(("Cell", self._domain, self._degree))
