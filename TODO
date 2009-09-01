@@ -79,6 +79,15 @@ Roadmap for the development of UFL
       IT IS VERY IMPORTANT TO HAVE A GOOD AND __COMPLICATED__
       SET OF TESTS IN PLACE BEFORE DOING THIS!
 
+# Handle zero valued forms:
+    If form simplification renders a form empty, it should add a zero term such
+    that the form can be assembled.
+    Some examples:
+      L = (0*v)*dx --> (0)*dx --> (0*v)*dx
+      L = g*v*dx + 0*v*dx -> g*v*dx
+      L = 0*v*dx + 0*g*v*dx -> (0*v)*dx
+      L = 0*v*very_long_ufl_expression*dx -> (0*v)*dx
+
 
 ############# Unprioritized language features:
 
