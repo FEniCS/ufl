@@ -1,7 +1,9 @@
 "Various high level ways to transform a complete Form into a new Form."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-05-08"
+__date__ = "2008-03-14 -- 2009-09-01"
+
+# Modified by Anders Logg, 2009.
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
@@ -24,6 +26,7 @@ from ufl.algorithms import compute_form_adjoint, \
                            compute_form_rhs, \
                            compute_form_functional, \
                            expand_derivatives, \
+                           expand_indices, \
                            as_form
 
 from ufl.algorithms import replace
@@ -39,6 +42,7 @@ def lhs(form):
     """
     form = as_form(form)
     form = expand_derivatives(form)
+    form = expand_indices(form)
     return compute_form_lhs(form)
 
 def rhs(form):
@@ -50,8 +54,10 @@ def rhs(form):
         a = u*v*dx + f*v*dx
         L = rhs(a) -> -f*v*dx
     """
+
     form = as_form(form)
     form = expand_derivatives(form)
+    form = expand_indices(form)
     return compute_form_rhs(form)
 
 def system(form):
@@ -111,7 +117,7 @@ def _handle_derivative_arguments(function, basis_function):
             "Basis function over wrong element supplied, "\
             "got %s but expecting %s." % \
             (repr(basis_function.element()), repr(element)))
-        
+
         # Place in generic tuple
         basis_functions = (basis_function,)
 
@@ -157,9 +163,9 @@ def derivative(form, function, basis_function=None):
     A tuple of Functions may be provided in place of
     a single Function, in which case the new BasisFunction
     argument is based on a MixedElement created from this tuple."""
-    
+
     functions, basis_functions = _handle_derivative_arguments(function, basis_function)
-    
+
     # Got a form? Apply derivatives to the integrands in turn.
     if isinstance(form, Form):
         integrals = []
@@ -167,11 +173,11 @@ def derivative(form, function, basis_function=None):
             fd = FunctionDerivative(itg.integrand(), functions, basis_functions)
             integrals.append(itg.reconstruct(fd))
         return Form(integrals)
-    
+
     elif isinstance(form, Expr):
         # What we got was in fact an integrand
         return FunctionDerivative(form, functions, basis_functions)
-    
+
     error("Invalid argument type %s." % str(type(form)))
 
 def sensitivity_rhs(a, u, L, v):
@@ -186,18 +192,18 @@ def sensitivity_rhs(a, u, L, v):
     Where x is the vector of the discrete function corresponding to u.
     Let v be some scalar variable this equation depends on.
     Then we can write
-        
+
         0 = d/dv[Ax-b] = dA/dv x + A dx/dv - db/dv,
         A dx/dv = db/dv - dA/dv x,
-    
+
     and solve this system for dx/dv, using the same bilinear form a
     and matrix A from the original system.
     Assume the forms are written
-    
+
         v = variable(v_expression)
         L = IL(v)*dx
         a = Ia(v)*dx
-    
+
     where IL and Ia are integrand expressions.
     Define a Function u representing the solution
     to the equations. Then we can compute db/dv
@@ -212,7 +218,7 @@ def sensitivity_rhs(a, u, L, v):
 
     In total, we can build the right hand side of the system
     to compute du/dv with the single line
-        
+
         dL = diff(L, v) - action(diff(a, v), u)
 
     or, using this function
