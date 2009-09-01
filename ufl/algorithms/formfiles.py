@@ -76,7 +76,6 @@ def load_ufl_file(filename):
 
     # Execute code
     namespace = {}
-    code = "from ufl import *\n" + fcode
     try:
         code = "from ufl import *\n" + fcode
         exec code in namespace
