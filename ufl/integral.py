@@ -49,11 +49,13 @@ class Measure(object):
     EXTERIOR_FACET = "exterior_facet"
     INTERIOR_FACET = "interior_facet"
     MACRO_CELL = "macro_cell"
+    CRACK = "crack"
     _domain_types = { \
         CELL: "dx",
         EXTERIOR_FACET: "ds",
         INTERIOR_FACET: "dS",
         MACRO_CELL: "dE",
+        CRACK: "dc"
         }
     
     def domain_type(self):
