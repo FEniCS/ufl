@@ -19,7 +19,7 @@ dx = Measure(Measure.CELL, 0)
 ds = Measure(Measure.EXTERIOR_FACET, 0)
 dS = Measure(Measure.INTERIOR_FACET, 0)
 dE = Measure(Measure.MACRO_CELL, 0)
-dc = Measure(Measure.CRACK, 0)
+dc = Measure(Measure.SURFACE, 0)
 
 # Euclidean spaces
 R0 = Space(0)
