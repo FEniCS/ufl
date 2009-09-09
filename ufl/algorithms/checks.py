@@ -13,12 +13,14 @@ from ufl.form import Form
 from ufl.function import Function
 from ufl.basisfunction import BasisFunction
 from ufl.constantvalue import is_true_ufl_scalar
+from ufl.integral import Measure
 
 # Other algorithms
-from ufl.algorithms.traversal import iter_expressions, traverse_terminals
+from ufl.algorithms.traversal import iter_expressions, traverse_terminals, fast_pre_traversal
 from ufl.algorithms.analysis import extract_elements
 from ufl.algorithms.predicates import is_multilinear
 from ufl.algorithms.ad import expand_derivatives
+from ufl.algorithms.propagate_restrictions import check_restrictions
 
 def validate_form(form): # TODO: Can we make this return a list of errors instead of raising exception?
     """Performs all implemented validations on a form. Raises exception if something fails."""
@@ -70,4 +72,12 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
     for expression in iter_expressions(form):
         ufl_assert(is_true_ufl_scalar(expression),
             "Got non-scalar integrand expression:\n%s\n%s" % (str(expression), repr(expression)))
-    
+
+    # Check that restrictions are permissible
+    for integral in form.integrals():
+        # Only allow restricitions on interior facet integrals
+        if integral.measure().domain_type() == Measure.INTERIOR_FACET:
+            check_restrictions(integral.integrand(), True)
+        else:
+            check_restrictions(integral.integrand(), False)
+
