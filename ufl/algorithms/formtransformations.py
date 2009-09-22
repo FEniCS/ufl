@@ -2,7 +2,7 @@
 complete Forms into new related Forms."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-10-01 -- 2009-02-06"
+__date__ = "2008-10-01 -- 2009-09-22"
 
 # Modified by Anders Logg, 2008
 
@@ -13,12 +13,13 @@ from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 
 # All classes:
+from ufl.expr import Expr
 from ufl.basisfunction import BasisFunction
 from ufl.constantvalue import Zero
 from ufl.function import Function
+from ufl.indexed import Indexed
 
 # Lists of all Expr classes
-from ufl.expr import Expr
 from ufl.classes import ufl_classes, terminal_classes, nonterminal_classes
 
 # Other algorithms:
@@ -94,7 +95,11 @@ class PartExtracter(Transformer):
         from ufl.common import lstr
         
         # Reuse or reconstruct
-        x = self.reuse_if_possible(x, *ops2)
+        if ops2:
+            x = self.reuse_if_possible(x, *ops2)
+        else:
+            op0 = x.operands()[0]
+            x = Zero(op0.shape(), op0.free_indices(), op0.index_dimensions())
         return (x, provides)
     
     def product(self, x, *ops):
@@ -133,13 +138,13 @@ class PartExtracter(Transformer):
     
     def list_tensor(self, x, *ops):
         provides = ops[0][1]
-	oprov = [o[1] for o in ops]
-	ops2  = [o[0] for o in ops]
-	s = "\n\n".join("%s\n%s" % (a,b) for (a,b) in ops)
+        oprov = [o[1] for o in ops]
+        ops2  = [o[0] for o in ops]
+        s = "\n\n".join("%s\n%s" % (a,b) for (a,b) in ops)
         ufl_assert(all(provides == op for op in oprov),\
-		"List tensor elements provide different properties, invalid expression.\n%s" % (s,))
+                "List tensor elements provide different properties, invalid expression.\n%s" % (s,))
         ufl_assert(all(isinstance(o, Expr) for o in ops2), \
-		"Got wrong types in list_tensor handler.")
+                "Got wrong types in list_tensor handler.")
         x = self.reuse_if_possible(x, *ops2)
         return (x, provides)
 

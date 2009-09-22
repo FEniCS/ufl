@@ -1,7 +1,7 @@
 "Basic algebra operations."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-20 -- 2009-03-27"
+__date__ = "2008-05-20 -- 2009-09-22"
 
 # Modified by Anders Logg, 2008
 
@@ -24,10 +24,10 @@ from ufl.precedence import parstr
 class Sum(AlgebraOperator):
     __slots__ = ("_operands", "_repr")
     
-    def __new__(cls, *operands): # TODO: This seems a bit complicated... Can it be simplified? Maybe we can merge some loops for efficiency?
-        #len(operands)  or  error("Can't take sum of nothing.")
-        if not operands:
-            return Zero()
+    def __new__(cls, *operands): # TODO: This whole thing seems a bit complicated... Can it be simplified? Maybe we can merge some loops for efficiency?
+        ufl_assert(operands, "Can't take sum of nothing.")
+        #if not operands:
+        #    return Zero() # Allowing this leads to zeros with invalid type information in other places, need indices and shape
         
         # make sure everything is an Expr
         operands = [as_ufl(o) for o in operands]

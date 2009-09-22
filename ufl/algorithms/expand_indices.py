@@ -64,7 +64,7 @@ class IndexExpander(ReuseTransformer):
         ufl_assert(len(x.shape()) == len(self.component()), "Component size mismatch.")
         s = set(x.free_indices()) - set(self._index2value.keys())
         if s: error("Free index set mismatch, these indices have no value assigned: %s." % str(s))
-        return Zero()
+        return Zero() # TODO: Don't remember when reading this code: is it right that there is no index/shape info in this zero?
     
     def scalar_value(self, x):
         if len(x.shape()) != len(self.component()):
