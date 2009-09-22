@@ -3,14 +3,14 @@ since it enables the syntax "from ufl.classes import FooBar" for getting
 implementation details not exposed through the default ufl namespace."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-15 -- 2009-06-19"
+__date__ = "2008-08-15 -- 2009-09-22"
 
 # Modified by Anders Logg, 2008
 
 from ufl.assertions import ufl_assert
 from ufl.expr import Expr, Operator, WrapperType, AlgebraOperator
 from ufl.terminal import Terminal, FormArgument, UtilityType, Tuple
-from ufl.constantvalue import ConstantValue, Zero, ScalarValue, FloatValue, IntValue, ScalarSomething, Identity
+from ufl.constantvalue import ConstantValue, Zero, ScalarValue, FloatValue, IntValue, Identity
 from ufl.variable import Variable, Label
 from ufl.finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
 from ufl.basisfunction import BasisFunction, TestFunction, TrialFunction

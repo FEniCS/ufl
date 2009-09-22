@@ -1,7 +1,7 @@
 "This module defines classes representing constant values."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-11-01 -- 2009-03-27"
+__date__ = "2008-11-01 -- 2009-09-22"
 
 from ufl.log import warning, error
 from ufl.assertions import ufl_assert, expecting_python_scalar
@@ -189,23 +189,7 @@ class IntValue(ScalarValue):
 
     def __repr__(self):
         return self._repr
-    
-class ScalarSomething(ScalarValue):
-    """A scalar value of some externally defined type.
-    
-    Using this will likely break many algorithms, in particular
-    AD can't possibly know what to do with it."""
-    __slots__ = ()
-    def __init__(self, value):
-        ScalarValue.__init__(self, value)
-        self._repr = "ScalarSomething(%s)" % repr(self._value)
-    
-    def evaluate(self, x, mapping, component, index_values):
-        return float(self)
-    
-    def __repr__(self):
-        return self._repr
-
+ 
 #--- Identity matrix ---
 
 class Identity(ConstantValue):
@@ -262,6 +246,5 @@ def as_ufl(expression):
         return IntValue(expression)
     if isinstance(expression, (float, float_type)):
         return FloatValue(expression)
-    warning("Wrapping non-UFL expression. This is experimental and will likely break many algorithms!")
-    return ScalarSomething(expression)
+    error("Invalid type conversion: %s can not be converted to any UFL type.\nThe representation of the object is:\n%r" % (type(expression), expression))
 
