@@ -1,3 +1,4 @@
+ - Extensions for ElementRestriction (restrict FiniteElement to Cell)
  - Bug fix for lhs/rsh applied to mixed formulations
  - Add new log function set_prefix
  - Add new log function log(level, message)
