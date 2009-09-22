@@ -42,7 +42,7 @@ def lhs(form):
     """
     form = as_form(form)
     form = expand_derivatives(form)
-    form = expand_indices(form)
+    #form = expand_indices(form)
     return compute_form_lhs(form)
 
 def rhs(form):
@@ -57,7 +57,7 @@ def rhs(form):
 
     form = as_form(form)
     form = expand_derivatives(form)
-    form = expand_indices(form)
+    #form = expand_indices(form)
     return compute_form_rhs(form)
 
 def system(form):

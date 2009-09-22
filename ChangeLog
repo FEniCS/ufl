@@ -1,8 +1,8 @@
+0.4.0 [2009-0?-??]
  - Extensions for ElementRestriction (restrict FiniteElement to Cell)
- - Bug fix for lhs/rsh applied to mixed formulations
+ - Bug fix for lhs/rhs with list tensor types
  - Add new log function set_prefix
  - Add new log function log(level, message)
-0.4.0 [2009-0?-??]
  - Added macro cell integral *dE
  - Added mechanism to add additional integral types
  - Added LiftingOperator and LiftingFunction

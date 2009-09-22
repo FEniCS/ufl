@@ -18,6 +18,7 @@ from ufl.constantvalue import Zero
 from ufl.function import Function
 
 # Lists of all Expr classes
+from ufl.expr import Expr
 from ufl.classes import ufl_classes, terminal_classes, nonterminal_classes
 
 # Other algorithms:
@@ -132,8 +133,14 @@ class PartExtracter(Transformer):
     
     def list_tensor(self, x, *ops):
         provides = ops[0][1]
-        ufl_assert(provides == o_provides for (o, o_provides) in ops)
-        x = self.reuse_if_possible(x, *ops)
+	oprov = [o[1] for o in ops]
+	ops2  = [o[0] for o in ops]
+	s = "\n\n".join("%s\n%s" % (a,b) for (a,b) in ops)
+        ufl_assert(all(provides == op for op in oprov),\
+		"List tensor elements provide different properties, invalid expression.\n%s" % (s,))
+        ufl_assert(all(isinstance(o, Expr) for o in ops2), \
+		"Got wrong types in list_tensor handler.")
+        x = self.reuse_if_possible(x, *ops2)
         return (x, provides)
 
 def compute_form_with_arity(form, arity): # TODO: Test and finish

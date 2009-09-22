@@ -25,7 +25,7 @@ class ListTensor(WrapperType):
             return Zero(shape, fi, idim)
         
         return WrapperType.__new__(cls)
-    
+
     def __init__(self, *expressions):
         WrapperType.__init__(self)
         if isinstance(expressions[0], (list, tuple)):
