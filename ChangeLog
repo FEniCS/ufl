@@ -1,4 +1,4 @@
-0.4.0 [2009-0?-??]
+0.4.0 [2009-09-23]
  - Extensions for ElementRestriction (restrict FiniteElement to Cell)
  - Bug fix for lhs/rhs with list tensor types
  - Add new log function set_prefix

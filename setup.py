@@ -8,7 +8,7 @@ import platform
 
 # Version number
 major = 0
-minor = 3
+minor = 4
 
 scripts = [pjoin("scripts", "ufl-analyse"),
            pjoin("scripts", "ufl-convert"),
@@ -16,7 +16,7 @@ scripts = [pjoin("scripts", "ufl-analyse"),
            pjoin("scripts", "form2ufl")]
 
 if platform.system() == "Windows" or "bdist_wininst" in sys.argv:
-    # In the Windows command prompt we can't execute Python scripts 
+    # In the Windows command prompt we can't execute Python scripts
     # without a .py extension. A solution is to create batch files
     # that runs the different scripts.
     batch_files = []

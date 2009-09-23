@@ -19,7 +19,7 @@ algorithms to work with it.
   can be found in:
       from ufl.algorithms import *
 
-The classes and algorithms are considered implementation 
+The classes and algorithms are considered implementation
 details and should not be used in form definitions.
 
 For more details on the language, see the manual or the
@@ -80,7 +80,7 @@ Differential operators:
     Dx, grad, div, curl, rot, Dn
 
 Nonlinear functions:
-    abs, sign, sqrt, exp, ln, cos, sin, 
+    abs, sign, sqrt, exp, ln, cos, sin,
 
 Discontinuous Galerkin operators:
     jump, avg, v('+'), v('-')
@@ -98,11 +98,11 @@ Form transformations:
 
 """
 
-__version__ = "0.35-dev"
+__version__ = "0.4.0"
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __copyright__ = "Copyright (C) 2008-2009 " + __authors__
 __license__  = "GNU GPL version 3 or any later version"
-__date__ = "2008-03-14 -- 2009-06-19"
+__date__ = "2008-03-14 -- 2009-09-23"
 
 # Modified by Kristian Oelgaard, 2009
 
@@ -122,7 +122,7 @@ from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile
     UFLException, DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 # Types for geometric quantities
-from ufl.geometry import Cell, Space, SpatialCoordinate, FacetNormal 
+from ufl.geometry import Cell, Space, SpatialCoordinate, FacetNormal
 
 # Finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
