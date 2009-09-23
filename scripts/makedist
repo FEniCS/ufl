@@ -90,4 +90,4 @@ ssh -t fenics@fenics.org '/home/fenics/local/bin/news'
 firefox http://www.fenics.org/wiki/Download
 
 # Notify pypi
-python setup.py register
+#python setup.py register
