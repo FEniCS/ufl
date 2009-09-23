@@ -22,13 +22,13 @@ sudo python setup.py install
 # Update version numbers
 echo '--- Update version number in ChangeLog'
 sleep 1
-vim ChangeLog
+$EDITOR ChangeLog
 echo '--- Update version number in __init__.py'
 sleep 1
-vim ufl/__init__.py
+$EDITOR ufl/__init__.py
 echo '--- Update version number in setup.py'
 sleep 1
-vim setup.py
+$EDITOR setup.py
 
 # Get the version number
 SVERSION=`grep '__version__' ufl/__init__.py | cut -d'"' -f2`
