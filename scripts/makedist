@@ -32,7 +32,7 @@ $EDITOR setup.py
 
 # Get the version number
 SVERSION=`grep '__version__' ufl/__init__.py | cut -d'"' -f2`
-VERSION=$SVERSION.0
+VERSION=$SVERSION
 echo "--- Version number is $VERSION"
 
 # Run tests
