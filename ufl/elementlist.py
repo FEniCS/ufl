@@ -3,7 +3,7 @@ families. Users or more likely, form compilers, may register new
 elements by calling the function register_element."""
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-03 -- 2009-04-06"
+__date__ = "2008-03-03 -- 2009-11-16"
 
 from ufl.assertions import ufl_assert
 
@@ -61,8 +61,12 @@ register_element("Nedelec 1st kind H(curl)", "N1curl", 1, (0, None),
 register_element("Nedelec 2nd kind H(curl)", "N2curl", 1, (1, None),
                  ("triangle", "tetrahedron"))
 
-register_element("Quadrature", "Q", 0, (1, None),
+# Note (None, None) range for quadrature elements, allowing the degree
+# to not be specified at the time of construction but instead
+# automatically selected by a form compiler at compilation time.
+
+register_element("Quadrature", "Q", 0, (None, None),
                  ("interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
 
-register_element("Boundary Quadrature", "BQ", 0, (1, None),
+register_element("Boundary Quadrature", "BQ", 0, (None, None),
                  ("interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))

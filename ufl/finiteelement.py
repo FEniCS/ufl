@@ -1,7 +1,7 @@
 "This module defines the UFL finite element classes."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-03 -- 2009-08-25"
+__date__ = "2008-03-03 -- 2009-11-16"
 
 # Modified by Kristian B. Oelgaard, 2009
 
@@ -87,42 +87,48 @@ class FiniteElement(FiniteElementBase):
         "Create finite element"
         cell = as_cell(cell)
         domain = cell.domain()
-        
+
         # Check that the element family exists
         ufl_assert(family in ufl_elements, 'Unknown finite element "%s".' % family)
 
         # Check that element data is valid (and also get common family name)
         (family, self._short_name, value_rank, (kmin, kmax), domains) = ufl_elements[family]
-        ufl_assert(domain in domains,              'Domain "%s" invalid for "%s" finite element.' % (domain, family))
-        ufl_assert(kmin is None or degree >= kmin, 'Degree "%d" invalid for "%s" finite element.' % (degree, family))
-        ufl_assert(kmax is None or degree <= kmax, 'Degree "%d" invalid for "%s" finite element.' % (degree, family))
-        
+        ufl_assert(domain in domains,
+                   'Domain "%s" invalid for "%s" finite element.' % (domain, family))
+        ufl_assert(kmin is None or degree >= kmin,
+                   'Degree "%s" invalid for "%s" finite element.' % (str(degree), family))
+        ufl_assert(kmax is None or degree <= kmax,
+                   'Degree "%s" invalid for "%s" finite element.' % (str(degree), family))
+
         # Set value dimension (default to using domain dimension in each axis)
         dim = cell.geometric_dimension()
         value_shape = (dim,)*(value_rank)
-        
+
         # Initialize element data
         FiniteElementBase.__init__(self, family, cell, degree, value_shape)
-        
+
         # Cache repr string
-        self._repr = "FiniteElement(%r, %r, %d)" % (self.family(), self.cell(), self.degree())
+        self._repr = "FiniteElement(%r, %r, %s)" % (self.family(), self.cell(), str(self.degree()))
 
     def __repr__(self):
         "Format as string for evaluation as Python object."
         return self._repr
-    
+
     def __str__(self):
         "Format as string for pretty printing."
-        return "<%s%d on a %s>" % (self._short_name, self.degree(), self.cell())
-    
+        degree = self.degree()
+        if degree is None:
+            degree = ""
+        return "<%s%s on a %s>" % (self._short_name, str(degree), self.cell())
+
     def shortstr(self):
         "Format as string for pretty printing."
         return "%s%d" % (self._short_name, self.degree())
-    
+
 class MixedElement(FiniteElementBase):
     "A finite element composed of a nested hierarchy of mixed or simple elements"
     __slots__ = ("_sub_elements",)
-    
+
     def __init__(self, *elements, **kwargs):
         "Create mixed finite element from given list of elements"
 
@@ -130,11 +136,11 @@ class MixedElement(FiniteElementBase):
         if len(elements) == 1 and isinstance(elements[0], (tuple, list)):
             elements = elements[0]
         self._sub_elements = list(elements)
-        
+
         # Check that all elements are defined on the same domain
         cell = elements[0].cell()
         ufl_assert(all(e.cell() == cell for e in elements), "Cell mismatch for sub elements of mixed element.")
-        
+
         # Compute value shape
         value_size_sum= sum(product(s.value_shape()) for s in self._sub_elements)
         if "value_shape" in kwargs:
@@ -147,11 +153,11 @@ class MixedElement(FiniteElementBase):
         else:
             # Default value dimension: Treated simply as all subelement values unpacked in a vector.
             value_shape = (value_size_sum,)
-        
+
         # Initialize element data
         degree = max(e.degree() for e in self._sub_elements)
         FiniteElementBase.__init__(self, "Mixed", cell, degree, value_shape)
-        
+
         # Cache repr string
         self._repr = "MixedElement(*%r, **{'value_shape': %r })" % (self._sub_elements, self._value_shape)
 
@@ -165,7 +171,7 @@ class MixedElement(FiniteElementBase):
             i = (i,)
         self._check_component(i)
         ufl_assert(len(i) > 0, "Illegal component index (empty).")
-        
+
         # Indexing into a long vector
         if len(self.value_shape()) == 1:
             j, = i
@@ -181,7 +187,7 @@ class MixedElement(FiniteElementBase):
             # Convert index into a shape tuple
             i = index_to_component(j, sh)
             return e.extract_component(i)
-        
+
         # Indexing into a multidimensional tensor
         ufl_assert(i[0] < len(self._sub_elements), "Illegal component index (dimension %d)." % i[0])
         return self._sub_elements[i[0]].extract_component(i[1:])
@@ -193,7 +199,7 @@ class MixedElement(FiniteElementBase):
     def __str__(self):
         "Format as string for pretty printing."
         return "<Mixed element: (" + ", ".join(str(element) for element in self._sub_elements) + ")" + ">"
-    
+
     def shortstr(self):
         "Format as string for pretty printing."
         return "Mixed<" + ", ".join(element.shortstr() for element in self._sub_elements) + ">"
@@ -203,9 +209,9 @@ class VectorElement(MixedElement):
 
     def __init__(self, family, cell, degree, dim=None):
         "Create vector element (repeated mixed element)"
-        
+
         cell = as_cell(cell)
-        
+
         # Set default size if not specified
         if dim is None:
             dim = cell.geometric_dimension()
@@ -213,7 +219,7 @@ class VectorElement(MixedElement):
         # Create mixed element from list of finite elements
         sub_element = FiniteElement(family, cell, degree)
         sub_elements = [sub_element]*dim
-        
+
         # Get common family name (checked in FiniteElement.__init__)
         family = sub_element.family()
 
@@ -225,7 +231,7 @@ class VectorElement(MixedElement):
         self._family = family
         self._degree = degree
         self._sub_element = sub_element
-        
+
         self._repr = "VectorElement(%r, %r, %d, %d)" % \
                (self._family, self._cell, self._degree, len(self._sub_elements))
 
@@ -235,9 +241,9 @@ class VectorElement(MixedElement):
 
     def __str__(self):
         "Format as string for pretty printing."
-        return "<%s vector element of degree %d on a %s: %d x %s>" % \
-               (self.family(), self.degree(), self.cell(), len(self._sub_elements), self._sub_element)
-    
+        return "<%s vector element of degree %s on a %s: %d x %s>" % \
+               (self.family(), str(self.degree()), self.cell(), len(self._sub_elements), self._sub_element)
+
     def shortstr(self):
         "Format as string for pretty printing."
         return "Vector<%d x %s>" % (len(self._sub_elements), self._sub_element.shortstr())
@@ -250,12 +256,12 @@ class TensorElement(MixedElement):
     def __init__(self, family, cell, degree, shape=None, symmetry=None):
         "Create tensor element (repeated mixed element with optional symmetries)"
         cell = as_cell(cell)
-        
+
         # Set default shape if not specified
         if shape is None:
             dim = cell.geometric_dimension()
             shape = (dim, dim)
-            
+
             # Construct default symmetry for matrix elements
             if symmetry == True:
                 symmetry = dict( ((i,j), (j,i)) for i in range(dim) for j in range(dim) if i > j )
@@ -283,10 +289,10 @@ class TensorElement(MixedElement):
         for index in indices:
             if symmetry and index in symmetry:
                 sub_element_mapping[index] = sub_element_mapping[symmetry[index]]
-        
+
         # Compute value shape
         value_shape = shape + sub_element.value_shape()
-        
+
         # Initialize element data
         MixedElement.__init__(self, sub_elements, value_shape=value_shape)
         self._family = family
@@ -328,9 +334,9 @@ class TensorElement(MixedElement):
             sym = " with symmetries (%s)" % ", ".join("%s -> %s" % (a,b) for (a,b) in self._symmetry.iteritems())
         elif self._symmetry:
             sym = " with symmetry"
-        return "<%s tensor element of degree %d and shape %s on a %s%s>" % \
+        return "<%s tensor element of degree %s and shape %s on a %s%s>" % \
             (self.family(), self.degree(), self.value_shape(), self.cell(), sym)
-    
+
     def shortstr(self):
         "Format as string for pretty printing."
         sym = ""
@@ -344,7 +350,7 @@ class ElementUnion(FiniteElementBase):
     "The union of two finite element spaces."
     def __init__(self, *elements):
         self._elements = elements
-    
+
         cell = elements[0].cell()
         ufl_assert(all(e.cell() == cell for e in elements), "Element cell mismatch.")
 
@@ -352,21 +358,21 @@ class ElementUnion(FiniteElementBase):
 
         value_shape = elements[0].value_shape()
         ufl_assert(all(e.value_shape() == value_shape for e in elements), "Element value shape mismatch.")
-        
+
         # Initialize element data
         FiniteElementBase.__init__(self, "ElementUnion", cell, degree, value_shape)
-        
+
         # Cache repr string
         self._repr = "ElementUnion(%s)" % ", ".join(repr(e) for e in self._elements)
 
     def __repr__(self):
         "Format as string for evaluation as Python object."
         return self._repr
-    
+
     def __str__(self):
         "Format as string for pretty printing."
         return "<%s>" % " U ".join(str(e) for e in self._elements)
-    
+
     def shortstr(self):
         "Format as string for pretty printing."
         return "<%s>" % " U ".join(e.shortstr() for e in self._elements)
@@ -403,11 +409,11 @@ class ElementRestriction(FiniteElementBase):
     def __repr__(self):
         "Format as string for evaluation as Python object."
         return self._repr
-    
+
     def __str__(self):
         "Format as string for pretty printing."
         return "<%s>|_{%s}" % (self._element, self._domain)
-    
+
     def shortstr(self):
         "Format as string for pretty printing."
         return "<%s>|_{%s}" % (self._element.shortstr(), self._domain)
