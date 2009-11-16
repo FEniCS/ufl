@@ -335,7 +335,7 @@ class TensorElement(MixedElement):
         elif self._symmetry:
             sym = " with symmetry"
         return "<%s tensor element of degree %s and shape %s on a %s%s>" % \
-            (self.family(), self.degree(), self.value_shape(), self.cell(), sym)
+            (self.family(), str(self.degree()), self.value_shape(), self.cell(), sym)
 
     def shortstr(self):
         "Format as string for pretty printing."
