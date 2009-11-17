@@ -38,6 +38,10 @@ class FiniteElementBase(object):
         "Return polynomial degree of finite element"
         return self._degree
 
+    def set_degree(self, degree):
+        "Set degree for element"
+        self._degree = degree
+
     def value_shape(self):
         "Return the shape of the value space"
         return self._value_shape

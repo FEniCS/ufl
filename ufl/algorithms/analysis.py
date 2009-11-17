@@ -81,13 +81,13 @@ def extract_functions(a):
     return sorted(extract_type(a, Function), cmp=cmp_counted)
 
 def extract_arguments(a):
-    """Build two sorted lists of all basis functions and functions 
+    """Build two sorted lists of all basis functions and functions
     in a, which can be a Form, Integral or Expr."""
     # Extract lists of all form argument instances
     terminals = extract_type(a, FormArgument)
     basis_functions = [f for f in terminals if isinstance(f, BasisFunction)]
     functions = [f for f in terminals if isinstance(f, Function)]
-    
+
     # Build count: instance mappings, should be one to one
     bfcounts = dict((f, f.count()) for f in basis_functions)
     fcounts = dict((f, f.count()) for f in functions)
@@ -146,7 +146,7 @@ def extract_unique_elements(a):
     return set(extract_elements(a))
 
 def extract_sub_elements(element):
-    "Build a set of all unique subelements, including parent element." 
+    "Build a set of all unique subelements, including parent element."
     res = set((element,))
     if isinstance(element, MixedElement):
         for sub in element.sub_elements():
@@ -175,7 +175,7 @@ def extract_variables(a):
                 if not label in handled:
                     variables.append(o)
                     handled.add(label)
-    return variables    
+    return variables
 
 def extract_duplications(expression):
     "Build a set of all repeated expressions in expression."
@@ -207,12 +207,14 @@ def extract_max_quadrature_element_degree(integral):
     """Extract quadrature integration order from quadrature
     elements in integral. Returns None if not found."""
     quadrature_elements = [e for e in extract_elements(integral) if "Quadrature" in e.family()]
-    if not quadrature_elements:
+    degrees = [element.degree() for element in quadrature_elements]
+    degrees = [q for q in degrees if not q is None]
+    if not degrees:
         return None
-    quad_order = quadrature_elements[0].degree()
-    ufl_assert(all(quad_order == e.degree() for e in quadrature_elements),
-        "Incompatible quadrature elements specified (orders must be equal).")
-    return quad_order
+    max_degree = quadrature_elements[0].degree()
+    ufl_assert(all(max_degree == q for q in degrees),
+               "Incompatible quadrature elements specified (orders must be equal).")
+    return max_degree
 
 def estimate_quadrature_degree(integral):
     "Estimate the necessary quadrature order for integral using the sum of basis function degrees."
