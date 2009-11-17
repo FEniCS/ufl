@@ -123,7 +123,10 @@ class FiniteElement(FiniteElementBase):
 
     def shortstr(self):
         "Format as string for pretty printing."
-        return "%s%d" % (self._short_name, self.degree())
+        degree = self.degree()
+        if degree is None:
+            degree = ""
+        return "%s%s" % (self._short_name, str(degree))
 
 class MixedElement(FiniteElementBase):
     "A finite element composed of a nested hierarchy of mixed or simple elements"

@@ -3,7 +3,7 @@ either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-05-07 -- 2009-04-25"
+__date__ = "2008-05-07 -- 2009-11-17"
 
 # Modified by Anders Logg, 2009.
 
@@ -56,7 +56,7 @@ class MultiFunction(object):
             MultiFunction._handlers_cache[type(self)] = cache_data
         # Build handler list for this particular class (get functions bound to self)
         self._handlers = [getattr(self, name) for name in cache_data]
-    
+
     def __call__(self, o, *args, **kwargs):
         h = self._handlers[o._classid]
         return h(o, *args, **kwargs)
@@ -69,14 +69,14 @@ def is_post_handler(function):
     return visit_children_first
 
 class Transformer(object):
-    """Base class for a visitor-like algorithm design pattern used to 
+    """Base class for a visitor-like algorithm design pattern used to
     transform expression trees from one representation to another."""
     _handlers_cache = {}
     def __init__(self, variable_cache=None):
         if variable_cache is None:
             variable_cache = {}
         self._variable_cache = variable_cache
-        
+
         # Analyse class properties and cache handler data the
         # first time this is run for a particular class
         cache_data = Transformer._handlers_cache.get(type(self))
@@ -93,7 +93,7 @@ class Transformer(object):
                         cache_data[classobject._classid] = name, is_post_handler(function)
                         break
             Transformer._handlers_cache[type(self)] = cache_data
-        
+
         # Build handler list for this particular class (get functions bound to self)
         self._handlers = [(getattr(self, name), post) for (name, post) in cache_data]
 
@@ -109,19 +109,19 @@ class Transformer(object):
             return ss + str(s)[:n]
         print "\n".join(sstr(s) for s in self._visit_stack)
         print "\\"*80
-    
+
     def visit(self, o):
         #debug("Visiting object of type %s." % type(o).__name__)
         # Update stack
         self._visit_stack.append(o)
-        
+
         # Get handler for the UFL class of o (type(o) may be an external subclass of the actual UFL class)
         h, visit_children_first = self._handlers[o._classid]
-        
+
         #if not h:
         #    # Failed to find a handler! Should never happen, but will happen if a non-Expr object is visited.
         #    error("Can't handle objects of type %s" % str(type(o)))
-        
+
         # Is this a handler that expects transformed children as input?
         if visit_children_first:
             # Yes, visit all children first and then call h.
@@ -134,15 +134,15 @@ class Transformer(object):
         # Update stack and return
         self._visit_stack.pop()
         return r
-    
+
     def undefined(self, o):
         "Trigger error."
         error("No handler defined for %s." % o._uflclass.__name__)
-    
+
     def reuse(self, o):
         "Always reuse Expr (ignore children)"
         return o
-    
+
     def reuse_if_possible(self, o, *operands):
         "Reuse Expr if possible, otherwise reconstruct from given operands."
         #if all(a is b for (a, b) in izip(operands, o.operands())):
@@ -153,48 +153,48 @@ class Transformer(object):
         try:
             r = o.reconstruct(*operands)
         except:
-            print 
-            print 
-            print 
+            print
+            print
+            print
             print "FAILURE in reuse_if_possible:"
             print "type(o) =", type(o)
             print "operands ="
-            print 
+            print
             print "\n\n".join(map(str,operands))
-            print 
+            print
             print "stack ="
             self.print_visit_stack()
-            print 
+            print
             raise
         return r
-    
+
     def always_reconstruct(self, o, *operands):
         "Always reconstruct expr."
         return o.reconstruct(*operands)
-    
+
     # Set default behaviour for any Expr
     expr = undefined
-    
+
     # Set default behaviour for any Terminal
     terminal = reuse
-    
+
     def reuse_variable(self, o):
         # Check variable cache to reuse previously transformed variable if possible
         e, l = o.operands()
         v = self._variable_cache.get(l)
         if v is not None:
             return v
-        
+
         # Visit the expression our variable represents
         e2 = self.visit(e)
-        
+
         # If the expression is the same, reuse Variable object
         if e == e2:
             v = o
         else:
-            # Recreate Variable (with same label) 
+            # Recreate Variable (with same label)
             v = Variable(e2, l)
-        
+
         # Cache variable
         self._variable_cache[l] = v
         return v
@@ -217,27 +217,27 @@ class Transformer(object):
 class ReuseTransformer(Transformer):
     def __init__(self, variable_cache=None):
         Transformer.__init__(self, variable_cache)
-    
+
     # Set default behaviour for any Expr
     expr = Transformer.reuse_if_possible
-    
+
     # Set default behaviour for any Terminal
     terminal = Transformer.reuse
-    
-    # Set default behaviour for Variable 
+
+    # Set default behaviour for Variable
     variable = Transformer.reuse_variable
 
 class CopyTransformer(Transformer):
     def __init__(self, variable_cache=None):
         Transformer.__init__(self, variable_cache)
-    
+
     # Set default behaviour for any Expr
     expr = Transformer.always_reconstruct
 
     # Set default behaviour for any Terminal
     terminal = Transformer.reuse
-    
-    # Set default behaviour for Variable 
+
+    # Set default behaviour for Variable
     variable = Transformer.reconstruct_variable
 
 class Replacer(ReuseTransformer):
@@ -246,7 +246,7 @@ class Replacer(ReuseTransformer):
         self._mapping = mapping
         ufl_assert(all(isinstance(k, Terminal) for k in mapping.keys()), \
             "This implementation can only replace Terminal objects.")
-    
+
     def terminal(self, o):
         e = self._mapping.get(o)
         return o if e is None else e
@@ -254,7 +254,7 @@ class Replacer(ReuseTransformer):
 class TreeFlattener(ReuseTransformer):
     def __init__(self):
         ReuseTransformer.__init__(self)
-    
+
     def sum_or_product(self, o, *ops):
         c = o._uflclass
         operands = []
@@ -270,7 +270,7 @@ class TreeFlattener(ReuseTransformer):
 class VariableStripper(ReuseTransformer):
     def __init__(self):
         ReuseTransformer.__init__(self)
-    
+
     def variable(self, o):
         return self.visit(o._expression)
 
@@ -278,22 +278,22 @@ class VariableStripper(ReuseTransformer):
 #    "Implements mappings that can be defined through Python operators."
 #    def __init__(self):
 #        ReuseTransformer.__init__(self)
-#    
+#
 #    def abs(self, o, a):
 #        return abs(a)
-#    
+#
 #    def sum(self, o, *ops):
 #        return sum(ops)
-#    
+#
 #    def division(self, o, a, b):
 #        return a / b
-#    
+#
 #    def power(self, o, a, b):
 #        return a ** b
-#    
+#
 #    def product(self, o, *ops):
 #        return product(ops)
-#    
+#
 #    def indexed(self, o, a, b):
 #        return a[*b] if isinstance(b, tuple) else a[b]
 
@@ -303,7 +303,7 @@ class VariableStripper(ReuseTransformer):
 # This may introduce many ComponentTensor/Indexed objects for relabeling of indices though.
 # We probably need some kind of pattern matching to make this effective.
 # That's another step towards a complete symbolic library...
-# 
+#
 # What this does do well is insert Variables around subexpressions that the
 # user actually identified manually in his code like in "a = ...; b = a*(1+a)",
 # and expressions without indices (prior to expand_compounds).
@@ -312,7 +312,7 @@ class DuplicationMarker(ReuseTransformer):
         ReuseTransformer.__init__(self)
         self._duplications = duplications
         self._expr2variable = {}
-    
+
     def expr(self, o, *ops):
         v = self._expr2variable.get(o)
         if v is None:
@@ -320,7 +320,7 @@ class DuplicationMarker(ReuseTransformer):
             # reconstruct if necessary
             if not ops == o.operands():
                 o = o._uflclass(*ops)
-            
+
             if (oo in self._duplications) or (o in self._duplications):
                 v = Variable(o)
                 self._expr2variable[o] = v
@@ -328,7 +328,7 @@ class DuplicationMarker(ReuseTransformer):
             else:
                 v = o
         return v
-    
+
     def wrap_terminal(self, o):
         v = self._expr2variable.get(o)
         if v is None:
@@ -342,7 +342,7 @@ class DuplicationMarker(ReuseTransformer):
     function = wrap_terminal
     constant = wrap_terminal
     facet_normal = wrap_terminal
-    
+
     def variable(self, o):
         e, l = o.operands()
         v = self._expr2variable.get(e)
@@ -361,7 +361,7 @@ class DuplicationMarker(ReuseTransformer):
         return v
 
 # Note:
-# To avoid typing errors, the expressions for cofactor and deviatoric parts 
+# To avoid typing errors, the expressions for cofactor and deviatoric parts
 # below were created with the script tensoralgebrastrings.py under ufl/scripts/
 class CompoundExpander(ReuseTransformer):
     "Expands compound expressions to equivalent representations using basic operators."
@@ -372,11 +372,11 @@ class CompoundExpander(ReuseTransformer):
             warning("Got None for dimension, some compounds cannot be expanded.")
 
     # ------------ Compound tensor operators
-    
+
     def trace(self, o, A):
         i = Index()
         return A[i,i]
-    
+
     def transposed(self, o, A):
         i, j = indices(2)
         return as_tensor(A[i, j], (j, i))
@@ -388,7 +388,7 @@ class CompoundExpander(ReuseTransformer):
         ufl_assert(sh[0] == sh[1], "Expecting square matrix.")
         ufl_assert(sh[0] is not None, "Unknown dimension.")
         return sh
-    
+
     def deviatoric(self, o, A):
         sh = self._square_matrix_shape(A)
         if sh[0] == 2:
@@ -396,48 +396,48 @@ class CompoundExpander(ReuseTransformer):
         elif sh[0] == 3:
             return as_matrix([[-A[1,1]-A[2,2],A[0,1],A[0,2]],[A[1,0],-A[0,0]-A[2,2],A[1,2]],[A[2,0],A[2,1],-A[0,0]-A[1,1]]])
         error("dev(A) not implemented for dimension %s." % sh[0])
-    
+
     def skew(self, o, A):
         i, j = indices(2)
         return as_matrix( (A[i,j] - A[j,i]) / 2, (i,j) )
-    
+
     def sym(self, o, A):
         i, j = indices(2)
         return as_matrix( (A[i,j] + A[j,i]) / 2, (i,j) )
-    
+
     def cross(self, o, a, b):
         def c(i, j):
             return Product(a[i],b[j]) - Product(a[j],b[i])
         return as_vector((c(1,2), c(2,0), c(0,1)))
-    
+
     def dot(self, o, a, b):
         ai = indices(a.rank()-1)
         bi = indices(b.rank()-1)
         k  = indices(1)
         # Create an IndexSum over a Product
-        s = a[ai+k]*b[k+bi] 
+        s = a[ai+k]*b[k+bi]
         return as_tensor(s, ai+bi)
-    
+
     def inner(self, o, a, b):
         ufl_assert(a.rank() == b.rank())
         ii = indices(a.rank())
         # Create multiple IndexSums over a Product
         s = a[ii]*b[ii]
         return s
-    
+
     def outer(self, o, a, b):
         ii = indices(a.rank())
         jj = indices(b.rank())
         # Create a Product with no shared indices
         s = a[ii]*b[jj]
         return as_tensor(s, ii+jj)
-    
+
     def determinant(self, o, A):
         sh = self._square_matrix_shape(A)
 
         def det2D(B, i, j, k, l):
             return B[i,k]*B[j,l]-B[i,l]*B[j,k]
-    
+
         if len(sh) == 0:
             return A
         if sh[0] == 2:
@@ -449,7 +449,7 @@ class CompoundExpander(ReuseTransformer):
                    A[0,2]*det2D(A, 1, 2, 0, 1)
         # TODO: Implement generally for all dimensions?
         error("Determinant not implemented for dimension %d." % self._dim)
-    
+
     def cofactor(self, o, A):
         sh = self._square_matrix_shape(A)
 
@@ -489,26 +489,26 @@ class CompoundExpander(ReuseTransformer):
                  -A[1,1]*A[0,2]*A[2,0] + A[2,1]*A[1,0]*A[0,2] + A[1,2]*A[0,1]*A[2,0] + A[1,1]*A[0,0]*A[2,2] - A[1,0]*A[0,1]*A[2,2] - A[0,0]*A[2,1]*A[1,2]] \
                 ])
         error("Cofactor not implemented for dimension %s." % sh[0])
-    
+
     def inverse(self, o, A):
         if A.rank() == 0:
             return 1.0 / A
         return self.cofactor(None, A) / self.determinant(None, A)  # TODO: Verify this expression. Ainv = Acofac / detA
-    
+
     # ------------ Compound differential operators
-    
+
     def div(self, o, a):
         i = Index()
         g = a[i] if a.rank() == 1 else a[...,i]
         return g.dx(i)
-    
+
     def grad(self, o, a):
         ii = Index()
         if a.rank() > 0:
             jj = tuple(indices(a.rank()))
             return as_tensor(a[jj].dx(ii), tuple((ii,)+jj))
         return as_tensor(a.dx(ii), (ii,))
-    
+
     def curl(self, o, a):
         # o = curl a = "a0.dx(1)-a1.dx(0)"            if a.shape() == ()
         # o = curl a = "cross(nabla, (a0, a1, 0))[2]" if a.shape() == (2,)
@@ -532,18 +532,18 @@ class BasisFunctionDependencyExtracter(Transformer):
     def __init__(self):
         Transformer.__init__(self)
         self._empty = frozenset()
-    
+
     def expr(self, o, *opdeps):
         "Default for nonterminals: nonlinear in all arguments."
         for d in opdeps:
             if d:
                 raise NotMultiLinearException, repr(o)
         return self._empty
-    
+
     def terminal(self, o):
         "Default for terminals: no dependency on basis functions."
         return self._empty
-    
+
     def variable(self, o):
         # Check variable cache to reuse previously transformed variable if possible
         e, l = o.operands()
@@ -553,11 +553,11 @@ class BasisFunctionDependencyExtracter(Transformer):
             d = self.visit(e)
             self._variable_cache[l] = d
         return d
-    
+
     def basis_function(self, o):
         d = frozenset((o,))
         return frozenset((d,))
-    
+
     def linear(self, o, a):
         "Nonterminals that are linear with a single argument."
         return a
@@ -569,21 +569,21 @@ class BasisFunctionDependencyExtracter(Transformer):
     skew = linear
     positive_restricted = linear
     negative_restricted = linear
-    
+
     def indexed(self, o, f, i):
         return f
-    
+
     def spatial_derivative(self, o, a, b):
         return a
-    
+
     def variable_derivative(self, o, a, b):
         if b:
             raise NotMultiLinearException, repr(o)
         return a
-    
+
     def component_tensor(self, o, f, i):
         return f
-    
+
     def list_tensor(self, o, *opdeps):
         "Require same dependencies for all listtensor entries."
         d = opdeps[0]
@@ -591,7 +591,7 @@ class BasisFunctionDependencyExtracter(Transformer):
             if not d == d2:
                 raise NotMultiLinearException, repr(o)
         return d
-    
+
     def conditional(self, o, cond, t, f):
         "Considering EQ, NE, LE, GE, LT, GT nonlinear in this context."
         if cond or (not t == f):
@@ -617,7 +617,7 @@ class BasisFunctionDependencyExtracter(Transformer):
             # d is a frozenset of frozensets
             deps.update(d)
         return frozenset(deps)
-    
+
     # Product operands should not depend on the same basis functions
     def product(self, o, *opdeps):
         c = []
@@ -656,7 +656,7 @@ class DuplicationPurger(ReuseTransformer):
         ReuseTransformer.__init__(self)
         self._handled = {}
         #self._duplications = set()
-    
+
     def expr(self, x, *ops):
         # Check cache
         e = self._handled.get(x)
@@ -672,7 +672,7 @@ class DuplicationPurger(ReuseTransformer):
         #    self._duplications.add(e)
         assert repr(x) == repr(e)
         return e
-    
+
     def terminal(self, x):
         e = self._handled.get(x)
         if e is None:
@@ -685,24 +685,28 @@ class DuplicationPurger(ReuseTransformer):
         return e
 
 class DegreeEstimator(Transformer):
-    def __init__(self):
+
+    def __init__(self, default_quadrature_degree):
         Transformer.__init__(self)
-    
+        self.default_quadrature_degree = default_quadrature_degree
+
     def terminal(self, v):
         return 0
-    
+
     def expr(self, v, *ops):
         return max(ops)
-    
+
     def form_argument(self, v):
         return v.element().degree()
-    
+
     def spatial_derivative(self, v, f, i):
-        return max(f-1, 0)
-    
+        return max(f - 1, 0)
+
     def product(self, v, *ops):
-        return sum(ops)
-    
+        degrees = [op for op in ops if not op is None]
+        nones = [op for op in ops if op is None]
+        return sum(degrees) + self.default_quadrature_degree*len(nones)
+
     def power(self, v, a, b):
         f, g = v.operands()
         try:
@@ -715,10 +719,10 @@ class DegreeEstimator(Transformer):
             return a*b
         return a
 
-# ------------ User interface functions
+#--- User interface functions ---
 
 def transform_integrands(form, transform):
-    """Apply transform(expression) to each integrand 
+    """Apply transform(expression) to each integrand
     expression in form, or to form if it is an Expr."""
 
     if isinstance(form, Form):
@@ -730,7 +734,7 @@ def transform_integrands(form, transform):
                 newintegrals.append(newitg)
         if not newintegrals:
             # TODO: Can this be a problem? We could for example return Form([]), but problems would likely arise later anyway.
-            warning("No integrals left after transformation, cannot reconstruct form.") 
+            warning("No integrals left after transformation, cannot reconstruct form.")
         return Form(newintegrals)
 
     elif isinstance(form, Integral):
@@ -746,7 +750,7 @@ def transform_integrands(form, transform):
         error("Expecting Form or Expr.")
 
 def apply_transformer(e, transformer):
-    """Apply transformer.visit(expression) to each integrand 
+    """Apply transformer.visit(expression) to each integrand
     expression in form, or to form if it is an Expr."""
     def _transform(expr):
         return transformer.visit(expr)
@@ -766,7 +770,7 @@ def ufl2uflcopy(e):
 
 def replace(e, mapping):
     """Replace terminal objects in expression.
-    
+
     @param e:
         An Expr or Form.
     @param mapping:
@@ -775,14 +779,14 @@ def replace(e, mapping):
     return apply_transformer(e, Replacer(mapping))
 
 def flatten(e): # TODO: Fix or remove! Maybe this works better now with IndexSum marking implicit summations.
-    """Convert an UFL expression to a new UFL expression, with sums 
+    """Convert an UFL expression to a new UFL expression, with sums
     and products flattened from binary tree nodes to n-ary tree nodes."""
-    warning("flatten doesn't work correctly for some indexed products, like (u[i]*v[i])*(q[i]*r[i])") 
+    warning("flatten doesn't work correctly for some indexed products, like (u[i]*v[i])*(q[i]*r[i])")
     return apply_transformer(e, TreeFlattener())
 
 def expand_compounds(e, dim=None):
     """Expand compound objects into basic operators.
-    Requires e to have a well defined domain, 
+    Requires e to have a well defined domain,
     for the geometric dimension to be defined."""
     if dim is None:
         cell = e.cell()
@@ -811,12 +815,13 @@ def extract_basis_function_dependencies(e):
     ufl_assert(isinstance(e, Expr), "Expecting an Expr.")
     return BasisFunctionDependencyExtracter().visit(e)
 
-
-def estimate_max_polynomial_degree(e):
-    """Estimate the maximum needed quadrature order for
-    expression, integral or form using the highest polynomial
-    degree of any term."""
-    de = DegreeEstimator()
+def estimate_max_polynomial_degree(e, default_quadrature_degree=1):
+    """Estimate the maximum needed quadrature order for expression,
+    integral or form using the highest polynomial degree of any
+    term. For coefficients defined on a quadrature element with
+    unspecified degree (None), the degree is set to the given default
+    degree."""
+    de = DegreeEstimator(default_quadrature_degree)
     if isinstance(e, Form):
         degrees = [de.visit(integral.integrand()) for integral in e.integrals()]
     elif isinstance(e, Integral):
@@ -824,4 +829,3 @@ def estimate_max_polynomial_degree(e):
     else:
         degrees = [de.visit(e)]
     return max(degrees)
-
