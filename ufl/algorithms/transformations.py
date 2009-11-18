@@ -705,10 +705,6 @@ class DegreeEstimator(Transformer):
     def product(self, v, *ops):
         degrees = [op for op in ops if not op is None]
         nones = [op for op in ops if op is None]
-
-        print "degrees: ", degrees
-        print "nones: ", nones
-
         return sum(degrees) + self.default_quadrature_degree*len(nones)
 
     def power(self, v, a, b):
