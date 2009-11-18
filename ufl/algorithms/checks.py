@@ -24,24 +24,24 @@ from ufl.algorithms.propagate_restrictions import check_restrictions
 
 def validate_form(form): # TODO: Can we make this return a list of errors instead of raising exception?
     """Performs all implemented validations on a form. Raises exception if something fails."""
-    
+
     ufl_assert(isinstance(form, Form), "Expecting a Form.")
-    
+
     # TODO: Can we check for multilinearity without expanding function derivatives?
     #form = expand_derivatives(form) # If we do this, expand_derivatives will be called twice since it's called in FormData...
     form = form.form_data().form # Is this ok? Unsure about the program flow here...
     ufl_assert(is_multilinear(form), "Form is not multilinear in basis function arguments.")
     #if not is_multilinear(form): warning("Form is not multilinear.")
-    
+
     # Check that cell is the same everywhere
     cells = set()
     for e in iter_expressions(form):
-        cells.update(t.cell() for t in traverse_terminals(e))
+        cells.update(t.cell() for t in traverse_terminals(e) if not t.cell().domain() is None)
     if None in cells:
         cells.remove(None)
-    ufl_assert(len(cells) == 1,
-        "Inconsistent or missing cell definitions in form, found %s." % str(cells))
-    
+    ufl_assert(len(cells) <= 1,
+               "Inconsistent cell definitions in form: %s." % str(cells))
+
     # Check that no Function or BasisFunction instance
     # have the same count unless they are the same
     functions = {}
@@ -55,7 +55,7 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
                     ufl_assert(f is g, "Got different Functions with same count: %s and %s." % (repr(f), repr(g)))
                 else:
                     functions[c] = f
-            
+
             elif isinstance(f, BasisFunction):
                 c = f.count()
                 if c in basis_functions:
@@ -67,7 +67,7 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
                     ufl_assert(f is g, msg)
                 else:
                     basis_functions[c] = f
-            
+
     # Check that all integrands are scalar
     for expression in iter_expressions(form):
         ufl_assert(is_true_ufl_scalar(expression),

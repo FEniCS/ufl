@@ -66,7 +66,7 @@ register_element("Nedelec 2nd kind H(curl)", "N2curl", 1, (1, None),
 # automatically selected by a form compiler at compilation time.
 
 register_element("Quadrature", "Q", 0, (None, None),
-                 ("interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
+                 (None, "interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
 
 register_element("Boundary Quadrature", "BQ", 0, (None, None),
-                 ("interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
+                 (None, "interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))

@@ -8,7 +8,7 @@ __date__ = "2008-03-03 -- 2009-11-16"
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.elementlist import ufl_elements
-from ufl.common import product, index_to_component, component_to_index, domain2facet
+from ufl.common import product, index_to_component, component_to_index, domain2facet, istr
 from ufl.geometry import as_cell
 
 class FiniteElementBase(object):
@@ -33,6 +33,10 @@ class FiniteElementBase(object):
     def cell(self):
         "Return cell of finite element"
         return self._cell
+
+    def set_cell(self, cell):
+        "Set cell for element"
+        self._cell = cell
 
     def degree(self):
         "Return polynomial degree of finite element"
@@ -100,9 +104,9 @@ class FiniteElement(FiniteElementBase):
         ufl_assert(domain in domains,
                    'Domain "%s" invalid for "%s" finite element.' % (domain, family))
         ufl_assert(kmin is None or degree >= kmin,
-                   'Degree "%s" invalid for "%s" finite element.' % (str(degree), family))
+                   'Degree "%s" invalid for "%s" finite element.' % (istr(degree), family))
         ufl_assert(kmax is None or degree <= kmax,
-                   'Degree "%s" invalid for "%s" finite element.' % (str(degree), family))
+                   'Degree "%s" invalid for "%s" finite element.' % (istr(degree), family))
 
         # Set value dimension (default to using domain dimension in each axis)
         dim = cell.geometric_dimension()
@@ -112,7 +116,7 @@ class FiniteElement(FiniteElementBase):
         FiniteElementBase.__init__(self, family, cell, degree, value_shape)
 
         # Cache repr string
-        self._repr = "FiniteElement(%r, %r, %s)" % (self.family(), self.cell(), str(self.degree()))
+        self._repr = "FiniteElement(%r, %r, %s)" % (self.family(), self.cell(), istr(self.degree()))
 
     def __repr__(self):
         "Format as string for evaluation as Python object."
@@ -120,17 +124,11 @@ class FiniteElement(FiniteElementBase):
 
     def __str__(self):
         "Format as string for pretty printing."
-        degree = self.degree()
-        if degree is None:
-            degree = ""
-        return "<%s%s on a %s>" % (self._short_name, str(degree), self.cell())
+        return "<%s%s on a %s>" % (self._short_name, istr(self.degree()), self.cell())
 
     def shortstr(self):
         "Format as string for pretty printing."
-        degree = self.degree()
-        if degree is None:
-            degree = ""
-        return "%s%s" % (self._short_name, str(degree))
+        return "%s%s" % (self._short_name, istr(self.degree()))
 
 class MixedElement(FiniteElementBase):
     "A finite element composed of a nested hierarchy of mixed or simple elements"
@@ -249,7 +247,7 @@ class VectorElement(MixedElement):
     def __str__(self):
         "Format as string for pretty printing."
         return "<%s vector element of degree %s on a %s: %d x %s>" % \
-               (self.family(), str(self.degree()), self.cell(), len(self._sub_elements), self._sub_element)
+               (self.family(), istr(self.degree()), self.cell(), len(self._sub_elements), self._sub_element)
 
     def shortstr(self):
         "Format as string for pretty printing."
@@ -342,7 +340,7 @@ class TensorElement(MixedElement):
         elif self._symmetry:
             sym = " with symmetry"
         return "<%s tensor element of degree %s and shape %s on a %s%s>" % \
-            (self.family(), str(self.degree()), self.value_shape(), self.cell(), sym)
+            (self.family(), istr(self.degree()), self.value_shape(), self.cell(), sym)
 
     def shortstr(self):
         "Format as string for pretty printing."
@@ -424,4 +422,3 @@ class ElementRestriction(FiniteElementBase):
     def shortstr(self):
         "Format as string for pretty printing."
         return "<%s>|_{%s}" % (self._element.shortstr(), self._domain)
-

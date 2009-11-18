@@ -8,7 +8,7 @@ __date__ = "2008-03-14 -- 2009-08-26"
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
-from ufl.common import domain2dim
+from ufl.common import domain2dim, istr
 from ufl.terminal import Terminal
 
 # --- Expression node types
@@ -18,7 +18,7 @@ class GeometricQuantity(Terminal):
     def __init__(self, cell):
         Terminal.__init__(self)
         self._cell = as_cell(cell)
-    
+
     def cell(self):
         return self._cell
 
@@ -34,16 +34,16 @@ class SpatialCoordinate(GeometricQuantity):
         if d == 1:
             return ()
         return (d,)
-    
+
     def evaluate(self, x, mapping, component, index_values):
         return float(x[component[0]])
-    
+
     def __str__(self):
         return "x"
-    
+
     def __repr__(self):
         return self._repr
-    
+
     def __eq__(self, other):
         return isinstance(other, SpatialCoordinate) and other._cell == self._cell
 
@@ -53,33 +53,33 @@ class FacetNormal(GeometricQuantity):
     def __init__(self, cell):
         GeometricQuantity.__init__(self, cell)
         self._repr = "FacetNormal(%r)" % self._cell
-    
+
     def shape(self):
         d = self._cell.d
         if d == 1:
             return ()
         return (d,)
-    
+
     def __str__(self):
         return "n"
-    
+
     def __repr__(self):
         return self._repr
 
     def __eq__(self, other):
         return isinstance(other, FacetNormal) and other._cell == self._cell
 
-# TODO: If we include this here, we must define exactly what is meant by the mesh size, possibly adding multiple kinds of mesh sizes (hmin, hmax, havg, ?) 
+# TODO: If we include this here, we must define exactly what is meant by the mesh size, possibly adding multiple kinds of mesh sizes (hmin, hmax, havg, ?)
 #class MeshSize(GeometricQuantity):
 #    def __init__(self, cell):
 #        GeometricQuantity.__init__(self, cell)
-#    
+#
 #    def shape(self):
 #        return ()
-#    
+#
 #    def __str__(self):
 #        return "h"
-#    
+#
 #    def __repr__(self):
 #        return "MeshSize(%r)" % self._cell
 #
@@ -93,23 +93,23 @@ class Space(object):
     __slots__ = ("_dimension",)
 
     def __init__(self, dimension):
-        ufl_assert(isinstance(dimension, int), "Expecting integer.")
+        #ufl_assert(isinstance(dimension, int), "Expecting integer.")
         self._dimension = dimension
 
     def dimension(self):
         return self._dimension
 
     def __str__(self):
-        return "R%d" % self._dimension
+        return "R%s" % istr(self._dimension)
 
     def __repr__(self):
-        return "Space(%d)" % self._dimension
+        return "Space(%s)" % istr(self._dimension)
 
 class Cell(object):
     "Representation of a finite element cell."
     __slots__ = ("_domain", "_degree", "_space", "_geometric_dimension",
                  "_topological_dimension", "_repr", "d", "n", "x")
-    
+
     def __init__(self, domain, degree=1, space=None):
         "Initialize basic cell description"
 
@@ -124,16 +124,15 @@ class Cell(object):
             warning("Note: High order geometries are not implemented in the form compilers yet.")
         self._degree = degree
 
-        # Get geometric dimension 
+        # Get geometric dimension
         if space is None:
             space = Space(self._topological_dimension)
         ufl_assert(isinstance(space, Space), "Expecting a Space instance, not '%r'" % (space,))
         self._space = space
         self._geometric_dimension = self._space.dimension()
 
-
         ufl_assert(self._topological_dimension >= self._geometric_dimension,
-            "Cannot embed a %dD cell in %s" % (self._topological_dimension, self._space))
+            "Cannot embed a %sD cell in %s" % (istr(self._topological_dimension), self._space))
 
         # TODO: Make self.d a property, deprecate or make valid
         #       only in this case. Don't use inside UFL!
@@ -154,28 +153,28 @@ class Cell(object):
 
     def geometric_dimension(self):
         return self.d
-    
+
     def topological_dimension(self):
         return self.d
-    
+
     def domain(self):
         return self._domain
-    
+
     def degree(self):
         return self._degree
-    
+
     def __eq__(self, other):
         return isinstance(other, Cell) and self._domain == other._domain and self._degree == other._degree
 
     def __ne__(self, other):
         return not self == other
-    
+
     def __hash__(self):
         return hash(("Cell", self._domain, self._degree))
-    
+
     def __str__(self):
         return "<%s of degree %d>" % (self._domain, self._degree)
-    
+
     def __repr__(self):
         return self._repr
 
@@ -184,4 +183,3 @@ class Cell(object):
 def as_cell(cell):
     "Convert any valid object to a Cell (in particular, domain string)."
     return cell if isinstance(cell, Cell) else Cell(cell)
-

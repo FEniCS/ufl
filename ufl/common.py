@@ -1,7 +1,7 @@
 "This module contains a collection of common utilities."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-08-05 -- 2009-03-05"
+__date__ = "2008-08-05 -- 2009-11-18"
 
 # Modified by Kristian Oelgaard, 2009
 
@@ -22,11 +22,24 @@ def get_status_output(cmd, input=None, cwd=None, env=None):
     return (status, output)
 
 # TODO: The facet dim is just a dummy for now
-domain2dim = {"vertex" : 0, "interval": 1, "triangle": 2, "tetrahedron": 3,\
-              "quadrilateral": 2, "hexahedron": 3, "facet": 0 }
-domain2facet = {"interval": "vertex", "triangle": "interval",\
-                "tetrahedron": "triangle", "quadrilateral": "interval",\
-                "hexahedron": "quadrilateral" }
+
+# Mapping from domain (cell) to dimension
+domain2dim = {None: None,
+              "vertex": 0,
+              "interval": 1,
+              "triangle": 2,
+              "tetrahedron": 3,
+              "quadrilateral": 2,
+              "hexahedron": 3,
+              "facet": 0}
+
+# Mapping from domain (cell) to facet
+domain2facet = {None: None,
+                "interval": "vertex",
+                "triangle": "interval",
+                "tetrahedron": "triangle",
+                "quadrilateral": "interval",
+                "hexahedron": "quadrilateral"}
 
 def write_file(filename, text):
     f = open(filename, "w")
@@ -155,6 +168,13 @@ def sstr(s):
     "Pretty-print set."
     return ", ".join(str(x) for x in s)
 
+def istr(o):
+    "Format object as string, inserting ? for None."
+    if o is None:
+        return "?"
+    else:
+        return str(o)
+
 class Counted(object):
     """A superclass for classes of objects identified by a global counter.
 
@@ -164,14 +184,14 @@ class Counted(object):
     1) Inherit this class
     2) Declare a static class _globalcount variable in your subclass:
     3) Call Counted.__init__ at initialization.
-    
+
     Minimal example:
 
         class MyClass(Counted):
             _globalcount = 0
             def __init__(self):
                 Counted.__init__(self)
-    
+
     If MyClass is further inherited, each subclass may get a
     different global counter, causing problems. Therefore
     it is recommended to pass the class to hold the global
@@ -198,7 +218,7 @@ class Counted(object):
             self._count = count
             if count >= self._countedclass._globalcount:
                 self._countedclass._globalcount = count + 1
-    
+
     def count(self):
         return self._count
 
@@ -206,10 +226,10 @@ class Stack(list):
     "A stack datastructure."
     def __init__(self, *args):
         list.__init__(self, *args)
-    
+
     def push(self, v):
         list.append(self, v)
-    
+
     def peek(self):
         return self[-1]
 
@@ -218,7 +238,7 @@ class StackDict(dict):
     def __init__(self, *args, **kwargs):
         dict.__init__(self, *args, **kwargs)
         self._l = []
-    
+
     def push(self, k, v):
         # Store previous state for this key
         self._l.append((k, self.get(k, None)))
@@ -227,7 +247,7 @@ class StackDict(dict):
                 del self[k]
         else:
             self[k] = v
-    
+
     def pop(self):
         # Restore previous state for this key
         k, v = self._l.pop()
@@ -241,13 +261,13 @@ class StackDict(dict):
 class UFLTypeDict(dict):
     def __init__(self):
         dict.__init__(self)
-        
+
     def __getitem__(self, key):
         return dict.__getitem__(self, key._uflclass)
-    
+
     def __setitem__(self, key, value):
         return dict.__setitem__(self, key._uflclass, value)
-    
+
     def __delitem__(self, key):
         return dict.__delitem__(self, key._uflclass)
 
@@ -260,13 +280,13 @@ class UFLTypeDefaultDict(dict):
         def make_default():
             return default
         self.setdefault(make_default)
-    
+
     def __getitem__(self, key):
         return dict.__getitem__(self, key._uflclass)
-    
+
     def __setitem__(self, key, value):
         return dict.__setitem__(self, key._uflclass, value)
-    
+
     def __delitem__(self, key):
         return dict.__delitem__(self, key._uflclass)
 
@@ -403,4 +423,4 @@ def test_stackdict():
 if __name__ == "__main__":
     test_component_indexing()
     test_stackdict()
-    
+
