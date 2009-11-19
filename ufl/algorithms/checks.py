@@ -36,7 +36,7 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
     # Check that cell is the same everywhere
     cells = set()
     for e in iter_expressions(form):
-        cells.update(t.cell() for t in traverse_terminals(e) if not t.cell().domain() is None)
+        cells.update(t.cell() for t in traverse_terminals(e) if not (t.cell() is None or t.cell().domain() is None))
     if None in cells:
         cells.remove(None)
     ufl_assert(len(cells) <= 1,
