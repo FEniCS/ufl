@@ -173,7 +173,7 @@ class Cell(object):
         return hash(("Cell", self._domain, self._degree))
 
     def __str__(self):
-        return "<%s of degree %d>" % (self._domain, self._degree)
+        return "<%s of degree %d>" % (istr(self._domain), self._degree)
 
     def __repr__(self):
         return self._repr
