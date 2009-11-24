@@ -368,8 +368,9 @@ class CompoundExpander(ReuseTransformer):
     def __init__(self, geometric_dimension):
         ReuseTransformer.__init__(self)
         self._dim = geometric_dimension
-        if self._dim is None:
-            warning("Got None for dimension, some compounds cannot be expanded.")
+
+        #if self._dim is None:
+        #    warning("Got None for dimension, some compounds cannot be expanded.")
 
     # ------------ Compound tensor operators
 
