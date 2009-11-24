@@ -24,15 +24,15 @@ def estr(elements):
 
 class FormData(object):
     "Class collecting various information extracted from a Form."
-    
+
     def __init__(self, form, name="a"):
         "Create form data for given form"
         ufl_assert(isinstance(form, Form), "Expecting Form.")
-        
+
         self.name = name
         self.original_form = form
         del form # to avoid bugs
-        
+
         # Expanding all derivatives. This (currently) also has
         # the side effect that compounds are expanded.
         # TODO: Should we really apply this here?
@@ -42,7 +42,7 @@ class FormData(object):
         # may change the number of form arguments, which is critical
         # for the rest of this function.
         self.form = expand_derivatives(self.original_form)
-        
+
         if not self.form._integrals:
             error("Form is empty after transformations, can't extract form data.")
 
@@ -94,7 +94,11 @@ class FormData(object):
 
         # Get geometric information
         if self.elements:
-            self.cell = self.elements[0].cell()
+            cells = [element.cell() for element in self.elements]
+            cells = [cell for cell in cells if not cell.domain() is None]
+            if len(cells) == 0:
+                error("Missing cell definition in form.")
+            self.cell = cells[0]
         elif self.form._integrals:
             # Special case to allow functionals only depending on geometric variables, with no elements
             self.cell = self.form._integrals[0].integrand().cell()
@@ -109,7 +113,7 @@ class FormData(object):
         else:
             self.geometric_dimension = self.cell.geometric_dimension()
             self.topological_dimension = self.cell.topological_dimension()
-        
+
         # Attach form data to both original form and transformed form,
         # to ensure the invariant "form_data.form.form_data() is form_data"
         self.original_form._form_data = self
@@ -118,7 +122,7 @@ class FormData(object):
     def __str__(self):
         "Return formatted summary of form data"
         return tstr((("Name",                               self.name),
-                     ("Rank",                               self.rank),                     
+                     ("Rank",                               self.rank),
                      ("Cell",                               self.cell),
                      ("Geometric dimension",                self.geometric_dimension),
                      ("Topological dimension",              self.topological_dimension),
