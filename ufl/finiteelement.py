@@ -237,8 +237,8 @@ class VectorElement(MixedElement):
         self._degree = degree
         self._sub_element = sub_element
 
-        self._repr = "VectorElement(%r, %r, %d, %d)" % \
-               (self._family, self._cell, self._degree, len(self._sub_elements))
+        self._repr = "VectorElement(%r, %r, %s, %d)" % \
+            (self._family, self._cell, str(self._degree), len(self._sub_elements))
 
     def __repr__(self):
         "Format as string for evaluation as Python object."
