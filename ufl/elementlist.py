@@ -61,12 +61,8 @@ register_element("Nedelec 1st kind H(curl)", "N1curl", 1, (0, None),
 register_element("Nedelec 2nd kind H(curl)", "N2curl", 1, (1, None),
                  ("triangle", "tetrahedron"))
 
-# Note (None, None) range for quadrature elements, allowing the degree
-# to not be specified at the time of construction but instead
-# automatically selected by a form compiler at compilation time.
-
-register_element("Quadrature", "Q", 0, (None, None),
+register_element("Quadrature", "Q", 0, (0, None),
                  (None, "interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
 
-register_element("Boundary Quadrature", "BQ", 0, (None, None),
+register_element("Boundary Quadrature", "BQ", 0, (0, None),
                  (None, "interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
