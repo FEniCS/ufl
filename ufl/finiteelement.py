@@ -166,6 +166,18 @@ class MixedElement(FiniteElementBase):
         # Cache repr string
         self._repr = "MixedElement(*%r, **{'value_shape': %r })" % (self._sub_elements, self._value_shape)
 
+    def set_cell(self, cell):
+        "Set cell for element"
+        self._cell = cell
+        for element in self._sub_elements:
+            element.set_cell(cell)
+
+    def set_degree(self, degree):
+        "Set degree for element"
+        self._degree = degree
+        for element in self._sub_elements:
+            element.set_degree(degree)
+
     def sub_elements(self):
         "Return list of sub elements"
         return self._sub_elements
