@@ -1,3 +1,5 @@
+ - New meaning of estimate_max_polynomial_degree
+ - New function estimate_total_polynomial_degree
  - Allow degree = None and cell = None for elements
 0.4.0 [2009-09-23]
  - Extensions for ElementRestriction (restrict FiniteElement to Cell)

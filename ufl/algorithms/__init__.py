@@ -32,7 +32,7 @@ from ufl.algorithms.transformations import transform, Transformer, ReuseTransfor
                                            replace, flatten, strip_variables, \
                                            expand_compounds, \
                                            mark_duplications, \
-                                           estimate_max_polynomial_degree
+                                           estimate_max_polynomial_degree, estimate_total_polynomial_degree
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.algorithms.expand_indices import expand_indices, expand_indices2, purge_list_tensors
 from ufl.algorithms.propagate_restrictions import propagate_restrictions

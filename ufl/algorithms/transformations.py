@@ -685,11 +685,11 @@ class DuplicationPurger(ReuseTransformer):
         #    self._duplications.add(e)
         return e
 
-class DegreeEstimator(Transformer):
+class SumDegreeEstimator(Transformer):
 
-    def __init__(self, default_quadrature_degree):
+    def __init__(self, default_degree):
         Transformer.__init__(self)
-        self.default_quadrature_degree = default_quadrature_degree
+        self.default_degree = default_degree
 
     def terminal(self, v):
         return 0
@@ -706,7 +706,7 @@ class DegreeEstimator(Transformer):
     def product(self, v, *ops):
         degrees = [op for op in ops if not op is None]
         nones = [op for op in ops if op is None]
-        return sum(degrees) + self.default_quadrature_degree*len(nones)
+        return sum(degrees) + self.default_degree*len(nones)
 
     def power(self, v, a, b):
         f, g = v.operands()
@@ -719,6 +719,29 @@ class DegreeEstimator(Transformer):
         if b > 0:
             return a*b
         return a
+
+class MaxDegreeEstimator(Transformer):
+
+    def __init__(self, default_degree):
+        Transformer.__init__(self)
+        self.default_degree = default_degree
+
+    def terminal(self, v):
+        return 0
+
+    def expr(self, v, *ops):
+        return max(ops)
+
+    def form_argument(self, v):
+        return v.element().degree()
+
+    def spatial_derivative(self, v, f, i):
+        return max(f - 1, 0)
+
+    def product(self, v, *ops):
+        degrees = [op for op in ops if not op is None]
+        nones = [op for op in ops if op is None]
+        return max(degrees + [self.default_degree])
 
 #--- User interface functions ---
 
@@ -816,13 +839,26 @@ def extract_basis_function_dependencies(e):
     ufl_assert(isinstance(e, Expr), "Expecting an Expr.")
     return BasisFunctionDependencyExtracter().visit(e)
 
-def estimate_max_polynomial_degree(e, default_quadrature_degree=1):
-    """Estimate the maximum needed quadrature order for expression,
-    integral or form using the highest polynomial degree of any
-    term. For coefficients defined on a quadrature element with
+def estimate_max_polynomial_degree(e, default_degree=1):
+    """Estimate the maximum polymomial degree of all functions in the
+    expression. For coefficients defined on an element with
     unspecified degree (None), the degree is set to the given default
     degree."""
-    de = DegreeEstimator(default_quadrature_degree)
+    de = MaxDegreeEstimator(default_degree)
+    if isinstance(e, Form):
+        degrees = [de.visit(integral.integrand()) for integral in e.integrals()]
+    elif isinstance(e, Integral):
+        degrees = [de.visit(e.integrand())]
+    else:
+        degrees = [de.visit(e)]
+    return max(degrees)
+
+def estimate_total_polynomial_degree(e, default_degree=1):
+    """Estimate the maximum polymomial degree of all functions in the
+    expression. For coefficients defined on an element with
+    unspecified degree (None), the degree is set to the given default
+    degree."""
+    de = SumDegreeEstimator(default_degree)
     if isinstance(e, Form):
         degrees = [de.visit(integral.integrand()) for integral in e.integrals()]
     elif isinstance(e, Integral):
