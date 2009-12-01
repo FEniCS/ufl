@@ -735,8 +735,8 @@ class MaxDegreeEstimator(Transformer):
     def form_argument(self, v):
         return v.element().degree()
 
-    def spatial_derivative(self, v, f, i):
-        return max(f - 1, 0)
+    #def spatial_derivative(self, v, f, i):
+    #    return max(f - 1, 0)
 
     def product(self, v, *ops):
         degrees = [op for op in ops if not op is None]
@@ -854,10 +854,9 @@ def estimate_max_polynomial_degree(e, default_degree=1):
     return max(degrees)
 
 def estimate_total_polynomial_degree(e, default_degree=1):
-    """Estimate the maximum polymomial degree of all functions in the
-    expression. For coefficients defined on an element with
-    unspecified degree (None), the degree is set to the given default
-    degree."""
+    """Estimate total polynomial degree of integrand. For coefficients
+    defined on an element with unspecified degree (None), the degree
+    is set to the given default degree."""
     de = SumDegreeEstimator(default_degree)
     if isinstance(e, Form):
         degrees = [de.visit(integral.integrand()) for integral in e.integrals()]
