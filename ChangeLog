@@ -1,3 +1,4 @@
+ - Redefine grad().T --> grad()
  - New meaning of estimate_max_polynomial_degree
  - New function estimate_total_polynomial_degree
  - Allow degree = None and cell = None for elements

@@ -123,18 +123,18 @@ def Dx(f, *i):
 def Dt(f):
     #return TimeDerivative(f) # TODO: Add class
     raise NotImplementedError
- 
+
 def Dn(f):
     "The directional derivative of f in the facet normal direction, Dn(f) := dot(n, grad(f))."
     cell = f.cell()
     if cell is None:
         return Zero(f.shape(), f.free_indices(), f.index_dimensions())
-    return dot(cell.n, grad(f))
+    return dot(grad(f), cell.n)
 
 # TODO: We have "derivative", "diff", "Dx", and "f.dx(i)", can we unify these with more intuitive consistent naming?
 def diff(f, v):
     """The derivative of f with respect to the variable v.
-    
+
     If f is a form, diff is applied to each integrand.
     """
     if isinstance(f, Form):
@@ -159,7 +159,7 @@ def diff2(f, v): # DIFFSHAPE TODO: Replace diff with this? The difference is tha
         def _diff(e):
             return diff(e, v)
         return transform_integrands(f, _diff)
-    
+
     if isinstance(v, SpatialCoordinate):
         r = v.rank()
         ii = indices(r + 1)
@@ -202,7 +202,7 @@ def jump(v, n=None):
             return v('+')*n('+') + v('-')*n('-')
         elif r == 1:
             return dot(v('+'), n('+')) + dot(v('-'), n('-'))
-    
+
     error("jump(v, n) is only defined for scalar or vector-valued expressions (not rank %d expressions)." % r)
 
 def avg(v):

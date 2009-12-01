@@ -34,7 +34,7 @@ def is_spatially_constant(expression):
         return all(is_spatially_constant(e) for e in expression.operands())
     elif isinstance(expression, (Indexed, ComponentTensor)):
         return is_spatially_constant(expression.operands()[0])
-    
+
     return False
 
 class Derivative(Operator):
@@ -44,10 +44,10 @@ class Derivative(Operator):
         Operator.__init__(self)
 
 class FunctionDerivative(Derivative):
-    """Derivative of the integrand of a form w.r.t. the 
+    """Derivative of the integrand of a form w.r.t. the
     degrees of freedom in a discrete Function."""
     __slots__ = ("_integrand", "_functions", "_basis_functions")
-    
+
     def __new__(cls, integrand, functions, basis_functions):
         ufl_assert(is_true_ufl_scalar(integrand),
             "Expecting true UFL scalar expression.")
@@ -58,28 +58,28 @@ class FunctionDerivative(Derivative):
         if isinstance(integrand, Zero):
             return Zero()
         return Derivative.__new__(cls)
-    
+
     def __init__(self, integrand, functions, basis_functions):
         Derivative.__init__(self)
         self._integrand = integrand
         self._functions = functions
         self._basis_functions = basis_functions
-    
+
     def operands(self):
         return (self._integrand, self._functions, self._basis_functions)
-    
+
     def shape(self):
         return ()
-    
+
     def free_indices(self):
         return ()
-    
+
     def index_dimensions(self):
         return {}
-    
+
     def __str__(self):
         return "FunctionDerivative (w.r.t. function %s and using basis function %s) of \n%s" % (self._functions, self._basis_functions, self._integrand) # TODO: Short notation
-    
+
     def __repr__(self):
         return "FunctionDerivative(%r, %r, %r)" % (self._integrand, self._functions, self._basis_functions)
 
@@ -105,11 +105,11 @@ class SpatialDerivative(Derivative):
             fi, idims = split_indices(expression, index)
             return Zero(expression.shape(), fi, idims)
         return Derivative.__new__(cls)
-    
+
     def __init__(self, expression, index):
         Derivative.__init__(self)
         self._expression = expression
-        
+
         # Make a MultiIndex with knowledge of the dimensions
         cell = expression.cell()
         if cell is None:
@@ -122,52 +122,52 @@ class SpatialDerivative(Derivative):
         # Make sure we have a single valid index
         ufl_assert(len(self._index) == 1, "Expecting a single index.")
         fi, idims = split_indices(expression, self._index[0])
-        
+
         # Store what we need
         self._free_indices = fi
         self._index_dimensions = idims
         self._shape = expression.shape()
 
         self._repr = "SpatialDerivative(%r, %r)" % (self._expression, self._index)
-    
+
     def operands(self):
         return (self._expression, self._index)
-   
+
     def free_indices(self):
         return self._free_indices
-    
+
     def index_dimensions(self):
         return self._index_dimensions
-    
+
     def shape(self):
         return self._shape
-    
+
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
         "Get child from mapping and return the component asked for."
-        
+
         i = self._index[0]
 
         if isinstance(i, FixedIndex):
             i = int(i)
-        
+
         pushed = False
         if isinstance(i, Index):
             i = index_values[i]
             pushed = True
             index_values.push(self._index[0], None)
-        
+
         result = self._expression.evaluate(x, mapping, component, index_values, derivatives=derivatives + (i,))
-        
+
         if pushed:
             index_values.pop()
-        
+
         return result
-    
+
     def __str__(self):
         if isinstance(self._expression, Terminal):
             return "d%s/dx_%s" % (self._expression, self._index)
         return "d/dx_%s %s" % (self._index, parstr(self._expression, self))
-    
+
     def __repr__(self):
         return self._repr
 
@@ -182,7 +182,7 @@ class VariableDerivative(Derivative):
             return Zero(f.shape() + v.shape(), free_indices, index_dimensions)
             #return Zero(v.shape() + f.shape(), free_indices, index_dimensions) # DIFFSHAPE TODO: Use this version instead?
         return Derivative.__new__(cls)
-    
+
     def __init__(self, f, v):
         Derivative.__init__(self)
         ufl_assert(isinstance(f, Expr), "Expecting an Expr in VariableDerivative.")
@@ -210,19 +210,19 @@ class VariableDerivative(Derivative):
         self._shape = f.shape() + v.shape()
         #self._shape = v.shape() + f.shape() # DIFFSHAPE TODO: Use this version instead?
         self._repr = "VariableDerivative(%r, %r)" % (self._f, self._v)
-    
+
     def operands(self):
         return (self._f, self._v)
-    
+
     def free_indices(self):
         return self._free_indices
 
     def index_dimensions(self):
         return self._index_dimensions
-    
+
     def shape(self):
         return self._shape
-    
+
     def __str__(self):
         if isinstance(self._f, Terminal):
             return "d%s/d[%s]" % (self._f, self._v)
@@ -250,9 +250,9 @@ class Grad(CompoundDerivative):
             dim = cell.geometric_dimension()
             free_indices = f.free_indices()
             index_dimensions = subdict(f.index_dimensions(), free_indices)
-            return Zero((dim,) + f.shape(), free_indices, index_dimensions)
+            return Zero(f.shape() + (dim,), free_indices, index_dimensions)
         return CompoundDerivative.__new__(cls)
-    
+
     def __init__(self, f):
         CompoundDerivative.__init__(self)
         self._f = f
@@ -262,22 +262,22 @@ class Grad(CompoundDerivative):
         ufl_assert(not (f.free_indices()), \
             "TODO: Taking gradient of an expression with free indices, should this be a valid expression? Please provide examples!")
         self._repr = "Grad(%r)" % self._f
-    
+
     def operands(self):
         return (self._f, )
-    
+
     def free_indices(self):
         return self._f.free_indices()
-    
+
     def index_dimensions(self):
         return self._f.index_dimensions()
-    
+
     def shape(self):
-        return (self._dim,) + self._f.shape()
-    
+        return  self._f.shape() + (self._dim,)
+
     def __str__(self):
         return "grad(%s)" % self._f
-    
+
     def __repr__(self):
         return self._repr
 
@@ -297,19 +297,19 @@ class Div(CompoundDerivative):
         CompoundDerivative.__init__(self)
         self._f = f
         self._repr = "Div(%r)" % self._f
-    
+
     def operands(self):
         return (self._f, )
-    
+
     def free_indices(self):
         return self._f.free_indices()
-    
+
     def index_dimensions(self):
         return self._f.index_dimensions()
-    
+
     def shape(self):
         return self._f.shape()[1:]
-    
+
     def __str__(self):
         return "div(%s)" % self._f
 
@@ -318,14 +318,14 @@ class Div(CompoundDerivative):
 
 class Curl(CompoundDerivative):
     __slots__ = ("_f", "_dim", "_repr")
-    
+
     def __new__(cls, f):
         # Validate input
         sh = f.shape()
         ufl_assert(f.shape() in ((), (2,), (3,)), "Expecting a scalar, 2D vector or 3D vector.")
         ufl_assert(not f.free_indices(), \
             "TODO: Taking curl of an expression with free indices, should this be a valid expression? Please provide examples!")
-        
+
         # Return zero if expression is trivially constant
         if is_spatially_constant(f):
             cell = f.cell()
@@ -336,7 +336,7 @@ class Curl(CompoundDerivative):
             #return Zero((cell.geometric_dimension(),), free_indices, index_dimensions)
             return Zero(sh)
         return CompoundDerivative.__new__(cls)
-    
+
     def __init__(self, f):
         CompoundDerivative.__init__(self)
         cell = f.cell()
@@ -345,22 +345,22 @@ class Curl(CompoundDerivative):
         self._f = f
         self._shape = sh
         self._repr = "Curl(%r)" % self._f
-    
+
     def operands(self):
         return (self._f, )
-    
+
     def free_indices(self):
         return self._f.free_indices()
-    
+
     def index_dimensions(self):
         return self._f.index_dimensions()
-    
+
     def shape(self):
         return self._shape
-    
+
     def __str__(self):
         return "curl(%s)" % self._f
-    
+
     def __repr__(self):
         return self._repr
 

@@ -29,20 +29,20 @@ class IndexExpander(ReuseTransformer):
         ReuseTransformer.__init__(self)
         self._components = Stack()
         self._index2value = StackDict()
-    
+
     def component(self):
         "Return current component tuple."
         if self._components:
             return self._components.peek()
         return ()
-    
+
     def terminal(self, x):
         if x.shape():
             c = self.component()
             ufl_assert(len(x.shape()) == len(c), "Component size mismatch.")
             return x[c]
         return x
-    
+
     def form_argument(self, x):
         if x.shape():
             # Get symmetry mapping if any
@@ -59,18 +59,18 @@ class IndexExpander(ReuseTransformer):
             ufl_assert(len(c) == len(c2), "Component size mismatch after symmetry mapping.")
             return x[c2]
         return x
-    
+
     def zero(self, x):
         ufl_assert(len(x.shape()) == len(self.component()), "Component size mismatch.")
         s = set(x.free_indices()) - set(self._index2value.keys())
         if s: error("Free index set mismatch, these indices have no value assigned: %s." % str(s))
         return Zero() # TODO: Don't remember when reading this code: is it right that there is no index/shape info in this zero?
-    
+
     def scalar_value(self, x):
         if len(x.shape()) != len(self.component()):
             self.print_visit_stack()
         ufl_assert(len(x.shape()) == len(self.component()), "Component size mismatch.")
-        
+
         s = set(x.free_indices()) - set(self._index2value.keys())
         if s: error("Free index set mismatch, these indices have no value assigned: %s." % str(s))
 
@@ -82,7 +82,7 @@ class IndexExpander(ReuseTransformer):
         # Not accepting nonscalars in division anymore
         ufl_assert(a.shape() == (), "Not expecting tensor in division.")
         ufl_assert(self.component() == (), "Not expecting component in division.")
-        
+
         ufl_assert(b.shape() == (), "Not expecting division by tensor.")
         a = self.visit(a)
 
@@ -106,7 +106,7 @@ class IndexExpander(ReuseTransformer):
             ops.append(self.visit(summand))
             self._index2value.pop()
         return sum(ops)
-    
+
     def _multi_index(self, x):
         comp = []
         for i in x:
@@ -115,10 +115,10 @@ class IndexExpander(ReuseTransformer):
             elif isinstance(i, Index):
                 comp.append(self._index2value[i])
         return tuple(comp)
-    
+
     def multi_index(self, x):
         return MultiIndex(self._multi_index(x), {})
-    
+
     def indexed(self, x):
         A, ii = x.operands()
 
@@ -140,29 +140,29 @@ class IndexExpander(ReuseTransformer):
         # Reset component
         self._components.pop()
         return result
-    
+
     def component_tensor(self, x):
         # This function evaluates the tensor expression
         # with indices equal to the current component tuple
         expression, indices = x.operands()
         ufl_assert(expression.shape() == (), "Expecting scalar base expression.")
-        
+
         # Update index map with component tuple values
         comp = self.component()
         ufl_assert(len(indices) == len(comp), "Index/component mismatch.")
         for i, v in izip(indices._indices, comp):
             self._index2value.push(i, v)
         self._components.push(())
-        
+
         # Evaluate with these indices
         result = self.visit(expression)
-        
+
         # Revert index map
         for _ in comp:
             self._index2value.pop()
         self._components.pop()
         return result
-    
+
     def list_tensor(self, x):
         # Pick the right subtensor and subcomponent
         c = self.component()
@@ -177,10 +177,10 @@ class IndexExpander(ReuseTransformer):
     def spatial_derivative(self, x):
         f, ii = x.operands()
         ufl_assert(isinstance(f, (Terminal, SpatialDerivative, Indexed, ListTensor, ComponentTensor)), "Expecting expand_derivatives to have been applied.")
-        
+
         # Taking component if necessary
-        f = self.visit(f) 
-        
+        f = self.visit(f)
+
         #ii = self.visit(ii) # mapping to constant if necessary
 
         # Map free index to a value
@@ -194,13 +194,13 @@ class IndexExpander(ReuseTransformer):
         #    pushed = True
         #else:
         #    pushed = False
-        
+
         result = self.reuse_if_possible(x, f, ii)
-        
+
         # Unhide used index i
         #if pushed:
         #    self._index2value.pop()
-        
+
         return result
 
 def expand_indices(e):
@@ -217,7 +217,7 @@ def expand_indices2_alg(e):
     n = len(V)
     Vout = G.Vout()
     Vin = G.Vin()
-    
+
     # Cache free indices
     fi   = []
     idim = []
@@ -251,14 +251,14 @@ def expand_indices2_alg(e):
     V2 = [{} for _ in V]
     def getv(i, indmap):
         return V2[i][tuple(indmap[j] for j in fi[i])]
-    
+
     # Reversed enumeration list
     RV = list(enumerate(V))
     RV.reverse()
-    
+
     # Map of current index values
     indmap = StackDict()
-    
+
     # Expand all vertices in turn
     for i, v in enumerate(V):
         ii = fi[i]
@@ -294,7 +294,7 @@ def expand_indices2_alg(e):
                     indmap.push(v.index(), k)
                     # Get operands evaluated for this index configuration
                     ops = [getv(j, indmap) for j in Vout[i]]
-                    # It is possible to save memory 
+                    # It is possible to save memory
                     # by reusing some expressions here
                     if e is None:
                         e = ops[0]
@@ -357,7 +357,7 @@ def expand_indices2_alg(e):
             else:
                 # Get operands evaluated for this index configuration
                 ops = [getv(j, indmap) for j in Vout[i]]
-                # It is possible to save memory 
+                # It is possible to save memory
                 # by reusing some expressions here
                 e = v.reconstruct(*ops)
 
@@ -376,4 +376,3 @@ def purge_list_tensors(e):
     if has_type(e, ListTensor):
         return expand_indices(e) # TODO: Only expand what's necessary to get rid of list tensors
     return e
-

@@ -504,11 +504,11 @@ class CompoundExpander(ReuseTransformer):
         return g.dx(i)
 
     def grad(self, o, a):
-        ii = Index()
+        jj = Index()
         if a.rank() > 0:
-            jj = tuple(indices(a.rank()))
-            return as_tensor(a[jj].dx(ii), tuple((ii,)+jj))
-        return as_tensor(a.dx(ii), (ii,))
+            ii = tuple(indices(a.rank()))
+            return as_tensor(a[ii].dx(jj), tuple(ii + (jj,)))
+        return as_tensor(a.dx(jj), (jj,))
 
     def curl(self, o, a):
         # o = curl a = "a0.dx(1)-a1.dx(0)"            if a.shape() == ()
