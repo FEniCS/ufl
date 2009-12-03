@@ -177,7 +177,7 @@ class ExpandIndicesTestCase(unittest.TestCase):
         # Deformation gradient
         I = Identity(2)
         u = vf
-        F = I + grad(u).T
+        F = I + grad(u)
         # F = (1 + vf[0].dx(0), vf[0].dx(1), vf[1].dx(0), 1 + vf[1].dx(1))
         # F = (1 + 0.50,        0.51,        0.70,        1 + 0.71)
         F00 = 1 + 0.50
