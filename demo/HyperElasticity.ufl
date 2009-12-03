@@ -3,6 +3,8 @@
 # Date: 2008-12-22
 #
 
+# Modified by Garth N. Wells, 2009
+
 # Cell and its properties
 cell = tetrahedron
 d = cell.d

@@ -4,6 +4,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-12 -- 2009-01-28"
 
 # Modified by Anders Logg, 2008
+# Modified by Garth N. Wells, 2009
 
 import unittest
 from pprint import *
