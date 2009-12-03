@@ -43,7 +43,7 @@ c22 = Constant(cell)
 
 # Deformation gradient
 I = Identity(d)
-F = I + grad(u).T
+F = I + grad(u)
 F = variable(F)
 Finv = inv(F)
 J = det(F)
