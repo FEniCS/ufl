@@ -290,7 +290,7 @@ class Div(CompoundDerivative):
             "TODO: Taking divergence of an expression with free indices, should this be a valid expression? Please provide examples!")
         # Return zero if expression is trivially constant
         if is_spatially_constant(f):
-            return Zero(f.shape()[1:]) # No free indices
+            return Zero(f.shape()[:-1]) # No free indices
         return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):
@@ -308,7 +308,7 @@ class Div(CompoundDerivative):
         return self._f.index_dimensions()
 
     def shape(self):
-        return self._f.shape()[1:]
+        return self._f.shape()[:-1]
 
     def __str__(self):
         return "div(%s)" % self._f
