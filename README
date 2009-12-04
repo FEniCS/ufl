@@ -78,10 +78,13 @@ Contact
 -------
 
 Send bug reports, feature requests, and questions to
-  ufl-dev@fenics.org
+  ufl@lists.launchpad.net
 
-The Mercurial source repository for UFL is located at
-  http://www.fenics.org/hg/ufl
+The Bazaar source repository for UFL is located at
+  lp:ufl
+
+The latest code can be obtained by
+  bzr branch lp:ufl
 
 A Wikipedia page with a brief overview of UFL exists at
   http://www.fenics.org/wiki/UFL
