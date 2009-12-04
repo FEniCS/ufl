@@ -98,11 +98,11 @@ Form transformations:
 
 """
 
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __copyright__ = "Copyright (C) 2008-2009 " + __authors__
 __license__  = "GNU GPL version 3 or any later version"
-__date__ = "2008-03-14 -- 2009-09-23"
+__date__ = "2008-03-14 -- 2009-12-04"
 
 # Modified by Kristian Oelgaard, 2009
 

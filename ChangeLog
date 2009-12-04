@@ -1,3 +1,4 @@
+0.4.1 [2009-12-04]
  - Redefine grad().T --> grad()
  - New meaning of estimate_max_polynomial_degree
  - New function estimate_total_polynomial_degree
