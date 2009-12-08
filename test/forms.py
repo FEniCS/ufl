@@ -23,7 +23,7 @@ class FormsTestCase(unittest.TestCase):
         "Tests automatic summation of integrands over same domain."
         element = FiniteElement("Lagrange", triangle, 1)
         v = TestFunction(element)
-        f = Function(element)
+        f = Coefficient(element)
         a = f*v*dx + 2*v*ds + 3*v*dx + 7*v*ds + 3*v*dx(2) + 7*v*dx(2)
         b = (f*v + 3*v)*dx + (2*v + 7*v)*ds + (3*v + 7*v)*dx(2)
         self.assertTrue(repr(a) == repr(b))
@@ -31,19 +31,19 @@ class FormsTestCase(unittest.TestCase):
     def test_source1(self):
         element = FiniteElement("Lagrange", triangle, 1)
         v = TestFunction(element)
-        f = Function(element)
+        f = Coefficient(element)
         a = f*v*dx
         
     def test_source2(self):
         element = VectorElement("Lagrange", triangle, 1)
         v = TestFunction(element)
-        f = Function(element)
+        f = Coefficient(element)
         a = dot(f,v)*dx
         
     def test_source3(self):
         element = TensorElement("Lagrange", triangle, 1)
         v = TestFunction(element)
-        f = Function(element)
+        f = Coefficient(element)
         a = inner(f,v)*dx
 
     def test_source4(self):
@@ -102,7 +102,7 @@ class FormsTestCase(unittest.TestCase):
         telement = TensorElement("Lagrange", triangle, 1)
         v = TestFunction(velement)
         u = TrialFunction(velement)
-        M = Function(telement)
+        M = Coefficient(telement)
         a = inner(M*grad(u), grad(v)) * dx
 
 
@@ -115,8 +115,8 @@ class FormsTestCase(unittest.TestCase):
         v, q = TestFunctions(TH)
         u, p = TrialFunctions(TH)
 
-        f = Function(velement)
-        w = Function(velement)
+        f = Coefficient(velement)
+        w = Coefficient(velement)
         Re = Constant(polygon)
         dt = Constant(polygon)
 

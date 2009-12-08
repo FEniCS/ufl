@@ -2,7 +2,7 @@
 # FIXME: This form passes validation but should fail since it mixes linear and bilinear terms.
 
 e = FiniteElement("CG", triangle, 1)
-f = Function(e)
+f = Coefficient(e)
 v = TestFunction(e)
 u = TrialFunction(e)
 

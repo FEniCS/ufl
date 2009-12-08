@@ -1,25 +1,26 @@
 """Functions to check the validity of forms."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-02-03"
+__date__ = "2008-03-14"
 
-# Modified by Anders Logg, 2008.
+# Modified by Anders Logg, 2008-2009.
+# Last changed: 2009-12-08
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
 
-# UFL classes:
+# UFL classes
 from ufl.form import Form
-from ufl.function import Function
-from ufl.basisfunction import BasisFunction
+from ufl.argument import Argument
+from ufl.coefficient import Coefficient
 from ufl.constantvalue import is_true_ufl_scalar
 from ufl.integral import Measure
 
-# Other algorithms
+# UFL algorithms
+from ufl.algorithms.preprocess import preprocess
 from ufl.algorithms.traversal import iter_expressions, traverse_terminals, fast_pre_traversal
 from ufl.algorithms.analysis import extract_elements
 from ufl.algorithms.predicates import is_multilinear
-from ufl.algorithms.ad import expand_derivatives
 from ufl.algorithms.propagate_restrictions import check_restrictions
 
 def validate_form(form): # TODO: Can we make this return a list of errors instead of raising exception?
@@ -27,11 +28,12 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
 
     ufl_assert(isinstance(form, Form), "Expecting a Form.")
 
-    # TODO: Can we check for multilinearity without expanding function derivatives?
-    #form = expand_derivatives(form) # If we do this, expand_derivatives will be called twice since it's called in FormData...
-    form = form.form_data().form # Is this ok? Unsure about the program flow here...
-    ufl_assert(is_multilinear(form), "Form is not multilinear in basis function arguments.")
-    #if not is_multilinear(form): warning("Form is not multilinear.")
+    # Preprocess form
+    #form = preprocess(form)
+
+    # FIXME: Add back check for multilinearity
+    # Check that form is multilinear
+    #ufl_assert(is_multilinear(form), "Form is not multilinear in basis function arguments.")
 
     # Check that cell is the same everywhere
     cells = set()
@@ -42,27 +44,27 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
     ufl_assert(len(cells) <= 1,
                "Inconsistent cell definitions in form: %s." % str(cells))
 
-    # Check that no Function or BasisFunction instance
+    # Check that no Coefficient or Argument instance
     # have the same count unless they are the same
     functions = {}
     basis_functions = {}
     for e in iter_expressions(form):
         for f in traverse_terminals(e):
-            if isinstance(f, Function):
+            if isinstance(f, Coefficient):
                 c = f.count()
                 if c in functions:
                     g = functions[c]
-                    ufl_assert(f is g, "Got different Functions with same count: %s and %s." % (repr(f), repr(g)))
+                    ufl_assert(f is g, "Got different Coefficients with same count: %s and %s." % (repr(f), repr(g)))
                 else:
                     functions[c] = f
 
-            elif isinstance(f, BasisFunction):
+            elif isinstance(f, Argument):
                 c = f.count()
                 if c in basis_functions:
                     g = basis_functions[c]
                     if c == -2: msg = "TestFunctions"
                     elif c == -1: msg = "TrialFunctions"
-                    else: msg = "BasisFunctions with same count"
+                    else: msg = "Arguments with same count"
                     msg = "Got different %s: %s and %s." % (msg, repr(f), repr(g))
                     ufl_assert(f is g, msg)
                 else:
@@ -80,4 +82,3 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
             check_restrictions(integral.integrand(), True)
         else:
             check_restrictions(integral.integrand(), False)
-

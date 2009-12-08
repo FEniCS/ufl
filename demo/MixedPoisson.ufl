@@ -19,7 +19,7 @@ element = BDM1 + DG0
 (tau, w) = TestFunctions(element)
 (sigma, u) = TrialFunctions(element)
 
-f = Function(DG0)
+f = Coefficient(DG0)
 
 a = (dot(tau, sigma) - div(tau)*u + w*div(sigma))*dx
 L = w*f*dx

@@ -5,7 +5,7 @@
 
 element = FiniteElement("Lagrange", triangle, 1)
 
-w = Function(element)
+w = Coefficient(element)
 
 # H1 semi-norm
 f = inner(grad(w), grad(w))/2*dx

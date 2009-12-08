@@ -35,15 +35,15 @@ class IndexTestCase(unittest.TestCase):
 
     def test_vector_indices(self):
         element = VectorElement("CG", "triangle", 1)
-        u = BasisFunction(element)
-        f = Function(element)
+        u = Argument(element)
+        f = Coefficient(element)
         a = u[i]*f[i]*dx
         b = u[j]*f[j]*dx
     
     def test_tensor_indices(self):
         element = TensorElement("CG", "triangle", 1)
-        u = BasisFunction(element)
-        f = Function(element)
+        u = Argument(element)
+        f = Coefficient(element)
         a = u[i,j]*f[i,j]*dx
         b = u[j,i]*f[i,j]*dx
         c = u[j,i]*f[j,i]*dx
@@ -55,8 +55,8 @@ class IndexTestCase(unittest.TestCase):
 
     def test_indexed_sum1(self):
         element = VectorElement("CG", "triangle", 1)
-        u = BasisFunction(element)
-        f = Function(element)
+        u = Argument(element)
+        f = Coefficient(element)
         a = u[i]+f[i]
         try:
             a*dx
@@ -66,9 +66,9 @@ class IndexTestCase(unittest.TestCase):
 
     def test_indexed_sum2(self):
         element = VectorElement("CG", "triangle", 1)
-        v = BasisFunction(element)
-        u = BasisFunction(element)
-        f = Function(element)
+        v = Argument(element)
+        u = Argument(element)
+        f = Coefficient(element)
         a = u[j]+f[j]+v[j]+2*v[j]+exp(u[i]*u[i])/2*f[j]
         try:
             a*dx
@@ -78,8 +78,8 @@ class IndexTestCase(unittest.TestCase):
 
     def test_indexed_sum3(self):
         element = VectorElement("CG", "triangle", 1)
-        u = BasisFunction(element)
-        f = Function(element)
+        u = Argument(element)
+        f = Coefficient(element)
         try:
             a = u[i]+f[j]
             self.fail()
@@ -88,17 +88,17 @@ class IndexTestCase(unittest.TestCase):
 
     def test_indexed_function1(self):
         element = VectorElement("CG", "triangle", 1)
-        v = BasisFunction(element)
-        u = BasisFunction(element)
-        f = Function(element)
+        v = Argument(element)
+        u = Argument(element)
+        f = Coefficient(element)
         aarg = (u[i]+f[i])*v[i]
         a = exp(aarg)*dx
 
     def test_indexed_function2(self):
         element = VectorElement("CG", "triangle", 1)
-        v = BasisFunction(element)
-        u = BasisFunction(element)
-        f = Function(element)
+        v = Argument(element)
+        u = Argument(element)
+        f = Coefficient(element)
         bfun  = cos(f[0])
         left  = u[i] + f[i]
         right = v[i] * bfun
@@ -108,9 +108,9 @@ class IndexTestCase(unittest.TestCase):
     
     def test_indexed_function3(self):
         element = VectorElement("CG", "triangle", 1)
-        v = BasisFunction(element)
-        u = BasisFunction(element)
-        f = Function(element)
+        v = Argument(element)
+        u = Argument(element)
+        f = Coefficient(element)
         try:
             c = sin(u[i] + f[i])*dx
             self.fail()
@@ -180,8 +180,8 @@ class IndexTestCase(unittest.TestCase):
         element = VectorElement("CG", "triangle", 1)
         v  = TestFunction(element)
         u  = TrialFunction(element)
-        f  = Function(element)
-        g  = Function(element)
+        f  = Coefficient(element)
+        g  = Coefficient(element)
     
         # define the components of a fourth order tensor
         Cijkl = u[i]*v[j]*f[k]*g[l]
@@ -225,7 +225,7 @@ class IndexTestCase(unittest.TestCase):
         element = VectorElement("CG", "triangle", 1)
         v  = TestFunction(element)
         u  = TrialFunction(element)
-        f  = Function(element)
+        f  = Coefficient(element)
         i, j, k, l = indices(4) 
         
         a = v[i]

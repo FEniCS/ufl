@@ -65,7 +65,7 @@ def _test():
     assert c.matches(d)
     
     e = FiniteElement("CG", triangle, 1)
-    f = Function(e)
+    f = Coefficient(e)
     g = MockExpr(shape=(), free_indices=(), index_dimensions={}, cell=triangle)
     assert g.matches(f)
     h = MockExpr(shape=(1,), free_indices=(), index_dimensions={}, cell=triangle)

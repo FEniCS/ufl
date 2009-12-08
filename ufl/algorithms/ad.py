@@ -1,16 +1,20 @@
 """Front-end for AD routines."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-12-28 -- 2009-04-29"
+__date__ = "2008-12-28"
+
+# Modified by Anders Logg, 2009.
+# Last changed: 2009-12-08
 
 from itertools import izip
 from ufl.log import debug, error
 from ufl.assertions import ufl_assert
-from ufl.classes import Terminal, Expr, Derivative, Tuple, SpatialDerivative, VariableDerivative, FunctionDerivative, FiniteElement, TestFunction, Function
-#from ufl.algorithms import *
+from ufl.classes import Terminal, Expr, Derivative, Tuple
+from ufl.classes import SpatialDerivative, VariableDerivative, FunctionDerivative
+from ufl.classes import FiniteElement, TestFunction
+
 from ufl.algorithms.analysis import extract_classes
 from ufl.algorithms.transformations import transform_integrands, expand_compounds, Transformer
-
 from ufl.algorithms.reverse_ad import reverse_ad
 from ufl.algorithms.forward_ad import forward_ad
 
@@ -18,10 +22,10 @@ class ADApplyer(Transformer):
     def __init__(self, ad_routine):
         Transformer.__init__(self)
         self.ad_routine = ad_routine
-    
+
     def terminal(self, e):
         return e
-    
+
     def expr(self, e, *ops):
         e = Transformer.reuse_if_possible(self, e, *ops)
         if isinstance(e, Derivative):
@@ -41,9 +45,9 @@ def apply_ad(e, ad_routine):
 
 def expand_derivatives(form):
     """Expand all derivatives of expr.
-    
+
     NB! This functionality is not finished!
-    
+
     In the returned expression g which is mathematically
     equivalent to expr, there are no VariableDerivative
     or FunctionDerivative objects left, and SpatialDerivative
@@ -68,18 +72,3 @@ def expand_derivatives(form):
         return aa.visit(expression)
 
     return transform_integrands(form, _expand_derivatives)
-
-if __name__ == "__main__":
-    from ufl import triangle, FiniteElement, TestFunction, Function, dx
-    e = FiniteElement("CG", triangle, 1)
-    v = TestFunction(e)
-    f = Function(e)
-    a = f*v*dx
-    da = expand_derivatives(a)
-    print 
-    print a
-    print
-    print da 
-    print
-
-

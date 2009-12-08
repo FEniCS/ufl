@@ -5,7 +5,7 @@
 
 cell = interval
 element = FiniteElement("CG", cell, 2)
-u = Function(element)
+u = Coefficient(element)
 b = Constant(cell)
 K = Constant(cell)
 

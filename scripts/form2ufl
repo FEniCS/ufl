@@ -65,7 +65,7 @@ def form2ufl(code):
     # List of complex replacements
     complex_replacements = ((r"\btransp(.*)", replace_transp),
                             (r"\bmult(.*)",   replace_mult))
-    
+
     # Iterate over replacemens
     for (a, b) in simple_replacements + complex_replacements:
         code = re.sub(a, b, code)
@@ -96,7 +96,7 @@ def main(args):
     try:
         file = open(form_filename, "r")
         code = file.read()
-        file.close()        
+        file.close()
     except:
         error("Unable to read file: " + form_filename)
 

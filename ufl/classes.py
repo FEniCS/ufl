@@ -3,9 +3,10 @@ since it enables the syntax "from ufl.classes import FooBar" for getting
 implementation details not exposed through the default ufl namespace."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-15 -- 2009-09-22"
+__date__ = "2008-08-15"
 
-# Modified by Anders Logg, 2008
+# Modified by Anders Logg, 2009.
+# Last changed: 2009-12-08
 
 from ufl.assertions import ufl_assert
 from ufl.expr import Expr, Operator, WrapperType, AlgebraOperator
@@ -13,8 +14,8 @@ from ufl.terminal import Terminal, FormArgument, UtilityType, Tuple
 from ufl.constantvalue import ConstantValue, Zero, ScalarValue, FloatValue, IntValue, Identity
 from ufl.variable import Variable, Label
 from ufl.finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
-from ufl.basisfunction import BasisFunction, TestFunction, TrialFunction
-from ufl.function import Function, ConstantBase, VectorConstant, TensorConstant, Constant
+from ufl.argument import Argument, TestFunction, TrialFunction
+from ufl.coefficient import Coefficient, ConstantBase, VectorConstant, TensorConstant, Constant
 from ufl.geometry import GeometricQuantity, SpatialCoordinate, FacetNormal, Space, Cell
 from ufl.indexing import MultiIndex, Indexed, IndexBase, Index, FixedIndex, IndexSum
 from ufl.tensors import ListTensor, ComponentTensor
@@ -35,7 +36,7 @@ from ufl import exproperators as __exproperators
 __all_classes       = (c for c in locals().values() if isinstance(c, type))
 all_ufl_classes     = set(c for c in __all_classes if issubclass(c, Expr))
 abstract_classes    = set(s for c in all_ufl_classes for s in c.mro()[1:-1])
-abstract_classes.remove(Function)
+abstract_classes.remove(Coefficient)
 ufl_classes         = set(c for c in all_ufl_classes if c not in abstract_classes)
 terminal_classes    = set(c for c in all_ufl_classes if issubclass(c, Terminal))
 nonterminal_classes = set(c for c in all_ufl_classes if not issubclass(c, Terminal))
@@ -86,7 +87,7 @@ def _build_precedence_list():
     #sum_i a + b != sum_i (a + b) -> sum_i binds more than +
     precedence_list.append((Sum,))
     precedence_list.append((IndexSum,))
-    
+
     #*, /, //, % 	Multiplication, division, remainder
     precedence_list.append((Product, Division, Inner, Outer, Dot, Cross,))
 
@@ -126,13 +127,13 @@ def _build_precedence_list():
 
     precedence_list.append((Sum,))
     precedence_list.append((IndexSum,))
-    
+
     # TODO: What to do with these?
     precedence_list.append((ListTensor, ComponentTensor))
     precedence_list.append((Restricted,))
     precedence_list.append((Conditional,))
     precedence_list.append((Condition,))
-    
+
     precedence_list.append((Div, Grad, Curl,
                             SpatialDerivative, VariableDerivative,
                             Determinant, Trace, Cofactor, Inverse, Deviatoric, Skew, Sym))
@@ -151,7 +152,7 @@ def _build_precedence_list():
         for c in p:
             c._precedence = k
         k += 1
-    
+
     for c in all_ufl_classes:
         if not c in abstract_classes:
             ufl_assert(hasattr(c, "_precedence") and isinstance(c._precedence, int), "No precedence assigned to %s" % c.__name__)
@@ -181,7 +182,7 @@ def build_precedences():
         for c in p:
             c._precedence = k
         k += 1
-    
+
     for c in all_ufl_classes:
         if not c in abstract_classes:
             ufl_assert(hasattr(c, "_precedence") and isinstance(c._precedence, int), "No precedence assigned to %s" % c.__name__)

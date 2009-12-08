@@ -6,6 +6,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-05-07 -- 2009-11-17"
 
 # Modified by Anders Logg, 2009.
+# Last changed: 2009-12-08
 
 from itertools import izip
 from inspect import getargspec
@@ -14,7 +15,7 @@ from ufl.log import error, warning, debug
 from ufl.common import Stack, StackDict
 from ufl.assertions import ufl_assert
 from ufl.finiteelement import TensorElement
-from ufl.classes import Expr, Terminal, Product, Index, FixedIndex, ListTensor, Variable, Function, Zero
+from ufl.classes import Expr, Terminal, Product, Index, FixedIndex, ListTensor, Variable, Zero
 from ufl.indexing import indices, complete_shape
 from ufl.tensors import as_tensor, as_matrix, as_vector, ListTensor, ComponentTensor
 from ufl.form import Form

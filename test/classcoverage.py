@@ -89,23 +89,23 @@ class ClasscoverageTest(unittest.TestCase):
         
         # --- Terminals:
         
-        v13D = BasisFunction(e13D)
-        f13D = Function(e13D)
+        v13D = Argument(e13D)
+        f13D = Coefficient(e13D)
         
-        v0 = BasisFunction(e0)
-        v1 = BasisFunction(e1)
-        v2 = BasisFunction(e2)
-        v3 = BasisFunction(e3)
+        v0 = Argument(e0)
+        v1 = Argument(e1)
+        v2 = Argument(e2)
+        v3 = Argument(e3)
         
         test_object(v0, (), ())
         test_object(v1, (dim,), ())
         test_object(v2, (dim,dim), ())
         test_object(v3, (dim*dim+dim+1,), ())
         
-        f0 = Function(e0)
-        f1 = Function(e1)
-        f2 = Function(e2)
-        f3 = Function(e3)
+        f0 = Coefficient(e0)
+        f1 = Coefficient(e1)
+        f2 = Coefficient(e2)
+        f3 = Coefficient(e3)
         
         test_object(f0, (), ())
         test_object(f1, (dim,), ())

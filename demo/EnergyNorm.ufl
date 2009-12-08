@@ -6,6 +6,6 @@
 
 element = FiniteElement("Lagrange", "tetrahedron", 1)
 
-v = Function(element)
+v = Coefficient(element)
 a = (v*v + dot(grad(v), grad(v)))*dx
 

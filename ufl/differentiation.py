@@ -1,7 +1,10 @@
 "Differential operators."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-05-05"
+__date__ = "2008-03-14"
+
+# Modified by Anders Logg, 2009.
+# Last changed: 2009-12-08
 
 from ufl.log import warning, error
 from ufl.assertions import ufl_assert
@@ -14,8 +17,8 @@ from ufl.indexutils import unique_indices
 from ufl.geometry import FacetNormal
 from ufl.variable import Variable
 from ufl.tensors import as_tensor, ComponentTensor, ListTensor
-from ufl.function import Function, ConstantBase
-from ufl.basisfunction import BasisFunction
+from ufl.argument import Argument
+from ufl.coefficient import Coefficient, ConstantBase
 from ufl.precedence import parstr
 
 #--- Basic differentiation objects ---
@@ -26,7 +29,7 @@ def is_spatially_constant(expression):
         return True
     elif isinstance(expression, FacetNormal) and expression.cell().degree() == 1:
         return True
-    elif isinstance(expression, Function):
+    elif isinstance(expression, Coefficient):
         e = expression.element()
         if e.family() == "Discontinuous Lagrange" and e.degree() == 0: # TODO: Only e.degree() == 0?
             return True
@@ -53,8 +56,8 @@ class FunctionDerivative(Derivative):
             "Expecting true UFL scalar expression.")
         ufl_assert(isinstance(functions, Tuple), #and all(isinstance(f, (Function,Indexed)) for f in functions),
             "Expecting Tuple instance with Functions.")
-        ufl_assert(isinstance(basis_functions, Tuple), #and all(isinstance(f, BasisFunction) for f in basis_functions),
-            "Expecting Tuple instance with BasisFunctions.")
+        ufl_assert(isinstance(basis_functions, Tuple), #and all(isinstance(f, Argument) for f in basis_functions),
+            "Expecting Tuple instance with Arguments.")
         if isinstance(integrand, Zero):
             return Zero()
         return Derivative.__new__(cls)
@@ -174,7 +177,7 @@ class SpatialDerivative(Derivative):
 class VariableDerivative(Derivative):
     __slots__ = ("_f", "_v", "_free_indices", "_index_dimensions", "_shape", "_repr")
     def __new__(cls, f, v):
-        # Return zero if expression is trivially independent of Function
+        # Return zero if expression is trivially independent of Coefficient
         if isinstance(f, Terminal):# and not isinstance(f, Variable):
             free_indices = set(f.free_indices()) ^ set(v.free_indices())
             index_dimensions = mergedicts([f.index_dimensions(), v.index_dimensions()])

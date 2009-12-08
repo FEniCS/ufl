@@ -12,12 +12,12 @@ element = FiniteElement("Discontinuous Lagrange", triangle, 1)
 
 v = TestFunction(element)
 u = TrialFunction(element)
-f = Function(element)
+f = Coefficient(element)
 
 n = triangle.n
 h = Constant(triangle)
 
-gN = Function(element)
+gN = Coefficient(element)
 
 alpha = 4.0
 gamma = 8.0

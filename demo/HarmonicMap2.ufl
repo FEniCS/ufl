@@ -9,7 +9,7 @@ X = VectorElement("Lagrange", cell, 1)
 Y = FiniteElement("Lagrange", cell, 1)
 M = X + Y
 
-u = Function(M)
+u = Coefficient(M)
 x, y = split(u)
 
 L = inner(grad(x), grad(x))*dx + dot(x,x)*y*dx  

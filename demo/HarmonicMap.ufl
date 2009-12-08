@@ -8,10 +8,10 @@ cell = triangle
 X = VectorElement("Lagrange", cell, 1)
 Y = FiniteElement("Lagrange", cell, 1)
 
-x = Function(X) 
-y = Function(Y)
+x = Coefficient(X)
+y = Coefficient(Y)
 
-L = inner(grad(x), grad(x))*dx + dot(x,x)*y*dx  
+L = inner(grad(x), grad(x))*dx + dot(x,x)*y*dx
 
 F = derivative(L,(x,y))
 J = derivative(F,(x,y))

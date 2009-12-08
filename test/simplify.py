@@ -12,8 +12,8 @@ class ElementsTestCase(unittest.TestCase):
 
     def test_products(self):
         element = FiniteElement("CG", "triangle", 1)
-        f = Function(element)
-        g = Function(element)
+        f = Coefficient(element)
+        g = Coefficient(element)
         
         # Test simplification of basic multiplication
         a = f
@@ -37,8 +37,8 @@ class ElementsTestCase(unittest.TestCase):
         
     def test_sums(self):
         element = FiniteElement("CG", "triangle", 1)
-        f = Function(element)
-        g = Function(element)
+        f = Coefficient(element)
+        g = Coefficient(element)
         
         # Test collapsing of basic sum
         a = f + f

@@ -16,7 +16,7 @@ class ConditionalsTestCase(unittest.TestCase):
     def test_lt(self):
         element = FiniteElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
-        f = Function(element)
+        f = Coefficient(element)
         g = conditional(lt(f, pi), f, pi)
         a = g*v*dx
 

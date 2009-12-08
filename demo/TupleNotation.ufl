@@ -7,9 +7,9 @@ element = FiniteElement("Lagrange", triangle, 1)
 
 v = TestFunction(element)
 u = TrialFunction(element)
-f = Function(element)
-g = Function(element)
-h = Function(element)
+f = Coefficient(element)
+g = Coefficient(element)
+h = Coefficient(element)
 
 a = (u, v) + (grad(u), grad(v), dx(1)) + (-f, v) + (-g, v, ds(0)) + (h - u, v, ds(1))
 a, L = lhs(a), rhs(a)

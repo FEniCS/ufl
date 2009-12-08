@@ -5,10 +5,10 @@ __date__ = "2009-02-17 -- 2009-02-17"
 
 import unittest
 import math
-        
+
 from ufl import *
 from ufl.constantvalue import as_ufl
-from ufl.algorithms import expand_indices, strip_variables, post_traversal
+from ufl.algorithms import expand_indices, strip_variables, post_traversal, preprocess, FormData
 #from ufl.classes import *
 
 class DerivativeTestCase(unittest.TestCase):
@@ -18,7 +18,7 @@ class DerivativeTestCase(unittest.TestCase):
         self.element = FiniteElement("CG", self.cell, 1)
         self.v = TestFunction(self.element)
         self.u = TrialFunction(self.element)
-        self.w = Function(self.element)
+        self.w = Coefficient(self.element)
         self.xv = ()
         self.uv = 7.0
         self.vv = 13.0
@@ -34,7 +34,7 @@ class DerivativeTestCase(unittest.TestCase):
         dfv1 = dfv1(x, mapping)
         dfv2 = dfv2(x, mapping)
         self.assertTrue(dfv1 == dfv2)
-        
+
         dfv1 = derivative(f(7*w), w, v)
         dfv2 = 7*df(7*w, v)
         dfv1 = dfv1(x, mapping)
@@ -60,32 +60,32 @@ class DerivativeTestCase(unittest.TestCase):
         def f(w):  return w**3
         def df(w, v): return 3*w**2*v
         self._test(f, df)
-    
+
     def testDivision(self):
         def f(w):  return w / 3.0
         def df(w, v): return v / 3.0
         self._test(f, df)
-    
+
     def testDivision2(self):
         def f(w):  return 3.0 / w
         def df(w, v): return -3.0 * v / w**2
         self._test(f, df)
-    
+
     def testExp(self):
         def f(w):  return exp(w)
         def df(w, v): return v*exp(w)
         self._test(f, df)
-    
+
     def testLn(self):
         def f(w):  return ln(w)
         def df(w, v): return v / w
         self._test(f, df)
-    
+
     def testSin(self):
         def f(w):  return sin(w)
         def df(w, v): return v*cos(w)
         self._test(f, df)
-    
+
     def testCos(self):
         def f(w):  return cos(w)
         def df(w, v): return -v*sin(w)
@@ -104,7 +104,7 @@ class DerivativeTestCase(unittest.TestCase):
     def testHyperElasticity(self):
         cell = interval
         element = FiniteElement("CG", cell, 2)
-        w = Function(element)
+        w = Coefficient(element)
         v = TestFunction(element)
         u = TrialFunction(element)
         b = Constant(cell)
@@ -123,10 +123,14 @@ class DerivativeTestCase(unittest.TestCase):
         F = derivative(f, w, v)
         J = derivative(F, w, u)
 
-        f_expression = strip_variables(f.form_data().form.cell_integrals()[0].integrand())
-        F_expression = strip_variables(F.form_data().form.cell_integrals()[0].integrand())
-        J_expression = strip_variables(J.form_data().form.cell_integrals()[0].integrand())
-        
+        f = preprocess(f)
+        F = preprocess(F)
+        J = preprocess(J)
+
+        f_expression = strip_variables(f.cell_integrals()[0].integrand())
+        F_expression = strip_variables(F.cell_integrals()[0].integrand())
+        J_expression = strip_variables(J.cell_integrals()[0].integrand())
+
         #classes = set(c.__class__ for c in post_traversal(f_expression))
 
         Kv = .2
@@ -145,28 +149,31 @@ class DerivativeTestCase(unittest.TestCase):
         def Nv(x, derivatives):
             assert derivatives == (0,)
             return dv
-        
+
         def Nu(x, derivatives):
             assert derivatives == (0,)
             return du
-        
+
         def Nw(x, derivatives):
             assert derivatives == (0,)
             return dw
-        
-        w, b, K = f.form_data().functions
+
+        form_data_f = FormData(f)
+        w, b, K = form_data_f.coefficients
         mapping = { K: Kv, b: bv, w: Nw }
         fv2 = f_expression((0,), mapping)
         self.assertAlmostEqual(fv, fv2)
-        
-        w, b, K = F.form_data().functions
-        v, = F.form_data().basis_functions
+
+        form_data_F = FormData(F)
+        w, b, K = form_data_F.coefficients
+        v, = form_data_F.arguments
         mapping = { K: Kv, b: bv, v: Nv, w: Nw }
         Fv2 = F_expression((0,), mapping)
         self.assertAlmostEqual(Fv, Fv2)
 
-        w, b, K = J.form_data().functions
-        v, u = J.form_data().basis_functions
+        form_data_J = FormData(J)
+        w, b, K = form_data_J.coefficients
+        v, u = form_data_J.arguments
         mapping = { K: Kv, b: bv, v: Nv, u: Nu, w: Nw }
         Jv2 = J_expression((0,), mapping)
         self.assertAlmostEqual(Jv, Jv2)

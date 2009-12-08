@@ -12,7 +12,7 @@ element = VectorElement("Lagrange", cell, 1)
   
 v = TestFunction(element)
 u = TrialFunction(element)
-f = Function(element)
+f = Coefficient(element)
  
 a = inner(grad(v), grad(u))*dx
 L = dot(v, f)*dx

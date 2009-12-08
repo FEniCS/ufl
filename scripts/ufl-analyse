@@ -1,7 +1,15 @@
 #!/usr/bin/env python
 
+__authors__ = "Martin Sandve Alnes"
+__date__ = "2008-05-09"
+
+# Modified by Anders Logg, 2009.
+# Last changed: 2009-12-08
+
 import sys, optparse
-from ufl.algorithms import FormData, load_ufl_file, validate_form, ufl2latex, tree_format
+from ufl.log import warning
+from ufl.algorithms import FormData
+from ufl.algorithms import load_ufl_file, validate_form, ufl2latex, tree_format, preprocess
 
 # Get commandline options
 
@@ -37,8 +45,10 @@ quiet = options.quiet
 
 # Handle each form file separately
 for filename in filenames:
+
+    # Check file suffix
     if not filename.endswith(".ufl"):
-        print "Warning: Filename '%s' doesn't end with .ufl." % filename
+        warning("Filename '%s' does not end with .ufl." % filename)
 
     # Load form file, which triggers many consistency
     # checks while the form is being built
@@ -62,35 +72,30 @@ for filename in filenames:
             outputfile.flush()
         if not quiet:
             print text
-    
+
     # Analyse each form separately
-    for fd in [f.form_data() for f in forms]:
-        # Check both original form and transformed version
-        for (form, name) in [(fd.original_form, fd.name), (fd.form, fd.name + "<modified>")]:
-            # Analyse validity of form
-            errors = validate_form(form) 
-            if errors:
-                write("Found errors in form '%s':" % name)
-                write(errors)
-            else:
-                write("Found no errors in form '%s'." % name)
-            
-            # Print form information
-            s = str(fd)
-            write("\nForm data:\n", s)
-            
-            s = str(form)
-            write("\nForm pretty-print:\n", s)
-            
-            r = repr(form)
-            write("\nForm representation:\n", r)
-            
-            tree = tree_format(form)
-            write("\nForm tree formatting:\n", tree)
-            
-            latex = ufl2latex(form)
-            write("\nForm LaTeX code:\n", latex)
-    
+    for form in forms:
+
+        # Validate form
+        validate_form(form)
+
+        # Preprocess form
+        preprocessed_form = preprocess(form)
+
+        # Extract form data
+        form_data = FormData(preprocessed_form, object_names=data.object_names)
+
+        # Print form data
+        write("\nForm data:\n", str(form_data))
+
+        # Print different representations
+        write("\n\nForm pretty-print (original):\n",        str(form))
+        write("\n\nForm pretty-print (preprocessed):\n",    str(preprocessed_form))
+        write("\n\nForm representation (original):\n",      repr(form))
+        write("\n\nForm representation (preprocessed):\n",  repr(preprocessed_form))
+        write("\n\nForm tree formatting (original):\n",     tree_format(form))
+        write("\n\nForm tree formatting (preprocessed):\n", tree_format(preprocessed_form))
+        write("\n\nForm LaTeX code (preprocessed):\n",      ufl2latex(preprocessed_form, form_data))
+
     if write_file:
         outputfile.close()
-

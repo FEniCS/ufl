@@ -3,7 +3,10 @@
 from __future__ import with_statement
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-06-17"
+__date__ = "2008-03-14"
+
+# Modified by Anders Logg, 2008-2009.
+# Last changed: 2009-12-08
 
 import os
 import time
@@ -13,23 +16,21 @@ from ufl.log import error, warning, info
 from ufl.assertions import ufl_assert
 from ufl.form import Form
 from ufl.finiteelement import FiniteElementBase
-from ufl.function import Function
-from ufl.basisfunction import BasisFunction
+from ufl.argument import Argument
+from ufl.coefficient import Coefficient
 from ufl.algorithms.formdata import FormData
 from ufl.algorithms.checks import validate_form
 from ufl.algorithms.tuplenotation import as_form
 
-#--- Utilities to deal with form files ---
-
 class FileData(object):
     def __init__(self):
-        self.elements  = [] # alternative: {} # { name: FiniteElement }
-        self.functions = [] # alternative: {} # { name: Function      }
-        self.forms     = [] # alternative: {} # { name: Form          }
-        
+        self.elements     = []
+        self.functions    = []
+        self.forms        = []
+        self.object_names = {}
+
     def __nonzero__(self):
         return bool(self.elements or self.functions or self.forms)
-
 
 infostring = """An exception occured during evaluation of form file.
 To help you find the location of the error, a temporary script
@@ -91,20 +92,22 @@ def load_ufl_file(filename):
         m = __import__(basename)
         error("An error occured, aborting load_forms.")
 
-    # Extract Form objects, and Function objects to get their names
+    # Object to hold all returned data
+    ufd = FileData()
+
+    # Extract Form objects, and Coefficient objects to get their names
     all_forms = []
-    form_names = {}
-    function_names = {}
-    basis_function_names = {}
+
+    # FIXME: Is id() necessary?
+
+    # Extract object names
     for name, value in namespace.iteritems():
         if isinstance(value, (Form, tuple)):
             # Convert tuple notation to form
             all_forms.append(as_form(value))
-            form_names[as_form(value)] = name
-        elif isinstance(value, Function):
-            function_names[id(value)] = name
-        elif isinstance(value, BasisFunction):
-            basis_function_names[id(value)] = name
+            ufd.object_names[id(as_form(value))] = name
+        elif isinstance(value, (Coefficient, Argument)):
+            ufd.object_names[id(value)] = name
 
     # Get list of forms
     forms = namespace.get("forms")
@@ -117,9 +120,6 @@ def load_ufl_file(filename):
         "Expecting 'forms' to be a list or tuple, not '%s'." % type(forms))
     ufl_assert(all(isinstance(a, Form) for a in forms),
         "Expecting 'forms' to be a list of Form instances.")
-
-    # Object to hold all returned data
-    ufd = FileData()
     ufd.forms = forms
 
     # Get list of elements
@@ -139,26 +139,18 @@ def load_ufl_file(filename):
         warning("List of functions not implemented.")
     ufl_assert(isinstance(functions, (list, tuple)),
         "Expecting 'functions' to be a list or tuple, not '%s'." % type(functions))
-    ufl_assert(all(isinstance(e, Function) for e in functions),
-        "Expecting 'functions' to be a list of Function instances.")
+    ufl_assert(all(isinstance(e, Coefficient) for e in functions),
+        "Expecting 'functions' to be a list of Coefficient instances.")
     ufd.functions = functions
 
+    # FIXME: Need to call validate_form elsewhere!
+
     # Analyse validity of forms
-    for form in forms:
-        validate_form(form)
+    #for form in forms:
+    #    validate_form(form)
         #errors = validate_form(form) # TODO: validate_form raises exception, it doesn't return errors
         #if errors:
         #    error("Found errors in form '%s':\n%s" % (form_names[id(form)], errors))
-
-    # Construct FormData for each object and attach names
-    for form in forms:
-        # Using form_data() ensures FormData is only constructed once
-        fd = form.form_data()
-        fd.name = form_names[form]
-        for (i, f) in enumerate(fd.original_basis_functions):
-            fd.basis_function_names[i] = basis_function_names.get(id(f), "v%d"%i)
-        for (i, f) in enumerate(fd.original_functions):
-            fd.function_names[i] = function_names.get(id(f), "w%d"%i)
 
     # Return file data
     return ufd
@@ -167,4 +159,3 @@ def load_forms(filename):
     "Return a list of all forms in a file."
     ufd = load_ufl_file(filename)
     return ufd.forms
-

@@ -5,7 +5,7 @@
 
 element = FiniteElement("Lagrange", triangle, 1)
 
-u = Function(element)
+u = Coefficient(element)
 
 # L2 norm
 M = u**2/2*dx

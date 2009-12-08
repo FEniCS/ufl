@@ -1,5 +1,7 @@
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2009-02-22 -- 2009-04-20"
+__date__ = "2009-02-22"
+
+# Last changed: 2009-12-08
 
 from ufl.common import Counted, Stack, StackDict
 from ufl.log import error
@@ -7,7 +9,6 @@ from ufl.expr import Expr
 from ufl.indexing import Index, FixedIndex, MultiIndex, Indexed
 from ufl.indexsum import IndexSum
 from ufl.tensors import ComponentTensor, ListTensor
-from ufl.basisfunction import BasisFunction
 from ufl.variable import Label, Variable
 from ufl.algorithms.transformations import ReuseTransformer, apply_transformer
 
@@ -43,7 +44,7 @@ class IndexRenumberingTransformer(VariableRenumberingTransformer):
         idims = o.index_dimensions()
         new_idims = dict((b, idims[a]) for (a,b) in zip(o._indices, new_indices) if isinstance(a, Index))
         return MultiIndex(new_indices, new_idims)
-    
+
     def index(self, o):
         if isinstance(o, FixedIndex):
             return o
@@ -54,7 +55,7 @@ class IndexRenumberingTransformer(VariableRenumberingTransformer):
             self.index_map[c] = i
         return i
 
-# TODO: Concepts in this implementation can handle unique 
+# TODO: Concepts in this implementation can handle unique
 #       renumbering of indices used multiple places, like
 #           (v[i]*v[i] + u[i]*u[i]) -> (v[i]*v[i] + u[j]*u[j])
 #       which could be a useful invariant some other places.
@@ -70,7 +71,7 @@ class IndexRenumberingTransformer2(VariableRenumberingTransformer):
         # A stack of dicts holding an "old Index" -> "new Index"
         # mapping, with "old Index" -> None meaning undefined in
         # the current scope. Indices get defined and numbered
-        # in 
+        # in
         self.index_map = StackDict()
 
         # Current component, a tuple of FixedIndex and Index

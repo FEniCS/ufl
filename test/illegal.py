@@ -15,14 +15,14 @@ class IllegalExpressionsTestCase(unittest.TestCase):
     def setUp(self):
         self.selement = FiniteElement("Lagrange", "triangle", 1)
         self.velement = VectorElement("Lagrange", "triangle", 1)
-        self.a = BasisFunction(self.selement)
-        self.b = BasisFunction(self.selement)
-        self.v = BasisFunction(self.velement)
-        self.u = BasisFunction(self.velement)
-        self.f = Function(self.selement)
-        self.g = Function(self.selement)
-        self.vf = Function(self.velement)
-        self.vg = Function(self.velement)
+        self.a = Argument(self.selement)
+        self.b = Argument(self.selement)
+        self.v = Argument(self.velement)
+        self.u = Argument(self.velement)
+        self.f = Coefficient(self.selement)
+        self.g = Coefficient(self.selement)
+        self.vf = Coefficient(self.velement)
+        self.vg = Coefficient(self.velement)
     
     def test_1(self):
         a, b, v,  u  = self.a, self.b, self.v,  self.u
@@ -87,7 +87,7 @@ class FormsTestCase(unittest.TestCase):
     def test_source1(self):
         element = VectorElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
-        f = Function(element)
+        f = Coefficient(element)
         try:
             a = f*v*dx
             self.fail()
@@ -97,7 +97,7 @@ class FormsTestCase(unittest.TestCase):
     def test_source2(self):
         element = VectorElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
-        f = Function(element)
+        f = Coefficient(element)
         try:
             a = dot(f[0],v)
             self.fail()
@@ -107,7 +107,7 @@ class FormsTestCase(unittest.TestCase):
     def test_source3(self):
         element = TensorElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
-        f = Function(element)
+        f = Coefficient(element)
         try:
             a = inner(f,v[0])*dx
             self.fail()
@@ -170,8 +170,8 @@ class FormsTestCase(unittest.TestCase):
     def test_duplicated_args2(self):
         element = FiniteElement("Lagrange", "triangle", 1)
         element2 = FiniteElement("Lagrange", "triangle", 2)
-        f = Function(element)
-        g = Function(element2, count=f.count())
+        f = Coefficient(element)
+        g = Coefficient(element2, count=f.count())
         a = (f+g)*dx
         try:
             validate_form(a)
@@ -205,7 +205,7 @@ class FormsTestCase(unittest.TestCase):
         telement = TensorElement("Lagrange", "triangle", 1)
         v = TestFunction(velement)
         u = TrialFunction(velement)
-        M = Function(telement)
+        M = Coefficient(telement)
         a = inner(M*grad(u), grad(v)) * dx
 
 
@@ -218,8 +218,8 @@ class FormsTestCase(unittest.TestCase):
         v, q = TestFunctions(TH)
         u, p = TrialFunctions(TH)
 
-        f = Function(velement)
-        w = Function(velement)
+        f = Coefficient(velement)
+        w = Coefficient(velement)
         Re = Constant(polygon)
         dt = Constant(polygon)
 

@@ -3,7 +3,13 @@
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-08-14 -- 2009-05-14"
 
-# Modified by Anders Logg, 2008
+# Modified by Anders Logg, 2008-2009.
+
+# Function for preprocessing a form
+from ufl.algorithms.preprocess import preprocess
+
+# Class for simple extraction of form meta data
+from ufl.algorithms.formdata import FormData
 
 # Utilities for traversing over expression trees in different ways
 from ufl.algorithms.traversal import iter_expressions, traverse_terminals, \
@@ -12,13 +18,10 @@ from ufl.algorithms.traversal import iter_expressions, traverse_terminals, \
 
 # Utilities for extracting information from forms and expressions
 from ufl.algorithms.analysis import extract_classes, extract_type, has_type, \
-                                    extract_basis_functions, extract_functions, \
+                                    extract_arguments, extract_coefficients, extract_arguments_and_coefficients, \
                                     extract_elements, extract_unique_elements, \
                                     extract_variables, extract_duplications, \
                                     extract_max_quadrature_element_degree, estimate_quadrature_degree
-
-# Utility class for easy collecting of data about form
-from ufl.algorithms.formdata import FormData
 
 # Utilities for checking properties of forms
 from ufl.algorithms.predicates import is_multilinear

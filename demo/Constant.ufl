@@ -10,7 +10,7 @@ element = FiniteElement("Lagrange", cell, 1)
 
 v = TestFunction(element)
 u = TrialFunction(element)
-f = Function(element)
+f = Coefficient(element)
 
 c = Constant(cell)
 d = VectorConstant(cell)

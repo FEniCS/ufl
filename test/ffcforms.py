@@ -21,7 +21,7 @@ class FFCTestCase(unittest.TestCase):
 
         v = TestFunction(element)
         u = TrialFunction(element)
-        f = Function(element)
+        f = Coefficient(element)
 
         c = Constant("triangle")
         d = VectorConstant("triangle")
@@ -49,7 +49,7 @@ class FFCTestCase(unittest.TestCase):
 
         element = FiniteElement("Lagrange", "tetrahedron", 1)
         
-        v = Function(element)
+        v = Coefficient(element)
         a = (v*v + dot(grad(v), grad(v)))*dx
         
     def testEquation(self):
@@ -60,7 +60,7 @@ class FFCTestCase(unittest.TestCase):
 
         v = TestFunction(element)
         u = TrialFunction(element)
-        u0 = Function(element)
+        u0 = Coefficient(element)
 
         F = v*(u - u0)*dx + k*dot(grad(v), grad(0.5*(u0 + u)))*dx
 
@@ -73,8 +73,8 @@ class FFCTestCase(unittest.TestCase):
         
         v = TestFunction(element)
         u = TrialFunction(element)
-        f = Function(element)
-        g = Function(element)
+        f = Coefficient(element)
+        g = Coefficient(element)
 
         # FFC notation: a = sqrt(1/modulus(1/f))*sqrt(g)*dot(grad(v), grad(u))*dx + v*u*sqrt(f*g)*g*dx
         a = sqrt(1/abs(1/f))*sqrt(g)*dot(grad(v), grad(u))*dx + v*u*sqrt(f*g)*g*dx
@@ -85,9 +85,9 @@ class FFCTestCase(unittest.TestCase):
 
         v  = TestFunction(element)
         u1 = TrialFunction(element)
-        u0 = Function(element)
-        c  = Function(element)
-        f  = Function(element)
+        u0 = Coefficient(element)
+        c  = Coefficient(element)
+        f  = Coefficient(element)
         k  = Constant("triangle")
 
         a = v*u1*dx + k*c*dot(grad(v), grad(u1))*dx
@@ -120,7 +120,7 @@ class FFCTestCase(unittest.TestCase):
         (tau, w) = TestFunctions(mixed_element)
         (sigma, u) = TrialFunctions(mixed_element)
 
-        f = Function(DG)
+        f = Coefficient(DG)
         
         a = (dot(tau, sigma) - div(tau)*u + w*div(sigma))*dx
         L = w*f*dx
@@ -132,7 +132,7 @@ class FFCTestCase(unittest.TestCase):
         v = TestFunction(element)
         u = TrialFunction(element)
 
-        w = Function(element)
+        w = Coefficient(element)
 
         # FFC notation: a = v[i]*w[j]*D(u[i], j)*dx
         a = v[i]*w[j]*Dx(u[i], j)*dx
@@ -143,8 +143,8 @@ class FFCTestCase(unittest.TestCase):
 
         v = TestFunction(element)
         u = TrialFunction(element)
-        f = Function(element)
-        g = Function(element)
+        f = Coefficient(element)
+        g = Coefficient(element)
 
         # FFC notation: a = dot(grad(v), grad(u))*dx
         a = inner(grad(v), grad(u))*dx
@@ -158,7 +158,7 @@ class FFCTestCase(unittest.TestCase):
 
         v = TestFunction(element)
         u = TrialFunction(element)
-        f = Function(element)
+        f = Coefficient(element)
 
         a = dot(grad(v), grad(u))*dx
         L = v*f*dx
@@ -177,14 +177,14 @@ class FFCTestCase(unittest.TestCase):
 
         v = TestFunction(element)
         u = TrialFunction(element)
-        f = Function(element)
+        f = Coefficient(element)
         
         n = triangle.n
         
         # FFC notation: h = MeshSize("triangle"), not supported by UFL
         h = Constant(triangle)
 
-        gN = Function(element)
+        gN = Coefficient(element)
 
         alpha = 4.0
         gamma = 8.0
@@ -214,7 +214,7 @@ class FFCTestCase(unittest.TestCase):
 
         v = TestFunction(element)
         u = TrialFunction(element)
-        f = Function(element)
+        f = Coefficient(element)
 
         # Note: inner() also works
         a = dot(grad(v), grad(u))*dx
@@ -226,7 +226,7 @@ class FFCTestCase(unittest.TestCase):
 
         v = TestFunction(element)
         u = TrialFunction(element)
-        f = Function(element)
+        f = Coefficient(element)
 
         # FFC notation: a = dot(grad(v), grad(u))*dx
         a = inner(grad(v), grad(u))*dx
@@ -245,7 +245,7 @@ class FFCTestCase(unittest.TestCase):
         P2 = FiniteElement("Lagrange", "triangle", 2)
         
         v = TestFunction(P1)
-        f = Function(P1)
+        f = Coefficient(P1)
         
         #pi0 = Projection(P0)
         #pi1 = Projection(P1)
@@ -266,10 +266,10 @@ class FFCTestCase(unittest.TestCase):
 
         v = TestFunction(element)
         u = TrialFunction(element)
-        u0= Function(element)
-        C = Function(QE)
-        sig0 = Function(sig)
-        f = Function(element)
+        u0= Coefficient(element)
+        C = Coefficient(QE)
+        sig0 = Coefficient(sig)
+        f = Coefficient(element)
 
         a = v.dx(i)*C*u.dx(i)*dx + v.dx(i)*2*u0*u*u0.dx(i)*dx
         L = v*f*dx - dot(grad(v), sig0)*dx
@@ -285,7 +285,7 @@ class FFCTestCase(unittest.TestCase):
         (v, q) = TestFunctions(TH)
         (u, p) = TrialFunctions(TH)
 
-        f = Function(P2)
+        f = Coefficient(P2)
 
         # FFC notation:
         # a = (dot(grad(v), grad(u)) - div(v)*p + q*div(u))*dx
@@ -299,7 +299,7 @@ class FFCTestCase(unittest.TestCase):
 
         v = TestFunction(element)
         u = TrialFunction(element)
-        f = Function(element)
+        f = Coefficient(element)
 
         M = f*dx(2) + f*ds(5)
         
@@ -320,12 +320,12 @@ class FFCTestCase(unittest.TestCase):
         #
         #v = TestFunction(P1)
         #u = TrialFunction(P1)
-        #f = Function(P1)
+        #f = Coefficient(P1)
         #
-        #c00 = Function(P0)
-        #c01 = Function(P0)
-        #c10 = Function(P0)
-        #c11 = Function(P0)
+        #c00 = Coefficient(P0)
+        #c01 = Coefficient(P0)
+        #c10 = Coefficient(P0)
+        #c11 = Coefficient(P0)
         #
         #C = [[c00, c01], [c10, c11]]
         #
@@ -336,7 +336,7 @@ class FFCTestCase(unittest.TestCase):
 
         v = TestFunction(P1)
         u = TrialFunction(P1)
-        C = Function(P0)
+        C = Coefficient(P0)
 
         a = inner(grad(v), C*grad(u))*dx
         
@@ -345,7 +345,7 @@ class FFCTestCase(unittest.TestCase):
         def HodgeLaplaceGradCurl(element, felement):
             (tau, v) = TestFunctions(element)
             (sigma, u) = TrialFunctions(element)
-            f = Function(felement)
+            f = Coefficient(felement)
 
             # FFC notation: a = (dot(tau, sigma) - dot(grad(tau), u) + dot(v, grad(sigma)) + dot(curl(v), curl(u)))*dx
             a = (inner(tau, sigma) - inner(grad(tau), u) + inner(v, grad(sigma)) + inner(curl(v), curl(u)))*dx

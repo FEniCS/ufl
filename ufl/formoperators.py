@@ -1,9 +1,10 @@
 "Various high level ways to transform a complete Form into a new Form."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-09-01"
+__date__ = "2008-03-14"
 
-# Modified by Anders Logg, 2009.
+# Modified by Anders Logg, 2009
+# Last changed: 2009-12-08
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
@@ -13,8 +14,8 @@ from ufl.split_functions import split
 from ufl.terminal import Tuple
 from ufl.variable import Variable
 from ufl.finiteelement import MixedElement
-from ufl.function import Function
-from ufl.basisfunction import BasisFunction, BasisFunctions
+from ufl.argument import Argument, Arguments
+from ufl.coefficient import Coefficient
 from ufl.differentiation import FunctionDerivative
 from ufl.constantvalue import is_true_ufl_scalar
 
@@ -97,11 +98,11 @@ def adjoint(form):
 
 def _handle_derivative_arguments(function, basis_function):
     """Valid combinations:
-    - Function, BasisFunction. Elements must match.
-    - (Function tuple,), BasisFunction. BasisFunction element must be a mixed element with subelements matching elements of the Function tuple.
+    - Coefficient, Argument. Elements must match.
+    - (Coefficient tuple,), Argument. Argument element must be a mixed element with subelements matching elements of the Coefficient tuple.
     """
 
-    if isinstance(function, Function):
+    if isinstance(function, Coefficient):
         # Place in generic tuple
         functions = (function,)
 
@@ -110,9 +111,9 @@ def _handle_derivative_arguments(function, basis_function):
 
         # Create basis function if necessary
         if basis_function is None:
-            basis_function = BasisFunction(element)
-        ufl_assert(isinstance(basis_function, BasisFunction),
-            "Expecting BasisFunction instance, not %s." % type(basis_function))
+            basis_function = Argument(element)
+        ufl_assert(isinstance(basis_function, Argument),
+            "Expecting Argument instance, not %s." % type(basis_function))
         ufl_assert(basis_function.element() == element,
             "Basis function over wrong element supplied, "\
             "got %s but expecting %s." % \
@@ -127,8 +128,8 @@ def _handle_derivative_arguments(function, basis_function):
 
         # We got a tuple of functions, handle it as
         # functions over components of a mixed element.
-        ufl_assert(all(isinstance(w, Function) for w in functions),
-            "Expecting a tuple of Functions to differentiate w.r.t.")
+        ufl_assert(all(isinstance(w, Coefficient) for w in functions),
+            "Expecting a tuple of Coefficients to differentiate w.r.t.")
 
         # Create mixed element
         elements = [w.element() for w in functions]
@@ -136,9 +137,9 @@ def _handle_derivative_arguments(function, basis_function):
 
         # Create basis functions if necessary
         if basis_function is None:
-            basis_function = BasisFunction(element)
-        ufl_assert(isinstance(basis_function, BasisFunction),
-            "Expecting BasisFunction instance, not %s." % type(basis_function))
+            basis_function = Argument(element)
+        ufl_assert(isinstance(basis_function, Argument),
+            "Expecting Argument instance, not %s." % type(basis_function))
         ufl_assert(basis_function.element() == element,
             "Basis function over wrong element supplied, "\
             "got %s but expecting %s." % \
@@ -148,7 +149,7 @@ def _handle_derivative_arguments(function, basis_function):
         basis_functions = split(basis_function)
 
     else:
-        error("Expecting Function instance or tuple of Function instances, not %s." % type(function))
+        error("Expecting Coefficient instance or tuple of Coefficient instances, not %s." % type(function))
 
     # Wrap and return generic tuples
     functions       = Tuple(*functions)
@@ -160,8 +161,8 @@ def derivative(form, function, basis_function=None):
     form with respect to the given discrete function.
     The resulting form has one additional basis function
     in the same finite element space as the function.
-    A tuple of Functions may be provided in place of
-    a single Function, in which case the new BasisFunction
+    A tuple of Coefficients may be provided in place of
+    a single Coefficient, in which case the new Argument
     argument is based on a MixedElement created from this tuple."""
 
     functions, basis_functions = _handle_derivative_arguments(function, basis_function)
@@ -205,7 +206,7 @@ def sensitivity_rhs(a, u, L, v):
         a = Ia(v)*dx
 
     where IL and Ia are integrand expressions.
-    Define a Function u representing the solution
+    Define a Coefficient u representing the solution
     to the equations. Then we can compute db/dv
     and dA/dv from the forms
 
@@ -227,7 +228,7 @@ def sensitivity_rhs(a, u, L, v):
     """
     msg = "Expecting (a, u, L, v), (bilinear form, function, linear form and scalar variable)."
     ufl_assert(isinstance(a, Form), msg)
-    ufl_assert(isinstance(u, Function), msg)
+    ufl_assert(isinstance(u, Coefficient), msg)
     ufl_assert(isinstance(L, Form), msg)
     ufl_assert(isinstance(v, Variable), msg)
     ufl_assert(is_true_ufl_scalar(v), "Expecting scalar variable.")

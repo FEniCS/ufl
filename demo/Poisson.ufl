@@ -10,7 +10,7 @@ element = FiniteElement("Lagrange", triangle, 1)
 
 u = TrialFunction(element)
 v = TestFunction(element)
-f = Function(element)
+f = Coefficient(element)
 
 dx0_1 = dx(0, {"quadrature_order": 1})
 dx0_2 = dx(0, {"quadrature_order": 2})

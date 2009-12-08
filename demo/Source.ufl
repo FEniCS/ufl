@@ -6,7 +6,7 @@
 element = FiniteElement("Lagrange", triangle, 1)
 
 v = TestFunction(element)
-f = Function(element)
+f = Coefficient(element)
 
 a = f*v*dx
 

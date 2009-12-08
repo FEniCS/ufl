@@ -23,10 +23,10 @@ class ExpandIndicesTestCase(unittest.TestCase):
         element = FiniteElement("Lagrange", cell, 1)
         velement = VectorElement("Lagrange", cell, 1)
         telement = TensorElement("Lagrange", cell, 1)
-        self.sf = Function(element)
-        self.sf2 = Function(element)
-        self.vf = Function(velement)
-        self.tf = Function(telement)
+        self.sf = Coefficient(element)
+        self.sf2 = Coefficient(element)
+        self.vf = Coefficient(velement)
+        self.tf = Coefficient(telement)
         
         # Note: the derivatives of these functions make no sense, but
         #       their unique constant values are used for validation.

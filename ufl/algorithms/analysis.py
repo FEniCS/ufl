@@ -3,7 +3,8 @@
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2009-04-17"
 
-# Modified by Anders Logg, 2008
+# Modified by Anders Logg, 2009.
+# Last changed: 2009-12-08
 
 from itertools import chain
 
@@ -15,9 +16,9 @@ from ufl.expr import Expr
 from ufl.terminal import Terminal, FormArgument
 from ufl.algebra import Sum, Product, Division
 from ufl.finiteelement import MixedElement
-from ufl.basisfunction import BasisFunction
+from ufl.argument import Argument
+from ufl.coefficient import Coefficient
 from ufl.variable import Variable
-from ufl.function import Function
 from ufl.tensors import ListTensor, ComponentTensor
 from ufl.tensoralgebra import Transposed, Inner, Dot, Outer, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor, Skew
 from ufl.restriction import PositiveRestricted, NegativeRestricted
@@ -70,67 +71,72 @@ def extract_terminals(a):
 def cmp_counted(x, y):
     return cmp(x._count, y._count)
 
-def extract_basis_functions(a):
-    """Build a sorted list of all basis_functions in a,
-    which can be a Form, Integral or Expr."""
-    return sorted(extract_type(a, BasisFunction), cmp=cmp_counted)
-
-def extract_functions(a):
-    """Build a sorted list of all functions in a,
-    which can be a Form, Integral or Expr."""
-    return sorted(extract_type(a, Function), cmp=cmp_counted)
-
 def extract_arguments(a):
-    """Build two sorted lists of all basis functions and functions
+    """Build a sorted list of all arguments in a,
+    which can be a Form, Integral or Expr."""
+    return sorted(extract_type(a, Argument), cmp=cmp_counted)
+
+def extract_coefficients(a):
+    """Build a sorted list of all coefficients in a,
+    which can be a Form, Integral or Expr."""
+    return sorted(extract_type(a, Coefficient), cmp=cmp_counted)
+
+# FIXME: Why is this extra function needed, why not use
+# FIXME: the two functions above?
+
+def extract_arguments_and_coefficients(a):
+    """Build two sorted lists of all arguments and coefficients
     in a, which can be a Form, Integral or Expr."""
+
     # Extract lists of all form argument instances
     terminals = extract_type(a, FormArgument)
-    basis_functions = [f for f in terminals if isinstance(f, BasisFunction)]
-    functions = [f for f in terminals if isinstance(f, Function)]
+    arguments = [f for f in terminals if isinstance(f, Argument)]
+    coefficients = [f for f in terminals if isinstance(f, Coefficient)]
 
     # Build count: instance mappings, should be one to one
-    bfcounts = dict((f, f.count()) for f in basis_functions)
-    fcounts = dict((f, f.count()) for f in functions)
+    bfcounts = dict((f, f.count()) for f in arguments)
+    fcounts = dict((f, f.count()) for f in coefficients)
 
     if len(bfcounts) != len(set(bfcounts.values())):
         msg = """\
 Found different basis function arguments with same counts.
 Did you combine test or trial functions from different spaces?
-The arguments found are:\n%s""" % "\n".join("  %s" % f for f in basis_functions)
+The arguments found are:\n%s""" % "\n".join("  %s" % f for f in arguments)
         error(msg)
 
     if len(fcounts) != len(set(fcounts.values())):
         msg = """\
 Found different functions with same counts.
-The arguments found are:\n%s""" % "\n".join("  %s" % f for f in functions)
+The arguments found are:\n%s""" % "\n".join("  %s" % f for f in coefficients)
         error(msg)
 
     # Passed checks, so we can safely sort the instances by count
-    basis_functions = sorted(basis_functions, cmp=cmp_counted)
-    functions = sorted(functions, cmp=cmp_counted)
-    return basis_functions, functions
+    arguments = sorted(arguments, cmp=cmp_counted)
+    coefficients = sorted(coefficients, cmp=cmp_counted)
 
-def build_argument_replace_map(basis_functions, functions):
-    """Create new BasisFunction and Function objects
+    return arguments, coefficients
+
+def build_argument_replace_map(arguments, coefficients):
+    """Create new Argument and Coefficient objects
     with count starting at 0. Return mapping from old
     to new objects, and lists of the new objects."""
-    new_basis_functions = [f.reconstruct(count=i)\
-                           for (i, f) in enumerate(basis_functions)]
-    new_functions       = [f.reconstruct(count=i)\
-                           for (i, f) in enumerate(functions)]
+    new_arguments = [f.reconstruct(count=i)\
+                           for (i, f) in enumerate(arguments)]
+    new_coefficients       = [f.reconstruct(count=i)\
+                           for (i, f) in enumerate(coefficients)]
     replace_map = {}
-    replace_map.update(zip(basis_functions, new_basis_functions))
-    replace_map.update(zip(functions, new_functions))
-    return replace_map, new_basis_functions, new_functions
+    replace_map.update(zip(arguments, new_arguments))
+    replace_map.update(zip(coefficients, new_coefficients))
+    return replace_map, new_arguments, new_coefficients
 
 # alternative implementation, kept as an example:
-def _extract_functions(a):
-    """Build a sorted list of all functions in a,
+def _extract_coefficients(a):
+    """Build a sorted list of all coefficients in a,
     which can be a Form, Integral or Expr."""
-    # build set of all unique functions
+    # build set of all unique coefficients
     s = set()
     def func(o):
-        if isinstance(o, Function):
+        if isinstance(o, Coefficient):
             s.add(o)
     post_walk(a, func)
     # sort by count
@@ -138,7 +144,7 @@ def _extract_functions(a):
 
 def extract_elements(a):
     "Build a sorted list of all elements used in a."
-    args = chain(extract_basis_functions(a), extract_functions(a))
+    args = chain(extract_arguments(a), extract_coefficients(a))
     return tuple(f.element() for f in args)
 
 def extract_unique_elements(a):
@@ -218,11 +224,10 @@ def extract_max_quadrature_element_degree(integral):
 
 def estimate_quadrature_degree(integral):
     "Estimate the necessary quadrature order for integral using the sum of basis function degrees."
-    bf = extract_basis_functions(integral)
-    degrees = [b.element().degree() for b in bf]
-    if len(bf) == 0:
+    arguments = extract_arguments(integral)
+    degrees = [b.element().degree() for v in arguments]
+    if len(arguments) == 0:
         return None
-    if len(bf) == 1:
+    if len(arguments) == 1:
         return 2*degrees[0]
     return sum(degrees)
-

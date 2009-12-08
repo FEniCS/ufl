@@ -52,7 +52,7 @@ class EvaluateTestCase(unittest.TestCase):
     def testFunction1(self):
         cell = triangle
         element = FiniteElement("CG", cell, 1)
-        f = Function(element)
+        f = Coefficient(element)
         s = 3*f
         e = s((5,7), { f: 123 })
         v = 3*123
@@ -61,7 +61,7 @@ class EvaluateTestCase(unittest.TestCase):
     def testFunction2(self):
         cell = triangle
         element = FiniteElement("CG", cell, 1)
-        f = Function(element)
+        f = Coefficient(element)
         def g(x):
             return x[0]
         s = 3*f
@@ -69,10 +69,10 @@ class EvaluateTestCase(unittest.TestCase):
         v = 3*5
         self.assertTrue(e == v)
 
-    def testBasisFunction2(self):
+    def testArgument2(self):
         cell = triangle
         element = FiniteElement("CG", cell, 1)
-        f = BasisFunction(element)
+        f = Argument(element)
         def g(x):
             return x[0]
         s = 3*f

@@ -9,103 +9,75 @@ from itertools import chain
 
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
-from ufl.common import lstr, tstr, sstr
+from ufl.common import lstr, tstr, sstr, estr
 from ufl.form import Form
 
-from ufl.algorithms.analysis import extract_arguments, extract_sub_elements, build_argument_replace_map
-from ufl.algorithms.transformations import replace
-
-from ufl.algorithms.ad import expand_derivatives
-from ufl.algorithms.renumbering import renumber_indices
-
-
-def estr(elements):
-    return ", ".join(e.shortstr() for e in elements)
+from ufl.algorithms.preprocess import preprocess
+from ufl.algorithms.analysis import extract_sub_elements
 
 class FormData(object):
     "Class collecting various information extracted from a Form."
 
-    def __init__(self, form, name="a"):
+    def __init__(self, form, name="a", object_names={}):
         "Create form data for given form"
+
+        # Check that we get a form
         ufl_assert(isinstance(form, Form), "Expecting Form.")
 
+        # Preprocess form if necessary
+        if form._form_data is None:
+            form = preprocess(form)
+
+        # Check that form has integrals
+        if not form._integrals:
+            error("Unable to extract form data. Reason: Form is empty.")
+
+        # Store data extracted by preprocessing
+        self.arguments             = form._form_data[0]
+        self.coefficients          = form._form_data[1]
+        self.original_arguments    = form._form_data[2]
+        self.original_coefficients = form._form_data[3]
+
+        # Store name of form
         self.name = name
-        self.original_form = form
-        del form # to avoid bugs
 
-        # Expanding all derivatives. This (currently) also has
-        # the side effect that compounds are expanded.
-        # TODO: Should we really apply this here?
-        # This was a convenient place to put it for temporary testing,
-        # but we should discuss global application data flow!
-        # One reason for putting it here is that functional derivatives
-        # may change the number of form arguments, which is critical
-        # for the rest of this function.
-        self.form = expand_derivatives(self.original_form)
+        # Store some useful dimensions
+        self.rank = len(self.arguments)
+        self.num_coefficients = len(self.coefficients)
 
-        if not self.form._integrals:
-            error("Form is empty after transformations, can't extract form data.")
+        # Store argument names
+        self.argument_names = [object_names.get(id(self.original_arguments[i]), "v%d" % i)
+                               for i in range(self.rank)]
 
-        # Renumber indices to start from 0, as a simple attempt at making
-        # the form signature (repr) consistent independent of when in the
-        # application a form is created. This is not foolproof, but better
-        # than nothing.
-        self.form = renumber_indices(self.form)
+        # Store coefficient names
+        self.coefficient_names = [object_names.get(id(self.original_coefficients[i]), "w%d" % i)
+                                  for i in range(self.num_coefficients)]
 
-        # Get arguments and their elements
-        basis_functions, functions = extract_arguments(self.form)
+        # Store elements
+        self.elements = [v._element for v in chain(self.arguments, self.coefficients)]
 
-        # FIXME: Check that all terms in self.form uses all basis_functions, either here or somewhere else
-
-        # Replace arguments with new objects renumbered with count internal to the form
-        replace_map, self.basis_functions, self.functions = \
-            build_argument_replace_map(basis_functions, functions)
-        self.form = replace(self.form, replace_map)
-        del basis_functions # debugging, to avoid bugs below
-        del functions # debugging, to avoid bugs below
-
-        # Build mapping from new form argument objects to the
-        # original form argument objects, in case the original
-        # objects had external data attached to them
-        # (PyDOLFIN does that)
-        original_arguments = {}
-        for k,v in replace_map.iteritems():
-            original_arguments[v] = k
-        self.original_basis_functions = [original_arguments[f] for f in self.basis_functions]
-        self.original_functions = [original_arguments[f] for f in self.functions]
-        del original_arguments # debugging, to avoid bugs below
-
-        # Some useful dimensions
-        self.rank = len(self.basis_functions)
-        self.num_functions = len(self.functions)
-
-        # Define default function names
-        self.function_names = ["w%d" % i for i in range(self.num_functions)]
-        self.basis_function_names = ["v%d" % i for i in range(self.rank)]
-
-        # Get all elements
-        self.elements = [f._element for f in chain(self.basis_functions, self.functions)]
-
-        # Make a set of all unique top-level elements
+        # Store set of unique top-level elements
         self.unique_elements = set(self.elements)
 
-        # Make a set of all unique elements
+        # Store set of unique sub elements
         self.sub_elements = set(chain(*[extract_sub_elements(sub) for sub in self.unique_elements]))
 
-        # Get geometric information
+        # Store cell
         if self.elements:
             cells = [element.cell() for element in self.elements]
             cells = [cell for cell in cells if not cell.domain() is None]
             if len(cells) == 0:
-                error("Missing cell definition in form.")
+                error("Unable to extract form data. Reason: Missing cell definition in form.")
             self.cell = cells[0]
-        elif self.form._integrals:
+        elif form._integrals:
             # Special case to allow functionals only depending on geometric variables, with no elements
-            self.cell = self.form._integrals[0].integrand().cell()
+            self.cell = form._integrals[0].integrand().cell()
         else:
             # Special case to allow integral of constants to pass through without crashing
             self.cell = None
             warning("Form is empty, no elements or integrals, cell is undefined.")
+
+        # Store topological and geometric dimension
         if self.cell is None:
             warning("No cell is defined in form.")
             self.geometric_dimension = None
@@ -114,27 +86,27 @@ class FormData(object):
             self.geometric_dimension = self.cell.geometric_dimension()
             self.topological_dimension = self.cell.topological_dimension()
 
-        # Attach form data to both original form and transformed form,
-        # to ensure the invariant "form_data.form.form_data() is form_data"
-        self.original_form._form_data = self
-        self.form._form_data = self
+        # Store number of integrals of various kinds
+        self.num_cell_integrals           = len(form.cell_integrals())
+        self.num_exterior_facet_integrals = len(form.exterior_facet_integrals())
+        self.num_interior_facet_integrals = len(form.interior_facet_integrals())
+        self.num_macro_cell_integrals     = len(form.macro_cell_integrals())
 
     def __str__(self):
         "Return formatted summary of form data"
         return tstr((("Name",                               self.name),
                      ("Rank",                               self.rank),
                      ("Cell",                               self.cell),
-                     ("Geometric dimension",                self.geometric_dimension),
                      ("Topological dimension",              self.topological_dimension),
-                     ("Number of functions",                self.num_functions),
-                     ("Number of cell integrals",           len(self.form.cell_integrals())),
-                     ("Number of exterior facet integrals", len(self.form.exterior_facet_integrals())),
-                     ("Number of interior facet integrals", len(self.form.interior_facet_integrals())),
-                     ("Number of macro cell integrals",     len(self.form.macro_cell_integrals())),
-                     ("Basis functions",                    lstr(self.basis_functions)),
-                     ("Functions",                          lstr(self.functions)),
-                     ("Basis function names",               lstr(self.basis_function_names)),
-                     ("Function names",                     lstr(self.function_names)),
+                     ("Geometric dimension",                self.geometric_dimension),
+                     ("Number of coefficients",             self.num_coefficients),
+                     ("Number of cell integrals",           self.num_cell_integrals),
+                     ("Number of exterior facet integrals", self.num_exterior_facet_integrals),
+                     ("Number of interior facet integrals", self.num_interior_facet_integrals),
+                     ("Number of macro cell integrals",     self.num_macro_cell_integrals),
+                     ("Arguments",                          lstr(self.arguments)),
+                     ("Coefficients",                       lstr(self.coefficients)),
+                     ("Argument names",                     lstr(self.argument_names)),
+                     ("Coefficient names",                  lstr(self.coefficient_names)),
                      ("Unique elements",                    estr(self.unique_elements)),
-                     ("Unique sub elements",                estr(self.sub_elements)),
-                    ))
+                     ("Unique sub elements",                estr(self.sub_elements))))

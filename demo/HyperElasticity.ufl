@@ -21,19 +21,19 @@ v = TestFunction(u_element)
 w = TrialFunction(u_element)
 
 # Displacement at current and two previous timesteps
-u   = Function(u_element)
-up  = Function(u_element)
-upp = Function(u_element)
+u   = Coefficient(u_element)
+up  = Coefficient(u_element)
+upp = Coefficient(u_element)
 
 # Time parameters
 dt = Constant(cell)
 
 # Fiber field
-A = Function(A_element)
+A = Coefficient(A_element)
 
 # External forces
-T = Function(u_element)
-p0 = Function(p_element)
+T = Coefficient(u_element)
+p0 = Coefficient(p_element)
 N = cell.n
 
 # Material parameters FIXME

@@ -1,7 +1,7 @@
 "The Form class."
 
 __authors__ = "Martin Sandve Alnes"
-__date__    = "2008-03-14 -- 2009-05-28"
+__date__    = "2008-03-14 -- 2009-12-08"
 
 # Modified by Anders Logg, 2009.
 
@@ -25,22 +25,16 @@ class Form(object):
         self._hash = None
         self._form_data = None
 
-    def form_data(self):
-        if self._form_data is None:
-            from ufl.algorithms.formdata import FormData
-            self._form_data = FormData(self)
-        return self._form_data
-    
     def cell(self):
         for itg in self._integrals:
             c = itg.integrand().cell()
             if c is not None:
                 return c
         return None
-    
+
     def integral_groups(self):
         """Return a dict, which is a mapping from domains to integrals.
-        
+
         In particular, each key of the dict is a distinct tuple
         (domain_type, domain_id), and each value is a list of
         Integral instances. The Integrals in each list share the
@@ -55,30 +49,30 @@ class Form(object):
                 d[k] = l
             l.append(itg)
         return d
-    
+
     def integrals(self, domain_type = None):
         if domain_type is None:
             return self._integrals
         return tuple(itg for itg in self._integrals if itg.measure().domain_type() == domain_type)
-    
+
     def measures(self, domain_type = None):
         return tuple(itg.measure() for itg in self.integrals(domain_type))
-    
+
     def domains(self, domain_type = None):
         return tuple((m.domain_type(), m.domain_id()) for m in self.measures(domain_type))
-    
+
     def cell_integrals(self):
         from ufl.integral import Measure
         return self.integrals(Measure.CELL)
-    
+
     def exterior_facet_integrals(self):
         from ufl.integral import Measure
         return self.integrals(Measure.EXTERIOR_FACET)
-    
+
     def interior_facet_integrals(self):
         from ufl.integral import Measure
         return self.integrals(Measure.INTERIOR_FACET)
-    
+
     def macro_cell_integrals(self):
         from ufl.integral import Measure
         return self.integrals(Measure.MACRO_CELL)
@@ -86,23 +80,23 @@ class Form(object):
     def surface_integrals(self):
         from ufl.integral import Measure
         return self.integrals(Measure.SURFACE)
-    
+
     def __add__(self, other):
         # --- Add integrands of integrals with the same measure
-        
+
         # Start with integrals in self
         newintegrals = list(self._integrals)
-        
+
         # Build mapping: (measure -> self._integrals index)
         measure2idx = {}
         for i, itg in enumerate(newintegrals):
             ufl_assert(itg.measure() not in measure2idx, "Form invariant breached.")
             measure2idx[itg.measure()] = i
-        
+
         for itg in other._integrals:
             idx = measure2idx.get(itg.measure())
             if idx is None:
-                # Append integral with new measure to list 
+                # Append integral with new measure to list
                 idx = len(newintegrals)
                 measure2idx[itg.measure()] = idx
                 newintegrals.append(itg)
@@ -114,34 +108,34 @@ class Form(object):
                 #if cmp_expr(a, b) > 0:
                 #    a, b = b, a
                 newintegrals[idx] = itg.reconstruct(a + b)
-        
+
         return Form(newintegrals)
-    
+
     def __sub__(self, other):
         return self + (-other)
-    
+
     def __neg__(self):
         # This enables the handy "-form" syntax for e.g. the linearized system (J, -F) from a nonlinear form F
         return Form([-itg for itg in self._integrals])
-    
+
     def __rmul__(self, scalar):
         # This enables the handy "0*form" syntax
         ufl_assert(is_python_scalar(scalar), "Only multiplication by scalar literals currently supported.")
         return Form([scalar*itg for itg in self._integrals])
-    
+
     def __mul__(self, function):
         "The action of this form on the given function."
         from ufl.formoperators import action
         return action(self, function)
-    
+
     def __str__(self):
         if self._str is None:
             if self._integrals:
-                self._str = "\n  +  ".join(str(itg) for itg in self._integrals) 
+                self._str = "\n  +  ".join(str(itg) for itg in self._integrals)
             else:
                 self._str = "<empty Form>"
         return self._str
-    
+
     def __repr__(self):
         if self._repr is None:
             self._repr = "Form([%s])" % ", ".join(repr(itg) for itg in self._integrals)
@@ -157,6 +151,6 @@ class Form(object):
         if not isinstance(other, Form):
             return False
         return repr(self) == repr(other)
-    
+
     def signature(self):
         return "%s" % (repr(self), )

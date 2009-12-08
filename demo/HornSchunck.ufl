@@ -10,18 +10,18 @@ S = FiniteElement("CG", cell, 1)
 V = VectorElement("CG", cell, 1)
 
 # Optical flow function
-u = Function(V)
+u = Coefficient(V)
 
 # Previous image brightness
-I0 = Function(S)
+I0 = Coefficient(S)
 
 # Current image brightness
-I1 = Function(S)
+I1 = Coefficient(S)
 
 # Regularization parameter
 lamda = Constant(cell)
 
-# Functional to minimize
+# Coefficiental to minimize
 M = (dot(u, grad(I1)) + (I1-I0))**2 * dx\
     + lamda*inner(grad(u), grad(u)) * dx
 

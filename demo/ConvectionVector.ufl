@@ -6,7 +6,7 @@
 element = VectorElement("Lagrange", triangle, 1)
 
 v = TestFunction(element)
-w = Function(element)
+w = Coefficient(element)
 
 a = dot( dot(w, grad(w)), v ) * dx
 

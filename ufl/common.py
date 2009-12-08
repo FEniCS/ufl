@@ -175,6 +175,10 @@ def istr(o):
     else:
         return str(o)
 
+def estr(elements):
+    "Format list of elements for printing."
+    return ", ".join(e.shortstr() for e in elements)
+
 class Counted(object):
     """A superclass for classes of objects identified by a global counter.
 
