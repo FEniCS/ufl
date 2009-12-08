@@ -3,7 +3,9 @@ will typically call prior to code generation to preprocess/simplify a
 raw input form given by a user."""
 
 __authors__ = "Anders Logg"
-__date__ = "2009-12-07 -- 2009-12-07"
+__date__ = "2009-12-07"
+
+# Last changed: 2009-12-08
 
 from ufl.log import info
 from ufl.assertions import ufl_assert

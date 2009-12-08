@@ -81,6 +81,10 @@ class Form(object):
         from ufl.integral import Measure
         return self.integrals(Measure.SURFACE)
 
+    def is_preprocessed(self):
+        "Check if form has been preprocessed"
+        return self._form_data is not None
+
     def __add__(self, other):
         # --- Add integrands of integrals with the same measure
 

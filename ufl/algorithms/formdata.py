@@ -1,9 +1,10 @@
 """FormData class easy for collecting of various data about a form."""
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-09-13 -- 2009-06-19"
+__date__ = "2008-09-13"
 
 # Modified by Anders Logg, 2008.
+# Last changed: 2009-12-08
 
 from itertools import chain
 

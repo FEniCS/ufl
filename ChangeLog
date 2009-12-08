@@ -1,3 +1,6 @@
+ - Introduce call preprocess(form) to be called at beginning of compilation
+ - Rename BasisFunction --> Argument
+ - Rename Function --> Coefficient
 0.4.1 [2009-12-04]
  - Redefine grad().T --> grad()
  - New meaning of estimate_max_polynomial_degree
