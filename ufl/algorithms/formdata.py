@@ -26,7 +26,7 @@ class FormData(object):
         ufl_assert(isinstance(form, Form), "Expecting Form.")
 
         # Preprocess form if necessary
-        if form._form_data is None:
+        if not form.is_preprocessed():
             form = preprocess(form)
 
         # Check that form has integrals
