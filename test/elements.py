@@ -1,12 +1,16 @@
 #!/usr/bin/env python
 
+# Last changed: 2009-12-08
+
 import unittest
 
 from ufl import *
 
 # TODO: cover all valid element definitions
 
-from ufl.common import domain2dim
+#from ufl.common import domain2dim
+from ufl.geometry import domain2dim
+
 all_cells = (interval, triangle, tetrahedron, quadrilateral, hexahedron)
 
 class ElementsTestCase(unittest.TestCase):

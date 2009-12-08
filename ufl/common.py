@@ -1,9 +1,10 @@
 "This module contains a collection of common utilities."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-08-05 -- 2009-11-18"
+__date__ = "2008-08-05"
 
 # Modified by Kristian Oelgaard, 2009
+# Last changed: 2009-12-08
 
 import os
 from itertools import izip
@@ -20,26 +21,6 @@ def get_status_output(cmd, input=None, cwd=None, env=None):
     status = pipe.returncode
 
     return (status, output)
-
-# TODO: The facet dim is just a dummy for now
-
-# Mapping from domain (cell) to dimension
-domain2dim = {None: None,
-              "vertex": 0,
-              "interval": 1,
-              "triangle": 2,
-              "tetrahedron": 3,
-              "quadrilateral": 2,
-              "hexahedron": 3,
-              "facet": 0}
-
-# Mapping from domain (cell) to facet
-domain2facet = {None: None,
-                "interval": "vertex",
-                "triangle": "interval",
-                "tetrahedron": "triangle",
-                "quadrilateral": "interval",
-                "hexahedron": "quadrilateral"}
 
 def write_file(filename, text):
     f = open(filename, "w")

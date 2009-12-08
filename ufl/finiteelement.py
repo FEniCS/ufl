@@ -1,19 +1,20 @@
 "This module defines the UFL finite element classes."
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
-__date__ = "2008-03-03 -- 2009-11-16"
+__date__ = "2008-03-03"
 
-# Modified by Kristian B. Oelgaard, 2009
+# Modified by Kristian B. Oelgaard
+# Last changed: 2009-12-08
 
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.elementlist import ufl_elements
-from ufl.common import product, index_to_component, component_to_index, domain2facet, istr
-from ufl.geometry import as_cell
+from ufl.common import product, index_to_component, component_to_index, istr
+from ufl.geometry import as_cell, domain2facet
 
 class FiniteElementBase(object):
     "Base class for all finite elements"
-    __slots__ = ("_family", "_cell", "_degree", "_value_shape", "_repr")
+    __slots__ = ("_family", "_cell", "_degree", "_value_shape", "_repr", "_domain")
 
     def __init__(self, family, cell, degree, value_shape):
         "Initialize basic finite element data"
@@ -25,6 +26,7 @@ class FiniteElementBase(object):
         self._cell = cell
         self._degree = degree
         self._value_shape = value_shape
+        self._domain = None
 
     def family(self):
         "Return finite element family"
@@ -57,6 +59,10 @@ class FiniteElementBase(object):
         self._check_component(i)
         return (i, self)
 
+    def domain_restriction(self):
+        "Return the domain onto which the element is restricted."
+        return self._domain
+
     def _check_component(self, i):
         "Check that component index i is valid"
         r = len(self.value_shape())
@@ -73,6 +79,10 @@ class FiniteElementBase(object):
         "Add two elements, creating a mixed element"
         ufl_assert(isinstance(other, FiniteElementBase), "Can't add element and %s." % other.__class__)
         return MixedElement(self, other)
+
+    def __repr__(self):
+        "Format as string for evaluation as Python object."
+        return self._repr
 
     #def __mul__(self, other): # TODO: Make __mul__ -> mixed and __add__ -> union?
     #    "Multiply two elements, creating a mixed element"
@@ -117,10 +127,6 @@ class FiniteElement(FiniteElementBase):
 
         # Cache repr string
         self._repr = "FiniteElement(%r, %r, %s)" % (self.family(), self.cell(), istr(self.degree()))
-
-    def __repr__(self):
-        "Format as string for evaluation as Python object."
-        return self._repr
 
     def __str__(self):
         "Format as string for pretty printing."
@@ -209,10 +215,6 @@ class MixedElement(FiniteElementBase):
         ufl_assert(i[0] < len(self._sub_elements), "Illegal component index (dimension %d)." % i[0])
         return self._sub_elements[i[0]].extract_component(i[1:])
 
-    def __repr__(self):
-        "Format as string for evaluation as Python object."
-        return self._repr
-
     def __str__(self):
         "Format as string for pretty printing."
         return "<Mixed element: (" + ", ".join(str(element) for element in self._sub_elements) + ")" + ">"
@@ -251,10 +253,6 @@ class VectorElement(MixedElement):
 
         self._repr = "VectorElement(%r, %r, %s, %d)" % \
             (self._family, self._cell, str(self._degree), len(self._sub_elements))
-
-    def __repr__(self):
-        "Format as string for evaluation as Python object."
-        return self._repr
 
     def __str__(self):
         "Format as string for pretty printing."
@@ -340,10 +338,6 @@ class TensorElement(MixedElement):
         meaning that component c0 is represented by component c1."""
         return self._symmetry
 
-    def __repr__(self):
-        "Format as string for evaluation as Python object."
-        return self._repr
-
     def __str__(self):
         "Format as string for pretty printing."
         sym = ""
@@ -382,10 +376,6 @@ class ElementUnion(FiniteElementBase):
         # Cache repr string
         self._repr = "ElementUnion(%s)" % ", ".join(repr(e) for e in self._elements)
 
-    def __repr__(self):
-        "Format as string for evaluation as Python object."
-        return self._repr
-
     def __str__(self):
         "Format as string for pretty printing."
         return "<%s>" % " U ".join(str(e) for e in self._elements)
@@ -422,10 +412,6 @@ class ElementRestriction(FiniteElementBase):
 
     def domain(self):
         return self._domain
-
-    def __repr__(self):
-        "Format as string for evaluation as Python object."
-        return self._repr
 
     def __str__(self):
         "Format as string for pretty printing."
