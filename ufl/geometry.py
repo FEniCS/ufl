@@ -1,17 +1,49 @@
 "Types for quantities computed from cell geometry."
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-08-26"
+__date__ = "2008-03-14"
 
 # Modified by Anders Logg, 2009.
 # Modified by Kristian B. Oelgaard, 2009
+# Last changed: 2009-12-08
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
-from ufl.common import domain2dim, istr
+#from ufl.common import domain2dim, istr
+from ufl.common import istr
 from ufl.terminal import Terminal
 
 # --- Expression node types
+
+# Mapping from domain (cell) to dimension
+domain2dim = {None: None,
+              "vertex": 0,
+              "interval": 1,
+              "triangle": 2,
+              "tetrahedron": 3,
+              "quadrilateral": 2,
+              "hexahedron": 3,
+              "facet": 0}
+
+# Mapping from domain (cell) to facet
+domain2facet = {None: None,
+                "interval": "vertex",
+                "triangle": "interval",
+                "tetrahedron": "triangle",
+                "quadrilateral": "interval",
+                "hexahedron": "quadrilateral"}
+
+# Number of facets associated with each domain
+domain2num_facets = { None: None,
+                      "interval": 2,
+                      "triangle": 3,
+                      "tetrahedron": 4,
+                      "quadrilateral": 4,
+                      "hexahedron": 6}
+
+# Valid UFL domains
+ufl_domains = tuple(domain2dim.keys())
+
 
 class GeometricQuantity(Terminal):
     __slots__ = ("_cell",)
@@ -131,7 +163,7 @@ class Cell(object):
         self._space = space
         self._geometric_dimension = self._space.dimension()
 
-        ufl_assert(self._topological_dimension >= self._geometric_dimension,
+        ufl_assert(self._topological_dimension <= self._geometric_dimension,
             "Cannot embed a %sD cell in %s" % (istr(self._topological_dimension), self._space))
 
         # TODO: Make self.d a property, deprecate or make valid
@@ -162,6 +194,12 @@ class Cell(object):
 
     def degree(self):
         return self._degree
+
+    def num_facets(self):
+        return domain2num_facets[self._domain]
+
+    def facet_domain(self):
+        return domain2facet[self._domain]
 
     def __eq__(self, other):
         return isinstance(other, Cell) and self._domain == other._domain and self._degree == other._degree
