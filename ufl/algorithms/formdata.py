@@ -4,7 +4,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-09-13"
 
 # Modified by Anders Logg, 2008.
-# Last changed: 2009-12-08
+# Last changed: 2009-12-09
 
 from itertools import chain
 
@@ -92,6 +92,9 @@ class FormData(object):
         self.num_exterior_facet_integrals = len(form.exterior_facet_integrals())
         self.num_interior_facet_integrals = len(form.interior_facet_integrals())
         self.num_macro_cell_integrals     = len(form.macro_cell_integrals())
+
+        # Store signature of form
+        self.signature = form.signature()
 
     def __str__(self):
         "Return formatted summary of form data"
