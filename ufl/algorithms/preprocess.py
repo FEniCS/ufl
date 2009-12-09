@@ -5,7 +5,7 @@ raw input form given by a user."""
 __authors__ = "Anders Logg"
 __date__ = "2009-12-07"
 
-# Last changed: 2009-12-08
+# Last changed: 2009-12-10
 
 from ufl.log import info
 from ufl.assertions import ufl_assert
@@ -26,8 +26,6 @@ def preprocess(form):
       expand_derivatives
       renumber_indices
     """
-
-    info("Preprocessing form")
 
     # Check that we get a form
     ufl_assert(isinstance(form, Form), "Expecting Form.")

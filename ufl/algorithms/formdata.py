@@ -78,14 +78,16 @@ class FormData(object):
             self.cell = None
             warning("Form is empty, no elements or integrals, cell is undefined.")
 
-        # Store topological and geometric dimension
+        # Store data related to cell
         if self.cell is None:
             warning("No cell is defined in form.")
             self.geometric_dimension = None
             self.topological_dimension = None
+            self.num_facets = None
         else:
             self.geometric_dimension = self.cell.geometric_dimension()
             self.topological_dimension = self.cell.topological_dimension()
+            self.num_facets = self.cell.num_facets()
 
         # Store number of integral types
         self.num_cell_integrals           = len(form.cell_integrals())
@@ -109,6 +111,7 @@ class FormData(object):
                      ("Cell",                               self.cell),
                      ("Topological dimension",              self.topological_dimension),
                      ("Geometric dimension",                self.geometric_dimension),
+                     ("Number of facets",                   self.num_facets),
                      ("Number of coefficients",             self.num_coefficients),
                      ("Number of cell integrals",           self.num_cell_integrals),
                      ("Number of exterior facet integrals", self.num_exterior_facet_integrals),
