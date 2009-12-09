@@ -87,11 +87,17 @@ class FormData(object):
             self.geometric_dimension = self.cell.geometric_dimension()
             self.topological_dimension = self.cell.topological_dimension()
 
-        # Store number of integrals of various kinds
+        # Store number of integral types
         self.num_cell_integrals           = len(form.cell_integrals())
         self.num_exterior_facet_integrals = len(form.exterior_facet_integrals())
         self.num_interior_facet_integrals = len(form.interior_facet_integrals())
         self.num_macro_cell_integrals     = len(form.macro_cell_integrals())
+
+        # Store number of domains for integral types
+        self.num_cell_domains = max([-1] + [i.measure().domain_id() for i in form.cell_integrals()]) + 1
+        self.num_exterior_facet_domains = max([-1] + [i.measure().domain_id() for i in form.exterior_facet_integrals()]) + 1
+        self.num_interior_facet_domains = max([-1] + [i.measure().domain_id() for i in form.interior_facet_integrals()]) + 1
+        self.num_macro_cell_domains = max([-1] + [i.measure().domain_id() for i in form.macro_cell_integrals()]) + 1
 
         # Store signature of form
         self.signature = form.signature()
@@ -108,6 +114,10 @@ class FormData(object):
                      ("Number of exterior facet integrals", self.num_exterior_facet_integrals),
                      ("Number of interior facet integrals", self.num_interior_facet_integrals),
                      ("Number of macro cell integrals",     self.num_macro_cell_integrals),
+                     ("Number of cell domains",             self.num_cell_domains),
+                     ("Number of exterior facet domains",   self.num_exterior_facet_domains),
+                     ("Number or interior facet domains",   self.num_interior_facet_domains),
+                     ("Number of macro cell domains",       self.num_macro_cell_domains),
                      ("Arguments",                          lstr(self.arguments)),
                      ("Coefficients",                       lstr(self.coefficients)),
                      ("Argument names",                     lstr(self.argument_names)),
