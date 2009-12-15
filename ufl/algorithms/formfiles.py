@@ -6,7 +6,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14"
 
 # Modified by Anders Logg, 2008-2009.
-# Last changed: 2009-12-08
+# Last changed: 2009-12-15
 
 import os
 import time
@@ -98,7 +98,8 @@ def load_ufl_file(filename):
     # Extract Form objects, and Coefficient objects to get their names
     all_forms = []
 
-    # FIXME: Is id() necessary?
+    # Is id() necessary? Yes! Most likely. Otherwise some __hash__ thing
+    # might kick in and give us the same hash for different objects
 
     # Extract object names
     for name, value in namespace.iteritems():
