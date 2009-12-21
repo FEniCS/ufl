@@ -4,7 +4,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-09-13"
 
 # Modified by Anders Logg, 2008.
-# Last changed: 2009-12-09
+# Last changed: 2009-12-21
 
 from itertools import chain
 
@@ -61,7 +61,7 @@ class FormData(object):
         self.unique_elements = set(self.elements)
 
         # Store set of unique sub elements
-        self.sub_elements = set(chain(*[extract_sub_elements(sub) for sub in self.unique_elements]))
+        self.unique_sub_elements = set(chain(*[extract_sub_elements(sub) for sub in self.unique_elements]))
 
         # Store cell
         if self.elements:

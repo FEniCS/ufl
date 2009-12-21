@@ -4,7 +4,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2009-04-17"
 
 # Modified by Anders Logg, 2009.
-# Last changed: 2009-12-08
+# Last changed: 2009-12-21
 
 from itertools import chain
 
@@ -151,7 +151,7 @@ def extract_unique_elements(a):
     "Build a set of all unique elements used in a."
     return set(extract_elements(a))
 
-def extract_sub_elements(element):
+def extract_unique_sub_elements(element):
     "Build a set of all unique subelements, including parent element."
     res = set((element,))
     if isinstance(element, MixedElement):
