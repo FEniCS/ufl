@@ -14,7 +14,7 @@ from ufl.common import lstr, tstr, sstr, estr
 from ufl.form import Form
 
 from ufl.algorithms.preprocess import preprocess
-from ufl.algorithms.analysis import extract_sub_elements
+from ufl.algorithms.analysis import extract_unique_sub_elements
 
 class FormData(object):
     "Class collecting various information extracted from a Form."
@@ -61,7 +61,7 @@ class FormData(object):
         self.unique_elements = set(self.elements)
 
         # Store set of unique sub elements
-        self.unique_sub_elements = set(chain(*[extract_sub_elements(sub) for sub in self.unique_elements]))
+        self.unique_sub_elements = set(chain(*[extract_unique_sub_elements(sub) for sub in self.unique_elements]))
 
         # Store cell
         if self.elements:
@@ -126,4 +126,4 @@ class FormData(object):
                      ("Argument names",                     lstr(self.argument_names)),
                      ("Coefficient names",                  lstr(self.coefficient_names)),
                      ("Unique elements",                    estr(self.unique_elements)),
-                     ("Unique sub elements",                estr(self.sub_elements))))
+                     ("Unique sub elements",                estr(self.unique_sub_elements))))
