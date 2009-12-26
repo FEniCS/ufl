@@ -156,7 +156,7 @@ def extract_unique_sub_elements(element):
     res = set((element,))
     if isinstance(element, MixedElement):
         for sub in element.sub_elements():
-            res.update(extract_sub_elements(sub))
+            res.update(extract_unique_sub_elements(sub))
     return res
 
 def extract_indices(expression):
