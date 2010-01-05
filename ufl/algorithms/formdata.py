@@ -16,6 +16,7 @@ from ufl.form import Form
 from ufl.algorithms.preprocess import preprocess
 from ufl.algorithms.analysis import extract_elements
 from ufl.algorithms.analysis import extract_sub_elements
+from ufl.algorithms.analysis import extract_element_map
 from ufl.algorithms.analysis import unique_tuple
 
 class FormData(object):
@@ -56,11 +57,14 @@ class FormData(object):
         self.coefficient_names = [object_names.get(id(self.original_coefficients[i]), "w%d" % i)
                                   for i in range(self.num_coefficients)]
 
-        # Store elements and sub elements
+        # Store elements, sub elements and element map
         self.elements            = extract_elements(form)
         self.unique_elements     = unique_tuple(self.elements)
         self.sub_elements        = extract_sub_elements(self.elements)
         self.unique_sub_elements = unique_tuple(self.sub_elements)
+        self.element_map         = extract_element_map(self.elements, self.sub_elements)
+
+        print self.element_map
 
         # Store cell
         if self.elements:

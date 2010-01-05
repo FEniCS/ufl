@@ -161,6 +161,37 @@ def extract_unique_sub_elements(elements):
     "Build sorted tuple of all unique sub elements (including parent element)."
     return unique_tuple(extract_sub_elements(elements))
 
+def extract_element_map(elements, sub_elements):
+    """
+    Build map from elements and sub element indices to ordered unique
+    sub elements. The mapping can be used to map a numbered element in
+    a form (such as the element for the i:th argument/coefficient) to
+    the number of sub element in the tuple obtained by calling
+    extract_unique_sub_elements. It can also be used to map a (sub)
+    element and a sub element index to the number of a sub element.
+
+                     i  --> sub element number
+       (sub element, i) --> sub element number
+    """
+
+    # Reset map
+    element_map = {}
+
+    # Get unique sub elements
+    unique_sub_elements = unique_tuple(sub_elements)
+
+    # Build mapping to top-level elements
+    for (i, element) in enumerate(elements):
+        element_map[i] = [j for (j, e) in enumerate(unique_sub_elements) if e == element][0]
+
+    # Build mapping to sub elements
+    for sub_element in sub_elements:
+        if isinstance(sub_element, MixedElement):
+            for (i, element) in enumerate(sub_element.sub_elements()):
+                element_map[(element, i)] = [j for (j, e) in enumerate(unique_sub_elements) if e == element][0]
+
+    return element_map
+
 def extract_indices(expression):
     "Build a set of all Index objects used in expression."
     info("Is this used for anything? Doesn't make much sense.")
