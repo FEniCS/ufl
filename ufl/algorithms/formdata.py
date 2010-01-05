@@ -64,8 +64,6 @@ class FormData(object):
         self.unique_sub_elements = unique_tuple(self.sub_elements)
         self.element_map         = extract_element_map(self.elements, self.sub_elements)
 
-        print self.element_map
-
         # Store cell
         if self.elements:
             cells = [element.cell() for element in self.elements]
