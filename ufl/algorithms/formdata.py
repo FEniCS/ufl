@@ -4,7 +4,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-09-13"
 
 # Modified by Anders Logg, 2008.
-# Last changed: 2009-12-21
+# Last changed: 2010-01-05
 
 from itertools import chain
 
@@ -14,7 +14,9 @@ from ufl.common import lstr, tstr, sstr, estr
 from ufl.form import Form
 
 from ufl.algorithms.preprocess import preprocess
-from ufl.algorithms.analysis import extract_unique_sub_elements
+from ufl.algorithms.analysis import extract_elements
+from ufl.algorithms.analysis import extract_sub_elements
+from ufl.algorithms.analysis import unique_tuple
 
 class FormData(object):
     "Class collecting various information extracted from a Form."
@@ -54,14 +56,11 @@ class FormData(object):
         self.coefficient_names = [object_names.get(id(self.original_coefficients[i]), "w%d" % i)
                                   for i in range(self.num_coefficients)]
 
-        # Store elements
-        self.elements = [v._element for v in chain(self.arguments, self.coefficients)]
-
-        # Store set of unique top-level elements
-        self.unique_elements = set(self.elements)
-
-        # Store set of unique sub elements
-        self.unique_sub_elements = set(chain(*[extract_unique_sub_elements(sub) for sub in self.unique_elements]))
+        # Store elements and sub elements
+        self.elements            = extract_elements(form)
+        self.unique_elements     = unique_tuple(self.elements)
+        self.sub_elements        = extract_sub_elements(self.elements)
+        self.unique_sub_elements = unique_tuple(self.sub_elements)
 
         # Store cell
         if self.elements:

@@ -114,7 +114,7 @@ class AlgorithmsTestCase(unittest.TestCase):
 
         a = u*v*dx
         self.assertTrue( (element1, element2) == extract_elements(a) )
-        self.assertTrue( set([element1]) == extract_unique_elements(a) )
+        self.assertTrue( (element1,) == extract_unique_elements(a) )
 
     def test_walk(self):
         element = FiniteElement("CG", "triangle", 1)

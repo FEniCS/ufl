@@ -5,7 +5,7 @@ __date__ = "2008-03-14"
 
 # Modified by Anders Logg, 2009.
 # Modified by Kristian B. Oelgaard, 2009
-# Last changed: 2009-12-08
+# Last changed: 2009-12-21
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
@@ -34,16 +34,15 @@ domain2facet = {None: None,
                 "hexahedron": "quadrilateral"}
 
 # Number of facets associated with each domain
-domain2num_facets = { None: None,
-                      "interval": 2,
-                      "triangle": 3,
-                      "tetrahedron": 4,
-                      "quadrilateral": 4,
-                      "hexahedron": 6}
+domain2num_facets = {None: None,
+                     "interval": 2,
+                     "triangle": 3,
+                     "tetrahedron": 4,
+                     "quadrilateral": 4,
+                     "hexahedron": 6}
 
 # Valid UFL domains
 ufl_domains = tuple(domain2dim.keys())
-
 
 class GeometricQuantity(Terminal):
     __slots__ = ("_cell",)

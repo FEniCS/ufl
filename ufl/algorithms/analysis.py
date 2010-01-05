@@ -4,7 +4,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2009-04-17"
 
 # Modified by Anders Logg, 2009.
-# Last changed: 2009-12-21
+# Last changed: 2010-01-05
 
 from itertools import chain
 
@@ -142,22 +142,24 @@ def _extract_coefficients(a):
     # sort by count
     return sorted(s, cmp=cmp_counted)
 
-def extract_elements(a):
-    "Build a sorted list of all elements used in a."
-    args = chain(extract_arguments(a), extract_coefficients(a))
+def extract_elements(form):
+    "Build sorted tuple of all elements used in form."
+    args = chain(extract_arguments(form), extract_coefficients(form))
     return tuple(f.element() for f in args)
 
-def extract_unique_elements(a):
-    "Build a set of all unique elements used in a."
-    return set(extract_elements(a))
+def extract_unique_elements(form):
+    "Build sorted tuple of all unique elements used in form."
+    return unique_tuple(extract_elements(form))
 
-def extract_unique_sub_elements(element):
-    "Build a set of all unique subelements, including parent element."
-    res = set((element,))
-    if isinstance(element, MixedElement):
-        for sub in element.sub_elements():
-            res.update(extract_unique_sub_elements(sub))
-    return res
+def extract_sub_elements(elements):
+    "Build sorted tuple of all sub elements (including parent element)."
+    sub_elements = tuple(chain(*[e.sub_elements() for e in elements if isinstance(e, MixedElement)]))
+    if not sub_elements: return tuple(elements)
+    return tuple(elements) + extract_sub_elements(sub_elements)
+
+def extract_unique_sub_elements(elements):
+    "Build sorted tuple of all unique sub elements (including parent element)."
+    return unique_tuple(extract_sub_elements(elements))
 
 def extract_indices(expression):
     "Build a set of all Index objects used in expression."
@@ -231,3 +233,11 @@ def estimate_quadrature_degree(integral):
     if len(arguments) == 1:
         return 2*degrees[0]
     return sum(degrees)
+
+def unique_tuple(objects):
+    "Return sorted tuple of unique objects."
+    unique_objects = []
+    for object in objects:
+        if not object in unique_objects:
+            unique_objects.append(object)
+    return tuple(unique_objects)
