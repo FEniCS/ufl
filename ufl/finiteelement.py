@@ -4,7 +4,7 @@ __authors__ = "Martin Sandve Alnes and Anders Logg"
 __date__ = "2008-03-03"
 
 # Modified by Kristian B. Oelgaard
-# Last changed: 2009-12-08
+# Last changed: 2010-01-05
 
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
@@ -62,6 +62,14 @@ class FiniteElementBase(object):
     def domain_restriction(self):
         "Return the domain onto which the element is restricted."
         return self._domain
+
+    def num_sub_elements(self):
+        "Return number of sub elements"
+        return 0
+
+    def sub_elements(self):
+        "Return list of sub elements"
+        return []
 
     def _check_component(self, i):
         "Check that component index i is valid"
@@ -183,6 +191,10 @@ class MixedElement(FiniteElementBase):
         self._degree = degree
         for element in self._sub_elements:
             element.set_degree(degree)
+
+    def num_sub_elements(self):
+        "Return number of sub elements"
+        return len(self._sub_elements)
 
     def sub_elements(self):
         "Return list of sub elements"
