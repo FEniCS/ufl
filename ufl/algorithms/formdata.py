@@ -4,7 +4,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-09-13"
 
 # Modified by Anders Logg, 2008.
-# Last changed: 2010-01-05
+# Last changed: 2010-01-06
 
 from itertools import chain
 
@@ -62,7 +62,7 @@ class FormData(object):
         self.unique_elements     = unique_tuple(self.elements)
         self.sub_elements        = extract_sub_elements(self.elements)
         self.unique_sub_elements = unique_tuple(self.sub_elements)
-        self.element_map         = extract_element_map(self.elements, self.sub_elements)
+        self.element_map         = extract_element_map(self.sub_elements)
 
         # Store cell
         if self.elements:
