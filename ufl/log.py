@@ -14,7 +14,8 @@ import logging
 
 log_functions = ["log", "debug", "info", "warning", "error", "begin", "end",
                  "set_level", "push_level", "pop_level", "set_indent", "add_indent",
-                 "set_handler", "get_handler", "get_logger", "add_logfile", "set_prefix"]
+                 "set_handler", "get_handler", "get_logger", "add_logfile", "set_prefix",
+                 "info_red", "info_green", "info_blue"]
 
 __all__ = log_functions + ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL", "Logger", "log_functions"]
 
@@ -32,6 +33,11 @@ def emit(self, record):
     format_string = "%s" if getattr(record, "continued", False) else "%s\n"
     self.stream.write(format_string % message)
     self.flush()
+
+# Colors
+RED   = "\033[1;37;31m%s\033[0m"
+BLUE  = "\033[1;37;34m%s\033[0m"
+GREEN = "\033[1;37;32m%s\033[0m"
 
 # Logger class
 class Logger:
@@ -95,6 +101,18 @@ class Logger:
     def info(self, *message):
         "Write info message."
         self.log(INFO, *message)
+
+    def info_red(self, *message):
+        "Write info message in red."
+        self.log(INFO, RED % self._format_raw(*message))
+
+    def info_green(self, *message):
+        "Write info message in green."
+        self.log(INFO, GREEN % self._format_raw(*message))
+
+    def info_blue(self, *message):
+        "Write info message in blue."
+        self.log(INFO, BLUE % self._format_raw(*message))
 
     def warning(self, *message):
         "Write warning message."
