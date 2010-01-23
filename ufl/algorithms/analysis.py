@@ -4,7 +4,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2009-04-17"
 
 # Modified by Anders Logg, 2009.
-# Last changed: 2010-01-06
+# Last changed: 2010-01-23
 
 from itertools import chain
 
@@ -29,6 +29,9 @@ from ufl.form import Form
 from ufl.integral import Integral
 from ufl.classes import terminal_classes, nonterminal_classes
 from ufl.algorithms.traversal import iter_expressions, post_traversal, post_walk, traverse_terminals
+
+# Domain types (should probably be listed somewhere else)
+_domain_types = ("cell", "exterior_facet", "interior_facet", "macro_cell")
 
 #--- Utilities to extract information from an expression ---
 
@@ -251,3 +254,43 @@ def unique_tuple(objects):
         if not object in unique_objects:
             unique_objects.append(object)
     return tuple(unique_objects)
+
+def extract_num_sub_domains(form):
+    "Extract the number of sub domains for each domain type."
+    num_domains = {}
+    for domain_type in _domain_types:
+        num_domains[domain_type] = 0
+    for integral in form.integrals():
+        domain_type = integral.measure().domain_type()
+        domain_id = integral.measure().domain_id()
+        num_domains[domain_type] = max(num_domains[domain_type], domain_id + 1)
+    num_domains = tuple([num_domains[domain_type] for domain_type in _domain_types])
+    return num_domains
+
+def extract_integral_data(form):
+    """
+    Extract integrals from form stored by integral type and sub
+    domain, stored as a list of pairs (domain_type, integrals) where
+    integrals is a list of the same length as the number of sub domain
+    for the integral type.
+    """
+
+    # Extract integral data
+    integral_data = {}
+    for integral in form.integrals():
+        domain_type = integral.measure().domain_type()
+        domain_id = integral.measure().domain_id()
+        if (domain_type, domain_id) in integral_data:
+            integral_data[(domain_type, domain_id)].append(integral)
+        else:
+            integral_data[(domain_type, domain_id)] = [integral]
+
+    # Note that this sorting thing here is pretty interesting. The
+    # domain types happen to be in alphabetical order (cell, exterior,
+    # interior, and macro) so we can just sort... :-)
+
+    # Sort by domain type and number
+    integral_data = [(d, n, i, None) for ((d, n), i) in integral_data.iteritems()]
+    integral_data.sort()
+
+    return integral_data

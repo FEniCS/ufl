@@ -4,7 +4,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-09-13"
 
 # Modified by Anders Logg, 2008.
-# Last changed: 2010-01-06
+# Last changed: 2010-01-23
 
 from itertools import chain
 
@@ -17,6 +17,8 @@ from ufl.algorithms.preprocess import preprocess
 from ufl.algorithms.analysis import extract_elements
 from ufl.algorithms.analysis import extract_sub_elements
 from ufl.algorithms.analysis import extract_element_map
+from ufl.algorithms.analysis import extract_num_sub_domains
+from ufl.algorithms.analysis import extract_integral_data
 from ufl.algorithms.analysis import unique_tuple
 
 class FormData(object):
@@ -44,6 +46,9 @@ class FormData(object):
 
         # Store name of form
         self.name = name
+
+        # Store signature of form
+        self.signature = form.signature()
 
         # Store some useful dimensions
         self.rank = len(self.arguments)
@@ -90,20 +95,14 @@ class FormData(object):
             self.topological_dimension = self.cell.topological_dimension()
             self.num_facets = self.cell.num_facets()
 
-        # Store number of integral types
-        self.num_cell_integrals           = len(form.cell_integrals())
-        self.num_exterior_facet_integrals = len(form.exterior_facet_integrals())
-        self.num_interior_facet_integrals = len(form.interior_facet_integrals())
-        self.num_macro_cell_integrals     = len(form.macro_cell_integrals())
-
         # Store number of domains for integral types
-        self.num_cell_domains = max([-1] + [i.measure().domain_id() for i in form.cell_integrals()]) + 1
-        self.num_exterior_facet_domains = max([-1] + [i.measure().domain_id() for i in form.exterior_facet_integrals()]) + 1
-        self.num_interior_facet_domains = max([-1] + [i.measure().domain_id() for i in form.interior_facet_integrals()]) + 1
-        self.num_macro_cell_domains = max([-1] + [i.measure().domain_id() for i in form.macro_cell_integrals()]) + 1
+        (self.num_cell_domains,
+         self.num_exterior_facet_domains,
+         self.num_interior_facet_domains,
+         self.num_macro_cell_domains) = extract_num_sub_domains(form)
 
-        # Store signature of form
-        self.signature = form.signature()
+        # Store integrals stored by type and sub domain
+        self.integral_data = extract_integral_data(form)
 
     def __str__(self):
         "Return formatted summary of form data"
@@ -114,10 +113,6 @@ class FormData(object):
                      ("Geometric dimension",                self.geometric_dimension),
                      ("Number of facets",                   self.num_facets),
                      ("Number of coefficients",             self.num_coefficients),
-                     ("Number of cell integrals",           self.num_cell_integrals),
-                     ("Number of exterior facet integrals", self.num_exterior_facet_integrals),
-                     ("Number of interior facet integrals", self.num_interior_facet_integrals),
-                     ("Number of macro cell integrals",     self.num_macro_cell_integrals),
                      ("Number of cell domains",             self.num_cell_domains),
                      ("Number of exterior facet domains",   self.num_exterior_facet_domains),
                      ("Number or interior facet domains",   self.num_interior_facet_domains),
