@@ -290,7 +290,7 @@ def extract_integral_data(form):
     # interior, and macro) so we can just sort... :-)
 
     # Sort by domain type and number
-    integral_data = [(d, n, i, None) for ((d, n), i) in integral_data.iteritems()]
+    integral_data = [(d, n, i, {}) for ((d, n), i) in integral_data.iteritems()]
     integral_data.sort()
 
     return integral_data
