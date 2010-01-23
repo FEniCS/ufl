@@ -4,7 +4,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2009-04-17"
 
 # Modified by Anders Logg, 2009.
-# Last changed: 2010-01-23
+# Last changed: 2010-01-24
 
 from itertools import chain
 
@@ -270,9 +270,12 @@ def extract_num_sub_domains(form):
 def extract_integral_data(form):
     """
     Extract integrals from form stored by integral type and sub
-    domain, stored as a list of pairs (domain_type, integrals) where
-    integrals is a list of the same length as the number of sub domain
-    for the integral type.
+    domain, stored as a list of tuples
+
+        (domain_type, domain_id, integrals, metadata)
+
+    where metadata is an empty dictionary that may be used for
+    associating metadata with each tuple.
     """
 
     # Extract integral data
