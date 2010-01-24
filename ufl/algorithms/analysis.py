@@ -31,7 +31,7 @@ from ufl.classes import terminal_classes, nonterminal_classes
 from ufl.algorithms.traversal import iter_expressions, post_traversal, post_walk, traverse_terminals
 
 # Domain types (should probably be listed somewhere else)
-_domain_types = ("cell", "exterior_facet", "interior_facet", "macro_cell")
+_domain_types = ("cell", "exterior_facet", "interior_facet", "macro_cell", "surface")
 
 #--- Utilities to extract information from an expression ---
 

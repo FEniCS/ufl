@@ -4,7 +4,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-09-13"
 
 # Modified by Anders Logg, 2008.
-# Last changed: 2010-01-23
+# Last changed: 2010-01-24
 
 from itertools import chain
 
@@ -99,7 +99,8 @@ class FormData(object):
         (self.num_cell_domains,
          self.num_exterior_facet_domains,
          self.num_interior_facet_domains,
-         self.num_macro_cell_domains) = extract_num_sub_domains(form)
+         self.num_macro_cell_domains,
+         self.num_surface_domains) = extract_num_sub_domains(form)
 
         # Store integrals stored by type and sub domain
         self.integral_data = extract_integral_data(form)
@@ -117,6 +118,7 @@ class FormData(object):
                      ("Number of exterior facet domains",   self.num_exterior_facet_domains),
                      ("Number or interior facet domains",   self.num_interior_facet_domains),
                      ("Number of macro cell domains",       self.num_macro_cell_domains),
+                     ("Number of surface domains",          self.num_surface_domains),
                      ("Arguments",                          lstr(self.arguments)),
                      ("Coefficients",                       lstr(self.coefficients)),
                      ("Argument names",                     lstr(self.argument_names)),
