@@ -4,9 +4,11 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2009-04-17"
 
 # Modified by Anders Logg, 2009.
-# Last changed: 2010-01-24
+# Last changed: 2010-01-25
 
 from itertools import chain
+from pygraph import digraph
+from pygraph.algorithms.sorting import topological_sorting
 
 from ufl.log import error, warning, info
 from ufl.assertions import ufl_assert
@@ -297,3 +299,32 @@ def extract_integral_data(form):
     integral_data.sort()
 
     return integral_data
+
+def sort_elements(elements):
+    """
+    Sort elements so that any sub elements appear before the
+    corresponding mixed elements. This is useful when sub elements
+    need to be defined before the corresponding mixed elements.
+
+    The ordering is based on sorting a directed acyclic graph.
+    """
+
+    # Create directed graph
+    g = digraph()
+
+    # Add nodes (elements)
+    for element in elements:
+        g.add_node(element)
+
+    # Add edges (dependencies)
+    for element in elements:
+        for sub_element in element.sub_elements():
+            g.add_edge(element, sub_element)
+
+    # Sort graph
+    sorted_elements = topological_sorting(g)
+
+    # Reverse graph
+    sorted_elements.reverse()
+
+    return sorted_elements

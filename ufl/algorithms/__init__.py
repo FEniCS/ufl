@@ -21,7 +21,8 @@ from ufl.algorithms.analysis import extract_classes, extract_type, has_type, \
                                     extract_arguments, extract_coefficients, extract_arguments_and_coefficients, \
                                     extract_elements, extract_unique_elements, \
                                     extract_variables, extract_duplications, \
-                                    extract_max_quadrature_element_degree, estimate_quadrature_degree
+                                    extract_max_quadrature_element_degree, estimate_quadrature_degree, \
+                                    sort_elements
 
 # Utilities for checking properties of forms
 from ufl.algorithms.predicates import is_multilinear
