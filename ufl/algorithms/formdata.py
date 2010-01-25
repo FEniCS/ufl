@@ -4,7 +4,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-09-13"
 
 # Modified by Anders Logg, 2008.
-# Last changed: 2010-01-24
+# Last changed: 2010-01-25
 
 from itertools import chain
 
@@ -16,7 +16,6 @@ from ufl.form import Form
 from ufl.algorithms.preprocess import preprocess
 from ufl.algorithms.analysis import extract_elements
 from ufl.algorithms.analysis import extract_sub_elements
-from ufl.algorithms.analysis import extract_element_map
 from ufl.algorithms.analysis import extract_num_sub_domains
 from ufl.algorithms.analysis import extract_integral_data
 from ufl.algorithms.analysis import unique_tuple
@@ -67,7 +66,6 @@ class FormData(object):
         self.unique_elements     = unique_tuple(self.elements)
         self.sub_elements        = extract_sub_elements(self.elements)
         self.unique_sub_elements = unique_tuple(self.sub_elements)
-        self.element_map         = extract_element_map(self.sub_elements)
 
         # Store cell
         if self.elements:
