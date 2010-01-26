@@ -3,16 +3,16 @@
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2009-04-17"
 
-# Modified by Anders Logg, 2009.
-# Last changed: 2010-01-25
+# Modified by Anders Logg, 2009-2010.
+# Modified by Johan Hake, 2010.
+# Last changed: 2010-01-26
 
 from itertools import chain
-from pygraph import digraph
-from pygraph.algorithms.sorting import topological_sorting
 
 from ufl.log import error, warning, info
 from ufl.assertions import ufl_assert
 from ufl.common import lstr, dstr, UFLTypeDefaultDict
+from ufl.sorting import topological_sorting
 
 from ufl.expr import Expr
 from ufl.terminal import Terminal, FormArgument
@@ -309,22 +309,19 @@ def sort_elements(elements):
     The ordering is based on sorting a directed acyclic graph.
     """
 
-    # Create directed graph
-    g = digraph()
+    # Set nodes
+    nodes = elements
 
-    # Add nodes (elements)
-    for element in elements:
-        g.add_node(element)
-
-    # Add edges (dependencies)
+    # Set edges
+    edges = dict((node, []) for node in nodes)
     for element in elements:
         for sub_element in element.sub_elements():
-            g.add_edge(element, sub_element)
+            edges[element].append(sub_element)
 
     # Sort graph
-    sorted_elements = topological_sorting(g)
+    sorted_elements = topological_sorting(nodes, edges)
 
-    # Reverse graph
+    # Reverse list of elements
     sorted_elements.reverse()
 
     return sorted_elements

@@ -4,8 +4,9 @@ is more robust w.r.t. argument numbering than using repr."""
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-11-26 -- 2009-04-25"
 
-# Modified by Anders Logg, 2009.
-# Last changed: 2009-12-08
+# Modified by Anders Logg, 2009-2010.
+# Modified by Johan Hake, 2010.
+# Last changed: 2010-01-26
 
 from itertools import izip
 
@@ -16,8 +17,6 @@ from ufl.indexing import MultiIndex
 from ufl.variable import Label
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
-
-#--- Sorting rule ---
 
 def cmp_expr(a, b):
     "Sorting rule for Expr objects."
@@ -61,3 +60,37 @@ def cmp_expr(a, b):
     # All children compare as equal, a and b must be equal
     return 0
 
+def topological_sorting(nodes, edges):
+    """
+    Return a topologically sorted list of the nodes
+
+    Implemented algorithm from Wikipedia :P
+
+    <http://en.wikipedia.org/wiki/Topological_sorting>
+
+    No error for cyclic edges...
+    """
+
+    L = []
+    S = nodes[:]
+    for node in nodes:
+        for es in edges.itervalues():
+            if node in es and node in S:
+                S.remove(node)
+                continue
+
+    while S:
+        node = S.pop(0)
+        L.append(node)
+        node_edges = edges[node]
+        while node_edges:
+            m = node_edges.pop(0)
+            found = False
+            for es in edges.itervalues():
+                found = m in es
+                if found:
+                    break
+            if not found:
+                S.insert(0,m)
+
+    return L

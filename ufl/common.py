@@ -4,7 +4,7 @@ __authors__ = "Martin Sandve Alnes and Anders Logg"
 __date__ = "2008-08-05"
 
 # Modified by Kristian Oelgaard, 2009
-# Last changed: 2009-12-08
+# Last changed: 2010-01-26
 
 import os
 from itertools import izip
@@ -408,4 +408,3 @@ def test_stackdict():
 if __name__ == "__main__":
     test_component_indexing()
     test_stackdict()
-
