@@ -8,7 +8,7 @@ import platform
 
 # Version number
 major = 0
-minor = 4
+minor = 5
 
 scripts = [pjoin("scripts", "ufl-analyse"),
            pjoin("scripts", "ufl-convert"),

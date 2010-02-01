@@ -98,7 +98,7 @@ Form transformations:
 
 """
 
-__version__ = "0.4.1"
+__version__ = "0.5.0"
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __copyright__ = "Copyright (C) 2008-2009 " + __authors__
 __license__  = "GNU GPL version 3 or any later version"
@@ -106,7 +106,7 @@ __date__ = "2008-03-14"
 
 # Modified by Kristian Oelgaard, 2009
 # Modified by Anders Logg, 2009.
-# Last changed: 2009-12-08
+# Last changed: 2010-02-01
 
 ########## README
 # Imports here should be what the user sees when doing "from ufl import *",
