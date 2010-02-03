@@ -33,6 +33,12 @@ class RestrictionPropagator(ReuseTransformer):
         #    return o
         return o(self.current_restriction)
 
+    def variable(self, o):
+        ufl_assert(self.current_restriction is not None, "Form argument must be restricted.")
+        #if self.current_restriction is None:
+        #    return o
+        return o(self.current_restriction)
+
 class RestrictionChecker(Transformer):
     def __init__(self, require_restriction):
         Transformer.__init__(self)
