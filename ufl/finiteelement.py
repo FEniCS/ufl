@@ -427,21 +427,6 @@ class ElementRestriction(FiniteElementBase):
         "Return the domain onto which the element is restricted."
         return self._domain
 
-    def num_sub_elements(self):
-        """The number of sub elements is equal to the number of sub elements of
-        the restricted element."""
-        return self._element.num_sub_elements()
-
-    def sub_elements(self):
-        """Return a list of sub elements, but retrict them to propagate the
-        restriction in case of MixedElements."""
-        return [ElementRestriction(e, self._domain) for e in self._element.sub_elements()]
-
-    def extract_component(self, i):
-        "Make sure that the element we return is restricted."
-        index, element = self._element.extract_component(i)
-        return (index, ElementRestriction(element, self._domain))
-
     def __str__(self):
         "Format as string for pretty printing."
         return "<%s>|_{%s}" % (self._element, self._domain)
