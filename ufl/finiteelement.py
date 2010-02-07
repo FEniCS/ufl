@@ -420,9 +420,11 @@ class ElementRestriction(FiniteElementBase):
         self._repr = "ElementRestriction(%r, %r)" % (element, domain)
 
     def element(self):
+        "Return the element which is restricted."
         return self._element
 
     def domain(self):
+        "Return the domain onto which the element is restricted."
         return self._domain
 
     def __str__(self):
