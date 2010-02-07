@@ -31,8 +31,8 @@ from ufl.integral import Measure
 from ufl.classes import terminal_classes
 
 # Other algorithms:
+from ufl.algorithms.preprocess import preprocess
 from ufl.algorithms.analysis import extract_variables
-from ufl.algorithms.formdata import FormData
 from ufl.algorithms.formfiles import load_forms
 from ufl.algorithms.latextools import align, document, verbatim
 
@@ -401,10 +401,8 @@ def form2latex(form, formdata):
 def ufl2latex(expression, form_data=None):
     "Generate LaTeX code for a UFL expression or form (wrapper for form2latex and expression2latex)."
     if isinstance(expression, Form):
-        form = expression
-        if form_data is None:
-            form_data = FormData(form)
-        return form2latex(form, form_data)
+        form = preprocess(expression)
+        return form2latex(form, form.form_data())
     else:
         return expression2latex(expression)
 

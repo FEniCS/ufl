@@ -4,11 +4,10 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-05-09"
 
 # Modified by Anders Logg, 2009.
-# Last changed: 2009-12-08
+# Last changed: 2010-02-07
 
 import sys, optparse
 from ufl.log import warning
-from ufl.algorithms import FormData
 from ufl.algorithms import load_ufl_file, validate_form, ufl2latex, tree_format, preprocess
 
 # Get commandline options
@@ -80,10 +79,10 @@ for filename in filenames:
         validate_form(form)
 
         # Preprocess form
-        preprocessed_form = preprocess(form)
+        preprocessed_form = preprocess(form, object_names=data.object_names)
 
         # Extract form data
-        form_data = FormData(preprocessed_form, object_names=data.object_names)
+        form_data = form.form_data()
 
         # Print form data
         write("\nForm data:\n", str(form_data))

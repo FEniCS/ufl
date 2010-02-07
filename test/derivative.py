@@ -8,7 +8,7 @@ import math
 
 from ufl import *
 from ufl.constantvalue import as_ufl
-from ufl.algorithms import expand_indices, strip_variables, post_traversal, preprocess, FormData
+from ufl.algorithms import expand_indices, strip_variables, post_traversal, preprocess
 #from ufl.classes import *
 
 class DerivativeTestCase(unittest.TestCase):
@@ -158,20 +158,20 @@ class DerivativeTestCase(unittest.TestCase):
             assert derivatives == (0,)
             return dw
 
-        form_data_f = FormData(f)
+        form_data_f = f.form_data()
         w, b, K = form_data_f.coefficients
         mapping = { K: Kv, b: bv, w: Nw }
         fv2 = f_expression((0,), mapping)
         self.assertAlmostEqual(fv, fv2)
 
-        form_data_F = FormData(F)
+        form_data_F = F.form_data()
         w, b, K = form_data_F.coefficients
         v, = form_data_F.arguments
         mapping = { K: Kv, b: bv, v: Nv, w: Nw }
         Fv2 = F_expression((0,), mapping)
         self.assertAlmostEqual(Fv, Fv2)
 
-        form_data_J = FormData(J)
+        form_data_J = J.form_data()
         w, b, K = form_data_J.coefficients
         v, u = form_data_J.arguments
         mapping = { K: Kv, b: bv, v: Nv, u: Nu, w: Nw }
