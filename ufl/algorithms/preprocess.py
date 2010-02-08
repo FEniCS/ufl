@@ -5,7 +5,7 @@ raw input form given by a user."""
 __authors__ = "Anders Logg"
 __date__ = "2009-12-07"
 
-# Last changed: 2010-02-07
+# Last changed: 2010-02-08
 
 from ufl.log import info, warning, error
 from ufl.assertions import ufl_assert
@@ -36,6 +36,11 @@ def preprocess(form, object_names={}):
 
     # Check that we get a form
     ufl_assert(isinstance(form, Form), "Expecting Form.")
+
+    # Check that form is not already preprocessed
+    if form.form_data() is not None:
+        info("Form is alreay preprocessed. Not updating form data.")
+        return form
 
     # Get name of form
     if id(form) in object_names:
