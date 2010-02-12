@@ -4,7 +4,7 @@ __authors__ = "Martin Sandve Alnes and Anders Logg"
 __date__ = "2008-08-05"
 
 # Modified by Kristian Oelgaard, 2009
-# Last changed: 2010-01-26
+# Last changed: 2010-02-12
 
 import os
 from itertools import izip
@@ -118,7 +118,8 @@ def lstr(l):
 
 def dstr(d, colsize=80):
     "Pretty-print dictionary of key-value pairs."
-    return tstr(d.items(), colsize)
+    sorted_keys = sorted(d.keys())
+    return tstr([(key, d[key]) for key in sorted_keys], colsize)
 
 def tstr(t, colsize=80):
     "Pretty-print list of tuples of key-value pairs."
@@ -135,7 +136,11 @@ def tstr(t, colsize=80):
     # Pretty-print table
     s = ""
     for (key, value) in t:
-        key, value = str(key), str(value)
+        key = str(key)
+        if isinstance(value, str):
+            value = "'%s'" % value
+        else:
+            value = str(value)
         s += key + ":" + " "*(keylen - len(key) + 1)
         space = ""
         while len(value) > 0:
