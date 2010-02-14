@@ -5,7 +5,7 @@ raw input form given by a user."""
 __authors__ = "Anders Logg"
 __date__ = "2009-12-07"
 
-# Last changed: 2010-02-08
+# Last changed: 2010-02-14
 
 from ufl.log import info, warning, error
 from ufl.assertions import ufl_assert
@@ -19,7 +19,7 @@ from ufl.algorithms.analysis import extract_elements, extract_sub_elements
 from ufl.algorithms.analysis import extract_num_sub_domains, extract_integral_data, unique_tuple
 from ufl.algorithms.formdata import FormData
 
-def preprocess(form, object_names={}):
+def preprocess(form, object_names={}, common_cell=None):
     """
     Preprocess raw input form to obtain a form more easily manipulated
     by form compilers. The modified form is returned and the original
@@ -100,8 +100,12 @@ def preprocess(form, object_names={}):
     form_data.sub_elements        = extract_sub_elements(form_data.elements)
     form_data.unique_sub_elements = unique_tuple(form_data.sub_elements)
 
+    # FIXME: Need to look at logic here, FFC does not support the last two cases
+
     # Store cell
-    if form_data.elements:
+    if not common_cell is None:
+        form_data.cell = common_cell
+    elif form_data.elements:
         cells = [element.cell() for element in form_data.elements]
         cells = [cell for cell in cells if not cell.domain() is None]
         if len(cells) == 0:
