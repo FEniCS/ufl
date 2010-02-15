@@ -1,3 +1,4 @@
+0.5.2 [2010-02-15]
  - Attach form data to preprocessed form, accessible by form.form_data()
 0.5.1 [2010-02-03]
  - Fix bug in propagate_restriction
