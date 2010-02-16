@@ -423,10 +423,6 @@ class ElementRestriction(FiniteElementBase):
         "Return the element which is restricted."
         return self._element
 
-    def domain(self):
-        "Return the domain onto which the element is restricted."
-        return self._domain
-
     def __str__(self):
         "Format as string for pretty printing."
         return "<%s>|_{%s}" % (self._element, self._domain)
