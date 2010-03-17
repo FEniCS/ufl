@@ -145,7 +145,6 @@ Roadmap for the development of UFL
       even if f is defined on a quadrature element.
 
 # Additional operators (low priority):
-    - tan(f)
     - log(f, base)
     - other mathematical functions in <cmath> (need derivatives)
     - bessel functions (needs non-standard library code)

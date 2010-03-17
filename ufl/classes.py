@@ -21,7 +21,7 @@ from ufl.indexing import MultiIndex, Indexed, IndexBase, Index, FixedIndex, Inde
 from ufl.tensors import ListTensor, ComponentTensor
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import CompoundTensorOperator, Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Cofactor, Inverse, Deviatoric, Skew, Sym
-from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
+from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin, Tan, Acos, Asin, Atan
 from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
 from ufl.lifting import LiftingResult, LiftingOperatorResult, LiftingFunctionResult, TerminalOperator, LiftingOperator, LiftingFunction
 from ufl.differentiation import Derivative, CompoundDerivative, FunctionDerivative, SpatialDerivative, VariableDerivative, Grad, Div, Curl
@@ -142,7 +142,7 @@ def _build_precedence_list():
 
     # If parent operator binds stronger than child, must parenthesize child
 
-    precedence_list.append((Abs, MathFunction,)) # Abs, Sqrt, Exp, Ln, Cos, Sin
+    precedence_list.append((Abs, MathFunction,)) # Abs, Sqrt, Exp, Ln, Cos, Sin, Tan, Acos, Asin, Atan
     precedence_list.append((Variable,))
 
     precedence_list.append((Terminal,)) # terminal_classes

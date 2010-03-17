@@ -7,7 +7,7 @@ __date__ = "2009-01-06 -- 2009-02-24"
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.classes import Zero, IntValue, FloatValue
-from ufl.operators import sin, cos, exp, ln, sqrt, conditional, sign
+from ufl.operators import cos, sin, tan, acos, asin, atan, exp, ln, sqrt, conditional, sign
 from ufl.tensors import unit_vectors, ListTensor
 from ufl.algorithms.transformations import MultiFunction
 
@@ -100,6 +100,26 @@ class PartialDerivativeComputer(MultiFunction):
         "d/dx sin x = cos(x)"
         x, = f.operands()
         return (cos(x),)
+
+    def tan(self, f):
+        "d/dx tan x = (sec(x))^2 = 2/(cos(2x) + 1)"
+        x, = f.operands()
+        return (2.0/(cos(2.0*x) + 1.0),)
+
+    def acos(self, f):
+        "d/dx acos x = -1/sqrt(1 - x^2)"
+        x, = f.operands()
+        return (-1.0/sqrt(1.0 - x**2),)
+    
+    def asin(self, f):
+        "d/dx asin x = 1/sqrt(1 - x^2)"
+        x, = f.operands()
+        return (1.0/sqrt(1.0 - x**2),)
+
+    def atan(self, f):
+        "d/dx atan x = 1/(1 + x^2)"
+        x, = f.operands()
+        return (1.0/(1.0 + x**2),)
     
     # --- Shape and indexing manipulators
     

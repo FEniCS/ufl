@@ -94,3 +94,38 @@ class Sin(MathFunction):
     def __init__(self, argument):
         MathFunction.__init__(self, "sin", argument)
 
+class Tan(MathFunction):
+    def __new__(cls, argument):
+        if isinstance(argument, (ScalarValue, Zero)):
+            return FloatValue(math.tan(float(argument)))
+        return MathFunction.__new__(cls)
+    
+    def __init__(self, argument):
+        MathFunction.__init__(self, "tan", argument)
+
+class Acos(MathFunction):
+    def __new__(cls, argument):
+        if isinstance(argument, (ScalarValue, Zero)):
+            return FloatValue(math.acos(float(argument)))
+        return MathFunction.__new__(cls)
+    
+    def __init__(self, argument):
+        MathFunction.__init__(self, "acos", argument)
+
+class Asin(MathFunction):
+    def __new__(cls, argument):
+        if isinstance(argument, (ScalarValue, Zero)):
+            return FloatValue(math.asin(float(argument)))
+        return MathFunction.__new__(cls)
+    
+    def __init__(self, argument):
+        MathFunction.__init__(self, "asin", argument)
+
+class Atan(MathFunction):
+    def __new__(cls, argument):
+        if isinstance(argument, (ScalarValue, Zero)):
+            return FloatValue(math.atan(float(argument)))
+        return MathFunction.__new__(cls)
+    
+    def __init__(self, argument):
+        MathFunction.__init__(self, "atan", argument)

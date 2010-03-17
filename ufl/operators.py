@@ -16,7 +16,7 @@ from ufl.tensoralgebra import Transposed, Inner, Outer, Dot, Cross, Determinant,
 from ufl.variable import Variable
 from ufl.tensors import as_tensor
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
-from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin
+from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin, Tan, Acos, Asin, Atan
 from ufl.indexing import indices
 from ufl.geometry import SpatialCoordinate
 
@@ -283,3 +283,18 @@ def sin(f):
     "The sinus of f."
     return _mathfunction(f, Sin, math.sin)
 
+def tan(f):
+    "The tangent of f."
+    return _mathfunction(f, Tan, math.tan)
+
+def acos(f):
+    "The inverse cosinus of f."
+    return _mathfunction(f, Acos, math.acos)
+
+def asin(f):
+    "The inverse sinus of f."
+    return _mathfunction(f, Asin, math.asin)
+
+def atan(f):
+    "The inverse tangent of f."
+    return _mathfunction(f, Atan, math.atan)

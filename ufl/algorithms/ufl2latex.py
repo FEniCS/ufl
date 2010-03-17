@@ -22,7 +22,7 @@ from ufl.tensors import ListTensor, ComponentTensor
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.indexsum import IndexSum
 from ufl.tensoralgebra import Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
-from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin
+from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin, Tan, Acos, Asin, Atan
 from ufl.restriction import PositiveRestricted, NegativeRestricted
 from ufl.differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
@@ -62,7 +62,7 @@ def build_precedence_map():
                             Determinant, Trace, Cofactor, Inverse, Deviatoric))
     precedence_list.append((Product, Division, Cross, Dot, Outer, Inner))
     precedence_list.append((Indexed, Transposed, Power))
-    precedence_list.append((Abs, Cos, Exp, Ln, Sin, Sqrt))
+    precedence_list.append((Abs, Cos, Exp, Ln, Sin, Sqrt, Tan, Acos, Asin, Atan))
     precedence_list.append((Variable,))
     precedence_list.append(terminal_classes)
 
@@ -205,6 +205,18 @@ class Expression2LatexHandler(Transformer):
 
     def sin(self, o, f):
         return r"\sin{%s}" % par(f)
+
+    def tan(self, o, f):
+        return r"\tan{%s}" % par(f)
+
+    def acos(self, o, f):
+        return r"\arccos{%s}" % par(f)
+
+    def asin(self, o, f):
+        return r"\arcsin{%s}" % par(f)
+
+    def atan(self, o, f):
+        return r"\arctan{%s}" % par(f)
 
     def power(self, o, a, b):
         return "{%s}^{%s}" % (par(a), par(b))

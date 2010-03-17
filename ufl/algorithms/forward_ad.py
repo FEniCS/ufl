@@ -23,7 +23,7 @@ from ufl.tensors import ListTensor, ComponentTensor, as_tensor, as_scalar
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import Transposed, Outer, Inner, Dot, Cross, Trace, \
     Determinant, Inverse, Deviatoric, Cofactor
-from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin
+from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin, Tan, Acos, Asin, Atan
 from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
 from ufl.differentiation import Derivative, FunctionDerivative,\
     SpatialDerivative, VariableDerivative
@@ -33,7 +33,7 @@ from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 #from ufl.classes import ufl_classes, terminal_classes, nonterminal_classes
 from ufl.classes import terminal_classes
 from ufl.operators import dot, inner, outer, lt, eq, conditional, sign
-from ufl.operators import sqrt, exp, ln, cos, sin
+from ufl.operators import sqrt, exp, ln, cos, sin, tan, acos, asin, atan
 from ufl.algorithms.traversal import iter_expressions
 from ufl.algorithms.analysis import extract_type
 from ufl.algorithms.transformations import expand_compounds, Transformer, transform, transform_integrands
@@ -400,6 +400,30 @@ class ForwardAD(Transformer):
         f, fp = a
         o = self.reuse_if_possible(o, f)
         op = fp*cos(f)
+        return (o, op)
+
+    def tan(self, o, a):
+        f, fp = a
+        o = self.reuse_if_possible(o, f)
+        op = fp*2.0/(cos(2.0*f) + 1.0)
+        return (o, op)
+
+    def acos(self, o, a):
+        f, fp = a
+        o = self.reuse_if_possible(o, f)
+        op = -fp/sqrt(1.0 - f**2)
+        return (o, op)
+
+    def asin(self, o, a):
+        f, fp = a
+        o = self.reuse_if_possible(o, f)
+        op = fp/sqrt(1.0 - f**2)
+        return (o, op)
+
+    def atan(self, o, a):
+        f, fp = a
+        o = self.reuse_if_possible(o, f)
+        op = fp/(1.0 + f**2)
         return (o, op)
 
     # --- Restrictions

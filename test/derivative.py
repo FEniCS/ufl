@@ -81,14 +81,35 @@ class DerivativeTestCase(unittest.TestCase):
         def df(w, v): return v / w
         self._test(f, df)
 
+    def testCos(self):
+        def f(w):  return cos(w)
+        def df(w, v): return -v*sin(w)
+        self._test(f, df)
+
     def testSin(self):
         def f(w):  return sin(w)
         def df(w, v): return v*cos(w)
         self._test(f, df)
 
-    def testCos(self):
-        def f(w):  return cos(w)
-        def df(w, v): return -v*sin(w)
+    def testTan(self):
+        def f(w):  return tan(w)
+        def df(w, v): return v*2.0/(cos(2.0*w) + 1.0)
+        self._test(f, df)
+
+# TODO: Check the following tests. They run into strange math domain errors.
+#     def testAcos(self):
+#         def f(w):  return acos(w)
+#         def df(w, v): return -v/sqrt(1.0 - w**2)
+#         self._test(f, df)
+
+#     def testAsin(self):
+#         def f(w):  return asin(w)
+#         def df(w, v): return v/sqrt(1.0 - w**2)
+#         self._test(f, df)
+
+    def testAtan(self):
+        def f(w):  return atan(w)
+        def df(w, v): return v/(1.0 + w**2)
         self._test(f, df)
 
     def testIndexSum(self):

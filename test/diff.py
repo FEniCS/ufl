@@ -83,6 +83,27 @@ class DiffTestCase(unittest.TestCase):
         def df(v): return -sin(v)
         self._test(f, df)
 
+    def testTan(self):
+        def f(v):  return tan(v)
+        def df(v): return 2.0/(cos(2.0*v) + 1.0)
+        self._test(f, df)
+
+# TODO: Check the following tests. They run into strange math domain errors.
+#     def testAsin(self):
+#         def f(v):  return asin(v)
+#         def df(v): return 1/sqrt(1.0 - v**2)
+#         self._test(f, df)
+
+#     def testAcos(self):
+#         def f(v):  return acos(v)
+#         def df(v): return -1/sqrt(1.0 - v**2)
+#         self._test(f, df)
+
+    def testAtan(self):
+        def f(v):  return atan(v)
+        def df(v): return 1/(1.0 + v**2)
+        self._test(f, df)
+
     def testIndexSum(self):
         def f(v):
             # 3*v + 4*v**2 + 5*v**3

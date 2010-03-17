@@ -120,6 +120,11 @@ class EvaluateTestCase(unittest.TestCase):
         e = s((5,7))
         v = math.cos(5)
         self.assertTrue(e == v)
+
+        s = tan(x)
+        e = s((5,7))
+        v = math.tan(5)
+        self.assertTrue(e == v)
         
         s = ln(x)
         e = s((5,7))

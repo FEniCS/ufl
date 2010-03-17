@@ -80,7 +80,7 @@ Differential operators:
     Dx, grad, div, curl, rot, Dn
 
 Nonlinear functions:
-    abs, sign, sqrt, exp, ln, cos, sin,
+    abs, sign, sqrt, exp, ln, cos, sin, tan, acos, asin, atan
 
 Discontinuous Galerkin operators:
     jump, avg, v('+'), v('-')
@@ -163,7 +163,7 @@ from ufl.operators import rank, shape, \
                        outer, inner, dot, cross, \
                        det, inv, cofac, \
                        transpose, tr, dev, skew, sym, \
-                       sqrt, exp, ln, cos, sin, \
+                       sqrt, exp, ln, cos, sin, tan, acos, asin, atan, \
                        eq, ne, le, ge, lt, gt, conditional, sign, \
                        variable, diff, \
                        Dx,  grad, div, curl, rot, Dn, \
