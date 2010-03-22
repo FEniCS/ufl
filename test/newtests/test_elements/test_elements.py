@@ -1,7 +1,7 @@
 
 # TODO: check more element definitions, mixed elements, subelements, element restrictions, element unions
 
-from ufl import FiniteElement, VectorElement, TensorElement, MixedElement, ElementUnion, ElementRestriction
+from ufl import FiniteElement, VectorElement, TensorElement, MixedElement, EnrichedElement, ElementRestriction
 from ufl import interval, triangle, quadrilateral, tetrahedron, hexahedron
 
 all_cells = (interval, triangle, quadrilateral, tetrahedron, hexahedron)
@@ -92,7 +92,7 @@ def test_mixed():
         velement = VectorElement("CG", cell, 2)
         pelement = FiniteElement("CG", cell, 1)
         TH1 = MixedElement(velement, pelement)
-        TH2 = velement + pelement
+        TH2 = velement * pelement
         assert ( repr(TH1) == repr(TH2) )
         assert ( TH1.value_shape() == (dim+1,) )
         assert ( TH2.value_shape() == (dim+1,) )

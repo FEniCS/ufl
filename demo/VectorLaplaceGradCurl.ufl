@@ -3,7 +3,7 @@
 #
 # The bilinear form a(v, u) and linear form L(v) for the Hodge Laplace
 # problem using 0- and 1-forms. Intended to demonstrate use of Nedelec
-# elements. 
+# elements.
 
 def HodgeLaplaceGradCurl(element, felement):
     tau, v = TestFunctions(element)
@@ -13,7 +13,7 @@ def HodgeLaplaceGradCurl(element, felement):
     a = ( inner(tau, sigma) - inner(grad(tau), u) +\
           inner(v, grad(sigma)) + inner(curl(v), curl(u)) )*dx
     L = inner(v, f)*dx
-    
+
     return a, L
 
 cell = tetrahedron
@@ -24,5 +24,5 @@ CURL = FiniteElement("N1curl", cell, order-1)
 
 VectorLagrange = VectorElement("Lagrange", cell, order+1)
 
-a, L = HodgeLaplaceGradCurl(GRAD + CURL, VectorLagrange)
+a, L = HodgeLaplaceGradCurl(GRAD * CURL, VectorLagrange)
 

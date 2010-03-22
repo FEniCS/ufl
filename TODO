@@ -116,11 +116,6 @@ Roadmap for the development of UFL
     - BasisFunction(element, domain=dx(1))
 
 # Elements (low priority):
-    - (low) Implement
-       class ElementUnion(FiniteElementBase):
-           def __init__(self, *elements):
-               ...
-      to represent the enrichment of a finite element space with another. (Idea from Marie)
     - (low) Time elements
 
 # Functions (low priority, could allow automatic linearization w.r.t. functions not in a finite element space?):

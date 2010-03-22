@@ -10,7 +10,7 @@
 cell = triangle
 P2 = VectorElement("Lagrange", cell, 2)
 P1 = FiniteElement("Lagrange", cell, 1)
-TH = P2 + P1
+TH = P2 * P1
 
 (v, q) = TestFunctions(TH)
 (u, p) = TrialFunctions(TH)

@@ -41,7 +41,7 @@ Cells and Euclidean spaces:
 
 Elements:
     FiniteElement, MixedElement, VectorElement, TensorElement
-    ElementUnion, RestrictedElement
+    EnrichedElement, RestrictedElement
 
 Arguments:
     BasisFunction, TestFunction, TrialFunction
@@ -128,7 +128,7 @@ from ufl.geometry import Cell, Space, SpatialCoordinate, FacetNormal
 
 # Finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
-    MixedElement, VectorElement, TensorElement, ElementUnion, ElementRestriction
+    MixedElement, VectorElement, TensorElement, EnrichedElement, ElementRestriction
 
 # Hook to extend predefined element families
 from ufl.elementlist import register_element, show_elements #, ufl_elements

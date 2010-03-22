@@ -7,7 +7,7 @@
 cell = tetrahedron
 RT = FiniteElement("Raviart-Thomas", cell, 1)
 DG = FiniteElement("DG", cell, 0)
-MX = RT + DG
+MX = RT * DG
 
 (u, p) = TrialFunctions(MX)
 (v, q) = TestFunctions(MX)

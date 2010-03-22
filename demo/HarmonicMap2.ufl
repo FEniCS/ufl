@@ -7,12 +7,12 @@
 cell = triangle
 X = VectorElement("Lagrange", cell, 1)
 Y = FiniteElement("Lagrange", cell, 1)
-M = X + Y
+M = X * Y
 
 u = Coefficient(M)
 x, y = split(u)
 
-L = inner(grad(x), grad(x))*dx + dot(x,x)*y*dx  
+L = inner(grad(x), grad(x))*dx + dot(x,x)*y*dx
 
 F = derivative(L, u)
 J = derivative(F, u)

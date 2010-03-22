@@ -5,4 +5,4 @@
 
 P3 = FiniteElement("Lagrange", "triangle", 3)
 
-element = (P3 + P3) + (P3 + P3)
+element = (P3 * P3) * (P3 * P3)

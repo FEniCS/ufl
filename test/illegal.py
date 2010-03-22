@@ -3,7 +3,7 @@
 import unittest
 
 from ufl import *
-from ufl.algorithms import * 
+from ufl.algorithms import *
 
 # TODO: these tests only verify that the syntax is possible, how much more can we test without a form compiler?
 
@@ -11,7 +11,7 @@ from ufl.algorithms import *
 
 
 class IllegalExpressionsTestCase(unittest.TestCase):
-    
+
     def setUp(self):
         self.selement = FiniteElement("Lagrange", "triangle", 1)
         self.velement = VectorElement("Lagrange", "triangle", 1)
@@ -23,7 +23,7 @@ class IllegalExpressionsTestCase(unittest.TestCase):
         self.g = Coefficient(self.selement)
         self.vf = Coefficient(self.velement)
         self.vg = Coefficient(self.velement)
-    
+
     def test_1(self):
         a, b, v,  u  = self.a, self.b, self.v,  self.u
         f, g, vf, vg = self.f, self.g, self.vf, self.vg
@@ -32,7 +32,7 @@ class IllegalExpressionsTestCase(unittest.TestCase):
             self.fail()
         except (UFLException, e):
             pass
-    
+
     def test_2(self):
         a, b, v,  u  = self.a, self.b, self.v,  self.u
         f, g, vf, vg = self.f, self.g, self.vf, self.vg
@@ -41,7 +41,7 @@ class IllegalExpressionsTestCase(unittest.TestCase):
             self.fail()
         except (UFLException, e):
             pass
-    
+
     def test_3(self):
         a, b, v,  u  = self.a, self.b, self.v,  self.u
         f, g, vf, vg = self.f, self.g, self.vf, self.vg
@@ -50,7 +50,7 @@ class IllegalExpressionsTestCase(unittest.TestCase):
             self.fail()
         except (UFLException, e):
             pass
-    
+
     def test_4(self):
         a, b, v,  u  = self.a, self.b, self.v,  self.u
         f, g, vf, vg = self.f, self.g, self.vf, self.vg
@@ -68,7 +68,7 @@ class IllegalExpressionsTestCase(unittest.TestCase):
             self.fail()
         except (UFLException, e):
             pass
-    
+
     def test_6(self):
         a, b, v,  u  = self.a, self.b, self.v,  self.u
         f, g, vf, vg = self.f, self.g, self.vf, self.vg
@@ -77,7 +77,7 @@ class IllegalExpressionsTestCase(unittest.TestCase):
             tmp+b
         except (UFLException, e):
             pass
-    
+
 
 class FormsTestCase(unittest.TestCase):
 
@@ -93,7 +93,7 @@ class FormsTestCase(unittest.TestCase):
             self.fail()
         except (UFLException, e):
             pass
-    
+
     def test_source2(self):
         element = VectorElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
@@ -103,7 +103,7 @@ class FormsTestCase(unittest.TestCase):
             self.fail()
         except (UFLException, e):
             pass
-    
+
     def test_source3(self):
         element = TensorElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
@@ -113,8 +113,8 @@ class FormsTestCase(unittest.TestCase):
             self.fail()
         except (UFLException, e):
             pass
-    
-    
+
+
     def test_mass1(self):
         element = FiniteElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
@@ -124,7 +124,7 @@ class FormsTestCase(unittest.TestCase):
             self.fail()
         except (UFLException, e):
             pass
-    
+
     def test_mass2(self):
         element = VectorElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
@@ -134,7 +134,7 @@ class FormsTestCase(unittest.TestCase):
             self.fail()
         except (UFLException, e):
             pass
-    
+
     def test_mass3(self):
         element = VectorElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
@@ -144,7 +144,7 @@ class FormsTestCase(unittest.TestCase):
             self.fail()
         except (UFLException, e):
             pass
-    
+
     def test_mass4(self):
         element = TensorElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
@@ -213,7 +213,7 @@ class FormsTestCase(unittest.TestCase):
         polygon = "triangle"
         velement = VectorElement("Lagrange", polygon, 2)
         pelement = FiniteElement("Lagrange", polygon, 1)
-        TH = velement + pelement
+        TH = velement * pelement
 
         v, q = TestFunctions(TH)
         u, p = TrialFunctions(TH)

@@ -4,7 +4,9 @@ __authors__ = "Martin Sandve Alnes and Anders Logg"
 __date__ = "2008-03-03"
 
 # Modified by Kristian B. Oelgaard
-# Last changed: 2010-01-05
+# Modified by Marie E. Rognes (meg@simula.no) 2010
+
+# Last changed: 2010-03-22
 
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
@@ -84,18 +86,18 @@ class FiniteElementBase(object):
         return repr(self) == repr(other)
 
     def __add__(self, other):
-        "Add two elements, creating a mixed element"
+        "Add two elements, creating an enriched element"
         ufl_assert(isinstance(other, FiniteElementBase), "Can't add element and %s." % other.__class__)
-        return MixedElement(self, other)
+        return EnrichedElement(self, other)
 
     def __repr__(self):
         "Format as string for evaluation as Python object."
         return self._repr
 
-    #def __mul__(self, other): # TODO: Make __mul__ -> mixed and __add__ -> union?
-    #    "Multiply two elements, creating a mixed element"
-    #    ufl_assert(isinstance(other, FiniteElementBase), "Can't multiply element and %s." % other.__class__)
-    #    return MixedElement(self, other)
+    def __mul__(self, other):
+        "Multiply two elements, creating a mixed element"
+        ufl_assert(isinstance(other, FiniteElementBase), "Can't multiply element and %s." % other.__class__)
+        return MixedElement(self, other)
 
     def __getitem__(self, index):
         "Restrict finite element to a subdomain, subcomponent or topology (cell)."
@@ -369,8 +371,11 @@ class TensorElement(MixedElement):
             sym = " with symmetry"
         return "Tensor<%s x %s%s>" % (self.value_shape(), self._sub_element.shortstr(), sym)
 
-class ElementUnion(FiniteElementBase):
-    "The union of two finite element spaces."
+class EnrichedElement(FiniteElementBase):
+    """The vector sum of two finite element spaces:
+
+        EnrichedElement(V, Q) = {v + q | v in V, q in Q}.
+    """
     def __init__(self, *elements):
         self._elements = elements
 
@@ -383,18 +388,18 @@ class ElementUnion(FiniteElementBase):
         ufl_assert(all(e.value_shape() == value_shape for e in elements), "Element value shape mismatch.")
 
         # Initialize element data
-        FiniteElementBase.__init__(self, "ElementUnion", cell, degree, value_shape)
+        FiniteElementBase.__init__(self, "EnrichedElement", cell, degree, value_shape)
 
         # Cache repr string
-        self._repr = "ElementUnion(%s)" % ", ".join(repr(e) for e in self._elements)
+        self._repr = "EnrichedElement(%s)" % ", ".join(repr(e) for e in self._elements)
 
     def __str__(self):
         "Format as string for pretty printing."
-        return "<%s>" % " U ".join(str(e) for e in self._elements)
+        return "<%s>" % " + ".join(str(e) for e in self._elements)
 
     def shortstr(self):
         "Format as string for pretty printing."
-        return "<%s>" % " U ".join(e.shortstr() for e in self._elements)
+        return "<%s>" % " + ".join(e.shortstr() for e in self._elements)
 
 class ElementRestriction(FiniteElementBase):
     def __init__(self, element, domain):

@@ -173,7 +173,7 @@ class AlgorithmsTestCase(unittest.TestCase):
         V1 = FiniteElement("CG", triangle, 1)
         V2 = FiniteElement("CG", triangle, 2)
         VV = VectorElement("CG", triangle, 3)
-        VM = V1 + V2
+        VM = V1 * V2
         v1 = Argument(V1)
         v2 = Argument(V2)
         f1, f2 = Coefficients(VM)

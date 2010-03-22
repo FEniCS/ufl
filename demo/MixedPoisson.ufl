@@ -14,7 +14,7 @@ cell = triangle
 BDM1 = FiniteElement("Brezzi-Douglas-Marini", cell, 1)
 DG0  = FiniteElement("Discontinuous Lagrange", cell, 0)
 
-element = BDM1 + DG0
+element = BDM1 * DG0
 
 (tau, w) = TestFunctions(element)
 (sigma, u) = TrialFunctions(element)
