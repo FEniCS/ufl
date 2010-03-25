@@ -1,3 +1,4 @@
+ - Experimental import of x from tetrahedron
  - Make lhs/rhs work for resrictions
  - Redefine operator + for FiniteElements and replace + by *
  - Rename ElementUnion -> EnrichedElement
