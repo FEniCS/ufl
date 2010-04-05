@@ -20,7 +20,7 @@ cell = tetrahedron
 order = 1
 
 GRAD = FiniteElement("Lagrange", cell, order)
-CURL = FiniteElement("N1curl", cell, order-1)
+CURL = FiniteElement("N1curl", cell, order)
 
 VectorLagrange = VectorElement("Lagrange", cell, order+1)
 

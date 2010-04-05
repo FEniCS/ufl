@@ -361,7 +361,7 @@ class FFCTestCase(unittest.TestCase):
         GRAD = FiniteElement("Lagrange", shape, order)
 
         # FFC notation: CURL = FiniteElement("Nedelec", shape, order-1)
-        CURL = FiniteElement("N1curl", shape, order-1)
+        CURL = FiniteElement("N1curl", shape, order)
 
         VectorLagrange = VectorElement("Lagrange", shape, order+1)
 

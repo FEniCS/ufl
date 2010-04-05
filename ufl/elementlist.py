@@ -34,7 +34,7 @@ register_element("Lagrange", "CG", 0, (1, None),
 register_element("Discontinuous Lagrange", "DG", 0, (0, None),
                  ("interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
 
-register_element("Bubble", "B", 0, (1, None),
+register_element("Bubble", "B", 0, (2, None),
                  ("interval", "triangle", "tetrahedron"))
 
 register_element("Crouzeix-Raviart", "CR", 0, (1, 1),
@@ -46,16 +46,16 @@ register_element("Brezzi-Douglas-Marini", "BDM", 1, (1, None),
 register_element("Brezzi-Douglas-Fortin-Marini", "BDFM", 1, (1, None),
                  ("triangle", "tetrahedron"))
 
-register_element("Raviart-Thomas", "RT", 1, (0, None),
+register_element("Raviart-Thomas", "RT", 1, (1, None),
                  ("triangle", "tetrahedron"))
 
-register_element("Nedelec 1st kind H(div)", "N1div", 1, (0, None),
+register_element("Nedelec 1st kind H(div)", "N1div", 1, (1, None),
                  ("triangle", "tetrahedron"))
 
 register_element("Nedelec 2nd kind H(div)", "N2div", 1, (1, None),
                  ("triangle", "tetrahedron"))
 
-register_element("Nedelec 1st kind H(curl)", "N1curl", 1, (0, None),
+register_element("Nedelec 1st kind H(curl)", "N1curl", 1, (1, None),
                  ("triangle", "tetrahedron"))
 
 register_element("Nedelec 2nd kind H(curl)", "N2curl", 1, (1, None),
@@ -65,4 +65,7 @@ register_element("Quadrature", "Q", 0, (0, None),
                  (None, "interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
 
 register_element("Boundary Quadrature", "BQ", 0, (0, None),
+                 (None, "interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
+
+register_element("Real", "R", 0, (0, 0),
                  (None, "interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
