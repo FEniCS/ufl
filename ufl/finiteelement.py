@@ -13,6 +13,8 @@ from ufl.permutation import compute_indices
 from ufl.elementlist import ufl_elements
 from ufl.common import product, index_to_component, component_to_index, istr
 from ufl.geometry import as_cell, domain2facet
+from ufl.log import info_blue
+from ufl.log import BLUE
 
 class FiniteElementBase(object):
     "Base class for all finite elements"
@@ -88,6 +90,9 @@ class FiniteElementBase(object):
     def __add__(self, other):
         "Add two elements, creating an enriched element"
         ufl_assert(isinstance(other, FiniteElementBase), "Can't add element and %s." % other.__class__)
+        print
+        print BLUE % "WARNING: Creating an EnrichedElement,\n         if you intended to create a MixedElement use '*' instead of '+'."
+        print
         return EnrichedElement(self, other)
 
     def __repr__(self):

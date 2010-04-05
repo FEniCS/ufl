@@ -5,7 +5,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-10-01"
 
 # Modified by Anders Logg, 2008-2009.
-# Last changed: 2009-12-08
+# Last changed: 2010-03-23
 
 from itertools import izip
 
@@ -123,9 +123,11 @@ class PartExtracter(Transformer):
     def linear_operator(self, x, arg):
         "A linear operator in a single argument accepting arity > 0, providing whatever basis functions its argument does."
         o, provides = arg
-        x = self.reuse_if_possible(x, (o,))
+        #x = self.reuse_if_possible(x, (o,)) # commented out, seems to break positive/negative restrictions
         return (x, provides)
     # TODO: List all linear operators (use subclassing to simplify stuff like this?)
+    positive_restricted = linear_operator
+    negative_restricted = linear_operator
 
     def linear_indexed_type(self, x):
         f, i = x.operands()
