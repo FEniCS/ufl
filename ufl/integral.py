@@ -70,7 +70,7 @@ class Measure(object):
         "Return the integral metadata. What this can be is currently undefined." # TODO!
         return self._metadata
 
-    def __call__(self, domain_id, metadata=None): # TODO: Define how metadata should represent integration data here: quadrature_degree, quadrature_rule, ...
+    def __call__(self, domain_id=None, metadata=None): # TODO: Define how metadata should represent integration data here: quadrature_degree, quadrature_rule, ...
         "Return integral of same type on given sub domain"
         return self.reconstruct(domain_id=domain_id, metadata=metadata)
 
