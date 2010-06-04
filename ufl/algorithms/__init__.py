@@ -43,7 +43,8 @@ from ufl.algorithms.propagate_restrictions import propagate_restrictions
 
 # Utilities for transforming complete Forms into other Forms
 from ufl.algorithms.formtransformations import compute_form_adjoint, compute_form_action, compute_energy_norm, \
-                                               compute_form_lhs, compute_form_rhs, compute_form_functional #, compute_dirichlet_functional
+                                               compute_form_lhs, compute_form_rhs, compute_form_functional, \
+                                               compute_form_with_arity
 
 # Utilities for Automatic Functional Differentiation
 from ufl.algorithms.ad import expand_derivatives #, compute_diff, propagate_spatial_derivatives, compute_form_derivative
