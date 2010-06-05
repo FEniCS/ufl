@@ -5,7 +5,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-10-01"
 
 # Modified by Anders Logg, 2008-2009.
-# Modified by Garth Nl Wells, 2010.
+# Modified by Garth N. Wells, 2010.
 # Last changed: 2010-03-23
 
 from itertools import izip
@@ -37,8 +37,9 @@ class PartExtracter(Transformer):
 
     def expr(self, x):
         "The default is a nonlinear operator not accepting any basis functions in its children."
+        # TODO: Other operators to implement particularly? Will see when errors here trigger...
         if any(isinstance(t, Argument) for t in traverse_terminals(x)):
-            error("Found basis function in %s, this is an invalid expression." % repr(x)) # TODO: Other operators to implement particularly? Will see when errors here trigger...
+            error("Found basis function in %s, this is an invalid expression." % repr(x))
         return (x, set())
     terminal = expr
 
@@ -122,7 +123,29 @@ class PartExtracter(Transformer):
     dot = product
 
     def division(self, x, *ops):
-        error("Please implement PartExtracter divsion.")
+        # FIXME: Check logic of this function
+
+        # Get numerator and denominator
+        numerator, denominator = x.operands()
+
+        provides = []
+
+        # Visit numerator
+        numerator_x, numerator_provides = self.visit(numerator)
+        provides.extend(numerator_provides)
+
+        # Visit denominator
+        denominator_x, denominator_provides = self.visit(denominator)
+        provides.extend(denominator_provides)
+
+        # Check for basis function in the denominator
+        if any(isinstance(t, Argument) for t in traverse_terminals(denominator)):
+            error("Found basis function in denominator of %s , this is an invalid expression." % repr(x))
+
+        # FIXME: Should we try using 'reuse_if_possible'?
+
+        provides = set(provides)
+        return (x, provides)
 
     def linear_operator(self, x, arg):
         "A linear operator in a single argument accepting arity > 0, providing whatever basis functions its argument does."
@@ -168,7 +191,6 @@ def compute_form_with_arity(form, arity): # TODO: Test and finish
     pe = PartExtracter(arguments)
     def _transform(e):
         e, provides = pe.visit(e)
-        #print "compute_form_with_arity:", arity, bf, e, provides
         if provides == arguments:
             return e
         return Zero()
