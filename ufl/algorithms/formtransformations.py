@@ -5,6 +5,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-10-01"
 
 # Modified by Anders Logg, 2008-2009.
+# Modified by Garth Nl Wells, 2010.
 # Last changed: 2010-03-23
 
 from itertools import izip
@@ -119,6 +120,9 @@ class PartExtracter(Transformer):
     inner = product
     outer = product
     dot = product
+
+    def division(self, x, *ops):
+        error("Please implement PartExtracter divsion.")
 
     def linear_operator(self, x, arg):
         "A linear operator in a single argument accepting arity > 0, providing whatever basis functions its argument does."
