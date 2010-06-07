@@ -2,8 +2,7 @@
 import sys, os, optparse
 from pprint import pprint
 
-from ufl.algorithms import load_forms, ufl2dot, tree_format, forms2latexdocument
-
+from ufl.algorithms import load_forms, ufl2dot, tree_format, forms2latexdocument, preprocess
 
 # --- Utilities
 
@@ -78,35 +77,35 @@ for arg in args:
     #print "name =", name
     #print "basename =", basename
     #print "ext =", ext
-    
+
     # 1) Load forms
     forms = load_forms(uflfilename)
-    formdatas = [f.form_data() for f in forms]
-    
+    formdatas = [preprocess(f).form_data() for f in forms]
+
     # 2) Transform forms
     compiled_forms = []
     if options.compile:
         pass # TODO
         #compiled_forms = [compile_form(form) for form in forms]
-    
+
     # 3) Render result
     format = options.format
-    
+
     # Make format string conform
     if format == "latex":
         format = "tex"
     if format == "str":
         if options.compile:
             print "Warning: compile option not used."
-        rendered = "\n\n".join("Form %s:\n%s\n" % (fd.name, str(fd.form)) for fd in formdatas)
+        rendered = "\n\n".join("Form %s:\n%s\n" % (fd.name, str(fd._form)) for fd in formdatas)
     elif format == "repr":
         if options.compile:
             print "Warning: compile option not used."
-        rendered = "\n\n".join("Form %s:\n%s\n" % (fd.name, repr(fd.form)) for fd in formdatas)
+        rendered = "\n\n".join("Form %s:\n%s\n" % (fd.name, repr(fd._form)) for fd in formdatas)
     elif format == "tree":
         if options.compile:
             print "Warning: compile option not used."
-        rendered = "\n\n".join("Form %s:\n%s\n" % (fd.name, tree_format(fd.form)) for fd in formdatas)
+        rendered = "\n\n".join("Form %s:\n%s\n" % (fd.name, tree_format(fd._form)) for fd in formdatas)
     elif format == "dot":
         if options.compile:
             print "Warning: compile option not used."
@@ -115,7 +114,7 @@ for arg in args:
         for i, fd in enumerate(formdatas):
             begin = (i == 0)
             end = (i == len(formdatas)-1)
-            dot, nodeoffset = ufl2dot(fd.form, fd.name, nodeoffset, begin, end)
+            dot, nodeoffset = ufl2dot(fd._form, fd.name, nodeoffset, begin, end)
             data.append((fd.name, dot))
         rendered = "\n\n".join("/* Form %s: */\n%s\n" % (a,b) for (a,b) in data)
     elif format == "tex":
@@ -123,10 +122,10 @@ for arg in args:
     else:
         print "Unknown rendering format ", format
         sys.exit(-1)
-    
+
     # 4) Convert file format
     filetype = options.filetype
-    
+
     # Default filetypes:
     if not filetype:
         if format == "str":
@@ -139,17 +138,17 @@ for arg in args:
             filetype = "dot"
         elif format == "tex":
             filetype = "tex"
-    
+
     # Guess that the filetype is the ext, usually the case
     ext = filetype
     if ext and not ext.startswith("."):
         ext = "." + ext
     outputfilename = os.path.join(options.outputdir, basename + ext)
-    
+
     # Pure text files:
     if filetype == "txt" or filetype == format:
         write_file(outputfilename, rendered)
-    
+
     # Conversions from tex:
     elif format == "tex":
         texfile = os.path.join(options.outputdir, basename + ".tex") # TODO: Use a proper temp file?
@@ -164,7 +163,7 @@ for arg in args:
         else:
             print "Unknown format and filetype combination:", format, filetype
             sys.exit(-1)
-    
+
     # Conversions from dot:
     elif format == "dot":
         tempfile = os.path.join(options.outputdir, basename + ".dot") # TODO: Use a proper temp file?
@@ -184,9 +183,9 @@ for arg in args:
         else:
             print "Unknown format and filetype combination:", format, filetype
             sys.exit(-1)
-    
+
     # That's all we know!
     else:
         print "Unknown file type ", filetype
         sys.exit(-1)
- 
+
