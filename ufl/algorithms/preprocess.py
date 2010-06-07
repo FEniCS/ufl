@@ -5,7 +5,7 @@ raw input form given by a user."""
 __authors__ = "Anders Logg"
 __date__ = "2009-12-07"
 
-# Last changed: 2010-02-14
+# Last changed: 2010-06-07
 
 from ufl.log import info, warning, error
 from ufl.assertions import ufl_assert
@@ -142,5 +142,8 @@ def preprocess(form, object_names={}, common_cell=None):
 
     # Attach form data to form
     form._form_data = form_data
+
+    # Attach preprocessed form to form data
+    form_data._form = form
 
     return form
