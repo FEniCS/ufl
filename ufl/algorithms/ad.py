@@ -57,7 +57,9 @@ def expand_derivatives(form):
     dim = None if cell is None else cell.geometric_dimension()
 
     def ad_routine(e):
-        # TODO: How to switch between forward and reverse mode? Can we pick the best in each context? Want to try a mixed implementation on the graph.
+        # TODO: How to switch between forward and reverse mode? Can we pick the
+        #       best in each context? Want to try a mixed implementation on the
+        #       graph.
         return forward_ad(e, dim)
         #return reverse_ad(e, dim)
 

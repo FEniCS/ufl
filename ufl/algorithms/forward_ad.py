@@ -4,7 +4,8 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-08-19"
 
 # Modified by Anders Logg, 2009.
-# Last changed: 2009-12-08
+# Modified by Garth N. Wells, 2010.
+# Last changed: 2010-06-07
 
 from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert
@@ -13,7 +14,7 @@ from ufl.indexutils import unique_indices
 
 # All classes:
 from ufl.terminal import Terminal, Tuple
-from ufl.constantvalue import Zero, IntValue, Identity,\
+from ufl.constantvalue import ConstantValue, Zero, IntValue, Identity,\
     is_true_ufl_scalar, is_ufl_scalar
 from ufl.variable import Variable
 from ufl.coefficient import ConstantBase
@@ -30,7 +31,6 @@ from ufl.differentiation import Derivative, FunctionDerivative,\
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 
 # Lists of all Expr classes
-#from ufl.classes import ufl_classes, terminal_classes, nonterminal_classes
 from ufl.classes import terminal_classes
 from ufl.operators import dot, inner, outer, lt, eq, conditional, sign
 from ufl.operators import sqrt, exp, ln, cos, sin, tan, acos, asin, atan
@@ -429,14 +429,22 @@ class ForwardAD(Transformer):
     # --- Restrictions
 
     def positive_restricted(self, o, a):
+        # TODO: Assuming here that restriction and differentiation commutes. Is this correct?
         f, fp = a
         o = self.reuse_if_possible(o, f)
-        return (o, fp('+')) # TODO: Assuming here that restriction and differentiation commutes. Is this correct?
+        if isinstance(fp, ConstantValue):
+            return (o, fp)
+        else:
+            return (o, fp('+'))
 
     def negative_restricted(self, o, a):
+        # TODO: Assuming here that restriction and differentiation commutes. Is this correct?
         f, fp = a
         o = self.reuse_if_possible(o, f)
-        return (o, fp('-')) # TODO: Assuming here that restriction and differentiation commutes. Is this correct?
+        if isinstance(fp, ConstantValue):
+            return (o, fp)
+        else:
+            return (o, fp('-'))
 
     # --- Conditionals
 
