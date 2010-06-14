@@ -6,7 +6,9 @@ __date__ = "2008-10-01"
 
 # Modified by Anders Logg, 2008-2009.
 # Modified by Garth N. Wells, 2010.
-# Last changed: 2010-03-23
+# Modified by Marie E. Rognes, 2010.
+
+# Last changed: 2010-06-14
 
 from itertools import izip
 
@@ -20,6 +22,7 @@ from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.constantvalue import Zero
 from ufl.indexed import Indexed
+from ufl.indexsum import IndexSum
 
 # Lists of all Expr classes
 from ufl.classes import ufl_classes, terminal_classes, nonterminal_classes
@@ -109,6 +112,11 @@ class PartExtracter(Transformer):
         provides = []
         ops2 = []
         for o, o_provides in ops:
+
+            # Return zero if any factor is an indexed zero
+            if isinstance(o, Indexed) and isinstance(o._expression, Zero):
+                return (0*x, set([]))
+
             provides.extend(o_provides)
             ops2.append(o)
         n = len(provides)
@@ -134,6 +142,9 @@ class PartExtracter(Transformer):
         numerator_x, numerator_provides = self.visit(numerator)
         provides.extend(numerator_provides)
 
+        if isinstance(numerator_x, Zero):
+            return (0*x, set([]))
+
         # Visit denominator
         denominator_x, denominator_provides = self.visit(denominator)
         provides.extend(denominator_provides)
@@ -149,6 +160,7 @@ class PartExtracter(Transformer):
 
     def linear_operator(self, x, arg):
         "A linear operator in a single argument accepting arity > 0, providing whatever basis functions its argument does."
+
         o, provides = arg
         #x = self.reuse_if_possible(x, (o,)) # commented out, seems to break positive/negative restrictions
         return (x, provides)
@@ -157,12 +169,28 @@ class PartExtracter(Transformer):
     negative_restricted = linear_operator
 
     def linear_indexed_type(self, x):
+
         f, i = x.operands()
         f2, provides = self.visit(f)
         x = self.reuse_if_possible(x, f2, i)
+
+        if isinstance(x, Zero):
+            return (0*x, set([]))
+
         return (x, provides)
+
+    def indexed(self, x):
+
+        f, i = x.operands()
+        f2, provides = self.visit(f)
+        x = self.reuse_if_possible(x, f2, i)
+
+        if isinstance(x._expression, Zero):
+            return (0*x, set([]))
+
+        return (x, provides)
+
     index_sum = linear_indexed_type
-    indexed = linear_indexed_type
     component_tensor = linear_indexed_type
     spatial_derivative = linear_indexed_type
 
@@ -196,6 +224,30 @@ def compute_form_with_arity(form, arity): # TODO: Test and finish
         return Zero()
     res = transform_integrands(form, _transform)
     return res
+
+def compute_form_arities(form):
+    """Return set of arities of terms present in form."""
+
+    def _transform(e):
+        e, provides = pe.visit(e)
+        if provides == sub_arguments:
+            return e
+        return Zero()
+
+    arities = set()
+    arguments = extract_arguments(form)
+
+    for arity in range(len(arguments)+1):
+        sub_arguments = set(arguments[:arity])
+        pe = PartExtracter(sub_arguments)
+        for itg in form.integrals():
+            integrand = _transform(itg.integrand())
+            if not integrand or isinstance(integrand, Zero):
+                continue
+            arities.add(arity)
+            break
+
+    return arities
 
 def compute_form_lhs(form):
     """Compute the left hand side of a form.
