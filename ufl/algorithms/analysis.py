@@ -242,7 +242,7 @@ def extract_max_quadrature_element_degree(integral):
 def estimate_quadrature_degree(integral):
     "Estimate the necessary quadrature order for integral using the sum of basis function degrees."
     arguments = extract_arguments(integral)
-    degrees = [b.element().degree() for v in arguments]
+    degrees = [v.element().degree() for v in arguments]
     if len(arguments) == 0:
         return None
     if len(arguments) == 1:
