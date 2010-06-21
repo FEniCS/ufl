@@ -8,7 +8,7 @@ __date__ = "2008-10-01"
 # Modified by Garth N. Wells, 2010.
 # Modified by Marie E. Rognes, 2010.
 
-# Last changed: 2010-06-14
+# Last changed: 2010-06-22
 
 from itertools import izip
 
@@ -163,6 +163,10 @@ class PartExtracter(Transformer):
 
         o, provides = arg
         #x = self.reuse_if_possible(x, (o,)) # commented out, seems to break positive/negative restrictions
+
+        if isinstance(o, Zero):
+            return (0*x, set([]))
+
         return (x, provides)
     # TODO: List all linear operators (use subclassing to simplify stuff like this?)
     positive_restricted = linear_operator
