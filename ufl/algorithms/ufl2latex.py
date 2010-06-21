@@ -575,7 +575,8 @@ def forms2latexdocument(forms, uflfilename, compile=False):
     for form in forms:
 
         # Compute form data
-        form_data = FormData(form)
+        form = preprocess(form)
+        form_data = form.form_data()
 
         # Generate LaTex code
         title = "Form %s" % form_data.name
