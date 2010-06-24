@@ -1,7 +1,7 @@
 
 # TODO: check more element definitions, mixed elements, subelements, element restrictions, element unions
 
-from ufl import FiniteElement, VectorElement, TensorElement, MixedElement, EnrichedElement, ElementRestriction
+from ufl import FiniteElement, VectorElement, TensorElement, MixedElement, EnrichedElement, RestrictedElement
 from ufl import interval, triangle, quadrilateral, tetrahedron, hexahedron
 
 all_cells = (interval, triangle, quadrilateral, tetrahedron, hexahedron)

@@ -131,7 +131,7 @@ from ufl.geometry import Cell, Space, SpatialCoordinate, FacetNormal
 
 # Finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
-    MixedElement, VectorElement, TensorElement, EnrichedElement, ElementRestriction
+    MixedElement, VectorElement, TensorElement, EnrichedElement, RestrictedElement
 
 # Hook to extend predefined element families
 from ufl.elementlist import register_element, show_elements #, ufl_elements

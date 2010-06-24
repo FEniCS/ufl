@@ -109,7 +109,7 @@ class FiniteElementBase(object):
         from ufl.integral import Measure
         from ufl.geometry import Cell
         if isinstance(index, Measure) or isinstance(as_cell(index), Cell):
-            return ElementRestriction(self, index)
+            return RestrictedElement(self, index)
         #if isinstance(index, int):
         #    return SubElement(self, index)
         return NotImplemented
@@ -406,14 +406,14 @@ class EnrichedElement(FiniteElementBase):
         "Format as string for pretty printing."
         return "<%s>" % " + ".join(e.shortstr() for e in self._elements)
 
-class ElementRestriction(FiniteElementBase):
+class RestrictedElement(FiniteElementBase):
     def __init__(self, element, domain):
         ufl_assert(isinstance(element, FiniteElementBase), "Expecting a finite element instance.")
         from ufl.integral import Measure
         from ufl.geometry import Cell
         ufl_assert(isinstance(domain, Measure) or isinstance(as_cell(domain), Cell),\
             "Expecting a subdomain represented by a Measure or Cell instance.")
-        FiniteElementBase.__init__(self, "ElementRestriction", element.cell(), element.degree(), element.value_shape())
+        FiniteElementBase.__init__(self, "RestrictedElement", element.cell(), element.degree(), element.value_shape())
         self._element = element
 
         # Just attach domain if it is a Measure
@@ -427,7 +427,7 @@ class ElementRestriction(FiniteElementBase):
                 domain = Cell(domain2facet[self.cell().domain()])
             self._domain = domain
 
-        self._repr = "ElementRestriction(%r, %r)" % (element, domain)
+        self._repr = "RestrictedElement(%r, %r)" % (element, domain)
 
     def element(self):
         "Return the element which is restricted."
