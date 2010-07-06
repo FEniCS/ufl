@@ -8,7 +8,7 @@ __date__ = "2008-10-01"
 # Modified by Garth N. Wells, 2010.
 # Modified by Marie E. Rognes, 2010.
 
-# Last changed: 2010-06-22
+# Last changed: 2010-07-06
 
 from itertools import izip
 
@@ -203,8 +203,8 @@ class PartExtracter(Transformer):
         oprov = [o[1] for o in ops]
         ops2  = [o[0] for o in ops]
         s = "\n\n".join("%s\n%s" % (a,b) for (a,b) in ops)
-        ufl_assert(all(provides == op for op in oprov),\
-                "List tensor elements provide different properties, invalid expression.\n%s" % (s,))
+        #ufl_assert(all(provides == op for op in oprov),\
+        #        "List tensor elements provide different properties, invalid expression.\n%s" % (s,))
         ufl_assert(all(isinstance(o, Expr) for o in ops2), \
                 "Got wrong types in list_tensor handler.")
         x = self.reuse_if_possible(x, *ops2)
