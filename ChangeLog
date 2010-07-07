@@ -1,3 +1,4 @@
+ - Add CellVolume to Cell (Cell.v)
 0.5.3 [2010-07-01]
  - Rename ElementRestriction --> RestrictedElement
  - Experimental import of x from tetrahedron

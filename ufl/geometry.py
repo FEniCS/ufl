@@ -100,6 +100,25 @@ class FacetNormal(GeometricQuantity):
     def __eq__(self, other):
         return isinstance(other, FacetNormal) and other._cell == self._cell
 
+class CellVolume(GeometricQuantity):
+    "Representation of a cell volume."
+    __slots__ = ("_repr",)
+    def __init__(self, cell):
+        GeometricQuantity.__init__(self, cell)
+        self._repr = "CellVolume(%r)" % self._cell
+
+    def shape(self):
+        return ()
+
+    def __str__(self):
+        return "v"
+
+    def __repr__(self):
+        return self._repr
+
+    def __eq__(self, other):
+        return isinstance(other, CellVolume) and other._cell == self._cell
+
 # TODO: If we include this here, we must define exactly what is meant by the mesh size, possibly adding multiple kinds of mesh sizes (hmin, hmax, havg, ?)
 #class MeshSize(GeometricQuantity):
 #    def __init__(self, cell):
@@ -139,7 +158,7 @@ class Space(object):
 class Cell(object):
     "Representation of a finite element cell."
     __slots__ = ("_domain", "_degree", "_space", "_geometric_dimension",
-                 "_topological_dimension", "_repr", "d", "n", "x")
+                 "_topological_dimension", "_repr", "d", "n", "x", "v")
 
     def __init__(self, domain, degree=1, space=None):
         "Initialize basic cell description"
@@ -178,6 +197,7 @@ class Cell(object):
         # Attach expression nodes derived from this cell
         self.n = FacetNormal(self)
         self.x = SpatialCoordinate(self)
+        self.v = CellVolume(self)
         #self.h = MeshSize(self)
         #self.hmin = MeshSizeMin(self)
         #self.hmax = MeshSizeMax(self)

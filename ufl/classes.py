@@ -16,7 +16,7 @@ from ufl.variable import Variable, Label
 from ufl.finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
 from ufl.argument import Argument, TestFunction, TrialFunction
 from ufl.coefficient import Coefficient, ConstantBase, VectorConstant, TensorConstant, Constant
-from ufl.geometry import GeometricQuantity, SpatialCoordinate, FacetNormal, Space, Cell
+from ufl.geometry import GeometricQuantity, SpatialCoordinate, FacetNormal, Space, Cell, CellVolume
 from ufl.indexing import MultiIndex, Indexed, IndexBase, Index, FixedIndex, IndexSum
 from ufl.tensors import ListTensor, ComponentTensor
 from ufl.algebra import Sum, Product, Division, Power, Abs
