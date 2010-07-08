@@ -111,13 +111,32 @@ class CellVolume(GeometricQuantity):
         return ()
 
     def __str__(self):
-        return "v"
+        return "volume"
 
     def __repr__(self):
         return self._repr
 
     def __eq__(self, other):
         return isinstance(other, CellVolume) and other._cell == self._cell
+
+class Circumradius(GeometricQuantity):
+    "Representation of the circumradius of a cell."
+    __slots__ = ("_repr",)
+    def __init__(self, cell):
+        GeometricQuantity.__init__(self, cell)
+        self._repr = "Circumradius(%r)" % self._cell
+
+    def shape(self):
+        return ()
+
+    def __str__(self):
+        return "circumradius"
+
+    def __repr__(self):
+        return self._repr
+
+    def __eq__(self, other):
+        return isinstance(other, Circumradius) and other._cell == self._cell
 
 # TODO: If we include this here, we must define exactly what is meant by the mesh size, possibly adding multiple kinds of mesh sizes (hmin, hmax, havg, ?)
 #class MeshSize(GeometricQuantity):
@@ -158,7 +177,8 @@ class Space(object):
 class Cell(object):
     "Representation of a finite element cell."
     __slots__ = ("_domain", "_degree", "_space", "_geometric_dimension",
-                 "_topological_dimension", "_repr", "d", "n", "x", "volume")
+                 "_topological_dimension", "_repr", "d", "n", "x", "volume",
+                 "circumradius")
 
     def __init__(self, domain, degree=1, space=None):
         "Initialize basic cell description"
@@ -198,6 +218,7 @@ class Cell(object):
         self.n = FacetNormal(self)
         self.x = SpatialCoordinate(self)
         self.volume = CellVolume(self)
+        self.circumradius = Circumradius(self)
         #self.h = MeshSize(self)
         #self.hmin = MeshSizeMin(self)
         #self.hmax = MeshSizeMax(self)

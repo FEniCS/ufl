@@ -22,7 +22,19 @@ class RestrictionPropagator(ReuseTransformer):
         return r
 
     def facet_normal(self, o):
-        ufl_assert(self.current_restriction is not None, "Facet normal must be restricted.")
+        ufl_assert(self.current_restriction is not None, "FacetNormal must be restricted.")
+        #if self.current_restriction is None:
+        #    return o
+        return o(self.current_restriction)
+
+    def cell_volume(self, o):
+        ufl_assert(self.current_restriction is not None, "CellVolume must be restricted.")
+        #if self.current_restriction is None:
+        #    return o
+        return o(self.current_restriction)
+
+    def circumradius(self, o):
+        ufl_assert(self.current_restriction is not None, "Circumradius must be restricted.")
         #if self.current_restriction is None:
         #    return o
         return o(self.current_restriction)

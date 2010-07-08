@@ -127,7 +127,8 @@ from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile
     UFLException, DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 # Types for geometric quantities
-from ufl.geometry import Cell, Space, SpatialCoordinate, FacetNormal, CellVolume
+from ufl.geometry import Cell, Space, SpatialCoordinate, FacetNormal, CellVolume, \
+                         Circumradius
 
 # Finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
