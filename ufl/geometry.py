@@ -158,7 +158,7 @@ class Space(object):
 class Cell(object):
     "Representation of a finite element cell."
     __slots__ = ("_domain", "_degree", "_space", "_geometric_dimension",
-                 "_topological_dimension", "_repr", "d", "n", "x", "v")
+                 "_topological_dimension", "_repr", "d", "n", "x", "volume")
 
     def __init__(self, domain, degree=1, space=None):
         "Initialize basic cell description"
@@ -197,7 +197,7 @@ class Cell(object):
         # Attach expression nodes derived from this cell
         self.n = FacetNormal(self)
         self.x = SpatialCoordinate(self)
-        self.v = CellVolume(self)
+        self.volume = CellVolume(self)
         #self.h = MeshSize(self)
         #self.hmin = MeshSizeMin(self)
         #self.hmax = MeshSizeMax(self)
