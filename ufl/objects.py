@@ -35,8 +35,5 @@ tetrahedron   = Cell("tetrahedron", 1, R3)
 quadrilateral = Cell("quadrilateral", 1, R2)
 hexahedron    = Cell("hexahedron", 1, R3)
 
-# Experimental import of x from tetrahedron
-x = tetrahedron.x
-
 # TODO: Facet is just a dummy declaration, what can we do?
 facet         = Cell("facet", 1, R0)

@@ -62,9 +62,6 @@ Indices:
     Index, indices,
     i, j, k, l, p, q, r, s
 
-Spatial coordinate:
-    x (tetrahedron.x)
-
 Scalar to tensor expression conversion:
     as_tensor, as_vector, as_matrix
 
@@ -189,7 +186,7 @@ from ufl.formoperators import replace, derivative, action, energy_norm, rhs, lhs
 from ufl.objects import vertex, interval, triangle, tetrahedron, quadrilateral, hexahedron, facet,\
     i, j, k, l, p, q, r, s, \
     R1, R2, R3, \
-    dx, ds, dS, dE, dc, x
+    dx, ds, dS, dE, dc
 
 # Useful constants
 from math import e, pi
