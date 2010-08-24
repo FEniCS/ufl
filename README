@@ -3,13 +3,13 @@ UFL - Unified Form Language
 
 Authors:
   Martin Sandve Alnæs <martinal@simula.no>,
-  Anders Logg <logg@simula.no>
+  Anders Logg         <logg@simula.no>
 
 Contributors:
-  Kristian Oelgaard,
-  Garth Wells,
-  Marie Rognes,
-  Kent-Andre Mardal <kent-and@simula.no>
+  Kristian Oelgaard
+  Garth Wells         <gnw20@cam.ac.uk>
+  Marie Rognes
+  Kent-Andre Mardal   <kent-and@simula.no>
   Johan Hake
 
 
@@ -86,6 +86,6 @@ The Bazaar source repository for UFL is located at
 The latest code can be obtained by
   bzr branch lp:ufl
 
-A Wikipedia page with a brief overview of UFL exists at
+A wiki page with a brief overview of UFL exists at
   http://www.fenics.org/wiki/UFL
 
