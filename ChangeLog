@@ -1,3 +1,6 @@
+0.5.4 [2010-09-01]
+ - Bug fixes in PartExtracter
+ - Do not import x for coordinate
  - Add Circumradius to Cell (Cell.circumradius)
  - Add CellVolume to Cell (Cell.volume)
 0.5.3 [2010-07-01]
