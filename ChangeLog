@@ -1,3 +1,4 @@
+ - Bug fix in deviatoric operator
 0.5.4 [2010-09-01]
  - Bug fixes in PartExtracter
  - Do not import x for coordinate
