@@ -5,8 +5,8 @@ converting UFL expressions to other representations."""
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-05-07 -- 2009-11-17"
 
-# Modified by Anders Logg, 2009.
-# Last changed: 2009-12-08
+# Modified by Anders Logg, 2009-2010
+# Last changed: 2010-09-28
 
 from itertools import izip
 from inspect import getargspec
@@ -361,9 +361,10 @@ class DuplicationMarker(ReuseTransformer):
                 self._expr2variable[e2] = v
         return v
 
-# Note:
-# To avoid typing errors, the expressions for cofactor and deviatoric parts
-# below were created with the script tensoralgebrastrings.py under ufl/scripts/
+# Note: To avoid typing errors, the expressions for cofactor and
+# deviatoric parts below were created with the script
+# tensoralgebrastrings.py under sandbox/scripts/
+
 class CompoundExpander(ReuseTransformer):
     "Expands compound expressions to equivalent representations using basic operators."
     def __init__(self, geometric_dimension):
@@ -394,9 +395,9 @@ class CompoundExpander(ReuseTransformer):
     def deviatoric(self, o, A):
         sh = self._square_matrix_shape(A)
         if sh[0] == 2:
-            return as_matrix([[-A[1,1],A[0,1]],[A[1,0],-A[0,0]]])
+            return as_matrix([[-1/2*A[1,1]+1/2*A[0,0],A[0,1]],[A[1,0],1/2*A[1,1]-1/2*A[0,0]]])
         elif sh[0] == 3:
-            return as_matrix([[-A[1,1]-A[2,2],A[0,1],A[0,2]],[A[1,0],-A[0,0]-A[2,2],A[1,2]],[A[2,0],A[2,1],-A[0,0]-A[1,1]]])
+            return as_matrix(([[-1/3*A[1,1]-1/3*A[2,2]+2/3*A[0,0],A[0,1],A[0,2]],[A[1,0],2/3*A[1,1]-1/3*A[2,2]-1/3*A[0,0],A[1,2]],[A[2,0],A[2,1],-1/3*A[1,1]+2/3*A[2,2]-1/3*A[0,0]]])
         error("dev(A) not implemented for dimension %s." % sh[0])
 
     def skew(self, o, A):

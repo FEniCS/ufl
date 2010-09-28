@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-To avoid typing errors, this code was used to generate expressions 
+To avoid typing errors, this code was used to generate expressions
 for the expansion of compound expressions like the cofactor, inverse,
 and deviatoric part of a matrix.
 """
@@ -26,12 +26,12 @@ def dev(A):
     for i in range(d):
         I[i,i] = 1.0
     alpha = sum(A[i,i] for i in range(d))
-    return A - alpha*I
+    return A - alpha/d*I
 
 def devstr(d):
     A = symbolic_matrix(d, d, "A")
     return matrix2Matrix(dev(A))
-   
+
 print "Cofactors:"
 print
 print cofacstr(2)
