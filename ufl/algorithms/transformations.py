@@ -6,7 +6,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-05-07 -- 2009-11-17"
 
 # Modified by Anders Logg, 2009-2010
-# Last changed: 2010-09-28
+# Last changed: 2010-09-29
 
 from itertools import izip
 from inspect import getargspec
@@ -513,14 +513,14 @@ class CompoundExpander(ReuseTransformer):
         return as_tensor(a.dx(jj), (jj,))
 
     def curl(self, o, a):
-        # o = curl a = "a0.dx(1)-a1.dx(0)"            if a.shape() == ()
+        # o = curl a = "[a.dx(1), -a.dx(0)]"            if a.shape() == ()
         # o = curl a = "cross(nabla, (a0, a1, 0))[2]" if a.shape() == (2,)
         # o = curl a = "cross(nabla, a)"              if a.shape() == (3,)
         def c(i, j):
             return a[j].dx(i) - a[i].dx(j)
         sh = a.shape()
         if sh == ():
-            return as_vector(a.dx(0), -a.dx(0))
+            return as_vector((a.dx(1), -a.dx(0)))
         if sh == (2,):
             return c(0,1)
         if sh == (3,):
