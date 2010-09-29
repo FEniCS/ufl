@@ -4,7 +4,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14"
 
 # Modified by Anders Logg, 2009
-# Last changed: 2009-12-08
+# Last changed: 2010-09-07
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
@@ -48,7 +48,7 @@ def lhs(form):
 
 def rhs(form):
     """Given a combined bilinear and linear form,
-    extract the right hand side (negated linear form part)."
+    extract the right hand side (negated linear form part).
 
     Example:
 

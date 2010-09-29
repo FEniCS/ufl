@@ -8,7 +8,7 @@ __date__ = "2008-10-01"
 # Modified by Garth N. Wells, 2010.
 # Modified by Marie E. Rognes, 2010.
 
-# Last changed: 2010-07-06
+# Last changed: 2010-09-08
 
 from itertools import izip
 
@@ -301,9 +301,10 @@ def compute_form_action(form, function):
     if function is None:
         function = Coefficient(e)
     else:
-        ufl_assert(function.element() == e, \
-            "Trying to compute action of form on a "\
-            "function in an incompatible element space.")
+        #ufl_assert(function.element() == e, \
+        if function.element() != e:
+            print "Computing action of form on a " \
+                  "function in a different element space."
     return replace(form, { u: function })
 
 def compute_energy_norm(form, function):
