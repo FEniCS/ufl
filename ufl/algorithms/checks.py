@@ -4,7 +4,8 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14"
 
 # Modified by Anders Logg, 2008-2009.
-# Last changed: 2009-12-08
+# Modified by Mehdi Nikbakht, 2010.
+# Last changed: 2010-09-29
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
@@ -77,8 +78,8 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
 
     # Check that restrictions are permissible
     for integral in form.integrals():
-        # Only allow restricitions on interior facet integrals
-        if integral.measure().domain_type() == Measure.INTERIOR_FACET:
+        # Only allow restricitions on interior facet integrals and surface measures
+        if integral.measure().domain_type() == Measure.INTERIOR_FACET or integral.measure().domain_type() == Measure.SURFACE:
             check_restrictions(integral.integrand(), True)
         else:
             check_restrictions(integral.integrand(), False)
