@@ -14,10 +14,10 @@ from ufl.constantvalue import Zero, ScalarValue, as_ufl
 from ufl.differentiation import VariableDerivative, Grad, Div, Curl
 from ufl.tensoralgebra import Transposed, Inner, Outer, Dot, Cross, Determinant, Inverse, Cofactor, Trace, Deviatoric, Skew, Sym
 from ufl.variable import Variable
-from ufl.tensors import as_tensor
+from ufl.tensors import as_tensor, ListTensor
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin, Tan, Acos, Asin, Atan
-from ufl.indexing import indices
+from ufl.indexing import indices, Indexed
 from ufl.geometry import SpatialCoordinate
 
 #--- Basic operators ---
@@ -298,3 +298,32 @@ def asin(f):
 def atan(f):
     "The inverse tangent of f."
     return _mathfunction(f, Atan, math.atan)
+
+
+#--- Special function for exterior_derivative
+
+def exterior_derivative(f):
+
+    # meg: FIXME:
+    if isinstance(f, Indexed):
+        family = f._expression.element().family()
+    elif isinstance(f, ListTensor):
+        family = f._expressions[0]._expression.element().family()
+    else:
+        try:
+            family = f.element().family()
+        except:
+            ufl_assert(True, "Unable to determine exterior_derivative")
+
+    if "Disc" in family:
+        return f
+
+    if "Lagrange" in family:
+        return grad(f)
+
+    if "curl" in family:
+        return curl(f)
+
+    if "Brezzi" in family or "Raviart" in family:
+        return div(f)
+

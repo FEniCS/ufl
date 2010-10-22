@@ -5,10 +5,16 @@ elements by calling the function register_element."""
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __date__ = "2008-03-03 -- 2009-11-16"
 
+# Modified by Marie E. Rognes (meg@simula.no), 2010
+
 from ufl.assertions import ufl_assert
+from ufl.feec import FEEC_aliases
 
 # List of valid elements
 ufl_elements = {}
+
+# Aliases: aliases[name] (...) -> (standard_name, ...)
+aliases = {}
 
 # Function for registering new elements
 def register_element(family, short_name, value_rank, degree_range, domains):
@@ -16,6 +22,9 @@ def register_element(family, short_name, value_rank, degree_range, domains):
     ufl_assert(family not in ufl_elements, 'Finite element \"%s\" has already been registered.' % family)
     ufl_elements[family] = (family, short_name, value_rank, degree_range, domains)
     ufl_elements[short_name] = (family, short_name, value_rank, degree_range, domains)
+
+def register_alias(alias, to):
+    aliases[alias] = to
 
 def show_elements():
     print "Showing all registered elements:"
@@ -27,7 +36,6 @@ def show_elements():
         print "Degree range: ", degree_range
         print "Defined on domains:" , domains
 
-# Register valid elements
 register_element("Lagrange", "CG", 0, (1, None),
                  ("interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
 
@@ -49,12 +57,6 @@ register_element("Brezzi-Douglas-Fortin-Marini", "BDFM", 1, (1, None),
 register_element("Raviart-Thomas", "RT", 1, (1, None),
                  ("triangle", "tetrahedron"))
 
-register_element("Nedelec 1st kind H(div)", "N1div", 1, (1, None),
-                 ("triangle", "tetrahedron"))
-
-register_element("Nedelec 2nd kind H(div)", "N2div", 1, (1, None),
-                 ("triangle", "tetrahedron"))
-
 register_element("Nedelec 1st kind H(curl)", "N1curl", 1, (1, None),
                  ("triangle", "tetrahedron"))
 
@@ -69,3 +71,21 @@ register_element("Boundary Quadrature", "BQ", 0, (0, None),
 
 register_element("Real", "R", 0, (0, 0),
                  (None, "interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
+
+# Let Nedelec H(div) elements be aliases to BDMs/RTs
+register_alias("Nedelec 1st kind H(div)",
+               lambda family, cell, order, degree: ("Raviart-Thomas", cell, order))
+register_alias("N1div",
+               lambda family, cell, order, degree: ("Raviart-Thomas", cell, order))
+
+register_alias("Nedelec 2nd kind H(div)",
+               lambda family, cell, order, degree: ("Brezzi-Douglas-Marini", cell, order))
+register_alias("N2div",
+               lambda family, cell, order, degree: ("Brezzi-Douglas-Marini", cell, order))
+
+# Use P Lambda/P- Lambda aliases
+register_alias("P Lambda", lambda *foo: FEEC_aliases(*foo))
+register_alias("P- Lambda", lambda *foo: FEEC_aliases(*foo))
+
+
+

@@ -1,0 +1,30 @@
+__author__ = "Marie E. Rognes (meg@simula.no)"
+__copyright__ = "Copyright (C) 2010 Marie Rognes"
+__license__  = "GNU LGPL version 3 or any later version"
+
+"""
+This demo illustrates the FEEC notation
+
+  V = FiniteElement("P Lambda", cell, r, k)
+  V = FiniteElement("P- Lambda", cell, r, k)
+
+and their aliases.
+"""
+
+from ufl import exterior_derivative as d
+
+set_level(INFO)
+
+cells = [interval, triangle, tetrahedron]
+r = 1
+
+for cell in cells:
+    for family in ["P Lambda", "P- Lambda"]:
+        for k in range(0, cell.topological_dimension()+1):
+
+            V = FiniteElement(family, cell, r, k)
+            v = TestFunction(V)
+            u = TrialFunction(V)
+
+            a = (d(u), d(v))
+

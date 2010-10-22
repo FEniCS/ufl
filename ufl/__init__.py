@@ -167,7 +167,7 @@ from ufl.operators import rank, shape, \
                        sqrt, exp, ln, cos, sin, tan, acos, asin, atan, \
                        eq, ne, le, ge, lt, gt, conditional, sign, \
                        variable, diff, \
-                       Dx,  grad, div, curl, rot, Dn, \
+                       Dx,  grad, div, curl, rot, Dn, exterior_derivative,\
                        jump, avg
 
 # Lifting

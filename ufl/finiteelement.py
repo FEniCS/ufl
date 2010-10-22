@@ -6,11 +6,11 @@ __date__ = "2008-03-03"
 # Modified by Kristian B. Oelgaard
 # Modified by Marie E. Rognes (meg@simula.no) 2010
 
-# Last changed: 2010-03-22
+# Last changed: 2010-10-22
 
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
-from ufl.elementlist import ufl_elements
+from ufl.elementlist import ufl_elements, aliases
 from ufl.common import product, index_to_component, component_to_index, istr
 from ufl.geometry import as_cell, domain2facet
 from ufl.log import info_blue
@@ -116,10 +116,20 @@ class FiniteElementBase(object):
 
 class FiniteElement(FiniteElementBase):
     "The basic finite element class for all simple finite elements"
-    def __init__(self, family, cell, degree):
+
+    def __init__(self, family, cell, degree, form_degree=None):
         "Create finite element"
+
         cell = as_cell(cell)
         domain = cell.domain()
+
+        # Check whether this family is an alias for something else
+        if family in aliases:
+            (name, cell, r) = aliases[family](family, cell, degree, form_degree)
+            info_blue("%s, is an alias for %s " % ((family, cell, degree, form_degree),
+                                                   (name, cell, r)))
+            self.__init__(name, cell, r)
+            return
 
         # Check that the element family exists
         ufl_assert(family in ufl_elements, 'Unknown finite element "%s".' % family)
