@@ -274,9 +274,6 @@ class PartExtracter(Transformer):
 def compute_form_with_arity(form, arity):
     """Compute parts of form of given arity."""
 
-    # Preprocess form (preprocess takes care of checking)
-    #form = preprocess(form) # Hm. This leads to DOLFIN failure.
-
     # Extract all arguments in form
     arguments = extract_arguments(form)
 
@@ -297,6 +294,9 @@ def compute_form_with_arity(form, arity):
 
 def compute_form_arities(form):
     """Return set of arities of terms present in form."""
+
+    # Preprocess form (preprocess takes care of checking)
+    form = preprocess(form)
 
     # Extract all arguments present in form
     arguments = extract_arguments(form)
