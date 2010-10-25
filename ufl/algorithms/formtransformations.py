@@ -8,7 +8,7 @@ __date__ = "2008-10-01"
 # Modified by Garth N. Wells, 2010.
 # Modified by Marie E. Rognes, 2010.
 
-# Last changed: 2010-09-08
+# Last changed: 2010-10-25
 
 from itertools import izip
 
@@ -30,200 +30,266 @@ from ufl.classes import ufl_classes, terminal_classes, nonterminal_classes
 # Other algorithms:
 from ufl.algorithms.traversal import traverse_terminals
 from ufl.algorithms.analysis import extract_arguments
+from ufl.algorithms.preprocess import preprocess
 from ufl.algorithms.transformations import replace, Transformer, apply_transformer, transform_integrands
 
+def zero(e):
+    return Zero(e.shape(), e.free_indices(), e.index_dimensions())
+
 class PartExtracter(Transformer):
+    """
+    PartExtracter extracts those parts of a form that contain the
+    given argument(s).
+    """
+
     def __init__(self, arguments):
         Transformer.__init__(self)
-        self._want = Stack()
-        self._want.push(set(arguments))
+        self._want = set(arguments)
 
     def expr(self, x):
-        "The default is a nonlinear operator not accepting any basis functions in its children."
-        # TODO: Other operators to implement particularly? Will see when errors here trigger...
+        """The default is a nonlinear operator not accepting any basis
+        functions in its children."""
+
         if any(isinstance(t, Argument) for t in traverse_terminals(x)):
             error("Found basis function in %s, this is an invalid expression." % repr(x))
         return (x, set())
+
+    # Terminals that are not Variables or Arguments behave as default
+    # expr-s.
     terminal = expr
 
-    def variable(self, o):
-        # Check variable cache to reuse previously transformed variable if possible
-        e, l = o.operands()
-        res = self._variable_cache.get(l)
-        if res is not None:
-            return res
+    def variable(self, x):
+        "Return relevant parts of this variable."
 
-        # Visit the expression our variable represents
-        e2, provides = self.visit(e)
+        # Extract parts/provides from this variable's expression
+        expression, label = x.operands()
+        part, provides = self.visit(expression)
 
-        # If the expression is the same, reuse Variable object
-        if e == e2:
-            v = o
-        else:
-            # Strip Variable (expression does not represent the same value here in PartExtracter)
-            v = e2
+        # If the extracted part is zero or we provide more than we
+        # want, return zero
+        if isinstance(part, Zero) or (provides - self._want):
+            return (zero(x), set())
 
-        res = v, provides
+        # Reuse varible if possible (or reconstruct from part)
+        x = self.reuse_if_possible(x, part, label)
 
-        # Cache variable
-        self._variable_cache[l] = res
-        return res
+        return (x, provides)
 
     def argument(self, x):
-        "An argument provides itself, and the requirement can't include any more than itself."
-        return (x, set((x,)))
+        "Return itself unless itself provides too much."
+
+        # An argument provides itself
+        provides = set((x,))
+
+        # If we provide more than we want, return zero
+        if provides - self._want:
+            return (zero(x), set())
+
+        return (x, provides)
 
     def sum(self, x):
-        "A sum requires nothing of its children, but only reuses those children who provides what is required."
-        want = self._want.peek()
-        provides = set()
+        """
+        Return the terms that might eventually yield the correct
+        parts(!)
 
-        # Filter operands providing too many basis functions
-        ops = []
-        for op in x.operands():
-            o, o_provides = self.visit(op)
-            # if o provides more than we want, skip it
-            if not (o_provides - want):
-                if len(o_provides) > len(provides):
-                    provides = o_provides
-                ops.append((o, o_provides))
+        The logic required for sums is a bit elaborate:
 
-        # Filter operands providing too few basis functions
-        ops2 = []
-        for o, o_provides in ops:
-            if len(o_provides) == len(provides):
-                if o_provides == provides:
-                    ops2.append(o)
-                else:
-                    error("Invalid sum of expressions with incompatible basis function configurations: %s" % repr(x))
+        A sum may contain terms providing different arguments. We
+        should return (a sum of) a suitable subset of these
+        terms. Those should all provide the same arguments.
+
+        For each term in a sum, there are 2 simple possibilities:
+
+        1a) The relevant part of the term is zero -> skip.
+        1b) The term provides more arguments than we want -> skip
+
+        2) If all terms fall into the above category, we can just
+        return zero.
+
+        Any remaining terms may provide exactly the arguments we want,
+        or fewer. This is where things start getting interesting.
+
+        3) Bottom-line: if there are terms with providing different
+        arguments -- provide terms that contain the most arguments. If
+        there are terms providing different sets of same size -> throw
+        error (e.g. Argument(-1) + Argument(-2))
+        """
+
+        parts_that_provide = {}
+
+        # 1. Skip terms that provide too much
+        for term in x.operands():
+
+            # Visit this term in the sum
+            part, term_provides = self.visit(term)
+
+            # If this part is zero or it provides more than we want,
+            # skip it
+            if isinstance(part, Zero) or (term_provides - self._want):
+                continue
+
+            # Add the contributions from this part to temporary list
+            term_provides = frozenset(term_provides)
+            if term_provides in parts_that_provide:
+                parts_that_provide[term_provides] += [part]
             else:
-                pass
-        from ufl.common import lstr
+                parts_that_provide[term_provides] = [part]
 
-        # Reuse or reconstruct
-        if ops2:
-            x = self.reuse_if_possible(x, *ops2)
-        else:
-            op0 = x.operands()[0]
-            x = Zero(op0.shape(), op0.free_indices(), op0.index_dimensions())
-        return (x, provides)
+        # 2. If there are no remaining terms, return zero
+        if not parts_that_provide:
+            return (zero(x), set())
+
+        # 3. Return the terms that provide the biggest set
+        most_provided = frozenset()
+        for (provideds, parts) in parts_that_provide.iteritems():
+
+            # Throw error if size of sets are equal (and not zero)
+            if len(provideds) == len(most_provided) and len(most_provided):
+                error("Don't know what to do with sums with different basis functions")
+
+            if provideds > most_provided:
+                most_provided = provideds
+
+        terms = parts_that_provide[most_provided]
+        x = self.reuse_if_possible(x, *terms)
+        return (x, most_provided)
+
 
     def product(self, x, *ops):
-        provides = []
-        ops2 = []
-        for o, o_provides in ops:
+        """ Note: Product is a visit-children-first handler. ops are
+        the visited factors."""
 
-            # Return zero if any factor is an indexed zero
-            if isinstance(o, Indexed) and isinstance(o._expression, Zero):
-                return (0*x, set([]))
+        provides = set()
+        factors = []
 
-            provides.extend(o_provides)
-            ops2.append(o)
-        n = len(provides)
-        provides = set(provides)
-        m = len(provides)
-        ufl_assert(m == n, "Found product of basis functions, forms must be linear in each basis function argument: %s" % repr(x))
-        x = self.reuse_if_possible(x, *ops2)
+        for factor, factor_provides in ops:
+
+            # If any factor is zero, return
+            if isinstance(factor, Zero):
+                return (zero(x), set())
+
+            # Add factor to factors and extend provides
+            factors.append(factor)
+            provides = provides | factor_provides
+
+            # If we provide more than we want, return zero
+            if provides - self._want:
+                return (zero(x), provides)
+
+        # Reuse product if possible (or reconstruct from factors)
+        x = self.reuse_if_possible(x, *factors)
+
         return (x, provides)
 
+    # inner, outer and dot all behave as product
     inner = product
     outer = product
     dot = product
 
-    def division(self, x, *ops):
-        # FIXME: Check logic of this function
+    def division(self, x):
+        "Return parts_of_numerator/denominator."
 
         # Get numerator and denominator
         numerator, denominator = x.operands()
 
-        provides = []
-
-        # Visit numerator
-        numerator_x, numerator_provides = self.visit(numerator)
-        provides.extend(numerator_provides)
-
-        if isinstance(numerator_x, Zero):
-            return (0*x, set([]))
-
-        # Visit denominator
-        denominator_x, denominator_provides = self.visit(denominator)
-        provides.extend(denominator_provides)
-
-        # Check for basis function in the denominator
+        # Check for basis functions in the denominator
         if any(isinstance(t, Argument) for t in traverse_terminals(denominator)):
             error("Found basis function in denominator of %s , this is an invalid expression." % repr(x))
 
-        # FIXME: Should we try using 'reuse_if_possible'?
+        # Visit numerator
+        numerator_parts, provides = self.visit(numerator)
 
-        provides = set(provides)
+        # If numerator is zero, return zero. (No need to check whether
+        # it provides too much, already checked by visit.)
+        if isinstance(numerator_parts, Zero):
+            return (zero(x), set())
+
+        # Reuse x if possible, otherwise reconstruct from (parts of)
+        # numerator and denominator
+        x = self.reuse_if_possible(x, numerator_parts, denominator)
+
         return (x, provides)
 
     def linear_operator(self, x, arg):
-        "A linear operator in a single argument accepting arity > 0, providing whatever basis functions its argument does."
+        """A linear operator in a single argument accepting arity > 0,
+        providing whatever basis functions its argument does."""
 
-        o, provides = arg
-        #x = self.reuse_if_possible(x, (o,)) # commented out, seems to break positive/negative restrictions
+        # linear_operator is a visit-children-first handler. Handled
+        # arguments are in arg.
+        part, provides = arg
 
-        if isinstance(o, Zero):
-            return (0*x, set([]))
+        # Discard if part is zero. (No need to check whether we
+        # provide too much, already checked by children.)
+        if isinstance(part, Zero):
+            return (zero(x), set())
 
-        return (x, provides)
-    # TODO: List all linear operators (use subclassing to simplify stuff like this?)
+        x = self.reuse_if_possible(x, part)
+
+        return (part, provides)
+
+    # Positive and negative restrictions behave as linear operators
     positive_restricted = linear_operator
     negative_restricted = linear_operator
 
     def linear_indexed_type(self, x):
+        """Return parts of expression belonging to this indexed
+        expression."""
 
-        f, i = x.operands()
-        f2, provides = self.visit(f)
-        x = self.reuse_if_possible(x, f2, i)
+        expression, index = x.operands()
+        part, provides = self.visit(expression)
 
-        if isinstance(x, Zero):
-            return (0*x, set([]))
+        # Return zero if extracted part is zero. (The expression
+        # should already have checked if it provides too much.)
+        if isinstance(part, Zero):
+            return (zero(x), set())
 
-        return (x, provides)
-
-    def indexed(self, x):
-
-        f, i = x.operands()
-        f2, provides = self.visit(f)
-        x = self.reuse_if_possible(x, f2, i)
-
-        if isinstance(x._expression, Zero):
-            return (0*x, set([]))
+        # Reuse x if possible (or reconstruct by indexing part)
+        x = self.reuse_if_possible(x, part, index)
 
         return (x, provides)
 
+    # All of these indexed thingies behave as a linear_indexed_type
+    indexed = linear_indexed_type
     index_sum = linear_indexed_type
     component_tensor = linear_indexed_type
     spatial_derivative = linear_indexed_type
 
     def list_tensor(self, x, *ops):
-        provides = ops[0][1]
-        oprov = [o[1] for o in ops]
-        ops2  = [o[0] for o in ops]
-        s = "\n\n".join("%s\n%s" % (a,b) for (a,b) in ops)
-        #ufl_assert(all(provides == op for op in oprov),\
-        #        "List tensor elements provide different properties, invalid expression.\n%s" % (s,))
-        ufl_assert(all(isinstance(o, Expr) for o in ops2), \
-                "Got wrong types in list_tensor handler.")
-        x = self.reuse_if_possible(x, *ops2)
-        return (x, provides)
 
-def compute_form_with_arity(form, arity): # TODO: Test and finish
-    """Compute the left hand side of a form."""
+        # list_tensor is a visit-children-first handler. ops contains
+        # the visited operands with their provides. Check that all
+        # provide the same arguments and return all
 
+        default = ops[0][1]
+        for (items, provides) in ops:
+            if provides != default:
+                error("All components of a list tensor most provide same arguments")
+
+        parts = [o[0] for o in ops]
+
+        x = self.reuse_if_possible(x, *parts)
+
+        return (x, default)
+
+def compute_form_with_arity(form, arity):
+    """Compute parts of form of given arity."""
+
+    # Preprocess form (preprocess takes care of checking)
+    form = preprocess(form)
+
+    # Extract all arguments in form
     arguments = extract_arguments(form)
 
     if len(arguments) < arity:
         warning("Form has no parts with arity %d." % arity)
         return 0*form
 
-    arguments = set(arguments[:arity])
-    pe = PartExtracter(arguments)
+    # FIXME: Should be permutations of arguments of length arity
+    sub_arguments = set(arguments[:arity])
+    pe = PartExtracter(sub_arguments)
     def _transform(e):
         e, provides = pe.visit(e)
-        if provides == arguments:
+        if provides == sub_arguments:
             return e
         return Zero()
     res = transform_integrands(form, _transform)
@@ -232,24 +298,17 @@ def compute_form_with_arity(form, arity): # TODO: Test and finish
 def compute_form_arities(form):
     """Return set of arities of terms present in form."""
 
-    def _transform(e):
-        e, provides = pe.visit(e)
-        if provides == sub_arguments:
-            return e
-        return Zero()
-
-    arities = set()
+    # Extract all arguments present in form
     arguments = extract_arguments(form)
-
+    arities = set()
     for arity in range(len(arguments)+1):
-        sub_arguments = set(arguments[:arity])
-        pe = PartExtracter(sub_arguments)
-        for itg in form.integrals():
-            integrand = _transform(itg.integrand())
-            if not integrand or isinstance(integrand, Zero):
-                continue
+
+        # Compute parts with arity "arity"
+        parts = compute_form_with_arity(form, arity)
+
+        # Register arity if "parts" does not vanish
+        if parts and parts._integrals:
             arities.add(arity)
-            break
 
     return arities
 
@@ -354,3 +413,4 @@ def compute_form_adjoint(form):
 #    #ufl_assert(len(bf) == 2, "Expecting bilinear form.")
 #    #v, u = bf
 #    #return replace(form, {u:v})
+

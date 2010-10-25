@@ -6,12 +6,12 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-05-07 -- 2009-11-17"
 
 # Modified by Anders Logg, 2009-2010
-# Last changed: 2010-09-29
+# Last changed: 2010-10-25
 
 from itertools import izip
 from inspect import getargspec
 
-from ufl.log import error, warning, debug
+from ufl.log import error, warning, debug, info
 from ufl.common import Stack, StackDict
 from ufl.assertions import ufl_assert
 from ufl.finiteelement import TensorElement
@@ -759,8 +759,7 @@ def transform_integrands(form, transform):
                 newitg = itg.reconstruct(integrand)
                 newintegrals.append(newitg)
         if not newintegrals:
-            # TODO: Can this be a problem? We could for example return Form([]), but problems would likely arise later anyway.
-            warning("No integrals left after transformation, cannot reconstruct form.")
+            debug("No integrals left after transformation, returning empty form.")
         return Form(newintegrals)
 
     elif isinstance(form, Integral):
