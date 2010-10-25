@@ -275,7 +275,7 @@ def compute_form_with_arity(form, arity):
     """Compute parts of form of given arity."""
 
     # Preprocess form (preprocess takes care of checking)
-    form = preprocess(form)
+    #form = preprocess(form) # Hm. This leads to DOLFIN failure.
 
     # Extract all arguments in form
     arguments = extract_arguments(form)
