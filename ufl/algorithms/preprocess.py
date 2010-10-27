@@ -39,7 +39,7 @@ def preprocess(form, object_names={}, common_cell=None):
 
     # Check that form is not already preprocessed
     if form.form_data() is not None:
-        info("Form is alreay preprocessed. Not updating form data.")
+        info("Form is already preprocessed. Not updating form data.")
         return form
 
     # Get name of form
