@@ -8,7 +8,7 @@ __date__ = "2008-10-01"
 # Modified by Garth N. Wells, 2010.
 # Modified by Marie E. Rognes, 2010.
 
-# Last changed: 2010-10-25
+# Last changed: 2010-10-29
 
 from itertools import izip
 
@@ -225,7 +225,7 @@ class PartExtracter(Transformer):
 
         x = self.reuse_if_possible(x, part)
 
-        return (part, provides)
+        return (x, provides)
 
     # Positive and negative restrictions behave as linear operators
     positive_restricted = linear_operator
