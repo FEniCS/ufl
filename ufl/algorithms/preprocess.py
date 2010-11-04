@@ -5,9 +5,9 @@ raw input form given by a user."""
 __authors__ = "Anders Logg"
 __date__ = "2009-12-07"
 
-# Last changed: 2010-06-07
+# Last changed: 2010-11-04
 
-from ufl.log import info, warning, error
+from ufl.log import info, debug, warning, error
 from ufl.assertions import ufl_assert
 from ufl.form import Form
 
@@ -39,7 +39,7 @@ def preprocess(form, object_names={}, common_cell=None):
 
     # Check that form is not already preprocessed
     if form.form_data() is not None:
-        info("Form is already preprocessed. Not updating form data.")
+        debug("Form is already preprocessed. Not updating form data.")
         return form
 
     # Get name of form
