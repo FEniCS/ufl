@@ -8,7 +8,7 @@ __date__ = "2008-10-01"
 # Modified by Garth N. Wells, 2010.
 # Modified by Marie E. Rognes, 2010.
 
-# Last changed: 2010-10-29
+# Last changed: 2010-11-17
 
 from itertools import izip
 
@@ -263,7 +263,7 @@ class PartExtracter(Transformer):
         default = ops[0][1]
         for (items, provides) in ops:
             if provides != default:
-                error("All components of a list tensor most provide same arguments")
+                error("All components of a list tensor must provide same arguments")
 
         parts = [o[0] for o in ops]
 
