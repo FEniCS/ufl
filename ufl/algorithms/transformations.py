@@ -339,8 +339,8 @@ class DuplicationMarker(ReuseTransformer):
             else:
                 v = o
         return v
-    basis_function = wrap_terminal
-    function = wrap_terminal
+    argument = wrap_terminal
+    coefficient = wrap_terminal
     constant = wrap_terminal
     facet_normal = wrap_terminal
 
@@ -557,7 +557,7 @@ class BasisFunctionDependencyExtracter(Transformer):
             self._variable_cache[l] = d
         return d
 
-    def basis_function(self, o):
+    def argument(self, o):
         d = frozenset((o,))
         return frozenset((d,))
 
@@ -639,9 +639,9 @@ class BasisFunctionDependencyExtracter(Transformer):
         for ad in adeps:
             # for each frozenset bd in the frozenset bdeps
             for bd in bdeps:
-                # build frozenset cd with the combined BasisFunction dependencies from ad and bd
+                # build frozenset cd with the combined Argument dependencies from ad and bd
                 cd = (ad | bd) - none
-                # build frozenset cd with the combined BasisFunction dependencies from ad and bd
+                # build frozenset cd with the combined Argument dependencies from ad and bd
                 if not len(cd) == len(ad - none) + len(bd - none):
                     raise NotMultiLinearException, repr(o)
                 # remember this dependency combination

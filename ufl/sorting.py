@@ -32,10 +32,10 @@ def cmp_expr(a, b):
         # Don't compare counts! Causes circular problems when renumbering to get a canonical form.
         return 0 # Not equal in general (__eq__ won't be True), but for this purpose they are considered equal.
 
-    # ... Other Counted object? (Function or BasisFunction)
+    # ... Other Counted object? (Function or Argument)
     elif isinstance(a, Counted):
         if not isinstance(a, FormArgument):
-            error("Expecting a Function or BasisFunction here, got %s instead. Please tell at ufl-dev@fenics.org." % str(type(a)))
+            error("Expecting a Function or Argument here, got %s instead. Please tell at ufl-dev@fenics.org." % str(type(a)))
         # It's ok to compare counts for form arguments, since their order is a property of the form
         return cmp(a._count, b._count)
 

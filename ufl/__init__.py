@@ -44,7 +44,7 @@ Elements:
     EnrichedElement, RestrictedElement
 
 Arguments:
-    BasisFunction, TestFunction, TrialFunction
+    Argument, TestFunction, TrialFunction
 
 Coefficients:
     Coefficient, Constant, VectorConstant, TensorConstant

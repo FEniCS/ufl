@@ -54,7 +54,7 @@ def is_multilinear(form):
 #    for e in iter_expressions(form):
 #        stack = []
 #        for o in pre_traversal(e, stack):
-#            if isinstance(o, BasisFunction):
+#            if isinstance(o, Argument):
 #                for operator in stack:
 #                    if not operator.is_linear():
 #                        warning("Nonlinear operator applied to basis function:" + str(operator))
