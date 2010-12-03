@@ -364,8 +364,8 @@ def test_expr():
     element = FiniteElement("CG", cell, 1)
     v = TestFunction(element)
     u = TrialFunction(element)
-    f = Function(element)
-    g = Function(element)
+    f = Coefficient(element)
+    g = Coefficient(element)
     expr = (f+g)*u.dx(0)*(g-1)*v
     return expr
 
