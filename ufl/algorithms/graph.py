@@ -309,9 +309,14 @@ class StringDependencyDefiner(MultiFunction):
         default = frozenset(("c",))
         return self.function_deps.get(x, default)
 
+    def geometric_quantity(self, x):
+        deps = frozenset(("c", "x",))
+        return deps
+
     def facet_normal(self, o):
         deps = frozenset(("c",))
-        # Enabling coordinate dependency for higher order geometries (not handled anywhere else though).
+        # Enabling coordinate dependency for higher order geometries
+        # (not handled anywhere else though, so consider this experimental)
         if o.cell().degree() > 1:
             deps = deps | frozenset(("x",))
         return deps
