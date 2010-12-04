@@ -183,7 +183,6 @@ class VariableDerivative(Derivative):
             index_dimensions = mergedicts([f.index_dimensions(), v.index_dimensions()])
             index_dimensions = subdict(index_dimensions, free_indices)
             return Zero(f.shape() + v.shape(), free_indices, index_dimensions)
-            #return Zero(v.shape() + f.shape(), free_indices, index_dimensions) # DIFFSHAPE TODO: Use this version instead?
         return Derivative.__new__(cls)
 
     def __init__(self, f, v):
@@ -211,7 +210,6 @@ class VariableDerivative(Derivative):
         self._index_dimensions = dict(fid)
         self._index_dimensions.update(vid)
         self._shape = f.shape() + v.shape()
-        #self._shape = v.shape() + f.shape() # DIFFSHAPE TODO: Use this version instead?
         self._repr = "VariableDerivative(%r, %r)" % (self._f, self._v)
 
     def operands(self):

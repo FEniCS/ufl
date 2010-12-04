@@ -121,7 +121,6 @@ class ForwardAD(Transformer):
         # Define a zero with the right indices
         # (kind of cumbersome this... any simpler way?)
         sh = o.shape() + self._var_shape
-        #sh = self._var_shape + o.shape() # DIFFSHAPE TODO: Use this version instead?
         fi = o.free_indices()
         idims = dict(o.index_dimensions())
         if self._var_free_indices:
@@ -168,7 +167,6 @@ class ForwardAD(Transformer):
             ind2 += (j,)
 
         allind = ind1 + ind2
-        #allind = ind2 + ind1 # DIFFSHAPE TODO: Use this version instead?
 
         fp = as_tensor(res, allind)
         if fi:

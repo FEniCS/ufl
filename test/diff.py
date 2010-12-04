@@ -114,6 +114,24 @@ class DiffTestCase(unittest.TestCase):
         def df(v): return 3 + 4*2*v + 5*3*v**2
         self._test(f, df)
 
+    def testDiffX(self):
+        cell = triangle
+        x = cell.x
+        f = x[0]**2 * x[1]**2
+        i, = indices(1)
+        df1 = diff(f, x)
+        df2 = as_vector(f.dx(i), i)
+
+        xv = (2, 3)
+        df10 = df1[0](xv)
+        df11 = df1[1](xv)
+        df20 = df2[0](xv)
+        df21 = df2[1](xv)
+        self.assertAlmostEqual(df10, df20)
+        self.assertAlmostEqual(df11, df21)
+        self.assertAlmostEqual(df10, 2*2*9)
+        self.assertAlmostEqual(df11, 2*4*3)
+
     # TODO: More tests involving wrapper types and indices
     
 if __name__ == "__main__":
