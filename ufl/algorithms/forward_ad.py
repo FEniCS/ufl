@@ -261,11 +261,14 @@ class ForwardAD(Transformer):
         if self._var_free_indices:
             i0, = self._var_free_indices
             i1, = i
-            msg = "Index scope collision. Try not reusing indices for multiple expressions.\n"\
-                  "An example where this occurs is (v[i]*v[i]).dx(i)*v[i] where the index i\n"\
-                  "is bound to an index sum inside the derivative w.r.t. x[i]"
-            ufl_assert(i0 != i1, msg) # TODO: Get around this with relabeling algorithm!
-
+            if i == i1:
+                error("Index scope collision. Try not reusing indices for multiple expressions.\n"\
+                      "An example where this occurs is (v[i]*v[i]).dx(i)*v[i] where the index i\n"\
+                      "is bound to an index sum inside the derivative w.r.t. x[i]")
+                # TODO: Get around this with relabeling algorithm!
+                # j = Index()
+                # A = relabel(A, { i0: j })
+                # i = (j,)
         A2, Ap = self.visit(A)
         o = self.reuse_if_possible(o, A2, i)
         op = IndexSum(Ap, i)
