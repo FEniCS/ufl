@@ -186,8 +186,8 @@ class PartialDerivativeComputer(MultiFunction):
         x, v = f.operands()
         return (None, None)
     
-    def function_derivative(self, f):
-        error("Partial derivative of function_derivative not implemented, "\
+    def coefficient_derivative(self, f):
+        error("Partial derivative of coefficient_derivative not implemented, "\
               "when is this called? apply_ad should make sure it isn't called.")
         a, w, v = f.operands()
         return (None, None, None)

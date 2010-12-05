@@ -177,7 +177,7 @@ class Expression2LatexHandler(Transformer):
         denom = r"\partial%s" % par(v)
         return r"\frac{%s}{%s}" % (nom, denom)
 
-    def function_derivative(self, o, f, w, v):
+    def coefficient_derivative(self, o, f, w, v):
         nom   = r"\partial%s" % par(f)
         denom = r"\partial%s" % par(w)
         return r"\frac{%s}{%s}[%s]" % (nom, denom, v) # TODO: Fix this syntax...
