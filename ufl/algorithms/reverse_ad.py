@@ -39,7 +39,7 @@ def reverse_ad(expr, G): # TODO: Finish this!
     x[:n] = TODO
     # Actually, we don't have these variables...
     # v is a MultiIndex instead of SpatialCoordinate,
-    # or a Function instead of a dof,
+    # or a Coefficient instead of a dof,
     # or a Variable (in which case the Variable shouldn't be traversed when building the graph)
     # ... but then again, we have many expressions that doesn't depend directly on v, but implicitly by definition...
 

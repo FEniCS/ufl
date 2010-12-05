@@ -1,4 +1,4 @@
-"""This module defines the Function class and a number
+"""This module defines the Coefficient class and a number
 of related classes (functions), including Constant."""
 
 __authors__ = "Martin Sandve Alnes"

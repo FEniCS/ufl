@@ -1,4 +1,4 @@
-"Algorithm for splitting a Function into sub functions."
+"Algorithm for splitting a Coefficient into sub functions."
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14 -- 2009-03-13"
@@ -13,7 +13,7 @@ from ufl.tensors import as_vector, as_matrix, as_tensor
 
 
 def split(v):
-    "Split Function into its sub Functions if any."
+    "Split Coefficient into its sub Coefficients if any."
     
     # Special case: simple element, return function
     element = v.element()

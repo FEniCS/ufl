@@ -48,14 +48,14 @@ class Derivative(Operator):
 
 class CoefficientDerivative(Derivative):
     """Derivative of the integrand of a form w.r.t. the
-    degrees of freedom in a discrete Function."""
+    degrees of freedom in a discrete Coefficient."""
     __slots__ = ("_integrand", "_functions", "_basis_functions")
 
     def __new__(cls, integrand, functions, basis_functions):
         ufl_assert(is_true_ufl_scalar(integrand),
             "Expecting true UFL scalar expression.")
-        ufl_assert(isinstance(functions, Tuple), #and all(isinstance(f, (Function,Indexed)) for f in functions),
-            "Expecting Tuple instance with Functions.")
+        ufl_assert(isinstance(functions, Tuple), #and all(isinstance(f, (Coefficient,Indexed)) for f in functions),
+            "Expecting Tuple instance with Coefficients.")
         ufl_assert(isinstance(basis_functions, Tuple), #and all(isinstance(f, Argument) for f in basis_functions),
             "Expecting Tuple instance with Arguments.")
         if isinstance(integrand, Zero):

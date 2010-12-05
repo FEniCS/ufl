@@ -21,7 +21,7 @@ def is_multilinear(form):
     # An attempt at implementing is_multilinear using extract_basis_function_dependencies.
     # TODO: This has some false negatives for "multiple configurations". (Does it still? Needs testing!)
     # TODO: FFC probably needs a variant of this which checks for some sorts of linearity
-    #       in Functions as well, this should be a fairly simple extension of the current algorithm.
+    #       in Coefficients as well, this should be a fairly simple extension of the current algorithm.
     try:
         for e in iter_expressions(form):
             deps = extract_basis_function_dependencies(e)
