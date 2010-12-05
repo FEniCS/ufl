@@ -6,7 +6,7 @@ __date__ = "2008-12-28 -- 2009-01-07"
 # TODO: Imports!
 
 from ufl.algorithms.pdiffs import PartialDerivativeComputer
-from ufl.differentiation import SpatialDerivative, VariableDerivative, FunctionDerivative
+from ufl.differentiation import SpatialDerivative, VariableDerivative, CoefficientDerivative
 
 def reverse_ad(expr, G): # TODO: Finish this!
     # --- Forward sweep expressions have already been recorded as vertices in the DAG
@@ -27,7 +27,7 @@ def reverse_ad(expr, G): # TODO: Finish this!
         # Avoid putting contents of the differentiation Variable in graph, since it's not a Terminal anymore... TODO
         pass
 
-    if isinstance(expr, FunctionDerivative):
+    if isinstance(expr, CoefficientDerivative):
         # Define dw/dw := v (what we really mean by d/dw is d/dw_j where w = sum_j w_j phi_j, and what we really mean by v is phi_j for any j)
         pass
 

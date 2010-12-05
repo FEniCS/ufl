@@ -46,7 +46,7 @@ class Derivative(Operator):
     def __init__(self):
         Operator.__init__(self)
 
-class FunctionDerivative(Derivative):
+class CoefficientDerivative(Derivative):
     """Derivative of the integrand of a form w.r.t. the
     degrees of freedom in a discrete Function."""
     __slots__ = ("_integrand", "_functions", "_basis_functions")
@@ -81,10 +81,10 @@ class FunctionDerivative(Derivative):
         return {}
 
     def __str__(self):
-        return "FunctionDerivative (w.r.t. function %s and using basis function %s) of \n%s" % (self._functions, self._basis_functions, self._integrand) # TODO: Short notation
+        return "CoefficientDerivative (w.r.t. function %s and using basis function %s) of \n%s" % (self._functions, self._basis_functions, self._integrand) # TODO: Short notation
 
     def __repr__(self):
-        return "FunctionDerivative(%r, %r, %r)" % (self._integrand, self._functions, self._basis_functions)
+        return "CoefficientDerivative(%r, %r, %r)" % (self._integrand, self._functions, self._basis_functions)
 
 def split_indices(expression, idx):
     idims = dict(expression.index_dimensions())

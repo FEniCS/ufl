@@ -24,7 +24,7 @@ from ufl.tensoralgebra import CompoundTensorOperator, Transposed, Outer, Inner, 
 from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin, Tan, Acos, Asin, Atan
 from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
 from ufl.lifting import LiftingResult, LiftingOperatorResult, LiftingFunctionResult, TerminalOperator, LiftingOperator, LiftingFunction
-from ufl.differentiation import Derivative, CompoundDerivative, FunctionDerivative, SpatialDerivative, VariableDerivative, Grad, Div, Curl
+from ufl.differentiation import Derivative, CompoundDerivative, CoefficientDerivative, SpatialDerivative, VariableDerivative, Grad, Div, Curl
 from ufl.conditional import Condition, EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.form import Form
 from ufl.integral import Measure, Integral

@@ -16,7 +16,7 @@ from ufl.variable import Variable
 from ufl.finiteelement import MixedElement
 from ufl.argument import Argument, Arguments
 from ufl.coefficient import Coefficient
-from ufl.differentiation import FunctionDerivative
+from ufl.differentiation import CoefficientDerivative
 from ufl.constantvalue import is_true_ufl_scalar
 
 # An exception to the rule that ufl.* does not depend on ufl.algorithms.* ...
@@ -171,13 +171,13 @@ def derivative(form, function, basis_function=None):
     if isinstance(form, Form):
         integrals = []
         for itg in form._integrals:
-            fd = FunctionDerivative(itg.integrand(), functions, basis_functions)
+            fd = CoefficientDerivative(itg.integrand(), functions, basis_functions)
             integrals.append(itg.reconstruct(fd))
         return Form(integrals)
 
     elif isinstance(form, Expr):
         # What we got was in fact an integrand
-        return FunctionDerivative(form, functions, basis_functions)
+        return CoefficientDerivative(form, functions, basis_functions)
 
     error("Invalid argument type %s." % str(type(form)))
 

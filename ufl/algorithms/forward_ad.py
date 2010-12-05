@@ -26,7 +26,7 @@ from ufl.tensoralgebra import Transposed, Outer, Inner, Dot, Cross, Trace, \
     Determinant, Inverse, Deviatoric, Cofactor
 from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin, Tan, Acos, Asin, Atan
 from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
-from ufl.differentiation import Derivative, FunctionDerivative,\
+from ufl.differentiation import Derivative, CoefficientDerivative,\
     SpatialDerivative, VariableDerivative
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 
@@ -621,7 +621,7 @@ def forward_ad(expr, dim):
         result = compute_spatial_forward_ad(expr, dim)
     elif isinstance(expr, VariableDerivative):
         result = compute_variable_forward_ad(expr, dim)
-    elif isinstance(expr, FunctionDerivative):
+    elif isinstance(expr, CoefficientDerivative):
         result = compute_function_forward_ad(expr, dim)
     else:
         error("This shouldn't happen: expr is %s" % repr(expr))

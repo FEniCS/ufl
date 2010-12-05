@@ -10,7 +10,7 @@ from itertools import izip
 from ufl.log import debug, error
 from ufl.assertions import ufl_assert
 from ufl.classes import Terminal, Expr, Derivative, Tuple
-from ufl.classes import SpatialDerivative, VariableDerivative, FunctionDerivative
+from ufl.classes import SpatialDerivative, VariableDerivative, CoefficientDerivative
 from ufl.classes import FiniteElement, TestFunction
 
 from ufl.algorithms.analysis import extract_classes
@@ -50,7 +50,7 @@ def expand_derivatives(form):
 
     In the returned expression g which is mathematically
     equivalent to expr, there are no VariableDerivative
-    or FunctionDerivative objects left, and SpatialDerivative
+    or CoefficientDerivative objects left, and SpatialDerivative
     objects have been propagated to Terminal nodes."""
 
     cell = form.cell()
