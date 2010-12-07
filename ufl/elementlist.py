@@ -57,6 +57,9 @@ register_element("Brezzi-Douglas-Fortin-Marini", "BDFM", 1, (1, None),
 register_element("Raviart-Thomas", "RT", 1, (1, None),
                  ("triangle", "tetrahedron"))
 
+register_element("Morley", "MOR", 0, (None, None),
+                 ("triangle", "tetrahedron"))
+
 register_element("Nedelec 1st kind H(curl)", "N1curl", 1, (1, None),
                  ("triangle", "tetrahedron"))
 
