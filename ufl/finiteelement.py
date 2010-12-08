@@ -6,7 +6,7 @@ __date__ = "2008-03-03"
 # Modified by Kristian B. Oelgaard
 # Modified by Marie E. Rognes (meg@simula.no) 2010
 
-# Last changed: 2010-10-22
+# Last changed: 2010-12-08
 
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
@@ -135,12 +135,18 @@ class FiniteElement(FiniteElementBase):
         ufl_assert(family in ufl_elements, 'Unknown finite element "%s".' % family)
 
         # Check that element data is valid (and also get common family name)
-        (family, self._short_name, value_rank, (kmin, kmax), domains) = ufl_elements[family]
+        (family, self._short_name, value_rank, krange, domains) = ufl_elements[family]
+
         ufl_assert(domain in domains or domain is None,
                    'Domain "%s" invalid for "%s" finite element.' % (domain, family))
-        ufl_assert(kmin is None or degree >= kmin or degree is None,
-                   'Degree "%s" invalid for "%s" finite element.' % (istr(degree), family))
-        ufl_assert(kmax is None or degree <= kmax or degree is None,
+        if krange is None:
+            ufl_assert(degree is None,
+                       'Degree "%s" invalid for "%s" finite element, should be None.' % (istr(degree), family))
+        else:
+            kmin, kmax = krange
+            ufl_assert(kmin is None or degree >= kmin or degree is None,
+                       'Degree "%s" invalid for "%s" finite element.' % (istr(degree), family))
+            ufl_assert(kmax is None or degree <= kmax or degree is None,
                    'Degree "%s" invalid for "%s" finite element.' % (istr(degree), family))
 
         # Set value dimension (default to using domain dimension in each axis)

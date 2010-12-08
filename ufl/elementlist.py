@@ -36,29 +36,31 @@ def show_elements():
         print "Degree range: ", degree_range
         print "Defined on domains:" , domains
 
-register_element("Lagrange", "CG", 0, (1, None),
-                 ("interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
+# Standard elements
 
-register_element("Discontinuous Lagrange", "DG", 0, (0, None),
-                 ("interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
-
-register_element("Bubble", "B", 0, (2, None),
-                 ("interval", "triangle", "tetrahedron"))
-
-register_element("Crouzeix-Raviart", "CR", 0, (1, 1),
-                 ("triangle", "tetrahedron"))
-
-register_element("Brezzi-Douglas-Marini", "BDM", 1, (1, None),
+register_element("Argyris", "ARG", 0, (1, None),
                  ("triangle", "tetrahedron"))
 
 register_element("Brezzi-Douglas-Fortin-Marini", "BDFM", 1, (1, None),
                  ("triangle", "tetrahedron"))
 
-register_element("Raviart-Thomas", "RT", 1, (1, None),
+register_element("Brezzi-Douglas-Marini", "BDM", 1, (1, None),
                  ("triangle", "tetrahedron"))
 
-register_element("Morley", "MOR", 0, (None, None),
+register_element("Crouzeix-Raviart", "CR", 0, (1, 1),
                  ("triangle", "tetrahedron"))
+
+register_element("Discontinuous Lagrange", "DG", 0, (0, None),
+                 ("interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
+
+register_element("Hermite", "HER", 0, None,
+                 ("triangle", "tetrahedron"))
+
+register_element("Lagrange", "CG", 0, (1, None),
+                 ("interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
+
+register_element("Morley", "MOR", 0, None,
+                 ("triangle",))
 
 register_element("Nedelec 1st kind H(curl)", "N1curl", 1, (1, None),
                  ("triangle", "tetrahedron"))
@@ -66,10 +68,18 @@ register_element("Nedelec 1st kind H(curl)", "N1curl", 1, (1, None),
 register_element("Nedelec 2nd kind H(curl)", "N2curl", 1, (1, None),
                  ("triangle", "tetrahedron"))
 
-register_element("Quadrature", "Q", 0, (0, None),
-                 (None, "interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
+register_element("Raviart-Thomas", "RT", 1, (1, None),
+                 ("triangle", "tetrahedron"))
+
+# Special elements
 
 register_element("Boundary Quadrature", "BQ", 0, (0, None),
+                 (None, "interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
+
+register_element("Bubble", "B", 0, (2, None),
+                 ("interval", "triangle", "tetrahedron"))
+
+register_element("Quadrature", "Q", 0, (0, None),
                  (None, "interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
 
 register_element("Real", "R", 0, (0, 0),
@@ -89,6 +99,3 @@ register_alias("N2div",
 # Use P Lambda/P- Lambda aliases
 register_alias("P Lambda", lambda *foo: FEEC_aliases(*foo))
 register_alias("P- Lambda", lambda *foo: FEEC_aliases(*foo))
-
-
-
