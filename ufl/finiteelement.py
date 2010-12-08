@@ -117,7 +117,7 @@ class FiniteElementBase(object):
 class FiniteElement(FiniteElementBase):
     "The basic finite element class for all simple finite elements"
 
-    def __init__(self, family, cell, degree, form_degree=None):
+    def __init__(self, family, cell, degree=None, form_degree=None):
         "Create finite element"
 
         cell = as_cell(cell)

@@ -41,6 +41,9 @@ def show_elements():
 register_element("Argyris", "ARG", 0, (1, None),
                  ("triangle", "tetrahedron"))
 
+register_element("Arnold-Winther", "AW", 0, None,
+                 ("triangle",))
+
 register_element("Brezzi-Douglas-Fortin-Marini", "BDFM", 1, (1, None),
                  ("triangle", "tetrahedron"))
 
@@ -58,6 +61,9 @@ register_element("Hermite", "HER", 0, None,
 
 register_element("Lagrange", "CG", 0, (1, None),
                  ("interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
+
+register_element("Mardal-Tai-Winther", "MTW", 0, None,
+                 ("triangle",))
 
 register_element("Morley", "MOR", 0, None,
                  ("triangle",))
