@@ -6,7 +6,9 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-03-14"
 
 # Modified by Anders Logg, 2008-2009.
-# Last changed: 2009-12-15
+# Modified by Marie E. Rognes, 2011.
+
+# Last changed: 2011-01-08
 
 import os
 import time
@@ -108,6 +110,8 @@ def load_ufl_file(filename):
             all_forms.append(as_form(value))
             ufd.object_names[id(as_form(value))] = name
         elif isinstance(value, (Coefficient, Argument)):
+            if name is "unknown":
+                ufd.object_names[name] = value
             ufd.object_names[id(value)] = name
 
     # Get list of forms
