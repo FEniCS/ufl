@@ -212,8 +212,10 @@ def jump(v, n=None):
             return v('+')*n('+') + v('-')*n('-')
         elif r == 1:
             return dot(v('+'), n('+')) + dot(v('-'), n('-'))
+        elif r == 2:
+            return dot(v('+'), n('+')) + dot(v('-'), n('-'))
 
-    error("jump(v, n) is only defined for scalar or vector-valued expressions (not rank %d expressions)." % r)
+    error("jump(v, n) is only defined for scalar, vector, or matrix-valued expressions (not rank %d expressions)." % r)
 
 def avg(v):
     "The average of v across a facet."
