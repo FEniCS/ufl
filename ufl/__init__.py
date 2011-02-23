@@ -98,7 +98,7 @@ Form transformations:
 
 """
 
-__version__ = "0.5.4"
+__version__ = "0.9.0"
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __copyright__ = "Copyright (C) 2008-2010 " + __authors__
 __license__  = "GNU GPL version 3 or any later version"
