@@ -8,12 +8,12 @@ __date__ = "2008-10-01"
 # Modified by Garth N. Wells, 2010.
 # Modified by Marie E. Rognes, 2010.
 
-# Last changed: 2010-11-17
+# Last changed: 2011-03-04
 
 from itertools import izip
 
 from ufl.common import some_key, product, Stack
-from ufl.log import error, warning
+from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert
 
 # All classes:
@@ -348,13 +348,11 @@ def compute_form_action(form, function):
     and one additional Coefficient at the end if no function
     has been provided.
     """
+    # Extract all arguments
     arguments = extract_arguments(form)
-    if len(arguments) == 2:
-        v, u = arguments
-    elif len(arguments) == 1:
-        u, = arguments
-    else:
-        error("Expecting bilinear or linear form.")
+
+    # Pick last argument (will be replaced)
+    u = arguments[-1]
 
     e = u.element()
     if function is None:
@@ -362,8 +360,7 @@ def compute_form_action(form, function):
     else:
         #ufl_assert(function.element() == e, \
         if function.element() != e:
-            print "Computing action of form on a " \
-                  "function in a different element space."
+            debug("Computing action of form on a function in a different element space.")
     return replace(form, { u: function })
 
 def compute_energy_norm(form, function):
