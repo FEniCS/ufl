@@ -6,7 +6,7 @@ __date__ = "2008-03-03"
 # Modified by Kristian B. Oelgaard
 # Modified by Marie E. Rognes (meg@simula.no) 2010
 
-# Last changed: 2010-12-08
+# Last changed: 2011-03-11
 
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
@@ -43,6 +43,7 @@ class FiniteElementBase(object):
     def set_cell(self, cell):
         "Set cell for element"
         self._cell = cell
+        self._update_repr()
 
     def degree(self):
         "Return polynomial degree of finite element"
@@ -157,6 +158,10 @@ class FiniteElement(FiniteElementBase):
         FiniteElementBase.__init__(self, family, cell, degree, value_shape)
 
         # Cache repr string
+        self._update_repr()
+
+    def _update_repr(self):
+        "Update repr string"
         self._repr = "FiniteElement(%r, %r, %s)" % (self.family(), self.cell(), istr(self.degree()))
 
     def __str__(self):
@@ -201,19 +206,21 @@ class MixedElement(FiniteElementBase):
         FiniteElementBase.__init__(self, "Mixed", cell, degree, value_shape)
 
         # Cache repr string
-        self._repr = "MixedElement(*%r, **{'value_shape': %r })" % (self._sub_elements, self._value_shape)
+        self._update_repr()
 
     def set_cell(self, cell):
         "Set cell for element"
         self._cell = cell
         for element in self._sub_elements:
             element.set_cell(cell)
+        self._update_repr()
 
     def set_degree(self, degree):
         "Set degree for element"
         self._degree = degree
         for element in self._sub_elements:
             element.set_degree(degree)
+        self._update_repr()
 
     def num_sub_elements(self):
         "Return number of sub elements"
@@ -249,6 +256,10 @@ class MixedElement(FiniteElementBase):
         # Indexing into a multidimensional tensor
         ufl_assert(i[0] < len(self._sub_elements), "Illegal component index (dimension %d)." % i[0])
         return self._sub_elements[i[0]].extract_component(i[1:])
+
+    def _update_repr(self):
+        "Update repr string"
+        self._repr = "MixedElement(*%r, **{'value_shape': %r })" % (self._sub_elements, self._value_shape)
 
     def __str__(self):
         "Format as string for pretty printing."
@@ -286,6 +297,11 @@ class VectorElement(MixedElement):
         self._degree = degree
         self._sub_element = sub_element
 
+        # Cache repr string
+        self._update_repr()
+
+    def _update_repr(self):
+        "Update repr string"
         self._repr = "VectorElement(%r, %r, %s, %d)" % \
             (self._family, self._cell, str(self._degree), len(self._sub_elements))
 
@@ -353,8 +369,7 @@ class TensorElement(MixedElement):
         self._sub_element_mapping = sub_element_mapping
 
         # Cache repr string
-        self._repr = "TensorElement(%r, %r, %r, %r, %r)" % \
-            (self._family, self._cell, self._degree, self._shape, self._symmetry)
+        self._update_repr()
 
     def extract_component(self, i):
         "Extract base component index and (simple) element for given component index"
@@ -372,6 +387,11 @@ class TensorElement(MixedElement):
         """Return the symmetry dict, which is a mapping c0 -> c1
         meaning that component c0 is represented by component c1."""
         return self._symmetry
+
+    def _update_repr(self):
+        "Update repr string"
+        self._repr = "TensorElement(%r, %r, %r, %r, %r)" % \
+            (self._family, self._cell, self._degree, self._shape, self._symmetry)
 
     def __str__(self):
         "Format as string for pretty printing."
@@ -412,6 +432,10 @@ class EnrichedElement(FiniteElementBase):
         FiniteElementBase.__init__(self, "EnrichedElement", cell, degree, value_shape)
 
         # Cache repr string
+        self._update_repr()
+
+    def _update_repr(self):
+        "Update repr string"
         self._repr = "EnrichedElement(%s)" % ", ".join(repr(e) for e in self._elements)
 
     def __str__(self):
@@ -443,11 +467,16 @@ class RestrictedElement(FiniteElementBase):
                 domain = Cell(domain2facet[self.cell().domain()])
             self._domain = domain
 
-        self._repr = "RestrictedElement(%r, %r)" % (element, domain)
+        # Cache repr string
+        self._update_repr()
 
     def element(self):
         "Return the element which is restricted."
         return self._element
+
+    def _update_repr(self):
+        "Update repr string"
+        self._repr = "RestrictedElement(%r, %r)" % (element, domain)
 
     def __str__(self):
         "Format as string for pretty printing."
