@@ -1,3 +1,4 @@
+ - Add subdomain member variables to form class
  - Allow action on forms of arbitrary rank
 0.9.0 [2011-02-23]
  - Allow jump(Sigma, n) for matrix-valued expression Sigma

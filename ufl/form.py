@@ -15,7 +15,12 @@ from ufl.integral import Integral, Measure
 
 class Form(object):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
-    __slots__ = ("_integrals", "_repr", "_hash", "_str", "_form_data")
+    __slots__ = ("_integrals", "_repr", "_hash", "_str", "_form_data",
+                 "cell_domains", "exterior_facet_domains", "interior_facet_domains")
+
+    # Note: cell_domains, exterior_facet_domains and interior_facet_domains
+    # are used by DOLFIN to pass data to the assembler. They can otherwise
+    # safely be ignored.
 
     def __init__(self, integrals):
         self._integrals = tuple(integrals)
@@ -24,6 +29,9 @@ class Form(object):
         self._repr = None
         self._hash = None
         self._form_data = None
+        self.cell_domains = None
+        self.exterior_facet_domains = None
+        self.interior_facet_domains = None
 
     def cell(self):
         for itg in self._integrals:
