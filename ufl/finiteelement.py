@@ -6,7 +6,7 @@ __date__ = "2008-03-03"
 # Modified by Kristian B. Oelgaard
 # Modified by Marie E. Rognes (meg@simula.no) 2010
 
-# Last changed: 2011-03-11
+# Last changed: 2011-03-12
 
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
@@ -158,7 +158,7 @@ class FiniteElement(FiniteElementBase):
         FiniteElementBase.__init__(self, family, cell, degree, value_shape)
 
         # Cache repr string
-        self._update_repr()
+        FiniteElement._update_repr(self)
 
     def _update_repr(self):
         "Update repr string"
@@ -206,7 +206,7 @@ class MixedElement(FiniteElementBase):
         FiniteElementBase.__init__(self, "Mixed", cell, degree, value_shape)
 
         # Cache repr string
-        self._update_repr()
+        MixedElement._update_repr(self)
 
     def set_cell(self, cell):
         "Set cell for element"
@@ -298,7 +298,7 @@ class VectorElement(MixedElement):
         self._sub_element = sub_element
 
         # Cache repr string
-        self._update_repr()
+        VectorElement._update_repr(self)
 
     def _update_repr(self):
         "Update repr string"
@@ -369,7 +369,7 @@ class TensorElement(MixedElement):
         self._sub_element_mapping = sub_element_mapping
 
         # Cache repr string
-        self._update_repr()
+        TensorElement._update_repr(self)
 
     def extract_component(self, i):
         "Extract base component index and (simple) element for given component index"
@@ -432,7 +432,7 @@ class EnrichedElement(FiniteElementBase):
         FiniteElementBase.__init__(self, "EnrichedElement", cell, degree, value_shape)
 
         # Cache repr string
-        self._update_repr()
+        EnrichedElement._update_repr(self)
 
     def _update_repr(self):
         "Update repr string"
@@ -468,7 +468,7 @@ class RestrictedElement(FiniteElementBase):
             self._domain = domain
 
         # Cache repr string
-        self._update_repr()
+        RestrictedElement._update_repr(self)
 
     def element(self):
         "Return the element which is restricted."
