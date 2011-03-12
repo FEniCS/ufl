@@ -476,7 +476,7 @@ class RestrictedElement(FiniteElementBase):
 
     def _update_repr(self):
         "Update repr string"
-        self._repr = "RestrictedElement(%r, %r)" % (element, domain)
+        self._repr = "RestrictedElement(%r, %r)" % (self._element, self._domain)
 
     def __str__(self):
         "Format as string for pretty printing."
