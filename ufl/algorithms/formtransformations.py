@@ -256,13 +256,23 @@ class PartExtracter(Transformer):
 
     def list_tensor(self, x, *ops):
 
+        # Old comment
         # list_tensor is a visit-children-first handler. ops contains
         # the visited operands with their provides. Check that all
         # provide the same arguments and return all
+        #
+        #default = ops[0][1]
+        #for (items, provides) in ops:
+        #    #if provides != default:
+        #    #    error("All components of a list tensor must provide same arguments")
+
+        # list_tensor is a visit-children-first handler. ops contains
+        # the visited operands with their provides. Check that all
+        # operands are Expr
 
         default = ops[0][1]
         for (items, provides) in ops:
-            if provides != default:
+            if not isinstance(items, Expr):
                 error("All components of a list tensor must provide same arguments")
 
         parts = [o[0] for o in ops]
@@ -410,4 +420,3 @@ def compute_form_adjoint(form):
 #    #ufl_assert(len(bf) == 2, "Expecting bilinear form.")
 #    #v, u = bf
 #    #return replace(form, {u:v})
-
