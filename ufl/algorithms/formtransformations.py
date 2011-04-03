@@ -8,7 +8,7 @@ __date__ = "2008-10-01"
 # Modified by Garth N. Wells, 2010.
 # Modified by Marie E. Rognes, 2010.
 
-# Last changed: 2011-03-04
+# Last changed: 2011-04-03
 
 from itertools import izip
 
@@ -255,31 +255,29 @@ class PartExtracter(Transformer):
     spatial_derivative = linear_indexed_type
 
     def list_tensor(self, x, *ops):
-
-        # Old comment
         # list_tensor is a visit-children-first handler. ops contains
-        # the visited operands with their provides. Check that all
-        # provide the same arguments and return all
-        #
-        #default = ops[0][1]
-        #for (items, provides) in ops:
-        #    #if provides != default:
-        #    #    error("All components of a list tensor must provide same arguments")
+        # the visited operands with their provides. (It follows that
+        # none of the visited operands provide more than wanted.)
 
-        # list_tensor is a visit-children-first handler. ops contains
-        # the visited operands with their provides. Check that all
-        # operands are Expr
+        # Extract the most arguments provided by any of the components
+        most_provides = ops[0][1]
+        for (component, provides) in ops:
+            if (provides - most_provides):
+                most_provides = provides
 
-        default = ops[0][1]
-        for (items, provides) in ops:
-            if not isinstance(items, Expr):
-                error("All components of a list tensor must provide same arguments")
+        # Check that all components either provide the same arguments
+        # or vanish. (This check is here b/c it is not obvious what to
+        # return if the components provide different arguments, at
+        # least with the current transformer design.)
+        for (component, provides) in ops:
+            if (provides != most_provides and not isinstance(component, Zero)):
+                error("PartExtracter does not know how to handle list_tensors with non-zero components providing fewer arguments")
 
-        parts = [o[0] for o in ops]
+        # Return components
+        components = [op[0] for op in ops]
+        x = self.reuse_if_possible(x, *components)
 
-        x = self.reuse_if_possible(x, *parts)
-
-        return (x, default)
+        return (x, most_provides)
 
 def compute_form_with_arity(form, arity):
     """Compute parts of form of given arity."""
