@@ -101,7 +101,7 @@ Form transformations:
 __version__ = "0.9.1"
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __copyright__ = "Copyright (C) 2008-2011 " + __authors__
-__license__  = "GNU GPL version 3 or any later version"
+__license__  = "GNU LGPL version 3 or any later version"
 __date__ = "2011-04-08"
 
 # Modified by Kristian Oelgaard, 2009
