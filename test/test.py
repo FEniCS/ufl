@@ -11,13 +11,18 @@ import sys
 from os import system
 from glob import glob
 import logging
+import ufl
 
 def discover_tests(args):
     # Running tests from all test_foo.py files
     tests = sorted(f.replace(".py", "") for f in glob("test_*.py"))
-    # Demos are slow, allow running everything else easily
-    if "skipdemos" in args:
-        tests.remove("test_analyse_demos")
+
+    # Demos are slow, allow running everything else easily...
+    tests.remove("test_analyse_demos")
+    # ... and always check demos last
+    if not "skipdemos" in args:
+        tests.append("test_analyse_demos")
+
     return tests
 
 _test_runner_script_template = """
@@ -71,21 +76,33 @@ def run_test_files_separately(tests):
     print "\n".join(failed_tests)
     return len(failed_tests)
 
-def run_tests(tests):
-    # Run tests TODO: Make this work, to speed up test suite and get more compact output. Currently fails when instantiating testcases.
-    all_tests = []
-    for test in tests:
-        print "Adding tests from: %s" % test
-        module = __import__(test)
-        tests = [c() for c in vars(module).values() if isinstance(c, type) and issubclass(c, unittest.TestCase)]
-        all_tests.extend(tests)
-        suite = unittest.TestSuite(all_tests)
-        runner = unittest.TextTestRunner(suite)
-        runner.run()
-    return failure
+def configureLogging():
+    # Emit all messages, show nothing on screen,
+    # but write everything to log file
+    logger = ufl.get_logger()
+    sh = ufl.get_handler()
+    fh = ufl.add_logfile()
+
+    logger.setLevel(logging.DEBUG)
+    sh.setLevel(logging.CRITICAL)
+    fh.setLevel(logging.DEBUG)
+
+def run_suite(tests):
+    assert tests
+    loader = unittest.TestLoader()
+    modules = [__import__(test) for test in tests]
+    suite = loader.loadTestsFromModule(modules[0])
+    for m in modules[1:]:
+        suite.addTests(loader.loadTestsFromModule(m))
+    runner = unittest.TextTestRunner(verbosity=2)
+    return runner.run(suite)
 
 def main(args):
     tests = discover_tests(args)
+    configureLogging()
+    return run_suite(tests)
+
+def old():
     using_testrunner = True
     if using_testrunner:
         return run_test_runner_script(tests)
