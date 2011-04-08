@@ -110,7 +110,7 @@ class FormsTestCase(UflTestCase):
         polygon = triangle
         velement = VectorElement("Lagrange", polygon, 2)
         pelement = FiniteElement("Lagrange", polygon, 1)
-        TH = velement + pelement
+        TH = velement * pelement
 
         v, q = TestFunctions(TH)
         u, p = TrialFunctions(TH)
@@ -120,7 +120,9 @@ class FormsTestCase(UflTestCase):
         Re = Constant(polygon)
         dt = Constant(polygon)
 
-        a = dot(u, v) + dt*dot(dot(w, grad(u)), v) - dt*Re*inner(grad(u), grad(v)) + dt*dot(grad(p), v)
+        a = dot(u, v) + dt*dot(dot(w, grad(u)), v)\
+            - dt*Re*inner(grad(u), grad(v))\
+            + dt*dot(grad(p), v)
         L = dot(f, v)
         b = dot(u, grad(q))
 
