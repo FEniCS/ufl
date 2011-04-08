@@ -12,15 +12,17 @@ def analyse_demo(name, shouldfail=False):
     #for f in data.functions:
     #    validate(f)
 
+    _msg_demofail = "The demo '%s' should fail validation, "\
+                    "which means the form analysis is broken."
     from ufl.algorithms import validate_form
     for f in data.forms:
         failed = True
         try:
             validate_form(f)
             failed = False
-        finally:   
+        finally:
             if shouldfail:
-                assert failed, "The demo '%s' should fail validation, which means the form analysis is broken." % os.path.basename(name)
+                assert failed, _msg_demofail % os.path.basename(name)
 
 def test_demos():
     import os, glob
