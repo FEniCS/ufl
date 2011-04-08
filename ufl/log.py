@@ -70,7 +70,7 @@ class Logger:
         # Set prefix
         self._prefix = ""
 
-    def add_logfile(self, filename=None, mode="a"):
+    def add_logfile(self, filename=None, mode="a", level=DEBUG):
         if filename is None:
             filename = "%s.log" % self._name
         if filename in self._logfiles:
@@ -78,7 +78,7 @@ class Logger:
             return
         h = logging.FileHandler(filename, mode)
         h.emit = types.MethodType(emit, h, h.__class__)
-        h.setLevel(DEBUG)
+        h.setLevel(level)
         self._log.addHandler(h)
         self._logfiles[filename] = h
         return h
