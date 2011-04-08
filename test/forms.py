@@ -5,7 +5,7 @@ __date__ = "2008-03-12 -- 2008-12-02"
 
 # Modified by Anders Logg, 2008
 
-import unittest
+from ufltestcase import UflTestCase, main
 
 from ufl import *
 from ufl.algorithms import * 
@@ -14,7 +14,7 @@ from ufl.algorithms import *
 
 # TODO: add more forms, covering all UFL operators
 
-class FormsTestCase(unittest.TestCase):
+class FormsTestCase(UflTestCase):
 
     def setUp(self):
         pass
@@ -125,4 +125,4 @@ class FormsTestCase(unittest.TestCase):
         b = dot(u, grad(q))
 
 if __name__ == "__main__":
-    unittest.main()
+    main()

@@ -68,13 +68,13 @@ testcode = """#!/usr/bin/env python
 __authors__ = "Automatically generated from .tex files"
 __date__ = "2009-02-07 -- 2009-02-07"
 
-import unittest
+from ufltestcase import UflTestCase, main
 
 from ufl import *
 from ufl.classes import *
 from ufl.algorithms import * 
 
-class ManualTestCase(unittest.TestCase):
+class ManualTestCase(UflTestCase):
 
     def setUp(self):
         pass
@@ -82,7 +82,7 @@ class ManualTestCase(unittest.TestCase):
 %s
 
 if __name__ == "__main__":
-    unittest.main()
+    main()
 """ % "\n".join("    def test_%d(self):\n%s" % (i, indent(code, 8)) for (i, code) in enumerate(codes))
 
 with open("manualtest.py", "w") as f:

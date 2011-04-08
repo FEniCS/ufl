@@ -3,10 +3,10 @@ import unittest
 class UflTestCase(unittest.TestCase):
     def setUp(self):
         super(UflTestCase, self).setUp()
-        print "UflTestCase.setup"
+        #print "UflTestCase.setup"
 
     def tearDown(self):
-        print "UflTestCase.tearDown"
+        #print "UflTestCase.tearDown"
         super(UflTestCase, self).tearDown()
 
     def assertIsInstance(self, obj, cl):
@@ -31,3 +31,7 @@ class UflTestCase(unittest.TestCase):
                 self.assertIsInstance(expr, Terminal)
             else:
                 self.assertIsInstance(expr, Operator)
+
+def main(*args, **kwargs):
+    "Hook to do something before running single file tests."
+    return unittest.main(*args, **kwargs)

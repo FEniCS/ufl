@@ -3,12 +3,12 @@
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-08-22 -- 2008-09-28"
 
-import unittest
+from ufltestcase import UflTestCase, main
 
 from ufl import *
 from ufl.algorithms import * 
 
-class MassTestCase(unittest.TestCase):
+class MassTestCase(UflTestCase):
     
     def setUp(self):
         pass
@@ -37,4 +37,4 @@ class MassTestCase(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    main()

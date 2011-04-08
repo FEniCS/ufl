@@ -6,7 +6,7 @@ __date__ = "2009-03-19 -- 2009-03-24"
 # Modified by Anders Logg, 2008
 # Modified by Garth N. Wells, 2009
 
-import unittest
+from ufltestcase import UflTestCase, main
 import math
 from pprint import *
 
@@ -16,7 +16,7 @@ from ufl.classes import Sum, Product
 
 # TODO: add more tests, covering all utility algorithms
 
-class ExpandIndicesTestCase(unittest.TestCase):
+class ExpandIndicesTestCase(UflTestCase):
 
     def setUp(self):
         cell = triangle
@@ -240,4 +240,4 @@ class ExpandIndicesTestCase(unittest.TestCase):
 tests = [ExpandIndicesTestCase]
 
 if __name__ == "__main__":
-    unittest.main()
+    main()

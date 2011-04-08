@@ -10,10 +10,10 @@ __license__  = "GNU GPL version 3 or any later version"
 # Examples copied from the FFC demo directory, examples contributed
 # by Johan Jansson, Kristian Oelgaard, Marie Rognes, and Garth Wells.
 
-import unittest
+from ufltestcase import UflTestCase, main
 from ufl import *
 
-class FFCTestCase(unittest.TestCase):
+class FFCTestCase(UflTestCase):
 
     def testConstant(self):
 
@@ -368,4 +368,4 @@ class FFCTestCase(unittest.TestCase):
         [a, L] = HodgeLaplaceGradCurl(GRAD * CURL, VectorLagrange)
 
 if __name__ == "__main__":
-    unittest.main()
+    main()

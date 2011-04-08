@@ -6,7 +6,7 @@ __date__ = "2008-03-12 -- 2009-01-28"
 # Modified by Anders Logg, 2008
 # Modified by Garth N. Wells, 2009
 
-import unittest
+from ufltestcase import UflTestCase, main
 from pprint import *
 
 from ufl import *
@@ -15,7 +15,7 @@ from ufl.classes import Sum, Product
 
 # TODO: add more tests, covering all utility algorithms
 
-class AlgorithmsTestCase(unittest.TestCase):
+class AlgorithmsTestCase(UflTestCase):
 
     def setUp(self):
         element = FiniteElement("CG", triangle, 1)
@@ -200,4 +200,4 @@ class AlgorithmsTestCase(unittest.TestCase):
 tests = [AlgorithmsTestCase]
 
 if __name__ == "__main__":
-    unittest.main()
+    main()

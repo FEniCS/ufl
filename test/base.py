@@ -3,12 +3,12 @@
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-10-29 -- 2008-10-29"
 
-import unittest
+from ufltestcase import UflTestCase, main
 
 from ufl import *
 from ufl.constantvalue import Zero, FloatValue, IntValue, as_ufl
 
-class BaseTestCase(unittest.TestCase):
+class BaseTestCase(UflTestCase):
 
     def setUp(self):
         pass
@@ -95,4 +95,4 @@ class BaseTestCase(unittest.TestCase):
 tests = [BaseTestCase]
 
 if __name__ == "__main__":
-    unittest.main()
+    main()

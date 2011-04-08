@@ -3,7 +3,7 @@
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2009-02-17 -- 2009-02-17"
 
-import unittest
+from ufltestcase import UflTestCase, main
 import math
 
 from ufl import *
@@ -11,7 +11,7 @@ from ufl.constantvalue import as_ufl
 from ufl.algorithms import expand_indices, strip_variables, post_traversal, preprocess
 #from ufl.classes import *
 
-class DerivativeTestCase(unittest.TestCase):
+class DerivativeTestCase(UflTestCase):
 
     def setUp(self):
         self.cell = triangle
@@ -202,4 +202,4 @@ class DerivativeTestCase(unittest.TestCase):
 tests = [DerivativeTestCase]
 
 if __name__ == "__main__":
-    unittest.main()
+    main()

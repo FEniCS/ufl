@@ -2,7 +2,7 @@
 
 # Last changed: 2009-12-08
 
-import unittest
+from ufltestcase import UflTestCase, main
 
 from ufl import *
 
@@ -13,7 +13,7 @@ from ufl.geometry import domain2dim
 
 all_cells = (interval, triangle, tetrahedron, quadrilateral, hexahedron)
 
-class ElementsTestCase(unittest.TestCase):
+class ElementsTestCase(UflTestCase):
 
     def setUp(self):
         pass
@@ -89,4 +89,4 @@ class ElementsTestCase(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    main()

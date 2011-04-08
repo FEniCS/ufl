@@ -3,7 +3,7 @@
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-09-06 -- 2009-02-10"
 
-import unittest
+from ufltestcase import UflTestCase, main
 
 import ufl
 from ufl import *
@@ -55,7 +55,7 @@ def test_form(a):
     # Can't really test str more than that it exists
     s = str(a)
 
-class ClasscoverageTest(unittest.TestCase):
+class ClasscoverageTest(UflTestCase):
 
     def setUp(self):
         pass
@@ -454,5 +454,5 @@ class ClasscoverageTest(unittest.TestCase):
 tests = [ClasscoverageTest]
 
 if __name__ == "__main__":
-    unittest.main()
+    main()
 

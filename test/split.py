@@ -7,11 +7,11 @@ from ufl import *
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2009-03-14 -- 2009-03-14"
 
-import unittest
+from ufltestcase import UflTestCase, main
 
 from ufl import *
 
-class SplitTestCase(unittest.TestCase):
+class SplitTestCase(UflTestCase):
 
     def setUp(self):
         pass
@@ -53,4 +53,4 @@ class SplitTestCase(unittest.TestCase):
 tests = [SplitTestCase]
 
 if __name__ == "__main__":
-    unittest.main()
+    main()

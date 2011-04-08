@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-import unittest
-import ufltestcase
+from ufltestcase import UflTestCase, main
+from ufltestcase import UflTestCase, main
 
 from ufl import *
 from ufl.indexutils import * 
@@ -10,7 +10,7 @@ from ufl.classes import IndexSum
 
 # TODO: add more expressions to test as many possible combinations of index notation as feasible...
 
-class IndexTestCase(ufltestcase.UflTestCase):
+class IndexTestCase(UflTestCase):
 
     def setUp(self):
         super(IndexTestCase, self).setUp()
@@ -292,4 +292,4 @@ class IndexTestCase(ufltestcase.UflTestCase):
         pass
 
 if __name__ == "__main__":
-    unittest.main()
+    main()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import unittest
+from ufltestcase import UflTestCase, main
 
 from ufl import *
 from ufl.algorithms import *
@@ -10,7 +10,7 @@ from ufl.algorithms import *
 # TODO: add more forms, covering all UFL operators
 
 
-class IllegalExpressionsTestCase(unittest.TestCase):
+class IllegalExpressionsTestCase(UflTestCase):
 
     def setUp(self):
         self.selement = FiniteElement("Lagrange", "triangle", 1)
@@ -79,7 +79,7 @@ class IllegalExpressionsTestCase(unittest.TestCase):
             pass
 
 
-class FormsTestCase(unittest.TestCase):
+class FormsTestCase(UflTestCase):
 
     def setUp(self):
         pass
@@ -229,4 +229,4 @@ class FormsTestCase(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    main()

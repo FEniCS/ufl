@@ -3,7 +3,7 @@
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-09-28 -- 2008-09-28"
 
-import unittest
+from ufltestcase import UflTestCase, main
 import os
 
 # Taken from http://ivory.idyll.org/blog/mar-07/replacing-commands-with-subprocess
@@ -20,7 +20,7 @@ def get_status_output(cmd, input=None, cwd=None, env=None):
 
 from glob import glob
 
-class DemoTestCase(unittest.TestCase):
+class DemoTestCase(UflTestCase):
 
     def setUp(self):
         pass
@@ -72,4 +72,4 @@ class DemoTestCase(unittest.TestCase):
 tests = [DemoTestCase]
 
 if __name__ == "__main__":
-    unittest.main()
+    main()

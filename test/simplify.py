@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
-import unittest
+from ufltestcase import UflTestCase, main
 from ufl.classes import Sum, Product
 
 from ufl import *
 
-class ElementsTestCase(unittest.TestCase):
+class ElementsTestCase(UflTestCase):
 
     def setUp(self):
         pass
@@ -73,4 +73,4 @@ class ElementsTestCase(unittest.TestCase):
         self.assertTrue(a == b)
 
 if __name__ == "__main__":
-    unittest.main()
+    main()
