@@ -43,7 +43,13 @@ def run_suite(tests):
 def main(args):
     tests = discover_tests(args)
     configureLogging()
-    return run_suite(tests)
+    result = run_suite(tests)
+    if result.wasSuccessful():
+        print "All tests finished successfully."
+        return 0
+    else:
+        print "Not all tests finished successfully."
+        return 1
 
 if __name__ == "__main__":
     import sys
