@@ -11,8 +11,8 @@ from ufl.algorithms import *
 
 
 class IllegalExpressionsTestCase(UflTestCase):
-
     def setUp(self):
+        super(IllegalExpressionsTestCase, self).setUp()
         self.selement = FiniteElement("Lagrange", "triangle", 1)
         self.velement = VectorElement("Lagrange", "triangle", 1)
         self.a = Argument(self.selement)
@@ -24,132 +24,91 @@ class IllegalExpressionsTestCase(UflTestCase):
         self.vf = Coefficient(self.velement)
         self.vg = Coefficient(self.velement)
 
-    def test_1(self):
-        a, b, v,  u  = self.a, self.b, self.v,  self.u
-        f, g, vf, vg = self.f, self.g, self.vf, self.vg
-        try:
-            v*u
-            self.fail()
-        except (UFLException, e):
-            pass
+    def tearDown(self):
+        super(IllegalExpressionsTestCase, self).tearDown()
 
-    def test_2(self):
-        a, b, v,  u  = self.a, self.b, self.v,  self.u
-        f, g, vf, vg = self.f, self.g, self.vf, self.vg
-        try:
-            vf*u
-            self.fail()
-        except (UFLException, e):
-            pass
+    def test_mul_v_u(self):
+        self.assertRaises(UFLException, lambda: self.v * self.u)
 
-    def test_3(self):
-        a, b, v,  u  = self.a, self.b, self.v,  self.u
-        f, g, vf, vg = self.f, self.g, self.vf, self.vg
-        try:
-            vf*vg
-            self.fail()
-        except (UFLException, e):
-            pass
+    def test_mul_vf_u(self):
+        self.assertRaises(UFLException, lambda: self.vf * self.u)
 
-    def test_4(self):
-        a, b, v,  u  = self.a, self.b, self.v,  self.u
-        f, g, vf, vg = self.f, self.g, self.vf, self.vg
-        try:
-            a+v
-            self.fail()
-        except (UFLException, e):
-            pass
+    def test_mul_vf_vg(self):
+        self.assertRaises(UFLException, lambda: self.vf * self.vg)
 
-    def test_5(self):
-        a, b, v,  u  = self.a, self.b, self.v,  self.u
-        f, g, vf, vg = self.f, self.g, self.vf, self.vg
-        try:
-            vf+b
-            self.fail()
-        except (UFLException, e):
-            pass
+    def test_add_a_v(self):
+        self.assertRaises(UFLException, lambda: self.a + self.v)
 
-    def test_6(self):
-        a, b, v,  u  = self.a, self.b, self.v,  self.u
-        f, g, vf, vg = self.f, self.g, self.vf, self.vg
-        tmp = vg+v+u+vf
-        try:
-            tmp+b
-        except (UFLException, e):
-            pass
+    def test_add_vf_b(self):
+        self.assertRaises(UFLException, lambda: self.vf + self.b)
 
+    def test_add_vectorexpr_b(self):
+        tmp = self.vg + self.v + self.u + self.vf
+        self.assertRaises(UFLException, lambda: tmp + self.b)
 
 class FormsTestCase(UflTestCase):
 
     def setUp(self):
-        pass
+        super(FormsTestCase, self).setUp()
+
+    def tearDown(self):
+        super(FormsTestCase, self).tearDown()
 
     def test_source1(self):
         element = VectorElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
         f = Coefficient(element)
-        try:
-            a = f*v*dx
-            self.fail()
-        except (UFLException, e):
-            pass
+        self.assertRaises(UFLException, lambda: f*v*dx)
 
     def test_source2(self):
         element = VectorElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
         f = Coefficient(element)
-        try:
-            a = dot(f[0],v)
-            self.fail()
-        except (UFLException, e):
-            pass
+        self.assertRaises(UFLException, lambda: dot(f[0], v))
 
     def test_source3(self):
         element = TensorElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
         f = Coefficient(element)
-        try:
-            a = inner(f,v[0])*dx
-            self.fail()
-        except (UFLException, e):
-            pass
-
+        self.assertRaises(UFLException, lambda: inner(f, v[0])*dx)
 
     def test_mass1(self):
         element = FiniteElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
         u = TrialFunction(element)
-        try:
-            a = u[i]*v*dx
-            self.fail()
-        except (UFLException, e):
-            pass
+        self.assertRaises(UFLException, lambda: u[i]*v*dx)
 
     def test_mass2(self):
         element = VectorElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
         u = TrialFunction(element)
-        try:
-            a = u[i][j]
-            self.fail()
-        except (UFLException, e):
-            pass
+        self.assertRaises(UFLException, lambda: u[i][j])
 
     def test_mass3(self):
         element = VectorElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
         u = TrialFunction(element)
-        try:
-            a = dot(u[i],v[j])*dx
-            self.fail()
-        except (UFLException, e):
-            pass
+        self.assertRaises(UFLException, lambda: dot(u[i], v[j])*dx)
 
     def test_mass4(self):
         element = TensorElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
         u = TrialFunction(element)
         a = inner(u,v)*dx
+        # TODO: Assert something? What are we testing here?
+
+    def check_validate_raises(self, a):
+        def store_if_nothrow():
+            validate_form(a)
+            store_if_nothrow.nothrow = True
+        store_if_nothrow.nothrow = False
+
+        self.assertRaises(UFLException, store_if_nothrow)
+
+        if store_if_nothrow.nothrow:
+            print "in check_validate_raises:"
+            print "repr =", repr(a)
+            print "str =", str(a)
 
     def test_duplicated_args(self):
         element = FiniteElement("Lagrange", "triangle", 1)
@@ -159,13 +118,7 @@ class FormsTestCase(UflTestCase):
         V = TestFunction(element2)
         U = TrialFunction(element2)
         a = inner(u,v)*dx + inner(V,U)*dx
-        try:
-            validate_form(a)
-            print "FAIL:", repr(a)
-            print "FAIL:", str(a)
-            self.fail()
-        except (UFLException, e):
-            pass
+        self.check_validate_raises(a)
 
     def test_duplicated_args2(self):
         element = FiniteElement("Lagrange", "triangle", 1)
@@ -173,32 +126,28 @@ class FormsTestCase(UflTestCase):
         f = Coefficient(element)
         g = Coefficient(element2, count=f.count())
         a = (f+g)*dx
-        try:
-            validate_form(a)
-            print "FAIL:", repr(a)
-            print "FAIL:", str(a)
-            self.fail()
-        except (UFLException, e):
-            pass
+        self.check_validate_raises(a)
 
     def test_stiffness1(self):
         element = FiniteElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
         u = TrialFunction(element)
         a = dot(grad(u), grad(v)) * dx
+        # TODO: Assert something? What are we testing here?
 
     def test_stiffness2(self):
         element = FiniteElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
         u = TrialFunction(element)
         a = inner(grad(u), grad(v)) * dx
+        # TODO: Assert something? What are we testing here?
 
     def test_stiffness3(self):
         element = VectorElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
         u = TrialFunction(element)
         a = inner(grad(u), grad(v)) * dx
-
+        # TODO: Assert something? What are we testing here?
 
     def test_stiffness_with_conductivity(self):
         velement = VectorElement("Lagrange", "triangle", 1)
@@ -207,7 +156,7 @@ class FormsTestCase(UflTestCase):
         u = TrialFunction(velement)
         M = Coefficient(telement)
         a = inner(M*grad(u), grad(v)) * dx
-
+        # TODO: Assert something? What are we testing here?
 
     def test_navier_stokes(self):
         polygon = "triangle"
@@ -227,6 +176,7 @@ class FormsTestCase(UflTestCase):
         L = dot(f, v)
         b = dot(u, grad(q))
 
+        # TODO: Assert something? What are we testing here?
 
 if __name__ == "__main__":
     main()
