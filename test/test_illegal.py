@@ -5,11 +5,7 @@ from ufltestcase import UflTestCase, main
 from ufl import *
 from ufl.algorithms import *
 
-# TODO: these tests only verify that the syntax is possible, how much more can we test without a form compiler?
-
-# TODO: add more forms, covering all UFL operators
-
-
+# TODO: Add more illegal expressions to check!
 class IllegalExpressionsTestCase(UflTestCase):
     def setUp(self):
         super(IllegalExpressionsTestCase, self).setUp()
@@ -23,6 +19,7 @@ class IllegalExpressionsTestCase(UflTestCase):
         self.g = Coefficient(self.selement)
         self.vf = Coefficient(self.velement)
         self.vg = Coefficient(self.velement)
+        
 
     def tearDown(self):
         super(IllegalExpressionsTestCase, self).tearDown()
@@ -46,6 +43,8 @@ class IllegalExpressionsTestCase(UflTestCase):
         tmp = self.vg + self.v + self.u + self.vf
         self.assertRaises(UFLException, lambda: tmp + self.b)
 
+
+# TODO: Add more forms, covering all UFL operators
 class FormsTestCase(UflTestCase):
 
     def setUp(self):
