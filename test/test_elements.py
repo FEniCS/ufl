@@ -82,11 +82,10 @@ class ElementsTestCase(UflTestCase):
             velement = VectorElement("CG", cell, 2)
             pelement = FiniteElement("CG", cell, 1)
             TH1 = MixedElement(velement, pelement)
-            TH2 = velement + pelement
+            TH2 = velement * pelement
             self.assertTrue( repr(TH1) == repr(TH2) )
             self.assertTrue( TH1.value_shape() == (dim+1,) )
             self.assertTrue( TH2.value_shape() == (dim+1,) )
-
 
 if __name__ == "__main__":
     main()
