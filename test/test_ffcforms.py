@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """Unit tests including all demo forms from FFC 0.5.0. The forms are
 modified (with comments) to work with the UFL notation which differs
 from the FFC notation in some places."""

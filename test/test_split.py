@@ -1,8 +1,6 @@
+#!/usr/bin/env python
 
 from ufl import *
-
-
-#!/usr/bin/env python
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2009-03-14 -- 2009-03-14"

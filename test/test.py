@@ -2,9 +2,9 @@
 """Run all tests"""
 
 __author__ = "Anders Logg (logg@simula.no)"
-__date__ = "2008-03-12 -- 2009-03-25"
+__date__ = "2008-03-12 -- 2011-04-08"
 
-# Modified by Martin Alnes 2009
+# Modified by Martin Alnes 2011
 
 import unittest
 import sys
@@ -15,15 +15,12 @@ from glob import glob
 import logging
 logging.basicConfig(level=logging.WARNING)
 
-# Tests to run
-#tests = ["elements", "indices", "forms", "illegal", "algorithms"]
-tests = [f.replace(".py", "") for f in glob("*.py")]
-tests = [f for f in tests if not "debug" in f]
+# Running tests from all test_foo.py files
+tests = sorted(f.replace(".py", "") for f in glob("test_*.py"))
 
-skip = set(("test", "testrunner", "makemanualtestcase", "analyse_demos"))
-tests = sorted(list(set(tests) - skip))
-if not "skipdemos" in sys.argv:
-    tests.append("analyse_demos")
+# Demos are slow, allow running everything else easily
+if "skipdemos" in sys.argv:
+    tests.remove("test_analyse_demos")
 
 using_testrunner = True
 
@@ -49,6 +46,7 @@ fh.setLevel(logging.DEBUG)
 %s
 
 if __name__ == "__main__":
+    import unittest
     unittest.main()
 """
 

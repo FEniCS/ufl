@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import unittest
 
 class UflTestCase(unittest.TestCase):
@@ -35,3 +36,9 @@ class UflTestCase(unittest.TestCase):
 def main(*args, **kwargs):
     "Hook to do something before running single file tests."
     return unittest.main(*args, **kwargs)
+
+if __name__ == "__main__":
+    print "Not to be run directly."
+    print "Call main function from this module"
+    print "in modules with test cases."
+
