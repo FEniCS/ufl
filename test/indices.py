@@ -23,19 +23,19 @@ class IndexTestCase(ufltestcase.UflTestCase):
         self.assertTrue( (1,2,3,4,3) == complete_shape(shape, 3) )
         
         ii = indices(3)
-        self.assertTrue( ii == unique_indices(ii) )
-        self.assertTrue( ii == unique_indices(ii+ii) )
+        self.assertEqual(ii, unique_indices(ii) )
+        self.assertEqual(ii, unique_indices(ii+ii) )
         
-        self.assertTrue( () == repeated_indices(ii) )
-        self.assertTrue( ii == repeated_indices(ii+ii) )
+        self.assertEqual((), repeated_indices(ii) )
+        self.assertEqual(ii, repeated_indices(ii+ii) )
         
-        self.assertTrue( ii == shared_indices(ii, ii) )
-        self.assertTrue( ii == shared_indices(ii, ii+ii) )
-        self.assertTrue( ii == shared_indices(ii+ii, ii) )
-        self.assertTrue( ii == shared_indices(ii+ii, ii+ii) )
+        self.assertEqual(ii, shared_indices(ii, ii) )
+        self.assertEqual(ii, shared_indices(ii, ii+ii) )
+        self.assertEqual(ii, shared_indices(ii+ii, ii) )
+        self.assertEqual(ii, shared_indices(ii+ii, ii+ii) )
         
-        self.assertTrue( ii == single_indices(ii) )
-        self.assertTrue( () == single_indices(ii+ii) )
+        self.assertEqual(ii, single_indices(ii) )
+        self.assertEqual((), single_indices(ii+ii) )
 
     def test_vector_indices(self):
         element = VectorElement("CG", "triangle", 1)
@@ -133,10 +133,10 @@ class IndexTestCase(ufltestcase.UflTestCase):
         uu = as_vector(v[j], j)
         w  = v + u
         ww = vv + uu
-        self.assertTrue(vv.rank() == 1)
-        self.assertTrue(uu.rank() == 1)
-        self.assertTrue(w.rank()  == 1)
-        self.assertTrue(ww.rank() == 1)
+        self.assertEqual(vv.rank(), 1)
+        self.assertEqual(uu.rank(), 1)
+        self.assertEqual(w.rank(), 1)
+        self.assertEqual(ww.rank(), 1)
 
     def test_matrix_from_indices(self):
         element = VectorElement("CG", "triangle", 1)
