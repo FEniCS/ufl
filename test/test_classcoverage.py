@@ -68,12 +68,13 @@ class ClasscoverageTest(UflTestCase):
                 for c in vars(m).values():
                     if isinstance(c, type) and issubclass(c, Expr):
                         all_expr_classes.append(c)
-        missing_classes = set(c.__name__ for c in all_expr_classes) - set(c.__name__ for c in all_ufl_classes)
+        missing_classes = set(c.__name__ for c in all_expr_classes)\
+            - set(c.__name__ for c in all_ufl_classes)
         if missing_classes:
             print "The following subclasses of Expr were not exported from ufl.classes:"
             print "\n".join(sorted(missing_classes))
         self.assertFalse(missing_classes)
-    
+
     def testAll(self):
         
         # --- Elements:
@@ -111,10 +112,16 @@ class ClasscoverageTest(UflTestCase):
         test_object(f1, (dim,), ())
         test_object(f2, (dim,dim), ())
         test_object(f3, (dim*dim+dim+1,), ())
-        
+
         c = Constant(cell)
         test_object(c, (), ())
-        
+
+        c = VectorConstant(cell)
+        test_object(c, (dim,), ())
+
+        c = TensorConstant(cell)
+        test_object(c, (dim,dim), ())
+
         a = FloatValue(1.23)
         test_object(a, (), ())
         
@@ -209,7 +216,7 @@ class ClasscoverageTest(UflTestCase):
         a = (f0*2)**1.23
         test_object(a, (), ())
         
-        #a = Listas_tensor()
+        #a = ListTensor()
         a = as_vector([1.0, 2.0*f0, f0**2])
         test_object(a, (3,), ())
         a = as_matrix([[1.0, 2.0*f0, f0**2],
@@ -221,7 +228,7 @@ class ClasscoverageTest(UflTestCase):
                         [1.10, 1.11, 1.12]] ])
         test_object(a, (2,2,3), ())
         
-        #a = Componentas_tensor()
+        #a = ComponentTensor()
         a = as_vector(v1[i]*f1[j], i)
         test_object(a, (dim,), (j,))
         a = as_matrix(v1[i]*f1[j], (j,i))
@@ -230,14 +237,28 @@ class ClasscoverageTest(UflTestCase):
         test_object(a, (dim, dim), ())
         a = as_tensor(v2[i,j]*f2[j,k], (i,k))
         test_object(a, (dim, dim), ())
-        
+
         a = dev(v2)
         test_object(a, (dim,dim), ())
         a = dev(f2)
         test_object(a, (dim,dim), ())
         a = dev(f2*f0+v2*3)
         test_object(a, (dim,dim), ())
-        
+
+        a = sym(v2)
+        test_object(a, (dim,dim), ())
+        a = sym(f2)
+        test_object(a, (dim,dim), ())
+        a = sym(f2*f0+v2*3)
+        test_object(a, (dim,dim), ())
+
+        a = skew(v2)
+        test_object(a, (dim,dim), ())
+        a = skew(f2)
+        test_object(a, (dim,dim), ())
+        a = skew(f2*f0+v2*3)
+        test_object(a, (dim,dim), ())
+
         a = v2.T
         test_object(a, (dim,dim), ())
         a = f2.T
@@ -292,11 +313,19 @@ class ClasscoverageTest(UflTestCase):
         test_object(a, (), ())
         a = sin(f0)
         test_object(a, (), ())
+        a = tan(f0)
+        test_object(a, (), ())
         a = exp(f0)
         test_object(a, (), ())
         a = ln(f0)
         test_object(a, (), ())
-        
+        a = asin(f0)
+        test_object(a, (), ())
+        a = acos(f0)
+        test_object(a, (), ())
+        a = atan(f0)
+        test_object(a, (), ())
+
         one = as_ufl(1)
         a = abs(one)
         test_object(a, (), ())
@@ -305,6 +334,14 @@ class ClasscoverageTest(UflTestCase):
         a = Cos(one)
         test_object(a, (), ())
         a = Sin(one)
+        test_object(a, (), ())
+        a = Tan(one)
+        test_object(a, (), ())
+        a = Acos(one)
+        test_object(a, (), ())
+        a = Asin(one)
+        test_object(a, (), ())
+        a = Atan(one)
         test_object(a, (), ())
         a = Exp(one)
         test_object(a, (), ())
@@ -434,12 +471,12 @@ class ClasscoverageTest(UflTestCase):
         #e = action(b)
 
         # TODO: Add tests for TensorConstant, VectorConstant, ScalarSomething, Skew
-        
+
         # --- Check which classes have been created
         if ufl.expr._class_usage_statistics:
             s = ufl.expr._class_usage_statistics
             constructed = set(s.keys())
-            abstract = set((Expr, Terminal, Operator, FormArgument, AlgebraOperator,
+            abstract = set((Expr, Terminal, Operator, FormArgument, ConstantBase, AlgebraOperator,
                             Condition, MathFunction, Restricted, ScalarValue,
                             ConstantValue, CompoundDerivative, Derivative,
                             WrapperType, GeometricQuantity, CompoundTensorOperator, UtilityType))
