@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import unittest
+import ufltestcase
 
 from ufl import *
 from ufl.indexutils import * 
@@ -9,11 +10,14 @@ from ufl.classes import IndexSum
 
 # TODO: add more expressions to test as many possible combinations of index notation as feasible...
 
-class IndexTestCase(unittest.TestCase):
+class IndexTestCase(ufltestcase.UflTestCase):
 
     def setUp(self):
-        pass
-    
+        super(IndexTestCase, self).setUp()
+
+    def tearDown(self):
+        super(IndexTestCase, self).tearDown()
+
     def test_index_utils(self):
         shape = (1,2,None,4,None)
         self.assertTrue( (1,2,3,4,3) == complete_shape(shape, 3) )
@@ -238,8 +242,8 @@ class IndexTestCase(unittest.TestCase):
         
         a = outer(v,u)[i,i]
         self.assertEqual(a.free_indices(), ())
-        self.assertTrue(isinstance(a, IndexSum))
-        
+        self.assertIsInstance(a, IndexSum)
+
     def test_spatial_derivative(self):
         cell = triangle
         element = VectorElement("CG", cell, 1)
@@ -250,7 +254,7 @@ class IndexTestCase(unittest.TestCase):
         
         a = v[i].dx(i)
         self.assertEqual(a.free_indices(), ())
-        self.assertTrue(isinstance(a, IndexSum))
+        self.assertIsInstance(a, IndexSum)
         self.assertEqual(a.shape(), ())
         
         a = v[i].dx(j)
@@ -260,7 +264,7 @@ class IndexTestCase(unittest.TestCase):
         
         a = (v[i]*u[j]).dx(i,j)
         self.assertEqual(a.free_indices(), ())
-        self.assertTrue(isinstance(a, IndexSum))
+        self.assertIsInstance(a, IndexSum)
         self.assertEqual(a.shape(), ())
         
         a = v.dx(i,j)
@@ -281,7 +285,7 @@ class IndexTestCase(unittest.TestCase):
         
         a = v.dx(i)[i]
         self.assertEqual(a.free_indices(), ())
-        self.assertTrue(isinstance(a, IndexSum))
+        self.assertIsInstance(a, IndexSum)
         self.assertEqual(a.shape(), ())
 
     def test_renumbering(self):
