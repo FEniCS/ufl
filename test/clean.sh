@@ -9,3 +9,6 @@ rm -f *.pyc
 # logs
 rm -f *.log
 
+# temp files from emacs
+rm -f *~
+
