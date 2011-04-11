@@ -1,5 +1,9 @@
-To run these tests from within the source tree without needing to install
-the UFL Python module, update your PYTHONPATH according to
+To run these tests from within the source tree without
+needing to install the UFL Python module, update your
+PYTHONPATH and PATH by running
 
-    export PYTHONPATH="..:$PYTHONPATH"
-    export PATH="../scripts:$PATH"
+  source sourceme.sh
+
+in a bash shell or equivalent. If on other OSes, you
+must set the paths whichever way your OS requires.
+
