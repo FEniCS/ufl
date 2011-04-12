@@ -199,7 +199,27 @@ class DerivativeTestCase(UflTestCase):
         Jv2 = J_expression((0,), mapping)
         self.assertAlmostEqual(Jv, Jv2)
 
-tests = [DerivativeTestCase]
+    def test_foobar(self):
+        element = VectorElement("Lagrange", triangle, 1)
+        v = TestFunction(element)
+        du = TrialFunction(element)
+
+        U = Coefficient(element)
+
+        def planarGrad(u):
+            return as_matrix([[u[0].dx(0), 0 ,u[0].dx(1)],
+                              [ 0 , 0 , 0 ],
+                              [u[1].dx(0), 0 ,u[1].dx(1)]])
+
+        def epsilon(u):
+            return 0.5*(planarGrad(u)+planarGrad(u).T)
+
+        def NS_a(u,v):
+            return inner(epsilon(u),epsilon(v))
+
+        L = NS_a(U,v)*dx
+        a = derivative(L, U, du)
 
 if __name__ == "__main__":
     main()
+

@@ -3,6 +3,8 @@ will typically call prior to code generation to preprocess/simplify a
 raw input form given by a user."""
 
 __authors__ = "Anders Logg"
+__copyright__ = "Copyright (C) 2009-2011 Anders Logg"
+__license__  = "GNU LGPL version 3 or any later version"
 __date__ = "2009-12-07"
 
 # Last changed: 2010-11-04

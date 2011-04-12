@@ -1,3 +1,9 @@
+"Some utilities for working with index tuples."
+
+__authors__ = "Martin Sandve Alnes"
+__copyright__ = "Copyright (C) 2008-2011 Martin Sandve Alnes"
+__license__  = "GNU LGPL version 3 or any later version"
+__date__ = "2008-03-14 -- 2011-04-12"
 
 from collections import defaultdict
 from ufl.indexing import Index

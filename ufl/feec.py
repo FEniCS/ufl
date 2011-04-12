@@ -1,3 +1,8 @@
+
+__authors__ = "Marie E. Rognes"
+__copyright__ = "Copyright (C) 2010-2011 Marie E. Rognes"
+__license__  = "GNU LGPL version 3 or any later version"
+
 from ufl.assertions import ufl_assert
 
 def FEEC_aliases(name, cell, r, k):

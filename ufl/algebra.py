@@ -1,6 +1,8 @@
 "Basic algebra operations."
 
 __authors__ = "Martin Sandve Alnes"
+__copyright__ = "Copyright (C) 2008-2011 Martin Sandve Alnes"
+__license__  = "GNU LGPL version 3 or any later version"
 __date__ = "2008-05-20 -- 2009-09-22"
 
 # Modified by Anders Logg, 2008

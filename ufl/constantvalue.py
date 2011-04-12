@@ -1,6 +1,8 @@
 "This module defines classes representing constant values."
 
 __authors__ = "Martin Sandve Alnes"
+__copyright__ = "Copyright (C) 2008-2011 Martin Sandve Alnes"
+__license__  = "GNU LGPL version 3 or any later version"
 __date__ = "2008-11-01 -- 2009-09-22"
 
 from ufl.log import warning, error

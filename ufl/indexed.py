@@ -1,6 +1,8 @@
 """This module defines the Indexed class."""
 
 __authors__ = "Martin Sandve Alnes"
+__copyright__ = "Copyright (C) 2008-2011 Martin Sandve Alnes"
+__license__  = "GNU LGPL version 3 or any later version"
 __date__ = "2009-01-28 -- 2009-04-19"
 
 from collections import defaultdict

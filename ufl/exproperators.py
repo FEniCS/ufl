@@ -2,7 +2,9 @@
 This way we avoid circular dependencies between e.g.
 Sum and its superclass Expr."""
 
-_authors__ = "Martin Sandve Alnes"
+__authors__ = "Martin Sandve Alnes"
+__copyright__ = "Copyright (C) 2008-2011 Martin Sandve Alnes"
+__license__  = "GNU LGPL version 3 or any later version"
 __date__ = "2008-08-18 -- 2011-04-12"
 
 from itertools import chain

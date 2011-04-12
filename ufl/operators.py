@@ -4,6 +4,8 @@ or defined as compound operators involving basic operations on the UFL
 objects."""
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
+__copyright__ = "Copyright (C) 2008-2011 Martin Sandve Alnes and Anders Logg"
+__license__  = "GNU LGPL version 3 or any later version"
 __date__ = "2008-04-09 -- 2010-12-04"
 
 import math

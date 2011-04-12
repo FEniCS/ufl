@@ -3,6 +3,8 @@ of UFL objects in the DOT graph visualization language,
 mostly intended for debugging purposers."""
 
 __authors__ = "Martin Sandve Alnes"
+__copyright__ = "Copyright (C) 2008-2011 Martin Sandve Alnes"
+__license__  = "GNU LGPL version 3 or any later version"
 __date__ = "2008-11-17 -- 2009-06-19"
 
 from itertools import chain

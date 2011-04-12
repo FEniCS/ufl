@@ -2,6 +2,8 @@
 all relevant operands for use with reverse mode AD."""
 
 __authors__ = "Martin Sandve Alnes"
+__copyright__ = "Copyright (C) 2008-2011 Martin Sandve Alnes"
+__license__  = "GNU LGPL version 3 or any later version"
 __date__ = "2009-01-06 -- 2009-02-24"
 
 from ufl.log import error

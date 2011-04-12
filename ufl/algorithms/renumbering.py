@@ -1,4 +1,8 @@
+"Algorithms for renumbering of counted objects, currently variables and indices."
+
 __authors__ = "Martin Sandve Alnes and Anders Logg"
+__copyright__ = "Copyright (C) 2008-2011 Martin Sandve Alnes and Anders Logg"
+__license__  = "GNU LGPL version 3 or any later version"
 __date__ = "2009-02-22"
 
 # Last changed: 2009-12-08

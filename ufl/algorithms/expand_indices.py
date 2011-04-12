@@ -3,6 +3,8 @@ for expanding free indices in expressions to explicit fixed
 indices only."""
 
 __authors__ = "Martin Sandve Alnes"
+__copyright__ = "Copyright (C) 2008-2011 Martin Sandve Alnes"
+__license__  = "GNU LGPL version 3 or any later version"
 __date__ = "2008-04-19 -- 2009-04-19"
 
 # Modified by Anders Logg, 2009.

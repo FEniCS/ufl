@@ -1,6 +1,8 @@
 """This module defines classes for conditional expressions."""
 
 __authors__ = "Martin Sandve Alnes"
+__copyright__ = "Copyright (C) 2008-2011 Martin Sandve Alnes"
+__license__  = "GNU LGPL version 3 or any later version"
 __date__ = "2008-08-20 -- 2009-02-13"
 
 from ufl.log import warning, error

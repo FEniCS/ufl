@@ -1,6 +1,8 @@
 "Algorithms for tuple notation a = (v, u) + (grad(v), grad(u))."
 
 __authors__ = "Anders Logg (logg@simula.no)"
+__copyright__ = "Copyright (C) 2008-2011 Anders Logg"
+__license__  = "GNU LGPL version 3 or any later version"
 __date__    = "2009-04-05 -- 2009-06-19"
 
 from ufl.log import error

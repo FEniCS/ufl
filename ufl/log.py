@@ -2,9 +2,9 @@
 output messages. These may be redirected by the user of UFL."""
 
 __author__ = "Martin Sandve Alnaes and Anders Logg"
-__date__ = "2005-02-04 -- 2009-08-17"
-__copyright__ = "Copyright (C) 2005-2009 Anders Logg and Martin Sandve Alnaes"
+__copyright__ = "Copyright (C) 2005-2011 Anders Logg and Martin Sandve Alnaes"
 __license__  = "GNU LGPL version 3 or any later version"
+__date__ = "2005-02-04 -- 2011-04-12"
 
 # Modified by Johan Hake, 2009.
 

@@ -1,6 +1,8 @@
 """Reverse mode AD implementation."""
 
 __authors__ = "Martin Sandve Alnes"
+__copyright__ = "Copyright (C) 2008-2011 Martin Sandve Alnes and Anders Logg"
+__license__  = "GNU LGPL version 3 or any later version"
 __date__ = "2008-12-28 -- 2009-01-07"
 
 # TODO: Imports!

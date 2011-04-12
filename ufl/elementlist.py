@@ -3,6 +3,8 @@ families. Users or more likely, form compilers, may register new
 elements by calling the function register_element."""
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
+__copyright__ = "Copyright (C) 2008-2011 Martin Sandve Alnes and Anders Logg"
+__license__  = "GNU LGPL version 3 or any later version"
 __date__ = "2008-03-03 -- 2009-11-16"
 
 # Modified by Marie E. Rognes (meg@simula.no), 2010

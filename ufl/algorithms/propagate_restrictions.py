@@ -1,6 +1,8 @@
 "Algorithms related to restrictions."
 
 __authors__ = "Martin Sandve Alnes"
+__copyright__ = "Copyright (C) 2008-2011 Martin Sandve Alnes"
+__license__  = "GNU LGPL version 3 or any later version"
 __date__ = "2009-05-14 -- 2009-06-08"
 
 from ufl.expr import Expr

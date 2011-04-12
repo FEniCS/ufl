@@ -1,8 +1,7 @@
-__author__ = "Marie E. Rognes (meg@simula.no)"
-__copyright__ = "Copyright (C) 2011 " + __author__
+__authors__ = "Marie E. Rognes (meg@simula.no)"
+__copyright__ = "Copyright (C) 2011 " + __authors__
 __license__  = "GNU LGPL version 3 or any later version"
-
-# Last changed: 2011-01-17
+__date__ = "2011-01-17 -- 2011-01-17"
 
 from ufl.finiteelement import FiniteElement, MixedElement
 

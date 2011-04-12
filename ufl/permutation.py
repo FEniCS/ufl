@@ -2,6 +2,8 @@
 and generating index lists."""
 
 __authors__ = "Anders Logg and Kent-Andre Mardal"
+__copyright__ = "Copyright (C) 2008-2011 Anders Logg and Kent-Andre Mardal"
+__license__  = "GNU LGPL version 3 or any later version"
 __date__ = "2008-05-22 -- 2009-01-09"
 
 # Modified by Martin Alnes 2009

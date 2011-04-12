@@ -1,6 +1,8 @@
 """This module defines the single index types and some internal index utilities."""
 
 __authors__ = "Martin Sandve Alnes and Anders Logg"
+__copyright__ = "Copyright (C) 2008-2011 Martin Sandve Alnes and Anders Logg"
+__license__  = "GNU LGPL version 3 or any later version"
 __date__ = "2008-03-14 -- 2009-04-25"
 
 from ufl.log import error, warning

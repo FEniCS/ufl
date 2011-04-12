@@ -2,6 +2,8 @@
 is more robust w.r.t. argument numbering than using repr."""
 
 __authors__ = "Martin Sandve Alnes"
+__copyright__ = "Copyright (C) 2008-2011 Martin Sandve Alnes"
+__license__  = "GNU LGPL version 3 or any later version"
 __date__ = "2008-11-26 -- 2009-04-25"
 
 # Modified by Anders Logg, 2009-2010.

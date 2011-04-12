@@ -1,6 +1,8 @@
 """Utility algorithms for inspection of and information extraction from UFL objects in various ways."""
 
 __authors__ = "Martin Sandve Alnes"
+__copyright__ = "Copyright (C) 2008-2011 Martin Sandve Alnes"
+__license__  = "GNU LGPL version 3 or any later version"
 __date__ = "2008-03-14 -- 2009-04-17"
 
 # Modified by Anders Logg, 2009-2010.
