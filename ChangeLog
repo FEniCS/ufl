@@ -1,4 +1,5 @@
- - Update repr string in set_cell and set_degree (fix strange cache problem)
+ - Fix bug with future division behaviour (ufl does not support floor division)
+ - Update repr string in set_cell and set_degree (fix strange cache problem) FIXME: Do not release without removing these first!
  - Add subdomain member variables to form class
  - Allow action on forms of arbitrary rank
 0.9.0 [2011-02-23]

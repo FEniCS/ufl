@@ -9,7 +9,7 @@ This is to avoid circular dependencies between Expr and its subclasses.
 """
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2008-03-14 -- 2009-04-06"
+__date__ = "2008-03-14 -- 2011-04-12"
 
 # Modified by Anders Logg, 2008
 
@@ -148,7 +148,11 @@ class Expr(object):
         "Iteration over vector expressions."
         for i in range(len(self)):
             yield self[i]
-    
+ 
+    def __floordiv__(self, other):
+        "UFL does not support integer division."
+        raise NotImplementedError(self.__class__.__floordiv__)
+
     #def __getnewargs__(self): # TODO: Test pickle and copy with this. Must implement differently for Terminal objects though.
     #    "Used for pickle and copy operations."
     #    return self.operands()

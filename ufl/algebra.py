@@ -303,21 +303,23 @@ class Division(AlgebraOperator):
         b = as_ufl(b)
 
         # Assertions
-        # TODO: Enabled workaround for nonscalar division in __div__, so maybe we can keep this assertion. Some algorithms may need updating.
-        if not is_ufl_scalar(a): error("Expecting scalar nominator in Division.")
-        if not is_true_ufl_scalar(b): error("Division by non-scalar is undefined.")
-        if (b == 0): error("Division by zero!")
-        
-        if isinstance(a, Zero):
+        # TODO: Enabled workaround for nonscalar division in __div__,
+	# so maybe we can keep this assertion. Some algorithms may need updating.
+        if not is_ufl_scalar(a):
+            error("Expecting scalar nominator in Division.")
+        if not is_true_ufl_scalar(b):
+            error("Division by non-scalar is undefined.")
+        if isinstance(b, Zero):
+            error("Division by zero!")
+
+	# Simplification a/b -> a
+        if isinstance(a, Zero) or b == 1:
             return a
-        
-        # TODO: Handling int/int specially here to avoid "2/3 == 0", do we want this?
-        if isinstance(a, IntValue) and isinstance(b, IntValue):
-            return as_ufl(a._value / float(b._value))
-        
+	# Simplification "literal a / literal b" -> "literal value of a/b"
+        # Avoiding integer division by casting to float
         if isinstance(a, ScalarValue) and isinstance(b, ScalarValue):
-            return as_ufl(a._value / b._value)
-        
+            return as_ufl(float(a._value) / float(b._value))
+
         # construct and initialize a new Division object
         self = AlgebraOperator.__new__(cls)
         self._init(a, b)
@@ -350,9 +352,9 @@ class Division(AlgebraOperator):
         a, b = self.operands()
         a = a.evaluate(x, mapping, component, index_values)
         b = b.evaluate(x, mapping, component, index_values)
-        # Avoid integer division
+        # Avoiding integer division by casting to float
         return float(a) / float(b)
-    
+
     def __str__(self):
         return "%s / %s" % (parstr(self._a, self), parstr(self._b, self))
     

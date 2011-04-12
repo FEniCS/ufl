@@ -3,7 +3,7 @@ This way we avoid circular dependencies between e.g.
 Sum and its superclass Expr."""
 
 _authors__ = "Martin Sandve Alnes"
-__date__ = "2008-08-18 -- 2009-06-17"
+__date__ = "2008-08-18 -- 2011-04-12"
 
 from itertools import chain
 
@@ -144,6 +144,7 @@ def _div(self, o):
         return as_tensor(d, ii)
     return Division(self, o)
 Expr.__div__ = _div
+Expr.__truediv__ = _div
 
 def _rdiv(self, o):
     if not isinstance(o, _valid_types):

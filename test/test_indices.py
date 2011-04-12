@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 from ufltestcase import UflTestCase, main
-from ufltestcase import UflTestCase, main
 
 from ufl import *
 from ufl.indexutils import * 
