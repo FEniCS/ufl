@@ -16,16 +16,34 @@ from ufl.indexing import Indexed, Index, FixedIndex, MultiIndex, indices
 
 class ListTensor(WrapperType):
     __slots__ = ("_expressions", "_free_indices", "_shape", "_repr")
-    
+
     def __new__(cls, *expressions):
-        
         if all(isinstance(e, Zero) for e in expressions):
-            e = expressions[0]
-            shape = (len(expressions),) + e.shape()
-            fi    = e.free_indices()
-            idim  = e.index_dimensions()
+            shape = (len(expressions),) + expressions[0].shape()
+
+            # Merge sets of free indices from all subexpressions
+            # TODO: Do we need to get free indices from all subexpressions?
+            #       This is muddy teritory, need to think about the consequences.
+            #       What could happen if subexpressions have different free index sets?
+            fi    = []
+            idim  = {}
+            for e in expressions:
+                dims = e.index_dimensions()
+                for idx in e.free_indices():
+                    if not idx in idim:
+                        fi.append(idx)
+                        idim[idx] = dims[idx]
+
+            # Are these assumptions correct? Need to think through the listtensor concept and free indices.
+            if not all(e.shape() == e2.shape() for e2 in expressions):
+                warning("ListTensor assumption 1 failed, please report this incident as a potential bug.")
+            if not all(fi == e2.free_indices() for e2 in expressions):
+                warning("ListTensor assumption 2 failed, please report this incident as a potential bug.")
+            if not all(idim == e2.index_dimensions() for e2 in expressions):
+                warning("ListTensor assumption 3 failed, please report this incident as a potential bug.")
+
             return Zero(shape, fi, idim)
-        
+
         return WrapperType.__new__(cls)
 
     def __init__(self, *expressions):
@@ -88,14 +106,20 @@ class ListTensor(WrapperType):
     def __str__(self):
         def substring(expressions, indent):
             ind = " "*indent
-            if isinstance(expressions[0], ListTensor):
-                s = (ind+",\n").join(substring(e._expressions, indent+2) for e in expressions)
-                return ind + "[" + "\n" + s + "\n" + ind + "]"
+            if any(isinstance(e, ListTensor) for e in expressions):
+                substrings = []
+                for e in expressions:
+                    if isinstance(e, ListTensor):
+                        substrings.append(substring(e._expressions, indent+2))
+                    else:
+                        substrings.append(str(e))
+                s = (",\n" + ind).join(substrings)
+                return "%s[\n%s%s\n%s]" % (ind, ind, s, ind)
             else:
-                return ind + "[ %s ]" % ", ".join(str(e) for e in expressions)
-        sub = substring(self._expressions, 0)
-        return "[%s]" % sub
-    
+                s = ", ".join(str(e) for e in expressions)
+                return "%s[%s]" % (ind, s)
+        return substring(self._expressions, 0)
+
     def __repr__(self):
         return self._repr
 
