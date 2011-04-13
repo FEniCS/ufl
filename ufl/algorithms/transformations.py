@@ -539,14 +539,14 @@ class ArgumentDependencyExtracter(Transformer):
         self._empty = frozenset()
 
     def expr(self, o, *opdeps):
-        "Default for nonterminals: nonlinear in all arguments."
+        "Default for nonterminals: nonlinear in all operands."
         for d in opdeps:
             if d:
                 raise NotMultiLinearException, repr(o)
         return self._empty
 
     def terminal(self, o):
-        "Default for terminals: no dependency on basis functions."
+        "Default for terminals: no dependency on Arguments."
         return self._empty
 
     def variable(self, o):
@@ -837,8 +837,8 @@ def purge_duplications(e):
     occur more than once with a single instance."""
     return apply_transformer(e, DuplicationPurger())
 
-def extract_basis_function_dependencies(e):
-    "Extract a set of sets of basis_functions."
+def extract_basis_function_dependencies(e): # FIXME: Rename
+    "Extract a set of sets of Arguments."
     ufl_assert(isinstance(e, Expr), "Expecting an Expr.")
     return ArgumentDependencyExtracter().visit(e)
 

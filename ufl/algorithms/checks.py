@@ -50,7 +50,7 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
     # Check that no Coefficient or Argument instance
     # have the same count unless they are the same
     functions = {}
-    basis_functions = {}
+    arguments = {}
     for e in iter_expressions(form):
         for f in traverse_terminals(e):
             if isinstance(f, Coefficient):
@@ -63,15 +63,15 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
 
             elif isinstance(f, Argument):
                 c = f.count()
-                if c in basis_functions:
-                    g = basis_functions[c]
+                if c in arguments:
+                    g = arguments[c]
                     if c == -2: msg = "TestFunctions"
                     elif c == -1: msg = "TrialFunctions"
                     else: msg = "Arguments with same count"
                     msg = "Got different %s: %s and %s." % (msg, repr(f), repr(g))
                     ufl_assert(f is g, msg)
                 else:
-                    basis_functions[c] = f
+                    arguments[c] = f
 
     # Check that all integrands are scalar
     for expression in iter_expressions(form):

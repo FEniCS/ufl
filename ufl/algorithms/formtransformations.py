@@ -352,7 +352,7 @@ def compute_form_functional(form):
 def compute_form_action(form, function):
     """Compute the action of a form on a Coefficient.
 
-    This works simply by replacing the last basis_function
+    This works simply by replacing the last Argument
     with a Coefficient on the same function space (element).
     The form returned will thus have one Argument less
     and one additional Coefficient at the end if no function

@@ -287,13 +287,13 @@ class StringDependencyDefiner(MultiFunction):
         "x"       - depends on local coordinates
         "v%d" % i - depends on basis function i, for i in [0,rank)
     """
-    def __init__(self, basis_function_deps = None, function_deps = None):
+    def __init__(self, argument_deps = None, function_deps = None):
         MultiFunction.__init__(self)
-        if basis_function_deps is None:
-            basis_function_deps = {}
+        if argument_deps is None:
+            argument_deps = {}
         if function_deps is None:
             function_deps = {}
-        self.basis_function_deps = basis_function_deps
+        self.argument_deps = argument_deps
         self.function_deps = function_deps
 
     def expr(self, o):
@@ -301,7 +301,7 @@ class StringDependencyDefiner(MultiFunction):
 
     def argument(self, x):
         default = frozenset(("v%d" % x.count(), "x"))
-        return self.basis_function_deps.get(x, default)
+        return self.argument_deps.get(x, default)
 
     def coefficient(self, x):
         default = frozenset(("c", "x"))

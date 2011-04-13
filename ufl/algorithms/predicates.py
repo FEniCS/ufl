@@ -68,14 +68,14 @@ def is_multilinear(form):
 #        monomials += _extract_monomials(e)
 #
 #    # Extract basis functions
-#    basis_functions = set()
+#    arguments = set()
 #    for monomial in monomials:
 #        for v in monomial:
-#            basis_functions.add(v)
+#            arguments.add(v)
 #
 #    # Check that each basis function appears exactly once in each monomial term
 #    for monomial in monomials:
-#        for v in basis_functions:
+#        for v in arguments:
 #            if not len([w for w in monomial if w == v]) == 1:
 #                warning("Basis function %s does not appear exactly once in each term." % str(v))
 #                return False
