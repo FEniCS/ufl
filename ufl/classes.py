@@ -13,7 +13,7 @@ __date__ = "2008-08-15"
 from ufl.assertions import ufl_assert
 from ufl.expr import Expr, Operator, WrapperType, AlgebraOperator
 from ufl.terminal import Terminal, FormArgument, UtilityType, Tuple
-from ufl.constantvalue import ConstantValue, Zero, ScalarValue, FloatValue, IntValue, Identity
+from ufl.constantvalue import ConstantValue, Zero, ScalarValue, FloatValue, IntValue, Identity, PermutationSymbol
 from ufl.variable import Variable, Label
 from ufl.finiteelement import FiniteElementBase, FiniteElement, MixedElement, VectorElement, TensorElement
 from ufl.argument import Argument, TestFunction, TrialFunction

@@ -146,7 +146,7 @@ from ufl.coefficient import Coefficient, Coefficients, \
 from ufl.split_functions import split
 
 # Literal constants
-from ufl.constantvalue import Identity, Zero, as_ufl
+from ufl.constantvalue import PermutationSymbol, Identity, Zero, as_ufl
 
 # Indexing of tensor expressions
 from ufl.indexing import Index, indices

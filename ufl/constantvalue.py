@@ -36,7 +36,7 @@ class IndexAnnotated(object):
     indices with a set of free indices, used internally to keep
     index properties intact during automatic differentiation."""
     #__slots__ = ("_shape", "_free_indices", "_index_dimensions")
-    
+
     def __init__(self, shape=(), free_indices=(), index_dimensions=None):
         #ufl_assert(all(isinstance(i, int) for i in shape),
         #           "Expecting tuple of int.")
@@ -58,59 +58,59 @@ class IndexAnnotated(object):
 
 class Zero(ConstantValue, IndexAnnotated):
     __slots__ = ()
-    
+
     def __init__(self, shape=(), free_indices=(), index_dimensions=None):
         ufl_assert(isinstance(free_indices, tuple), "Expecting tuple of free indices, not %s" % str(free_indices))
         ConstantValue.__init__(self)
         IndexAnnotated.__init__(self, shape, free_indices, index_dimensions)
-    
+
     def reconstruct(self, free_indices=None):
         if not free_indices:
             return self
         ufl_assert(len(free_indices) == len(self._free_indices), "Size mismatch between old and new indices.")
         new_index_dimensions = dict((b, self._index_dimensions[a]) for (a,b) in zip(self._free_indices, free_indices))
         return Zero(self._shape, free_indices, new_index_dimensions)
-    
+
     def shape(self):
         return self._shape
-    
+
     def free_indices(self):
         return self._free_indices
-    
+
     def index_dimensions(self):
         return self._index_dimensions
-    
-    def evaluate(self, x, mapping, component, index_values):    
+
+    def evaluate(self, x, mapping, component, index_values):
         return 0.0
-    
+
     def __str__(self):
         if self._shape == () and self._free_indices == ():
             return "0"
         return "(0<%s, %s>)" % \
             (repr(self._shape), repr(self._free_indices))
-    
+
     def __repr__(self):
         return "Zero(%s, %s, %s)" % (repr(self._shape),
             repr(self._free_indices), repr(self._index_dimensions))
-    
+
     def __eq__(self, other):
         # zero is zero no matter which free indices you look at
         if self._shape == () and other == 0:
             return True
         return isinstance(other, Zero) and self._shape == other.shape()
-    
+
     def __neg__(self):
         return self
-    
+
     def __abs__(self):
         return self
-    
+
     def __nonzero__(self):
-        return False 
-    
+        return False
+
     def __float__(self):
         return 0.0
-    
+
     def __int__(self):
         return 0
 
@@ -119,7 +119,7 @@ class Zero(ConstantValue, IndexAnnotated):
 class ScalarValue(ConstantValue, IndexAnnotated):
     "A constant scalar value."
     __slots__ = ("_value",)
-    
+
     def __new__(cls, value, shape=(), free_indices=(), index_dimensions=None):
         is_python_scalar(value) or expecting_python_scalar(value)
         if value == 0:
@@ -130,7 +130,7 @@ class ScalarValue(ConstantValue, IndexAnnotated):
         ConstantValue.__init__(self)
         IndexAnnotated.__init__(self, shape, free_indices, index_dimensions)
         self._value = value
-    
+
     def reconstruct(self, free_indices=None):
         "Reconstruct with new free indices."
         if not free_indices:
@@ -138,35 +138,35 @@ class ScalarValue(ConstantValue, IndexAnnotated):
         ufl_assert(len(free_indices) == len(self._free_indices), "Size mismatch between old and new indices.")
         new_index_dimensions = dict((b, self._index_dimensions[a]) for (a,b) in zip(self._free_indices, free_indices))
         return self._uflclass(self._value, self._shape, free_indices, new_index_dimensions)
-    
+
     def shape(self):
         return self._shape
-    
+
     def free_indices(self):
         return self._free_indices
-    
+
     def index_dimensions(self):
         return self._index_dimensions
-    
+
     def value(self):
         return self._value
-    
+
     def evaluate(self, x, mapping, component, index_values):
         return self._value
-    
+
     def __eq__(self, other):
         "This is implemented to allow comparison with python scalars."
         return self._value == other
-    
+
     def __str__(self):
         return str(self._value)
-    
+
     def __float__(self):
         return float(self._value)
-    
+
     def __int__(self):
         return int(self._value)
-    
+
     def __neg__(self):
         return type(self)(-self._value)
 
@@ -179,10 +179,10 @@ class FloatValue(ScalarValue):
     def __init__(self, value, shape=(), free_indices=(), index_dimensions=None):
         ScalarValue.__init__(self, float_type(value), shape, free_indices, index_dimensions)
         self._repr = "%s(%s, %s, %s, %s)" % (type(self).__name__, repr(self._value), repr(self._shape), repr(self._free_indices), repr(self._index_dimensions))
-    
+
     def __repr__(self):
         return self._repr
-    
+
 class IntValue(ScalarValue):
     "A constant scalar integer value."
     __slots__ = ()
@@ -192,7 +192,7 @@ class IntValue(ScalarValue):
 
     def __repr__(self):
         return self._repr
- 
+
 #--- Identity matrix ---
 
 class Identity(ConstantValue):
@@ -202,27 +202,72 @@ class Identity(ConstantValue):
         ConstantValue.__init__(self)
         self._dim = dim
         self._repr = "Identity(%d)" % self._dim
-    
+
     def shape(self):
         return (self._dim, self._dim)
-    
+
     def evaluate(self, x, mapping, component, index_values):
         a, b = component
         return 1 if a == b else 0
-    
+
     def __getitem__(self, key):
         if isinstance(key[0], (int, FixedIndex)) and isinstance(key[1], (int, FixedIndex)):
             return IntValue(1) if (int(key[0]) == int(key[1])) else Zero()
         return Expr.__getitem__(self, key)
-    
+
     def __str__(self):
         return "I"
-    
+
     def __repr__(self):
         return self._repr
-    
+
     def __eq__(self, other):
         return isinstance(other, Identity) and self._dim == other._dim
+
+
+#--- Permutation symbol ---
+
+class PermutationSymbol(ConstantValue):
+    __slots__ = ("_dim", "_repr")
+
+    def __init__(self, dim):
+        ConstantValue.__init__(self)
+        self._dim = dim
+        self._repr = "PermutationSymbol(%d)" % self._dim
+
+    def shape(self):
+        s = ()
+        for i in range(self._dim):
+            s += (self._dim,)
+        return s
+
+    def evaluate(self, x, mapping, component, index_values):
+        return self.__eps(component)
+
+    def __getitem__(self, key):
+        ufl_assert(len(key) == self._dim, "Size mismatch for PermutationSymbol.")
+        return self.__eps(key)
+
+    def __str__(self):
+        return "eps"
+
+    def __repr__(self):
+        return self._repr
+
+    def __eq__(self, other):
+        return isinstance(other, PermutationSymbol) and self._dim == other._dim
+
+    def __eps(self, x):
+        """ This function body is taken from http://www.mathkb.com/Uwe/Forum.aspx/math/29865/N-integer-Levi-Civita"""
+        result = IntValue(1)
+        for i, x1 in enumerate(x):
+           for j in xrange(i + 1, len(x)):
+               x2 = x[j]
+               if x1 > x2:
+                   result = -result
+               elif x1 == x2:
+                   return Zero()
+        return result
 
 #--- Helper functions ---
 
@@ -250,4 +295,3 @@ def as_ufl(expression):
     if isinstance(expression, (float, float_type)):
         return FloatValue(expression)
     error("Invalid type conversion: %s can not be converted to any UFL type.\nThe representation of the object is:\n%r" % (type(expression), expression))
-
