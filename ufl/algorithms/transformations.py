@@ -533,7 +533,7 @@ class NotMultiLinearException(Exception):
     def __init__(self, *args, **kwargs):
         Exception.__init__(self, *args, **kwargs)
 
-class BasisFunctionDependencyExtracter(Transformer):
+class ArgumentDependencyExtracter(Transformer):
     def __init__(self):
         Transformer.__init__(self)
         self._empty = frozenset()
@@ -840,7 +840,7 @@ def purge_duplications(e):
 def extract_basis_function_dependencies(e):
     "Extract a set of sets of basis_functions."
     ufl_assert(isinstance(e, Expr), "Expecting an Expr.")
-    return BasisFunctionDependencyExtracter().visit(e)
+    return ArgumentDependencyExtracter().visit(e)
 
 def estimate_max_polynomial_degree(e, default_degree=1):
     """Estimate the maximum polymomial degree of all functions in the
