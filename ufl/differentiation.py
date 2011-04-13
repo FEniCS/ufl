@@ -51,27 +51,27 @@ class Derivative(Operator):
 class CoefficientDerivative(Derivative):
     """Derivative of the integrand of a form w.r.t. the
     degrees of freedom in a discrete Coefficient."""
-    __slots__ = ("_integrand", "_functions", "_basis_functions")
+    __slots__ = ("_integrand", "_functions", "_arguments")
 
-    def __new__(cls, integrand, functions, basis_functions):
+    def __new__(cls, integrand, functions, arguments):
         ufl_assert(is_true_ufl_scalar(integrand),
             "Expecting true UFL scalar expression.")
-        ufl_assert(isinstance(functions, Tuple), #and all(isinstance(f, (Coefficient,Indexed)) for f in functions),
+        ufl_assert(isinstance(functions, Tuple), #and all(isinstance(f, (Coefficient, Indexed)) for f in functions),
             "Expecting Tuple instance with Coefficients.")
-        ufl_assert(isinstance(basis_functions, Tuple), #and all(isinstance(f, Argument) for f in basis_functions),
+        ufl_assert(isinstance(arguments, Tuple), #and all(isinstance(f, Argument) for f in arguments),
             "Expecting Tuple instance with Arguments.")
         if isinstance(integrand, Zero):
             return Zero()
         return Derivative.__new__(cls)
 
-    def __init__(self, integrand, functions, basis_functions):
+    def __init__(self, integrand, functions, arguments):
         Derivative.__init__(self)
         self._integrand = integrand
         self._functions = functions
-        self._basis_functions = basis_functions
+        self._arguments = arguments
 
     def operands(self):
-        return (self._integrand, self._functions, self._basis_functions)
+        return (self._integrand, self._functions, self._arguments)
 
     def shape(self):
         return ()
@@ -83,10 +83,13 @@ class CoefficientDerivative(Derivative):
         return {}
 
     def __str__(self):
-        return "CoefficientDerivative (w.r.t. function %s and using basis function %s) of \n%s" % (self._functions, self._basis_functions, self._integrand) # TODO: Short notation
+        # TODO: Short str notation
+        return "CoefficientDerivative (w.r.t. function %s and using basis function %s) of \n%s"\
+            % (self._functions, self._arguments, self._integrand)
 
     def __repr__(self):
-        return "CoefficientDerivative(%r, %r, %r)" % (self._integrand, self._functions, self._basis_functions)
+        return "CoefficientDerivative(%r, %r, %r)"\
+            % (self._integrand, self._functions, self._arguments)
 
 def split_indices(expression, idx):
     idims = dict(expression.index_dimensions())
