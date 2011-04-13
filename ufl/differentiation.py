@@ -184,7 +184,7 @@ class VariableDerivative(Derivative):
     def __new__(cls, f, v):
         # Return zero if expression is trivially independent of Coefficient
         if isinstance(f, Terminal):# and not isinstance(f, Variable):
-            free_indices = set(f.free_indices()) ^ set(v.free_indices())
+            free_indices = tuple(set(f.free_indices()) ^ set(v.free_indices()))
             index_dimensions = mergedicts([f.index_dimensions(), v.index_dimensions()])
             index_dimensions = subdict(index_dimensions, free_indices)
             return Zero(f.shape() + v.shape(), free_indices, index_dimensions)

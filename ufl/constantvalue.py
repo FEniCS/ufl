@@ -60,6 +60,7 @@ class Zero(ConstantValue, IndexAnnotated):
     __slots__ = ()
     
     def __init__(self, shape=(), free_indices=(), index_dimensions=None):
+        ufl_assert(isinstance(free_indices, tuple), "Expecting tuple of free indices, not %s" % str(free_indices))
         ConstantValue.__init__(self)
         IndexAnnotated.__init__(self, shape, free_indices, index_dimensions)
     
