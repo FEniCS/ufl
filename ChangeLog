@@ -1,3 +1,5 @@
+ - Simplify Identity(1) -> IntValue(1) automatically
+ - Added Levi-Cevita symbol: e = PermutationSymbol(3); e[i,j,k]
  - Fix bug with future division behaviour (ufl does not support floor division)
  - Update repr string in set_cell and set_degree (fix strange cache problem) FIXME: Do not release without removing these first!
  - Add subdomain member variables to form class
