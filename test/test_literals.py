@@ -24,5 +24,16 @@ class LiteralsTestCase(UflTestCase):
         x = (0,0,0)
         self.assertEqual((e[i,j,k] * e[i,j,k])(x), 6)
 
+    def test_permutation_symbol_n(self):
+        for n in range(2,5): # tested with upper limit 7, but evaluation is a bit slow then
+            e = PermutationSymbol(n)
+            self.assertEqual(e.shape(), (n,)*n)
+            self.assertEqual(eval(repr(e)), e)
+
+            ii = indices(n)
+            x = (0,)*n
+            nfac = product(m for m in range(1,n+1))
+            self.assertEqual((e[ii] * e[ii])(x), nfac)
+
 if __name__ == "__main__":
     main()
