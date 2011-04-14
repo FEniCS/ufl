@@ -14,25 +14,39 @@ from ufl.indexing import Indexed, Index, FixedIndex, MultiIndex, indices
 
 # --- Classes representing tensors of UFL expressions ---
 
+def merge_indices(expressions):
+    "Merge sets of free indices from a list of expressions."
+    fi   = []
+    idim = {}
+    for e in expressions:
+        dims = e.index_dimensions()
+        for idx in e.free_indices():
+            if not idx in idim:
+                fi.append(idx)
+                idim[idx] = dims[idx]
+    return fi, idim
+
 class ListTensor(WrapperType):
     __slots__ = ("_expressions", "_free_indices", "_shape", "_repr")
 
     def __new__(cls, *expressions):
-        if all(isinstance(e, Zero) for e in expressions):
-            shape = (len(expressions),) + expressions[0].shape()
+        if isinstance(expressions[0], (list, tuple)):
+            ufl_assert(all(isinstance(e, (list, tuple)) for e in expressions),
+                       "Expecting all or no arguments being lists or tuples.")
+            expressions = [ListTensor(*sub) for sub in expressions]
+        
+        if not all(isinstance(e, ListTensor) for e in expressions):
+            expressions = [as_ufl(e) for e in expressions]
+            ufl_assert(all(isinstance(e, Expr) for e in expressions), \
+                "Expecting list of subtensors or expressions.")
 
-            # Merge sets of free indices from all subexpressions
-            # TODO: Do we need to get free indices from all subexpressions?
-            #       This is muddy teritory, need to think about the consequences.
-            #       What could happen if subexpressions have different free index sets?
-            fi    = []
-            idim  = {}
-            for e in expressions:
-                dims = e.index_dimensions()
-                for idx in e.free_indices():
-                    if not idx in idim:
-                        fi.append(idx)
-                        idim[idx] = dims[idx]
+
+        if all(isinstance(e, Zero) or e == 0 for e in expressions):
+            e = expressions[0]
+            shape = (len(expressions),) + e.shape()
+            fi    = e.free_indices()
+            idim  = e.index_dimensions()
+            #fi, idim = merge_indices(expressions)
 
             # Are these assumptions correct? Need to think through the listtensor concept and free indices.
             if not all(e.shape() == e2.shape() for e2 in expressions):
@@ -61,10 +75,10 @@ class ListTensor(WrapperType):
         e = expressions[0]
         c = e.shape()
         self._shape = (r,) + c
-        
+
         ufl_assert(all(sub.shape() == c for sub in expressions),
             "Inconsistent subtensor size.")
-        
+
         indexset = set(e.free_indices())
         ufl_assert(all(not (indexset ^ set(sub.free_indices())) for sub in expressions), \
             "Can't combine subtensor expressions with different sets of free indices.")
@@ -217,9 +231,13 @@ def as_tensor(expressions, indices = None):
     if indices is None:
         # To avoid importing numpy unneeded, it's quite slow...
         if not isinstance(expressions, (list, tuple)):
-            import numpy
-            if isinstance(expressions, numpy.ndarray):
-                expressions = numpy2nestedlists(expressions)
+            try:
+                import numpy
+                if isinstance(expressions, numpy.ndarray):
+                    expressions = numpy2nestedlists(expressions)
+            except:
+                pass
+
         ufl_assert(isinstance(expressions, (list, tuple)),
             "Expecting nested list or tuple of Exprs.")
         return ListTensor(*expressions)
@@ -242,9 +260,12 @@ def as_matrix(expressions, indices = None):
     if indices is None:
         # To avoid importing numpy unneeded, it's quite slow...
         if not isinstance(expressions, (list, tuple)):
-            import numpy
-            if isinstance(expressions, numpy.ndarray):
-                expressions = numpy2nestedlists(expressions)
+            try:
+                import numpy
+                if isinstance(expressions, numpy.ndarray):
+                    expressions = numpy2nestedlists(expressions)
+            except:
+                pass
         ufl_assert(isinstance(expressions, (list, tuple)),
             "Expecting nested list or tuple of Exprs.")
         ufl_assert(isinstance(expressions[0], (list, tuple)),

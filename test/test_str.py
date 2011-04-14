@@ -63,12 +63,12 @@ class TestStrOfTensors(UflTestCase):
     def test_str_list_vector(self):
         x, y, z = tetrahedron.x
         v = as_vector((x, y, z))
-        self.assertEqual(str(v), "[(x)[0], (x)[1], (x)[2]]")
+        self.assertEqual(str(v), "[%s, %s, %s]" % (x, y, z))
 
-    def test_str_list_vector(self):
+    def test_str_list_vector_with_zero(self):
         x, y, z = tetrahedron.x
         v = as_vector((x, 0, 0))
-        self.assertEqual(str(v), "[(x)[0], 0, 0]")
+        self.assertEqual(str(v), "[%s, 0, 0]" % (x,))
 
     def test_str_list_matrix(self):
         x, y = triangle.x
@@ -80,6 +80,17 @@ class TestStrOfTensors(UflTestCase):
         d = str(5*y)
         self.assertEqual(str(v), "[\n  [%s, %s],\n  [%s, %s]\n]" % (a, b, c, d))
 
+    def test_str_list_matrix_with_zero(self):
+        x, y = triangle.x
+        v = as_matrix(((2*x, 3*y),
+                       (0, 0)))
+        a = str(2*x)
+        b = str(3*y)
+        c = str(as_vector((0,0)))
+        self.assertEqual(str(v), "[\n  [%s, %s],\n%s\n]" % (a, b, c))
+
+    # FIXME: Add more tests for tensors collapsing
+    #        partly or completely into Zero!
 
 if __name__ == "__main__":
     main()
