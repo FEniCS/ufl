@@ -79,7 +79,7 @@ def build_precedence_map():
 # Utility for parentesizing string
 def par(s, condition=True): # TODO: Finish precedence handling by adding condition argument to calls to this function!
     if condition:
-        return "\\left(%s\\right)" % s
+        return r"\left(%s\right)" % s
     return str(s)
 
 def format_index(ii):
@@ -119,10 +119,13 @@ class Expression2LatexHandler(Transformer):
         return "0" if not o.shape() else r"{\mathbf 0}"
 
     def identity(self, o):
-        return "{\mathbf I}"
+        return r"{\mathbf I}"
+
+    def permutation_symbol(self, o):
+        return r"{\mathbf \varepsilon}"
 
     def facet_normal(self, o):
-        return "{\mathbf n}"
+        return r"{\mathbf n}"
 
     def argument(self, o):
         # Using ^ for function numbering and _ for indexing since indexing is more common than exponentiation
@@ -285,13 +288,13 @@ class Expression2LatexHandler(Transformer):
         return "(%s = %s)" % (a, b)
 
     def ne(self, o, a, b):
-        return "(%s \\ne %s)" % (a, b)
+        return r"(%s \ne %s)" % (a, b)
 
     def le(self, o, a, b):
-        return "(%s \\le %s)" % (a, b)
+        return r"(%s \le %s)" % (a, b)
 
     def ge(self, o, a, b):
-        return "(%s \\ge %s)" % (a, b)
+        return r"(%s \ge %s)" % (a, b)
 
     def lt(self, o, a, b):
         return "(%s < %s)" % (a, b)
@@ -343,18 +346,18 @@ def form2latex(form, formdata):
     # Define elements
     lines = []
     for i, f in enumerate(formdata.arguments):
-        lines.append("\\mathcal{P}_{%d} = \\{%s\\} " % (i, element2latex(f.element())))
+        lines.append(r"\mathcal{P}_{%d} = \{%s\} " % (i, element2latex(f.element())))
     for i, f in enumerate(formdata.coefficients):
-        lines.append("\\mathcal{Q}_{%d} = \\{%s\\} " % (i, element2latex(f.element())))
+        lines.append(r"\mathcal{Q}_{%d} = \{%s\} " % (i, element2latex(f.element())))
     if lines:
         sections.append(("Finite elements", align(lines)))
 
     # Define function spaces
     lines = []
     for i, f in enumerate(formdata.arguments):
-        lines.append("V_h^{%d} = \{v : v \\vert_K \in \\mathcal{P}_{%d}(K) \\quad \\forall K \in \\mathcal{T}\} " % (i, i))
+        lines.append("V_h^{%d} = \\{v : v \\vert_K \\in \\mathcal{P}_{%d}(K) \\quad \\forall K \\in \\mathcal{T}\\} " % (i, i))
     for i, f in enumerate(formdata.coefficients):
-        lines.append("W_h^{%d} = \{v : v \\vert_K \in \\mathcal{Q}_{%d}(K) \\quad \\forall K \in \\mathcal{T}\} " % (i, i))
+        lines.append("W_h^{%d} = \\{v : v \\vert_K \\in \\mathcal{Q}_{%d}(K) \\quad \\forall K \\in \\mathcal{T}\\} " % (i, i))
     if lines:
         sections.append(("Function spaces", align(lines)))
 
@@ -405,7 +408,7 @@ def form2latex(form, formdata):
         b = p + "\\int_{%s_%d}" % (dstr, itg.measure().domain_id())
         dxstr = Measure._domain_types[dtyp]
         dxstr = dx_strings[dtyp]
-        c = "{ %s } \,%s" % (integrand_string, dxstr)
+        c = "{ %s } \\,%s" % (integrand_string, dxstr)
         lines.append((a, b, c))
         a = "{}"; p = "{}+ "
     sections.append(("Form", align(lines)))

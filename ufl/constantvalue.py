@@ -198,6 +198,11 @@ class IntValue(ScalarValue):
 class Identity(ConstantValue):
     __slots__ = ("_dim", "_repr")
 
+    def __new__(cls, dim):
+        if dim == 1:
+            return IntValue(1)
+        return ConstantValue.__new__(cls)
+
     def __init__(self, dim):
         ConstantValue.__init__(self)
         self._dim = dim
@@ -211,7 +216,8 @@ class Identity(ConstantValue):
         return 1 if a == b else 0
 
     def __getitem__(self, key):
-        if isinstance(key[0], (int, FixedIndex)) and isinstance(key[1], (int, FixedIndex)):
+        ufl_assert(len(key) == 2, "Size mismatch for Identity.")
+        if all(isinstance(k, (int, FixedIndex)) for k in key):
             return IntValue(1) if (int(key[0]) == int(key[1])) else Zero()
         return Expr.__getitem__(self, key)
 
@@ -246,7 +252,9 @@ class PermutationSymbol(ConstantValue):
 
     def __getitem__(self, key):
         ufl_assert(len(key) == self._dim, "Size mismatch for PermutationSymbol.")
-        return self.__eps(key)
+        if all(isinstance(k, (int, FixedIndex)) for k in key):
+            return self.__eps(key)
+        return Expr.__getitem__(self, key)
 
     def __str__(self):
         return "eps"

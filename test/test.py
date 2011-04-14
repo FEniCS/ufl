@@ -40,7 +40,15 @@ def run_suite(tests):
     runner = unittest.TextTestRunner(verbosity=2)
     return runner.run(suite)
 
+def check_which_ufl():
+    import ufl
+    print "******"
+    print "* Testing ufl version", ufl.__version__
+    print "* which is installed at:", ufl.__file__
+    print "******"
+
 def main(args):
+    check_which_ufl()
     tests = discover_tests(args)
     configureLogging()
     result = run_suite(tests)

@@ -128,9 +128,18 @@ class ClasscoverageTest(UflTestCase):
         a = IntValue(123)
         test_object(a, (), ())
         
+        I = Identity(1)
+        test_object(I, (), ())
         I = Identity(2)
-        test_object(I, (dim,dim), ())
-        
+        test_object(I, (2,2), ())
+        I = Identity(3)
+        test_object(I, (3,3), ())
+
+        e = PermutationSymbol(2)
+        test_object(e, (2,2), ())
+        e = PermutationSymbol(3)
+        test_object(e, (3,3,3), ())
+
         n = cell.n
         test_object(n, (dim,), ())
         
@@ -169,6 +178,7 @@ class ClasscoverageTest(UflTestCase):
         a = f2[l,1]
         test_object(a, (), (l,))
         
+        I = Identity(dim)
         a = inv(I)
         test_object(a, (dim,dim), ())
         a = inv(v2)
