@@ -137,7 +137,7 @@ def sym(A):
 #--- Differential operators
 
 def Dx(f, *i):
-    "The partial derivative of f with respect to spatial variable number i. Equivalent to f.dx(*i)."
+    "The partial derivative of f with respect to spatial variable number i. Equivalent to f.dx(\*i)."
     f = as_ufl(f)
     return f.dx(*i)
 
@@ -342,4 +342,3 @@ def exterior_derivative(f):
 
     if "Brezzi" in family or "Raviart" in family:
         return div(f)
-
