@@ -3,9 +3,9 @@
 __authors__ = "Martin Sandve Alnes"
 __copyright__ = "Copyright (C) 2008-2011 Martin Sandve Alnes"
 __license__  = "GNU LGPL version 3 or any later version"
-__date__ = "2008-03-31 -- 2009-05-06"
+__date__ = "2008-03-31 -- 2011-04-15"
 
-from ufl.log import warning
+from ufl.log import warning, error
 from ufl.common import subdict
 from ufl.assertions import ufl_assert
 from ufl.expr import Expr, WrapperType
@@ -14,95 +14,74 @@ from ufl.indexing import Indexed, Index, FixedIndex, MultiIndex, indices
 
 # --- Classes representing tensors of UFL expressions ---
 
-def merge_indices(expressions):
-    "Merge sets of free indices from a list of expressions."
-    fi   = []
-    idim = {}
-    for e in expressions:
-        dims = e.index_dimensions()
-        for idx in e.free_indices():
-            if not idx in idim:
-                fi.append(idx)
-                idim[idx] = dims[idx]
-    return fi, idim
-
 class ListTensor(WrapperType):
     __slots__ = ("_expressions", "_free_indices", "_shape", "_repr")
 
     def __new__(cls, *expressions):
-        if isinstance(expressions[0], (list, tuple)):
-            ufl_assert(all(isinstance(e, (list, tuple)) for e in expressions),
-                       "Expecting all or no arguments being lists or tuples.")
-            expressions = [ListTensor(*sub) for sub in expressions]
-        
-        if not all(isinstance(e, ListTensor) for e in expressions):
-            expressions = [as_ufl(e) for e in expressions]
-            ufl_assert(all(isinstance(e, Expr) for e in expressions), \
-                "Expecting list of subtensors or expressions.")
+        # All lists and tuples should already be unwrapped in as_tensor
+        if any(not isinstance(e, Expr) for e in expressions):
+            error("Expecting only UFL expressions in ListTensor constructor.")
 
+        # Get properties of the first expression
+        e0 = expressions[0]
+        sh    = e0.shape()
+        fi    = e0.free_indices()
+        idim  = e0.index_dimensions()
 
-        if all(isinstance(e, Zero) or e == 0 for e in expressions):
-            e = expressions[0]
-            shape = (len(expressions),) + e.shape()
-            fi    = e.free_indices()
-            idim  = e.index_dimensions()
-            #fi, idim = merge_indices(expressions)
+        # Obviously, each subextpression must have the same shape
+        if any(sh != e.shape() for e in expressions):
+            error("ListTensor assumption 1 failed, "\
+                  "please report this incident as a potential bug.")
 
-            # Are these assumptions correct? Need to think through the listtensor concept and free indices.
-            if not all(e.shape() == e2.shape() for e2 in expressions):
-                warning("ListTensor assumption 1 failed, please report this incident as a potential bug.")
-            if not all(fi == e2.free_indices() for e2 in expressions):
-                warning("ListTensor assumption 2 failed, please report this incident as a potential bug.")
-            if not all(idim == e2.index_dimensions() for e2 in expressions):
-                warning("ListTensor assumption 3 failed, please report this incident as a potential bug.")
+        # Are these assumptions correct? Need to think
+        # through the listtensor concept and free indices.
+        # Are there any cases where it makes sense to even
+        # have any free indices here?
+        if any(fi != e.free_indices() for e in expressions):
+            error("ListTensor assumption 2 failed, "\
+                  "please report this incident as a potential bug.")
+        if any(idim != e.index_dimensions() for e in expressions):
+            error("ListTensor assumption 3 failed, "\
+                  "please report this incident as a potential bug.")
 
+        # Simplify to Zero if possible
+        if all(isinstance(e, Zero) for e in expressions):
+            shape = (len(expressions),) + sh
             return Zero(shape, fi, idim)
 
         return WrapperType.__new__(cls)
 
     def __init__(self, *expressions):
         WrapperType.__init__(self)
-        if isinstance(expressions[0], (list, tuple)):
-            expressions = [ListTensor(*sub) for sub in expressions]
-        
-        if not all(isinstance(e, ListTensor) for e in expressions):
-            expressions = [as_ufl(e) for e in expressions]
-            ufl_assert(all(isinstance(e, Expr) for e in expressions), \
-                "Expecting list of subtensors or expressions.")
-        
+        e0 = expressions[0]
+        sh = e0.shape()
+        self._shape = (len(expressions),) + sh
         self._expressions = tuple(expressions)
-        r = len(expressions)
-        e = expressions[0]
-        c = e.shape()
-        self._shape = (r,) + c
 
-        ufl_assert(all(sub.shape() == c for sub in expressions),
-            "Inconsistent subtensor size.")
-
-        indexset = set(e.free_indices())
-        ufl_assert(all(not (indexset ^ set(sub.free_indices())) for sub in expressions), \
+        indexset = set(e0.free_indices())
+        ufl_assert(all(not (indexset ^ set(e.free_indices())) for e in self._expressions),\
             "Can't combine subtensor expressions with different sets of free indices.")
 
         self._repr = "ListTensor(%s)" % ", ".join(repr(e) for e in self._expressions)
-    
+
     def operands(self):
         return self._expressions
-    
+
     def free_indices(self):
         return self._expressions[0].free_indices()
-    
+
     def index_dimensions(self):
         return self._expressions[0].index_dimensions()
-    
+
     def shape(self):
         return self._shape
-    
+
     def evaluate(self, x, mapping, component, index_values):
         a = self._expressions[component[0]]
         component = component[1:]
         a = a.evaluate(x, mapping, component, index_values)
         return a
-    
+
     def __getitem__(self, key):
         origkey = key
 
@@ -138,22 +117,22 @@ class ListTensor(WrapperType):
         return self._repr
 
 class ComponentTensor(WrapperType):
-    __slots__ = ("_expression", "_indices", "_free_indices", "_index_dimensions", "_shape", "_str", "_repr")
+    __slots__ = ("_expression", "_indices", "_free_indices",
+                 "_index_dimensions", "_shape", "_str", "_repr")
 
     def __new__(cls, expression, indices):
-        
         if isinstance(expression, Zero):
-            if not isinstance(indices, (tuple, MultiIndex)):
+            if isinstance(indices, MultiIndex):
+                indices = tuple(indices)
+            elif not isinstance(indices, tuple):
                 indices = (indices,)
-            indices = tuple(indices)
             dims = expression.index_dimensions()
             shape = tuple(dims[i] for i in indices)
             fi = tuple(set(expression.free_indices()) - set(indices))
             idim = dict((i, dims[i]) for i in fi)
             return Zero(shape, fi, idim)
-        
         return WrapperType.__new__(cls)
-    
+
     def __init__(self, expression, indices):
         WrapperType.__init__(self)
         ufl_assert(isinstance(expression, Expr), "Expecting ufl expression.")
@@ -175,7 +154,8 @@ class ComponentTensor(WrapperType):
         self._free_indices = tuple(freeset)
 
         missingset = iset - eset
-        ufl_assert(len(missingset) == 0, "Missing indices %s in expression %s." % (missingset, expression))
+        if missingset:
+            error("Missing indices %s in expression %s." % (missingset, expression))
         
         self._index_dimensions = dict((i, dims[i]) for i in self._free_indices)
         
@@ -225,36 +205,66 @@ def numpy2nestedlists(arr):
         return arr
     return [numpy2nestedlists(arr[k]) for k in range(arr.shape[0])]
 
-def as_tensor(expressions, indices = None):
-    ufl_assert(isinstance(expressions, (Expr, list, tuple)),
-        "Expecting Expr or list of Expr instances.")
-    if indices is None:
-        # To avoid importing numpy unneeded, it's quite slow...
-        if not isinstance(expressions, (list, tuple)):
-            try:
-                import numpy
-                if isinstance(expressions, numpy.ndarray):
-                    expressions = numpy2nestedlists(expressions)
-            except:
-                pass
+def tmp():
+    # FIXME: Should have no list or tuple here, convert those in as_tensor!
+    if isinstance(expressions[0], (list, tuple)):
+        ufl_assert(all(isinstance(e, (list, tuple)) for e in expressions),
+                   "Expecting all or no arguments being lists or tuples.")
+        expressions = [ListTensor(*sub) for sub in expressions]
 
-        ufl_assert(isinstance(expressions, (list, tuple)),
-            "Expecting nested list or tuple of Exprs.")
+    if not all(isinstance(e, ListTensor) for e in expressions):
+        expressions = [as_ufl(e) for e in expressions]
+        ufl_assert(all(isinstance(e, Expr) for e in expressions), \
+                   "Expecting list of subtensors or expressions.")
+
+def _as_list_tensor(expressions):
+    if isinstance(expressions, (list, tuple)):
+        expressions = [_as_list_tensor(e) for e in expressions] 
         return ListTensor(*expressions)
+    else:
+        return as_ufl(expressions)
 
-    if isinstance(indices, list):
-        indices = tuple(indices)
-    elif not isinstance(indices, tuple):
-        indices = (indices,)
-    if indices == ():
-        return expressions
+def from_numpy_to_lists(expressions):
+    try:
+        import numpy
+        if isinstance(expressions, numpy.ndarray):
+            expressions = numpy2nestedlists(expressions)
+    except:
+        pass
+    return expressions
 
-    if isinstance(expressions, Indexed):
-        A, ii = expressions.operands()
-        if indices == ii._indices:
-            return A
+def as_tensor(expressions, indices = None):
+    #"""COMMENTME."""
+    if indices is None:
+        # Support numpy array, but avoid importing numpy if not needed
+        if not isinstance(expressions, (list, tuple)):
+            expressions = from_numpy_to_lists(expressions)
 
-    return ComponentTensor(expressions, indices)
+        # Sanity check
+        if not isinstance(expressions, (list, tuple)):
+            error("Expecting nested list or tuple.")
+
+        # Recursive conversion from nested lists to nested ListTensor objects
+        return _as_list_tensor(expressions)
+    else:
+        # Make sure we have a tuple of indices
+        if isinstance(indices, list):
+            indices = tuple(indices)
+        elif not isinstance(indices, tuple):
+            indices = (indices,)
+
+        # Special case for as_tensor(expr, ii) with ii = ()
+        if indices == ():
+            return expressions
+
+        # Special case for simplification as_tensor(A[ii], ii) -> A
+        if isinstance(expressions, Indexed):
+            A, ii = expressions.operands()
+            if indices == ii._indices:
+                return A
+
+        # Make a tensor from given scalar expression with free indices
+        return ComponentTensor(expressions, indices)
 
 def as_matrix(expressions, indices = None):
     if indices is None:
