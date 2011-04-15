@@ -38,8 +38,8 @@ class DemoTestCase(UflTestCase):
         filenames = [f for f in sorted(glob("../demo/*.ufl")) if not f in skip]
         cmd = "ufl-analyse %s" % " ".join(filenames)
         status, output = get_status_output(cmd)
-        self.assertFalse(status)
-    
+        self.assertEqual(status, 0)
+
     def test_each_demo(self):
         status = 0
 
@@ -69,7 +69,7 @@ class DemoTestCase(UflTestCase):
                 print 
                 print output
                 print
-        self.assertTrue(status == 0)
+        self.assertEqual(status, 0)
 
 if __name__ == "__main__":
     main()

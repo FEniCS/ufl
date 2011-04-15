@@ -113,8 +113,8 @@ class AlgorithmsTestCase(UflTestCase):
         u = TrialFunction(element2)
 
         a = u*v*dx
-        self.assertTrue( (element1, element2) == extract_elements(a) )
-        self.assertTrue( (element1,) == extract_unique_elements(a) )
+        self.assertEqual((element1, element2), extract_elements(a))
+        self.assertEqual((element1,), extract_unique_elements(a))
 
     def test_walk(self):
         element = FiniteElement("CG", "triangle", 1)
@@ -133,8 +133,8 @@ class AlgorithmsTestCase(UflTestCase):
         for itg in a.cell_integrals():
             walk(itg.integrand(), pre, post)
 
-        self.assertTrue(prestore == [(p, 0), (v, 1), (f, 1)]) # NB! Sensitive to ordering of expressions.
-        self.assertTrue(poststore == [(v, 1), (f, 1), (p, 0)]) # NB! Sensitive to ordering of expressions.
+        self.assertEqual(prestore, [(p, 0), (v, 1), (f, 1)]) # NB! Sensitive to ordering of expressions.
+        self.assertEqual(poststore, [(v, 1), (f, 1), (p, 0)]) # NB! Sensitive to ordering of expressions.
         #print "\n"*2 + "\n".join(map(str,prestore))
         #print "\n"*2 + "\n".join(map(str,poststore))
 
@@ -149,8 +149,8 @@ class AlgorithmsTestCase(UflTestCase):
         pre_traverse = list(pre_traversal(s))
         post_traverse = list(post_traversal(s))
 
-        self.assertTrue(pre_traverse  == [s, p1, v, f, p2, v, g]) # NB! Sensitive to ordering of expressions.
-        self.assertTrue(post_traverse == [v, f, p1, v, g, p2, s]) # NB! Sensitive to ordering of expressions.
+        self.assertEqual(pre_traverse, [s, p1, v, f, p2, v, g]) # NB! Sensitive to ordering of expressions.
+        self.assertEqual(post_traverse, [v, f, p1, v, g, p2, s]) # NB! Sensitive to ordering of expressions.
 
     def test_expand_indices(self):
         element = FiniteElement("Lagrange", triangle, 2)

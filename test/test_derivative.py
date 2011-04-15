@@ -33,13 +33,13 @@ class DerivativeTestCase(UflTestCase):
         dfv2 = df(w, v)
         dfv1 = dfv1(x, mapping)
         dfv2 = dfv2(x, mapping)
-        self.assertTrue(dfv1 == dfv2)
+        self.assertEqual(dfv1, dfv2)
 
         dfv1 = derivative(f(7*w), w, v)
         dfv2 = 7*df(7*w, v)
         dfv1 = dfv1(x, mapping)
         dfv2 = dfv2(x, mapping)
-        self.assertTrue(dfv1 == dfv2)
+        self.assertEqual(dfv1, dfv2)
 
     def testFunction(self):
         def f(w):  return w

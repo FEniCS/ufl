@@ -26,7 +26,7 @@ class FormsTestCase(UflTestCase):
         f = Coefficient(element)
         a = f*v*dx + 2*v*ds + 3*v*dx + 7*v*ds + 3*v*dx(2) + 7*v*dx(2)
         b = (f*v + 3*v)*dx + (2*v + 7*v)*ds + (3*v + 7*v)*dx(2)
-        self.assertTrue(repr(a) == repr(b))
+        self.assertEqual(repr(a), repr(b))
 
     def test_source1(self):
         element = FiniteElement("Lagrange", triangle, 1)

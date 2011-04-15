@@ -73,7 +73,7 @@ class ClasscoverageTest(UflTestCase):
         if missing_classes:
             print "The following subclasses of Expr were not exported from ufl.classes:"
             print "\n".join(sorted(missing_classes))
-        self.assertFalse(missing_classes)
+        self.assertEqual(missing_classes, set())
 
     def testAll(self):
         

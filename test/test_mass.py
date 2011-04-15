@@ -27,10 +27,10 @@ class MassTestCase(UflTestCase):
         J1 = derivative(L, w, u)
         J2 = derivative(F, w, u)
         
-        #self.assertTrue(F == L)
-        #self.assertTrue(J1 == J2)
-        #self.assertTrue(J1 == a)
-        #self.assertTrue(J2 == a)
+        #self.assertEqual(F, L)
+        #self.assertEqual(J1, J2)
+        #self.assertEqual(J1, a)
+        #self.assertEqual(J2, a)
         # TODO: Apply algorithms of various kinds
         # and verify that (a, J1, J2) are equivalent,
         # as well as (L, F).

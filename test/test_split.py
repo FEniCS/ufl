@@ -23,27 +23,28 @@ class SplitTestCase(UflTestCase):
         m = MixedElement(f, v, w, t, s, r)
 
         # Shapes of all these functions are correct:
-        self.assertTrue(() == Coefficient(f).shape())
-        self.assertTrue((d,) == Coefficient(v).shape())
-        self.assertTrue((d+1,) == Coefficient(w).shape())
-        self.assertTrue((d,d) == Coefficient(t).shape())
-        self.assertTrue((d,d) == Coefficient(s).shape())
-        self.assertTrue((d,d) == Coefficient(r).shape())
-        self.assertTrue((3*d*d + 2*d + 2,) == Coefficient(m).shape()) # sum of value sizes, not accounting for symmetries
+        self.assertEqual((), Coefficient(f).shape())
+        self.assertEqual((d,), Coefficient(v).shape())
+        self.assertEqual((d+1,), Coefficient(w).shape())
+        self.assertEqual((d,d), Coefficient(t).shape())
+        self.assertEqual((d,d), Coefficient(s).shape())
+        self.assertEqual((d,d), Coefficient(r).shape())
+        self.assertEqual((3*d*d + 2*d + 2,), Coefficient(m).shape()) # sum of value sizes, not accounting for symmetries
 
         # Shapes of subelements are reproduced:
         g = Coefficient(m)
         s, = g.shape()
         for g2 in split(g):
             s -= product(g2.shape())
-        self.assertTrue(s == 0)
+        self.assertEqual(s, 0)
         
         # TODO: Should functions on mixed elements (vector+vector) be able to have tensor shape instead of vector shape? Think Marie wants this for BDM+BDM?
         v2 = MixedElement(v, v)
         m2 = MixedElement(t, t)
-        #self.assertTrue(d == 2 and (2,2) == Coefficient(v2).shape())
-        self.assertTrue((d+d,) == Coefficient(v2).shape())
-        self.assertTrue((2*d*d,) == Coefficient(m2).shape())
+        #self.assertEqual(d, 2)
+        #self.assertEqual((2,2), Coefficient(v2).shape())
+        self.assertEqual((d+d,), Coefficient(v2).shape())
+        self.assertEqual((2*d*d,), Coefficient(m2).shape())
 
 if __name__ == "__main__":
     main()

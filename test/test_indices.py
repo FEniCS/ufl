@@ -13,7 +13,7 @@ class IndexTestCase(UflTestCase):
 
     def test_index_utils(self):
         shape = (1,2,None,4,None)
-        self.assertTrue( (1,2,3,4,3) == complete_shape(shape, 3) )
+        self.assertEqual((1,2,3,4,3), complete_shape(shape, 3))
         
         ii = indices(3)
         self.assertEqual(ii, unique_indices(ii) )
