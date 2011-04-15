@@ -1,3 +1,4 @@
+ - Allowing grad, div, inner, dot, det, inverse on scalars
  - Simplify Identity(1) -> IntValue(1) automatically
  - Added Levi-Cevita symbol: e = PermutationSymbol(3); e[i,j,k]
  - Fix bug with future division behaviour (ufl does not support floor division)

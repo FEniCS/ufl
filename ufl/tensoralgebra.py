@@ -131,6 +131,8 @@ class Outer(CompoundTensorOperator):
         if isinstance(a, Zero) or isinstance(b, Zero):
             free_indices, index_dimensions = merge_indices(a, b)
             return Zero(a.shape() + b.shape(), free_indices, index_dimensions)
+        if a.shape() == () or b.shape() == ():
+            return a * b
         return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, a, b):
