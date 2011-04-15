@@ -3,19 +3,17 @@
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __copyright__ = "Copyright (C) 2008-2011 Martin Sandve Alnes"
 __license__  = "GNU LGPL version 3 or any later version"
-__date__ = "2008-03-03"
+__date__ = "2008-03-03 -- 2011-04-15"
 
 # Modified by Kristian B. Oelgaard
 # Modified by Marie E. Rognes (meg@simula.no) 2010
-
-# Last changed: 2011-03-12
 
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.elementlist import ufl_elements, aliases
 from ufl.common import product, index_to_component, component_to_index, istr
 from ufl.geometry import as_cell, domain2facet
-from ufl.log import info_blue
+from ufl.log import info_blue, warning
 from ufl.log import BLUE
 
 class FiniteElementBase(object):
@@ -44,8 +42,8 @@ class FiniteElementBase(object):
 
     def set_cell(self, cell):
         "Set cell for element"
+        warning("SETTING CELL FOR ELEMENT. THIS IS DEPRECATED AND MAY CAUSE SUBTLE CACHE PROBLEMS AND OTHER BUGS.")
         self._cell = cell
-        self._update_repr()
 
     def degree(self):
         "Return polynomial degree of finite element"
@@ -53,6 +51,7 @@ class FiniteElementBase(object):
 
     def set_degree(self, degree):
         "Set degree for element"
+        warning("SETTING DEGREE FOR ELEMENT. THIS IS DEPRECATED AND MAY CAUSE SUBTLE CACHE PROBLEMS AND OTHER BUGS.")
         self._degree = degree
 
     def value_shape(self):
@@ -157,13 +156,9 @@ class FiniteElement(FiniteElementBase):
         value_shape = (dim,)*(value_rank)
 
         # Initialize element data
-        FiniteElementBase.__init__(self, family, cell, degree, value_shape)
+        super(FiniteElement, self).__init__(family, cell, degree, value_shape)
 
         # Cache repr string
-        FiniteElement._update_repr(self)
-
-    def _update_repr(self):
-        "Update repr string"
         self._repr = "FiniteElement(%r, %r, %s)" % (self.family(), self.cell(), istr(self.degree()))
 
     def __str__(self):
@@ -205,24 +200,24 @@ class MixedElement(FiniteElementBase):
 
         # Initialize element data
         degree = max(e.degree() for e in self._sub_elements)
-        FiniteElementBase.__init__(self, "Mixed", cell, degree, value_shape)
+        super(MixedElement, self).__init__("Mixed", cell, degree, value_shape)
 
         # Cache repr string
-        MixedElement._update_repr(self)
+        self._repr = "MixedElement(*%r, **{'value_shape': %r })" % (self._sub_elements, self._value_shape)
 
     def set_cell(self, cell):
         "Set cell for element"
+        warning("SETTING CELL FOR ELEMENT. THIS IS DEPRECATED AND MAY CAUSE SUBTLE CACHE PROBLEMS AND OTHER BUGS.")
         self._cell = cell
         for element in self._sub_elements:
             element.set_cell(cell)
-        self._update_repr()
 
     def set_degree(self, degree):
         "Set degree for element"
+        warning("SETTING DEGREE FOR ELEMENT. THIS IS DEPRECATED AND MAY CAUSE SUBTLE CACHE PROBLEMS AND OTHER BUGS.")
         self._degree = degree
         for element in self._sub_elements:
             element.set_degree(degree)
-        self._update_repr()
 
     def num_sub_elements(self):
         "Return number of sub elements"
@@ -259,10 +254,6 @@ class MixedElement(FiniteElementBase):
         ufl_assert(i[0] < len(self._sub_elements), "Illegal component index (dimension %d)." % i[0])
         return self._sub_elements[i[0]].extract_component(i[1:])
 
-    def _update_repr(self):
-        "Update repr string"
-        self._repr = "MixedElement(*%r, **{'value_shape': %r })" % (self._sub_elements, self._value_shape)
-
     def __str__(self):
         "Format as string for pretty printing."
         return "<Mixed element: (" + ", ".join(str(element) for element in self._sub_elements) + ")" + ">"
@@ -294,16 +285,12 @@ class VectorElement(MixedElement):
         value_shape = (dim,) + sub_element.value_shape()
 
         # Initialize element data
-        MixedElement.__init__(self, sub_elements, value_shape=value_shape)
+        super(VectorElement, self).__init__(sub_elements, value_shape=value_shape)
         self._family = family
         self._degree = degree
         self._sub_element = sub_element
 
         # Cache repr string
-        VectorElement._update_repr(self)
-
-    def _update_repr(self):
-        "Update repr string"
         self._repr = "VectorElement(%r, %r, %s, %d)" % \
             (self._family, self._cell, str(self._degree), len(self._sub_elements))
 
@@ -362,7 +349,7 @@ class TensorElement(MixedElement):
         value_shape = shape + sub_element.value_shape()
 
         # Initialize element data
-        MixedElement.__init__(self, sub_elements, value_shape=value_shape)
+        super(TensorElement, self).__init__(sub_elements, value_shape=value_shape)
         self._family = family
         self._degree = degree
         self._sub_element = sub_element
@@ -371,7 +358,8 @@ class TensorElement(MixedElement):
         self._sub_element_mapping = sub_element_mapping
 
         # Cache repr string
-        TensorElement._update_repr(self)
+        self._repr = "TensorElement(%r, %r, %r, %r, %r)" % \
+            (self._family, self._cell, self._degree, self._shape, self._symmetry)
 
     def extract_component(self, i):
         "Extract base component index and (simple) element for given component index"
@@ -389,11 +377,6 @@ class TensorElement(MixedElement):
         """Return the symmetry dict, which is a mapping c0 -> c1
         meaning that component c0 is represented by component c1."""
         return self._symmetry
-
-    def _update_repr(self):
-        "Update repr string"
-        self._repr = "TensorElement(%r, %r, %r, %r, %r)" % \
-            (self._family, self._cell, self._degree, self._shape, self._symmetry)
 
     def __str__(self):
         "Format as string for pretty printing."
@@ -431,13 +414,9 @@ class EnrichedElement(FiniteElementBase):
         ufl_assert(all(e.value_shape() == value_shape for e in elements), "Element value shape mismatch.")
 
         # Initialize element data
-        FiniteElementBase.__init__(self, "EnrichedElement", cell, degree, value_shape)
+        super(EnrichedElement, self).__init__("EnrichedElement", cell, degree, value_shape)
 
         # Cache repr string
-        EnrichedElement._update_repr(self)
-
-    def _update_repr(self):
-        "Update repr string"
         self._repr = "EnrichedElement(%s)" % ", ".join(repr(e) for e in self._elements)
 
     def __str__(self):
@@ -455,7 +434,7 @@ class RestrictedElement(FiniteElementBase):
         from ufl.geometry import Cell
         ufl_assert(isinstance(domain, Measure) or isinstance(as_cell(domain), Cell),\
             "Expecting a subdomain represented by a Measure or Cell instance.")
-        FiniteElementBase.__init__(self, "RestrictedElement", element.cell(), element.degree(), element.value_shape())
+        super(RestrictedElement, self).__init__("RestrictedElement", element.cell(), element.degree(), element.value_shape())
         self._element = element
 
         # Just attach domain if it is a Measure
@@ -470,15 +449,11 @@ class RestrictedElement(FiniteElementBase):
             self._domain = domain
 
         # Cache repr string
-        RestrictedElement._update_repr(self)
+        self._repr = "RestrictedElement(%r, %r)" % (self._element, self._domain)
 
     def element(self):
         "Return the element which is restricted."
         return self._element
-
-    def _update_repr(self):
-        "Update repr string"
-        self._repr = "RestrictedElement(%r, %r)" % (self._element, self._domain)
 
     def __str__(self):
         "Format as string for pretty printing."
