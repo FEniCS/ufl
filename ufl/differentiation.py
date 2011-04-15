@@ -250,13 +250,15 @@ class Grad(CompoundDerivative):
 
     def __new__(cls, f):
         # Return zero if expression is trivially constant
+        cell = f.cell()
+        ufl_assert(cell is not None, "Can't take gradient of expression with undefined cell...")
+        dim = cell.geometric_dimension()
         if is_spatially_constant(f):
-            cell = f.cell()
-            ufl_assert(cell is not None, "Can't take gradient of expression with undefined cell...")
-            dim = cell.geometric_dimension()
             free_indices = f.free_indices()
             index_dimensions = subdict(f.index_dimensions(), free_indices)
             return Zero(f.shape() + (dim,), free_indices, index_dimensions)
+        if dim == 1:
+            return f.dx(0)
         return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):
@@ -291,12 +293,18 @@ class Div(CompoundDerivative):
     __slots__ = ("_f", "_repr")
 
     def __new__(cls, f):
-        ufl_assert(f.rank() >= 1, "Can't take the divergence of a scalar.")
-        ufl_assert(not (f.free_indices()), \
-            "TODO: Taking divergence of an expression with free indices, should this be a valid expression? Please provide examples!")
+        ufl_assert(not f.free_indices(), \
+            "TODO: Taking divergence of an expression with free indices,"\
+            "should this be a valid expression? Please provide examples!")
+
+        if f.rank() == 0:
+            return f.dx(0)
+        #ufl_assert(f.rank() >= 1, "Can't take the divergence of a scalar.")
+
         # Return zero if expression is trivially constant
         if is_spatially_constant(f):
-            return Zero(f.shape()[:-1]) # No free indices
+            return Zero(f.shape()[:-1]) # No free indices asserted above
+
         return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):

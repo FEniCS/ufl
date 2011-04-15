@@ -165,6 +165,8 @@ class Inner(CompoundTensorOperator):
         if isinstance(a, Zero) or isinstance(b, Zero):
             free_indices, index_dimensions = merge_indices(a, b)
             return Zero((), free_indices, index_dimensions)
+        if a.shape() == ():
+            return a*b
         return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, a, b):
@@ -197,15 +199,17 @@ class Dot(CompoundTensorOperator):
     __slots__ = ("_a", "_b", "_free_indices", "_index_dimensions")
 
     def __new__(cls, a, b):
-        ufl_assert(a.rank() >= 1 and b.rank() >= 1,
-            "Dot product requires non-scalar arguments, got arguments with ranks %d and %d." % \
-            (a.rank(), b.rank()))
-        
+        ar, br = a.rank(), b.rank()
+        ufl_assert((ar >= 1 and br >= 1) or (ar == 0 and br == 0),
+            "Dot product requires non-scalar arguments, "\
+            "got arguments with ranks %d and %d." % \
+            (ar, br))
         if isinstance(a, Zero) or isinstance(b, Zero):
             shape = a.shape()[:-1] + b.shape()[1:]
             free_indices, index_dimensions = merge_indices(a, b)
             return Zero(shape, free_indices, index_dimensions)
-        
+        if ar == 0 and br == 0:
+            return a*b
         return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, a, b):
@@ -317,6 +321,8 @@ class Determinant(CompoundTensorOperator):
             "Not expecting free indices in determinant.")
         if isinstance(A, Zero):
             return Zero((), A.free_indices(), A.index_dimensions())
+        if r == 0:
+            return A
         return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, A):
@@ -345,14 +351,25 @@ class Determinant(CompoundTensorOperator):
 class Inverse(CompoundTensorOperator):
     __slots__ = ("_A",)
 
-    def __init__(self, A):
-        CompoundTensorOperator.__init__(self)
+    def __new__(cls, A):
         sh = A.shape()
         r = len(sh)
-        ufl_assert(r == 0 or r == 2, "Inverse of tensor with rank != 2 or 0 is undefined.")
-        ufl_assert(r == 0 or sh[0] == sh[1],
-            "Cannot take inverse of rectangular matrix with dimensions %s." % repr(sh))
-        ufl_assert(not A.free_indices(), "Not expecting free indices in Inverse.")
+        if A.free_indices():
+            error("Not expecting free indices in Inverse.")
+        if isinstance(A, Zero):
+            error("Division by zero!")
+
+        if r == 0:
+            return 1 / A
+
+        if r != 2:
+            error("Inverse of tensor with rank != 2 is undefined.")
+        if sh[0] != sh[1]:
+            error("Cannot take inverse of rectangular matrix with dimensions %s." % repr(sh))
+        return CompoundTensorOperator.__new__(cls)
+
+    def __init__(self, A):
+        CompoundTensorOperator.__init__(self)
         self._A = A
     
     def operands(self):
@@ -383,7 +400,7 @@ class Cofactor(CompoundTensorOperator):
         ufl_assert(sh[0] == sh[1], "Cannot take cofactor of rectangular matrix with dimensions %s." % repr(sh))
         ufl_assert(not A.free_indices(), "Not expecting free indices in Cofactor.")
         self._A = A
-    
+
     def operands(self):
         return (self._A, )
     
