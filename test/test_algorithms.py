@@ -18,6 +18,8 @@ from ufl.classes import Sum, Product
 class AlgorithmsTestCase(UflTestCase):
 
     def setUp(self):
+        super(AlgorithmsTestCase, self).setUp()
+
         element = FiniteElement("CG", triangle, 1)
 
         v = TestFunction(element)
@@ -68,6 +70,9 @@ class AlgorithmsTestCase(UflTestCase):
             print
             print extract_arguments(self.forms[2])
             print
+
+    def tearDown(self):
+        super(AlgorithmsTestCase, self).tearDown()
 
     def test_flatten(self):
         element = FiniteElement("CG", "triangle", 1)
