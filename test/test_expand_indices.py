@@ -237,7 +237,5 @@ class ExpandIndicesTestCase(UflTestCase):
         a = div(grad(sf2))
         compare(a, 3.300 + 3.311)
 
-tests = [ExpandIndicesTestCase]
-
 if __name__ == "__main__":
     main()

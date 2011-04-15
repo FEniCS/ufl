@@ -8,12 +8,12 @@ import math
         
 from ufl import *
 from ufl.constantvalue import as_ufl
-#from ufl.classes import *
 from ufl.algorithms import expand_derivatives
 
 class DiffTestCase(UflTestCase):
 
     def setUp(self):
+        super(DiffTestCase, self).setUp()
         self.xv = ()
         self.vv = 5.0
         self.v = variable(self.vv)

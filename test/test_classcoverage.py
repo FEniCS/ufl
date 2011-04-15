@@ -497,9 +497,6 @@ class ClasscoverageTest(UflTestCase):
                 print "\n".join(sorted(map(str,unused)))
                 print 
 
-
-tests = [ClasscoverageTest]
-
 if __name__ == "__main__":
     main()
 

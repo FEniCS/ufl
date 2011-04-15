@@ -10,9 +10,6 @@ from ufl.constantvalue import Zero, FloatValue, IntValue, as_ufl
 
 class BaseTestCase(UflTestCase):
 
-    def setUp(self):
-        pass
-
     def test_zero(self):
         z1 = Zero(())
         z2 = Zero(())
@@ -91,8 +88,6 @@ class BaseTestCase(UflTestCase):
         self.assertTrue(1*s[5] == 5)
         self.assertTrue(2*s[5] == 10)
         self.assertTrue(s[6]/3 == 2)
-
-tests = [BaseTestCase]
 
 if __name__ == "__main__":
     main()

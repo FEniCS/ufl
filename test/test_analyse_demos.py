@@ -23,12 +23,14 @@ from glob import glob
 class DemoTestCase(UflTestCase):
 
     def setUp(self):
-        pass
+        super(DemoTestCase, self).setUp()
+        #for f in glob("ufl_analyse_tmp_form*"):
+        #    os.remove(f)
     
     def tearDown(self):
         #for f in glob("ufl_analyse_tmp_form*"):
         #    os.remove(f)
-        pass
+        super(DemoTestCase, self).tearDown()
     
     def _test_all_demos(self):
         # Check all at once
@@ -68,8 +70,6 @@ class DemoTestCase(UflTestCase):
                 print output
                 print
         self.assertTrue(status == 0)
-
-tests = [DemoTestCase]
 
 if __name__ == "__main__":
     main()

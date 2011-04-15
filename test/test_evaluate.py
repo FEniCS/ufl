@@ -8,12 +8,8 @@ import math
         
 from ufl import *
 from ufl.constantvalue import as_ufl
-#from ufl.classes import *
 
 class EvaluateTestCase(UflTestCase):
-
-    def setUp(self):
-        pass
 
     def testScalars(self):
         s = as_ufl(123)

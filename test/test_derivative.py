@@ -9,11 +9,11 @@ import math
 from ufl import *
 from ufl.constantvalue import as_ufl
 from ufl.algorithms import expand_indices, strip_variables, post_traversal, preprocess
-#from ufl.classes import *
 
 class DerivativeTestCase(UflTestCase):
 
     def setUp(self):
+        super(DerivativeTestCase, self).setUp()
         self.cell = triangle
         self.element = FiniteElement("CG", self.cell, 1)
         self.v = TestFunction(self.element)

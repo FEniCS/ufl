@@ -6,17 +6,13 @@ from ufltestcase import UflTestCase, main
 
 from ufl import *
 
-# TODO: cover all valid element definitions
-
-#from ufl.common import domain2dim
 from ufl.geometry import domain2dim
 
 all_cells = (interval, triangle, tetrahedron, quadrilateral, hexahedron)
 
-class ElementsTestCase(UflTestCase):
+# TODO: cover all valid element definitions
 
-    def setUp(self):
-        pass
+class ElementsTestCase(UflTestCase):
 
     def test_scalar_galerkin(self):
         for cell in all_cells:

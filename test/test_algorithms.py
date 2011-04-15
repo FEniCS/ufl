@@ -197,7 +197,5 @@ class AlgorithmsTestCase(UflTestCase):
         self.assertEqual(estimate_max_polynomial_degree(f2**3*v1 + f1*v1), 2)
 
 
-tests = [AlgorithmsTestCase]
-
 if __name__ == "__main__":
     main()

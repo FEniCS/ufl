@@ -11,12 +11,6 @@ from ufl.classes import IndexSum
 
 class IndexTestCase(UflTestCase):
 
-    def setUp(self):
-        super(IndexTestCase, self).setUp()
-
-    def tearDown(self):
-        super(IndexTestCase, self).tearDown()
-
     def test_index_utils(self):
         shape = (1,2,None,4,None)
         self.assertTrue( (1,2,3,4,3) == complete_shape(shape, 3) )

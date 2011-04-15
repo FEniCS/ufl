@@ -11,9 +11,6 @@ from ufl import *
 
 class SplitTestCase(UflTestCase):
 
-    def setUp(self):
-        pass
-
     def test_split(self):
         cell = triangle
         d = cell.d
@@ -47,8 +44,6 @@ class SplitTestCase(UflTestCase):
         #self.assertTrue(d == 2 and (2,2) == Coefficient(v2).shape())
         self.assertTrue((d+d,) == Coefficient(v2).shape())
         self.assertTrue((2*d*d,) == Coefficient(m2).shape())
-    
-tests = [SplitTestCase]
 
 if __name__ == "__main__":
     main()

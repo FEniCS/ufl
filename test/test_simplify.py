@@ -7,9 +7,6 @@ from ufl import *
 
 class ElementsTestCase(UflTestCase):
 
-    def setUp(self):
-        pass
-
     def test_products(self):
         element = FiniteElement("CG", "triangle", 1)
         f = Coefficient(element)
