@@ -1,26 +1,28 @@
-"""The Unified Form Language is an embedded domain specific
-language for definition of variational forms intended for
-finite element discretization. More precisely, it defines
-a fixed interface for choosing finite element spaces and
-defining expressions for weak forms in a notation close
-to mathematical notation.
+"""The Unified Form Language is an embedded domain specific language
+for definition of variational forms intended for finite element
+discretization. More precisely, it defines a fixed interface for choosing
+finite element spaces and defining expressions for weak forms in a
+notation close to mathematical notation.
 
-This python module contains the language as well as
-algorithms to work with it.
+This python module contains the language as well as algorithms to work
+with it.
 
-- To import the language, type:
-      from ufl import *
+* To import the language, type::
 
-- To import the underlying classes an UFL expression tree
-  is built from, type:
-      from ufl.classes import *
+    from ufl import *
 
-- Various algorithms for working with UFL expression trees
-  can be found in:
-      from ufl.algorithms import *
+* To import the underlying classes an UFL expression tree is built
+  from, type::
 
-The classes and algorithms are considered implementation
-details and should not be used in form definitions.
+    from ufl.classes import *
+
+* Various algorithms for working with UFL expression trees can be
+  found in::
+
+    from ufl.algorithms import *
+
+The classes and algorithms are considered implementation details and
+should not be used in form definitions.
 
 For more details on the language, see the manual or the
 wiki pages at
@@ -31,71 +33,85 @@ The development version can be found in the repository at
 
   http://www.fenics.org/hg/ufl/
 
-
 A very brief overview of the language contents follows:
 
-Cells and Euclidean spaces:
+* Cells and Euclidean spaces::
+
     interval, triangle, tetrahedron, quadrilateral, hexahedron,
     R1, R2, R3,
     Cell, Space
 
-Elements:
+* Elements::
+
     FiniteElement, MixedElement, VectorElement, TensorElement
     EnrichedElement, RestrictedElement
 
-Arguments:
+* Arguments::
+
     Argument, TestFunction, TrialFunction
 
-Coefficients:
+* Coefficients::
+
     Coefficient, Constant, VectorConstant, TensorConstant
 
-Splitting form arguments in mixed spaces:
+* Splitting form arguments in mixed spaces::
+
     split
 
-Literal constants:
+* Literal constants::
+
     Identity
 
-Geometric quantities:
+* Geometric quantities::
+
     SpatialCoordinate, FacetNormal
 
-Indices:
+* Indices::
+
     Index, indices,
     i, j, k, l, p, q, r, s
 
-Scalar to tensor expression conversion:
+* Scalar to tensor expression conversion::
+
     as_tensor, as_vector, as_matrix
 
-Unit vectors and matrices:
+* Unit vectors and matrices::
+
     unit_vector, unit_vectors,
     unit_matrix, unit_matrices
 
-Tensor algebra operators:
+* Tensor algebra operators::
+
     outer, inner, dot, cross,
     transpose, tr,
     det, inv, cofac,
     dev, skew, sym,
 
-Differential operators:
+* Differential operators::
+
     variable, diff,
     Dx, grad, div, curl, rot, Dn
 
-Nonlinear functions:
+* Nonlinear functions::
+
     abs, sign, sqrt, exp, ln, cos, sin, tan, acos, asin, atan
 
-Discontinuous Galerkin operators:
+* Discontinuous Galerkin operators:
     jump, avg, v('+'), v('-')
 
-Conditional operators:
+* Conditional operators::
+
     eq, ne, le, ge, lt, gt, conditional,
 
-Integral measures:
+* Integral measures::
+
     dx, ds, dS, dE
 
-Form transformations:
+* Form transformations::
+
     rhs, lhs, system, functional,
     replace, adjoint, action, energy_norm,
     sensitivity_rhs, derivative
-
 """
 
 __version__ = "0.9.1"

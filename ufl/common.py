@@ -170,33 +170,36 @@ def estr(elements):
 class Counted(object):
     """A superclass for classes of objects identified by a global counter.
 
-    Intended to be inherited to provide consistent counting logic.
+    Intended to be inherited to provide consistent counting logic. Usage:
 
-    Usage:
-    1) Inherit this class
-    2) Declare a static class _globalcount variable in your subclass:
-    3) Call Counted.__init__ at initialization.
+    1. Inherit this class
+    2. Declare a static class _globalcount variable in your subclass:
+    3. Call Counted.__init__ at initialization.
 
     Minimal example:
 
-        class MyClass(Counted):
-            _globalcount = 0
-            def __init__(self):
-                Counted.__init__(self)
+    .. code-block:: python
+
+       class MyClass(Counted):
+           _globalcount = 0
+           def __init__(self):
+               Counted.__init__(self)
 
     If MyClass is further inherited, each subclass may get a
     different global counter, causing problems. Therefore
     it is recommended to pass the class to hold the global
     counter as an argument to Counted.__init__ like this:
 
-        class MyClass(Counted):
-            _globalcount = 0
-            def __init__(self):
-                Counted.__init__(self, count=None, countedclass=MyClass)
+    .. code-block:: python
 
-        class OtherClass(MyClass):
-            def __init__(self):
-                MyClass.__init__(self)
+       class MyClass(Counted):
+           _globalcount = 0
+           def __init__(self):
+               Counted.__init__(self, count=None, countedclass=MyClass)
+
+       class OtherClass(MyClass):
+           def __init__(self):
+               MyClass.__init__(self)
     """
     def __init__(self, count = None, countedclass = None):
         if countedclass is None:
