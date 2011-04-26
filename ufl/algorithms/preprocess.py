@@ -23,29 +23,18 @@ from ufl.algorithms.formdata import FormData
 
 def preprocess(form, object_names={}, common_cell=None):
     """
-    Preprocess raw input form to obtain a form more easily manipulated
-    by form compilers. The modified form is returned and the original
-    form is left untouched. Currently, the following transformations
-    are made to the modified form:
+    Preprocess raw input form to obtain form metadata, including a
+    modified (preprocessed) form more easily manipulated by form
+    compilers. The original form is left untouched. Currently, the
+    following transformations are made to the preprocessed form:
 
       expand_compounds    (side effect of calling expand_derivatives)
       expand_derivatives
       renumber_indices
-
-    Form metadata is attached to the returned preprocessed form and may
-    be accessed by calling form.form_data().
     """
 
     # Check that we get a form
     ufl_assert(isinstance(form, Form), "Expecting Form.")
-
-    # Check that form is not already preprocessed
-    if form.form_data() is not None:
-        debug("Form is already preprocessed. Not updating form data.")
-        return form
-
-    # Remember original form
-    original_form = form
 
     # Get name of form
     if id(form) in object_names:
@@ -145,11 +134,8 @@ def preprocess(form, object_names={}, common_cell=None):
     # Store integrals stored by type and sub domain
     form_data.integral_data = extract_integral_data(form)
 
-    # Attach preprocessed form to form data
-    form_data._form = form
+    # Store preprocessed form
+    form._is_preprocessed = True
+    form_data.preprocessed_form = form
 
-    # Attach form data to preprocessed form and original form
-    form._form_data = form_data
-    original_form._form_data = form_data
-
-    return form
+    return form_data

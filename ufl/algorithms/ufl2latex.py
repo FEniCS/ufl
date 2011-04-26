@@ -415,11 +415,12 @@ def form2latex(form, formdata):
 
     return sections
 
-def ufl2latex(expression, form_data=None):
+def ufl2latex(expression):
     "Generate LaTeX code for a UFL expression or form (wrapper for form2latex and expression2latex)."
     if isinstance(expression, Form):
-        form = preprocess(expression)
-        return form2latex(form, form.form_data())
+        form_data = expression.compute_form_data()
+        preprocessed_form = form_data.preprocessed_form
+        return form2latex(preprocessed_form, form_data)
     else:
         return expression2latex(expression)
 

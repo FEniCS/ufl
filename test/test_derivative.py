@@ -144,9 +144,13 @@ class DerivativeTestCase(UflTestCase):
         F = derivative(f, w, v)
         J = derivative(F, w, u)
 
-        f = preprocess(f)
-        F = preprocess(F)
-        J = preprocess(J)
+        form_data_f = f.compute_form_data()
+        form_data_F = F.compute_form_data()
+        form_data_J = J.compute_form_data()
+
+        f = form_data_f.preprocessed_form
+        F = form_data_F.preprocessed_form
+        J = form_data_J.preprocessed_form
 
         f_expression = strip_variables(f.cell_integrals()[0].integrand())
         F_expression = strip_variables(F.cell_integrals()[0].integrand())
@@ -179,20 +183,17 @@ class DerivativeTestCase(UflTestCase):
             assert derivatives == (0,)
             return dw
 
-        form_data_f = f.form_data()
         w, b, K = form_data_f.coefficients
         mapping = { K: Kv, b: bv, w: Nw }
         fv2 = f_expression((0,), mapping)
         self.assertAlmostEqual(fv, fv2)
 
-        form_data_F = F.form_data()
         w, b, K = form_data_F.coefficients
         v, = form_data_F.arguments
         mapping = { K: Kv, b: bv, v: Nv, w: Nw }
         Fv2 = F_expression((0,), mapping)
         self.assertAlmostEqual(Fv, Fv2)
 
-        form_data_J = J.form_data()
         w, b, K = form_data_J.coefficients
         v, u = form_data_J.arguments
         mapping = { K: Kv, b: bv, v: Nv, u: Nu, w: Nw }

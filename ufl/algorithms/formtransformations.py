@@ -10,7 +10,7 @@ __date__ = "2008-10-01"
 # Modified by Garth N. Wells, 2010.
 # Modified by Marie E. Rognes, 2010.
 
-# Last changed: 2011-04-03
+# Last changed: 2011-04-26
 
 from itertools import izip
 
@@ -32,7 +32,6 @@ from ufl.classes import ufl_classes, terminal_classes, nonterminal_classes
 # Other algorithms:
 from ufl.algorithms.traversal import traverse_terminals
 from ufl.algorithms.analysis import extract_arguments
-from ufl.algorithms.preprocess import preprocess
 from ufl.algorithms.transformations import replace, Transformer, apply_transformer, transform_integrands
 
 def zero(e):
@@ -305,8 +304,8 @@ def compute_form_with_arity(form, arity):
 def compute_form_arities(form):
     """Return set of arities of terms present in form."""
 
-    # Preprocess form (preprocess takes care of checking)
-    form = preprocess(form)
+    # Need form to be preprocessed
+    ufl_assert(form.is_preprocessed(), "Expecting form to be preprocssed.")
 
     # Extract all arguments present in form
     arguments = extract_arguments(form)

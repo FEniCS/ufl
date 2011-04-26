@@ -7,7 +7,7 @@ __date__ = "2008-03-14"
 
 # Modified by Anders Logg, 2008-2009.
 # Modified by Mehdi Nikbakht, 2010.
-# Last changed: 2010-09-29
+# Last changed: 2011-04-26
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
@@ -20,7 +20,6 @@ from ufl.constantvalue import is_true_ufl_scalar
 from ufl.integral import Measure
 
 # UFL algorithms
-from ufl.algorithms.preprocess import preprocess
 from ufl.algorithms.traversal import iter_expressions, traverse_terminals, fast_pre_traversal
 from ufl.algorithms.analysis import extract_elements
 from ufl.algorithms.predicates import is_multilinear
@@ -30,9 +29,6 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
     """Performs all implemented validations on a form. Raises exception if something fails."""
 
     ufl_assert(isinstance(form, Form), "Expecting a Form.")
-
-    # Preprocess form
-    #form = preprocess(form)
 
     # FIXME: Add back check for multilinearity
     # Check that form is multilinear

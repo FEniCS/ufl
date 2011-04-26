@@ -5,7 +5,7 @@ __copyright__ = "Copyright (C) 2008-2011 Martin Sandve Alnes"
 __license__  = "GNU LGPL version 3 or any later version"
 __date__    = "2008-03-14 -- 2009-12-08"
 
-# Modified by Anders Logg, 2009.
+# Modified by Anders Logg, 2009-2011.
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
@@ -17,7 +17,7 @@ from ufl.integral import Integral, Measure
 
 class Form(object):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
-    __slots__ = ("_integrals", "_repr", "_hash", "_str", "_form_data",
+    __slots__ = ("_integrals", "_repr", "_hash", "_str", "_form_data", "_is_preprocessed",
                  "cell_domains", "exterior_facet_domains", "interior_facet_domains")
 
     # Note: cell_domains, exterior_facet_domains and interior_facet_domains
@@ -31,6 +31,7 @@ class Form(object):
         self._repr = None
         self._hash = None
         self._form_data = None
+        self._is_preprocessed = False
         self.cell_domains = None
         self.exterior_facet_domains = None
         self.interior_facet_domains = None
@@ -94,6 +95,17 @@ class Form(object):
     def form_data(self):
         "Return form metadata (None if form has not been preprocessed)"
         return self._form_data
+
+    def compute_form_data(self, object_names={}, common_cell=None):
+        "Compute and return form metadata"
+        if self._form_data is None:
+            from ufl.algorithms.preprocess import preprocess
+            self._form_data = preprocess(self, object_names, common_cell)
+        return self.form_data()
+
+    def is_preprocessed(self):
+        "Check whether form is preprocessed"
+        return self._is_preprocessed
 
     def __add__(self, other):
         # --- Add integrands of integrals with the same measure

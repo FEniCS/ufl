@@ -4,7 +4,7 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-05-09"
 
 # Modified by Anders Logg, 2009.
-# Last changed: 2010-02-07
+# Last changed: 2011-04-26
 
 import sys, optparse
 from ufl.log import warning
@@ -78,11 +78,9 @@ for filename in filenames:
         # Validate form
         validate_form(form)
 
-        # Preprocess form
-        preprocessed_form = preprocess(form, object_names=data.object_names)
-
-        # Extract form data
-        form_data = form.form_data()
+        # Compute form metadata and extract preprocessed form
+        form_data = form.compute_form_data()
+        preprocessed_form = form_data.preprocessed_form
 
         # Print form data
         write("\nForm data:\n", str(form_data))
@@ -94,7 +92,7 @@ for filename in filenames:
         write("\n\nForm representation (preprocessed):\n",  repr(preprocessed_form))
         write("\n\nForm tree formatting (original):\n",     tree_format(form))
         write("\n\nForm tree formatting (preprocessed):\n", tree_format(preprocessed_form))
-        write("\n\nForm LaTeX code (preprocessed):\n",      ufl2latex(preprocessed_form, form_data))
+        write("\n\nForm LaTeX code (preprocessed):\n",      ufl2latex(form))
 
     if write_file:
         outputfile.close()
