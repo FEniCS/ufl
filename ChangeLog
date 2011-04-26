@@ -1,3 +1,4 @@
+ - Change behavior of preprocess(), form.compute_form_data(), form_data.preprocessed_form
  - Allowing grad, div, inner, dot, det, inverse on scalars
  - Simplify Identity(1) -> IntValue(1) automatically
  - Added Levi-Cevita symbol: e = PermutationSymbol(3); e[i,j,k]
