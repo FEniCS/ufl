@@ -7,7 +7,7 @@ __copyright__ = "Copyright (C) 2009-2011 Anders Logg"
 __license__  = "GNU LGPL version 3 or any later version"
 __date__ = "2009-12-07"
 
-# Last changed: 2010-11-04
+# Last changed: 2011-04-26
 
 from ufl.log import info, debug, warning, error
 from ufl.assertions import ufl_assert
@@ -43,6 +43,9 @@ def preprocess(form, object_names={}, common_cell=None):
     if form.form_data() is not None:
         debug("Form is already preprocessed. Not updating form data.")
         return form
+
+    # Remember original form
+    original_form = form
 
     # Get name of form
     if id(form) in object_names:
@@ -142,10 +145,11 @@ def preprocess(form, object_names={}, common_cell=None):
     # Store integrals stored by type and sub domain
     form_data.integral_data = extract_integral_data(form)
 
-    # Attach form data to form
-    form._form_data = form_data
-
     # Attach preprocessed form to form data
     form_data._form = form
+
+    # Attach form data to preprocessed form and original form
+    form._form_data = form_data
+    original_form._form_data = form_data
 
     return form
