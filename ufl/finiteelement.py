@@ -18,7 +18,7 @@ from ufl.log import BLUE
 
 class FiniteElementBase(object):
     "Base class for all finite elements"
-    __slots__ = ("_family", "_cell", "_degree", "_value_shape", "_repr", "_domain")
+    __slots__ = ("_family", "_cell", "_degree", "_value_shape", "_repr", "_domain", "_scheme")
 
     def __init__(self, family, cell, degree, value_shape):
         "Initialize basic finite element data"
@@ -31,6 +31,7 @@ class FiniteElementBase(object):
         self._degree = degree
         self._value_shape = value_shape
         self._domain = None
+        self._scheme = None
 
     def family(self):
         "Return finite element family"
