@@ -422,11 +422,15 @@ class EnrichedElement(FiniteElementBase):
 
         degree = max(e.degree() for e in elements)
 
+        quad_scheme = elements[0].quadrature_scheme()
+        ufl_assert(all(e.quadrature_scheme() == quad_scheme for e in elements),\
+            "Quadrature scheme mismatch.")
+
         value_shape = elements[0].value_shape()
         ufl_assert(all(e.value_shape() == value_shape for e in elements), "Element value shape mismatch.")
 
         # Initialize element data
-        super(EnrichedElement, self).__init__("EnrichedElement", cell, degree, value_shape)
+        super(EnrichedElement, self).__init__("EnrichedElement", cell, degree, quad_scheme, value_shape)
 
         # Cache repr string
         self._repr = "EnrichedElement(%s)" % ", ".join(repr(e) for e in self._elements)
@@ -446,7 +450,8 @@ class RestrictedElement(FiniteElementBase):
         from ufl.geometry import Cell
         ufl_assert(isinstance(domain, Measure) or isinstance(as_cell(domain), Cell),\
             "Expecting a subdomain represented by a Measure or Cell instance.")
-        super(RestrictedElement, self).__init__("RestrictedElement", element.cell(), element.degree(), element.value_shape())
+        super(RestrictedElement, self).__init__("RestrictedElement", element.cell(),\
+            element.degree(), element.quadrature_scheme(), element.value_shape())
         self._element = element
 
         # Just attach domain if it is a Measure
