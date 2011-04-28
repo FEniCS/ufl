@@ -81,12 +81,12 @@ class ClasscoverageTest(UflTestCase):
         cell = triangle
         dim = cell.d
         
-        e0 = FiniteElement("CG", cell, 1, quad_scheme=1)
-        e1 = VectorElement("CG", cell, 1, quad_scheme=1)
-        e2 = TensorElement("CG", cell, 1, quad_scheme=1)
+        e0 = FiniteElement("CG", cell, 1)
+        e1 = VectorElement("CG", cell, 1)
+        e2 = TensorElement("CG", cell, 1)
         e3 = MixedElement(e0, e1, e2)
 
-        e13D = VectorElement("CG", tetrahedron, 1, quad_scheme=1)
+        e13D = VectorElement("CG", tetrahedron, 1)
         
         # --- Terminals:
         

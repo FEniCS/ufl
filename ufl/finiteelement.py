@@ -164,7 +164,7 @@ class FiniteElement(FiniteElementBase):
         super(FiniteElement, self).__init__(family, cell, degree, quad_scheme, value_shape)
 
         # Cache repr string
-        self._repr = "FiniteElement(%r, %r, %s, %s)" % (self.family(), self.cell(),\
+        self._repr = "FiniteElement(%r, %r, %s, %r)" % (self.family(), self.cell(),\
             istr(self.degree()), istr(self.quadrature_scheme()))
 
     def __str__(self):
@@ -193,6 +193,7 @@ class MixedElement(FiniteElementBase):
         ufl_assert(all(e.cell() == cell for e in elements), "Cell mismatch for sub elements of mixed element.")
 
         # Check that all elements use the same quadrature scheme
+        # TODO: We can allow the scheme not to be defined.
         quad_scheme = elements[0].quadrature_scheme()
         ufl_assert(all(e.quadrature_scheme() == quad_scheme for e in elements),\
             "Quadrature scheme mismatch for sub elements of mixed element.")
@@ -303,7 +304,7 @@ class VectorElement(MixedElement):
         self._sub_element = sub_element
 
         # Cache repr string
-        self._repr = "VectorElement(%r, %r, %s, %d, %s)" % \
+        self._repr = "VectorElement(%r, %r, %s, %d, %r)" % \
             (self._family, self._cell, str(self._degree), len(self._sub_elements), istr(quad_scheme))
 
     def __str__(self):
@@ -370,7 +371,7 @@ class TensorElement(MixedElement):
         self._sub_element_mapping = sub_element_mapping
 
         # Cache repr string
-        self._repr = "TensorElement(%r, %r, %r, %r, %r, %s)" % \
+        self._repr = "TensorElement(%r, %r, %r, %r, %r, %r)" % \
             (self._family, self._cell, self._degree, self._shape, self._symmetry, istr(quad_scheme))
 
     def extract_component(self, i):
@@ -422,6 +423,7 @@ class EnrichedElement(FiniteElementBase):
 
         degree = max(e.degree() for e in elements)
 
+        # TODO: We can allow the scheme not to be defined.
         quad_scheme = elements[0].quadrature_scheme()
         ufl_assert(all(e.quadrature_scheme() == quad_scheme for e in elements),\
             "Quadrature scheme mismatch.")
