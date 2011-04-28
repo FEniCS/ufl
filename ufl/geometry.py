@@ -16,9 +16,12 @@ from ufl.common import istr
 from ufl.terminal import Terminal
 
 # --- Expression node types
-
+ 
 # Mapping from domain (cell) to dimension
 domain2dim = {None: None,
+              "cell1D": 1,
+              "cell2D": 2,
+              "cell3D": 3,
               "vertex": 0,
               "interval": 1,
               "triangle": 2,
@@ -29,6 +32,9 @@ domain2dim = {None: None,
 
 # Mapping from domain (cell) to facet
 domain2facet = {None: None,
+                "cell1D": "vertex",
+                "cell2D": "cell1D",
+                "cell3D": "cell2D",
                 "interval": "vertex",
                 "triangle": "interval",
                 "tetrahedron": "triangle",
