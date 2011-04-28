@@ -115,7 +115,9 @@ class FiniteElementBase(object):
         "Restrict finite element to a subdomain, subcomponent or topology (cell)."
         from ufl.integral import Measure
         from ufl.geometry import Cell
-        if isinstance(index, Measure) or isinstance(as_cell(index), Cell):
+        if isinstance(index, (Measure, Cell)) or\
+                index == "facet" or\
+                isinstance(as_cell(index), Cell):
             return RestrictedElement(self, index)
         #if isinstance(index, int):
         #    return SubElement(self, index)
