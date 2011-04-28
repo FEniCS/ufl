@@ -448,21 +448,22 @@ class RestrictedElement(FiniteElementBase):
         ufl_assert(isinstance(element, FiniteElementBase), "Expecting a finite element instance.")
         from ufl.integral import Measure
         from ufl.geometry import Cell
-        ufl_assert(isinstance(domain, Measure) or isinstance(as_cell(domain), Cell),\
-            "Expecting a subdomain represented by a Measure or Cell instance.")
+        ufl_assert(isinstance(domain, Measure) or domain == "facet" or isinstance(as_cell(domain), Cell),\
+            "Expecting a subdomain represented by a Measure, a Cell instance, or the string 'facet'.")
         super(RestrictedElement, self).__init__("RestrictedElement", element.cell(),\
             element.degree(), element.quadrature_scheme(), element.value_shape())
         self._element = element
 
-        # Just attach domain if it is a Measure
-        if isinstance(domain, Measure):
+        # Just attach domain if it is a Measure or Cell
+        if isinstance(domain, (Measure, Cell)):
             self._domain = domain
         else:
-            # Create Cell (if we get a string)
-            domain = as_cell(domain)
             # Check for facet and handle it
-            if domain.domain() == "facet":
+            if domain == "facet":
                 domain = Cell(domain2facet[self.cell().domain()])
+            else:
+                # Create Cell (if we get a string)
+                domain = as_cell(domain)
             self._domain = domain
 
         # Cache repr string

@@ -40,6 +40,5 @@ tetrahedron   = Cell("tetrahedron", 1, R3)
 quadrilateral = Cell("quadrilateral", 1, R2)
 hexahedron    = Cell("hexahedron", 1, R3)
 
-# TODO: Facet is just a dummy declaration, what can we do?
-# TODO: Remove this and just require the string "facet" where needed?
-facet         = Cell("facet", 1, R0)
+# Facet is just a dummy declaration for RestrictedElement
+facet = "facet"

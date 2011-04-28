@@ -3,15 +3,13 @@
 __authors__ = "Martin Sandve Alnes"
 __copyright__ = "Copyright (C) 2008-2011 Martin Sandve Alnes"
 __license__  = "GNU LGPL version 3 or any later version"
-__date__ = "2008-03-14"
+__date__ = "2008-03-14 -- 2011-04-28"
 
 # Modified by Anders Logg, 2009.
 # Modified by Kristian B. Oelgaard, 2009
-# Last changed: 2009-12-21
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
-#from ufl.common import domain2dim, istr
 from ufl.common import istr
 from ufl.terminal import Terminal
 
@@ -27,8 +25,7 @@ domain2dim = {None: None,
               "triangle": 2,
               "tetrahedron": 3,
               "quadrilateral": 2,
-              "hexahedron": 3,
-              "facet": 0}
+              "hexahedron": 3}
 
 # Mapping from domain (cell) to facet
 domain2facet = {None: None,
@@ -194,6 +191,7 @@ class Cell(object):
         # Handle domain
         ufl_assert(domain in domain2dim, "Invalid domain %s." % (domain,))
         self._domain = domain
+
         self._topological_dimension = domain2dim[self._domain]
 
         # Handle degree
