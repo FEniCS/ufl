@@ -162,7 +162,7 @@ from ufl.coefficient import Coefficient, Coefficients, \
 from ufl.split_functions import split
 
 # Literal constants
-from ufl.constantvalue import PermutationSymbol, Identity, Zero, as_ufl
+from ufl.constantvalue import PermutationSymbol, Identity, zero, Zero, as_ufl # TODO: Remove Zero
 
 # Indexing of tensor expressions
 from ufl.indexing import Index, indices
@@ -199,7 +199,8 @@ from ufl.integral import Integral, Measure, register_domain_type
 from ufl.formoperators import replace, derivative, action, energy_norm, rhs, lhs, system, functional, adjoint, sensitivity_rhs #, dirichlet_functional
 
 # Predefined convenience objects
-from ufl.objects import vertex, interval, triangle, tetrahedron, quadrilateral, hexahedron, facet,\
+from ufl.objects import vertex, interval, triangle, tetrahedron, \
+    quadrilateral, hexahedron, facet, cell1D, cell2D, cell3D, \
     i, j, k, l, p, q, r, s, \
     R1, R2, R3, \
     dx, ds, dS, dE, dc

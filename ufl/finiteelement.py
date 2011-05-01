@@ -18,9 +18,9 @@ from ufl.log import BLUE
 
 class FiniteElementBase(object):
     "Base class for all finite elements"
-    __slots__ = ("_family", "_cell", "_degree", "_value_shape", "_repr", "_domain", "_scheme")
+    __slots__ = ("_family", "_cell", "_degree", "_quad_scheme", "_value_shape", "_repr", "_domain")
 
-    def __init__(self, family, cell, degree, value_shape):
+    def __init__(self, family, cell, degree, quad_scheme, value_shape):
         "Initialize basic finite element data"
         ufl_assert(isinstance(family, str), "Invalid family type.")
         cell = as_cell(cell)
@@ -31,7 +31,7 @@ class FiniteElementBase(object):
         self._degree = degree
         self._value_shape = value_shape
         self._domain = None
-        self._scheme = None
+        self._quad_scheme = quad_scheme
 
     def family(self):
         "Return finite element family"
@@ -54,6 +54,10 @@ class FiniteElementBase(object):
         "Set degree for element"
         warning("SETTING DEGREE FOR ELEMENT. THIS IS DEPRECATED AND MAY CAUSE SUBTLE CACHE PROBLEMS AND OTHER BUGS.")
         self._degree = degree
+
+    def quadrature_scheme(self):
+        "Return quadrature scheme of finite element"
+        return self._quad_scheme
 
     def value_shape(self):
         "Return the shape of the value space"
@@ -111,7 +115,9 @@ class FiniteElementBase(object):
         "Restrict finite element to a subdomain, subcomponent or topology (cell)."
         from ufl.integral import Measure
         from ufl.geometry import Cell
-        if isinstance(index, Measure) or isinstance(as_cell(index), Cell):
+        if isinstance(index, (Measure, Cell)) or\
+                index == "facet" or\
+                isinstance(as_cell(index), Cell):
             return RestrictedElement(self, index)
         #if isinstance(index, int):
         #    return SubElement(self, index)
@@ -120,7 +126,7 @@ class FiniteElementBase(object):
 class FiniteElement(FiniteElementBase):
     "The basic finite element class for all simple finite elements"
 
-    def __init__(self, family, cell, degree=None, form_degree=None):
+    def __init__(self, family, cell, degree=None, quad_scheme=None, form_degree=None):
         "Create finite element"
 
         cell = as_cell(cell)
@@ -131,7 +137,7 @@ class FiniteElement(FiniteElementBase):
             (name, cell, r) = aliases[family](family, cell, degree, form_degree)
             info_blue("%s, is an alias for %s " % ((family, cell, degree, form_degree),
                                                    (name, cell, r)))
-            self.__init__(name, cell, r)
+            self.__init__(name, cell, r, quad_scheme)
             return
 
         # Check that the element family exists
@@ -157,18 +163,20 @@ class FiniteElement(FiniteElementBase):
         value_shape = (dim,)*(value_rank)
 
         # Initialize element data
-        super(FiniteElement, self).__init__(family, cell, degree, value_shape)
+        super(FiniteElement, self).__init__(family, cell, degree, quad_scheme, value_shape)
 
         # Cache repr string
-        self._repr = "FiniteElement(%r, %r, %s)" % (self.family(), self.cell(), istr(self.degree()))
+        self._repr = "FiniteElement(%r, %r, %s, %r)" % (self.family(), self.cell(),\
+            istr(self.degree()), istr(self.quadrature_scheme()))
 
     def __str__(self):
         "Format as string for pretty printing."
-        return "<%s%s on a %s>" % (self._short_name, istr(self.degree()), self.cell())
+        return "<%s%s(%s) on a %s>" % (self._short_name, istr(self.degree()),\
+            istr(self.quadrature_scheme()), self.cell())
 
     def shortstr(self):
         "Format as string for pretty printing."
-        return "%s%s" % (self._short_name, istr(self.degree()))
+        return "%s%s(%s)" % (self._short_name, istr(self.degree()), istr(self.quadrature_scheme()))
 
 class MixedElement(FiniteElementBase):
     "A finite element composed of a nested hierarchy of mixed or simple elements"
@@ -186,6 +194,12 @@ class MixedElement(FiniteElementBase):
         cell = elements[0].cell()
         ufl_assert(all(e.cell() == cell for e in elements), "Cell mismatch for sub elements of mixed element.")
 
+        # Check that all elements use the same quadrature scheme
+        # TODO: We can allow the scheme not to be defined.
+        quad_scheme = elements[0].quadrature_scheme()
+        ufl_assert(all(e.quadrature_scheme() == quad_scheme for e in elements),\
+            "Quadrature scheme mismatch for sub elements of mixed element.")
+
         # Compute value shape
         value_size_sum= sum(product(s.value_shape()) for s in self._sub_elements)
         if "value_shape" in kwargs:
@@ -201,7 +215,7 @@ class MixedElement(FiniteElementBase):
 
         # Initialize element data
         degree = max(e.degree() for e in self._sub_elements)
-        super(MixedElement, self).__init__("Mixed", cell, degree, value_shape)
+        super(MixedElement, self).__init__("Mixed", cell, degree, quad_scheme, value_shape)
 
         # Cache repr string
         self._repr = "MixedElement(*%r, **{'value_shape': %r })" % (self._sub_elements, self._value_shape)
@@ -266,7 +280,7 @@ class MixedElement(FiniteElementBase):
 class VectorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal"
 
-    def __init__(self, family, cell, degree, dim=None):
+    def __init__(self, family, cell, degree, dim=None, quad_scheme=None):
         "Create vector element (repeated mixed element)"
 
         cell = as_cell(cell)
@@ -276,7 +290,7 @@ class VectorElement(MixedElement):
             dim = cell.geometric_dimension()
 
         # Create mixed element from list of finite elements
-        sub_element = FiniteElement(family, cell, degree)
+        sub_element = FiniteElement(family, cell, degree, quad_scheme)
         sub_elements = [sub_element]*dim
 
         # Get common family name (checked in FiniteElement.__init__)
@@ -292,8 +306,8 @@ class VectorElement(MixedElement):
         self._sub_element = sub_element
 
         # Cache repr string
-        self._repr = "VectorElement(%r, %r, %s, %d)" % \
-            (self._family, self._cell, str(self._degree), len(self._sub_elements))
+        self._repr = "VectorElement(%r, %r, %s, %d, %r)" % \
+            (self._family, self._cell, str(self._degree), len(self._sub_elements), istr(quad_scheme))
 
     def __str__(self):
         "Format as string for pretty printing."
@@ -309,7 +323,7 @@ class TensorElement(MixedElement):
     #__slots__ = ("_family", "_cell", "_degree", "_value_shape")
     __slots__ = ("_sub_element", "_shape", "_symmetry", "_sub_element_mapping",)
 
-    def __init__(self, family, cell, degree, shape=None, symmetry=None):
+    def __init__(self, family, cell, degree, shape=None, symmetry=None, quad_scheme=None):
         "Create tensor element (repeated mixed element with optional symmetries)"
         cell = as_cell(cell)
 
@@ -329,7 +343,7 @@ class TensorElement(MixedElement):
         indices = compute_indices(shape)
 
         # Compute sub elements and mapping from indices to sub elements, accounting for symmetry
-        sub_element = FiniteElement(family, cell, degree)
+        sub_element = FiniteElement(family, cell, degree, quad_scheme)
         sub_elements = []
         sub_element_mapping = {}
         for index in indices:
@@ -359,8 +373,8 @@ class TensorElement(MixedElement):
         self._sub_element_mapping = sub_element_mapping
 
         # Cache repr string
-        self._repr = "TensorElement(%r, %r, %r, %r, %r)" % \
-            (self._family, self._cell, self._degree, self._shape, self._symmetry)
+        self._repr = "TensorElement(%r, %r, %r, %r, %r, %r)" % \
+            (self._family, self._cell, self._degree, self._shape, self._symmetry, istr(quad_scheme))
 
     def extract_component(self, i):
         "Extract base component index and (simple) element for given component index"
@@ -411,11 +425,16 @@ class EnrichedElement(FiniteElementBase):
 
         degree = max(e.degree() for e in elements)
 
+        # TODO: We can allow the scheme not to be defined.
+        quad_scheme = elements[0].quadrature_scheme()
+        ufl_assert(all(e.quadrature_scheme() == quad_scheme for e in elements),\
+            "Quadrature scheme mismatch.")
+
         value_shape = elements[0].value_shape()
         ufl_assert(all(e.value_shape() == value_shape for e in elements), "Element value shape mismatch.")
 
         # Initialize element data
-        super(EnrichedElement, self).__init__("EnrichedElement", cell, degree, value_shape)
+        super(EnrichedElement, self).__init__("EnrichedElement", cell, degree, quad_scheme, value_shape)
 
         # Cache repr string
         self._repr = "EnrichedElement(%s)" % ", ".join(repr(e) for e in self._elements)
@@ -433,20 +452,22 @@ class RestrictedElement(FiniteElementBase):
         ufl_assert(isinstance(element, FiniteElementBase), "Expecting a finite element instance.")
         from ufl.integral import Measure
         from ufl.geometry import Cell
-        ufl_assert(isinstance(domain, Measure) or isinstance(as_cell(domain), Cell),\
-            "Expecting a subdomain represented by a Measure or Cell instance.")
-        super(RestrictedElement, self).__init__("RestrictedElement", element.cell(), element.degree(), element.value_shape())
+        ufl_assert(isinstance(domain, Measure) or domain == "facet" or isinstance(as_cell(domain), Cell),\
+            "Expecting a subdomain represented by a Measure, a Cell instance, or the string 'facet'.")
+        super(RestrictedElement, self).__init__("RestrictedElement", element.cell(),\
+            element.degree(), element.quadrature_scheme(), element.value_shape())
         self._element = element
 
-        # Just attach domain if it is a Measure
-        if isinstance(domain, Measure):
+        # Just attach domain if it is a Measure or Cell
+        if isinstance(domain, (Measure, Cell)):
             self._domain = domain
         else:
-            # Create Cell (if we get a string)
-            domain = as_cell(domain)
             # Check for facet and handle it
-            if domain.domain() == "facet":
+            if domain == "facet":
                 domain = Cell(domain2facet[self.cell().domain()])
+            else:
+                # Create Cell (if we get a string)
+                domain = as_cell(domain)
             self._domain = domain
 
         # Cache repr string

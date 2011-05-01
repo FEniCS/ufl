@@ -114,6 +114,10 @@ class Zero(ConstantValue, IndexAnnotated):
     def __int__(self):
         return 0
 
+def zero(*shape):
+    "Return a zero tensor with the given shape."
+    return Zero(shape)
+
 #--- Scalar value types ---
 
 class ScalarValue(ConstantValue, IndexAnnotated):
