@@ -96,11 +96,11 @@ class Form(object):
         "Return form metadata (None if form has not been preprocessed)"
         return self._form_data
 
-    def compute_form_data(self, object_names={}, common_cell=None):
+    def compute_form_data(self, object_names={}, common_cell=None, element_mapping={}):
         "Compute and return form metadata"
         if self._form_data is None:
             from ufl.algorithms.preprocess import preprocess
-            self._form_data = preprocess(self, object_names, common_cell)
+            self._form_data = preprocess(self, object_names, common_cell, element_mapping)
         return self.form_data()
 
     def is_preprocessed(self):

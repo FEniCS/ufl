@@ -7,7 +7,7 @@ __copyright__ = "Copyright (C) 2009-2011 Anders Logg"
 __license__  = "GNU LGPL version 3 or any later version"
 __date__ = "2009-12-07"
 
-# Last changed: 2011-04-26
+# Last changed: 2011-05-02
 
 from ufl.log import info, debug, warning, error
 from ufl.assertions import ufl_assert
@@ -21,7 +21,7 @@ from ufl.algorithms.analysis import extract_elements, extract_sub_elements
 from ufl.algorithms.analysis import extract_num_sub_domains, extract_integral_data, unique_tuple
 from ufl.algorithms.formdata import FormData
 
-def preprocess(form, object_names={}, common_cell=None):
+def preprocess(form, object_names={}, common_cell=None, element_mapping={}):
     """
     Preprocess raw input form to obtain form metadata, including a
     modified (preprocessed) form more easily manipulated by form
@@ -94,24 +94,8 @@ def preprocess(form, object_names={}, common_cell=None):
     form_data.sub_elements        = extract_sub_elements(form_data.elements)
     form_data.unique_sub_elements = unique_tuple(form_data.sub_elements)
 
-    # FIXME: Need to look at logic here, FFC does not support the last two cases
-
-    # Store cell
-    if not common_cell is None:
-        form_data.cell = common_cell
-    elif form_data.elements:
-        cells = [element.cell() for element in form_data.elements]
-        cells = [cell for cell in cells if not cell.domain() is None]
-        if len(cells) == 0:
-            error("Unable to extract form data. Reason: Missing cell definition in form.")
-        form_data.cell = cells[0]
-    elif form._integrals:
-        # Special case to allow functionals only depending on geometric variables, with no elements
-        form_data.cell = form._integrals[0].integrand().cell()
-    else:
-        # Special case to allow integral of constants to pass through without crashing
-        form_data.cell = None
-        warning("Form is empty, no elements or integrals, cell is undefined.")
+    # Store common cell
+    form_data.cell = common_cell
 
     # Store data related to cell
     if form_data.cell is None:
