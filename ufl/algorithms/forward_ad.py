@@ -373,6 +373,11 @@ class ForwardAD(Transformer):
     # --- Mathfunctions
 
     def math_function(self, o, a):
+        if hasattr(o, 'derivative'):
+            f, fp = a
+            o = self.reuse_if_possible(o, f)
+            op = fp * o.derivative()
+            return (o, op)
         error("Unknown math function.")
 
     def sqrt(self, o, a):
