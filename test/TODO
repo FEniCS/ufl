@@ -4,6 +4,7 @@
     analyse_demos.py
     elements.py
 
-- Add missing lifting tests, both coverage and 
+- Add missing lifting tests, both coverage and functionality
 
 - Need better testing of algorithms, covering all of { algorithms } x { types }.
+
