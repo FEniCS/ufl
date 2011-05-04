@@ -22,11 +22,6 @@ __all__ = log_functions + ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL", "Log
 # Import default log levels
 from logging import DEBUG, INFO, WARNING, ERROR, CRITICAL
 
-# Base class for UFL exceptions
-class UFLException(Exception):
-    "Base class for UFL exceptions"
-    pass
-
 # This is used to override emit() in StreamHandler for printing without newline
 def emit(self, record):
     message = self.format(record)
@@ -42,9 +37,10 @@ GREEN = "\033[1;37;32m%s\033[0m"
 # Logger class
 class Logger:
 
-    def __init__(self, name):
+    def __init__(self, name, exception_type=Exception):
         "Create logger instance."
         self._name = name
+        self._exception_type = exception_type
 
         # Set up handler
         h = logging.StreamHandler(sys.stdout)
@@ -121,7 +117,7 @@ class Logger:
     def error(self, *message):
         "Write error message and raise an exception."
         self._log.error(*message)
-        raise UFLException(self._format_raw(*message))
+        raise self._exception_type(self._format_raw(*message))
 
     def begin(self, *message):
         "Begin task: write message and increase indentation level."
@@ -194,7 +190,12 @@ class Logger:
 
 #--- Set up global log functions ---
 
-ufl_logger = Logger("UFL")
+# Base class for UFL exceptions
+class UFLException(Exception):
+    "Base class for UFL exceptions"
+    pass
+
+ufl_logger = Logger("UFL", UFLException)
 
 for foo in log_functions:
     exec("%s = ufl_logger.%s" % (foo, foo))
