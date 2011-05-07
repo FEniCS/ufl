@@ -20,6 +20,7 @@ from ufl.log import error, warning, info
 from ufl.assertions import ufl_assert
 from ufl.form import Form
 from ufl.finiteelement import FiniteElementBase
+from ufl.expr import Expr
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.algorithms.formdata import FormData
