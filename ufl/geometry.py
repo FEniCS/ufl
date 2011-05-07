@@ -14,10 +14,9 @@ from ufl.common import istr
 from ufl.terminal import Terminal
 
 # --- Expression node types
- 
+
 # Mapping from domain (cell) to dimension
-domain2dim = {None: None,
-              "cell1D": 1,
+domain2dim = {"cell1D": 1,
               "cell2D": 2,
               "cell3D": 3,
               "vertex": 0,
@@ -28,8 +27,7 @@ domain2dim = {None: None,
               "hexahedron": 3}
 
 # Mapping from domain (cell) to facet
-domain2facet = {None: None,
-                "cell1D": "vertex",
+domain2facet = {"cell1D": "vertex",
                 "cell2D": "cell1D",
                 "cell3D": "cell2D",
                 "interval": "vertex",
@@ -39,8 +37,7 @@ domain2facet = {None: None,
                 "hexahedron": "quadrilateral"}
 
 # Number of facets associated with each domain
-domain2num_facets = {None: None,
-                     "interval": 2,
+domain2num_facets = {"interval": 2,
                      "triangle": 3,
                      "tetrahedron": 4,
                      "quadrilateral": 4,
@@ -66,7 +63,7 @@ class SpatialCoordinate(GeometricQuantity):
         self._repr = "SpatialCoordinate(%r)" % self._cell
 
     def shape(self):
-        d = self._cell.d
+        d = self._cell.geometric_dimension()
         if d == 1:
             return ()
         return (d,)
@@ -91,7 +88,7 @@ class FacetNormal(GeometricQuantity):
         self._repr = "FacetNormal(%r)" % self._cell
 
     def shape(self):
-        d = self._cell.d
+        d = self._cell.geometric_dimension()
         if d == 1:
             return ()
         return (d,)
@@ -167,10 +164,11 @@ class Space(object):
     __slots__ = ("_dimension",)
 
     def __init__(self, dimension):
-        #ufl_assert(isinstance(dimension, int), "Expecting integer.")
+        #ufl_assert(isinstance(dimension, int), "Expecting integer.") # FIXME: This is essential!
         self._dimension = dimension
 
     def dimension(self):
+        ufl_assert(isinstance(self._dimension, int), "No dimension defined!")
         return self._dimension
 
     def __str__(self):
@@ -182,40 +180,61 @@ class Space(object):
 class Cell(object):
     "Representation of a finite element cell."
     __slots__ = ("_domain", "_degree", "_space", "_geometric_dimension",
-                 "_topological_dimension", "_repr", "d", "n", "x", "volume",
-                 "circumradius")
+                 "_topological_dimension", "_repr", "_invalid",
+                 "d", "n", "x", "volume", "circumradius")
 
     def __init__(self, domain, degree=1, space=None):
         "Initialize basic cell description"
 
-        # Handle domain
-        ufl_assert(domain in domain2dim, "Invalid domain %s." % (domain,))
+        # Check for valid domain, for now we allow None to support
+        # PyDOLFIN integration features, but this is a bit dangerous
+        # because several things in UFL become undefined...
+        if domain is None:
+            self._invalid = True
+        else:
+            ufl_assert(domain in domain2dim, "Invalid domain %s." % (domain,))
+            self._invalid = False
         self._domain = domain
 
-        self._topological_dimension = domain2dim[self._domain]
+        # Don't compute quantities that are undefined
+        if self._invalid:
+            # Used in repr string below
+            self._space = None
+        else:
+            # The topological dimension is defined by the cell type
+            dim = domain2dim[self._domain]
+            self._topological_dimension = dim
 
-        # Handle degree
+            # The space dimension defaults to equal the topological dimension if undefined
+            space = Space(dim) if space is None else space
+            ufl_assert(isinstance(space, Space),
+                       "Expecting a Space instance, not '%r'" % (space,))
+            self._space = space
+
+            # The geometric dimension is defined by the space
+            self._geometric_dimension = space.dimension()
+
+            # Check for consistency in dimensions.
+            # NB! Note that the distinction between topological
+            # and geometric dimensions has yet to be used in
+            # practice, so don't trust it too much :)
+            ufl_assert(self._topological_dimension <= self._geometric_dimension,
+                       "Cannot embed a %sD cell in %s" %\
+                           (istr(self._topological_dimension), self._space))
+
+            # Attach a cell dimension for use in code.
+            # TODO: Make self.d a property, deprecate or make valid
+            #       only in this case. Don't use inside UFL!
+            if self._topological_dimension == self._geometric_dimension:
+                self.d = self._geometric_dimension
+            else:
+                self.d = None # TODO: Make this a property to fail instead of silently getting None
+
+        # Handle degree TODO: Remove degree from cell completely
         ufl_assert(isinstance(degree, int) and degree >= 1, "Invalid degree '%r'." % (degree,))
         if degree != 1: # TODO: Remove warning when implemented
             warning("Note: High order geometries are not implemented in the form compilers yet.")
         self._degree = degree
-
-        # Get geometric dimension
-        if space is None:
-            space = Space(self._topological_dimension)
-        ufl_assert(isinstance(space, Space), "Expecting a Space instance, not '%r'" % (space,))
-        self._space = space
-        self._geometric_dimension = self._space.dimension()
-
-        ufl_assert(self._topological_dimension <= self._geometric_dimension,
-            "Cannot embed a %sD cell in %s" % (istr(self._topological_dimension), self._space))
-
-        # TODO: Make self.d a property, deprecate or make valid
-        #       only in this case. Don't use inside UFL!
-        if self._topological_dimension == self._geometric_dimension:
-            self.d = self._geometric_dimension
-        else:
-            self.d = None
 
         # Cache repr string
         self._repr = "Cell(%r, %r, %r)" % (self._domain, self._degree, self._space)
@@ -230,21 +249,27 @@ class Cell(object):
         #self.hmax = MeshSizeMax(self)
 
     def geometric_dimension(self):
+        ufl_assert(not self._invalid, "An invalid cell has no dimensions.")
         return self.d
 
     def topological_dimension(self):
+        ufl_assert(not self._invalid, "An invalid cell has no dimensions.")
         return self.d
 
     def domain(self):
+        ufl_assert(not self._invalid, "An invalid cell has no domain.")
         return self._domain
 
     def degree(self):
+        ufl_assert(not self._invalid, "An invalid cell has no degree.")
         return self._degree
 
     def num_facets(self):
+        ufl_assert(not self._invalid, "An invalid cell has no facets.")
         return domain2num_facets[self._domain]
 
     def facet_domain(self):
+        ufl_assert(not self._invalid, "An invalid cell has no facet domains.")
         return domain2facet[self._domain]
 
     def __eq__(self, other):

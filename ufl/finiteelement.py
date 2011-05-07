@@ -117,7 +117,7 @@ class FiniteElementBase(object):
         from ufl.geometry import Cell
         if isinstance(index, (Measure, Cell)) or\
                 index == "facet" or\
-                isinstance(as_cell(index), Cell):
+                isinstance(as_cell(index), Cell): # TODO: Can we just drop the as_cell call?
             return RestrictedElement(self, index)
         #if isinstance(index, int):
         #    return SubElement(self, index)
@@ -130,7 +130,7 @@ class FiniteElement(FiniteElementBase):
         "Create finite element"
 
         cell = as_cell(cell)
-        domain = cell.domain()
+        domain = cell.domain() # FIXME: Handle invalid cell
 
         # Check whether this family is an alias for something else
         if family in aliases:
@@ -159,7 +159,7 @@ class FiniteElement(FiniteElementBase):
                    'Degree "%s" invalid for "%s" finite element.' % (istr(degree), family))
 
         # Set value dimension (default to using domain dimension in each axis)
-        dim = cell.geometric_dimension()
+        dim = cell.geometric_dimension() # FIXME: Handle invalid cell
         value_shape = (dim,)*(value_rank)
 
         # Initialize element data
@@ -287,7 +287,7 @@ class VectorElement(MixedElement):
 
         # Set default size if not specified
         if dim is None:
-            dim = cell.geometric_dimension()
+            dim = cell.geometric_dimension()  # FIXME: Handle invalid cell
 
         # Create mixed element from list of finite elements
         sub_element = FiniteElement(family, cell, degree, quad_scheme)
@@ -329,7 +329,7 @@ class TensorElement(MixedElement):
 
         # Set default shape if not specified
         if shape is None:
-            dim = cell.geometric_dimension()
+            dim = cell.geometric_dimension()  # FIXME: Handle invalid cell
             shape = (dim, dim)
 
             # Construct default symmetry for matrix elements
@@ -452,7 +452,8 @@ class RestrictedElement(FiniteElementBase):
         ufl_assert(isinstance(element, FiniteElementBase), "Expecting a finite element instance.")
         from ufl.integral import Measure
         from ufl.geometry import Cell
-        ufl_assert(isinstance(domain, Measure) or domain == "facet" or isinstance(as_cell(domain), Cell),\
+        ufl_assert(isinstance(domain, Measure) or domain == "facet"\
+                   or isinstance(as_cell(domain), Cell),\
             "Expecting a subdomain represented by a Measure, a Cell instance, or the string 'facet'.")
         super(RestrictedElement, self).__init__("RestrictedElement", element.cell(),\
             element.degree(), element.quadrature_scheme(), element.value_shape())
@@ -464,11 +465,11 @@ class RestrictedElement(FiniteElementBase):
         else:
             # Check for facet and handle it
             if domain == "facet":
-                domain = Cell(domain2facet[self.cell().domain()])
+                domain = Cell(domain2facet[self.cell().domain()]) # FIXME: Handle invalid cell
             else:
                 # Create Cell (if we get a string)
                 domain = as_cell(domain)
-            self._domain = domain
+            self._domain = domain # FIXME: Handle invalid cell
 
         # Cache repr string
         self._repr = "RestrictedElement(%r, %r)" % (self._element, self._domain)
