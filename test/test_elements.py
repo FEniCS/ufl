@@ -98,5 +98,24 @@ class ElementsTestCase(UflTestCase):
                 self.assertEqual(element.quadrature_scheme(), q)
                 self.assertEqual(element, eval(repr(element)))
 
+    def test_invalid_cell(self):
+        from ufl.geometry import as_cell
+        for cell in (triangle, as_cell(None)):
+            element = FiniteElement("CG", cell, 1)
+            self.assertEqual(element, eval(repr(element)))
+            element = VectorElement("CG", cell, 1)
+            self.assertEqual(element, eval(repr(element)))
+            print repr(element)
+
+    def test_invalid_degree(self):
+        from ufl.geometry import as_cell
+        cell = triangle
+        for degree in (1, None):
+            element = FiniteElement("CG", cell, degree)
+            self.assertEqual(element, eval(repr(element)))
+            element = VectorElement("CG", cell, degree)
+            self.assertEqual(element, eval(repr(element)))
+            print repr(element)
+
 if __name__ == "__main__":
     main()
