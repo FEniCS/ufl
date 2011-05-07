@@ -5,12 +5,10 @@ from __future__ import with_statement
 __authors__ = "Martin Sandve Alnes"
 __copyright__ = "Copyright (C) 2008-2011 Martin Sandve Alnes"
 __license__  = "GNU LGPL version 3 or any later version"
-__date__ = "2008-03-14"
+__date__ = "2008-03-14 -- 2011-05-07"
 
 # Modified by Anders Logg, 2008-2009.
 # Modified by Marie E. Rognes, 2011.
-
-# Last changed: 2011-01-08
 
 import os
 import time
@@ -122,7 +120,7 @@ def load_ufl_file(filename):
             ufd.object_names[name] = value # FIXME: Remove after FFC is updated to use reserved_objects
 
         # Store instance <-> name mappings for important objects
-        if isinstance(value, (FiniteElementBase, Coefficient, Argument, Form)):
+        if isinstance(value, (FiniteElementBase, Coefficient, Argument, Form, Expr)):
             ufd.object_names[id(value)] = name
             ufd.object_by_name[name] = value
 
