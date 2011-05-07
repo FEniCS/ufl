@@ -103,9 +103,7 @@ class ElementsTestCase(UflTestCase):
         for cell in (triangle, as_cell(None)):
             element = FiniteElement("CG", cell, 1)
             self.assertEqual(element, eval(repr(element)))
-            element = VectorElement("CG", cell, 1)
-            self.assertEqual(element, eval(repr(element)))
-            print repr(element)
+            #element = VectorElement("CG", cell, 1) # invalid
 
     def test_invalid_degree(self):
         from ufl.geometry import as_cell
