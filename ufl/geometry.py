@@ -177,7 +177,7 @@ class Space(object):
         return "R%s" % istr(self._dimension)
 
     def __repr__(self):
-        return "Space(%s)" % istr(self._dimension)
+        return "Space(%r)" % (self._dimension,)
 
 class Cell(object):
     "Representation of a finite element cell."
