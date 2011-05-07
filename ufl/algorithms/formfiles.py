@@ -113,7 +113,11 @@ def load_ufl_file(filename):
             ufd.object_names[id(as_form(value))] = name
         elif isinstance(value, (Coefficient, Argument)):
             if name is "unknown":
+                # TODO: No point in placing this in the object_names dict, make a new variable instead?
+                #ufd.unknown_coefficient = value
                 ufd.object_names[name] = value
+            ufd.object_names[id(value)] = name
+        elif isinstance(value, FiniteElementBase):
             ufd.object_names[id(value)] = name
 
     # Get list of forms
