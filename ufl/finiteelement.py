@@ -150,12 +150,12 @@ class FiniteElement(FiniteElementBase):
                    'Domain "%s" invalid for "%s" finite element.' % (domain, family))
         if krange is None:
             ufl_assert(degree is None,
-                       'Degree "%s" invalid for "%s" finite element, should be None.' % (istr(degree), family))
+                       'Degree "%s" invalid for "%s" finite element, should be None.' % (degree, family))
         else:
             kmin, kmax = krange
-            ufl_assert(kmin is None or degree >= kmin or degree is None,
-                       'Degree "%s" invalid for "%s" finite element.' % (istr(degree), family))
-            ufl_assert(kmax is None or degree <= kmax or degree is None,
+            ufl_assert(kmin is None or degree is None or degree >= kmin,
+                       'Degree "%s" invalid for "%s" finite element.' % (degree, family))
+            ufl_assert(kmax is None or degree is None or degree <= kmax,
                    'Degree "%s" invalid for "%s" finite element.' % (istr(degree), family))
 
         # Set value dimension (default to using domain dimension in each axis)
@@ -166,8 +166,8 @@ class FiniteElement(FiniteElementBase):
         super(FiniteElement, self).__init__(family, cell, degree, quad_scheme, value_shape)
 
         # Cache repr string
-        self._repr = "FiniteElement(%r, %r, %s, %r)" % (self.family(), self.cell(),\
-            istr(self.degree()), istr(self.quadrature_scheme()))
+        self._repr = "FiniteElement(%r, %r, %r, %r)" % (self.family(), self.cell(),\
+            self.degree(), self.quadrature_scheme())
 
     def __str__(self):
         "Format as string for pretty printing."
@@ -306,8 +306,8 @@ class VectorElement(MixedElement):
         self._sub_element = sub_element
 
         # Cache repr string
-        self._repr = "VectorElement(%r, %r, %s, %d, %r)" % \
-            (self._family, self._cell, str(self._degree), len(self._sub_elements), istr(quad_scheme))
+        self._repr = "VectorElement(%r, %r, %r, %d, %r)" % \
+            (self._family, self._cell, self._degree, len(self._sub_elements), quad_scheme)
 
     def __str__(self):
         "Format as string for pretty printing."
@@ -374,7 +374,7 @@ class TensorElement(MixedElement):
 
         # Cache repr string
         self._repr = "TensorElement(%r, %r, %r, %r, %r, %r)" % \
-            (self._family, self._cell, self._degree, self._shape, self._symmetry, istr(quad_scheme))
+            (self._family, self._cell, self._degree, self._shape, self._symmetry, quad_scheme)
 
     def extract_component(self, i):
         "Extract base component index and (simple) element for given component index"
