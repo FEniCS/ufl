@@ -310,7 +310,8 @@ class VectorElement(MixedElement):
 
         # Set default size if not specified
         if dim is None:
-            dim = cell.geometric_dimension()  # FIXME: Handle invalid cell
+            ufl_assert(not cell.is_undefined(), "Cannot infer dimension with an undefined cell.")
+            dim = cell.geometric_dimension()
 
         # Create mixed element from list of finite elements
         sub_element = FiniteElement(family, cell, degree, quad_scheme)
@@ -352,14 +353,15 @@ class TensorElement(MixedElement):
 
         # Set default shape if not specified
         if shape is None:
-            dim = cell.geometric_dimension()  # FIXME: Handle invalid cell
+            ufl_assert(not cell.is_undefined(), "Cannot infer value shape with an undefined cell.")
+            dim = cell.geometric_dimension()
             shape = (dim, dim)
 
             # Construct default symmetry for matrix elements
             if symmetry == True:
                 symmetry = dict( ((i,j), (j,i)) for i in range(dim) for j in range(dim) if i > j )
             else:
-                ufl_assert(symmetry in (None, True),
+                ufl_assert(symmetry is None,
                           "Symmetry of tensor element cannot be specified unless shape has been specified.")
 
         # Compute all index combinations for given shape
@@ -448,9 +450,11 @@ class EnrichedElement(FiniteElementBase):
 
         degree = max(e.degree() for e in elements)
 
-        # TODO: We can allow the scheme not to be defined.
-        quad_scheme = elements[0].quadrature_scheme()
-        ufl_assert(all(e.quadrature_scheme() == quad_scheme for e in elements),\
+        # We can allow the scheme not to be defined, but all defined should be equal
+        quad_schemes = [e.quadrature_scheme() for e in elements]
+        quad_schemes = [qs for qs in quad_schemes if qs is not None]
+        quad_scheme = quad_schemes[0] if quad_schemes else None
+        ufl_assert(all(qs == quad_scheme for qs in quad_schemes),\
             "Quadrature scheme mismatch.")
 
         value_shape = elements[0].value_shape()
