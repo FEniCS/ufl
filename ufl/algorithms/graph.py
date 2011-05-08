@@ -319,15 +319,15 @@ class StringDependencyDefiner(MultiFunction):
         deps = frozenset(("c",))
         # Enabling coordinate dependency for higher order geometries
         # (not handled anywhere else though, so consider this experimental)
-        if o.cell().degree() > 1:
-            deps = deps | frozenset(("x",))
+        #if o.cell().degree() > 1:
+        #    deps = deps | frozenset(("x",))
         return deps
 
     def spatial_derivative(self, o): # TODO: What about (basis) functions of which derivatives are constant? Should special-case spatial_derivative in partition().
         deps = frozenset(("c",))
         # Enabling coordinate dependency for higher order geometries (not handled anywhere else though).
-        if o.cell().degree() > 1:
-            deps = deps | frozenset(("x",))
+        #if o.cell().degree() > 1:
+        #    deps = deps | frozenset(("x",))
         return deps
 
 dd = StringDependencyDefiner()

@@ -29,7 +29,7 @@ def is_spatially_constant(expression):
     "Check if a terminal object is spatially constant, such that expression.dx(i) == 0."
     if isinstance(expression, (ConstantValue, ConstantBase)):
         return True
-    elif isinstance(expression, FacetNormal) and expression.cell().degree() == 1:
+    elif isinstance(expression, FacetNormal): # and expression.cell().degree() == 1:
         return True
     elif isinstance(expression, Coefficient):
         e = expression.element()
@@ -95,7 +95,7 @@ def split_indices(expression, idx):
     idims = dict(expression.index_dimensions())
     if isinstance(idx, Index) and idims.get(idx) is None:
         cell = expression.cell()
-        ufl_assert(cell is not None,
+        ufl_assert(cell is not None and not cell.is_undefined(),
             "Need to know the spatial dimension to "\
             "compute the shape of derivatives.")
         idims[idx] = cell.geometric_dimension()
@@ -120,9 +120,8 @@ class SpatialDerivative(Derivative):
 
         # Make a MultiIndex with knowledge of the dimensions
         cell = expression.cell()
-        if cell is None:
-            sh = None
-            error("Cannot compute derivatives of expressions with no cell.")
+        if cell is None or cell.is_undefined():
+            error("Cannot compute derivatives of expressions with undefined cell.")
         else:
             sh = (cell.geometric_dimension(),)
         self._index = as_multi_index(index, sh)
@@ -251,7 +250,8 @@ class Grad(CompoundDerivative):
     def __new__(cls, f):
         # Return zero if expression is trivially constant
         cell = f.cell()
-        ufl_assert(cell is not None, "Can't take gradient of expression with undefined cell...")
+        ufl_assert(cell is not None and not cell.is_undefined(),\
+                   "Can't take gradient of expression with undefined cell...")
         dim = cell.geometric_dimension()
         if is_spatially_constant(f):
             free_indices = f.free_indices()
@@ -265,10 +265,11 @@ class Grad(CompoundDerivative):
         CompoundDerivative.__init__(self)
         self._f = f
         cell = f.cell()
-        ufl_assert(cell is not None, "Can't take gradient of expression with undefined cell. How did this happen?")
+        ufl_assert(cell is not None and not cell.is_undefined(),\
+                   "Can't take gradient of expression with undefined cell...")
         self._dim = cell.geometric_dimension()
-        ufl_assert(not (f.free_indices()), \
-            "TODO: Taking gradient of an expression with free indices, should this be a valid expression? Please provide examples!")
+        ufl_assert(not f.free_indices(),\
+            "Taking gradient of an expression with free indices is not supported.")
         self._repr = "Grad(%r)" % self._f
 
     def operands(self):
@@ -343,7 +344,8 @@ class Curl(CompoundDerivative):
         # Return zero if expression is trivially constant
         if is_spatially_constant(f):
             cell = f.cell()
-            ufl_assert(cell is not None, "Can't take curl of expression with undefined cell...")
+            ufl_assert(cell is not None and not cell.is_undefined(),\
+                       "Can't take curl of expression with undefined cell...")
             sh = { (): (2,), (2,): (), (3,): (3,) }[sh]
             #free_indices = f.free_indices()
             #index_dimensions = subdict(f.index_dimensions(), free_indices)
@@ -354,7 +356,8 @@ class Curl(CompoundDerivative):
     def __init__(self, f):
         CompoundDerivative.__init__(self)
         cell = f.cell()
-        ufl_assert(cell is not None, "Can't take curl of expression with undefined cell...")
+        ufl_assert(cell is not None and not cell.is_undefined(),\
+                   "Can't take curl of expression with undefined cell...")
         sh = { (): (2,), (2,): (), (3,): (3,) }[f.shape()]
         self._f = f
         self._shape = sh

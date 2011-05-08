@@ -534,8 +534,8 @@ class SpatialAD(ForwardAD):
     constant = ForwardAD.terminal # returns zero
 
     def facet_normal(self, o):
-        if o.cell().degree() > 1:
-            warning("Treating facet normal as a constant in differentiation!")
+        #if o.cell().degree() > 1:
+        #    warning("Treating facet normal as a constant in differentiation!")
         return ForwardAD.terminal(self, o) # returns zero
 
 class VariableAD(ForwardAD):
