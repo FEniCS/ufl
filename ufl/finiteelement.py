@@ -129,15 +129,15 @@ class FiniteElement(FiniteElementBase):
     def __init__(self, family, cell, degree=None, quad_scheme=None, form_degree=None):
         "Create finite element"
 
+        # Map evt. string argument to a Cell
         cell = as_cell(cell)
-        domain = cell.domain() # FIXME: Handle invalid cell
 
         # Check whether this family is an alias for something else
         if family in aliases:
             (name, cell, r) = aliases[family](family, cell, degree, form_degree)
             info_blue("%s, is an alias for %s " % ((family, cell, degree, form_degree),
                                                    (name, cell, r)))
-            self.__init__(name, cell, r, quad_scheme)
+            self.__init__(name, cell, r, quad_scheme) # FIXME: Missing form_degree here? What is form_degree?
             return
 
         # Check that the element family exists
@@ -146,21 +146,32 @@ class FiniteElement(FiniteElementBase):
         # Check that element data is valid (and also get common family name)
         (family, self._short_name, value_rank, krange, domains) = ufl_elements[family]
 
-        ufl_assert(domain in domains or domain is None,
-                   'Domain "%s" invalid for "%s" finite element.' % (domain, family))
-        if krange is None:
-            ufl_assert(degree is None,
-                       'Degree "%s" invalid for "%s" finite element, should be None.' % (degree, family))
+        # Validate domain if a valid cell is specified
+        if cell.is_undefined():
+            # Case of invalid cell, some stuff is then undefined, s.a. the domain and some dimensions
+            pass
         else:
+            domain = cell.domain()
+            ufl_assert(domain in domains,
+                       'Domain "%s" invalid for "%s" finite element.' % (domain, family))
+
+        # Validate degree if specified
+        if degree is not None:
+            ufl_assert(krange is not None,
+                       'Degree "%s" invalid for "%s" finite element, should be None.' % (degree, family))
             kmin, kmax = krange
-            ufl_assert(kmin is None or degree is None or degree >= kmin,
+            ufl_assert(kmin is None or degree >= kmin,
                        'Degree "%s" invalid for "%s" finite element.' % (degree, family))
-            ufl_assert(kmax is None or degree is None or degree <= kmax,
+            ufl_assert(kmax is None or degree <= kmax,
                    'Degree "%s" invalid for "%s" finite element.' % (istr(degree), family))
 
         # Set value dimension (default to using domain dimension in each axis)
-        dim = cell.geometric_dimension() # FIXME: Handle invalid cell
-        value_shape = (dim,)*(value_rank)
+        if value_rank == 0:
+            value_shape = ()
+        else:
+            ufl_assert(not cell.is_undefined(), "Cannot infer value shape with an undefined cell.")
+            dim = cell.geometric_dimension()
+            value_shape = (dim,)*value_rank
 
         # Initialize element data
         super(FiniteElement, self).__init__(family, cell, degree, quad_scheme, value_shape)

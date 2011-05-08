@@ -256,6 +256,9 @@ class Cell(object):
         ufl_assert(not self._invalid, "An invalid cell has no dimensions.")
         return self.d
 
+    def is_undefined(self):
+        return self._invalid
+
     def domain(self):
         ufl_assert(not self._invalid, "An invalid cell has no domain.")
         return self._domain
