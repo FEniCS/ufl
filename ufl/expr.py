@@ -69,16 +69,20 @@ class Expr(object):
     def rank(self):
         "Return the tensor rank of the expression."
         return len(self.shape())
-    
+
     # All subclasses must implement cell if it is known
     def cell(self):
         "Return the cell this expression is defined on."
+        c = None
         for o in self.operands():
             d = o.cell()
             if d is not None:
-                return d
-        return None
-    
+                c = d # Best we have so far
+                if not d.is_undefined():
+                    # Use the first fully defined cell found
+                    break
+        return c
+
     #--- Functions for float evaluation ---
     
     def evaluate(self, x, mapping, component, index_values):

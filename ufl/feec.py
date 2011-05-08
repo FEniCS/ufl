@@ -28,12 +28,14 @@ def FEEC_aliases(name, cell, r, k):
     Numerica, 2006, Table 5.1 and 5.2 (p. 60)
     """
 
-    ufl_assert(k in set(range(0, cell.topological_dimension()+1)),
+    ufl_assert(not cell.is_undefined(), "Cannot get dimension from undefined cell.")
+    tdim = cell.topological_dimension()
+    ufl_assert(k in set(range(0, tdim+1)),\
                "k-forms only defined for k in [0, n]")
 
     if k == 0:
         family = "CG"
-    elif k == cell.topological_dimension():
+    elif k == tdim:
         family = "DG"
         if name == "P- Lambda":
             r = r - 1
@@ -42,7 +44,7 @@ def FEEC_aliases(name, cell, r, k):
             family = "Nedelec 2nd kind H(curl)"
         elif name == "P- Lambda":
             family = "Nedelec 1st kind H(curl)"
-    elif k == cell.topological_dimension() - 1:
+    elif k == tdim - 1:
         if name == "P Lambda":
             family = "Nedelec 2nd kind H(div)"
         elif name == "P- Lambda":

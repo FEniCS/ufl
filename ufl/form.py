@@ -32,16 +32,23 @@ class Form(object):
         self._hash = None
         self._form_data = None
         self._is_preprocessed = False
+
+        # TODO: Can we attach non-ufl payloads in a more generic fashion?
+        # This seems prone to change with dolfin versions.
         self.cell_domains = None
         self.exterior_facet_domains = None
         self.interior_facet_domains = None
 
     def cell(self):
+        c = None
         for itg in self._integrals:
-            c = itg.integrand().cell()
-            if c is not None:
-                return c
-        return None
+            d = itg.integrand().cell()
+            if d is not None:
+                c = d # Best we found so far
+                if not d.is_undefined():
+                    # Use the first fully defined cell we find
+                    break
+        return c
 
     def integral_groups(self):
         """Return a dict, which is a mapping from domains to integrals.
