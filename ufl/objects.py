@@ -30,15 +30,15 @@ R2 = Space(2)
 R3 = Space(3)
 
 # Cell types
-cell1D        = Cell("cell1D", 1, R1)
-cell2D        = Cell("cell2D", 1, R2)
-cell3D        = Cell("cell3D", 1, R3)
-vertex        = Cell("vertex", 1, R0)
-interval      = Cell("interval", 1, R1)
-triangle      = Cell("triangle", 1, R2)
-tetrahedron   = Cell("tetrahedron", 1, R3)
-quadrilateral = Cell("quadrilateral", 1, R2)
-hexahedron    = Cell("hexahedron", 1, R3)
+cell1D        = Cell("cell1D", R1)
+cell2D        = Cell("cell2D", R2)
+cell3D        = Cell("cell3D", R3)
+vertex        = Cell("vertex", R0)
+interval      = Cell("interval", R1)
+triangle      = Cell("triangle", R2)
+tetrahedron   = Cell("tetrahedron", R3)
+quadrilateral = Cell("quadrilateral", R2)
+hexahedron    = Cell("hexahedron", R3)
 
 # Facet is just a dummy declaration for RestrictedElement
 facet = "facet"

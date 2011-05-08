@@ -3,7 +3,7 @@
 __authors__ = "Martin Sandve Alnes"
 __copyright__ = "Copyright (C) 2008-2011 Martin Sandve Alnes"
 __license__  = "GNU LGPL version 3 or any later version"
-__date__ = "2008-03-14 -- 2011-04-28"
+__date__ = "2008-03-14 -- 2011-05-08"
 
 # Modified by Anders Logg, 2009.
 # Modified by Kristian B. Oelgaard, 2009
@@ -179,11 +179,11 @@ class Space(object):
 
 class Cell(object):
     "Representation of a finite element cell."
-    __slots__ = ("_domain", "_degree", "_space", "_geometric_dimension",
+    __slots__ = ("_domain", "_space", "_geometric_dimension",
                  "_topological_dimension", "_repr", "_invalid",
                  "d", "n", "x", "volume", "circumradius")
 
-    def __init__(self, domain, degree=1, space=None):
+    def __init__(self, domain, space=None):
         "Initialize basic cell description"
 
         # Check for valid domain, for now we allow None to support
@@ -228,16 +228,10 @@ class Cell(object):
             if self._topological_dimension == self._geometric_dimension:
                 self.d = self._geometric_dimension
             else:
-                self.d = None # TODO: Make this a property to fail instead of silently getting None
-
-        # Handle degree TODO: Remove degree from cell completely
-        ufl_assert(isinstance(degree, int) and degree >= 1, "Invalid degree '%r'." % (degree,))
-        if degree != 1: # TODO: Remove warning when implemented
-            warning("Note: High order geometries are not implemented in the form compilers yet.")
-        self._degree = degree
+                self.d = None # TODO: Make this a property so user code can fail instead of silently getting None
 
         # Cache repr string
-        self._repr = "Cell(%r, %r, %r)" % (self._domain, self._degree, self._space)
+        self._repr = "Cell(%r, %r)" % (self._domain, self._space)
 
         # Attach expression nodes derived from this cell
         self.n = FacetNormal(self)
@@ -263,10 +257,6 @@ class Cell(object):
         ufl_assert(not self._invalid, "An invalid cell has no domain.")
         return self._domain
 
-    def degree(self):
-        ufl_assert(not self._invalid, "An invalid cell has no degree.")
-        return self._degree
-
     def num_facets(self):
         ufl_assert(not self._invalid, "An invalid cell has no facets.")
         return domain2num_facets[self._domain]
@@ -276,16 +266,16 @@ class Cell(object):
         return domain2facet[self._domain]
 
     def __eq__(self, other):
-        return isinstance(other, Cell) and self._domain == other._domain and self._degree == other._degree
+        return isinstance(other, Cell) and repr(self) == repr(other)
 
     def __ne__(self, other):
         return not self == other
 
     def __hash__(self):
-        return hash(("Cell", self._domain, self._degree))
+        return hash(repr(self))
 
     def __str__(self):
-        return "<%s of degree %d>" % (istr(self._domain), self._degree)
+        return "<%s cell in %s>" % (istr(self._domain), istr(self._space))
 
     def __repr__(self):
         return self._repr

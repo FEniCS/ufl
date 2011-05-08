@@ -3,7 +3,7 @@
 __authors__ = "Martin Sandve Alnes and Anders Logg"
 __copyright__ = "Copyright (C) 2008-2011 Martin Sandve Alnes"
 __license__  = "GNU LGPL version 3 or any later version"
-__date__ = "2008-03-03 -- 2011-04-15"
+__date__ = "2008-03-03 -- 2011-05-08"
 
 # Modified by Kristian B. Oelgaard
 # Modified by Marie E. Rognes (meg@simula.no) 2010
@@ -492,11 +492,16 @@ class RestrictedElement(FiniteElementBase):
         else:
             # Check for facet and handle it
             if domain == "facet":
-                domain = Cell(domain2facet[self.cell().domain()]) # FIXME: Handle invalid cell
+                cell = self.cell()
+                ufl_assert(not cell.is_undefined(), "Cannot determine facet cell of undefined cell.")
+                domain = Cell(domain2facet[cell.domain()])
             else:
                 # Create Cell (if we get a string)
                 domain = as_cell(domain)
-            self._domain = domain # FIXME: Handle invalid cell
+            self._domain = domain
+
+        if isinstance(self._domain, Cell) and self._domain.is_undefined():
+            warning("Undefined cell as domain in RestrictedElement. Not sure if this is well defined.")
 
         # Cache repr string
         self._repr = "RestrictedElement(%r, %r)" % (self._element, self._domain)
