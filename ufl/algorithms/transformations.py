@@ -818,6 +818,7 @@ def expand_compounds(e, dim=None):
     if dim is None:
         cell = e.cell()
         if cell is not None:
+            ufl_assert(not cell.is_undefined(), "Cannot infer dimension from undefined cell.")
             dim = cell.geometric_dimension()
     return apply_transformer(e, CompoundExpander(dim))
 
