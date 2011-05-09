@@ -1,12 +1,27 @@
 """This module provides functions used by the UFL implementation to
 output messages. These may be redirected by the user of UFL."""
 
-__author__ = "Martin Sandve Alnaes and Anders Logg"
-__copyright__ = "Copyright (C) 2005-2011 Anders Logg and Martin Sandve Alnaes"
-__license__  = "GNU LGPL version 3 or any later version"
-__date__ = "2005-02-04 -- 2011-04-12"
-
+# Copyright (C) 2005-2011 Anders Logg and Martin Sandve Alnaes
+#
+# This file is part of UFL.
+#
+# UFL is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# UFL is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with UFL.  If not, see <http://www.gnu.org/licenses/>.
+#
 # Modified by Johan Hake, 2009.
+#
+# First added:  2005-02-04
+# Last changed: 2011-04-12
 
 import sys
 import types
