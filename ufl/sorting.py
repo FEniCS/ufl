@@ -1,13 +1,27 @@
 """This module contains a sorting rule for expr objects that
 is more robust w.r.t. argument numbering than using repr."""
 
-__authors__ = "Martin Sandve Alnes"
-__copyright__ = "Copyright (C) 2008-2011 Martin Sandve Alnes"
-__license__  = "GNU LGPL version 3 or any later version"
-__date__ = "2008-11-26 -- 2009-04-25"
-
+# Copyright (C) 2008-2011 Martin Sandve Alnes
+#
+# This file is part of UFL.
+#
+# UFL is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# UFL is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with UFL.  If not, see <http://www.gnu.org/licenses/>.
+#
 # Modified by Anders Logg, 2009-2010.
 # Modified by Johan Hake, 2010.
+#
+# First added:  2008-11-26
 # Last changed: 2010-01-26
 
 from itertools import izip

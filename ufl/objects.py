@@ -1,12 +1,27 @@
 "Utility objects for pretty syntax in user code."
 
-__authors__ = "Martin Sandve Alnes"
-__copyright__ = "Copyright (C) 2008-2011 Martin Sandve Alnes"
-__license__  = "GNU LGPL version 3 or any later version"
-__date__ = "2008-03-14 -- 2011-04-28"
-
+# Copyright (C) 2008-2011 Martin Sandve Alnes
+#
+# This file is part of UFL.
+#
+# UFL is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# UFL is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with UFL.  If not, see <http://www.gnu.org/licenses/>.
+#
 # Modified by Anders Logg, 2008
 # Modified by Kristian Oelgaard, 2009
+#
+# First added:  2008-03-14
+# Last changed: 2011-04-28
 
 from ufl.indexing import indices
 from ufl.integral import Measure

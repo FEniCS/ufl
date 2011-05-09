@@ -1,12 +1,27 @@
 """This module provides utility functions for computing permutations
 and generating index lists."""
 
-__authors__ = "Anders Logg and Kent-Andre Mardal"
-__copyright__ = "Copyright (C) 2008-2011 Anders Logg and Kent-Andre Mardal"
-__license__  = "GNU LGPL version 3 or any later version"
-__date__ = "2008-05-22 -- 2009-01-09"
-
+# Copyright (C) 2008-2011 Anders Logg and Kent-Andre Mardal
+#
+# This file is part of UFL.
+#
+# UFL is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# UFL is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with UFL.  If not, see <http://www.gnu.org/licenses/>.
+#
 # Modified by Martin Alnes 2009
+#
+# First added:  2008-05-22
+# Last changed: 2009-01-09
 
 def compute_indices(shape):
     "Compute all index combinations for given shape"
