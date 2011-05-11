@@ -1,3 +1,4 @@
+ - Remove set_foo functions in finite element classes
  - Change license from GPL v3 or later to LGPL v3 or later
  - Change behavior of preprocess(), form.compute_form_data(), form_data.preprocessed_form
  - Allowing grad, div, inner, dot, det, inverse on scalars
