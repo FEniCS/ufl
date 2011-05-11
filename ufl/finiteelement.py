@@ -34,7 +34,7 @@ from ufl.log import BLUE
 class FiniteElementBase(object):
     "Base class for all finite elements"
     __slots__ = ("_family", "_cell", "_degree", "_quad_scheme", "_value_shape",
-                 "_repr", "_domain", "_hash_has_been_called",)
+                 "_repr", "_domain")
 
     def __init__(self, family, cell, degree, quad_scheme, value_shape):
         "Initialize basic finite element data"
@@ -48,8 +48,6 @@ class FiniteElementBase(object):
         self._value_shape = value_shape
         self._domain = None
         self._quad_scheme = quad_scheme
-        # TODO: Remove this temporary safety mechanism when set_foo are gone
-        self._hash_has_been_called = False
 
     def family(self):
         "Return finite element family"
@@ -59,27 +57,9 @@ class FiniteElementBase(object):
         "Return cell of finite element"
         return self._cell
 
-    def set_cell(self, cell):
-        "Set cell for element"
-        warning("SETTING CELL FOR ELEMENT. THIS IS DEPRECATED AND MAY CAUSE SUBTLE CACHE PROBLEMS AND OTHER BUGS.")
-        ufl_assert(not self._hash_has_been_called,\
-                   "Setting the cell of an element which has been "\
-                   "taken the hash of already. Most likely you now "\
-                   "have a corrupted set or dict some place.")
-        self._cell = cell
-
     def degree(self):
         "Return polynomial degree of finite element"
         return self._degree
-
-    def set_degree(self, degree):
-        "Set degree for element"
-        warning("SETTING DEGREE FOR ELEMENT. THIS IS DEPRECATED AND MAY CAUSE SUBTLE CACHE PROBLEMS AND OTHER BUGS.")
-        ufl_assert(not self._hash_has_been_called,\
-                   "Setting the degree of an element which has been "\
-                   "taken the hash of already. Most likely you now "\
-                   "have a corrupted set or dict some place.")
-        self._degree = degree
 
     def quadrature_scheme(self):
         "Return quadrature scheme of finite element"
@@ -115,7 +95,6 @@ class FiniteElementBase(object):
                    "Illegal component index '%r' (value rank %d) for element (value rank %d)." % (i, len(i), r))
 
     def __hash__(self):
-        self._hash_has_been_called = True
         return hash(repr(self))
 
     def __eq__(self, other):
@@ -266,20 +245,6 @@ class MixedElement(FiniteElementBase):
 
         # Cache repr string
         self._repr = "MixedElement(*%r, **{'value_shape': %r })" % (self._sub_elements, self._value_shape)
-
-    def set_cell(self, cell):
-        "Set cell for element"
-        warning("SETTING CELL FOR ELEMENT. THIS IS DEPRECATED AND MAY CAUSE SUBTLE CACHE PROBLEMS AND OTHER BUGS.")
-        self._cell = cell
-        for element in self._sub_elements:
-            element.set_cell(cell)
-
-    def set_degree(self, degree):
-        "Set degree for element"
-        warning("SETTING DEGREE FOR ELEMENT. THIS IS DEPRECATED AND MAY CAUSE SUBTLE CACHE PROBLEMS AND OTHER BUGS.")
-        self._degree = degree
-        for element in self._sub_elements:
-            element.set_degree(degree)
 
     def num_sub_elements(self):
         "Return number of sub elements"
