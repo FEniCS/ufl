@@ -153,7 +153,8 @@ class FiniteElementBase(object):
 class FiniteElement(FiniteElementBase):
     "The basic finite element class for all simple finite elements"
 
-    def __init__(self, family, cell, degree=None, quad_scheme=None, form_degree=None):
+    def __init__(self, family,
+                 cell=None, degree=None, quad_scheme=None, form_degree=None):
         "Create finite element"
 
         # Map evt. string argument to a Cell
@@ -207,6 +208,13 @@ class FiniteElement(FiniteElementBase):
         self._repr = "FiniteElement(%r, %r, %r, %r)" % (self.family(), self.cell(),\
             self.degree(), self.quadrature_scheme())
 
+    def reconstruct(self, **kwargs):
+        """Construct a new FiniteElement object with some properties
+        replaced with new values."""
+        kwargs["cell"] = kwargs.get("cell", self.cell())
+        kwargs["degree"] = kwargs.get("degree", self.degree())
+        return FiniteElement(self.family(), **kwargs)
+
     def __str__(self):
         "Format as string for pretty printing."
         return "<%s%s(%s) on a %s>" % (self._short_name, istr(self.degree()),\
@@ -230,7 +238,8 @@ class MixedElement(FiniteElementBase):
 
         # Check that all elements are defined on the same domain
         cell = elements[0].cell()
-        ufl_assert(all(e.cell() == cell for e in elements), "Cell mismatch for sub elements of mixed element.")
+        ufl_assert(all(e.cell() == cell for e in elements),
+                   "Cell mismatch for sub elements of mixed element.")
 
         # Check that all elements use the same quadrature scheme
         # TODO: We can allow the scheme not to be defined.

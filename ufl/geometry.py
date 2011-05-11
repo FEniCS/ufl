@@ -201,9 +201,11 @@ class Cell(object):
     def __init__(self, domain, space=None):
         "Initialize basic cell description"
 
-        # Check for valid domain, for now we allow None to support
-        # PyDOLFIN integration features, but this is a bit dangerous
-        # because several things in UFL become undefined...
+        # Check for valid domain. We allow None to support PyDOLFIN
+        # integration features. This is a bit dangerous because
+        # several things in UFL become undefined, but it is a very
+        # good and important feature to have so don't even think about
+        # removing it! ;-)
         if domain is None:
             self._invalid = True
         else:
@@ -279,6 +281,10 @@ class Cell(object):
     def facet_domain(self):
         ufl_assert(not self._invalid, "An invalid cell has no facet domains.")
         return domain2facet[self._domain]
+
+    def is_invalid(self):
+        "Check whether cell is invalid (data not completely specified)"
+        return self._invalid
 
     def __eq__(self, other):
         return isinstance(other, Cell) and repr(self) == repr(other)
