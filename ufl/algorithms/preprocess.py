@@ -34,7 +34,7 @@ from ufl.algorithms.analysis import extract_elements, extract_sub_elements
 from ufl.algorithms.analysis import extract_num_sub_domains, extract_integral_data, unique_tuple
 from ufl.algorithms.formdata import FormData
 
-def preprocess(form, object_names={}, common_cell=None, element_mapping={}):
+def preprocess(form, object_names={}, common_cell=None):
     """
     Preprocess raw input form to obtain form metadata, including a
     modified (preprocessed) form more easily manipulated by form
@@ -63,7 +63,8 @@ def preprocess(form, object_names={}, common_cell=None, element_mapping={}):
 
     # Replace arguments and coefficients with new renumbered objects
     arguments, coefficients = extract_arguments_and_coefficients(form)
-    replace_map, arguments, coefficients = build_argument_replace_map(arguments, coefficients)
+    replace_map, arguments, coefficients = \
+        build_argument_replace_map(arguments, coefficients)
     form = replace(form, replace_map)
 
     # Build mapping to original arguments and coefficients, which is
@@ -94,12 +95,14 @@ def preprocess(form, object_names={}, common_cell=None, element_mapping={}):
     form_data.num_coefficients = len(form_data.coefficients)
 
     # Store argument names
-    form_data.argument_names = [object_names.get(id(form_data.original_arguments[i]), "v%d" % i)
-                                for i in range(form_data.rank)]
+    form_data.argument_names = \
+        [object_names.get(id(form_data.original_arguments[i]), "v%d" % i)
+         for i in range(form_data.rank)]
 
     # Store coefficient names
-    form_data.coefficient_names = [object_names.get(id(form_data.original_coefficients[i]), "w%d" % i)
-                                   for i in range(form_data.num_coefficients)]
+    form_data.coefficient_names = \
+        [object_names.get(id(form_data.original_coefficients[i]), "w%d" % i)
+         for i in range(form_data.num_coefficients)]
 
     # Store elements, sub elements and element map
     form_data.elements            = extract_elements(form)
@@ -112,7 +115,6 @@ def preprocess(form, object_names={}, common_cell=None, element_mapping={}):
 
     # Store data related to cell
     if form_data.cell is None:
-        warning("No cell is defined in form.")
         form_data.geometric_dimension = None
         form_data.topological_dimension = None
         form_data.num_facets = None
