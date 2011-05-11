@@ -15,7 +15,9 @@
 # GNU Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
-# along with UFL.  If not, see <http://www.gnu.org/licenses/>.
+# along with UFL. If not, see <http://www.gnu.org/licenses/>.
+#
+# Modified by Anders Logg, 2011.
 #
 # First added:  2008-11-01
 # Last changed: 2009-09-22
@@ -39,6 +41,19 @@ python_scalar_types = (int, float)
 #    python_scalar_types += (int_type, float_type)
 #except:
 #    pass
+
+# FIXME: Consider coordinating this with set_float_formatting
+# FIXME: in FFC (move to UFL and use from FFC)
+
+# Precision for float formatting
+precision = None
+
+def format_float(x):
+    "Format float value based on global UFL precision"
+    if precision is None:
+        return repr(x)
+    else:
+        return ("%%.%df" % precision) % x
 
 #--- Base classes for constant types ---
 
@@ -196,8 +211,18 @@ class FloatValue(ScalarValue):
     "A constant scalar numeric value."
     __slots__ = ()
     def __init__(self, value, shape=(), free_indices=(), index_dimensions=None):
-        ScalarValue.__init__(self, float_type(value), shape, free_indices, index_dimensions)
-        self._repr = "%s(%s, %s, %s, %s)" % (type(self).__name__, repr(self._value), repr(self._shape), repr(self._free_indices), repr(self._index_dimensions))
+
+        ScalarValue.__init__(self,
+                             float_type(value),
+                             shape,
+                             free_indices,
+                             index_dimensions)
+
+        self._repr = "%s(%s, %s, %s, %s)" % (type(self).__name__,
+                                             format_float(self._value),
+                                             repr(self._shape),
+                                             repr(self._free_indices),
+                                             repr(self._index_dimensions))
 
     def __repr__(self):
         return self._repr
