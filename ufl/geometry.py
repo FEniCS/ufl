@@ -282,10 +282,6 @@ class Cell(object):
         ufl_assert(not self._invalid, "An invalid cell has no facet domains.")
         return domain2facet[self._domain]
 
-    def is_invalid(self):
-        "Check whether cell is invalid (data not completely specified)"
-        return self._invalid
-
     def __eq__(self, other):
         return isinstance(other, Cell) and repr(self) == repr(other)
 
