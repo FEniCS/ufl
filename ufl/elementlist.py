@@ -22,7 +22,7 @@ elements by calling the function register_element."""
 # Modified by Marie E. Rognes <meg@simula.no>, 2010
 #
 # First added:  2008-03-03
-# Last changed: 2009-11-16
+# Last changed: 2011-05-12
 
 from ufl.assertions import ufl_assert
 from ufl.feec import FEEC_aliases
@@ -107,6 +107,11 @@ register_element("Quadrature", "Q", 0, (0, None),
 
 register_element("Real", "R", 0, (0, 0),
                  (None, "interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
+
+register_element("Undefined", "U", 0, (0, None),
+                 ("cell1D", "cell2D", "cell3D",
+                  "interval", "triangle", "tetrahedron",
+                  "quadrilateral", "hexahedron"))
 
 # Let Nedelec H(div) elements be aliases to BDMs/RTs
 register_alias("Nedelec 1st kind H(div)",
