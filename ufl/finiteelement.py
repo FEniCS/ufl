@@ -190,10 +190,11 @@ class FiniteElement(FiniteElementBase):
     def reconstruct(self, **kwargs):
         """Construct a new FiniteElement object with some properties
         replaced with new values."""
+        kwargs["family"] = kwargs.get("family", self.family())
         kwargs["cell"] = kwargs.get("cell", self.cell())
         kwargs["degree"] = kwargs.get("degree", self.degree())
         kwargs["quad_scheme"] = kwargs.get("quad_scheme", self.quadrature_scheme())
-        return FiniteElement(self.family(), **kwargs)
+        return FiniteElement(**kwargs)
 
     def __str__(self):
         "Format as string for pretty printing."
