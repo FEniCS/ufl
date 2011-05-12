@@ -21,7 +21,7 @@ classes (functions), including TestFunction and TrialFunction."""
 # Modified by Anders Logg, 2008-2009.
 #
 # First added:  2008-03-14
-# Last changed: 2009-12-08
+# Last changed: 2011-05-12
 
 from ufl.assertions import ufl_assert
 from ufl.common import Counted, product
@@ -43,13 +43,19 @@ class Argument(FormArgument, Counted):
         self._element = element
         self._repr = "Argument(%r, %r)" % (self._element, self._count)
 
-    def reconstruct(self, count=None, element=None):
+    def reconstruct(self, element=None, count=None):
         if element is None or element == self._element:
             element = self._element
         if count is None or count == self._count:
             count = self._count
         if count is self._count and element is self._element:
             return self
+        ufl_assert(isinstance(element, FiniteElementBase),
+                   "Expecting an element, not %s" % element)
+        ufl_assert(isinstance(count, int),
+                   "Expecting an int, not %s" % count)
+        ufl_assert(element.value_shape() == self._element.value_shape(),
+                   "Cannot reconstruct a VectorConstant with a different value shape.")
         return Argument(element, count)
 
     def element(self):
