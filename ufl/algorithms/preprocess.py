@@ -60,12 +60,7 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
     element_mapping = element_mapping or {}
 
     # Extract common cell
-    common_cell = common_cell or form.cell()
-
-    # Check common cell
-    if common_cell is None or common_cell.is_undefined():
-        error("Unable to extract common cell;"\
-              "missing cell definition in form.")
+    common_cell = extract_common_cell(form, common_cell)
 
     # Expand derivatives
     form = expand_derivatives(form, common_cell.geometric_dimension())
@@ -143,3 +138,16 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
     form_data.preprocessed_form = form
 
     return form_data
+
+def extract_common_cell(form, common_cell=None):
+    "Extract common cell for form"
+
+    # Either use given argument or try to find in form
+    common_cell = common_cell or form.cell()
+
+    # Check common cell
+    if common_cell is None or common_cell.is_undefined():
+        error("Unable to extract common cell;"\
+              "missing cell definition in form.")
+
+    return common_cell
