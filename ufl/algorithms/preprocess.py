@@ -34,7 +34,7 @@ from ufl.algorithms.analysis import extract_elements, extract_sub_elements
 from ufl.algorithms.analysis import extract_num_sub_domains, extract_integral_data, unique_tuple
 from ufl.algorithms.formdata import FormData
 
-def preprocess(form, object_names={}, common_cell=None):
+def preprocess(form, object_names=None, common_cell=None):
     """
     Preprocess raw input form to obtain form metadata, including a
     modified (preprocessed) form more easily manipulated by form
@@ -50,6 +50,7 @@ def preprocess(form, object_names={}, common_cell=None):
     ufl_assert(isinstance(form, Form), "Expecting Form.")
 
     # Get name of form
+    object_names = object_names or {}
     if id(form) in object_names:
         name = object_names[id(form)]
     else:
@@ -111,17 +112,13 @@ def preprocess(form, object_names={}, common_cell=None):
     form_data.unique_sub_elements = unique_tuple(form_data.sub_elements)
 
     # Store common cell
-    form_data.cell = common_cell
+    form_data.cell = _extract_common_cell(form_data.unique_sub_elements,
+                                          common_cell)
 
     # Store data related to cell
-    if form_data.cell is None:
-        form_data.geometric_dimension = None
-        form_data.topological_dimension = None
-        form_data.num_facets = None
-    else:
-        form_data.geometric_dimension = form_data.cell.geometric_dimension()
-        form_data.topological_dimension = form_data.cell.topological_dimension()
-        form_data.num_facets = form_data.cell.num_facets()
+    form_data.geometric_dimension = form_data.cell.geometric_dimension()
+    form_data.topological_dimension = form_data.cell.topological_dimension()
+    form_data.num_facets = form_data.cell.num_facets()
 
     # Store number of domains for integral types
     (form_data.num_cell_domains,
@@ -138,3 +135,18 @@ def preprocess(form, object_names={}, common_cell=None):
     form_data.preprocessed_form = form
 
     return form_data
+
+def _extract_common_cell(elements, common_cell):
+    "Extract common cell for elements"
+
+    # Use common cell if specified
+    if not common_cell is None:
+        return common_cell
+
+    # Find first defined cell
+    cells = [e.cell() for e in elements if not e.cell().is_undefined()]
+    if len(cells) == 0:
+        error("""\
+Unable to extract common cell; missing cell definition in form.""")
+
+    return cells[0]

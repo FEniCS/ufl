@@ -70,7 +70,7 @@ def expand_derivatives(form):
     objects have been propagated to Terminal nodes."""
 
     cell = form.cell()
-    dim = None if cell is None else cell.geometric_dimension()
+    dim = None if cell.is_undefined() else cell.geometric_dimension()
 
     def ad_routine(e):
         # TODO: How to switch between forward and reverse mode? Can we pick the
