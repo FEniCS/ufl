@@ -92,6 +92,9 @@ class ListTensor(WrapperType):
         return self._shape
 
     def evaluate(self, x, mapping, component, index_values):
+        ufl_assert(len(component) == len(self._shape),
+                   "Can only evaluate scalars, expecting a component "\
+                   "tuple of length %d, not %s." % (len(self._shape), component))
         a = self._expressions[component[0]]
         component = component[1:]
         a = a.evaluate(x, mapping, component, index_values)

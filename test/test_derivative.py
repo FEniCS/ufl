@@ -41,6 +41,26 @@ class DerivativeTestCase(UflTestCase):
         dfv2 = dfv2(x, mapping)
         self.assertEqual(dfv1, dfv2)
 
+    def testListTensor(self):
+        v = variable(as_ufl(42))
+        f = as_tensor((
+                ( (0,      0), (0,   0) ),
+                ( (v,    2*v), (0,   0) ),
+                ( (v**2,   1), (2, v/2) ),
+                ))
+        self.assertEqual(f.shape(), (3,2,2))
+        g = as_tensor((
+                ( (0, 0), (0, 0) ),
+                ( (1, 2), (0,0) ),
+                ( (84, 0), (0, 0.5) ),
+                ))
+        self.assertEqual(g.shape(), (3,2,2))
+        dfv = diff(f, v)
+        for i in range(3):
+            for j in range(2):
+                for k in range(2):
+                    self.assertEqual(dfv[i,j,k](()), g[i,j,k](()))
+
     def testFunction(self):
         def f(w):  return w
         def df(w, v): return v
