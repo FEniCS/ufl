@@ -37,6 +37,7 @@ from ufl.algorithms.traversal import iter_expressions, traverse_terminals, \
 from ufl.algorithms.analysis import extract_classes, extract_type, has_type, \
                                     extract_arguments, extract_coefficients, extract_arguments_and_coefficients, \
                                     extract_elements, extract_unique_elements, \
+                                    extract_sub_elements, extract_unique_sub_elements, \
                                     extract_variables, extract_duplications, \
                                     extract_max_quadrature_element_degree, estimate_quadrature_degree, \
                                     sort_elements
