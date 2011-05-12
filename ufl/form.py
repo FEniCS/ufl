@@ -32,7 +32,8 @@ from ufl.integral import Integral, Measure
 
 class Form(object):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
-    __slots__ = ("_integrals", "_repr", "_hash", "_str", "_form_data", "_is_preprocessed",
+    __slots__ = ("_integrals",
+                 "_repr", "_hash", "_str", "_form_data", "_is_preprocessed",
                  "cell_domains", "exterior_facet_domains", "interior_facet_domains")
 
     # Note: cell_domains, exterior_facet_domains and interior_facet_domains
@@ -118,7 +119,7 @@ class Form(object):
         "Return form metadata (None if form has not been preprocessed)"
         return self._form_data
 
-    def compute_form_data(self, object_names={}, common_cell=None):
+    def compute_form_data(self, object_names=None, common_cell=None):
         "Compute and return form metadata"
         if self._form_data is None:
             from ufl.algorithms.preprocess import preprocess
