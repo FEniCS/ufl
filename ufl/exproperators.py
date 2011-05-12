@@ -46,7 +46,7 @@ def _mult(a, b):
     bi = b.free_indices()
     ii = ai + bi
     ri = repeated_indices(ii)
-    
+
     # Pick out valid non-scalar products here (dot products):
     # - matrix-matrix (A*B, M*grad(u)) => A . B
     # - matrix-vector (A*v) => A . v
@@ -54,7 +54,7 @@ def _mult(a, b):
     r1, r2 = len(s1), len(s2)
     if r1 == 2 and r2 in (1, 2):
         ufl_assert(not ri, "Not expecting repeated indices in non-scalar product.")
-        
+
         # Check for zero, simplifying early if possible
         if isinstance(a, Zero) or isinstance(b, Zero):
             shape = s1[:-1] + s2[1:]
@@ -62,7 +62,7 @@ def _mult(a, b):
             idims = mergedicts((a.index_dimensions(), b.index_dimensions()))
             idims = subdict(idims, fi)
             return Zero(shape, fi, idims)
-        
+
         # Return dot product in index notation
         ai = indices(a.rank()-1)
         bi = indices(b.rank()-1)
@@ -70,13 +70,13 @@ def _mult(a, b):
         # Create an IndexSum over a Product
         s = a[ai+k]*b[k+bi]
         return as_tensor(s, ai+bi)
-    
+
     elif not (r1 == 0 and r2 == 0):
         # Scalar - tensor product
         if r2 == 0:
             a, b = b, a
             s1, s2 = s2, s1
-        
+
         # Check for zero, simplifying early if possible
         if isinstance(a, Zero) or isinstance(b, Zero):
             shape = s2
@@ -87,20 +87,20 @@ def _mult(a, b):
 
         # Repeated indices are allowed, like in:
         #v[i]*M[i,:]
-        
+
         # Apply product to scalar components
         ii = indices(b.rank())
         p = Product(a, b[ii])
-    
+
         # Wrap as tensor again
         p = as_tensor(p, ii)
-    
+
         # TODO: Should we apply IndexSum or as_tensor first?
-    
+
         # Apply index sums
         for i in ri:
             p = IndexSum(p, i)
-        
+
         return p
 
     # Scalar products use Product and IndexSum for implicit sums:
@@ -205,7 +205,7 @@ def _call(self, arg, mapping=None):
     if arg in ("+", "-"):
         ufl_assert(mapping is None, "Not expecting a mapping when taking restriction.")
         return _restrict(self, arg)
-    
+
     # Evaluate expression at this particular coordinate,
     # with provided values for other terminals in mapping
     if mapping is None:
@@ -213,7 +213,8 @@ def _call(self, arg, mapping=None):
     component = ()
     index_values = StackDict()
     from ufl.algorithms import expand_derivatives
-    f = expand_derivatives(self)
+    dim = len(arg) if isinstance(arg, (tuple, list)) else 1
+    f = expand_derivatives(self, dim)
     return f.evaluate(arg, mapping, component, index_values)
 Expr.__call__ = _call
 
@@ -226,29 +227,29 @@ def _transpose(self):
 Expr.T = property(_transpose)
 
 #--- Extend Expr with indexing operator a[i] ---
- 
+
 def analyse_key(ii, rank):
     """Takes something the user might input as an index tuple
     inside [], which could include complete slices (:) and
     ellipsis (...), and returns tuples of actual UFL index objects.
-    
+
     The return value is a tuple (indices, axis_indices),
     each being a tuple of IndexBase instances.
-    
-    The return value 'indices' corresponds to all 
+
+    The return value 'indices' corresponds to all
     input objects of these types:
     - Index
     - FixedIndex
     - int => Wrapped in FixedIndex
-    
-    The return value 'axis_indices' corresponds to all 
+
+    The return value 'axis_indices' corresponds to all
     input objects of these types:
     - Complete slice (:) => Replaced by a single new index
     - Ellipsis (...) => Replaced by multiple new indices
     """
     if not isinstance(ii, tuple):
         ii = (ii,)
-    
+
     # Convert all indices to Index or FixedIndex objects.
     # If there is an ellipsis, split the indices into before and after.
     axis_indices = set()
@@ -275,16 +276,16 @@ def analyse_key(ii, rank):
                     error("Partial slices not implemented, only complete slices like [:]")
             else:
                 error("Can't convert this object to index: %r" % i)
-            
+
             # Store index in pre or post list
             indexlist.append(idx)
-    
+
     # Handle ellipsis as a number of complete slices,
     # that is create a number of new axis indices
     num_axis = rank - len(pre) - len(post)
     ellipsis_indices = indices(num_axis)
     axis_indices.update(ellipsis_indices)
-    
+
     # Construct final tuples to return
     all_indices = tuple(chain(pre, ellipsis_indices, post))
     axis_indices = tuple(i for i in all_indices if i in axis_indices)
@@ -294,32 +295,32 @@ def _getitem(self, key):
     # Analyse key, getting rid of slices and the ellipsis
     r = self.rank()
     indices, axis_indices = analyse_key(key, r)
-    
+
     # Special case for foo[...] => foo
     if len(indices) == len(axis_indices):
         return self
-    
+
     # Index self, yielding scalar valued expressions
     a = Indexed(self, indices)
-    
+
     # Make a tensor from components designated by axis indices
     if axis_indices:
         a = as_tensor(a, axis_indices)
-    
+
     # TODO: Should we apply IndexSum or as_tensor first?
-    
+
     # Apply sum for each repeated index
     ri = repeated_indices(self.free_indices() + indices)
     for i in ri:
         a = IndexSum(a, i)
-    
+
     # Check for zero (last so we can get indices etc from a)
     if isinstance(self, Zero):
         shape = a.shape()
         fi = a.free_indices()
         idims = subdict(a.index_dimensions(), fi)
         a = Zero(shape, fi, idims)
-    
+
     return a
 Expr.__getitem__ = _getitem
 
@@ -327,17 +328,17 @@ Expr.__getitem__ = _getitem
 
 def _dx(self, *ii):
     "Return the partial derivative with respect to spatial variable number i."
-    
+
     d = self
     # Apply all derivatives
     for i in ii:
         d = SpatialDerivative(d, i)
-    
+
     # Apply all implicit sums
     ri = repeated_indices(self.free_indices() + ii)
     for i in ri:
         d = IndexSum(d, i)
-    
+
     return d
 Expr.dx = _dx
 

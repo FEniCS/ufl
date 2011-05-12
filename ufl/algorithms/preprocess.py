@@ -56,8 +56,29 @@ def preprocess(form, object_names=None, common_cell=None):
     else:
         name = "a"
 
+    # Create empty form data
+    form_data = FormData()
+
+    # Store name of form
+    form_data.name = name
+
+    # Store elements, sub elements and element map
+    form_data.elements            = extract_elements(form)
+    form_data.unique_elements     = unique_tuple(form_data.elements)
+    form_data.sub_elements        = extract_sub_elements(form_data.elements)
+    form_data.unique_sub_elements = unique_tuple(form_data.sub_elements)
+
+    # Store common cell
+    form_data.cell = _extract_common_cell(form_data.unique_sub_elements,
+                                          common_cell)
+
+    # Store data related to cell
+    form_data.geometric_dimension = form_data.cell.geometric_dimension()
+    form_data.topological_dimension = form_data.cell.topological_dimension()
+    form_data.num_facets = form_data.cell.num_facets()
+
     # Expand derivatives
-    form = expand_derivatives(form)
+    form = expand_derivatives(form, form_data.geometric_dimension)
 
     # Renumber indices
     form = renumber_indices(form)
@@ -75,12 +96,6 @@ def preprocess(form, object_names=None, common_cell=None):
         inv_replace_map[w] = v
     original_arguments = [inv_replace_map[v] for v in arguments]
     original_coefficients = [inv_replace_map[v] for v in coefficients]
-
-    # Create empty form data
-    form_data = FormData()
-
-    # Store name of form
-    form_data.name = name
 
     # Store data extracted by preprocessing
     form_data.arguments             = arguments
@@ -104,21 +119,6 @@ def preprocess(form, object_names=None, common_cell=None):
     form_data.coefficient_names = \
         [object_names.get(id(form_data.original_coefficients[i]), "w%d" % i)
          for i in range(form_data.num_coefficients)]
-
-    # Store elements, sub elements and element map
-    form_data.elements            = extract_elements(form)
-    form_data.unique_elements     = unique_tuple(form_data.elements)
-    form_data.sub_elements        = extract_sub_elements(form_data.elements)
-    form_data.unique_sub_elements = unique_tuple(form_data.sub_elements)
-
-    # Store common cell
-    form_data.cell = _extract_common_cell(form_data.unique_sub_elements,
-                                          common_cell)
-
-    # Store data related to cell
-    form_data.geometric_dimension = form_data.cell.geometric_dimension()
-    form_data.topological_dimension = form_data.cell.topological_dimension()
-    form_data.num_facets = form_data.cell.num_facets()
 
     # Store number of domains for integral types
     (form_data.num_cell_domains,

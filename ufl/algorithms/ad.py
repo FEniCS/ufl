@@ -59,7 +59,7 @@ def apply_ad(e, ad_routine):
         e = ad_routine(e)
     return e
 
-def expand_derivatives(form):
+def expand_derivatives(form, dim=None):
     """Expand all derivatives of expr.
 
     NB! This functionality is not finished!
@@ -69,8 +69,10 @@ def expand_derivatives(form):
     or CoefficientDerivative objects left, and SpatialDerivative
     objects have been propagated to Terminal nodes."""
 
-    cell = form.cell()
-    dim = None if cell.is_undefined() else cell.geometric_dimension()
+    # Find geometric dimension
+    if dim is None:
+        cell = form.cell()
+        dim = None if cell.is_undefined() else cell.geometric_dimension()
 
     def ad_routine(e):
         # TODO: How to switch between forward and reverse mode? Can we pick the
