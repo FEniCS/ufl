@@ -192,6 +192,7 @@ class FiniteElement(FiniteElementBase):
         replaced with new values."""
         kwargs["cell"] = kwargs.get("cell", self.cell())
         kwargs["degree"] = kwargs.get("degree", self.degree())
+        kwargs["quad_scheme"] = kwargs.get("quad_scheme", self.quadrature_scheme())
         return FiniteElement(self.family(), **kwargs)
 
     def __str__(self):

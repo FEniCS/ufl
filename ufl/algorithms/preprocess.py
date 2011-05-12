@@ -20,7 +20,7 @@ raw input form given by a user."""
 # along with UFL.  If not, see <http://www.gnu.org/licenses/>.
 #
 # First added:  2009-12-07
-# Last changed: 2011-05-02
+# Last changed: 2011-05-12
 
 from ufl.log import info, debug, warning, error
 from ufl.assertions import ufl_assert
@@ -34,7 +34,7 @@ from ufl.algorithms.analysis import extract_elements, extract_sub_elements
 from ufl.algorithms.analysis import extract_num_sub_domains, extract_integral_data, unique_tuple
 from ufl.algorithms.formdata import FormData
 
-def preprocess(form, object_names=None, common_cell=None):
+def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
     """
     Preprocess raw input form to obtain form metadata, including a
     modified (preprocessed) form more easily manipulated by form
@@ -56,13 +56,16 @@ def preprocess(form, object_names=None, common_cell=None):
     else:
         name = "a"
 
+    # Element mapping is empty if not given
+    element_mapping = element_mapping or {}
+
     # Extract common cell
     common_cell = common_cell or form.cell()
 
     # Check common cell
     if common_cell is None or common_cell.is_undefined():
-        error("""\
-Unable to extract common cell; missing cell definition in form.""")
+        error("Unable to extract common cell;"\
+              "missing cell definition in form.")
 
     # Expand derivatives
     form = expand_derivatives(form, common_cell.geometric_dimension())
@@ -73,14 +76,12 @@ Unable to extract common cell; missing cell definition in form.""")
     # Replace arguments and coefficients with new renumbered objects
     arguments, coefficients = extract_arguments_and_coefficients(form)
     replace_map, arguments, coefficients = \
-        build_argument_replace_map(arguments, coefficients)
+        build_argument_replace_map(arguments, coefficients, element_mapping)
     form = replace(form, replace_map)
 
     # Build mapping to original arguments and coefficients, which is
     # useful if the original arguments have data attached to them
-    inv_replace_map = {}
-    for v, w in replace_map.iteritems():
-        inv_replace_map[w] = v
+    inv_replace_map = dict((w,v) for (v,w) in replace_map.iteritems())
     original_arguments = [inv_replace_map[v] for v in arguments]
     original_coefficients = [inv_replace_map[v] for v in coefficients]
 

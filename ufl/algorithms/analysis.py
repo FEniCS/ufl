@@ -21,9 +21,9 @@
 # Modified by Johan Hake, 2010.
 #
 # First added:  2008-03-14
-# Last changed: 2010-01-26
+# Last changed: 2011-05-12
 
-from itertools import chain
+from itertools import izip, chain
 
 from ufl.log import error, warning, info
 from ufl.assertions import ufl_assert
@@ -104,6 +104,7 @@ def extract_coefficients(a):
 
 # FIXME: Why is this extra function needed, why not use
 # FIXME: the two functions above?
+# FIXME: Martin says: Possibly faster for large forms, calls extract_type only once, and it checks more.
 
 def extract_arguments_and_coefficients(a):
     """Build two sorted lists of all arguments and coefficients
@@ -137,17 +138,21 @@ The arguments found are:\n%s""" % "\n".join("  %s" % f for f in coefficients)
 
     return arguments, coefficients
 
-def build_argument_replace_map(arguments, coefficients):
+def build_argument_replace_map(arguments, coefficients, element_mapping=None):
     """Create new Argument and Coefficient objects
     with count starting at 0. Return mapping from old
     to new objects, and lists of the new objects."""
-    new_arguments = [f.reconstruct(count=i)\
-                           for (i, f) in enumerate(arguments)]
-    new_coefficients       = [f.reconstruct(count=i)\
-                           for (i, f) in enumerate(coefficients)]
-    replace_map = {}
-    replace_map.update(zip(arguments, new_arguments))
-    replace_map.update(zip(coefficients, new_coefficients))
+    if element_mapping is None:
+        element_mapping = {}
+    def remap(arguments):
+        for (i, f) in enumerate(arguments):
+            old_e = f.element()
+            new_e = element_mapping.get(old_e, old_e)
+            yield f.reconstruct(element=new_e, count=i)
+    new_arguments = list(remap(arguments))
+    new_coefficients = list(remap(coefficients))
+    replace_map = dict(izip(chain(arguments, coefficients),
+                            chain(new_arguments, new_coefficients)))
     return replace_map, new_arguments, new_coefficients
 
 # alternative implementation, kept as an example:

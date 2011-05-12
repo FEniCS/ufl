@@ -52,10 +52,21 @@ class Coefficient(FormArgument, Counted):
         #    # TODO: Check shapes of gradient and derivatives
         #    warning("Specifying the gradient or derivatives of a Coefficient is not yet implemented anywhere.")
 
-    def reconstruct(self, count=None):
+    def reconstruct(self, count=None, element=None):
+        # This code is shared with the FooConstant classes
+        if element is None or element == self._element:
+            element = self._element
         if count is None or count == self._count:
+            count = self._count
+        if count is self._count and element is self._element:
             return self
-        return Coefficient(self._element, count)
+        ufl_assert(element.value_shape() == self._element.value_shape(),
+                   "Cannot reconstruct a VectorConstant with a different value shape.")
+        return self._reconstruct(element, count)
+
+    def _reconstruct(self, element, count):
+        # This code is class specific
+        return Coefficient(element, count)
 
     #def gradient(self):
     #    "Hook for experimental feature, do not use!"
@@ -106,10 +117,8 @@ class Constant(ConstantBase):
         ConstantBase.__init__(self, e, count)
         self._repr = "Constant(%r, %r)" % (e.cell(), self._count)
 
-    def reconstruct(self, count=None):
-        if count is None or count == self._count:
-            return self
-        return Constant(self._element.cell(), count)
+    def _reconstruct(self, element, count):
+        return Constant(element.cell(), count)
 
     def __str__(self):
         count = str(self._count)
@@ -126,11 +135,8 @@ class VectorConstant(ConstantBase):
         ConstantBase.__init__(self, e, count)
         self._repr = "VectorConstant(%r, %r, %r)" % (e.cell(), e.value_shape()[0], self._count)
 
-    def reconstruct(self, count=None):
-        if count is None or count == self._count:
-            return self
-        e = self._element
-        return VectorConstant(e.cell(), e.value_shape()[0], count)
+    def _reconstruct(self, element, count):
+        return VectorConstant(element.cell(), element.value_shape()[0], count)
 
     def __str__(self):
         count = str(self._count)
@@ -146,10 +152,8 @@ class TensorConstant(ConstantBase):
         ConstantBase.__init__(self, e, count)
         self._repr = "TensorConstant(%r, %r, %r, %r)" % (e.cell(), e.value_shape(), e._symmetry, self._count)
 
-    def reconstruct(self, count=None):
-        if count is None or count == self._count:
-            return self
-        e = self._element
+    def _reconstruct(self, element, count):
+        e = element
         return TensorConstant(e.cell(), e.value_shape(), e._symmetry, count)
 
     def __str__(self):

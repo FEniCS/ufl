@@ -43,10 +43,14 @@ class Argument(FormArgument, Counted):
         self._element = element
         self._repr = "Argument(%r, %r)" % (self._element, self._count)
 
-    def reconstruct(self, count=None):
+    def reconstruct(self, count=None, element=None):
+        if element is None or element == self._element:
+            element = self._element
         if count is None or count == self._count:
+            count = self._count
+        if count is self._count and element is self._element:
             return self
-        return Argument(self.element(), count)
+        return Argument(element, count)
 
     def element(self):
         return self._element
