@@ -144,8 +144,8 @@ def build_argument_replace_map(arguments, coefficients, element_mapping=None):
     to new objects, and lists of the new objects."""
     if element_mapping is None:
         element_mapping = {}
-    def remap(arguments):
-        for (i, f) in enumerate(arguments):
+    def remap(args):
+        for (i, f) in enumerate(args):
             old_e = f.element()
             new_e = element_mapping.get(old_e, old_e)
             yield f.reconstruct(element=new_e, count=i)
