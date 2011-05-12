@@ -198,8 +198,10 @@ class FiniteElement(FiniteElementBase):
 
     def __str__(self):
         "Format as string for pretty printing."
-        return "<%s%s(%s) on a %s>" % (self._short_name, istr(self.degree()),\
-            istr(self.quadrature_scheme()), self.cell())
+        qs = self.quadrature_scheme()
+        qs = "" if qs is None else "(%s)" % qs
+        return "<%s%s%s on a %s>" % (self._short_name, istr(self.degree()),\
+                                           qs, self.cell())
 
     def shortstr(self):
         "Format as string for pretty printing."

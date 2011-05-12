@@ -220,6 +220,22 @@ class DerivativeTestCase(UflTestCase):
         Jv2 = J_expression((0,), mapping)
         self.assertAlmostEqual(Jv, Jv2)
 
+    def test_mass_derived_from_functional(self):
+	cell = triangle
+        V = FiniteElement("CG", cell, 1)
+
+        v = TestFunction(V)
+        u = TrialFunction(V)
+        w = Coefficient(V)
+
+        f = (w**2/2)*dx
+        L = w*v*dx
+        a = u*v*dx
+        F  = derivative(f, w, v)
+        J1 = derivative(L, w, u)
+        J2 = derivative(F, w, u)
+	# TODO: assert something
+
     def test_foobar(self):
         element = VectorElement("Lagrange", triangle, 1)
         v = TestFunction(element)
@@ -240,6 +256,7 @@ class DerivativeTestCase(UflTestCase):
 
         L = NS_a(U,v)*dx
         a = derivative(L, U, du)
+	# TODO: assert something
 
 if __name__ == "__main__":
     main()
