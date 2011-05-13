@@ -206,14 +206,6 @@ class FiniteElement(FiniteElementBase):
         kwargs["quad_scheme"] = kwargs.get("quad_scheme", self.quadrature_scheme())
         return FiniteElement(**kwargs)
 
-    def reconstruct2(self, family=None, cell=None, degree=None, quad_scheme=None):
-        """Construct a new FiniteElement object with some properties
-        replaced with new values."""
-        return FiniteElement(family=family or self.family(),
-                             cell=cell or self.cell(),
-                             degree=degree or self.degree(),
-                             quad_scheme=quad_scheme or self.quadrature_scheme())
-
     def __str__(self):
         "Format as string for pretty printing."
         qs = self.quadrature_scheme()
@@ -262,37 +254,46 @@ class MixedElement(FiniteElementBase):
 
         # Initialize element data
         degree = max(e.degree() for e in self._sub_elements)
-        super(MixedElement, self).__init__("Mixed", cell, degree, quad_scheme, value_shape)
+        super(MixedElement, self).__init__("Mixed", cell, degree,
+                                           quad_scheme, value_shape)
 
         # Cache repr string
-        self._repr = "MixedElement(*%r, **{'value_shape': %r })" % (self._sub_elements, self._value_shape)
+        self._repr = "MixedElement(*%r, **{'value_shape': %r })" %\
+            (self._sub_elements, self._value_shape)
 
     def reconstruct(self, **kwargs):
         """Construct a new MixedElement object with some properties
         replaced with new values."""
-        # This code is shared with subclasses
         elements = [e.reconstruct(**kwargs) for e in self._sub_elements]
-        if all(a == b for (a,b) in izip(elements, self._sub_elements)):
-            return self
-        return self._reconstruct(*elements, **kwargs)
-
-    def _reconstruct(self, *elements, **kwargs):
-        # This code is class specific
-        # Value shape cannot be changed, or at least we have no valid use case for it
+        # Value shape cannot be changed, or at
+        # least we have no valid use case for it.
+        # Reconstructing an expression with a reconstructed
+        # coefficient with a different value shape would
+        # be way into undefined behaviour territory...
         ufl_assert("value_shape" not in kwargs,
                    "Cannot change value_shape in reconstruct.")
+        return self.reconstruct_from_elements(*elements)
+
+    def reconstruct_from_elements(self, *elements):
+        "Reconstruct a mixed element from new subelements."
+        if all(a == b for (a,b) in izip(elements, self._sub_elements)):
+            return self
+        ufl_assert(all(a.value_shape() == b.value_shape()
+                       for (a,b) in izip(elements, self._sub_elements)),
+            "Expecting new elements to have same value shape as old ones.")
         return MixedElement(*elements, value_shape=self.value_shape())
 
     def num_sub_elements(self):
-        "Return number of sub elements"
+        "Return number of sub elements."
         return len(self._sub_elements)
 
     def sub_elements(self):
-        "Return list of sub elements"
+        "Return list of sub elements."
         return self._sub_elements
 
     def extract_component(self, i):
-        "Extract base component index and (simple) element for given component index"
+        """Extract base component index and (simple) element
+        for given component index."""
         if isinstance(i, int):
             i = (i,)
         self._check_component(i)
