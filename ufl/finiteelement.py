@@ -23,6 +23,7 @@
 # First added:  2008-03-03
 # Last changed: 2011-05-08
 
+from itertools import izip
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.elementlist import ufl_elements, aliases
@@ -131,9 +132,8 @@ class FiniteElementBase(object):
 
 class FiniteElement(FiniteElementBase):
     "The basic finite element class for all simple finite elements"
-
-    def __init__(self, family,
-                 cell=None, degree=None, quad_scheme=None, form_degree=None):
+    def __init__(self, family, cell=None, degree=None, quad_scheme=None,
+                 form_degree=None):
         "Create finite element"
 
         # Map evt. string argument to a Cell
@@ -142,20 +142,25 @@ class FiniteElement(FiniteElementBase):
         # Check whether this family is an alias for something else
         if family in aliases:
             (name, cell, r) = aliases[family](family, cell, degree, form_degree)
-            info_blue("%s, is an alias for %s " % ((family, cell, degree, form_degree),
-                                                   (name, cell, r)))
-            self.__init__(name, cell, r, quad_scheme) # FIXME: Missing form_degree here? What is form_degree?
+            info_blue("%s, is an alias for %s " % (
+                    (family, cell, degree, form_degree),
+                    (name, cell, r)))
+            # FIXME: Missing form_degree here? What is form_degree?
+            self.__init__(name, cell, r, quad_scheme)
             return
 
         # Check that the element family exists
-        ufl_assert(family in ufl_elements, 'Unknown finite element "%s".' % family)
+        ufl_assert(family in ufl_elements,
+                   'Unknown finite element "%s".' % family)
 
         # Check that element data is valid (and also get common family name)
-        (family, self._short_name, value_rank, krange, domains) = ufl_elements[family]
+        (family, self._short_name, value_rank, krange, domains) =\
+            ufl_elements[family]
 
         # Validate domain if a valid cell is specified
         if cell.is_undefined():
-            # Case of invalid cell, some stuff is then undefined, s.a. the domain and some dimensions
+            # Case of invalid cell, some stuff is then undefined,
+            # such as the domain and some dimensions
             pass
         else:
             domain = cell.domain()
@@ -165,27 +170,32 @@ class FiniteElement(FiniteElementBase):
         # Validate degree if specified
         if degree is not None:
             ufl_assert(krange is not None,
-                       'Degree "%s" invalid for "%s" finite element, should be None.' % (degree, family))
+                       'Degree "%s" invalid for "%s" finite element, '\
+                           'should be None.' % (degree, family))
             kmin, kmax = krange
             ufl_assert(kmin is None or degree >= kmin,
-                       'Degree "%s" invalid for "%s" finite element.' % (degree, family))
+                       'Degree "%s" invalid for "%s" finite element.' %\
+                           (degree, family))
             ufl_assert(kmax is None or degree <= kmax,
-                   'Degree "%s" invalid for "%s" finite element.' % (istr(degree), family))
+                   'Degree "%s" invalid for "%s" finite element.' %\
+                           (istr(degree), family))
 
         # Set value dimension (default to using domain dimension in each axis)
         if value_rank == 0:
             value_shape = ()
         else:
-            ufl_assert(not cell.is_undefined(), "Cannot infer value shape with an undefined cell.")
+            ufl_assert(not cell.is_undefined(),
+                       "Cannot infer value shape with an undefined cell.")
             dim = cell.geometric_dimension()
             value_shape = (dim,)*value_rank
 
         # Initialize element data
-        super(FiniteElement, self).__init__(family, cell, degree, quad_scheme, value_shape)
+        super(FiniteElement, self).__init__(family, cell, degree,
+                                            quad_scheme, value_shape)
 
         # Cache repr string
-        self._repr = "FiniteElement(%r, %r, %r, %r)" % (self.family(), self.cell(),\
-            self.degree(), self.quadrature_scheme())
+        self._repr = "FiniteElement(%r, %r, %r, %r)" % (
+            self.family(), self.cell(), self.degree(), self.quadrature_scheme())
 
     def reconstruct(self, **kwargs):
         """Construct a new FiniteElement object with some properties
@@ -195,6 +205,14 @@ class FiniteElement(FiniteElementBase):
         kwargs["degree"] = kwargs.get("degree", self.degree())
         kwargs["quad_scheme"] = kwargs.get("quad_scheme", self.quadrature_scheme())
         return FiniteElement(**kwargs)
+
+    def reconstruct2(self, family=None, cell=None, degree=None, quad_scheme=None):
+        """Construct a new FiniteElement object with some properties
+        replaced with new values."""
+        return FiniteElement(family=family or self.family(),
+                             cell=cell or self.cell(),
+                             degree=degree or self.degree(),
+                             quad_scheme=quad_scheme or self.quadrature_scheme())
 
     def __str__(self):
         "Format as string for pretty printing."
@@ -231,17 +249,16 @@ class MixedElement(FiniteElementBase):
             "Quadrature scheme mismatch for sub elements of mixed element.")
 
         # Compute value shape
-        value_size_sum= sum(product(s.value_shape()) for s in self._sub_elements)
-        if "value_shape" in kwargs:
-            value_shape = kwargs["value_shape"]
-            # Validate value_shape
-            if type(self) is MixedElement:
-                ufl_assert(product(value_shape) == value_size_sum,
-                    "Provided value_shape doesn't match the total "\
-                    "value size of all subelements.")
-        else:
-            # Default value dimension: Treated simply as all subelement values unpacked in a vector.
-            value_shape = (value_size_sum,)
+        value_size_sum = sum(product(s.value_shape()) for s in self._sub_elements)
+        # Default value dimension: Treated simply as all subelement values unpacked in a vector.
+        value_shape = kwargs.get('value_shape', (value_size_sum,))
+        # Validate value_shape
+        if type(self) is MixedElement:
+            # This is not valid for tensor elements with symmetries,
+            # assume subclasses deal with their own validation
+            ufl_assert(product(value_shape) == value_size_sum,
+                "Provided value_shape doesn't match the total "\
+                "value size of all subelements.")
 
         # Initialize element data
         degree = max(e.degree() for e in self._sub_elements)
@@ -249,6 +266,22 @@ class MixedElement(FiniteElementBase):
 
         # Cache repr string
         self._repr = "MixedElement(*%r, **{'value_shape': %r })" % (self._sub_elements, self._value_shape)
+
+    def reconstruct(self, **kwargs):
+        """Construct a new MixedElement object with some properties
+        replaced with new values."""
+        # This code is shared with subclasses
+        elements = [e.reconstruct(**kwargs) for e in self._sub_elements]
+        if all(a == b for (a,b) in izip(elements, self._sub_elements)):
+            return self
+        return self._reconstruct(*elements, **kwargs)
+
+    def _reconstruct(self, *elements, **kwargs):
+        # This code is class specific
+        # Value shape cannot be changed, or at least we have no valid use case for it
+        ufl_assert("value_shape" not in kwargs,
+                   "Cannot change value_shape in reconstruct.")
+        return MixedElement(*elements, value_shape=self.value_shape())
 
     def num_sub_elements(self):
         "Return number of sub elements"
@@ -326,6 +359,15 @@ class VectorElement(MixedElement):
         self._repr = "VectorElement(%r, %r, %r, %d, %r)" % \
             (self._family, self._cell, self._degree, len(self._sub_elements), quad_scheme)
 
+    def reconstruct(self, **kwargs):
+        kwargs["family"] = kwargs.get("family", self.family())
+        kwargs["cell"] = kwargs.get("cell", self.cell())
+        kwargs["degree"] = kwargs.get("degree", self.degree())
+        ufl_assert("dim" not in kwargs, "Cannot change dim in reconstruct.")
+        kwargs["dim"] = len(self._sub_elements)
+        kwargs["quad_scheme"] = kwargs.get("quad_scheme", self.quadrature_scheme())
+        return VectorElement(**kwargs)
+
     def __str__(self):
         "Format as string for pretty printing."
         return "<%s vector element of degree %s on a %s: %d x %s>" % \
@@ -394,6 +436,20 @@ class TensorElement(MixedElement):
         self._repr = "TensorElement(%r, %r, %r, %r, %r, %r)" % \
             (self._family, self._cell, self._degree, self._shape, self._symmetry, quad_scheme)
 
+    def reconstruct(self, **kwargs):
+        kwargs["family"] = kwargs.get("family", self.family())
+        kwargs["cell"]   = kwargs.get("cell",   self.cell())
+        kwargs["degree"] = kwargs.get("degree", self.degree())
+
+        ufl_assert("shape" not in kwargs, "Cannot change shape in reconstruct.")
+
+        # Not sure about symmetry, but no use case I can see
+        ufl_assert("symmetry" not in kwargs, "Cannot change symmetry in reconstruct.")
+        kwargs["symmetry"] = self.symmetry()
+
+        kwargs["quad_scheme"] = kwargs.get("quad_scheme", self.quadrature_scheme())
+        return TensorElement(**kwargs)
+
     def extract_component(self, i):
         "Extract base component index and (simple) element for given component index"
         if isinstance(i, int):
@@ -459,6 +515,14 @@ class EnrichedElement(FiniteElementBase):
         # Cache repr string
         self._repr = "EnrichedElement(%s)" % ", ".join(repr(e) for e in self._elements)
 
+    def reconstruct(self, **kwargs):
+        """Construct a new EnrichedElement object with some properties
+        replaced with new values."""
+        elements = [e.reconstruct(**kwargs) for e in self._elements]
+        if all(a == b for (a,b) in izip(elements, self._elements)):
+            return self
+        return EnrichedElement(*elements)
+
     def __str__(self):
         "Format as string for pretty printing."
         return "<%s>" % " + ".join(str(e) for e in self._elements)
@@ -499,6 +563,13 @@ class RestrictedElement(FiniteElementBase):
         # Cache repr string
         self._repr = "RestrictedElement(%r, %r)" % (self._element, self._domain)
 
+    def reconstruct(self, **kwargs):
+        """Construct a new EnrichedElement object with some properties
+        replaced with new values."""
+        element = self._element.reconstruct(**kwargs)
+        domain = kwargs.get("domain", self.domain())
+        return RestrictedElement(element=element, domain=domain)
+    
     def element(self):
         "Return the element which is restricted."
         return self._element
