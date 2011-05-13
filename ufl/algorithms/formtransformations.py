@@ -61,11 +61,11 @@ class PartExtracter(Transformer):
         self._want = set(arguments)
 
     def expr(self, x):
-        """The default is a nonlinear operator not accepting any basis
-        functions in its children."""
+        """The default is a nonlinear operator not accepting any
+        Arguments among its children."""
 
         if any(isinstance(t, Argument) for t in traverse_terminals(x)):
-            error("Found basis function in %s, this is an invalid expression." % repr(x))
+            error("Found Argument in %s, this is an invalid expression." % repr(x))
         return (x, set())
 
     # Terminals that are not Variables or Arguments behave as default
@@ -159,7 +159,7 @@ class PartExtracter(Transformer):
 
             # Throw error if size of sets are equal (and not zero)
             if len(provideds) == len(most_provided) and len(most_provided):
-                error("Don't know what to do with sums with different basis functions")
+                error("Don't know what to do with sums with different Arguments.")
 
             if provideds > most_provided:
                 most_provided = provideds
@@ -206,9 +206,9 @@ class PartExtracter(Transformer):
         # Get numerator and denominator
         numerator, denominator = x.operands()
 
-        # Check for basis functions in the denominator
+        # Check for Arguments in the denominator
         if any(isinstance(t, Argument) for t in traverse_terminals(denominator)):
-            error("Found basis function in denominator of %s , this is an invalid expression." % repr(x))
+            error("Found Argument in denominator of %s , this is an invalid expression." % repr(x))
 
         # Visit numerator
         numerator_parts, provides = self.visit(numerator)
@@ -225,8 +225,8 @@ class PartExtracter(Transformer):
         return (x, provides)
 
     def linear_operator(self, x, arg):
-        """A linear operator in a single argument accepting arity > 0,
-        providing whatever basis functions its argument does."""
+        """A linear operator with a single operand accepting arity > 0,
+        providing whatever Argument its operand does."""
 
         # linear_operator is a visit-children-first handler. Handled
         # arguments are in arg.
@@ -356,19 +356,19 @@ def compute_form_rhs(form):
 
 def compute_form_functional(form):
     """Compute the functional part of a form, that
-    is the terms independent of basis functions.
+    is the terms independent of Arguments.
 
     (Used for testing, not sure if it's useful for anything?)"""
     return compute_form_with_arity(form, 0)
 
-def compute_form_action(form, function):
+def compute_form_action(form, coefficient):
     """Compute the action of a form on a Coefficient.
 
     This works simply by replacing the last Argument
     with a Coefficient on the same function space (element).
     The form returned will thus have one Argument less
-    and one additional Coefficient at the end if no function
-    has been provided.
+    and one additional Coefficient at the end if no
+    Coefficient has been provided.
     """
     # Extract all arguments
     arguments = extract_arguments(form)
@@ -377,22 +377,22 @@ def compute_form_action(form, function):
     u = arguments[-1]
 
     e = u.element()
-    if function is None:
-        function = Coefficient(e)
+    if coefficient is None:
+        coefficient = Coefficient(e)
     else:
-        #ufl_assert(function.element() == e, \
-        if function.element() != e:
-            debug("Computing action of form on a function in a different element space.")
-    return replace(form, { u: function })
+        #ufl_assert(coefficient.element() == e, \
+        if coefficient.element() != e:
+            debug("Computing action of form on a coefficient in a different element space.")
+    return replace(form, { u: coefficient })
 
-def compute_energy_norm(form, function):
+def compute_energy_norm(form, coefficient):
     """Compute the a-norm of a Coefficient given a form a.
 
-    This works simply by replacing the two basis functions
+    This works simply by replacing the two Arguments
     with a Coefficient on the same function space (element).
     The Form returned will thus be a functional with no
-    basis functions, and one additional Coefficient at the
-    end if no function has been provided.
+    Arguments, and one additional Coefficient at the
+    end if no coefficient has been provided.
     """
     arguments = extract_arguments(form)
     ufl_assert(len(arguments) == 2, "Expecting bilinear form.")
@@ -400,13 +400,13 @@ def compute_energy_norm(form, function):
     e = u.element()
     e2 = v.element()
     ufl_assert(e == e2, "Expecting equal finite elements for test and trial functions, got '%s' and '%s'." % (str(e), str(e2)))
-    if function is None:
-        function = Coefficient(e)
+    if coefficient is None:
+        coefficient = Coefficient(e)
     else:
-        ufl_assert(function.element() == e, \
+        ufl_assert(coefficient.element() == e, \
             "Trying to compute action of form on a "\
-            "function in an incompatible element space.")
-    return replace(form, { u: function, v: function })
+            "coefficient in an incompatible element space.")
+    return replace(form, { u: coefficient, v: coefficient })
 
 def compute_form_adjoint(form):
     """Compute the adjoint of a bilinear form.

@@ -856,11 +856,6 @@ def extract_argument_dependencies(e):
     ufl_assert(isinstance(e, Expr), "Expecting an Expr.")
     return ArgumentDependencyExtracter().visit(e)
 
-def extract_basis_function_dependencies(e): # FIXME: Remove
-    warning("Deprecation warning, extract_basis_function_dependencies"\
-            "has been renamed to extract_argument_dependencies.")
-    return extract_argument_dependencies(e)
-
 def estimate_max_polynomial_degree(e, default_degree=1):
     """Estimate the maximum polymomial degree of all functions in the
     expression. For coefficients defined on an element with

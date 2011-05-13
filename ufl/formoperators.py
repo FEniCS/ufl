@@ -87,23 +87,23 @@ def functional(form): # TODO: Does this make sense for anything other than testi
     form = expand_derivatives(form)
     return compute_form_functional(form)
 
-def action(form, function=None):
+def action(form, coefficient=None):
     """Given a bilinear form, return a linear form
-    with an additional function coefficient, representing
-    the action of the form on the function. This can be
+    with an additional coefficient, representing the
+    action of the form on the coefficient. This can be
     used for matrix-free methods."""
     form = as_form(form)
     form = expand_derivatives(form)
-    return compute_form_action(form, function)
+    return compute_form_action(form, coefficient)
 
-def energy_norm(form, function=None):
+def energy_norm(form, coefficient=None):
     """Given a bilinear form, return a linear form
-    with an additional function coefficient, representing
-    the action of the form on the function. This can be
+    with an additional coefficient, representing the
+    action of the form on the coefficient. This can be
     used for matrix-free methods."""
     form = as_form(form)
     form = expand_derivatives(form)
-    return compute_energy_norm(form, function)
+    return compute_energy_norm(form, coefficient)
 
 def adjoint(form):
     """Given a combined bilinear form, compute the adjoint
@@ -112,52 +112,52 @@ def adjoint(form):
     form = expand_derivatives(form)
     return compute_form_adjoint(form)
 
-def _handle_derivative_arguments(function, argument):
+def _handle_derivative_arguments(coefficient, argument):
     """Valid combinations:
     - Coefficient, Argument. Elements must match.
     - (Coefficient tuple,), Argument. Argument element must be a mixed element with subelements matching elements of the Coefficient tuple.
     """
 
-    if isinstance(function, Coefficient):
+    if isinstance(coefficient, Coefficient):
         # Place in generic tuple
-        functions = (function,)
+        coefficients = (coefficient,)
 
         # Get element
-        element = function.element()
+        element = coefficient.element()
 
-        # Create basis function if necessary
+        # Create Argument if necessary
         if argument is None:
             argument = Argument(element)
         ufl_assert(isinstance(argument, Argument),
             "Expecting Argument instance, not %s." % type(argument))
         ufl_assert(argument.element() == element,
-            "Basis function over wrong element supplied, "\
+            "Argument over wrong element supplied, "\
             "got %s but expecting %s." % \
             (repr(argument.element()), repr(element)))
 
         # Place in generic tuple
         arguments = (argument,)
 
-    elif isinstance(function, (tuple, list)):
+    elif isinstance(coefficient, (tuple, list)):
         # Place in generic tuple
-        functions = function
+        coefficients = coefficient
 
-        # We got a tuple of functions, handle it as
-        # functions over components of a mixed element.
-        ufl_assert(all(isinstance(w, Coefficient) for w in functions),
+        # We got a tuple of coefficients, handle it as
+        # coefficients over components of a mixed element.
+        ufl_assert(all(isinstance(w, Coefficient) for w in coefficients),
             "Expecting a tuple of Coefficients to differentiate w.r.t.")
 
         # Create mixed element
-        elements = [w.element() for w in functions]
+        elements = [w.element() for w in coefficients]
         element = MixedElement(*elements)
 
-        # Create basis functions if necessary
+        # Create arguments if necessary
         if argument is None:
             argument = Argument(element)
         ufl_assert(isinstance(argument, Argument),
             "Expecting Argument instance, not %s." % type(argument))
         ufl_assert(argument.element() == element,
-            "Basis function over wrong element supplied, "\
+            "Arguments over wrong element supplied, "\
             "got %s but expecting %s." % \
             (repr(argument.element()), repr(element)))
 
@@ -165,35 +165,35 @@ def _handle_derivative_arguments(function, argument):
         arguments = split(argument)
 
     else:
-        error("Expecting Coefficient instance or tuple of Coefficient instances, not %s." % type(function))
+        error("Expecting Coefficient instance or tuple of Coefficient instances, not %s." % type(coefficient))
 
     # Wrap and return generic tuples
-    functions       = Tuple(*functions)
+    coefficients       = Tuple(*coefficients)
     arguments = Tuple(*arguments)
-    return functions, arguments
+    return coefficients, arguments
 
-def derivative(form, function, argument=None):
+def derivative(form, coefficient, argument=None):
     """Given any form, compute the linearization of the
-    form with respect to the given discrete function.
-    The resulting form has one additional basis function
-    in the same finite element space as the function.
+    form with respect to the given Coefficient.
+    The resulting form has one additional Argument
+    in the same finite element space as the coefficient.
     A tuple of Coefficients may be provided in place of
     a single Coefficient, in which case the new Argument
     argument is based on a MixedElement created from this tuple."""
 
-    functions, arguments = _handle_derivative_arguments(function, argument)
+    coefficients, arguments = _handle_derivative_arguments(coefficient, argument)
 
     # Got a form? Apply derivatives to the integrands in turn.
     if isinstance(form, Form):
         integrals = []
         for itg in form._integrals:
-            fd = CoefficientDerivative(itg.integrand(), functions, arguments)
+            fd = CoefficientDerivative(itg.integrand(), coefficients, arguments)
             integrals.append(itg.reconstruct(fd))
         return Form(integrals)
 
     elif isinstance(form, Expr):
         # What we got was in fact an integrand
-        return CoefficientDerivative(form, functions, arguments)
+        return CoefficientDerivative(form, coefficients, arguments)
 
     error("Invalid argument type %s." % str(type(form)))
 
