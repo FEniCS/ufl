@@ -300,16 +300,16 @@ class StringDependencyDefiner(MultiFunction):
     Possible dependency values are:
         "c"       - depends on runtime information like the cell, local<->global coordinate mappings, facet normals, or coefficients
         "x"       - depends on local coordinates
-        "v%d" % i - depends on basis function i, for i in [0,rank)
+        "v%d" % i - depends on argument i, for i in [0,rank)
     """
-    def __init__(self, argument_deps = None, function_deps = None):
+    def __init__(self, argument_deps = None, coefficient_deps = None):
         MultiFunction.__init__(self)
         if argument_deps is None:
             argument_deps = {}
-        if function_deps is None:
-            function_deps = {}
+        if coefficient_deps is None:
+            coefficient_deps = {}
         self.argument_deps = argument_deps
-        self.function_deps = function_deps
+        self.coefficient_deps = coefficient_deps
 
     def expr(self, o):
         return frozenset()
@@ -320,11 +320,11 @@ class StringDependencyDefiner(MultiFunction):
 
     def coefficient(self, x):
         default = frozenset(("c", "x"))
-        return self.function_deps.get(x, default)
+        return self.coefficient_deps.get(x, default)
 
     def constant(self, x):
         default = frozenset(("c",))
-        return self.function_deps.get(x, default)
+        return self.coefficient_deps.get(x, default)
 
     def geometric_quantity(self, x):
         deps = frozenset(("c", "x",))

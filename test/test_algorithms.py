@@ -35,8 +35,8 @@ class AlgorithmsTestCase(UflTestCase):
         b = u*v*dx(0) +inner(c*grad(u),grad(v))*dx(1) + dot(n, grad(u))*v*ds + f*v*dx
 
         self.elements = (element,)
-        self.basis_functions = (v, u)
-        self.functions = (c, f)
+        self.arguments = (v, u)
+        self.coefficients = (c, f)
         self.forms = (a, L, b)
 
         if False:
@@ -58,13 +58,13 @@ class AlgorithmsTestCase(UflTestCase):
 
         if False:
             print
-            print [str(c) for c in self.functions]
+            print [str(c) for c in self.coefficients]
             print
             print str(self.forms[2])
             print
             print [str(b) for b in extract_arguments(self.forms[2])]
             print
-            print self.functions
+            print self.coefficients
             print
             print repr(self.forms[2])
             print
@@ -97,12 +97,12 @@ class AlgorithmsTestCase(UflTestCase):
         assert isinstance(aa, Product) and len(aa.operands()) == 2
         assert isinstance(ab, Product) and len(ab.operands()) == 2
 
-    def test_basis_functions(self):
-        assert self.basis_functions == tuple(extract_arguments(self.forms[0]))
-        assert tuple(self.basis_functions[:1]) == tuple(extract_arguments(self.forms[1]))
+    def test_arguments(self):
+        assert self.arguments == tuple(extract_arguments(self.forms[0]))
+        assert tuple(self.arguments[:1]) == tuple(extract_arguments(self.forms[1]))
 
-    def test_functions(self):
-        assert self.functions == tuple(extract_coefficients(self.forms[2]))
+    def test_coefficients(self):
+        assert self.coefficients == tuple(extract_coefficients(self.forms[2]))
 
     def test_elements(self):
         #print elements(self.forms[2])

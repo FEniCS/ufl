@@ -143,13 +143,13 @@ class Expression2LatexHandler(Transformer):
         return r"{\mathbf n}"
 
     def argument(self, o):
-        # Using ^ for function numbering and _ for indexing since indexing is more common than exponentiation
+        # Using ^ for argument numbering and _ for indexing since indexing is more common than exponentiation
         if self.argument_names is None:
             return bfname(o.count())
         return self.argument_names[o.count()]
 
     def coefficient(self, o):
-        # Using ^ for function numbering and _ for indexing since indexing is more common than exponentiation
+        # Using ^ for coefficient numbering and _ for indexing since indexing is more common than exponentiation
         if self.coefficient_names is None:
             return cfname(o.count())
         return self.coefficient_names[o.count()]
@@ -376,7 +376,7 @@ def form2latex(form, formdata):
     if lines:
         sections.append(("Function spaces", align(lines)))
 
-    # Define basis functions and coefficients
+    # Define arguments and coefficients
     lines = []
     for i, f in enumerate(formdata.arguments):
         lines.append("%s = %s \\in V_h^{%d} " % (argument_names[i], bfname(i), i))
@@ -470,7 +470,7 @@ def dependency_sorting(deplist, rank):
     precompute_quad, left = split(left, state)
     deplistlist.append(precompute_quad)
 
-    # Permutations of 0/1 dependence of basis functions
+    # Permutations of 0/1 dependence of arguments
     indices = compute_indices((2,)*rank)
     for bfs in indices[1:]: # skip (0,...,0), already handled that
         for i, bf in reversed(list(enumerate(bfs))):

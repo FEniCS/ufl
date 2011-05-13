@@ -178,10 +178,10 @@ class Form(object):
         ufl_assert(is_python_scalar(scalar), "Only multiplication by scalar literals currently supported.")
         return Form([scalar*itg for itg in self._integrals])
 
-    def __mul__(self, function):
-        "The action of this form on the given function."
+    def __mul__(self, coefficient):
+        "The action of this form on the given coefficient."
         from ufl.formoperators import action
-        return action(self, function)
+        return action(self, coefficient)
 
     def __str__(self):
         if self._str is None:

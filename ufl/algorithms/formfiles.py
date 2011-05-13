@@ -43,7 +43,6 @@ from ufl.algorithms.tuplenotation import as_form
 class FileData(object):
     def __init__(self):
         self.elements     = []
-        self.functions    = [] # FIXME: Remove this member once checked that FFC does not use this so nothing is broken
         self.coefficients = []
         self.expressions  = []
         self.forms        = []
@@ -167,13 +166,11 @@ def load_ufl_file(filename):
         "Expecting 'elements' to be a list of FiniteElementBase instances.")
 
     # Get list of exported coefficients
-    # Temporarily let 'coefficients' override 'functions', but allow 'functions' for compatibility
+    # TODO: Temporarily letting 'coefficients' override 'functions', but allow 'functions' for compatibility
     functions = namespace.get("functions", [])
     if functions:
         warning("Deprecation warning: Rename 'functions' to 'coefficients' to export coefficients.")
     ufd.coefficients = namespace.get("coefficients", functions)
-    ufd.functions = ufd.coefficients
-    # FIXME: Remove the above for FEniCS 1.0, this is enough:
     #ufd.coefficients = namespace.get("coefficients", [])
 
     # Validate types

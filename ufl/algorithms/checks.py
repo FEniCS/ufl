@@ -46,7 +46,7 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
 
     # FIXME: Add back check for multilinearity
     # Check that form is multilinear
-    #ufl_assert(is_multilinear(form), "Form is not multilinear in basis function arguments.")
+    #ufl_assert(is_multilinear(form), "Form is not multilinear in arguments.")
 
     # Check that cell is the same everywhere
     cells = set()
@@ -59,17 +59,17 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
 
     # Check that no Coefficient or Argument instance
     # have the same count unless they are the same
-    functions = {}
+    coefficients = {}
     arguments = {}
     for e in iter_expressions(form):
         for f in traverse_terminals(e):
             if isinstance(f, Coefficient):
                 c = f.count()
-                if c in functions:
-                    g = functions[c]
+                if c in coefficients:
+                    g = coefficients[c]
                     ufl_assert(f is g, "Got different Coefficients with same count: %s and %s." % (repr(f), repr(g)))
                 else:
-                    functions[c] = f
+                    coefficients[c] = f
 
             elif isinstance(f, Argument):
                 c = f.count()

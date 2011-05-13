@@ -617,7 +617,7 @@ class ArgumentDependencyExtracter(Transformer):
         return t
 
     def division(self, o, a, b):
-        "Basis functions cannot be in the denominator."
+        "Arguments cannot be in the denominator."
         if b:
             raise NotMultiLinearException, repr(o)
         return a
@@ -636,8 +636,8 @@ class ArgumentDependencyExtracter(Transformer):
             deps.update(d)
         return frozenset(deps)
 
-    # Product operands should not depend on the same basis functions
     def product(self, o, *opdeps):
+        # Product operands should not depend on the same Arguments
         c = []
         adeps, bdeps = opdeps # TODO: Generalize to any number of operands using permutations
         # for each frozenset ad in the frozenset adeps
@@ -851,10 +851,15 @@ def purge_duplications(e):
     occur more than once with a single instance."""
     return apply_transformer(e, DuplicationPurger())
 
-def extract_basis_function_dependencies(e): # FIXME: Rename
+def extract_argument_dependencies(e):
     "Extract a set of sets of Arguments."
     ufl_assert(isinstance(e, Expr), "Expecting an Expr.")
     return ArgumentDependencyExtracter().visit(e)
+
+def extract_basis_function_dependencies(e): # FIXME: Remove
+    warning("Deprecation warning, extract_basis_function_dependencies"\
+            "has been renamed to extract_argument_dependencies.")
+    return extract_argument_dependencies(e)
 
 def estimate_max_polynomial_degree(e, default_degree=1):
     """Estimate the maximum polymomial degree of all functions in the

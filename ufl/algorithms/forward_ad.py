@@ -579,8 +579,8 @@ class VariableAD(ForwardAD):
         self._variable_cache[l] = c
         return c
 
-class FunctionAD(ForwardAD):
-    "Apply AFD (Automatic Function Differentiation) to expression."
+class CoefficientAD(ForwardAD):
+    "Apply AFD (Automatic Functional Differentiation) to expression."
     def __init__(self, spatial_dim, coefficients, arguments, cache=None):
         ForwardAD.__init__(self, spatial_dim, var_shape=(), var_free_indices=(), var_index_dimensions={}, cache=cache)
         self._functions = zip(coefficients, arguments)
@@ -591,7 +591,7 @@ class FunctionAD(ForwardAD):
         # Define dw/dw := v (what we really mean by d/dw is d/dw_j where w = sum_j w_j phi_j, and what we really mean by v is phi_j for any j)
 
     def coefficient(self, o):
-        debug("In FunctionAD.coefficient:")
+        debug("In CoefficientAD.coefficient:")
         debug("o = %s" % o)
         debug("self._w = %s" % self._w)
         debug("self._v = %s" % self._v)
@@ -631,9 +631,9 @@ def compute_variable_forward_ad(expr, dim):
     e, ediff = alg.visit(f)
     return ediff
 
-def compute_function_forward_ad(expr, dim):
+def compute_coefficient_forward_ad(expr, dim):
     f, w, v = expr.operands()
-    alg = FunctionAD(dim, w, v)
+    alg = CoefficientAD(dim, w, v)
     e, ediff = alg.visit(f)
     return ediff
 
@@ -646,7 +646,7 @@ def forward_ad(expr, dim):
     elif isinstance(expr, VariableDerivative):
         result = compute_variable_forward_ad(expr, dim)
     elif isinstance(expr, CoefficientDerivative):
-        result = compute_function_forward_ad(expr, dim)
+        result = compute_coefficient_forward_ad(expr, dim)
     else:
         error("This shouldn't happen: expr is %s" % repr(expr))
     return result

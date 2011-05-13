@@ -1,4 +1,4 @@
-"Algorithm for splitting a Coefficient into sub functions."
+"Algorithm for splitting a Coefficient or Argument into subfunctions."
 
 # Copyright (C) 2008-2011 Martin Sandve Alnes
 #
@@ -30,43 +30,44 @@ from ufl.tensors import as_vector, as_matrix, as_tensor
 
 
 def split(v):
-    "Split Coefficient into its sub Coefficients if any."
-    
-    # Special case: simple element, return function
+    "Split Coefficient or Argument into its subfunctions if any."
+
+    # Special case: simple element, just return function in a tuple
     element = v.element()
     if not isinstance(element, MixedElement):
         return (v,)
-    
+
     if isinstance(element, TensorElement):
         s = element.symmetry()
         if s:
-            # TODO: How should this be defined? Should we return one subfunction
+            # FIXME: How should this be defined? Should we return one subfunction
             # for each value component or only for those not mapped to another?
+            # I think split should ignore the symmetry.
             error("Split not implemented for symmetric tensor elements.")
-    
+
     # Compute value size
     value_size = product(element.value_shape())
     actual_value_size = value_size
-    
-    # Extract sub functions
+
+    # Extract sub coefficient
     offset = 0
     sub_functions = []
     for i, e in enumerate(element.sub_elements()):
         shape = e.value_shape()
         rank = len(shape)
-        
+
         if rank == 0:
             # This subelement is a scalar, always maps to a single value
             subv = v[offset]
             offset += 1
-        
+
         elif rank == 1:
             # This subelement is a vector, always maps to a sequence of values
             sub_size, = shape
             components = [v[j] for j in range(offset, offset + sub_size)]
             subv = as_vector(components)
             offset += sub_size
-        
+
         elif rank == 2:
             # This subelement is a tensor, possibly with symmetries, slightly more complicated...
             
@@ -110,16 +111,16 @@ def split(v):
             # Make a matrix of the components
             subv = as_matrix(components)
             offset += sub_size
-        
+
         else:
             # TODO: Handle rank > 2? Or is there such a thing?
             error("Don't know how to split functions with sub functions of rank %d (yet)." % rank)
             #for indices in compute_indices(shape):
             #    #k = offset + sum(i*s for (i,s) in zip(indices, shape[1:] + (1,)))
             #    vs.append(v[indices])
-        
+
         sub_functions.append(subv)
-    
+
     ufl_assert(actual_value_size == offset, "Logic breach in function splitting.")
     
     return tuple(sub_functions)

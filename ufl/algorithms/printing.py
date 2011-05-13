@@ -68,7 +68,7 @@ def form_info(form):
     for f in cf:
         if f._name:
             s += "\n"
-            s += "  Function %d is named '%s'" % (f._count, f._name)
+            s += "  Coefficient %d is named '%s'" % (f._count, f._name)
     s += "\n"
 
     for itg in ci:
@@ -130,4 +130,3 @@ def tree_format(expression, indentation=0, parentheses=True):
         error("Invalid object type %s" % type(expression))
 
     return s
-

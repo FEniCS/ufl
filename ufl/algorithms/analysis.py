@@ -102,13 +102,12 @@ def extract_coefficients(a):
     which can be a Form, Integral or Expr."""
     return sorted(extract_type(a, Coefficient), cmp=cmp_counted)
 
-# FIXME: Why is this extra function needed, why not use
-# FIXME: the two functions above?
-# FIXME: Martin says: Possibly faster for large forms, calls extract_type only once, and it checks more.
-
 def extract_arguments_and_coefficients(a):
     """Build two sorted lists of all arguments and coefficients
     in a, which can be a Form, Integral or Expr."""
+
+    # This function is faster than extract_arguments + extract_coefficients
+    # for large forms, and has more validation built in.
 
     # Extract lists of all form argument instances
     terminals = extract_type(a, FormArgument)
@@ -121,14 +120,14 @@ def extract_arguments_and_coefficients(a):
 
     if len(bfcounts) != len(set(bfcounts.values())):
         msg = """\
-Found different basis function arguments with same counts.
+Found different Arguments with same counts.
 Did you combine test or trial functions from different spaces?
-The arguments found are:\n%s""" % "\n".join("  %s" % f for f in arguments)
+The Arguments found are:\n%s""" % "\n".join("  %s" % f for f in arguments)
         error(msg)
 
     if len(fcounts) != len(set(fcounts.values())):
         msg = """\
-Found different functions with same counts.
+Found different coefficients with same counts.
 The arguments found are:\n%s""" % "\n".join("  %s" % f for f in coefficients)
         error(msg)
 
@@ -261,7 +260,7 @@ def extract_max_quadrature_element_degree(integral):
     return max_degree
 
 def estimate_quadrature_degree(integral):
-    "Estimate the necessary quadrature order for integral using the sum of basis function degrees."
+    "Estimate the necessary quadrature order for integral using the sum of argument degrees."
     arguments = extract_arguments(integral)
     degrees = [v.element().degree() for v in arguments]
     if len(arguments) == 0:

@@ -1,5 +1,5 @@
 """This module defines the Coefficient class and a number
-of related classes (functions), including Constant."""
+of related classes, including Constant."""
 
 # Copyright (C) 2008-2011 Martin Sandve Alnes
 #
@@ -104,7 +104,7 @@ class Coefficient(FormArgument, Counted):
     def __eq__(self, other):
         return isinstance(other, Coefficient) and self._element == other._element and self._count == other._count
 
-# --- Subclasses for defining constant functions without specifying element ---
+# --- Subclasses for defining constant coefficients without specifying element ---
 
 # TODO: Handle actual global constants?
 
