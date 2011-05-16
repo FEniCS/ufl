@@ -21,6 +21,7 @@
 # Last changed: 2009-04-25
 
 from ufl.log import error, warning
+from ufl.assertions import ufl_assert
 from ufl.common import Counted
 from ufl.terminal import UtilityType
 
@@ -99,7 +100,7 @@ class MultiIndex(UtilityType):
             ii = tuple(as_index(j) for j in ii)
         else:
             error("Expecting tuple of UFL indices.")
-        
+
         # TODO: Remove "idims is None" when it can no longer occur
         if idims is None:
             warning("No index dimensions provided in MultiIndex.")
@@ -110,7 +111,9 @@ class MultiIndex(UtilityType):
                 if isinstance(k, Index):
                     if not k in idims:
                         error("Missing index in the provided idims.")
-
+                    else:
+                        ufl_assert(isinstance(idims[k], int),
+                                   "Non-integer index dimension provided.")
         self._indices = ii
         self._idims = idims
         self._str = ", ".join(str(i) for i in self._indices)
