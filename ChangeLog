@@ -1,3 +1,4 @@
+0.9.1 [2011-05-16]
  - Remove set_foo functions in finite element classes
  - Change license from GPL v3 or later to LGPL v3 or later
  - Change behavior of preprocess(), form.compute_form_data(), form_data.preprocessed_form

@@ -24,14 +24,13 @@ with it.
 The classes and algorithms are considered implementation details and
 should not be used in form definitions.
 
-For more details on the language, see the manual or the
-wiki pages at
+For more details on the language, see
 
-  http://www.fenics.org/wiki/UFL/
+  http://www.fenicsproject.org
 
 The development version can be found in the repository at
 
-  http://www.fenics.org/hg/ufl/
+  https://launchpad.net/ufl/
 
 A very brief overview of the language contents follows:
 
