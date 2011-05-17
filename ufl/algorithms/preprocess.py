@@ -147,7 +147,7 @@ def extract_common_cell(form, common_cell=None):
 
     # Check common cell
     if common_cell is None or common_cell.is_undefined():
-        error("Unable to extract common cell;"\
+        error("Unable to extract common cell; "\
               "missing cell definition in form.")
 
     return common_cell
