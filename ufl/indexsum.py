@@ -31,10 +31,20 @@ class IndexSum(AlgebraOperator):
     __slots__ = ("_summand", "_index", "_dimension", "_repr", "_free_indices", "_index_dimensions")
     
     def __new__(cls, summand, index):
+        if not isinstance(summand, Expr):
+            error("Expecting Expr instance, not %s." % repr(summand))
+
         from ufl.constantvalue import Zero
         if isinstance(summand, Zero):
             sh = summand.shape()
-            j, = index
+
+            if isinstance(index, Index):
+                j = index
+            elif isinstance(index, MultiIndex):
+                if len(index) != 1:
+                    error("Expecting a single Index only.")
+                j, = index
+
             fi = tuple(i for i in summand.free_indices() if not i == j)
             idims = dict(summand.index_dimensions())
             del idims[j]
@@ -43,9 +53,7 @@ class IndexSum(AlgebraOperator):
 
     def __init__(self, summand, index):
         AlgebraOperator.__init__(self)
-        if not isinstance(summand, Expr):
-            error("Expecting Expr instance, not %s." % repr(summand))
-        
+
         if isinstance(index, Index):
             j = index
         elif isinstance(index, MultiIndex):
