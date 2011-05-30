@@ -171,7 +171,7 @@ def build_element_mapping(element_mapping, common_cell, arguments, coefficients)
     for f in chain(arguments, coefficients):
         e = f.element()
         if e in element_mapping:
-            ufl_assert(not element_mapping[e].is_undefined(),
+            ufl_assert(not element_mapping[e].cell().is_undefined(),
                 "Found element with undefined cell in given element mapping.")
         elif e.cell().is_undefined():
             ufl_assert(not common_cell.is_undefined(),
