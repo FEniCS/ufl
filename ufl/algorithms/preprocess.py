@@ -33,6 +33,7 @@ from ufl.algorithms.analysis import extract_arguments_and_coefficients, build_ar
 from ufl.algorithms.analysis import extract_elements, extract_sub_elements
 from ufl.algorithms.analysis import extract_num_sub_domains, extract_integral_data, unique_tuple
 from ufl.algorithms.formdata import FormData
+from itertools import chain
 
 def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
     """
@@ -70,6 +71,8 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
 
     # Replace arguments and coefficients with new renumbered objects
     arguments, coefficients = extract_arguments_and_coefficients(form)
+    element_mapping = build_element_mapping(element_mapping, common_cell,
+                                            arguments, coefficients)
     replace_map, arguments, coefficients = \
         build_argument_replace_map(arguments, coefficients, element_mapping)
     form = replace(form, replace_map)
@@ -151,3 +154,28 @@ def extract_common_cell(form, common_cell=None):
               "missing cell definition in form.")
 
     return common_cell
+
+def build_element_mapping(element_mapping, common_cell, arguments, coefficients):
+    """Complete an element mapping for all elements used by
+    arguments and coefficients, using a well defined common cell."""
+
+    # Make a copy to avoid modifying the dict passed from non-ufl code
+    element_mapping = dict(element_mapping)
+
+    # Check that the given initial mapping has no invalid entries
+    for v in element_mapping.itervalues():
+        ufl_assert(not v.cell().is_undefined(),
+                   "Found element with undefined cell in element mapping.")
+
+    # Reconstruct all elements we need to map
+    for f in chain(arguments, coefficients):
+        e = f.element()
+        if e in element_mapping:
+            ufl_assert(not element_mapping[e].is_undefined(),
+                "Found element with undefined cell in given element mapping.")
+        elif e.cell().is_undefined():
+            ufl_assert(not common_cell.is_undefined(),
+                "Cannot reconstruct elements with another undefined cell!")
+            element_mapping[e] = e.reconstruct(cell=common_cell)
+
+    return element_mapping
