@@ -278,16 +278,13 @@ def unique_tuple(objects):
     return tuple(unique_objects)
 
 def extract_num_sub_domains(form):
-    "Extract the number of sub domains for each domain type."
+    "Extract the upper limit of sub domain ids for each domain type."
     num_domains = {}
-    for domain_type in _domain_types:
-        num_domains[domain_type] = 0
     for integral in form.integrals():
         domain_type = integral.measure().domain_type()
         domain_id = integral.measure().domain_id()
-        num_domains[domain_type] = max(num_domains[domain_type], domain_id + 1)
-    num_domains = tuple([num_domains[domain_type] for domain_type in _domain_types])
-    return num_domains
+        num_domains[domain_type] = max(num_domains.get(domain_type, 0), domain_id + 1)
+    return tuple(num_domains.get(domain_type, 0) for domain_type in _domain_types)
 
 def extract_integral_data(form):
     """
@@ -315,10 +312,7 @@ def extract_integral_data(form):
     # interior, and macro) so we can just sort... :-)
 
     # Sort by domain type and number
-    integral_data = [(d, n, i, {}) for ((d, n), i) in integral_data.iteritems()]
-    integral_data.sort()
-
-    return integral_data
+    return sorted((d, n, i, {}) for ((d, n), i) in integral_data.iteritems())
 
 def sort_elements(elements):
     """
