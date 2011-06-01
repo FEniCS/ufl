@@ -10,28 +10,38 @@ class UflTestCase(unittest.TestCase):
         #print "UflTestCase.tearDown"
         super(UflTestCase, self).tearDown()
 
-    def assertIsInstance(self, obj, cl):
-        self.assertTrue(isinstance(obj, cl))
+    ### Asserts available in TestCase from python 2.7:
 
-    def assertNotInstance(self, obj, cl):
-        self.assertFalse(isinstance(obj, cl))
+    def _assertIsInstance(self, obj, cl, msg=None):
+        self.assertTrue(isinstance(obj, cl), msg=None)
 
-    def assertIndices(self, expr, free_indices):
-        self.assertEqual(expr.free_indices(), free_indices)
+    def _assertNotIsInstance(self, obj, cl, msg=None):
+        self.assertFalse(isinstance(obj, cl), msg=msg)
 
-    def assertShape(self, expr, shape):
-        self.assertEqual(expr.shape(), shape)
+    ### UFL specific asserts
 
-    def assertExprProperties(self, expr, shape=None, free_indices=None, terminal=None):
+    def assertSameIndices(self, expr, free_indices, msg=None):
+        self.assertEqual(expr.free_indices(), free_indices, msg=msg)
+
+    def assertSameShape(self, expr, shape, msg=None):
+        self.assertEqual(expr.shape(), shape, msg=msg)
+
+    def assertSameExprProps(self, expr, shape=None, free_indices=None, terminal=None, msg=None):
         if shape is not None:
-            self.assertShape(expr, shape)
+            self.assertSameShape(expr, shape, msg=msg)
         if free_indices is not None:
-            self.assertIndices(expr, free_indices)
+            self.assertSameIndices(expr, free_indices, msg=msg)
         if terminal is not None:
             if terminal:
-                self.assertIsInstance(expr, Terminal)
+                self.assertIsInstance(expr, Terminal, msg=msg)
             else:
-                self.assertIsInstance(expr, Operator)
+                self.assertIsInstance(expr, Operator, msg=msg)
+
+
+# Hack for different versions of python unittest:
+for func in ('assertIsInstance', 'assertNotIsInstance'):
+    if not hasattr(UflTestCase, func):
+        setattr(UflTestCase, func, getattr(UflTestCase, '_'+func))
 
 def main(*args, **kwargs):
     "Hook to do something before running single file tests."

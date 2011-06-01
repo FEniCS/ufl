@@ -190,12 +190,12 @@ class IndexTestCase(UflTestCase):
         # make it a tensor
         C = as_tensor(Cijkl, (i,j,k,l))
         self.assertEqual(C.rank(), 4)
-        self.assertIndices(C, ())
+        self.assertSameIndices(C, ())
 
         # get sub-matrix
         A = C[:,:,0,0]
         self.assertEqual(A.rank(), 2)
-        self.assertIndices(A, ())
+        self.assertSameIndices(A, ())
         A = C[:,:,i,j]
         self.assertEqual(A.rank(), 2)
         self.assertEqual(set(A.free_indices()), set((i,j)))
@@ -228,13 +228,13 @@ class IndexTestCase(UflTestCase):
         i, j, k, l = indices(4) 
         
         a = v[i]
-        self.assertIndices(a, (i,))
+        self.assertSameIndices(a, (i,))
         
         a = outer(v,u)[i,j]
-        self.assertIndices(a, (i,j))
+        self.assertSameIndices(a, (i,j))
         
         a = outer(v,u)[i,i]
-        self.assertIndices(a, ())
+        self.assertSameIndices(a, ())
         self.assertIsInstance(a, IndexSum)
 
     def test_spatial_derivative(self):
@@ -246,38 +246,38 @@ class IndexTestCase(UflTestCase):
         d = cell.d
         
         a = v[i].dx(i)
-        self.assertIndices(a, ())
+        self.assertSameIndices(a, ())
         self.assertIsInstance(a, IndexSum)
         self.assertEqual(a.shape(), ())
         
         a = v[i].dx(j)
-        self.assertIndices(a, (i,j))
-        self.assertNotInstance(a, IndexSum)
+        self.assertSameIndices(a, (i,j))
+        self.assertNotIsInstance(a, IndexSum)
         self.assertEqual(a.shape(), ())
         
         a = (v[i]*u[j]).dx(i,j)
-        self.assertIndices(a, ())
+        self.assertSameIndices(a, ())
         self.assertIsInstance(a, IndexSum)
         self.assertEqual(a.shape(), ())
         
         a = v.dx(i,j)
-        self.assertIndices(a, (i,j))
-        self.assertNotInstance(a, IndexSum)
+        self.assertSameIndices(a, (i,j))
+        self.assertNotIsInstance(a, IndexSum)
         self.assertEqual(a.shape(), (d,))
         
         a = v[i].dx(0)
-        self.assertIndices(a, (i,))
-        self.assertNotInstance(a, IndexSum)
+        self.assertSameIndices(a, (i,))
+        self.assertNotIsInstance(a, IndexSum)
         self.assertEqual(a.shape(), ())
         
         a = (v[i]*u[j]).dx(0, 1)
         # indices change place because of sorting, I guess this may be ok
         self.assertEqual(set(a.free_indices()), set((i,j)))
-        self.assertNotInstance(a, IndexSum)
+        self.assertNotIsInstance(a, IndexSum)
         self.assertEqual(a.shape(), ())
         
         a = v.dx(i)[i]
-        self.assertIndices(a, ())
+        self.assertSameIndices(a, ())
         self.assertIsInstance(a, IndexSum)
         self.assertEqual(a.shape(), ())
 
