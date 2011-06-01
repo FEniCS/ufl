@@ -16,9 +16,31 @@ from ufl.algorithms import *
 
 class FormsTestCase(UflTestCase):
 
-    def setUp(self):
-        pass
-     
+    def test_measures_with_domain_data(self):
+        # Configure measure with some arbitrary data object as domaindata
+        domaindata = ('Stokes', 'Darcy')
+        dX = dx[domaindata]
+
+        # Build form with this domaindata
+        element = FiniteElement("Lagrange", triangle, 1)
+        f = Coefficient(element)
+        a = f*dX(0) + f**2*dX(1)
+
+        # Check that we get an error when using dX without domain id
+        self.assertRaises(UFLException, lambda: f*dX)
+
+        # Check that we get the right domaindata from the preprocessed form data
+        f2 = f.reconstruct(count=0)
+        fd = a.compute_form_data()
+        for itd in fd.integral_data:
+            t, i, itg, md = itd
+            self.assertEqual(t, 'cell')
+            self.assertEqual(md, {})
+            self.assertEqual(itg[0].integrand(), f2**(i+1))
+            self.assertEqual(itg[0].measure().domaindata(), domaindata)
+
+        # TODO: Want to get the domaindata an easier way after preprocess, add test for that and implement
+
     def test_separated_dx(self):
         "Tests automatic summation of integrands over same domain."
         element = FiniteElement("Lagrange", triangle, 1)
@@ -33,13 +55,13 @@ class FormsTestCase(UflTestCase):
         v = TestFunction(element)
         f = Coefficient(element)
         a = f*v*dx
-        
+
     def test_source2(self):
         element = VectorElement("Lagrange", triangle, 1)
         v = TestFunction(element)
         f = Coefficient(element)
         a = dot(f,v)*dx
-        
+
     def test_source3(self):
         element = TensorElement("Lagrange", triangle, 1)
         v = TestFunction(element)
@@ -53,6 +75,7 @@ class FormsTestCase(UflTestCase):
         f = sin(x[0])
         a = f*v*dx
 
+
     def test_mass1(self):
         element = FiniteElement("Lagrange", triangle, 1)
         v = TestFunction(element)
@@ -64,13 +87,13 @@ class FormsTestCase(UflTestCase):
         v = TestFunction(element)
         u = TrialFunction(element)
         a = u*v*dx
-        
+
     def test_mass3(self):
         element = VectorElement("Lagrange", triangle, 1)
         v = TestFunction(element)
         u = TrialFunction(element)
         a = dot(u,v)*dx
-        
+
     def test_mass4(self):
         element = TensorElement("Lagrange", triangle, 1)
         v = TestFunction(element)

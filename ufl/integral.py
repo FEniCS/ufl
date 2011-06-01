@@ -26,6 +26,9 @@ from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.constantvalue import is_true_ufl_scalar, is_python_scalar
 
+# TODO: Define some defaults as to how metadata should represent integration data here?
+# quadrature_degree, quadrature_rule, ...
+
 def register_domain_type(domain_type, measure_name):
     domain_type = domain_type.replace(" ", "_")
     if domain_type in Measure._domain_types:
@@ -37,29 +40,35 @@ def register_domain_type(domain_type, measure_name):
 
 class Measure(object):
     """A measure for integration."""
-    __slots__ = ("_domain_type", "_domain_id", "_metadata", "_repr")
-    def __init__(self, domain_type, domain_id = 0, metadata = None):
+    __slots__ = ("_domain_type", "_domain_id", "_metadata", "_domaindata", "_repr")
+    def __init__(self, domain_type, domain_id=0, metadata=None, domaindata=None):
         self._domain_type = domain_type.replace(" ", "_")
         ufl_assert(self._domain_type in Measure._domain_types, "Invalid domain type.")
-        self._domain_id   = domain_id
-        self._metadata    = metadata
-        self._repr        = "Measure(%r, %r, %r)" % (self._domain_type, self._domain_id, self._metadata)
+        self._domain_id = domain_id
+        self._metadata = metadata
+        self._domaindata = domaindata
+        self._repr = "Measure(%r, %r, %r, %r)" % (self._domain_type, self._domain_id,
+                                                  self._metadata, self._domaindata)
 
-    def reconstruct(self, domain_id=None, metadata=None):
+    def reconstruct(self, domain_id=None, metadata=None, domaindata=None):
         """Construct a new Measure object with some properties replaced with new values.
 
         Example:
-            <a = Measure instance>
-            b = a.reconstruct(domain_id=2)
-            c = a.reconstruct(metadata={"quadrature_order":3})
+            <dm = Measure instance>
+            b = dm.reconstruct(domain_id=2)
+            c = dm.reconstruct(metadata={ "quadrature_degree": 3 })
 
         Used by the call operator, so this is equivalent:
-            b = a(2)
-            c = a(0, {"quadrature_order":3})
+            b = dm(2)
+            c = dm(0, { "quadrature_degree": 3 })
         """
-        if domain_id is None: domain_id = self._domain_id
-        if metadata  is None: metadata  = self._metadata
-        return Measure(self._domain_type, domain_id, metadata)
+        if domain_id is None:
+            domain_id = self._domain_id
+        if metadata is None:
+            metadata  = self._metadata
+        if domaindata  is None:
+            domaindata  = self._domaindata
+        return Measure(self._domain_type, domain_id, metadata, domaindata)
 
     # Enumeration of valid domain types
     CELL = "cell"
@@ -74,6 +83,8 @@ class Measure(object):
         MACRO_CELL: "dE",
         SURFACE: "dc"
         }
+    # Constant for undefined domain id
+    UNDEFINED_DOMAIN_ID = "undefined"
 
     def domain_type(self):
         'Return the domain type, one of "cell", "exterior_facet" or "interior_facet".'
@@ -84,17 +95,35 @@ class Measure(object):
         return self._domain_id
 
     def metadata(self):
-        "Return the integral metadata. What this can be is currently undefined." # TODO!
+        """Return the integral metadata. This data is not interpreted by UFL.
+        It is passed to the form compiler which can ignore it or use it to
+        compile each integral of a form in a different way."""
         return self._metadata
 
-    def __call__(self, domain_id=None, metadata=None): # TODO: Define how metadata should represent integration data here: quadrature_degree, quadrature_rule, ...
-        "Return integral of same type on given sub domain"
+    def domaindata(self):
+        """Return the integral domaindata. This data is not interpreted by UFL.
+        Its intension is to give a context in which the domain id is interpreted."""
+        return self._domaindata
+
+    def __getitem__(self, domaindata):
+        """Return a new Measure for same integration type with an attached
+        context for interpreting domain ids. The default ID of this new Measure
+        is undefined, and thus it must be qualified with a domain id to use
+        in an integral. Example: dx = dx[boundaries]; L = f*v*dx(0) + g*v+dx(1)."""
+        return self.reconstruct(domain_id=Measure.UNDEFINED_DOMAIN_ID, domaindata=domaindata)
+
+    def __call__(self, domain_id=None, metadata=None):
+        """Return integral of same type on given sub domain,
+        optionally with some metadata attached."""
         return self.reconstruct(domain_id=domain_id, metadata=metadata)
 
     def __mul__(self, other):
         error("Can't multiply Measure from the right (with %r)." % (other,))
 
     def __rmul__(self, integrand):
+        if self._domain_id == Measure.UNDEFINED_DOMAIN_ID:
+            error("Missing domain id. You need to select a subdomain, " +\
+                  "e.g. M = f*dx(0) for subdomain 0.")
         if isinstance(integrand, tuple):
             error("Mixing tuple and integrand notation not allowed.")
         #    from ufl.expr import Expr
@@ -105,7 +134,6 @@ class Measure(object):
         #        and isinstance(integrand[1], Expr),
         #        "Invalid integrand %s." % repr(integrand))
         #    integrand = inner(integrand[0], integrand[1])
-
         ufl_assert(is_true_ufl_scalar(integrand),
             "Trying to integrate expression of rank %d with free indices %r." \
             % (integrand.rank(), integrand.free_indices()))
