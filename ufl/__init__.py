@@ -86,6 +86,10 @@ A very brief overview of the language contents follows:
     det, inv, cofac,
     dev, skew, sym,
 
+* Elementwise tensor operators::
+
+    elem_mult, elem_div, elem_pow, elem_op
+
 * Differential operators::
 
     variable, diff,
@@ -136,7 +140,7 @@ A very brief overview of the language contents follows:
 # First added:  2011-04-08
 # Last changed: 2010-02-01
 
-__version__ = "0.9.1"
+__version__ = "0.9.1+"
 
 ########## README
 # Imports here should be what the user sees when doing "from ufl import *",
@@ -197,8 +201,9 @@ from ufl.operators import rank, shape, \
                        sqrt, exp, ln, cos, sin, tan, acos, asin, atan, \
                        eq, ne, le, ge, lt, gt, conditional, sign, \
                        variable, diff, \
-                       Dx,  grad, div, curl, rot, Dn, exterior_derivative,\
-                       jump, avg
+                       Dx,  grad, div, curl, rot, Dn, exterior_derivative, \
+                       jump, avg, \
+                       elem_mult, elem_div, elem_pow, elem_op
 
 # Lifting
 from ufl.lifting import LiftingFunction, LiftingOperator

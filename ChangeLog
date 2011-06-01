@@ -1,6 +1,8 @@
 0.9.? [?]
  - Added syntax for associating an arbitrary domain data object with a measure:
 	dss = ds[boundaries]; M = f*dss(1) + g*dss(2)
+ - Added new operators elem_mult, elem_div, elem_pow and elem_op for
+   elementwise application of scalar operators to tensors of equal shape
 0.9.1 [2011-05-16]
  - Remove set_foo functions in finite element classes
  - Change license from GPL v3 or later to LGPL v3 or later

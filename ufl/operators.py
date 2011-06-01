@@ -24,6 +24,7 @@ objects."""
 # Last changed: 2010-12-04
 
 import math
+import operator
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.form import Form
@@ -48,6 +49,43 @@ def shape(f):
     "The shape of f."
     f = as_ufl(f)
     return f.shape()
+
+#--- Elementwise tensor operators ---
+
+def elem_op_items(op_ind, indices, *args):
+    sh = args[0].shape()
+    n = sh[len(indices)]
+    def extind(ii):
+        return tuple(list(indices) + [ii])
+    if len(sh) == len(indices)+1:
+        return [op_ind(extind(i), *args) for i in range(n)]
+    else:
+        return [elem_op_items(op_ind, extind(i), *args) for i in range(n)]
+
+def elem_op(op, *args):
+    "The elementwise application of operator op on one or more tensor arguments."
+    args = map(as_ufl, args)
+    sh = args[0].shape()
+    ufl_assert(all(sh == x.shape() for x in args),
+               "Cannot take elementwise operation with different shapes.")
+    if sh == ():
+        return op(*args)
+    def op_ind(ind, *args):
+        return op(*[x[ind] for x in args])
+    return as_tensor(elem_op_items(op_ind, (), *args))
+
+def elem_mult(A, B):
+    "The elementwise multiplication of the tensors A and B with the same shape."
+    return elem_op(operator.mul, A, B)
+
+def elem_div(A, B):
+    "The elementwise division of the tensors A and B with the same shape."
+    return elem_op(operator.div, A, B)
+
+def elem_pow(A, B):
+    "The elementwise power of the tensors A and B with the same shape."
+    return elem_op(operator.pow, A, B)
+
 
 #--- Tensor operators ---
 
