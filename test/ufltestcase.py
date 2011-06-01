@@ -18,6 +18,15 @@ class UflTestCase(unittest.TestCase):
     def _assertNotIsInstance(self, obj, cl, msg=None):
         self.assertFalse(isinstance(obj, cl), msg=msg)
 
+    def _assertIs(self, obj, cl, msg=None):
+        self.assertTrue(obj is cl, msg=None)
+
+    def _assertIsNot(self, obj, cl, msg=None):
+        self.assertTrue(obj is not cl, msg=msg)
+
+    def _assertIsNone(self, obj, msg=None):
+        self.assertTrue(obj is None, msg=msg)
+
     ### UFL specific asserts
 
     def assertSameIndices(self, expr, free_indices, msg=None):
@@ -39,7 +48,7 @@ class UflTestCase(unittest.TestCase):
 
 
 # Hack for different versions of python unittest:
-for func in ('assertIsInstance', 'assertNotIsInstance'):
+for func in ('assertIsInstance', 'assertNotIsInstance', 'assertIs', 'assertIsNot', 'assertIsNone'):
     if not hasattr(UflTestCase, func):
         setattr(UflTestCase, func, getattr(UflTestCase, '_'+func))
 
