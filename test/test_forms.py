@@ -17,11 +17,11 @@ from ufl.algorithms import *
 class FormsTestCase(UflTestCase):
 
     def test_measures_with_domain_data(self):
-        # Configure measure with some arbitrary data object as domaindata
-        domaindata = ('Stokes', 'Darcy')
-        dX = dx[domaindata]
+        # Configure measure with some arbitrary data object as domain_data
+        domain_data = ('Stokes', 'Darcy')
+        dX = dx[domain_data]
 
-        # Build form with this domaindata
+        # Build form with this domain_data
         element = FiniteElement("Lagrange", triangle, 1)
         f = Coefficient(element)
         a = f*dX(0) + f**2*dX(1)
@@ -29,7 +29,7 @@ class FormsTestCase(UflTestCase):
         # Check that we get an error when using dX without domain id
         self.assertRaises(UFLException, lambda: f*dX)
 
-        # Check that we get the right domaindata from the preprocessed form data
+        # Check that we get the right domain_data from the preprocessed form data
         f2 = f.reconstruct(count=0)
         fd = a.compute_form_data()
         for itd in fd.integral_data:
@@ -37,9 +37,9 @@ class FormsTestCase(UflTestCase):
             self.assertEqual(t, 'cell')
             self.assertEqual(md, {})
             self.assertEqual(itg[0].integrand(), f2**(i+1))
-            self.assertEqual(itg[0].measure().domaindata(), domaindata)
+            self.assertEqual(itg[0].measure().domain_data(), domain_data)
 
-        # TODO: Want to get the domaindata an easier way after preprocess, add test for that and implement
+        # TODO: Want to get the domain_data an easier way after preprocess, add test for that and implement
 
     def test_separated_dx(self):
         "Tests automatic summation of integrands over same domain."

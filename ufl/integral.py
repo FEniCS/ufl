@@ -40,17 +40,17 @@ def register_domain_type(domain_type, measure_name):
 
 class Measure(object):
     """A measure for integration."""
-    __slots__ = ("_domain_type", "_domain_id", "_metadata", "_domaindata", "_repr")
-    def __init__(self, domain_type, domain_id=0, metadata=None, domaindata=None):
+    __slots__ = ("_domain_type", "_domain_id", "_metadata", "_domain_data", "_repr")
+    def __init__(self, domain_type, domain_id=0, metadata=None, domain_data=None):
         self._domain_type = domain_type.replace(" ", "_")
         ufl_assert(self._domain_type in Measure._domain_types, "Invalid domain type.")
         self._domain_id = domain_id
         self._metadata = metadata
-        self._domaindata = domaindata
+        self._domain_data = domain_data
         self._repr = "Measure(%r, %r, %r, %r)" % (self._domain_type, self._domain_id,
-                                                  self._metadata, self._domaindata)
+                                                  self._metadata, self._domain_data)
 
-    def reconstruct(self, domain_id=None, metadata=None, domaindata=None):
+    def reconstruct(self, domain_id=None, metadata=None, domain_data=None):
         """Construct a new Measure object with some properties replaced with new values.
 
         Example:
@@ -65,10 +65,10 @@ class Measure(object):
         if domain_id is None:
             domain_id = self._domain_id
         if metadata is None:
-            metadata  = self._metadata
-        if domaindata  is None:
-            domaindata  = self._domaindata
-        return Measure(self._domain_type, domain_id, metadata, domaindata)
+            metadata = self._metadata
+        if domain_data is None:
+            domain_data = self._domain_data
+        return Measure(self._domain_type, domain_id, metadata, domain_data)
 
     # Enumeration of valid domain types
     CELL = "cell"
@@ -100,17 +100,17 @@ class Measure(object):
         compile each integral of a form in a different way."""
         return self._metadata
 
-    def domaindata(self):
-        """Return the integral domaindata. This data is not interpreted by UFL.
+    def domain_data(self):
+        """Return the integral domain_data. This data is not interpreted by UFL.
         Its intension is to give a context in which the domain id is interpreted."""
-        return self._domaindata
+        return self._domain_data
 
-    def __getitem__(self, domaindata):
+    def __getitem__(self, domain_data):
         """Return a new Measure for same integration type with an attached
         context for interpreting domain ids. The default ID of this new Measure
         is undefined, and thus it must be qualified with a domain id to use
         in an integral. Example: dx = dx[boundaries]; L = f*v*dx(0) + g*v+dx(1)."""
-        return self.reconstruct(domain_id=Measure.UNDEFINED_DOMAIN_ID, domaindata=domaindata)
+        return self.reconstruct(domain_id=Measure.UNDEFINED_DOMAIN_ID, domain_data=domain_data)
 
     def __call__(self, domain_id=None, metadata=None):
         """Return integral of same type on given sub domain,

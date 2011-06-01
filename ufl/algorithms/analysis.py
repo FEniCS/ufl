@@ -277,21 +277,21 @@ def unique_tuple(objects):
             unique_objects.append(object)
     return tuple(unique_objects)
 
-def extract_domaindata(form):
-    "Extract the domaindata attached to integrals of each domain type in form."
-    domaindata = {}
+def extract_domain_data(form):
+    "Extract the domain_data attached to integrals of each domain type in form."
+    domain_data = {}
     for integral in form.integrals():
         domain_type = integral.measure().domain_type()
-        data = integral.measure().domaindata()
-        # Check that there is only one domaindata object for each integral type
-        existing_data = domaindata.get(domain_type)
+        data = integral.measure().domain_data()
+        # Check that there is only one domain_data object for each integral type
+        existing_data = domain_data.get(domain_type)
         if existing_data is None:
-            domaindata[domain_type] = data
+            domain_data[domain_type] = data
         else:
-            # Not assuming anything about domaindata type, not even an equals operator!
+            # Not assuming anything about domain_data type, not even an equals operator!
             ufl_assert(existing_data is data,
                        "Found two domain data objects for same intergral type.")
-    return tuple(map(domaindata.get, _domain_types))
+    return tuple(map(domain_data.get, _domain_types))
 
 def extract_num_sub_domains(form):
     "Extract the upper limit of sub domain ids for each domain type."
