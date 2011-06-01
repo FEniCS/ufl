@@ -38,18 +38,19 @@ from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.variable import Variable
 from ufl.tensors import ListTensor, ComponentTensor
-from ufl.tensoralgebra import Transposed, Inner, Dot, Outer, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor, Skew
+from ufl.tensoralgebra import Transposed, Inner, Dot, Outer, Cross, Trace
+from ufl.tensoralgebra import Determinant, Inverse, Deviatoric, Cofactor, Skew
 from ufl.restriction import PositiveRestricted, NegativeRestricted
 from ufl.differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.indexing import Indexed, Index, MultiIndex
 from ufl.form import Form
-from ufl.integral import Integral
+from ufl.integral import Integral, Measure
 from ufl.classes import terminal_classes, nonterminal_classes
 from ufl.algorithms.traversal import iter_expressions, post_traversal, post_walk, traverse_terminals
 
 # Domain types (should probably be listed somewhere else)
-_domain_types = ("cell", "exterior_facet", "interior_facet", "macro_cell", "surface")
+_domain_types = Measure._domain_types_tuple
 
 #--- Utilities to extract information from an expression ---
 
@@ -290,8 +291,8 @@ def extract_domain_data(form):
         else:
             # Not assuming anything about domain_data type, not even an equals operator!
             ufl_assert(existing_data is data,
-                       "Found two domain data objects for same intergral type.")
-    return tuple(map(domain_data.get, _domain_types))
+                       "Found two domain data objects for same domain type.")
+    return domain_data
 
 def extract_num_sub_domains(form):
     "Extract the upper limit of sub domain ids for each domain type."
@@ -300,7 +301,7 @@ def extract_num_sub_domains(form):
         domain_type = integral.measure().domain_type()
         domain_id = integral.measure().domain_id()
         num_domains[domain_type] = max(num_domains.get(domain_type, 0), domain_id + 1)
-    return tuple(num_domains.get(domain_type, 0) for domain_type in _domain_types)
+    return num_domains
 
 def extract_integral_data(form):
     """

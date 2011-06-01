@@ -25,12 +25,12 @@ raw input form given by a user."""
 from ufl.log import info, debug, warning, error
 from ufl.assertions import ufl_assert
 from ufl.form import Form
-
+from ufl.common import slice_dict
 from ufl.algorithms.ad import expand_derivatives
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.algorithms.transformations import replace
 from ufl.algorithms.analysis import extract_arguments_and_coefficients, build_argument_replace_map
-from ufl.algorithms.analysis import extract_elements, extract_sub_elements, unique_tuple
+from ufl.algorithms.analysis import extract_elements, extract_sub_elements, unique_tuple, _domain_types
 from ufl.algorithms.analysis import extract_num_sub_domains, extract_domain_data, extract_integral_data
 from ufl.algorithms.formdata import FormData
 from itertools import chain
@@ -127,18 +127,20 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
          for i in range(form_data.num_coefficients)]
 
     # Store number of domains for integral types
+    form_data.num_sub_domains = extract_num_sub_domains(form)
     (form_data.num_cell_domains,
      form_data.num_exterior_facet_domains,
      form_data.num_interior_facet_domains,
      form_data.num_macro_cell_domains,
-     form_data.num_surface_domains) = extract_num_sub_domains(form)
+     form_data.num_surface_domains) = slice_dict(form_data.num_sub_domains, _domain_types, 0)
 
     # Store number of domains for integral types
+    form_data.domain_data = extract_domain_data(form)
     (form_data.cell_domain_data,
      form_data.exterior_facet_domain_data,
      form_data.interior_facet_domain_data,
      form_data.macro_cell_domain_data,
-     form_data.surface_domain_data) = extract_domain_data(form)
+     form_data.surface_domain_data) = slice_dict(form_data.domain_data, _domain_types, None)
 
     # Store integrals stored by type and sub domain
     form_data.integral_data = extract_integral_data(form)
