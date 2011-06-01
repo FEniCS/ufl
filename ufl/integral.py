@@ -83,6 +83,8 @@ class Measure(object):
         MACRO_CELL: "dE",
         SURFACE: "dc"
         }
+    _domain_types_tuple = (CELL, EXTERIOR_FACET, INTERIOR_FACET, MACRO_CELL, SURFACE)
+
     # Constant for undefined domain id
     UNDEFINED_DOMAIN_ID = "undefined"
 
