@@ -105,6 +105,9 @@ def split_dict(d, criteria):
             b[k] = v
     return a, b
 
+def slice_dict(dictionary, keys, default=None):
+    return tuple(dictionary.get(k, default) for k in keys)
+
 def some_key(a_dict):
     "Return an arbitrary key from a dictionary."
     return zip((0,), a_dict.iterkeys())[0][1]
