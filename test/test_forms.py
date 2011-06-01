@@ -30,16 +30,19 @@ class FormsTestCase(UflTestCase):
         self.assertRaises(UFLException, lambda: f*dX)
 
         # Check that we get the right domain_data from the preprocessed form data
-        f2 = f.reconstruct(count=0)
         fd = a.compute_form_data()
+        self.assertIs(fd.domain_data['cell'], domain_data)
+        self.assertIs(fd.cell_domain_data, domain_data)
+        self.assertIsNone(fd.exterior_facet_domain_data)
+
+        # Check that integral_data list is consistent as well
+        f2 = f.reconstruct(count=0)
         for itd in fd.integral_data:
             t, i, itg, md = itd
             self.assertEqual(t, 'cell')
             self.assertEqual(md, {})
             self.assertEqual(itg[0].integrand(), f2**(i+1))
-            self.assertEqual(itg[0].measure().domain_data(), domain_data)
-
-        # TODO: Want to get the domain_data an easier way after preprocess, add test for that and implement
+            self.assertIs(itg[0].measure().domain_data(), domain_data)
 
     def test_separated_dx(self):
         "Tests automatic summation of integrands over same domain."
