@@ -72,7 +72,7 @@ def expand_derivatives(form, dim=None):
     # Find geometric dimension
     if dim is None:
         cell = form.cell()
-        dim = None if cell.is_undefined() else cell.geometric_dimension()
+        dim = None if (cell is None or cell.is_undefined()) else cell.geometric_dimension()
 
     def ad_routine(e):
         # TODO: How to switch between forward and reverse mode? Can we pick the
