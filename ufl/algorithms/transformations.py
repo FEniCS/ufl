@@ -703,39 +703,67 @@ class DuplicationPurger(ReuseTransformer):
         return e
 
 class SumDegreeEstimator(Transformer):
+    "This algorithm is exact for a few operators and heuristic for many."
 
     def __init__(self, default_degree):
         Transformer.__init__(self)
         self.default_degree = default_degree
 
     def terminal(self, v):
+        "Most terminals are spatially constant."
         return 0
 
-    def expr(self, v, *ops):
-        return max(ops)
+    def spatial_coordinate(self, v):
+        "A coordinate provides one additional degree."
+        return 1
 
     def form_argument(self, v):
-        return v.element().degree()
+        """A form argument provides a degree depending on the element,
+        or the default degree if the element has no degree."""
+        d = v.element().degree()
+        return self.default_degree if d is None else d
+
+    def expr(self, v, *ops):
+        "For most operators we take the max degree of its operands."
+        return max(ops)
 
     def spatial_derivative(self, v, f, i):
+        "A spatial derivative reduces the degree with one."
         return max(f - 1, 0)
 
     def product(self, v, *ops):
-        degrees = [op for op in ops if not op is None]
-        nones = [op for op in ops if op is None]
-        return sum(degrees) + self.default_degree*len(nones)
+        "Using the sum here is exact."
+        return sum(ops)
+
+    def division(self, v, *ops):
+        "Using the sum here is a heuristic. Consider e.g. (x+1)/(x-1)."
+        return sum(ops)
 
     def power(self, v, a, b):
+        """If b is an integer:
+        degree(a**b) == degree(a)*b
+        otherwise use the heuristic
+        degree(a**b) == degree(a)*2"""
         f, g = v.operands()
         try:
             gi = int(g)
             return a*gi
         except:
             pass
-        # Something to a non-integer power... TODO: How to handle this?
-        if b > 0:
-            return a*b
-        return a
+        # Something to a non-integer power, this is just a heuristic with no background
+        return a*2
+
+    def math_function(self, v, a):
+        """Using the heuristic
+        degree(sin(const)) == 0
+        degree(sin(f)) == degree(f)+2
+        which can be wildly inaccurate but at least
+        gives a somewhat high integration degree.
+        """
+        if a:
+            return a+2
+        else:
+            return a
 
 class MaxDegreeEstimator(Transformer):
 
@@ -858,9 +886,8 @@ def extract_argument_dependencies(e):
 
 def estimate_max_polynomial_degree(e, default_degree=1):
     """Estimate the maximum polymomial degree of all functions in the
-    expression. For coefficients defined on an element with
-    unspecified degree (None), the degree is set to the given default
-    degree."""
+    expression. For coefficients defined on an element with unspecified
+    degree (None), the degree is set to the given default degree."""
     de = MaxDegreeEstimator(default_degree)
     if isinstance(e, Form):
         degrees = [de.visit(integral.integrand()) for integral in e.integrals()]
