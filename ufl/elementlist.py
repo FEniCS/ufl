@@ -53,6 +53,8 @@ def show_elements():
         print "Degree range: ", degree_range
         print "Defined on domains:" , domains
 
+# TODO: Any more of these elements valid for generic nD cells?
+
 # Standard elements
 
 register_element("Argyris", "ARG", 0, (1, None),
@@ -71,13 +73,17 @@ register_element("Crouzeix-Raviart", "CR", 0, (1, 1),
                  ("triangle", "tetrahedron"))
 
 register_element("Discontinuous Lagrange", "DG", 0, (0, None),
-                 ("interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
+                 ("cell1D", "cell2D", "cell3D",
+                  "interval", "triangle", "tetrahedron",
+                  "quadrilateral", "hexahedron"))
 
 register_element("Hermite", "HER", 0, None,
                  ("triangle", "tetrahedron"))
 
 register_element("Lagrange", "CG", 0, (1, None),
-                 ("interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
+                 ("cell1D", "cell2D", "cell3D",
+                  "interval", "triangle", "tetrahedron",
+                  "quadrilateral", "hexahedron"))
 
 register_element("Mardal-Tai-Winther", "MTW", 0, None,
                  ("triangle",))
@@ -97,16 +103,22 @@ register_element("Raviart-Thomas", "RT", 1, (1, None),
 # Special elements
 
 register_element("Boundary Quadrature", "BQ", 0, (0, None),
-                 (None, "interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
+                 (None, "cell1D", "cell2D", "cell3D",
+                  "interval", "triangle", "tetrahedron",
+                  "quadrilateral", "hexahedron"))
 
 register_element("Bubble", "B", 0, (2, None),
                  ("interval", "triangle", "tetrahedron"))
 
 register_element("Quadrature", "Q", 0, (0, None),
-                 (None, "interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
+                 (None, "cell1D", "cell2D", "cell3D",
+                  "interval", "triangle", "tetrahedron",
+                  "quadrilateral", "hexahedron"))
 
 register_element("Real", "R", 0, (0, 0),
-                 (None, "interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"))
+                 (None, "cell1D", "cell2D", "cell3D",
+                  "interval", "triangle", "tetrahedron",
+                  "quadrilateral", "hexahedron"))
 
 register_element("Undefined", "U", 0, (0, None),
                  ("cell1D", "cell2D", "cell3D",
