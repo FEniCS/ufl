@@ -183,6 +183,34 @@ class EvaluateTestCase(UflTestCase):
         v = 5*5 * 5*7 * 5*7 * 7*7
         self.assertEqual(e, v)
 
+    def testCoefficient(self):
+        V = FiniteElement("CG", triangle, 1)
+        f = Coefficient(V)
+        e = f**2
+        def eval_f(x):
+            return x[0]*x[1]**2
+        self.assertEqual(e((3,7), {f: eval_f}),
+                         (3*7**2)**2)
+
+    def testCoefficientDerivative(self):
+        V = FiniteElement("CG", triangle, 1)
+        f = Coefficient(V)
+        e = f.dx(0)**2 + f.dx(1)**2
+
+        def eval_f(x, derivatives):
+            if not derivatives:
+                return eval_f.c*x[0]*x[1]**2
+            # assume only first order derivative
+            d, = derivatives
+            if d == 0:
+                return eval_f.c*x[1]**2
+            if d == 1:
+                return eval_f.c*x[0]*2*x[1]
+        # shows how to attach data to eval_f
+        eval_f.c = 5
+
+        self.assertEqual(e((3,7), {f: eval_f}),
+                         (5*7**2)**2 + (5*3*2*7)**2)
 
 if __name__ == "__main__":
     main()
