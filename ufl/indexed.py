@@ -18,12 +18,12 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # First added:  2009-01-28
-# Last changed: 2009-04-19
+# Last changed: 2011-06-06
 
 from collections import defaultdict
 from ufl.log import error
 from ufl.expr import Expr, WrapperType
-from ufl.indexing import IndexBase, Index, as_multi_index
+from ufl.indexing import IndexBase, Index, FixedIndex, as_multi_index
 from ufl.indexutils import unique_indices
 from ufl.precedence import parstr
 
@@ -39,12 +39,16 @@ class Indexed(WrapperType):
         self._expression = expression
         shape = expression.shape()
         self._indices = as_multi_index(indices, shape)
-        
-        if expression.rank() != len(self._indices):
+
+        if len(shape) != len(self._indices):
             error("Invalid number of indices (%d) for tensor "\
                 "expression of rank %d:\n\t%r\n"\
                 % (len(self._indices), expression.rank(), expression))
-        
+
+        for si, di in zip(shape, self._indices):
+            if isinstance(di, FixedIndex) and int(di) >= int(si):
+                error("Fixed index out of range!")
+
         idims = dict((i, s) for (i, s) in zip(self._indices._indices, shape) if isinstance(i, Index))
         idims.update(expression.index_dimensions())
         fi = unique_indices(expression.free_indices() + self._indices._indices)
