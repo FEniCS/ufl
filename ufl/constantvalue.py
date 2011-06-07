@@ -48,7 +48,14 @@ python_scalar_types = (int, float)
 # Precision for float formatting
 precision = None
 
-def format_float(x):
+def format_float2(x):
+    "Format float value based on global UFL precision"
+    if precision is None:
+        return repr(x)
+    else:
+        return ("%%.%dg" % precision) % x
+
+def format_float(x): # TODO: Get rid of this, use the above
     "Format float value based on global UFL precision"
     if precision is None:
         return repr(x)
@@ -310,7 +317,8 @@ class PermutationSymbol(ConstantValue):
         return isinstance(other, PermutationSymbol) and self._dim == other._dim
 
     def __eps(self, x):
-        """ This function body is taken from http://www.mathkb.com/Uwe/Forum.aspx/math/29865/N-integer-Levi-Civita"""
+        """This function body is taken from
+        http://www.mathkb.com/Uwe/Forum.aspx/math/29865/N-integer-Levi-Civita"""
         result = IntValue(1)
         for i, x1 in enumerate(x):
            for j in xrange(i + 1, len(x)):
