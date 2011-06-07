@@ -317,6 +317,12 @@ class Expression2LatexHandler(Transformer):
     def gt(self, o, a, b):
         return "(%s > %s)" % (a, b)
 
+    def and_condition(self, o, a, b):
+        return "(%s && %s)" % (a, b)
+
+    def or_condition(self, o, a, b):
+        return "(%s || %s)" % (a, b)
+
     def conditional(self, o, c, t, f):
         l = "\\begin{cases}\n"
         l += "%s, &\text{if }\quad %s, \\\\\n" % (t, c)
