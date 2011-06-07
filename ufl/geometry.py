@@ -52,7 +52,10 @@ domain2facet = {"cell1D": "vertex",
                 "hexahedron": "quadrilateral"}
 
 # Number of facets associated with each domain
-domain2num_facets = {"interval": 2,
+domain2num_facets = {"cell1D": None,
+                     "cell2D": None,
+                     "cell3D": None,
+                     "interval": 2,
                      "triangle": 3,
                      "tetrahedron": 4,
                      "quadrilateral": 4,
