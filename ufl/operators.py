@@ -30,10 +30,11 @@ from ufl.assertions import ufl_assert
 from ufl.form import Form
 from ufl.constantvalue import Zero, ScalarValue, as_ufl
 from ufl.differentiation import VariableDerivative, Grad, Div, Curl
-from ufl.tensoralgebra import Transposed, Inner, Outer, Dot, Cross, Determinant, Inverse, Cofactor, Trace, Deviatoric, Skew, Sym
+from ufl.tensoralgebra import Transposed, Inner, Outer, Dot, Cross, Determinant,\
+    Inverse, Cofactor, Trace, Deviatoric, Skew, Sym
 from ufl.variable import Variable
 from ufl.tensors import as_tensor, ListTensor
-from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
+from ufl.conditional import EQ, NE, LE, GE, LT, GT, AndCondition, OrCondition, Conditional
 from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin, Tan, Acos, Asin, Atan
 from ufl.indexing import indices, Indexed
 from ufl.geometry import SpatialCoordinate
@@ -313,6 +314,14 @@ def lt(left, right):
 def gt(left, right):
     "A boolean expresion (left > right) for use with conditional."
     return GT(left, right)
+
+def And(left, right):
+    "A boolean expresion (left and right) for use with conditional."
+    return AndCondition(left, right)
+
+def Or(left, right):
+    "A boolean expresion (left or right) for use with conditional."
+    return OrCondition(left, right)
 
 def sign(x):
     "The sign (+1 or -1) of x."

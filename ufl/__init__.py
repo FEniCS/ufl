@@ -34,15 +34,22 @@ The development version can be found in the repository at
 
 A very brief overview of the language contents follows:
 
-* Cells and Euclidean spaces::
+* Euclidean spaces::
 
-    interval, triangle, tetrahedron, quadrilateral, hexahedron,
+    Space,
     R1, R2, R3,
-    Cell, Space
+
+* Cells::
+
+    Cell,
+    interval, triangle, tetrahedron,
+    quadrilateral, hexahedron,
+    cell1D, cell2D, cell3D,
 
 * Elements::
 
-    FiniteElement, MixedElement, VectorElement, TensorElement
+    FiniteElement,
+    MixedElement, VectorElement, TensorElement
     EnrichedElement, RestrictedElement
 
 * Arguments::
@@ -59,11 +66,11 @@ A very brief overview of the language contents follows:
 
 * Literal constants::
 
-    Identity
+    Identity, PermutationSymbol
 
 * Geometric quantities::
 
-    SpatialCoordinate, FacetNormal
+    SpatialCoordinate, FacetNormal, CellVolume, Circumradius
 
 * Indices::
 
@@ -104,11 +111,11 @@ A very brief overview of the language contents follows:
 
 * Conditional operators::
 
-    eq, ne, le, ge, lt, gt, conditional,
+    eq, ne, le, ge, lt, gt, And, Or, conditional
 
 * Integral measures::
 
-    dx, ds, dS, dE
+    dx, ds, dS, dE, dc
 
 * Form transformations::
 
@@ -199,7 +206,7 @@ from ufl.operators import rank, shape, \
                        det, inv, cofac, \
                        transpose, tr, dev, skew, sym, \
                        sqrt, exp, ln, cos, sin, tan, acos, asin, atan, \
-                       eq, ne, le, ge, lt, gt, conditional, sign, \
+                       eq, ne, le, ge, lt, gt, And, Or, conditional, sign, \
                        variable, diff, \
                        Dx,  grad, div, curl, rot, Dn, exterior_derivative, \
                        jump, avg, \

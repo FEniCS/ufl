@@ -296,13 +296,15 @@ class ClasscoverageTest(UflTestCase):
         test_object(a, (dim,dim), ())
         a = cofac(f2*f0+v2*3)
         test_object(a, (dim,dim), ())
-        
+
         cond1 = le(f0, 1.0)
         cond2 = eq(3.0, f0)
         cond3 = ne(sin(f0), cos(f0))
         cond4 = lt(sin(f0), cos(f0))
         cond5 = ge(sin(f0), cos(f0))
         cond6 = gt(sin(f0), cos(f0))
+        cond7 = And(cond1, cond2)
+        cond8 = Or(cond1, cond2)
         a = conditional(cond1, 1, 2)
         b = conditional(cond2, f0**3, ln(f0))
         
@@ -312,6 +314,8 @@ class ClasscoverageTest(UflTestCase):
         test_object2(cond4)
         test_object2(cond5)
         test_object2(cond6)
+        test_object2(cond7)
+        test_object2(cond8)
         test_object(a, (), ())
         test_object(b, (), ())
         
