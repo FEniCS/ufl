@@ -16,6 +16,18 @@ from ufl.algorithms import *
 
 class FormsTestCase(UflTestCase):
 
+    def test_manually_constructed_measures(self):
+        # Since we can't write 'dx = dx[data]' in a non-global scope,
+        # because of corner cases in the python scope rules,
+        # it may be convenient to construct measures directly:
+        domain_data = ('Stokes', 'Darcy')
+        dx = Measure('dx')[domain_data]
+        ds = Measure('ds')[domain_data]
+        dS = Measure('dS')[domain_data]
+
+        # Possible PyDOLFIN syntax:
+        #ds = boundaries.dx(3) # return Measure('dx')[self](3)
+
     def test_measures_with_domain_data(self):
         # Configure measure with some arbitrary data object as domain_data
         domain_data = ('Stokes', 'Darcy')

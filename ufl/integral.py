@@ -32,18 +32,30 @@ from ufl.constantvalue import is_true_ufl_scalar, is_python_scalar
 def register_domain_type(domain_type, measure_name):
     domain_type = domain_type.replace(" ", "_")
     if domain_type in Measure._domain_types:
-        ufl_assert(Measure._domain_types[domain_type] == measure_name, "Domain type already added with different measure name!")
+        ufl_assert(Measure._domain_types[domain_type] == measure_name,
+                   "Domain type already added with different measure name!")
         # Nothing to do
     else:
-        ufl_assert(measure_name not in Measure._domain_types.values(), "Measure name already used for another domain type!")
+        ufl_assert(measure_name not in Measure._domain_types.values(),
+                   "Measure name already used for another domain type!")
         Measure._domain_types[domain_type] = measure_name
 
 class Measure(object):
     """A measure for integration."""
     __slots__ = ("_domain_type", "_domain_id", "_metadata", "_domain_data", "_repr")
     def __init__(self, domain_type, domain_id=0, metadata=None, domain_data=None):
+        # Allow long domain type names with ' ' or '_'
         self._domain_type = domain_type.replace(" ", "_")
-        ufl_assert(self._domain_type in Measure._domain_types, "Invalid domain type.")
+        # Map short domain type name to long automatically
+        if not self._domain_type in Measure._domain_types:
+            for k, v in Measure._domain_types.iteritems():
+                if v == domain_type:
+                    self._domain_type = k
+                    break
+            # In the end, did we find a valid domain type?
+            if not self._domain_type in Measure._domain_types:
+                error("Invalid domain type %s." % domain_type)
+
         self._domain_id = domain_id
         self._metadata = metadata
         self._domain_data = domain_data
