@@ -183,16 +183,21 @@ def as_index(i):
         return (i,)
     error("Invalid object %s to create index from." % repr(i))
 
+def _make_idims(ii, shape):
+    if shape is None:
+        return None
+    else:
+        return dict((j,d) for (j,d) in zip(ii, shape) if isinstance(j, Index))
+
 def as_multi_index(ii, shape=None):
     if isinstance(ii, MultiIndex):
-        if not ii._idims:
-            idims = None if shape is None else dict((j,d) for (j,d) in zip(ii, shape))
-            ii._idims = idims
-        return ii
-    if not isinstance(ii, tuple):
+        if ii._idims:
+            return ii
+        else:
+            ii = ii._indices
+    elif not isinstance(ii, tuple):
         ii = (ii,)
-    idims = None if shape is None else dict((j,d) for (j,d) in zip(ii, shape))
-    return MultiIndex(ii, idims)
+    return MultiIndex(ii, _make_idims(ii, shape))
 
 def indices(n):
     "Return a tuple of n new Index objects."
