@@ -30,7 +30,8 @@ import logging
 log_functions = ["log", "debug", "info", "warning", "error", "begin", "end",
                  "set_level", "push_level", "pop_level", "set_indent", "add_indent",
                  "set_handler", "get_handler", "get_logger", "add_logfile", "set_prefix",
-                 "info_red", "info_green", "info_blue"]
+                 "info_red", "info_green", "info_blue",
+                 "warning_red", "warning_green", "warning_blue"]
 
 __all__ = log_functions + ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL", "Logger", "log_functions"]
 
@@ -128,6 +129,18 @@ class Logger:
     def warning(self, *message):
         "Write warning message."
         self._log.warning(self._format(*message))
+
+    def warning_red(self, *message):
+        "Write warning message in red."
+        self._log.warning(RED % self._format(*message))
+
+    def warning_green(self, *message):
+        "Write warning message in green."
+        self._log.warning(GREEN % self._format(*message))
+
+    def warning_blue(self, *message):
+        "Write warning message in blue."
+        self._log.warning(BLUE % self._format(*message))
 
     def error(self, *message):
         "Write error message and raise an exception."
