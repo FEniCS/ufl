@@ -222,10 +222,12 @@ from ufl.form import Form
 from ufl.integral import Integral, Measure, register_domain_type
 
 # Representations of transformed forms
-from ufl.formoperators import replace, derivative, action, energy_norm, rhs, lhs, system, functional, adjoint, sensitivity_rhs #, dirichlet_functional
+from ufl.formoperators import replace, derivative, action, energy_norm, rhs, lhs,\
+    system, functional, adjoint, sensitivity_rhs #, dirichlet_functional
 
 # Predefined convenience objects
-from ufl.objects import vertex, interval, triangle, tetrahedron, \
+from ufl.objects import \
+    vertex, interval, triangle, tetrahedron, \
     quadrilateral, hexahedron, facet, cell1D, cell2D, cell3D, \
     i, j, k, l, p, q, r, s, \
     R1, R2, R3, \
@@ -233,3 +235,45 @@ from ufl.objects import vertex, interval, triangle, tetrahedron, \
 
 # Useful constants
 from math import e, pi
+
+__all__ = [
+    'product',
+    'get_handler', 'get_logger', 'set_handler', 'set_level', 'add_logfile',
+    'UFLException', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL',
+    'Cell', 'Space', 'SpatialCoordinate', 'FacetNormal', 'CellVolume',
+    'Circumradius',
+    'FiniteElementBase', 'FiniteElement',
+    'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement', 'RestrictedElement',
+    'register_element', 'show_elements',
+    'Argument', 'TestFunction', 'TrialFunction',
+    'Arguments', 'TestFunctions', 'TrialFunctions',
+    'Coefficient', 'Coefficients',
+    'Constant', 'VectorConstant', 'TensorConstant',
+    'split',
+    'PermutationSymbol', 'Identity', 'zero', 'as_ufl',
+    'Index', 'indices',
+    'as_tensor', 'as_vector', 'as_matrix', 'relabel',
+    'unit_vector', 'unit_vectors', 'unit_matrix', 'unit_matrices',
+    'rank', 'shape',
+    'outer', 'inner', 'dot', 'cross',
+    'det', 'inv', 'cofac',
+    'transpose', 'tr', 'dev', 'skew', 'sym',
+    'sqrt', 'exp', 'ln', 'cos', 'sin', 'tan', 'acos', 'asin', 'atan',
+    'eq', 'ne', 'le', 'ge', 'lt', 'gt', 'And', 'Or', 'conditional', 'sign',
+    'variable', 'diff',
+    'Dx', 'grad', 'div', 'curl', 'rot', 'Dn', 'exterior_derivative',
+    'jump', 'avg',
+    'elem_mult', 'elem_div', 'elem_pow', 'elem_op',
+    'LiftingFunction', 'LiftingOperator',
+    'Form',
+    'Integral', 'Measure', 'register_domain_type',
+    'replace', 'derivative', 'action', 'energy_norm', 'rhs', 'lhs',
+    'system', 'functional', 'adjoint', 'sensitivity_rhs',
+    'R1', 'R2', 'R3',
+    'dx', 'ds', 'dS', 'dE', 'dc',
+    'vertex', 'interval', 'triangle', 'tetrahedron',
+    'quadrilateral', 'hexahedron', 'facet',
+    'cell1D', 'cell2D', 'cell3D',
+    'i', 'j', 'k', 'l', 'p', 'q', 'r', 's',
+    'e', 'pi',
+    ]
