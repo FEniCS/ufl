@@ -61,21 +61,23 @@ class IndexExpander(ReuseTransformer):
         return x
 
     def form_argument(self, x):
-        if x.shape():
-            # Get symmetry mapping if any
+        sh = x.shape()
+        if sh == ():
+            return x
+        else:
             e = x.element()
-            s = None
-            if isinstance(e, TensorElement):
-                s = e.symmetry()
-            if s is None:
-                s = {}
-            # Map component throught the symmetry mapping
+            r = len(sh)
+
+            # Get component
             c = self.component()
-            ufl_assert(len(x.shape()) == len(c), "Component size mismatch.")
-            c2 = s.get(c, c)
-            ufl_assert(len(c) == len(c2), "Component size mismatch after symmetry mapping.")
-            return x[c2]
-        return x
+            ufl_assert(r == len(c), "Component size mismatch.")
+
+            # Map it through an eventual symmetry mapping
+            s = e.symmetry()
+            c = s.get(c, c)
+            ufl_assert(r == len(c), "Component size mismatch after symmetry mapping.")
+
+            return x[c]
 
     def zero(self, x):
         ufl_assert(len(x.shape()) == len(self.component()), "Component size mismatch.")

@@ -203,14 +203,14 @@ class IndexTestCase(UflTestCase):
         # legal?
         vv = as_vector([u[i], v[i]])
         ww = f[i]*vv # this is well defined: ww = sum_i <f_i*u_i, f_i*v_i>
-        
-        # illegal?
+
+        # illegal
         try:
             vv = as_vector([u[i], v[j]])
             self.fail()
         except (UFLException, e):
             pass
-        
+
         # illegal
         try:
             A = as_matrix( [ [u[0], u[1]], [v[0],] ] )

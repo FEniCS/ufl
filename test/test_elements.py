@@ -64,6 +64,31 @@ class ElementsTestCase(UflTestCase):
                                 c = element.extract_component((i,j))
                                 self.assertEqual(c[0], ())
 
+    def test_mixed_tensor_symmetries(self):
+        from ufl.algorithms import expand_indices, expand_compounds
+
+        S = FiniteElement('CG', triangle, 1)
+        V = VectorElement('CG', triangle, 1)
+        T = TensorElement('CG', triangle, 1, symmetry=True)
+
+        # M has dimension 4+1, symmetries are 2->1
+        M = T*S
+        P = Coefficient(M)
+        M = inner(P, P)*dx
+
+        M2 = expand_indices(expand_compounds(M))
+        self.assertTrue('[1]' in str(M2))
+        self.assertTrue('[2]' not in str(M2))
+
+        # M has dimension 2+(1+4), symmetries are 5->4
+        M = V*(S*T)
+        P = Coefficient(M)
+        M = inner(P, P)*dx
+
+        M2 = expand_indices(expand_compounds(M))
+        self.assertTrue('[4]' in str(M2))
+        self.assertTrue('[5]' not in str(M2))
+
     def test_bdm(self):
         for cell in (triangle, tetrahedron):
             dim = cell.d

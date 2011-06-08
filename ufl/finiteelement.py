@@ -29,7 +29,7 @@ from ufl.permutation import compute_indices
 from ufl.elementlist import ufl_elements, aliases
 from ufl.common import product, index_to_component, component_to_index, istr
 from ufl.geometry import as_cell, domain2facet
-from ufl.log import info_blue, warning
+from ufl.log import info_blue, warning, warning_blue
 from ufl.log import BLUE
 
 class FiniteElementBase(object):
@@ -70,6 +70,11 @@ class FiniteElementBase(object):
         "Return the shape of the value space"
         return self._value_shape
 
+    def symmetry(self):
+        """Return the symmetry dict, which is a mapping c0 -> c1
+        meaning that component c0 is represented by component c1."""
+        return {}
+
     def extract_component(self, i):
         "Extract base component index and (simple) element for given component index"
         if isinstance(i, int):
@@ -104,9 +109,8 @@ class FiniteElementBase(object):
     def __add__(self, other):
         "Add two elements, creating an enriched element"
         ufl_assert(isinstance(other, FiniteElementBase), "Can't add element and %s." % other.__class__)
-        print
-        print BLUE % "WARNING: Creating an EnrichedElement,\n         if you intended to create a MixedElement use '*' instead of '+'."
-        print
+        warning_blue("WARNING: Creating an EnrichedElement,\n         " +\
+                     "if you intended to create a MixedElement use '*' instead of '+'.")
         return EnrichedElement(self, other)
 
     def __repr__(self):
@@ -282,6 +286,26 @@ class MixedElement(FiniteElementBase):
                        for (a,b) in izip(elements, self._sub_elements)),
             "Expecting new elements to have same value shape as old ones.")
         return MixedElement(*elements, value_shape=self.value_shape())
+
+    def symmetry(self):
+        """Return the symmetry dict, which is a mapping c0 -> c1
+        meaning that component c0 is represented by component c1.
+        A component is a tuple of one or more ints."""
+        # Build symmetry map from symmetries of subelements
+        sm = {}
+        # Base index of the current subelement into mixed value
+        j = 0
+        for e in self._sub_elements:
+            sh = e.value_shape()
+            # Map symmetries of subelement into index space of this element
+            for c0, c1 in e.symmetry().iteritems():
+                j0 = component_to_index(c0, sh) + j
+                j1 = component_to_index(c1, sh) + j
+                sm[(j0,)] = (j1,)
+            # Update base index for next element
+            j += product(sh)
+        ufl_assert(j == product(self.value_shape()), "Size mismatch in symmetry algorithm.")
+        return sm
 
     def num_sub_elements(self):
         "Return number of sub elements."
@@ -466,7 +490,7 @@ class TensorElement(MixedElement):
     def symmetry(self):
         """Return the symmetry dict, which is a mapping c0 -> c1
         meaning that component c0 is represented by component c1."""
-        return self._symmetry
+        return self._symmetry or {}
 
     def __str__(self):
         "Format as string for pretty printing."
