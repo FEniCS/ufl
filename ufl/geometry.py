@@ -182,7 +182,7 @@ class Space(object):
     __slots__ = ("_dimension",)
 
     def __init__(self, dimension):
-        #ufl_assert(isinstance(dimension, int), "Expecting integer.") # FIXME: This is essential!
+        ufl_assert(isinstance(dimension, int), "Expecting integer.")
         self._dimension = dimension
 
     def dimension(self):

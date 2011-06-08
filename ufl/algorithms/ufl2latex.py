@@ -347,12 +347,14 @@ domain_strings = { Measure.CELL: r"\Omega",
                    Measure.EXTERIOR_FACET: r"\Gamma^{ext}",
                    Measure.INTERIOR_FACET: r"\Gamma^{int}",
                    Measure.MACRO_CELL: r"\Omega^{macro}",
+                   Measure.SURFACE: r"\Gamma^{surface}",
                  }
 default_domain_string = "D"
 dx_strings = { Measure.CELL: "dx",
                Measure.EXTERIOR_FACET: "ds",
                Measure.INTERIOR_FACET: "dS",
                Measure.MACRO_CELL: "dE",
+               Measure.SURFACE: "dc",
              }
 
 def form2latex(form, formdata):
@@ -398,8 +400,10 @@ def form2latex(form, formdata):
     integrals = list(chain(form.cell_integrals(),
                            form.exterior_facet_integrals(),
                            form.interior_facet_integrals(),
-                           form.macro_cell_integrals()))
-    ufl_assert(len(integrals) == len(form.integrals()), "FIXME: Not handling non-standard integral types!")
+                           form.macro_cell_integrals(),
+                           form.surface_integrals()))
+    ufl_assert(len(integrals) == len(form.integrals()),
+               "Not handling non-standard integral types!")
     lines = []
     for itg in integrals:
         variables = extract_variables(itg.integrand())

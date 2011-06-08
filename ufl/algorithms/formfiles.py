@@ -131,7 +131,7 @@ def load_ufl_file(filename):
         reserved_names = ("unknown",) # Currently only one reserved name
         if name in reserved_names:
             ufd.reserved_objects[name] = value
-            ufd.object_names[name] = value # FIXME: Remove after FFC is updated to use reserved_objects
+            ufd.object_names[name] = value # TODO: Remove after FFC is updated to use reserved_objects
 
         # Store instance <-> name mappings for important objects
         if isinstance(value, (FiniteElementBase, Coefficient, Argument, Form, Expr)):

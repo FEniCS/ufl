@@ -303,7 +303,10 @@ def compute_form_with_arity(form, arity):
         warning("Form has no parts with arity %d." % arity)
         return 0*form
 
-    # FIXME: Should be permutations of arguments of length arity
+    # Assuming that the form is not a sum of terms
+    # that depend on different arguments, e.g. (u+v)*dx
+    # would result in just v*dx. But that doesn't make
+    # any sense anyway.
     sub_arguments = set(arguments[:arity])
     pe = PartExtracter(sub_arguments)
     def _transform(e):

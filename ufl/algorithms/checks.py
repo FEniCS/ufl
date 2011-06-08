@@ -23,7 +23,7 @@
 # First added:  2008-03-14
 # Last changed: 2011-04-26
 
-from ufl.log import warning
+from ufl.log import warning, error
 from ufl.assertions import ufl_assert
 
 # UFL classes
@@ -42,20 +42,30 @@ from ufl.algorithms.propagate_restrictions import check_restrictions
 def validate_form(form): # TODO: Can we make this return a list of errors instead of raising exception?
     """Performs all implemented validations on a form. Raises exception if something fails."""
 
-    ufl_assert(isinstance(form, Form), "Expecting a Form.")
+    errors = []
+
+    if not isinstance(form, Form):
+        msg = "Validation failed, not a Form:\n%s" % repr(form)
+        error(msg)
+        #errors.append(msg)
+        #return errors
 
     # FIXME: Add back check for multilinearity
     # Check that form is multilinear
-    #ufl_assert(is_multilinear(form), "Form is not multilinear in arguments.")
+    #if not is_multilinear(form):
+    #    errors.append("Form is not multilinear in arguments.")
 
     # Check that cell is the same everywhere
     cells = set()
     for e in iter_expressions(form):
-        cells.update(t.cell() for t in traverse_terminals(e) if not (t.cell() is None or t.cell().domain() is None))
+        cells.update(t.cell() for t in traverse_terminals(e) \
+                     if not (t.cell() is None or t.cell().domain() is None))
     if None in cells:
         cells.remove(None)
-    ufl_assert(len(cells) <= 1,
-               "Inconsistent cell definitions in form: %s." % str(cells))
+    if not cells:
+        errors.append("Missing cell definition in form.")
+    elif len(cells) > 1:
+        errors.append("Multiple cell definitions in form: %s" % str(cells))
 
     # Check that no Coefficient or Argument instance
     # have the same count unless they are the same
@@ -67,7 +77,9 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
                 c = f.count()
                 if c in coefficients:
                     g = coefficients[c]
-                    ufl_assert(f is g, "Got different Coefficients with same count: %s and %s." % (repr(f), repr(g)))
+                    if not f is g:
+                        errors.append("Found different Coefficients with " + \
+                                   "same count: %s and %s." % (repr(f), repr(g)))
                 else:
                     coefficients[c] = f
 
@@ -75,23 +87,31 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
                 c = f.count()
                 if c in arguments:
                     g = arguments[c]
-                    if c == -2: msg = "TestFunctions"
-                    elif c == -1: msg = "TrialFunctions"
-                    else: msg = "Arguments with same count"
-                    msg = "Got different %s: %s and %s." % (msg, repr(f), repr(g))
-                    ufl_assert(f is g, msg)
+                    if not f is g:
+                        if c == -2: msg = "TestFunctions"
+                        elif c == -1: msg = "TrialFunctions"
+                        else: msg = "Arguments with same count"
+                        msg = "Found different %s: %s and %s." % (msg, repr(f), repr(g))
+                        errors.append(msg)
                 else:
                     arguments[c] = f
 
     # Check that all integrands are scalar
     for expression in iter_expressions(form):
-        ufl_assert(is_true_ufl_scalar(expression),
-            "Got non-scalar integrand expression:\n%s\n%s" % (str(expression), repr(expression)))
+        if not is_true_ufl_scalar(expression):
+            errors.append("Found non-scalar integrand expression:\n%s\n%s" % \
+                              (str(expression), repr(expression)))
 
     # Check that restrictions are permissible
     for integral in form.integrals():
         # Only allow restricitions on interior facet integrals and surface measures
-        if integral.measure().domain_type() == Measure.INTERIOR_FACET or integral.measure().domain_type() == Measure.SURFACE:
+        if integral.measure().domain_type() in (Measure.INTERIOR_FACET, Measure.SURFACE):
             check_restrictions(integral.integrand(), True)
         else:
             check_restrictions(integral.integrand(), False)
+
+    # Raise exception with all error messages
+    # TODO: Return errors list instead, need to collect messages from all validations above first.
+    if errors:
+        final_msg = 'Found errors in validation of form:\n%s' % '\n\n'.join(errors)
+        error(final_msg)
