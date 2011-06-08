@@ -480,6 +480,7 @@ class TensorElement(MixedElement):
         if isinstance(i, int):
             i = (i,)
         self._check_component(i)
+        i = self.symmetry().get(i, i)
         l = len(self._shape)
         ii = i[:l]
         jj = i[l:]
