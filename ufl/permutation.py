@@ -39,6 +39,29 @@ def compute_indices2(shape):
     "Compute all index combinations for given shape"
     return ((),) if len(shape) == 0 else tuple((i,) + sub_index for i in xrange(shape[0]) for sub_index in compute_indices2(shape[1:]))
 
+def build_component_numbering(shape, symmetry):
+    """Build a numbering of components within the given value shape,
+    taking into consideration a symmetry mapping which leaves the
+    mapping noncontiguous. Returns a dict { component -> numbering }
+    and an ordered list of components [ numbering -> component ].
+    The dict contains all components while the list only contains
+    the ones not mapped by the symmetry mapping."""
+    vi2si, si2vi = {}, []
+    indices = compute_indices(shape)
+    # Number components not in symmetry mapping
+    for c in indices:
+        if c not in symmetry:
+            vi2si[c] = len(si2vi)
+            si2vi.append(c)
+    # Copy numbering to mapped components
+    for c in indices:
+        if c in symmetry:
+            vi2si[c] = vi2si[symmetry[c]]
+    # Validate
+    for k, c in enumerate(si2vi):
+        assert vi2si[c] == k
+    return vi2si, si2vi
+
 def compute_permutations(k, n, skip = None):
     """Compute all permutations of k elements from (0, n) in rising order.
     Any elements that are contained in the list skip are not included."""
