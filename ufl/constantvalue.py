@@ -42,25 +42,15 @@ python_scalar_types = (int, float)
 #except:
 #    pass
 
-# FIXME: Consider coordinating this with set_float_formatting
-# FIXME: in FFC (move to UFL and use from FFC)
-
 # Precision for float formatting
 precision = None
 
-def format_float2(x):
+def format_float(x):
     "Format float value based on global UFL precision"
     if precision is None:
         return repr(x)
     else:
         return ("%%.%dg" % precision) % x
-
-def format_float(x): # TODO: Get rid of this, use the above
-    "Format float value based on global UFL precision"
-    if precision is None:
-        return repr(x)
-    else:
-        return ("%%.%df" % precision) % x
 
 #--- Base classes for constant types ---
 
