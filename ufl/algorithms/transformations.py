@@ -461,7 +461,6 @@ class CompoundExpander(ReuseTransformer):
         if sh[0] == 2:
             return det2D(A, 0, 1, 0, 1)
         if sh[0] == 3:
-            # TODO: Verify signs in this expression
             return A[0,0]*det2D(A, 1, 2, 1, 2) + \
                    A[0,1]*det2D(A, 1, 2, 2, 0) + \
                    A[0,2]*det2D(A, 1, 2, 0, 1)
@@ -511,7 +510,7 @@ class CompoundExpander(ReuseTransformer):
     def inverse(self, o, A):
         if A.rank() == 0:
             return 1.0 / A
-        return self.cofactor(None, A) / self.determinant(None, A)  # TODO: Verify this expression. Ainv = Acofac / detA
+        return self.cofactor(None, A) / self.determinant(None, A)
 
     # ------------ Compound differential operators
 
