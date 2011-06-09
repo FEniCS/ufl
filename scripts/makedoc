@@ -1,0 +1,51 @@
+# Copyright (C) 2011 Marie E. Rognes
+#
+# This file is part of UFL.
+#
+# UFL is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# UFL is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with UFL. If not, see <http://www.gnu.org/licenses/>.
+#
+# First added:  2011-06-09
+# Last changed: 2011-06-09
+
+#
+# This is a utility script for generating .rst and .html
+# documentation for UFL.
+#
+# Run from the top level UFL directory:
+#
+#    ./scripts/makedoc
+#
+
+echo ""
+echo "Generating UFL html documentation"
+echo ""
+
+# Generate .rst files
+./doc/sphinx/scripts/generate_modules.py ufl --dest-dir=./doc/sphinx/source --suffix=rst --force
+
+echo ""
+echo "reSTructured text files generated in doc/sphinx/source/"
+echo ""
+
+# Generate index (and add some labels)
+./doc/sphinx/scripts/generate_index.py ./doc/sphinx/source 0.9.1+
+
+# Run sphinx make html
+cd doc/sphinx
+#make clean
+make html
+
+echo ""
+echo "HTML files generated in doc/sphinx/source/build/html"
+echo ""
