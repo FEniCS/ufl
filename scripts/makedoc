@@ -28,24 +28,29 @@
 #
 
 echo ""
-echo "Generating UFL html documentation"
+echo "--- Generating UFL html documentation"
 echo ""
+
+SPHINX_DIR=./doc/sphinx
+SPHINX_SCRIPT_DIR=$SPHINX_DIR/scripts
+SPHINX_SOURCE_DIR=$SPHINX_DIR/source
 
 # Generate .rst files
-./doc/sphinx/scripts/generate_modules.py ufl --dest-dir=./doc/sphinx/source --suffix=rst --force
+$SPHINX_SCRIPT_DIR/generate_modules.py ufl --dest-dir=$SPHINX_SOURCE_DIR --suffix=rst --force
 
 echo ""
-echo "reSTructured text files generated in doc/sphinx/source/"
+echo "--- reSTructured text files generated in doc/sphinx/source/"
 echo ""
 
 # Generate index (and add some labels)
-./doc/sphinx/scripts/generate_index.py ./doc/sphinx/source 0.9.1+
+VERSION=`grep '__version__' ufl/__init__.py | cut -d'"' -f2`
+$SPHINX_SCRIPT_DIR/generate_index.py $SPHINX_SOURCE_DIR $VERSION
 
 # Run sphinx make html
-cd doc/sphinx
-#make clean
+cd $SPHINX_DIR
+make clean
 make html
 
 echo ""
-echo "HTML files generated in doc/sphinx/source/build/html"
+echo "--- HTML files generated in $SPHINX_SOURCE_DIR/build/html"
 echo ""
