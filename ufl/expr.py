@@ -54,7 +54,17 @@ class Expr(object):
         # Comment out this line to disable class construction statistics (used in some unit tests)
         _class_usage_statistics[self.__class__._uflclass] += 1
         #self._hash = None
-    
+
+    #def _lock(self): # TODO: Try this out on most types
+    #    "Call this after constructing object to make it forcibly immutable."
+    #    self._locked = True
+
+    #def __setattr__(self, name, value):
+    #    if hasattr(self, '_locked') and self._locked:
+    #        raise Exception("%s is immutable, cannot set property %s." % (type(self), name))
+    #    else:
+    #        return object.__init__(self, name, value)
+
     #=== Abstract functions that must be implemented by subclasses ===
     
     #--- Functions for reconstructing expression ---
