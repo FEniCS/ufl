@@ -81,7 +81,7 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
     # useful if the original arguments have data attached to them
     inv_replace_map = dict((w,v) for (v,w) in replace_map.iteritems())
     original_arguments = [inv_replace_map[v] for v in arguments]
-    original_coefficients = [inv_replace_map[v] for v in coefficients]
+    original_coefficients = [inv_replace_map[w] for w in coefficients]
 
     # Create empty form data
     form_data = FormData()
@@ -151,16 +151,115 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
 
     return form_data
 
-def extract_common_cell(form, common_cell=None):
-    "Extract common cell for form"
 
-    # Either use given argument or try to find in form
+def preprocess_expression(expr, object_names=None, common_cell=None, element_mapping=None):
+    """
+    Preprocess raw input expression to obtain expression metadata,
+    including a modified (preprocessed) expression more easily
+    manipulated by expression compilers. The original expression
+    is left untouched. Currently, the following transformations
+    are made to the preprocessed form:
+
+      expand_compounds    (side effect of calling expand_derivatives)
+      expand_derivatives
+      renumber_indices
+    """
+
+    # Check that we get an expression
+    ufl_assert(isinstance(expr, Expr), "Expecting Expr.")
+
+    # Get name of expr
+    object_names = object_names or {}
+    if id(expr) in object_names:
+        name = object_names[id(expr)]
+    else:
+        name = "expr"
+
+    # Element mapping is empty if not given
+    element_mapping = element_mapping or {}
+
+    # Extract common cell
+    common_cell = extract_common_cell(expr, common_cell)
+
+    # Expand derivatives
+    expr = expand_derivatives(expr, common_cell.geometric_dimension())
+
+    # Renumber indices
+    expr = renumber_indices(expr) # TODO: Skip this if we use expand_indices
+
+    # Replace arguments and coefficients with new renumbered objects
+    arguments, coefficients = extract_arguments_and_coefficients(expr) # TODO: Does this take an expr?
+    ufl_assert(not arguments, "Not expecting Arguments in expression.")
+    element_mapping = build_element_mapping(element_mapping, common_cell,
+                                            arguments, coefficients)
+    replace_map, arguments, coefficients = \
+        build_argument_replace_map(arguments, coefficients, element_mapping)
+    expr = replace(expr, replace_map)
+
+    # Build mapping to original arguments and coefficients, which is
+    # useful if the original arguments have data attached to them
+    inv_replace_map = dict((w,v) for (v,w) in replace_map.iteritems())
+    original_arguments = [inv_replace_map[v] for v in arguments]
+    original_coefficients = [inv_replace_map[w] for w in coefficients]
+
+    # Create empty expression data
+    expr_data = ExprData()
+
+    # Store name of expr
+    expr_data.name = name
+
+    # Store data extracted by preprocessing
+    #expr_data.arguments             = arguments
+    expr_data.coefficients          = coefficients
+    expr_data.original_arguments    = original_arguments
+    expr_data.original_coefficients = original_coefficients
+
+    # Store signature of expression
+    expr_data.signature = repr(expr)
+
+    # Store elements, sub elements and element map
+    expr_data.elements            = extract_elements(form)
+    expr_data.unique_elements     = unique_tuple(expr_data.elements)
+    expr_data.sub_elements        = extract_sub_elements(expr_data.elements)
+    expr_data.unique_sub_elements = unique_tuple(expr_data.sub_elements)
+
+    # Store common cell
+    expr_data.cell = common_cell
+
+    # Store data related to cell
+    expr_data.geometric_dimension = expr_data.cell.geometric_dimension()
+    expr_data.topological_dimension = expr_data.cell.topological_dimension()
+
+    # Store some useful dimensions
+    #expr_data.rank = len(expr_data.arguments)
+    expr_data.num_coefficients = len(expr_data.coefficients)
+
+    # Store argument names
+    #expr_data.argument_names = \
+    #    [object_names.get(id(expr_data.original_arguments[i]), "v%d" % i)
+    #     for i in range(expr_data.rank)]
+
+    # Store coefficient names
+    expr_data.coefficient_names = \
+        [object_names.get(id(expr_data.original_coefficients[i]), "w%d" % i)
+         for i in range(expr_data.num_coefficients)]
+
+    # Store preprocessed expression
+    expr_data.preprocessed_expr = expr
+
+    return expr_data
+
+
+def extract_common_cell(form, common_cell=None):
+    "Extract common cell for form or expression."
+
+    # Either use given argument or try to find in form or expression
     common_cell = common_cell or form.cell()
 
     # Check common cell
     if common_cell is None or common_cell.is_undefined():
         error("Unable to extract common cell; "\
-              "missing cell definition in form.")
+              "missing cell definition in form or expression.")
 
     return common_cell
 
