@@ -23,7 +23,7 @@
 # Last changed: 2009-05-14
 
 # Function for preprocessing a form
-from ufl.algorithms.preprocess import preprocess, extract_common_cell
+from ufl.algorithms.preprocess import preprocess, preprocess_expression, extract_common_cell
 
 # Class for simple extraction of form meta data
 from ufl.algorithms.formdata import FormData
