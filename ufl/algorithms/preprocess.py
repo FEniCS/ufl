@@ -24,6 +24,7 @@ raw input form given by a user."""
 
 from ufl.log import info, debug, warning, error
 from ufl.assertions import ufl_assert
+from ufl.expr import Expr
 from ufl.form import Form
 from ufl.common import slice_dict
 from ufl.algorithms.ad import expand_derivatives
@@ -151,6 +152,8 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
 
     return form_data
 
+class ExprData(object): # FIXME: Add __str__ operator etc like FormData
+    pass
 
 def preprocess_expression(expr, object_names=None, common_cell=None, element_mapping=None):
     """
@@ -165,8 +168,16 @@ def preprocess_expression(expr, object_names=None, common_cell=None, element_map
       renumber_indices
     """
 
+    use_expand_indices = True # TODO: make argument or fixate?
+
     # Check that we get an expression
     ufl_assert(isinstance(expr, Expr), "Expecting Expr.")
+
+    # Create empty expression data
+    expr_data = ExprData()
+
+    # Store original expression
+    expr_data.original_expr = expr
 
     # Get name of expr
     object_names = object_names or {}
@@ -185,7 +196,8 @@ def preprocess_expression(expr, object_names=None, common_cell=None, element_map
     expr = expand_derivatives(expr, common_cell.geometric_dimension())
 
     # Renumber indices
-    expr = renumber_indices(expr) # TODO: Skip this if we use expand_indices
+    if not use_expand_indices:
+        expr = renumber_indices(expr)
 
     # Replace arguments and coefficients with new renumbered objects
     arguments, coefficients = extract_arguments_and_coefficients(expr) # TODO: Does this take an expr?
@@ -196,14 +208,15 @@ def preprocess_expression(expr, object_names=None, common_cell=None, element_map
         build_argument_replace_map(arguments, coefficients, element_mapping)
     expr = replace(expr, replace_map)
 
+    # Expand indices to simplify interpretation
+    if use_expand_indices:
+        expr = expand_indices(expr)
+
     # Build mapping to original arguments and coefficients, which is
     # useful if the original arguments have data attached to them
     inv_replace_map = dict((w,v) for (v,w) in replace_map.iteritems())
     original_arguments = [inv_replace_map[v] for v in arguments]
     original_coefficients = [inv_replace_map[w] for w in coefficients]
-
-    # Create empty expression data
-    expr_data = ExprData()
 
     # Store name of expr
     expr_data.name = name
