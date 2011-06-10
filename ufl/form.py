@@ -199,6 +199,9 @@ class Form(object):
     def __hash__(self):
         if self._hash is None:
             self._hash = hash(tuple(type(itg) for itg in self._integrals))
+            # TODO: This is probably better, using a couple of levels of types from the integrands:
+            #self._hash = hash(tuple((compute_hash(itg.integrand()), itg.measure()) for itg in self._integrals))
+            # TODO: This is probably best, is it that slow? Don't remember why it was disabled...
             #self._hash = hash(repr(self))
         return self._hash
 
@@ -208,4 +211,4 @@ class Form(object):
         return repr(self) == repr(other)
 
     def signature(self):
-        return "%s" % (repr(self), )
+        return repr(self)
