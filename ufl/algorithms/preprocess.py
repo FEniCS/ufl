@@ -34,6 +34,7 @@ from ufl.algorithms.analysis import extract_arguments_and_coefficients, build_ar
 from ufl.algorithms.analysis import extract_elements, extract_sub_elements, unique_tuple, _domain_types
 from ufl.algorithms.analysis import extract_num_sub_domains, extract_domain_data, extract_integral_data
 from ufl.algorithms.formdata import FormData
+from ufl.algorithms.expand_indices import expand_indices
 from itertools import chain
 
 def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
@@ -231,7 +232,7 @@ def preprocess_expression(expr, object_names=None, common_cell=None, element_map
     expr_data.signature = repr(expr)
 
     # Store elements, sub elements and element map
-    expr_data.elements            = extract_elements(form)
+    expr_data.elements            = extract_elements(expr)
     expr_data.unique_elements     = unique_tuple(expr_data.elements)
     expr_data.sub_elements        = extract_sub_elements(expr_data.elements)
     expr_data.unique_sub_elements = unique_tuple(expr_data.sub_elements)
