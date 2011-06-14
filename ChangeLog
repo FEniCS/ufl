@@ -1,4 +1,5 @@
 0.9.? [?]
+ - Add script ufl-version
  - Added syntax for associating an arbitrary domain data object with a measure:
 	dss = ds[boundaries]; M = f*dss(1) + g*dss(2)
  - Added new operators elem_mult, elem_div, elem_pow and elem_op for

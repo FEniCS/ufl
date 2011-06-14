@@ -13,6 +13,7 @@ maintenance = 1
 
 scripts = [pjoin("scripts", "ufl-analyse"),
            pjoin("scripts", "ufl-convert"),
+           pjoin("scripts", "ufl-version"),
            pjoin("scripts", "ufl2py"),
            pjoin("scripts", "form2ufl")]
 
