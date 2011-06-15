@@ -52,5 +52,6 @@ setup(name = "UFL",
       data_files = [(pjoin("share", "man", "man1"),
                      [pjoin("doc", "man", "man1", "ufl-analyse.1.gz"),
                       pjoin("doc", "man", "man1", "ufl-convert.1.gz"),
+                      pjoin("doc", "man", "man1", "ufl-version.1.gz"),
                       pjoin("doc", "man", "man1", "ufl2py.1.gz"),
                       pjoin("doc", "man", "man1", "form2ufl.1.gz")])])
