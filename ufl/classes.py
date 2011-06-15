@@ -28,7 +28,7 @@ of classes, and for mapping types to different handler functions."""
 
 from ufl.assertions import ufl_assert
 from ufl.expr import Expr, Operator, WrapperType, AlgebraOperator
-from ufl.terminal import Terminal, FormArgument, UtilityType, Tuple
+from ufl.terminal import Terminal, FormArgument, UtilityType, Tuple, Data
 from ufl.constantvalue import ConstantValue, Zero, ScalarValue,\
     FloatValue, IntValue, Identity, PermutationSymbol
 from ufl.variable import Variable, Label

@@ -59,7 +59,6 @@ def lhs(form):
     """
     form = as_form(form)
     form = expand_derivatives(form)
-    #form = expand_indices(form)
     return compute_form_lhs(form)
 
 def rhs(form):
@@ -71,10 +70,8 @@ def rhs(form):
         a = u*v*dx + f*v*dx
         L = rhs(a) -> -f*v*dx
     """
-
     form = as_form(form)
     form = expand_derivatives(form)
-    #form = expand_indices(form)
     return compute_form_rhs(form)
 
 def system(form):
@@ -114,8 +111,11 @@ def adjoint(form):
 
 def _handle_derivative_arguments(coefficient, argument):
     """Valid combinations:
-    - Coefficient, Argument. Elements must match.
-    - (Coefficient tuple,), Argument. Argument element must be a mixed element with subelements matching elements of the Coefficient tuple.
+    - Coefficient, Argument.
+      Elements must match.
+    - (Coefficient tuple,), Argument.
+      Argument element must be a mixed element with subelements
+      matching elements of the Coefficient tuple.
     """
 
     if isinstance(coefficient, Coefficient):
@@ -165,14 +165,15 @@ def _handle_derivative_arguments(coefficient, argument):
         arguments = split(argument)
 
     else:
-        error("Expecting Coefficient instance or tuple of Coefficient instances, not %s." % type(coefficient))
+        error("Expecting Coefficient instance or tuple of Coefficient "+\
+                  "instances, not %s." % type(coefficient))
 
     # Wrap and return generic tuples
-    coefficients       = Tuple(*coefficients)
+    coefficients = Tuple(*coefficients)
     arguments = Tuple(*arguments)
     return coefficients, arguments
 
-def derivative(form, coefficient, argument=None):
+def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
     """Given any form, compute the linearization of the
     form with respect to the given Coefficient.
     The resulting form has one additional Argument
@@ -183,17 +184,21 @@ def derivative(form, coefficient, argument=None):
 
     coefficients, arguments = _handle_derivative_arguments(coefficient, argument)
 
+    coefficient_derivatives = coefficient_derivatives or {}
+
     # Got a form? Apply derivatives to the integrands in turn.
     if isinstance(form, Form):
         integrals = []
         for itg in form._integrals:
-            fd = CoefficientDerivative(itg.integrand(), coefficients, arguments)
+            fd = CoefficientDerivative(itg.integrand(), coefficients,
+                                       arguments, coefficient_derivatives)
             integrals.append(itg.reconstruct(fd))
         return Form(integrals)
 
     elif isinstance(form, Expr):
         # What we got was in fact an integrand
-        return CoefficientDerivative(form, coefficients, arguments)
+        return CoefficientDerivative(form, coefficients, arguments,
+                                     coefficient_derivatives)
 
     error("Invalid argument type %s." % str(type(form)))
 

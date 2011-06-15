@@ -126,7 +126,7 @@ class Tuple(WrapperType):
     "For internal use, never to be created by users."
     __slots__ = ("_items", "_repr")
     def __init__(self, *items):
-        Expr.__init__(self)
+        WrapperType.__init__(self)
         if not all(isinstance(i, Expr) for i in items):
             error("Got non-Expr in Tuple, is this intended? If so, remove this error.")
         self._items = tuple(items)
@@ -159,3 +159,22 @@ class Tuple(WrapperType):
     def __repr__(self):
         return self._repr
 
+class Data(UtilityType):
+    "For internal use, never to be created by users."
+    __slots__ = ("_data", "_repr")
+    def __init__(self, data):
+        UtilityType.__init__(self)
+        self._data = data
+        self._repr = "Data(%r)" % (self._data,)
+
+    def reconstruct(self):
+        return self
+
+    def operands(self):
+        return ()
+
+    def __str__(self):
+        return "Data(%s)" % str(self._data)
+
+    def __repr__(self):
+        return self._repr

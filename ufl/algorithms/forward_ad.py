@@ -581,11 +581,12 @@ class VariableAD(ForwardAD):
 
 class CoefficientAD(ForwardAD):
     "Apply AFD (Automatic Functional Differentiation) to expression."
-    def __init__(self, spatial_dim, coefficients, arguments, cache=None):
+    def __init__(self, spatial_dim, coefficients, arguments, coefficient_derivatives, cache=None):
         ForwardAD.__init__(self, spatial_dim, var_shape=(), var_free_indices=(), var_index_dimensions={}, cache=cache)
         self._functions = zip(coefficients, arguments)
         self._v = arguments
         self._w = coefficients
+        self._cd = coefficient_derivatives
         ufl_assert(isinstance(self._w, Tuple), "Eh?")
         ufl_assert(isinstance(self._v, Tuple), "Eh?")
         # Define dw/dw := v (what we really mean by d/dw is d/dw_j where w = sum_j w_j phi_j, and what we really mean by v is phi_j for any j)
@@ -595,10 +596,31 @@ class CoefficientAD(ForwardAD):
         debug("o = %s" % o)
         debug("self._w = %s" % self._w)
         debug("self._v = %s" % self._v)
-        for (w, v) in zip(self._w, self._v): #self._functions:
+
+        # Find o among w
+        for (w, v) in zip(self._w, self._v):
             if o == w:
                 return (w, v)
-        return (o, Zero(o.shape()))
+
+        # If o is not among coefficient derivatives, return do/dw=0
+        oprimesum = Zero(o.shape())
+        oprimes = self._cd._data.get(o)
+        if oprimes is None:
+            if self._cd._data:
+                warning("Assuming d{%s}/d{%s} = 0." % (o, self._w))
+        else:
+            # Make sure we have a tuple to match the self._v tuple
+            if not isinstance(oprimes, tuple):
+                oprimes = (oprimes,)
+                ufl_assert(len(oprimes) == len(self._v), "Got a tuple of arguments, "+\
+                               "expecting a matching tuple of coefficient derivatives.")
+
+            # Compute do/dw
+            for (oprime, v) in zip(oprimes, self._v):
+                so, oi = as_scalar(oprime)
+                oprimesum += so*v[oi] # non-compound inner product!
+
+        return (o, oprimesum)
 
     def variable(self, o):
         # Check variable cache to reuse previously transformed variable if possible
@@ -632,8 +654,8 @@ def compute_variable_forward_ad(expr, dim):
     return ediff
 
 def compute_coefficient_forward_ad(expr, dim):
-    f, w, v = expr.operands()
-    alg = CoefficientAD(dim, w, v)
+    f, w, v, cd = expr.operands()
+    alg = CoefficientAD(dim, w, v, cd)
     e, ediff = alg.visit(f)
     return ediff
 

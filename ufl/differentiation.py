@@ -26,7 +26,7 @@ from ufl.log import warning, error
 from ufl.assertions import ufl_assert
 from ufl.common import subdict, mergedicts
 from ufl.expr import Expr, Operator
-from ufl.terminal import Terminal, Tuple
+from ufl.terminal import Terminal, Tuple, Data
 from ufl.constantvalue import ConstantValue, Zero, ScalarValue, Identity, is_true_ufl_scalar
 from ufl.indexing import Index, FixedIndex, Indexed, as_multi_index, MultiIndex
 from ufl.indexutils import unique_indices
@@ -65,45 +65,57 @@ class Derivative(Operator):
 class CoefficientDerivative(Derivative):
     """Derivative of the integrand of a form w.r.t. the
     degrees of freedom in a discrete Coefficient."""
-    __slots__ = ("_integrand", "_coefficients", "_arguments")
+    __slots__ = ("_integrand", "_coefficients", "_arguments",
+                 "_coefficient_derivatives")
 
-    def __new__(cls, integrand, coefficients, arguments):
+    def __new__(cls, integrand, coefficients, arguments, coefficient_derivatives):
         ufl_assert(is_true_ufl_scalar(integrand),
             "Expecting true UFL scalar expression.")
-        ufl_assert(isinstance(coefficients, Tuple), #and all(isinstance(f, (Coefficient, Indexed)) for f in coefficients),
+
+        ufl_assert(isinstance(coefficients, Tuple),
             "Expecting Tuple instance with Coefficients.")
-        ufl_assert(isinstance(arguments, Tuple), #and all(isinstance(f, Argument) for f in arguments),
+        #and all(isinstance(f, (Coefficient, Indexed)) for f in coefficients),
+
+        ufl_assert(isinstance(arguments, Tuple),
             "Expecting Tuple instance with Arguments.")
+        #and all(isinstance(f, Argument) for f in arguments),
+
+        ufl_assert(isinstance(coefficient_derivatives, (dict, Data)),
+                   "Expecting a dict for coefficient derivatives.")
+
         if isinstance(integrand, Zero):
             return Zero()
         return Derivative.__new__(cls)
 
-    def __init__(self, integrand, coefficients, arguments):
+    def __init__(self, integrand, coefficients, arguments, coefficient_derivatives):
         Derivative.__init__(self)
         self._integrand = integrand
         self._coefficients = coefficients
         self._arguments = arguments
+        self._coefficient_derivatives = coefficient_derivatives if isinstance(coefficient_derivatives, Data) else Data(coefficient_derivatives)
 
     def operands(self):
-        return (self._integrand, self._coefficients, self._arguments)
+        return (self._integrand, self._coefficients, self._arguments, self._coefficient_derivatives)
 
     def shape(self):
+        # Assertion in __new__ guarantees this
         return ()
 
     def free_indices(self):
+        # Assertion in __new__ guarantees this
         return ()
 
     def index_dimensions(self):
+        # Assertion in __new__ guarantees this
         return {}
 
     def __str__(self):
-        # TODO: Short str notation
-        return "CoefficientDerivative (w.r.t. coefficient %s and using argument %s) of \n%s"\
-            % (self._coefficients, self._arguments, self._integrand)
+        return "d/dfj { %s }, with fh=%s, dfh/dfj = %s, and coefficient derivatives %s"\
+            % (self._integrand, self._coefficients, self._arguments, self._coefficient_derivatives)
 
     def __repr__(self):
-        return "CoefficientDerivative(%r, %r, %r)"\
-            % (self._integrand, self._coefficients, self._arguments)
+        return "CoefficientDerivative(%r, %r, %r, %r)"\
+            % (self._integrand, self._coefficients, self._arguments, self._coefficient_derivatives)
 
 def split_indices(expression, idx):
     idims = dict(expression.index_dimensions())
