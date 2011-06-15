@@ -236,9 +236,43 @@ class DerivativeTestCase(UflTestCase):
         J2 = derivative(F, w, u)
 	# TODO: assert something
 
+    def test_coefficient_derivatives(self):
+        V = FiniteElement("Lagrange", triangle, 1)
+        dv = TestFunction(V)
+        du = TrialFunction(V)
+        u = Coefficient(V)
+        f = Coefficient(V)
+        g = Coefficient(V)
+        df = Coefficient(V)
+        dg = Coefficient(V)
+
+        cd = { f: df, g: dg }
+        F = f*g*dx
+        J = derivative(F, u, du, cd)
+        fd = J.compute_form_data()
+        J2 = fd.preprocessed_form
+
+        # TODO: This looks good, but we need to assert something sensible
+        # TODO: Add tests covering more cases, in particular mixed stuff
+        if 0:
+            print
+            print 'f ', f
+            print 'df', df
+            print 'g ', g
+            print 'dg', dg
+            print 'u ', u
+            print map(str, fd.original_coefficients)
+            print map(str, fd.coefficients)
+            print
+            print str(J2)
+            print
+            print repr(J2)
+            print
+
     def test_foobar(self):
         element = VectorElement("Lagrange", triangle, 1)
         v = TestFunction(element)
+
         du = TrialFunction(element)
 
         U = Coefficient(element)

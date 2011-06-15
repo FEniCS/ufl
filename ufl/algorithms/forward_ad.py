@@ -607,6 +607,7 @@ class CoefficientAD(ForwardAD):
         oprimes = self._cd._data.get(o)
         if oprimes is None:
             if self._cd._data:
+                # TODO: Make it possible to silence this message in particular? It may be good to have for debugging...
                 warning("Assuming d{%s}/d{%s} = 0." % (o, self._w))
         else:
             # Make sure we have a tuple to match the self._v tuple
