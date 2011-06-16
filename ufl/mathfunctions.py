@@ -23,6 +23,7 @@
 # Last changed: 2009-04-21
 
 import math
+from ufl.log import warning
 from ufl.assertions import ufl_assert
 from ufl.expr import Operator
 from ufl.constantvalue import is_true_ufl_scalar, ScalarValue, Zero, FloatValue
@@ -73,7 +74,12 @@ class MathFunction(Operator):
     
     def evaluate(self, x, mapping, component, index_values):    
         a = self._argument.evaluate(x, mapping, component, index_values)
-        return getattr(math, self._name)(a)
+        try:
+            res = getattr(math, self._name)(a)
+        except ValueError:
+            warning('Value error in evaluation of function %s with argument %s.' % (self._name, a))
+            raise
+        return res
     
     def __str__(self):
         return "%s(%s)" % (self._name, self._argument)
