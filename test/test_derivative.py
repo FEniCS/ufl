@@ -282,36 +282,27 @@ class DerivativeTestCase(UflTestCase):
 
     def test_coefficient_derivatives(self):
         V = FiniteElement("Lagrange", triangle, 1)
-        dv = TestFunction(V)
-        du = TrialFunction(V)
-        u = Coefficient(V)
-        f = Coefficient(V)
-        g = Coefficient(V)
-        df = Coefficient(V)
-        dg = Coefficient(V)
 
+        dv = TestFunction(V).reconstruct(count=0)
+        du = TrialFunction(V).reconstruct(count=1)
+
+        f = Coefficient(V).reconstruct(count=0)
+        g = Coefficient(V).reconstruct(count=1)
+        df = Coefficient(V).reconstruct(count=2)
+        dg = Coefficient(V).reconstruct(count=3)
+        u = Coefficient(V).reconstruct(count=4)
         cd = { f: df, g: dg }
-        F = f*g*dx
+
+        integrand = inner(f, g)
+        expected = (df*dv)*g + f*(dg*dv)
+
+        F = integrand*dx
         J = derivative(F, u, du, cd)
         fd = J.compute_form_data()
-        J2 = fd.preprocessed_form
+        actual = fd.preprocessed_form.integrals()[0].integrand()
+        self.assertEqual(actual, expected)
 
-        # TODO: This looks good, but we need to assert something sensible
         # TODO: Add tests covering more cases, in particular mixed stuff
-        if 0:
-            print
-            print 'f ', f
-            print 'df', df
-            print 'g ', g
-            print 'dg', dg
-            print 'u ', u
-            print map(str, fd.original_coefficients)
-            print map(str, fd.coefficients)
-            print
-            print str(J2)
-            print
-            print repr(J2)
-            print
 
     def test_foobar(self):
         element = VectorElement("Lagrange", triangle, 1)
