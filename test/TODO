@@ -8,7 +8,6 @@
 
 - Need better testing of algorithms, covering all of { algorithms } x { types }.
 
-
 Improve tests file by file:
 
 R = Review
@@ -17,29 +16,41 @@ A = Add something like this
 D = Done, looks good
 
 R   test_elements.py
+
 A   test_expr.py
-M   test_base.py
+R   test_classcoverage.py
+
 R   test_literals.py
 A   test_geometry.py
-R   test_indices.py
+A   test_form_arguments.py
+
 R   test_arithmetic.py
 R   test_future_division.py
+
+R   test_indices.py
 A   test_tensoralgebra.py
 A   test_listtensors.py
+
 R   test_conditionals.py
 R   test_lifting.py
+
+R   test_evaluate.py
 R   test_diff.py
 R   test_derivative.py
-R   test_evaluate.py
+
 R   test_forms.py
 R   test_illegal.py
+
+R   test_algorithms.py
 R   test_transformations.py
 R   test_expand_indices.py
 R   test_split.py
 R   test_simplify.py
 R   test_str.py
-R   test_classcoverage.py
-R   test_algorithms.py
-R   test_analyse_demos.py
+
+A   test_expand_compounds.py
+A   test_part_extracter.py
+
 R   test_ffcforms.py
+R   test_analyse_demos.py
 

@@ -6,6 +6,7 @@
    elementwise application of scalar operators to tensors of equal shape
  - Added condition operators And(lhs,rhs) and Or(lhs,rhs) for more powerful conditional expressions.
  - Fixed support for symmetries in subelements of a mixed element
+ - Add support for specifying derivatives of coefficients to derivative()
 0.9.1 [2011-05-16]
  - Remove set_foo functions in finite element classes
  - Change license from GPL v3 or later to LGPL v3 or later
