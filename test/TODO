@@ -1,4 +1,12 @@
 
+        def reshape(x, shape):
+            sh = x.shape()
+            if shape == sh:
+                return x
+            else:
+                pass # FIXME: Implement something like this for UFL
+        # FIXME: Make Inner work with innermost indices instead of all in UFL?
+
 - Take back whatever code we need from newtests and delete it.
   These test files have been completely migrated to newtests:
     analyse_demos.py

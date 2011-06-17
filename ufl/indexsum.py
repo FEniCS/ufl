@@ -21,6 +21,7 @@
 # Last changed: 2009-04-19
 
 from ufl.log import error
+from ufl.assertions import ufl_assert
 from ufl.expr import Expr, AlgebraOperator
 from ufl.indexing import Index, MultiIndex, as_multi_index
 from ufl.precedence import parstr
@@ -67,11 +68,12 @@ class IndexSum(AlgebraOperator):
 
         d = self._index_dimensions[j]
         self._index = as_multi_index(index, (d,))
+        ufl_assert(isinstance(self._index, MultiIndex), "Error in initialization of index sum.")
         self._dimension = d
         del self._index_dimensions[j]
 
-        self._repr = "IndexSum(%r, %r)" % (summand, index)
-    
+        self._repr = "IndexSum(%r, %r)" % (self._summand, self._index)
+
     def index(self):
         return self._index[0]
     

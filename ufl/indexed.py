@@ -37,13 +37,14 @@ class Indexed(WrapperType):
         if not isinstance(expression, Expr):
             error("Expecting Expr instance, not %s." % repr(expression))
         self._expression = expression
-        shape = expression.shape()
-        self._indices = as_multi_index(indices, shape)
 
-        if len(shape) != len(self._indices):
+        shape = expression.shape()
+        if len(shape) != len(indices):
             error("Invalid number of indices (%d) for tensor "\
                 "expression of rank %d:\n\t%r\n"\
-                % (len(self._indices), expression.rank(), expression))
+                % (len(indices), expression.rank(), expression))
+
+        self._indices = as_multi_index(indices, shape)
 
         for si, di in zip(shape, self._indices):
             if isinstance(di, FixedIndex) and int(di) >= int(si):

@@ -524,37 +524,34 @@ class SpatialAD(ForwardAD):
         else:
             vfi = ()
             vid = {}
-        ForwardAD.__init__(self, spatial_dim, var_shape=(), var_free_indices=vfi, var_index_dimensions=vid, cache=cache)
+        ForwardAD.__init__(self, spatial_dim, var_shape=(), var_free_indices=vfi,
+                           var_index_dimensions=vid, cache=cache)
         self._index = index
 
     def spatial_coordinate(self, o):
         # Need to define dx_i/dx_j = delta_ij?
         I = Identity(self._spatial_dim)
-        oprime = I[:, self._index] # TODO: Is this right?
+        oprime = I[:, self._index]
         return (o, oprime)
 
-    def argument(self, o):
-        # Using this index in here may collide with the same index on the outside! (There's a check for this situation in index_sum above.)
-        #oprime = o.dx(self._index)
-        oprime = SpatialDerivative(o, self._index)
-        return (o, oprime)
-
-    def coefficient(self, o):
-        # Using this index in here may collide with the same index on the outside! (There's a check for this situation in index_sum above.)
-        #oprime = o.dx(self._index)
-        oprime = SpatialDerivative(o, self._index)
-        return (o, oprime)
-
+    # This is implicit for all terminals, but just to make this clear:
+    facet_normal = ForwardAD.terminal # returns zero
     constant = ForwardAD.terminal # returns zero
 
-    def facet_normal(self, o):
-        #if o.cell().degree() > 1:
-        #    warning("Treating facet normal as a constant in differentiation!")
-        return ForwardAD.terminal(self, o) # returns zero
+    def form_argument(self, o):
+        # Using this index in here may collide with the
+        # same index on the outside! (There's a check for
+        # this situation in index_sum above.)
+        #oprime = o.dx(self._index)
+        oprime = SpatialDerivative(o, self._index)
+        return (o, oprime)
 
 class VariableAD(ForwardAD):
     def __init__(self, spatial_dim, var, cache=None):
-        ForwardAD.__init__(self, spatial_dim, var_shape=var.shape(), var_free_indices=var.free_indices(), var_index_dimensions=var.index_dimensions(), cache=cache)
+        ForwardAD.__init__(self, spatial_dim, var_shape=var.shape(),
+                           var_free_indices=var.free_indices(),
+                           var_index_dimensions=var.index_dimensions(),
+                           cache=cache)
         self._variable = var
 
     def variable(self, o):
@@ -607,7 +604,8 @@ class CoefficientAD(ForwardAD):
         oprimes = self._cd._data.get(o)
         if oprimes is None:
             if self._cd._data:
-                # TODO: Make it possible to silence this message in particular? It may be good to have for debugging...
+                # TODO: Make it possible to silence this message in particular?
+                #       It may be good to have for debugging...
                 warning("Assuming d{%s}/d{%s} = 0." % (o, self._w))
         else:
             # Make sure we have a tuple to match the self._v tuple
@@ -616,10 +614,25 @@ class CoefficientAD(ForwardAD):
                 ufl_assert(len(oprimes) == len(self._v), "Got a tuple of arguments, "+\
                                "expecting a matching tuple of coefficient derivatives.")
 
-            # Compute do/dw
+            # Compute do/dw_j = do/dw_h : N_j, where v in {N_j}.
+            # Since we may actually have a tuple of oprimes and vs in a
+            # 'mixed' space, sum over them all to get the complete inner
+            # product. Using indices to define a non-compound inner product.
             for (oprime, v) in zip(oprimes, self._v):
                 so, oi = as_scalar(oprime)
-                oprimesum += so*v[oi] # non-compound inner product!
+                rv = len(v.shape())
+                oi1 = oi[:-rv]
+                oi2 = oi[-rv:]
+                prod = so*v[oi2]
+                if oi1:
+                    oprimesum += as_tensor(prod, oi1)
+                else:
+                    oprimesum += prod
+
+        # Example:
+        # (f : g) -> (dfdu : v) : g + ditto
+        # shape(f) == shape(g) == shape(dfdu : v)
+        # shape(dfdu) == shape(f) + shape(v)
 
         return (o, oprimesum)
 

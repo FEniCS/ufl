@@ -302,6 +302,78 @@ class DerivativeTestCase(UflTestCase):
         actual = fd.preprocessed_form.integrals()[0].integrand()
         self.assertEqual(actual, expected)
 
+    def test_vector_coefficient_derivatives(self):
+        V = VectorElement("Lagrange", triangle, 1)
+        VV = TensorElement("Lagrange", triangle, 1)
+
+        dv = TestFunction(V).reconstruct(count=0)
+        du = TrialFunction(V).reconstruct(count=1)
+
+        df = Coefficient(VV).reconstruct(count=0)
+        g = Coefficient(V).reconstruct(count=1)
+        f = Coefficient(V).reconstruct(count=2)
+        u = Coefficient(V).reconstruct(count=3)
+        cd = { f: df }
+
+        integrand = inner(f, g)
+
+        i0, i1, i2, i3, i4 = [Index(count=c) for c in range(5)]
+        expected = as_tensor(df[i2,i1]*dv[i1], (i2,))[i0]*g[i0]
+
+        F = integrand*dx
+        J = derivative(F, u, du, cd)
+        fd = J.compute_form_data()
+        actual = fd.preprocessed_form.integrals()[0].integrand()
+        self.assertEqual(actual, expected)
+
+    def test_vector_coefficient_derivatives_of_product(self):
+        V = VectorElement("Lagrange", triangle, 1)
+        VV = TensorElement("Lagrange", triangle, 1)
+
+        dv = TestFunction(V).reconstruct(count=0)
+        du = TrialFunction(V).reconstruct(count=1)
+
+        df = Coefficient(VV).reconstruct(count=0)
+        g = Coefficient(V).reconstruct(count=1)
+        dg = Coefficient(VV).reconstruct(count=2)
+        f = Coefficient(V).reconstruct(count=3)
+        u = Coefficient(V).reconstruct(count=4)
+        cd = { f: df, g: dg }
+
+        integrand = f[i]*g[i]
+
+        i0, i1, i2, i3, i4 = [Index(count=c) for c in range(5)]
+        expected = as_tensor(df[i2,i1]*dv[i1], (i2,))[i0]*g[i0] +\
+                   f[i0]*as_tensor(dg[i4,i3]*dv[i3], (i4,))[i0]
+
+        F = integrand*dx
+        J = derivative(F, u, du, cd)
+        fd = J.compute_form_data()
+        actual = fd.preprocessed_form.integrals()[0].integrand()
+
+        # Keeping this snippet here for a while for debugging purposes
+        if 0:
+            print '\n', 'str:'
+            print str(actual)
+            print str(expected)
+            print '\n', 'repr:'
+            print repr(actual)
+            print repr(expected)
+            from ufl.algorithms import tree_format
+            open('actual.txt','w').write(tree_format(actual))
+            open('expected.txt', 'w').write(tree_format(expected))
+            print '\n', 'equal:'
+            print str(actual) == str(expected)
+            print repr(actual) == repr(expected)
+            print actual == expected
+
+        # Tricky case! These are equal in representation except
+        # that the outermost sum/indexsum are swapped.
+        # Sampling the expressions instead of comparing representations.
+        x = (0, 0)
+        funcs = {dv: (13, 14), f: (1,2), g: (3,4), df: ((5,6),(7,8)), dg: ((9,10),(11,12))}
+        self.assertEqual(actual(x, funcs), expected(x, funcs))
+
         # TODO: Add tests covering more cases, in particular mixed stuff
 
     def test_foobar(self):
