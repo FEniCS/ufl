@@ -48,7 +48,6 @@ class Expr(object):
     "Base class for all UFL objects."
     # Freeze member variables for objects of this class
     __slots__ = ()
-    #__slots__ = ("_operands", "_hash", "_str", "_repr", "_shape", "_free_indices", "_index_dimensions")
     
     def __init__(self):
         # Comment out this line to disable class construction statistics (used in some unit tests)
