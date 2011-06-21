@@ -32,7 +32,8 @@ class Equation:
         self.rhs = rhs
 
     def __nonzero__(self):
-        return repr(self.lhs) == repr(self.rhs)
+        return type(self.lhs) == type(self.rhs) and\
+            repr(self.lhs) == repr(self.rhs)
 
     def __eq__(self, other):
         return isinstance(other, Equation) and \
