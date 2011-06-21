@@ -75,8 +75,17 @@ class FiniteElementBase(object):
         meaning that component c0 is represented by component c1."""
         return {}
 
+    def extract_subelement_component(self, i):
+        """Extract direct subelement index and subelement relative
+        component index for a given component index"""
+        if isinstance(i, int):
+            i = (i,)
+        self._check_component(i)
+        return (None, i)
+
     def extract_component(self, i):
-        "Extract base component index and (simple) element for given component index"
+        """Recursively extract component index relative to a (simple) element
+        and that element for given value component index"""
         if isinstance(i, int):
             i = (i,)
         self._check_component(i)
@@ -96,9 +105,11 @@ class FiniteElementBase(object):
 
     def _check_component(self, i):
         "Check that component index i is valid"
-        r = len(self.value_shape())
-        ufl_assert(len(i) == r,
-                   "Illegal component index '%r' (value rank %d) for element (value rank %d)." % (i, len(i), r))
+        sh = self.value_shape()
+        r = len(sh)
+        ufl_assert(len(i) == r and all(j < k for (j,k) in zip(i, sh)),
+                   ("Illegal component index '%r' (value rank %d)"+\
+                   "for element (value rank %d).") % (i, len(i), r))
 
     def __hash__(self):
         return hash(repr(self))
@@ -315,33 +326,43 @@ class MixedElement(FiniteElementBase):
         "Return list of sub elements."
         return self._sub_elements
 
-    def extract_component(self, i):
-        """Extract base component index and (simple) element
-        for given component index."""
+    def extract_subelement_component(self, i):
+        """Extract direct subelement index and subelement relative
+        component index for a given component index"""
         if isinstance(i, int):
             i = (i,)
         self._check_component(i)
-        ufl_assert(len(i) > 0, "Illegal component index (empty).")
 
-        # Indexing into a long vector
+        # Select between indexing modes
         if len(self.value_shape()) == 1:
+            # Indexing into a long vector of flattened subelement shapes
             j, = i
-            ufl_assert(j < product(self.value_shape()), "Illegal component index (value %d)." % j)
+
             # Find subelement for this index
-            for e in self._sub_elements:
+            for k, e in enumerate(self._sub_elements):
                 sh = e.value_shape()
                 si = product(sh)
                 if j < si:
                     break
                 j -= si
             ufl_assert(j >= 0, "Moved past last value component!")
-            # Convert index into a shape tuple
-            i = index_to_component(j, sh)
-            return e.extract_component(i)
 
-        # Indexing into a multidimensional tensor
-        ufl_assert(i[0] < len(self._sub_elements), "Illegal component index (dimension %d)." % i[0])
-        return self._sub_elements[i[0]].extract_component(i[1:])
+            # Convert index into a shape tuple
+            j = index_to_component(j, sh)
+        else:
+            # Indexing into a multidimensional tensor
+            # where subelement index is first axis
+            k = i[0]
+            ufl_assert(k < len(self._sub_elements),
+                       "Illegal component index (dimension %d)." % k)
+            j = i[1:]
+        return (k, j)
+
+    def extract_component(self, i):
+        """Recursively extract component index relative to a (simple) element
+        and that element for given value component index"""
+        k, j = self.extract_subelement_component(i)
+        return self._sub_elements[k].extract_component(j)
 
     def __str__(self):
         "Format as string for pretty printing."
@@ -475,19 +496,21 @@ class TensorElement(MixedElement):
         kwargs["quad_scheme"] = kwargs.get("quad_scheme", self.quadrature_scheme())
         return TensorElement(**kwargs)
 
-    def extract_component(self, i):
-        "Extract base component index and (simple) element for given component index"
+    def extract_subelement_component(self, i):
+        """Extract direct subelement index and subelement relative
+        component index for a given component index"""
         if isinstance(i, int):
             i = (i,)
         self._check_component(i)
+
         i = self.symmetry().get(i, i)
         l = len(self._shape)
         ii = i[:l]
         jj = i[l:]
         ufl_assert(ii in self._sub_element_mapping, "Illegal component index %s." % repr(i))
-        subelement = self._sub_elements[self._sub_element_mapping[ii]]
-        return subelement.extract_component(jj)
-
+        k = self._sub_element_mapping[ii]
+        return (k, jj)
+    
     def symmetry(self):
         """Return the symmetry dict, which is a mapping c0 -> c1
         meaning that component c0 is represented by component c1."""
