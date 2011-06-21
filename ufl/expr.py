@@ -161,13 +161,14 @@ class Expr(object):
         """Checks whether the two expressions are represented the
         exact same way using repr. This does not check if the forms
         are mathematically equal or equivalent! Used by sets and dicts."""
-        #return (type(self) == type(other)) and ((self is other) or (self.operands() == other.operands()))
+        #return (type(self) == type(other)) and ((self is other) \
+        #      or (self.operands() == other.operands()))
         return repr(self) == repr(other)
 
     def __nonzero__(self):
         "By default, all Expr are nonzero."
         return True 
-    
+
     def __len__(self):
         "Length of expression. Used for iteration over vector expressions."
         s = self.shape()
