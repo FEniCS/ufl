@@ -30,6 +30,7 @@ from ufl.indexing import Indexed, Index, FixedIndex, MultiIndex, indices
 # --- Classes representing tensors of UFL expressions ---
 
 class ListTensor(WrapperType):
+    """UFL operator type: Wraps a list of expressions into a tensor valued expression of one higher rank."""
     __slots__ = ("_expressions", "_free_indices", "_shape", "_repr")
 
     def __new__(cls, *expressions):
@@ -135,6 +136,7 @@ class ListTensor(WrapperType):
         return self._repr
 
 class ComponentTensor(WrapperType):
+    """UFL operator type: Maps the free indices of a scalar valued expression to tensor axes."""
     __slots__ = ("_expression", "_indices", "_free_indices",
                  "_index_dimensions", "_shape", "_str", "_repr")
 
@@ -252,7 +254,22 @@ def from_numpy_to_lists(expressions):
     return expressions
 
 def as_tensor(expressions, indices = None):
-    #"""COMMENTME."""
+    """UFL operator: Make a tensor valued expression.
+
+    This works in two different ways, by using indices or lists.
+
+    1) Returns A such that A[indices] = expressions.
+    If indices are provided, expressions must be a scalar
+    valued expression with all the provided indices among
+    its free indices. This operator will then map each of these
+    indices to a tensor axis, thereby making a tensor valued
+    expression from a scalar valued expression with free indices.
+
+    2) Returns A such that A[k,...] = expressions[k].
+    If no indices are provided, expressions must be a list
+    or tuple of expressions. The expressions can also consist
+    of recursively nested lists to build higher rank tensors.
+    """
     if indices is None:
         # Support numpy array, but avoid importing numpy if not needed
         if not isinstance(expressions, (list, tuple)):
@@ -285,6 +302,7 @@ def as_tensor(expressions, indices = None):
         return ComponentTensor(expressions, indices)
 
 def as_matrix(expressions, indices = None):
+    "UFL operator: As as_tensor(), but limited to rank 2 tensors."
     if indices is None:
         # To avoid importing numpy unneeded, it's quite slow...
         if not isinstance(expressions, (list, tuple)):
@@ -304,20 +322,26 @@ def as_matrix(expressions, indices = None):
     return as_tensor(expressions, indices)
 
 def as_vector(expressions, index = None):
+    "UFL operator: As as_tensor(), but limited to rank 1 tensors."
     if index is not None:
         ufl_assert(isinstance(index, Index), "Expecting Index object.")
         index = (index,)
     return as_tensor(expressions, index)
 
 def as_scalar(expression):
+    """Given a scalar or tensor valued expression A,
+    returns either the tuple
+      (a,b) = (A, ())
+    or
+      (a,b) = (A[indices], indices)
+    such that a is always a scalar valued expression."""
     ii = indices(expression.rank())
     if ii:
-        #mi = MultiIndex(ii, expression.shape())
         expression = expression[ii]
     return expression, ii
 
 def relabel(A, indexmap):
-    "Relabel free indices of A with new indices, using the given mapping."
+    "UFL operator: Relabel free indices of A with new indices, using the given mapping."
     ii = tuple(sorted(indexmap.keys()))
     jj = tuple(indexmap[i] for i in ii)
     ufl_assert(all(isinstance(i, Index) for i in ii), "Expecting Index objects.")
@@ -333,15 +357,19 @@ def unit_list2(i, j, n):
     return [[(1 if (i == i0 and j == j0) else 0) for j0 in xrange(n)] for i0 in xrange(n)]
 
 def unit_vector(i, d):
+    "UFL value: A constant unit vector in direction i with dimension d."
     return as_vector(unit_list(i, d))
 
 def unit_vectors(d):
+    "UFL value: A tuple of constant unit vectors in all directions with dimension d."
     return tuple(unit_vector(i, d) for i in range(d))
 
 def unit_matrix(i, j, d):
+    "UFL value: A constant unit matrix in direction i,j with dimension d."
     return as_matrix(unit_list2(i, j, d))
 
 def unit_matrices(d):
+    "UFL value: A tuple of constant unit matrices in all directions with dimension d."
     return tuple(unit_matrix(i, j, d) for i in range(d) for j in range(d))
 
 def dyad(d, *iota):

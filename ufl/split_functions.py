@@ -30,8 +30,8 @@ from ufl.tensors import as_vector, as_matrix, as_tensor
 
 
 def split(v):
-    "Split Coefficient or Argument into its subfunctions if any."
-
+    """UFL operator: If v is a Coefficient or Argument in a mixed space, returns
+    a tuple with the function components corresponding to the subelements."""
     # Special case: simple element, just return function in a tuple
     element = v.element()
     if not isinstance(element, MixedElement):
@@ -124,4 +124,3 @@ def split(v):
     ufl_assert(actual_value_size == offset, "Logic breach in function splitting.")
     
     return tuple(sub_functions)
-

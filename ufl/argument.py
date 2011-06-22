@@ -32,6 +32,7 @@ from ufl.finiteelement import FiniteElementBase
 # --- Class representing an argument (basis function) in a form ---
 
 class Argument(FormArgument, Counted):
+    """UFL value: Representation of an argument to a form."""
     __slots__ = ("_repr", "_element",)
     _globalcount = 0
 
@@ -83,18 +84,26 @@ class Argument(FormArgument, Counted):
 # --- Helper functions for pretty syntax ---
 
 def TestFunction(element):
+    """UFL value: Create a test function argument to a form."""
     return Argument(element, -2)
 
 def TrialFunction(element):
+    """UFL value: Create a trial function argument to a form."""
     return Argument(element, -1)
 
 # --- Helper functions for creating subfunctions on mixed elements ---
 
 def Arguments(element):
+    """UFL value: Create an Argument in a mixed space, and return a
+    tuple with the function components corresponding to the subelements."""
     return split(Argument(element))
 
 def TestFunctions(element):
+    """UFL value: Create a TestFunction in a mixed space, and return a
+    tuple with the function components corresponding to the subelements."""
     return split(TestFunction(element))
 
 def TrialFunctions(element):
+    """UFL value: Create a TrialFunction in a mixed space, and return a
+    tuple with the function components corresponding to the subelements."""
     return split(TrialFunction(element))

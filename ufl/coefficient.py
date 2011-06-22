@@ -34,6 +34,8 @@ from ufl.geometry import as_cell
 # --- The Coefficient class represents a coefficient in a form ---
 
 class Coefficient(FormArgument, Counted):
+    """UFL form argument type: Representation of a form coefficient."""
+
     # Slots are disabled here because they cause trouble in PyDOLFIN multiple inheritance pattern:
     #__slots__ = ("_element", "_repr", "_gradient", "_derivatives")
     _globalcount = 0
@@ -114,6 +116,7 @@ class ConstantBase(Coefficient):
         Coefficient.__init__(self, element, count)
 
 class Constant(ConstantBase):
+    """UFL value: Represents a coefficient in a scalar valued piecewise constant space."""
     __slots__ = ()
 
     def __init__(self, cell, count=None):
@@ -132,6 +135,7 @@ class Constant(ConstantBase):
             return "c_{%s}" % count
 
 class VectorConstant(ConstantBase):
+    """UFL value: Represents a coefficient in a vector valued piecewise constant space."""
     __slots__ = ()
 
     def __init__(self, cell, dim=None, count=None):
@@ -150,6 +154,7 @@ class VectorConstant(ConstantBase):
             return "C_{%s}" % count
 
 class TensorConstant(ConstantBase):
+    """UFL value: Represents a coefficient in a tensor valued piecewise constant space."""
     __slots__ = ()
     def __init__(self, cell, shape=None, symmetry=None, count=None):
         e = TensorElement("DG", cell, 0, shape=shape, symmetry=symmetry)
@@ -170,4 +175,6 @@ class TensorConstant(ConstantBase):
 # --- Helper functions for subfunctions on mixed elements ---
 
 def Coefficients(element):
+    """UFL value: Create a Coefficient in a mixed space, and return a
+    tuple with the function components corresponding to the subelements."""
     return split(Coefficient(element))

@@ -32,6 +32,9 @@ class IndexBase(object):
         pass
 
 class Index(IndexBase, Counted):
+    """UFL value: An index with no value assigned.
+
+    Used to represent free indices in Einstein indexing notation."""
     __slots__ = ("_str", "_repr", "_hash")
     _globalcount = 0
     def __init__(self, count=None):
@@ -58,6 +61,7 @@ class Index(IndexBase, Counted):
         return self._repr
 
 class FixedIndex(IndexBase):
+    """UFL value: An index with a specific value assigned."""
     __slots__ = ("_value", "_repr")
     
     def __init__(self, value):
@@ -87,6 +91,7 @@ class FixedIndex(IndexBase):
         return self._repr
 
 class MultiIndex(UtilityType):
+    "Represents a sequence of indices, either fixed or free."
     __slots__ = ("_indices", "_str", "_repr")
     
     def __init__(self, ii, idims=None):
@@ -200,7 +205,7 @@ def as_multi_index(ii, shape=None):
     return MultiIndex(ii, _make_idims(ii, shape))
 
 def indices(n):
-    "Return a tuple of n new Index objects."
+    "UFL value: Return a tuple of n new Index objects."
     return tuple(Index() for _i in range(n))
 
 # TODO: Fix imports everywhere else instead

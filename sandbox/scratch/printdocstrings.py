@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import ufl
 
+missingmods = {}
 missing = {}
 terminals = {}
 operators = {}
@@ -11,6 +12,9 @@ for n in ufl.__all__:
     d = o.__doc__
     if not d:
         missing[n] = d
+        s = missingmods.get(o.__module__, set())
+        s.add(n)
+        missingmods[o.__module__] = s
     elif "UFL operator:" in d:
         operators[n] = d
     elif "UFL form operator:" in d:
@@ -36,3 +40,5 @@ print sep+"Other names:"
 print '\n'.join(sorted(other.keys()))
 print sep+"Missing:"
 print '\n'.join(sorted(missing.keys()))
+print sep+"Missing by module:"
+print format_dict(missingmods)

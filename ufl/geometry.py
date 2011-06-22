@@ -203,7 +203,7 @@ class Cell(object):
                  "_n", "_x", "_volume", "_circumradius")
 
     def __init__(self, domain, space=None):
-        "Initialize basic cell description"
+        "Initialize basic cell description."
 
         # Check for valid domain. We allow None to support PyDOLFIN
         # integration features. This is a bit dangerous because
@@ -287,10 +287,12 @@ class Cell(object):
         return self._domain
 
     def facet_domain(self):
+        "Return the domain of the facet of this cell."
         ufl_assert(not self._invalid, "An invalid cell has no facet domains.")
         return domain2facet[self._domain]
 
     def num_facets(self):
+        "Return the number of facets this cell has."
         ufl_assert(not self._invalid, "An invalid cell has no facets.")
         return domain2num_facets[self._domain]
 
@@ -333,5 +335,6 @@ class Cell(object):
 # --- Utility conversion functions
 
 def as_cell(cell):
-    "Convert any valid object to a Cell (in particular, domain string)."
+    """Convert any valid object to a Cell (in particular, domain string),
+    or return cell if it is already a Cell."""
     return cell if isinstance(cell, Cell) else Cell(cell)

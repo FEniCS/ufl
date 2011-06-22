@@ -46,7 +46,7 @@ python_scalar_types = (int, float)
 precision = None
 
 def format_float(x):
-    "Format float value based on global UFL precision"
+    "Format float value based on global UFL precision."
     if precision is None:
         return repr(x)
     else:
@@ -84,6 +84,7 @@ class IndexAnnotated(object):
 #--- Class for representing zero tensors of different shapes ---
 
 class Zero(ConstantValue, IndexAnnotated):
+    "UFL literal type: Representation of a zero valued expression."
     __slots__ = ()
 
     def __init__(self, shape=(), free_indices=(), index_dimensions=None):
@@ -142,7 +143,7 @@ class Zero(ConstantValue, IndexAnnotated):
         return 0
 
 def zero(*shape):
-    "Return a zero tensor with the given shape."
+    "UFL literal constant: Return a zero tensor with the given shape."
     return Zero(shape)
 
 #--- Scalar value types ---
@@ -205,7 +206,7 @@ class ScalarValue(ConstantValue, IndexAnnotated):
         return type(self)(abs(self._value))
 
 class FloatValue(ScalarValue):
-    "A constant scalar numeric value."
+    "UFL literal type: Representation of a constant scalar floating point value."
     __slots__ = ()
     def __init__(self, value, shape=(), free_indices=(), index_dimensions=None):
 
@@ -225,11 +226,13 @@ class FloatValue(ScalarValue):
         return self._repr
 
 class IntValue(ScalarValue):
-    "A constant scalar integer value."
+    "UFL literal type: Representation of a constant scalar integer value."
     __slots__ = ()
     def __init__(self, value, shape=(), free_indices=(), index_dimensions=None):
         ScalarValue.__init__(self, int_type(value), shape, free_indices, index_dimensions)
-        self._repr = "%s(%s, %s, %s, %s)" % (type(self).__name__, repr(self._value), repr(self._shape), repr(self._free_indices), repr(self._index_dimensions))
+        self._repr = "%s(%s, %s, %s, %s)" % (type(self).__name__, repr(self._value),
+                                             repr(self._shape), repr(self._free_indices),
+                                             repr(self._index_dimensions))
 
     def __repr__(self):
         return self._repr
@@ -237,6 +240,7 @@ class IntValue(ScalarValue):
 #--- Identity matrix ---
 
 class Identity(ConstantValue):
+    "UFL literal type: Representation of an identity matrix."
     __slots__ = ("_dim", "_repr")
 
     def __new__(cls, dim):
@@ -275,6 +279,10 @@ class Identity(ConstantValue):
 #--- Permutation symbol ---
 
 class PermutationSymbol(ConstantValue):
+    """UFL literal type: Representation of a permutation symbol.
+    
+    This is also known as the Levi-Civita symbol, antisymmetric symbol,
+    or alternating symbol."""
     __slots__ = ("_dim", "_repr")
 
     def __init__(self, dim):
@@ -344,4 +352,5 @@ def as_ufl(expression):
         return IntValue(expression)
     if isinstance(expression, (float, float_type)):
         return FloatValue(expression)
-    error("Invalid type conversion: %s can not be converted to any UFL type.\nThe representation of the object is:\n%r" % (type(expression), expression))
+    error(("Invalid type conversion: %s can not be converted to any UFL type.\n"+\
+           "The representation of the object is:\n%r") % (type(expression), expression))
