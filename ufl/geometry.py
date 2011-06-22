@@ -197,9 +197,10 @@ class Space(object):
 
 class Cell(object):
     "Representation of a finite element cell."
-    __slots__ = ("_domain", "_space", "_geometric_dimension",
-                 "_topological_dimension", "_repr", "_invalid",
-                 "d", "n", "x", "volume", "circumradius")
+    __slots__ = ("_domain", "_space",
+                 "_geometric_dimension", "_topological_dimension",
+                 "_repr", "_invalid",
+                 "_n", "_x", "_volume", "_circumradius")
 
     def __init__(self, domain, space=None):
         "Initialize basic cell description"
@@ -247,34 +248,33 @@ class Cell(object):
         self._repr = "Cell(%r, %r)" % (self._domain, self._space)
 
         # Attach expression nodes derived from this cell
-        self.n = FacetNormal(self)
-        self.x = SpatialCoordinate(self)
-        self.volume = CellVolume(self)
-        self.circumradius = Circumradius(self)
-        #self.h = MeshSize(self)
-        #self.hmin = MeshSizeMin(self)
-        #self.hmax = MeshSizeMax(self)
+        self._n = FacetNormal(self)
+        self._x = SpatialCoordinate(self)
+        self._volume = CellVolume(self)
+        self._circumradius = Circumradius(self)
+        #self._h = MeshSize(self)
+        #self._hmin = MeshSizeMin(self)
+        #self._hmax = MeshSizeMax(self)
 
     @property
-    def d(self):
-        """Return the dimension of the cell.
-        Only valid if the geometric and
-        topological dimensions are the same."""
-        ufl_assert(not self._invalid, "An invalid cell has no dimensions.")
-        ufl_assert(self._topological_dimension == self._geometric_dimension,
-                   "Cell.d is undefined when geometric and"+\
-                   "topological dimensions are not the same.")
-        return self._geometric_dimension
+    def x(self):
+        "UFL geometry value: The global spatial coordinates."
+        return self._x
 
-    def geometric_dimension(self):
-        "Return the dimension of the space this cell is embedded in."
-        ufl_assert(not self._invalid, "An invalid cell has no dimensions.")
-        return self._geometric_dimension
+    @property
+    def n(self):
+        "UFL geometry value: The facet normal on the cell boundary."
+        return self._n
 
-    def topological_dimension(self):
-        "Return the dimension of the topology of this cell."
-        ufl_assert(not self._invalid, "An invalid cell has no dimensions.")
-        return self._topological_dimension
+    @property
+    def volume(self):
+        "UFL geometry value: The volume of the cell."
+        return self._volume
+
+    @property
+    def circumradius(self):
+        "UFL geometry value: The circumradius of the cell."
+        return self._circumradius
 
     def is_undefined(self):
         """Return whether this cell is undefined,
@@ -286,13 +286,34 @@ class Cell(object):
         ufl_assert(not self._invalid, "An invalid cell has no domain.")
         return self._domain
 
+    def facet_domain(self):
+        ufl_assert(not self._invalid, "An invalid cell has no facet domains.")
+        return domain2facet[self._domain]
+
     def num_facets(self):
         ufl_assert(not self._invalid, "An invalid cell has no facets.")
         return domain2num_facets[self._domain]
 
-    def facet_domain(self):
-        ufl_assert(not self._invalid, "An invalid cell has no facet domains.")
-        return domain2facet[self._domain]
+    def geometric_dimension(self):
+        "Return the dimension of the space this cell is embedded in."
+        ufl_assert(not self._invalid, "An invalid cell has no dimensions.")
+        return self._geometric_dimension
+
+    def topological_dimension(self):
+        "Return the dimension of the topology of this cell."
+        ufl_assert(not self._invalid, "An invalid cell has no dimensions.")
+        return self._topological_dimension
+
+    @property
+    def d(self):
+        """The dimension of the cell.
+
+        Only valid if the geometric and topological dimensions are the same."""
+        ufl_assert(not self._invalid, "An invalid cell has no dimensions.")
+        ufl_assert(self._topological_dimension == self._geometric_dimension,
+                   "Cell.d is undefined when geometric and"+\
+                   "topological dimensions are not the same.")
+        return self._geometric_dimension
 
     def __eq__(self, other):
         return isinstance(other, Cell) and repr(self) == repr(other)

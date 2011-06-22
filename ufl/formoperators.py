@@ -49,7 +49,8 @@ from ufl.algorithms import compute_form_adjoint, \
 from ufl.algorithms import replace
 
 def lhs(form):
-    """Given a combined bilinear and linear form,
+    """UFL form operator:
+    Given a combined bilinear and linear form,
     extract the left hand side (bilinear form part).
 
     Example:
@@ -62,7 +63,8 @@ def lhs(form):
     return compute_form_lhs(form)
 
 def rhs(form):
-    """Given a combined bilinear and linear form,
+    """UFL form operator:
+    Given a combined bilinear and linear form,
     extract the right hand side (negated linear form part).
 
     Example:
@@ -75,17 +77,18 @@ def rhs(form):
     return compute_form_rhs(form)
 
 def system(form):
-    "Split a form into the left hand side and right hand side, see lhs and rhs."
+    "UFL form operator: Split a form into the left hand side and right hand side, see lhs and rhs."
     return lhs(form), rhs(form)
 
 def functional(form): # TODO: Does this make sense for anything other than testing?
-    """Extract the functional part of form."""
+    "UFL form operator: Extract the functional part of form."
     form = as_form(form)
     form = expand_derivatives(form)
     return compute_form_functional(form)
 
 def action(form, coefficient=None):
-    """Given a bilinear form, return a linear form
+    """UFL form operator:
+    Given a bilinear form, return a linear form
     with an additional coefficient, representing the
     action of the form on the coefficient. This can be
     used for matrix-free methods."""
@@ -94,7 +97,8 @@ def action(form, coefficient=None):
     return compute_form_action(form, coefficient)
 
 def energy_norm(form, coefficient=None):
-    """Given a bilinear form, return a linear form
+    """UFL form operator:
+    Given a bilinear form, return a linear form
     with an additional coefficient, representing the
     action of the form on the coefficient. This can be
     used for matrix-free methods."""
@@ -103,7 +107,8 @@ def energy_norm(form, coefficient=None):
     return compute_energy_norm(form, coefficient)
 
 def adjoint(form):
-    """Given a combined bilinear form, compute the adjoint
+    """UFL form operator:
+    Given a combined bilinear form, compute the adjoint
     form by swapping the test and trial functions."""
     form = as_form(form)
     form = expand_derivatives(form)
@@ -174,7 +179,8 @@ def _handle_derivative_arguments(coefficient, argument):
     return coefficients, arguments
 
 def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
-    """Given any form, compute the linearization of the
+    """UFL form operator:
+    Given any form, compute the linearization of the
     form with respect to the given Coefficient.
     The resulting form has one additional Argument
     in the same finite element space as the coefficient.
@@ -203,7 +209,8 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
     error("Invalid argument type %s." % str(type(form)))
 
 def sensitivity_rhs(a, u, L, v):
-    """Compute the right hand side for a sensitivity calculation system.
+    """UFL form operator:
+    Compute the right hand side for a sensitivity calculation system.
 
     The derivation behind this computation is as follows.
     Assume a, L to be bilinear and linear forms
