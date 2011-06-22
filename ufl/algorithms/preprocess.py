@@ -27,6 +27,7 @@ from ufl.assertions import ufl_assert
 from ufl.expr import Expr
 from ufl.form import Form
 from ufl.common import slice_dict
+from ufl.geometry import Cell
 from ufl.algorithms.ad import expand_derivatives
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.algorithms.transformations import replace
@@ -191,18 +192,22 @@ def preprocess_expression(expr, object_names=None, common_cell=None, element_map
     element_mapping = element_mapping or {}
 
     # Extract common cell
-    common_cell = extract_common_cell(expr, common_cell)
+    try:
+        common_cell = extract_common_cell(form, common_cell)
+        gdim = common_cell.geometric_dimension()
+    except:
+        common_cell = Cell(None, None)
+        gdim = None
 
     # Expand derivatives
-    expr = expand_derivatives(expr, common_cell.geometric_dimension())
+    expr = expand_derivatives(expr, gdim)
 
     # Renumber indices
     if not use_expand_indices:
         expr = renumber_indices(expr)
 
     # Replace arguments and coefficients with new renumbered objects
-    arguments, coefficients = extract_arguments_and_coefficients(expr) # TODO: Does this take an expr?
-    ufl_assert(not arguments, "Not expecting Arguments in expression.")
+    arguments, coefficients = extract_arguments_and_coefficients(expr)
     element_mapping = build_element_mapping(element_mapping, common_cell,
                                             arguments, coefficients)
     replace_map, arguments, coefficients = \
@@ -223,7 +228,7 @@ def preprocess_expression(expr, object_names=None, common_cell=None, element_map
     expr_data.name = name
 
     # Store data extracted by preprocessing
-    #expr_data.arguments             = arguments
+    expr_data.arguments             = arguments
     expr_data.coefficients          = coefficients
     expr_data.original_arguments    = original_arguments
     expr_data.original_coefficients = original_coefficients
@@ -241,8 +246,12 @@ def preprocess_expression(expr, object_names=None, common_cell=None, element_map
     expr_data.cell = common_cell
 
     # Store data related to cell
-    expr_data.geometric_dimension = expr_data.cell.geometric_dimension()
-    expr_data.topological_dimension = expr_data.cell.topological_dimension()
+    if common_cell.is_undefined():
+        expr_data.geometric_dimension = None
+        expr_data.topological_dimension = None
+    else:
+        expr_data.geometric_dimension = expr_data.cell.geometric_dimension()
+        expr_data.topological_dimension = expr_data.cell.topological_dimension()
 
     # Store some useful dimensions
     #expr_data.rank = len(expr_data.arguments)
