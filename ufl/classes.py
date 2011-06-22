@@ -54,6 +54,7 @@ from ufl.conditional import Condition, EQ, NE, LE, GE, LT, GT,\
     AndCondition, OrCondition, Conditional
 from ufl.form import Form
 from ufl.integral import Measure, Integral
+from ufl.equation import Equation
 
 # Make sure we import exproperators which attaches special functions to Expr
 from ufl import exproperators as __exproperators

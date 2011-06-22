@@ -32,7 +32,7 @@ class Equation:
         self.rhs = rhs
 
     def __nonzero__(self):
-        return type(self.lhs) == type(self.rhs) and\
+        return type(self.lhs) == type(self.rhs) and \
             repr(self.lhs) == repr(self.rhs)
 
     def __eq__(self, other):
