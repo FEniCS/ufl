@@ -34,27 +34,49 @@ from ufl.equation import Equation
 class Form(object):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
     __slots__ = ("_integrals",
-                 "_repr", "_hash", "_str", "_form_data", "_is_preprocessed",
-                 "cell_domains", "exterior_facet_domains", "interior_facet_domains")
-
-    # Note: cell_domains, exterior_facet_domains and interior_facet_domains
-    # are used by DOLFIN to pass data to the assembler. They can otherwise
-    # safely be ignored.
+                 "_repr", "_hash", "_str",
+                 "_form_data", "_is_preprocessed",
+                 "_cell_domains", "_exterior_facet_domains", "_interior_facet_domains")
 
     def __init__(self, integrals):
         self._integrals = tuple(integrals)
-        ufl_assert(all(isinstance(itg, Integral) for itg in integrals), "Expecting list of integrals.")
+        ufl_assert(all(isinstance(itg, Integral) for itg in integrals),
+                   "Expecting list of integrals.")
         self._str = None
         self._repr = None
         self._hash = None
         self._form_data = None
         self._is_preprocessed = False
 
-        # TODO: Can we attach non-ufl payloads in a more generic fashion?
-        # This seems prone to change with dolfin versions.
-        self.cell_domains = None
-        self.exterior_facet_domains = None
-        self.interior_facet_domains = None
+        # Note: cell_domains, exterior_facet_domains and interior_facet_domains
+        # are used by DOLFIN to pass data to the assembler. They are deprecated
+        # because they lead to bugs and will be removed.
+        self._cell_domains = None
+        self._exterior_facet_domains = None
+        self._interior_facet_domains = None
+
+    # TODO: Remove these completely!
+    @property
+    def cell_domains(self):
+        return self._cell_domains
+    @cell_domains.setter
+    def _set_cell_domains(self, domains):
+        warning("Deprecation warning! Attach your boundary indicators to the measure instead.")
+        self._cell_domains = domains
+    @property
+    def exterior_facet_domains(self):
+        return self._exterior_facet_domains
+    @exterior_facet_domains.setter
+    def _set_exterior_facet_domains(self, domains):
+        warning("Deprecation warning! Attach your boundary indicators to the measure instead.")
+        self._exterior_facet_domains = domains
+    @property
+    def interior_facet_domains(self):
+        return self._interior_facet_domains
+    @interior_facet_domains.setter
+    def _set_interior_facet_domains(self, domains):
+        warning("Deprecation warning! Attach your boundary indicators to the measure instead.")
+        self._interior_facet_domains = domains
 
     def cell(self):
         c = None
@@ -168,19 +190,25 @@ class Form(object):
         return Form(newintegrals)
 
     def __sub__(self, other):
+        "Subtract other form from this one."
         return self + (-other)
 
     def __neg__(self):
-        # This enables the handy "-form" syntax for e.g. the linearized system (J, -F) from a nonlinear form F
+        """Negate all integrals in form.
+        
+        This enables the handy "-form" syntax for e.g. the
+        linearized system (J, -F) from a nonlinear form F."""
         return Form([-itg for itg in self._integrals])
 
     def __rmul__(self, scalar):
+        "Multiply all integrals in form with constant scalar value."
         # This enables the handy "0*form" syntax
-        ufl_assert(is_python_scalar(scalar), "Only multiplication by scalar literals currently supported.")
+        ufl_assert(is_python_scalar(scalar),
+                   "Only multiplication by scalar expressions currently supported.")
         return Form([scalar*itg for itg in self._integrals])
 
     def __mul__(self, coefficient):
-        "The action of this form on the given coefficient."
+        "UFL form operator: Take the action of this form on the given coefficient."
         from ufl.formoperators import action
         return action(self, coefficient)
 
