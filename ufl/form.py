@@ -35,8 +35,7 @@ class Form(object):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
     __slots__ = ("_integrals",
                  "_repr", "_hash", "_str",
-                 "_form_data", "_is_preprocessed",
-                 "_cell_domains", "_exterior_facet_domains", "_interior_facet_domains")
+                 "_form_data", "_is_preprocessed")
 
     def __init__(self, integrals):
         self._integrals = tuple(integrals)
@@ -48,35 +47,25 @@ class Form(object):
         self._form_data = None
         self._is_preprocessed = False
 
-        # Note: cell_domains, exterior_facet_domains and interior_facet_domains
-        # are used by DOLFIN to pass data to the assembler. They are deprecated
-        # because they lead to bugs and will be removed.
-        self._cell_domains = None
-        self._exterior_facet_domains = None
-        self._interior_facet_domains = None
-
     # TODO: Remove these completely!
     @property
     def cell_domains(self):
-        return self._cell_domains
+        error("Form has no property 'cell_domains'. Use dx2 = dx[cell_domains]; a = f*dx2(1).")
     @cell_domains.setter
     def _set_cell_domains(self, domains):
-        warning("Deprecation warning! Attach your boundary indicators to the measure instead.")
-        self._cell_domains = domains
+        error("Form has no property 'cell_domains'. Use dx2 = dx[cell_domains]; a = f*dx2(1).")
     @property
     def exterior_facet_domains(self):
-        return self._exterior_facet_domains
+        error("Form has no property 'exterior_facet_domains'. Use ds2 = ds[exterior_facet_domains]; a = f*ds2(1).")
     @exterior_facet_domains.setter
     def _set_exterior_facet_domains(self, domains):
-        warning("Deprecation warning! Attach your boundary indicators to the measure instead.")
-        self._exterior_facet_domains = domains
+        error("Form has no property 'exterior_facet_domains'. Use ds2 = ds[exterior_facet_domains]; a = f*ds2(1).")
     @property
     def interior_facet_domains(self):
-        return self._interior_facet_domains
+        error("Form has no property 'interior_facet_domains'. Use dE2 = dE[interior_facet_domains]; a = f*dE2(1).")
     @interior_facet_domains.setter
     def _set_interior_facet_domains(self, domains):
-        warning("Deprecation warning! Attach your boundary indicators to the measure instead.")
-        self._interior_facet_domains = domains
+        error("Form has no property 'interior_facet_domains'. Use dE2 = dE[interior_facet_domains]; a = f*dE2(1).")
 
     def cell(self):
         c = None
