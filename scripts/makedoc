@@ -16,7 +16,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # First added:  2011-06-09
-# Last changed: 2011-06-09
+# Last changed: 2011-06-27
 
 #
 # This is a utility script for generating .rst and .html
@@ -52,5 +52,5 @@ make clean
 make html
 
 echo ""
-echo "--- HTML files generated in $SPHINX_SOURCE_DIR/build/html"
+echo "--- HTML files generated in $SPHINX_DIR/build/html"
 echo ""
