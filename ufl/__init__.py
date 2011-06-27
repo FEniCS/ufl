@@ -111,7 +111,7 @@ A very brief overview of the language contents follows:
 
 * Conditional operators::
 
-    eq, ne, le, ge, lt, gt, And, Or, conditional
+    eq, ne, le, ge, lt, gt, And, Or, Not, conditional
 
 * Integral measures::
 
@@ -206,7 +206,8 @@ from ufl.operators import rank, shape, \
                        det, inv, cofac, \
                        transpose, tr, dev, skew, sym, \
                        sqrt, exp, ln, cos, sin, tan, acos, asin, atan, \
-                       eq, ne, le, ge, lt, gt, And, Or, conditional, sign, \
+                       eq, ne, le, ge, lt, gt, And, Or, Not, \
+                       conditional, sign, \
                        variable, diff, \
                        Dx,  grad, div, curl, rot, Dn, exterior_derivative, \
                        jump, avg, \
@@ -259,7 +260,8 @@ __all__ = [
     'det', 'inv', 'cofac',
     'transpose', 'tr', 'dev', 'skew', 'sym',
     'sqrt', 'exp', 'ln', 'cos', 'sin', 'tan', 'acos', 'asin', 'atan',
-    'eq', 'ne', 'le', 'ge', 'lt', 'gt', 'And', 'Or', 'conditional', 'sign',
+    'eq', 'ne', 'le', 'ge', 'lt', 'gt', 'And', 'Or', 'Not',
+    'conditional', 'sign',
     'variable', 'diff',
     'Dx', 'grad', 'div', 'curl', 'rot', 'Dn', 'exterior_derivative',
     'jump', 'avg',

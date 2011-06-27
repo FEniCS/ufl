@@ -50,8 +50,9 @@ from ufl.lifting import LiftingResult, LiftingOperatorResult, LiftingFunctionRes
     TerminalOperator, LiftingOperator, LiftingFunction
 from ufl.differentiation import Derivative, CompoundDerivative, CoefficientDerivative,\
     SpatialDerivative, VariableDerivative, Grad, Div, Curl
-from ufl.conditional import Condition, EQ, NE, LE, GE, LT, GT,\
-    AndCondition, OrCondition, Conditional
+from ufl.conditional import Condition, BinaryCondition,\
+    EQ, NE, LE, GE, LT, GT,\
+    AndCondition, OrCondition, NotCondition, Conditional
 from ufl.form import Form
 from ufl.integral import Measure, Integral
 from ufl.equation import Equation

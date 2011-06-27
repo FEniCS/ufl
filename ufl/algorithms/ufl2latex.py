@@ -323,6 +323,9 @@ class Expression2LatexHandler(Transformer):
     def or_condition(self, o, a, b):
         return "(%s || %s)" % (a, b)
 
+    def not_condition(self, o, a):
+        return "!(%s)" % (a,)
+
     def conditional(self, o, c, t, f):
         l = "\\begin{cases}\n"
         l += "%s, &\text{if }\quad %s, \\\\\n" % (t, c)

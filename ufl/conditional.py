@@ -29,6 +29,23 @@ from ufl.precedence import parstr
 #--- Condition classes --- 
 
 class Condition(Operator):
+    __slots__ = ()
+    def __init__(self):
+        Operator.__init__(self)
+
+    # Functions like these are an indication that a better type system could be useful:
+
+    def free_indices(self):
+        error("Calling free_indices on Condition is an error.")
+
+    def index_dimensions(self):
+        error("Calling index_dimensions on Condition is an error.")
+
+    def shape(self):
+        error("Calling shape on Condition is an error.")
+
+class BinaryCondition(Condition):
+    __slots__ = ('_name', '_left', '_right', '_repr')
     def __init__(self, name, left, right):
         Operator.__init__(self)
         self._name = name
@@ -49,19 +66,10 @@ class Condition(Operator):
         self._repr = "%s(%r, %r)" % (type(self).__name__, self._left, self._right)
 
     def operands(self):
-        # Condition should never be constructed directly,
+        # A BinaryCondition should never be constructed directly,
         # so these two arguments correspond to the constructor
         # arguments of the subclasses EQ etc.
         return (self._left, self._right)
-
-    def free_indices(self):
-        error("Calling free_indices on Condition is an error.")
-
-    def index_dimensions(self):
-        error("Calling index_dimensions on Condition is an error.")
-
-    def shape(self):
-        error("Calling shape on Condition is an error.")
 
     def __str__(self):
         return "%s %s %s" % (parstr(self._left, self), self._name, parstr(self._right, self))
@@ -69,83 +77,112 @@ class Condition(Operator):
     def __repr__(self):
         return self._repr
 
-class EQ(Condition):
+class EQ(BinaryCondition):
+    __slots__ = ()
     def __init__(self, left, right):
-        Condition.__init__(self, "==", left, right)
+        BinaryCondition.__init__(self, "==", left, right)
     
     def evaluate(self, x, mapping, component, index_values):
         a = self._left.evaluate(x, mapping, component, index_values)
         b = self._right.evaluate(x, mapping, component, index_values)
         return bool(a == b)
 
-class NE(Condition):
+class NE(BinaryCondition):
+    __slots__ = ()
     def __init__(self, left, right):
-        Condition.__init__(self, "!=", left, right)
+        BinaryCondition.__init__(self, "!=", left, right)
     
     def evaluate(self, x, mapping, component, index_values):
         a = self._left.evaluate(x, mapping, component, index_values)
         b = self._right.evaluate(x, mapping, component, index_values)
         return bool(a != b)
 
-class LE(Condition):
+class LE(BinaryCondition):
+    __slots__ = ()
     def __init__(self, left, right):
-        Condition.__init__(self, "<=", left, right)
+        BinaryCondition.__init__(self, "<=", left, right)
     
     def evaluate(self, x, mapping, component, index_values):
         a = self._left.evaluate(x, mapping, component, index_values)
         b = self._right.evaluate(x, mapping, component, index_values)
         return bool(a <= b)
 
-class GE(Condition):
+class GE(BinaryCondition):
+    __slots__ = ()
     def __init__(self, left, right):
-        Condition.__init__(self, ">=", left, right)
+        BinaryCondition.__init__(self, ">=", left, right)
     
     def evaluate(self, x, mapping, component, index_values):
         a = self._left.evaluate(x, mapping, component, index_values)
         b = self._right.evaluate(x, mapping, component, index_values)
         return bool(a >= b)
 
-class LT(Condition):
+class LT(BinaryCondition):
+    __slots__ = ()
     def __init__(self, left, right):
-        Condition.__init__(self, "<", left, right)
+        BinaryCondition.__init__(self, "<", left, right)
     
     def evaluate(self, x, mapping, component, index_values):
         a = self._left.evaluate(x, mapping, component, index_values)
         b = self._right.evaluate(x, mapping, component, index_values)
         return bool(a < b)
 
-class GT(Condition):
+class GT(BinaryCondition):
+    __slots__ = ()
     def __init__(self, left, right):
-        Condition.__init__(self, ">", left, right)
+        BinaryCondition.__init__(self, ">", left, right)
     
     def evaluate(self, x, mapping, component, index_values):
         a = self._left.evaluate(x, mapping, component, index_values)
         b = self._right.evaluate(x, mapping, component, index_values)
         return bool(a > b)
 
-class AndCondition(Condition):
+class AndCondition(BinaryCondition):
+    __slots__ = ()
     def __init__(self, left, right):
-        Condition.__init__(self, "&&", left, right)
+        BinaryCondition.__init__(self, "&&", left, right)
     
     def evaluate(self, x, mapping, component, index_values):
         a = self._left.evaluate(x, mapping, component, index_values)
         b = self._right.evaluate(x, mapping, component, index_values)
         return bool(a and b)
 
-class OrCondition(Condition):
+class OrCondition(BinaryCondition):
+    __slots__ = ()
     def __init__(self, left, right):
-        Condition.__init__(self, "||", left, right)
+        BinaryCondition.__init__(self, "||", left, right)
     
     def evaluate(self, x, mapping, component, index_values):
         a = self._left.evaluate(x, mapping, component, index_values)
         b = self._right.evaluate(x, mapping, component, index_values)
         return bool(a or b)
 
+class NotCondition(Condition):
+    __slots__ = ('_condition', '__repr',)
+    def __init__(self, condition):
+        Condition.__init__(self)
+        ufl_assert(isinstance(condition, Condition), "Expecting a condition.")
+        self._condition = condition
+        self._repr = "NotCondition(%r)" % (self._condition,)
+
+    def operands(self):
+        return (self._condition,)
+
+    def evaluate(self, x, mapping, component, index_values):
+        a = self._left.evaluate(x, mapping, component, index_values)
+        b = self._right.evaluate(x, mapping, component, index_values)
+        return bool(a or b)
+
+    def __str__(self):
+        return "!(%s)" % (str(self._condition),)
+
+    def __repr__(self):
+        return self._repr
+
 #--- Conditional expression (condition ? true_value : false_value) ---
 
 class Conditional(Operator):
     __slots__ = ("_condition", "_true_value", "_false_value", "_repr")
-    
     def __init__(self, condition, true_value, false_value):
         Operator.__init__(self)
         ufl_assert(isinstance(condition, Condition), "Expectiong condition as first argument.")

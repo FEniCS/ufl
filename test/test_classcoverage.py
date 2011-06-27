@@ -305,6 +305,7 @@ class ClasscoverageTest(UflTestCase):
         cond6 = gt(sin(f0), cos(f0))
         cond7 = And(cond1, cond2)
         cond8 = Or(cond1, cond2)
+        cond9 = Not(cond8)
         a = conditional(cond1, 1, 2)
         b = conditional(cond2, f0**3, ln(f0))
         
@@ -316,6 +317,7 @@ class ClasscoverageTest(UflTestCase):
         test_object2(cond6)
         test_object2(cond7)
         test_object2(cond8)
+        test_object2(cond9)
         test_object(a, (), ())
         test_object(b, (), ())
         
@@ -491,7 +493,7 @@ class ClasscoverageTest(UflTestCase):
             s = ufl.expr._class_usage_statistics
             constructed = set(s.keys())
             abstract = set((Expr, Terminal, Operator, FormArgument, ConstantBase, AlgebraOperator,
-                            Condition, MathFunction, Restricted, ScalarValue,
+                            Condition, BinaryCondition, MathFunction, Restricted, ScalarValue,
                             ConstantValue, CompoundDerivative, Derivative,
                             WrapperType, GeometricQuantity, CompoundTensorOperator, UtilityType))
             unused = set(ufl.classes.all_ufl_classes) - constructed - abstract

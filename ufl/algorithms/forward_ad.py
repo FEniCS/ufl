@@ -470,9 +470,18 @@ class ForwardAD(Transformer):
 
     # --- Conditionals
 
-    def condition(self, o, l, r):
+    def binary_condition(self, o, l, r):
         o = self.reuse_if_possible(o, l[0], r[0])
         if any(not isinstance(op[1], Zero) for op in (l, r)):
+            warning("Differentiating a conditional with a condition "\
+                        "that depends on the differentiation variable."\
+                        "This is probably not a good idea!")
+        oprime = None # Shouldn't be used anywhere
+        return (o, oprime)
+
+    def not_condition(self, o, c):
+        o = self.reuse_if_possible(o, c[0])
+        if not isinstance(c[1], Zero):
             warning("Differentiating a conditional with a condition "\
                         "that depends on the differentiation variable."\
                         "This is probably not a good idea!")

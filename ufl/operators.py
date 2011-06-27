@@ -34,7 +34,8 @@ from ufl.tensoralgebra import Transposed, Inner, Outer, Dot, Cross, Determinant,
     Inverse, Cofactor, Trace, Deviatoric, Skew, Sym
 from ufl.variable import Variable
 from ufl.tensors import as_tensor, ListTensor
-from ufl.conditional import EQ, NE, LE, GE, LT, GT, AndCondition, OrCondition, Conditional
+from ufl.conditional import EQ, NE, LE, GE, LT, GT, \
+    AndCondition, OrCondition, NotCondition, Conditional
 from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin, Tan, Acos, Asin, Atan
 from ufl.indexing import indices, Indexed
 from ufl.geometry import SpatialCoordinate
@@ -331,6 +332,10 @@ def And(left, right):
 def Or(left, right):
     "UFL operator: A boolean expresion (left or right) for use with conditional."
     return OrCondition(left, right)
+
+def Not(condition):
+    "UFL operator: A boolean expresion (not condition) for use with conditional."
+    return NotCondition(condition)
 
 def sign(x):
     "UFL operator: Take the sign (+1 or -1) of x."
