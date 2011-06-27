@@ -169,9 +169,8 @@ class NotCondition(Condition):
         return (self._condition,)
 
     def evaluate(self, x, mapping, component, index_values):
-        a = self._left.evaluate(x, mapping, component, index_values)
-        b = self._right.evaluate(x, mapping, component, index_values)
-        return bool(a or b)
+        a = self._condition.evaluate(x, mapping, component, index_values)
+        return bool(not a)
 
     def __str__(self):
         return "!(%s)" % (str(self._condition),)
