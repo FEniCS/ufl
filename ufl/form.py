@@ -35,7 +35,8 @@ class Form(object):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
     __slots__ = ("_integrals",
                  "_repr", "_hash", "_str",
-                 "_form_data", "_is_preprocessed")
+                 "_form_data", "_is_preprocessed",
+                 "exterior_facet_domains")
 
     def __init__(self, integrals):
         self._integrals = tuple(integrals)
@@ -48,24 +49,17 @@ class Form(object):
         self._is_preprocessed = False
 
     # TODO: Remove these completely!
-    @property
-    def cell_domains(self):
-        error("Form has no property 'cell_domains'. Use dx2 = dx[cell_domains]; a = f*dx2(1).")
-    @cell_domains.setter
-    def _set_cell_domains(self, domains):
-        error("Form has no property 'cell_domains'. Use dx2 = dx[cell_domains]; a = f*dx2(1).")
-    @property
-    def exterior_facet_domains(self):
-        error("Form has no property 'exterior_facet_domains'. Use ds2 = ds[exterior_facet_domains]; a = f*ds2(1).")
-    @exterior_facet_domains.setter
-    def _set_exterior_facet_domains(self, domains):
-        error("Form has no property 'exterior_facet_domains'. Use ds2 = ds[exterior_facet_domains]; a = f*ds2(1).")
-    @property
-    def interior_facet_domains(self):
-        error("Form has no property 'interior_facet_domains'. Use dE2 = dE[interior_facet_domains]; a = f*dE2(1).")
-    @interior_facet_domains.setter
-    def _set_interior_facet_domains(self, domains):
-        error("Form has no property 'interior_facet_domains'. Use dE2 = dE[interior_facet_domains]; a = f*dE2(1).")
+    def _trigger_domain_error(self):
+        msg = "Deprecated: ufl.Form has no properties '*_domains'.\n"
+	msg += "To associate domains with a form, use dss = ds[mydomains]; a = f*dss(1)."
+	error(msg)
+    def _get_domains(self):
+	self._trigger_domain_error()
+    def _set_domains(self, domains):
+	self._trigger_domain_error()
+    cell_domains = property(_get_domains, _set_domains)
+    exterior_facet_domains = property(_get_domains, _set_domains)
+    interior_facet_domains = property(_get_domains, _set_domains)
 
     def cell(self):
         c = None
