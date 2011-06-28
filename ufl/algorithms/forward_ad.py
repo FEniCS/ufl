@@ -275,16 +275,23 @@ class ForwardAD(Transformer):
         # then the derivative suddenly gets accumulated,
         # which is completely wrong!
         if self._var_free_indices:
-            i0, = self._var_free_indices
-            i1, = i
-            if i == i1:
-                error("Index scope collision. Try not reusing indices for multiple expressions.\n"\
-                      "An example where this occurs is (v[i]*v[i]).dx(i)*v[i] where the index i\n"\
-                      "is bound to an index sum inside the derivative w.r.t. x[i]")
+            if i[0] in self._var_free_indices:
+                error("Index scope collision. Work around this by reusing indices less in different expressions.\n"\
+                      "An example where this occurs is (v[i]*v[i]).dx(i) where the same index i\n"\
+                      "is bound to an index sum inside the derivative .dx(i).")
+
+                # TODO: OR get around this by temporarily setting _var_free_indices to nothing?
+                #store = self._var_free_indices
+                #self._var_free_indices = nothing?
+                #visit children
+                #self._var_free_indices = store
+                # But... What would this mean? Will it be correct?
+
                 # TODO: Get around this with relabeling algorithm!
                 # j = Index()
                 # A = relabel(A, { i0: j })
                 # i = (j,)
+
         A2, Ap = self.visit(A)
         o = self.reuse_if_possible(o, A2, i)
         op = IndexSum(Ap, i)
@@ -342,6 +349,8 @@ class ForwardAD(Transformer):
     def power(self, o, a, b):
         f, fp = a
         g, gp = b
+
+        # Debugging prints, should never happen:
         if not is_true_ufl_scalar(f):
             print ":"*80
             print "f =", str(f)
@@ -350,44 +359,42 @@ class ForwardAD(Transformer):
         ufl_assert(is_true_ufl_scalar(f), "Expecting scalar expression f in f**g.")
         ufl_assert(is_true_ufl_scalar(g), "Expecting scalar expression g in f**g.")
 
-        # General case: o = f(x)**g(x)
-
+        # Derivation of the general case: o = f(x)**g(x)
+        #
         #do_df = g * f**(g-1)
         #do_dg = ln(f) * f**g
         #op = do_df*fp + do_dg*gp
-
+        #
         #do_df = o * g / f # f**g * g / f
         #do_dg = ln(f) * o
         #op = do_df*fp + do_dg*gp
 
         # Got two possible alternatives here:
-        if False:
-            # Pulling o out gives:
-            op = o*(fp*g/f + ln(f)*gp)
-            # This produces expressions like (1/w)*w**5 instead of w**4
-            # If we do this, we reuse o
-            o = self.reuse_if_possible(o, f, g)
-        else:
+        if True: # This version looks better.
             # Rewriting o as f*f**(g-1) we can do:
             f_g_m1 = f**(g-1)
             op = f_g_m1*(fp*g + f*ln(f)*gp)
             # In this case we can rewrite o using new subexpression
             o = f*f_g_m1
+        else:
+            # Pulling o out gives:
+            op = o*(fp*g/f + ln(f)*gp)
+            # This produces expressions like (1/w)*w**5 instead of w**4
+            # If we do this, we reuse o
+            o = self.reuse_if_possible(o, f, g)
 
         return (o, op)
 
     def abs(self, o, a):
         f, fprime = a
         o = self.reuse_if_possible(o, f)
-        oprime = conditional(eq(f, 0),
-                             0,
-                             Product(sign(f), fprime)) #conditional(lt(f, 0), -fprime, fprime))
+        oprime = conditional(eq(f, 0), 0, Product(sign(f), fprime))
         return (o, oprime)
 
     # --- Mathfunctions
 
     def math_function(self, o, a):
-        if hasattr(o, 'derivative'):
+        if hasattr(o, 'derivative'): # FIXME: Introduce a UserOperator type instead of this hack
             f, fp = a
             o = self.reuse_if_possible(o, f)
             op = fp * o.derivative()
@@ -450,23 +457,14 @@ class ForwardAD(Transformer):
 
     # --- Restrictions
 
-    def positive_restricted(self, o, a):
-        # TODO: Assuming here that restriction and differentiation commutes. Is this correct?
+    def restricted(self, o, a):
+        # Restriction and differentiation commutes.
         f, fp = a
         o = self.reuse_if_possible(o, f)
         if isinstance(fp, ConstantValue):
-            return (o, fp)
+            return (o, fp) # TODO: Necessary? Can't restriction simplify directly instead?
         else:
-            return (o, fp('+'))
-
-    def negative_restricted(self, o, a):
-        # TODO: Assuming here that restriction and differentiation commutes. Is this correct?
-        f, fp = a
-        o = self.reuse_if_possible(o, f)
-        if isinstance(fp, ConstantValue):
-            return (o, fp)
-        else:
-            return (o, fp('-'))
+            return (o, fp(o._side)) # (f+-)' == (f')+-
 
     # --- Conditionals
 
@@ -506,11 +504,13 @@ class ForwardAD(Transformer):
     def spatial_derivative(self, o):
         # If we hit this type, it has already been propagated
         # to a terminal, so we can simply apply our derivative
-        # to its operand since differentiation commutes. Right?
+        # to its operand since differentiation commutes.
         f, ii = o.operands()
         f, fp = self.visit(f)
         o = self.reuse_if_possible(o, f, ii)
 
+        # FIXME: Make plenty of test cases around this kind of situation to document what's going on...
+        # NB! This will trigger if fp has no cell. Undefined cells from PyDOLFIN make me want to cry...
         if is_spatially_constant(fp):
             sh = fp.shape()
             fi = fp.free_indices()
@@ -520,6 +520,7 @@ class ForwardAD(Transformer):
                 fi = fi + (j,)
                 idims.update(ii.index_dimensions())
             oprime = Zero(sh, fi, idims)
+            #oprime = self._make_zero_diff(o) # FIXME: Can we just use this?
         else:
             oprime = SpatialDerivative(fp, ii)
         return (o, oprime)
@@ -551,7 +552,7 @@ class SpatialAD(ForwardAD):
         # Using this index in here may collide with the
         # same index on the outside! (There's a check for
         # this situation in index_sum above.)
-        #oprime = o.dx(self._index)
+        #oprime = o.dx(self._index) # Not using this syntax because it would create a new IndexSum
         oprime = SpatialDerivative(o, self._index)
         return (o, oprime)
 
@@ -593,9 +594,10 @@ class CoefficientAD(ForwardAD):
         self._v = arguments
         self._w = coefficients
         self._cd = coefficient_derivatives
-        ufl_assert(isinstance(self._w, Tuple), "Eh?")
+        ufl_assert(isinstance(self._w, Tuple), "Eh?") # Greatest error message ever? :)
         ufl_assert(isinstance(self._v, Tuple), "Eh?")
-        # Define dw/dw := v (what we really mean by d/dw is d/dw_j where w = sum_j w_j phi_j, and what we really mean by v is phi_j for any j)
+        # Define dw/dw := v (what we really mean by d/dw is d/dw_j,
+        # where w = sum_j w_j phi_j, and what we really mean by v is phi_j for any j)
 
     def coefficient(self, o):
         debug("In CoefficientAD.coefficient:")
@@ -697,19 +699,16 @@ def forward_ad(expr, dim):
     return result
 
 
-#
 # TODO: We could expand only the compound objects that have no rule
 #       before differentiating, to allow the AD to work on a coarser graph
-#       (Missing rules for: Cross, Determinant, Cofactor)
-#
-class UnusedADRules(ForwardAD):
+class UnusedADRules(object):
 
     def _variable_derivative(self, o, f, v):
         f, fp = f
         v, vp = v
         ufl_assert(isinstance(vp, Zero), "TODO: What happens if vp != 0, i.e. v depends the differentiation variable?")
         # Are there any issues with indices here? Not sure, think through it...
-        oprime = type(o)(fp, v)
+        oprime = o.reconstruct(fp, v)
         return (o, oprime)
 
     # --- Compound operators
@@ -717,7 +716,7 @@ class UnusedADRules(ForwardAD):
     def commute(self, o, a):
         "This should work for all single argument operators that commute with d/dw."
         aprime = a[1]
-        return (o, type(o)(aprime))
+        return (o, o.reconstruct(aprime))
 
     transposed = commute
     trace = commute
@@ -727,11 +726,11 @@ class UnusedADRules(ForwardAD):
     curl = commute
     def grad(self, o, a):
         a, aprime = a
-        if aprime.cell() is None:
-            error("TODO: Shape of gradient is undefined.") # Currently calling expand_compounds before AD to avoid this
-            oprime = Zero(TODO)
+        c = aprime.cell()
+        if c is None or c.is_undefined():
+            oprime = self._make_zero_diff(o)
         else:
-            oprime = type(o)(aprime)
+            oprime = o.reconstruct(aprime)
         return (o, oprime)
 
     def outer(self, o, a, b):
@@ -748,6 +747,8 @@ class UnusedADRules(ForwardAD):
         a, ap = a
         b, bp = b
         return (o, dot(ap, b) + dot(a, bp))
+
+class UnimplementedADRules(object):
 
     def cross(self, o, a, b):
         error("Derivative of cross product not implemented, apply expand_compounds before AD.")

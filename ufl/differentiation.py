@@ -30,7 +30,7 @@ from ufl.terminal import Terminal, Tuple, Data
 from ufl.constantvalue import ConstantValue, Zero, ScalarValue, Identity, is_true_ufl_scalar
 from ufl.indexing import Index, FixedIndex, Indexed, as_multi_index, MultiIndex
 from ufl.indexutils import unique_indices
-from ufl.geometry import FacetNormal
+from ufl.geometry import FacetNormal, CellVolume, Circumradius
 from ufl.variable import Variable
 from ufl.tensors import as_tensor, ComponentTensor, ListTensor
 from ufl.argument import Argument
@@ -39,21 +39,32 @@ from ufl.precedence import parstr
 
 #--- Basic differentiation objects ---
 
-def is_spatially_constant(expression):
-    "Check if a terminal object is spatially constant, such that expression.dx(i) == 0."
+def is_spatially_constant(expression): # TODO: Rename to is_spatially_constant_on_cell or something to be clear
+    "Check if a terminal object is spatially constant over a cell, such that expression.dx(i) == 0."
     if isinstance(expression, (ConstantValue, ConstantBase)):
         return True
-    elif isinstance(expression, FacetNormal): # and expression.cell().degree() == 1:
+    elif isinstance(expression, (FacetNormal, CellVolume, Circumradius)):
         return True
     elif isinstance(expression, Coefficient):
-        e = expression.element()
-        if e.family() == "Discontinuous Lagrange" and e.degree() == 0: # TODO: Only e.degree() == 0?
+        if expression.element().degree() == 0:
             return True
+        else:
+            return False
+    elif isinstance(expression, Argument):
+        return False # Don't want to simplify this one away...
     elif isinstance(expression, ListTensor):
         return all(is_spatially_constant(e) for e in expression.operands())
     elif isinstance(expression, (Indexed, ComponentTensor)):
         return is_spatially_constant(expression.operands()[0])
 
+    cell = expression.cell()
+    if cell is None:
+        return True
+    if cell.is_undefined():
+        warning("Assuming expression with undefined cell is spatially constant."\
+                "Be aware that a PyDOLFIN Expression without"\
+                "a well defined cell cannot be differentiated.")
+        return True
     return False
 
 class Derivative(Operator):
@@ -92,7 +103,10 @@ class CoefficientDerivative(Derivative):
         self._integrand = integrand
         self._coefficients = coefficients
         self._arguments = arguments
-        self._coefficient_derivatives = coefficient_derivatives if isinstance(coefficient_derivatives, Data) else Data(coefficient_derivatives)
+        if isinstance(coefficient_derivatives, Data):
+            self._coefficient_derivatives = coefficient_derivatives
+        else:
+            self._coefficient_derivatives = Data(coefficient_derivatives)
 
     def operands(self):
         return (self._integrand, self._coefficients, self._arguments, self._coefficient_derivatives)
