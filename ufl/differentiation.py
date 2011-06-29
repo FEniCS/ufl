@@ -40,12 +40,14 @@ from ufl.precedence import parstr
 #--- Basic differentiation objects ---
 
 def is_spatially_constant(expression): # TODO: Rename to is_spatially_constant_on_cell or something to be clear
-    "Check if a terminal object is spatially constant over a cell, such that expression.dx(i) == 0."
+    """Check if a terminal object is spatially constant
+    over a cell, such that expression.dx(i) == 0."""
     if isinstance(expression, (ConstantValue, ConstantBase)):
         return True
     elif isinstance(expression, (FacetNormal, CellVolume, Circumradius)):
         return True
     elif isinstance(expression, Coefficient):
+        # Note that this will lead to automatic removal of c.dx(0) with c = Constant(cell)
         if expression.element().degree() == 0:
             return True
         else:
@@ -59,12 +61,12 @@ def is_spatially_constant(expression): # TODO: Rename to is_spatially_constant_o
 
     cell = expression.cell()
     if cell is None:
+        # All spatially dependent terminals have a cell
         return True
     if cell.is_undefined():
-        warning("Assuming expression with undefined cell is spatially constant."\
-                "Be aware that a PyDOLFIN Expression without"\
-                "a well defined cell cannot be differentiated.")
-        return True
+        error("Someone is asking whether an expression with undefined cell is spatially constant."\
+                  "Since the cell is undefined, the answer is undefined. Remember to specify cells"\
+                  "for all your elements and specify elements for all your coefficients.")
     return False
 
 class Derivative(Operator):
