@@ -59,8 +59,14 @@ class Measure(object):
         self._domain_id = domain_id
         self._metadata = metadata
         self._domain_data = domain_data
-        self._repr = "Measure(%r, %r, %r, %r)" % (self._domain_type, self._domain_id,
-                                                  self._metadata, self._domain_data)
+
+        # NB! Deliberately ignoring domain data in repr, since it causes a bug
+        # in the cache mechanisms in PyDOLFIN. I don't believe this is the
+        # last word in this case, but it should fix all known problems for now.
+        self._repr = "Measure(%r, %r, %r)" % (self._domain_type, self._domain_id,
+                                              self._metadata)
+        #self._repr = "Measure(%r, %r, %r, %r)" % (self._domain_type, self._domain_id,
+        #                                          self._metadata, self._domain_data)
 
     def reconstruct(self, domain_id=None, metadata=None, domain_data=None):
         """Construct a new Measure object with some properties replaced with new values.
