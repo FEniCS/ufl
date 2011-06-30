@@ -144,7 +144,7 @@ def load_ufl_file(filename):
     forms = namespace.get("forms")
     if forms is None:
         # Get forms from object_by_name, which has already mapped tuple->Form where needed
-        forms = [ufd.object_by_name.get(name) for name in ("a", "L", "M")]
+        forms = [ufd.object_by_name.get(name) for name in ("a", "L", "M", "F", "J")]
         forms = [f for f in forms if f is not None]
     ufd.forms = forms
 
