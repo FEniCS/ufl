@@ -155,7 +155,6 @@ def load_ufl_file(filename):
             forms += [F_form, J_form]
         # Remove Nones
         forms = [f for f in forms if f is not None]
-        print forms
     ufd.forms = forms
 
     # Validate types
