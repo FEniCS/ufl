@@ -30,7 +30,7 @@ def dev(A):
 
 def devstr(d):
     A = symbolic_matrix(d, d, "A")
-    return matrix2Matrix(dev(A))
+    return re.sub(r"(.)/", r"\1./", matrix2Matrix(dev(A)))
 
 print "Cofactors:"
 print
