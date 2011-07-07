@@ -7,9 +7,9 @@ import sys
 import platform
 
 # Version number
-major = 0
-minor = 9
-maintenance = 1
+major = 1
+minor = 0
+maintenance = 'beta'
 
 scripts = [pjoin("scripts", "ufl-analyse"),
            pjoin("scripts", "ufl-convert"),
@@ -31,7 +31,8 @@ if platform.system() == "Windows" or "bdist_wininst" in sys.argv:
     scripts.extend(batch_files)
 
 setup(name = "UFL",
-      version = "%d.%d.%d" % (major, minor, maintenance),
+      #version = "%d.%d.%d" % (major, minor, maintenance),
+      version = "%d.%d-%s" % (major, minor, maintenance),
       description = "Unified Form Language",
       author = "Martin Sandve Alnes, Anders Logg",
       author_email = "ufl@lists.launchpad.net",
