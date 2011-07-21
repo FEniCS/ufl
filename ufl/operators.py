@@ -397,25 +397,42 @@ def atan(f):
 def exterior_derivative(f):
     "UFL operator: Take the exterior derivative of f."
 
-    # meg: FIXME:
+    # Use element family to determine whether id, grad, curl or div
+    # should be returned for as the exterior_derivative
     if isinstance(f, Indexed):
-        family = f._expression.element().family()
+        if len(f._indices) > 1:
+            raise NotImplementedError
+        index = int(f._indices[0])
+        element = f._expression.element()
+        subelement = element.extract_component(index)[1]
+        family = subelement.family()
     elif isinstance(f, ListTensor):
-        family = f._expressions[0]._expression.element().family()
+        if len(f._expressions[0]._indices) > 1:
+            raise NotImplementedError
+        index = int(f._expressions[0]._indices[0])
+        element = f._expressions[0]._expression.element()
+        subelement = element.extract_component(index)[1]
+        family = subelement.family()
     else:
         try:
             family = f.element().family()
         except:
-            ufl_assert(True, "Unable to determine exterior_derivative")
+            error("Unable to determine element family from %s" % f)
 
+    # L^2 elements:
     if "Disc" in family:
         return f
 
+    # H^1 elements:
     if "Lagrange" in family:
         return grad(f)
 
+    # H(curl) elements:
     if "curl" in family:
         return curl(f)
 
+    # H(div) elements:
     if "Brezzi" in family or "Raviart" in family:
         return div(f)
+
+    error("Unable to determine exterior_derivative. Family is '%s'" % family)
