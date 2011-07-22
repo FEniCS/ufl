@@ -149,7 +149,21 @@ class FiniteElement(FiniteElementBase):
     "The basic finite element class for all simple finite elements"
     def __init__(self, family, cell=None, degree=None, quad_scheme=None,
                  form_degree=None):
-        "Create finite element"
+        """Create finite element
+
+        *Arguments*
+            family (string)
+               The finite element family
+            cell
+               The cell
+            degree (int)
+               The polynomial degree (optional)
+            quad_scheme
+               The quadrature scheme (optional)
+            form_degree (int)
+               The form degree (FEEC notation, used when field is
+               viewed as k-form)
+        """
 
         # Map evt. string argument to a Cell
         cell = as_cell(cell)
@@ -160,7 +174,6 @@ class FiniteElement(FiniteElementBase):
             info_blue("%s, is an alias for %s " % (
                     (family, cell, degree, form_degree),
                     (name, cell, r)))
-            # FIXME: Missing form_degree here? What is form_degree?
             self.__init__(name, cell, r, quad_scheme)
             return
 
@@ -375,8 +388,26 @@ class MixedElement(FiniteElementBase):
 class VectorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal"
 
-    def __init__(self, family, cell, degree, dim=None, quad_scheme=None):
-        "Create vector element (repeated mixed element)"
+    def __init__(self, family, cell, degree, dim=None, quad_scheme=None,
+                 form_degree=None):
+        """
+        Create vector element (repeated mixed element)
+
+        *Arguments*
+            family (string)
+               The finite element family
+            cell
+               The cell
+            degree (int)
+               The polynomial degree
+            dim (int)
+               The value dimension of the element (optional)
+            quad_scheme
+               The quadrature scheme (optional)
+            form_degree (int)
+               The form degree (FEEC notation, used when field is
+               viewed as k-form)
+        """
 
         cell = as_cell(cell)
 
@@ -386,7 +417,8 @@ class VectorElement(MixedElement):
             dim = cell.geometric_dimension()
 
         # Create mixed element from list of finite elements
-        sub_element = FiniteElement(family, cell, degree, quad_scheme)
+        sub_element = FiniteElement(family, cell, degree, quad_scheme,
+                                    form_degree)
         sub_elements = [sub_element]*dim
 
         # Get common family name (checked in FiniteElement.__init__)
@@ -510,7 +542,7 @@ class TensorElement(MixedElement):
         ufl_assert(ii in self._sub_element_mapping, "Illegal component index %s." % repr(i))
         k = self._sub_element_mapping[ii]
         return (k, jj)
-    
+
     def symmetry(self):
         """Return the symmetry dict, which is a mapping c0 -> c1
         meaning that component c0 is represented by component c1."""
@@ -618,7 +650,7 @@ class RestrictedElement(FiniteElementBase):
         element = self._element.reconstruct(**kwargs)
         domain = kwargs.get("domain", self.domain())
         return RestrictedElement(element=element, domain=domain)
-    
+
     def element(self):
         "Return the element which is restricted."
         return self._element
