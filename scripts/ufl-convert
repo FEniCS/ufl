@@ -23,7 +23,7 @@ def write_file(filename, text):
     f = open(filename, "w")
     f.write(text)
     f.close()
-    print "Wrote file '%s'" % filename
+    print "Wrote file %s" % filename
 
 
 # --- Option parsing
@@ -188,4 +188,3 @@ for arg in args:
     else:
         print "Unknown file type ", filetype
         sys.exit(-1)
-
