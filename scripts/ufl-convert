@@ -80,7 +80,7 @@ for arg in args:
 
     # 1) Load forms
     forms = load_forms(uflfilename)
-    formdatas = [preprocess(f).form_data() for f in forms]
+    formdatas = [f.compute_form_data() for f in forms]
 
     # 2) Transform forms
     compiled_forms = []
@@ -97,26 +97,29 @@ for arg in args:
     if format == "str":
         if options.compile:
             print "Warning: compile option not used."
-        rendered = "\n\n".join("Form %s:\n%s\n" % (fd.name, str(fd._form)) for fd in formdatas)
+        #rendered = "\n\n".join("Form %s:\n%s\n" % (fd.name, str(fd)) for fd in formdatas)
+        rendered = "\n\n".join("Form %s:\n%s\n" % (f.form_data().name, str(f)) for f in forms)
+        #rendered = "\n\n".join("Form %s:\n%s\n" % (fd.name, str(fd._form)) for fd in formdatas)
     elif format == "repr":
         if options.compile:
             print "Warning: compile option not used."
-        rendered = "\n\n".join("Form %s:\n%s\n" % (fd.name, repr(fd._form)) for fd in formdatas)
+        rendered = "\n\n".join("Form %s:\n%s\n" % (f.form_data().name, repr(f)) for f in forms)
+        #rendered = "\n\n".join("Form %s:\n%s\n" % (fd.name, repr(fd)) for fd in formdatas)
     elif format == "tree":
         if options.compile:
             print "Warning: compile option not used."
-        rendered = "\n\n".join("Form %s:\n%s\n" % (fd.name, tree_format(fd._form)) for fd in formdatas)
+        rendered = "\n\n".join("Form %s:\n%s\n" % (f.form_data().name, tree_format(f)) for f in forms)
     elif format == "dot":
         if options.compile:
             print "Warning: compile option not used."
         data = []
         nodeoffset = 0
-        for i, fd in enumerate(formdatas):
+        for i, f in enumerate(forms):
             begin = (i == 0)
-            end = (i == len(formdatas)-1)
-            dot, nodeoffset = ufl2dot(fd._form, fd.name, nodeoffset, begin, end)
-            data.append((fd.name, dot))
-        rendered = "\n\n".join("/* Form %s: */\n%s\n" % (a,b) for (a,b) in data)
+            end = (i == len(forms) - 1)
+            dot, nodeoffset = ufl2dot(f, f.form_data().name, nodeoffset, begin, end)
+            data.append((f.form_data().name, dot))
+        rendered = "\n\n".join("/* Form %s: */\n%s\n" % (a, b) for (a, b) in data)
     elif format == "tex":
         rendered = forms2latexdocument(forms, uflfilename, compile=options.compile)
     else:

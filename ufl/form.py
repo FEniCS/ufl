@@ -51,8 +51,8 @@ class Form(object):
     # TODO: Remove these completely!
     def _trigger_domain_error(self):
         msg = "Deprecated: ufl.Form has no properties '*_domains'.\n"
-	msg += "To associate domains with a form, use dss = ds[mydomains]; a = f*dss(1)."
-	error(msg)
+        msg += "To associate domains with a form, use dss = ds[mydomains]; a = f*dss(1)."
+        error(msg)
     def _get_domains(self):
 	self._trigger_domain_error()
     def _set_domains(self, domains):
@@ -178,7 +178,7 @@ class Form(object):
 
     def __neg__(self):
         """Negate all integrals in form.
-        
+
         This enables the handy "-form" syntax for e.g. the
         linearized system (J, -F) from a nonlinear form F."""
         return Form([-itg for itg in self._integrals])
