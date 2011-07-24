@@ -2,7 +2,7 @@
 import sys, os, optparse
 from pprint import pprint
 
-from ufl.algorithms import load_forms, ufl2dot, tree_format, forms2latexdocument, preprocess
+from ufl.algorithms import load_ufl_file, ufl2dot, tree_format, forms2latexdocument, preprocess
 
 # --- Utilities
 
@@ -79,8 +79,14 @@ for arg in args:
     #print "ext =", ext
 
     # 1) Load forms
-    forms = load_forms(uflfilename)
-    formdatas = [f.compute_form_data() for f in forms]
+    #forms = load_forms(uflfilename)
+    #formdatas = [f.compute_form_data() for f in forms]
+    ufl_data = load_ufl_file(uflfilename)
+    forms = ufl_data.forms
+
+    # Preprocess forms
+    for f in forms:
+      f.compute_form_data(object_names=ufl_data.object_names)
 
     # 2) Transform forms
     compiled_forms = []
@@ -97,14 +103,12 @@ for arg in args:
     if format == "str":
         if options.compile:
             print "Warning: compile option not used."
-        #rendered = "\n\n".join("Form %s:\n%s\n" % (fd.name, str(fd)) for fd in formdatas)
         rendered = "\n\n".join("Form %s:\n%s\n" % (f.form_data().name, str(f)) for f in forms)
-        #rendered = "\n\n".join("Form %s:\n%s\n" % (fd.name, str(fd._form)) for fd in formdatas)
+        #rendered = "\n\n".join("Form %s:\n%s\n" % (f.form_data().name, str(f.form_data())) for f in forms)
     elif format == "repr":
         if options.compile:
             print "Warning: compile option not used."
         rendered = "\n\n".join("Form %s:\n%s\n" % (f.form_data().name, repr(f)) for f in forms)
-        #rendered = "\n\n".join("Form %s:\n%s\n" % (fd.name, repr(fd)) for fd in formdatas)
     elif format == "tree":
         if options.compile:
             print "Warning: compile option not used."
