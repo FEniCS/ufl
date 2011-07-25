@@ -48,6 +48,7 @@ from ufl.integral import Measure
 from ufl.classes import terminal_classes
 
 # Other algorithms:
+from ufl.algorithms.preprocess import preprocess
 from ufl.algorithms.analysis import extract_variables
 from ufl.algorithms.formfiles import load_forms
 from ufl.algorithms.latextools import align, document, verbatim
@@ -359,9 +360,8 @@ dx_strings = { Measure.CELL: "dx",
                Measure.SURFACE: "dc",
              }
 
-def form2latex(form):
+def form2latex(form, formdata):
 
-    formdata = form.form_data()
     formname = formdata.name
     argument_names = formdata.argument_names
     coefficient_names = formdata.coefficient_names
@@ -446,10 +446,9 @@ def form2latex(form):
 def ufl2latex(expression):
     "Generate LaTeX code for a UFL expression or form (wrapper for form2latex and expression2latex)."
     if isinstance(expression, Form):
-        #form_data = expression.compute_form_data()
-        #preprocessed_form = form_data.preprocessed_form
-        form.compute_form_data()
-        return form2latex(form)
+        form_data = expression.compute_form_data()
+        preprocessed_form = form_data.preprocessed_form
+        return form2latex(preprocessed_form, form_data)
     else:
         return expression2latex(expression)
 
@@ -610,14 +609,15 @@ def forms2latexdocument(forms, uflfilename, compile=False):
     for form in forms:
 
         # Compute form data
-        form_data = form.compute_form_data()
+        form = preprocess(form)
+        form_data = form.form_data()
 
         # Generate LaTex code
         title = "Form %s" % form_data.name
         if compile:
-            body = form2code2latex(form)
+            body = form2code2latex(form, form_data)
         else:
-            body = form2latex(form)
+            body = form2latex(form, form_data)
         sections.append((title, body))
 
     # Render title
