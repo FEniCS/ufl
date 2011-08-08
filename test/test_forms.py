@@ -64,6 +64,24 @@ class TestIntegrals(UflTestCase):
         b = (f*v + 3*v)*dx + (2*v + 7*v)*ds + (3*v + 7*v)*dx(2)
         self.assertEqual(repr(a), repr(b))
 
+class TestFormScaling(UflTestCase):
+
+    def test_scalar_mult_form(self):
+        R = FiniteElement("Real", triangle, 0)
+        element = FiniteElement("Lagrange", triangle, 1)
+        v = TestFunction(element)
+        f = Coefficient(element)
+        c = Coefficient(R)
+        # These should be acceptable:
+        self.assertEqual(0*(v*dx), (0*v)*dx)
+        self.assertEqual(3*(v*dx), (3*v)*dx)
+        self.assertEqual(3.14*(v*dx), (3.14*v)*dx)
+        self.assertEqual(c*(v*dx), (c*v)*dx)
+        self.assertEqual((c**c+c/3)*(v*dx), ((c**c+c/3)*v)*dx)
+        # These should not be acceptable:
+        self.assertRaises(UFLException, lambda: f*(v*dx))
+        self.assertRaises(UFLException, lambda: (f/2)*(v*dx))
+        self.assertRaises(UFLException, lambda: (c*f)*(v*dx))
 
 class TestExampleForms(UflTestCase):
 

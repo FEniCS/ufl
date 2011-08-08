@@ -26,6 +26,43 @@ from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.constantvalue import is_true_ufl_scalar, is_python_scalar
 
+
+
+# TODO: Move these somewhere more suitable?
+def is_spatially_constant(expr):
+    """Check if an expression is spatially constant, which
+    includes spatially independent constant coefficients that
+    are not known before assembly time."""
+    from ufl.algorithms.traversal import traverse_terminals
+    from ufl.constantvalue import ConstantValue
+    from ufl.geometry import GeometricQuantity
+    from ufl.coefficient import Coefficient
+
+    for e in traverse_terminals(expr):
+        if isinstance(e, ConstantValue):
+            continue
+        elif isinstance(e, GeometricQuantity):
+            return False
+        elif isinstance(e, Coefficient):
+            if e.element().family() != "Real":
+                return False
+        else:
+            # Unknown type, cannot guarantee anything
+            return False
+
+    # All terminals passed constant check
+    return True
+
+# TODO: Move these somewhere more suitable?
+def is_scalar_constant_expression(expr):
+    """Check if an expression is a spatially constant scalar expression."""
+    if is_python_scalar(expr):
+        return True
+    if expr.shape() != ():
+        return False
+    return is_spatially_constant(expr)
+
+
 # TODO: Define some defaults as to how metadata should represent integration data here?
 # quadrature_degree, quadrature_rule, ...
 
@@ -144,6 +181,7 @@ class Measure(object):
         if self._domain_id == Measure.UNDEFINED_DOMAIN_ID:
             error("Missing domain id. You need to select a subdomain, " +\
                   "e.g. M = f*dx(0) for subdomain 0.")
+
         if isinstance(integrand, tuple):
             error("Mixing tuple and integrand notation not allowed.")
         #    from ufl.expr import Expr
@@ -154,9 +192,11 @@ class Measure(object):
         #        and isinstance(integrand[1], Expr),
         #        "Invalid integrand %s." % repr(integrand))
         #    integrand = inner(integrand[0], integrand[1])
+
         ufl_assert(is_true_ufl_scalar(integrand),
             "Trying to integrate expression of rank %d with free indices %r." \
             % (integrand.rank(), integrand.free_indices()))
+
         from ufl.form import Form
         return Form( [Integral(integrand, self)] )
 
@@ -210,7 +250,8 @@ class Integral(object):
         return self.reconstruct(scalar*self._integrand)
 
     def __rmul__(self, scalar):
-        ufl_assert(is_python_scalar(scalar), "Cannot multiply an integral with non-constant values.")
+        ufl_assert(is_scalar_constant_expression(scalar),
+                   "An integral can only be multiplied by a globally constant scalar expression.")
         return self.reconstruct(scalar*self._integrand)
 
     def __str__(self):

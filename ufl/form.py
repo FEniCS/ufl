@@ -26,8 +26,9 @@ from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.constantvalue import as_ufl, is_python_scalar
 from ufl.sorting import cmp_expr
-from ufl.integral import Integral, Measure
+from ufl.integral import Integral, Measure, is_scalar_constant_expression
 from ufl.equation import Equation
+
 
 # --- The Form class, representing a complete variational form or functional ---
 
@@ -185,9 +186,9 @@ class Form(object):
 
     def __rmul__(self, scalar):
         "Multiply all integrals in form with constant scalar value."
-        # This enables the handy "0*form" syntax
-        ufl_assert(is_python_scalar(scalar),
-                   "Only multiplication by scalar expressions currently supported.")
+        # This enables the handy "0*form" or "dt*form" syntax
+        ufl_assert(is_scalar_constant_expression(scalar),
+                   "A form can only be multiplied by a globally constant scalar expression.")
         return Form([scalar*itg for itg in self._integrals])
 
     def __mul__(self, coefficient):
