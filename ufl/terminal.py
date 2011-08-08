@@ -56,7 +56,6 @@ class Terminal(Expr):
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
         "Get self from mapping and return the component asked for."
         f = mapping.get(self)
-        
         # No mapping, trying to evaluate self as a constant
         if f is None:
             try:
@@ -65,13 +64,17 @@ class Terminal(Expr):
                     f = 0.0
                 return f
             except:
-                warning("Couldn't map '%s' to a float, returning object unchanged." % str(self))
+                pass
+            # If it has an ufl_evaluate function, call it
+            if hasattr(self, 'ufl_evaluate'):
+                return self.ufl_evaluate(x, component, derivatives)
             # Take component if any
+            warning("Couldn't map '%s' to a float, returning ufl object without evaluation." % str(self))
             f = self
             if component:
                 f = f[component]
             return f
-        
+
         # Found a callable in the mapping
         if callable(f):
             if derivatives:
