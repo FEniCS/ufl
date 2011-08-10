@@ -388,7 +388,8 @@ class ForwardAD(Transformer):
     def abs(self, o, a):
         f, fprime = a
         o = self.reuse_if_possible(o, f)
-        oprime = conditional(eq(f, 0), 0, Product(sign(f), fprime))
+        #oprime = conditional(eq(f, 0), 0, Product(sign(f), fprime))
+        oprime = sign(f)*fprime
         return (o, oprime)
 
     # --- Mathfunctions

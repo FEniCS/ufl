@@ -154,6 +154,13 @@ class DerivativeTestCase(UflTestCase):
         def df(w, v): return v/(1.0 + w**2)
         self._test(f, df)
 
+    # --- Abs and conditionals
+
+    def testAbs(self):
+        def f(w):     return abs(w)
+        def df(w, v): return sign(w)*v
+        self._test(f, df)
+
     # --- Tensor algebra basics
 
     def testIndexSum(self):
