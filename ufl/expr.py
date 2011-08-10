@@ -173,7 +173,8 @@ class Expr(object):
         s = self.shape()
         if len(s) == 1:
             return s[0]
-        error("Cannot take length of non-vector expression.")
+        #error("Cannot take length of non-vector expression.")
+        raise NotImplementedError("Cannot take length of non-vector expression.")
     
     def __iter__(self):
         "Iteration over vector expressions."
