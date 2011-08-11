@@ -1,5 +1,5 @@
-1.0-beta-? [2011-08-??]
- - Support c*form where c depends on a coefficient in a Real space.
+1.0-beta2 [2011-08-11]
+ - Support c*form where c depends on a coefficient in a Real space
 1.0-beta [2011-07-08]
  - Add script ufl-version
  - Added syntax for associating an arbitrary domain data object with a measure:

@@ -146,7 +146,7 @@ A very brief overview of the language contents follows:
 #
 # Last changed: 2011-07-08
 
-__version__ = "1.0-beta"
+__version__ = "1.0-beta2"
 
 ########## README
 # Imports here should be what the user sees when doing "from ufl import *",
