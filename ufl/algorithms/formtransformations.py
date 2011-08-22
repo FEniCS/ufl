@@ -411,15 +411,28 @@ def compute_energy_norm(form, coefficient):
             "coefficient in an incompatible element space.")
     return replace(form, { u: coefficient, v: coefficient })
 
-def compute_form_adjoint(form):
+def compute_form_adjoint(form, reordered_arguments=None):
     """Compute the adjoint of a bilinear form.
 
     This works simply by swapping the first and last arguments.
     """
     arguments = extract_arguments(form)
     ufl_assert(len(arguments) == 2, "Expecting bilinear form.")
+
     v, u = arguments
-    return replace(form, {v: u, u: v})
+    ufl_assert(v.count() < u.count(), "Mistaken assumption in code!")
+
+    if reordered_arguments is None:
+        reordered_arguments = (Argument(u.element()), Argument(v.element()))
+    reordered_u, reordered_v = reordered_arguments
+    ufl_assert(reordered_u.count() < reordered_v.count(),
+               "Ordering of new arguments is the same as the old arguments!")
+    ufl_assert(reordered_u.element() == u.element(),
+               "Element mismatch between new and old arguments (trial functions).")
+    ufl_assert(reordered_v.element() == v.element(),
+               "Element mismatch between new and old arguments (test functions).")
+
+    return replace(form, {v: reordered_u, u: reordered_v})
 
 #def compute_dirichlet_functional(form):
 #    """Compute the Dirichlet functional of a form:
