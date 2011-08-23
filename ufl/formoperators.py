@@ -108,14 +108,13 @@ def energy_norm(form, coefficient=None):
 
 def adjoint(form, reordered_arguments=None):
     """UFL form operator:
-    Given a combined bilinear form, compute the adjoint
-    form by swapping the test and trial functions.
+    Given a combined bilinear form, compute the adjoint form by
+    changing the ordering (count) of the test and trial functions.
 
-    If reordered_arguments is not provided, new Argument
-    objects will be created with opposite ordering.
-    If the adjoint form is to be added to other forms
-    later, their arguments must match. In that case,
-    provide a tuple reordered_arguments=(u,v).
+    By default, new Argument objects will be created with
+    opposite ordering. However, if the adjoint form is to
+    be added to other forms later, their arguments must match.
+    In that case, the user must provide a tuple reordered_arguments=(u2,v2).
     """
     form = as_form(form)
     form = expand_derivatives(form)

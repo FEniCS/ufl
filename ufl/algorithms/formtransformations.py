@@ -414,7 +414,7 @@ def compute_energy_norm(form, coefficient):
 def compute_form_adjoint(form, reordered_arguments=None):
     """Compute the adjoint of a bilinear form.
 
-    This works simply by swapping the first and last arguments.
+    This works simply by changing the ordering (count) of the two arguments.
     """
     arguments = extract_arguments(form)
     ufl_assert(len(arguments) == 2, "Expecting bilinear form.")
@@ -432,7 +432,7 @@ def compute_form_adjoint(form, reordered_arguments=None):
     ufl_assert(reordered_v.element() == v.element(),
                "Element mismatch between new and old arguments (test functions).")
 
-    return replace(form, {v: reordered_u, u: reordered_v})
+    return replace(form, {v: reordered_v, u: reordered_u})
 
 #def compute_dirichlet_functional(form):
 #    """Compute the Dirichlet functional of a form:
