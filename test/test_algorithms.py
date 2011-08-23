@@ -267,6 +267,35 @@ class AlgorithmsTestCase(UflTestCase):
         self.assertEqual(estimate_total_polynomial_degree(sin(nx**2)), 0)
         self.assertEqual(estimate_total_polynomial_degree(sin(x**3)), 3+2)
 
+    def test_adjoint(self):
+        cell = triangle
+
+        V1 = FiniteElement("CG", cell, 1)
+        V2 = FiniteElement("CG", cell, 2)
+
+        u = TrialFunction(V1)
+        v = TestFunction(V2)
+        self.assertGreater(u.count(), v.count())
+
+        u2 = Argument(V1)
+        v2 = Argument(V2)
+        self.assertLess(u2.count(), v2.count())
+
+        a = u*v*dx
+        a_arg_degrees = [arg.element().degree() for arg in extract_arguments(a)]
+        self.assertEqual(a_arg_degrees, [2, 1])
+
+        b = adjoint(a)
+        b_arg_degrees = [arg.element().degree() for arg in extract_arguments(b)]
+        self.assertEqual(b_arg_degrees, [1, 2])
+
+        c = adjoint(a, (u2, v2))
+        c_arg_degrees = [arg.element().degree() for arg in extract_arguments(c)]
+        self.assertEqual(c_arg_degrees, [1, 2])
+
+        d = adjoint(b)
+        d_arg_degrees = [arg.element().degree() for arg in extract_arguments(d)]
+        self.assertEqual(d_arg_degrees, [2, 1])
 
 if __name__ == "__main__":
     main()
