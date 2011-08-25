@@ -520,6 +520,7 @@ class TensorElement(MixedElement):
         kwargs["degree"] = kwargs.get("degree", self.degree())
 
         ufl_assert("shape" not in kwargs, "Cannot change shape in reconstruct.")
+        kwargs["shape"] = self.value_shape() # Must use same shape as self!
 
         # Not sure about symmetry, but no use case I can see
         ufl_assert("symmetry" not in kwargs, "Cannot change symmetry in reconstruct.")
