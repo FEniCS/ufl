@@ -203,7 +203,7 @@ class Measure(object):
     def __str__(self):
         d = Measure._domain_types[self._domain_type]
         metastring = "" if self._metadata is None else ("<%s>" % repr(self._metadata))
-        return "%s%d%s" % (d, self._domain_id, metastring)
+        return "%s%s%s" % (d, self._domain_id, metastring)
 
     def __repr__(self):
         return self._repr

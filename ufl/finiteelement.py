@@ -645,7 +645,7 @@ class RestrictedElement(FiniteElementBase):
         self._repr = "RestrictedElement(%r, %r)" % (self._element, self._domain)
 
     def reconstruct(self, **kwargs):
-        """Construct a new EnrichedElement object with some properties
+        """Construct a new RestrictedElement object with some properties
         replaced with new values."""
         element = self._element.reconstruct(**kwargs)
         domain = kwargs.get("domain", self.domain())
