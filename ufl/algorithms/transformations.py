@@ -889,6 +889,7 @@ def estimate_max_polynomial_degree(e, default_degree=1):
     degree (None), the degree is set to the given default degree."""
     de = MaxDegreeEstimator(default_degree)
     if isinstance(e, Form):
+        ufl_assert(e.integrals(), "Got form with no integrals!")
         degrees = [de.visit(integral.integrand()) for integral in e.integrals()]
     elif isinstance(e, Integral):
         degrees = [de.visit(e.integrand())]
@@ -902,6 +903,7 @@ def estimate_total_polynomial_degree(e, default_degree=1):
     is set to the given default degree."""
     de = SumDegreeEstimator(default_degree)
     if isinstance(e, Form):
+        ufl_assert(e.integrals(), "Got form with no integrals!")
         degrees = [de.visit(integral.integrand()) for integral in e.integrals()]
     elif isinstance(e, Integral):
         degrees = [de.visit(e.integrand())]
