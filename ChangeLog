@@ -1,3 +1,7 @@
+1.0-beta3 [2011-09-??]
+ - Bugfix in adjoint where test and trial functions were in different spaces.
+ - Bugfix in replace where the argument to a grad was replaced with 0.
+ - Bugfix in reconstruction of tensor elements.
 1.0-beta2 [2011-08-11]
  - Support c*form where c depends on a coefficient in a Real space
 1.0-beta [2011-07-08]
