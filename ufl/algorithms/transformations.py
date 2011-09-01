@@ -37,6 +37,7 @@ from ufl.form import Form
 from ufl.integral import Integral
 from ufl.classes import all_ufl_classes
 from ufl.algorithms.analysis import has_type, extract_duplications
+from ufl.constantvalue import as_ufl
 
 def transform(expression, handlers):
     """Convert a UFLExpression according to rules defined by
@@ -843,7 +844,8 @@ def replace(e, mapping):
     @param mapping:
         A dict with from:to replacements to perform.
     """
-    return apply_transformer(e, Replacer(mapping))
+    mapping2 = dict((k, as_ufl(v)) for (k,v) in mapping.iteritems())
+    return apply_transformer(e, Replacer(mapping2))
 
 def flatten(e): # TODO: Fix or remove! Maybe this works better now with IndexSum marking implicit summations.
     """Convert an UFL expression to a new UFL expression, with sums

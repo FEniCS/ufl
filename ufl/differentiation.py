@@ -314,6 +314,23 @@ class Grad(CompoundDerivative):
             "Taking gradient of an expression with free indices is not supported.")
         self._repr = "Grad(%r)" % self._f
 
+    def reconstruct(self, op):
+        "Return a new object of the same type with new operands."
+        c = op.cell()
+        if c is None or c.is_undefined():
+            dim = self.cell().geometric_dimension()
+            ufl_assert(is_spatially_constant(op),
+                       "Missing cell, expecting argument to "+\
+                       "be spatially constant.")
+            ufl_assert(op.shape() == self._f.shape(),
+                       "Operand shape mismatch in Grad reconstruct.")
+            ufl_assert(self._f.free_indices() == op.free_indices(),
+                       "Free index mismatch in Grad reconstruct.")
+            index_dimensions = {}
+            return Zero(self.shape(), self.free_indices(),
+                        self.index_dimensions())
+        return self.__class__._uflclass(op)
+
     def operands(self):
         return (self._f, )
 
