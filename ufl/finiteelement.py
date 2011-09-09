@@ -663,3 +663,18 @@ class RestrictedElement(FiniteElementBase):
     def shortstr(self):
         "Format as string for pretty printing."
         return "<%s>|_{%s}" % (self._element.shortstr(), self._domain)
+
+    def symmetry(self):
+        """Return the symmetry dict, which is a mapping c0 -> c1
+        meaning that component c0 is represented by component c1."""
+        return self._element.symmetry()
+
+    def num_sub_elements(self):
+        "Return number of sub elements"
+        return self._element.num_sub_elements()
+        #return 1
+
+    def sub_elements(self):
+        "Return list of sub elements"
+        return self._element.num_sub_elements()
+        #return [self._element]
