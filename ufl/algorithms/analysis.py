@@ -33,7 +33,7 @@ from ufl.sorting import topological_sorting
 from ufl.expr import Expr
 from ufl.terminal import Terminal, FormArgument
 from ufl.algebra import Sum, Product, Division
-from ufl.finiteelement import MixedElement
+from ufl.finiteelement import MixedElement, RestrictedElement
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.variable import Variable
@@ -179,7 +179,9 @@ def extract_unique_elements(form):
 
 def extract_sub_elements(elements):
     "Build sorted tuple of all sub elements (including parent element)."
-    sub_elements = tuple(chain(*[e.sub_elements() for e in elements if isinstance(e, MixedElement)]))
+    # FIXME: Why do we have the isinstance here?
+    sub_elements = tuple(chain(*[e.sub_elements() for e in elements\
+                                     if isinstance(e, (MixedElement, RestrictedElement))]))
     if not sub_elements: return tuple(elements)
     return tuple(elements) + extract_sub_elements(sub_elements)
 

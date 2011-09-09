@@ -676,5 +676,5 @@ class RestrictedElement(FiniteElementBase):
 
     def sub_elements(self):
         "Return list of sub elements"
-        return self._element.num_sub_elements()
+        return self._element.sub_elements()
         #return [self._element]
