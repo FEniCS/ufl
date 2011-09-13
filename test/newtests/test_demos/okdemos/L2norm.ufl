@@ -5,7 +5,7 @@
 
 element = FiniteElement("Lagrange", triangle, 1)
 
-f = Function(element)
+f = Coefficient(element)
 
 a = f**2*dx
 

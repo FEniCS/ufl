@@ -19,6 +19,6 @@ def test_literals():
         assert IntValue(i) == as_ufl(i)
     for i in range(3):
         assert FloatValue(0.1*i) == as_ufl(0.1*i)
-    for i in range(1,3):
+    for i in range(2, 3):
         assert Identity(i).shape() == (i, i)
 

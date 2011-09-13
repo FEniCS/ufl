@@ -11,14 +11,15 @@ def construct_element(name, domain, degree, value_rank):
     assert value_rank == len(element.value_shape())
 
 def construct_vector_element(name, domain, degree, value_rank):
+    print "TEST:", name, domain, degree
     element = VectorElement(name, domain, degree)
-    assert value_rank+1 == len(element.value_shape())
+    assert value_rank + 1 == len(element.value_shape())
 
 def construct_tensor_element(name, domain, degree, value_rank):
     element = TensorElement(name, domain, degree)
-    assert value_rank+2 == len(element.value_shape())
+    assert value_rank + 2 == len(element.value_shape())
 
-def test_element_construction():
+def xtest_element_construction():
     "Iterate over all registered elements and try to construct instances."
     from ufl.elementlist import ufl_elements
     for k in sorted(ufl_elements.keys()):
@@ -42,6 +43,7 @@ def test_vector_galerkin():
             for family in ("Lagrange", "CG", "Discontinuous Lagrange", "DG"):
                 element = VectorElement(family, cell, p)
                 assert (element.value_shape() == (dim,))
+                assert (element.num_sub_elements() == dim)
                 for i in range(dim):
                     c = element.extract_component(i)
                     assert (c[0] == ())
@@ -96,4 +98,18 @@ def test_mixed():
         assert ( repr(TH1) == repr(TH2) )
         assert ( TH1.value_shape() == (dim+1,) )
         assert ( TH2.value_shape() == (dim+1,) )
+
+def xtest_vector_galerkin_facet_restriction():
+    print "XXXXXXXXXXXXXXXXX"
+    for cell in all_cells:
+        dim = cell.geometric_dimension()
+        for p in range(1,10):
+            print p
+            for family in ("Lagrange", "CG", "Discontinuous Lagrange", "DG"):
+                element = VectorElement(family, cell, p)["facet"]
+                assert (element.value_shape() == (dim,))
+                assert (element.num_sub_elements() == dim)
+                for i in range(dim):
+                    c = element.extract_component(i)
+                    assert (c[0] == ())
 

@@ -280,7 +280,7 @@ class Identity(ConstantValue):
 
 class PermutationSymbol(ConstantValue):
     """UFL literal type: Representation of a permutation symbol.
-    
+
     This is also known as the Levi-Civita symbol, antisymmetric symbol,
     or alternating symbol."""
     __slots__ = ("_dim", "_repr")

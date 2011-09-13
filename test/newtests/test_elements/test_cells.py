@@ -21,7 +21,7 @@ def construct_cells(domain, degree, space):
             pass
         assert failed
 
-def test_cells():
+def xtest_cells():
     from ufl import R1, R2, R3
     for domain in ("interval", "triangle", "tetrahedron", "quadrilateral", "hexahedron"):
         for d in range(1, 3):
