@@ -231,12 +231,15 @@ def diff(f, v):
         f = as_ufl(f)
 
     if isinstance(v, SpatialCoordinate):
-        r = f.rank()
-        ii = indices(r + 1)
-        if r:
-            f = f[ii[:-1]]
-        df = f.dx(ii[-1])
-        return as_tensor(df, ii)
+        if v.shape() == ():
+            return f.dx(0)
+        else:
+            r = f.rank()
+            ii = indices(r + 1)
+            if r:
+                f = f[ii[:-1]]
+                df = f.dx(ii[-1])
+            return as_tensor(df, ii)
 
     return VariableDerivative(f, v)
 

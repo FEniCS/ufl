@@ -541,9 +541,12 @@ class SpatialAD(ForwardAD):
 
     def spatial_coordinate(self, o):
         # Need to define dx_i/dx_j = delta_ij?
-        I = Identity(self._spatial_dim)
-        oprime = I[:, self._index]
-        return (o, oprime)
+        if o.shape() == ():
+            return (o, IntValue(1))
+        else:
+            I = Identity(self._spatial_dim)
+            oprime = I[:, self._index]
+            return (o, oprime)
 
     # This is implicit for all terminals, but just to make this clear:
     facet_normal = ForwardAD.terminal # returns zero

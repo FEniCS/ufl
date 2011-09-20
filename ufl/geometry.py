@@ -87,7 +87,13 @@ class SpatialCoordinate(GeometricQuantity):
         return (d,)
 
     def evaluate(self, x, mapping, component, index_values):
-        return float(x[component[0]])
+        if component == ():
+            if isinstance(x, (tuple,list)):
+                return float(x[0])
+            else:
+                return float(x)
+        else:
+            return float(x[component[0]])
 
     def __str__(self):
         return "x"
