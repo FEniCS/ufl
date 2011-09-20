@@ -238,7 +238,7 @@ def diff(f, v):
             ii = indices(r + 1)
             if r:
                 f = f[ii[:-1]]
-                df = f.dx(ii[-1])
+            df = f.dx(ii[-1])
             return as_tensor(df, ii)
 
     return VariableDerivative(f, v)
