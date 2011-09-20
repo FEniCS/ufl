@@ -30,7 +30,7 @@ class TemplateTestCase(UflTestCase):
 
     # TODO: Add as many test_foo() functions as needed, use descriptive names
     def test_doing_this_should_have_that_effect(self):
-	# TODO: Use the most descriptive assertion function, e.g.:
+        # TODO: Use the most descriptive assertion function, e.g.:
         self.assertTrue(42)
         self.assertEqual("hi", "h" + "i")
         self.assertIsInstance(triangle, Cell)

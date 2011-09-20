@@ -272,7 +272,7 @@ class DerivativeTestCase(UflTestCase):
         self.assertAlmostEqual(Jv, Jv2)
 
     def test_mass_derived_from_functional(self):
-	cell = triangle
+        cell = triangle
         V = FiniteElement("CG", cell, 1)
 
         v = TestFunction(V)
@@ -285,7 +285,7 @@ class DerivativeTestCase(UflTestCase):
         F  = derivative(f, w, v)
         J1 = derivative(L, w, u)
         J2 = derivative(F, w, u)
-	# TODO: assert something
+        # TODO: assert something
 
     def test_coefficient_derivatives(self):
         V = FiniteElement("Lagrange", triangle, 1)
@@ -404,7 +404,7 @@ class DerivativeTestCase(UflTestCase):
 
         L = NS_a(U,v)*dx
         a = derivative(L, U, du)
-	# TODO: assert something
+        # TODO: assert something
 
 if __name__ == "__main__":
     main()
