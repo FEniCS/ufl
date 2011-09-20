@@ -55,9 +55,9 @@ class Form(object):
         msg += "To associate domains with a form, use dss = ds[mydomains]; a = f*dss(1)."
         error(msg)
     def _get_domains(self):
-	self._trigger_domain_error()
+        self._trigger_domain_error()
     def _set_domains(self, domains):
-	self._trigger_domain_error()
+        self._trigger_domain_error()
     cell_domains = property(_get_domains, _set_domains)
     exterior_facet_domains = property(_get_domains, _set_domains)
     interior_facet_domains = property(_get_domains, _set_domains)

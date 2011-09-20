@@ -321,7 +321,7 @@ class Division(AlgebraOperator):
 
         # Assertions
         # TODO: Enabled workaround for nonscalar division in __div__,
-	# so maybe we can keep this assertion. Some algorithms may need updating.
+        # so maybe we can keep this assertion. Some algorithms may need updating.
         if not is_ufl_scalar(a):
             error("Expecting scalar nominator in Division.")
         if not is_true_ufl_scalar(b):
@@ -329,10 +329,10 @@ class Division(AlgebraOperator):
         if isinstance(b, Zero):
             error("Division by zero!")
 
-	# Simplification a/b -> a
+        # Simplification a/b -> a
         if isinstance(a, Zero) or b == 1:
             return a
-	# Simplification "literal a / literal b" -> "literal value of a/b"
+        # Simplification "literal a / literal b" -> "literal value of a/b"
         # Avoiding integer division by casting to float
         if isinstance(a, ScalarValue) and isinstance(b, ScalarValue):
             return as_ufl(float(a._value) / float(b._value))

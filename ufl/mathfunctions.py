@@ -32,15 +32,15 @@ from ufl.constantvalue import is_true_ufl_scalar, ScalarValue, Zero, FloatValue
 TODO: Include additional functions available in <cmath> (need derivatives as well):
 
 Trigonometric functions:
-atan2	 Compute arc tangent with two parameters (function)
+atan2    Compute arc tangent with two parameters (function)
 
 Hyperbolic functions:
-cosh	 Compute hyperbolic cosine (function)
-sinh	 Compute hyperbolic sine (function)
-tanh	 Compute hyperbolic tangent (function)
+cosh     Compute hyperbolic cosine (function)
+sinh     Compute hyperbolic sine (function)
+tanh     Compute hyperbolic tangent (function)
 
 Exponential and logarithmic functions:
-log10	 Compute common logarithm (function)
+log10    Compute common logarithm (function)
 
 TODO: Include bessel functions, need non-standard library implementation in generated code.
 
