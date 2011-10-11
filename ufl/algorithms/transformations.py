@@ -63,7 +63,10 @@ class MultiFunction(object):
             cache_data = [None]*len(all_ufl_classes)
             # For all UFL classes
             for classobject in all_ufl_classes:
-                # Iterate over the inheritance chain (NB! This assumes that all UFL classes inherits a single Expr subclass and that this is the first superclass!)
+                # Iterate over the inheritance chain
+                # (NB! This assumes that all UFL classes inherits from
+                # a single Expr subclass and that the first superclass
+                # is always from the UFL Expr hierarchy!)
                 for c in classobject.mro():
                     # Register classobject with handler for the first encountered superclass
                     name = c._handlername
@@ -77,6 +80,14 @@ class MultiFunction(object):
     def __call__(self, o, *args, **kwargs):
         h = self._handlers[o._classid]
         return h(o, *args, **kwargs)
+
+    def undefined(self, o):
+        "Trigger error."
+        error("No handler defined for %s." % o._uflclass.__name__)
+
+    # Set default behaviour for any Expr
+    expr = undefined
+
 
 def is_post_handler(function):
     "Is this a handler that expects transformed children as input?"
