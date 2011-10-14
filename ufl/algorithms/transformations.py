@@ -535,20 +535,22 @@ class CompoundExpander(ReuseTransformer):
         jj = Index()
         if a.rank() > 0:
             ii = tuple(indices(a.rank()))
-            return as_tensor(a[ii].dx(jj), tuple(ii + (jj,)))
-        return as_tensor(a.dx(jj), (jj,))
+            return as_tensor(a[ii].dx(jj), ii + (jj,))
+        else:
+            return as_tensor(a.dx(jj), (jj,))
 
     def nabla_div(self, o, a):
         i = Index()
-        g = a[i] if a.rank() == 1 else a[...,i]
+        g = a[i] if a.rank() == 1 else a[i,...]
         return g.dx(i)
 
     def nabla_grad(self, o, a):
-        jj = Index()
+        j = Index()
         if a.rank() > 0:
             ii = tuple(indices(a.rank()))
-            return as_tensor(a[ii].dx(jj), tuple(ii + (jj,)))
-        return as_tensor(a.dx(jj), (jj,))
+            return as_tensor(a[ii].dx(j), (j,) + ii)
+        else:
+            return as_tensor(a.dx(j), (j,))
 
     def curl(self, o, a):
         # o = curl a = "[a.dx(1), -a.dx(0)]"            if a.shape() == ()
