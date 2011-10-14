@@ -390,6 +390,110 @@ class Div(CompoundDerivative):
     def __repr__(self):
         return self._repr
 
+class NablaGrad(CompoundDerivative):
+    __slots__ = ("_f", "_dim", "_repr")
+
+    def __new__(cls, f):
+        # Return zero if expression is trivially constant
+        cell = f.cell()
+        ufl_assert(cell is not None and not cell.is_undefined(),\
+                   "Can't take gradient of expression with undefined cell...")
+        dim = cell.geometric_dimension()
+        if is_spatially_constant(f):
+            free_indices = f.free_indices()
+            index_dimensions = subdict(f.index_dimensions(), free_indices)
+            return Zero(f.shape() + (dim,), free_indices, index_dimensions)
+        if dim == 1:
+            return f.dx(0)
+        return CompoundDerivative.__new__(cls)
+
+    def __init__(self, f):
+        CompoundDerivative.__init__(self)
+        self._f = f
+        cell = f.cell()
+        ufl_assert(cell is not None and not cell.is_undefined(),\
+                   "Can't take gradient of expression with undefined cell...")
+        self._dim = cell.geometric_dimension()
+        ufl_assert(not f.free_indices(),\
+            "Taking gradient of an expression with free indices is not supported.")
+        self._repr = "Grad(%r)" % self._f
+
+    def reconstruct(self, op):
+        "Return a new object of the same type with new operands."
+        c = op.cell()
+        if c is None or c.is_undefined():
+            dim = self.cell().geometric_dimension()
+            ufl_assert(is_spatially_constant(op),
+                       "Missing cell, expecting argument to "+\
+                       "be spatially constant.")
+            ufl_assert(op.shape() == self._f.shape(),
+                       "Operand shape mismatch in Grad reconstruct.")
+            ufl_assert(self._f.free_indices() == op.free_indices(),
+                       "Free index mismatch in Grad reconstruct.")
+            index_dimensions = {}
+            return Zero(self.shape(), self.free_indices(),
+                        self.index_dimensions())
+        return self.__class__._uflclass(op)
+
+    def operands(self):
+        return (self._f, )
+
+    def free_indices(self):
+        return self._f.free_indices()
+
+    def index_dimensions(self):
+        return self._f.index_dimensions()
+
+    def shape(self):
+        return  self._f.shape() + (self._dim,)
+
+    def __str__(self):
+        return "grad(%s)" % self._f
+
+    def __repr__(self):
+        return self._repr
+
+class Div(CompoundDerivative):
+    __slots__ = ("_f", "_repr")
+
+    def __new__(cls, f):
+        ufl_assert(not f.free_indices(), \
+            "TODO: Taking divergence of an expression with free indices,"\
+            "should this be a valid expression? Please provide examples!")
+
+        if f.rank() == 0:
+            return f.dx(0)
+        #ufl_assert(f.rank() >= 1, "Can't take the divergence of a scalar.")
+
+        # Return zero if expression is trivially constant
+        if is_spatially_constant(f):
+            return Zero(f.shape()[:-1]) # No free indices asserted above
+
+        return CompoundDerivative.__new__(cls)
+
+    def __init__(self, f):
+        CompoundDerivative.__init__(self)
+        self._f = f
+        self._repr = "Div(%r)" % self._f
+
+    def operands(self):
+        return (self._f, )
+
+    def free_indices(self):
+        return self._f.free_indices()
+
+    def index_dimensions(self):
+        return self._f.index_dimensions()
+
+    def shape(self):
+        return self._f.shape()[:-1]
+
+    def __str__(self):
+        return "div(%s)" % self._f
+
+    def __repr__(self):
+        return self._repr
+
 class Curl(CompoundDerivative):
     __slots__ = ("_f", "_dim", "_repr")
 
