@@ -155,19 +155,27 @@ class TestExampleForms(UflTestCase):
         a = inner(grad(u), grad(v)) * dx
 
 
-    def test_stiffness_with_conductivity(self):
+    def test_nonnabla_stiffness_with_conductivity(self):
         velement = VectorElement("Lagrange", triangle, 1)
         telement = TensorElement("Lagrange", triangle, 1)
         v = TestFunction(velement)
         u = TrialFunction(velement)
         M = Coefficient(telement)
-        a = inner(M*grad(u), grad(v)) * dx
+        a = inner(grad(u)*M.T, grad(v)) * dx
+
+    def test_nabla_stiffness_with_conductivity(self):
+        velement = VectorElement("Lagrange", triangle, 1)
+        telement = TensorElement("Lagrange", triangle, 1)
+        v = TestFunction(velement)
+        u = TrialFunction(velement)
+        M = Coefficient(telement)
+        a = inner(M*nabla_grad(u), nabla_grad(v)) * dx
 
 
-    def test_navier_stokes(self):
-        polygon = triangle
-        velement = VectorElement("Lagrange", polygon, 2)
-        pelement = FiniteElement("Lagrange", polygon, 1)
+    def test_nonnabla_navier_stokes(self):
+        cell = triangle
+        velement = VectorElement("Lagrange", cell, 2)
+        pelement = FiniteElement("Lagrange", cell, 1)
         TH = velement * pelement
 
         v, q = TestFunctions(TH)
@@ -175,14 +183,35 @@ class TestExampleForms(UflTestCase):
 
         f = Coefficient(velement)
         w = Coefficient(velement)
-        Re = Constant(polygon)
-        dt = Constant(polygon)
+        Re = Constant(cell)
+        dt = Constant(cell)
 
-        a = dot(u, v) + dt*dot(dot(w, grad(u)), v)\
-            - dt*Re*inner(grad(u), grad(v))\
-            + dt*dot(grad(p), v)
-        L = dot(f, v)
-        b = dot(u, grad(q))
+        a = (dot(u, v) + dt*dot(grad(u)*w, v)
+            - dt*Re*inner(grad(u), grad(v))
+            + dt*dot(grad(p), v))*dx
+        L = dot(f, v)*dx
+        b = dot(u, grad(q))*dx
+
+    def test_nabla_navier_stokes(self):
+        cell = triangle
+        velement = VectorElement("Lagrange", cell, 2)
+        pelement = FiniteElement("Lagrange", cell, 1)
+        TH = velement * pelement
+
+        v, q = TestFunctions(TH)
+        u, p = TrialFunctions(TH)
+
+        f = Coefficient(velement)
+        w = Coefficient(velement)
+        Re = Constant(cell)
+        dt = Constant(cell)
+
+        a = (dot(u, v) + dt*dot(dot(w,nabla_grad(u)), v)
+            - dt*Re*inner(grad(u), grad(v))
+            + dt*dot(grad(p), v))*dx
+        L = dot(f, v)*dx
+        b = dot(u, grad(q))*dx
+
 
 if __name__ == "__main__":
     main()
