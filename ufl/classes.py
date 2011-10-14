@@ -49,7 +49,7 @@ from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
 from ufl.lifting import LiftingResult, LiftingOperatorResult, LiftingFunctionResult,\
     TerminalOperator, LiftingOperator, LiftingFunction
 from ufl.differentiation import Derivative, CompoundDerivative, CoefficientDerivative,\
-    SpatialDerivative, VariableDerivative, Grad, Div, Curl
+    SpatialDerivative, VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
 from ufl.conditional import Condition, BinaryCondition,\
     EQ, NE, LE, GE, LT, GT,\
     AndCondition, OrCondition, NotCondition, Conditional
