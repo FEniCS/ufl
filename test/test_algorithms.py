@@ -41,19 +41,11 @@ class AlgorithmsTestCase(UflTestCase):
 
         if False:
             print
-            print
-            print
             print form_info(a)
-            print
-            print
             print
             print form_info(L)
             print
-            print
-            print
             print form_info(b)
-            print
-            print
             print
 
         if False:
