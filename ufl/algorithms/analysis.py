@@ -32,17 +32,11 @@ from ufl.sorting import topological_sorting
 
 from ufl.expr import Expr
 from ufl.terminal import Terminal, FormArgument
-from ufl.algebra import Sum, Product, Division
 from ufl.finiteelement import MixedElement, RestrictedElement
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.variable import Variable
 from ufl.tensors import ListTensor, ComponentTensor
-from ufl.tensoralgebra import Transposed, Inner, Dot, Outer, Cross, Trace
-from ufl.tensoralgebra import Determinant, Inverse, Deviatoric, Cofactor, Skew
-from ufl.restriction import PositiveRestricted, NegativeRestricted
-from ufl.differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl
-from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.indexing import Indexed, Index, MultiIndex
 from ufl.form import Form
 from ufl.integral import Integral, Measure
