@@ -237,5 +237,18 @@ class ExpandIndicesTestCase(UflTestCase):
         a = div(grad(sf2))
         compare(a, 3.300 + 3.311)
 
+    def test_expand_indices_nabla_div_grad(self):
+        sf = self.sf
+        sf2 = self.sf2
+        vf = self.vf
+        tf = self.tf
+        compare = self.compare
+
+        a = nabla_div(nabla_grad(sf))
+        compare(a, 0)
+
+        a = nabla_div(nabla_grad(sf2))
+        compare(a, 3.300 + 3.311)
+
 if __name__ == "__main__":
     main()
