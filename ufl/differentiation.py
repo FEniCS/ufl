@@ -402,7 +402,7 @@ class NablaGrad(CompoundDerivative):
         if is_spatially_constant(f):
             free_indices = f.free_indices()
             index_dimensions = subdict(f.index_dimensions(), free_indices)
-            return Zero(f.shape() + (dim,), free_indices, index_dimensions)
+            return Zero((dim,) + f.shape(), free_indices, index_dimensions)
         if dim == 1:
             return f.dx(0)
         return CompoundDerivative.__new__(cls)
@@ -445,7 +445,7 @@ class NablaGrad(CompoundDerivative):
         return self._f.index_dimensions()
 
     def shape(self):
-        return  self._f.shape() + (self._dim,)
+        return (self._dim,) + self._f.shape()
 
     def __str__(self):
         return "nabla_grad(%s)" % self._f
