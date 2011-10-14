@@ -416,7 +416,7 @@ class NablaGrad(CompoundDerivative):
         self._dim = cell.geometric_dimension()
         ufl_assert(not f.free_indices(),\
             "Taking gradient of an expression with free indices is not supported.")
-        self._repr = "Grad(%r)" % self._f
+        self._repr = "NablaGrad(%r)" % self._f
 
     def reconstruct(self, op):
         "Return a new object of the same type with new operands."
@@ -427,9 +427,9 @@ class NablaGrad(CompoundDerivative):
                        "Missing cell, expecting argument to "+\
                        "be spatially constant.")
             ufl_assert(op.shape() == self._f.shape(),
-                       "Operand shape mismatch in Grad reconstruct.")
+                       "Operand shape mismatch in NablaGrad reconstruct.")
             ufl_assert(self._f.free_indices() == op.free_indices(),
-                       "Free index mismatch in Grad reconstruct.")
+                       "Free index mismatch in NablaGrad reconstruct.")
             index_dimensions = {}
             return Zero(self.shape(), self.free_indices(),
                         self.index_dimensions())
@@ -448,12 +448,12 @@ class NablaGrad(CompoundDerivative):
         return  self._f.shape() + (self._dim,)
 
     def __str__(self):
-        return "grad(%s)" % self._f
+        return "nabla_grad(%s)" % self._f
 
     def __repr__(self):
         return self._repr
 
-class Div(CompoundDerivative):
+class NablaDiv(CompoundDerivative):
     __slots__ = ("_f", "_repr")
 
     def __new__(cls, f):
@@ -474,7 +474,7 @@ class Div(CompoundDerivative):
     def __init__(self, f):
         CompoundDerivative.__init__(self)
         self._f = f
-        self._repr = "Div(%r)" % self._f
+        self._repr = "NablaDiv(%r)" % self._f
 
     def operands(self):
         return (self._f, )
@@ -489,7 +489,7 @@ class Div(CompoundDerivative):
         return self._f.shape()[:-1]
 
     def __str__(self):
-        return "div(%s)" % self._f
+        return "nabla_div(%s)" % self._f
 
     def __repr__(self):
         return self._repr
