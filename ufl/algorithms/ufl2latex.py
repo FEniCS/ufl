@@ -41,7 +41,7 @@ from ufl.indexsum import IndexSum
 from ufl.tensoralgebra import Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
 from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin, Tan, Acos, Asin, Atan
 from ufl.restriction import PositiveRestricted, NegativeRestricted
-from ufl.differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl
+from ufl.differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.form import Form
 from ufl.integral import Measure
@@ -75,7 +75,7 @@ def build_precedence_map():
     precedence_list.append((Conditional,))
     precedence_list.append((LE, GT, GE, NE, EQ, LT))
 
-    precedence_list.append((Div, Grad, Curl, SpatialDerivative, VariableDerivative,
+    precedence_list.append((Div, Grad, NablaGrad, NablaDiv, Curl, SpatialDerivative, VariableDerivative,
                             Determinant, Trace, Cofactor, Inverse, Deviatoric))
     precedence_list.append((Product, Division, Cross, Dot, Outer, Inner))
     precedence_list.append((Indexed, Transposed, Power))
@@ -203,9 +203,15 @@ class Expression2LatexHandler(Transformer):
         return r"\frac{%s}{%s}[%s]" % (nom, denom, v) # TODO: Fix this syntax...
 
     def grad(self, o, f):
-        return r"\nabla{%s}" % par(f)
+        return r"\mathbf{grad}{%s}" % par(f)
 
     def div(self, o, f):
+        return r"\mathbf{grad}{%s}" % par(f)
+
+    def nabla_grad(self, o, f):
+        return r"\nabla{\otimes %s}" % par(f)
+
+    def nabla_div(self, o, f):
         return r"\nabla{\cdot %s}" % par(f)
 
     def curl(self, o, f):

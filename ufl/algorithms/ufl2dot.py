@@ -42,8 +42,10 @@ class2label = { \
     "Inner": ":",
     "Dot": "&sdot;",
     "Outer": "&otimes;",
-    "Grad": "&nabla;&otimes;",
-    "Div": "&nabla;&sdot;",
+    "Grad": "grad",
+    "Div": "div",
+    "NablaGrad": "&nabla;&otimes;",
+    "NablaDiv": "&nabla;&sdot;",
     "Curl": "&nabla;&times;",
     }
 
