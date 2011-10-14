@@ -726,6 +726,7 @@ class UnusedADRules(object):
     trace = commute
     deviatoric = commute
 
+    # TODO: nabla_div, nabla_grad
     div  = commute
     curl = commute
     def grad(self, o, a):
