@@ -100,7 +100,8 @@ A very brief overview of the language contents follows:
 * Differential operators::
 
     variable, diff,
-    Dx, grad, div, curl, rot, Dn
+    grad, div, nabla_grad, nabla_div,
+    Dx, Dn, curl, rot,
 
 * Nonlinear functions::
 
@@ -208,7 +209,7 @@ from ufl.operators import rank, shape, \
                        eq, ne, le, ge, lt, gt, And, Or, Not, \
                        conditional, sign, \
                        variable, diff, \
-                       Dx,  grad, div, curl, rot, Dn, exterior_derivative, \
+                       Dx,  grad, div, curl, rot, nabla_grad, nabla_div, Dn, exterior_derivative, \
                        jump, avg, \
                        elem_mult, elem_div, elem_pow, elem_op
 
@@ -262,7 +263,7 @@ __all__ = [
     'eq', 'ne', 'le', 'ge', 'lt', 'gt', 'And', 'Or', 'Not',
     'conditional', 'sign',
     'variable', 'diff',
-    'Dx', 'grad', 'div', 'curl', 'rot', 'Dn', 'exterior_derivative',
+    'Dx', 'grad', 'div', 'curl', 'rot', 'nabla_grad', 'nabla_div', 'Dn', 'exterior_derivative',
     'jump', 'avg',
     'elem_mult', 'elem_div', 'elem_pow', 'elem_op',
     'LiftingFunction', 'LiftingOperator',

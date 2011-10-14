@@ -29,7 +29,7 @@ from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.form import Form
 from ufl.constantvalue import Zero, ScalarValue, as_ufl
-from ufl.differentiation import VariableDerivative, Grad, Div, Curl
+from ufl.differentiation import VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
 from ufl.tensoralgebra import Transposed, Inner, Outer, Dot, Cross, Determinant,\
     Inverse, Cofactor, Trace, Deviatoric, Skew, Sym
 from ufl.variable import Variable
@@ -244,14 +244,68 @@ def diff(f, v):
     return VariableDerivative(f, v)
 
 def grad(f):
-    "UFL operator: Take the gradient of f."
+    """UFL operator: Take the gradient of f.
+
+    This operator follows the grad convention where
+
+      grad(s)[i] = s.dx(j)
+
+      grad(v)[i,j] = v[i].dx(j)
+
+      grad(T)[:,i] = T[:].dx(i)
+
+    for scalar expressions s, vector expressions v,
+    and arbitrary rank tensor expressions T.
+    """
     f = as_ufl(f)
     return Grad(f)
 
 def div(f):
-    "UFL operator: Take the divergence of f."
+    """UFL operator: Take the divergence of f.
+
+    This operator follows the div convention where
+
+      div(v) = v[i].dx(i)
+
+      div(T)[:] = T[:,i].dx(i)
+
+    for vector expressions v, and
+    arbitrary rank tensor expressions T.
+    """
     f = as_ufl(f)
     return Div(f)
+
+def nabla_grad(f):
+    """UFL operator: Take the gradient of f.
+
+    This operator follows the grad convention where
+
+      nabla_grad(s)[i] = s.dx(j)
+
+      nabla_grad(v)[i,j] = v[j].dx(i)
+
+      nabla_grad(T)[i,:] = T[:].dx(i)
+
+    for scalar expressions s, vector expressions v,
+    and arbitrary rank tensor expressions T.
+    """
+    f = as_ufl(f)
+    return NablaGrad(f)
+
+def nabla_div(f):
+    """UFL operator: Take the divergence of f.
+
+    This operator follows the div convention where
+
+      nabla_div(v) = v[i].dx(i)
+
+      nabla_div(T)[:] = T[i,:].dx(i)
+
+    for vector expressions v, and
+    arbitrary rank tensor expressions T.
+    """
+    f = as_ufl(f)
+    return NablaDiv(f)
 
 def curl(f):
     "UFL operator: Take the curl of f."
@@ -398,10 +452,15 @@ def atan(f):
 #--- Special function for exterior_derivative
 
 def exterior_derivative(f):
-    "UFL operator: Take the exterior derivative of f."
+    """UFL operator: Take the exterior derivative of f.
 
-    # Use element family to determine whether id, grad, curl or div
-    # should be returned for as the exterior_derivative
+    The exterior derivative uses the element family to
+    determine whether id, grad, curl or div should be used.
+
+    Note that this uses the 'grad' and 'div' operators,
+    as opposed to 'nabla_grad' and 'nabla_div'.
+    """
+
     if isinstance(f, Indexed):
         if len(f._indices) > 1:
             raise NotImplementedError
