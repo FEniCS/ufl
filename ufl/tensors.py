@@ -53,7 +53,7 @@ class ListTensor(WrapperType):
         # through the listtensor concept and free indices.
         # Are there any cases where it makes sense to even
         # have any free indices here?
-        if any(fi != e.free_indices() for e in expressions):
+        if any(set(fi) - set(e.free_indices()) for e in expressions):
             error("ListTensor assumption 2 failed, "\
                   "please report this incident as a potential bug.")
         if any(idim != e.index_dimensions() for e in expressions):
