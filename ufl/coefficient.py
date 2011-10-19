@@ -40,19 +40,13 @@ class Coefficient(FormArgument, Counted):
     #__slots__ = ("_element", "_repr", "_gradient", "_derivatives")
     _globalcount = 0
 
-    def __init__(self, element, count=None):#, gradient=None, derivatives=None):
+    def __init__(self, element, count=None):
         FormArgument.__init__(self)
         Counted.__init__(self, count, Coefficient)
         ufl_assert(isinstance(element, FiniteElementBase),
             "Expecting a FiniteElementBase instance.")
         self._element = element
         self._repr = None
-        #self._gradient = gradient
-        #self._derivatives = {} if derivatives is None else dict(derivatives)
-        #if gradient or derivatives:
-        #    # TODO: Use gradient and derivatives in AD
-        #    # TODO: Check shapes of gradient and derivatives
-        #    warning("Specifying the gradient or derivatives of a Coefficient is not yet implemented anywhere.")
 
     def reconstruct(self, element=None, count=None):
         # This code is shared with the FooConstant classes
@@ -67,20 +61,12 @@ class Coefficient(FormArgument, Counted):
         ufl_assert(isinstance(count, int),
                    "Expecting an int, not %s" % count)
         ufl_assert(element.value_shape() == self._element.value_shape(),
-                   "Cannot reconstruct a VectorConstant with a different value shape.")
+                   "Cannot reconstruct a Coefficient with a different value shape.")
         return self._reconstruct(element, count)
 
     def _reconstruct(self, element, count):
         # This code is class specific
         return Coefficient(element, count)
-
-    #def gradient(self):
-    #    "Hook for experimental feature, do not use!"
-    #    return self._gradient
-
-    #def derivative(self, f):
-    #    "Hook for experimental feature, do not use!"
-    #    return self._derivatives.get(f)
 
     def element(self):
         return self._element
@@ -108,19 +94,17 @@ class Coefficient(FormArgument, Counted):
 
 # --- Subclasses for defining constant coefficients without specifying element ---
 
-# TODO: Handle actual global constants?
-
 class ConstantBase(Coefficient):
     __slots__ = ()
     def __init__(self, element, count):
         Coefficient.__init__(self, element, count)
 
 class Constant(ConstantBase):
-    """UFL value: Represents a coefficient in a scalar valued piecewise constant space."""
+    """UFL value: Represents a coefficient in a scalar valued piecewise constant space.""" # FIXMEGC
     __slots__ = ()
 
     def __init__(self, cell, count=None):
-        e = FiniteElement("DG", cell, 0)
+        e = FiniteElement("DG", cell, 0) # FIXMEGC
         ConstantBase.__init__(self, e, count)
         self._repr = "Constant(%r, %r)" % (e.cell(), self._count)
 
@@ -135,12 +119,13 @@ class Constant(ConstantBase):
             return "c_{%s}" % count
 
 class VectorConstant(ConstantBase):
-    """UFL value: Represents a coefficient in a vector valued piecewise constant space."""
+    """UFL value: Represents a coefficient in a vector valued piecewise constant space.""" # FIXMEGC
     __slots__ = ()
 
     def __init__(self, cell, dim=None, count=None):
         e = VectorElement("DG", cell, 0, dim)
         ConstantBase.__init__(self, e, count)
+        ufl_assert(self._repr is None, "Repr should not have been set yet!")
         self._repr = "VectorConstant(%r, %r, %r)" % (e.cell(), e.value_shape()[0], self._count)
 
     def _reconstruct(self, element, count):
@@ -154,11 +139,13 @@ class VectorConstant(ConstantBase):
             return "C_{%s}" % count
 
 class TensorConstant(ConstantBase):
-    """UFL value: Represents a coefficient in a tensor valued piecewise constant space."""
+    """UFL value: Represents a coefficient in a tensor valued piecewise constant space.""" # FIXMEGC
     __slots__ = ()
+
     def __init__(self, cell, shape=None, symmetry=None, count=None):
-        e = TensorElement("DG", cell, 0, shape=shape, symmetry=symmetry)
+        e = TensorElement("DG", cell, 0, shape=shape, symmetry=symmetry) # FIXMEGC
         ConstantBase.__init__(self, e, count)
+        ufl_assert(self._repr is None, "Repr should not have been set yet!")
         self._repr = "TensorConstant(%r, %r, %r, %r)" % (e.cell(), e.value_shape(), e._symmetry, self._count)
 
     def _reconstruct(self, element, count):

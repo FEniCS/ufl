@@ -56,7 +56,7 @@ class Argument(FormArgument, Counted):
         ufl_assert(isinstance(count, int),
                    "Expecting an int, not %s" % count)
         ufl_assert(element.value_shape() == self._element.value_shape(),
-                   "Cannot reconstruct a VectorConstant with a different value shape.")
+                   "Cannot reconstruct an Argument with a different value shape.")
         return Argument(element, count)
 
     def element(self):
