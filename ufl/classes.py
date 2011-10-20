@@ -22,9 +22,10 @@ of classes, and for mapping types to different handler functions."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2009.
+# Modified by Kristian B. Oelgaard, 2011
 #
 # First added:  2008-08-15
-# Last changed: 2009-12-08
+# Last changed: 2011-10-20
 
 from ufl.assertions import ufl_assert
 from ufl.expr import Expr, Operator, WrapperType, AlgebraOperator
@@ -44,7 +45,7 @@ from ufl.tensors import ListTensor, ComponentTensor
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import CompoundTensorOperator, Transposed, Outer,\
     Inner, Dot, Cross, Trace, Determinant, Cofactor, Inverse, Deviatoric, Skew, Sym
-from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin, Tan, Acos, Asin, Atan
+from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin, Tan, Acos, Asin, Atan, Erf
 from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
 from ufl.lifting import LiftingResult, LiftingOperatorResult, LiftingFunctionResult,\
     TerminalOperator, LiftingOperator, LiftingFunction

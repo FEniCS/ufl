@@ -18,9 +18,10 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2008
+# Modified by Kristian B. Oelgaard, 2011
 #
 # First added:  2008-03-14
-# Last changed: 2009-04-21
+# Last changed: 2011-10-20
 
 import math
 from ufl.log import warning
@@ -171,3 +172,12 @@ class Atan(MathFunction):
     
     def __init__(self, argument):
         MathFunction.__init__(self, "atan", argument)
+
+class Erf(MathFunction):
+    def __new__(cls, argument):
+        if isinstance(argument, (ScalarValue, Zero)):
+            return FloatValue(math.erf(float(argument)))
+        return MathFunction.__new__(cls)
+    
+    def __init__(self, argument):
+        MathFunction.__init__(self, "erf", argument)

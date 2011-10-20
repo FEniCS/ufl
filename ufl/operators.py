@@ -20,8 +20,10 @@ objects."""
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
+# Modified by Kristian B. Oelgaard, 2011
+#
 # First added:  2008-04-09
-# Last changed: 2010-12-04
+# Last changed: 2011-10-20
 
 import math
 import operator
@@ -36,7 +38,7 @@ from ufl.variable import Variable
 from ufl.tensors import as_tensor, ListTensor
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, \
     AndCondition, OrCondition, NotCondition, Conditional
-from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin, Tan, Acos, Asin, Atan
+from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin, Tan, Acos, Asin, Atan, Erf
 from ufl.indexing import indices, Indexed
 from ufl.geometry import SpatialCoordinate
 
@@ -448,6 +450,10 @@ def atan(f):
     "UFL operator: Take the inverse tangent of f."
     return _mathfunction(f, Atan, math.atan)
 
+
+def erf(f):
+    "UFL operator: error function of f."
+    return _mathfunction(f, Erf, math.erf)
 
 #--- Special function for exterior_derivative
 

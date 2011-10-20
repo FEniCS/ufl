@@ -18,16 +18,18 @@ all relevant operands for use with reverse mode AD."""
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
+# Modified by Kristian B. Oelgaard, 2011
+#
 # First added:  2009-01-06
-# Last changed: 2009-02-24
+# Last changed: 2011-10-20
 
+from math import pi
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.classes import Zero, IntValue, FloatValue
-from ufl.operators import cos, sin, tan, acos, asin, atan, exp, ln, sqrt, conditional, sign
+from ufl.operators import cos, sin, tan, acos, asin, atan, exp, ln, sqrt, conditional, sign, erf
 from ufl.tensors import unit_vectors, ListTensor
 from ufl.algorithms.transformations import MultiFunction
-
 
 class PartialDerivativeComputer(MultiFunction):
     """NB! The main reason for keeping this out of the Expr hierarchy is
@@ -137,6 +139,11 @@ class PartialDerivativeComputer(MultiFunction):
         "d/dx atan x = 1/(1 + x^2)"
         x, = f.operands()
         return (1.0/(1.0 + x**2),)
+
+    def erf(self, f):
+        "d/dx erf x = 2/sqrt(pi)*exp(-x^2)"
+        x, = f.operands()
+        return (2.0/sqrt(pi)*exp(-x**2),)
     
     # --- Shape and indexing manipulators
     

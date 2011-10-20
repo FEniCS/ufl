@@ -20,9 +20,10 @@ converting UFL expressions to other representations."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2008-2009.
+# Modified by Kristian B. Oelgaard, 2011
 #
 # First added:  2008-05-07
-# Last changed: 2009-06-11
+# Last changed: 2011-10-20
 
 import os
 from itertools import chain
@@ -39,7 +40,7 @@ from ufl.tensors import ListTensor, ComponentTensor
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.indexsum import IndexSum
 from ufl.tensoralgebra import Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
-from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin, Tan, Acos, Asin, Atan
+from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin, Tan, Acos, Asin, Atan, Erf
 from ufl.restriction import PositiveRestricted, NegativeRestricted
 from ufl.differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
@@ -79,7 +80,7 @@ def build_precedence_map():
                             Determinant, Trace, Cofactor, Inverse, Deviatoric))
     precedence_list.append((Product, Division, Cross, Dot, Outer, Inner))
     precedence_list.append((Indexed, Transposed, Power))
-    precedence_list.append((Abs, Cos, Exp, Ln, Sin, Sqrt, Tan, Acos, Asin, Atan))
+    precedence_list.append((Abs, Cos, Exp, Ln, Sin, Sqrt, Tan, Acos, Asin, Atan, Erf))
     precedence_list.append((Variable,))
     precedence_list.append(terminal_classes)
 
@@ -243,6 +244,9 @@ class Expression2LatexHandler(Transformer):
 
     def atan(self, o, f):
         return r"\arctan{%s}" % par(f)
+
+    def erf(self, o, f):
+        return r"\erf{%s}" % par(f)
 
     def power(self, o, a, b):
         return "{%s}^{%s}" % (par(a), par(b))

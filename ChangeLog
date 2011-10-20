@@ -1,4 +1,5 @@
 1.0-beta3 [2011-09-??]
+ - Added error function (math function) erf().
  - Bugfix in adjoint where test and trial functions were in different spaces.
  - Bugfix in replace where the argument to a grad was replaced with 0.
  - Bugfix in reconstruction of tensor elements.

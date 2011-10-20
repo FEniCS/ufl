@@ -105,7 +105,7 @@ A very brief overview of the language contents follows:
 
 * Nonlinear functions::
 
-    abs, sign, sqrt, exp, ln, cos, sin, tan, acos, asin, atan
+    abs, sign, sqrt, exp, ln, cos, sin, tan, acos, asin, atan, erf
 
 * Discontinuous Galerkin operators:
     jump, avg, v('+'), v('-')
@@ -142,10 +142,10 @@ A very brief overview of the language contents follows:
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
-# Modified by Kristian Oelgaard, 2009
+# Modified by Kristian B. Oelgaard, 2009, 2011
 # Modified by Anders Logg, 2009.
 #
-# Last changed: 2011-07-08
+# Last changed: 2011-10-20
 
 __version__ = "1.0-beta2+"
 
@@ -205,7 +205,7 @@ from ufl.operators import rank, shape, \
                        outer, inner, dot, cross, \
                        det, inv, cofac, \
                        transpose, tr, dev, skew, sym, \
-                       sqrt, exp, ln, cos, sin, tan, acos, asin, atan, \
+                       sqrt, exp, ln, cos, sin, tan, acos, asin, atan, erf, \
                        eq, ne, le, ge, lt, gt, And, Or, Not, \
                        conditional, sign, \
                        variable, diff, \
@@ -259,7 +259,7 @@ __all__ = [
     'outer', 'inner', 'dot', 'cross',
     'det', 'inv', 'cofac',
     'transpose', 'tr', 'dev', 'skew', 'sym',
-    'sqrt', 'exp', 'ln', 'cos', 'sin', 'tan', 'acos', 'asin', 'atan',
+    'sqrt', 'exp', 'ln', 'cos', 'sin', 'tan', 'acos', 'asin', 'atan', 'erf',
     'eq', 'ne', 'le', 'ge', 'lt', 'gt', 'And', 'Or', 'Not',
     'conditional', 'sign',
     'variable', 'diff',
