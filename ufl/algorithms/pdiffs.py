@@ -144,9 +144,12 @@ class PartialDerivativeComputer(MultiFunction):
         "d/dx erf x = 2/sqrt(pi)*exp(-x^2)"
         x, = f.operands()
         return (2.0/sqrt(pi)*exp(-x**2),)
+
+    def bessel_function(self, nu, x):
+        return NotImplemented
     
     # --- Shape and indexing manipulators
-    
+
     def indexed(self, f): # TODO: Is this right? Fix for non-scalars too.
         "d/dx x_i = (1)_i = 1"
         s = f.shape()

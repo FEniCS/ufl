@@ -464,6 +464,54 @@ class ForwardAD(Transformer):
         op = fp*(2.0/sqrt(pi)*exp(-f**2))
         return (o, op)
 
+    def bessel_j(self, o, nu, x):
+        nu, dummy = nu
+        if not isinstance(dummy, (None, Zero)):
+            error("Differentiation of bessel function w.r.t. nu is not supported.")
+        f, fp = x
+        o = self.reuse_if_possible(o, nu, f)
+        if nu == 0:
+            op = -bessel_j(1, x)
+        else:
+            op = 0.5 * (bessel_j(nu-1, x) - bessel_j(nu+1, x))
+        return (o, op)
+
+    def bessel_y(self, o, nu, x):
+        nu, dummy = nu
+        if not isinstance(dummy, (None, Zero)):
+            error("Differentiation of bessel function w.r.t. nu is not supported.")
+        f, fp = x
+        o = self.reuse_if_possible(o, nu, f)
+        if nu == 0:
+            op = -bessel_y(1, x)
+        else:
+            op = 0.5 * (bessel_y(nu-1, x) - bessel_y(nu+1, x))
+        return (o, op)
+
+    def bessel_i(self, o, nu, x):
+        nu, dummy = nu
+        if not isinstance(dummy, (None, Zero)):
+            error("Differentiation of bessel function w.r.t. nu is not supported.")
+        f, fp = x
+        o = self.reuse_if_possible(o, nu, f)
+        if nu == 0:
+            op = bessel_i(1, x)
+        else:
+            op = 0.5 * (bessel_i(nu-1, x) + bessel_i(nu+1, x))
+        return (o, op)
+
+    def bessel_k(self, o, nu, x):
+        nu, dummy = nu
+        if not isinstance(dummy, (None, Zero)):
+            error("Differentiation of bessel function w.r.t. nu is not supported.")
+        f, fp = x
+        o = self.reuse_if_possible(o, nu, f)
+        if nu == 0:
+            op = -bessel_k(1, x)
+        else:
+            op = -0.5 * (bessel_k(nu-1, x) + bessel_k(nu+1, x))
+        return (o, op)
+
     # --- Restrictions
 
     def restricted(self, o, a):

@@ -43,9 +43,19 @@ tanh     Compute hyperbolic tangent (function)
 Exponential and logarithmic functions:
 log10    Compute common logarithm (function)
 
-TODO: Include bessel functions, need non-standard library implementation in generated code.
+TODO: Any other useful special functions?
 
-TODO: Other special functions?
+About bessel functions:
+http://en.wikipedia.org/wiki/Bessel_function
+
+Portable implementations of bessel functions:
+http://www.boost.org/doc/libs/1_47_0/libs/math/doc/sf_and_dist/html/math_toolkit/main_overview/tr1.html
+
+Implementation in C++ std::tr1:: or boost::math::tr1::
+- BesselK: cyl_bessel_k(nu, x)
+- BesselI: cyl_bessel_i(nu, x)
+- BesselJ: cyl_bessel_j(nu, x)
+- BesselY: cyl_neumann(nu, x)
 """
 
 #--- Function representations ---
