@@ -183,3 +183,53 @@ class Erf(MathFunction):
     def __init__(self, argument):
         MathFunction.__init__(self, "erf", argument)
 
+class BesselFunction(Operator):
+    "Base class for all bessel functions"
+    # Freeze member variables for objects in this class
+    __slots__ = ("_name", "_nu", "_argument", "_repr")
+    def __init__(self, name, classname, nu, argument):
+        Operator.__init__(self)
+        ufl_assert(is_true_ufl_scalar(nu), "Expecting scalar argument.")
+        ufl_assert(is_true_ufl_scalar(argument), "Expecting scalar argument.")
+        self._name     = name
+        self._nu       = nu
+        self._argument = argument
+        self._repr = "%s(%r, %r)" % (classname, nu, argument)
+
+    def operands(self):
+        return (self._nu, self._argument)
+
+    def free_indices(self):
+        return ()
+
+    def index_dimensions(self):
+        return {}
+
+    def shape(self):
+        return ()
+
+    def evaluate(self, x, mapping, component, index_values):    
+        error("Evaluation of bessel functions is not implemented.")
+
+    def __str__(self):
+        return "%s(%s, %s)" % (self._name, self._nu, self._argument)
+
+    def __repr__(self):
+        return self._repr
+
+class BesselJ(BesselFunction):
+    def __init__(self, nu, argument):
+        BesselFunction.__init__(self, "cyl_bessel_j", "BesselJ", nu, argument)
+
+class BesselY(BesselFunction):
+    def __init__(self, nu, argument):
+        BesselFunction.__init__(self, "cyl_bessel_y", "BesselY", nu, argument)
+
+class BesselI(BesselFunction):
+    def __init__(self, nu, argument):
+        BesselFunction.__init__(self, "cyl_bessel_i", "BesselI", nu, argument)
+
+class BesselK(BesselFunction):
+    def __init__(self, nu, argument):
+        BesselFunction.__init__(self, "cyl_bessel_k", "BesselK", nu, argument)
+

@@ -45,7 +45,9 @@ from ufl.tensors import ListTensor, ComponentTensor
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import CompoundTensorOperator, Transposed, Outer,\
     Inner, Dot, Cross, Trace, Determinant, Cofactor, Inverse, Deviatoric, Skew, Sym
-from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin, Tan, Acos, Asin, Atan, Erf
+from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Erf,\
+    Cos, Sin, Tan, Acos, Asin, Atan,\
+    BesselFunction, BesselJ, BesselY, BesselI, BesselK
 from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
 from ufl.lifting import LiftingResult, LiftingOperatorResult, LiftingFunctionResult,\
     TerminalOperator, LiftingOperator, LiftingFunction
