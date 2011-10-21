@@ -175,9 +175,11 @@ class Atan(MathFunction):
 
 class Erf(MathFunction):
     def __new__(cls, argument):
-        if isinstance(argument, (ScalarValue, Zero)):
-            return FloatValue(math.erf(float(argument)))
+        if hasattr(math, 'erf'):
+            if isinstance(argument, (ScalarValue, Zero)):
+                return FloatValue(math.erf(float(argument)))
         return MathFunction.__new__(cls)
-    
+
     def __init__(self, argument):
         MathFunction.__init__(self, "erf", argument)
+

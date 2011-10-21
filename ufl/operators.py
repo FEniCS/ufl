@@ -403,12 +403,8 @@ def sign(x):
 
 #--- Math functions ---
 
-def _mathfunction(f, cls, fun):
+def _mathfunction(f, cls):
     f = as_ufl(f)
-    #if isinstance(f, ScalarValue):
-    #    return as_ufl(fun(f._value))
-    #if isinstance(f, Zero):
-    #    return as_ufl(fun(0))
     r = cls(f)
     if isinstance(r, (ScalarValue, Zero, int, float)):
         return float(r)
@@ -416,44 +412,43 @@ def _mathfunction(f, cls, fun):
 
 def sqrt(f):
     "UFL operator: Take the square root of f."
-    return _mathfunction(f, Sqrt, math.sqrt)
+    return _mathfunction(f, Sqrt)
 
 def exp(f):
     "UFL operator: Take the exponential of f."
-    return _mathfunction(f, Exp, math.exp)
+    return _mathfunction(f, Exp)
 
 def ln(f):
     "UFL operator: Take the natural logarithm of f."
-    return _mathfunction(f, Ln, math.log)
+    return _mathfunction(f, Ln)
 
 def cos(f):
     "UFL operator: Take the cosinus of f."
-    return _mathfunction(f, Cos, math.cos)
+    return _mathfunction(f, Cos)
 
 def sin(f):
     "UFL operator: Take the sinus of f."
-    return _mathfunction(f, Sin, math.sin)
+    return _mathfunction(f, Sin)
 
 def tan(f):
     "UFL operator: Take the tangent of f."
-    return _mathfunction(f, Tan, math.tan)
+    return _mathfunction(f, Tan)
 
 def acos(f):
     "UFL operator: Take the inverse cosinus of f."
-    return _mathfunction(f, Acos, math.acos)
+    return _mathfunction(f, Acos)
 
 def asin(f):
     "UFL operator: Take the inverse sinus of f."
-    return _mathfunction(f, Asin, math.asin)
+    return _mathfunction(f, Asin)
 
 def atan(f):
     "UFL operator: Take the inverse tangent of f."
-    return _mathfunction(f, Atan, math.atan)
-
+    return _mathfunction(f, Atan)
 
 def erf(f):
-    "UFL operator: error function of f."
-    return _mathfunction(f, Erf, math.erf)
+    "UFL operator: Take the error function of f."
+    return _mathfunction(f, Erf)
 
 #--- Special function for exterior_derivative
 
