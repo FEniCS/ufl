@@ -105,7 +105,9 @@ A very brief overview of the language contents follows:
 
 * Nonlinear functions::
 
-    abs, sign, sqrt, exp, ln, cos, sin, tan, acos, asin, atan, erf
+    abs, sign, sqrt, exp, ln, erf,
+    cos, sin, tan, acos, asin, atan,
+    bessel_J, bessel_Y, bessel_I, bessel_K,
 
 * Discontinuous Galerkin operators:
     jump, avg, v('+'), v('-')
@@ -205,7 +207,9 @@ from ufl.operators import rank, shape, \
                        outer, inner, dot, cross, \
                        det, inv, cofac, \
                        transpose, tr, dev, skew, sym, \
-                       sqrt, exp, ln, cos, sin, tan, acos, asin, atan, erf, \
+                       sqrt, exp, ln, erf, \
+                       cos, sin, tan, acos, asin, atan, \
+                       bessel_J, bessel_Y, bessel_I, bessel_K, \
                        eq, ne, le, ge, lt, gt, And, Or, Not, \
                        conditional, sign, \
                        variable, diff, \
@@ -259,7 +263,9 @@ __all__ = [
     'outer', 'inner', 'dot', 'cross',
     'det', 'inv', 'cofac',
     'transpose', 'tr', 'dev', 'skew', 'sym',
-    'sqrt', 'exp', 'ln', 'cos', 'sin', 'tan', 'acos', 'asin', 'atan', 'erf',
+    'sqrt', 'exp', 'ln', 'erf',
+    'cos', 'sin', 'tan', 'acos', 'asin', 'atan',
+    'bessel_J', 'bessel_Y', 'bessel_I', 'bessel_K',
     'eq', 'ne', 'le', 'ge', 'lt', 'gt', 'And', 'Or', 'Not',
     'conditional', 'sign',
     'variable', 'diff',

@@ -38,7 +38,9 @@ from ufl.variable import Variable
 from ufl.tensors import as_tensor, ListTensor
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, \
     AndCondition, OrCondition, NotCondition, Conditional
-from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin, Tan, Acos, Asin, Atan, Erf
+from ufl.mathfunctions import Sqrt, Exp, Ln, Erf,\
+    Cos, Sin, Tan, Acos, Asin, Atan,\
+    BesselJ, BesselY, BesselI, BesselK
 from ufl.indexing import indices, Indexed
 from ufl.geometry import SpatialCoordinate
 
@@ -450,6 +452,80 @@ def erf(f):
     "UFL operator: Take the error function of f."
     return _mathfunction(f, Erf)
 
+'''
+About bessel functions:
+http://en.wikipedia.org/wiki/Bessel_function
+
+Portable implementations of bessel functions:
+http://www.boost.org/doc/libs/1_47_0/libs/math/doc/sf_and_dist/html/math_toolkit/main_overview/tr1.html
+'''
+
+def bessel_J(nu, x):
+    """UFL operator: cylindrical Bessel function of the first kind.
+
+    Implementation in C++ std::tr1:: or boost::math::tr1::
+    cyl_bessel_j(nu, x)
+
+    d/dx [J(0,x)] == -0.5 * J(1, x)
+    d/dx [J(nu,x)] == 0.5 * (J(nu-1, x) - J(nu+1, x))
+
+    Requirements:
+    - Derivatives are only implemented for integer nu.
+    """
+    nu = as_ufl(nu)
+    f = as_ufl(f)
+    return BesselJ(nu, f)
+
+def bessel_Y(nu, x):
+    """UFL operator: cylindrical Bessel function of the second kind.
+
+    Implementation in C++ std::tr1:: or boost::math::tr1::
+    cyl_neumann(nu, x)
+
+    d/dx [Y(0,x)] == -0.5 * Y(1, x)
+    d/dx [Y(nu,x)] == 0.5 * (Y(nu-1, x) - Y(nu+1, x))
+
+    Requirements:
+    - Derivatives are only implemented for integer nu.
+    """
+    nu = as_ufl(nu)
+    f = as_ufl(f)
+    return BesselY(nu, f)
+
+def bessel_I(nu, x):
+    """UFL operator: regular modified cylindrical Bessel function.
+
+    Implementation in C++ std::tr1:: or boost::math::tr1::
+    cyl_bessel_i(nu, x)
+
+    d/dx [I(0,x)] == I(1, x)
+    d/dx [I(nu,x)] == 0.5 * (I(nu-1, x) + I(nu+1, x))
+
+    Requirements:
+    - Derivatives are only implemented for integer nu.
+    """
+    nu = as_ufl(nu)
+    f = as_ufl(f)
+    return BesselI(nu, f)
+
+def bessel_K(nu, x):
+    """UFL operator: irregular modified cylindrical Bessel function.
+
+    Implementation in C++ std::tr1:: or boost::math::tr1::
+    cyl_bessel_k(nu, x)
+
+    d/dx [K(0,x)] == -K(1, x)
+    d/dx [K(nu,x)] == -0.5 * (K(nu-1, x) + K(nu+1, x))
+
+    Requirements:
+    - Derivatives are only implemented for integer nu.
+    - Assuming x >= 0 (complex for x < 0)
+    """
+    nu = as_ufl(nu)
+    f = as_ufl(f)
+    return BesselK(nu, f)
+
+
 #--- Special function for exterior_derivative
 
 def exterior_derivative(f):
@@ -499,3 +575,4 @@ def exterior_derivative(f):
         return div(f)
 
     error("Unable to determine exterior_derivative. Family is '%s'" % family)
+
