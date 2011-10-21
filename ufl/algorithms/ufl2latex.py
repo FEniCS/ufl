@@ -40,7 +40,7 @@ from ufl.tensors import ListTensor, ComponentTensor
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.indexsum import IndexSum
 from ufl.tensoralgebra import Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
-from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin, Tan, Acos, Asin, Atan, Erf
+from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin, Tan, Acos, Asin, Atan, Erf, BesselJ, BesselY, BesselI, BesselK
 from ufl.restriction import PositiveRestricted, NegativeRestricted
 from ufl.differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
@@ -80,7 +80,7 @@ def build_precedence_map():
                             Determinant, Trace, Cofactor, Inverse, Deviatoric))
     precedence_list.append((Product, Division, Cross, Dot, Outer, Inner))
     precedence_list.append((Indexed, Transposed, Power))
-    precedence_list.append((Abs, Cos, Exp, Ln, Sin, Sqrt, Tan, Acos, Asin, Atan, Erf))
+    precedence_list.append((Abs, Cos, Exp, Ln, Sin, Sqrt, Tan, Acos, Asin, Atan, Erf, BesselJ, BesselY, BesselI, BesselK))
     precedence_list.append((Variable,))
     precedence_list.append(terminal_classes)
 
@@ -247,6 +247,18 @@ class Expression2LatexHandler(Transformer):
 
     def erf(self, o, f):
         return r"\erf{%s}" % par(f)
+
+    def bessel_j(self, o, nu, f):
+        return r"J_{%s}{%s}" % (nu, par(f))
+
+    def bessel_y(self, o, nu, f):
+        return r"Y_{%s}{%s}" % (nu, par(f))
+
+    def bessel_i(self, o, nu, f):
+        return r"I_{%s}{%s}" % (nu, par(f))
+
+    def bessel_K(self, o, nu, f):
+        return r"K_{%s}{%s}" % (nu, par(f))
 
     def power(self, o, a, b):
         return "{%s}^{%s}" % (par(a), par(b))
