@@ -1,5 +1,8 @@
 1.0-beta3 [2011-09-??]
+ - Made *Constant use the 'Real' space instead of 'DG0'.
  - Added error function (math function) erf().
+ - Added bessel functions of first and second kind,
+   bessel_j(nu, x), bessel_y(nu, x), bessel_i(nu, x), bessel_k(nu, x)
  - Bugfix in adjoint where test and trial functions were in different spaces.
  - Bugfix in replace where the argument to a grad was replaced with 0.
  - Bugfix in reconstruction of tensor elements.
