@@ -183,11 +183,21 @@ class Atan(MathFunction):
     def __init__(self, argument):
         MathFunction.__init__(self, "atan", argument)
 
+def _find_erf():
+    import math
+    if hasattr(math, 'erf'):
+        return math.erf
+    import scipy.special
+    if hasattr(scipy.special, 'erf'):
+        return scipy.special.erf
+    return None
+
 class Erf(MathFunction):
     def __new__(cls, argument):
-        if hasattr(math, 'erf'):
-            if isinstance(argument, (ScalarValue, Zero)):
-                return FloatValue(math.erf(float(argument)))
+        if isinstance(argument, (ScalarValue, Zero)):
+            erf = _find_erf()
+            if erf is not None:
+                return FloatValue(erf(float(argument)))
         return MathFunction.__new__(cls)
 
     def __init__(self, argument):
