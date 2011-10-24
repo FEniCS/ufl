@@ -24,7 +24,7 @@
 # Last changed: 2011-10-20
 
 import math
-from ufl.log import warning
+from ufl.log import warning, error
 from ufl.assertions import ufl_assert
 from ufl.expr import Operator
 from ufl.constantvalue import is_true_ufl_scalar, ScalarValue, Zero, FloatValue
