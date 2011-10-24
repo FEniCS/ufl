@@ -452,25 +452,25 @@ def erf(f):
     "UFL operator: Take the error function of f."
     return _mathfunction(f, Erf)
 
-def bessel_J(nu, x):
+def bessel_J(nu, f):
     """UFL operator: cylindrical Bessel function of the first kind."""
     nu = as_ufl(nu)
     f = as_ufl(f)
     return BesselJ(nu, f)
 
-def bessel_Y(nu, x):
+def bessel_Y(nu, f):
     """UFL operator: cylindrical Bessel function of the second kind."""
     nu = as_ufl(nu)
     f = as_ufl(f)
     return BesselY(nu, f)
 
-def bessel_I(nu, x):
+def bessel_I(nu, f):
     """UFL operator: regular modified cylindrical Bessel function."""
     nu = as_ufl(nu)
     f = as_ufl(f)
     return BesselI(nu, f)
 
-def bessel_K(nu, x):
+def bessel_K(nu, f):
     """UFL operator: irregular modified cylindrical Bessel function."""
     nu = as_ufl(nu)
     f = as_ufl(f)
