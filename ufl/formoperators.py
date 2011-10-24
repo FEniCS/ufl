@@ -120,6 +120,20 @@ def adjoint(form, reordered_arguments=None):
     form = expand_derivatives(form)
     return compute_form_adjoint(form, reordered_arguments)
 
+def zero_lists(shape):
+    if len(shape) == 1:
+        return [0]*shape[0]
+    else:
+        return [zero_lists(shape[1:]) for i in range(shape[0])]
+
+def set_list_item(li, i, v):
+    # Get to the innermost list
+    if len(i) > 1:
+        for j in i[:-1]:
+            li = li[j]
+    # Set item in innermost list
+    li[i[-1]] = v
+
 def _handle_derivative_arguments2(coefficient, argument):
     # Wrap single coefficient in tuple for uniform treatment below
     if isinstance(coefficient, (list,tuple)):
@@ -129,7 +143,9 @@ def _handle_derivative_arguments2(coefficient, argument):
 
     if argument is None:
         # Try to create argument if not provided
-        assert all(isinstance(c, Coefficient) for c in coefficients)
+        if not all(isinstance(c, Coefficient) for c in coefficients):
+            error("Can only create arguments automatically for non-indexed coefficients.")
+
         elements = [c.element() for c in coefficients]
         if len(elements) > 1:
             elm = MixedElement(*elements)
@@ -137,28 +153,30 @@ def _handle_derivative_arguments2(coefficient, argument):
         else:
             elm, = elements
             arguments = (Argument(elm),)
-    elif isinstance(argument, (list,tuple)):
-        arguments = tuple(argument)
     else:
         # Wrap single argument in tuple for uniform treatment below
-        arguments = (argument,)
-    
+        if isinstance(argument, (list,tuple)):
+            arguments = tuple(argument)
+        else:
+            arguments = (argument,)
+
+    # Build mapping from coefficient to argument
     m = {}
     for (c, a) in zip(coefficients, arguments):
-        assert c.shape() == a.shape()
+        ufl_assert(c.shape() == a.shape(), "Coefficient and argument shapes do not match!")
         if isinstance(c, Coefficient):
             m[c] = a
         else:
-            assert isinstance(c, Indexed)
+            ufl_assert(isinstance(c, Indexed), "Invalid coefficient type for %s" % repr(c))
             f, i = c.operands()
-            assert isinstance(f, Coefficient)
-            assert isinstance(i, FixedIndex)
+            ufl_assert(isinstance(f, Coefficient), "Expecting an indexed coefficient, not %s" % repr(f))
+            ufl_assert(isinstance(i, FixedIndex), "Expecting a fixed index, not %s" % repr(i))
             i = int(i)
-            if not c in m:
+            if c not in m:
                 m[c] = {}
             m[c][i] = a
 
-    # Build coefficient derivatives
+    # Merge coefficient derivatives (arguments) based on indices
     for c, p in m.iteritems():
         if isinstance(p, dict):
             a = zero_lists(c.shape())
@@ -167,11 +185,10 @@ def _handle_derivative_arguments2(coefficient, argument):
             m[c] = a
 
     # Wrap and return generic tuples
-    items = list(m.items())
+    items = sorted(m.items(), cmp=lambda a,b: cmp(a[0].count(), b[0].count()))
     coefficients = Tuple(*[item[0] for item in items])
     arguments = Tuple(*[item[1] for item in items])
     return coefficients, arguments
-
 
 def _handle_derivative_arguments(coefficient, argument):
     """Valid combinations:
