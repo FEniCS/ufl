@@ -154,6 +154,8 @@ class DerivativeTestCase(UflTestCase):
         def df(w, v): return v/(1.0 + w**2)
         self._test(f, df)
 
+    # FIXME: Add the new erf and bessel_*
+
     # --- Abs and conditionals
 
     def testAbs(self):
@@ -193,99 +195,21 @@ class DerivativeTestCase(UflTestCase):
                 for k in range(2):
                     self.assertEqual(dfv[i,j,k](()), g[i,j,k](()))
 
-    def testHyperElasticity(self):
-        cell = interval
-        element = FiniteElement("CG", cell, 2)
-        w = Coefficient(element)
-        v = TestFunction(element)
-        u = TrialFunction(element)
-        b = Constant(cell)
-        K = Constant(cell)
+    # --- Coefficient and argument input configurations
 
-        dw = w.dx(0)
-        dv = v.dx(0)
-        du = v.dx(0)
+    def test_single_coefficient_derivative(self):
+        pass
 
-        E = dw + dw**2 / 2
-        E = variable(E)
-        Q = b*E**2
-        psi = K*(exp(Q)-1)
+    def test_multiple_coefficient_derivative(self):
+        pass
 
-        f = psi*dx
-        F = derivative(f, w, v)
-        J = derivative(F, w, u)
+    def test_indexed_coefficient_derivative(self):
+        pass
 
-        form_data_f = f.compute_form_data()
-        form_data_F = F.compute_form_data()
-        form_data_J = J.compute_form_data()
+    def test_multiple_indexed_coefficient_derivative(self):
+        pass
 
-        f = form_data_f.preprocessed_form
-        F = form_data_F.preprocessed_form
-        J = form_data_J.preprocessed_form
-
-        f_expression = strip_variables(f.cell_integrals()[0].integrand())
-        F_expression = strip_variables(F.cell_integrals()[0].integrand())
-        J_expression = strip_variables(J.cell_integrals()[0].integrand())
-
-        #classes = set(c.__class__ for c in post_traversal(f_expression))
-
-        Kv = .2
-        bv = .3
-        dw = .5
-        dv = .7
-        du = .11
-        E = dw + dw**2 / 2.
-        Q = bv*E**2
-        expQ = float(exp(Q))
-        psi = Kv*(expQ-1)
-        fv = psi
-        Fv = 2*Kv*bv*E*(1+dw)*expQ*dv
-        Jv = 2*Kv*bv*expQ*dv*du*(E + (1+dw)**2*(2*bv*E**2 + 1))
-
-        def Nv(x, derivatives):
-            assert derivatives == (0,)
-            return dv
-
-        def Nu(x, derivatives):
-            assert derivatives == (0,)
-            return du
-
-        def Nw(x, derivatives):
-            assert derivatives == (0,)
-            return dw
-
-        w, b, K = form_data_f.coefficients
-        mapping = { K: Kv, b: bv, w: Nw }
-        fv2 = f_expression((0,), mapping)
-        self.assertAlmostEqual(fv, fv2)
-
-        w, b, K = form_data_F.coefficients
-        v, = form_data_F.arguments
-        mapping = { K: Kv, b: bv, v: Nv, w: Nw }
-        Fv2 = F_expression((0,), mapping)
-        self.assertAlmostEqual(Fv, Fv2)
-
-        w, b, K = form_data_J.coefficients
-        v, u = form_data_J.arguments
-        mapping = { K: Kv, b: bv, v: Nv, u: Nu, w: Nw }
-        Jv2 = J_expression((0,), mapping)
-        self.assertAlmostEqual(Jv, Jv2)
-
-    def test_mass_derived_from_functional(self):
-        cell = triangle
-        V = FiniteElement("CG", cell, 1)
-
-        v = TestFunction(V)
-        u = TrialFunction(V)
-        w = Coefficient(V)
-
-        f = (w**2/2)*dx
-        L = w*v*dx
-        a = u*v*dx
-        F  = derivative(f, w, v)
-        J1 = derivative(L, w, u)
-        J2 = derivative(F, w, u)
-        # TODO: assert something
+    # --- User provided derivatives of coefficients
 
     def test_coefficient_derivatives(self):
         V = FiniteElement("Lagrange", triangle, 1)
@@ -382,6 +306,104 @@ class DerivativeTestCase(UflTestCase):
         self.assertEqual(actual(x, funcs), expected(x, funcs))
 
         # TODO: Add tests covering more cases, in particular mixed stuff
+
+    # --- Some actual forms
+
+    def testHyperElasticity(self):
+        cell = interval
+        element = FiniteElement("CG", cell, 2)
+        w = Coefficient(element)
+        v = TestFunction(element)
+        u = TrialFunction(element)
+        b = Constant(cell)
+        K = Constant(cell)
+
+        dw = w.dx(0)
+        dv = v.dx(0)
+        du = v.dx(0)
+
+        E = dw + dw**2 / 2
+        E = variable(E)
+        Q = b*E**2
+        psi = K*(exp(Q)-1)
+
+        f = psi*dx
+        F = derivative(f, w, v)
+        J = derivative(F, w, u)
+
+        form_data_f = f.compute_form_data()
+        form_data_F = F.compute_form_data()
+        form_data_J = J.compute_form_data()
+
+        f = form_data_f.preprocessed_form
+        F = form_data_F.preprocessed_form
+        J = form_data_J.preprocessed_form
+
+        f_expression = strip_variables(f.cell_integrals()[0].integrand())
+        F_expression = strip_variables(F.cell_integrals()[0].integrand())
+        J_expression = strip_variables(J.cell_integrals()[0].integrand())
+
+        #classes = set(c.__class__ for c in post_traversal(f_expression))
+
+        Kv = .2
+        bv = .3
+        dw = .5
+        dv = .7
+        du = .11
+        E = dw + dw**2 / 2.
+        Q = bv*E**2
+        expQ = float(exp(Q))
+        psi = Kv*(expQ-1)
+        fv = psi
+        Fv = 2*Kv*bv*E*(1+dw)*expQ*dv
+        Jv = 2*Kv*bv*expQ*dv*du*(E + (1+dw)**2*(2*bv*E**2 + 1))
+
+        def Nv(x, derivatives):
+            assert derivatives == (0,)
+            return dv
+
+        def Nu(x, derivatives):
+            assert derivatives == (0,)
+            return du
+
+        def Nw(x, derivatives):
+            assert derivatives == (0,)
+            return dw
+
+        w, b, K = form_data_f.coefficients
+        mapping = { K: Kv, b: bv, w: Nw }
+        fv2 = f_expression((0,), mapping)
+        self.assertAlmostEqual(fv, fv2)
+
+        w, b, K = form_data_F.coefficients
+        v, = form_data_F.arguments
+        mapping = { K: Kv, b: bv, v: Nv, w: Nw }
+        Fv2 = F_expression((0,), mapping)
+        self.assertAlmostEqual(Fv, Fv2)
+
+        w, b, K = form_data_J.coefficients
+        v, u = form_data_J.arguments
+        mapping = { K: Kv, b: bv, v: Nv, u: Nu, w: Nw }
+        Jv2 = J_expression((0,), mapping)
+        self.assertAlmostEqual(Jv, Jv2)
+
+    def test_mass_derived_from_functional(self):
+        cell = triangle
+        V = FiniteElement("CG", cell, 1)
+
+        v = TestFunction(V)
+        u = TrialFunction(V)
+        w = Coefficient(V)
+
+        f = (w**2/2)*dx
+        L = w*v*dx
+        a = u*v*dx
+        F  = derivative(f, w, v)
+        J1 = derivative(L, w, u)
+        J2 = derivative(F, w, u)
+        # TODO: assert something
+
+    # --- Scratch space
 
     def test_foobar(self):
         element = VectorElement("Lagrange", triangle, 1)
