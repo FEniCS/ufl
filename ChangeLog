@@ -1,13 +1,13 @@
-1.0-beta3 [2011-09-??]
+1.0-beta3 [2011-10-??]
+ - Added nabla_grad and nabla_div operators
+ - Added error function erf(x).
+ - Added bessel functions of first and second kind, normal and modified,
+   bessel_J(nu, x), bessel_Y(nu, x), bessel_I(nu, x), bessel_K(nu, x)
  - Made *Constant use the 'Real' space instead of 'DG0'.
- - Added error function (math function) erf().
- - Added bessel functions of first and second kind,
-   bessel_j(nu, x), bessel_y(nu, x), bessel_i(nu, x), bessel_k(nu, x)
  - Bugfix in adjoint where test and trial functions were in different spaces.
  - Bugfix in replace where the argument to a grad was replaced with 0.
  - Bugfix in reconstruction of tensor elements.
  - Some other minor bugfixes.
- - Added nabla_grad and nabla_div operators
 1.0-beta2 [2011-08-11]
  - Support c*form where c depends on a coefficient in a Real space
 1.0-beta [2011-07-08]
