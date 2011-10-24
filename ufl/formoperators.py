@@ -120,6 +120,59 @@ def adjoint(form, reordered_arguments=None):
     form = expand_derivatives(form)
     return compute_form_adjoint(form, reordered_arguments)
 
+def _handle_derivative_arguments2(coefficient, argument):
+    # Wrap single coefficient in tuple for uniform treatment below
+    if isinstance(coefficient, (list,tuple)):
+        coefficients = tuple(coefficient)
+    else:
+        coefficients = (coefficient,)
+
+    if argument is None:
+        # Try to create argument if not provided
+        assert all(isinstance(c, Coefficient) for c in coefficients)
+        elements = [c.element() for c in coefficients]
+        if len(elements) > 1:
+            elm = MixedElement(*elements)
+            arguments = split(Argument(elm))
+        else:
+            elm, = elements
+            arguments = (Argument(elm),)
+    elif isinstance(argument, (list,tuple)):
+        arguments = tuple(argument)
+    else:
+        # Wrap single argument in tuple for uniform treatment below
+        arguments = (argument,)
+    
+    m = {}
+    for (c, a) in zip(coefficients, arguments):
+        assert c.shape() == a.shape()
+        if isinstance(c, Coefficient):
+            m[c] = a
+        else:
+            assert isinstance(c, Indexed)
+            f, i = c.operands()
+            assert isinstance(f, Coefficient)
+            assert isinstance(i, FixedIndex)
+            i = int(i)
+            if not c in m:
+                m[c] = {}
+            m[c][i] = a
+
+    # Build coefficient derivatives
+    for c, p in m.iteritems():
+        if isinstance(p, dict):
+            a = zero_lists(c.shape())
+            for i, g in p.iteritems():
+                set_list_item(a, i, g)
+            m[c] = a
+
+    # Wrap and return generic tuples
+    items = list(m.items())
+    coefficients = Tuple(*[item[0] for item in items])
+    arguments = Tuple(*[item[1] for item in items])
+    return coefficients, arguments
+
+
 def _handle_derivative_arguments(coefficient, argument):
     """Valid combinations:
     - Coefficient, Argument.
