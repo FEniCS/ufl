@@ -468,50 +468,50 @@ class ForwardAD(Transformer):
 
     def bessel_j(self, o, nu, x):
         nu, dummy = nu
-        if not isinstance(dummy, (None, Zero)):
+        if not (dummy is None or isinstance(dummy, Zero)):
             error("Differentiation of bessel function w.r.t. nu is not supported.")
         f, fp = x
         o = self.reuse_if_possible(o, nu, f)
         if nu == 0:
-            op = -bessel_j(1, x)
+            op = -bessel_J(1, f)
         else:
-            op = 0.5 * (bessel_j(nu-1, x) - bessel_j(nu+1, x))
+            op = 0.5 * (bessel_J(nu-1, f) - bessel_J(nu+1, f))
         return (o, op)
 
     def bessel_y(self, o, nu, x):
         nu, dummy = nu
-        if not isinstance(dummy, (None, Zero)):
+        if not (dummy is None or isinstance(dummy, Zero)):
             error("Differentiation of bessel function w.r.t. nu is not supported.")
         f, fp = x
         o = self.reuse_if_possible(o, nu, f)
         if nu == 0:
-            op = -bessel_y(1, x)
+            op = -bessel_Y(1, f)
         else:
-            op = 0.5 * (bessel_y(nu-1, x) - bessel_y(nu+1, x))
+            op = 0.5 * (bessel_Y(nu-1, f) - bessel_Y(nu+1, f))
         return (o, op)
 
     def bessel_i(self, o, nu, x):
         nu, dummy = nu
-        if not isinstance(dummy, (None, Zero)):
+        if not (dummy is None or isinstance(dummy, Zero)):
             error("Differentiation of bessel function w.r.t. nu is not supported.")
         f, fp = x
         o = self.reuse_if_possible(o, nu, f)
         if nu == 0:
-            op = bessel_i(1, x)
+            op = bessel_I(1, f)
         else:
-            op = 0.5 * (bessel_i(nu-1, x) + bessel_i(nu+1, x))
+            op = 0.5 * (bessel_I(nu-1, f) + bessel_I(nu+1, f))
         return (o, op)
 
     def bessel_k(self, o, nu, x):
         nu, dummy = nu
-        if not isinstance(dummy, (None, Zero)):
+        if not (dummy is None or isinstance(dummy, Zero)):
             error("Differentiation of bessel function w.r.t. nu is not supported.")
         f, fp = x
         o = self.reuse_if_possible(o, nu, f)
         if nu == 0:
-            op = -bessel_k(1, x)
+            op = -bessel_K(1, f)
         else:
-            op = -0.5 * (bessel_k(nu-1, x) + bessel_k(nu+1, x))
+            op = -0.5 * (bessel_K(nu-1, f) + bessel_K(nu+1, f))
         return (o, op)
 
     # --- Restrictions
