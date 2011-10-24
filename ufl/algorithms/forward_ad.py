@@ -651,17 +651,17 @@ class VariableAD(ForwardAD):
 class CoefficientAD(ForwardAD):
     "Apply AFD (Automatic Functional Differentiation) to expression."
     def __init__(self, spatial_dim, coefficients, arguments, coefficient_derivatives, cache=None):
-        ForwardAD.__init__(self, spatial_dim, var_shape=(), var_free_indices=(), var_index_dimensions={}, cache=cache)
-        self._functions = zip(coefficients, arguments)
+        ForwardAD.__init__(self, spatial_dim, var_shape=(), var_free_indices=(),
+                           var_index_dimensions={}, cache=cache)
         self._v = arguments
         self._w = coefficients
         self._cd = coefficient_derivatives
-        ufl_assert(isinstance(self._w, Tuple), "Eh?") # Greatest error message ever? :)
-        ufl_assert(isinstance(self._v, Tuple), "Eh?")
-        # Define dw/dw := v (what we really mean by d/dw is d/dw_j,
-        # where w = sum_j w_j phi_j, and what we really mean by v is phi_j for any j)
+        ufl_assert(isinstance(self._w, Tuple), "Expecting a Tuple.")
+        ufl_assert(isinstance(self._v, Tuple), "Expecting a Tuple.")
 
     def coefficient(self, o):
+        # Define dw/dw := d/ds [w + s v] = v
+
         debug("In CoefficientAD.coefficient:")
         debug("o = %s" % o)
         debug("self._w = %s" % self._w)
@@ -687,7 +687,7 @@ class CoefficientAD(ForwardAD):
                 ufl_assert(len(oprimes) == len(self._v), "Got a tuple of arguments, "+\
                                "expecting a matching tuple of coefficient derivatives.")
 
-            # Compute do/dw_j = do/dw_h : N_j, where v in {N_j}.
+            # Compute do/dw_j = do/dw_h : v.
             # Since we may actually have a tuple of oprimes and vs in a
             # 'mixed' space, sum over them all to get the complete inner
             # product. Using indices to define a non-compound inner product.
