@@ -3,6 +3,7 @@
  - Added error function erf(x).
  - Added bessel functions of first and second kind, normal and modified,
    bessel_J(nu, x), bessel_Y(nu, x), bessel_I(nu, x), bessel_K(nu, x)
+ - Extended derivative() to allow indexed coefficient(s) as differentiation variable.
  - Made *Constant use the 'Real' space instead of 'DG0'.
  - Bugfix in adjoint where test and trial functions were in different spaces.
  - Bugfix in replace where the argument to a grad was replaced with 0.
