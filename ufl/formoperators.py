@@ -34,6 +34,9 @@ from ufl.argument import Argument, Arguments
 from ufl.coefficient import Coefficient
 from ufl.differentiation import CoefficientDerivative
 from ufl.constantvalue import is_true_ufl_scalar
+from ufl.indexed import Indexed
+from ufl.indexing import FixedIndex, MultiIndex
+from ufl.tensors import as_tensor
 
 # An exception to the rule that ufl.* does not depend on ufl.algorithms.* ...
 from ufl.algorithms import compute_form_adjoint, \
@@ -121,6 +124,7 @@ def adjoint(form, reordered_arguments=None):
     return compute_form_adjoint(form, reordered_arguments)
 
 def zero_lists(shape):
+    ufl_assert(len(shape) > 0, "Invalid shape.")
     if len(shape) == 1:
         return [0]*shape[0]
     else:
@@ -134,7 +138,7 @@ def set_list_item(li, i, v):
     # Set item in innermost list
     li[i[-1]] = v
 
-def _handle_derivative_arguments2(coefficient, argument):
+def _handle_derivative_arguments(coefficient, argument):
     # Wrap single coefficient in tuple for uniform treatment below
     if isinstance(coefficient, (list,tuple)):
         coefficients = tuple(coefficient)
@@ -170,11 +174,12 @@ def _handle_derivative_arguments2(coefficient, argument):
             ufl_assert(isinstance(c, Indexed), "Invalid coefficient type for %s" % repr(c))
             f, i = c.operands()
             ufl_assert(isinstance(f, Coefficient), "Expecting an indexed coefficient, not %s" % repr(f))
-            ufl_assert(isinstance(i, FixedIndex), "Expecting a fixed index, not %s" % repr(i))
-            i = int(i)
-            if c not in m:
-                m[c] = {}
-            m[c][i] = a
+            ufl_assert(isinstance(i, MultiIndex) and all(isinstance(j, FixedIndex) for j in i),
+                       "Expecting one or more fixed indices, not %s" % repr(i))
+            i = tuple(int(j) for j in i)
+            if f not in m:
+                m[f] = {}
+            m[f][i] = a
 
     # Merge coefficient derivatives (arguments) based on indices
     for c, p in m.iteritems():
@@ -182,7 +187,7 @@ def _handle_derivative_arguments2(coefficient, argument):
             a = zero_lists(c.shape())
             for i, g in p.iteritems():
                 set_list_item(a, i, g)
-            m[c] = a
+            m[c] = as_tensor(a)
 
     # Wrap and return generic tuples
     items = sorted(m.items(), cmp=lambda a,b: cmp(a[0].count(), b[0].count()))
@@ -190,7 +195,7 @@ def _handle_derivative_arguments2(coefficient, argument):
     arguments = Tuple(*[item[1] for item in items])
     return coefficients, arguments
 
-def _handle_derivative_arguments(coefficient, argument):
+def _handle_derivative_arguments2(coefficient, argument):
     """Valid combinations:
     - Coefficient, Argument.
       Elements must match.

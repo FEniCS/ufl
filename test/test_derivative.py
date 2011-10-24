@@ -5,6 +5,7 @@ __date__ = "2009-02-17 -- 2009-02-17"
 
 from ufltestcase import UflTestCase, main
 import math
+from itertools import chain
 
 from ufl import *
 from ufl.constantvalue import as_ufl
@@ -197,17 +198,123 @@ class DerivativeTestCase(UflTestCase):
 
     # --- Coefficient and argument input configurations
 
-    def test_single_coefficient_derivative(self):
-        pass
+    def assertEqualExpr(self, a, b):
+        a2 = (a*dx).compute_form_data().preprocessed_form
+        b2 = (b*dx).compute_form_data().preprocessed_form
+        if not a2 == b2:
+            print
+            print str(a2)
+            print
+            print str(b2)
+            print
+        self.assertEqual(a2, b2)
+
+    def assertEqualBySampling(self, actual, expected):
+        ad = (actual*dx).compute_form_data()
+        a = ad.preprocessed_form.cell_integrals()[0].integrand()
+        bd = (expected*dx).compute_form_data()
+        b = bd.preprocessed_form.cell_integrals()[0].integrand()
+
+        self.assertEqual(ad.coefficients, bd.coefficients)
+
+        n = len(ad.coefficients)
+        def make_value(c):
+            z = 0.3 if isinstance(c, Coefficient) else 0.7
+            if c.shape() == ():
+                return z * (0.1 + 0.9 * c.count() / n)
+            elif len(c.shape()) == 1:
+                return tuple((z * (j + 0.1 + 0.9 * c.count() / n) for j in range(c.shape()[0])))
+            else:
+                raise NotImplemented
+        amapping = dict((c, make_value(c)) for c in chain(ad.coefficients, ad.arguments))
+        bmapping = dict((c, make_value(c)) for c in chain(bd.coefficients, bd.arguments))
+
+        x = (0.3, 0.4)
+        av = a(x, amapping)
+        bv = b(x, bmapping)
+
+        if not av == bv:
+            print "Tried to sample expressions to compare but failed:"
+            print
+            print str(a)
+            print av
+            print
+            print str(b)
+            print bv
+            print
+
+        self.assertEqual(av, bv)
+
+    def test_single_scalar_coefficient_derivative(self):
+        cell = triangle
+        V = FiniteElement("CG", cell, 1)
+        u = Coefficient(V)
+        v = TestFunction(V)
+        a = 3*u**2
+        b = derivative(a, u, v)
+        self.assertEqualExpr(b, 3*(u*(2*v)))
+
+    def test_single_vector_coefficient_derivative(self):
+        cell = triangle
+        V = VectorElement("CG", cell, 1)
+        u = Coefficient(V)
+        v = TestFunction(V)
+        a = 3*dot(u,u)
+        actual = derivative(a, u, v)
+        expected = 3*(2*(u[i]*v[i]))
+        self.assertEqualBySampling(actual, expected)
 
     def test_multiple_coefficient_derivative(self):
-        pass
+        cell = triangle
+        V = FiniteElement("CG", cell, 1)
+        W = VectorElement("CG", cell, 1)
+        M = V*W
+        uv = Coefficient(V)
+        uw = Coefficient(W)
+        v = TestFunction(M)
+        vv, vw = split(v)
+
+        a = sin(uv)*dot(uw,uw)
+
+        actual = derivative(a, (uv,uw), split(v))
+        expected = cos(uv)*vv * (uw[i]*uw[i]) + (uw[j]*vw[j])*2 * sin(uv)
+
+        self.assertEqualBySampling(actual, expected)
 
     def test_indexed_coefficient_derivative(self):
-        pass
+        cell = triangle
+        I = Identity(cell.d)
+        V = FiniteElement("CG", cell, 1)
+        W = VectorElement("CG", cell, 1)
+        u = Coefficient(W)
+        v = TestFunction(V)
+
+        w = dot(u, nabla_grad(u))
+        #a = dot(w, w)
+        a = (u[i]*u[k].dx(i)) * w[k]
+
+        actual = derivative(a, u[0], v)
+
+        dw = v*u[k].dx(0) + u[i]*I[0,k]*v.dx(i)
+        expected = 2 * w[k] * dw
+
+        self.assertEqualBySampling(actual, expected)
 
     def test_multiple_indexed_coefficient_derivative(self):
-        pass
+        cell = tetrahedron
+        I = Identity(cell.d)
+        V = FiniteElement("CG", cell, 1)
+        V2 = V*V
+        W = VectorElement("CG", cell, 1)
+        u = Coefficient(W)
+        w = Coefficient(W)
+        v = TestFunction(V2)
+        vu, vw = split(v)
+
+        actual = derivative(cos(u[i]*w[i]), (u[2], w[1]), (vu, vw))
+        expected = -sin(u[i]*w[i])*(vu*w[2] + u[1]*vw)
+
+        self.assertEqualBySampling(actual, expected)
 
     # --- User provided derivatives of coefficients
 
