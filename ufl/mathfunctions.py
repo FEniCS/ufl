@@ -27,7 +27,7 @@ import math
 from ufl.log import warning, error
 from ufl.assertions import ufl_assert
 from ufl.expr import Operator
-from ufl.constantvalue import is_true_ufl_scalar, ScalarValue, Zero, FloatValue
+from ufl.constantvalue import is_true_ufl_scalar, ScalarValue, Zero, FloatValue, IntValue
 
 """
 TODO: Include additional functions available in <cmath> (need derivatives as well):
@@ -219,7 +219,20 @@ class BesselFunction(Operator):
         return ()
 
     def evaluate(self, x, mapping, component, index_values):    
-        error("Evaluation of bessel functions is not implemented.")
+        a = self._argument.evaluate(x, mapping, component, index_values)
+        try:
+            import scipy.special
+        except:
+            error("You must have scipy installed to evaluate bessel functions in python.")
+        name = self._name[-1]
+        if isinstance(self._nu, IntValue):
+            nu = int(self._nu)
+            functype = 'n' if name != 'i' else 'v'
+        else:
+            nu = self._nu.evaluate(x, mapping, component, index_values)
+            functype = 'v'
+        func = getattr(scipy.special, name + functype)
+        return func(nu, a)
 
     def __str__(self):
         return "%s(%s, %s)" % (self._name, self._nu, self._argument)
@@ -242,4 +255,3 @@ class BesselI(BesselFunction):
 class BesselK(BesselFunction):
     def __init__(self, nu, argument):
         BesselFunction.__init__(self, "cyl_bessel_k", "BesselK", nu, argument)
-

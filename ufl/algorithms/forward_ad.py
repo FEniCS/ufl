@@ -476,7 +476,7 @@ class ForwardAD(Transformer):
             op = -bessel_J(1, f)
         else:
             op = 0.5 * (bessel_J(nu-1, f) - bessel_J(nu+1, f))
-        return (o, op)
+        return (o, op*fp)
 
     def bessel_y(self, o, nu, x):
         nu, dummy = nu
@@ -488,7 +488,7 @@ class ForwardAD(Transformer):
             op = -bessel_Y(1, f)
         else:
             op = 0.5 * (bessel_Y(nu-1, f) - bessel_Y(nu+1, f))
-        return (o, op)
+        return (o, op*fp)
 
     def bessel_i(self, o, nu, x):
         nu, dummy = nu
@@ -500,7 +500,7 @@ class ForwardAD(Transformer):
             op = bessel_I(1, f)
         else:
             op = 0.5 * (bessel_I(nu-1, f) + bessel_I(nu+1, f))
-        return (o, op)
+        return (o, op*fp)
 
     def bessel_k(self, o, nu, x):
         nu, dummy = nu
@@ -512,7 +512,7 @@ class ForwardAD(Transformer):
             op = -bessel_K(1, f)
         else:
             op = -0.5 * (bessel_K(nu-1, f) + bessel_K(nu+1, f))
-        return (o, op)
+        return (o, op*fp)
 
     # --- Restrictions
 

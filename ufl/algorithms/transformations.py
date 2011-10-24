@@ -781,7 +781,7 @@ class SumDegreeEstimator(Transformer):
     def math_function(self, v, a):
         """Using the heuristic
         degree(sin(const)) == 0
-        degree(sin(f)) == degree(f)+2
+        degree(sin(a)) == degree(a)+2
         which can be wildly inaccurate but at least
         gives a somewhat high integration degree.
         """
@@ -789,6 +789,18 @@ class SumDegreeEstimator(Transformer):
             return a+2
         else:
             return a
+
+    def bessel_function(self, v, nu, x):
+        """Using the heuristic
+        degree(bessel_*(const)) == 0
+        degree(bessel_*(x)) == degree(x)+2
+        which can be wildly inaccurate but at least
+        gives a somewhat high integration degree.
+        """
+        if x:
+            return x+2
+        else:
+            return x
 
 class MaxDegreeEstimator(Transformer):
 
