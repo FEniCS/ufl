@@ -1,10 +1,23 @@
-#include <tr1/cmath>
 #include <iostream>
 
-using std::tr1::cyl_bessel_j;
-using std::tr1::cyl_neumann;
+#include <tr1/cmath>
 using std::tr1::cyl_bessel_i;
+using std::tr1::cyl_bessel_j;
 using std::tr1::cyl_bessel_k;
+using std::tr1::cyl_neumann;
+
+//#include <boost/math/tr1.hpp>
+//using boost::math::tr1::cyl_bessel_i;
+//using boost::math::tr1::cyl_bessel_j;
+//using boost::math::tr1::cyl_bessel_k;
+//using boost::math::tr1::cyl_neumann;
+// Compile with '$ g++ test_bessel.cpp -lboost_math_tr1'
+
+//#include <boost/math/special_functions/bessel.hpp>
+//using boost::math::cyl_bessel_i;
+//using boost::math::cyl_bessel_j;
+//using boost::math::cyl_bessel_k;
+//using boost::math::cyl_neumann;
 
 int main(int argc, char * argv[])
 {
