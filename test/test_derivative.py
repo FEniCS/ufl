@@ -229,7 +229,15 @@ class DerivativeTestCase(UflTestCase):
         amapping = dict((c, make_value(c)) for c in chain(ad.coefficients, ad.arguments))
         bmapping = dict((c, make_value(c)) for c in chain(bd.coefficients, bd.arguments))
 
-        x = (0.3, 0.4)
+        acell = actual.cell()
+        bcell = expected.cell()
+        self.assertEqual(acell, bcell)
+        if acell.d == 1:
+            x = (0.3,)
+        elif acell.d == 2:
+            x = (0.3, 0.4)
+        elif acell.d == 3:
+            x = (0.3, 0.4, 0.5)
         av = a(x, amapping)
         bv = b(x, bmapping)
 
@@ -315,6 +323,37 @@ class DerivativeTestCase(UflTestCase):
         expected = -sin(u[i]*w[i])*(vu*w[2] + u[1]*vw)
 
         self.assertEqualBySampling(actual, expected)
+
+    def test_segregated_derivative_of_convection(self):
+        cell = tetrahedron
+        V = FiniteElement("CG", cell, 1)
+        W = VectorElement("CG", cell, 1)
+
+        u = Coefficient(W)
+        v = Coefficient(W)
+        du = TrialFunction(V)
+        dv = TestFunction(V)
+
+        L = dot(dot(u, nabla_grad(u)), v)
+
+        Lv = {}
+        Lvu = {}
+        for i in range(cell.d):
+            Lv[i] = derivative(L, v[i], dv)
+            for j in range(cell.d):
+                Lvu[i,j] = derivative(Lv[i], u[j], du)
+
+        for i in range(cell.d):
+            for j in range(cell.d):
+                a = expand_indices((Lvu[i,j]*dx).compute_form_data().preprocessed_form)
+                #print (i,j), str(a)
+
+        k = Index()
+        for i in range(cell.d):
+            for j in range(cell.d):
+                actual = Lvu[i,j]
+                expected = du*u[i].dx(j)*dv + u[k]*du.dx(k)*dv
+                self.assertEqualBySampling(actual, expected)
 
     # --- User provided derivatives of coefficients
 
