@@ -70,9 +70,12 @@ def expand_derivatives(form, dim=None):
     objects have been propagated to Terminal nodes."""
 
     # Find geometric dimension
+    cell = form.cell()
+    gdim = None if (cell is None or cell.is_undefined()) else cell.geometric_dimension()
     if dim is None:
-        cell = form.cell()
-        dim = None if (cell is None or cell.is_undefined()) else cell.geometric_dimension()
+        dim = gdim
+    else:
+        ufl_assert(dim == gdim, "Expecting dim to match the geometric dimension!")
 
     def ad_routine(e):
         # TODO: How to switch between forward and reverse mode? Can we pick the
