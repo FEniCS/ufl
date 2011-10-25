@@ -203,6 +203,13 @@ class Erf(MathFunction):
     def __init__(self, argument):
         MathFunction.__init__(self, "erf", argument)
 
+    def evaluate(self, x, mapping, component, index_values):    
+        a = self._argument.evaluate(x, mapping, component, index_values)
+        erf = _find_erf()
+        if erf is None:
+            error("No python implementation of erf available on this system, cannot evaluate. Upgrade python or install scipy.")
+        return erf(a)
+
 class BesselFunction(Operator):
     "Base class for all bessel functions"
     # Freeze member variables for objects in this class
