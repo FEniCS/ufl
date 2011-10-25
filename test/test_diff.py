@@ -14,7 +14,7 @@ class DiffTestCase(UflTestCase):
 
     def setUp(self):
         super(DiffTestCase, self).setUp()
-        self.xv = ()
+        self.xv = None
         self.vv = 5.0
         self.v = variable(self.vv)
     

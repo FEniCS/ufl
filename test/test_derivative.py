@@ -20,7 +20,7 @@ class DerivativeTestCase(UflTestCase):
         self.v = TestFunction(self.element)
         self.u = TrialFunction(self.element)
         self.w = Coefficient(self.element)
-        self.xv = ()
+        self.xv = (0.3, 0.7)
         self.uv = 7.0
         self.vv = 13.0
         self.wv = 11.0
@@ -191,10 +191,11 @@ class DerivativeTestCase(UflTestCase):
                 ))
         self.assertEqual(g.shape(), (3,2,2))
         dfv = diff(f, v)
+        x = None
         for i in range(3):
             for j in range(2):
                 for k in range(2):
-                    self.assertEqual(dfv[i,j,k](()), g[i,j,k](()))
+                    self.assertEqual(dfv[i,j,k](x), g[i,j,k](x))
 
     # --- Coefficient and argument input configurations
 

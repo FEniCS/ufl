@@ -213,7 +213,12 @@ def _call(self, arg, mapping=None):
     component = ()
     index_values = StackDict()
     from ufl.algorithms import expand_derivatives
-    dim = len(arg) if isinstance(arg, (tuple, list)) else 1
+    if arg is None:
+        dim = None
+    elif isinstance(arg, (tuple, list)):
+        dim = len(arg)
+    else: # No type checking here...
+        dim = 1
     f = expand_derivatives(self, dim)
     return f.evaluate(arg, mapping, component, index_values)
 Expr.__call__ = _call
