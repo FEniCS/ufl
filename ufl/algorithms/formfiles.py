@@ -23,7 +23,7 @@ from __future__ import with_statement
 # Modified by Marie E. Rognes, 2011.
 #
 # First added:  2008-03-14
-# Last changed: 2011-05-07
+# Last changed: 2011-07-01
 
 import os
 import time

@@ -23,7 +23,7 @@ objects."""
 # Modified by Kristian B. Oelgaard, 2011
 #
 # First added:  2008-04-09
-# Last changed: 2011-10-20
+# Last changed: 2011-10-24
 
 import math
 import operator

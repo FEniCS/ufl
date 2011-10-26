@@ -18,7 +18,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # First added:  2009-03-27
-# Last changed: 2009-04-19
+# Last changed: 2011-06-07
 
 from ufl.log import warning
 

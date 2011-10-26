@@ -18,7 +18,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # First added:  2011-06-21
-# Last changed: 2011-06-21
+# Last changed: 2011-06-22
 
 class Equation:
 

@@ -21,7 +21,7 @@
 # Modified by Kristian Oelgaard, 2009
 #
 # First added:  2008-03-14
-# Last changed: 2011-04-28
+# Last changed: 2011-06-02
 
 from ufl.indexing import indices
 from ufl.integral import Measure

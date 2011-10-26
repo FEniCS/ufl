@@ -23,7 +23,7 @@ converting UFL expressions to other representations."""
 # Modified by Kristian B. Oelgaard, 2011
 #
 # First added:  2008-05-07
-# Last changed: 2011-10-20
+# Last changed: 2011-10-21
 
 import os
 from itertools import chain

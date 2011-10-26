@@ -21,7 +21,7 @@ of UFL objects, mostly intended for debugging purposes."""
 # Modified by Anders Logg, 2009.
 #
 # First added:  2008-03-14
-# Last changed: 2008-10-21
+# Last changed: 2011-06-02
 
 from itertools import chain
 

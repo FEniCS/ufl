@@ -21,7 +21,7 @@ and generating index lists."""
 # Modified by Martin Alnes 2009
 #
 # First added:  2008-05-22
-# Last changed: 2009-01-09
+# Last changed: 2011-06-08
 
 def compute_indices(shape):
     "Compute all index combinations for given shape"

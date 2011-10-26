@@ -21,7 +21,7 @@ of related classes, including Constant."""
 # Modified by Anders Logg, 2008-2009.
 #
 # First added:  2008-03-14
-# Last changed: 2011-05-11
+# Last changed: 2011-10-20
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert

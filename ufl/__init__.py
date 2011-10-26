@@ -91,7 +91,7 @@ A very brief overview of the language contents follows:
     outer, inner, dot, cross,
     transpose, tr,
     det, inv, cofac,
-    dev, skew, sym,
+    dev, skew, sym
 
 * Elementwise tensor operators::
 
@@ -101,13 +101,13 @@ A very brief overview of the language contents follows:
 
     variable, diff,
     grad, div, nabla_grad, nabla_div,
-    Dx, Dn, curl, rot,
+    Dx, Dn, curl, rot
 
 * Nonlinear functions::
 
     abs, sign, sqrt, exp, ln, erf,
     cos, sin, tan, acos, asin, atan,
-    bessel_J, bessel_Y, bessel_I, bessel_K,
+    bessel_J, bessel_Y, bessel_I, bessel_K
 
 * Discontinuous Galerkin operators:
     jump, avg, v('+'), v('-')
@@ -147,9 +147,9 @@ A very brief overview of the language contents follows:
 # Modified by Kristian B. Oelgaard, 2009, 2011
 # Modified by Anders Logg, 2009.
 #
-# Last changed: 2011-10-20
+# Last changed: 2011-10-26
 
-__version__ = "1.0-beta2+"
+__version__ = "1.0-beta2"
 
 ########## README
 # Imports here should be what the user sees when doing "from ufl import *",

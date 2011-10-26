@@ -21,7 +21,7 @@
 # Modified by Kristian B. Oelgaard, 2009
 #
 # First added:  2008-03-14
-# Last changed: 2011-05-08
+# Last changed: 2011-09-20
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert

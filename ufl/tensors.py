@@ -18,7 +18,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # First added:  2008-03-31
-# Last changed: 2011-04-15
+# Last changed: 2011-10-17
 
 from ufl.log import warning, error
 from ufl.common import subdict

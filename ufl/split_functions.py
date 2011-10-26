@@ -20,7 +20,7 @@
 # Modified by Anders Logg, 2008
 #
 # First added:  2008-03-14
-# Last changed: 2009-03-13
+# Last changed: 2011-06-22
 
 from ufl.log import error
 from ufl.assertions import ufl_assert

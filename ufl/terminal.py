@@ -21,7 +21,7 @@ for all types that are terminal nodes in the expression trees."""
 # Modified by Anders Logg, 2008
 #
 # First added:  2008-03-14
-# Last changed: 2008-03-27
+# Last changed: 2011-08-08
 
 from ufl.expr import Expr, WrapperType
 from ufl.common import lstr

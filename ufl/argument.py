@@ -21,7 +21,7 @@ classes (functions), including TestFunction and TrialFunction."""
 # Modified by Anders Logg, 2008-2009.
 #
 # First added:  2008-03-14
-# Last changed: 2011-05-12
+# Last changed: 2011-10-20
 
 from ufl.assertions import ufl_assert
 from ufl.common import Counted, product

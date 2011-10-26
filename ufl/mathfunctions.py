@@ -21,7 +21,7 @@
 # Modified by Kristian B. Oelgaard, 2011
 #
 # First added:  2008-03-14
-# Last changed: 2011-10-20
+# Last changed: 2011-10-25
 
 import math
 from ufl.log import warning, error

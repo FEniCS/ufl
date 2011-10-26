@@ -1,4 +1,4 @@
-1.0-beta3 [2011-10-??]
+1.0-beta3 [2011-10-26]
  - Added nabla_grad and nabla_div operators
  - Added error function erf(x).
  - Added bessel functions of first and second kind, normal and modified,

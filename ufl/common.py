@@ -20,7 +20,7 @@
 # Modified by Kristian Oelgaard, 2009
 #
 # First added:  2008-08-05
-# Last changed: 2010-02-12
+# Last changed: 2011-06-02
 
 import os
 from itertools import izip

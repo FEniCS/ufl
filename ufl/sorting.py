@@ -22,7 +22,7 @@ is more robust w.r.t. argument numbering than using repr."""
 # Modified by Johan Hake, 2010.
 #
 # First added:  2008-11-26
-# Last changed: 2010-01-26
+# Last changed: 2011-06-02
 
 from itertools import izip
 

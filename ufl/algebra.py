@@ -20,7 +20,7 @@
 # Modified by Anders Logg, 2008
 #
 # First added:  2008-05-20
-# Last changed: 2009-09-22
+# Last changed: 2011-09-20
 
 from collections import defaultdict
 from itertools import chain

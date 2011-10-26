@@ -18,7 +18,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # First added:  2008-03-14
-# Last changed: 2011-04-12
+# Last changed: 2011-06-02
 
 from collections import defaultdict
 from ufl.indexing import Index

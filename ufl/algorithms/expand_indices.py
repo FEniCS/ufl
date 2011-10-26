@@ -22,7 +22,7 @@ indices only."""
 # Modified by Anders Logg, 2009.
 #
 # First added:  2008-04-19
-# Last changed: 2009-04-19
+# Last changed: 2011-06-08
 
 from itertools import izip
 

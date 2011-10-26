@@ -21,7 +21,7 @@
 # Modified by Marie E. Rognes <meg@simula.no> 2010
 #
 # First added:  2008-03-03
-# Last changed: 2011-05-08
+# Last changed: 2011-09-09
 
 from itertools import izip
 from ufl.assertions import ufl_assert

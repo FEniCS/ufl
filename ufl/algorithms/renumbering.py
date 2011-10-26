@@ -18,7 +18,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # First added:  2009-02-22
-# Last changed: 2009-12-08
+# Last changed: 2011-06-02
 
 from ufl.common import Counted, Stack, StackDict
 from ufl.log import error

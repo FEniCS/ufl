@@ -20,7 +20,7 @@
 # Modified by Anders Logg, 2009.
 #
 # First added:  2008-12-28
-# Last changed: 2009-12-08
+# Last changed: 2011-10-25
 
 from itertools import izip
 from ufl.log import debug, error

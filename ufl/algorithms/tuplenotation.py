@@ -18,7 +18,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # First added:  2009-04-05
-# Last changed: 2009-06-19
+# Last changed: 2011-06-02
 
 from ufl.log import error
 from ufl.form import Form

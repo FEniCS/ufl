@@ -22,7 +22,7 @@ elements by calling the function register_element."""
 # Modified by Marie E. Rognes <meg@simula.no>, 2010
 #
 # First added:  2008-03-03
-# Last changed: 2011-05-12
+# Last changed: 2011-06-06
 
 from ufl.assertions import ufl_assert
 from ufl.feec import FEEC_aliases

@@ -25,7 +25,7 @@ of classes, and for mapping types to different handler functions."""
 # Modified by Kristian B. Oelgaard, 2011
 #
 # First added:  2008-08-15
-# Last changed: 2011-10-20
+# Last changed: 2011-10-21
 
 from ufl.assertions import ufl_assert
 from ufl.expr import Expr, Operator, WrapperType, AlgebraOperator

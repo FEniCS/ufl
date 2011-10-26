@@ -28,7 +28,7 @@ This is to avoid circular dependencies between Expr and its subclasses.
 # Modified by Anders Logg, 2008
 #
 # First added:  2008-03-14
-# Last changed: 2011-04-12
+# Last changed: 2011-08-10
 
 #--- The base object for all UFL expression tree nodes ---
 

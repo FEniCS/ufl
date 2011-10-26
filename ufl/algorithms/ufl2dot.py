@@ -20,7 +20,7 @@ mostly intended for debugging purposers."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # First added:  2008-11-17
-# Last changed: 2009-06-19
+# Last changed: 2011-10-14
 
 from itertools import chain
 

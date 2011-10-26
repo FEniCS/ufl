@@ -20,7 +20,7 @@
 # Modified by Anders Logg, 2008-2009.
 #
 # First added:  2008-08-14
-# Last changed: 2009-05-14
+# Last changed: 2011-10-11
 
 # Function for preprocessing a form
 from ufl.algorithms.preprocess import preprocess, preprocess_expression, extract_common_cell

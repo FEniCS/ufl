@@ -22,7 +22,7 @@ converting UFL expressions to other representations."""
 # Modified by Anders Logg, 2009-2010
 #
 # First added:  2008-05-07
-# Last changed: 2010-10-25
+# Last changed: 2011-10-24
 
 from itertools import izip
 from inspect import getargspec

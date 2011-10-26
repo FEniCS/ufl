@@ -21,7 +21,7 @@ output messages. These may be redirected by the user of UFL."""
 # Modified by Johan Hake, 2009.
 #
 # First added:  2005-02-04
-# Last changed: 2011-04-12
+# Last changed: 2011-06-08
 
 import sys
 import types

@@ -21,7 +21,7 @@
 # Modified by Johan Hake, 2010.
 #
 # First added:  2008-03-14
-# Last changed: 2011-05-12
+# Last changed: 2011-10-14
 
 from itertools import izip, chain
 

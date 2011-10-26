@@ -20,7 +20,7 @@ raw input form given by a user."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # First added:  2009-12-07
-# Last changed: 2011-05-12
+# Last changed: 2011-06-22
 
 from ufl.log import info, debug, warning, error
 from ufl.assertions import ufl_assert

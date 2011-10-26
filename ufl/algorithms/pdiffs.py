@@ -21,7 +21,7 @@ all relevant operands for use with reverse mode AD."""
 # Modified by Kristian B. Oelgaard, 2011
 #
 # First added:  2009-01-06
-# Last changed: 2011-10-20
+# Last changed: 2011-10-21
 
 from math import pi
 from ufl.log import error

@@ -20,7 +20,7 @@
 # Modified by Anders Logg, 2008.
 #
 # First added:  2008-09-13
-# Last changed: 2010-02-07
+# Last changed: 2011-06-02
 
 from ufl.common import lstr, tstr, estr
 
