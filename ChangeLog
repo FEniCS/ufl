@@ -1,3 +1,5 @@
+1.0-rc [2011-11-??]
+ - Added tests covering snippets from UFL chapter in FEniCS book
 1.0-beta3 [2011-10-26]
  - Added nabla_grad and nabla_div operators
  - Added error function erf(x)
