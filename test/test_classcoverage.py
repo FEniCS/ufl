@@ -200,7 +200,7 @@ class ClasscoverageTest(UflTestCase):
                 a = dot(v, f)
                 test_object(a, None, None)
         
-        a = cross(v1, f1)
+        a = cross(v13D, f13D)
         test_object(a, (3,), ())
         
         #a = Sum()
