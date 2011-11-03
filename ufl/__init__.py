@@ -89,8 +89,8 @@ A very brief overview of the language contents follows:
 * Tensor algebra operators::
 
     outer, inner, dot, cross,
-    transpose, tr,
     det, inv, cofac,
+    transpose, tr, diag, diag_vector,
     dev, skew, sym
 
 * Elementwise tensor operators::
@@ -206,7 +206,8 @@ from ufl.tensors import unit_vector, unit_vectors, unit_matrix, unit_matrices
 from ufl.operators import rank, shape, \
                        outer, inner, dot, cross, \
                        det, inv, cofac, \
-                       transpose, tr, dev, skew, sym, \
+                       transpose, tr, diag, diag_vector, \
+                       dev, skew, sym, \
                        sqrt, exp, ln, erf, \
                        cos, sin, tan, acos, asin, atan, \
                        bessel_J, bessel_Y, bessel_I, bessel_K, \
@@ -262,7 +263,7 @@ __all__ = [
     'rank', 'shape',
     'outer', 'inner', 'dot', 'cross',
     'det', 'inv', 'cofac',
-    'transpose', 'tr', 'dev', 'skew', 'sym',
+    'transpose', 'tr', 'diag', 'diag_vector', 'dev', 'skew', 'sym',
     'sqrt', 'exp', 'ln', 'erf',
     'cos', 'sin', 'tan', 'acos', 'asin', 'atan',
     'bessel_J', 'bessel_Y', 'bessel_I', 'bessel_K',

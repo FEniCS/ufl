@@ -32,10 +32,10 @@ from ufl.assertions import ufl_assert
 from ufl.form import Form
 from ufl.constantvalue import Zero, ScalarValue, as_ufl
 from ufl.differentiation import VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
-from ufl.tensoralgebra import Transposed, Inner, Outer, Dot, Cross, Determinant,\
-    Inverse, Cofactor, Trace, Deviatoric, Skew, Sym
+from ufl.tensoralgebra import Transposed, Inner, Outer, Dot, Cross, \
+    Determinant, Inverse, Cofactor, Trace, Deviatoric, Skew, Sym
 from ufl.variable import Variable
-from ufl.tensors import as_tensor, ListTensor
+from ufl.tensors import as_tensor, as_matrix, as_vector, ListTensor
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, \
     AndCondition, OrCondition, NotCondition, Conditional
 from ufl.mathfunctions import Sqrt, Exp, Ln, Erf,\
@@ -160,6 +160,8 @@ def cross(a, b):
     "UFL operator: Take the cross product of a and b."
     a = as_ufl(a)
     b = as_ufl(b)
+    ufl_assert(a.shape() == (3,) and b.shape() == (3,),
+               "Expecting 3D vectors in cross product.")
     return Cross(a, b)
 
 def det(A):
@@ -185,6 +187,47 @@ def tr(A):
     "UFL operator: Take the trace of A."
     A = as_ufl(A)
     return Trace(A)
+
+def diag(A):
+    """UFL operator: Take the diagonal part of rank 2 tensor A _or_
+    make a diagonal rank 2 tensor from a rank 1 tensor.
+    
+    Always returns a rank 2 tensor. See also diag_vector."""
+
+    # TODO: Make a compound type or two for this operator
+
+    # Get and check dimensions
+    r = A.rank()
+    if r == 1:
+        n, = A.shape()
+    elif r == 2:
+        m, n = A.shape()
+        ufl_assert(m == n, "Can only take diagonal of square tensors.")
+    else:
+        error("Expecting rank 1 or 2 tensor.")
+
+    # Build matrix row by row
+    rows = []
+    for i in range(n):
+        row = [0]*n
+        row[i] = A[i] if r == 1 else A[i,i]
+        rows.append(row)
+    return as_matrix(rows)
+
+def diag_vector(A):
+    """UFL operator: Take the diagonal part of rank 2 tensor A and return as a vector."
+    
+    See also diag."""
+
+    # TODO: Make a compound type for this operator
+
+    # Get and check dimensions
+    ufl_assert(A.rank() == 2, "Expecting rank 2 tensor.")
+    m, n = A.shape()
+    ufl_assert(m == n, "Can only take diagonal of square tensors.")
+
+    # Return diagonal vector
+    return as_vector([A[i,i] for i in range(n)])
 
 def dev(A):
     "UFL operator: Take the deviatoric part of A."
