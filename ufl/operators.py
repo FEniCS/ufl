@@ -160,8 +160,8 @@ def cross(a, b):
     "UFL operator: Take the cross product of a and b."
     a = as_ufl(a)
     b = as_ufl(b)
-    ufl_assert(a.shape() == (3,) and b.shape() == (3,),
-               "Expecting 3D vectors in cross product.")
+    #ufl_assert(a.shape() == (3,) and b.shape() == (3,),
+    #           "Expecting 3D vectors in cross product.")
     return Cross(a, b)
 
 def det(A):
