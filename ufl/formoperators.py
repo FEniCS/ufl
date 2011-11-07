@@ -162,7 +162,10 @@ def _handle_derivative_arguments(coefficient, argument):
         if isinstance(argument, (list,tuple)):
             arguments = tuple(argument)
         else:
-            arguments = (argument,)
+            if len(coefficients) == 1:
+                arguments = (argument,)
+            else:
+                arguments = split(argument)
 
     # Build mapping from coefficient to argument
     m = {}

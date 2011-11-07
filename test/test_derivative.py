@@ -287,7 +287,10 @@ class DerivativeTestCase(UflTestCase):
 
         actual = derivative(a, (uv,uw), split(v))
         expected = cos(uv)*vv * (uw[i]*uw[i]) + (uw[j]*vw[j])*2 * sin(uv)
+        self.assertEqualBySampling(actual, expected)
 
+        actual = derivative(a, (uv,uw), v)
+        expected = cos(uv)*vv * (uw[i]*uw[i]) + (uw[j]*vw[j])*2 * sin(uv)
         self.assertEqualBySampling(actual, expected)
 
     def test_indexed_coefficient_derivative(self):
