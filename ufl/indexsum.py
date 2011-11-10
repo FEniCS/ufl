@@ -91,7 +91,11 @@ class IndexSum(AlgebraOperator):
     
     def shape(self):
         return self._summand.shape()
-    
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        return self._summand.is_cellwise_constant()
+
     def evaluate(self, x, mapping, component, index_values):
         i, = self._index
         tmp = 0

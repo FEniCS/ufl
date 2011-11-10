@@ -153,6 +153,10 @@ class SpatialDerivative(Derivative):
     def shape(self):
         return self._shape
 
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        return self._expression.is_cellwise_constant()
+
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
         "Get child from mapping and return the component asked for."
 

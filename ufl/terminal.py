@@ -122,6 +122,9 @@ class UtilityType(Terminal):
     
     def index_dimensions(self):
         error("Calling index_dimensions on a utility type is an error.")
+    
+    def is_cellwise_constant(self):
+        error("Calling is_cellwise_constant on a utility type is an error.")
 
 #--- Non-tensor terminal nodes ---
 

@@ -71,6 +71,10 @@ class Indexed(WrapperType):
     def shape(self):
         return ()
     
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        return self._expression.is_cellwise_constant()
+
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
         A, ii = self.operands()
         component = ii.evaluate(x, mapping, None, index_values)
