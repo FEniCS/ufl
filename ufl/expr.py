@@ -107,6 +107,16 @@ class Expr(object):
                     break
         return c
 
+    def geometric_dimension(self):
+        "Return the geometric dimension this expression lives in."
+        # This function was introduced to clarify and
+        # eventually reduce direct dependencies on cells.
+        cell = self.cell()
+        if cell is None or cell.is_undefined():
+            error("Cannot infer geometric dimension for this expression.")
+        else:
+            return cell.geometric_dimension()
+
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
         raise NotImplementedError(self.__class__.is_cellwise_constant)

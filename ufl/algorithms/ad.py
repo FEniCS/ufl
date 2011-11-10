@@ -62,8 +62,6 @@ def apply_ad(e, ad_routine):
 def expand_derivatives(form, dim=None):
     """Expand all derivatives of expr.
 
-    NB! This functionality is not finished!
-
     In the returned expression g which is mathematically
     equivalent to expr, there are no VariableDerivative
     or CoefficientDerivative objects left, and SpatialDerivative

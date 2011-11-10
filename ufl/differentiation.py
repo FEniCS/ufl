@@ -20,7 +20,7 @@
 # Modified by Anders Logg, 2009.
 #
 # First added:  2008-03-14
-# Last changed: 2011-10-14
+# Last changed: 2011-11-10
 
 from ufl.log import warning, error
 from ufl.assertions import ufl_assert
@@ -106,11 +106,7 @@ class CoefficientDerivative(Derivative):
 def split_indices(expression, idx):
     idims = dict(expression.index_dimensions())
     if isinstance(idx, Index) and idims.get(idx) is None:
-        cell = expression.cell()
-        ufl_assert(cell is not None and not cell.is_undefined(),
-            "Need to know the spatial dimension to "\
-            "compute the shape of derivatives.")
-        idims[idx] = cell.geometric_dimension()
+        idims[idx] = expression.geometric_dimension()
     fi = unique_indices(expression.free_indices() + (idx,))
     return fi, idims
 
@@ -131,11 +127,7 @@ class SpatialDerivative(Derivative):
         self._expression = expression
 
         # Make a MultiIndex with knowledge of the dimensions
-        cell = expression.cell()
-        if cell is None or cell.is_undefined():
-            error("Cannot compute derivatives of expressions with undefined cell.")
-        else:
-            sh = (cell.geometric_dimension(),)
+        sh = (expression.geometric_dimension(),)
         self._index = as_multi_index(index, sh)
 
         # Make sure we have a single valid index
@@ -261,10 +253,7 @@ class Grad(CompoundDerivative):
 
     def __new__(cls, f):
         # Return zero if expression is trivially constant
-        cell = f.cell()
-        ufl_assert(cell is not None and not cell.is_undefined(),\
-                   "Can't take gradient of expression with undefined cell...")
-        dim = cell.geometric_dimension()
+        dim = f.geometric_dimension()
         if f.is_cellwise_constant():
             free_indices = f.free_indices()
             index_dimensions = subdict(f.index_dimensions(), free_indices)
@@ -276,22 +265,14 @@ class Grad(CompoundDerivative):
     def __init__(self, f):
         CompoundDerivative.__init__(self)
         self._f = f
-        cell = f.cell()
-        ufl_assert(cell is not None and not cell.is_undefined(),\
-                   "Can't take gradient of expression with undefined cell...")
-        self._dim = cell.geometric_dimension()
+        self._dim = f.geometric_dimension()
         ufl_assert(not f.free_indices(),\
             "Taking gradient of an expression with free indices is not supported.")
         self._repr = "Grad(%r)" % self._f
 
     def reconstruct(self, op):
         "Return a new object of the same type with new operands."
-        c = op.cell()
-        if c is None or c.is_undefined():
-            dim = self.cell().geometric_dimension()
-            ufl_assert(op.is_cellwise_constant(),
-                       "Missing cell, expecting argument to "+\
-                       "be spatially constant.")
+        if op.is_cellwise_constant():
             ufl_assert(op.shape() == self._f.shape(),
                        "Operand shape mismatch in Grad reconstruct.")
             ufl_assert(self._f.free_indices() == op.free_indices(),
@@ -365,10 +346,7 @@ class NablaGrad(CompoundDerivative):
 
     def __new__(cls, f):
         # Return zero if expression is trivially constant
-        cell = f.cell()
-        ufl_assert(cell is not None and not cell.is_undefined(),\
-                   "Can't take gradient of expression with undefined cell...")
-        dim = cell.geometric_dimension()
+        dim = f.geometric_dimension()
         if f.is_cellwise_constant():
             free_indices = f.free_indices()
             index_dimensions = subdict(f.index_dimensions(), free_indices)
@@ -380,22 +358,14 @@ class NablaGrad(CompoundDerivative):
     def __init__(self, f):
         CompoundDerivative.__init__(self)
         self._f = f
-        cell = f.cell()
-        ufl_assert(cell is not None and not cell.is_undefined(),\
-                   "Can't take gradient of expression with undefined cell...")
-        self._dim = cell.geometric_dimension()
+        self._dim = f.geometric_dimension()
         ufl_assert(not f.free_indices(),\
             "Taking gradient of an expression with free indices is not supported.")
         self._repr = "NablaGrad(%r)" % self._f
 
     def reconstruct(self, op):
         "Return a new object of the same type with new operands."
-        c = op.cell()
-        if c is None or c.is_undefined():
-            dim = self.cell().geometric_dimension()
-            ufl_assert(op.is_cellwise_constant(),
-                       "Missing cell, expecting argument to "+\
-                       "be spatially constant.")
+        if op.is_cellwise_constant():
             ufl_assert(op.shape() == self._f.shape(),
                        "Operand shape mismatch in NablaGrad reconstruct.")
             ufl_assert(self._f.free_indices() == op.free_indices(),
@@ -476,21 +446,15 @@ class Curl(CompoundDerivative):
 
         # Return zero if expression is trivially constant
         if f.is_cellwise_constant():
-            cell = f.cell()
-            ufl_assert(cell is not None and not cell.is_undefined(),\
-                       "Can't take curl of expression with undefined cell...")
             sh = { (): (2,), (2,): (), (3,): (3,) }[sh]
             #free_indices = f.free_indices()
             #index_dimensions = subdict(f.index_dimensions(), free_indices)
-            #return Zero((cell.geometric_dimension(),), free_indices, index_dimensions)
+            #return Zero((f.geometric_dimension(),), free_indices, index_dimensions)
             return Zero(sh)
         return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):
         CompoundDerivative.__init__(self)
-        cell = f.cell()
-        ufl_assert(cell is not None and not cell.is_undefined(),\
-                   "Can't take curl of expression with undefined cell...")
         sh = { (): (2,), (2,): (), (3,): (3,) }[f.shape()]
         self._f = f
         self._shape = sh
