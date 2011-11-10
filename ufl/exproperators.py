@@ -168,6 +168,7 @@ def _rdiv(self, o):
         return NotImplemented
     return Division(o, self)
 Expr.__rdiv__ = _rdiv
+Expr.__rtruediv__ = _rdiv
 
 def _pow(self, o):
     if not isinstance(o, _valid_types):
