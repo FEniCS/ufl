@@ -85,6 +85,9 @@ class Variable(WrapperType):
     def cell(self):
         return self._expression.cell()
 
+    def is_cellwise_constant(self):
+        return self._expression.is_cellwise_constant()
+
     def evaluate(self, x, mapping, component, index_values):
         a = self._expression.evaluate(x, mapping, component, index_values)
         return a

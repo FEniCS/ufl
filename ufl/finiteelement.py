@@ -293,6 +293,10 @@ class MixedElement(FiniteElementBase):
         self._repr = "MixedElement(*%r, **{'value_shape': %r })" %\
             (self._sub_elements, self._value_shape)
 
+    def is_cellwise_constant(self):
+        "Return whether the basis functions of this element is spatially constant over each cell."
+        return all(e.is_cellwise_constant() for e in self.sub_elements())
+
     def reconstruct(self, **kwargs):
         """Construct a new MixedElement object with some properties
         replaced with new values."""
@@ -609,6 +613,10 @@ class EnrichedElement(FiniteElementBase):
             return self
         return EnrichedElement(*elements)
 
+    def is_cellwise_constant(self):
+        "Return whether the basis functions of this element is spatially constant over each cell."
+        return all(e.is_cellwise_constant() for e in self._elements)
+
     def __str__(self):
         "Format as string for pretty printing."
         return "<%s>" % " + ".join(str(e) for e in self._elements)
@@ -655,6 +663,10 @@ class RestrictedElement(FiniteElementBase):
         element = self._element.reconstruct(**kwargs)
         domain = kwargs.get("domain", self.domain())
         return RestrictedElement(element=element, domain=domain)
+
+    def is_cellwise_constant(self):
+        "Return whether the basis functions of this element is spatially constant over each cell."
+        return self._element.is_cellwise_constant()
 
     def element(self):
         "Return the element which is restricted."

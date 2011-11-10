@@ -35,7 +35,11 @@ class LiftingResult(Operator):
         ufl_assert(isinstance(operand, Expr), "Expecting an Expr.")
         self._operator = operator
         self._operand = operand
-        self._shape = jump(self._operand, self._operator.cell().n).shape() # FIXME: Is this right?
+
+        # FIXME: Compute shape without making jump so we don't need the cell here:
+        cell = self._operator.cell()
+        n = cell.n
+        self._shape = jump(self._operand, n).shape() # FIXME: Is this right?
 
     def operands(self):
         return (self._operator, self._operand)
