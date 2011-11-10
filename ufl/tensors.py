@@ -80,6 +80,10 @@ class ListTensor(WrapperType):
 
         self._repr = "ListTensor(%s)" % ", ".join(repr(e) for e in self._expressions)
 
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        return all(e.is_cellwise_constant() for e in self.operands())
+
     def operands(self):
         return self._expressions
 
@@ -183,23 +187,27 @@ class ComponentTensor(WrapperType):
 
         self._str = "{ A | A_{%s} = %s }" % (self._indices, self._expression)
         self._repr = "ComponentTensor(%r, %r)" % (self._expression, self._indices)
-    
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        return self._expression.is_cellwise_constant()
+
     def operands(self):
         return (self._expression, self._indices)
-    
+
     def free_indices(self):
         return self._free_indices
-    
+
     def index_dimensions(self):
         return self._index_dimensions
-    
+
     def shape(self):
         return self._shape
-    
+
     def evaluate(self, x, mapping, component, index_values):
         indices = self._indices
         a = self._expression
-        
+
         # Map component to indices
         for i, c in zip(indices, component):
             index_values.push(i, c)

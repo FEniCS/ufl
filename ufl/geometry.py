@@ -21,7 +21,7 @@
 # Modified by Kristian B. Oelgaard, 2009
 #
 # First added:  2008-03-14
-# Last changed: 2011-09-20
+# Last changed: 2011-11-10
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
@@ -73,12 +73,20 @@ class GeometricQuantity(Terminal):
     def cell(self):
         return self._cell
 
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        return True # NB! Assuming all geometric quantities in here are are cellwise constant by default!
+
 class SpatialCoordinate(GeometricQuantity):
     "Representation of a spatial coordinate."
     __slots__ = ("_repr",)
     def __init__(self, cell):
         GeometricQuantity.__init__(self, cell)
         self._repr = "SpatialCoordinate(%r)" % self._cell
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        return False
 
     def shape(self):
         d = self._cell.geometric_dimension()

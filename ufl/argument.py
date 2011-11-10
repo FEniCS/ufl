@@ -68,6 +68,13 @@ class Argument(FormArgument, Counted):
     def cell(self):
         return self._element.cell()
 
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        # TODO: Should in principle do like with Coefficient,
+        # but that may currently simplify away some arguments
+        # we want to keep, or?
+        return False
+
     def __str__(self):
         count = str(self._count)
         if len(count) == 1:

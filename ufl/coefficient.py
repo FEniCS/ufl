@@ -74,6 +74,10 @@ class Coefficient(FormArgument, Counted):
     def shape(self):
         return self._element.value_shape()
 
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        return self._element.is_cellwise_constant()
+
     def cell(self):
         return self._element.cell()
 

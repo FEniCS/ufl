@@ -20,7 +20,7 @@
 # Modified by Anders Logg, 2011.
 #
 # First added:  2008-11-01
-# Last changed: 2011-09-13
+# Last changed: 2011-11-10
 
 from ufl.log import warning, error
 from ufl.assertions import ufl_assert, expecting_python_scalar
@@ -57,6 +57,10 @@ def format_float(x):
 class ConstantValue(Terminal):
     def __init__(self):
         Terminal.__init__(self)
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        return True
 
 class IndexAnnotated(object):
     """Class to annotate expressions that don't depend on

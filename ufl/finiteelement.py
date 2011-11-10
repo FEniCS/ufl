@@ -58,6 +58,10 @@ class FiniteElementBase(object):
         "Return cell of finite element"
         return self._cell
 
+    def is_cellwise_constant(self):
+        "Return whether the basis functions of this element is spatially constant over each cell."
+        return self.family() == "Real" or self.degree() == 0
+
     def degree(self):
         "Return polynomial degree of finite element"
         return self._degree

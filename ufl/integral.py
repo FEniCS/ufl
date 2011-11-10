@@ -29,25 +29,21 @@ from ufl.constantvalue import is_true_ufl_scalar, is_python_scalar
 
 
 # TODO: Move these somewhere more suitable?
-def is_spatially_constant(expr):
-    """Check if an expression is spatially constant, which
+def is_globally_constant(expr):
+    """Check if an expression is globally constant, which
     includes spatially independent constant coefficients that
     are not known before assembly time."""
+
     from ufl.algorithms.traversal import traverse_terminals
-    from ufl.constantvalue import ConstantValue
-    from ufl.geometry import GeometricQuantity
+    from ufl.argument import Argument
     from ufl.coefficient import Coefficient
 
     for e in traverse_terminals(expr):
-        if isinstance(e, ConstantValue):
-            continue
-        elif isinstance(e, GeometricQuantity):
+        if isinstance(e, Argument):
             return False
-        elif isinstance(e, Coefficient):
-            if e.element().family() != "Real":
-                return False
-        else:
-            # Unknown type, cannot guarantee anything
+        if isinstance(e, Coefficient) and e.element().family() != "Real":
+            return False
+        if not e.is_cellwise_constant():
             return False
 
     # All terminals passed constant check
@@ -55,12 +51,12 @@ def is_spatially_constant(expr):
 
 # TODO: Move these somewhere more suitable?
 def is_scalar_constant_expression(expr):
-    """Check if an expression is a spatially constant scalar expression."""
+    """Check if an expression is a globally constant scalar expression."""
     if is_python_scalar(expr):
         return True
     if expr.shape() != ():
         return False
-    return is_spatially_constant(expr)
+    return is_globally_constant(expr)
 
 
 # TODO: Define some defaults as to how metadata should represent integration data here?

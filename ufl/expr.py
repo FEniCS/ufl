@@ -107,6 +107,10 @@ class Expr(object):
                     break
         return c
 
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        raise NotImplementedError(self.__class__.is_cellwise_constant)
+
     #--- Functions for float evaluation ---
     
     def evaluate(self, x, mapping, component, index_values):
@@ -198,6 +202,10 @@ class Operator(Expr):
     def reconstruct(self, *operands):
         "Return a new object of the same type with new operands."
         return self.__class__._uflclass(*operands)
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        return all(o.is_cellwise_constant() for o in self.operands())
 
 class WrapperType(Operator):
     def __init__(self):

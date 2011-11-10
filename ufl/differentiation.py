@@ -39,36 +39,6 @@ from ufl.precedence import parstr
 
 #--- Basic differentiation objects ---
 
-def is_spatially_constant(expression): # TODO: Rename to is_spatially_constant_on_cell or something to be clear
-    """Check if a terminal object is spatially constant
-    over a cell, such that expression.dx(i) == 0."""
-    if isinstance(expression, (ConstantValue, ConstantBase)):
-        return True
-    elif isinstance(expression, (FacetNormal, CellVolume, Circumradius)):
-        return True
-    elif isinstance(expression, Coefficient):
-        # Note that this will lead to automatic removal of c.dx(0) with c = Constant(cell)
-        if expression.element().degree() == 0:
-            return True
-        else:
-            return False
-    elif isinstance(expression, Argument):
-        return False # Don't want to simplify this one away...
-    elif isinstance(expression, ListTensor):
-        return all(is_spatially_constant(e) for e in expression.operands())
-    elif isinstance(expression, (Indexed, ComponentTensor)):
-        return is_spatially_constant(expression.operands()[0])
-
-    cell = expression.cell()
-    if cell is None:
-        # All spatially dependent terminals have a cell
-        return True
-    if cell.is_undefined():
-        error("Someone is asking whether an expression with undefined cell is spatially constant."\
-                  "Since the cell is undefined, the answer is undefined. Remember to specify cells"\
-                  "for all your elements and specify elements for all your coefficients.")
-    return False
-
 class Derivative(Operator):
     "Base class for all derivative types."
     __slots__ = ()
@@ -149,7 +119,7 @@ class SpatialDerivative(Derivative):
     __slots__ = ("_expression", "_index", "_shape", "_free_indices", "_index_dimensions", "_repr")
     def __new__(cls, expression, index):
         # Return zero if expression is trivially constant
-        if is_spatially_constant(expression):
+        if expression.is_cellwise_constant():
             if isinstance(index, (tuple, MultiIndex)):
                 index, = index
             fi, idims = split_indices(expression, index)
@@ -295,7 +265,7 @@ class Grad(CompoundDerivative):
         ufl_assert(cell is not None and not cell.is_undefined(),\
                    "Can't take gradient of expression with undefined cell...")
         dim = cell.geometric_dimension()
-        if is_spatially_constant(f):
+        if f.is_cellwise_constant():
             free_indices = f.free_indices()
             index_dimensions = subdict(f.index_dimensions(), free_indices)
             return Zero(f.shape() + (dim,), free_indices, index_dimensions)
@@ -319,7 +289,7 @@ class Grad(CompoundDerivative):
         c = op.cell()
         if c is None or c.is_undefined():
             dim = self.cell().geometric_dimension()
-            ufl_assert(is_spatially_constant(op),
+            ufl_assert(op.is_cellwise_constant(),
                        "Missing cell, expecting argument to "+\
                        "be spatially constant.")
             ufl_assert(op.shape() == self._f.shape(),
@@ -362,7 +332,7 @@ class Div(CompoundDerivative):
         #ufl_assert(f.rank() >= 1, "Can't take the divergence of a scalar.")
 
         # Return zero if expression is trivially constant
-        if is_spatially_constant(f):
+        if f.is_cellwise_constant():
             return Zero(f.shape()[:-1]) # No free indices asserted above
 
         return CompoundDerivative.__new__(cls)
@@ -399,7 +369,7 @@ class NablaGrad(CompoundDerivative):
         ufl_assert(cell is not None and not cell.is_undefined(),\
                    "Can't take gradient of expression with undefined cell...")
         dim = cell.geometric_dimension()
-        if is_spatially_constant(f):
+        if f.is_cellwise_constant():
             free_indices = f.free_indices()
             index_dimensions = subdict(f.index_dimensions(), free_indices)
             return Zero((dim,) + f.shape(), free_indices, index_dimensions)
@@ -423,7 +393,7 @@ class NablaGrad(CompoundDerivative):
         c = op.cell()
         if c is None or c.is_undefined():
             dim = self.cell().geometric_dimension()
-            ufl_assert(is_spatially_constant(op),
+            ufl_assert(op.is_cellwise_constant(),
                        "Missing cell, expecting argument to "+\
                        "be spatially constant.")
             ufl_assert(op.shape() == self._f.shape(),
@@ -466,7 +436,7 @@ class NablaDiv(CompoundDerivative):
         #ufl_assert(f.rank() >= 1, "Can't take the divergence of a scalar.")
 
         # Return zero if expression is trivially constant
-        if is_spatially_constant(f):
+        if f.is_cellwise_constant():
             return Zero(f.shape()[1:]) # No free indices asserted above
 
         return CompoundDerivative.__new__(cls)
@@ -505,7 +475,7 @@ class Curl(CompoundDerivative):
             "TODO: Taking curl of an expression with free indices, should this be a valid expression? Please provide examples!")
 
         # Return zero if expression is trivially constant
-        if is_spatially_constant(f):
+        if f.is_cellwise_constant():
             cell = f.cell()
             ufl_assert(cell is not None and not cell.is_undefined(),\
                        "Can't take curl of expression with undefined cell...")

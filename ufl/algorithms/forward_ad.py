@@ -58,8 +58,6 @@ from ufl.algorithms.traversal import iter_expressions
 from ufl.algorithms.analysis import extract_type
 from ufl.algorithms.transformations import expand_compounds, Transformer, transform, transform_integrands
 
-from ufl.differentiation import is_spatially_constant
-
 class ForwardAD(Transformer):
     def __init__(self, spatial_dim, var_shape, var_free_indices, var_index_dimensions, cache=None):
         Transformer.__init__(self)
@@ -569,8 +567,7 @@ class ForwardAD(Transformer):
         o = self.reuse_if_possible(o, f, ii)
 
         # FIXME: Make plenty of test cases around this kind of situation to document what's going on...
-        # NB! This will trigger if fp has no cell. Undefined cells from PyDOLFIN make me want to cry...
-        if is_spatially_constant(fp):
+        if fp.is_cellwise_constant():
             sh = fp.shape()
             fi = fp.free_indices()
             idims = fp.index_dimensions()
@@ -615,6 +612,8 @@ class SpatialAD(ForwardAD):
         # same index on the outside! (There's a check for
         # this situation in index_sum above.)
         #oprime = o.dx(self._index) # Not using this syntax because it would create a new IndexSum
+        if o.is_cellwise_constant():
+            return self.terminal(o)
         oprime = SpatialDerivative(o, self._index)
         return (o, oprime)
 
