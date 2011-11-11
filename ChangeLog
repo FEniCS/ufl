@@ -2,6 +2,8 @@
  - Added tests covering snippets from UFL chapter in FEniCS book
  - Added more unit tests
  - Added operators diag and diag_vector
+ - Fixed rtruediv bug
+ - Fixed bug with derivatives of elements of type Real with unspecified cell
 1.0-beta3 [2011-10-26]
  - Added nabla_grad and nabla_div operators
  - Added error function erf(x)
