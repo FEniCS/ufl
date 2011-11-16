@@ -162,10 +162,14 @@ def _handle_derivative_arguments(coefficient, argument):
         if isinstance(argument, (list,tuple)):
             arguments = tuple(argument)
         else:
-            if len(coefficients) == 1:
+            n = len(coefficients)
+            if n == 1:
                 arguments = (argument,)
             else:
-                arguments = split(argument)
+                if argument.shape() == (n,):
+                    arguments = tuple(argument[i] for i in range(n))
+                else:
+                    arguments = split(argument)
 
     # Build mapping from coefficient to argument
     m = {}
@@ -196,70 +200,6 @@ def _handle_derivative_arguments(coefficient, argument):
     items = sorted(m.items(), cmp=lambda a,b: cmp(a[0].count(), b[0].count()))
     coefficients = Tuple(*[item[0] for item in items])
     arguments = Tuple(*[item[1] for item in items])
-    return coefficients, arguments
-
-def _handle_derivative_arguments2(coefficient, argument):
-    """Valid combinations:
-    - Coefficient, Argument.
-      Elements must match.
-    - (Coefficient tuple,), Argument.
-      Argument element must be a mixed element with subelements
-      matching elements of the Coefficient tuple.
-    """
-
-    if isinstance(coefficient, Coefficient):
-        # Place in generic tuple
-        coefficients = (coefficient,)
-
-        # Get element
-        element = coefficient.element()
-
-        # Create Argument if necessary
-        if argument is None:
-            argument = Argument(element)
-        ufl_assert(isinstance(argument, Argument),
-            "Expecting Argument instance, not %s." % type(argument))
-        ufl_assert(argument.element() == element,
-            "Argument over wrong element supplied, "\
-            "got %s but expecting %s." % \
-            (repr(argument.element()), repr(element)))
-
-        # Place in generic tuple
-        arguments = (argument,)
-
-    elif isinstance(coefficient, (tuple, list)):
-        # Place in generic tuple
-        coefficients = coefficient
-
-        # We got a tuple of coefficients, handle it as
-        # coefficients over components of a mixed element.
-        ufl_assert(all(isinstance(w, Coefficient) for w in coefficients),
-            "Expecting a tuple of Coefficients to differentiate w.r.t.")
-
-        # Create mixed element
-        elements = [w.element() for w in coefficients]
-        element = MixedElement(*elements)
-
-        # Create arguments if necessary
-        if argument is None:
-            argument = Argument(element)
-        ufl_assert(isinstance(argument, Argument),
-            "Expecting Argument instance, not %s." % type(argument))
-        ufl_assert(argument.element() == element,
-            "Arguments over wrong element supplied, "\
-            "got %s but expecting %s." % \
-            (repr(argument.element()), repr(element)))
-
-        # Place in generic tuple
-        arguments = split(argument)
-
-    else:
-        error("Expecting Coefficient instance or tuple of Coefficient "+\
-                  "instances, not %s." % type(coefficient))
-
-    # Wrap and return generic tuples
-    coefficients = Tuple(*coefficients)
-    arguments = Tuple(*arguments)
     return coefficients, arguments
 
 def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
