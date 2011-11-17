@@ -18,7 +18,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # First added:  2009-05-14
-# Last changed: 2011-06-02
+# Last changed: 2011-11-17
 
 from ufl.expr import Expr
 from ufl.assertions import ufl_assert
@@ -55,6 +55,14 @@ class RestrictionPropagator(ReuseTransformer):
         #if self.current_restriction is None:
         #    return o
         return o(self.current_restriction)
+
+    def cell_surface_area(self, o):
+        ufl_assert(self.current_restriction is not None, "CellSurfaceArea must be restricted.")
+        #if self.current_restriction is None:
+        #    return o
+        return o(self.current_restriction)
+
+    # facet_area is the same from both sides of a facet
 
     def form_argument(self, o):
         ufl_assert(self.current_restriction is not None, "Form argument must be restricted.")

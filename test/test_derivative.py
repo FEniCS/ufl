@@ -78,6 +78,16 @@ class DerivativeTestCase(UflTestCase):
         def df(w, v): return zero()
         self._test(f, df)
 
+    def testCellSurfaceArea(self):
+        def f(w):     return triangle.surface_area
+        def df(w, v): return zero()
+        self._test(f, df)
+
+    def testFacetArea(self):
+        def f(w):     return triangle.facet_area
+        def df(w, v): return zero()
+        self._test(f, df)
+
     def testCircumradius(self):
         def f(w):     return triangle.circumradius
         def df(w, v): return zero()

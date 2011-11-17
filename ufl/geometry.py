@@ -21,7 +21,7 @@
 # Modified by Kristian B. Oelgaard, 2009
 #
 # First added:  2008-03-14
-# Last changed: 2011-11-10
+# Last changed: 2011-11-17
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
@@ -172,6 +172,44 @@ class Circumradius(GeometricQuantity):
     def __eq__(self, other):
         return isinstance(other, Circumradius) and other._cell == self._cell
 
+class CellSurfaceArea(GeometricQuantity):
+    "Representation of the total surface area of a cell."
+    __slots__ = ("_repr",)
+    def __init__(self, cell):
+        GeometricQuantity.__init__(self, cell)
+        self._repr = "CellSurfaceArea(%r)" % self._cell
+
+    def shape(self):
+        return ()
+
+    def __str__(self):
+        return "surfacearea"
+
+    def __repr__(self):
+        return self._repr
+
+    def __eq__(self, other):
+        return isinstance(other, CellSurfaceArea) and other._cell == self._cell
+
+class FacetArea(GeometricQuantity):
+    "Representation of the area of a cell facet."
+    __slots__ = ("_repr",)
+    def __init__(self, cell):
+        GeometricQuantity.__init__(self, cell)
+        self._repr = "FacetArea(%r)" % self._cell
+
+    def shape(self):
+        return ()
+
+    def __str__(self):
+        return "facetarea"
+
+    def __repr__(self):
+        return self._repr
+
+    def __eq__(self, other):
+        return isinstance(other, FacetArea) and other._cell == self._cell
+
 # TODO: If we include this here, we must define exactly what is meant by the mesh size, possibly adding multiple kinds of mesh sizes (hmin, hmax, havg, ?)
 #class MeshSize(GeometricQuantity):
 #    def __init__(self, cell):
@@ -214,7 +252,8 @@ class Cell(object):
     __slots__ = ("_domain", "_space",
                  "_geometric_dimension", "_topological_dimension",
                  "_repr", "_invalid",
-                 "_n", "_x", "_volume", "_circumradius")
+                 "_n", "_x", "_volume", "_circumradius",
+                 "_cellsurfacearea", "_facetarea",)
 
     def __init__(self, domain, space=None):
         "Initialize basic cell description."
@@ -266,6 +305,8 @@ class Cell(object):
         self._x = SpatialCoordinate(self)
         self._volume = CellVolume(self)
         self._circumradius = Circumradius(self)
+        self._cellsurfacearea = CellSurfaceArea(self)
+        self._facetarea = FacetArea(self)
         #self._h = MeshSize(self)
         #self._hmin = MeshSizeMin(self)
         #self._hmax = MeshSizeMax(self)
@@ -289,6 +330,16 @@ class Cell(object):
     def circumradius(self):
         "UFL geometry value: The circumradius of the cell."
         return self._circumradius
+
+    @property
+    def facet_area(self):
+        "UFL geometry value: The area of a facet of the cell."
+        return self._facetarea
+
+    @property
+    def surface_area(self):
+        "UFL geometry value: The total surface area of the cell."
+        return self._cellsurfacearea
 
     def is_undefined(self):
         """Return whether this cell is undefined,

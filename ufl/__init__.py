@@ -70,7 +70,8 @@ A very brief overview of the language contents follows:
 
 * Geometric quantities::
 
-    SpatialCoordinate, FacetNormal, CellVolume, Circumradius
+    SpatialCoordinate, FacetNormal, Circumradius,
+    CellVolume, CellSurfaceArea, FacetArea
 
 * Indices::
 
@@ -167,8 +168,8 @@ from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile
     UFLException, DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 # Types for geometric quantities
-from ufl.geometry import Cell, Space, SpatialCoordinate, FacetNormal, CellVolume, \
-                         Circumradius
+from ufl.geometry import Cell, Space, SpatialCoordinate, FacetNormal, Circumradius, \
+                         CellVolume, CellSurfaceArea, FacetArea
 
 # Finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
@@ -247,7 +248,7 @@ __all__ = [
     'get_handler', 'get_logger', 'set_handler', 'set_level', 'add_logfile',
     'UFLException', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL',
     'Cell', 'Space', 'SpatialCoordinate', 'FacetNormal', 'CellVolume',
-    'Circumradius',
+    'Circumradius', 'CellSurfaceArea', 'FacetArea',
     'FiniteElementBase', 'FiniteElement',
     'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement', 'RestrictedElement',
     'register_element', 'show_elements',

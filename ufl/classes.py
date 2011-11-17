@@ -25,7 +25,7 @@ of classes, and for mapping types to different handler functions."""
 # Modified by Kristian B. Oelgaard, 2011
 #
 # First added:  2008-08-15
-# Last changed: 2011-10-21
+# Last changed: 2011-11-17
 
 from ufl.assertions import ufl_assert
 from ufl.expr import Expr, Operator, WrapperType, AlgebraOperator
@@ -38,8 +38,8 @@ from ufl.finiteelement import FiniteElementBase, FiniteElement,\
 from ufl.argument import Argument, TestFunction, TrialFunction
 from ufl.coefficient import Coefficient, ConstantBase,\
     VectorConstant, TensorConstant, Constant
-from ufl.geometry import GeometricQuantity, SpatialCoordinate,\
-    FacetNormal, Space, Cell, CellVolume, Circumradius
+from ufl.geometry import Space, Cell, GeometricQuantity, \
+    SpatialCoordinate, FacetNormal, CellVolume, CellSurfaceArea, FacetArea, Circumradius
 from ufl.indexing import MultiIndex, Indexed, IndexBase, Index, FixedIndex, IndexSum
 from ufl.tensors import ListTensor, ComponentTensor
 from ufl.algebra import Sum, Product, Division, Power, Abs

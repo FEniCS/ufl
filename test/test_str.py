@@ -36,6 +36,12 @@ class TestStrOfGeometricQuantities(UflTestCase):
     def test_str_circumradius(self):
         self.assertEqual(str(triangle.circumradius), "circumradius") # TODO: Use a shorter name?
 
+    def test_str_cellsurfacearea(self):
+        self.assertEqual(str(triangle.surface_area), "surfacearea") # TODO: Use a shorter name?
+
+    def test_str_facetarea(self):
+        self.assertEqual(str(triangle.facet_area), "facetarea") # TODO: Use a shorter name?
+
     def test_str_volume(self):
         self.assertEqual(str(triangle.volume), "volume") # TODO: Use a shorter name?
 

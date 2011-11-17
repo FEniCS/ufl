@@ -2,6 +2,7 @@
  - Added tests covering snippets from UFL chapter in FEniCS book
  - Added more unit tests
  - Added operators diag and diag_vector
+ - Added geometric quantities cell.surface_area and cell.facet_area
  - Fixed rtruediv bug
  - Fixed bug with derivatives of elements of type Real with unspecified cell
 1.0-beta3 [2011-10-26]
