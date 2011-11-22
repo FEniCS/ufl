@@ -150,7 +150,7 @@ A very brief overview of the language contents follows:
 #
 # Last changed: 2011-11-22
 
-__version__ = "1.0-rc1"
+__version__ = "1.0-rc1+"
 
 ########## README
 # Imports here should be what the user sees when doing "from ufl import *",

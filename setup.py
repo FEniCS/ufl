@@ -9,7 +9,7 @@ import platform
 # Version number
 major = 1
 minor = 0
-maintenance = 'rc1'
+maintenance = 'rc1+'
 
 scripts = [pjoin("scripts", "ufl-analyse"),
            pjoin("scripts", "ufl-convert"),
