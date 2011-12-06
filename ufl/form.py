@@ -20,7 +20,7 @@
 # Modified by Anders Logg, 2009-2011.
 #
 # First added:  2008-03-14
-# Last changed: 2011-09-20
+# Last changed: 2011-12-06
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
@@ -137,6 +137,10 @@ class Form(object):
                                          object_names=object_names,
                                          common_cell=common_cell,
                                          element_mapping=element_mapping)
+        else:
+            self._form_data.validate(object_names=object_names,
+                                     common_cell=common_cell,
+                                     element_mapping=element_mapping)
         return self.form_data()
 
     def is_preprocessed(self):

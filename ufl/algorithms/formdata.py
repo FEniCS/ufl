@@ -20,9 +20,10 @@
 # Modified by Anders Logg, 2008.
 #
 # First added:  2008-09-13
-# Last changed: 2011-06-02
+# Last changed: 2011-12-06
 
 from ufl.common import lstr, tstr, estr
+from ufl.assertions import ufl_assert
 
 class FormData(object):
     """
@@ -53,3 +54,14 @@ class FormData(object):
                      ("Coefficient names",                  lstr(self.coefficient_names)),
                      ("Unique elements",                    estr(self.unique_elements)),
                      ("Unique sub elements",                estr(self.unique_sub_elements))))
+
+    def validate(self, object_names=None, common_cell=None, element_mapping=None):
+        object_names = object_names or {}
+        element_mapping = element_mapping or {}
+        ufl_assert(object_names == self._input_object_names,
+                   "Found non-matching object_names in form data validation.")
+        ufl_assert(common_cell is None or common_cell == self.cell,
+                   "Found non-matching cells in form data validation.")
+        ufl_assert(element_mapping == self._input_element_mapping,
+                   "Found non-matching element mappings in form data validation.")
+

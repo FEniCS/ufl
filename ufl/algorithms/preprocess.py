@@ -20,7 +20,7 @@ raw input form given by a user."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # First added:  2009-12-07
-# Last changed: 2011-06-22
+# Last changed: 2011-12-06
 
 from ufl.log import info, debug, warning, error
 from ufl.assertions import ufl_assert
@@ -53,15 +53,19 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
     # Check that we get a form
     ufl_assert(isinstance(form, Form), "Expecting Form.")
 
-    # Get name of form
+    # Object names is empty if not given
     object_names = object_names or {}
-    if id(form) in object_names:
-        name = object_names[id(form)]
-    else:
-        name = "a"
 
     # Element mapping is empty if not given
     element_mapping = element_mapping or {}
+
+    # Create empty form data
+    form_data = FormData()
+
+    # Store copies of preprocess input data
+    form_data._input_object_names = dict(object_names)
+    form_data._input_element_mapping = dict(element_mapping)
+    #form_data._input_common_cell = no need to store this
 
     # Extract common cell
     common_cell = extract_common_cell(form, common_cell)
@@ -86,11 +90,8 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
     original_arguments = [inv_replace_map[v] for v in arguments]
     original_coefficients = [inv_replace_map[w] for w in coefficients]
 
-    # Create empty form data
-    form_data = FormData()
-
     # Store name of form
-    form_data.name = name
+    form_data.name = object_names.get(id(form), "a")
 
     # Store data extracted by preprocessing
     form_data.arguments             = arguments
