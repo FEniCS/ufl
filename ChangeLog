@@ -1,3 +1,5 @@
+1.0.0 [2011-12-07]
+ - No changes since rc1.
 1.0-rc1 [2011-11-22]
  - Added tests covering snippets from UFL chapter in FEniCS book
  - Added more unit tests
