@@ -101,7 +101,7 @@ def split(v):
                         #print "k, offset, i, j, shape, component", k, offset, i, j, shape, component
                     elif v.rank() == 2:
                         # Mapping into a concatenated tensor (is this a figment of my imagination?)
-                        error("Not implemented. Please send a minimal test that fails here to ufl-dev@fenics.org.")
+                        error("Not implemented.")
                         row_offset, col_offset = 0, 0 # TODO
                         k = (row_offset + i, col_offset + j)
                         component = v[k]
