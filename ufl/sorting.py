@@ -51,7 +51,7 @@ def cmp_expr(a, b):
     # ... Other Counted object? (Coefficient or Argument)
     elif isinstance(a, Counted):
         if not isinstance(a, FormArgument):
-            error("Expecting a Coefficient or Argument here, got %s instead. Please tell at ufl-dev@fenics.org." % str(type(a)))
+            error("Expecting a Coefficient or Argument here, got %s instead." % str(type(a)))
         # It's ok to compare counts for form arguments, since their order is a property of the form
         return cmp(a._count, b._count)
 
