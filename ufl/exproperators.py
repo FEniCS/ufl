@@ -33,7 +33,7 @@ from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import Transposed, Dot
 from ufl.indexing import IndexBase, FixedIndex, Index, Indexed, IndexSum, indices
 from ufl.indexutils import repeated_indices, unique_indices, single_indices
-from ufl.tensors import as_tensor
+from ufl.tensors import as_tensor, ComponentTensor
 from ufl.restriction import PositiveRestricted, NegativeRestricted
 from ufl.differentiation import SpatialDerivative, VariableDerivative
 
@@ -305,6 +305,11 @@ def _getitem(self, key):
     # Special case for foo[...] => foo
     if len(indices) == len(axis_indices):
         return self
+
+    # Special case for simplifying ({ai}_i)[i] -> ai
+    if isinstance(self, ComponentTensor):
+        if tuple(indices) == tuple(self._indices):
+            return self._expression
 
     # Index self, yielding scalar valued expressions
     a = Indexed(self, indices)
