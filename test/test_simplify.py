@@ -80,5 +80,17 @@ class ElementsTestCase(UflTestCase):
             self.assertEqual(math.exp(i), exp(i))
             self.assertEqual(math.log(i), ln(i))
 
+    def test_indexing(self):
+        u = VectorConstant(triangle)
+        v = VectorConstant(triangle)
+
+        A = outer(u,v)
+        A2 = as_tensor(A[i,j], (i,j))
+        self.assertEqual(A2, A)
+
+        Bij = u[i]*v[j]
+        Bij2 = as_tensor(Bij, (i,j))[i,j]
+        self.assertEqual(Bij2, Bij)
+
 if __name__ == "__main__":
     main()
