@@ -281,6 +281,7 @@ class Grad(CompoundDerivative):
                        "Operand shape mismatch in Grad reconstruct.")
             ufl_assert(self._f.free_indices() == op.free_indices(),
                        "Free index mismatch in Grad reconstruct.")
+            index_dimensions = {}
             return Zero(self.shape(), self.free_indices(),
                         self.index_dimensions())
         return self.__class__._uflclass(op)
@@ -373,6 +374,7 @@ class NablaGrad(CompoundDerivative):
                        "Operand shape mismatch in NablaGrad reconstruct.")
             ufl_assert(self._f.free_indices() == op.free_indices(),
                        "Free index mismatch in NablaGrad reconstruct.")
+            index_dimensions = {}
             return Zero(self.shape(), self.free_indices(),
                         self.index_dimensions())
         return self.__class__._uflclass(op)

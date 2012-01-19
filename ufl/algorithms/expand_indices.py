@@ -195,17 +195,14 @@ class IndexExpander(ReuseTransformer):
 
     def spatial_derivative(self, x):
         f, ii = x.operands()
-        ufl_assert(isinstance(f, (Terminal, SpatialDerivative, Indexed, ListTensor, ComponentTensor)),
-                   "Expecting expand_derivatives to have been applied.")
+        ufl_assert(isinstance(f, (Terminal, SpatialDerivative, Indexed, ListTensor, ComponentTensor)), "Expecting expand_derivatives to have been applied.")
 
         # Taking component if necessary
-        fold = f
         f = self.visit(f)
 
         #ii = self.visit(ii) # mapping to constant if necessary
 
         # Map free index to a value
-        iiold = ii
         i, = ii
         if isinstance(i, Index):
             ii = MultiIndex((FixedIndex(self._index2value[i]),), {})
@@ -217,11 +214,7 @@ class IndexExpander(ReuseTransformer):
         #else:
         #    pushed = False
 
-        #self.reuse_if_possible(x, f, ii)
-        if f == fold and ii == iiold:
-            result = x
-        else:
-            result = f.dx(*ii)
+        result = self.reuse_if_possible(x, f, ii)
 
         # Unhide used index i
         #if pushed:

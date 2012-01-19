@@ -359,10 +359,7 @@ class DerivativeTestCase(UflTestCase):
 
         for i in range(cell.d):
             for j in range(cell.d):
-                form = Lvu[i,j]*dx
-                fd = form.compute_form_data()
-                pf = fd.preprocessed_form
-                a = expand_indices(pf)
+                a = expand_indices((Lvu[i,j]*dx).compute_form_data().preprocessed_form)
                 #print (i,j), str(a)
 
         k = Index()
