@@ -143,14 +143,20 @@ class SpatialDerivative(Derivative):
 
     def reconstruct(self, expression, index):
         "Return a new object of the same type with new operands."
+        if not (expression.shape() == self._expression.shape()):
+            print '\n'*3
+            print str(expression)
+            print str(self._expression)
+            print '\n'*3
+
+        ufl_assert(expression.shape() == self._expression.shape(),
+                   "Operand shape mismatch in SpatialDerivative reconstruct.")
+        ufl_assert(self._expression.free_indices() == expression.free_indices(),
+                   "Free index mismatch in SpatialDerivative reconstruct.")
         if expression.is_cellwise_constant():
-            ufl_assert(expression.shape() == self._expression.shape(),
-                       "Operand shape mismatch in SpatialDerivative reconstruct.")
-            ufl_assert(self._expression.free_indices() == expression.free_indices(),
-                       "Free index mismatch in SpatialDerivative reconstruct.")
             return Zero(self.shape(), self.free_indices(),
                         self.index_dimensions())
-        return self.__class__._uflclass(expression)
+        return self.__class__._uflclass(expression, index)
 
     def operands(self):
         return (self._expression, self._index)
