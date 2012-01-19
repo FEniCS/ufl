@@ -24,7 +24,7 @@ converting UFL expressions to other representations."""
 # First added:  2008-05-07
 # Last changed: 2011-10-24
 
-from itertools import izip
+from itertools import izip, chain
 from inspect import getargspec
 
 from ufl.log import error, warning, debug, info
@@ -133,7 +133,7 @@ class Transformer(object):
         print "Visit stack in Transformer:"
         def sstr(s):
             ss = str(type(s)) + " ; "
-            n = 80 - len(ss)
+            n = 160 - len(ss)
             return ss + str(s)[:n]
         print "\n".join(sstr(s) for s in self._visit_stack)
         print "\\"*80
@@ -181,8 +181,6 @@ class Transformer(object):
         try:
             r = o.reconstruct(*operands)
         except:
-            print
-            print
             print
             print "FAILURE in reuse_if_possible:"
             print "type(o) =", type(o)
@@ -278,6 +276,13 @@ class Replacer(ReuseTransformer):
     def terminal(self, o):
         e = self._mapping.get(o)
         return o if e is None else e
+
+    def coefficient_derivative(self, o):
+        mapping_objects = set(self._mapping.iterkeys())
+        mapping_objects.update(self._mapping.iteritems())
+        if any(c in mapping_objects for c in chain(o._coefficients, o._arguments)):
+            error("Applying replace with arguments among derivative coefficients is not correctly implemented.")
+        return self.reuse_if_possible(o, *map(self.visit, o.operands()))
 
 class TreeFlattener(ReuseTransformer):
     def __init__(self):
