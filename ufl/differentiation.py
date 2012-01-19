@@ -141,6 +141,17 @@ class SpatialDerivative(Derivative):
 
         self._repr = "SpatialDerivative(%r, %r)" % (self._expression, self._index)
 
+    def reconstruct(self, expression, index):
+        "Return a new object of the same type with new operands."
+        ufl_assert(expression.shape() == self._expression.shape(),
+                   "Operand shape mismatch in SpatialDerivative reconstruct.")
+        ufl_assert(self._expression.free_indices() == expression.free_indices(),
+                   "Free index mismatch in SpatialDerivative reconstruct.")
+        if expression.is_cellwise_constant():
+            return Zero(self.shape(), self.free_indices(),
+                        self.index_dimensions())
+        return self.__class__._uflclass(expression, index)
+
     def operands(self):
         return (self._expression, self._index)
 
@@ -281,7 +292,6 @@ class Grad(CompoundDerivative):
                        "Operand shape mismatch in Grad reconstruct.")
             ufl_assert(self._f.free_indices() == op.free_indices(),
                        "Free index mismatch in Grad reconstruct.")
-            index_dimensions = {}
             return Zero(self.shape(), self.free_indices(),
                         self.index_dimensions())
         return self.__class__._uflclass(op)
@@ -374,7 +384,6 @@ class NablaGrad(CompoundDerivative):
                        "Operand shape mismatch in NablaGrad reconstruct.")
             ufl_assert(self._f.free_indices() == op.free_indices(),
                        "Free index mismatch in NablaGrad reconstruct.")
-            index_dimensions = {}
             return Zero(self.shape(), self.free_indices(),
                         self.index_dimensions())
         return self.__class__._uflclass(op)

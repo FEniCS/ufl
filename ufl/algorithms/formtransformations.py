@@ -38,6 +38,7 @@ from ufl.coefficient import Coefficient
 from ufl.constantvalue import Zero
 from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
+from ufl.algebra import Sum
 
 # Lists of all Expr classes
 from ufl.classes import ufl_classes, terminal_classes, nonterminal_classes
@@ -132,7 +133,8 @@ class PartExtracter(Transformer):
         parts_that_provide = {}
 
         # 1. Skip terms that provide too much
-        for term in x.operands():
+        original_terms = x.operands()
+        for term in original_terms:
 
             # Visit this term in the sum
             part, term_provides = self.visit(term)
@@ -165,7 +167,11 @@ class PartExtracter(Transformer):
                 most_provided = provideds
 
         terms = parts_that_provide[most_provided]
-        x = self.reuse_if_possible(x, *terms)
+        if len(terms) == len(original_terms):
+            x = self.reuse_if_possible(x, *terms)
+        else:
+            x = Sum(*terms)
+
         return (x, most_provided)
 
 
