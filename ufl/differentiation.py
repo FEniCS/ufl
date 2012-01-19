@@ -150,7 +150,7 @@ class SpatialDerivative(Derivative):
                        "Free index mismatch in SpatialDerivative reconstruct.")
             return Zero(self.shape(), self.free_indices(),
                         self.index_dimensions())
-        return self.__class__._uflclass(op)
+        return self.__class__._uflclass(expression)
 
     def operands(self):
         return (self._expression, self._index)
