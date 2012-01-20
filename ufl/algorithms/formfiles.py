@@ -59,60 +59,55 @@ To help you find the location of the error, a temporary script
 '%s'
 has been created and will now be executed with debug output enabled:"""
 
+def replace_include_statements(code):
+    "Replace '#include foo.ufl' statements with contents of foo.ufl."
+    if "#include" in code:
+        lines = code.split("\n")
+        newlines = []
+        regexp = re.compile(r"^#include (.*)$")
+        for l in lines:
+            m = regexp.search(l)
+            if m:
+                fn = m.groups()[0]
+                newlines.append("# --- begin %s" % fn)
+                newlines.extend(open(fn).readlines())
+                newlines.append("# --- end %s" % fn)
+            else:
+                newlines.append(l)
+        return "\n".join(l.rstrip() for l in newlines)
+    return code
+
 def read_ufl_file(filename):
-    "Load a .ufl file with elements, coefficients and forms."
+    "Read a .ufl file, handling file extension, file existance, and #include replacement."
     if not os.path.exists(filename) and filename[-4:] != ".ufl":
         filename = filename + ".ufl"
     if not os.path.exists(filename):
         error("File '%s' doesn't exist." % filename)
-
-    # Read form file and prepend import
     with open(filename) as f:
-        fcode = f.read()
-        # Replace #include foo.ufl statements with contents of foo.ufl
-        if "#include" in fcode:
-            lines = fcode.split("\n")
-            newlines = []
-            regexp = re.compile(r"^#include (.*)$")
-            for l in lines:
-                m = regexp.search(l)
-                if m:
-                    fn = m.groups()[0]
-                    newlines.append("# --- begin %s" % fn)
-                    newlines.extend(open(fn).readlines())
-                    newlines.append("# --- end %s" % fn)
-                else:
-                    newlines.append(l)
-            fcode = "\n".join(l.rstrip() for l in newlines)
+        code = replace_include_statements(f.read())
+    return code
 
-    return fcode
-
-def execute_ufl_code(filename):
-    # Read code from file
-    fcode = read_ufl_file(filename)
-
+def execute_ufl_code(uflcode, filename):
     # Execute code
     namespace = {}
     try:
-        code = "from ufl import *\n" + fcode
-        exec code in namespace
+        pycode = "from ufl import *\n" + uflcode
+        exec pycode in namespace
     except:
-        # Dump code for debugging if this fails
+        # Dump python code for debugging if this fails
         basename = os.path.splitext(os.path.basename(filename))[0]
         basename = "%s_debug" % basename
         pyname = "%s.py" % basename
-        code = "#!/usr/bin/env python\nfrom ufl import *\nset_level(DEBUG)\n" + fcode
+        pycode = "#!/usr/bin/env python\nfrom ufl import *\nset_level(DEBUG)\n" + uflcode
         with file(pyname, "w") as f:
-            f.write(code)
+            f.write(pycode)
         warning(infostring % pyname)
         m = __import__(basename)
         error("An error occured, aborting load_forms.")
     return namespace
 
-def load_ufl_file(filename):
-    "Load a .ufl file with elements, coefficients and forms."
-    namespace = execute_ufl_code(filename)
-
+def interpret_ufl_namespace(namespace):
+    "Takes a namespace dict from an executed ufl file and converts it to a FileData object."
     # Object to hold all returned data
     ufd = FileData()
 
@@ -204,6 +199,13 @@ def load_ufl_file(filename):
 
     # Return file data
     return ufd
+
+def load_ufl_file(filename):
+    "Load a .ufl file with elements, coefficients and forms."
+    # Read code from file and execute it
+    uflcode = read_ufl_file(filename)
+    namespace = execute_ufl_code(uflcode, filename)
+    return interpret_ufl_namespace(namespace)
 
 def load_forms(filename):
     "Return a list of all forms in a file."
