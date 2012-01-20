@@ -175,9 +175,9 @@ class FiniteElement(FiniteElementBase):
         # Check whether this family is an alias for something else
         if family in aliases:
             (name, cell, r) = aliases[family](family, cell, degree, form_degree)
-            info_blue("%s, is an alias for %s " % (
-                    (family, cell, degree, form_degree),
-                    (name, cell, r)))
+            #info_blue("%s, is an alias for %s " % (
+            #        (family, cell, degree, form_degree),
+            #        (name, cell, r)))
             self.__init__(name, cell, r, quad_scheme)
             return
 
