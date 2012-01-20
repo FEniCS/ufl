@@ -32,46 +32,72 @@ class ExpandIndicesTestCase(UflTestCase):
         #       their unique constant values are used for validation.
         
         def SF(x, derivatives=()): 
-            if derivatives == ():
-                return 3
-            elif derivatives == (0,):
+            # first order derivatives
+            if derivatives == (0,):
                 return 0.30
             elif derivatives == (1,):
                 return 0.31
-            return 0
-        
+            # second order derivatives
+            elif derivatives == (0,0):
+                return 0
+            elif derivatives in ((1,0), (0,1)):
+                return 0
+            elif derivatives == (1,1):
+                return 0
+            # function value
+            assert derivatives == ()
+            return 3
+
         def SF2(x, derivatives=()):
-            if derivatives == ():
-                return 3
-            elif derivatives == (0,):
+            # first order derivatives
+            if derivatives == (0,):
                 return 0.30
             elif derivatives == (1,):
                 return 0.31
+            # second order derivatives
             elif derivatives == (0,0):
                 return 3.300
             elif derivatives in ((1,0), (0,1)):
                 return 3.310
             elif derivatives == (1,1):
                 return 3.311
-            return 0
+            # function value
+            assert derivatives == ()
+            return 3
         
         def VF(x, derivatives=()):
-            if derivatives == ():
-                return (5, 7)
-            elif derivatives == (0,):
+            # first order derivatives
+            if derivatives == (0,):
                 return (0.50, 0.70)
             elif derivatives == (1,):
                 return (0.51, 0.71)
-            return (0, 0)
+            # second order derivatives
+            elif derivatives == (0,0):
+                return (0.20, 0.21)
+            elif derivatives in ((1,0), (0,1)):
+                return (0.30, 0.31)
+            elif derivatives == (1,1):
+                return (0.40, 0.41)
+            # function value
+            assert derivatives == ()
+            return (5, 7)
         
         def TF(x, derivatives=()):
-            if derivatives == ():
-                return ((11, 13), (17, 19))
-            elif derivatives == (0,):
+            # first order derivatives
+            if derivatives == (0,):
                 return ((1.10, 1.30), (1.70, 1.90))
             elif derivatives == (1,):
                 return ((1.11, 1.31), (1.71, 1.91))
-            return ((0, 0), (0, 0))
+            # second order derivatives
+            elif derivatives == (0,0):
+                return ((10.00, 10.01), (10.10, 10.11))
+            elif derivatives in ((1,0), (0,1)):
+                return ((12.00, 12.01), (12.10, 12.11))
+            elif derivatives == (1,1):
+                return ((11.00, 11.01), (11.10, 11.11))
+            # function value
+            assert derivatives == ()
+            return ((11, 13), (17, 19))
         
         self.x = (1.23, 3.14)
         self.mapping = { self.sf: SF, self.sf2: SF2, self.vf: VF, self.tf: TF }
@@ -237,6 +263,12 @@ class ExpandIndicesTestCase(UflTestCase):
         a = div(grad(sf2))
         compare(a, 3.300 + 3.311)
 
+        a = div(grad(vf))
+        compare(dot(a,a), (0.20+0.40)**2 + (0.21+0.41)**2)
+
+        a = div(grad(tf))
+        compare(inner(a,a), (10.00+11.00)**2 + (10.01+11.01)**2 + (10.10+11.10)**2 + (10.11+11.11)**2)
+
     def test_expand_indices_nabla_div_grad(self):
         sf = self.sf
         sf2 = self.sf2
@@ -249,6 +281,13 @@ class ExpandIndicesTestCase(UflTestCase):
 
         a = nabla_div(nabla_grad(sf2))
         compare(a, 3.300 + 3.311)
+
+        a = nabla_div(nabla_grad(vf))
+        compare(dot(a,a), (0.20+0.40)**2 + (0.21+0.41)**2)
+
+        a = nabla_div(nabla_grad(tf))
+        compare(inner(a,a), (10.00+11.00)**2 + (10.01+11.01)**2 + (10.10+11.10)**2 + (10.11+11.11)**2)
+
 
 if __name__ == "__main__":
     main()
