@@ -126,9 +126,9 @@ class UtilityType(Terminal):
     def is_cellwise_constant(self):
         error("Calling is_cellwise_constant on a utility type is an error.")
 
-#--- Non-tensor terminal nodes ---
+#--- Non-tensor types ---
 
-class Tuple(WrapperType):
+class Tuple(WrapperType): # This is not a terminal! Move to another file!
     "For internal use, never to be created by users."
     __slots__ = ("_items", "_repr")
     def __init__(self, *items):
