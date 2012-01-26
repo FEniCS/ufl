@@ -87,6 +87,7 @@ class IndexAnnotated(object):
 
 #--- Class for representing zero tensors of different shapes ---
 
+# TODO: Add geometric dimension and Argument dependencies to Zero?
 class Zero(ConstantValue, IndexAnnotated):
     "UFL literal type: Representation of a zero valued expression."
     __slots__ = ()
