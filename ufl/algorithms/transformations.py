@@ -22,7 +22,7 @@ converting UFL expressions to other representations."""
 # Modified by Anders Logg, 2009-2010
 #
 # First added:  2008-05-07
-# Last changed: 2011-10-24
+# Last changed: 2012-01-25
 
 from itertools import izip, chain
 from inspect import getargspec
@@ -30,13 +30,13 @@ from inspect import getargspec
 from ufl.log import error, warning, debug, info
 from ufl.common import Stack, StackDict
 from ufl.assertions import ufl_assert
-from ufl.classes import Expr, Terminal, Product, Index, FixedIndex, ListTensor, Variable, Zero
+from ufl.classes import Expr, Terminal, Product, Index, FixedIndex, ListTensor, Variable, Zero, CoefficientDerivative
 from ufl.indexing import indices, complete_shape
 from ufl.tensors import as_tensor, as_matrix, as_vector
 from ufl.form import Form
 from ufl.integral import Integral
 from ufl.classes import all_ufl_classes
-from ufl.algorithms.analysis import has_type, extract_duplications
+from ufl.algorithms.analysis import has_type, extract_type, extract_duplications
 from ufl.constantvalue import as_ufl
 
 def transform(expression, handlers):
@@ -279,11 +279,7 @@ class Replacer(ReuseTransformer):
         return o if e is None else e
 
     def coefficient_derivative(self, o):
-        mapping_objects = set(self._mapping.iterkeys())
-        mapping_objects.update(self._mapping.iteritems())
-        if any(c in mapping_objects for c in chain(o._coefficients, o._arguments)):
-            error("Applying replace with arguments among derivative coefficients is not correctly implemented.")
-        return self.reuse_if_possible(o, *map(self.visit, o.operands()))
+        error("Coefficient derivatives should be expanded before applying replace.")
 
 class TreeFlattener(ReuseTransformer):
     def __init__(self):
@@ -888,6 +884,13 @@ def replace(e, mapping):
         A dict with from:to replacements to perform.
     """
     mapping2 = dict((k, as_ufl(v)) for (k,v) in mapping.iteritems())
+
+    # Workaround for problem with delated derivative evaluation
+    if extract_type(e, CoefficientDerivative):
+        # Hack to avoid circular includes...
+        from ufl.algorithms.ad import expand_derivatives
+        e = expand_derivatives(e)
+
     return apply_transformer(e, Replacer(mapping2))
 
 def flatten(e): # TODO: Fix or remove! Maybe this works better now with IndexSum marking implicit summations.

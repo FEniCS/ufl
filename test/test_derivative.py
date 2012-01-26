@@ -566,6 +566,30 @@ class DerivativeTestCase(UflTestCase):
         J2 = derivative(F, w, u)
         # TODO: assert something
 
+    # --- Interaction with replace
+
+    def test_derivative_replace_works_together(self):
+        cell = triangle
+        V = FiniteElement("CG", cell, 1)
+
+        v = TestFunction(V)
+        u = TrialFunction(V)
+        f = Coefficient(V)
+        g = Coefficient(V)
+
+        M = cos(f)*sin(g)
+        F = derivative(M, f, v)
+        J = derivative(F, f, u)
+        JR = replace(J, { f: g })
+
+        F2 = -sin(f)*v*sin(g)
+        J2 = -cos(f)*u*v*sin(g)
+        JR2 = -cos(g)*u*v*sin(g)
+
+        self.assertEqualBySampling(F, F2)
+        self.assertEqualBySampling(J, J2)
+        self.assertEqualBySampling(JR, JR2)
+
     # --- Scratch space
 
     def test_foobar(self):
