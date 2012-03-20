@@ -210,16 +210,14 @@ class Form(object):
 
     def __repr__(self):
         if self._repr is None:
-            self._repr = "Form([%s])" % ", ".join(repr(itg) for itg in self._integrals)
+            self._repr = "Form([%s])" % ", ".join(repr(itg) for itg in self._integrals) # REPR do we really want to cache this? may be costly
         return self._repr
 
     def __hash__(self):
         if self._hash is None:
             self._hash = hash(tuple(type(itg) for itg in self._integrals))
             # TODO: This is probably better, using a couple of levels of types from the integrands:
-            #self._hash = hash(tuple((compute_hash(itg.integrand()), itg.measure()) for itg in self._integrals))
-            # TODO: This is probably best, is it that slow? Don't remember why it was disabled...
-            #self._hash = hash(repr(self))
+            #self._hash = hash(tuple((compute_hash(itg.integrand()), itg.measure()) for itg in self._integrals)) # REPR try this to improve form hashing
         return self._hash
 
     def __eq__(self, other):

@@ -219,7 +219,7 @@ class Integral(object):
         ufl_assert(isinstance(measure, Measure), "Expecting measure to be a Measure instance.")
         self._integrand = integrand
         self._measure   = measure
-        self._repr = "Integral(%r, %r)" % (self._integrand, self._measure)
+        self._repr = "Integral(%r, %r)" % (self._integrand, self._measure) # REPR don't cache here, do in form
 
     def reconstruct(self, integrand):
         """Construct a new Integral object with some properties replaced with new values.

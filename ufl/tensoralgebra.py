@@ -191,7 +191,8 @@ class Inner(CompoundTensorOperator):
     def __init__(self, a, b):
         CompoundTensorOperator.__init__(self)
         # sort operands by their repr TODO: This may be slow, can we do better? Needs to be completely independent of the outside world.
-        a, b = sorted((a,b), key = lambda x: repr(x))
+        a, b = sorted((a,b), key = lambda x: repr(x)) # REPR this is slow and not safe!
+        #a, b = sorted((a,b), cmp=cmp_expr) # REPR FIXME use this instead
         self._a = a
         self._b = b
         self._free_indices, self._index_dimensions = merge_indices(a, b)

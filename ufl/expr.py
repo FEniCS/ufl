@@ -28,7 +28,7 @@ This is to avoid circular dependencies between Expr and its subclasses.
 # Modified by Anders Logg, 2008
 #
 # First added:  2008-03-14
-# Last changed: 2011-08-10
+# Last changed: 2012-03-20
 
 #--- The base object for all UFL expression tree nodes ---
 
@@ -40,7 +40,7 @@ _class_usage_statistics = defaultdict(int)
 def typetuple(e):
     return tuple(type(o) for o in e.operands())
 
-def compute_hash(expr):
+def compute_hash(expr): # TODO: Test how well this distributes objects with a complex form
     tt = tuple((type(o), typetuple(o)) for o in expr.operands())
     return hash((type(expr), tt))
 
@@ -52,17 +52,6 @@ class Expr(object):
     def __init__(self):
         # Comment out this line to disable class construction statistics (used in some unit tests)
         _class_usage_statistics[self.__class__._uflclass] += 1
-        #self._hash = None
-
-    #def _lock(self): # TODO: Try this out on most types
-    #    "Call this after constructing object to make it forcibly immutable."
-    #    self._locked = True
-
-    #def __setattr__(self, name, value):
-    #    if hasattr(self, '_locked') and self._locked:
-    #        raise Exception("%s is immutable, cannot set property %s." % (type(self), name))
-    #    else:
-    #        return object.__init__(self, name, value)
 
     #=== Abstract functions that must be implemented by subclasses ===
     
@@ -78,7 +67,6 @@ class Expr(object):
     # All subclasses must implement operands
     def operands(self):
         "Return a sequence with all subtree nodes in expression tree."
-        #return self._operands
         raise NotImplementedError(self.__class__.operands)
     
     #--- Functions for general properties of expression ---
@@ -86,7 +74,6 @@ class Expr(object):
     # All subclasses must implement shape
     def shape(self):
         "Return the tensor shape of the expression."
-        #return self._shape
         raise NotImplementedError(self.__class__.shape)
     
     # Subclasses can implement rank if it is known directly (TODO: Is this used anywhere? Usually want to compare shapes anyway.)
@@ -122,24 +109,22 @@ class Expr(object):
         raise NotImplementedError(self.__class__.is_cellwise_constant)
 
     #--- Functions for float evaluation ---
-    
+
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate expression at given coordinate with given values for terminals."""
         raise NotImplementedError(self.__class__.evaluate)
-    
+
     #--- Functions for index handling ---
-    
+
     # All subclasses that can have indices must implement free_indices
     def free_indices(self):
         "Return a tuple with the free indices (unassigned) of the expression."
-        #return self._free_indices
         raise NotImplementedError(self.__class__.free_indices)
     
     # All subclasses must implement index_dimensions
     def index_dimensions(self):
         """Return a dict with the free or repeated indices in the expression
         as keys and the dimensions of those indices as values."""
-        #return self._index_dimensions
         raise NotImplementedError(self.__class__.index_dimensions)
     
     #--- Special functions for string representations ---
@@ -147,36 +132,29 @@ class Expr(object):
     # All subclasses must implement __repr__
     def __repr__(self):
         "Return string representation this object can be reconstructed from."
-        #return self._repr
         raise NotImplementedError(self.__class__.__repr__)
     
     # All subclasses must implement __str__
     def __str__(self):
         "Return pretty print string representation of this object."
-        #return self._str
         raise NotImplementedError(self.__class__.__str__)
     
     #--- Special functions used for processing expressions ---
     
     def __hash__(self):
         "Compute a hash code for this expression. Used by sets and dicts."
-        # Using hash cache to avoid recomputation
-        #if self._hash is None:
-        
-        h = compute_hash(self)
-        return h
+        return compute_hash(self)
 
-        #self._hash = h
-        #return self._hash
-        #return hash(repr(self))
-    
     def __eq__(self, other):
         """Checks whether the two expressions are represented the
-        exact same way using repr. This does not check if the forms
-        are mathematically equal or equivalent! Used by sets and dicts."""
-        #return (type(self) == type(other)) and ((self is other) \
-        #      or (self.operands() == other.operands()))
-        return repr(self) == repr(other)
+        exact same way. This does not check if the expressions are
+        mathematically equal or equivalent! Used by sets and dicts."""
+        #if type(self) != type(other):
+        #    return False
+        #if self is other:
+        #    return True
+        #return self.operands() == other.operands() REPR alternative implementation, worst case O(n)!
+        return repr(self) == repr(other) # REPR this requires caching of repr strings to be O(1)
 
     def __nonzero__(self):
         "By default, all Expr are nonzero."
@@ -187,7 +165,6 @@ class Expr(object):
         s = self.shape()
         if len(s) == 1:
             return s[0]
-        #error("Cannot take length of non-vector expression.")
         raise NotImplementedError("Cannot take length of non-vector expression.")
     
     def __iter__(self):

@@ -63,7 +63,6 @@ class Index(IndexBase, Counted):
 class FixedIndex(IndexBase):
     """UFL value: An index with a specific value assigned."""
     __slots__ = ("_value", "_repr")
-    
     def __init__(self, value):
         IndexBase.__init__(self)
         if not isinstance(value, int):
@@ -89,6 +88,14 @@ class FixedIndex(IndexBase):
     
     def __repr__(self):
         return self._repr
+
+_fixed_indices = {}
+def fixed_index(value): # REPR FIXME Use instead of FixedIndex everywhere
+    ii = _fixed_indices.get(value)
+    if ii is None:
+        ii = FixedIndex(value)
+        _fixed_indices[value] = ii
+    return ii
 
 class MultiIndex(UtilityType):
     "Represents a sequence of indices, either fixed or free."
