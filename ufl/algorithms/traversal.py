@@ -75,13 +75,8 @@ def traverse_operands(expr):
             yield e
             input.extend(e.operands())
 
-def fast_pre_traversal(expr):
-    """Yields o for each tree node o in expr, parent before child."""
-    input = [expr]
-    while input:
-        l = input.pop()
-        yield l
-        input.extend(l.operands())
+# Moved to common because it is without dependencies and this avoids circular deps
+from ufl.common import fast_pre_traversal
 
 def pre_traversal(expr, stack=None):
     """Yields o for each tree node o in expr, parent before child.

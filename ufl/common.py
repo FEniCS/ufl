@@ -94,6 +94,14 @@ def iter_tree(tree):
     else:
         yield tree
 
+def fast_pre_traversal(expr):
+    """Yields o for each tree node o in expr, parent before child."""
+    input = [expr]
+    while input:
+        l = input.pop()
+        yield l
+        input.extend(l.operands())
+
 def split_dict(d, criteria):
     "Split a dict d into two dicts based on a criteria on the keys."
     a = {}
