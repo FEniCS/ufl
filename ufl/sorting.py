@@ -57,7 +57,7 @@ def cmp_expr(a, b):
 
     # ... another kind of Terminal object?
     elif isinstance(a, Terminal) and not isinstance(a, MultiIndex):
-
+        # The cost of repr on a terminal is fairly small, and bounded
         c = cmp(repr(a), repr(b))
 
     # Not a terminal, sort by number of children (usually the same)
