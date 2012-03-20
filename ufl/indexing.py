@@ -90,7 +90,7 @@ class FixedIndex(IndexBase):
         return self._repr
 
 _fixed_indices = {}
-def fixed_index(value): # REPR FIXME Use instead of FixedIndex everywhere
+def fixed_index(value): # TODO: move into a FixedIndex.__new__ implementation
     ii = _fixed_indices.get(value)
     if ii is None:
         ii = FixedIndex(value)
@@ -99,13 +99,13 @@ def fixed_index(value): # REPR FIXME Use instead of FixedIndex everywhere
 
 class MultiIndex(UtilityType):
     "Represents a sequence of indices, either fixed or free."
-    __slots__ = ("_indices", "_str", "_repr")
-    
+    __slots__ = ("_indices",)
+
     def __init__(self, ii, idims=None):
         UtilityType.__init__(self)
         
         if isinstance(ii, int):
-            ii = (FixedIndex(ii),)
+            ii = (fixed_index(ii),)
         elif isinstance(ii, IndexBase):
             ii = (ii,)
         elif isinstance(ii, tuple):
@@ -128,8 +128,6 @@ class MultiIndex(UtilityType):
                                    "Non-integer index dimension provided.")
         self._indices = ii
         self._idims = idims
-        self._str = ", ".join(str(i) for i in self._indices)
-        self._repr = "MultiIndex(%r, %r)" % (self._indices, self._idims) # REPR: cache or not?
     
     def evaluate(self, x, mapping, component, index_values):
         # Build component from index values
@@ -168,11 +166,11 @@ class MultiIndex(UtilityType):
         return NotImplemented
 
     def __str__(self):
-        return self._str
-    
+        return ", ".join(str(i) for i in self._indices)
+
     def __repr__(self):
-        return self._repr
-    
+        return "MultiIndex(%r, %r)" % (self._indices, self._idims) # REPR: cache or not?
+
     def __len__(self):
         return len(self._indices)
     
@@ -190,7 +188,7 @@ def as_index(i):
     if isinstance(i, IndexBase):
         return i
     elif isinstance(i, int):
-        return FixedIndex(i)
+        return fixed_index(i)
     elif isinstance(i, IndexBase):
         return (i,)
     error("Invalid object %s to create index from." % repr(i))

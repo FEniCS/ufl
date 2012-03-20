@@ -30,11 +30,11 @@ from ufl.log import error
 from ufl.common import Stack, StackDict
 from ufl.assertions import ufl_assert
 from ufl.finiteelement import TensorElement
-from ufl.classes import Expr, Terminal, Index, FixedIndex, ListTensor, IndexSum, Indexed, FormArgument
+from ufl.classes import Expr, Terminal, ListTensor, IndexSum, Indexed, FormArgument
 from ufl.tensors import as_tensor, ComponentTensor
 from ufl.permutation import compute_indices
 from ufl.constantvalue import Zero
-from ufl.indexing import MultiIndex
+from ufl.indexing import Index, FixedIndex, MultiIndex, fixed_index
 from ufl.differentiation import SpatialDerivative
 from ufl.algorithms.graph import Graph
 from ufl.algorithms.transformations import ReuseTransformer, apply_transformer, transform_integrands
@@ -208,7 +208,7 @@ class IndexExpander(ReuseTransformer):
         iiold = ii
         i, = ii
         if isinstance(i, Index):
-            ii = MultiIndex((FixedIndex(self._index2value[i]),), {})
+            ii = MultiIndex((fixed_index(self._index2value[i]),), {})
 
         # Hide used index i (doing this is not correct behaviour)
         #if isinstance(i, Index):
@@ -310,7 +310,7 @@ def expand_indices2_alg(e):
                     if isinstance(j, FixedIndex):
                         comp.append(j)
                     elif isinstance(j, Index):
-                        comp.append(FixedIndex(p[k]))
+                        comp.append(fixed_index(p[k]))
                         k += 1
                 e = MultiIndex(tuple(comp), {})
 
