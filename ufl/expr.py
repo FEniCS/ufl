@@ -133,7 +133,7 @@ class Expr(object):
     def __repr__(self):
         "Return string representation this object can be reconstructed from."
         raise NotImplementedError(self.__class__.__repr__)
-    
+
     # All subclasses must implement __str__
     def __str__(self):
         "Return pretty print string representation of this object."
@@ -149,10 +149,10 @@ class Expr(object):
         """Checks whether the two expressions are represented the
         exact same way. This does not check if the expressions are
         mathematically equal or equivalent! Used by sets and dicts."""
-        #if type(self) != type(other):
-        #    return False
-        #if self is other:
-        #    return True
+        if type(self) != type(other):
+            return False
+        if self is other:
+            return True
         #return self.operands() == other.operands() REPR alternative implementation, worst case O(n)!
         return repr(self) == repr(other) # REPR this requires caching of repr strings to be O(1)
 
