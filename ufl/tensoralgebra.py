@@ -27,6 +27,7 @@ from ufl.constantvalue import ConstantValue, Zero
 from ufl.indexing import Index, indices
 from ufl.algebra import AlgebraOperator
 from ufl.precedence import parstr
+from ufl.sorting import cmp_expr
 
 def merge_indices(a, b):
     ai = a.free_indices()
@@ -190,9 +191,11 @@ class Inner(CompoundTensorOperator):
 
     def __init__(self, a, b):
         CompoundTensorOperator.__init__(self)
-        # sort operands by their repr TODO: This may be slow, can we do better? Needs to be completely independent of the outside world.
+        # sort operands for unique representation,
+        # must be independent of various counts etc.
+        # as explained in cmp_expr
+        #a, b = sorted((a,b), cmp=cmp_expr)
         a, b = sorted((a,b), key = lambda x: repr(x)) # REPR this is slow and not safe!
-        #a, b = sorted((a,b), cmp=cmp_expr) # REPR FIXME use this instead
         self._a = a
         self._b = b
         self._free_indices, self._index_dimensions = merge_indices(a, b)
@@ -415,7 +418,8 @@ class Cofactor(CompoundTensorOperator):
         CompoundTensorOperator.__init__(self)
         sh = A.shape()
         ufl_assert(len(sh) == 2, "Cofactor of tensor with rank != 2 is undefined.")
-        ufl_assert(sh[0] == sh[1], "Cannot take cofactor of rectangular matrix with dimensions %s." % repr(sh))
+        if sh[0] != sh[1]:
+            error("Cannot take cofactor of rectangular matrix with dimensions %s." % repr(sh))
         ufl_assert(not A.free_indices(), "Not expecting free indices in Cofactor.")
         ufl_assert(not isinstance(A, Zero), "Cannot take cofactor of zero matrix.")
         self._A = A
@@ -444,8 +448,8 @@ class Deviatoric(CompoundTensorOperator):
     def __new__(cls, A):
         sh = A.shape()
         ufl_assert(len(sh) == 2, "Deviatoric part of tensor with rank != 2 is undefined.")
-        ufl_assert(sh[0] == sh[1],
-            "Cannot take deviatoric part of rectangular matrix with dimensions %s." % repr(sh))
+        if sh[0] != sh[1]:
+            error("Cannot take deviatoric part of rectangular matrix with dimensions %s." % repr(sh))
         ufl_assert(not A.free_indices(), "Not expecting free indices in Deviatoric.")
         if isinstance(A, Zero):
             return Zero(A.shape(), A.free_indices(), A.index_dimensions())
@@ -479,8 +483,8 @@ class Skew(CompoundTensorOperator):
     def __new__(cls, A):
         sh = A.shape()
         ufl_assert(len(sh) == 2, "Skew symmetric part of tensor with rank != 2 is undefined.")
-        ufl_assert(sh[0] == sh[1],
-            "Cannot take skew part of rectangular matrix with dimensions %s." % repr(sh))
+        if sh[0] != sh[1]:
+            error("Cannot take skew part of rectangular matrix with dimensions %s." % repr(sh))
         ufl_assert(not A.free_indices(), "Not expecting free indices in Skew.")
         if isinstance(A, Zero):
             return Zero(A.shape(), A.free_indices(), A.index_dimensions())
@@ -514,8 +518,8 @@ class Sym(CompoundTensorOperator):
     def __new__(cls, A):
         sh = A.shape()
         ufl_assert(len(sh) == 2, "Symmetric part of tensor with rank != 2 is undefined.")
-        ufl_assert(sh[0] == sh[1],
-            "Cannot take symmetric part of rectangular matrix with dimensions %s." % repr(sh))
+        if sh[0] != sh[1]:
+            error("Cannot take symmetric part of rectangular matrix with dimensions %s." % repr(sh))
         ufl_assert(not A.free_indices(), "Not expecting free indices in Sym.")
         if isinstance(A, Zero):
             return Zero(A.shape(), A.free_indices(), A.index_dimensions())
