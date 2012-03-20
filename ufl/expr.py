@@ -153,8 +153,7 @@ class Expr(object):
             return False
         if self is other:
             return True
-        #return self.operands() == other.operands() REPR alternative implementation, worst case O(n)!
-        return repr(self) == repr(other) # REPR this requires caching of repr strings to be O(1)
+        return self.operands() == other.operands()
 
     def __nonzero__(self):
         "By default, all Expr are nonzero."
