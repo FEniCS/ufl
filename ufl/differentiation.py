@@ -112,7 +112,7 @@ def split_indices(expression, idx):
 
 class SpatialDerivative(Derivative):
     "Partial derivative of an expression w.r.t. spatial directions given by indices."
-    __slots__ = ("_expression", "_index", "_shape", "_free_indices", "_index_dimensions", "_repr")
+    __slots__ = ("_expression", "_index", "_shape", "_free_indices", "_index_dimensions",)
     def __new__(cls, expression, index):
         # Return zero if expression is trivially constant
         if expression.is_cellwise_constant():
@@ -138,8 +138,6 @@ class SpatialDerivative(Derivative):
         self._free_indices = fi
         self._index_dimensions = idims
         self._shape = expression.shape()
-
-        self._repr = "SpatialDerivative(%r, %r)" % (self._expression, self._index)
 
     def operands(self):
         return (self._expression, self._index)
@@ -184,10 +182,10 @@ class SpatialDerivative(Derivative):
         return "d/dx_%s %s" % (self._index, parstr(self._expression, self))
 
     def __repr__(self):
-        return self._repr
+        return "SpatialDerivative(%r, %r)" % (self._expression, self._index)
 
 class VariableDerivative(Derivative):
-    __slots__ = ("_f", "_v", "_free_indices", "_index_dimensions", "_shape", "_repr")
+    __slots__ = ("_f", "_v", "_free_indices", "_index_dimensions", "_shape",)
     def __new__(cls, f, v):
         # Return zero if expression is trivially independent of Coefficient
         if isinstance(f, Terminal):# and not isinstance(f, Variable):
@@ -222,7 +220,6 @@ class VariableDerivative(Derivative):
         self._index_dimensions = dict(fid)
         self._index_dimensions.update(vid)
         self._shape = f.shape() + v.shape()
-        self._repr = "VariableDerivative(%r, %r)" % (self._f, self._v)
 
     def operands(self):
         return (self._f, self._v)
@@ -242,7 +239,7 @@ class VariableDerivative(Derivative):
         return "d/d[%s] %s" % (self._v, parstr(self._f, self))
 
     def __repr__(self):
-        return self._repr
+        return "VariableDerivative(%r, %r)" % (self._f, self._v)
 
 #--- Compound differentiation objects ---
 
@@ -253,7 +250,7 @@ class CompoundDerivative(Derivative):
         Derivative.__init__(self)
 
 class Grad(CompoundDerivative):
-    __slots__ = ("_f", "_dim", "_repr")
+    __slots__ = ("_f", "_dim",)
 
     def __new__(cls, f):
         # Return zero if expression is trivially constant
@@ -272,7 +269,6 @@ class Grad(CompoundDerivative):
         self._dim = f.geometric_dimension()
         ufl_assert(not f.free_indices(),\
             "Taking gradient of an expression with free indices is not supported.")
-        self._repr = "Grad(%r)" % self._f
 
     def reconstruct(self, op):
         "Return a new object of the same type with new operands."
@@ -301,10 +297,10 @@ class Grad(CompoundDerivative):
         return "grad(%s)" % self._f
 
     def __repr__(self):
-        return self._repr
+        return "Grad(%r)" % self._f
 
 class Div(CompoundDerivative):
-    __slots__ = ("_f", "_repr")
+    __slots__ = ("_f",)
 
     def __new__(cls, f):
         ufl_assert(not f.free_indices(), \
@@ -324,7 +320,6 @@ class Div(CompoundDerivative):
     def __init__(self, f):
         CompoundDerivative.__init__(self)
         self._f = f
-        self._repr = "Div(%r)" % self._f
 
     def operands(self):
         return (self._f, )
@@ -342,10 +337,10 @@ class Div(CompoundDerivative):
         return "div(%s)" % self._f
 
     def __repr__(self):
-        return self._repr
+        return "Div(%r)" % self._f
 
 class NablaGrad(CompoundDerivative):
-    __slots__ = ("_f", "_dim", "_repr")
+    __slots__ = ("_f", "_dim",)
 
     def __new__(cls, f):
         # Return zero if expression is trivially constant
@@ -364,7 +359,6 @@ class NablaGrad(CompoundDerivative):
         self._dim = f.geometric_dimension()
         ufl_assert(not f.free_indices(),\
             "Taking gradient of an expression with free indices is not supported.")
-        self._repr = "NablaGrad(%r)" % self._f
 
     def reconstruct(self, op):
         "Return a new object of the same type with new operands."
@@ -393,10 +387,10 @@ class NablaGrad(CompoundDerivative):
         return "nabla_grad(%s)" % self._f
 
     def __repr__(self):
-        return self._repr
+        return "NablaGrad(%r)" % self._f
 
 class NablaDiv(CompoundDerivative):
-    __slots__ = ("_f", "_repr")
+    __slots__ = ("_f",)
 
     def __new__(cls, f):
         ufl_assert(not f.free_indices(), \
@@ -416,7 +410,6 @@ class NablaDiv(CompoundDerivative):
     def __init__(self, f):
         CompoundDerivative.__init__(self)
         self._f = f
-        self._repr = "NablaDiv(%r)" % self._f
 
     def operands(self):
         return (self._f, )
@@ -434,10 +427,10 @@ class NablaDiv(CompoundDerivative):
         return "nabla_div(%s)" % self._f
 
     def __repr__(self):
-        return self._repr
+        return "NablaDiv(%r)" % self._f
 
 class Curl(CompoundDerivative):
-    __slots__ = ("_f", "_dim", "_repr")
+    __slots__ = ("_f", "_dim",)
 
     def __new__(cls, f):
         # Validate input
@@ -460,7 +453,6 @@ class Curl(CompoundDerivative):
         sh = { (): (2,), (2,): (), (3,): (3,) }[f.shape()]
         self._f = f
         self._shape = sh
-        self._repr = "Curl(%r)" % self._f
 
     def operands(self):
         return (self._f, )
@@ -478,5 +470,5 @@ class Curl(CompoundDerivative):
         return "curl(%s)" % self._f
 
     def __repr__(self):
-        return self._repr
+        return "Curl(%r)" % self._f
 
