@@ -191,11 +191,15 @@ class Inner(CompoundTensorOperator):
 
     def __init__(self, a, b):
         CompoundTensorOperator.__init__(self)
+
         # sort operands for unique representation,
         # must be independent of various counts etc.
         # as explained in cmp_expr
-        #a, b = sorted((a,b), cmp=cmp_expr)
-        a, b = sorted((a,b), key = lambda x: repr(x)) # REPR this is slow and not safe!
+        a, b = sorted((a,b), cmp=cmp_expr)
+
+        # old version, slow and unsafe:
+        #a, b = sorted((a,b), key = lambda x: repr(x))
+
         self._a = a
         self._b = b
         self._free_indices, self._index_dimensions = merge_indices(a, b)
