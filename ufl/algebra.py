@@ -117,7 +117,7 @@ class Sum(AlgebraOperator):
 
     def _init(self, *operands):
         self._operands = operands
-        self._repr = "Sum(%s)" % ", ".join(repr(o) for o in operands)
+        #self._repr = "Sum(%s)" % ", ".join(repr(o) for o in operands)
     
     def __init__(self, *operands):
         AlgebraOperator.__init__(self)
@@ -158,9 +158,10 @@ class Sum(AlgebraOperator):
             return s
         # Implementation with no line splitting:
         return "%s" % " + ".join(ops)
-    
+
     def __repr__(self):
-        return self._repr
+        #return self._repr
+        return "Sum(%s)" % ", ".join(repr(o) for o in self._operands)
 
 class Product(AlgebraOperator):
     """The product of two or more UFL objects."""
@@ -257,7 +258,7 @@ class Product(AlgebraOperator):
         self._free_indices     = unique_indices(tuple(chain(*(o.free_indices() for o in operands))))
         self._index_dimensions = mergedicts([o.index_dimensions() for o in operands])
         
-        self._repr = "Product(%s)" % ", ".join(repr(o) for o in self._operands)
+        #self._repr = "Product(%s)" % ", ".join(repr(o) for o in self._operands)
     
     def __init__(self, *operands):
         AlgebraOperator.__init__(self)
@@ -310,7 +311,8 @@ class Product(AlgebraOperator):
         return "%s" % " * ".join(ops)
     
     def __repr__(self):
-        return self._repr
+        #return self._repr
+        return "Product(%s)" % ", ".join(repr(o) for o in self._operands)
 
 class Division(AlgebraOperator):
     __slots__ = ("_a", "_b", "_repr")
