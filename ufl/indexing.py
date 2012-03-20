@@ -45,7 +45,7 @@ class Index(IndexBase, Counted):
         if len(c) > 1:
             c = "{%s}" % c
         self._str = "i_%s" % c
-        self._repr = "Index(%d)" % self._count
+        self._repr = "Index(%d)" % self._count # REPR: cache or not?
         self._hash = hash(self._repr)
     
     def __hash__(self):
@@ -68,7 +68,7 @@ class FixedIndex(IndexBase):
         if not isinstance(value, int):
             error("Expecting integer value for fixed index.")
         self._value = value
-        self._repr = "FixedIndex(%d)" % self._value
+        self._repr = "FixedIndex(%d)" % self._value # REPR: cache or not?
     
     def __hash__(self):
         return hash(repr(self))
@@ -129,7 +129,7 @@ class MultiIndex(UtilityType):
         self._indices = ii
         self._idims = idims
         self._str = ", ".join(str(i) for i in self._indices)
-        self._repr = "MultiIndex(%r, %r)" % (self._indices, self._idims)
+        self._repr = "MultiIndex(%r, %r)" % (self._indices, self._idims) # REPR: cache or not?
     
     def evaluate(self, x, mapping, component, index_values):
         # Build component from index values
