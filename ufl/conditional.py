@@ -45,7 +45,7 @@ class Condition(Operator):
         error("Calling shape on Condition is an error.")
 
 class BinaryCondition(Condition):
-    __slots__ = ('_name', '_left', '_right', '_repr')
+    __slots__ = ('_name', '_left', '_right',)
     def __init__(self, name, left, right):
         Operator.__init__(self)
         self._name = name
@@ -63,7 +63,6 @@ class BinaryCondition(Condition):
             ufl_assert(self._left.free_indices() == () \
                            and self._right.free_indices() == (),
                        "Expecting scalar arguments.")
-        self._repr = "%s(%r, %r)" % (type(self).__name__, self._left, self._right)
 
     def operands(self):
         # A BinaryCondition should never be constructed directly,
@@ -75,7 +74,7 @@ class BinaryCondition(Condition):
         return "%s %s %s" % (parstr(self._left, self), self._name, parstr(self._right, self))
 
     def __repr__(self):
-        return self._repr
+        return "%s(%r, %r)" % (type(self).__name__, self._left, self._right)
 
 class EQ(BinaryCondition):
     __slots__ = ()
@@ -158,12 +157,11 @@ class OrCondition(BinaryCondition):
         return bool(a or b)
 
 class NotCondition(Condition):
-    __slots__ = ('_condition', '__repr',)
+    __slots__ = ('_condition',)
     def __init__(self, condition):
         Condition.__init__(self)
         ufl_assert(isinstance(condition, Condition), "Expecting a condition.")
         self._condition = condition
-        self._repr = "NotCondition(%r)" % (self._condition,)
 
     def operands(self):
         return (self._condition,)
@@ -176,12 +174,12 @@ class NotCondition(Condition):
         return "!(%s)" % (str(self._condition),)
 
     def __repr__(self):
-        return self._repr
+        return "NotCondition(%r)" % (self._condition,)
 
 #--- Conditional expression (condition ? true_value : false_value) ---
 
 class Conditional(Operator):
-    __slots__ = ("_condition", "_true_value", "_false_value", "_repr")
+    __slots__ = ("_condition", "_true_value", "_false_value",)
     def __init__(self, condition, true_value, false_value):
         Operator.__init__(self)
         ufl_assert(isinstance(condition, Condition), "Expectiong condition as first argument.")
@@ -196,7 +194,6 @@ class Conditional(Operator):
         self._condition = condition
         self._true_value = true_value
         self._false_value = false_value
-        self._repr = "Conditional(%r, %r, %r)" % self.operands()
 
     def operands(self):
         return (self._condition, self._true_value, self._false_value)
@@ -222,4 +219,5 @@ class Conditional(Operator):
         return "%s ? %s : %s" % tuple(parstr(o, self) for o in self.operands())
     
     def __repr__(self):
-        return self._repr
+        return "Conditional(%r, %r, %r)" % self.operands()
+
