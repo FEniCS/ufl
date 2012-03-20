@@ -24,6 +24,7 @@ from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.common import Counted
 from ufl.terminal import UtilityType
+from itertools import izip
 
 #--- Index types ---
 
@@ -68,10 +69,10 @@ class FixedIndex(IndexBase):
         if not isinstance(value, int):
             error("Expecting integer value for fixed index.")
         self._value = value
-        self._repr = "FixedIndex(%d)" % self._value # REPR: cache or not?
-    
+        self._repr = "FixedIndex(%d)" % self._value
+
     def __hash__(self):
-        return hash(repr(self))
+        return hash(self._repr)
     
     def __eq__(self, other):
         if isinstance(other, FixedIndex):
@@ -191,13 +192,14 @@ def as_index(i):
         return fixed_index(i)
     elif isinstance(i, IndexBase):
         return (i,)
-    error("Invalid object %s to create index from." % repr(i))
+    else:
+        error("Invalid object %s to create index from." % repr(i))
 
 def _make_idims(ii, shape):
     if shape is None:
         return None
     else:
-        return dict((j,d) for (j,d) in zip(ii, shape) if isinstance(j, Index))
+        return dict((j,d) for (j,d) in izip(ii, shape) if isinstance(j, Index))
 
 def as_multi_index(ii, shape=None):
     if isinstance(ii, MultiIndex):
