@@ -28,7 +28,8 @@ from itertools import chain
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.common import product, mergedicts, subdict
-from ufl.expr import Expr, AlgebraOperator
+from ufl.expr import Expr
+from ufl.operatorbase import AlgebraOperator
 from ufl.terminal import Terminal
 from ufl.constantvalue import Zero, ScalarValue, FloatValue, IntValue, is_ufl_scalar, is_true_ufl_scalar, is_python_scalar, as_ufl
 from ufl.indexing import IndexBase, Index, FixedIndex

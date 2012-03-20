@@ -28,19 +28,30 @@ of classes, and for mapping types to different handler functions."""
 # Last changed: 2011-11-17
 
 from ufl.assertions import ufl_assert
-from ufl.expr import Expr, Operator, WrapperType, AlgebraOperator
-from ufl.terminal import Terminal, FormArgument, UtilityType, Tuple, Data
-from ufl.constantvalue import ConstantValue, Zero, ScalarValue,\
-    FloatValue, IntValue, Identity, PermutationSymbol
-from ufl.variable import Variable, Label
+
+# Elements
 from ufl.finiteelement import FiniteElementBase, FiniteElement,\
     MixedElement, VectorElement, TensorElement
+
+# Base class for all expressions
+from ufl.expr import Expr
+
+# Terminal types
+from ufl.terminal import Terminal, FormArgument, UtilityType, Data
+from ufl.constantvalue import ConstantValue, Zero, ScalarValue,\
+    FloatValue, IntValue, Identity, PermutationSymbol
 from ufl.argument import Argument, TestFunction, TrialFunction
 from ufl.coefficient import Coefficient, ConstantBase,\
     VectorConstant, TensorConstant, Constant
 from ufl.geometry import Space, Cell, GeometricQuantity, \
     SpatialCoordinate, FacetNormal, CellVolume, CellSurfaceArea, FacetArea, Circumradius
-from ufl.indexing import MultiIndex, Indexed, IndexBase, Index, FixedIndex, IndexSum
+from ufl.indexing import IndexBase, FixedIndex, Index, MultiIndex
+
+# Operator types
+from ufl.operatorbase import Operator, WrapperType, AlgebraOperator, Tuple
+from ufl.indexed import Indexed
+from ufl.indexsum import IndexSum
+from ufl.variable import Variable, Label
 from ufl.tensors import ListTensor, ComponentTensor
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import CompoundTensorOperator, Transposed, Outer,\
@@ -48,16 +59,18 @@ from ufl.tensoralgebra import CompoundTensorOperator, Transposed, Outer,\
 from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Erf,\
     Cos, Sin, Tan, Acos, Asin, Atan,\
     BesselFunction, BesselJ, BesselY, BesselI, BesselK
-from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
-from ufl.lifting import LiftingResult, LiftingOperatorResult, LiftingFunctionResult,\
-    TerminalOperator, LiftingOperator, LiftingFunction
 from ufl.differentiation import Derivative, CompoundDerivative, CoefficientDerivative,\
     SpatialDerivative, VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
 from ufl.conditional import Condition, BinaryCondition,\
     EQ, NE, LE, GE, LT, GT,\
     AndCondition, OrCondition, NotCondition, Conditional
-from ufl.form import Form
+from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
+from ufl.lifting import LiftingResult, LiftingOperatorResult, LiftingFunctionResult,\
+    TerminalOperator, LiftingOperator, LiftingFunction
+
+# Higher level abstractions
 from ufl.integral import Measure, Integral
+from ufl.form import Form
 from ufl.equation import Equation
 
 # Make sure we import exproperators which attaches special functions to Expr

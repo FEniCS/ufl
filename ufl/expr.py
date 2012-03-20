@@ -37,13 +37,6 @@ from itertools import izip
 from ufl.log import warning, error
 _class_usage_statistics = defaultdict(int)
 
-def typetuple(e):
-    return tuple(type(o) for o in e.operands())
-
-def compute_hash(expr): # TODO: Test how well this distributes objects with a complex form
-    tt = tuple((type(o), typetuple(o)) for o in expr.operands())
-    return hash((type(expr), tt))
-
 class Expr(object):
     "Base class for all UFL objects."
     # Freeze member variables for objects of this class
@@ -143,9 +136,16 @@ class Expr(object):
     
     def __hash__(self):
         "Compute a hash code for this expression. Used by sets and dicts."
-        return compute_hash(self)
+        raise NotImplementedError(self.__class__.__hash__)
 
     def __eq__(self, other):
+        """Checks whether the two expressions are represented the
+        exact same way. This does not check if the expressions are
+        mathematically equal or equivalent! Used by sets and dicts."""
+        # Compare entire expression structure
+        return expr_equals(self, other)
+
+    def x__eq__(self, other):
         """Checks whether the two expressions are represented the
         exact same way. This does not check if the expressions are
         mathematically equal or equivalent! Used by sets and dicts."""
@@ -178,26 +178,4 @@ class Expr(object):
     #def __getnewargs__(self): # TODO: Test pickle and copy with this. Must implement differently for Terminal objects though.
     #    "Used for pickle and copy operations."
     #    return self.operands()
-
-#--- Subtypes of Expr, used to logically group class hierarchy ---
-
-class Operator(Expr):
-    def __init__(self):
-        Expr.__init__(self)
-    
-    def reconstruct(self, *operands):
-        "Return a new object of the same type with new operands."
-        return self.__class__._uflclass(*operands)
-
-    def is_cellwise_constant(self):
-        "Return whether this expression is spatially constant over each cell."
-        return all(o.is_cellwise_constant() for o in self.operands())
-
-class WrapperType(Operator):
-    def __init__(self):
-        Operator.__init__(self)
-
-class AlgebraOperator(Operator):
-    def __init__(self):
-        Operator.__init__(self)
 

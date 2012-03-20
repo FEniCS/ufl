@@ -36,59 +36,56 @@ class Index(IndexBase, Counted):
     """UFL value: An index with no value assigned.
 
     Used to represent free indices in Einstein indexing notation."""
-    __slots__ = ("_str", "_repr", "_hash")
+    __slots__ = ()
     _globalcount = 0
     def __init__(self, count=None):
         IndexBase.__init__(self)
         Counted.__init__(self, count)
 
+    def __eq__(self, other):
+        return isinstance(other, Index) and (self._count == other._count)
+
+    def __str__(self):
         c = str(self._count)
         if len(c) > 1:
             c = "{%s}" % c
-        self._str = "i_%s" % c
-        self._repr = "Index(%d)" % self._count # REPR: cache or not?
-        self._hash = hash(self._repr)
-    
-    def __hash__(self):
-        return self._hash
+        return "i_%s" % c
 
-    def __eq__(self, other):
-        return isinstance(other, Index) and (self._count == other._count)
-    
-    def __str__(self):
-        return self._str
-    
     def __repr__(self):
-        return self._repr
+        return "Index(%d)" % self._count # REPR: cache or not?
+
+    def __hash__(self):
+        return hash(repr(self))
 
 class FixedIndex(IndexBase):
     """UFL value: An index with a specific value assigned."""
-    __slots__ = ("_value", "_repr")
+    __slots__ = ("_value", "_repr", "_hash")
     def __init__(self, value):
         IndexBase.__init__(self)
         if not isinstance(value, int):
             error("Expecting integer value for fixed index.")
         self._value = value
         self._repr = "FixedIndex(%d)" % self._value
+        self._hash = hash(self._repr)
 
-    def __hash__(self):
-        return hash(self._repr)
-    
     def __eq__(self, other):
         if isinstance(other, FixedIndex):
             return self._value == other._value
-        elif isinstance(other, int):
+        elif isinstance(other, int): # Allow scalar comparison
             return self._value == other
         return False
-    
+
     def __int__(self):
         return self._value
-    
+
     def __str__(self):
         return "%d" % self._value
-    
+
     def __repr__(self):
         return self._repr
+
+    def __hash__(self):
+        return self._hash
 
 _fixed_indices = {}
 def fixed_index(value): # TODO: move into a FixedIndex.__new__ implementation
@@ -219,3 +216,4 @@ def indices(n):
 from ufl.indexutils import complete_shape
 from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
+

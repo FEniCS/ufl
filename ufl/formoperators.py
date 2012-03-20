@@ -27,7 +27,7 @@ from ufl.assertions import ufl_assert
 from ufl.form import Form
 from ufl.expr import Expr
 from ufl.split_functions import split
-from ufl.terminal import Tuple
+from ufl.operatorbase import Tuple
 from ufl.variable import Variable
 from ufl.finiteelement import MixedElement
 from ufl.argument import Argument, Arguments

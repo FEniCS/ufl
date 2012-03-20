@@ -23,9 +23,11 @@
 from ufl.log import warning, error
 from ufl.common import subdict
 from ufl.assertions import ufl_assert
-from ufl.expr import Expr, WrapperType
+from ufl.expr import Expr
+from ufl.operatorbase import WrapperType
 from ufl.constantvalue import as_ufl, Zero
-from ufl.indexing import Indexed, Index, FixedIndex, MultiIndex, indices
+from ufl.indexing import Index, FixedIndex, MultiIndex, indices
+from ufl.indexed import Indexed
 
 # --- Classes representing tensors of UFL expressions ---
 

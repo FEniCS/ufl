@@ -25,10 +25,12 @@
 from ufl.log import warning, error
 from ufl.assertions import ufl_assert
 from ufl.common import subdict, mergedicts
-from ufl.expr import Expr, Operator
-from ufl.terminal import Terminal, Tuple, Data
+from ufl.expr import Expr
+from ufl.terminal import Terminal, Data
+from ufl.operatorbase import Operator, Tuple
 from ufl.constantvalue import ConstantValue, Zero, ScalarValue, Identity, is_true_ufl_scalar
-from ufl.indexing import Index, FixedIndex, Indexed, as_multi_index, MultiIndex
+from ufl.indexing import Index, FixedIndex, MultiIndex, as_multi_index
+from ufl.indexed import Indexed
 from ufl.indexutils import unique_indices
 from ufl.geometry import FacetNormal, CellVolume, Circumradius
 from ufl.variable import Variable
@@ -430,7 +432,7 @@ class NablaDiv(CompoundDerivative):
         return "NablaDiv(%r)" % self._f
 
 class Curl(CompoundDerivative):
-    __slots__ = ("_f", "_dim",)
+    __slots__ = ("_f", "_shape",)
 
     def __new__(cls, f):
         # Validate input

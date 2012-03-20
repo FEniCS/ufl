@@ -22,7 +22,8 @@
 
 from collections import defaultdict
 from ufl.log import error
-from ufl.expr import Expr, WrapperType
+from ufl.expr import Expr
+from ufl.operatorbase import WrapperType
 from ufl.indexing import IndexBase, Index, FixedIndex, as_multi_index
 from ufl.indexutils import unique_indices
 from ufl.precedence import parstr

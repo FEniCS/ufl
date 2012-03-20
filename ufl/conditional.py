@@ -22,7 +22,7 @@
 
 from ufl.log import warning, error
 from ufl.assertions import ufl_assert
-from ufl.expr import Operator
+from ufl.operatorbase import Operator
 from ufl.constantvalue import as_ufl 
 from ufl.precedence import parstr
 

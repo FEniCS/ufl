@@ -21,7 +21,7 @@
 # Last changed: 2011-06-02
 
 from ufl.log import error
-from ufl.expr import Operator
+from ufl.operatorbase import Operator
 from ufl.precedence import parstr
 
 #--- Restriction operators ---

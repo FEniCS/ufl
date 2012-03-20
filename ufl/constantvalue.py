@@ -119,18 +119,26 @@ class Zero(ConstantValue, IndexAnnotated):
     def __str__(self):
         if self._shape == () and self._free_indices == ():
             return "0"
-        return "(0<%s, %s>)" % \
-            (repr(self._shape), repr(self._free_indices))
+        return "(0<%r, %r>)" % (self._shape, self._free_indices)
 
     def __repr__(self):
-        return "Zero(%s, %s, %s)" % (repr(self._shape),
-            repr(self._free_indices), repr(self._index_dimensions))
+        return "Zero(%r, %r, %r)" % (self._shape,
+                self._free_indices, self._index_dimensions)
 
-    def __eq__(self, other):
+    def x__eq__(self, other):
         # zero is zero no matter which free indices you look at
         if self._shape == () and other == 0:
             return True
         return isinstance(other, Zero) and self._shape == other.shape()
+
+    def __eq__(self, other):
+        if not isinstance(other, Zero):
+            return isinstance(other, (int,float)) and other == 0
+        if self is other:
+            return True
+        return (self._shape == other._shape and
+                self._free_indices == other._free_indices and
+                self._index_dimensions == other._index_dimensions)
 
     def __neg__(self):
         return self

@@ -22,7 +22,8 @@
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.expr import Expr, AlgebraOperator
+from ufl.expr import Expr
+from ufl.operatorbase import AlgebraOperator
 from ufl.indexing import Index, MultiIndex, as_multi_index
 from ufl.precedence import parstr
 

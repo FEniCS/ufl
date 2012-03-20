@@ -23,7 +23,7 @@ for all types that are terminal nodes in the expression trees."""
 # First added:  2008-03-14
 # Last changed: 2011-08-08
 
-from ufl.expr import Expr, WrapperType
+from ufl.expr import Expr
 from ufl.common import lstr
 from ufl.log import error, warning
 
@@ -89,14 +89,17 @@ class Terminal(Expr):
         for c in component:
             f = f[c]
         return f
-    
+
+    def __hash__(self):
+        return hash(repr(self))
+
     def __eq__(self, other):
         """Checks whether the two expressions are represented the
-        exact same way using repr. This does not check if the forms
+        exact same way. This does not check if the expressions
         are mathematically equal or equivalent!"""
         if type(self) != type(other):
             return False
-        if id(self) == other:
+        if self is other:
             return True
         return repr(self) == repr(other)
     
@@ -128,50 +131,12 @@ class UtilityType(Terminal):
 
 #--- Non-tensor types ---
 
-class Tuple(WrapperType): # This is not a terminal! Move to another file!
-    "For internal use, never to be created by users."
-    __slots__ = ("_items", "_repr")
-    def __init__(self, *items):
-        WrapperType.__init__(self)
-        if not all(isinstance(i, Expr) for i in items):
-            error("Got non-Expr in Tuple, is this intended? If so, remove this error.")
-        self._items = tuple(items)
-        self._repr = "Tuple(*%s)" % repr(self._items)
-    
-    def operands(self):
-        return self._items
-    
-    def shape(self):
-        error("Calling shape on a utility type is an error.")
-    
-    def free_indices(self):
-        error("Calling free_indices on a utility type is an error.")
-    
-    def index_dimensions(self):
-        error("Calling free_indices on a utility type is an error.")
-    
-    def __getitem__(self, i):
-        return self._items[i]
-    
-    def __len__(self):
-        return len(self._items)
-    
-    def __iter__(self):
-        return iter(self._items)
-    
-    def __str__(self):
-        return "Tuple(*(%s,))" % ", ".join(str(i) for i in self._items)
-    
-    def __repr__(self):
-        return self._repr
-
 class Data(UtilityType):
     "For internal use, never to be created by users."
-    __slots__ = ("_data", "_repr")
+    __slots__ = ("_data",)
     def __init__(self, data):
         UtilityType.__init__(self)
         self._data = data
-        self._repr = "Data(%r)" % (self._data,)
 
     def reconstruct(self):
         return self
@@ -183,4 +148,5 @@ class Data(UtilityType):
         return "Data(%s)" % str(self._data)
 
     def __repr__(self):
-        return self._repr
+        return "Data(%r)" % (self._data,)
+

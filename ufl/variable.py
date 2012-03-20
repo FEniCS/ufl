@@ -24,8 +24,9 @@ expressions as variables for differentiation."""
 from ufl.common import Counted
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.expr import Expr, WrapperType
+from ufl.expr import Expr
 from ufl.terminal import UtilityType
+from ufl.operatorbase import WrapperType
 from ufl.constantvalue import as_ufl
 
 class Label(UtilityType, Counted):

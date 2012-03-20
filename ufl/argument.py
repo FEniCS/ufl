@@ -86,7 +86,9 @@ class Argument(FormArgument, Counted):
         return self._repr
 
     def __eq__(self, other):
-        return isinstance(other, Argument) and self._element == other._element and self._count == other._count
+        return (isinstance(other, Argument) and
+                self._count == other._count and
+                self._element == other._element)
 
 # --- Helper functions for pretty syntax ---
 

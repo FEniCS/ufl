@@ -22,7 +22,7 @@ Sum and its superclass Expr."""
 # First added:  2008-08-18
 # Last changed: 2011-10-25
 
-from itertools import chain
+from itertools import chain, izip
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
@@ -31,12 +31,87 @@ from ufl.expr import Expr
 from ufl.constantvalue import Zero, ScalarValue, FloatValue, IntValue, is_python_scalar, is_true_ufl_scalar, as_ufl, python_scalar_types
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import Transposed, Dot
-from ufl.indexing import IndexBase, FixedIndex, fixed_index, Index, Indexed, IndexSum, indices
+from ufl.indexing import IndexBase, FixedIndex, Index, fixed_index, indices
+from ufl.indexed import Indexed
+from ufl.indexsum import IndexSum
 from ufl.indexutils import repeated_indices, unique_indices, single_indices
 from ufl.tensors import as_tensor, ComponentTensor
 from ufl.restriction import PositiveRestricted, NegativeRestricted
 from ufl.differentiation import SpatialDerivative, VariableDerivative
 
+from ufl.common import fast_pre_traversal
+
+def _expr_equals(a, b): # TODO: Which is faster?
+    # Cutoff for different type
+    if type(a) != type(b):
+        return False
+
+    # Cutoff for same object
+    if a is b:
+        return True
+
+    # Iterate over pairs of potentially matching subexpressions
+    input = [(a, b)]
+    while input:
+        a, b = input.pop()
+
+        # Cutoff for different type
+        if type(a) != type(b):
+            return False
+
+        # Get operands
+        aops = a.operands()
+        bops = b.operands()
+        if aops:
+            if len(aops) != len(bops):
+                return False
+            # Add children for checking
+            input.extend(izip(aops, bops))
+        else:
+            # Compare terminals
+            if not a == b:
+                return False
+
+    # Everything checked out fine, expressions must be equal
+    return True
+
+def _expr_equals1(a, b): # TODO: Which is faster?
+    # Cutoff for different type
+    if type(a) != type(b):
+        return False
+    # Cutoff for same object
+    if a is b:
+        return True
+    # Compare entire expression structure
+    for x,y in izip(fast_pre_traversal(a), fast_pre_traversal(b)):
+        if type(x) != type(y):
+            return False
+        #if isinstance(Terminal, x) and not x == y:
+        if x.operands() == () and not x == y:
+            return False
+    # Equal terminals and types, a and b must be equal
+    return True
+
+def _expr_equals2(a, b):
+    # Cutoff for different type
+    if type(a) != type(b):
+        return False
+    # Cutoff for same object
+    if a is b:
+        return True
+    from ufl.algorithms.traversal import traverse_terminals, traverse_operands
+    # Check for equal terminals
+    for x,y in izip(traverse_terminals(a), traverse_terminals(b)):
+        if x != y:
+            return False
+    # Check for matching operator types
+    for x,y in izip(traverse_operands(a), traverse_operands(b)):
+        if type(x) != type(y):
+            return False
+    # Equal terminals and operands, a and b must be equal
+    return True
+
+Expr.__eq__ = _expr_equals
 
 #--- Helper functions for product handling ---
 

@@ -31,12 +31,14 @@ from ufl.common import unzip, subdict, lstr
 from ufl.indexutils import unique_indices
 
 # All classes:
-from ufl.terminal import Terminal, Tuple
+from ufl.terminal import Terminal
+from ufl.operatorbase import Tuple
 from ufl.constantvalue import ConstantValue, Zero, IntValue, Identity,\
     is_true_ufl_scalar, is_ufl_scalar
 from ufl.variable import Variable
 from ufl.coefficient import ConstantBase
-from ufl.indexing import MultiIndex, Indexed, Index, indices
+from ufl.indexing import MultiIndex, Index, indices
+from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
 from ufl.tensors import ListTensor, ComponentTensor, as_tensor, as_scalar
 from ufl.algebra import Sum, Product, Division, Power, Abs
@@ -51,8 +53,8 @@ from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 # Lists of all Expr classes
 from ufl.classes import terminal_classes
 
-from ufl.operators import dot, inner, outer, lt, eq, conditional, sign
-from ufl.operators import sqrt, exp, ln, cos, sin, tan, acos, asin, atan, \
+from ufl.operators import dot, inner, outer, lt, eq, conditional, sign, \
+    sqrt, exp, ln, cos, sin, tan, acos, asin, atan, \
     erf, bessel_J, bessel_Y, bessel_I, bessel_K
 from ufl.algorithms.traversal import iter_expressions
 from ufl.algorithms.analysis import extract_type

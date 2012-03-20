@@ -41,7 +41,8 @@ from ufl.conditional import EQ, NE, LE, GE, LT, GT, \
 from ufl.mathfunctions import Sqrt, Exp, Ln, Erf,\
     Cos, Sin, Tan, Acos, Asin, Atan,\
     BesselJ, BesselY, BesselI, BesselK
-from ufl.indexing import indices, Indexed
+from ufl.indexing import indices
+from ufl.indexed import Indexed
 from ufl.geometry import SpatialCoordinate
 
 #--- Basic operators ---

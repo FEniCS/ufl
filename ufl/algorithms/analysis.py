@@ -37,7 +37,8 @@ from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.variable import Variable
 from ufl.tensors import ListTensor, ComponentTensor
-from ufl.indexing import Indexed, Index, MultiIndex
+from ufl.indexing import Index, MultiIndex
+from ufl.indexed import Indexed
 from ufl.form import Form
 from ufl.integral import Integral, Measure
 from ufl.classes import terminal_classes, nonterminal_classes

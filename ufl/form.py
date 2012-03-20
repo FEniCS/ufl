@@ -215,9 +215,10 @@ class Form(object):
 
     def __hash__(self):
         if self._hash is None:
-            self._hash = hash(tuple(type(itg) for itg in self._integrals))
+            #self._hash = hash(tuple(type(itg) for itg in self._integrals))
             # TODO: This is probably better, using a couple of levels of types from the integrands:
-            #self._hash = hash(tuple((compute_hash(itg.integrand()), itg.measure()) for itg in self._integrals)) # REPR try this to improve form hashing
+            self._hash = hash(tuple((hash(itg.integrand()), hash(itg.measure()))
+                                    for itg in self._integrals)) # REPR try this to improve form hashing
         return self._hash
 
     def __eq__(self, other):

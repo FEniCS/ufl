@@ -22,8 +22,9 @@
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.expr import Expr, Operator
+from ufl.expr import Expr
 from ufl.terminal import Terminal
+from ufl.operatorbase import Operator
 from ufl.finiteelement import FiniteElementBase
 from ufl.operators import jump
 

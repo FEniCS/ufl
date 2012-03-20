@@ -94,7 +94,12 @@ class Coefficient(FormArgument, Counted):
         return self._repr
 
     def __eq__(self, other):
-        return isinstance(other, Coefficient) and self._element == other._element and self._count == other._count
+        if not isinstance(other, Coefficient):
+            return False
+        if self is other:
+            return True
+        return (self._count == other._count and
+                self._element == other._element)
 
 # --- Subclasses for defining constant coefficients without specifying element ---
 

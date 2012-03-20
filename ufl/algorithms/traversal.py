@@ -26,9 +26,9 @@ from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.expr import Expr
 from ufl.terminal import Terminal
+from ufl.variable import Variable
 from ufl.integral import Integral
 from ufl.form import Form
-from ufl.variable import Variable
 
 #--- Traversal utilities ---
 
