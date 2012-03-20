@@ -212,14 +212,13 @@ class Measure(object):
 
 class Integral(object):
     "An integral over a single domain."
-    __slots__ = ("_integrand", "_measure", "_repr")
+    __slots__ = ("_integrand", "_measure",)
     def __init__(self, integrand, measure):
         from ufl.expr import Expr
         ufl_assert(isinstance(integrand, Expr), "Expecting integrand to be an Expr instance.")
         ufl_assert(isinstance(measure, Measure), "Expecting measure to be a Measure instance.")
         self._integrand = integrand
         self._measure   = measure
-        self._repr = "Integral(%r, %r)" % (self._integrand, self._measure) # REPR don't cache here, do in form
 
     def reconstruct(self, integrand):
         """Construct a new Integral object with some properties replaced with new values.
@@ -254,10 +253,11 @@ class Integral(object):
         return "{ %s } * %s" % (self._integrand, self._measure)
 
     def __repr__(self):
-        return self._repr
+        return "Integral(%r, %r)" % (self._integrand, self._measure)
 
     def __eq__(self, other):
-        return repr(self) == repr(other)
+        return (self._measure == other._measure and self._integrand == other._integrand)
 
     def __hash__(self):
-        return hash(repr)
+        return hash((type(self), repr(self._measure), hash(self._integrand)))
+
