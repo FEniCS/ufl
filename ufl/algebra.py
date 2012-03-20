@@ -39,7 +39,7 @@ from ufl.precedence import parstr
 #--- Algebraic operators ---
 
 class Sum(AlgebraOperator):
-    __slots__ = ("_operands", "_repr")
+    __slots__ = ("_operands",)
     
     def __new__(cls, *operands): # TODO: This whole thing seems a bit complicated... Can it be simplified? Maybe we can merge some loops for efficiency?
         ufl_assert(operands, "Can't take sum of nothing.")
@@ -117,7 +117,6 @@ class Sum(AlgebraOperator):
 
     def _init(self, *operands):
         self._operands = operands
-        #self._repr = "Sum(%s)" % ", ".join(repr(o) for o in operands)
     
     def __init__(self, *operands):
         AlgebraOperator.__init__(self)
@@ -159,13 +158,12 @@ class Sum(AlgebraOperator):
         # Implementation with no line splitting:
         return "%s" % " + ".join(ops)
 
-    def __repr__(self):
-        #return self._repr
+    def _repr(self):
         return "Sum(%s)" % ", ".join(repr(o) for o in self._operands)
 
 class Product(AlgebraOperator):
     """The product of two or more UFL objects."""
-    __slots__ = ("_operands", "_free_indices", "_index_dimensions", "_repr")
+    __slots__ = ("_operands", "_free_indices", "_index_dimensions",)
     
     def __new__(cls, *operands):
         # Make sure everything is an Expr
@@ -257,8 +255,6 @@ class Product(AlgebraOperator):
         # Extract indices
         self._free_indices     = unique_indices(tuple(chain(*(o.free_indices() for o in operands))))
         self._index_dimensions = mergedicts([o.index_dimensions() for o in operands])
-        
-        #self._repr = "Product(%s)" % ", ".join(repr(o) for o in self._operands)
     
     def __init__(self, *operands):
         AlgebraOperator.__init__(self)
@@ -310,12 +306,11 @@ class Product(AlgebraOperator):
         # Implementation with no line splitting:
         return "%s" % " * ".join(ops)
     
-    def __repr__(self):
-        #return self._repr
+    def _repr(self):
         return "Product(%s)" % ", ".join(repr(o) for o in self._operands)
 
 class Division(AlgebraOperator):
-    __slots__ = ("_a", "_b", "_repr")
+    __slots__ = ("_a", "_b",)
     
     def __new__(cls, a, b):
         a = as_ufl(a)
@@ -350,7 +345,6 @@ class Division(AlgebraOperator):
             error("Expecting Expr instances.")
         self._a = a
         self._b = b
-        self._repr = "Division(%r, %r)" % (self._a, self._b)
 
     def __init__(self, a, b):
         AlgebraOperator.__init__(self)
@@ -376,12 +370,12 @@ class Division(AlgebraOperator):
 
     def __str__(self):
         return "%s / %s" % (parstr(self._a, self), parstr(self._b, self))
-    
-    def __repr__(self):
-        return self._repr
+
+    def _repr(self):
+        return "Division(%r, %r)" % (self._a, self._b)
 
 class Power(AlgebraOperator):
-    __slots__ = ("_a", "_b", "_repr")
+    __slots__ = ("_a", "_b",)
     
     def __new__(cls, a, b):
         a = as_ufl(a)
@@ -407,7 +401,6 @@ class Power(AlgebraOperator):
             error("Expecting Expr instances.")
         self._a = a
         self._b = b
-        self._repr = "Power(%r, %r)" % (self._a, self._b)
 
     def __init__(self, a, b):
         AlgebraOperator.__init__(self)
@@ -432,19 +425,18 @@ class Power(AlgebraOperator):
     
     def __str__(self):
         return "%s ** %s" % (parstr(self._a, self), parstr(self._b, self))
-    
-    def __repr__(self):
-        return self._repr
+
+    def _repr(self):
+        return "Power(%r, %r)" % (self._a, self._b)
 
 class Abs(AlgebraOperator):
-    __slots__ = ("_a", "_repr")
+    __slots__ = ("_a",)
     
     def __init__(self, a):
         AlgebraOperator.__init__(self)
         ufl_assert(isinstance(a, Expr), "Expecting Expr instance.")
         if not isinstance(a, Expr): error("Expecting Expr instances.")
         self._a = a
-        self._repr = "Abs(%r)" % self._a
     
     def operands(self):
         return (self._a, )
@@ -464,6 +456,7 @@ class Abs(AlgebraOperator):
     
     def __str__(self):
         return "| %s |" % parstr(self._a, self)
-    
-    def __repr__(self):
-        return self._repr
+
+    def _repr(self):
+        return "Abs(%r)" % self._a
+
