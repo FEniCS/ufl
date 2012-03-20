@@ -64,8 +64,8 @@ def compute_hash_with_stats(expr):
     return h
 
 # This seems to be the best of the above
-#compute_hash = compute_hash5
-compute_hash = compute_hash_with_stats
+compute_hash = compute_hash2
+#compute_hash = compute_hash_with_stats
 
 
 #--- Base class for operator objects ---
