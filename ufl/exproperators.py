@@ -111,7 +111,17 @@ def _expr_equals2(a, b):
     # Equal terminals and operands, a and b must be equal
     return True
 
-Expr.__eq__ = _expr_equals
+def _expr_equals3(self, other): # Much faster!
+    """Checks whether the two expressions are represented the
+    exact same way. This does not check if the expressions are
+    mathematically equal or equivalent! Used by sets and dicts."""
+    if type(self) != type(other):
+        return False
+    if self is other:
+        return True
+    return self.operands() == other.operands()
+
+Expr.__eq__ = _expr_equals3
 
 #--- Helper functions for product handling ---
 

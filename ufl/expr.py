@@ -142,18 +142,7 @@ class Expr(object):
         """Checks whether the two expressions are represented the
         exact same way. This does not check if the expressions are
         mathematically equal or equivalent! Used by sets and dicts."""
-        # Compare entire expression structure
-        return expr_equals(self, other)
-
-    def x__eq__(self, other):
-        """Checks whether the two expressions are represented the
-        exact same way. This does not check if the expressions are
-        mathematically equal or equivalent! Used by sets and dicts."""
-        if type(self) != type(other):
-            return False
-        if self is other:
-            return True
-        return self.operands() == other.operands()
+        raise NotImplementedError(self.__class__.__eq__)
 
     def __nonzero__(self):
         "By default, all Expr are nonzero."
