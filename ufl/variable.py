@@ -57,7 +57,7 @@ class Variable(WrapperType):
       f = exp(e**2)
       df = diff(f, e)
     """
-    __slots__ = ("_expression", "_label", "_repr")
+    __slots__ = ("_expression", "_label",)
     def __init__(self, expression, label=None):
         WrapperType.__init__(self)
         expression = as_ufl(expression)
@@ -68,7 +68,6 @@ class Variable(WrapperType):
             label = Label()
         ufl_assert(isinstance(label, Label), "Expecting a Label.")
         self._label = label
-        self._repr = "Variable(%r, %r)" % (self._expression, self._label)
 
     def operands(self):
         return (self._expression, self._label)
@@ -106,4 +105,5 @@ class Variable(WrapperType):
         return "var%d(%s)" % (self._label.count(), self._expression)
 
     def __repr__(self):
-        return self._repr
+        return "Variable(%r, %r)" % (self._expression, self._label)
+
