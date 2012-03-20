@@ -63,13 +63,12 @@ Implementation in C++ std::tr1:: or boost::math::tr1::
 class MathFunction(Operator):
     "Base class for all math functions"
     # Freeze member variables for objects in this class
-    __slots__ = ("_name", "_argument", "_repr")
+    __slots__ = ("_name", "_argument",)
     def __init__(self, name, argument):
         Operator.__init__(self)
         ufl_assert(is_true_ufl_scalar(argument), "Expecting scalar argument.")
         self._name     = name
         self._argument = argument
-        self._repr = "%s(%r)" % (name, argument)
     
     def operands(self):
         return (self._argument,)
@@ -96,7 +95,7 @@ class MathFunction(Operator):
         return "%s(%s)" % (self._name, self._argument)
     
     def __repr__(self):
-        return self._repr
+        return "%s(%r)" % (self._name, self._argument)
 
 class Sqrt(MathFunction):
     def __new__(cls, argument):
@@ -213,15 +212,15 @@ class Erf(MathFunction):
 class BesselFunction(Operator):
     "Base class for all bessel functions"
     # Freeze member variables for objects in this class
-    __slots__ = ("_name", "_nu", "_argument", "_repr")
+    __slots__ = ("_name", "_nu", "_argument", "_classname")
     def __init__(self, name, classname, nu, argument):
         Operator.__init__(self)
         ufl_assert(is_true_ufl_scalar(nu), "Expecting scalar argument.")
         ufl_assert(is_true_ufl_scalar(argument), "Expecting scalar argument.")
+        self._classname = classname
         self._name     = name
         self._nu       = nu
         self._argument = argument
-        self._repr = "%s(%r, %r)" % (classname, nu, argument)
 
     def operands(self):
         return (self._nu, self._argument)
@@ -255,7 +254,7 @@ class BesselFunction(Operator):
         return "%s(%s, %s)" % (self._name, self._nu, self._argument)
 
     def __repr__(self):
-        return self._repr
+        return "%s(%r, %r)" % (self._classname, self._nu, self._argument)
 
 class BesselJ(BesselFunction):
     def __init__(self, nu, argument):
