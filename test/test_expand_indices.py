@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __authors__ = "Martin Sandve Alnes"
-__date__ = "2009-03-19 -- 2009-03-24"
+__date__ = "2009-03-19 -- 2012-03-20"
 
 # Modified by Anders Logg, 2008
 # Modified by Garth N. Wells, 2009
@@ -14,7 +14,8 @@ from ufl import *
 from ufl.algorithms import * 
 from ufl.classes import Sum, Product
 
-# TODO: add more tests, covering all utility algorithms
+# TODO: Test expand_indices2 throuroughly for correctness, then efficiency:
+#expand_indices, expand_indices2 = expand_indices2, expand_indices
 
 class ExpandIndicesTestCase(UflTestCase):
 
@@ -288,6 +289,28 @@ class ExpandIndicesTestCase(UflTestCase):
         a = nabla_div(nabla_grad(tf))
         compare(inner(a,a), (10.00+11.00)**2 + (10.01+11.01)**2 + (10.10+11.10)**2 + (10.11+11.11)**2)
 
+    def xtest_expand_indices_list_tensor_problem(self):
+        print
+        print '='*40
+        # TODO: This is the case marked in the expand_indices2 implementation
+        #as not working. Fix and then try expand_indices2 on other tests!
+        V = VectorElement("CG", triangle, 1)
+        w = Coefficient(V)
+        v = as_vector([w[0], 0])
+        a = v[i]*w[i]
+        # TODO: Compare
+        print type(a), str(a)
+        A, comp = a.operands()
+        print type(A), str(A)
+        print type(comp), str(comp)
+
+        ei1 = expand_indices(a)
+        ei2 = expand_indices2(a)
+        print str(ei1)
+        print str(ei2)
+        print '='*40
+        print
 
 if __name__ == "__main__":
     main()
+
