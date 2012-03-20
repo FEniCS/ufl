@@ -158,7 +158,7 @@ class Sum(AlgebraOperator):
         # Implementation with no line splitting:
         return "%s" % " + ".join(ops)
 
-    def _repr(self):
+    def __repr__(self):
         return "Sum(%s)" % ", ".join(repr(o) for o in self._operands)
 
 class Product(AlgebraOperator):
@@ -306,7 +306,7 @@ class Product(AlgebraOperator):
         # Implementation with no line splitting:
         return "%s" % " * ".join(ops)
     
-    def _repr(self):
+    def __repr__(self):
         return "Product(%s)" % ", ".join(repr(o) for o in self._operands)
 
 class Division(AlgebraOperator):
@@ -371,7 +371,7 @@ class Division(AlgebraOperator):
     def __str__(self):
         return "%s / %s" % (parstr(self._a, self), parstr(self._b, self))
 
-    def _repr(self):
+    def __repr__(self):
         return "Division(%r, %r)" % (self._a, self._b)
 
 class Power(AlgebraOperator):
@@ -426,7 +426,7 @@ class Power(AlgebraOperator):
     def __str__(self):
         return "%s ** %s" % (parstr(self._a, self), parstr(self._b, self))
 
-    def _repr(self):
+    def __repr__(self):
         return "Power(%r, %r)" % (self._a, self._b)
 
 class Abs(AlgebraOperator):
@@ -457,6 +457,6 @@ class Abs(AlgebraOperator):
     def __str__(self):
         return "| %s |" % parstr(self._a, self)
 
-    def _repr(self):
+    def __repr__(self):
         return "Abs(%r)" % self._a
 
