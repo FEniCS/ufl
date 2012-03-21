@@ -222,33 +222,42 @@ class FloatValue(ScalarValue): # REPR apply reuse technique?
     "UFL literal type: Representation of a constant scalar floating point value."
     __slots__ = ()
     def __init__(self, value, shape=(), free_indices=(), index_dimensions=None):
-
         ScalarValue.__init__(self,
                              float_type(value),
                              shape,
                              free_indices,
                              index_dimensions)
 
-        self._repr = "%s(%s, %s, %s, %s)" % (type(self).__name__,
-                                             format_float(self._value),
-                                             repr(self._shape),
-                                             repr(self._free_indices),
-                                             repr(self._index_dimensions))
-
     def __repr__(self):
-        return self._repr
+        return "%s(%s, %s, %s, %s)" % (type(self).__name__,
+                                       format_float(self._value),
+                                       repr(self._shape),
+                                       repr(self._free_indices),
+                                       repr(self._index_dimensions))
 
 class IntValue(ScalarValue): # REPR apply reuse technique?
     "UFL literal type: Representation of a constant scalar integer value."
     __slots__ = ()
+    _cache = {}
+    def __new__(cls, value, shape=(), free_indices=(), index_dimensions=None):
+        # Check if it is cache-able
+        if not (shape or free_indices or index_dimensions or abs(value) > 100):
+            self = IntValue._cache.get(value)
+            if self is None:
+                self = ScalarValue.__new__(cls, value, shape, free_indices, index_dimensions)
+                IntValue._cache[value] = self
+            return self
+        else:
+            return ScalarValue.__new__(cls, value, shape, free_indices, index_dimensions)
+
     def __init__(self, value, shape=(), free_indices=(), index_dimensions=None):
-        ScalarValue.__init__(self, int_type(value), shape, free_indices, index_dimensions)
-        self._repr = "%s(%s, %s, %s, %s)" % (type(self).__name__, repr(self._value),
-                                             repr(self._shape), repr(self._free_indices),
-                                             repr(self._index_dimensions))
+        if not hasattr(self, '_value'):
+            ScalarValue.__init__(self, int_type(value), shape, free_indices, index_dimensions)
 
     def __repr__(self):
-        return self._repr
+        return "%s(%s, %s, %s, %s)" % (type(self).__name__, repr(self._value),
+                                       repr(self._shape), repr(self._free_indices),
+                                       repr(self._index_dimensions))
 
 #--- Identity matrix ---
 
