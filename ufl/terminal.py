@@ -110,10 +110,12 @@ class Terminal(Expr):
 #--- Subgroups of terminals ---
 
 class FormArgument(Terminal):
+    __slots__ = ()
     def __init__(self):
         Terminal.__init__(self)
 
 class UtilityType(Terminal):
+    __slots__ = ()
     def __init__(self):
         Terminal.__init__(self)
     
