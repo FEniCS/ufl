@@ -125,11 +125,11 @@ class Zero(ConstantValue, IndexAnnotated):
         return "Zero(%r, %r, %r)" % (self._shape,
                 self._free_indices, self._index_dimensions)
 
-    def x__eq__(self, other):
-        # zero is zero no matter which free indices you look at
-        if self._shape == () and other == 0:
-            return True
-        return isinstance(other, Zero) and self._shape == other.shape()
+    #def x__eq__(self, other): # Old implementation
+    #    # zero is zero no matter which free indices you look at
+    #    if self._shape == () and other == 0:
+    #        return True
+    #    return isinstance(other, Zero) and self._shape == other.shape()
 
     def __eq__(self, other):
         if not isinstance(other, Zero):
