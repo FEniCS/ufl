@@ -31,7 +31,7 @@ from ufl.expr import Expr
 from ufl.constantvalue import Zero, ScalarValue, FloatValue, IntValue, is_python_scalar, is_true_ufl_scalar, as_ufl, python_scalar_types
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import Transposed, Dot
-from ufl.indexing import IndexBase, FixedIndex, Index, fixed_index, indices
+from ufl.indexing import Index, FixedIndex, fixed_index, indices
 from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
 from ufl.indexutils import repeated_indices, unique_indices, single_indices
@@ -111,14 +111,23 @@ def _expr_equals2(a, b):
     # Equal terminals and operands, a and b must be equal
     return True
 
-def _expr_equals3(self, other): # Much faster!
+def _expr_equals3(self, other): # Much faster than the more complex algorithms above!
     """Checks whether the two expressions are represented the
     exact same way. This does not check if the expressions are
     mathematically equal or equivalent! Used by sets and dicts."""
+    # Fast cutoff for common case
     if type(self) != type(other):
         return False
+
+    # Large objects are costly to compare with themselves
     if self is other:
         return True
+
+    # This seems to have no effect on runtime:
+    #if (hasattr(self, "_hash") and self._hash != other._hash):
+    #    return False
+
+    # Just let python handle the recursion
     return self.operands() == other.operands()
 
 Expr.__eq__ = _expr_equals3
@@ -325,7 +334,7 @@ def analyse_key(ii, rank):
     ellipsis (...), and returns tuples of actual UFL index objects.
 
     The return value is a tuple (indices, axis_indices),
-    each being a tuple of IndexBase instances.
+    each being a tuple of Index or FixedIndex instances.
 
     The return value 'indices' corresponds to all
     input objects of these types:
@@ -356,7 +365,7 @@ def analyse_key(ii, rank):
             # Convert index to a proper type
             if isinstance(i, int):
                 idx = fixed_index(i)
-            elif isinstance(i, IndexBase):
+            elif isinstance(i, (Index, FixedIndex)):
                 idx = i
             elif isinstance(i, slice):
                 if i == slice(None):
