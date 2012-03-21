@@ -1,7 +1,7 @@
 
 from itertools import imap
 from ufl.expr import Expr
-
+import md5
 
 # Modified from ufl.algorithms.traveral to avoid circular dependencies...
 def traverse_terminals2(expr):
@@ -49,12 +49,18 @@ def compute_hash5(expr): # Just as good as 2, with additional work
              +  tuple(repr(t) for t in get_some_terminals(expr)))
     return hash(hashdata)
 
+def compute_hash6(expr): # Exactly as good as 2, with additional work
+    hashdata = ( (expr.__class__._uflclass,)
+            + tuple(hash(o) for o in expr.operands()) )
+    return hash(md5.md5(str(hashdata)).digest())
+
 _hashes = set()
 _hashes_added = 0
 def compute_hash_with_stats(expr):
     global _hashes, _hashes_added
 
-    h = compute_hash5(expr)
+    h = compute_hash2(expr)
+    #h = compute_hash6(expr)
 
     _hashes.add(h)
     _hashes_added += 1
