@@ -99,29 +99,56 @@ class MultiIndex(UtilityType):
     "Represents a sequence of indices, either fixed or free."
     __slots__ = ("_indices", "_idims",)
 
-    def __init__(self, ii, idims):
-        UtilityType.__init__(self)
+    _cache = {}
+    def __new__(cls, ii, idims):
+        # TODO: This is called a lot, it could be worth it to 
+        # merge some type checking and conversion in __new__
+        # and __init__ so it only happens once.
 
-        if isinstance(ii, int):
-            ii = (FixedIndex(ii),)
-        elif isinstance(ii, IndexBase):
-            ii = (ii,)
-        elif isinstance(ii, tuple):
-            ii = tuple(as_index(j) for j in ii)
+        # Check if input is cache-able
+        key = None
+        if isinstance(ii, FixedIndex):
+            key = (ii._value,)
+        elif isinstance(ii, int):
+            key = (ii,)
+        elif isinstance(ii, tuple) and all(isinstance(jj, (FixedIndex,int)) for jj in ii):
+            key = tuple((jj._value if isinstance(jj, FixedIndex) else jj) for jj in ii)
+
+        if key is not None:
+            # Lookup in cache if we have a key
+            self = MultiIndex._cache.get(key)
+            if self is None:
+                self = UtilityType.__new__(cls)
+                MultiIndex._cache[key] = self
+            return self
         else:
-            error("Expecting tuple of UFL indices.")
+            # Or skip cache for other cases
+            return UtilityType.__new__(cls)
 
-        idims = dict(idims)
-        for k in ii:
-            if isinstance(k, Index):
-                if not k in idims:
-                    error("Missing index in the provided idims.")
-                else:
-                    ufl_assert(isinstance(idims[k], int),
-                               "Non-integer index dimension provided.")
+    def __init__(self, ii, idims):
+        if not hasattr(self, "_indices"):
+            UtilityType.__init__(self)
 
-        self._indices = ii
-        self._idims = idims
+            if isinstance(ii, int):
+                ii = (FixedIndex(ii),)
+            elif isinstance(ii, IndexBase):
+                ii = (ii,)
+            elif isinstance(ii, tuple):
+                ii = tuple(as_index(j) for j in ii)
+            else:
+                error("Expecting tuple of UFL indices.")
+ 
+            idims = dict(idims)
+            for k in ii:
+                if isinstance(k, Index):
+                    if not k in idims:
+                        error("Missing index in the provided idims.")
+                    else:
+                        ufl_assert(isinstance(idims[k], int),
+                                   "Non-integer index dimension provided.")
+ 
+            self._indices = ii
+            self._idims = idims
     
     def evaluate(self, x, mapping, component, index_values):
         # Build component from index values
@@ -183,8 +210,6 @@ def as_index(i):
         return i
     elif isinstance(i, int):
         return FixedIndex(i)
-    elif isinstance(i, IndexBase):
-        return (i,)
     else:
         error("Invalid object %s to create index from." % repr(i))
 
