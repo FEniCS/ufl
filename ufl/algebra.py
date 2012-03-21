@@ -32,7 +32,6 @@ from ufl.expr import Expr
 from ufl.operatorbase import AlgebraOperator
 from ufl.terminal import Terminal
 from ufl.constantvalue import Zero, ScalarValue, FloatValue, IntValue, is_ufl_scalar, is_true_ufl_scalar, is_python_scalar, as_ufl
-from ufl.indexing import IndexBase, Index, FixedIndex
 from ufl.indexutils import unique_indices
 from ufl.sorting import cmp_expr
 from ufl.precedence import parstr

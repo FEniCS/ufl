@@ -45,7 +45,7 @@ from ufl.coefficient import Coefficient, ConstantBase,\
     VectorConstant, TensorConstant, Constant
 from ufl.geometry import Space, Cell, GeometricQuantity, \
     SpatialCoordinate, FacetNormal, CellVolume, CellSurfaceArea, FacetArea, Circumradius
-from ufl.indexing import IndexBase, FixedIndex, Index, MultiIndex
+from ufl.indexing import FixedIndex, Index, MultiIndex
 
 # Operator types
 from ufl.operatorbase import Operator, WrapperType, AlgebraOperator, Tuple
