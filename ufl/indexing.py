@@ -97,7 +97,7 @@ def fixed_index(value): # TODO: move into a FixedIndex.__new__ implementation
 
 class MultiIndex(UtilityType):
     "Represents a sequence of indices, either fixed or free."
-    __slots__ = ("_indices",)
+    __slots__ = ("_indices", "_idims",)
 
     def __init__(self, ii, idims=None):
         UtilityType.__init__(self)
