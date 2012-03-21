@@ -226,18 +226,19 @@ class Counted(object):
            def __init__(self):
                MyClass.__init__(self)
     """
-    def __init__(self, count = None, countedclass = None):
+    #__slots__ = ('_count',)
+    def __init__(self, count=None, countedclass=None):
         if countedclass is None:
             countedclass = type(self)
-        self._countedclass = countedclass
+        #self._countedclass = countedclass
 
         if count is None:
-            self._count = self._countedclass._globalcount
-            self._countedclass._globalcount += 1
+            self._count = countedclass._globalcount
+            countedclass._globalcount += 1
         else:
             self._count = count
-            if count >= self._countedclass._globalcount:
-                self._countedclass._globalcount = count + 1
+            if count >= countedclass._globalcount:
+                countedclass._globalcount = count + 1
 
     def count(self):
         return self._count
