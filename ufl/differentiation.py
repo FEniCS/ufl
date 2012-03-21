@@ -114,7 +114,7 @@ def split_indices(expression, idx):
 
 class SpatialDerivative(Derivative):
     "Partial derivative of an expression w.r.t. spatial directions given by indices."
-    __slots__ = ("_expression", "_index", "_shape", "_free_indices", "_index_dimensions",)
+    __slots__ = ("_expression", "_index", "_free_indices", "_index_dimensions",)
     def __new__(cls, expression, index):
         # Return zero if expression is trivially constant
         if expression.is_cellwise_constant():
@@ -139,7 +139,6 @@ class SpatialDerivative(Derivative):
         # Store what we need
         self._free_indices = fi
         self._index_dimensions = idims
-        self._shape = expression.shape()
 
     def operands(self):
         return (self._expression, self._index)
@@ -151,7 +150,7 @@ class SpatialDerivative(Derivative):
         return self._index_dimensions
 
     def shape(self):
-        return self._shape
+        return self._expression.shape()
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
