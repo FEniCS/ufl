@@ -24,7 +24,7 @@ from collections import defaultdict
 from ufl.log import error
 from ufl.expr import Expr
 from ufl.operatorbase import WrapperType
-from ufl.indexing import IndexBase, Index, FixedIndex, as_multi_index
+from ufl.indexing import Index, FixedIndex, as_multi_index
 from ufl.indexutils import unique_indices
 from ufl.precedence import parstr
 
@@ -32,7 +32,7 @@ from ufl.precedence import parstr
 
 class Indexed(WrapperType):
     __slots__ = ("_expression", "_indices",
-                 "_free_indices", "_index_dimensions", "_repr")
+                 "_free_indices", "_index_dimensions",)
     def __init__(self, expression, indices):
         WrapperType.__init__(self)
         if not isinstance(expression, Expr):
@@ -57,8 +57,6 @@ class Indexed(WrapperType):
         
         self._free_indices = fi
         self._index_dimensions = idims
-
-        self._repr = "Indexed(%r, %r)" % (self._expression, self._indices)
     
     def operands(self):
         return (self._expression, self._indices)
@@ -87,7 +85,7 @@ class Indexed(WrapperType):
         return "%s[%s]" % (parstr(self._expression, self), self._indices)
     
     def __repr__(self):
-        return self._repr
+        return "Indexed(%r, %r)" % (self._expression, self._indices)
     
     def __getitem__(self, key):
         error("Attempting to index with %r, but object is already indexed: %r" % (key, self))
