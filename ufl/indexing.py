@@ -28,13 +28,18 @@ from itertools import izip
 
 #--- Index types ---
 
-class Index(Counted):
+class IndexBase(object):
+    def __init__(self):
+        pass
+
+class Index(IndexBase, Counted):
     """UFL value: An index with no value assigned.
 
     Used to represent free indices in Einstein indexing notation."""
     __slots__ = ()
     _globalcount = 0
     def __init__(self, count=None):
+        IndexBase.__init__(self)
         Counted.__init__(self, count)
 
     def __eq__(self, other):
@@ -52,10 +57,11 @@ class Index(Counted):
     def __hash__(self):
         return hash(repr(self))
 
-class FixedIndex(object):
+class FixedIndex(IndexBase):
     """UFL value: An index with a specific value assigned."""
     __slots__ = ("_value", "_repr", "_hash")
     def __init__(self, value):
+        IndexBase.__init__(self)
         if not isinstance(value, int):
             error("Expecting integer value for fixed index.")
         self._value = value
@@ -91,14 +97,14 @@ def fixed_index(value): # TODO: move into a FixedIndex.__new__ implementation
 
 class MultiIndex(UtilityType):
     "Represents a sequence of indices, either fixed or free."
-    __slots__ = ("_indices","_idims",)
+    __slots__ = ("_indices",)
 
     def __init__(self, ii, idims=None):
         UtilityType.__init__(self)
         
         if isinstance(ii, int):
             ii = (fixed_index(ii),)
-        elif isinstance(ii, (Index, FixedIndex)):
+        elif isinstance(ii, IndexBase):
             ii = (ii,)
         elif isinstance(ii, tuple):
             ii = tuple(as_index(j) for j in ii)
@@ -177,11 +183,11 @@ class MultiIndex(UtilityType):
             self._indices == other._indices
 
 def as_index(i):
-    if isinstance(i, (Index, FixedIndex)):
+    if isinstance(i, IndexBase):
         return i
     elif isinstance(i, int):
         return fixed_index(i)
-    elif isinstance(i, (Index, FixedIndex)):
+    elif isinstance(i, IndexBase):
         return (i,)
     else:
         error("Invalid object %s to create index from." % repr(i))

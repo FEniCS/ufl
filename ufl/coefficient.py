@@ -90,7 +90,7 @@ class Coefficient(FormArgument, Counted):
 
     def __repr__(self):
         if self._repr is None:
-            self._repr = "Coefficient(%r, %r)" % (self._element, self.count())
+            self._repr = "Coefficient(%r, %r)" % (self._element, self._count)
         return self._repr
 
     def __eq__(self, other):
