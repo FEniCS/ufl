@@ -99,9 +99,9 @@ class MultiIndex(UtilityType):
     "Represents a sequence of indices, either fixed or free."
     __slots__ = ("_indices", "_idims",)
 
-    def __init__(self, ii, idims=None):
+    def __init__(self, ii, idims):
         UtilityType.__init__(self)
-        
+
         if isinstance(ii, int):
             ii = (fixed_index(ii),)
         elif isinstance(ii, IndexBase):
@@ -111,19 +111,15 @@ class MultiIndex(UtilityType):
         else:
             error("Expecting tuple of UFL indices.")
 
-        # TODO: Remove "idims is None" when it can no longer occur
-        if idims is None:
-            warning("No index dimensions provided in MultiIndex.")
-            #error("No index dimensions provided in MultiIndex.")
-        else:
-            idims = dict(idims)
-            for k in ii:
-                if isinstance(k, Index):
-                    if not k in idims:
-                        error("Missing index in the provided idims.")
-                    else:
-                        ufl_assert(isinstance(idims[k], int),
-                                   "Non-integer index dimension provided.")
+        idims = dict(idims)
+        for k in ii:
+            if isinstance(k, Index):
+                if not k in idims:
+                    error("Missing index in the provided idims.")
+                else:
+                    ufl_assert(isinstance(idims[k], int),
+                               "Non-integer index dimension provided.")
+
         self._indices = ii
         self._idims = idims
     
