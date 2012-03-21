@@ -31,7 +31,7 @@ from ufl.expr import Expr
 from ufl.constantvalue import Zero, ScalarValue, FloatValue, IntValue, is_python_scalar, is_true_ufl_scalar, as_ufl, python_scalar_types
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import Transposed, Dot
-from ufl.indexing import Index, FixedIndex, fixed_index, indices
+from ufl.indexing import Index, FixedIndex, IndexBase, indices
 from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
 from ufl.indexutils import repeated_indices, unique_indices, single_indices
@@ -334,7 +334,7 @@ def analyse_key(ii, rank):
     ellipsis (...), and returns tuples of actual UFL index objects.
 
     The return value is a tuple (indices, axis_indices),
-    each being a tuple of Index or FixedIndex instances.
+    each being a tuple of IndexBase instances.
 
     The return value 'indices' corresponds to all
     input objects of these types:
@@ -364,8 +364,8 @@ def analyse_key(ii, rank):
         else:
             # Convert index to a proper type
             if isinstance(i, int):
-                idx = fixed_index(i)
-            elif isinstance(i, (Index, FixedIndex)):
+                idx = FixedIndex(i)
+            elif isinstance(i, IndexBase):
                 idx = i
             elif isinstance(i, slice):
                 if i == slice(None):

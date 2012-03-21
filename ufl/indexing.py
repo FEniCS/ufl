@@ -59,14 +59,22 @@ class Index(IndexBase, Counted):
 
 class FixedIndex(IndexBase):
     """UFL value: An index with a specific value assigned."""
-    __slots__ = ("_value", "_repr", "_hash")
+    __slots__ = ("_value", "_hash")
+    _cache = {}
+    def __new__(cls, value):
+        self = FixedIndex._cache.get(value)
+        if self is None:
+            if not isinstance(value, int):
+                error("Expecting integer value for fixed index.")
+            self = IndexBase.__new__(cls)
+            FixedIndex._cache[value] = self
+        return self
+
     def __init__(self, value):
-        IndexBase.__init__(self)
-        if not isinstance(value, int):
-            error("Expecting integer value for fixed index.")
-        self._value = value
-        self._repr = "FixedIndex(%d)" % self._value
-        self._hash = hash(self._repr)
+        if not hasattr(self, "_value"):
+            IndexBase.__init__(self)
+            self._value = value
+            self._hash = hash(repr(self))
 
     def __eq__(self, other):
         if isinstance(other, FixedIndex):
@@ -82,18 +90,10 @@ class FixedIndex(IndexBase):
         return "%d" % self._value
 
     def __repr__(self):
-        return self._repr
+        return "FixedIndex(%d)" % self._value
 
     def __hash__(self):
         return self._hash
-
-_fixed_indices = {}
-def fixed_index(value): # TODO: move into a FixedIndex.__new__ implementation
-    ii = _fixed_indices.get(value)
-    if ii is None:
-        ii = FixedIndex(value)
-        _fixed_indices[value] = ii
-    return ii
 
 class MultiIndex(UtilityType):
     "Represents a sequence of indices, either fixed or free."
@@ -103,7 +103,7 @@ class MultiIndex(UtilityType):
         UtilityType.__init__(self)
 
         if isinstance(ii, int):
-            ii = (fixed_index(ii),)
+            ii = (FixedIndex(ii),)
         elif isinstance(ii, IndexBase):
             ii = (ii,)
         elif isinstance(ii, tuple):
@@ -182,7 +182,7 @@ def as_index(i):
     if isinstance(i, IndexBase):
         return i
     elif isinstance(i, int):
-        return fixed_index(i)
+        return FixedIndex(i)
     elif isinstance(i, IndexBase):
         return (i,)
     else:
