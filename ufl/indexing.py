@@ -22,7 +22,7 @@
 
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
-from ufl.common import Counted
+from ufl.common import Counted, EmptyDict
 from ufl.terminal import UtilityType
 from itertools import izip
 
@@ -138,7 +138,7 @@ class MultiIndex(UtilityType):
             else:
                 error("Expecting tuple of UFL indices.")
  
-            idims = dict(idims)
+            idims = dict(idims) if idims else EmptyDict
             for k in ii:
                 if isinstance(k, Index):
                     if not k in idims:
@@ -169,8 +169,13 @@ class MultiIndex(UtilityType):
         return self._idims
 
     def __add__(self, other):
-        idims = dict(self.index_dimensions())
-        idims.update(other.index_dimensions())
+        sid = self.index_dimensions()
+        oid = other.index_dimensions()
+        if sid or oid:
+            idims = dict(sid)
+            idims.update(oid)
+        else:
+            idims = EmptyDict
         if isinstance(other, tuple):
             return MultiIndex(self._indices + other, idims)
         elif isinstance(other, MultiIndex):
@@ -178,8 +183,13 @@ class MultiIndex(UtilityType):
         return NotImplemented
 
     def __radd__(self, other):
-        idims = dict(self.index_dimensions())
-        idims.update(other.index_dimensions())
+        sid = self.index_dimensions()
+        oid = other.index_dimensions()
+        if sid or oid:
+            idims = dict(sid)
+            idims.update(oid)
+        else:
+            idims = EmptyDict
         if isinstance(other, tuple):
             return MultiIndex(other + self._indices, idims)
         elif isinstance(other, MultiIndex):
