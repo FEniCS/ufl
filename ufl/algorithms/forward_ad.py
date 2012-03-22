@@ -572,7 +572,7 @@ class ForwardAD(Transformer):
         if fp.is_cellwise_constant():
             sh = fp.shape()
             fi = fp.free_indices()
-            idims = fp.index_dimensions()
+            idims = dict(fp.index_dimensions())
             j, = ii
             if isinstance(j, Index) and j not in idims:
                 fi = fi + (j,)

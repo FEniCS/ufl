@@ -60,6 +60,15 @@ def product(sequence):
     "Return the product of all elements in a sequence."
     return reduce(operator.__mul__, sequence, 1)
 
+class EmptyDictType(dict):
+    def __setitem__(self, key, value):
+        from ufl.log import error
+        error("This is a frozen unique empty dictionary object, inserting values is an error.")
+    def update(self, *args, **kwargs):
+        from ufl.log import error
+        error("This is a frozen unique empty dictionary object, inserting values is an error.")
+EmptyDict = EmptyDictType()
+
 def mergedicts(dicts):
     d = dict(dicts[0])
     for d2 in dicts[1:]:

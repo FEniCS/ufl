@@ -27,6 +27,7 @@ from ufl.assertions import ufl_assert, expecting_python_scalar
 from ufl.expr import Expr
 from ufl.terminal import Terminal
 from ufl.indexing import Index, FixedIndex
+from ufl.common import EmptyDict
 
 #--- "Low level" scalar types ---
 
@@ -75,7 +76,7 @@ class IndexAnnotated(object):
             error("Expecting tuple of Index objects.")
         self._shape = shape
         self._free_indices = free_indices
-        self._index_dimensions = dict(index_dimensions or {})
+        self._index_dimensions = dict(index_dimensions) if index_dimensions else EmptyDict
         if (set(self._free_indices) ^ set(self._index_dimensions.keys())):
             error("Index set mismatch.")
 
