@@ -55,6 +55,7 @@ def format_float(x):
 #--- Base classes for constant types ---
 
 class ConstantValue(Terminal):
+    __slots__ = ()
     def __init__(self):
         Terminal.__init__(self)
 
@@ -66,13 +67,8 @@ class IndexAnnotated(object):
     """Class to annotate expressions that don't depend on
     indices with a set of free indices, used internally to keep
     index properties intact during automatic differentiation."""
-    #__slots__ = ("_shape", "_free_indices", "_index_dimensions")
-
+    __slots__ = ("_shape", "_free_indices", "_index_dimensions")
     def __init__(self, shape=(), free_indices=(), index_dimensions=None):
-        #ufl_assert(all(isinstance(i, int) for i in shape),
-        #           "Expecting tuple of int.")
-        #ufl_assert(all(isinstance(i, Index) for i in free_indices),
-        #           "Expecting tuple of Index objects.")
         if not all(isinstance(i, int) for i in shape):
             error("Expecting tuple of int.")
         if not all(isinstance(i, Index) for i in free_indices):
@@ -80,8 +76,6 @@ class IndexAnnotated(object):
         self._shape = shape
         self._free_indices = free_indices
         self._index_dimensions = dict(index_dimensions or {})
-        #ufl_assert(not (set(self._free_indices) ^ set(self._index_dimensions.keys())),
-        #           "Index set mismatch.")
         if (set(self._free_indices) ^ set(self._index_dimensions.keys())):
             error("Index set mismatch.")
 
@@ -91,7 +85,6 @@ class IndexAnnotated(object):
 class Zero(ConstantValue, IndexAnnotated):
     "UFL literal type: Representation of a zero valued expression."
     __slots__ = ()
-
     def __init__(self, shape=(), free_indices=(), index_dimensions=None):
         ufl_assert(isinstance(free_indices, tuple), "Expecting tuple of free indices, not %s" % str(free_indices))
         ConstantValue.__init__(self)
