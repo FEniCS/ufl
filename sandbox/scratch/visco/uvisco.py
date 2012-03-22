@@ -240,7 +240,7 @@ def main():
 
     find_the_memory_thief(ei.cell_integrals()[0].integrand())
 
-    print formatted_analysis(ei, classes=True)
+    #print formatted_analysis(ei, classes=True)
 
     print
     print msize

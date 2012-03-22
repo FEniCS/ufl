@@ -28,6 +28,7 @@ from ufl.indexing import Index, indices
 from ufl.algebra import AlgebraOperator
 from ufl.precedence import parstr
 from ufl.sorting import cmp_expr
+from ufl.common import EmptyDict
 
 def merge_indices(a, b):
     ai = a.free_indices()
@@ -361,7 +362,7 @@ class Determinant(CompoundTensorOperator):
         return ()
     
     def index_dimensions(self):
-        return {}
+        return EmptyDict
     
     def shape(self):
         return ()
@@ -404,7 +405,7 @@ class Inverse(CompoundTensorOperator):
         return ()
     
     def index_dimensions(self):
-        return {}
+        return EmptyDict
     
     def shape(self):
         return self._A.shape()
@@ -435,7 +436,7 @@ class Cofactor(CompoundTensorOperator):
         return ()
     
     def index_dimensions(self):
-        return {}
+        return EmptyDict
     
     def shape(self):
         return self._A.shape()

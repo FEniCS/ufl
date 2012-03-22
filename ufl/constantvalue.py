@@ -212,7 +212,7 @@ class ScalarValue(ConstantValue, IndexAnnotated):
     def __abs__(self):
         return type(self)(abs(self._value))
 
-class FloatValue(ScalarValue): # REPR apply reuse technique?
+class FloatValue(ScalarValue):
     "UFL literal type: Representation of a constant scalar floating point value."
     __slots__ = ()
     def __init__(self, value, shape=(), free_indices=(), index_dimensions=None):
@@ -229,7 +229,7 @@ class FloatValue(ScalarValue): # REPR apply reuse technique?
                                        repr(self._free_indices),
                                        repr(self._index_dimensions))
 
-class IntValue(ScalarValue): # REPR apply reuse technique?
+class IntValue(ScalarValue):
     "UFL literal type: Representation of a constant scalar integer value."
     __slots__ = ()
     _cache = {}

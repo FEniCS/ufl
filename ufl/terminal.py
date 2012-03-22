@@ -26,6 +26,7 @@ for all types that are terminal nodes in the expression trees."""
 from ufl.expr import Expr
 from ufl.common import lstr
 from ufl.log import error, warning
+from ufl.common import EmptyDict
 
 #--- Base class for terminal objects ---
 
@@ -51,7 +52,7 @@ class Terminal(Expr):
     
     def index_dimensions(self):
         "A Terminal object never has free indices."
-        return {}
+        return EmptyDict
     
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
         "Get self from mapping and return the component asked for."

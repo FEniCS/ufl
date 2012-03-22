@@ -27,6 +27,7 @@ from ufl.terminal import Terminal
 from ufl.operatorbase import Operator
 from ufl.finiteelement import FiniteElementBase
 from ufl.operators import jump
+from ufl.common import EmptyDict
 
 class LiftingResult(Operator):
     def __init__(self, operator, operand):
@@ -52,7 +53,7 @@ class LiftingResult(Operator):
         return ()
 
     def index_dimensions(self):
-        return {}
+        return EmptyDict
 
     def evaluate(self, x, mapping, component, index_values):
         error("Evaluate can not easily be implemented for this type.")
@@ -91,7 +92,7 @@ class TerminalOperator(Terminal):
 
     def index_dimensions(self):
         error("Calling this makes no sense.")
-        return {}
+        return EmptyDict
 
     def evaluate(self, x, mapping, component, index_values):
         error("Evaluate can not easily be implemented for this type.")

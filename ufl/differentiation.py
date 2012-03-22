@@ -24,7 +24,7 @@
 
 from ufl.log import warning, error
 from ufl.assertions import ufl_assert
-from ufl.common import subdict, mergedicts
+from ufl.common import subdict, mergedicts, EmptyDict
 from ufl.expr import Expr
 from ufl.terminal import Terminal, Data
 from ufl.operatorbase import Operator, Tuple
@@ -95,7 +95,7 @@ class CoefficientDerivative(Derivative):
 
     def index_dimensions(self):
         # Assertion in __new__ guarantees this
-        return {}
+        return EmptyDict
 
     def __str__(self):
         return "d/dfj { %s }, with fh=%s, dfh/dfj = %s, and coefficient derivatives %s"\

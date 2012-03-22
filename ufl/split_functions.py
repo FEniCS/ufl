@@ -24,7 +24,7 @@
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.common import product
+from ufl.common import product, EmptyDict
 from ufl.finiteelement import MixedElement, TensorElement
 from ufl.tensors import as_vector, as_matrix, as_tensor
 
@@ -78,8 +78,7 @@ def split(v):
             s = None
             if isinstance(e, TensorElement):
                 s = e.symmetry()
-            if s is None:
-                s = {}
+            s = s or EmptyDict
             # If we do this, we must fix the size computation in MixedElement.__init__ as well
             #actual_value_size -= len(s)
             #sub_size -= len(s)

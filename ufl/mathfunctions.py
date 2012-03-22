@@ -28,6 +28,7 @@ from ufl.log import warning, error
 from ufl.assertions import ufl_assert
 from ufl.operatorbase import Operator
 from ufl.constantvalue import is_true_ufl_scalar, ScalarValue, Zero, FloatValue, IntValue
+from ufl.common import EmptyDict
 
 """
 TODO: Include additional functions available in <cmath> (need derivatives as well):
@@ -77,7 +78,7 @@ class MathFunction(Operator):
         return ()
     
     def index_dimensions(self):
-        return {}
+        return EmptyDict
     
     def shape(self):
         return ()
@@ -229,7 +230,7 @@ class BesselFunction(Operator):
         return ()
 
     def index_dimensions(self):
-        return {}
+        return EmptyDict
 
     def shape(self):
         return ()

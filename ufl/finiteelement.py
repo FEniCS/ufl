@@ -27,7 +27,7 @@ from itertools import izip
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.elementlist import ufl_elements, aliases
-from ufl.common import product, index_to_component, component_to_index, istr
+from ufl.common import product, index_to_component, component_to_index, istr, EmptyDict
 from ufl.geometry import as_cell, domain2facet
 from ufl.log import info_blue, warning, warning_blue
 from ufl.log import BLUE
@@ -77,7 +77,7 @@ class FiniteElementBase(object):
     def symmetry(self):
         """Return the symmetry dict, which is a mapping c0 -> c1
         meaning that component c0 is represented by component c1."""
-        return {}
+        return EmptyDict
 
     def extract_subelement_component(self, i):
         """Extract direct subelement index and subelement relative
@@ -337,7 +337,7 @@ class MixedElement(FiniteElementBase):
             # Update base index for next element
             j += product(sh)
         ufl_assert(j == product(self.value_shape()), "Size mismatch in symmetry algorithm.")
-        return sm
+        return sm or EmptyDict
 
     def num_sub_elements(self):
         "Return number of sub elements."
@@ -555,7 +555,7 @@ class TensorElement(MixedElement):
     def symmetry(self):
         """Return the symmetry dict, which is a mapping c0 -> c1
         meaning that component c0 is represented by component c1."""
-        return self._symmetry or {}
+        return self._symmetry or EmptyDict
 
     def __str__(self):
         "Format as string for pretty printing."
