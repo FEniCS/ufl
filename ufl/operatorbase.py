@@ -78,7 +78,6 @@ compute_hash = compute_hash2
 
 class Operator(Expr):
     __slots__ = ("_hash",)
-
     def __init__(self):
         Expr.__init__(self)
         self._hash = None
@@ -101,10 +100,12 @@ class Operator(Expr):
 #--- Subgroups of terminals ---
 
 class AlgebraOperator(Operator):
+    __slots__ = ()
     def __init__(self):
         Operator.__init__(self)
 
 class WrapperType(Operator):
+    __slots__ = ()
     def __init__(self):
         Operator.__init__(self)
 

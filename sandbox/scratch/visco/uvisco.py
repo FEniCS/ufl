@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # Copyright (C) 2012 Harish Narayanan
 
-DOLFIN = 1
+DOLFIN = 0
 if DOLFIN:
     from dolfin import *
 else:
@@ -12,7 +12,6 @@ from sys import getsizeof
 import ufl.classes
 from ufl.algorithms import expand_indices, Graph
 from pympler.asizeof import asizeof
-
 
 #import sfc
 #sfc.set_level(DEBUG)
@@ -245,6 +244,14 @@ def main():
     print
     print msize
     print mtime
+
+    try:
+        from guppy import hpy
+        hp = hpy()
+        print "heap:"
+        print hp.heap()
+    except:
+        print "No guppy installed!"
 
 main()
 
