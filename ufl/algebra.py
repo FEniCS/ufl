@@ -27,7 +27,7 @@ from itertools import chain
 
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
-from ufl.common import product, mergedicts, subdict
+from ufl.common import product, mergedicts, subdict, EmptyDict
 from ufl.expr import Expr
 from ufl.operatorbase import AlgebraOperator
 from ufl.terminal import Terminal
@@ -255,7 +255,7 @@ class Product(AlgebraOperator):
         
         # Extract indices
         self._free_indices     = unique_indices(tuple(chain(*(o.free_indices() for o in operands))))
-        self._index_dimensions = mergedicts([o.index_dimensions() for o in operands])
+        self._index_dimensions = mergedicts([o.index_dimensions() for o in operands]) or EmptyDict
     
     def __init__(self, *operands):
         AlgebraOperator.__init__(self)

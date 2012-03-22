@@ -27,6 +27,7 @@ from ufl.operatorbase import WrapperType
 from ufl.indexing import Index, FixedIndex, as_multi_index
 from ufl.indexutils import unique_indices
 from ufl.precedence import parstr
+from ufl.common import EmptyDict
 
 #--- Indexed expression ---
 
@@ -54,9 +55,9 @@ class Indexed(WrapperType):
         idims = dict((i, s) for (i, s) in zip(self._indices._indices, shape) if isinstance(i, Index))
         idims.update(expression.index_dimensions())
         fi = unique_indices(expression.free_indices() + self._indices._indices)
-        
+
         self._free_indices = fi
-        self._index_dimensions = idims
+        self._index_dimensions = idims or EmptyDict
     
     def operands(self):
         return (self._expression, self._indices)

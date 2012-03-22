@@ -138,7 +138,7 @@ class SpatialDerivative(Derivative):
 
         # Store what we need
         self._free_indices = fi
-        self._index_dimensions = idims
+        self._index_dimensions = idims or EmptyDict
 
     def operands(self):
         return (self._expression, self._index)
