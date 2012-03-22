@@ -130,9 +130,9 @@ def formatted_analysis(expr, classes=False):
 def rsizeof(obj, visited=None):
     if visited is None:
         visited = set()
-    if obj in visited:
+    if id(obj) in visited:
         return 0
-    visited.add(obj)
+    visited.add(id(obj))
     s = getsizeof(obj)
     if 1:
         s += sum(rsizeof(o) for o in obj.operands())
@@ -159,6 +159,8 @@ def test():
     for n in ['o', 't', 'u', 'v', 'g', 'f', 'e']:
         obj = eval(n)
         print n, getsizeof(obj), rsizeof(obj), asizeof(obj), type(obj).__name__
-
+    print id(o._index_dimensions)
+    print id(t._index_dimensions)
+    print id(ufl.common.EmptyDict)
 test()
 

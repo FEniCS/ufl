@@ -12,7 +12,6 @@ from sys import getsizeof
 import ufl.classes
 from ufl.algorithms import expand_indices, Graph
 from pympler.asizeof import asizeof
-from pympler.classtracker import ClassTracker
 
 
 #import sfc
@@ -180,7 +179,7 @@ def find_the_memory_thief(expr):
     print
 
 def print_expr_size(expr):
-    print "::", asizeof(expr), " ", getsizeof(expr), " ", \
+    print "::", getsizeof(expr), " ", asizeof(expr), " ", \
           sum(1 for _ in ufl.algorithms.pre_traversal(expr))
 
 msize, mtime = 0, 0
@@ -240,6 +239,8 @@ def main():
     printmem()
 
     find_the_memory_thief(ei.cell_integrals()[0].integrand())
+
+    print formatted_analysis(ei, classes=True)
 
     print
     print msize
