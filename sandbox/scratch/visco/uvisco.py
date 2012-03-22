@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # Copyright (C) 2012 Harish Narayanan
 
-DOLFIN = 0
+DOLFIN = 1
 if DOLFIN:
     from dolfin import *
 else:
