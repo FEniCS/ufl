@@ -127,7 +127,7 @@ def slice_dict(dictionary, keys, default=None):
 
 def some_key(a_dict):
     "Return an arbitrary key from a dictionary."
-    return zip((0,), a_dict.iterkeys())[0][1]
+    return a_dict.iterkeys().next()
 
 def camel2underscore(name):
     "Convert a CamelCaps string to underscore_syntax."
@@ -335,7 +335,7 @@ def strides(shape):
 
 def component_to_index(component, shape):
     i = 0
-    for (c,s) in zip(component, strides(shape)):
+    for (c,s) in izip(component, strides(shape)):
         i += c*s
     return i
 
@@ -349,7 +349,7 @@ def index_to_component(index, shape):
         index = b
         component.append(a)
     assert all(c >= 0 for c in component)
-    assert all(c < s for (c,s) in zip(component, shape))
+    assert all(c < s for (c,s) in izip(component, shape))
     return tuple(component)
 
 def test_component_indexing():

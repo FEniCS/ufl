@@ -22,6 +22,7 @@
 
 # TODO: Imports!
 
+from itertools import izip
 from ufl.algorithms.pdiffs import PartialDerivativeComputer
 from ufl.differentiation import SpatialDerivative, VariableDerivative, CoefficientDerivative
 
@@ -77,7 +78,7 @@ def reverse_ad(expr, G): # TODO: Finish this!
     for i, v in enumerate(V):
         pdiffs = pdc(v)
         vi_edges = TODO
-        for (j, dvidvj) in zip(vi_edges, pdiffs):
+        for (j, dvidvj) in izip(vi_edges, pdiffs):
             c[(i,j)] = dvidvj
 
     # Reverse accumulation

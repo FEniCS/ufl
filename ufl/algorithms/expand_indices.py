@@ -25,7 +25,6 @@ indices only."""
 # Last changed: 2011-06-08
 
 from itertools import izip
-
 from ufl.log import error
 from ufl.common import Stack, StackDict
 from ufl.assertions import ufl_assert
@@ -297,7 +296,7 @@ def expand_indices2_alg(e):
 
         for p in perms:
             # Map indices to permutation p
-            for (j, d) in zip(ii, p):
+            for (j, d) in izip(ii, p):
                 assert isinstance(j, Index)
                 assert isinstance(d, int)
                 indmap.push(j, d)
@@ -364,7 +363,7 @@ def expand_indices2_alg(e):
                 A = numpy.ndarray(shape=v.shape(), dtype=object)
                 iota = v.operands()[1] #getv(Vout[i][1], indmap) # not to be mapped here
                 for k in compute_indices(v.shape()):
-                    for (j, d) in zip(iota, k):
+                    for (j, d) in izip(iota, k):
                         indmap.push(j, d)
                     Ak = getv(Vout[i][0], indmap)
                     for _ in iota:

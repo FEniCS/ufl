@@ -20,6 +20,7 @@
 # First added:  2008-03-31
 # Last changed: 2011-10-17
 
+from itertools import izip
 from ufl.log import warning, error
 from ufl.common import subdict, EmptyDict
 from ufl.assertions import ufl_assert
@@ -206,7 +207,7 @@ class ComponentTensor(WrapperType):
         a = self._expression
 
         # Map component to indices
-        for i, c in zip(indices, component):
+        for i, c in izip(indices, component):
             index_values.push(i, c)
         
         a = a.evaluate(x, mapping, (), index_values)

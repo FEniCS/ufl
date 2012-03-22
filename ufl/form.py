@@ -35,7 +35,7 @@ from ufl.equation import Equation
 class Form(object):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
     __slots__ = ("_integrals",
-                 "_repr", "_hash", "_str",
+                 "_repr", "_hash",
                  "_form_data", "_is_preprocessed",
                  "exterior_facet_domains")
 
@@ -43,7 +43,6 @@ class Form(object):
         self._integrals = tuple(integrals)
         ufl_assert(all(isinstance(itg, Integral) for itg in integrals),
                    "Expecting list of integrals.")
-        self._str = None
         self._repr = None
         self._hash = None
         self._form_data = None
@@ -201,24 +200,20 @@ class Form(object):
         return action(self, coefficient)
 
     def __str__(self):
-        if self._str is None:
-            if self._integrals:
-                self._str = "\n  +  ".join(str(itg) for itg in self._integrals)
-            else:
-                self._str = "<empty Form>"
-        return self._str
+        if self._integrals:
+            return "\n  +  ".join(str(itg) for itg in self._integrals)
+        else:
+            return "<empty Form>"
 
     def __repr__(self):
-        if self._repr is None:
-            self._repr = "Form([%s])" % ", ".join(repr(itg) for itg in self._integrals) # REPR do we really want to cache this? may be costly
+        if self._repr is None: # REPR do we really want to cache this? may be quite costly!
+            self._repr = "Form([%s])" % ", ".join(repr(itg) for itg in self._integrals)
         return self._repr
 
     def __hash__(self):
         if self._hash is None:
-            #self._hash = hash(tuple(type(itg) for itg in self._integrals))
-            # TODO: This is probably better, using a couple of levels of types from the integrands:
-            self._hash = hash(tuple((hash(itg.integrand()), hash(itg.measure()))
-                                    for itg in self._integrals)) # REPR try this to improve form hashing
+            hashdata = tuple((hash(itg.integrand()), hash(itg.measure())) for itg in self._integrals)
+            self._hash = hash(hashdata)
         return self._hash
 
     def __eq__(self, other):

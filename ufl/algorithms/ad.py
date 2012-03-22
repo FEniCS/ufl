@@ -53,7 +53,7 @@ def apply_ad(e, ad_routine):
         return e
     ops1 = e.operands()
     ops = [apply_ad(o, ad_routine) for o in ops1]
-    if not all(a is b for (a,b) in zip(ops, ops1)):
+    if not all(a is b for (a,b) in izip(ops, ops1)):
         e = e.reconstruct(*ops)
     if isinstance(e, Derivative):
         e = ad_routine(e)

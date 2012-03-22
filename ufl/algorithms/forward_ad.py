@@ -24,6 +24,7 @@
 # First added:  2008-08-19
 # Last changed: 2011-10-24
 
+from itertools import izip
 from math import pi
 from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert
@@ -669,7 +670,7 @@ class CoefficientAD(ForwardAD):
         debug("self._v = %s" % self._v)
 
         # Find o among w
-        for (w, v) in zip(self._w, self._v):
+        for (w, v) in izip(self._w, self._v):
             if o == w:
                 return (w, v)
 
@@ -692,7 +693,7 @@ class CoefficientAD(ForwardAD):
             # Since we may actually have a tuple of oprimes and vs in a
             # 'mixed' space, sum over them all to get the complete inner
             # product. Using indices to define a non-compound inner product.
-            for (oprime, v) in zip(oprimes, self._v):
+            for (oprime, v) in izip(oprimes, self._v):
                 so, oi = as_scalar(oprime)
                 rv = len(v.shape())
                 oi1 = oi[:-rv]

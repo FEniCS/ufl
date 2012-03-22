@@ -22,6 +22,7 @@
 # First added:  2008-03-14
 # Last changed: 2011-06-22
 
+from itertools import izip
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.common import product, EmptyDict
@@ -115,7 +116,7 @@ def split(v):
             # TODO: Handle rank > 2? Or is there such a thing?
             error("Don't know how to split functions with sub functions of rank %d (yet)." % rank)
             #for indices in compute_indices(shape):
-            #    #k = offset + sum(i*s for (i,s) in zip(indices, shape[1:] + (1,)))
+            #    #k = offset + sum(i*s for (i,s) in izip(indices, shape[1:] + (1,)))
             #    vs.append(v[indices])
 
         sub_functions.append(subv)

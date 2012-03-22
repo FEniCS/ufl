@@ -20,6 +20,7 @@
 # First added:  2009-01-28
 # Last changed: 2011-06-17
 
+from itertools import izip
 from collections import defaultdict
 from ufl.log import error
 from ufl.expr import Expr
@@ -48,11 +49,11 @@ class Indexed(WrapperType):
 
         self._indices = as_multi_index(indices, shape)
 
-        for si, di in zip(shape, self._indices):
+        for si, di in izip(shape, self._indices):
             if isinstance(di, FixedIndex) and int(di) >= int(si):
                 error("Fixed index out of range!")
 
-        idims = dict((i, s) for (i, s) in zip(self._indices._indices, shape) if isinstance(i, Index))
+        idims = dict((i, s) for (i, s) in izip(self._indices._indices, shape) if isinstance(i, Index))
         idims.update(expression.index_dimensions())
         fi = unique_indices(expression.free_indices() + self._indices._indices)
 

@@ -22,6 +22,7 @@
 # First added:  2008-11-01
 # Last changed: 2011-11-10
 
+from itertools import izip
 from ufl.log import warning, error
 from ufl.assertions import ufl_assert, expecting_python_scalar
 from ufl.expr import Expr
@@ -95,7 +96,7 @@ class Zero(ConstantValue, IndexAnnotated):
         if not free_indices:
             return self
         ufl_assert(len(free_indices) == len(self._free_indices), "Size mismatch between old and new indices.")
-        new_index_dimensions = dict((b, self._index_dimensions[a]) for (a,b) in zip(self._free_indices, free_indices))
+        new_index_dimensions = dict((b, self._index_dimensions[a]) for (a,b) in izip(self._free_indices, free_indices))
         return Zero(self._shape, free_indices, new_index_dimensions)
 
     def shape(self):
@@ -175,7 +176,7 @@ class ScalarValue(ConstantValue, IndexAnnotated):
         if not free_indices:
             return self
         ufl_assert(len(free_indices) == len(self._free_indices), "Size mismatch between old and new indices.")
-        new_index_dimensions = dict((b, self._index_dimensions[a]) for (a,b) in zip(self._free_indices, free_indices))
+        new_index_dimensions = dict((b, self._index_dimensions[a]) for (a,b) in izip(self._free_indices, free_indices))
         return self._uflclass(self._value, self._shape, free_indices, new_index_dimensions)
 
     def shape(self):
