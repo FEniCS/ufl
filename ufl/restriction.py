@@ -54,6 +54,7 @@ class Restricted(Operator):
         return "%s('%s')" % (parstr(self._f, self), self._side)
 
 class PositiveRestricted(Restricted):
+    __slots__ = ()
     def __init__(self, f):
         Restricted.__init__(self, f, "+")
     
@@ -61,8 +62,10 @@ class PositiveRestricted(Restricted):
         return "PositiveRestricted(%r)" % self._f
 
 class NegativeRestricted(Restricted):
+    __slots__ = ()
     def __init__(self, f):
         Restricted.__init__(self, f, "-")
     
     def __repr__(self):
         return "NegativeRestricted(%r)" % self._f
+

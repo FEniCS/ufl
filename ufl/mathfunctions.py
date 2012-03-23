@@ -99,6 +99,7 @@ class MathFunction(Operator):
         return "%s(%r)" % (self._name, self._argument)
 
 class Sqrt(MathFunction):
+    __slots__ = ()
     def __new__(cls, argument):
         if isinstance(argument, (ScalarValue, Zero)):
             return FloatValue(math.sqrt(float(argument)))
@@ -108,6 +109,7 @@ class Sqrt(MathFunction):
         MathFunction.__init__(self, "sqrt", argument)
 
 class Exp(MathFunction):
+    __slots__ = ()
     def __new__(cls, argument):
         if isinstance(argument, (ScalarValue, Zero)):
             return FloatValue(math.exp(float(argument)))
@@ -117,6 +119,7 @@ class Exp(MathFunction):
         MathFunction.__init__(self, "exp", argument)
 
 class Ln(MathFunction):
+    __slots__ = ()
     def __new__(cls, argument):
         if isinstance(argument, (ScalarValue, Zero)):
             return FloatValue(math.log(float(argument)))
@@ -130,6 +133,7 @@ class Ln(MathFunction):
         return math.log(a)
 
 class Cos(MathFunction):
+    __slots__ = ()
     def __new__(cls, argument):
         if isinstance(argument, (ScalarValue, Zero)):
             return FloatValue(math.cos(float(argument)))
@@ -139,6 +143,7 @@ class Cos(MathFunction):
         MathFunction.__init__(self, "cos", argument)
 
 class Sin(MathFunction):
+    __slots__ = ()
     def __new__(cls, argument):
         if isinstance(argument, (ScalarValue, Zero)):
             return FloatValue(math.sin(float(argument)))
@@ -148,6 +153,7 @@ class Sin(MathFunction):
         MathFunction.__init__(self, "sin", argument)
 
 class Tan(MathFunction):
+    __slots__ = ()
     def __new__(cls, argument):
         if isinstance(argument, (ScalarValue, Zero)):
             return FloatValue(math.tan(float(argument)))
@@ -157,6 +163,7 @@ class Tan(MathFunction):
         MathFunction.__init__(self, "tan", argument)
 
 class Acos(MathFunction):
+    __slots__ = ()
     def __new__(cls, argument):
         if isinstance(argument, (ScalarValue, Zero)):
             return FloatValue(math.acos(float(argument)))
@@ -166,6 +173,7 @@ class Acos(MathFunction):
         MathFunction.__init__(self, "acos", argument)
 
 class Asin(MathFunction):
+    __slots__ = ()
     def __new__(cls, argument):
         if isinstance(argument, (ScalarValue, Zero)):
             return FloatValue(math.asin(float(argument)))
@@ -175,6 +183,7 @@ class Asin(MathFunction):
         MathFunction.__init__(self, "asin", argument)
 
 class Atan(MathFunction):
+    __slots__ = ()
     def __new__(cls, argument):
         if isinstance(argument, (ScalarValue, Zero)):
             return FloatValue(math.atan(float(argument)))
@@ -193,6 +202,7 @@ def _find_erf():
     return None
 
 class Erf(MathFunction):
+    __slots__ = ()
     def __new__(cls, argument):
         if isinstance(argument, (ScalarValue, Zero)):
             erf = _find_erf()
@@ -258,17 +268,22 @@ class BesselFunction(Operator):
         return "%s(%r, %r)" % (self._classname, self._nu, self._argument)
 
 class BesselJ(BesselFunction):
+    __slots__ = ()
     def __init__(self, nu, argument):
         BesselFunction.__init__(self, "cyl_bessel_j", "BesselJ", nu, argument)
 
 class BesselY(BesselFunction):
+    __slots__ = ()
     def __init__(self, nu, argument):
         BesselFunction.__init__(self, "cyl_bessel_y", "BesselY", nu, argument)
 
 class BesselI(BesselFunction):
+    __slots__ = ()
     def __init__(self, nu, argument):
         BesselFunction.__init__(self, "cyl_bessel_i", "BesselI", nu, argument)
 
 class BesselK(BesselFunction):
+    __slots__ = ()
     def __init__(self, nu, argument):
         BesselFunction.__init__(self, "cyl_bessel_k", "BesselK", nu, argument)
+

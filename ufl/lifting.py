@@ -30,6 +30,7 @@ from ufl.operators import jump
 from ufl.common import EmptyDict
 
 class LiftingResult(Operator):
+    __slots__ = ('_operator', '_operand', '_shape')
     def __init__(self, operator, operand):
         Operator.__init__(self)
         ufl_assert(operand.free_indices() == (), "Not expecting free indices in operand to lifting operator.")
@@ -59,6 +60,7 @@ class LiftingResult(Operator):
         error("Evaluate can not easily be implemented for this type.")
 
 class LiftingOperatorResult(LiftingResult):
+    __slots__ = ()
     def __init__(self, operator, operand):
         LiftingResult.__init__(self, operator, operand)
 
@@ -69,6 +71,7 @@ class LiftingOperatorResult(LiftingResult):
         return "LiftingOperatorResult(%r, %r)" % (self._operator, self._operand)
 
 class LiftingFunctionResult(LiftingResult):
+    __slots__ = ()
     def __init__(self, operator, operand):
         LiftingResult.__init__(self, operator, operand)
 
@@ -79,6 +82,7 @@ class LiftingFunctionResult(LiftingResult):
         return "LiftingFunctionResult(%r, %r)" % (self._operator, self._operand)
 
 class TerminalOperator(Terminal):
+    __slots__ = ()
     def __init__(self):
         Terminal.__init__(self)
     
@@ -98,6 +102,7 @@ class TerminalOperator(Terminal):
         error("Evaluate can not easily be implemented for this type.")
 
 class LiftingOperator(TerminalOperator):
+    __slots__ = ('_element',)
     def __init__(self, element):
         TerminalOperator.__init__(self)
         ufl_assert(isinstance(element, FiniteElementBase), "Expecting a finite element.")
@@ -120,6 +125,7 @@ class LiftingOperator(TerminalOperator):
         return Terminal.__call__(self, *args, **kwargs)
 
 class LiftingFunction(TerminalOperator):
+    __slots__ = ('_element',)
     def __init__(self, element):
         TerminalOperator.__init__(self)
         ufl_assert(isinstance(element, FiniteElementBase), "Expecting a finite element.")

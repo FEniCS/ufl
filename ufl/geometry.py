@@ -114,32 +114,28 @@ class SpatialCoordinate(GeometricQuantity):
 
 class FacetNormal(GeometricQuantity):
     "Representation of a facet normal."
-    __slots__ = ("_repr",)
+    __slots__ = ()
     def __init__(self, cell):
         GeometricQuantity.__init__(self, cell)
-        self._repr = "FacetNormal(%r)" % self._cell
 
     def shape(self):
         d = self._cell.geometric_dimension()
-        if d == 1:
-            return ()
-        return (d,)
+        return () if d == 1 else (d,)
 
     def __str__(self):
         return "n"
 
     def __repr__(self):
-        return self._repr
+        return "FacetNormal(%r)" % self._cell
 
     def __eq__(self, other):
         return isinstance(other, FacetNormal) and other._cell == self._cell
 
 class CellVolume(GeometricQuantity):
     "Representation of a cell volume."
-    __slots__ = ("_repr",)
+    __slots__ = ()
     def __init__(self, cell):
         GeometricQuantity.__init__(self, cell)
-        self._repr = "CellVolume(%r)" % self._cell
 
     def shape(self):
         return ()
@@ -148,17 +144,16 @@ class CellVolume(GeometricQuantity):
         return "volume"
 
     def __repr__(self):
-        return self._repr
+        return "CellVolume(%r)" % self._cell
 
     def __eq__(self, other):
         return isinstance(other, CellVolume) and other._cell == self._cell
 
 class Circumradius(GeometricQuantity):
     "Representation of the circumradius of a cell."
-    __slots__ = ("_repr",)
+    __slots__ = ()
     def __init__(self, cell):
         GeometricQuantity.__init__(self, cell)
-        self._repr = "Circumradius(%r)" % self._cell
 
     def shape(self):
         return ()
@@ -167,17 +162,16 @@ class Circumradius(GeometricQuantity):
         return "circumradius"
 
     def __repr__(self):
-        return self._repr
+        return "Circumradius(%r)" % self._cell
 
     def __eq__(self, other):
         return isinstance(other, Circumradius) and other._cell == self._cell
 
 class CellSurfaceArea(GeometricQuantity):
     "Representation of the total surface area of a cell."
-    __slots__ = ("_repr",)
+    __slots__ = ()
     def __init__(self, cell):
         GeometricQuantity.__init__(self, cell)
-        self._repr = "CellSurfaceArea(%r)" % self._cell
 
     def shape(self):
         return ()
@@ -186,17 +180,16 @@ class CellSurfaceArea(GeometricQuantity):
         return "surfacearea"
 
     def __repr__(self):
-        return self._repr
+        return "CellSurfaceArea(%r)" % self._cell
 
     def __eq__(self, other):
         return isinstance(other, CellSurfaceArea) and other._cell == self._cell
 
 class FacetArea(GeometricQuantity):
     "Representation of the area of a cell facet."
-    __slots__ = ("_repr",)
+    __slots__ = ()
     def __init__(self, cell):
         GeometricQuantity.__init__(self, cell)
-        self._repr = "FacetArea(%r)" % self._cell
 
     def shape(self):
         return ()
@@ -205,13 +198,14 @@ class FacetArea(GeometricQuantity):
         return "facetarea"
 
     def __repr__(self):
-        return self._repr
+        return "FacetArea(%r)" % self._cell
 
     def __eq__(self, other):
         return isinstance(other, FacetArea) and other._cell == self._cell
 
 # TODO: If we include this here, we must define exactly what is meant by the mesh size, possibly adding multiple kinds of mesh sizes (hmin, hmax, havg, ?)
 #class MeshSize(GeometricQuantity):
+#    __slots__ = ()
 #    def __init__(self, cell):
 #        GeometricQuantity.__init__(self, cell)
 #

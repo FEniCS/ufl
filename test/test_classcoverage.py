@@ -11,7 +11,15 @@ from ufl.constantvalue import as_ufl
 from ufl.classes import * 
 from ufl.algorithms import * 
 
+has_repr = set()
+has_dict = set()
 def test_object(a, shape, free_indices):
+    # Check if instances of this type has certain memory consuming members
+    if hasattr(a, '_repr'):
+        has_repr.add(a.__class__.__name__)
+    if hasattr(a, '__dict__'):
+        has_dict.add(a.__class__.__name__)
+
     # Test reproduction via repr string
     r = repr(a)
     e = eval(r, globals())
@@ -35,6 +43,12 @@ def test_object(a, shape, free_indices):
         assert sh == shape
 
 def test_object2(a):
+    # Check if instances of this type has certain memory consuming members
+    if hasattr(a, '_repr'):
+        has_repr.add(a.__class__.__name__)
+    if hasattr(a, '__dict__'):
+        has_dict.add(a.__class__.__name__)
+
     # Test reproduction via repr string
     r = repr(a)
     e = eval(r, globals())
@@ -510,8 +524,6 @@ class ClasscoverageTest(UflTestCase):
         f = action(d)
         #e = action(b)
 
-        # TODO: Add tests for TensorConstant, VectorConstant, ScalarSomething, Skew
-
         # --- Check which classes have been created
         if ufl.expr._class_usage_statistics:
             s = ufl.expr._class_usage_statistics
@@ -522,10 +534,39 @@ class ClasscoverageTest(UflTestCase):
                             WrapperType, GeometricQuantity, CompoundTensorOperator, UtilityType))
             unused = set(ufl.classes.all_ufl_classes) - constructed - abstract
             if unused:
-                print 
+                print
                 print "The following classes were never instantiated in class coverage test:"
                 print "\n".join(sorted(map(str,unused)))
-                print 
+                print
+        # --- Check which classes had certain member variables
+        if has_repr:
+            print
+            print "The following classes contain a _repr member:"
+            print "\n".join(sorted(map(str,has_repr)))
+            print
+        if has_dict:
+            print
+            print "The following classes contain a __dict__ member:"
+            print "\n".join(sorted(map(str,has_dict)))
+            print
+
+        # TODO: Add tests for lifting:
+        #   LiftingFunction
+        #   LiftingFunctionResult
+        #   LiftingOperator
+        #   LiftingOperatorResult
+        #   LiftingResult
+        #   TerminalOperator
+        # TODO: Add tests for mathfunctions:
+        #   BesselFunction
+        #   BesselI
+        #   BesselJ
+        #   BesselK
+        #   BesselY
+        #   Erf
+        # TODO: Add tests for:
+        #   Label
+
 
 if __name__ == "__main__":
     main()

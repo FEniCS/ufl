@@ -258,7 +258,7 @@ class IntValue(ScalarValue):
 
 class Identity(ConstantValue):
     "UFL literal type: Representation of an identity matrix."
-    __slots__ = ("_dim", "_repr")
+    __slots__ = ("_dim",)
 
     def __new__(cls, dim):
         if dim == 1:
@@ -268,7 +268,6 @@ class Identity(ConstantValue):
     def __init__(self, dim):
         ConstantValue.__init__(self)
         self._dim = dim
-        self._repr = "Identity(%d)" % self._dim
 
     def shape(self):
         return (self._dim, self._dim)
@@ -287,7 +286,7 @@ class Identity(ConstantValue):
         return "I"
 
     def __repr__(self):
-        return self._repr
+        return "Identity(%d)" % self._dim
 
     def __eq__(self, other):
         return isinstance(other, Identity) and self._dim == other._dim
@@ -300,12 +299,11 @@ class PermutationSymbol(ConstantValue):
 
     This is also known as the Levi-Civita symbol, antisymmetric symbol,
     or alternating symbol."""
-    __slots__ = ("_dim", "_repr")
+    __slots__ = ("_dim",)
 
     def __init__(self, dim):
         ConstantValue.__init__(self)
         self._dim = dim
-        self._repr = "PermutationSymbol(%d)" % self._dim
 
     def shape(self):
         s = ()
@@ -326,7 +324,7 @@ class PermutationSymbol(ConstantValue):
         return "eps"
 
     def __repr__(self):
-        return self._repr
+        return "PermutationSymbol(%d)" % self._dim
 
     def __eq__(self, other):
         return isinstance(other, PermutationSymbol) and self._dim == other._dim

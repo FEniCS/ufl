@@ -73,6 +73,7 @@ def merge_indices(a, b):
 # --- Classes representing compound tensor algebra operations ---
 
 class CompoundTensorOperator(AlgebraOperator):
+    __slots__ = ()
     def __init__(self):
         AlgebraOperator.__init__(self)
 

@@ -30,21 +30,16 @@ from ufl.operatorbase import WrapperType
 from ufl.constantvalue import as_ufl
 
 class Label(UtilityType, Counted):
+    __slots__ = ()
     _globalcount = 0
-    __slots__ = ("_repr", "_hash")
     def __init__(self, count=None):
         Counted.__init__(self, count)
-        self._repr = "Label(%d)" % self._count
-        self._hash = hash(self._repr)
 
     def __str__(self):
         return "Label(%d)" % self._count
 
     def __repr__(self):
-        return self._repr
-
-    def __hash__(self):
-        return self._hash
+        return "Label(%d)" % self._count
 
 class Variable(WrapperType):
     """A Variable is a representative for another expression.
