@@ -22,6 +22,7 @@
 # First added:  2008-03-14
 # Last changed: 2011-12-06
 
+import hashlib
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.constantvalue import as_ufl, is_python_scalar
@@ -35,7 +36,7 @@ from ufl.equation import Equation
 class Form(object):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
     __slots__ = ("_integrals",
-                 "_repr", "_hash",
+                 "_hash", "_signature",
                  "_form_data", "_is_preprocessed",
                  "exterior_facet_domains")
 
@@ -43,7 +44,7 @@ class Form(object):
         self._integrals = tuple(integrals)
         ufl_assert(all(isinstance(itg, Integral) for itg in integrals),
                    "Expecting list of integrals.")
-        self._repr = None
+        self._signature = None
         self._hash = None
         self._form_data = None
         self._is_preprocessed = False
@@ -146,6 +147,9 @@ class Form(object):
         "Check whether form is preprocessed"
         return self._is_preprocessed
 
+    def __eq__(self, other):
+        return Equation(self, other)
+
     def __add__(self, other):
         # --- Add integrands of integrals with the same measure
 
@@ -205,10 +209,15 @@ class Form(object):
         else:
             return "<empty Form>"
 
+    def _compute_signature(self, reprstring):
+        if self._signature is None:
+            self._signature = hashlib.sha512(reprstring).hexdigest()
+
     def __repr__(self):
-        if self._repr is None: # REPR do we really want to cache this? may be quite costly!
-            self._repr = "Form([%s])" % ", ".join(repr(itg) for itg in self._integrals)
-        return self._repr
+        r = "Form([%s])" % ", ".join(repr(itg) for itg in self._integrals)
+        # Compute signature now that we have the expensive repr string available anyway
+        self._compute_signature(r)
+        return r
 
     def __hash__(self):
         if self._hash is None:
@@ -216,8 +225,8 @@ class Form(object):
             self._hash = hash(hashdata)
         return self._hash
 
-    def __eq__(self, other):
-        return Equation(self, other)
-
     def signature(self):
-        return repr(self)
+        self._compute_signature(repr(self))
+        assert self._signature
+        return self._signature
+
