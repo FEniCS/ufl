@@ -65,12 +65,13 @@ class ConstantValue(Terminal):
         "Return whether this expression is spatially constant over each cell."
         return True
 
-class IndexAnnotated(object):
+class IndexAnnotated(ConstantValue):
     """Class to annotate expressions that don't depend on
     indices with a set of free indices, used internally to keep
     index properties intact during automatic differentiation."""
     __slots__ = ("_shape", "_free_indices", "_index_dimensions")
     def __init__(self, shape=(), free_indices=(), index_dimensions=None):
+        ConstantValue.__init__(self)
         if not all(isinstance(i, int) for i in shape):
             error("Expecting tuple of int.")
         if not all(isinstance(i, Index) for i in free_indices):
@@ -84,12 +85,14 @@ class IndexAnnotated(object):
 #--- Class for representing zero tensors of different shapes ---
 
 # TODO: Add geometric dimension and Argument dependencies to Zero?
-class Zero(ConstantValue, IndexAnnotated):
+class Zero(IndexAnnotated):
     "UFL literal type: Representation of a zero valued expression."
     __slots__ = ()
+    #_cache = {}
+    #def __new__(cls, shape=(), free_indices=(), index_dimensions=None):
+    #    return 
     def __init__(self, shape=(), free_indices=(), index_dimensions=None):
         ufl_assert(isinstance(free_indices, tuple), "Expecting tuple of free indices, not %s" % str(free_indices))
-        ConstantValue.__init__(self)
         IndexAnnotated.__init__(self, shape, free_indices, index_dimensions)
 
     def reconstruct(self, free_indices=None):
@@ -156,7 +159,7 @@ def zero(*shape):
 
 #--- Scalar value types ---
 
-class ScalarValue(ConstantValue, IndexAnnotated):
+class ScalarValue(IndexAnnotated):
     "A constant scalar value."
     __slots__ = ("_value",)
 
@@ -164,10 +167,9 @@ class ScalarValue(ConstantValue, IndexAnnotated):
         is_python_scalar(value) or expecting_python_scalar(value)
         if value == 0:
             return Zero(shape, free_indices, index_dimensions)
-        return ConstantValue.__new__(cls)
+        return IndexAnnotated.__new__(cls)
 
     def __init__(self, value, shape=(), free_indices=(), index_dimensions=None):
-        ConstantValue.__init__(self)
         IndexAnnotated.__init__(self, shape, free_indices, index_dimensions)
         self._value = value
 

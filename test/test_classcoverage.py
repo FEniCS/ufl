@@ -529,8 +529,8 @@ class ClasscoverageTest(UflTestCase):
             s = ufl.expr._class_usage_statistics
             constructed = set(s.keys())
             abstract = set((Expr, Terminal, Operator, FormArgument, ConstantBase, AlgebraOperator,
-                            Condition, BinaryCondition, MathFunction, Restricted, ScalarValue,
-                            ConstantValue, CompoundDerivative, Derivative,
+                            Condition, BinaryCondition, MathFunction, BesselFunction, Restricted, ScalarValue,
+                            ConstantValue, IndexAnnotated, CompoundDerivative, Derivative,
                             WrapperType, GeometricQuantity, CompoundTensorOperator, UtilityType))
             unused = set(ufl.classes.all_ufl_classes) - constructed - abstract
             if unused:
@@ -557,8 +557,7 @@ class ClasscoverageTest(UflTestCase):
         #   LiftingOperatorResult
         #   LiftingResult
         #   TerminalOperator
-        # TODO: Add tests for mathfunctions:
-        #   BesselFunction
+        # TODO: Add tests for bessel functions:
         #   BesselI
         #   BesselJ
         #   BesselK
