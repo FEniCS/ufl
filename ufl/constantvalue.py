@@ -88,12 +88,21 @@ class IndexAnnotated(ConstantValue):
 class Zero(IndexAnnotated):
     "UFL literal type: Representation of a zero valued expression."
     __slots__ = ()
-    #_cache = {}
-    #def __new__(cls, shape=(), free_indices=(), index_dimensions=None):
-    #    return 
+    _cache = {}
+    def __new__(cls, shape=(), free_indices=(), index_dimensions=None):
+        if free_indices:
+            self = IndexAnnotated.__new__(cls, shape, free_indices, index_dimensions)
+        else:
+            self = Zero._cache.get(shape)
+            if self is None:
+                self = IndexAnnotated.__new__(cls, shape, free_indices, index_dimensions)
+                Zero._cache[shape] = self
+        return self
+
     def __init__(self, shape=(), free_indices=(), index_dimensions=None):
-        ufl_assert(isinstance(free_indices, tuple), "Expecting tuple of free indices, not %s" % str(free_indices))
-        IndexAnnotated.__init__(self, shape, free_indices, index_dimensions)
+        if not hasattr(self, '_shape'):
+            ufl_assert(isinstance(free_indices, tuple), "Expecting tuple of free indices, not %s" % str(free_indices))
+            IndexAnnotated.__init__(self, shape, free_indices, index_dimensions)
 
     def reconstruct(self, free_indices=None):
         if not free_indices:
@@ -167,7 +176,7 @@ class ScalarValue(IndexAnnotated):
         is_python_scalar(value) or expecting_python_scalar(value)
         if value == 0:
             return Zero(shape, free_indices, index_dimensions)
-        return IndexAnnotated.__new__(cls)
+        return IndexAnnotated.__new__(cls, shape, free_indices, index_dimensions)
 
     def __init__(self, value, shape=(), free_indices=(), index_dimensions=None):
         IndexAnnotated.__init__(self, shape, free_indices, index_dimensions)
@@ -238,14 +247,14 @@ class IntValue(ScalarValue):
     _cache = {}
     def __new__(cls, value, shape=(), free_indices=(), index_dimensions=None):
         # Check if it is cache-able
-        if not (shape or free_indices or index_dimensions or abs(value) > 100):
+        if shape or free_indices or index_dimensions or abs(value) > 100:
+            self = ScalarValue.__new__(cls, value, shape, free_indices, index_dimensions)
+        else:
             self = IntValue._cache.get(value)
             if self is None:
                 self = ScalarValue.__new__(cls, value, shape, free_indices, index_dimensions)
                 IntValue._cache[value] = self
-            return self
-        else:
-            return ScalarValue.__new__(cls, value, shape, free_indices, index_dimensions)
+        return self
 
     def __init__(self, value, shape=(), free_indices=(), index_dimensions=None):
         if not hasattr(self, '_value'):
