@@ -25,6 +25,7 @@
 import os
 from itertools import izip
 import operator
+import collections
 
 # Taken from http://ivory.idyll.org/blog/mar-07/replacing-commands-with-subprocess
 from subprocess import Popen, PIPE, STDOUT
@@ -110,6 +111,15 @@ def fast_pre_traversal(expr):
         l = input.pop()
         yield l
         input.extend(l.operands())
+
+def fast_post_traversal(expr): # TODO: Would a non-recursive implementation save anything here?
+    """Yields o for each tree node o in expr, child before parent."""
+    # yield children
+    for o in expr.operands():
+        for i in fast_post_traversal(o):
+            yield i
+    # yield parent
+    yield expr
 
 def split_dict(d, criteria):
     "Split a dict d into two dicts based on a criteria on the keys."

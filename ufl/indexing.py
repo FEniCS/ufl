@@ -159,13 +159,11 @@ class MultiIndex(UtilityType):
             elif isinstance(i, Index):
                 component.append(index_values[i])
         return tuple(component)
-    
+
     def free_indices(self):
         return tuple(i for i in set(self._indices) if isinstance(i, Index))
-    
+
     def index_dimensions(self):
-        if self._idims is None:
-            error("No index dimensions were provided for this multiindex.")
         return self._idims
 
     def __add__(self, other):

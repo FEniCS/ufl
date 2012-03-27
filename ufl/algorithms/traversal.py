@@ -76,7 +76,7 @@ def traverse_operands(expr):
             input.extend(e.operands())
 
 # Moved to common because it is without dependencies and this avoids circular deps
-from ufl.common import fast_pre_traversal
+from ufl.common import fast_pre_traversal, fast_post_traversal
 
 def pre_traversal(expr, stack=None):
     """Yields o for each tree node o in expr, parent before child.
@@ -94,7 +94,7 @@ def pre_traversal(expr, stack=None):
         if stack is not None:
             stack.pop()
 
-def post_traversal(expr, stack=None): # TODO: Implement fast version of this?
+def post_traversal(expr, stack=None):
     """Yields o for each tree node o in expr, parent after child.
     If a list is provided, the stack is updated while iterating."""
     ufl_assert(isinstance(expr, Expr), "Expecting Expr.")
