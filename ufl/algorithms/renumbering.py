@@ -21,13 +21,13 @@
 # Last changed: 2011-06-02
 
 from itertools import izip
-from ufl.common import Counted, Stack, StackDict
+from ufl.common import Stack, StackDict
 from ufl.log import error
 from ufl.expr import Expr
 from ufl.indexing import Index, FixedIndex, MultiIndex
 from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
-from ufl.tensors import ComponentTensor, ListTensor
+from ufl.tensors import ListTensor
 from ufl.variable import Label, Variable
 from ufl.algorithms.transformations import ReuseTransformer, apply_transformer
 
