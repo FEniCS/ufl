@@ -28,15 +28,11 @@ from ufl.common import subdict, mergedicts, EmptyDict
 from ufl.expr import Expr
 from ufl.terminal import Terminal, Data
 from ufl.operatorbase import Operator, Tuple
-from ufl.constantvalue import ConstantValue, Zero, ScalarValue, Identity, is_true_ufl_scalar
+from ufl.constantvalue import Zero, is_true_ufl_scalar
 from ufl.indexing import Index, FixedIndex, MultiIndex, as_multi_index
 from ufl.indexed import Indexed
 from ufl.indexutils import unique_indices
-from ufl.geometry import FacetNormal, CellVolume, Circumradius
 from ufl.variable import Variable
-from ufl.tensors import as_tensor, ComponentTensor, ListTensor
-from ufl.argument import Argument
-from ufl.coefficient import Coefficient, ConstantBase
 from ufl.precedence import parstr
 
 #--- Basic differentiation objects ---
@@ -310,7 +306,6 @@ class Div(CompoundDerivative):
 
         if f.rank() == 0:
             return f.dx(0)
-        #ufl_assert(f.rank() >= 1, "Can't take the divergence of a scalar.")
 
         # Return zero if expression is trivially constant
         if f.is_cellwise_constant():
@@ -400,7 +395,6 @@ class NablaDiv(CompoundDerivative):
 
         if f.rank() == 0:
             return f.dx(0)
-        #ufl_assert(f.rank() >= 1, "Can't take the divergence of a scalar.")
 
         # Return zero if expression is trivially constant
         if f.is_cellwise_constant():

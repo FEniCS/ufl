@@ -231,18 +231,6 @@ def numpy2nestedlists(arr):
         return arr
     return [numpy2nestedlists(arr[k]) for k in range(arr.shape[0])]
 
-def tmp():
-    # FIXME: Should have no list or tuple here, convert those in as_tensor!
-    if isinstance(expressions[0], (list, tuple)):
-        ufl_assert(all(isinstance(e, (list, tuple)) for e in expressions),
-                   "Expecting all or no arguments being lists or tuples.")
-        expressions = [ListTensor(*sub) for sub in expressions]
-
-    if not all(isinstance(e, ListTensor) for e in expressions):
-        expressions = [as_ufl(e) for e in expressions]
-        ufl_assert(all(isinstance(e, Expr) for e in expressions), \
-                   "Expecting list of subtensors or expressions.")
-
 def _as_list_tensor(expressions):
     if isinstance(expressions, (list, tuple)):
         expressions = [_as_list_tensor(e) for e in expressions] 
@@ -380,30 +368,12 @@ def unit_matrices(d):
 
 def dyad(d, *iota):
     "TODO: Develop this concept, can e.g. write A[i,j]*dyad(j,i) for the transpose."
+    from ufl.constantvalue import Identity
+    from ufl.operators import outer # a bit of circular dependency issue here
     I = Identity(d)
     i = iota[0]
     e = as_vector(I[i,:], i)
     for i in iota[1:]:
         e = outer(e, as_vector(I[i,:], i))
     return e
-
-def _test():
-    #from ufl.tensors import unit_vector, unit_vectors, unit_matrix, unit_matrices
-    from ufl.objects import triangle
-    cell = triangle
-    d = cell.geometric_dimension()
-    ei, ej, ek = unit_vectors(d)
-    eii, eij, eik, eji, ejj, ejk, eki, ekj, ekk = unit_matrices(d)
-    print ei
-    print ej
-    print ek
-    print eii
-    print eij
-    print eik
-    print eji
-    print ejj
-    print ejk
-    print eki
-    print ekj
-    print ekk
 

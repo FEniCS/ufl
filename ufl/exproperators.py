@@ -28,16 +28,16 @@ from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.common import mergedicts, subdict, StackDict
 from ufl.expr import Expr
-from ufl.constantvalue import Zero, ScalarValue, FloatValue, IntValue, is_python_scalar, is_true_ufl_scalar, as_ufl, python_scalar_types
+from ufl.constantvalue import Zero, as_ufl, python_scalar_types
 from ufl.algebra import Sum, Product, Division, Power, Abs
-from ufl.tensoralgebra import Transposed, Dot
+from ufl.tensoralgebra import Transposed
 from ufl.indexing import Index, FixedIndex, IndexBase, indices
 from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
-from ufl.indexutils import repeated_indices, unique_indices, single_indices
+from ufl.indexutils import repeated_indices, single_indices
 from ufl.tensors import as_tensor, ComponentTensor
 from ufl.restriction import PositiveRestricted, NegativeRestricted
-from ufl.differentiation import SpatialDerivative, VariableDerivative
+from ufl.differentiation import SpatialDerivative
 
 from ufl.common import fast_pre_traversal
 

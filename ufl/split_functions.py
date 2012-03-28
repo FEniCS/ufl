@@ -22,7 +22,6 @@
 # First added:  2008-03-14
 # Last changed: 2011-06-22
 
-from itertools import izip
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.common import product, EmptyDict

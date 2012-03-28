@@ -24,7 +24,6 @@ for all types that are terminal nodes in the expression trees."""
 # Last changed: 2011-08-08
 
 from ufl.expr import Expr
-from ufl.common import lstr
 from ufl.log import error, warning
 from ufl.common import EmptyDict
 
@@ -140,12 +139,6 @@ class Data(UtilityType):
     def __init__(self, data):
         UtilityType.__init__(self)
         self._data = data
-
-    def reconstruct(self):
-        return self
-
-    def operands(self):
-        return ()
 
     def __str__(self):
         return "Data(%s)" % str(self._data)

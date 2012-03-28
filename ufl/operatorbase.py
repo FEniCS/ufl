@@ -1,6 +1,7 @@
 
 from itertools import imap
 from ufl.expr import Expr
+from ufl.log import error
 
 # Modified from ufl.algorithms.traveral to avoid circular dependencies...
 def traverse_terminals2(expr):

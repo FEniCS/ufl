@@ -30,7 +30,6 @@ from ufl.elementlist import ufl_elements, aliases
 from ufl.common import product, index_to_component, component_to_index, istr, EmptyDict
 from ufl.geometry import as_cell, domain2facet
 from ufl.log import info_blue, warning, warning_blue
-from ufl.log import BLUE
 
 class FiniteElementBase(object):
     "Base class for all finite elements"

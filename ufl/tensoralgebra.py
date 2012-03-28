@@ -22,9 +22,7 @@
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
-from ufl.expr import Expr
-from ufl.constantvalue import ConstantValue, Zero
-from ufl.indexing import Index, indices
+from ufl.constantvalue import Zero
 from ufl.algebra import AlgebraOperator
 from ufl.precedence import parstr
 from ufl.sorting import cmp_expr

@@ -25,8 +25,6 @@
 import hashlib
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.constantvalue import as_ufl, is_python_scalar
-from ufl.sorting import cmp_expr
 from ufl.integral import Integral, Measure, is_scalar_constant_expression
 from ufl.equation import Equation
 
@@ -103,23 +101,18 @@ class Form(object):
         return tuple((m.domain_type(), m.domain_id()) for m in self.measures(domain_type))
 
     def cell_integrals(self):
-        from ufl.integral import Measure
         return self.integrals(Measure.CELL)
 
     def exterior_facet_integrals(self):
-        from ufl.integral import Measure
         return self.integrals(Measure.EXTERIOR_FACET)
 
     def interior_facet_integrals(self):
-        from ufl.integral import Measure
         return self.integrals(Measure.INTERIOR_FACET)
 
     def macro_cell_integrals(self):
-        from ufl.integral import Measure
         return self.integrals(Measure.MACRO_CELL)
 
     def surface_integrals(self):
-        from ufl.integral import Measure
         return self.integrals(Measure.SURFACE)
 
     def form_data(self):

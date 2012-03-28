@@ -22,7 +22,6 @@
 # First added:  2008-05-20
 # Last changed: 2011-09-20
 
-from collections import defaultdict
 from itertools import chain
 
 from ufl.log import error, warning
@@ -30,9 +29,7 @@ from ufl.assertions import ufl_assert
 from ufl.common import product, mergedicts, subdict, EmptyDict
 from ufl.expr import Expr
 from ufl.operatorbase import AlgebraOperator
-from ufl.terminal import Terminal
-from ufl.constantvalue import Zero, ScalarValue, FloatValue, IntValue, is_ufl_scalar, is_true_ufl_scalar, is_python_scalar, as_ufl
-from ufl.indexing import IndexBase, Index, FixedIndex
+from ufl.constantvalue import Zero, ScalarValue, IntValue, is_ufl_scalar, is_true_ufl_scalar, as_ufl
 from ufl.indexutils import unique_indices
 from ufl.sorting import cmp_expr
 from ufl.precedence import parstr

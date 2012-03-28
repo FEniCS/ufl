@@ -345,12 +345,12 @@ class PermutationSymbol(ConstantValue):
         http://www.mathkb.com/Uwe/Forum.aspx/math/29865/N-integer-Levi-Civita"""
         result = IntValue(1)
         for i, x1 in enumerate(x):
-           for j in xrange(i + 1, len(x)):
-               x2 = x[j]
-               if x1 > x2:
-                   result = -result
-               elif x1 == x2:
-                   return Zero()
+            for j in xrange(i + 1, len(x)):
+                x2 = x[j]
+                if x1 > x2:
+                    result = -result
+                elif x1 == x2:
+                    return Zero()
         return result
 
 #--- Helper functions ---

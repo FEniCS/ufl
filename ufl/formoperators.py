@@ -31,7 +31,7 @@ from ufl.split_functions import split
 from ufl.operatorbase import Tuple
 from ufl.variable import Variable
 from ufl.finiteelement import MixedElement
-from ufl.argument import Argument, Arguments
+from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.differentiation import CoefficientDerivative
 from ufl.constantvalue import is_true_ufl_scalar
@@ -47,9 +47,9 @@ from ufl.algorithms import compute_form_adjoint, \
                            compute_form_rhs, \
                            compute_form_functional, \
                            expand_derivatives, \
-                           expand_indices, \
                            as_form
 
+# Part of the external interface
 from ufl.algorithms import replace
 
 def lhs(form):

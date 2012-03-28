@@ -33,7 +33,6 @@ This is to avoid circular dependencies between Expr and its subclasses.
 #--- The base object for all UFL expression tree nodes ---
 
 from collections import defaultdict
-from itertools import izip
 from ufl.log import warning, error
 _class_usage_statistics = defaultdict(int)
 _class_del_statistics = defaultdict(int)

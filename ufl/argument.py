@@ -24,7 +24,7 @@ classes (functions), including TestFunction and TrialFunction."""
 # Last changed: 2011-10-20
 
 from ufl.assertions import ufl_assert
-from ufl.common import Counted, product
+from ufl.common import Counted
 from ufl.terminal import FormArgument
 from ufl.split_functions import split
 from ufl.finiteelement import FiniteElementBase

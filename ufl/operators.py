@@ -25,7 +25,6 @@ objects."""
 # First added:  2008-04-09
 # Last changed: 2011-10-24
 
-import math
 import operator
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert

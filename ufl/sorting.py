@@ -31,8 +31,6 @@ from ufl.common import Counted
 from ufl.terminal import Terminal, FormArgument
 from ufl.indexing import MultiIndex
 from ufl.variable import Label
-from ufl.argument import Argument
-from ufl.coefficient import Coefficient
 
 def cmp_expr(a, b):
     "Sorting rule for Expr objects."

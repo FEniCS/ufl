@@ -97,9 +97,7 @@ class Variable(WrapperType):
         return isinstance(other, Variable) and self._label == other._label and self._expression == other._expression
 
     def __str__(self):
-        #return "Variable(%s, %s)" % (self._expression, self._label)
         return "var%d(%s)" % (self._label.count(), self._expression)
 
     def __repr__(self):
         return "Variable(%r, %r)" % (self._expression, self._label)
-

@@ -21,7 +21,6 @@
 # Last changed: 2011-06-17
 
 from itertools import izip
-from collections import defaultdict
 from ufl.log import error
 from ufl.expr import Expr
 from ufl.operatorbase import WrapperType

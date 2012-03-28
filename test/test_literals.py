@@ -118,5 +118,17 @@ class TestLiterals(UflTestCase):
             nfac = product(m for m in range(1,n+1))
             self.assertEqual((e[ii] * e[ii])(x), nfac)
 
+    def test_unit_dyads(self):
+        from ufl.tensors import unit_vectors, unit_matrices
+        ei, ej = unit_vectors(2)
+        self.assertEqual(as_vector((1,0)), ei)
+        self.assertEqual(as_vector((0,1)), ej)
+        eii, eij, eji, ejj = unit_matrices(2)
+        self.assertEqual(as_matrix(((1,0),(0,0))), eii)
+        self.assertEqual(as_matrix(((0,1),(0,0))), eij)
+        self.assertEqual(as_matrix(((0,0),(1,0))), eji)
+        self.assertEqual(as_matrix(((0,0),(0,1))), ejj)
+
+
 if __name__ == "__main__":
     main()
