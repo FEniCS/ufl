@@ -84,9 +84,12 @@ class Indexed(WrapperType):
 
     def __str__(self):
         return "%s[%s]" % (parstr(self._expression, self), self._indices)
-    
-    def __repr__(self):
+
+    def x_repr__(self):
         return "Indexed(%r, %r)" % (self._expression, self._indices)
+
+    def _rrepr(self):
+        return ("Indexed(", repr(self._expression), ", ", repr(self._indices), ")")
     
     def __getitem__(self, key):
         error("Attempting to index with %r, but object is already indexed: %r" % (key, self))

@@ -2,6 +2,7 @@
 from itertools import imap
 from ufl.expr import Expr
 from ufl.log import error
+from ufl.common import recursive_chain
 
 # Modified from ufl.algorithms.traveral to avoid circular dependencies...
 def traverse_terminals2(expr):
@@ -90,6 +91,12 @@ class Operator(Expr):
         return self._hash
         #return compute_hash(self) # REPR TODO: Cache or not?
 
+    def _rrepr(self):
+        error("Missing __repr__ or _rrepr implementation for %s" % self._uflclass.__name__)
+
+    def __repr__(self):
+        return ''.join(recursive_chain(self._rrepr()))
+
     def reconstruct(self, *operands):
         "Return a new object of the same type with new operands."
         return self.__class__._uflclass(*operands)
@@ -144,7 +151,6 @@ class Tuple(WrapperType):
     
     def __str__(self):
         return "Tuple(*(%s,))" % ", ".join(str(i) for i in self._items)
-    
+
     def __repr__(self):
         return "Tuple(*%s)" % repr(self._items)
-

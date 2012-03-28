@@ -73,8 +73,13 @@ class BinaryCondition(Condition):
     def __str__(self):
         return "%s %s %s" % (parstr(self._left, self), self._name, parstr(self._right, self))
 
-    def __repr__(self):
+    def x_repr__(self):
         return "%s(%r, %r)" % (type(self).__name__, self._left, self._right)
+
+    def _rrepr(self):
+        return (type(self).__name__, "(", repr(self._left), ", ", repr(self._right), ")")
+
+
 
 class EQ(BinaryCondition):
     __slots__ = ()

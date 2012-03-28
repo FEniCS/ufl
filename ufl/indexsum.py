@@ -110,6 +110,9 @@ class IndexSum(AlgebraOperator):
     def __str__(self):
         return "sum_{%s} %s " % (str(self._index), parstr(self._summand, self))
 
-    def __repr__(self):
+    def x_repr__(self):
         return "IndexSum(%r, %r)" % (self._summand, self._index)
+
+    def _rrepr(self):
+        return ("IndexSum(", repr(self._summand), ", ", repr(self._index), ")")
 

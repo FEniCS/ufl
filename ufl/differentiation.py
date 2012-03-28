@@ -178,8 +178,11 @@ class SpatialDerivative(Derivative):
             return "d%s/dx_%s" % (self._expression, self._index)
         return "d/dx_%s %s" % (self._index, parstr(self._expression, self))
 
-    def __repr__(self):
+    def x_repr__(self):
         return "SpatialDerivative(%r, %r)" % (self._expression, self._index)
+
+    def _rrepr(self):
+        return ("SpatialDerivative(", repr(self._expression), ", ", repr(self._index), ")")
 
 class VariableDerivative(Derivative):
     __slots__ = ("_f", "_v", "_free_indices", "_index_dimensions", "_shape",)
