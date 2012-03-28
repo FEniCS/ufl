@@ -101,54 +101,51 @@ class MultiIndex(UtilityType):
 
     _cache = {}
     def __new__(cls, ii, idims):
-        # TODO: This is called a lot, it could be worth it to 
-        # merge some type checking and conversion in __new__
-        # and __init__ so it only happens once.
-
-        # Check if input is cache-able
-        key = None
+        # Convert ii to proper type and check if input is cache-able
         if isinstance(ii, FixedIndex):
             key = (ii._value,)
+            ii = (ii,)
+        elif isinstance(ii, Index):
+            key = None # Not cachable
+            ii = (ii,)
         elif isinstance(ii, int):
             key = (ii,)
-        elif isinstance(ii, tuple) and all(isinstance(jj, (FixedIndex,int)) for jj in ii):
-            key = tuple((jj._value if isinstance(jj, FixedIndex) else jj) for jj in ii)
+            ii = (FixedIndex(ii),)
+        elif isinstance(ii, tuple):
+            ii = tuple(as_index(j) for j in ii)
+            if all(isinstance(jj, FixedIndex) for jj in ii):
+                key = tuple(jj._value for jj in ii)
+            else:
+                key = None
+        else:
+            error("Expecting tuple of UFL indices, not %s." % (ii,))
 
         if key is not None:
             # Lookup in cache if we have a key
             self = MultiIndex._cache.get(key)
-            if self is None:
-                self = UtilityType.__new__(cls)
-                MultiIndex._cache[key] = self
-            return self
+            if self is not None:
+                return self
+            self = UtilityType.__new__(cls)
+            MultiIndex._cache[key] = self
         else:
             # Or skip cache for other cases
-            return UtilityType.__new__(cls)
+            self = UtilityType.__new__(cls)
+
+        # Initialize here to avoid repeating the checks on ii from above in __init__
+        self._init(ii, idims)
+        return self
 
     def __init__(self, ii, idims):
-        if not hasattr(self, "_indices"):
-            UtilityType.__init__(self)
+        pass
 
-            if isinstance(ii, int):
-                ii = (FixedIndex(ii),)
-            elif isinstance(ii, IndexBase):
-                ii = (ii,)
-            elif isinstance(ii, tuple):
-                ii = tuple(as_index(j) for j in ii)
-            else:
-                error("Expecting tuple of UFL indices.")
- 
-            idims = dict(idims) if idims else EmptyDict
-            for k in ii:
-                if isinstance(k, Index):
-                    if not k in idims:
-                        error("Missing index in the provided idims.")
-                    else:
-                        ufl_assert(isinstance(idims[k], int),
-                                   "Non-integer index dimension provided.")
- 
-            self._indices = ii
-            self._idims = idims
+    def _init(self, ii, idims):
+        UtilityType.__init__(self)
+
+        self._indices = ii
+        self._idims = dict(idims) if idims else EmptyDict
+
+        if any(not isinstance(idims.get(k,0), int) for k in ii if isinstance(k, Index)):
+            error("Missing index or invalid dimension in provided idims.")
     
     def evaluate(self, x, mapping, component, index_values):
         # Build component from index values
