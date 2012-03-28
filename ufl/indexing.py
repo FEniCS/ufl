@@ -52,7 +52,7 @@ class Index(IndexBase, Counted):
         return "i_%s" % c
 
     def __repr__(self):
-        return "Index(%d)" % self._count # REPR: cache or not?
+        return "Index(%d)" % self._count
 
     def __hash__(self):
         return hash(repr(self))
@@ -195,7 +195,7 @@ class MultiIndex(UtilityType):
         return ", ".join(str(i) for i in self._indices)
 
     def __repr__(self):
-        return "MultiIndex(%r, %r)" % (self._indices, self._idims) # REPR: cache or not?
+        return "MultiIndex(%r, %r)" % (self._indices, self._idims)
 
     def __len__(self):
         return len(self._indices)
