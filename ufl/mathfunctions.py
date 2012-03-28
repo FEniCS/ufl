@@ -95,11 +95,8 @@ class MathFunction(Operator):
     def __str__(self):
         return "%s(%s)" % (self._name, self._argument)
     
-    def x_repr__(self):
+    def __repr__(self):
         return "%s(%r)" % (self._name, self._argument)
-
-    def _rrepr(self):
-        return (self._name, "(", repr(self._argument), ")")
 
 class Sqrt(MathFunction):
     __slots__ = ()
@@ -267,11 +264,8 @@ class BesselFunction(Operator):
     def __str__(self):
         return "%s(%s, %s)" % (self._name, self._nu, self._argument)
 
-    def x_repr__(self):
+    def __repr__(self):
         return "%s(%r, %r)" % (self._classname, self._nu, self._argument)
-
-    def _rrepr(self):
-        return (self._classname, "(", repr(self._nu), ", ", repr(self._argument), ")")
 
 class BesselJ(BesselFunction):
     __slots__ = ()

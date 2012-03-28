@@ -156,12 +156,8 @@ class Sum(AlgebraOperator):
         # Implementation with no line splitting:
         return "%s" % " + ".join(ops)
 
-    def x_repr__(self):
+    def __repr__(self):
         return "Sum(%s)" % ", ".join(repr(o) for o in self._operands)
-
-    def _rrepr(self):
-        rops = [(repr(o), ", ") for o in self._operands[:-1]] + [repr(self._operands[-1])]
-        return ("Sum(", rops, ")")
 
 class Product(AlgebraOperator):
     """The product of two or more UFL objects."""
@@ -308,12 +304,8 @@ class Product(AlgebraOperator):
         # Implementation with no line splitting:
         return "%s" % " * ".join(ops)
     
-    def x_repr__(self):
+    def __repr__(self):
         return "Product(%s)" % ", ".join(repr(o) for o in self._operands)
-
-    def _rrepr(self):
-        rops = [(repr(o), ", ") for o in self._operands[:-1]] + [repr(self._operands[-1])]
-        return ("Product(", rops, ")")
 
 class Division(AlgebraOperator):
     __slots__ = ("_a", "_b",)
@@ -377,11 +369,8 @@ class Division(AlgebraOperator):
     def __str__(self):
         return "%s / %s" % (parstr(self._a, self), parstr(self._b, self))
 
-    def x_repr__(self):
+    def __repr__(self):
         return "Division(%r, %r)" % (self._a, self._b)
-
-    def _rrepr(self):
-        return ("Division(", repr(self._a), ", ", repr(self._b), ")")
 
 class Power(AlgebraOperator):
     __slots__ = ("_a", "_b",)
@@ -435,11 +424,8 @@ class Power(AlgebraOperator):
     def __str__(self):
         return "%s ** %s" % (parstr(self._a, self), parstr(self._b, self))
 
-    def x_repr__(self):
+    def __repr__(self):
         return "Power(%r, %r)" % (self._a, self._b)
-
-    def _rrepr(self):
-        return ("Power(", repr(self._a), ", ", repr(self._b), ")")
 
 class Abs(AlgebraOperator):
     __slots__ = ("_a",)
@@ -469,8 +455,6 @@ class Abs(AlgebraOperator):
     def __str__(self):
         return "| %s |" % parstr(self._a, self)
 
-    def x_repr__(self):
+    def __repr__(self):
         return "Abs(%r)" % self._a
 
-    def _rrepr(self):
-        return ("Abs(", repr(self._a), ")")
