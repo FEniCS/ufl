@@ -26,11 +26,12 @@ from ufl.expr import Expr
 from ufl.operatorbase import AlgebraOperator
 from ufl.indexing import Index, MultiIndex, as_multi_index
 from ufl.precedence import parstr
+from ufl.common import EmptyDict
 
 #--- Sum over an index ---
 
 class IndexSum(AlgebraOperator):
-    __slots__ = ("_summand", "_index", "_dimension", "_repr", "_free_indices", "_index_dimensions")
+    __slots__ = ("_summand", "_index", "_dimension", "_free_indices", "_index_dimensions")
     
     def __new__(cls, summand, index):
         if not isinstance(summand, Expr):
@@ -72,8 +73,8 @@ class IndexSum(AlgebraOperator):
         ufl_assert(isinstance(self._index, MultiIndex), "Error in initialization of index sum.")
         self._dimension = d
         del self._index_dimensions[j]
-
-        self._repr = "IndexSum(%r, %r)" % (self._summand, self._index)
+        if not self._index_dimensions:
+            self._index_dimensions = EmptyDict
 
     def index(self):
         return self._index[0]
@@ -108,7 +109,7 @@ class IndexSum(AlgebraOperator):
 
     def __str__(self):
         return "sum_{%s} %s " % (str(self._index), parstr(self._summand, self))
-    
+
     def __repr__(self):
-        return self._repr
+        return "IndexSum(%r, %r)" % (self._summand, self._index)
 
