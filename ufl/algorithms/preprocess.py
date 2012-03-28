@@ -49,6 +49,12 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
       expand_derivatives
       renumber_indices
     """
+    from time import time
+    times = []
+    def tic(msg):
+        times.append((time(), msg))
+
+    tic('top')
 
     # Check that we get a form
     ufl_assert(isinstance(form, Form), "Expecting Form.")
@@ -71,17 +77,23 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
     common_cell = extract_common_cell(form, common_cell)
 
     # Expand derivatives
+    tic('expder')
     form = expand_derivatives(form, common_cell.geometric_dimension())
 
     # Renumber indices
+    tic('renind')
     form = renumber_indices(form)
 
     # Replace arguments and coefficients with new renumbered objects
+    tic('eac')
     arguments, coefficients = extract_arguments_and_coefficients(form)
+    tic('bem')
     element_mapping = build_element_mapping(element_mapping, common_cell,
                                             arguments, coefficients)
+    tic('barm')
     replace_map, arguments, coefficients = \
         build_argument_replace_map(arguments, coefficients, element_mapping)
+    tic('rep')
     form = replace(form, replace_map)
 
     # Build mapping to original arguments and coefficients, which is
@@ -100,10 +112,13 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
     form_data.original_coefficients = original_coefficients
 
     # Store signature of form
+    tic('sig')
     form_data.signature = form.signature()
 
     # Store elements, sub elements and element map
+    tic('elm')
     form_data.elements            = extract_elements(form)
+    tic('misc')
     form_data.unique_elements     = unique_tuple(form_data.elements)
     form_data.sub_elements        = extract_sub_elements(form_data.elements)
     form_data.unique_sub_elements = unique_tuple(form_data.sub_elements)
@@ -152,6 +167,18 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
     # Store preprocessed form
     form._is_preprocessed = True
     form_data.preprocessed_form = form
+
+    tic('end')
+
+    # A coarse profiling implementation
+    # TODO: Add counting of nodes
+    # TODO: Add memory usage
+    profiling = 0
+    if profiling:
+        for i in range(len(times)-1):
+            t = times[i+1][0] - times[i][0]
+            msg = times[i][1]
+            print "%9.2e s    %s" % (t, msg)
 
     return form_data
 
