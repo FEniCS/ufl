@@ -209,6 +209,14 @@ def estr(elements):
     "Format list of elements for printing."
     return ", ".join(e.shortstr() for e in elements)
 
+def recursive_chain(lists):
+    for l in lists:
+        if isinstance(l, str):
+            yield l
+        else:
+            for s in recursive_chain(l):
+                yield s
+
 class Counted(object):
     """A superclass for classes of objects identified by a global counter.
 
