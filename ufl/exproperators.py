@@ -28,6 +28,7 @@ from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.common import mergedicts, subdict, StackDict
 from ufl.expr import Expr
+from ufl.operatorbase import Operator
 from ufl.constantvalue import Zero, as_ufl, python_scalar_types
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import Transposed
@@ -130,7 +131,7 @@ def _expr_equals3(self, other): # Much faster than the more complex algorithms a
     # Just let python handle the recursion
     return self.operands() == other.operands()
 
-Expr.__eq__ = _expr_equals3
+Operator.__eq__ = _expr_equals3
 
 #--- Helper functions for product handling ---
 
