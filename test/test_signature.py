@@ -12,79 +12,18 @@ from ufl import *
 
 from ufl.common import EmptyDict
 from ufl.classes import MultiIndex
-#from ufl.algorithms import *
+from ufl.algorithms.signature import compute_multiindex_hashdata, \
+    compute_terminal_hashdata, compute_form_signature
 
 from itertools import chain
 
-def compute_multiindex_hashdata(expr, index_numbering):
-    data = []
-    for i in expr:
-        if isinstance(i, Index):
-            j = index_numbering.get(i)
-            if j is None:
-                # Use negative ints for Index
-                j = -(len(index_numbering)+1)
-                index_numbering[i] = j
-            data.append(j)
-        else:
-            # Use nonnegative ints for FixedIndex
-            data.append(int(i))
-    return data
+# TODO: Test compute_terminal_hashdata
+#   TODO: Check that form argument counts only affect the sig by their relative ordering
+#   TODO: Check that all other relevant terminal propeties affect the terminal_hashdata
 
-def build_terminal_hashdata(integrand):
-    # Extract a unique numbering of free indices,
-    # as well as form arguments, and just take
-    # repr of the rest of the terminals while
-    # we're iterating over them
-    index_numbering = {}
-    coefficients = set()
-    arguments = set()
-    for e in traverse_terminals():
-        if isinstance(expr, MultiIndex):
-            terminal_hashdata[e] = compute_multiindex_hashdata(expr, index_numbering)
-        elif isinstance(expr, Coefficient):
-            coefficients.append(expr)
-        elif isinstance(expr, Argument):
-            arguments.append(expr)
-        elif isinstance(expr, Counted):
-            error("Not implemented hashing for Counted subtype %s" % type(expr))
-        else:
-            terminal_hashdata[e] = repr(expr)
-    # Apply renumbering of form arguments
-    coefficients = sorted(coefficients, key=lambda x: x.count())
-    arguments = sorted(arguments, key=lambda x: x.count())
-    for i, e in enumerate(coefficients):
-        terminal_hashdata[e] = repr(e.reconstruct(count=i))
-    for i, e in enumerate(arguments):
-        terminal_hashdata[e] = repr(e.reconstruct(count=i))
-    return terminal_hashdata
-
-def compute_signature(form):
-    hashdata = []
-    for integral in form.integrals():
-        integrand = integral.integrand()
-
-        # Build hashdata for all terminals first
-        terminal_hashdata = build_terminal_hashdata(integrand)
-
-        # Build hashdata for expression
-        expression_hashdata = []
-        for expr in fast_pre_traversal(integrand):
-            if isinstance(expr, Terminal):
-                data = terminal_hashdata[expr]
-            else:
-                data = expr._uflclassid
-            expression_hashdata.append(data)
-        integral_hashdata = (repr(integral.measure()), expression_hashdata)
-        hashdata.append(integral_hashdata)
-
-    return hashlib.sha224(str(hashdata)).hexdigest()
-
-# TODO: How do we test signature reliably?
-# TODO: Check that form argument counts only affect the sig by their relative ordering
-# TODO: Check that all other relevant terminal propeties affect the terminal_hashdata
-# TODO: Check that operator types affect the sig
-# TODO: Check that we do not get collisions for large sets of forms
+# TODO: Test that operator types affect the sig
+# TODO: Test that we do not get collisions for some large sets of generated forms
+# TODO: How do we know that we have tested the signature reliably enough?
 
 class MultiIndexHashDataTestCase(UflTestCase):
 
@@ -215,7 +154,9 @@ class FormSignatureTestCase(UflTestCase):
         hashes = set()
         reprs = set()
         for a in forms:
-            sig = a.signature()
+            #sig = a.signature()
+            sig = compute_form_signature(a)
+
             sigs.add(sig)
             self.assertTrue(sig)
             hashes.add(hash(a))
@@ -262,7 +203,7 @@ class FormSignatureTestCase(UflTestCase):
                     w = Coefficient(W)
                     vu = variable(u)
                     vw = variable(w)
-                    f = vu*dot(vw,vu*vw)
+                    f = vu*dot(vw,vu**k*vw)
                     g = diff(f, vu)
                     h = dot(diff(f, vw), cell.n)
                     a = f*dx(1) + g*dx(2) + h*ds(0)
