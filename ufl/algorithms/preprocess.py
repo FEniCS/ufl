@@ -78,11 +78,11 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
 
     # Expand derivatives
     tic('expder')
-    form = expand_derivatives(form, common_cell.geometric_dimension())
+    form = expand_derivatives(form, common_cell.geometric_dimension()) # FIXME: Split out expand_compounds from expand_derivatives
 
     # Renumber indices
     tic('renind')
-    form = renumber_indices(form)
+    form = renumber_indices(form) # FIXME: Make renumber_indices superfluous by using new signature algorithm
 
     # Replace arguments and coefficients with new renumbered objects
     tic('eac')
@@ -94,7 +94,7 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
     replace_map, arguments, coefficients = \
         build_argument_replace_map(arguments, coefficients, element_mapping)
     tic('rep')
-    form = replace(form, replace_map)
+    form = replace(form, replace_map) # FIXME: Store mapping on the side instead of reconstructing
 
     # Build mapping to original arguments and coefficients, which is
     # useful if the original arguments have data attached to them
@@ -113,7 +113,7 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
 
     # Store signature of form
     tic('sig')
-    form_data.signature = form.signature()
+    form_data.signature = form.signature() # FIXME: Use new signature computation here when finished
 
     # Store elements, sub elements and element map
     tic('elm')
@@ -221,7 +221,7 @@ def preprocess_expression(expr, object_names=None, common_cell=None, element_map
 
     # Extract common cell
     try:
-        common_cell = extract_common_cell(form, common_cell)
+        common_cell = extract_common_cell(expr, common_cell)
         gdim = common_cell.geometric_dimension()
     except:
         common_cell = Cell(None, None)
