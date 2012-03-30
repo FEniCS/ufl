@@ -215,7 +215,7 @@ class Form(object):
     def __repr__(self):
         r = "Form([%s])" % ", ".join(repr(itg) for itg in self._integrals)
         # Compute signature now that we have the expensive repr string available anyway
-        self._compute_signature(r)
+        #self._compute_signature(r)
         return r
 
     def __hash__(self):
