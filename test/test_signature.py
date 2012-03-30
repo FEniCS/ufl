@@ -25,6 +25,162 @@ from itertools import chain
 # TODO: Test that we do not get collisions for some large sets of generated forms
 # TODO: How do we know that we have tested the signature reliably enough?
 
+
+class TerminalHashDataTestCase(UflTestCase):
+
+    def compute_unique_hashdatas(self, hashdatas):
+        count = 0
+        data = set()
+        hashes = set()
+        reprs = set()
+        for d in hashdatas:
+            if isinstance(d, dict):
+                t = str(d.items())
+            else:
+                t = str(d)
+            data.add(t)
+            hashes.add(hash(t))
+            reprs.add(repr(d))
+            count += 1
+        return count, len(data), len(reprs), len(hashes)
+
+    def check_unique_hashdatas(self, hashdatas):
+        c, d, r, h = self.compute_unique_hashdatas(hashdatas)
+        self.assertEqual(d, c)
+        self.assertEqual(r, c)
+        self.assertEqual(h, c)
+
+    def test_terminal_hashdata_depends_on_literals(self):
+        reprs = set()
+        hashes = set()
+        def forms():
+            x = triangle.x
+            i, j = indices(2)
+            for d in (2, 3):
+                I = Identity(d)
+                for fv in (1.1, 2.2):
+                    for iv in (5, 7):
+                        expr = (I[0,j]*(fv*x[j]))**iv
+                        
+                        reprs.add(repr(expr))
+                        hashes.add(hash(expr))
+                        yield compute_terminal_hashdata(expr)
+
+        c, d, r, h = self.compute_unique_hashdatas(forms())
+        self.assertEqual(c, 8)
+        self.assertEqual(d, c)
+        self.assertEqual(r, c)
+        self.assertEqual(h, c)
+        self.assertEqual(len(reprs), c)
+        self.assertEqual(len(hashes), c)
+
+    def test_terminal_hashdata_depends_on_geometry(self):
+        reprs = set()
+        hashes = set()
+        def forms():
+            i, j = indices(2)
+            for cell in (triangle, tetrahedron, cell2D, cell3D):
+
+                d = cell.d
+                x = cell.x
+                n = cell.n
+                r = cell.circumradius
+                a = cell.facet_area
+                s = cell.surface_area
+                v = cell.volume
+                I = Identity(d)
+
+                for w in (x, n):
+                    for q in (r, a, s, v):
+                        expr = (I[0,j]*(q*w[j]))
+
+                        reprs.add(repr(expr))
+                        hashes.add(hash(expr))
+                        yield compute_terminal_hashdata(expr)
+
+        c, d, r, h = self.compute_unique_hashdatas(forms())
+        self.assertEqual(c, 4*2*4)
+        self.assertEqual(d, c)
+        self.assertEqual(r, c)
+        self.assertEqual(h, c)
+        self.assertEqual(len(reprs), c)
+        self.assertEqual(len(hashes), c)
+
+    def test_terminal_hashdata_depends_on_form_argument_properties(self):
+        reprs = set()
+        hashes = set()
+        nelm = 6
+        nreps = 2
+        def forms():
+            for rep in range(nreps):
+                for cell in (triangle, tetrahedron, cell2D, cell3D):
+                    d = cell.d
+                    for degree in (1, 2):
+                        for family in ("CG", "Lagrange", "DG"):
+                            V = FiniteElement(family, cell, degree)
+                            W = VectorElement(family, cell, degree)
+                            W2 = VectorElement(family, cell, degree, dim=d+1)
+                            T = TensorElement(family, cell, degree)
+                            S = TensorElement(family, cell, degree, symmetry=True)
+                            S2 = TensorElement(family, cell, degree, shape=(d,d), symmetry={(0,0):(1,1)})
+                            elements = [V, W, W2, T, S, S2]
+                            assert len(elements) == nelm
+
+                            for H in elements[:nelm]:
+                                a = Argument(H, count=1)
+                                c = Coefficient(H, count=1)
+                                for f in (a,c):
+                                    expr = inner(f,f)
+
+                                    reprs.add(repr(expr))
+                                    hashes.add(hash(expr))
+                                    data = compute_terminal_hashdata(expr)
+                                    yield data
+
+        c, d, r, h = self.compute_unique_hashdatas(forms())
+        c1 = nreps* 4*2*  3    *nelm*2
+        c2 =        4*2* (3-1) *nelm*2
+        self.assertEqual(c, c1)
+        self.assertEqual(d, c2)
+        self.assertEqual(r, c2)
+        self.assertEqual(h, c2)
+        self.assertEqual(len(reprs), c2)
+        self.assertEqual(len(hashes), c2)
+
+    def test_terminal_hashdata_does_not_depend_on_form_argument_counts(self):
+        reprs = set()
+        hashes = set()
+        counts = list(range(-3,4))
+        nreps = 2
+        def forms():
+            for rep in range(nreps):
+                for cell in (triangle, hexahedron):
+                    for k in counts:
+                        V = FiniteElement("CG", cell, 2)
+                        a1 = Argument(V, count=k)
+                        a2 = Argument(V, count=k+2)
+                        c1 = Coefficient(V, count=k)
+                        c2 = Coefficient(V, count=k+2)
+                        for f,g in ((a1,a2), (c1,c2)):
+                            expr = inner(f,g)
+
+                            reprs.add(repr(expr))
+                            hashes.add(hash(expr))
+
+                            data = compute_terminal_hashdata(expr)
+                            keys = sorted(data.keys(), key=lambda x: x.count())
+                            values = [data[k] for k in keys]
+                            yield values
+
+        c, d, r, h = self.compute_unique_hashdatas(forms())
+        c1 = len(counts) * 4
+        self.assertEqual(c, nreps * c1)
+        self.assertEqual(d, 4)
+        self.assertEqual(r, 4)
+        self.assertEqual(h, 4)
+        self.assertEqual(len(reprs), c1)
+        self.assertEqual(len(hashes), c1)
+
 class MultiIndexHashDataTestCase(UflTestCase):
 
     def compute_unique_hashdatas(self, hashdatas):
@@ -53,10 +209,11 @@ class MultiIndexHashDataTestCase(UflTestCase):
                 for ii in ((i,), (i,0), (1,i)):
                     expr = MultiIndex(ii, {})
                     self.assertTrue(expr.index_dimensions() is EmptyDict) # Just a side check
-                    d = compute_multiindex_hashdata(expr, {})
+
                     reprs.add(repr(expr))
                     hashes.add(hash(expr))
-                    yield d
+                    yield compute_multiindex_hashdata(expr, {})
+
         c, d, r, h = self.compute_unique_hashdatas(hashdatas())
         self.assertEqual(c, 9)
         self.assertEqual(d, 9-1) # (1,0) is repeated, therefore -1
@@ -207,6 +364,25 @@ class FormSignatureTestCase(UflTestCase):
                     g = diff(f, vu)
                     h = dot(diff(f, vw), cell.n)
                     a = f*dx(1) + g*dx(2) + h*ds(0)
+                    yield a
+        self.check_unique_signatures(forms())
+
+    def test_signature_of_forms_change_with_operators(self):
+        def forms():
+            for cell in (cell2D, cell3D):
+                V = FiniteElement("CG", cell, 1)
+                u = Coefficient(V)
+                v = Coefficient(V)
+                fs = [(u*v)+(u/v),
+                      (u+v)+(u/v),
+                      (u+v)*(u/v),
+                      (u*v)*(u*v),
+                      (u+v)*(u*v), # (!) same
+                      #(u*v)*(u+v), # (!) same
+                      (u*v)+(u+v),
+                      ]
+                for f in fs:
+                    a = f*dx
                     yield a
         self.check_unique_signatures(forms())
 
