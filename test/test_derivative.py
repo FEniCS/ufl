@@ -236,7 +236,7 @@ class DerivativeTestCase(UflTestCase):
             elif len(c.shape()) == 1:
                 return tuple((z * (j + 0.1 + 0.9 * c.count() / n) for j in range(c.shape()[0])))
             else:
-                raise NotImplemented
+                raise NotImplementedError("Tensor valued expressions not supported here.")
         amapping = dict((c, make_value(c)) for c in chain(ad.coefficients, ad.arguments))
         bmapping = dict((c, make_value(c)) for c in chain(bd.coefficients, bd.arguments))
 
@@ -418,7 +418,8 @@ class DerivativeTestCase(UflTestCase):
         J = derivative(F, u, du, cd)
         fd = J.compute_form_data()
         actual = fd.preprocessed_form.integrals()[0].integrand()
-        self.assertEqual(actual, expected)
+        self.assertEqual((actual*dx).signature(), (expected*dx).signature())
+        #self.assertEqual(actual, expected)
 
     def test_vector_coefficient_derivatives_of_product(self):
         V = VectorElement("Lagrange", triangle, 1)
