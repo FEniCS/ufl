@@ -66,6 +66,18 @@ def traverse_terminals(expr):
         else:
             input.extend(e.operands())
 
+def traverse_terminals2(expr, visited=None):
+    input = [expr]
+    visited = visited or set()
+    while input:
+        e = input.pop()
+        if e not in visited:
+            visited.add(e)
+            if isinstance(e, Terminal):
+                yield e
+            else:
+                input.extend(e.operands())
+
 def traverse_operands(expr):
     input = [expr]
     while input:
