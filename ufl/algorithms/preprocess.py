@@ -80,10 +80,6 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
     tic('expder')
     form = expand_derivatives(form, common_cell.geometric_dimension()) # FIXME: Split out expand_compounds from expand_derivatives
 
-    # Renumber indices
-    tic('renind')
-    form = renumber_indices(form) # FIXME: Make renumber_indices superfluous by using new signature algorithm
-
     # Replace arguments and coefficients with new renumbered objects
     tic('eac')
     arguments, coefficients = extract_arguments_and_coefficients(form)
@@ -113,7 +109,7 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
 
     # Store signature of form
     tic('sig')
-    form_data.signature = form.signature() # FIXME: Use new signature computation here when finished
+    form_data.signature = form.signature()
 
     # Store elements, sub elements and element map
     tic('elm')
