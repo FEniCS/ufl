@@ -3,7 +3,8 @@ import hashlib
 from ufl.classes import Index, MultiIndex, Coefficient, Argument, Terminal, Label
 from ufl.common import Counted
 from ufl.log import error
-from ufl.algorithms.traversal import traverse_terminals, fast_pre_traversal
+from ufl.algorithms.traversal import traverse_terminals2, traverse_terminals
+from ufl.common import fast_pre_traversal2, fast_pre_traversal
 
 def compute_multiindex_hashdata(expr, index_numbering):
     data = []
@@ -30,7 +31,7 @@ def compute_terminal_hashdata(integrand):
     index_numbering = {}
     coefficients = set()
     arguments = set()
-    for expr in traverse_terminals(integrand):
+    for expr in traverse_terminals2(integrand):
         if isinstance(expr, MultiIndex):
             terminal_hashdata[expr] = compute_multiindex_hashdata(expr, index_numbering)
         elif isinstance(expr, Coefficient):
@@ -66,6 +67,8 @@ def compute_form_signature(form):
 
         # Build hashdata for expression
         expression_hashdata = []
+        # FIXME: Is it safe to only visit unique nodes? Try to reuse hashdata instead of skipping nodes.
+        #for expr in fast_pre_traversal2(integrand):
         for expr in fast_pre_traversal(integrand):
             if isinstance(expr, Terminal):
                 data = terminal_hashdata[expr]
