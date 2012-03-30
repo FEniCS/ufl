@@ -110,6 +110,49 @@ def fast_pre_traversal(expr):
         yield l
         input.extend(l.operands())
 
+def fast_pre_traversal2(expr, visited=None):
+    """Yields o for each tree node o in expr, parent before child."""
+    input = [expr]
+    visited = visited or set()
+    while input:
+        l = input.pop()
+        if l not in visited:
+            visited.add(l)
+            yield l
+            input.extend(l.operands())
+
+def unique_post_traversal(expr, visited=None):
+    """Yields o for each node o in expr, child before parent. Never visits a node twice."""
+    stack = []
+    stack.append((expr, list(expr.operands())))
+    visited = visited or set()
+    while stack:
+        expr, ops = stack[-1]
+        for i, o in enumerate(ops):
+            if o is not None and o not in visited:
+                stack.append((o, list(o.operands())))
+                ops[i] = None
+                break
+        else:
+            yield expr
+            visited.add(expr)
+            stack.pop()
+
+def fast_post_traversal2(expr, visited=None):
+    """Yields o for each tree node o in expr, child before parent."""
+    stack = [expr]
+    visited = visited or set()
+    while stack:
+        curr = stack[-1]
+        for o in curr.operands():
+            if o not in visited:
+                stack.append(o)
+                break
+        else:
+            yield curr
+            visited.add(curr)
+            stack.pop()
+
 def fast_post_traversal(expr): # TODO: Would a non-recursive implementation save anything here?
     """Yields o for each tree node o in expr, child before parent."""
     # yield children
