@@ -83,6 +83,9 @@ class Operator(Expr):
         Expr.__init__(self)
         self._hash = None
 
+    def signature_data(self):
+        return self._classid
+
     def __hash__(self):
         "Compute a hash code for this expression. Used by sets and dicts."
         if self._hash is None:

@@ -134,6 +134,11 @@ class Expr(object):
     
     #--- Special functions for string representations ---
     
+    # All subclasses must implement signature_data
+    def signature_data(self):
+        "Return data that uniquely identifies this object."
+        raise NotImplementedError(self.__class__.signature_data)
+
     # All subclasses must implement __repr__
     def __repr__(self):
         "Return string representation this object can be reconstructed from."

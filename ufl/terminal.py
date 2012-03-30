@@ -90,6 +90,9 @@ class Terminal(Expr):
             f = f[c]
         return f
 
+    def signature_data(self):
+        return repr(self)
+
     def __hash__(self):
         return hash(repr(self))
 
