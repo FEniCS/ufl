@@ -204,7 +204,7 @@ class Form(object):
 
     def _compute_signature(self, reprstring=None):
         if self._signature is None:
-            if 1:
+            if 0:
                 if reprstring is None:
                     reprstring = repr(self)
                 self._signature = hashlib.sha512(reprstring).hexdigest()

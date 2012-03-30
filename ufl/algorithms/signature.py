@@ -75,4 +75,4 @@ def compute_form_signature(form):
         integral_hashdata = (repr(integral.measure()), expression_hashdata)
         hashdata.append(integral_hashdata)
 
-    return hashlib.sha224(str(hashdata)).hexdigest()
+    return hashlib.sha512(str(hashdata)).hexdigest()
