@@ -778,7 +778,7 @@ class UnusedADRules(object):
     # --- Compound operators
 
     def commute(self, o, a):
-        "This should work for all single argument operators that commute with d/dw."
+        "This should work for all single argument operators that commute with d/dw." # FIXME: Is this true for derivatives w.r.t. nonscalar variables?
         aprime = a[1]
         return (o, o.reconstruct(aprime))
 
@@ -786,13 +786,13 @@ class UnusedADRules(object):
     trace = commute
     deviatoric = commute
 
-    # TODO: nabla_div, nabla_grad
+    # FIXME: nabla_div, nabla_grad
     div  = commute
     curl = commute
     def grad(self, o, a):
         a, aprime = a
         c = aprime.cell()
-        if c is None or c.is_undefined():
+        if c is None or c.is_undefined(): # FIXME: 
             oprime = self._make_zero_diff(o)
         else:
             oprime = o.reconstruct(aprime)
@@ -801,17 +801,21 @@ class UnusedADRules(object):
     def outer(self, o, a, b):
         a, ap = a
         b, bp = b
-        return (o, outer(ap, b) + outer(a, bp))
+        return (o, outer(ap, b) + outer(a, bp)) # FIXME: Not valid for derivatives w.r.t. nonscalar variables!
 
     def inner(self, o, a, b):
         a, ap = a
         b, bp = b
-        return (o, inner(ap, b) + inner(a, bp))
+        # NB! Using b : ap because derivative axis should be
+        # last, in case of nonscalar differentiation variable!
+        return (o, inner(b, ap) + inner(a, bp))
 
     def dot(self, o, a, b):
         a, ap = a
         b, bp = b
-        return (o, dot(ap, b) + dot(a, bp))
+        # NB! Using b . ap because derivative axis should be
+        # last, in case of nonscalar differentiation variable!
+        return (o, dot(b, ap) + dot(a, bp))
 
 class UnimplementedADRules(object):
 
