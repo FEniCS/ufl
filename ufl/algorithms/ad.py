@@ -30,7 +30,8 @@ from ufl.classes import SpatialDerivative, VariableDerivative, CoefficientDeriva
 from ufl.classes import FiniteElement, TestFunction
 
 from ufl.algorithms.analysis import extract_classes
-from ufl.algorithms.transformations import transform_integrands, expand_compounds, Transformer
+from ufl.algorithms.transformer import transform_integrands, Transformer
+from ufl.algorithms.expand_compounds import expand_compounds
 from ufl.algorithms.reverse_ad import reverse_ad
 from ufl.algorithms.forward_ad import forward_ad
 

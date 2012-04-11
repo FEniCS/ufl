@@ -49,12 +49,21 @@ from ufl.algorithms.predicates import is_multilinear
 from ufl.algorithms.checks import validate_form
 
 # Utilites for modifying expressions and forms
-from ufl.algorithms.transformations import transform, MultiFunction, Transformer, ReuseTransformer, apply_transformer, \
-                                           ufl2ufl, ufl2uflcopy, \
-                                           replace, flatten, strip_variables, \
-                                           expand_compounds, \
-                                           mark_duplications, \
-                                           estimate_max_polynomial_degree, estimate_total_polynomial_degree
+from ufl.algorithms.multifunction import MultiFunction
+from ufl.algorithms.transformer import Transformer, is_post_handler, \
+                                       transform, transform_integrands, apply_transformer, \
+                                       ReuseTransformer, ufl2ufl, \
+                                       CopyTransformer, ufl2uflcopy, \
+                                       VariableStripper, strip_variables
+from ufl.algorithms.replace import Replacer, replace
+from ufl.algorithms.expand_compounds import CompoundExpander, expand_compounds, \
+                                            CompoundExpander2, expand_compounds2
+from ufl.algorithms.estimate_degrees import MaxDegreeEstimator, estimate_max_polynomial_degree, \
+                                            SumDegreeEstimator, estimate_total_polynomial_degree
+from ufl.algorithms.argument_dependencies import ArgumentDependencyExtracter, extract_argument_dependencies, NotMultiLinearException
+from ufl.algorithms.deprecated import TreeFlattener, flatten, \
+                                      DuplicationMarker, mark_duplications, \
+                                      DuplicationPurger, purge_duplications
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.algorithms.expand_indices import expand_indices, expand_indices2, purge_list_tensors
 from ufl.algorithms.propagate_restrictions import propagate_restrictions

@@ -29,7 +29,7 @@ from ufl.assertions import ufl_assert
 from ufl.classes import Zero, IntValue, FloatValue
 from ufl.operators import cos, sin, tan, acos, asin, atan, exp, ln, sqrt, conditional, sign, erf
 from ufl.tensors import unit_vectors, ListTensor
-from ufl.algorithms.transformations import MultiFunction
+from ufl.algorithms.multifunction import MultiFunction
 
 class PartialDerivativeComputer(MultiFunction):
     """NB! The main reason for keeping this out of the Expr hierarchy is

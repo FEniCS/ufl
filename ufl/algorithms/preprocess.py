@@ -30,7 +30,7 @@ from ufl.common import slice_dict
 from ufl.geometry import Cell
 from ufl.algorithms.ad import expand_derivatives
 from ufl.algorithms.renumbering import renumber_indices
-from ufl.algorithms.transformations import replace
+from ufl.algorithms.replace import replace
 from ufl.algorithms.analysis import extract_arguments_and_coefficients, build_argument_replace_map
 from ufl.algorithms.analysis import extract_elements, extract_sub_elements, unique_tuple, _domain_types
 from ufl.algorithms.analysis import extract_num_sub_domains, extract_domain_data, extract_integral_data

@@ -22,7 +22,7 @@
 
 from ufl.expr import Expr
 from ufl.assertions import ufl_assert
-from ufl.algorithms.transformations import Transformer, ReuseTransformer
+from ufl.algorithms.transformer import Transformer, ReuseTransformer
 
 class RestrictionPropagator(ReuseTransformer):
     def __init__(self):

@@ -29,7 +29,7 @@ from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
 from ufl.tensors import ListTensor
 from ufl.variable import Label, Variable
-from ufl.algorithms.transformations import ReuseTransformer, apply_transformer
+from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
 
 class VariableRenumberingTransformer(ReuseTransformer):
     def __init__(self):

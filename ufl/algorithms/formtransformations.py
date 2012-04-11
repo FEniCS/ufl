@@ -46,7 +46,8 @@ from ufl.classes import ufl_classes, terminal_classes, nonterminal_classes
 # Other algorithms:
 from ufl.algorithms.traversal import traverse_terminals
 from ufl.algorithms.analysis import extract_arguments
-from ufl.algorithms.transformations import replace, Transformer, apply_transformer, transform_integrands
+from ufl.algorithms.transformer import Transformer, apply_transformer, transform_integrands
+from ufl.algorithms.replace import replace
 
 def zero(e):
     return Zero(e.shape(), e.free_indices(), e.index_dimensions())

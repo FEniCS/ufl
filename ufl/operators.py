@@ -270,7 +270,7 @@ def diff(f, v):
     If f is a form, diff is applied to each integrand.
     """
     if isinstance(f, Form):
-        from ufl.algorithms.transformations import transform_integrands
+        from ufl.algorithms.transformer import transform_integrands
         def _diff(e):
             return diff(e, v)
         return transform_integrands(f, _diff)

@@ -27,7 +27,7 @@ from heapq import heapify, heappop, heappush
 from ufl import *
 from ufl.algorithms.traversal import post_traversal, fast_pre_traversal
 from ufl.algorithms.printing import tree_format
-from ufl.algorithms.transformations import MultiFunction
+from ufl.algorithms.multifunction import MultiFunction
 from ufl.classes import Terminal, Variable
 
 # O(n) = O(|V|) = O(|E|), since |E| < c|V| for a fairly small c.

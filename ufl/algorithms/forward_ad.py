@@ -59,7 +59,8 @@ from ufl.operators import dot, inner, outer, lt, eq, conditional, sign, \
     erf, bessel_J, bessel_Y, bessel_I, bessel_K
 from ufl.algorithms.traversal import iter_expressions
 from ufl.algorithms.analysis import extract_type
-from ufl.algorithms.transformations import expand_compounds, Transformer, transform, transform_integrands
+from ufl.algorithms.transformer import Transformer, transform, transform_integrands
+from ufl.algorithms.expand_compounds import expand_compounds
 
 class ForwardAD(Transformer):
     def __init__(self, spatial_dim, var_shape, var_free_indices, var_index_dimensions, cache=None):

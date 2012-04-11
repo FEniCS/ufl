@@ -27,7 +27,7 @@ from ufl.form import Form
 from ufl.algebra import Sum, Product
 from ufl.tensoralgebra import Dot
 from ufl.algorithms.traversal import iter_expressions, pre_traversal
-from ufl.algorithms.transformations import extract_argument_dependencies, NotMultiLinearException
+from ufl.algorithms.argument_dependencies import extract_argument_dependencies, NotMultiLinearException
 
 #--- Utilities for checking properties of forms ---
 

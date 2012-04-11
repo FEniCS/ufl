@@ -55,7 +55,8 @@ from ufl.algorithms.analysis import extract_variables
 from ufl.algorithms.formfiles import load_forms
 from ufl.algorithms.latextools import align, document, verbatim
 
-from ufl.algorithms.transformations import expand_compounds, mark_duplications, Transformer
+from ufl.algorithms.transformer import Transformer
+from ufl.algorithms.expand_compounds import expand_compounds
 from ufl.algorithms.graph import build_graph, partition, extract_outgoing_vertex_connections
 
 
