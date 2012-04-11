@@ -37,6 +37,7 @@ from ufl.algorithms.analysis import extract_num_sub_domains, extract_domain_data
 from ufl.algorithms.formdata import FormData
 from ufl.algorithms.expand_indices import expand_indices
 from itertools import chain
+from time import time
 
 def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
     """
@@ -49,12 +50,11 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
       expand_derivatives
       renumber_indices
     """
-    from time import time
     times = []
     def tic(msg):
         times.append((time(), msg))
 
-    tic('top')
+    tic('begin preprocess')
 
     # Check that we get a form
     ufl_assert(isinstance(form, Form), "Expecting Form.")
@@ -77,19 +77,19 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
     common_cell = extract_common_cell(form, common_cell)
 
     # Expand derivatives
-    tic('expder')
+    tic('expand_derivatives')
     form = expand_derivatives(form, common_cell.geometric_dimension()) # FIXME: Split out expand_compounds from expand_derivatives
 
     # Replace arguments and coefficients with new renumbered objects
-    tic('eac')
+    tic('extract_arguments_and_coefficients')
     arguments, coefficients = extract_arguments_and_coefficients(form)
-    tic('bem')
+    tic('build_element_mapping')
     element_mapping = build_element_mapping(element_mapping, common_cell,
                                             arguments, coefficients)
-    tic('barm')
+    tic('build_argument_replace_map')
     replace_map, arguments, coefficients = \
         build_argument_replace_map(arguments, coefficients, element_mapping)
-    tic('rep')
+    tic('replace')
     form = replace(form, replace_map) # FIXME: Store mapping on the side instead of reconstructing
 
     # Build mapping to original arguments and coefficients, which is
@@ -108,11 +108,11 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
     form_data.original_coefficients = original_coefficients
 
     # Store signature of form
-    tic('sig')
+    tic('signature')
     form_data.signature = form.signature()
 
     # Store elements, sub elements and element map
-    tic('elm')
+    tic('extract_elements')
     form_data.elements            = extract_elements(form)
     tic('misc')
     form_data.unique_elements     = unique_tuple(form_data.elements)
@@ -164,19 +164,21 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
     form._is_preprocessed = True
     form_data.preprocessed_form = form
 
-    tic('end')
+    tic('end preprocess')
 
     # A coarse profiling implementation
     # TODO: Add counting of nodes
     # TODO: Add memory usage
-    profiling = 0
-    if profiling:
+    if preprocess.enable_profiling:
+        print "-"*10, "UFL preprocess profiling:"
         for i in range(len(times)-1):
             t = times[i+1][0] - times[i][0]
             msg = times[i][1]
             print "%9.2e s    %s" % (t, msg)
+        print "-"*60
 
     return form_data
+preprocess.enable_profiling = False
 
 class ExprData(object): # FIXME: Add __str__ operator etc like FormData
     pass
