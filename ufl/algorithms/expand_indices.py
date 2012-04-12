@@ -2,7 +2,7 @@
 for expanding free indices in expressions to explicit fixed
 indices only."""
 
-# Copyright (C) 2008-2011 Martin Sandve Alnes
+# Copyright (C) 2008-2012 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -22,7 +22,7 @@ indices only."""
 # Modified by Anders Logg, 2009.
 #
 # First added:  2008-04-19
-# Last changed: 2011-06-08
+# Last changed: 2012-04-12
 
 from itertools import izip
 from ufl.log import error

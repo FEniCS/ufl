@@ -1,6 +1,6 @@
 """Front-end for AD routines."""
 
-# Copyright (C) 2008-2011 Martin Sandve Alnes
+# Copyright (C) 2008-2012 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -20,16 +20,12 @@
 # Modified by Anders Logg, 2009.
 #
 # First added:  2008-12-28
-# Last changed: 2012-04-10
+# Last changed: 2012-04-12
 
-from itertools import izip
 from ufl.log import debug, error
 from ufl.assertions import ufl_assert
-from ufl.classes import Terminal, Expr, Derivative, Tuple
-from ufl.classes import SpatialDerivative, VariableDerivative, CoefficientDerivative
-from ufl.classes import FiniteElement, TestFunction
+from ufl.classes import Terminal, Derivative
 
-from ufl.algorithms.analysis import extract_classes
 from ufl.algorithms.transformer import transform_integrands, Transformer
 from ufl.algorithms.expand_compounds import expand_compounds
 from ufl.algorithms.reverse_ad import reverse_ad

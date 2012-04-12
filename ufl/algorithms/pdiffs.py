@@ -1,7 +1,7 @@
 """This module defines partial differentiation rules for
 all relevant operands for use with reverse mode AD."""
 
-# Copyright (C) 2008-2011 Martin Sandve Alnes
+# Copyright (C) 2008-2012 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -21,13 +21,13 @@ all relevant operands for use with reverse mode AD."""
 # Modified by Kristian B. Oelgaard, 2011
 #
 # First added:  2009-01-06
-# Last changed: 2011-10-21
+# Last changed: 2012-04-12
 
 from math import pi
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.classes import Zero, IntValue, FloatValue
-from ufl.operators import cos, sin, tan, acos, asin, atan, exp, ln, sqrt, conditional, sign, erf
+from ufl.classes import Zero, IntValue
+from ufl.operators import cos, sin, exp, ln, sqrt, conditional, sign
 from ufl.tensors import unit_vectors, ListTensor
 from ufl.algorithms.multifunction import MultiFunction
 

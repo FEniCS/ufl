@@ -21,25 +21,13 @@ equivalent representations using basic operators."""
 # Modified by Anders Logg, 2009-2010
 #
 # First added:  2008-05-07
-# Last changed: 2012-04-10
+# Last changed: 2012-04-12
 
-# TODO: Remove unused imports here
-
-from itertools import izip, chain
-from inspect import getargspec
-
-from ufl.log import error, warning, debug, info
-from ufl.common import Stack, StackDict
+from ufl.log import error, warning
 from ufl.assertions import ufl_assert
-from ufl.classes import Expr, Terminal, Product, Index, FixedIndex, ListTensor, Variable, Zero, CoefficientDerivative
+from ufl.classes import Product, Index
 from ufl.indexing import indices, complete_shape
 from ufl.tensors import as_tensor, as_matrix, as_vector
-from ufl.form import Form
-from ufl.integral import Integral
-from ufl.classes import all_ufl_classes
-from ufl.algorithms.analysis import has_type, extract_type, extract_duplications
-from ufl.constantvalue import as_ufl
-
 from ufl.algorithms.transformer import Transformer, ReuseTransformer, apply_transformer
 
 

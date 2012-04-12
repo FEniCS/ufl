@@ -2,7 +2,7 @@
 will typically call prior to code generation to preprocess/simplify a
 raw input form given by a user."""
 
-# Copyright (C) 2009-2011 Anders Logg
+# Copyright (C) 2009-2012 Anders Logg and Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -20,9 +20,11 @@ raw input form given by a user."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # First added:  2009-12-07
-# Last changed: 2011-12-06
+# Last changed: 2012-04-12
 
-from ufl.log import info, debug, warning, error
+from itertools import chain
+from time import time
+from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.expr import Expr
 from ufl.form import Form
@@ -36,8 +38,6 @@ from ufl.algorithms.analysis import extract_elements, extract_sub_elements, uniq
 from ufl.algorithms.analysis import extract_num_sub_domains, extract_domain_data, extract_integral_data
 from ufl.algorithms.formdata import FormData
 from ufl.algorithms.expand_indices import expand_indices
-from itertools import chain
-from time import time
 
 def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
     """

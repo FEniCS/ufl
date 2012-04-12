@@ -18,15 +18,10 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # First added:  2008-03-14
-# Last changed: 2011-06-02
+# Last changed: 2012-04-12
 
 from ufl.log import warning, debug
-from ufl.assertions import ufl_assert
-from ufl.common import lstr
-from ufl.form import Form
-from ufl.algebra import Sum, Product
-from ufl.tensoralgebra import Dot
-from ufl.algorithms.traversal import iter_expressions, pre_traversal
+from ufl.algorithms.traversal import iter_expressions
 from ufl.algorithms.argument_dependencies import extract_argument_dependencies, NotMultiLinearException
 
 #--- Utilities for checking properties of forms ---

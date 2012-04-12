@@ -20,8 +20,6 @@
 # First added:  2008-12-28
 # Last changed: 2011-06-02
 
-# TODO: Imports!
-
 from itertools import izip
 from ufl.algorithms.pdiffs import PartialDerivativeComputer
 from ufl.differentiation import SpatialDerivative, VariableDerivative, CoefficientDerivative

@@ -22,7 +22,7 @@
 # Modified by Kristian B. Oelgaard, 2011
 #
 # First added:  2008-08-19
-# Last changed: 2011-10-24
+# Last changed: 2012-04-12
 
 from itertools import izip
 from math import pi

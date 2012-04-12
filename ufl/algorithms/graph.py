@@ -1,6 +1,6 @@
 """Algorithms for working with linearized computational graphs."""
 
-# Copyright (C) 2008-2011 Martin Sandve Alnes
+# Copyright (C) 2008-2012 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -18,17 +18,17 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # First added:  2008-12-28
-# Last changed: 2011-06-02
+# Last changed: 2012-04-12
 
 from collections import defaultdict
-from itertools import chain, imap, izip
+from itertools import imap, izip
 from heapq import heapify, heappop, heappush
 
-from ufl import *
-from ufl.algorithms.traversal import post_traversal, fast_pre_traversal
+#from ufl import *
+from ufl.algorithms.traversal import fast_pre_traversal
 from ufl.algorithms.printing import tree_format
 from ufl.algorithms.multifunction import MultiFunction
-from ufl.classes import Terminal, Variable
+from ufl.classes import Terminal
 
 # O(n) = O(|V|) = O(|E|), since |E| < c|V| for a fairly small c.
 
@@ -84,8 +84,7 @@ def extract_incoming_edges(G): # O(n)
     n = len(V)
     Ein = lists(n)
     for i, e in enumerate(E):
-        a, b = e
-        Ein[b].append(i)
+        Ein[e[1]].append(i)
     return Ein
 
 def extract_outgoing_edges(G): # O(n)
@@ -94,8 +93,7 @@ def extract_outgoing_edges(G): # O(n)
     n = len(V)
     Eout = lists(n)
     for i, e in enumerate(E):
-        a, b = e
-        Eout[a].append(i)
+        Eout[e[0]].append(i)
     return Eout
 
 def extract_edges(G): # O(n)
@@ -377,6 +375,7 @@ def partition(G, criteria=string_set_criteria):
 #--- Test code ---
 
 def test_expr():
+    from ufl import triangle, FiniteElement, TestFunction, TrialFunction, Coefficient
     cell = triangle
     element = FiniteElement("CG", cell, 1)
     v = TestFunction(element)
@@ -415,8 +414,6 @@ if __name__ == "__main__":
             print "Vertex %03d: %s" % (iv, V[iv])
 
 if __name__ == "__main_":
-#if __name__ == "__main__":
-
     expr = test_expr()
 
     G = Graph(expr)
@@ -454,4 +451,3 @@ if __name__ == "__main_":
     print
     print "dfo:"
     print join_lines(reorder(V, dfo))
-

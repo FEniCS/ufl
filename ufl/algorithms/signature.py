@@ -1,10 +1,31 @@
+"""Signature computation for forms."""
+
+# Copyright (C) 2012-2012 Martin Sandve Alnes
+#
+# This file is part of UFL.
+#
+# UFL is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# UFL is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with UFL. If not, see <http://www.gnu.org/licenses/>.
+#
+# First added:  2012-03-29
+# Last changed: 2012-04-12
 
 import hashlib
 from ufl.classes import Index, MultiIndex, Coefficient, Argument, Terminal, Label
 from ufl.common import Counted
 from ufl.log import error
-from ufl.algorithms.traversal import traverse_terminals2, traverse_terminals
-from ufl.common import fast_pre_traversal2, fast_pre_traversal
+from ufl.algorithms.traversal import traverse_terminals2
+from ufl.common import fast_pre_traversal
 
 def compute_multiindex_hashdata(expr, index_numbering):
     data = []

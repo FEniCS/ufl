@@ -2,7 +2,7 @@
 
 from __future__ import with_statement
 
-# Copyright (C) 2008-2011 Martin Sandve Alnes
+# Copyright (C) 2008-2012 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -23,21 +23,16 @@ from __future__ import with_statement
 # Modified by Marie E. Rognes, 2011.
 #
 # First added:  2008-03-14
-# Last changed: 2011-07-01
+# Last changed: 2012-04-12
 
-import os
-import time
-import re
-
-from ufl.log import error, warning, info
+import os, re
+from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.form import Form
 from ufl.finiteelement import FiniteElementBase
 from ufl.expr import Expr
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
-from ufl.algorithms.formdata import FormData
-from ufl.algorithms.checks import validate_form
 from ufl.algorithms.tuplenotation import as_form
 
 class FileData(object):

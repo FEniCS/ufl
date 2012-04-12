@@ -1,3 +1,7 @@
+"""
+Stuff in this file will probably be removed.
+"""
+
 
 from ufl.log import error, warning
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer

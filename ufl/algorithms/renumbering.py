@@ -18,7 +18,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # First added:  2009-02-22
-# Last changed: 2011-06-02
+# Last changed: 2012-04-12
 
 from itertools import izip
 from ufl.common import Stack, StackDict
@@ -27,7 +27,6 @@ from ufl.expr import Expr
 from ufl.indexing import Index, FixedIndex, MultiIndex
 from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
-from ufl.tensors import ListTensor
 from ufl.variable import Label, Variable
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
 

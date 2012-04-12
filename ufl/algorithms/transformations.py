@@ -22,23 +22,7 @@ converting UFL expressions to other representations."""
 # Modified by Anders Logg, 2009-2010
 #
 # First added:  2008-05-07
-# Last changed: 2012-04-10
-
-from itertools import izip, chain
-from inspect import getargspec
-
-from ufl.log import error, warning, debug, info
-from ufl.common import Stack, StackDict
-from ufl.assertions import ufl_assert
-from ufl.classes import Expr, Terminal, Product, Index, FixedIndex, ListTensor, Variable, Zero, CoefficientDerivative
-from ufl.indexing import indices, complete_shape
-from ufl.tensors import as_tensor, as_matrix, as_vector
-from ufl.form import Form
-from ufl.integral import Integral
-from ufl.classes import all_ufl_classes
-from ufl.algorithms.analysis import has_type, extract_type, extract_duplications
-from ufl.constantvalue import as_ufl
-
+# Last changed: 2012-04-12
 
 # --- BEGIN dummy imports to keep imports in external code working:
 from ufl.algorithms.multifunction import MultiFunction
@@ -57,4 +41,3 @@ from ufl.algorithms.deprecated import TreeFlattener, flatten
 from ufl.algorithms.deprecated import DuplicationMarker, mark_duplications
 from ufl.algorithms.deprecated import DuplicationPurger, purge_duplications
 # --- END dummy imports to keep imports in external code working.
-

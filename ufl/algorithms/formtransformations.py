@@ -23,30 +23,22 @@ complete Forms into new related Forms."""
 # Modified by Marie E. Rognes, 2010.
 #
 # First added:  2008-10-01
-# Last changed: 2011-08-23
+# Last changed: 2012-04-12
 
-from itertools import izip
-
-from ufl.common import some_key, product, Stack
+from ufl.common import product
 from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert
 
 # All classes:
-from ufl.expr import Expr
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.constantvalue import Zero
-from ufl.indexed import Indexed
-from ufl.indexsum import IndexSum
 from ufl.algebra import Sum
-
-# Lists of all Expr classes
-from ufl.classes import ufl_classes, terminal_classes, nonterminal_classes
 
 # Other algorithms:
 from ufl.algorithms.traversal import traverse_terminals
 from ufl.algorithms.analysis import extract_arguments
-from ufl.algorithms.transformer import Transformer, apply_transformer, transform_integrands
+from ufl.algorithms.transformer import Transformer, transform_integrands
 from ufl.algorithms.replace import replace
 
 def zero(e):
@@ -440,18 +432,3 @@ def compute_form_adjoint(form, reordered_arguments=None):
                "Element mismatch between new and old arguments (test functions).")
 
     return replace(form, {v: reordered_v, u: reordered_u})
-
-#def compute_dirichlet_functional(form):
-#    """Compute the Dirichlet functional of a form:
-#    a(v,u;...) - L(v; ...) -> 0.5 a(v,v;...) - L(v;...)
-#
-#    This assumes a bilinear form and works simply by
-#    replacing the trial function with the test function.
-#    The form returned will thus be a linear form.
-#    """
-#    warning("TODO: Don't know if this is correct or even useful, just picked up the name some place.")
-#    return 0.5*compute_form_lhs(form) - compute_form_rhs(form)
-#    #bf = extract_arguments(form)
-#    #ufl_assert(len(bf) == 2, "Expecting bilinear form.")
-#    #v, u = bf
-#    #return replace(form, {u:v})

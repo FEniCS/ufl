@@ -1,6 +1,6 @@
 """Utility algorithms for inspection of and information extraction from UFL objects in various ways."""
 
-# Copyright (C) 2008-2011 Martin Sandve Alnes
+# Copyright (C) 2008-2012 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -21,13 +21,12 @@
 # Modified by Johan Hake, 2010.
 #
 # First added:  2008-03-14
-# Last changed: 2011-10-14
+# Last changed: 2012-04-12
 
 from itertools import izip, chain
 
 from ufl.log import error, warning, info
 from ufl.assertions import ufl_assert
-from ufl.common import lstr, dstr, UFLTypeDefaultDict
 from ufl.sorting import topological_sorting
 
 from ufl.expr import Expr
@@ -36,12 +35,8 @@ from ufl.finiteelement import MixedElement, RestrictedElement
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.variable import Variable
-from ufl.tensors import ListTensor, ComponentTensor
 from ufl.indexing import Index, MultiIndex
-from ufl.indexed import Indexed
-from ufl.form import Form
-from ufl.integral import Integral, Measure
-from ufl.classes import terminal_classes, nonterminal_classes
+from ufl.integral import Measure
 from ufl.algorithms.traversal import iter_expressions, post_traversal, post_walk, traverse_terminals
 
 # Domain types (should probably be listed somewhere else)

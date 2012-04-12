@@ -18,7 +18,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # First added:  2009-05-14
-# Last changed: 2011-11-17
+# Last changed: 2012-04-12
 
 from ufl.expr import Expr
 from ufl.assertions import ufl_assert
