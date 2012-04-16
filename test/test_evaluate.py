@@ -212,5 +212,127 @@ class EvaluateTestCase(UflTestCase):
         self.assertEqual(e((3,7), {f: eval_f}),
                          (5*7**2)**2 + (5*3*2*7)**2)
 
+    def test_dot(self):
+        x = cell2D.x
+        s = dot(x,2*x)
+        e = s((5,7))
+        v = 2*(5*5+7*7)
+        self.assertEqual(e, v)
+
+    def test_inner(self):
+        x = cell2D.x
+        xx = as_matrix(((2*x[0],3*x[0]), (2*x[1],3*x[1])))
+        s = inner(xx,2*xx)
+        e = s((5,7))
+        v = 2*((5*2)**2 + (5*3)**2 + (7*2)**2 + (7*3)**2)
+        self.assertEqual(e, v)
+
+    def test_outer(self):
+        x = cell2D.x
+        xx = outer(outer(x, x), as_vector((2,3)))
+        s = inner(xx,2*xx)
+        e = s((5,7))
+        v = 2 * (5**2 + 7**2)**2 * (2**2 + 3**2)
+        self.assertEqual(e, v)
+
+    def test_cross(self):
+        x = cell3D.x
+        xv = (3, 5, 7)
+
+        # Test cross product of triplets of orthogonal
+        # vectors, where |a x b| = |a| |b|
+        ts = [\
+              [as_vector((x[0],0,0)),
+               as_vector((0,x[1],0)),
+               as_vector((0,0,x[2]))],
+              [as_vector((x[0],x[1],0)),
+               as_vector((x[1],-x[0],0)),
+               as_vector((0,0,x[2]))],
+              [as_vector((0, x[0],x[1])),
+               as_vector((0, x[1],-x[0])),
+               as_vector((x[2], 0, 0))],
+              [as_vector((x[0], 0, x[1])),
+               as_vector((x[1], 0, -x[0])),
+               as_vector((0, x[2], 0))],
+              ]
+        for t in ts:
+            for i in range(3):
+                for j in range(3):
+                    cij = cross(t[i],t[j])
+                    dij = dot(cij,cij)
+                    eij = dij(xv)
+                    tni = dot(t[i],t[i])(xv)
+                    tnj = dot(t[j],t[j])(xv)
+                    vij = tni*tnj if i != j else 0
+                    self.assertEqual(eij, vij)
+
+    def xtest_dev(self):
+        x = cell2D.x
+        xv = (5, 7)
+        xx = outer(x, x)
+        s1 = dev(2*xx)
+        s2 = 2*(xx - xx.T) # FIXME
+        e = inner(s1,s1)(xv)
+        v = inner(s2,s2)(xv)
+        self.assertEqual(e, v)
+
+    def test_skew(self):
+        x = cell2D.x
+        xv = (5, 7)
+        xx = outer(x, x)
+        s1 = skew(2*xx)
+        s2 = (xx - xx.T)
+        e = inner(s1,s1)(xv)
+        v = inner(s2,s2)(xv)
+        self.assertEqual(e, v)
+
+    def test_sym(self):
+        x = cell2D.x
+        xv = (5, 7)
+        xx = outer(x, x)
+        s1 = sym(2*xx)
+        s2 = (xx + xx.T)
+        e = inner(s1,s1)(xv)
+        v = inner(s2,s2)(xv)
+        self.assertEqual(e, v)
+
+    def test_tr(self):
+        x = cell2D.x
+        xv = (5, 7)
+        xx = outer(x, x)
+        s = tr(2*xx)
+        e = s(xv)
+        v = 2*sum(xv[i]**2 for i in (0,1))
+        self.assertEqual(e, v)
+
+    def test_det2D(self):
+        x = cell2D.x
+        xv = (5, 7)
+        a, b = 6.5, -4
+        xx = as_matrix(((x[0],x[1]),(a,b)))
+        s = det(2*xx)
+        e = s(xv)
+        v = 2**2 * (5*b - 7*a)
+        self.assertEqual(e, v)
+
+    def xtest_det3D(self): # FIXME
+        x = cell3D.x
+        xv = (5, 7, 9)
+        a, b, c = 6.5, -4, 3
+        d, e, f = 2, 3, 4
+        xx = as_matrix(((x[0],x[1], x[2]),
+                        (a,b,c),
+                        (d,e,f)))
+        s = det(2*xx)
+        e = s(xv)
+        v = 2**3 * (xv[0]*(b*f - e*c) - xv[1]*(a*f - c*d) + xv[2]*(a*e - b*d))
+        self.assertEqual(e, v)
+
+    def test_cofac(self):
+        pass # TODO
+
+    def test_inv(self):
+        pass # TODO
+
 if __name__ == "__main__":
     main()
