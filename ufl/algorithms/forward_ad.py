@@ -550,9 +550,10 @@ class ForwardAD(Transformer):
     def conditional(self, o, c, t, f):
         o = self.reuse_if_possible(o, c[0], t[0], f[0])
         if isinstance(t[1], Zero) and isinstance(f[1], Zero):
-            fi = o.free_indices()
-            fid = subdict(o.index_dimensions(), fi)
-            op = Zero(o.shape(), fi, fid)
+            tp = t[1] # Assuming t[1] and f[1] have the same indices here, which should be the case
+            fi = tp.free_indices()
+            fid = subdict(tp.index_dimensions(), fi)
+            op = Zero(tp.shape(), fi, fid)
         else:
             op = conditional(c[0], t[1], f[1])
         return (o, op)
