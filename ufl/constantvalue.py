@@ -77,7 +77,7 @@ class IndexAnnotated(ConstantValue):
         if not all(isinstance(i, Index) for i in free_indices):
             error("Expecting tuple of Index objects.")
         self._shape = shape
-        self._free_indices = free_indices
+        self._free_indices = tuple(sorted(free_indices, key=lambda x: x.count()))
         self._index_dimensions = dict(index_dimensions) if index_dimensions else EmptyDict
         if (set(self._free_indices) ^ set(self._index_dimensions.keys())):
             error("Index set mismatch.")
