@@ -27,7 +27,7 @@ import math
 from ufl.log import warning, error
 from ufl.assertions import ufl_assert
 from ufl.operatorbase import Operator
-from ufl.constantvalue import is_true_ufl_scalar, ScalarValue, Zero, FloatValue, IntValue
+from ufl.constantvalue import is_true_ufl_scalar, ScalarValue, Zero, FloatValue, IntValue, as_ufl
 from ufl.common import EmptyDict
 
 """
@@ -226,8 +226,14 @@ class BesselFunction(Operator):
     __slots__ = ("_name", "_nu", "_argument", "_classname")
     def __init__(self, name, classname, nu, argument):
         Operator.__init__(self)
-        ufl_assert(isinstance(nu, ScalarValue) and is_true_ufl_scalar(nu), "Expecting scalar nu.")
+        ufl_assert(is_true_ufl_scalar(nu), "Expecting scalar nu.")
         ufl_assert(is_true_ufl_scalar(argument), "Expecting scalar argument.")
+        fnu = float(nu)
+        inu = int(nu)
+        if fnu == inu:
+            nu = as_ufl(inu)
+        else:
+            nu = as_ufl(fnu)
         self._classname = classname
         self._name     = name
         self._nu       = nu
