@@ -103,7 +103,7 @@ def expand_derivatives(form, dim=None,
         #        can apply compounds afterwards, to focus on fixing issues
         #        in the AD algorithm for compounds. Since this is optional,
         #        alternative form compilers can then disable expand_compounds alltogether.
-        if not apply_expand_compounds_after:
+        if apply_expand_compounds_after:
             expression = expand_compounds(expression, dim)
 
         return expression
