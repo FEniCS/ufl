@@ -93,15 +93,15 @@ class ExpressionCollection(object):
                 as_vector((u,2,3))[i], as_matrix(((u**2,u**3),(u**4,u**5)))[i,j]*w[i,j],
                 ])
         self.conditionals = ([
-            le(u, 1.0),
-            eq(3.0, u),
-            ne(sin(u), cos(u)),
-            lt(sin(u), cos(u)),
-            ge(sin(u), cos(u)),
-            gt(sin(u), cos(u)),
-            And(lt(u,3), gt(u,1)),
-            Or(lt(u,3), gt(u,1)),
-            Not(ge(u,0.0)),
+            conditional(le(u, 1.0), 1, 0),
+            conditional(eq(3.0, u), 1, 0),
+            conditional(ne(sin(u), cos(u)), 1, 0),
+            conditional(lt(sin(u), cos(u)), 1, 0),
+            conditional(ge(sin(u), cos(u)), 1, 0),
+            conditional(gt(sin(u), cos(u)), 1, 0),
+            conditional(And(lt(u,3), gt(u,1)), 1, 0),
+            conditional(Or(lt(u,3), gt(u,1)), 1, 0),
+            conditional(Not(ge(u,0.0)), 1, 0),
             conditional(le(u,0.0), 1, 2),
             conditional(Not(ge(u,0.0)), 1, 2),
             conditional(And(Not(ge(u,0.0)), lt(u,1.0)), 1, 2),
@@ -294,6 +294,33 @@ class ForwardADTestCase(UflTestCase):
                 before = diff(c*t, var) # This will usually not get simplified to zero
                 after = self.ad_algorithm(before)
                 expected = 0*outer(t, var)
+                #print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
+                self.assertEqual(after, expected)
+
+    def test_zero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self):
+        for d in (1,2,3):
+            ex = self.expr[d]
+            self._test_zero_diffs_of_noncompounds_produce_the_right_types_and_shapes(ex)
+
+    def _test_zero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self, collection):
+        c = Constant(collection.shared_objects.cell)
+
+        u = Coefficient(collection.shared_objects.U)
+        v = Coefficient(collection.shared_objects.V)
+        w = Coefficient(collection.shared_objects.W)
+
+        vu = variable(u)
+        vv = variable(v)
+        vw = variable(w)
+        for t in collection.noncompounds:
+            for var in (vu, vv, vw):
+                debug = 0
+                before = diff(t, var)
+                if debug: print '\n', 'before:   ', str(before), '\n'
+                after = self.ad_algorithm(before)
+                if debug: print '\n', 'after:    ', str(after), '\n'
+                expected = 0*outer(t, var)
+                if debug: print '\n', 'expected: ', str(expected), '\n'
                 #print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
                 self.assertEqual(after, expected)
 
