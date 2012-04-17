@@ -16,33 +16,22 @@ from ufl.classes import Grad
 #from ufl.algorithms import expand_derivatives2
 from ufl.algorithms import expand_derivatives
 
-class ForwardADTestCase(UflTestCase):
-
-    def setUp(self):
-        super(ForwardADTestCase, self).setUp()
-
-    def tearDown(self):
-        super(ForwardADTestCase, self).tearDown()
-
-    def ad_algorithm(self, expr):
-        return expand_derivatives(expr)
-        #return expand_derivatives2(expr)
-
-    def test_when_there_are_no_derivatives_the_expression_does_not_change(self):
-        cell = cell2D
+class ExpressionCollection(object):
+    def __init__(self, cell):
+        self.cell = cell
 
         U = FiniteElement("U", cell, None)
         V = VectorElement("U", cell, None)
         W = TensorElement("U", cell, None)
-
+ 
         u = Coefficient(U)
         v = Coefficient(V)
         w = Coefficient(W)
-
+ 
         du = Argument(U)
         dv = Argument(V)
         dw = Argument(W)
-
+ 
         d = cell.d
         x = cell.x
         n = cell.n
@@ -50,70 +39,263 @@ class ForwardADTestCase(UflTestCase):
         h = cell.circumradius
         f = cell.facet_area
         s = cell.surface_area
-
+ 
         I = Identity(d)
-
-        i,j,k,l = indices(4)
-
-        expressions = ([
-            0,
-            1,
-            3.14,
-            I,
-
-            x,
-            n,
-            c,
-            h,
-            f,
-            s,
-
-            u,
-            du,
-            v,
-            dv,
-            w,
-            dw,
-
-            u*2,
-            v*2,
-            w*2,
-
-            u+2*u,
-            v+2*v,
-            w+2*w,
-
-            2/u,
-            u/2,
-            v/2,
-            w/2,
-
-            u**3,
-            3**u,
-
-            abs(u),
-            sqrt(u),
-            exp(u),
-            ln(u),
-
-            cos(u),
-            sin(u),
-            tan(u),
-            acos(u),
-            asin(u),
-            atan(u),
-
-            erf(u),
-            bessel_I(1,u),
-            bessel_J(1,u),
-            bessel_K(1,u),
+        eps = PermutationSymbol(d)
+ 
+        class ObjectCollection(object):
+            pass
+        self.shared_objects = ObjectCollection()
+        for key,value in list(locals().items()):
+            setattr(self.shared_objects, key, value)
+ 
+        self.literals = list(map(as_ufl, [0, 1, 3.14, I, eps]))
+        self.geometry = [x, n, c, h, f, s]
+        self.functions = [u, du, v, dv, w, dw]
+ 
+        self.terminals = []
+        self.terminals += self.literals
+        self.terminals += self.geometry
+        self.terminals += self.functions
+ 
+        self.algebra = ([
+            u*2, v*2, w*2,
+            u+2*u, v+2*v, w+2*w,
+            2/u, u/2, v/2, w/2,
+            u**3, 3**u,
+            ])
+        self.mathfunctions = ([
+            abs(u), sqrt(u), exp(u), ln(u),
+            cos(u), sin(u), tan(u), acos(u), asin(u), atan(u),
+            erf(u), bessel_I(1,u), bessel_J(1,u), bessel_K(1,u), bessel_Y(1,u),
+            ])
+        self.variables = ([
+            variable(u), variable(v), variable(w),
+            variable(w*u), 3*variable(w*u),
             ])
 
-        for expr in expressions:
-            before = as_ufl(expr)
+        if d == 1:
+            self.indexing = []
+        else:
+            # Indexed,  ListTensor, ComponentTensor, IndexSum
+            i,j,k,l = indices(4)
+            self.indexing = ([
+                v[0], w[1,0], v[i], w[i,j],
+                v[:], w[0,:], w[:,0],
+                v[...], w[0,...], w[...,0],
+                v[i]*v[j], w[i,0]*v[j], w[1,j]*v[i],
+                v[i]*v[i], w[i,0]*w[0,i], v[i]*w[0,i], v[j]*w[1,j], w[i,i], w[i,j]*w[j,i],
+                as_tensor(v[i]*w[k,0], (k,i)),
+                as_tensor(v[i]*w[k,0], (k,i))[:,l],
+                as_tensor(w[i,j]*w[k,l], (k,j,l,i)),
+                as_tensor(w[i,j]*w[k,l], (k,j,l,i))[0,0,0,0],
+                as_vector((u,2,3)), as_matrix(((u**2,u**3),(u**4,u**5))),
+                as_vector((u,2,3))[i], as_matrix(((u**2,u**3),(u**4,u**5)))[i,j]*w[i,j],
+                ])
+        self.conditionals = ([
+            le(u, 1.0),
+            eq(3.0, u),
+            ne(sin(u), cos(u)),
+            lt(sin(u), cos(u)),
+            ge(sin(u), cos(u)),
+            gt(sin(u), cos(u)),
+            And(lt(u,3), gt(u,1)),
+            Or(lt(u,3), gt(u,1)),
+            Not(ge(u,0.0)),
+            conditional(le(u,0.0), 1, 2),
+            conditional(Not(ge(u,0.0)), 1, 2),
+            conditional(And(Not(ge(u,0.0)), lt(u,1.0)), 1, 2),
+            conditional(le(u,0.0), u**3, ln(u)),
+            ])
+        self.restrictions = [u('+'), u('-'), v('+'), v('-'), w('+'), w('-')]
+        if d > 1:
+            i,j = indices(2)
+            self.restrictions += ([
+                v('+')[i]*v('+')[i],
+                v[i]('+')*v[i]('+'),
+                (v[i]*v[i])('+'),
+                (v[i]*v[j])('+')*w[i,j]('+'),
+                ])
+ 
+        self.noncompounds = []
+        self.noncompounds += self.algebra
+        self.noncompounds += self.mathfunctions
+        self.noncompounds += self.variables
+        self.noncompounds += self.indexing
+        self.noncompounds += self.conditionals
+        self.noncompounds += self.restrictions
+ 
+        if d == 1:
+            self.tensorproducts = []
+        else:
+            self.tensorproducts = ([
+                dot(v,v),
+                dot(v,w),
+                dot(w,w),
+                inner(v,v),
+                inner(w,w),
+                outer(v,v),
+                outer(w,v),
+                outer(v,w),
+                outer(w,w),
+                ])
+ 
+        if d == 1:
+            self.tensoralgebra = []
+        else:
+            self.tensoralgebra = ([
+                w.T, sym(w), skew(w), dev(w),
+                det(w), tr(w), cofac(w), inv(w),
+                ])
+ 
+        if d != 3:
+            self.crossproducts = []
+        else:
+            self.crossproducts = ([
+                cross(v,v),
+                cross(v,2*v),
+                cross(v,w[0,:]),
+                cross(v,w[:,1]),
+                cross(w[:,0],v),
+                ])
+ 
+        self.compounds = []
+        self.compounds += self.tensorproducts
+        self.compounds += self.tensoralgebra
+        self.compounds += self.crossproducts
+ 
+        self.all_expressions = []
+        self.all_expressions += self.terminals
+        self.all_expressions += self.noncompounds
+        self.all_expressions += self.compounds
+
+class ForwardADTestCase(UflTestCase):
+
+    def setUp(self):
+        super(ForwardADTestCase, self).setUp()
+        self.expr = {}
+        self.expr[1] = ExpressionCollection(cell1D)
+        self.expr[2] = ExpressionCollection(cell2D)
+        self.expr[3] = ExpressionCollection(cell3D)
+
+    def tearDown(self):
+        super(ForwardADTestCase, self).tearDown()
+
+    def ad_algorithm(self, expr):
+        alt = 4
+        if alt == 0:
+            return expand_derivatives2(expr)
+        elif alt == 1:
+            return expand_derivatives(expr,
+                apply_expand_compounds_before=True,
+                apply_expand_compounds_after=False,
+                use_alternative_wrapper_algorithm=False)
+        elif alt == 2:
+            return expand_derivatives(expr,
+                apply_expand_compounds_before=False,
+                apply_expand_compounds_after=True,
+                use_alternative_wrapper_algorithm=False)
+        elif alt == 3:
+            return expand_derivatives(expr,
+                apply_expand_compounds_before=False,
+                apply_expand_compounds_after=False,
+                use_alternative_wrapper_algorithm=False)
+        elif alt == 4:
+            return expand_derivatives(expr,
+                apply_expand_compounds_before=False,
+                apply_expand_compounds_after=False,
+                use_alternative_wrapper_algorithm=True)
+        elif alt == 5:
+            return expand_derivatives(expr,
+                apply_expand_compounds_before=False,
+                apply_expand_compounds_after=False,
+                use_alternative_wrapper_algorithm=False)
+
+    def _test_no_derivatives_no_change(self, collection):
+        for expr in collection:
+            before = expr
             after = self.ad_algorithm(before)
-            print '\n', str(before), '\n', str(after), '\n'
+            #print '\n', str(before), '\n', str(after), '\n'
             self.assertEqual(before, after)
+
+    def _test_no_derivatives_but_still_changed(self, collection):
+        # Planning to fix these:
+        for expr in collection:
+            before = expr
+            after = self.ad_algorithm(before)
+            #print '\n', str(before), '\n', str(after), '\n'
+            #self.assertEqual(before, after) # Without expand_compounds
+            self.assertNotEqual(before, after) # With expand_compounds
+
+    def test_only_terminals_no_change(self):
+        for d in (1,2,3):
+            ex = self.expr[d]
+            self._test_no_derivatives_no_change(ex.terminals)
+
+    def test_no_derivatives_no_change(self):
+        for d in (1,2,3):
+            ex = self.expr[d]
+            self._test_no_derivatives_no_change(ex.noncompounds)
+
+    def test_compounds_no_derivatives_no_change(self):
+        for d in (1,2,3):
+            ex = self.expr[d]
+            self._test_no_derivatives_no_change(ex.compounds)
+
+    def test_zero_derivatives_of_terminals_produce_the_right_types_and_shapes(self):
+        for d in (1,2,3):
+            ex = self.expr[d]
+            self._test_zero_derivatives_of_terminals_produce_the_right_types_and_shapes(ex)
+
+    def _test_zero_derivatives_of_terminals_produce_the_right_types_and_shapes(self, collection):
+        c = Constant(collection.shared_objects.cell)
+
+        u = Coefficient(collection.shared_objects.U)
+        v = Coefficient(collection.shared_objects.V)
+        w = Coefficient(collection.shared_objects.W)
+
+        for t in collection.terminals:
+            for var in (u, v, w):
+                before = derivative(t, var) # This will often get preliminary simplified to zero
+                after = self.ad_algorithm(before)
+                expected = 0*t
+                #print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
+                self.assertEqual(after, expected)
+
+                before = derivative(c*t, var) # This will usually not get simplified to zero
+                after = self.ad_algorithm(before)
+                expected = 0*t
+                #print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
+                self.assertEqual(after, expected)
+
+    def test_zero_diffs_of_terminals_produce_the_right_types_and_shapes(self):
+        for d in (1,2,3):
+            ex = self.expr[d]
+            self._test_zero_diffs_of_terminals_produce_the_right_types_and_shapes(ex)
+
+    def _test_zero_diffs_of_terminals_produce_the_right_types_and_shapes(self, collection):
+        c = Constant(collection.shared_objects.cell)
+
+        u = Coefficient(collection.shared_objects.U)
+        v = Coefficient(collection.shared_objects.V)
+        w = Coefficient(collection.shared_objects.W)
+
+        vu = variable(u)
+        vv = variable(v)
+        vw = variable(w)
+        for t in collection.terminals:
+            for var in (vu, vv, vw):
+                before = diff(t, var) # This will often get preliminary simplified to zero
+                after = self.ad_algorithm(before)
+                expected = 0*outer(t, var)
+                #print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
+                self.assertEqual(after, expected)
+
+                before = diff(c*t, var) # This will usually not get simplified to zero
+                after = self.ad_algorithm(before)
+                expected = 0*outer(t, var)
+                #print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
+                self.assertEqual(after, expected)
 
 # Don't touch these lines, they allow you to run this file directly
 if __name__ == "__main__":
