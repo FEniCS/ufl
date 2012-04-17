@@ -226,7 +226,7 @@ class BesselFunction(Operator):
     __slots__ = ("_name", "_nu", "_argument", "_classname")
     def __init__(self, name, classname, nu, argument):
         Operator.__init__(self)
-        ufl_assert(is_true_ufl_scalar(nu), "Expecting scalar argument.")
+        ufl_assert(isinstance(nu, ScalarValue) and is_true_ufl_scalar(nu), "Expecting scalar nu.")
         ufl_assert(is_true_ufl_scalar(argument), "Expecting scalar argument.")
         self._classname = classname
         self._name     = name
