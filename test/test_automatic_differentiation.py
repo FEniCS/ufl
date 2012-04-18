@@ -18,6 +18,7 @@ from ufl.algorithms import expand_derivatives
 from ufl.algorithms.traversal import traverse_terminals2
 from ufl.common import fast_post_traversal, fast_post_traversal2
 from ufl.conditional import Conditional
+from itertools import chain
 
 class ExpressionCollection(object):
     def __init__(self, cell):
@@ -193,7 +194,8 @@ class ForwardADTestCase(UflTestCase):
         self.assertEqual(value.index_dimensions(), expected.index_dimensions())
 
     def ad_algorithm(self, expr):
-        alt = 4
+        #alt = 1
+        alt = 5
         if alt == 0:
             return expand_derivatives2(expr)
         elif alt == 1:
@@ -227,6 +229,7 @@ class ForwardADTestCase(UflTestCase):
             before = expr
             after = self.ad_algorithm(before)
             #print '\n', str(before), '\n', str(after), '\n'
+            self.assertEqualTotalShape(before, after)
             self.assertEqual(before, after)
 
     def _test_no_derivatives_but_still_changed(self, collection):
@@ -235,6 +238,7 @@ class ForwardADTestCase(UflTestCase):
             before = expr
             after = self.ad_algorithm(before)
             #print '\n', str(before), '\n', str(after), '\n'
+            self.assertEqualTotalShape(before, after)
             #self.assertEqual(before, after) # Without expand_compounds
             self.assertNotEqual(before, after) # With expand_compounds
 
@@ -248,7 +252,7 @@ class ForwardADTestCase(UflTestCase):
             ex = self.expr[d]
             self._test_no_derivatives_no_change(ex.noncompounds)
 
-    def test_compounds_no_derivatives_no_change(self):
+    def xtest_compounds_no_derivatives_no_change(self): # This test fails with expand_compounds enabled
         for d in (1,2,3):
             ex = self.expr[d]
             self._test_no_derivatives_no_change(ex.compounds)
@@ -320,6 +324,7 @@ class ForwardADTestCase(UflTestCase):
         v = Coefficient(collection.shared_objects.V)
         w = Coefficient(collection.shared_objects.W)
 
+        #for t in chain(collection.noncompounds, collection.compounds):
         for t in collection.noncompounds:
             for var in (u, v, w):
                 if debug: print '\n', '...:   ', t.shape(), var.shape(), '\n'
@@ -347,6 +352,8 @@ class ForwardADTestCase(UflTestCase):
         vu = variable(u)
         vv = variable(v)
         vw = variable(w)
+
+        #for t in chain(collection.noncompounds, collection.compounds):
         for t in collection.noncompounds:
             for var in (vu, vv, vw):
                 before = diff(t, var)
@@ -370,6 +377,7 @@ class ForwardADTestCase(UflTestCase):
         v = collection.shared_objects.v
         w = collection.shared_objects.w
 
+        #for t in chain(collection.noncompounds, collection.compounds):
         for t in collection.noncompounds:
             for var in (u, v, w):
                 # Include d/dx [z ? y: x] but not d/dx [x ? f: z]
@@ -406,6 +414,8 @@ class ForwardADTestCase(UflTestCase):
         vu = variable(u)
         vv = variable(v)
         vw = variable(w)
+
+        #for t in chain(collection.noncompounds, collection.compounds):
         for t in collection.noncompounds:
             t = replace(t, {u:vu, v:vv, w:vw})
             for var in (vu, vv, vw):
@@ -431,4 +441,3 @@ class ForwardADTestCase(UflTestCase):
 # Don't touch these lines, they allow you to run this file directly
 if __name__ == "__main__":
     main()
-

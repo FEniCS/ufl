@@ -813,16 +813,38 @@ class UnusedADRules(object):
         oprime = o.reconstruct(fp, v)
         return (o, oprime)
 
-    # --- Compound operators
+    # --- Tensor algebra (compound types)
+
+    def outer(self, o, a, b):
+        a, ap = a
+        b, bp = b
+        return (o, outer(ap, b) + outer(a, bp)) # FIXME: Not valid for derivatives w.r.t. nonscalar variables!
+
+    def inner(self, o, a, b):
+        a, ap = a
+        b, bp = b
+        # NB! Using b : ap because derivative axis should be
+        # last, in case of nonscalar differentiation variable!
+        return (o, inner(b, ap) + inner(a, bp)) # FIXME: Not correct, inner requires equal shapes!
+
+    def dot(self, o, a, b):
+        a, ap = a
+        b, bp = b
+        # NB! Using b . ap because derivative axis should be
+        # last, in case of nonscalar differentiation variable!
+        return (o, dot(b, ap) + dot(a, bp))
 
     def commute(self, o, a):
-        "This should work for all single argument operators that commute with d/dw." # FIXME: Is this true for derivatives w.r.t. nonscalar variables?
+        "This should work for all single argument operators that commute with d/dw with w scalar."
         aprime = a[1]
         return (o, o.reconstruct(aprime))
 
+    # FIXME: Not true for derivatives w.r.t. nonscalar variables...
     transposed = commute
     trace = commute
     deviatoric = commute
+
+    # --- Compound differential operators, probably do not want...
 
     # FIXME: nabla_div, nabla_grad
     div  = commute
@@ -835,25 +857,6 @@ class UnusedADRules(object):
         else:
             oprime = o.reconstruct(aprime)
         return (o, oprime)
-
-    def outer(self, o, a, b):
-        a, ap = a
-        b, bp = b
-        return (o, outer(ap, b) + outer(a, bp)) # FIXME: Not valid for derivatives w.r.t. nonscalar variables!
-
-    def inner(self, o, a, b):
-        a, ap = a
-        b, bp = b
-        # NB! Using b : ap because derivative axis should be
-        # last, in case of nonscalar differentiation variable!
-        return (o, inner(b, ap) + inner(a, bp))
-
-    def dot(self, o, a, b):
-        a, ap = a
-        b, bp = b
-        # NB! Using b . ap because derivative axis should be
-        # last, in case of nonscalar differentiation variable!
-        return (o, dot(b, ap) + dot(a, bp))
 
 class UnimplementedADRules(object):
 
