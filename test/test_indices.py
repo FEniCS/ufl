@@ -261,7 +261,8 @@ class IndexTestCase(UflTestCase):
         self.assertEqual(a.shape(), ())
         
         a = v.dx(i,j)
-        self.assertSameIndices(a, (i,j))
+        #self.assertSameIndices(a, (i,j)) 
+        self.assertEqual(set(a.free_indices()), set((j,i)))
         self.assertNotIsInstance(a, IndexSum)
         self.assertEqual(a.shape(), (d,))
         

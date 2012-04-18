@@ -264,6 +264,17 @@ class ExpandIndicesTestCase(UflTestCase):
         a = div(grad(sf2))
         compare(a, 3.300 + 3.311)
 
+        if 0:
+            Dvf = grad(vf)
+            Lvf = div(Dvf)
+            Lvf2 = dot(Lvf,Lvf)
+            pp = (Lvf2*dx).compute_form_data().preprocessed_form.integrals()[0].integrand()
+            print 'vf', vf.shape(), str(vf)
+            print 'Dvf', Dvf.shape(), str(Dvf)
+            print 'Lvf', Lvf.shape(), str(Lvf)
+            print 'Lvf2', Lvf2.shape(), str(Lvf2)
+            print 'pp', pp.shape(), str(pp)
+
         a = div(grad(vf))
         compare(dot(a,a), (0.20+0.40)**2 + (0.21+0.41)**2)
 
