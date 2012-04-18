@@ -245,17 +245,18 @@ class Grad(CompoundDerivative):
         if f.is_cellwise_constant():
             free_indices = f.free_indices()
             index_dimensions = subdict(f.index_dimensions(), free_indices)
-            return Zero(f.shape() + (dim,), free_indices, index_dimensions)
-        if dim == 1:
-            return f.dx(0) # FIXME: Can't do this if we remove SpatialDerivative
+            shape = () if dim == 1 else (dim,)
+            return Zero(f.shape() + shape, free_indices, index_dimensions)
+        #if dim == 1:
+        #    return f.dx(0) # FIXME: Can't do this if we remove SpatialDerivative
         return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):
         CompoundDerivative.__init__(self)
         self._f = f
         self._dim = f.geometric_dimension()
-        ufl_assert(not f.free_indices(),\
-            "Taking gradient of an expression with free indices is not supported.") # FIXME: Need this! Test if it works anyway.
+        #ufl_assert(not f.free_indices(),\
+        #    "Taking gradient of an expression with free indices is not supported.") # FIXME: Need this! Test if it works anyway.
 
     def reconstruct(self, op):
         "Return a new object of the same type with new operands."
@@ -278,10 +279,8 @@ class Grad(CompoundDerivative):
         return self._f.index_dimensions()
 
     def shape(self):
-        if self._dim == 1:
-            return self._f.shape()
-        else:
-            return self._f.shape() + (self._dim,)
+        sh = () if self._dim == 1 else (self._dim,)
+        return self._f.shape() + sh
 
     def __str__(self):
         return "grad(%s)" % self._f
