@@ -48,19 +48,13 @@ from ufl.tensoralgebra import Transposed, Outer, Inner, Dot, Cross, Trace, \
 from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin, Tan, Acos, Asin, Atan, Erf, BesselJ, BesselY, BesselI, BesselK
 from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
 from ufl.differentiation import Derivative, CoefficientDerivative,\
-    SpatialDerivative, VariableDerivative
+    SpatialDerivative, VariableDerivative, Grad
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
-
-# Lists of all Expr classes
-from ufl.classes import terminal_classes
 
 from ufl.operators import dot, inner, outer, lt, eq, conditional, sign, \
     sqrt, exp, ln, cos, sin, tan, acos, asin, atan, \
     erf, bessel_J, bessel_Y, bessel_I, bessel_K
-from ufl.algorithms.traversal import iter_expressions
-from ufl.algorithms.analysis import extract_type
-from ufl.algorithms.transformer import Transformer, transform, transform_integrands
-from ufl.algorithms.expand_compounds import expand_compounds
+from ufl.algorithms.transformer import Transformer
 
 class ForwardAD(Transformer):
     def __init__(self, spatial_dim, var_shape, var_free_indices, var_index_dimensions, cache=None):
@@ -315,7 +309,7 @@ class ForwardAD(Transformer):
         # Get operands and their derivatives
         ops2, dops2 = unzip(ops)
         o = self.reuse_if_possible(o, *ops2)
-        for (i, op) in enumerate(ops):
+        for i in xrange(len(ops)):
             # Get scalar representation of differentiated value of operand i
             dop = dops2[i]
             dop, ii = as_scalar(dop)
@@ -608,7 +602,7 @@ class SpatialAD(ForwardAD):
             oprime = I[:, self._index]
             return (o, oprime)
 
-    # This is implicit for all terminals, but just to make this clear:
+    # This is implicit for all terminals, but just to make this clear to the reader:
     facet_normal = ForwardAD.terminal # returns zero
     constant = ForwardAD.terminal # returns zero
 
@@ -621,6 +615,37 @@ class SpatialAD(ForwardAD):
             return self.terminal(o)
         oprime = SpatialDerivative(o, self._index)
         return (o, oprime)
+
+class GradAD(ForwardAD):
+    def __init__(self, spatial_dim, cache=None):
+        ForwardAD.__init__(self, spatial_dim,
+                           var_shape=(self._spatial_dim,),
+                           var_free_indices=(),
+                           var_index_dimensions={},
+                           cache=cache)
+        self._Id = Identity(self._spatial_dim)
+
+    def spatial_coordinate(self, o):
+        "Gradient of x w.r.t. x is Id."
+        return (o, self._Id)
+
+    # This is implicit for all terminals, but just to make this clear to the reader:
+    facet_normal = ForwardAD.terminal # returns zero
+    constant = ForwardAD.terminal # returns zero
+
+    def form_argument(self, o):
+        "Represent grad(f) as Grad(f)."
+        # Collapse gradient of cellwise function to zero
+        if o.is_cellwise_constant():
+            return self.terminal(o)
+        return (o, Grad(o))
+
+    def grad(self, o, f):
+        "Represent grad(grad(f)) as Grad(Grad(f))."
+        # Not sure how to detect that gradient of f is cellwise constant. Can we trust element degrees?
+        #if o.is_cellwise_constant():
+        #    return self.terminal(o)
+        return (o, Grad(o))
 
 class VariableAD(ForwardAD):
     def __init__(self, spatial_dim, var, cache=None):
@@ -731,6 +756,12 @@ class CoefficientAD(ForwardAD):
         c = (o, op)
         self._variable_cache[l] = c
         return c
+
+def compute_grad_forward_ad(expr, dim):
+    f, v = expr.operands()
+    alg = GradAD(dim, v)
+    e, ediff = alg.visit(f)
+    return ediff
 
 def compute_spatial_forward_ad(expr, dim):
     f, v = expr.operands()
