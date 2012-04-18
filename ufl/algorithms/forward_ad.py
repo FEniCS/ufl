@@ -154,7 +154,6 @@ class ForwardAD(Transformer):
         # (kind of cumbersome this... any simpler way?)
 
         sh = o.shape()
-
         fi = o.free_indices()
         idims = dict(o.index_dimensions())
 
@@ -165,28 +164,34 @@ class ForwardAD(Transformer):
                 fi = unique_indices(fi + (i,))
                 idims[i] = self._var_index_dimensions[i]
 
+        # Create a 1 with index annotations
         one = IntValue(1, (), fi, idims)
-        if not sh:
-            return one
 
         res = None
-        ind1 = ()
-        ind2 = ()
-        for d in sh:
-            i, j = indices(2)
-            dij = Identity(d)[i, j]
-            if res is None:
-                res = dij
-            else:
-                res *= dij
-            ind1 += (i,)
-            ind2 += (j,)
+        if sh == ():
+            return one
+        elif len(sh) == 1:
+            # FIXME: If sh == (1,), I think this will get the wrong shape?
+            # I think we should make sure sh=(1,...,1) is always converted to () early.
+            fp = Identity(sh[0])
+        else:
+            ind1 = ()
+            ind2 = ()
+            for d in sh:
+                i, j = indices(2)
+                dij = Identity(d)[i, j]
+                if res is None:
+                    res = dij
+                else:
+                    res *= dij
+                ind1 += (i,)
+                ind2 += (j,)
+            fp = as_tensor(res, ind1 + ind2)
 
-        allind = ind1 + ind2
-
-        fp = as_tensor(res, allind)
+        # Apply index annotations
         if fi:
             fp *= one
+
         return fp
 
     # --- Default rules
