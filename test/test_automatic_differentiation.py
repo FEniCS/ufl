@@ -15,23 +15,14 @@ from ufl import *
 from ufl.classes import Grad
 #from ufl.algorithms import expand_derivatives2
 from ufl.algorithms import expand_derivatives
+from ufl.algorithms.traversal import traverse_terminals2
+from ufl.common import fast_post_traversal, fast_post_traversal2
+from ufl.conditional import Conditional
 
 class ExpressionCollection(object):
     def __init__(self, cell):
         self.cell = cell
 
-        U = FiniteElement("U", cell, None)
-        V = VectorElement("U", cell, None)
-        W = TensorElement("U", cell, None)
- 
-        u = Coefficient(U)
-        v = Coefficient(V)
-        w = Coefficient(W)
- 
-        du = Argument(U)
-        dv = Argument(V)
-        dw = Argument(W)
- 
         d = cell.d
         x = cell.x
         n = cell.n
@@ -42,6 +33,21 @@ class ExpressionCollection(object):
  
         I = Identity(d)
         eps = PermutationSymbol(d)
+
+        U = FiniteElement("U", cell, None)
+        if d == 1:
+            V = U
+            W = U
+        else:
+            V = VectorElement("U", cell, None)
+            W = TensorElement("U", cell, None)
+
+        u = Coefficient(U)
+        v = Coefficient(V)
+        w = Coefficient(W)
+        du = Argument(U)
+        dv = Argument(V)
+        dw = Argument(W)
  
         class ObjectCollection(object):
             pass
@@ -181,6 +187,11 @@ class ForwardADTestCase(UflTestCase):
     def tearDown(self):
         super(ForwardADTestCase, self).tearDown()
 
+    def assertEqualTotalShape(self, value, expected):
+        self.assertEqual(value.shape(), expected.shape())
+        self.assertEqual(set(value.free_indices()), set(expected.free_indices()))
+        self.assertEqual(value.index_dimensions(), expected.index_dimensions())
+
     def ad_algorithm(self, expr):
         alt = 4
         if alt == 0:
@@ -303,13 +314,14 @@ class ForwardADTestCase(UflTestCase):
             self._test_zero_derivatives_of_noncompounds_produce_the_right_types_and_shapes(ex)
 
     def _test_zero_derivatives_of_noncompounds_produce_the_right_types_and_shapes(self, collection):
+        debug = 0
+
         u = Coefficient(collection.shared_objects.U)
         v = Coefficient(collection.shared_objects.V)
         w = Coefficient(collection.shared_objects.W)
 
         for t in collection.noncompounds:
             for var in (u, v, w):
-                debug = 0
                 if debug: print '\n', '...:   ', t.shape(), var.shape(), '\n'
                 before = derivative(t, var)
                 if debug: print '\n', 'before:   ', str(before), '\n'
@@ -326,6 +338,8 @@ class ForwardADTestCase(UflTestCase):
             self._test_zero_diffs_of_noncompounds_produce_the_right_types_and_shapes(ex)
 
     def _test_zero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self, collection):
+        debug = 0
+
         u = Coefficient(collection.shared_objects.U)
         v = Coefficient(collection.shared_objects.V)
         w = Coefficient(collection.shared_objects.W)
@@ -335,7 +349,6 @@ class ForwardADTestCase(UflTestCase):
         vw = variable(w)
         for t in collection.noncompounds:
             for var in (vu, vv, vw):
-                debug = 0
                 before = diff(t, var)
                 if debug: print '\n', 'before:   ', str(before), '\n'
                 after = self.ad_algorithm(before)
@@ -344,6 +357,74 @@ class ForwardADTestCase(UflTestCase):
                 if debug: print '\n', 'expected: ', str(expected), '\n'
                 #print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
                 self.assertEqual(after, expected)
+
+    def test_nonzero_derivatives_of_noncompounds_produce_the_right_types_and_shapes(self):
+        for d in (1,2,3):
+            ex = self.expr[d]
+            self._test_nonzero_derivatives_of_noncompounds_produce_the_right_types_and_shapes(ex)
+
+    def _test_nonzero_derivatives_of_noncompounds_produce_the_right_types_and_shapes(self, collection):
+        debug = 0
+        
+        u = collection.shared_objects.u
+        v = collection.shared_objects.v
+        w = collection.shared_objects.w
+
+        for t in collection.noncompounds:
+            for var in (u, v, w):
+                # Include d/dx [z ? y: x] but not d/dx [x ? f: z]
+                if isinstance(t, Conditional) and (var in fast_post_traversal2(t.operands()[0])):
+                    if debug: print "Depends on %s :: %s" % (str(var), str(t))
+                    continue
+
+                if debug: print '\n', '...:   ', t.shape(), var.shape(), '\n'
+                before = derivative(t, var)
+                if debug: print '\n', 'before:   ', str(before), '\n'
+                after = self.ad_algorithm(before)
+                if debug: print '\n', 'after:    ', str(after), '\n'
+                expected = 0*t
+                if debug: print '\n', 'expected: ', str(expected), '\n'
+                #print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
+
+                if var in fast_post_traversal2(t):
+                    self.assertEqualTotalShape(after, expected)
+                else:
+                    self.assertEqual(after, expected)
+
+    def test_nonzero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self):
+        for d in (1,2,3):
+            ex = self.expr[d]
+            self._test_nonzero_diffs_of_noncompounds_produce_the_right_types_and_shapes(ex)
+
+    def _test_nonzero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self, collection):
+        debug = 0
+        u = collection.shared_objects.u
+        v = collection.shared_objects.v
+        w = collection.shared_objects.w
+
+        vu = variable(u)
+        vv = variable(v)
+        vw = variable(w)
+        for t in collection.noncompounds:
+            t = replace(t, {u:vu, v:vv, w:vw})
+            for var in (vu, vv, vw):
+                # Include d/dx [z ? y: x] but not d/dx [x ? f: z]
+                if isinstance(t, Conditional) and (var in fast_post_traversal2(t.operands()[0])):
+                    if debug: print "Depends on %s :: %s" % (str(var), str(t))
+                    continue
+
+                before = diff(t, var)
+                if debug: print '\n', 'before:   ', str(before), '\n'
+                after = self.ad_algorithm(before)
+                if debug: print '\n', 'after:    ', str(after), '\n'
+                expected = 0*outer(t, var) # expected shape, not necessarily value
+                if debug: print '\n', 'expected: ', str(expected), '\n'
+                #print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
+
+                if var in fast_post_traversal2(t):
+                    self.assertEqualTotalShape(after, expected)
+                else:
+                    self.assertEqual(after, expected)
 
 # Don't touch these lines, they allow you to run this file directly
 if __name__ == "__main__":

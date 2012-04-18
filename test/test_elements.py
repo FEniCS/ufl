@@ -25,10 +25,12 @@ class ElementsTestCase(UflTestCase):
     def test_vector_galerkin(self):
         for cell in all_cells:
             dim = cell.d
+            #shape = () if dim == 1 else (dim,)
+            shape = (dim,)
             for p in range(1,10):
                 for family in ("Lagrange", "CG", "Discontinuous Lagrange", "DG"):
                     element = VectorElement(family, cell, p)
-                    self.assertEqual(element.value_shape(), (dim,))
+                    self.assertEqual(element.value_shape(), shape)
                     self.assertEqual(element, eval(repr(element)))
                     for i in range(dim):
                         c = element.extract_component(i)
@@ -37,10 +39,12 @@ class ElementsTestCase(UflTestCase):
     def test_tensor_galerkin(self):
         for cell in all_cells:
             dim = cell.d
+            #shape = () if dim == 1 else (dim,dim)
+            shape = (dim,dim)
             for p in range(1,10):
                 for family in ("Lagrange", "CG", "Discontinuous Lagrange", "DG"):
                     element = TensorElement(family, cell, p)
-                    self.assertEqual(element.value_shape(), (dim,dim))
+                    self.assertEqual(element.value_shape(), shape)
                     self.assertEqual(element, eval(repr(element)))
                     for i in range(dim):
                         for j in range(dim):
