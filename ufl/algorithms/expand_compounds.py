@@ -171,21 +171,22 @@ class CompoundExpander(ReuseTransformer):
 
     def div(self, o, a):
         i = Index()
-        g = a[i] if a.rank() == 1 else a[...,i]
-        return g.dx(i)
+        return a[...,i].dx(i)
 
     def grad(self, o, a):
-        jj = Index()
-        if a.rank() > 0:
-            ii = tuple(indices(a.rank()))
-            return as_tensor(a[ii].dx(jj), ii + (jj,))
+        if self._dim == 1:
+            return a.dx(0)
         else:
-            return as_tensor(a.dx(jj), (jj,))
+            jj = Index()
+            if a.rank() > 0:
+                ii = tuple(indices(a.rank()))
+                return as_tensor(a[ii].dx(jj), ii + (jj,))
+            else:
+                return as_tensor(a.dx(jj), (jj,))
 
     def nabla_div(self, o, a):
         i = Index()
-        g = a[i] if a.rank() == 1 else a[i,...]
-        return g.dx(i)
+        return a[i,...].dx(i)
 
     def nabla_grad(self, o, a):
         j = Index()
