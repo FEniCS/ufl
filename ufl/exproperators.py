@@ -348,8 +348,18 @@ def analyse_key(ii, rank):
     - Complete slice (:) => Replaced by a single new index
     - Ellipsis (...) => Replaced by multiple new indices
     """
+    # Wrap in tuple
     if not isinstance(ii, tuple):
         ii = (ii,)
+    else:
+        # Flatten nested tuples, happens with f[...,ii] where ii is a tuple of indices
+        jj = []
+        for j in ii:
+            if isinstance(j, tuple):
+                jj.extend(j)
+            else:
+                jj.append(j)
+        ii = tuple(jj)
 
     # Convert all indices to Index or FixedIndex objects.
     # If there is an ellipsis, split the indices into before and after.
@@ -376,6 +386,14 @@ def analyse_key(ii, rank):
                     # TODO: Use ListTensor to support partial slices?
                     error("Partial slices not implemented, only complete slices like [:]")
             else:
+                print '\n', '='*60
+                print Index, id(Index)
+                print type(i), id(type(i))
+                print str(i)
+                print repr(i)
+                print type(i).__module__
+                print Index.__module__
+                print '\n', '='*60
                 error("Can't convert this object to index: %r" % i)
 
             # Store index in pre or post list
@@ -452,7 +470,12 @@ def _dx2(self, *ii):
     d = self
     for i in range(len(ii)):
         d = Grad(d)
-    return d[...,ii]
+    s = d.rank() - self.rank()
+    if s == 0:
+        return d
+    else:
+        ufl_assert(s == len(ii), "Rank mismatch in .dx.")
+        return d[...,ii]
 
 Expr.dx = _dx
 
