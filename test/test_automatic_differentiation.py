@@ -382,14 +382,15 @@ class ForwardADTestCase(UflTestCase):
                 if debug: print '\n', 'before:   ', str(before), '\n'
                 after = self.ad_algorithm(before)
                 if debug: print '\n', 'after:    ', str(after), '\n'
-                expected = 0*t
-                if debug: print '\n', 'expected: ', str(expected), '\n'
-                #print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
+                expected_shape = 0*t
+                if debug: print '\n', 'expected_shape: ', str(expected_shape), '\n'
+                #print '\n', str(expected_shape), '\n', str(after), '\n', str(before), '\n'
 
                 if var in fast_post_traversal2(t):
-                    self.assertEqualTotalShape(after, expected)
+                    self.assertEqualTotalShape(after, expected_shape)
+                    self.assertNotEqual(after, expected_shape)
                 else:
-                    self.assertEqual(after, expected)
+                    self.assertEqual(after, expected_shape)
 
     def test_nonzero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self):
         for d in (1,2,3):
@@ -417,14 +418,15 @@ class ForwardADTestCase(UflTestCase):
                 if debug: print '\n', 'before:   ', str(before), '\n'
                 after = self.ad_algorithm(before)
                 if debug: print '\n', 'after:    ', str(after), '\n'
-                expected = 0*outer(t, var) # expected shape, not necessarily value
-                if debug: print '\n', 'expected: ', str(expected), '\n'
-                #print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
+                expected_shape = 0*outer(t, var) # expected shape, not necessarily value
+                if debug: print '\n', 'expected_shape: ', str(expected_shape), '\n'
+                #print '\n', str(expected_shape), '\n', str(after), '\n', str(before), '\n'
 
                 if var in fast_post_traversal2(t):
-                    self.assertEqualTotalShape(after, expected)
+                    self.assertEqualTotalShape(after, expected_shape)
+                    self.assertNotEqual(after, expected_shape)
                 else:
-                    self.assertEqual(after, expected)
+                    self.assertEqual(after, expected_shape)
 
 # Don't touch these lines, they allow you to run this file directly
 if __name__ == "__main__":
