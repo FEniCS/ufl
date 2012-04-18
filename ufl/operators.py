@@ -271,22 +271,15 @@ def diff(f, v):
     """
     if isinstance(f, Form):
         from ufl.algorithms.transformer import transform_integrands
-        def _diff(e):
-            return diff(e, v)
-        return transform_integrands(f, _diff)
+        return transform_integrands(f, lambda e: diff(e, v))
     else:
         f = as_ufl(f)
 
     if isinstance(v, SpatialCoordinate):
-        if v.shape() == ():
-            return f.dx(0)
-        else:
-            r = f.rank()
-            ii = indices(r + 1)
-            if r:
-                f = f[ii[:-1]]
-            df = f.dx(ii[-1])
-            return as_tensor(df, ii)
+        return grad(f)
+    # TODO: Could allow diff(f, x[i]) with this code (not tested):
+    #elif isinstance(v, Indexed) and isinstance(v.operands()[0], SpatialCoordinate):
+    #    return grad(f)[...,v.operands()[1]]
 
     return VariableDerivative(f, v)
 

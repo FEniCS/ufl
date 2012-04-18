@@ -309,7 +309,7 @@ class ForwardADTestCase(UflTestCase):
 
         for t in collection.noncompounds:
             for var in (u, v, w):
-                debug = 1
+                debug = 0
                 if debug: print '\n', '...:   ', t.shape(), var.shape(), '\n'
                 before = derivative(t, var)
                 if debug: print '\n', 'before:   ', str(before), '\n'

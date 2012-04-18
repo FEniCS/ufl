@@ -38,7 +38,7 @@ from ufl.indexsum import IndexSum
 from ufl.indexutils import repeated_indices, single_indices
 from ufl.tensors import as_tensor, ComponentTensor
 from ufl.restriction import PositiveRestricted, NegativeRestricted
-from ufl.differentiation import SpatialDerivative
+from ufl.differentiation import SpatialDerivative, Grad
 
 from ufl.common import fast_pre_traversal
 
@@ -446,6 +446,14 @@ def _dx(self, *ii):
         d = IndexSum(d, i)
 
     return d
+
+def _dx2(self, *ii):
+    "Return the partial derivative with respect to spatial variable number i."
+    d = self
+    for i in range(len(ii)):
+        d = Grad(d)
+    return d[...,ii]
+
 Expr.dx = _dx
 
 #def _d(self, v):

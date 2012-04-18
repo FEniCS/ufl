@@ -28,7 +28,7 @@ from ufl.common import subdict, mergedicts, EmptyDict
 from ufl.expr import Expr
 from ufl.terminal import Terminal, Data
 from ufl.operatorbase import Operator, Tuple
-from ufl.constantvalue import Zero, is_true_ufl_scalar
+from ufl.constantvalue import Zero
 from ufl.indexing import Index, FixedIndex, MultiIndex, as_multi_index
 from ufl.indexed import Indexed
 from ufl.indexutils import unique_indices
@@ -50,18 +50,10 @@ class CoefficientDerivative(Derivative):
                  "_coefficient_derivatives")
 
     def __new__(cls, integrand, coefficients, arguments, coefficient_derivatives):
-        # FIXME: Disabled this check for unit testing, is that ok?
-        #ufl_assert(is_true_ufl_scalar(integrand),
-        #    "Expecting true UFL scalar expression.")
-
         ufl_assert(isinstance(coefficients, Tuple),
             "Expecting Tuple instance with Coefficients.")
-        #and all(isinstance(f, (Coefficient, Indexed)) for f in coefficients),
-
         ufl_assert(isinstance(arguments, Tuple),
             "Expecting Tuple instance with Arguments.")
-        #and all(isinstance(f, Argument) for f in arguments),
-
         ufl_assert(isinstance(coefficient_derivatives, (dict, Data)),
                    "Expecting a dict for coefficient derivatives.")
 
@@ -83,18 +75,12 @@ class CoefficientDerivative(Derivative):
         return (self._integrand, self._coefficients, self._arguments, self._coefficient_derivatives)
 
     def shape(self):
-        # Assertion in __new__ guarantees this
-        #return ()
         return self._integrand.shape()
 
     def free_indices(self):
-        # Assertion in __new__ guarantees this
-        #return ()
         return self._integrand.free_indices()
 
     def index_dimensions(self):
-        # Assertion in __new__ guarantees this
-        #return EmptyDict
         return self._integrand.index_dimensions()
 
     def __str__(self):
@@ -188,8 +174,8 @@ class SpatialDerivative(Derivative):
 class VariableDerivative(Derivative):
     __slots__ = ("_f", "_v", "_free_indices", "_index_dimensions", "_shape",)
     def __new__(cls, f, v):
-        # Return zero if expression is trivially independent of Coefficient
-        if isinstance(f, Terminal):# and not isinstance(f, Variable):
+        # Return zero if expression is trivially independent of variable
+        if isinstance(f, Terminal):
             free_indices = tuple(set(f.free_indices()) ^ set(v.free_indices()))
             index_dimensions = mergedicts([f.index_dimensions(), v.index_dimensions()])
             index_dimensions = subdict(index_dimensions, free_indices)
@@ -261,7 +247,7 @@ class Grad(CompoundDerivative):
             index_dimensions = subdict(f.index_dimensions(), free_indices)
             return Zero(f.shape() + (dim,), free_indices, index_dimensions)
         if dim == 1:
-            return f.dx(0)
+            return f.dx(0) # FIXME: Can't do this if we remove SpatialDerivative
         return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):
@@ -269,7 +255,7 @@ class Grad(CompoundDerivative):
         self._f = f
         self._dim = f.geometric_dimension()
         ufl_assert(not f.free_indices(),\
-            "Taking gradient of an expression with free indices is not supported.")
+            "Taking gradient of an expression with free indices is not supported.") # FIXME: Need this! Test if it works anyway.
 
     def reconstruct(self, op):
         "Return a new object of the same type with new operands."
@@ -283,7 +269,7 @@ class Grad(CompoundDerivative):
         return self.__class__._uflclass(op)
 
     def operands(self):
-        return (self._f, )
+        return (self._f,)
 
     def free_indices(self):
         return self._f.free_indices()
@@ -292,7 +278,10 @@ class Grad(CompoundDerivative):
         return self._f.index_dimensions()
 
     def shape(self):
-        return  self._f.shape() + (self._dim,)
+        if self._dim == 1:
+            return self._f.shape()
+        else:
+            return self._f.shape() + (self._dim,)
 
     def __str__(self):
         return "grad(%s)" % self._f
