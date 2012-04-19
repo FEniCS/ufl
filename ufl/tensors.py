@@ -163,7 +163,7 @@ class ComponentTensor(WrapperType):
         ufl_assert(isinstance(expression, Expr), "Expecting ufl expression.")
         ufl_assert(expression.shape() == (), "Expecting scalar valued expression.")
         self._expression = expression
-        
+
         ufl_assert(all(isinstance(i, Index) for i in indices),
            "Expecting sequence of Index objects, not %s." % repr(indices))
         
@@ -172,7 +172,7 @@ class ComponentTensor(WrapperType):
         if not isinstance(indices, MultiIndex): # if constructed from repr
             indices = MultiIndex(indices, subdict(dims, indices))
         self._indices = indices
-        
+
         eset = set(expression.free_indices())
         iset = set(self._indices)
         freeset = eset - iset
@@ -183,12 +183,20 @@ class ComponentTensor(WrapperType):
             error("Missing indices %s in expression %s." % (missingset, expression))
         
         self._index_dimensions = dict((i, dims[i]) for i in self._free_indices) or EmptyDict
-        
         self._shape = tuple(dims[i] for i in self._indices)
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
         return self._expression.is_cellwise_constant()
+
+    def reconstruct(self, expressions, indices):
+        # Special case for simplification as_tensor(A[ii], ii) -> A
+        if isinstance(expressions, Indexed):
+            A, ii = expressions.operands()
+            if indices == ii:
+                #print "RETURNING", A, "FROM", expressions, indices, "SELF IS", self
+                return A
+        return WrapperType.reconstruct(self, expressions, indices)
 
     def operands(self):
         return (self._expression, self._indices)
