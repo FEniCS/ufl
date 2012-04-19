@@ -269,6 +269,20 @@ class Grad(CompoundDerivative):
                         self.index_dimensions())
         return self.__class__._uflclass(op)
 
+    def evaluate(self, x, mapping, component, index_values, derivatives=()):
+        "Get child from mapping and return the component asked for."
+        r = len(component)
+        if r == 0:
+            derivatives = derivatives + (0,)
+        elif r == 1:
+            component, i = (), component[0]
+            derivatives = derivatives + (i,)
+        else:
+            component, i = component[:-1], component[-1]
+            derivatives = derivatives + (i,)
+        result = self._f.evaluate(x, mapping, component, index_values, derivatives=derivatives)
+        return result
+
     def operands(self):
         return (self._f,)
 
