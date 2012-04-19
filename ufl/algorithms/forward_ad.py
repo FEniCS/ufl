@@ -928,13 +928,12 @@ def compute_coefficient_forward_ad(expr, dim):
     e, ediff = alg.visit(f)
     return ediff
 
-def forward_ad(expr, dim):
+def forward_ad(expr, dim): # OLD VERSION
     """Assuming expr is a derivative and contains no other
     unresolved derivatives, apply forward mode AD and
     return the computed derivative."""
     if isinstance(expr, SpatialDerivative):
-        #result = compute_spatial_forward_ad(expr, dim)
-        result = compute_spatial_forward_ad2(expr, dim)
+        result = compute_spatial_forward_ad(expr, dim)
     elif isinstance(expr, VariableDerivative):
         result = compute_variable_forward_ad(expr, dim)
     elif isinstance(expr, CoefficientDerivative):
@@ -943,7 +942,7 @@ def forward_ad(expr, dim):
         error("This shouldn't happen: expr is %s" % repr(expr))
     return result
 
-def apply_nested_forward_ad(expr, dim):
+def apply_nested_forward_ad(expr, dim): # NEW VERSION
     if isinstance(expr, Terminal):
         # A terminal needs no differentiation applied
         return expr
@@ -969,7 +968,6 @@ def apply_nested_forward_ad(expr, dim):
         if isinstance(preexpr, Derivative):
             #if isinstance(expr, (SpatialDerivative,Grad)):
             if isinstance(preexpr, SpatialDerivative):
-                #result = compute_spatial_forward_ad(expr, dim)
                 result = compute_spatial_forward_ad2(expr, dim)
             elif isinstance(preexpr, VariableDerivative):
                 result = compute_variable_forward_ad(expr, dim)
