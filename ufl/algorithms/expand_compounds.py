@@ -25,7 +25,7 @@ equivalent representations using basic operators."""
 
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
-from ufl.classes import Product, Index
+from ufl.classes import Product, Index, Zero, FormArgument, Grad, SpatialDerivative
 from ufl.indexing import indices, complete_shape
 from ufl.tensors import as_tensor, as_matrix, as_vector
 from ufl.algorithms.transformer import Transformer, ReuseTransformer, apply_transformer
@@ -213,20 +213,97 @@ class CompoundExpander(ReuseTransformer):
 
 
 """
-FIXME: Make expand_compounds2 skip types that we make
+FIXME: Make expand_compounds_prediff skip types that we make
 work in expand_derivatives, one by one, and optionally
 use it instead of expand_compounds from expand_derivatives.
 """
 
-class CompoundExpander2(CompoundExpander):
+class CompoundExpanderPreDiff(CompoundExpander):
     def __init__(self, dim):
         CompoundExpander.__init__(self, dim)
 
-    inner = Transformer.reuse_if_possible 
-    dot = Transformer.reuse_if_possible
+    #inner = Transformer.reuse_if_possible 
+    #dot = Transformer.reuse_if_possible
 
+    def grad(self, o, a):
+        return self.reuse_if_possible(o, a)
 
-def expand_compounds(e, dim=None):
+    def nabla_grad(self, o, a):
+        r = o.rank()
+        ii = indices(r)
+        jj = ii[-1:] + ii[:-1]
+        return as_tensor(Grad(a)[ii], jj)
+
+    def div(self, o, a):
+        i = Index()
+        return Grad(a)[...,i,i]
+
+    def nabla_div(self, o, a):
+        i = Index()
+        return Grad(a)[i,...,i]
+
+    def curl(self, o, a):
+        # o = curl a = "[a.dx(1), -a.dx(0)]"            if a.shape() == ()
+        # o = curl a = "cross(nabla, (a0, a1, 0))[2]" if a.shape() == (2,)
+        # o = curl a = "cross(nabla, a)"              if a.shape() == (3,)
+        Da = Grad(a)
+        def c(i, j):
+            #return a[j].dx(i) - a[i].dx(j)
+            return Da[j,i] - Da[i,j]
+        sh = a.shape()
+        if sh == ():
+            #return as_vector((a.dx(1), -a.dx(0)))
+            return as_vector((Da[1], -Da[0]))
+        if sh == (2,):
+            return c(0,1)
+        if sh == (3,):
+            return as_vector((c(1,2), c(2,0), c(0,1)))
+        error("Invalid shape %s of curl argument." % (sh,))
+
+    def spatial_derivative(self, o, a, i):
+        Da = Grad(a)
+        if Da.rank() == 0:
+            return Da
+        else:
+            return Da[...,i]
+
+class CompoundExpanderPostDiff(CompoundExpander):
+    def __init__(self, dim):
+        CompoundExpander.__init__(self, dim)
+
+    def grad(self, o, a):
+        r = o.rank()
+        if r == 0:
+            return SpatialDerivative(a, 0)
+        elif r == 1:
+            i = Index()
+            ii = (i,)
+            da = SpatialDerivative(a, i)
+        else:
+            ii = indices(r)
+            try:
+                jj, i = ii[:-1], ii[-1]
+            except:
+                print 'XXX ', r, len(ii), str(ii)
+            da = SpatialDerivative(a[jj], i)
+        return as_tensor(da, ii)
+
+    def nabla_grad(self, o, a, i):
+        error("This should not happen.")
+
+    def div(self, o, a, i):
+        error("This should not happen.")
+
+    def nabla_div(self, o, a, i):
+        error("This should not happen.")
+
+    def curl(self, o, a, i):
+        error("This should not happen.")
+
+    def spatial_derivative(self, o, a, i):
+        error("This should not happen.")
+
+def expand_compounds1(e, dim=None):
     """Expand compound objects into basic operators.
     Requires e to have a well defined domain,
     for the geometric dimension to be defined."""
@@ -246,4 +323,28 @@ def expand_compounds2(e, dim=None):
         if cell is not None:
             ufl_assert(not cell.is_undefined(), "Cannot infer dimension from undefined cell.")
             dim = cell.geometric_dimension()
-    return apply_transformer(e, CompoundExpander2(dim))
+    return expand_compounds_postdiff(expand_compounds_prediff(e, dim), dim)
+
+def expand_compounds_prediff(e, dim=None):
+    """Expand compound objects into basic operators.
+    Requires e to have a well defined domain,
+    for the geometric dimension to be defined."""
+    if dim is None:
+        cell = e.cell()
+        if cell is not None:
+            ufl_assert(not cell.is_undefined(), "Cannot infer dimension from undefined cell.")
+            dim = cell.geometric_dimension()
+    return apply_transformer(e, CompoundExpanderPreDiff(dim))
+
+def expand_compounds_postdiff(e, dim=None):
+    """Expand compound objects into basic operators.
+    Requires e to have a well defined domain,
+    for the geometric dimension to be defined."""
+    if dim is None:
+        cell = e.cell()
+        if cell is not None:
+            ufl_assert(not cell.is_undefined(), "Cannot infer dimension from undefined cell.")
+            dim = cell.geometric_dimension()
+    return apply_transformer(e, CompoundExpanderPostDiff(dim))
+
+expand_compounds = expand_compounds1

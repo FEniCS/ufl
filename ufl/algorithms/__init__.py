@@ -57,7 +57,8 @@ from ufl.algorithms.transformer import Transformer, is_post_handler, \
                                        VariableStripper, strip_variables
 from ufl.algorithms.replace import Replacer, replace
 from ufl.algorithms.expand_compounds import CompoundExpander, expand_compounds, \
-                                            CompoundExpander2, expand_compounds2
+                                            CompoundExpanderPreDiff, expand_compounds_prediff, \
+                                            CompoundExpanderPostDiff, expand_compounds_postdiff
 from ufl.algorithms.estimate_degrees import MaxDegreeEstimator, estimate_max_polynomial_degree, \
                                             SumDegreeEstimator, estimate_total_polynomial_degree
 from ufl.algorithms.argument_dependencies import ArgumentDependencyExtracter, extract_argument_dependencies, NotMultiLinearException

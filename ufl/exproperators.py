@@ -32,7 +32,7 @@ from ufl.operatorbase import Operator
 from ufl.constantvalue import Zero, as_ufl, python_scalar_types
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import Transposed
-from ufl.indexing import Index, FixedIndex, IndexBase, indices
+from ufl.indexing import MultiIndex, Index, FixedIndex, IndexBase, indices
 from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
 from ufl.indexutils import repeated_indices, single_indices
@@ -349,13 +349,13 @@ def analyse_key(ii, rank):
     - Ellipsis (...) => Replaced by multiple new indices
     """
     # Wrap in tuple
-    if not isinstance(ii, tuple):
+    if not isinstance(ii, (tuple, MultiIndex)):
         ii = (ii,)
     else:
         # Flatten nested tuples, happens with f[...,ii] where ii is a tuple of indices
         jj = []
         for j in ii:
-            if isinstance(j, tuple):
+            if isinstance(j, (tuple, MultiIndex)):
                 jj.extend(j)
             else:
                 jj.append(j)
@@ -469,7 +469,11 @@ def _dx2(self, *ii):
     "Return the partial derivative with respect to spatial variable number i."
     d = self
     for i in range(len(ii)):
-        d = Grad(d)
+        try:
+            Dd = Grad(d)
+            d = Dd
+        except:
+            print "XXX1", self
     s = d.rank() - self.rank()
     if s == 0:
         return d
