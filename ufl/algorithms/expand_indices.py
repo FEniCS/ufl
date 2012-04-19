@@ -34,7 +34,7 @@ from ufl.tensors import as_tensor, ComponentTensor
 from ufl.permutation import compute_indices
 from ufl.constantvalue import Zero
 from ufl.indexing import Index, FixedIndex, MultiIndex
-from ufl.differentiation import SpatialDerivative
+from ufl.differentiation import SpatialDerivative, Grad
 from ufl.algorithms.graph import Graph
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer, transform_integrands
 from ufl.algorithms.analysis import has_type
@@ -191,6 +191,25 @@ class IndexExpander(ReuseTransformer):
         r = self.visit(op)
         self._components.pop()
         return r
+
+    def grad(self, x):
+        f, = x.operands()
+        if not isinstance(f, (Terminal, Grad)):
+            print '\n'
+            print ':'*60
+            print x
+            print f
+            print ':'*60
+            print '\n'
+        ufl_assert(isinstance(f, (Terminal, Grad)),
+                   "Expecting expand_derivatives to have been applied.")
+        # No need to visit child as long as it is on the form [Grad]([Grad](terminal))
+        sh = x.shape()
+        if sh:
+            c = self.component()
+            ufl_assert(len(sh) == len(c), "Component size mismatch.")
+            return x[c]
+        return x
 
     def spatial_derivative(self, x):
         f, ii = x.operands()
