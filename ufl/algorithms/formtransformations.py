@@ -58,6 +58,7 @@ class PartExtracter(Transformer):
         """The default is a nonlinear operator not accepting any
         Arguments among its children."""
 
+        # FIXME: This check makes this an O(n^2) algorithm...
         if any(isinstance(t, Argument) for t in traverse_terminals(x)):
             error("Found Argument in %s, this is an invalid expression." % repr(x))
         return (x, set())
@@ -167,7 +168,6 @@ class PartExtracter(Transformer):
 
         return (x, most_provided)
 
-
     def product(self, x, *ops):
         """ Note: Product is a visit-children-first handler. ops are
         the visited factors."""
@@ -243,6 +243,9 @@ class PartExtracter(Transformer):
     # Positive and negative restrictions behave as linear operators
     positive_restricted = linear_operator
     negative_restricted = linear_operator
+
+    # Grad is a linear operator
+    grad = linear_operator
 
     def linear_indexed_type(self, x):
         """Return parts of expression belonging to this indexed
