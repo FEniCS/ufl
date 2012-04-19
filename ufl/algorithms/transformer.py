@@ -118,10 +118,14 @@ class Transformer(object):
 
     def reuse_if_possible(self, o, *operands):
         "Reuse Expr if possible, otherwise reconstruct from given operands."
+
+        # FIXME: Use hashes of operands instead for a faster probability based version?
+
         #if all(a is b for (a, b) in izip(operands, o.operands())):
         ufl_assert(len(operands) == len(o.operands()), "Expecting number of operands to match")
         if operands == o.operands():
             return o
+
         #return o.reconstruct(*operands)
         # Debugging version:
         try:
