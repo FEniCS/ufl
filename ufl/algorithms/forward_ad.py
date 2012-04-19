@@ -37,7 +37,7 @@ from ufl.operatorbase import Tuple
 from ufl.constantvalue import ConstantValue, Zero, IntValue, Identity,\
     is_true_ufl_scalar, is_ufl_scalar
 from ufl.variable import Variable
-from ufl.coefficient import ConstantBase
+from ufl.coefficient import ConstantBase, Coefficient, FormArgument
 from ufl.indexing import MultiIndex, Index, indices
 from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
@@ -621,6 +621,67 @@ class SpatialAD(ForwardAD):
         oprime = SpatialDerivative(o, self._index)
         return (o, oprime)
 
+class SpatialAD2(ForwardAD):
+    def __init__(self, spatial_dim, index, cache=None):
+        index, = index
+        if isinstance(index, Index):
+            vfi = (index,)
+            vid = { index: spatial_dim }
+        else:
+            vfi = ()
+            vid = {}
+        ForwardAD.__init__(self, spatial_dim, var_shape=(), var_free_indices=vfi,
+                           var_index_dimensions=vid, cache=cache)
+        self._index = index
+
+    def spatial_coordinate(self, o):
+        # Need to define dx_i/dx_j = delta_ij?
+        if o.shape() == ():
+            return (o, IntValue(1))
+        else:
+            I = Identity(self._spatial_dim)
+            oprime = I[:, self._index]
+            return (o, oprime)
+
+    # This is implicit for all terminals, but just to make this clear to the reader:
+    facet_normal = ForwardAD.terminal # returns zero
+    constant = ForwardAD.terminal # returns zero
+
+    def form_argument(self, o):
+        # Using this index in here may collide with the
+        # same index on the outside! (There's a check for
+        # this situation in index_sum above.)
+        #oprime = o.dx(self._index) # Not using this syntax because it would create a new IndexSum
+        if o.is_cellwise_constant():
+            return self.terminal(o)
+
+        Do = Grad(o)
+        r = Do.rank()
+        if r == 0:
+            ufl_assert(self._index == 0, "Expecting d/dx0 only in scalar case.")
+            oprime = Do
+        else:
+            oprime = Do[...,self._index]
+
+        return (o, oprime)
+
+    def grad(self, o):
+        # Grad has already been propagated to a FormArgument or another Grad,
+        # so we just put another Grad around o to represent the higher order grad.
+        # TODO: Maybe we can ask "f.has_derivatives_of_order(n)" to check if we should make a zero here?
+        f, = o.operands()
+        ufl_assert(isinstance(f, (Grad,FormArgument)), "Expecting this to be a grad or form argument.")
+
+        Do = Grad(o)
+        r = Do.rank()
+        if r == 0:
+            ufl_assert(self._index == 0, "Expecting d/dx0 only in scalar case.")
+            oprime = Do
+        else:
+            oprime = Do[...,self._index]
+
+        return (o, oprime)
+
 class GradAD(ForwardAD):
     def __init__(self, spatial_dim, cache=None):
         ForwardAD.__init__(self, spatial_dim,
@@ -650,6 +711,7 @@ class GradAD(ForwardAD):
         # Not sure how to detect that gradient of f is cellwise constant. Can we trust element degrees?
         #if o.is_cellwise_constant():
         #    return self.terminal(o)
+        ufl_assert(isinstance(f, (Grad,Terminal)), "Expecting derivatives of child to be already expanded.")
         return (o, Grad(o))
 
 class VariableAD(ForwardAD):
@@ -659,6 +721,12 @@ class VariableAD(ForwardAD):
                            var_index_dimensions=var.index_dimensions(),
                            cache=cache)
         self._variable = var
+
+    def grad(self, o):
+        # If we hit this type, it has already been propagated
+        # to a coefficient, so it cannot depend on the variable.
+        # FIXME: Assert this!
+        return self.terminal(o)
 
     def variable(self, o):
         # Check cache
@@ -743,6 +811,74 @@ class CoefficientAD(ForwardAD):
 
         return (o, oprimesum)
 
+    def grad(self, g): # FIXME: Fix implementation below, check error("FIXME...")
+        # If we hit this type, it has already been propagated
+        # to a coefficient (or grad of a coefficient), so we
+        # need to take the gradient of the variation or return zero.
+        # FIXME: Assert this!
+        # Complications occur when dealing with derivatives w.r.t. single components...
+
+        # Figure out how many gradients are around the inner terminal
+        ngrads = 0
+        o = g
+        while isinstance(o, Grad):
+            o, = o.operands()
+            ngrads += 1
+        if not isinstance(o, FormArgument):
+            error("Expecting gradient of a FormArgument, not %r" % (o,))
+        def apply_grads(f):
+            if not isinstance(f, FormArgument):
+                print ','*60
+                print f
+                print o
+                print g
+                print ','*60
+                error("What?")
+            for i in range(ngrads):
+                f = Grad(f)
+            return f
+
+        # Find o among w
+        for (w, v) in izip(self._w, self._v):
+            if o == w:
+                return (g, apply_grads(v))
+
+        # FIXME: Apply gradients to everything below:
+
+        # If o is not among coefficient derivatives, return do/dw=0
+        gprimesum = Zero(g.shape())
+
+        oprimes = self._cd._data.get(o)
+        if oprimes is None:
+            if self._cd._data:
+                # TODO: Make it possible to silence this message in particular?
+                #       It may be good to have for debugging...
+                warning("Assuming d{%s}/d{%s} = 0." % (o, self._w))
+        else:
+            # Make sure we have a tuple to match the self._v tuple
+            if not isinstance(oprimes, tuple):
+                oprimes = (oprimes,)
+                ufl_assert(len(oprimes) == len(self._v), "Got a tuple of arguments, "+\
+                               "expecting a matching tuple of coefficient derivatives.")
+
+            # Compute dg/dw_j = dg/dw_h : v.
+            # Since we may actually have a tuple of oprimes and vs in a
+            # 'mixed' space, sum over them all to get the complete inner
+            # product. Using indices to define a non-compound inner product.
+            for (oprime, v) in izip(oprimes, self._v):
+                error("FIXME: Figure out how to do this with ngrads")
+                so, oi = as_scalar(oprime)
+                rv = len(v.shape())
+                oi1 = oi[:-rv]
+                oi2 = oi[-rv:]
+                prod = so*v[oi2]
+                if oi1:
+                    gprimesum += as_tensor(prod, oi1)
+                else:
+                    gprimesum += prod
+
+        return (g, gprimesum)
+
     def variable(self, o):
         # Check variable cache to reuse previously transformed variable if possible
         e, l = o.operands()
@@ -774,6 +910,12 @@ def compute_spatial_forward_ad(expr, dim):
     e, ediff = alg.visit(f)
     return ediff
 
+def compute_spatial_forward_ad2(expr, dim):
+    f, v = expr.operands()
+    alg = SpatialAD2(dim, v)
+    e, ediff = alg.visit(f)
+    return ediff
+
 def compute_variable_forward_ad(expr, dim):
     f, v = expr.operands()
     alg = VariableAD(dim, v)
@@ -791,7 +933,8 @@ def forward_ad(expr, dim):
     unresolved derivatives, apply forward mode AD and
     return the computed derivative."""
     if isinstance(expr, SpatialDerivative):
-        result = compute_spatial_forward_ad(expr, dim)
+        #result = compute_spatial_forward_ad(expr, dim)
+        result = compute_spatial_forward_ad2(expr, dim)
     elif isinstance(expr, VariableDerivative):
         result = compute_variable_forward_ad(expr, dim)
     elif isinstance(expr, CoefficientDerivative):
@@ -800,6 +943,42 @@ def forward_ad(expr, dim):
         error("This shouldn't happen: expr is %s" % repr(expr))
     return result
 
+def apply_nested_forward_ad(expr, dim):
+    if isinstance(expr, Terminal):
+        # A terminal needs no differentiation applied
+        return expr
+    else:
+        # Store the original expression here, because
+        # reconstruct below may simplify and make expr
+        # get the type of a child, which may be a derivative,
+        # even if preexpr here is not a derivative.
+        preexpr = expr
+
+        # Apply AD recursively to children
+        preops = expr.operands()
+        postops = tuple(apply_nested_forward_ad(o, dim) for o in preops)
+
+        need_reconstruct = not (preops == postops)
+        if need_reconstruct:
+            expr = expr.reconstruct(*postops)
+
+        # Preliminary result
+        result = expr
+
+        # Check if this node is a derivative, if so apply AD to it
+        if isinstance(preexpr, Derivative):
+            #if isinstance(expr, (SpatialDerivative,Grad)):
+            if isinstance(preexpr, SpatialDerivative):
+                #result = compute_spatial_forward_ad(expr, dim)
+                result = compute_spatial_forward_ad2(expr, dim)
+            elif isinstance(preexpr, VariableDerivative):
+                result = compute_variable_forward_ad(expr, dim)
+            elif isinstance(preexpr, CoefficientDerivative):
+                result = compute_coefficient_forward_ad(expr, dim)
+            else:
+                error("This shouldn't happen: expr is %s" % repr(expr))
+        # Return the expanded result
+        return result
 
 # TODO: We could expand only the compound objects that have no rule
 #       before differentiating, to allow the AD to work on a coarser graph

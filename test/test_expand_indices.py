@@ -104,15 +104,20 @@ class ExpandIndicesTestCase(UflTestCase):
         self.mapping = { self.sf: SF, self.sf2: SF2, self.vf: VF, self.tf: TF }
         
     def compare(self, f, value):
+        debug = 0
+        if debug: print 'f', f
         g = expand_derivatives(f)
+        if debug: print 'g', g
         gv = g(self.x, self.mapping)
         self.assertAlmostEqual(gv, value)
 
         g = expand_indices(g)
+        if debug: print 'g', g
         gv = g(self.x, self.mapping)
         self.assertAlmostEqual(gv, value)
 
         g = renumber_indices(g)
+        if debug: print 'g', g
         gv = g(self.x, self.mapping)
         self.assertAlmostEqual(gv, value)
 

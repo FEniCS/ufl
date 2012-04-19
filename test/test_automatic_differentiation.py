@@ -194,15 +194,15 @@ class ForwardADTestCase(UflTestCase):
         self.assertEqual(value.index_dimensions(), expected.index_dimensions())
 
     def ad_algorithm(self, expr):
-        #alt = 1
-        alt = 5
+        alt = 1
+        #alt = 4
         if alt == 0:
-            return expand_derivatives2(expr)
+            return expand_derivatives(expr)
         elif alt == 1:
             return expand_derivatives(expr,
                 apply_expand_compounds_before=True,
                 apply_expand_compounds_after=False,
-                use_alternative_wrapper_algorithm=False)
+                use_alternative_wrapper_algorithm=True)
         elif alt == 2:
             return expand_derivatives(expr,
                 apply_expand_compounds_before=False,
@@ -437,6 +437,55 @@ class ForwardADTestCase(UflTestCase):
                     self.assertNotEqual(after, expected_shape)
                 else:
                     self.assertEqual(after, expected_shape)
+
+    def test_grad_coeff(self):
+        for d in (1,2,3):
+            collection = self.expr[d]
+            
+            u = collection.shared_objects.u
+            v = collection.shared_objects.v
+            w = collection.shared_objects.w
+            for f in (u,v,w):
+                before = grad(f)
+                after = self.ad_algorithm(before)
+                self.assertEqualTotalShape(before, after)
+                if f is u: # Differing by being wrapped in indexing types
+                    self.assertEqual(before, after)
+
+                before = grad(grad(f))
+                after = self.ad_algorithm(before)
+                self.assertEqualTotalShape(before, after)
+                #self.assertEqual(before, after) # Differing by being wrapped in indexing types
+    
+                before = grad(grad(grad(f)))
+                after = self.ad_algorithm(before)
+                self.assertEqualTotalShape(before, after)
+                #self.assertEqual(before, after) # Differing by being wrapped in indexing types
+
+    def test_derivative_grad_coeff(self):
+        for d in (1,2,3):
+            collection = self.expr[d]
+            u = collection.shared_objects.u
+            v = collection.shared_objects.v
+            w = collection.shared_objects.w
+            for f in (u,v,w):
+                before = derivative(grad(f),f)
+                after = self.ad_algorithm(before)
+                self.assertEqualTotalShape(before, after)
+                #self.assertEqual(after, expected)
+
+                before = derivative(grad(grad(f)),f)
+                after = self.ad_algorithm(before)
+                self.assertEqualTotalShape(before, after)
+                #self.assertEqual(after, expected)
+
+                before = derivative(grad(grad(grad(f))),f)
+                after = self.ad_algorithm(before)
+                self.assertEqualTotalShape(before, after)
+                #self.assertEqual(after, expected)
+                print
+                print 'B', f, "::", before
+                print 'A', f, "::", after
 
 # Don't touch these lines, they allow you to run this file directly
 if __name__ == "__main__":
