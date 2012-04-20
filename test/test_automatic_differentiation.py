@@ -9,16 +9,19 @@ Other tests check for mathematical correctness of diff and derivative.
 # These are thin wrappers on top of unittest.TestCase and unittest.main
 from ufltestcase import UflTestCase, main
 
+from itertools import chain
+
+import ufl
+
 # This imports everything external code will see from ufl
 from ufl import *
 
-from ufl.classes import Grad
-#from ufl.algorithms import expand_derivatives2
+import ufl.algorithms
+from ufl.common import fast_post_traversal2
+from ufl.conditional import Conditional
+from ufl.algorithms.ad import expand_derivatives2
 from ufl.algorithms import expand_derivatives
 from ufl.algorithms.traversal import traverse_terminals2
-from ufl.common import fast_post_traversal, fast_post_traversal2
-from ufl.conditional import Conditional
-from itertools import chain
 
 class ExpressionCollection(object):
     def __init__(self, cell):
@@ -194,8 +197,9 @@ class ForwardADTestCase(UflTestCase):
         self.assertEqual(value.index_dimensions(), expected.index_dimensions())
 
     def ad_algorithm(self, expr):
-        alt = 1
+        #alt = 1
         #alt = 4
+        alt = 6
         if alt == 0:
             return expand_derivatives(expr)
         elif alt == 1:
@@ -223,6 +227,8 @@ class ForwardADTestCase(UflTestCase):
                 apply_expand_compounds_before=False,
                 apply_expand_compounds_after=False,
                 use_alternative_wrapper_algorithm=False)
+        elif alt == 6:
+            return expand_derivatives2(expr)
 
     def _test_no_derivatives_no_change(self, collection):
         for expr in collection:
@@ -450,8 +456,9 @@ class ForwardADTestCase(UflTestCase):
                 after = self.ad_algorithm(before)
                 self.assertEqualTotalShape(before, after)
                 # This check will only work with new differentiation algorithm:
-                #if f is u: # Differing by being wrapped in indexing types
-                #    self.assertEqual(before, after)
+                if ufl.algorithms.ad.expand_derivatives is ufl.algorithms.ad.expand_derivatives2:
+                    if f is u: # Differing by being wrapped in indexing types
+                        self.assertEqual(before, after)
 
                 before = grad(grad(f))
                 after = self.ad_algorithm(before)
@@ -481,6 +488,38 @@ class ForwardADTestCase(UflTestCase):
                 #self.assertEqual(after, expected)
 
                 before = derivative(grad(grad(grad(f))),f)
+                after = self.ad_algorithm(before)
+                self.assertEqualTotalShape(before, after)
+                #self.assertEqual(after, expected)
+                if 0:
+                    print
+                    print 'B', f, "::", before
+                    print 'A', f, "::", after
+
+    def xtest_derivative_grad_coeff_with_variation_components(self):
+        for d in (1,2,3):
+            collection = self.expr[d]
+            v = collection.shared_objects.v
+            w = collection.shared_objects.w
+            dv = collection.shared_objects.dv
+            dw = collection.shared_objects.dw
+            for g,dg in ((v,dv),(w,dw)):
+                # Pick a single component
+                ii = (0,)*(g.rank())
+                f = g[ii]
+                df = dg[ii]
+
+                before = derivative(grad(g),f,df)
+                after = self.ad_algorithm(before)
+                self.assertEqualTotalShape(before, after)
+                #self.assertEqual(after, expected)
+
+                before = derivative(grad(grad(g)),f,df)
+                after = self.ad_algorithm(before)
+                self.assertEqualTotalShape(before, after)
+                #self.assertEqual(after, expected)
+
+                before = derivative(grad(grad(grad(g))),f,df)
                 after = self.ad_algorithm(before)
                 self.assertEqualTotalShape(before, after)
                 #self.assertEqual(after, expected)

@@ -724,8 +724,7 @@ class VariableAD(ForwardAD):
 
     def grad(self, o):
         # If we hit this type, it has already been propagated
-        # to a coefficient, so it cannot depend on the variable.
-        # FIXME: Assert this!
+        # to a coefficient, so it cannot depend on the variable. # FIXME: Assert this!
         return self.terminal(o)
 
     def variable(self, o):
@@ -813,9 +812,8 @@ class CoefficientAD(ForwardAD):
 
     def grad(self, g): # FIXME: Fix implementation below, check error("FIXME...")
         # If we hit this type, it has already been propagated
-        # to a coefficient (or grad of a coefficient), so we
-        # need to take the gradient of the variation or return zero.
-        # FIXME: Assert this!
+        # to a coefficient (or grad of a coefficient), # FIXME: Assert this!
+        # so we need to take the gradient of the variation or return zero.
         # Complications occur when dealing with derivatives w.r.t. single components...
 
         # Figure out how many gradients are around the inner terminal
@@ -826,6 +824,7 @@ class CoefficientAD(ForwardAD):
             ngrads += 1
         if not isinstance(o, FormArgument):
             error("Expecting gradient of a FormArgument, not %r" % (o,))
+
         def apply_grads(f):
             if not isinstance(f, FormArgument):
                 print ','*60
@@ -838,7 +837,7 @@ class CoefficientAD(ForwardAD):
                 f = Grad(f)
             return f
 
-        # Find o among w
+        # Find o among all w without any indexing, which makes this easy
         for (w, v) in izip(self._w, self._v):
             if o == w:
                 return (g, apply_grads(v))
