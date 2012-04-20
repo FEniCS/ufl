@@ -21,7 +21,7 @@
 # Define vectorized skew operator
 def skw(tau):
     sk = 2*skew(tau)
-    return as_vector((sk[0][1], sk[0][2], sk[1][2]))
+    return as_vector((sk[0,1], sk[0,2], sk[1,2]))
 
 cell = tetrahedron
 n = 3

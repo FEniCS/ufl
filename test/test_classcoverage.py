@@ -525,8 +525,8 @@ class ClasscoverageTest(UflTestCase):
         #e = action(b)
 
         # --- Check which classes have been created
-        if ufl.expr._class_usage_statistics:
-            s = ufl.expr._class_usage_statistics
+        if Expr._class_usage_statistics:
+            s = Expr._class_usage_statistics
             constructed = set(s.keys())
             abstract = set((Expr, Terminal, Operator, FormArgument, ConstantBase, AlgebraOperator,
                             Condition, BinaryCondition, MathFunction, BesselFunction, Restricted, ScalarValue,

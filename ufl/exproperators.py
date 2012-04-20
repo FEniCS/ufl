@@ -402,8 +402,11 @@ def analyse_key(ii, rank):
     # Handle ellipsis as a number of complete slices,
     # that is create a number of new axis indices
     num_axis = rank - len(pre) - len(post)
-    ellipsis_indices = indices(num_axis)
-    axis_indices.update(ellipsis_indices)
+    if indexlist is post:
+        ellipsis_indices = indices(num_axis)
+        axis_indices.update(ellipsis_indices)
+    else:
+        ellipsis_indices = ()
 
     # Construct final tuples to return
     all_indices = tuple(chain(pre, ellipsis_indices, post))
