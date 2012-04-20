@@ -164,4 +164,4 @@ def expand_derivatives2(form, dim=None,
     return transform_integrands(form, _expand_derivatives)
 
 
-expand_derivatives = expand_derivatives1
+expand_derivatives = expand_derivatives2

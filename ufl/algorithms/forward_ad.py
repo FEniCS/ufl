@@ -56,6 +56,23 @@ from ufl.operators import dot, inner, outer, lt, eq, conditional, sign, \
     erf, bessel_J, bessel_Y, bessel_I, bessel_K
 from ufl.algorithms.transformer import Transformer
 
+def unit_indexed_tensor(shape, component): # TODO: Move this into tensors.py?
+    r = len(shape)
+    if r == 0:
+        return 0, ()
+    jj = indices(r)
+    es = []
+    for i in xrange(r):
+        s = shape[i]
+        c = component[i]
+        j = jj[i]
+        e = Identity(s)[c,j]
+        es.append(e)
+    E = es[0]
+    for e in es[1:]:
+        E = outer(E, e)
+    return E, jj
+
 class ForwardAD(Transformer):
     def __init__(self, spatial_dim, var_shape, var_free_indices, var_index_dimensions, cache=None):
         Transformer.__init__(self)
@@ -810,7 +827,7 @@ class CoefficientAD(ForwardAD):
 
         return (o, oprimesum)
 
-    def grad(self, g): # FIXME: Fix implementation below, check error("FIXME...")
+    def grad(self, g):
         # If we hit this type, it has already been propagated
         # to a coefficient (or grad of a coefficient), # FIXME: Assert this!
         # so we need to take the gradient of the variation or return zero.
@@ -839,42 +856,92 @@ class CoefficientAD(ForwardAD):
 
         # Find o among all w without any indexing, which makes this easy
         for (w, v) in izip(self._w, self._v):
-            if o == w:
+            if o == w and isinstance(v, FormArgument):
+                # Case: d/dt [w + t v]
                 return (g, apply_grads(v))
-
-        # FIXME: Apply gradients to everything below:
 
         # If o is not among coefficient derivatives, return do/dw=0
         gprimesum = Zero(g.shape())
 
-        oprimes = self._cd._data.get(o)
-        if oprimes is None:
-            if self._cd._data:
-                # TODO: Make it possible to silence this message in particular?
-                #       It may be good to have for debugging...
-                warning("Assuming d{%s}/d{%s} = 0." % (o, self._w))
-        else:
-            # Make sure we have a tuple to match the self._v tuple
-            if not isinstance(oprimes, tuple):
-                oprimes = (oprimes,)
-                ufl_assert(len(oprimes) == len(self._v), "Got a tuple of arguments, "+\
-                               "expecting a matching tuple of coefficient derivatives.")
-
-            # Compute dg/dw_j = dg/dw_h : v.
-            # Since we may actually have a tuple of oprimes and vs in a
-            # 'mixed' space, sum over them all to get the complete inner
-            # product. Using indices to define a non-compound inner product.
-            for (oprime, v) in izip(oprimes, self._v):
-                error("FIXME: Figure out how to do this with ngrads")
-                so, oi = as_scalar(oprime)
-                rv = len(v.shape())
-                oi1 = oi[:-rv]
-                oi2 = oi[-rv:]
-                prod = so*v[oi2]
-                if oi1:
-                    gprimesum += as_tensor(prod, oi1)
+        # Accumulate contributions from variations in different components
+        for (w, v) in izip(self._w, self._v):
+            # Analyse differentiation variable coefficient
+            if isinstance(w, FormArgument):
+                if not w == o: continue
+                if isinstance(v, FormArgument):
+                    # Case: d/dt [w + t v]
+                    return (g, apply_grads(v))
                 else:
-                    gprimesum += prod
+                    # Case: d/dt [w + t v[...]]
+                    ufl_assert(w.shape() == (), "Expecting scalar coefficient in this branch.") 
+                    wval, wcomp = w, ()
+                    Ejj, jj = 1, ()
+            elif isinstance(w, Indexed):
+                # Case: d/dt [w[...] + t v[...]]
+                # Case: d/dt [w[...] + t v]
+                wval, wcomp = w.operands()
+                if not wval == o: continue
+                assert isinstance(wval, FormArgument)
+                Ejj, jj = unit_indexed_tensor(wval.shape(), wcomp)
+            else:
+                error("Expecting coefficient or component of coefficient.")
+            ufl_assert(all(isinstance(k, FixedIndex) for k in wcomp),
+                       "Expecting only fixed indices in differentiation variable.")
+
+            # Analyse variation argument
+            if isinstance(v, FormArgument):
+                # Case: d/dt [w[...] + t v]
+                vval, vcomp = v, ()
+            elif isinstance(v, Indexed):
+                # Case: d/dt [w + t v[...]]
+                # Case: d/dt [w[...] + t v[...]]
+                vval, vcomp = v.operands()
+                vcomp = tuple(vcomp)
+            else:
+                error("Expecting argument or component of argument.")
+            ufl_assert(all(isinstance(k, FixedIndex) for k in vcomp),
+                       "Expecting only fixed indices in variation.")
+
+            # Apply gradients directly to argument vval,
+            # and get the right indexed scalar component(s)
+            kk = indices(ngrads)
+            Dvkk = apply_grads(vval)[vcomp+kk]
+
+            # Accumulate scalar component(s) Dvkk into the right positions in final result
+            gprimeterm = as_tensor(Ejj*Dvkk, jj+kk)
+            gprimesum = gprimesum + gprimeterm
+
+        # FIXME: Handle other coefficient derivatives: oprimes = self._cd._data.get(o)
+
+        if 0:
+            oprimes = self._cd._data.get(o)
+            if oprimes is None:
+                if self._cd._data:
+                    # TODO: Make it possible to silence this message in particular?
+                    #       It may be good to have for debugging...
+                    warning("Assuming d{%s}/d{%s} = 0." % (o, self._w))
+            else:
+                # Make sure we have a tuple to match the self._v tuple
+                if not isinstance(oprimes, tuple):
+                    oprimes = (oprimes,)
+                    ufl_assert(len(oprimes) == len(self._v), "Got a tuple of arguments, "+\
+                                   "expecting a matching tuple of coefficient derivatives.")
+    
+                # Compute dg/dw_j = dg/dw_h : v.
+                # Since we may actually have a tuple of oprimes and vs in a
+                # 'mixed' space, sum over them all to get the complete inner
+                # product. Using indices to define a non-compound inner product.
+                for (oprime, v) in izip(oprimes, self._v):
+                    error("FIXME: Figure out how to do this with ngrads")
+                    so, oi = as_scalar(oprime)
+                    rv = len(v.shape())
+                    oi1 = oi[:-rv]
+                    oi2 = oi[-rv:]
+                    prod = so*v[oi2]
+                    if oi1:
+                        gprimesum += as_tensor(prod, oi1)
+                    else:
+                        gprimesum += prod
 
         return (g, gprimesum)
 

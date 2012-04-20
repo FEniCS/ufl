@@ -20,7 +20,7 @@ from ufl.tensors import as_scalar, unit_list
 from ufl.classes import Grad, FormArgument, Zero, Indexed, FixedIndex
 #from ufl.algorithms import ...
 
-def unit_indexed_tensor(shape, component):
+def unit_indexed_tensor(shape, component): # TODO: Move this into tensors.py?
     r = len(shape)
     if r == 0:
         return 0, ()
@@ -46,7 +46,7 @@ class MockForwardAD:
                 self._data = {}
         self._cd = Obj()
 
-    def grad(self, g): # FIXME: Fix implementation below, check error("FIXME...")
+    def grad(self, g):
         # If we hit this type, it has already been propagated
         # to a coefficient (or grad of a coefficient), # FIXME: Assert this!
         # so we need to take the gradient of the variation or return zero.
@@ -76,55 +76,56 @@ class MockForwardAD:
         # Find o among all w without any indexing, which makes this easy
         for (w, v) in izip(self._w, self._v):
             if o == w and isinstance(v, FormArgument):
+                # Case: d/dt [w + t v]
                 return (g, apply_grads(v))
-
-        # FIXME: Apply gradients to everything below:
 
         # If o is not among coefficient derivatives, return do/dw=0
         gprimesum = Zero(g.shape())
 
+        # Accumulate contributions from variations in different components
         for (w, v) in izip(self._w, self._v):
+            # Analyse differentiation variable coefficient
             if w == o:
-                if isinstance(v, FormArgument):
-                    return (g, apply_grads(v))
-                else:
-                    wval = w
-                    wcomp = None
+                # Case: d/dt [w + t v[...]]
+                ufl_assert(w.shape() == (), "Expecting scalar coefficient in this branch.") 
+                wval, wcomp = w, ()
+                Ejj, jj = 1, ()
             elif isinstance(w, Indexed):
+                # Case: d/dt [w[...] + t v[...]]
+                # Case: d/dt [w[...] + t v]
                 wval, wcomp = w.operands()
-                if not wval == o:
-                    continue
+                if not wval == o: continue
                 assert isinstance(wval, FormArgument)
+                Ejj, jj = unit_indexed_tensor(wval.shape(), wcomp)
             else:
-                FIXME
-
+                error("Expecting coefficient or component of coefficient.")
             ufl_assert(all(isinstance(k, FixedIndex) for k in wcomp),
                        "Expecting only fixed indices in differentiation variable.")
 
-            wshape = wval.shape()
-            if wcomp:
-                Ejj, jj = unit_indexed_tensor(wshape, wcomp)
-            else:
-                FIXME
-                Ejj, jj = 1, ()
-
+            # Analyse variation argument
             if isinstance(v, FormArgument):
+                # Case: d/dt [w[...] + t v]
                 vval, vcomp = v, ()
             elif isinstance(v, Indexed):
+                # Case: d/dt [w + t v[...]]
+                # Case: d/dt [w[...] + t v[...]]
                 vval, vcomp = v.operands()
                 vcomp = tuple(vcomp)
             else:
-                FIXME
-
+                error("Expecting argument or component of argument.")
             ufl_assert(all(isinstance(k, FixedIndex) for k in vcomp),
                        "Expecting only fixed indices in variation.")
 
+            # Apply gradients directly to argument vval,
+            # and get the right indexed scalar component(s)
             kk = indices(ngrads)
             Dvkk = apply_grads(vval)[vcomp+kk]
 
+            # Accumulate scalar component(s) Dvkk into the right positions in final result
             gprimeterm = as_tensor(Ejj*Dvkk, jj+kk)
-
             gprimesum = gprimesum + gprimeterm
+
+        # FIXME: Handle other coefficient derivatives: oprimes = self._cd._data.get(o)
 
         if 0:
             oprimes = self._cd._data.get(o)
@@ -193,10 +194,9 @@ class ScratchTestCase(UflTestCase):
         self.assertEqual(dg, df)
 
     def test_unit_tensor(self):
-        print
-        print unit_indexed_tensor((2,), (1,))
-        print unit_indexed_tensor((3,), (1,))
-        print unit_indexed_tensor((2,2), (1,0))
+        E2_1,ii = unit_indexed_tensor((2,), (1,))
+        E3_1,ii = unit_indexed_tensor((3,), (1,))
+        E22_10,ii = unit_indexed_tensor((2,2), (1,0))
 
     def test__forward_coefficient_ad__grad_of_vector_coefficient(self):
         V = VectorElement("CG", cell2D, 1)
@@ -221,14 +221,46 @@ class ScratchTestCase(UflTestCase):
         self.assertEqual(g, f)
         self.assertEqual(dg, df)
 
+    def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_variation(self):
+        V = VectorElement("CG", cell2D, 1)
+        v = Coefficient(V)
+        dv = TestFunction(V)
+
+        mad = MockForwardAD()
+
         # Component of variation:
         # grad(grad(c))[0,...] -> grad(grad(dc))[1,...]
         mad._w = (v[0],)
         mad._v = (dv[1],)
         f = grad(v)
-        df = grad(as_vector((dv[1],0))) # Mathematically this is it.
+        df = grad(as_vector((dv[1],0))) # Mathematically this would be the natural result
         j,k = indices(2)
-        df = as_tensor(Identity(2)[0,j]*grad(dv)[1,k], (j,k)) # Actual representation should have grad next to dv
+        df = as_tensor(Identity(2)[0,j]*grad(dv)[1,k], (j,k)) # Actual representation should have grad right next to dv
+        g, dg = mad.grad(f)
+        if 0:
+            print '\nf    ', f
+            print 'df   ', df
+            print 'g    ', g
+            print 'dg   ', dg
+        self.assertEqual(f.shape(), df.shape())
+        self.assertEqual(g.shape(), f.shape())
+        self.assertEqual(dg.shape(), df.shape())
+        self.assertEqual(g, f)
+        self.assertEqual((inner(dg,dg)*dx).signature(), (inner(df,df)*dx).signature())
+        #self.assertEqual(dg, df) # Expected to fail because of different index numbering
+
+        # Multiple components of variation:
+        # grad(grad(c))[0,1,:,:] -> grad(grad(dc))[1,0,:,:]
+        mad._w = (v[0], v[1])
+        mad._v = (dv[1], dv[0])
+        f = grad(v)
+        # Mathematically this would be the natural result:
+        df = grad(as_vector((dv[1],dv[0])))
+        # Actual representation should have grad right next to dv:
+        j0,k0 = indices(2)
+        j1,k1 = indices(2) # Using j0,k0 for both terms gives different signature
+        df = (as_tensor(Identity(2)[0,j0]*grad(dv)[1,k0], (j0,k0))
+            + as_tensor(Identity(2)[1,j1]*grad(dv)[0,k1], (j1,k1)))
         g, dg = mad.grad(f)
         print '\nf    ', f
         print 'df   ', df
@@ -240,6 +272,7 @@ class ScratchTestCase(UflTestCase):
         self.assertEqual(g, f)
         self.assertEqual((inner(dg,dg)*dx).signature(), (inner(df,df)*dx).signature())
         #self.assertEqual(dg, df) # Expected to fail because of different index numbering
+
 
     def test__forward_coefficient_ad__grad_of_tensor_coefficient(self):
         W = TensorElement("CG", cell2D, 1)
@@ -263,6 +296,38 @@ class ScratchTestCase(UflTestCase):
         g, dg = mad.grad(f)
         self.assertEqual(g, f)
         self.assertEqual(dg, df)
+
+    def test__forward_coefficient_ad__grad_of_tensor_coefficient__with_component_variation(self):
+        W = TensorElement("CG", cell2D, 1)
+        w = Coefficient(W)
+        dw = TestFunction(W)
+
+        mad = MockForwardAD()
+
+        # Component of variation:
+        # grad(grad(c))[0,...] -> grad(grad(dc))[1,...]
+        wc = (1,0)
+        dwc = (0,1)
+        mad._w = (w[wc],)
+        mad._v = (dw[dwc],)
+        f = grad(w)
+        df = grad(as_matrix(((0,0),(dw[dwc],0)))) # Mathematically this is it.
+        i,j,k = indices(3)
+        E = outer(Identity(2)[wc[0],i],Identity(2)[wc[1],j])
+        Ddw = grad(dw)[dwc + (k,)]
+        df = as_tensor(E*Ddw, (i,j,k)) # Actual representation should have grad next to dv
+        g, dg = mad.grad(f)
+        if 0:
+            print '\nf    ', f
+            print 'df   ', df
+            print 'g    ', g
+            print 'dg   ', dg
+        self.assertEqual(f.shape(), df.shape())
+        self.assertEqual(g.shape(), f.shape())
+        self.assertEqual(dg.shape(), df.shape())
+        self.assertEqual(g, f)
+        self.assertEqual((inner(dg,dg)*dx).signature(), (inner(df,df)*dx).signature())
+        #self.assertEqual(dg, df) # Expected to fail because of different index numbering
 
 # Don't touch these lines, they allow you to run this file directly
 if __name__ == "__main__":
