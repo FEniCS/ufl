@@ -48,13 +48,13 @@ class Expr(object):
 
     _class_usage_statistics = defaultdict(int)
     _class_del_statistics = defaultdict(int)
-    
+
     def __init__(self):
         # Comment out this line to disable class construction
         # statistics (used in some unit tests)
         Expr._class_usage_statistics[self.__class__._uflclass] += 1
 
-    def __del__(self):
+    def x__del__(self): # Enable for profiling
         # Comment out this line to disable class construction
         # statistics (used for manual memory profiling)
         Expr._class_del_statistics[self.__class__._uflclass] += 1
