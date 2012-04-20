@@ -34,29 +34,30 @@ This is to avoid circular dependencies between Expr and its subclasses.
 
 from collections import defaultdict
 from ufl.log import warning, error
-_class_usage_statistics = defaultdict(int)
-_class_del_statistics = defaultdict(int)
 
 def print_expr_statistics():
-    for k in sorted(_class_usage_statistics.keys()):
-        born = _class_usage_statistics[k]
-        live = born - _class_del_statistics.get(k, 0)
+    for k in sorted(Expr._class_usage_statistics.keys()):
+        born = Expr._class_usage_statistics[k]
+        live = born - Expr._class_del_statistics.get(k, 0)
         print "%40s:  %10d  /  %10d" % (k.__name__, live, born)
 
 class Expr(object):
     "Base class for all UFL objects."
     # Freeze member variables for objects of this class
     __slots__ = ()
+
+    _class_usage_statistics = defaultdict(int)
+    _class_del_statistics = defaultdict(int)
     
     def __init__(self):
         # Comment out this line to disable class construction
         # statistics (used in some unit tests)
-        _class_usage_statistics[self.__class__._uflclass] += 1
+        Expr._class_usage_statistics[self.__class__._uflclass] += 1
 
     def __del__(self):
         # Comment out this line to disable class construction
         # statistics (used for manual memory profiling)
-        _class_del_statistics[self.__class__._uflclass] += 1
+        Expr._class_del_statistics[self.__class__._uflclass] += 1
 
     #=== Abstract functions that must be implemented by subclasses ===
     
