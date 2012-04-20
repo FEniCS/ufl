@@ -27,7 +27,7 @@ from ufl.assertions import ufl_assert
 from ufl.classes import Terminal, Derivative
 
 from ufl.algorithms.transformer import transform_integrands, Transformer
-from ufl.algorithms.expand_compounds import expand_compounds
+from ufl.algorithms.expand_compounds import expand_compounds, expand_compounds_postdiff
 from ufl.algorithms.reverse_ad import reverse_ad
 from ufl.algorithms.forward_ad import forward_ad, apply_nested_forward_ad
 
@@ -155,8 +155,9 @@ def expand_derivatives2(form, dim=None,
         #        in the AD algorithm for compounds. Since this is optional,
         #        alternative form compilers can then disable expand_compounds alltogether.
         if apply_expand_compounds_after:
-            expression = expand_compounds(expression, dim)
-
+            # FIXME: Test expand_compounds_postdiff, it should make this algorithm viable for existing FFC code
+            #expression = expand_compounds(expression, dim)
+            expression = expand_compounds_postdiff(expression, dim)
         return expression
 
     # Apply chosen algorithm to all integrands
