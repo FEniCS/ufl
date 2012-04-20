@@ -118,7 +118,6 @@ def expand_derivatives1(form, dim=None,
     return transform_integrands(form, _expand_derivatives)
 
 
-
 def expand_derivatives2(form, dim=None,
                        apply_expand_compounds_before=True,
                        apply_expand_compounds_after=False,
@@ -163,5 +162,5 @@ def expand_derivatives2(form, dim=None,
     # Apply chosen algorithm to all integrands
     return transform_integrands(form, _expand_derivatives)
 
-
-expand_derivatives = expand_derivatives2
+# Switch this between 1 and 2 to select old or new algorithm
+expand_derivatives = expand_derivatives1
