@@ -38,10 +38,10 @@ from ufl.constantvalue import ConstantValue, Zero, IntValue, Identity,\
     is_true_ufl_scalar, is_ufl_scalar
 from ufl.variable import Variable
 from ufl.coefficient import ConstantBase, Coefficient, FormArgument
-from ufl.indexing import MultiIndex, Index, indices
+from ufl.indexing import MultiIndex, Index, FixedIndex, indices
 from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
-from ufl.tensors import ListTensor, ComponentTensor, as_tensor, as_scalar
+from ufl.tensors import ListTensor, ComponentTensor, as_tensor, as_scalar, unit_indexed_tensor, unwrap_list_tensor
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import Transposed, Outer, Inner, Dot, Cross, Trace, \
     Determinant, Inverse, Deviatoric, Cofactor
@@ -56,22 +56,6 @@ from ufl.operators import dot, inner, outer, lt, eq, conditional, sign, \
     erf, bessel_J, bessel_Y, bessel_I, bessel_K
 from ufl.algorithms.transformer import Transformer
 
-def unit_indexed_tensor(shape, component): # TODO: Move this into tensors.py?
-    r = len(shape)
-    if r == 0:
-        return 0, ()
-    jj = indices(r)
-    es = []
-    for i in xrange(r):
-        s = shape[i]
-        c = component[i]
-        j = jj[i]
-        e = Identity(s)[c,j]
-        es.append(e)
-    E = es[0]
-    for e in es[1:]:
-        E = outer(E, e)
-    return E, jj
 
 class ForwardAD(Transformer):
     def __init__(self, spatial_dim, var_shape, var_free_indices, var_index_dimensions, cache=None):
@@ -863,31 +847,7 @@ class CoefficientAD(ForwardAD):
         # If o is not among coefficient derivatives, return do/dw=0
         gprimesum = Zero(g.shape())
 
-        # Accumulate contributions from variations in different components
-        for (w, v) in izip(self._w, self._v):
-            # Analyse differentiation variable coefficient
-            if isinstance(w, FormArgument):
-                if not w == o: continue
-                if isinstance(v, FormArgument):
-                    # Case: d/dt [w + t v]
-                    return (g, apply_grads(v))
-                else:
-                    # Case: d/dt [w + t v[...]]
-                    ufl_assert(w.shape() == (), "Expecting scalar coefficient in this branch.") 
-                    wval, wcomp = w, ()
-                    Ejj, jj = 1, ()
-            elif isinstance(w, Indexed):
-                # Case: d/dt [w[...] + t v[...]]
-                # Case: d/dt [w[...] + t v]
-                wval, wcomp = w.operands()
-                if not wval == o: continue
-                assert isinstance(wval, FormArgument)
-                Ejj, jj = unit_indexed_tensor(wval.shape(), wcomp)
-            else:
-                error("Expecting coefficient or component of coefficient.")
-            ufl_assert(all(isinstance(k, FixedIndex) for k in wcomp),
-                       "Expecting only fixed indices in differentiation variable.")
-
+        def analyse_variation_argument(v):
             # Analyse variation argument
             if isinstance(v, FormArgument):
                 # Case: d/dt [w[...] + t v]
@@ -901,15 +861,63 @@ class CoefficientAD(ForwardAD):
                 error("Expecting argument or component of argument.")
             ufl_assert(all(isinstance(k, FixedIndex) for k in vcomp),
                        "Expecting only fixed indices in variation.")
+            return vval, vcomp
 
+        def compute_gprimeterm(ngrads, vval, vcomp, wshape, wcomp):
             # Apply gradients directly to argument vval,
             # and get the right indexed scalar component(s)
             kk = indices(ngrads)
             Dvkk = apply_grads(vval)[vcomp+kk]
-
-            # Accumulate scalar component(s) Dvkk into the right positions in final result
+            # Place scalar component(s) Dvkk into the right tensor positions
+            if wshape:
+                Ejj, jj = unit_indexed_tensor(wshape, wcomp)
+            else:
+                Ejj, jj = 1, ()
             gprimeterm = as_tensor(Ejj*Dvkk, jj+kk)
-            gprimesum = gprimesum + gprimeterm
+            return gprimeterm
+
+        # Accumulate contributions from variations in different components
+        for (w, v) in izip(self._w, self._v):
+
+            # Analyse differentiation variable coefficient
+            if isinstance(w, FormArgument):
+                if not w == o: continue
+                wshape = w.shape()
+
+                if isinstance(v, FormArgument):
+                    # Case: d/dt [w + t v]
+                    return (g, apply_grads(v))
+
+                elif isinstance(v, ListTensor):
+                    # Case: d/dt [w + t <...,v,...>]
+                    for wcomp, vsub in unwrap_list_tensor(v):
+                        if not isinstance(vsub, Zero):
+                            vval, vcomp = analyse_variation_argument(vsub)
+                            gprimesum = gprimesum + compute_gprimeterm(ngrads, vval, vcomp, wshape, wcomp)
+
+                else:
+                    ufl_assert(wshape == (), "Expecting scalar coefficient in this branch.")
+                    # Case: d/dt [w + t v[...]]
+                    wval, wcomp = w, ()
+
+                    vval, vcomp = analyse_variation_argument(v)
+                    gprimesum = gprimesum + compute_gprimeterm(ngrads, vval, vcomp, wshape, wcomp)
+
+            elif isinstance(w, Indexed): # This path is tested in unit tests, but not actually used?
+                # Case: d/dt [w[...] + t v[...]]
+                # Case: d/dt [w[...] + t v]
+                wval, wcomp = w.operands()
+                if not wval == o: continue
+                assert isinstance(wval, FormArgument)
+                ufl_assert(all(isinstance(k, FixedIndex) for k in wcomp),
+                           "Expecting only fixed indices in differentiation variable.")
+                wshape = wval.shape()
+
+                vval, vcomp = analyse_variation_argument(v)
+                gprimesum = gprimesum + compute_gprimeterm(ngrads, vval, vcomp, wshape, wcomp)
+
+            else:
+                error("Expecting coefficient or component of coefficient.")
 
         # FIXME: Handle other coefficient derivatives: oprimes = self._cd._data.get(o)
 

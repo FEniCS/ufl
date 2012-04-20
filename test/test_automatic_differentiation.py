@@ -199,7 +199,8 @@ class ForwardADTestCase(UflTestCase):
     def ad_algorithm(self, expr):
         #alt = 1
         #alt = 4
-        alt = 6
+        #alt = 6
+        alt = 0
         if alt == 0:
             return expand_derivatives(expr)
         elif alt == 1:

@@ -385,3 +385,34 @@ def dyad(d, *iota):
         e = outer(e, as_vector(I[i,:], i))
     return e
 
+def unit_indexed_tensor(shape, component):
+    from ufl.constantvalue import Identity
+    from ufl.operators import outer # a bit of circular dependency issue here
+    r = len(shape)
+    if r == 0:
+        return 0, ()
+    jj = indices(r)
+    es = []
+    for i in xrange(r):
+        s = shape[i]
+        c = component[i]
+        j = jj[i]
+        e = Identity(s)[c,j]
+        es.append(e)
+    E = es[0]
+    for e in es[1:]:
+        E = outer(E, e)
+    return E, jj
+
+def unwrap_list_tensor(lt):
+    components = []
+    sh = lt.shape()
+    subs = lt.operands()
+    if len(sh) == 1:
+        for s in xrange(sh[0]):
+            components.append(((s,),subs[s]))
+    else:
+        for s,sub in enumerate(subs):
+            for c,v in unwrap_list_tensor(sub):
+                components.append(((s,)+c,v))
+    return components
