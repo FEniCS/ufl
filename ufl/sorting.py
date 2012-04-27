@@ -53,10 +53,30 @@ def cmp_expr(a, b):
         # It's ok to compare counts for form arguments, since their order is a property of the form
         return cmp(a._count, b._count)
 
+    # ... a MultiIndex? Careful not to depend on Index.count() here!
+    elif isinstance(a, MultiIndex):
+        if 0:
+            for i,j in izip(a._indices, b._indices):
+                if isinstance(i, FixedIndex):
+                    if isinstance(j, FixedIndex):
+                        # Both are FixedIndex, sort by value
+                        c = cmp(i.value(), j.value())
+                        if c:
+                            return c
+                    else:
+                        return +1
+                else:
+                    if isinstance(j, FixedIndex):
+                        return -1
+                    else:
+                        pass # Both are Index, do not depend on count!
+            # Failed to make a decision, return 0 by default
+            return 0
+
     # ... another kind of Terminal object?
-    elif isinstance(a, Terminal) and not isinstance(a, MultiIndex):
+    elif isinstance(a, Terminal):
         # The cost of repr on a terminal is fairly small, and bounded
-        c = cmp(repr(a), repr(b))
+        return cmp(repr(a), repr(b))
 
     # Not a terminal, sort by number of children (usually the same)
     aops = a.operands()
