@@ -29,7 +29,7 @@ from itertools import izip
 from ufl.log import error
 from ufl.common import Counted
 from ufl.terminal import Terminal, FormArgument
-from ufl.indexing import MultiIndex
+from ufl.indexing import Index, FixedIndex, MultiIndex
 from ufl.variable import Label
 
 def cmp_expr(a, b):
@@ -41,8 +41,27 @@ def cmp_expr(a, b):
 
     # Type is the same, but is it a ...
 
+    # ... a MultiIndex? Careful not to depend on Index.count() here!
+    if isinstance(a, MultiIndex):
+        for i,j in izip(a._indices, b._indices):
+            if isinstance(i, FixedIndex):
+                if isinstance(j, FixedIndex):
+                    # Both are FixedIndex, sort by value
+                    c = cmp(i._value, j._value)
+                    if c:
+                        return c
+                else:
+                    return +1
+            else:
+                if isinstance(j, FixedIndex):
+                    return -1
+                else:
+                    pass # Both are Index, do not depend on count!
+        # Failed to make a decision, return 0 by default
+        return 0
+
     # ... Label object?
-    if isinstance(a, Label):
+    elif isinstance(a, Label):
         # Don't compare counts! Causes circular problems when renumbering to get a canonical form.
         return 0 # Not equal in general (__eq__ won't be True), but for this purpose they are considered equal.
 
@@ -52,26 +71,6 @@ def cmp_expr(a, b):
             error("Expecting a Coefficient or Argument here, got %s instead." % str(type(a)))
         # It's ok to compare counts for form arguments, since their order is a property of the form
         return cmp(a._count, b._count)
-
-    # ... a MultiIndex? Careful not to depend on Index.count() here!
-    elif isinstance(a, MultiIndex):
-        if 0:
-            for i,j in izip(a._indices, b._indices):
-                if isinstance(i, FixedIndex):
-                    if isinstance(j, FixedIndex):
-                        # Both are FixedIndex, sort by value
-                        c = cmp(i.value(), j.value())
-                        if c:
-                            return c
-                    else:
-                        return +1
-                else:
-                    if isinstance(j, FixedIndex):
-                        return -1
-                    else:
-                        pass # Both are Index, do not depend on count!
-            # Failed to make a decision, return 0 by default
-            return 0
 
     # ... another kind of Terminal object?
     elif isinstance(a, Terminal):
@@ -87,7 +86,7 @@ def cmp_expr(a, b):
 
     # Sort by children in natural order
     for (r, s) in izip(aops, bops):
-        c = cmp_expr(r, s)
+        c = cmp_expr(r, s) # Ouch! This becomes worst case O(n) then? FIXME: Perhaps replace with comparison of hash value? Is that stable between runs?
         if c != 0:
             return c
 
