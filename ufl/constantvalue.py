@@ -91,11 +91,11 @@ class Zero(IndexAnnotated):
     _cache = {}
     def __new__(cls, shape=(), free_indices=(), index_dimensions=None):
         if free_indices:
-            self = IndexAnnotated.__new__(cls, shape, free_indices, index_dimensions)
+            self = IndexAnnotated.__new__(cls)
         else:
             self = Zero._cache.get(shape)
             if self is None:
-                self = IndexAnnotated.__new__(cls, shape, free_indices, index_dimensions)
+                self = IndexAnnotated.__new__(cls)
                 Zero._cache[shape] = self
         return self
 
@@ -176,7 +176,7 @@ class ScalarValue(IndexAnnotated):
         is_python_scalar(value) or expecting_python_scalar(value)
         if value == 0:
             return Zero(shape, free_indices, index_dimensions)
-        return IndexAnnotated.__new__(cls, shape, free_indices, index_dimensions)
+        return IndexAnnotated.__new__(cls)
 
     def __init__(self, value, shape=(), free_indices=(), index_dimensions=None):
         IndexAnnotated.__init__(self, shape, free_indices, index_dimensions)
