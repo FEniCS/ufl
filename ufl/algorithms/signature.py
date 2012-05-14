@@ -92,20 +92,13 @@ def compute_terminal_hashdata(expressions, function_replace_map=None):
     return terminal_hashdata
 
 def compute_expression_hashdata(expression, terminal_hashdata):
-    # Build hashdata for expression
     expression_hashdata = []
-
-    # FIXME: Probably isn't safe to only visit unique nodes?
-    #        Try to reuse hashdata instead of skipping nodes.
-    #for expr in unique_pre_traversal(expression):
-
     for expr in fast_pre_traversal(expression):
         if isinstance(expr, Terminal):
             data = terminal_hashdata[expr]
         else:
             data = expr._classid
         expression_hashdata.append(data)
-
     return expression_hashdata
 
 def compute_form_signature(form, function_replace_map=None):

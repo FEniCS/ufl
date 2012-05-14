@@ -134,16 +134,13 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
 
     # Store signature of form
     tic('signature')
-    if replace_functions:
-        form_data.signature = form.signature(form_data.function_replace_map)
-    else:
-        # FIXME: Pass replace mapping into signature to get the right cells and elements
-        form_data.signature = form.signature(form_data.function_replace_map)
+    form_data.signature = form.signature(form_data.function_replace_map)
 
     # Store elements, sub elements and element map
     tic('extract_elements')
-    # TODO: Pass renumbered_args/coeffs here to speed up
-    form_data.elements            = extract_elements(form)
+    form_data.elements            = tuple(f.element() for f in
+                                          chain(renumbered_arguments,
+                                                renumbered_coefficients))
     form_data.unique_elements     = unique_tuple(form_data.elements)
     form_data.sub_elements        = extract_sub_elements(form_data.elements)
     form_data.unique_sub_elements = unique_tuple(form_data.sub_elements)
