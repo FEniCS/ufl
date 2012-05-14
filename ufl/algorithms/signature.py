@@ -92,6 +92,9 @@ def compute_terminal_hashdata(expressions, function_replace_map=None):
     return terminal_hashdata
 
 def compute_expression_hashdata(expression, terminal_hashdata):
+    # The hashdata computed here can be interpreted as
+    # prefix operator notation, i.e. we store the equivalent
+    # of '+ * a b * c d' for the expression (a*b)+(c*d)
     expression_hashdata = []
     for expr in fast_pre_traversal(expression):
         if isinstance(expr, Terminal):

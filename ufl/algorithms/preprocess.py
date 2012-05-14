@@ -119,7 +119,7 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
     form_data.renumbered_coefficients = renumbered_coefficients
 
     tic('replace')
-    # FIXME: Store mapping on the side instead of reconstructing
+    # FIXME: Always store mapping on the side instead of reconstructing
     if replace_functions:
         form = replace(form, replace_map)
         # Temporary hacks to introduce mappings in form compilers gradually
