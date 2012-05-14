@@ -202,20 +202,8 @@ class Form(object):
         else:
             return "<empty Form>"
 
-    def _compute_signature(self, reprstring=None):
-        if self._signature is None:
-            if 0:
-                if reprstring is None:
-                    reprstring = repr(self)
-                self._signature = hashlib.sha512(reprstring).hexdigest()
-            else:
-                from ufl.algorithms.signature import compute_form_signature
-                self._signature = compute_form_signature(self)
-
     def __repr__(self):
         r = "Form([%s])" % ", ".join(repr(itg) for itg in self._integrals)
-        # Compute signature now that we have the expensive repr string available anyway
-        #self._compute_signature(r)
         return r
 
     def __hash__(self):
@@ -224,8 +212,10 @@ class Form(object):
             self._hash = hash(hashdata)
         return self._hash
 
-    def signature(self):
-        self._compute_signature()
+    def signature(self, function_replace_map=None):
+        if self._signature is None:
+            from ufl.algorithms.signature import compute_form_signature
+            self._signature = compute_form_signature(self, function_replace_map)
         assert self._signature
         return self._signature
 

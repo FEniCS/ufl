@@ -110,8 +110,11 @@ def fast_pre_traversal(expr):
         yield l
         input.extend(l.operands())
 
-def fast_pre_traversal2(expr, visited=None):
-    """Yields o for each tree node o in expr, parent before child."""
+def unique_pre_traversal(expr, visited=None):
+    """Yields o for each tree node o in expr, parent before child.
+
+    This version only visits each node once!
+    """
     input = [expr]
     visited = visited or set()
     while input:
@@ -120,9 +123,12 @@ def fast_pre_traversal2(expr, visited=None):
             visited.add(l)
             yield l
             input.extend(l.operands())
+fast_pre_traversal2 = unique_pre_traversal # TODO: Remove
 
 def unique_post_traversal(expr, visited=None):
-    """Yields o for each node o in expr, child before parent. Never visits a node twice."""
+    """Yields o for each node o in expr, child before parent.
+
+    Never visits a node twice."""
     stack = []
     stack.append((expr, list(expr.operands())))
     visited = visited or set()

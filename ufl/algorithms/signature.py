@@ -42,7 +42,12 @@ def compute_multiindex_hashdata(expr, index_numbering):
             data.append(int(i))
     return data
 
-def compute_terminal_hashdata(integrand):
+def compute_terminal_hashdata(expressions, function_replace_map=None):
+    if not isinstance(expressions, list):
+        expressions = [expressions]
+    if function_replace_map is None:
+        function_replace_map = {}
+
     # Extract a unique numbering of free indices,
     # as well as form arguments, and just take
     # repr of the rest of the terminals while
@@ -52,50 +57,71 @@ def compute_terminal_hashdata(integrand):
     index_numbering = {}
     coefficients = set()
     arguments = set()
-    for expr in traverse_terminals2(integrand):
-        if isinstance(expr, MultiIndex):
-            terminal_hashdata[expr] = compute_multiindex_hashdata(expr, index_numbering)
-        elif isinstance(expr, Coefficient):
-            coefficients.add(expr)
-        elif isinstance(expr, Argument):
-            arguments.add(expr)
-        elif isinstance(expr, Label):
-            data = labels.get(expr)
-            if data is None:
-                data = "L%d" % len(labels)
-                labels[expr] = data
-            terminal_hashdata[expr] = data
-        elif isinstance(expr, Counted):
-            error("Not implemented hashing for Counted subtype %s" % type(expr))
-        else:
-            terminal_hashdata[expr] = repr(expr)
+    for expression in expressions:
+        for expr in traverse_terminals2(expression):
+            if isinstance(expr, MultiIndex):
+                terminal_hashdata[expr] = compute_multiindex_hashdata(expr,
+                                                                      index_numbering)
+            elif isinstance(expr, Coefficient):
+                coefficients.add(expr)
+            elif isinstance(expr, Argument):
+                arguments.add(expr)
+            elif isinstance(expr, Label):
+                data = labels.get(expr)
+                if data is None:
+                    data = "L%d" % len(labels)
+                    labels[expr] = data
+                terminal_hashdata[expr] = data
+            elif isinstance(expr, Counted):
+                error("Not implemented hashing for Counted subtype %s" % type(expr))
+            else:
+                terminal_hashdata[expr] = repr(expr)
+
     # Apply renumbering of form arguments
+    # (Note: some duplicated work here and in preprocess,
+    # to allow using this function without preprocess.)
     coefficients = sorted(coefficients, key=lambda x: x.count())
     arguments = sorted(arguments, key=lambda x: x.count())
     for i, e in enumerate(coefficients):
-        terminal_hashdata[e] = repr(e.reconstruct(count=i))
+        er = function_replace_map.get(e) or e.reconstruct(count=i)
+        terminal_hashdata[e] = repr(er)
     for i, e in enumerate(arguments):
-        terminal_hashdata[e] = repr(e.reconstruct(count=i))
+        er = function_replace_map.get(e) or e.reconstruct(count=i)
+        terminal_hashdata[e] = repr(er)
+
     return terminal_hashdata
 
-def compute_form_signature(form):
+def compute_expression_hashdata(expression, terminal_hashdata):
+    # Build hashdata for expression
+    expression_hashdata = []
+
+    # FIXME: Probably isn't safe to only visit unique nodes?
+    #        Try to reuse hashdata instead of skipping nodes.
+    #for expr in unique_pre_traversal(expression):
+
+    for expr in fast_pre_traversal(expression):
+        if isinstance(expr, Terminal):
+            data = terminal_hashdata[expr]
+        else:
+            data = expr._classid
+        expression_hashdata.append(data)
+
+    return expression_hashdata
+
+def compute_form_signature(form, function_replace_map=None):
+    integrals = form.integrals()
+    integrands = [integral.integrand() for integral in integrals]
+
+    # Build hashdata for all terminals first
+    terminal_hashdata = compute_terminal_hashdata(integrands,
+                                                  function_replace_map)
+    # Build hashdata for each integral
     hashdata = []
-    for integral in form.integrals():
-        integrand = integral.integrand()
+    for integral in integrals:
+        expression_hashdata = compute_expression_hashdata(integral.integrand(),
+                                                          terminal_hashdata)
 
-        # Build hashdata for all terminals first
-        terminal_hashdata = compute_terminal_hashdata(integrand)
-
-        # Build hashdata for expression
-        expression_hashdata = []
-        # FIXME: Is it safe to only visit unique nodes? Try to reuse hashdata instead of skipping nodes.
-        #for expr in fast_pre_traversal2(integrand):
-        for expr in fast_pre_traversal(integrand):
-            if isinstance(expr, Terminal):
-                data = terminal_hashdata[expr]
-            else:
-                data = expr._classid
-            expression_hashdata.append(data)
+        # NB! Repr of measure includes integral metadata.
         integral_hashdata = (repr(integral.measure()), expression_hashdata)
         hashdata.append(integral_hashdata)
 

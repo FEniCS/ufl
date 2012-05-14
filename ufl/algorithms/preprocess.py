@@ -33,13 +33,17 @@ from ufl.geometry import Cell
 from ufl.algorithms.ad import expand_derivatives
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.algorithms.replace import replace
-from ufl.algorithms.analysis import extract_arguments_and_coefficients, build_argument_replace_map
-from ufl.algorithms.analysis import extract_elements, extract_sub_elements, unique_tuple, _domain_types
-from ufl.algorithms.analysis import extract_num_sub_domains, extract_domain_data, extract_integral_data
+from ufl.algorithms.analysis import (extract_arguments_and_coefficients,
+                                     build_argument_replace_map,
+                                     extract_elements, extract_sub_elements,
+                                     unique_tuple, _domain_types,
+                                     extract_num_sub_domains, extract_domain_data,
+                                     extract_integral_data)
 from ufl.algorithms.formdata import FormData
 from ufl.algorithms.expand_indices import expand_indices
 
-def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
+def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
+               replace_functions=True):
     """
     Preprocess raw input form to obtain form metadata, including a
     modified (preprocessed) form more easily manipulated by form
@@ -73,48 +77,73 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
     form_data._input_element_mapping = dict(element_mapping)
     #form_data._input_common_cell = no need to store this
 
+    # Store name of form if given
+    form_data.name = object_names.get(id(form), None)
+
     # Extract common cell
     common_cell = extract_common_cell(form, common_cell)
 
+    # TODO: Split out expand_compounds from expand_derivatives
     # Expand derivatives
     tic('expand_derivatives')
-    form = expand_derivatives(form, common_cell.geometric_dimension()) # FIXME: Split out expand_compounds from expand_derivatives
+    form = expand_derivatives(form, common_cell.geometric_dimension())
 
     # Replace arguments and coefficients with new renumbered objects
     tic('extract_arguments_and_coefficients')
-    arguments, coefficients = extract_arguments_and_coefficients(form)
+    original_arguments, original_coefficients = \
+                        extract_arguments_and_coefficients(form)
     tic('build_element_mapping')
-    element_mapping = build_element_mapping(element_mapping, common_cell,
-                                            arguments, coefficients)
+    element_mapping = build_element_mapping(element_mapping,
+                                            common_cell,
+                                            original_arguments,
+                                            original_coefficients)
     tic('build_argument_replace_map')
-    replace_map, arguments, coefficients = \
-        build_argument_replace_map(arguments, coefficients, element_mapping)
-    tic('replace')
-    form = replace(form, replace_map) # FIXME: Store mapping on the side instead of reconstructing
-
+    replace_map, renumbered_arguments, renumbered_coefficients = \
+        build_argument_replace_map(original_arguments,
+                                   original_coefficients,
+                                   element_mapping)
     # Build mapping to original arguments and coefficients, which is
     # useful if the original arguments have data attached to them
     inv_replace_map = dict((w,v) for (v,w) in replace_map.iteritems())
-    original_arguments = [inv_replace_map[v] for v in arguments]
-    original_coefficients = [inv_replace_map[w] for w in coefficients]
-
-    # Store name of form
-    form_data.name = object_names.get(id(form), "a")
+    original_arguments = [inv_replace_map[v] for v in renumbered_arguments]
+    original_coefficients = [inv_replace_map[w] for w in renumbered_coefficients]
 
     # Store data extracted by preprocessing
-    form_data.arguments             = arguments
-    form_data.coefficients          = coefficients
-    form_data.original_arguments    = original_arguments
-    form_data.original_coefficients = original_coefficients
+    if 1:
+        # Not sure what to do with these later?
+        form_data.arguments             = renumbered_arguments
+        form_data.coefficients          = renumbered_coefficients
+    form_data.original_arguments      = original_arguments
+    form_data.original_coefficients   = original_coefficients
+    form_data.renumbered_arguments    = renumbered_arguments
+    form_data.renumbered_coefficients = renumbered_coefficients
+
+    tic('replace')
+    # FIXME: Store mapping on the side instead of reconstructing
+    if replace_functions:
+        form = replace(form, replace_map)
+        # Temporary hacks to introduce mappings in form compilers gradually
+        form_data.element_replace_map = dict((e,e) for e in element_mapping.values())
+        form_data.function_replace_map = dict((e,e) for e in replace_map.values())
+    else:
+        # Mappings from elements and functions (coefficients and arguments)
+        # that reside in form to objects with canonical numbering as well as
+        # completed cells and elements
+        form_data.element_replace_map = element_mapping
+        form_data.function_replace_map = replace_map
 
     # Store signature of form
     tic('signature')
-    form_data.signature = form.signature()
+    if replace_functions:
+        form_data.signature = form.signature(form_data.function_replace_map)
+    else:
+        # FIXME: Pass replace mapping into signature to get the right cells and elements
+        form_data.signature = form.signature(form_data.function_replace_map)
 
     # Store elements, sub elements and element map
     tic('extract_elements')
+    # TODO: Pass renumbered_args/coeffs here to speed up
     form_data.elements            = extract_elements(form)
-    tic('misc')
     form_data.unique_elements     = unique_tuple(form_data.elements)
     form_data.sub_elements        = extract_sub_elements(form_data.elements)
     form_data.unique_sub_elements = unique_tuple(form_data.sub_elements)
@@ -128,8 +157,12 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
     form_data.num_facets = form_data.cell.num_facets()
 
     # Store some useful dimensions
-    form_data.rank = len(form_data.arguments)
-    form_data.num_coefficients = len(form_data.coefficients)
+    form_data.rank = len(form_data.original_arguments)
+    form_data.num_coefficients = len(form_data.original_coefficients)
+
+    # Construct default form name from rank if not given
+    if form_data.name is None:
+        form_data.name = { 0: "M", 1: "L", 2: "a" }.get(form_data.rank, "F")
 
     # Store argument names
     form_data.argument_names = \
@@ -147,7 +180,8 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
      form_data.num_exterior_facet_domains,
      form_data.num_interior_facet_domains,
      form_data.num_macro_cell_domains,
-     form_data.num_surface_domains) = slice_dict(form_data.num_sub_domains, _domain_types, 0)
+     form_data.num_surface_domains) = slice_dict(form_data.num_sub_domains,
+                                                 _domain_types, 0)
 
     # Store number of domains for integral types
     form_data.domain_data = extract_domain_data(form)
@@ -155,7 +189,8 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
      form_data.exterior_facet_domain_data,
      form_data.interior_facet_domain_data,
      form_data.macro_cell_domain_data,
-     form_data.surface_domain_data) = slice_dict(form_data.domain_data, _domain_types, None)
+     form_data.surface_domain_data) = slice_dict(form_data.domain_data,
+                                                 _domain_types, None)
 
     # Store integrals stored by type and sub domain
     form_data.integral_data = extract_integral_data(form)
@@ -183,6 +218,7 @@ preprocess.enable_profiling = False
 class ExprData(object): # FIXME: Add __str__ operator etc like FormData
     pass
 
+# FIXME: Rework preprocess_expression, following improvements to form preprocess
 def preprocess_expression(expr, object_names=None, common_cell=None, element_mapping=None):
     """
     Preprocess raw input expression to obtain expression metadata,

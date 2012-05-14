@@ -61,7 +61,7 @@ class TerminalHashDataTestCase(UflTestCase):
                 for fv in (1.1, 2.2):
                     for iv in (5, 7):
                         expr = (I[0,j]*(fv*x[j]))**iv
-                        
+
                         reprs.add(repr(expr))
                         hashes.add(hash(expr))
                         yield compute_terminal_hashdata(expr)
@@ -225,8 +225,8 @@ class MultiIndexHashDataTestCase(UflTestCase):
         hashes = set()
         def hashdatas():
             ijs = []
-            iind = indices(3) 
-            jind = indices(3) 
+            iind = indices(3)
+            jind = indices(3)
             for i in iind:
                 ijs.append((i,))
                 for j in jind:
@@ -366,6 +366,18 @@ class FormSignatureTestCase(UflTestCase):
                     a = f*dx(1) + g*dx(2) + h*ds(0)
                     yield a
         self.check_unique_signatures(forms())
+
+    def test_signature_of_form_depend_on_coefficient_numbering_across_integrals(self):
+        cell = cell2D
+        V = FiniteElement("CG", cell, 1)
+        f = Coefficient(V)
+        g = Coefficient(V)
+        M1 = f*dx(0) + g*dx(1)
+        M2 = g*dx(0) + f*dx(1)
+        M3 = g*dx(0) + g*dx(1)
+        self.assertTrue(M1.signature() != M2.signature())
+        self.assertTrue(M1.signature() != M3.signature())
+        self.assertTrue(M2.signature() != M3.signature())
 
     def test_signature_of_forms_change_with_operators(self):
         def forms():
