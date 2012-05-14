@@ -169,9 +169,7 @@ def extract_unique_elements(form):
 
 def extract_sub_elements(elements):
     "Build sorted tuple of all sub elements (including parent element)."
-    # FIXME: Why do we have the isinstance here?
-    sub_elements = tuple(chain(*[e.sub_elements() for e in elements\
-                                     if isinstance(e, (MixedElement, RestrictedElement))]))
+    sub_elements = tuple(chain(*[e.sub_elements() for e in elements]))
     if not sub_elements: return tuple(elements)
     return tuple(elements) + extract_sub_elements(sub_elements)
 
