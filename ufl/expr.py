@@ -1,4 +1,4 @@
-"""This module defines the Expr class, the superclass 
+"""This module defines the Expr class, the superclass
 for all expression tree node types in UFL.
 
 NB! A note about other operators not implemented here:
@@ -60,28 +60,28 @@ class Expr(object):
         Expr._class_del_statistics[self.__class__._uflclass] += 1
 
     #=== Abstract functions that must be implemented by subclasses ===
-    
+
     #--- Functions for reconstructing expression ---
-    
+
     # All subclasses must implement reconstruct
     def reconstruct(self, *operands):
         "Return a new object of the same type with new operands."
         raise NotImplementedError(self.__class__.reconstruct)
-    
+
     #--- Functions for expression tree traversal ---
-    
+
     # All subclasses must implement operands
     def operands(self):
         "Return a sequence with all subtree nodes in expression tree."
         raise NotImplementedError(self.__class__.operands)
-    
+
     #--- Functions for general properties of expression ---
-    
+
     # All subclasses must implement shape
     def shape(self):
         "Return the tensor shape of the expression."
         raise NotImplementedError(self.__class__.shape)
-    
+
     # Subclasses can implement rank if it is known directly (TODO: Is this used anywhere? Usually want to compare shapes anyway.)
     def rank(self):
         "Return the tensor rank of the expression."
@@ -120,21 +120,26 @@ class Expr(object):
         """Evaluate expression at given coordinate with given values for terminals."""
         raise NotImplementedError(self.__class__.evaluate)
 
+    def __float__(self):
+        if self.shape() != () or self.free_indices() != ():
+            raise NotImplementedError(self.__class__.__float__)
+        return self(None)
+
     #--- Functions for index handling ---
 
     # All subclasses that can have indices must implement free_indices
     def free_indices(self):
         "Return a tuple with the free indices (unassigned) of the expression."
         raise NotImplementedError(self.__class__.free_indices)
-    
+
     # All subclasses must implement index_dimensions
     def index_dimensions(self):
         """Return a dict with the free or repeated indices in the expression
         as keys and the dimensions of those indices as values."""
         raise NotImplementedError(self.__class__.index_dimensions)
-    
+
     #--- Special functions for string representations ---
-    
+
     # All subclasses must implement signature_data
     def signature_data(self):
         "Return data that uniquely identifies this object."
@@ -149,9 +154,9 @@ class Expr(object):
     def __str__(self):
         "Return pretty print string representation of this object."
         raise NotImplementedError(self.__class__.__str__)
-    
+
     #--- Special functions used for processing expressions ---
-    
+
     def __hash__(self):
         "Compute a hash code for this expression. Used by sets and dicts."
         raise NotImplementedError(self.__class__.__hash__)
@@ -164,7 +169,7 @@ class Expr(object):
 
     def __nonzero__(self):
         "By default, all Expr are nonzero."
-        return True 
+        return True
 
     def __len__(self):
         "Length of expression. Used for iteration over vector expressions."
@@ -172,12 +177,12 @@ class Expr(object):
         if len(s) == 1:
             return s[0]
         raise NotImplementedError("Cannot take length of non-vector expression.")
-    
+
     def __iter__(self):
         "Iteration over vector expressions."
         for i in range(len(self)):
             yield self[i]
- 
+
     def __floordiv__(self, other):
         "UFL does not support integer division."
         raise NotImplementedError(self.__class__.__floordiv__)

@@ -35,13 +35,13 @@ def merge_indices(a, b):
     ri = set(ai) & set(bi)
     ufl_assert(not ri, "Not expecting repeated indices.")
     free_indices = ai+bi
-    
+
     aid = a.index_dimensions()
     bid = b.index_dimensions()
     index_dimensions = dict(aid)
     index_dimensions.update(bid)
-    
-    return free_indices, index_dimensions 
+
+    return free_indices, index_dimensions
 
 ### Algebraic operations on tensors:
 # FloatValues:
@@ -77,7 +77,7 @@ class CompoundTensorOperator(AlgebraOperator):
 
 # TODO: Use this and make Sum handle scalars only?
 #       This would simplify some algorithms. The only
-#       problem is we can't use + in many algorithms because 
+#       problem is we can't use + in many algorithms because
 #       this type should be expanded by expand_compounds.
 #class TensorSum(CompoundTensorOperator):
 #    "Sum of nonscalar expressions."
@@ -85,7 +85,7 @@ class CompoundTensorOperator(AlgebraOperator):
 
 # TODO: Use this similarly to TensorSum?
 #       This would simplify some algorithms. The only
-#       problem is we can't use / in many algorithms because 
+#       problem is we can't use / in many algorithms because
 #       this type should be expanded by expand_compounds.
 #class TensorDivision(CompoundTensorOperator):
 #    "Division of nonscalar expression with a scalar expression."
@@ -93,7 +93,7 @@ class CompoundTensorOperator(AlgebraOperator):
 
 # TODO: Use this similarly to TensorSum?
 #       This would simplify some algorithms. The only
-#       problem is we can't use * in many algorithms because 
+#       problem is we can't use * in many algorithms because
 #       this type should be expanded by expand_compounds.
 #class MatrixProduct(CompoundTensorOperator):
 #    "Product of a matrix with a matrix or vector."
@@ -101,7 +101,7 @@ class CompoundTensorOperator(AlgebraOperator):
 
 # TODO: Use this similarly to TensorSum?
 #       This would simplify some algorithms. The only
-#       problem is we can't use abs in many algorithms because 
+#       problem is we can't use abs in many algorithms because
 #       this type should be expanded by expand_compounds.
 #class TensorAbs(CompoundTensorOperator):
 #    "Absolute value of nonscalar expression."
@@ -115,28 +115,28 @@ class Transposed(CompoundTensorOperator):
             a, b = A.shape()
             return Zero((b, a), A.free_indices(), A.index_dimensions())
         return CompoundTensorOperator.__new__(cls)
-    
+
     def __init__(self, A):
         CompoundTensorOperator.__init__(self)
         ufl_assert(A.rank() == 2, "Transposed is only defined for rank 2 tensors.")
         self._A = A
-    
+
     def operands(self):
         return (self._A,)
-    
+
     def free_indices(self):
         return self._A.free_indices()
-    
+
     def index_dimensions(self):
         return self._A.index_dimensions()
-    
+
     def shape(self):
         s = self._A.shape()
         return (s[1], s[0])
-    
+
     def __str__(self):
         return "%s^T" % parstr(self._A, self)
-    
+
     def __repr__(self):
         return "Transposed(%r)" % self._A
 
@@ -157,22 +157,22 @@ class Outer(CompoundTensorOperator):
         self._a = a
         self._b = b
         self._free_indices, self._index_dimensions = merge_indices(a, b)
-    
+
     def operands(self):
         return (self._a, self._b)
-    
+
     def free_indices(self):
         return self._free_indices
-    
+
     def index_dimensions(self):
         return self._index_dimensions
-    
+
     def shape(self):
         return self._a.shape() + self._b.shape()
-    
+
     def __str__(self):
         return "%s (X) %s" % (parstr(self._a, self), parstr(self._b, self))
-    
+
     def __repr__(self):
         return "Outer(%r, %r)" % (self._a, self._b)
 
@@ -203,22 +203,22 @@ class Inner(CompoundTensorOperator):
         self._a = a
         self._b = b
         self._free_indices, self._index_dimensions = merge_indices(a, b)
-    
+
     def operands(self):
         return (self._a, self._b)
-    
+
     def free_indices(self):
         return self._free_indices
-    
+
     def index_dimensions(self):
         return self._index_dimensions
-    
+
     def shape(self):
         return ()
-    
+
     def __str__(self):
         return "%s : %s" % (parstr(self._a, self), parstr(self._b, self))
-    
+
     def __repr__(self):
         return "Inner(%r, %r)" % (self._a, self._b)
 
@@ -244,22 +244,22 @@ class Dot(CompoundTensorOperator):
         self._a = a
         self._b = b
         self._free_indices, self._index_dimensions = merge_indices(a, b)
-    
+
     def operands(self):
         return (self._a, self._b)
-    
+
     def free_indices(self):
         return self._free_indices
-    
+
     def index_dimensions(self):
         return self._index_dimensions
-    
+
     def shape(self):
         return self._a.shape()[:-1] + self._b.shape()[1:]
 
     def __str__(self):
         return "%s . %s" % (parstr(self._a, self), parstr(self._b, self))
-    
+
     def __repr__(self):
         return "Dot(%r, %r)" % (self._a, self._b)
 
@@ -282,22 +282,22 @@ class Cross(CompoundTensorOperator):
         self._a = a
         self._b = b
         self._free_indices, self._index_dimensions = merge_indices(a, b)
-    
+
     def operands(self):
         return (self._a, self._b)
-    
+
     def free_indices(self):
         return self._free_indices
-    
+
     def index_dimensions(self):
         return self._index_dimensions
-    
+
     def shape(self):
         return (3,)
 
     def __str__(self):
         return "%s x %s" % (parstr(self._a, self), parstr(self._b, self))
-    
+
     def __repr__(self):
         return "Cross(%r, %r)" % (self._a, self._b)
 
@@ -313,22 +313,22 @@ class Trace(CompoundTensorOperator):
     def __init__(self, A):
         CompoundTensorOperator.__init__(self)
         self._A = A
-    
+
     def operands(self):
         return (self._A, )
-    
+
     def free_indices(self):
         return self._A.free_indices()
-    
+
     def index_dimensions(self):
         return self._A.index_dimensions()
-    
+
     def shape(self):
         return ()
-    
+
     def __str__(self):
         return "tr(%s)" % self._A
-    
+
     def __repr__(self):
         return "Trace(%r)" % self._A
 
@@ -353,22 +353,22 @@ class Determinant(CompoundTensorOperator):
     def __init__(self, A):
         CompoundTensorOperator.__init__(self)
         self._A = A
-    
+
     def operands(self):
         return (self._A, )
-    
+
     def free_indices(self):
         return ()
-    
+
     def index_dimensions(self):
         return EmptyDict
-    
+
     def shape(self):
         return ()
-    
+
     def __str__(self):
         return "det(%s)" % self._A
-    
+
     def __repr__(self):
         return "Determinant(%r)" % self._A
 
@@ -396,22 +396,22 @@ class Inverse(CompoundTensorOperator):
     def __init__(self, A):
         CompoundTensorOperator.__init__(self)
         self._A = A
-    
+
     def operands(self):
         return (self._A, )
-    
+
     def free_indices(self):
         return ()
-    
+
     def index_dimensions(self):
         return EmptyDict
-    
+
     def shape(self):
         return self._A.shape()
-    
+
     def __str__(self):
         return "%s^-1" % parstr(self._A, self)
-    
+
     def __repr__(self):
         return "Inverse(%r)" % self._A
 
@@ -430,19 +430,19 @@ class Cofactor(CompoundTensorOperator):
 
     def operands(self):
         return (self._A, )
-    
+
     def free_indices(self):
         return ()
-    
+
     def index_dimensions(self):
         return EmptyDict
-    
+
     def shape(self):
         return self._A.shape()
 
     def __str__(self):
         return "cofactor(%s)" % self._A
-    
+
     def __repr__(self):
         return "Cofactor(%r)" % self._A
 
@@ -465,19 +465,19 @@ class Deviatoric(CompoundTensorOperator):
 
     def operands(self):
         return (self._A, )
-    
+
     def free_indices(self):
         return self._A.free_indices()
-    
+
     def index_dimensions(self):
         return self._A.index_dimensions()
-    
+
     def shape(self):
         return self._A.shape()
-    
+
     def __str__(self):
         return "dev(%s)" % self._A
-    
+
     def __repr__(self):
         return "Deviatoric(%r)" % self._A
 
@@ -497,22 +497,22 @@ class Skew(CompoundTensorOperator):
     def __init__(self, A):
         CompoundTensorOperator.__init__(self)
         self._A = A
-    
+
     def operands(self):
         return (self._A, )
-    
+
     def free_indices(self):
         return self._A.free_indices()
-    
+
     def index_dimensions(self):
         return self._A.index_dimensions()
-    
+
     def shape(self):
         return self._A.shape()
-    
+
     def __str__(self):
         return "skew(%s)" % self._A
-    
+
     def __repr__(self):
         return "Skew(%r)" % self._A
 
@@ -532,21 +532,21 @@ class Sym(CompoundTensorOperator):
     def __init__(self, A):
         CompoundTensorOperator.__init__(self)
         self._A = A
-    
+
     def operands(self):
         return (self._A, )
-    
+
     def free_indices(self):
         return self._A.free_indices()
-    
+
     def index_dimensions(self):
         return self._A.index_dimensions()
-    
+
     def shape(self):
         return self._A.shape()
-    
+
     def __str__(self):
         return "sym(%s)" % self._A
-    
+
     def __repr__(self):
         return "Sym(%r)" % self._A
