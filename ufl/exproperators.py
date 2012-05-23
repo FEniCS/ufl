@@ -294,26 +294,16 @@ def _restrict(self, side):
     if side == "-":
         return NegativeRestricted(self)
     error("Invalid side %r in restriction operator." % side)
-#Expr.__call__ = _restrict
 
-def _call(self, arg, mapping=None):
-    # Taking the restriction?
-    if arg in ("+", "-"):
-        ufl_assert(mapping is None, "Not expecting a mapping when taking restriction.")
-        return _restrict(self, arg)
-
+def _eval(self, coord, mapping=None):
     # Evaluate expression at this particular coordinate,
     # with provided values for other terminals in mapping
-    if mapping is None:
-        mapping = {}
-    component = ()
-    index_values = StackDict()
 
     # Try to infer dimension from given x argument
-    if arg is None:
+    if coord is None:
         dim = None
-    elif isinstance(arg, (tuple, list)):
-        dim = len(arg)
+    elif isinstance(coord, (tuple, list)):
+        dim = len(coord)
     else: # No type checking here, assuming a scalar x value...
         dim = 1
 
@@ -329,7 +319,21 @@ def _call(self, arg, mapping=None):
     else:
         from ufl.algorithms import expand_derivatives
         f = expand_derivatives(self, dim)
-    return f.evaluate(arg, mapping, component, index_values)
+
+    # Evaluate recursively
+    if mapping is None:
+        mapping = {}
+    component = ()
+    index_values = StackDict()
+    return f.evaluate(coord, mapping, component, index_values)
+
+def _call(self, arg, mapping=None):
+    # Taking the restriction or evaluating depending on argument
+    if arg in ("+", "-"):
+        ufl_assert(mapping is None, "Not expecting a mapping when taking restriction.")
+        return _restrict(self, arg)
+    else:
+        return _eval(self, arg, mapping)
 Expr.__call__ = _call
 
 #--- Extend Expr with the transpose operation A.T ---
