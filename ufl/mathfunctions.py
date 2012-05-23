@@ -1,6 +1,6 @@
 """This module provides basic mathematical functions."""
 
-# Copyright (C) 2008-2011 Martin Sandve Alnes
+# Copyright (C) 2008-2012 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -70,20 +70,20 @@ class MathFunction(Operator):
         ufl_assert(is_true_ufl_scalar(argument), "Expecting scalar argument.")
         self._name     = name
         self._argument = argument
-    
+
     def operands(self):
         return (self._argument,)
-    
+
     def free_indices(self):
         return ()
-    
+
     def index_dimensions(self):
         return EmptyDict
-    
+
     def shape(self):
         return ()
-    
-    def evaluate(self, x, mapping, component, index_values):    
+
+    def evaluate(self, x, mapping, component, index_values):
         a = self._argument.evaluate(x, mapping, component, index_values)
         try:
             res = getattr(math, self._name)(a)
@@ -91,10 +91,10 @@ class MathFunction(Operator):
             warning('Value error in evaluation of function %s with argument %s.' % (self._name, a))
             raise
         return res
-    
+
     def __str__(self):
         return "%s(%s)" % (self._name, self._argument)
-    
+
     def __repr__(self):
         return "%s(%r)" % (self._name, self._argument)
 
@@ -104,7 +104,7 @@ class Sqrt(MathFunction):
         if isinstance(argument, (ScalarValue, Zero)):
             return FloatValue(math.sqrt(float(argument)))
         return MathFunction.__new__(cls)
-    
+
     def __init__(self, argument):
         MathFunction.__init__(self, "sqrt", argument)
 
@@ -114,7 +114,7 @@ class Exp(MathFunction):
         if isinstance(argument, (ScalarValue, Zero)):
             return FloatValue(math.exp(float(argument)))
         return MathFunction.__new__(cls)
-    
+
     def __init__(self, argument):
         MathFunction.__init__(self, "exp", argument)
 
@@ -124,11 +124,11 @@ class Ln(MathFunction):
         if isinstance(argument, (ScalarValue, Zero)):
             return FloatValue(math.log(float(argument)))
         return MathFunction.__new__(cls)
-    
+
     def __init__(self, argument):
         MathFunction.__init__(self, "ln", argument)
-    
-    def evaluate(self, x, mapping, component, index_values):    
+
+    def evaluate(self, x, mapping, component, index_values):
         a = self._argument.evaluate(x, mapping, component, index_values)
         return math.log(a)
 
@@ -138,7 +138,7 @@ class Cos(MathFunction):
         if isinstance(argument, (ScalarValue, Zero)):
             return FloatValue(math.cos(float(argument)))
         return MathFunction.__new__(cls)
-    
+
     def __init__(self, argument):
         MathFunction.__init__(self, "cos", argument)
 
@@ -148,7 +148,7 @@ class Sin(MathFunction):
         if isinstance(argument, (ScalarValue, Zero)):
             return FloatValue(math.sin(float(argument)))
         return MathFunction.__new__(cls)
-    
+
     def __init__(self, argument):
         MathFunction.__init__(self, "sin", argument)
 
@@ -158,7 +158,7 @@ class Tan(MathFunction):
         if isinstance(argument, (ScalarValue, Zero)):
             return FloatValue(math.tan(float(argument)))
         return MathFunction.__new__(cls)
-    
+
     def __init__(self, argument):
         MathFunction.__init__(self, "tan", argument)
 
@@ -168,7 +168,7 @@ class Acos(MathFunction):
         if isinstance(argument, (ScalarValue, Zero)):
             return FloatValue(math.acos(float(argument)))
         return MathFunction.__new__(cls)
-    
+
     def __init__(self, argument):
         MathFunction.__init__(self, "acos", argument)
 
@@ -178,7 +178,7 @@ class Asin(MathFunction):
         if isinstance(argument, (ScalarValue, Zero)):
             return FloatValue(math.asin(float(argument)))
         return MathFunction.__new__(cls)
-    
+
     def __init__(self, argument):
         MathFunction.__init__(self, "asin", argument)
 
@@ -188,7 +188,7 @@ class Atan(MathFunction):
         if isinstance(argument, (ScalarValue, Zero)):
             return FloatValue(math.atan(float(argument)))
         return MathFunction.__new__(cls)
-    
+
     def __init__(self, argument):
         MathFunction.__init__(self, "atan", argument)
 
@@ -213,7 +213,7 @@ class Erf(MathFunction):
     def __init__(self, argument):
         MathFunction.__init__(self, "erf", argument)
 
-    def evaluate(self, x, mapping, component, index_values):    
+    def evaluate(self, x, mapping, component, index_values):
         a = self._argument.evaluate(x, mapping, component, index_values)
         erf = _find_erf()
         if erf is None:
@@ -251,7 +251,7 @@ class BesselFunction(Operator):
     def shape(self):
         return ()
 
-    def evaluate(self, x, mapping, component, index_values):    
+    def evaluate(self, x, mapping, component, index_values):
         a = self._argument.evaluate(x, mapping, component, index_values)
         try:
             import scipy.special

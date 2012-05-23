@@ -2,7 +2,7 @@
 of UFL objects in the DOT graph visualization language,
 mostly intended for debugging purposers."""
 
-# Copyright (C) 2008-2011 Martin Sandve Alnes
+# Copyright (C) 2008-2012 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -53,7 +53,7 @@ def build_entities(e, nodes, edges, nodeoffset):
     # Cutoff if we have handled e before
     if id(e) in nodes:
         return
-    
+
     # Special-case Variable instances
     if isinstance(e, Variable):
         ops = (e._expression,)
@@ -71,11 +71,11 @@ def build_entities(e, nodes, edges, nodeoffset):
             label = e._uflclass.__name__.split(".")[-1]
             if label in class2label:
                 label = class2label[label]
-    
+
     # Create node for parent e
     nodename = "n%04d" % (len(nodes) + nodeoffset)
     nodes[id(e)] = (nodename, label)
-    
+
     # Handle all children recursively
     n = len(ops)
     oplabels = [None]*n
@@ -121,7 +121,7 @@ def ufl2dot(expression, formname="a", nodeoffset=0, begin=True, end=True):
         ei = form.exterior_facet_integrals()
         ii = form.interior_facet_integrals()
         mi = form.macro_cell_integrals()
-        
+
         subgraphs = []
         nodes = {}
         edges = []
@@ -133,7 +133,7 @@ def ufl2dot(expression, formname="a", nodeoffset=0, begin=True, end=True):
             entitylist = format_entities(nodes, edges)
             integralnode = "%s_%s" % (formname, integrallabel)
             subgraphs.append(integralgraphformat % (integralnode, integrallabel, formname, integralnode, integralnode, rootnode, entitylist))
-        
+
         s = ""
         if begin:
             s += 'digraph ufl_form\n{\n  node [shape="box"] ;\n'
@@ -141,16 +141,16 @@ def ufl2dot(expression, formname="a", nodeoffset=0, begin=True, end=True):
         s += "\n".join(subgraphs)
         if end:
             s += "\n}"
-    
+
     elif isinstance(expression, Expr):
         nodes = {}
         edges = []
         build_entities(integrand, nodes, edges, nodeoffset)
         entitylist = format_entities(nodes, edges)
         s = exprgraphformat % entitylist
-    
+
     else:
         error("Invalid object type %s" % type(expression))
-    
+
     return s, len(nodes) + nodeoffset
 

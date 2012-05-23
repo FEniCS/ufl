@@ -1,6 +1,6 @@
 """This module provides assertion functions used by the UFL implementation."""
 
-# Copyright (C) 2008-2011 Martin Sandve Alnes
+# Copyright (C) 2008-2012 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #

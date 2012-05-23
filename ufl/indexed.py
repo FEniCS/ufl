@@ -1,6 +1,6 @@
 """This module defines the Indexed class."""
 
-# Copyright (C) 2008-2011 Martin Sandve Alnes
+# Copyright (C) 2008-2012 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -58,19 +58,19 @@ class Indexed(WrapperType):
 
         self._free_indices = fi
         self._index_dimensions = idims or EmptyDict
-    
+
     def operands(self):
         return (self._expression, self._indices)
-    
+
     def free_indices(self):
         return self._free_indices
-    
+
     def index_dimensions(self):
         return self._index_dimensions
-    
+
     def shape(self):
         return ()
-    
+
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
         return self._expression.is_cellwise_constant()
@@ -84,10 +84,10 @@ class Indexed(WrapperType):
 
     def __str__(self):
         return "%s[%s]" % (parstr(self._expression, self), self._indices)
-    
+
     def __repr__(self):
         return "Indexed(%r, %r)" % (self._expression, self._indices)
-    
+
     def __getitem__(self, key):
         error("Attempting to index with %r, but object is already indexed: %r" % (key, self))
 

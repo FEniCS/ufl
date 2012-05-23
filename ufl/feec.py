@@ -1,4 +1,4 @@
-# Copyright (C) 2010-2011 Marie E. Rognes
+# Copyright (C) 2010-2012 Marie E. Rognes
 #
 # This file is part of UFL.
 #

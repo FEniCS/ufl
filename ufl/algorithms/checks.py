@@ -1,6 +1,6 @@
 """Functions to check the validity of forms."""
 
-# Copyright (C) 2008-2011 Martin Sandve Alnes
+# Copyright (C) 2008-2012 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #

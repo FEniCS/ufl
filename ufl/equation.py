@@ -1,6 +1,6 @@
 "The Equation class, used to express equations like a == L."
 
-# Copyright (C) 2011 Anders Logg and Martin Sandve Alnes
+# Copyright (C) 2012 Anders Logg and Martin Sandve Alnes
 #
 # This file is part of UFL.
 #

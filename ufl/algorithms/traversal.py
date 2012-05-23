@@ -1,6 +1,6 @@
 """This module contains algorithms for traversing expression trees in different ways."""
 
-# Copyright (C) 2008-2011 Martin Sandve Alnes and Anders Logg
+# Copyright (C) 2008-2012 Martin Sandve Alnes and Anders Logg
 #
 # This file is part of UFL.
 #
@@ -147,10 +147,10 @@ def _walk(expr, pre_func, post_func, stack):
 
 def walk(a, pre_func, post_func, stack=None):
     """Call pre_func and post_func on each expression tree node in a.
-    
-    The functions are called on a node before and 
+
+    The functions are called on a node before and
     after its children are visited respectively.
-    
+
     The argument a can be a Form, Integral or Expr."""
     if stack is None:
         stack = []

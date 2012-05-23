@@ -1,6 +1,6 @@
 """Classes used to group scalar expressions into expressions with rank > 0."""
 
-# Copyright (C) 2008-2011 Martin Sandve Alnes
+# Copyright (C) 2008-2012 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -119,7 +119,7 @@ class ListTensor(WrapperType):
             return sub if len(key) == 1 else sub[key[1:]]
 
         return Expr.__getitem__(self, origkey)
-    
+
     def __str__(self):
         def substring(expressions, indent):
             ind = " "*indent
@@ -166,9 +166,9 @@ class ComponentTensor(WrapperType):
 
         ufl_assert(all(isinstance(i, Index) for i in indices),
            "Expecting sequence of Index objects, not %s." % repr(indices))
-        
+
         dims = expression.index_dimensions()
-        
+
         if not isinstance(indices, MultiIndex): # if constructed from repr
             indices = MultiIndex(indices, subdict(dims, indices))
         self._indices = indices
@@ -181,7 +181,7 @@ class ComponentTensor(WrapperType):
         missingset = iset - eset
         if missingset:
             error("Missing indices %s in expression %s." % (missingset, expression))
-        
+
         self._index_dimensions = dict((i, dims[i]) for i in self._free_indices) or EmptyDict
         self._shape = tuple(dims[i] for i in self._indices)
 
@@ -217,17 +217,17 @@ class ComponentTensor(WrapperType):
         # Map component to indices
         for i, c in izip(indices, component):
             index_values.push(i, c)
-        
+
         a = a.evaluate(x, mapping, (), index_values)
-        
+
         for _ in component:
             index_values.pop()
-        
+
         return a
 
     def __str__(self):
         return "{ A | A_{%s} = %s }" % (self._indices, self._expression)
-    
+
     def __repr__(self):
         return "ComponentTensor(%r, %r)" % (self._expression, self._indices)
 
@@ -241,7 +241,7 @@ def numpy2nestedlists(arr):
 
 def _as_list_tensor(expressions):
     if isinstance(expressions, (list, tuple)):
-        expressions = [_as_list_tensor(e) for e in expressions] 
+        expressions = [_as_list_tensor(e) for e in expressions]
         return ListTensor(*expressions)
     else:
         return as_ufl(expressions)

@@ -2,7 +2,7 @@
 This way we avoid circular dependencies between e.g.
 Sum and its superclass Expr."""
 
-# Copyright (C) 2008-2011 Martin Sandve Alnes
+# Copyright (C) 2008-2012 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #

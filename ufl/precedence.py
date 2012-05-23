@@ -1,6 +1,6 @@
 "Precedence handling."
 
-# Copyright (C) 2008-2011 Martin Sandve Alnes
+# Copyright (C) 2008-2012 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -34,7 +34,7 @@ def parstr(child, parent, pre="(", post=")", format=str):
     # we later wrap in ().
     s = format(child)
 
-    # Operators where operands are always parenthesized 
+    # Operators where operands are always parenthesized
     if parent._precedence == 0:
         return pre + s + post
 

@@ -1,7 +1,7 @@
 """Defines the Variable and Label classes, used to label
 expressions as variables for differentiation."""
 
-# Copyright (C) 2008-2011 Martin Sandve Alnes
+# Copyright (C) 2008-2012 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #

@@ -1,6 +1,6 @@
 "Algorithms related to restrictions."
 
-# Copyright (C) 2008-2011 Martin Sandve Alnes
+# Copyright (C) 2008-2012 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -28,7 +28,7 @@ class RestrictionPropagator(ReuseTransformer):
     def __init__(self):
         ReuseTransformer.__init__(self)
         self.current_restriction = None
-    
+
     def restricted(self, o):
         ufl_assert(self.current_restriction is None,
             "Not expecting twice restricted expression.")

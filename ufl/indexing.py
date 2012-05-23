@@ -1,6 +1,6 @@
 """This module defines the single index types and some internal index utilities."""
 
-# Copyright (C) 2008-2011 Martin Sandve Alnes and Anders Logg
+# Copyright (C) 2008-2012 Martin Sandve Alnes and Anders Logg
 #
 # This file is part of UFL.
 #
@@ -146,7 +146,7 @@ class MultiIndex(UtilityType):
 
         if any(not isinstance(idims.get(k,0), int) for k in ii if isinstance(k, Index)):
             error("Missing index or invalid dimension in provided idims.")
-    
+
     def evaluate(self, x, mapping, component, index_values):
         # Build component from index values
         component = []
@@ -199,13 +199,13 @@ class MultiIndex(UtilityType):
 
     def __len__(self):
         return len(self._indices)
-    
+
     def __getitem__(self, i):
         return self._indices[i]
-    
+
     def __iter__(self):
         return iter(self._indices)
-    
+
     def __eq__(self, other):
         return isinstance(other, MultiIndex) and \
             self._indices == other._indices

@@ -1,6 +1,6 @@
 """Lifting operations."""
 
-# Copyright (C) 2008-2011 Martin Sandve Alnes
+# Copyright (C) 2008-2012 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -46,7 +46,7 @@ class LiftingResult(Operator):
 
     def operands(self):
         return (self._operator, self._operand)
-    
+
     def shape(self):
         return self._shape
 
@@ -85,7 +85,7 @@ class TerminalOperator(Terminal):
     __slots__ = ()
     def __init__(self):
         Terminal.__init__(self)
-    
+
     def shape(self):
         error("Calling this makes no sense.")
         return ()

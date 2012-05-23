@@ -3,7 +3,7 @@ which are either already available as member functions on UFL objects
 or defined as compound operators involving basic operations on the UFL
 objects."""
 
-# Copyright (C) 2008-2011 Martin Sandve Alnes and Anders Logg
+# Copyright (C) 2008-2012 Martin Sandve Alnes and Anders Logg
 #
 # This file is part of UFL.
 #
@@ -191,7 +191,7 @@ def tr(A):
 def diag(A):
     """UFL operator: Take the diagonal part of rank 2 tensor A _or_
     make a diagonal rank 2 tensor from a rank 1 tensor.
-    
+
     Always returns a rank 2 tensor. See also diag_vector."""
 
     # TODO: Make a compound type or two for this operator
@@ -216,7 +216,7 @@ def diag(A):
 
 def diag_vector(A):
     """UFL operator: Take the diagonal part of rank 2 tensor A and return as a vector."
-    
+
     See also diag."""
 
     # TODO: Make a compound type for this operator

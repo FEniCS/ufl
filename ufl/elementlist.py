@@ -2,7 +2,7 @@
 families. Users or more likely, form compilers, may register new
 elements by calling the function register_element."""
 
-# Copyright (C) 2008-2011 Martin Sandve Alnes and Anders Logg
+# Copyright (C) 2008-2012 Martin Sandve Alnes and Anders Logg
 #
 # This file is part of UFL.
 #

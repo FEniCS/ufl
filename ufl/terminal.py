@@ -1,7 +1,7 @@
 """This module defines the Terminal class, the superclass
 for all types that are terminal nodes in the expression trees."""
 
-# Copyright (C) 2008-2011 Martin Sandve Alnes
+# Copyright (C) 2008-2012 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -32,27 +32,27 @@ from ufl.common import EmptyDict
 class Terminal(Expr):
     "A terminal node in the UFL expression tree."
     __slots__ = ()
-    
+
     def __init__(self):
         Expr.__init__(self)
-    
+
     def reconstruct(self, *operands):
         "Return self."
         operands and error("Got call to reconstruct in a terminal with non-empty operands.")
         return self
-    
+
     def operands(self):
         "A Terminal object never has operands."
         return ()
-    
+
     def free_indices(self):
         "A Terminal object never has free indices."
         return ()
-    
+
     def index_dimensions(self):
         "A Terminal object never has free indices."
         return EmptyDict
-    
+
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
         "Get self from mapping and return the component asked for."
         f = mapping.get(self)
@@ -84,7 +84,7 @@ class Terminal(Expr):
         else:
             if derivatives:
                 return 0.0
-        
+
         # Take component if any (expecting nested tuple)
         for c in component:
             f = f[c]
@@ -121,16 +121,16 @@ class UtilityType(Terminal):
     __slots__ = ()
     def __init__(self):
         Terminal.__init__(self)
-    
+
     def shape(self):
         error("Calling shape on a utility type is an error.")
-    
+
     def free_indices(self):
         error("Calling free_indices on a utility type is an error.")
-    
+
     def index_dimensions(self):
         error("Calling index_dimensions on a utility type is an error.")
-    
+
     def is_cellwise_constant(self):
         error("Calling is_cellwise_constant on a utility type is an error.")
 

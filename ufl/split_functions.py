@@ -1,6 +1,6 @@
 "Algorithm for splitting a Coefficient or Argument into subfunctions."
 
-# Copyright (C) 2008-2011 Martin Sandve Alnes
+# Copyright (C) 2008-2012 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -70,10 +70,10 @@ def split(v):
 
         elif rank == 2:
             # This subelement is a tensor, possibly with symmetries, slightly more complicated...
-            
+
             # Size of this subvalue
             sub_size = product(shape)
-            
+
             # If this subelement is a symmetric element, subtract symmetric components
             s = None
             if isinstance(e, TensorElement):
@@ -106,7 +106,7 @@ def split(v):
                         component = v[k]
                     row.append(component)
                 components.append(row)
-            
+
             # Make a matrix of the components
             subv = as_matrix(components)
             offset += sub_size
@@ -121,5 +121,5 @@ def split(v):
         sub_functions.append(subv)
 
     ufl_assert(actual_value_size == offset, "Logic breach in function splitting.")
-    
+
     return tuple(sub_functions)

@@ -1,6 +1,6 @@
 "This module defines basic utilities for stitching together LaTeX documents."
 
-# Copyright (C) 2008-2011 Martin Sandve Alnes
+# Copyright (C) 2008-2012 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -125,7 +125,7 @@ def testdocument():
     title = "Test title 1"
     sections = ["sec1", "sec2"]
     print document(title, sections)
-    
+
     title = "Test title 2"
     sections = [("sec1", "secbody1"), ("sec2", "secbody2")]
     print document(title, sections)

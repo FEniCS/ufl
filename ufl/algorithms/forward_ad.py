@@ -1,6 +1,6 @@
 """Forward mode AD implementation."""
 
-# Copyright (C) 2008-2011 Martin Sandve Alnes
+# Copyright (C) 2008-2012 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -934,7 +934,7 @@ class CoefficientAD(ForwardAD):
                     oprimes = (oprimes,)
                     ufl_assert(len(oprimes) == len(self._v), "Got a tuple of arguments, "+\
                                    "expecting a matching tuple of coefficient derivatives.")
-    
+
                 # Compute dg/dw_j = dg/dw_h : v.
                 # Since we may actually have a tuple of oprimes and vs in a
                 # 'mixed' space, sum over them all to get the complete inner
@@ -1103,7 +1103,7 @@ class UnusedADRules(object):
     def grad(self, o, a):
         a, aprime = a
         c = aprime.cell()
-        if c is None or c.is_undefined(): # FIXME: 
+        if c is None or c.is_undefined(): # FIXME:
             oprime = self._make_zero_diff(o)
         else:
             oprime = o.reconstruct(aprime)

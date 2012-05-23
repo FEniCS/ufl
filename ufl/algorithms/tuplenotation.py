@@ -1,6 +1,6 @@
 "Algorithms for tuple notation a = (v, u) + (grad(v), grad(u))."
 
-# Copyright (C) 2008-2011 Anders Logg
+# Copyright (C) 2008-2012 Anders Logg
 #
 # This file is part of UFL.
 #

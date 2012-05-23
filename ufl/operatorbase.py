@@ -1,3 +1,26 @@
+"Base class for all operators, i.e. non-terminal expr types."
+
+# Copyright (C) 2008-2012 Martin Sandve Alnes
+#
+# This file is part of UFL.
+#
+# UFL is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# UFL is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with UFL. If not, see <http://www.gnu.org/licenses/>.
+#
+# Modified by Anders Logg, 2008
+#
+# First added:  2008-03-14
+# Last changed: 2012-05-23
 
 from itertools import imap
 from ufl.expr import Expr
@@ -123,31 +146,31 @@ class Tuple(WrapperType):
         if not all(isinstance(i, Expr) for i in items):
             error("Got non-Expr in Tuple, is this intended? If so, remove this error.")
         self._items = tuple(items)
-    
+
     def operands(self):
         return self._items
-    
+
     def shape(self):
         error("Calling shape on a utility type is an error.")
-    
+
     def free_indices(self):
         error("Calling free_indices on a utility type is an error.")
-    
+
     def index_dimensions(self):
         error("Calling free_indices on a utility type is an error.")
-    
+
     def __getitem__(self, i):
         return self._items[i]
-    
+
     def __len__(self):
         return len(self._items)
-    
+
     def __iter__(self):
         return iter(self._items)
-    
+
     def __str__(self):
         return "Tuple(*(%s,))" % ", ".join(str(i) for i in self._items)
-    
+
     def __repr__(self):
         return "Tuple(*%s)" % repr(self._items)
 

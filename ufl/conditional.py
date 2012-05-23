@@ -1,6 +1,6 @@
 """This module defines classes for conditional expressions."""
 
-# Copyright (C) 2008-2011 Martin Sandve Alnes
+# Copyright (C) 2008-2012 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -23,10 +23,10 @@
 from ufl.log import warning, error
 from ufl.assertions import ufl_assert
 from ufl.operatorbase import Operator
-from ufl.constantvalue import as_ufl 
+from ufl.constantvalue import as_ufl
 from ufl.precedence import parstr
 
-#--- Condition classes --- 
+#--- Condition classes ---
 
 class Condition(Operator):
     __slots__ = ()
@@ -80,7 +80,7 @@ class EQ(BinaryCondition):
     __slots__ = ()
     def __init__(self, left, right):
         BinaryCondition.__init__(self, "==", left, right)
-    
+
     def evaluate(self, x, mapping, component, index_values):
         a = self._left.evaluate(x, mapping, component, index_values)
         b = self._right.evaluate(x, mapping, component, index_values)
@@ -90,7 +90,7 @@ class NE(BinaryCondition):
     __slots__ = ()
     def __init__(self, left, right):
         BinaryCondition.__init__(self, "!=", left, right)
-    
+
     def evaluate(self, x, mapping, component, index_values):
         a = self._left.evaluate(x, mapping, component, index_values)
         b = self._right.evaluate(x, mapping, component, index_values)
@@ -100,7 +100,7 @@ class LE(BinaryCondition):
     __slots__ = ()
     def __init__(self, left, right):
         BinaryCondition.__init__(self, "<=", left, right)
-    
+
     def evaluate(self, x, mapping, component, index_values):
         a = self._left.evaluate(x, mapping, component, index_values)
         b = self._right.evaluate(x, mapping, component, index_values)
@@ -110,7 +110,7 @@ class GE(BinaryCondition):
     __slots__ = ()
     def __init__(self, left, right):
         BinaryCondition.__init__(self, ">=", left, right)
-    
+
     def evaluate(self, x, mapping, component, index_values):
         a = self._left.evaluate(x, mapping, component, index_values)
         b = self._right.evaluate(x, mapping, component, index_values)
@@ -120,7 +120,7 @@ class LT(BinaryCondition):
     __slots__ = ()
     def __init__(self, left, right):
         BinaryCondition.__init__(self, "<", left, right)
-    
+
     def evaluate(self, x, mapping, component, index_values):
         a = self._left.evaluate(x, mapping, component, index_values)
         b = self._right.evaluate(x, mapping, component, index_values)
@@ -130,7 +130,7 @@ class GT(BinaryCondition):
     __slots__ = ()
     def __init__(self, left, right):
         BinaryCondition.__init__(self, ">", left, right)
-    
+
     def evaluate(self, x, mapping, component, index_values):
         a = self._left.evaluate(x, mapping, component, index_values)
         b = self._right.evaluate(x, mapping, component, index_values)
@@ -140,7 +140,7 @@ class AndCondition(BinaryCondition):
     __slots__ = ()
     def __init__(self, left, right):
         BinaryCondition.__init__(self, "&&", left, right)
-    
+
     def evaluate(self, x, mapping, component, index_values):
         a = self._left.evaluate(x, mapping, component, index_values)
         b = self._right.evaluate(x, mapping, component, index_values)
@@ -150,7 +150,7 @@ class OrCondition(BinaryCondition):
     __slots__ = ()
     def __init__(self, left, right):
         BinaryCondition.__init__(self, "||", left, right)
-    
+
     def evaluate(self, x, mapping, component, index_values):
         a = self._left.evaluate(x, mapping, component, index_values)
         b = self._right.evaluate(x, mapping, component, index_values)
@@ -206,7 +206,7 @@ class Conditional(Operator):
 
     def shape(self):
         return self._true_value.shape()
-    
+
     def evaluate(self, x, mapping, component, index_values):
         c = self._condition.evaluate(x, mapping, component, index_values)
         if c:
@@ -217,7 +217,7 @@ class Conditional(Operator):
 
     def __str__(self):
         return "%s ? %s : %s" % tuple(parstr(o, self) for o in self.operands())
-    
+
     def __repr__(self):
         return "Conditional(%r, %r, %r)" % self.operands()
 

@@ -8,7 +8,7 @@ as well as the transpose "A.T" and spatial derivative "a.dx(i)".
 This is to avoid circular dependencies between Expr and its subclasses.
 """
 
-# Copyright (C) 2008-2011 Martin Sandve Alnes
+# Copyright (C) 2008-2012 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #

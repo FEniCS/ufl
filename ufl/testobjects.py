@@ -1,4 +1,4 @@
-
+"Some premade objects useful for quick testing."
 from ufl import *
 
 cell = triangle

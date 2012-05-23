@@ -222,7 +222,7 @@ class CompoundExpanderPreDiff(CompoundExpander):
     def __init__(self, dim):
         CompoundExpander.__init__(self, dim)
 
-    #inner = Transformer.reuse_if_possible 
+    #inner = Transformer.reuse_if_possible
     #dot = Transformer.reuse_if_possible
 
     def grad(self, o, a):

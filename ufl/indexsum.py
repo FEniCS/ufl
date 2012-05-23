@@ -1,6 +1,6 @@
 """This module defines the IndexSum class."""
 
-# Copyright (C) 2008-2011 Martin Sandve Alnes
+# Copyright (C) 2008-2012 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -32,7 +32,7 @@ from ufl.common import EmptyDict
 
 class IndexSum(AlgebraOperator):
     __slots__ = ("_summand", "_index", "_dimension", "_free_indices", "_index_dimensions")
-    
+
     def __new__(cls, summand, index):
         if not isinstance(summand, Expr):
             error("Expecting Expr instance, not %s." % repr(summand))
@@ -78,19 +78,19 @@ class IndexSum(AlgebraOperator):
 
     def index(self):
         return self._index[0]
-    
+
     def dimension(self):
         return self._dimension
-    
+
     def operands(self):
         return (self._summand, self._index)
-    
+
     def free_indices(self):
         return self._free_indices
-    
+
     def index_dimensions(self):
         return self._index_dimensions
-    
+
     def shape(self):
         return self._summand.shape()
 

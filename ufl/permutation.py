@@ -1,7 +1,7 @@
 """This module provides utility functions for computing permutations
 and generating index lists."""
 
-# Copyright (C) 2008-2011 Anders Logg and Kent-Andre Mardal
+# Copyright (C) 2008-2012 Anders Logg and Kent-Andre Mardal
 #
 # This file is part of UFL.
 #
@@ -103,7 +103,7 @@ def compute_sign(permutation):
                 (p[j], p[j + 1]) = (p[j + 1], p[j])
                 sign = -sign
             elif p[j] == p[j + 1]:
-                return 0 
+                return 0
     return sign
 
 def compute_order_tuples(k, n):
