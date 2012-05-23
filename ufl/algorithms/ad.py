@@ -104,8 +104,8 @@ def expand_derivatives1(form, dim=None,
             expression = aa.visit(expression)
 
         # FIXME: Form compilers assume expand_compounds have been applied.
-        #        This means quite a bit of work to handle all compounds
-        #        through the entire jit chain. For now, just test if we
+        #        Removing this assumption means quite a bit of work to handle all
+        #        compounds through the entire jit chain. For now, just test if we
         #        can apply compounds afterwards, to focus on fixing issues
         #        in the AD algorithm for compounds. Since this is optional,
         #        alternative form compilers can then disable expand_compounds alltogether.

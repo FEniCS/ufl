@@ -93,6 +93,13 @@ class Terminal(Expr):
     def signature_data(self):
         return repr(self)
 
+    def __float__(self):
+        ufl_assert(self.shape() == (),
+                   "Cannot convert nonscalar expression to float.")
+        ufl_assert(hasattr(self, 'ufl_evaluate'),
+                   "Cannot convert terminal type without ufl_evaluate function to float.")
+        return self.ufl_evaluate(x, component, derivatives)
+
     def __hash__(self):
         return hash(repr(self))
 
