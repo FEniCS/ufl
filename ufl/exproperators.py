@@ -308,14 +308,27 @@ def _call(self, arg, mapping=None):
         mapping = {}
     component = ()
     index_values = StackDict()
-    from ufl.algorithms import expand_derivatives
+
+    # Try to infer dimension from given x argument
     if arg is None:
         dim = None
     elif isinstance(arg, (tuple, list)):
         dim = len(arg)
-    else: # No type checking here...
+    else: # No type checking here, assuming a scalar x value...
         dim = 1
-    f = expand_derivatives(self, dim)
+
+    # Try to infer dimension from cell
+    if dim is None:
+        cell = self.cell()
+        if not cell.is_undefined():
+            dim = cell.geometric_dimension()
+
+    # Skip expand_derivatives if no dimension is known (not the smoothest solution...)
+    if dim is None:
+        f = self
+    else:
+        from ufl.algorithms import expand_derivatives
+        f = expand_derivatives(self, dim)
     return f.evaluate(arg, mapping, component, index_values)
 Expr.__call__ = _call
 

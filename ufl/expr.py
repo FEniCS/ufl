@@ -123,7 +123,7 @@ class Expr(object):
     def __float__(self):
         if self.shape() != () or self.free_indices() != ():
             raise NotImplementedError(self.__class__.__float__)
-        return self(None)
+        return self(None) # No known x
 
     #--- Functions for index handling ---
 

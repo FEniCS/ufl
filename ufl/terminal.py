@@ -25,6 +25,7 @@ for all types that are terminal nodes in the expression trees."""
 
 from ufl.expr import Expr
 from ufl.log import error, warning
+from ufl.assertions import ufl_assert
 from ufl.common import EmptyDict
 
 #--- Base class for terminal objects ---
@@ -92,13 +93,6 @@ class Terminal(Expr):
 
     def signature_data(self):
         return repr(self)
-
-    def __float__(self):
-        ufl_assert(self.shape() == (),
-                   "Cannot convert nonscalar expression to float.")
-        ufl_assert(hasattr(self, 'ufl_evaluate'),
-                   "Cannot convert terminal type without ufl_evaluate function to float.")
-        return self.ufl_evaluate(x, component, derivatives)
 
     def __hash__(self):
         return hash(repr(self))
