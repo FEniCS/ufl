@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 import unittest
 
-class UflTestCase(unittest.TestCase):
+
+class CompatibilityTestCase(unittest.TestCase):
+    def __init__(self, *args, **kwargs):
+        super(CompatibilityTestCase, self).__init__(*args, **kwargs)
+
     def setUp(self):
-        super(UflTestCase, self).setUp()
-        #print "UflTestCase.setup"
+        super(CompatibilityTestCase, self).setUp()
 
     def tearDown(self):
-        #print "UflTestCase.tearDown"
-        super(UflTestCase, self).tearDown()
+        super(CompatibilityTestCase, self).tearDown()
 
     ### Asserts available in TestCase from python 2.7:
 
@@ -33,6 +35,24 @@ class UflTestCase(unittest.TestCase):
     def _assertLess(self, lhs, rhs, msg=None):
         self.assertTrue(lhs < rhs, msg=msg)
 
+# Hack for different versions of python unittest:
+for func in ('assertIsInstance', 'assertNotIsInstance',
+             'assertIs', 'assertIsNot', 'assertIsNone',
+             'assertGreater', 'assertLess'):
+    if not hasattr(CompatibilityTestCase, func):
+        setattr(CompatibilityTestCase, func, getattr(CompatibilityTestCase, '_'+func))
+
+
+class UflTestCase(CompatibilityTestCase):
+    def __init__(self, *args, **kwargs):
+        super(UflTestCase, self).__init__(*args, **kwargs)
+
+    def setUp(self):
+        super(UflTestCase, self).setUp()
+
+    def tearDown(self):
+        super(UflTestCase, self).tearDown()
+
     ### UFL specific asserts
 
     def assertSameIndices(self, expr, free_indices, msg=None):
@@ -51,12 +71,6 @@ class UflTestCase(unittest.TestCase):
                 self.assertIsInstance(expr, Terminal, msg=msg)
             else:
                 self.assertIsInstance(expr, Operator, msg=msg)
-
-
-# Hack for different versions of python unittest:
-for func in ('assertIsInstance', 'assertNotIsInstance', 'assertIs', 'assertIsNot', 'assertIsNone', 'assertGreater', 'assertLess'):
-    if not hasattr(UflTestCase, func):
-        setattr(UflTestCase, func, getattr(UflTestCase, '_'+func))
 
 def main(*args, **kwargs):
     "Hook to do something before running single file tests."
