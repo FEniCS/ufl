@@ -310,15 +310,12 @@ def _eval(self, coord, mapping=None):
     # Try to infer dimension from cell
     if dim is None:
         cell = self.cell()
-        if not cell.is_undefined():
+        if (cell is not None) and (not cell.is_undefined()):
             dim = cell.geometric_dimension()
 
-    # Skip expand_derivatives if no dimension is known (not the smoothest solution...)
-    if dim is None:
-        f = self
-    else:
-        from ufl.algorithms import expand_derivatives
-        f = expand_derivatives(self, dim)
+    # Evaluate derivatives first
+    from ufl.algorithms import expand_derivatives
+    f = expand_derivatives(self, dim)
 
     # Evaluate recursively
     if mapping is None:
