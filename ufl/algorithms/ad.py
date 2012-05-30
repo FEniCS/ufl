@@ -135,7 +135,9 @@ def expand_derivatives2(form, dim=None,
     if dim is None:
         dim = gdim
     if gdim is not None:
-        ufl_assert(dim == gdim, "Expecting dim to match the geometric dimension, got dim=%r and gdim=%r." % (dim, gdim))
+        ufl_assert(dim == gdim,
+                   "Expecting dim to match the geometric dimension, "+\
+                   "got dim=%r and gdim=%r." % (dim, gdim))
 
     def _expand_derivatives(expression):
         #print '_expand_derivatives:', expression

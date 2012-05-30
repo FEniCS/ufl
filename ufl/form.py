@@ -122,18 +122,22 @@ class Form(object):
     def compute_form_data(self,
                           object_names=None,
                           common_cell=None,
-                          element_mapping=None):
+                          element_mapping=None,
+                          replace_functions=True,
+                          skip_signature=False):
         "Compute and return form metadata"
         if self._form_data is None:
             from ufl.algorithms.preprocess import preprocess
             self._form_data = preprocess(self,
                                          object_names=object_names,
                                          common_cell=common_cell,
-                                         element_mapping=element_mapping)
+                                         element_mapping=element_mapping,
+                                         replace_functions=replace_functions,
+                                         skip_signature=skip_signature)
         else:
             self._form_data.validate(object_names=object_names,
                                      common_cell=common_cell,
-                                     element_mapping=element_mapping)
+                                     element_mapping=element_mapping) # TODO: Check replace_functions and skip_signature as well
         return self.form_data()
 
     def is_preprocessed(self):

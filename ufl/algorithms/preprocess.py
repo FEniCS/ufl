@@ -24,13 +24,13 @@ raw input form given by a user."""
 
 from itertools import chain
 from time import time
+import ufl
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.expr import Expr
 from ufl.form import Form
 from ufl.common import slice_dict
 from ufl.geometry import Cell
-from ufl.algorithms.ad import expand_derivatives
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.algorithms.replace import replace
 from ufl.algorithms.analysis import (extract_arguments_and_coefficients,
@@ -43,7 +43,7 @@ from ufl.algorithms.formdata import FormData
 from ufl.algorithms.expand_indices import expand_indices
 
 def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
-               replace_functions=True):
+               replace_functions=True, skip_signature=False):
     """
     Preprocess raw input form to obtain form metadata, including a
     modified (preprocessed) form more easily manipulated by form
@@ -52,7 +52,7 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
 
       expand_compounds    (side effect of calling expand_derivatives)
       expand_derivatives
-      renumber_indices
+      renumber arguments and coefficients and apply evt. element mapping
     """
     times = []
     def tic(msg):
@@ -86,6 +86,8 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
     # TODO: Split out expand_compounds from expand_derivatives
     # Expand derivatives
     tic('expand_derivatives')
+    # Temporary hack, don't touch:
+    expand_derivatives = ufl.algorithms.ad.expand_derivatives
     form = expand_derivatives(form, common_cell.geometric_dimension())
 
     # Replace arguments and coefficients with new renumbered objects
@@ -134,7 +136,10 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
 
     # Store signature of form
     tic('signature')
-    form_data.signature = form.signature(form_data.function_replace_map)
+    if skip_signature:
+        form_data.signature = None
+    else:
+        form_data.signature = form.signature(form_data.function_replace_map)
 
     # Store elements, sub elements and element map
     tic('extract_elements')
@@ -226,7 +231,7 @@ def preprocess_expression(expr, object_names=None, common_cell=None, element_map
 
       expand_compounds    (side effect of calling expand_derivatives)
       expand_derivatives
-      renumber_indices
+      renumber arguments and coefficients and apply evt. element mapping
     """
 
     use_expand_indices = True # TODO: make argument or fixate?
@@ -259,6 +264,8 @@ def preprocess_expression(expr, object_names=None, common_cell=None, element_map
         gdim = None
 
     # Expand derivatives
+    # Temporary hack, don't touch:
+    expand_derivatives = ufl.algorithms.ad.expand_derivatives
     expr = expand_derivatives(expr, gdim)
 
     # Renumber indices
