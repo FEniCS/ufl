@@ -480,12 +480,20 @@ class TensorElement(MixedElement):
             #shape = () if dim == 1 else (dim, dim) # FIXME: Should we do this?
             shape = (dim, dim)
 
-            # Construct default symmetry for matrix elements
-            if symmetry == True:
-                symmetry = dict( ((i,j), (j,i)) for i in range(dim) for j in range(dim) if i > j )
-            else:
-                ufl_assert(symmetry is None,
-                          "Symmetry of tensor element cannot be specified unless shape has been specified.")
+        # Construct default symmetry for matrix elements
+        if isinstance(symmetry, dict):
+            pass
+        elif symmetry == True:
+            symmetry = dict( ((i,j), (j,i)) for i in range(dim) for j in range(dim) if i > j )
+        else:
+            symmetry = {}
+
+        # Validate indices in symmetry dict
+        for i,j in symmetry.iteritems():
+            ufl_assert(len(i) == len(j), "Non-matching length of symmetry index tuples.")
+            for k in range(len(i)):
+                ufl_assert(i[k] >= 0 and j[k] >= 0 and i[k] < shape[k] and j[k] < shape[k],
+                           "Symmetry dimensions out of bounds.")
 
         # Compute all index combinations for given shape
         indices = compute_indices(shape)
@@ -505,8 +513,9 @@ class TensorElement(MixedElement):
 
         # Update mapping for symmetry
         for index in indices:
-            if symmetry and index in symmetry:
-                sub_element_mapping[index] = sub_element_mapping[symmetry[index]]
+            symi = symmetry.get(index)
+            if symi is not None:
+                sub_element_mapping[index] = sub_element_mapping[symi]
 
         # Compute value shape
         value_shape = shape + sub_element.value_shape()

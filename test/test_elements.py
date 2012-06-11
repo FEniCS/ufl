@@ -56,6 +56,10 @@ class ElementsTestCase(UflTestCase):
             dim = cell.d
             for p in range(1,10):
                 for s in (None, True, {(0,1): (1,0)}):
+                    # Symmetry dict is invalid for interval cell
+                    if isinstance(s,dict) and cell == interval:
+                        continue
+
                     for family in ("Lagrange", "CG", "Discontinuous Lagrange", "DG"):
                         if isinstance(s, dict):
                             element = TensorElement(family, cell, p, shape=(dim,dim), symmetry=s)
