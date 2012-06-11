@@ -481,19 +481,18 @@ class TensorElement(MixedElement):
             shape = (dim, dim)
 
         # Construct default symmetry for matrix elements
-        if isinstance(symmetry, dict):
-            pass
-        elif symmetry == True:
+        if symmetry == True:
             symmetry = dict( ((i,j), (j,i)) for i in range(dim) for j in range(dim) if i > j )
-        else:
-            symmetry = {}
 
         # Validate indices in symmetry dict
-        for i,j in symmetry.iteritems():
-            ufl_assert(len(i) == len(j), "Non-matching length of symmetry index tuples.")
-            for k in range(len(i)):
-                ufl_assert(i[k] >= 0 and j[k] >= 0 and i[k] < shape[k] and j[k] < shape[k],
-                           "Symmetry dimensions out of bounds.")
+        if isinstance(symmetry, dict):
+            for i,j in symmetry.iteritems():
+                ufl_assert(len(i) == len(j), "Non-matching length of symmetry index tuples.")
+                for k in range(len(i)):
+                    ufl_assert(i[k] >= 0 and j[k] >= 0 and i[k] < shape[k] and j[k] < shape[k],
+                               "Symmetry dimensions out of bounds.")
+        else:
+            ufl_assert(symmetry is None, "Expecting symmetry to be None, True, or dict.")
 
         # Compute all index combinations for given shape
         indices = compute_indices(shape)
@@ -508,14 +507,13 @@ class TensorElement(MixedElement):
             sub_element_mapping[index] = len(sub_elements)
             sub_elements += [sub_element]
 
-        # Get common family name (checked in FiniteElement.__init__)
-        family = sub_element.family()
-
         # Update mapping for symmetry
         for index in indices:
-            symi = symmetry.get(index)
-            if symi is not None:
-                sub_element_mapping[index] = sub_element_mapping[symi]
+            if symmetry and index in symmetry:
+                sub_element_mapping[index] = sub_element_mapping[symmetry[index]]
+
+        # Get common family name (checked in FiniteElement.__init__)
+        family = sub_element.family()
 
         # Compute value shape
         value_shape = shape + sub_element.value_shape()
