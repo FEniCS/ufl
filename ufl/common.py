@@ -267,6 +267,7 @@ def recursive_chain(lists):
                 yield s
 
 class Counted(object):
+    __slots__ = ("_count",)
     """A superclass for classes of objects identified by a global counter.
 
     Intended to be inherited to provide consistent counting logic. Usage:
@@ -300,19 +301,17 @@ class Counted(object):
            def __init__(self):
                MyClass.__init__(self)
     """
-    #__slots__ = ('_count',)
     def __init__(self, count=None, countedclass=None):
         if countedclass is None:
             countedclass = type(self)
-        #self._countedclass = countedclass
 
         if count is None:
             self._count = countedclass._globalcount
-            countedclass._globalcount += 1
         else:
             self._count = count
-            if count >= countedclass._globalcount:
-                countedclass._globalcount = count + 1
+
+        if self._count >= countedclass._globalcount:
+            countedclass._globalcount = self._count + 1
 
     def count(self):
         return self._count

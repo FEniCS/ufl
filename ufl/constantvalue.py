@@ -101,7 +101,8 @@ class Zero(IndexAnnotated):
 
     def __init__(self, shape=(), free_indices=(), index_dimensions=None):
         if not hasattr(self, '_shape'):
-            ufl_assert(isinstance(free_indices, tuple), "Expecting tuple of free indices, not %s" % str(free_indices))
+            ufl_assert(isinstance(free_indices, tuple),
+                       "Expecting tuple of free indices, not %s" % str(free_indices))
             IndexAnnotated.__init__(self, shape, free_indices, index_dimensions)
 
     def reconstruct(self, free_indices=None):
