@@ -25,14 +25,13 @@ of related classes, including Constant."""
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
-from ufl.common import Counted
 from ufl.terminal import FormArgument
 from ufl.finiteelement import FiniteElementBase, FiniteElement, VectorElement, TensorElement
 from ufl.split_functions import split
 
 # --- The Coefficient class represents a coefficient in a form ---
 
-class Coefficient(FormArgument, Counted):
+class Coefficient(FormArgument):
     """UFL form argument type: Representation of a form coefficient."""
 
     # Slots are disabled here because they cause trouble in PyDOLFIN multiple inheritance pattern:
@@ -40,8 +39,7 @@ class Coefficient(FormArgument, Counted):
     _globalcount = 0
 
     def __init__(self, element, count=None):
-        FormArgument.__init__(self)
-        Counted.__init__(self, count, Coefficient)
+        FormArgument.__init__(self, count, Coefficient)
         ufl_assert(isinstance(element, FiniteElementBase),
             "Expecting a FiniteElementBase instance.")
         self._element = element

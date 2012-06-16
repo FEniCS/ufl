@@ -22,25 +22,29 @@
 
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
-from ufl.common import Counted, EmptyDict
+from ufl.common import counted_init, EmptyDict
 from ufl.terminal import UtilityType
 from itertools import izip
 
 #--- Index types ---
 
 class IndexBase(object):
+    __slots__ = ()
     def __init__(self):
         pass
 
-class Index(IndexBase, Counted):
+class Index(IndexBase):
     """UFL value: An index with no value assigned.
 
     Used to represent free indices in Einstein indexing notation."""
-    __slots__ = ()
+    __slots__ = ("_count",)
     _globalcount = 0
     def __init__(self, count=None):
         IndexBase.__init__(self)
-        Counted.__init__(self, count)
+        counted_init(self, count, Index)
+
+    def count(self):
+        return self._count
 
     def __eq__(self, other):
         return isinstance(other, Index) and (self._count == other._count)

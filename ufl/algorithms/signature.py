@@ -22,7 +22,6 @@
 
 import hashlib
 from ufl.classes import Index, MultiIndex, Coefficient, Argument, Terminal, Label
-from ufl.common import Counted
 from ufl.log import error
 from ufl.algorithms.traversal import traverse_terminals2
 from ufl.common import fast_pre_traversal
@@ -72,8 +71,6 @@ def compute_terminal_hashdata(expressions, function_replace_map=None):
                     data = "L%d" % len(labels)
                     labels[expr] = data
                 terminal_hashdata[expr] = data
-            elif isinstance(expr, Counted):
-                error("Not implemented hashing for Counted subtype %s" % type(expr))
             else:
                 terminal_hashdata[expr] = repr(expr)
 

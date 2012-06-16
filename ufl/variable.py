@@ -21,7 +21,7 @@ expressions as variables for differentiation."""
 # First added:  2008-05-20
 # Last changed: 2011-06-02
 
-from ufl.common import Counted
+from ufl.common import counted_init
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.expr import Expr
@@ -29,11 +29,14 @@ from ufl.terminal import UtilityType
 from ufl.operatorbase import WrapperType
 from ufl.constantvalue import as_ufl
 
-class Label(UtilityType, Counted):
-    __slots__ = ()
+class Label(UtilityType):
+    __slots__ = ("_count",)
     _globalcount = 0
     def __init__(self, count=None):
-        Counted.__init__(self, count)
+        counted_init(self, count, Label)
+
+    def count(self):
+        return self._count
 
     def __str__(self):
         return "Label(%d)" % self._count

@@ -27,7 +27,6 @@ is more robust w.r.t. argument numbering than using repr."""
 from itertools import izip
 
 from ufl.log import error
-from ufl.common import Counted
 from ufl.terminal import Terminal, FormArgument
 from ufl.indexing import Index, FixedIndex, MultiIndex
 from ufl.variable import Label
@@ -63,13 +62,14 @@ def cmp_expr(a, b):
     # ... Label object?
     elif isinstance(a, Label):
         # Don't compare counts! Causes circular problems when renumbering to get a canonical form.
-        return 0 # Not equal in general (__eq__ won't be True), but for this purpose they are considered equal.
+        # Therefore, even though a and b are not equal in general (__eq__ won't be True),
+        # but for this sorting they are considered equal and we return 0.
+        return 0
 
     # ... Other Counted object? (Coefficient or Argument)
-    elif isinstance(a, Counted):
-        if not isinstance(a, FormArgument):
-            error("Expecting a Coefficient or Argument here, got %s instead." % str(type(a)))
-        # It's ok to compare counts for form arguments, since their order is a property of the form
+    elif isinstance(a, FormArgument):
+        # It's ok to compare relative counts for form arguments,
+        # since their ordering is a property of the form
         return cmp(a._count, b._count)
 
     # ... another kind of Terminal object?

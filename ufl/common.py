@@ -302,19 +302,23 @@ class Counted(object):
                MyClass.__init__(self)
     """
     def __init__(self, count=None, countedclass=None):
-        if countedclass is None:
-            countedclass = type(self)
-
-        if count is None:
-            self._count = countedclass._globalcount
-        else:
-            self._count = count
-
-        if self._count >= countedclass._globalcount:
-            countedclass._globalcount = self._count + 1
+        counted_init(self, count, countedclass)
 
     def count(self):
         return self._count
+
+def counted_init(self, count=None, countedclass=None):
+    if countedclass is None:
+        countedclass = type(self)
+
+    if count is None:
+        count = countedclass._globalcount
+
+    self._count = count
+
+    if self._count >= countedclass._globalcount:
+        countedclass._globalcount = self._count + 1
+
 
 class Stack(list):
     "A stack datastructure."

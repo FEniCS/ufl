@@ -24,21 +24,19 @@ classes (functions), including TestFunction and TrialFunction."""
 # Last changed: 2011-10-20
 
 from ufl.assertions import ufl_assert
-from ufl.common import Counted
 from ufl.terminal import FormArgument
 from ufl.split_functions import split
 from ufl.finiteelement import FiniteElementBase
 
 # --- Class representing an argument (basis function) in a form ---
 
-class Argument(FormArgument, Counted):
+class Argument(FormArgument):
     """UFL value: Representation of an argument to a form."""
     __slots__ = ("_repr", "_element",)
     _globalcount = 0
 
     def __init__(self, element, count=None):
-        FormArgument.__init__(self)
-        Counted.__init__(self, count, Argument)
+        FormArgument.__init__(self, count, Argument)
         ufl_assert(isinstance(element, FiniteElementBase),
             "Expecting a FiniteElementBase instance.")
         self._element = element

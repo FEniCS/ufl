@@ -27,6 +27,7 @@ from ufl.expr import Expr
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.common import EmptyDict
+from ufl.common import counted_init
 
 #--- Base class for terminal objects ---
 
@@ -114,9 +115,13 @@ class Terminal(Expr):
 #--- Subgroups of terminals ---
 
 class FormArgument(Terminal):
-    __slots__ = ()
-    def __init__(self):
+    __slots__ = ("_count",)
+    def __init__(self, count=None, countedclass=None):
         Terminal.__init__(self)
+        counted_init(self, count, countedclass)
+
+    def count(self):
+        return self._count
 
 class UtilityType(Terminal):
     __slots__ = ()
