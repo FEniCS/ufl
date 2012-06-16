@@ -33,6 +33,7 @@ class Label(UtilityType):
     __slots__ = ("_count",)
     _globalcount = 0
     def __init__(self, count=None):
+        UtilityType.__init__(self)
         counted_init(self, count, Label)
 
     def count(self):
