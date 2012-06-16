@@ -35,7 +35,7 @@ class Coefficient(FormArgument):
     """UFL form argument type: Representation of a form coefficient."""
 
     # Slots are disabled here because they cause trouble in PyDOLFIN multiple inheritance pattern:
-    #__slots__ = ("_element", "_repr", "_gradient", "_derivatives")
+    #__slots__ = ("_count", "_element", "_repr", "_gradient", "_derivatives")
     _globalcount = 0
 
     def __init__(self, element, count=None):

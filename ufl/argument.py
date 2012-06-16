@@ -32,7 +32,7 @@ from ufl.finiteelement import FiniteElementBase
 
 class Argument(FormArgument):
     """UFL value: Representation of an argument to a form."""
-    __slots__ = ("_repr", "_element",)
+    __slots__ = ("_count", "_repr", "_element",)
     _globalcount = 0
 
     def __init__(self, element, count=None):

@@ -115,7 +115,7 @@ class Terminal(Expr):
 #--- Subgroups of terminals ---
 
 class FormArgument(Terminal):
-    __slots__ = ("_count",)
+    __slots__ = ()
     def __init__(self, count=None, countedclass=None):
         Terminal.__init__(self)
         counted_init(self, count, countedclass)
