@@ -55,6 +55,7 @@ def form_info(form):
     ci = form.cell_integrals()
     ei = form.exterior_facet_integrals()
     ii = form.interior_facet_integrals()
+    pi = form.point_integrals()
     mi = form.macro_cell_integrals()
 
     s  = "Form info:\n"
@@ -63,6 +64,7 @@ def form_info(form):
     s += "  num_cell_integrals:            %d\n" % len(ci)
     s += "  num_exterior_facet_integrals:  %d\n" % len(ei)
     s += "  num_interior_facet_integrals:  %d\n" % len(ii)
+    s += "  num_point_integrals:           %d\n" % len(pi)
     s += "  num_macro_cell_integrals:      %d\n" % len(mi)
 
     for f in cf:
@@ -109,10 +111,11 @@ def tree_format(expression, indentation=0, parentheses=True):
         ci = expression.cell_integrals()
         ei = expression.exterior_facet_integrals()
         ii = expression.interior_facet_integrals()
+        pi = expression.point_integrals()
         mi = expression.macro_cell_integrals()
         ind = _indent_string(indentation)
         s += ind + "Form:\n"
-        s += "\n".join(tree_format(itg, indentation+1, parentheses) for itg in chain(ci, ei, ii, mi))
+        s += "\n".join(tree_format(itg, indentation+1, parentheses) for itg in chain(ci, ei, ii, pi, mi))
 
     elif isinstance(expression, Integral):
         ind = _indent_string(indentation)

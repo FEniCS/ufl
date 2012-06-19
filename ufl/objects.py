@@ -35,6 +35,7 @@ p, q, r, s = indices(4)
 dx = Measure(Measure.CELL, 0)
 ds = Measure(Measure.EXTERIOR_FACET, 0)
 dS = Measure(Measure.INTERIOR_FACET, 0)
+dP = Measure(Measure.POINT, 0)
 dE = Measure(Measure.MACRO_CELL, 0)
 dc = Measure(Measure.SURFACE, 0)
 

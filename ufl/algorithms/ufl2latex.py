@@ -371,6 +371,7 @@ def element2latex(element):
 domain_strings = { Measure.CELL: r"\Omega",
                    Measure.EXTERIOR_FACET: r"\Gamma^{ext}",
                    Measure.INTERIOR_FACET: r"\Gamma^{int}",
+                   Measure.POINT: r"\Gamma^{point}",
                    Measure.MACRO_CELL: r"\Omega^{macro}",
                    Measure.SURFACE: r"\Gamma^{surface}",
                  }
@@ -378,6 +379,7 @@ default_domain_string = "D"
 dx_strings = { Measure.CELL: "dx",
                Measure.EXTERIOR_FACET: "ds",
                Measure.INTERIOR_FACET: "dS",
+               Measure.POINT: "dP",
                Measure.MACRO_CELL: "dE",
                Measure.SURFACE: "dc",
              }
@@ -425,6 +427,7 @@ def form2latex(form, formdata):
     integrals = list(chain(form.cell_integrals(),
                            form.exterior_facet_integrals(),
                            form.interior_facet_integrals(),
+                           form.point_integrals(),
                            form.macro_cell_integrals(),
                            form.surface_integrals()))
     ufl_assert(len(integrals) == len(form.integrals()),

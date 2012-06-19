@@ -119,7 +119,7 @@ A very brief overview of the language contents follows:
 
 * Integral measures::
 
-    dx, ds, dS, dE, dc
+    dx, ds, dS, dP, dE, dc
 
 * Form transformations::
 
@@ -238,7 +238,7 @@ from ufl.objects import \
     quadrilateral, hexahedron, facet, cell1D, cell2D, cell3D, \
     i, j, k, l, p, q, r, s, \
     R1, R2, R3, \
-    dx, ds, dS, dE, dc
+    dx, ds, dS, dP, dE, dc
 
 # Useful constants
 from math import e, pi
@@ -280,7 +280,7 @@ __all__ = [
     'replace', 'derivative', 'action', 'energy_norm', 'rhs', 'lhs',
     'system', 'functional', 'adjoint', 'sensitivity_rhs',
     'R1', 'R2', 'R3',
-    'dx', 'ds', 'dS', 'dE', 'dc',
+    'dx', 'ds', 'dS', 'dP', 'dE', 'dc',
     'vertex', 'interval', 'triangle', 'tetrahedron',
     'quadrilateral', 'hexahedron', 'facet',
     'cell1D', 'cell2D', 'cell3D',

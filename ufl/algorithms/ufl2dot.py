@@ -120,12 +120,13 @@ def ufl2dot(expression, formname="a", nodeoffset=0, begin=True, end=True):
         ci = form.cell_integrals()
         ei = form.exterior_facet_integrals()
         ii = form.interior_facet_integrals()
+        pi = form.point_integrals()
         mi = form.macro_cell_integrals()
 
         subgraphs = []
         nodes = {}
         edges = []
-        for itg in chain(ci, ei, ii, mi):
+        for itg in chain(ci, ei, ii, pi, mi):
             integrallabel = "%s%s" % (itg.measure().domain_type(), itg.measure().domain_id())
             integrand = itg.integrand()
             build_entities(integrand, nodes, edges, nodeoffset)

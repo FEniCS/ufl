@@ -46,6 +46,7 @@ class FormData(object):
                      ("Number of cell domains",             self.num_cell_domains),
                      ("Number of exterior facet domains",   self.num_exterior_facet_domains),
                      ("Number or interior facet domains",   self.num_interior_facet_domains),
+                     ("Number or point domains",            self.num_point_domains),
                      ("Number of macro cell domains",       self.num_macro_cell_domains),
                      ("Number of surface domains",          self.num_surface_domains),
                      ("Arguments",                          lstr(self.arguments)),

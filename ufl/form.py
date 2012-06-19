@@ -37,7 +37,11 @@ class Form(object):
     __slots__ = ("_integrals",
                  "_hash", "_signature",
                  "_form_data", "_is_preprocessed",
-                 "exterior_facet_domains")
+                 "cell_domains", # TODO: Can we remove these properties from the slots list?
+                 "exterior_facet_domains",
+                 "interior_facet_domains",
+                 "point_domains",
+                 )
 
     def __init__(self, integrals):
         self._integrals = tuple(integrals)
@@ -60,6 +64,7 @@ class Form(object):
     cell_domains = property(_get_domains, _set_domains)
     exterior_facet_domains = property(_get_domains, _set_domains)
     interior_facet_domains = property(_get_domains, _set_domains)
+    point_domains = property(_get_domains, _set_domains)
 
     def cell(self):
         c = None
@@ -109,6 +114,9 @@ class Form(object):
 
     def interior_facet_integrals(self):
         return self.integrals(Measure.INTERIOR_FACET)
+
+    def point_integrals(self):
+        return self.integrals(Measure.POINT)
 
     def macro_cell_integrals(self):
         return self.integrals(Measure.MACRO_CELL)

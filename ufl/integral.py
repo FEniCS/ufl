@@ -125,16 +125,18 @@ class Measure(object):
     CELL = "cell"
     EXTERIOR_FACET = "exterior_facet"
     INTERIOR_FACET = "interior_facet"
+    POINT = "point"
     MACRO_CELL = "macro_cell"
     SURFACE = "surface"
     _domain_types = { \
         CELL: "dx",
         EXTERIOR_FACET: "ds",
         INTERIOR_FACET: "dS",
+        POINT: "dP",
         MACRO_CELL: "dE",
         SURFACE: "dc"
         }
-    _domain_types_tuple = (CELL, EXTERIOR_FACET, INTERIOR_FACET, MACRO_CELL, SURFACE)
+    _domain_types_tuple = (CELL, EXTERIOR_FACET, INTERIOR_FACET, POINT, MACRO_CELL, SURFACE)
 
     # Constant for undefined domain id
     UNDEFINED_DOMAIN_ID = "undefined"
