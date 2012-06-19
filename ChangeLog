@@ -1,6 +1,7 @@
 1.1.x [2012-??-??]
  - Major memory savings and optimizations.
  - Some bugfixes.
+ - Add perp operator.
 1.0.0 [2011-12-07]
  - No changes since rc1.
 1.0-rc1 [2011-11-22]

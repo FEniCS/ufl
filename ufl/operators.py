@@ -156,6 +156,12 @@ def contraction(a, a_axes, b, b_axes):
     ii = tuple(i for i in (aii + bii) if not i in cii)
     return as_tensor(s, ii)
 
+def perp(v):
+    "UFL operator: Take the perp of v, i.e. (-v1, +v0)."
+    v = as_ufl(v)
+    ufl_assert(v.shape() == (2,), "Expecting a 2D vector expression.")
+    return as_vector((-v[1],v[0]))
+
 def cross(a, b):
     "UFL operator: Take the cross product of a and b."
     a = as_ufl(a)

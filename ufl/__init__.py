@@ -89,7 +89,7 @@ A very brief overview of the language contents follows:
 
 * Tensor algebra operators::
 
-    outer, inner, dot, cross,
+    outer, inner, dot, cross, perp,
     det, inv, cofac,
     transpose, tr, diag, diag_vector,
     dev, skew, sym
@@ -148,7 +148,7 @@ A very brief overview of the language contents follows:
 # Modified by Kristian B. Oelgaard, 2009, 2011
 # Modified by Anders Logg, 2009.
 #
-# Last changed: 2011-12-07
+# Last changed: 2012-06-19
 
 __version__ = "1.0+"
 
@@ -205,7 +205,7 @@ from ufl.tensors import unit_vector, unit_vectors, unit_matrix, unit_matrices
 
 # Operators
 from ufl.operators import rank, shape, \
-                       outer, inner, dot, cross, \
+                       outer, inner, dot, cross, perp, \
                        det, inv, cofac, \
                        transpose, tr, diag, diag_vector, \
                        dev, skew, sym, \
@@ -262,7 +262,7 @@ __all__ = [
     'as_tensor', 'as_vector', 'as_matrix', 'relabel',
     'unit_vector', 'unit_vectors', 'unit_matrix', 'unit_matrices',
     'rank', 'shape',
-    'outer', 'inner', 'dot', 'cross',
+    'outer', 'inner', 'dot', 'cross', 'perp',
     'det', 'inv', 'cofac',
     'transpose', 'tr', 'diag', 'diag_vector', 'dev', 'skew', 'sym',
     'sqrt', 'exp', 'ln', 'erf',
