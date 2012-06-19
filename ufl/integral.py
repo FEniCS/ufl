@@ -175,14 +175,16 @@ class Measure(object):
         return NotImplemented
 
     def __rmul__(self, integrand):
+        # Is this object in a state where multiplication is not allowed?
         if self._domain_id == Measure.UNDEFINED_DOMAIN_ID:
-            #warning("Missing domain id. You need to select a subdomain, " +\
-            #        "e.g. M = f*dx(0) for subdomain 0.")
-            return NotImplemented
+            error("Missing domain id. You need to select a subdomain, " +\
+                  "e.g. M = f*dx(0) for subdomain 0.")
+            #return NotImplemented
 
+        # Explicitly disallow (u,v)*dx
         if isinstance(integrand, tuple):
-            warning("Mixing tuple and integrand notation not allowed.")
-            return NotImplemented
+            error("Mixing tuple and integrand notation not allowed.")
+            #return NotImplemented
 
         #    from ufl.expr import Expr
         #    from ufl import inner
@@ -193,13 +195,16 @@ class Measure(object):
         #        "Invalid integrand %s." % repr(integrand))
         #    integrand = inner(integrand[0], integrand[1])
 
+        # Let other types implement multiplication with Measure if they want to
         if not isinstance(integrand, Expr):
             return NotImplemented
 
+        # Allow only scalar integrands
         if is_true_ufl_scalar(integrand):
             from ufl.form import Form
             return Form( [Integral(integrand, self)] )
 
+        # Disallow non-scalar Expr explicitly
         error("Trying to integrate expression of rank %d with free indices %r." \
                 % (integrand.rank(), integrand.free_indices()))
         #return NotImplemented

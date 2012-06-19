@@ -34,8 +34,10 @@ class TestMeasure(UflTestCase):
         f = Coefficient(element)
         a = f*dX(0) + f**2*dX(1)
 
-        # Check that we get an error when using dX without domain id
-        self.assertRaises(TypeError, lambda: f*dX)
+        # Check that we get an UFL error when using dX without domain id
+        self.assertRaises(UFLException, lambda: f*dX)
+        # Check that we get a Python error when using unsupported type
+        self.assertRaises(TypeError, lambda: "foo"*dX(1))
 
         # Check that we get the right domain_data from the preprocessed form data
         fd = a.compute_form_data()
