@@ -8,7 +8,7 @@ __date__ = "2008-03-12 -- 2008-12-02"
 from ufltestcase import UflTestCase, main
 
 from ufl import *
-from ufl.algorithms import * 
+from ufl.algorithms import *
 
 class TestMeasure(UflTestCase):
 
@@ -35,7 +35,7 @@ class TestMeasure(UflTestCase):
         a = f*dX(0) + f**2*dX(1)
 
         # Check that we get an error when using dX without domain id
-        self.assertRaises(UFLException, lambda: f*dX)
+        self.assertRaises(TypeError, lambda: f*dX)
 
         # Check that we get the right domain_data from the preprocessed form data
         fd = a.compute_form_data()
@@ -60,8 +60,8 @@ class TestIntegrals(UflTestCase):
         element = FiniteElement("Lagrange", triangle, 1)
         v = TestFunction(element)
         f = Coefficient(element)
-        a = f*v*dx + 2*v*ds + 3*v*dx + 7*v*ds + 3*v*dx(2) + 7*v*dx(2)
-        b = (f*v + 3*v)*dx + (2*v + 7*v)*ds + (3*v + 7*v)*dx(2)
+        a = f*v*dx(0) + 2*v*ds + 3*v*dx(0) + 7*v*ds + 3*v*dx(2) + 7*v*dx(2)
+        b = (f*v + 3*v)*dx(0) + (2*v + 7*v)*ds + (3*v + 7*v)*dx(2)
         self.assertEqual(repr(a), repr(b))
 
 class TestFormScaling(UflTestCase):
@@ -79,9 +79,19 @@ class TestFormScaling(UflTestCase):
         self.assertEqual(c*(v*dx), (c*v)*dx)
         self.assertEqual((c**c+c/3)*(v*dx), ((c**c+c/3)*v)*dx)
         # These should not be acceptable:
-        self.assertRaises(UFLException, lambda: f*(v*dx))
-        self.assertRaises(UFLException, lambda: (f/2)*(v*dx))
-        self.assertRaises(UFLException, lambda: (c*f)*(v*dx))
+        self.assertRaises(TypeError, lambda: f*(v*dx))
+        self.assertRaises(TypeError, lambda: (f/2)*(v*dx))
+        self.assertRaises(TypeError, lambda: (c*f)*(v*dx))
+
+    def test_action_mult_form(self):
+        V = FiniteElement("CG", triangle, 1)
+        u = TrialFunction(V)
+        v = TrialFunction(V)
+        f = Coefficient(V)
+        a = u*v*dx
+        self.assertEqual(a*f, action(a,f))
+        self.assertRaises(TypeError, lambda: a*"foo")
+
 
 class TestExampleForms(UflTestCase):
 

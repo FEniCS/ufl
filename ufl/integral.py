@@ -22,10 +22,10 @@
 # First added:  2008-03-14
 # Last changed: 2011-08-25
 
-from ufl.log import error
+from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.constantvalue import is_true_ufl_scalar, is_python_scalar
-
+from ufl.expr import Expr
 
 
 # TODO: Move these somewhere more suitable?
@@ -171,15 +171,19 @@ class Measure(object):
         return self.reconstruct(domain_id=domain_id, metadata=metadata)
 
     def __mul__(self, other):
-        error("Can't multiply Measure from the right (with %r)." % (other,))
+        #msg = "Can't multiply Measure from the right (with %r)." % (other,)
+        return NotImplemented
 
     def __rmul__(self, integrand):
         if self._domain_id == Measure.UNDEFINED_DOMAIN_ID:
-            error("Missing domain id. You need to select a subdomain, " +\
-                  "e.g. M = f*dx(0) for subdomain 0.")
+            #warning("Missing domain id. You need to select a subdomain, " +\
+            #        "e.g. M = f*dx(0) for subdomain 0.")
+            return NotImplemented
 
         if isinstance(integrand, tuple):
-            error("Mixing tuple and integrand notation not allowed.")
+            warning("Mixing tuple and integrand notation not allowed.")
+            return NotImplemented
+
         #    from ufl.expr import Expr
         #    from ufl import inner
         #    # Experimental syntax like a = (u,v)*dx + (f,v)*ds
@@ -189,12 +193,16 @@ class Measure(object):
         #        "Invalid integrand %s." % repr(integrand))
         #    integrand = inner(integrand[0], integrand[1])
 
-        ufl_assert(is_true_ufl_scalar(integrand),
-            "Trying to integrate expression of rank %d with free indices %r." \
-            % (integrand.rank(), integrand.free_indices()))
+        if not isinstance(integrand, Expr):
+            return NotImplemented
 
-        from ufl.form import Form
-        return Form( [Integral(integrand, self)] )
+        if is_true_ufl_scalar(integrand):
+            from ufl.form import Form
+            return Form( [Integral(integrand, self)] )
+
+        error("Trying to integrate expression of rank %d with free indices %r." \
+                % (integrand.rank(), integrand.free_indices()))
+        #return NotImplemented
 
     def __str__(self):
         d = Measure._domain_types[self._domain_type]

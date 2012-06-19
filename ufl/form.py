@@ -27,6 +27,7 @@ from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.integral import Integral, Measure, is_scalar_constant_expression
 from ufl.equation import Equation
+from ufl.expr import Expr
 
 
 # --- The Form class, representing a complete variational form or functional ---
