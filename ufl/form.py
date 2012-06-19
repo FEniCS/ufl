@@ -191,14 +191,16 @@ class Form(object):
     def __rmul__(self, scalar):
         "Multiply all integrals in form with constant scalar value."
         # This enables the handy "0*form" or "dt*form" syntax
-        ufl_assert(is_scalar_constant_expression(scalar),
-                   "A form can only be multiplied by a globally constant scalar expression.")
-        return Form([scalar*itg for itg in self._integrals])
+        if is_scalar_constant_expression(scalar):
+            return Form([scalar*itg for itg in self._integrals])
+        return NotImplemented
 
     def __mul__(self, coefficient):
         "UFL form operator: Take the action of this form on the given coefficient."
-        from ufl.formoperators import action
-        return action(self, coefficient)
+        if isinstance(coefficient, Expr): #Coefficient): # TODO: Check whatever makes sense
+            from ufl.formoperators import action
+            return action(self, coefficient)
+        return NotImplemented
 
     def __str__(self):
         if self._integrals:
