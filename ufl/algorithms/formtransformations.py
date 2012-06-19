@@ -375,6 +375,8 @@ def compute_form_action(form, coefficient):
     and one additional Coefficient at the end if no
     Coefficient has been provided.
     """
+    # TODO: Check whatever makes sense for coefficient
+
     # Extract all arguments
     arguments = extract_arguments(form)
 
