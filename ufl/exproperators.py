@@ -112,24 +112,56 @@ def _expr_equals2(a, b):
     # Equal terminals and operands, a and b must be equal
     return True
 
+equalsrecursed = {}
+equalscalls = {}
+collisions = {}
+def print_collisions():
+    print
+    print "Collision statistics:"
+    keys = equalscalls.keys()
+    keys = sorted(keys, lambda x: collisions.get(x,0))
+    for k in keys:
+        print k, collisions.get(k), equalscalls[k]
+    print "Recursion statistics:"
+    keys = sorted(keys, key=lambda x: equalsrecursed.get(x,0))
+    for k in keys:
+        print k, equalsrecursed.get(k), equalscalls[k]
+    print
+
 def _expr_equals3(self, other): # Much faster than the more complex algorithms above!
     """Checks whether the two expressions are represented the
     exact same way. This does not check if the expressions are
     mathematically equal or equivalent! Used by sets and dicts."""
+
+    # Code for counting number of equals calls:
+    #equalscalls[type(self)] = equalscalls.get(type(self),0) + 1
+
     # Fast cutoff for common case
     if type(self) != type(other):
+        return False
+
+    # TODO: Test how this affects the run time:
+    # Compare hashes if hash is cached
+    # (NB! never access _hash directly, it may be computed on demand in __hash__)
+    if (hasattr(self, "_hash") and hash(self) != hash(other)):
         return False
 
     # Large objects are costly to compare with themselves
     if self is other:
         return True
 
-    # This seems to have no effect on runtime:
-    #if (hasattr(self, "_hash") and self._hash != other._hash):
-    #    return False
-
     # Just let python handle the recursion
-    return self.operands() == other.operands()
+    equal = self.operands() == other.operands()
+
+    # At this point, self and other has the same hash, and equal _should_ be True...
+    # Code for measuring amount of collisions:
+    #if not equal:
+    #    collisions[type(self)] = collisions.get(type(self), 0) + 1
+
+    # Code for counting number of recursive calls:
+    #equalsrecursed[type(self)] = equalsrecursed.get(type(self),0) + 1
+
+    return equal
 
 Operator.__eq__ = _expr_equals3
 

@@ -106,6 +106,11 @@ class Terminal(Expr):
             return False
         if self is other:
             return True
+        if hasattr(self, "_hash") and self._hash != other._hash:
+            #if repr(self) == repr(other):
+            #    print "DEBUG: HASH mismatch"
+            #    print repr(self), repr(other)
+            return False
         return repr(self) == repr(other)
 
     #def __getnewargs__(self): # TODO: Test pickle and copy with this. Must implement differently for Terminal objects though.
