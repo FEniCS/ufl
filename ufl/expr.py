@@ -187,6 +187,10 @@ class Expr(object):
         "UFL does not support integer division."
         raise NotImplementedError(self.__class__.__floordiv__)
 
+    def __pos__(self):
+        "Unary + is a no-op."
+        return self
+
     #def __getnewargs__(self): # TODO: Test pickle and copy with this. Must implement differently for Terminal objects though.
     #    "Used for pickle and copy operations."
     #    return self.operands()
