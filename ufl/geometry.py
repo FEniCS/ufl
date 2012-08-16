@@ -19,9 +19,10 @@
 #
 # Modified by Anders Logg, 2009.
 # Modified by Kristian B. Oelgaard, 2009
+# Modified by Marie E. Rognes 2012
 #
 # First added:  2008-03-14
-# Last changed: 2011-11-17
+# Last changed: 2012-08-16
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
@@ -390,6 +391,34 @@ class Cell(object):
 
     def __repr__(self):
         return self._repr
+
+class ProductCell(Cell):
+    """Representation of a cell formed by Cartesian products of other cells."""
+    __slots__ = ("_cells",)
+
+    def __init__(self, *cells):
+        "Create a ProductCell from a given list of cells."
+
+        self._cells = cells
+        self._domain = " x ".join([c.domain() for c in cells])
+        self._invalid = False
+        self._topological_dimension = sum(c.topological_dimension()
+                                          for c in cells)
+        self._geometric_dimension = sum(c.geometric_dimension() for c in cells)
+
+        self._space = Space(self._topological_dimension)
+
+        self._repr = "ProductCell(*%r)" % list(self._cells)
+        self._n = None
+        self._x = SpatialCoordinate(self) # For now
+        self._volume = None
+        self._circumradius = None
+        self._cellsurfacearea = None
+        self._facetarea = None            # Not defined
+
+    def sub_cells(self):
+        "Return list of cell factors."
+        return self._cells
 
 # --- Utility conversion functions
 

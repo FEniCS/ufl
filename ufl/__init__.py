@@ -50,7 +50,8 @@ A very brief overview of the language contents follows:
 
     FiniteElement,
     MixedElement, VectorElement, TensorElement
-    EnrichedElement, RestrictedElement
+    EnrichedElement, RestrictedElement,
+    TensorProductElement
 
 * Arguments::
 
@@ -173,7 +174,8 @@ from ufl.geometry import Cell, Space, SpatialCoordinate, FacetNormal, Circumradi
 
 # Finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
-    MixedElement, VectorElement, TensorElement, EnrichedElement, RestrictedElement
+    MixedElement, VectorElement, TensorElement, EnrichedElement, \
+    RestrictedElement, TensorProductElement
 
 # Hook to extend predefined element families
 from ufl.elementlist import register_element, show_elements #, ufl_elements
@@ -250,7 +252,8 @@ __all__ = [
     'Cell', 'Space', 'SpatialCoordinate', 'FacetNormal', 'CellVolume',
     'Circumradius', 'CellSurfaceArea', 'FacetArea',
     'FiniteElementBase', 'FiniteElement',
-    'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement', 'RestrictedElement',
+    'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
+    'RestrictedElement', 'TensorProductElement',
     'register_element', 'show_elements',
     'Argument', 'TestFunction', 'TrialFunction',
     'Arguments', 'TestFunctions', 'TrialFunctions',
