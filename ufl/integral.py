@@ -175,7 +175,8 @@ class Measure(object):
     def __mul__(self, other):
         if isinstance(other, Measure):
             return ProductMeasure(self, other)
-        error("Can't multiply Measure from the right (with %r)." % (other,))
+        #error("Can't multiply Measure from the right (with %r)." % (other,))
+        return NotImplemented
 
     def __rmul__(self, integrand):
         # Is this object in a state where multiplication is not allowed?
@@ -249,7 +250,8 @@ class ProductMeasure(Measure):
         if isinstance(other, Measure):
             measures = self.sub_measures() + [other]
             return ProductMeasure(*measures)
-        error("Can't multiply ProductMeasure from the right (with %r)." % (other,))
+        #error("Can't multiply ProductMeasure from the right (with %r)." % (other,))
+        return NotImplemented
 
     def sub_measures(self):
         "Return submeasures."
