@@ -228,7 +228,7 @@ from ufl.lifting import LiftingFunction, LiftingOperator
 from ufl.form import Form
 
 # Integral classes
-from ufl.integral import Integral, Measure, register_domain_type
+from ufl.integral import Integral, Measure, register_domain_type, ProductMeasure
 
 # Representations of transformed forms
 from ufl.formoperators import replace, derivative, action, energy_norm, rhs, lhs,\
@@ -279,7 +279,7 @@ __all__ = [
     'elem_mult', 'elem_div', 'elem_pow', 'elem_op',
     'LiftingFunction', 'LiftingOperator',
     'Form',
-    'Integral', 'Measure', 'register_domain_type',
+    'Integral', 'Measure', 'register_domain_type', 'ProductMeasure',
     'replace', 'derivative', 'action', 'energy_norm', 'rhs', 'lhs',
     'system', 'functional', 'adjoint', 'sensitivity_rhs',
     'R1', 'R2', 'R3',

@@ -23,3 +23,9 @@ V1 = FiniteElement("DG", interval, 0)
 V2 = FiniteElement("DG", tetrahedron, 0)
 
 V = TensorProductElement(V0, V1, V2)
+
+u = TrialFunction(V)
+v = TestFunction(V)
+
+dxxx = dx*dx*dx
+#a = u*v*dxxx
