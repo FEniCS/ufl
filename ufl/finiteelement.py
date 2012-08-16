@@ -704,7 +704,6 @@ class RestrictedElement(FiniteElementBase):
         return self._element.sub_elements()
         #return [self._element]
 
-
 class TensorProductElement(FiniteElementBase):
     """The tensor product of d element spaces:
 
@@ -719,6 +718,8 @@ class TensorProductElement(FiniteElementBase):
         "Create TensorProductElement from a given list of elements."
 
         self._sub_elements = list(elements)
+        ufl_assert(len(self._sub_elements) > 0,
+                   "Cannot create TensorProductElement from empty list.")
         self._repr = "TensorProductElement(*%r)" % self._sub_elements
         family = "TensorProductElement"
 
@@ -734,6 +735,9 @@ class TensorProductElement(FiniteElementBase):
         # For now, check that all subelements have the same value
         # shape, and use this.
         value_shape = self._sub_elements[0].value_shape()
+        ufl_assert(all(e.value_shape() == value_shape
+                       for e in self._sub_elements),
+                   "All subelements in must have same value shape")
 
         super(TensorProductElement, self).__init__(family, cell, degree,
                                                    quad_scheme, value_shape)
@@ -747,12 +751,13 @@ class TensorProductElement(FiniteElementBase):
 
     def __str__(self):
         "Pretty-print."
-        return "TensorProductElement(%r)" % [str(e) for e in self.sub_elements()]
+        return "TensorProductElement(%s)" \
+            % str([str(e) for e in self.sub_elements()])
 
     def shortstr(self):
         "Short pretty-print."
-        return "TensorProductElement(%r)"% [e.shortstr()
-                                            for e in self.sub_elements()]
+        return "TensorProductElement(%s)" \
+            % str([e.shortstr() for e in self.sub_elements()])
 
     def __repr__(self):
         return self._repr
