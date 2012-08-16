@@ -18,17 +18,17 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Kristian B. Oelgaard
-# Modified by Marie E. Rognes <meg@simula.no> 2010
+# Modified by Marie E. Rognes 2010, 2012
 #
 # First added:  2008-03-03
-# Last changed: 2011-09-09
+# Last changed: 2012-08-16
 
 from itertools import izip
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.elementlist import ufl_elements, aliases
 from ufl.common import product, index_to_component, component_to_index, istr, EmptyDict
-from ufl.geometry import as_cell, domain2facet
+from ufl.geometry import as_cell, domain2facet, ProductCell
 from ufl.log import info_blue, warning, warning_blue, error
 
 class FiniteElementBase(object):
@@ -703,3 +703,62 @@ class RestrictedElement(FiniteElementBase):
         "Return list of sub elements"
         return self._element.sub_elements()
         #return [self._element]
+
+class TensorProductElement(FiniteElementBase):
+    """The tensor product of d element spaces:
+
+    V = V_0 \otimes V_1 \otimes ...  \otimes V_d
+
+    Given bases {phi_i} for V_i for i = 1, ...., d,
+    { phi_0 * phi_1 *.... * phi_d } forms a basis for V.
+    """
+    __slots__ = ("_sub_elements",)
+
+    def __init__(self, *elements):
+        "Create TensorProductElement from a given list of elements."
+
+        self._sub_elements = list(elements)
+        ufl_assert(len(self._sub_elements) > 0,
+                   "Cannot create TensorProductElement from empty list.")
+        self._repr = "TensorProductElement(*%r)" % self._sub_elements
+        family = "TensorProductElement"
+
+        # Define cell as the product of each subcell
+        cell = ProductCell(*[e.cell() for e in self._sub_elements])
+
+        # Define polynomial degree as the maximal of each subelement
+        degree = max(e.degree() for e in self._sub_elements)
+
+        # No quadrature scheme defined
+        quad_scheme = None
+
+        # For now, check that all subelements have the same value
+        # shape, and use this.
+        value_shape = self._sub_elements[0].value_shape()
+        ufl_assert(all(e.value_shape() == value_shape
+                       for e in self._sub_elements),
+                   "All subelements in must have same value shape")
+
+        super(TensorProductElement, self).__init__(family, cell, degree,
+                                                   quad_scheme, value_shape)
+    def sub_elements(self):
+        "Return subelements (factors)."
+        return self._sub_elements
+
+    def num_sub_elements(self):
+        "Return number of subelements."
+        return len(self._sub_elements)
+
+    def __str__(self):
+        "Pretty-print."
+        return "TensorProductElement(%s)" \
+            % str([str(e) for e in self.sub_elements()])
+
+    def shortstr(self):
+        "Short pretty-print."
+        return "TensorProductElement(%s)" \
+            % str([e.shortstr() for e in self.sub_elements()])
+
+    def __repr__(self):
+        return self._repr
+

@@ -50,7 +50,8 @@ A very brief overview of the language contents follows:
 
     FiniteElement,
     MixedElement, VectorElement, TensorElement
-    EnrichedElement, RestrictedElement
+    EnrichedElement, RestrictedElement,
+    TensorProductElement
 
 * Arguments::
 
@@ -173,7 +174,8 @@ from ufl.geometry import Cell, Space, SpatialCoordinate, FacetNormal, Circumradi
 
 # Finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
-    MixedElement, VectorElement, TensorElement, EnrichedElement, RestrictedElement
+    MixedElement, VectorElement, TensorElement, EnrichedElement, \
+    RestrictedElement, TensorProductElement
 
 # Hook to extend predefined element families
 from ufl.elementlist import register_element, show_elements #, ufl_elements
@@ -226,7 +228,7 @@ from ufl.lifting import LiftingFunction, LiftingOperator
 from ufl.form import Form
 
 # Integral classes
-from ufl.integral import Integral, Measure, register_domain_type
+from ufl.integral import Integral, Measure, register_domain_type, ProductMeasure
 
 # Representations of transformed forms
 from ufl.formoperators import replace, derivative, action, energy_norm, rhs, lhs,\
@@ -250,7 +252,8 @@ __all__ = [
     'Cell', 'Space', 'SpatialCoordinate', 'FacetNormal', 'CellVolume',
     'Circumradius', 'CellSurfaceArea', 'FacetArea',
     'FiniteElementBase', 'FiniteElement',
-    'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement', 'RestrictedElement',
+    'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
+    'RestrictedElement', 'TensorProductElement',
     'register_element', 'show_elements',
     'Argument', 'TestFunction', 'TrialFunction',
     'Arguments', 'TestFunctions', 'TrialFunctions',
@@ -276,7 +279,7 @@ __all__ = [
     'elem_mult', 'elem_div', 'elem_pow', 'elem_op',
     'LiftingFunction', 'LiftingOperator',
     'Form',
-    'Integral', 'Measure', 'register_domain_type',
+    'Integral', 'Measure', 'register_domain_type', 'ProductMeasure',
     'replace', 'derivative', 'action', 'energy_norm', 'rhs', 'lhs',
     'system', 'functional', 'adjoint', 'sensitivity_rhs',
     'R1', 'R2', 'R3',

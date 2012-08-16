@@ -173,8 +173,9 @@ class Measure(object):
         return self.reconstruct(domain_id=domain_id, metadata=metadata)
 
     def __mul__(self, other):
-        #msg = "Can't multiply Measure from the right (with %r)." % (other,)
-        return NotImplemented
+        if isinstance(other, Measure):
+            return ProductMeasure(self, other)
+        error("Can't multiply Measure from the right (with %r)." % (other,))
 
     def __rmul__(self, integrand):
         # Is this object in a state where multiplication is not allowed?
@@ -224,6 +225,35 @@ class Measure(object):
 
     def __eq__(self, other):
         return repr(self) == repr(other)
+
+class ProductMeasure(Measure):
+    "Representation of a product measure."
+    __slots__ = ("_measures",)
+    def __init__(self, *measures):
+        "Create ProductMeasure from given list of measures."
+        self._measures = list(measures)
+        ufl_assert(len(self._measures) > 0, "Expecting at least one measure")
+
+        # FIXME: MER: The below is clearly wrong, but preprocess pose some
+        # pretty hard restrictions. To be dealt with later.
+        # self._domain_type = tuple(m.domain_type() for m in self._measures)
+        # self._domain_id = tuple(m.domain_id() for m in self._measures)
+        self._domain_type = measures[0].domain_type()
+        self._domain_id = measures[0].domain_id()
+        self._metadata = None
+        self._domain_data = None
+        self._repr = "ProductMeasure(*%r)" % self._measures
+
+    def __mul__(self, other):
+        "Flatten multiplication of product measures."
+        if isinstance(other, Measure):
+            measures = self.sub_measures() + [other]
+            return ProductMeasure(*measures)
+        error("Can't multiply ProductMeasure from the right (with %r)." % (other,))
+
+    def sub_measures(self):
+        "Return submeasures."
+        return self._measures
 
 class Integral(object):
     "An integral over a single domain."
