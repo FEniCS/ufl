@@ -734,6 +734,7 @@ class TensorProductElement(FiniteElementBase):
 
         # For now, check that all subelements have the same value
         # shape, and use this.
+        # TODO: Not sure if this makes sense, what kind of product is used to build the basis?
         value_shape = self._sub_elements[0].value_shape()
         ufl_assert(all(e.value_shape() == value_shape
                        for e in self._sub_elements),
@@ -741,8 +742,17 @@ class TensorProductElement(FiniteElementBase):
 
         super(TensorProductElement, self).__init__(family, cell, degree,
                                                    quad_scheme, value_shape)
+
     def sub_elements(self):
         "Return subelements (factors)."
+        # TODO: I don't think the concept of sub elements is quite well defined across
+        # all the current element types. Need to investigate how sub_elements is used in
+        # existing code, and eventually redesign here, hopefully just adding another function.
+        # Summary of different behaviours:
+        # - In MixedElement and subclasses each subelement corresponds to different value components.
+        # - In EnrichedElement sub_elements returns [] even though it contains multiple "children".
+        # - In RestrictedElement it returns the sub elements of its single children.
+        # - Here in TensorProductElement it returns sub elements that correspond to factors, not components.
         return self._sub_elements
 
     def num_sub_elements(self):
