@@ -400,7 +400,9 @@ class ProductCell(Cell):
         "Create a ProductCell from a given list of cells."
 
         self._cells = cells
-        self._domain = " x ".join([c.domain() for c in cells])
+        ufl_assert(len(self._cells) > 0, "Expecting at least one cell")
+
+        self._domain = self._cells[0].domain()#" x ".join([c.domain() for c in cells])
         self._invalid = False
         self._topological_dimension = sum(c.topological_dimension()
                                           for c in cells)

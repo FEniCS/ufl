@@ -28,4 +28,4 @@ u = TrialFunction(V)
 v = TestFunction(V)
 
 dxxx = dx*dx*dx
-#a = u*v*dxxx
+a = u*v*dxxx

@@ -232,8 +232,14 @@ class ProductMeasure(Measure):
     def __init__(self, *measures):
         "Create ProductMeasure from given list of measures."
         self._measures = list(measures)
-        self._domain_type = measures[0].domain_type() # FIXME
-        self._domain_id = tuple(m.domain_id() for m in self._measures)
+        ufl_assert(len(self._measures) > 0, "Expecting at least one measure")
+
+        # FIXME: MER: The below is clearly wrong, but preprocess pose some
+        # pretty hard restrictions. To be dealt with later.
+        # self._domain_type = tuple(m.domain_type() for m in self._measures)
+        # self._domain_id = tuple(m.domain_id() for m in self._measures)
+        self._domain_type = measures[0].domain_type()
+        self._domain_id = measures[0].domain_id()
         self._metadata = None
         self._domain_data = None
         self._repr = "ProductMeasure(*%r)" % self._measures
