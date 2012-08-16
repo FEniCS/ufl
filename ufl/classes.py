@@ -25,13 +25,14 @@ of classes, and for mapping types to different handler functions."""
 # Modified by Kristian B. Oelgaard, 2011
 #
 # First added:  2008-08-15
-# Last changed: 2011-11-17
+# Last changed: 2012-08-16
 
 from ufl.assertions import ufl_assert
 
 # Elements
 from ufl.finiteelement import FiniteElementBase, FiniteElement,\
-    MixedElement, VectorElement, TensorElement
+    MixedElement, VectorElement, TensorElement, \
+    EnrichedElement, RestrictedElement, TensorProductElement
 
 # Base class for all expressions
 from ufl.expr import Expr
@@ -43,7 +44,7 @@ from ufl.constantvalue import ConstantValue, IndexAnnotated, Zero, ScalarValue,\
 from ufl.argument import Argument, TestFunction, TrialFunction
 from ufl.coefficient import Coefficient, ConstantBase,\
     VectorConstant, TensorConstant, Constant
-from ufl.geometry import Space, Cell, GeometricQuantity, \
+from ufl.geometry import Space, Cell, ProductCell, GeometricQuantity, \
     SpatialCoordinate, FacetNormal, CellVolume, CellSurfaceArea, FacetArea, Circumradius
 from ufl.indexing import IndexBase, FixedIndex, Index, MultiIndex
 
@@ -69,7 +70,7 @@ from ufl.lifting import LiftingResult, LiftingOperatorResult, LiftingFunctionRes
     TerminalOperator, LiftingOperator, LiftingFunction
 
 # Higher level abstractions
-from ufl.integral import Measure, Integral
+from ufl.integral import Measure, ProductMeasure, Integral
 from ufl.form import Form
 from ufl.equation import Equation
 
