@@ -77,8 +77,9 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
     form_data._input_element_mapping = dict(element_mapping)
     #form_data._input_common_cell = no need to store this
 
-    # Store name of form if given
-    form_data.name = object_names.get(id(form), None)
+    # Store name of form if given, otherwise empty string
+    # such that automatic names can be assigned externally
+    form_data.name = object_names.get(id(form), "")
 
     # Extract common cell
     common_cell = extract_common_cell(form, common_cell)
@@ -161,10 +162,6 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
     # Store some useful dimensions
     form_data.rank = len(form_data.original_arguments)
     form_data.num_coefficients = len(form_data.original_coefficients)
-
-    # Construct default form name from rank if not given
-    if form_data.name is None:
-        form_data.name = { 0: "M", 1: "L", 2: "a" }.get(form_data.rank, "F")
 
     # Store argument names
     form_data.argument_names = \
