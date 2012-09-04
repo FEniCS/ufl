@@ -116,6 +116,9 @@ class Operator(Expr):
         return self._hash
         #return compute_hash(self) # REPR TODO: Cache or not?
 
+    def __getnewargs__(self):
+        return self.operands()
+
     def reconstruct(self, *operands):
         "Return a new object of the same type with new operands."
         return self.__class__._uflclass(*operands)

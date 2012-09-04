@@ -99,6 +99,9 @@ class Zero(IndexAnnotated):
                 Zero._cache[shape] = self
         return self
 
+    def __getnewargs__(self):
+        return (self._shape, self._free_indices, self._index_dimensions)
+
     def __init__(self, shape=(), free_indices=(), index_dimensions=None):
         if not hasattr(self, '_shape'):
             ufl_assert(isinstance(free_indices, tuple),
@@ -178,6 +181,9 @@ class ScalarValue(IndexAnnotated):
         if value == 0:
             return Zero(shape, free_indices, index_dimensions)
         return IndexAnnotated.__new__(cls)
+
+    def __getnewargs__(self):
+        return (self._value, self._shape, self._free_indices, self._index_dimensions)
 
     def __init__(self, value, shape=(), free_indices=(), index_dimensions=None):
         IndexAnnotated.__init__(self, shape, free_indices, index_dimensions)

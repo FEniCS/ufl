@@ -340,13 +340,13 @@ class PickleTestCase(UflTestCase):
         TH = P2 * P1
 
         (v, q) = TestFunctions(TH)
-        (u, p) = TrialFunctions(TH)
+        (u, r) = TrialFunctions(TH)
 
         f = Coefficient(P2)
 
         # FFC notation:
         # a = (dot(grad(v), grad(u)) - div(v)*p + q*div(u))*dx
-        a = (inner(grad(v), grad(u)) - div(v)*p + q*div(u))*dx
+        a = (inner(grad(v), grad(u)) - div(v)*r + q*div(u))*dx
 
         L = dot(v, f)*dx
 
