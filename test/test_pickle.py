@@ -11,6 +11,7 @@ __license__  = "GNU GPL version 3 or any later version"
 
 from ufltestcase import UflTestCase, main
 from ufl import *
+from ufl.algorithms import preprocess
 
 import pickle
 p = pickle.HIGHEST_PROTOCOL
@@ -38,6 +39,9 @@ class PickleTestCase(UflTestCase):
         L_pickle = pickle.dumps(L, p)
         L_restore = pickle.loads(L_pickle)
 
+        assert(a.signature == a_restore.signature)
+        assert(L.signature == L_restore.signature)
+
     def testElasticity(self):
 
         element = VectorElement("Lagrange", "tetrahedron", 1)
@@ -55,6 +59,8 @@ class PickleTestCase(UflTestCase):
         a_pickle = pickle.dumps(a, p)
         a_restore = pickle.loads(a_pickle)
 
+        assert(a.signature == a_restore.signature)
+
     def testEnergyNorm(self):
 
         element = FiniteElement("Lagrange", "tetrahedron", 1)
@@ -64,6 +70,8 @@ class PickleTestCase(UflTestCase):
 
         a_pickle = pickle.dumps(a, p)
         a_restore = pickle.loads(a_pickle)
+
+        assert(a.signature == a_restore.signature)
 
     def testEquation(self):
 
@@ -85,6 +93,9 @@ class PickleTestCase(UflTestCase):
         L_pickle = pickle.dumps(L, p)
         L_restore = pickle.loads(L_pickle)
 
+        assert(a.signature == a_restore.signature)
+        assert(L.signature == L_restore.signature)
+
     def testFunctionOperators(self):
 
         element = FiniteElement("Lagrange", "triangle", 1)
@@ -99,6 +110,8 @@ class PickleTestCase(UflTestCase):
 
         a_pickle = pickle.dumps(a, p)
         a_restore = pickle.loads(a_pickle)
+
+        assert(a.signature == a_restore.signature)
 
     def testHeat(self):
 
@@ -119,6 +132,9 @@ class PickleTestCase(UflTestCase):
         L_pickle = pickle.dumps(L, p)
         L_restore = pickle.loads(L_pickle)
 
+        assert(a.signature == a_restore.signature)
+        assert(L.signature == L_restore.signature)
+
     def testMass(self):
 
         element = FiniteElement("Lagrange", "tetrahedron", 3)
@@ -131,6 +147,8 @@ class PickleTestCase(UflTestCase):
         a_pickle = pickle.dumps(a, p)
         a_restore = pickle.loads(a_pickle)
 
+        assert(a.signature == a_restore.signature)
+
     def testMixedMixedElement(self):
 
         P3 = FiniteElement("Lagrange", "triangle", 3)
@@ -140,6 +158,8 @@ class PickleTestCase(UflTestCase):
         element_pickle = pickle.dumps(element, p)
         element_restore = pickle.loads(element_pickle)
     
+        assert(element == element_restore)
+
     def testMixedPoisson(self):
 
         q = 1
@@ -162,6 +182,9 @@ class PickleTestCase(UflTestCase):
         L_pickle = pickle.dumps(L, p)
         L_restore = pickle.loads(L_pickle)
 
+        assert(a.signature == a_restore.signature)
+        assert(L.signature == L_restore.signature)
+
     def testNavierStokes(self):
 
         element = VectorElement("Lagrange", "tetrahedron", 1)
@@ -176,6 +199,8 @@ class PickleTestCase(UflTestCase):
 
         a_pickle = pickle.dumps(a, p)
         a_restore = pickle.loads(a_pickle)
+
+        assert(a.signature == a_restore.signature)
 
     def testNeumannProblem(self):
 
@@ -197,6 +222,9 @@ class PickleTestCase(UflTestCase):
         L_pickle = pickle.dumps(L, p)
         L_restore = pickle.loads(L_pickle)
 
+        assert(a.signature == a_restore.signature)
+        assert(L.signature == L_restore.signature)
+
     def testOptimization(self):
 
         element = FiniteElement("Lagrange", "triangle", 3)
@@ -213,12 +241,17 @@ class PickleTestCase(UflTestCase):
         L_pickle = pickle.dumps(L, p)
         L_restore = pickle.loads(L_pickle)
 
+        assert(a.signature == a_restore.signature)
+        assert(L.signature == L_restore.signature)
+
     def testP5tet(self):
 
         element = FiniteElement("Lagrange", tetrahedron, 5)
 
         element_pickle = pickle.dumps(element, p)
         element_restore = pickle.loads(element_pickle)
+
+        assert(element == element_restore)
 
     def testP5tri(self):
 
@@ -269,6 +302,9 @@ class PickleTestCase(UflTestCase):
         L_pickle = pickle.dumps(L, p)
         L_restore = pickle.loads(L_pickle)
 
+        assert(a.signature == a_restore.signature)
+        assert(L.signature == L_restore.signature)
+
     def testPoisson(self):
 
         element = FiniteElement("Lagrange", "triangle", 1)
@@ -285,6 +321,9 @@ class PickleTestCase(UflTestCase):
         a_restore = pickle.loads(a_pickle)
         L_pickle = pickle.dumps(L, p)
         L_restore = pickle.loads(L_pickle)
+
+        assert(a.signature == a_restore.signature)
+        assert(L.signature == L_restore.signature)
 
     def testPoissonSystem(self):
 
@@ -304,6 +343,9 @@ class PickleTestCase(UflTestCase):
         a_restore = pickle.loads(a_pickle)
         L_pickle = pickle.dumps(L, p)
         L_restore = pickle.loads(L_pickle)
+
+        assert(a.signature == a_restore.signature)
+        assert(L.signature == L_restore.signature)
 
     def testQuadratureElement(self):
 
@@ -331,6 +373,9 @@ class PickleTestCase(UflTestCase):
         L_pickle = pickle.dumps(L, p)
         L_restore = pickle.loads(L_pickle)
 
+        assert(a.signature == a_restore.signature)
+        assert(L.signature == L_restore.signature)
+
     def testStokes(self):
 
         # UFLException: Shape mismatch in sum.
@@ -355,6 +400,9 @@ class PickleTestCase(UflTestCase):
         L_pickle = pickle.dumps(L, p)
         L_restore = pickle.loads(L_pickle)
 
+        assert(a.signature == a_restore.signature)
+        assert(L.signature == L_restore.signature)
+
     def testSubDomain(self):
 
         element = FiniteElement("CG", "tetrahedron", 1)
@@ -368,6 +416,8 @@ class PickleTestCase(UflTestCase):
         M_pickle = pickle.dumps(M, p)
         M_restore = pickle.loads(M_pickle)
 
+        assert(M.signature == M_restore.signature)
+
     def testSubDomains(self):
 
         element = FiniteElement("CG", "tetrahedron", 1)
@@ -379,6 +429,8 @@ class PickleTestCase(UflTestCase):
 
         a_pickle = pickle.dumps(a, p)
         a_restore = pickle.loads(a_pickle)
+
+        assert(a.signature == a_restore.signature)
 
     def testTensorWeightedPoisson(self):
 
@@ -411,6 +463,8 @@ class PickleTestCase(UflTestCase):
         a_pickle = pickle.dumps(a, p)
         a_restore = pickle.loads(a_pickle)
 
+        assert(a.signature == a_restore.signature)
+
     def testVectorLaplaceGradCurl(self):
 
         def HodgeLaplaceGradCurl(element, felement):
@@ -442,6 +496,26 @@ class PickleTestCase(UflTestCase):
         a_restore = pickle.loads(a_pickle)
         L_pickle = pickle.dumps(L, p)
         L_restore = pickle.loads(L_pickle)
+
+        assert(a.signature == a_restore.signature)
+        assert(L.signature == L_restore.signature)
+
+    def testFormData(self):
+        
+        element = FiniteElement("Lagrange", "tetrahedron", 3)
+
+        v = TestFunction(element)
+        u = TrialFunction(element)
+
+        a = v*u*dx
+
+        form_data = preprocess(a)
+
+        form_data_pickle = pickle.dumps(form_data, p)
+        form_data_restore = pickle.loads(form_data_pickle)
+
+        form_data_restore.validate()
+        assert(str(form_data)==str(form_data_restore))
 
 if __name__ == "__main__":
     main()
