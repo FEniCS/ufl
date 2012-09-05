@@ -500,6 +500,13 @@ class PickleTestCase(UflTestCase):
         assert(a.signature == a_restore.signature)
         assert(L.signature == L_restore.signature)
 
+    def testIdentity(self):
+        
+        i = Identity(2)
+        i_pickle = pickle.dumps(i, p)
+        i_restore = pickle.loads(i_pickle)
+        assert(i == i_restore)
+
     def testFormData(self):
         
         element = FiniteElement("Lagrange", "tetrahedron", 3)

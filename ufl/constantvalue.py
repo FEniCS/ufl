@@ -65,6 +65,9 @@ class ConstantValue(Terminal):
         "Return whether this expression is spatially constant over each cell."
         return True
 
+    def __getnewargs__(self):
+        return (self._dim,)
+
 class IndexAnnotated(ConstantValue):
     """Class to annotate expressions that don't depend on
     indices with a set of free indices, used internally to keep
