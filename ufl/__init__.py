@@ -178,7 +178,7 @@ from ufl.finiteelement import FiniteElementBase, FiniteElement, \
     RestrictedElement, TensorProductElement
 
 # Hook to extend predefined element families
-from ufl.elementlist import register_element, show_elements #, ufl_elements
+from ufl.finiteelement.elementlist import register_element, show_elements #, ufl_elements
 
 # Arguments
 from ufl.argument import Argument, TestFunction, TrialFunction, \

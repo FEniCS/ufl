@@ -25,7 +25,8 @@ elements by calling the function register_element."""
 # Last changed: 2011-06-06
 
 from ufl.assertions import ufl_assert
-from ufl.feec import FEEC_aliases
+
+from ufl.finiteelement.feec import FEEC_aliases
 
 # List of valid elements
 ufl_elements = {}
