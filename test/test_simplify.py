@@ -5,43 +5,55 @@ from ufl.classes import Sum, Product
 import math
 from ufl import *
 
-class ElementsTestCase(UflTestCase):
+class SimplificationTestCase(UflTestCase):
+
+    def xtest_zero_times_argument(self):
+        # FIXME: Allow zero forms
+        element = FiniteElement("CG", triangle, 1)
+        v = TestFunction(element)
+        u = TrialFunction(element)
+        L = 0*v*dx
+        a = 0*(u*v)*dx
+        b = (0*u)*v*dx
+        self.assertEqual(len(L.compute_form_data().arguments), 1)
+        self.assertEqual(len(a.compute_form_data().arguments), 2)
+        self.assertEqual(len(b.compute_form_data().arguments), 2)
 
     def test_products(self):
-        element = FiniteElement("CG", "triangle", 1)
+        element = FiniteElement("CG", triangle, 1)
         f = Coefficient(element)
         g = Coefficient(element)
-        
+
         # Test simplification of basic multiplication
         a = f
         b = 1*f
         self.assertEqual(a, b)
-        
+
         # Test simplification of self-multiplication
         a = f*f
         b = f**2
         self.assertEqual(a, b)
-        
+
         # Test simplification of flattened self-multiplication (may occur in algorithms)
         a = Product(f,f,f)
         b = f**3
         self.assertEqual(a, b)
-        
+
         # Test simplification of flattened self-multiplication (may occur in algorithms)
         a = Product(f,f,f,f)
         b = f**4
         self.assertEqual(a, b)
- 
+
     def test_sums(self):
-        element = FiniteElement("CG", "triangle", 1)
+        element = FiniteElement("CG", triangle, 1)
         f = Coefficient(element)
         g = Coefficient(element)
-        
+
         # Test collapsing of basic sum
         a = f + f
         b = 2*f
         self.assertEqual(a, b)
-        
+
         # Test collapsing of flattened sum (may occur in algorithms)
         a = Sum(f, f, f)
         b = 3*f
@@ -49,12 +61,12 @@ class ElementsTestCase(UflTestCase):
         a = Sum(f, f, f, f)
         b = 4*f
         self.assertEqual(a, b)
-        
+
         # Test reordering of operands
         a = f + g
         b = g + f
         self.assertEqual(a, b)
-        
+
         # Test reordering of operands and collapsing sum
         a = f + g + f # not collapsed, but ordered
         b = g + f + f # not collapsed, but ordered
@@ -63,7 +75,7 @@ class ElementsTestCase(UflTestCase):
         self.assertEqual(a, b)
         self.assertEqual(a, c)
         self.assertEqual(a, d)
-        
+
         # Test reordering of operands and collapsing sum
         a = f + f + g # collapsed
         b = g + (f + f) # collapsed
