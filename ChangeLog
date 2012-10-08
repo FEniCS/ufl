@@ -1,4 +1,5 @@
 1.1.x [2012-??-??]
+ - Support adding 0 to forms, allowing sum([a])
  - Major memory savings and optimizations.
  - Some bugfixes.
  - Add perp operator.
