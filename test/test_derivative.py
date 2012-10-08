@@ -174,6 +174,24 @@ class DerivativeTestCase(UflTestCase):
         def df(w, v): return sign(w)*v
         self._test(f, df)
 
+    def testConditional(self):
+        def cond(w): return lt(1.0, 2.0)
+        def f(w):     return conditional(cond(w), 2*w, 3*w)
+        def df(w, v): return 2*v
+        self._test(f, df)
+
+        def cond(w): return lt(2.0, 1.0)
+        def f(w):     return conditional(cond(w), 2*w, 3*w)
+        def df(w, v): return 3*v
+        self._test(f, df)
+
+    def xtestConditional(self): # This will fail without bugfix in derivative
+        def cond(w): return lt(w, 1.0)
+        def f(w):     return conditional(cond(w), 2*w, 3*w)
+        def df(w, v): return (conditional(cond(w), 1, 0) * 2*v +
+                              conditional(cond(w), 0, 1) * 3*v)
+        self._test(f, df)
+
     # --- Tensor algebra basics
 
     def testIndexSum(self):

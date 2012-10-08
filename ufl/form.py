@@ -20,7 +20,7 @@
 # Modified by Anders Logg, 2009-2011.
 #
 # First added:  2008-03-14
-# Last changed: 2011-12-06
+# Last changed: 2012-09-08
 
 import hashlib
 from ufl.log import error
