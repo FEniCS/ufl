@@ -66,6 +66,13 @@ class TestIntegrals(UflTestCase):
         b = (f*v + 3*v)*dx(0) + (2*v + 7*v)*ds + (3*v + 7*v)*dx(2)
         self.assertEqual(repr(a), repr(b))
 
+    def test_adding_zero(self):
+        element = FiniteElement("Lagrange", triangle, 1)
+        v = TestFunction(element)
+        a = v*dx
+        b = a + 0
+        self.assertEqual(id(a), id(b))
+
 class TestFormScaling(UflTestCase):
 
     def test_scalar_mult_form(self):

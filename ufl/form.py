@@ -157,6 +157,9 @@ class Form(object):
         return Equation(self, other)
 
     def __add__(self, other):
+        if isinstance(other, (int,float)) and other == 0:
+            return self
+
         # --- Add integrands of integrals with the same measure
 
         # Start with integrals in self
