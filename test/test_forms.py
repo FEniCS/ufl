@@ -72,6 +72,10 @@ class TestIntegrals(UflTestCase):
         a = v*dx
         b = a + 0
         self.assertEqual(id(a), id(b))
+        b = 0 + a
+        self.assertEqual(id(a), id(b))
+        b = sum([a, 2*a])
+        self.assertEqual(b, a+2*a)
 
 class TestFormScaling(UflTestCase):
 

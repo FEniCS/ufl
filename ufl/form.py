@@ -156,9 +156,16 @@ class Form(object):
     def __eq__(self, other):
         return Equation(self, other)
 
+    def __radd__(self, other):
+        # Ordering of form additions make no difference
+        return self.__add__(other)
+
     def __add__(self, other):
+        # Allow adding 0 or 0.0, needed for sum([a,b])
         if isinstance(other, (int,float)) and other == 0:
             return self
+        elif not isinstance(other, Form):
+            return NotImplemented
 
         # --- Add integrands of integrals with the same measure
 
