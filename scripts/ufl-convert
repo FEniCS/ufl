@@ -193,5 +193,7 @@ for arg in args:
 
     # That's all we know!
     else:
-        print "Unknown file type ", filetype
+        print "Sorry, don't know how to render format '%s' for file type '%s'." \
+            % (format, filetype)
+        print "Please try another combination, perhaps -fdot -tpdf?"
         sys.exit(-1)
