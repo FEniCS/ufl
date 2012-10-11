@@ -31,6 +31,7 @@ from ufl.form import Form
 from ufl.variable import Variable
 from ufl.constantvalue import ScalarValue
 from ufl.geometry import FacetNormal
+from ufl.classes import FormArgument, MultiIndex
 
 # TODO: Maybe this can be cleaner written using the graph utilities
 
@@ -65,6 +66,10 @@ def build_entities(e, nodes, edges, nodeoffset):
                 label = repr(e._value)
             elif isinstance(e, FacetNormal):
                 label = "n"
+            elif isinstance(e, MultiIndex):
+                label = str(e)
+            elif isinstance(e, FormArgument):
+                label = str(e)
             else:
                 label = repr(e)
         else:
