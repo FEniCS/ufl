@@ -16,7 +16,11 @@ def get_status_output(cmd, input=None, cwd=None, env=None):
     return (status, output)
 
 def runcmd(cmd):
-    get_status_output(cmd)
+    status, output = get_status_output(cmd)
+    if status != 0:
+        print "*** Error:"
+        print output
+        sys.exit(-1)
 
 def write_file(filename, text):
     "Write text to a file and close it."
@@ -24,7 +28,6 @@ def write_file(filename, text):
     f.write(text)
     f.close()
     print "Wrote file %s" % filename
-
 
 # --- Option parsing
 
@@ -193,7 +196,7 @@ for arg in args:
 
     # That's all we know!
     else:
-        print "Sorry, don't know how to render format '%s' for file type '%s'." \
+        print "*** Error: Sorry, don't know how to render format '%s' for file type '%s'." \
             % (format, filetype)
         print "Please try another combination, perhaps -fdot -tpdf?"
         sys.exit(-1)
