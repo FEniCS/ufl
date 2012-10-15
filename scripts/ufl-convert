@@ -87,6 +87,7 @@ for arg in args:
     #formdatas = [f.compute_form_data() for f in forms]
     ufl_data = load_ufl_file(uflfilename)
     forms = ufl_data.forms
+    #expressions = ufl_data.expressions # TODO: Allow rendering expressions without form stuff!
 
     # Preprocess forms
     for f in forms:
@@ -127,8 +128,9 @@ for arg in args:
             end = (i == len(forms) - 1)
             dot, nodeoffset = ufl2dot(f, f.form_data().name, nodeoffset, begin, end,
                                       options.labeling, ufl_data.object_names)
-            data.append((f.form_data().name, dot))
-        rendered = "\n\n".join("/* Form %s: */\n%s\n" % (a, b) for (a, b) in data)
+            tmp = "/* Form %s: */\n%s\n" % (f.form_data().name, dot)
+            data.append(tmp)
+        rendered = "\n\n".join(data)
     elif format == "tex":
         rendered = forms2latexdocument(forms, uflfilename, compile=options.compile)
     else:
