@@ -32,56 +32,135 @@ from ufl.variable import Variable
 from ufl.constantvalue import ScalarValue
 from ufl.geometry import FacetNormal
 from ufl.classes import FormArgument, MultiIndex, NegativeRestricted, PositiveRestricted
+from ufl.algorithms.multifunction import MultiFunction
 
-# TODO: Maybe this can be cleaner written using the graph utilities
+class ReprLabeller(MultiFunction):
+    def __init__(self):
+        MultiFunction.__init__(self)
+    def terminal(self, e):
+        return repr(e)
+    def operator(self, e):
+        return e._uflclass.__name__.split(".")[-1]
 
+class CompactLabeller(ReprLabeller):
+    def __init__(self, function_mapping=None):
+        ReprLabeller.__init__(self)
+        self._function_mapping = function_mapping
+
+    # Terminals:
+    def scalar_value(self, e):
+        return repr(e._value)
+    def zero(self, e):
+        return "0"
+    def identity(self, e):
+        return "Id"
+    def multi_index(self, e):
+        return str(e)
+
+    def form_argument(self, e):
+        return self._function_mapping.get(id(e)) or str(e)
+
+    def spatial_coordinate(self, e):
+        return "x"
+    def facet_normal(self, e):
+        return "n"
+    def circumradius(self, e):
+        return "circumradius"
+    def cell_volume(self, e):
+        return "cell volume"
+    def cell_surface_area(self, e):
+        return "surface_area"
+    def facet_area(self, e):
+        return "facet_area"
+
+    # Operators:
+    def sum(self, e):
+        return "+"
+    def product(self, e):
+        return "*"
+    def division(self, e):
+        return "/"
+    def power(self, e):
+        return "**"
+    def math_function(self, e):
+        return e._name
+    def index_sum(self, e):
+        return "&sum;"
+    def indexed(self, e):
+        return "[]"
+    def component_tensor(self, e): # TODO: Understandable short notation for this?
+        return "]["
+    def negative_restricted(self, e):
+        return "[-]"
+    def positive_restricted(self, e):
+        return "[+]"
+
+    def inner(self, e):
+        return "inner"
+    def dot(self, e):
+        return "dot"
+    def outer(self, e):
+        return "outer"
+    def transposed(self, e):
+        return "transp."
+    def determinant(self, e):
+        return "det"
+    def trace(self, e):
+        return "tr"
+    def dev(self, e):
+        return "dev"
+    def skew(self, e):
+        return "skew"
+
+    def grad(self, e):
+        return "grad"
+    def div(self, e):
+        return "div"
+    def curl(self, e):
+        return "curl"
+    def nabla_grad(self, e):
+        return "nabla_grad"
+    def nabla_div(self, e):
+        return "nabla_div"
+
+    def diff(self, e):
+        return "diff"
+
+# Make this class like the ones above to use fancy math symbol labels
 class2label = { \
-    "IndexSum": "&sum;",
-    "Sum": "&sum;",
-    "Product": "&prod;",
-    "Division": "/",
-    "Inner": ":",
-    "Dot": "&sdot;",
-    "Outer": "&otimes;",
-    "Grad": "grad",
-    "Div": "div",
+    "IndexSum":  "&sum;",
+    "Sum":       "&sum;",
+    "Product":   "&prod;",
+    "Division":  "/",
+    "Inner":     ":",
+    "Dot":       "&sdot;",
+    "Outer":     "&otimes;",
+    "Grad":      "grad",
+    "Div":       "div",
     "NablaGrad": "&nabla;&otimes;",
-    "NablaDiv": "&nabla;&sdot;",
-    "Curl": "&nabla;&times;",
+    "NablaDiv":  "&nabla;&sdot;",
+    "Curl":      "&nabla;&times;",
     }
+class FancyLabeller(CompactLabeller):
+    pass
 
-def build_entities(e, nodes, edges, nodeoffset, prefix=""):
+def build_entities(e, nodes, edges, nodeoffset, prefix="", labeller=None):
+    # TODO: Maybe this can be cleaner written using the graph utilities.
+    # TODO: To collapse equal nodes with different objects, do not use id as key. Make this an option?
+
     # Cutoff if we have handled e before
     if id(e) in nodes:
         return
+    if labeller is None:
+        labeller = ReprLabeller()
 
     # Special-case Variable instances
-    if isinstance(e, Variable):
+    if isinstance(e, Variable): # FIXME: Is this really necessary?
         ops = (e._expression,)
-        label = "var %d" % e._label._count
+        label = "variable %d" % e._label._count
     else:
-        # TODO: Make a multifunction of this labeling
         ops = e.operands()
-        if isinstance(e, Terminal):
-            if isinstance(e, ScalarValue):
-                label = repr(e._value)
-            elif isinstance(e, FacetNormal):
-                label = "n"
-            elif isinstance(e, MultiIndex):
-                label = str(e)
-            elif isinstance(e, FormArgument):
-                label = str(e)
-            else:
-                label = repr(e)
-        else:
-            if isinstance(e, NegativeRestricted):
-                label = "[-]"
-            elif isinstance(e, PositiveRestricted):
-                label = "[+]"
-            else:
-                label = e._uflclass.__name__.split(".")[-1]
-                if label in class2label:
-                    label = class2label[label]
+        label = labeller(e)
 
     # Create node for parent e
     nodename = "%sn%04d" % (prefix, len(nodes) + nodeoffset)
@@ -89,14 +168,18 @@ def build_entities(e, nodes, edges, nodeoffset, prefix=""):
 
     # Handle all children recursively
     n = len(ops)
-    oplabels = [None]*n
     if n == 2:
-        oplabels = ["left", "right"]
+        #oplabels = ["left", "right"]
+        oplabels = ["L", "R"]
     elif n > 2:
         oplabels = ["op%d" % i for i in range(n)]
+    else:
+        oplabels = [None]*n
+
     for i, o in enumerate(ops):
         # Handle entire subtree for expression o
-        build_entities(o, nodes, edges, nodeoffset, prefix)
+        build_entities(o, nodes, edges, nodeoffset, prefix, labeller)
+
         # Add edge between e and child node o
         edges.append((id(e), id(o), oplabels[i]))
 
@@ -115,17 +198,23 @@ def format_entities(nodes, edges):
         entities.append(edge)
     return "\n".join(entities)
 
-integralgraphformat = """  %s [label="Integral %s"]
-  form_%s -> %s ;
-  %s -> %s ;
-%s"""
+integralgraphformat = """  %(node)s [label="%(label)s"]
+  form_%(formname)s -> %(node)s ;
+  %(node)s -> %(root)s ;
+%(entities)s"""
 
 exprgraphformat = """  digraph ufl_expression
   {
   %s
   }"""
 
-def ufl2dot(expression, formname="a", nodeoffset=0, begin=True, end=True):
+def ufl2dot(expression, formname="a", nodeoffset=0, begin=True, end=True, labeling="repr", object_names=None):
+    if labeling == "repr":
+        labeller = ReprLabeller()
+    elif labeling == "compact":
+        labeller = CompactLabeller(object_names or {})
+        print object_names
+
     if isinstance(expression, Form):
         form = expression
         ci = form.cell_integrals()
@@ -136,21 +225,32 @@ def ufl2dot(expression, formname="a", nodeoffset=0, begin=True, end=True):
 
         subgraphs = []
         k = 0
-        for itg in chain(ci, ei, ii, pi, mi):
-            prefix = "itg%d_" % k
-            integrallabel = "%s%s" % (itg.measure().domain_type(), itg.measure().domain_id())
-            integrand = itg.integrand()
+        for itgs in (ci, ei, ii, pi, mi):
+            for itg in itgs:
+                prefix = "itg%d_" % k
+                integralkey = "%s%s" % (itg.measure().domain_type(), itg.measure().domain_id())
 
-            nodes = {}
-            edges = []
+                integrallabel = "%s %s" % (itg.measure().domain_type().capitalize().replace("_", " "), "integral")
+                if len(itgs) > 1:
+                    integrallabel += " %s" % (itg.measure().domain_id(),)
 
-            build_entities(integrand, nodes, edges, nodeoffset, prefix)
-            rootnode = nodes[id(integrand)][0]
-            entitylist = format_entities(nodes, edges)
-            integralnode = "%s_%s" % (formname, integrallabel)
-            subgraphs.append(integralgraphformat % (integralnode, integrallabel, formname, integralnode, integralnode, rootnode, entitylist))
+                integrand = itg.integrand()
 
-            nodeoffset += len(nodes)
+                nodes = {}
+                edges = []
+
+                build_entities(integrand, nodes, edges, nodeoffset, prefix, labeller)
+                rootnode = nodes[id(integrand)][0]
+                entitylist = format_entities(nodes, edges)
+                integralnode = "%s_%s" % (formname, integralkey)
+                subgraphs.append(integralgraphformat % {
+                    'node': integralnode,
+                    'label': integrallabel,
+                    'formname': formname,
+                    'root': rootnode,
+                    'entities': entitylist,
+                    })
+                nodeoffset += len(nodes)
 
         s = ""
         if begin:
@@ -164,7 +264,7 @@ def ufl2dot(expression, formname="a", nodeoffset=0, begin=True, end=True):
         nodes = {}
         edges = []
 
-        build_entities(integrand, nodes, edges, nodeoffset)
+        build_entities(integrand, nodes, edges, nodeoffset, labeller)
         entitylist = format_entities(nodes, edges)
         s = exprgraphformat % entitylist
 

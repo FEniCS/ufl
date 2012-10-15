@@ -46,6 +46,7 @@ option_list = [ \
     opt("inputdir",  "i", "str", "", "Input directory."),
     # Expression transformations:
     opt("compile",   "c", "int", 0, "'Compile' forms: apply expression transformations like in a quadrature based form compilation."),
+    opt("labeling",  "l", "str", "repr", "Set to 'repr' or 'compact' for different naming of graph nodes."),
     # Output formats:
     opt("format",    "f", "str", "", "Rendering format (str, repr, tree, dot, latex)."),
     opt("filetype",  "t", "str", "", "Output file type (txt, py, dot, tex, ps, pdf, png)."),
@@ -89,7 +90,7 @@ for arg in args:
 
     # Preprocess forms
     for f in forms:
-      f.compute_form_data(object_names=ufl_data.object_names)
+        f.compute_form_data(object_names=ufl_data.object_names)
 
     # 2) Transform forms
     compiled_forms = []
@@ -124,7 +125,8 @@ for arg in args:
         for i, f in enumerate(forms):
             begin = (i == 0)
             end = (i == len(forms) - 1)
-            dot, nodeoffset = ufl2dot(f, f.form_data().name, nodeoffset, begin, end)
+            dot, nodeoffset = ufl2dot(f, f.form_data().name, nodeoffset, begin, end,
+                                      options.labeling, ufl_data.object_names)
             data.append((f.form_data().name, dot))
         rendered = "\n\n".join("/* Form %s: */\n%s\n" % (a, b) for (a, b) in data)
     elif format == "tex":
