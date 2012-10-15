@@ -31,7 +31,7 @@ from ufl.form import Form
 from ufl.variable import Variable
 from ufl.constantvalue import ScalarValue
 from ufl.geometry import FacetNormal
-from ufl.classes import FormArgument, MultiIndex
+from ufl.classes import FormArgument, MultiIndex, NegativeRestricted, PositiveRestricted
 
 # TODO: Maybe this can be cleaner written using the graph utilities
 
@@ -50,7 +50,7 @@ class2label = { \
     "Curl": "&nabla;&times;",
     }
 
-def build_entities(e, nodes, edges, nodeoffset):
+def build_entities(e, nodes, edges, nodeoffset, prefix=""):
     # Cutoff if we have handled e before
     if id(e) in nodes:
         return
@@ -60,6 +60,7 @@ def build_entities(e, nodes, edges, nodeoffset):
         ops = (e._expression,)
         label = "var %d" % e._label._count
     else:
+        # TODO: Make a multifunction of this labeling
         ops = e.operands()
         if isinstance(e, Terminal):
             if isinstance(e, ScalarValue):
@@ -73,12 +74,17 @@ def build_entities(e, nodes, edges, nodeoffset):
             else:
                 label = repr(e)
         else:
-            label = e._uflclass.__name__.split(".")[-1]
-            if label in class2label:
-                label = class2label[label]
+            if isinstance(e, NegativeRestricted):
+                label = "[-]"
+            elif isinstance(e, PositiveRestricted):
+                label = "[+]"
+            else:
+                label = e._uflclass.__name__.split(".")[-1]
+                if label in class2label:
+                    label = class2label[label]
 
     # Create node for parent e
-    nodename = "n%04d" % (len(nodes) + nodeoffset)
+    nodename = "%sn%04d" % (prefix, len(nodes) + nodeoffset)
     nodes[id(e)] = (nodename, label)
 
     # Handle all children recursively
@@ -90,7 +96,7 @@ def build_entities(e, nodes, edges, nodeoffset):
         oplabels = ["op%d" % i for i in range(n)]
     for i, o in enumerate(ops):
         # Handle entire subtree for expression o
-        build_entities(o, nodes, edges, nodeoffset)
+        build_entities(o, nodes, edges, nodeoffset, prefix)
         # Add edge between e and child node o
         edges.append((id(e), id(o), oplabels[i]))
 
@@ -129,16 +135,22 @@ def ufl2dot(expression, formname="a", nodeoffset=0, begin=True, end=True):
         mi = form.macro_cell_integrals()
 
         subgraphs = []
-        nodes = {}
-        edges = []
+        k = 0
         for itg in chain(ci, ei, ii, pi, mi):
+            prefix = "itg%d_" % k
             integrallabel = "%s%s" % (itg.measure().domain_type(), itg.measure().domain_id())
             integrand = itg.integrand()
-            build_entities(integrand, nodes, edges, nodeoffset)
+
+            nodes = {}
+            edges = []
+
+            build_entities(integrand, nodes, edges, nodeoffset, prefix)
             rootnode = nodes[id(integrand)][0]
             entitylist = format_entities(nodes, edges)
             integralnode = "%s_%s" % (formname, integrallabel)
             subgraphs.append(integralgraphformat % (integralnode, integrallabel, formname, integralnode, integralnode, rootnode, entitylist))
+
+            nodeoffset += len(nodes)
 
         s = ""
         if begin:
@@ -151,12 +163,14 @@ def ufl2dot(expression, formname="a", nodeoffset=0, begin=True, end=True):
     elif isinstance(expression, Expr):
         nodes = {}
         edges = []
+
         build_entities(integrand, nodes, edges, nodeoffset)
         entitylist = format_entities(nodes, edges)
         s = exprgraphformat % entitylist
 
+        nodeoffset += len(nodes)
+
     else:
         error("Invalid object type %s" % type(expression))
 
-    return s, len(nodes) + nodeoffset
-
+    return s, nodeoffset
