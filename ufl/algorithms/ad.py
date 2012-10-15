@@ -40,10 +40,10 @@ class ADApplyer(Transformer):
         return e
 
     def expr(self, e, *ops):
-        e = Transformer.reuse_if_possible(self, e, *ops)
-        if isinstance(e, Derivative):
-            e = self.ad_routine(e)
-        return e
+        return self.reuse_if_possible(e, *ops)
+
+    def derivative(self, e, *ops):
+        return self.ad_routine(self.expr(e, *ops))
 
 def apply_ad(e, ad_routine):
     if isinstance(e, Terminal):
