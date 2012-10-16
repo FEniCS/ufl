@@ -20,9 +20,10 @@
 # Modified by Anders Logg, 2009.
 # Modified by Garth N. Wells, 2010.
 # Modified by Kristian B. Oelgaard, 2011
+# Modified by Jan Blechta, 2012.
 #
 # First added:  2008-08-19
-# Last changed: 2012-04-12
+# Last changed: 2012-10-03
 
 from itertools import izip
 from math import pi
@@ -532,18 +533,20 @@ class ForwardAD(Transformer):
     def binary_condition(self, o, l, r):
         o = self.reuse_if_possible(o, l[0], r[0])
         if any(not (isinstance(op[1], Zero) or op[1] is None) for op in (l, r)):
-            error("Differentiating a conditional with a condition "\
+            warning("Differentiating a conditional with a condition "\
                         "that depends on the differentiation variable."\
-                        "This is probably not a good idea!")
+                        "Assuming continuity of conditional. The condition "\
+                        "will not be differentiated.")
         oprime = None # Shouldn't be used anywhere
         return (o, oprime)
 
     def not_condition(self, o, c):
         o = self.reuse_if_possible(o, c[0])
         if not (isinstance(c[1], Zero) or c[1] is None):
-            error("Differentiating a conditional with a condition "\
+            warning("Differentiating a conditional with a condition "\
                         "that depends on the differentiation variable."\
-                        "This is probably not a good idea!")
+                        "Assuming continuity of conditional. The condition "\
+                        "will not be differentiated.")
         oprime = None # Shouldn't be used anywhere
         return (o, oprime)
 
@@ -555,7 +558,7 @@ class ForwardAD(Transformer):
             fid = subdict(tp.index_dimensions(), fi)
             op = Zero(tp.shape(), fi, fid)
         else:
-            op = conditional(c[0], t[1], f[1])
+            op = conditional(c[0], 1, 0)*t[1] + conditional(c[0], 0, 1)*f[1]
         return (o, op)
 
     # --- Other derivatives
