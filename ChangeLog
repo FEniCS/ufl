@@ -3,6 +3,7 @@
  - Major memory savings and optimizations.
  - Some bugfixes.
  - Add perp operator.
+ - Support nested tuple syntax like MixedElement((U,V),W)
 1.0.0 [2011-12-07]
  - No changes since rc1.
 1.0-rc1 [2011-11-22]

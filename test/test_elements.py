@@ -124,6 +124,19 @@ class ElementsTestCase(UflTestCase):
             self.assertEqual(TH1, eval(repr(TH2)))
             self.assertEqual(TH2, eval(repr(TH1)))
 
+    def test_nested_mixed(self):
+        for cell in (triangle, tetrahedron):
+            dim = cell.d
+            velement = VectorElement("CG", cell, 2)
+            pelement = FiniteElement("CG", cell, 1)
+            TH1 = MixedElement((velement, pelement), pelement)
+            TH2 = velement * pelement * pelement
+            self.assertEqual(TH1.value_shape(), (dim+2,))
+            self.assertEqual(TH2.value_shape(), (dim+2,))
+            self.assertEqual(repr(TH1), repr(TH2))
+            self.assertEqual(TH1, eval(repr(TH2)))
+            self.assertEqual(TH2, eval(repr(TH1)))
+
     def test_quadrature_scheme(self):
         for cell in (triangle, tetrahedron):
             for q in (None, 1, 2, 3):

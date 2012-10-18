@@ -21,7 +21,7 @@
 # Modified by Marie E. Rognes 2010, 2012
 #
 # First added:  2008-03-03
-# Last changed: 2012-08-16
+# Last changed: 2012-10-18
 
 from itertools import izip
 from ufl.assertions import ufl_assert
@@ -44,7 +44,9 @@ class MixedElement(FiniteElementBase):
         # Unnest arguments if we get a single argument with a list of elements
         if len(elements) == 1 and isinstance(elements[0], (tuple, list)):
             elements = elements[0]
-        self._sub_elements = list(elements)
+        # Interpret nested tuples as sub-mixedelements recursively
+        elements = [MixedElement(e) if isinstance(e, (tuple,list)) else e for e in elements]
+        self._sub_elements = elements
 
         # Check that all elements are defined on the same domain
         cell = elements[0].cell()
