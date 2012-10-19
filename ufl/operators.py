@@ -102,8 +102,16 @@ def transpose(A):
         return A
     return Transposed(A)
 
-def outer(a, b):
-    "UFL operator: Take the outer product of a and b."
+def outer(*operands):
+    "UFL operator: Take the outer product of two or more operands."
+    n = len(operands)
+    if n == 1:
+        return operands[0]
+    elif n == 2:
+        a, b = operands
+    else:
+        a = outer(*operands[:-1])
+        b = operands[-1]
     a = as_ufl(a)
     b = as_ufl(b)
     if a.shape() == () and b.shape() == ():
