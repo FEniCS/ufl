@@ -22,7 +22,7 @@
 # Modified by Marie E. Rognes 2012
 #
 # First added:  2008-03-14
-# Last changed: 2012-08-16
+# Last changed: 2012-10-22
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
@@ -91,9 +91,7 @@ class SpatialCoordinate(GeometricQuantity):
 
     def shape(self):
         d = self._cell.geometric_dimension()
-        if d == 1:
-            return ()
-        return (d,)
+        return () if d == 1 else (d,)
 
     def evaluate(self, x, mapping, component, index_values):
         if component == ():
@@ -112,6 +110,113 @@ class SpatialCoordinate(GeometricQuantity):
 
     def __eq__(self, other):
         return isinstance(other, SpatialCoordinate) and other._cell == self._cell
+
+class LocalCoordinate(GeometricQuantity):
+    "(EXPERIMENTAL) Representation of a local coordinate on the reference cell."
+    __slots__ = ("_repr",)
+    def __init__(self, cell):
+        GeometricQuantity.__init__(self, cell)
+        self._repr = "LocalCoordinate(%r)" % self._cell
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        return False
+
+    def shape(self):
+        d = self._cell.geometric_dimension()
+        return () if d == 1 else (d,)
+
+    def evaluate(self, x, mapping, component, index_values):
+        ufl_error("Symbolic evaluation of local coordinate not available.")
+
+    def __str__(self):
+        return "xi"
+
+    def __repr__(self):
+        return self._repr
+
+    def __eq__(self, other):
+        return isinstance(other, LocalCoordinate) and other._cell == self._cell
+
+class GeometryJacobi(GeometricQuantity):
+    "(EXPERIMENTAL) Representation of the Jacobi of the mapping from local to global coordinates."
+    __slots__ = ("_repr",)
+    def __init__(self, cell):
+        GeometricQuantity.__init__(self, cell)
+        self._repr = "GeometryJacobi(%r)" % self._cell
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        return True # False # FIXME: True for affine mappings, not for other mappings when we add support for them
+
+    def shape(self):
+        d = self._cell.geometric_dimension()
+        return () if d == 1 else (d,d)
+
+    def evaluate(self, x, mapping, component, index_values):
+        ufl_error("Symbolic evaluation of geometry jacobi not available.")
+
+    def __str__(self):
+        return "J"
+
+    def __repr__(self):
+        return self._repr
+
+    def __eq__(self, other):
+        return isinstance(other, GeometryJacobi) and other._cell == self._cell
+
+class GeometryJacobiDeterminant(GeometricQuantity):
+    "(EXPERIMENTAL) Representation of the determinant of the Jacobi of the mapping from local to global coordinates."
+    __slots__ = ("_repr",)
+    def __init__(self, cell):
+        GeometricQuantity.__init__(self, cell)
+        self._repr = "GeometryJacobiDeterminant(%r)" % self._cell
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        return True # False # FIXME: True for affine mappings, not for other mappings when we add support for them
+
+    def shape(self):
+        return ()
+
+    def evaluate(self, x, mapping, component, index_values):
+        ufl_error("Symbolic evaluation of geometry jacobi determinant not available.")
+
+    def __str__(self):
+        return "detJ"
+
+    def __repr__(self):
+        return self._repr
+
+    def __eq__(self, other):
+        return isinstance(other, GeometryJacobiDeterminant) and other._cell == self._cell
+
+class InverseGeometryJacobi(GeometricQuantity):
+    "(EXPERIMENTAL) Representation of the Jacobi of the mapping from local to global coordinates."
+    __slots__ = ("_repr",)
+    def __init__(self, cell):
+        GeometricQuantity.__init__(self, cell)
+        self._repr = "InverseGeometryJacobi(%r)" % self._cell
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        return True # False # FIXME: True for affine mappings, not for other mappings when we add support for them
+
+    def shape(self):
+        d = self._cell.geometric_dimension()
+        return () if d == 1 else (d,d)
+
+    def evaluate(self, x, mapping, component, index_values):
+        ufl_error("Symbolic evaluation of inverse geometry jacobi not available.")
+
+    def __str__(self):
+        return "Jinv"
+
+    def __repr__(self):
+        return self._repr
+
+    def __eq__(self, other):
+        return isinstance(other, InverseGeometryJacobi) and other._cell == self._cell
 
 class FacetNormal(GeometricQuantity):
     "Representation of a facet normal."
@@ -248,7 +353,8 @@ class Cell(object):
                  "_geometric_dimension", "_topological_dimension",
                  "_repr", "_invalid",
                  "_n", "_x", "_volume", "_circumradius",
-                 "_cellsurfacearea", "_facetarea",)
+                 "_cellsurfacearea", "_facetarea",
+                 "_xi", "_J", "_Jinv", "_detJ",)
 
     def __init__(self, domain, space=None):
         "Initialize basic cell description."
@@ -298,6 +404,10 @@ class Cell(object):
         # Attach expression nodes derived from this cell
         self._n = FacetNormal(self)
         self._x = SpatialCoordinate(self)
+        self._xi = LocalCoordinate(self)
+        self._J = GeometryJacobi(self)
+        self._Jinv = InverseGeometryJacobi(self)
+        self._detJ = GeometryJacobiDeterminant(self)
         self._volume = CellVolume(self)
         self._circumradius = Circumradius(self)
         self._cellsurfacearea = CellSurfaceArea(self)
@@ -310,6 +420,26 @@ class Cell(object):
     def x(self):
         "UFL geometry value: The global spatial coordinates."
         return self._x
+
+    @property
+    def xi(self):
+        "UFL geometry value: The local spatial coordinates."
+        return self._xi
+
+    @property
+    def J(self):
+        "UFL geometry value: The Jacobi of the local to global coordinate mapping."
+        return self._J
+
+    @property
+    def Jdet(self):
+        "UFL geometry value: The determinant of the Jacobi of the local to global coordinate mapping."
+        return self._Jdet
+
+    @property
+    def Jinv(self):
+        "UFL geometry value: The inverse of the Jacobi of the local to global coordinate mapping."
+        return self._Jinv
 
     @property
     def n(self):
@@ -413,6 +543,10 @@ class ProductCell(Cell):
         self._repr = "ProductCell(*%r)" % list(self._cells)
         self._n = None
         self._x = SpatialCoordinate(self) # For now
+        self._xi = None # ?
+        self._J = None # ?
+        self._Jinv = None # ?
+        self._detJ = None # ?
         self._volume = None
         self._circumradius = None
         self._cellsurfacearea = None

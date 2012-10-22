@@ -149,9 +149,9 @@ A very brief overview of the language contents follows:
 # Modified by Kristian B. Oelgaard, 2009, 2011
 # Modified by Anders Logg, 2009.
 #
-# Last changed: 2012-06-19
+# Last changed: 2012-10-22
 
-__version__ = "1.0+"
+__version__ = "1.1.0-alpha"
 
 ########## README
 # Imports here should be what the user sees when doing "from ufl import *",
@@ -169,8 +169,11 @@ from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile
     UFLException, DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 # Types for geometric quantities
-from ufl.geometry import Cell, Space, SpatialCoordinate, FacetNormal, Circumradius, \
-                         CellVolume, CellSurfaceArea, FacetArea
+from ufl.geometry import Space, Cell, ProductCell, \
+     SpatialCoordinate, LocalCoordinate, \
+     CellVolume, Circumradius, CellSurfaceArea, \
+     FacetNormal, FacetArea, \
+     GeometryJacobi, GeometryJacobiDeterminant, InverseGeometryJacobi
 
 # Finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
@@ -249,8 +252,11 @@ __all__ = [
     'product',
     'get_handler', 'get_logger', 'set_handler', 'set_level', 'add_logfile',
     'UFLException', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL',
-    'Cell', 'Space', 'SpatialCoordinate', 'FacetNormal', 'CellVolume',
-    'Circumradius', 'CellSurfaceArea', 'FacetArea',
+    'Space', 'Cell', 'ProductCell',
+    'SpatialCoordinate', 'LocalCoordinate',
+    'CellVolume', 'Circumradius', 'CellSurfaceArea',
+    'FacetNormal', 'FacetArea',
+    'GeometryJacobi', 'GeometryJacobiDeterminant', 'InverseGeometryJacobi',
     'FiniteElementBase', 'FiniteElement',
     'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
     'RestrictedElement', 'TensorProductElement',

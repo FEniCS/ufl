@@ -25,7 +25,7 @@ of classes, and for mapping types to different handler functions."""
 # Modified by Kristian B. Oelgaard, 2011
 #
 # First added:  2008-08-15
-# Last changed: 2012-08-16
+# Last changed: 2012-10-22
 
 from ufl.assertions import ufl_assert
 
@@ -45,7 +45,8 @@ from ufl.argument import Argument, TestFunction, TrialFunction
 from ufl.coefficient import Coefficient, ConstantBase,\
     VectorConstant, TensorConstant, Constant
 from ufl.geometry import Space, Cell, ProductCell, GeometricQuantity, \
-    SpatialCoordinate, FacetNormal, CellVolume, CellSurfaceArea, FacetArea, Circumradius
+    SpatialCoordinate, FacetNormal, CellVolume, CellSurfaceArea, FacetArea, Circumradius, \
+    LocalCoordinate, GeometryJacobi, GeometryJacobiDeterminant, InverseGeometryJacobi
 from ufl.indexing import IndexBase, FixedIndex, Index, MultiIndex
 
 # Operator types
