@@ -19,6 +19,31 @@ class SimplificationTestCase(UflTestCase):
         self.assertEqual(len(a.compute_form_data().arguments), 2)
         self.assertEqual(len(b.compute_form_data().arguments), 2)
 
+    def test_divisions(self):
+        element = FiniteElement("CG", triangle, 1)
+        f = Coefficient(element)
+        g = Coefficient(element)
+
+        # Test simplification of division by 1
+        a = f
+        b = f/1
+        self.assertEqual(a, b)
+
+        # Test simplification of division by 1.0
+        a = f
+        b = f/1.0
+        self.assertEqual(a, b)
+
+        # Test simplification of division by of zero by something
+        a = 0/f
+        b = 0*f
+        self.assertEqual(a, b)
+
+        # Test simplification of division by self
+        a = f/f
+        b = 1
+        self.assertEqual(a, b)
+
     def test_products(self):
         element = FiniteElement("CG", triangle, 1)
         f = Coefficient(element)

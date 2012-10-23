@@ -331,6 +331,9 @@ class Division(AlgebraOperator):
         # Avoiding integer division by casting to float
         if isinstance(a, ScalarValue) and isinstance(b, ScalarValue):
             return as_ufl(float(a._value) / float(b._value))
+        # Simplification "a / a" -> "1"
+        if not a.free_indices() and not a.shape() and a == b:
+            return as_ufl(1)
 
         # construct and initialize a new Division object
         self = AlgebraOperator.__new__(cls)
