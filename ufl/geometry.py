@@ -432,9 +432,9 @@ class Cell(object):
         return self._J
 
     @property
-    def Jdet(self):
+    def detJ(self):
         "UFL geometry value: The determinant of the Jacobi of the local to global coordinate mapping."
-        return self._Jdet
+        return self._detJ
 
     @property
     def Jinv(self):
