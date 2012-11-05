@@ -98,21 +98,6 @@ class Terminal(Expr):
     def __hash__(self):
         return hash(repr(self))
 
-    def __eq__(self, other):
-        """Checks whether the two expressions are represented the
-        exact same way. This does not check if the expressions
-        are mathematically equal or equivalent!"""
-        if type(self) != type(other):
-            return False
-        if self is other:
-            return True
-        if hasattr(self, "_hash") and self._hash != other._hash:
-            #if repr(self) == repr(other):
-            #    print "DEBUG: HASH mismatch"
-            #    print repr(self), repr(other)
-            return False
-        return repr(self) == repr(other)
-
     #def __getnewargs__(self): # TODO: Test pickle and copy with this. Must implement differently for Terminal objects though.
     #    "Used for pickle and copy operations."
     #    raise NotImplementedError, "Must reimplement in each Terminal, or?"

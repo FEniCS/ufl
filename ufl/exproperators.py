@@ -40,134 +40,62 @@ from ufl.tensors import as_tensor, ComponentTensor
 from ufl.restriction import PositiveRestricted, NegativeRestricted
 from ufl.differentiation import SpatialDerivative, Grad
 
-from ufl.common import fast_pre_traversal
 
-def _expr_equals(a, b): # TODO: Which is faster?
-    # Cutoff for different type
-    if type(a) != type(b):
-        return False
+#--- Boolean operators ---
 
-    # Cutoff for same object
-    if a is b:
-        return True
+from ufl.conditional import EQ, NE, LE, GE, LT, GT
+#    AndCondition, OrCondition, NotCondition, Conditional
 
-    # Iterate over pairs of potentially matching subexpressions
-    input = [(a, b)]
-    while input:
-        a, b = input.pop()
+def _eq(left, right):
+    "UFL operator: A boolean expresion (left == right) for use with conditional."
+    return EQ(left, right)
 
-        # Cutoff for different type
-        if type(a) != type(b):
-            return False
+def _ne(left, right):
+    "UFL operator: A boolean expresion (left != right) for use with conditional."
+    return NE(left, right)
 
-        # Get operands
-        aops = a.operands()
-        bops = b.operands()
-        if aops:
-            if len(aops) != len(bops):
-                return False
-            # Add children for checking
-            input.extend(izip(aops, bops))
-        else:
-            # Compare terminals
-            if not a == b:
-                return False
+def _le(left, right):
+    "UFL operator: A boolean expresion (left <= right) for use with conditional."
+    return LE(left, right)
 
-    # Everything checked out fine, expressions must be equal
-    return True
+def _ge(left, right):
+    "UFL operator: A boolean expresion (left >= right) for use with conditional."
+    return GE(left, right)
 
-def _expr_equals1(a, b): # TODO: Which is faster?
-    # Cutoff for different type
-    if type(a) != type(b):
-        return False
-    # Cutoff for same object
-    if a is b:
-        return True
-    # Compare entire expression structure
-    for x,y in izip(fast_pre_traversal(a), fast_pre_traversal(b)):
-        if type(x) != type(y):
-            return False
-        #if isinstance(Terminal, x) and not x == y:
-        if x.operands() == () and not x == y:
-            return False
-    # Equal terminals and types, a and b must be equal
-    return True
+def _lt(left, right):
+    "UFL operator: A boolean expresion (left < right) for use with conditional."
+    return LT(left, right)
 
-def _expr_equals2(a, b):
-    # Cutoff for different type
-    if type(a) != type(b):
-        return False
-    # Cutoff for same object
-    if a is b:
-        return True
-    from ufl.algorithms.traversal import traverse_terminals, traverse_operands
-    # Check for equal terminals
-    for x,y in izip(traverse_terminals(a), traverse_terminals(b)):
-        if x != y:
-            return False
-    # Check for matching operator types
-    for x,y in izip(traverse_operands(a), traverse_operands(b)):
-        if type(x) != type(y):
-            return False
-    # Equal terminals and operands, a and b must be equal
-    return True
+def _gt(left, right):
+    "UFL operator: A boolean expresion (left > right) for use with conditional."
+    return GT(left, right)
 
-equalsrecursed = {}
-equalscalls = {}
-collisions = {}
-def print_collisions():
-    print
-    print "Collision statistics:"
-    keys = equalscalls.keys()
-    keys = sorted(keys, key=lambda x: collisions.get(x,0))
-    for k in keys:
-        co = collisions.get(k,0)
-        ca = equalscalls[k]
-        print k, co, ca, int(100.0*co/ca)
-    print "Recursion statistics:"
-    keys = sorted(keys, key=lambda x: equalsrecursed.get(x,0))
-    for k in keys:
-        r = equalsrecursed.get(k,0)
-        ca = equalscalls[k]
-        print k, r, ca, int(100.0*r/ca)
-    print
+# '==' needs to implement comparison of expression representations for use in
+# hashmaps (dict and set), but the others can be overloaded in the language.
+# It is possible that we can overload eq as well, but we'll need to fix some
+# issues first and also check for a possible significant performance hit with
+# compilation of complex forms. Replacing a==b with equiv(a,b) all over the
+# code could be one way to reduce such a performance hit, but we cannot do
+# anything about dict and set calling __eq__...
+from ufl.exprequals import expr_equals
+Expr.__eq__ = expr_equals
+#Expr.__eq__ = _eq
 
-def _expr_equals3(self, other): # Much faster than the more complex algorithms above!
-    """Checks whether the two expressions are represented the
-    exact same way. This does not check if the expressions are
-    mathematically equal or equivalent! Used by sets and dicts."""
+# != is used at least by tests, possibly in code as well, and must mean
+# the opposite of ==, i.e. when evaluated as bool it must mean equal representation.
+# However, it is not called as much and using it in the language as well
+# should not give a significant performance hit.
+Expr.__ne__ = _ne
 
-    # Code for counting number of equals calls:
-    #equalscalls[type(self)] = equalscalls.get(type(self),0) + 1
+Expr.__lt__ = _lt
+Expr.__gt__ = _gt
+Expr.__le__ = _le
+Expr.__ge__ = _ge
 
-    # Fast cutoff for common case
-    if type(self) != type(other):
-        return False
+#Expr.__and__ = And
+#Expr.__or__ = Or
+#Expr.__xor__ = Xor
 
-    # TODO: Test how this affects the run time:
-    # Compare hashes if hash is cached
-    # (NB! never access _hash directly, it may be computed on demand in __hash__)
-    if (hasattr(self, "_hash") and hash(self) != hash(other)):
-        return False
-
-    # Large objects are costly to compare with themselves
-    if self is other:
-        return True
-
-    # Just let python handle the recursion
-    equal = self.operands() == other.operands()
-
-    # At this point, self and other has the same hash, and equal _should_ be True...
-    # Code for measuring amount of collisions:
-    #if not equal:
-    #    collisions[type(self)] = collisions.get(type(self), 0) + 1
-
-    # Code for counting number of recursive calls:
-    #equalsrecursed[type(self)] = equalsrecursed.get(type(self),0) + 1
-
-    return equal
-
-Operator.__eq__ = _expr_equals3
 
 #--- Helper functions for product handling ---
 

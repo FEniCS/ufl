@@ -18,13 +18,14 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # First added:  2008-08-20
-# Last changed: 2011-06-27
+# Last changed: 2012-11-05
 
 from ufl.log import warning, error
 from ufl.assertions import ufl_assert
 from ufl.operatorbase import Operator
 from ufl.constantvalue import as_ufl
 from ufl.precedence import parstr
+from ufl.exprequals import expr_equals
 
 #--- Condition classes ---
 
@@ -44,6 +45,11 @@ class Condition(Operator):
     def shape(self):
         error("Calling shape on Condition is an error.")
 
+    def __nonzero__(self):
+        # Showing explicit error here to protect against misuse
+        error("UFL conditions cannot be evaluated as bool in a Python context.")
+        #return NotImplemented
+
 class BinaryCondition(Condition):
     __slots__ = ('_name', '_left', '_right',)
     def __init__(self, name, left, right):
@@ -51,12 +57,19 @@ class BinaryCondition(Condition):
         self._name = name
         self._left = as_ufl(left)
         self._right = as_ufl(right)
-        if name in ('&&', '||'):
+        if name in ('!=', '=='):
+            # Since equals and not-equals are used for comparing representations,
+            # we have to allow any shape here. The scalar properties must be
+            # checked when used in conditional instead!
+            pass
+        elif name in ('&&', '||'):
+            # Binary operators acting on boolean expressions allow only conditions
             ufl_assert(isinstance(self._left, Condition),
                        "Expecting a Condition, not a %s." % self._left._uflclass)
             ufl_assert(isinstance(self._right, Condition),
                        "Expecting a Condition, not a %s." % self._right._uflclass)
         else:
+            # Binary operators acting on non-boolean expressions allow only scalars
             ufl_assert(self._left.shape() == () \
                            and  self._right.shape() == (),
                        "Expecting scalar arguments.")
@@ -86,6 +99,9 @@ class EQ(BinaryCondition):
         b = self._right.evaluate(x, mapping, component, index_values)
         return bool(a == b)
 
+    def __nonzero__(self):
+        return expr_equals(self._left, self._right)
+
 class NE(BinaryCondition):
     __slots__ = ()
     def __init__(self, left, right):
@@ -95,6 +111,9 @@ class NE(BinaryCondition):
         a = self._left.evaluate(x, mapping, component, index_values)
         b = self._right.evaluate(x, mapping, component, index_values)
         return bool(a != b)
+
+    def __nonzero__(self):
+        return not expr_equals(self._left, self._right)
 
 class LE(BinaryCondition):
     __slots__ = ()
@@ -191,6 +210,12 @@ class Conditional(Operator):
         tfi = true_value.free_indices()
         ffi = false_value.free_indices()
         ufl_assert(tfi == ffi, "Free index mismatch between conditional branches.")
+        if isinstance(condition, (EQ,NE)):
+            ufl_assert(condition._left.shape() == ()
+                       and condition._left.free_indices() == ()
+                       and condition._right.shape() == ()
+                       and condition._right.free_indices() == (),
+                       "Non-scalar == or != is not allowed.")
         self._condition = condition
         self._true_value = true_value
         self._false_value = false_value

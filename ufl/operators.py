@@ -229,7 +229,7 @@ def diag(A):
     return as_matrix(rows)
 
 def diag_vector(A):
-    """UFL operator: Take the diagonal part of rank 2 tensor A and return as a vector."
+    """UFL operator: Take the diagonal part of rank 2 tensor A and return as a vector.
 
     See also diag."""
 
@@ -261,7 +261,8 @@ def sym(A):
 #--- Differential operators
 
 def Dx(f, *i):
-    "UFL operator: Take the partial derivative of f with respect to spatial variable number i. Equivalent to f.dx(\*i)."
+    """UFL operator: Take the partial derivative of f with respect
+    to spatial variable number i. Equivalent to f.dx(\*i)."""
     f = as_ufl(f)
     return f.dx(*i)
 
@@ -271,7 +272,8 @@ def Dt(f):
     raise NotImplementedError
 
 def Dn(f):
-    "UFL operator: Take the directional derivative of f in the facet normal direction, Dn(f) := dot(grad(f), n)."
+    """UFL operator: Take the directional derivative of f in the
+    facet normal direction, Dn(f) := dot(grad(f), n)."""
     f = as_ufl(f)
     cell = f.cell()
     if cell is None:
@@ -415,26 +417,28 @@ def conditional(condition, true_value, false_value):
 def eq(left, right):
     "UFL operator: A boolean expresion (left == right) for use with conditional."
     return EQ(left, right)
+    #return as_ufl(left) == as_ufl(right)
 
 def ne(left, right):
     "UFL operator: A boolean expresion (left != right) for use with conditional."
-    return NE(left, right)
+    #return NE(left, right)
+    return as_ufl(left) != as_ufl(right)
 
 def le(left, right):
     "UFL operator: A boolean expresion (left <= right) for use with conditional."
-    return LE(left, right)
+    return as_ufl(left) <= as_ufl(right)
 
 def ge(left, right):
     "UFL operator: A boolean expresion (left >= right) for use with conditional."
-    return GE(left, right)
+    return as_ufl(left) >= as_ufl(right)
 
 def lt(left, right):
     "UFL operator: A boolean expresion (left < right) for use with conditional."
-    return LT(left, right)
+    return as_ufl(left) < as_ufl(right)
 
 def gt(left, right):
     "UFL operator: A boolean expresion (left > right) for use with conditional."
-    return GT(left, right)
+    return as_ufl(left) > as_ufl(right)
 
 def And(left, right):
     "UFL operator: A boolean expresion (left and right) for use with conditional."
@@ -576,4 +580,3 @@ def exterior_derivative(f):
         return div(f)
 
     error("Unable to determine exterior_derivative. Family is '%s'" % family)
-
