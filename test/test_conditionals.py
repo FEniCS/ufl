@@ -15,6 +15,11 @@ g = Coefficient(element)
 
 class ConditionalsTestCase(UflTestCase):
 
+    def test_conditional_does_not_allow_bool_condition(self):
+        # The reason for this test is that it protects from the case
+        # conditional(a == b, t, f) in which a == b means comparing representations
+        self.assertRaises(UFLException, lambda: conditional(True, 1, 0))
+
     def test_eq_produces_ufl_expr(self):
         expr1 = eq(f, f)
         expr2 = eq(f, g)
