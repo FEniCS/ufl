@@ -18,9 +18,10 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2009-2010
+# Modified by Jan Blechta, 2012
 #
 # First added:  2008-05-07
-# Last changed: 2012-04-12
+# Last changed: 2012-11-04
 
 from ufl.assertions import ufl_assert
 from ufl.form import Form
@@ -102,6 +103,22 @@ class SumDegreeEstimator(Transformer):
             return x+2
         else:
             return x
+
+    def conditional(self, v, c, t, f):
+        """Degree of condition does not
+        influence degree of values which
+        conditional takes. So heuristicaly
+        taking max of true degree and false
+        degree.
+        """
+        warning("Polynomial degree of conditional "\
+                "estimated to max(deg(t), deg(f)). "\
+                "Quadrature will be exact in cells "\
+                "where condition takes single value. "\
+                "For improving accuracy of quadrature "\
+                "near condition transition surface "\
+                "increase quadrature order manually.")
+        return max(t, f)
 
 class MaxDegreeEstimator(Transformer):
     def __init__(self, default_degree):
