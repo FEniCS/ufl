@@ -24,6 +24,7 @@
 # Last changed: 2012-11-04
 
 from ufl.assertions import ufl_assert
+from ufl.log import warning
 from ufl.form import Form
 from ufl.integral import Integral
 from ufl.algorithms.transformer import Transformer
