@@ -110,15 +110,11 @@ class SumDegreeEstimator(Transformer):
         influence degree of values which
         conditional takes. So heuristicaly
         taking max of true degree and false
-        degree.
-        """
-        warning("Polynomial degree of conditional "\
-                "estimated to max(deg(t), deg(f)). "\
-                "Quadrature will be exact in cells "\
-                "where condition takes single value. "\
-                "For improving accuracy of quadrature "\
-                "near condition transition surface "\
-                "increase quadrature order manually.")
+        degree. This will be exact in cells
+        where condition takes single value.
+        For improving accuracy of quadrature
+        near condition transition surface
+        quadrature order must be adjusted manually."""
         return max(t, f)
 
 class MaxDegreeEstimator(Transformer):
