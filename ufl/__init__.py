@@ -149,7 +149,7 @@ A very brief overview of the language contents follows:
 # Modified by Kristian B. Oelgaard, 2009, 2011
 # Modified by Anders Logg, 2009.
 #
-# Last changed: 2012-10-22
+# Last changed: 2012-11-08
 
 __version__ = "1.1.0-alpha"
 

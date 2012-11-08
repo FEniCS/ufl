@@ -6,6 +6,7 @@
  - Support nested tuple syntax like MixedElement((U,V),W)
  - Allow outer(a, b, c, ...) by recursive application from left.
  - Add simplification f/f -> 1
+ - Add operators <,>,<=,>= in place of lt,gt,le,ge
 1.0.0 [2011-12-07]
  - No changes since rc1.
 1.0-rc1 [2011-11-22]
