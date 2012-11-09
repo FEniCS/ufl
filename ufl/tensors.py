@@ -331,11 +331,11 @@ def as_vector(expressions, index = None):
     return as_tensor(expressions, index)
 
 def as_scalar(expression):
-    """Given a scalar or tensor valued expression A,
-    returns either the tuple
+    """Given a scalar or tensor valued expression A, returns either of the tuples::
+
       (a,b) = (A, ())
-    or
       (a,b) = (A[indices], indices)
+
     such that a is always a scalar valued expression."""
     ii = indices(expression.rank())
     if ii:

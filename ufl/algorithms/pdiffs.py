@@ -86,7 +86,9 @@ class PartialDerivativeComputer(MultiFunction):
         return (dx, dy)
 
     def abs(self, f):
-        """f = |x|
+        """ ::
+
+        f = |x|
         d/dx |x| = { +1, if x > 0
                    { -1, if x < 0
                    {  0, if x == 0 (not strictly correct, but better than leaving it undefined?)
