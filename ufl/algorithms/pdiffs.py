@@ -86,13 +86,7 @@ class PartialDerivativeComputer(MultiFunction):
         return (dx, dy)
 
     def abs(self, f):
-        """ ::
-
-        f = |x|
-        d/dx |x| = { +1, if x > 0
-                   { -1, if x < 0
-                   {  0, if x == 0 (not strictly correct, but better than leaving it undefined?)
-        """
+        r".. math:: \\frac{d}{dx} f(x) = \\frac{d}{dx} abs(x) = sign(x)"
         x, = f.operands()
         dx = sign(x)
         return (dx,)
@@ -128,7 +122,7 @@ class PartialDerivativeComputer(MultiFunction):
         return (2.0/(cos(2.0*x) + 1.0),)
 
     def acos(self, f):
-        "d/dx acos x = -1/sqrt(1 - x^2)"
+        r".. math:: \\frac{d}{dx} f(x) = \frac{d}{dx} \arccos(x) = \frac{-1}{\sqrt{1 - x^2}}"
         x, = f.operands()
         return (-1.0/sqrt(1.0 - x**2),)
 

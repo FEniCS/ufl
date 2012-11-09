@@ -34,14 +34,12 @@ from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
 class TensorProductElement(FiniteElementBase):
-    """The tensor product of d element spaces:
+    r"""The tensor product of d element spaces:
 
-    .. math::
-    V = V_0 \otimes V_1 \otimes ...  \otimes V_d
+    .. math:: V = V_0 \otimes V_1 \otimes ...  \otimes V_d
 
-    .. math::
     Given bases {phi_i} for V_i for i = 1, ...., d,
-    { phi_0 * phi_1 *.... * phi_d } forms a basis for V.
+    { phi_0 * phi_1 * ... * phi_d } forms a basis for V.
     """
     __slots__ = ("_sub_elements",)
 
