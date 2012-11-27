@@ -54,6 +54,20 @@ class TestMeasure(UflTestCase):
             self.assertEqual(itg[0].integrand(), f2**(i+1))
             self.assertIs(itg[0].measure().domain_data(), domain_data)
 
+    def test_measure_sums(self):
+        element = FiniteElement("Lagrange", triangle, 1)
+        f = Coefficient(element)
+
+        a1 = f**2*dx(0) + f**2*dx(3)
+        a2 = f**2*(dx(0) + dx(3))
+        self.assertEqual(a1, a2)
+
+        a3 = f**2*dx(3) + f**2*dx(0)
+        a4 = f**2*(dx(3) + dx(0))
+        self.assertEqual(a3, a4)
+
+        # Shouldn't we have sorting of integrals?
+        #self.assertEqual(a1, a4)
 
 class TestIntegrals(UflTestCase):
 

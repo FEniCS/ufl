@@ -73,6 +73,31 @@ def register_domain_type(domain_type, measure_name):
                    "Measure name already used for another domain type!")
         Measure._domain_types[domain_type] = measure_name
 
+class MeasureSum(object):
+    """Notational intermediate object to translate the notation
+    'f*(ds(1)+ds(3))'
+    into
+    'f*ds(1) + f*ds(3)'.
+    Note that MeasureSum objects will never actually be part of forms.
+    """
+    __slots__ = ("_measures",)
+    def __init__(self, *measures):
+        self._measures = measures
+
+    def __rmul__(self, other):
+        integrals = [other*m for m in self._measures]
+        return sum(integrals)
+
+    def __add__(self, other):
+        if isinstance(other, Measure):
+            return MeasureSum(self._measures + (other,))
+        elif isinstance(other, MeasureSum):
+            return MeasureSum(self._measures + other._measures)
+        return NotImplemented
+
+    def __str__(self):
+        return "{\n    " + "\n  + ".join(map(str,self._measures)) + "\n}"
+
 class Measure(object):
     """A measure for integration."""
     __slots__ = ("_domain_type", "_domain_id", "_metadata", "_domain_data", "_repr")
@@ -171,6 +196,11 @@ class Measure(object):
         """Return integral of same type on given sub domain,
         optionally with some metadata attached."""
         return self.reconstruct(domain_id=domain_id, metadata=metadata)
+
+    def __add__(self, other):
+        if isinstance(other, Measure):
+            return MeasureSum(self, other)
+        return NotImplemented
 
     def __mul__(self, other):
         if isinstance(other, Measure):
