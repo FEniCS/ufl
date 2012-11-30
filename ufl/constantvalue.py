@@ -133,12 +133,6 @@ class Zero(IndexAnnotated):
         return "Zero(%r, %r, %r)" % (self._shape,
                 self._free_indices, self._index_dimensions)
 
-    #def x__eq__(self, other): # Old implementation
-    #    # zero is zero no matter which free indices you look at
-    #    if self._shape == () and other == 0:
-    #        return True
-    #    return isinstance(other, Zero) and self._shape == other.shape()
-
     def __eq__(self, other):
         if not isinstance(other, Zero):
             return isinstance(other, (int,float)) and other == 0
@@ -207,8 +201,18 @@ class ScalarValue(IndexAnnotated):
         return self._value
 
     def __eq__(self, other):
-        "This is implemented to allow comparison with python scalars."
-        return self._value == other
+        """This is implemented to allow comparison with python scalars.
+
+        Note that this will make IntValue(1) != FloatValue(1.0),
+        but ufl-python comparisons like
+            IntValue(1) == 1.0
+            FloatValue(1.0) == 1
+        can still succeed. These will however not have the same 
+        hash value and therefore not collide in a dict."""
+        if not isinstance(other, self._uflclass):
+            return isinstance(other, (int,float)) and other == self._value
+        else:
+            return self._value == other._value
 
     def __str__(self):
         return str(self._value)

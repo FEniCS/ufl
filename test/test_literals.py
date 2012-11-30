@@ -18,7 +18,7 @@ class TestLiterals(UflTestCase):
         z4 = as_ufl(0.0)
         z5 = FloatValue(0)
         z6 = FloatValue(0.0)
-        
+
         #self.assertTrue(z1 is z2)
         #self.assertTrue(z1 is z3)
         #self.assertTrue(z1 is z4)
@@ -35,53 +35,53 @@ class TestLiterals(UflTestCase):
         f2 = as_ufl(1.0)
         f3 = FloatValue(1)
         f4 = FloatValue(1.0)
-        f5 = 3 - FloatValue(1) - 1 
+        f5 = 3 - FloatValue(1) - 1
         f6 = 3 * FloatValue(2) / 6
-        
+
         self.assertEqual(f1, f1)
-        self.assertEqual(f1, f2)
-        self.assertEqual(f1, f3)
-        self.assertEqual(f1, f4)
-        self.assertEqual(f1, f5)
-        self.assertEqual(f1, f6)
-    
+        self.assertNotEqual(f1, f2) # IntValue vs FloatValue, == compares representations!
+        self.assertEqual(f2, f3)
+        self.assertEqual(f2, f4)
+        self.assertEqual(f2, f5)
+        self.assertEqual(f2, f6)
+
     def test_int(self):
         f1 = as_ufl(1)
         f2 = as_ufl(1.0)
         f3 = IntValue(1)
         f4 = IntValue(1.0)
-        f5 = 3 - IntValue(1) - 1 
+        f5 = 3 - IntValue(1) - 1
         f6 = 3 * IntValue(2) / 6
-        
+
         self.assertEqual(f1, f1)
-        self.assertEqual(f1, f2)
+        self.assertNotEqual(f1, f2) # IntValue vs FloatValue, == compares representations!
         self.assertEqual(f1, f3)
         self.assertEqual(f1, f4)
         self.assertEqual(f1, f5)
-        self.assertEqual(f1, f6)
-    
+        self.assertEqual(f2, f6) # Division produces a FloatValue
+
     def test_scalar_sums(self):
         n = 10
         s = [as_ufl(i) for i in range(n)]
-        
+
         for i in range(n):
             self.assertNotEqual(s[i], i+1)
 
         for i in range(n):
             self.assertEqual(s[i], i)
-        
+
         for i in range(n):
             self.assertEqual(0 + s[i], i)
-        
+
         for i in range(n):
             self.assertEqual(s[i] + 0, i)
-        
+
         for i in range(n):
             self.assertEqual(0 + s[i] + 0, i)
-        
+
         for i in range(n):
             self.assertEqual(1 + s[i] - 1, i)
-        
+
         self.assertEqual(s[1] + s[1], 2)
         self.assertEqual(s[1] + s[2], 3)
         self.assertEqual(s[1] + s[2] + s[3], s[6])

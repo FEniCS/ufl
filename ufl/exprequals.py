@@ -122,7 +122,9 @@ def _expr_equals3(self, other): # Much faster than the more complex algorithms a
         equal = all(_expr_equals3(a, b) for (a,b) in zip(self.operands(), other.operands()))
     else:
         # Compare terminal representations to include all terminal data
-        equal = repr(self) == repr(other)
+        #equal = repr(self) == repr(other)
+        # Compare terminals with custom == to capture subclass overloading of __eq__
+        equal = self == other
 
     # At this point, self and other has the same hash, and equal _should_ be True...
     # Code for measuring amount of collisions:
@@ -132,14 +134,14 @@ def _expr_equals3(self, other): # Much faster than the more complex algorithms a
     # Code for counting number of recursive calls:
     #equalsrecursed[type(self)] = equalsrecursed.get(type(self),0) + 1
 
-    # Debugging check:
-    req = repr(self) == repr(other)
-    if req != equal:
-        print '\n'*3
-        print self
-        print other
-        print '\n'*3
-        ufl_error("INVALID COMPARISON!")
+    # Debugging check: (has been enabled for a long while without any fails as of nov. 30th 2012
+    #req = repr(self) == repr(other)
+    #if req != equal: # This may legally fail for test/trial functions from PyDOLFIN
+    #    print '\n'*3
+    #    print self
+    #    print other
+    #    print '\n'*3
+    #    ufl_error("INVALID COMPARISON!")
 
     return equal
 

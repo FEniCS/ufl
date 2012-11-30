@@ -22,7 +22,7 @@
 # Modified by Marie E. Rognes 2012
 #
 # First added:  2008-03-14
-# Last changed: 2012-10-22
+# Last changed: 2012-11-30
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
@@ -78,6 +78,9 @@ class GeometricQuantity(Terminal):
         "Return whether this expression is spatially constant over each cell."
         return True # NB! Assuming all geometric quantities in here are are cellwise constant by default!
 
+    def __eq__(self, other):
+        return isinstance(other, self._uflclass) and other._cell == self._cell
+
 class SpatialCoordinate(GeometricQuantity):
     "Representation of a spatial coordinate."
     __slots__ = ("_repr",)
@@ -108,9 +111,6 @@ class SpatialCoordinate(GeometricQuantity):
     def __repr__(self):
         return self._repr
 
-    def __eq__(self, other):
-        return isinstance(other, SpatialCoordinate) and other._cell == self._cell
-
 class LocalCoordinate(GeometricQuantity):
     "(EXPERIMENTAL) Representation of a local coordinate on the reference cell."
     __slots__ = ("_repr",)
@@ -134,9 +134,6 @@ class LocalCoordinate(GeometricQuantity):
 
     def __repr__(self):
         return self._repr
-
-    def __eq__(self, other):
-        return isinstance(other, LocalCoordinate) and other._cell == self._cell
 
 class GeometryJacobi(GeometricQuantity):
     "(EXPERIMENTAL) Representation of the Jacobi of the mapping from local to global coordinates."
@@ -162,9 +159,6 @@ class GeometryJacobi(GeometricQuantity):
     def __repr__(self):
         return self._repr
 
-    def __eq__(self, other):
-        return isinstance(other, GeometryJacobi) and other._cell == self._cell
-
 class GeometryJacobiDeterminant(GeometricQuantity):
     "(EXPERIMENTAL) Representation of the determinant of the Jacobi of the mapping from local to global coordinates."
     __slots__ = ("_repr",)
@@ -187,9 +181,6 @@ class GeometryJacobiDeterminant(GeometricQuantity):
 
     def __repr__(self):
         return self._repr
-
-    def __eq__(self, other):
-        return isinstance(other, GeometryJacobiDeterminant) and other._cell == self._cell
 
 class InverseGeometryJacobi(GeometricQuantity):
     "(EXPERIMENTAL) Representation of the Jacobi of the mapping from local to global coordinates."
@@ -215,9 +206,6 @@ class InverseGeometryJacobi(GeometricQuantity):
     def __repr__(self):
         return self._repr
 
-    def __eq__(self, other):
-        return isinstance(other, InverseGeometryJacobi) and other._cell == self._cell
-
 class FacetNormal(GeometricQuantity):
     "Representation of a facet normal."
     __slots__ = ()
@@ -234,9 +222,6 @@ class FacetNormal(GeometricQuantity):
     def __repr__(self):
         return "FacetNormal(%r)" % self._cell
 
-    def __eq__(self, other):
-        return isinstance(other, FacetNormal) and other._cell == self._cell
-
 class CellVolume(GeometricQuantity):
     "Representation of a cell volume."
     __slots__ = ()
@@ -251,9 +236,6 @@ class CellVolume(GeometricQuantity):
 
     def __repr__(self):
         return "CellVolume(%r)" % self._cell
-
-    def __eq__(self, other):
-        return isinstance(other, CellVolume) and other._cell == self._cell
 
 class Circumradius(GeometricQuantity):
     "Representation of the circumradius of a cell."
@@ -270,9 +252,6 @@ class Circumradius(GeometricQuantity):
     def __repr__(self):
         return "Circumradius(%r)" % self._cell
 
-    def __eq__(self, other):
-        return isinstance(other, Circumradius) and other._cell == self._cell
-
 class CellSurfaceArea(GeometricQuantity):
     "Representation of the total surface area of a cell."
     __slots__ = ()
@@ -287,9 +266,6 @@ class CellSurfaceArea(GeometricQuantity):
 
     def __repr__(self):
         return "CellSurfaceArea(%r)" % self._cell
-
-    def __eq__(self, other):
-        return isinstance(other, CellSurfaceArea) and other._cell == self._cell
 
 class FacetArea(GeometricQuantity):
     "Representation of the area of a cell facet."
@@ -306,9 +282,6 @@ class FacetArea(GeometricQuantity):
     def __repr__(self):
         return "FacetArea(%r)" % self._cell
 
-    def __eq__(self, other):
-        return isinstance(other, FacetArea) and other._cell == self._cell
-
 # TODO: If we include this here, we must define exactly what is meant by the mesh size, possibly adding multiple kinds of mesh sizes (hmin, hmax, havg, ?)
 #class MeshSize(GeometricQuantity):
 #    __slots__ = ()
@@ -323,9 +296,6 @@ class FacetArea(GeometricQuantity):
 #
 #    def __repr__(self):
 #        return "MeshSize(%r)" % self._cell
-#
-#    def __eq__(self, other):
-#        return isinstance(other, MeshSize) and other._cell == self._cell
 
 # --- Basic space and cell representation classes
 
