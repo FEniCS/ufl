@@ -84,9 +84,20 @@ class Argument(FormArgument):
         return self._repr
 
     def __eq__(self, other):
-        return (isinstance(other, Argument) and
+        if not (isinstance(other, Argument) and
                 self._count == other._count and
-                self._element == other._element)
+                self._element == other._element):
+            return False
+        elif type(self) == Argument:
+            return True
+        else:
+            # Allow subclass to distinguish between test and trial functions
+            # with a different non-ufl payload, such as dolfin FunctionSpace
+            # with different mesh. This is necessary because of the test/trial
+            # function hack with -2/-1 counts which always gives
+            # TestFunction(V) == TestFunction(V) from a pure ufl point of view.
+            return other.__eq__(self)
+
 
 # --- Helper functions for pretty syntax ---
 
