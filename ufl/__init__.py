@@ -116,7 +116,10 @@ A very brief overview of the language contents follows:
 
 * Conditional operators::
 
-    eq, ne, le, ge, lt, gt, And, Or, Not, conditional
+    eq, ne, le, ge, lt, gt,
+    <, >, <=, >=,
+    And, Or, Not,
+    conditional
 
 * Integral measures::
 
@@ -149,7 +152,7 @@ A very brief overview of the language contents follows:
 # Modified by Kristian B. Oelgaard, 2009, 2011
 # Modified by Anders Logg, 2009.
 #
-# Last changed: 2012-11-08
+# Last changed: 2012-11-30
 
 __version__ = "1.1.0-alpha"
 

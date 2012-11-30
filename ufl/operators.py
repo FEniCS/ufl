@@ -23,7 +23,7 @@ objects."""
 # Modified by Kristian B. Oelgaard, 2011
 #
 # First added:  2008-04-09
-# Last changed: 2011-10-24
+# Last changed: 2011-11-30
 
 import operator
 from ufl.log import error, warning
@@ -417,12 +417,10 @@ def conditional(condition, true_value, false_value):
 def eq(left, right):
     "UFL operator: A boolean expresion (left == right) for use with conditional."
     return EQ(left, right)
-    #return as_ufl(left) == as_ufl(right)
 
 def ne(left, right):
     "UFL operator: A boolean expresion (left != right) for use with conditional."
-    #return NE(left, right)
-    return as_ufl(left) != as_ufl(right)
+    return NE(left, right)
 
 def le(left, right):
     "UFL operator: A boolean expresion (left <= right) for use with conditional."

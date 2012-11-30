@@ -18,7 +18,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # First added:  2008-08-20
-# Last changed: 2012-11-05
+# Last changed: 2012-11-30
 
 from ufl.log import warning, error
 from ufl.assertions import ufl_assert

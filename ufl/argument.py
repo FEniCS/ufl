@@ -84,19 +84,19 @@ class Argument(FormArgument):
         return self._repr
 
     def __eq__(self, other):
-        if not (isinstance(other, Argument) and
+        """Deliberately comparing exact type and not using isinstance here,
+        meaning eventual subclasses must reimplement this function to work
+        correctly, and instances of this class will compare not equal to
+        instances of eventual subclasses. The overloading allows 
+        subclasses to distinguish between test and trial functions
+        with a different non-ufl payload, such as dolfin FunctionSpace
+        with different mesh. This is necessary because of the test/trial
+        function hack with -2/-1 counts which always gives
+        TestFunction(V) == TestFunction(V) from a pure ufl point of view.
+        """
+        return (type(self) == type(other) and
                 self._count == other._count and
-                self._element == other._element):
-            return False
-        elif type(self) == Argument:
-            return True
-        else:
-            # Allow subclass to distinguish between test and trial functions
-            # with a different non-ufl payload, such as dolfin FunctionSpace
-            # with different mesh. This is necessary because of the test/trial
-            # function hack with -2/-1 counts which always gives
-            # TestFunction(V) == TestFunction(V) from a pure ufl point of view.
-            return other.__eq__(self)
+                self._element == other._element)
 
 
 # --- Helper functions for pretty syntax ---

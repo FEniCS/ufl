@@ -20,7 +20,7 @@ Sum and its superclass Expr."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # First added:  2008-08-18
-# Last changed: 2011-10-25
+# Last changed: 2011-11-30
 
 from itertools import chain, izip
 
@@ -84,9 +84,9 @@ Expr.__eq__ = expr_equals
 # != is used at least by tests, possibly in code as well, and must mean
 # the opposite of ==, i.e. when evaluated as bool it must mean equal representation.
 # To keep things simple and consistent we treat it just like ==.
-def not_expr_equals(self, other):
-    return not expr_equals(self, other)
-Expr.__ne__ = not_expr_equals
+#def not_expr_equals(self, other):
+#    return not expr_equals(self, other)
+#Expr.__ne__ = not_expr_equals
 #Expr.__ne__ = _ne
 
 Expr.__lt__ = _lt
