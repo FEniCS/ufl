@@ -46,13 +46,13 @@ from ufl.differentiation import SpatialDerivative, Grad
 from ufl.conditional import EQ, NE, LE, GE, LT, GT
 #    AndCondition, OrCondition, NotCondition, Conditional
 
-def _eq(left, right):
-    "UFL operator: A boolean expresion (left == right) for use with conditional."
-    return EQ(left, right)
+#def _eq(left, right):
+#    "UFL operator: A boolean expresion (left == right) for use with conditional."
+#    return EQ(left, right)
 
-def _ne(left, right):
-    "UFL operator: A boolean expresion (left != right) for use with conditional."
-    return NE(left, right)
+#def _ne(left, right):
+#    "UFL operator: A boolean expresion (left != right) for use with conditional."
+#    return NE(left, right)
 
 def _le(left, right):
     "UFL operator: A boolean expresion (left <= right) for use with conditional."
@@ -83,9 +83,11 @@ Expr.__eq__ = expr_equals
 
 # != is used at least by tests, possibly in code as well, and must mean
 # the opposite of ==, i.e. when evaluated as bool it must mean equal representation.
-# However, it is not called as much and using it in the language as well
-# should not give a significant performance hit.
-Expr.__ne__ = _ne
+# To keep things simple and consistent we treat it just like ==.
+def not_expr_equals(self, other):
+    return not expr_equals(self, other)
+Expr.__ne__ = not_expr_equals
+#Expr.__ne__ = _ne
 
 Expr.__lt__ = _lt
 Expr.__gt__ = _gt
