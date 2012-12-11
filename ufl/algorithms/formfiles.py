@@ -23,7 +23,7 @@ from __future__ import with_statement
 # Modified by Marie E. Rognes, 2011.
 #
 # First added:  2008-03-14
-# Last changed: 2012-04-12
+# Last changed: 2012-12-11
 
 import os, re
 from ufl.log import error, warning
@@ -33,7 +33,6 @@ from ufl.finiteelement import FiniteElementBase
 from ufl.expr import Expr
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
-from ufl.algorithms.tuplenotation import as_form
 
 class FileData(object):
     def __init__(self):
@@ -111,18 +110,6 @@ def interpret_ufl_namespace(namespace):
     # because we need to distinguish between instances,
     # and not just between objects with different values.
     for name, value in namespace.iteritems():
-        # Map tuples to forms if possible
-        if (isinstance(value, tuple) and
-            len(value) == 2 and
-            isinstance(value[0], Expr) and
-            isinstance(value[1], Expr) and
-            value[0].shape() == value[1].shape):
-            try:
-                value = as_form(value)
-            except:
-                warning("Attempted but failed to convert variable '%s' from tuple to form." % (name,))
-                continue
-
         # Store objects by reserved name OR instance id
         reserved_names = ("unknown",) # Currently only one reserved name
         if name in reserved_names:
