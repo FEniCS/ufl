@@ -112,9 +112,15 @@ def interpret_ufl_namespace(namespace):
     # and not just between objects with different values.
     for name, value in namespace.iteritems():
         # Map tuples to forms if possible
-        if isinstance(value, tuple):
-            value = as_form(value)
-            if not isinstance(value, Form):
+        if (isinstance(value, tuple) and
+            len(value) == 2 and
+            isinstance(value[0], Expr) and
+            isinstance(value[1], Expr) and
+            value[0].shape() == value[1].shape):
+            try:
+                value = as_form(value)
+            except:
+                warning("Attempted but failed to convert variable '%s' from tuple to form." % (name,))
                 continue
 
         # Store objects by reserved name OR instance id
