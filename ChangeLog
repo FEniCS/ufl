@@ -2,6 +2,7 @@
  - Add support for measure sum notation f*(dx(0) + dx(3)) == f*dx(0) + f*dx(3)
  - Supporting code for bugfix in PyDOLFIN when comparing test/trial functions
  - Remove support for tuple form notation as this was ambiguous
+ - Bugfix in quadrature degree estimation, never returning <0 now
 1.1-alpha-prerelease [2012-11-18]
 (Not released, snapshot archived with submission of UFL journal paper)
  - Support adding 0 to forms, allowing sum([a])

@@ -151,7 +151,7 @@ def estimate_max_polynomial_degree(e, default_degree=1):
         degrees = [de.visit(e.integrand())]
     else:
         degrees = [de.visit(e)]
-    return max(degrees)
+    return max(degrees + [0])
 
 def estimate_total_polynomial_degree(e, default_degree=1):
     """Estimate total polynomial degree of integrand. For coefficients
@@ -165,4 +165,4 @@ def estimate_total_polynomial_degree(e, default_degree=1):
         degrees = [de.visit(e.integrand())]
     else:
         degrees = [de.visit(e)]
-    return max(degrees)
+    return max(degrees + [0])
