@@ -99,9 +99,21 @@ def cmp_expr(a, b):
     # All children compare as equal, a and b must be equal
     return 0
 
-from functools import cmp_to_key
+# Not in python 2.6...
+#from functools import cmp_to_key
+
+class ExprKey(object):
+    __slots__ = ('x',)
+    def __init__(self, x):
+        self.x = x
+    def __lt__(self, other):
+        return cmp_expr(self.x, other.x) < 0
+
+def expr_key(expr):
+    return ExprKey(expr)
+
 def sorted_expr(seq):
-    return sorted(seq, key=cmp_to_key(cmp_expr))
+    return sorted(seq, key=expr_key)
 
 
 # TODO: Move this to common.py, does not belong here
