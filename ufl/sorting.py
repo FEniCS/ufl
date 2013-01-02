@@ -31,10 +31,16 @@ from ufl.terminal import Terminal, FormArgument
 from ufl.indexing import Index, FixedIndex, MultiIndex
 from ufl.variable import Label
 
+def _cmp3(a, b):
+    "Replacement for cmp(), removed in Python 3."
+    # TODO: Which is faster?
+    return -1 if (a < b) else (+1 if a > b else 0)
+    #return (a > b) - (a < b)
+
 def cmp_expr(a, b):
     "Sorting rule for Expr objects."
     # First sort quickly by type name
-    c = cmp(a._uflclass.__name__, b._uflclass.__name__)
+    c = _cmp3(a._uflclass.__name__, b._uflclass.__name__)
     if c != 0:
         return c
 
@@ -46,7 +52,7 @@ def cmp_expr(a, b):
             if isinstance(i, FixedIndex):
                 if isinstance(j, FixedIndex):
                     # Both are FixedIndex, sort by value
-                    c = cmp(i._value, j._value)
+                    c = _cmp3(i._value, j._value)
                     if c:
                         return c
                 else:
@@ -70,17 +76,17 @@ def cmp_expr(a, b):
     elif isinstance(a, FormArgument):
         # It's ok to compare relative counts for form arguments,
         # since their ordering is a property of the form
-        return cmp(a._count, b._count)
+        return _cmp3(a._count, b._count)
 
     # ... another kind of Terminal object?
     elif isinstance(a, Terminal):
         # The cost of repr on a terminal is fairly small, and bounded
-        return cmp(repr(a), repr(b))
+        return _cmp3(repr(a), repr(b))
 
     # Not a terminal, sort by number of children (usually the same)
     aops = a.operands()
     bops = b.operands()
-    c = cmp(len(aops), len(bops))
+    c = _cmp3(len(aops), len(bops))
     if c != 0:
         return c
 
