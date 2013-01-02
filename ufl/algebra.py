@@ -20,7 +20,7 @@
 # Modified by Anders Logg, 2008
 #
 # First added:  2008-05-20
-# Last changed: 2011-09-20
+# Last changed: 2013-01-02
 
 from itertools import chain
 
@@ -31,7 +31,7 @@ from ufl.expr import Expr
 from ufl.operatorbase import AlgebraOperator
 from ufl.constantvalue import Zero, ScalarValue, IntValue, is_ufl_scalar, is_true_ufl_scalar, as_ufl
 from ufl.indexutils import unique_indices
-from ufl.sorting import cmp_expr
+from ufl.sorting import sorted_expr
 from ufl.precedence import parstr
 
 #--- Algebraic operators ---
@@ -65,7 +65,7 @@ class Sum(AlgebraOperator):
             error("Can't add expressions with different free indices.")
 
         # sort operands in a canonical order
-        operands = sorted(operands, cmp=cmp_expr)
+        operands = sorted_expr(operands)
 
         # purge zeros
         operands = [o for o in operands if not isinstance(o, Zero)]
@@ -211,7 +211,7 @@ class Product(AlgebraOperator):
                 scalars = [p]
 
         # Sort operands in a canonical order (NB! This is fragile! Small changes here can have large effects.)
-        operands = scalars + sorted(nonscalars, cmp=cmp_expr)
+        operands = scalars + sorted_expr(nonscalars)
 
         # Replace n-repeated operands foo with foo**n
         newoperands = []
@@ -460,4 +460,3 @@ class Abs(AlgebraOperator):
 
     def __repr__(self):
         return "Abs(%r)" % self._a
-

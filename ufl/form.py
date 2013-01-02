@@ -20,7 +20,7 @@
 # Modified by Anders Logg, 2009-2011.
 #
 # First added:  2008-03-14
-# Last changed: 2012-09-08
+# Last changed: 2013-01-02
 
 import hashlib
 from ufl.log import error
@@ -189,9 +189,6 @@ class Form(object):
                 # Accumulate integrands with same measure
                 a = newintegrals[idx].integrand()
                 b = itg.integrand()
-                # Invariant ordering of terms (shouldn't Sum fix this?)
-                #if cmp_expr(a, b) > 0:
-                #    a, b = b, a
                 newintegrals[idx] = itg.reconstruct(a + b)
 
         return Form(newintegrals)
@@ -243,4 +240,3 @@ class Form(object):
             self._signature = compute_form_signature(self, function_replace_map)
         assert self._signature
         return self._signature
-

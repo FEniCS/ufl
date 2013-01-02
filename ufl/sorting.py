@@ -1,7 +1,7 @@
 """This module contains a sorting rule for expr objects that
 is more robust w.r.t. argument numbering than using repr."""
 
-# Copyright (C) 2008-2012 Martin Sandve Alnes
+# Copyright (C) 2008-2013 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -22,7 +22,7 @@ is more robust w.r.t. argument numbering than using repr."""
 # Modified by Johan Hake, 2010.
 #
 # First added:  2008-11-26
-# Last changed: 2011-06-02
+# Last changed: 2013-01-02
 
 from itertools import izip
 
@@ -93,6 +93,12 @@ def cmp_expr(a, b):
     # All children compare as equal, a and b must be equal
     return 0
 
+from functools import cmp_to_key
+def sorted_expr(seq):
+    return sorted(seq, key=cmp_to_key(cmp_expr))
+
+
+# TODO: Move this to common.py, does not belong here
 def topological_sorting(nodes, edges):
     """
     Return a topologically sorted list of the nodes

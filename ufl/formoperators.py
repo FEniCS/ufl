@@ -20,7 +20,7 @@
 # Modified by Anders Logg, 2009
 #
 # First added:  2008-03-14
-# Last changed: 2011-10-24
+# Last changed: 2013-01-02
 
 from itertools import izip
 from ufl.log import error
@@ -198,7 +198,7 @@ def _handle_derivative_arguments(coefficient, argument):
             m[c] = as_tensor(a)
 
     # Wrap and return generic tuples
-    items = sorted(m.items(), cmp=lambda a,b: cmp(a[0].count(), b[0].count()))
+    items = sorted(m.items(), key=lambda x: x[0].count())
     coefficients = Tuple(*[item[0] for item in items])
     arguments = Tuple(*[item[1] for item in items])
     return coefficients, arguments
@@ -287,4 +287,3 @@ def sensitivity_rhs(a, u, L, v):
     ufl_assert(is_true_ufl_scalar(v), "Expecting scalar variable.")
     from ufl.operators import diff
     return diff(L, v) - action(diff(a, v), u)
-

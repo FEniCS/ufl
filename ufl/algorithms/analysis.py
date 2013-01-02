@@ -21,7 +21,7 @@
 # Modified by Johan Hake, 2010.
 #
 # First added:  2008-03-14
-# Last changed: 2012-04-12
+# Last changed: 2013-01-02
 
 from itertools import izip, chain
 
@@ -80,18 +80,18 @@ def extract_terminals(a):
                  for o in post_traversal(e) \
                  if isinstance(o, Terminal))
 
-def cmp_counted(x, y):
-    return cmp(x._count, y._count)
+def sorted_by_count(seq):
+    return sorted(seq, key=lambda x: x._count)
 
 def extract_arguments(a):
     """Build a sorted list of all arguments in a,
     which can be a Form, Integral or Expr."""
-    return sorted(extract_type(a, Argument), cmp=cmp_counted)
+    return sorted_by_count(extract_type(a, Argument))
 
 def extract_coefficients(a):
     """Build a sorted list of all coefficients in a,
     which can be a Form, Integral or Expr."""
-    return sorted(extract_type(a, Coefficient), cmp=cmp_counted)
+    return sorted_by_count(extract_type(a, Coefficient))
 
 def extract_arguments_and_coefficients(a):
     """Build two sorted lists of all arguments and coefficients
@@ -123,8 +123,8 @@ The arguments found are:\n%s""" % "\n".join("  %s" % f for f in coefficients)
         error(msg)
 
     # Passed checks, so we can safely sort the instances by count
-    arguments = sorted(arguments, cmp=cmp_counted)
-    coefficients = sorted(coefficients, cmp=cmp_counted)
+    arguments = sorted_by_count(arguments)
+    coefficients = sorted_by_count(coefficients)
 
     return arguments, coefficients
 
@@ -156,7 +156,7 @@ def _extract_coefficients(a):
             s.add(o)
     post_walk(a, func)
     # sort by count
-    return sorted(s, cmp=cmp_counted)
+    return sorted_by_count(s)
 
 def extract_elements(form):
     "Build sorted tuple of all elements used in form."

@@ -18,14 +18,14 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # First added:  2008-03-14
-# Last changed: 2011-06-02
+# Last changed: 2013-01-02
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
 from ufl.constantvalue import Zero
 from ufl.algebra import AlgebraOperator
 from ufl.precedence import parstr
-from ufl.sorting import cmp_expr
+from ufl.sorting import sorted_expr
 from ufl.common import EmptyDict
 
 def merge_indices(a, b):
@@ -195,7 +195,7 @@ class Inner(CompoundTensorOperator):
         # sort operands for unique representation,
         # must be independent of various counts etc.
         # as explained in cmp_expr
-        a, b = sorted((a,b), cmp=cmp_expr)
+        a, b = sorted_expr((a,b))
 
         # old version, slow and unsafe:
         #a, b = sorted((a,b), key = lambda x: repr(x))
