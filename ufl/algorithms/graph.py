@@ -228,13 +228,21 @@ class HeapItem(object):
         self.outgoing = outgoing
         self.i = i
 
-    def __cmp__(self, other):
-        a = self.outgoing[self.i]
-        b = other.outgoing[other.i]
-        if a == b:
-            a = self.incoming[self.i]   # TODO: The other way around?
-            b = other.incoming[other.i] # TODO: The other way around?
-        return cmp(a, b)
+    def __lt__(self, other):
+        a = (self.outgoing[self.i], self.incoming[self.i])
+        b = (other.outgoing[other.i], other.incoming[other.i])
+        return a < b
+
+    def __le__(self, other):
+        a = (self.outgoing[self.i], self.incoming[self.i])
+        b = (other.outgoing[other.i], other.incoming[other.i])
+        return a <= b
+
+    def __eq__(self, other):
+        a = (self.outgoing[self.i], self.incoming[self.i])
+        b = (other.outgoing[other.i], other.incoming[other.i])
+        return a == b
+
 
 def depth_first_ordering(G):
     V, E = G
