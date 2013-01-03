@@ -279,7 +279,8 @@ class TensorElement(MixedElement):
 
         # Construct default symmetry for matrix elements
         if symmetry == True:
-            symmetry = dict( ((i,j), (j,i)) for i in range(dim) for j in range(dim) if i > j )
+            ufl_assert(len(shape) == 2 and shape[0] == shape[1], "Cannot set automatic symmetry for non-square tensor.")
+            symmetry = dict( ((i,j), (j,i)) for i in range(shape[0]) for j in range(shape[1]) if i > j )
 
         # Validate indices in symmetry dict
         if isinstance(symmetry, dict):
