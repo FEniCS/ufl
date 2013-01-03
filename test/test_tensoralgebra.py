@@ -46,6 +46,20 @@ class TensorAlgebraTestCase(UflTestCase):
         D = 10*30 + 20*40
         self.assertEqualValues(C, D)
 
+    def test_pow2_inner(self):
+        f = triangle.n[0]
+        f2 = f**2
+        self.assertEqual(f2, inner(f, f))
+
+        u2 = self.u**2
+        self.assertEqual(u2, inner(self.u, self.u))
+
+        A2 = self.A**2
+        self.assertEqual(A2, inner(self.A, self.A))
+
+        # Only tensor**2 notation is supported:
+        self.assertRaises(UFLException, lambda: self.A**3)
+
     def test_dot(self):
         C = dot(self.u, self.v)
         D = 10*30 + 20*40

@@ -1,4 +1,5 @@
-1.1.x [2012-12-??]
+1.1.x [2013-01-0x]
+ - Add shorthand notation A**2 == inner(A, A), special cased for power 2.
  - Add support for measure sum notation f*(dx(0) + dx(3)) == f*dx(0) + f*dx(3)
  - Supporting code for bugfix in PyDOLFIN when comparing test/trial functions
  - Remove support for tuple form notation as this was ambiguous

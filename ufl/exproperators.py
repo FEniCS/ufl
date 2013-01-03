@@ -2,7 +2,7 @@
 This way we avoid circular dependencies between e.g.
 Sum and its superclass Expr."""
 
-# Copyright (C) 2008-2012 Martin Sandve Alnes
+# Copyright (C) 2008-2013 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -20,7 +20,7 @@ Sum and its superclass Expr."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # First added:  2008-08-18
-# Last changed: 2011-11-30
+# Last changed: 2013-01-03
 
 from itertools import chain, izip
 
@@ -31,7 +31,7 @@ from ufl.expr import Expr
 from ufl.operatorbase import Operator
 from ufl.constantvalue import Zero, as_ufl, python_scalar_types
 from ufl.algebra import Sum, Product, Division, Power, Abs
-from ufl.tensoralgebra import Transposed
+from ufl.tensoralgebra import Transposed, Inner
 from ufl.indexing import MultiIndex, Index, FixedIndex, IndexBase, indices
 from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
@@ -234,6 +234,8 @@ Expr.__rtruediv__ = _rdiv
 def _pow(self, o):
     if not isinstance(o, _valid_types):
         return NotImplemented
+    if self.shape() and o == 2:
+        return Inner(self, self)
     return Power(self, o)
 Expr.__pow__ = _pow
 
@@ -471,4 +473,3 @@ Expr.dx = _dx
 #    # TODO: Maybe v can be an Indexed of a Variable, in which case we can use indexing to extract the right component?
 #    return VariableDerivative(self, v)
 #Expr.d = _d
-
