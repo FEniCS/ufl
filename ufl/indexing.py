@@ -74,6 +74,9 @@ class FixedIndex(IndexBase):
             FixedIndex._cache[value] = self
         return self
 
+    def __getnewargs__(self):
+        return (self._value,)
+
     def __init__(self, value):
         if not hasattr(self, "_value"):
             IndexBase.__init__(self)
@@ -138,6 +141,9 @@ class MultiIndex(UtilityType):
         # Initialize here to avoid repeating the checks on ii from above in __init__
         self._init(ii, idims)
         return self
+
+    def __getnewargs__(self):
+        return (self._indices, self._idims)
 
     def __init__(self, ii, idims):
         pass

@@ -10,7 +10,7 @@ from ufltestcase import UflTestCase, main
 # This imports everything external code will see from ufl
 from ufl import *
 
-from ufl.common import EmptyDict
+from ufl.common import EmptyDictType
 from ufl.classes import MultiIndex
 from ufl.algorithms.signature import compute_multiindex_hashdata, \
     compute_terminal_hashdata, compute_form_signature
@@ -208,7 +208,7 @@ class MultiIndexHashDataTestCase(UflTestCase):
             for i in range(3):
                 for ii in ((i,), (i,0), (1,i)):
                     expr = MultiIndex(ii, {})
-                    self.assertTrue(expr.index_dimensions() is EmptyDict) # Just a side check
+                    self.assertTrue(type(expr.index_dimensions()) is EmptyDictType) # Just a side check
 
                     reprs.add(repr(expr))
                     hashes.add(hash(expr))

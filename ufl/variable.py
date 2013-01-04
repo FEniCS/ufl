@@ -105,3 +105,6 @@ class Variable(WrapperType):
 
     def __repr__(self):
         return "Variable(%r, %r)" % (self._expression, self._label)
+
+    def __getnewargs__(self):
+        return ()

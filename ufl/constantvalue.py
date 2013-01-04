@@ -65,6 +65,9 @@ class ConstantValue(Terminal):
         "Return whether this expression is spatially constant over each cell."
         return True
 
+    def __getnewargs__(self):
+        return (self._dim,)
+
 class IndexAnnotated(ConstantValue):
     """Class to annotate expressions that don't depend on
     indices with a set of free indices, used internally to keep
@@ -98,6 +101,9 @@ class Zero(IndexAnnotated):
                 self = IndexAnnotated.__new__(cls)
                 Zero._cache[shape] = self
         return self
+
+    def __getnewargs__(self):
+        return (self._shape, self._free_indices, self._index_dimensions)
 
     def __init__(self, shape=(), free_indices=(), index_dimensions=None):
         if not hasattr(self, '_shape'):
@@ -172,6 +178,9 @@ class ScalarValue(IndexAnnotated):
         if value == 0:
             return Zero(shape, free_indices, index_dimensions)
         return IndexAnnotated.__new__(cls)
+
+    def __getnewargs__(self):
+        return (self._value, self._shape, self._free_indices, self._index_dimensions)
 
     def __init__(self, value, shape=(), free_indices=(), index_dimensions=None):
         IndexAnnotated.__init__(self, shape, free_indices, index_dimensions)
