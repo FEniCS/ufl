@@ -1,6 +1,6 @@
 """This module defines the single index types and some internal index utilities."""
 
-# Copyright (C) 2008-2012 Martin Sandve Alnes and Anders Logg
+# Copyright (C) 2008-2013 Martin Sandve Alnes and Anders Logg
 #
 # This file is part of UFL.
 #

@@ -152,9 +152,9 @@ A very brief overview of the language contents follows:
 # Modified by Kristian B. Oelgaard, 2009, 2011
 # Modified by Anders Logg, 2009.
 #
-# Last changed: 2013-01-02
+# Last changed: 2013-01-04
 
-__version__ = "1.1.0-alpha"
+__version__ = "1.1.0"
 
 ########## README
 # Imports here should be what the user sees when doing "from ufl import *",

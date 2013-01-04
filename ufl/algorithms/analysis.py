@@ -1,6 +1,6 @@
 """Utility algorithms for inspection of and information extraction from UFL objects in various ways."""
 
-# Copyright (C) 2008-2012 Martin Sandve Alnes
+# Copyright (C) 2008-2013 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #

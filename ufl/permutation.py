@@ -1,7 +1,7 @@
 """This module provides utility functions for computing permutations
 and generating index lists."""
 
-# Copyright (C) 2008-2012 Anders Logg and Kent-Andre Mardal
+# Copyright (C) 2008-2013 Anders Logg and Kent-Andre Mardal
 #
 # This file is part of UFL.
 #

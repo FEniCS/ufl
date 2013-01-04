@@ -1,6 +1,6 @@
 """Restriction operations."""
 
-# Copyright (C) 2008-2012 Martin Sandve Alnes
+# Copyright (C) 2008-2013 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #

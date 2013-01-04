@@ -1,7 +1,7 @@
 """This module provides functions used by the UFL implementation to
 output messages. These may be redirected by the user of UFL."""
 
-# Copyright (C) 2005-2012 Anders Logg and Martin Sandve Alnaes
+# Copyright (C) 2005-2013 Anders Logg and Martin Sandve Alnaes
 #
 # This file is part of UFL.
 #

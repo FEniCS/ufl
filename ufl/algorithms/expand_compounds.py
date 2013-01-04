@@ -1,7 +1,7 @@
 """Algorithm for expanding compound expressions into
 equivalent representations using basic operators."""
 
-# Copyright (C) 2008-2012 Martin Sandve Alnes and Anders Logg
+# Copyright (C) 2008-2013 Martin Sandve Alnes and Anders Logg
 #
 # This file is part of UFL.
 #
