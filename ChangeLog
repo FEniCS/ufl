@@ -1,4 +1,4 @@
-1.1-alpha [2013-01-04]
+1.1.0 [2013-01-07]
  - Add support for pickling of expressions (thanks to Graham Markall)
  - Add shorthand notation A**2 == inner(A, A), special cased for power 2.
  - Add support for measure sum notation f*(dx(0) + dx(3)) == f*dx(0) + f*dx(3)
