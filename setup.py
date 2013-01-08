@@ -9,8 +9,8 @@ import platform
 # Version number
 major = 1
 minor = 1
-#maintenance = '+'
-maintenance = 0
+maintenance = '-0+'
+#maintenance = 0
 #maintenance = '-alpha'
 #maintenance = '-beta'
 #maintenance = '-rc'
