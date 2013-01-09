@@ -31,39 +31,29 @@ from ufl.terminal import Terminal
 
 # --- Expression node types
 
-# Mapping from domain (cell) to dimension
-domain2dim = {"cell1D": 1,
-              "cell2D": 2,
-              "cell3D": 3,
-              "vertex": 0,
-              "interval": 1,
-              "triangle": 2,
-              "tetrahedron": 3,
-              "quadrilateral": 2,
-              "hexahedron": 3}
+# Mapping from cell name to dimension
+cellname2dim = {"cell1D": 1,
+                "cell2D": 2,
+                "cell3D": 3,
+                "vertex": 0,
+                "interval": 1,
+                "triangle": 2,
+                "tetrahedron": 3,
+                "quadrilateral": 2,
+                "hexahedron": 3}
 
 # Mapping from domain (cell) to facet
-domain2facet = {"cell1D": "vertex",
-                "cell2D": "cell1D",
-                "cell3D": "cell2D",
-                "interval": "vertex",
-                "triangle": "interval",
-                "tetrahedron": "triangle",
-                "quadrilateral": "interval",
-                "hexahedron": "quadrilateral"}
-
-# Number of facets associated with each domain
-domain2num_facets = {"cell1D": None,
-                     "cell2D": None,
-                     "cell3D": None,
-                     "interval": 2,
-                     "triangle": 3,
-                     "tetrahedron": 4,
-                     "quadrilateral": 4,
-                     "hexahedron": 6}
+cellname2facetname = {"cell1D": "vertex",
+                      "cell2D": "cell1D",
+                      "cell3D": "cell2D",
+                      "interval": "vertex",
+                      "triangle": "interval",
+                      "tetrahedron": "triangle",
+                      "quadrilateral": "interval",
+                      "hexahedron": "quadrilateral"}
 
 # Valid UFL domains
-ufl_domains = tuple(domain2dim.keys())
+ufl_cellnames = tuple(cellname2dim.keys())
 
 class GeometricQuantity(Terminal):
     __slots__ = ("_cell",)
@@ -337,7 +327,7 @@ class Cell(object):
         if domain is None:
             self._invalid = True
         else:
-            ufl_assert(domain in domain2dim, "Invalid domain %s." % (domain,))
+            ufl_assert(domain in cellname2dim, "Invalid domain %s." % (domain,))
             self._invalid = False
         self._domain = domain
 
@@ -347,7 +337,7 @@ class Cell(object):
             self._space = None
         else:
             # The topological dimension is defined by the cell type
-            dim = domain2dim[self._domain]
+            dim = cellname2dim[self._domain]
             self._topological_dimension = dim
 
             # The space dimension defaults to equal
@@ -449,7 +439,7 @@ class Cell(object):
     def facet_domain(self):
         "Return the domain of the facet of this cell."
         ufl_assert(not self._invalid, "An invalid cell has no facet domains.")
-        return domain2facet[self._domain]
+        return cellname2facetname[self._domain]
 
     def num_facets(self):
         "Return the number of facets this cell has."

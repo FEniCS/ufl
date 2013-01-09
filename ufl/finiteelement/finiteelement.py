@@ -27,7 +27,7 @@ from itertools import izip
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.common import product, index_to_component, component_to_index, istr, EmptyDict
-from ufl.geometry import as_cell, domain2facet, ProductCell
+from ufl.geometry import as_cell, cellname2facetname, ProductCell
 from ufl.log import info_blue, warning, warning_blue, error
 
 from ufl.finiteelement.elementlist import ufl_elements, aliases

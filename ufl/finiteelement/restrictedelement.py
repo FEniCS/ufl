@@ -27,7 +27,7 @@ from itertools import izip
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.common import product, index_to_component, component_to_index, istr, EmptyDict
-from ufl.geometry import as_cell, domain2facet
+from ufl.geometry import as_cell, cellname2facetname
 from ufl.log import info_blue, warning, warning_blue, error
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
@@ -52,7 +52,7 @@ class RestrictedElement(FiniteElementBase):
             if domain == "facet":
                 cell = self.cell()
                 ufl_assert(not cell.is_undefined(), "Cannot determine facet cell of undefined cell.")
-                domain = Cell(domain2facet[cell.domain()])
+                domain = Cell(cellname2facetname[cell.domain()])
             else:
                 # Create Cell (if we get a string)
                 domain = as_cell(domain)

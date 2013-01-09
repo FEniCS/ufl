@@ -6,7 +6,7 @@ from ufltestcase import UflTestCase, main
 
 from ufl import *
 
-from ufl.geometry import domain2dim
+from ufl.geometry import cellname2dim
 
 all_cells = (interval, triangle, tetrahedron, quadrilateral, hexahedron)
 
