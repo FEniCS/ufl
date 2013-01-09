@@ -37,29 +37,31 @@ class RestrictedElement(FiniteElementBase):
         ufl_assert(isinstance(element, FiniteElementBase), "Expecting a finite element instance.")
         from ufl.integral import Measure
         from ufl.geometry import Cell
-        ufl_assert(isinstance(domain, Measure) or domain == "facet"\
-                   or isinstance(as_cell(domain), Cell),\
-            "Expecting a subdomain represented by a Measure, a Cell instance, or the string 'facet'.")
-        super(RestrictedElement, self).__init__("RestrictedElement", element.cell(),\
+        ufl_assert(isinstance(domain, Measure)
+                   or domain == "facet"
+                   or isinstance(as_cell(domain), Cell),
+                   "Expecting a subdomain represented by a Measure, "
+                   "a Cell instance, or the string 'facet'.")
+        super(RestrictedElement, self).__init__("RestrictedElement", element.cell(),
             element.degree(), element.quadrature_scheme(), element.value_shape())
         self._element = element
 
-        # Just attach domain if it is a Measure or Cell
         if isinstance(domain, (Measure, Cell)):
+            # Just attach domain if it is a Measure or Cell
             self._domain = domain
-        else:
+        elif domain == "facet":
             # Check for facet and handle it
-            if domain == "facet":
-                cell = self.cell()
-                ufl_assert(not cell.is_undefined(), "Cannot determine facet cell of undefined cell.")
-                domain = Cell(cellname2facetname[cell.domain()])
-            else:
-                # Create Cell (if we get a string)
-                domain = as_cell(domain)
-            self._domain = domain
+            cell = self.cell()
+            ufl_assert(not cell.is_undefined(),
+                       "Cannot determine facet cell of undefined cell.")
+            self._domain = Cell(cellname2facetname[cell.cellname()])
+        else:
+            # Create Cell (assuming we get a string)
+            self._domain = as_cell(domain)
 
         if isinstance(self._domain, Cell) and self._domain.is_undefined():
-            warning("Undefined cell as domain in RestrictedElement. Not sure if this is well defined.")
+            warning("Undefined cell as domain in RestrictedElement. "
+                    "Not sure if this is well defined. Continue at your own risk.")
 
         # Cache repr string
         self._repr = "RestrictedElement(%r, %r)" % (self._element, self._domain)

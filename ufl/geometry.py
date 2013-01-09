@@ -42,7 +42,7 @@ cellname2dim = {"cell1D": 1,
                 "quadrilateral": 2,
                 "hexahedron": 3}
 
-# Mapping from domain (cell) to facet
+# Mapping from cell name to facet name
 cellname2facetname = {"cell1D": "vertex",
                       "cell2D": "cell1D",
                       "cell3D": "cell2D",
@@ -52,7 +52,7 @@ cellname2facetname = {"cell1D": "vertex",
                       "quadrilateral": "interval",
                       "hexahedron": "quadrilateral"}
 
-# Valid UFL domains
+# Valid UFL cellnames
 ufl_cellnames = tuple(cellname2dim.keys())
 
 class GeometricQuantity(Terminal):
@@ -309,27 +309,27 @@ class Space(object):
 
 class Cell(object):
     "Representation of a finite element cell."
-    __slots__ = ("_domain", "_space",
+    __slots__ = ("_cellname", "_space",
                  "_geometric_dimension", "_topological_dimension",
                  "_repr", "_invalid",
                  "_n", "_x", "_volume", "_circumradius",
                  "_cellsurfacearea", "_facetarea",
                  "_xi", "_J", "_Jinv", "_detJ",)
 
-    def __init__(self, domain, space=None):
+    def __init__(self, cellname, space=None):
         "Initialize basic cell description."
 
-        # Check for valid domain. We allow None to support PyDOLFIN
+        # Check for valid cellname. We allow None to support PyDOLFIN
         # integration features. This is a bit dangerous because
         # several things in UFL become undefined, but it is a very
         # good and important feature to have so don't even think about
         # removing it! ;-)
-        if domain is None:
+        if cellname is None:
             self._invalid = True
         else:
-            ufl_assert(domain in cellname2dim, "Invalid domain %s." % (domain,))
+            ufl_assert(cellname in cellname2dim, "Invalid cellname %s." % (cellname,))
             self._invalid = False
-        self._domain = domain
+        self._cellname = cellname
 
         # Don't compute quantities that are undefined
         if self._invalid:
@@ -337,7 +337,7 @@ class Cell(object):
             self._space = None
         else:
             # The topological dimension is defined by the cell type
-            dim = cellname2dim[self._domain]
+            dim = cellname2dim[self._cellname]
             self._topological_dimension = dim
 
             # The space dimension defaults to equal
@@ -359,7 +359,7 @@ class Cell(object):
                            (istr(self._topological_dimension), self._space))
 
         # Cache repr string
-        self._repr = "Cell(%r, %r)" % (self._domain, self._space)
+        self._repr = "Cell(%r, %r)" % (self._cellname, self._space)
 
         # Attach expression nodes derived from this cell
         self._n = FacetNormal(self)
@@ -432,19 +432,18 @@ class Cell(object):
         return self._invalid
 
     def domain(self):
-        "Return the domain of the cell."
-        ufl_assert(not self._invalid, "An invalid cell has no domain.")
-        return self._domain
+        warning("Cell.domain() is deprecated, use cell.cellname() instead.")
+        return self.cellname()
 
-    def facet_domain(self):
-        "Return the domain of the facet of this cell."
-        ufl_assert(not self._invalid, "An invalid cell has no facet domains.")
-        return cellname2facetname[self._domain]
+    def cellname(self):
+        "Return the cellname of the cell."
+        ufl_assert(not self._invalid, "An invalid cell has no cellname.")
+        return self._cellname
 
-    def num_facets(self):
-        "Return the number of facets this cell has."
-        ufl_assert(not self._invalid, "An invalid cell has no facets.")
-        return domain2num_facets[self._domain]
+    def facet_cellname(self):
+        "Return the cellname of the facet of this cell."
+        ufl_assert(not self._invalid, "An invalid cell has no facet cellnames.")
+        return cellname2facetname[self._cellname]
 
     def geometric_dimension(self):
         "Return the dimension of the space this cell is embedded in."
@@ -477,7 +476,7 @@ class Cell(object):
         return hash(repr(self))
 
     def __str__(self):
-        return "<%s cell in %s>" % (istr(self._domain), istr(self._space))
+        return "<%s cell in %s>" % (istr(self._cellname), istr(self._space))
 
     def __repr__(self):
         return self._repr
@@ -492,7 +491,7 @@ class ProductCell(Cell):
         self._cells = cells
         ufl_assert(len(self._cells) > 0, "Expecting at least one cell")
 
-        self._domain = self._cells[0].domain()#" x ".join([c.domain() for c in cells])
+        self._cellname = self._cells[0].cellname()#" x ".join([c.cellname() for c in cells])
         self._invalid = False
         self._topological_dimension = sum(c.topological_dimension()
                                           for c in cells)
@@ -519,6 +518,6 @@ class ProductCell(Cell):
 # --- Utility conversion functions
 
 def as_cell(cell):
-    """Convert any valid object to a Cell (in particular, domain string),
+    """Convert any valid object to a Cell (in particular, cellname string),
     or return cell if it is already a Cell."""
     return cell if isinstance(cell, Cell) else Cell(cell)

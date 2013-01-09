@@ -35,11 +35,11 @@ ufl_elements = {}
 aliases = {}
 
 # Function for registering new elements
-def register_element(family, short_name, value_rank, degree_range, domains):
+def register_element(family, short_name, value_rank, degree_range, cellnames):
     "Register new finite element family"
     ufl_assert(family not in ufl_elements, 'Finite element \"%s\" has already been registered.' % family)
-    ufl_elements[family] = (family, short_name, value_rank, degree_range, domains)
-    ufl_elements[short_name] = (family, short_name, value_rank, degree_range, domains)
+    ufl_elements[family] = (family, short_name, value_rank, degree_range, cellnames)
+    ufl_elements[short_name] = (family, short_name, value_rank, degree_range, cellnames)
 
 def register_alias(alias, to):
     aliases[alias] = to
@@ -47,12 +47,12 @@ def register_alias(alias, to):
 def show_elements():
     print "Showing all registered elements:"
     for k in sorted(ufl_elements.keys()):
-        (family, short_name, value_rank, degree_range, domains) = ufl_elements[k]
+        (family, short_name, value_rank, degree_range, cellnames) = ufl_elements[k]
         print
         print "Finite Element Family: %s, %s" % (repr(family), repr(short_name))
         print "Value rank:   ", value_rank
         print "Degree range: ", degree_range
-        print "Defined on domains:" , domains
+        print "Defined on cellnames:" , cellnames
 
 # TODO: Any more of these elements valid for generic nD cells?
 

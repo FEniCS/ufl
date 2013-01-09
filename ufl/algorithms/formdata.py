@@ -20,7 +20,7 @@
 # Modified by Anders Logg, 2008.
 #
 # First added:  2008-09-13
-# Last changed: 2011-12-06
+# Last changed: 2013-01-09
 
 from ufl.common import lstr, tstr, estr
 from ufl.assertions import ufl_assert
@@ -41,7 +41,6 @@ class FormData(object):
                      ("Cell",                               self.cell),
                      ("Topological dimension",              self.topological_dimension),
                      ("Geometric dimension",                self.geometric_dimension),
-                     ("Number of facets",                   self.num_facets),
                      ("Number of coefficients",             self.num_coefficients),
                      ("Number of cell domains",             self.num_cell_domains),
                      ("Number of exterior facet domains",   self.num_exterior_facet_domains),

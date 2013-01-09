@@ -70,18 +70,18 @@ class FiniteElement(FiniteElementBase):
                    'Unknown finite element "%s".' % family)
 
         # Check that element data is valid (and also get common family name)
-        (family, self._short_name, value_rank, krange, domains) =\
+        (family, self._short_name, value_rank, krange, cellnames) =\
             ufl_elements[family]
 
-        # Validate domain if a valid cell is specified
+        # Validate cellname if a valid cell is specified
         if cell.is_undefined():
             # Case of invalid cell, some stuff is then undefined,
-            # such as the domain and some dimensions
+            # such as the cellname and some dimensions
             pass
         else:
-            domain = cell.domain()
-            ufl_assert(domain in domains,
-                       'Domain "%s" invalid for "%s" finite element.' % (domain, family))
+            cellname = cell.cellname()
+            ufl_assert(cellname in cellnames,
+                       'Cellname "%s" invalid for "%s" finite element.' % (cellname, family))
 
         # Validate degree if specified
         if degree is not None:
@@ -96,7 +96,7 @@ class FiniteElement(FiniteElementBase):
                    'Degree "%s" invalid for "%s" finite element.' %\
                            (istr(degree), family))
 
-        # Set value dimension (default to using domain dimension in each axis)
+        # Set value dimension (default to using geometric dimension in each axis)
         if value_rank == 0:
             value_shape = ()
         else:
@@ -131,4 +131,5 @@ class FiniteElement(FiniteElementBase):
 
     def shortstr(self):
         "Format as string for pretty printing."
-        return "%s%s(%s)" % (self._short_name, istr(self.degree()), istr(self.quadrature_scheme()))
+        return "%s%s(%s)" % (self._short_name, istr(self.degree()),
+                             istr(self.quadrature_scheme()))

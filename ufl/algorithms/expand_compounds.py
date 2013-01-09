@@ -305,8 +305,7 @@ class CompoundExpanderPostDiff(CompoundExpander):
 
 def expand_compounds1(e, dim=None):
     """Expand compound objects into basic operators.
-    Requires e to have a well defined domain,
-    for the geometric dimension to be defined."""
+    Requires e to have a well defined geometric dimension."""
     if dim is None:
         cell = e.cell()
         if cell is not None:
@@ -316,8 +315,7 @@ def expand_compounds1(e, dim=None):
 
 def expand_compounds2(e, dim=None):
     """Expand compound objects into basic operators.
-    Requires e to have a well defined domain,
-    for the geometric dimension to be defined."""
+    Requires e to have a well defined geometric dimension."""
     if dim is None:
         cell = e.cell()
         if cell is not None:
@@ -327,8 +325,7 @@ def expand_compounds2(e, dim=None):
 
 def expand_compounds_prediff(e, dim=None):
     """Expand compound objects into basic operators.
-    Requires e to have a well defined domain,
-    for the geometric dimension to be defined."""
+    Requires e to have a well defined geometric dimension."""
     if dim is None:
         cell = e.cell()
         if cell is not None:
@@ -338,8 +335,7 @@ def expand_compounds_prediff(e, dim=None):
 
 def expand_compounds_postdiff(e, dim=None):
     """Expand compound objects into basic operators.
-    Requires e to have a well defined domain,
-    for the geometric dimension to be defined."""
+    Requires e to have a well defined geometric dimension."""
     if dim is None:
         cell = e.cell()
         if cell is not None:

@@ -157,7 +157,6 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
     # Store data related to cell
     form_data.geometric_dimension = form_data.cell.geometric_dimension()
     form_data.topological_dimension = form_data.cell.topological_dimension()
-    form_data.num_facets = form_data.cell.num_facets()
 
     # Store some useful dimensions
     form_data.rank = len(form_data.original_arguments)
