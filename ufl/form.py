@@ -37,10 +37,6 @@ class Form(object):
     __slots__ = ("_integrals",
                  "_hash", "_signature",
                  "_form_data", "_is_preprocessed",
-                 "cell_domains", # TODO: Can we remove these properties from the slots list?
-                 "exterior_facet_domains",
-                 "interior_facet_domains",
-                 "point_domains",
                  )
 
     def __init__(self, integrals):
@@ -51,20 +47,6 @@ class Form(object):
         self._hash = None
         self._form_data = None
         self._is_preprocessed = False
-
-    # TODO: Remove these completely!
-    def _trigger_domain_error(self):
-        msg = "Deprecated: ufl.Form has no properties '*_domains'.\n"
-        msg += "To associate domains with a form, use dss = ds[mydomains]; a = f*dss(1)."
-        error(msg)
-    def _get_domains(self):
-        self._trigger_domain_error()
-    def _set_domains(self, domains):
-        self._trigger_domain_error()
-    cell_domains = property(_get_domains, _set_domains)
-    exterior_facet_domains = property(_get_domains, _set_domains)
-    interior_facet_domains = property(_get_domains, _set_domains)
-    point_domains = property(_get_domains, _set_domains)
 
     def cell(self):
         c = None
