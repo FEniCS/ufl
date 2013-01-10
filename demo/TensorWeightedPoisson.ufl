@@ -18,8 +18,8 @@
 # The bilinear form a(v, u) and linear form L(v) for
 # tensor-weighted Poisson's equation.
 
-P1 = FiniteElement("Lagrange", "triangle", 1)
-P0 = TensorElement("Discontinuous Lagrange", "triangle", 0, shape=(2, 2))
+P1 = FiniteElement("Lagrange", triangle, 1)
+P0 = TensorElement("Discontinuous Lagrange", triangle, 0, shape=(2, 2))
 
 v = TestFunction(P1)
 u = TrialFunction(P1)

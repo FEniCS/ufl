@@ -18,7 +18,7 @@
 # This example illustrates how to define a form over a
 # given subdomain of a mesh, in this case a functional.
 
-element = FiniteElement("CG", "tetrahedron", 1)
+element = FiniteElement("CG", tetrahedron, 1)
 
 v = TestFunction(element)
 u = TrialFunction(element)

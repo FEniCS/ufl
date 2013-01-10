@@ -24,7 +24,7 @@
 # First added:  2008-03-14
 # Last changed: 2012-11-30
 
-from ufl.log import warning
+from ufl.log import warning, error
 from ufl.assertions import ufl_assert
 from ufl.common import istr
 from ufl.terminal import Terminal
@@ -520,4 +520,13 @@ class ProductCell(Cell):
 def as_cell(cell):
     """Convert any valid object to a Cell (in particular, cellname string),
     or return cell if it is already a Cell."""
-    return cell if isinstance(cell, Cell) else Cell(cell)
+    if isinstance(cell, Cell):
+        return cell
+    elif isinstance(cell, str):
+        # Create cell from string
+        return Cell(cell)
+    elif cell is None:
+        # Create undefined cell, get rid of this ugly hack when possible
+        return Cell(cell)
+    else:
+        error("Invalid cell %s." % cell)

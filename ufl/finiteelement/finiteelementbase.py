@@ -28,23 +28,24 @@ from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.common import product, index_to_component, component_to_index, istr, EmptyDict
 from ufl.geometry import Cell, as_cell, cellname2facetname, ProductCell
+from ufl.domains import as_domain
 from ufl.log import info_blue, warning, warning_blue, error
 
 from ufl.finiteelement.elementlist import ufl_elements, aliases
 
 class FiniteElementBase(object):
     "Base class for all finite elements"
-    __slots__ = ("_family", "_cell", "_degree", "_quad_scheme", "_value_shape",
-                 "_repr",)
+    __slots__ = ("_cell", "_domain", "_family", "_degree",
+                 "_quad_scheme", "_value_shape", "_repr",)
 
-    def __init__(self, family, cell, degree, quad_scheme, value_shape):
+    def __init__(self, family, domain, degree, quad_scheme, value_shape):
         "Initialize basic finite element data"
         ufl_assert(isinstance(family, str), "Invalid family type.")
-        cell = as_cell(cell)
         ufl_assert(isinstance(degree, int) or degree is None, "Invalid degree type.")
         ufl_assert(isinstance(value_shape, tuple), "Invalid value_shape type.")
+        self._domain = as_domain(domain)
+        self._cell = self._domain.cell()
         self._family = family
-        self._cell = cell
         self._degree = degree
         self._value_shape = value_shape
         self._quad_scheme = quad_scheme
@@ -60,6 +61,10 @@ class FiniteElementBase(object):
     def __eq__(self, other):
         "Compute element equality for insertion in hashmaps."
         return type(self) == type(other) and repr(self) == repr(other)
+
+    def domain(self):
+        "Return the domain on which this element is defined."
+        return self._domain
 
     def cell_restriction(self):
         "Return the cell onto which the element is restricted."

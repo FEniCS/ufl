@@ -17,4 +17,4 @@
 #
 # A fifth degree Lagrange finite element on a triangle
 
-element = FiniteElement("Lagrange", "triangle", 5)
+element = FiniteElement("Lagrange", triangle, 5)

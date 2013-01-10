@@ -27,7 +27,7 @@ from itertools import izip
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.common import product, index_to_component, component_to_index, istr, EmptyDict
-from ufl.geometry import as_cell
+from ufl.domains import as_domain
 from ufl.log import info_blue, warning, warning_blue, error
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
@@ -45,13 +45,17 @@ class MixedElement(FiniteElementBase):
         if len(elements) == 1 and isinstance(elements[0], (tuple, list)):
             elements = elements[0]
         # Interpret nested tuples as sub-mixedelements recursively
-        elements = [MixedElement(e) if isinstance(e, (tuple,list)) else e for e in elements]
+        elements = [MixedElement(e) if isinstance(e, (tuple,list)) else e
+                    for e in elements]
         self._sub_elements = elements
 
-        # Check that all elements are defined on the same domain
-        cell = elements[0].cell()
-        ufl_assert(all(e.cell() == cell for e in elements),
-                   "Cell mismatch for sub elements of mixed element.")
+        # Check that all elements are defined on the same top-level domain
+        top_domain = elements[0].domain().top_domain() # TODO: Figure out proper check
+        ufl_assert(all(e.domain().top_domain() == top_domain for e in elements),
+                   "Top level domain mismatch for sub elements of mixed element.")
+        # FIXME: What is the domain with differently restricted subelements?
+        #domain = join_domains_somewhow(e.domain() for e in elements)
+        domain = top_domain
 
         # Check that all elements use the same quadrature scheme
         # TODO: We can allow the scheme not to be defined.
@@ -74,7 +78,7 @@ class MixedElement(FiniteElementBase):
 
         # Initialize element data
         degree = max(e.degree() for e in self._sub_elements)
-        super(MixedElement, self).__init__("Mixed", cell, degree,
+        super(MixedElement, self).__init__("Mixed", domain, degree,
                                            quad_scheme, value_shape)
 
         # Cache repr string
@@ -201,7 +205,7 @@ class MixedElement(FiniteElementBase):
 class VectorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal"
 
-    def __init__(self, family, cell, degree, dim=None, quad_scheme=None,
+    def __init__(self, family, domain, degree, dim=None, quad_scheme=None,
                  form_degree=None):
         """
         Create vector element (repeated mixed element)
@@ -209,8 +213,8 @@ class VectorElement(MixedElement):
         *Arguments*
             family (string)
                The finite element family
-            cell
-               The cell
+            domain
+               The geometric domain
             degree (int)
                The polynomial degree
             dim (int)
@@ -221,17 +225,15 @@ class VectorElement(MixedElement):
                The form degree (FEEC notation, used when field is
                viewed as k-form)
         """
-
-        cell = as_cell(cell)
+        domain = as_domain(domain)
 
         # Set default size if not specified
         if dim is None:
-            ufl_assert(not cell.is_undefined(),
-                       "Cannot infer dimension with an undefined cell.")
-            dim = cell.geometric_dimension()
+            dim = domain.geometric_dimension()
+            ufl_assert(isinstance(dim, int), "Invalid geometric dimension %s." % dim)
 
         # Create mixed element from list of finite elements
-        sub_element = FiniteElement(family, cell, degree, quad_scheme,
+        sub_element = FiniteElement(family, domain, degree, quad_scheme,
                                     form_degree)
         sub_elements = [sub_element]*dim
 
@@ -251,12 +253,12 @@ class VectorElement(MixedElement):
 
         # Cache repr string
         self._repr = "VectorElement(%r, %r, %r, %d, %r)" % \
-            (self._family, self._cell, self._degree,
+            (self._family, self._domain, self._degree,
              len(self._sub_elements), quad_scheme)
 
     def reconstruct(self, **kwargs):
         kwargs["family"] = kwargs.get("family", self.family())
-        kwargs["cell"] = kwargs.get("cell", self.cell())
+        kwargs["domain"] = kwargs.get("domain", self.domain())
         kwargs["degree"] = kwargs.get("degree", self.degree())
         ufl_assert("dim" not in kwargs, "Cannot change dim in reconstruct.")
         kwargs["dim"] = len(self._sub_elements)
@@ -266,7 +268,7 @@ class VectorElement(MixedElement):
     def __str__(self):
         "Format as string for pretty printing."
         return "<%s vector element of degree %s on a %s: %d x %s>" % \
-               (self.family(), istr(self.degree()), self.cell(),
+               (self.family(), istr(self.degree()), self.domain(),
                 len(self._sub_elements), self._sub_element)
 
     def shortstr(self):
@@ -276,18 +278,16 @@ class VectorElement(MixedElement):
 
 class TensorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal"
-    #__slots__ = ("_family", "_cell", "_degree", "_value_shape")
     __slots__ = ("_sub_element", "_shape", "_symmetry", "_sub_element_mapping",)
-
-    def __init__(self, family, cell, degree, shape=None, symmetry=None, quad_scheme=None):
+    def __init__(self, family, domain, degree, shape=None,
+                 symmetry=None, quad_scheme=None):
         "Create tensor element (repeated mixed element with optional symmetries)"
-        cell = as_cell(cell)
+        domain = as_domain(domain)
 
         # Set default shape if not specified
         if shape is None:
-            ufl_assert(not cell.is_undefined(),
-                       "Cannot infer value shape with an undefined cell.")
-            dim = cell.geometric_dimension()
+            dim = domain.geometric_dimension()
+            ufl_assert(isinstance(dim, int), "Invalid geometric dimension %s." % dim)
             #shape = () if dim == 1 else (dim, dim) # FIXME: Should we do this?
             shape = (dim, dim)
 
@@ -315,7 +315,7 @@ class TensorElement(MixedElement):
 
         # Compute sub elements and mapping from indices
         # to sub elements, accounting for symmetry
-        sub_element = FiniteElement(family, cell, degree, quad_scheme)
+        sub_element = FiniteElement(family, domain, degree, quad_scheme)
         sub_elements = []
         sub_element_mapping = {}
         for index in indices:
@@ -346,12 +346,12 @@ class TensorElement(MixedElement):
 
         # Cache repr string
         self._repr = "TensorElement(%r, %r, %r, %r, %r, %r)" % \
-            (self._family, self._cell, self._degree, self._shape,
+            (self._family, self._domain, self._degree, self._shape,
              self._symmetry, quad_scheme)
 
     def reconstruct(self, **kwargs):
         kwargs["family"] = kwargs.get("family", self.family())
-        kwargs["cell"]   = kwargs.get("cell",   self.cell())
+        kwargs["domain"] = kwargs.get("domain",   self.domain())
         kwargs["degree"] = kwargs.get("degree", self.degree())
 
         ufl_assert("shape" not in kwargs, "Cannot change shape in reconstruct.")
@@ -394,7 +394,7 @@ class TensorElement(MixedElement):
         elif self._symmetry:
             sym = " with symmetry"
         return "<%s tensor element of degree %s and shape %s on a %s%s>" % \
-            (self.family(), istr(self.degree()), self.value_shape(), self.cell(), sym)
+            (self.family(), istr(self.degree()), self.value_shape(), self.domain(), sym)
 
     def shortstr(self):
         "Format as string for pretty printing."

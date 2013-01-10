@@ -17,7 +17,7 @@
 #
 # Test form for operators on Coefficients.
 
-element = FiniteElement("Lagrange", "triangle", 1)
+element = FiniteElement("Lagrange", triangle, 1)
 
 v = TestFunction(element)
 u = TrialFunction(element)

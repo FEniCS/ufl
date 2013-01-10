@@ -35,7 +35,7 @@
 # be listed on one line and left- and right-hand sides
 # extracted by lhs() and rhs().
 
-element = FiniteElement("Lagrange", "triangle", 1)
+element = FiniteElement("Lagrange", triangle, 1)
 
 k = 0.1
 

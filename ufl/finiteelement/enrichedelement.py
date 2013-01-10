@@ -39,8 +39,9 @@ class EnrichedElement(FiniteElementBase):
     def __init__(self, *elements):
         self._elements = elements
 
-        cell = elements[0].cell()
-        ufl_assert(all(e.cell() == cell for e in elements), "Element cell mismatch.")
+        domain = elements[0].domain()
+        ufl_assert(all(e.domain() == domain for e in elements),
+                   "Domain mismatch for sub elements of enriched element.")
 
         degree = max(e.degree() for e in elements)
 
@@ -56,7 +57,7 @@ class EnrichedElement(FiniteElementBase):
                    "Element value shape mismatch.")
 
         # Initialize element data
-        super(EnrichedElement, self).__init__("EnrichedElement", cell, degree,
+        super(EnrichedElement, self).__init__("EnrichedElement", domain, degree,
                                               quad_scheme, value_shape)
 
         # Cache repr string

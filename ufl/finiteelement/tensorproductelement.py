@@ -28,6 +28,7 @@ from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.common import product, index_to_component, component_to_index, istr, EmptyDict
 from ufl.geometry import as_cell, ProductCell
+from ufl.domains import as_domain
 from ufl.log import info_blue, warning, warning_blue, error
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
@@ -54,6 +55,7 @@ class TensorProductElement(FiniteElementBase):
 
         # Define cell as the product of each subcell
         cell = ProductCell(*[e.cell() for e in self._sub_elements])
+        domain = as_domain(cell) # FIXME: figure out what this is supposed to mean :)
 
         # Define polynomial degree as the maximal of each subelement
         degree = max(e.degree() for e in self._sub_elements)
@@ -69,7 +71,7 @@ class TensorProductElement(FiniteElementBase):
                        for e in self._sub_elements),
                    "All subelements in must have same value shape")
 
-        super(TensorProductElement, self).__init__(family, cell, degree,
+        super(TensorProductElement, self).__init__(family, domain, degree,
                                                    quad_scheme, value_shape)
 
     def num_sub_elements(self):

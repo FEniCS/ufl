@@ -18,7 +18,7 @@
 # This simple example illustrates how forms can be defined on different sub domains.
 # It is supported for all three integral types.
 
-element = FiniteElement("CG", "tetrahedron", 1)
+element = FiniteElement("CG", tetrahedron, 1)
 
 v = TestFunction(element)
 u = TrialFunction(element)

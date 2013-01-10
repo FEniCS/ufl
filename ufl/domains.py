@@ -20,35 +20,37 @@
 # First added:  2013-01-10
 # Last changed: 2013-01-10
 
-from ufl.log import warning
+from ufl.log import warning, error
 from ufl.assertions import ufl_assert
 from ufl.common import istr
 from ufl.terminal import Terminal
 
-from ufl.geometry import Cell
+from ufl.geometry import as_cell, Cell
 
-EVERYWHERE = "everywhere"
+DEFAULT_DOMAIN_NAME = "multiverse"
 class Domain(object):
     __slots__ = ('_cell', '_name',
                  '_gdim', '_tdim',
                  '_numbered_subdomains',
                  '_named_subdomains',)
-    def __init__(self, cell, name=EVERYWHERE):
+    def __init__(self, cell, name=DEFAULT_DOMAIN_NAME):
         self._cell = cell
         self._name = name
         self._numbered_subdomains = {}
         self._named_subdomains = {}
 
-        # At the moment we just get dimensions from the cell, but
-        # later we can make it primarily a domain property
-        self._gdim = cell.geometric_dimension()
-        self._tdim = cell.topological_dimension()
-
     def geometric_dimension(self):
-        return self._gdim
+        # At the moment we just get the geometric dimension from the cell,
+        # but later we can make it primarily a domain property.
+        # Keep in mind that the
+        if self._cell.is_undefined():
+            error("Invalid cell, cannot get geometric dimension!")
+            return None
+        else:
+            return self._cell.geometric_dimension()
 
     def topological_dimension(self):
-        return self._tdim
+        return self._cell.topological_dimension()
 
     def cell(self):
         return self._cell
@@ -93,7 +95,7 @@ class Domain(object):
 
         error("Invalid subdomain label %r" % name)
 
-    def __call__(self, name=EVERYWHERE):
+    def __call__(self, name=DEFAULT_DOMAIN_NAME):
         return Boundary(self, name)
 
     def __repr__(self):
@@ -154,9 +156,11 @@ _default_domains = {}
 def as_domain(domain):
     if isinstance(domain, Domain):
         return domain
-    elif isinstance(domain, Cell):
-        if domain not in _default_domains:
-            _default_domains[domain] = Domain(domain, name=EVERYWHERE)
-        return _default_domains[domain]
     else:
-        error("Invalid domain %s." % str(domain))
+        cell = as_cell(domain)
+        if isinstance(cell, Cell):
+            if cell not in _default_domains:
+                _default_domains[cell] = Domain(cell, name=DEFAULT_DOMAIN_NAME)
+            return _default_domains[cell]
+        else:
+            error("Invalid domain %s." % str(domain))

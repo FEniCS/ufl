@@ -28,6 +28,7 @@ from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.common import product, index_to_component, component_to_index, istr, EmptyDict
 from ufl.geometry import as_cell, cellname2facetname, ProductCell
+from ufl.domains import as_domain
 from ufl.log import info_blue, warning, warning_blue, error
 
 from ufl.finiteelement.elementlist import ufl_elements, aliases
@@ -35,15 +36,15 @@ from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 class FiniteElement(FiniteElementBase):
     "The basic finite element class for all simple finite elements"
-    def __init__(self, family, cell=None, degree=None, quad_scheme=None,
+    def __init__(self, family, domain=None, degree=None, quad_scheme=None,
                  form_degree=None):
         """Create finite element
 
         *Arguments*
             family (string)
                The finite element family
-            cell
-               The cell
+            domain
+               The geometric domain
             degree (int)
                The polynomial degree (optional)
             quad_scheme
@@ -52,9 +53,8 @@ class FiniteElement(FiniteElementBase):
                The form degree (FEEC notation, used when field is
                viewed as k-form)
         """
-
-        # Map evt. string argument to a Cell
-        cell = as_cell(cell)
+        domain = as_domain(domain)
+        cell = domain.cell()
 
         # Check whether this family is an alias for something else
         if family in aliases:
@@ -62,7 +62,12 @@ class FiniteElement(FiniteElementBase):
             #info_blue("%s, is an alias for %s " % (
             #        (family, cell, degree, form_degree),
             #        (name, cell, r)))
-            self.__init__(name, cell, r, quad_scheme)
+
+            # FIXME: Need to init here with domain, is that ok?
+            ufl_assert(cell == domain.cell(),
+                       "Breaking assumption in element alias mapping.")
+
+            self.__init__(name, domain, r, quad_scheme)
             return
 
         # Check that the element family exists
@@ -100,24 +105,24 @@ class FiniteElement(FiniteElementBase):
         if value_rank == 0:
             value_shape = ()
         else:
-            ufl_assert(not cell.is_undefined(),
-                       "Cannot infer value shape with an undefined cell.")
-            dim = cell.geometric_dimension()
+            dim = domain.geometric_dimension()
+            ufl_assert(isinstance(dim, int),
+                       "Invalid geometric dimension %s." % dim)
             value_shape = (dim,)*value_rank
 
         # Initialize element data
-        super(FiniteElement, self).__init__(family, cell, degree,
+        super(FiniteElement, self).__init__(family, domain, degree,
                                             quad_scheme, value_shape)
 
         # Cache repr string
         self._repr = "FiniteElement(%r, %r, %r, %r)" % (
-            self.family(), self.cell(), self.degree(), self.quadrature_scheme())
+            self.family(), self.domain(), self.degree(), self.quadrature_scheme())
 
     def reconstruct(self, **kwargs):
         """Construct a new FiniteElement object with some properties
         replaced with new values."""
         kwargs["family"] = kwargs.get("family", self.family())
-        kwargs["cell"] = kwargs.get("cell", self.cell())
+        kwargs["domain"] = kwargs.get("domain", self.domain())
         kwargs["degree"] = kwargs.get("degree", self.degree())
         kwargs["quad_scheme"] = kwargs.get("quad_scheme", self.quadrature_scheme())
         return FiniteElement(**kwargs)
@@ -127,7 +132,7 @@ class FiniteElement(FiniteElementBase):
         qs = self.quadrature_scheme()
         qs = "" if qs is None else "(%s)" % qs
         return "<%s%s%s on a %s>" % (self._short_name, istr(self.degree()),\
-                                           qs, self.cell())
+                                           qs, self.domain())
 
     def shortstr(self):
         "Format as string for pretty printing."

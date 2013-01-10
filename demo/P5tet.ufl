@@ -17,4 +17,4 @@
 #
 # A fifth degree Lagrange finite element on a tetrahedron
 
-element = FiniteElement("Lagrange", "tetrahedron", 5)
+element = FiniteElement("Lagrange", tetrahedron, 5)
