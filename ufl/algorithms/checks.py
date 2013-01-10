@@ -52,13 +52,17 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
     #if not is_multilinear(form):
     #    errors.append("Form is not multilinear in arguments.")
 
+    # FIXME DOMAIN: Add check for consistency between domains somehow
+    domains = set(t.domain() for t in traverse_terminals(e)
+                             for e in iter_expressions(form))
+    if None in domains:
+        domains.remove(None)
+
     # Check that cell is the same everywhere
-    cells = set()
-    for e in iter_expressions(form):
-        cells.update(t.cell() for t in traverse_terminals(e) \
-                     if not (t.cell() is None or t.cell().cellname() is None))
+    cells = set(domain.cell() for domain in domains)
     if None in cells:
         cells.remove(None)
+    cells = set(cell for cell in cells if not cell.is_undefined())
     if not cells:
         errors.append("Missing cell definition in form.")
     elif len(cells) > 1:
