@@ -82,33 +82,42 @@ class Expr(object):
         "Return the tensor shape of the expression."
         raise NotImplementedError(self.__class__.shape)
 
-    # Subclasses can implement rank if it is known directly (TODO: Is this used anywhere? Usually want to compare shapes anyway.)
+    # Subclasses can implement rank if it is known directly
     def rank(self):
         "Return the tensor rank of the expression."
         return len(self.shape())
 
-    # All subclasses must implement cell if it is known
-    def cell(self):
-        "Return the cell this expression is defined on."
-        c = None
+    # All subclasses must implement domain if it is known
+    def domain(self): # TODO: Is it better to use an external traversal algorithm for this?
+        "Return the domain this expression is defined on."
+        result = None
         for o in self.operands():
-            d = o.cell()
-            if d is not None:
-                c = d # Best we have so far
-                if not d.is_undefined():
+            domain = o.domain()
+            if domain is not None:
+                result = domain # Best we have so far
+                if not domain.cell().is_undefined():
                     # Use the first fully defined cell found
                     break
-        return c
+        return result
 
-    def geometric_dimension(self):
+    # All subclasses must implement cell if it is known
+    def cell(self): # TODO: Deprecate this
+        "Return the cell this expression is defined on."
+        result = None
+        for o in self.operands():
+            cell = o.cell()
+            if cell is not None:
+                result = cell # Best we have so far
+                if not cell.is_undefined():
+                    # Use the first fully defined cell found
+                    break
+        return result
+
+    # This function was introduced to clarify and
+    # eventually reduce direct dependencies on cells.
+    def geometric_dimension(self): # TODO: Deprecate this, use external analysis algorithm
         "Return the geometric dimension this expression lives in."
-        # This function was introduced to clarify and
-        # eventually reduce direct dependencies on cells.
-        cell = self.cell()
-        if cell is None or cell.is_undefined():
-            error("Cannot infer geometric dimension for this expression.")
-        else:
-            return cell.geometric_dimension()
+        return self.cell().geometric_dimension()
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
