@@ -39,15 +39,20 @@ class Domain(object):
         self._numbered_subdomains = {}
         self._named_subdomains = {}
 
-    def geometric_dimension(self):
+    def geometric_dimension_please(self): # TODO: Figure out if it's possible to avoid this
         # At the moment we just get the geometric dimension from the cell,
         # but later we can make it primarily a domain property.
         # Keep in mind that the
         if self._cell.is_undefined():
-            error("Invalid cell, cannot get geometric dimension!")
             return None
         else:
             return self._cell.geometric_dimension()
+
+    def geometric_dimension(self):
+        dim = self.geometric_dimension_please()
+        if dim is None:
+            error("Invalid cell, cannot get geometric dimension!")
+        return dim
 
     def topological_dimension(self):
         return self._cell.topological_dimension()
