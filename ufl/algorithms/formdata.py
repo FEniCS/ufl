@@ -53,7 +53,10 @@ class FormData(object):
                      ("Argument names",                     lstr(self.argument_names)),
                      ("Coefficient names",                  lstr(self.coefficient_names)),
                      ("Unique elements",                    estr(self.unique_elements)),
-                     ("Unique sub elements",                estr(self.unique_sub_elements))))
+                     ("Unique sub elements",                estr(self.unique_sub_elements)),
+                     # FIXME DOMAINS what is "the domain(s)" for a form?
+                     ("Top level domains",                  self.top_domains),
+                     ))
 
     def validate(self, object_names=None, common_cell=None, element_mapping=None):
         object_names = object_names or {}
