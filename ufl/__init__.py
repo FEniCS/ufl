@@ -39,6 +39,10 @@ A very brief overview of the language contents follows:
     Space,
     R1, R2, R3,
 
+* Domains::
+
+    Domain, DisjointSubDomain, DomainGroup
+
 * Cells::
 
     Cell,
@@ -178,6 +182,9 @@ from ufl.geometry import Space, Cell, ProductCell, \
      FacetNormal, FacetArea, \
      GeometryJacobi, GeometryJacobiDeterminant, InverseGeometryJacobi
 
+# Types for domain description
+from ufl.domains import Domain, DisjointSubDomain, DomainGroup
+
 # Finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
     MixedElement, VectorElement, TensorElement, EnrichedElement, \
@@ -260,6 +267,7 @@ __all__ = [
     'CellVolume', 'Circumradius', 'CellSurfaceArea',
     'FacetNormal', 'FacetArea',
     'GeometryJacobi', 'GeometryJacobiDeterminant', 'InverseGeometryJacobi',
+    'Domain', 'DisjointSubDomain', 'DomainGroup',
     'FiniteElementBase', 'FiniteElement',
     'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
     'RestrictedElement', 'TensorProductElement',
