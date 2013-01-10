@@ -550,13 +550,6 @@ class ClasscoverageTest(UflTestCase):
             print "\n".join(sorted(map(str,has_dict)))
             print
 
-        # TODO: Add tests for lifting:
-        #   LiftingFunction
-        #   LiftingFunctionResult
-        #   LiftingOperator
-        #   LiftingOperatorResult
-        #   LiftingResult
-        #   TerminalOperator
         # TODO: Add tests for bessel functions:
         #   BesselI
         #   BesselJ
