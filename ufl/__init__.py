@@ -234,9 +234,6 @@ from ufl.operators import rank, shape, \
                        jump, avg, \
                        elem_mult, elem_div, elem_pow, elem_op
 
-# Lifting
-from ufl.lifting import LiftingFunction, LiftingOperator
-
 # Form class
 from ufl.form import Form
 
@@ -294,7 +291,6 @@ __all__ = [
     'Dx', 'grad', 'div', 'curl', 'rot', 'nabla_grad', 'nabla_div', 'Dn', 'exterior_derivative',
     'jump', 'avg',
     'elem_mult', 'elem_div', 'elem_pow', 'elem_op',
-    'LiftingFunction', 'LiftingOperator',
     'Form',
     'Integral', 'Measure', 'register_domain_type', 'ProductMeasure',
     'replace', 'derivative', 'action', 'energy_norm', 'rhs', 'lhs',

@@ -67,8 +67,6 @@ from ufl.conditional import Condition, BinaryCondition,\
     EQ, NE, LE, GE, LT, GT,\
     AndCondition, OrCondition, NotCondition, Conditional
 from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
-from ufl.lifting import LiftingResult, LiftingOperatorResult, LiftingFunctionResult,\
-    TerminalOperator, LiftingOperator, LiftingFunction
 
 # Higher level abstractions
 from ufl.integral import Measure, ProductMeasure, Integral
