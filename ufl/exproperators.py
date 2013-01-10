@@ -269,17 +269,15 @@ def _eval(self, coord, mapping=None):
 
     # Try to infer dimension from given x argument
     if coord is None:
-        dim = None
+        cell = self.cell()
+        if cell is None or cell.is_undefined():
+            dim = None
+        else:
+            dim = cell.geometric_dimension()
     elif isinstance(coord, (tuple, list)):
         dim = len(coord)
     else: # No type checking here, assuming a scalar x value...
         dim = 1
-
-    # Try to infer dimension from cell
-    if dim is None:
-        cell = self.cell()
-        if (cell is not None) and (not cell.is_undefined()):
-            dim = cell.geometric_dimension()
 
     # Evaluate derivatives first
     from ufl.algorithms import expand_derivatives
