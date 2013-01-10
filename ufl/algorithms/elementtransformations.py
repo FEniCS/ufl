@@ -33,9 +33,9 @@ def change_regularity(element, family):
                              for i in range(n)])
     shape = element.value_shape()
     if not shape:
-        return FiniteElement(family, element.cell(), element.degree())
+        return FiniteElement(family, element.domain(), element.degree())
 
-    return MixedElement([FiniteElement(family, element.cell(), element.degree())
+    return MixedElement([FiniteElement(family, element.domain(), element.degree())
                                for i in range(shape[0])])
 
 def tear(V):
@@ -54,4 +54,4 @@ def increase_order(element):
     if element.family() == "Real":
         return element
 
-    return FiniteElement(element.family(), element.cell(), element.degree()+1)
+    return FiniteElement(element.family(), element.domain(), element.degree()+1)
