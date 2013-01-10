@@ -78,6 +78,9 @@ class Coefficient(FormArgument):
     def cell(self):
         return self._element.cell()
 
+    def domain(self):
+        return self._element.domain()
+
     def __str__(self):
         count = str(self._count)
         if len(count) == 1:
@@ -109,13 +112,13 @@ class Constant(ConstantBase):
     """UFL value: Represents a globally constant scalar valued coefficient."""
     __slots__ = ()
 
-    def __init__(self, cell, count=None):
-        e = FiniteElement("Real", cell, 0)
+    def __init__(self, domain, count=None):
+        e = FiniteElement("Real", domain, 0)
         ConstantBase.__init__(self, e, count)
-        self._repr = "Constant(%r, %r)" % (e.cell(), self._count)
+        self._repr = "Constant(%r, %r)" % (e.domain(), self._count)
 
     def _reconstruct(self, element, count):
-        return Constant(element.cell(), count)
+        return Constant(element.domain(), count)
 
     def __str__(self):
         count = str(self._count)
@@ -128,14 +131,14 @@ class VectorConstant(ConstantBase):
     """UFL value: Represents a globally constant vector valued coefficient."""
     __slots__ = ()
 
-    def __init__(self, cell, dim=None, count=None):
-        e = VectorElement("Real", cell, 0, dim)
+    def __init__(self, domain, dim=None, count=None):
+        e = VectorElement("Real", domain, 0, dim)
         ConstantBase.__init__(self, e, count)
         ufl_assert(self._repr is None, "Repr should not have been set yet!")
-        self._repr = "VectorConstant(%r, %r, %r)" % (e.cell(), e.value_shape()[0], self._count)
+        self._repr = "VectorConstant(%r, %r, %r)" % (e.domain(), e.value_shape()[0], self._count)
 
     def _reconstruct(self, element, count):
-        return VectorConstant(element.cell(), element.value_shape()[0], count)
+        return VectorConstant(element.domain(), element.value_shape()[0], count)
 
     def __str__(self):
         count = str(self._count)
@@ -148,15 +151,15 @@ class TensorConstant(ConstantBase):
     """UFL value: Represents a globally constant tensor valued coefficient."""
     __slots__ = ()
 
-    def __init__(self, cell, shape=None, symmetry=None, count=None):
-        e = TensorElement("Real", cell, 0, shape=shape, symmetry=symmetry)
+    def __init__(self, domain, shape=None, symmetry=None, count=None):
+        e = TensorElement("Real", domain, 0, shape=shape, symmetry=symmetry)
         ConstantBase.__init__(self, e, count)
         ufl_assert(self._repr is None, "Repr should not have been set yet!")
-        self._repr = "TensorConstant(%r, %r, %r, %r)" % (e.cell(), e.value_shape(), e._symmetry, self._count)
+        self._repr = "TensorConstant(%r, %r, %r, %r)" % (e.domain(), e.value_shape(), e._symmetry, self._count)
 
     def _reconstruct(self, element, count):
         e = element
-        return TensorConstant(e.cell(), e.value_shape(), e._symmetry, count)
+        return TensorConstant(e.domain(), e.value_shape(), e._symmetry, count)
 
     def __str__(self):
         count = str(self._count)
