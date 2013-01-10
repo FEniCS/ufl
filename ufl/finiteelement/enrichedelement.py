@@ -52,10 +52,12 @@ class EnrichedElement(FiniteElementBase):
             "Quadrature scheme mismatch.")
 
         value_shape = elements[0].value_shape()
-        ufl_assert(all(e.value_shape() == value_shape for e in elements), "Element value shape mismatch.")
+        ufl_assert(all(e.value_shape() == value_shape for e in elements),
+                   "Element value shape mismatch.")
 
         # Initialize element data
-        super(EnrichedElement, self).__init__("EnrichedElement", cell, degree, quad_scheme, value_shape)
+        super(EnrichedElement, self).__init__("EnrichedElement", cell, degree,
+                                              quad_scheme, value_shape)
 
         # Cache repr string
         self._repr = "EnrichedElement(%s)" % ", ".join(repr(e) for e in self._elements)
@@ -69,7 +71,8 @@ class EnrichedElement(FiniteElementBase):
         return EnrichedElement(*elements)
 
     def is_cellwise_constant(self):
-        "Return whether the basis functions of this element is spatially constant over each cell."
+        """Return whether the basis functions of this
+        element is spatially constant over each cell."""
         return all(e.is_cellwise_constant() for e in self._elements)
 
     def __str__(self):

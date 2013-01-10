@@ -61,7 +61,8 @@ class MixedElement(FiniteElementBase):
 
         # Compute value shape
         value_size_sum = sum(product(s.value_shape()) for s in self._sub_elements)
-        # Default value dimension: Treated simply as all subelement values unpacked in a vector.
+        # Default value dimension: Treated simply as all subelement
+        #                          values unpacked in a vector.
         value_shape = kwargs.get('value_shape', (value_size_sum,))
         # Validate value_shape
         if type(self) is MixedElement:
@@ -81,12 +82,13 @@ class MixedElement(FiniteElementBase):
             (self._sub_elements, self._value_shape)
 
     def is_cellwise_constant(self):
-        "Return whether the basis functions of this element is spatially constant over each cell."
+        """Return whether the basis functions of this
+        element is spatially constant over each cell."""
         return all(e.is_cellwise_constant() for e in self.sub_elements())
 
     def reconstruct(self, **kwargs):
-        """Construct a new MixedElement object with some properties
-        replaced with new values."""
+        """Construct a new MixedElement object with some
+        properties replaced with new values."""
         elements = [e.reconstruct(**kwargs) for e in self._sub_elements]
         # Value shape cannot be changed, or at
         # least we have no valid use case for it.
@@ -123,7 +125,8 @@ class MixedElement(FiniteElementBase):
                 sm[(j0,)] = (j1,)
             # Update base index for next element
             j += product(sh)
-        ufl_assert(j == product(self.value_shape()), "Size mismatch in symmetry algorithm.")
+        ufl_assert(j == product(self.value_shape()),
+                   "Size mismatch in symmetry algorithm.")
         return sm or EmptyDict
 
     def num_sub_elements(self):
@@ -134,12 +137,16 @@ class MixedElement(FiniteElementBase):
         "Return list of sub elements."
         return self._sub_elements
 
-    def num_mixed_sub_elements(self): # FIXME: Use this where intended, for disambiguation w.r.t. different sub_elements meanings.
+    def num_mixed_sub_elements(self):
         "Return number of mixed sub elements."
+        # FIXME: Use this where intended, for disambiguation
+        #        w.r.t. different sub_elements meanings.
         return len(self._sub_elements)
 
-    def mixed_sub_elements(self): # FIXME: Use this where intended, for disambiguation w.r.t. different sub_elements meanings.
+    def mixed_sub_elements(self):
         "Return list of mixed sub elements."
+        # FIXME: Use this where intended, for disambiguation
+        #        w.r.t. different sub_elements meanings.
         return self._sub_elements
 
     def extract_subelement_component(self, i):
@@ -182,11 +189,13 @@ class MixedElement(FiniteElementBase):
 
     def __str__(self):
         "Format as string for pretty printing."
-        return "<Mixed element: (" + ", ".join(str(element) for element in self._sub_elements) + ")" + ">"
+        tmp = ", ".join(str(element) for element in self._sub_elements)
+        return "<Mixed element: (" + tmp + ")>"
 
     def shortstr(self):
         "Format as string for pretty printing."
-        return "Mixed<" + ", ".join(element.shortstr() for element in self._sub_elements) + ">"
+        tmp = ", ".join(element.shortstr() for element in self._sub_elements)
+        return "Mixed<" + tmp + ">"
 
 
 class VectorElement(MixedElement):
@@ -217,7 +226,8 @@ class VectorElement(MixedElement):
 
         # Set default size if not specified
         if dim is None:
-            ufl_assert(not cell.is_undefined(), "Cannot infer dimension with an undefined cell.")
+            ufl_assert(not cell.is_undefined(),
+                       "Cannot infer dimension with an undefined cell.")
             dim = cell.geometric_dimension()
 
         # Create mixed element from list of finite elements
@@ -241,7 +251,8 @@ class VectorElement(MixedElement):
 
         # Cache repr string
         self._repr = "VectorElement(%r, %r, %r, %d, %r)" % \
-            (self._family, self._cell, self._degree, len(self._sub_elements), quad_scheme)
+            (self._family, self._cell, self._degree,
+             len(self._sub_elements), quad_scheme)
 
     def reconstruct(self, **kwargs):
         kwargs["family"] = kwargs.get("family", self.family())
@@ -255,11 +266,13 @@ class VectorElement(MixedElement):
     def __str__(self):
         "Format as string for pretty printing."
         return "<%s vector element of degree %s on a %s: %d x %s>" % \
-               (self.family(), istr(self.degree()), self.cell(), len(self._sub_elements), self._sub_element)
+               (self.family(), istr(self.degree()), self.cell(),
+                len(self._sub_elements), self._sub_element)
 
     def shortstr(self):
         "Format as string for pretty printing."
-        return "Vector<%d x %s>" % (len(self._sub_elements), self._sub_element.shortstr())
+        return "Vector<%d x %s>" % (len(self._sub_elements),
+                                    self._sub_element.shortstr())
 
 class TensorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal"
@@ -272,22 +285,27 @@ class TensorElement(MixedElement):
 
         # Set default shape if not specified
         if shape is None:
-            ufl_assert(not cell.is_undefined(), "Cannot infer value shape with an undefined cell.")
+            ufl_assert(not cell.is_undefined(),
+                       "Cannot infer value shape with an undefined cell.")
             dim = cell.geometric_dimension()
             #shape = () if dim == 1 else (dim, dim) # FIXME: Should we do this?
             shape = (dim, dim)
 
         # Construct default symmetry for matrix elements
         if symmetry == True:
-            ufl_assert(len(shape) == 2 and shape[0] == shape[1], "Cannot set automatic symmetry for non-square tensor.")
-            symmetry = dict( ((i,j), (j,i)) for i in range(shape[0]) for j in range(shape[1]) if i > j )
+            ufl_assert(len(shape) == 2 and shape[0] == shape[1],
+                       "Cannot set automatic symmetry for non-square tensor.")
+            symmetry = dict( ((i,j), (j,i)) for i in range(shape[0])
+                             for j in range(shape[1]) if i > j )
 
         # Validate indices in symmetry dict
         if isinstance(symmetry, dict):
             for i,j in symmetry.iteritems():
-                ufl_assert(len(i) == len(j), "Non-matching length of symmetry index tuples.")
+                ufl_assert(len(i) == len(j),
+                           "Non-matching length of symmetry index tuples.")
                 for k in range(len(i)):
-                    ufl_assert(i[k] >= 0 and j[k] >= 0 and i[k] < shape[k] and j[k] < shape[k],
+                    ufl_assert(i[k] >= 0 and j[k] >= 0 and
+                               i[k] < shape[k] and j[k] < shape[k],
                                "Symmetry dimensions out of bounds.")
         else:
             ufl_assert(symmetry is None, "Expecting symmetry to be None, True, or dict.")
@@ -295,7 +313,8 @@ class TensorElement(MixedElement):
         # Compute all index combinations for given shape
         indices = compute_indices(shape)
 
-        # Compute sub elements and mapping from indices to sub elements, accounting for symmetry
+        # Compute sub elements and mapping from indices
+        # to sub elements, accounting for symmetry
         sub_element = FiniteElement(family, cell, degree, quad_scheme)
         sub_elements = []
         sub_element_mapping = {}
@@ -327,7 +346,8 @@ class TensorElement(MixedElement):
 
         # Cache repr string
         self._repr = "TensorElement(%r, %r, %r, %r, %r, %r)" % \
-            (self._family, self._cell, self._degree, self._shape, self._symmetry, quad_scheme)
+            (self._family, self._cell, self._degree, self._shape,
+             self._symmetry, quad_scheme)
 
     def reconstruct(self, **kwargs):
         kwargs["family"] = kwargs.get("family", self.family())
@@ -355,7 +375,8 @@ class TensorElement(MixedElement):
         l = len(self._shape)
         ii = i[:l]
         jj = i[l:]
-        ufl_assert(ii in self._sub_element_mapping, "Illegal component index %s." % repr(i))
+        ufl_assert(ii in self._sub_element_mapping,
+                   "Illegal component index %s." % repr(i))
         k = self._sub_element_mapping[ii]
         return (k, jj)
 
@@ -368,7 +389,8 @@ class TensorElement(MixedElement):
         "Format as string for pretty printing."
         sym = ""
         if isinstance(self._symmetry, dict):
-            sym = " with symmetries (%s)" % ", ".join("%s -> %s" % (a,b) for (a,b) in self._symmetry.iteritems())
+            tmp = ", ".join("%s -> %s" % (a,b) for (a,b) in self._symmetry.iteritems())
+            sym = " with symmetries (%s)" % tmp
         elif self._symmetry:
             sym = " with symmetry"
         return "<%s tensor element of degree %s and shape %s on a %s%s>" % \
@@ -378,7 +400,9 @@ class TensorElement(MixedElement):
         "Format as string for pretty printing."
         sym = ""
         if isinstance(self._symmetry, dict):
-            sym = " with symmetries (%s)" % ", ".join("%s -> %s" % (a,b) for (a,b) in self._symmetry.iteritems())
+            tmp = ", ".join("%s -> %s" % (a,b) for (a,b) in self._symmetry.iteritems())
+            sym = " with symmetries (%s)" % tmp
         elif self._symmetry:
             sym = " with symmetry"
-        return "Tensor<%s x %s%s>" % (self.value_shape(), self._sub_element.shortstr(), sym)
+        return "Tensor<%s x %s%s>" % (self.value_shape(),
+                                      self._sub_element.shortstr(), sym)

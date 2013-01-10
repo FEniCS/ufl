@@ -27,67 +27,67 @@ from itertools import izip
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.common import product, index_to_component, component_to_index, istr, EmptyDict
-from ufl.geometry import as_cell, cellname2facetname
+from ufl.geometry import Cell, as_cell, cellname2facetname
+from ufl.domains import Domain
 from ufl.log import info_blue, warning, warning_blue, error
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 class RestrictedElement(FiniteElementBase):
-    def __init__(self, element, domain):
-        ufl_assert(isinstance(element, FiniteElementBase), "Expecting a finite element instance.")
-        from ufl.integral import Measure
-        from ufl.geometry import Cell
-        ufl_assert(isinstance(domain, Measure)
-                   or domain == "facet"
-                   or isinstance(as_cell(domain), Cell),
-                   "Expecting a subdomain represented by a Measure, "
-                   "a Cell instance, or the string 'facet'.")
+    "Represents the restriction of a finite element to a type of cell entity."
+    def __init__(self, element, cell_restriction):
+        ufl_assert(isinstance(element, FiniteElementBase),
+                   "Expecting a finite element instance.")
+        ufl_assert(isinstance(cell_restriction, Cell) or cell_restriction == "facet",
+                   "Expecting a Cell instance, or the string 'facet'.")
+
         super(RestrictedElement, self).__init__("RestrictedElement", element.cell(),
             element.degree(), element.quadrature_scheme(), element.value_shape())
         self._element = element
 
-        if isinstance(domain, (Measure, Cell)):
-            # Just attach domain if it is a Measure or Cell
-            self._domain = domain
-        elif domain == "facet":
+        if isinstance(cell_restriction, Cell):
+            # Just attach cell_restriction if it is a Cell
+            ufl_assert(not cell_restriction.is_undefined(),
+                       "Undefined cell as restriction in RestrictedElement.")
+            self._cell_restriction = cell_restriction
+
+        elif cell_restriction == "facet":
             # Check for facet and handle it
-            cell = self.cell()
+            cell = element.cell()
             ufl_assert(not cell.is_undefined(),
                        "Cannot determine facet cell of undefined cell.")
-            self._domain = Cell(cellname2facetname[cell.cellname()])
-        else:
-            # Create Cell (assuming we get a string)
-            self._domain = as_cell(domain)
-
-        if isinstance(self._domain, Cell) and self._domain.is_undefined():
-            warning("Undefined cell as domain in RestrictedElement. "
-                    "Not sure if this is well defined. Continue at your own risk.")
+            self._cell_restriction = Cell(cellname2facetname[cell.cellname()])
 
         # Cache repr string
-        self._repr = "RestrictedElement(%r, %r)" % (self._element, self._domain)
+        self._repr = "RestrictedElement(%r, %r)" % (self._element, self._cell_restriction)
 
     def reconstruct(self, **kwargs):
-        """Construct a new RestrictedElement object with some properties
-        replaced with new values."""
+        """Construct a new RestrictedElement object with
+        some properties replaced with new values."""
         element = self._element.reconstruct(**kwargs)
-        domain = kwargs.get("domain", self.domain())
-        return RestrictedElement(element=element, domain=domain)
+        cell_restriction = kwargs.get("cell_restriction", self.cell_restriction())
+        return RestrictedElement(element=element, cell_restriction=cell_restriction)
 
     def is_cellwise_constant(self):
-        "Return whether the basis functions of this element is spatially constant over each cell."
+        """Return whether the basis functions of this
+        element is spatially constant over each cell."""
         return self._element.is_cellwise_constant()
 
     def element(self):
         "Return the element which is restricted."
         return self._element
 
+    def cell_restriction(self):
+        "Return the domain onto which the element is restricted."
+        return self._cell_restriction
+
     def __str__(self):
         "Format as string for pretty printing."
-        return "<%s>|_{%s}" % (self._element, self._domain)
+        return "<%s>|_{%s}" % (self._element, self._cell_restriction)
 
     def shortstr(self):
         "Format as string for pretty printing."
-        return "<%s>|_{%s}" % (self._element.shortstr(), self._domain)
+        return "<%s>|_{%s}" % (self._element.shortstr(), self._cell_restriction)
 
     def symmetry(self):
         """Return the symmetry dict, which is a mapping c0 -> c1
@@ -104,10 +104,14 @@ class RestrictedElement(FiniteElementBase):
         return self._element.sub_elements()
         #return [self._element]
 
-    def num_restricted_sub_elements(self): # FIXME: Use this where intended, for disambiguation w.r.t. different sub_elements meanings.
+    def num_restricted_sub_elements(self):
+        # FIXME: Use this where intended, for disambiguation
+        #        w.r.t. different sub_elements meanings.
         "Return number of restricted sub elements."
         return 1
 
-    def restricted_sub_elements(self): # FIXME: Use this where intended, for disambiguation w.r.t. different sub_elements meanings.
+    def restricted_sub_elements(self):
+        # FIXME: Use this where intended, for disambiguation
+        #        w.r.t. different sub_elements meanings.
         "Return list of restricted sub elements."
         return (self._element,)
