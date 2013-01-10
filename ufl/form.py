@@ -48,16 +48,28 @@ class Form(object):
         self._form_data = None
         self._is_preprocessed = False
 
-    def cell(self):
-        c = None
+    # DOMAIN FIXME: This is a bit unclear, what about forms with integrals over different subdomains?
+    def domain(self):
+        result = None
         for itg in self._integrals:
-            d = itg.integrand().cell()
-            if d is not None:
-                c = d # Best we found so far
-                if not d.is_undefined():
+            domain = itg.integrand().domain()
+            if domain is not None:
+                result = domain.top_domain() # Best we found so far
+                if not result.cell().is_undefined():
                     # Use the first fully defined cell we find
                     break
-        return c
+        return result
+
+    def cell(self): # TODO: DEPRECATE
+        result = None
+        for itg in self._integrals:
+            cell = itg.integrand().cell()
+            if cell is not None:
+                result = cell # Best we found so far
+                if not cell.is_undefined():
+                    # Use the first fully defined cell we find
+                    break
+        return result
 
     def integral_groups(self):
         """Return a dict, which is a mapping from domains to integrals.
