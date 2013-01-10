@@ -53,8 +53,8 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
     #    errors.append("Form is not multilinear in arguments.")
 
     # FIXME DOMAIN: Add check for consistency between domains somehow
-    domains = set(t.domain() for t in traverse_terminals(e)
-                             for e in iter_expressions(form))
+    domains = set(t.domain() for e in iter_expressions(form)
+                             for t in traverse_terminals(e))
     if None in domains:
         domains.remove(None)
 
