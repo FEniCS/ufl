@@ -276,7 +276,7 @@ def Dn(f):
     facet normal direction, Dn(f) := dot(grad(f), n)."""
     f = as_ufl(f)
     cell = f.cell()
-    if cell is None:
+    if cell is None: # FIXME: Rather if f.is_cellwise_constant()?
         return Zero(f.shape(), f.free_indices(), f.index_dimensions())
     return dot(grad(f), cell.n)
 

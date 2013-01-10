@@ -55,6 +55,9 @@ cellname2facetname = {"cell1D": "vertex",
 # Valid UFL cellnames
 ufl_cellnames = tuple(cellname2dim.keys())
 
+# FIXME DOMAIN: Figure out which quantities to make available from Domain.
+#               Need deprecation warnings for a while from the cell.
+
 class GeometricQuantity(Terminal):
     __slots__ = ("_cell",)
     def __init__(self, cell):
@@ -289,7 +292,7 @@ class FacetArea(GeometricQuantity):
 
 # --- Basic space and cell representation classes
 
-class Space(object):
+class Space(object): # FIXME DOMAIN get rid of this, it has no role to play
     "Representation of an Euclidean space."
     __slots__ = ("_dimension",)
 
