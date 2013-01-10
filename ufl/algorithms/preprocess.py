@@ -151,6 +151,12 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
     form_data.sub_elements        = extract_sub_elements(form_data.elements)
     form_data.unique_sub_elements = unique_tuple(form_data.sub_elements)
 
+    # Store element domains # FIXME: DOMAINS: What is a sensible way to store domains for a form?
+    form_data.domains = tuple(sorted(set(element.domain() for element in form_data.unique_elements)))
+
+    # Store toplevel domains # FIXME: DOMAINS: What is a sensible way to store domains for a form?
+    form_data.top_domains = tuple(sorted(set(domain.top_domain() for domain in form_data.domains)))
+
     # Store common cell
     form_data.cell = common_cell
 
