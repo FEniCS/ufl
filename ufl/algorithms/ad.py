@@ -73,7 +73,7 @@ def expand_derivatives1(form, dim=None,
 
     # Find geometric dimension. This is messy because of PyDOLFIN integration issues.
     cell = form.cell()
-    gdim = None if (cell is None or cell.is_undefined()) else cell.geometric_dimension()
+    gdim = None if cell is None else cell.geometric_dimension()
     if dim is None:
         dim = gdim
     if gdim is not None:
@@ -131,7 +131,7 @@ def expand_derivatives2(form, dim=None,
 
     # Find geometric dimension. This is messy because of PyDOLFIN integration issues.
     cell = form.cell()
-    gdim = None if (cell is None or cell.is_undefined()) else cell.geometric_dimension()
+    gdim = None if cell is None else cell.geometric_dimension()
     if dim is None:
         dim = gdim
     if gdim is not None:

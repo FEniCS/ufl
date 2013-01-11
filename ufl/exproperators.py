@@ -270,10 +270,7 @@ def _eval(self, coord, mapping=None):
     # Try to infer dimension from given x argument
     if coord is None:
         cell = self.cell()
-        if cell is None or cell.is_undefined():
-            dim = None
-        else:
-            dim = cell.geometric_dimension()
+        dim = None if cell is None else cell.geometric_dimension()
     elif isinstance(coord, (tuple, list)):
         dim = len(coord)
     else: # No type checking here, assuming a scalar x value...

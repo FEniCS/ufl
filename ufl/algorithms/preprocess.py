@@ -316,12 +316,8 @@ def preprocess_expression(expr, object_names=None, common_cell=None, element_map
     expr_data.cell = common_cell
 
     # Store data related to cell
-    if common_cell.is_undefined():
-        expr_data.geometric_dimension = None
-        expr_data.topological_dimension = None
-    else:
-        expr_data.geometric_dimension = expr_data.cell.geometric_dimension()
-        expr_data.topological_dimension = expr_data.cell.topological_dimension()
+    expr_data.geometric_dimension = None if common_cell is None else expr_data.cell.geometric_dimension()
+    expr_data.topological_dimension = None if common_cell is None else expr_data.cell.topological_dimension()
 
     # Store some useful dimensions
     #expr_data.rank = len(expr_data.arguments)
@@ -350,7 +346,7 @@ def extract_common_cell(form, common_cell=None):
     common_cell = common_cell or form.cell()
 
     # Check common cell
-    if common_cell is None or common_cell.is_undefined():
+    if common_cell is None:
         error("Unable to extract common cell; "\
               "missing cell definition in form or expression.")
 
@@ -365,18 +361,18 @@ def build_element_mapping(element_mapping, common_cell, arguments, coefficients)
 
     # Check that the given initial mapping has no invalid entries
     for v in element_mapping.itervalues():
-        ufl_assert(not v.cell().is_undefined(),
+        ufl_assert(v.cell() is not None,
                    "Found element with undefined cell in element mapping.")
 
     # Reconstruct all elements we need to map
     for f in chain(arguments, coefficients):
         e = f.element()
         if e in element_mapping:
-            ufl_assert(not element_mapping[e].cell().is_undefined(),
+            ufl_assert(element_mapping[e].cell() is not None,
                 "Found element with undefined cell in given element mapping.")
-        elif e.cell().is_undefined():
-            ufl_assert(not common_cell.is_undefined(),
+        elif e.cell() is None:
+            ufl_assert(common_cell is not None,
                 "Cannot reconstruct elements with another undefined cell!")
-            element_mapping[e] = e.reconstruct(domain=common_cell) # FIXME
+            element_mapping[e] = e.reconstruct(domain=as_domain(common_cell)) # FIXME DOMAIN
 
     return element_mapping

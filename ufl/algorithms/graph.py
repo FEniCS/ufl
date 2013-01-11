@@ -384,8 +384,7 @@ def partition(G, criteria=string_set_criteria):
 
 def test_expr():
     from ufl import triangle, FiniteElement, TestFunction, TrialFunction, Coefficient
-    cell = triangle
-    element = FiniteElement("CG", cell, 1)
+    element = FiniteElement("CG", triangle, 1)
     v = TestFunction(element)
     u = TrialFunction(element)
     f = Coefficient(element)

@@ -290,81 +290,44 @@ class FacetArea(GeometricQuantity):
 #    def __repr__(self):
 #        return "MeshSize(%r)" % self._cell
 
-# --- Basic space and cell representation classes
-
-class Space(object): # FIXME DOMAIN get rid of this, it has no role to play
-    "Representation of an Euclidean space."
-    __slots__ = ("_dimension",)
-
-    def __init__(self, dimension):
-        ufl_assert(isinstance(dimension, int), "Expecting integer.")
-        self._dimension = dimension
-
-    def dimension(self):
-        ufl_assert(isinstance(self._dimension, int), "No dimension defined!")
-        return self._dimension
-
-    def __str__(self):
-        return "R%s" % istr(self._dimension)
-
-    def __repr__(self):
-        return "Space(%r)" % (self._dimension,)
+# --- Basic cell representation classes
 
 class Cell(object):
     "Representation of a finite element cell."
-    __slots__ = ("_cellname", "_space",
+    __slots__ = ("_cellname",
                  "_geometric_dimension", "_topological_dimension",
-                 "_repr", "_invalid",
+                 "_repr",
                  "_n", "_x", "_volume", "_circumradius",
                  "_cellsurfacearea", "_facetarea",
                  "_xi", "_J", "_Jinv", "_detJ",)
 
-    def __init__(self, cellname, space=None):
+    def __init__(self, cellname, geometric_dimension=None):
         "Initialize basic cell description."
-
-        # Check for valid cellname. We allow None to support PyDOLFIN
-        # integration features. This is a bit dangerous because
-        # several things in UFL become undefined, but it is a very
-        # good and important feature to have so don't even think about
-        # removing it! ;-)
-        if cellname is None:
-            self._invalid = True
-        else:
-            ufl_assert(cellname in cellname2dim, "Invalid cellname %s." % (cellname,))
-            self._invalid = False
+        # The cellname must be one of the predefined names
+        ufl_assert(cellname in cellname2dim, "Invalid cellname %s." % (cellname,))
         self._cellname = cellname
 
-        # Don't compute quantities that are undefined
-        if self._invalid:
-            # Used in repr string below
-            self._space = None
-        else:
-            # The topological dimension is defined by the cell type
-            dim = cellname2dim[self._cellname]
-            self._topological_dimension = dim
+        # The topological dimension is defined by the cell type
+        self._topological_dimension = cellname2dim[self._cellname]
 
-            # The space dimension defaults to equal
-            # the topological dimension if undefined
-            space = Space(dim) if space is None else space
-            ufl_assert(isinstance(space, Space),
-                       "Expecting a Space instance, not '%r'" % (space,))
-            self._space = space
+        # The geometric dimension defaults to equal
+        # the topological dimension if undefined
+        ufl_assert(geometric_dimension is None or isinstance(geometric_dimension, int),
+                   "Expecting an integer dimension, not '%r'" % (geometric_dimension,))
+        self._geometric_dimension = geometric_dimension or self._topological_dimension
 
-            # The geometric dimension is defined by the space
-            self._geometric_dimension = space.dimension()
-
-            # Check for consistency in dimensions.
-            # NB! Note that the distinction between topological
-            # and geometric dimensions has yet to be used in
-            # practice, so don't trust it too much :)
-            ufl_assert(self._topological_dimension <= self._geometric_dimension,
-                       "Cannot embed a %sD cell in %s" %\
-                           (istr(self._topological_dimension), self._space))
+        # Check for consistency in dimensions.
+        # NB! Note that the distinction between topological
+        # and geometric dimensions has yet to be used in
+        # practice, so don't trust it too much :)
+        ufl_assert(self._topological_dimension <= self._geometric_dimension,
+                   "Cannot embed a %sD cell in %sD" %\
+                       (istr(self._topological_dimension), istr(self._geometric_dimension)))
 
         # Cache repr string
-        self._repr = "Cell(%r, %r)" % (self._cellname, self._space)
+        self._repr = "Cell(%r, %r)" % (self._cellname, self._geometric_dimension)
 
-        # Attach expression nodes derived from this cell
+        # Attach expression nodes derived from this cell TODO: Derive these from domain instead
         self._n = FacetNormal(self)
         self._x = SpatialCoordinate(self)
         self._xi = LocalCoordinate(self)
@@ -432,7 +395,8 @@ class Cell(object):
     def is_undefined(self):
         """Return whether this cell is undefined,
         in which case no dimensions are available."""
-        return self._invalid
+        warning("cell.is_undefined() is deprecated, undefined cells are no longer allowed.")
+        return False
 
     def domain(self):
         warning("Cell.domain() is deprecated, use cell.cellname() instead.")
@@ -440,22 +404,18 @@ class Cell(object):
 
     def cellname(self):
         "Return the cellname of the cell."
-        ufl_assert(not self._invalid, "An invalid cell has no cellname.")
         return self._cellname
 
     def facet_cellname(self):
         "Return the cellname of the facet of this cell."
-        ufl_assert(not self._invalid, "An invalid cell has no facet cellnames.")
         return cellname2facetname[self._cellname]
 
     def geometric_dimension(self):
         "Return the dimension of the space this cell is embedded in."
-        ufl_assert(not self._invalid, "An invalid cell has no dimensions.")
         return self._geometric_dimension
 
     def topological_dimension(self):
         "Return the dimension of the topology of this cell."
-        ufl_assert(not self._invalid, "An invalid cell has no dimensions.")
         return self._topological_dimension
 
     @property
@@ -463,7 +423,6 @@ class Cell(object):
         """The dimension of the cell.
 
         Only valid if the geometric and topological dimensions are the same."""
-        ufl_assert(not self._invalid, "An invalid cell has no dimensions.")
         ufl_assert(self._topological_dimension == self._geometric_dimension,
                    "Cell.d is undefined when geometric and"+\
                    "topological dimensions are not the same.")
@@ -475,11 +434,14 @@ class Cell(object):
     def __ne__(self, other):
         return not self == other
 
+    def __lt__(self, other):
+        return repr(self) < repr(other)
+
     def __hash__(self):
         return hash(repr(self))
 
     def __str__(self):
-        return "<%s cell in %s>" % (istr(self._cellname), istr(self._space))
+        return "<%s cell in %sD>" % (istr(self._cellname), istr(self._geometric_dimension))
 
     def __repr__(self):
         return self._repr
@@ -495,12 +457,8 @@ class ProductCell(Cell):
         ufl_assert(len(self._cells) > 0, "Expecting at least one cell")
 
         self._cellname = self._cells[0].cellname()#" x ".join([c.cellname() for c in cells])
-        self._invalid = False
-        self._topological_dimension = sum(c.topological_dimension()
-                                          for c in cells)
+        self._topological_dimension = sum(c.topological_dimension() for c in cells)
         self._geometric_dimension = sum(c.geometric_dimension() for c in cells)
-
-        self._space = Space(self._topological_dimension)
 
         self._repr = "ProductCell(*%r)" % list(self._cells)
         self._n = None
@@ -527,9 +485,6 @@ def as_cell(cell):
         return cell
     elif isinstance(cell, str):
         # Create cell from string
-        return Cell(cell)
-    elif cell is None:
-        # Create undefined cell, get rid of this ugly hack when possible
         return Cell(cell)
     else:
         error("Invalid cell %s." % cell)

@@ -1105,8 +1105,8 @@ class UnusedADRules(object):
     curl = commute
     def grad(self, o, a):
         a, aprime = a
-        c = aprime.cell()
-        if c is None or c.is_undefined(): # FIXME:
+        cell = aprime.cell()
+        if cell is None: # FIXME
             oprime = self._make_zero_diff(o)
         else:
             oprime = o.reconstruct(aprime)

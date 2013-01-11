@@ -39,9 +39,12 @@ class DomainTestCase(UflTestCase):
             self.assertNotEqual(D2, D3)
 
     def test_domains_sort_by_name(self):
-        domains = [Domain(cell, "D%d"%k) for (k,cell) in enumerate(all_cells)]
-        #sdomains = sorted(domains) # FIXME
-        #self.assertEqual()
+        # This ordering is rather arbitrary, but at least this shows sorting is working
+        domains1 = [Domain(cell, "D%s"%cell.cellname()) for cell in all_cells]
+        domains2 = [Domain(cell, "D%s"%cell.cellname()) for cell in sorted(all_cells)]
+        sdomains = sorted(domains1)
+        self.assertNotEqual(sdomains, domains1)
+        self.assertEqual(sdomains, domains2)
 
     def test_extract_domains_from_form(self):
         cell = triangle
@@ -60,33 +63,28 @@ class DomainTestCase(UflTestCase):
         D1 = D[1]
         D2 = D[2]
 
-        subdomain_ids = D.disjoint_subdomain_ids()
-
-        self.assertEqual(subdomain_ids, [1, 2])
+        self.assertEqual(D.regions(), [D1, D2])
+        self.assertEqual(D.region_names(), ['triangle_multiverse_1',
+                                            'triangle_multiverse_2'])
 
     def test_named_subdomain_groups_are_registered(self):
         D = Domain(triangle)
 
-        D1 = D[1]
-        D2 = D[2]
-        D3 = D[3]
+        DL = Region(D, (1, 2), 'DL')
+        DR = Region(D, (2, 3), 'DR')
 
-        DL = DomainGroup(D, (D1, D2), 'DL')
-        DR = DomainGroup(D, (D2, D3), 'DR')
+        self.assertEqual(D.regions(), [DL, DR])
+        self.assertEqual(D.region_names(), ['DL', 'DR'])
 
-        subdomain_groups = D.subdomain_groups()
-
-        self.assertEqual(subdomain_groups, [DL, DR])
-
-    def xtest_subdomain_stuff(self):
+    def xtest_subdomain_stuff(self): # Old sketch, not working
         D = Domain(triangle)
 
         D1 = D[1]
         D2 = D[2]
         D3 = D[3]
 
-        DL = DomainGroup(D, (D1, D2), 'DL')
-        DR = DomainGroup(D, (D2, D3), 'DR')
+        DL = Region(D, (D1, D2), 'DL')
+        DR = Region(D, (D2, D3), 'DR')
         DM = Overlap(DL, DR)
 
         self.assertEqual(DM, D2)

@@ -92,32 +92,31 @@ class Expr(object):
         "Return the domain this expression is defined on."
         result = None
         for o in self.operands():
-            domain = o.domain()
+            domain = o.domain().top_domain()
             if domain is not None:
                 result = domain # Best we have so far
-                if not domain.cell().is_undefined():
-                    # Use the first fully defined cell found
+                cell = domain.cell()
+                if cell is not None:
+                    # A domain with a fully defined cell, we have a winner!
                     break
         return result
 
     # All subclasses must implement cell if it is known
     def cell(self): # TODO: Deprecate this
         "Return the cell this expression is defined on."
-        result = None
         for o in self.operands():
             cell = o.cell()
             if cell is not None:
-                result = cell # Best we have so far
-                if not cell.is_undefined():
-                    # Use the first fully defined cell found
-                    break
-        return result
+                return cell
+        return None
 
     # This function was introduced to clarify and
     # eventually reduce direct dependencies on cells.
     def geometric_dimension(self): # TODO: Deprecate this, use external analysis algorithm
         "Return the geometric dimension this expression lives in."
-        return self.cell().geometric_dimension()
+        cell = self.cell()
+        error("Cannot get geometric dimension from an expression with no cell!")
+        return cell.geometric_dimension()
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."

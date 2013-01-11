@@ -144,10 +144,10 @@ class ElementsTestCase(UflTestCase):
                 self.assertEqual(element.quadrature_scheme(), q)
                 self.assertEqual(element, eval(repr(element)))
 
-    def test_invalid_cell(self):
+    def test_none_cell(self):
         from ufl.geometry import as_cell
-        for cell in (triangle, as_cell(None)):
-            element = FiniteElement("CG", cell, 1)
+        for cell in (triangle, None):
+            element = FiniteElement("Real", cell, 0)
             self.assertEqual(element, eval(repr(element)))
             #element = VectorElement("CG", cell, 1) # invalid
 

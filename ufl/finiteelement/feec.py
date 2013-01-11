@@ -40,7 +40,7 @@ def FEEC_aliases(name, cell, r, k):
     Numerica, 2006, Table 5.1 and 5.2 (p. 60)
     """
 
-    ufl_assert(not cell.is_undefined(), "Cannot get dimension from undefined cell.")
+    ufl_assert(cell is not None, "Cannot get dimension from undefined cell.")
     tdim = cell.topological_dimension()
     ufl_assert(k in set(range(0, tdim+1)),\
                "k-forms only defined for k in [0, n]")

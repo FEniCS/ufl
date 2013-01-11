@@ -28,7 +28,7 @@ from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.common import product, index_to_component, component_to_index, istr, EmptyDict
 from ufl.geometry import Cell, as_cell, cellname2facetname, ProductCell
-from ufl.domains import as_domain
+from ufl.domains import as_domain, DomainDescription
 from ufl.log import info_blue, warning, warning_blue, error
 
 from ufl.finiteelement.elementlist import ufl_elements, aliases
@@ -43,8 +43,14 @@ class FiniteElementBase(object):
         ufl_assert(isinstance(family, str), "Invalid family type.")
         ufl_assert(isinstance(degree, int) or degree is None, "Invalid degree type.")
         ufl_assert(isinstance(value_shape, tuple), "Invalid value_shape type.")
-        self._domain = as_domain(domain)
-        self._cell = self._domain.cell()
+        if domain is None:
+            self._domain = None
+            self._cell = None
+        else:
+            self._domain = as_domain(domain)
+            self._cell = self._domain.cell()
+            ufl_assert(isinstance(self._domain, DomainDescription), "Invalid domain type.")
+            ufl_assert(isinstance(self._cell, Cell), "Invalid cell type.")
         self._family = family
         self._degree = degree
         self._value_shape = value_shape
@@ -67,8 +73,8 @@ class FiniteElementBase(object):
         return self._domain
 
     def cell_restriction(self):
-        "Return the cell onto which the element is restricted."
-        return None
+        "Return the cell type onto which the element is restricted."
+        return None # Overloaded by RestrictedElement
 
     def cell(self):
         "Return cell of finite element"
@@ -159,7 +165,14 @@ class FiniteElementBase(object):
 
     def __getitem__(self, index):
         "Restrict finite element to a subdomain, subcomponent or topology (cell)."
-        if (isinstance(index, Cell) or index == "facet"):
+        # NOTE: RestrictedElement will not be used to represent restriction
+        #       to subdomains, as that is represented by the element having
+        #       a domain property that is a Region.
+        # NOTE: Implementing restriction to subdomains with [] should not be
+        #       done, as V[1] is ambiguously similar to both indexing expressions
+        #       and obtaining a subdomain, such as myexpr[1] and mydomain[1].
+        if isinstance(index, Cell) or index == "facet":
             from ufl.finiteelement import RestrictedElement
             return RestrictedElement(self, index)
         return NotImplemented
+

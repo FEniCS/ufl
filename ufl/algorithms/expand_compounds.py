@@ -308,9 +308,7 @@ def expand_compounds1(e, dim=None):
     Requires e to have a well defined geometric dimension."""
     if dim is None:
         cell = e.cell()
-        if cell is not None:
-            ufl_assert(not cell.is_undefined(), "Cannot infer dimension from undefined cell.")
-            dim = cell.geometric_dimension()
+        dim = None if cell is None else cell.geometric_dimension()
     return apply_transformer(e, CompoundExpander(dim))
 
 def expand_compounds2(e, dim=None):
@@ -318,9 +316,7 @@ def expand_compounds2(e, dim=None):
     Requires e to have a well defined geometric dimension."""
     if dim is None:
         cell = e.cell()
-        if cell is not None:
-            ufl_assert(not cell.is_undefined(), "Cannot infer dimension from undefined cell.")
-            dim = cell.geometric_dimension()
+        dim = None if cell is None else cell.geometric_dimension()
     return expand_compounds_postdiff(expand_compounds_prediff(e, dim), dim)
 
 def expand_compounds_prediff(e, dim=None):
@@ -328,9 +324,7 @@ def expand_compounds_prediff(e, dim=None):
     Requires e to have a well defined geometric dimension."""
     if dim is None:
         cell = e.cell()
-        if cell is not None:
-            ufl_assert(not cell.is_undefined(), "Cannot infer dimension from undefined cell.")
-            dim = cell.geometric_dimension()
+        dim = None if cell is None else cell.geometric_dimension()
     return apply_transformer(e, CompoundExpanderPreDiff(dim))
 
 def expand_compounds_postdiff(e, dim=None):
@@ -338,9 +332,7 @@ def expand_compounds_postdiff(e, dim=None):
     Requires e to have a well defined geometric dimension."""
     if dim is None:
         cell = e.cell()
-        if cell is not None:
-            ufl_assert(not cell.is_undefined(), "Cannot infer dimension from undefined cell.")
-            dim = cell.geometric_dimension()
+        dim = None if cell is None else cell.geometric_dimension()
     return apply_transformer(e, CompoundExpanderPostDiff(dim))
 
 expand_compounds = expand_compounds1

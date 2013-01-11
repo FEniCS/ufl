@@ -44,7 +44,7 @@ from ufl.constantvalue import ConstantValue, IndexAnnotated, Zero, ScalarValue,\
 from ufl.argument import Argument, TestFunction, TrialFunction
 from ufl.coefficient import Coefficient, ConstantBase,\
     VectorConstant, TensorConstant, Constant
-from ufl.geometry import Space, Cell, ProductCell, GeometricQuantity, \
+from ufl.geometry import Cell, ProductCell, GeometricQuantity, \
     SpatialCoordinate, FacetNormal, CellVolume, CellSurfaceArea, FacetArea, Circumradius, \
     LocalCoordinate, GeometryJacobi, GeometryJacobiDeterminant, InverseGeometryJacobi
 from ufl.indexing import IndexBase, FixedIndex, Index, MultiIndex

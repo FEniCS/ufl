@@ -27,35 +27,29 @@ from ufl.terminal import Terminal
 
 from ufl.geometry import as_cell, Cell
 
-DEFAULT_DOMAIN_NAME = "multiverse"
-class Domain(object):
-    __slots__ = ('_cell', '_name',
-                 '_gdim', '_tdim',
-                 '_numbered_subdomains',
-                 '_named_subdomains',)
-    def __init__(self, cell, name=DEFAULT_DOMAIN_NAME):
-        self._cell = cell
-        self._name = name
-        self._numbered_subdomains = {}
-        self._named_subdomains = {}
+class DomainDescription(object):
+    __slots__ = ('_cell',
+                 '_name',
+                 '_gdim',
+                 '_tdim',
+                 )
+    def __init__(self, cell, name, gdim, tdim):
+        ufl_assert(isinstance(cell, Cell), "Expecting a Cell.")
 
-    def geometric_dimension_please(self): # TODO: Figure out if it's possible to avoid this
-        # At the moment we just get the geometric dimension from the cell,
-        # but later we can make it primarily a domain property.
-        # Keep in mind that the
-        if self._cell.is_undefined():
-            return None
-        else:
-            return self._cell.geometric_dimension()
+        self._cell = cell
+        self._name = name or "%s_%s" % (cell.cellname(), "multiverse")
+        self._gdim = gdim or cell.geometric_dimension()
+        self._tdim = tdim or cell.topological_dimension()
+
+        ufl_assert(isinstance(self._name, str), "Expecting a string.")
+        ufl_assert(isinstance(self._gdim, int), "Expecting an integer.")
+        ufl_assert(isinstance(self._tdim, int), "Expecting an integer.")
 
     def geometric_dimension(self):
-        dim = self.geometric_dimension_please()
-        if dim is None:
-            error("Invalid cell, cannot get geometric dimension!")
-        return dim
+        return self._gdim
 
     def topological_dimension(self):
-        return self._cell.topological_dimension()
+        return self._tdim
 
     def cell(self):
         return self._cell
@@ -63,109 +57,100 @@ class Domain(object):
     def name(self):
         return self._name
 
-    def parent_domain(self):
-        return None
-
     def top_domain(self):
-        return self
+        raise NotImplementedException("Missing implementation of top_domain.")
 
-    def is_top_domain(self):
-        return self is self.top_domain()
-
-    def disjoint_subdomain_ids(self):
-        return sorted(self._numbered_subdomains.keys())
-
-    def disjoint_subdomains(self):
-        return sorted(self._numbered_subdomains.values())
-
-    def subdomain_group_names(self):
-        return sorted(self._named_subdomains.keys())
-
-    def subdomain_groups(self):
-        return sorted(self._named_subdomains.values())
-
-    def __getitem__(self, name):
-        if isinstance(name, int):
-            dom = self._numbered_subdomains.get(name)
-            if dom is None:
-                dom = DisjointSubDomain(self, name)
-                self._numbered_subdomains[name] = dom
-            return dom
-
-        if isinstance(name, str):
-            dom = self._named_subdomains.get(name)
-            if dom is None:
-                error("No record of subdomain with label %r" % name)
-            return dom
-
-        error("Invalid subdomain label %r" % name)
-
-    def __call__(self, name=DEFAULT_DOMAIN_NAME):
-        return Boundary(self, name)
-
-    def __repr__(self):
-        return "Domain(%r, %r)" % (self._cell, self._name)
+    def __eq__(self, other):
+        return (isinstance(other, DomainDescription)
+                and self._cell == other._cell
+                and self._name == other._name
+                and self._gdim == other._gdim
+                and self._tdim == other._tdim)
 
     def __hash__(self):
         return hash(repr(self))
 
-    def __eq__(self, other):
-        return (isinstance(other, Domain)
-                and self._cell == other._cell
-                and self._name == other._name)
-
     def __lt__(self, other):
         return repr(self) < repr(other) # FIXME: Sort in a more predictable way
 
-class DisjointSubDomain(Domain):
-    __slots__ = ('_parent', '_number')
-    def __init__(self, parent, number):
-        Domain.__init__(self, parent.cell(), name="%s[%d]" % (parent.name(), number))
-        self._parent = parent
-        self._number = number
-        parent._numbered_subdomains[number] = self
-
-    def top_domain(self):
-        return self._parent.top_domain()
+class Domain(DomainDescription):
+    __slots__ = ('_regions',)
+    def __init__(self, cell, name=None, gdim=None, tdim=None,
+                 regions=None):
+        DomainDescription.__init__(self, cell, name, gdim, tdim)
+        self._regions = {} if regions is None else regions
 
     def __repr__(self):
-        return "DisjointSubDomain(%r, %r)" % (self._parent, self._name)
+        return "Domain(%r, %r, %r, %r, %r)" % (self._cell, self._name,
+                                               self._gdim, self._tdim, self._regions)
 
     def __eq__(self, other):
-        return (isinstance(other, DisjointSubDomain)
-                and self._parent == other._parent
-                and self._name == other._name)
-
-class DomainGroup(Domain):
-    __slots__ = ('_parent', '_subdomains')
-    def __init__(self, parent, subdomains, name):
-        Domain.__init__(self, parent.cell(), name)
-        self._parent = parent
-        self._subdomains = subdomains
-        parent._named_subdomains[name] = self
+        return (isinstance(other, Domain)
+                and DomainDescription.__eq__(self, other)
+                and self._regions == other._regions)
 
     def top_domain(self):
-        return self._parent.top_domain()
+        return self
+
+    def region_names(self):
+        return sorted(self._regions.keys())
+
+    def regions(self):
+        return [self[r] for r in self.region_names()]
+
+    # TODO: Can we make it possible to get all subdomain ids for a Domain?
+    #def subdomain_ids(self):
+    #    return self._subdomain_ids
+
+    def __getitem__(self, name):
+        if isinstance(name, int):
+            return Region(self, (name,), "%s_%d" % (self._name, name))
+        elif isinstance(name, str):
+            dom = self._regions.get(name)
+            if dom is None:
+                error("No record of subdomain with label %r" % name)
+            return dom
+        else:
+            error("Invalid subdomain label %r, expecting string or integer." % name)
+
+    # TODO: Does this make sense?
+    #def __call__(self, name):
+    #    return Boundary(self, name)
+
+class Region(DomainDescription):
+    __slots__ = ('_parent', '_subdomain_ids')
+    def __init__(self, parent, subdomain_ids, name):
+        DomainDescription.__init__(self, parent.cell(), name,
+                                   parent._gdim, parent._tdim)
+        self._parent = parent
+        self._subdomain_ids = tuple(sorted(set(subdomain_ids)))
+        parent._regions[name] = self
+
+    def top_domain(self):
+        return self._parent
+
+    def subdomain_ids(self):
+        return self._subdomain_ids
 
     def __repr__(self):
-        return "DomainGroup(%r, %r, %r)" % (self._parent, self._subdomains, self._name)
+        return "Region(%r, %r, %r)" % (self._parent, self._subdomain_ids, self._name)
 
     def __eq__(self, other):
-        return (isinstance(other, DomainGroup)
+        return (isinstance(other, Region)
                 and self._parent == other._parent
-                and self._subdomains == other._subdomains
-                and self._name == other._name)
+                and self._subdomain_ids == other._subdomain_ids
+                and DomainDescription.__eq__(self, other))
 
 # Map cells to a default domain for compatibility and cache this:
 _default_domains = {}
 def as_domain(domain):
-    if isinstance(domain, Domain):
+    if isinstance(domain, DomainDescription):
         return domain
     else:
         cell = as_cell(domain)
         if isinstance(cell, Cell):
             if cell not in _default_domains:
-                _default_domains[cell] = Domain(cell, name=DEFAULT_DOMAIN_NAME)
+                _default_domains[cell] = Domain(cell)
             return _default_domains[cell]
         else:
             error("Invalid domain %s." % str(domain))

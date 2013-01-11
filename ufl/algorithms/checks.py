@@ -38,8 +38,8 @@ from ufl.algorithms.propagate_restrictions import check_restrictions
 
 def validate_form(form): # TODO: Can we make this return a list of errors instead of raising exception?
     """Performs all implemented validations on a form. Raises exception if something fails."""
-
     errors = []
+    warnings = []
 
     if not isinstance(form, Form):
         msg = "Validation failed, not a Form:\n%s" % repr(form)
@@ -53,16 +53,20 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
     #    errors.append("Form is not multilinear in arguments.")
 
     # FIXME DOMAIN: Add check for consistency between domains somehow
-    domains = set(t.domain() for e in iter_expressions(form)
-                             for t in traverse_terminals(e))
-    if None in domains:
-        domains.remove(None)
+    domains = set(t.domain()
+                  for e in iter_expressions(form)
+                  for t in traverse_terminals(e)) - set((None,))
+    if not domains:
+        errors.append("Missing domain definition in form.")
+
+    top_domains = set(dom.top_domain() for dom in domains if dom is not None)
+    if not top_domains:
+        errors.append("Missing domain definition in form.")
+    elif len(top_domains) > 1:
+        warnings.append("Multiple top domain definitions in form: %s" % str(top_domains))
 
     # Check that cell is the same everywhere
-    cells = set(domain.cell() for domain in domains)
-    if None in cells:
-        cells.remove(None)
-    cells = set(cell for cell in cells if not cell.is_undefined())
+    cells = set(dom.cell() for dom in top_domains) - set((None,))
     if not cells:
         errors.append("Missing cell definition in form.")
     elif len(cells) > 1:

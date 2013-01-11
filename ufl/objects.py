@@ -21,11 +21,11 @@
 # Modified by Kristian Oelgaard, 2009
 #
 # First added:  2008-03-14
-# Last changed: 2011-06-02
+# Last changed: 2013-01-11
 
 from ufl.indexing import indices
 from ufl.integral import Measure
-from ufl.geometry import Space, Cell
+from ufl.geometry import Cell
 
 # Default indices
 i, j, k, l = indices(4)
@@ -39,22 +39,16 @@ dP = Measure(Measure.POINT, 0)
 dE = Measure(Measure.MACRO_CELL, 0)
 dc = Measure(Measure.SURFACE, 0)
 
-# Euclidean spaces
-R0 = Space(0)
-R1 = Space(1)
-R2 = Space(2)
-R3 = Space(3)
-
 # Cell types
-cell1D        = Cell("cell1D", R1)
-cell2D        = Cell("cell2D", R2)
-cell3D        = Cell("cell3D", R3)
-vertex        = Cell("vertex", R0)
-interval      = Cell("interval", R1)
-triangle      = Cell("triangle", R2)
-tetrahedron   = Cell("tetrahedron", R3)
-quadrilateral = Cell("quadrilateral", R2)
-hexahedron    = Cell("hexahedron", R3)
+cell1D        = Cell("cell1D", 1)
+cell2D        = Cell("cell2D", 2)
+cell3D        = Cell("cell3D", 3)
+vertex        = Cell("vertex", 0)
+interval      = Cell("interval", 1)
+triangle      = Cell("triangle", 2)
+tetrahedron   = Cell("tetrahedron", 3)
+quadrilateral = Cell("quadrilateral", 2)
+hexahedron    = Cell("hexahedron", 3)
 
 # Facet is just a dummy declaration for RestrictedElement
 facet = "facet"

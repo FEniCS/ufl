@@ -47,16 +47,12 @@ class RestrictedElement(FiniteElementBase):
 
         if isinstance(cell_restriction, Cell):
             # Just attach cell_restriction if it is a Cell
-            ufl_assert(not cell_restriction.is_undefined(),
-                       "Undefined cell as restriction in RestrictedElement.")
             self._cell_restriction = cell_restriction
-
         elif cell_restriction == "facet":
-            # Check for facet and handle it
+            # Create a cell
             cell = element.cell()
-            ufl_assert(not cell.is_undefined(),
-                       "Cannot determine facet cell of undefined cell.")
-            self._cell_restriction = Cell(cellname2facetname[cell.cellname()])
+            self._cell_restriction = Cell(cellname2facetname[cell.cellname()],
+                                          geometric_dimension=cell.geometric_dimension())
 
         # Cache repr string
         self._repr = "RestrictedElement(%r, %r)" % (self._element, self._cell_restriction)

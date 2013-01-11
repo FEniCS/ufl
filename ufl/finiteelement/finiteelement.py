@@ -34,6 +34,21 @@ from ufl.log import info_blue, warning, warning_blue, error
 from ufl.finiteelement.elementlist import ufl_elements, aliases
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
+class PlaceholderElement(FiniteElementBase):
+    "A placeholder finite element class for yet to be defined elements."
+    def __init__(self, shape):
+        """Create placeholder finite element
+
+        *Arguments*
+            shape
+               The value shape of functions in this space
+        """
+        # Initialize element data
+        super(PlaceholderElement, self).__init__(None, None, None,
+                                            None, shape)
+        # Cache repr string
+        self._repr = "PlaceholderElement(%r)" % (shape,)
+
 class FiniteElement(FiniteElementBase):
     "The basic finite element class for all simple finite elements"
     def __init__(self, family, domain=None, degree=None, quad_scheme=None,
@@ -53,8 +68,12 @@ class FiniteElement(FiniteElementBase):
                The form degree (FEEC notation, used when field is
                viewed as k-form)
         """
-        domain = as_domain(domain)
-        cell = domain.cell()
+        if domain is None:
+            cell = None
+        else:
+            domain = as_domain(domain)
+            cell = domain.cell()
+            ufl_assert(cell is not None, "Missing cell in given domain.")
 
         # Check whether this family is an alias for something else
         if family in aliases:
@@ -63,10 +82,9 @@ class FiniteElement(FiniteElementBase):
             #        (family, cell, degree, form_degree),
             #        (name, cell, r)))
 
-            # FIXME: Need to init here with domain, is that ok?
+            # FIXME: Need to init here with domain instead of using cell from aliases, is that ok?
             ufl_assert(cell == domain.cell(),
                        "Breaking assumption in element alias mapping.")
-
             self.__init__(name, domain, r, quad_scheme)
             return
 
@@ -79,14 +97,9 @@ class FiniteElement(FiniteElementBase):
             ufl_elements[family]
 
         # Validate cellname if a valid cell is specified
-        if cell.is_undefined():
-            # Case of invalid cell, some stuff is then undefined,
-            # such as the cellname and some dimensions
-            pass
-        else:
-            cellname = cell.cellname()
-            ufl_assert(cellname in cellnames,
-                       'Cellname "%s" invalid for "%s" finite element.' % (cellname, family))
+        cellname = 'None' if cell is None else cell.cellname()
+        ufl_assert(cellname in cellnames,
+                   'Cellname "%s" invalid for "%s" finite element.' % (cellname, family))
 
         # Validate degree if specified
         if degree is not None:
@@ -105,9 +118,9 @@ class FiniteElement(FiniteElementBase):
         if value_rank == 0:
             value_shape = ()
         else:
+            ufl_assert(domain is not None,
+                       "Cannot infer shape of element without a domain with geometric dimension.")
             dim = domain.geometric_dimension()
-            ufl_assert(isinstance(dim, int),
-                       "Invalid geometric dimension %s." % dim)
             value_shape = (dim,)*value_rank
 
         # Initialize element data

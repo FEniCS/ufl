@@ -34,14 +34,9 @@ The development version can be found in the repository at
 
 A very brief overview of the language contents follows:
 
-* Euclidean spaces::
-
-    Space,
-    R1, R2, R3,
-
 * Domains::
 
-    Domain, DisjointSubDomain, DomainGroup
+    Domain, Region
 
 * Cells::
 
@@ -176,14 +171,14 @@ from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile
     UFLException, DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 # Types for geometric quantities
-from ufl.geometry import Space, Cell, ProductCell, \
+from ufl.geometry import Cell, ProductCell, \
      SpatialCoordinate, LocalCoordinate, \
      CellVolume, Circumradius, CellSurfaceArea, \
      FacetNormal, FacetArea, \
      GeometryJacobi, GeometryJacobiDeterminant, InverseGeometryJacobi
 
 # Types for domain description
-from ufl.domains import Domain, DisjointSubDomain, DomainGroup
+from ufl.domains import Domain, Region
 
 # Finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
@@ -249,7 +244,6 @@ from ufl.objects import \
     vertex, interval, triangle, tetrahedron, \
     quadrilateral, hexahedron, facet, cell1D, cell2D, cell3D, \
     i, j, k, l, p, q, r, s, \
-    R1, R2, R3, \
     dx, ds, dS, dP, dE, dc
 
 # Useful constants
@@ -259,12 +253,12 @@ __all__ = [
     'product',
     'get_handler', 'get_logger', 'set_handler', 'set_level', 'add_logfile',
     'UFLException', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL',
-    'Space', 'Cell', 'ProductCell',
+    'Cell', 'ProductCell',
     'SpatialCoordinate', 'LocalCoordinate',
     'CellVolume', 'Circumradius', 'CellSurfaceArea',
     'FacetNormal', 'FacetArea',
     'GeometryJacobi', 'GeometryJacobiDeterminant', 'InverseGeometryJacobi',
-    'Domain', 'DisjointSubDomain', 'DomainGroup',
+    'Domain', 'Region',
     'FiniteElementBase', 'FiniteElement',
     'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
     'RestrictedElement', 'TensorProductElement',
@@ -295,7 +289,6 @@ __all__ = [
     'Integral', 'Measure', 'register_domain_type', 'ProductMeasure',
     'replace', 'derivative', 'action', 'energy_norm', 'rhs', 'lhs',
     'system', 'functional', 'adjoint', 'sensitivity_rhs',
-    'R1', 'R2', 'R3',
     'dx', 'ds', 'dS', 'dP', 'dE', 'dc',
     'vertex', 'interval', 'triangle', 'tetrahedron',
     'quadrilateral', 'hexahedron', 'facet',
