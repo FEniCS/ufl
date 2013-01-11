@@ -34,21 +34,6 @@ from ufl.log import info_blue, warning, warning_blue, error
 from ufl.finiteelement.elementlist import ufl_elements, aliases
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
-class PlaceholderElement(FiniteElementBase):
-    "A placeholder finite element class for yet to be defined elements."
-    def __init__(self, shape):
-        """Create placeholder finite element
-
-        *Arguments*
-            shape
-               The value shape of functions in this space
-        """
-        # Initialize element data
-        super(PlaceholderElement, self).__init__(None, None, None,
-                                            None, shape)
-        # Cache repr string
-        self._repr = "PlaceholderElement(%r)" % (shape,)
-
 class FiniteElement(FiniteElementBase):
     "The basic finite element class for all simple finite elements"
     def __init__(self, family, domain=None, degree=None, quad_scheme=None,
@@ -97,7 +82,7 @@ class FiniteElement(FiniteElementBase):
             ufl_elements[family]
 
         # Validate cellname if a valid cell is specified
-        cellname = 'None' if cell is None else cell.cellname()
+        cellname = None if cell is None else cell.cellname()
         ufl_assert(cellname in cellnames,
                    'Cellname "%s" invalid for "%s" finite element.' % (cellname, family))
 

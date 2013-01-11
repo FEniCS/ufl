@@ -122,7 +122,7 @@ register_element("Real", "R", 0, (0, 0),
                   "quadrilateral", "hexahedron"))
 
 register_element("Undefined", "U", 0, (0, None),
-                 ("cell1D", "cell2D", "cell3D",
+                 (None, "cell1D", "cell2D", "cell3D",
                   "interval", "triangle", "tetrahedron",
                   "quadrilateral", "hexahedron"))
 

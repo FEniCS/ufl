@@ -115,7 +115,8 @@ class Expr(object):
     def geometric_dimension(self): # TODO: Deprecate this, use external analysis algorithm
         "Return the geometric dimension this expression lives in."
         cell = self.cell()
-        error("Cannot get geometric dimension from an expression with no cell!")
+        if cell is None:
+            error("Cannot get geometric dimension from an expression with no cell!")
         return cell.geometric_dimension()
 
     def is_cellwise_constant(self):
@@ -202,4 +203,3 @@ class Expr(object):
     #def __getnewargs__(self): # TODO: Test pickle and copy with this. Must implement differently for Terminal objects though.
     #    "Used for pickle and copy operations."
     #    return self.operands()
-
