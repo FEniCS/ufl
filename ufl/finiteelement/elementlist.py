@@ -74,7 +74,7 @@ register_element("Crouzeix-Raviart", "CR", 0, (1, 1),
                  ("triangle", "tetrahedron"))
 
 register_element("Discontinuous Lagrange", "DG", 0, (0, None),
-                 ("cell1D", "cell2D", "cell3D",
+                 (None, "cell1D", "cell2D", "cell3D",
                   "interval", "triangle", "tetrahedron",
                   "quadrilateral", "hexahedron"))
 
@@ -82,7 +82,7 @@ register_element("Hermite", "HER", 0, None,
                  ("triangle", "tetrahedron"))
 
 register_element("Lagrange", "CG", 0, (1, None),
-                 ("cell1D", "cell2D", "cell3D",
+                 (None, "cell1D", "cell2D", "cell3D",
                   "interval", "triangle", "tetrahedron",
                   "quadrilateral", "hexahedron"))
 

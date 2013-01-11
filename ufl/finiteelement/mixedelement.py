@@ -41,7 +41,7 @@ class MixedElement(FiniteElementBase):
     def __init__(self, *elements, **kwargs):
         "Create mixed finite element from given list of elements"
 
-        # Unnest arguments if we get a single argument with a list of elements
+        # Un-nest arguments if we get a single argument with a list of elements
         if len(elements) == 1 and isinstance(elements[0], (tuple, list)):
             elements = elements[0]
         # Interpret nested tuples as sub-mixedelements recursively
@@ -49,13 +49,25 @@ class MixedElement(FiniteElementBase):
                     for e in elements]
         self._sub_elements = elements
 
-        # Check that all elements are defined on the same top-level domain
-        top_domain = elements[0].domain().top_domain() # TODO: Figure out proper check
-        ufl_assert(all(e.domain().top_domain() == top_domain for e in elements),
-                   "Top level domain mismatch for sub elements of mixed element.")
-        # FIXME: What is the domain with differently restricted subelements?
-        #domain = join_domains_somewhow(e.domain() for e in elements)
-        domain = top_domain
+        # TODO: Figure out proper checks of domain consistency
+
+        # FIXME: Do something if elements are defined on different regions
+        domains = set(element.domain() for element in elements) - set((None,))
+        top_domains = set(domain.top_domain() for domain in domains)
+        if len(top_domains) == 0:
+            domain = None
+        elif len(top_domains) == 1:
+            domain = list(top_domains)[0]
+        else:
+            # Require that all elements are defined on the same top-level domain
+            # TODO: is this too strict? disallows mixed elements on different meshes
+            error("Sub elements must live in the same top level domain.")
+
+        # Check that domains have same geometric dimension
+        if domain is not None:
+            gdim = domain.geometric_dimension()
+            ufl_assert(all(domain.geometric_dimension() == gdim for domain in domains),
+                       "Sub elements must live in the same geometric dimension.")
 
         # Check that all elements use the same quadrature scheme
         # TODO: We can allow the scheme not to be defined.
@@ -225,12 +237,14 @@ class VectorElement(MixedElement):
                The form degree (FEEC notation, used when field is
                viewed as k-form)
         """
-        domain = as_domain(domain)
+        if domain is not None:
+            domain = as_domain(domain)
 
         # Set default size if not specified
         if dim is None:
+            ufl_assert(domain is not None,
+                       "Cannot infer vector dimension without a domain.")
             dim = domain.geometric_dimension()
-            ufl_assert(isinstance(dim, int), "Invalid geometric dimension %s." % dim)
 
         # Create mixed element from list of finite elements
         sub_element = FiniteElement(family, domain, degree, quad_scheme,
@@ -282,12 +296,14 @@ class TensorElement(MixedElement):
     def __init__(self, family, domain, degree, shape=None,
                  symmetry=None, quad_scheme=None):
         "Create tensor element (repeated mixed element with optional symmetries)"
-        domain = as_domain(domain)
+        if domain is not None:
+            domain = as_domain(domain)
 
         # Set default shape if not specified
         if shape is None:
+            ufl_assert(domain is not None,
+                       "Cannot infer vector dimension without a domain.")
             dim = domain.geometric_dimension()
-            ufl_assert(isinstance(dim, int), "Invalid geometric dimension %s." % dim)
             #shape = () if dim == 1 else (dim, dim) # FIXME: Should we do this?
             shape = (dim, dim)
 

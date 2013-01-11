@@ -144,22 +144,26 @@ class ElementsTestCase(UflTestCase):
                 self.assertEqual(element.quadrature_scheme(), q)
                 self.assertEqual(element, eval(repr(element)))
 
-    def test_none_cell(self):
-        from ufl.geometry import as_cell
+    def test_missing_cell(self):
+        # These special cases are here to allow missing
+        # cell in PyDOLFIN Constant and Expression
         for cell in (triangle, None):
             element = FiniteElement("Real", cell, 0)
             self.assertEqual(element, eval(repr(element)))
-            #element = VectorElement("CG", cell, 1) # invalid
+            element = FiniteElement("Undefined", cell, None)
+            self.assertEqual(element, eval(repr(element)))
+            element = VectorElement("Lagrange", cell, 1, dim=2)
+            self.assertEqual(element, eval(repr(element)))
+            element = TensorElement("DG", cell, 1, shape=(2,2))
+            self.assertEqual(element, eval(repr(element)))
 
     def test_invalid_degree(self):
-        from ufl.geometry import as_cell
         cell = triangle
         for degree in (1, None):
             element = FiniteElement("CG", cell, degree)
             self.assertEqual(element, eval(repr(element)))
             element = VectorElement("CG", cell, degree)
             self.assertEqual(element, eval(repr(element)))
-            print repr(element)
 
 if __name__ == "__main__":
     main()
