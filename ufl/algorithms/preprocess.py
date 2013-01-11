@@ -377,6 +377,6 @@ def build_element_mapping(element_mapping, common_cell, arguments, coefficients)
         elif e.cell().is_undefined():
             ufl_assert(not common_cell.is_undefined(),
                 "Cannot reconstruct elements with another undefined cell!")
-            element_mapping[e] = e.reconstruct(cell=common_cell)
+            element_mapping[e] = e.reconstruct(domain=common_cell) # FIXME
 
     return element_mapping
