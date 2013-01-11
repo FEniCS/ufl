@@ -31,6 +31,7 @@ from ufl.expr import Expr
 from ufl.form import Form
 from ufl.common import slice_dict
 from ufl.geometry import Cell
+from ufl.domains import as_domain
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.algorithms.replace import replace
 from ufl.algorithms.analysis import (extract_arguments_and_coefficients,
