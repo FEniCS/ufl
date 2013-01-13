@@ -1,5 +1,6 @@
 1.1.x [2013-??-??]
- - ...
+ - Add cell.facet_diameter
+ - Add new concepts Domain, Region
 1.1.0 [2013-01-07]
  - Add support for pickling of expressions (thanks to Graham Markall)
  - Add shorthand notation A**2 == inner(A, A), special cased for power 2.
