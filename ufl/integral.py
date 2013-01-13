@@ -292,8 +292,10 @@ class Integral(object):
     __slots__ = ("_integrand", "_measure",)
     def __init__(self, integrand, measure):
         from ufl.expr import Expr
-        ufl_assert(isinstance(integrand, Expr), "Expecting integrand to be an Expr instance.")
-        ufl_assert(isinstance(measure, Measure), "Expecting measure to be a Measure instance.")
+        ufl_assert(isinstance(integrand, Expr),
+                   "Expecting integrand to be an Expr instance.")
+        ufl_assert(isinstance(measure, Measure),
+                   "Expecting measure to be a Measure instance.")
         self._integrand = integrand
         self._measure   = measure
 
@@ -318,12 +320,14 @@ class Integral(object):
         return self.reconstruct(-self._integrand)
 
     def __mul__(self, scalar):
-        ufl_assert(is_python_scalar(scalar), "Cannot multiply an integral with non-constant values.")
+        ufl_assert(is_python_scalar(scalar),
+                   "Cannot multiply an integral with non-constant values.")
         return self.reconstruct(scalar*self._integrand)
 
     def __rmul__(self, scalar):
         ufl_assert(is_scalar_constant_expression(scalar),
-                   "An integral can only be multiplied by a globally constant scalar expression.")
+                   "An integral can only be multiplied by a "
+                   "globally constant scalar expression.")
         return self.reconstruct(scalar*self._integrand)
 
     def __str__(self):
@@ -337,4 +341,3 @@ class Integral(object):
 
     def __hash__(self):
         return hash((type(self), repr(self._measure), hash(self._integrand)))
-

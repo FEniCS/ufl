@@ -76,6 +76,27 @@ class DomainTestCase(UflTestCase):
         self.assertEqual(D.regions(), [DL, DR])
         self.assertEqual(D.region_names(), ['DL', 'DR'])
 
+    def test_measures_over_regions(self):
+        D = Domain(triangle)
+
+        DL = Region(D, (1, 2), 'DL')
+        DR = Region(D, (2, 3), 'DR')
+
+        VL = FiniteElement("CG", DL, 1)
+        VR = FiniteElement("CG", DR, 1)
+
+        fl = Coefficient(VL)
+        fr = Coefficient(VR)
+
+        #dxr = dx(DR) # TODO: Test construction of measures on regions
+
+        #M = fl*dx(DR) + fr*dx(DL) # TODO: Test handling of illegal measures
+
+        #M = fl*dx(DL) + fr*dx(DR) # TODO: Test handling of legal measures
+        #M = fl*dx("DL") + fr*dx("DR") # TODO: Test regions by name
+        #M = fl*dx((1,2)) + fr*dx((2,3)) # TODO: Test subdomains by number
+        #M = fl*dx(1) + fl*dx(2) + fr*dx(2) + fr*dx(3) # TODO: Test subdomains by number
+
     def xtest_subdomain_stuff(self): # Old sketch, not working
         D = Domain(triangle)
 
