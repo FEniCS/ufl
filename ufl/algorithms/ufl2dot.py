@@ -69,9 +69,11 @@ class CompactLabeller(ReprLabeller):
     def cell_volume(self, e):
         return "cell volume"
     def cell_surface_area(self, e):
-        return "surface_area"
+        return "surface area"
     def facet_area(self, e):
-        return "facet_area"
+        return "facet area"
+    def facet_diameter(self, e):
+        return "facet diameter"
 
     # Operators:
     def sum(self, e):

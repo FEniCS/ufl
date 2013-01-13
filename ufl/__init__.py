@@ -70,8 +70,11 @@ A very brief overview of the language contents follows:
 
 * Geometric quantities::
 
-    SpatialCoordinate, FacetNormal, Circumradius,
-    CellVolume, CellSurfaceArea, FacetArea
+    SpatialCoordinate, FacetNormal,
+    CellVolume, Circumradius, CellSurfaceArea,
+    FacetArea, FacetDiameter,
+    LocalCoordinate, GeometryJacobi,
+    GeometryJacobiDeterminant, InverseGeometryJacobi
 
 * Indices::
 
@@ -171,11 +174,12 @@ from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile
     UFLException, DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 # Types for geometric quantities
-from ufl.geometry import Cell, ProductCell, \
-     SpatialCoordinate, LocalCoordinate, \
-     CellVolume, Circumradius, CellSurfaceArea, \
-     FacetNormal, FacetArea, \
-     GeometryJacobi, GeometryJacobiDeterminant, InverseGeometryJacobi
+from ufl.geometry import (Cell, ProductCell,
+     SpatialCoordinate, FacetNormal,
+     CellVolume, Circumradius, CellSurfaceArea,
+     FacetArea, FacetDiameter,
+     LocalCoordinate, GeometryJacobi,
+     GeometryJacobiDeterminant, InverseGeometryJacobi)
 
 # Types for domain description
 from ufl.domains import Domain, Region
@@ -254,10 +258,11 @@ __all__ = [
     'get_handler', 'get_logger', 'set_handler', 'set_level', 'add_logfile',
     'UFLException', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL',
     'Cell', 'ProductCell',
-    'SpatialCoordinate', 'LocalCoordinate',
+    'SpatialCoordinate', 'FacetNormal',
     'CellVolume', 'Circumradius', 'CellSurfaceArea',
-    'FacetNormal', 'FacetArea',
-    'GeometryJacobi', 'GeometryJacobiDeterminant', 'InverseGeometryJacobi',
+    'FacetArea', 'FacetDiameter',
+    'LocalCoordinate', 'GeometryJacobi',
+    'GeometryJacobiDeterminant', 'InverseGeometryJacobi',
     'Domain', 'Region',
     'FiniteElementBase', 'FiniteElement',
     'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',

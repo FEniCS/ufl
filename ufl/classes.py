@@ -30,9 +30,9 @@ of classes, and for mapping types to different handler functions."""
 from ufl.assertions import ufl_assert
 
 # Elements
-from ufl.finiteelement import FiniteElementBase, FiniteElement,\
-    MixedElement, VectorElement, TensorElement, \
-    EnrichedElement, RestrictedElement, TensorProductElement
+from ufl.finiteelement import (FiniteElementBase, FiniteElement,
+    MixedElement, VectorElement, TensorElement,
+    EnrichedElement, RestrictedElement, TensorProductElement)
 
 # Base class for all expressions
 from ufl.expr import Expr
@@ -42,11 +42,15 @@ from ufl.terminal import Terminal, FormArgument, UtilityType, Data
 from ufl.constantvalue import ConstantValue, IndexAnnotated, Zero, ScalarValue,\
     FloatValue, IntValue, Identity, PermutationSymbol
 from ufl.argument import Argument, TestFunction, TrialFunction
-from ufl.coefficient import Coefficient, ConstantBase,\
-    VectorConstant, TensorConstant, Constant
-from ufl.geometry import Cell, ProductCell, GeometricQuantity, \
-    SpatialCoordinate, FacetNormal, CellVolume, CellSurfaceArea, FacetArea, Circumradius, \
-    LocalCoordinate, GeometryJacobi, GeometryJacobiDeterminant, InverseGeometryJacobi
+from ufl.coefficient import (Coefficient, ConstantBase,
+    VectorConstant, TensorConstant, Constant)
+from ufl.geometry import (Cell, ProductCell,
+    GeometricQuantity,
+    SpatialCoordinate, FacetNormal,
+    CellVolume, Circumradius, CellSurfaceArea,
+    FacetArea, FacetDiameter,
+    LocalCoordinate, GeometryJacobi,
+    GeometryJacobiDeterminant, InverseGeometryJacobi)
 from ufl.indexing import IndexBase, FixedIndex, Index, MultiIndex
 
 # Operator types

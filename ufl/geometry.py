@@ -275,6 +275,21 @@ class FacetArea(GeometricQuantity):
     def __repr__(self):
         return "FacetArea(%r)" % self._cell
 
+class FacetDiameter(GeometricQuantity):
+    "Representation of the diameter of a facet."
+    __slots__ = ()
+    def __init__(self, cell):
+        GeometricQuantity.__init__(self, cell)
+
+    def shape(self):
+        return ()
+
+    def __str__(self):
+        return "facetdiameter"
+
+    def __repr__(self):
+        return "FacetDiameter(%r)" % self._cell
+
 # TODO: If we include this here, we must define exactly what is meant by the mesh size, possibly adding multiple kinds of mesh sizes (hmin, hmax, havg, ?)
 #class MeshSize(GeometricQuantity):
 #    __slots__ = ()
@@ -294,12 +309,27 @@ class FacetArea(GeometricQuantity):
 
 class Cell(object):
     "Representation of a finite element cell."
-    __slots__ = ("_cellname",
-                 "_geometric_dimension", "_topological_dimension",
+    __slots__ = (# Strings
+                 "_cellname",
                  "_repr",
-                 "_n", "_x", "_volume", "_circumradius",
-                 "_cellsurfacearea", "_facetarea",
-                 "_xi", "_J", "_Jinv", "_detJ",)
+                 # Dimensions
+                 "_geometric_dimension",
+                 "_topological_dimension",
+                 # Global geometric quantities
+                 "_x",
+                 "_n",
+                 # Cell and facet sizes
+                 "_volume",
+                 "_circumradius",
+                 "_cellsurfacearea",
+                 "_facetarea",
+                 "_facetdiameter",
+                 # Cell local coordinates and mapping
+                 "_xi",
+                 "_J",
+                 "_Jinv",
+                 "_detJ",
+                 )
 
     def __init__(self, cellname, geometric_dimension=None):
         "Initialize basic cell description."
@@ -330,14 +360,18 @@ class Cell(object):
         # Attach expression nodes derived from this cell TODO: Derive these from domain instead
         self._n = FacetNormal(self)
         self._x = SpatialCoordinate(self)
+
         self._xi = LocalCoordinate(self)
         self._J = GeometryJacobi(self)
         self._Jinv = InverseGeometryJacobi(self)
         self._detJ = GeometryJacobiDeterminant(self)
+
         self._volume = CellVolume(self)
         self._circumradius = Circumradius(self)
         self._cellsurfacearea = CellSurfaceArea(self)
         self._facetarea = FacetArea(self)
+        self._facetdiameter = FacetDiameter(self)
+
         #self._h = MeshSize(self)
         #self._hmin = MeshSizeMin(self)
         #self._hmax = MeshSizeMax(self)
@@ -381,6 +415,11 @@ class Cell(object):
     def circumradius(self):
         "UFL geometry value: The circumradius of the cell."
         return self._circumradius
+
+    @property
+    def facet_diameter(self):
+        "UFL geometry value: The diameter of a facet of the cell."
+        return self._facetdiameter
 
     @property
     def facet_area(self):
@@ -441,7 +480,8 @@ class Cell(object):
         return hash(repr(self))
 
     def __str__(self):
-        return "<%s cell in %sD>" % (istr(self._cellname), istr(self._geometric_dimension))
+        return "<%s cell in %sD>" % (istr(self._cellname),
+                                     istr(self._geometric_dimension))
 
     def __repr__(self):
         return self._repr
@@ -461,16 +501,20 @@ class ProductCell(Cell):
         self._geometric_dimension = sum(c.geometric_dimension() for c in cells)
 
         self._repr = "ProductCell(*%r)" % list(self._cells)
+
         self._n = None
         self._x = SpatialCoordinate(self) # For now
+
         self._xi = None # ?
         self._J = None # ?
         self._Jinv = None # ?
         self._detJ = None # ?
+
         self._volume = None
         self._circumradius = None
         self._cellsurfacearea = None
         self._facetarea = None            # Not defined
+        self._facetdiameter = None        # Not defined
 
     def sub_cells(self):
         "Return list of cell factors."

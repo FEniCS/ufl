@@ -62,7 +62,7 @@ class RestrictionPropagator(ReuseTransformer):
         #    return o
         return o(self.current_restriction)
 
-    # facet_area is the same from both sides of a facet
+    # facet_area and facet_diameter are the same from both sides of a facet
 
     def form_argument(self, o):
         ufl_assert(self.current_restriction is not None, "Form argument must be restricted.")
