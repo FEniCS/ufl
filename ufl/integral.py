@@ -100,7 +100,11 @@ class MeasureSum(object):
 
 class Measure(object):
     """A measure for integration."""
-    __slots__ = ("_domain_type", "_domain_id", "_metadata", "_domain_data", "_repr")
+    __slots__ = ("_domain_type",
+                 "_domain_id",
+                 "_metadata",
+                 "_domain_data",
+                 "_repr",)
     def __init__(self, domain_type, domain_id=0, metadata=None, domain_data=None):
         # Allow long domain type names with ' ' or '_'
         self._domain_type = domain_type.replace(" ", "_")

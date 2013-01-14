@@ -17,7 +17,7 @@ all_cells = (cell1D, cell2D, cell3D,
              interval, triangle, tetrahedron,
              quadrilateral, hexahedron)
 
-class DomainTestCase(UflTestCase):
+class RegionConstructionTestCase(UflTestCase):
 
     def test_construct_domains_from_cells(self):
         for cell in all_cells:
@@ -46,14 +46,6 @@ class DomainTestCase(UflTestCase):
         self.assertNotEqual(sdomains, domains1)
         self.assertEqual(sdomains, domains2)
 
-    def test_extract_domains_from_form(self):
-        cell = triangle
-        # FIXME
-
-    def test_(self):
-        cell = triangle
-        # FIXME
-
     def test_topdomain_creation(self):
         D = Domain(triangle)
 
@@ -76,27 +68,62 @@ class DomainTestCase(UflTestCase):
         self.assertEqual(D.regions(), [DL, DR])
         self.assertEqual(D.region_names(), ['DL', 'DR'])
 
-    def test_measures_over_regions(self):
-        D = Domain(triangle)
+class MeasuresOverRegionsTestCase(UflTestCase):
 
-        DL = Region(D, (1, 2), 'DL')
-        DR = Region(D, (2, 3), 'DR')
+    def setUp(self):
+        UflTestCase.setUp(self)
 
-        VL = FiniteElement("CG", DL, 1)
-        VR = FiniteElement("CG", DR, 1)
+        self.cell = tetrahedron
+        self.D = Domain(self.cell)
+        self.DL = Region(self.D, (1, 2), 'DL')
+        self.DR = Region(self.D, (2, 3), 'DR')
 
+    def test_construct_spaces_over_regions(self):
+        VL = FiniteElement("CG", self.DL, 1)
+        VR = FiniteElement("CG", self.DR, 1)
+        self.assertNotEqual(VL, VR)
+        self.assertEqual(VL.reconstruct(domain=self.DR), VR)
+        self.assertEqual(VR.reconstruct(domain=self.DL), VL)
+        #self.assertEqual(VL.region(), self.DL)
+        #self.assertEqual(VR.region(), self.DR)
+
+    def xtest_construct_measures_over_regions(self):
+        VL = FiniteElement("CG", self.DL, 1)
+        VR = FiniteElement("CG", self.DR, 1)
+        self.assertNotEqual(Coefficient(VL, count=3), Coefficient(VR, count=3))
+        self.assertEqual(Coefficient(VL, count=3), Coefficient(VL, count=3))
         fl = Coefficient(VL)
         fr = Coefficient(VR)
 
-        #dxr = dx(DR) # TODO: Test construction of measures on regions
+        # Three ways to construct an equivalent form
+        M_dxr1 = fr*dx(self.DR) # FIXME: Make this pass
+        M_dxr2 = fr*dx('DR')
+        M_dx23 = fr*dx((2,3))
+        self.assertEqual(M_dxr1, M_dx23)
+        self.assertEqual(M_dxr1, M_dxr2)
+        for M in (M_dxr1, M_dxr2, M_dx23):
+            self.assertEqual(M.cell_integrals()[0].measure(), dx(self.DR))
 
+        # Construct a slightly more complex form, including overlapping subdomains
+        M1 = fl*dx(DL) + fr*dx(DR) # TODO: Test handling of legal measures
+        M2 = fl*dx("DL") + fr*dx("DR") # TODO: Test regions by name
+        M3 = fl*dx((1,2)) + fr*dx((2,3)) # TODO: Test subdomains by number
+        M4 = fl*dx(1) + fl*dx(2) + fr*dx(2) + fr*dx(3) # TODO: Test subdomains by number
+
+    def test_detection_of_coefficients_integrated_outside_support(self):
+        pass
         #M = fl*dx(DR) + fr*dx(DL) # TODO: Test handling of illegal measures
 
-        #M = fl*dx(DL) + fr*dx(DR) # TODO: Test handling of legal measures
-        #M = fl*dx("DL") + fr*dx("DR") # TODO: Test regions by name
-        #M = fl*dx((1,2)) + fr*dx((2,3)) # TODO: Test subdomains by number
-        #M = fl*dx(1) + fl*dx(2) + fr*dx(2) + fr*dx(3) # TODO: Test subdomains by number
+    def test_extract_domains_from_form(self):
+        cell = triangle
+        # FIXME
 
+    def test_(self):
+        cell = triangle
+        # FIXME
+
+
+class UnusedCases:
     def xtest_subdomain_stuff(self): # Old sketch, not working
         D = Domain(triangle)
 
