@@ -59,6 +59,10 @@ class SumDegreeEstimator(Transformer):
         "A spatial derivative reduces the degree with one."
         return max(f - 1, 0)
 
+    def grad(self, v, f):
+        "A spatial derivative reduces the degree with one."
+        return max(f - 1, 0)
+
     def product(self, v, *ops):
         "Using the sum here is exact."
         return sum(ops)
@@ -132,6 +136,8 @@ class MaxDegreeEstimator(Transformer):
         return v.element().degree()
 
     #def spatial_derivative(self, v, f, i):
+    #    return max(f - 1, 0)
+    #def grad(self, v, f):
     #    return max(f - 1, 0)
 
     def product(self, v, *ops):
