@@ -98,6 +98,18 @@ class MeasureSum(object):
     def __str__(self):
         return "{\n    " + "\n  + ".join(map(str,self._measures)) + "\n}"
 
+
+class Measure2(object): # FIXME: Clean up Measure class. The names domain_type and domain_id are not good, among other things.
+    """A measure for integration."""
+    __slots__ = ("_integral_type", # type of entity to integrate over, i.e. one of ("cell", "exterior_facet", etc.)
+                 "_region",        # region to integrate over
+                 "_scheme",        # integration scheme
+                 "_compiler_data", # arbitrary data carried over to form compiler
+                 "_domain_data",   #
+                 "_repr",)
+    pass
+
+
 class Measure(object):
     """A measure for integration."""
     __slots__ = ("_domain_type",

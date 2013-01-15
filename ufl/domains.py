@@ -92,15 +92,14 @@ class Domain(DomainDescription):
     def top_domain(self):
         return self
 
+    def subdomain_ids(self):
+        return None
+
     def region_names(self):
         return sorted(self._regions.keys())
 
     def regions(self):
         return [self[r] for r in self.region_names()]
-
-    # TODO: Can we make it possible to get all subdomain ids for a Domain?
-    #def subdomain_ids(self):
-    #    return self._subdomain_ids
 
     def __getitem__(self, name):
         if isinstance(name, int):
@@ -112,10 +111,6 @@ class Domain(DomainDescription):
             return dom
         else:
             error("Invalid subdomain label %r, expecting string or integer." % name)
-
-    # TODO: Does this make sense?
-    #def __call__(self, name):
-    #    return Boundary(self, name)
 
 class Region(DomainDescription):
     __slots__ = ('_parent', '_subdomain_ids')

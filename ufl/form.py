@@ -35,8 +35,10 @@ from ufl.expr import Expr
 class Form(object):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
     __slots__ = ("_integrals",
-                 "_hash", "_signature",
-                 "_form_data", "_is_preprocessed",
+                 "_hash",      # Hash code for use in dicts, including incidental numbering of indices etc.
+                 "_signature", # Signature for use with jit cache, independent of incidental numbering of indices etc.
+                 "_form_data",
+                 "_is_preprocessed",
                  )
 
     def __init__(self, integrals):
@@ -48,20 +50,8 @@ class Form(object):
         self._form_data = None
         self._is_preprocessed = False
 
-    # DOMAIN FIXME: This is a bit unclear, what about forms with integrals over different subdomains?
-    def domain(self):
-        result = None
-        for itg in self._integrals:
-            domain = itg.integrand().domain()
-            if domain is not None:
-                result = domain.top_domain() # Best we found so far
-                cell = result.cell()
-                if cell is not None: # Not sure if this will happen, but just in case for how
-                    # A domain with a fully defined cell, we have a winner!
-                    break
-        return result
-
     def cell(self): # TODO: DEPRECATE
+        #error("Form.cell is not well defined and has been removed.")
         for itg in self._integrals:
             cell = itg.integrand().cell()
             if cell is not None:
@@ -86,15 +76,15 @@ class Form(object):
             l.append(itg)
         return d
 
-    def integrals(self, domain_type = None):
+    def integrals(self, domain_type=None):
         if domain_type is None:
             return self._integrals
         return tuple(itg for itg in self._integrals if itg.measure().domain_type() == domain_type)
 
-    def measures(self, domain_type = None):
+    def measures(self, domain_type=None):
         return tuple(itg.measure() for itg in self.integrals(domain_type))
 
-    def domains(self, domain_type = None):
+    def domains(self, domain_type=None):
         return tuple((m.domain_type(), m.domain_id()) for m in self.measures(domain_type))
 
     def cell_integrals(self):

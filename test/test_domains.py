@@ -125,14 +125,43 @@ class MeasuresOverRegionsTestCase(UflTestCase):
 class FormDomainModelTestCase(UflTestCase):
     def test_form_domain_model(self):
         # Create domains with different celltypes
-        DA = Domain(tetrahedron, 'DA')
+        DA = Domain(tetrahedron, 'DA') # TODO: Add something like this? , markers="arbitrary data")
         DB = Domain(hexahedron, 'DB')
+
+        # Check python protocol behaviour
+        self.assertNotEqual(DA, DB)
+        self.assertEqual(set((DA,DA)), set((DA,)))
+        self.assertEqual(set((DB,DB)), set((DB,)))
+        self.assertEqual(set((DA,DB)), set((DB,DA)))
+        self.assertEqual(sorted((DA,DB,DA,DB)), sorted((DB,DA,DA,DB)))
+
+        # Check basic properties
+        self.assertEqual(DA.name(), 'DA')
+        self.assertEqual(DA.geometric_dimension(), 3)
+        self.assertEqual(DA.topological_dimension(), 3)
+        self.assertEqual(DA.cell(), tetrahedron)
+
+        # Check region/domain getters
+        self.assertEqual(DA.top_domain(), DA)
+        self.assertEqual(DA.subdomain_ids(), None)
+        self.assertEqual(DA.region_names(), [])
+        self.assertEqual(DA.regions(), [])
+
+        #BDA = Boundary(DA) # TODO
+        #IDAB = Intersection(DA,DB) # TODO
+        #ODAB = Overlap(DA,DB) # TODO
 
         # Create overlapping regions of each domain
         DAL = Region(DA, (1,2), "DAL")
         DAR = Region(DA, (2,3), "DAR")
         DBL = Region(DB, (0,1), "DBL")
         DBR = Region(DB, (1,4), "DBR")
+
+        # Check that regions are available through domains
+        self.assertEqual(DA.region_names(), ['DAL', 'DAR'])
+        self.assertEqual(DA.regions(), [DAL, DAR])
+        self.assertEqual(DA["DAR"], DAR)
+        self.assertEqual(DA["DAL"], DAL)
 
         # Create function spaces on DA
         VA = FiniteElement("CG", DA, 1)
