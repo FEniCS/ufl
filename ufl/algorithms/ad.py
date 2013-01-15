@@ -166,4 +166,4 @@ def expand_derivatives2(form, dim=None,
     return transform_integrands(form, _expand_derivatives)
 
 # Switch this between 1 and 2 to select old or new algorithm
-expand_derivatives = expand_derivatives1
+expand_derivatives = expand_derivatives2
