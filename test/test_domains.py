@@ -122,6 +122,77 @@ class MeasuresOverRegionsTestCase(UflTestCase):
         cell = triangle
         # FIXME
 
+class FormDomainModelTestCase(UflTestCase):
+    def test_form_domain_model(self):
+        # Create domains with different celltypes
+        DA = Domain(tetrahedron, 'DA')
+        DB = Domain(hexahedron, 'DB')
+
+        # Create overlapping regions of each domain
+        DAL = Region(DA, (1,2), "DAL")
+        DAR = Region(DA, (2,3), "DAR")
+        DBL = Region(DB, (0,1), "DBL")
+        DBR = Region(DB, (1,4), "DBR")
+
+        # Create function spaces on DA
+        VA = FiniteElement("CG", DA, 1)
+        VAL = FiniteElement("CG", DAL, 1)
+        VAR = FiniteElement("CG", DAR, 1)
+
+        # Create function spaces on DB
+        VB = FiniteElement("CG", DB, 1)
+        VBL = FiniteElement("CG", DBL, 1)
+        VBR = FiniteElement("CG", DBR, 1)
+
+        # TODO: Handle mixed spaces as well, butwant to get the basics sorted out first
+
+        # Create functions in each space on DA
+        fa = Coefficient(VA)
+        fal = Coefficient(VAL)
+        far = Coefficient(VAR)
+
+        # Create functions in each space on DB
+        fb = Coefficient(VB)
+        fbl = Coefficient(VBL)
+        fbr = Coefficient(VBR)
+
+        # Create measure objects directly based on domain and region objects
+        dxa = dx(DA)
+        dxal = dx(DAL)
+        dxar = dx('DAR') # Get Region by name
+
+        # Create measure proxy objects from strings and ints, requiring
+        # domains and regions to be part of their integrands
+        dxb = dx('DB')   # Get Domain by name
+        dxbl = dx(Region(DB, (1,4), 'DBL2')) # Provide a region with different name but same subdomain ids as DBL
+        dxbr = dx((1,4)) # Assume unique Domain and provide subdomain ids explicitly
+
+        # Create integrals on each region with matching spaces and measures
+        Ma = fa*dxa
+        Mar = far*dxar
+        Mal = fal*dxal
+        Mb = fb*dxb
+        Mbr = fbr*dxbr
+        Mbl = fbl*dxbl
+
+        # TODO: How do we express the distinction between "everywhere" and "nowhere"? subdomain_ids=None vs []?
+
+        # Create forms from integrals over overlapping regions on same top domain
+        Marl = Mar + Mal
+        Mbrl = Mbr + Mbl
+
+        # Create forms from integrals over top domain and regions
+        Mac = Ma + Marl
+        Mbc = Mb + Mbrl
+
+        # Create forms from separate top domains
+        Mab = Ma + Mb
+
+        # Create forms from separate top domains with overlapping regions
+        Mabrl = Mac + Mbc
+
+        #self.assertFalse(True) # Getting here, but it's not bloody likely that everything above is actually working. Add assertions!
+
 
 class UnusedCases:
     def xtest_subdomain_stuff(self): # Old sketch, not working
