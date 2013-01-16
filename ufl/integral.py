@@ -98,19 +98,7 @@ class MeasureSum(object):
     def __str__(self):
         return "{\n    " + "\n  + ".join(map(str,self._measures)) + "\n}"
 
-
-class Measure2(object): # FIXME: Clean up Measure class. The names domain_type and domain_id are not good, among other things.
-    """A measure for integration."""
-    __slots__ = ("_integral_type", # type of entity to integrate over, i.e. one of ("cell", "exterior_facet", etc.)
-                 "_region",        # region to integrate over
-                 "_scheme",        # integration scheme
-                 "_compiler_data", # arbitrary data carried over to form compiler
-                 "_domain_data",   #
-                 "_repr",)
-    pass
-
-
-class Measure(object):
+class Measure(object): # TODO: Rename to Integrator?
     """A measure for integration."""
     __slots__ = ("_domain_type",
                  "_domain_id",
@@ -268,7 +256,7 @@ class Measure(object):
         return self._repr
 
     def __hash__(self):
-        return hash(self._repr)
+        return hash(repr(self))
 
     def __eq__(self, other):
         return repr(self) == repr(other)
@@ -356,4 +344,4 @@ class Integral(object):
         return (self._measure == other._measure and self._integrand == other._integrand)
 
     def __hash__(self):
-        return hash((type(self), repr(self._measure), hash(self._integrand)))
+        return hash((type(self), hash(self._measure), hash(self._integrand)))

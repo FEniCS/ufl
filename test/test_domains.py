@@ -123,9 +123,82 @@ class MeasuresOverRegionsTestCase(UflTestCase):
         # FIXME
 
 class FormDomainModelTestCase(UflTestCase):
+    def test_mixed_elements_on_overlapping_regions(self):
+        # Create domain and both disjoint and overlapping regions
+        D = Domain(tetrahedron, 'D')
+        DD = Region(D, (0,4), "DD")
+        DL = Region(D, (1,2), "DL")
+        DR = Region(D, (2,3), "DR")
+
+        # Create function spaces on D
+        V = FiniteElement("CG", D, 1)
+        VD = FiniteElement("DG", DD, 1)
+        VC = FiniteElement("R", DD, 0)
+        VL = VectorElement("DG", DL, 2)
+        VR = FiniteElement("CG", DR, 3)
+
+        # Create mixed space over all these spaces
+        M = MixedElement(V, VD, VC, VL, VR)
+
+        # Check that we can get the degree for each value component of the mixed space
+        self.assertEqual(M.degree(0), 1)
+        self.assertEqual(M.degree(1), 1)
+        self.assertEqual(M.degree(2), 0)
+
+        self.assertEqual(M.degree(3), 2) # Vector element
+        self.assertEqual(M.degree(4), 2)
+        self.assertEqual(M.degree(5), 2)
+
+        self.assertEqual(M.degree(6), 3)
+        self.assertEqual(M.degree(), 3)
+
+        # Check that we can get the domain for each value component of the mixed space
+        self.assertEqual(M.domain(0), D)
+        self.assertEqual(M.domain(1), DD)
+        self.assertEqual(M.domain(2), DD)
+
+        self.assertEqual(M.domain(3), DL) # Vector element
+        self.assertEqual(M.domain(4), DL)
+        self.assertEqual(M.domain(5), DL)
+
+        self.assertEqual(M.domain(6), DR)
+        #self.assertEqual(M.domain(), None) # FIXME: What?
+
+        # Create a mixed function and fetch components with names for more readable test code below
+        m = Coefficient(M)
+        md = m[1]
+        mc = m[2]
+        ml = as_vector((m[3], m[4], m[5]))
+        mr = m[6]
+
+        # These should all work out fine with function and integration domains perfectly matching
+        a = m[0]**2*dx(D)
+        ad = (md**2 + mc**2)*dx(DD)
+        al = ml**2*dx(DL)
+        ar = mr**2*dx(DR)
+
+        # TODO: Check properties of forms, maybe by computing and inspecting form data.
+
+        # These should all work out fine with because integration domains are contained in the function domains
+        ad = m[0]**2*dx(DD)
+        al = m[0]**2*dx(DL)
+        ar = m[0]**2*dx("DR")
+        a0 = m[0]**2*dx(0)
+        a12 = m[0]**2*dx((1,2))
+        a3 = m[0]**2*dx(3)
+
+        # TODO: Check properties of forms, maybe by computing and inspecting form data.
+
+        # These should fail because the functions are undefined on the integration domains
+        #self.assertRaises(UFLException, lambda: mr**2*dx(DD)) # FIXME: Make this fail
+        #self.assertRaises(UFLException, lambda: mr**2*dx(DD)) # FIXME: Make this fail
+
     def test_form_domain_model(self):
         # Create domains with different celltypes
-        DA = Domain(tetrahedron, 'DA') # TODO: Add something like this? , markers="arbitrary data")
+        # TODO: Figure out PyDOLFIN integration with Domain and Region.
+        # TODO: Allow Domain class to carry domain marker data? Instead of attaching to measure with dx[markers].
+        #DA = Domain(tetrahedron, 'DA', markers="arbitrary data")
+        DA = Domain(tetrahedron, 'DA')
         DB = Domain(hexahedron, 'DB')
 
         # Check python protocol behaviour
@@ -173,7 +246,10 @@ class FormDomainModelTestCase(UflTestCase):
         VBL = FiniteElement("CG", DBL, 1)
         VBR = FiniteElement("CG", DBR, 1)
 
-        # TODO: Handle mixed spaces as well, butwant to get the basics sorted out first
+        # Check that regions are available through elements
+        self.assertEqual(VA.domain(), DA)
+        self.assertEqual(VAL.domain(), DAL)
+        self.assertEqual(VAR.domain(), DAR)
 
         # Create functions in each space on DA
         fa = Coefficient(VA)
@@ -184,6 +260,8 @@ class FormDomainModelTestCase(UflTestCase):
         fb = Coefficient(VB)
         fbl = Coefficient(VBL)
         fbr = Coefficient(VBR)
+
+        # Checks of coefficient domains is covered well in the mixed element test
 
         # Create measure objects directly based on domain and region objects
         dxa = dx(DA)
@@ -196,6 +274,10 @@ class FormDomainModelTestCase(UflTestCase):
         dxbl = dx(Region(DB, (1,4), 'DBL2')) # Provide a region with different name but same subdomain ids as DBL
         dxbr = dx((1,4)) # Assume unique Domain and provide subdomain ids explicitly
 
+        # Not checking measure objects in detail, as long as
+        # they carry information to construct integrals below
+        # they are good to go.
+
         # Create integrals on each region with matching spaces and measures
         Ma = fa*dxa
         Mar = far*dxar
@@ -203,6 +285,8 @@ class FormDomainModelTestCase(UflTestCase):
         Mb = fb*dxb
         Mbr = fbr*dxbr
         Mbl = fbl*dxbl
+
+        # TODO: Check forms, by getting and inspecting domains somehow.
 
         # TODO: How do we express the distinction between "everywhere" and "nowhere"? subdomain_ids=None vs []?
 
