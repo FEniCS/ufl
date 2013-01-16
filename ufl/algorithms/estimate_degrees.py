@@ -48,7 +48,7 @@ class SumDegreeEstimator(Transformer):
     def form_argument(self, v):
         """A form argument provides a degree depending on the element,
         or the default degree if the element has no degree."""
-        d = v.element().degree()
+        d = v.element().degree() # FIXME: Use component to improve accuracy
         return self.default_degree if d is None else d
 
     def expr(self, v, *ops):
@@ -133,7 +133,7 @@ class MaxDegreeEstimator(Transformer):
         return max(ops)
 
     def form_argument(self, v):
-        return v.element().degree()
+        return v.element().degree() # FIXME: Use component to improve accuracy
 
     #def spatial_derivative(self, v, f, i):
     #    return max(f - 1, 0)
