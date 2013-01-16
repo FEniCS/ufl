@@ -221,6 +221,13 @@ class MixedElement(FiniteElementBase):
             i, e = self.extract_component(component)
             return e.domain()
 
+    def regions(self):
+        "Return the regions referenced by this element and its subelements."
+        regions = set()
+        for e in self.sub_elements():
+            regions.update(e.regions())
+        return sorted(regions)
+
     def degree(self, component=None):
         "Return polynomial degree of finite element"
         if component is None:

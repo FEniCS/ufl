@@ -36,6 +36,7 @@ from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.variable import Variable
 from ufl.indexing import Index, MultiIndex
+from ufl.domains import Region, Domain
 from ufl.integral import Measure
 from ufl.algorithms.traversal import iter_expressions, post_traversal, post_walk, traverse_terminals
 
@@ -290,7 +291,17 @@ def extract_num_sub_domains(form):
     for integral in form.integrals():
         domain_type = integral.measure().domain_type()
         domain_id = integral.measure().domain_id()
-        num_domains[domain_type] = max(num_domains.get(domain_type, 0), domain_id + 1)
+
+        # TODO: This may need some redesign
+        if isinstance(domain_id, int):
+            max_domain_id = domain_id
+        elif isinstance(domain_id, Region):
+            max_domain_id = max(domain_id.subdomain_ids())
+        elif isinstance(domain_id, Domain):
+            max_domain_id = None
+
+        if max_domain_id is not None:
+            num_domains[domain_type] = max(num_domains.get(domain_type, 0), max_domain_id + 1)
     return num_domains
 
 def extract_integral_data(form):
