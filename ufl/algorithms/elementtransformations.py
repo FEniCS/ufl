@@ -35,7 +35,8 @@ def change_regularity(element, family):
     if not shape:
         return FiniteElement(family, element.domain(), element.degree())
 
-    return MixedElement([FiniteElement(family, element.domain(), element.degree())
+    ufl_assert(len(shape) == 1, "TODO: Update this code to handle tensor elements.")
+    return MixedElement([FiniteElement(family, element.domain(i), element.degree(i))
                                for i in range(shape[0])])
 
 def tear(V):
@@ -45,6 +46,7 @@ def tear(V):
 
 def increase_order(element):
     "Return element of same family, but a polynomial degree higher."
+    ufl_assert(len(element.value_shape()) <= 1, "TODO: Update this code to handle tensor elements.")
 
     n = element.num_sub_elements()
     if n > 0:
