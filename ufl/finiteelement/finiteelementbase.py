@@ -68,7 +68,7 @@ class FiniteElementBase(object):
         "Compute element equality for insertion in hashmaps."
         return type(self) == type(other) and repr(self) == repr(other)
 
-    def domain(self):
+    def domain(self, component=None):
         "Return the domain on which this element is defined."
         return self._domain
 
@@ -84,17 +84,18 @@ class FiniteElementBase(object):
         "Return finite element family"
         return self._family
 
-    def degree(self): # FIXME: Per component?
+    def degree(self, component=None):
         "Return polynomial degree of finite element"
+        # FIXME: Consider embedded_degree concept for more accurate degree, see blueprint
         return self._degree
 
     def quadrature_scheme(self):
         "Return quadrature scheme of finite element"
         return self._quad_scheme
 
-    def is_cellwise_constant(self): # FIXME: Per component?
-        """Return whether the basis functions of this element
-        is spatially constant over each cell."""
+    def is_cellwise_constant(self, component=None):
+        """Return whether the basis functions of this
+        element is spatially constant over each cell."""
         return self.family() == "Real" or self.degree() == 0
 
     def value_shape(self):
@@ -175,4 +176,3 @@ class FiniteElementBase(object):
             from ufl.finiteelement import RestrictedElement
             return RestrictedElement(self, index)
         return NotImplemented
-

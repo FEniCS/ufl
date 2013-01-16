@@ -97,11 +97,6 @@ class MixedElement(FiniteElementBase):
         self._repr = "MixedElement(*%r, **{'value_shape': %r })" %\
             (self._sub_elements, self._value_shape)
 
-    def is_cellwise_constant(self):
-        """Return whether the basis functions of this
-        element is spatially constant over each cell."""
-        return all(e.is_cellwise_constant() for e in self.sub_elements())
-
     def reconstruct(self, **kwargs):
         """Construct a new MixedElement object with some
         properties replaced with new values."""
@@ -202,6 +197,37 @@ class MixedElement(FiniteElementBase):
         and that element for given value component index"""
         k, j = self.extract_subelement_component(i)
         return self._sub_elements[k].extract_component(j)
+
+    def is_cellwise_constant(self, component=None):
+        """Return whether the basis functions of this
+        element is spatially constant over each cell."""
+        if component is None:
+            return all(e.is_cellwise_constant() for e in self.sub_elements())
+        else:
+            i, e = self.extract_component(component)
+            return e.is_cellwise_constant()
+
+    def domain(self, component=None):
+        "Return the domain on which this element is defined."
+        if component is None:
+            return self._domain # FIXME: Remove this
+        elif False and component is None:
+            domains = [e.domain() for e in self.sub_elements()]
+            domain = domains[0]
+            for d in domains[1:]:
+                domain = intersection(domain, d) # FIXME: Need intersection to make this work
+            return domain
+        else:
+            i, e = self.extract_component(component)
+            return e.domain()
+
+    def degree(self, component=None):
+        "Return polynomial degree of finite element"
+        if component is None:
+            return self._degree # from FiniteElementBase, computed as max of subelements in __init__
+        else:
+            i, e = self.extract_component(component)
+            return e.degree()
 
     def __str__(self):
         "Format as string for pretty printing."
