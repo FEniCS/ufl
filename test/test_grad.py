@@ -75,9 +75,10 @@ class GradTestCase(UflTestCase):
         self.assertEqual(grad(ct).shape(), (d,d,d))
 
         self.assertEqual(grad(s)[0](x, mapping=mapping), eval_s(x, (0,)))
-        self.assertEqual(grad(v)[...,0](x, mapping=mapping), eval_v(x))
-        self.assertFalse(2) # Not getting here
-        self.assertEqual(grad(t)[...,0](x, mapping=mapping), eval_t(x))
+        self.assertEqual(grad(v)[d-1,d-1](x, mapping=mapping),
+                         eval_v(x, derivatives=(d-1,))[d-1])
+        self.assertEqual(grad(t)[d-1,d-1,d-1](x, mapping=mapping),
+                         eval_t(x, derivatives=(d-1,))[d-1][d-1])
 
         self.assertEqual(div(grad(cs)).shape(), ())
         self.assertEqual(div(grad(cv)).shape(), (d,))
@@ -132,6 +133,7 @@ class GradTestCase(UflTestCase):
         fd6 = a6.compute_form_data()
 
         fd7 = a7.compute_form_data()
+        self.assertFalse(2) # Not getting here
         fd8 = a8.compute_form_data()
         fd9 = a9.compute_form_data()
 

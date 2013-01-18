@@ -212,18 +212,18 @@ class ComponentTensor(WrapperType):
     def shape(self):
         return self._shape
 
-    def evaluate(self, x, mapping, component, index_values, derivatives=()):
+    def evaluate(self, x, mapping, component, index_values):
         indices = self._indices
         a = self._expression
+
+        ufl_assert(len(indices) == len(component),
+                   "Expecting a component matching the indices tuple.")
 
         # Map component to indices
         for i, c in izip(indices, component):
             index_values.push(i, c)
 
-        if derivatives:
-            a = a.evaluate(x, mapping, (), index_values, derivatives)
-        else:
-            a = a.evaluate(x, mapping, (), index_values)
+        a = a.evaluate(x, mapping, (), index_values)
 
         for _ in component:
             index_values.pop()

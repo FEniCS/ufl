@@ -263,7 +263,7 @@ def _restrict(self, side):
         return NegativeRestricted(self)
     error("Invalid side %r in restriction operator." % side)
 
-def _eval(self, coord, mapping=None):
+def _eval(self, coord, mapping=None, component=()):
     # Evaluate expression at this particular coordinate,
     # with provided values for other terminals in mapping
 
@@ -283,17 +283,16 @@ def _eval(self, coord, mapping=None):
     # Evaluate recursively
     if mapping is None:
         mapping = {}
-    component = ()
     index_values = StackDict()
     return f.evaluate(coord, mapping, component, index_values)
 
-def _call(self, arg, mapping=None):
+def _call(self, arg, mapping=None, component=()):
     # Taking the restriction or evaluating depending on argument
     if arg in ("+", "-"):
         ufl_assert(mapping is None, "Not expecting a mapping when taking restriction.")
         return _restrict(self, arg)
     else:
-        return _eval(self, arg, mapping)
+        return _eval(self, arg, mapping, component)
 Expr.__call__ = _call
 
 #--- Extend Expr with the transpose operation A.T ---
