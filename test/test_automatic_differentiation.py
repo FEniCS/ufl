@@ -19,7 +19,6 @@ from ufl import *
 import ufl.algorithms
 from ufl.common import fast_post_traversal2
 from ufl.conditional import Conditional
-from ufl.algorithms.ad import expand_derivatives2
 from ufl.algorithms import expand_derivatives
 from ufl.algorithms.traversal import traverse_terminals2
 
@@ -39,12 +38,8 @@ class ExpressionCollection(object):
         eps = PermutationSymbol(d)
 
         U = FiniteElement("U", cell, None)
-        if d == 1:
-            V = U
-            W = U
-        else:
-            V = VectorElement("U", cell, None)
-            W = TensorElement("U", cell, None)
+        V = VectorElement("U", cell, None)
+        W = TensorElement("U", cell, None)
 
         u = Coefficient(U)
         v = Coefficient(V)
@@ -84,17 +79,15 @@ class ExpressionCollection(object):
             variable(w*u), 3*variable(w*u),
             ])
 
-        if d == 1:
-            self.indexing = []
-        else:
-            # Indexed,  ListTensor, ComponentTensor, IndexSum
-            i,j,k,l = indices(4)
-            self.indexing = ([
-                v[0], w[1,0], v[i], w[i,j],
+        # Indexed,  ListTensor, ComponentTensor, IndexSum
+        i,j,k,l = indices(4)
+        self.indexing = ([
+                v[0], w[d-1,0], v[i], w[i,j],
                 v[:], w[0,:], w[:,0],
                 v[...], w[0,...], w[...,0],
-                v[i]*v[j], w[i,0]*v[j], w[1,j]*v[i],
-                v[i]*v[i], w[i,0]*w[0,i], v[i]*w[0,i], v[j]*w[1,j], w[i,i], w[i,j]*w[j,i],
+                v[i]*v[j], w[i,0]*v[j], w[d-1,j]*v[i],
+                v[i]*v[i], w[i,0]*w[0,i], v[i]*w[0,i],
+                v[j]*w[d-1,j], w[i,i], w[i,j]*w[j,i],
                 as_tensor(v[i]*w[k,0], (k,i)),
                 as_tensor(v[i]*w[k,0], (k,i))[:,l],
                 as_tensor(w[i,j]*w[k,l], (k,j,l,i)),
@@ -228,8 +221,6 @@ class ForwardADTestCase(UflTestCase):
                 apply_expand_compounds_before=False,
                 apply_expand_compounds_after=False,
                 use_alternative_wrapper_algorithm=False)
-        elif alt == 6:
-            return expand_derivatives2(expr)
 
     def _test_no_derivatives_no_change(self, collection):
         for expr in collection:
@@ -455,11 +446,14 @@ class ForwardADTestCase(UflTestCase):
             for f in (u,v,w):
                 before = grad(f)
                 after = self.ad_algorithm(before)
+
+                if before.shape() != after.shape():
+                    print '\n', 'shapes:', before.shape(), after.shape()
+                    print '\n', str(before), '\n', str(after), '\n'
+
                 self.assertEqualTotalShape(before, after)
-                # This check will only work with new differentiation algorithm:
-                if ufl.algorithms.ad.expand_derivatives is ufl.algorithms.ad.expand_derivatives2:
-                    if f is u: # Differing by being wrapped in indexing types
-                        self.assertEqual(before, after)
+                if f is u: # Differing by being wrapped in indexing types
+                    self.assertEqual(before, after)
 
                 before = grad(grad(f))
                 after = self.ad_algorithm(before)

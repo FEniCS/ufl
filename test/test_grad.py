@@ -133,11 +133,10 @@ class GradTestCase(UflTestCase):
         fd6 = a6.compute_form_data()
 
         fd7 = a7.compute_form_data()
-        self.assertFalse(2) # Not getting here
         fd8 = a8.compute_form_data()
         fd9 = a9.compute_form_data()
 
-        self.assertTrue(False) # Just to show it runs
+        #self.assertTrue(False) # Just to show it runs
 
 # Don't touch these lines, they allow you to run this file directly
 if __name__ == "__main__":

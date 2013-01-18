@@ -242,19 +242,13 @@ class ForwardAD(Transformer):
         if isinstance(Ap, Zero):
             op = self._make_zero_diff(o)
         else:
-            Apr = Ap.rank()
-            if Apr:
-                # nD, n>1, grad extends shape
-                r = Apr - len(jj)
-                if r:
-                    ii = indices(r)
-                    op = Indexed(Ap, jj._indices + ii)
-                    op = as_tensor(op, ii)
-                else:
-                    op = Indexed(Ap, jj)
+            r = Ap.rank() - len(jj)
+            if r:
+                ii = indices(r)
+                op = Indexed(Ap, jj._indices + ii)
+                op = as_tensor(op, ii)
             else:
-                # 1D, grad adds nothing to shape...
-                op = Ap
+                op = Indexed(Ap, jj)
         return (o, op)
 
     def list_tensor(self, o, *ops):
@@ -598,61 +592,6 @@ class ForwardAD(Transformer):
             oprime = SpatialDerivative(fp, ii)
         return (o, oprime)
 
-class SpatialAD(ForwardAD):
-    def __init__(self, spatial_dim, index, cache=None):
-        index, = index
-        if isinstance(index, Index):
-            vfi = (index,)
-            vid = { index: spatial_dim }
-        else:
-            vfi = ()
-            vid = {}
-        ForwardAD.__init__(self, spatial_dim, var_shape=(), var_free_indices=vfi,
-                           var_index_dimensions=vid, cache=cache)
-        self._index = index
-
-    def spatial_coordinate(self, o):
-        # Need to define dx_i/dx_j = delta_ij?
-        if o.shape() == ():
-            return (o, IntValue(1))
-        else:
-            I = Identity(self._spatial_dim)
-            oprime = I[:, self._index]
-            return (o, oprime)
-
-    # This is implicit for all terminals, but just to make this clear to the reader:
-    facet_normal = ForwardAD.terminal # returns zero
-    constant = ForwardAD.terminal # returns zero
-
-    def form_argument(self, o):
-        # Using this index in here may collide with the
-        # same index on the outside! (There's a check for
-        # this situation in index_sum above.)
-        #oprime = o.dx(self._index) # Not using this syntax because it would create a new IndexSum
-        if o.is_cellwise_constant():
-            return self.terminal(o)
-
-        Do = Grad(o)
-        ufl_assert(Do.rank() >= 1, "Expecting grads to have rank >= 1 now.")
-        oprime = Do[...,self._index]
-
-        return (o, oprime)
-
-    def grad(self, o):
-        # Grad has already been propagated to a FormArgument or another Grad,
-        # so we just put another Grad around o to represent the higher order grad.
-        # TODO: Maybe we can ask "f.has_derivatives_of_order(n)" to check
-        #       if we should make a zero here?
-        f, = o.operands()
-        ufl_assert(isinstance(f, (Grad,FormArgument)),
-                   "Expecting this to be a grad or form argument.")
-
-        Do = Grad(o)
-        ufl_assert(Do.rank() >= 1, "Expecting grads to have rank >= 1 now.")
-        oprime = Do[...,self._index]
-
-        return (o, oprime)
-
 class GradAD(ForwardAD):
     def __init__(self, spatial_dim, cache=None):
         ForwardAD.__init__(self, spatial_dim,
@@ -677,12 +616,19 @@ class GradAD(ForwardAD):
             return self.terminal(o)
         return (o, Grad(o))
 
-    def grad(self, o, f):
+    def grad(self, o):
         "Represent grad(grad(f)) as Grad(Grad(f))."
-        # Not sure how to detect that gradient of f is cellwise constant. Can we trust element degrees?
+
+        # TODO: Not sure how to detect that gradient of f is cellwise constant.
+        #       Can we trust element degrees?
         #if o.is_cellwise_constant():
         #    return self.terminal(o)
-        ufl_assert(isinstance(f, (Grad,Terminal)), "Expecting derivatives of child to be already expanded.")
+        # TODO: Maybe we can ask "f.has_derivatives_of_order(n)" to check
+        #       if we should make a zero here?
+
+        f, = o.operands()
+        ufl_assert(isinstance(f, (Grad,Terminal)),
+                   "Expecting derivatives of child to be already expanded.")
         return (o, Grad(o))
 
 class VariableAD(ForwardAD):

@@ -143,7 +143,7 @@ class ClasscoverageTest(UflTestCase):
         test_object(a, (), ())
         
         I = Identity(1)
-        test_object(I, (), ())
+        test_object(I, (1,1), ())
         I = Identity(2)
         test_object(I, (2,2), ())
         I = Identity(3)

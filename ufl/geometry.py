@@ -86,8 +86,7 @@ class SpatialCoordinate(GeometricQuantity):
         return False
 
     def shape(self):
-        d = self._cell.geometric_dimension()
-        return () if d == 1 else (d,)
+        return (self._cell.geometric_dimension(),)
 
     def evaluate(self, x, mapping, component, index_values):
         if component == ():
@@ -116,8 +115,7 @@ class LocalCoordinate(GeometricQuantity):
         return False
 
     def shape(self):
-        d = self._cell.geometric_dimension()
-        return () if d == 1 else (d,)
+        return (self._cell.geometric_dimension(),)
 
     def evaluate(self, x, mapping, component, index_values):
         ufl_error("Symbolic evaluation of local coordinate not available.")
@@ -141,7 +139,7 @@ class GeometryJacobi(GeometricQuantity):
 
     def shape(self):
         d = self._cell.geometric_dimension()
-        return () if d == 1 else (d,d)
+        return (d,d)
 
     def evaluate(self, x, mapping, component, index_values):
         ufl_error("Symbolic evaluation of geometry jacobi not available.")
@@ -188,7 +186,7 @@ class InverseGeometryJacobi(GeometricQuantity):
 
     def shape(self):
         d = self._cell.geometric_dimension()
-        return () if d == 1 else (d,d)
+        return (d,d)
 
     def evaluate(self, x, mapping, component, index_values):
         ufl_error("Symbolic evaluation of inverse geometry jacobi not available.")
@@ -207,7 +205,7 @@ class FacetNormal(GeometricQuantity):
 
     def shape(self):
         d = self._cell.geometric_dimension()
-        return () if d == 1 else (d,)
+        return (d,)
 
     def __str__(self):
         return "n"

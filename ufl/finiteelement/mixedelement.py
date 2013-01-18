@@ -281,7 +281,6 @@ class VectorElement(MixedElement):
         family = sub_element.family()
 
         # Compute value shape
-        #shape = () if dim == 1 else (dim,) # FIXME: Should we do this?
         shape = (dim,)
         value_shape = shape + sub_element.value_shape()
 
@@ -330,7 +329,6 @@ class TensorElement(MixedElement):
             ufl_assert(domain is not None,
                        "Cannot infer vector dimension without a domain.")
             dim = domain.geometric_dimension()
-            #shape = () if dim == 1 else (dim, dim) # FIXME: Should we do this?
             shape = (dim, dim)
 
         # Construct default symmetry for matrix elements

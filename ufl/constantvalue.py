@@ -286,8 +286,6 @@ class Identity(ConstantValue):
     __slots__ = ("_dim",)
 
     def __new__(cls, dim):
-        if dim == 1:
-            return IntValue(1)
         return ConstantValue.__new__(cls)
 
     def __init__(self, dim):

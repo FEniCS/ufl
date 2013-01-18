@@ -174,15 +174,7 @@ class CompoundExpander(ReuseTransformer):
         return a[...,i].dx(i)
 
     def grad(self, o, a):
-        if self._dim == 1:
-            return a.dx(0)
-        else:
-            jj = Index()
-            if a.rank() > 0:
-                ii = tuple(indices(a.rank()))
-                return as_tensor(a[ii].dx(jj), ii + (jj,))
-            else:
-                return as_tensor(a.dx(jj), (jj,))
+        return self.reuse_if_possible(o, a)
 
     def nabla_div(self, o, a):
         i = Index()
