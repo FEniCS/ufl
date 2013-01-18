@@ -641,9 +641,11 @@ class SpatialAD(ForwardAD):
     def grad(self, o):
         # Grad has already been propagated to a FormArgument or another Grad,
         # so we just put another Grad around o to represent the higher order grad.
-        # TODO: Maybe we can ask "f.has_derivatives_of_order(n)" to check if we should make a zero here?
+        # TODO: Maybe we can ask "f.has_derivatives_of_order(n)" to check
+        #       if we should make a zero here?
         f, = o.operands()
-        ufl_assert(isinstance(f, (Grad,FormArgument)), "Expecting this to be a grad or form argument.")
+        ufl_assert(isinstance(f, (Grad,FormArgument)),
+                   "Expecting this to be a grad or form argument.")
 
         Do = Grad(o)
         ufl_assert(Do.rank() >= 1, "Expecting grads to have rank >= 1 now.")
@@ -654,11 +656,11 @@ class SpatialAD(ForwardAD):
 class GradAD(ForwardAD):
     def __init__(self, spatial_dim, cache=None):
         ForwardAD.__init__(self, spatial_dim,
-                           var_shape=(self._spatial_dim,),
+                           var_shape=(spatial_dim,),
                            var_free_indices=(),
                            var_index_dimensions={},
                            cache=cache)
-        self._Id = Identity(self._spatial_dim)
+        self._Id = Identity(spatial_dim)
 
     def spatial_coordinate(self, o):
         "Gradient of x w.r.t. x is Id."
@@ -942,7 +944,7 @@ class CoefficientAD(ForwardAD):
 
 def compute_grad_forward_ad(expr, dim):
     f, = expr.operands()
-    alg = GradAD(dim, f)
+    alg = GradAD(dim)
     e, ediff = alg.visit(f)
     return ediff
 
