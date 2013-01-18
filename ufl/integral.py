@@ -99,6 +99,19 @@ class MeasureSum(object):
     def __str__(self):
         return "{\n    " + "\n  + ".join(map(str,self._measures)) + "\n}"
 
+def as_domain_type(domain_type):
+    _domain_type = domain_type.replace(" ", "_")
+    # Map short domain type name to long automatically
+    if not _domain_type in Measure._domain_types:
+        for k, v in Measure._domain_types.iteritems():
+            if v == domain_type:
+                _domain_type = k
+                break
+        # In the end, did we find a valid domain type?
+        if not _domain_type in Measure._domain_types:
+            error("Invalid domain type %s." % domain_type)
+    return _domain_type
+
 class Measure(object): # TODO: Rename to Integrator?
     """A measure for integration."""
     __slots__ = ("_domain_type",
@@ -108,17 +121,7 @@ class Measure(object): # TODO: Rename to Integrator?
                  "_repr",)
     def __init__(self, domain_type, domain_id=0, metadata=None, domain_data=None):
         # Allow long domain type names with ' ' or '_'
-        self._domain_type = domain_type.replace(" ", "_")
-        # Map short domain type name to long automatically
-        if not self._domain_type in Measure._domain_types:
-            for k, v in Measure._domain_types.iteritems():
-                if v == domain_type:
-                    self._domain_type = k
-                    break
-            # In the end, did we find a valid domain type?
-            if not self._domain_type in Measure._domain_types:
-                error("Invalid domain type %s." % domain_type)
-
+        self._domain_type = as_domain_type(domain_type)
         self._domain_id = domain_id
         self._metadata = metadata
         self._domain_data = domain_data
