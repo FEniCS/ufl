@@ -97,14 +97,16 @@ class ListTensor(WrapperType):
     def shape(self):
         return self._shape
 
-    def evaluate(self, x, mapping, component, index_values):
+    def evaluate(self, x, mapping, component, index_values, derivatives=()):
         ufl_assert(len(component) == len(self._shape),
                    "Can only evaluate scalars, expecting a component "\
                    "tuple of length %d, not %s." % (len(self._shape), component))
         a = self._expressions[component[0]]
         component = component[1:]
-        a = a.evaluate(x, mapping, component, index_values)
-        return a
+        if derivatives:
+            return a.evaluate(x, mapping, component, index_values, derivatives)
+        else:
+            return a.evaluate(x, mapping, component, index_values)
 
     def __getitem__(self, key):
         origkey = key
@@ -210,7 +212,7 @@ class ComponentTensor(WrapperType):
     def shape(self):
         return self._shape
 
-    def evaluate(self, x, mapping, component, index_values):
+    def evaluate(self, x, mapping, component, index_values, derivatives=()):
         indices = self._indices
         a = self._expression
 
@@ -218,7 +220,10 @@ class ComponentTensor(WrapperType):
         for i, c in izip(indices, component):
             index_values.push(i, c)
 
-        a = a.evaluate(x, mapping, (), index_values)
+        if derivatives:
+            a = a.evaluate(x, mapping, (), index_values, derivatives)
+        else:
+            a = a.evaluate(x, mapping, (), index_values)
 
         for _ in component:
             index_values.pop()

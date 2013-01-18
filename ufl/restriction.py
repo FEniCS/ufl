@@ -47,8 +47,7 @@ class Restricted(Operator):
         return self._f.index_dimensions()
 
     def evaluate(self, x, mapping, component, index_values):
-        a = self._f.evaluate(x, mapping, component, index_values)
-        return a
+        return self._f.evaluate(x, mapping, component, index_values)
 
     def __str__(self):
         return "%s('%s')" % (parstr(self._f, self), self._side)
@@ -68,4 +67,3 @@ class NegativeRestricted(Restricted):
 
     def __repr__(self):
         return "NegativeRestricted(%r)" % self._f
-

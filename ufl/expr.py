@@ -125,7 +125,7 @@ class Expr(object):
 
     #--- Functions for float evaluation ---
 
-    def evaluate(self, x, mapping, component, index_values):
+    def evaluate(self, x, mapping, component, index_values, derivatives=()):
         """Evaluate expression at given coordinate with given values for terminals."""
         raise NotImplementedError(self.__class__.evaluate)
 

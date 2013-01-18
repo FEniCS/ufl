@@ -52,7 +52,8 @@ class Indexed(WrapperType):
             if isinstance(di, FixedIndex) and int(di) >= int(si):
                 error("Fixed index out of range!")
 
-        idims = dict((i, s) for (i, s) in izip(self._indices._indices, shape) if isinstance(i, Index))
+        idims = dict((i, s) for (i, s) in izip(self._indices._indices, shape)
+                     if isinstance(i, Index))
         idims.update(expression.index_dimensions())
         fi = unique_indices(expression.free_indices() + self._indices._indices)
 
@@ -80,7 +81,8 @@ class Indexed(WrapperType):
         component = ii.evaluate(x, mapping, None, index_values)
         if derivatives:
             return A.evaluate(x, mapping, component, index_values, derivatives)
-        return A.evaluate(x, mapping, component, index_values)
+        else:
+            return A.evaluate(x, mapping, component, index_values)
 
     def __str__(self):
         return "%s[%s]" % (parstr(self._expression, self), self._indices)
