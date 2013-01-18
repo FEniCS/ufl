@@ -34,7 +34,7 @@ from ufl.tensors import as_tensor, ComponentTensor
 from ufl.permutation import compute_indices
 from ufl.constantvalue import Zero
 from ufl.indexing import Index, FixedIndex, MultiIndex
-from ufl.differentiation import SpatialDerivative, Grad
+from ufl.differentiation import Grad
 from ufl.algorithms.graph import Graph
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer, transform_integrands
 from ufl.algorithms.analysis import has_type
@@ -82,7 +82,8 @@ class IndexExpander(ReuseTransformer):
         ufl_assert(len(x.shape()) == len(self.component()), "Component size mismatch.")
         s = set(x.free_indices()) - set(self._index2value.keys())
         if s: error("Free index set mismatch, these indices have no value assigned: %s." % str(s))
-        return Zero() # TODO: Don't remember when reading this code: is it right that there is no index/shape info in this zero?
+        # There is no index/shape info in this zero because that is asserted above
+        return Zero()
 
     def scalar_value(self, x):
         if len(x.shape()) != len(self.component()):
@@ -194,224 +195,13 @@ class IndexExpander(ReuseTransformer):
 
     def grad(self, x):
         f, = x.operands()
-        if not isinstance(f, (Terminal, Grad)):
-            print '\n'
-            print ':'*60
-            print x
-            print f
-            print ':'*60
-            print '\n'
         ufl_assert(isinstance(f, (Terminal, Grad)),
                    "Expecting expand_derivatives to have been applied.")
         # No need to visit child as long as it is on the form [Grad]([Grad](terminal))
-        sh = x.shape()
-        if sh:
-            c = self.component()
-            ufl_assert(len(sh) == len(c), "Component size mismatch.")
-            return x[c]
-        return x
-
-    def spatial_derivative(self, x):
-        f, ii = x.operands()
-        ufl_assert(isinstance(f, (Terminal, SpatialDerivative, Indexed, ListTensor, ComponentTensor)),
-                   "Expecting expand_derivatives to have been applied.")
-
-        # Taking component if necessary
-        fold = f
-        f = self.visit(f)
-
-        #ii = self.visit(ii) # mapping to constant if necessary
-
-        # Map free index to a value
-        iiold = ii
-        i, = ii
-        if isinstance(i, Index):
-            ii = MultiIndex((FixedIndex(self._index2value[i]),), {})
-
-        # Hide used index i (doing this is not correct behaviour)
-        #if isinstance(i, Index):
-        #    self._index2value.push(i, None)
-        #    pushed = True
-        #else:
-        #    pushed = False
-
-        #self.reuse_if_possible(x, f, ii)
-        if f == fold and ii == iiold:
-            result = x
-        else:
-            result = f.dx(*ii)
-
-        # Unhide used index i
-        #if pushed:
-        #    self._index2value.pop()
-
-        return result
+        return x[self.component()]
 
 def expand_indices(e):
     return apply_transformer(e, IndexExpander())
-
-def expand_indices2(e):
-    return transform_integrands(e, expand_indices2_alg)
-
-def expand_indices2_alg(e):
-    assert isinstance(e, Expr)
-
-    G = Graph(e)
-    V, E = G
-    n = len(V)
-    Vout = G.Vout()
-    Vin = G.Vin()
-
-    # Cache free indices
-    fi   = []
-    idim = []
-    for i, v in enumerate(V):
-        if isinstance(v, MultiIndex):
-            #ii = tuple(j for j in v._indices if isinstance(j, Index))
-            #idims = {} # Hard problem: Need index dimensions but they're defined by the parent.
-            ii = v.free_indices()
-            try:
-                idims = v.index_dimensions()
-            except:
-                print "The type in question is", type(v)
-                print str(v)
-                print repr(v)
-                print "expression type: ", type(e)
-                print "parent types: ", [type(V[j]) for j in Vin[i]]
-                print "parents children: ", [type(V[k]) for j in Vin[i] for k in Vout[j]]
-                idims = {}
-                raise
-        else:
-            try:
-                ii = v.free_indices()
-                idims = v.index_dimensions()
-            except:
-                ii = ()
-                idims = {}
-        fi.append(ii)
-        idim.append(idims)
-
-    # Cache of expanded expressions
-    V2 = [{} for _ in V]
-    def getv(i, indmap):
-        return V2[i][tuple(indmap[j] for j in fi[i])]
-
-    # Reversed enumeration list
-    RV = list(enumerate(V))
-    RV.reverse()
-
-    # Map of current index values
-    indmap = StackDict()
-
-    # Expand all vertices in turn
-    for i, v in enumerate(V):
-        ii = fi[i]
-        if ii:
-            idims = idim[i]
-            dii = tuple(idims[j] for j in ii)
-            perms = compute_indices(dii)
-        else:
-            perms = [()]
-
-        for p in perms:
-            # Map indices to permutation p
-            for (j, d) in izip(ii, p):
-                assert isinstance(j, Index)
-                assert isinstance(d, int)
-                indmap.push(j, d)
-
-            if isinstance(v, MultiIndex):
-                # Map to FixedIndex tuple
-                comp = []
-                k = 0
-                for j in v._indices:
-                    if isinstance(j, FixedIndex):
-                        comp.append(j)
-                    elif isinstance(j, Index):
-                        comp.append(FixedIndex(p[k]))
-                        k += 1
-                e = MultiIndex(tuple(comp), {})
-
-            elif isinstance(v, IndexSum):
-                e = None
-                for k in range(v.dimension()):
-                    indmap.push(v.index(), k)
-                    # Get operands evaluated for this index configuration
-                    ops = [getv(j, indmap) for j in Vout[i]]
-                    # It is possible to save memory
-                    # by reusing some expressions here
-                    if e is None:
-                        e = ops[0]
-                    else:
-                        e += ops[0]
-                    indmap.pop()
-
-            elif isinstance(v, Indexed):
-                # Get operands evaluated for this index configuration
-                ops = [getv(j, indmap) for j in Vout[i]]
-                A = ops[0]
-                comp = ops[1]._indices
-                comp = tuple(int(c) for c in comp) # need ints for symmetry mapping
-                if isinstance(A, FormArgument) and A.shape():
-                    # Get symmetry mapping if any
-                    e = A.element()
-                    s = None
-                    if isinstance(e, TensorElement):
-                        s = e.symmetry()
-                    if s is None:
-                        s = {}
-                    # Map component throught the symmetry mapping
-                    c = comp
-                    ufl_assert(len(A.shape()) == len(c), "Component size mismatch.")
-                    comp = s.get(c, c)
-                    ufl_assert(len(c) == len(comp), "Component size mismatch after symmetry mapping.")
-
-                e = A[comp]
-                if isinstance(A, ListTensor) and isinstance(e, Indexed) and not isinstance(e.operands()[0], (Terminal, SpatialDerivative)):
-                    print "="*80
-                    print "This is a case where expand_indices2 doesn't work as it should:" # TODO: Must fix before we can employ and optimize this!
-                    print str(A)
-                    print repr(comp)
-                    print str(e)
-                    print "="*80
-                    import sys
-                    sys.exit(-1)
-
-            elif isinstance(v, ComponentTensor):
-                import numpy
-                A = numpy.ndarray(shape=v.shape(), dtype=object)
-                iota = v.operands()[1] #getv(Vout[i][1], indmap) # not to be mapped here
-                for k in compute_indices(v.shape()):
-                    for (j, d) in izip(iota, k):
-                        indmap.push(j, d)
-                    Ak = getv(Vout[i][0], indmap)
-                    for _ in iota:
-                        indmap.pop()
-                    A[k] = Ak
-                e = as_tensor(A)
-
-            elif isinstance(v, ListTensor):
-                ops = [getv(j, indmap) for j in Vout[i]]
-                e = v.reconstruct(*ops)
-
-            elif isinstance(v, Terminal):
-                # Simply reuse
-                e = v
-
-            else:
-                # Get operands evaluated for this index configuration
-                ops = [getv(j, indmap) for j in Vout[i]]
-                # It is possible to save memory
-                # by reusing some expressions here
-                e = v.reconstruct(*ops)
-
-            # Undo mapping of indices to permutation p
-            for _ in p:
-                indmap.pop()
-
-            V2[i][p] = e
-
-    return V2[-1][()]
 
 def purge_list_tensors(e):
     """Get rid of all ListTensor instances by expanding

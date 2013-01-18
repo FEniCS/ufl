@@ -38,7 +38,7 @@ from ufl.indexsum import IndexSum
 from ufl.indexutils import repeated_indices, single_indices
 from ufl.tensors import as_tensor, ComponentTensor
 from ufl.restriction import PositiveRestricted, NegativeRestricted
-from ufl.differentiation import SpatialDerivative, Grad
+from ufl.differentiation import Grad
 
 
 #--- Boolean operators ---
@@ -432,34 +432,12 @@ Expr.__getitem__ = _getitem
 
 def _dx(self, *ii):
     "Return the partial derivative with respect to spatial variable number i."
-
     d = self
     # Apply all derivatives
     for i in ii:
-        d = SpatialDerivative(d, i)
-
-    # Apply all implicit sums
-    ri = repeated_indices(self.free_indices() + ii)
-    for i in ri:
-        d = IndexSum(d, i)
-
-    return d
-
-def _dx2(self, *ii):
-    "Return the partial derivative with respect to spatial variable number i."
-    d = self
-    for i in range(len(ii)):
-        try:
-            Dd = Grad(d)
-            d = Dd
-        except:
-            print "XXX1", self
-    s = d.rank() - self.rank()
-    if s == 0:
-        return d
-    else:
-        ufl_assert(s == len(ii), "Rank mismatch in .dx.")
-        return d[...,ii]
+        d = Grad(d)
+    # Take all components, applying repeated index sums in the [] operation
+    return d[...,ii]
 
 Expr.dx = _dx
 

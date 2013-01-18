@@ -25,7 +25,7 @@ equivalent representations using basic operators."""
 
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
-from ufl.classes import Product, Index, Zero, FormArgument, Grad, SpatialDerivative
+from ufl.classes import Product, Index, Zero, FormArgument, Grad
 from ufl.indexing import indices, complete_shape
 from ufl.tensors import as_tensor, as_matrix, as_vector
 from ufl.algorithms.transformer import Transformer, ReuseTransformer, apply_transformer
@@ -260,33 +260,9 @@ class CompoundExpanderPreDiff(CompoundExpander):
             return as_vector((c(1,2), c(2,0), c(0,1)))
         error("Invalid shape %s of curl argument." % (sh,))
 
-    def spatial_derivative(self, o, a, i):
-        Da = Grad(a)
-        if Da.rank() == 0:
-            return Da
-        else:
-            return Da[...,i]
-
 class CompoundExpanderPostDiff(CompoundExpander):
     def __init__(self, dim):
         CompoundExpander.__init__(self, dim)
-
-    def grad(self, o, a):
-        r = o.rank()
-        if r == 0:
-            return SpatialDerivative(a, 0)
-        elif r == 1:
-            i = Index()
-            ii = (i,)
-            da = SpatialDerivative(a, i)
-        else:
-            ii = indices(r)
-            try:
-                jj, i = ii[:-1], ii[-1]
-            except:
-                print 'XXX ', r, len(ii), str(ii)
-            da = SpatialDerivative(a[jj], i)
-        return as_tensor(da, ii)
 
     def nabla_grad(self, o, a, i):
         error("This should not happen.")
@@ -298,9 +274,6 @@ class CompoundExpanderPostDiff(CompoundExpander):
         error("This should not happen.")
 
     def curl(self, o, a, i):
-        error("This should not happen.")
-
-    def spatial_derivative(self, o, a, i):
         error("This should not happen.")
 
 def expand_compounds1(e, dim=None):

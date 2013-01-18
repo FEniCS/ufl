@@ -98,79 +98,6 @@ def split_indices(expression, idx):
     fi = unique_indices(expression.free_indices() + (idx,))
     return fi, idims
 
-class SpatialDerivative(Derivative):
-    "Partial derivative of an expression w.r.t. spatial directions given by indices."
-    __slots__ = ("_expression", "_index", "_free_indices", "_index_dimensions",)
-    def __new__(cls, expression, index):
-        # Return zero if expression is trivially constant
-        if expression.is_cellwise_constant():
-            if isinstance(index, (tuple, MultiIndex)):
-                index, = index
-            fi, idims = split_indices(expression, index)
-            return Zero(expression.shape(), fi, idims)
-        return Derivative.__new__(cls)
-
-    def __init__(self, expression, index):
-        Derivative.__init__(self)
-        self._expression = expression
-
-        # Make a MultiIndex with knowledge of the dimensions
-        sh = (expression.geometric_dimension(),)
-        self._index = as_multi_index(index, sh)
-
-        # Make sure we have a single valid index
-        ufl_assert(len(self._index) == 1, "Expecting a single index.")
-        fi, idims = split_indices(expression, self._index[0])
-
-        # Store what we need
-        self._free_indices = fi
-        self._index_dimensions = idims or EmptyDict
-
-    def operands(self):
-        return (self._expression, self._index)
-
-    def free_indices(self):
-        return self._free_indices
-
-    def index_dimensions(self):
-        return self._index_dimensions
-
-    def shape(self):
-        return self._expression.shape()
-
-    def is_cellwise_constant(self):
-        "Return whether this expression is spatially constant over each cell."
-        return self._expression.is_cellwise_constant()
-
-    def evaluate(self, x, mapping, component, index_values, derivatives=()):
-        "Get child from mapping and return the component asked for."
-
-        i = self._index[0]
-
-        if isinstance(i, FixedIndex):
-            i = int(i)
-
-        pushed = False
-        if isinstance(i, Index):
-            i = index_values[i]
-            pushed = True
-            index_values.push(self._index[0], None)
-
-        result = self._expression.evaluate(x, mapping, component, index_values, derivatives=derivatives + (i,))
-
-        if pushed:
-            index_values.pop()
-
-        return result
-
-    def __str__(self):
-        if isinstance(self._expression, Terminal):
-            return "d%s/dx_%s" % (self._expression, self._index)
-        return "d/dx_%s %s" % (self._index, parstr(self._expression, self))
-
-    def __repr__(self):
-        return "SpatialDerivative(%r, %r)" % (self._expression, self._index)
-
 class VariableDerivative(Derivative):
     __slots__ = ("_f", "_v", "_free_indices", "_index_dimensions", "_shape",)
     def __new__(cls, f, v):
@@ -245,18 +172,13 @@ class Grad(CompoundDerivative):
         if f.is_cellwise_constant():
             free_indices = f.free_indices()
             index_dimensions = subdict(f.index_dimensions(), free_indices)
-            shape = () if dim == 1 else (dim,)
-            return Zero(f.shape() + shape, free_indices, index_dimensions)
-        #if dim == 1:
-        #    return f.dx(0) # FIXME: Can't do this if we remove SpatialDerivative
+            return Zero(f.shape() + (dim,), free_indices, index_dimensions)
         return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):
         CompoundDerivative.__init__(self)
         self._f = f
         self._dim = f.geometric_dimension()
-        #ufl_assert(not f.free_indices(),\
-        #    "Taking gradient of an expression with free indices is not supported.") # FIXME: Need this! Test if it works anyway.
 
     def reconstruct(self, op):
         "Return a new object of the same type with new operands."
@@ -272,15 +194,10 @@ class Grad(CompoundDerivative):
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
         "Get child from mapping and return the component asked for."
         r = len(component)
-        if r == 0:
-            derivatives = derivatives + (0,)
-        elif r == 1:
-            component, i = (), component[0]
-            derivatives = derivatives + (i,)
-        else:
-            component, i = component[:-1], component[-1]
-            derivatives = derivatives + (i,)
-        result = self._f.evaluate(x, mapping, component, index_values, derivatives=derivatives)
+        component, i = component[:-1], component[-1]
+        derivatives = derivatives + (i,)
+        result = self._f.evaluate(x, mapping, component, index_values,
+                                  derivatives=derivatives)
         return result
 
     def operands(self):
@@ -293,8 +210,7 @@ class Grad(CompoundDerivative):
         return self._f.index_dimensions()
 
     def shape(self):
-        sh = () if self._dim == 1 else (self._dim,)
-        return self._f.shape() + sh
+        return self._f.shape() + (self._dim,)
 
     def __str__(self):
         return "grad(%s)" % self._f
@@ -309,9 +225,6 @@ class Div(CompoundDerivative):
         ufl_assert(not f.free_indices(), \
             "TODO: Taking divergence of an expression with free indices,"\
             "should this be a valid expression? Please provide examples!")
-
-        if f.rank() == 0:
-            return f.dx(0)
 
         # Return zero if expression is trivially constant
         if f.is_cellwise_constant():
@@ -351,16 +264,12 @@ class NablaGrad(CompoundDerivative):
             free_indices = f.free_indices()
             index_dimensions = subdict(f.index_dimensions(), free_indices)
             return Zero((dim,) + f.shape(), free_indices, index_dimensions)
-        if dim == 1:
-            return f.dx(0)
         return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):
         CompoundDerivative.__init__(self)
         self._f = f
         self._dim = f.geometric_dimension()
-        ufl_assert(not f.free_indices(),\
-            "Taking gradient of an expression with free indices is not supported.")
 
     def reconstruct(self, op):
         "Return a new object of the same type with new operands."
@@ -398,9 +307,6 @@ class NablaDiv(CompoundDerivative):
         ufl_assert(not f.free_indices(), \
             "TODO: Taking divergence of an expression with free indices,"\
             "should this be a valid expression? Please provide examples!")
-
-        if f.rank() == 0:
-            return f.dx(0)
 
         # Return zero if expression is trivially constant
         if f.is_cellwise_constant():
@@ -472,4 +378,3 @@ class Curl(CompoundDerivative):
 
     def __repr__(self):
         return "Curl(%r)" % self._f
-

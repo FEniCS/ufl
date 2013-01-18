@@ -49,7 +49,7 @@ from ufl.tensoralgebra import Transposed, Outer, Inner, Dot, Cross, Trace, \
 from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin, Tan, Acos, Asin, Atan, Erf, BesselJ, BesselY, BesselI, BesselK
 from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
 from ufl.differentiation import Derivative, CoefficientDerivative,\
-    SpatialDerivative, VariableDerivative, Grad
+    VariableDerivative, Grad
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 
 from ufl.operators import dot, inner, outer, lt, eq, conditional, sign, \
@@ -242,13 +242,19 @@ class ForwardAD(Transformer):
         if isinstance(Ap, Zero):
             op = self._make_zero_diff(o)
         else:
-            r = Ap.rank() - len(jj)
-            if r:
-                ii = indices(r)
-                op = Indexed(Ap, jj._indices + ii)
-                op = as_tensor(op, ii)
+            Apr = Ap.rank()
+            if Apr:
+                # nD, n>1, grad extends shape
+                r = Apr - len(jj)
+                if r:
+                    ii = indices(r)
+                    op = Indexed(Ap, jj._indices + ii)
+                    op = as_tensor(op, ii)
+                else:
+                    op = Indexed(Ap, jj)
             else:
-                op = Indexed(Ap, jj)
+                # 1D, grad adds nothing to shape...
+                op = Ap
         return (o, op)
 
     def list_tensor(self, o, *ops):
@@ -566,7 +572,10 @@ class ForwardAD(Transformer):
     def derivative(self, o):
         error("This should never occur.")
 
-    def spatial_derivative(self, o):
+    def grad(self, o):
+        error("FIXME")
+
+    def xspatial_derivative(self, o): # FIXME: Translate to grad situation
         # If we hit this type, it has already been propagated
         # to a terminal, so we can simply apply our derivative
         # to its operand since differentiation commutes.
@@ -622,50 +631,10 @@ class SpatialAD(ForwardAD):
         #oprime = o.dx(self._index) # Not using this syntax because it would create a new IndexSum
         if o.is_cellwise_constant():
             return self.terminal(o)
-        oprime = SpatialDerivative(o, self._index)
-        return (o, oprime)
-
-class SpatialAD2(ForwardAD):
-    def __init__(self, spatial_dim, index, cache=None):
-        index, = index
-        if isinstance(index, Index):
-            vfi = (index,)
-            vid = { index: spatial_dim }
-        else:
-            vfi = ()
-            vid = {}
-        ForwardAD.__init__(self, spatial_dim, var_shape=(), var_free_indices=vfi,
-                           var_index_dimensions=vid, cache=cache)
-        self._index = index
-
-    def spatial_coordinate(self, o):
-        # Need to define dx_i/dx_j = delta_ij?
-        if o.shape() == ():
-            return (o, IntValue(1))
-        else:
-            I = Identity(self._spatial_dim)
-            oprime = I[:, self._index]
-            return (o, oprime)
-
-    # This is implicit for all terminals, but just to make this clear to the reader:
-    facet_normal = ForwardAD.terminal # returns zero
-    constant = ForwardAD.terminal # returns zero
-
-    def form_argument(self, o):
-        # Using this index in here may collide with the
-        # same index on the outside! (There's a check for
-        # this situation in index_sum above.)
-        #oprime = o.dx(self._index) # Not using this syntax because it would create a new IndexSum
-        if o.is_cellwise_constant():
-            return self.terminal(o)
 
         Do = Grad(o)
-        r = Do.rank()
-        if r == 0:
-            ufl_assert(self._index == 0, "Expecting d/dx0 only in scalar case.")
-            oprime = Do
-        else:
-            oprime = Do[...,self._index]
+        ufl_assert(Do.rank() >= 1, "Expecting grads to have rank >= 1 now.")
+        oprime = Do[...,self._index]
 
         return (o, oprime)
 
@@ -677,12 +646,8 @@ class SpatialAD2(ForwardAD):
         ufl_assert(isinstance(f, (Grad,FormArgument)), "Expecting this to be a grad or form argument.")
 
         Do = Grad(o)
-        r = Do.rank()
-        if r == 0:
-            ufl_assert(self._index == 0, "Expecting d/dx0 only in scalar case.")
-            oprime = Do
-        else:
-            oprime = Do[...,self._index]
+        ufl_assert(Do.rank() >= 1, "Expecting grads to have rank >= 1 now.")
+        oprime = Do[...,self._index]
 
         return (o, oprime)
 
@@ -976,20 +941,8 @@ class CoefficientAD(ForwardAD):
         return c
 
 def compute_grad_forward_ad(expr, dim):
-    f, v = expr.operands()
-    alg = GradAD(dim, v)
-    e, ediff = alg.visit(f)
-    return ediff
-
-def compute_spatial_forward_ad(expr, dim):
-    f, v = expr.operands()
-    alg = SpatialAD(dim, v)
-    e, ediff = alg.visit(f)
-    return ediff
-
-def compute_spatial_forward_ad2(expr, dim):
-    f, v = expr.operands()
-    alg = SpatialAD2(dim, v)
+    f, = expr.operands()
+    alg = GradAD(dim, f)
     e, ediff = alg.visit(f)
     return ediff
 
@@ -1005,21 +958,7 @@ def compute_coefficient_forward_ad(expr, dim):
     e, ediff = alg.visit(f)
     return ediff
 
-def forward_ad(expr, dim): # OLD VERSION
-    """Assuming expr is a derivative and contains no other
-    unresolved derivatives, apply forward mode AD and
-    return the computed derivative."""
-    if isinstance(expr, SpatialDerivative):
-        result = compute_spatial_forward_ad(expr, dim)
-    elif isinstance(expr, VariableDerivative):
-        result = compute_variable_forward_ad(expr, dim)
-    elif isinstance(expr, CoefficientDerivative):
-        result = compute_coefficient_forward_ad(expr, dim)
-    else:
-        error("This shouldn't happen: expr is %s" % repr(expr))
-    return result
-
-def apply_nested_forward_ad(expr, dim): # NEW VERSION
+def apply_nested_forward_ad(expr, dim):
     if isinstance(expr, Terminal):
         # A terminal needs no differentiation applied
         return expr
@@ -1034,7 +973,7 @@ def apply_nested_forward_ad(expr, dim): # NEW VERSION
         preops = expr.operands()
         postops = tuple(apply_nested_forward_ad(o, dim) for o in preops)
 
-        need_reconstruct = not (preops == postops)
+        need_reconstruct = not (preops == postops) # FIXME: Is this efficient? O(n)?
         if need_reconstruct:
             expr = expr.reconstruct(*postops)
 
@@ -1043,9 +982,8 @@ def apply_nested_forward_ad(expr, dim): # NEW VERSION
 
         # Check if this node is a derivative, if so apply AD to it
         if isinstance(preexpr, Derivative):
-            #if isinstance(expr, (SpatialDerivative,Grad)):
-            if isinstance(preexpr, SpatialDerivative):
-                result = compute_spatial_forward_ad2(expr, dim)
+            if isinstance(expr, Grad):
+                result = compute_grad_forward_ad(expr, dim)
             elif isinstance(preexpr, VariableDerivative):
                 result = compute_variable_forward_ad(expr, dim)
             elif isinstance(preexpr, CoefficientDerivative):

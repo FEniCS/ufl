@@ -66,7 +66,7 @@ from ufl.algorithms.deprecated import TreeFlattener, flatten, \
                                       DuplicationMarker, mark_duplications, \
                                       DuplicationPurger, purge_duplications
 from ufl.algorithms.renumbering import renumber_indices
-from ufl.algorithms.expand_indices import expand_indices, expand_indices2, purge_list_tensors
+from ufl.algorithms.expand_indices import expand_indices, purge_list_tensors
 from ufl.algorithms.propagate_restrictions import propagate_restrictions
 
 # Utilities for transforming complete Forms into other Forms

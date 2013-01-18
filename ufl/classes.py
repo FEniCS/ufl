@@ -66,7 +66,7 @@ from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Erf,\
     Cos, Sin, Tan, Acos, Asin, Atan,\
     BesselFunction, BesselJ, BesselY, BesselI, BesselK
 from ufl.differentiation import Derivative, CompoundDerivative, CoefficientDerivative,\
-    SpatialDerivative, VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
+    VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
 from ufl.conditional import Condition, BinaryCondition,\
     EQ, NE, LE, GE, LT, GT,\
     AndCondition, OrCondition, NotCondition, Conditional

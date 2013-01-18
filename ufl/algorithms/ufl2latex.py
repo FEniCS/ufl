@@ -42,7 +42,7 @@ from ufl.indexsum import IndexSum
 from ufl.tensoralgebra import Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
 from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin, Tan, Acos, Asin, Atan, Erf, BesselJ, BesselY, BesselI, BesselK
 from ufl.restriction import PositiveRestricted, NegativeRestricted
-from ufl.differentiation import SpatialDerivative, VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
+from ufl.differentiation import VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.form import Form
 from ufl.integral import Measure
@@ -76,7 +76,7 @@ def build_precedence_map():
     precedence_list.append((Conditional,))
     precedence_list.append((LE, GT, GE, NE, EQ, LT))
 
-    precedence_list.append((Div, Grad, NablaGrad, NablaDiv, Curl, SpatialDerivative, VariableDerivative,
+    precedence_list.append((Div, Grad, NablaGrad, NablaDiv, Curl, VariableDerivative,
                             Determinant, Trace, Cofactor, Inverse, Deviatoric))
     precedence_list.append((Product, Division, Cross, Dot, Outer, Inner))
     precedence_list.append((Indexed, Transposed, Power))
@@ -186,12 +186,6 @@ class Expression2LatexHandler(Transformer):
 
     def indexed(self, o, a, b):
         return "{%s}_{%s}" % (par(a), b)
-
-    def spatial_derivative(self, o, f, ii):
-        ii = o.operands()[1]
-        nom = r"\partial%s" % par(f)
-        denom = format_multi_index(ii, formatstring="\partial{}x_{%s}")
-        return r"\frac{%s}{%s}" % (nom, denom)
 
     def variable_derivative(self, o, f, v):
         nom   = r"\partial%s" % par(f)
