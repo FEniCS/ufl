@@ -204,8 +204,7 @@ class FacetNormal(GeometricQuantity):
         GeometricQuantity.__init__(self, cell)
 
     def shape(self):
-        d = self._cell.geometric_dimension()
-        return (d,)
+        return (self._cell.geometric_dimension(),)
 
     def __str__(self):
         return "n"

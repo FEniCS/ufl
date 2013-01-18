@@ -285,9 +285,6 @@ class Identity(ConstantValue):
     "UFL literal type: Representation of an identity matrix."
     __slots__ = ("_dim",)
 
-    def __new__(cls, dim):
-        return ConstantValue.__new__(cls)
-
     def __init__(self, dim):
         ConstantValue.__init__(self)
         self._dim = dim
