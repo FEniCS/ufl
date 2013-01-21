@@ -143,7 +143,9 @@ def extract_top_domains(integrand):
     top_domains = set()
     for t in traverse_terminals(integrand):
         if isinstance(t, FormArgument):
-            top_domains.add(t.element().domain().top_domain())
+            domain = t.element().domain()
+            if domain is not None:
+                top_domains.add(domain.top_domain())
         # FIXME: Check geometry here too when that becomes necessary
     return sorted(top_domains)
 

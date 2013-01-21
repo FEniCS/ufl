@@ -37,7 +37,7 @@ from ufl.coefficient import Coefficient
 from ufl.variable import Variable
 from ufl.indexing import Index, MultiIndex
 from ufl.domains import Region, Domain
-from ufl.integral import Measure
+from ufl.integral import Measure, Integral
 from ufl.algorithms.traversal import iter_expressions, post_traversal, post_walk, traverse_terminals
 
 # Domain types (should probably be listed somewhere else)
@@ -309,7 +309,7 @@ def extract_integral_data(form):
     Extract integrals from form stored by integral type and sub
     domain, stored as a list of tuples
 
-        (domain_type, domain_id, integrals, metadata)
+        (domain_type, domain_id, measure, integrand, metadata)
 
     where metadata is an empty dictionary that may be used for
     associating metadata with each tuple.
@@ -320,10 +320,39 @@ def extract_integral_data(form):
     for integral in form.integrals():
         domain_type = integral.measure().domain_type()
         domain_id = integral.measure().domain_id()
-        if (domain_type, domain_id) in integral_data:
-            integral_data[(domain_type, domain_id)].append(integral)
+
+        # TODO: This is a temporary translation from Region to integer ids, but works well at least for now
+        if isinstance(domain_id, Domain) or domain_id == Measure.DOMAIN_ID_EVERYWHERE:
+            domain_ids = (0,) # TODO: This is the old behaviour, change this to integral over everything
+            #domain_ids = (Measure.DOMAIN_ID_EVERYWHERE,)
+
+        elif domain_id == Measure.DOMAIN_ID_EVERYWHERE_ELSE:
+            domain_ids = (Measure.DOMAIN_ID_EVERYWHERE_ELSE,)
+            error("Domain id 'everywhere else' not yet supported.")
+
+        elif isinstance(domain_id, Region):
+            domain_ids = domain_id.subdomain_ids()
+            # Skip integral over nowhere
+            if len(domain_ids) == 0:
+                continue
+
+        elif isinstance(domain_id, int):
+            domain_ids = (domain_id,)
+
         else:
-            integral_data[(domain_type, domain_id)] = [integral]
+            error("Invalid domain id %s." % (domain_id,))
+
+        # Accumulate integrals for each (type,id) combination
+        for domain_id in domain_ids:
+            key = (domain_type, domain_id)
+
+            # Reconstruct integral with integer domain id TODO: This is a temporary hack during domain transition
+            integral2 = Integral(integral.integrand(), integral.measure().reconstruct(domain_id=domain_id))
+
+            if key in integral_data:
+                integral_data[key].append(integral2) # TODO: Not sure how FFC handles this? Consider metadata etc.
+            else:
+                integral_data[key] = [integral2]
 
     # Note that this sorting thing here is pretty interesting. The
     # domain types happen to be in alphabetical order (cell, exterior,

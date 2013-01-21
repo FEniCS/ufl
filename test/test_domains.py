@@ -24,12 +24,13 @@ class RegionConstructionTestCase(UflTestCase):
             D1 = Domain(cell)
             D2 = as_domain(cell)
             self.assertFalse(D1 is D2)
-            print
-            for D in (D1, D2):
-                print 'id', id(D)
-                print 'str', str(D)
-                print 'repr', repr(D)
+            if 0:
                 print
+                for D in (D1, D2):
+                    print 'id', id(D)
+                    print 'str', str(D)
+                    print 'repr', repr(D)
+                    print
             self.assertEqual(D1, D2)
 
     def test_as_domain_from_cell_is_unique(self):
@@ -53,7 +54,12 @@ class RegionConstructionTestCase(UflTestCase):
         self.assertEqual(sdomains, domains2)
 
     def test_topdomain_creation(self):
+        D = Domain(interval)
+        self.assertEqual(D.geometric_dimension(), 1)
         D = Domain(triangle)
+        self.assertEqual(D.geometric_dimension(), 2)
+        D = Domain(tetrahedron)
+        self.assertEqual(D.geometric_dimension(), 3)
 
     def xtest_numbered_subdomains_are_registered(self): # THIS IS DISABLED BECAUSE REGION REGISTERING IS UNSAFE
         D = Domain(triangle)
@@ -93,7 +99,7 @@ class MeasuresOverRegionsTestCase(UflTestCase):
         #self.assertEqual(VL.region(), self.DL)
         #self.assertEqual(VR.region(), self.DR)
 
-    def xtest_construct_measures_over_regions(self):
+    def test_construct_measures_over_regions(self):
         VL = FiniteElement("CG", self.DL, 1)
         VR = FiniteElement("CG", self.DR, 1)
         self.assertNotEqual(Coefficient(VL, count=3), Coefficient(VR, count=3))
@@ -102,11 +108,14 @@ class MeasuresOverRegionsTestCase(UflTestCase):
         fr = Coefficient(VR)
 
         # Three ways to construct an equivalent form
-        M_dxr1 = fr*dx(self.DR) # FIXME: Make this pass
+        M_dxr1 = fr*dx(self.DR)
         M_dxr2 = fr*dx('DR')
         M_dx23 = fr*dx((2,3))
-        self.assertEqual(M_dxr1, M_dx23)
+
+        self.assertEqual(M_dxr1.compute_form_data().integral_data,
+                         M_dx23.compute_form_data().integral_data)
         self.assertEqual(M_dxr1, M_dxr2)
+
         for M in (M_dxr1, M_dxr2, M_dx23):
             self.assertEqual(M.cell_integrals()[0].measure(), dx(self.DR))
 

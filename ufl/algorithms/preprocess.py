@@ -199,7 +199,7 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
      form_data.surface_domain_data) = slice_dict(form_data.domain_data,
                                                  _domain_types, None)
 
-    # Store integrals stored by type and sub domain
+    # Store integrals by type and domain id
     form_data.integral_data = extract_integral_data(form)
 
     # Store preprocessed form
