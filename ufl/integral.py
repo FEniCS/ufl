@@ -171,8 +171,15 @@ class Measure(object): # TODO: Rename to Integrator?
         }
     _domain_types_tuple = (CELL, EXTERIOR_FACET, INTERIOR_FACET, POINT, MACRO_CELL, SURFACE)
 
-    # Constant for undefined domain id
-    UNDEFINED_DOMAIN_ID = -999
+    # TODO: This is ugly, is there a better way?
+    # Special constants for domain ids with particular meaning. Do not use these values in other code!
+    DOMAIN_ID_EVERYWHERE      = "<domain id everywhere>"
+    DOMAIN_ID_EVERYWHERE_ELSE = "<domain id everywhere else>"
+    DOMAIN_ID_UNDEFINED       = "<domain id undefined>"
+    DOMAIN_ID_DEFAULT = DOMAIN_ID_EVERYWHERE
+    DOMAIN_ID_CONSTANTS = (DOMAIN_ID_EVERYWHERE,
+                           DOMAIN_ID_EVERYWHERE_ELSE,
+                           DOMAIN_ID_UNDEFINED)
 
     def domain_type(self):
         'Return the domain type, one of "cell", "exterior_facet" or "interior_facet".'
@@ -198,7 +205,7 @@ class Measure(object): # TODO: Rename to Integrator?
         context for interpreting domain ids. The default ID of this new Measure
         is undefined, and thus it must be qualified with a domain id to use
         in an integral. Example: dx = dx[boundaries]; L = f*v*dx(0) + g*v+dx(1)."""
-        return self.reconstruct(domain_id=Measure.UNDEFINED_DOMAIN_ID, domain_data=domain_data)
+        return self.reconstruct(domain_id=Measure.DOMAIN_ID_UNDEFINED, domain_data=domain_data)
 
     def __call__(self, domain_id=None, metadata=None):
         """Return integral of same type on given sub domain,
@@ -222,17 +229,13 @@ class Measure(object): # TODO: Rename to Integrator?
         if not isinstance(integrand, Expr):
             return NotImplemented
 
+        ### Quick checks that the integrand is ok:
         # Allow only scalar integrands
         if not is_true_ufl_scalar(integrand):
             error("Trying to integrate expression of rank %d with free indices %r." \
                   % (integrand.rank(), integrand.free_indices()))
 
-        # Is this object in a state where multiplication is not allowed?
-        if self._domain_id == Measure.UNDEFINED_DOMAIN_ID:
-            error("Missing domain id. You need to select a subdomain, " +\
-                  "e.g. M = f*dx(0) for subdomain 0.")
-
-        # Create a new measure object if this one is incomplete
+        ### Create form if we have a complete measure with domain description
         if isinstance(self._domain_id, DomainDescription):
             # TODO: Should we split into integral for each subdomain already at this point?
 
@@ -240,39 +243,63 @@ class Measure(object): # TODO: Rename to Integrator?
             from ufl.form import Form
             return Form( [Integral(integrand, self)] )
 
-        elif isinstance(self._domain_id, str):
-            # Get domain or region with this name from integrand, error if multiple found
-            domains = extract_domains(integrand)
-            name = self._domain_id
+        ### Since this measure is not complete, analyse domain id and create a new measure object first
+        did = self._domain_id
 
+        # Is this object in a state where multiplication is not allowed?
+        if did == Measure.DOMAIN_ID_UNDEFINED:
+            error("Missing domain id. You need to select a subdomain, " +\
+                  "e.g. M = f*dx(0) for subdomain 0.")
+
+        # Temporarily translate everywhere to 0 # FIXME Change when we support this properly
+        if did == Measure.DOMAIN_ID_EVERYWHERE:
+            did = 0
+        elif did == Measure.DOMAIN_ID_EVERYWHERE_ELSE:
+            error("Integrals with 'everywhere else' should not occur in user code.")
+
+        # Did we get a name?
+        if isinstance(did, str):
+            # Get all domains and regions from integrand to analyse
+            domains = extract_domains(integrand)
+
+            # Get domain or region with this name from integrand, error if multiple found
+            name = did
             candidates = set()
             for TD in domains:
                 if TD.name() == name:
                     candidates.add(TD)
-
             ufl_assert(len(candidates) > 0,
                        "Found no domain with name '%s' in integrand." % name)
             ufl_assert(len(candidates) == 1,
                        "Multiple distinct domains with same name encountered in integrand.")
-
             D, = candidates
+
+            # Reconstruct measure with the found named domain or region
             measure = self.reconstruct(domain_id=D)
             return integrand*measure
 
-        elif isinstance(self._domain_id, int):
-            # Get domain from integrand, error if multiple found
+        # Did we get a number?
+        elif isinstance(did, int):
+            # Get all top level domains from integrand to analyse
             domains = extract_top_domains(integrand)
+
+            # Get domain from integrand, error if multiple found
             if domains:
                 ufl_assert(len(domains) == 1, "Ambiguous reference to integer subdomain with multiple top domains in integrand.")
                 D, = domains
             else:
                 D = as_domain(integrand.cell())
-            measure = self.reconstruct(domain_id=D[self._domain_id])
+            D = D[did]
+
+            # Reconstruct measure with the found numbered subdomain
+            measure = self.reconstruct(domain_id=D)
             return integrand*measure
 
-        elif isinstance(self._domain_id, tuple):
-            return sum(integrand*self.reconstruct(domain_id=d) for d in self._domain_id)
+        # Did we get several ids?
+        elif isinstance(did, tuple):
+            return sum(integrand*self.reconstruct(domain_id=d) for d in did)
 
+        # Provide error to user
         else:
             error("Invalid domain id %s." % str(self._domain_id))
 
