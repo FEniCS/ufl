@@ -18,6 +18,7 @@
 # First added:  2011-01-17
 # Last changed: 2011-06-02
 
+from ufl.assertions import ufl_assert
 from ufl.finiteelement import FiniteElement, MixedElement
 
 def change_regularity(element, family):
