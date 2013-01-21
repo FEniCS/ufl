@@ -74,20 +74,17 @@ class DomainDescription(object):
         return repr(self) < repr(other) # FIXME: Sort in a more predictable way
 
 class Domain(DomainDescription):
-    __slots__ = ('_regions',)
-    def __init__(self, cell, name=None, gdim=None, tdim=None,
-                 regions=None):
+    __slots__ = ()
+    def __init__(self, cell, name=None, gdim=None, tdim=None):
         DomainDescription.__init__(self, cell, name, gdim, tdim)
-        self._regions = {} if regions is None else regions
 
     def __repr__(self):
-        return "Domain(%r, %r, %r, %r, %r)" % (self._cell, self._name,
-                                               self._gdim, self._tdim, self._regions)
+        return "Domain(%r, %r, %r, %r)" % (self._cell, self._name,
+                                           self._gdim, self._tdim)
 
     def __eq__(self, other):
         return (isinstance(other, Domain)
-                and DomainDescription.__eq__(self, other)
-                and self._regions == other._regions)
+                and DomainDescription.__eq__(self, other))
 
     def top_domain(self):
         return self
@@ -95,22 +92,11 @@ class Domain(DomainDescription):
     def subdomain_ids(self):
         return None
 
-    def region_names(self):
-        return sorted(self._regions.keys())
-
-    def regions(self):
-        return [self[r] for r in self.region_names()]
-
-    def __getitem__(self, name):
-        if isinstance(name, int):
-            return Region(self, (name,), "%s_%d" % (self._name, name))
-        elif isinstance(name, str):
-            dom = self._regions.get(name)
-            if dom is None:
-                error("No record of subdomain with label %r" % name)
-            return dom
+    def __getitem__(self, subdomain_id):
+        if isinstance(subdomain_id, int):
+            return Region(self, (subdomain_id,), "%s_%d" % (self._name, subdomain_id))
         else:
-            error("Invalid subdomain label %r, expecting string or integer." % name)
+            error("Invalid subdomain label %r, expecting integer." % (subdomain_id,))
 
 class Region(DomainDescription):
     __slots__ = ('_parent', '_subdomain_ids')
@@ -119,7 +105,7 @@ class Region(DomainDescription):
                                    parent._gdim, parent._tdim)
         self._parent = parent
         self._subdomain_ids = tuple(sorted(set(subdomain_ids)))
-        parent._regions[name] = self
+        ufl_assert(name != parent.name(), "Cannot assign same name to top level domain and region.")
 
     def top_domain(self):
         return self._parent
@@ -149,3 +135,26 @@ def as_domain(domain):
             return _default_domains[cell]
         else:
             error("Invalid domain %s." % str(domain))
+
+# TODO: Move somewhere else
+def extract_top_domains(integrand):
+    from ufl.terminal import FormArgument
+    from ufl.algorithms.traversal import traverse_terminals
+    top_domains = set()
+    for t in traverse_terminals(integrand):
+        if isinstance(t, FormArgument):
+            top_domains.add(t.element().domain().top_domain())
+        # FIXME: Check geometry here too when that becomes necessary
+    return sorted(top_domains)
+
+def extract_domains(integrand):
+    from ufl.terminal import FormArgument
+    from ufl.algorithms.traversal import traverse_terminals
+    regions = set()
+    for t in traverse_terminals(integrand): # FIXME: Need to analyse which components of functions are actually referenced
+        if isinstance(t, FormArgument):
+            reg = t.element().regions() # FIXME: Implement
+            regions.update(reg)
+            regions.update(r.top_domain() for r in reg)
+        # FIXME: Check geometry here too when that becomes necessary
+    return sorted(regions)

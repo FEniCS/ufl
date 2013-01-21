@@ -26,6 +26,7 @@ from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.constantvalue import is_true_ufl_scalar, is_python_scalar
 from ufl.expr import Expr
+from ufl.domains import DomainDescription, Domain, Region, extract_top_domains, extract_domains, as_domain
 
 
 # TODO: Move these somewhere more suitable?
@@ -98,6 +99,19 @@ class MeasureSum(object):
     def __str__(self):
         return "{\n    " + "\n  + ".join(map(str,self._measures)) + "\n}"
 
+def as_domain_type(domain_type):
+    _domain_type = domain_type.replace(" ", "_")
+    # Map short domain type name to long automatically
+    if not _domain_type in Measure._domain_types:
+        for k, v in Measure._domain_types.iteritems():
+            if v == domain_type:
+                _domain_type = k
+                break
+        # In the end, did we find a valid domain type?
+        if not _domain_type in Measure._domain_types:
+            error("Invalid domain type %s." % domain_type)
+    return _domain_type
+
 class Measure(object): # TODO: Rename to Integrator?
     """A measure for integration."""
     __slots__ = ("_domain_type",
@@ -107,17 +121,7 @@ class Measure(object): # TODO: Rename to Integrator?
                  "_repr",)
     def __init__(self, domain_type, domain_id=0, metadata=None, domain_data=None):
         # Allow long domain type names with ' ' or '_'
-        self._domain_type = domain_type.replace(" ", "_")
-        # Map short domain type name to long automatically
-        if not self._domain_type in Measure._domain_types:
-            for k, v in Measure._domain_types.iteritems():
-                if v == domain_type:
-                    self._domain_type = k
-                    break
-            # In the end, did we find a valid domain type?
-            if not self._domain_type in Measure._domain_types:
-                error("Invalid domain type %s." % domain_type)
-
+        self._domain_type = as_domain_type(domain_type)
         self._domain_id = domain_id
         self._metadata = metadata
         self._domain_data = domain_data
@@ -168,7 +172,7 @@ class Measure(object): # TODO: Rename to Integrator?
     _domain_types_tuple = (CELL, EXTERIOR_FACET, INTERIOR_FACET, POINT, MACRO_CELL, SURFACE)
 
     # Constant for undefined domain id
-    UNDEFINED_DOMAIN_ID = "undefined"
+    UNDEFINED_DOMAIN_ID = -999
 
     def domain_type(self):
         'Return the domain type, one of "cell", "exterior_facet" or "interior_facet".'
@@ -209,43 +213,68 @@ class Measure(object): # TODO: Rename to Integrator?
     def __mul__(self, other):
         if isinstance(other, Measure):
             return ProductMeasure(self, other)
-        #error("Can't multiply Measure from the right (with %r)." % (other,))
+        # Can't multiply Measure from the right with non-Measure type
         return NotImplemented
 
     def __rmul__(self, integrand):
-        # Is this object in a state where multiplication is not allowed?
-        if self._domain_id == Measure.UNDEFINED_DOMAIN_ID:
-            error("Missing domain id. You need to select a subdomain, " +\
-                  "e.g. M = f*dx(0) for subdomain 0.")
-            #return NotImplemented
-
-        # Explicitly disallow (u,v)*dx
-        if isinstance(integrand, tuple):
-            error("Mixing tuple and integrand notation not allowed.")
-            #return NotImplemented
-
-        #    from ufl.expr import Expr
-        #    from ufl import inner
-        #    # Experimental syntax like a = (u,v)*dx + (f,v)*ds
-        #    ufl_assert(len(integrand) == 2 \
-        #        and isinstance(integrand[0], Expr) \
-        #        and isinstance(integrand[1], Expr),
-        #        "Invalid integrand %s." % repr(integrand))
-        #    integrand = inner(integrand[0], integrand[1])
-
-        # Let other types implement multiplication with Measure if they want to
+        # Let other types implement multiplication with Measure
+        # if they want to (to support the dolfin-adjoint TimeMeasure)
         if not isinstance(integrand, Expr):
             return NotImplemented
 
         # Allow only scalar integrands
-        if is_true_ufl_scalar(integrand):
+        if not is_true_ufl_scalar(integrand):
+            error("Trying to integrate expression of rank %d with free indices %r." \
+                  % (integrand.rank(), integrand.free_indices()))
+
+        # Is this object in a state where multiplication is not allowed?
+        if self._domain_id == Measure.UNDEFINED_DOMAIN_ID:
+            error("Missing domain id. You need to select a subdomain, " +\
+                  "e.g. M = f*dx(0) for subdomain 0.")
+
+        # Create a new measure object if this one is incomplete
+        if isinstance(self._domain_id, DomainDescription):
+            # TODO: Should we split into integral for each subdomain already at this point?
+
+            # Create and return a one-integral form
             from ufl.form import Form
             return Form( [Integral(integrand, self)] )
 
-        # Disallow non-scalar Expr explicitly
-        error("Trying to integrate expression of rank %d with free indices %r." \
-                % (integrand.rank(), integrand.free_indices()))
-        #return NotImplemented
+        elif isinstance(self._domain_id, str):
+            # Get domain or region with this name from integrand, error if multiple found
+            domains = extract_domains(integrand)
+            name = self._domain_id
+
+            candidates = set()
+            for TD in domains:
+                if TD.name() == name:
+                    candidates.add(TD)
+
+            ufl_assert(len(candidates) > 0,
+                       "Found no domain with name '%s' in integrand." % name)
+            ufl_assert(len(candidates) == 1,
+                       "Multiple distinct domains with same name encountered in integrand.")
+
+            D, = candidates
+            measure = self.reconstruct(domain_id=D)
+            return integrand*measure
+
+        elif isinstance(self._domain_id, int):
+            # Get domain from integrand, error if multiple found
+            domains = extract_top_domains(integrand)
+            if domains:
+                ufl_assert(len(domains) == 1, "Ambiguous reference to integer subdomain with multiple top domains in integrand.")
+                D, = domains
+            else:
+                D = as_domain(integrand.cell())
+            measure = self.reconstruct(domain_id=D[self._domain_id])
+            return integrand*measure
+
+        elif isinstance(self._domain_id, tuple):
+            return sum(integrand*self.reconstruct(domain_id=d) for d in self._domain_id)
+
+        else:
+            error("Invalid domain id %s." % str(self._domain_id))
 
     def __str__(self):
         d = Measure._domain_types[self._domain_type]

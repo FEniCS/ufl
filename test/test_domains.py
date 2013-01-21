@@ -24,6 +24,12 @@ class RegionConstructionTestCase(UflTestCase):
             D1 = Domain(cell)
             D2 = as_domain(cell)
             self.assertFalse(D1 is D2)
+            print
+            for D in (D1, D2):
+                print 'id', id(D)
+                print 'str', str(D)
+                print 'repr', repr(D)
+                print
             self.assertEqual(D1, D2)
 
     def test_as_domain_from_cell_is_unique(self):
@@ -49,7 +55,7 @@ class RegionConstructionTestCase(UflTestCase):
     def test_topdomain_creation(self):
         D = Domain(triangle)
 
-    def test_numbered_subdomains_are_registered(self):
+    def xtest_numbered_subdomains_are_registered(self): # THIS IS DISABLED BECAUSE REGION REGISTERING IS UNSAFE
         D = Domain(triangle)
 
         D1 = D[1]
@@ -59,7 +65,7 @@ class RegionConstructionTestCase(UflTestCase):
         self.assertEqual(D.region_names(), ['triangle_multiverse_1',
                                             'triangle_multiverse_2'])
 
-    def test_named_subdomain_groups_are_registered(self):
+    def xtest_named_subdomain_groups_are_registered(self): # THIS IS DISABLED BECAUSE REGION REGISTERING IS UNSAFE
         D = Domain(triangle)
 
         DL = Region(D, (1, 2), 'DL')
@@ -217,8 +223,8 @@ class FormDomainModelTestCase(UflTestCase):
         # Check region/domain getters
         self.assertEqual(DA.top_domain(), DA)
         self.assertEqual(DA.subdomain_ids(), None)
-        self.assertEqual(DA.region_names(), [])
-        self.assertEqual(DA.regions(), [])
+        #self.assertEqual(DA.region_names(), [])
+        #self.assertEqual(DA.regions(), [])
 
         #BDA = Boundary(DA) # TODO
         #IDAB = Intersection(DA,DB) # TODO
@@ -231,10 +237,10 @@ class FormDomainModelTestCase(UflTestCase):
         DBR = Region(DB, (1,4), "DBR")
 
         # Check that regions are available through domains
-        self.assertEqual(DA.region_names(), ['DAL', 'DAR'])
-        self.assertEqual(DA.regions(), [DAL, DAR])
-        self.assertEqual(DA["DAR"], DAR)
-        self.assertEqual(DA["DAL"], DAL)
+        #self.assertEqual(DA.region_names(), ['DAL', 'DAR'])
+        #self.assertEqual(DA.regions(), [DAL, DAR])
+        #self.assertEqual(DA["DAR"], DAR)
+        #self.assertEqual(DA["DAL"], DAL)
 
         # Create function spaces on DA
         VA = FiniteElement("CG", DA, 1)

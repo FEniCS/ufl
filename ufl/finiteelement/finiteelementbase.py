@@ -72,6 +72,10 @@ class FiniteElementBase(object):
         "Return the domain on which this element is defined."
         return self._domain
 
+    def regions(self):
+        "Return the regions referenced by this element and its subelements."
+        return [self._domain] # FIXME
+
     def cell_restriction(self):
         "Return the cell type onto which the element is restricted."
         return None # Overloaded by RestrictedElement
