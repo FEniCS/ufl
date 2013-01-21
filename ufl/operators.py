@@ -293,8 +293,9 @@ def diff(f, v):
 
     if isinstance(v, SpatialCoordinate):
         return grad(f)
-    # TODO: Could allow diff(f, x[i]) with this code (not tested):
-    #elif isinstance(v, Indexed) and isinstance(v.operands()[0], SpatialCoordinate):
+    # TODO: Allow this? Must be tested well!
+    #elif (isinstance(v, Indexed)
+    #      and isinstance(v.operands()[0], SpatialCoordinate)):
     #    return grad(f)[...,v.operands()[1]]
 
     return VariableDerivative(f, v)
