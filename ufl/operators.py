@@ -297,8 +297,10 @@ def diff(f, v):
     #elif (isinstance(v, Indexed)
     #      and isinstance(v.operands()[0], SpatialCoordinate)):
     #    return grad(f)[...,v.operands()[1]]
-
-    return VariableDerivative(f, v)
+    elif isinstance(v, Variable):
+        return VariableDerivative(f, v)
+    else:
+        error("Expecting a Variable or SpatialCoordinate in diff.")
 
 def grad(f):
     """UFL operator: Take the gradient of f.
