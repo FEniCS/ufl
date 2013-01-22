@@ -210,6 +210,8 @@ class Measure(object): # TODO: Rename to Integrator?
     def __call__(self, domain_id=None, metadata=None):
         """Return integral of same type on given sub domain,
         optionally with some metadata attached."""
+        if domain_id is None and metadata is None:
+            return self.reconstruct(domain_id=Measure.DOMAIN_ID_EVERYWHERE)
         return self.reconstruct(domain_id=domain_id, metadata=metadata)
 
     def __add__(self, other):
