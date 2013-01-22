@@ -294,9 +294,10 @@ class Measure(object): # TODO: Rename to Integrator?
             if D is None:
                 # We have a number but not a domain? Leave it to preprocess...
                 # This is the case with badly formed forms which can occur from dolfin
+                # Reconstructing self here because did could be 0 if self._domain_id is 'everywhere'
                 # Create and return a one-integral form
                 from ufl.form import Form
-                return Form( [Integral(integrand, self)] )
+                return Form( [Integral(integrand, self.reconstruct(domain_id=did))] )
             else:
                 # Reconstruct measure with the found numbered subdomain
                 measure = self.reconstruct(domain_id=D[did])
