@@ -180,6 +180,13 @@ class TestExampleForms(UflTestCase):
         a = inner(u,v)*dx
 
 
+    def test_point1(self):
+        element = FiniteElement("Lagrange", triangle, 1)
+        v = TestFunction(element)
+        u = TrialFunction(element)
+        a = u*v*dP(0)
+
+
     def test_stiffness1(self):
         element = FiniteElement("Lagrange", triangle, 1)
         v = TestFunction(element)
