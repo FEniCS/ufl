@@ -237,8 +237,6 @@ class Measure(object): # TODO: Rename to Integrator?
 
         ### Create form if we have a complete measure with domain description
         if isinstance(self._domain_id, DomainDescription):
-            # TODO: Should we split into integral for each subdomain already at this point?
-
             # Create and return a one-integral form
             from ufl.form import Form
             return Form( [Integral(integrand, self)] )
@@ -284,16 +282,25 @@ class Measure(object): # TODO: Rename to Integrator?
             domains = extract_top_domains(integrand)
 
             # Get domain from integrand, error if multiple found
-            if domains:
-                ufl_assert(len(domains) == 1, "Ambiguous reference to integer subdomain with multiple top domains in integrand.")
+            if len(domains) == 0:
+                # This is the partially defined integral from dolfin expression mess
+                cell = integrand.cell()
+                D = None if cell is None else as_domain(cell)
+            elif len(domains) == 1:
                 D, = domains
             else:
-                D = as_domain(integrand.cell())
-            D = D[did]
+                error("Ambiguous reference to integer subdomain with multiple top domains in integrand.")
 
-            # Reconstruct measure with the found numbered subdomain
-            measure = self.reconstruct(domain_id=D)
-            return integrand*measure
+            if D is None:
+                # We have a number but not a domain? Leave it to preprocess...
+                # This is the case with badly formed forms which can occur from dolfin
+                # Create and return a one-integral form
+                from ufl.form import Form
+                return Form( [Integral(integrand, self)] )
+            else:
+                # Reconstruct measure with the found numbered subdomain
+                measure = self.reconstruct(domain_id=D[did])
+                return integrand*measure
 
         # Did we get several ids?
         elif isinstance(did, tuple):

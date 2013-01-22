@@ -293,6 +293,7 @@ def extract_num_sub_domains(form):
         domain_id = integral.measure().domain_id()
 
         # TODO: This may need some redesign
+        max_domain_id = None
         if isinstance(domain_id, int):
             max_domain_id = domain_id
         elif isinstance(domain_id, Region):
