@@ -173,11 +173,14 @@ class Measure(object): # TODO: Rename to Integrator?
 
     # TODO: This is ugly, is there a better way?
     # Special constants for domain ids with particular meaning. Do not use these values in other code!
+    DOMAIN_ID_ZERO            = "<domain id zero for backwards compatibility>"
     DOMAIN_ID_EVERYWHERE      = "<domain id everywhere>"
     DOMAIN_ID_EVERYWHERE_ELSE = "<domain id everywhere else>"
     DOMAIN_ID_UNDEFINED       = "<domain id undefined>"
-    DOMAIN_ID_DEFAULT = DOMAIN_ID_EVERYWHERE
-    DOMAIN_ID_CONSTANTS = (DOMAIN_ID_EVERYWHERE,
+    #DOMAIN_ID_DEFAULT = DOMAIN_ID_EVERYWHERE
+    DOMAIN_ID_DEFAULT = DOMAIN_ID_ZERO
+    DOMAIN_ID_CONSTANTS = (DOMAIN_ID_ZERO,
+                           DOMAIN_ID_EVERYWHERE,
                            DOMAIN_ID_EVERYWHERE_ELSE,
                            DOMAIN_ID_UNDEFINED)
 
@@ -251,9 +254,11 @@ class Measure(object): # TODO: Rename to Integrator?
             error("Missing domain id. You need to select a subdomain, " +\
                   "e.g. M = f*dx(0) for subdomain 0.")
 
-        # Temporarily translate everywhere to 0 # FIXME Change when we support this properly
-        if did == Measure.DOMAIN_ID_EVERYWHERE:
+        # Temporarily translate constants
+        if did == Measure.DOMAIN_ID_ZERO: # This only happends with the default *dx syntax, need to preserve compatibilty
             did = 0
+        elif did == Measure.DOMAIN_ID_EVERYWHERE:
+            error("Integrals over 'everywhere' not yet supported.") # FIXME Change when we support this properly
         elif did == Measure.DOMAIN_ID_EVERYWHERE_ELSE:
             error("Integrals with 'everywhere else' should not occur in user code.")
 
