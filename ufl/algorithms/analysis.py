@@ -306,15 +306,37 @@ def extract_num_sub_domains(form):
             num_domains[domain_type] = max(num_domains.get(domain_type, 0), max_domain_id + 1)
     return num_domains
 
-def extract_integral_data(form):
-    """
-    Extract integrals from form stored by integral type and sub
-    domain, stored as a list of named tuples
-
+class IntegralData:
+    """Utility class with the members
         (domain_type, domain_id, integrals, metadata)
 
     where metadata is an empty dictionary that may be used for
-    associating metadata with each tuple.
+    associating metadata with each object.
+    """
+    __slots__ = ('domain_type', 'domain_id', 'integrals', 'metadata')
+    def __init__(self, domain_type, domain_id, integrals, metadata):
+        self.domain_type = domain_type
+        self.domain_id = domain_id
+        self.integrals = integrals
+        self.metadata = metadata
+
+    def __lt__(self, other):
+        # To preserve behaviour of extract_integral_data:
+        return (self.domain_type < other.domain_type and
+                self.domain_id < other.domain_id and
+                self.integrals < other.integrals and
+                self.metadata < other.metadata)
+    def __eq__(self, other):
+        # Currently only used for tests:
+        return (self.domain_type == other.domain_type and
+                self.domain_id == other.domain_id and
+                self.integrals == other.integrals and
+                self.metadata == other.metadata)
+
+def extract_integral_data(form):
+    """
+    Extract integrals from form stored by integral type and sub
+    domain, stored as a list of IntegralData objects.
     """
 
     # Extract integral data
@@ -323,10 +345,10 @@ def extract_integral_data(form):
         domain_type = integral.measure().domain_type()
         domain_id = integral.measure().domain_id()
 
-        # TODO: This is a temporary translation from Region to integer ids, but works well at least for now
+        # FIXME DOMAINS: This is a temporary translation from Region to integer ids, but works well at least for now
         if isinstance(domain_id, Domain) or domain_id == Measure.DOMAIN_ID_EVERYWHERE:
             domain_ids = (0,) # TODO: This is the old behaviour, change this to integral over everything
-            #domain_ids = (Measure.DOMAIN_ID_EVERYWHERE,)
+            #domain_ids = (Measure.DOMAIN_ID_EVERYWHERE,) # FIXME DOMAINS
 
         elif domain_id == Measure.DOMAIN_ID_EVERYWHERE_ELSE:
             domain_ids = (Measure.DOMAIN_ID_EVERYWHERE_ELSE,)
