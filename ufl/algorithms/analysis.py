@@ -306,7 +306,7 @@ def extract_num_sub_domains(form):
             num_domains[domain_type] = max(num_domains.get(domain_type, 0), max_domain_id + 1)
     return num_domains
 
-class IntegralData:
+class IntegralData(object):
     """Utility class with the members
         (domain_type, domain_id, integrals, metadata)
 
@@ -322,10 +322,9 @@ class IntegralData:
 
     def __lt__(self, other):
         # To preserve behaviour of extract_integral_data:
-        return (self.domain_type < other.domain_type and
-                self.domain_id < other.domain_id and
-                self.integrals < other.integrals and
-                self.metadata < other.metadata)
+        return ((self.domain_type, self.domain_id, self.integrals, self.metadata)
+                < (other.domain_type, other.domain_id, other.integrals, other.metadata))
+
     def __eq__(self, other):
         # Currently only used for tests:
         return (self.domain_type == other.domain_type and
@@ -383,7 +382,6 @@ def extract_integral_data(form):
     # interior, and macro) so we can just sort... :-)
 
     # Sort by domain type and number
-    IntegralData = namedtuple('IntegralData', ('domain_type', 'domain_id', 'integrals', 'metadata'))
     return sorted(IntegralData(d, n, i, {}) for ((d, n), i) in integral_data.iteritems())
 
 def sort_elements(elements):
