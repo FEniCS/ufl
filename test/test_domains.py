@@ -145,14 +145,18 @@ class FormDomainModelTestCase(UflTestCase):
         f = Coefficient(V)
 
         a = f*dx
-        ida = a.compute_form_data().integral_data
-        self.assertEqual(len(ida), 1)
+        ida, = a.compute_form_data().integral_data
 
-        self.assertEqual(ida[0].domain_type, "cell")
-        self.assertEqual(ida[0].domain_id, 0)
-        #self.assertEqual(ida[0].domain_id, "otherwise") # FIXME DOMAINS: Use "otherwise" for default integral
-        self.assertEqual(ida[0].integrals[0].integrand(), a.integrals()[0].integrand())
-        self.assertEqual(ida[0].metadata, {})
+        # Check some integral data
+        self.assertEqual(ida.domain_type, "cell")
+        self.assertEqual(ida.domain_id, Measure.DOMAIN_ID_OTHERWISE)
+        self.assertEqual(ida.metadata, {})
+
+        # Integrands are not equal because of renumbering
+        itg1 = ida.integrals[0].integrand()
+        itg2 = a.integrals()[0].integrand()
+        self.assertEqual(type(itg1), type(itg2))
+        self.assertEqual(itg1.element(), itg2.element())
 
     def test_mixed_elements_on_overlapping_regions(self):
         # Create domain and both disjoint and overlapping regions

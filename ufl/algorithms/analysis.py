@@ -340,27 +340,52 @@ def extract_integral_data(form):
 
     # Extract integral data
     integral_data = {}
+    everywhere_integrals = {}
+    encountered_unique = set()
+    encountered_non_unique = set()
     for integral in form.integrals():
+        # Get domain description from integral
         domain_type = integral.measure().domain_type()
         domain_id = integral.measure().domain_id()
 
-        # FIXME DOMAINS: This is a temporary translation from Region to integer ids, but works well at least for now
-        if isinstance(domain_id, Domain) or domain_id == Measure.DOMAIN_ID_EVERYWHERE:
-            domain_ids = (0,) # TODO: This is the old behaviour, change this to integral over everything
-            #domain_ids = (Measure.DOMAIN_ID_EVERYWHERE,) # FIXME DOMAINS
+        # Check that we don't get both unique and nonunique domain ids
+        if domain_id == Measure.DOMAIN_ID_UNIQUE:
+            encountered_unique.add(domain_type)
+        else:
+            encountered_non_unique.add(domain_type)
 
-        elif domain_id == Measure.DOMAIN_ID_EVERYWHERE_ELSE:
-            domain_ids = (Measure.DOMAIN_ID_EVERYWHERE_ELSE,)
-            error("Domain id 'everywhere else' not yet supported.")
+        # Get tuple of domain ids
+        if domain_id == Measure.DOMAIN_ID_UNIQUE:
+            # Translate from everywhere to otherwise, can't also have nonunique domain ids
+            domain_ids = (Measure.DOMAIN_ID_OTHERWISE,)
+
+        elif domain_id == Measure.DOMAIN_ID_EVERYWHERE or isinstance(domain_id, Domain):
+            # Translate from everywhere to otherwise, but...
+            domain_ids = (Measure.DOMAIN_ID_OTHERWISE,)
+
+            # Store everywhere integrals to the side to apply to all other integrals below.
+            key = (domain_type, domain_ids[0])
+            if key in everywhere_integrals:
+                everywhere_integrals[key].append(integral)
+            else:
+                everywhere_integrals[key] = [integral]
 
         elif isinstance(domain_id, Region):
+            # Apply all subdomain ids from region separately
             domain_ids = domain_id.subdomain_ids()
+
             # Skip integral over nowhere
             if len(domain_ids) == 0:
                 continue
 
         elif isinstance(domain_id, int):
+            # Apply single subdomain id
             domain_ids = (domain_id,)
+
+        elif domain_id == Measure.DOMAIN_ID_OTHERWISE:
+            # This should not come from user code, only after preprocessing
+            domain_ids = (Measure.DOMAIN_ID_OTHERWISE,)
+            error("Not expecting 'otherwise' domain during preprocessing, has it been applied twice?")
 
         else:
             error("Invalid domain id %s." % (domain_id,))
@@ -369,19 +394,28 @@ def extract_integral_data(form):
         for domain_id in domain_ids:
             key = (domain_type, domain_id)
 
-            # Reconstruct integral with integer domain id TODO: This is a temporary hack during domain transition
+            # Reconstruct integral with suitable domain id
+            # TODO: Avoid integral reconstruction by storing stuff in IntegralData more explicitly
             integral2 = Integral(integral.integrand(), integral.measure().reconstruct(domain_id=domain_id))
 
             if key in integral_data:
-                integral_data[key].append(integral2) # TODO: Not sure how FFC handles this? Consider metadata etc.
+                integral_data[key].append(integral2)
             else:
                 integral_data[key] = [integral2]
 
+    # Accumulate integrals over everywhere into other (type,id) combinations
+    for key, integrals in integral_data.iteritems():
+        integrals.extend(everywhere_integrals.get(key,[]))
+
+    # Checking for f*dx + g*dx(1) situation, but f*dx + g*ds(1) is ok
+    for domain_type in encountered_unique:
+        ufl_assert(domain_type not in encountered_non_unique,
+                   "Found both unique integral and non-unique integral of type '%s' in same form." % (domain_type,))
+
+    # Sort by domain type and number.
     # Note that this sorting thing here is pretty interesting. The
     # domain types happen to be in alphabetical order (cell, exterior,
     # interior, and macro) so we can just sort... :-)
-
-    # Sort by domain type and number
     return sorted(IntegralData(d, n, i, {}) for ((d, n), i) in integral_data.iteritems())
 
 def sort_elements(elements):

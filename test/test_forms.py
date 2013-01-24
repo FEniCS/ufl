@@ -47,16 +47,14 @@ class TestMeasure(UflTestCase):
         # Check that integral_data list is consistent as well
         f2 = f.reconstruct(count=0)
         for itd in fd.integral_data:
-            t, i, itg, md = itd
+            self.assertEqual(itd.domain_type, 'cell')
+            self.assertEqual(itd.metadata, {})
+            self.assertIs(itd.integrals[0].measure().domain_data(), domain_data)
 
-            self.assertEqual(t, 'cell')
-            self.assertEqual(md, {})
-            self.assertIs(itg[0].measure().domain_data(), domain_data)
-
-            # FIXME: Figure out how to handle domain_id in measure with new multidomain features
-            #i, = i.subdomain_ids()
-            self.assertTrue(isinstance(i, int))
-            self.assertEqual(itg[0].integrand(), f2**(i+1))
+            if isinstance(itd.domain_id, int):
+                self.assertEqual(itd.integrals[0].integrand(), f2**(itd.domain_id+1))
+            else:
+                self.assertEqual(itd.domain_id, Measure.DOMAIN_ID_OTHERWISE)
 
     def test_measure_sums(self):
         element = FiniteElement("Lagrange", triangle, 1)

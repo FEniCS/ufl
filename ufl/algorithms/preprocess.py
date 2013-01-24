@@ -194,6 +194,12 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
     # Store number of domains for integral types
     form_data.domain_data = extract_domain_data(form)
 
+    """
+    TODO:
+    [martinal] UFL; Handle foo*dx as "_unique_ integral over everywhere": TODO
+    [martinal] UFL; Enable everywhere integrals and transform to everywhere else integrals: TODO
+    """
+
     # Need this? Please use domain_data.
     #(form_data.cell_domain_data,
     # form_data.exterior_facet_domain_data,
