@@ -407,6 +407,8 @@ def extract_integral_data(form):
     for key, integrals in integral_data.iteritems():
         integrals.extend(everywhere_integrals.get(key,[]))
 
+    # FIXME: Cannonicalize and collapse lists of multiple integrals
+
     # Checking for f*dx + g*dx(1) situation, but f*dx + g*ds(1) is ok
     for domain_type in encountered_unique:
         ufl_assert(domain_type not in encountered_non_unique,
