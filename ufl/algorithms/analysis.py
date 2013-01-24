@@ -24,6 +24,7 @@
 # Last changed: 2013-01-02
 
 from itertools import izip, chain
+from collections import namedtuple
 
 from ufl.log import error, warning, info
 from ufl.assertions import ufl_assert
@@ -308,9 +309,9 @@ def extract_num_sub_domains(form):
 def extract_integral_data(form):
     """
     Extract integrals from form stored by integral type and sub
-    domain, stored as a list of tuples
+    domain, stored as a list of named tuples
 
-        (domain_type, domain_id, measure, integrand, metadata)
+        (domain_type, domain_id, integrals, metadata)
 
     where metadata is an empty dictionary that may be used for
     associating metadata with each tuple.
@@ -360,7 +361,8 @@ def extract_integral_data(form):
     # interior, and macro) so we can just sort... :-)
 
     # Sort by domain type and number
-    return sorted((d, n, i, {}) for ((d, n), i) in integral_data.iteritems())
+    IntegralData = namedtuple('IntegralData', ('domain_type', 'domain_id', 'integrals', 'metadata'))
+    return sorted(IntegralData(d, n, i, {}) for ((d, n), i) in integral_data.iteritems())
 
 def sort_elements(elements):
     """

@@ -138,6 +138,27 @@ class MeasuresOverRegionsTestCase(UflTestCase):
         # FIXME
 
 class FormDomainModelTestCase(UflTestCase):
+    def test_everywhere_integrals_with_backwards_compatibility(self):
+        D = Domain(triangle)
+
+        V = FiniteElement("CG", D, 1)
+        f = Coefficient(V)
+
+        a = f*dx
+        ida = a.compute_form_data().integral_data
+        self.assertEqual(len(ida), 1)
+        # Current state:
+        self.assertEqual(ida[0][0], "cell")
+        self.assertEqual(ida[0][1], 0)
+        self.assertEqual(ida[0][2][0].integrand(), a.integrals()[0].integrand())
+        self.assertEqual(ida[0][3], {})
+        # TODO: Use named tuple
+        self.assertEqual(ida[0].domain_type, "cell")
+        self.assertEqual(ida[0].domain_id, 0)
+        #self.assertEqual(ida[0].domain_id, "otherwise") # TODO: Use "otherwise" for default integral
+        self.assertEqual(ida[0].integrals[0].integrand(), a.integrals()[0].integrand())
+        self.assertEqual(ida[0].metadata, {})
+
     def test_mixed_elements_on_overlapping_regions(self):
         # Create domain and both disjoint and overlapping regions
         D = Domain(tetrahedron, 'D')
