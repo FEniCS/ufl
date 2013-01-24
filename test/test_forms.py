@@ -42,8 +42,7 @@ class TestMeasure(UflTestCase):
         # Check that we get the right domain_data from the preprocessed form data
         fd = a.compute_form_data()
         self.assertIs(fd.domain_data['cell'], domain_data)
-        self.assertIs(fd.cell_domain_data, domain_data)
-        self.assertIsNone(fd.exterior_facet_domain_data)
+        self.assertIsNone(fd.domain_data.get('exterior_facet'))
 
         # Check that integral_data list is consistent as well
         f2 = f.reconstruct(count=0)

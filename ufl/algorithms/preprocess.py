@@ -181,23 +181,27 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
 
     # Store number of domains for integral types
     form_data.num_sub_domains = extract_num_sub_domains(form)
-    (form_data.num_cell_domains,
-     form_data.num_exterior_facet_domains,
-     form_data.num_interior_facet_domains,
-     form_data.num_point_domains,
-     form_data.num_macro_cell_domains,
-     form_data.num_surface_domains) = slice_dict(form_data.num_sub_domains,
-                                                 _domain_types, 0)
+
+    # Need this? Please use num_sub_domains.
+    #(form_data.num_cell_domains,
+    # form_data.num_exterior_facet_domains,
+    # form_data.num_interior_facet_domains,
+    # form_data.num_point_domains,
+    # form_data.num_macro_cell_domains,
+    # form_data.num_surface_domains) = slice_dict(form_data.num_sub_domains,
+    #                                             _domain_types, 0)
 
     # Store number of domains for integral types
     form_data.domain_data = extract_domain_data(form)
-    (form_data.cell_domain_data,
-     form_data.exterior_facet_domain_data,
-     form_data.interior_facet_domain_data,
-     form_data.point_domain_data,
-     form_data.macro_cell_domain_data,
-     form_data.surface_domain_data) = slice_dict(form_data.domain_data,
-                                                 _domain_types, None)
+
+    # Need this? Please use domain_data.
+    #(form_data.cell_domain_data,
+    # form_data.exterior_facet_domain_data,
+    # form_data.interior_facet_domain_data,
+    # form_data.point_domain_data,
+    # form_data.macro_cell_domain_data,
+    # form_data.surface_domain_data) = slice_dict(form_data.domain_data,
+    #                                             _domain_types, None)
 
     # Store integrals by type and domain id
     form_data.integral_data = extract_integral_data(form)

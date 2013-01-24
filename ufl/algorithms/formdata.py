@@ -36,18 +36,15 @@ class FormData(object):
 
     def __str__(self):
         "Return formatted summary of form data"
+        types = sorted(self.num_sub_domains.keys())
+        domains = tuple(("Number of %s domains" % domain_type, self.num_sub_domains[domain_type]) for domain_type in types)
         return tstr((("Name",                               self.name),
                      ("Rank",                               self.rank),
                      ("Cell",                               self.cell),
                      ("Topological dimension",              self.topological_dimension),
                      ("Geometric dimension",                self.geometric_dimension),
                      ("Number of coefficients",             self.num_coefficients),
-                     ("Number of cell domains",             self.num_cell_domains),
-                     ("Number of exterior facet domains",   self.num_exterior_facet_domains),
-                     ("Number or interior facet domains",   self.num_interior_facet_domains),
-                     ("Number or point domains",            self.num_point_domains),
-                     ("Number of macro cell domains",       self.num_macro_cell_domains),
-                     ("Number of surface domains",          self.num_surface_domains),
+                     ) + domains + (
                      ("Arguments",                          lstr(self.arguments)),
                      ("Coefficients",                       lstr(self.coefficients)),
                      ("Argument names",                     lstr(self.argument_names)),
@@ -67,4 +64,3 @@ class FormData(object):
                    "Found non-matching cells in form data validation.")
         ufl_assert(element_mapping == self._input_element_mapping,
                    "Found non-matching element mappings in form data validation.")
-
