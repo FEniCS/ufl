@@ -39,6 +39,7 @@ from ufl.variable import Variable
 from ufl.indexing import Index, MultiIndex
 from ufl.domains import Region, Domain
 from ufl.integral import Measure, Integral
+from ufl.form import Form
 from ufl.algorithms.traversal import iter_expressions, post_traversal, post_walk, traverse_terminals
 
 # Domain types (should probably be listed somewhere else)
@@ -360,10 +361,10 @@ def extract_integral_data(form):
             domain_ids = (Measure.DOMAIN_ID_OTHERWISE,)
 
         elif domain_id == Measure.DOMAIN_ID_EVERYWHERE or isinstance(domain_id, Domain):
-            # Translate from everywhere to otherwise, but...
+            # Translate from everywhere to otherwise, and...
             domain_ids = (Measure.DOMAIN_ID_OTHERWISE,)
 
-            # Store everywhere integrals to the side to apply to all other integrals below.
+            # ... also store everywhere integrals to the side to apply to all other integrals below.
             key = (domain_type, domain_ids[0])
             if key in everywhere_integrals:
                 everywhere_integrals[key].append(integral)
@@ -374,7 +375,7 @@ def extract_integral_data(form):
             # Apply all subdomain ids from region separately
             domain_ids = domain_id.subdomain_ids()
 
-            # Skip integral over nowhere
+            # Skip integral over empty region
             if len(domain_ids) == 0:
                 continue
 
@@ -403,11 +404,19 @@ def extract_integral_data(form):
             else:
                 integral_data[key] = [integral2]
 
-    # Accumulate integrals over everywhere into other (type,id) combinations
+    # Accumulate integrals over everywhere into other (type,id) combinations,
+    # FIXME: and canonicalize and collapse lists of multiple similar integrals
+    new_integral_data = {}
     for key, integrals in integral_data.iteritems():
-        integrals.extend(everywhere_integrals.get(key,[]))
-
-    # FIXME: Cannonicalize and collapse lists of multiple integrals
+        eitg = [Integral(itg.integrand(), itg.measure().reconstruct(domain_id=key[1])) for itg in everywhere_integrals.get(key,[])]
+        new_integrals = integrals + eitg
+        if len(new_integrals) > 1:
+            # FIXME: Is this robust w.r.t different metadata?
+            # Abusing the sorting and automatic addition of integrals in Form a bit here:
+            # TODO: Move all integral sorting and addition into this algorithm instead?
+            new_integrals = Form(new_integrals).integrals()
+        new_integral_data[key] = new_integrals
+    integral_data = new_integral_data
 
     # Checking for f*dx + g*dx(1) situation, but f*dx + g*ds(1) is ok
     for domain_type in encountered_unique:
