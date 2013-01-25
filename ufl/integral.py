@@ -91,9 +91,9 @@ class MeasureSum(object):
 
     def __add__(self, other):
         if isinstance(other, Measure):
-            return MeasureSum(self._measures + (other,))
+            return MeasureSum(*(self._measures + (other,)))
         elif isinstance(other, MeasureSum):
-            return MeasureSum(self._measures + other._measures)
+            return MeasureSum(*(self._measures + other._measures))
         return NotImplemented
 
     def __str__(self):
