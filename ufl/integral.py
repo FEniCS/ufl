@@ -121,10 +121,10 @@ class Measure(object): # TODO: Rename to Integrator?
                  "_repr",)
 
     # Enumeration of special domain ids
-    DOMAIN_ID_UNDEFINED       = "<domain id undefined>"
-    DOMAIN_ID_UNIQUE          = "<domain id unique in form>"
-    DOMAIN_ID_EVERYWHERE      = "<domain id everywhere>"
-    DOMAIN_ID_OTHERWISE       = "<domain id otherwise>"
+    DOMAIN_ID_UNDEFINED       = "undefined"
+    DOMAIN_ID_UNIQUE          = "unique"
+    DOMAIN_ID_EVERYWHERE      = "everywhere"
+    DOMAIN_ID_OTHERWISE       = "otherwise"
     DOMAIN_ID_DEFAULT   = DOMAIN_ID_UNIQUE # The one used by dx,ds,dS,etc.
     DOMAIN_ID_CONSTANTS = (DOMAIN_ID_UNDEFINED,
                            DOMAIN_ID_UNIQUE,
