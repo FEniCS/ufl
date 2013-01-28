@@ -384,6 +384,10 @@ class ProductMeasure(Measure):
         "Return submeasures."
         return self._measures
 
+# Transitional helper until we decide to change Integral permanently
+def Integral2(integrand, domain_type, domain_desc, compiler_data, domain_data):
+    return Integral(integrand, Measure(domain_type, domain_desc, compiler_data, domain_data))
+
 class Integral(object):
     "An integral over a single domain."
     __slots__ = ("_integrand", "_measure",)

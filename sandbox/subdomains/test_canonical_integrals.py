@@ -1,3 +1,4 @@
+from ufl import *
 
 class Integral:
     def __init__(self, integrand, domain_type, domain_id, compiler_data, domain_data):
@@ -68,7 +69,7 @@ def integral_domain_ids(integral):
     elif isinstance(did, Region):
         return did.sub_domain_ids()
     elif isinstance(did, Domain):
-        return "everywhere"
+        return Measure.DOMAIN_ID_EVERYWHERE
     elif isinstance(did, str):
         return did
 
@@ -79,30 +80,42 @@ comp3 = {'1':1}
 sol1 = (0,3,5)
 sol2 = (0,3,7)
 
+# Basic UFL expressions for integrands
+V = FiniteElement("CG", triangle, 1)
+f = Coefficient(V)
+g = Coefficient(V)
+h = Coefficient(V)
+
+# FIXME: Replace these with real Integral objects
 # Mock list of integral objects
 integrals = {}
 integrals["cell"] = [# Integrals over 0 with no compiler_data:
-                     Integral("foo", "cell", 0, None, None), Integral("bar", "cell", 0, None, sol1),
+                     Integral(f, "cell", 0, None, None),
+                     Integral(g, "cell", 0, None, sol1),
                      # Integrals over 0 with different compiler_data:
-                     Integral("foy", "cell", 0, comp1, None), Integral("bay", "cell", 0, comp2, None),
+                     Integral(f**2, "cell", 0, comp1, None),
+                     Integral(g**2, "cell", 0, comp2, None),
                      # Integrals over 1 with same compiler_data object:
-                     Integral("foz", "cell", 1, comp1, None), Integral("baz", "cell", 1, comp1, sol1),
+                     Integral(f**3, "cell", 1, comp1, None),
+                     Integral(g**3, "cell", 1, comp1, sol1),
                      # Integral over 0 and 1 with compiler_data object found in 0 but not 1 above:
-                     Integral("fro", "cell", (0,1), comp2, None),
+                     Integral(f**4, "cell", (0,1), comp2, None),
                      # Integral over 0 and 1 with its own compiler_data object:
-                     Integral("bro", "cell", (0,1), comp3, None),
+                     Integral(g**4, "cell", (0,1), comp3, None),
                      # Integral over 0 and 1 no compiler_data object:
-                     Integral("reg", "cell", (0,1), None, None),
+                     Integral(h/3, "cell", (0,1), None, None),
                      # Integral over everywhere with no compiler data:
-                     Integral("evr", "cell", "everywhere", None, None),
+                     Integral(h/2, "cell", Measure.DOMAIN_ID_EVERYWHERE, None, None),
                      ]
 
 
 ### Algorithm sketch to build canonical data structure for integrals over subdomains
 
 # Tuple comparison helper
-#from ufl.sorting import cmp_expr
-cmp_expr = cmp
+from collections import defaultdict
+from ufl.sorting import cmp_expr
+from ufl.sorting import sorted_expr
+
 class ExprTupleKey(object):
     __slots__ = ('x',)
     def __init__(self, x):
@@ -117,9 +130,6 @@ class ExprTupleKey(object):
             return False
 def expr_tuple_key(expr):
     return ExprTupleKey(expr)
-from collections import defaultdict
-#from ufl.sorting import sorted_expr
-sorted_expr = sorted
 
 def integral_dict_to_sub_integral_data(integrals):
     # Data structures to return
@@ -148,23 +158,23 @@ def build_sub_integral_list(itgs):
     # Fill sitgs with lists of integrals sorted by and restricted to subdomain ids
     for itg in itgs:
         dids = itg.domain_ids()
-        assert dids != "otherwise"
-        if dids == "everywhere":
+        assert dids != Measure.DOMAIN_ID_OTHERWISE
+        if dids == Measure.DOMAIN_ID_EVERYWHERE:
             # Everywhere integral
-            sitgs["everywhere"].append(itg)
+            sitgs[Measure.DOMAIN_ID_EVERYWHERE].append(itg)
         else:
             # Region or single subdomain id
             for did in dids:
                 sitgs[did].append(itg.restricted(did)) # Restrict integral to this subdomain!
 
     # Add everywhere integrals to each single subdomain id integral list
-    if "everywhere" in sitgs:
+    if Measure.DOMAIN_ID_EVERYWHERE in sitgs:
         # We'll consume everywhere integrals...
-        ei = sitgs["everywhere"]
-        del sitgs["everywhere"]
+        ei = sitgs[Measure.DOMAIN_ID_EVERYWHERE]
+        del sitgs[Measure.DOMAIN_ID_EVERYWHERE]
         # ... and produce otherwise integrals instead
-        assert "otherwise" not in sitgs
-        sitgs["otherwise"] = []
+        assert Measure.DOMAIN_ID_OTHERWISE not in sitgs
+        sitgs[Measure.DOMAIN_ID_OTHERWISE] = []
         # Restrict everywhere integral to each subdomain and append to each integral list
         for did, itglist in sitgs.iteritems():
             for itg in ei:
@@ -208,7 +218,7 @@ def canonicalize_sub_integral_data(sitgs):
             integrals, cd = by_cdid[cdid]
             # Ensure canonical sorting of more than two integrands
             integrands = sorted_expr((itg.integrand() for itg in integrals))
-            integrands_sum = ''.join(integrands) # TODO: Use sum with proper ufl integrands
+            integrands_sum = sum(integrands[1:], integrands[0])
             by_cdid[cdid] = (integrands_sum, cd)
 
         # Sort integrands canonically by integrand first then compiler data
