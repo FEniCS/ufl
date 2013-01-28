@@ -130,19 +130,11 @@ def extract_domain_data_from_integrals(integrals):
     assert len(ddids) <= 1, ("Found multiple domain data objects in form for domain type %s" % dt)
     return domain_data
 
-def typed_integrals_to_sub_integral_data(itgs):
-    # Make dict for this domain type with mapping (subdomain id -> integral list)
-    sitgs = build_sub_integral_list(itgs)
-
-    # Then finally make a canonical representation of integrals with only
-    # one integral object for each compiler_data on each subdomain
-    return canonicalize_sub_integral_data(sitgs)
-
-def canonicalize_sub_integral_data(sitgs):
-    for did in sitgs:
+def canonicalize_sub_integral_data(sub_integrals):
+    for did in sub_integrals:
         # Group integrals by compiler data object id
         by_cdid = {}
-        for itg in sitgs[did]:
+        for itg in sub_integrals[did]:
             cd = itg.compiler_data()
             cdid = id(cd)
             if cdid in by_cdid:
@@ -159,11 +151,11 @@ def canonicalize_sub_integral_data(sitgs):
             by_cdid[cdid] = (integrands_sum, cd)
 
         # Sort integrands canonically by integrand first then compiler data
-        sitgs[did] = sorted(by_cdid.values(), key=expr_tuple_key)
+        sub_integrals[did] = sorted(by_cdid.values(), key=expr_tuple_key)
         # E.g.:
-        #sitgs[did][:] = [(integrand0, compiler_data0), (integrand1, compiler_data1), ...]
+        #sub_integrals[did][:] = [(integrand0, compiler_data0), (integrand1, compiler_data1), ...]
 
-    return sitgs
+    return sub_integrals
 
 # Convert to integral_data format during transitional period:
 from ufl.algorithms.analysis import IntegralData
