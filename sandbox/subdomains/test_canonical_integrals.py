@@ -90,33 +90,33 @@ def integral_dict_to_sub_integral_data(integrals):
     return sub_integral_data, domain_data
 
 def build_sub_integral_list(itgs):
-    sitgs = defaultdict(list)
+    sub_integrals = defaultdict(list)
 
-    # Fill sitgs with lists of integrals sorted by and restricted to subdomain ids
+    # Fill sub_integrals with lists of integrals sorted by and restricted to subdomain ids
     for itg in itgs:
         dids = integral_domain_ids(itg)
         assert dids != Measure.DOMAIN_ID_OTHERWISE
         if dids == Measure.DOMAIN_ID_EVERYWHERE:
             # Everywhere integral
-            sitgs[Measure.DOMAIN_ID_EVERYWHERE].append(itg)
+            sub_integrals[Measure.DOMAIN_ID_EVERYWHERE].append(itg)
         else:
             # Region or single subdomain id
             for did in dids:
-                sitgs[did].append(restricted_integral(itg, did)) # Restrict integral to this subdomain!
+                sub_integrals[did].append(restricted_integral(itg, did)) # Restrict integral to this subdomain!
 
     # Add everywhere integrals to each single subdomain id integral list
-    if Measure.DOMAIN_ID_EVERYWHERE in sitgs:
+    if Measure.DOMAIN_ID_EVERYWHERE in sub_integrals:
         # We'll consume everywhere integrals...
-        ei = sitgs[Measure.DOMAIN_ID_EVERYWHERE]
-        del sitgs[Measure.DOMAIN_ID_EVERYWHERE]
+        ei = sub_integrals[Measure.DOMAIN_ID_EVERYWHERE]
+        del sub_integrals[Measure.DOMAIN_ID_EVERYWHERE]
         # ... and produce otherwise integrals instead
-        assert Measure.DOMAIN_ID_OTHERWISE not in sitgs
-        sitgs[Measure.DOMAIN_ID_OTHERWISE] = []
+        assert Measure.DOMAIN_ID_OTHERWISE not in sub_integrals
+        sub_integrals[Measure.DOMAIN_ID_OTHERWISE] = []
         # Restrict everywhere integral to each subdomain and append to each integral list
-        for did, itglist in sitgs.iteritems():
+        for did, itglist in sub_integrals.iteritems():
             for itg in ei:
                 itglist.append(restricted_integral(itg, did))
-    return sitgs
+    return sub_integrals
 
 def extract_domain_data_from_integrals(integrals):
     # Keep track of domain data objects, want only one
