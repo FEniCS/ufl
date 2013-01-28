@@ -59,6 +59,19 @@ class Integral:
         return "Integral(%r, %r, %r, %r, %r)" % (self.integrand(), self.domain_type(), self.domain_ids(),
                                                  self.compiler_data(), self.domain_data())
 
+def integral_domain_ids(integral):
+    did = integral.measure.domain_id()
+    if isinstance(did, int):
+        return (did,)
+    elif isinstance(did, tuple):
+        return did
+    elif isinstance(did, Region):
+        return did.sub_domain_ids()
+    elif isinstance(did, Domain):
+        return "everywhere"
+    elif isinstance(did, str):
+        return did
+
 # Mock objects for compiler data and solver data
 comp1 = [1,2,3]
 comp2 = ('a', 'b')
