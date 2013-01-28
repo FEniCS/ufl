@@ -50,6 +50,34 @@ def integral_dict_to_sequence(integrals):
     "Map a dictionary of lists of Integrals keyed by domain type into a sequence of Integral objects ."
     return tuple(itg for dt in Measure._domain_types_tuple for itg in integrals.get(dt, ()))
 
+def join_dintegrals(aintegrals, bintegrals):
+    # FIXME: Implement to store all integrals in a canonical sorting
+    return join_lintegrals(integral_dict_to_sequence(aintegrals), integral_dict_to_sequence(bintegrals))
+
+def join_lintegrals(aintegrals, bintegrals):
+    newintegrals = list(aintegrals)
+
+    # Build mapping: (measure -> newintegrals index)
+    measure2idx = {}
+    for i, itg in enumerate(newintegrals):
+        ufl_assert(itg.measure() not in measure2idx, "Form invariant breached, found two integrals with same measure.")
+        measure2idx[itg.measure()] = i
+
+    for itg in bintegrals:
+        idx = measure2idx.get(itg.measure())
+        if idx is None:
+            # Append integral with new measure to list
+            idx = len(newintegrals)
+            measure2idx[itg.measure()] = idx
+            newintegrals.append(itg)
+        else:
+            # Accumulate integrands with same measure
+            a = newintegrals[idx].integrand()
+            b = itg.integrand()
+            newintegrals[idx] = itg.reconstruct(a + b)
+
+    return newintegrals
+
 class Form(object):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
     __slots__ = ("_integrals", # TODO: Deprecate this in favor of...
@@ -72,7 +100,8 @@ class Form(object):
         self._is_preprocessed = False
 
     def cell(self): # TODO: DEPRECATE
-        #error("Form.cell is not well defined and has been removed.")
+        #from ufl.log import deprecate
+        #deprecate("Form.cell is not well defined and will be removed.")
         for itg in self._integrals:
             cell = itg.integrand().cell()
             if cell is not None:
@@ -86,21 +115,13 @@ class Form(object):
         (domain_type, domain_id), and each value is a list of
         Integral instances. The Integrals in each list share the
         same domain (the key), but have different measures."""
-        d = {}
-        for itg in self.integrals():
-            m = itg.measure()
-            k = (m.domain_type(), m.domain_id())
-            l = d.get(k)
-            if not l:
-                l = []
-                d[k] = l
-            l.append(itg)
-        return d
+        return self._dintegrals
 
     def integrals(self, domain_type=None):
         if domain_type is None:
-            return self._integrals
-        return tuple(itg for itg in self._integrals if itg.measure().domain_type() == domain_type)
+            return integral_dict_to_sequence(self._dintegrals)
+        else:
+            return self._dintegrals[domain_type]
 
     def measures(self, domain_type=None):
         return tuple(itg.measure() for itg in self.integrals(domain_type))
@@ -109,22 +130,23 @@ class Form(object):
         return tuple((m.domain_type(), m.domain_id()) for m in self.measures(domain_type))
 
     def cell_integrals(self):
-        return self.integrals(Measure.CELL)
+        #deprecate("Please use integrals(Measure.CELL) instead.") # TODO: Deprecate this and the others to simplify Form
+        return self._dintegrals[Measure.CELL]
 
     def exterior_facet_integrals(self):
-        return self.integrals(Measure.EXTERIOR_FACET)
+        return self._dintegrals[Measure.EXTERIOR_FACET]
 
     def interior_facet_integrals(self):
-        return self.integrals(Measure.INTERIOR_FACET)
+        return self._dintegrals[Measure.INTERIOR_FACET]
 
     def point_integrals(self):
-        return self.integrals(Measure.POINT)
+        return self._dintegrals[Measure.POINT]
 
     def macro_cell_integrals(self):
-        return self.integrals(Measure.MACRO_CELL)
+        return self._dintegrals[Measure.MACRO_CELL]
 
     def surface_integrals(self):
-        return self.integrals(Measure.SURFACE)
+        return self._dintegrals[Measure.SURFACE]
 
     def form_data(self):
         "Return form metadata (None if form has not been preprocessed)"
@@ -137,6 +159,7 @@ class Form(object):
                           replace_functions=True,
                           skip_signature=False):
         "Compute and return form metadata"
+        # TODO: We should get rid of the form data caching, but need to figure out how to do that and keep pydolfin working properly
         if self._form_data is None:
             from ufl.algorithms.preprocess import preprocess
             self._form_data = preprocess(self,
@@ -148,7 +171,7 @@ class Form(object):
         else:
             self._form_data.validate(object_names=object_names,
                                      common_cell=common_cell,
-                                     element_mapping=element_mapping) # TODO: Check replace_functions and skip_signature as well
+                                     element_mapping=element_mapping) # FIXME: Check replace_functions and skip_signature as well
         return self.form_data()
 
     def is_preprocessed(self):
@@ -163,37 +186,15 @@ class Form(object):
         return self.__add__(other)
 
     def __add__(self, other):
-        # Allow adding 0 or 0.0, needed for sum([a,b])
-        if isinstance(other, (int,float)) and other == 0:
+        if isinstance(other, Form):
+            # Add integrands of integrals with the same measure
+            return Form(join_dintegrals(self._dintegrals, other._dintegrals))
+        elif isinstance(other, (int,float)) and other == 0:
+            # Allow adding 0 or 0.0 as a no-op, needed for sum([a,b])
             return self
-        elif not isinstance(other, Form):
+        else:
+            # Let python protocols do their job if we don't handle it
             return NotImplemented
-
-        # --- Add integrands of integrals with the same measure
-
-        # Start with integrals in self
-        newintegrals = list(self._integrals)
-
-        # Build mapping: (measure -> self._integrals index)
-        measure2idx = {}
-        for i, itg in enumerate(newintegrals):
-            ufl_assert(itg.measure() not in measure2idx, "Form invariant breached.")
-            measure2idx[itg.measure()] = i
-
-        for itg in other._integrals:
-            idx = measure2idx.get(itg.measure())
-            if idx is None:
-                # Append integral with new measure to list
-                idx = len(newintegrals)
-                measure2idx[itg.measure()] = idx
-                newintegrals.append(itg)
-            else:
-                # Accumulate integrands with same measure
-                a = newintegrals[idx].integrand()
-                b = itg.integrand()
-                newintegrals[idx] = itg.reconstruct(a + b)
-
-        return Form(newintegrals)
 
     def __sub__(self, other):
         "Subtract other form from this one."
@@ -204,13 +205,13 @@ class Form(object):
 
         This enables the handy "-form" syntax for e.g. the
         linearized system (J, -F) from a nonlinear form F."""
-        return Form([-itg for itg in self._integrals])
+        return Form([-itg for itg in self.integrals()])
 
     def __rmul__(self, scalar):
         "Multiply all integrals in form with constant scalar value."
         # This enables the handy "0*form" or "dt*form" syntax
         if is_scalar_constant_expression(scalar):
-            return Form([scalar*itg for itg in self._integrals])
+            return Form([scalar*itg for itg in self.integrals()])
         return NotImplemented
 
     def __mul__(self, coefficient):
@@ -221,18 +222,21 @@ class Form(object):
         return NotImplemented
 
     def __str__(self):
-        if self._integrals:
-            return "\n  +  ".join(str(itg) for itg in self._integrals)
+        # TODO: Add warning here to check if anyone actually calls it in libraries
+        if self._dintegrals:
+            return "\n  +  ".join(str(itg) for itg in self.integrals())
         else:
             return "<empty Form>"
 
     def __repr__(self):
-        r = "Form([%s])" % ", ".join(repr(itg) for itg in self._integrals)
+        # TODO: Add warning here to check if anyone actually calls it in libraries
+        # Not caching this because it can be huge
+        r = "Form([%s])" % ", ".join(repr(itg) for itg in self.integrals())
         return r
 
     def __hash__(self):
         if self._hash is None:
-            hashdata = tuple((hash(itg.integrand()), hash(itg.measure())) for itg in self._integrals)
+            hashdata = tuple((hash(itg.integrand()), hash(itg.measure())) for itg in self.integrals())
             self._hash = hash(hashdata)
         return self._hash
 
