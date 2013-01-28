@@ -1,24 +1,7 @@
 from ufl import *
 
+# A couple of ideas for the Integral class:
 class Integral:
-    def __init__(self, integrand, domain_type, domain_id, compiler_data, domain_data):
-
-        self._domain_type = domain_type
-
-        if isinstance(domain_id, int):
-            self._domain_ids = (domain_id,)
-        elif isinstance(domain_id, tuple):
-            self._domain_ids = domain_id
-        elif isinstance(domain_id, str):
-            self._domain_ids = domain_id
-        else:
-            error
-
-        self._integrand = integrand
-
-        self._compiler_data = compiler_data
-        self._domain_data = domain_data
-
     def restricted(self, domain_id):
         if self.domain_ids() == (domain_id,):
             return self
@@ -37,31 +20,15 @@ class Integral:
                 domain_data = sd
             return Integral(self.integrand(), self.domain_type(), self.domain_ids(), compiler_data, domain_data)
 
-    def integrand(self):
-        return self._integrand
 
-    def domain_type(self):
-        return self._domain_type
-
-    def domain_ids(self):
-        return self._domain_ids
-
-    def compiler_data(self):
-        return self._compiler_data
-
-    def domain_data(self):
-        return self._domain_data
-
-    def __str__(self):
-        return "I(%s, %s, %s, %s, %s)" % (self.integrand(), self.domain_type(), self.domain_ids(),
-                                          self.compiler_data(), self.domain_data())
-
-    def __repr__(self):
-        return "Integral(%r, %r, %r, %r, %r)" % (self.integrand(), self.domain_type(), self.domain_ids(),
-                                                 self.compiler_data(), self.domain_data())
+def restricted_integral(integral, domain_id):
+    if integral_domain_ids(integral) == (domain_id,):
+        return integral
+    else:
+        return Integral2(integral.integrand(), integral.domain_type(), domain_id, integral.compiler_data(), integral.domain_data())
 
 def integral_domain_ids(integral):
-    did = integral.measure.domain_id()
+    did = integral.measure().domain_id()
     if isinstance(did, int):
         return (did,)
     elif isinstance(did, tuple):
@@ -88,24 +55,25 @@ h = Coefficient(V)
 
 # FIXME: Replace these with real Integral objects
 # Mock list of integral objects
+from ufl.integral import Integral2 # Transitional helper constructor
 integrals = {}
 integrals["cell"] = [# Integrals over 0 with no compiler_data:
-                     Integral(f, "cell", 0, None, None),
-                     Integral(g, "cell", 0, None, sol1),
+                     Integral2(f, "cell", 0, None, None),
+                     Integral2(g, "cell", 0, None, sol1),
                      # Integrals over 0 with different compiler_data:
-                     Integral(f**2, "cell", 0, comp1, None),
-                     Integral(g**2, "cell", 0, comp2, None),
+                     Integral2(f**2, "cell", 0, comp1, None),
+                     Integral2(g**2, "cell", 0, comp2, None),
                      # Integrals over 1 with same compiler_data object:
-                     Integral(f**3, "cell", 1, comp1, None),
-                     Integral(g**3, "cell", 1, comp1, sol1),
+                     Integral2(f**3, "cell", 1, comp1, None),
+                     Integral2(g**3, "cell", 1, comp1, sol1),
                      # Integral over 0 and 1 with compiler_data object found in 0 but not 1 above:
-                     Integral(f**4, "cell", (0,1), comp2, None),
+                     Integral2(f**4, "cell", (0,1), comp2, None),
                      # Integral over 0 and 1 with its own compiler_data object:
-                     Integral(g**4, "cell", (0,1), comp3, None),
+                     Integral2(g**4, "cell", (0,1), comp3, None),
                      # Integral over 0 and 1 no compiler_data object:
-                     Integral(h/3, "cell", (0,1), None, None),
+                     Integral2(h/3, "cell", (0,1), None, None),
                      # Integral over everywhere with no compiler data:
-                     Integral(h/2, "cell", Measure.DOMAIN_ID_EVERYWHERE, None, None),
+                     Integral2(h/2, "cell", Measure.DOMAIN_ID_EVERYWHERE, None, None),
                      ]
 
 
@@ -157,7 +125,7 @@ def build_sub_integral_list(itgs):
 
     # Fill sitgs with lists of integrals sorted by and restricted to subdomain ids
     for itg in itgs:
-        dids = itg.domain_ids()
+        dids = integral_domain_ids(itg)
         assert dids != Measure.DOMAIN_ID_OTHERWISE
         if dids == Measure.DOMAIN_ID_EVERYWHERE:
             # Everywhere integral
@@ -165,7 +133,7 @@ def build_sub_integral_list(itgs):
         else:
             # Region or single subdomain id
             for did in dids:
-                sitgs[did].append(itg.restricted(did)) # Restrict integral to this subdomain!
+                sitgs[did].append(restricted_integral(itg, did)) # Restrict integral to this subdomain!
 
     # Add everywhere integrals to each single subdomain id integral list
     if Measure.DOMAIN_ID_EVERYWHERE in sitgs:
@@ -178,7 +146,7 @@ def build_sub_integral_list(itgs):
         # Restrict everywhere integral to each subdomain and append to each integral list
         for did, itglist in sitgs.iteritems():
             for itg in ei:
-                itglist.append(itg.restricted(did))
+                itglist.append(restricted_integral(itg, did))
     return sitgs
 
 def extract_domain_data_from_integrals(integrals):
@@ -242,13 +210,13 @@ def print_sub_integral_data(sub_integral_data):
                 print "compiler data:", compiler_data
 
 # Convert to integral_data format during transitional period:
+from ufl.algorithms.analysis import IntegralData
 def sub_integral_data_to_integral_data(sub_integral_data):
     integral_data = []
     for domain_type, domain_type_data in sub_integral_data.iteritems():
         for domain_id, sub_domain_integrands in domain_type_data.iteritems():
-            integrals = [Integral(integrand, domain_type, domain_id, compiler_data, None)
+            integrals = [Integral2(integrand, domain_type, domain_id, compiler_data, None)
                          for integrand, compiler_data in sub_domain_integrands]
-            IntegralData = lambda *x: tuple(x) # TODO
             ida = IntegralData(domain_type, domain_id, integrals, {})
             integral_data.append(ida)
     return integral_data
