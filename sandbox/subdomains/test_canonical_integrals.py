@@ -1,35 +1,10 @@
+"""Algorithm sketch to build canonical data structure for integrals over subdomains."""
+
 from ufl import *
 
 
 # Transitional helper constructor
 from ufl.integral import Integral2
-
-# A couple of ideas for the Integral class:
-class Integral:
-    def restricted(self, domain_id):
-        if self.domain_ids() == (domain_id,):
-            return self
-        else:
-            return Integral(self.integrand(), self.domain_type(), domain_id, self.compiler_data(), self.domain_data())
-
-    def annotated(self, compiler_data=None, domain_data=None):
-        cd = self.compiler_data()
-        sd = self.domain_data()
-        if cd is compiler_data and sd is domain_data:
-            return self
-        else:
-            if compiler_data is None:
-                compiler_data = cd
-            if domain_data is None:
-                domain_data = sd
-            return Integral(self.integrand(), self.domain_type(), self.domain_ids(), compiler_data, domain_data)
-
-
-def restricted_integral(integral, domain_id):
-    if integral_domain_ids(integral) == (domain_id,):
-        return integral
-    else:
-        return Integral2(integral.integrand(), integral.domain_type(), domain_id, integral.compiler_data(), integral.domain_data())
 
 def integral_domain_ids(integral):
     did = integral.measure().domain_id()
@@ -44,8 +19,30 @@ def integral_domain_ids(integral):
     elif isinstance(did, str):
         return did
 
+def restricted_integral(integral, domain_id):
+    if integral_domain_ids(integral) == (domain_id,):
+        return integral
+    else:
+        return Integral2(integral.integrand(), integral.domain_type(), domain_id, integral.compiler_data(), integral.domain_data())
 
-### Algorithm sketch to build canonical data structure for integrals over subdomains
+def restricted_integral(integral, domain_id):
+    if integral_domain_ids(integral) == (domain_id,):
+        return integral
+    else:
+        return Integral2(integral.integrand(), integral.domain_type(), domain_id, integral.compiler_data(), integral.domain_data())
+
+def annotated_integral(integral, compiler_data=None, domain_data=None):
+    cd = integral.compiler_data()
+    sd = integral.domain_data()
+    if cd is compiler_data and sd is domain_data:
+        return integral
+    else:
+        if compiler_data is None:
+            compiler_data = cd
+        if domain_data is None:
+            domain_data = sd
+        return Integral2(integral.integrand(), integral.domain_type(), integral.domain_ids(), compiler_data, domain_data)
+
 
 # Tuple comparison helper
 from collections import defaultdict
