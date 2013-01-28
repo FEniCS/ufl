@@ -409,6 +409,18 @@ class Integral(object):
         "Return the integrand expression, which is an Expr instance."
         return self._integrand
 
+    def domain_type(self):
+        "Return the domain type of this integral."
+        return self._measure.domain_type()
+
+    def compiler_data(self): # TODO: This is work in progress, transition from having data in Measure to here.
+        "Return the compiler metadata this integral has been annotated with."
+        return self._measure.metadata()
+
+    def assembler_data(self): # TODO: This is work in progress, transition from having data in Measure to here.
+        "Return the assembler metadata this integral has been annotated with."
+        return self._measure.domain_data()
+
     def measure(self):
         "Return the measure associated with this integral."
         return self._measure
