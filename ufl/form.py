@@ -50,9 +50,14 @@ def integral_dict_to_sequence(integrals):
     "Map a dictionary of lists of Integrals keyed by domain type into a sequence of Integral objects ."
     return tuple(itg for dt in Measure._domain_types_tuple for itg in integrals.get(dt, ()))
 
-def join_dintegrals(aintegrals, bintegrals):
-    # FIXME: Implement to store all integrals in a canonical sorting
+def join_dintegrals_old(aintegrals, bintegrals): # Temporary implementation matching old behaviour
     return join_lintegrals(integral_dict_to_sequence(aintegrals), integral_dict_to_sequence(bintegrals))
+
+def join_dintegrals_new(aintegrals, bintegrals): # New
+    # Store integrals from two forms in a canonical sorting
+    return integral_sequence_to_dict(chain(integral_dict_to_sequence(aintegrals), integral_dict_to_sequence(bintegrals)))
+
+join_dintegrals = join_dintegrals_old # TODO: Implement and test properly
 
 def join_lintegrals(aintegrals, bintegrals):
     newintegrals = list(aintegrals)
