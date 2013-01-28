@@ -75,8 +75,12 @@ def integral_dict_to_sub_integral_data(integrals):
         # Get integrals list for this domain type if any
         itgs = integrals.get(dt)
         if itgs is not None:
-            # Make canonical representation of integrals for this type of domain
-            sub_integral_data[dt] = typed_integrals_to_sub_integral_data(itgs)
+            # Make dict for this domain type with mapping (subdomain id -> integral list)
+            sub_integrals = build_sub_integral_list(itgs)
+
+            # Build a canonical representation of integrals for this type of domain,
+            # with only one integral object for each compiler_data on each subdomain
+            sub_integral_data[dt] = canonicalize_sub_integral_data(sub_integrals)
 
             # Get domain data object for this domain type and check that we found at most one
             domain_data[dt] = extract_domain_data_from_integrals(itgs)
@@ -161,6 +165,18 @@ def canonicalize_sub_integral_data(sitgs):
 
     return sitgs
 
+# Convert to integral_data format during transitional period:
+from ufl.algorithms.analysis import IntegralData
+def sub_integral_data_to_integral_data(sub_integral_data):
+    integral_data = []
+    for domain_type, domain_type_data in sub_integral_data.iteritems():
+        for domain_id, sub_domain_integrands in domain_type_data.iteritems():
+            integrals = [Integral2(integrand, domain_type, domain_id, compiler_data, None)
+                         for integrand, compiler_data in sub_domain_integrands]
+            ida = IntegralData(domain_type, domain_id, integrals, {})
+            integral_data.append(ida)
+    return integral_data
+
 
 # Print output for inspection:
 def print_sub_integral_data(sub_integral_data):
@@ -173,18 +189,6 @@ def print_sub_integral_data(sub_integral_data):
                 print
                 print "integrand:    ", integrand
                 print "compiler data:", compiler_data
-
-# Convert to integral_data format during transitional period:
-from ufl.algorithms.analysis import IntegralData
-def sub_integral_data_to_integral_data(sub_integral_data):
-    integral_data = []
-    for domain_type, domain_type_data in sub_integral_data.iteritems():
-        for domain_id, sub_domain_integrands in domain_type_data.iteritems():
-            integrals = [Integral2(integrand, domain_type, domain_id, compiler_data, None)
-                         for integrand, compiler_data in sub_domain_integrands]
-            ida = IntegralData(domain_type, domain_id, integrals, {})
-            integral_data.append(ida)
-    return integral_data
 
 # Run for testing and inspection
 def test():
