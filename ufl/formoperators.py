@@ -220,7 +220,7 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
     # Got a form? Apply derivatives to the integrands in turn.
     if isinstance(form, Form):
         integrals = []
-        for itg in form._integrals:
+        for itg in form.integrals():
             fd = CoefficientDerivative(itg.integrand(), coefficients,
                                        arguments, coefficient_derivatives)
             integrals.append(itg.reconstruct(fd))
