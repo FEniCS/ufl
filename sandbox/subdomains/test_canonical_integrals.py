@@ -1,6 +1,6 @@
 
 class Integral:
-    def __init__(self, integrand, domain_type, domain_id, compiler_data, solver_data):
+    def __init__(self, integrand, domain_type, domain_id, compiler_data, domain_data):
 
         self._domain_type = domain_type
 
@@ -16,25 +16,25 @@ class Integral:
         self._integrand = integrand
 
         self._compiler_data = compiler_data
-        self._solver_data = solver_data
+        self._domain_data = domain_data
 
     def restricted(self, domain_id):
         if self.domain_ids() == (domain_id,):
             return self
         else:
-            return Integral(self.integrand(), self.domain_type(), domain_id, self.compiler_data(), self.solver_data())
+            return Integral(self.integrand(), self.domain_type(), domain_id, self.compiler_data(), self.domain_data())
 
-    def annotated(self, compiler_data=None, solver_data=None):
+    def annotated(self, compiler_data=None, domain_data=None):
         cd = self.compiler_data()
-        sd = self.solver_data()
-        if cd is compiler_data and sd is solver_data:
+        sd = self.domain_data()
+        if cd is compiler_data and sd is domain_data:
             return self
         else:
             if compiler_data is None:
                 compiler_data = cd
-            if solver_data is None:
-                solver_data = sd
-            return Integral(self.integrand(), self.domain_type(), self.domain_ids(), compiler_data, solver_data)
+            if domain_data is None:
+                domain_data = sd
+            return Integral(self.integrand(), self.domain_type(), self.domain_ids(), compiler_data, domain_data)
 
     def integrand(self):
         return self._integrand
@@ -48,16 +48,16 @@ class Integral:
     def compiler_data(self):
         return self._compiler_data
 
-    def solver_data(self):
-        return self._solver_data
+    def domain_data(self):
+        return self._domain_data
 
     def __str__(self):
         return "I(%s, %s, %s, %s, %s)" % (self.integrand(), self.domain_type(), self.domain_ids(),
-                                          self.compiler_data(), self.solver_data())
+                                          self.compiler_data(), self.domain_data())
 
     def __repr__(self):
         return "Integral(%r, %r, %r, %r, %r)" % (self.integrand(), self.domain_type(), self.domain_ids(),
-                                                 self.compiler_data(), self.solver_data())
+                                                 self.compiler_data(), self.domain_data())
 
 # Mock objects for compiler data and solver data
 comp1 = [1,2,3]
@@ -84,6 +84,9 @@ integrals["cell"] = [# Integrals over 0 with no compiler_data:
                      Integral("evr", "cell", "everywhere", None, None),
                      ]
 
+
+### Algorithm sketch to build canonical data structure for integrals over subdomains
+
 # Tuple comparison helper
 #from ufl.sorting import cmp_expr
 cmp_expr = cmp
@@ -101,103 +104,144 @@ class ExprTupleKey(object):
             return False
 def expr_tuple_key(expr):
     return ExprTupleKey(expr)
-
-
-### Algorithm sketch to build canonical data structure for integrals over subdomains
 from collections import defaultdict
 #from ufl.sorting import sorted_expr
 sorted_expr = sorted
-sub_integrals = {}
-solver_datas = {}
-# Iterate over domain types in order
-domain_types = ('cell',) # Measure._domain_types_tuple # TODO
-for dt in domain_types:
-    # Get integrals list for this domain type if any
-    itgs = integrals.get(dt)
-    if itgs is not None:
-        # Keep track of solver data objects, want only one
-        sdids = set()
-        solver_data = None
 
-        # Make dict for this domain type with mapping (subdomain id -> integral list)
-        sitgs = defaultdict(list)
-        sub_integrals[dt] = sitgs
+def integral_dict_to_sub_integral_data(integrals):
+    # Data structures to return
+    sub_integral_data = {}
+    domain_data = {}
 
-        # Now fill sitgs with lists of integrals sorted by and restricted to subdomain ids
-        all_dids = set()
-        for itg in itgs:
-            sd = itg.solver_data()
-            if sd is not None:
-                solver_data = sd
-                sdids.add(id(sd))
+    # Iterate over domain types in order
+    domain_types = ('cell',) # Measure._domain_types_tuple # TODO
+    for dt in domain_types:
+        # Get integrals list for this domain type if any
+        itgs = integrals.get(dt)
+        if itgs is not None:
+            # Make canonical representation of integrals for this type of domain
+            sub_integral_data[dt] = typed_integrals_to_sub_integral_data(itgs)
 
-            dids = itg.domain_ids()
-            if dids == "everywhere":
-                # Everywhere integral
-                sitgs["everywhere"].append(itg)
+            # Get domain data object for this domain type and check that we found at most one
+            domain_data[dt] = extract_domain_data_from_integrals(itgs)
+
+    # Return result:
+    #sub_integral_data[dt][did][:] = [(integrand0, compiler_data0), (integrand1, compiler_data1), ...]
+    return sub_integral_data, domain_data
+
+def build_sub_integral_list(itgs):
+    sitgs = defaultdict(list)
+
+    # Fill sitgs with lists of integrals sorted by and restricted to subdomain ids
+    for itg in itgs:
+        dids = itg.domain_ids()
+        assert dids != "otherwise"
+        if dids == "everywhere":
+            # Everywhere integral
+            sitgs["everywhere"].append(itg)
+        else:
+            # Region or single subdomain id
+            for did in dids:
+                sitgs[did].append(itg.restricted(did)) # Restrict integral to this subdomain!
+
+    # Add everywhere integrals to each single subdomain id integral list
+    if "everywhere" in sitgs:
+        # We'll consume everywhere integrals...
+        ei = sitgs["everywhere"]
+        del sitgs["everywhere"]
+        # ... and produce otherwise integrals instead
+        assert "otherwise" not in sitgs
+        sitgs["otherwise"] = []
+        # Restrict everywhere integral to each subdomain and append to each integral list
+        for did, itglist in sitgs.iteritems():
+            for itg in ei:
+                itglist.append(itg.restricted(did))
+    return sitgs
+
+def extract_domain_data_from_integrals(integrals):
+    # Keep track of domain data objects, want only one
+    ddids = set()
+    domain_data = None
+    for itg in integrals:
+        dd = itg.domain_data()
+        if dd is not None:
+            domain_data = dd
+            ddids.add(id(dd))
+    assert len(ddids) <= 1, ("Found multiple domain data objects in form for domain type %s" % dt)
+    return domain_data
+
+def typed_integrals_to_sub_integral_data(itgs):
+    # Make dict for this domain type with mapping (subdomain id -> integral list)
+    sitgs = build_sub_integral_list(itgs)
+
+    # Then finally make a canonical representation of integrals with only
+    # one integral object for each compiler_data on each subdomain
+    return canonicalize_sub_integral_data(sitgs)
+
+def canonicalize_sub_integral_data(sitgs):
+    for did in sitgs:
+        # Group integrals by compiler data object id
+        by_cdid = {}
+        for itg in sitgs[did]:
+            cd = itg.compiler_data()
+            cdid = id(cd)
+            if cdid in by_cdid:
+                by_cdid[cdid][0].append(itg)
             else:
-                # Region or single subdomain id
-                all_dids.update(dids)
-                for did in itg.domain_ids():
-                    sitgs[did].append(itg.restricted(did)) # Restrict integral to this subdomain!
+                by_cdid[cdid] = ([itg], cd)
 
-        # Add everywhere integrals to each single subdomain id integral list
-        if "everywhere" in sitgs:
-            ei = sitgs["everywhere"]
-            assert "otherwise" not in sitgs
-            sitgs["otherwise"] = []
-            all_dids.add("otherwise")
-            for did in tuple(all_dids) + ("otherwise",):
-                for itg in ei:
-                    # Restrict everywhere integral to this subdomain!
-                    sitgs[did].append(itg.restricted(did))
-            del sitgs["everywhere"]
-            assert "everywhere" not in all_dids
-        # From this point on, treat None as otherwise instead of everywhere
+        # Accumulate integrands separately for each compiler data object id
+        for cdid in by_cdid:
+            integrals, cd = by_cdid[cdid]
+            # Ensure canonical sorting of more than two integrands
+            integrands = sorted_expr((itg.integrand() for itg in integrals))
+            integrands_sum = ''.join(integrands) # TODO: Use sum with proper ufl integrands
+            by_cdid[cdid] = (integrands_sum, cd)
 
-        # Then finally make a canonical representation of integrals with only one integral object for each compiler_data on each subdomain
-        for did in all_dids:
-            # Group integrals by compiler data object id
-            by_cdid = {}
-            l = sitgs[did]
-            for itg in l:
-                cd = itg.compiler_data()
-                cdid = id(cd)
-                if cdid in by_cdid:
-                    by_cdid[cdid][0].append(itg)
-                else:
-                    by_cdid[cdid] = ([itg], cd)
+        # Sort integrands canonically by integrand first then compiler data
+        sitgs[did] = sorted(by_cdid.values(), key=expr_tuple_key)
+        # E.g.:
+        #sitgs[did][:] = [(integrand0, compiler_data0), (integrand1, compiler_data1), ...]
 
-            # Accumulate integrands separately for each compiler data object id
-            for cdid in by_cdid.keys():
-                integrals, cd = by_cdid[cdid]
-                # Ensure canonical sorting of more than two integrands
-                integrands = sorted_expr((itg.integrand() for itg in integrals))
-                integrands_sum = ''.join(integrands) # TODO: Use sum with proper ufl integrands
-                by_cdid[cdid] = (integrands_sum, cd)
+    return sitgs
 
-            # Sort integrands canonically by integrand first then compiler data
-            sitgs[did] = sorted(by_cdid.values(), key=expr_tuple_key)
 
-            # Result:
-            #sub_integrals[dt][did][:] = [(integrand0, compiler_data0), (integrand1, compiler_data1), ...]
+# Print output for inspection:
+def print_sub_integral_data(sub_integral_data):
+    print
+    for domain_type, domain_type_data in sub_integral_data.iteritems():
+        print "======", domain_type
+        for domain_id, sub_domain_integrands in domain_type_data.iteritems():
+            print '---', domain_id,
+            for integrand, compiler_data in sub_domain_integrands:
+                print
+                print "integrand:    ", integrand
+                print "compiler data:", compiler_data
 
-        # Store single solver data object for this domain type
-        if solver_data is not None:
-            solver_datas[dt] = solver_data
-        assert len(sdids) <= 1, ("Found multiple solver data objects in form for domain type %s" % dt)
+# Convert to integral_data format during transitional period:
+def sub_integral_data_to_integral_data(sub_integral_data):
+    integral_data = []
+    for domain_type, domain_type_data in sub_integral_data.iteritems():
+        for domain_id, sub_domain_integrands in domain_type_data.iteritems():
+            integrals = [Integral(integrand, domain_type, domain_id, compiler_data, None)
+                         for integrand, compiler_data in sub_domain_integrands]
+            IntegralData = lambda *x: tuple(x) # TODO
+            ida = IntegralData(domain_type, domain_id, integrals, {})
+            integral_data.append(ida)
+    return integral_data
 
-sub_integral_data = sub_integrals
-print
-for domain_type, domain_type_data in sub_integral_data.iteritems():
-    print "======", domain_type
-    for domain_id, sub_domain_integrands in domain_type_data.iteritems():
-        print '---', domain_id,
-        for (integrand, compiler_data) in sub_domain_integrands:
-            print
-            print "integrand:    ", integrand
-            print "compiler data:", compiler_data
-print
-print solver_datas
-print
-#return sub_integrals, solver_datas
+# Run for testing and inspection
+def test():
+
+    sub_integral_data, domain_datas = integral_dict_to_sub_integral_data(integrals)
+
+    print
+    print "Domain data:"
+    print domain_datas
+    print
+
+    print_sub_integral_data(sub_integral_data)
+
+    integral_data = sub_integral_data_to_integral_data(sub_integral_data)
+
+test()
