@@ -417,7 +417,7 @@ class Integral(object):
         "Return the compiler metadata this integral has been annotated with."
         return self._measure.metadata()
 
-    def assembler_data(self): # TODO: This is work in progress, transition from having data in Measure to here.
+    def domain_data(self): # TODO: This is work in progress, transition from having data in Measure to here.
         "Return the assembler metadata this integral has been annotated with."
         return self._measure.domain_data()
 
