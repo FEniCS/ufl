@@ -32,28 +32,28 @@ from ufl.expr import Expr
 
 # --- The Form class, representing a complete variational form or functional ---
 
-def integral_sequence_to_dict(integrals):
+def dict_sum(items):
+    "Construct a dict, in between dict(items) and sum(items), by accumulating items for each key."
     d = {}
-    for itg in integrals:
-        dt = itg.measure().domain_type()
-        l = d.get(dt)
-        if not l:
-            l = []
-            d[dt] = l
-        l.append(itg)
+    for k, v in items:
+        if k not in d:
+            d[k] = v
+        else:
+            d[k] += v
     return d
 
+def integral_sequence_to_dict(integrals):
+    "Map a sequence of Integral objects to a dictionary of lists of Integrals keyed by domain type."
+    return dict_sum((itg.measure().domain_type(), [itg]) for itg in integrals)
+
 def integral_dict_to_sequence(integrals):
-    s = []
-    for k in Measure._domain_types_tuple:
-        l = integrals.get(k, ())
-        for itg in l:
-            s.append(itg)
-    return s
+    "Map a dictionary of lists of Integrals keyed by domain type into a sequence of Integral objects ."
+    return tuple(itg for dt in Measure._domain_types_tuple for itg in integrals.get(dt, ()))
 
 class Form(object):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
-    __slots__ = ("_integrals", # TODO: Make dict of integrals per domain type, rename to 2 temporarily while changing representation
+    __slots__ = ("_integrals", # TODO: Deprecate this in favor of...
+                 "_dintegrals", # TODO: Use this dict of integrals per domain type
                  "_hash",      # Hash code for use in dicts, including incidental numbering of indices etc.
                  "_signature", # Signature for use with jit cache, independent of incidental numbering of indices etc.
                  "_form_data",
@@ -62,7 +62,8 @@ class Form(object):
 
     def __init__(self, integrals):
         #self._integrals = tuple(integrals)
-        self._integrals = tuple(integral_dict_to_sequence(integral_sequence_to_dict(integrals)))
+        self._dintegrals = integral_sequence_to_dict(integrals)
+        self._integrals = integral_dict_to_sequence(self._dintegrals)
         ufl_assert(all(isinstance(itg, Integral) for itg in integrals),
                    "Expecting list of integrals.")
         self._signature = None
