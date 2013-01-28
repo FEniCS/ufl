@@ -146,11 +146,13 @@ for dt in domain_types:
             ei = sitgs["everywhere"]
             assert "otherwise" not in sitgs
             sitgs["otherwise"] = []
+            all_dids.add("otherwise")
             for did in tuple(all_dids) + ("otherwise",):
                 for itg in ei:
                     # Restrict everywhere integral to this subdomain!
                     sitgs[did].append(itg.restricted(did))
             del sitgs["everywhere"]
+            assert "everywhere" not in all_dids
         # From this point on, treat None as otherwise instead of everywhere
 
         # Then finally make a canonical representation of integrals with only one integral object for each compiler_data on each subdomain
@@ -175,7 +177,7 @@ for dt in domain_types:
                 by_cdid[cdid] = (integrands_sum, cd)
 
             # Sort integrands canonically by integrand first then compiler data
-            sitgs[did] = sorted(by_cdid.items(), key=expr_tuple_key)
+            sitgs[did] = sorted(by_cdid.values(), key=expr_tuple_key)
 
             # Result:
             #sub_integrals[dt][did][:] = [(integrand0, compiler_data0), (integrand1, compiler_data1), ...]
@@ -185,13 +187,16 @@ for dt in domain_types:
             solver_datas[dt] = solver_data
         assert len(sdids) <= 1, ("Found multiple solver data objects in form for domain type %s" % dt)
 
+sub_integral_data = sub_integrals
 print
-for dt,v in sub_integrals.iteritems():
-    print "...", dt
-    for did,w in v.iteritems():
-        print '---', did
-        for i in w:
-            print i
+for domain_type, domain_type_data in sub_integral_data.iteritems():
+    print "======", domain_type
+    for domain_id, sub_domain_integrands in domain_type_data.iteritems():
+        print '---', domain_id,
+        for (integrand, compiler_data) in sub_domain_integrands:
+            print
+            print "integrand:    ", integrand
+            print "compiler data:", compiler_data
 print
 print solver_datas
 print
