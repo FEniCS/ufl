@@ -101,6 +101,18 @@ def compute_expression_hashdata(expression, terminal_hashdata):
         expression_hashdata.append(data)
     return expression_hashdata
 
+def compute_expression_signature(expr, function_replace_map=None):
+    # Build hashdata for all terminals first
+    terminal_hashdata = compute_terminal_hashdata([expr],
+                                                  function_replace_map)
+
+    # Build hashdata for full expression
+    expression_hashdata = compute_expression_hashdata(expr,
+                                                      terminal_hashdata)
+
+    # Pass it through a seriously overkill hashing algorithm :)
+    return hashlib.sha512(str(expression_hashdata)).hexdigest()
+
 def compute_form_signature(form, function_replace_map=None):
     integrals = form.integrals()
     integrands = [integral.integrand() for integral in integrals]
@@ -114,8 +126,9 @@ def compute_form_signature(form, function_replace_map=None):
         expression_hashdata = compute_expression_hashdata(integral.integrand(),
                                                           terminal_hashdata)
 
-        # NB! Repr of measure includes integral metadata.
+        # NB! Repr of measure includes integral metadata. FIXME: Rethink with Integral2!
         integral_hashdata = (repr(integral.measure()), expression_hashdata)
         hashdata.append(integral_hashdata)
 
+    # Pass it through a seriously overkill hashing algorithm :)
     return hashlib.sha512(str(hashdata)).hexdigest()

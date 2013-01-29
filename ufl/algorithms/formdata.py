@@ -37,14 +37,15 @@ class FormData(object):
     def __str__(self):
         "Return formatted summary of form data"
         types = sorted(self.num_sub_domains.keys())
-        domains = tuple(("Number of %s domains" % domain_type, self.num_sub_domains[domain_type]) for domain_type in types)
+        domains = tuple(("Number of %s domains" % domain_type,
+                         self.num_sub_domains[domain_type]) for domain_type in types)
         return tstr((("Name",                               self.name),
-                     ("Rank",                               self.rank),
                      ("Cell",                               self.cell),
                      ("Topological dimension",              self.topological_dimension),
                      ("Geometric dimension",                self.geometric_dimension),
-                     ("Number of coefficients",             self.num_coefficients),
                      ) + domains + (
+                     ("Rank",                               self.rank),
+                     ("Number of coefficients",             self.num_coefficients),
                      ("Arguments",                          lstr(self.arguments)),
                      ("Coefficients",                       lstr(self.coefficients)),
                      ("Argument names",                     lstr(self.argument_names)),
@@ -52,6 +53,7 @@ class FormData(object):
                      ("Unique elements",                    estr(self.unique_elements)),
                      ("Unique sub elements",                estr(self.unique_sub_elements)),
                      # FIXME DOMAINS what is "the domain(s)" for a form?
+                     ("Domains",                            self.domains),
                      ("Top level domains",                  self.top_domains),
                      ))
 
@@ -64,3 +66,32 @@ class FormData(object):
                    "Found non-matching cells in form data validation.")
         ufl_assert(element_mapping == self._input_element_mapping,
                    "Found non-matching element mappings in form data validation.")
+
+
+class ExprData(object):
+    """
+    Class collecting various information extracted from a Expr by
+    calling preprocess.
+    """
+
+    def __init__(self):
+        "Create empty expr data for given expr."
+
+    def __str__(self):
+        "Return formatted summary of expr data"
+        return tstr((("Name",                               self.name),
+                     ("Cell",                               self.cell),
+                     ("Topological dimension",              self.topological_dimension),
+                     ("Geometric dimension",                self.geometric_dimension),
+                     ("Rank",                               self.rank),
+                     ("Number of coefficients",             self.num_coefficients),
+                     ("Arguments",                          lstr(self.arguments)),
+                     ("Coefficients",                       lstr(self.coefficients)),
+                     ("Argument names",                     lstr(self.argument_names)),
+                     ("Coefficient names",                  lstr(self.coefficient_names)),
+                     ("Unique elements",                    estr(self.unique_elements)),
+                     ("Unique sub elements",                estr(self.unique_sub_elements)),
+                     # FIXME DOMAINS what is "the domain(s)" for an expression?
+                     ("Domains",                            self.domains),
+                     ("Top level domains",                  self.top_domains),
+                     ))

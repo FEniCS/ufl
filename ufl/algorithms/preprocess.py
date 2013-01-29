@@ -41,8 +41,30 @@ from ufl.algorithms.analysis import (extract_arguments_and_coefficients,
                                      extract_num_sub_domains, extract_domain_data,
                                      extract_integral_data)
 from ufl.algorithms.domain_analysis import extract_integral_data_from_integral_dict
-from ufl.algorithms.formdata import FormData
+from ufl.algorithms.formdata import FormData, ExprData
 from ufl.algorithms.expand_indices import expand_indices
+from ufl.algorithms.ad import expand_derivatives
+from ufl.algorithms.signature import compute_expression_signature, compute_form_signature
+
+class Timer:
+    def __init__(self, name):
+        self.name = name
+        self.times = []
+        self('begin %s' % self.name)
+    def __call__(self, msg):
+        self.times.append((time(), msg))
+    def end(self):
+        self('end %s' % self.name)
+    def __str__(self):
+        line = "-"*60
+        s = [line, "Timing of %s" % self.name]
+        for i in range(len(self.times)-1):
+            t = self.times[i+1][0] - self.times[i][0]
+            msg = self.times[i][1]
+            s.append("%9.2e s    %s" % (t, msg))
+        s.append('Total time: %9.2e s' % (self.times[-1][0] - self.times[0][0]))
+        s.append(line)
+        return '\n'.join(s)
 
 def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
                replace_functions=True, skip_signature=False):
@@ -56,11 +78,7 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
       expand_derivatives
       renumber arguments and coefficients and apply evt. element mapping
     """
-    times = []
-    def tic(msg):
-        times.append((time(), msg))
-
-    tic('begin preprocess')
+    tic = Timer('preprocess')
 
     # Check that we get a form
     ufl_assert(isinstance(form, Form), "Expecting Form.")
@@ -74,7 +92,7 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
     # Create empty form data
     form_data = FormData()
 
-    # Store copies of preprocess input data
+    # Store copies of preprocess input data, for future validation if called again...
     form_data._input_object_names = dict(object_names)
     form_data._input_element_mapping = dict(element_mapping)
     #form_data._input_common_cell = no need to store this
@@ -89,24 +107,25 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
     # TODO: Split out expand_compounds from expand_derivatives
     # Expand derivatives
     tic('expand_derivatives')
-    # Temporary hack, don't touch:
-    expand_derivatives = ufl.algorithms.ad.expand_derivatives
     form = expand_derivatives(form, common_cell.geometric_dimension())
 
     # Replace arguments and coefficients with new renumbered objects
     tic('extract_arguments_and_coefficients')
     original_arguments, original_coefficients = \
-                        extract_arguments_and_coefficients(form)
+        extract_arguments_and_coefficients(form)
+
     tic('build_element_mapping')
     element_mapping = build_element_mapping(element_mapping,
                                             common_cell,
                                             original_arguments,
                                             original_coefficients)
+
     tic('build_argument_replace_map')
     replace_map, renumbered_arguments, renumbered_coefficients = \
         build_argument_replace_map(original_arguments,
                                    original_coefficients,
                                    element_mapping)
+
     # Build mapping to original arguments and coefficients, which is
     # useful if the original arguments have data attached to them
     inv_replace_map = dict((w,v) for (v,w) in replace_map.iteritems())
@@ -114,10 +133,8 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
     original_coefficients = [inv_replace_map[w] for w in renumbered_coefficients]
 
     # Store data extracted by preprocessing
-    if 1:
-        # Not sure what to do with these later?
-        form_data.arguments             = renumbered_arguments
-        form_data.coefficients          = renumbered_coefficients
+    form_data.arguments               = renumbered_arguments    # TODO: Needed?
+    form_data.coefficients            = renumbered_coefficients # TODO: Needed?
     form_data.original_arguments      = original_arguments
     form_data.original_coefficients   = original_coefficients
     form_data.renumbered_arguments    = renumbered_arguments
@@ -142,7 +159,9 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
     if skip_signature:
         form_data.signature = None
     else:
-        form_data.signature = form.signature(form_data.function_replace_map)
+        # FIXME: Remove signature() from Form, not safe to cache with a replacement map
+        #form_data.signature = form.signature(form_data.function_replace_map)
+        form_data.signature = compute_form_signature(form, form_data.function_replace_map)
 
     # Store elements, sub elements and element map
     tic('extract_elements')
@@ -153,11 +172,15 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
     form_data.sub_elements        = extract_sub_elements(form_data.elements)
     form_data.unique_sub_elements = unique_tuple(form_data.sub_elements)
 
-    # Store element domains # FIXME: DOMAINS: What is a sensible way to store domains for a form?
-    form_data.domains = tuple(sorted(set(element.domain() for element in form_data.unique_elements)))
+    # Store element domains (NB! This is likely to change!)
+    # FIXME: DOMAINS: What is a sensible way to store domains for a form?
+    form_data.domains = tuple(sorted(set(element.domain()
+                                         for element in form_data.unique_elements)))
 
-    # Store toplevel domains # FIXME: DOMAINS: What is a sensible way to store domains for a form?
-    form_data.top_domains = tuple(sorted(set(domain.top_domain() for domain in form_data.domains)))
+    # Store toplevel domains (NB! This is likely to change!)
+    # FIXME: DOMAINS: What is a sensible way to store domains for a form?
+    form_data.top_domains = tuple(sorted(set(domain.top_domain()
+                                             for domain in form_data.domains)))
 
     # Store common cell
     form_data.cell = common_cell
@@ -187,34 +210,27 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
     form_data.domain_data = extract_domain_data(form)
 
     # Store integrals by type and domain id
-    #form_data.integral_data = extract_integral_data(form) # TODO: Clean up and refactor a bit:
+    #form_data.integral_data = extract_integral_data(form)
+    # TODO: Clean up and refactor a bit:
     form_data.integral_data = extract_integral_data_from_integral_dict(form._dintegrals)
 
     # Store preprocessed form
     form._is_preprocessed = True
     form_data.preprocessed_form = form
 
-    tic('end preprocess')
+    tic.end()
 
     # A coarse profiling implementation
     # TODO: Add counting of nodes
     # TODO: Add memory usage
     if preprocess.enable_profiling:
-        print "-"*10, "UFL preprocess profiling:"
-        for i in range(len(times)-1):
-            t = times[i+1][0] - times[i][0]
-            msg = times[i][1]
-            print "%9.2e s    %s" % (t, msg)
-        print "-"*60
+        print tic
 
     return form_data
 preprocess.enable_profiling = False
 
-class ExprData(object): # FIXME: Add __str__ operator etc like FormData
-    pass
-
-# FIXME: Rework preprocess_expression, following improvements to form preprocess
-def preprocess_expression(expr, object_names=None, common_cell=None, element_mapping=None):
+def preprocess_expression(expr, object_names=None, common_cell=None, element_mapping=None,
+                          replace_functions=True, skip_signature=False):
     """
     Preprocess raw input expression to obtain expression metadata,
     including a modified (preprocessed) expression more easily
@@ -226,11 +242,16 @@ def preprocess_expression(expr, object_names=None, common_cell=None, element_map
       expand_derivatives
       renumber arguments and coefficients and apply evt. element mapping
     """
-
-    use_expand_indices = True # TODO: make argument or fixate?
+    tic = Timer('preprocess_expression')
 
     # Check that we get an expression
     ufl_assert(isinstance(expr, Expr), "Expecting Expr.")
+
+    # Object names is empty if not given
+    object_names = object_names or {}
+
+    # Element mapping is empty if not given
+    element_mapping = element_mapping or {}
 
     # Create empty expression data
     expr_data = ExprData()
@@ -238,84 +259,109 @@ def preprocess_expression(expr, object_names=None, common_cell=None, element_map
     # Store original expression
     expr_data.original_expr = expr
 
-    # Get name of expr
-    object_names = object_names or {}
-    if id(expr) in object_names:
-        name = object_names[id(expr)]
-    else:
-        name = "expr"
-
-    # Element mapping is empty if not given
-    element_mapping = element_mapping or {}
+    # Store name of expr if given, otherwise empty string
+    # such that automatic names can be assigned externally
+    expr_data.name = object_names.get(id(expr), "") # TODO: Or default to 'expr'?
 
     # Extract common cell
-    try:
-        common_cell = extract_common_cell(expr, common_cell)
-        gdim = common_cell.geometric_dimension()
-    except:
-        common_cell = Cell(None, None)
-        gdim = None
+    common_cell = extract_common_cell(expr, common_cell)
 
+    # TODO: Split out expand_compounds from expand_derivatives
     # Expand derivatives
-    # Temporary hack, don't touch:
-    expand_derivatives = ufl.algorithms.ad.expand_derivatives
-    expr = expand_derivatives(expr, gdim)
+    tic('expand_derivatives')
+    expr = expand_derivatives(expr, common_cell.geometric_dimension())
 
     # Renumber indices
-    if not use_expand_indices:
-        expr = renumber_indices(expr)
+    #expr = renumber_indices(expr) # TODO: No longer needed?
 
     # Replace arguments and coefficients with new renumbered objects
-    arguments, coefficients = extract_arguments_and_coefficients(expr)
-    element_mapping = build_element_mapping(element_mapping, common_cell,
-                                            arguments, coefficients)
-    replace_map, arguments, coefficients = \
-        build_argument_replace_map(arguments, coefficients, element_mapping)
-    expr = replace(expr, replace_map)
+    tic('extract_arguments_and_coefficients')
+    original_arguments, original_coefficients = \
+        extract_arguments_and_coefficients(expr)
 
-    # Expand indices to simplify interpretation
-    if use_expand_indices:
-        expr = expand_indices(expr)
+    tic('build_element_mapping')
+    element_mapping = build_element_mapping(element_mapping,
+                                            common_cell,
+                                            original_arguments,
+                                            original_coefficients)
+
+    tic('build_argument_replace_map')
+    replace_map, renumbered_arguments, renumbered_coefficients = \
+        build_argument_replace_map(original_arguments,
+                                   original_coefficients,
+                                   element_mapping)
+    expr = replace(expr, replace_map)
 
     # Build mapping to original arguments and coefficients, which is
     # useful if the original arguments have data attached to them
     inv_replace_map = dict((w,v) for (v,w) in replace_map.iteritems())
-    original_arguments = [inv_replace_map[v] for v in arguments]
-    original_coefficients = [inv_replace_map[w] for w in coefficients]
-
-    # Store name of expr
-    expr_data.name = name
+    original_arguments = [inv_replace_map[v] for v in renumbered_arguments]
+    original_coefficients = [inv_replace_map[w] for w in renumbered_coefficients]
 
     # Store data extracted by preprocessing
-    expr_data.arguments             = arguments
-    expr_data.coefficients          = coefficients
-    expr_data.original_arguments    = original_arguments
-    expr_data.original_coefficients = original_coefficients
+    expr_data.arguments               = renumbered_arguments    # TODO: Needed?
+    expr_data.coefficients            = renumbered_coefficients # TODO: Needed?
+    expr_data.original_arguments      = original_arguments
+    expr_data.original_coefficients   = original_coefficients
+    expr_data.renumbered_arguments    = renumbered_arguments
+    expr_data.renumbered_coefficients = renumbered_coefficients
 
-    # Store signature of expression
-    expr_data.signature = repr(expr)
+    tic('replace')
+    # FIXME: Always store mapping on the side instead of reconstructing
+    if replace_functions:
+        expr = replace(expr, replace_map)
+        # Temporary hacks to introduce mappings in form compilers gradually
+        expr_data.element_replace_map = dict((e,e) for e in element_mapping.values())
+        expr_data.function_replace_map = dict((e,e) for e in replace_map.values())
+    else:
+        # Mappings from elements and functions (coefficients and arguments)
+        # that reside in expr to objects with canonical numbering as well as
+        # completed cells and elements
+        expr_data.element_replace_map = element_mapping
+        expr_data.function_replace_map = replace_map
+
+    # Store signature of form
+    tic('signature')
+    if skip_signature:
+        expr_data.signature = None
+    else:
+        expr_data.signature = compute_expression_signature(expr,
+                                                           expr_data.function_replace_map)
 
     # Store elements, sub elements and element map
-    expr_data.elements            = extract_elements(expr)
+    tic('extract_elements')
+    expr_data.elements            = tuple(f.element() for f in
+                                          chain(renumbered_arguments,
+                                                renumbered_coefficients))
     expr_data.unique_elements     = unique_tuple(expr_data.elements)
     expr_data.sub_elements        = extract_sub_elements(expr_data.elements)
     expr_data.unique_sub_elements = unique_tuple(expr_data.sub_elements)
+
+    # Store element domains (NB! This is likely to change!)
+    # FIXME: DOMAINS: What is a sensible way to store domains for a expr?
+    expr_data.domains = tuple(sorted(set(element.domain()
+                                         for element in expr_data.unique_elements)))
+
+    # Store toplevel domains (NB! This is likely to change!)
+    # FIXME: DOMAINS: What is a sensible way to store domains for a expr?
+    expr_data.top_domains = tuple(sorted(set(domain.top_domain()
+                                             for domain in expr_data.domains)))
 
     # Store common cell
     expr_data.cell = common_cell
 
     # Store data related to cell
-    expr_data.geometric_dimension = None if common_cell is None else expr_data.cell.geometric_dimension()
-    expr_data.topological_dimension = None if common_cell is None else expr_data.cell.topological_dimension()
+    expr_data.geometric_dimension = expr_data.cell.geometric_dimension()
+    expr_data.topological_dimension = expr_data.cell.topological_dimension()
 
     # Store some useful dimensions
-    #expr_data.rank = len(expr_data.arguments)
+    expr_data.rank = len(expr_data.arguments) # TODO: Is this useful for expr?
     expr_data.num_coefficients = len(expr_data.coefficients)
 
-    # Store argument names
-    #expr_data.argument_names = \
-    #    [object_names.get(id(expr_data.original_arguments[i]), "v%d" % i)
-    #     for i in range(expr_data.rank)]
+    # Store argument names # TODO: Is this useful for expr?
+    expr_data.argument_names = \
+        [object_names.get(id(expr_data.original_arguments[i]), "v%d" % i)
+         for i in range(expr_data.rank)]
 
     # Store coefficient names
     expr_data.coefficient_names = \
@@ -325,8 +371,16 @@ def preprocess_expression(expr, object_names=None, common_cell=None, element_map
     # Store preprocessed expression
     expr_data.preprocessed_expr = expr
 
-    return expr_data
+    tic.end()
 
+    # A coarse profiling implementation
+    # TODO: Add counting of nodes
+    # TODO: Add memory usage
+    if preprocess_expression.enable_profiling:
+        print tic
+
+    return expr_data
+preprocess_expression.enable_profiling = False
 
 def extract_common_cell(form, common_cell=None):
     "Extract common cell for form or expression."

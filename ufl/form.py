@@ -241,7 +241,8 @@ class Form(object):
 
     def __hash__(self):
         if self._hash is None:
-            hashdata = tuple((hash(itg.integrand()), hash(itg.measure())) for itg in self.integrals())
+            hashdata = tuple((hash(itg.integrand()), hash(itg.measure()))
+                             for itg in self.integrals())
             self._hash = hash(hashdata)
         return self._hash
 
