@@ -333,6 +333,11 @@ class IntegralData(object):
                 self.integrals == other.integrals and
                 self.metadata == other.metadata)
 
+    def __str__(self):
+        return "IntegralData object over domain (%s, %s), with integrals:\n%s\nand metadata:\n%s" % (
+            self.domain_type, self.domain_id,
+            '\n\n'.join(map(str,self.integrals)), self.metadata)
+
 def extract_integral_data(form):
     """
     Extract integrals from form stored by integral type and sub

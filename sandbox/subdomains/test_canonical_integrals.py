@@ -64,14 +64,35 @@ class ExprTupleKey(object):
 def expr_tuple_key(expr):
     return ExprTupleKey(expr)
 
+
+def extract_domain_data_from_integral_list(integrals):
+    # Keep track of domain data objects, want only one
+    ddids = set()
+    domain_data = None
+    for itg in integrals:
+        dd = itg.domain_data()
+        if dd is not None:
+            domain_data = dd
+            ddids.add(id(dd))
+    assert len(ddids) <= 1, ("Found multiple domain data objects in form for domain type %s" % dt)
+    return domain_data
+
+def extract_domain_data_from_integral_dict(integrals):
+    domain_data = {}
+    # Iterate over domain types in order
+    for dt in Measure._domain_types_tuple:
+        # Get integrals list for this domain type if any
+        if dt in integrals:
+            domain_data[dt] = extract_domain_data_from_integral_list(integrals[dt])
+    return domain_data
+
+
 def integral_dict_to_sub_integral_data(integrals):
     # Data structures to return
     sub_integral_data = {}
-    domain_data = {}
 
     # Iterate over domain types in order
-    domain_types = ('cell',) # Measure._domain_types_tuple # TODO
-    for dt in domain_types:
+    for dt in Measure._domain_types_tuple:
         # Get integrals list for this domain type if any
         itgs = integrals.get(dt)
         if itgs is not None:
@@ -82,12 +103,9 @@ def integral_dict_to_sub_integral_data(integrals):
             # with only one integral object for each compiler_data on each subdomain
             sub_integral_data[dt] = canonicalize_sub_integral_data(sub_integrals)
 
-            # Get domain data object for this domain type and check that we found at most one
-            domain_data[dt] = extract_domain_data_from_integrals(itgs)
-
     # Return result:
     #sub_integral_data[dt][did][:] = [(integrand0, compiler_data0), (integrand1, compiler_data1), ...]
-    return sub_integral_data, domain_data
+    return sub_integral_data
 
 def build_sub_integral_list(itgs):
     sub_integrals = defaultdict(list)
@@ -118,18 +136,6 @@ def build_sub_integral_list(itgs):
                 itglist.append(restricted_integral(itg, did))
     return sub_integrals
 
-def extract_domain_data_from_integrals(integrals):
-    # Keep track of domain data objects, want only one
-    ddids = set()
-    domain_data = None
-    for itg in integrals:
-        dd = itg.domain_data()
-        if dd is not None:
-            domain_data = dd
-            ddids.add(id(dd))
-    assert len(ddids) <= 1, ("Found multiple domain data objects in form for domain type %s" % dt)
-    return domain_data
-
 def canonicalize_sub_integral_data(sub_integrals):
     for did in sub_integrals:
         # Group integrals by compiler data object id
@@ -152,8 +158,9 @@ def canonicalize_sub_integral_data(sub_integrals):
 
         # Sort integrands canonically by integrand first then compiler data
         sub_integrals[did] = sorted(by_cdid.values(), key=expr_tuple_key)
-        # E.g.:
+        # i.e. the result is on the form:
         #sub_integrals[did][:] = [(integrand0, compiler_data0), (integrand1, compiler_data1), ...]
+        # where integrand0 < integrand1 by the canonical ufl expression ordering criteria.
 
     return sub_integrals
 
@@ -182,6 +189,12 @@ def print_sub_integral_data(sub_integral_data):
                 print "integrand:    ", integrand
                 print "compiler data:", compiler_data
 
+def extract_integral_data_from_integral_dict(integrals):
+    sub_integral_data = integral_dict_to_sub_integral_data(integrals)
+    if 0: print_sub_integral_data(sub_integral_data) # TODO: Replace integral_data with this through ufl and ffc
+    integral_data = sub_integral_data_to_integral_data(sub_integral_data)
+    return integral_data
+
 # Run for testing and inspection
 def test():
     # Mock objects for compiler data and solver data
@@ -197,8 +210,7 @@ def test():
     g = Coefficient(V)
     h = Coefficient(V)
 
-    # FIXME: Replace these with real Integral objects
-    # Mock list of integral objects
+    # Mock list of Integral objects (Integral2 is a dummy factory function for better constructor signature)
     integrals = {}
     integrals["cell"] = [# Integrals over 0 with no compiler_data:
                          Integral2(f, "cell", 0, None, None),
@@ -219,16 +231,21 @@ def test():
                          Integral2(h/2, "cell", Measure.DOMAIN_ID_EVERYWHERE, None, None),
                          ]
 
+    # Create form from all mock integrals to make test more realistic
+    form = Form(integrals["cell"])
 
-    sub_integral_data, domain_datas = integral_dict_to_sub_integral_data(integrals)
+    domain_data = extract_domain_data_from_integral_dict(form._dintegrals)
+    integral_data = extract_integral_data_from_integral_dict(form._dintegrals)
 
     print
     print "Domain data:"
-    print domain_datas
+    print domain_data
     print
 
-    print_sub_integral_data(sub_integral_data)
-
-    integral_data = sub_integral_data_to_integral_data(sub_integral_data)
+    print
+    print "Integral data:"
+    for ida in integral_data:
+        print ida
+    print
 
 test()

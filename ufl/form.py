@@ -44,7 +44,7 @@ def dict_sum(items):
 
 def integral_sequence_to_dict(integrals):
     "Map a sequence of Integral objects to a dictionary of lists of Integrals keyed by domain type."
-    return dict_sum((itg.measure().domain_type(), [itg]) for itg in integrals)
+    return dict_sum((itg.domain_type(), [itg]) for itg in integrals)
 
 def integral_dict_to_sequence(integrals):
     "Map a dictionary of lists of Integrals keyed by domain type into a sequence of Integral objects ."
