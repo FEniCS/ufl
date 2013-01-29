@@ -165,7 +165,10 @@ class Zero(IndexAnnotated):
 
 def zero(*shape):
     "UFL literal constant: Return a zero tensor with the given shape."
-    return Zero(shape)
+    if len(shape) == 1 and isinstance(shape[0], tuple):
+        return Zero(shape[0])
+    else:
+        return Zero(shape)
 
 #--- Scalar value types ---
 

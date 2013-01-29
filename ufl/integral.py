@@ -91,9 +91,9 @@ class MeasureSum(object):
 
     def __add__(self, other):
         if isinstance(other, Measure):
-            return MeasureSum(self._measures + (other,))
+            return MeasureSum(*(self._measures + (other,)))
         elif isinstance(other, MeasureSum):
-            return MeasureSum(self._measures + other._measures)
+            return MeasureSum(*(self._measures + other._measures))
         return NotImplemented
 
     def __str__(self):
@@ -119,11 +119,52 @@ class Measure(object): # TODO: Rename to Integrator?
                  "_metadata",
                  "_domain_data",
                  "_repr",)
-    def __init__(self, domain_type, domain_id=0, metadata=None, domain_data=None):
+
+    # Enumeration of special domain ids
+    DOMAIN_ID_UNDEFINED       = "undefined"
+    DOMAIN_ID_UNIQUE          = "unique"
+    DOMAIN_ID_EVERYWHERE      = "everywhere"
+    DOMAIN_ID_OTHERWISE       = "otherwise"
+    DOMAIN_ID_DEFAULT   = DOMAIN_ID_EVERYWHERE # The one used by dx,ds,dS,etc.
+    #DOMAIN_ID_DEFAULT   = DOMAIN_ID_UNIQUE # The one used by dx,ds,dS,etc.
+    DOMAIN_ID_CONSTANTS = (DOMAIN_ID_UNDEFINED,
+                           DOMAIN_ID_UNIQUE,
+                           DOMAIN_ID_EVERYWHERE,
+                           DOMAIN_ID_OTHERWISE,
+                           )
+
+    # Enumeration of valid domain types
+    CELL           = "cell"
+    EXTERIOR_FACET = "exterior_facet"
+    INTERIOR_FACET = "interior_facet"
+    POINT          = "point"
+    MACRO_CELL     = "macro_cell"
+    SURFACE        = "surface"
+    _domain_types = { \
+        CELL: "dx",
+        EXTERIOR_FACET: "ds",
+        INTERIOR_FACET: "dS",
+        POINT: "dP",
+        MACRO_CELL: "dE",
+        SURFACE: "dc"
+        }
+    _domain_types_tuple = (CELL, EXTERIOR_FACET, INTERIOR_FACET,
+                           POINT, MACRO_CELL, SURFACE)
+
+    def __init__(self, domain_type, domain_id=None, metadata=None, domain_data=None):
         # Allow long domain type names with ' ' or '_'
         self._domain_type = as_domain_type(domain_type)
-        self._domain_id = domain_id
+
+        # Can't use this constant as default value
+        if domain_id is None:
+            self._domain_id = Measure.DOMAIN_ID_DEFAULT
+        else:
+            self._domain_id = domain_id
+
+        # Data for form compiler
         self._metadata = metadata
+
+        # Data for problem solving environment
         self._domain_data = domain_data
 
         # NB! Deliberately ignoring domain data in repr, since it causes a bug
@@ -154,38 +195,8 @@ class Measure(object): # TODO: Rename to Integrator?
             domain_data = self._domain_data
         return Measure(self._domain_type, domain_id, metadata, domain_data)
 
-    # Enumeration of valid domain types
-    CELL = "cell"
-    EXTERIOR_FACET = "exterior_facet"
-    INTERIOR_FACET = "interior_facet"
-    POINT = "point"
-    MACRO_CELL = "macro_cell"
-    SURFACE = "surface"
-    _domain_types = { \
-        CELL: "dx",
-        EXTERIOR_FACET: "ds",
-        INTERIOR_FACET: "dS",
-        POINT: "dP",
-        MACRO_CELL: "dE",
-        SURFACE: "dc"
-        }
-    _domain_types_tuple = (CELL, EXTERIOR_FACET, INTERIOR_FACET, POINT, MACRO_CELL, SURFACE)
-
-    # TODO: This is ugly, is there a better way?
-    # Special constants for domain ids with particular meaning. Do not use these values in other code!
-    DOMAIN_ID_ZERO            = "<domain id zero for backwards compatibility>"
-    DOMAIN_ID_EVERYWHERE      = "<domain id everywhere>"
-    DOMAIN_ID_EVERYWHERE_ELSE = "<domain id everywhere else>"
-    DOMAIN_ID_UNDEFINED       = "<domain id undefined>"
-    #DOMAIN_ID_DEFAULT = DOMAIN_ID_EVERYWHERE
-    DOMAIN_ID_DEFAULT = DOMAIN_ID_ZERO
-    DOMAIN_ID_CONSTANTS = (DOMAIN_ID_ZERO,
-                           DOMAIN_ID_EVERYWHERE,
-                           DOMAIN_ID_EVERYWHERE_ELSE,
-                           DOMAIN_ID_UNDEFINED)
-
     def domain_type(self):
-        'Return the domain type, one of "cell", "exterior_facet" or "interior_facet".'
+        'Return the domain type, one of "cell", "exterior_facet", "interior_facet", etc.'
         return self._domain_type
 
     def domain_id(self):
@@ -203,30 +214,40 @@ class Measure(object): # TODO: Rename to Integrator?
         Its intension is to give a context in which the domain id is interpreted."""
         return self._domain_data
 
+    # TODO: Figure out if we should keep this / how long to keep it / how to deprecate
     def __getitem__(self, domain_data):
         """Return a new Measure for same integration type with an attached
         context for interpreting domain ids. The default ID of this new Measure
         is undefined, and thus it must be qualified with a domain id to use
         in an integral. Example: dx = dx[boundaries]; L = f*v*dx(0) + g*v+dx(1)."""
-        return self.reconstruct(domain_id=Measure.DOMAIN_ID_UNDEFINED, domain_data=domain_data)
+        return self.reconstruct(domain_id=Measure.DOMAIN_ID_UNDEFINED,
+                                domain_data=domain_data)
 
     def __call__(self, domain_id=None, metadata=None):
         """Return integral of same type on given sub domain,
         optionally with some metadata attached."""
         if domain_id is None and metadata is None:
+            # Let syntax dx() mean integral over everywhere
             return self.reconstruct(domain_id=Measure.DOMAIN_ID_EVERYWHERE)
-        return self.reconstruct(domain_id=domain_id, metadata=metadata)
+        else:
+            # If we get keyword metadata, attatch it, if we get a domain id, use it
+            return self.reconstruct(domain_id=domain_id, metadata=metadata)
 
     def __add__(self, other):
         if isinstance(other, Measure):
+            # Let dx(1) + dx(2) equal dx((1,2))
             return MeasureSum(self, other)
-        return NotImplemented
+        else:
+            # Can only add Measures
+            return NotImplemented
 
     def __mul__(self, other):
         if isinstance(other, Measure):
+            # Tensor product measure support
             return ProductMeasure(self, other)
-        # Can't multiply Measure from the right with non-Measure type
-        return NotImplemented
+        else:
+            # Can't multiply Measure from the right with non-Measure type
+            return NotImplemented
 
     def __rmul__(self, integrand):
         # Let other types implement multiplication with Measure
@@ -234,41 +255,45 @@ class Measure(object): # TODO: Rename to Integrator?
         if not isinstance(integrand, Expr):
             return NotImplemented
 
-        ### Quick checks that the integrand is ok:
         # Allow only scalar integrands
         if not is_true_ufl_scalar(integrand):
             error("Trying to integrate expression of rank %d with free indices %r." \
                   % (integrand.rank(), integrand.free_indices()))
 
-        ### Create form if we have a complete measure with domain description
-        if isinstance(self._domain_id, DomainDescription):
+        # Is the measure in a state where multiplication is not allowed?
+        if self._domain_id == Measure.DOMAIN_ID_UNDEFINED:
+            error("Missing domain id. You need to select a subdomain, " +\
+                  "e.g. M = f*dx(0) for subdomain 0.")
+
+        # TODO: How to represent all kinds of domain descriptions is still a bit unclear
+        # Create form if we have a sufficient domain description
+        elif (# We have a complete measure with domain description
+            isinstance(self._domain_id, DomainDescription)
+            # Is the measure in a basic state 'foo*dx'?
+            or self._domain_id == Measure.DOMAIN_ID_UNIQUE
+            # Is the measure over everywhere?
+            or self._domain_id == Measure.DOMAIN_ID_EVERYWHERE
+            # Is the measure in a state not allowed prior to preprocessing?
+            or self._domain_id == Measure.DOMAIN_ID_OTHERWISE
+            ):
             # Create and return a one-integral form
             from ufl.form import Form
             return Form( [Integral(integrand, self)] )
 
-        ### Since this measure is not complete, analyse domain id and create a new measure object first
-        did = self._domain_id
-
-        # Is this object in a state where multiplication is not allowed?
-        if did == Measure.DOMAIN_ID_UNDEFINED:
-            error("Missing domain id. You need to select a subdomain, " +\
-                  "e.g. M = f*dx(0) for subdomain 0.")
-
-        # Temporarily translate constants
-        if did == Measure.DOMAIN_ID_ZERO: # This only happends with the default *dx syntax, need to preserve compatibilty
-            did = 0
-        elif did == Measure.DOMAIN_ID_EVERYWHERE:
-            error("Integrals over 'everywhere' not yet supported.") # FIXME Change when we support this properly
-        elif did == Measure.DOMAIN_ID_EVERYWHERE_ELSE:
-            error("Integrals with 'everywhere else' should not occur in user code.")
+        # Did we get several ids?
+        elif isinstance(self._domain_id, tuple):
+            # FIXME: Move this analysis to preprocessing
+            return sum(integrand*self.reconstruct(domain_id=d) for d in self._domain_id)
 
         # Did we get a name?
-        if isinstance(did, str):
+        elif isinstance(self._domain_id, str):
+            # FIXME: Move this analysis to preprocessing
+
             # Get all domains and regions from integrand to analyse
             domains = extract_domains(integrand)
 
             # Get domain or region with this name from integrand, error if multiple found
-            name = did
+            name = self._domain_id
             candidates = set()
             for TD in domains:
                 if TD.name() == name:
@@ -284,7 +309,9 @@ class Measure(object): # TODO: Rename to Integrator?
             return integrand*measure
 
         # Did we get a number?
-        elif isinstance(did, int):
+        elif isinstance(self._domain_id, int):
+            # FIXME: Move this analysis to preprocessing
+
             # Get all top level domains from integrand to analyse
             domains = extract_top_domains(integrand)
 
@@ -301,18 +328,14 @@ class Measure(object): # TODO: Rename to Integrator?
             if D is None:
                 # We have a number but not a domain? Leave it to preprocess...
                 # This is the case with badly formed forms which can occur from dolfin
-                # Reconstructing self here because did could be 0 if self._domain_id is 'everywhere'
+                # Reconstructing self here because did could be 0 if self._domain_id is 'everywhere' # FIXME: Not anymore?
                 # Create and return a one-integral form
                 from ufl.form import Form
-                return Form( [Integral(integrand, self.reconstruct(domain_id=did))] )
+                return Form( [Integral(integrand, self.reconstruct(domain_id=self._domain_id))] )
             else:
                 # Reconstruct measure with the found numbered subdomain
-                measure = self.reconstruct(domain_id=D[did])
+                measure = self.reconstruct(domain_id=D[self._domain_id])
                 return integrand*measure
-
-        # Did we get several ids?
-        elif isinstance(did, tuple):
-            return sum(integrand*self.reconstruct(domain_id=d) for d in did)
 
         # Provide error to user
         else:
@@ -362,6 +385,10 @@ class ProductMeasure(Measure):
         "Return submeasures."
         return self._measures
 
+# Transitional helper until we decide to change Integral permanently
+def Integral2(integrand, domain_type, domain_desc, compiler_data, domain_data):
+    return Integral(integrand, Measure(domain_type, domain_desc, compiler_data, domain_data))
+
 class Integral(object):
     "An integral over a single domain."
     __slots__ = ("_integrand", "_measure",)
@@ -386,6 +413,18 @@ class Integral(object):
     def integrand(self):
         "Return the integrand expression, which is an Expr instance."
         return self._integrand
+
+    def domain_type(self):
+        "Return the domain type of this integral."
+        return self._measure.domain_type()
+
+    def compiler_data(self): # TODO: This is work in progress, transition from having data in Measure to here.
+        "Return the compiler metadata this integral has been annotated with."
+        return self._measure.metadata()
+
+    def domain_data(self): # TODO: This is work in progress, transition from having data in Measure to here.
+        "Return the assembler metadata this integral has been annotated with."
+        return self._measure.domain_data()
 
     def measure(self):
         "Return the measure associated with this integral."

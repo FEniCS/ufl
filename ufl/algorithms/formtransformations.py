@@ -334,7 +334,7 @@ def compute_form_arities(form):
         parts = compute_form_with_arity(form, arity)
 
         # Register arity if "parts" does not vanish
-        if parts and parts._integrals:
+        if parts and parts.integrals():
             arities.add(arity)
 
     return arities

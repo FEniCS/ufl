@@ -24,6 +24,7 @@
 # Last changed: 2013-01-02
 
 from itertools import izip, chain
+from collections import namedtuple
 
 from ufl.log import error, warning, info
 from ufl.assertions import ufl_assert
@@ -38,6 +39,7 @@ from ufl.variable import Variable
 from ufl.indexing import Index, MultiIndex
 from ufl.domains import Region, Domain
 from ufl.integral import Measure, Integral
+from ufl.form import Form
 from ufl.algorithms.traversal import iter_expressions, post_traversal, post_walk, traverse_terminals
 
 # Domain types (should probably be listed somewhere else)
@@ -273,8 +275,8 @@ def extract_domain_data(form):
     "Extract the domain_data attached to integrals of each domain type in form."
     domain_data = {}
     for integral in form.integrals():
-        domain_type = integral.measure().domain_type()
-        data = integral.measure().domain_data()
+        domain_type = integral.domain_type()
+        data = integral.domain_data()
         # Check that there is only one domain_data object for each integral type
         existing_data = domain_data.get(domain_type)
         if existing_data is None:
@@ -305,40 +307,91 @@ def extract_num_sub_domains(form):
             num_domains[domain_type] = max(num_domains.get(domain_type, 0), max_domain_id + 1)
     return num_domains
 
+class IntegralData(object):
+    """Utility class with the members
+        (domain_type, domain_id, integrals, metadata)
+
+    where metadata is an empty dictionary that may be used for
+    associating metadata with each object.
+    """
+    __slots__ = ('domain_type', 'domain_id', 'integrals', 'metadata')
+    def __init__(self, domain_type, domain_id, integrals, metadata):
+        self.domain_type = domain_type
+        self.domain_id = domain_id
+        self.integrals = integrals
+        self.metadata = metadata
+
+    def __lt__(self, other):
+        # To preserve behaviour of extract_integral_data:
+        return ((self.domain_type, self.domain_id, self.integrals, self.metadata)
+                < (other.domain_type, other.domain_id, other.integrals, other.metadata))
+
+    def __eq__(self, other):
+        # Currently only used for tests:
+        return (self.domain_type == other.domain_type and
+                self.domain_id == other.domain_id and
+                self.integrals == other.integrals and
+                self.metadata == other.metadata)
+
+    def __str__(self):
+        return "IntegralData object over domain (%s, %s), with integrals:\n%s\nand metadata:\n%s" % (
+            self.domain_type, self.domain_id,
+            '\n\n'.join(map(str,self.integrals)), self.metadata)
+
 def extract_integral_data(form):
     """
     Extract integrals from form stored by integral type and sub
-    domain, stored as a list of tuples
-
-        (domain_type, domain_id, measure, integrand, metadata)
-
-    where metadata is an empty dictionary that may be used for
-    associating metadata with each tuple.
+    domain, stored as a list of IntegralData objects.
     """
 
     # Extract integral data
     integral_data = {}
+    everywhere_integrals = {}
+    encountered_unique = set()
+    encountered_non_unique = set()
     for integral in form.integrals():
+        # Get domain description from integral
         domain_type = integral.measure().domain_type()
         domain_id = integral.measure().domain_id()
 
-        # TODO: This is a temporary translation from Region to integer ids, but works well at least for now
-        if isinstance(domain_id, Domain) or domain_id == Measure.DOMAIN_ID_EVERYWHERE:
-            domain_ids = (0,) # TODO: This is the old behaviour, change this to integral over everything
-            #domain_ids = (Measure.DOMAIN_ID_EVERYWHERE,)
+        # Check that we don't get both unique and nonunique domain ids
+        if domain_id == Measure.DOMAIN_ID_UNIQUE:
+            encountered_unique.add(domain_type)
+        else:
+            encountered_non_unique.add(domain_type)
 
-        elif domain_id == Measure.DOMAIN_ID_EVERYWHERE_ELSE:
-            domain_ids = (Measure.DOMAIN_ID_EVERYWHERE_ELSE,)
-            error("Domain id 'everywhere else' not yet supported.")
+        # Get tuple of domain ids
+        if domain_id == Measure.DOMAIN_ID_UNIQUE:
+            # Translate from everywhere to otherwise, can't also have nonunique domain ids
+            domain_ids = (Measure.DOMAIN_ID_OTHERWISE,)
+
+        elif domain_id == Measure.DOMAIN_ID_EVERYWHERE or isinstance(domain_id, Domain):
+            # Translate from everywhere to otherwise, and...
+            domain_ids = (Measure.DOMAIN_ID_OTHERWISE,)
+
+            # ... also store everywhere integrals to the side to apply to all other integrals below.
+            key = (domain_type, domain_ids[0])
+            if key in everywhere_integrals:
+                everywhere_integrals[key].append(integral)
+            else:
+                everywhere_integrals[key] = [integral]
 
         elif isinstance(domain_id, Region):
+            # Apply all subdomain ids from region separately
             domain_ids = domain_id.subdomain_ids()
-            # Skip integral over nowhere
+
+            # Skip integral over empty region
             if len(domain_ids) == 0:
                 continue
 
         elif isinstance(domain_id, int):
+            # Apply single subdomain id
             domain_ids = (domain_id,)
+
+        elif domain_id == Measure.DOMAIN_ID_OTHERWISE:
+            # This should not come from user code, only after preprocessing
+            domain_ids = (Measure.DOMAIN_ID_OTHERWISE,)
+            error("Not expecting 'otherwise' domain during preprocessing, has it been applied twice?")
 
         else:
             error("Invalid domain id %s." % (domain_id,))
@@ -347,20 +400,39 @@ def extract_integral_data(form):
         for domain_id in domain_ids:
             key = (domain_type, domain_id)
 
-            # Reconstruct integral with integer domain id TODO: This is a temporary hack during domain transition
+            # Reconstruct integral with suitable domain id
+            # TODO: Avoid integral reconstruction by storing stuff in IntegralData more explicitly
             integral2 = Integral(integral.integrand(), integral.measure().reconstruct(domain_id=domain_id))
 
             if key in integral_data:
-                integral_data[key].append(integral2) # TODO: Not sure how FFC handles this? Consider metadata etc.
+                integral_data[key].append(integral2)
             else:
                 integral_data[key] = [integral2]
 
+    # Accumulate integrals over everywhere into other (type,id) combinations,
+    # FIXME: and canonicalize and collapse lists of multiple similar integrals
+    new_integral_data = {}
+    for key, integrals in integral_data.iteritems():
+        eitg = [Integral(itg.integrand(), itg.measure().reconstruct(domain_id=key[1])) for itg in everywhere_integrals.get(key,[])]
+        new_integrals = integrals + eitg
+        if len(new_integrals) > 1:
+            # FIXME: Is this robust w.r.t different metadata?
+            # Abusing the sorting and automatic addition of integrals in Form a bit here:
+            # TODO: Move all integral sorting and addition into this algorithm instead?
+            new_integrals = Form(new_integrals).integrals()
+        new_integral_data[key] = new_integrals
+    integral_data = new_integral_data
+
+    # Checking for f*dx + g*dx(1) situation, but f*dx + g*ds(1) is ok
+    for domain_type in encountered_unique:
+        ufl_assert(domain_type not in encountered_non_unique,
+                   "Found both unique integral and non-unique integral of type '%s' in same form." % (domain_type,))
+
+    # Sort by domain type and number.
     # Note that this sorting thing here is pretty interesting. The
     # domain types happen to be in alphabetical order (cell, exterior,
     # interior, and macro) so we can just sort... :-)
-
-    # Sort by domain type and number
-    return sorted((d, n, i, {}) for ((d, n), i) in integral_data.iteritems())
+    return sorted(IntegralData(d, n, i, {}) for ((d, n), i) in integral_data.iteritems())
 
 def sort_elements(elements):
     """
