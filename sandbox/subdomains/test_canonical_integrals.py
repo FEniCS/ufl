@@ -166,7 +166,7 @@ def canonicalize_sub_integral_data(sub_integrals):
 
 # Convert to integral_data format during transitional period:
 from ufl.algorithms.analysis import IntegralData
-def sub_integral_data_to_integral_data(sub_integral_data):
+def convert_sub_integral_data_to_integral_data(sub_integral_data):
     integral_data = []
     for domain_type, domain_type_data in sub_integral_data.iteritems():
         for domain_id, sub_domain_integrands in domain_type_data.iteritems():
@@ -192,7 +192,7 @@ def print_sub_integral_data(sub_integral_data):
 def extract_integral_data_from_integral_dict(integrals):
     sub_integral_data = integral_dict_to_sub_integral_data(integrals)
     if 0: print_sub_integral_data(sub_integral_data) # TODO: Replace integral_data with this through ufl and ffc
-    integral_data = sub_integral_data_to_integral_data(sub_integral_data)
+    integral_data = convert_sub_integral_data_to_integral_data(sub_integral_data)
     return integral_data
 
 # Run for testing and inspection
