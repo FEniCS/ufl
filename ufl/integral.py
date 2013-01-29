@@ -125,7 +125,8 @@ class Measure(object): # TODO: Rename to Integrator?
     DOMAIN_ID_UNIQUE          = "unique"
     DOMAIN_ID_EVERYWHERE      = "everywhere"
     DOMAIN_ID_OTHERWISE       = "otherwise"
-    DOMAIN_ID_DEFAULT   = DOMAIN_ID_UNIQUE # The one used by dx,ds,dS,etc.
+    DOMAIN_ID_DEFAULT   = DOMAIN_ID_EVERYWHERE # The one used by dx,ds,dS,etc.
+    #DOMAIN_ID_DEFAULT   = DOMAIN_ID_UNIQUE # The one used by dx,ds,dS,etc.
     DOMAIN_ID_CONSTANTS = (DOMAIN_ID_UNDEFINED,
                            DOMAIN_ID_UNIQUE,
                            DOMAIN_ID_EVERYWHERE,

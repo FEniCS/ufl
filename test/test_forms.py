@@ -46,10 +46,10 @@ class TestMeasure(UflTestCase):
 
         # Check that integral_data list is consistent as well
         f2 = f.reconstruct(count=0)
+        self.assertIs(fd.domain_data['cell'], domain_data)
         for itd in fd.integral_data:
             self.assertEqual(itd.domain_type, 'cell')
             self.assertEqual(itd.metadata, {})
-            self.assertIs(itd.integrals[0].measure().domain_data(), domain_data)
 
             if isinstance(itd.domain_id, int):
                 self.assertEqual(itd.integrals[0].integrand(), f2**(itd.domain_id+1))

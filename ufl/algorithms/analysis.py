@@ -275,8 +275,8 @@ def extract_domain_data(form):
     "Extract the domain_data attached to integrals of each domain type in form."
     domain_data = {}
     for integral in form.integrals():
-        domain_type = integral.measure().domain_type()
-        data = integral.measure().domain_data()
+        domain_type = integral.domain_type()
+        data = integral.domain_data()
         # Check that there is only one domain_data object for each integral type
         existing_data = domain_data.get(domain_type)
         if existing_data is None:
