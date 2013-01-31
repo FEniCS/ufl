@@ -240,14 +240,16 @@ def transform(expression, handlers):
         error("Didn't find class %s among handlers." % c)
     return h(expression, *ops)
 
-def transform_integrands(form, transform):
+def transform_integrands(form, transform, domain_type=None):
     """Apply transform(expression) to each integrand
     expression in form, or to form if it is an Expr."""
 
     if isinstance(form, Form):
         newintegrals = []
         for itg in form.integrals():
-            integrand = transform(itg.integrand())
+            integrand = itg.integrand()
+            if domain_type is None or domain_type == itg.domain_type():
+                integrand = transform(integrand)
             if not isinstance(integrand, Zero):
                 newitg = itg.reconstruct(integrand)
                 newintegrals.append(newitg)
@@ -267,12 +269,12 @@ def transform_integrands(form, transform):
     else:
         error("Expecting Form or Expr.")
 
-def apply_transformer(e, transformer):
+def apply_transformer(e, transformer, domain_type=None):
     """Apply transformer.visit(expression) to each integrand
     expression in form, or to form if it is an Expr."""
     def _transform(expr):
         return transformer.visit(expr)
-    return transform_integrands(e, _transform)
+    return transform_integrands(e, _transform, domain_type)
 
 def ufl2ufl(e):
     """Convert an UFL expression to a new UFL expression, with no changes.

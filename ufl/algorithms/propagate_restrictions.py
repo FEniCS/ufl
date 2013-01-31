@@ -21,8 +21,9 @@
 # Last changed: 2012-04-12
 
 from ufl.expr import Expr
+from ufl.classes import Measure
 from ufl.assertions import ufl_assert
-from ufl.algorithms.transformer import Transformer, ReuseTransformer
+from ufl.algorithms.transformer import Transformer, ReuseTransformer, apply_transformer
 
 class RestrictionPropagator(ReuseTransformer):
     def __init__(self):
@@ -106,10 +107,9 @@ class RestrictionChecker(Transformer):
             ufl_assert(self.current_restriction is None, "Restrictions are only allowed for interior facet integrals.")
 
 def propagate_restrictions(expression):
-    ufl_assert(isinstance(expression, Expr), "Expecting Expr instance.")
-    return RestrictionPropagator().visit(expression)
+    "Propagate restriction nodes to wrap terminal objects directly."
+    return apply_transformer(expression, RestrictionPropagator(), domain_type=Measure.INTERIOR_FACET)
 
 def check_restrictions(expression, require_restriction):
     ufl_assert(isinstance(expression, Expr), "Expecting Expr instance.")
     return RestrictionChecker(require_restriction).visit(expression)
-

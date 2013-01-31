@@ -44,6 +44,7 @@ from ufl.algorithms.domain_analysis import extract_integral_data_from_integral_d
 from ufl.algorithms.formdata import FormData, ExprData
 from ufl.algorithms.expand_indices import expand_indices
 from ufl.algorithms.ad import expand_derivatives
+from ufl.algorithms.propagate_restrictions import propagate_restrictions
 from ufl.algorithms.signature import compute_expression_signature, compute_form_signature
 
 class Timer:
@@ -108,6 +109,9 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
     # Expand derivatives
     tic('expand_derivatives')
     form = expand_derivatives(form, common_cell.geometric_dimension())
+
+    # Propagate restrictions of interior facet integrals to the terminal nodes
+    form = propagate_restrictions(form)
 
     # Replace arguments and coefficients with new renumbered objects
     tic('extract_arguments_and_coefficients')
