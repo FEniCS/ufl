@@ -253,10 +253,10 @@ class Form(object):
         assert self._signature
         return self._signature
 
-    def _repr_latex_(self):
+    def x_repr_latex_(self): # TODO: This works, but enable when form latex rendering is fixed
         from ufl.algorithms import ufl2latex
         return "$$%s$$" % ufl2latex(self)
 
-    def _repr_png_(self):
+    def x_repr_png_(self): # TODO: This works, but enable when form latex rendering is fixed
         from IPython.lib.latextools import latex_to_png
         return latex_to_png(self._repr_latex_())
