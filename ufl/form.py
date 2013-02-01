@@ -136,22 +136,22 @@ class Form(object):
 
     def cell_integrals(self):
         #deprecate("Please use integrals(Measure.CELL) instead.") # TODO: Deprecate this and the others to simplify Form
-        return self._dintegrals[Measure.CELL]
+        return self._dintegrals.get(Measure.CELL, [])
 
     def exterior_facet_integrals(self):
-        return self._dintegrals[Measure.EXTERIOR_FACET]
+        return self._dintegrals.get(Measure.EXTERIOR_FACET, [])
 
     def interior_facet_integrals(self):
-        return self._dintegrals[Measure.INTERIOR_FACET]
+        return self._dintegrals.get(Measure.INTERIOR_FACET, [])
 
     def point_integrals(self):
-        return self._dintegrals[Measure.POINT]
+        return self._dintegrals.get(Measure.POINT, [])
 
     def macro_cell_integrals(self):
-        return self._dintegrals[Measure.MACRO_CELL]
+        return self._dintegrals.get(Measure.MACRO_CELL, [])
 
     def surface_integrals(self):
-        return self._dintegrals[Measure.SURFACE]
+        return self._dintegrals.get(Measure.SURFACE, [])
 
     def form_data(self):
         "Return form metadata (None if form has not been preprocessed)"
@@ -252,3 +252,11 @@ class Form(object):
             self._signature = compute_form_signature(self, function_replace_map)
         assert self._signature
         return self._signature
+
+    def _repr_latex_(self):
+        from ufl.algorithms import ufl2latex
+        return "$$%s$$" % ufl2latex(self)
+
+    def _repr_png_(self):
+        from IPython.lib.latextools import latex_to_png
+        return latex_to_png(self._repr_latex_())

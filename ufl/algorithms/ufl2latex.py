@@ -47,6 +47,7 @@ from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.form import Form
 from ufl.integral import Measure
 from ufl.classes import terminal_classes
+from ufl.domains import Domain, Region
 
 # Other algorithms:
 from ufl.algorithms.preprocess import preprocess
@@ -369,7 +370,7 @@ domain_strings = { Measure.CELL: r"\Omega",
                    Measure.MACRO_CELL: r"\Omega^{macro}",
                    Measure.SURFACE: r"\Gamma^{surface}",
                  }
-default_domain_string = "D"
+default_domain_string = "d(?)"
 dx_strings = { Measure.CELL: "dx",
                Measure.EXTERIOR_FACET: "ds",
                Measure.INTERIOR_FACET: "dS",
@@ -446,18 +447,33 @@ def form2latex(form, formdata):
 
     # Define form as sum of integrals
     lines = []
-    a = signature; p = ""
+    a = signature
+    p = ""
     for itg in integrals:
         # TODO: Get list of expression strings instead of single expression!
         integrand_string = expression2latex(itg.integrand(), formdata.argument_names, formdata.coefficient_names)
-        dtyp = itg.measure().domain_type()
-        dstr = domain_strings.get(dtyp, default_domain_string)
-        b = p + "\\int_{%s_%d}" % (dstr, itg.measure().domain_id())
-        dxstr = Measure._domain_types[dtyp]
-        dxstr = dx_strings[dtyp]
+
+        domain_type = itg.domain_type()
+        dstr = domain_strings[domain_type]
+
+        domain_id = itg.measure().domain_id()
+        if isinstance(domain_id, int):
+            dstr += "_{%d}" % domain_id
+        elif isinstance(domain_id, Domain) or domain_id == Measure.DOMAIN_ID_EVERYWHERE:
+            pass
+        elif domain_id == Measure.DOMAIN_ID_OTHERWISE:
+            dstr += "_{\text{oth}}"
+        elif isinstance(domain_id, tuple):
+            dstr += "_{%s}" % domain_id
+
+        b = p + "\\int_{%s}" % (dstr,)
+        dxstr = Measure._domain_types[domain_type]
+        dxstr = dx_strings[domain_type]
         c = "{ %s } \\,%s" % (integrand_string, dxstr)
         lines.append((a, b, c))
-        a = "{}"; p = "{}+ "
+        a = "{}"
+        p = "{}+ "
+
     sections.append(("Form", align(lines)))
 
     return sections
