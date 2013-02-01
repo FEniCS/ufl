@@ -164,6 +164,10 @@ class Expr(object):
         "Return pretty print string representation of this object."
         raise NotImplementedError(self.__class__.__str__)
 
+    def _repr_latex_(self):
+        from ufl.algorithms import ufl2latex
+        return "$%s$" % ufl2latex(self)
+
     #--- Special functions used for processing expressions ---
 
     def __hash__(self):
