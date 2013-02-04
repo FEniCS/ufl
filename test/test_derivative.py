@@ -244,9 +244,10 @@ class DerivativeTestCase(UflTestCase):
         bd = (expected*dx).compute_form_data()
         b = bd.preprocessed_form.cell_integrals()[0].integrand()
 
-        self.assertEqual(ad.coefficients, bd.coefficients)
+        self.assertEqual([ad.function_replace_map[ac] for ac in ad.original_coefficients],
+                         [bd.function_replace_map[bc] for bc in bd.original_coefficients])
 
-        n = len(ad.coefficients)
+        n = ad.num_coefficients
         def make_value(c):
             z = 0.3 if isinstance(c, Coefficient) else 0.7
             if c.shape() == ():
@@ -255,8 +256,8 @@ class DerivativeTestCase(UflTestCase):
                 return tuple((z * (j + 0.1 + 0.9 * c.count() / n) for j in range(c.shape()[0])))
             else:
                 raise NotImplementedError("Tensor valued expressions not supported here.")
-        amapping = dict((c, make_value(c)) for c in chain(ad.coefficients, ad.arguments))
-        bmapping = dict((c, make_value(c)) for c in chain(bd.coefficients, bd.arguments))
+        amapping = dict((c, make_value(c)) for c in chain(ad.original_coefficients, ad.original_arguments))
+        bmapping = dict((c, make_value(c)) for c in chain(bd.original_coefficients, bd.original_arguments))
 
         acell = actual.cell()
         bcell = expected.cell()
@@ -412,7 +413,8 @@ class DerivativeTestCase(UflTestCase):
         J = derivative(F, u, du, cd)
         fd = J.compute_form_data()
         actual = fd.preprocessed_form.integrals()[0].integrand()
-        self.assertEqual(actual, expected)
+        self.assertEqual((actual*dx).signature(), (expected*dx).signature())
+        self.assertEqual(replace(actual, fd.function_replace_map), expected)
 
     def test_vector_coefficient_derivatives(self):
         V = VectorElement("Lagrange", triangle, 1)
@@ -437,7 +439,7 @@ class DerivativeTestCase(UflTestCase):
         fd = J.compute_form_data()
         actual = fd.preprocessed_form.integrals()[0].integrand()
         self.assertEqual((actual*dx).signature(), (expected*dx).signature())
-        #self.assertEqual(actual, expected)
+        #self.assertEqual(replace(actual, fd.function_replace_map), expected)
 
     def test_vector_coefficient_derivatives_of_product(self):
         V = VectorElement("Lagrange", triangle, 1)
@@ -485,7 +487,7 @@ class DerivativeTestCase(UflTestCase):
         # Sampling the expressions instead of comparing representations.
         x = (0, 0)
         funcs = {dv: (13, 14), f: (1,2), g: (3,4), df: ((5,6),(7,8)), dg: ((9,10),(11,12))}
-        self.assertEqual(actual(x, funcs), expected(x, funcs))
+        self.assertEqual(replace(actual,fd.function_replace_map)(x, funcs), expected(x, funcs))
 
         # TODO: Add tests covering more cases, in particular mixed stuff
 
@@ -552,19 +554,19 @@ class DerivativeTestCase(UflTestCase):
             assert derivatives == (0,)
             return dw
 
-        w, b, K = form_data_f.coefficients
+        w, b, K = form_data_f.original_coefficients
         mapping = { K: Kv, b: bv, w: Nw }
         fv2 = f_expression((0,), mapping)
         self.assertAlmostEqual(fv, fv2)
 
-        w, b, K = form_data_F.coefficients
-        v, = form_data_F.arguments
+        w, b, K = form_data_F.original_coefficients
+        v, = form_data_F.original_arguments
         mapping = { K: Kv, b: bv, v: Nv, w: Nw }
         Fv2 = F_expression((0,), mapping)
         self.assertAlmostEqual(Fv, Fv2)
 
-        w, b, K = form_data_J.coefficients
-        v, u = form_data_J.arguments
+        w, b, K = form_data_J.original_coefficients
+        v, u = form_data_J.original_arguments
         mapping = { K: Kv, b: bv, v: Nv, u: Nu, w: Nw }
         Jv2 = J_expression((0,), mapping)
         self.assertAlmostEqual(Jv, Jv2)

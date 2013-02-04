@@ -46,8 +46,8 @@ class FormData(object):
                      ) + domains + (
                      ("Rank",                               self.rank),
                      ("Number of coefficients",             self.num_coefficients),
-                     ("Arguments",                          lstr(self.arguments)),
-                     ("Coefficients",                       lstr(self.coefficients)),
+                     ("Arguments",                          lstr(self.original_arguments)),
+                     ("Coefficients",                       lstr(self.original_coefficients)),
                      ("Argument names",                     lstr(self.argument_names)),
                      ("Coefficient names",                  lstr(self.coefficient_names)),
                      ("Unique elements",                    estr(self.unique_elements)),
@@ -61,7 +61,7 @@ class FormData(object):
                  object_names=None,
                  common_cell=None,
                  element_mapping=None,
-                 replace_functions=True,
+                 replace_functions=False,
                  skip_signature=False):
         "Validate that the form data was built from the same inputs."
         ufl_assert((object_names or {}) == self._input_object_names,

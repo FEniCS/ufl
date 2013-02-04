@@ -69,7 +69,7 @@ class Timer:
         return '\n'.join(s)
 
 def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
-               replace_functions=True, skip_signature=False):
+               replace_functions=False, skip_signature=False):
     """
     Preprocess raw input form to obtain form metadata, including a
     modified (preprocessed) form more easily manipulated by form
@@ -141,7 +141,8 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
     inv_replace_map = dict((w,v) for (v,w) in replace_map.iteritems())
     original_arguments = [inv_replace_map[v] for v in renumbered_arguments]
     original_coefficients = [inv_replace_map[w] for w in renumbered_coefficients]
-    # TODO: Build mapping from object to position instead
+
+    # TODO: Build mapping from object to position instead? But we need mapped elements as well anyway.
     #argument_positions = { v: i }
     #coefficient_positions = { w: i }
 
@@ -149,13 +150,10 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
     form_data.original_arguments      = original_arguments
     form_data.original_coefficients   = original_coefficients
     # --- END SPLIT INTEGRAL JOIN
-    form_data.arguments               = renumbered_arguments # TODO: Make original?
-    form_data.coefficients            = renumbered_coefficients # TODO: Make original?
-    form_data.renumbered_arguments    = renumbered_arguments # TODO: Remove?
-    form_data.renumbered_coefficients = renumbered_coefficients # TODO: Remove?
 
     tic('replace')
     # FIXME: FIRST: Always store mapping on the side instead of reconstructing
+    ufl_assert(not replace_functions, "Expecting replace_functions to be disabled now.")
     if replace_functions:
         form = replace(form, replace_map)
         # Temporary hacks to introduce mappings in form compilers gradually
@@ -215,12 +213,12 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
     # --- BEGIN ELEMENT DATA
     # Store elements, sub elements and element map
     tic('extract_elements')
-    form_data.elements            = tuple(f.element() for f in
-                                          chain(renumbered_arguments,
-                                                renumbered_coefficients))
-    form_data.unique_elements     = unique_tuple(form_data.elements)
-    form_data.sub_elements        = extract_sub_elements(form_data.elements)
-    form_data.unique_sub_elements = unique_tuple(form_data.sub_elements)
+    form_data.argument_elements    = tuple(f.element() for f in renumbered_arguments)
+    form_data.coefficient_elements = tuple(f.element() for f in renumbered_coefficients)
+    form_data.elements             = form_data.argument_elements + form_data.coefficient_elements
+    form_data.unique_elements      = unique_tuple(form_data.elements)
+    form_data.sub_elements         = extract_sub_elements(form_data.elements)
+    form_data.unique_sub_elements  = unique_tuple(form_data.sub_elements)
     # --- END ELEMENT DATA
 
 

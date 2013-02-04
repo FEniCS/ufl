@@ -52,7 +52,7 @@ class TestMeasure(UflTestCase):
             self.assertEqual(itd.metadata, {})
 
             if isinstance(itd.domain_id, int):
-                self.assertEqual(itd.integrals[0].integrand(), f2**(itd.domain_id+1))
+                self.assertEqual(replace(itd.integrals[0].integrand(), fd.function_replace_map), f2**(itd.domain_id+1))
             else:
                 self.assertEqual(itd.domain_id, Measure.DOMAIN_ID_OTHERWISE)
 

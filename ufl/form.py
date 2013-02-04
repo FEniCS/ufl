@@ -165,7 +165,7 @@ class Form(object):
                           object_names=None,
                           common_cell=None,
                           element_mapping=None,
-                          replace_functions=True,
+                          replace_functions=False,
                           skip_signature=False):
         "Compute and return form metadata"
         # TODO: We should get rid of the form data caching, but need to
