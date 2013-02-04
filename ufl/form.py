@@ -153,6 +153,10 @@ class Form(object):
     def surface_integrals(self):
         return self._dintegrals.get(Measure.SURFACE, [])
 
+    def is_preprocessed(self):
+        "Return true if this form is the result of a preprocessing of another form."
+        return self._is_preprocessed
+
     def form_data(self):
         "Return form metadata (None if form has not been preprocessed)"
         return self._form_data
@@ -164,7 +168,11 @@ class Form(object):
                           replace_functions=True,
                           skip_signature=False):
         "Compute and return form metadata"
-        # TODO: We should get rid of the form data caching, but need to figure out how to do that and keep pydolfin working properly
+        # TODO: We should get rid of the form data caching, but need to
+        #       figure out how to do that and keep pydolfin working properly
+
+        # Only compute form data once, and never on an already processed form
+        ufl_assert(not self.is_preprocessed(), "You can not preprocess forms twice.")
         if self._form_data is None:
             from ufl.algorithms.preprocess import preprocess
             self._form_data = preprocess(self,
@@ -173,15 +181,13 @@ class Form(object):
                                          element_mapping=element_mapping,
                                          replace_functions=replace_functions,
                                          skip_signature=skip_signature)
-        else:
-            self._form_data.validate(object_names=object_names,
-                                     common_cell=common_cell,
-                                     element_mapping=element_mapping) # FIXME: Check replace_functions and skip_signature as well
+        # Always validate arguments, keeping sure that the validation works
+        self._form_data.validate(object_names=object_names,
+                                 common_cell=common_cell,
+                                 element_mapping=element_mapping,
+                                 replace_functions=replace_functions,
+                                 skip_signature=skip_signature)
         return self.form_data()
-
-    def is_preprocessed(self):
-        "Check whether form is preprocessed"
-        return self._is_preprocessed
 
     def __eq__(self, other):
         return Equation(self, other)

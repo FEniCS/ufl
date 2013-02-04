@@ -45,6 +45,7 @@ from ufl.algorithms.formdata import FormData, ExprData
 from ufl.algorithms.expand_indices import expand_indices
 from ufl.algorithms.ad import expand_derivatives
 from ufl.algorithms.propagate_restrictions import propagate_restrictions
+from ufl.algorithms.formtransformations import compute_form_arities
 from ufl.algorithms.signature import compute_expression_signature, compute_form_signature
 
 class Timer:
@@ -79,7 +80,7 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
       expand_derivatives
       renumber arguments and coefficients and apply evt. element mapping
     """
-    tic = Timer('preprocess')
+    tic = Timer('preprocess') # TODO: Reposition tic calls after refactoring.
 
     # Check that we get a form
     ufl_assert(isinstance(form, Form), "Expecting Form.")
@@ -97,6 +98,8 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
     form_data._input_object_names = dict(object_names)
     form_data._input_element_mapping = dict(element_mapping)
     #form_data._input_common_cell = no need to store this
+    form_data._input_replace_functions = replace_functions
+    form_data._input_skip_signature = skip_signature
 
     # Store name of form if given, otherwise empty string
     # such that automatic names can be assigned externally
@@ -108,11 +111,14 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
     # TODO: Split out expand_compounds from expand_derivatives
     # Expand derivatives
     tic('expand_derivatives')
-    form = expand_derivatives(form, common_cell.geometric_dimension())
+    form = expand_derivatives(form, common_cell.geometric_dimension()) # EXPR
 
     # Propagate restrictions of interior facet integrals to the terminal nodes
-    form = propagate_restrictions(form)
+    form = propagate_restrictions(form) # INTEGRAL, EXPR
 
+
+    # --- BEGIN FUNCTION ANALYSIS
+    # --- BEGIN SPLIT EXPR JOIN
     # Replace arguments and coefficients with new renumbered objects
     tic('extract_arguments_and_coefficients')
     original_arguments, original_coefficients = \
@@ -124,7 +130,7 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
                                             original_arguments,
                                             original_coefficients)
 
-    tic('build_argument_replace_map')
+    tic('build_argument_replace_map') # TODO: Remove renumbered ones?
     replace_map, renumbered_arguments, renumbered_coefficients = \
         build_argument_replace_map(original_arguments,
                                    original_coefficients,
@@ -135,17 +141,21 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
     inv_replace_map = dict((w,v) for (v,w) in replace_map.iteritems())
     original_arguments = [inv_replace_map[v] for v in renumbered_arguments]
     original_coefficients = [inv_replace_map[w] for w in renumbered_coefficients]
+    # TODO: Build mapping from object to position instead
+    #argument_positions = { v: i }
+    #coefficient_positions = { w: i }
 
     # Store data extracted by preprocessing
-    form_data.arguments               = renumbered_arguments    # TODO: Needed?
-    form_data.coefficients            = renumbered_coefficients # TODO: Needed?
     form_data.original_arguments      = original_arguments
     form_data.original_coefficients   = original_coefficients
-    form_data.renumbered_arguments    = renumbered_arguments
-    form_data.renumbered_coefficients = renumbered_coefficients
+    # --- END SPLIT INTEGRAL JOIN
+    form_data.arguments               = renumbered_arguments # TODO: Make original?
+    form_data.coefficients            = renumbered_coefficients # TODO: Make original?
+    form_data.renumbered_arguments    = renumbered_arguments # TODO: Remove?
+    form_data.renumbered_coefficients = renumbered_coefficients # TODO: Remove?
 
     tic('replace')
-    # FIXME: Always store mapping on the side instead of reconstructing
+    # FIXME: FIRST: Always store mapping on the side instead of reconstructing
     if replace_functions:
         form = replace(form, replace_map)
         # Temporary hacks to introduce mappings in form compilers gradually
@@ -156,42 +166,7 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
         # that reside in form to objects with canonical numbering as well as
         # completed cells and elements
         form_data.element_replace_map = element_mapping
-        form_data.function_replace_map = replace_map
-
-    # Store signature of form
-    tic('signature')
-    if skip_signature:
-        form_data.signature = None
-    else:
-        # FIXME: Remove signature() from Form, not safe to cache with a replacement map
-        #form_data.signature = form.signature(form_data.function_replace_map)
-        form_data.signature = compute_form_signature(form, form_data.function_replace_map)
-
-    # Store elements, sub elements and element map
-    tic('extract_elements')
-    form_data.elements            = tuple(f.element() for f in
-                                          chain(renumbered_arguments,
-                                                renumbered_coefficients))
-    form_data.unique_elements     = unique_tuple(form_data.elements)
-    form_data.sub_elements        = extract_sub_elements(form_data.elements)
-    form_data.unique_sub_elements = unique_tuple(form_data.sub_elements)
-
-    # Store element domains (NB! This is likely to change!)
-    # FIXME: DOMAINS: What is a sensible way to store domains for a form?
-    form_data.domains = tuple(sorted(set(element.domain()
-                                         for element in form_data.unique_elements)))
-
-    # Store toplevel domains (NB! This is likely to change!)
-    # FIXME: DOMAINS: What is a sensible way to store domains for a form?
-    form_data.top_domains = tuple(sorted(set(domain.top_domain()
-                                             for domain in form_data.domains)))
-
-    # Store common cell
-    form_data.cell = common_cell
-
-    # Store data related to cell
-    form_data.geometric_dimension = form_data.cell.geometric_dimension()
-    form_data.topological_dimension = form_data.cell.topological_dimension()
+        form_data.function_replace_map = replace_map # PER INTEGRAL OR FORM?
 
     # Store some useful dimensions
     form_data.rank = len(form_data.original_arguments)
@@ -206,30 +181,83 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
     form_data.coefficient_names = \
         [object_names.get(id(form_data.original_coefficients[i]), "w%d" % i)
          for i in range(form_data.num_coefficients)]
+    # --- END FUNCTION ANALYSIS
+
+
+    # --- BEGIN DOMAIN SPLITTING AND JOINING
+    # FIXME: Some parts of this function must be reflected in form.integrals() for consistency,
+    # so move it above and split into domain splitting then rejoining to recreate form.
+    # This will be easier after removing the replace() above.
+
+    # Store integrals by type and domain id
+    #form_data.integral_data = extract_integral_data(form)
+    form_data.integral_data = extract_integral_data_from_integral_dict(form._dintegrals)
+    # --- END DOMAIN SPLITTING AND JOINING
+
+
+    # --- BEGIN SIGNATURE COMPUTATION
+    # TODO: Compute signatures of each INTEGRAL and EXPR as well, perhaps compute it hierarchially from integral_data?
+    # Store signature of form
+    tic('signature')
+    if skip_signature:
+        form_data.signature = None
+    else:
+        # TODO: Remove signature() from Form, not safe to cache with a replacement map
+        #form_data.signature = form.signature(form_data.function_replace_map)
+        form_data.signature = compute_form_signature(form, form_data.function_replace_map)
+    # --- END SIGNATURE COMPUTATION
+
+
+    # Check that we don't have a mixed linear/bilinear form or anything like that
+    ufl_assert(len(compute_form_arities(form)) == 1, "All terms in form must have same rank.")
+
+
+    # --- BEGIN ELEMENT DATA
+    # Store elements, sub elements and element map
+    tic('extract_elements')
+    form_data.elements            = tuple(f.element() for f in
+                                          chain(renumbered_arguments,
+                                                renumbered_coefficients))
+    form_data.unique_elements     = unique_tuple(form_data.elements)
+    form_data.sub_elements        = extract_sub_elements(form_data.elements)
+    form_data.unique_sub_elements = unique_tuple(form_data.sub_elements)
+    # --- END ELEMENT DATA
+
+
+    # --- BEGIN DOMAIN DATA
+    # Store element domains (NB! This is likely to change!)
+    # TODO: DOMAINS: What is a sensible way to store domains for a form?
+    form_data.domains = tuple(sorted(set(element.domain()
+                                         for element in form_data.unique_elements)))
+
+    # Store toplevel domains (NB! This is likely to change!)
+    # TODO: DOMAINS: What is a sensible way to store domains for a form?
+    form_data.top_domains = tuple(sorted(set(domain.top_domain()
+                                             for domain in form_data.domains)))
+
+    # Store common cell
+    form_data.cell = common_cell
+
+    # Store data related to cell
+    form_data.geometric_dimension = form_data.cell.geometric_dimension()
+    form_data.topological_dimension = form_data.cell.topological_dimension()
 
     # Store number of domains for integral types
     form_data.num_sub_domains = extract_num_sub_domains(form)
 
     # Store number of domains for integral types
     form_data.domain_data = extract_domain_data(form)
+    # --- END DOMAIN DATA
 
-    # Store integrals by type and domain id
-    #form_data.integral_data = extract_integral_data(form)
-    # TODO: Clean up and refactor a bit:
-    form_data.integral_data = extract_integral_data_from_integral_dict(form._dintegrals)
 
-    # Store preprocessed form
-    form._is_preprocessed = True
-    form_data.preprocessed_form = form
-
+    # A coarse profiling implementation TODO: Add counting of nodes, Add memory usage
     tic.end()
-
-    # A coarse profiling implementation
-    # TODO: Add counting of nodes
-    # TODO: Add memory usage
     if preprocess.enable_profiling:
         print tic
 
+    # Store preprocessed form and return
+    form_data.preprocessed_form = form
+    form_data.preprocessed_form._is_preprocessed = True
     return form_data
 preprocess.enable_profiling = False
 

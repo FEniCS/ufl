@@ -295,11 +295,12 @@ class PartExtracter(Transformer):
 
         return (x, most_provides)
 
-def compute_form_with_arity(form, arity):
+def compute_form_with_arity(form, arity, arguments=None):
     """Compute parts of form of given arity."""
 
     # Extract all arguments in form
-    arguments = extract_arguments(form)
+    if arguments is None:
+        arguments = extract_arguments(form)
 
     if len(arguments) < arity:
         warning("Form has no parts with arity %d." % arity)
@@ -321,17 +322,16 @@ def compute_form_with_arity(form, arity):
 
 def compute_form_arities(form):
     """Return set of arities of terms present in form."""
-
-    # Need form to be preprocessed
-    ufl_assert(form.is_preprocessed(), "Expecting form to be preprocssed.")
+    #ufl_assert(form.is_preprocessed(), "Assuming a preprocessed form.")
 
     # Extract all arguments present in form
     arguments = extract_arguments(form)
+
     arities = set()
     for arity in range(len(arguments)+1):
 
         # Compute parts with arity "arity"
-        parts = compute_form_with_arity(form, arity)
+        parts = compute_form_with_arity(form, arity, arguments)
 
         # Register arity if "parts" does not vanish
         if parts and parts.integrals():

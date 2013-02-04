@@ -57,15 +57,27 @@ class FormData(object):
                      ("Top level domains",                  self.top_domains),
                      ))
 
-    def validate(self, object_names=None, common_cell=None, element_mapping=None):
-        object_names = object_names or {}
-        element_mapping = element_mapping or {}
-        ufl_assert(object_names == self._input_object_names,
+    def validate(self,
+                 object_names=None,
+                 common_cell=None,
+                 element_mapping=None,
+                 replace_functions=True,
+                 skip_signature=False):
+        "Validate that the form data was built from the same inputs."
+        ufl_assert((object_names or {}) == self._input_object_names,
                    "Found non-matching object_names in form data validation.")
-        ufl_assert(common_cell is None or common_cell == self.cell,
+
+        ufl_assert(common_cell in (None, self.cell),
                    "Found non-matching cells in form data validation.")
-        ufl_assert(element_mapping == self._input_element_mapping,
+
+        ufl_assert((element_mapping or {}) == self._input_element_mapping,
                    "Found non-matching element mappings in form data validation.")
+
+        ufl_assert(replace_functions == self._input_replace_functions,
+                   "Found non-matching replace_function bool in form data validation.")
+
+        ufl_assert(skip_signature == self._input_skip_signature,
+                   "Found non-matching skip_signature bool in form data validation.")
 
 
 class ExprData(object):
