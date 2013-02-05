@@ -418,6 +418,10 @@ class Integral(object):
         "Return the domain type of this integral."
         return self._measure.domain_type()
 
+    def domain_id(self):
+        "Return the domain id of this integral."
+        return self._measure.domain_id()
+
     def compiler_data(self): # TODO: This is work in progress, transition from having data in Measure to here.
         "Return the compiler metadata this integral has been annotated with."
         return self._measure.metadata()

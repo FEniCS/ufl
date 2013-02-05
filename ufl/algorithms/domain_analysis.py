@@ -61,6 +61,7 @@ class ExprTupleKey(object):
         if c < 0:
             return True
         elif c > 0:
+            # NB! Comparing form compiler data here! Is sorting of dicts stable?
             return self.x[1] < other.x[1]
         else:
             return False

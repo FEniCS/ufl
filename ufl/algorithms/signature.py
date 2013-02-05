@@ -110,25 +110,35 @@ def compute_expression_signature(expr, function_replace_map=None):
     expression_hashdata = compute_expression_hashdata(expr,
                                                       terminal_hashdata)
 
-    # Pass it through a seriously overkill hashing algorithm :)
+    # Pass it through a seriously overkill hashing algorithm :) TODO: How fast is this? Reduce?
     return hashlib.sha512(str(expression_hashdata)).hexdigest()
 
 def compute_form_signature(form, function_replace_map=None):
     integrals = form.integrals()
     integrands = [integral.integrand() for integral in integrals]
 
-    # Build hashdata for all terminals first
+    # Build hashdata for all terminals first, with on-the-fly
+    # replacement of functions and index labels.
     terminal_hashdata = compute_terminal_hashdata(integrands,
                                                   function_replace_map)
     # Build hashdata for each integral
     hashdata = []
     for integral in integrals:
+        # Compute hash data for expression, this is the expensive part
         expression_hashdata = compute_expression_hashdata(integral.integrand(),
                                                           terminal_hashdata)
 
-        # NB! Repr of measure includes integral metadata. FIXME: Rethink with Integral2!
-        integral_hashdata = (repr(integral.measure()), expression_hashdata)
+        # Collect all data about integral that should be reflected in signature,
+        # including compiler data but not domain data, because compiler data
+        # affects the way the integral is compiled while domain data is only
+        # carried for convenience in the problem solving environment.
+        integral_hashdata = (expression_hashdata,
+                             integral.domain_type(),
+                             integral.domain_id(),
+                             integral.compiler_data(),
+                             )
+
         hashdata.append(integral_hashdata)
 
-    # Pass it through a seriously overkill hashing algorithm :)
+    # Pass hashdata through a seriously overkill hashing algorithm :) TODO: How fast is this? Reduce?
     return hashlib.sha512(str(hashdata)).hexdigest()
