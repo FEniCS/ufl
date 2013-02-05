@@ -114,6 +114,15 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
     form = propagate_restrictions(form) # INTEGRAL, EXPR
 
 
+    # --- BEGIN DOMAIN SPLITTING AND JOINING
+    # Store integrals by type and domain id
+    #form_data.integral_data = extract_integral_data(form)
+    # FIXME: Some parts of this function must be reflected in form.integrals() for consistency,
+    # so split this function into domain splitting then reconstruct form from integral data.
+    form_data.integral_data = extract_integral_data_from_integral_dict(form._dintegrals)
+    # --- END DOMAIN SPLITTING AND JOINING
+
+
     # --- BEGIN FUNCTION ANALYSIS
     # --- BEGIN SPLIT EXPR JOIN
     # Replace arguments and coefficients with new renumbered objects
@@ -172,17 +181,6 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
     # --- END FUNCTION ANALYSIS
 
 
-    # --- BEGIN DOMAIN SPLITTING AND JOINING
-    # FIXME: Some parts of this function must be reflected in form.integrals() for consistency,
-    # so move it above and split into domain splitting then rejoining to recreate form.
-    # This will be easier after removing the replace() above.
-
-    # Store integrals by type and domain id
-    #form_data.integral_data = extract_integral_data(form)
-    form_data.integral_data = extract_integral_data_from_integral_dict(form._dintegrals)
-    # --- END DOMAIN SPLITTING AND JOINING
-
-
     # --- BEGIN SIGNATURE COMPUTATION
     # TODO: Compute signatures of each INTEGRAL and EXPR as well, perhaps compute it hierarchially from integral_data?
     # Store signature of form
@@ -193,8 +191,10 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
     # --- END SIGNATURE COMPUTATION
 
 
+    # --- BEGIN CONSISTENCY CHECKS
     # Check that we don't have a mixed linear/bilinear form or anything like that
     ufl_assert(len(compute_form_arities(form)) == 1, "All terms in form must have same rank.")
+    # --- END CONSISTENCY CHECKS
 
 
     # --- BEGIN ELEMENT DATA
