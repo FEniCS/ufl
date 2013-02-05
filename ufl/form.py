@@ -23,6 +23,7 @@
 # Last changed: 2013-01-02
 
 import hashlib
+from itertools import chain
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.integral import Integral, Measure, is_scalar_constant_expression
@@ -32,71 +33,37 @@ from ufl.expr import Expr
 
 # --- The Form class, representing a complete variational form or functional ---
 
-def dict_sum(items):
-    "Construct a dict, in between dict(items) and sum(items), by accumulating items for each key."
-    d = {}
-    for k, v in items:
-        if k not in d:
-            d[k] = v
-        else:
-            d[k] += v
-    return d
-
 def integral_sequence_to_dict(integrals):
     "Map a sequence of Integral objects to a dictionary of lists of Integrals keyed by domain type."
-    return dict_sum((itg.domain_type(), [itg]) for itg in integrals)
+    d = {}
+    for itg in integrals:
+        k = itg.domain_type()
+        if k not in d:
+            d[k] = [itg]
+        else:
+            d[k].append(itg)
+    return d
 
 def integral_dict_to_sequence(integrals):
     "Map a dictionary of lists of Integrals keyed by domain type into a sequence of Integral objects ."
     return tuple(itg for dt in Measure._domain_types_tuple for itg in integrals.get(dt, ()))
 
-def join_dintegrals_old(aintegrals, bintegrals): # Temporary implementation matching old behaviour
-    return join_lintegrals(integral_dict_to_sequence(aintegrals), integral_dict_to_sequence(bintegrals))
-
-def join_dintegrals_new(aintegrals, bintegrals): # New
+def join_dintegrals(aintegrals, bintegrals):
     # Store integrals from two forms in a canonical sorting
     return integral_sequence_to_dict(chain(integral_dict_to_sequence(aintegrals), integral_dict_to_sequence(bintegrals)))
 
-join_dintegrals = join_dintegrals_old # TODO: Implement and test properly
-
-def join_lintegrals(aintegrals, bintegrals):
-    newintegrals = list(aintegrals)
-
-    # Build mapping: (measure -> newintegrals index)
-    measure2idx = {}
-    for i, itg in enumerate(newintegrals):
-        ufl_assert(itg.measure() not in measure2idx, "Form invariant breached, found two integrals with same measure.")
-        measure2idx[itg.measure()] = i
-
-    for itg in bintegrals:
-        idx = measure2idx.get(itg.measure())
-        if idx is None:
-            # Append integral with new measure to list
-            idx = len(newintegrals)
-            measure2idx[itg.measure()] = idx
-            newintegrals.append(itg)
-        else:
-            # Accumulate integrands with same measure
-            a = newintegrals[idx].integrand()
-            b = itg.integrand()
-            newintegrals[idx] = itg.reconstruct(a + b)
-
-    return newintegrals
-
 class Form(object):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
-    __slots__ = ("_integrals", # TODO: Deprecate this in favor of...
-                 "_dintegrals", # TODO: Use this dict of integrals per domain type
-                 "_hash",      # Hash code for use in dicts, including incidental numbering of indices etc.
-                 "_signature", # Signature for use with jit cache, independent of incidental numbering of indices etc.
-                 "_form_data",
-                 "_is_preprocessed",
+    __slots__ = ("_dintegrals",      # Dict of one integral list per domain type
+                 "_hash",            # Hash code for use in dicts, including incidental numbering of indices etc.
+                 "_signature",       # Signature for use with jit cache, independent of incidental numbering of indices etc.
+                 "_form_data",       # Cache of preprocess result applied to this form
+                 "_is_preprocessed", # Set to true if this form is the result of a preprocess of another form
+                 #"_domain_data",    # TODO: Make domain data a property of the form instead of the integral?
                  )
 
     def __init__(self, integrals):
-        #self._integrals = tuple(integrals)
         self._dintegrals = integral_sequence_to_dict(integrals)
-        self._integrals = integral_dict_to_sequence(self._dintegrals)
         ufl_assert(all(isinstance(itg, Integral) for itg in integrals),
                    "Expecting list of integrals.")
         self._signature = None
@@ -107,10 +74,11 @@ class Form(object):
     def cell(self): # TODO: DEPRECATE
         #from ufl.log import deprecate
         #deprecate("Form.cell is not well defined and will be removed.")
-        for itg in self._integrals:
-            cell = itg.integrand().cell()
-            if cell is not None:
-                return cell
+        for dt, itgs in self._dintegrals.iteritems():
+            for itg in itgs:
+                cell = itg.integrand().cell()
+                if cell is not None:
+                    return cell
         return None
 
     def integral_groups(self):
@@ -127,12 +95,6 @@ class Form(object):
             return integral_dict_to_sequence(self._dintegrals)
         else:
             return self._dintegrals[domain_type]
-
-    def measures(self, domain_type=None):
-        return tuple(itg.measure() for itg in self.integrals(domain_type))
-
-    def domains(self, domain_type=None):
-        return tuple((m.domain_type(), m.domain_id()) for m in self.measures(domain_type))
 
     def cell_integrals(self):
         #deprecate("Please use integrals(Measure.CELL) instead.") # TODO: Deprecate this and the others to simplify Form
@@ -152,6 +114,12 @@ class Form(object):
 
     def surface_integrals(self):
         return self._dintegrals.get(Measure.SURFACE, [])
+
+    def measures(self, domain_type=None): # TODO: Is this used anywhere? Remove if not.
+        return tuple(itg.measure() for itg in self.integrals(domain_type))
+
+    #def domains(self, domain_type=None):
+    #    return tuple((itg.domain_type(), itg.domain_description()) for itg in self.integrals(domain_type))
 
     def is_preprocessed(self):
         "Return true if this form is the result of a preprocessing of another form."
@@ -193,7 +161,7 @@ class Form(object):
     def __add__(self, other):
         if isinstance(other, Form):
             # Add integrands of integrals with the same measure
-            return Form(join_dintegrals(self._dintegrals, other._dintegrals))
+            return Form(integral_dict_to_sequence(join_dintegrals(self._dintegrals, other._dintegrals)))
         elif isinstance(other, (int,float)) and other == 0:
             # Allow adding 0 or 0.0 as a no-op, needed for sum([a,b])
             return self
@@ -228,10 +196,8 @@ class Form(object):
 
     def __str__(self):
         # TODO: Add warning here to check if anyone actually calls it in libraries
-        if self._dintegrals:
-            return "\n  +  ".join(str(itg) for itg in self.integrals())
-        else:
-            return "<empty Form>"
+        s = "\n  +  ".join(str(itg) for itg in self.integrals())
+        return s or "<empty Form>"
 
     def __repr__(self):
         # TODO: Add warning here to check if anyone actually calls it in libraries
@@ -241,12 +207,11 @@ class Form(object):
 
     def __hash__(self):
         if self._hash is None:
-            hashdata = tuple((hash(itg.integrand()), hash(itg.measure()))
-                             for itg in self.integrals())
+            hashdata = tuple(hash(itg) for itg in self.integrals())
             self._hash = hash(hashdata)
         return self._hash
 
-    def signature(self, function_replace_map=None):
+    def deprecated_signature(self, function_replace_map=None):
         if self._signature is None:
             from ufl.algorithms.signature import compute_form_signature
             self._signature = compute_form_signature(self, function_replace_map)

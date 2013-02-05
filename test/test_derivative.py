@@ -413,7 +413,7 @@ class DerivativeTestCase(UflTestCase):
         J = derivative(F, u, du, cd)
         fd = J.compute_form_data()
         actual = fd.preprocessed_form.integrals()[0].integrand()
-        self.assertEqual((actual*dx).signature(), (expected*dx).signature())
+        self.assertEqual((actual*dx).deprecated_signature(), (expected*dx).deprecated_signature())
         self.assertEqual(replace(actual, fd.function_replace_map), expected)
 
     def test_vector_coefficient_derivatives(self):
@@ -438,7 +438,7 @@ class DerivativeTestCase(UflTestCase):
         J = derivative(F, u, du, cd)
         fd = J.compute_form_data()
         actual = fd.preprocessed_form.integrals()[0].integrand()
-        self.assertEqual((actual*dx).signature(), (expected*dx).signature())
+        self.assertEqual((actual*dx).deprecated_signature(), (expected*dx).deprecated_signature())
         #self.assertEqual(replace(actual, fd.function_replace_map), expected)
 
     def test_vector_coefficient_derivatives_of_product(self):

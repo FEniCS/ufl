@@ -456,7 +456,7 @@ def form2latex(form, formdata):
         domain_type = itg.domain_type()
         dstr = domain_strings[domain_type]
 
-        domain_id = itg.measure().domain_id()
+        domain_id = itg.domain_id()
         if isinstance(domain_id, int):
             dstr += "_{%d}" % domain_id
         elif isinstance(domain_id, Domain) or domain_id == Measure.DOMAIN_ID_EVERYWHERE:
@@ -623,8 +623,7 @@ def form2code2latex(formdata):
 
     # Render each integral as a separate section
     for itg in formdata.form.cell_integrals():
-        m = itg.measure()
-        title = "%s integral over domain %d" % (m.domain_type(), m.domain_id())
+        title = "%s integral over domain %d" % (itg.domain_type(), itg.domain_id())
 
         G, partitions = integrand2code(itg.integrand(), formdata)
 

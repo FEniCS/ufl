@@ -5,7 +5,7 @@
 from ufl import Domain, Region, Measure, Form
 
 # Transitional helper constructor
-from ufl.integral import Integral2
+from ufl.integral import Integral
 
 def integral_domain_ids(integral):
     did = integral.measure().domain_id()
@@ -26,13 +26,13 @@ def restricted_integral(integral, domain_id):
     if integral_domain_ids(integral) == (domain_id,):
         return integral
     else:
-        return Integral2(integral.integrand(), integral.domain_type(), domain_id, integral.compiler_data(), integral.domain_data())
+        return Integral(integral.integrand(), integral.domain_type(), domain_id, integral.compiler_data(), integral.domain_data())
 
 def restricted_integral(integral, domain_id):
     if integral_domain_ids(integral) == (domain_id,):
         return integral
     else:
-        return Integral2(integral.integrand(), integral.domain_type(), domain_id, integral.compiler_data(), integral.domain_data())
+        return Integral(integral.integrand(), integral.domain_type(), domain_id, integral.compiler_data(), integral.domain_data())
 
 def annotated_integral(integral, compiler_data=None, domain_data=None):
     cd = integral.compiler_data()
@@ -44,7 +44,7 @@ def annotated_integral(integral, compiler_data=None, domain_data=None):
             compiler_data = cd
         if domain_data is None:
             domain_data = sd
-        return Integral2(integral.integrand(), integral.domain_type(), integral.domain_ids(), compiler_data, domain_data)
+        return Integral(integral.integrand(), integral.domain_type(), integral.domain_ids(), compiler_data, domain_data)
 
 
 # Tuple comparison helper
@@ -122,7 +122,7 @@ def reconstruct_form_from_sub_integral_data(sub_integral_data, domain_data=None)
         if metaintegrands is not None:
             for k in sorted(metaintegrands.keys()):
                 for integrand, compiler_data in metaintegrands[k]:
-                    integrals.append(Integral2(integrand, dt, k, compiler_data, dd))
+                    integrals.append(Integral(integrand, dt, k, compiler_data, dd))
     return Form(integrals)
 
 def build_sub_integral_list(itgs):
@@ -188,7 +188,7 @@ def convert_sub_integral_data_to_integral_data(sub_integral_data):
     integral_data = []
     for domain_type, domain_type_data in sub_integral_data.iteritems():
         for domain_id, sub_domain_integrands in domain_type_data.iteritems():
-            integrals = [Integral2(integrand, domain_type, domain_id, compiler_data, None)
+            integrals = [Integral(integrand, domain_type, domain_id, compiler_data, None)
                          for integrand, compiler_data in sub_domain_integrands]
             ida = IntegralData(domain_type, domain_id, integrals, {})
             integral_data.append(ida)
