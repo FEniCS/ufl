@@ -80,7 +80,12 @@ class TestIntegrals(UflTestCase):
         f = Coefficient(element)
         a = f*v*dx(0) + 2*v*ds + 3*v*dx(0) + 7*v*ds + 3*v*dx(2) + 7*v*dx(2)
         b = (f*v + 3*v)*dx(0) + (2*v + 7*v)*ds + (3*v + 7*v)*dx(2)
-        self.assertEqual(repr(a), repr(b))
+        # Check that integrals are represented canonically after preprocessing
+        # (these forms have no indices with icky numbering issues)
+        self.assertEqual(a.compute_form_data().preprocessed_form.integrals(),
+                         b.compute_form_data().preprocessed_form.integrals())
+        # And therefore the signatures should be the same
+        self.assertEqual(a.deprecated_signature(), b.deprecated_signature())
 
     def test_adding_zero(self):
         element = FiniteElement("Lagrange", triangle, 1)

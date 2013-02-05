@@ -294,8 +294,8 @@ def extract_num_sub_domains(form):
     "Extract the upper limit of sub domain ids for each domain type."
     num_domains = {}
     for integral in form.integrals():
-        domain_type = integral.measure().domain_type()
-        domain_id = integral.measure().domain_id()
+        domain_type = integral.domain_type()
+        domain_id = integral.domain_id()
 
         # TODO: This may need some redesign
         max_domain_id = None
@@ -340,102 +340,6 @@ class IntegralData(object):
         return "IntegralData object over domain (%s, %s), with integrals:\n%s\nand metadata:\n%s" % (
             self.domain_type, self.domain_id,
             '\n\n'.join(map(str,self.integrals)), self.metadata)
-
-def extract_integral_data(form):
-    """
-    Extract integrals from form stored by integral type and sub
-    domain, stored as a list of IntegralData objects.
-    """
-
-    # Extract integral data
-    integral_data = {}
-    everywhere_integrals = {}
-    encountered_unique = set()
-    encountered_non_unique = set()
-    for integral in form.integrals():
-        # Get domain description from integral
-        domain_type = integral.measure().domain_type()
-        domain_id = integral.measure().domain_id()
-
-        # Check that we don't get both unique and nonunique domain ids
-        if domain_id == Measure.DOMAIN_ID_UNIQUE:
-            encountered_unique.add(domain_type)
-        else:
-            encountered_non_unique.add(domain_type)
-
-        # Get tuple of domain ids
-        if domain_id == Measure.DOMAIN_ID_UNIQUE:
-            # Translate from everywhere to otherwise, can't also have nonunique domain ids
-            domain_ids = (Measure.DOMAIN_ID_OTHERWISE,)
-
-        elif domain_id == Measure.DOMAIN_ID_EVERYWHERE or isinstance(domain_id, Domain):
-            # Translate from everywhere to otherwise, and...
-            domain_ids = (Measure.DOMAIN_ID_OTHERWISE,)
-
-            # ... also store everywhere integrals to the side to apply to all other integrals below.
-            key = (domain_type, domain_ids[0])
-            if key in everywhere_integrals:
-                everywhere_integrals[key].append(integral)
-            else:
-                everywhere_integrals[key] = [integral]
-
-        elif isinstance(domain_id, Region):
-            # Apply all subdomain ids from region separately
-            domain_ids = domain_id.subdomain_ids()
-
-            # Skip integral over empty region
-            if len(domain_ids) == 0:
-                continue
-
-        elif isinstance(domain_id, int):
-            # Apply single subdomain id
-            domain_ids = (domain_id,)
-
-        elif domain_id == Measure.DOMAIN_ID_OTHERWISE:
-            # This should not come from user code, only after preprocessing
-            domain_ids = (Measure.DOMAIN_ID_OTHERWISE,)
-            error("Not expecting 'otherwise' domain during preprocessing, has it been applied twice?")
-
-        else:
-            error("Invalid domain id %s." % (domain_id,))
-
-        # Accumulate integrals for each (type,id) combination
-        for domain_id in domain_ids:
-            key = (domain_type, domain_id)
-
-            # Reconstruct integral with suitable domain id
-            # TODO: Avoid integral reconstruction by storing stuff in IntegralData more explicitly
-            integral2 = Integral(integral.integrand(), integral.measure().reconstruct(domain_id=domain_id))
-
-            if key in integral_data:
-                integral_data[key].append(integral2)
-            else:
-                integral_data[key] = [integral2]
-
-    # Accumulate integrals over everywhere into other (type,id) combinations,
-    # FIXME: and canonicalize and collapse lists of multiple similar integrals
-    new_integral_data = {}
-    for key, integrals in integral_data.iteritems():
-        eitg = [Integral(itg.integrand(), itg.measure().reconstruct(domain_id=key[1])) for itg in everywhere_integrals.get(key,[])]
-        new_integrals = integrals + eitg
-        if len(new_integrals) > 1:
-            # FIXME: Is this robust w.r.t different metadata?
-            # Abusing the sorting and automatic addition of integrals in Form a bit here:
-            # TODO: Move all integral sorting and addition into this algorithm instead?
-            new_integrals = Form(new_integrals).integrals()
-        new_integral_data[key] = new_integrals
-    integral_data = new_integral_data
-
-    # Checking for f*dx + g*dx(1) situation, but f*dx + g*ds(1) is ok
-    for domain_type in encountered_unique:
-        ufl_assert(domain_type not in encountered_non_unique,
-                   "Found both unique integral and non-unique integral of type '%s' in same form." % (domain_type,))
-
-    # Sort by domain type and number.
-    # Note that this sorting thing here is pretty interesting. The
-    # domain types happen to be in alphabetical order (cell, exterior,
-    # interior, and macro) so we can just sort... :-)
-    return sorted(IntegralData(d, n, i, {}) for ((d, n), i) in integral_data.iteritems())
 
 def sort_elements(elements):
     """
