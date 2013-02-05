@@ -24,6 +24,64 @@ class TestMeasure(UflTestCase):
         # Possible PyDOLFIN syntax:
         #ds = boundaries.dx(3) # return Measure('dx')[self](3)
 
+    def test_forms_with_compiler_data(self):
+        element = FiniteElement("Lagrange", triangle, 1)
+
+        u = TrialFunction(element)
+        v = TestFunction(element)
+
+        # Three terms on the same subdomain using different representations
+        a_0 = (u*v*dx(0, {"representation":"tensor"})
+               + inner(grad(u), grad(v))*dx(0, {"representation": "quadrature"})
+               + inner(grad(u), grad(v))*dx(0, {"representation": "auto"}))
+
+        # Three terms on different subdomains using different representations and order
+        a_1 = (inner(grad(u), grad(v))*dx(0, {"representation":"tensor",
+                                              "quadrature_degree":8})
+               + inner(grad(u), grad(v))*dx(1, {"representation":"quadrature",
+                                                "quadrature_degree":4})
+               + inner(grad(u), grad(v))*dx(1, {"representation":"auto",
+                                                "quadrature_degree":"auto"}))
+
+        # Sum of the above
+        a = a_0 + a_1
+
+        # Same forms with no compiler data:
+        b_0 = (u*v*dx(0)
+               + inner(grad(u), grad(v))*dx(0)
+               + inner(grad(u), grad(v))*dx(0))
+        b_1 = (inner(grad(u), grad(v))*dx(0)
+               + inner(grad(u), grad(v))*dx(1)
+               + inner(grad(u), grad(v))*dx(1))
+        b = b_0 + b_1
+
+        # Same forms with same compiler data but different ordering of terms
+        c_0 = (inner(grad(u), grad(v))*dx(0, {"representation": "auto"})
+               + inner(grad(u), grad(v))*dx(0, {"representation": "quadrature"})
+               + u*v*dx(0, {"representation":"tensor"}))
+        c_1 = (inner(grad(u), grad(v))*dx(0, {"representation":"tensor",
+                                              "quadrature_degree":8})
+               + inner(grad(u), grad(v))*dx(1, {"representation":"auto",
+                                                "quadrature_degree":"auto"})
+               + inner(grad(u), grad(v))*dx(1, {"representation":"quadrature",
+                                                "quadrature_degree":4}))
+        c = c_0 + c_1
+
+        afd = a.compute_form_data()
+        bfd = b.compute_form_data()
+        cfd = c.compute_form_data()
+
+        if 0:
+            k = 0
+            for fd in (afd, bfd, cfd):
+                print; print k; k+=1
+                print '\n'.join(map(str,[itg.compiler_data()
+                                         for itg in fd.preprocessed_form.integrals()]))
+
+        self.assertNotEqual(afd.signature, bfd.signature)
+        #self.assertEqual(afd.signature, cfd.signature) # FIXME
+
+
     def test_measures_with_domain_data(self):
         # Configure measure with some arbitrary data object as domain_data
         domain_data = ('Stokes', 'Darcy')
