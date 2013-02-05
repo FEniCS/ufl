@@ -2,7 +2,7 @@
 
 #from ufl import *
 
-from ufl import Measure, Region, Domain
+from ufl import Domain, Region, Measure, Form
 
 # Transitional helper constructor
 from ufl.integral import Integral2
@@ -103,12 +103,26 @@ def integral_dict_to_sub_integral_data(integrals):
             sub_integrals = build_sub_integral_list(itgs)
 
             # Build a canonical representation of integrals for this type of domain,
-            # with only one integral object for each compiler_data on each subdomain
+            # with only one integrand for each compiler_data on each subdomain
             sub_integral_data[dt] = canonicalize_sub_integral_data(sub_integrals)
 
     # Return result:
     #sub_integral_data[dt][did][:] = [(integrand0, compiler_data0), (integrand1, compiler_data1), ...]
     return sub_integral_data
+
+def reconstruct_form_from_sub_integral_data(sub_integral_data, domain_data=None):
+    domain_data = domain_data or {}
+    integrals = []
+    # Iterate over domain types in order
+    for dt in Measure._domain_types_tuple:
+        dd = domain_data.get(dt)
+        # Get integrals list for this domain type if any
+        metaintegrands = sub_integral_data.get(dt)
+        if metaintegrands is not None:
+            for k in sorted(metaintegrands.keys()):
+                for integrand, compiler_data in metaintegrands[k]:
+                    integrals.append(Integral2(integrand, dt, k, compiler_data, dd))
+    return Form(integrals)
 
 def build_sub_integral_list(itgs):
     sub_integrals = defaultdict(list)

@@ -40,7 +40,11 @@ from ufl.algorithms.analysis import (extract_arguments_and_coefficients,
                                      unique_tuple, _domain_types,
                                      extract_num_sub_domains, extract_domain_data,
                                      extract_integral_data)
-from ufl.algorithms.domain_analysis import extract_integral_data_from_integral_dict
+from ufl.algorithms.domain_analysis import (
+    integral_dict_to_sub_integral_data,
+    print_sub_integral_data,
+    reconstruct_form_from_sub_integral_data,
+    convert_sub_integral_data_to_integral_data)
 from ufl.algorithms.formdata import FormData, ExprData
 from ufl.algorithms.expand_indices import expand_indices
 from ufl.algorithms.ad import expand_derivatives
@@ -113,13 +117,21 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
     # Propagate restrictions of interior facet integrals to the terminal nodes
     form = propagate_restrictions(form) # INTEGRAL, EXPR
 
-
     # --- BEGIN DOMAIN SPLITTING AND JOINING
-    # Store integrals by type and domain id
-    #form_data.integral_data = extract_integral_data(form)
-    # FIXME: Some parts of this function must be reflected in form.integrals() for consistency,
-    # so split this function into domain splitting then reconstruct form from integral data.
-    form_data.integral_data = extract_integral_data_from_integral_dict(form._dintegrals)
+    # Store domain metadata per domain type
+    form_data.domain_data = extract_domain_data(form)
+
+    # Split up integrals and group by domain type and domain id,
+    # adding integrands with same domain and compiler data
+    sub_integral_data = integral_dict_to_sub_integral_data(form._dintegrals)
+    # TODO: Replace integral_data with this through ufl and ffc?
+    if 0: print_sub_integral_data(sub_integral_data)
+
+    # Reconstruct form from these integrals in a more canonical representation
+    form = reconstruct_form_from_sub_integral_data(sub_integral_data, form_data.domain_data)
+
+    # Represent in the way ffc expects TODO: Change ffc? Fine for now.
+    form_data.integral_data = convert_sub_integral_data_to_integral_data(sub_integral_data)
     # --- END DOMAIN SPLITTING AND JOINING
 
 
@@ -141,6 +153,8 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
         build_argument_replace_map(original_arguments,
                                    original_coefficients,
                                    element_mapping)
+
+    # Note: This is the earliest point signature can be computed
 
     # Build mapping to original arguments and coefficients, which is
     # useful if the original arguments have data attached to them
@@ -229,9 +243,6 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
 
     # Store number of domains for integral types
     form_data.num_sub_domains = extract_num_sub_domains(form)
-
-    # Store number of domains for integral types
-    form_data.domain_data = extract_domain_data(form)
     # --- END DOMAIN DATA
 
 

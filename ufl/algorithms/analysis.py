@@ -280,11 +280,14 @@ def extract_domain_data(form):
         # Check that there is only one domain_data object for each integral type
         existing_data = domain_data.get(domain_type)
         if existing_data is None:
+            # Got no data before, store this one. May be None, that's fine.
             domain_data[domain_type] = data
-        else:
-            # Not assuming anything about domain_data type, not even an equals operator!
-            ufl_assert(existing_data is data,
-                       "Found two domain data objects for same domain type.")
+        elif data is None:
+            # Already got data, getting no data is ok but don't overwrite.
+            pass
+        elif existing_data is not data:
+            # NB! Using 'is' because we're not assuming anything about domain_data type, not even an equals operator!
+            error("Found two domain data objects for same domain type '%s', only one is allowed." % str(domain_type))
     return domain_data
 
 def extract_num_sub_domains(form):
