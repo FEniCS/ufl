@@ -311,7 +311,7 @@ class FormSignatureTestCase(UflTestCase):
         hashes = set()
         reprs = set()
         for a in forms:
-            #sig = a.signature()
+            #sig = a.deprecated_signature()
             sig = compute_form_signature(a)
 
             sigs.add(sig)
@@ -375,9 +375,9 @@ class FormSignatureTestCase(UflTestCase):
         M1 = f*dx(0) + g*dx(1)
         M2 = g*dx(0) + f*dx(1)
         M3 = g*dx(0) + g*dx(1)
-        self.assertTrue(M1.signature() != M2.signature())
-        self.assertTrue(M1.signature() != M3.signature())
-        self.assertTrue(M2.signature() != M3.signature())
+        self.assertTrue(M1.deprecated_signature() != M2.deprecated_signature())
+        self.assertTrue(M1.deprecated_signature() != M3.deprecated_signature())
+        self.assertTrue(M2.deprecated_signature() != M3.deprecated_signature())
 
     def test_signature_of_forms_change_with_operators(self):
         def forms():

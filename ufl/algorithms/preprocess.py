@@ -38,8 +38,7 @@ from ufl.algorithms.analysis import (extract_arguments_and_coefficients,
                                      build_argument_replace_map,
                                      extract_elements, extract_sub_elements,
                                      unique_tuple, _domain_types,
-                                     extract_num_sub_domains, extract_domain_data,
-                                     extract_integral_data)
+                                     extract_num_sub_domains, extract_domain_data)
 from ufl.algorithms.domain_analysis import (
     integral_dict_to_sub_integral_data,
     print_sub_integral_data,
@@ -87,6 +86,7 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
 
     # Check that we get a form
     ufl_assert(isinstance(form, Form), "Expecting Form.")
+    original_form = form
 
     # Object names is empty if not given
     object_names = object_names or {}
@@ -254,6 +254,13 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
     # Store preprocessed form and return
     form_data.preprocessed_form = form
     form_data.preprocessed_form._is_preprocessed = True
+
+    # Attach signatures to original and preprocessed forms TODO: Avoid this?
+    ufl_assert(form_data.preprocessed_form._signature is None, "")
+    form_data.preprocessed_form._signature = form_data.signature
+    ufl_assert(original_form._signature is None, "")
+    original_form._signature = form_data.signature
+
     return form_data
 preprocess.enable_profiling = False
 

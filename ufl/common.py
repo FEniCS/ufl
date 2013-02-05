@@ -77,6 +77,16 @@ def mergedicts(dicts):
 def subdict(superdict, keys):
     return dict((k, superdict[k]) for k in keys)
 
+def dict_sum(items):
+    "Construct a dict, in between dict(items) and sum(items), by accumulating items for each key."
+    d = {}
+    for k, v in items:
+        if k not in d:
+            d[k] = v
+        else:
+            d[k] += v
+    return d
+
 def unzip(seq):
     "Inverse operation of zip: unzip(zip(a, b)) == (a, b)"
     return [s[0] for s in seq], [s[1] for s in seq]
