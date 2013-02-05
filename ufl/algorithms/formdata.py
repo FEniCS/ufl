@@ -60,9 +60,7 @@ class FormData(object):
     def validate(self,
                  object_names=None,
                  common_cell=None,
-                 element_mapping=None,
-                 replace_functions=False,
-                 skip_signature=False):
+                 element_mapping=None):
         "Validate that the form data was built from the same inputs."
         ufl_assert((object_names or {}) == self._input_object_names,
                    "Found non-matching object_names in form data validation.")
@@ -72,13 +70,6 @@ class FormData(object):
 
         ufl_assert((element_mapping or {}) == self._input_element_mapping,
                    "Found non-matching element mappings in form data validation.")
-
-        ufl_assert(replace_functions == self._input_replace_functions,
-                   "Found non-matching replace_function bool in form data validation.")
-
-        ufl_assert(skip_signature == self._input_skip_signature,
-                   "Found non-matching skip_signature bool in form data validation.")
-
 
 class ExprData(object):
     """

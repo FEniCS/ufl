@@ -164,9 +164,7 @@ class Form(object):
     def compute_form_data(self,
                           object_names=None,
                           common_cell=None,
-                          element_mapping=None,
-                          replace_functions=False,
-                          skip_signature=False):
+                          element_mapping=None):
         "Compute and return form metadata"
         # TODO: We should get rid of the form data caching, but need to
         #       figure out how to do that and keep pydolfin working properly
@@ -178,15 +176,11 @@ class Form(object):
             self._form_data = preprocess(self,
                                          object_names=object_names,
                                          common_cell=common_cell,
-                                         element_mapping=element_mapping,
-                                         replace_functions=replace_functions,
-                                         skip_signature=skip_signature)
+                                         element_mapping=element_mapping)
         # Always validate arguments, keeping sure that the validation works
         self._form_data.validate(object_names=object_names,
                                  common_cell=common_cell,
-                                 element_mapping=element_mapping,
-                                 replace_functions=replace_functions,
-                                 skip_signature=skip_signature)
+                                 element_mapping=element_mapping)
         return self.form_data()
 
     def __eq__(self, other):

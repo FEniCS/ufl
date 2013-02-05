@@ -68,8 +68,7 @@ class Timer:
         s.append(line)
         return '\n'.join(s)
 
-def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
-               replace_functions=False, skip_signature=False):
+def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
     """
     Preprocess raw input form to obtain form metadata, including a
     modified (preprocessed) form more easily manipulated by form
@@ -98,8 +97,6 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
     form_data._input_object_names = dict(object_names)
     form_data._input_element_mapping = dict(element_mapping)
     #form_data._input_common_cell = no need to store this
-    form_data._input_replace_functions = replace_functions
-    form_data._input_skip_signature = skip_signature
 
     # Store name of form if given, otherwise empty string
     # such that automatic names can be assigned externally
@@ -151,20 +148,13 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
     form_data.original_coefficients   = original_coefficients
     # --- END SPLIT INTEGRAL JOIN
 
-    tic('replace')
-    # FIXME: FIRST: Always store mapping on the side instead of reconstructing
-    ufl_assert(not replace_functions, "Expecting replace_functions to be disabled now.")
-    if replace_functions:
-        form = replace(form, replace_map)
-        # Temporary hacks to introduce mappings in form compilers gradually
-        form_data.element_replace_map = dict((e,e) for e in element_mapping.values())
-        form_data.function_replace_map = dict((e,e) for e in replace_map.values())
-    else:
-        # Mappings from elements and functions (coefficients and arguments)
-        # that reside in form to objects with canonical numbering as well as
-        # completed cells and elements
-        form_data.element_replace_map = element_mapping
-        form_data.function_replace_map = replace_map # PER INTEGRAL OR FORM?
+    # Mappings from elements and functions (coefficients and arguments)
+    # that reside in form to objects with canonical numbering as well as
+    # completed cells and elements
+    # TODO: Create additional function mappings per integral,
+    #       to have different counts? Depends on future UFC design.
+    form_data.element_replace_map = element_mapping
+    form_data.function_replace_map = replace_map
 
     # Store some useful dimensions
     form_data.rank = len(form_data.original_arguments)
@@ -197,12 +187,9 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
     # TODO: Compute signatures of each INTEGRAL and EXPR as well, perhaps compute it hierarchially from integral_data?
     # Store signature of form
     tic('signature')
-    if skip_signature:
-        form_data.signature = None
-    else:
-        # TODO: Remove signature() from Form, not safe to cache with a replacement map
-        #form_data.signature = form.signature(form_data.function_replace_map)
-        form_data.signature = compute_form_signature(form, form_data.function_replace_map)
+    # TODO: Remove signature() from Form, not safe to cache with a replacement map
+    #form_data.signature = form.signature(form_data.function_replace_map)
+    form_data.signature = compute_form_signature(form, form_data.function_replace_map)
     # --- END SIGNATURE COMPUTATION
 
 
@@ -259,8 +246,7 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None,
     return form_data
 preprocess.enable_profiling = False
 
-def preprocess_expression(expr, object_names=None, common_cell=None, element_mapping=None,
-                          replace_functions=True, skip_signature=False):
+def preprocess_expression(expr, object_names=None, common_cell=None, element_mapping=None):
     """
     Preprocess raw input expression to obtain expression metadata,
     including a modified (preprocessed) expression more easily
@@ -337,26 +323,15 @@ def preprocess_expression(expr, object_names=None, common_cell=None, element_map
     expr_data.renumbered_coefficients = renumbered_coefficients
 
     tic('replace')
-    # FIXME: Always store mapping on the side instead of reconstructing
-    if replace_functions:
-        expr = replace(expr, replace_map)
-        # Temporary hacks to introduce mappings in form compilers gradually
-        expr_data.element_replace_map = dict((e,e) for e in element_mapping.values())
-        expr_data.function_replace_map = dict((e,e) for e in replace_map.values())
-    else:
-        # Mappings from elements and functions (coefficients and arguments)
-        # that reside in expr to objects with canonical numbering as well as
-        # completed cells and elements
-        expr_data.element_replace_map = element_mapping
-        expr_data.function_replace_map = replace_map
+    # Mappings from elements and functions (coefficients and arguments)
+    # that reside in expr to objects with canonical numbering as well as
+    # completed cells and elements
+    expr_data.element_replace_map = element_mapping
+    expr_data.function_replace_map = replace_map
 
     # Store signature of form
     tic('signature')
-    if skip_signature:
-        expr_data.signature = None
-    else:
-        expr_data.signature = compute_expression_signature(expr,
-                                                           expr_data.function_replace_map)
+    expr_data.signature = compute_expression_signature(expr, expr_data.function_replace_map)
 
     # Store elements, sub elements and element map
     tic('extract_elements')
