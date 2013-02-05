@@ -46,11 +46,13 @@ def integral_sequence_to_dict(integrals):
 
 def integral_dict_to_sequence(integrals):
     "Map a dictionary of lists of Integrals keyed by domain type into a sequence of Integral objects ."
-    return tuple(itg for dt in Measure._domain_types_tuple for itg in integrals.get(dt, ()))
+    return tuple(itg for dt in Measure._domain_types_tuple
+                 for itg in integrals.get(dt, ()))
 
 def join_dintegrals(aintegrals, bintegrals):
     # Store integrals from two forms in a canonical sorting
-    return integral_sequence_to_dict(chain(integral_dict_to_sequence(aintegrals), integral_dict_to_sequence(bintegrals)))
+    return integral_sequence_to_dict(chain(integral_dict_to_sequence(aintegrals),
+                                           integral_dict_to_sequence(bintegrals)))
 
 class Form(object):
     """Description of a weak form consisting of a sum of integrals over subdomains."""

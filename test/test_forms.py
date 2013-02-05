@@ -24,6 +24,53 @@ class TestMeasure(UflTestCase):
         # Possible PyDOLFIN syntax:
         #ds = boundaries.dx(3) # return Measure('dx')[self](3)
 
+    def test_functionals_with_compiler_data(self):
+        x, y, z = tetrahedron.x
+
+        a0 = x*dx(0)             + y*dx(0)             + z*dx(1)
+        a1 = x*dx(0, {'k': 'v'}) + y*dx(0, {'k': 'v'}) + z*dx(1, {'k': 'v'})
+        a2 = x*dx(0, {'k': 'x'}) + y*dx(0, {'k': 'y'}) + z*dx(1, {'k': 'z'})
+
+        b0 = x*dx(0)             + z*dx(1)             + y*dx(0)
+        b1 = x*dx(0, {'k': 'v'}) + z*dx(1, {'k': 'v'}) + y*dx(0, {'k': 'v'})
+        b2 = x*dx(0, {'k': 'x'}) + z*dx(1, {'k': 'z'}) + y*dx(0, {'k': 'y'})
+
+        c0 = y*dx(0)             + z*dx(1)             + x*dx(0)
+        c1 = y*dx(0, {'k': 'v'}) + z*dx(1, {'k': 'v'}) + x*dx(0, {'k': 'v'})
+        c2 = y*dx(0, {'k': 'y'}) + z*dx(1, {'k': 'z'}) + x*dx(0, {'k': 'x'})
+
+        d0 = (x*dx(0, {'k': 'xk', 'q':'xq'})
+            + y*dx(1, {'k': 'yk', 'q':'yq'}) )
+        d1 = (y*dx(1, {'k': 'yk', 'q':'yq'})
+            + x*dx(0, {'k': 'xk', 'q':'xq'}))
+
+        a0s = a0.compute_form_data().signature
+        a1s = a1.compute_form_data().signature
+        a2s = a2.compute_form_data().signature
+        b0s = b0.compute_form_data().signature
+        b1s = b1.compute_form_data().signature
+        b2s = b2.compute_form_data().signature
+        c0s = c0.compute_form_data().signature
+        c1s = c1.compute_form_data().signature
+        c2s = c2.compute_form_data().signature
+        d0s = d0.compute_form_data().signature
+        d1s = d1.compute_form_data().signature
+
+        # Check stability w.r.t. ordering of terms without compiler data
+        self.assertEqual(a0s, b0s)
+        self.assertEqual(a0s, c0s)
+
+        # Check stability w.r.t. ordering of terms with equal compiler data
+        self.assertEqual(a1s, b1s)
+        self.assertEqual(a1s, c1s)
+
+        # Check stability w.r.t. ordering of terms with different compiler data
+        self.assertEqual(a2s, b2s)
+        self.assertEqual(a2s, c2s)
+
+        # Check stability w.r.t. ordering of terms with two-value compiler data dict
+        self.assertEqual(d0s, d1s)
+
     def test_forms_with_compiler_data(self):
         element = FiniteElement("Lagrange", triangle, 1)
 
@@ -68,18 +115,11 @@ class TestMeasure(UflTestCase):
         c = c_0 + c_1
 
         afd = a.compute_form_data()
-        bfd = b.compute_form_data()
         cfd = c.compute_form_data()
-
-        if 0:
-            k = 0
-            for fd in (afd, bfd, cfd):
-                print; print k; k+=1
-                print '\n'.join(map(str,[itg.compiler_data()
-                                         for itg in fd.preprocessed_form.integrals()]))
+        bfd = b.compute_form_data()
 
         self.assertNotEqual(afd.signature, bfd.signature)
-        #self.assertEqual(afd.signature, cfd.signature) # FIXME
+        self.assertEqual(afd.signature, cfd.signature)
 
 
     def test_measures_with_domain_data(self):

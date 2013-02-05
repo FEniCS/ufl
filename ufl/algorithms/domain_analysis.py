@@ -22,31 +22,6 @@ def integral_domain_ids(integral):
     else:
         error("Invalid domain id %s." % did)
 
-def restricted_integral(integral, domain_id):
-    if integral_domain_ids(integral) == (domain_id,):
-        return integral
-    else:
-        return Integral(integral.integrand(), integral.domain_type(), domain_id, integral.compiler_data(), integral.domain_data())
-
-def restricted_integral(integral, domain_id):
-    if integral_domain_ids(integral) == (domain_id,):
-        return integral
-    else:
-        return Integral(integral.integrand(), integral.domain_type(), domain_id, integral.compiler_data(), integral.domain_data())
-
-def annotated_integral(integral, compiler_data=None, domain_data=None):
-    cd = integral.compiler_data()
-    sd = integral.domain_data()
-    if cd is compiler_data and sd is domain_data:
-        return integral
-    else:
-        if compiler_data is None:
-            compiler_data = cd
-        if domain_data is None:
-            domain_data = sd
-        return Integral(integral.integrand(), integral.domain_type(), integral.domain_ids(), compiler_data, domain_data)
-
-
 # Tuple comparison helper
 from collections import defaultdict
 from ufl.sorting import cmp_expr
@@ -61,10 +36,10 @@ class ExprTupleKey(object):
         if c < 0:
             return True
         elif c > 0:
-            # NB! Comparing form compiler data here! Is sorting of dicts stable?
-            return self.x[1] < other.x[1]
-        else:
             return False
+        else:
+            # NB! Comparing form compiler data here! Assuming this is an ok operation.
+            return self.x[1] < other.x[1]
 def expr_tuple_key(expr):
     return ExprTupleKey(expr)
 
@@ -138,7 +113,8 @@ def build_sub_integral_list(itgs):
         else:
             # Region or single subdomain id
             for did in dids:
-                sub_integrals[did].append(restricted_integral(itg, did)) # Restrict integral to this subdomain!
+                # Restrict integral to this subdomain!
+                sub_integrals[did].append(itg.reconstruct(domain_description=did))
 
     # Add everywhere integrals to each single subdomain id integral list
     if Measure.DOMAIN_ID_EVERYWHERE in sub_integrals:
@@ -151,7 +127,8 @@ def build_sub_integral_list(itgs):
         # Restrict everywhere integral to each subdomain and append to each integral list
         for did, itglist in sub_integrals.iteritems():
             for itg in ei:
-                itglist.append(restricted_integral(itg, did))
+                # Restrict integral to this subdomain!
+                itglist.append(itg.reconstruct(domain_description=did))
     return sub_integrals
 
 def canonicalize_sub_integral_data(sub_integrals):
