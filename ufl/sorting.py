@@ -115,6 +115,12 @@ def expr_key(expr):
 def sorted_expr(seq):
     return sorted(seq, key=expr_key)
 
+def sorted_expr_sum(seq):
+    seq2 = sorted(seq, key=expr_key)
+    s = seq2[0]
+    for e in seq2[1:]:
+        s = s + e
+    return s
 
 # TODO: Move this to common.py, does not belong here
 def topological_sorting(nodes, edges):
