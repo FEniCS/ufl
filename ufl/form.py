@@ -76,27 +76,26 @@ class Form(object):
     def cell(self): # TODO: DEPRECATE
         #from ufl.log import deprecate
         #deprecate("Form.cell is not well defined and will be removed.")
-        for dt, itgs in self._dintegrals.iteritems():
-            for itg in itgs:
-                cell = itg.integrand().cell()
-                if cell is not None:
-                    return cell
+        for itg in self.integrals():
+            cell = itg.integrand().cell()
+            if cell is not None:
+                return cell
         return None
 
     def integral_groups(self):
-        """Return a dict, which is a mapping from domains to integrals.
+        """Return a dict, which is a mapping from domain types to integrals.
 
-        In particular, each key of the dict is a distinct tuple
-        (domain_type, domain_id), and each value is a list of
-        Integral instances. The Integrals in each list share the
-        same domain (the key), but have different measures."""
+        In particular, the keys are domain_type strings, and the
+        values are lists of Integral instances. The Integrals in
+        each list share the same domain type (the key), but have
+        potentially different domain ids and metadata."""
         return self._dintegrals
 
     def integrals(self, domain_type=None):
         if domain_type is None:
-            return integral_dict_to_sequence(self._dintegrals)
+            return integral_dict_to_sequence(self.integral_groups())
         else:
-            return self._dintegrals[domain_type]
+            return self.integral_groups().get(domain_type,[])
 
     def is_preprocessed(self):
         "Return true if this form is the result of a preprocessing of another form."
@@ -138,7 +137,7 @@ class Form(object):
     def __add__(self, other):
         if isinstance(other, Form):
             # Add integrands of integrals with the same measure
-            return Form(integral_dict_to_sequence(join_dintegrals(self._dintegrals, other._dintegrals)))
+            return Form(integral_dict_to_sequence(join_dintegrals(self.integral_groups(), other.integral_groups())))
         elif isinstance(other, (int,float)) and other == 0:
             # Allow adding 0 or 0.0 as a no-op, needed for sum([a,b])
             return self

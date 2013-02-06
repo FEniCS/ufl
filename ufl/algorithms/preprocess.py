@@ -123,7 +123,7 @@ def preprocess(form, object_names=None, common_cell=None, element_mapping=None):
 
     # Split up integrals and group by domain type and domain id,
     # adding integrands with same domain and compiler data
-    sub_integral_data = integral_dict_to_sub_integral_data(form._dintegrals)
+    sub_integral_data = integral_dict_to_sub_integral_data(form.integral_groups())
     # TODO: Replace integral_data with this through ufl and ffc?
     if 0: print_sub_integral_data(sub_integral_data)
 
