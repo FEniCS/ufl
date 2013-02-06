@@ -187,7 +187,7 @@ def process_form(F):
 
     printmem()
     print "size of form", asizeof(F)
-    print_expr_size(F.cell_integrals()[0].integrand())
+    print_expr_size(F.integrals(Measure.CELL)[0].integrand())
 
     t1 = time.time()
     print 'starting preprocess'
@@ -195,7 +195,7 @@ def process_form(F):
     t2 = time.time()
     print 'preprocess took %d s' % (t2-t1)
     print "size of form data (in MB)", asizeof(Ffd)/float(1024**2)
-    print_expr_size(Ffd.preprocessed_form.cell_integrals()[0].integrand())
+    print_expr_size(Ffd.preprocessed_form.integrals(Measure.CELL)[0].integrand())
     printmem()
 
     printmem()
@@ -208,12 +208,12 @@ def process_form(F):
     msize = asizeof(eiF)/float(1024**2)
     mtime = t2-t1
     print "size of expanded form (in MB)", msize
-    print_expr_size(eiF.cell_integrals()[0].integrand())
+    print_expr_size(eiF.integrals(Measure.CELL)[0].integrand())
     printmem()
 
     t1 = time.time()
     print 'starting graph building'
-    FG = Graph(eiF.cell_integrals()[0].integrand())
+    FG = Graph(eiF.integrals(Measure.CELL)[0].integrand())
     t2 = time.time()
     print 'graph building took %d s' % (t2-t1)
     print "size of graph (in MB)", asizeof(FG)/float(1024**2)
@@ -237,7 +237,7 @@ def main():
     del J
     printmem()
 
-    find_the_memory_thief(ei.cell_integrals()[0].integrand())
+    find_the_memory_thief(ei.integrals(Measure.CELL)[0].integrand())
 
     #print formatted_analysis(ei, classes=True)
 

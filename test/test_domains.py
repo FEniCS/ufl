@@ -117,7 +117,7 @@ class MeasuresOverRegionsTestCase(UflTestCase):
         self.assertEqual(M_dxr1, M_dxr2)
 
         #for M in (M_dxr1, M_dxr2, M_dx23):
-        #    self.assertEqual(M.cell_integrals()[0].measure(), dx(self.DR))
+        #    self.assertEqual(M.integrals(Measure.CELL)[0].measure(), dx(self.DR))
 
         # Construct a slightly more complex form, including overlapping subdomains
         M1 = fl*dx(self.DL) + fr*dx(self.DR) # TODO: Test handling of legal measures

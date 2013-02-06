@@ -52,11 +52,11 @@ def form_info(form):
     bf = extract_arguments(form)
     cf = extract_coefficients(form)
 
-    ci = form.cell_integrals()
-    ei = form.exterior_facet_integrals()
-    ii = form.interior_facet_integrals()
-    pi = form.point_integrals()
-    mi = form.macro_cell_integrals()
+    ci = form.integrals(Measure.CELL)
+    ei = form.integrals(Measure.EXTERIOR_FACET)
+    ii = form.integrals(Measure.INTERIOR_FACET)
+    pi = form.integrals(Measure.POINT)
+    mi = form.integrals(Measure.MACRO_CELL)
 
     s  = "Form info:\n"
     s += "  rank:                          %d\n" % len(bf)
@@ -108,11 +108,11 @@ def tree_format(expression, indentation=0, parentheses=True):
     s = ""
 
     if isinstance(expression, Form):
-        ci = expression.cell_integrals()
-        ei = expression.exterior_facet_integrals()
-        ii = expression.interior_facet_integrals()
-        pi = expression.point_integrals()
-        mi = expression.macro_cell_integrals()
+        ci = expression.integrals(Measure.CELL)
+        ei = expression.integrals(Measure.EXTERIOR_FACET)
+        ii = expression.integrals(Measure.INTERIOR_FACET)
+        pi = expression.integrals(Measure.POINT)
+        mi = expression.integrals(Measure.MACRO_CELL)
         ind = _indent_string(indentation)
         s += ind + "Form:\n"
         s += "\n".join(tree_format(itg, indentation+1, parentheses) for itg in chain(ci, ei, ii, pi, mi))

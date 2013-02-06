@@ -219,11 +219,11 @@ def ufl2dot(expression, formname="a", nodeoffset=0, begin=True, end=True, labeli
 
     if isinstance(expression, Form):
         form = expression
-        ci = form.cell_integrals()
-        ei = form.exterior_facet_integrals()
-        ii = form.interior_facet_integrals()
-        pi = form.point_integrals()
-        mi = form.macro_cell_integrals()
+        ci = form.integrals(Measure.CELL)
+        ei = form.integrals(Measure.EXTERIOR_FACET)
+        ii = form.integrals(Measure.INTERIOR_FACET)
+        pi = form.integrals(Measure.POINT)
+        mi = form.integrals(Measure.MACRO_CELL)
 
         subgraphs = []
         k = 0

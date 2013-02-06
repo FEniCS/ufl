@@ -100,7 +100,7 @@ class AlgorithmsTestCase(UflTestCase):
         #print elements(self.forms[2])
         #print unique_elements(self.forms[2])
         #print unique_classes(self.forms[2])
-        d = extract_duplications(self.forms[2].cell_integrals()[0]._integrand)
+        d = extract_duplications(self.forms[2].integrals(Measure.CELL)[0]._integrand)
         #pprint(list(d))
 
         element1 = FiniteElement("CG", triangle, 1)
@@ -127,7 +127,7 @@ class AlgorithmsTestCase(UflTestCase):
         def post(o, stack):
             poststore.append((o, len(stack)))
 
-        for itg in a.cell_integrals():
+        for itg in a.integrals(Measure.CELL):
             walk(itg.integrand(), pre, post)
 
         self.assertEqual(prestore, [(p, 0), (v, 1), (f, 1)]) # NB! Sensitive to ordering of expressions.
