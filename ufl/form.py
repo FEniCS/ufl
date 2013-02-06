@@ -98,31 +98,6 @@ class Form(object):
         else:
             return self._dintegrals[domain_type]
 
-    def cell_integrals(self):
-        #deprecate("Please use integrals(Measure.CELL) instead.") # TODO: Deprecate this and the others to simplify Form
-        return self._dintegrals.get(Measure.CELL, [])
-
-    def exterior_facet_integrals(self):
-        return self._dintegrals.get(Measure.EXTERIOR_FACET, [])
-
-    def interior_facet_integrals(self):
-        return self._dintegrals.get(Measure.INTERIOR_FACET, [])
-
-    def point_integrals(self):
-        return self._dintegrals.get(Measure.POINT, [])
-
-    def macro_cell_integrals(self):
-        return self._dintegrals.get(Measure.MACRO_CELL, [])
-
-    def surface_integrals(self):
-        return self._dintegrals.get(Measure.SURFACE, [])
-
-    def measures(self, domain_type=None): # TODO: Is this used anywhere? Remove if not.
-        return tuple(itg.measure() for itg in self.integrals(domain_type))
-
-    #def domains(self, domain_type=None):
-    #    return tuple((itg.domain_type(), itg.domain_description()) for itg in self.integrals(domain_type))
-
     def is_preprocessed(self):
         "Return true if this form is the result of a preprocessing of another form."
         return self._is_preprocessed
