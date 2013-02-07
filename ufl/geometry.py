@@ -483,6 +483,19 @@ class Cell(object):
     def __repr__(self):
         return self._repr
 
+    def _repr_svg_(self):
+        n = self.cellname()
+        svg = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1">\n<polyline points="%s" style="fill:none;stroke:black;stroke-width:3" />\n</svg>'
+        if n == "interval":
+            svg = svg % '0,0, 200,0'
+        elif n == "triangle":
+            svg = svg % '0,200 200,200 0,0 0,200'
+        elif n == "quadrilateral":
+            svg = svg % '0,200 200,200 200,0 0,0 0,200'
+        else:
+            svg = None
+        return svg
+
 class ProductCell(Cell):
     """Representation of a cell formed by Cartesian products of other cells."""
     __slots__ = ("_cells",)
