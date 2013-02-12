@@ -138,8 +138,7 @@ class GeometryJacobi(GeometricQuantity):
         return True # False # FIXME: True for affine mappings, not for other mappings when we add support for them
 
     def shape(self):
-        d = self._cell.geometric_dimension()
-        return (d,d)
+        return (self._cell.geometric_dimension(), self._cell.topological_dimension())
 
     def evaluate(self, x, mapping, component, index_values):
         ufl_error("Symbolic evaluation of geometry jacobi not available.")
@@ -174,7 +173,7 @@ class GeometryJacobiDeterminant(GeometricQuantity):
         return self._repr
 
 class InverseGeometryJacobi(GeometricQuantity):
-    "(EXPERIMENTAL) Representation of the Jacobi of the mapping from local to global coordinates."
+    "(EXPERIMENTAL) Representation of the (pseudo-)inverse of the Jacobi of the mapping from local to global coordinates."
     __slots__ = ("_repr",)
     def __init__(self, cell):
         GeometricQuantity.__init__(self, cell)
@@ -185,14 +184,13 @@ class InverseGeometryJacobi(GeometricQuantity):
         return True # False # FIXME: True for affine mappings, not for other mappings when we add support for them
 
     def shape(self):
-        d = self._cell.geometric_dimension()
-        return (d,d)
+        return (self._cell.topological_dimension(), self._cell.geometric_dimension())
 
     def evaluate(self, x, mapping, component, index_values):
         ufl_error("Symbolic evaluation of inverse geometry jacobi not available.")
 
     def __str__(self):
-        return "Jinv"
+        return "K"
 
     def __repr__(self):
         return self._repr
