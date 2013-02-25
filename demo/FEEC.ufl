@@ -34,17 +34,18 @@ r = 1
 
 for cell in cells:
     for family in ["P Lambda", "P- Lambda"]:
-        for k in range(0, cell.topological_dimension()+1):
+        tdim = cell.topological_dimension()
+        for k in range(0, tdim+1):
 
             # Testing exterior derivative
             V = FiniteElement(family, cell, r, form_degree=k)
             v = TestFunction(V)
             u = TrialFunction(V)
 
-            a = (d(u), d(v))
+            a = inner(d(u), d(v))*dx
 
             # Testing mixed formulation of Hodge Laplace
-            if (k > 0 and k < cell.topological_dimension()+1):
+            if k > 0 and k < tdim+1:
                 S = FiniteElement(family, cell, r, form_degree=k-1)
                 W = S * V
                 (sigma, u) = TrialFunctions(W)
