@@ -28,8 +28,7 @@ from ufl import exterior_derivative as d
 
 set_level(INFO)
 
-#cells = [interval, triangle, tetrahedron] # FIXME: d(tau) returns grad(tau) which now has shape (1,) for interval
-cells = [triangle, tetrahedron]
+cells = [interval, triangle, tetrahedron]
 r = 1
 
 for cell in cells:

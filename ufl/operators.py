@@ -544,25 +544,28 @@ def exterior_derivative(f):
     as opposed to 'nabla_grad' and 'nabla_div'.
     """
 
+    # Extract the element from the input f
     if isinstance(f, Indexed):
         if len(f._indices) > 1:
             raise NotImplementedError
         index = int(f._indices[0])
         element = f._expression.element()
-        subelement = element.extract_component(index)[1]
-        family = subelement.family()
+        element = element.extract_component(index)[1]
     elif isinstance(f, ListTensor):
         if len(f._expressions[0]._indices) > 1:
             raise NotImplementedError
         index = int(f._expressions[0]._indices[0])
         element = f._expressions[0]._expression.element()
-        subelement = element.extract_component(index)[1]
-        family = subelement.family()
+        element = element.extract_component(index)[1]
     else:
         try:
-            family = f.element().family()
+            element = f.element()
         except:
-            error("Unable to determine element family from %s" % f)
+            error("Unable to determine element from %s" % f)
+
+    # Extract the family and the
+    family = element.family()
+    gdim = element.cell().geometric_dimension()
 
     # L^2 elements:
     if "Disc" in family:
@@ -570,6 +573,8 @@ def exterior_derivative(f):
 
     # H^1 elements:
     if "Lagrange" in family:
+        if gdim == 1:
+            return grad(f)[0]  # Special-case 1D vectors as scalars
         return grad(f)
 
     # H(curl) elements:
