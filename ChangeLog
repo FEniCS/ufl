@@ -1,7 +1,11 @@
-1.1.x [2013-??-??]
+1.2.x [2013-??-??]
  - NB! Using shapes such as (1,) and (1,1) instead of () for 1D tensor quantities I, x, grad(f)
  - Add cell.facet_diameter
- - Add new concepts Domain, Region
+ - Add new concept Domain
+ - Add new concept Region, which is the union of numbered subdomains
+ - Add integration over regions (which may be overlapping by sharing subdomains)
+ - Add integration over everywhere
+ - Add functions cosh, sinh, tanh
 1.1.0 [2013-01-07]
  - Add support for pickling of expressions (thanks to Graham Markall)
  - Add shorthand notation A**2 == inner(A, A), special cased for power 2.

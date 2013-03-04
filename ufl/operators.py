@@ -23,7 +23,7 @@ objects."""
 # Modified by Kristian B. Oelgaard, 2011
 #
 # First added:  2008-04-09
-# Last changed: 2011-11-30
+# Last changed: 2013-03-04
 
 import operator
 from ufl.log import error, warning
@@ -38,7 +38,7 @@ from ufl.tensors import as_tensor, as_matrix, as_vector, ListTensor
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, \
     AndCondition, OrCondition, NotCondition, Conditional
 from ufl.mathfunctions import Sqrt, Exp, Ln, Erf,\
-    Cos, Sin, Tan, Acos, Asin, Atan,\
+    Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan,\
     BesselJ, BesselY, BesselI, BesselK
 from ufl.indexing import indices
 from ufl.indexed import Indexed
@@ -490,6 +490,18 @@ def sin(f):
 def tan(f):
     "UFL operator: Take the tangent of f."
     return _mathfunction(f, Tan)
+
+def cosh(f):
+    "UFL operator: Take the cosinus hyperbolicus of f."
+    return _mathfunction(f, Cosh)
+
+def sinh(f):
+    "UFL operator: Take the sinus hyperbolicus of f."
+    return _mathfunction(f, Sinh)
+
+def tanh(f):
+    "UFL operator: Take the tangent hyperbolicus of f."
+    return _mathfunction(f, Tanh)
 
 def acos(f):
     "UFL operator: Take the inverse cosinus of f."

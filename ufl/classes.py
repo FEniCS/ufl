@@ -25,7 +25,7 @@ of classes, and for mapping types to different handler functions."""
 # Modified by Kristian B. Oelgaard, 2011
 #
 # First added:  2008-08-15
-# Last changed: 2012-10-22
+# Last changed: 2013-03-04
 
 from ufl.assertions import ufl_assert
 
@@ -63,7 +63,7 @@ from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import CompoundTensorOperator, Transposed, Outer,\
     Inner, Dot, Cross, Trace, Determinant, Cofactor, Inverse, Deviatoric, Skew, Sym
 from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Erf,\
-    Cos, Sin, Tan, Acos, Asin, Atan,\
+    Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan,\
     BesselFunction, BesselJ, BesselY, BesselI, BesselK
 from ufl.differentiation import Derivative, CompoundDerivative, CoefficientDerivative,\
     VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv

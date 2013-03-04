@@ -53,7 +53,7 @@ from ufl.differentiation import Derivative, CoefficientDerivative,\
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 
 from ufl.operators import dot, inner, outer, lt, eq, conditional, sign, \
-    sqrt, exp, ln, cos, sin, tan, acos, asin, atan, \
+    sqrt, exp, ln, cos, sin, tan, cosh, sinh, tanh, acos, asin, atan, \
     erf, bessel_J, bessel_Y, bessel_I, bessel_K
 from ufl.algorithms.transformer import Transformer
 
@@ -443,6 +443,26 @@ class ForwardAD(Transformer):
         f, fp = a
         o = self.reuse_if_possible(o, f)
         op = fp*2.0/(cos(2.0*f) + 1.0)
+        return (o, op)
+
+    def cosh(self, o, a):
+        f, fp = a
+        o = self.reuse_if_possible(o, f)
+        op = fp*sinh(f)
+        return (o, op)
+
+    def sinh(self, o, a):
+        f, fp = a
+        o = self.reuse_if_possible(o, f)
+        op = fp*cosh(f)
+        return (o, op)
+
+    def tanh(self, o, a):
+        f, fp = a
+        o = self.reuse_if_possible(o, f)
+        def sech(y):
+            return (2.0*cosh(y)) / (cosh(2.0*y) + 1.0)
+        op = fp*sech(f)**2
         return (o, op)
 
     def acos(self, o, a):

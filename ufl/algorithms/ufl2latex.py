@@ -40,7 +40,7 @@ from ufl.tensors import ListTensor, ComponentTensor
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.indexsum import IndexSum
 from ufl.tensoralgebra import Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
-from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin, Tan, Acos, Asin, Atan, Erf, BesselJ, BesselY, BesselI, BesselK
+from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan, Erf, BesselJ, BesselY, BesselI, BesselK
 from ufl.restriction import PositiveRestricted, NegativeRestricted
 from ufl.differentiation import VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
@@ -81,7 +81,7 @@ def build_precedence_map():
                             Determinant, Trace, Cofactor, Inverse, Deviatoric))
     precedence_list.append((Product, Division, Cross, Dot, Outer, Inner))
     precedence_list.append((Indexed, Transposed, Power))
-    precedence_list.append((Abs, Cos, Exp, Ln, Sin, Sqrt, Tan, Acos, Asin, Atan, Erf, BesselJ, BesselY, BesselI, BesselK))
+    precedence_list.append((Abs, Cos, Cosh, Exp, Ln, Sin, Sinh, Sqrt, Tan, Tanh, Acos, Asin, Atan, Erf, BesselJ, BesselY, BesselI, BesselK))
     precedence_list.append((Variable,))
     precedence_list.append(terminal_classes)
 
@@ -230,6 +230,15 @@ class Expression2LatexHandler(Transformer):
 
     def tan(self, o, f):
         return r"\tan{%s}" % par(f)
+
+    def cosh(self, o, f):
+        return r"\cosh{%s}" % par(f)
+
+    def sinh(self, o, f):
+        return r"\sinh{%s}" % par(f)
+
+    def tanh(self, o, f):
+        return r"\tanh{%s}" % par(f)
 
     def acos(self, o, f):
         return r"\arccos{%s}" % par(f)

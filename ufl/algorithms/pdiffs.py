@@ -27,7 +27,7 @@ from math import pi
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.classes import Zero, IntValue
-from ufl.operators import cos, sin, exp, ln, sqrt, conditional, sign
+from ufl.operators import cos, sin, cosh, sinh, exp, ln, sqrt, conditional, sign
 from ufl.tensors import unit_vectors, ListTensor
 from ufl.algorithms.multifunction import MultiFunction
 
@@ -120,6 +120,21 @@ class PartialDerivativeComputer(MultiFunction):
         "d/dx tan x = (sec(x))^2 = 2/(cos(2x) + 1)"
         x, = f.operands()
         return (2.0/(cos(2.0*x) + 1.0),)
+
+    def cosh(self, f):
+        "d/dx cosh x = sinh(x)"
+        x, = f.operands()
+        return (sinh(x),)
+
+    def sinh(self, f):
+        "d/dx sinh x = cosh(x)"
+        x, = f.operands()
+        return (cosh(x),)
+
+    def tanh(self, f):
+        "d/dx tanh x = (sech(x))^2 = (2 cosh(x) / (cosh(2x) + 1))^2"
+        x, = f.operands()
+        return (((2.0*cosh(x))/(cosh(2.0*x) + 1.0))**2,)
 
     def acos(self, f):
         r".. math:: \\frac{d}{dx} f(x) = \frac{d}{dx} \arccos(x) = \frac{-1}{\sqrt{1 - x^2}}"

@@ -21,7 +21,7 @@
 # Modified by Kristian B. Oelgaard, 2011
 #
 # First added:  2008-03-14
-# Last changed: 2011-10-25
+# Last changed: 2013-03-04
 
 import math
 from ufl.log import warning, error
@@ -35,11 +35,6 @@ TODO: Include additional functions available in <cmath> (need derivatives as wel
 
 Trigonometric functions:
 atan2    Compute arc tangent with two parameters (function)
-
-Hyperbolic functions:
-cosh     Compute hyperbolic cosine (function)
-sinh     Compute hyperbolic sine (function)
-tanh     Compute hyperbolic tangent (function)
 
 Exponential and logarithmic functions:
 log10    Compute common logarithm (function)
@@ -161,6 +156,36 @@ class Tan(MathFunction):
 
     def __init__(self, argument):
         MathFunction.__init__(self, "tan", argument)
+
+class Cosh(MathFunction):
+    __slots__ = ()
+    def __new__(cls, argument):
+        if isinstance(argument, (ScalarValue, Zero)):
+            return FloatValue(math.cos(float(argument)))
+        return MathFunction.__new__(cls)
+
+    def __init__(self, argument):
+        MathFunction.__init__(self, "cosh", argument)
+
+class Sinh(MathFunction):
+    __slots__ = ()
+    def __new__(cls, argument):
+        if isinstance(argument, (ScalarValue, Zero)):
+            return FloatValue(math.sinh(float(argument)))
+        return MathFunction.__new__(cls)
+
+    def __init__(self, argument):
+        MathFunction.__init__(self, "sinh", argument)
+
+class Tanh(MathFunction):
+    __slots__ = ()
+    def __new__(cls, argument):
+        if isinstance(argument, (ScalarValue, Zero)):
+            return FloatValue(math.tanh(float(argument)))
+        return MathFunction.__new__(cls)
+
+    def __init__(self, argument):
+        MathFunction.__init__(self, "tanh", argument)
 
 class Acos(MathFunction):
     __slots__ = ()
