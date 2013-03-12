@@ -68,6 +68,10 @@ class FiniteElementBase(object):
         "Compute element equality for insertion in hashmaps."
         return type(self) == type(other) and repr(self) == repr(other)
 
+    def __lt__(self, other):
+        "Compare elements by repr, to give a natural stable sorting."
+        return repr(self) < repr(other)
+
     def domain(self, component=None):
         "Return the domain on which this element is defined."
         return self._domain
