@@ -33,9 +33,10 @@ from ufl.algorithms.transformer import Transformer
 class SumDegreeEstimator(Transformer):
     "This algorithm is exact for a few operators and heuristic for many."
 
-    def __init__(self, default_degree):
+    def __init__(self, default_degree, element_replace_map):
         Transformer.__init__(self)
         self.default_degree = default_degree
+        self.element_replace_map = element_replace_map
 
     def terminal(self, v):
         "Most terminals are spatially constant."
@@ -48,7 +49,9 @@ class SumDegreeEstimator(Transformer):
     def form_argument(self, v):
         """A form argument provides a degree depending on the element,
         or the default degree if the element has no degree."""
-        d = v.element().degree() # FIXME: Use component to improve accuracy
+        e = v.element()
+        e = self.element_replace_map.get(e,e)
+        d = e.degree() # FIXME: Use component to improve accuracy
         return self.default_degree if d is None else d
 
     def expr(self, v, *ops):
@@ -122,9 +125,10 @@ class SumDegreeEstimator(Transformer):
         return max(t, f)
 
 class MaxDegreeEstimator(Transformer):
-    def __init__(self, default_degree):
+    def __init__(self, default_degree, element_replace_map):
         Transformer.__init__(self)
         self.default_degree = default_degree
+        self.element_replace_map = element_replace_map
 
     def terminal(self, v):
         return 0
@@ -133,7 +137,9 @@ class MaxDegreeEstimator(Transformer):
         return max(ops)
 
     def form_argument(self, v):
-        return v.element().degree() # FIXME: Use component to improve accuracy
+        e = v.element()
+        e = self.element_replace_map.get(e,e)
+        return e.degree() # FIXME: Use component to improve accuracy
 
     #def spatial_derivative(self, v, f, i):
     #    return max(f - 1, 0)
@@ -145,11 +151,11 @@ class MaxDegreeEstimator(Transformer):
         nones = [op for op in ops if op is None]
         return max(degrees + [self.default_degree])
 
-def estimate_max_polynomial_degree(e, default_degree=1):
+def estimate_max_polynomial_degree(e, default_degree=1, element_replace_map={}):
     """Estimate the maximum polymomial degree of all functions in the
     expression. For coefficients defined on an element with unspecified
     degree (None), the degree is set to the given default degree."""
-    de = MaxDegreeEstimator(default_degree)
+    de = MaxDegreeEstimator(default_degree, element_replace_map)
     if isinstance(e, Form):
         ufl_assert(e.integrals(), "Got form with no integrals!")
         degrees = [de.visit(integral.integrand()) for integral in e.integrals()]
@@ -159,11 +165,11 @@ def estimate_max_polynomial_degree(e, default_degree=1):
         degrees = [de.visit(e)]
     return max(degrees + [0])
 
-def estimate_total_polynomial_degree(e, default_degree=1):
+def estimate_total_polynomial_degree(e, default_degree=1, element_replace_map={}):
     """Estimate total polynomial degree of integrand. For coefficients
     defined on an element with unspecified degree (None), the degree
     is set to the given default degree."""
-    de = SumDegreeEstimator(default_degree)
+    de = SumDegreeEstimator(default_degree, element_replace_map)
     if isinstance(e, Form):
         ufl_assert(e.integrals(), "Got form with no integrals!")
         degrees = [de.visit(integral.integrand()) for integral in e.integrals()]
