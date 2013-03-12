@@ -422,23 +422,37 @@ def build_element_mapping(element_mapping, common_cell, arguments, coefficients)
     """Complete an element mapping for all elements used by
     arguments and coefficients, using a well defined common cell."""
 
-    # Make a copy to avoid modifying the dict passed from non-ufl code
-    element_mapping = dict(element_mapping)
+    # Build a new dict to avoid modifying the dict passed from non-ufl code
+    new_element_mapping = {}
 
-    # Check that the given initial mapping has no invalid entries
+    # Check that the given initial mapping has no invalid entries as values
     for v in element_mapping.itervalues():
         ufl_assert(v.cell() is not None,
-                   "Found element with undefined cell in element mapping.")
+                   "Found incomplete element with undefined cell in element mapping.")
+        ufl_assert(v.family() is not None,
+                   "Found incomplete element with undefined family in element mapping.")
+
+    common_domain = as_domain(common_cell) # FIXME: handle better somehow?
 
     # Reconstruct all elements we need to map
     for f in chain(arguments, coefficients):
         e = f.element()
-        if e in element_mapping:
-            ufl_assert(element_mapping[e].cell() is not None,
-                "Found element with undefined cell in given element mapping.")
-        elif e.cell() is None:
-            ufl_assert(common_cell is not None,
-                "Cannot reconstruct elements with another undefined cell!")
-            element_mapping[e] = e.reconstruct(domain=as_domain(common_cell)) # FIXME DOMAIN
+        # Prefer the given mapping:
+        new_e = element_mapping.get(e)
+        if new_e is None:
+            if e.cell() is None:
+                # Otherwise complete with domain by reconstructing if cell is missing
+                new_e = e.reconstruct(domain=common_domain)
+            else:
+                # Or just use the original element
+                new_e = e
+        new_element_mapping[e] = new_e
 
-    return element_mapping
+    # Check that the new mapping has no invalid entries as values
+    for v in new_element_mapping.itervalues():
+        ufl_assert(v.cell() is not None,
+                   "Found incomplete element with undefined cell in new element mapping.")
+        ufl_assert(v.family() is not None,
+                   "Found incomplete element with undefined family in new element mapping.")
+
+    return new_element_mapping
