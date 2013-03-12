@@ -6,6 +6,7 @@
  - Add integration over regions (which may be overlapping by sharing subdomains)
  - Add integration over everywhere
  - Add functions cosh, sinh, tanh
+ - Generalize jump(v,n) for rank(v) > 2
 1.1.0 [2013-01-07]
  - Add support for pickling of expressions (thanks to Graham Markall)
  - Add shorthand notation A**2 == inner(A, A), special cased for power 2.

@@ -391,12 +391,8 @@ def jump(v, n=None):
         r = v.rank()
         if r == 0:
             return v('+')*n('+') + v('-')*n('-')
-        elif r == 1:
+        else:
             return dot(v('+'), n('+')) + dot(v('-'), n('-'))
-        elif r == 2:
-            return dot(v('+'), n('+')) + dot(v('-'), n('-'))
-
-    error("jump(v, n) is only defined for scalar, vector, or matrix-valued expressions (not rank %d expressions)." % r)
 
 def avg(v):
     "UFL operator: Take the average of v across a facet."
