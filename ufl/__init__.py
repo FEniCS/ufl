@@ -109,6 +109,7 @@ A very brief overview of the language contents follows:
 
 * Nonlinear functions::
 
+    Max, Min,
     abs, sign, sqrt,
     exp, ln, erf,
     cos, sin, tan,
@@ -157,7 +158,7 @@ A very brief overview of the language contents follows:
 # Modified by Kristian B. Oelgaard, 2009, 2011
 # Modified by Anders Logg, 2009.
 #
-# Last changed: 2013-03-04
+# Last changed: 2013-03-15
 
 __version__ = "1.1.0+"
 
@@ -232,7 +233,7 @@ from ufl.operators import rank, shape, \
                        cosh, sinh, tanh, \
                        bessel_J, bessel_Y, bessel_I, bessel_K, \
                        eq, ne, le, ge, lt, gt, And, Or, Not, \
-                       conditional, sign, \
+                       conditional, sign, Max, Min, \
                        variable, diff, \
                        Dx,  grad, div, curl, rot, nabla_grad, nabla_div, Dn, exterior_derivative, \
                        jump, avg, \
@@ -292,7 +293,7 @@ __all__ = [
     'cosh', 'sinh', 'tanh',
     'bessel_J', 'bessel_Y', 'bessel_I', 'bessel_K',
     'eq', 'ne', 'le', 'ge', 'lt', 'gt', 'And', 'Or', 'Not',
-    'conditional', 'sign',
+    'conditional', 'sign', 'Max', 'Min',
     'variable', 'diff',
     'Dx', 'grad', 'div', 'curl', 'rot', 'nabla_grad', 'nabla_div', 'Dn', 'exterior_derivative',
     'jump', 'avg',

@@ -23,7 +23,7 @@ objects."""
 # Modified by Kristian B. Oelgaard, 2011
 #
 # First added:  2008-04-09
-# Last changed: 2013-03-04
+# Last changed: 2013-03-15
 
 import operator
 from ufl.log import error, warning
@@ -453,6 +453,16 @@ def sign(x):
     "UFL operator: Take the sign (+1 or -1) of x."
     # TODO: Add a Sign type for this?
     return conditional(eq(x, 0), 0, conditional(lt(x, 0), -1, +1))
+
+def Max(x, y):
+    "UFL operator: Take the maximum of x and y."
+    # TODO: Add a Maximum type for this?
+    return conditional(gt(x, y), x, y)
+
+def Min(x, y):
+    "UFL operator: Take the minimum of x and y."
+    # TODO: Add a Minimum type for this?
+    return conditional(lt(x, y), x, y)
 
 #--- Math functions ---
 

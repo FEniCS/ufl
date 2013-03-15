@@ -5,7 +5,7 @@
  - Add new concept Region, which is the union of numbered subdomains
  - Add integration over regions (which may be overlapping by sharing subdomains)
  - Add integration over everywhere
- - Add functions cosh, sinh, tanh
+ - Add functions cosh, sinh, tanh, Max, Min
  - Generalize jump(v,n) for rank(v) > 2
 1.1.0 [2013-01-07]
  - Add support for pickling of expressions (thanks to Graham Markall)

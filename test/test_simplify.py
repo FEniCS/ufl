@@ -119,6 +119,8 @@ class SimplificationTestCase(UflTestCase):
             self.assertEqual(math.atan(i), atan(i))
             self.assertEqual(math.exp(i), exp(i))
             self.assertEqual(math.log(i), ln(i))
+            self.assertEqual(i, float(Max(i,i-1))) # TODO: Implement automatic simplification of conditionals?
+            self.assertEqual(i, float(Min(i,i+1))) # TODO: Implement automatic simplification of conditionals?
 
     def test_indexing(self):
         u = VectorConstant(triangle)
