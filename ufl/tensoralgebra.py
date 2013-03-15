@@ -226,16 +226,20 @@ class Dot(CompoundTensorOperator):
     __slots__ = ("_a", "_b", "_free_indices", "_index_dimensions")
 
     def __new__(cls, a, b):
-        ar, br = a.rank(), b.rank()
-        ufl_assert((ar >= 1 and br >= 1) or (ar == 0 and br == 0),
+        ash = a.shape()
+        bsh = b.shape()
+        ar, br = len(ash), len(bsh)
+        scalar = (ar == 0 and br == 0)
+        ufl_assert((ar >= 1 and br >= 1) or scalar,
             "Dot product requires non-scalar arguments, "\
             "got arguments with ranks %d and %d." % \
             (ar, br))
+        ufl_assert(scalar or ash[-1] == bsh[0], "Dimension mismatch in dot product.")
         if isinstance(a, Zero) or isinstance(b, Zero):
-            shape = a.shape()[:-1] + b.shape()[1:]
+            shape = ash[:-1] + bsh[1:]
             free_indices, index_dimensions = merge_indices(a, b)
             return Zero(shape, free_indices, index_dimensions)
-        if ar == 0 and br == 0:
+        if scalar: # TODO: Move this to def dot()?
             return a * b
         return CompoundTensorOperator.__new__(cls)
 

@@ -209,10 +209,10 @@ class ClasscoverageTest(UflTestCase):
             a = inner(v, f)
             test_object(a, None, None)
         
-        for v in (v1,v2,v3):
-            for f in (f1,f2,f3):
-                a = dot(v, f)
-                test_object(a, None, None)
+        for v,f in zip((v1,v2,v3),(f1,f2,f3)):
+            a = dot(v, f)
+            sh = v.shape()[:-1] + f.shape()[1:]
+            test_object(a, sh, None)
         
         a = cross(v13D, f13D)
         test_object(a, (3,), ())
@@ -345,6 +345,12 @@ class ClasscoverageTest(UflTestCase):
         test_object(a, (), ())
         a = tan(f0)
         test_object(a, (), ())
+        a = cosh(f0)
+        test_object(a, (), ())
+        a = sinh(f0)
+        test_object(a, (), ())
+        a = tanh(f0)
+        test_object(a, (), ())
         a = exp(f0)
         test_object(a, (), ())
         a = ln(f0)
@@ -366,6 +372,12 @@ class ClasscoverageTest(UflTestCase):
         a = Sin(one)
         test_object(a, (), ())
         a = Tan(one)
+        test_object(a, (), ())
+        a = Cosh(one)
+        test_object(a, (), ())
+        a = Sinh(one)
+        test_object(a, (), ())
+        a = Tanh(one)
         test_object(a, (), ())
         a = Acos(one)
         test_object(a, (), ())
