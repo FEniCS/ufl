@@ -21,7 +21,7 @@
 # Modified by Kristian B. Oelgaard, 2011
 #
 # First added:  2008-03-14
-# Last changed: 2013-03-04
+# Last changed: 2013-03-15
 
 import math
 from ufl.log import warning, error
@@ -161,7 +161,7 @@ class Cosh(MathFunction):
     __slots__ = ()
     def __new__(cls, argument):
         if isinstance(argument, (ScalarValue, Zero)):
-            return FloatValue(math.cos(float(argument)))
+            return FloatValue(math.cosh(float(argument)))
         return MathFunction.__new__(cls)
 
     def __init__(self, argument):
@@ -317,4 +317,3 @@ class BesselK(BesselFunction):
     __slots__ = ()
     def __init__(self, nu, argument):
         BesselFunction.__init__(self, "cyl_bessel_k", "BesselK", nu, argument)
-
