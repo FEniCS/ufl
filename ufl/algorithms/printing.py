@@ -30,7 +30,7 @@ from ufl.assertions import ufl_assert
 from ufl.expr import Expr
 from ufl.terminal import Terminal
 from ufl.form import Form
-from ufl.integral import Integral
+from ufl.integral import Integral, Measure
 from ufl.algorithms.analysis import extract_arguments, extract_coefficients
 
 #--- Utilities for constructing informative strings from UFL objects ---
@@ -122,7 +122,7 @@ def tree_format(expression, indentation=0, parentheses=True):
         s += ind + "Integral:\n"
         ind = _indent_string(indentation+1)
         s += ind + "domain type: %s\n" % expression.measure().domain_type()
-        s += ind + "domain id: %d\n" % expression.measure().domain_id()
+        s += ind + "domain id: %s\n" % expression.measure().domain_id()
         s += ind + "integrand:\n"
         s += tree_format(expression._integrand, indentation+2, parentheses)
 

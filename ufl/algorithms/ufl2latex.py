@@ -399,27 +399,27 @@ def form2latex(form, formdata):
 
     # Define elements
     lines = []
-    for i, f in enumerate(formdata.arguments):
+    for i, f in enumerate(formdata.original_arguments):
         lines.append(r"\mathcal{P}_{%d} = \{%s\} " % (i, element2latex(f.element())))
-    for i, f in enumerate(formdata.coefficients):
+    for i, f in enumerate(formdata.original_coefficients):
         lines.append(r"\mathcal{Q}_{%d} = \{%s\} " % (i, element2latex(f.element())))
     if lines:
         sections.append(("Finite elements", align(lines)))
 
     # Define function spaces
     lines = []
-    for i, f in enumerate(formdata.arguments):
+    for i, f in enumerate(formdata.original_arguments):
         lines.append("V_h^{%d} = \\{v : v \\vert_K \\in \\mathcal{P}_{%d}(K) \\quad \\forall K \\in \\mathcal{T}\\} " % (i, i))
-    for i, f in enumerate(formdata.coefficients):
+    for i, f in enumerate(formdata.original_coefficients):
         lines.append("W_h^{%d} = \\{v : v \\vert_K \\in \\mathcal{Q}_{%d}(K) \\quad \\forall K \\in \\mathcal{T}\\} " % (i, i))
     if lines:
         sections.append(("Function spaces", align(lines)))
 
     # Define arguments and coefficients
     lines = []
-    for i, f in enumerate(formdata.arguments):
+    for i, f in enumerate(formdata.original_arguments):
         lines.append("%s = %s \\in V_h^{%d} " % (argument_names[i], bfname(i), i))
-    for i, f in enumerate(formdata.coefficients):
+    for i, f in enumerate(formdata.original_coefficients):
         lines.append("%s = %s \\in W_h^{%d} " % (coefficient_names[i], cfname(i), i))
     if lines:
         sections.append(("Form arguments", align(lines)))
