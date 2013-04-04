@@ -126,6 +126,10 @@ register_element("Undefined", "U", 0, (0, None),
                   "interval", "triangle", "tetrahedron",
                   "quadrilateral", "hexahedron"))
 
+register_element("Lobatto", "Lob", 0, (1, None), ("interval",))
+
+register_element("Radau",   "Rad", 0, (0, None), ("interval",))
+
 # Let Nedelec H(div) elements be aliases to BDMs/RTs
 register_alias("Nedelec 1st kind H(div)",
                lambda family, cell, order, degree: ("Raviart-Thomas", cell, order))

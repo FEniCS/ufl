@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Last changed: 2009-12-08
+# Last changed: 2013-04-04
 
 from ufltestcase import UflTestCase, main
 
@@ -163,6 +163,24 @@ class ElementsTestCase(UflTestCase):
             element = FiniteElement("CG", cell, degree)
             self.assertEqual(element, eval(repr(element)))
             element = VectorElement("CG", cell, degree)
+            self.assertEqual(element, eval(repr(element)))
+
+    def test_lobatto(self):
+        cell = interval
+        for degree in (1, 2, None):
+            element = FiniteElement("Lob", cell, 1)
+            self.assertEqual(element, eval(repr(element)))
+
+            element = FiniteElement("Lobatto", cell, 1)
+            self.assertEqual(element, eval(repr(element)))
+
+    def test_radau(self):
+        cell = interval
+        for degree in (1, 2, None):
+            element = FiniteElement("Rad", cell, 1)
+            self.assertEqual(element, eval(repr(element)))
+
+            element = FiniteElement("Radau", cell, 1)
             self.assertEqual(element, eval(repr(element)))
 
 if __name__ == "__main__":
