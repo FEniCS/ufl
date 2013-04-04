@@ -168,19 +168,19 @@ class ElementsTestCase(UflTestCase):
     def test_lobatto(self):
         cell = interval
         for degree in (1, 2, None):
-            element = FiniteElement("Lob", cell, 1)
+            element = FiniteElement("Lob", cell, degree)
             self.assertEqual(element, eval(repr(element)))
 
-            element = FiniteElement("Lobatto", cell, 1)
+            element = FiniteElement("Lobatto", cell, degree)
             self.assertEqual(element, eval(repr(element)))
 
     def test_radau(self):
         cell = interval
-        for degree in (1, 2, None):
-            element = FiniteElement("Rad", cell, 1)
+        for degree in (0, 1, 2, None):
+            element = FiniteElement("Rad", cell, degree)
             self.assertEqual(element, eval(repr(element)))
 
-            element = FiniteElement("Radau", cell, 1)
+            element = FiniteElement("Radau", cell, degree)
             self.assertEqual(element, eval(repr(element)))
 
 if __name__ == "__main__":
