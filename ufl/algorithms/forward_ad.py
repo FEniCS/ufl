@@ -908,20 +908,17 @@ class CoefficientAD(ForwardAD):
         self._variable_cache[l] = c
         return c
 
-def compute_grad_forward_ad(expr, dim):
-    f, = expr.operands()
+def compute_grad_forward_ad(f, dim):
     alg = GradAD(dim)
     e, ediff = alg.visit(f)
     return ediff
 
-def compute_variable_forward_ad(expr, dim):
-    f, v = expr.operands()
+def compute_variable_forward_ad(f, v, dim):
     alg = VariableAD(dim, v)
     e, ediff = alg.visit(f)
     return ediff
 
-def compute_coefficient_forward_ad(expr, dim):
-    f, w, v, cd = expr.operands()
+def compute_coefficient_forward_ad(f, w, v, cd, dim):
     alg = CoefficientAD(dim, w, v, cd)
     e, ediff = alg.visit(f)
     return ediff
@@ -930,36 +927,35 @@ def apply_nested_forward_ad(expr, dim):
     if isinstance(expr, Terminal):
         # A terminal needs no differentiation applied
         return expr
-    else:
-        # Store the original expression here, because
-        # reconstruct below may simplify and make expr
-        # get the type of a child, which may be a derivative,
-        # even if preexpr here is not a derivative.
-        preexpr = expr
-
+    elif not isinstance(expr, Derivative):
         # Apply AD recursively to children
         preops = expr.operands()
         postops = tuple(apply_nested_forward_ad(o, dim) for o in preops)
-
+        # Reconstruct if necessary
         need_reconstruct = not (preops == postops) # FIXME: Is this efficient? O(n)?
         if need_reconstruct:
             expr = expr.reconstruct(*postops)
-
-        # Preliminary result
-        result = expr
-
-        # Check if this node is a derivative, if so apply AD to it
-        if isinstance(preexpr, Derivative):
-            if isinstance(expr, Grad):
-                result = compute_grad_forward_ad(expr, dim)
-            elif isinstance(preexpr, VariableDerivative):
-                result = compute_variable_forward_ad(expr, dim)
-            elif isinstance(preexpr, CoefficientDerivative):
-                result = compute_coefficient_forward_ad(expr, dim)
-            else:
-                error("This shouldn't happen: expr is %s" % repr(expr))
-        # Return the expanded result
-        return result
+        return expr
+    elif isinstance(expr, Grad):
+        # Apply AD recursively to children
+        f, = expr.operands()
+        f = apply_nested_forward_ad(f, dim)
+        # Apply Grad-specialized AD to expanded child
+        return compute_grad_forward_ad(f, dim)
+    elif isinstance(expr, VariableDerivative):
+        # Apply AD recursively to children
+        f, v = expr.operands()
+        f = apply_nested_forward_ad(f, dim)
+        # Apply Variable-specialized AD to expanded child
+        return compute_variable_forward_ad(f, v, dim)
+    elif isinstance(expr, CoefficientDerivative):
+        # Apply AD recursively to children
+        f, w, v, cd = expr.operands()
+        f = apply_nested_forward_ad(f, dim)
+        # Apply Coefficient-specialized AD to expanded child
+        return compute_coefficient_forward_ad(f, w, v, cd, dim)
+    else:
+        error("Unknown type.")
 
 # TODO: We could expand only the compound objects that have no rule
 #       before differentiating, to allow the AD to work on a coarser graph
