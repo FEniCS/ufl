@@ -1,3 +1,5 @@
+1.2.1 [2013-04-18]
+ - Fix critical bug with nested derivatives.
 1.2.0 [2013-03-24]
  - NB! Using shapes such as (1,) and (1,1) instead of () for 1D tensor quantities I, x, grad(f)
  - Add cell.facet_diameter
