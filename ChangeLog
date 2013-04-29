@@ -1,3 +1,5 @@
+1.x.x [2013-??-??]
+ - Add cell.max_facet_edge_length
 1.2.0 [2013-03-24]
  - NB! Using shapes such as (1,) and (1,1) instead of () for 1D tensor quantities I, x, grad(f)
  - Add cell.facet_diameter

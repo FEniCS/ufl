@@ -70,6 +70,8 @@ class CompactLabeller(ReprLabeller):
         return "cell volume"
     def cell_surface_area(self, e):
         return "surface area"
+    def max_facet_edge_length(self, e):
+        return "max facet edge length"
     def facet_area(self, e):
         return "facet area"
     def facet_diameter(self, e):

@@ -271,7 +271,10 @@ class FacetArea(GeometricQuantity):
         return "FacetArea(%r)" % self._cell
 
 class FacetDiameter(GeometricQuantity):
-    "Representation of the diameter of a facet."
+    """(EXPERIMENTAL) Representation of the diameter of a facet.
+
+    This is not yet defined.
+    """
     __slots__ = ()
     def __init__(self, cell):
         GeometricQuantity.__init__(self, cell)
@@ -284,6 +287,22 @@ class FacetDiameter(GeometricQuantity):
 
     def __repr__(self):
         return "FacetDiameter(%r)" % self._cell
+
+class MaxFacetEdgeLength(GeometricQuantity):
+    "Representation of the max edge length of a facet."
+    __slots__ = ()
+    def __init__(self, cell):
+        GeometricQuantity.__init__(self, cell)
+
+    def shape(self):
+        return ()
+
+    def __str__(self):
+        return "maxfacetedgelength"
+
+    def __repr__(self):
+        return "MaxFacetEdgeLength(%r)" % self._cell
+
 
 # TODO: If we include this here, we must define exactly what is meant by the mesh size, possibly adding multiple kinds of mesh sizes (hmin, hmax, havg, ?)
 #class MeshSize(GeometricQuantity):
@@ -318,6 +337,7 @@ class Cell(object):
                  "_circumradius",
                  "_cellsurfacearea",
                  "_facetarea",
+                 "_maxfacetedgelength",
                  "_facetdiameter",
                  # Cell local coordinates and mapping
                  "_xi",
@@ -365,6 +385,7 @@ class Cell(object):
         self._circumradius = Circumradius(self)
         self._cellsurfacearea = CellSurfaceArea(self)
         self._facetarea = FacetArea(self)
+        self._maxfacetedgelength = MaxFacetEdgeLength(self)
         self._facetdiameter = FacetDiameter(self)
 
         #self._h = MeshSize(self)
@@ -415,6 +436,11 @@ class Cell(object):
     def facet_diameter(self):
         "UFL geometry value: The diameter of a facet of the cell."
         return self._facetdiameter
+
+    @property
+    def max_facet_edge_length(self):
+        "UFL geometry value: The maximum edge length of a facet of the cell."
+        return self._maxfacetedgelength
 
     @property
     def facet_area(self):

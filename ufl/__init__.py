@@ -72,7 +72,7 @@ A very brief overview of the language contents follows:
 
     SpatialCoordinate, FacetNormal,
     CellVolume, Circumradius, CellSurfaceArea,
-    FacetArea, FacetDiameter,
+    FacetArea, MaxFacetEdgeLength, FacetDiameter,
     LocalCoordinate, GeometryJacobi,
     GeometryJacobiDeterminant, InverseGeometryJacobi
 
@@ -181,7 +181,7 @@ from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile
 from ufl.geometry import (Cell, ProductCell,
      SpatialCoordinate, FacetNormal,
      CellVolume, Circumradius, CellSurfaceArea,
-     FacetArea, FacetDiameter,
+     FacetArea, MaxFacetEdgeLength, FacetDiameter,
      LocalCoordinate, GeometryJacobi,
      GeometryJacobiDeterminant, InverseGeometryJacobi)
 
@@ -266,7 +266,7 @@ __all__ = [
     'Cell', 'ProductCell',
     'SpatialCoordinate', 'FacetNormal',
     'CellVolume', 'Circumradius', 'CellSurfaceArea',
-    'FacetArea', 'FacetDiameter',
+    'FacetArea', 'MaxFacetEdgeLength', 'FacetDiameter',
     'LocalCoordinate', 'GeometryJacobi',
     'GeometryJacobiDeterminant', 'InverseGeometryJacobi',
     'Domain', 'Region',
