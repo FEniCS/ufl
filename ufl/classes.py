@@ -25,7 +25,7 @@ of classes, and for mapping types to different handler functions."""
 # Modified by Kristian B. Oelgaard, 2011
 #
 # First added:  2008-08-15
-# Last changed: 2013-03-04
+# Last changed: 2013-03-29
 
 from ufl.assertions import ufl_assert
 
@@ -48,7 +48,7 @@ from ufl.geometry import (Cell, ProductCell,
     GeometricQuantity,
     SpatialCoordinate, FacetNormal,
     CellVolume, Circumradius, CellSurfaceArea,
-    FacetArea, MaxFacetEdgeLength, FacetDiameter,
+    FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength, FacetDiameter,
     LocalCoordinate, GeometryJacobi,
     GeometryJacobiDeterminant, InverseGeometryJacobi)
 from ufl.indexing import IndexBase, FixedIndex, Index, MultiIndex

@@ -72,7 +72,7 @@ A very brief overview of the language contents follows:
 
     SpatialCoordinate, FacetNormal,
     CellVolume, Circumradius, CellSurfaceArea,
-    FacetArea, MaxFacetEdgeLength, FacetDiameter,
+    FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength, FacetDiameter,
     LocalCoordinate, GeometryJacobi,
     GeometryJacobiDeterminant, InverseGeometryJacobi
 
@@ -158,7 +158,7 @@ A very brief overview of the language contents follows:
 # Modified by Kristian B. Oelgaard, 2009, 2011
 # Modified by Anders Logg, 2009.
 #
-# Last changed: 2013-03-15
+# Last changed: 2013-04-29
 
 __version__ = "1.2.0+"
 
@@ -181,7 +181,7 @@ from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile
 from ufl.geometry import (Cell, ProductCell,
      SpatialCoordinate, FacetNormal,
      CellVolume, Circumradius, CellSurfaceArea,
-     FacetArea, MaxFacetEdgeLength, FacetDiameter,
+     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength, FacetDiameter,
      LocalCoordinate, GeometryJacobi,
      GeometryJacobiDeterminant, InverseGeometryJacobi)
 
@@ -266,7 +266,7 @@ __all__ = [
     'Cell', 'ProductCell',
     'SpatialCoordinate', 'FacetNormal',
     'CellVolume', 'Circumradius', 'CellSurfaceArea',
-    'FacetArea', 'MaxFacetEdgeLength', 'FacetDiameter',
+    'FacetArea', 'MinFacetEdgeLength', 'MaxFacetEdgeLength', 'FacetDiameter',
     'LocalCoordinate', 'GeometryJacobi',
     'GeometryJacobiDeterminant', 'InverseGeometryJacobi',
     'Domain', 'Region',

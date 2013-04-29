@@ -22,7 +22,7 @@
 # Modified by Marie E. Rognes 2012
 #
 # First added:  2008-03-14
-# Last changed: 2012-11-30
+# Last changed: 2013-04-29
 
 from ufl.log import warning, error
 from ufl.assertions import ufl_assert
@@ -288,8 +288,23 @@ class FacetDiameter(GeometricQuantity):
     def __repr__(self):
         return "FacetDiameter(%r)" % self._cell
 
+class MinFacetEdgeLength(GeometricQuantity):
+    "Representation of the minimum edge length of a facet."
+    __slots__ = ()
+    def __init__(self, cell):
+        GeometricQuantity.__init__(self, cell)
+
+    def shape(self):
+        return ()
+
+    def __str__(self):
+        return "minfacetedgelength"
+
+    def __repr__(self):
+        return "MinFacetEdgeLength(%r)" % self._cell
+
 class MaxFacetEdgeLength(GeometricQuantity):
-    "Representation of the max edge length of a facet."
+    "Representation of the maximum edge length of a facet."
     __slots__ = ()
     def __init__(self, cell):
         GeometricQuantity.__init__(self, cell)
@@ -337,6 +352,7 @@ class Cell(object):
                  "_circumradius",
                  "_cellsurfacearea",
                  "_facetarea",
+                 "_minfacetedgelength",
                  "_maxfacetedgelength",
                  "_facetdiameter",
                  # Cell local coordinates and mapping
@@ -385,6 +401,7 @@ class Cell(object):
         self._circumradius = Circumradius(self)
         self._cellsurfacearea = CellSurfaceArea(self)
         self._facetarea = FacetArea(self)
+        self._minfacetedgelength = MinFacetEdgeLength(self)
         self._maxfacetedgelength = MaxFacetEdgeLength(self)
         self._facetdiameter = FacetDiameter(self)
 
@@ -436,6 +453,11 @@ class Cell(object):
     def facet_diameter(self):
         "UFL geometry value: The diameter of a facet of the cell."
         return self._facetdiameter
+
+    @property
+    def min_facet_edge_length(self):
+        "UFL geometry value: The minimum edge length of a facet of the cell."
+        return self._minfacetedgelength
 
     @property
     def max_facet_edge_length(self):
