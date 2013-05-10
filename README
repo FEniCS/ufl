@@ -101,13 +101,17 @@ to get a list of forms in the .ufl file.
 Contact
 =======
 
-Send bug reports, feature requests, and questions to
+Send feature requests and questions to
 
-  ufl@lists.launchpad.net
+  fenics@fenicsproject.org
 
 The Git source repository for UFL is located at
 
   https://bitbucket.org/fenics-project/ufl
+
+and bugs can be registered at
+
+  https://bitbucket.org/fenics-project/ufl/issues
 
 
 License

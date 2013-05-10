@@ -4,7 +4,7 @@ discretization. More precisely, it defines a fixed interface for choosing
 finite element spaces and defining expressions for weak forms in a
 notation close to mathematical notation.
 
-This python module contains the language as well as algorithms to work
+This Python module contains the language as well as algorithms to work
 with it.
 
 * To import the language, type::
@@ -28,9 +28,13 @@ For more details on the language, see
 
   http://www.fenicsproject.org
 
+and
+
+  http://arxiv.org/abs/1211.4047
+
 The development version can be found in the repository at
 
-  https://launchpad.net/ufl/
+  https://www.bitbucket.org/fenics-project/ufl
 
 A very brief overview of the language contents follows:
 
