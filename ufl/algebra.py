@@ -29,7 +29,7 @@ from ufl.assertions import ufl_assert
 from ufl.common import product, mergedicts, subdict, EmptyDict
 from ufl.expr import Expr
 from ufl.operatorbase import AlgebraOperator
-from ufl.constantvalue import Zero, ScalarValue, IntValue, is_ufl_scalar, is_true_ufl_scalar, as_ufl
+from ufl.constantvalue import Zero, zero, ScalarValue, IntValue, is_ufl_scalar, is_true_ufl_scalar, as_ufl
 from ufl.indexutils import unique_indices
 from ufl.sorting import sorted_expr
 from ufl.precedence import parstr
@@ -386,6 +386,12 @@ class Power(AlgebraOperator):
 
         if isinstance(a, ScalarValue) and isinstance(b, ScalarValue):
             return as_ufl(a._value ** b._value)
+        if a == 0 and isinstance(b, ScalarValue):
+            bf = float(b)
+            if bf < 0:
+                error("Division by zero, annot raise 0 to a negative power.")
+            else:
+                return zero()
         if b == 1:
             return a
         if b == 0:
