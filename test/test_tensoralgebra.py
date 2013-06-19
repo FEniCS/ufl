@@ -24,6 +24,16 @@ class TensorAlgebraTestCase(UflTestCase):
         self.assertEqual(A.shape(), B.shape())
         self.assertEqual(inner(A-B, A-B)(None), 0)
 
+    def test_repeated_as_tensor(self):
+        A = as_tensor(self.A)
+        B = as_matrix(self.B)
+        u = as_tensor(self.u)
+        v = as_vector(self.v)
+        self.assertEqual(A, self.A)
+        self.assertEqual(B, self.B)
+        self.assertEqual(u, self.u)
+        self.assertEqual(v, self.v)
+
     def test_outer(self):
         C = outer(self.u, self.v)
         D = as_matrix([[10*30, 10*40], [20*30, 20*40]])
@@ -149,4 +159,3 @@ class TensorAlgebraTestCase(UflTestCase):
 # Don't touch these lines, they allow you to run this file directly
 if __name__ == "__main__":
     main()
-

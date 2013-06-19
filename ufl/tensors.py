@@ -278,6 +278,10 @@ def as_tensor(expressions, indices = None):
     of recursively nested lists to build higher rank tensors.
     """
     if indices is None:
+        # Allow as_tensor(as_tensor(A)) and as_vector(as_vector(v)) in user code
+        if isinstance(expressions, Expr):
+            return expressions
+
         # Support numpy array, but avoid importing numpy if not needed
         if not isinstance(expressions, (list, tuple)):
             expressions = from_numpy_to_lists(expressions)
@@ -311,28 +315,44 @@ def as_tensor(expressions, indices = None):
 def as_matrix(expressions, indices = None):
     "UFL operator: As as_tensor(), but limited to rank 2 tensors."
     if indices is None:
+        # Allow as_matrix(as_matrix(A)) in user code
+        if isinstance(expressions, Expr):
+            ufl_assert(expressions.rank() == 2, "Expecting rank 2 tensor.")
+            return expressions
+
         # To avoid importing numpy unneeded, it's quite slow...
         if not isinstance(expressions, (list, tuple)):
-            try:
-                import numpy
-                if isinstance(expressions, numpy.ndarray):
-                    expressions = numpy2nestedlists(expressions)
-            except:
-                pass
+            expressions = from_numpy_to_lists(expressions)
+
+        # Check for expected list structure
         ufl_assert(isinstance(expressions, (list, tuple)),
             "Expecting nested list or tuple of Exprs.")
         ufl_assert(isinstance(expressions[0], (list, tuple)),
             "Expecting nested list or tuple of Exprs.")
-        return as_tensor(expressions)
+    else:
+        ufl_assert(len(indices) == 2, "Expecting exactly two indices.")
 
-    ufl_assert(len(indices) == 2, "Expecting exactly two indices.")
     return as_tensor(expressions, indices)
 
 def as_vector(expressions, index = None):
     "UFL operator: As as_tensor(), but limited to rank 1 tensors."
-    if index is not None:
-        ufl_assert(isinstance(index, Index), "Expecting Index object.")
+    if index is None:
+        # Allow as_vector(as_vector(v)) in user code
+        if isinstance(expressions, Expr):
+            ufl_assert(expressions.rank() == 1, "Expecting rank 1 tensor.")
+            return expressions
+
+        # To avoid importing numpy unneeded, it's quite slow...
+        if not isinstance(expressions, (list, tuple)):
+            expressions = from_numpy_to_lists(expressions)
+
+        # Check for expected list structure
+        ufl_assert(isinstance(expressions, (list, tuple)),
+            "Expecting nested list or tuple of Exprs.")
+    else:
+        ufl_assert(isinstance(index, Index), "Expecting a single Index object.")
         index = (index,)
+
     return as_tensor(expressions, index)
 
 def as_scalar(expression):
