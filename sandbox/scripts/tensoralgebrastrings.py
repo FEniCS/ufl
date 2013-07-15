@@ -14,7 +14,7 @@ def matrix2Matrix(A):
     return "Matrix(%s)" % res[0]
 
 def cofac(A):
-    return A.determinant() * A.inverse()
+    return A.determinant() * A.inverse().transpose()
 
 def cofacstr(d):
     A = symbolic_matrix(d, d, "A")

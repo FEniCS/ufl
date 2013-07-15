@@ -57,7 +57,7 @@ class CompoundExpander(ReuseTransformer):
     def _square_matrix_shape(self, A):
         sh = A.shape()
         if self._dim is not None:
-            sh = complete_shape(sh, self._dim)
+            sh = complete_shape(sh, self._dim) # FIXME: Does this ever happen? Pretty sure other places assume shapes are always "complete".
         ufl_assert(sh[0] == sh[1], "Expecting square matrix.")
         ufl_assert(sh[0] is not None, "Unknown dimension.")
         return sh
@@ -123,6 +123,39 @@ class CompoundExpander(ReuseTransformer):
         error("Determinant not implemented for dimension %d." % self._dim)
 
     def cofactor(self, o, A):
+        # TODO: Find common subexpressions here.
+        # TODO: Better implementation?
+        sh = self._square_matrix_shape(A)
+        if sh[0] == 2:
+            return as_matrix([[A[1,1],-A[1,0]],[-A[0,1],A[0,0]]])
+        elif sh[0] == 3:
+            return as_matrix([
+                [A[1,1]*A[2,2] - A[2,1]*A[1,2],A[2,0]*A[1,2] - A[1,0]*A[2,2], - A[2,0]*A[1,1] + A[1,0]*A[2,1]],
+                [A[2,1]*A[0,2] - A[0,1]*A[2,2],A[0,0]*A[2,2] - A[2,0]*A[0,2], - A[0,0]*A[2,1] + A[2,0]*A[0,1]],
+                [A[0,1]*A[1,2] - A[1,1]*A[0,2],A[1,0]*A[0,2] - A[0,0]*A[1,2], - A[1,0]*A[0,1] + A[0,0]*A[1,1]]
+                ])
+        elif sh[0] == 4:
+            return as_matrix([
+                [-A[3,1]*A[2,2]*A[1,3] - A[3,2]*A[2,3]*A[1,1] + A[1,3]*A[3,2]*A[2,1] + A[3,1]*A[2,3]*A[1,2] + A[2,2]*A[1,1]*A[3,3] - A[3,3]*A[2,1]*A[1,2],
+                 -A[1,0]*A[2,2]*A[3,3] + A[2,0]*A[3,3]*A[1,2] + A[2,2]*A[1,3]*A[3,0] - A[2,3]*A[3,0]*A[1,2] + A[1,0]*A[3,2]*A[2,3] - A[1,3]*A[3,2]*A[2,0],
+                  A[1,0]*A[3,3]*A[2,1] + A[2,3]*A[1,1]*A[3,0] - A[2,0]*A[1,1]*A[3,3] - A[1,3]*A[3,0]*A[2,1] - A[1,0]*A[3,1]*A[2,3] + A[3,1]*A[1,3]*A[2,0],
+                  A[3,0]*A[2,1]*A[1,2] + A[1,0]*A[3,1]*A[2,2] + A[3,2]*A[2,0]*A[1,1] - A[2,2]*A[1,1]*A[3,0] - A[3,1]*A[2,0]*A[1,2] - A[1,0]*A[3,2]*A[2,1]],
+                [ A[3,1]*A[2,2]*A[0,3] + A[0,2]*A[3,3]*A[2,1] + A[0,1]*A[3,2]*A[2,3] - A[3,1]*A[0,2]*A[2,3] - A[0,1]*A[2,2]*A[3,3] - A[3,2]*A[0,3]*A[2,1],
+                 -A[2,2]*A[0,3]*A[3,0] - A[0,2]*A[2,0]*A[3,3] - A[3,2]*A[2,3]*A[0,0] + A[2,2]*A[3,3]*A[0,0] + A[0,2]*A[2,3]*A[3,0] + A[3,2]*A[2,0]*A[0,3],
+                  A[3,1]*A[2,3]*A[0,0] - A[0,1]*A[2,3]*A[3,0] - A[3,1]*A[2,0]*A[0,3] - A[3,3]*A[0,0]*A[2,1] + A[0,3]*A[3,0]*A[2,1] + A[0,1]*A[2,0]*A[3,3],
+                  A[3,2]*A[0,0]*A[2,1] - A[0,2]*A[3,0]*A[2,1] + A[0,1]*A[2,2]*A[3,0] + A[3,1]*A[0,2]*A[2,0] - A[0,1]*A[3,2]*A[2,0] - A[3,1]*A[2,2]*A[0,0]],
+                [ A[3,1]*A[1,3]*A[0,2] - A[0,2]*A[1,1]*A[3,3] - A[3,1]*A[0,3]*A[1,2] + A[3,2]*A[1,1]*A[0,3] + A[0,1]*A[3,3]*A[1,2] - A[0,1]*A[1,3]*A[3,2],
+                  A[1,3]*A[3,2]*A[0,0] - A[1,0]*A[3,2]*A[0,3] - A[1,3]*A[0,2]*A[3,0] + A[0,3]*A[3,0]*A[1,2] + A[1,0]*A[0,2]*A[3,3] - A[3,3]*A[0,0]*A[1,2],
+                 -A[1,0]*A[0,1]*A[3,3] + A[0,1]*A[1,3]*A[3,0] - A[3,1]*A[1,3]*A[0,0] - A[1,1]*A[0,3]*A[3,0] + A[1,0]*A[3,1]*A[0,3] + A[1,1]*A[3,3]*A[0,0],
+                  A[0,2]*A[1,1]*A[3,0] - A[3,2]*A[1,1]*A[0,0] - A[0,1]*A[3,0]*A[1,2] - A[1,0]*A[3,1]*A[0,2] + A[3,1]*A[0,0]*A[1,2] + A[1,0]*A[0,1]*A[3,2]],
+                [ A[0,3]*A[2,1]*A[1,2] + A[0,2]*A[2,3]*A[1,1] + A[0,1]*A[2,2]*A[1,3] - A[2,2]*A[1,1]*A[0,3] - A[1,3]*A[0,2]*A[2,1] - A[0,1]*A[2,3]*A[1,2],
+                  A[1,0]*A[2,2]*A[0,3] + A[1,3]*A[0,2]*A[2,0] - A[1,0]*A[0,2]*A[2,3] - A[2,0]*A[0,3]*A[1,2] - A[2,2]*A[1,3]*A[0,0] + A[2,3]*A[0,0]*A[1,2],
+                 -A[0,1]*A[1,3]*A[2,0] + A[2,0]*A[1,1]*A[0,3] + A[1,3]*A[0,0]*A[2,1] - A[1,0]*A[0,3]*A[2,1] + A[1,0]*A[0,1]*A[2,3] - A[2,3]*A[1,1]*A[0,0],
+                  A[1,0]*A[0,2]*A[2,1] - A[0,2]*A[2,0]*A[1,1] + A[0,1]*A[2,0]*A[1,2] + A[2,2]*A[1,1]*A[0,0] - A[1,0]*A[0,1]*A[2,2] - A[0,0]*A[2,1]*A[1,2]]
+                ])
+        error("Cofactor not implemented for dimension %s." % sh[0])
+
+    def _cofactor_transposed(self, o, A):
         sh = self._square_matrix_shape(A)
 
         if sh[0] == 2:
@@ -165,7 +198,7 @@ class CompoundExpander(ReuseTransformer):
     def inverse(self, o, A):
         if A.rank() == 0:
             return 1.0 / A
-        return self.cofactor(None, A) / self.determinant(None, A)
+        return self._cofactor_transposed(None, A) / self.determinant(None, A)
 
     # ------------ Compound differential operators
 

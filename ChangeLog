@@ -1,4 +1,5 @@
 1.x.x [2013-??-??]
+ - Fix bug in cofactor: now it is transposed the correct way.
  - Add cell.min_facet_edge_length
  - Add cell.max_facet_edge_length
 1.2.0 [2013-03-24]
