@@ -38,11 +38,21 @@ class SumDegreeEstimator(Transformer):
         self.default_degree = default_degree
         self.element_replace_map = element_replace_map
 
-    def terminal(self, v):
-        "Most terminals are spatially constant."
+    def constant_value(self, v):
+        "Constant values are constant. Duh."
+        return 0
+
+    def geometric_quantity(self, v):
+        "Most geometric quantities are cellwise constant."
+        ufl_assert(v.is_cellwise_constant(),
+                   "Missing handler for non-constant geometry type %s." % v._uflclass.__name__)
         return 0
 
     def spatial_coordinate(self, v):
+        "A coordinate provides one additional degree."
+        return 1
+
+    def local_coordinate(self, v):
         "A coordinate provides one additional degree."
         return 1
 
@@ -54,21 +64,80 @@ class SumDegreeEstimator(Transformer):
         d = e.degree() # FIXME: Use component to improve accuracy
         return self.default_degree if d is None else d
 
+    def _reduce_degree(self, v, f):
+        return max(f - 1, 0)
+    def _add_degrees(self, v, *ops):
+        return sum(ops)
+    def _max_degrees(self, v, *ops):
+        return max(ops + (0,))
+    def _not_handled(self, v, *args):
+        error("Missing degree handler for type %s" % v._uflclass.__name__)
+
     def expr(self, v, *ops):
         "For most operators we take the max degree of its operands."
-        return max(ops)
+        warning("Missing degree estimation handler for type %s" % v._uflclass.__name__)
+        return self._add_degrees(v, *ops)
 
-    def spatial_derivative(self, v, f, i):
-        "A spatial derivative reduces the degree with one."
-        return max(f - 1, 0)
+    # Utility types with no degree concept
+    def multi_index(self, v):
+        return None
+    def label(self, v):
+        return None
+    # Fall-through, indexing and similar types
+    def variable(self, v, e, l):
+        return e
+    def transposed(self, v, A):
+        return A
+    def index_sum(self, v, A, ii):
+        return A
+    def indexed(self, v, A, ii):
+        return A
+    def component_tensor(self, v, A, ii):
+        return A
+    list_tensor = _max_degrees
+    def positive_restricted(self, v, a):
+        return a
+    def negative_restricted(self, v, a):
+        return a
 
-    def grad(self, v, f):
-        "A spatial derivative reduces the degree with one."
-        return max(f - 1, 0)
+    # A sum takes the max degree of its operands:
+    sum = _max_degrees
 
-    def product(self, v, *ops):
-        "Using the sum here is exact."
-        return sum(ops)
+    # A spatial derivative reduces the degree with one
+    grad = _reduce_degree
+    # Handling these types although they should not occur... please apply preprocessing before using this algorithm:
+    nabla_grad = _reduce_degree
+    div = _reduce_degree
+    nabla_div = _reduce_degree
+    curl = _reduce_degree
+
+    # A product accumulates the degrees of its operands:
+    product = _add_degrees
+    # Handling these types although they should not occur... please apply preprocessing before using this algorithm:
+    inner = _add_degrees
+    dot = _add_degrees
+    outer = _add_degrees
+    cross = _add_degrees
+
+    # Explicitly not handling these types, please apply preprocessing before using this algorithm:
+    derivative = _not_handled # base type
+    compound_derivative = _not_handled # base type
+    compound_tensor_operator = _not_handled # base class
+    variable_derivative = _not_handled
+    trace = _not_handled
+    determinant = _not_handled
+    cofactor = _not_handled
+    inverse = _not_handled
+    deviatoric = _not_handled
+    skew = _not_handled
+    sym = _not_handled
+
+    def abs(self, v, a):
+        "This is a heuristic, correct if there is no "
+        if a == 0:
+            return a
+        else:
+            return a
 
     def division(self, v, *ops):
         "Using the sum here is a heuristic. Consider e.g. (x+1)/(x-1)."
@@ -112,6 +181,9 @@ class SumDegreeEstimator(Transformer):
         else:
             return x
 
+    def condition(self, v, *args):
+        return None
+
     def conditional(self, v, c, t, f):
         """Degree of condition does not
         influence degree of values which
@@ -124,51 +196,17 @@ class SumDegreeEstimator(Transformer):
         quadrature order must be adjusted manually."""
         return max(t, f)
 
-class MaxDegreeEstimator(Transformer):
-    def __init__(self, default_degree, element_replace_map):
-        Transformer.__init__(self)
-        self.default_degree = default_degree
-        self.element_replace_map = element_replace_map
-
-    def terminal(self, v):
-        return 0
-
-    def expr(self, v, *ops):
-        return max(ops)
-
-    def form_argument(self, v):
-        e = v.element()
-        e = self.element_replace_map.get(e,e)
-        return e.degree() # FIXME: Use component to improve accuracy
-
-    #def spatial_derivative(self, v, f, i):
-    #    return max(f - 1, 0)
-    #def grad(self, v, f):
-    #    return max(f - 1, 0)
-
-    def product(self, v, *ops):
-        degrees = [op for op in ops if not op is None]
-        nones = [op for op in ops if op is None]
-        return max(degrees + [self.default_degree])
-
-def estimate_max_polynomial_degree(e, default_degree=1, element_replace_map={}):
-    """Estimate the maximum polymomial degree of all functions in the
-    expression. For coefficients defined on an element with unspecified
-    degree (None), the degree is set to the given default degree."""
-    de = MaxDegreeEstimator(default_degree, element_replace_map)
-    if isinstance(e, Form):
-        ufl_assert(e.integrals(), "Got form with no integrals!")
-        degrees = [de.visit(integral.integrand()) for integral in e.integrals()]
-    elif isinstance(e, Integral):
-        degrees = [de.visit(e.integrand())]
-    else:
-        degrees = [de.visit(e)]
-    return max(degrees + [0])
-
 def estimate_total_polynomial_degree(e, default_degree=1, element_replace_map={}):
-    """Estimate total polynomial degree of integrand. For coefficients
-    defined on an element with unspecified degree (None), the degree
-    is set to the given default degree."""
+    """Estimate total polynomial degree of integrand.
+
+    NB! Although some compound types are supported here,
+    some derivatives and compounds must be preprocessed
+    prior to degree estimation. In generic code, this algorithm 
+    should only be applied after preprocessing.
+
+    For coefficients defined on an element with unspecified degree (None),
+    the degree is set to the given default degree.
+    """
     de = SumDegreeEstimator(default_degree, element_replace_map)
     if isinstance(e, Form):
         ufl_assert(e.integrals(), "Got form with no integrals!")
