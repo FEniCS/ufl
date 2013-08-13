@@ -41,7 +41,7 @@ from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.indexsum import IndexSum
 from ufl.tensoralgebra import Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
 from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan, Erf, BesselJ, BesselY, BesselI, BesselK
-from ufl.restriction import PositiveRestricted, NegativeRestricted
+from ufl.restriction import PositiveRestricted, NegativeRestricted, CellAvg
 from ufl.differentiation import VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.form import Form
@@ -73,6 +73,7 @@ def build_precedence_map():
 
     # TODO: What to do with these?
     precedence_list.append((ListTensor, ComponentTensor))
+    precedence_list.append((CellAvg, ))
     precedence_list.append((NegativeRestricted, PositiveRestricted))
     precedence_list.append((Conditional,))
     precedence_list.append((LE, GT, GE, NE, EQ, LT))
@@ -324,6 +325,9 @@ class Expression2LatexHandler(Transformer):
 
     def negative_restricted(self, o, f):
         return "{%s}^-" % par(f)
+
+    def cell_avg(self, o, f):
+        return "{%s}_K" % par(f)
 
     def eq(self, o, a, b):
         return "(%s = %s)" % (a, b)

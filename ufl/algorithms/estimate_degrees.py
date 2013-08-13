@@ -111,6 +111,10 @@ class SumDegreeEstimator(Transformer):
     nabla_div = _reduce_degree
     curl = _reduce_degree
 
+    def cell_avg(self, v, a):
+        "Cell average of a function is always cellwise constant."
+        return 0
+
     # A product accumulates the degrees of its operands:
     product = _add_degrees
     # Handling these types although they should not occur... please apply preprocessing before using this algorithm:

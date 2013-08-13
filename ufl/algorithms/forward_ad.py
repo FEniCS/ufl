@@ -23,7 +23,7 @@
 # Modified by Jan Blechta, 2012.
 #
 # First added:  2008-08-19
-# Last changed: 2012-10-03
+# Last changed: 2013-08-12
 
 from itertools import izip
 from math import pi
@@ -547,6 +547,15 @@ class ForwardAD(Transformer):
             return (o, fp) # TODO: Necessary? Can't restriction simplify directly instead?
         else:
             return (o, fp(o._side)) # (f+-)' == (f')+-
+
+    def cell_avg(self, o, a):
+        # Cell average of a single function and differentiation commutes.
+        f, fp = a
+        o = self.reuse_if_possible(o, f)
+        if isinstance(fp, ConstantValue):
+            return (o, fp) # TODO: Necessary? Can't restriction simplify directly instead?
+        else:
+            return (o, cell_avg(fp))
 
     # --- Conditionals
 

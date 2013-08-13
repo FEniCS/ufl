@@ -399,6 +399,12 @@ def avg(v):
     v = as_ufl(v)
     return 0.5*(v('+') + v('-'))
 
+def cell_avg(f):
+    "UFL operator: Take the average of v over a cell."
+    ufl_assert((isinstance(f, Restricted) and isinstance(f.operands()[0], FormArgument)) or
+	isinstance(f, FormArgument), "Can only take the cell average of a (optionally restricted) Coefficient or Argument.")
+    return CellAvg(f)
+
 #--- Other operators ---
 
 def variable(e):
