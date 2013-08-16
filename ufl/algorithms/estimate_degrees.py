@@ -115,6 +115,10 @@ class SumDegreeEstimator(Transformer):
         "Cell average of a function is always cellwise constant."
         return 0
 
+    def facet_avg(self, v, a):
+        "Facet average of a function is always cellwise constant."
+        return 0
+
     # A product accumulates the degrees of its operands:
     product = _add_degrees
     # Handling these types although they should not occur... please apply preprocessing before using this algorithm:

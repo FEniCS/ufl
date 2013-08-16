@@ -70,7 +70,7 @@ from ufl.differentiation import Derivative, CompoundDerivative, CoefficientDeriv
 from ufl.conditional import Condition, BinaryCondition,\
     EQ, NE, LE, GE, LT, GT,\
     AndCondition, OrCondition, NotCondition, Conditional
-from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted, CellAvg
+from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted, CellAvg, FacetAvg
 
 # Higher level abstractions
 from ufl.integral import Measure, ProductMeasure, Integral

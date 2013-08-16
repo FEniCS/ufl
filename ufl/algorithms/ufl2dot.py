@@ -100,6 +100,8 @@ class CompactLabeller(ReprLabeller):
         return "[+]"
     def cell_avg(self, e): # TODO: Understandable short notation for this?
         return "_K_"
+    def facet_avg(self, e): # TODO: Understandable short notation for this?
+        return "_F_"
 
     def inner(self, e):
         return "inner"

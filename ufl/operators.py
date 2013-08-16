@@ -40,6 +40,7 @@ from ufl.conditional import EQ, NE, LE, GE, LT, GT, \
 from ufl.mathfunctions import Sqrt, Exp, Ln, Erf,\
     Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan,\
     BesselJ, BesselY, BesselI, BesselK
+from ufl.restriction import CellAvg, FacetAvg
 from ufl.indexing import indices
 from ufl.indexed import Indexed
 from ufl.geometry import SpatialCoordinate
@@ -401,9 +402,15 @@ def avg(v):
 
 def cell_avg(f):
     "UFL operator: Take the average of v over a cell."
-    ufl_assert((isinstance(f, Restricted) and isinstance(f.operands()[0], FormArgument)) or
-	isinstance(f, FormArgument), "Can only take the cell average of a (optionally restricted) Coefficient or Argument.")
+    #ufl_assert((isinstance(f, Restricted) and isinstance(f.operands()[0], FormArgument)) or
+    #    isinstance(f, FormArgument), "Can only take the cell average of a (optionally restricted) Coefficient or Argument.")
     return CellAvg(f)
+
+def facet_avg(f):
+    "UFL operator: Take the average of v over a facet."
+    #ufl_assert((isinstance(f, Restricted) and isinstance(f.operands()[0], FormArgument)) or
+    #    isinstance(f, FormArgument), "Can only take the cell average of a (optionally restricted) Coefficient or Argument.")
+    return FacetAvg(f)
 
 #--- Other operators ---
 

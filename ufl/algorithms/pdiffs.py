@@ -198,6 +198,9 @@ class PartialDerivativeComputer(MultiFunction):
     def cell_avg(self, f):
         error("Not sure how to implement partial derivative of this operator at all actually.")
 
+    def facet_avg(self, f):
+        error("Not sure how to implement partial derivative of this operator at all actually.")
+
     # --- Conditionals
 
     def condition(self, f):

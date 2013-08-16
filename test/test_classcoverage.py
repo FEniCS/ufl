@@ -474,18 +474,31 @@ class ClasscoverageTest(UflTestCase):
         test_object(a, (), ())
         
         #a = PositiveRestricted(v0)
-        test_object(a, (), ())
+        #test_object(a, (), ())
         a = v0('+')
         test_object(a, (), ())
         a = v0('+')*f0
         test_object(a, (), ())
         
         #a = NegativeRestricted(v0)
-        test_object(a, (), ())
+        #test_object(a, (), ())
         a = v0('-')
         test_object(a, (), ())
         a = v0('-') + f0
         test_object(a, (), ())
+
+        a = cell_avg(v0)
+        test_object(a, (), ())
+        a = facet_avg(v0)
+        test_object(a, (), ())
+        a = cell_avg(v1)
+        test_object(a, (dim,), ())
+        a = facet_avg(v1)
+        test_object(a, (dim,), ())
+        a = cell_avg(v1)[i]
+        test_object(a, (), (i,))
+        a = facet_avg(v1)[i]
+        test_object(a, (), (i,))
 
         # --- Integrals:
 

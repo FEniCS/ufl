@@ -41,7 +41,7 @@ from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.indexsum import IndexSum
 from ufl.tensoralgebra import Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
 from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan, Erf, BesselJ, BesselY, BesselI, BesselK
-from ufl.restriction import PositiveRestricted, NegativeRestricted, CellAvg
+from ufl.restriction import PositiveRestricted, NegativeRestricted, CellAvg, FacetAvg
 from ufl.differentiation import VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.form import Form

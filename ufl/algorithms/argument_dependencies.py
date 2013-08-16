@@ -73,6 +73,7 @@ class ArgumentDependencyExtracter(Transformer):
     positive_restricted = linear
     negative_restricted = linear
     cell_avg = linear
+    facet_avg = linear
 
     def indexed(self, o, f, i):
         return f

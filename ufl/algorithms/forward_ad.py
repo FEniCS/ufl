@@ -54,7 +54,8 @@ from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 
 from ufl.operators import dot, inner, outer, lt, eq, conditional, sign, \
     sqrt, exp, ln, cos, sin, tan, cosh, sinh, tanh, acos, asin, atan, \
-    erf, bessel_J, bessel_Y, bessel_I, bessel_K
+    erf, bessel_J, bessel_Y, bessel_I, bessel_K, \
+    cell_avg, facet_avg
 from ufl.algorithms.transformer import Transformer
 
 
@@ -553,9 +554,18 @@ class ForwardAD(Transformer):
         f, fp = a
         o = self.reuse_if_possible(o, f)
         if isinstance(fp, ConstantValue):
-            return (o, fp) # TODO: Necessary? Can't restriction simplify directly instead?
+            return (o, fp) # TODO: Necessary? Can't CellAvg simplify directly instead?
         else:
             return (o, cell_avg(fp))
+
+    def facet_avg(self, o, a):
+        # Facet average of a single function and differentiation commutes.
+        f, fp = a
+        o = self.reuse_if_possible(o, f)
+        if isinstance(fp, ConstantValue):
+            return (o, fp) # TODO: Necessary? Can't FacetAvg simplify directly instead?
+        else:
+            return (o, facet_avg(fp))
 
     # --- Conditionals
 

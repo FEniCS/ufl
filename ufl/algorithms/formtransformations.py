@@ -244,8 +244,9 @@ class PartExtracter(Transformer):
     positive_restricted = linear_operator
     negative_restricted = linear_operator
 
-    # Cell average is a linear operator
+    # Cell and facet average are linear operators
     cell_avg = linear_operator
+    facet_avg = linear_operator
 
     # Grad is a linear operator
     grad = linear_operator
