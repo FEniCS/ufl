@@ -79,8 +79,7 @@ collisions = {}
 def print_collisions():
     print
     print "Collision statistics:"
-    keys = equalscalls.keys()
-    keys = sorted(keys, key=lambda x: collisions.get(x,0))
+    keys = sorted(equalscalls.keys(), key=lambda x: collisions.get(x,0))
     for k in keys:
         co = collisions.get(k,0)
         ca = equalscalls[k]

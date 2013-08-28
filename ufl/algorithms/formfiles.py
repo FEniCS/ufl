@@ -27,6 +27,7 @@ from __future__ import with_statement
 
 import os, re
 from ufl.log import error, warning
+from ufl.common import sorted_items
 from ufl.assertions import ufl_assert
 from ufl.form import Form
 from ufl.finiteelement import FiniteElementBase
@@ -109,7 +110,7 @@ def interpret_ufl_namespace(namespace):
     # The use of id(obj) as key in object_names is necessary
     # because we need to distinguish between instances,
     # and not just between objects with different values.
-    for name, value in namespace.iteritems():
+    for name, value in sorted_items(namespace):
         # Store objects by reserved name OR instance id
         reserved_names = ("unknown",) # Currently only one reserved name
         if name in reserved_names:

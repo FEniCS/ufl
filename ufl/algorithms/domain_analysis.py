@@ -7,6 +7,8 @@ from ufl import Domain, Region, Measure, Form
 # Transitional helper constructor
 from ufl.integral import Integral
 
+from ufl.common import sorted_items
+
 def integral_domain_ids(integral):
     did = integral.measure().domain_id()
     if isinstance(did, int):
@@ -125,7 +127,7 @@ def build_sub_integral_list(itgs):
         assert Measure.DOMAIN_ID_OTHERWISE not in sub_integrals
         sub_integrals[Measure.DOMAIN_ID_OTHERWISE] = []
         # Restrict everywhere integral to each subdomain and append to each integral list
-        for did, itglist in sub_integrals.iteritems():
+        for did, itglist in sorted_items(sub_integrals):
             for itg in ei:
                 # Restrict integral to this subdomain!
                 itglist.append(itg.reconstruct(domain_description=did))
@@ -163,8 +165,8 @@ def canonicalize_sub_integral_data(sub_integrals):
 from ufl.algorithms.analysis import IntegralData
 def convert_sub_integral_data_to_integral_data(sub_integral_data):
     integral_data = []
-    for domain_type, domain_type_data in sub_integral_data.iteritems():
-        for domain_id, sub_domain_integrands in domain_type_data.iteritems():
+    for domain_type, domain_type_data in sorted_items(sub_integral_data):
+        for domain_id, sub_domain_integrands in sorted_items(domain_type_data):
             integrals = [Integral(integrand, domain_type, domain_id, compiler_data, None)
                          for integrand, compiler_data in sub_domain_integrands]
             ida = IntegralData(domain_type, domain_id, integrals, {})
@@ -175,9 +177,9 @@ def convert_sub_integral_data_to_integral_data(sub_integral_data):
 # Print output for inspection:
 def print_sub_integral_data(sub_integral_data):
     print
-    for domain_type, domain_type_data in sub_integral_data.iteritems():
+    for domain_type, domain_type_data in sorted_items(sub_integral_data):
         print "======", domain_type
-        for domain_id, sub_domain_integrands in domain_type_data.iteritems():
+        for domain_id, sub_domain_integrands in sorted_items(domain_type_data):
             print '---', domain_id,
             for integrand, compiler_data in sub_domain_integrands:
                 print
