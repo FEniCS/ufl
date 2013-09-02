@@ -150,7 +150,7 @@ class SumDegreeEstimator(Transformer):
         degree(a**b) == degree(a)*2"""
         f, g = v.operands()
         try:
-            gi = int(g)
+            gi = abs(int(g))
             return a*gi
         except:
             pass
@@ -201,7 +201,7 @@ def estimate_total_polynomial_degree(e, default_degree=1, element_replace_map={}
 
     NB! Although some compound types are supported here,
     some derivatives and compounds must be preprocessed
-    prior to degree estimation. In generic code, this algorithm 
+    prior to degree estimation. In generic code, this algorithm
     should only be applied after preprocessing.
 
     For coefficients defined on an element with unspecified degree (None),
