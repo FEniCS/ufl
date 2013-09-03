@@ -23,11 +23,14 @@
 from ufl.log import error
 from ufl.operatorbase import Operator
 from ufl.precedence import parstr
+from ufl.common import EmptyDict
 
 #--- Restriction operators ---
 
 class Restricted(Operator):
     __slots__ = ("_f", "_side")
+
+    # TODO: Add __new__ operator here, e.g. restricted(literal) == literal
 
     def __init__(self, f, side):
         Operator.__init__(self)
@@ -67,3 +70,69 @@ class NegativeRestricted(Restricted):
 
     def __repr__(self):
         return "NegativeRestricted(%r)" % self._f
+
+
+# TODO: Place in a better file?
+class CellAvg(Operator):
+    __slots__ = ("_f",)
+
+    # TODO: Add __new__ operator here, e.g. cell_avg(literal) == literal
+
+    def __init__(self, f):
+        Operator.__init__(self)
+        self._f = f
+
+    def shape(self):
+        return self._f.shape()
+
+    def operands(self):
+        return (self._f,)
+
+    def free_indices(self):
+        return ()
+
+    def index_dimensions(self):
+        return EmptyDict
+
+    def evaluate(self, x, mapping, component, index_values):
+        "Performs an approximate symbolic evaluation, since we dont have a cell."
+        return self._f.evaluate(x, mapping, component, index_values)
+
+    def __str__(self):
+        return "cell_avg(%s)" % (self._f,)
+
+    def __repr__(self):
+        return "CellAvg(%r)" % self._f
+
+
+# TODO: Place in a better file?
+class FacetAvg(Operator):
+    __slots__ = ("_f",)
+
+    # TODO: Add __new__ operator here, e.g. facet_avg(literal) == literal
+
+    def __init__(self, f):
+        Operator.__init__(self)
+        self._f = f
+
+    def shape(self):
+        return self._f.shape()
+
+    def operands(self):
+        return (self._f,)
+
+    def free_indices(self):
+        return ()
+
+    def index_dimensions(self):
+        return EmptyDict
+
+    def evaluate(self, x, mapping, component, index_values):
+        "Performs an approximate symbolic evaluation, since we dont have a cell."
+        return self._f.evaluate(x, mapping, component, index_values)
+
+    def __str__(self):
+        return "facet_avg(%s)" % (self._f,)
+
+    def __repr__(self):
+        return "FacetAvg(%r)" % self._f

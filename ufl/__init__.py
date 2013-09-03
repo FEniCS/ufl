@@ -122,7 +122,7 @@ A very brief overview of the language contents follows:
     bessel_J, bessel_Y, bessel_I, bessel_K
 
 * Discontinuous Galerkin operators:
-    jump, avg, v('+'), v('-')
+    jump, avg, v('+'), v('-'), cell_avg, facet_avg
 
 * Conditional operators::
 
@@ -162,7 +162,7 @@ A very brief overview of the language contents follows:
 # Modified by Kristian B. Oelgaard, 2009, 2011
 # Modified by Anders Logg, 2009.
 #
-# Last changed: 2013-04-29
+# Last changed: 2013-08-12
 
 __version__ = "1.2.0+"
 
@@ -240,7 +240,7 @@ from ufl.operators import rank, shape, \
                        conditional, sign, Max, Min, \
                        variable, diff, \
                        Dx,  grad, div, curl, rot, nabla_grad, nabla_div, Dn, exterior_derivative, \
-                       jump, avg, \
+                       jump, avg, cell_avg, facet_avg, \
                        elem_mult, elem_div, elem_pow, elem_op
 
 # Form class
@@ -300,7 +300,7 @@ __all__ = [
     'conditional', 'sign', 'Max', 'Min',
     'variable', 'diff',
     'Dx', 'grad', 'div', 'curl', 'rot', 'nabla_grad', 'nabla_div', 'Dn', 'exterior_derivative',
-    'jump', 'avg',
+    'jump', 'avg', 'cell_avg', 'facet_avg',
     'elem_mult', 'elem_div', 'elem_pow', 'elem_op',
     'Form',
     'Integral', 'Measure', 'register_domain_type', 'ProductMeasure',

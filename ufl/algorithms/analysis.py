@@ -29,6 +29,7 @@ from collections import namedtuple
 from ufl.log import error, warning, info
 from ufl.assertions import ufl_assert
 from ufl.sorting import topological_sorting
+from ufl.common import sorted_by_count
 
 from ufl.expr import Expr
 from ufl.terminal import Terminal, FormArgument
@@ -82,9 +83,6 @@ def extract_terminals(a):
     return set(o for e in iter_expressions(a) \
                  for o in post_traversal(e) \
                  if isinstance(o, Terminal))
-
-def sorted_by_count(seq):
-    return sorted(seq, key=lambda x: x._count)
 
 def extract_arguments(a):
     """Build a sorted list of all arguments in a,

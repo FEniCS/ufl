@@ -24,7 +24,7 @@ import hashlib
 from ufl.classes import Index, MultiIndex, Coefficient, Argument, Terminal, Label
 from ufl.log import error
 from ufl.algorithms.traversal import traverse_terminals2
-from ufl.common import fast_pre_traversal
+from ufl.common import fast_pre_traversal, sorted_by_count
 
 def compute_multiindex_hashdata(expr, index_numbering):
     data = []
@@ -77,8 +77,8 @@ def compute_terminal_hashdata(expressions, function_replace_map=None):
     # Apply renumbering of form arguments
     # (Note: some duplicated work here and in preprocess,
     # to allow using this function without preprocess.)
-    coefficients = sorted(coefficients, key=lambda x: x.count())
-    arguments = sorted(arguments, key=lambda x: x.count())
+    coefficients = sorted_by_count(coefficients)
+    arguments = sorted_by_count(arguments)
     for i, e in enumerate(coefficients):
         er = function_replace_map.get(e) or e.reconstruct(count=i)
         terminal_hashdata[e] = repr(er)

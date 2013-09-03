@@ -195,6 +195,12 @@ class PartialDerivativeComputer(MultiFunction):
         _1 = IntValue(1)
         return (_1,) # or _1('-')? TODO: is this right?
 
+    def cell_avg(self, f):
+        error("Not sure how to implement partial derivative of this operator at all actually.")
+
+    def facet_avg(self, f):
+        error("Not sure how to implement partial derivative of this operator at all actually.")
+
     # --- Conditionals
 
     def condition(self, f):

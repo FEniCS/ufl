@@ -151,7 +151,7 @@ class PartExtracter(Transformer):
 
         # 3. Return the terms that provide the biggest set
         most_provided = frozenset()
-        for (provideds, parts) in parts_that_provide.iteritems():
+        for (provideds, parts) in parts_that_provide.iteritems(): # TODO: Just sort instead?
 
             # Throw error if size of sets are equal (and not zero)
             if len(provideds) == len(most_provided) and len(most_provided):
@@ -243,6 +243,10 @@ class PartExtracter(Transformer):
     # Positive and negative restrictions behave as linear operators
     positive_restricted = linear_operator
     negative_restricted = linear_operator
+
+    # Cell and facet average are linear operators
+    cell_avg = linear_operator
+    facet_avg = linear_operator
 
     # Grad is a linear operator
     grad = linear_operator

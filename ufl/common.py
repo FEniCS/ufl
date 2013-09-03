@@ -68,6 +68,12 @@ class EmptyDictType(dict):
         error("This is a frozen unique empty dictionary object, inserting values is an error.")
 EmptyDict = EmptyDictType()
 
+def sorted_by_count(seq):
+    return sorted(seq, key=lambda x: x._count)
+
+def sorted_items(mapping):
+    return sorted(mapping.iteritems(), key=lambda x: x[0])
+
 def mergedicts(dicts):
     d = dict(dicts[0])
     for d2 in dicts[1:]:

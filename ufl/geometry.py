@@ -53,7 +53,7 @@ cellname2facetname = {"cell1D": "vertex",
                       "hexahedron": "quadrilateral"}
 
 # Valid UFL cellnames
-ufl_cellnames = tuple(cellname2dim.keys())
+ufl_cellnames = tuple(sorted(cellname2dim.keys()))
 
 # FIXME DOMAIN: Figure out which quantities to make available from Domain.
 #               Need deprecation warnings for a while from the cell.
