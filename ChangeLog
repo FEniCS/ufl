@@ -1,5 +1,5 @@
 1.x.x [2013-??-??]
- - Add cell_avg operator, can be applied to a Coefficient or Argument or restrictions thereof
+ - Add cell_avg and facet_avg operators, can be applied to a Coefficient or Argument or restrictions thereof
  - Fix bug in cofactor: now it is transposed the correct way.
  - Add cell.min_facet_edge_length
  - Add cell.max_facet_edge_length
