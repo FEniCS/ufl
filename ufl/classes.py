@@ -63,7 +63,7 @@ from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import CompoundTensorOperator, Transposed, Outer,\
     Inner, Dot, Cross, Trace, Determinant, Cofactor, Inverse, Deviatoric, Skew, Sym
 from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Erf,\
-    Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan,\
+    Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan, Atan2, \
     BesselFunction, BesselJ, BesselY, BesselI, BesselK
 from ufl.differentiation import Derivative, CompoundDerivative, CoefficientDerivative,\
     VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv

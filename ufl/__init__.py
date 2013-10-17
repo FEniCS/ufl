@@ -117,7 +117,7 @@ A very brief overview of the language contents follows:
     abs, sign, sqrt,
     exp, ln, erf,
     cos, sin, tan,
-    acos, asin, atan,
+    acos, asin, atan, atan_2,
     cosh, sinh, tanh,
     bessel_J, bessel_Y, bessel_I, bessel_K
 
@@ -233,7 +233,7 @@ from ufl.operators import rank, shape, \
                        dev, skew, sym, \
                        sqrt, exp, ln, erf, \
                        cos, sin, tan, \
-                       acos, asin, atan, \
+                       acos, asin, atan, atan_2, \
                        cosh, sinh, tanh, \
                        bessel_J, bessel_Y, bessel_I, bessel_K, \
                        eq, ne, le, ge, lt, gt, And, Or, Not, \
@@ -293,7 +293,7 @@ __all__ = [
     'transpose', 'tr', 'diag', 'diag_vector', 'dev', 'skew', 'sym',
     'sqrt', 'exp', 'ln', 'erf',
     'cos', 'sin', 'tan',
-    'acos', 'asin', 'atan',
+    'acos', 'asin', 'atan', 'atan_2',
     'cosh', 'sinh', 'tanh',
     'bessel_J', 'bessel_Y', 'bessel_I', 'bessel_K',
     'eq', 'ne', 'le', 'ge', 'lt', 'gt', 'And', 'Or', 'Not',

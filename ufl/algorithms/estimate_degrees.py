@@ -165,6 +165,20 @@ class SumDegreeEstimator(Transformer):
         # Something to a non-integer power, this is just a heuristic with no background
         return a*2
 
+    def atan_2(self, v, a, b):
+        """Using the heuristic
+        degree(atan2(const,const)) == 0
+        degree(atan2(a,b)) == max(degree(a),degree(b))+2
+        which can be wildly inaccurate but at least
+        gives a somewhat high integration degree.
+        """
+        print "estimate",a,b
+        if a or b:
+            return max(a,b)+2
+        else:
+            return max(a,b)
+
+
     def math_function(self, v, a):
         """Using the heuristic
         degree(sin(const)) == 0

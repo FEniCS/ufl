@@ -38,7 +38,7 @@ from ufl.tensors import as_tensor, as_matrix, as_vector, ListTensor
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, \
     AndCondition, OrCondition, NotCondition, Conditional
 from ufl.mathfunctions import Sqrt, Exp, Ln, Erf,\
-    Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan,\
+    Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan, Atan2,\
     BesselJ, BesselY, BesselI, BesselK
 from ufl.restriction import CellAvg, FacetAvg
 from ufl.indexing import indices
@@ -533,6 +533,15 @@ def asin(f):
 def atan(f):
     "UFL operator: Take the inverse tangent of f."
     return _mathfunction(f, Atan)
+
+def atan_2(f1,f2):
+    "UFL operator: Take the inverse tangent of f."
+    f1 = as_ufl(f1)
+    f2 = as_ufl(f2)
+    r = Atan2(f1, f2)
+    if isinstance(r, (ScalarValue, Zero, int, float)):
+        return float(r)
+    return r
 
 def erf(f):
     "UFL operator: Take the error function of f."

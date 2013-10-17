@@ -151,6 +151,16 @@ class PartialDerivativeComputer(MultiFunction):
         x, = f.operands()
         return (1.0/(1.0 + x**2),)
 
+    def atan_2(self, f):
+        """
+        f = atan2(x,y)
+        d/dx atan2(x,y) = y / (x**2 + y**2 ) 
+        d/dy atan2(x,y) = -x / (x**2 + y**2)
+        """
+        x,y = f.operands()
+        d = x**2 + y**2
+        return (y/d,-x/d)
+
     def erf(self, f):
         "d/dx erf x = 2/sqrt(pi)*exp(-x^2)"
         x, = f.operands()

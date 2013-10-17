@@ -46,14 +46,14 @@ from ufl.tensors import ListTensor, ComponentTensor, as_tensor, as_scalar, unit_
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import Transposed, Outer, Inner, Dot, Cross, Trace, \
     Determinant, Inverse, Deviatoric, Cofactor
-from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin, Tan, Acos, Asin, Atan, Erf, BesselJ, BesselY, BesselI, BesselK
+from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin, Tan, Acos, Asin, Atan, Atan2, Erf, BesselJ, BesselY, BesselI, BesselK
 from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
 from ufl.differentiation import Derivative, CoefficientDerivative,\
     VariableDerivative, Grad
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 
 from ufl.operators import dot, inner, outer, lt, eq, conditional, sign, \
-    sqrt, exp, ln, cos, sin, tan, cosh, sinh, tanh, acos, asin, atan, \
+    sqrt, exp, ln, cos, sin, tan, cosh, sinh, tanh, acos, asin, atan, atan_2, \
     erf, bessel_J, bessel_Y, bessel_I, bessel_K, \
     cell_avg, facet_avg
 from ufl.algorithms.transformer import Transformer
@@ -482,6 +482,13 @@ class ForwardAD(Transformer):
         f, fp = a
         o = self.reuse_if_possible(o, f)
         op = fp/(1.0 + f**2)
+        return (o, op)
+
+    def atan_2(self, o, a, b):
+        f, fp = a
+        g, gp = b
+        o = self.reuse_if_possible(o, f, g)
+        op = (g*fp-f*gp)/(f**2+g**2)
         return (o, op)
 
     def erf(self, o, a):

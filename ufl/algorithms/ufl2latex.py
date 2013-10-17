@@ -40,7 +40,7 @@ from ufl.tensors import ListTensor, ComponentTensor
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.indexsum import IndexSum
 from ufl.tensoralgebra import Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
-from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan, Erf, BesselJ, BesselY, BesselI, BesselK
+from ufl.mathfunctions import Sqrt, Exp, Ln, Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan, Atan2, Erf, BesselJ, BesselY, BesselI, BesselK
 from ufl.restriction import PositiveRestricted, NegativeRestricted, CellAvg, FacetAvg
 from ufl.differentiation import VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
@@ -82,7 +82,7 @@ def build_precedence_map():
                             Determinant, Trace, Cofactor, Inverse, Deviatoric))
     precedence_list.append((Product, Division, Cross, Dot, Outer, Inner))
     precedence_list.append((Indexed, Transposed, Power))
-    precedence_list.append((Abs, Cos, Cosh, Exp, Ln, Sin, Sinh, Sqrt, Tan, Tanh, Acos, Asin, Atan, Erf, BesselJ, BesselY, BesselI, BesselK))
+    precedence_list.append((Abs, Cos, Cosh, Exp, Ln, Sin, Sinh, Sqrt, Tan, Tanh, Acos, Asin, Atan, Atan2, Erf, BesselJ, BesselY, BesselI, BesselK))
     precedence_list.append((Variable,))
     precedence_list.append(terminal_classes)
 
@@ -249,6 +249,9 @@ class Expression2LatexHandler(Transformer):
 
     def atan(self, o, f):
         return r"\arctan{%s}" % par(f)
+
+    def atan2(self, o, f1, f2):
+        return r"\arctan_2{%s,%s}" % (par(f1), par(f2))
 
     def erf(self, o, f):
         return r"\erf{%s}" % par(f)

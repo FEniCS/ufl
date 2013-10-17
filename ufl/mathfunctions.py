@@ -33,9 +33,6 @@ from ufl.common import EmptyDict
 """
 TODO: Include additional functions available in <cmath> (need derivatives as well):
 
-Trigonometric functions:
-atan2    Compute arc tangent with two parameters (function)
-
 Exponential and logarithmic functions:
 log10    Compute common logarithm (function)
 
@@ -216,6 +213,50 @@ class Atan(MathFunction):
 
     def __init__(self, argument):
         MathFunction.__init__(self, "atan", argument)
+
+class Atan2(Operator):
+    __slots__ = ("_name", "_arg1", "_arg2", "_classname")
+    def __new__(cls, arg1, arg2):
+        if isinstance(arg1, (ScalarValue, Zero)) and isinstance(arg2, (ScalarValue, Zero)):
+            return FloatValue(math.atan2(float(arg1), float(arg2)))
+        return Operator.__new__(cls)
+
+    def __init__(self, arg1, arg2):
+        Operator.__init__(self)
+        ufl_assert(is_true_ufl_scalar(arg1), "Expecting scalar argument 1.")
+        ufl_assert(is_true_ufl_scalar(arg2), "Expecting scalar argument 2.")
+        self._name     = "atan_2"
+        self._arg1 = arg1
+        self._arg2 = arg2
+
+    def operands(self):
+        return (self._arg1, self._arg2)
+
+    def free_indices(self):
+        return ()
+
+    def index_dimensions(self):
+        return EmptyDict
+
+    def shape(self):
+        return ()
+
+    def evaluate(self, x, mapping, component, index_values):
+        a = self._arg1.evaluate(x, mapping, component, index_values)
+        b = self._arg2.evaluate(x, mapping, component, index_values)
+        try:
+            res = math.atan2(a,b)
+        except ValueError:
+            warning('Value error in evaluation of function %s with arguments %s, %s.' % (self._name, a,b))
+            raise
+        return res
+
+    def __str__(self):
+        return "%s(%s,%s)" % (self._name, self._arg1, self._arg2)
+
+    def __repr__(self):
+        return "%s(%s,%s)" % (self._name, self._arg1, self._arg2)
+
 
 def _find_erf():
     import math
