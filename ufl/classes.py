@@ -31,7 +31,7 @@ from ufl.assertions import ufl_assert
 from ufl.finiteelement import (FiniteElementBase, FiniteElement,
     MixedElement, VectorElement, TensorElement,
     EnrichedElement, RestrictedElement, TensorProductElement,
-    OuterProductElement)
+    OuterProductElement, OuterProductVectorElement)
 
 # Base class for all expressions
 from ufl.expr import Expr

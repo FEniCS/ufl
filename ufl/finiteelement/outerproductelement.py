@@ -19,10 +19,12 @@
 #
 # Based on tensorproductelement.py
 # Modified by Andrew T. T. McRae 2014
+# Modified by Lawrence Mitchell 2014
 
 from ufl.assertions import ufl_assert
 from ufl.cell import OuterProductCell
 from ufl.domain import as_domain
+from ufl.finiteelement.mixedelement import MixedElement
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
@@ -101,3 +103,73 @@ class OuterProductElement(FiniteElementBase):
                 tuple(e.signature_data(domain_numbering=domain_numbering)
                       for e in (self._A, self._B)))
         return data
+
+
+class OuterProductVectorElement(MixedElement):
+    """A special case of a mixed finite element where all
+    elements are equal OuterProductElements"""
+    __slots__ = ("_sub_element")
+
+    def __init__(self, A, B, domain=None, dim=None,
+                 form_degree=None, quad_scheme=None):
+        if domain is not None:
+            domain = as_domain(domain)
+
+        sub_element = OuterProductElement(A, B)
+        dim = dim or sub_element.cell().geometric_dimension()
+        sub_elements = [sub_element]*dim
+
+        # Get common family name (checked in FiniteElement.__init__)
+        family = sub_element.family()
+
+        # Compute value shape
+        shape = (dim,)
+        value_shape = shape + sub_element.value_shape()
+
+        # Initialize element data
+        super(OuterProductVectorElement, self).__init__(sub_elements,
+                                                        value_shape=value_shape)
+        self._family = family
+        self._degree = max(A.degree(), B.degree())
+
+        self._sub_element = sub_element
+        # Cache repr string
+        self._repr = "OuterProductVectorElement(%r, %r, dim=%d)" % \
+            (self._sub_element, self.domain(), len(self._sub_elements))
+
+    @property
+    def _A(self):
+        return self._sub_element._A
+
+    @property
+    def _B(self):
+        return self._sub_element._B
+
+    def signature_data(self, domain_numbering):
+        data = ("OuterProductVectorElement", self._A, self._B,
+                len(self._sub_elements), self._quad_scheme, self._form_degree,
+                ("no domain" if self._domain is None else
+                    self._domain.signature_data(domain_numbering=domain_numbering)))
+        return data
+
+    def reconstruction_signature(self):
+        """Format as string for evaluation as Python object.
+
+        For use with cross language frameworks, stored in generated code
+        and evaluated later in Python to reconstruct this object.
+
+        This differs from repr in that it does not include domain
+        label and data, which must be reconstructed or supplied by other means.
+        """
+        return "OuterProductVectorElement(%r, %s, %d, %r)" % (
+            self._sub_element, self.domain().reconstruction_signature(),
+            len(self._sub_elements), self._quad_scheme)
+
+    def __str__(self):
+        "Format as string for pretty printing."
+        return "<Outer product vector element: %r x %r>" % \
+               (self._sub_element)
+
+    def shortstr(self):
+        "Format as string for pretty printing."
+        return "OPVector"
