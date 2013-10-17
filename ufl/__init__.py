@@ -54,7 +54,8 @@ A very brief overview of the language contents follows:
     FiniteElement,
     MixedElement, VectorElement, TensorElement
     EnrichedElement, RestrictedElement,
-    TensorProductElement, OuterProductElement
+    TensorProductElement, OuterProductElement,
+    OuterProductVectorElement
 
 * Arguments::
 
@@ -167,6 +168,7 @@ A very brief overview of the language contents follows:
 # Modified by Anders Logg, 2009.
 # Modified by Johannes Ring, 2014.
 # Modified by Andrew T. T. McRae, 2014
+# Modified by Lawrence Mitchell, 2014
 
 __version__ = "1.3.0+"
 
@@ -201,7 +203,8 @@ from ufl.geometry import (
 # Finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
     MixedElement, VectorElement, TensorElement, EnrichedElement, \
-    RestrictedElement, TensorProductElement, OuterProductElement
+    RestrictedElement, TensorProductElement, OuterProductElement, \
+    OuterProductVectorElement
 
 # Hook to extend predefined element families
 from ufl.finiteelement.elementlist import register_element, show_elements #, ufl_elements
@@ -293,6 +296,7 @@ __all__ = [
     'FiniteElementBase', 'FiniteElement',
     'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
     'RestrictedElement', 'TensorProductElement', 'OuterProductElement',
+    'OuterProductVectorElement',
     'register_element', 'show_elements',
     'Argument', 'TestFunction', 'TrialFunction',
     'Arguments', 'TestFunctions', 'TrialFunctions',
