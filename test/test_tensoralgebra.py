@@ -57,7 +57,7 @@ class TensorAlgebraTestCase(UflTestCase):
         self.assertEqualValues(C, D)
 
     def test_pow2_inner(self):
-        f = triangle.n[0]
+        f = FacetNormal(triangle)[0]
         f2 = f**2
         self.assertEqual(f2, inner(f, f))
 

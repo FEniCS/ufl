@@ -1,10 +1,11 @@
 
 from ufl import *
 cell = triangle
+d = cell.geometric_dimension()
 e = VectorElement("CG", cell, 2)
 v = TestFunction(e)
 u = Function(e)
-I = Identity(cell.d)
+I = Identity(d)
 F = I + grad(u).T
 C = F.T*F
 C = variable(C)

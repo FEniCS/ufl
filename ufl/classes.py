@@ -73,7 +73,8 @@ from ufl.conditional import Condition, BinaryCondition,\
 from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted, CellAvg, FacetAvg
 
 # Higher level abstractions
-from ufl.integral import Measure, ProductMeasure, Integral
+from ufl.measure import Measure, MeasureSum, MeasureProduct
+from ufl.integral import Integral
 from ufl.form import Form
 from ufl.equation import Equation
 

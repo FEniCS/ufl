@@ -6,7 +6,7 @@ def test():
     mesh3 = UnitCubeMesh(10,10,10)
     for mesh in (mesh1, mesh2, mesh3):
         cell = mesh.ufl_cell()
-        d = cell.d
+        d = cell.geometric_dimension()
         x = cell.x
         n = cell.n
         I = Identity(d)

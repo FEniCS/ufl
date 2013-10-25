@@ -1,4 +1,5 @@
 
+from ufl.log import error
 from ufl.operatorbase import Operator
 from ufl.terminal import Terminal
 from ufl.common import fast_pre_traversal
@@ -140,7 +141,7 @@ def _expr_equals3(self, other): # Much faster than the more complex algorithms a
     #    print self
     #    print other
     #    print '\n'*3
-    #    ufl_error("INVALID COMPARISON!")
+    #    error("INVALID COMPARISON!")
 
     return equal
 

@@ -32,12 +32,12 @@ i, j, k, l = indices(4)
 p, q, r, s = indices(4)
 
 # Default measures for integration
-dx = Measure(Measure.CELL,           Measure.DOMAIN_ID_DEFAULT)
-ds = Measure(Measure.EXTERIOR_FACET, Measure.DOMAIN_ID_DEFAULT)
-dS = Measure(Measure.INTERIOR_FACET, Measure.DOMAIN_ID_DEFAULT)
-dP = Measure(Measure.POINT,          Measure.DOMAIN_ID_DEFAULT)
-dE = Measure(Measure.MACRO_CELL,     Measure.DOMAIN_ID_DEFAULT)
-dc = Measure(Measure.SURFACE,        Measure.DOMAIN_ID_DEFAULT)
+dx = Measure(Measure.CELL)
+ds = Measure(Measure.EXTERIOR_FACET)
+dS = Measure(Measure.INTERIOR_FACET)
+dP = Measure(Measure.POINT)
+dE = Measure(Measure.MACRO_CELL)
+dc = Measure(Measure.SURFACE)
 
 # Cell types
 cell1D        = Cell("cell1D", 1)

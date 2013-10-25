@@ -30,6 +30,7 @@ from ufl.log import error
 from ufl.terminal import Terminal, FormArgument
 from ufl.indexing import Index, FixedIndex, MultiIndex
 from ufl.variable import Label
+from ufl.geometry import GeometricQuantity
 
 def _cmp3(a, b):
     "Replacement for cmp(), removed in Python 3."
@@ -122,38 +123,6 @@ def sorted_expr_sum(seq):
         s = s + e
     return s
 
-# TODO: Move this to common.py, does not belong here
-def topological_sorting(nodes, edges):
-    """
-    Return a topologically sorted list of the nodes
 
-    Implemented algorithm from Wikipedia :P
+from ufl.common import topological_sorting # FIXME: Remove this, update whoever uses it in ufl and ffc etc.
 
-    <http://en.wikipedia.org/wiki/Topological_sorting>
-
-    No error for cyclic edges...
-    """
-
-    L = []
-    S = nodes[:]
-    for node in nodes:
-        for es in edges.itervalues():
-            if node in es and node in S:
-                S.remove(node)
-                continue
-
-    while S:
-        node = S.pop(0)
-        L.append(node)
-        node_edges = edges[node]
-        while node_edges:
-            m = node_edges.pop(0)
-            found = False
-            for es in edges.itervalues():
-                found = m in es
-                if found:
-                    break
-            if not found:
-                S.insert(0,m)
-
-    return L

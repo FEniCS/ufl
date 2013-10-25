@@ -243,7 +243,7 @@ class IndexTestCase(UflTestCase):
         v  = TestFunction(element)
         u  = TrialFunction(element)
         i, j, k, l = indices(4)
-        d = cell.d
+        d = cell.geometric_dimension()
         
         a = v[i].dx(i)
         self.assertSameIndices(a, ())

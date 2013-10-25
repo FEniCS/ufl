@@ -61,7 +61,18 @@ class EnrichedElement(FiniteElementBase):
                                               quad_scheme, value_shape)
 
         # Cache repr string
-        self._repr = "EnrichedElement(%s)" % ", ".join(repr(e) for e in self._elements)
+        self._repr =  "EnrichedElement(*%r)" % ([repr(e) for e in self._elements],)
+
+    def reconstruction_signature(self):
+        """Format as string for evaluation as Python object.
+
+        For use with cross language frameworks, stored in generated code
+        and evaluated later in Python to reconstruct this object.
+
+        This differs from repr in that it does not include domain
+        label and data, which must be reconstructed or supplied by other means.
+        """
+        return "EnrichedElement(%s)" % (', '.join(e.reconstruction_signature() for e in self._elements),)
 
     def reconstruct(self, **kwargs):
         """Construct a new EnrichedElement object with some properties
@@ -83,3 +94,8 @@ class EnrichedElement(FiniteElementBase):
     def shortstr(self):
         "Format as string for pretty printing."
         return "<%s>" % " + ".join(e.shortstr() for e in self._elements)
+
+    def signature_data(self, domain_numbering):
+        data = ("EnrichedElement", 
+                tuple(e.signature_data(domain_numbering=domain_numbering) for e in self._elements))
+        return data

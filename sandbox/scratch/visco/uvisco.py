@@ -35,6 +35,7 @@ if DOLFIN:
     mesh = UnitCube(1,1,1)
 else:
     cell = tetrahedron
+gdim = 3
 
 # Reference fibre, sheet and sheet-normal directions
 if DOLFIN:
@@ -85,7 +86,7 @@ def psi_vol_inf(J):
 # Define the elastic response of the material
 def P(u):
     # Kinematics
-    I = Identity(u.cell().d)    # Identity tensor
+    I = Identity(gdim)    # Identity tensor
     F = I + grad(u)             # Deformation gradient
     C = F.T*F                   # Right Cauchy-Green tensor
     J = variable(det(F))        # Jacobian

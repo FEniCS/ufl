@@ -11,7 +11,7 @@ __license__  = "GNU GPL version 3 or any later version"
 
 from ufltestcase import UflTestCase, main
 from ufl import *
-from ufl.algorithms import preprocess
+from ufl.algorithms import preprocess, compute_form_signature
 
 import pickle
 p = pickle.HIGHEST_PROTOCOL
@@ -39,8 +39,8 @@ class PickleTestCase(UflTestCase):
         L_pickle = pickle.dumps(L, p)
         L_restore = pickle.loads(L_pickle)
 
-        assert(a.deprecated_signature() == a_restore.deprecated_signature())
-        assert(L.deprecated_signature() == L_restore.deprecated_signature())
+        assert(compute_form_signature(a) == compute_form_signature(a_restore))
+        assert(compute_form_signature(L) == compute_form_signature(L_restore))
 
     def testElasticity(self):
 
@@ -59,7 +59,7 @@ class PickleTestCase(UflTestCase):
         a_pickle = pickle.dumps(a, p)
         a_restore = pickle.loads(a_pickle)
 
-        assert(a.deprecated_signature() == a_restore.deprecated_signature())
+        assert(compute_form_signature(a) == compute_form_signature(a_restore))
 
     def testEnergyNorm(self):
 
@@ -71,7 +71,7 @@ class PickleTestCase(UflTestCase):
         a_pickle = pickle.dumps(a, p)
         a_restore = pickle.loads(a_pickle)
 
-        assert(a.deprecated_signature() == a_restore.deprecated_signature())
+        assert(compute_form_signature(a) == compute_form_signature(a_restore))
 
     def testEquation(self):
 
@@ -93,8 +93,8 @@ class PickleTestCase(UflTestCase):
         L_pickle = pickle.dumps(L, p)
         L_restore = pickle.loads(L_pickle)
 
-        assert(a.deprecated_signature() == a_restore.deprecated_signature())
-        assert(L.deprecated_signature() == L_restore.deprecated_signature())
+        assert(compute_form_signature(a) == compute_form_signature(a_restore))
+        assert(compute_form_signature(L) == compute_form_signature(L_restore))
 
     def testFunctionOperators(self):
 
@@ -111,7 +111,7 @@ class PickleTestCase(UflTestCase):
         a_pickle = pickle.dumps(a, p)
         a_restore = pickle.loads(a_pickle)
 
-        assert(a.deprecated_signature() == a_restore.deprecated_signature())
+        assert(compute_form_signature(a) == compute_form_signature(a_restore))
 
     def testHeat(self):
 
@@ -132,8 +132,8 @@ class PickleTestCase(UflTestCase):
         L_pickle = pickle.dumps(L, p)
         L_restore = pickle.loads(L_pickle)
 
-        assert(a.deprecated_signature() == a_restore.deprecated_signature())
-        assert(L.deprecated_signature() == L_restore.deprecated_signature())
+        assert(compute_form_signature(a) == compute_form_signature(a_restore))
+        assert(compute_form_signature(L) == compute_form_signature(L_restore))
 
     def testMass(self):
 
@@ -147,7 +147,7 @@ class PickleTestCase(UflTestCase):
         a_pickle = pickle.dumps(a, p)
         a_restore = pickle.loads(a_pickle)
 
-        assert(a.deprecated_signature() == a_restore.deprecated_signature())
+        assert(compute_form_signature(a) == compute_form_signature(a_restore))
 
     def testMixedMixedElement(self):
 
@@ -182,8 +182,8 @@ class PickleTestCase(UflTestCase):
         L_pickle = pickle.dumps(L, p)
         L_restore = pickle.loads(L_pickle)
 
-        assert(a.deprecated_signature() == a_restore.deprecated_signature())
-        assert(L.deprecated_signature() == L_restore.deprecated_signature())
+        assert(compute_form_signature(a) == compute_form_signature(a_restore))
+        assert(compute_form_signature(L) == compute_form_signature(L_restore))
 
     def testNavierStokes(self):
 
@@ -200,7 +200,7 @@ class PickleTestCase(UflTestCase):
         a_pickle = pickle.dumps(a, p)
         a_restore = pickle.loads(a_pickle)
 
-        assert(a.deprecated_signature() == a_restore.deprecated_signature())
+        assert(compute_form_signature(a) == compute_form_signature(a_restore))
 
     def testNeumannProblem(self):
 
@@ -222,8 +222,8 @@ class PickleTestCase(UflTestCase):
         L_pickle = pickle.dumps(L, p)
         L_restore = pickle.loads(L_pickle)
 
-        assert(a.deprecated_signature() == a_restore.deprecated_signature())
-        assert(L.deprecated_signature() == L_restore.deprecated_signature())
+        assert(compute_form_signature(a) == compute_form_signature(a_restore))
+        assert(compute_form_signature(L) == compute_form_signature(L_restore))
 
     def testOptimization(self):
 
@@ -241,8 +241,8 @@ class PickleTestCase(UflTestCase):
         L_pickle = pickle.dumps(L, p)
         L_restore = pickle.loads(L_pickle)
 
-        assert(a.deprecated_signature() == a_restore.deprecated_signature())
-        assert(L.deprecated_signature() == L_restore.deprecated_signature())
+        assert(compute_form_signature(a) == compute_form_signature(a_restore))
+        assert(compute_form_signature(L) == compute_form_signature(L_restore))
 
     def testP5tet(self):
 
@@ -268,7 +268,7 @@ class PickleTestCase(UflTestCase):
         u = TrialFunction(element)
         f = Coefficient(element)
 
-        n = triangle.n
+        n = FacetNormal(triangle)
 
         # FFC notation: h = MeshSize("triangle"), not supported by UFL
         h = Constant(triangle)
@@ -302,8 +302,8 @@ class PickleTestCase(UflTestCase):
         L_pickle = pickle.dumps(L, p)
         L_restore = pickle.loads(L_pickle)
 
-        assert(a.deprecated_signature() == a_restore.deprecated_signature())
-        assert(L.deprecated_signature() == L_restore.deprecated_signature())
+        assert(compute_form_signature(a) == compute_form_signature(a_restore))
+        assert(compute_form_signature(L) == compute_form_signature(L_restore))
 
     def testPoisson(self):
 
@@ -322,8 +322,8 @@ class PickleTestCase(UflTestCase):
         L_pickle = pickle.dumps(L, p)
         L_restore = pickle.loads(L_pickle)
 
-        assert(a.deprecated_signature() == a_restore.deprecated_signature())
-        assert(L.deprecated_signature() == L_restore.deprecated_signature())
+        assert(compute_form_signature(a) == compute_form_signature(a_restore))
+        assert(compute_form_signature(L) == compute_form_signature(L_restore))
 
     def testPoissonSystem(self):
 
@@ -344,8 +344,8 @@ class PickleTestCase(UflTestCase):
         L_pickle = pickle.dumps(L, p)
         L_restore = pickle.loads(L_pickle)
 
-        assert(a.deprecated_signature() == a_restore.deprecated_signature())
-        assert(L.deprecated_signature() == L_restore.deprecated_signature())
+        assert(compute_form_signature(a) == compute_form_signature(a_restore))
+        assert(compute_form_signature(L) == compute_form_signature(L_restore))
 
     def testQuadratureElement(self):
 
@@ -373,8 +373,8 @@ class PickleTestCase(UflTestCase):
         L_pickle = pickle.dumps(L, p)
         L_restore = pickle.loads(L_pickle)
 
-        assert(a.deprecated_signature() == a_restore.deprecated_signature())
-        assert(L.deprecated_signature() == L_restore.deprecated_signature())
+        assert(compute_form_signature(a) == compute_form_signature(a_restore))
+        assert(compute_form_signature(L) == compute_form_signature(L_restore))
 
     def testStokes(self):
 
@@ -400,8 +400,8 @@ class PickleTestCase(UflTestCase):
         L_pickle = pickle.dumps(L, p)
         L_restore = pickle.loads(L_pickle)
 
-        assert(a.deprecated_signature() == a_restore.deprecated_signature())
-        assert(L.deprecated_signature() == L_restore.deprecated_signature())
+        assert(compute_form_signature(a) == compute_form_signature(a_restore))
+        assert(compute_form_signature(L) == compute_form_signature(L_restore))
 
     def testSubDomain(self):
 
@@ -416,7 +416,7 @@ class PickleTestCase(UflTestCase):
         M_pickle = pickle.dumps(M, p)
         M_restore = pickle.loads(M_pickle)
 
-        assert(M.deprecated_signature() == M_restore.deprecated_signature())
+        assert(compute_form_signature(M) == compute_form_signature(M_restore))
 
     def testSubDomains(self):
 
@@ -430,7 +430,7 @@ class PickleTestCase(UflTestCase):
         a_pickle = pickle.dumps(a, p)
         a_restore = pickle.loads(a_pickle)
 
-        assert(a.deprecated_signature() == a_restore.deprecated_signature())
+        assert(compute_form_signature(a) == compute_form_signature(a_restore))
 
     def testTensorWeightedPoisson(self):
 
@@ -463,7 +463,7 @@ class PickleTestCase(UflTestCase):
         a_pickle = pickle.dumps(a, p)
         a_restore = pickle.loads(a_pickle)
 
-        assert(a.deprecated_signature() == a_restore.deprecated_signature())
+        assert(compute_form_signature(a) == compute_form_signature(a_restore))
 
     def testVectorLaplaceGradCurl(self):
 
@@ -497,8 +497,8 @@ class PickleTestCase(UflTestCase):
         L_pickle = pickle.dumps(L, p)
         L_restore = pickle.loads(L_pickle)
 
-        assert(a.deprecated_signature() == a_restore.deprecated_signature())
-        assert(L.deprecated_signature() == L_restore.deprecated_signature())
+        assert(compute_form_signature(a) == compute_form_signature(a_restore))
+        assert(compute_form_signature(L) == compute_form_signature(L_restore))
 
     def testIdentity(self):
         

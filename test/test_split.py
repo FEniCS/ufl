@@ -13,7 +13,7 @@ class SplitTestCase(UflTestCase):
 
     def test_split(self):
         cell = triangle
-        d = cell.d
+        d = cell.geometric_dimension()
         f = FiniteElement("CG", cell, 1)
         v = VectorElement("CG", cell, 1)
         w = VectorElement("CG", cell, 1, dim=d+1)

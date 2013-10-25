@@ -12,7 +12,7 @@ MX = RT * DG
 (u, p) = TrialFunctions(MX)
 (v, q) = TestFunctions(MX)
 
-n = cell.n
+n = FacetNormal(cell)
 
 a0 = (dot(u, v) + div(u)*q + div(v)*p)*dx
 a1 = (dot(u, v) + div(u)*q + div(v)*p)*dx - p*dot(v, n)*ds

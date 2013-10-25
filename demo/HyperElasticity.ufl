@@ -7,9 +7,9 @@
 
 # Cell and its properties
 cell = tetrahedron
-d = cell.d
-n = cell.n
-x = cell.x
+d = cell.geometric_dimension()
+N = FacetNormal(cell)
+x = SpatialCoordinate(cell)
 
 # Elements
 u_element = VectorElement("CG", cell, 2)
@@ -34,7 +34,6 @@ A = Coefficient(A_element)
 # External forces
 T = Coefficient(u_element)
 p0 = Coefficient(p_element)
-N = cell.n
 
 # Material parameters FIXME
 rho = Constant(cell)

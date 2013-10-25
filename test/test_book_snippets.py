@@ -29,7 +29,7 @@ class BookTestCase(UflTestCase):
         c2 = Constant(cell)
 
         # Deformation gradient Fij = dXi/dxj
-        I = Identity(cell.d)
+        I = Identity(cell.geometric_dimension())
         F = I + grad(u)
 
         # Right Cauchy-Green strain tensor C with invariants

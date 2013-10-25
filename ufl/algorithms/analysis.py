@@ -38,13 +38,10 @@ from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.variable import Variable
 from ufl.indexing import Index, MultiIndex
-from ufl.domains import Region, Domain
+from ufl.geometry import Domain
 from ufl.integral import Measure, Integral
 from ufl.form import Form
 from ufl.algorithms.traversal import iter_expressions, post_traversal, post_walk, traverse_terminals
-
-# Domain types (should probably be listed somewhere else)
-_domain_types = Measure._domain_types_tuple
 
 #--- Utilities to extract information from an expression ---
 
@@ -269,75 +266,28 @@ def unique_tuple(objects):
             unique_objects.append(object)
     return tuple(unique_objects)
 
-def extract_domain_data(form):
-    "Extract the domain_data attached to integrals of each domain type in form."
-    domain_data = {}
-    for integral in form.integrals():
-        domain_type = integral.domain_type()
-        data = integral.domain_data()
-        # Check that there is only one domain_data object for each integral type
-        existing_data = domain_data.get(domain_type)
-        if existing_data is None:
-            # Got no data before, store this one. May be None, that's fine.
-            domain_data[domain_type] = data
-        elif data is None:
-            # Already got data, getting no data is ok but don't overwrite.
-            pass
-        elif existing_data is not data:
-            # NB! Using 'is' because we're not assuming anything about domain_data type, not even an equals operator!
-            error("Found two domain data objects for same domain type '%s', only one is allowed." % str(domain_type))
-    return domain_data
-
 def extract_num_sub_domains(form):
-    "Extract the upper limit of sub domain ids for each domain type."
-    num_domains = {}
+    "Extract the upper limit of sub domain ids for each domain label/domain type."
+    num_sub_domains = {}
     for integral in form.integrals():
-        domain_type = integral.domain_type()
-        domain_id = integral.domain_id()
+        domain = integral.domain()
+        label = None if domain is None else domain.label()
+        if label not in num_sub_domains:
+            num_sub_domains[label] = {}
 
-        # TODO: This may need some redesign
+        domain_id = integral.domain_id()
         max_domain_id = None
         if isinstance(domain_id, int):
             max_domain_id = domain_id
-        elif isinstance(domain_id, Region):
-            max_domain_id = max(domain_id.subdomain_ids())
-        elif isinstance(domain_id, Domain):
-            max_domain_id = None
+        elif isinstance(domain_id, tuple):
+            max_domain_id = max(did for did in domain_id)
 
+        domain_type = integral.domain_type()
         if max_domain_id is not None:
-            num_domains[domain_type] = max(num_domains.get(domain_type, 0), max_domain_id + 1)
-    return num_domains
+            prev = num_sub_domains[label].get(domain_type, 0)
+            num_sub_domains[label][domain_type] = max(prev, max_domain_id + 1)
 
-class IntegralData(object):
-    """Utility class with the members
-        (domain_type, domain_id, integrals, metadata)
-
-    where metadata is an empty dictionary that may be used for
-    associating metadata with each object.
-    """
-    __slots__ = ('domain_type', 'domain_id', 'integrals', 'metadata')
-    def __init__(self, domain_type, domain_id, integrals, metadata):
-        self.domain_type = domain_type
-        self.domain_id = domain_id
-        self.integrals = integrals
-        self.metadata = metadata
-
-    def __lt__(self, other):
-        # To preserve behaviour of extract_integral_data:
-        return ((self.domain_type, self.domain_id, self.integrals, self.metadata)
-                < (other.domain_type, other.domain_id, other.integrals, other.metadata))
-
-    def __eq__(self, other):
-        # Currently only used for tests:
-        return (self.domain_type == other.domain_type and
-                self.domain_id == other.domain_id and
-                self.integrals == other.integrals and
-                self.metadata == other.metadata)
-
-    def __str__(self):
-        return "IntegralData object over domain (%s, %s), with integrals:\n%s\nand metadata:\n%s" % (
-            self.domain_type, self.domain_id,
-            '\n\n'.join(map(str,self.integrals)), self.metadata)
+    return num_sub_domains
 
 def sort_elements(elements):
     """

@@ -28,7 +28,8 @@ lamda = Constant(cell)
 mu = Constant(cell)
 
 # Deformation gradient
-I = Identity(cell.d)
+d = cell.geometric_dimension()
+I = Identity(d)
 F = I + grad(u).T
 
 # Right Cauchy-Green deformation tensor

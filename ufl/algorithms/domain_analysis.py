@@ -1,34 +1,63 @@
-"""Algorithm sketch to build canonical data structure for integrals over subdomains."""
+"""Algorithms for building canonical data structure for integrals over subdomains."""
 
-#from ufl import *
-
-from ufl import Domain, Region, Measure, Form
-
-# Transitional helper constructor
-from ufl.integral import Integral
-
-from ufl.common import sorted_items
-
-def integral_domain_ids(integral):
-    did = integral.measure().domain_id()
-    if isinstance(did, int):
-        return (did,)
-    elif isinstance(did, tuple):
-        return did
-    elif isinstance(did, Region):
-        return did.subdomain_ids()
-    elif isinstance(did, Domain):
-        return Measure.DOMAIN_ID_EVERYWHERE
-    elif did in Measure.DOMAIN_ID_CONSTANTS:
-        return did
-    else:
-        error("Invalid domain id %s." % did)
-
-# Tuple comparison helper
 from collections import defaultdict
+
+import ufl
+from ufl.common import sorted_items
+from ufl.log import error
+from ufl.assertions import ufl_assert
+from ufl.geometry import Domain
+from ufl.measure import Measure
+from ufl.integral import Integral
+from ufl.form import Form
+
 from ufl.sorting import cmp_expr
 from ufl.sorting import sorted_expr
 
+class IntegralData(object):
+    """Utility class with the members
+        (domain, domain_type, domain_id, integrals, metadata)
+
+    where metadata is an empty dictionary that may be used for
+    associating metadata with each object.
+    """
+    __slots__ = ('domain', 'domain_type', 'domain_id', 'integrals', 'metadata')
+    def __init__(self, domain, domain_type, domain_id, integrals, metadata):
+        ufl_assert(all(domain.label() == itg.domain().label() for itg in integrals),
+                   "Domain label mismatch in integral data.")
+        ufl_assert(all(domain_type == itg.domain_type() for itg in integrals),
+                   "Domain type mismatch in integral data.")
+        ufl_assert(all(domain_id == itg.domain_id() for itg in integrals),
+                   "Domain id mismatch in integral data.")
+
+        self.domain = domain
+        self.domain_type = domain_type
+        self.domain_id = domain_id
+
+        self.integrals = integrals
+
+        # TODO: I think we can get rid of this with some refactoring in ffc:
+        self.metadata = metadata
+
+    def __lt__(self, other):
+        # To preserve behaviour of extract_integral_data:
+        return ((self.domain_type, self.domain_id, self.integrals, self.metadata)
+                < (other.domain_type, other.domain_id, other.integrals, other.metadata))
+
+    def __eq__(self, other):
+        # Currently only used for tests:
+        return (self.domain_type == other.domain_type and
+                self.domain_id == other.domain_id and
+                self.integrals == other.integrals and
+                self.metadata == other.metadata)
+
+    def __str__(self):
+        return "IntegralData object over domain (%s, %s), with integrals:\n%s\nand metadata:\n%s" % (
+            self.domain_type, self.domain_id,
+            '\n\n'.join(map(str,self.integrals)), self.metadata)
+
+
+# Tuple comparison helper
 class ExprTupleKey(object):
     __slots__ = ('x',)
     def __init__(self, x):
@@ -45,149 +74,172 @@ class ExprTupleKey(object):
 def expr_tuple_key(expr):
     return ExprTupleKey(expr)
 
+def group_integrals_by_domain_and_type(integrals, domains, common_domain):
+    """
+    Input:
+        integrals: list of Integral objects
+        domains: list of Domain objects from the parent Form
+        common_domain: default Domain object for integrals with no domain
 
-def extract_domain_data_from_integral_list(integrals):
-    # Keep track of domain data objects, want only one
-    ddids = set()
-    domain_data = None
+    Output:
+        integrals_by_domain_and_type: dict: (domain, domain_type) -> list(Integral)
+    """
+    integral_data = []
+    domains_by_label = dict((domain.label(), domain) for domain in domains)
+
+    integrals_by_domain_and_type = defaultdict(list)
     for itg in integrals:
-        dd = itg.domain_data()
-        if dd is not None:
-            domain_data = dd
-            ddids.add(id(dd))
-    assert len(ddids) <= 1, ("Found multiple domain data objects in form for domain type %s" % dt)
-    return domain_data
+        # Canonicalize domain
+        domain = itg.domain()
+        if domain is None:
+            domain = common_domain
+        domain = domains_by_label.get(domain.label())
+        domain_type = itg.domain_type()
 
-def extract_domain_data_from_integral_dict(integrals): # TODO: Is this really any better than the existing extract_domain_data?
-    domain_data = {}
-    # Iterate over domain types in order
-    for dt in Measure._domain_types_tuple:
-        # Get integrals list for this domain type if any
-        if dt in integrals:
-            domain_data[dt] = extract_domain_data_from_integral_list(integrals[dt])
-    return domain_data
+        # Append integral to list of integrals with shared key
+        integrals_by_domain_and_type[(domain, domain_type)].append(itg)
+    return integrals_by_domain_and_type
 
+def integral_domain_ids(integral):
+    "Get a tuple of integer subdomains or a valid string subdomain from integral."
+    did = integral.domain_id()
+    if isinstance(did, int):
+        return (did,)
+    elif isinstance(did, tuple):
+        ufl_assert(all(isinstance(d, int) for d in did),
+                   "Expecting only integer subdomains in tuple.")
+        return did
+    elif did in ("everywhere", "otherwise"):
+        # TODO: Define list of valid strings somewhere more central
+        return did
+    else:
+        error("Invalid domain id %s." % did)
 
-def integral_dict_to_sub_integral_data(integrals):
-    # Data structures to return
-    sub_integral_data = {}
+def rearrange_integrals_by_single_subdomains(integrals):
+    """Rearrange integrals over multiple subdomains to single subdomain integrals.
 
-    # Iterate over domain types in order
-    for dt in Measure._domain_types_tuple:
-        # Get integrals list for this domain type if any
-        itgs = integrals.get(dt)
-        if itgs is not None:
-            # Make dict for this domain type with mapping (subdomain id -> integral list)
-            sub_integrals = build_sub_integral_list(itgs)
+    Input:
+        integrals: list(Integral)
 
-            # Build a canonical representation of integrals for this type of domain,
-            # with only one integrand for each compiler_data on each subdomain
-            sub_integral_data[dt] = canonicalize_sub_integral_data(sub_integrals)
-
-    # Return result:
-    #sub_integral_data[dt][did][:] = [(integrand0, compiler_data0), (integrand1, compiler_data1), ...]
-    return sub_integral_data
-
-def reconstruct_form_from_sub_integral_data(sub_integral_data, domain_data=None):
-    domain_data = domain_data or {}
-    integrals = []
-    # Iterate over domain types in order
-    for dt in Measure._domain_types_tuple:
-        dd = domain_data.get(dt)
-        # Get integrals list for this domain type if any
-        metaintegrands = sub_integral_data.get(dt)
-        if metaintegrands is not None:
-            for k in sorted(metaintegrands.keys()):
-                for integrand, compiler_data in metaintegrands[k]:
-                    integrals.append(Integral(integrand, dt, k, compiler_data, dd))
-    return Form(integrals)
-
-def build_sub_integral_list(itgs):
-    sub_integrals = defaultdict(list)
-
-    # Fill sub_integrals with lists of integrals sorted by and restricted to subdomain ids
-    for itg in itgs:
+    Output:
+        integrals: dict: domain_id -> list(Integral) (reconstructed with single domain_id)
+    """
+    # Split integrals into lists of everywhere and subdomain integrals
+    everywhere_integrals = []
+    subdomain_integrals = []
+    for itg in integrals:
         dids = integral_domain_ids(itg)
-        assert dids != Measure.DOMAIN_ID_OTHERWISE
-        if dids == Measure.DOMAIN_ID_EVERYWHERE:
-            # Everywhere integral
-            sub_integrals[Measure.DOMAIN_ID_EVERYWHERE].append(itg)
+        if dids == "otherwise":
+            error("'otherwise' integrals should never occur before preprocessing.")
+        elif dids == "everywhere":
+            everywhere_integrals.append(itg)
         else:
-            # Region or single subdomain id
-            for did in dids:
-                # Restrict integral to this subdomain!
-                sub_integrals[did].append(itg.reconstruct(domain_description=did))
+            subdomain_integrals.append((dids, itg))
+
+    # Fill single_subdomain_integrals with lists of integrals from
+    # subdomain_integrals, but split and restricted to single subdomain ids
+    single_subdomain_integrals = defaultdict(list)
+    for dids, itg in subdomain_integrals:
+        # Region or single subdomain id
+        for did in dids:
+            # Restrict integral to this subdomain!
+            single_subdomain_integrals[did].append(itg.reconstruct(domain_id=did))
 
     # Add everywhere integrals to each single subdomain id integral list
-    if Measure.DOMAIN_ID_EVERYWHERE in sub_integrals:
-        # We'll consume everywhere integrals...
-        ei = sub_integrals[Measure.DOMAIN_ID_EVERYWHERE]
-        del sub_integrals[Measure.DOMAIN_ID_EVERYWHERE]
-        # ... and produce otherwise integrals instead
-        assert Measure.DOMAIN_ID_OTHERWISE not in sub_integrals
-        sub_integrals[Measure.DOMAIN_ID_OTHERWISE] = []
-        # Restrict everywhere integral to each subdomain and append to each integral list
-        for did, itglist in sorted_items(sub_integrals):
-            for itg in ei:
-                # Restrict integral to this subdomain!
-                itglist.append(itg.reconstruct(domain_description=did))
-    return sub_integrals
+    otherwise_integrals = []
+    for ev_itg in everywhere_integrals:
+        # Restrict everywhere integral to 'otherwise'
+        otherwise_integrals.append(
+            ev_itg.reconstruct(domain_id="otherwise"))
 
-def canonicalize_sub_integral_data(sub_integrals):
-    for did in sub_integrals:
-        # Group integrals by compiler data object id
-        by_cdid = {}
-        for itg in sub_integrals[did]:
-            cd = itg.compiler_data()
-            cdid = id(cd)
-            if cdid in by_cdid:
-                by_cdid[cdid][0].append(itg)
-            else:
-                by_cdid[cdid] = ([itg], cd)
+        # Restrict everywhere integral to each subdomain
+        # and append to each integral list
+        for domain_id in sorted(single_subdomain_integrals.keys()):
+            single_subdomain_integrals[domain_id].append(
+                ev_itg.reconstruct(domain_id=domain_id))
 
-        # Accumulate integrands separately for each compiler data object id
-        for cdid in by_cdid:
-            integrals, cd = by_cdid[cdid]
-            # Ensure canonical sorting of more than two integrands
-            integrands = sorted_expr((itg.integrand() for itg in integrals))
-            integrands_sum = sum(integrands[1:], integrands[0])
-            by_cdid[cdid] = (integrands_sum, cd)
+    if otherwise_integrals:
+        single_subdomain_integrals["otherwise"] = otherwise_integrals
 
-        # Sort integrands canonically by integrand first then compiler data
-        sub_integrals[did] = sorted(by_cdid.values(), key=expr_tuple_key)
-        # i.e. the result is on the form:
-        #sub_integrals[did][:] = [(integrand0, compiler_data0), (integrand1, compiler_data1), ...]
-        # where integrand0 < integrand1 by the canonical ufl expression ordering criteria.
+    return single_subdomain_integrals
 
-    return sub_integrals
+def accumulate_integrands_with_same_metadata(integrals):
+    """
+    Taking input on the form:
+        integrals = [integral0, integral1, ...]
 
-# Convert to integral_data format during transitional period:
-from ufl.algorithms.analysis import IntegralData
-def convert_sub_integral_data_to_integral_data(sub_integral_data):
+    Return result on the form:
+        integrands_by_id = [(integrand0, metadata0),
+                            (integrand1, metadata1), ...]
+
+    where integrand0 < integrand1 by the canonical ufl expression ordering criteria.
+    """
+    # Group integrals by compiler data object id
+    by_cdid = {}
+    for itg in integrals:
+        cd = itg.metadata()
+        cdid = id(cd) # TODO: Use hash instead of id? Safe to assume this to be a dict of basic python values?
+        if cdid in by_cdid:
+            by_cdid[cdid][0].append(itg)
+        else:
+            by_cdid[cdid] = ([itg], cd)
+
+    # Accumulate integrands separately for each compiler data object id
+    for cdid in by_cdid:
+        integrals, cd = by_cdid[cdid]
+        # Ensure canonical sorting of more than two integrands
+        integrands = sorted_expr((itg.integrand() for itg in integrals))
+        integrands_sum = sum(integrands[1:], integrands[0])
+        by_cdid[cdid] = (integrands_sum, cd)
+
+    # Sort integrands canonically by integrand first then compiler data
+    return sorted(by_cdid.values(), key=expr_tuple_key)
+
+def build_integral_data(integrals, domains, common_domain):
     integral_data = []
-    for domain_type, domain_type_data in sorted_items(sub_integral_data):
-        for domain_id, sub_domain_integrands in sorted_items(domain_type_data):
-            integrals = [Integral(integrand, domain_type, domain_id, compiler_data, None)
-                         for integrand, compiler_data in sub_domain_integrands]
-            ida = IntegralData(domain_type, domain_id, integrals, {})
-            integral_data.append(ida)
+
+    # Group integrals by domain and type
+    integrals_by_domain_and_type = \
+        group_integrals_by_domain_and_type(integrals, domains, common_domain)
+
+    for domain in domains:
+        for domain_type in ufl.measure.domain_types():
+            # Get integrals with this domain and type
+            ddt_integrals = integrals_by_domain_and_type.get((domain, domain_type))
+            if ddt_integrals is None:
+                continue
+
+            # Group integrals by subdomain id, after splitting e.g.
+            #   f*dx((1,2)) + g*dx((2,3)) -> f*dx(1) + (f+g)*dx(2) + g*dx(3)
+            # (note: before this call, 'everywhere' is a valid domain_id,
+            # and after this call, 'otherwise' is a valid domain_id)
+            single_subdomain_integrals = \
+                rearrange_integrals_by_single_subdomains(ddt_integrals)
+
+            for domain_id, ss_integrals in sorted_items(single_subdomain_integrals):
+                # Accumulate integrands of integrals that share the same compiler data
+                integrands_and_cds = \
+                    accumulate_integrands_with_same_metadata(ss_integrals)
+
+                # Reconstruct integrals with new integrands and the right domain object
+                integrals = [Integral(integrand, domain_type, domain, domain_id, metadata, None)
+                             for integrand, metadata in integrands_and_cds]
+
+                # Create new metadata dict for each integral data,
+                # this is filled in by ffc to associate compiler
+                # specific information with this integral data
+                metadata = {}
+
+                # Finally wrap it all in IntegralData object!
+                ida = IntegralData(domain, domain_type, domain_id, integrals, {})
+
+                # Store integral data objects in list with canonical ordering
+                integral_data.append(ida)
+
     return integral_data
 
-
-# Print output for inspection:
-def print_sub_integral_data(sub_integral_data):
-    print
-    for domain_type, domain_type_data in sorted_items(sub_integral_data):
-        print "======", domain_type
-        for domain_id, sub_domain_integrands in sorted_items(domain_type_data):
-            print '---', domain_id,
-            for integrand, compiler_data in sub_domain_integrands:
-                print
-                print "integrand:    ", integrand
-                print "compiler data:", compiler_data
-
-def extract_integral_data_from_integral_dict(integrals):
-    sub_integral_data = integral_dict_to_sub_integral_data(integrals)
-    if 0: print_sub_integral_data(sub_integral_data) # TODO: Replace integral_data with this through ufl and ffc
-    integral_data = convert_sub_integral_data_to_integral_data(sub_integral_data)
-    return integral_data
+def reconstruct_form_from_integral_data(integral_data):
+    integrals = []
+    for ida in integral_data:
+        integrals.extend(ida.integrals)
+    return Form(integrals)

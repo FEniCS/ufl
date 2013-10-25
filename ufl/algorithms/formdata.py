@@ -37,39 +37,30 @@ class FormData(object):
     def __str__(self):
         "Return formatted summary of form data"
         types = sorted(self.num_sub_domains.keys())
-        domains = tuple(("Number of %s domains" % domain_type,
-                         self.num_sub_domains[domain_type]) for domain_type in types)
-        return tstr((("Name",                               self.name),
-                     ("Cell",                               self.cell),
-                     ("Topological dimension",              self.topological_dimension),
-                     ("Geometric dimension",                self.geometric_dimension),
-                     ) + domains + (
-                     ("Rank",                               self.rank),
-                     ("Number of coefficients",             self.num_coefficients),
-                     ("Arguments",                          lstr(self.original_arguments)),
-                     ("Coefficients",                       lstr(self.original_coefficients)),
-                     ("Argument names",                     lstr(self.argument_names)),
-                     ("Coefficient names",                  lstr(self.coefficient_names)),
-                     ("Unique elements",                    estr(self.unique_elements)),
-                     ("Unique sub elements",                estr(self.unique_sub_elements)),
-                     # FIXME DOMAINS what is "the domain(s)" for a form?
-                     ("Domains",                            self.domains),
-                     ("Top level domains",                  self.top_domains),
-                     ))
+        subdomains = tuple(("Number of %s subdomains" % domain_type,
+                            self.num_sub_domains[domain_type]) for domain_type in types)
+        return tstr(
+            (("Name",                               self.name),
+             # Geometry
+             ("Geometric dimension",                self.geometric_dimension),
+             ) + subdomains + (
+             # Arguments
+             ("Rank",                               self.rank),
+             ("Arguments",                          lstr(self.original_arguments)),
+             ("Argument names",                     lstr(self.argument_names)),
+             # Coefficients
+             ("Number of coefficients",             self.num_coefficients),
+             ("Coefficients",                       lstr(self.original_coefficients)),
+             ("Coefficient names",                  lstr(self.coefficient_names)),
+             # Elements
+             ("Unique elements",                    estr(self.unique_elements)),
+             ("Unique sub elements",                estr(self.unique_sub_elements)),
+             ))
 
-    def validate(self,
-                 object_names=None,
-                 common_cell=None,
-                 element_mapping=None):
+    def validate(self, object_names=None):
         "Validate that the form data was built from the same inputs."
         ufl_assert((object_names or {}) == self._input_object_names,
                    "Found non-matching object_names in form data validation.")
-
-        ufl_assert(common_cell in (None, self.cell),
-                   "Found non-matching cells in form data validation.")
-
-        ufl_assert((element_mapping or {}) == self._input_element_mapping,
-                   "Found non-matching element mappings in form data validation.")
 
 class ExprData(object):
     """
@@ -96,5 +87,4 @@ class ExprData(object):
                      ("Unique sub elements",                estr(self.unique_sub_elements)),
                      # FIXME DOMAINS what is "the domain(s)" for an expression?
                      ("Domains",                            self.domains),
-                     ("Top level domains",                  self.top_domains),
                      ))

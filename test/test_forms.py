@@ -10,22 +10,74 @@ from ufltestcase import UflTestCase, main
 from ufl import *
 from ufl.algorithms import *
 
+class MockMesh:
+    def __init__(self, ufl_id):
+        self._ufl_id = ufl_id
+    def ufl_id(self):
+        return self._ufl_id
+    def ufl_domain(self):
+        return Domain(triangle, 2, 2, "MockMesh_id_%d"%self.ufl_id(), self)
+    def ufl_measure(self, domain_type="dx", domain_id="everywhere", metadata=None, domain_data=None):
+        return Measure(domain_type, domain_id=domain_id, metadata=metadata, domain=self, domain_data=domain_data)
+
+class MockDomainData:
+    "Mock class for the pydolfin compatibility hack for domain data with [] syntax."
+    def __init__(self, ufl_id):
+        self._mesh = MockMesh(10*ufl_id)
+        self._ufl_id = ufl_id
+    def ufl_id(self):
+        return self._ufl_id
+    def mesh(self):
+        return self._mesh
+    def ufl_measure(self, domain_type=None, domain_id="everywhere", metadata=None):
+        return Measure(domain_type, domain_id=domain_id, metadata=metadata,
+                       domain=self.mesh(), domain_data=self)
+
 class TestMeasure(UflTestCase):
 
-    def test_manually_constructed_measures(self):
+    def test_manually_constructing_measures_with_domain_data(self):
         # Since we can't write 'dx = dx[data]' in a non-global scope,
         # because of corner cases in the python scope rules,
-        # it may be convenient to construct measures directly:
-        domain_data = ('Stokes', 'Darcy')
-        dx = Measure('dx')[domain_data]
-        ds = Measure('ds')[domain_data]
-        dS = Measure('dS')[domain_data]
+        # it may be convenient to construct measures directly.
+        domain_data1 = MockDomainData(1)
+        domain_data2 = MockDomainData(2)
+        domain_data3 = MockDomainData(3)
 
-        # Possible PyDOLFIN syntax:
-        #ds = boundaries.dx(3) # return Measure('dx')[self](3)
+        # Old syntax
+        dx = Measure('dx')[domain_data1]
+        ds = Measure('ds')[domain_data2]
+        dS = Measure('dS')[domain_data3]
+        self.assertEqual(dx.domain_data(), domain_data1)
+        self.assertEqual(ds.domain_data(), domain_data2)
+        self.assertEqual(dS.domain_data(), domain_data3)
+        self.assertIsNone(dx.domain())
+        self.assertIsNone(ds.domain())
+        self.assertIsNone(dS.domain())
 
-    def test_functionals_with_compiler_data(self):
-        x, y, z = tetrahedron.x
+        # New syntax (just deprecating [])
+        dx = Measure('dx', domain_data=domain_data1)
+        ds = Measure('ds', domain_data=domain_data2)
+        dS = Measure('dS', domain_data=domain_data3)
+        self.assertEqual(dx.domain_data(), domain_data1)
+        self.assertEqual(ds.domain_data(), domain_data2)
+        self.assertEqual(dS.domain_data(), domain_data3)
+        self.assertIsNone(dx.domain())
+        self.assertIsNone(ds.domain())
+        self.assertIsNone(dS.domain())
+
+        # Mock-up example of how dolfin can simplify measure construction
+        dx = domain_data1.ufl_measure('dx')
+        ds = domain_data2.ufl_measure('ds')
+        dS = domain_data3.ufl_measure('dS')
+        self.assertEqual(dx.domain_data(), domain_data1)
+        self.assertEqual(ds.domain_data(), domain_data2)
+        self.assertEqual(dS.domain_data(), domain_data3)
+        self.assertEqual(dx.domain().data(), domain_data1.mesh())
+        self.assertEqual(ds.domain().data(), domain_data2.mesh())
+        self.assertEqual(dS.domain().data(), domain_data3.mesh())
+
+    def test_functionals_with_metadata(self):
+        x, y, z = SpatialCoordinate(tetrahedron)
 
         a0 = x*dx(0)             + y*dx(0)             + z*dx(1)
         a1 = x*dx(0, {'k': 'v'}) + y*dx(0, {'k': 'v'}) + z*dx(1, {'k': 'v'})
@@ -71,7 +123,7 @@ class TestMeasure(UflTestCase):
         # Check stability w.r.t. ordering of terms with two-value compiler data dict
         self.assertEqual(d0s, d1s)
 
-    def test_forms_with_compiler_data(self):
+    def test_forms_with_metadata(self):
         element = FiniteElement("Lagrange", triangle, 1)
 
         u = TrialFunction(element)
@@ -121,38 +173,157 @@ class TestMeasure(UflTestCase):
         self.assertNotEqual(afd.signature, bfd.signature)
         self.assertEqual(afd.signature, cfd.signature)
 
-
-    def test_measures_with_domain_data(self):
+    def test_measures_with_domain_data_compare_equal_if_domain_data_ufl_id_returns_same(self):
         # Configure measure with some arbitrary data object as domain_data
-        domain_data = ('Stokes', 'Darcy')
-        dX = dx[domain_data]
+        domain_data = MockDomainData(3)
+        domain_data2 = MockDomainData(5)
+        dX1 = dx[domain_data]
+        dX2 = dx(domain_data=domain_data)
+        dX3 = dx[domain_data2]
+        dX4 = dx(domain_data=domain_data2)
+        self.assertEqual(dX1, dX2)
+        self.assertEqual(dX3, dX4)
+        self.assertNotEqual(dX1, dX3)
+        self.assertNotEqual(dX1, dX4)
+        self.assertNotEqual(dX2, dX3)
+        self.assertNotEqual(dX2, dX4)
+        self.assertNotEqual(dx, dX1)
+        self.assertNotEqual(dx, dX2)
+        self.assertNotEqual(dx, dX3)
+        self.assertNotEqual(dx, dX4)
+
+    # TODO: Move to domains test
+    def test_join_domains(self):
+        from ufl.geometry import join_domains
+        cells = (triangle,)
+        for cell in cells:
+            m1 = MockMesh(11)
+            m2 = MockMesh(22)
+            d1 = as_domain(cell)
+            d2 = d1.reconstruct(data=m1)
+            d3 = d1.reconstruct(data=m2)
+            domains2 = join_domains([d1, d2])
+            domains3 = join_domains([d1, d3])
+            self.assertEqual(len(domains2), 1)
+            self.assertEqual(len(domains3), 1)
+            self.assertIs(domains2[0].data(), m1)
+            self.assertIs(domains3[0].data(), m2)
+            self.assertRaises(lambda: join_domains([d2, d3])) # Incompatible data
+
+    def test_measures_with_domain_data(self): # FIXME
+        # Old code will be using cell instead of domain for a long while
+        cell = triangle
+
+        # Define coefficient on this cell
+        element = FiniteElement("Lagrange", cell, 1)
+        f = Coefficient(element)
+
+        # Check coefficient domain
+        domain, = f.domains()
+        self.assertEqual(domain.cell(), cell)
+        self.assertEqual(domain.data(), None)
+
+        # Configure measure with some arbitrary data object as domain_data
+        domain_data1 = MockDomainData(5)
+        domain_data2 = MockDomainData(7)
+        dX1 = dx(domain_data=domain_data1)
+        dX2 = dx(domain_data=domain_data2)
+
+        from ufl.common import EmptyDict
+        
+        # Check that we get the right domain_data from a form
+        def _check_form(form, domain_data):
+            fd = a.compute_form_data()
+            
+            # Check form domains and domain data properties
+            self.assertEqual(len(form.domains()), 1)
+            domain, = form.domains()
+            self.assertEqual(domain.cell(), cell)
+            self.assertIsNone(domain.data())
+                
+            # Repeat checks for preprocessed form
+            form = fd.preprocessed_form
+            self.assertEqual(len(form.domains()), 1)
+            domain, = form.domains()
+            data = domain.data()
+            self.assertEqual(domain.cell(), cell)
+            self.assertIsNone(domain.data())
+
+            if fd.subdomain_data:
+                subdomain_data, = fd.subdomain_data.values()
+                self.assertIs(subdomain_data.get('cell'), domain_data)
+                self.assertTrue('exterior_facet' not in subdomain_data)
+            else:
+                self.assertIsNone(domain_data)
+            
+        # Build form with no domain_data
+        a = f*dx + f**2*dx
+        _check_form(a, None)
+            
+        # Build form with single domain_data
+        a = f*dX1 + f**2*dX1
+        _check_form(a, domain_data1)
+
+        a = f*dX2 + f**2*dX2
+        _check_form(a, domain_data2)
+
+        # Build form with single domain data and domain ids
+        a = f*dX1(0) + f**2*dX1(1) + f/3*dX1()
+        _check_form(a, domain_data1)
+        
+        a = f*dX2(0) + f**2*dX2(1) + f/3*dX2()
+        _check_form(a, domain_data2)
+
+        # Build form from measures with single domain data and no domain data
+        a = f*dX1 + f**2*dX1 + f/3*dx
+        _check_form(a, domain_data1)
+
+        # Build form from measures with single domain data and no domain data, with domain ids
+        a = f*dX1(0) + f**2*dX1 + f/3*dx + f/5*dx(2)
+        _check_form(a, domain_data1)
+
+    def test_integral_data_contains_domain_id_otherwise(self):
+        # Configure measure with some arbitrary data object as domain_data
+        #domain = MockDomain(7)
+        domain_data = MockDomainData(4)
+        dX = dx(domain_data=domain_data)
+        #dX2 = dX(domain=domain)
 
         # Build form with this domain_data
         element = FiniteElement("Lagrange", triangle, 1)
         f = Coefficient(element)
-        a = f*dX(0) + f**2*dX(1)
-
-        # Check that we get an UFL error when using dX without domain id
-        self.assertRaises(UFLException, lambda: f*dX)
-        # Check that we get a Python error when using unsupported type
-        self.assertRaises(TypeError, lambda: "foo"*dX(1))
-
-        # Check that we get the right domain_data from the preprocessed form data
-        fd = a.compute_form_data()
-        self.assertIs(fd.domain_data['cell'], domain_data)
-        self.assertIsNone(fd.domain_data.get('exterior_facet'))
+        a = f*dX(0) + f**2*dX(1) + f/3*dx
 
         # Check that integral_data list is consistent as well
+        fd = a.compute_form_data()
         f2 = f.reconstruct(count=0)
-        self.assertIs(fd.domain_data['cell'], domain_data)
         for itd in fd.integral_data:
             self.assertEqual(itd.domain_type, 'cell')
             self.assertEqual(itd.metadata, {})
+            #self.assertEqual(itd.domain.label(), domain.label())
 
             if isinstance(itd.domain_id, int):
-                self.assertEqual(replace(itd.integrals[0].integrand(), fd.function_replace_map), f2**(itd.domain_id+1))
+                self.assertEqual(replace(itd.integrals[0].integrand(),
+                                         fd.function_replace_map),
+                                 f2**(itd.domain_id+1) + f2/3)
             else:
-                self.assertEqual(itd.domain_id, Measure.DOMAIN_ID_OTHERWISE)
+                self.assertEqual(itd.domain_id, "otherwise")
+                self.assertEqual(replace(itd.integrals[0].integrand(),
+                                         fd.function_replace_map),
+                                 f2/3)
+
+    def test_measures_trigger_exceptions_on_invalid_use(self):
+        # Configure measure with some arbitrary data object as domain_data
+        domain_data = MockDomainData(1)
+        dX = dx(domain_data=domain_data)
+                
+        # Check that we get an UFL error when using dX without domain id
+        #self.assertRaises(UFLException, lambda: f*dX) # This is no longer the case
+
+        # Check that we get a Python error when using unsupported type
+        self.assertRaises(TypeError, lambda: "foo"*dX(1))
+
+        # TODO: Document error checks with tests here
 
     def test_measure_sums(self):
         element = FiniteElement("Lagrange", triangle, 1)
@@ -180,10 +351,16 @@ class TestIntegrals(UflTestCase):
         b = (f*v + 3*v)*dx(0) + (2*v + 7*v)*ds + (3*v + 7*v)*dx(2)
         # Check that integrals are represented canonically after preprocessing
         # (these forms have no indices with icky numbering issues)
-        self.assertEqual(a.compute_form_data().preprocessed_form.integrals(),
-                         b.compute_form_data().preprocessed_form.integrals())
+        afd = a.compute_form_data()
+        bfd = b.compute_form_data()
+        self.assertEqual(afd.preprocessed_form.integrals(),
+                         bfd.preprocessed_form.integrals())
         # And therefore the signatures should be the same
-        self.assertEqual(a.deprecated_signature(), b.deprecated_signature())
+        self.assertEqual(afd.signature, bfd.signature)
+        self.assertEqual(compute_form_signature(afd.preprocessed_form), afd.signature)
+        self.assertEqual(compute_form_signature(bfd.preprocessed_form), bfd.signature)
+        # Note that non-preprocessed signatures are not equal:
+        #self.assertEqual(compute_form_signature(a), compute_form_signature(b))
 
     def test_adding_zero(self):
         element = FiniteElement("Lagrange", triangle, 1)
@@ -250,7 +427,7 @@ class TestExampleForms(UflTestCase):
     def test_source4(self):
         element = FiniteElement("Lagrange", triangle, 1)
         v = TestFunction(element)
-        x = triangle.x
+        x = SpatialCoordinate(triangle)
         f = sin(x[0])
         a = f*v*dx
 

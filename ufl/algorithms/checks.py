@@ -59,14 +59,8 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
     if not domains:
         errors.append("Missing domain definition in form.")
 
-    top_domains = set(dom.top_domain() for dom in domains if dom is not None)
-    if not top_domains:
-        errors.append("Missing domain definition in form.")
-    elif len(top_domains) > 1:
-        warnings.append("Multiple top domain definitions in form: %s" % str(top_domains))
-
     # Check that cell is the same everywhere
-    cells = set(dom.cell() for dom in top_domains) - set((None,))
+    cells = set(dom.cell() for dom in domains) - set((None,))
     if not cells:
         errors.append("Missing cell definition in form.")
     elif len(cells) > 1:
@@ -110,7 +104,7 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
     # Check that restrictions are permissible
     for integral in form.integrals():
         # Only allow restricitions on interior facet integrals and surface measures
-        if integral.measure().domain_type() in (Measure.INTERIOR_FACET, Measure.SURFACE):
+        if integral.domain_type() in (Measure.INTERIOR_FACET, Measure.SURFACE):
             check_restrictions(integral.integrand(), True)
         else:
             check_restrictions(integral.integrand(), False)

@@ -180,7 +180,7 @@ class FFCTestCase(UflTestCase):
         u = TrialFunction(element)
         f = Coefficient(element)
 
-        n = triangle.n
+        n = FacetNormal(triangle)
 
         # FFC notation: h = MeshSize("triangle"), not supported by UFL
         h = Constant(triangle)

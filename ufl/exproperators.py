@@ -29,7 +29,7 @@ from ufl.assertions import ufl_assert
 from ufl.common import mergedicts, subdict, StackDict
 from ufl.expr import Expr
 from ufl.operatorbase import Operator
-from ufl.constantvalue import Zero, as_ufl, python_scalar_types
+from ufl.constantvalue import Zero, as_ufl
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import Transposed, Inner
 from ufl.indexing import MultiIndex, Index, FixedIndex, IndexBase, indices
@@ -172,7 +172,7 @@ def _mult(a, b):
 
 #--- Extend Expr with algebraic operators ---
 
-_valid_types = (Expr,) + python_scalar_types
+_valid_types = (Expr,) + (int, float)
 
 def _mul(self, o):
     if not isinstance(o, _valid_types):
@@ -267,18 +267,9 @@ def _eval(self, coord, mapping=None, component=()):
     # Evaluate expression at this particular coordinate,
     # with provided values for other terminals in mapping
 
-    # Try to infer dimension from given x argument
-    if coord is None:
-        cell = self.cell()
-        dim = None if cell is None else cell.geometric_dimension()
-    elif isinstance(coord, (tuple, list)):
-        dim = len(coord)
-    else: # No type checking here, assuming a scalar x value...
-        dim = 1
-
     # Evaluate derivatives first
     from ufl.algorithms import expand_derivatives
-    f = expand_derivatives(self, dim)
+    f = expand_derivatives(self)
 
     # Evaluate recursively
     if mapping is None:

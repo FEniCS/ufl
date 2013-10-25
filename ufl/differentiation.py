@@ -168,8 +168,8 @@ class Grad(CompoundDerivative):
 
     def __new__(cls, f):
         # Return zero if expression is trivially constant
-        dim = f.geometric_dimension()
         if f.is_cellwise_constant():
+            dim = f.geometric_dimension()
             free_indices = f.free_indices()
             index_dimensions = subdict(f.index_dimensions(), free_indices)
             return Zero(f.shape() + (dim,), free_indices, index_dimensions)
@@ -259,8 +259,8 @@ class NablaGrad(CompoundDerivative):
 
     def __new__(cls, f):
         # Return zero if expression is trivially constant
-        dim = f.geometric_dimension()
         if f.is_cellwise_constant():
+            dim = f.geometric_dimension()
             free_indices = f.free_indices()
             index_dimensions = subdict(f.index_dimensions(), free_indices)
             return Zero((dim,) + f.shape(), free_indices, index_dimensions)

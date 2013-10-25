@@ -22,7 +22,7 @@ class TestDegreeEstimation(UflTestCase):
         vv = Argument(VV)
         vu = Argument(VV)
 
-        x, y = triangle.x
+        x, y = SpatialCoordinate(triangle)
         self.assertEqual(estimate_total_polynomial_degree(x), 1)
         self.assertEqual(estimate_total_polynomial_degree(x*y), 2)
         self.assertEqual(estimate_total_polynomial_degree(x**3), 3)
@@ -70,7 +70,7 @@ class TestDegreeEstimation(UflTestCase):
         self.assertEqual(estimate_total_polynomial_degree(f2**3*v1 + f1*v1), 7)
 
         # Based on the arbitrary chosen math function heuristics...
-        nx, ny = triangle.n
+        nx, ny = FacetNormal(triangle)
         self.assertEqual(estimate_total_polynomial_degree(sin(nx**2)), 0)
         self.assertEqual(estimate_total_polynomial_degree(sin(x**3)), 3+2)
 

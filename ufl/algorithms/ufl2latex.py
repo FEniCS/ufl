@@ -47,7 +47,7 @@ from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.form import Form
 from ufl.integral import Measure
 from ufl.classes import terminal_classes
-from ufl.domains import Domain, Region
+from ufl.geometry import Domain
 
 # Other algorithms:
 from ufl.algorithms.preprocess import preprocess
@@ -379,21 +379,14 @@ def element2latex(element):
     e = e.replace(">", "")
     return r"{\mbox{%s}}" % e
 
-domain_strings = { Measure.CELL: r"\Omega",
-                   Measure.EXTERIOR_FACET: r"\Gamma^{ext}",
-                   Measure.INTERIOR_FACET: r"\Gamma^{int}",
-                   Measure.POINT: r"\Gamma^{point}",
-                   Measure.MACRO_CELL: r"\Omega^{macro}",
-                   Measure.SURFACE: r"\Gamma^{surface}",
+domain_strings = { "cell": r"\Omega",
+                   "exterior_facet": r"\Gamma^{ext}",
+                   "interior_facet": r"\Gamma^{int}",
+                   "point": r"\Gamma^{point}",
+                   "macro_cell": r"\Omega^{macro}",
+                   "surface": r"\Gamma^{surface}",
                  }
 default_domain_string = "d(?)"
-dx_strings = { Measure.CELL: "dx",
-               Measure.EXTERIOR_FACET: "ds",
-               Measure.INTERIOR_FACET: "dS",
-               Measure.POINT: "dP",
-               Measure.MACRO_CELL: "dE",
-               Measure.SURFACE: "dc",
-             }
 
 def form2latex(form, formdata):
 
@@ -435,12 +428,12 @@ def form2latex(form, formdata):
 
     # Define variables
     handled_variables = set()
-    integrals = list(chain(form.integrals(Measure.CELL),
-                           form.integrals(Measure.EXTERIOR_FACET),
-                           form.integrals(Measure.INTERIOR_FACET),
-                           form.integrals(Measure.POINT),
-                           form.integrals(Measure.MACRO_CELL),
-                           form.integrals(Measure.SURFACE)))
+    integrals = list(chain(form.integrals_by_type(Measure.CELL),
+                           form.integrals_by_type(Measure.EXTERIOR_FACET),
+                           form.integrals_by_type(Measure.INTERIOR_FACET),
+                           form.integrals_by_type(Measure.POINT),
+                           form.integrals_by_type(Measure.MACRO_CELL),
+                           form.integrals_by_type(Measure.SURFACE)))
     ufl_assert(len(integrals) == len(form.integrals()),
                "Not handling non-standard integral types!")
     lines = []
@@ -472,19 +465,22 @@ def form2latex(form, formdata):
         domain_type = itg.domain_type()
         dstr = domain_strings[domain_type]
 
+        domain = itg.domain()
+        label = domain.label()
+        # TODO: Use domain label!
+
         domain_id = itg.domain_id()
         if isinstance(domain_id, int):
             dstr += "_{%d}" % domain_id
-        elif isinstance(domain_id, Domain) or domain_id == Measure.DOMAIN_ID_EVERYWHERE:
+        elif domain_id == "everywhere":
             pass
-        elif domain_id == Measure.DOMAIN_ID_OTHERWISE:
+        elif domain_id == "otherwise":
             dstr += "_{\text{oth}}"
         elif isinstance(domain_id, tuple):
             dstr += "_{%s}" % domain_id
 
         b = p + "\\int_{%s}" % (dstr,)
-        dxstr = Measure._domain_types[domain_type]
-        dxstr = dx_strings[domain_type]
+        dxstr = ufl.measure.domain_type_to_measure_name[domain_type]
         c = "{ %s } \\,%s" % (integrand_string, dxstr)
         lines.append((a, b, c))
         a = "{}"
@@ -638,7 +634,7 @@ def form2code2latex(formdata):
     sections = [(title, body)]
 
     # Render each integral as a separate section
-    for itg in formdata.form.integrals(Measure.CELL):
+    for itg in formdata.form.integrals_by_type(Measure.CELL):
         title = "%s integral over domain %d" % (itg.domain_type(), itg.domain_id())
 
         G, partitions = integrand2code(itg.integrand(), formdata)

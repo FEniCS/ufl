@@ -40,7 +40,7 @@ A very brief overview of the language contents follows:
 
 * Domains::
 
-    Domain, Region
+    Domain
 
 * Cells::
 
@@ -138,7 +138,8 @@ A very brief overview of the language contents follows:
 * Form transformations::
 
     rhs, lhs, system, functional,
-    replace, adjoint, action, energy_norm,
+    replace, replace_integral_domains,
+    adjoint, action, energy_norm,
     sensitivity_rhs, derivative
 """
 
@@ -183,15 +184,12 @@ from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile
     UFLException, DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 # Types for geometric quantities
-from ufl.geometry import (Cell, ProductCell,
+from ufl.geometry import (as_domain, Cell, ProductCell, Domain,
      SpatialCoordinate, FacetNormal,
      CellVolume, Circumradius, CellSurfaceArea,
      FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength, FacetDiameter,
      LocalCoordinate, GeometryJacobi,
      GeometryJacobiDeterminant, InverseGeometryJacobi)
-
-# Types for domain description
-from ufl.domains import Domain, Region
 
 # Finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
@@ -244,11 +242,18 @@ from ufl.operators import rank, shape, \
                        jump, avg, cell_avg, facet_avg, \
                        elem_mult, elem_div, elem_pow, elem_op
 
+# Measure classes
+from ufl.measure import Measure, register_domain_type, domain_types
+
 # Form class
-from ufl.form import Form
+from ufl.form import Form, replace_integral_domains
 
 # Integral classes
-from ufl.integral import Integral, Measure, register_domain_type, ProductMeasure
+from ufl.integral import Integral
+
+# Special functions for Measure class
+# (ensure this is imported, since it attaches operators to Measure)
+import ufl.measureoperators as __measureoperators
 
 # Representations of transformed forms
 from ufl.formoperators import replace, derivative, action, energy_norm, rhs, lhs,\
@@ -268,13 +273,12 @@ __all__ = [
     'product',
     'get_handler', 'get_logger', 'set_handler', 'set_level', 'add_logfile',
     'UFLException', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL',
-    'Cell', 'ProductCell',
+    'as_domain', 'Cell', 'ProductCell', 'Domain',
     'SpatialCoordinate', 'FacetNormal',
     'CellVolume', 'Circumradius', 'CellSurfaceArea',
     'FacetArea', 'MinFacetEdgeLength', 'MaxFacetEdgeLength', 'FacetDiameter',
     'LocalCoordinate', 'GeometryJacobi',
     'GeometryJacobiDeterminant', 'InverseGeometryJacobi',
-    'Domain', 'Region',
     'FiniteElementBase', 'FiniteElement',
     'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
     'RestrictedElement', 'TensorProductElement',
@@ -304,8 +308,8 @@ __all__ = [
     'jump', 'avg', 'cell_avg', 'facet_avg',
     'elem_mult', 'elem_div', 'elem_pow', 'elem_op',
     'Form',
-    'Integral', 'Measure', 'register_domain_type', 'ProductMeasure',
-    'replace', 'derivative', 'action', 'energy_norm', 'rhs', 'lhs',
+    'Integral', 'Measure', 'register_domain_type', 'domain_types',
+    'replace', 'replace_integral_domains', 'derivative', 'action', 'energy_norm', 'rhs', 'lhs',
     'system', 'functional', 'adjoint', 'sensitivity_rhs',
     'dx', 'ds', 'dS', 'dP', 'dE', 'dc',
     'vertex', 'interval', 'triangle', 'tetrahedron',

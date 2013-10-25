@@ -38,8 +38,16 @@ from ufl.algorithms.analysis import extract_arguments, extract_coefficients
 def integral_info(integral):
     ufl_assert(isinstance(integral, Integral), "Expecting an Integral.")
     s  = "  Integral:\n"
-    s += "    Measure representation:\n"
-    s += "      %r\n" % integral.measure()
+    s += "    Type:\n"
+    s += "      %s\n" % integral.domain_type()
+    s += "    Domain:\n"
+    s += "      %r\n" % integral.domain()
+    s += "    Domain id:\n"
+    s += "      %r\n" % integral.domain_id()
+    s += "    Domain data:\n"
+    s += "      %s\n" % integral.domain_data()
+    s += "    Compiler metadata:\n"
+    s += "      %s\n" % integral.metadata()
     s += "    Integrand expression representation:\n"
     s += "      %r\n" % integral.integrand()
     s += "    Integrand expression short form:\n"
@@ -52,11 +60,11 @@ def form_info(form):
     bf = extract_arguments(form)
     cf = extract_coefficients(form)
 
-    ci = form.integrals(Measure.CELL)
-    ei = form.integrals(Measure.EXTERIOR_FACET)
-    ii = form.integrals(Measure.INTERIOR_FACET)
-    pi = form.integrals(Measure.POINT)
-    mi = form.integrals(Measure.MACRO_CELL)
+    ci = form.integrals_by_type(Measure.CELL)
+    ei = form.integrals_by_type(Measure.EXTERIOR_FACET)
+    ii = form.integrals_by_type(Measure.INTERIOR_FACET)
+    pi = form.integrals_by_type(Measure.POINT)
+    mi = form.integrals_by_type(Measure.MACRO_CELL)
 
     s  = "Form info:\n"
     s += "  rank:                          %d\n" % len(bf)
@@ -108,11 +116,11 @@ def tree_format(expression, indentation=0, parentheses=True):
     s = ""
 
     if isinstance(expression, Form):
-        ci = expression.integrals(Measure.CELL)
-        ei = expression.integrals(Measure.EXTERIOR_FACET)
-        ii = expression.integrals(Measure.INTERIOR_FACET)
-        pi = expression.integrals(Measure.POINT)
-        mi = expression.integrals(Measure.MACRO_CELL)
+        ci = expression.integrals_by_type(Measure.CELL)
+        ei = expression.integrals_by_type(Measure.EXTERIOR_FACET)
+        ii = expression.integrals_by_type(Measure.INTERIOR_FACET)
+        pi = expression.integrals_by_type(Measure.POINT)
+        mi = expression.integrals_by_type(Measure.MACRO_CELL)
         ind = _indent_string(indentation)
         s += ind + "Form:\n"
         s += "\n".join(tree_format(itg, indentation+1, parentheses) for itg in chain(ci, ei, ii, pi, mi))
@@ -121,8 +129,8 @@ def tree_format(expression, indentation=0, parentheses=True):
         ind = _indent_string(indentation)
         s += ind + "Integral:\n"
         ind = _indent_string(indentation+1)
-        s += ind + "domain type: %s\n" % expression.measure().domain_type()
-        s += ind + "domain id: %s\n" % expression.measure().domain_id()
+        s += ind + "domain type: %s\n" % expression.domain_type()
+        s += ind + "domain id: %s\n" % expression.domain_id()
         s += ind + "integrand:\n"
         s += tree_format(expression._integrand, indentation+2, parentheses)
 

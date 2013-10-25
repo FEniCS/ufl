@@ -14,7 +14,7 @@ class TestStrOfLiterals(UflTestCase):
         self.assertEqual(str(as_ufl(3.14)), "3.14")
 
     def test_str_zero(self):
-        x = triangle.x
+        x = SpatialCoordinate(triangle)
         self.assertEqual(str(as_ufl(0)), "0")
         self.assertEqual(str(0*x), "(0<(2,), ()>)") # TODO: Not very nice...
         self.assertEqual(str(0*x*x[Index(42)]), "(0<(2,), (Index(42),)>)") # TODO: Not very nice...
@@ -26,12 +26,12 @@ class TestStrOfLiterals(UflTestCase):
 class TestStrOfGeometricQuantities(UflTestCase):
 
     def test_str_coordinate(self):
-        self.assertEqual(str(triangle.x), "x")
-        self.assertEqual(str(triangle.x[0]), "(x)[0]") # FIXME: Get rid of extra ()
+        self.assertEqual(str(SpatialCoordinate(triangle)), "x")
+        self.assertEqual(str(SpatialCoordinate(triangle)[0]), "(x)[0]") # FIXME: Get rid of extra ()
 
     def test_str_normal(self):
-        self.assertEqual(str(triangle.n), "n")
-        self.assertEqual(str(triangle.n[0]), "(n)[0]") # FIXME: Get rid of extra ()
+        self.assertEqual(str(FacetNormal(triangle)), "n")
+        self.assertEqual(str(FacetNormal(triangle)[0]), "(n)[0]") # FIXME: Get rid of extra ()
 
     def test_str_circumradius(self):
         self.assertEqual(str(triangle.circumradius), "circumradius") # TODO: Use a shorter name?
@@ -67,17 +67,17 @@ class TestStrOfArguments(UflTestCase):
 class TestStrOfTensors(UflTestCase):
 
     def test_str_list_vector(self):
-        x, y, z = tetrahedron.x
+        x, y, z = SpatialCoordinate(tetrahedron)
         v = as_vector((x, y, z))
         self.assertEqual(str(v), "[%s, %s, %s]" % (x, y, z))
 
     def test_str_list_vector_with_zero(self):
-        x, y, z = tetrahedron.x
+        x, y, z = SpatialCoordinate(tetrahedron)
         v = as_vector((x, 0, 0))
         self.assertEqual(str(v), "[%s, 0, 0]" % (x,))
 
     def test_str_list_matrix(self):
-        x, y = triangle.x
+        x, y = SpatialCoordinate(triangle)
         v = as_matrix(((2*x, 3*y),
                        (4*x, 5*y)))
         a = str(2*x)
@@ -87,7 +87,7 @@ class TestStrOfTensors(UflTestCase):
         self.assertEqual(str(v), "[\n  [%s, %s],\n  [%s, %s]\n]" % (a, b, c, d))
 
     def test_str_list_matrix_with_zero(self):
-        x, y = triangle.x
+        x, y = SpatialCoordinate(triangle)
         v = as_matrix(((2*x, 3*y),
                        (0, 0)))
         a = str(2*x)
