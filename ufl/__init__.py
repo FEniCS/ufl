@@ -55,7 +55,7 @@ A very brief overview of the language contents follows:
     MixedElement, VectorElement, TensorElement
     EnrichedElement, RestrictedElement,
     TensorProductElement, OuterProductElement,
-    OuterProductVectorElement
+    OuterProductVectorElement, HDiv, HCurl
 
 * Arguments::
 
@@ -204,7 +204,7 @@ from ufl.geometry import (
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
     MixedElement, VectorElement, TensorElement, EnrichedElement, \
     RestrictedElement, TensorProductElement, OuterProductElement, \
-    OuterProductVectorElement
+    OuterProductVectorElement, HDiv, HCurl
 
 # Hook to extend predefined element families
 from ufl.finiteelement.elementlist import register_element, show_elements #, ufl_elements
@@ -296,7 +296,7 @@ __all__ = [
     'FiniteElementBase', 'FiniteElement',
     'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
     'RestrictedElement', 'TensorProductElement', 'OuterProductElement',
-    'OuterProductVectorElement',
+    'OuterProductVectorElement', 'HDiv', 'HCurl',
     'register_element', 'show_elements',
     'Argument', 'TestFunction', 'TrialFunction',
     'Arguments', 'TestFunctions', 'TrialFunctions',

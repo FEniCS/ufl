@@ -62,11 +62,9 @@ class OuterProductElement(FiniteElementBase):
         if len(A.value_shape()) == 0 and len(B.value_shape()) == 0:
             value_shape = ()
         elif len(A.value_shape()) == 1 and len(B.value_shape()) == 0:
-            value_shape = (A.value_shape()[0]
-                           + B.domain().geometric_dimension(),)
+            value_shape = (A.value_shape()[0],)
         elif len(A.value_shape()) == 0 and len(B.value_shape()) == 1:
-            value_shape = (B.value_shape()[0]
-                           + A.domain().geometric_dimension(),)
+            value_shape = (B.value_shape()[0],)
         else:
             raise Exception("Product of vector-valued elements not supported")
 
