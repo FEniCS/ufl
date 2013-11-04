@@ -23,7 +23,7 @@
 # Modified by Lawrence Mitchell 2014
 #
 # First added:  2008-03-03
-# Last changed: 2014-03-13
+# Last changed: 2014-03-18
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 from ufl.finiteelement.finiteelement import FiniteElement
@@ -35,3 +35,4 @@ from ufl.finiteelement.restrictedelement import RestrictedElement
 from ufl.finiteelement.tensorproductelement import TensorProductElement
 from ufl.finiteelement.outerproductelement import OuterProductElement
 from ufl.finiteelement.outerproductelement import OuterProductVectorElement
+from ufl.finiteelement.hdivcurl import HDiv, HCurl
