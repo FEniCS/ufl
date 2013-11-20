@@ -1,10 +1,11 @@
-1.x.x [2013-??-??]
+1.3.0 [2013-??-??]
  - Add cell_avg and facet_avg operators, can be applied to a Coefficient or Argument or restrictions thereof
  - Fix bug in cofactor: now it is transposed the correct way.
  - Add cell.min_facet_edge_length
  - Add cell.max_facet_edge_length
  - Simplify 0^f -> 0 if f is a non-negative scalar value 
  - Add atan2 function
+ - Allow form+0 -> form
 1.2.0 [2013-03-24]
  - NB! Using shapes such as (1,) and (1,1) instead of () for 1D tensor quantities I, x, grad(f)
  - Add cell.facet_diameter
