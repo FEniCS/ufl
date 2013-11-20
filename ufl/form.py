@@ -29,6 +29,7 @@ from ufl.assertions import ufl_assert
 from ufl.integral import Integral, Measure, is_scalar_constant_expression
 from ufl.equation import Equation
 from ufl.expr import Expr
+from ufl.constantvalue import Zero
 
 
 # --- The Form class, representing a complete variational form or functional ---
@@ -140,6 +141,9 @@ class Form(object):
             return Form(integral_dict_to_sequence(join_dintegrals(self.integral_groups(), other.integral_groups())))
         elif isinstance(other, (int,float)) and other == 0:
             # Allow adding 0 or 0.0 as a no-op, needed for sum([a,b])
+            return self
+        elif isinstance(other, Zero) and not (other.shape() or other.free_indices()):
+            # Allow adding ufl Zero as a no-op, needed for sum([a,b])
             return self
         else:
             # Let python protocols do their job if we don't handle it
