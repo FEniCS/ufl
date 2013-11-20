@@ -172,7 +172,7 @@ class SumDegreeEstimator(Transformer):
         which can be wildly inaccurate but at least
         gives a somewhat high integration degree.
         """
-        print "estimate",a,b
+        #print "estimate",a,b
         if a or b:
             return max(a,b)+2
         else:
