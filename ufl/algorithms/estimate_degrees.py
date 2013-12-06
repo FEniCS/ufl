@@ -82,11 +82,29 @@ class SumDegreeEstimator(Transformer):
         return d
 
     def _reduce_degree(self, v, f):
-        return max(f - 1, 0)
+        """Reduces the estimated degree by one; used when derivatives
+        are taken. Does not reduce the degree when OuterProduct elements
+        are involved."""
+        if isinstance(f, int):
+            return max(f-1, 0)
+        else:
+            # if tuple, do not reduce
+            return f
     def _add_degrees(self, v, *ops):
-        return sum(ops)
+        if all(isinstance(o, int) for o in ops):
+            return sum(ops)
+        else:
+            # we can add a slight hack here to handle things
+            # like adding 0 to (3, 3) [by expanding
+            # 0 to (0, 0) when making tempops]
+            tempops = [foo if isinstance(foo, tuple) else (foo, foo) for foo in ops]
+            return tuple(map(sum, zip(*tempops)))
     def _max_degrees(self, v, *ops):
-        return max(ops + (0,))
+        if all(isinstance(o, int) for o in ops):
+            return max(ops + (0,))
+        else:
+            tempops = [foo if isinstance(foo, tuple) else (foo, foo) for foo in ops]
+            return tuple(map(max, zip(*tempops)))
     def _not_handled(self, v, *args):
         error("Missing degree handler for type %s" % v._uflclass.__name__)
 
@@ -167,7 +185,7 @@ class SumDegreeEstimator(Transformer):
 
     def division(self, v, *ops):
         "Using the sum here is a heuristic. Consider e.g. (x+1)/(x-1)."
-        return sum(ops)
+        return self._add_degrees(v, *ops)
 
     def power(self, v, a, b):
         """If b is an integer:
@@ -177,11 +195,17 @@ class SumDegreeEstimator(Transformer):
         f, g = v.operands()
         try:
             gi = abs(int(g))
-            return a*gi
+            if isinstance(a, int):
+                return a*gi
+            else:
+                return tuple(foo*gi for foo in a)
         except:
             pass
         # Something to a non-integer power, this is just a heuristic with no background
-        return a*2
+        if isinstance(a, int):
+            return a*2
+        else:
+            return tuple(foo*2 for foo in a)
 
     def atan_2(self, v, a, b):
         """Using the heuristic

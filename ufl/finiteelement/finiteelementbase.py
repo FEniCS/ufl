@@ -41,7 +41,7 @@ class FiniteElementBase(object):
     def __init__(self, family, domain, degree, quad_scheme, value_shape):
         "Initialize basic finite element data"
         ufl_assert(isinstance(family, str), "Invalid family type.")
-        ufl_assert(isinstance(degree, int) or degree is None, "Invalid degree type.")
+        ufl_assert(isinstance(degree, (int, tuple)) or degree is None, "Invalid degree type.")
         ufl_assert(isinstance(value_shape, tuple), "Invalid value_shape type.")
 
         # TODO: Support multiple domains for composite mesh mixed elements

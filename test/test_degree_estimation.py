@@ -16,9 +16,13 @@ class TestDegreeEstimation(UflTestCase):
         V2 = FiniteElement("CG", triangle, 2)
         VV = VectorElement("CG", triangle, 3)
         VM = V1 * V2
+        O1 = OuterProductElement(V1, V1)
+        O2 = OuterProductElement(V2, V1)
         v1 = Argument(V1, 2)
         v2 = Argument(V2, 3)
         f1, f2 = Coefficients(VM)
+        u1 = Coefficient(O1)
+        u2 = Coefficient(O2)
         vv = Argument(VV, 4)
         vu = Argument(VV, 5)
 
@@ -68,6 +72,18 @@ class TestDegreeEstimation(UflTestCase):
         self.assertEqual(estimate_total_polynomial_degree(f2**3), 6)
         self.assertEqual(estimate_total_polynomial_degree(f2**3*v1), 7)
         self.assertEqual(estimate_total_polynomial_degree(f2**3*v1 + f1*v1), 7)
+
+        # outer product tuple-degree tests
+        self.assertEqual(estimate_total_polynomial_degree(u1), (1, 1))
+        self.assertEqual(estimate_total_polynomial_degree(u2), (2, 1))
+        # derivatives should do nothing (don't know in which direction they act)
+        self.assertEqual(estimate_total_polynomial_degree(grad(u2)), (2, 1))
+        self.assertEqual(estimate_total_polynomial_degree(u1*u1), (2, 2))
+        self.assertEqual(estimate_total_polynomial_degree(u2*u1), (3, 2))
+        self.assertEqual(estimate_total_polynomial_degree(u2*u2), (4, 2))
+        self.assertEqual(estimate_total_polynomial_degree(u1**3), (3, 3))
+        self.assertEqual(estimate_total_polynomial_degree(u1**3 + u2*u2), (4, 3))
+        self.assertEqual(estimate_total_polynomial_degree(u2**2*u1), (5, 3))
 
         # Based on the arbitrary chosen math function heuristics...
         nx, ny = FacetNormal(triangle)

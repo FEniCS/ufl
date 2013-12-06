@@ -215,6 +215,8 @@ class ProductCell(Cell):
 
 
 class OuterProductCell(Cell):
+    """Representation of a cell formed as the Cartesian product of
+    two existing cells"""
     __slots__ = ("_A", "_B")
 
     def __init__(self, A, B):
