@@ -43,7 +43,10 @@ class EnrichedElement(FiniteElementBase):
         ufl_assert(all(e.domain() == domain for e in elements),
                    "Domain mismatch for sub elements of enriched element.")
 
-        degree = max(e.degree() for e in elements)
+        if isinstance(elements[0].degree(), int):
+            degree = max(e.degree() for e in elements)
+        else:
+            degree = tuple(map(max, zip(*[e.degree() for e in elements])))
 
         # We can allow the scheme not to be defined, but all defined should be equal
         quad_schemes = [e.quadrature_scheme() for e in elements]

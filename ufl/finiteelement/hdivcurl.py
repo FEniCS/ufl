@@ -22,7 +22,8 @@ from ufl.finiteelement.outerproductelement import OuterProductElement
 
 
 class HDiv(OuterProductElement):
-    """hdiv of an outer product element"""
+    """A div-conforming version of an outer product element, assuming
+    this makes mathematical sense."""
     __slots__ = ("_element")
 
     def __init__(self, element):
@@ -57,7 +58,8 @@ class HDiv(OuterProductElement):
 
 
 class HCurl(OuterProductElement):
-    """hcurl of an outer product element"""
+    """A curl-conforming version of an outer product element, assuming
+    this makes mathematical sense."""
     __slots__ = ("_element")
 
     def __init__(self, element):

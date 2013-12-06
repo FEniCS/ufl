@@ -29,7 +29,7 @@ from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
 class OuterProductElement(FiniteElementBase):
-    r"""The tensor product of 2 element spaces:
+    r"""The outer (tensor) product of 2 element spaces:
 
     .. math:: V = A \otimes B
 
@@ -55,8 +55,8 @@ class OuterProductElement(FiniteElementBase):
             cell = domain.cell()
             ufl_assert(cell is not None, "Missing cell in given domain.")
 
-        # Define polynomial degree as the max over the two subelements
-        degree = max(A.degree(), B.degree())
+        # Define polynomial degree as a tuple of sub-degrees
+        degree = (A.degree(), B.degree())
 
         # match FIAT implementation
         if len(A.value_shape()) == 0 and len(B.value_shape()) == 0:
@@ -128,7 +128,7 @@ class OuterProductVectorElement(MixedElement):
         super(OuterProductVectorElement, self).__init__(sub_elements,
                                                         value_shape=value_shape)
         self._family = family
-        self._degree = max(A.degree(), B.degree())
+        self._degree = A.degree(), B.degree()
 
         self._sub_element = sub_element
         # Cache repr string
