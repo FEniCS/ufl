@@ -47,7 +47,7 @@ setup(name = "UFL",
       version = version,
       description = "Unified Form Language",
       author = "Martin Sandve Alnes, Anders Logg",
-      author_email = "ufl@lists.launchpad.net",
+      author_email = "fenics@fenicsproject.org",
       url = "http://www.fenicsproject.org",
       classifiers=[
           'Development Status :: 5 - Production/Stable',
