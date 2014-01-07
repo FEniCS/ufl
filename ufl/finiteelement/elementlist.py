@@ -78,6 +78,9 @@ register_element("Discontinuous Lagrange", "DG", 0, (0, None),
                   "interval", "triangle", "tetrahedron",
                   "quadrilateral", "hexahedron"))
 
+register_element("Discontinuous Raviart-Thomas", "DRT", 1, (1, None),
+                 ("triangle", "tetrahedron"))
+
 register_element("Hermite", "HER", 0, None,
                  ("triangle", "tetrahedron"))
 
