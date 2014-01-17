@@ -25,7 +25,12 @@ class MeasureTestCase(UflTestCase):
         #dO = Measure("dO")
 
         ds = Measure("ds")
+        ds_b = Measure("ds_b")
+        ds_t = Measure("ds_t")
+        ds_v = Measure("ds_v")
         dS = Measure("dS")
+        dS_h = Measure("dS_h")
+        dS_v = Measure("dS_v")
         dc = Measure("dc")
         #dI = Measure("dI")
 
@@ -38,7 +43,12 @@ class MeasureTestCase(UflTestCase):
         #self.assertEqual(dO.integral_type(), "overlap")
 
         self.assertEqual(ds.integral_type(), "exterior_facet")
+        self.assertEqual(ds_b.integral_type(), "exterior_facet_bottom")
+        self.assertEqual(ds_t.integral_type(), "exterior_facet_top")
+        self.assertEqual(ds_v.integral_type(), "exterior_facet_vert")
         self.assertEqual(dS.integral_type(), "interior_facet")
+        self.assertEqual(dS_h.integral_type(), "interior_facet_horiz")
+        self.assertEqual(dS_v.integral_type(), "interior_facet_vert")
         self.assertEqual(dc.integral_type(), "custom")
         #self.assertEqual(dI.integral_type(), "interface")
 

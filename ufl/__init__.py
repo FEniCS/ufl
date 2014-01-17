@@ -137,7 +137,7 @@ A very brief overview of the language contents follows:
 
 * Integral measures::
 
-    dx, ds, dS, dP, dc, dE
+    dx, ds, ds_b, ds_t, ds_tb, ds_v, dS, dS_h, dS_v, dP, dc, dE
 
 * Form transformations::
 
@@ -274,7 +274,7 @@ from ufl.objects import \
     vertex, interval, triangle, tetrahedron, \
     quadrilateral, hexahedron, facet, cell1D, cell2D, cell3D, \
     i, j, k, l, p, q, r, s, \
-    dx, ds, dS, dP, dc, dE
+    dx, ds, ds_b, ds_t, ds_tb, ds_v, dS, dS_h, dS_v, dP, dc, dE
 
 # Useful constants
 from math import e, pi
@@ -326,7 +326,7 @@ __all__ = [
     'Integral', 'Measure', 'register_integral_type', 'integral_types',
     'replace', 'replace_integral_domains', 'derivative', 'action', 'energy_norm', 'rhs', 'lhs',
     'system', 'functional', 'adjoint', 'sensitivity_rhs',
-    'dx', 'ds', 'dS', 'dP', 'dc', 'dE',
+    'dx', 'ds', 'ds_b', 'ds_t', 'ds_tb', 'ds_v', 'dS', 'dS_h', 'dS_v', 'dP', 'dc', 'dE',
     'vertex', 'interval', 'triangle', 'tetrahedron',
     'quadrilateral', 'hexahedron', 'facet',
     'cell1D', 'cell2D', 'cell3D',

@@ -37,8 +37,13 @@ _integral_types = [
     # === Integration over full topological dimension:
     ("cell", "dx"),                # Over a single cell
     # === Integration over topological dimension - 1:
-    ("exterior_facet", "ds"),      # Over facet of a single cell
-    ("interior_facet", "dS"),      # Over facet between two adjacent cells
+    ("exterior_facet", "ds"),           # Over facet of a single cell
+    ("exterior_facet_bottom", "ds_b"),  # Over bottom facets on extruded mesh
+    ("exterior_facet_top", "ds_t"),     # Over top facets on extruded mesh
+    ("exterior_facet_vert", "ds_v"),    # Over side facets of an extruded mesh
+    ("interior_facet", "dS"),           # Over facet between two adjacent cells
+    ("interior_facet_horiz", "dS_h"),   # Over horizontal facets of an extruded mesh
+    ("interior_facet_vert", "dS_v"),    # Over vertical facets of an extruded mesh
     # === Integration over topological dimension 0
     ("point", "dP"),               # TODO: Is this over arbitrary point cloud or vertices?
     # === Integration over custom domains
@@ -94,7 +99,12 @@ class Measure(object):
     # Enumeration of valid domain types (TODO: Remove these)
     CELL           = "cell"
     EXTERIOR_FACET = "exterior_facet"
+    EXTERIOR_FACET_BOTTOM = "exterior_facet_bottom"
+    EXTERIOR_FACET_TOP = "exterior_facet_top"
+    EXTERIOR_FACET_VERT = "exterior_facet_vert"
     INTERIOR_FACET = "interior_facet"
+    INTERIOR_FACET_HORIZ = "interior_facet_horiz"
+    INTERIOR_FACET_VERT = "interior_facet_vert"
     POINT          = "point"
     QUADRATURE     = "quadrature"
     MACRO_CELL     = "macro_cell"

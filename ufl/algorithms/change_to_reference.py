@@ -300,9 +300,9 @@ def compute_integrand_scaling_factor(domain, integral_type):
 
     if integral_type == "cell":
         scale = abs(JacobianDeterminant(domain)) * weight
-    elif integral_type == "exterior_facet":
+    elif integral_type in ["exterior_facet", "exterior_facet_bottom", "exterior_facet_top", "exterior_facet_vert"]:
         scale = FacetJacobianDeterminant(domain) * weight
-    elif integral_type == "interior_facet":
+    elif integral_type in ["interior_facet", "interior_facet_horiz", "interior_facet_vert"]:
         scale = FacetJacobianDeterminant(domain)('-') * weight # TODO: Arbitrary restriction to '-', is that ok?
     elif integral_type == "quadrature":
         scale = weight
