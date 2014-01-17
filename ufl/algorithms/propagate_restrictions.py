@@ -174,7 +174,7 @@ class RestrictionChecker(Transformer):
 
 def propagate_restrictions(expression):
     "Propagate restriction nodes to wrap terminal objects directly."
-    return apply_transformer(expression, RestrictionPropagator(), integral_type=Measure.INTERIOR_FACET)
+    return apply_transformer(expression, RestrictionPropagator(), integral_type=[Measure.INTERIOR_FACET, Measure.INTERIOR_FACET_HORIZ, Measure.INTERIOR_FACET_VERT])
 
 def check_restrictions(expression, require_restriction):
     ufl_assert(isinstance(expression, Expr), "Expecting Expr instance.")

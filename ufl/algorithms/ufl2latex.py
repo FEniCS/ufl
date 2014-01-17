@@ -381,7 +381,12 @@ def element2latex(element):
 
 domain_strings = { "cell": r"\Omega",
                    "exterior_facet": r"\Gamma^{ext}",
+                   "exterior_facet_bottom": r"\Gamma_{bottom}^{ext}",
+                   "exterior_facet_top": r"\Gamma_{top}^{ext}",
+                   "exterior_facet_vert": r"\Gamma_{vert}^{ext}",
                    "interior_facet": r"\Gamma^{int}",
+                   "interior_facet_horiz": r"\Gamma_{horiz}^{int}",
+                   "interior_facet_vert": r"\Gamma_{vert}^{int}",
                    "point": r"\Gamma^{point}",
                    "quadrature": r"\Gamma^{quadrature}",
                    "macro_cell": r"\Omega^{macro}",
@@ -433,7 +438,12 @@ def form2latex(form, formdata):
     handled_variables = set()
     integrals = list(chain(form.integrals_by_type(Measure.CELL),
                            form.integrals_by_type(Measure.EXTERIOR_FACET),
+                           form.integrals_by_type(Measure.EXTERIOR_FACET_BOTTOM),
+                           form.integrals_by_type(Measure.EXTERIOR_FACET_TOP),
+                           form.integrals_by_type(Measure.EXTERIOR_FACET_VERT),
                            form.integrals_by_type(Measure.INTERIOR_FACET),
+                           form.integrals_by_type(Measure.INTERIOR_FACET_HORIZ),
+                           form.integrals_by_type(Measure.INTERIOR_FACET_VERT),
                            form.integrals_by_type(Measure.POINT),
                            form.integrals_by_type(Measure.MACRO_CELL),
                            form.integrals_by_type(Measure.SURFACE)))

@@ -248,7 +248,7 @@ def transform_integrands(form, transform, integral_type=None):
         newintegrals = []
         for itg in form.integrals():
             integrand = itg.integrand()
-            if integral_type is None or integral_type == itg.integral_type():
+            if integral_type is None or itg.integral_type() in integral_type:
                 integrand = transform(integrand)
             if not isinstance(integrand, Zero):
                 newitg = itg.reconstruct(integrand)

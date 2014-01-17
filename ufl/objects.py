@@ -34,7 +34,13 @@ p, q, r, s = indices(4)
 # Default measures for integration
 dx = Measure("cell")
 ds = Measure("exterior_facet")
+ds_b = Measure("exterior_facet_bottom")
+ds_t = Measure("exterior_facet_top")
+ds_v = Measure("exterior_facet_vert")
+ds_tb = ds_b + ds_t
 dS = Measure("interior_facet")
+dS_h = Measure("interior_facet_horiz")
+dS_v = Measure("interior_facet_vert")
 dP = Measure("point")
 dc = Measure("custom")
 dE = Measure("macro_cell")

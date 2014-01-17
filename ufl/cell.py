@@ -217,7 +217,7 @@ class ProductCell(Cell):
 class OuterProductCell(Cell):
     """Representation of a cell formed as the Cartesian product of
     two existing cells"""
-    __slots__ = ("_A", "_B")
+    __slots__ = ("_A", "_B", "facet_horiz", "facet_vert")
 
     def __init__(self, A, B):
         self._A = A
@@ -229,6 +229,18 @@ class OuterProductCell(Cell):
                    B.geometric_dimension(),
                    A.topological_dimension() + B.topological_dimension())
         Cell.__init__(self, "OuterProductCell", gdim, tdim)
+
+        # facets for extruded cells
+        if B.cellname() == "interval":
+            self.facet_horiz = A
+            if A.topological_dimension() == 2:
+                self.facet_vert = OuterProductCell(Cell("interval"), Cell("interval"))
+            elif A.topological_dimension() == 1:
+                # Terminate this recursion somewhere!
+                self.facet_vert = Cell("interval")
+            else:
+                # Don't know how to extrude this
+                self.facet_vert = None
 
     def facet_cellname(self):
         "Return the cellname of the facet of this cell."
