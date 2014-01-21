@@ -20,7 +20,7 @@ mostly intended for debugging purposers."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # First added:  2008-11-17
-# Last changed: 2011-10-14
+# Last changed: 2014-01-21
 
 from itertools import chain
 
@@ -28,6 +28,7 @@ from ufl.log import error
 from ufl.expr import Expr
 from ufl.terminal import Terminal
 from ufl.form import Form
+from ufl.integral import Measure
 from ufl.variable import Variable
 from ufl.constantvalue import ScalarValue
 from ufl.geometry import FacetNormal
