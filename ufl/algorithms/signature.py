@@ -136,9 +136,9 @@ def build_domain_numbering(domains):
     for key,i in items:
         key2 = key[:-1] + (None,)
         if key in domain_numbering:
-            error("Domain key %s occured twice!" % key)
+            error("Domain key %s occured twice!" % (key,))
         if key2 in domain_numbering:
-            error("Modified domain key %s occured twice!" % key2)
+            error("Modified domain key %s occured twice!" % (key2,))
         domain_numbering[key] = i
         domain_numbering[key2] = i
     return domain_numbering
