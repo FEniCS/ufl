@@ -47,7 +47,7 @@ def sort_integrals(integrals, domains):
     return sintegrals
 
 def replace_integral_domains(form, common_domain):
-    """Given a form with no integration domains, assign a common domain to all integrals.
+    """Given a form and a domain, assign a common integration domain to all integrals.
 
     Does not modify the input form (Form should always be immutable).
     This is to support ill formed forms with no domain specified,
@@ -65,7 +65,7 @@ def replace_integral_domains(form, common_domain):
     integrals = []
     for itg in form.integrals():
         domain = itg.domain()
-        if domain is None:
+        if domain is None or domain.label() != common_domain.label():
             itg = itg.reconstruct(domain=common_domain)
             reconstruct = True
         integrals.append(itg)

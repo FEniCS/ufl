@@ -128,19 +128,37 @@ def build_domain_numbering(domains):
     # Create canonical numbering of domains for stable signature
     # (ordering defined by __lt__ implementation in Domain class)
     assert None not in domains
+
+    # Collect domain keys
     items = []
     for i,domain in enumerate(domains):
         key = domain.domain_numbering_key()
         items.append((key, i))
+
+    # Build domain numbering, not allowing repeated keys
     domain_numbering = {}
     for key,i in items:
-        key2 = key[:-1] + (None,)
         if key in domain_numbering:
             error("Domain key %s occured twice!" % (key,))
-        if key2 in domain_numbering:
-            error("Modified domain key %s occured twice!" % (key2,))
         domain_numbering[key] = i
-        domain_numbering[key2] = i
+
+    # Build domain numbering extension for None-labeled domains, not allowing ambiguity
+    from collections import defaultdict
+    domain_numbering2 = defaultdict(list)
+    for key,i in items:
+        key2 = key[:-1] + (None,)
+        domain_numbering2[key2].append(domain_numbering[key])
+
+    # Add None-based key only where unambiguous
+    for key,i in items:
+        key2 = key[:-1] + (None,)
+        if len(domain_numbering2[key2]) == 1:
+            domain_numbering[key2] = domain_numbering[key]
+        else:
+            # Two domains occur with same properties but different label,
+            # so we cannot decide which one to map None-labeled Domains to.
+            pass
+
     return domain_numbering
 
 def compute_expression_signature(expr, function_replace_map=None):
