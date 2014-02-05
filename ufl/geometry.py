@@ -80,7 +80,7 @@ class GeometricQuantity(Terminal):
 
     def signature_data(self, domain_numbering):
         "Signature data of geometric quantities depend on the domain numbering."
-        return hash((type(self).__name__,) + self._domain.signature_data(domain_numbering))
+        return (type(self).__name__,) + self._domain.signature_data(domain_numbering)
 
     def __hash__(self):
         return hash((type(self).__name__,) + self._domain.hash_data())
