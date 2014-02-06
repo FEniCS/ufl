@@ -63,18 +63,27 @@ class Argument(FormArgument):
     def shape(self):
         return self._element.value_shape()
 
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        # TODO: Should in principle do like with Coefficient,
+        # but that may currently simplify away some arguments
+        # we want to keep, or?
+        # When we can annotate zero with arguments, we can change this.
+        return False
+
     def cell(self):
         return self._element.cell()
 
     def domain(self):
         return self._element.domain()
 
-    def is_cellwise_constant(self):
-        "Return whether this expression is spatially constant over each cell."
-        # TODO: Should in principle do like with Coefficient,
-        # but that may currently simplify away some arguments
-        # we want to keep, or?
-        return False
+    def domains(self):
+        "Return tuple of domains related to this terminal object."
+        return self._element.domains()
+
+    def signature_data(self, count, domain_numbering):
+        "Signature data for form arguments depend on the global numbering of the form arguments and domains."
+        return ("Argument", count,) + self._element.signature_data(domain_numbering=domain_numbering)
 
     def __str__(self):
         count = str(self._count)

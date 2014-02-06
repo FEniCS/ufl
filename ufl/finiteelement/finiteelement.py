@@ -27,8 +27,7 @@ from itertools import izip
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.common import product, index_to_component, component_to_index, istr, EmptyDict
-from ufl.geometry import as_cell, cellname2facetname, ProductCell
-from ufl.domains import as_domain
+from ufl.geometry import as_domain, as_cell, cellname2facetname, ProductCell
 from ufl.log import info_blue, warning, warning_blue, error
 
 from ufl.finiteelement.elementlist import ufl_elements, aliases
@@ -62,13 +61,11 @@ class FiniteElement(FiniteElementBase):
 
         # Check whether this family is an alias for something else
         if family in aliases:
-            (name, cell, r) = aliases[family](family, cell, degree, form_degree)
+            (name, dummy_cell, r) = aliases[family](family, cell, degree, form_degree)
             #info_blue("%s, is an alias for %s " % (
             #        (family, cell, degree, form_degree),
-            #        (name, cell, r)))
-
-            # FIXME: Need to init here with domain instead of using cell from aliases, is that ok?
-            ufl_assert(cell == domain.cell(),
+            #        (name, dummy_cell, r)))
+            ufl_assert(cell == dummy_cell,
                        "Breaking assumption in element alias mapping.")
             self.__init__(name, domain, r, quad_scheme)
             return
@@ -82,9 +79,10 @@ class FiniteElement(FiniteElementBase):
             ufl_elements[family]
 
         # Validate cellname if a valid cell is specified
-        cellname = None if cell is None else cell.cellname()
-        ufl_assert(cellname in cellnames,
-                   'Cellname "%s" invalid for "%s" finite element.' % (cellname, family))
+        if cell is not None:
+            ufl_assert(cell.cellname() in cellnames,
+                       'Cellname "%s" invalid for "%s" finite element.' % (
+                           cell.cellname(), family))
 
         # Validate degree if specified
         if degree is not None:
@@ -115,6 +113,24 @@ class FiniteElement(FiniteElementBase):
         # Cache repr string
         self._repr = "FiniteElement(%r, %r, %r, %r)" % (
             self.family(), self.domain(), self.degree(), self.quadrature_scheme())
+        assert '"' not in self._repr
+
+    def reconstruction_signature(self):
+        """Format as string for evaluation as Python object.
+
+        For use with cross language frameworks, stored in generated code
+        and evaluated later in Python to reconstruct this object.
+
+        This differs from repr in that it does not include domain
+        label and data, which must be reconstructed or supplied by other means.
+        """
+        return "FiniteElement(%r, %s, %r, %r)" % (
+            self.family(), self.domain().reconstruction_signature(), self.degree(), self.quadrature_scheme())
+
+    def signature_data(self, domain_numbering):
+        data = ("FiniteElement", self._family, self._degree, self._value_shape, self._quad_scheme,
+                ("no domain" if self._domain is None else self._domain.signature_data(domain_numbering=domain_numbering)))
+        return data
 
     def reconstruct(self, **kwargs):
         """Construct a new FiniteElement object with some properties

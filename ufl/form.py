@@ -26,77 +26,130 @@ import hashlib
 from itertools import chain
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.integral import Integral, Measure, is_scalar_constant_expression
+import ufl.measure
+from ufl.integral import Integral, Measure
+from ufl.checks import is_scalar_constant_expression
 from ufl.equation import Equation
 from ufl.expr import Expr
 from ufl.constantvalue import Zero
-
+from ufl.geometry import join_domains
+from ufl.protocols import id_or_none
 
 # --- The Form class, representing a complete variational form or functional ---
 
-def integral_sequence_to_dict(integrals):
-    "Map a sequence of Integral objects to a dictionary of lists of Integrals keyed by domain type."
-    d = {}
-    for itg in integrals:
-        k = itg.domain_type()
-        if k not in d:
-            d[k] = [itg]
-        else:
-            d[k].append(itg)
-    return d
+def sort_integrals(integrals, domains):
+    "Sort integrals in a canonical order."
+    def integral_key(integral):
+        domain = integral.domain()
+        label = None if domain is None else domain.label()
+        return (label, integral.domain_type(), integral.domain_id())
+    sintegrals = sorted(integrals, key=integral_key)
+    return sintegrals
 
-def integral_dict_to_sequence(integrals):
-    "Map a dictionary of lists of Integrals keyed by domain type into a sequence of Integral objects ."
-    return tuple(itg for dt in Measure._domain_types_tuple
-                 for itg in integrals.get(dt, ()))
+def replace_integral_domains(form, common_domain):
+    """Given a form and a domain, assign a common integration domain to all integrals.
 
-def join_dintegrals(aintegrals, bintegrals):
-    # Store integrals from two forms in a canonical sorting
-    return integral_sequence_to_dict(chain(integral_dict_to_sequence(aintegrals),
-                                           integral_dict_to_sequence(bintegrals)))
+    Does not modify the input form (Form should always be immutable).
+    This is to support ill formed forms with no domain specified,
+    some times occuring in pydolfin, e.g. assemble(1*dx, mesh=mesh).
+    """
+    domains = form.domains()
+    if common_domain is not None:
+        gdim = common_domain.geometric_dimension()
+        tdim = common_domain.topological_dimension()
+        ufl_assert(all((gdim == domain.geometric_dimension() and
+                        tdim == domain.topological_dimension())
+                        for domain in domains),
+            "Common domain does not share dimensions with form domains.")
+    reconstruct = False
+    integrals = []
+    for itg in form.integrals():
+        domain = itg.domain()
+        if domain is None or domain.label() != common_domain.label():
+            itg = itg.reconstruct(domain=common_domain)
+            reconstruct = True
+        integrals.append(itg)
+    if reconstruct:
+        form = Form(integrals)
+    return form
 
 class Form(object):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
-    __slots__ = ("_dintegrals",      # Dict of one integral list per domain type
-                 "_hash",            # Hash code for use in dicts, including incidental numbering of indices etc.
-                 "_signature",       # Signature for use with jit cache, independent of incidental numbering of indices etc.
-                 "_form_data",       # Cache of preprocess result applied to this form
-                 "_is_preprocessed", # Set to true if this form is the result of a preprocess of another form
-                 #"_domain_data",    # TODO: Make domain data a property of the form instead of the integral?
-                 )
+    __slots__ = (
+        # List of Integral objects (a Form is a sum of these Integrals)
+        "_integrals",
+        # List of Domain objects (the domains that Integrals of this form integrate over, not including other domains that integrands may reference)
+        "_domains",
+        # Hash code for use in dicts,
+        # including incidental numbering of indices etc.
+        "_hash",
+        # Signature for use with jit cache,
+        # independent of incidental numbering of indices etc.
+        "_signature",
+        # Cache of preprocess result applied to this form
+        "_form_data",
+        # Set to true if this form is the result of a preprocess of another form
+        "_is_preprocessed",
+        )
 
     def __init__(self, integrals):
-        self._dintegrals = integral_sequence_to_dict(integrals)
         ufl_assert(all(isinstance(itg, Integral) for itg in integrals),
                    "Expecting list of integrals.")
+
+        # Collect integration domains and make canonical list of them
+        self._domains = join_domains([itg.domain() for itg in integrals])
+
+        # Store integral list in canonical ordering
+        self._integrals = sort_integrals(integrals, self._domains)
+
         self._signature = None
         self._hash = None
         self._form_data = None
         self._is_preprocessed = False
 
-    def cell(self): # TODO: DEPRECATE
-        #from ufl.log import deprecate
-        #deprecate("Form.cell is not well defined and will be removed.")
-        for itg in self.integrals():
-            cell = itg.integrand().cell()
-            if cell is not None:
-                return cell
-        return None
+    def cell(self):
+        deprecate("Form.cell() is not well defined and will be removed.")
+        domain = self.domain()
+        return None if domain is None else domain.cell()
 
-    def integral_groups(self):
-        """Return a dict, which is a mapping from domain types to integrals.
+    def domain(self):
+        """Return the geometric integration domain occuring in the form.
 
-        In particular, the keys are domain_type strings, and the
-        values are lists of Integral instances. The Integrals in
-        each list share the same domain type (the key), but have
-        potentially different domain ids and metadata."""
-        return self._dintegrals
+        NB! This does not include domains of coefficients defined on other
+        meshes, look at form data for that additional information.
+        """
+        deprecate("Form.domain() is not well defined and will be removed.")
 
-    def integrals(self, domain_type=None):
-        if domain_type is None:
-            return integral_dict_to_sequence(self.integral_groups())
-        else:
-            return self.integral_groups().get(domain_type,[])
+        domains = self.domains()
+
+        ufl_assert(all(domain == domains[0] for domain in domains),
+                   "Calling Form.domain() is only valid if all integrals share domain.")
+
+        # Need to support missing domain to allow
+        # assemble(Constant(1)*dx, mesh=mesh) in dolfin
+        return domains[0] if domains else None
+
+    def domains(self):
+        """Return the geometric integration domains occuring in the form.
+
+        NB! This does not include domains of coefficients defined on other
+        meshes, look at form data for that additional information.
+
+        The return type is a tuple even if only a single domain exists.
+        """
+        return self._domains
+
+    def integrals(self):
+        "Return a sequence of all integrals in form."
+        return self._integrals
+
+    def integrals_by_type(self, domain_type):
+        "Return a sequence of all integrals with a particular domain type."
+        return [integral for integral in self.integrals()
+                if integral.domain_type() == domain_type]
+
+    def empty(self):
+        return self.integrals() == ()
 
     def is_preprocessed(self):
         "Return true if this form is the result of a preprocessing of another form."
@@ -106,30 +159,39 @@ class Form(object):
         "Return form metadata (None if form has not been preprocessed)"
         return self._form_data
 
-    def compute_form_data(self,
-                          object_names=None,
-                          common_cell=None,
-                          element_mapping=None):
+    def compute_form_data(self, object_names=None):
         "Compute and return form metadata"
+
         # TODO: We should get rid of the form data caching, but need to
         #       figure out how to do that and keep pydolfin working properly
 
         # Only compute form data once, and never on an already processed form
         ufl_assert(not self.is_preprocessed(), "You can not preprocess forms twice.")
+
         if self._form_data is None:
             from ufl.algorithms.preprocess import preprocess
-            self._form_data = preprocess(self,
-                                         object_names=object_names,
-                                         common_cell=common_cell,
-                                         element_mapping=element_mapping)
+            self._form_data = preprocess(self, object_names=object_names)
+
         # Always validate arguments, keeping sure that the validation works
-        self._form_data.validate(object_names=object_names,
-                                 common_cell=common_cell,
-                                 element_mapping=element_mapping)
+        self._form_data.validate(object_names=object_names)
         return self.form_data()
 
     def __eq__(self, other):
+        """Delayed evaluation of the __eq__ operator!
+
+        Just 'lhs_form == rhs_form' gives an Equation,
+        while 'bool(lhs_form == rhs_form)' delegates
+        to lhs_form.equals(rhs_form).
+        """
         return Equation(self, other)
+
+    def equals(self, other):
+        "Evaluate 'bool(lhs_form == rhs_form)'."
+        if type(other) != Form:
+            return False
+        if len(self._integrals) != len(other._integrals):
+            return False
+        return all(a == b for a,b in zip(self._integrals, other._integrals))
 
     def __radd__(self, other):
         # Ordering of form additions make no difference
@@ -137,14 +199,17 @@ class Form(object):
 
     def __add__(self, other):
         if isinstance(other, Form):
-            # Add integrands of integrals with the same measure
-            return Form(integral_dict_to_sequence(join_dintegrals(self.integral_groups(), other.integral_groups())))
+            # Add integrals from both forms
+            return Form(list(chain(self.integrals(), other.integrals())))
+
         elif isinstance(other, (int,float)) and other == 0:
             # Allow adding 0 or 0.0 as a no-op, needed for sum([a,b])
             return self
+
         elif isinstance(other, Zero) and not (other.shape() or other.free_indices()):
             # Allow adding ufl Zero as a no-op, needed for sum([a,b])
             return self
+
         else:
             # Let python protocols do their job if we don't handle it
             return NotImplemented
@@ -190,13 +255,6 @@ class Form(object):
             hashdata = tuple(hash(itg) for itg in self.integrals())
             self._hash = hash(hashdata)
         return self._hash
-
-    def deprecated_signature(self, function_replace_map=None):
-        if self._signature is None:
-            from ufl.algorithms.signature import compute_form_signature
-            self._signature = compute_form_signature(self, function_replace_map)
-        assert self._signature
-        return self._signature
 
     def x_repr_latex_(self): # TODO: This works, but enable when form latex rendering is fixed
         from ufl.algorithms import ufl2latex

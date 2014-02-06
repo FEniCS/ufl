@@ -26,9 +26,9 @@ class ExpressionCollection(object):
     def __init__(self, cell):
         self.cell = cell
 
-        d = cell.d
+        d = cell.geometric_dimension()
         x = cell.x
-        n = cell.n
+        n = FacetNormal(cell)
         c = cell.volume
         h = cell.circumradius
         f = cell.facet_area

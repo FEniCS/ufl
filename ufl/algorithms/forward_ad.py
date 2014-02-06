@@ -60,13 +60,12 @@ from ufl.algorithms.transformer import Transformer
 
 
 class ForwardAD(Transformer):
-    def __init__(self, spatial_dim, var_shape, var_free_indices, var_index_dimensions, cache=None):
+    def __init__(self, var_shape, var_free_indices, var_index_dimensions, cache=None):
         Transformer.__init__(self)
         ufl_assert(all(isinstance(i, Index) for i in var_free_indices), \
             "Expecting Index objects.")
         ufl_assert(all(isinstance(i, Index) for i in var_index_dimensions.keys()), \
             "Expecting Index objects.")
-        self._spatial_dim = spatial_dim
         self._var_shape = var_shape
         self._var_free_indices = var_free_indices
         self._var_index_dimensions = dict(var_index_dimensions)
@@ -639,16 +638,18 @@ class ForwardAD(Transformer):
         return (o, oprime)
 
 class GradAD(ForwardAD):
-    def __init__(self, spatial_dim, cache=None):
-        ForwardAD.__init__(self, spatial_dim,
-                           var_shape=(spatial_dim,),
+    def __init__(self, geometric_dimension, cache=None):
+        ForwardAD.__init__(self,
+                           var_shape=(geometric_dimension,),
                            var_free_indices=(),
                            var_index_dimensions={},
                            cache=cache)
-        self._Id = Identity(spatial_dim)
 
     def spatial_coordinate(self, o):
         "Gradient of x w.r.t. x is Id."
+        if not hasattr(self, '_Id'):
+            gdim = o.geometric_dimension()
+            self._Id = Identity(gdim)
         return (o, self._Id)
 
     # This is implicit for all terminals, but just to make this clear to the reader:
@@ -678,8 +679,9 @@ class GradAD(ForwardAD):
         return (o, Grad(o))
 
 class VariableAD(ForwardAD):
-    def __init__(self, spatial_dim, var, cache=None):
-        ForwardAD.__init__(self, spatial_dim, var_shape=var.shape(),
+    def __init__(self, var, cache=None):
+        ForwardAD.__init__(self,
+                           var_shape=var.shape(),
                            var_free_indices=var.free_indices(),
                            var_index_dimensions=var.index_dimensions(),
                            cache=cache)
@@ -714,8 +716,8 @@ class VariableAD(ForwardAD):
 
 class CoefficientAD(ForwardAD):
     "Apply AFD (Automatic Functional Differentiation) to expression."
-    def __init__(self, spatial_dim, coefficients, arguments, coefficient_derivatives, cache=None):
-        ForwardAD.__init__(self, spatial_dim, var_shape=(), var_free_indices=(),
+    def __init__(self, coefficients, arguments, coefficient_derivatives, cache=None):
+        ForwardAD.__init__(self, var_shape=(), var_free_indices=(),
                            var_index_dimensions={}, cache=cache)
         self._v = arguments
         self._w = coefficients
@@ -934,29 +936,29 @@ class CoefficientAD(ForwardAD):
         self._variable_cache[l] = c
         return c
 
-def compute_grad_forward_ad(f, dim):
-    alg = GradAD(dim)
+def compute_grad_forward_ad(f, geometric_dimension):
+    alg = GradAD(geometric_dimension)
     e, ediff = alg.visit(f)
     return ediff
 
-def compute_variable_forward_ad(f, v, dim):
-    alg = VariableAD(dim, v)
+def compute_variable_forward_ad(f, v):
+    alg = VariableAD(v)
     e, ediff = alg.visit(f)
     return ediff
 
-def compute_coefficient_forward_ad(f, w, v, cd, dim):
-    alg = CoefficientAD(dim, w, v, cd)
+def compute_coefficient_forward_ad(f, w, v, cd):
+    alg = CoefficientAD(w, v, cd)
     e, ediff = alg.visit(f)
     return ediff
 
-def apply_nested_forward_ad(expr, dim):
+def apply_nested_forward_ad(expr):
     if isinstance(expr, Terminal):
         # A terminal needs no differentiation applied
         return expr
     elif not isinstance(expr, Derivative):
         # Apply AD recursively to children
         preops = expr.operands()
-        postops = tuple(apply_nested_forward_ad(o, dim) for o in preops)
+        postops = tuple(apply_nested_forward_ad(o) for o in preops)
         # Reconstruct if necessary
         need_reconstruct = not (preops == postops) # FIXME: Is this efficient? O(n)?
         if need_reconstruct:
@@ -965,21 +967,22 @@ def apply_nested_forward_ad(expr, dim):
     elif isinstance(expr, Grad):
         # Apply AD recursively to children
         f, = expr.operands()
-        f = apply_nested_forward_ad(f, dim)
+        f = apply_nested_forward_ad(f)
         # Apply Grad-specialized AD to expanded child
-        return compute_grad_forward_ad(f, dim)
+        gdim = expr.shape()[-1]
+        return compute_grad_forward_ad(f, gdim)
     elif isinstance(expr, VariableDerivative):
         # Apply AD recursively to children
         f, v = expr.operands()
-        f = apply_nested_forward_ad(f, dim)
+        f = apply_nested_forward_ad(f)
         # Apply Variable-specialized AD to expanded child
-        return compute_variable_forward_ad(f, v, dim)
+        return compute_variable_forward_ad(f, v)
     elif isinstance(expr, CoefficientDerivative):
         # Apply AD recursively to children
         f, w, v, cd = expr.operands()
-        f = apply_nested_forward_ad(f, dim)
+        f = apply_nested_forward_ad(f)
         # Apply Coefficient-specialized AD to expanded child
-        return compute_coefficient_forward_ad(f, w, v, cd, dim)
+        return compute_coefficient_forward_ad(f, w, v, cd)
     else:
         error("Unknown type.")
 

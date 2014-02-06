@@ -28,7 +28,7 @@ v = TestFunction(element)
 u = TrialFunction(element)
 f = Coefficient(element)
 
-n = triangle.n
+n = FacetNormal(triangle)
 h = Constant(triangle)
 
 gN = Coefficient(element)

@@ -23,11 +23,11 @@
 # First added:  2008-03-03
 # Last changed: 2012-10-18
 
-from itertools import izip
+from itertools import izip, chain
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.common import product, index_to_component, component_to_index, istr, EmptyDict
-from ufl.domains import as_domain
+from ufl.geometry import as_domain
 from ufl.log import info_blue, warning, warning_blue, error
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
@@ -36,7 +36,7 @@ from ufl.finiteelement.finiteelement import FiniteElement
 
 class MixedElement(FiniteElementBase):
     "A finite element composed of a nested hierarchy of mixed or simple elements"
-    __slots__ = ("_sub_elements",)
+    __slots__ = ("_sub_elements", "_domains")
 
     def __init__(self, *elements, **kwargs):
         "Create mixed finite element from given list of elements"
@@ -49,25 +49,24 @@ class MixedElement(FiniteElementBase):
                     for e in elements]
         self._sub_elements = elements
 
-        # TODO: Figure out proper checks of domain consistency
+        # Pick the first domain, for now all should be equal
+        domains = tuple(sorted(set(chain(*[element.domains() for element in elements]))))
+        self._domains = domains
+        if domains:
+            # Base class currently only handles one domain, this is work in progress
+            domain = domains[0]
 
-        # FIXME: Do something if elements are defined on different regions
-        domains = set(element.domain() for element in elements) - set((None,))
-        top_domains = set(domain.top_domain() for domain in domains)
-        if len(top_domains) == 0:
-            domain = None
-        elif len(top_domains) == 1:
-            domain = list(top_domains)[0]
-        else:
-            # Require that all elements are defined on the same top-level domain
-            # TODO: is this too strict? disallows mixed elements on different meshes
-            error("Sub elements must live in the same top level domain.")
-
-        # Check that domains have same geometric dimension
-        if domain is not None:
+            # Check that domains have same geometric dimension
             gdim = domain.geometric_dimension()
-            ufl_assert(all(domain.geometric_dimension() == gdim for domain in domains),
+            ufl_assert(all(dom.geometric_dimension() == gdim for dom in domains),
                        "Sub elements must live in the same geometric dimension.")
+            # Require that all elements are defined on the same domain
+            # TODO: allow mixed elements on different domains,
+            #       or add a CompositeMixedElement class for that
+            ufl_assert(all(dom == domain for dom in domains),
+                       "Sub elements must live on the same domain (for now).")
+        else:
+            domain = None
 
         # Check that all elements use the same quadrature scheme
         # TODO: We can allow the scheme not to be defined.
@@ -96,6 +95,18 @@ class MixedElement(FiniteElementBase):
         # Cache repr string
         self._repr = "MixedElement(*%r, **{'value_shape': %r })" %\
             (self._sub_elements, self._value_shape)
+
+    def reconstruction_signature(self):
+        """Format as string for evaluation as Python object.
+
+        For use with cross language frameworks, stored in generated code
+        and evaluated later in Python to reconstruct this object.
+
+        This differs from repr in that it does not include domain
+        label and data, which must be reconstructed or supplied by other means.
+        """
+        return "MixedElement(%s, **{'value_shape': %r })" % \
+            (', '.join(e.reconstruction_signature() for e in self._sub_elements), self._value_shape)
 
     def reconstruct(self, **kwargs):
         """Construct a new MixedElement object with some
@@ -207,26 +218,15 @@ class MixedElement(FiniteElementBase):
             i, e = self.extract_component(component)
             return e.is_cellwise_constant()
 
-    def domain(self, component=None):
-        "Return the domain on which this element is defined."
+    def domains(self, component=None):
+        "Return the domain(s) on which this element is defined."
         if component is None:
-            return self._domain # FIXME: Remove this
-        elif False and component is None:
-            domains = [e.domain() for e in self.sub_elements()]
-            domain = domains[0]
-            for d in domains[1:]:
-                domain = intersection(domain, d) # FIXME: Need intersection to make this work
-            return domain
+            # Return all unique domains
+            return self._domains
         else:
+            # Return the domains of subelement
             i, e = self.extract_component(component)
-            return e.domain()
-
-    def regions(self):
-        "Return the regions referenced by this element and its subelements."
-        regions = set()
-        for e in self.sub_elements():
-            regions.update(e.regions())
-        return sorted(regions)
+            return e.domains()
 
     def degree(self, component=None):
         "Return polynomial degree of finite element"
@@ -235,6 +235,10 @@ class MixedElement(FiniteElementBase):
         else:
             i, e = self.extract_component(component)
             return e.degree()
+
+    def signature_data(self, domain_numbering):
+        data = ("MixedElement", self._value_shape, tuple(e.signature_data(domain_numbering=domain_numbering) for e in self._sub_elements))
+        return data
 
     def __str__(self):
         "Format as string for pretty printing."
@@ -296,11 +300,30 @@ class VectorElement(MixedElement):
         self._family = family
         self._degree = degree
         self._sub_element = sub_element
+        self._form_degree = form_degree # Storing for signature_data, not sure if it's needed
 
         # Cache repr string
         self._repr = "VectorElement(%r, %r, %r, %d, %r)" % \
-            (self._family, self._domain, self._degree,
-             len(self._sub_elements), quad_scheme)
+            (self._family, self.domain(), self._degree,
+             len(self._sub_elements), self._quad_scheme)
+
+    def signature_data(self, domain_numbering):
+        data = ("VectorElement", self._family, self._degree, len(self._sub_elements), self._quad_scheme, self._form_degree,
+                ("no domain" if self._domain is None else self._domain.signature_data(domain_numbering=domain_numbering)))
+        return data
+
+    def reconstruction_signature(self):
+        """Format as string for evaluation as Python object.
+
+        For use with cross language frameworks, stored in generated code
+        and evaluated later in Python to reconstruct this object.
+
+        This differs from repr in that it does not include domain
+        label and data, which must be reconstructed or supplied by other means.
+        """
+        return "VectorElement(%r, %s, %r, %d, %r)" % (
+                self._family, self.domain().reconstruction_signature(), self._degree,
+                len(self._sub_elements), self._quad_scheme)
 
     def reconstruct(self, **kwargs):
         kwargs["family"] = kwargs.get("family", self.family())
@@ -393,12 +416,30 @@ class TensorElement(MixedElement):
 
         # Cache repr string
         self._repr = "TensorElement(%r, %r, %r, %r, %r, %r)" % \
-            (self._family, self._domain, self._degree, self._shape,
-             self._symmetry, quad_scheme)
+            (self._family, self.domain(), self._degree, self._shape,
+             self._symmetry, self._quad_scheme)
+
+    def signature_data(self, domain_numbering):
+        data = ("TensorElement", self._family, self._degree, self._shape, repr(self._symmetry), self._quad_scheme,
+                ("no domain" if self._domain is None else self._domain.signature_data(domain_numbering=domain_numbering)))
+        return data
+
+    def reconstruction_signature(self):
+        """Format as string for evaluation as Python object.
+
+        For use with cross language frameworks, stored in generated code
+        and evaluated later in Python to reconstruct this object.
+
+        This differs from repr in that it does not include domain
+        label and data, which must be reconstructed or supplied by other means.
+        """
+        return "TensorElement(%r, %s, %r, %r, %r, %r)" % (
+            self._family, self.domain().reconstruction_signature(), self._degree,
+            self._shape, self._symmetry, self._quad_scheme)
 
     def reconstruct(self, **kwargs):
         kwargs["family"] = kwargs.get("family", self.family())
-        kwargs["domain"] = kwargs.get("domain",   self.domain())
+        kwargs["domain"] = kwargs.get("domain", self.domain())
         kwargs["degree"] = kwargs.get("degree", self.degree())
 
         ufl_assert("shape" not in kwargs, "Cannot change shape in reconstruct.")

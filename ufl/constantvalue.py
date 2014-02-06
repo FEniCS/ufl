@@ -30,23 +30,11 @@ from ufl.terminal import Terminal
 from ufl.indexing import Index, FixedIndex
 from ufl.common import EmptyDict
 
-#--- "Low level" scalar types ---
-
-# TODO: Using high precision float from numpy if available?
-int_type = int
-float_type = float
-python_scalar_types = (int, float)
-#try:
-#    import numpy
-#    int_type = numpy.int64
-#    float_type = numpy.float96
-#    python_scalar_types += (int_type, float_type)
-#except:
-#    pass
+#--- Helper functions imported here for compatibility---
+from ufl.checks import is_python_scalar, is_ufl_scalar, is_true_ufl_scalar
 
 # Precision for float formatting
 precision = None
-
 def format_float(x):
     "Format float value based on global UFL precision."
     if precision is None:
@@ -64,6 +52,10 @@ class ConstantValue(Terminal):
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
         return True
+
+    def domains(self):
+        "Return tuple of domains related to this terminal object."
+        return ()
 
     def __getnewargs__(self):
         return (self._dim,)
@@ -219,7 +211,7 @@ class ScalarValue(IndexAnnotated):
         but ufl-python comparisons like
             IntValue(1) == 1.0
             FloatValue(1.0) == 1
-        can still succeed. These will however not have the same 
+        can still succeed. These will however not have the same
         hash value and therefore not collide in a dict."""
         if not isinstance(other, self._uflclass):
             return isinstance(other, (int,float)) and other == self._value
@@ -246,7 +238,7 @@ class FloatValue(ScalarValue):
     __slots__ = ()
     def __init__(self, value, shape=(), free_indices=(), index_dimensions=None):
         ScalarValue.__init__(self,
-                             float_type(value),
+                             float(value),
                              shape,
                              free_indices,
                              index_dimensions)
@@ -275,7 +267,7 @@ class IntValue(ScalarValue):
 
     def __init__(self, value, shape=(), free_indices=(), index_dimensions=None):
         if not hasattr(self, '_value'):
-            ScalarValue.__init__(self, int_type(value), shape, free_indices, index_dimensions)
+            ScalarValue.__init__(self, int(value), shape, free_indices, index_dimensions)
 
     def __repr__(self):
         return "%s(%s, %s, %s, %s)" % (type(self).__name__, repr(self._value),
@@ -365,30 +357,13 @@ class PermutationSymbol(ConstantValue):
                     return Zero()
         return result
 
-#--- Helper functions ---
-
-def is_python_scalar(expression):
-    "Return True iff expression is of a Python scalar type."
-    return isinstance(expression, python_scalar_types)
-
-def is_ufl_scalar(expression):
-    """Return True iff expression is scalar-valued,
-    but possibly containing free indices."""
-    return isinstance(expression, Expr) and not expression.shape()
-
-def is_true_ufl_scalar(expression):
-    """Return True iff expression is scalar-valued,
-    with no free indices."""
-    return isinstance(expression, Expr) and \
-        not (expression.shape() or expression.free_indices())
-
 def as_ufl(expression):
     "Converts expression to an Expr if possible."
     if isinstance(expression, Expr):
         return expression
-    if isinstance(expression, (int, int_type)):
+    if isinstance(expression, int):
         return IntValue(expression)
-    if isinstance(expression, (float, float_type)):
+    if isinstance(expression, float):
         return FloatValue(expression)
     error(("Invalid type conversion: %s can not be converted to any UFL type.\n"+\
            "The representation of the object is:\n%r") % (type(expression), expression))

@@ -28,7 +28,7 @@ class AlgorithmsTestCase(UflTestCase):
         c = Coefficient(element)
         f = Coefficient(element)
 
-        n = triangle.n
+        n = FacetNormal(triangle)
 
         a = u*v*dx
         L = f*v*dx
@@ -100,7 +100,10 @@ class AlgorithmsTestCase(UflTestCase):
         #print elements(self.forms[2])
         #print unique_elements(self.forms[2])
         #print unique_classes(self.forms[2])
-        d = extract_duplications(self.forms[2].integrals(Measure.CELL)[0]._integrand)
+        b = self.forms[2]
+        integrals = b.integrals_by_type(Measure.CELL)
+        integrand = integrals[0].integrand()
+        d = extract_duplications(integrand)
         #pprint(list(d))
 
         element1 = FiniteElement("CG", triangle, 1)
@@ -127,7 +130,7 @@ class AlgorithmsTestCase(UflTestCase):
         def post(o, stack):
             poststore.append((o, len(stack)))
 
-        for itg in a.integrals(Measure.CELL):
+        for itg in a.integrals_by_type(Measure.CELL):
             walk(itg.integrand(), pre, post)
 
         self.assertEqual(prestore, [(p, 0), (v, 1), (f, 1)]) # NB! Sensitive to ordering of expressions.

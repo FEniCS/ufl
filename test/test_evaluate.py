@@ -25,7 +25,7 @@ class EvaluateTestCase(UflTestCase):
 
     def testIdentity(self):
         cell = triangle
-        I = Identity(cell.d)
+        I = Identity(cell.geometric_dimension())
         
         s = 123*I[0,0]
         e = s((5,7))
@@ -96,7 +96,7 @@ class EvaluateTestCase(UflTestCase):
     def testIndexSum2(self):
         cell = triangle
         x = cell.x
-        I = Identity(cell.d)
+        I = Identity(cell.geometric_dimension())
         i, j = indices(2)
         s = (x[i]*x[j])*I[i,j]
         e = s((5,7))
@@ -105,7 +105,7 @@ class EvaluateTestCase(UflTestCase):
         self.assertEqual(e, v)
 
     def testMathFunctions(self):
-        x = triangle.x[0]
+        x = SpatialCoordinate(triangle)[0]
         
         s = sin(x)
         e = s((5,7))
@@ -138,7 +138,7 @@ class EvaluateTestCase(UflTestCase):
         self.assertEqual(e, v)
 
     def testListTensor(self):
-        x, y = triangle.x[0], triangle.x[1]
+        x, y = SpatialCoordinate(triangle)[0], triangle.x[1]
         
         m = as_matrix([[x, y], [-y, -x]])
         
@@ -153,7 +153,7 @@ class EvaluateTestCase(UflTestCase):
         self.assertEqual(e, v)
 
     def testComponentTensor1(self):
-        x = triangle.x
+        x = SpatialCoordinate(triangle)
         m = as_vector(x[i], i)
         
         s = m[0] * m[1]
@@ -162,7 +162,7 @@ class EvaluateTestCase(UflTestCase):
         self.assertEqual(e, v)
 
     def testComponentTensor2(self):
-        x = triangle.x
+        x = SpatialCoordinate(triangle)
         xx = outer(x,x)
         
         m = as_matrix(xx[i,j], (i,j))
@@ -173,7 +173,7 @@ class EvaluateTestCase(UflTestCase):
         self.assertEqual(e, v)
 
     def testComponentTensor3(self):
-        x = triangle.x
+        x = SpatialCoordinate(triangle)
         xx = outer(x,x)
         
         m = as_matrix(xx[i,j], (i,j))

@@ -27,8 +27,7 @@ from itertools import izip
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.common import product, index_to_component, component_to_index, istr, EmptyDict
-from ufl.geometry import Cell, as_cell, cellname2facetname, ProductCell
-from ufl.domains import as_domain, DomainDescription
+from ufl.geometry import Cell, as_cell, as_domain, Domain, cellname2facetname, ProductCell
 from ufl.log import info_blue, warning, warning_blue, error
 
 from ufl.finiteelement.elementlist import ufl_elements, aliases
@@ -43,14 +42,17 @@ class FiniteElementBase(object):
         ufl_assert(isinstance(family, str), "Invalid family type.")
         ufl_assert(isinstance(degree, int) or degree is None, "Invalid degree type.")
         ufl_assert(isinstance(value_shape, tuple), "Invalid value_shape type.")
+
+        # TODO: Support multiple domains for composite mesh mixed elements
         if domain is None:
             self._domain = None
             self._cell = None
         else:
             self._domain = as_domain(domain)
             self._cell = self._domain.cell()
-            ufl_assert(isinstance(self._domain, DomainDescription), "Invalid domain type.")
+            ufl_assert(isinstance(self._domain, Domain), "Invalid domain type.")
             ufl_assert(isinstance(self._cell, Cell), "Invalid cell type.")
+
         self._family = family
         self._degree = degree
         self._value_shape = value_shape
@@ -59,6 +61,22 @@ class FiniteElementBase(object):
     def __repr__(self):
         "Format as string for evaluation as Python object."
         return self._repr
+
+    def reconstruction_signature(self):
+        """Format as string for evaluation as Python object.
+
+        For use with cross language frameworks, stored in generated code
+        and evaluated later in Python to reconstruct this object.
+
+        This differs from repr in that it does not include domain
+        label and data, which must be reconstructed or supplied by other means.
+        """
+        raise NotImplementedError("Class %s must implement FiniteElementBase.reconstruction_signature" % (type(self).__name__,))
+
+    def signature_data(self, domain_numbering):
+        data = ("FiniteElementBase", self._family, self._degree, self._value_shape, self._quad_scheme,
+                ("no domain" if self._domain is None else self._domain.signature_data(domain_numbering=domain_numbering)))
+        return data
 
     def __hash__(self):
         "Compute hash code for insertion in hashmaps."
@@ -72,21 +90,31 @@ class FiniteElementBase(object):
         "Compare elements by repr, to give a natural stable sorting."
         return repr(self) < repr(other)
 
-    def domain(self, component=None):
-        "Return the domain on which this element is defined."
-        return self._domain
-
-    def regions(self):
-        "Return the regions referenced by this element and its subelements."
-        return [self._domain] # FIXME
-
     def cell_restriction(self):
         "Return the cell type onto which the element is restricted."
         return None # Overloaded by RestrictedElement
 
-    def cell(self):
+    def cell(self): # TODO: Deprecate this
         "Return cell of finite element"
         return self._cell
+
+    def domain(self, component=None): # TODO: Deprecate this
+        "Return the domain on which this element is defined."
+        domains = self.domains(component)
+        n = len(domains)
+        if n == 0:
+            return None
+        elif n == 1:
+            return domains[0]
+        else:
+            error("Cannot return the requested single domain, as this element has multiple domains.")
+
+    def domains(self, component=None):
+        "Return the domain on which this element is defined."
+        if self._domain is None:
+            return ()
+        else:
+            return (self._domain,)
 
     def family(self): # FIXME: Undefined for base?
         "Return finite element family"

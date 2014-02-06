@@ -28,7 +28,6 @@ from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.common import product, index_to_component, component_to_index, istr, EmptyDict
 from ufl.geometry import Cell, as_cell, cellname2facetname
-from ufl.domains import Domain
 from ufl.log import info_blue, warning, warning_blue, error
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
@@ -54,8 +53,18 @@ class RestrictedElement(FiniteElementBase):
             self._cell_restriction = Cell(cellname2facetname[cell.cellname()],
                                           geometric_dimension=cell.geometric_dimension())
 
-        # Cache repr string
         self._repr = "RestrictedElement(%r, %r)" % (self._element, self._cell_restriction)
+
+    def reconstruction_signature(self):
+        """Format as string for evaluation as Python object.
+
+        For use with cross language frameworks, stored in generated code
+        and evaluated later in Python to reconstruct this object.
+
+        This differs from repr in that it does not include domain
+        label and data, which must be reconstructed or supplied by other means.
+        """
+        return "RestrictedElement(%s, %r)" % (self._element.reconstruction_signature(), self._cell_restriction)
 
     def reconstruct(self, **kwargs):
         """Construct a new RestrictedElement object with
@@ -111,3 +120,8 @@ class RestrictedElement(FiniteElementBase):
         #        w.r.t. different sub_elements meanings.
         "Return list of restricted sub elements."
         return (self._element,)
+
+    def signature_data(self, domain_numbering):
+        data = ("RestrictedElement", self._element.signature_data(domain_numbering=domain_numbering),
+                repr(self._cell_restriction)) # Note: I'm pretty sure repr is safe here but that may change
+        return data

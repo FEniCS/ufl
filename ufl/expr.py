@@ -87,37 +87,38 @@ class Expr(object):
         "Return the tensor rank of the expression."
         return len(self.shape())
 
+    # All subclasses must implement domains if it is known
+    def domains(self):
+        # TODO: Is it better to use an external traversal algorithm for this?
+        from ufl.geometry import extract_domains
+        return extract_domains(self)
+
     # All subclasses must implement domain if it is known
-    def domain(self): # TODO: Is it better to use an external traversal algorithm for this?
+    def domain(self): # TODO: Deprecate this
         "Return the domain this expression is defined on."
-        result = None
-        for o in self.operands():
-            domain = o.domain().top_domain()
-            if domain is not None:
-                result = domain # Best we have so far
-                cell = domain.cell()
-                if cell is not None:
-                    # A domain with a fully defined cell, we have a winner!
-                    break
-        return result
+        domains = self.domains()
+        if len(domains) == 1:
+            domain, = domains
+            return domain
+        elif domains:
+            error("Found multiple domains, cannot return just one.")
+        else:
+            return None
 
     # All subclasses must implement cell if it is known
     def cell(self): # TODO: Deprecate this
         "Return the cell this expression is defined on."
-        for o in self.operands():
-            cell = o.cell()
-            if cell is not None:
-                return cell
-        return None
+        domain = self.domain()
+        return domain.cell() if domain is not None else None
 
     # This function was introduced to clarify and
     # eventually reduce direct dependencies on cells.
-    def geometric_dimension(self): # TODO: Deprecate this, use external analysis algorithm
+    def geometric_dimension(self):
         "Return the geometric dimension this expression lives in."
-        cell = self.cell()
-        if cell is None:
-            error("Cannot get geometric dimension from an expression with no cell!")
-        return cell.geometric_dimension()
+        # TODO: Deprecate this, and use external analysis algorithm?
+        for domain in self.domains():
+            return domain.geometric_dimension()
+        error("Cannot get geometric dimension from an expression with no domains!")
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
@@ -151,7 +152,7 @@ class Expr(object):
 
     # All subclasses must implement signature_data
     def signature_data(self):
-        "Return data that uniquely identifies this object."
+        "Return data that uniquely identifies form compiler relevant aspects of this object."
         raise NotImplementedError(self.__class__.signature_data)
 
     # All subclasses must implement __repr__

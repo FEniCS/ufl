@@ -26,7 +26,7 @@ class GradTestCase(UflTestCase):
        self._test_grad_div_curl_properties(cell3D)
 
     def _test_grad_div_curl_properties(self, cell):
-        d = cell.d
+        d = cell.geometric_dimension()
 
         S = FiniteElement("CG", cell, 1)
         V = VectorElement("CG", cell, 1)

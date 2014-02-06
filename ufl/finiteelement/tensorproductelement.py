@@ -27,8 +27,7 @@ from itertools import izip
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.common import product, index_to_component, component_to_index, istr, EmptyDict
-from ufl.geometry import as_cell, ProductCell
-from ufl.domains import as_domain
+from ufl.geometry import as_domain, as_cell, ProductCell
 from ufl.log import info_blue, warning, warning_blue, error
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
@@ -47,12 +46,14 @@ class TensorProductElement(FiniteElementBase):
     def __init__(self, *elements):
         "Create TensorProductElement from a given list of elements."
 
-        self._sub_elements = list(elements)
+        self._sub_elements = tuple(elements)
         ufl_assert(len(self._sub_elements) > 0,
                    "Cannot create TensorProductElement from empty list.")
         self._repr = "TensorProductElement(*%r)" % self._sub_elements
+
         family = "TensorProductElement"
 
+        # FIXME: I think we'll need a ProductDomain instead or in addition to ProductCell?
         # Define cell as the product of each subcell
         cell = ProductCell(*[e.cell() for e in self._sub_elements])
         domain = as_domain(cell) # FIXME: figure out what this is supposed to mean :)
@@ -74,6 +75,17 @@ class TensorProductElement(FiniteElementBase):
         super(TensorProductElement, self).__init__(family, domain, degree,
                                                    quad_scheme, value_shape)
 
+    def reconstruction_signature(self):
+        """Format as string for evaluation as Python object.
+
+        For use with cross language frameworks, stored in generated code
+        and evaluated later in Python to reconstruct this object.
+
+        This differs from repr in that it does not include domain
+        label and data, which must be reconstructed or supplied by other means.
+        """
+        return "TensorProductElement(%s)" % (', '.join(e.reconstruction_signature() for e in self._sub_elements),)
+        
     def num_sub_elements(self):
         "Return number of subelements."
         return len(self._sub_elements)
@@ -108,5 +120,7 @@ class TensorProductElement(FiniteElementBase):
         return "TensorProductElement(%s)" \
             % str([e.shortstr() for e in self.sub_elements()])
 
-    def __repr__(self):
-        return self._repr
+    def signature_data(self, domain_numbering):
+        data = ("TensorProductElement", 
+                tuple(e.signature_data(domain_numbering=domain_numbering) for e in self._sub_elements))
+        return data

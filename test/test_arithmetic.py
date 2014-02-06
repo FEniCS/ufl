@@ -22,11 +22,11 @@ class ArithmeticTestCase(UflTestCase):
         self.assertEqual(r, 4)
 
     def test_ufl_float_division(self):
-        d = triangle.x[0] / 10.0 # TODO: Use mock instead of x
+        d = SpatialCoordinate(triangle)[0] / 10.0 # TODO: Use mock instead of x
         self.assertIsInstance(d, Division)
 
     def test_float_ufl_division(self):
-        d = 3.14 / triangle.x[0] # TODO: Use mock instead of x
+        d = 3.14 / SpatialCoordinate(triangle)[0] # TODO: Use mock instead of x
         self.assertIsInstance(d, Division)
 
     def test_float_division(self):
@@ -66,24 +66,24 @@ class ArithmeticTestCase(UflTestCase):
         B = as_matrix(((4,5),(6,7)))
         self.assertEqual(elem_mult(A, B), as_matrix(((4,10),(18,28))))
 
-        x, y = triangle.x
+        x, y = SpatialCoordinate(triangle)
         A = as_matrix(((x,y),(3,4)))
         B = as_matrix(((4,5),(y,x)))
         self.assertEqual(elem_mult(A, B), as_matrix(((4*x,5*y),(3*y,4*x))))
 
-        x, y = triangle.x
+        x, y = SpatialCoordinate(triangle)
         A = as_matrix(((x,y),(3,4)))
         B = Identity(2)
         self.assertEqual(elem_mult(A, B), as_matrix(((x,0),(0,4))))
 
     def test_elem_div(self):
-        x, y, z = tetrahedron.x
+        x, y, z = SpatialCoordinate(tetrahedron)
         A = as_matrix(((x,y,z),(3,4,5)))
         B = as_matrix(((7,8,9),(z,x,y)))
         self.assertEqual(elem_div(A, B), as_matrix(((x/7,y/8,z/9),(3/z,4/x,5/y))))
 
     def test_elem_op(self):
-        x, y, z = tetrahedron.x
+        x, y, z = SpatialCoordinate(tetrahedron)
         A = as_matrix(((x,y,z),(3,4,5)))
         self.assertEqual(elem_op(sin, A), as_matrix(((sin(x),sin(y),sin(z)),
                                                      (sin(3),sin(4),sin(5)))))

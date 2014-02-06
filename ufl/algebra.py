@@ -29,7 +29,8 @@ from ufl.assertions import ufl_assert
 from ufl.common import product, mergedicts, subdict, EmptyDict
 from ufl.expr import Expr
 from ufl.operatorbase import AlgebraOperator
-from ufl.constantvalue import Zero, zero, ScalarValue, IntValue, is_ufl_scalar, is_true_ufl_scalar, as_ufl
+from ufl.constantvalue import Zero, zero, ScalarValue, IntValue, as_ufl
+from ufl.checks import is_ufl_scalar, is_true_ufl_scalar
 from ufl.indexutils import unique_indices
 from ufl.sorting import sorted_expr
 from ufl.precedence import parstr

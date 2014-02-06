@@ -93,7 +93,7 @@ class ClasscoverageTest(UflTestCase):
         
         # --- Elements:
         cell = triangle
-        dim = cell.d
+        dim = cell.geometric_dimension()
         
         e0 = FiniteElement("CG", cell, 1)
         e1 = VectorElement("CG", cell, 1)
@@ -154,7 +154,7 @@ class ClasscoverageTest(UflTestCase):
         e = PermutationSymbol(3)
         test_object(e, (3,3,3), ())
 
-        n = cell.n
+        n = FacetNormal(cell)
         test_object(n, (dim,), ())
         
         a = variable(v0)

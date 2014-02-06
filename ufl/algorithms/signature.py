@@ -21,10 +21,11 @@
 # Last changed: 2012-04-12
 
 import hashlib
-from ufl.classes import Index, MultiIndex, Coefficient, Argument, Terminal, Label
+from ufl.classes import Index, MultiIndex, Coefficient, Argument, Terminal, Label, FormArgument, GeometricQuantity, ConstantValue
 from ufl.log import error
 from ufl.algorithms.traversal import traverse_terminals2
 from ufl.common import fast_pre_traversal, sorted_by_count
+from ufl.geometry import join_domains
 
 def compute_multiindex_hashdata(expr, index_numbering):
     data = []
@@ -39,9 +40,9 @@ def compute_multiindex_hashdata(expr, index_numbering):
         else:
             # Use nonnegative ints for FixedIndex
             data.append(int(i))
-    return data
+    return tuple(data)
 
-def compute_terminal_hashdata(expressions, function_replace_map=None):
+def compute_terminal_hashdata(expressions, domain_numbering, function_replace_map=None):
     if not isinstance(expressions, list):
         expressions = [expressions]
     if function_replace_map is None:
@@ -58,33 +59,55 @@ def compute_terminal_hashdata(expressions, function_replace_map=None):
     arguments = set()
     for expression in expressions:
         for expr in traverse_terminals2(expression):
+
             if isinstance(expr, MultiIndex):
-                terminal_hashdata[expr] = compute_multiindex_hashdata(expr,
-                                                                      index_numbering)
-            elif isinstance(expr, Coefficient):
-                coefficients.add(expr)
-            elif isinstance(expr, Argument):
-                arguments.add(expr)
+                # Indices need a canonical numbering for a stable signature, thus this algorithm
+                data = compute_multiindex_hashdata(expr, index_numbering)
+
+            elif isinstance(expr, ConstantValue):
+                # For literals no renumbering is necessary TODO: This may change if we annotate literals with an Argument
+                data = expr.signature_data()
+
+            elif isinstance(expr, FormArgument):
+                # Save coefficients and arguments for renumbering in next phase
+                if isinstance(expr, Coefficient):
+                    coefficients.add(expr)
+                elif isinstance(expr, Argument):
+                    arguments.add(expr)
+                continue
+
+            elif isinstance(expr, GeometricQuantity):
+                # Assuming all geometric quantities are defined by just their class + domain
+                data = expr.signature_data(domain_numbering=domain_numbering)
+
             elif isinstance(expr, Label):
+                # Numbering labels as we visit them
                 data = labels.get(expr)
                 if data is None:
                     data = "L%d" % len(labels)
                     labels[expr] = data
-                terminal_hashdata[expr] = data
+
             else:
-                terminal_hashdata[expr] = repr(expr)
+                error("Unknown terminal type %s" % type(expr))
+
+            terminal_hashdata[expr] = data
 
     # Apply renumbering of form arguments
-    # (Note: some duplicated work here and in preprocess,
-    # to allow using this function without preprocess.)
-    coefficients = sorted_by_count(coefficients)
-    arguments = sorted_by_count(arguments)
-    for i, e in enumerate(coefficients):
-        er = function_replace_map.get(e) or e.reconstruct(count=i)
-        terminal_hashdata[e] = repr(er)
-    for i, e in enumerate(arguments):
-        er = function_replace_map.get(e) or e.reconstruct(count=i)
-        terminal_hashdata[e] = repr(er)
+    # (Note: some duplicated work here and in preprocess, to
+    # allow using this function without full preprocessing.)
+    for i, e in enumerate(sorted_by_count(coefficients)):
+        er = function_replace_map.get(e)
+        if er is None:
+            er = e
+        data = er.signature_data(count=i, domain_numbering=domain_numbering)
+        terminal_hashdata[e] = data
+
+    for i, e in enumerate(sorted_by_count(arguments)):
+        er = function_replace_map.get(e)
+        if er is None:
+            er = e
+        data = er.signature_data(count=i, domain_numbering=domain_numbering)
+        terminal_hashdata[e] = data
 
     return terminal_hashdata
 
@@ -101,9 +124,49 @@ def compute_expression_hashdata(expression, terminal_hashdata):
         expression_hashdata.append(data)
     return expression_hashdata
 
+def build_domain_numbering(domains):
+    # Create canonical numbering of domains for stable signature
+    # (ordering defined by __lt__ implementation in Domain class)
+    assert None not in domains
+
+    # Collect domain keys
+    items = []
+    for i,domain in enumerate(domains):
+        key = domain.domain_numbering_key()
+        items.append((key, i))
+
+    # Build domain numbering, not allowing repeated keys
+    domain_numbering = {}
+    for key,i in items:
+        if key in domain_numbering:
+            error("Domain key %s occured twice!" % (key,))
+        domain_numbering[key] = i
+
+    # Build domain numbering extension for None-labeled domains, not allowing ambiguity
+    from collections import defaultdict
+    domain_numbering2 = defaultdict(list)
+    for key,i in items:
+        key2 = key[:-1] + (None,)
+        domain_numbering2[key2].append(domain_numbering[key])
+
+    # Add None-based key only where unambiguous
+    for key,i in items:
+        key2 = key[:-1] + (None,)
+        if len(domain_numbering2[key2]) == 1:
+            domain_numbering[key2] = domain_numbering[key]
+        else:
+            # Two domains occur with same properties but different label,
+            # so we cannot decide which one to map None-labeled Domains to.
+            pass
+
+    return domain_numbering
+
 def compute_expression_signature(expr, function_replace_map=None):
+    # Build a stable numbering of absolutely all domains from expr
+    domain_numbering = build_domain_numbering(list(expr.domains()))
+
     # Build hashdata for all terminals first
-    terminal_hashdata = compute_terminal_hashdata([expr],
+    terminal_hashdata = compute_terminal_hashdata([expr], domain_numbering,
                                                   function_replace_map)
 
     # Build hashdata for full expression
@@ -114,12 +177,22 @@ def compute_expression_signature(expr, function_replace_map=None):
     return hashlib.sha512(str(expression_hashdata)).hexdigest()
 
 def compute_form_signature(form, function_replace_map=None):
+    # Extract integrands
     integrals = form.integrals()
     integrands = [integral.integrand() for integral in integrals]
 
+    # Extract absolutely all domains from form
+    all_domains = list(form.domains())
+    for integrand in integrands:
+        all_domains.extend(integrand.domains())
+    domains = join_domains(all_domains)
+
+    # Build a stable numbering of absolutely all domains from form
+    domain_numbering = build_domain_numbering(domains)
+
     # Build hashdata for all terminals first, with on-the-fly
     # replacement of functions and index labels.
-    terminal_hashdata = compute_terminal_hashdata(integrands,
+    terminal_hashdata = compute_terminal_hashdata(integrands, domain_numbering,
                                                   function_replace_map)
     # Build hashdata for each integral
     hashdata = []
@@ -133,9 +206,10 @@ def compute_form_signature(form, function_replace_map=None):
         # affects the way the integral is compiled while domain data is only
         # carried for convenience in the problem solving environment.
         integral_hashdata = (expression_hashdata,
+                             integral.domain().signature_data(domain_numbering=domain_numbering),
                              integral.domain_type(),
                              integral.domain_id(),
-                             repr(integral.compiler_data()),
+                             repr(integral.metadata()),
                              )
 
         hashdata.append(integral_hashdata)

@@ -37,12 +37,8 @@ from ufl.algorithms.transformer import Transformer, ReuseTransformer, apply_tran
 
 class CompoundExpander(ReuseTransformer):
     "Expands compound expressions to equivalent representations using basic operators."
-    def __init__(self, geometric_dimension):
+    def __init__(self):
         ReuseTransformer.__init__(self)
-        self._dim = geometric_dimension
-
-        #if self._dim is None:
-        #    warning("Got None for dimension, some compounds cannot be expanded.")
 
     # ------------ Compound tensor operators
 
@@ -56,8 +52,6 @@ class CompoundExpander(ReuseTransformer):
 
     def _square_matrix_shape(self, A):
         sh = A.shape()
-        if self._dim is not None:
-            sh = complete_shape(sh, self._dim) # FIXME: Does this ever happen? Pretty sure other places assume shapes are always "complete".
         ufl_assert(sh[0] == sh[1], "Expecting square matrix.")
         ufl_assert(sh[0] is not None, "Unknown dimension.")
         return sh
@@ -120,7 +114,7 @@ class CompoundExpander(ReuseTransformer):
                    A[0,1]*det2D(A, 1, 2, 2, 0) + \
                    A[0,2]*det2D(A, 1, 2, 0, 1)
         # TODO: Implement generally for all dimensions?
-        error("Determinant not implemented for dimension %d." % self._dim)
+        error("Determinant not implemented for dimension %d." % sh[0])
 
     def cofactor(self, o, A):
         # TODO: Find common subexpressions here.
@@ -244,8 +238,8 @@ use it instead of expand_compounds from expand_derivatives.
 """
 
 class CompoundExpanderPreDiff(CompoundExpander):
-    def __init__(self, dim):
-        CompoundExpander.__init__(self, dim)
+    def __init__(self):
+        CompoundExpander.__init__(self)
 
     #inner = Transformer.reuse_if_possible
     #dot = Transformer.reuse_if_possible
@@ -286,8 +280,8 @@ class CompoundExpanderPreDiff(CompoundExpander):
         error("Invalid shape %s of curl argument." % (sh,))
 
 class CompoundExpanderPostDiff(CompoundExpander):
-    def __init__(self, dim):
-        CompoundExpander.__init__(self, dim)
+    def __init__(self):
+        CompoundExpander.__init__(self)
 
     def nabla_grad(self, o, a, i):
         error("This should not happen.")
@@ -301,36 +295,24 @@ class CompoundExpanderPostDiff(CompoundExpander):
     def curl(self, o, a, i):
         error("This should not happen.")
 
-def expand_compounds1(e, dim=None):
+def expand_compounds1(e):
     """Expand compound objects into basic operators.
     Requires e to have a well defined geometric dimension."""
-    if dim is None:
-        cell = e.cell()
-        dim = None if cell is None else cell.geometric_dimension()
-    return apply_transformer(e, CompoundExpander(dim))
+    return apply_transformer(e, CompoundExpander())
 
-def expand_compounds2(e, dim=None):
+def expand_compounds2(e):
     """Expand compound objects into basic operators.
     Requires e to have a well defined geometric dimension."""
-    if dim is None:
-        cell = e.cell()
-        dim = None if cell is None else cell.geometric_dimension()
-    return expand_compounds_postdiff(expand_compounds_prediff(e, dim), dim)
+    return expand_compounds_postdiff(expand_compounds_prediff(e))
 
-def expand_compounds_prediff(e, dim=None):
+def expand_compounds_prediff(e):
     """Expand compound objects into basic operators.
     Requires e to have a well defined geometric dimension."""
-    if dim is None:
-        cell = e.cell()
-        dim = None if cell is None else cell.geometric_dimension()
-    return apply_transformer(e, CompoundExpanderPreDiff(dim))
+    return apply_transformer(e, CompoundExpanderPreDiff())
 
-def expand_compounds_postdiff(e, dim=None):
+def expand_compounds_postdiff(e):
     """Expand compound objects into basic operators.
     Requires e to have a well defined geometric dimension."""
-    if dim is None:
-        cell = e.cell()
-        dim = None if cell is None else cell.geometric_dimension()
-    return apply_transformer(e, CompoundExpanderPostDiff(dim))
+    return apply_transformer(e, CompoundExpanderPostDiff())
 
 expand_compounds = expand_compounds1

@@ -22,28 +22,32 @@
 # First added:  2008-08-14
 # Last changed: 2011-10-11
 
-# Function for preprocessing a form
-from ufl.algorithms.preprocess import preprocess, preprocess_expression, extract_common_cell
-
-# Class for simple extraction of form meta data
-from ufl.algorithms.formdata import FormData
-
 # Utilities for traversing over expression trees in different ways
 from ufl.algorithms.traversal import iter_expressions, traverse_terminals, \
                                      post_traversal, pre_traversal, \
                                      post_walk, pre_walk, walk
 
+# Class for simple extraction of form meta data
+from ufl.algorithms.formdata import FormData
+
+# Function for preprocessing a form
+from ufl.algorithms.preprocess import preprocess
+from ufl.algorithms.preprocess_expression import preprocess_expression
+
 # Utilities for extracting information from forms and expressions
 from ufl.algorithms.analysis import extract_classes, extract_type, has_type, \
-                                    extract_arguments, extract_coefficients, extract_arguments_and_coefficients, \
+                                    extract_arguments, extract_coefficients, \
+                                    extract_arguments_and_coefficients, \
                                     extract_elements, extract_unique_elements, \
                                     extract_sub_elements, extract_unique_sub_elements, \
                                     extract_variables, extract_duplications, \
-                                    extract_max_quadrature_element_degree, estimate_quadrature_degree, \
+                                    extract_max_quadrature_element_degree, \
+                                    estimate_quadrature_degree, \
                                     sort_elements
 
 # Utilities for checking properties of forms
 from ufl.algorithms.predicates import is_multilinear
+from ufl.algorithms.signature import compute_form_signature
 
 # Utilities for error checking of forms
 from ufl.algorithms.checks import validate_form

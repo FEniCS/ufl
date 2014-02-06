@@ -24,7 +24,7 @@ class ElementsTestCase(UflTestCase):
 
     def test_vector_galerkin(self):
         for cell in all_cells:
-            dim = cell.d
+            dim = cell.geometric_dimension()
             #shape = () if dim == 1 else (dim,)
             shape = (dim,)
             for p in range(1,10):
@@ -38,7 +38,7 @@ class ElementsTestCase(UflTestCase):
 
     def test_tensor_galerkin(self):
         for cell in all_cells:
-            dim = cell.d
+            dim = cell.geometric_dimension()
             #shape = () if dim == 1 else (dim,dim)
             shape = (dim,dim)
             for p in range(1,10):
@@ -53,7 +53,7 @@ class ElementsTestCase(UflTestCase):
 
     def test_tensor_symmetry(self):
         for cell in all_cells:
-            dim = cell.d
+            dim = cell.geometric_dimension()
             for p in range(1,10):
                 for s in (None, True, {(0,1): (1,0)}):
                     # Symmetry dict is invalid for interval cell
@@ -99,21 +99,21 @@ class ElementsTestCase(UflTestCase):
 
     def test_bdm(self):
         for cell in (triangle, tetrahedron):
-            dim = cell.d
+            dim = cell.geometric_dimension()
             element = FiniteElement("BDM", cell, 1)
             self.assertEqual(element.value_shape(), (dim,))
             self.assertEqual(element, eval(repr(element)))
 
     def test_vector_bdm(self):
         for cell in (triangle, tetrahedron):
-            dim = cell.d
+            dim = cell.geometric_dimension()
             element = VectorElement("BDM", cell, 1)
             self.assertEqual(element.value_shape(), (dim,dim))
             self.assertEqual(element, eval(repr(element)))
 
     def test_mixed(self):
         for cell in (triangle, tetrahedron):
-            dim = cell.d
+            dim = cell.geometric_dimension()
             velement = VectorElement("CG", cell, 2)
             pelement = FiniteElement("CG", cell, 1)
             TH1 = MixedElement(velement, pelement)
@@ -126,7 +126,7 @@ class ElementsTestCase(UflTestCase):
 
     def test_nested_mixed(self):
         for cell in (triangle, tetrahedron):
-            dim = cell.d
+            dim = cell.geometric_dimension()
             velement = VectorElement("CG", cell, 2)
             pelement = FiniteElement("CG", cell, 1)
             TH1 = MixedElement((velement, pelement), pelement)

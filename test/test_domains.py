@@ -9,9 +9,9 @@ from ufltestcase import UflTestCase, main
 
 # This imports everything external code will see from ufl
 from ufl import *
-from ufl.domains import as_domain
 #from ufl.classes import ...
 #from ufl.algorithms import ...
+from ufl.geometry import as_domain
 
 all_cells = (cell1D, cell2D, cell3D,
              interval, triangle, tetrahedron,
@@ -33,23 +33,30 @@ class RegionConstructionTestCase(UflTestCase):
                     print
             self.assertEqual(D1, D2)
 
-    def test_as_domain_from_cell_is_unique(self):
+    def test_as_domain_from_cell_is_equal(self):
         for cell in all_cells:
             D1 = as_domain(cell)
             D2 = as_domain(cell)
-            self.assertTrue(D1 is D2)
+            self.assertEqual(D1, D2)
 
     def test_construct_domains_with_names(self):
         for cell in all_cells:
-            D2 = Domain(cell, name="D2")
-            D3 = Domain(cell, name="D3")
+            D2 = Domain(cell, label="D2")
+            D3 = Domain(cell, label="D3")
+            D3b = Domain(cell, label="D3")
             self.assertNotEqual(D2, D3)
+            self.assertEqual(D3, D3b)
 
     def test_domains_sort_by_name(self):
         # This ordering is rather arbitrary, but at least this shows sorting is working
-        domains1 = [Domain(cell, "D%s"%cell.cellname()) for cell in all_cells]
-        domains2 = [Domain(cell, "D%s"%cell.cellname()) for cell in sorted(all_cells)]
-        sdomains = sorted(domains1)
+        domains1 = [Domain(cell, label="D%s" % cell.cellname())
+                    for cell in all_cells]
+        domains2 = [Domain(cell, label="D%s" % cell.cellname())
+                    for cell in sorted(all_cells)]
+        sdomains = sorted(domains1, key=lambda D: (D.geometric_dimension(),
+                                              D.topological_dimension(),
+                                              D.cell(),
+                                              D.label()))
         self.assertNotEqual(sdomains, domains1)
         self.assertEqual(sdomains, domains2)
 
@@ -60,82 +67,6 @@ class RegionConstructionTestCase(UflTestCase):
         self.assertEqual(D.geometric_dimension(), 2)
         D = Domain(tetrahedron)
         self.assertEqual(D.geometric_dimension(), 3)
-
-    def xtest_numbered_subdomains_are_registered(self): # THIS IS DISABLED BECAUSE REGION REGISTERING IS UNSAFE
-        D = Domain(triangle)
-
-        D1 = D[1]
-        D2 = D[2]
-
-        self.assertEqual(D.regions(), [D1, D2])
-        self.assertEqual(D.region_names(), ['triangle_multiverse_1',
-                                            'triangle_multiverse_2'])
-
-    def xtest_named_subdomain_groups_are_registered(self): # THIS IS DISABLED BECAUSE REGION REGISTERING IS UNSAFE
-        D = Domain(triangle)
-
-        DL = Region(D, (1, 2), 'DL')
-        DR = Region(D, (2, 3), 'DR')
-
-        self.assertEqual(D.regions(), [DL, DR])
-        self.assertEqual(D.region_names(), ['DL', 'DR'])
-
-class MeasuresOverRegionsTestCase(UflTestCase):
-
-    def setUp(self):
-        UflTestCase.setUp(self)
-
-        self.cell = tetrahedron
-        self.D = Domain(self.cell)
-        self.DL = Region(self.D, (1, 2), 'DL')
-        self.DR = Region(self.D, (2, 3), 'DR')
-
-    def test_construct_spaces_over_regions(self):
-        VL = FiniteElement("CG", self.DL, 1)
-        VR = FiniteElement("CG", self.DR, 1)
-        self.assertNotEqual(VL, VR)
-        self.assertEqual(VL.reconstruct(domain=self.DR), VR)
-        self.assertEqual(VR.reconstruct(domain=self.DL), VL)
-        #self.assertEqual(VL.region(), self.DL)
-        #self.assertEqual(VR.region(), self.DR)
-
-    def test_construct_measures_over_regions(self):
-        VL = FiniteElement("CG", self.DL, 1)
-        VR = FiniteElement("CG", self.DR, 1)
-        self.assertNotEqual(Coefficient(VL, count=3), Coefficient(VR, count=3))
-        self.assertEqual(Coefficient(VL, count=3), Coefficient(VL, count=3))
-        fl = Coefficient(VL)
-        fr = Coefficient(VR)
-
-        # Three ways to construct an equivalent form
-        M_dxr1 = fr*dx(self.DR)
-        M_dxr2 = fr*dx('DR')
-        M_dx23 = fr*dx((2,3))
-
-        self.assertEqual(M_dxr1.compute_form_data().integral_data,
-                         M_dx23.compute_form_data().integral_data)
-        self.assertEqual(M_dxr1, M_dxr2)
-
-        #for M in (M_dxr1, M_dxr2, M_dx23):
-        #    self.assertEqual(M.integrals(Measure.CELL)[0].measure(), dx(self.DR))
-
-        # Construct a slightly more complex form, including overlapping subdomains
-        M1 = fl*dx(self.DL) + fr*dx(self.DR) # TODO: Test handling of legal measures
-        M2 = fl*dx("DL") + fr*dx("DR") # TODO: Test regions by name
-        M3 = fl*dx((1,2)) + fr*dx((2,3)) # TODO: Test subdomains by number
-        M4 = fl*dx(1) + fl*dx(2) + fr*dx(2) + fr*dx(3) # TODO: Test subdomains by number
-
-    def test_detection_of_coefficients_integrated_outside_support(self):
-        pass
-        #M = fl*dx(DR) + fr*dx(DL) # TODO: Test handling of illegal measures
-
-    def test_extract_domains_from_form(self):
-        cell = triangle
-        # FIXME
-
-    def test_(self):
-        cell = triangle
-        # FIXME
 
 class FormDomainModelTestCase(UflTestCase):
     def test_everywhere_integrals_with_backwards_compatibility(self):
@@ -149,7 +80,7 @@ class FormDomainModelTestCase(UflTestCase):
 
         # Check some integral data
         self.assertEqual(ida.domain_type, "cell")
-        self.assertEqual(ida.domain_id, Measure.DOMAIN_ID_OTHERWISE)
+        self.assertEqual(ida.domain_id, "otherwise")
         self.assertEqual(ida.metadata, {})
 
         # Integrands are not equal because of renumbering
@@ -158,7 +89,7 @@ class FormDomainModelTestCase(UflTestCase):
         self.assertEqual(type(itg1), type(itg2))
         self.assertEqual(itg1.element(), itg2.element())
 
-    def test_mixed_elements_on_overlapping_regions(self):
+    def xtest_mixed_elements_on_overlapping_regions(self):
         # Create domain and both disjoint and overlapping regions
         D = Domain(tetrahedron, 'D')
         DD = Region(D, (0,4), "DD")
@@ -228,13 +159,12 @@ class FormDomainModelTestCase(UflTestCase):
         #self.assertRaises(UFLException, lambda: mr**2*dx(DD)) # FIXME: Make this fail
         #self.assertRaises(UFLException, lambda: mr**2*dx(DD)) # FIXME: Make this fail
 
-    def test_form_domain_model(self):
+    def xtest_form_domain_model(self):
         # Create domains with different celltypes
-        # TODO: Figure out PyDOLFIN integration with Domain and Region.
-        # TODO: Allow Domain class to carry domain marker data? Instead of attaching to measure with dx[markers].
+        # TODO: Figure out PyDOLFIN integration with Domain
         #DA = Domain(tetrahedron, 'DA', markers="arbitrary data")
-        DA = Domain(tetrahedron, 'DA')
-        DB = Domain(hexahedron, 'DB')
+        DA = Domain(tetrahedron, label='DA')
+        DB = Domain(hexahedron, label='DB')
 
         # Check python protocol behaviour
         self.assertNotEqual(DA, DB)

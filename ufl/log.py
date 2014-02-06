@@ -233,3 +233,5 @@ ufl_logger = Logger("UFL", UFLException)
 
 for foo in log_functions:
     exec("%s = ufl_logger.%s" % (foo, foo))
+
+set_level(DEPRECATE)

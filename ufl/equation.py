@@ -21,7 +21,6 @@
 # Last changed: 2011-06-22
 
 class Equation:
-
     """This class is used to represent equations expressed by the "=="
     operator. Examples include a == L and F == 0 where a, L and F are
     Form objects."""
@@ -32,10 +31,17 @@ class Equation:
         self.rhs = rhs
 
     def __nonzero__(self):
-        return type(self.lhs) == type(self.rhs) and \
-            repr(self.lhs) == repr(self.rhs) # REPR not a problem
+        "Evaluate bool(lhs_form == rhs_form)."
+        if type(self.lhs) != type(self.rhs):
+            return False
+        # Try to delegate to equals function
+        if hasattr(self.lhs, "equals"):
+            return self.lhs.equals(self.rhs)
+        # Fall back to repr
+        return repr(self.lhs) == repr(self.rhs)
 
     def __eq__(self, other):
+        "Compare two equations by comparing lhs and rhs."
         return isinstance(other, Equation) and \
             bool(self.lhs == other.lhs) and \
             bool(self.rhs == other.rhs)

@@ -9,7 +9,7 @@ from itertools import chain
 
 from ufl import *
 from ufl.constantvalue import as_ufl
-from ufl.algorithms import expand_indices, strip_variables, post_traversal, preprocess
+from ufl.algorithms import expand_indices, strip_variables, post_traversal, preprocess, compute_form_signature
 
 class DerivativeTestCase(UflTestCase):
 
@@ -69,12 +69,12 @@ class DerivativeTestCase(UflTestCase):
     # --- Geometry
 
     def testSpatialCoordinate(self):
-        def f(w):     return triangle.x[0]
+        def f(w):     return SpatialCoordinate(triangle)[0]
         def df(w, v): return zero()
         self._test(f, df)
 
     def testFacetNormal(self):
-        def f(w):     return triangle.n[0]
+        def f(w):     return FacetNormal(triangle)[0]
         def df(w, v): return zero()
         self._test(f, df)
 
@@ -240,9 +240,9 @@ class DerivativeTestCase(UflTestCase):
 
     def assertEqualBySampling(self, actual, expected):
         ad = (actual*dx).compute_form_data()
-        a = ad.preprocessed_form.integrals(Measure.CELL)[0].integrand()
+        a = ad.preprocessed_form.integrals_by_type(Measure.CELL)[0].integrand()
         bd = (expected*dx).compute_form_data()
-        b = bd.preprocessed_form.integrals(Measure.CELL)[0].integrand()
+        b = bd.preprocessed_form.integrals_by_type(Measure.CELL)[0].integrand()
 
         self.assertEqual([ad.function_replace_map[ac] for ac in ad.original_coefficients],
                          [bd.function_replace_map[bc] for bc in bd.original_coefficients])
@@ -262,11 +262,11 @@ class DerivativeTestCase(UflTestCase):
         acell = actual.cell()
         bcell = expected.cell()
         self.assertEqual(acell, bcell)
-        if acell.d == 1:
+        if acell.geometric_dimension() == 1:
             x = (0.3,)
-        elif acell.d == 2:
+        elif acell.geometric_dimension() == 2:
             x = (0.3, 0.4)
-        elif acell.d == 3:
+        elif acell.geometric_dimension() == 3:
             x = (0.3, 0.4, 0.5)
         av = a(x, amapping)
         bv = b(x, bmapping)
@@ -324,7 +324,7 @@ class DerivativeTestCase(UflTestCase):
 
     def test_indexed_coefficient_derivative(self):
         cell = triangle
-        I = Identity(cell.d)
+        I = Identity(cell.geometric_dimension())
         V = FiniteElement("CG", cell, 1)
         W = VectorElement("CG", cell, 1)
         u = Coefficient(W)
@@ -343,7 +343,7 @@ class DerivativeTestCase(UflTestCase):
 
     def test_multiple_indexed_coefficient_derivative(self):
         cell = tetrahedron
-        I = Identity(cell.d)
+        I = Identity(cell.geometric_dimension())
         V = FiniteElement("CG", cell, 1)
         V2 = V*V
         W = VectorElement("CG", cell, 1)
@@ -371,13 +371,13 @@ class DerivativeTestCase(UflTestCase):
 
         Lv = {}
         Lvu = {}
-        for i in range(cell.d):
+        for i in range(cell.geometric_dimension()):
             Lv[i] = derivative(L, v[i], dv)
-            for j in range(cell.d):
+            for j in range(cell.geometric_dimension()):
                 Lvu[i,j] = derivative(Lv[i], u[j], du)
 
-        for i in range(cell.d):
-            for j in range(cell.d):
+        for i in range(cell.geometric_dimension()):
+            for j in range(cell.geometric_dimension()):
                 form = Lvu[i,j]*dx
                 fd = form.compute_form_data()
                 pf = fd.preprocessed_form
@@ -385,8 +385,8 @@ class DerivativeTestCase(UflTestCase):
                 #print (i,j), str(a)
 
         k = Index()
-        for i in range(cell.d):
-            for j in range(cell.d):
+        for i in range(cell.geometric_dimension()):
+            for j in range(cell.geometric_dimension()):
                 actual = Lvu[i,j]
                 expected = du*u[i].dx(j)*dv + u[k]*du.dx(k)*dv
                 self.assertEqualBySampling(actual, expected)
@@ -413,7 +413,7 @@ class DerivativeTestCase(UflTestCase):
         J = derivative(F, u, du, cd)
         fd = J.compute_form_data()
         actual = fd.preprocessed_form.integrals()[0].integrand()
-        self.assertEqual((actual*dx).deprecated_signature(), (expected*dx).deprecated_signature())
+        self.assertEqual(compute_form_signature(actual*dx), compute_form_signature(expected*dx))
         self.assertEqual(replace(actual, fd.function_replace_map), expected)
 
     def test_vector_coefficient_derivatives(self):
@@ -438,7 +438,7 @@ class DerivativeTestCase(UflTestCase):
         J = derivative(F, u, du, cd)
         fd = J.compute_form_data()
         actual = fd.preprocessed_form.integrals()[0].integrand()
-        self.assertEqual((actual*dx).deprecated_signature(), (expected*dx).deprecated_signature())
+        self.assertEqual(compute_form_signature(actual*dx), compute_form_signature(expected*dx))
         #self.assertEqual(replace(actual, fd.function_replace_map), expected)
 
     def test_vector_coefficient_derivatives_of_product(self):
@@ -523,9 +523,9 @@ class DerivativeTestCase(UflTestCase):
         F = form_data_F.preprocessed_form
         J = form_data_J.preprocessed_form
 
-        f_expression = strip_variables(f.integrals(Measure.CELL)[0].integrand())
-        F_expression = strip_variables(F.integrals(Measure.CELL)[0].integrand())
-        J_expression = strip_variables(J.integrals(Measure.CELL)[0].integrand())
+        f_expression = strip_variables(f.integrals_by_type(Measure.CELL)[0].integrand())
+        F_expression = strip_variables(F.integrals_by_type(Measure.CELL)[0].integrand())
+        J_expression = strip_variables(J.integrals_by_type(Measure.CELL)[0].integrand())
 
         #classes = set(c.__class__ for c in post_traversal(f_expression))
 
@@ -638,4 +638,3 @@ class DerivativeTestCase(UflTestCase):
 
 if __name__ == "__main__":
     main()
-

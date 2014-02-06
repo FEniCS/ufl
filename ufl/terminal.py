@@ -55,6 +55,10 @@ class Terminal(Expr):
         "A Terminal object never has free indices."
         return EmptyDict
 
+    def domains(self):
+        "Return tuple of domains related to this terminal object."
+        raise NotImplementedError("Missing implementation of domains().")
+
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
         "Get self from mapping and return the component asked for."
         f = mapping.get(self)
@@ -93,9 +97,11 @@ class Terminal(Expr):
         return f
 
     def signature_data(self):
+        "Default signature data for of terminals just return the repr string."
         return repr(self)
 
     def __hash__(self):
+        "Default hash of terminals just hash the repr string."
         return hash(repr(self))
 
     def __eq__(self, other):
@@ -134,6 +140,10 @@ class UtilityType(Terminal):
     def is_cellwise_constant(self):
         error("Calling is_cellwise_constant on a utility type is an error.")
 
+    def domains(self):
+        "Return tuple of domains related to this terminal object."
+        return ()
+
 #--- Non-tensor types ---
 
 class Data(UtilityType):
@@ -148,4 +158,3 @@ class Data(UtilityType):
 
     def __repr__(self):
         return "Data(%r)" % (self._data,)
-

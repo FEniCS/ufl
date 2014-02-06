@@ -31,6 +31,7 @@ width = 1
 depth = 1
 height = 1
 n = 5
+gdim = 3
 mesh = Box(0, width, 0, depth, 0, height, n*width, n*depth, n*height)
 
 # Reference fibre, sheet and sheet-normal directions
@@ -65,7 +66,7 @@ def psi_vol_inf(J):
 # Define the elastic response of the material
 def P(u):
     # Kinematics
-    I = Identity(u.cell().d)    # Identity tensor
+    I = Identity(gdim)          # Identity tensor
     F = I + grad(u)             # Deformation gradient
     C = F.T*F                   # Right Cauchy-Green tensor
     J = variable(det(F))        # Jacobian
@@ -107,7 +108,7 @@ def P(u):
     return (F*(S_iso_inf + S_vol_inf))
 
 def sigma(u):
-    I = Identity(u.cell().d)
+    I = Identity(gdim)
     F = I + grad(u)
     J = det(F)
     return(1/J*P(u)*F.T)
