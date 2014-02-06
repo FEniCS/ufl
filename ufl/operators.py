@@ -316,6 +316,8 @@ def grad(f):
 
     for scalar expressions s, vector expressions v,
     and arbitrary rank tensor expressions T.
+
+    See also: :py:func:`nabla_grad`
     """
     f = as_ufl(f)
     return Grad(f)
@@ -331,6 +333,8 @@ def div(f):
 
     for vector expressions v, and
     arbitrary rank tensor expressions T.
+
+    See also: :py:func:`nabla_div`
     """
     f = as_ufl(f)
     return Div(f)
@@ -348,6 +352,8 @@ def nabla_grad(f):
 
     for scalar expressions s, vector expressions v,
     and arbitrary rank tensor expressions T.
+
+    See also: :py:func:`grad`
     """
     f = as_ufl(f)
     return NablaGrad(f)
@@ -363,6 +369,8 @@ def nabla_div(f):
 
     for vector expressions v, and
     arbitrary rank tensor expressions T.
+
+    See also: :py:func:`div`
     """
     f = as_ufl(f)
     return NablaDiv(f)
