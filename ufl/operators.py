@@ -308,7 +308,7 @@ def grad(f):
 
     This operator follows the grad convention where
 
-      grad(s)[i] = s.dx(j)
+      grad(s)[i] = s.dx(i)
 
       grad(v)[i,j] = v[i].dx(j)
 
@@ -340,7 +340,7 @@ def nabla_grad(f):
 
     This operator follows the grad convention where
 
-      nabla_grad(s)[i] = s.dx(j)
+      nabla_grad(s)[i] = s.dx(i)
 
       nabla_grad(v)[i,j] = v[j].dx(i)
 
