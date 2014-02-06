@@ -113,7 +113,7 @@ def _compute_element_mapping(form, common_domain):
         # Set degree
         degree = element.degree()
         if degree is None:
-            info("Adjusting element degree from %s to %d" % (istr(degree), common_degree))
+            info("Adjusting missing element degree to %d" % (common_degree,))
             degree = common_degree
             reconstruct = True
 
