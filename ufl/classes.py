@@ -49,8 +49,8 @@ from ufl.geometry import (Cell, ProductCell,
     SpatialCoordinate, FacetNormal,
     CellVolume, Circumradius, CellSurfaceArea,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength, FacetDiameter,
-    LocalCoordinate, GeometryJacobi,
-    GeometryJacobiDeterminant, InverseGeometryJacobi,
+    LocalCoordinate, Jacobian,
+    JacobianDeterminant, JacobianInverse,
     CellBarycenter, FacetBarycenter)
 from ufl.indexing import IndexBase, FixedIndex, Index, MultiIndex
 

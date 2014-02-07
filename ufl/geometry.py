@@ -186,7 +186,7 @@ class FacetBarycenter(GeometricQuantity):
     def __repr__(self):
         return "FacetBarycenter(%r)" % self._domain
 
-class GeometryJacobi(GeometricQuantity):
+class Jacobian(GeometricQuantity):
     "(EXPERIMENTAL) Representation of the Jacobi of the mapping from local to global coordinates."
     __slots__ = ()
     def __init__(self, domain):
@@ -206,9 +206,9 @@ class GeometryJacobi(GeometricQuantity):
         return "J"
 
     def __repr__(self):
-        return "GeometryJacobi(%r)" % self._domain
+        return "Jacobian(%r)" % self._domain
 
-class GeometryJacobiDeterminant(GeometricQuantity):
+class JacobianDeterminant(GeometricQuantity):
     "(EXPERIMENTAL) Representation of the determinant of the Jacobi of the mapping from local to global coordinates."
     __slots__ = ()
     def __init__(self, domain):
@@ -228,9 +228,9 @@ class GeometryJacobiDeterminant(GeometricQuantity):
         return "detJ"
 
     def __repr__(self):
-        return "GeometryJacobiDeterminant(%r)" % self._domain
+        return "JacobianDeterminant(%r)" % self._domain
 
-class InverseGeometryJacobi(GeometricQuantity):
+class JacobianInverse(GeometricQuantity):
     "(EXPERIMENTAL) Representation of the (pseudo-)inverse of the Jacobi of the mapping from local to global coordinates."
     __slots__ = ()
     def __init__(self, domain):
@@ -250,7 +250,7 @@ class InverseGeometryJacobi(GeometricQuantity):
         return "K"
 
     def __repr__(self):
-        return "InverseGeometryJacobi(%r)" % self._domain
+        return "JacobianInverse(%r)" % self._domain
 
 class FacetNormal(GeometricQuantity):
     "Representation of a facet normal."
@@ -397,20 +397,20 @@ class DeprecatedGeometryProperties(object):
     @property
     def J(self):
         "UFL geometry value: The Jacobi of the local to global coordinate mapping."
-        deprecate("cell.J is deprecated, please use GeometryJacobi(domain) instead")
-        return GeometryJacobi(as_domain(self))
+        deprecate("cell.J is deprecated, please use Jacobian(domain) instead")
+        return Jacobian(as_domain(self))
 
     @property
     def detJ(self):
         "UFL geometry value: The determinant of the Jacobi of the local to global coordinate mapping."
-        deprecate("cell.detJ is deprecated, please use GeometryJacobiDeterminant(domain) instead")
-        return GeometryJacobiDeterminant(as_domain(self))
+        deprecate("cell.detJ is deprecated, please use JacobianDeterminant(domain) instead")
+        return JacobianDeterminant(as_domain(self))
 
     @property
     def Jinv(self):
         "UFL geometry value: The inverse of the Jacobi of the local to global coordinate mapping."
-        deprecate("cell.Jinv is deprecated, please use InverseGeometryJacobi(domain) instead")
-        return InverseGeometryJacobi(as_domain(self))
+        deprecate("cell.Jinv is deprecated, please use JacobianInverse(domain) instead")
+        return JacobianInverse(as_domain(self))
 
     @property
     def n(self):

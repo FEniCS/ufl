@@ -77,8 +77,8 @@ A very brief overview of the language contents follows:
     SpatialCoordinate, FacetNormal,
     CellVolume, Circumradius, CellSurfaceArea,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength, FacetDiameter,
-    LocalCoordinate, GeometryJacobi,
-    GeometryJacobiDeterminant, InverseGeometryJacobi,
+    LocalCoordinate, Jacobian,
+    JacobianDeterminant, JacobianInverse,
     CellBarycenter, FacetBarycenter
 
 * Indices::
@@ -189,8 +189,8 @@ from ufl.geometry import (as_domain, Cell, ProductCell, Domain,
      SpatialCoordinate, FacetNormal,
      CellVolume, Circumradius, CellSurfaceArea,
      FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength, FacetDiameter,
-     LocalCoordinate, GeometryJacobi,
-     GeometryJacobiDeterminant, InverseGeometryJacobi,
+     LocalCoordinate, Jacobian,
+     JacobianDeterminant, JacobianInverse,
      CellBarycenter, FacetBarycenter)
 
 # Finite elements classes
@@ -279,8 +279,8 @@ __all__ = [
     'SpatialCoordinate', 'FacetNormal',
     'CellVolume', 'Circumradius', 'CellSurfaceArea',
     'FacetArea', 'MinFacetEdgeLength', 'MaxFacetEdgeLength', 'FacetDiameter',
-    'LocalCoordinate', 'GeometryJacobi',
-    'GeometryJacobiDeterminant', 'InverseGeometryJacobi',
+    'LocalCoordinate', 'Jacobian',
+    'JacobianDeterminant', 'JacobianInverse',
     'CellBarycenter', 'FacetBarycenter',
     'FiniteElementBase', 'FiniteElement',
     'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
