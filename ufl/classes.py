@@ -40,7 +40,7 @@ from ufl.expr import Expr
 # Terminal types
 from ufl.terminal import Terminal, FormArgument, UtilityType, Data
 from ufl.constantvalue import ConstantValue, IndexAnnotated, Zero, ScalarValue,\
-    FloatValue, IntValue, Identity, PermutationSymbol
+    FloatValue, IntValue, Identity, PermutationSymbol, AbstractSymbol
 from ufl.argument import Argument, TestFunction, TrialFunction
 from ufl.coefficient import (Coefficient, ConstantBase,
     VectorConstant, TensorConstant, Constant)

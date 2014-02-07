@@ -57,9 +57,6 @@ class ConstantValue(Terminal):
         "Return tuple of domains related to this terminal object."
         return ()
 
-    def __getnewargs__(self):
-        return (self._dim,)
-
 class IndexAnnotated(ConstantValue):
     """Class to annotate expressions that don't depend on
     indices with a set of free indices, used internally to keep
@@ -77,6 +74,45 @@ class IndexAnnotated(ConstantValue):
         if (set(self._free_indices) ^ set(self._index_dimensions.keys())):
             error("Index set mismatch.")
 
+#--- Class for representing abstract constant symbol only for use internally in form compilers
+class AbstractSymbol(ConstantValue):
+    "UFL literal type: Representation of a constant valued symbol with unknown properties."
+    __slots__ = ("_name", "_shape")
+    def __init__(self, name, shape):
+        ConstantValue.__init__(self)
+        self._name = name
+        self._shape = shape
+
+    def __getnewargs__(self):
+        return (self._name, self._shape)
+
+    def reconstruct(self, name=None):
+        if name is None:
+            name = self._name
+        return AbstractSymbol(name, self._shape)
+
+    def shape(self):
+        return self._shape
+
+    def free_indices(self):
+        return ()
+
+    def index_dimensions(self):
+        return EmptyDict
+
+    def evaluate(self, x, mapping, component, index_values):
+        error("Abstract symbol '%s' cannot be evaluated." % self._name)
+
+    def __str__(self):
+        return "<Abstract symbol named '%s' with shape %s>" % (self._name, self._shape)
+
+    def __repr__(self):
+        return "AbstractSymbol(%r, %r)" % (self._name, self._shape)
+
+    def __eq__(self, other):
+        return isinstance(other, AbstractSymbol) and self._name == other._name and self._shape == other._shape
+
+            
 #--- Class for representing zero tensors of different shapes ---
 
 # TODO: Add geometric dimension and Argument dependencies to Zero?
@@ -306,6 +342,8 @@ class Identity(ConstantValue):
     def __eq__(self, other):
         return isinstance(other, Identity) and self._dim == other._dim
 
+    def __getnewargs__(self):
+        return (self._dim,)
 
 #--- Permutation symbol ---
 
@@ -356,6 +394,9 @@ class PermutationSymbol(ConstantValue):
                 elif x1 == x2:
                     return Zero()
         return result
+
+    def __getnewargs__(self):
+        return (self._dim,)
 
 def as_ufl(expression):
     "Converts expression to an Expr if possible."
