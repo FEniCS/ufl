@@ -46,7 +46,7 @@ from ufl.coefficient import (Coefficient, ConstantBase,
     VectorConstant, TensorConstant, Constant)
 from ufl.geometry import (Cell, ProductCell,
     GeometricQuantity,
-    SpatialCoordinate, FacetNormal,
+    SpatialCoordinate, FacetNormal, CellNormal,
     CellVolume, Circumradius, CellSurfaceArea,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength, FacetDiameter,
     LocalCoordinate, Jacobian,

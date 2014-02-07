@@ -41,29 +41,42 @@ class RestrictionPropagator(ReuseTransformer):
 
     def facet_normal(self, o):
         ufl_assert(self.current_restriction is not None, "FacetNormal must be restricted.")
-        #if self.current_restriction is None:
-        #    return o
         return o(self.current_restriction)
+
+    def cell_normal(self, o):
+        ufl_assert(self.current_restriction is not None, "CellNormal must be restricted.")
+        return o(self.current_restriction)
+
+    def cell_barycenter(self, o):
+        ufl_assert(self.current_restriction is not None, "CellBarycenter must be restricted.")
+        return o(self.current_restriction)
+
+    #def jacobian(self, o): # FIXME: Is this the jacobian of one of the cells or the facet?
+    #    ufl_assert(self.current_restriction is not None, "Jacobian must be restricted.")
+    #    return o(self.current_restriction)
+
+    #def jacobian_determinant(self, o): # FIXME: Is this the jacobian of one of the cells or the facet?
+    #    ufl_assert(self.current_restriction is not None, "JacobianDeterminant must be restricted.")
+    #    return o(self.current_restriction)
+
+    #def jacobian_inverse(self, o): # FIXME: Is this the jacobian of one of the cells or the facet?
+    #    ufl_assert(self.current_restriction is not None, "JacobianInverse must be restricted.")
+    #    return o(self.current_restriction)
 
     def cell_volume(self, o):
         ufl_assert(self.current_restriction is not None, "CellVolume must be restricted.")
-        #if self.current_restriction is None:
-        #    return o
         return o(self.current_restriction)
 
     def circumradius(self, o):
         ufl_assert(self.current_restriction is not None, "Circumradius must be restricted.")
-        #if self.current_restriction is None:
-        #    return o
         return o(self.current_restriction)
 
     def cell_surface_area(self, o):
         ufl_assert(self.current_restriction is not None, "CellSurfaceArea must be restricted.")
-        #if self.current_restriction is None:
-        #    return o
         return o(self.current_restriction)
 
-    # facet_area, facet_diameter, max_facet_edge_length are all the same from both sides of a facet
+    # These are all the same from both sides of a facet:
+    # facet_barycenter, facet_area, facet_diameter, min_facet_edge_length, max_facet_edge_length
 
     def form_argument(self, o):
         ufl_assert(self.current_restriction is not None, "Form argument must be restricted.")

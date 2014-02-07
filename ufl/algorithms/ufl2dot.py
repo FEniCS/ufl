@@ -31,7 +31,6 @@ from ufl.form import Form
 from ufl.integral import Measure
 from ufl.variable import Variable
 from ufl.constantvalue import ScalarValue
-from ufl.geometry import FacetNormal
 from ufl.classes import FormArgument, MultiIndex, NegativeRestricted, PositiveRestricted
 from ufl.algorithms.multifunction import MultiFunction
 

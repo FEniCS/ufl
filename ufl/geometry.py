@@ -187,14 +187,15 @@ class FacetBarycenter(GeometricQuantity):
         return "FacetBarycenter(%r)" % self._domain
 
 class Jacobian(GeometricQuantity):
-    "(EXPERIMENTAL) Representation of the Jacobi of the mapping from local to global coordinates."
+    "Representation of the Jacobi of the mapping from local to global coordinates."
     __slots__ = ()
     def __init__(self, domain):
         GeometricQuantity.__init__(self, domain)
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
-        return True # False # FIXME: True for affine mappings, not for other mappings when we add support for them
+        # FIXME: Not true for non-affine mappings
+        return True
 
     def shape(self):
         return (self._domain.geometric_dimension(), self._domain.topological_dimension())
@@ -209,14 +210,15 @@ class Jacobian(GeometricQuantity):
         return "Jacobian(%r)" % self._domain
 
 class JacobianDeterminant(GeometricQuantity):
-    "(EXPERIMENTAL) Representation of the determinant of the Jacobi of the mapping from local to global coordinates."
+    "Representation of the determinant of the Jacobi of the mapping from local to global coordinates."
     __slots__ = ()
     def __init__(self, domain):
         GeometricQuantity.__init__(self, domain)
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
-        return True # False # FIXME: True for affine mappings, not for other mappings when we add support for them
+        # FIXME: Not true for non-affine mappings
+        return True
 
     def shape(self):
         return ()
@@ -231,14 +233,15 @@ class JacobianDeterminant(GeometricQuantity):
         return "JacobianDeterminant(%r)" % self._domain
 
 class JacobianInverse(GeometricQuantity):
-    "(EXPERIMENTAL) Representation of the (pseudo-)inverse of the Jacobi of the mapping from local to global coordinates."
+    "Representation of the (pseudo-)inverse of the Jacobi of the mapping from local to global coordinates."
     __slots__ = ()
     def __init__(self, domain):
         GeometricQuantity.__init__(self, domain)
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
-        return True # False # FIXME: True for affine mappings, not for other mappings when we add support for them
+        # FIXME: Not true for non-affine mappings
+        return True
 
     def shape(self):
         return (self._domain.topological_dimension(), self._domain.geometric_dimension())
@@ -266,6 +269,21 @@ class FacetNormal(GeometricQuantity):
 
     def __repr__(self):
         return "FacetNormal(%r)" % self._domain
+
+class CellNormal(GeometricQuantity):
+    "Representation of a cell normal, for cells of tdim=gdim-1."
+    __slots__ = ()
+    def __init__(self, domain):
+        GeometricQuantity.__init__(self, domain)
+
+    def shape(self):
+        return (self._domain.geometric_dimension(),)
+
+    def __str__(self):
+        return "cell_normal"
+
+    def __repr__(self):
+        return "CellNormal(%r)" % self._domain
 
 class CellVolume(GeometricQuantity):
     "Representation of a cell volume."

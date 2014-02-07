@@ -74,11 +74,11 @@ A very brief overview of the language contents follows:
 
 * Geometric quantities::
 
-    SpatialCoordinate, FacetNormal,
+    SpatialCoordinate, LocalCoordinate,
+    Jacobian, JacobianDeterminant, JacobianInverse,
     CellVolume, Circumradius, CellSurfaceArea,
-    FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength, FacetDiameter,
-    LocalCoordinate, Jacobian,
-    JacobianDeterminant, JacobianInverse,
+    FacetArea, FacetDiameter, MinFacetEdgeLength, MaxFacetEdgeLength,
+    CellNormal, FacetNormal,
     CellBarycenter, FacetBarycenter
 
 * Indices::
@@ -186,12 +186,12 @@ from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile
 
 # Types for geometric quantities
 from ufl.geometry import (as_domain, Cell, ProductCell, Domain,
-     SpatialCoordinate, FacetNormal,
-     CellVolume, Circumradius, CellSurfaceArea,
-     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength, FacetDiameter,
-     LocalCoordinate, Jacobian,
-     JacobianDeterminant, JacobianInverse,
-     CellBarycenter, FacetBarycenter)
+    SpatialCoordinate, LocalCoordinate,
+    Jacobian, JacobianDeterminant, JacobianInverse,
+    CellVolume, Circumradius, CellSurfaceArea,
+    FacetArea, FacetDiameter, MinFacetEdgeLength, MaxFacetEdgeLength,
+    CellNormal, FacetNormal,
+    CellBarycenter, FacetBarycenter)
 
 # Finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
@@ -276,11 +276,11 @@ __all__ = [
     'get_handler', 'get_logger', 'set_handler', 'set_level', 'add_logfile',
     'UFLException', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL',
     'as_domain', 'Cell', 'ProductCell', 'Domain',
-    'SpatialCoordinate', 'FacetNormal',
+    'SpatialCoordinate', 'LocalCoordinate', 
     'CellVolume', 'Circumradius', 'CellSurfaceArea',
-    'FacetArea', 'MinFacetEdgeLength', 'MaxFacetEdgeLength', 'FacetDiameter',
-    'LocalCoordinate', 'Jacobian',
-    'JacobianDeterminant', 'JacobianInverse',
+    'FacetArea', 'FacetDiameter', 'MinFacetEdgeLength', 'MaxFacetEdgeLength',
+    'Jacobian', 'JacobianDeterminant', 'JacobianInverse',
+    'FacetNormal', 'CellNormal',
     'CellBarycenter', 'FacetBarycenter',
     'FiniteElementBase', 'FiniteElement',
     'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
