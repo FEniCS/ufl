@@ -33,29 +33,33 @@ from collections import defaultdict
 
 # --- Expression node types
 
-# Mapping from cell name to dimension
-cellname2dim = {"cell0D": 0,
-                "cell1D": 1,
-                "cell2D": 2,
-                "cell3D": 3,
-                "vertex": 0,
-                "interval": 1,
-                "triangle": 2,
-                "tetrahedron": 3,
-                "quadrilateral": 2,
-                "hexahedron": 3}
+# Mapping from cell name to topological dimension
+cellname2dim = {
+    "cell0D": 0,
+    "cell1D": 1,
+    "cell2D": 2,
+    "cell3D": 3,
+    "vertex": 0,
+    "interval": 1,
+    "triangle": 2,
+    "tetrahedron": 3,
+    "quadrilateral": 2,
+    "hexahedron": 3,
+    }
 
 # Mapping from cell name to facet name
-cellname2facetname = {"cell0D": None,
-                      "cell1D": "vertex",
-                      "cell2D": "cell1D",
-                      "cell3D": "cell2D",
-                      "vertex": None,
-                      "interval": "vertex",
-                      "triangle": "interval",
-                      "tetrahedron": "triangle",
-                      "quadrilateral": "interval",
-                      "hexahedron": "quadrilateral"}
+cellname2facetname = {
+    "cell0D": None,
+    "cell1D": "vertex",
+    "cell2D": "cell1D",
+    "cell3D": "cell2D",
+    "vertex": None,
+    "interval": "vertex",
+    "triangle": "interval",
+    "tetrahedron": "triangle",
+    "quadrilateral": "interval",
+    "hexahedron": "quadrilateral"
+    }
 
 # Valid UFL cellnames
 ufl_cellnames = tuple(sorted(cellname2dim.keys()))
@@ -137,6 +141,50 @@ class LocalCoordinate(GeometricQuantity):
 
     def __repr__(self):
         return "LocalCoordinate(%r)" % self._domain
+
+class CellBarycenter(GeometricQuantity):
+    "Representation of the spatial barycenter coordinate of the cell."
+    __slots__ = ()
+    def __init__(self, domain):
+        GeometricQuantity.__init__(self, domain)
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        return True
+
+    def shape(self):
+        return (self._domain.geometric_dimension(),)
+
+    def evaluate(self, x, mapping, component, index_values):
+        error("Symbolic evaluation of the barycenter not available.")
+
+    def __str__(self):
+        return "cell_barycenter"
+
+    def __repr__(self):
+        return "CellBarycenter(%r)" % self._domain
+
+class FacetBarycenter(GeometricQuantity):
+    "Representation of the spatial barycenter coordinate of the facet."
+    __slots__ = ()
+    def __init__(self, domain):
+        GeometricQuantity.__init__(self, domain)
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        return True
+
+    def shape(self):
+        return (self._domain.geometric_dimension(),)
+
+    def evaluate(self, x, mapping, component, index_values):
+        error("Symbolic evaluation of the facet barycenter not available.")
+
+    def __str__(self):
+        return "facet_barycenter"
+
+    def __repr__(self):
+        return "FacetBarycenter(%r)" % self._domain
 
 class GeometryJacobi(GeometricQuantity):
     "(EXPERIMENTAL) Representation of the Jacobi of the mapping from local to global coordinates."
@@ -424,7 +472,7 @@ class DeprecatedGeometryProperties(object):
         return self.geometric_dimension()
 
 
-
+# TODO: When we have removed DeprecatedGeometryProperties, extract Cell, Domain to another file.
 class Cell(DeprecatedGeometryProperties):
     "Representation of a finite element cell."
     __slots__ = ("_cellname",
@@ -479,7 +527,10 @@ class Cell(DeprecatedGeometryProperties):
 
     def facet_cellname(self):
         "Return the cellname of the facet of this cell."
-        return cellname2facetname[self._cellname]
+        facet_cellname = cellname2facetname.get(self._cellname)
+        ufl_assert(facet_cellname is not None,
+                   "Name of facet cell not available for cell type %s." % self._cellname)
+        return facet_cellname
 
     def __eq__(self, other):
         if not isinstance(other, Cell):

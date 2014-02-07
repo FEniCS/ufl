@@ -61,22 +61,8 @@ class CompactLabeller(ReprLabeller):
     def form_argument(self, e):
         return self._function_mapping.get(id(e)) or str(e)
 
-    def spatial_coordinate(self, e):
-        return "x"
-    def facet_normal(self, e):
-        return "n"
-    def circumradius(self, e):
-        return "circumradius"
-    def cell_volume(self, e):
-        return "cell volume"
-    def cell_surface_area(self, e):
-        return "surface area"
-    def max_facet_edge_length(self, e):
-        return "max facet edge length"
-    def facet_area(self, e):
-        return "facet area"
-    def facet_diameter(self, e):
-        return "facet diameter"
+    def geometric_quantity(self, e):
+        return str(e)
 
     # Operators:
     def sum(self, e):

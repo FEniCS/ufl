@@ -78,7 +78,8 @@ A very brief overview of the language contents follows:
     CellVolume, Circumradius, CellSurfaceArea,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength, FacetDiameter,
     LocalCoordinate, GeometryJacobi,
-    GeometryJacobiDeterminant, InverseGeometryJacobi
+    GeometryJacobiDeterminant, InverseGeometryJacobi,
+    CellBarycenter, FacetBarycenter
 
 * Indices::
 
@@ -189,7 +190,8 @@ from ufl.geometry import (as_domain, Cell, ProductCell, Domain,
      CellVolume, Circumradius, CellSurfaceArea,
      FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength, FacetDiameter,
      LocalCoordinate, GeometryJacobi,
-     GeometryJacobiDeterminant, InverseGeometryJacobi)
+     GeometryJacobiDeterminant, InverseGeometryJacobi,
+     CellBarycenter, FacetBarycenter)
 
 # Finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
@@ -279,6 +281,7 @@ __all__ = [
     'FacetArea', 'MinFacetEdgeLength', 'MaxFacetEdgeLength', 'FacetDiameter',
     'LocalCoordinate', 'GeometryJacobi',
     'GeometryJacobiDeterminant', 'InverseGeometryJacobi',
+    'CellBarycenter', 'FacetBarycenter',
     'FiniteElementBase', 'FiniteElement',
     'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
     'RestrictedElement', 'TensorProductElement',

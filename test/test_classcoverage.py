@@ -101,7 +101,7 @@ class ClasscoverageTest(UflTestCase):
         e3 = MixedElement(e0, e1, e2)
 
         e13D = VectorElement("CG", tetrahedron, 1)
-        
+
         # --- Terminals:
         
         v13D = Argument(e13D)
@@ -156,6 +156,36 @@ class ClasscoverageTest(UflTestCase):
 
         n = FacetNormal(cell)
         test_object(n, (dim,), ())
+        x = SpatialCoordinate(cell)
+        test_object(x, (dim,), ())
+        xi = LocalCoordinate(cell)
+        test_object(xi, (dim,), ())
+        g = CellBarycenter(cell)
+        test_object(g, (dim,), ())
+        g = FacetBarycenter(cell)
+        test_object(g, (dim,), ())
+        g = GeometryJacobi(cell)
+        test_object(g, (dim,dim), ())
+        g = GeometryJacobiDeterminant(cell)
+        test_object(g, (), ())
+        g = InverseGeometryJacobi(cell)
+        test_object(g, (dim,dim), ())
+        g = FacetNormal(cell)
+        test_object(g, (dim,), ())
+        g = CellVolume(cell)
+        test_object(g, (), ())
+        g = Circumradius(cell)
+        test_object(g, (), ())
+        g = CellSurfaceArea(cell)
+        test_object(g, (), ())
+        g = FacetArea(cell)
+        test_object(g, (), ())
+        g = FacetDiameter(cell)
+        test_object(g, (), ())
+        g = MinFacetEdgeLength(cell)
+        test_object(g, (), ())
+        g = MaxFacetEdgeLength(cell)
+        test_object(g, (), ())
         
         a = variable(v0)
         test_object(a, (), ())

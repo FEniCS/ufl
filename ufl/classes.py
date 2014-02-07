@@ -50,7 +50,8 @@ from ufl.geometry import (Cell, ProductCell,
     CellVolume, Circumradius, CellSurfaceArea,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength, FacetDiameter,
     LocalCoordinate, GeometryJacobi,
-    GeometryJacobiDeterminant, InverseGeometryJacobi)
+    GeometryJacobiDeterminant, InverseGeometryJacobi,
+    CellBarycenter, FacetBarycenter)
 from ufl.indexing import IndexBase, FixedIndex, Index, MultiIndex
 
 # Operator types
