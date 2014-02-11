@@ -39,7 +39,7 @@ class EvaluateTestCase(UflTestCase):
 
     def testCoords(self):
         cell = triangle
-        x = cell.x
+        x = SpatialCoordinate(cell)
         s = x[0] + x[1]
         e = s((5,7))
         v = 5 + 7
@@ -78,7 +78,7 @@ class EvaluateTestCase(UflTestCase):
 
     def testAlgebra(self):
         cell = triangle
-        x = cell.x
+        x = SpatialCoordinate(cell)
         s = 3*(x[0] + x[1]) - 7 + x[0]**(x[1]/2)
         e = s((5,7))
         v = 3*(5. + 7.) - 7 + 5.**(7./2)
@@ -86,7 +86,7 @@ class EvaluateTestCase(UflTestCase):
 
     def testIndexSum(self):
         cell = triangle
-        x = cell.x
+        x = SpatialCoordinate(cell)
         i, = indices(1)
         s = x[i]*x[i]
         e = s((5,7))
@@ -95,7 +95,7 @@ class EvaluateTestCase(UflTestCase):
     
     def testIndexSum2(self):
         cell = triangle
-        x = cell.x
+        x = SpatialCoordinate(cell)
         I = Identity(cell.geometric_dimension())
         i, j = indices(2)
         s = (x[i]*x[j])*I[i,j]
@@ -138,8 +138,8 @@ class EvaluateTestCase(UflTestCase):
         self.assertEqual(e, v)
 
     def testListTensor(self):
-        x, y = SpatialCoordinate(triangle)[0], triangle.x[1]
-        
+        x, y = SpatialCoordinate(triangle)
+ 
         m = as_matrix([[x, y], [-y, -x]])
         
         s = m[0,0] + m[1,0] + m[0,1] + m[1,1]
@@ -213,14 +213,14 @@ class EvaluateTestCase(UflTestCase):
                          (5*7**2)**2 + (5*3*2*7)**2)
 
     def test_dot(self):
-        x = cell2D.x
+        x = SpatialCoordinate(cell2D)
         s = dot(x,2*x)
         e = s((5,7))
         v = 2*(5*5+7*7)
         self.assertEqual(e, v)
 
     def test_inner(self):
-        x = cell2D.x
+        x = SpatialCoordinate(cell2D)
         xx = as_matrix(((2*x[0],3*x[0]), (2*x[1],3*x[1])))
         s = inner(xx,2*xx)
         e = s((5,7))
@@ -228,7 +228,7 @@ class EvaluateTestCase(UflTestCase):
         self.assertEqual(e, v)
 
     def test_outer(self):
-        x = cell2D.x
+        x = SpatialCoordinate(cell2D)
         xx = outer(outer(x, x), as_vector((2,3)))
         s = inner(xx,2*xx)
         e = s((5,7))
@@ -236,7 +236,7 @@ class EvaluateTestCase(UflTestCase):
         self.assertEqual(e, v)
 
     def test_cross(self):
-        x = cell3D.x
+        x = SpatialCoordinate(cell3D)
         xv = (3, 5, 7)
 
         # Test cross product of triplets of orthogonal
@@ -267,7 +267,7 @@ class EvaluateTestCase(UflTestCase):
                     self.assertEqual(eij, vij)
 
     def xtest_dev(self):
-        x = cell2D.x
+        x = SpatialCoordinate(cell2D)
         xv = (5, 7)
         xx = outer(x, x)
         s1 = dev(2*xx)
@@ -277,7 +277,7 @@ class EvaluateTestCase(UflTestCase):
         self.assertEqual(e, v)
 
     def test_skew(self):
-        x = cell2D.x
+        x = SpatialCoordinate(cell2D)
         xv = (5, 7)
         xx = outer(x, x)
         s1 = skew(2*xx)
@@ -287,7 +287,7 @@ class EvaluateTestCase(UflTestCase):
         self.assertEqual(e, v)
 
     def test_sym(self):
-        x = cell2D.x
+        x = SpatialCoordinate(cell2D)
         xv = (5, 7)
         xx = outer(x, x)
         s1 = sym(2*xx)
@@ -297,7 +297,7 @@ class EvaluateTestCase(UflTestCase):
         self.assertEqual(e, v)
 
     def test_tr(self):
-        x = cell2D.x
+        x = SpatialCoordinate(cell2D)
         xv = (5, 7)
         xx = outer(x, x)
         s = tr(2*xx)
@@ -306,7 +306,7 @@ class EvaluateTestCase(UflTestCase):
         self.assertEqual(e, v)
 
     def test_det2D(self):
-        x = cell2D.x
+        x = SpatialCoordinate(cell2D)
         xv = (5, 7)
         a, b = 6.5, -4
         xx = as_matrix(((x[0],x[1]),(a,b)))
@@ -316,7 +316,7 @@ class EvaluateTestCase(UflTestCase):
         self.assertEqual(e, v)
 
     def xtest_det3D(self): # FIXME
-        x = cell3D.x
+        x = SpatialCoordinate(cell3D)
         xv = (5, 7, 9)
         a, b, c = 6.5, -4, 3
         d, e, f = 2, 3, 4

@@ -43,25 +43,17 @@ class RestrictionPropagator(ReuseTransformer):
         ufl_assert(self.current_restriction is not None, "FacetNormal must be restricted.")
         return o(self.current_restriction)
 
-    def cell_normal(self, o):
-        ufl_assert(self.current_restriction is not None, "CellNormal must be restricted.")
+    def jacobian(self, o):
+        ufl_assert(self.current_restriction is not None, "Jacobian must be restricted.")
         return o(self.current_restriction)
 
-    def cell_barycenter(self, o):
-        ufl_assert(self.current_restriction is not None, "CellBarycenter must be restricted.")
+    def jacobian_determinant(self, o):
+        ufl_assert(self.current_restriction is not None, "JacobianDeterminant must be restricted.")
         return o(self.current_restriction)
 
-    #def jacobian(self, o): # FIXME: Is this the jacobian of one of the cells or the facet?
-    #    ufl_assert(self.current_restriction is not None, "Jacobian must be restricted.")
-    #    return o(self.current_restriction)
-
-    #def jacobian_determinant(self, o): # FIXME: Is this the jacobian of one of the cells or the facet?
-    #    ufl_assert(self.current_restriction is not None, "JacobianDeterminant must be restricted.")
-    #    return o(self.current_restriction)
-
-    #def jacobian_inverse(self, o): # FIXME: Is this the jacobian of one of the cells or the facet?
-    #    ufl_assert(self.current_restriction is not None, "JacobianInverse must be restricted.")
-    #    return o(self.current_restriction)
+    def jacobian_inverse(self, o):
+        ufl_assert(self.current_restriction is not None, "JacobianInverse must be restricted.")
+        return o(self.current_restriction)
 
     def cell_volume(self, o):
         ufl_assert(self.current_restriction is not None, "CellVolume must be restricted.")
@@ -71,12 +63,26 @@ class RestrictionPropagator(ReuseTransformer):
         ufl_assert(self.current_restriction is not None, "Circumradius must be restricted.")
         return o(self.current_restriction)
 
-    def cell_surface_area(self, o):
-        ufl_assert(self.current_restriction is not None, "CellSurfaceArea must be restricted.")
-        return o(self.current_restriction)
+    # Not implemented anywhere
+    #def cell_normal(self, o):
+    #    ufl_assert(self.current_restriction is not None, "CellNormal must be restricted.")
+    #    return o(self.current_restriction)
+
+    # Not implemented anywhere
+    #def cell_barycenter(self, o):
+    #    ufl_assert(self.current_restriction is not None, "CellBarycenter must be restricted.")
+    #    return o(self.current_restriction)
+
+    # Not implemented anywhere
+    #def cell_surface_area(self, o):
+    #    ufl_assert(self.current_restriction is not None, "CellSurfaceArea must be restricted.")
+    #    return o(self.current_restriction)
 
     # These are all the same from both sides of a facet:
-    # facet_barycenter, facet_area, facet_diameter, min_facet_edge_length, max_facet_edge_length
+    # facet_area, min_facet_edge_length, max_facet_edge_length,
+    # facet_jacobian, facet_jacobian_determinant, facet_jacobian_inverse,
+    # These as well, but also not implemented anywhere:
+    # facet_barycenter, facet_diameter
 
     def form_argument(self, o):
         ufl_assert(self.current_restriction is not None, "Form argument must be restricted.")

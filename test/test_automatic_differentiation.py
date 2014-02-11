@@ -27,12 +27,13 @@ class ExpressionCollection(object):
         self.cell = cell
 
         d = cell.geometric_dimension()
-        x = cell.x
+        x = SpatialCoordinate(cell)
         n = FacetNormal(cell)
-        c = cell.volume
-        h = cell.circumradius
-        f = cell.facet_area
-        s = cell.surface_area
+        c = CellVolume(cell)
+        h = Circumradius(cell)
+        f = FacetArea(cell)
+        #s = CellSurfaceArea(cell)
+        # FIXME: Add all new geometry types here!
  
         I = Identity(d)
         eps = PermutationSymbol(d)
@@ -55,7 +56,7 @@ class ExpressionCollection(object):
             setattr(self.shared_objects, key, value)
  
         self.literals = list(map(as_ufl, [0, 1, 3.14, I, eps]))
-        self.geometry = [x, n, c, h, f, s]
+        self.geometry = [x, n, c, h, f]
         self.functions = [u, du, v, dv, w, dw]
  
         self.terminals = []

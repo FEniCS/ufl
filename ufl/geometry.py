@@ -121,7 +121,7 @@ class SpatialCoordinate(GeometricQuantity):
         return "SpatialCoordinate(%r)" % self._domain
 
 class LocalCoordinate(GeometricQuantity):
-    "(EXPERIMENTAL) Representation of a local coordinate on the reference cell."
+    "Representation of a local coordinate on the reference cell."
     __slots__ = ()
     def __init__(self, domain):
         GeometricQuantity.__init__(self, domain)
@@ -142,52 +142,52 @@ class LocalCoordinate(GeometricQuantity):
     def __repr__(self):
         return "LocalCoordinate(%r)" % self._domain
 
-class CellBarycenter(GeometricQuantity):
-    "Representation of the spatial barycenter coordinate of the cell."
-    __slots__ = ()
-    def __init__(self, domain):
-        GeometricQuantity.__init__(self, domain)
+#class CellBarycenter(GeometricQuantity):
+#    "Representation of the spatial barycenter coordinate of the cell."
+#    __slots__ = ()
+#    def __init__(self, domain):
+#        GeometricQuantity.__init__(self, domain)
+#
+#    def is_cellwise_constant(self):
+#        "Return whether this expression is spatially constant over each cell."
+#        return True
+#
+#    def shape(self):
+#        return (self._domain.geometric_dimension(),)
+#
+#    def evaluate(self, x, mapping, component, index_values):
+#        error("Symbolic evaluation of the barycenter not available.")
+#
+#    def __str__(self):
+#        return "cell_barycenter"
+#
+#    def __repr__(self):
+#        return "CellBarycenter(%r)" % self._domain
 
-    def is_cellwise_constant(self):
-        "Return whether this expression is spatially constant over each cell."
-        return True
-
-    def shape(self):
-        return (self._domain.geometric_dimension(),)
-
-    def evaluate(self, x, mapping, component, index_values):
-        error("Symbolic evaluation of the barycenter not available.")
-
-    def __str__(self):
-        return "cell_barycenter"
-
-    def __repr__(self):
-        return "CellBarycenter(%r)" % self._domain
-
-class FacetBarycenter(GeometricQuantity):
-    "Representation of the spatial barycenter coordinate of the facet."
-    __slots__ = ()
-    def __init__(self, domain):
-        GeometricQuantity.__init__(self, domain)
-
-    def is_cellwise_constant(self):
-        "Return whether this expression is spatially constant over each cell."
-        return True
-
-    def shape(self):
-        return (self._domain.geometric_dimension(),)
-
-    def evaluate(self, x, mapping, component, index_values):
-        error("Symbolic evaluation of the facet barycenter not available.")
-
-    def __str__(self):
-        return "facet_barycenter"
-
-    def __repr__(self):
-        return "FacetBarycenter(%r)" % self._domain
+#class FacetBarycenter(GeometricQuantity):
+#    "Representation of the spatial barycenter coordinate of the facet."
+#    __slots__ = ()
+#    def __init__(self, domain):
+#        GeometricQuantity.__init__(self, domain)
+#
+#    def is_cellwise_constant(self):
+#        "Return whether this expression is spatially constant over each cell."
+#        return True
+#
+#    def shape(self):
+#        return (self._domain.geometric_dimension(),)
+#
+#    def evaluate(self, x, mapping, component, index_values):
+#        error("Symbolic evaluation of the facet barycenter not available.")
+#
+#    def __str__(self):
+#        return "facet_barycenter"
+#
+#    def __repr__(self):
+#        return "FacetBarycenter(%r)" % self._domain
 
 class Jacobian(GeometricQuantity):
-    "Representation of the Jacobi of the mapping from local to global coordinates."
+    "Representation of the Jacobian of the mapping from local to global coordinates."
     __slots__ = ()
     def __init__(self, domain):
         GeometricQuantity.__init__(self, domain)
@@ -201,7 +201,7 @@ class Jacobian(GeometricQuantity):
         return (self._domain.geometric_dimension(), self._domain.topological_dimension())
 
     def evaluate(self, x, mapping, component, index_values):
-        error("Symbolic evaluation of geometry jacobi not available.")
+        error("Symbolic evaluation of geometry jacobian not available.")
 
     def __str__(self):
         return "J"
@@ -210,7 +210,7 @@ class Jacobian(GeometricQuantity):
         return "Jacobian(%r)" % self._domain
 
 class JacobianDeterminant(GeometricQuantity):
-    "Representation of the determinant of the Jacobi of the mapping from local to global coordinates."
+    "Representation of the determinant of the Jacobian of the mapping from local to global coordinates."
     __slots__ = ()
     def __init__(self, domain):
         GeometricQuantity.__init__(self, domain)
@@ -224,7 +224,7 @@ class JacobianDeterminant(GeometricQuantity):
         return ()
 
     def evaluate(self, x, mapping, component, index_values):
-        error("Symbolic evaluation of geometry jacobi determinant not available.")
+        error("Symbolic evaluation of geometry jacobian determinant not available.")
 
     def __str__(self):
         return "detJ"
@@ -233,7 +233,7 @@ class JacobianDeterminant(GeometricQuantity):
         return "JacobianDeterminant(%r)" % self._domain
 
 class JacobianInverse(GeometricQuantity):
-    "Representation of the (pseudo-)inverse of the Jacobi of the mapping from local to global coordinates."
+    "Representation of the (pseudo-)inverse of the Jacobian of the mapping from local to global coordinates."
     __slots__ = ()
     def __init__(self, domain):
         GeometricQuantity.__init__(self, domain)
@@ -247,7 +247,7 @@ class JacobianInverse(GeometricQuantity):
         return (self._domain.topological_dimension(), self._domain.geometric_dimension())
 
     def evaluate(self, x, mapping, component, index_values):
-        error("Symbolic evaluation of inverse geometry jacobi not available.")
+        error("Symbolic evaluation of inverse geometry jacobian not available.")
 
     def __str__(self):
         return "K"
@@ -255,11 +255,85 @@ class JacobianInverse(GeometricQuantity):
     def __repr__(self):
         return "JacobianInverse(%r)" % self._domain
 
+class FacetJacobian(GeometricQuantity):
+    "Representation of the Jacobian of the mapping from local to global coordinates."
+    __slots__ = ()
+    def __init__(self, domain):
+        GeometricQuantity.__init__(self, domain)
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        # FIXME: Not true for non-affine mappings
+        return True
+
+    def shape(self):
+        return (self._domain.geometric_dimension(), self._domain.topological_dimension()-1)
+
+    def evaluate(self, x, mapping, component, index_values):
+        error("Symbolic evaluation of geometry jacobian not available.")
+
+    def __str__(self):
+        return "J"
+
+    def __repr__(self):
+        return "FacetJacobian(%r)" % self._domain
+
+class FacetJacobianDeterminant(GeometricQuantity):
+    "Representation of the determinant of the Jacobian of the mapping from local to global coordinates."
+    __slots__ = ()
+    def __init__(self, domain):
+        GeometricQuantity.__init__(self, domain)
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        # FIXME: Not true for non-affine mappings
+        return True
+
+    def shape(self):
+        return ()
+
+    def evaluate(self, x, mapping, component, index_values):
+        error("Symbolic evaluation of geometry jacobian determinant not available.")
+
+    def __str__(self):
+        return "detJ"
+
+    def __repr__(self):
+        return "FacetJacobianDeterminant(%r)" % self._domain
+
+class FacetJacobianInverse(GeometricQuantity):
+    "Representation of the (pseudo-)inverse of the Jacobian of the mapping from facet local to global coordinates."
+    __slots__ = ()
+    def __init__(self, domain):
+        GeometricQuantity.__init__(self, domain)
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        # FIXME: Not true for non-affine mappings
+        return True
+
+    def shape(self):
+        return (self._domain.topological_dimension()-1, self._domain.geometric_dimension())
+
+    def evaluate(self, x, mapping, component, index_values):
+        error("Symbolic evaluation of inverse geometry jacobian not available.")
+
+    def __str__(self):
+        return "facet_K"
+
+    def __repr__(self):
+        return "FacetJacobianInverse(%r)" % self._domain
+
 class FacetNormal(GeometricQuantity):
     "Representation of a facet normal."
     __slots__ = ()
     def __init__(self, domain):
         GeometricQuantity.__init__(self, domain)
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        # FIXME: Not true for non-affine mappings
+        return True
 
     def shape(self):
         return (self._domain.geometric_dimension(),)
@@ -270,20 +344,20 @@ class FacetNormal(GeometricQuantity):
     def __repr__(self):
         return "FacetNormal(%r)" % self._domain
 
-class CellNormal(GeometricQuantity):
-    "Representation of a cell normal, for cells of tdim=gdim-1."
-    __slots__ = ()
-    def __init__(self, domain):
-        GeometricQuantity.__init__(self, domain)
-
-    def shape(self):
-        return (self._domain.geometric_dimension(),)
-
-    def __str__(self):
-        return "cell_normal"
-
-    def __repr__(self):
-        return "CellNormal(%r)" % self._domain
+#class CellNormal(GeometricQuantity):
+#    "Representation of a cell normal, for cells of tdim=gdim-1."
+#    __slots__ = ()
+#    def __init__(self, domain):
+#        GeometricQuantity.__init__(self, domain)
+#
+#    def shape(self):
+#        return (self._domain.geometric_dimension(),)
+#
+#    def __str__(self):
+#        return "cell_normal"
+#
+#    def __repr__(self):
+#        return "CellNormal(%r)" % self._domain
 
 class CellVolume(GeometricQuantity):
     "Representation of a cell volume."
@@ -315,20 +389,20 @@ class Circumradius(GeometricQuantity):
     def __repr__(self):
         return "Circumradius(%r)" % self._domain
 
-class CellSurfaceArea(GeometricQuantity):
-    "Representation of the total surface area of a cell."
-    __slots__ = ()
-    def __init__(self, domain):
-        GeometricQuantity.__init__(self, domain)
-
-    def shape(self):
-        return ()
-
-    def __str__(self):
-        return "surfacearea"
-
-    def __repr__(self):
-        return "CellSurfaceArea(%r)" % self._domain
+#class CellSurfaceArea(GeometricQuantity):
+#    "Representation of the total surface area of a cell."
+#    __slots__ = ()
+#    def __init__(self, domain):
+#        GeometricQuantity.__init__(self, domain)
+#
+#    def shape(self):
+#        return ()
+#
+#    def __str__(self):
+#        return "surfacearea"
+#
+#    def __repr__(self):
+#        return "CellSurfaceArea(%r)" % self._domain
 
 class FacetArea(GeometricQuantity):
     "Representation of the area of a cell facet."
@@ -345,23 +419,23 @@ class FacetArea(GeometricQuantity):
     def __repr__(self):
         return "FacetArea(%r)" % self._domain
 
-class FacetDiameter(GeometricQuantity):
-    """(EXPERIMENTAL) Representation of the diameter of a facet.
-
-    This is not yet defined.
-    """
-    __slots__ = ()
-    def __init__(self, domain):
-        GeometricQuantity.__init__(self, domain)
-
-    def shape(self):
-        return ()
-
-    def __str__(self):
-        return "facetdiameter"
-
-    def __repr__(self):
-        return "FacetDiameter(%r)" % self._domain
+#class FacetDiameter(GeometricQuantity):
+#    """(EXPERIMENTAL) Representation of the diameter of a facet.
+#
+#    This is not yet defined.
+#    """
+#    __slots__ = ()
+#    def __init__(self, domain):
+#        GeometricQuantity.__init__(self, domain)
+#
+#    def shape(self):
+#        return ()
+#
+#    def __str__(self):
+#        return "facetdiameter"
+#
+#    def __repr__(self):
+#        return "FacetDiameter(%r)" % self._domain
 
 class MinFacetEdgeLength(GeometricQuantity):
     "Representation of the minimum edge length of a facet."
@@ -407,30 +481,6 @@ class DeprecatedGeometryProperties(object):
         return SpatialCoordinate(as_domain(self))
 
     @property
-    def xi(self):
-        "UFL geometry value: The local spatial coordinates."
-        deprecate("cell.xi is deprecated, please use LocalCoordinate(domain) instead")
-        return LocalCoordinate(as_domain(self))
-
-    @property
-    def J(self):
-        "UFL geometry value: The Jacobi of the local to global coordinate mapping."
-        deprecate("cell.J is deprecated, please use Jacobian(domain) instead")
-        return Jacobian(as_domain(self))
-
-    @property
-    def detJ(self):
-        "UFL geometry value: The determinant of the Jacobi of the local to global coordinate mapping."
-        deprecate("cell.detJ is deprecated, please use JacobianDeterminant(domain) instead")
-        return JacobianDeterminant(as_domain(self))
-
-    @property
-    def Jinv(self):
-        "UFL geometry value: The inverse of the Jacobi of the local to global coordinate mapping."
-        deprecate("cell.Jinv is deprecated, please use JacobianInverse(domain) instead")
-        return JacobianInverse(as_domain(self))
-
-    @property
     def n(self):
         "UFL geometry value: The facet normal on the cell boundary."
         deprecate("cell.n is deprecated, please use FacetNormal(domain) instead")
@@ -448,34 +498,10 @@ class DeprecatedGeometryProperties(object):
         return Circumradius(as_domain(self))
 
     @property
-    def facet_diameter(self):
-        "UFL geometry value: The diameter of a facet of the cell."
-        deprecate("cell.facet_diameter is deprecated, please use FacetDiameter(domain) instead")
-        return FacetDiameter(as_domain(self))
-
-    @property
-    def min_facet_edge_length(self):
-        "UFL geometry value: The minimum edge length of a facet of the cell."
-        deprecate("cell.min_facet_edge_length is deprecated, please use MinFacetEdgeLength(domain) instead")
-        return MinFacetEdgeLength(as_domain(self))
-
-    @property
-    def max_facet_edge_length(self):
-        "UFL geometry value: The maximum edge length of a facet of the cell."
-        deprecate("cell.max_facet_edge_length is deprecated, please use MaxFacetEdgeLength(domain) instead")
-        return MaxFacetEdgeLength(as_domain(self))
-
-    @property
     def facet_area(self):
         "UFL geometry value: The area of a facet of the cell."
         deprecate("cell.facet_area is deprecated, please use FacetArea(domain) instead")
         return FacetArea(as_domain(self))
-
-    @property
-    def surface_area(self):
-        "UFL geometry value: The total surface area of the cell."
-        deprecate("cell.surface_area is deprecated, please use SurfaceArea(domain) instead")
-        return CellSurfaceArea(as_domain(self))
 
     @property
     def d(self):

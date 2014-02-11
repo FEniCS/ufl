@@ -39,8 +39,8 @@ from ufl.expr import Expr
 
 # Terminal types
 from ufl.terminal import Terminal, FormArgument, UtilityType, Data
-from ufl.constantvalue import ConstantValue, IndexAnnotated, Zero, ScalarValue,\
-    FloatValue, IntValue, Identity, PermutationSymbol, AbstractSymbol
+from ufl.constantvalue import (ConstantValue, IndexAnnotated,
+    Zero, ScalarValue, FloatValue, IntValue, Identity, PermutationSymbol)
 from ufl.argument import Argument, TestFunction, TrialFunction
 from ufl.coefficient import (Coefficient, ConstantBase,
     VectorConstant, TensorConstant, Constant)
@@ -48,12 +48,13 @@ from ufl.geometry import (
     Cell, ProductCell,
     Domain, ProductDomain,
     GeometricQuantity,
-    SpatialCoordinate, FacetNormal, CellNormal,
-    CellVolume, Circumradius, CellSurfaceArea,
-    FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength, FacetDiameter,
-    LocalCoordinate, Jacobian,
-    JacobianDeterminant, JacobianInverse,
-    CellBarycenter, FacetBarycenter)
+    SpatialCoordinate, LocalCoordinate,
+    FacetNormal,
+    CellVolume, Circumradius,
+    FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
+    Jacobian, JacobianDeterminant, JacobianInverse,
+    FacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse,
+    ) 
 from ufl.indexing import IndexBase, FixedIndex, Index, MultiIndex
 
 # Operator types

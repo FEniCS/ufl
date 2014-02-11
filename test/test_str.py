@@ -34,16 +34,16 @@ class TestStrOfGeometricQuantities(UflTestCase):
         self.assertEqual(str(FacetNormal(triangle)[0]), "(n)[0]") # FIXME: Get rid of extra ()
 
     def test_str_circumradius(self):
-        self.assertEqual(str(triangle.circumradius), "circumradius") # TODO: Use a shorter name?
+        self.assertEqual(str(Circumradius(triangle)), "circumradius")
 
-    def test_str_cellsurfacearea(self):
-        self.assertEqual(str(triangle.surface_area), "surfacearea") # TODO: Use a shorter name?
+    #def test_str_cellsurfacearea(self):
+    #    self.assertEqual(str(CellSurfaceArea(triangle)), "surfacearea")
 
     def test_str_facetarea(self):
-        self.assertEqual(str(triangle.facet_area), "facetarea") # TODO: Use a shorter name?
+        self.assertEqual(str(FacetArea(triangle)), "facetarea")
 
     def test_str_volume(self):
-        self.assertEqual(str(triangle.volume), "volume") # TODO: Use a shorter name?
+        self.assertEqual(str(CellVolume(triangle)), "volume")
 
 class TestStrOfArguments(UflTestCase):
 

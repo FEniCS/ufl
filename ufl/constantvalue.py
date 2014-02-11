@@ -75,42 +75,42 @@ class IndexAnnotated(ConstantValue):
             error("Index set mismatch.")
 
 #--- Class for representing abstract constant symbol only for use internally in form compilers
-class AbstractSymbol(ConstantValue):
-    "UFL literal type: Representation of a constant valued symbol with unknown properties."
-    __slots__ = ("_name", "_shape")
-    def __init__(self, name, shape):
-        ConstantValue.__init__(self)
-        self._name = name
-        self._shape = shape
-
-    def __getnewargs__(self):
-        return (self._name, self._shape)
-
-    def reconstruct(self, name=None):
-        if name is None:
-            name = self._name
-        return AbstractSymbol(name, self._shape)
-
-    def shape(self):
-        return self._shape
-
-    def free_indices(self):
-        return ()
-
-    def index_dimensions(self):
-        return EmptyDict
-
-    def evaluate(self, x, mapping, component, index_values):
-        error("Abstract symbol '%s' cannot be evaluated." % self._name)
-
-    def __str__(self):
-        return "<Abstract symbol named '%s' with shape %s>" % (self._name, self._shape)
-
-    def __repr__(self):
-        return "AbstractSymbol(%r, %r)" % (self._name, self._shape)
-
-    def __eq__(self, other):
-        return isinstance(other, AbstractSymbol) and self._name == other._name and self._shape == other._shape
+#class AbstractSymbol(ConstantValue):
+#    "UFL literal type: Representation of a constant valued symbol with unknown properties."
+#    __slots__ = ("_name", "_shape")
+#    def __init__(self, name, shape):
+#        ConstantValue.__init__(self)
+#        self._name = name
+#        self._shape = shape
+#
+#    def __getnewargs__(self):
+#        return (self._name, self._shape)
+#
+#    def reconstruct(self, name=None):
+#        if name is None:
+#            name = self._name
+#        return AbstractSymbol(name, self._shape)
+#
+#    def shape(self):
+#        return self._shape
+#
+#    def free_indices(self):
+#        return ()
+#
+#    def index_dimensions(self):
+#        return EmptyDict
+#
+#    def evaluate(self, x, mapping, component, index_values):
+#        error("Abstract symbol '%s' cannot be evaluated." % self._name)
+#
+#    def __str__(self):
+#        return "<Abstract symbol named '%s' with shape %s>" % (self._name, self._shape)
+#
+#    def __repr__(self):
+#        return "AbstractSymbol(%r, %r)" % (self._name, self._shape)
+#
+#    def __eq__(self, other):
+#        return isinstance(other, AbstractSymbol) and self._name == other._name and self._shape == other._shape
 
             
 #--- Class for representing zero tensors of different shapes ---

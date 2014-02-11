@@ -116,7 +116,7 @@ class DiffTestCase(UflTestCase):
 
     def testDiffX(self):
         cell = triangle
-        x = cell.x
+        x = SpatialCoordinate(cell)
         f = x[0]**2 * x[1]**2
         i, = indices(1)
         df1 = diff(f, x)

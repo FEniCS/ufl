@@ -108,12 +108,14 @@ class TerminalHashDataTestCase(UflTestCase):
                 n = FacetNormal(cell)
                 r = Circumradius(cell)
                 a = FacetArea(cell)
-                s = CellSurfaceArea(cell)
+                #s = CellSurfaceArea(cell)
                 v = CellVolume(cell)
                 I = Identity(d)
 
-                for w in (x, n):
-                    for q in (r, a, s, v):
+                ws = (x, n)
+                qs = (r, a, v) #, s)
+                for w in ws:
+                    for q in qs:
                         expr = (I[0,j]*(q*w[j]))
 
                         reprs.add(repr(expr))
@@ -121,7 +123,7 @@ class TerminalHashDataTestCase(UflTestCase):
                         yield compute_terminal_hashdata(expr, domain_numbering(*cells))
 
         c, d, r, h = self.compute_unique_terminal_hashdatas(forms())
-        self.assertEqual(c, 4*2*4)
+        self.assertEqual(c, 2*3*4) # len(ws)*len(qs)*len(cells)
         self.assertEqual(d, c)
         self.assertEqual(r, c)
         self.assertEqual(h, c)
