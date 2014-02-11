@@ -54,7 +54,7 @@ from ufl.geometry import (
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
     Jacobian, JacobianDeterminant, JacobianInverse,
     FacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse,
-    ) 
+    )
 from ufl.indexing import IndexBase, FixedIndex, Index, MultiIndex
 
 # Operator types
@@ -70,7 +70,7 @@ from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Erf,\
     Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan, Atan2, \
     BesselFunction, BesselJ, BesselY, BesselI, BesselK
 from ufl.differentiation import Derivative, CompoundDerivative, CoefficientDerivative,\
-    VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
+    VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv, LocalGrad
 from ufl.conditional import Condition, BinaryCondition,\
     EQ, NE, LE, GE, LT, GT,\
     AndCondition, OrCondition, NotCondition, Conditional

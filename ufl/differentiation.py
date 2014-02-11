@@ -218,6 +218,61 @@ class Grad(CompoundDerivative):
     def __repr__(self):
         return "Grad(%r)" % self._f
 
+class LocalGrad(CompoundDerivative): # FIXME: Check implementation!
+    __slots__ = ("_f", "_dim",)
+
+    def __new__(cls, f):
+        # Return zero if expression is trivially constant
+        if f.is_cellwise_constant():
+            dim = f.topological_dimension() # NB!
+            free_indices = f.free_indices()
+            index_dimensions = subdict(f.index_dimensions(), free_indices)
+            return Zero(f.shape() + (dim,), free_indices, index_dimensions)
+        return CompoundDerivative.__new__(cls)
+
+    def __init__(self, f):
+        CompoundDerivative.__init__(self)
+        self._f = f
+        self._dim = f.topological_dimension() # NB!
+
+    def reconstruct(self, op):
+        "Return a new object of the same type with new operands."
+        if op.is_cellwise_constant():
+            ufl_assert(op.shape() == self._f.shape(),
+                       "Operand shape mismatch in LocalGrad reconstruct.")
+            ufl_assert(self._f.free_indices() == op.free_indices(),
+                       "Free index mismatch in LocalGrad reconstruct.")
+            return Zero(self.shape(), self.free_indices(),
+                        self.index_dimensions())
+        return self.__class__._uflclass(op)
+
+    def evaluate(self, x, mapping, component, index_values, derivatives=()):
+        "Get child from mapping and return the component asked for."
+        r = len(component)
+        component, i = component[:-1], component[-1]
+        derivatives = derivatives + (i,)
+        result = self._f.evaluate(x, mapping, component, index_values,
+                                  derivatives=derivatives)
+        return result
+
+    def operands(self):
+        return (self._f,)
+
+    def free_indices(self):
+        return self._f.free_indices()
+
+    def index_dimensions(self):
+        return self._f.index_dimensions()
+
+    def shape(self):
+        return self._f.shape() + (self._dim,)
+
+    def __str__(self):
+        return "local_grad(%s)" % self._f
+
+    def __repr__(self):
+        return "LocalGrad(%r)" % self._f
+
 class Div(CompoundDerivative):
     __slots__ = ("_f",)
 

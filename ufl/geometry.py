@@ -256,7 +256,7 @@ class JacobianInverse(GeometricQuantity):
         return "JacobianInverse(%r)" % self._domain
 
 class FacetJacobian(GeometricQuantity):
-    "Representation of the Jacobian of the mapping from local to global coordinates."
+    "Representation of the Jacobian of the mapping from facet local to global coordinates."
     __slots__ = ()
     def __init__(self, domain):
         GeometricQuantity.__init__(self, domain)
@@ -279,7 +279,7 @@ class FacetJacobian(GeometricQuantity):
         return "FacetJacobian(%r)" % self._domain
 
 class FacetJacobianDeterminant(GeometricQuantity):
-    "Representation of the determinant of the Jacobian of the mapping from local to global coordinates."
+    "Representation of the determinant of the Jacobian of the mapping from facet local to global coordinates."
     __slots__ = ()
     def __init__(self, domain):
         GeometricQuantity.__init__(self, domain)
