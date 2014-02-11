@@ -40,11 +40,11 @@ A very brief overview of the language contents follows:
 
 * Domains::
 
-    Domain
+    Domain, ProductDomain
 
 * Cells::
 
-    Cell,
+    Cell, ProductCell,
     interval, triangle, tetrahedron,
     quadrilateral, hexahedron,
     cell1D, cell2D, cell3D,

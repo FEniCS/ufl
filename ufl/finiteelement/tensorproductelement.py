@@ -27,7 +27,7 @@ from itertools import izip
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.common import product, index_to_component, component_to_index, istr, EmptyDict
-from ufl.geometry import as_domain, as_cell, ProductCell
+from ufl.geometry import as_domain, as_cell, ProductCell, ProductDomain
 from ufl.log import info_blue, warning, warning_blue, error
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
@@ -46,17 +46,15 @@ class TensorProductElement(FiniteElementBase):
     def __init__(self, *elements):
         "Create TensorProductElement from a given list of elements."
 
-        self._sub_elements = tuple(elements)
+        self._sub_elements = elements
         ufl_assert(len(self._sub_elements) > 0,
                    "Cannot create TensorProductElement from empty list.")
-        self._repr = "TensorProductElement(*%r)" % self._sub_elements
+        self._repr = "TensorProductElement(%s)" % ", ".join(repr(e) for e in self._sub_elements)
 
         family = "TensorProductElement"
 
-        # FIXME: I think we'll need a ProductDomain instead or in addition to ProductCell?
-        # Define cell as the product of each subcell
-        cell = ProductCell(*[e.cell() for e in self._sub_elements])
-        domain = as_domain(cell) # FIXME: figure out what this is supposed to mean :)
+        # Define domain as the product of each elements domain
+        domain = ProductDomain([e.domain() for e in self._sub_elements])
 
         # Define polynomial degree as the maximal of each subelement
         degree = max(e.degree() for e in self._sub_elements)

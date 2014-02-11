@@ -500,16 +500,11 @@ class Cell(DeprecatedGeometryProperties):
     def __init__(self, cellname, geometric_dimension=None, topological_dimension=None):
         "Initialize basic cell description."
 
-        # The cellname must be among the known ones,
-        # so we can find the known dimension
-        dim = cellname2dim[cellname]
-
         # The topological dimension is defined by the cell type,
-        # or given for product cells
-        if topological_dimension is None:
-            tdim = dim
-        else:
-            tdim = topological_dimension
+        # so the cellname must be among the known ones,
+        # so we can find the known dimension, unless we have
+        # a product cell, in which the given dimension is used
+        tdim = cellname2dim.get(cellname, topological_dimension)
 
         # The geometric dimension defaults to equal the topological
         # dimension if undefined
@@ -596,7 +591,7 @@ class ProductCell(Cell):
         cells = tuple(as_cell(cell) for cell in cells)
         gdim = sum(cell.geometric_dimension() for cell in cells)
         tdim = sum(cell.topological_dimension() for cell in cells)
-        Cell.__init__("product", gdim, tdim)
+        Cell.__init__(self, "product", gdim, tdim)
         self._cells = tuple(cells)
 
     def sub_cells(self):
@@ -663,7 +658,7 @@ class Domain(object):
                    "Topological dimension cannot be greater than geometric dimension.")
         ufl_assert(self._topological_dimension >= 0,
                    "Topological dimension must be non-negative.")
- 
+
         self._label = label
         ufl_assert(self._label is None or isinstance(self._label, str),
                    "Expecting None or str for label.")
@@ -825,6 +820,25 @@ class IntersectionDomain(Domain):
     def child_domains(self):
         return self._child_domains
 
+class ProductDomain(Domain):
+    """WARNING: This is work in progress, design is in no way completed."""
+    __slots__ = ("_child_domains",)
+    def __init__(self, domains, data=None):
+        # Get the right properties of this domain
+        gdim = sum(domain.geometric_dimension() for domain in domains)
+        tdim = sum(domain.topological_dimension() for domain in domains)
+        cell = ProductCell(*[domain.cell() for domain in domains])
+        label = "product_of_%s" % "_".join(str(domain.label()) for domain in domains)
+
+        # Initialize parent class
+        Domain.__init__(self, cell, gdim, tdim, label=label, data=data)
+
+        # Save child domains for later
+        self._child_domains = tuple(domains)
+
+    def child_domains(self):
+        return self._child_domains
+
 # --- Utility conversion functions
 
 def as_cell(cell):
@@ -881,7 +895,7 @@ def join_domains(domains):
     """Take a list of Domains and return a list with only unique domain objects.
 
     Checks that domains with the same label are compatible,
-    and allows data to be None or 
+    and allows data to be None or
     """
     # Ignore Nones in input domains
     domains = [domain for domain in domains if domain is not None]

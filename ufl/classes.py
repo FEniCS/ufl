@@ -44,7 +44,9 @@ from ufl.constantvalue import ConstantValue, IndexAnnotated, Zero, ScalarValue,\
 from ufl.argument import Argument, TestFunction, TrialFunction
 from ufl.coefficient import (Coefficient, ConstantBase,
     VectorConstant, TensorConstant, Constant)
-from ufl.geometry import (Cell, ProductCell,
+from ufl.geometry import (
+    Cell, ProductCell,
+    Domain, ProductDomain,
     GeometricQuantity,
     SpatialCoordinate, FacetNormal, CellNormal,
     CellVolume, Circumradius, CellSurfaceArea,
