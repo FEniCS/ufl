@@ -9,13 +9,13 @@ from ufltestcase import UflTestCase, main
 
 # This imports everything external code will see from ufl
 from ufl import *
-#from ufl.classes import ...
-#from ufl.algorithms import ...
 from ufl.geometry import as_domain
 
 all_cells = (cell1D, cell2D, cell3D,
              interval, triangle, tetrahedron,
              quadrilateral, hexahedron)
+
+from mockobjects import MockMesh, MockMeshFunction
 
 class RegionConstructionTestCase(UflTestCase):
 
@@ -68,6 +68,105 @@ class RegionConstructionTestCase(UflTestCase):
         D = Domain(tetrahedron)
         self.assertEqual(D.geometric_dimension(), 3)
 
+class TestDomainsWithCoordinateFields(UflTestCase):
+    def test_cell_legacy_case(self):
+        # Passing cell like old code does
+        D = as_domain(triangle)
+
+        V = FiniteElement("CG", triangle, 1)
+        f = Coefficient(V)
+        self.assertEqual(f.domains(), (D,))
+
+        M = f*dx
+        self.assertEqual(M.domains(), (D,))
+
+    def test_simple_domain_case(self):
+        # Creating domain from just cell with label like new dolfin will do
+        D = Domain(triangle, label="foo")
+
+        V = FiniteElement("CG", D, 1)
+        f = Coefficient(V)
+        self.assertEqual(f.domains(), (D,))
+
+        M = f*dx
+        self.assertEqual(M.domains(), (D,))
+
+    def test_creating_domains_with_coordinate_fields(self):
+        # P2 field for coordinates
+        D = Domain(triangle)
+        P2 = VectorElement("CG", D, 2)
+        x = Coefficient(P2)
+        self.assertEqual(x.domains(), (D,))
+
+        # Definition of higher order domain, element, coefficient, form
+        E = Domain(x)
+        V = FiniteElement("CG", E, 1)
+        f = Coefficient(V)
+        M = f*dx
+        self.assertEqual(f.domains(), (E,))
+        self.assertEqual(M.domains(), (E,))
+
+        # Test the gymnastics that dolfin will have to go through
+        V2 = eval(V.reconstruction_signature())
+        E2 = V2.domain().reconstruct(coordinates=x)
+        V2 = V2.reconstruct(domain=E2)
+        f2 = f.reconstruct(element=V2)
+        self.assertEqual(f, f2)
+        self.assertEqual(V, V2)
+        self.assertEqual(E, E2)
+
+    def test_join_domains(self):
+        from ufl.geometry import join_domains
+        mesh1 = MockMesh(11)
+        mesh2 = MockMesh(13)
+        triangle3 = Cell("triangle", geometric_dimension=3)
+        xa = Coefficient(VectorElement("CG", Domain(triangle, label="A"), 1))
+        xb = Coefficient(VectorElement("CG", Domain(triangle, label="B"), 1))
+
+        # Equal domains are joined
+        self.assertEqual(1, len(join_domains([Domain(triangle),
+                                              Domain(triangle)])))
+        self.assertEqual(1, len(join_domains([Domain(triangle, label="A"),
+                                              Domain(triangle, label="A")])))
+        self.assertEqual(1, len(join_domains([Domain(triangle, label="A", data=mesh1),
+                                              Domain(triangle, label="A", data=mesh1)])))
+        self.assertEqual(1, len(join_domains([Domain(xa),
+                                              Domain(xa)])))
+
+        # Different domains are not joined
+        self.assertEqual(2, len(join_domains([Domain(triangle, label="A"),
+                                              Domain(triangle, label="B")])))
+        self.assertEqual(2, len(join_domains([Domain(triangle, label="A"),
+                                              Domain(quadrilateral, label="B")])))
+        self.assertEqual(2, len(join_domains([Domain(xa),
+                                              Domain(xb)])))
+
+        # Incompatible cells require labeling
+        self.assertRaises(UFLException, lambda: join_domains([Domain(triangle), Domain(triangle3)]))
+        self.assertRaises(UFLException, lambda: join_domains([Domain(triangle), Domain(quadrilateral)]))
+
+        # Incompatible coordinates require labeling
+        xc = Coefficient(VectorElement("CG", Domain(triangle), 1))
+        xd = Coefficient(VectorElement("CG", Domain(triangle), 1))
+        self.assertRaises(UFLException, lambda: join_domains([Domain(xc), Domain(xd)]))
+
+        # Incompatible data is checked if and only if the domains are the same
+        self.assertEqual(2, len(join_domains([Domain(triangle, label="A", data=mesh1),
+                                              Domain(triangle, label="B", data=mesh2)])))
+        self.assertEqual(2, len(join_domains([Domain(triangle, label="A", data=mesh1),
+                                              Domain(triangle3, label="B", data=mesh2)])))
+        self.assertEqual(2, len(join_domains([Domain(triangle, label="A", data=mesh1),
+                                              Domain(quadrilateral, label="B", data=mesh2)])))
+        self.assertRaises(UFLException, lambda: join_domains([Domain(triangle, label="A", data=mesh1),
+                                                         Domain(triangle, label="A", data=mesh2)]))
+
+        # Nones are removed
+        self.assertEqual(1, len(join_domains([None, Domain(triangle), None, Domain(triangle), None])))
+        self.assertEqual(len(join_domains([Domain(triangle, label="A"), None,
+                                           Domain(quadrilateral, label="B")])), 2)
+        self.assertTrue(None not in join_domains([Domain(triangle, label="A"), None,
+                                                  Domain(tetrahedron, label="B")]))
+
 class FormDomainModelTestCase(UflTestCase):
     def test_everywhere_integrals_with_backwards_compatibility(self):
         D = Domain(triangle)
@@ -91,7 +190,7 @@ class FormDomainModelTestCase(UflTestCase):
 
     def xtest_mixed_elements_on_overlapping_regions(self):
         # Create domain and both disjoint and overlapping regions
-        D = Domain(tetrahedron, 'D')
+        D = Domain(tetrahedron, label='D')
         DD = Region(D, (0,4), "DD")
         DL = Region(D, (1,2), "DL")
         DR = Region(D, (2,3), "DR")
@@ -162,7 +261,6 @@ class FormDomainModelTestCase(UflTestCase):
     def xtest_form_domain_model(self):
         # Create domains with different celltypes
         # TODO: Figure out PyDOLFIN integration with Domain
-        #DA = Domain(tetrahedron, 'DA', markers="arbitrary data")
         DA = Domain(tetrahedron, label='DA')
         DB = Domain(hexahedron, label='DB')
 

@@ -16,7 +16,7 @@ class MockMesh:
     def ufl_id(self):
         return self._ufl_id
     def ufl_domain(self):
-        return Domain(triangle, 2, 2, "MockMesh_id_%d"%self.ufl_id(), self)
+        return Domain(triangle, label="MockMesh_id_%d"%self.ufl_id(), data=self)
     def ufl_measure(self, domain_type="dx", domain_id="everywhere", metadata=None, domain_data=None):
         return Measure(domain_type, domain_id=domain_id, metadata=metadata, domain=self, domain_data=domain_data)
 

@@ -132,7 +132,7 @@ def build_domain_numbering(domains):
     # Collect domain keys
     items = []
     for i,domain in enumerate(domains):
-        key = domain.domain_numbering_key()
+        key = (domain.cell(), domain.label())
         items.append((key, i))
 
     # Build domain numbering, not allowing repeated keys
@@ -146,12 +146,14 @@ def build_domain_numbering(domains):
     from collections import defaultdict
     domain_numbering2 = defaultdict(list)
     for key,i in items:
-        key2 = key[:-1] + (None,)
+        cell, label = key
+        key2 = (cell, None)
         domain_numbering2[key2].append(domain_numbering[key])
 
     # Add None-based key only where unambiguous
     for key,i in items:
-        key2 = key[:-1] + (None,)
+        cell, label = key
+        key2 = (cell, None)
         if len(domain_numbering2[key2]) == 1:
             domain_numbering[key2] = domain_numbering[key]
         else:

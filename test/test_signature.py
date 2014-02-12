@@ -31,7 +31,7 @@ def domain_numbering(*cells):
     items = []
     for i,c in enumerate(cells):
         domain = as_domain(c)
-        key = domain.domain_numbering_key()
+        key = (domain.cell(), domain.label())
         items.append((key, i))
     return dict(items)
 

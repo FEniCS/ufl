@@ -37,16 +37,12 @@ from ufl.protocols import id_or_none
 
 # --- The Form class, representing a complete variational form or functional ---
 
-def sort_integrals(integrals, domains):
-    "Sort integrals in a canonical order."
-    def integral_key(integral):
-        domain = integral.domain()
-        label = None if domain is None else domain.label()
-        return (label, integral.domain_type(), integral.domain_id())
-    sintegrals = sorted(integrals, key=integral_key)
-    return sintegrals
+def integral_sort_key(integral):
+    domain = integral.domain()
+    label = None if domain is None else domain.label()
+    return (label, integral.domain_type(), integral.domain_id())
 
-def replace_integral_domains(form, common_domain):
+def replace_integral_domains(form, common_domain): # TODO: Move elsewhere
     """Given a form and a domain, assign a common integration domain to all integrals.
 
     Does not modify the input form (Form should always be immutable).
@@ -96,14 +92,17 @@ class Form(object):
         ufl_assert(all(isinstance(itg, Integral) for itg in integrals),
                    "Expecting list of integrals.")
 
+        # Store integral list in canonical ordering
+        self._integrals = sorted(integrals, key=integral_sort_key)
+
         # Collect integration domains and make canonical list of them
         self._domains = join_domains([itg.domain() for itg in integrals])
 
-        # Store integral list in canonical ordering
-        self._integrals = sort_integrals(integrals, self._domains)
-
+        # Internal variables for caching
         self._signature = None
         self._hash = None
+
+        # Internal variables for caching preprocessing data
         self._form_data = None
         self._is_preprocessed = False
 

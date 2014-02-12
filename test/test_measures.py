@@ -9,38 +9,12 @@ from ufltestcase import UflTestCase, main
 
 # This imports everything external code will see from ufl
 from ufl import *
-#from ufl.domains import as_domain
-#from ufl.classes import ...
-#from ufl.algorithms import ...
 
 #all_cells = (cell1D, cell2D, cell3D,
 #             interval, triangle, tetrahedron,
 #             quadrilateral, hexahedron)
 
-from ufl import Measure
-
-class MockMesh:
-    def __init__(self, ufl_id):
-        self._ufl_id = ufl_id
-    def ufl_id(self):
-        return self._ufl_id
-    def ufl_domain(self):
-        return Domain(triangle, 2, 2, "MockMesh_id_%d"%self.ufl_id(), self)
-    def ufl_measure(self, domain_type="dx", domain_id="everywhere", metadata=None, domain_data=None):
-        return Measure(domain_type, domain_id=domain_id, metadata=metadata, domain=self, domain_data=domain_data)
-
-class MockMeshFunction:
-    "Mock class for the pydolfin compatibility hack for domain data with [] syntax."
-    def __init__(self, ufl_id, mesh):
-        self._mesh = mesh
-        self._ufl_id = ufl_id
-    def ufl_id(self):
-        return self._ufl_id
-    def mesh(self):
-        return self._mesh
-    def ufl_measure(self, domain_type=None, domain_id="everywhere", metadata=None):
-        return Measure(domain_type, domain_id=domain_id, metadata=metadata,
-                       domain=self.mesh(), domain_data=self)
+from mockobjects import MockMesh, MockMeshFunction
 
 class MeasureTestCase(UflTestCase):
 
@@ -88,7 +62,7 @@ class MeasureTestCase(UflTestCase):
         tdim = 2
         cell = Cell("triangle", gdim)
         mymesh = MockMesh(9)
-        mydomain = Domain(cell, gdim, tdim, label="Omega", data=mymesh)
+        mydomain = Domain(cell, label="Omega", data=mymesh)
 
         self.assertEqual(cell.topological_dimension(), tdim)
         self.assertEqual(cell.geometric_dimension(), gdim)
@@ -208,7 +182,7 @@ class MeasureTestCase(UflTestCase):
         domain, = Ms.domains()
         self.assertEqual(domain.data(), mymesh)
         self.assertEqual(Ms.compute_form_data().subdomain_data[mydomain.label()]["exterior_facet"], exterior_facet_domains)
-        
+
         domain, = MS.domains()
         self.assertEqual(domain.data(), mymesh)
         self.assertEqual(MS.compute_form_data().subdomain_data[mydomain.label()]["interior_facet"], interior_facet_domains)
@@ -219,7 +193,7 @@ class MeasureTestCase(UflTestCase):
         self.assertEqual(M.compute_form_data().subdomain_data[mydomain.label()]["cell"], cell_domains)
         self.assertEqual(M.compute_form_data().subdomain_data[mydomain.label()]["exterior_facet"], exterior_facet_domains)
         self.assertEqual(M.compute_form_data().subdomain_data[mydomain.label()]["interior_facet"], interior_facet_domains)
-        
+
 
 # Don't touch these lines, they allow you to run this file directly
 if __name__ == "__main__":
