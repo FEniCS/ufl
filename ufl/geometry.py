@@ -944,7 +944,7 @@ def check_domain_compatibility(domains):
     cell = domains[0].cell()
     coordinates = domains[0].coordinates()
     for dom in domains[1:]:
-        if dom.label() != label:
+        if dom.label() != label and None not in (dom.label(), label): # TODO: Ugly...
             error("Label mismatch.")
         if dom.cell() != cell:
             error("Cell mismatch between domains with same label.")
