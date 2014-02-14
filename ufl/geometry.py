@@ -940,12 +940,12 @@ def join_domain_data(domain_datas): # FIXME: Remove? Think it's unused now.
 
 def check_domain_compatibility(domains):
     # Validate that the domains are the same except for possibly the data
-    label = domains[0].label()
+    labels = set(domain.label() for domain in domains)
+    ufl_assert(len(labels) == 1 or (len(labels) == 2 and None in labels),
+               "Got incompatible domain labels %s in check_domain_compatibility." % (labels,))
     cell = domains[0].cell()
     coordinates = domains[0].coordinates()
     for dom in domains[1:]:
-        if dom.label() != label and None not in (dom.label(), label): # TODO: Ugly...
-            error("Label mismatch.")
         if dom.cell() != cell:
             error("Cell mismatch between domains with same label.")
         if dom.coordinates() != coordinates:
@@ -988,7 +988,7 @@ def join_domains(domains):
             dom, = domlist
         else:
             # Validate that the domains are the same except for possibly the data
-            check_domain_compatibility(domains)
+            check_domain_compatibility(domlist)
 
             # Pick first non-None data object
             for dom in domlist:
@@ -1059,3 +1059,4 @@ def tmp():
                 if c is not None:
                     coordinate_domains.append(c)
     all_domains = join_domains(all_domains)
+
