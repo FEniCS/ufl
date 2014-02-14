@@ -47,21 +47,13 @@ class ListTensor(WrapperType):
         fi    = e0.free_indices()
         idim  = e0.index_dimensions()
 
-        # Obviously, each subextpression must have the same shape
+        # Obviously, each subexpression must have the same shape
         if any(sh != e.shape() for e in expressions):
-            error("ListTensor assumption 1 failed, "\
-                  "please report this incident as a potential bug.")
-
-        # Are these assumptions correct? Need to think
-        # through the listtensor concept and free indices.
-        # Are there any cases where it makes sense to even
-        # have any free indices here?
+            error("Cannot create a tensor by joining subexpressions with different shapes.")
         if any(set(fi) - set(e.free_indices()) for e in expressions):
-            error("ListTensor assumption 2 failed, "\
-                  "please report this incident as a potential bug.")
+            error("Cannot create a tensor where the components have different free indices.")
         if any(idim != e.index_dimensions() for e in expressions):
-            error("ListTensor assumption 3 failed, "\
-                  "please report this incident as a potential bug.")
+            error("Cannot create a tensor where the free indices of the components have different dimensions.")
 
         # Simplify to Zero if possible
         if all(isinstance(e, Zero) for e in expressions):
