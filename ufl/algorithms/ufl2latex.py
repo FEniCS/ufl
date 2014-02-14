@@ -383,6 +383,7 @@ domain_strings = { "cell": r"\Omega",
                    "exterior_facet": r"\Gamma^{ext}",
                    "interior_facet": r"\Gamma^{int}",
                    "point": r"\Gamma^{point}",
+                   "quadrature": r"\Gamma^{quadrature}",
                    "macro_cell": r"\Omega^{macro}",
                    "surface": r"\Gamma^{surface}",
                  }

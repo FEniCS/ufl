@@ -49,6 +49,8 @@ _domain_types = [
     # === Integration over topological dimension 0
     ("point", "dP"),          # TODO: Is this over arbitrary point cloud or vertices?
     #("vertex", "dV"),         # TODO: Use this over vertices?
+    # === Integration over arbitrary topological dimension
+    ("quadrature", "dQ"),     # Over a custom set of quadrature points and weights
     ]
 domain_type_to_measure_name = dict((l,s) for l,s in _domain_types)
 measure_name_to_domain_type = dict((s,l) for l,s in _domain_types)
@@ -97,6 +99,7 @@ class Measure(object):
     EXTERIOR_FACET = "exterior_facet"
     INTERIOR_FACET = "interior_facet"
     POINT          = "point"
+    QUADRATURE     = "quadrature"
     MACRO_CELL     = "macro_cell"
     SURFACE        = "surface"
 

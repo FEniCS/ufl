@@ -60,11 +60,12 @@ def form_info(form):
     bf = extract_arguments(form)
     cf = extract_coefficients(form)
 
-    ci = form.integrals_by_type(Measure.CELL)
-    ei = form.integrals_by_type(Measure.EXTERIOR_FACET)
-    ii = form.integrals_by_type(Measure.INTERIOR_FACET)
-    pi = form.integrals_by_type(Measure.POINT)
-    mi = form.integrals_by_type(Measure.MACRO_CELL)
+    ci = form.integrals_by_type("cell")
+    ei = form.integrals_by_type("exterior_facet")
+    ii = form.integrals_by_type("interior_facet")
+    pi = form.integrals_by_type("point")
+    qi = form.integrals_by_type("quadrature")
+    mi = form.integrals_by_type("macro_cell")
 
     s  = "Form info:\n"
     s += "  rank:                          %d\n" % len(bf)
@@ -73,6 +74,7 @@ def form_info(form):
     s += "  num_exterior_facet_integrals:  %d\n" % len(ei)
     s += "  num_interior_facet_integrals:  %d\n" % len(ii)
     s += "  num_point_integrals:           %d\n" % len(pi)
+    s += "  num_quadrature_integrals:      %d\n" % len(qi)
     s += "  num_macro_cell_integrals:      %d\n" % len(mi)
 
     for f in cf:
@@ -116,14 +118,15 @@ def tree_format(expression, indentation=0, parentheses=True):
     s = ""
 
     if isinstance(expression, Form):
-        ci = expression.integrals_by_type(Measure.CELL)
-        ei = expression.integrals_by_type(Measure.EXTERIOR_FACET)
-        ii = expression.integrals_by_type(Measure.INTERIOR_FACET)
-        pi = expression.integrals_by_type(Measure.POINT)
-        mi = expression.integrals_by_type(Measure.MACRO_CELL)
+        ci = expression.integrals_by_type("cell")
+        ei = expression.integrals_by_type("exterior_facet")
+        ii = expression.integrals_by_type("interior_facet")
+        pi = expression.integrals_by_type("point")
+        qi = expression.integrals_by_type("quadrature")
+        mi = expression.integrals_by_type("macro_cell")
         ind = _indent_string(indentation)
         s += ind + "Form:\n"
-        s += "\n".join(tree_format(itg, indentation+1, parentheses) for itg in chain(ci, ei, ii, pi, mi))
+        s += "\n".join(tree_format(itg, indentation+1, parentheses) for itg in chain(ci, ei, ii, pi, qi, mi))
 
     elif isinstance(expression, Integral):
         ind = _indent_string(indentation)
