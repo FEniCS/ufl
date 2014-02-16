@@ -116,12 +116,8 @@ class Terminal(Expr):
 
 class FormArgument(Terminal):
     __slots__ = ()
-    def __init__(self, count=None, countedclass=None):
+    def __init__(self):
         Terminal.__init__(self)
-        counted_init(self, count, countedclass)
-
-    def count(self):
-        return self._count
 
 class UtilityType(Terminal):
     __slots__ = ()

@@ -32,30 +32,29 @@ from ufl.finiteelement import FiniteElementBase
 
 class Argument(FormArgument):
     """UFL value: Representation of an argument to a form."""
-    __slots__ = ("_count", "_repr", "_element",)
-    _globalcount = 0
+    __slots__ = ("_element", "_number", "_repr")
 
-    def __init__(self, element, count=None):
-        FormArgument.__init__(self, count, Argument)
+    def __init__(self, element, number):
+        FormArgument.__init__(self)
         ufl_assert(isinstance(element, FiniteElementBase),
             "Expecting a FiniteElementBase instance.")
         self._element = element
-        self._repr = "Argument(%r, %r)" % (self._element, self._count)
+        self._repr = "Argument(%r, %r)" % (self._element, self._number)
 
-    def reconstruct(self, element=None, count=None):
+    def reconstruct(self, element=None, number=None):
         if element is None or element == self._element:
             element = self._element
-        if count is None or count == self._count:
-            count = self._count
-        if count is self._count and element is self._element:
+        if number is None or number == self._number:
+            number = self._number
+        if number is self._number and element is self._element:
             return self
         ufl_assert(isinstance(element, FiniteElementBase),
                    "Expecting an element, not %s" % element)
-        ufl_assert(isinstance(count, int),
-                   "Expecting an int, not %s" % count)
+        ufl_assert(isinstance(number, int),
+                   "Expecting an int, not %s" % number)
         ufl_assert(element.value_shape() == self._element.value_shape(),
                    "Cannot reconstruct an Argument with a different value shape.")
-        return Argument(element, count)
+        return Argument(element, number)
 
     def element(self):
         return self._element
@@ -81,16 +80,16 @@ class Argument(FormArgument):
         "Return tuple of domains related to this terminal object."
         return self._element.domains()
 
-    def signature_data(self, count, domain_numbering):
+    def signature_data(self, domain_numbering):
         "Signature data for form arguments depend on the global numbering of the form arguments and domains."
-        return ("Argument", count,) + self._element.signature_data(domain_numbering=domain_numbering)
+        return ("Argument", self._number,) + self._element.signature_data(domain_numbering=domain_numbering)
 
     def __str__(self):
-        count = str(self._count)
-        if len(count) == 1:
-            return "v_%s" % count
+        number = str(self._number)
+        if len(number) == 1:
+            return "v_%s" % number
         else:
-            return "v_{%s}" % count
+            return "v_{%s}" % number
 
     def __repr__(self):
         return self._repr
@@ -99,15 +98,16 @@ class Argument(FormArgument):
         """Deliberately comparing exact type and not using isinstance here,
         meaning eventual subclasses must reimplement this function to work
         correctly, and instances of this class will compare not equal to
-        instances of eventual subclasses. The overloading allows 
+        instances of eventual subclasses. The overloading allows
         subclasses to distinguish between test and trial functions
         with a different non-ufl payload, such as dolfin FunctionSpace
-        with different mesh. This is necessary because of the test/trial
-        function hack with -2/-1 counts which always gives
-        TestFunction(V) == TestFunction(V) from a pure ufl point of view.
+        with different mesh. This is necessary because arguments with the
+        same element and argument number are always equal from a pure ufl
+        point of view, e.g. TestFunction(V1) == TestFunction(V2) if V1 and V2
+        are the same ufl element but different dolfin function spaces.
         """
         return (type(self) == type(other) and
-                self._count == other._count and
+                self._number == other._number and
                 self._element == other._element)
 
 
@@ -115,18 +115,18 @@ class Argument(FormArgument):
 
 def TestFunction(element):
     """UFL value: Create a test function argument to a form."""
-    return Argument(element, -2)
+    return Argument(element, 0)
 
 def TrialFunction(element):
     """UFL value: Create a trial function argument to a form."""
-    return Argument(element, -1)
+    return Argument(element, 1)
 
 # --- Helper functions for creating subfunctions on mixed elements ---
 
-def Arguments(element):
+def Arguments(element, number):
     """UFL value: Create an Argument in a mixed space, and return a
     tuple with the function components corresponding to the subelements."""
-    return split(Argument(element))
+    return split(Argument(element, number))
 
 def TestFunctions(element):
     """UFL value: Create a TestFunction in a mixed space, and return a

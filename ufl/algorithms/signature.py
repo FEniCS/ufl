@@ -56,7 +56,6 @@ def compute_terminal_hashdata(expressions, domain_numbering, function_replace_ma
     labels = {}
     index_numbering = {}
     coefficients = set()
-    arguments = set()
     for expression in expressions:
         for expr in traverse_terminals2(expression):
 
@@ -65,16 +64,18 @@ def compute_terminal_hashdata(expressions, domain_numbering, function_replace_ma
                 data = compute_multiindex_hashdata(expr, index_numbering)
 
             elif isinstance(expr, ConstantValue):
-                # For literals no renumbering is necessary TODO: This may change if we annotate literals with an Argument
+                # For literals no renumbering is necessary
+                # TODO: This may change if we annotate literals with an Argument
                 data = expr.signature_data()
 
-            elif isinstance(expr, FormArgument):
-                # Save coefficients and arguments for renumbering in next phase
-                if isinstance(expr, Coefficient):
-                    coefficients.add(expr)
-                elif isinstance(expr, Argument):
-                    arguments.add(expr)
+            elif isinstance(expr, Coefficient):
+                # Save coefficients for renumbering in next phase
+                coefficients.add(expr)
                 continue
+
+            elif isinstance(expr, Argument):
+                # With the new design where we specify argument number explicitly we avoid renumbering
+                data = expr.signature_data(domain_numbering=domain_numbering)
 
             elif isinstance(expr, GeometricQuantity):
                 # Assuming all geometric quantities are defined by just their class + domain
@@ -92,17 +93,10 @@ def compute_terminal_hashdata(expressions, domain_numbering, function_replace_ma
 
             terminal_hashdata[expr] = data
 
-    # Apply renumbering of form arguments
+    # Apply renumbering of coefficients
     # (Note: some duplicated work here and in preprocess, to
     # allow using this function without full preprocessing.)
     for i, e in enumerate(sorted_by_count(coefficients)):
-        er = function_replace_map.get(e)
-        if er is None:
-            er = e
-        data = er.signature_data(count=i, domain_numbering=domain_numbering)
-        terminal_hashdata[e] = data
-
-    for i, e in enumerate(sorted_by_count(arguments)):
         er = function_replace_map.get(e)
         if er is None:
             er = e

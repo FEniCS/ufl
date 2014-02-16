@@ -39,11 +39,15 @@ class Coefficient(FormArgument):
     _globalcount = 0
 
     def __init__(self, element, count=None):
-        FormArgument.__init__(self, count, Coefficient)
+        FormArgument.__init__(self)
+        counted_init(self, count, countedclass)
         ufl_assert(isinstance(element, FiniteElementBase),
             "Expecting a FiniteElementBase instance.")
         self._element = element
         self._repr = None
+
+    def count(self):
+        return self._count
 
     def reconstruct(self, element=None, count=None):
         # This code is shared with the FooConstant classes
@@ -88,7 +92,7 @@ class Coefficient(FormArgument):
     def signature_data(self, count, domain_numbering):
         "Signature data for form arguments depend on the global numbering of the form arguments and domains."
         return ("Coefficient", count,) + self.element().signature_data(domain_numbering=domain_numbering)
-    
+
     def __str__(self):
         count = str(self._count)
         if len(count) == 1:
