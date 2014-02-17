@@ -24,6 +24,7 @@
 
 from itertools import izip
 import operator
+import time
 
 # Taken from http://ivory.idyll.org/blog/mar-07/replacing-commands-with-subprocess
 from subprocess import Popen, PIPE, STDOUT
@@ -442,3 +443,25 @@ def topological_sorting(nodes, edges):
                 S.insert(0,m)
 
     return L
+
+class Timer:
+    def __init__(self, name):
+        self.name = name
+        self.times = []
+        self('begin %s' % self.name)
+
+    def __call__(self, msg):
+        self.times.append((time.time(), msg))
+
+    def end(self):
+        self('end %s' % self.name)
+    def __str__(self):
+        line = "-"*60
+        s = [line, "Timing of %s" % self.name]
+        for i in range(len(self.times)-1):
+            t = self.times[i+1][0] - self.times[i][0]
+            msg = self.times[i][1]
+            s.append("%9.2e s    %s" % (t, msg))
+        s.append('Total time: %9.2e s' % (self.times[-1][0] - self.times[0][0]))
+        s.append(line)
+        return '\n'.join(s)
