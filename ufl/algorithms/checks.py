@@ -47,6 +47,8 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
         #errors.append(msg)
         #return errors
 
+    # FIXME: There's a bunch of other checks we should do here.
+
     # FIXME: Add back check for multilinearity
     # Check that form is multilinear
     #if not is_multilinear(form):
@@ -83,17 +85,18 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
                     coefficients[c] = f
 
             elif isinstance(f, Argument):
-                c = f.count()
-                if c in arguments:
-                    g = arguments[c]
+                n = f.number()
+                p = f.part()
+                if (n,p) in arguments:
+                    g = arguments[(n,p)]
                     if not f is g:
-                        if c == -2: msg = "TestFunctions"
-                        elif c == -1: msg = "TrialFunctions"
-                        else: msg = "Arguments with same count"
+                        if n == 0: msg = "TestFunctions"
+                        elif n == 1: msg = "TrialFunctions"
+                        else: msg = "Arguments with same number and part"
                         msg = "Found different %s: %s and %s." % (msg, repr(f), repr(g))
                         errors.append(msg)
                 else:
-                    arguments[c] = f
+                    arguments[(n,p)] = f
 
     # Check that all integrands are scalar
     for expression in iter_expressions(form):

@@ -27,7 +27,9 @@ is more robust w.r.t. argument numbering than using repr."""
 from itertools import izip
 
 from ufl.log import error
-from ufl.terminal import Terminal, FormArgument
+from ufl.terminal import Terminal
+from ufl.argument import Argument
+from ufl.coefficient import Coefficient
 from ufl.indexing import Index, FixedIndex, MultiIndex
 from ufl.variable import Label
 from ufl.geometry import GeometricQuantity
@@ -73,11 +75,17 @@ def cmp_expr(a, b):
         # but for this sorting they are considered equal and we return 0.
         return 0
 
-    # ... Other Counted object? (Coefficient or Argument)
-    elif isinstance(a, FormArgument):
-        # It's ok to compare relative counts for form arguments,
+    # ... Coefficient?
+    elif isinstance(a, Coefficient):
+        # It's ok to compare relative counts for Coefficients,
         # since their ordering is a property of the form
         return _cmp3(a._count, b._count)
+
+    # ... Argument?
+    elif isinstance(a, Argument):
+        # It's ok to compare relative number and part for Arguments,
+        # since their ordering is a property of the form
+        return _cmp3((a._number, a._part), (b._number, b._part))
 
     # ... another kind of Terminal object?
     elif isinstance(a, Terminal):

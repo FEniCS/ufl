@@ -139,7 +139,7 @@ def set_list_item(li, i, v):
     # Set item in innermost list
     li[i[-1]] = v
 
-def _handle_derivative_arguments(coefficient, argument):
+def _handle_derivative_arguments(form, coefficient, argument):
     # Wrap single coefficient in tuple for uniform treatment below
     if isinstance(coefficient, (list,tuple)):
         coefficients = tuple(coefficient)
@@ -151,13 +151,26 @@ def _handle_derivative_arguments(coefficient, argument):
         if not all(isinstance(c, Coefficient) for c in coefficients):
             error("Can only create arguments automatically for non-indexed coefficients.")
 
+        # Get existing arguments from form and position the new one with the next argument number
+        from ufl.algorithms import extract_arguments
+        form_arguments = extract_arguments(form)
+
+        numbers = sorted(set(arg.number() for arg in form_arguments))
+        number = max(numbers + [-1]) + 1
+
+        # Don't know what to do with parts, let the user sort it out in that case
+        parts = set(arg.part() for arg in form_arguments)
+        ufl_assert(len(parts - set((None,))) == 0, "Not expecting parts here, provide your own arguments.")
+        part = None
+
+        # Create argument and split it if in a mixed space
         elements = [c.element() for c in coefficients]
         if len(elements) > 1:
             elm = MixedElement(*elements)
-            arguments = split(Argument(elm))
+            arguments = split(Argument(elm, number, part))
         else:
             elm, = elements
-            arguments = (Argument(elm),)
+            arguments = (Argument(elm, number, part),)
     else:
         # Wrap single argument in tuple for uniform treatment below
         if isinstance(argument, (list,tuple)):
@@ -213,7 +226,7 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
     a single Coefficient, in which case the new Argument
     argument is based on a MixedElement created from this tuple."""
 
-    coefficients, arguments = _handle_derivative_arguments(coefficient, argument)
+    coefficients, arguments = _handle_derivative_arguments(form, coefficient, argument)
 
     coefficient_derivatives = coefficient_derivatives or {}
 

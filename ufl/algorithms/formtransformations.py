@@ -306,6 +306,10 @@ def compute_form_with_arity(form, arity, arguments=None):
     if arguments is None:
         arguments = extract_arguments(form)
 
+    parts = [arg.part() for arg in arguments]
+    if set(parts) - set((None,)):
+        error("compute_form_with_arity cannot handle parts.")
+
     if len(arguments) < arity:
         warning("Form has no parts with arity %d." % arity)
         return 0*form
@@ -330,6 +334,10 @@ def compute_form_arities(form):
 
     # Extract all arguments present in form
     arguments = extract_arguments(form)
+
+    parts = [arg.part() for arg in arguments]
+    if set(parts) - set((None,)):
+        error("compute_form_arities cannot handle parts.")
 
     arities = set()
     for arity in range(len(arguments)+1):
@@ -384,6 +392,10 @@ def compute_form_action(form, coefficient):
     # Extract all arguments
     arguments = extract_arguments(form)
 
+    parts = [arg.part() for arg in arguments]
+    if set(parts) - set((None,)):
+        error("compute_form_action cannot handle parts.")
+
     # Pick last argument (will be replaced)
     u = arguments[-1]
 
@@ -406,6 +418,11 @@ def compute_energy_norm(form, coefficient):
     end if no coefficient has been provided.
     """
     arguments = extract_arguments(form)
+
+    parts = [arg.part() for arg in arguments]
+    if set(parts) - set((None,)):
+        error("compute_energy_norm cannot handle parts.")
+
     ufl_assert(len(arguments) == 2, "Expecting bilinear form.")
     v, u = arguments
     e = u.element()
@@ -422,19 +439,34 @@ def compute_energy_norm(form, coefficient):
 def compute_form_adjoint(form, reordered_arguments=None):
     """Compute the adjoint of a bilinear form.
 
-    This works simply by changing the ordering (count) of the two arguments.
+    This works simply by swapping the number and part of the two arguments,
+    but keeping their elements and places in the integrand expressions.
     """
     arguments = extract_arguments(form)
+
+    parts = [arg.part() for arg in arguments]
+    if set(parts) - set((None,)):
+        error("compute_form_adjoint cannot handle parts.")
+
     ufl_assert(len(arguments) == 2, "Expecting bilinear form.")
 
     v, u = arguments
-    ufl_assert(v.count() < u.count(), "Mistaken assumption in code!")
+    ufl_assert(v.number() < u.number(), "Mistaken assumption in code!")
 
     if reordered_arguments is None:
-        reordered_arguments = (Argument(u.element()), Argument(v.element()))
-    reordered_u, reordered_v = reordered_arguments
-    ufl_assert(reordered_u.count() < reordered_v.count(),
+        reordered_u = u.reconstruct(number=v.number(), part=v.part())
+        reordered_v = v.reconstruct(number=u.number(), part=u.part())
+    else:
+        reordered_u, reordered_v = reordered_arguments
+
+    ufl_assert(reordered_u.number() < reordered_v.number(),
                "Ordering of new arguments is the same as the old arguments!")
+
+    ufl_assert(reordered_u.part() == v.part(),
+               "Ordering of new arguments is the same as the old arguments!")
+    ufl_assert(reordered_v.part() == u.part(),
+               "Ordering of new arguments is the same as the old arguments!")
+
     ufl_assert(reordered_u.element() == u.element(),
                "Element mismatch between new and old arguments (trial functions).")
     ufl_assert(reordered_v.element() == v.element(),

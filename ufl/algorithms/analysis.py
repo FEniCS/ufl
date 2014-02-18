@@ -81,10 +81,13 @@ def extract_terminals(a):
                  for o in post_traversal(e) \
                  if isinstance(o, Terminal))
 
+def sorted_by_number_and_part(seq):
+    return sorted(seq, key=lambda x: (x.number(), x.part()))
+
 def extract_arguments(a):
     """Build a sorted list of all arguments in a,
     which can be a Form, Integral or Expr."""
-    return sorted_by_count(extract_type(a, Argument))
+    return sorted_by_number_and_part(extract_type(a, Argument))
 
 def extract_coefficients(a):
     """Build a sorted list of all coefficients in a,
@@ -103,17 +106,17 @@ def extract_arguments_and_coefficients(a):
     arguments = [f for f in terminals if isinstance(f, Argument)]
     coefficients = [f for f in terminals if isinstance(f, Coefficient)]
 
-    # Build count: instance mappings, should be one to one
-    bfcounts = dict((f, f.count()) for f in arguments)
-    fcounts = dict((f, f.count()) for f in coefficients)
-
-    if len(bfcounts) != len(set(bfcounts.values())):
+    # Build number,part: instance mappings, should be one to one
+    bfnp = dict((f, (f.number(), f.part())) for f in arguments)
+    if len(bfnp) != len(set(bfnp.values())):
         msg = """\
-Found different Arguments with same counts.
+Found different Arguments with same number and part.
 Did you combine test or trial functions from different spaces?
 The Arguments found are:\n%s""" % "\n".join("  %s" % f for f in arguments)
         error(msg)
 
+    # Build count: instance mappings, should be one to one
+    fcounts = dict((f, f.count()) for f in coefficients)
     if len(fcounts) != len(set(fcounts.values())):
         msg = """\
 Found different coefficients with same counts.
@@ -121,13 +124,13 @@ The arguments found are:\n%s""" % "\n".join("  %s" % f for f in coefficients)
         error(msg)
 
     # Passed checks, so we can safely sort the instances by count
-    arguments = sorted_by_count(arguments)
+    arguments = sorted_by_number_and_part(arguments)
     coefficients = sorted_by_count(coefficients)
 
     return arguments, coefficients
 
-def build_argument_replace_map(arguments, coefficients, element_mapping=None):
-    """Create new Argument and Coefficient objects
+def build_coefficient_replace_map(coefficients, element_mapping=None):
+    """Create new Coefficient objects
     with count starting at 0. Return mapping from old
     to new objects, and lists of the new objects."""
     if element_mapping is None:
@@ -137,11 +140,9 @@ def build_argument_replace_map(arguments, coefficients, element_mapping=None):
             old_e = f.element()
             new_e = element_mapping.get(old_e, old_e)
             yield f.reconstruct(element=new_e, count=i)
-    new_arguments = list(remap(arguments))
     new_coefficients = list(remap(coefficients))
-    replace_map = dict(izip(chain(arguments, coefficients),
-                            chain(new_arguments, new_coefficients)))
-    return replace_map, new_arguments, new_coefficients
+    replace_map = dict(izip(coefficients, new_coefficients))
+    return new_coefficients, replace_map
 
 # alternative implementation, kept as an example:
 def _extract_coefficients(a):

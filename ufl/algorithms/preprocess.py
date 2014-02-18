@@ -34,7 +34,7 @@ from ufl.protocols import id_or_none
 from ufl.geometry import as_domain
 from ufl.algorithms.replace import replace
 from ufl.algorithms.analysis import (extract_arguments_and_coefficients,
-                                     build_argument_replace_map,
+                                     build_coefficient_replace_map,
                                      extract_elements, extract_sub_elements,
                                      unique_tuple,
                                      extract_num_sub_domains)
@@ -244,19 +244,20 @@ def preprocess(form, object_names=None):
                                             original_arguments,
                                             original_coefficients)
 
-    tic('build_argument_replace_map') # TODO: Remove renumbered ones?
-    replace_map, renumbered_arguments, renumbered_coefficients = \
-        build_argument_replace_map(original_arguments,
-                                   original_coefficients,
-                                   element_mapping)
+    tic('build_coefficient_replace_map') # TODO: Remove renumbered ones?
+    renumbered_coefficients, replace_map = \
+        build_coefficient_replace_map(original_coefficients, element_mapping)
 
     # Note: This is the earliest point signature can be computed
 
-    # Build mapping to original arguments and coefficients, which is
-    # useful if the original arguments have data attached to them
+    # Build mapping to original coefficients, which is
+    # useful if the original coefficient have data attached to them
     inv_replace_map = dict((w,v) for (v,w) in replace_map.iteritems())
-    original_arguments = [inv_replace_map[v] for v in renumbered_arguments]
-    original_coefficients = [inv_replace_map[w] for w in renumbered_coefficients]
+
+    # TODO: What's the point of this? Added assertion to check for sanity.
+    original_coefficients2 = [inv_replace_map[w] for w in renumbered_coefficients]
+    ufl_assert(all(c1 == c2 for c1,c2 in zip(original_coefficients, original_coefficients2)),
+               "Got two versions of original coefficients?")
 
     # TODO: Build mapping from object to position instead? But we need mapped elements as well anyway.
     #argument_positions = { v: i }
@@ -311,7 +312,7 @@ def preprocess(form, object_names=None):
 
     # Store elements, sub elements and element map
     tic('extract_elements')
-    form_data.argument_elements    = tuple(f.element() for f in renumbered_arguments)
+    form_data.argument_elements    = tuple(f.element() for f in original_arguments)
     form_data.coefficient_elements = tuple(f.element() for f in renumbered_coefficients)
     form_data.elements             = form_data.argument_elements + form_data.coefficient_elements
     form_data.unique_elements      = unique_tuple(form_data.elements)

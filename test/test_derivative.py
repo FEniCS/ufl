@@ -249,13 +249,19 @@ class DerivativeTestCase(UflTestCase):
 
         n = ad.num_coefficients
         def make_value(c):
-            z = 0.3 if isinstance(c, Coefficient) else 0.7
+            if isinstance(c, Coefficient):
+                z = 0.3
+                m = c.count()
+            else:
+                z = 0.7
+                m = c.number()
             if c.shape() == ():
-                return z * (0.1 + 0.9 * c.count() / n)
+                return z * (0.1 + 0.9 * m / n)
             elif len(c.shape()) == 1:
-                return tuple((z * (j + 0.1 + 0.9 * c.count() / n) for j in range(c.shape()[0])))
+                return tuple((z * (j + 0.1 + 0.9 * m / n) for j in range(c.shape()[0])))
             else:
                 raise NotImplementedError("Tensor valued expressions not supported here.")
+
         amapping = dict((c, make_value(c)) for c in chain(ad.original_coefficients, ad.original_arguments))
         bmapping = dict((c, make_value(c)) for c in chain(bd.original_coefficients, bd.original_arguments))
 
@@ -396,8 +402,7 @@ class DerivativeTestCase(UflTestCase):
     def test_coefficient_derivatives(self):
         V = FiniteElement("Lagrange", triangle, 1)
 
-        dv = TestFunction(V).reconstruct(count=0)
-        du = TrialFunction(V).reconstruct(count=1)
+        dv = TestFunction(V)
 
         f = Coefficient(V).reconstruct(count=0)
         g = Coefficient(V).reconstruct(count=1)
@@ -410,7 +415,7 @@ class DerivativeTestCase(UflTestCase):
         expected = (df*dv)*g + f*(dg*dv)
 
         F = integrand*dx
-        J = derivative(F, u, du, cd)
+        J = derivative(F, u, dv, cd)
         fd = J.compute_form_data()
         actual = fd.preprocessed_form.integrals()[0].integrand()
         self.assertEqual(compute_form_signature(actual*dx), compute_form_signature(expected*dx))
@@ -420,8 +425,7 @@ class DerivativeTestCase(UflTestCase):
         V = VectorElement("Lagrange", triangle, 1)
         VV = TensorElement("Lagrange", triangle, 1)
 
-        dv = TestFunction(V).reconstruct(count=0)
-        du = TrialFunction(V).reconstruct(count=1)
+        dv = TestFunction(V)
 
         df = Coefficient(VV).reconstruct(count=0)
         g = Coefficient(V).reconstruct(count=1)
@@ -435,7 +439,7 @@ class DerivativeTestCase(UflTestCase):
         expected = as_tensor(df[i2,i1]*dv[i1], (i2,))[i0]*g[i0]
 
         F = integrand*dx
-        J = derivative(F, u, du, cd)
+        J = derivative(F, u, dv, cd)
         fd = J.compute_form_data()
         actual = fd.preprocessed_form.integrals()[0].integrand()
         self.assertEqual(compute_form_signature(actual*dx), compute_form_signature(expected*dx))
@@ -445,8 +449,7 @@ class DerivativeTestCase(UflTestCase):
         V = VectorElement("Lagrange", triangle, 1)
         VV = TensorElement("Lagrange", triangle, 1)
 
-        dv = TestFunction(V).reconstruct(count=0)
-        du = TrialFunction(V).reconstruct(count=1)
+        dv = TestFunction(V)
 
         df = Coefficient(VV).reconstruct(count=0)
         g = Coefficient(V).reconstruct(count=1)
@@ -462,7 +465,7 @@ class DerivativeTestCase(UflTestCase):
                    f[i0]*as_tensor(dg[i4,i3]*dv[i3], (i4,))[i0]
 
         F = integrand*dx
-        J = derivative(F, u, du, cd)
+        J = derivative(F, u, dv, cd)
         fd = J.compute_form_data()
         actual = fd.preprocessed_form.integrals()[0].integrand()
 

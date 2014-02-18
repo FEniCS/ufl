@@ -32,32 +32,47 @@ from ufl.finiteelement import FiniteElementBase
 
 class Argument(FormArgument):
     """UFL value: Representation of an argument to a form."""
-    __slots__ = ("_element", "_number", "_repr")
+    __slots__ = ("_element", "_number", "_part", "_repr")
 
-    def __init__(self, element, number):
+    def __init__(self, element, number, part=None):
         FormArgument.__init__(self)
         ufl_assert(isinstance(element, FiniteElementBase),
-            "Expecting a FiniteElementBase instance.")
-        self._element = element
-        self._repr = "Argument(%r, %r)" % (self._element, self._number)
-
-    def reconstruct(self, element=None, number=None):
-        if element is None or element == self._element:
-            element = self._element
-        if number is None or number == self._number:
-            number = self._number
-        if number is self._number and element is self._element:
-            return self
-        ufl_assert(isinstance(element, FiniteElementBase),
-                   "Expecting an element, not %s" % element)
+                   "Expecting an element, not %s" % (element,))
         ufl_assert(isinstance(number, int),
-                   "Expecting an int, not %s" % number)
+                   "Expecting an int for number, not %s" % (number,))
+        ufl_assert(part is None or isinstance(part, int),
+                   "Expecting None or an int for part, not %s" % (part,))
+        self._element = element
+        self._number = number
+        self._part = part
+        self._repr = "Argument(%r, %r, %r)" % (self._element, self._number, self._part)
+
+    def reconstruct(self, element=None, number=None, part=None):
+        if element is None or (element == self._element): # TODO: Is the == here a workaround for some bug?
+            element = self._element
+        if number is None:
+            number = self._number
+        if part is None:
+            part = self._part
+        if number == self._number and part == self._part and element is self._element:
+            return self
         ufl_assert(element.value_shape() == self._element.value_shape(),
                    "Cannot reconstruct an Argument with a different value shape.")
-        return Argument(element, number)
+        return Argument(element, number, part)
 
     def element(self):
         return self._element
+
+    def number(self):
+        return self._number
+
+    def part(self):
+        return self._part
+
+    def count(self):
+        deprecate("The count of an Argument has been replaced with number() and part().")
+        ufl_assert(self.part() is None, "Deprecation transition for count() will not work with parts.")
+        return self.number() # I think this will work ok in most cases during the deprecation transition
 
     def shape(self):
         return self._element.value_shape()
@@ -66,7 +81,7 @@ class Argument(FormArgument):
         "Return whether this expression is spatially constant over each cell."
         # TODO: Should in principle do like with Coefficient,
         # but that may currently simplify away some arguments
-        # we want to keep, or?
+        # we want to keep, or? See issue#13.
         # When we can annotate zero with arguments, we can change this.
         return False
 
@@ -82,14 +97,22 @@ class Argument(FormArgument):
 
     def signature_data(self, domain_numbering):
         "Signature data for form arguments depend on the global numbering of the form arguments and domains."
-        return ("Argument", self._number,) + self._element.signature_data(domain_numbering=domain_numbering)
+        s = self._element.signature_data(domain_numbering=domain_numbering)
+        return ("Argument", self._number, self._part) + s
 
     def __str__(self):
         number = str(self._number)
         if len(number) == 1:
-            return "v_%s" % number
+            s = "v_%s" % number
         else:
-            return "v_{%s}" % number
+            s = "v_{%s}" % number
+        if self._part is not None:
+            part = str(self._part)
+            if len(part) == 1:
+                s = "%s^%s" % (s, part)
+            else:
+                s = "%s^{%s}" % (s, part)
+        return s
 
     def __repr__(self):
         return self._repr
@@ -108,18 +131,19 @@ class Argument(FormArgument):
         """
         return (type(self) == type(other) and
                 self._number == other._number and
+                self._part == other._part and
                 self._element == other._element)
 
 
 # --- Helper functions for pretty syntax ---
 
-def TestFunction(element):
+def TestFunction(element, part=None):
     """UFL value: Create a test function argument to a form."""
-    return Argument(element, 0)
+    return Argument(element, 0, part)
 
-def TrialFunction(element):
+def TrialFunction(element, part=None):
     """UFL value: Create a trial function argument to a form."""
-    return Argument(element, 1)
+    return Argument(element, 1, part)
 
 # --- Helper functions for creating subfunctions on mixed elements ---
 
@@ -131,9 +155,9 @@ def Arguments(element, number):
 def TestFunctions(element):
     """UFL value: Create a TestFunction in a mixed space, and return a
     tuple with the function components corresponding to the subelements."""
-    return split(TestFunction(element))
+    return Arguments(element, 0)
 
 def TrialFunctions(element):
     """UFL value: Create a TrialFunction in a mixed space, and return a
     tuple with the function components corresponding to the subelements."""
-    return split(TrialFunction(element))
+    return Arguments(element, 1)

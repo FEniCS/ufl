@@ -112,8 +112,9 @@ def format_index(ii):
 def format_multi_index(ii, formatstring="%s"):
     return "".join(formatstring % format_index(i) for i in ii)
 
-def bfname(i):
-    return "{v_h^%d}" % i
+def bfname(i, p):
+    s = "" if p is None else (",%d"%(p,))
+    return "{v_h^{%d%s}}" % (i,s)
 
 def cfname(i):
     return "{w_h^%d}" % i
@@ -148,8 +149,8 @@ class Expression2LatexHandler(Transformer):
     def argument(self, o):
         # Using ^ for argument numbering and _ for indexing since indexing is more common than exponentiation
         if self.argument_names is None:
-            return bfname(o.count())
-        return self.argument_names[o.count()]
+            return bfname(o.number(), o.part())
+        return self.argument_names[(o.number(), o.part())]
 
     def coefficient(self, o):
         # Using ^ for coefficient numbering and _ for indexing since indexing is more common than exponentiation
@@ -418,8 +419,10 @@ def form2latex(form, formdata):
 
     # Define arguments and coefficients
     lines = []
-    for i, f in enumerate(formdata.original_arguments):
-        lines.append("%s = %s \\in V_h^{%d} " % (argument_names[i], bfname(i), i))
+    for f in formdata.original_arguments:
+        i = f.number()
+        p = f.part()
+        lines.append("%s = %s \\in V_h^{%d} " % (argument_names[(i,p)], bfname(i,p), i)) # FIXME: Handle part in V_h
     for i, f in enumerate(formdata.original_coefficients):
         lines.append("%s = %s \\in W_h^{%d} " % (coefficient_names[i], cfname(i), i))
     if lines:

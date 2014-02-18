@@ -28,6 +28,7 @@ from ufl.assertions import ufl_assert
 from ufl.terminal import FormArgument
 from ufl.finiteelement import FiniteElementBase, FiniteElement, VectorElement, TensorElement
 from ufl.split_functions import split
+from ufl.common import counted_init
 
 # --- The Coefficient class represents a coefficient in a form ---
 
@@ -40,7 +41,8 @@ class Coefficient(FormArgument):
 
     def __init__(self, element, count=None):
         FormArgument.__init__(self)
-        counted_init(self, count, countedclass)
+        counted_init(self, count, Coefficient)
+
         ufl_assert(isinstance(element, FiniteElementBase),
             "Expecting a FiniteElementBase instance.")
         self._element = element

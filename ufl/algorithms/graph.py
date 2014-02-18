@@ -321,7 +321,7 @@ class StringDependencyDefiner(MultiFunction):
         return frozenset()
 
     def argument(self, x):
-        default = frozenset(("v%d" % x.count(), "x"))
+        default = frozenset(("v%d" % x.number(), "x")) # TODO: This is missing the part, but this code is ready for deletion anyway?
         return self.argument_deps.get(x, default)
 
     def coefficient(self, x):

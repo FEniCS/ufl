@@ -177,11 +177,11 @@ class AlgorithmsTestCase(UflTestCase):
 
         u = TrialFunction(V1)
         v = TestFunction(V2)
-        self.assertGreater(u.count(), v.count())
+        self.assertGreater(u.number(), v.number())
 
         u2 = Argument(V1, 2)
         v2 = Argument(V2, 3)
-        self.assertLess(u2.count(), v2.count())
+        self.assertLess(u2.number(), v2.number())
 
         a = u*v*dx
         a_arg_degrees = [arg.element().degree() for arg in extract_arguments(a)]

@@ -50,8 +50,8 @@ class TestStrOfArguments(UflTestCase):
     def test_str_scalar_argument(self):
         v = TestFunction(FiniteElement("CG", triangle, 1))
         u = TrialFunction(FiniteElement("CG", triangle, 1))
-        self.assertEqual(str(v), "v_{-2}") # FIXME
-        self.assertEqual(str(u), "v_{-1}") # FIXME
+        self.assertEqual(str(v), "v_0")
+        self.assertEqual(str(u), "v_1")
 
     #def test_str_vector_argument(self): # FIXME
 
