@@ -32,14 +32,14 @@ class IndexTestCase(UflTestCase):
 
     def test_vector_indices(self):
         element = VectorElement("CG", "triangle", 1)
-        u = Argument(element)
+        u = Argument(element, 2)
         f = Coefficient(element)
         a = u[i]*f[i]*dx
         b = u[j]*f[j]*dx
     
     def test_tensor_indices(self):
         element = TensorElement("CG", "triangle", 1)
-        u = Argument(element)
+        u = Argument(element, 2)
         f = Coefficient(element)
         a = u[i,j]*f[i,j]*dx
         b = u[j,i]*f[i,j]*dx
@@ -52,7 +52,7 @@ class IndexTestCase(UflTestCase):
 
     def test_indexed_sum1(self):
         element = VectorElement("CG", "triangle", 1)
-        u = Argument(element)
+        u = Argument(element, 2)
         f = Coefficient(element)
         a = u[i]+f[i]
         try:
@@ -63,8 +63,8 @@ class IndexTestCase(UflTestCase):
 
     def test_indexed_sum2(self):
         element = VectorElement("CG", "triangle", 1)
-        v = Argument(element)
-        u = Argument(element)
+        v = Argument(element, 2)
+        u = Argument(element, 3)
         f = Coefficient(element)
         a = u[j]+f[j]+v[j]+2*v[j]+exp(u[i]*u[i])/2*f[j]
         try:
@@ -75,7 +75,7 @@ class IndexTestCase(UflTestCase):
 
     def test_indexed_sum3(self):
         element = VectorElement("CG", "triangle", 1)
-        u = Argument(element)
+        u = Argument(element, 2)
         f = Coefficient(element)
         try:
             a = u[i]+f[j]
@@ -85,16 +85,16 @@ class IndexTestCase(UflTestCase):
 
     def test_indexed_function1(self):
         element = VectorElement("CG", "triangle", 1)
-        v = Argument(element)
-        u = Argument(element)
+        v = Argument(element, 2)
+        u = Argument(element, 3)
         f = Coefficient(element)
         aarg = (u[i]+f[i])*v[i]
         a = exp(aarg)*dx
 
     def test_indexed_function2(self):
         element = VectorElement("CG", "triangle", 1)
-        v = Argument(element)
-        u = Argument(element)
+        v = Argument(element, 2)
+        u = Argument(element, 3)
         f = Coefficient(element)
         bfun  = cos(f[0])
         left  = u[i] + f[i]
@@ -107,8 +107,8 @@ class IndexTestCase(UflTestCase):
     
     def test_indexed_function3(self):
         element = VectorElement("CG", "triangle", 1)
-        v = Argument(element)
-        u = Argument(element)
+        v = Argument(element, 2)
+        u = Argument(element, 3)
         f = Coefficient(element)
         try:
             c = sin(u[i] + f[i])*dx

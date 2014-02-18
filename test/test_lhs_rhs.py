@@ -14,7 +14,7 @@ class FormOperations(UflTestCase):
         V = FiniteElement("CG", interval, 1)
         v = TestFunction(V)
         u = TrialFunction(V)
-        w = Argument(V,  0)
+        w = Argument(V, 2) # This was 0, not sure why
         f = Coefficient(V)
 
         F0 = f*u*v*w*dx

@@ -179,8 +179,8 @@ class AlgorithmsTestCase(UflTestCase):
         v = TestFunction(V2)
         self.assertGreater(u.count(), v.count())
 
-        u2 = Argument(V1)
-        v2 = Argument(V2)
+        u2 = Argument(V1, 2)
+        v2 = Argument(V2, 3)
         self.assertLess(u2.count(), v2.count())
 
         a = u*v*dx

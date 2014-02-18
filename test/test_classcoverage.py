@@ -104,13 +104,13 @@ class ClasscoverageTest(UflTestCase):
 
         # --- Terminals:
         
-        v13D = Argument(e13D)
+        v13D = Argument(e13D, 3)
         f13D = Coefficient(e13D)
         
-        v0 = Argument(e0)
-        v1 = Argument(e1)
-        v2 = Argument(e2)
-        v3 = Argument(e3)
+        v0 = Argument(e0, 4)
+        v1 = Argument(e1, 5)
+        v2 = Argument(e2, 6)
+        v3 = Argument(e3, 7)
         
         test_object(v0, (), ())
         test_object(v1, (dim,), ())

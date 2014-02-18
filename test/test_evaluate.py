@@ -68,7 +68,7 @@ class EvaluateTestCase(UflTestCase):
     def testArgument2(self):
         cell = triangle
         element = FiniteElement("CG", cell, 1)
-        f = Argument(element)
+        f = Argument(element, 2)
         def g(x):
             return x[0]
         s = 3*f

@@ -16,11 +16,11 @@ class TestDegreeEstimation(UflTestCase):
         V2 = FiniteElement("CG", triangle, 2)
         VV = VectorElement("CG", triangle, 3)
         VM = V1 * V2
-        v1 = Argument(V1)
-        v2 = Argument(V2)
+        v1 = Argument(V1, 2)
+        v2 = Argument(V2, 3)
         f1, f2 = Coefficients(VM)
-        vv = Argument(VV)
-        vu = Argument(VV)
+        vv = Argument(VV, 4)
+        vu = Argument(VV, 5)
 
         x, y = SpatialCoordinate(triangle)
         self.assertEqual(estimate_total_polynomial_degree(x), 1)

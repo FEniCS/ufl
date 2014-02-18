@@ -45,9 +45,9 @@ class ExpressionCollection(object):
         u = Coefficient(U)
         v = Coefficient(V)
         w = Coefficient(W)
-        du = Argument(U)
-        dv = Argument(V)
-        dw = Argument(W)
+        du = Argument(U, 0)
+        dv = Argument(V, 1)
+        dw = Argument(W, 2)
  
         class ObjectCollection(object):
             pass

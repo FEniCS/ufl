@@ -157,8 +157,8 @@ class TerminalHashDataTestCase(UflTestCase):
                             assert len(elements) == nelm
 
                             for H in elements[:nelm]:
-                                # Keep count fixed, we're not testing that here
-                                a = Argument(H, count=1)
+                                # Keep number and count fixed, we're not testing that here
+                                a = Argument(H, number=1)
                                 c = Coefficient(H, count=1)
                                 for f in (a, c):
                                     expr = inner(f,f)
@@ -179,7 +179,7 @@ class TerminalHashDataTestCase(UflTestCase):
         self.assertEqual(len(reprs), c0)
         self.assertEqual(len(hashes), c0)
 
-    def test_terminal_hashdata_does_not_depend_on_form_argument_counts(self):
+    def test_terminal_hashdata_does_not_depend_on_coefficient_count_values_only_ordering(self):
         reprs = set()
         hashes = set()
         counts = list(range(-3,4))
@@ -191,20 +191,47 @@ class TerminalHashDataTestCase(UflTestCase):
                 for cell in cells:
                     for k in counts:
                         V = FiniteElement("CG", cell, 2)
-                        a1 = Argument(V, count=k)
-                        a2 = Argument(V, count=k+2)
-                        c1 = Coefficient(V, count=k)
-                        c2 = Coefficient(V, count=k+2)
-                        for f,g in ((a1,a2), (c1,c2)):
-                            expr = inner(f,g)
+                        f = Coefficient(V, count=k)
+                        g = Coefficient(V, count=k+2)
+                        expr = inner(f,g)
 
-                            reprs.add(repr(expr))
-                            hashes.add(hash(expr))
-                            yield compute_terminal_hashdata(expr, domain_numbering(*cells))
+                        reprs.add(repr(expr))
+                        hashes.add(hash(expr))
+                        yield compute_terminal_hashdata(expr, domain_numbering(*cells))
 
         c, d, r, h = self.compute_unique_terminal_hashdatas(forms())
-        c0 = len(cells) * 2 # Number of actually unique cases from a code generation perspective
+        c0 = len(cells) # Number of actually unique cases from a code generation perspective
         c1 = len(counts) * c0 # Number of unique cases from a symbolic representation perspective
+        self.assertEqual(len(reprs), c1)
+        self.assertEqual(len(hashes), c1)
+        self.assertEqual(c, nreps * c1) # number of inner loop executions in forms() above
+        self.assertEqual(d, c0)
+        self.assertEqual(r, c0)
+        self.assertEqual(h, c0)
+
+    def test_terminal_hashdata_does_depend_on_argument_number_values(self):
+        reprs = set()
+        hashes = set()
+        counts = list(range(-3,4))
+        cells = (cell1D, triangle, hexahedron)
+        assert len(counts) == 7
+        nreps = 2
+        def forms():
+            for rep in range(nreps):
+                for cell in cells:
+                    for k in counts:
+                        V = FiniteElement("CG", cell, 2)
+                        f = Argument(V, k)
+                        g = Argument(V, k+2)
+                        expr = inner(f,g)
+
+                        reprs.add(repr(expr))
+                        hashes.add(hash(expr))
+                        yield compute_terminal_hashdata(expr, domain_numbering(*cells))
+
+        c, d, r, h = self.compute_unique_terminal_hashdatas(forms())
+        c0 = len(cells) * len(counts) # Number of actually unique cases from a code generation perspective
+        c1 = 1 * c0 # Number of unique cases from a symbolic representation perspective
         self.assertEqual(len(reprs), c1)
         self.assertEqual(len(hashes), c1)
         self.assertEqual(c, nreps * c1) # number of inner loop executions in forms() above
