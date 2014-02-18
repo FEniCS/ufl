@@ -652,13 +652,30 @@ class GradAD(ForwardAD):
             self._Id = Identity(gdim)
         return (o, self._Id)
 
-    # This is implicit for all terminals, but just to make this clear to the reader:
-    facet_normal = ForwardAD.terminal # returns zero
-    constant = ForwardAD.terminal # returns zero
+    def local_coordinate(self, o):
+        "Gradient of X w.r.t. x is K."
+        error("This has not been validated. Does it make sense to do this here?")
+        K = JacobianInverse(o.domain())
+        return (o, K)
 
-    def form_argument(self, o):
+    def geometric_quantity(self, o):
+        "Represent grad(x) as Grad(g)."
+        # Collapse gradient of cellwise constant function to zero
+        if o.is_cellwise_constant():
+            return self.terminal(o)
+        return (o, Grad(o))
+
+    def argument(self, o):
         "Represent grad(f) as Grad(f)."
-        # Collapse gradient of cellwise function to zero
+        # Collapse gradient of cellwise constant function to zero
+        # FIXME: Enable this after fixing issue#13
+        #if o.is_cellwise_constant():
+        #    return zero(...) # TODO: zero annotated with argument
+        return (o, Grad(o))
+
+    def coefficient(self, o):
+        "Represent grad(f) as Grad(f)."
+        # Collapse gradient of cellwise constant function to zero
         if o.is_cellwise_constant():
             return self.terminal(o)
         return (o, Grad(o))
@@ -672,6 +689,8 @@ class GradAD(ForwardAD):
         #    return self.terminal(o)
         # TODO: Maybe we can ask "f.has_derivatives_of_order(n)" to check
         #       if we should make a zero here?
+        # 1) n = count number of Grads, get f
+        # 2) if not f.has_derivatives(n): return zero(...)
 
         f, = o.operands()
         ufl_assert(isinstance(f, (Grad,Terminal)),

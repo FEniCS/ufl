@@ -31,8 +31,7 @@ from ufl.algorithms.traversal import iter_expressions, traverse_terminals, \
 from ufl.algorithms.formdata import FormData
 
 # Function for preprocessing a form
-from ufl.algorithms.preprocess import preprocess
-from ufl.algorithms.preprocess_expression import preprocess_expression
+from ufl.algorithms.preprocess import preprocess, preprocess_expression
 
 # Utilities for extracting information from forms and expressions
 from ufl.algorithms.analysis import extract_classes, extract_type, has_type, \

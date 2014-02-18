@@ -276,10 +276,10 @@ def Dn(f):
     """UFL operator: Take the directional derivative of f in the
     facet normal direction, Dn(f) := dot(grad(f), n)."""
     f = as_ufl(f)
-    cell = f.cell()
-    if cell is None: # FIXME: Rather if f.is_cellwise_constant()?
+    if f.is_cellwise_constant():
         return Zero(f.shape(), f.free_indices(), f.index_dimensions())
-    return dot(grad(f), cell.n)
+    from ufl.geometry import FacetNormal
+    return dot(grad(f), FacetNormal(f.domain()))
 
 def diff(f, v):
     """UFL operator: Take the derivative of f with respect to the variable v.
