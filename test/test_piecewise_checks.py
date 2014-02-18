@@ -181,7 +181,39 @@ class TestCellwiseConstantTerminals(UflTestCase):
             e = FacetNormal(D)
             self.assertFalse(e.is_cellwise_constant())
 
+    def test_coefficient_sometimes_cellwise_constant(self):
+        domains = []
+        domains += self.domains
+        domains += self.domains_with_quadratic_coordinates
+        for D in domains:
+            e = Constant(D)
+            self.assertTrue(e.is_cellwise_constant())
+
+            V = FiniteElement("DG", D, 0)
+            e = Coefficient(V)
+            self.assertTrue(e.is_cellwise_constant())
+            V = FiniteElement("R", D, 0)
+            e = Coefficient(V)
+            self.assertTrue(e.is_cellwise_constant())
+
+            # This should be true, but that has to wait for a fix of issue #13
+            #e = TestFunction(V)
+            #self.assertTrue(e.is_cellwise_constant())
+            #V = FiniteElement("R", D, 0)
+            #e = TestFunction(V)
+            #self.assertTrue(e.is_cellwise_constant())
+
+    def test_coefficient_mostly_not_cellwise_constant(self):
+        domains = []
+        domains += self.domains
+        domains += self.domains_with_quadratic_coordinates
+        for D in domains:
+            V = FiniteElement("DG", D, 1)
+            e = Coefficient(V)
+            self.assertFalse(e.is_cellwise_constant())
+            e = TestFunction(V)
+            self.assertFalse(e.is_cellwise_constant())
+
 # Don't touch these lines, they allow you to run this file directly
 if __name__ == "__main__":
     main()
-
