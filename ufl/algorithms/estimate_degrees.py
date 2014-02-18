@@ -39,30 +39,47 @@ class SumDegreeEstimator(Transformer):
         self.element_replace_map = element_replace_map
 
     def constant_value(self, v):
-        "Constant values are constant. Duh."
+        "Constant values are constant."
         return 0
 
     def geometric_quantity(self, v):
-        "Most geometric quantities are cellwise constant."
-        ufl_assert(v.is_cellwise_constant(),
-                   "Missing handler for non-constant geometry type %s." % v._uflclass.__name__)
-        return 0
+        "Some geometric quantities are cellwise constant. Others are nonpolynomial and thus hard to estimate."
+        if v.is_cellwise_constant():
+            return 0
+        else:
+            # As a heuristic, just returning domain degree to bump up degree somewhat
+            x = v.domain().coordinates()
+            if x is None:
+                return 1
+            else:
+                return x.element().degree()
 
     def spatial_coordinate(self, v):
-        "A coordinate provides one additional degree."
-        return 1
+        "A coordinate provides additional degrees depending on coordinate field of domain."
+        x = v.domain().coordinates()
+        if x is None:
+            return 1
+        else:
+            return x.element().degree()
 
     def local_coordinate(self, v):
         "A coordinate provides one additional degree."
         return 1
 
-    def form_argument(self, v):
+    def argument(self, v):
+        """A form argument provides a degree depending on the element,
+        or the default degree if the element has no degree."""
+        return v.element().degree() # FIXME: Use component to improve accuracy for mixed elements
+
+    def coefficient(self, v):
         """A form argument provides a degree depending on the element,
         or the default degree if the element has no degree."""
         e = v.element()
         e = self.element_replace_map.get(e,e)
-        d = e.degree() # FIXME: Use component to improve accuracy
-        return self.default_degree if d is None else d
+        d = e.degree() # FIXME: Use component to improve accuracy for mixed elements
+        if d is None:
+            d = self.default_degree
+        return d
 
     def _reduce_degree(self, v, f):
         return max(f - 1, 0)
@@ -103,6 +120,7 @@ class SumDegreeEstimator(Transformer):
     # A sum takes the max degree of its operands:
     sum = _max_degrees
 
+    # TODO: Need a new algorithm which considers direction of derivatives of form arguments
     # A spatial derivative reduces the degree with one
     grad = _reduce_degree
     # Handling these types although they should not occur... please apply preprocessing before using this algorithm:

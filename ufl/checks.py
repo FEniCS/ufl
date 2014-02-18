@@ -44,6 +44,8 @@ def is_globally_constant(expr):
     includes spatially independent constant coefficients that
     are not known before assembly time."""
 
+    # TODO: This does not consider gradients of coefficients, so false negatives are possible.
+
     from ufl.algorithms.traversal import traverse_terminals
     from ufl.argument import Argument
     from ufl.coefficient import Coefficient
