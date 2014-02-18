@@ -91,7 +91,7 @@ class BookTestCase(UflTestCase):
     def test_uflcode_552(self):
         element = FiniteElement("CG", triangle, 1)
         # ...
-        phi = Argument(element)
+        phi = Argument(element, 2)
         v = TestFunction(element)
         u = TrialFunction(element)
 
@@ -353,7 +353,7 @@ class BookTestCase(UflTestCase):
         cell = triangle
         element = FiniteElement("Lagrange", cell, 1)
         # ...
-        v = Argument(element)
+        v = Argument(element, 2)
         w = Coefficient(element)
 
     def test_python_1942(self):
@@ -421,7 +421,7 @@ class BookTestCase(UflTestCase):
         element = FiniteElement("Lagrange", cell, 1)
         x = cell.x
         if 0:
-            print m(Argument(element))
+            print m(Argument(element, 2))
             print m(x)
             print m(x[0] + x[1])
             print m(x[0] * x[1])
