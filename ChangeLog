@@ -1,5 +1,9 @@
 1.4.0 [2014-xx-xx]
- - New concept Domain: domain = Domain(cell=triangle, geometric_dimension=3, label="MyDomain")
+ - New types LocalGrad, Jacobian, JacobianInverse, JacobianDeterminant, FacetJacobian*
+ - Argument (and TestFunction, TrialFunction) now can have a specified part index for representing block systems
+ - Argument (and TestFunction, TrialFunction) now use absolute numbering f.number() instead of relative f.count()
+ - Domains can now be created with a Coefficient providing coordinates: Domain(Coefficient(VectorElement("CG", domain, 2))) 
+ - New concept Domain: domain = Domain(triangle, geometric_dimension=3, label="MyDomain")
  - New syntax: integrand*dx(domain)
  - New syntax: integrand*dx(1, domain=domain)
  - New syntax: integrand*dx(1, domain_data=domain_data)
