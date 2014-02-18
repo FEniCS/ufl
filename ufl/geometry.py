@@ -61,8 +61,14 @@ cellname2facetname = {
     "hexahedron": "quadrilateral"
     }
 
+affine_cells = set(("vertex", "interval", "triangle", "tetrahedron"))
+
 # Valid UFL cellnames
 ufl_cellnames = tuple(sorted(cellname2dim.keys()))
+
+def is_piecewise_linear_simplex_domain(domain):
+    x = domain.coordinates()
+    return (x is None or x.element().degree() == 1) and (domain.cell().cellname() in affine_cells)
 
 class GeometricQuantity(Terminal):
     __slots__ = ("_domain",)
@@ -72,6 +78,9 @@ class GeometricQuantity(Terminal):
 
     def cell(self):
         return self._domain.cell()
+
+    def domain(self):
+        return self._domain
 
     def domains(self):
         return (self._domain,)
@@ -100,7 +109,8 @@ class SpatialCoordinate(GeometricQuantity):
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
-        return False
+        # Only case this might is true is if the domain is a vertex cell.
+        return self.domain().cell().cellname() == "vertex"
 
     def shape(self):
         return (self._domain.geometric_dimension(),)
@@ -128,7 +138,8 @@ class LocalCoordinate(GeometricQuantity):
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
-        return False
+        # Only case this might is true is if the domain is a vertex cell.
+        return self.domain().cell().cellname() == "vertex"
 
     def shape(self):
         return (self._domain.geometric_dimension(),)
@@ -150,7 +161,7 @@ class LocalCoordinate(GeometricQuantity):
 #
 #    def is_cellwise_constant(self):
 #        "Return whether this expression is spatially constant over each cell."
-#        return True
+#        return True # True by definition
 #
 #    def shape(self):
 #        return (self._domain.geometric_dimension(),)
@@ -172,7 +183,7 @@ class LocalCoordinate(GeometricQuantity):
 #
 #    def is_cellwise_constant(self):
 #        "Return whether this expression is spatially constant over each cell."
-#        return True
+#        return True # True by definition
 #
 #    def shape(self):
 #        return (self._domain.geometric_dimension(),)
@@ -194,8 +205,8 @@ class Jacobian(GeometricQuantity):
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
-        # FIXME: Not true for non-affine mappings
-        return True
+        # Only true for a piecewise linear coordinate field in simplex cells
+        return is_piecewise_linear_simplex_domain(self._domain)
 
     def shape(self):
         return (self._domain.geometric_dimension(), self._domain.topological_dimension())
@@ -217,8 +228,8 @@ class JacobianDeterminant(GeometricQuantity):
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
-        # FIXME: Not true for non-affine mappings
-        return True
+        # Only true for a piecewise linear coordinate field in simplex cells
+        return is_piecewise_linear_simplex_domain(self._domain)
 
     def shape(self):
         return ()
@@ -240,8 +251,8 @@ class JacobianInverse(GeometricQuantity):
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
-        # FIXME: Not true for non-affine mappings
-        return True
+        # Only true for a piecewise linear coordinate field in simplex cells
+        return is_piecewise_linear_simplex_domain(self._domain)
 
     def shape(self):
         return (self._domain.topological_dimension(), self._domain.geometric_dimension())
@@ -263,8 +274,8 @@ class FacetJacobian(GeometricQuantity):
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
-        # FIXME: Not true for non-affine mappings
-        return True
+        # Only true for a piecewise linear coordinate field in simplex cells
+        return is_piecewise_linear_simplex_domain(self._domain)
 
     def shape(self):
         return (self._domain.geometric_dimension(), self._domain.topological_dimension()-1)
@@ -286,8 +297,8 @@ class FacetJacobianDeterminant(GeometricQuantity):
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
-        # FIXME: Not true for non-affine mappings
-        return True
+        # Only true for a piecewise linear coordinate field in simplex cells
+        return is_piecewise_linear_simplex_domain(self._domain)
 
     def shape(self):
         return ()
@@ -309,8 +320,8 @@ class FacetJacobianInverse(GeometricQuantity):
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
-        # FIXME: Not true for non-affine mappings
-        return True
+        # Only true for a piecewise linear coordinate field in simplex cells
+        return is_piecewise_linear_simplex_domain(self._domain)
 
     def shape(self):
         return (self._domain.topological_dimension()-1, self._domain.geometric_dimension())
@@ -332,8 +343,11 @@ class FacetNormal(GeometricQuantity):
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
-        # FIXME: Not true for non-affine mappings
-        return True
+        # TODO: For product cells, this depends on which facet. Seems like too much work to fix right now.
+        # Only true for a piecewise linear coordinate field with simplex _facets_
+        x = self._domain.coordinates()
+        facet_cellname = cellname2facetname.get(self._domain.cell().cellname()) # Allowing None if unknown..
+        return (x is None or x.element().degree() == 1) and (facet_cellname in affine_cells) # .. which will become false.
 
     def shape(self):
         return (self._domain.geometric_dimension(),)
@@ -365,6 +379,10 @@ class CellVolume(GeometricQuantity):
     def __init__(self, domain):
         GeometricQuantity.__init__(self, domain)
 
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        return True # True by definition
+
     def shape(self):
         return ()
 
@@ -379,6 +397,10 @@ class Circumradius(GeometricQuantity):
     __slots__ = ()
     def __init__(self, domain):
         GeometricQuantity.__init__(self, domain)
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        return True # True by definition
 
     def shape(self):
         return ()
@@ -410,6 +432,10 @@ class FacetArea(GeometricQuantity):
     def __init__(self, domain):
         GeometricQuantity.__init__(self, domain)
 
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        return True # True by definition
+
     def shape(self):
         return ()
 
@@ -428,6 +454,10 @@ class FacetArea(GeometricQuantity):
 #    def __init__(self, domain):
 #        GeometricQuantity.__init__(self, domain)
 #
+#    def is_cellwise_constant(self):
+#        "Return whether this expression is spatially constant over each cell."
+#        return True # True by definition
+#
 #    def shape(self):
 #        return ()
 #
@@ -443,6 +473,10 @@ class MinFacetEdgeLength(GeometricQuantity):
     def __init__(self, domain):
         GeometricQuantity.__init__(self, domain)
 
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        return True # True by definition
+
     def shape(self):
         return ()
 
@@ -457,6 +491,10 @@ class MaxFacetEdgeLength(GeometricQuantity):
     __slots__ = ()
     def __init__(self, domain):
         GeometricQuantity.__init__(self, domain)
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        return True # True by definition
 
     def shape(self):
         return ()
