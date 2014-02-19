@@ -449,11 +449,9 @@ def preprocess_expression(expr, object_names=None):
                                             original_arguments,
                                             original_coefficients)
 
-    tic('build_argument_replace_map')
-    replace_map, renumbered_arguments, renumbered_coefficients = \
-        build_argument_replace_map(original_arguments,
-                                   original_coefficients,
-                                   element_mapping)
+    tic('build_coefficient_replace_map')
+    renumbered_coefficients, replace_map = \
+        build_coefficient_replace_map(original_coefficients, element_mapping)
 
     #############################################################################
     # Note: This is the earliest point the final expr signature can be computed,
@@ -463,8 +461,11 @@ def preprocess_expression(expr, object_names=None):
     # Build mapping to original arguments and coefficients, which is
     # useful if the original arguments have data attached to them
     inv_replace_map = dict((w,v) for (v,w) in replace_map.iteritems())
-    original_arguments = [inv_replace_map[v] for v in renumbered_arguments]
-    original_coefficients = [inv_replace_map[w] for w in renumbered_coefficients]
+
+    # TODO: What's the point of this? Added assertion to check for sanity.
+    original_coefficients2 = [inv_replace_map[w] for w in renumbered_coefficients]
+    ufl_assert(all(c1 == c2 for c1,c2 in zip(original_coefficients, original_coefficients2)),
+               "Got two versions of original coefficients?")
 
     # Store data extracted by preprocessing
     expr_data.original_arguments      = original_arguments
@@ -503,7 +504,7 @@ def preprocess_expression(expr, object_names=None):
 
     # Store elements, sub elements and element map
     tic('extract_elements')
-    expr_data.argument_elements    = tuple(f.element() for f in renumbered_arguments)
+    expr_data.argument_elements    = tuple(f.element() for f in original_arguments)
     expr_data.coefficient_elements = tuple(f.element() for f in renumbered_coefficients)
     expr_data.elements             = expr_data.argument_elements + expr_data.coefficient_elements
     expr_data.unique_elements     = unique_tuple(expr_data.elements)
