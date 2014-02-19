@@ -23,6 +23,7 @@ classes (functions), including TestFunction and TrialFunction."""
 # First added:  2008-03-14
 # Last changed: 2011-10-20
 
+from ufl.log import deprecate
 from ufl.assertions import ufl_assert
 from ufl.terminal import FormArgument
 from ufl.split_functions import split
