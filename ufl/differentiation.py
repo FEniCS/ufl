@@ -224,7 +224,8 @@ class LocalGrad(CompoundDerivative): # FIXME: Check implementation!
     def __new__(cls, f):
         # Return zero if expression is trivially constant
         if f.is_cellwise_constant():
-            dim = f.topological_dimension() # NB!
+            domain = f.domain()
+            dim = domain.topological_dimension()
             free_indices = f.free_indices()
             index_dimensions = subdict(f.index_dimensions(), free_indices)
             return Zero(f.shape() + (dim,), free_indices, index_dimensions)
@@ -232,8 +233,10 @@ class LocalGrad(CompoundDerivative): # FIXME: Check implementation!
 
     def __init__(self, f):
         CompoundDerivative.__init__(self)
+        domain = f.domain()
+        dim = domain.topological_dimension()
         self._f = f
-        self._dim = f.topological_dimension() # NB!
+        self._dim = dim
 
     def reconstruct(self, op):
         "Return a new object of the same type with new operands."

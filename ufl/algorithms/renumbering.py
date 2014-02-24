@@ -29,6 +29,7 @@ from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
 from ufl.variable import Label, Variable
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
+from ufl.assertions import ufl_assert
 
 class VariableRenumberingTransformer(ReuseTransformer):
     def __init__(self):
@@ -261,9 +262,16 @@ class IndexRenumberingTransformer2(VariableRenumberingTransformer):
         return r
 
 def renumber_indices1(expr):
-    if isinstance(expr, Expr) and expr.free_indices():
-        error("Not expecting any free indices left in expression.")
-    return apply_transformer(expr, IndexRenumberingTransformer())
+    if isinstance(expr, Expr):
+        num_free_indices = len(expr.free_indices())
+        #error("Not expecting any free indices left in expression.")
+
+    result = apply_transformer(expr, IndexRenumberingTransformer())
+
+    if isinstance(expr, Expr):
+        ufl_assert(num_free_indices == len(result.free_indices()),
+                   "The number of free indices left in expression should be invariant w.r.t. renumbering.")
+    return result
 
 def renumber_indices2(expr):
     if isinstance(expr, Expr) and expr.free_indices():

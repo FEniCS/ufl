@@ -112,7 +112,7 @@ class IndexAnnotated(ConstantValue):
 #    def __eq__(self, other):
 #        return isinstance(other, AbstractSymbol) and self._name == other._name and self._shape == other._shape
 
-            
+
 #--- Class for representing zero tensors of different shapes ---
 
 # TODO: Add geometric dimension and Argument dependencies to Zero?
