@@ -35,7 +35,6 @@ from ufl.permutation import compute_indices
 from ufl.constantvalue import Zero
 from ufl.indexing import Index, FixedIndex, MultiIndex
 from ufl.differentiation import Grad
-from ufl.algorithms.graph import Graph
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer, transform_integrands
 from ufl.algorithms.analysis import has_type
 

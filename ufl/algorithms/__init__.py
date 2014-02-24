@@ -64,9 +64,6 @@ from ufl.algorithms.expand_compounds import CompoundExpander, expand_compounds, 
                                             CompoundExpanderPostDiff, expand_compounds_postdiff
 from ufl.algorithms.estimate_degrees import SumDegreeEstimator, estimate_total_polynomial_degree
 from ufl.algorithms.argument_dependencies import ArgumentDependencyExtracter, extract_argument_dependencies, NotMultiLinearException
-from ufl.algorithms.deprecated import TreeFlattener, flatten, \
-                                      DuplicationMarker, mark_duplications, \
-                                      DuplicationPurger, purge_duplications
 from ufl.algorithms.renumbering import renumber_indices
 from ufl.algorithms.expand_indices import expand_indices, purge_list_tensors
 from ufl.algorithms.propagate_restrictions import propagate_restrictions

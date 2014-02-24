@@ -63,32 +63,6 @@ class AlgorithmsTestCase(UflTestCase):
             print extract_arguments(self.forms[2])
             print
 
-    def tearDown(self):
-        super(AlgorithmsTestCase, self).tearDown()
-
-    def test_flatten(self):
-        element = FiniteElement("CG", "triangle", 1)
-        a = Coefficient(element)
-        b = Coefficient(element)
-        c = Coefficient(element)
-        d = Coefficient(element)
-
-        a  = (a+b)+(c+d)
-        fa = flatten(a)
-        assert isinstance(a,  Sum) and len(a.operands())  == 2
-        assert isinstance(fa, Sum) and len(fa.operands()) == 4
-        aa, ab = a.operands()
-        assert isinstance(aa, Sum) and len(aa.operands()) == 2
-        assert isinstance(ab, Sum) and len(ab.operands()) == 2
-
-        a  = (a*b)*(c*d)
-        fa = flatten(a)
-        assert isinstance(a,  Product) and len(a.operands())  == 2
-        assert isinstance(fa, Product) and len(fa.operands()) == 4
-        aa, ab = a.operands()
-        assert isinstance(aa, Product) and len(aa.operands()) == 2
-        assert isinstance(ab, Product) and len(ab.operands()) == 2
-
     def test_arguments(self):
         assert self.arguments == tuple(extract_arguments(self.forms[0]))
         assert tuple(self.arguments[:1]) == tuple(extract_arguments(self.forms[1]))
