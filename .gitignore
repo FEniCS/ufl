@@ -1,2 +1,5 @@
 *.pyc
+*.py~
 build/
+test/*_debug.py
+test/UFL.log
