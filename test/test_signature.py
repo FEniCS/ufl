@@ -27,13 +27,15 @@ from itertools import chain
 
 from ufl.algorithms import compute_form_signature
 
-def domain_numbering(*cells):
+def domain_numbering2(*domains):
     items = []
-    for i,c in enumerate(cells):
-        domain = as_domain(c)
+    for i,domain in enumerate(domains):
         key = (domain.cell(), domain.label())
         items.append((key, i))
     return dict(items)
+
+def domain_numbering(*cells):
+    return domain_numbering2(*[as_domain(c) for c in cells])
 
 class TerminalHashDataTestCase(UflTestCase):
 
@@ -140,7 +142,7 @@ class TerminalHashDataTestCase(UflTestCase):
         cells = (triangle, tetrahedron, cell2D, cell3D)
         degrees = (1, 2)
         families = ("CG", "Lagrange", "DG")
-        
+
         def forms():
             for rep in range(nreps):
                 for cell in cells:
@@ -210,11 +212,11 @@ class TerminalHashDataTestCase(UflTestCase):
         self.assertEqual(h, c0)
 
     def test_terminal_hashdata_does_depend_on_argument_number_values(self):
+        # TODO: Include part numbers as well
         reprs = set()
         hashes = set()
-        counts = list(range(-3,4))
+        counts = list(range(4))
         cells = (cell1D, triangle, hexahedron)
-        assert len(counts) == 7
         nreps = 2
         def forms():
             for rep in range(nreps):
@@ -232,6 +234,37 @@ class TerminalHashDataTestCase(UflTestCase):
         c, d, r, h = self.compute_unique_terminal_hashdatas(forms())
         c0 = len(cells) * len(counts) # Number of actually unique cases from a code generation perspective
         c1 = 1 * c0 # Number of unique cases from a symbolic representation perspective
+        self.assertEqual(len(reprs), c1)
+        self.assertEqual(len(hashes), c1)
+        self.assertEqual(c, nreps * c1) # number of inner loop executions in forms() above
+        self.assertEqual(d, c0)
+        self.assertEqual(r, c0)
+        self.assertEqual(h, c0)
+
+    def test_terminal_hashdata_does_not_depend_on_domain_label_value(self):
+        reprs = set()
+        hashes = set()
+        counts = list(range(-3,4))
+        domains = [Domain(triangle, label="domain1"), Domain(triangle, label="domain2"), Domain(quadrilateral, label="domain1"), Domain(quadrilateral, label="domain2")]
+        nreps = 2
+        def forms():
+            for rep in range(nreps):
+                for domain in domains:
+                    V = FiniteElement("CG", domain, 2)
+                    f = Coefficient(V)
+                    v = TestFunction(V)
+                    x = SpatialCoordinate(domain)
+                    n = FacetNormal(domain)
+                    expr = inner(f,v) #+ inner(x,n)
+                    expr = inner(x,n)
+
+                    reprs.add(repr(expr))
+                    hashes.add(hash(expr))
+                    yield compute_terminal_hashdata(expr, domain_numbering2(*domains))
+
+        c, d, r, h = self.compute_unique_terminal_hashdatas(forms())
+        c0 = 2 # (2 = number of domains with different cell) Number of actually unique cases from a code generation perspective
+        c1 = len(domains) # Number of unique cases from a symbolic representation perspective
         self.assertEqual(len(reprs), c1)
         self.assertEqual(len(hashes), c1)
         self.assertEqual(c, nreps * c1) # number of inner loop executions in forms() above
