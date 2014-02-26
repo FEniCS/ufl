@@ -815,8 +815,9 @@ class Domain(object):
 
     def signature_data(self, domain_numbering):
         "Signature data of domain depend on the global domain numbering."
-        key = (self.cell(), self.label())
-        data = key + (domain_numbering[key],)
+        c = self.cell()
+        key = (c, self.label())
+        data = (c, domain_numbering[key])
         return data
 
     def hash_data(self):

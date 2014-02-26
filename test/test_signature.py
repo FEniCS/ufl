@@ -64,8 +64,10 @@ class TerminalHashDataTestCase(UflTestCase):
             assert isinstance(d, dict)
             # Sorting values by hash should be stable at least in a single test run:
             t = tuple(sorted(d.values(), key=lambda x: hash(x)))
+            #print t
 
-            # Add the hashdata values tuple to sets based on itself, its hash, and its repr (not sure why I included repr anymore)
+            # Add the hashdata values tuple to sets based on itself, its hash,
+            # and its repr (not sure why I included repr anymore?)
             hashes.add(hash(t)) # This will fail if t is not hashable, which it should be!
             data.add(t)
             reprs.add(repr(t))
@@ -241,30 +243,56 @@ class TerminalHashDataTestCase(UflTestCase):
         self.assertEqual(r, c0)
         self.assertEqual(h, c0)
 
+    def test_domain_signature_data_does_not_depend_on_domain_label_value(self):
+        cells = [triangle, tetrahedron, hexahedron]
+        s0s = set()
+        s1s = set()
+        s2s = set()
+        for cell in cells:
+            d0 = Domain(cell)
+            d1 = Domain(cell, label="domain1")
+            d2 = Domain(cell, label="domain2")
+            s0 = d0.signature_data(domain_numbering2(*[d0]))
+            s1 = d1.signature_data(domain_numbering2(*[d1]))
+            s2 = d2.signature_data(domain_numbering2(*[d2]))
+            self.assertEqual(s0, s1)
+            self.assertEqual(s0, s2)
+            s0s.add(s0)
+            s1s.add(s1)
+            s2s.add(s2)
+        self.assertEqual(len(s0s), len(cells))
+        self.assertEqual(len(s1s), len(cells))
+        self.assertEqual(len(s2s), len(cells))
+
     def test_terminal_hashdata_does_not_depend_on_domain_label_value(self):
         reprs = set()
         hashes = set()
-        counts = list(range(-3,4))
-        domains = [Domain(triangle, label="domain1"), Domain(triangle, label="domain2"), Domain(quadrilateral, label="domain1"), Domain(quadrilateral, label="domain2")]
+        labels = ["domain1", "domain2"]
+        cells = [triangle, quadrilateral]
+        domains = [Domain(cell, label=label) for cell in cells for label in labels]
         nreps = 2
+        num_exprs = 2
         def forms():
             for rep in range(nreps):
                 for domain in domains:
                     V = FiniteElement("CG", domain, 2)
-                    f = Coefficient(V)
+                    f = Coefficient(V, count=0)
                     v = TestFunction(V)
                     x = SpatialCoordinate(domain)
                     n = FacetNormal(domain)
-                    expr = inner(f,v) #+ inner(x,n)
-                    expr = inner(x,n)
-
-                    reprs.add(repr(expr))
-                    hashes.add(hash(expr))
-                    yield compute_terminal_hashdata(expr, domain_numbering2(*domains))
+                    exprs = [inner(x,n), inner(f,v)]
+                    assert num_exprs == len(exprs) # Assumed in checks below
+                    for expr in exprs:
+                        #print; print expr
+                        reprs.add(repr(expr))
+                        hashes.add(hash(expr))
+                        # This numbering needs to be recreated to count 'domain' as 0 each time:
+                        dn = domain_numbering2(*[domain])
+                        yield compute_terminal_hashdata(expr, dn)
 
         c, d, r, h = self.compute_unique_terminal_hashdatas(forms())
-        c0 = 2 # (2 = number of domains with different cell) Number of actually unique cases from a code generation perspective
-        c1 = len(domains) # Number of unique cases from a symbolic representation perspective
+        c0 = num_exprs * len(cells) # Number of actually unique cases from a code generation perspective
+        c1 = num_exprs * len(domains) # Number of unique cases from a symbolic representation perspective
         self.assertEqual(len(reprs), c1)
         self.assertEqual(len(hashes), c1)
         self.assertEqual(c, nreps * c1) # number of inner loop executions in forms() above
