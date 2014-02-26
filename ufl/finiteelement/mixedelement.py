@@ -255,8 +255,8 @@ class MixedElement(FiniteElementBase):
 class VectorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal"
 
-    def __init__(self, family, domain, degree, form_degree=None,
-                 dim=None, quad_scheme=None):
+    def __init__(self, family, domain, degree, dim=None,
+                 form_degree=None, quad_scheme=None):
         """
         Create vector element (repeated mixed element)
 
@@ -267,11 +267,11 @@ class VectorElement(MixedElement):
                The geometric domain
             degree (int)
                The polynomial degree
+            dim (int)
+               The value dimension of the element (optional)
             form_degree (int)
                The form degree (FEEC notation, used when field is
                viewed as k-form)
-            dim (int)
-               The value dimension of the element (optional)
             quad_scheme
                The quadrature scheme (optional)
         """
