@@ -19,9 +19,10 @@
 #
 # Modified by Kristian B. Oelgaard
 # Modified by Marie E. Rognes 2010, 2012
+# Modified by Anders Logg 2014
 #
 # First added:  2008-03-03
-# Last changed: 2012-10-18
+# Last changed: 2014-02-24
 
 from itertools import izip, chain
 from ufl.assertions import ufl_assert
@@ -254,8 +255,8 @@ class MixedElement(FiniteElementBase):
 class VectorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal"
 
-    def __init__(self, family, domain, degree, dim=None, quad_scheme=None,
-                 form_degree=None):
+    def __init__(self, family, domain, degree, dim=None,
+                 form_degree=None, quad_scheme=None):
         """
         Create vector element (repeated mixed element)
 
@@ -268,11 +269,11 @@ class VectorElement(MixedElement):
                The polynomial degree
             dim (int)
                The value dimension of the element (optional)
-            quad_scheme
-               The quadrature scheme (optional)
             form_degree (int)
                The form degree (FEEC notation, used when field is
                viewed as k-form)
+            quad_scheme
+               The quadrature scheme (optional)
         """
         if domain is not None:
             domain = as_domain(domain)
@@ -284,8 +285,9 @@ class VectorElement(MixedElement):
             dim = domain.geometric_dimension()
 
         # Create mixed element from list of finite elements
-        sub_element = FiniteElement(family, domain, degree, quad_scheme,
-                                    form_degree)
+        sub_element = FiniteElement(family, domain, degree,
+                                    form_degree=form_degree,
+                                    quad_scheme=quad_scheme)
         sub_elements = [sub_element]*dim
 
         # Get common family name (checked in FiniteElement.__init__)
@@ -303,7 +305,7 @@ class VectorElement(MixedElement):
         self._form_degree = form_degree # Storing for signature_data, not sure if it's needed
 
         # Cache repr string
-        self._repr = "VectorElement(%r, %r, %r, %d, %r)" % \
+        self._repr = "VectorElement(%r, %r, %r, dim=%d, quad_scheme=%r)" % \
             (self._family, self.domain(), self._degree,
              len(self._sub_elements), self._quad_scheme)
 
@@ -415,7 +417,7 @@ class TensorElement(MixedElement):
         self._sub_element_mapping = sub_element_mapping
 
         # Cache repr string
-        self._repr = "TensorElement(%r, %r, %r, %r, %r, %r)" % \
+        self._repr = "TensorElement(%r, %r, %r, shape=%r, symmetry=%r, quad_scheme=%r)" % \
             (self._family, self.domain(), self._degree, self._shape,
              self._symmetry, self._quad_scheme)
 

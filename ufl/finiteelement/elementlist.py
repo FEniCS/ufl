@@ -2,7 +2,7 @@
 families. Users or more likely, form compilers, may register new
 elements by calling the function register_element."""
 
-# Copyright (C) 2008-2013 Martin Sandve Alnes and Anders Logg
+# Copyright (C) 2008-2014 Martin Sandve Alnes and Anders Logg
 #
 # This file is part of UFL.
 #
@@ -22,11 +22,9 @@ elements by calling the function register_element."""
 # Modified by Marie E. Rognes <meg@simula.no>, 2010
 #
 # First added:  2008-03-03
-# Last changed: 2011-06-06
+# Last changed: 2014-02-24
 
 from ufl.assertions import ufl_assert
-
-from ufl.finiteelement.feec import FEEC_aliases
 
 # List of valid elements
 ufl_elements = {}
@@ -54,7 +52,9 @@ def show_elements():
         print "Degree range: ", degree_range
         print "Defined on cellnames:" , cellnames
 
-# TODO: Any more of these elements valid for generic nD cells?
+# FIXME: Any more of these elements valid for generic nD cells?
+
+# FIXME: Consider cleanup of element names. Use notation from periodic table.
 
 # Standard elements
 
@@ -114,7 +114,7 @@ register_element("Boundary Quadrature", "BQ", 0, (0, None),
 register_element("Bubble", "B", 0, (2, None),
                  ("interval", "triangle", "tetrahedron"))
 
-register_element("Quadrature", "Q", 0, (0, None),
+register_element("Quadrature", "Quadrature", 0, (0, None),
                  (None, "cell1D", "cell2D", "cell3D",
                   "interval", "triangle", "tetrahedron",
                   "quadrilateral", "hexahedron"))
@@ -144,6 +144,49 @@ register_alias("Nedelec 2nd kind H(div)",
 register_alias("N2div",
                lambda family, cell, order, degree: ("Brezzi-Douglas-Marini", cell, order))
 
-# Use P Lambda/P- Lambda aliases
-register_alias("P Lambda", lambda *foo: FEEC_aliases(*foo))
-register_alias("P- Lambda", lambda *foo: FEEC_aliases(*foo))
+# New elements introduced for the periodic table 2014
+register_element("Q",     "Q",     0, (1, None), ("interval", "quadrilateral", "hexahedron"))
+register_element("DGQ",   "DGQ",   0, (0, None), ("interval", "quadrilateral", "hexahedron"))
+register_element("RTQe",  "RTQe",  1, (1, None), ("quadrilateral",))
+register_element("RTQf",  "RTQf",  1, (1, None), ("quadrilateral",))
+register_element("NQe",   "NQe",   1, (1, None), ("hexahedron",))
+register_element("NQf",   "NQf",   1, (1, None), ("hexahedron",))
+register_element("S",     "S",     0, (1, None), ("interval", "quadrilateral", "hexahedron"))
+register_element("DGS",   "DGS",   0, (1, None), ("interval", "quadrilateral", "hexahedron"))
+register_element("BDMSe", "BDMSe", 1, (1, None), ("quadrilateral",))
+register_element("BDMSf", "BDMSf", 1, (1, None), ("quadrilateral",))
+register_element("AAe",   "AAe",   1, (1, None), ("hexahedron",))
+register_element("AAf",   "AAf",   1, (1, None), ("hexahedron",))
+
+# New aliases introduced for the periodic table 2014
+register_alias("P",    lambda family, cell, order, degree: ("Lagrange",                 cell, order))
+register_alias("RTe",  lambda family, cell, order, degree: ("Nedelec 1st kind H(curl)", cell, order))
+register_alias("RTf",  lambda family, cell, order, degree: ("Raviart-Thomas",           cell, order))
+register_alias("N1e",  lambda family, cell, order, degree: ("Nedelec 1st kind H(curl)", cell, order))
+register_alias("N1f",  lambda family, cell, order, degree: ("Raviart-Thomas",           cell, order))
+register_alias("BDMe", lambda family, cell, order, degree: ("Nedelec 2nd kind H(curl)", cell, order))
+register_alias("BDMf", lambda family, cell, order, degree: ("Brezzi-Douglas-Marini",    cell, order))
+register_alias("N2e",  lambda family, cell, order, degree: ("Nedelec 2nd kind H(curl)", cell, order))
+register_alias("N2f",  lambda family, cell, order, degree: ("Brezzi-Douglas-Marini",    cell, order))
+
+# Finite element exterior calculus notation
+def feec_element(family, shape, r, k):
+    n = shape.topological_dimension()
+    family, r = {"P- Lambda": ((("P", r), ("DG", r - 1)),
+                               (("P", r), ("RTe", r),      ("DG", r - 1)),
+                               (("P", r), ("N1e", r),      ("N1f", r),   ("DG", r - 1))),
+                 "P Lambda":  ((("P", r), ("DG", r)),
+                               (("P", r), ("BDMe", r),     ("DG", r)),
+                               (("P", r), ("N2e", r),      ("N2f", r),   ("DG", r))),
+                 "Q- Lambda": ((("Q", r), ("DGQ", r - 1)),
+                               (("Q", r), ("RTQe", r),     ("DGQ", r - 1)),
+                               (("Q", r), ("NQe", r),      ("NQf", r),   ("DGQ", r - 1))),
+                 "S Lambda":  ((("S", r), ("DGS", r)),
+                               (("S", r), ("BDMSe", r),    ("DGS", r)),
+                               (("S", r), ("AAe", r),      ("AAf", r),   ("DGS", r)))}[family][n - 1][k]
+    return family, shape, r
+
+register_alias("P- Lambda", lambda *foo: feec_element(*foo))
+register_alias("P Lambda",  lambda *foo: feec_element(*foo))
+register_alias("Q- Lambda", lambda *foo: feec_element(*foo))
+register_alias("S Lambda",  lambda *foo: feec_element(*foo))

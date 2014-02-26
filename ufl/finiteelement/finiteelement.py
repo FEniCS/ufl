@@ -19,9 +19,10 @@
 #
 # Modified by Kristian B. Oelgaard
 # Modified by Marie E. Rognes 2010, 2012
+# Modified by Anders Logg 2014
 #
 # First added:  2008-03-03
-# Last changed: 2012-08-16
+# Last changed: 2014-02-24
 
 from itertools import izip
 from ufl.assertions import ufl_assert
@@ -35,8 +36,8 @@ from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 class FiniteElement(FiniteElementBase):
     "The basic finite element class for all simple finite elements"
-    def __init__(self, family, domain=None, degree=None, quad_scheme=None,
-                 form_degree=None):
+    def __init__(self, family, domain=None, degree=None, form_degree=None,
+                 quad_scheme=None):
         """Create finite element
 
         *Arguments*
@@ -46,11 +47,11 @@ class FiniteElement(FiniteElementBase):
                The geometric domain
             degree (int)
                The polynomial degree (optional)
-            quad_scheme
-               The quadrature scheme (optional)
             form_degree (int)
                The form degree (FEEC notation, used when field is
                viewed as k-form)
+            quad_scheme
+               The quadrature scheme (optional)
         """
         if domain is None:
             cell = None
@@ -111,7 +112,7 @@ class FiniteElement(FiniteElementBase):
                                             quad_scheme, value_shape)
 
         # Cache repr string
-        self._repr = "FiniteElement(%r, %r, %r, %r)" % (
+        self._repr = "FiniteElement(%r, %r, %r, quad_scheme=%r)" % (
             self.family(), self.domain(), self.degree(), self.quadrature_scheme())
         assert '"' not in self._repr
 
