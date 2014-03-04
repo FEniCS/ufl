@@ -31,9 +31,11 @@ class SobolevSpace(object):
     """
 
     def __init__(self, name, parents=None):
-        """Instantiate a SobolevSpace object. Name is the name of this space,
-parents is a set of Sobolev spaces of which this space is a
-subspace."""
+        """Instantiate a SobolevSpace object.
+
+        :param name: The name of this space,
+        :param parents: A set of Sobolev spaces of which this
+        space is a subspace."""
 
         self.name = name
         p = frozenset(parents or [])
@@ -73,11 +75,11 @@ subspace."""
 
     def __gt__(self, other):
         """In common with intrinsic Python sets, > indicates "is a proper
-        subset of."""
+        superset of."""
         return self in other.parents
 
     def __ge__(self, other):
-        """In common with intrinsic Python sets, >= indicates "is a subset
+        """In common with intrinsic Python sets, >= indicates "is a superset
         of." """
         return (self is other) or (self in other.parents)
 
