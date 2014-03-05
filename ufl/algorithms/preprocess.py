@@ -223,7 +223,7 @@ def preprocess(form, object_names=None):
     form_data.original_arguments      = original_arguments
     form_data.original_coefficients   = original_coefficients
 
-    # Mappings from elements and functions (coefficients and arguments)
+    # Mappings from elements and coefficients
     # that reside in form to objects with canonical numbering as well as
     # completed cells and elements
     form_data.element_replace_map = element_mapping

@@ -260,7 +260,7 @@ def estimate_quadrature_degree(integral):
     return sum(degrees)
 
 def unique_tuple(objects):
-    "Return sorted tuple of unique objects."
+    "Return tuple of unique objects."
     unique_objects = []
     for object in objects:
         if not object in unique_objects:
