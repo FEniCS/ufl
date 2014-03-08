@@ -86,12 +86,6 @@ class Argument(FormArgument):
         # When we can annotate zero with arguments, we can change this.
         return False
 
-    def cell(self):
-        return self._element.cell()
-
-    def domain(self):
-        return self._element.domain()
-
     def domains(self):
         "Return tuple of domains related to this terminal object."
         return self._element.domains()

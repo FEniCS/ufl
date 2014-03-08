@@ -74,12 +74,13 @@ A very brief overview of the language contents follows:
 
 * Geometric quantities::
 
-    SpatialCoordinate, LocalCoordinate,
+    SpatialCoordinate, ReferenceCoordinate, ReferenceFacetCoordinate,
     Jacobian, JacobianDeterminant, JacobianInverse,
     FacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse,
+    ReferenceFacetJacobian,
     CellVolume, Circumradius,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
-    FacetNormal,
+    FacetNormal, QuadratureWeight
 
 * Indices::
 
@@ -186,12 +187,13 @@ from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile
 from ufl.cell import as_cell, Cell, ProductCell
 from ufl.domain import as_domain, Domain, ProductDomain
 from ufl.geometry import (
-    SpatialCoordinate, LocalCoordinate,
+    SpatialCoordinate, ReferenceCoordinate, ReferenceFacetCoordinate,
     Jacobian, JacobianDeterminant, JacobianInverse,
     FacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse,
+    ReferenceFacetJacobian,
     CellVolume, Circumradius,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
-    FacetNormal)
+    FacetNormal, QuadratureWeight)
 
 # Finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
@@ -277,12 +279,13 @@ __all__ = [
     'UFLException', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL',
     'as_cell', 'Cell', 'ProductCell',
     'as_domain', 'Domain', 'ProductDomain',
-    'SpatialCoordinate', 'LocalCoordinate',
+    'SpatialCoordinate', 'ReferenceCoordinate', 'ReferenceFacetCoordinate',
     'CellVolume', 'Circumradius',
     'FacetArea', 'MinFacetEdgeLength', 'MaxFacetEdgeLength',
     'Jacobian', 'JacobianDeterminant', 'JacobianInverse',
     'FacetJacobian', 'FacetJacobianDeterminant', 'FacetJacobianInverse',
-    'FacetNormal',
+    'ReferenceFacetJacobian',
+    'FacetNormal', 'QuadratureWeight',
     'FiniteElementBase', 'FiniteElement',
     'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
     'RestrictedElement', 'TensorProductElement',

@@ -81,11 +81,8 @@ class Variable(WrapperType):
     def shape(self):
         return self._expression.shape()
 
-    def cell(self):
-        return self._expression.cell()
-
-    def domain(self):
-        return self._expression.domain()
+    def domains(self):
+        return self._expression.domains()
 
     def is_cellwise_constant(self):
         return self._expression.is_cellwise_constant()

@@ -59,7 +59,7 @@ from ufl.algorithms.transformer import Transformer, is_post_handler, \
                                        CopyTransformer, ufl2uflcopy, \
                                        VariableStripper, strip_variables
 from ufl.algorithms.replace import Replacer, replace
-from ufl.algorithms.change_to_local import change_to_local_grad
+from ufl.algorithms.change_to_reference import change_to_reference_grad
 from ufl.algorithms.expand_compounds import CompoundExpander, expand_compounds, \
                                             CompoundExpanderPreDiff, expand_compounds_prediff, \
                                             CompoundExpanderPostDiff, expand_compounds_postdiff

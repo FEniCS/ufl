@@ -94,8 +94,8 @@ class Expr(object):
         return extract_domains(self)
 
     # All subclasses must implement domain if it is known
-    def domain(self): # TODO: Deprecate this
-        "Return the domain this expression is defined on."
+    def domain(self):
+        "Return the single unique domain this expression is defined on or throw an error."
         domains = self.domains()
         if len(domains) == 1:
             domain, = domains
@@ -126,9 +126,9 @@ class Expr(object):
 
     #--- Functions for float evaluation ---
 
-    def evaluate(self, x, mapping, component, index_values, derivatives=()):
+    def evaluate(self, x, mapping, component, index_values):
         """Evaluate expression at given coordinate with given values for terminals."""
-        raise NotImplementedError(self.__class__.evaluate)
+        error("Symbolic evaluation of %s not available." % self._uflclass.__name__)
 
     def __float__(self):
         if self.shape() != () or self.free_indices() != ():

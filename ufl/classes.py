@@ -45,12 +45,13 @@ from ufl.cell import Cell, ProductCell
 from ufl.domain import Domain, ProductDomain
 from ufl.geometry import (
     GeometricQuantity,
-    SpatialCoordinate, LocalCoordinate,
-    FacetNormal,
-    CellVolume, Circumradius,
-    FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
+    SpatialCoordinate, ReferenceCoordinate, ReferenceFacetCoordinate,
     Jacobian, JacobianDeterminant, JacobianInverse,
     FacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse,
+    ReferenceFacetJacobian,
+    FacetNormal, QuadratureWeight,
+    CellVolume, Circumradius,
+    FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
     )
 from ufl.indexing import IndexBase, FixedIndex, Index, MultiIndex
 
@@ -67,7 +68,7 @@ from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Erf,\
     Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan, Atan2, \
     BesselFunction, BesselJ, BesselY, BesselI, BesselK
 from ufl.differentiation import Derivative, CompoundDerivative, CoefficientDerivative,\
-    VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv, LocalGrad
+    VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv, ReferenceGrad
 from ufl.conditional import Condition, BinaryCondition,\
     EQ, NE, LE, GE, LT, GT,\
     AndCondition, OrCondition, NotCondition, Conditional

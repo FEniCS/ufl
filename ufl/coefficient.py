@@ -81,12 +81,6 @@ class Coefficient(FormArgument):
         "Return whether this expression is spatially constant over each cell."
         return self._element.is_cellwise_constant()
 
-    def cell(self):
-        return self._element.cell()
-
-    def domain(self):
-        return self._element.domain()
-
     def domains(self):
         "Return tuple of domains related to this terminal object."
         return self._element.domains()

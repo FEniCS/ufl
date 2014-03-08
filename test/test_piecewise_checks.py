@@ -118,7 +118,7 @@ class TestCellwiseConstantTerminals(UflTestCase):
         for D in domains:
             e = SpatialCoordinate(D)
             self.assertFalse(e.is_cellwise_constant())
-            e = LocalCoordinate(D)
+            e = ReferenceCoordinate(D)
             self.assertFalse(e.is_cellwise_constant())
 
         # The only exception here:
@@ -126,7 +126,7 @@ class TestCellwiseConstantTerminals(UflTestCase):
         self.assertEqual(D.cell().cellname(), "vertex")
         e = SpatialCoordinate(D)
         self.assertTrue(e.is_cellwise_constant())
-        e = LocalCoordinate(D)
+        e = ReferenceCoordinate(D)
         self.assertTrue(e.is_cellwise_constant())
 
     def test_mappings_are_cellwise_constant_only_on_linear_affine_cells(self):

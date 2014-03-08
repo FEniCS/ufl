@@ -637,6 +637,7 @@ class ForwardAD(Transformer):
             oprime = SpatialDerivative(fp, ii)
         return (o, oprime)
 
+# TODO: Add a ReferenceGradAD ruleset
 class GradAD(ForwardAD):
     def __init__(self, geometric_dimension, cache=None):
         ForwardAD.__init__(self,
@@ -645,6 +646,13 @@ class GradAD(ForwardAD):
                            var_index_dimensions={},
                            cache=cache)
 
+    def geometric_quantity(self, o):
+        "Represent grad(g) as Grad(g)."
+        # Collapse gradient of cellwise constant function to zero
+        if o.is_cellwise_constant():
+            return self.terminal(o)
+        return (o, Grad(o))
+
     def spatial_coordinate(self, o):
         "Gradient of x w.r.t. x is Id."
         if not hasattr(self, '_Id'):
@@ -652,18 +660,37 @@ class GradAD(ForwardAD):
             self._Id = Identity(gdim)
         return (o, self._Id)
 
-    def local_coordinate(self, o):
-        "Gradient of X w.r.t. x is K."
+    def reference_coordinate(self, o):
+        "Gradient of X w.r.t. x is K. But I'm not sure if we want to allow this."
         error("This has not been validated. Does it make sense to do this here?")
         K = JacobianInverse(o.domain())
         return (o, K)
 
-    def geometric_quantity(self, o):
-        "Represent grad(x) as Grad(g)."
-        # Collapse gradient of cellwise constant function to zero
-        if o.is_cellwise_constant():
-            return self.terminal(o)
-        return (o, Grad(o))
+    # TODO: Implement rules for some of these types?
+
+    def reference_facet_coordinate(self, o):
+        error("Not expecting this low level type in AD.")
+
+    def jacobian(self, o):
+        error("Not expecting this low level type in AD.")
+
+    def jacobian_determinant(self, o):
+        error("Not expecting this low level type in AD.")
+
+    def jacobian_inverse(self, o):
+        error("Not expecting this low level type in AD.")
+
+    def facet_jacobian(self, o):
+        error("Not expecting this low level type in AD.")
+
+    def facet_jacobian_determinant(self, o):
+        error("Not expecting this low level type in AD.")
+
+    def facet_jacobian_inverse(self, o):
+        error("Not expecting this low level type in AD.")
+
+    def reference_facet_jacobian(self, o):
+        error("Not expecting this low level type in AD.")
 
     def argument(self, o):
         "Represent grad(f) as Grad(f)."
@@ -1027,6 +1054,7 @@ class UnusedADRules(object):
     def inner(self, o, a, b):
         a, ap = a
         b, bp = b
+        # FIXME: Rewrite with index notation (if necessary, depends on shapes)
         # NB! Using b : ap because derivative axis should be
         # last, in case of nonscalar differentiation variable!
         return (o, inner(b, ap) + inner(a, bp)) # FIXME: Not correct, inner requires equal shapes!
@@ -1034,6 +1062,7 @@ class UnusedADRules(object):
     def dot(self, o, a, b):
         a, ap = a
         b, bp = b
+        # FIXME: Rewrite with index notation (if necessary, depends on shapes)
         # NB! Using b . ap because derivative axis should be
         # last, in case of nonscalar differentiation variable!
         return (o, dot(b, ap) + dot(a, bp))
@@ -1055,11 +1084,10 @@ class UnusedADRules(object):
     curl = commute
     def grad(self, o, a):
         a, aprime = a
-        cell = aprime.cell()
-        if cell is None: # FIXME
-            oprime = self._make_zero_diff(o)
-        else:
+        if aprime.domains(): # TODO: Assuming this is equivalent to 'is_constant', which may not be the case...
             oprime = o.reconstruct(aprime)
+        else:
+            oprime = self._make_zero_diff(o)
         return (o, oprime)
 
 class UnimplementedADRules(object):
@@ -1072,6 +1100,20 @@ class UnimplementedADRules(object):
         return (o, oprime)
 
     def determinant(self, o, a):
+        """FIXME: Some possible rules:
+
+        d detA / dv = detA * tr(inv(A) * dA/dv)
+
+        or
+
+        d detA / d row0 = cross(row1, row2)
+        d detA / d row1 = cross(row2, row0)
+        d detA / d row2 = cross(row0, row1)
+
+        i.e.
+
+        d detA / d A = [cross(row1, row2), cross(row2, row0), cross(row0, row1)] # or transposed or something
+        """
         error("Derivative of determinant not implemented, apply expand_compounds before AD.")
         A, Ap = a
         #oprime = ...
@@ -1089,6 +1131,13 @@ class UnimplementedADRules(object):
         0 = d/dx [Ainv*A] = Ainv' * A + Ainv * A'
         Ainv' * A = - Ainv * A'
         Ainv' = - Ainv * A' * Ainv
+
+        K J = I
+        d/dv[r] (K[i,j] J[j,k]) = d/dv[r] K[i,j] J[j,k] + K[i,j] d/dv[r] J[j,k] = 0
+        d/dv[r] K[i,j] J[j,k] = -K[i,j] d/dv[r] J[j,k]
+        d/dv[r] K[i,j] J[j,k] K[k,s] = -K[i,j] d/dv[r] J[j,k] K[k,s]
+        d/dv[r] K[i,j] I[j,s] = -K[i,j] (d/dv[r] J[j,k]) K[k,s]
+        d/dv[r] K[i,s] = -K[i,j] (d/dv[r] J[j,k]) K[k,s]
         """
         A, Ap = a
-        return (o, -o*Ap*o) # Any potential index problems here?
+        return (o, -o*Ap*o) # FIXME: Need reshaping move derivative axis to the end of this expression

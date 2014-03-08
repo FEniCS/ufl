@@ -100,9 +100,6 @@ class IndexAnnotated(ConstantValue):
 #    def index_dimensions(self):
 #        return EmptyDict
 #
-#    def evaluate(self, x, mapping, component, index_values):
-#        error("Abstract symbol '%s' cannot be evaluated." % self._name)
-#
 #    def __str__(self):
 #        return "<Abstract symbol named '%s' with shape %s>" % (self._name, self._shape)
 #

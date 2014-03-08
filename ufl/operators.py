@@ -386,15 +386,8 @@ rot = curl
 def jump(v, n=None):
     "UFL operator: Take the jump of v across a facet."
     v = as_ufl(v)
-    cell = v.cell()
-    if cell is None:
-        warning("TODO: Not all expressions have a cell. Is it right to return zero from jump then?")
-        # TODO: Is this right? If v has no cell, it doesn't depend on
-        # anything spatially variable or any form arguments, and thus
-        # the jump is zero. In other words, I'm assuming that
-        # "v.cell() is None" is equivalent with "v is a constant".
-        return Zero(v.shape(), v.free_indices(), v.index_dimensions())
-    else:
+    is_not_constant = len(v.domains()) > 0 # FIXME: Not quite right...
+    if is_not_constant:
         if n is None:
             return v('+') - v('-')
         r = v.rank()
@@ -402,6 +395,14 @@ def jump(v, n=None):
             return v('+')*n('+') + v('-')*n('-')
         else:
             return dot(v('+'), n('+')) + dot(v('-'), n('-'))
+    else:
+        warning("Returning zero from jump of expression without a domain. This may be erroneous.")
+        # FIXME: Is this right? If v has no cell, it doesn't depend on
+        # anything spatially variable or any form arguments, and thus
+        # the jump is zero. In other words, I'm assuming that
+        # "not v.domains()" is equivalent with "v is a constant".
+        # Update: This is NOT true for jump(Expression("x[0]")) from dolfin.
+        return Zero(v.shape(), v.free_indices(), v.index_dimensions())
 
 def avg(v):
     "UFL operator: Take the average of v across a facet."
@@ -613,7 +614,7 @@ def exterior_derivative(f):
 
     # Extract the family and the
     family = element.family()
-    gdim = element.cell().geometric_dimension()
+    gdim = element.domain().geometric_dimension()
 
     # L^2 elements:
     if "Disc" in family:

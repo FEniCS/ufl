@@ -218,7 +218,7 @@ class Grad(CompoundDerivative):
     def __repr__(self):
         return "Grad(%r)" % self._f
 
-class LocalGrad(CompoundDerivative): # FIXME: Check implementation!
+class ReferenceGrad(CompoundDerivative): # FIXME: Check implementation!
     __slots__ = ("_f", "_dim",)
 
     def __new__(cls, f):
@@ -242,9 +242,9 @@ class LocalGrad(CompoundDerivative): # FIXME: Check implementation!
         "Return a new object of the same type with new operands."
         if op.is_cellwise_constant():
             ufl_assert(op.shape() == self._f.shape(),
-                       "Operand shape mismatch in LocalGrad reconstruct.")
+                       "Operand shape mismatch in ReferenceGrad reconstruct.")
             ufl_assert(self._f.free_indices() == op.free_indices(),
-                       "Free index mismatch in LocalGrad reconstruct.")
+                       "Free index mismatch in ReferenceGrad reconstruct.")
             return Zero(self.shape(), self.free_indices(),
                         self.index_dimensions())
         return self.__class__._uflclass(op)
@@ -271,10 +271,10 @@ class LocalGrad(CompoundDerivative): # FIXME: Check implementation!
         return self._f.shape() + (self._dim,)
 
     def __str__(self):
-        return "local_grad(%s)" % self._f
+        return "reference_grad(%s)" % self._f
 
     def __repr__(self):
-        return "LocalGrad(%r)" % self._f
+        return "ReferenceGrad(%r)" % self._f
 
 class Div(CompoundDerivative):
     __slots__ = ("_f",)
