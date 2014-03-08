@@ -23,7 +23,6 @@ from ufl.classes import Terminal, LocalGrad, Grad, JacobianInverse
 from ufl.constantvalue import as_ufl
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
 from ufl.algorithms.analysis import extract_type
-from ufl.geometry import is_piecewise_linear_simplex_domain
 from ufl.indexing import indices
 from ufl.tensors import as_tensor
 

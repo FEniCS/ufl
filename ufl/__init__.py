@@ -144,7 +144,7 @@ A very brief overview of the language contents follows:
     sensitivity_rhs, derivative
 """
 
-# Copyright (C) 2008-2013 Martin Sandve Alnes and Anders Logg
+# Copyright (C) 2008-2014 Martin Sandve Alnes and Anders Logg
 #
 # This file is part of UFL.
 #
@@ -164,8 +164,6 @@ A very brief overview of the language contents follows:
 # Modified by Kristian B. Oelgaard, 2009, 2011
 # Modified by Anders Logg, 2009.
 # Modified by Johannes Ring, 2014.
-#
-# Last changed: 2014-01-07
 
 __version__ = "1.3.0+"
 
@@ -185,10 +183,9 @@ from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile
     UFLException, DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 # Types for geometric quantities
+from ufl.cell import as_cell, Cell, ProductCell
+from ufl.domain import as_domain, Domain, ProductDomain
 from ufl.geometry import (
-    as_cell, as_domain,
-    Cell, ProductCell,
-    Domain, ProductDomain,
     SpatialCoordinate, LocalCoordinate,
     Jacobian, JacobianDeterminant, JacobianInverse,
     FacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse,
@@ -278,10 +275,9 @@ __all__ = [
     'product',
     'get_handler', 'get_logger', 'set_handler', 'set_level', 'add_logfile',
     'UFLException', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL',
-    'as_cell', 'as_domain',
-    'Cell', 'ProductCell',
-    'Domain', 'ProductDomain',
-    'SpatialCoordinate', 'LocalCoordinate', 
+    'as_cell', 'Cell', 'ProductCell',
+    'as_domain', 'Domain', 'ProductDomain',
+    'SpatialCoordinate', 'LocalCoordinate',
     'CellVolume', 'Circumradius',
     'FacetArea', 'MinFacetEdgeLength', 'MaxFacetEdgeLength',
     'Jacobian', 'JacobianDeterminant', 'JacobianInverse',

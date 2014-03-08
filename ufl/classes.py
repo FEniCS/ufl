@@ -4,7 +4,7 @@ implementation details not exposed through the default ufl namespace.
 It also contains functionality used by algorithms for dealing with groups
 of classes, and for mapping types to different handler functions."""
 
-# Copyright (C) 2008-2013 Martin Sandve Alnes
+# Copyright (C) 2008-2014 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -23,9 +23,6 @@ of classes, and for mapping types to different handler functions."""
 #
 # Modified by Anders Logg, 2009.
 # Modified by Kristian B. Oelgaard, 2011
-#
-# First added:  2008-08-15
-# Last changed: 2013-03-29
 
 from ufl.assertions import ufl_assert
 
@@ -44,9 +41,9 @@ from ufl.constantvalue import (ConstantValue, IndexAnnotated,
 from ufl.argument import Argument, TestFunction, TrialFunction
 from ufl.coefficient import (Coefficient, ConstantBase,
     VectorConstant, TensorConstant, Constant)
+from ufl.cell import Cell, ProductCell
+from ufl.domain import Domain, ProductDomain
 from ufl.geometry import (
-    Cell, ProductCell,
-    Domain, ProductDomain,
     GeometricQuantity,
     SpatialCoordinate, LocalCoordinate,
     FacetNormal,
