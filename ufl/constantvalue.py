@@ -1,6 +1,6 @@
 "This module defines classes representing constant values."
 
-# Copyright (C) 2008-2013 Martin Sandve Alnes
+# Copyright (C) 2008-2014 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -18,9 +18,6 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2011.
-#
-# First added:  2008-11-01
-# Last changed: 2011-11-10
 
 from itertools import izip
 from ufl.log import warning, error

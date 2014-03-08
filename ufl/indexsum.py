@@ -1,6 +1,6 @@
 """This module defines the IndexSum class."""
 
-# Copyright (C) 2008-2013 Martin Sandve Alnes
+# Copyright (C) 2008-2014 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -16,9 +16,6 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
-#
-# First added:  2009-01-28
-# Last changed: 2011-06-17
 
 from ufl.log import error
 from ufl.assertions import ufl_assert

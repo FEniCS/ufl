@@ -1,7 +1,7 @@
 """This module contains a sorting rule for expr objects that
 is more robust w.r.t. argument numbering than using repr."""
 
-# Copyright (C) 2008-2013 Martin Sandve Alnes
+# Copyright (C) 2008-2014 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #

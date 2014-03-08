@@ -2,7 +2,7 @@
 will typically call prior to code generation to preprocess/simplify a
 raw input form given by a user."""
 
-# Copyright (C) 2009-2013 Anders Logg and Martin Sandve Alnes
+# Copyright (C) 2009-2014 Anders Logg and Martin Sandve Alnes
 #
 # This file is part of UFL.
 #

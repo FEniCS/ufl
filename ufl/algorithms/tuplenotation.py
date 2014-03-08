@@ -1,6 +1,6 @@
 "Deprecated file."
 
-# Copyright (C) 2008-2013 Anders Logg
+# Copyright (C) 2008-2014 Anders Logg
 #
 # This file is part of UFL.
 #

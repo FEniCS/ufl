@@ -1,6 +1,6 @@
 "Basic algebra operations."
 
-# Copyright (C) 2008-2013 Martin Sandve Alnes
+# Copyright (C) 2008-2014 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -18,9 +18,6 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2008
-#
-# First added:  2008-05-20
-# Last changed: 2013-01-02
 
 from itertools import chain
 

@@ -1,6 +1,6 @@
 """This module provides basic mathematical functions."""
 
-# Copyright (C) 2008-2013 Martin Sandve Alnes
+# Copyright (C) 2008-2014 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -19,9 +19,6 @@
 #
 # Modified by Anders Logg, 2008
 # Modified by Kristian B. Oelgaard, 2011
-#
-# First added:  2008-03-14
-# Last changed: 2013-03-15
 
 import math
 from ufl.log import warning, error

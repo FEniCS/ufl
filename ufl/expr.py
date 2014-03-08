@@ -8,7 +8,7 @@ as well as the transpose "A.T" and spatial derivative "a.dx(i)".
 This is to avoid circular dependencies between Expr and its subclasses.
 """
 
-# Copyright (C) 2008-2013 Martin Sandve Alnes
+# Copyright (C) 2008-2014 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -26,9 +26,6 @@ This is to avoid circular dependencies between Expr and its subclasses.
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2008
-#
-# First added:  2008-03-14
-# Last changed: 2012-03-20
 
 #--- The base object for all UFL expression tree nodes ---
 
