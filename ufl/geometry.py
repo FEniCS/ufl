@@ -299,11 +299,15 @@ class FacetNormal(GeometricQuantity):
 
 # --- Types representing other stuff
 
-class QuadratureWeight(GeometricQuantity):
+class QuadratureWeight(GeometricQuantity): # FIXME: Not a geometric quantity? No domain!
     "Representation of the current quadrature weight. Only used inside a quadrature context."
     __slots__ = ()
     name = "weight"
 
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        # The weight usually varies with the quadrature points
+        return False
 
 # --- Types representing measures of the cell and entities of the cell, typically used for stabilisation terms
 

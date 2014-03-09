@@ -19,9 +19,6 @@ equivalent representations using basic operators."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2009-2010
-#
-# First added:  2008-05-07
-# Last changed: 2012-04-12
 
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
@@ -29,11 +26,7 @@ from ufl.classes import Product, Index, Zero, FormArgument, Grad
 from ufl.indexing import indices, complete_shape
 from ufl.tensors import as_tensor, as_matrix, as_vector
 from ufl.algorithms.transformer import Transformer, ReuseTransformer, apply_transformer
-
-
-# Note: To avoid typing errors, the expressions for cofactor and
-# deviatoric parts below were created with the script
-# tensoralgebrastrings.py under sandbox/scripts/
+from ufl.compound_expressions import deviatoric_expr, determinant_expr, cofactor_expr, adj_expr, inverse_expr
 
 class CompoundExpander(ReuseTransformer):
     "Expands compound expressions to equivalent representations using basic operators."
@@ -57,12 +50,7 @@ class CompoundExpander(ReuseTransformer):
         return sh
 
     def deviatoric(self, o, A):
-        sh = self._square_matrix_shape(A)
-        if sh[0] == 2:
-            return as_matrix([[-1./2*A[1,1]+1./2*A[0,0],A[0,1]],[A[1,0],1./2*A[1,1]-1./2*A[0,0]]])
-        elif sh[0] == 3:
-            return as_matrix([[-1./3*A[1,1]-1./3*A[2,2]+2./3*A[0,0],A[0,1],A[0,2]],[A[1,0],2./3*A[1,1]-1./3*A[2,2]-1./3*A[0,0],A[1,2]],[A[2,0],A[2,1],-1./3*A[1,1]+2./3*A[2,2]-1./3*A[0,0]]])
-        error("dev(A) not implemented for dimension %s." % sh[0])
+        return deviatoric_expr(A)
 
     def skew(self, o, A):
         i, j = indices(2)
@@ -100,99 +88,15 @@ class CompoundExpander(ReuseTransformer):
         return as_tensor(s, ii+jj)
 
     def determinant(self, o, A):
-        sh = self._square_matrix_shape(A)
-
-        def det2D(B, i, j, k, l):
-            return B[i,k]*B[j,l]-B[i,l]*B[j,k]
-
-        if len(sh) == 0:
-            return A
-        if sh[0] == 2:
-            return det2D(A, 0, 1, 0, 1)
-        if sh[0] == 3:
-            return A[0,0]*det2D(A, 1, 2, 1, 2) + \
-                   A[0,1]*det2D(A, 1, 2, 2, 0) + \
-                   A[0,2]*det2D(A, 1, 2, 0, 1)
-        # TODO: Implement generally for all dimensions?
-        error("Determinant not implemented for dimension %d." % sh[0])
+        return determinant_expr(A)
 
     def cofactor(self, o, A):
-        # TODO: Find common subexpressions here.
-        # TODO: Better implementation?
-        sh = self._square_matrix_shape(A)
-        if sh[0] == 2:
-            return as_matrix([[A[1,1],-A[1,0]],[-A[0,1],A[0,0]]])
-        elif sh[0] == 3:
-            return as_matrix([
-                [A[1,1]*A[2,2] - A[2,1]*A[1,2],A[2,0]*A[1,2] - A[1,0]*A[2,2], - A[2,0]*A[1,1] + A[1,0]*A[2,1]],
-                [A[2,1]*A[0,2] - A[0,1]*A[2,2],A[0,0]*A[2,2] - A[2,0]*A[0,2], - A[0,0]*A[2,1] + A[2,0]*A[0,1]],
-                [A[0,1]*A[1,2] - A[1,1]*A[0,2],A[1,0]*A[0,2] - A[0,0]*A[1,2], - A[1,0]*A[0,1] + A[0,0]*A[1,1]]
-                ])
-        elif sh[0] == 4:
-            return as_matrix([
-                [-A[3,1]*A[2,2]*A[1,3] - A[3,2]*A[2,3]*A[1,1] + A[1,3]*A[3,2]*A[2,1] + A[3,1]*A[2,3]*A[1,2] + A[2,2]*A[1,1]*A[3,3] - A[3,3]*A[2,1]*A[1,2],
-                 -A[1,0]*A[2,2]*A[3,3] + A[2,0]*A[3,3]*A[1,2] + A[2,2]*A[1,3]*A[3,0] - A[2,3]*A[3,0]*A[1,2] + A[1,0]*A[3,2]*A[2,3] - A[1,3]*A[3,2]*A[2,0],
-                  A[1,0]*A[3,3]*A[2,1] + A[2,3]*A[1,1]*A[3,0] - A[2,0]*A[1,1]*A[3,3] - A[1,3]*A[3,0]*A[2,1] - A[1,0]*A[3,1]*A[2,3] + A[3,1]*A[1,3]*A[2,0],
-                  A[3,0]*A[2,1]*A[1,2] + A[1,0]*A[3,1]*A[2,2] + A[3,2]*A[2,0]*A[1,1] - A[2,2]*A[1,1]*A[3,0] - A[3,1]*A[2,0]*A[1,2] - A[1,0]*A[3,2]*A[2,1]],
-                [ A[3,1]*A[2,2]*A[0,3] + A[0,2]*A[3,3]*A[2,1] + A[0,1]*A[3,2]*A[2,3] - A[3,1]*A[0,2]*A[2,3] - A[0,1]*A[2,2]*A[3,3] - A[3,2]*A[0,3]*A[2,1],
-                 -A[2,2]*A[0,3]*A[3,0] - A[0,2]*A[2,0]*A[3,3] - A[3,2]*A[2,3]*A[0,0] + A[2,2]*A[3,3]*A[0,0] + A[0,2]*A[2,3]*A[3,0] + A[3,2]*A[2,0]*A[0,3],
-                  A[3,1]*A[2,3]*A[0,0] - A[0,1]*A[2,3]*A[3,0] - A[3,1]*A[2,0]*A[0,3] - A[3,3]*A[0,0]*A[2,1] + A[0,3]*A[3,0]*A[2,1] + A[0,1]*A[2,0]*A[3,3],
-                  A[3,2]*A[0,0]*A[2,1] - A[0,2]*A[3,0]*A[2,1] + A[0,1]*A[2,2]*A[3,0] + A[3,1]*A[0,2]*A[2,0] - A[0,1]*A[3,2]*A[2,0] - A[3,1]*A[2,2]*A[0,0]],
-                [ A[3,1]*A[1,3]*A[0,2] - A[0,2]*A[1,1]*A[3,3] - A[3,1]*A[0,3]*A[1,2] + A[3,2]*A[1,1]*A[0,3] + A[0,1]*A[3,3]*A[1,2] - A[0,1]*A[1,3]*A[3,2],
-                  A[1,3]*A[3,2]*A[0,0] - A[1,0]*A[3,2]*A[0,3] - A[1,3]*A[0,2]*A[3,0] + A[0,3]*A[3,0]*A[1,2] + A[1,0]*A[0,2]*A[3,3] - A[3,3]*A[0,0]*A[1,2],
-                 -A[1,0]*A[0,1]*A[3,3] + A[0,1]*A[1,3]*A[3,0] - A[3,1]*A[1,3]*A[0,0] - A[1,1]*A[0,3]*A[3,0] + A[1,0]*A[3,1]*A[0,3] + A[1,1]*A[3,3]*A[0,0],
-                  A[0,2]*A[1,1]*A[3,0] - A[3,2]*A[1,1]*A[0,0] - A[0,1]*A[3,0]*A[1,2] - A[1,0]*A[3,1]*A[0,2] + A[3,1]*A[0,0]*A[1,2] + A[1,0]*A[0,1]*A[3,2]],
-                [ A[0,3]*A[2,1]*A[1,2] + A[0,2]*A[2,3]*A[1,1] + A[0,1]*A[2,2]*A[1,3] - A[2,2]*A[1,1]*A[0,3] - A[1,3]*A[0,2]*A[2,1] - A[0,1]*A[2,3]*A[1,2],
-                  A[1,0]*A[2,2]*A[0,3] + A[1,3]*A[0,2]*A[2,0] - A[1,0]*A[0,2]*A[2,3] - A[2,0]*A[0,3]*A[1,2] - A[2,2]*A[1,3]*A[0,0] + A[2,3]*A[0,0]*A[1,2],
-                 -A[0,1]*A[1,3]*A[2,0] + A[2,0]*A[1,1]*A[0,3] + A[1,3]*A[0,0]*A[2,1] - A[1,0]*A[0,3]*A[2,1] + A[1,0]*A[0,1]*A[2,3] - A[2,3]*A[1,1]*A[0,0],
-                  A[1,0]*A[0,2]*A[2,1] - A[0,2]*A[2,0]*A[1,1] + A[0,1]*A[2,0]*A[1,2] + A[2,2]*A[1,1]*A[0,0] - A[1,0]*A[0,1]*A[2,2] - A[0,0]*A[2,1]*A[1,2]]
-                ])
-        error("Cofactor not implemented for dimension %s." % sh[0])
-
-    def _cofactor_transposed(self, o, A):
-        sh = self._square_matrix_shape(A)
-
-        if sh[0] == 2:
-            return as_matrix([[A[1,1], -A[0,1]], [-A[1,0], A[0,0]]])
-        elif sh[0] == 3:
-            return as_matrix([ \
-                [ A[2,2]*A[1,1] - A[1,2]*A[2,1],
-                 -A[0,1]*A[2,2] + A[0,2]*A[2,1],
-                  A[0,1]*A[1,2] - A[0,2]*A[1,1]],
-                [-A[2,2]*A[1,0] + A[1,2]*A[2,0],
-                 -A[0,2]*A[2,0] + A[2,2]*A[0,0],
-                  A[0,2]*A[1,0] - A[1,2]*A[0,0]],
-                [ A[1,0]*A[2,1] - A[2,0]*A[1,1],
-                  A[0,1]*A[2,0] - A[0,0]*A[2,1],
-                  A[0,0]*A[1,1] - A[0,1]*A[1,0]] \
-                ])
-        elif sh[0] == 4:
-            # TODO: Find common subexpressions here.
-            # TODO: Better implementation?
-            return as_matrix([ \
-                [-A[3,3]*A[2,1]*A[1,2] + A[1,2]*A[3,1]*A[2,3] + A[1,1]*A[3,3]*A[2,2] - A[3,1]*A[2,2]*A[1,3] + A[2,1]*A[1,3]*A[3,2] - A[1,1]*A[3,2]*A[2,3],
-                 -A[3,1]*A[0,2]*A[2,3] + A[0,1]*A[3,2]*A[2,3] - A[0,3]*A[2,1]*A[3,2] + A[3,3]*A[2,1]*A[0,2] - A[3,3]*A[0,1]*A[2,2] + A[0,3]*A[3,1]*A[2,2],
-                  A[3,1]*A[1,3]*A[0,2] + A[1,1]*A[0,3]*A[3,2] - A[0,3]*A[1,2]*A[3,1] - A[0,1]*A[1,3]*A[3,2] + A[3,3]*A[1,2]*A[0,1] - A[1,1]*A[3,3]*A[0,2],
-                  A[1,1]*A[0,2]*A[2,3] - A[2,1]*A[1,3]*A[0,2] + A[0,3]*A[2,1]*A[1,2] - A[1,2]*A[0,1]*A[2,3] - A[1,1]*A[0,3]*A[2,2] + A[0,1]*A[2,2]*A[1,3]],
-                [ A[3,3]*A[1,2]*A[2,0] - A[3,0]*A[1,2]*A[2,3] + A[1,0]*A[3,2]*A[2,3] - A[3,3]*A[1,0]*A[2,2] - A[1,3]*A[3,2]*A[2,0] + A[3,0]*A[2,2]*A[1,3],
-                  A[0,3]*A[3,2]*A[2,0] - A[0,3]*A[3,0]*A[2,2] + A[3,3]*A[0,0]*A[2,2] + A[3,0]*A[0,2]*A[2,3] - A[0,0]*A[3,2]*A[2,3] - A[3,3]*A[0,2]*A[2,0],
-                 -A[3,3]*A[0,0]*A[1,2] + A[0,0]*A[1,3]*A[3,2] - A[3,0]*A[1,3]*A[0,2] + A[3,3]*A[1,0]*A[0,2] + A[0,3]*A[3,0]*A[1,2] - A[0,3]*A[1,0]*A[3,2],
-                  A[0,3]*A[1,0]*A[2,2] + A[1,3]*A[0,2]*A[2,0] - A[0,0]*A[2,2]*A[1,3] - A[0,3]*A[1,2]*A[2,0] + A[0,0]*A[1,2]*A[2,3] - A[1,0]*A[0,2]*A[2,3]],
-                [ A[3,1]*A[1,3]*A[2,0] + A[3,3]*A[2,1]*A[1,0] + A[1,1]*A[3,0]*A[2,3] - A[1,0]*A[3,1]*A[2,3] - A[3,0]*A[2,1]*A[1,3] - A[1,1]*A[3,3]*A[2,0],
-                  A[3,3]*A[0,1]*A[2,0] - A[3,3]*A[0,0]*A[2,1] - A[0,3]*A[3,1]*A[2,0] - A[3,0]*A[0,1]*A[2,3] + A[0,0]*A[3,1]*A[2,3] + A[0,3]*A[3,0]*A[2,1],
-                 -A[0,0]*A[3,1]*A[1,3] + A[0,3]*A[1,0]*A[3,1] - A[3,3]*A[1,0]*A[0,1] + A[1,1]*A[3,3]*A[0,0] - A[1,1]*A[0,3]*A[3,0] + A[3,0]*A[0,1]*A[1,3],
-                  A[0,0]*A[2,1]*A[1,3] + A[1,0]*A[0,1]*A[2,3] - A[0,3]*A[2,1]*A[1,0] + A[1,1]*A[0,3]*A[2,0] - A[1,1]*A[0,0]*A[2,3] - A[0,1]*A[1,3]*A[2,0]],
-                [-A[1,2]*A[3,1]*A[2,0] - A[2,1]*A[1,0]*A[3,2] + A[3,0]*A[2,1]*A[1,2] - A[1,1]*A[3,0]*A[2,2] + A[1,0]*A[3,1]*A[2,2] + A[1,1]*A[3,2]*A[2,0],
-                 -A[3,0]*A[2,1]*A[0,2] - A[0,1]*A[3,2]*A[2,0] + A[3,1]*A[0,2]*A[2,0] - A[0,0]*A[3,1]*A[2,2] + A[3,0]*A[0,1]*A[2,2] + A[0,0]*A[2,1]*A[3,2],
-                  A[0,0]*A[1,2]*A[3,1] - A[1,0]*A[3,1]*A[0,2] + A[1,1]*A[3,0]*A[0,2] + A[1,0]*A[0,1]*A[3,2] - A[3,0]*A[1,2]*A[0,1] - A[1,1]*A[0,0]*A[3,2],
-                 -A[1,1]*A[0,2]*A[2,0] + A[2,1]*A[1,0]*A[0,2] + A[1,2]*A[0,1]*A[2,0] + A[1,1]*A[0,0]*A[2,2] - A[1,0]*A[0,1]*A[2,2] - A[0,0]*A[2,1]*A[1,2]] \
-                ])
-        error("Cofactor not implemented for dimension %s." % sh[0])
+        return cofactor_expr(A)
 
     def inverse(self, o, A):
         if A.rank() == 0:
             return 1.0 / A
-        return self._cofactor_transposed(None, A) / self.determinant(None, A)
+        return inverse_expr(A)
 
     # ------------ Compound differential operators
 

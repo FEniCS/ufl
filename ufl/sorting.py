@@ -101,7 +101,9 @@ def cmp_expr(a, b):
 
     # Sort by children in natural order
     for (r, s) in izip(aops, bops):
-        c = cmp_expr(r, s) # Ouch! This becomes worst case O(n) then? FIXME: Perhaps replace with comparison of hash value? Is that stable between runs?
+        # Ouch! This becomes worst case O(n) then?
+        # FIXME: Perhaps replace with comparison of hash value? Is that stable between runs?
+        c = cmp_expr(r, s)
         if c != 0:
             return c
 

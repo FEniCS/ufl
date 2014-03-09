@@ -101,10 +101,11 @@ compute_hash = compute_hash2
 #--- Base class for operator objects ---
 
 class Operator(Expr):
-    __slots__ = ("_hash",)
-    def __init__(self):
+    __slots__ = ("_hash",) # TODO: Add _ops tuple here and use that from all operator types instead of separate slots specs for each operator.
+    def __init__(self): # *ops):
         Expr.__init__(self)
         self._hash = None
+        #self._ops = ops
 
     def signature_data(self):
         return self._classid

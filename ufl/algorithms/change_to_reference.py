@@ -19,12 +19,16 @@
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.classes import Terminal, ReferenceGrad, Grad, JacobianInverse
+from ufl.classes import (Terminal, ReferenceGrad, Grad,
+                         Jacobian, JacobianInverse, JacobianDeterminant,
+                         FacetJacobian, FacetJacobianInverse, FacetJacobianDeterminant,
+                         ReferenceFacetJacobian, QuadratureWeight)
 from ufl.constantvalue import as_ufl
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
 from ufl.algorithms.analysis import extract_type
 from ufl.indexing import indices
 from ufl.tensors import as_tensor
+from ufl.compound_expressions import determinant_expr, inverse_expr
 
 class ChangeToReferenceGrad(ReuseTransformer):
     def __init__(self):
@@ -72,20 +76,14 @@ class ChangeToReferenceGrad(ReuseTransformer):
     def coefficient_derivative(self, o):
         error("Coefficient derivatives should be expanded before applying change to local grad.")
 
-def determinant_expr(A):
-    return FIXME
-
-def inverse_expr(A):
-    return FIXME
-
 class ChangeToReferenceGeometry(ReuseTransformer):
-    def __init__(self, known=None):
+    def __init__(self, physical_coordinates_known):
         ReuseTransformer.__init__(self)
-        self.known = known or {}
-        self._cache = {}
+        self.physical_coordinates_known = physical_coordinates_known
+        self._rcache = {}
 
     def jacobian(self, o):
-        r = self._cache.get(o)
+        r = self._rcache.get(o)
         if r is None:
             domain = o.domain()
             x = domain.coordinates()
@@ -93,80 +91,91 @@ class ChangeToReferenceGeometry(ReuseTransformer):
                 r = o
             else:
                 r = ReferenceGrad(x)
-            self._cache[o] = r
+            self._rcache[o] = r
         return r
 
     def jacobian_inverse(self, o):
-        r = self._cache.get(o)
+        r = self._rcache.get(o)
         if r is None:
             domain = o.domain()
             J = self.jacobian(Jacobian(domain))
             r = inverse_expr(J)
-            self._cache[o] = r
+            self._rcache[o] = r
         return r
 
     def jacobian_determinant(self, o):
-        r = self._cache.get(o)
+        r = self._rcache.get(o)
         if r is None:
             domain = o.domain()
             J = self.jacobian(Jacobian(domain))
             r = determinant_expr(J)
-            self._cache[o] = r
+            self._rcache[o] = r
         return r
 
     def facet_jacobian(self, o):
-        r = self._cache.get(o)
+        r = self._rcache.get(o)
         if r is None:
             domain = o.domain()
             J = self.jacobian(Jacobian(domain))
             RFJ = ReferenceFacetJacobian(domain)
             i,j,k = indices(3)
             r = as_tensor(J[i,k]*RFJ[k,j], (i,j))
-            self._cache[o] = r
+            self._rcache[o] = r
         return r
 
     def facet_jacobian_inverse(self, o):
-        r = self._cache.get(o)
+        r = self._rcache.get(o)
         if r is None:
             domain = o.domain()
             FJ = self.facet_jacobian(FacetJacobian(domain))
             r = inverse_expr(FJ)
-            self._cache[o] = r
+            self._rcache[o] = r
         return r
 
     def facet_jacobian_determinant(self, o):
-        r = self._cache.get(o)
+        r = self._rcache.get(o)
         if r is None:
             domain = o.domain()
             FJ = self.facet_jacobian(FacetJacobian(domain))
             r = determinant_expr(FJ)
-            self._cache[o] = r
+            self._rcache[o] = r
         return r
 
     def spatial_coordinate(self, o):
-        domain = o.domain()
-        x = domain.coordinates()
-        r = o if x is None else x
+        "Fall through to coordinate field of domain if it exists."
+        if self.physical_coordinates_known:
+            return o
+        else:
+            domain = o.domain()
+            x = domain.coordinates()
+            if x is None:
+                return o
+            else:
+                return x
 
     def reference_coordinate(self, o):
-        if know_physical_coordinates:
-            K = self.jacobian_inverse(JacobianInverse(domain))
-            x = self.spatial_coordinate(SpatialCoordinate(domain))
-            x0 = ReferenceOriginCoordinate(domain)
-            x = K JacobianInverse(domain) * (SpatialCoordinate(domain) - CellOriginCoordinate(domain))
-            #x = K * (x - x0) # FIXME: Need type for x0 to do this
-            return o # FIXME
+        "Compute from physical coordinates if they are known, using the appropriate mappings."
+        if self.physical_coordinates_known:
+            r = self._rcache.get(o)
+            if r is None:
+                K = self.jacobian_inverse(JacobianInverse(domain))
+                x = self.spatial_coordinate(SpatialCoordinate(domain))
+                x0 = CellOriginCoordinate(domain)
+                i,j = indices(2)
+                X = as_tensor(K[i,j] * (x[j] - x0[j]), (i,))
+                r = X
+            return r
         else:
             return o
 
     def facet_reference_coordinate(self, o):
-        if "facet_reference_coordinate" in self.known:
-            return o
+        if self.physical_coordinates_known:
+            error("Missing computation of facet reference coordinates from physical coordinates via mappings.")
         else:
-            return o # FIXME
+            return o
 
-    def facet_normal(self, o):
-        r = self._cache.get(o)
+    def facet_normal(self, o): # FIXE
+        r = self._rcache.get(o)
         if r is None:
             domain = o.domain()
             FJ = self.facet_jacobian(FacetJacobian(domain))
@@ -176,7 +185,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
             tangent1 = tangents[:,1]
             r = cross(tangent0, tangent1)
 
-            self._cache[o] = r
+            self._rcache[o] = r
         return r
 
 
@@ -189,3 +198,50 @@ def change_to_reference_grad(e):
         An Expr or Form.
     """
     return apply_transformer(e, ChangeToReferenceGrad())
+
+
+def change_to_reference_geometry(e, physical_coordinates_known):
+    """Change Grad objects in expression to products of JacobianInverse and ReferenceGrad.
+
+    Assumes the expression is preprocessed or at least that derivatives have been expanded.
+
+    @param e:
+        An Expr or Form.
+    """
+    return apply_transformer(e, ChangeToReferenceGeometry(physical_coordinates_known))
+
+
+def compute_integrand_scaling_factor(domain, domain_type):
+    """Change integrand geometry to the right representations."""
+
+    weight = QuadratureWeight(domain) # TODO: domain doesn't make any sense here?
+
+    if domain_type == "cell":
+        scale = abs(JacobianDeterminant(domain)) * weight
+    elif domain_type == "exterior_facet":
+        scale = FacetJacobianDeterminant(domain) * weight
+    elif domain_type == "interior_facet":
+        # TODO: Do we need to restrict here?
+        scale = FacetJacobianDeterminant(domain) * weight
+    elif domain_type == "quadrature":
+        scale = weight
+    elif domain_type == "point":
+        scale = 1
+
+    return scale
+
+
+def change_integrand_geometry_representation(integrand, scale, domain_type):
+    """Change integrand geometry to the right representations."""
+
+    integrand = change_to_reference_grad(integrand)
+
+    integrand = integrand * scale
+
+    if domain_type == "quadrature":
+        physical_coordinates_known = True
+    else:
+        physical_coordinates_known = False
+    integrand = change_to_reference_geometry(integrand, physical_coordinates_known)
+
+    return integrand
