@@ -77,11 +77,6 @@ class SpatialCoordinate(GeometricQuantity):
         g = self._domain.geometric_dimension()
         return (g,)
 
-    def is_cellwise_constant(self):
-        "Return whether this expression is spatially constant over each cell."
-        # Only case this is true is if the domain is a vertex cell.
-        return self.domain().cell().cellname() == "vertex"
-
     def evaluate(self, x, mapping, component, index_values):
         if component == ():
             if isinstance(x, (tuple,list)):
@@ -90,6 +85,11 @@ class SpatialCoordinate(GeometricQuantity):
                 return float(x)
         else:
             return float(x[component[0]])
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        # Only case this is true is if the domain is a vertex cell.
+        return self.domain().cell().cellname() == "vertex"
 
 class ReferenceCoordinate(GeometricQuantity):
     "Representation of a local coordinate on the reference cell."
@@ -104,6 +104,18 @@ class ReferenceCoordinate(GeometricQuantity):
         "Return whether this expression is spatially constant over each cell."
         # Only case this is true is if the domain is a vertex cell.
         return self.domain().cell().cellname() == "vertex"
+
+class CellOriginCoordinate(GeometricQuantity):
+    "Representation of the physical coordinate corresponding to the origin on the reference cell."
+    __slots__ = ()
+    name = "x0"
+
+    def shape(self):
+        g = self._domain.geometric_dimension()
+        return (g,)
+
+    def is_cellwise_constant(self):
+        return True
 
 class ReferenceFacetCoordinate(GeometricQuantity):
     "Representation of a local coordinate on the reference cell of (a facet of the reference cell)."

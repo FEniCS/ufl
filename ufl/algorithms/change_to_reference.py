@@ -144,14 +144,20 @@ class ChangeToReferenceGeometry(ReuseTransformer):
         return r
 
     def spatial_coordinate(self, o):
-        return o
+        domain = o.domain()
+        x = domain.coordinates()
+        r = o if x is None else x
 
     def reference_coordinate(self, o):
-        if "reference_coordinate" in self.known:
-            return o
-        else:
+        if know_physical_coordinates:
+            K = self.jacobian_inverse(JacobianInverse(domain))
+            x = self.spatial_coordinate(SpatialCoordinate(domain))
+            x0 = ReferenceOriginCoordinate(domain)
+            x = K JacobianInverse(domain) * (SpatialCoordinate(domain) - CellOriginCoordinate(domain))
             #x = K * (x - x0) # FIXME: Need type for x0 to do this
             return o # FIXME
+        else:
+            return o
 
     def facet_reference_coordinate(self, o):
         if "facet_reference_coordinate" in self.known:

@@ -74,7 +74,7 @@ A very brief overview of the language contents follows:
 
 * Geometric quantities::
 
-    SpatialCoordinate, ReferenceCoordinate, ReferenceFacetCoordinate,
+    SpatialCoordinate, ReferenceCoordinate, ReferenceFacetCoordinate, CellOriginCoordinate,
     Jacobian, JacobianDeterminant, JacobianInverse,
     FacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse,
     ReferenceFacetJacobian,
@@ -187,7 +187,7 @@ from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile
 from ufl.cell import as_cell, Cell, ProductCell
 from ufl.domain import as_domain, Domain, ProductDomain
 from ufl.geometry import (
-    SpatialCoordinate, ReferenceCoordinate, ReferenceFacetCoordinate,
+    SpatialCoordinate, ReferenceCoordinate, ReferenceFacetCoordinate, CellOriginCoordinate,
     Jacobian, JacobianDeterminant, JacobianInverse,
     FacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse,
     ReferenceFacetJacobian,
@@ -279,7 +279,7 @@ __all__ = [
     'UFLException', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL',
     'as_cell', 'Cell', 'ProductCell',
     'as_domain', 'Domain', 'ProductDomain',
-    'SpatialCoordinate', 'ReferenceCoordinate', 'ReferenceFacetCoordinate',
+    'SpatialCoordinate', 'ReferenceCoordinate', 'ReferenceFacetCoordinate', 'CellOriginCoordinate',
     'CellVolume', 'Circumradius',
     'FacetArea', 'MinFacetEdgeLength', 'MaxFacetEdgeLength',
     'Jacobian', 'JacobianDeterminant', 'JacobianInverse',

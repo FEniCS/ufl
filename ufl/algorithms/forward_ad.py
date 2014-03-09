@@ -689,9 +689,6 @@ class GradAD(ForwardAD):
     def facet_jacobian_inverse(self, o):
         error("Not expecting this low level type in AD.")
 
-    def reference_facet_jacobian(self, o):
-        error("Not expecting this low level type in AD.")
-
     def argument(self, o):
         "Represent grad(f) as Grad(f)."
         # Collapse gradient of cellwise constant function to zero

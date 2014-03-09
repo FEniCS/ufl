@@ -45,7 +45,7 @@ from ufl.cell import Cell, ProductCell
 from ufl.domain import Domain, ProductDomain
 from ufl.geometry import (
     GeometricQuantity,
-    SpatialCoordinate, ReferenceCoordinate, ReferenceFacetCoordinate,
+    SpatialCoordinate, ReferenceCoordinate, ReferenceFacetCoordinate, CellOriginCoordinate,
     Jacobian, JacobianDeterminant, JacobianInverse,
     FacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse,
     ReferenceFacetJacobian,
