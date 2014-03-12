@@ -49,7 +49,7 @@ from ufl.geometry import (
     Jacobian, JacobianDeterminant, JacobianInverse,
     FacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse,
     ReferenceFacetJacobian,
-    FacetNormal, QuadratureWeight,
+    FacetNormal, QuadratureWeight, CellNormal, CellOrientation,
     CellVolume, Circumradius,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
     )

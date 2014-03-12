@@ -80,7 +80,8 @@ A very brief overview of the language contents follows:
     ReferenceFacetJacobian,
     CellVolume, Circumradius,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
-    FacetNormal, QuadratureWeight
+    FacetNormal, CellNormal, CellOrientation,
+    QuadratureWeight
 
 * Indices::
 
@@ -193,7 +194,8 @@ from ufl.geometry import (
     ReferenceFacetJacobian,
     CellVolume, Circumradius,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
-    FacetNormal, QuadratureWeight)
+    FacetNormal, CellNormal, CellOrientation,
+    QuadratureWeight)
 
 # Finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
@@ -285,7 +287,8 @@ __all__ = [
     'Jacobian', 'JacobianDeterminant', 'JacobianInverse',
     'FacetJacobian', 'FacetJacobianDeterminant', 'FacetJacobianInverse',
     'ReferenceFacetJacobian',
-    'FacetNormal', 'QuadratureWeight',
+    'FacetNormal', 'CellNormal', 'CellOrientation',
+    'QuadratureWeight',
     'FiniteElementBase', 'FiniteElement',
     'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
     'RestrictedElement', 'TensorProductElement',

@@ -287,19 +287,29 @@ class FacetNormal(GeometricQuantity):
         facet_cellname = cellname2facetname.get(self._domain.cell().cellname()) # Allowing None if unknown..
         return (x is None or x.element().degree() == 1) and (facet_cellname in affine_cells) # .. which will become false.
 
-#class CellNormal(GeometricQuantity):
-#    "Representation of a cell normal, for cells of tdim=gdim-1."
-#    __slots__ = ()
-#    name = "cell_normal"
-#
-#    def shape(self):
-#        g = self._domain.geometric_dimension()
-#        return (g,)
+class CellNormal(GeometricQuantity):
+    "Representation of a cell normal, for cells of tdim=gdim-1."
+    __slots__ = ()
+    name = "cell_normal"
+
+    def shape(self):
+        g = self._domain.geometric_dimension()
+        return (g,)
+
+class CellOrientation(GeometricQuantity):
+    """Representation of cell orientation, for cells of tdim==gdim-1.
+
+    For affine cells with tdim==gdim, this equals the sign of the Jacobian determinant.
+
+    For non-affine cells... you probably need to figure that out yourself and send a patch.
+    """
+    __slots__ = ()
+    name = "cell_orientation"
 
 
 # --- Types representing other stuff
 
-class QuadratureWeight(GeometricQuantity): # FIXME: Not a geometric quantity? No domain!
+class QuadratureWeight(GeometricQuantity):
     "Representation of the current quadrature weight. Only used inside a quadrature context."
     __slots__ = ()
     name = "weight"

@@ -174,16 +174,97 @@ class ChangeToReferenceGeometry(ReuseTransformer):
         else:
             return o
 
-    def facet_normal(self, o): # FIXE
+    def cell_normal(self, o):
+        warning("Untested complicated code for cell normal. Please report if this works correctly or not.")
+
         r = self._rcache.get(o)
         if r is None:
             domain = o.domain()
+            gdim = domain.geometric_dimension()
+            tdim = domain.topological_dimension()
+
+            if tdim == gdim - 1:
+
+                if tdim == 2: # Surface in 3D
+                    J = self.jacobian(Jacobian(domain))
+                    cell_normal = cross_expr(J[:,0], J[:,1])
+
+                elif tdim == 1: # Line in 2D
+                    # TODO: Sign here is ambiguous, which normal?
+                    cell_normal = as_vector((J[1,0], -J[0,0]))
+
+                i = Index()
+                cell_normal = cell_normal / sqrt(cell_normal[i]*cell_normal[i])
+
+            elif tdim == gdim:
+                cell_normal = as_vector((0.0,)*tdim + (1.0,))
+
+            else:
+                error("What do you mean by cell normal in gdim={0}, tdim={1}?".format(gdim, tdim))
+
+            r = cell_normal
+        return r
+
+    def facet_normal(self, o):
+        warning("Untested complicated code for facet normal. Please report if this works correctly or not.")
+
+        r = self._rcache.get(o)
+        if r is None:
+            domain = o.domain()
+            gdim = domain.geometric_dimension()
+            tdim = domain.topological_dimension()
+
             FJ = self.facet_jacobian(FacetJacobian(domain))
 
-            # FIXME: This is 3D only, write up other cases
-            tangent0 = tangents[:,0]
-            tangent1 = tangents[:,1]
-            r = cross(tangent0, tangent1)
+            if tdim == 3:
+                ufl_assert(gdim == 3, "Inconsistent dimensions.")
+                ufl_assert(FJ.shape() == (3,2), "Inconsistent dimensions.")
+
+                # Compute signed scaling factor
+                scale = self.jacobian_determinant(JacobianDeterminant(domain))
+
+                # Compute facet normal direction of 3D cell, product of two tangent vectors
+                ndir = scale * cross_expr(FJ[:,0], FJ[:,1])
+
+                # Normalise normal vector
+                i = Index()
+                n = ndir / sqrt(ndir[i]*ndir[i])
+                r = n
+
+            elif tdim == 2:
+                if gdim == 2:
+                    ufl_assert(FJ.shape() == (2,1), "Inconsistent dimensions.")
+
+                    # Compute facet tangent
+                    tangent = as_vector((FJ[0,0], FJ[1,0], 0))
+
+                    # Compute cell normal
+                    cell_normal = as_vector((0, 0, 1))
+
+                    # Compute signed scaling factor
+                    scale = self.jacobian_determinant(JacobianDeterminant(domain))
+                else:
+                    ufl_assert(FJ.shape() == (gdim,1), "Inconsistent dimensions.")
+
+                    # Compute facet tangent
+                    tangent = FJ[:,0]
+
+                    # Compute cell normal
+                    cell_normal = self.cell_normal(CellNormal(domain))
+
+                    # Compute signed scaling factor (input in the manifold case)
+                    scale = CellOrientation(domain)
+
+                ufl_assert(len(tangent) == 3, "Inconsistent dimensions.")
+                ufl_assert(len(cell_normal) == 3, "Inconsistent dimensions.")
+
+                # Compute normal direction
+                ndir = scale * cross_expr(tangent, cell_normal)
+
+                # Normalise normal vector
+                i = Index()
+                n = ndir / sqrt(ndir[i]*ndir[i])
+                r = n
 
             self._rcache[o] = r
         return r
@@ -214,15 +295,14 @@ def change_to_reference_geometry(e, physical_coordinates_known):
 def compute_integrand_scaling_factor(domain, domain_type):
     """Change integrand geometry to the right representations."""
 
-    weight = QuadratureWeight(domain) # TODO: domain doesn't make any sense here?
+    weight = QuadratureWeight(domain)
 
     if domain_type == "cell":
         scale = abs(JacobianDeterminant(domain)) * weight
     elif domain_type == "exterior_facet":
         scale = FacetJacobianDeterminant(domain) * weight
     elif domain_type == "interior_facet":
-        # TODO: Do we need to restrict here?
-        scale = FacetJacobianDeterminant(domain) * weight
+        scale = FacetJacobianDeterminant(domain)('-') * weight # TODO: Arbitrary restriction to '-', is that ok?
     elif domain_type == "quadrature":
         scale = weight
     elif domain_type == "point":
