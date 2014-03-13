@@ -19,9 +19,10 @@
 #
 # Modified by Kristian B. Oelgaard
 # Modified by Marie E. Rognes 2010, 2012
+# Modified by Andrew T. T. McRae 2014
 #
 # First added:  2008-03-03
-# Last changed: 2012-08-16
+# Last changed: 2014-03-13
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 from ufl.finiteelement.finiteelement import FiniteElement
@@ -31,3 +32,4 @@ from ufl.finiteelement.mixedelement import TensorElement
 from ufl.finiteelement.enrichedelement import EnrichedElement
 from ufl.finiteelement.restrictedelement import RestrictedElement
 from ufl.finiteelement.tensorproductelement import TensorProductElement
+from ufl.finiteelement.outerproductelement import OuterProductElement
