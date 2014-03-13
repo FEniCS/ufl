@@ -44,7 +44,7 @@ A very brief overview of the language contents follows:
 
 * Cells::
 
-    Cell, ProductCell,
+    Cell, ProductCell, OuterProductCell,
     interval, triangle, tetrahedron,
     quadrilateral, hexahedron,
     cell1D, cell2D, cell3D,
@@ -166,6 +166,7 @@ A very brief overview of the language contents follows:
 # Modified by Kristian B. Oelgaard, 2009, 2011
 # Modified by Anders Logg, 2009.
 # Modified by Johannes Ring, 2014.
+# Modified by Andrew T. T. McRae, 2014
 
 __version__ = "1.3.0+"
 
@@ -185,7 +186,7 @@ from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile
     UFLException, DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 # Types for geometric quantities
-from ufl.cell import as_cell, Cell, ProductCell
+from ufl.cell import as_cell, Cell, ProductCell, OuterProductCell
 from ufl.domain import as_domain, Domain, ProductDomain
 from ufl.geometry import (
     SpatialCoordinate,
@@ -279,7 +280,7 @@ __all__ = [
     'product',
     'get_handler', 'get_logger', 'set_handler', 'set_level', 'add_logfile',
     'UFLException', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL',
-    'as_cell', 'Cell', 'ProductCell',
+    'as_cell', 'Cell', 'ProductCell', 'OuterProductCell',
     'as_domain', 'Domain', 'ProductDomain',
     'L2', 'H1', 'H2', 'HCurl', 'HDiv',
     'SpatialCoordinate',
