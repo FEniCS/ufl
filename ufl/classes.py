@@ -23,6 +23,7 @@ of classes, and for mapping types to different handler functions."""
 #
 # Modified by Anders Logg, 2009.
 # Modified by Kristian B. Oelgaard, 2011
+# Modified by Andrew T. T. McRae, 2014
 
 from ufl.assertions import ufl_assert
 
@@ -41,7 +42,7 @@ from ufl.constantvalue import (ConstantValue, IndexAnnotated,
 from ufl.argument import Argument, TestFunction, TrialFunction
 from ufl.coefficient import (Coefficient, ConstantBase,
     VectorConstant, TensorConstant, Constant)
-from ufl.cell import Cell, ProductCell
+from ufl.cell import Cell, ProductCell, OuterProductCell
 from ufl.domain import Domain, ProductDomain
 from ufl.geometry import (
     GeometricQuantity,

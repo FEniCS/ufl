@@ -20,6 +20,7 @@
 # Modified by Anders Logg, 2009.
 # Modified by Kristian B. Oelgaard, 2009
 # Modified by Marie E. Rognes 2012
+# Modified by Andrew T. T. McRae, 2014
 
 from ufl.log import warning, error, deprecate
 from ufl.assertions import ufl_assert
@@ -189,6 +190,43 @@ class ProductCell(Cell):
 
     def __repr__(self):
         return "ProductCell(*%r)" % (self._cells,)
+
+
+class OuterProductCell(Cell):
+    __slots__ = ("_A", "_B")
+
+    def __init__(self, A, B):
+        self._A = A
+        self._B = B
+
+        tdim = A.topological_dimension() + B.topological_dimension()
+        # "only as big as it needs to be, but not smaller than A or B"
+        gdim = max(A.geometric_dimension(),
+                   B.geometric_dimension(),
+                   A.topological_dimension() + B.topological_dimension())
+        Cell.__init__(self, "OuterProductCell", gdim, tdim)
+
+    def facet_cellname(self):
+        "Return the cellname of the facet of this cell."
+        error("Makes no sense for OuterProductCell.")
+
+    def __eq__(self, other):
+        if not isinstance(other, OuterProductCell):
+            return False
+        # This is quite subtle: my intuition says that the OPCs of
+        # Cell("triangle") with Cell("interval"), and
+        # Cell("triangle", 3) with Cell("interval")
+        # are essentially the same: triangular prisms with gdim = tdim = 3.
+        # For safety, though, we will only compare equal if the
+        # subcells are *identical*, including immersion.
+        return self._A == other._A and self._B == other._B
+
+    def __lt__(self, other):
+        # No idea what this might be used for
+        error("Makes no sense for OuterProductCell")
+
+    def __repr__(self):
+        return "OuterProductCell(*%r)" % list([self._A, self._B])
 
 
 # --- Utility conversion functions
