@@ -54,7 +54,7 @@ A very brief overview of the language contents follows:
     FiniteElement,
     MixedElement, VectorElement, TensorElement
     EnrichedElement, RestrictedElement,
-    TensorProductElement
+    TensorProductElement, OuterProductElement
 
 * Arguments::
 
@@ -201,7 +201,7 @@ from ufl.geometry import (
 # Finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
     MixedElement, VectorElement, TensorElement, EnrichedElement, \
-    RestrictedElement, TensorProductElement
+    RestrictedElement, TensorProductElement, OuterProductElement
 
 # Hook to extend predefined element families
 from ufl.finiteelement.elementlist import register_element, show_elements #, ufl_elements
@@ -292,7 +292,7 @@ __all__ = [
     'QuadratureWeight',
     'FiniteElementBase', 'FiniteElement',
     'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
-    'RestrictedElement', 'TensorProductElement',
+    'RestrictedElement', 'TensorProductElement', 'OuterProductElement',
     'register_element', 'show_elements',
     'Argument', 'TestFunction', 'TrialFunction',
     'Arguments', 'TestFunctions', 'TrialFunctions',
