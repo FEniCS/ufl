@@ -20,8 +20,7 @@ symbolic reasoning about the spaces in which finite elements lie."""
 #
 # Written by David Ham 2014
 #
-# First added:  2014-03-04
-# Last changed: 2014-03-04
+# Modified by Martin Alnaes 2014
 
 
 class SobolevSpace(object):
@@ -46,22 +45,24 @@ class SobolevSpace(object):
         return self.name
 
     def __repr__(self):
-        return "SobolevSpace(%s, %s)" % (self.name, map(str, self.parents))
+        return "SobolevSpace(%r, %r)" % (self.name, list(self.parents))
+
+    def __eq__(self, other):
+        return isinstance(other, SobolevSpace) and self.name == other.name
+
+    def __hash__(self):
+        return hash(("SobolevSpace", self.name))
 
     def __contains__(self, other):
         """Implement `fe in s` where `fe` is a
         :class:`~finiteelement.FiniteElement` and `s` is a
         :class:`SobolevSpace`"""
-        try:
-            return (other.sobolev_space is self) \
-                or (other.sobolev_space in self.parents)
-        except AttributeError:
-            if isinstance(other, SobolevSpace):
-                raise TypeError("Unable to test for inclusion of a " +
-                                "SobolevSpace in another SobolevSpace. " +
-                                "Did you mean to use <= instead?")
-            else:
-                raise
+        if isinstance(other, SobolevSpace):
+            raise TypeError("Unable to test for inclusion of a " +
+                            "SobolevSpace in another SobolevSpace. " +
+                            "Did you mean to use <= instead?")
+        return (other.sobolev_space() == self
+                or other.sobolev_space() in self.parents)
 
     def __lt__(self, other):
         """In common with intrinsic Python sets, < indicates "is a proper
@@ -71,7 +72,7 @@ class SobolevSpace(object):
     def __le__(self, other):
         """In common with intrinsic Python sets, <= indicates "is a subset
         of." """
-        return (self is other) or (other in self.parents)
+        return (self == other) or (other in self.parents)
 
     def __gt__(self, other):
         """In common with intrinsic Python sets, > indicates "is a proper
@@ -81,7 +82,7 @@ class SobolevSpace(object):
     def __ge__(self, other):
         """In common with intrinsic Python sets, >= indicates "is a superset
         of." """
-        return (self is other) or (self in other.parents)
+        return (self == other) or (self in other.parents)
 
 L2 = SobolevSpace("L2")
 HDiv = SobolevSpace("HDiv", [L2])
