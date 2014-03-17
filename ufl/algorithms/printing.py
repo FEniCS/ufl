@@ -18,7 +18,7 @@ of UFL objects, mostly intended for debugging purposes."""
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
-# Modified by Anders Logg, 2009.
+# Modified by Anders Logg 2009, 2014
 #
 # First added:  2008-03-14
 # Last changed: 2014-03-17
@@ -60,22 +60,24 @@ def form_info(form):
     bf = extract_arguments(form)
     cf = extract_coefficients(form)
 
-    ci = form.integrals_by_type("cell")
-    ei = form.integrals_by_type("exterior_facet")
-    ii = form.integrals_by_type("interior_facet")
-    pi = form.integrals_by_type("point")
-    qi = form.integrals_by_type("quadrature_cell")
-    mi = form.integrals_by_type("macro_cell")
+    ci  = form.integrals_by_type("cell")
+    ei  = form.integrals_by_type("exterior_facet")
+    ii  = form.integrals_by_type("interior_facet")
+    pi  = form.integrals_by_type("point")
+    qci = form.integrals_by_type("quadrature_cell")
+    qfi = form.integrals_by_type("quadrature_facet")
+    mi  = form.integrals_by_type("macro_cell")
 
     s  = "Form info:\n"
-    s += "  rank:                          %d\n" % len(bf)
-    s += "  num_coefficients:              %d\n" % len(cf)
-    s += "  num_cell_integrals:            %d\n" % len(ci)
-    s += "  num_exterior_facet_integrals:  %d\n" % len(ei)
-    s += "  num_interior_facet_integrals:  %d\n" % len(ii)
-    s += "  num_point_integrals:           %d\n" % len(pi)
-    s += "  num_quadrature_cell_integrals: %d\n" % len(qi)
-    s += "  num_macro_cell_integrals:      %d\n" % len(mi)
+    s += "  rank:                           %d\n" % len(bf)
+    s += "  num_coefficients:               %d\n" % len(cf)
+    s += "  num_cell_integrals:             %d\n" % len(ci)
+    s += "  num_exterior_facet_integrals:   %d\n" % len(ei)
+    s += "  num_interior_facet_integrals:   %d\n" % len(ii)
+    s += "  num_point_integrals:            %d\n" % len(pi)
+    s += "  num_quadrature_cell_integrals:  %d\n" % len(qci)
+    s += "  num_quadrature_facet_integrals: %d\n" % len(qfi)
+    s += "  num_macro_cell_integrals:       %d\n" % len(mi)
 
     for f in cf:
         if f._name:
@@ -118,12 +120,13 @@ def tree_format(expression, indentation=0, parentheses=True):
     s = ""
 
     if isinstance(expression, Form):
-        ci = expression.integrals_by_type("cell")
-        ei = expression.integrals_by_type("exterior_facet")
-        ii = expression.integrals_by_type("interior_facet")
-        pi = expression.integrals_by_type("point")
-        qi = expression.integrals_by_type("quadrature_cell")
-        mi = expression.integrals_by_type("macro_cell")
+        ci  = expression.integrals_by_type("cell")
+        ei  = expression.integrals_by_type("exterior_facet")
+        ii  = expression.integrals_by_type("interior_facet")
+        pi  = expression.integrals_by_type("point")
+        qci = expression.integrals_by_type("quadrature_cell")
+        qfi = expression.integrals_by_type("quadrature_facet")
+        mi  = expression.integrals_by_type("macro_cell")
         ind = _indent_string(indentation)
         s += ind + "Form:\n"
         s += "\n".join(tree_format(itg, indentation+1, parentheses) for itg in chain(ci, ei, ii, pi, qi, mi))

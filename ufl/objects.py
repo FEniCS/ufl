@@ -37,6 +37,7 @@ ds = Measure("exterior_facet")
 dS = Measure("interior_facet")
 dP = Measure("point")
 dQ = Measure("quadrature_cell")
+dL = Measure("quadrature_facet")
 dE = Measure("macro_cell")
 dc = Measure("surface")
 

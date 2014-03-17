@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
-# Modified by Anders Logg, 2008-2009
+# Modified by Anders Logg 2008-2014
 #
 # First added:  2008-03-14
 # Last changed: 2014-03-17
@@ -50,7 +50,8 @@ _domain_types = [
     ("point", "dP"),               # TODO: Is this over arbitrary point cloud or vertices?
     #("vertex", "dV"),             # TODO: Use this over vertices?
     # === Integration over arbitrary topological dimension
-    ("quadrature_cell", "dQ"),     # Over a custom set of quadrature points and weights
+    ("quadrature_cell", "dQ"),     # Over a custom set of quadrature points and weights on a cell
+    ("quadrature_facet", "dL"),    # Over a custom set of quadrature points and weights on a facet
     ]
 domain_type_to_measure_name = dict((l,s) for l,s in _domain_types)
 measure_name_to_domain_type = dict((s,l) for l,s in _domain_types)

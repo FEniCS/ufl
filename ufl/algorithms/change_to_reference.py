@@ -305,6 +305,8 @@ def compute_integrand_scaling_factor(domain, domain_type):
         scale = FacetJacobianDeterminant(domain)('-') * weight # TODO: Arbitrary restriction to '-', is that ok?
     elif domain_type == "quadrature_cell":
         scale = weight
+    elif domain_type == "quadrature_facet":
+        scale = weight
     elif domain_type == "point":
         scale = 1
 
@@ -318,7 +320,7 @@ def change_integrand_geometry_representation(integrand, scale, domain_type):
 
     integrand = integrand * scale
 
-    if domain_type == "quadrature_cell":
+    if domain_type in ("quadrature_cell", "quadrature_facet"):
         physical_coordinates_known = True
     else:
         physical_coordinates_known = False
