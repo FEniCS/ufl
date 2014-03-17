@@ -271,7 +271,7 @@ class Measure(object):
         if self._domain_data is not None:
             args.append("domain_data=%s" % (self._domain_data,))
 
-        return "%s(%s)" % (dm, ', '.join(args))
+        return "%s(%s)" % (d, ', '.join(args))
 
     def __repr__(self):
         "Return a repr string for this Measure."

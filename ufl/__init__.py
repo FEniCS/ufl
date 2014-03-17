@@ -270,7 +270,7 @@ from ufl.objects import \
     vertex, interval, triangle, tetrahedron, \
     quadrilateral, hexahedron, facet, cell1D, cell2D, cell3D, \
     i, j, k, l, p, q, r, s, \
-    dx, ds, dS, dP, dQ, dE, dc
+    dx, ds, dS, dP, dQ, dL, dE, dc
 
 # Useful constants
 from math import e, pi
