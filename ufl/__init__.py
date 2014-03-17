@@ -321,7 +321,7 @@ __all__ = [
     'Integral', 'Measure', 'register_domain_type', 'domain_types',
     'replace', 'replace_integral_domains', 'derivative', 'action', 'energy_norm', 'rhs', 'lhs',
     'system', 'functional', 'adjoint', 'sensitivity_rhs',
-    'dx', 'ds', 'dS', 'dP', 'dQ', 'dE', 'dc',
+    'dx', 'ds', 'dS', 'dP', 'dQ', 'dL', 'dE', 'dc',
     'vertex', 'interval', 'triangle', 'tetrahedron',
     'quadrilateral', 'hexahedron', 'facet',
     'cell1D', 'cell2D', 'cell3D',
