@@ -20,7 +20,7 @@
 # Modified by Anders Logg, 2008-2009
 #
 # First added:  2008-03-14
-# Last changed: 2013-10-25
+# Last changed: 2014-03-17
 
 from ufl.assertions import ufl_assert
 from ufl.log import error, warning
@@ -38,19 +38,19 @@ from ufl.protocols import id_or_none, metadata_equal, metadata_hashdata
 # Enumeration of valid domain types
 _domain_types = [
     # === Integration over full topological dimension:
-    ("cell", "dx"),           # Over a single cell
-    ("macro_cell", "dE"),     # Over a group of adjacent cells (TODO: Arbitrary cell group? Where is this used?)
-    #("overlap", "dO"),        # TODO: Over a cell fragment overlapping with two or more cells
+    ("cell", "dx"),                # Over a single cell
+    ("macro_cell", "dE"),          # Over a group of adjacent cells (TODO: Arbitrary cell group? Where is this used?)
+    #("overlap", "dO"),            # TODO: Over a cell fragment overlapping with two or more cells
     # === Integration over topological dimension - 1:
-    ("exterior_facet", "ds"), # Over facet of a single cell
-    ("interior_facet", "dS"), # Over facet between two adjacent cells
-    ("surface", "dc"),        # TODO: What is this?
-    #("interface", "dI"),      # Over facet fragment overlapping with two or more cells
+    ("exterior_facet", "ds"),      # Over facet of a single cell
+    ("interior_facet", "dS"),      # Over facet between two adjacent cells
+    ("surface", "dc"),             # TODO: What is this?
+    #("interface", "dI"),          # Over facet fragment overlapping with two or more cells
     # === Integration over topological dimension 0
-    ("point", "dP"),          # TODO: Is this over arbitrary point cloud or vertices?
-    #("vertex", "dV"),         # TODO: Use this over vertices?
+    ("point", "dP"),               # TODO: Is this over arbitrary point cloud or vertices?
+    #("vertex", "dV"),             # TODO: Use this over vertices?
     # === Integration over arbitrary topological dimension
-    ("quadrature", "dQ"),     # Over a custom set of quadrature points and weights
+    ("quadrature_cell", "dQ"),     # Over a custom set of quadrature points and weights
     ]
 domain_type_to_measure_name = dict((l,s) for l,s in _domain_types)
 measure_name_to_domain_type = dict((s,l) for l,s in _domain_types)
@@ -95,13 +95,13 @@ class Measure(object):
     """
 
     # Enumeration of valid domain types (TODO: Remove these)
-    CELL           = "cell"
-    EXTERIOR_FACET = "exterior_facet"
-    INTERIOR_FACET = "interior_facet"
-    POINT          = "point"
-    QUADRATURE     = "quadrature"
-    MACRO_CELL     = "macro_cell"
-    SURFACE        = "surface"
+    CELL            = "cell"
+    EXTERIOR_FACET  = "exterior_facet"
+    INTERIOR_FACET  = "interior_facet"
+    POINT           = "point"
+    QUADRATURE_CELL = "quadrature_cell"
+    MACRO_CELL      = "macro_cell"
+    SURFACE         = "surface"
 
     def __init__(self,
                  domain_type, # "dx" etc

@@ -21,7 +21,7 @@ of UFL objects, mostly intended for debugging purposes."""
 # Modified by Anders Logg, 2009.
 #
 # First added:  2008-03-14
-# Last changed: 2011-06-02
+# Last changed: 2014-03-17
 
 from itertools import chain
 
@@ -64,7 +64,7 @@ def form_info(form):
     ei = form.integrals_by_type("exterior_facet")
     ii = form.integrals_by_type("interior_facet")
     pi = form.integrals_by_type("point")
-    qi = form.integrals_by_type("quadrature")
+    qi = form.integrals_by_type("quadrature_cell")
     mi = form.integrals_by_type("macro_cell")
 
     s  = "Form info:\n"
@@ -74,7 +74,7 @@ def form_info(form):
     s += "  num_exterior_facet_integrals:  %d\n" % len(ei)
     s += "  num_interior_facet_integrals:  %d\n" % len(ii)
     s += "  num_point_integrals:           %d\n" % len(pi)
-    s += "  num_quadrature_integrals:      %d\n" % len(qi)
+    s += "  num_quadrature_cell_integrals: %d\n" % len(qi)
     s += "  num_macro_cell_integrals:      %d\n" % len(mi)
 
     for f in cf:
@@ -122,7 +122,7 @@ def tree_format(expression, indentation=0, parentheses=True):
         ei = expression.integrals_by_type("exterior_facet")
         ii = expression.integrals_by_type("interior_facet")
         pi = expression.integrals_by_type("point")
-        qi = expression.integrals_by_type("quadrature")
+        qi = expression.integrals_by_type("quadrature_cell")
         mi = expression.integrals_by_type("macro_cell")
         ind = _indent_string(indentation)
         s += ind + "Form:\n"
