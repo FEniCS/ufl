@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from ufl.log import error
+from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.classes import (Terminal, ReferenceGrad, Grad,
                          Jacobian, JacobianInverse, JacobianDeterminant,
@@ -26,9 +26,10 @@ from ufl.classes import (Terminal, ReferenceGrad, Grad,
 from ufl.constantvalue import as_ufl
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
 from ufl.algorithms.analysis import extract_type
-from ufl.indexing import indices
+from ufl.indexing import Index, indices
 from ufl.tensors import as_tensor
-from ufl.compound_expressions import determinant_expr, inverse_expr
+from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
+from ufl.operators import sqrt
 
 class ChangeToReferenceGrad(ReuseTransformer):
     def __init__(self):

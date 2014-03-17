@@ -94,6 +94,7 @@ class Domain(object):
             self._label = flat_domain.label()
             self._data = flat_domain.data()
 
+            # FIXME: Get geometric dimension from self._coordinates instead!
             ufl_assert(self._coordinates.shape() == (self._cell.geometric_dimension(),),
                        "Shape of coordinates %s does not match geometric dimension %d of cell." %\
                 (self._coordinates.shape(), self._cell.geometric_dimension()))
