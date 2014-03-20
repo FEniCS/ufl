@@ -21,7 +21,7 @@
 # Modified by Kristian Oelgaard, 2009
 #
 # First added:  2008-03-14
-# Last changed: 2014-03-17
+# Last changed: 2014-03-19
 
 from ufl.indexing import indices
 from ufl.integral import Measure
@@ -36,10 +36,8 @@ dx = Measure("cell")
 ds = Measure("exterior_facet")
 dS = Measure("interior_facet")
 dP = Measure("point")
-dQ = Measure("quadrature_cell")
-dL = Measure("quadrature_facet")
+dc = Measure("custom")
 dE = Measure("macro_cell")
-dc = Measure("surface")
 
 # Cell types
 cell1D        = Cell("cell1D", 1)

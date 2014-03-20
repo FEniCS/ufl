@@ -20,7 +20,7 @@
 # Modified by Anders Logg 2008-2014
 #
 # First added:  2008-03-14
-# Last changed: 2014-03-17
+# Last changed: 2014-03-19
 
 from ufl.assertions import ufl_assert
 from ufl.log import error, warning
@@ -39,19 +39,18 @@ from ufl.protocols import id_or_none, metadata_equal, metadata_hashdata
 _domain_types = [
     # === Integration over full topological dimension:
     ("cell", "dx"),                # Over a single cell
-    ("macro_cell", "dE"),          # Over a group of adjacent cells (TODO: Arbitrary cell group? Where is this used?)
-    #("overlap", "dO"),            # TODO: Over a cell fragment overlapping with two or more cells
     # === Integration over topological dimension - 1:
     ("exterior_facet", "ds"),      # Over facet of a single cell
     ("interior_facet", "dS"),      # Over facet between two adjacent cells
-    ("surface", "dc"),             # TODO: What is this?
-    #("interface", "dI"),          # Over facet fragment overlapping with two or more cells
     # === Integration over topological dimension 0
     ("point", "dP"),               # TODO: Is this over arbitrary point cloud or vertices?
+    # === Integration over custom domains
+    ("custom", "dc"),              # Over custom user-defined domains (defined in terms of quadrature points)
+    # === Other types (up for discussion, unclear whether they are used)
+    ("macro_cell", "dE"),          # Over a group of adjacent cells (TODO: Arbitrary cell group? Where is this used?)
+    #("overlap", "dO"),            # TODO: Over a cell fragment overlapping with two or more cells
+    #("interface", "dI"),          # Over facet fragment overlapping with two or more cells
     #("vertex", "dV"),             # TODO: Use this over vertices?
-    # === Integration over arbitrary topological dimension
-    ("quadrature_cell", "dQ"),     # Over a custom set of quadrature points and weights on a cell
-    ("quadrature_facet", "dL"),    # Over a custom set of quadrature points and weights on a facet
     ]
 domain_type_to_measure_name = dict((l,s) for l,s in _domain_types)
 measure_name_to_domain_type = dict((s,l) for l,s in _domain_types)
