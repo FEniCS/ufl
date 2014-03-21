@@ -100,6 +100,3 @@ class Indexed(WrapperType):
 
     def __getitem__(self, key):
         error("Attempting to index with %r, but object is already indexed: %r" % (key, self))
-
-    def __getnewargs__(self):
-        return ()
