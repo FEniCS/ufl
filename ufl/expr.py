@@ -41,7 +41,7 @@ def print_expr_statistics():
 class Expr(object):
     "Base class for all UFL objects."
     # Freeze member variables for objects of this class
-    __slots__ = ()
+    __slots__ = () # "_hash",)
 
     _class_usage_statistics = defaultdict(int)
     _class_del_statistics = defaultdict(int)
