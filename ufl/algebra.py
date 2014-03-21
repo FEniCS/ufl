@@ -161,98 +161,60 @@ class Product(AlgebraOperator):
     """The product of two or more UFL objects."""
     __slots__ = ("_operands", "_free_indices", "_index_dimensions",)
 
-    def __new__(cls, *operands):
+    def __new__(cls, a, b):
         # Make sure everything is an Expr
-        operands = [as_ufl(o) for o in operands]
+        a = as_ufl(a)
+        b = as_ufl(b)
+        operands = (a,b) # TODO: Temporary, rewrite below code to use a,b
 
         # Make sure everything is scalar
-        #ufl_assert(not any(o.shape() for o in operands),
-        #    "Product can only represent products of scalars.")
-        if any(o.shape() for o in operands):
+        if a.shape() or b.shape():
             error("Product can only represent products of scalars.")
 
-        # No operands? Return one.
-        if not operands:
-            return IntValue(1)
-
-        # Got one operand only? Just return it.
-        if len(operands) == 1:
-            return operands[0]
-
         # Got any zeros? Return zero.
-        if any(isinstance(o, Zero) for o in operands):
-            free_indices     = unique_indices(tuple(chain(*(o.free_indices() for o in operands))))
-            index_dimensions = subdict(mergedicts([o.index_dimensions() for o in operands]), free_indices)
+        if isinstance(a, Zero) or isinstance(b, Zero):
+            free_indices     = unique_indices(tuple(chain(a.free_indices(), b.free_indices())))
+            index_dimensions = subdict(mergedicts([a.index_dimensions(), b.index_dimensions()]), free_indices)
             return Zero((), free_indices, index_dimensions)
 
-        # Merge scalars, but keep nonscalars sorted
-        scalars = []
-        nonscalars = []
-        for o in operands:
-            if isinstance(o, ScalarValue):
-                scalars.append(o)
-            else:
-                nonscalars.append(o)
-        if scalars:
-            # merge scalars
-            p = as_ufl(product(s._value for s in scalars))
-            # only scalars?
-            if not nonscalars:
-                return p
-            # merged scalar is unity?
-            if p == 1:
-                scalars = []
-                # Left with one nonscalar operand only after merging scalars?
-                if len(nonscalars) == 1:
-                    return nonscalars[0]
-            else:
-                scalars = [p]
-
-        # Sort operands in a canonical order (NB! This is fragile! Small changes here can have large effects.)
-        operands = scalars + sorted_expr(nonscalars)
-
-        # Replace n-repeated operands foo with foo**n
-        newoperands = []
-        op, nop = operands[0], 1
-        for o in operands[1:] + [None]:
-            if o == op:
-                # op is repeated, count number of repetitions
-                nop += 1
-            else:
-                if nop == 1:
-                    # op is not repeated
-                    newoperands.append(op)
-                elif op.free_indices():
-                    # We can't simplify products to powers if the operands has
-                    # free indices, because of complications in differentiation.
-                    # op repeated, but has free indices, so we don't simplify
-                    newoperands.extend([op]*nop)
-                else:
-                    # op repeated, make it a power
-                    newoperands.append(op**nop)
-                # Reset op as o
-                op, nop = o, 1
-        operands = newoperands
-
-        # Left with one operand only after simplifications?
-        if len(operands) == 1:
-            return operands[0]
+        # Merge if both are scalars
+        sa = isinstance(a, ScalarValue)
+        sb = isinstance(b, ScalarValue)
+        if sa and sb:
+            # FIXME: Handle free indices like with zero? I think IntValue may be index annotated now?
+            return as_ufl(a._value * b._value)
+        elif sa:
+            if a._value == 1:
+                return b
+            # a, b = a, b
+        elif sb:
+            if b._value == 1:
+                return a
+            a, b = b, a
+        elif a == b:
+            # Replace a*a with a**2 # TODO: Why? Maybe just remove this?
+            if not a.free_indices():
+                return a**2
+        else:
+            # Sort operands in a canonical order (NB! This is fragile! Small changes here can have large effects.)
+            a,b = sorted_expr((a,b))
 
         # Construct and initialize a new Product object
         self = AlgebraOperator.__new__(cls)
-        self._init(*operands)
+        self._init(a,b)
         return self
 
-    def _init(self, *operands):
+    def _init(self, a, b):
         "Constructor, called by __new__ with already checked arguments."
         # Store basic properties
-        self._operands = operands
+        self._operands = (a, b)
 
         # Extract indices
-        self._free_indices     = unique_indices(tuple(chain(*(o.free_indices() for o in operands))))
-        self._index_dimensions = mergedicts([o.index_dimensions() for o in operands]) or EmptyDict
+        self._free_indices     = unique_indices(tuple(chain(a.free_indices(), b.free_indices())))
+        #self._index_dimensions = frozendict(chain(o.index_dimensions().iteritems() for o in (a,b))) or EmptyDict
+        self._index_dimensions = mergedicts([a.index_dimensions(), b.index_dimensions()]) or EmptyDict
 
-    def __init__(self, *operands):
+    def __init__(self, a, b):
         AlgebraOperator.__init__(self)
 
     def operands(self):

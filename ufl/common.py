@@ -75,6 +75,9 @@ def sorted_by_count(seq):
 def sorted_items(mapping):
     return sorted(mapping.iteritems(), key=lambda x: x[0])
 
+def mergedicts2(dicts):
+    return dict(item for di in dicts for item in di.iteritems())
+
 def mergedicts(dicts):
     d = dict(dicts[0])
     for d2 in dicts[1:]:
