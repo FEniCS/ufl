@@ -61,10 +61,11 @@ def traverse_terminals(expr):
     input = [expr]
     while input:
         e = input.pop()
-        if isinstance(e, Terminal):
-            yield e
+        ops = e.operands()
+        if ops: # Checking ops is faster than isinstance(e, Terminal)
+            input.extend(ops)
         else:
-            input.extend(e.operands())
+            yield e
 
 def traverse_terminals2(expr, visited=None):
     input = [expr]

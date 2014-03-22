@@ -23,7 +23,7 @@ from itertools import chain
 
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
-from ufl.common import product, mergedicts, subdict, EmptyDict
+from ufl.common import product, mergedicts2, subdict, EmptyDict
 from ufl.expr import Expr
 from ufl.operatorbase import AlgebraOperator
 from ufl.constantvalue import Zero, zero, ScalarValue, IntValue, as_ufl
@@ -147,7 +147,7 @@ class Product(AlgebraOperator):
         # Got any zeros? Return zero.
         if isinstance(a, Zero) or isinstance(b, Zero):
             free_indices     = unique_indices(tuple(chain(a.free_indices(), b.free_indices())))
-            index_dimensions = subdict(mergedicts([a.index_dimensions(), b.index_dimensions()]), free_indices)
+            index_dimensions = subdict(mergedicts2(a.index_dimensions(), b.index_dimensions()), free_indices)
             return Zero((), free_indices, index_dimensions)
 
         # Merge if both are scalars
@@ -185,7 +185,7 @@ class Product(AlgebraOperator):
         # Extract indices
         self._free_indices     = unique_indices(tuple(chain(a.free_indices(), b.free_indices())))
         #self._index_dimensions = frozendict(chain(o.index_dimensions().iteritems() for o in (a,b))) or EmptyDict
-        self._index_dimensions = mergedicts([a.index_dimensions(), b.index_dimensions()]) or EmptyDict
+        self._index_dimensions = mergedicts2(a.index_dimensions(), b.index_dimensions()) or EmptyDict
 
     def __init__(self, a, b):
         AlgebraOperator.__init__(self)
