@@ -37,84 +37,57 @@ from ufl.precedence import parstr
 class Sum(AlgebraOperator):
     __slots__ = ("_operands",)
 
-    def __new__(cls, *operands): # TODO: This whole thing seems a bit complicated... Can it be simplified? Maybe we can merge some loops for efficiency?
-        ufl_assert(operands, "Can't take sum of nothing.")
-        #if not operands:
-        #    return Zero() # Allowing this leads to zeros with invalid type information in other places, need indices and shape
+    def __new__(cls, a, b):
+        # Make sure everything is an Expr
+        a = as_ufl(a)
+        b = as_ufl(b)
 
-        # make sure everything is an Expr
-        operands = [as_ufl(o) for o in operands]
-
-        # Got one operand only? Do nothing then.
-        if len(operands) == 1:
-            return operands[0]
-
-        # assert consistent tensor properties
-        sh = operands[0].shape()
-        fi = operands[0].free_indices()
-        fid = operands[0].index_dimensions()
-        #ufl_assert(all(sh == o.shape() for o in operands[1:]),
-        #    "Shape mismatch in Sum.")
-        #ufl_assert(not any((set(fi) ^ set(o.free_indices())) for o in operands[1:]),
-        #    "Can't add expressions with different free indices.")
-        if any(sh != o.shape() for o in operands[1:]):
-            error("Shape mismatch in Sum.")
-        if any((set(fi) ^ set(o.free_indices())) for o in operands[1:]):
+        # Assert consistent tensor properties
+        sh = a.shape()
+        fi = a.free_indices()
+        fid = a.index_dimensions()
+        if b.shape() != sh:
+            error("Can't add expressions with different shapes.")
+        if set(fi) ^ set(b.free_indices()):
             error("Can't add expressions with different free indices.")
 
-        # sort operands in a canonical order
-        operands = sorted_expr(operands)
+        # Skip adding zero
+        if isinstance(a, Zero):
+            return b
+        elif isinstance(b, Zero):
+            return a
 
-        # purge zeros
-        operands = [o for o in operands if not isinstance(o, Zero)]
-
-        # sort scalars to beginning and merge them
-        scalars = [o for o in operands if isinstance(o, ScalarValue)]
-        if scalars:
-            # exploiting Pythons built-in coersion rules
-            f = as_ufl(sum(f._value for f in scalars))
-            nonscalars = [o for o in operands if not isinstance(o, ScalarValue)]
-            if not nonscalars:
-                return f
-            if isinstance(f, Zero):
-                operands = nonscalars
-            else:
-                operands = [f] + nonscalars
-
-        # have we purged everything?
-        if not operands:
-            return Zero(sh, fi, fid)
-
-        # left with one operand only?
-        if len(operands) == 1:
-            return operands[0]
-
-        # Replace n-repeated operands foo with n*foo
-        newoperands = []
-        op = operands[0]
-        n = 1
-        for o in operands[1:] + [None]:
-            if o == op:
-                n += 1
-            else:
-                newoperands.append(op if n == 1 else n*op)
-                op = o
-                n = 1
-        operands = newoperands
-
-        # left with one operand only?
-        if len(operands) == 1:
-            return operands[0]
+        # Handle scalars specially and sort operands
+        sa = isinstance(a, ScalarValue)
+        sb = isinstance(b, ScalarValue)
+        if sa and sb:
+            # Apply constant propagation
+            return as_ufl(a._value + b._value)
+        elif sa:
+            # Place scalar first
+            #operands = (a, b)
+            pass #a, b = a, b
+        elif sb:
+            # Place scalar first
+            #operands = (b, a)
+            a, b = b, a
+        elif a == b:
+            # Replace a+b with 2*foo
+            return 2*a
+        else:
+            # Otherwise sort operands in a canonical order
+            #operands = (b, a)
+            a, b = sorted_expr((a,b))
 
         # construct and initialize a new Sum object
         self = AlgebraOperator.__new__(cls)
-        self._init(*operands)
+        self._init(a, b)
         return self
 
-    def _init(self, *operands):
-        self._operands = operands
+    def _init(self, a, b):
+        self._operands = (a, b)
 
-    def __init__(self, *operands):
+    def __init__(self, a, b):
         AlgebraOperator.__init__(self)
 
     def operands(self):

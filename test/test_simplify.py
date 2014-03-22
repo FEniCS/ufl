@@ -80,12 +80,12 @@ class SimplificationTestCase(UflTestCase):
         self.assertEqual(a, b)
 
         # Test collapsing of flattened sum (may occur in algorithms)
-        a = Sum(f, f, f)
-        b = 3*f
-        self.assertEqual(a, b)
-        a = Sum(f, f, f, f)
-        b = 4*f
-        self.assertEqual(a, b)
+        #a = Sum(f, f, f)
+        #b = 3*f
+        #self.assertEqual(a, b)
+        #a = Sum(f, f, f, f)
+        #b = 4*f
+        #self.assertEqual(a, b)
 
         # Test reordering of operands
         a = f + g

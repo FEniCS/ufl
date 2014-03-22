@@ -16,9 +16,6 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
-#
-# First added:  2012-03-29
-# Last changed: 2012-04-12
 
 import hashlib
 from ufl.classes import Index, MultiIndex, Coefficient, Argument, Terminal, Label, FormArgument, GeometricQuantity, ConstantValue
