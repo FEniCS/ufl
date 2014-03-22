@@ -18,12 +18,10 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2008-2009.
-#
-# First added:  2008-08-14
-# Last changed: 2011-10-11
 
 # Utilities for traversing over expression trees in different ways
-from ufl.algorithms.traversal import iter_expressions, traverse_terminals, \
+from ufl.algorithms.traversal import iter_expressions, \
+                                     traverse_terminals, traverse_unique_terminals, \
                                      post_traversal, pre_traversal, \
                                      post_walk, pre_walk, walk
 

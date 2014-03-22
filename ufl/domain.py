@@ -412,36 +412,8 @@ def join_domains(domains):
     return tuple(newdomains)
 
 def extract_domains(expr):
-    # FIXME: Consider components?
-    from ufl.algorithms.traversal import traverse_terminals
+    from ufl.algorithms.traversal import traverse_unique_terminals
     domainlist = []
-    for t in traverse_terminals(expr):
+    for t in traverse_unique_terminals(expr):
         domainlist.extend(t.domains())
     return sorted(join_domains(domainlist))
-
-def tmp():
-    # Analyse domains of integrands
-    from ufl.algorithms import traverse_terminals
-    coordinate_domains = []
-    geometry_domains = []
-    coefficient_domains = []
-    argument_domains = []
-    for itg in integrals:
-        for t in traverse_terminals(itg.integrand()):
-            if isinstance(t, GeometricQuantity):
-                l = geometry_domains
-            elif isinstance(t, Argument):
-                l = argument_domains
-            elif isinstance(t, Coefficient):
-                l = coefficient_domains
-            else:
-                continue
-            d = t.domain()
-            if d is not None:
-                l.append(d)
-                all_domains.append(d)
-                c = d.coordinates()
-                if c is not None:
-                    coordinate_domains.append(c)
-    all_domains = join_domains(all_domains)
-

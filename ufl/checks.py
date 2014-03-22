@@ -18,9 +18,6 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2008-2009
-#
-# First added:  2013-10-25
-# Last changed: 2013-10-25
 
 from ufl.expr import Expr
 
@@ -46,11 +43,11 @@ def is_globally_constant(expr):
 
     # TODO: This does not consider gradients of coefficients, so false negatives are possible.
 
-    from ufl.algorithms.traversal import traverse_terminals
+    from ufl.algorithms.traversal import traverse_unique_terminals
     from ufl.argument import Argument
     from ufl.coefficient import Coefficient
 
-    for e in traverse_terminals(expr):
+    for e in traverse_unique_terminals(expr):
         if isinstance(e, Argument):
             return False
         if isinstance(e, Coefficient) and e.element().family() != "Real":

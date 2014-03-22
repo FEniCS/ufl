@@ -4,7 +4,7 @@ from ufl.operatorbase import Operator
 from ufl.terminal import Terminal
 from ufl.common import fast_pre_traversal
 
-def _expr_equals0(a, b): # TODO: Which is faster?
+def _expr_equals0(a, b):
     # Cutoff for different type
     if type(a) != type(b):
         return False
@@ -38,7 +38,7 @@ def _expr_equals0(a, b): # TODO: Which is faster?
     # Everything checked out fine, expressions must be equal
     return True
 
-def _expr_equals1(a, b): # TODO: Which is faster?
+def _expr_equals1(a, b):
     # Cutoff for different type
     if type(a) != type(b):
         return False

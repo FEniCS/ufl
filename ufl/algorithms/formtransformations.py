@@ -33,8 +33,7 @@ from ufl.constantvalue import Zero
 from ufl.algebra import Sum
 
 # Other algorithms:
-from ufl.algorithms.traversal import traverse_terminals
-from ufl.algorithms.analysis import extract_arguments
+from ufl.algorithms.analysis import extract_arguments, expr_has_terminal_types
 from ufl.algorithms.transformer import Transformer, transform_integrands
 from ufl.algorithms.replace import replace
 
@@ -54,9 +53,7 @@ class PartExtracter(Transformer):
     def expr(self, x):
         """The default is a nonlinear operator not accepting any
         Arguments among its children."""
-
-        # FIXME: This check makes this an O(n^2) algorithm...
-        if any(isinstance(t, Argument) for t in traverse_terminals(x)):
+        if expr_has_terminal_types(x, Argument):
             error("Found Argument in %s, this is an invalid expression." % repr(x))
         return (x, set())
 
@@ -204,7 +201,7 @@ class PartExtracter(Transformer):
         numerator, denominator = x.operands()
 
         # Check for Arguments in the denominator
-        if any(isinstance(t, Argument) for t in traverse_terminals(denominator)):
+        if expr_has_terminal_types(denominator, Argument):
             error("Found Argument in denominator of %s , this is an invalid expression." % repr(x))
 
         # Visit numerator

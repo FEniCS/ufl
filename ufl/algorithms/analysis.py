@@ -45,6 +45,8 @@ from ufl.algorithms.traversal import iter_expressions, post_traversal, post_walk
 
 #--- Utilities to extract information from an expression ---
 
+# TODO: Some of these can possibly be optimised by implementing inlined stack based traversal algorithms
+
 def extract_classes(a):
     """Build a set of all unique Expr subclasses used in a.
     The argument a can be a Form, Integral or Expr."""
@@ -62,18 +64,37 @@ def extract_type(a, ufl_type):
                  for o in post_traversal(e) \
                  if isinstance(o, ufl_type))
 
+def expr_has_terminal_types(expr, ufl_types):
+    input = [expr]
+    while input:
+        e = input.pop()
+        ops = e.operands()
+        if ops:
+            input.extend(ops)
+        elif isinstance(e, ufl_types):
+            return True
+    return False
+
+def expr_has_types(expr, ufl_types):
+    input = [expr]
+    while input:
+        e = input.pop()
+        if isinstance(e, ufl_types):
+            return True
+        input.extend(e.operands())
+    return False
+
 def has_type(a, ufl_types):
     """Check if any class from ufl_types is found in a.
     The argument a can be a Form, Integral or Expr."""
     if issubclass(ufl_types, Expr):
         ufl_types = (ufl_types,)
     if all(issubclass(ufl_type, Terminal) for ufl_type in ufl_types):
-        return any(isinstance(o, ufl_types) \
-                   for e in iter_expressions(a) \
-                   for o in traverse_terminals(e))
-    return any(isinstance(o, ufl_types) \
-               for e in iter_expressions(a) \
-               for o in post_traversal(e))
+        return any(expr_has_terminal_types(o, ufl_types)
+                   for e in iter_expressions(a))
+    else:
+        return any(expr_has_types(o, ufl_types)
+                   for e in iter_expressions(a))
 
 def extract_terminals(a):
     "Build a set of all Terminal objects in a."

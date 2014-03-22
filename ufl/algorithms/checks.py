@@ -19,9 +19,6 @@
 #
 # Modified by Anders Logg, 2008-2009.
 # Modified by Mehdi Nikbakht, 2010.
-#
-# First added:  2008-03-14
-# Last changed: 2012-04-12
 
 from ufl.log import warning, error
 

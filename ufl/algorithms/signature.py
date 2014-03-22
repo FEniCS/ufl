@@ -20,7 +20,7 @@
 import hashlib
 from ufl.classes import Index, MultiIndex, Coefficient, Argument, Terminal, Label, FormArgument, GeometricQuantity, ConstantValue
 from ufl.log import error
-from ufl.algorithms.traversal import traverse_terminals2
+from ufl.algorithms.traversal import traverse_unique_terminals
 from ufl.common import fast_pre_traversal, sorted_by_count
 from ufl.geometry import join_domains
 
@@ -54,7 +54,7 @@ def compute_terminal_hashdata(expressions, domain_numbering, function_replace_ma
     index_numbering = {}
     coefficients = set()
     for expression in expressions:
-        for expr in traverse_terminals2(expression):
+        for expr in traverse_unique_terminals(expression):
 
             if isinstance(expr, MultiIndex):
                 # Indices need a canonical numbering for a stable signature, thus this algorithm
