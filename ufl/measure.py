@@ -258,7 +258,7 @@ class Measure(object):
 
     def __str__(self):
         global domain_type_to_measure_name
-        d = domain_type_to_measure_name[self._domain_type]
+        name = domain_type_to_measure_name[self._domain_type]
         args = []
 
         if self._domain_id is not None:
@@ -270,7 +270,7 @@ class Measure(object):
         if self._domain_data is not None:
             args.append("domain_data=%s" % (self._domain_data,))
 
-        return "%s(%s)" % (dm, ', '.join(args))
+        return "%s(%s)" % (name, ', '.join(args))
 
     def __repr__(self):
         "Return a repr string for this Measure."
