@@ -35,7 +35,7 @@ from ufl.finiteelement.elementlist import ufl_elements, aliases
 class FiniteElementBase(object):
     "Base class for all finite elements"
     __slots__ = ("_cell", "_domain", "_family", "_degree",
-                 "_quad_scheme", "_value_shape", "_repr",)
+                 "_quad_scheme", "_value_shape", "_repr", "__weakref__")
 
     def __init__(self, family, domain, degree, quad_scheme, value_shape):
         "Initialize basic finite element data"
