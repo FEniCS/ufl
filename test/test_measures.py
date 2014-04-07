@@ -33,17 +33,17 @@ class MeasureTestCase(UflTestCase):
         #dV = Measure("dV")
 
         # Check that names are mapped properly
-        self.assertEqual(dx.domain_type(), "cell")
-        self.assertEqual(dE.domain_type(), "macro_cell")
-        #self.assertEqual(dO.domain_type(), "overlap")
+        self.assertEqual(dx.integral_type(), "cell")
+        self.assertEqual(dE.integral_type(), "macro_cell")
+        #self.assertEqual(dO.integral_type(), "overlap")
 
-        self.assertEqual(ds.domain_type(), "exterior_facet")
-        self.assertEqual(dS.domain_type(), "interior_facet")
-        self.assertEqual(dc.domain_type(), "surface")
-        #self.assertEqual(dI.domain_type(), "interface")
+        self.assertEqual(ds.integral_type(), "exterior_facet")
+        self.assertEqual(dS.integral_type(), "interior_facet")
+        self.assertEqual(dc.integral_type(), "surface")
+        #self.assertEqual(dI.integral_type(), "interface")
 
-        self.assertEqual(dP.domain_type(), "point")
-        #self.assertEqual(dV.domain_type(), "vertex")
+        self.assertEqual(dP.integral_type(), "point")
+        #self.assertEqual(dV.integral_type(), "vertex")
         # TODO: Continue this checking
 
         # Check that defaults are set properly

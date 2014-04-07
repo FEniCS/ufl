@@ -293,33 +293,33 @@ def change_to_reference_geometry(e, physical_coordinates_known):
     return apply_transformer(e, ChangeToReferenceGeometry(physical_coordinates_known))
 
 
-def compute_integrand_scaling_factor(domain, domain_type):
+def compute_integrand_scaling_factor(domain, integral_type):
     """Change integrand geometry to the right representations."""
 
     weight = QuadratureWeight(domain)
 
-    if domain_type == "cell":
+    if integral_type == "cell":
         scale = abs(JacobianDeterminant(domain)) * weight
-    elif domain_type == "exterior_facet":
+    elif integral_type == "exterior_facet":
         scale = FacetJacobianDeterminant(domain) * weight
-    elif domain_type == "interior_facet":
+    elif integral_type == "interior_facet":
         scale = FacetJacobianDeterminant(domain)('-') * weight # TODO: Arbitrary restriction to '-', is that ok?
-    elif domain_type == "quadrature":
+    elif integral_type == "quadrature":
         scale = weight
-    elif domain_type == "point":
+    elif integral_type == "point":
         scale = 1
 
     return scale
 
 
-def change_integrand_geometry_representation(integrand, scale, domain_type):
+def change_integrand_geometry_representation(integrand, scale, integral_type):
     """Change integrand geometry to the right representations."""
 
     integrand = change_to_reference_grad(integrand)
 
     integrand = integrand * scale
 
-    if domain_type == "quadrature":
+    if integral_type == "quadrature":
         physical_coordinates_known = True
     else:
         physical_coordinates_known = False

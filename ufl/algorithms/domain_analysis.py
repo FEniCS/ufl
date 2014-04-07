@@ -16,22 +16,22 @@ from ufl.sorting import sorted_expr
 
 class IntegralData(object):
     """Utility class with the members
-        (domain, domain_type, subdomain_id, integrals, metadata)
+        (domain, integral_type, subdomain_id, integrals, metadata)
 
     where metadata is an empty dictionary that may be used for
     associating metadata with each object.
     """
-    __slots__ = ('domain', 'domain_type', 'subdomain_id', 'integrals', 'metadata')
-    def __init__(self, domain, domain_type, subdomain_id, integrals, metadata):
+    __slots__ = ('domain', 'integral_type', 'subdomain_id', 'integrals', 'metadata')
+    def __init__(self, domain, integral_type, subdomain_id, integrals, metadata):
         ufl_assert(all(domain.label() == itg.domain().label() for itg in integrals),
                    "Domain label mismatch in integral data.")
-        ufl_assert(all(domain_type == itg.domain_type() for itg in integrals),
+        ufl_assert(all(integral_type == itg.integral_type() for itg in integrals),
                    "Domain type mismatch in integral data.")
         ufl_assert(all(subdomain_id == itg.subdomain_id() for itg in integrals),
                    "Domain id mismatch in integral data.")
 
         self.domain = domain
-        self.domain_type = domain_type
+        self.integral_type = integral_type
         self.subdomain_id = subdomain_id
 
         self.integrals = integrals
@@ -41,19 +41,19 @@ class IntegralData(object):
 
     def __lt__(self, other):
         # To preserve behaviour of extract_integral_data:
-        return ((self.domain_type, self.subdomain_id, self.integrals, self.metadata)
-                < (other.domain_type, other.subdomain_id, other.integrals, other.metadata))
+        return ((self.integral_type, self.subdomain_id, self.integrals, self.metadata)
+                < (other.integral_type, other.subdomain_id, other.integrals, other.metadata))
 
     def __eq__(self, other):
         # Currently only used for tests:
-        return (self.domain_type == other.domain_type and
+        return (self.integral_type == other.integral_type and
                 self.subdomain_id == other.subdomain_id and
                 self.integrals == other.integrals and
                 self.metadata == other.metadata)
 
     def __str__(self):
         return "IntegralData object over domain (%s, %s), with integrals:\n%s\nand metadata:\n%s" % (
-            self.domain_type, self.subdomain_id,
+            self.integral_type, self.subdomain_id,
             '\n\n'.join(map(str,self.integrals)), self.metadata)
 
 
@@ -82,7 +82,7 @@ def group_integrals_by_domain_and_type(integrals, domains, common_domain):
         common_domain: default Domain object for integrals with no domain
 
     Output:
-        integrals_by_domain_and_type: dict: (domain, domain_type) -> list(Integral)
+        integrals_by_domain_and_type: dict: (domain, integral_type) -> list(Integral)
     """
     integral_data = []
     domains_by_label = dict((domain.label(), domain) for domain in domains)
@@ -94,10 +94,10 @@ def group_integrals_by_domain_and_type(integrals, domains, common_domain):
         if domain is None:
             domain = common_domain
         domain = domains_by_label.get(domain.label())
-        domain_type = itg.domain_type()
+        integral_type = itg.integral_type()
 
         # Append integral to list of integrals with shared key
-        integrals_by_domain_and_type[(domain, domain_type)].append(itg)
+        integrals_by_domain_and_type[(domain, integral_type)].append(itg)
     return integrals_by_domain_and_type
 
 def integral_subdomain_ids(integral):
@@ -203,9 +203,9 @@ def build_integral_data(integrals, domains, common_domain):
         group_integrals_by_domain_and_type(integrals, domains, common_domain)
 
     for domain in domains:
-        for domain_type in ufl.measure.domain_types():
+        for integral_type in ufl.measure.integral_types():
             # Get integrals with this domain and type
-            ddt_integrals = integrals_by_domain_and_type.get((domain, domain_type))
+            ddt_integrals = integrals_by_domain_and_type.get((domain, integral_type))
             if ddt_integrals is None:
                 continue
 
@@ -222,7 +222,7 @@ def build_integral_data(integrals, domains, common_domain):
                     accumulate_integrands_with_same_metadata(ss_integrals)
 
                 # Reconstruct integrals with new integrands and the right domain object
-                integrals = [Integral(integrand, domain_type, domain, subdomain_id, metadata, None)
+                integrals = [Integral(integrand, integral_type, domain, subdomain_id, metadata, None)
                              for integrand, metadata in integrands_and_cds]
 
                 # Create new metadata dict for each integral data,
@@ -231,7 +231,7 @@ def build_integral_data(integrals, domains, common_domain):
                 metadata = {}
 
                 # Finally wrap it all in IntegralData object!
-                ida = IntegralData(domain, domain_type, subdomain_id, integrals, {})
+                ida = IntegralData(domain, integral_type, subdomain_id, integrals, {})
 
                 # Store integral data objects in list with canonical ordering
                 integral_data.append(ida)

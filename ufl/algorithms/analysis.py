@@ -302,10 +302,10 @@ def extract_num_sub_domains(form):
         elif isinstance(subdomain_id, tuple):
             max_subdomain_id = max(did for did in subdomain_id)
 
-        domain_type = integral.domain_type()
+        integral_type = integral.integral_type()
         if max_subdomain_id is not None:
-            prev = num_sub_domains[label].get(domain_type, 0)
-            num_sub_domains[label][domain_type] = max(prev, max_subdomain_id + 1)
+            prev = num_sub_domains[label].get(integral_type, 0)
+            num_sub_domains[label][integral_type] = max(prev, max_subdomain_id + 1)
 
     return num_sub_domains
 

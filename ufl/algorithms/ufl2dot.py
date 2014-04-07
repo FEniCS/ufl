@@ -219,9 +219,9 @@ def ufl2dot(expression, formname="a", nodeoffset=0, begin=True, end=True, labeli
         for itgs in (ci, ei, ii, pi, mi):
             for itg in itgs:
                 prefix = "itg%d_" % k
-                integralkey = "%s%s" % (itg.domain_type(), itg.subdomain_id())
+                integralkey = "%s%s" % (itg.integral_type(), itg.subdomain_id())
 
-                integrallabel = "%s %s" % (itg.domain_type().capitalize().replace("_", " "), "integral")
+                integrallabel = "%s %s" % (itg.integral_type().capitalize().replace("_", " "), "integral")
                 if len(itgs) > 1:
                     integrallabel += " %s" % (itg.subdomain_id(),)
 

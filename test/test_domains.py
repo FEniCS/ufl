@@ -178,7 +178,7 @@ class FormDomainModelTestCase(UflTestCase):
         ida, = a.compute_form_data().integral_data
 
         # Check some integral data
-        self.assertEqual(ida.domain_type, "cell")
+        self.assertEqual(ida.integral_type, "cell")
         self.assertEqual(ida.subdomain_id, "otherwise")
         self.assertEqual(ida.metadata, {})
 

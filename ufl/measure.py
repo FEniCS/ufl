@@ -33,7 +33,7 @@ from ufl.protocols import id_or_none, metadata_equal, metadata_hashdata
 # TODO: Improve descriptions below:
 
 # Enumeration of valid domain types
-_domain_types = [
+_integral_types = [
     # === Integration over full topological dimension:
     ("cell", "dx"),           # Over a single cell
     ("macro_cell", "dE"),     # Over a group of adjacent cells (TODO: Arbitrary cell group? Where is this used?)
@@ -49,37 +49,37 @@ _domain_types = [
     # === Integration over arbitrary topological dimension
     ("quadrature", "dQ"),     # Over a custom set of quadrature points and weights
     ]
-domain_type_to_measure_name = dict((l,s) for l,s in _domain_types)
-measure_name_to_domain_type = dict((s,l) for l,s in _domain_types)
+integral_type_to_measure_name = dict((l,s) for l,s in _integral_types)
+measure_name_to_integral_type = dict((s,l) for l,s in _integral_types)
 
-def register_domain_type(domain_type, measure_name):
-    global domain_type_to_measure_name, measure_name_to_domain_type
-    ufl_assert(measure_name == domain_type_to_measure_name.get(domain_type, measure_name),
+def register_integral_type(integral_type, measure_name):
+    global integral_type_to_measure_name, measure_name_to_integral_type
+    ufl_assert(measure_name == integral_type_to_measure_name.get(integral_type, measure_name),
                "Domain type already added with different measure name!")
-    ufl_assert(domain_type == measure_name_to_domain_type.get(measure_name, domain_type),
+    ufl_assert(integral_type == measure_name_to_integral_type.get(measure_name, integral_type),
                "Measure name already used for another domain type!")
-    domain_type_to_measure_name[domain_type] = measure_name
-    measure_name_to_domain_type[measure_name] = domain_type
+    integral_type_to_measure_name[integral_type] = measure_name
+    measure_name_to_integral_type[measure_name] = integral_type
 
-def as_domain_type(domain_type):
+def as_integral_type(integral_type):
     "Map short name to long name and require a valid one."
-    domain_type = domain_type.replace(" ", "_")
-    domain_type = measure_name_to_domain_type.get(domain_type, domain_type)
-    ufl_assert(domain_type in domain_type_to_measure_name,
-               "Invalid domain_type.")
-    return domain_type
+    integral_type = integral_type.replace(" ", "_")
+    integral_type = measure_name_to_integral_type.get(integral_type, integral_type)
+    ufl_assert(integral_type in integral_type_to_measure_name,
+               "Invalid integral_type.")
+    return integral_type
 
-def domain_types():
+def integral_types():
     "Return a tuple of all domain type strings."
-    return tuple(sorted(domain_type_to_measure_name.keys()))
+    return tuple(sorted(integral_type_to_measure_name.keys()))
 
 def measure_names():
     "Return a tuple of all measure name strings."
-    return tuple(sorted(measure_name_to_domain_type.keys()))
+    return tuple(sorted(measure_name_to_integral_type.keys()))
 
 class Measure(object):
     __slots__ = (
-        "_domain_type",
+        "_integral_type",
         "_domain",
         "_subdomain_id",
         "_metadata",
@@ -101,14 +101,14 @@ class Measure(object):
     SURFACE        = "surface"
 
     def __init__(self,
-                 domain_type, # "dx" etc
+                 integral_type, # "dx" etc
                  domain=None,
                  subdomain_id="everywhere",
                  metadata=None,
                  subdomain_data=None
                  ):
         """
-        domain_type:
+        integral_type:
             str, one of "cell", etc.,
             or short form "dx", etc.
 
@@ -129,7 +129,7 @@ class Measure(object):
             object representing data to interpret subdomain_id with.
         """
         # Map short name to long name and require a valid one
-        self._domain_type = as_domain_type(domain_type)
+        self._integral_type = as_integral_type(integral_type)
 
         # Check that we either have a proper Domain or none
         self._domain = None if domain is None else as_domain(domain)
@@ -155,12 +155,12 @@ class Measure(object):
                    "Invalid metadata.")
         self._metadata = metadata or EmptyDict
 
-    def domain_type(self):
+    def integral_type(self):
         """Return the domain type.
 
         Valid domain types are "cell", "exterior_facet", "interior_facet", etc.
         """
-        return self._domain_type
+        return self._integral_type
 
     def domain(self):
         """Return the domain associated with this measure.
@@ -180,7 +180,7 @@ class Measure(object):
         return self._metadata
 
     def reconstruct(self,
-                    domain_type=None,
+                    integral_type=None,
                     subdomain_id=None,
                     domain=None,
                     metadata=None,
@@ -204,7 +204,7 @@ class Measure(object):
             metadata = self.metadata()
         if subdomain_data is None:
             subdomain_data = self.subdomain_data()
-        return Measure(self.domain_type(),
+        return Measure(self.integral_type(),
                        domain=domain, subdomain_id=subdomain_id,
                        metadata=metadata, subdomain_data=subdomain_data)
 
@@ -254,8 +254,8 @@ class Measure(object):
         return self.reconstruct(subdomain_data=data)
 
     def __str__(self):
-        global domain_type_to_measure_name
-        name = domain_type_to_measure_name[self._domain_type]
+        global integral_type_to_measure_name
+        name = integral_type_to_measure_name[self._integral_type]
         args = []
 
         if self._subdomain_id is not None:
@@ -271,11 +271,11 @@ class Measure(object):
 
     def __repr__(self):
         "Return a repr string for this Measure."
-        global domain_type_to_measure_name
-        d = domain_type_to_measure_name[self._domain_type]
+        global integral_type_to_measure_name
+        d = integral_type_to_measure_name[self._integral_type]
 
         args = []
-        args.append(repr(self._domain_type))
+        args.append(repr(self._integral_type))
 
         if self._subdomain_id is not None:
             args.append("subdomain_id=%r" % (self._subdomain_id,))
@@ -290,14 +290,14 @@ class Measure(object):
 
     def __hash__(self):
         "Return a hash value for this Measure."
-        hashdata = (self._domain_type, self._subdomain_id, hash(self._domain),
+        hashdata = (self._integral_type, self._subdomain_id, hash(self._domain),
                     metadata_hashdata(self._metadata), id_or_none(self._subdomain_data))
         return hash(hashdata)
 
     def __eq__(self, other):
         "Checks if two Measures are equal."
         return (isinstance(other, Measure)
-                and self._domain_type == other._domain_type
+                and self._integral_type == other._integral_type
                 and self._subdomain_id == other._subdomain_id
                 and self._domain == other._domain
                 and id_or_none(self._subdomain_data) == id_or_none(other._subdomain_data)
@@ -394,12 +394,12 @@ class Measure(object):
         #   dxs = dx[gd];  dxs._subdomain_data is gd
         #   dxs0 = dxs(0); dxs0._subdomain_data is gd
         #   M = 1*dxs0; M.integrals()[0].subdomain_data() is gd
-        #   ; M.subdomain_data()[None][dxs.domain_type()] is gd
+        #   ; M.subdomain_data()[None][dxs.integral_type()] is gd
         #assemble(1*dx[cells] + 1*ds[bnd], mesh=mesh)
 
         # Otherwise create and return a one-integral form
         integral = Integral(integrand=integrand,
-                            domain_type=self.domain_type(),
+                            integral_type=self.integral_type(),
                             domain=domain,
                             subdomain_id=subdomain_id,
                             metadata=self.metadata(),

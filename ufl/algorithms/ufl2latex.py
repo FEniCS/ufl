@@ -463,8 +463,8 @@ def form2latex(form, formdata):
         # TODO: Get list of expression strings instead of single expression!
         integrand_string = expression2latex(itg.integrand(), formdata.argument_names, formdata.coefficient_names)
 
-        domain_type = itg.domain_type()
-        dstr = domain_strings[domain_type]
+        integral_type = itg.integral_type()
+        dstr = domain_strings[integral_type]
 
         domain = itg.domain()
         label = domain.label()
@@ -481,7 +481,7 @@ def form2latex(form, formdata):
             dstr += "_{%s}" % subdomain_id
 
         b = p + "\\int_{%s}" % (dstr,)
-        dxstr = ufl.measure.domain_type_to_measure_name[domain_type]
+        dxstr = ufl.measure.integral_type_to_measure_name[integral_type]
         c = "{ %s } \\,%s" % (integrand_string, dxstr)
         lines.append((a, b, c))
         a = "{}"
@@ -636,7 +636,7 @@ def form2code2latex(formdata):
 
     # Render each integral as a separate section
     for itg in formdata.form.integrals_by_type(Measure.CELL):
-        title = "%s integral over domain %d" % (itg.domain_type(), itg.subdomain_id())
+        title = "%s integral over domain %d" % (itg.integral_type(), itg.subdomain_id())
 
         G, partitions = integrand2code(itg.integrand(), formdata)
 

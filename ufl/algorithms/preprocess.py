@@ -98,7 +98,7 @@ def join_subdomain_data(integrals, domains):
             l = l2l[None]
         else:
             l = l2l[d.label()]
-        dt = itg.domain_type()
+        dt = itg.integral_type()
 
         # Store data with label/domain type, or make sure it'd compatible if already stored
         old_dd = subdomain_data[l].get(dt)

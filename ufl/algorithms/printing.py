@@ -36,7 +36,7 @@ def integral_info(integral):
     ufl_assert(isinstance(integral, Integral), "Expecting an Integral.")
     s  = "  Integral:\n"
     s += "    Type:\n"
-    s += "      %s\n" % integral.domain_type()
+    s += "      %s\n" % integral.integral_type()
     s += "    Domain:\n"
     s += "      %r\n" % integral.domain()
     s += "    Domain id:\n"
@@ -129,7 +129,7 @@ def tree_format(expression, indentation=0, parentheses=True):
         ind = _indent_string(indentation)
         s += ind + "Integral:\n"
         ind = _indent_string(indentation+1)
-        s += ind + "domain type: %s\n" % expression.domain_type()
+        s += ind + "domain type: %s\n" % expression.integral_type()
         s += ind + "domain id: %s\n" % expression.subdomain_id()
         s += ind + "integrand:\n"
         s += tree_format(expression._integrand, indentation+2, parentheses)
