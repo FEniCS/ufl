@@ -179,7 +179,7 @@ class FormDomainModelTestCase(UflTestCase):
 
         # Check some integral data
         self.assertEqual(ida.domain_type, "cell")
-        self.assertEqual(ida.domain_id, "otherwise")
+        self.assertEqual(ida.subdomain_id, "otherwise")
         self.assertEqual(ida.metadata, {})
 
         # Integrands are not equal because of renumbering

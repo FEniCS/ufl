@@ -19,9 +19,6 @@ of UFL objects, mostly intended for debugging purposes."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2009.
-#
-# First added:  2008-03-14
-# Last changed: 2011-06-02
 
 from itertools import chain
 
@@ -43,7 +40,7 @@ def integral_info(integral):
     s += "    Domain:\n"
     s += "      %r\n" % integral.domain()
     s += "    Domain id:\n"
-    s += "      %r\n" % integral.domain_id()
+    s += "      %r\n" % integral.subdomain_id()
     s += "    Domain data:\n"
     s += "      %s\n" % integral.domain_data()
     s += "    Compiler metadata:\n"
@@ -133,7 +130,7 @@ def tree_format(expression, indentation=0, parentheses=True):
         s += ind + "Integral:\n"
         ind = _indent_string(indentation+1)
         s += ind + "domain type: %s\n" % expression.domain_type()
-        s += ind + "domain id: %s\n" % expression.domain_id()
+        s += ind + "domain id: %s\n" % expression.subdomain_id()
         s += ind + "integrand:\n"
         s += tree_format(expression._integrand, indentation+2, parentheses)
 

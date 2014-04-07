@@ -19,9 +19,6 @@
 #
 # Modified by Anders Logg, 2009-2010.
 # Modified by Johan Hake, 2010.
-#
-# First added:  2008-03-14
-# Last changed: 2013-01-02
 
 from itertools import izip, chain
 from collections import namedtuple
@@ -298,17 +295,17 @@ def extract_num_sub_domains(form):
         if label not in num_sub_domains:
             num_sub_domains[label] = {}
 
-        domain_id = integral.domain_id()
-        max_domain_id = None
-        if isinstance(domain_id, int):
-            max_domain_id = domain_id
-        elif isinstance(domain_id, tuple):
-            max_domain_id = max(did for did in domain_id)
+        subdomain_id = integral.subdomain_id()
+        max_subdomain_id = None
+        if isinstance(subdomain_id, int):
+            max_subdomain_id = subdomain_id
+        elif isinstance(subdomain_id, tuple):
+            max_subdomain_id = max(did for did in subdomain_id)
 
         domain_type = integral.domain_type()
-        if max_domain_id is not None:
+        if max_subdomain_id is not None:
             prev = num_sub_domains[label].get(domain_type, 0)
-            num_sub_domains[label][domain_type] = max(prev, max_domain_id + 1)
+            num_sub_domains[label][domain_type] = max(prev, max_subdomain_id + 1)
 
     return num_sub_domains
 

@@ -201,7 +201,7 @@ def compute_form_signature(form, function_replace_map=None):
         integral_hashdata = (expression_hashdata,
                              integral.domain().signature_data(domain_numbering=domain_numbering),
                              integral.domain_type(),
-                             integral.domain_id(),
+                             integral.subdomain_id(),
                              repr(integral.metadata()),
                              )
 

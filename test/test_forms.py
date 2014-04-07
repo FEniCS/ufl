@@ -17,8 +17,8 @@ class MockMesh:
         return self._ufl_id
     def ufl_domain(self):
         return Domain(triangle, label="MockMesh_id_%d"%self.ufl_id(), data=self)
-    def ufl_measure(self, domain_type="dx", domain_id="everywhere", metadata=None, domain_data=None):
-        return Measure(domain_type, domain_id=domain_id, metadata=metadata, domain=self, domain_data=domain_data)
+    def ufl_measure(self, domain_type="dx", subdomain_id="everywhere", metadata=None, domain_data=None):
+        return Measure(domain_type, subdomain_id=subdomain_id, metadata=metadata, domain=self, domain_data=domain_data)
 
 class MockDomainData:
     "Mock class for the pydolfin compatibility hack for domain data with [] syntax."
@@ -29,8 +29,8 @@ class MockDomainData:
         return self._ufl_id
     def mesh(self):
         return self._mesh
-    def ufl_measure(self, domain_type=None, domain_id="everywhere", metadata=None):
-        return Measure(domain_type, domain_id=domain_id, metadata=metadata,
+    def ufl_measure(self, domain_type=None, subdomain_id="everywhere", metadata=None):
+        return Measure(domain_type, subdomain_id=subdomain_id, metadata=metadata,
                        domain=self.mesh(), domain_data=self)
 
 class TestMeasure(UflTestCase):
@@ -230,17 +230,17 @@ class TestMeasure(UflTestCase):
         dX2 = dx(domain_data=domain_data2)
 
         from ufl.common import EmptyDict
-        
+
         # Check that we get the right domain_data from a form
         def _check_form(form, domain_data):
             fd = a.compute_form_data()
-            
+
             # Check form domains and domain data properties
             self.assertEqual(len(form.domains()), 1)
             domain, = form.domains()
             self.assertEqual(domain.cell(), cell)
             self.assertIsNone(domain.data())
-                
+
             # Repeat checks for preprocessed form
             form = fd.preprocessed_form
             self.assertEqual(len(form.domains()), 1)
@@ -255,11 +255,11 @@ class TestMeasure(UflTestCase):
                 self.assertTrue('exterior_facet' not in subdomain_data)
             else:
                 self.assertIsNone(domain_data)
-            
+
         # Build form with no domain_data
         a = f*dx + f**2*dx
         _check_form(a, None)
-            
+
         # Build form with single domain_data
         a = f*dX1 + f**2*dX1
         _check_form(a, domain_data1)
@@ -270,7 +270,7 @@ class TestMeasure(UflTestCase):
         # Build form with single domain data and domain ids
         a = f*dX1(0) + f**2*dX1(1) + f/3*dX1()
         _check_form(a, domain_data1)
-        
+
         a = f*dX2(0) + f**2*dX2(1) + f/3*dX2()
         _check_form(a, domain_data2)
 
@@ -282,7 +282,7 @@ class TestMeasure(UflTestCase):
         a = f*dX1(0) + f**2*dX1 + f/3*dx + f/5*dx(2)
         _check_form(a, domain_data1)
 
-    def test_integral_data_contains_domain_id_otherwise(self):
+    def test_integral_data_contains_subdomain_id_otherwise(self):
         # Configure measure with some arbitrary data object as domain_data
         #domain = MockDomain(7)
         domain_data = MockDomainData(4)
@@ -302,12 +302,12 @@ class TestMeasure(UflTestCase):
             self.assertEqual(itd.metadata, {})
             #self.assertEqual(itd.domain.label(), domain.label())
 
-            if isinstance(itd.domain_id, int):
+            if isinstance(itd.subdomain_id, int):
                 self.assertEqual(replace(itd.integrals[0].integrand(),
                                          fd.function_replace_map),
-                                 f2**(itd.domain_id+1) + f2/3)
+                                 f2**(itd.subdomain_id+1) + f2/3)
             else:
-                self.assertEqual(itd.domain_id, "otherwise")
+                self.assertEqual(itd.subdomain_id, "otherwise")
                 self.assertEqual(replace(itd.integrals[0].integrand(),
                                          fd.function_replace_map),
                                  f2/3)
@@ -316,7 +316,7 @@ class TestMeasure(UflTestCase):
         # Configure measure with some arbitrary data object as domain_data
         domain_data = MockDomainData(1)
         dX = dx(domain_data=domain_data)
-                
+
         # Check that we get an UFL error when using dX without domain id
         #self.assertRaises(UFLException, lambda: f*dX) # This is no longer the case
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/use/bin/env python
 
 """
 Tests of the various ways Measure objects can be created and used.
@@ -81,7 +81,7 @@ class MeasureTestCase(UflTestCase):
         metadata = { "opt": True }
         mydx = Measure("dx",
                         domain=mydomain,
-                        domain_id=3,
+                        subdomain_id=3,
                         metadata=metadata)
         self.assertEqual(mydx.domain().label(), mydomain.label())
         self.assertEqual(mydx.metadata(), metadata)
@@ -90,29 +90,29 @@ class MeasureTestCase(UflTestCase):
         # Compatibility:
         dx = Measure("dx")
         #domain=None,
-        #domain_id="everywhere",
+        #subdomain_id="everywhere",
         #metadata=None)
         self.assertEqual(dx.domain(), None)
-        self.assertEqual(dx.domain_id(), "everywhere")
+        self.assertEqual(dx.subdomain_id(), "everywhere")
 
-        # Set domain_id to "everywhere", still no domain set
+        # Set subdomain_id to "everywhere", still no domain set
         dxe = dx()
         self.assertEqual(dxe.domain(), None)
-        self.assertEqual(dxe.domain_id(), "everywhere")
+        self.assertEqual(dxe.subdomain_id(), "everywhere")
 
-        # Set domain_id to 5, still no domain set
+        # Set subdomain_id to 5, still no domain set
         dx5 = dx(5)
         self.assertEqual(dx5.domain(), None)
-        self.assertEqual(dx5.domain_id(), 5)
+        self.assertEqual(dx5.subdomain_id(), 5)
 
         # Check that original dx is untouched
         self.assertEqual(dx.domain(), None)
-        self.assertEqual(dx.domain_id(), "everywhere")
+        self.assertEqual(dx.subdomain_id(), "everywhere")
 
-        # Set domain_id to (2,3), still no domain set
+        # Set subdomain_id to (2,3), still no domain set
         dx23 = dx((2,3))
         self.assertEqual(dx23.domain(), None)
-        self.assertEqual(dx23.domain_id(), (2,3))
+        self.assertEqual(dx23.subdomain_id(), (2,3))
 
         # Map metadata to metadata, ffc interprets as before
         dxm = dx(metadata={"dummy":123})
@@ -120,7 +120,7 @@ class MeasureTestCase(UflTestCase):
         self.assertEqual(dxm.metadata(), {"dummy":123}) # Deprecated, TODO: Remove
 
         self.assertEqual(dxm.domain(), None)
-        self.assertEqual(dxm.domain_id(), "everywhere")
+        self.assertEqual(dxm.subdomain_id(), "everywhere")
 
         #dxm = dx(metadata={"dummy":123})
         #self.assertEqual(dxm.metadata(), {"dummy":123})
@@ -128,7 +128,7 @@ class MeasureTestCase(UflTestCase):
         self.assertEqual(dxm.metadata(), {"dummy":123})
 
         self.assertEqual(dxm.domain(), None)
-        self.assertEqual(dxm.domain_id(), "everywhere")
+        self.assertEqual(dxm.subdomain_id(), "everywhere")
 
         dxi = dx(metadata={"quadrature_degree":3})
 

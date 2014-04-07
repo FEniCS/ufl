@@ -16,23 +16,23 @@ from ufl.sorting import sorted_expr
 
 class IntegralData(object):
     """Utility class with the members
-        (domain, domain_type, domain_id, integrals, metadata)
+        (domain, domain_type, subdomain_id, integrals, metadata)
 
     where metadata is an empty dictionary that may be used for
     associating metadata with each object.
     """
-    __slots__ = ('domain', 'domain_type', 'domain_id', 'integrals', 'metadata')
-    def __init__(self, domain, domain_type, domain_id, integrals, metadata):
+    __slots__ = ('domain', 'domain_type', 'subdomain_id', 'integrals', 'metadata')
+    def __init__(self, domain, domain_type, subdomain_id, integrals, metadata):
         ufl_assert(all(domain.label() == itg.domain().label() for itg in integrals),
                    "Domain label mismatch in integral data.")
         ufl_assert(all(domain_type == itg.domain_type() for itg in integrals),
                    "Domain type mismatch in integral data.")
-        ufl_assert(all(domain_id == itg.domain_id() for itg in integrals),
+        ufl_assert(all(subdomain_id == itg.subdomain_id() for itg in integrals),
                    "Domain id mismatch in integral data.")
 
         self.domain = domain
         self.domain_type = domain_type
-        self.domain_id = domain_id
+        self.subdomain_id = subdomain_id
 
         self.integrals = integrals
 
@@ -41,19 +41,19 @@ class IntegralData(object):
 
     def __lt__(self, other):
         # To preserve behaviour of extract_integral_data:
-        return ((self.domain_type, self.domain_id, self.integrals, self.metadata)
-                < (other.domain_type, other.domain_id, other.integrals, other.metadata))
+        return ((self.domain_type, self.subdomain_id, self.integrals, self.metadata)
+                < (other.domain_type, other.subdomain_id, other.integrals, other.metadata))
 
     def __eq__(self, other):
         # Currently only used for tests:
         return (self.domain_type == other.domain_type and
-                self.domain_id == other.domain_id and
+                self.subdomain_id == other.subdomain_id and
                 self.integrals == other.integrals and
                 self.metadata == other.metadata)
 
     def __str__(self):
         return "IntegralData object over domain (%s, %s), with integrals:\n%s\nand metadata:\n%s" % (
-            self.domain_type, self.domain_id,
+            self.domain_type, self.subdomain_id,
             '\n\n'.join(map(str,self.integrals)), self.metadata)
 
 
@@ -100,9 +100,9 @@ def group_integrals_by_domain_and_type(integrals, domains, common_domain):
         integrals_by_domain_and_type[(domain, domain_type)].append(itg)
     return integrals_by_domain_and_type
 
-def integral_domain_ids(integral):
+def integral_subdomain_ids(integral):
     "Get a tuple of integer subdomains or a valid string subdomain from integral."
-    did = integral.domain_id()
+    did = integral.subdomain_id()
     if isinstance(did, int):
         return (did,)
     elif isinstance(did, tuple):
@@ -122,13 +122,13 @@ def rearrange_integrals_by_single_subdomains(integrals):
         integrals: list(Integral)
 
     Output:
-        integrals: dict: domain_id -> list(Integral) (reconstructed with single domain_id)
+        integrals: dict: subdomain_id -> list(Integral) (reconstructed with single subdomain_id)
     """
     # Split integrals into lists of everywhere and subdomain integrals
     everywhere_integrals = []
     subdomain_integrals = []
     for itg in integrals:
-        dids = integral_domain_ids(itg)
+        dids = integral_subdomain_ids(itg)
         if dids == "otherwise":
             error("'otherwise' integrals should never occur before preprocessing.")
         elif dids == "everywhere":
@@ -143,20 +143,20 @@ def rearrange_integrals_by_single_subdomains(integrals):
         # Region or single subdomain id
         for did in dids:
             # Restrict integral to this subdomain!
-            single_subdomain_integrals[did].append(itg.reconstruct(domain_id=did))
+            single_subdomain_integrals[did].append(itg.reconstruct(subdomain_id=did))
 
     # Add everywhere integrals to each single subdomain id integral list
     otherwise_integrals = []
     for ev_itg in everywhere_integrals:
         # Restrict everywhere integral to 'otherwise'
         otherwise_integrals.append(
-            ev_itg.reconstruct(domain_id="otherwise"))
+            ev_itg.reconstruct(subdomain_id="otherwise"))
 
         # Restrict everywhere integral to each subdomain
         # and append to each integral list
-        for domain_id in sorted(single_subdomain_integrals.keys()):
-            single_subdomain_integrals[domain_id].append(
-                ev_itg.reconstruct(domain_id=domain_id))
+        for subdomain_id in sorted(single_subdomain_integrals.keys()):
+            single_subdomain_integrals[subdomain_id].append(
+                ev_itg.reconstruct(subdomain_id=subdomain_id))
 
     if otherwise_integrals:
         single_subdomain_integrals["otherwise"] = otherwise_integrals
@@ -211,18 +211,18 @@ def build_integral_data(integrals, domains, common_domain):
 
             # Group integrals by subdomain id, after splitting e.g.
             #   f*dx((1,2)) + g*dx((2,3)) -> f*dx(1) + (f+g)*dx(2) + g*dx(3)
-            # (note: before this call, 'everywhere' is a valid domain_id,
-            # and after this call, 'otherwise' is a valid domain_id)
+            # (note: before this call, 'everywhere' is a valid subdomain_id,
+            # and after this call, 'otherwise' is a valid subdomain_id)
             single_subdomain_integrals = \
                 rearrange_integrals_by_single_subdomains(ddt_integrals)
 
-            for domain_id, ss_integrals in sorted_items(single_subdomain_integrals):
+            for subdomain_id, ss_integrals in sorted_items(single_subdomain_integrals):
                 # Accumulate integrands of integrals that share the same compiler data
                 integrands_and_cds = \
                     accumulate_integrands_with_same_metadata(ss_integrals)
 
                 # Reconstruct integrals with new integrands and the right domain object
-                integrals = [Integral(integrand, domain_type, domain, domain_id, metadata, None)
+                integrals = [Integral(integrand, domain_type, domain, subdomain_id, metadata, None)
                              for integrand, metadata in integrands_and_cds]
 
                 # Create new metadata dict for each integral data,
@@ -231,7 +231,7 @@ def build_integral_data(integrals, domains, common_domain):
                 metadata = {}
 
                 # Finally wrap it all in IntegralData object!
-                ida = IntegralData(domain, domain_type, domain_id, integrals, {})
+                ida = IntegralData(domain, domain_type, subdomain_id, integrals, {})
 
                 # Store integral data objects in list with canonical ordering
                 integral_data.append(ida)

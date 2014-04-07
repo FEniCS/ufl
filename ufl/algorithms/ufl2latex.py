@@ -21,9 +21,6 @@ converting UFL expressions to other representations."""
 #
 # Modified by Anders Logg, 2008-2009.
 # Modified by Kristian B. Oelgaard, 2011
-#
-# First added:  2008-05-07
-# Last changed: 2011-10-21
 
 from itertools import chain
 
@@ -473,15 +470,15 @@ def form2latex(form, formdata):
         label = domain.label()
         # TODO: Use domain label!
 
-        domain_id = itg.domain_id()
-        if isinstance(domain_id, int):
-            dstr += "_{%d}" % domain_id
-        elif domain_id == "everywhere":
+        subdomain_id = itg.subdomain_id()
+        if isinstance(subdomain_id, int):
+            dstr += "_{%d}" % subdomain_id
+        elif subdomain_id == "everywhere":
             pass
-        elif domain_id == "otherwise":
+        elif subdomain_id == "otherwise":
             dstr += "_{\text{oth}}"
-        elif isinstance(domain_id, tuple):
-            dstr += "_{%s}" % domain_id
+        elif isinstance(subdomain_id, tuple):
+            dstr += "_{%s}" % subdomain_id
 
         b = p + "\\int_{%s}" % (dstr,)
         dxstr = ufl.measure.domain_type_to_measure_name[domain_type]
@@ -639,7 +636,7 @@ def form2code2latex(formdata):
 
     # Render each integral as a separate section
     for itg in formdata.form.integrals_by_type(Measure.CELL):
-        title = "%s integral over domain %d" % (itg.domain_type(), itg.domain_id())
+        title = "%s integral over domain %d" % (itg.domain_type(), itg.subdomain_id())
 
         G, partitions = integrand2code(itg.integrand(), formdata)
 
