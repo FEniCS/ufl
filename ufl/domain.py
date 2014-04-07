@@ -308,9 +308,9 @@ def as_domain(domain):
     else:
         return Domain(as_cell(domain))
 
-def join_domain_data(domain_datas): # FIXME: Remove? Think it's unused now.
+def join_subdomain_data(subdomain_datas): # FIXME: Remove? Think it's unused now.
     newdata = {}
-    for data in domain_datas:
+    for data in subdomain_datas:
         for k,v in data.iteritems():
             nv = newdata.get(k)
             if nv is None:

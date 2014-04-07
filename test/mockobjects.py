@@ -8,8 +8,8 @@ class MockMesh:
         return self._ufl_id
     def ufl_domain(self):
         return Domain(triangle, label="MockMesh_id_%d"%self.ufl_id(), data=self)
-    def ufl_measure(self, domain_type="dx", subdomain_id="everywhere", metadata=None, domain_data=None):
-        return Measure(domain_type, subdomain_id=subdomain_id, metadata=metadata, domain=self, domain_data=domain_data)
+    def ufl_measure(self, domain_type="dx", subdomain_id="everywhere", metadata=None, subdomain_data=None):
+        return Measure(domain_type, subdomain_id=subdomain_id, metadata=metadata, domain=self, subdomain_data=subdomain_data)
 
 class MockMeshFunction:
     "Mock class for the pydolfin compatibility hack for domain data with [] syntax."
@@ -22,4 +22,4 @@ class MockMeshFunction:
         return self._mesh
     def ufl_measure(self, domain_type=None, subdomain_id="everywhere", metadata=None):
         return Measure(domain_type, subdomain_id=subdomain_id, metadata=metadata,
-                       domain=self.mesh(), domain_data=self)
+                       domain=self.mesh(), subdomain_data=self)

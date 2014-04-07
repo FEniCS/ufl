@@ -141,7 +141,7 @@ class MeasureTestCase(UflTestCase):
         exterior_facet_domains = MockMeshFunction(2, mesh)
         interior_facet_domains = MockMeshFunction(3, mesh)
 
-        self.assertEqual(dx[cell_domains], dx(domain_data=cell_domains))
+        self.assertEqual(dx[cell_domains], dx(subdomain_data=cell_domains))
         self.assertNotEqual(dx[cell_domains], dx)
         self.assertNotEqual(dx[cell_domains], dx[exterior_facet_domains])
 
@@ -153,9 +153,9 @@ class MeasureTestCase(UflTestCase):
         self.assertEqual(dxd.domain(), None)
         self.assertEqual(dsd.domain(), None)
         self.assertEqual(dSd.domain(), None)
-        self.assertTrue(dxd.domain_data() is cell_domains)
-        self.assertTrue(dsd.domain_data() is exterior_facet_domains)
-        self.assertTrue(dSd.domain_data() is interior_facet_domains)
+        self.assertTrue(dxd.subdomain_data() is cell_domains)
+        self.assertTrue(dsd.subdomain_data() is exterior_facet_domains)
+        self.assertTrue(dSd.subdomain_data() is interior_facet_domains)
         # Considered behaviour at one point:
         #self.assertEqual(dxd.domain().label(), "MockMesh")
         #self.assertEqual(dsd.domain().label(), "MockMesh")

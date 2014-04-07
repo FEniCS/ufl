@@ -35,9 +35,9 @@ class Integral(object):
                  "_domain",
                  "_subdomain_id",
                  "_metadata",
-                 "_domain_data",
+                 "_subdomain_data",
                  )
-    def __init__(self, integrand, domain_type, domain, subdomain_id, metadata, domain_data):
+    def __init__(self, integrand, domain_type, domain, subdomain_id, metadata, subdomain_data):
         ufl_assert(isinstance(integrand, Expr),
                    "Expecting integrand to be an Expr instance.")
         self._integrand = integrand
@@ -45,11 +45,11 @@ class Integral(object):
         self._domain = domain
         self._subdomain_id = subdomain_id
         self._metadata = metadata
-        self._domain_data = domain_data
+        self._subdomain_data = subdomain_data
 
     def reconstruct(self, integrand=None,
                     domain_type=None, domain=None, subdomain_id=None,
-                    metadata=None, domain_data=None):
+                    metadata=None, subdomain_data=None):
         """Construct a new Integral object with some properties replaced with new values.
 
         Example:
@@ -67,9 +67,9 @@ class Integral(object):
             subdomain_id = self.subdomain_id()
         if metadata is None:
             metadata = self.metadata()
-        if domain_data is None:
-            domain_data = self._domain_data
-        return Integral(integrand, domain_type, domain, subdomain_id, metadata, domain_data)
+        if subdomain_data is None:
+            subdomain_data = self._subdomain_data
+        return Integral(integrand, domain_type, domain, subdomain_id, metadata, subdomain_data)
 
     def integrand(self):
         "Return the integrand expression, which is an Expr instance."
@@ -91,9 +91,9 @@ class Integral(object):
         "Return the compiler metadata this integral has been annotated with."
         return self._metadata
 
-    def domain_data(self):
+    def subdomain_data(self):
         "Return the domain data of this integral."
-        return self._domain_data
+        return self._subdomain_data
 
     def __neg__(self):
         return self.reconstruct(-self._integrand)
@@ -117,7 +117,7 @@ class Integral(object):
 
     def __repr__(self):
         return "Integral(%r, %r, %r, %r, %r, %r)" % (
-            self._integrand, self._domain_type, self._domain, self._subdomain_id, self._metadata, self._domain_data)
+            self._integrand, self._domain_type, self._domain, self._subdomain_id, self._metadata, self._subdomain_data)
 
     def __eq__(self, other):
         return (isinstance(other, Integral)
@@ -126,13 +126,13 @@ class Integral(object):
             and self._subdomain_id == other._subdomain_id
             and self._integrand == other._integrand
             and self._metadata == other._metadata
-            and id_or_none(self._domain_data) == id_or_none(other._domain_data))
+            and id_or_none(self._subdomain_data) == id_or_none(other._subdomain_data))
 
     def __hash__(self):
         # Assuming few collisions by ignoring hash(self._metadata)
         # (a dict is not hashable but we assume it is immutable in practice)
         hashdata = (hash(self._integrand), self._domain_type,
                     hash(self._domain), self._subdomain_id,
-                    id_or_none(self._domain_data))
+                    id_or_none(self._subdomain_data))
         return hash(hashdata)
 

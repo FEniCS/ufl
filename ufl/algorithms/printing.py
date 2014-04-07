@@ -42,7 +42,7 @@ def integral_info(integral):
     s += "    Domain id:\n"
     s += "      %r\n" % integral.subdomain_id()
     s += "    Domain data:\n"
-    s += "      %s\n" % integral.domain_data()
+    s += "      %s\n" % integral.subdomain_data()
     s += "    Compiler metadata:\n"
     s += "      %s\n" % integral.metadata()
     s += "    Integrand expression representation:\n"

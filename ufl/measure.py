@@ -83,7 +83,7 @@ class Measure(object):
         "_domain",
         "_subdomain_id",
         "_metadata",
-        "_domain_data",
+        "_subdomain_data",
         )
     """Representation of an integration measure.
 
@@ -105,7 +105,7 @@ class Measure(object):
                  domain=None,
                  subdomain_id="everywhere",
                  metadata=None,
-                 domain_data=None
+                 subdomain_data=None
                  ):
         """
         domain_type:
@@ -125,7 +125,7 @@ class Measure(object):
             affecting how code is generated, including parameters
             for optimization or debugging of generated code.
 
-        domain_data
+        subdomain_data
             object representing data to interpret subdomain_id with.
         """
         # Map short name to long name and require a valid one
@@ -137,9 +137,9 @@ class Measure(object):
                    "Invalid domain.")
 
         # Store subdomain data
-        self._domain_data = domain_data
+        self._subdomain_data = subdomain_data
         # FIXME: Cannot require this (yet) because we currently have no way to implement ufl_id for dolfin SubDomain
-        #ufl_assert(self._domain_data is None or hasattr(self._domain_data, "ufl_id"),
+        #ufl_assert(self._subdomain_data is None or hasattr(self._subdomain_data, "ufl_id"),
         #           "Invalid domain data, missing ufl_id() implementation.")
 
         # Accept "everywhere", single subdomain, or multiple subdomains
@@ -184,7 +184,7 @@ class Measure(object):
                     subdomain_id=None,
                     domain=None,
                     metadata=None,
-                    domain_data=None):
+                    subdomain_data=None):
         """Construct a new Measure object with some properties replaced with new values.
 
         Example:
@@ -202,24 +202,24 @@ class Measure(object):
             domain = self.domain()
         if metadata is None:
             metadata = self.metadata()
-        if domain_data is None:
-            domain_data = self.domain_data()
+        if subdomain_data is None:
+            subdomain_data = self.subdomain_data()
         return Measure(self.domain_type(),
                        domain=domain, subdomain_id=subdomain_id,
-                       metadata=metadata, domain_data=domain_data)
+                       metadata=metadata, subdomain_data=subdomain_data)
 
-    def domain_data(self):
-        """Return the integral domain_data. This data is not interpreted by UFL.
+    def subdomain_data(self):
+        """Return the integral subdomain_data. This data is not interpreted by UFL.
         Its intension is to give a context in which the domain id is interpreted."""
-        return self._domain_data
+        return self._subdomain_data
 
-    def __call__(self, subdomain_id=None, metadata=None, domain=None, domain_data=None):
+    def __call__(self, subdomain_id=None, metadata=None, domain=None, subdomain_data=None):
         """Reconfigure measure with new domain specification or metadata."""
         # Note: Keeping the order of arguments here (subdomain_id, metadata) for backwards
         # compatibility, because some tutorials write e.g. dx(0, {...}) to set metadata
 
         # Let syntax dx() mean integral over everywhere
-        args = (subdomain_id, metadata, domain, domain_data)
+        args = (subdomain_id, metadata, domain, subdomain_data)
         if all(arg is None for arg in args):
             return self.reconstruct(subdomain_id="everywhere")
 
@@ -232,7 +232,7 @@ class Measure(object):
         # If we get any keywords, use them to reconstruct Measure.
         # Note that if only one argument is given, it is the subdomain_id,
         # e.g. dx(3) == dx(subdomain_id=3)
-        return self.reconstruct(subdomain_id=subdomain_id, domain=domain, metadata=metadata, domain_data=domain_data)
+        return self.reconstruct(subdomain_id=subdomain_id, domain=domain, metadata=metadata, subdomain_data=subdomain_data)
 
     def __getitem__(self, data):
         """This operator supports legacy syntax in python dolfin programs.
@@ -251,7 +251,7 @@ class Measure(object):
         integrates over everywhere, but it can be restricted with a domain id
         as usual. Example: dx = dx[boundaries]; L = f*v*dx + g*v+dx(1).
         """
-        return self.reconstruct(domain_data=data)
+        return self.reconstruct(subdomain_data=data)
 
     def __str__(self):
         global domain_type_to_measure_name
@@ -264,8 +264,8 @@ class Measure(object):
             args.append("domain=%s" % (self._domain,))
         if self._metadata: # Stored as EmptyDict if None
             args.append("metadata=%s" % (self._metadata,))
-        if self._domain_data is not None:
-            args.append("domain_data=%s" % (self._domain_data,))
+        if self._subdomain_data is not None:
+            args.append("subdomain_data=%s" % (self._subdomain_data,))
 
         return "%s(%s)" % (name, ', '.join(args))
 
@@ -283,15 +283,15 @@ class Measure(object):
             args.append("domain=%r" % (self._domain,))
         if self._metadata: # Stored as EmptyDict if None
             args.append("metadata=%r" % (self._metadata,))
-        if self._domain_data is not None:
-            args.append("domain_data=%r" % (self._domain_data,))
+        if self._subdomain_data is not None:
+            args.append("subdomain_data=%r" % (self._subdomain_data,))
 
         return "%s(%s)" % (type(self).__name__, ', '.join(args))
 
     def __hash__(self):
         "Return a hash value for this Measure."
         hashdata = (self._domain_type, self._subdomain_id, hash(self._domain),
-                    metadata_hashdata(self._metadata), id_or_none(self._domain_data))
+                    metadata_hashdata(self._metadata), id_or_none(self._subdomain_data))
         return hash(hashdata)
 
     def __eq__(self, other):
@@ -300,7 +300,7 @@ class Measure(object):
                 and self._domain_type == other._domain_type
                 and self._subdomain_id == other._subdomain_id
                 and self._domain == other._domain
-                and id_or_none(self._domain_data) == id_or_none(other._domain_data)
+                and id_or_none(self._subdomain_data) == id_or_none(other._subdomain_data)
                 and metadata_equal(self._metadata, other._metadata))
 
     def __add__(self, other):
@@ -385,16 +385,16 @@ class Measure(object):
                 domain = None
 
         # FIXME: Fix getitem so we can support this as well:
-        # (probably need to store domain_data with Form or Integral?)
+        # (probably need to store subdomain_data with Form or Integral?)
         # Suggestion to store canonically in Form:
-        #   integral.domain_data() = value
-        #   form.domain_data()[label][key] = value
+        #   integral.subdomain_data() = value
+        #   form.subdomain_data()[label][key] = value
         #   all(domain.data() == {} for domain in form.domains())
         # Then getitem data follows the data flow:
-        #   dxs = dx[gd];  dxs._domain_data is gd
-        #   dxs0 = dxs(0); dxs0._domain_data is gd
-        #   M = 1*dxs0; M.integrals()[0].domain_data() is gd
-        #   ; M.domain_data()[None][dxs.domain_type()] is gd
+        #   dxs = dx[gd];  dxs._subdomain_data is gd
+        #   dxs0 = dxs(0); dxs0._subdomain_data is gd
+        #   M = 1*dxs0; M.integrals()[0].subdomain_data() is gd
+        #   ; M.subdomain_data()[None][dxs.domain_type()] is gd
         #assemble(1*dx[cells] + 1*ds[bnd], mesh=mesh)
 
         # Otherwise create and return a one-integral form
@@ -403,7 +403,7 @@ class Measure(object):
                             domain=domain,
                             subdomain_id=subdomain_id,
                             metadata=self.metadata(),
-                            domain_data=self.domain_data())
+                            subdomain_data=self.subdomain_data())
         return Form([integral])
 
 class MeasureSum(object):
