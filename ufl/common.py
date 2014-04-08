@@ -43,9 +43,9 @@ def write_file(filename, text):
     f.write(text)
     f.close()
 
-def pdflatex(latexfilename, pdffilename, flags): # TODO: Options for this.
+def pdflatex(latexfilename, pdffilename, flags=""): # TODO: Options for this.
     "Execute pdflatex to compile a latex file into pdf."
-    flags = "-file-line-error-style -interaction=nonstopmode"
+    flags += "-file-line-error-style -interaction=nonstopmode"
     latexcmd = "pdflatex"
     cmd = "%s %s %s %s" % (latexcmd, flags, latexfilename, pdffilename)
     s, o = get_status_output(cmd)

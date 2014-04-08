@@ -24,6 +24,7 @@ converting UFL expressions to other representations."""
 
 from itertools import chain
 
+import ufl
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.common import write_file, pdflatex, openpdf
@@ -375,6 +376,7 @@ def element2latex(element):
     e = str(element)
     e = e.replace("<", "")
     e = e.replace(">", "")
+    e = "fixme"
     return r"{\mbox{%s}}" % e
 
 domain_strings = { "cell": r"\Omega",
@@ -656,8 +658,7 @@ def forms2latexdocument(forms, uflfilename, compile=False):
     for form in forms:
 
         # Compute form data
-        form = preprocess(form)
-        form_data = form.form_data()
+        form_data = preprocess(form)
 
         # Generate LaTex code
         title = "Form %s" % form_data.name
