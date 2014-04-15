@@ -36,6 +36,14 @@ from ufl.operators import sqrt
 # It could easily be a moderate to major undertaking to get rid of though.
 
 
+def cross_expr(a, b):
+    assert len(a) == 3
+    assert len(b) == 3
+    def c(i, j):
+        return a[i]*b[j] - a[j]*b[i]
+    return as_vector((c(1,2), c(2,0), c(0,1)))
+
+
 def pseudo_determinant_expr(A):
     """Compute the pseudo-determinant of A: sqrt(det(A.T*A))."""
     i, j, k = indices(3)

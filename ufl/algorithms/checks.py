@@ -19,9 +19,6 @@
 #
 # Modified by Anders Logg, 2008-2009.
 # Modified by Mehdi Nikbakht, 2010.
-#
-# First added:  2008-03-14
-# Last changed: 2012-04-12
 
 from ufl.log import warning, error
 
@@ -107,7 +104,7 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
     # Check that restrictions are permissible
     for integral in form.integrals():
         # Only allow restricitions on interior facet integrals and surface measures
-        if integral.domain_type() in (Measure.INTERIOR_FACET, Measure.SURFACE):
+        if integral.integral_type() in (Measure.INTERIOR_FACET, Measure.SURFACE):
             check_restrictions(integral.integrand(), True)
         else:
             check_restrictions(integral.integrand(), False)

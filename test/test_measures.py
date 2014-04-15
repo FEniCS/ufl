@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/use/bin/env python
 
 """
 Tests of the various ways Measure objects can be created and used.
@@ -33,17 +33,17 @@ class MeasureTestCase(UflTestCase):
         #dV = Measure("dV")
 
         # Check that names are mapped properly
-        self.assertEqual(dx.domain_type(), "cell")
-        self.assertEqual(dE.domain_type(), "macro_cell")
-        #self.assertEqual(dO.domain_type(), "overlap")
+        self.assertEqual(dx.integral_type(), "cell")
+        self.assertEqual(dE.integral_type(), "macro_cell")
+        #self.assertEqual(dO.integral_type(), "overlap")
 
-        self.assertEqual(ds.domain_type(), "exterior_facet")
-        self.assertEqual(dS.domain_type(), "interior_facet")
-        self.assertEqual(dc.domain_type(), "surface")
-        #self.assertEqual(dI.domain_type(), "interface")
+        self.assertEqual(ds.integral_type(), "exterior_facet")
+        self.assertEqual(dS.integral_type(), "interior_facet")
+        self.assertEqual(dc.integral_type(), "surface")
+        #self.assertEqual(dI.integral_type(), "interface")
 
-        self.assertEqual(dP.domain_type(), "point")
-        #self.assertEqual(dV.domain_type(), "vertex")
+        self.assertEqual(dP.integral_type(), "point")
+        #self.assertEqual(dV.integral_type(), "vertex")
         # TODO: Continue this checking
 
         # Check that defaults are set properly
@@ -81,7 +81,7 @@ class MeasureTestCase(UflTestCase):
         metadata = { "opt": True }
         mydx = Measure("dx",
                         domain=mydomain,
-                        domain_id=3,
+                        subdomain_id=3,
                         metadata=metadata)
         self.assertEqual(mydx.domain().label(), mydomain.label())
         self.assertEqual(mydx.metadata(), metadata)
@@ -90,29 +90,29 @@ class MeasureTestCase(UflTestCase):
         # Compatibility:
         dx = Measure("dx")
         #domain=None,
-        #domain_id="everywhere",
+        #subdomain_id="everywhere",
         #metadata=None)
         self.assertEqual(dx.domain(), None)
-        self.assertEqual(dx.domain_id(), "everywhere")
+        self.assertEqual(dx.subdomain_id(), "everywhere")
 
-        # Set domain_id to "everywhere", still no domain set
+        # Set subdomain_id to "everywhere", still no domain set
         dxe = dx()
         self.assertEqual(dxe.domain(), None)
-        self.assertEqual(dxe.domain_id(), "everywhere")
+        self.assertEqual(dxe.subdomain_id(), "everywhere")
 
-        # Set domain_id to 5, still no domain set
+        # Set subdomain_id to 5, still no domain set
         dx5 = dx(5)
         self.assertEqual(dx5.domain(), None)
-        self.assertEqual(dx5.domain_id(), 5)
+        self.assertEqual(dx5.subdomain_id(), 5)
 
         # Check that original dx is untouched
         self.assertEqual(dx.domain(), None)
-        self.assertEqual(dx.domain_id(), "everywhere")
+        self.assertEqual(dx.subdomain_id(), "everywhere")
 
-        # Set domain_id to (2,3), still no domain set
+        # Set subdomain_id to (2,3), still no domain set
         dx23 = dx((2,3))
         self.assertEqual(dx23.domain(), None)
-        self.assertEqual(dx23.domain_id(), (2,3))
+        self.assertEqual(dx23.subdomain_id(), (2,3))
 
         # Map metadata to metadata, ffc interprets as before
         dxm = dx(metadata={"dummy":123})
@@ -120,7 +120,7 @@ class MeasureTestCase(UflTestCase):
         self.assertEqual(dxm.metadata(), {"dummy":123}) # Deprecated, TODO: Remove
 
         self.assertEqual(dxm.domain(), None)
-        self.assertEqual(dxm.domain_id(), "everywhere")
+        self.assertEqual(dxm.subdomain_id(), "everywhere")
 
         #dxm = dx(metadata={"dummy":123})
         #self.assertEqual(dxm.metadata(), {"dummy":123})
@@ -128,7 +128,7 @@ class MeasureTestCase(UflTestCase):
         self.assertEqual(dxm.metadata(), {"dummy":123})
 
         self.assertEqual(dxm.domain(), None)
-        self.assertEqual(dxm.domain_id(), "everywhere")
+        self.assertEqual(dxm.subdomain_id(), "everywhere")
 
         dxi = dx(metadata={"quadrature_degree":3})
 
@@ -141,7 +141,7 @@ class MeasureTestCase(UflTestCase):
         exterior_facet_domains = MockMeshFunction(2, mesh)
         interior_facet_domains = MockMeshFunction(3, mesh)
 
-        self.assertEqual(dx[cell_domains], dx(domain_data=cell_domains))
+        self.assertEqual(dx[cell_domains], dx(subdomain_data=cell_domains))
         self.assertNotEqual(dx[cell_domains], dx)
         self.assertNotEqual(dx[cell_domains], dx[exterior_facet_domains])
 
@@ -153,9 +153,9 @@ class MeasureTestCase(UflTestCase):
         self.assertEqual(dxd.domain(), None)
         self.assertEqual(dsd.domain(), None)
         self.assertEqual(dSd.domain(), None)
-        self.assertTrue(dxd.domain_data() is cell_domains)
-        self.assertTrue(dsd.domain_data() is exterior_facet_domains)
-        self.assertTrue(dSd.domain_data() is interior_facet_domains)
+        self.assertTrue(dxd.subdomain_data() is cell_domains)
+        self.assertTrue(dsd.subdomain_data() is exterior_facet_domains)
+        self.assertTrue(dSd.subdomain_data() is interior_facet_domains)
         # Considered behaviour at one point:
         #self.assertEqual(dxd.domain().label(), "MockMesh")
         #self.assertEqual(dsd.domain().label(), "MockMesh")

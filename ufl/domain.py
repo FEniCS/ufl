@@ -94,6 +94,7 @@ class Domain(object):
             self._label = flat_domain.label()
             self._data = flat_domain.data()
 
+            # FIXME: Get geometric dimension from self._coordinates instead!
             ufl_assert(self._coordinates.shape() == (self._cell.geometric_dimension(),),
                        "Shape of coordinates %s does not match geometric dimension %d of cell." %\
                 (self._coordinates.shape(), self._cell.geometric_dimension()))
@@ -307,9 +308,9 @@ def as_domain(domain):
     else:
         return Domain(as_cell(domain))
 
-def join_domain_data(domain_datas): # FIXME: Remove? Think it's unused now.
+def join_subdomain_data(subdomain_datas): # FIXME: Remove? Think it's unused now.
     newdata = {}
-    for data in domain_datas:
+    for data in subdomain_datas:
         for k,v in data.iteritems():
             nv = newdata.get(k)
             if nv is None:
@@ -411,36 +412,8 @@ def join_domains(domains):
     return tuple(newdomains)
 
 def extract_domains(expr):
-    # FIXME: Consider components?
-    from ufl.algorithms.traversal import traverse_terminals
+    from ufl.algorithms.traversal import traverse_unique_terminals
     domainlist = []
-    for t in traverse_terminals(expr):
+    for t in traverse_unique_terminals(expr):
         domainlist.extend(t.domains())
     return sorted(join_domains(domainlist))
-
-def tmp():
-    # Analyse domains of integrands
-    from ufl.algorithms import traverse_terminals
-    coordinate_domains = []
-    geometry_domains = []
-    coefficient_domains = []
-    argument_domains = []
-    for itg in integrals:
-        for t in traverse_terminals(itg.integrand()):
-            if isinstance(t, GeometricQuantity):
-                l = geometry_domains
-            elif isinstance(t, Argument):
-                l = argument_domains
-            elif isinstance(t, Coefficient):
-                l = coefficient_domains
-            else:
-                continue
-            d = t.domain()
-            if d is not None:
-                l.append(d)
-                all_domains.append(d)
-                c = d.coordinates()
-                if c is not None:
-                    coordinate_domains.append(c)
-    all_domains = join_domains(all_domains)
-

@@ -41,74 +41,83 @@ def _cmp3(a, b):
     #return (a > b) - (a < b)
 
 def cmp_expr(a, b):
-    "Sorting rule for Expr objects."
+    "Sorting rule for Expr objects. NB! Do not use to compare for equality!"
+
     # First sort quickly by type name
     c = _cmp3(a._uflclass.__name__, b._uflclass.__name__)
     if c != 0:
         return c
 
-    # Type is the same, but is it a ...
-
-    # ... a MultiIndex? Careful not to depend on Index.count() here!
-    if isinstance(a, MultiIndex):
-        for i,j in izip(a._indices, b._indices):
-            if isinstance(i, FixedIndex):
-                if isinstance(j, FixedIndex):
-                    # Both are FixedIndex, sort by value
-                    c = _cmp3(i._value, j._value)
-                    if c:
-                        return c
+    # Now we know that the type is the same, check further based on type specific properties.
+    # Is it a...
+    if isinstance(a, Terminal):
+        # ... MultiIndex? Careful not to depend on Index.count() here! This is placed first because it is most frequent.
+        if isinstance(a, MultiIndex):
+            # Make decision based on the first index pair possible
+            for i,j in izip(a._indices, b._indices):
+                if isinstance(i, FixedIndex):
+                    if isinstance(j, FixedIndex):
+                        # Both are FixedIndex, sort by value
+                        c = _cmp3(i._value, j._value)
+                        if c:
+                            return c
+                    else:
+                        return +1
                 else:
-                    return +1
-            else:
-                if isinstance(j, FixedIndex):
-                    return -1
-                else:
-                    pass # Both are Index, do not depend on count!
-        # Failed to make a decision, return 0 by default
+                    if isinstance(j, FixedIndex):
+                        return -1
+                    else:
+                        pass # Both are Index, do not depend on count!
+            # Failed to make a decision, return 0 by default (this does not mean equality, it could be e.g. [i,0] vs [j,0] because the counts of i,j cannot be used)
+            return 0
+ 
+        # ... Label object?
+        elif isinstance(a, Label):
+            # Don't compare counts! Causes circular problems when renumbering to get a canonical form.
+            # Therefore, even though a and b are not equal in general (__eq__ won't be True),
+            # but for this sorting they are considered equal and we return 0.
+            return 0
+ 
+        # ... Coefficient?
+        elif isinstance(a, Coefficient):
+            # It's ok to compare relative counts for Coefficients,
+            # since their ordering is a property of the form
+            return _cmp3(a._count, b._count)
+ 
+        # ... Argument?
+        elif isinstance(a, Argument):
+            # It's ok to compare relative number and part for Arguments,
+            # since their ordering is a property of the form
+            return _cmp3((a._number, a._part), (b._number, b._part))
+ 
+        # ... another kind of Terminal object?
+        else:
+            # The cost of repr on a terminal is fairly small, and bounded
+            return _cmp3(repr(a), repr(b))
+    else:
+        # If the hash is the same, assume equal for the purpose of sorting. This introduces a minor chance of nondeterministic behaviour.
+        if 0:
+            if hash(a) == hash(b): # FIXME: Test this for performance improvement.
+                return 0
+ 
+        # TODO: Since the type is the same, the number of children is always the same? Remove?
+        if 1:
+            aops = a.operands()
+            bops = b.operands()
+            c = _cmp3(len(aops), len(bops))
+            if c != 0:
+                return c
+ 
+        # Sort by children in natural order
+        for (r, s) in izip(aops, bops):
+            # Ouch! This becomes worst case O(n) then?
+            # FIXME: Perhaps replace with comparison of hash value? Is that stable between runs?
+            c = cmp_expr(r, s)
+            if c != 0:
+                return c
+ 
+        # All children compare as equal, a and b must be equal
         return 0
-
-    # ... Label object?
-    elif isinstance(a, Label):
-        # Don't compare counts! Causes circular problems when renumbering to get a canonical form.
-        # Therefore, even though a and b are not equal in general (__eq__ won't be True),
-        # but for this sorting they are considered equal and we return 0.
-        return 0
-
-    # ... Coefficient?
-    elif isinstance(a, Coefficient):
-        # It's ok to compare relative counts for Coefficients,
-        # since their ordering is a property of the form
-        return _cmp3(a._count, b._count)
-
-    # ... Argument?
-    elif isinstance(a, Argument):
-        # It's ok to compare relative number and part for Arguments,
-        # since their ordering is a property of the form
-        return _cmp3((a._number, a._part), (b._number, b._part))
-
-    # ... another kind of Terminal object?
-    elif isinstance(a, Terminal):
-        # The cost of repr on a terminal is fairly small, and bounded
-        return _cmp3(repr(a), repr(b))
-
-    # Not a terminal, sort by number of children (usually the same)
-    aops = a.operands()
-    bops = b.operands()
-    c = _cmp3(len(aops), len(bops))
-    if c != 0:
-        return c
-
-    # Sort by children in natural order
-    for (r, s) in izip(aops, bops):
-        # Ouch! This becomes worst case O(n) then?
-        # FIXME: Perhaps replace with comparison of hash value? Is that stable between runs?
-        c = cmp_expr(r, s)
-        if c != 0:
-            return c
-
-    # All children compare as equal, a and b must be equal
-    return 0
 
 # Not in python 2.6...
 #from functools import cmp_to_key

@@ -61,22 +61,25 @@ def traverse_terminals(expr):
     input = [expr]
     while input:
         e = input.pop()
-        if isinstance(e, Terminal):
-            yield e
+        ops = e.operands()
+        if ops: # Checking ops is faster than isinstance(e, Terminal)
+            input.extend(ops)
         else:
-            input.extend(e.operands())
+            yield e
 
-def traverse_terminals2(expr, visited=None):
+def traverse_unique_terminals(expr, visited=None):
     input = [expr]
     visited = visited or set()
     while input:
         e = input.pop()
         if e not in visited:
             visited.add(e)
-            if isinstance(e, Terminal):
-                yield e
+            ops = e.operands()
+            if ops:
+                input.extend(ops)
             else:
-                input.extend(e.operands())
+                yield e
+traverse_terminals2 = traverse_unique_terminals # TODO: Replace calls with this more descriptive name
 
 def traverse_operands(expr):
     input = [expr]

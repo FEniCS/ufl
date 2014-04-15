@@ -18,9 +18,6 @@ mostly intended for debugging purposers."""
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
-#
-# First added:  2008-11-17
-# Last changed: 2014-01-21
 
 from itertools import chain
 
@@ -222,11 +219,11 @@ def ufl2dot(expression, formname="a", nodeoffset=0, begin=True, end=True, labeli
         for itgs in (ci, ei, ii, pi, mi):
             for itg in itgs:
                 prefix = "itg%d_" % k
-                integralkey = "%s%s" % (itg.domain_type(), itg.domain_id())
+                integralkey = "%s%s" % (itg.integral_type(), itg.subdomain_id())
 
-                integrallabel = "%s %s" % (itg.domain_type().capitalize().replace("_", " "), "integral")
+                integrallabel = "%s %s" % (itg.integral_type().capitalize().replace("_", " "), "integral")
                 if len(itgs) > 1:
-                    integrallabel += " %s" % (itg.domain_id(),)
+                    integrallabel += " %s" % (itg.subdomain_id(),)
 
                 integrand = itg.integrand()
 

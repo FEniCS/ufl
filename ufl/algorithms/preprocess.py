@@ -87,7 +87,7 @@ def join_subdomain_data(integrals, domains):
     subdomain_data = defaultdict(dict)
     for itg in integrals:
         # Get data and skip if there's none
-        dd = itg.domain_data()
+        dd = itg.subdomain_data()
         if dd is None:
             continue
 
@@ -98,7 +98,7 @@ def join_subdomain_data(integrals, domains):
             l = l2l[None]
         else:
             l = l2l[d.label()]
-        dt = itg.domain_type()
+        dt = itg.integral_type()
 
         # Store data with label/domain type, or make sure it'd compatible if already stored
         old_dd = subdomain_data[l].get(dt)

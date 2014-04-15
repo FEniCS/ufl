@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from ufl.log import error
+from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.classes import (Terminal, ReferenceGrad, Grad,
                          Jacobian, JacobianInverse, JacobianDeterminant,
@@ -26,9 +26,10 @@ from ufl.classes import (Terminal, ReferenceGrad, Grad,
 from ufl.constantvalue import as_ufl
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
 from ufl.algorithms.analysis import extract_type
-from ufl.indexing import indices
+from ufl.indexing import Index, indices
 from ufl.tensors import as_tensor
-from ufl.compound_expressions import determinant_expr, inverse_expr
+from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
+from ufl.operators import sqrt
 
 class ChangeToReferenceGrad(ReuseTransformer):
     def __init__(self):
@@ -292,35 +293,33 @@ def change_to_reference_geometry(e, physical_coordinates_known):
     return apply_transformer(e, ChangeToReferenceGeometry(physical_coordinates_known))
 
 
-def compute_integrand_scaling_factor(domain, domain_type):
+def compute_integrand_scaling_factor(domain, integral_type):
     """Change integrand geometry to the right representations."""
 
     weight = QuadratureWeight(domain)
 
-    if domain_type == "cell":
+    if integral_type == "cell":
         scale = abs(JacobianDeterminant(domain)) * weight
-    elif domain_type == "exterior_facet":
+    elif integral_type == "exterior_facet":
         scale = FacetJacobianDeterminant(domain) * weight
-    elif domain_type == "interior_facet":
+    elif integral_type == "interior_facet":
         scale = FacetJacobianDeterminant(domain)('-') * weight # TODO: Arbitrary restriction to '-', is that ok?
-    elif domain_type == "quadrature_cell":
+    elif integral_type == "quadrature":
         scale = weight
-    elif domain_type == "quadrature_facet":
-        scale = weight
-    elif domain_type == "point":
+    elif integral_type == "point":
         scale = 1
 
     return scale
 
 
-def change_integrand_geometry_representation(integrand, scale, domain_type):
+def change_integrand_geometry_representation(integrand, scale, integral_type):
     """Change integrand geometry to the right representations."""
 
     integrand = change_to_reference_grad(integrand)
 
     integrand = integrand * scale
 
-    if domain_type in ("quadrature_cell", "quadrature_facet"):
+    if integral_type == "quadrature":
         physical_coordinates_known = True
     else:
         physical_coordinates_known = False

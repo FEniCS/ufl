@@ -33,10 +33,11 @@ from ufl.common import counted_init
 
 class Terminal(Expr):
     "A terminal node in the UFL expression tree."
-    __slots__ = ()
+    __slots__ = ("_hash",)
 
     def __init__(self):
         Expr.__init__(self)
+        self._hash = None
 
     def reconstruct(self, *operands):
         "Return self."
@@ -102,7 +103,9 @@ class Terminal(Expr):
 
     def __hash__(self):
         "Default hash of terminals just hash the repr string."
-        return hash(repr(self))
+        if self._hash is None:
+            self._hash = hash(repr(self))
+        return self._hash
 
     def __eq__(self, other):
         "Default comparison of terminals just compare repr strings."

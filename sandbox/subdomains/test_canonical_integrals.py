@@ -5,7 +5,7 @@ from ufl import *
 # Transitional helper constructor
 from ufl.integral import Integral2
 
-from ufl.algorithms.domain_analysis import (extract_domain_data_from_integral_dict,
+from ufl.algorithms.domain_analysis import (extract_subdomain_data_from_integral_dict,
                                             extract_integral_data_from_integral_dict)
 
 # Run for testing and inspection
@@ -48,12 +48,12 @@ def test():
     # Create form from all mock integrals to make test more realistic
     form = Form(integrals["cell"])
 
-    domain_data = extract_domain_data_from_integral_dict(form._dintegrals)
+    subdomain_data = extract_subdomain_data_from_integral_dict(form._dintegrals)
     integral_data = extract_integral_data_from_integral_dict(form._dintegrals)
 
     print
     print "Domain data:"
-    print domain_data
+    print subdomain_data
     print
 
     print

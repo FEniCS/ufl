@@ -18,73 +18,22 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2008
-#
-# First added:  2008-03-14
-# Last changed: 2012-05-23
 
 from itertools import imap
 from ufl.expr import Expr
 from ufl.log import error
 
-# Modified from ufl.algorithms.traveral to avoid circular dependencies...
-def traverse_terminals2(expr):
-    input = [expr]
-    while input:
-        e = input.pop()
-        ops = e.operands()
-        if ops:
-            input.extend(ops)
-        else:
-            yield e
-
-def typetuple(e):
-    return tuple(type(o) for o in e.operands())
-
-def compute_hash1(expr): # Crap
-    return hash((type(expr), tuple((type(o), typetuple(o)) for o in expr.operands())))
-
-def compute_hash2(expr): # Best so far
+def _compute_hash(expr): # Best so far
     hashdata = ( (expr.__class__._uflclass,)
             + tuple(hash(o) for o in expr.operands()) )
     return hash(str(hashdata))
-
-def compute_hash3(expr): # Crap
-    h = (type(expr).__name__,) + expr.operands()
-    return hash(h)
-
-def get_some_terminals(expr):
-    some = []
-    for t in traverse_terminals2(expr):
-        some.append(t)
-        if len(some) == 5:
-            return some
-    return some
-
-def compute_hash4(expr): # Not as good as 2
-    h = ( (type(expr).__name__,) +
-           tuple(type(o).__name__ for o in expr.operands()) +
-           tuple(imap(repr, get_some_terminals(expr))) )
-    return hash(str(h))
-
-def compute_hash5(expr): # Just as good as 2, with additional work
-    hashdata = ((type(expr).__name__,)
-             +  tuple(hash(o) for o in expr.operands())
-             +  tuple(repr(t) for t in get_some_terminals(expr)))
-    return hash(hashdata)
-
-#import md5 # use hashlib instead if we need this
-#def compute_hash6(expr): # Exactly as good as 2, with additional work
-#    hashdata = ( (expr.__class__._uflclass,)
-#            + tuple(hash(o) for o in expr.operands()) )
-#    return hash(md5.md5(str(hashdata)).digest())
 
 _hashes = set()
 _hashes_added = 0
 def compute_hash_with_stats(expr):
     global _hashes, _hashes_added
 
-    h = compute_hash2(expr)
-    #h = compute_hash6(expr)
+    h = compute_hash(expr)
 
     _hashes.add(h)
     _hashes_added += 1
@@ -94,7 +43,7 @@ def compute_hash_with_stats(expr):
     return h
 
 # This seems to be the best of the above
-compute_hash = compute_hash2
+compute_hash = _compute_hash
 #compute_hash = compute_hash_with_stats
 
 
@@ -115,7 +64,6 @@ class Operator(Expr):
         if self._hash is None:
             self._hash = compute_hash(self)
         return self._hash
-        #return compute_hash(self) # REPR TODO: Cache or not?
 
     def __getnewargs__(self):
         return self.operands()

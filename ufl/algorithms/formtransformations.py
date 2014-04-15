@@ -21,9 +21,6 @@ complete Forms into new related Forms."""
 # Modified by Anders Logg, 2008-2009.
 # Modified by Garth N. Wells, 2010.
 # Modified by Marie E. Rognes, 2010.
-#
-# First added:  2008-10-01
-# Last changed: 2012-04-12
 
 from ufl.common import product
 from ufl.log import error, warning, debug
@@ -36,8 +33,7 @@ from ufl.constantvalue import Zero
 from ufl.algebra import Sum
 
 # Other algorithms:
-from ufl.algorithms.traversal import traverse_terminals
-from ufl.algorithms.analysis import extract_arguments
+from ufl.algorithms.analysis import extract_arguments, expr_has_terminal_types
 from ufl.algorithms.transformer import Transformer, transform_integrands
 from ufl.algorithms.replace import replace
 
@@ -57,9 +53,7 @@ class PartExtracter(Transformer):
     def expr(self, x):
         """The default is a nonlinear operator not accepting any
         Arguments among its children."""
-
-        # FIXME: This check makes this an O(n^2) algorithm...
-        if any(isinstance(t, Argument) for t in traverse_terminals(x)):
+        if expr_has_terminal_types(x, Argument):
             error("Found Argument in %s, this is an invalid expression." % repr(x))
         return (x, set())
 
@@ -128,6 +122,7 @@ class PartExtracter(Transformer):
 
         # 1. Skip terms that provide too much
         original_terms = x.operands()
+        assert len(original_terms) == 2
         for term in original_terms:
 
             # Visit this term in the sum
@@ -161,10 +156,10 @@ class PartExtracter(Transformer):
                 most_provided = provideds
 
         terms = parts_that_provide[most_provided]
-        if len(terms) == len(original_terms):
+        if len(terms) == 2:
             x = self.reuse_if_possible(x, *terms)
         else:
-            x = Sum(*terms)
+            x, = terms
 
         return (x, most_provided)
 
@@ -206,7 +201,7 @@ class PartExtracter(Transformer):
         numerator, denominator = x.operands()
 
         # Check for Arguments in the denominator
-        if any(isinstance(t, Argument) for t in traverse_terminals(denominator)):
+        if expr_has_terminal_types(denominator, Argument):
             error("Found Argument in denominator of %s , this is an invalid expression." % repr(x))
 
         # Visit numerator

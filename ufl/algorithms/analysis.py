@@ -19,9 +19,6 @@
 #
 # Modified by Anders Logg, 2009-2010.
 # Modified by Johan Hake, 2010.
-#
-# First added:  2008-03-14
-# Last changed: 2013-01-02
 
 from itertools import izip, chain
 from collections import namedtuple
@@ -45,22 +42,45 @@ from ufl.algorithms.traversal import iter_expressions, post_traversal, post_walk
 
 #--- Utilities to extract information from an expression ---
 
+# TODO: Some of these can possibly be optimised by implementing inlined stack based traversal algorithms
+
 def extract_classes(a):
     """Build a set of all unique Expr subclasses used in a.
     The argument a can be a Form, Integral or Expr."""
-    return set(o._uflclass for e in iter_expressions(a) \
-                        for o in post_traversal(e))
+    return set(o._uflclass
+               for e in iter_expressions(a)
+               for o in post_traversal(e))
 
 def extract_type(a, ufl_type):
     """Build a set of all objects of class ufl_type found in a.
     The argument a can be a Form, Integral or Expr."""
     if issubclass(ufl_type, Terminal):
-        return set(o for e in iter_expressions(a) \
-                     for o in traverse_terminals(e) \
-                     if isinstance(o, ufl_type))
-    return set(o for e in iter_expressions(a) \
-                 for o in post_traversal(e) \
-                 if isinstance(o, ufl_type))
+        return set(o for e in iter_expressions(a)
+                   for o in traverse_terminals(e)
+                   if isinstance(o, ufl_type))
+    return set(o for e in iter_expressions(a)
+               for o in post_traversal(e)
+               if isinstance(o, ufl_type))
+
+def expr_has_terminal_types(expr, ufl_types):
+    input = [expr]
+    while input:
+        e = input.pop()
+        ops = e.operands()
+        if ops:
+            input.extend(ops)
+        elif isinstance(e, ufl_types):
+            return True
+    return False
+
+def expr_has_types(expr, ufl_types):
+    input = [expr]
+    while input:
+        e = input.pop()
+        if isinstance(e, ufl_types):
+            return True
+        input.extend(e.operands())
+    return False
 
 def has_type(a, ufl_types):
     """Check if any class from ufl_types is found in a.
@@ -68,12 +88,11 @@ def has_type(a, ufl_types):
     if issubclass(ufl_types, Expr):
         ufl_types = (ufl_types,)
     if all(issubclass(ufl_type, Terminal) for ufl_type in ufl_types):
-        return any(isinstance(o, ufl_types) \
-                   for e in iter_expressions(a) \
-                   for o in traverse_terminals(e))
-    return any(isinstance(o, ufl_types) \
-               for e in iter_expressions(a) \
-               for o in post_traversal(e))
+        return any(expr_has_terminal_types(e, ufl_types)
+                   for e in iter_expressions(a))
+    else:
+        return any(expr_has_types(e, ufl_types)
+                   for e in iter_expressions(a))
 
 def extract_terminals(a):
     "Build a set of all Terminal objects in a."
@@ -276,17 +295,17 @@ def extract_num_sub_domains(form):
         if label not in num_sub_domains:
             num_sub_domains[label] = {}
 
-        domain_id = integral.domain_id()
-        max_domain_id = None
-        if isinstance(domain_id, int):
-            max_domain_id = domain_id
-        elif isinstance(domain_id, tuple):
-            max_domain_id = max(did for did in domain_id)
+        subdomain_id = integral.subdomain_id()
+        max_subdomain_id = None
+        if isinstance(subdomain_id, int):
+            max_subdomain_id = subdomain_id
+        elif isinstance(subdomain_id, tuple):
+            max_subdomain_id = max(did for did in subdomain_id)
 
-        domain_type = integral.domain_type()
-        if max_domain_id is not None:
-            prev = num_sub_domains[label].get(domain_type, 0)
-            num_sub_domains[label][domain_type] = max(prev, max_domain_id + 1)
+        integral_type = integral.integral_type()
+        if max_subdomain_id is not None:
+            prev = num_sub_domains[label].get(integral_type, 0)
+            num_sub_domains[label][integral_type] = max(prev, max_subdomain_id + 1)
 
     return num_sub_domains
 

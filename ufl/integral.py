@@ -31,25 +31,25 @@ from ufl.protocols import id_or_none
 class Integral(object):
     "An integral over a single domain."
     __slots__ = ("_integrand",
-                 "_domain_type",
+                 "_integral_type",
                  "_domain",
-                 "_domain_id",
+                 "_subdomain_id",
                  "_metadata",
-                 "_domain_data",
+                 "_subdomain_data",
                  )
-    def __init__(self, integrand, domain_type, domain, domain_id, metadata, domain_data):
+    def __init__(self, integrand, integral_type, domain, subdomain_id, metadata, subdomain_data):
         ufl_assert(isinstance(integrand, Expr),
                    "Expecting integrand to be an Expr instance.")
         self._integrand = integrand
-        self._domain_type = domain_type
+        self._integral_type = integral_type
         self._domain = domain
-        self._domain_id = domain_id
+        self._subdomain_id = subdomain_id
         self._metadata = metadata
-        self._domain_data = domain_data
+        self._subdomain_data = subdomain_data
 
     def reconstruct(self, integrand=None,
-                    domain_type=None, domain=None, domain_id=None,
-                    metadata=None, domain_data=None):
+                    integral_type=None, domain=None, subdomain_id=None,
+                    metadata=None, subdomain_data=None):
         """Construct a new Integral object with some properties replaced with new values.
 
         Example:
@@ -59,41 +59,41 @@ class Integral(object):
         """
         if integrand is None:
             integrand = self.integrand()
-        if domain_type is None:
-            domain_type = self.domain_type()
+        if integral_type is None:
+            integral_type = self.integral_type()
         if domain is None:
             domain = self.domain()
-        if domain_id is None:
-            domain_id = self.domain_id()
+        if subdomain_id is None:
+            subdomain_id = self.subdomain_id()
         if metadata is None:
             metadata = self.metadata()
-        if domain_data is None:
-            domain_data = self._domain_data
-        return Integral(integrand, domain_type, domain, domain_id, metadata, domain_data)
+        if subdomain_data is None:
+            subdomain_data = self._subdomain_data
+        return Integral(integrand, integral_type, domain, subdomain_id, metadata, subdomain_data)
 
     def integrand(self):
         "Return the integrand expression, which is an Expr instance."
         return self._integrand
 
-    def domain_type(self):
+    def integral_type(self):
         "Return the domain type of this integral."
-        return self._domain_type
+        return self._integral_type
 
     def domain(self):
         "Return the integration domain of this integral."
         return self._domain
 
-    def domain_id(self):
-        "Return the domain id of this integral."
-        return self._domain_id
+    def subdomain_id(self):
+        "Return the subdomain id of this integral."
+        return self._subdomain_id
 
     def metadata(self):
         "Return the compiler metadata this integral has been annotated with."
         return self._metadata
 
-    def domain_data(self):
+    def subdomain_data(self):
         "Return the domain data of this integral."
-        return self._domain_data
+        return self._subdomain_data
 
     def __neg__(self):
         return self.reconstruct(-self._integrand)
@@ -111,28 +111,28 @@ class Integral(object):
 
     def __str__(self):
         fmt = "{ %s } * %s(%s[%s], %s)"
-        mname = ufl.measure.domain_type_to_measure_name[self._domain_type]
-        s = fmt % (self._integrand, mname, self._domain, self._domain_id, self._metadata)
+        mname = ufl.measure.integral_type_to_measure_name[self._integral_type]
+        s = fmt % (self._integrand, mname, self._domain, self._subdomain_id, self._metadata)
         return s
 
     def __repr__(self):
         return "Integral(%r, %r, %r, %r, %r, %r)" % (
-            self._integrand, self._domain_type, self._domain, self._domain_id, self._metadata, self._domain_data)
+            self._integrand, self._integral_type, self._domain, self._subdomain_id, self._metadata, self._subdomain_data)
 
     def __eq__(self, other):
         return (isinstance(other, Integral)
-            and self._domain_type == other._domain_type
+            and self._integral_type == other._integral_type
             and self._domain == other._domain
-            and self._domain_id == other._domain_id
+            and self._subdomain_id == other._subdomain_id
             and self._integrand == other._integrand
             and self._metadata == other._metadata
-            and id_or_none(self._domain_data) == id_or_none(other._domain_data))
+            and id_or_none(self._subdomain_data) == id_or_none(other._subdomain_data))
 
     def __hash__(self):
         # Assuming few collisions by ignoring hash(self._metadata)
         # (a dict is not hashable but we assume it is immutable in practice)
-        hashdata = (hash(self._integrand), self._domain_type,
-                    hash(self._domain), self._domain_id,
-                    id_or_none(self._domain_data))
+        hashdata = (hash(self._integrand), self._integral_type,
+                    hash(self._domain), self._subdomain_id,
+                    id_or_none(self._subdomain_data))
         return hash(hashdata)
 

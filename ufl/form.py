@@ -18,9 +18,6 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2009-2011.
-#
-# First added:  2008-03-14
-# Last changed: 2013-01-02
 
 import hashlib
 from itertools import chain
@@ -40,7 +37,7 @@ from ufl.protocols import id_or_none
 def integral_sort_key(integral):
     domain = integral.domain()
     label = None if domain is None else domain.label()
-    return (label, integral.domain_type(), integral.domain_id())
+    return (label, integral.integral_type(), integral.subdomain_id())
 
 def replace_integral_domains(form, common_domain): # TODO: Move elsewhere
     """Given a form and a domain, assign a common integration domain to all integrals.
@@ -142,10 +139,10 @@ class Form(object):
         "Return a sequence of all integrals in form."
         return self._integrals
 
-    def integrals_by_type(self, domain_type):
+    def integrals_by_type(self, integral_type):
         "Return a sequence of all integrals with a particular domain type."
         return [integral for integral in self.integrals()
-                if integral.domain_type() == domain_type]
+                if integral.integral_type() == integral_type]
 
     def empty(self):
         return self.integrals() == ()

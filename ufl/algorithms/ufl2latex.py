@@ -21,12 +21,10 @@ converting UFL expressions to other representations."""
 #
 # Modified by Anders Logg, 2008-2009.
 # Modified by Kristian B. Oelgaard, 2011
-#
-# First added:  2008-05-07
-# Last changed: 2011-10-21
 
 from itertools import chain
 
+import ufl
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.common import write_file, pdflatex, openpdf
@@ -378,6 +376,7 @@ def element2latex(element):
     e = str(element)
     e = e.replace("<", "")
     e = e.replace(">", "")
+    e = "fixme"
     return r"{\mbox{%s}}" % e
 
 domain_strings = { "cell": r"\Omega",
@@ -466,25 +465,25 @@ def form2latex(form, formdata):
         # TODO: Get list of expression strings instead of single expression!
         integrand_string = expression2latex(itg.integrand(), formdata.argument_names, formdata.coefficient_names)
 
-        domain_type = itg.domain_type()
-        dstr = domain_strings[domain_type]
+        integral_type = itg.integral_type()
+        dstr = domain_strings[integral_type]
 
         domain = itg.domain()
         label = domain.label()
         # TODO: Use domain label!
 
-        domain_id = itg.domain_id()
-        if isinstance(domain_id, int):
-            dstr += "_{%d}" % domain_id
-        elif domain_id == "everywhere":
+        subdomain_id = itg.subdomain_id()
+        if isinstance(subdomain_id, int):
+            dstr += "_{%d}" % subdomain_id
+        elif subdomain_id == "everywhere":
             pass
-        elif domain_id == "otherwise":
+        elif subdomain_id == "otherwise":
             dstr += "_{\text{oth}}"
-        elif isinstance(domain_id, tuple):
-            dstr += "_{%s}" % domain_id
+        elif isinstance(subdomain_id, tuple):
+            dstr += "_{%s}" % subdomain_id
 
         b = p + "\\int_{%s}" % (dstr,)
-        dxstr = ufl.measure.domain_type_to_measure_name[domain_type]
+        dxstr = ufl.measure.integral_type_to_measure_name[integral_type]
         c = "{ %s } \\,%s" % (integrand_string, dxstr)
         lines.append((a, b, c))
         a = "{}"
@@ -639,7 +638,7 @@ def form2code2latex(formdata):
 
     # Render each integral as a separate section
     for itg in formdata.form.integrals_by_type(Measure.CELL):
-        title = "%s integral over domain %d" % (itg.domain_type(), itg.domain_id())
+        title = "%s integral over domain %d" % (itg.integral_type(), itg.subdomain_id())
 
         G, partitions = integrand2code(itg.integrand(), formdata)
 
@@ -659,8 +658,7 @@ def forms2latexdocument(forms, uflfilename, compile=False):
     for form in forms:
 
         # Compute form data
-        form = preprocess(form)
-        form_data = form.form_data()
+        form_data = preprocess(form)
 
         # Generate LaTex code
         title = "Form %s" % form_data.name

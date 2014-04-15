@@ -43,9 +43,9 @@ def write_file(filename, text):
     f.write(text)
     f.close()
 
-def pdflatex(latexfilename, pdffilename, flags): # TODO: Options for this.
+def pdflatex(latexfilename, pdffilename, flags=""): # TODO: Options for this.
     "Execute pdflatex to compile a latex file into pdf."
-    flags = "-file-line-error-style -interaction=nonstopmode"
+    flags += "-file-line-error-style -interaction=nonstopmode"
     latexcmd = "pdflatex"
     cmd = "%s %s %s %s" % (latexcmd, flags, latexfilename, pdffilename)
     s, o = get_status_output(cmd)
@@ -79,6 +79,11 @@ def mergedicts(dicts):
     d = dict(dicts[0])
     for d2 in dicts[1:]:
         d.update(d2)
+    return d
+
+def mergedicts2(d1, d2):
+    d = dict(d1)
+    d.update(d2)
     return d
 
 def subdict(superdict, keys):

@@ -218,13 +218,26 @@ def _handle_derivative_arguments(form, coefficient, argument):
 
 def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
     """UFL form operator:
-    Given any form, compute the linearization of the
-    form with respect to the given Coefficient.
+    Compute the Gateaux derivative of form w.r.t. coefficient in direction of argument.
+
+    If the argument is omitted, a new Argument is created
+    in the same space as the coefficient, with argument number
+    one higher than the highest one in the form.
+
     The resulting form has one additional Argument
     in the same finite element space as the coefficient.
+
     A tuple of Coefficients may be provided in place of
     a single Coefficient, in which case the new Argument
-    argument is based on a MixedElement created from this tuple."""
+    argument is based on a MixedElement created from this tuple.
+
+    An indexed Coefficient from a mixed space may be provided,
+    in which case the argument should be in the corresponding
+    subspace of the coefficient space.
+
+    If provided, coefficient_derivatives should be a mapping from
+    Coefficient instances to their derivatives w.r.t. 'coefficient'.
+    """
 
     coefficients, arguments = _handle_derivative_arguments(form, coefficient, argument)
 
