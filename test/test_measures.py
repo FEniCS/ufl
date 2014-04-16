@@ -39,7 +39,7 @@ class MeasureTestCase(UflTestCase):
 
         self.assertEqual(ds.integral_type(), "exterior_facet")
         self.assertEqual(dS.integral_type(), "interior_facet")
-        self.assertEqual(dc.integral_type(), "surface")
+        self.assertEqual(dc.integral_type(), "custom")
         #self.assertEqual(dI.integral_type(), "interface")
 
         self.assertEqual(dP.integral_type(), "point")
