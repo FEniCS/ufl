@@ -27,7 +27,7 @@ from ufl.assertions import ufl_assert
 from ufl.common import istr, EmptyDict
 from ufl.terminal import Terminal
 from ufl.protocols import id_or_none
-from ufl.cell import as_cell, cellname2dim, cellname2facetname, affine_cells, Cell, ProductCell
+from ufl.cell import as_cell, cellname2dim, cell2dim, cellname2facetname, affine_cells, Cell, ProductCell
 from ufl.domain import as_domain, Domain, extract_domains, join_domains, ProductDomain
 
 
