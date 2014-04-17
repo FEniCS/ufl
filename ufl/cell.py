@@ -45,6 +45,19 @@ cellname2dim = {
     "hexahedron":    3,
     }
 
+def cell2dim(cell):
+    "Maps from UFL cell or cell name to topological dimension"
+    if isinstance(cell, str):
+        # Backwards compatibility
+        cellname = cell
+    else:
+        cellname = cell.cellname()
+
+    if cellname == "OuterProductCell":
+        return cell2dim(cell._A) + cell2dim(cell._B)
+    else:
+        return cellname2dim[cellname]
+
 # Mapping from cell name to facet name
 cellname2facetname = {
     "cell0D": None,
@@ -56,13 +69,14 @@ cellname2facetname = {
     "triangle":      "interval",
     "tetrahedron":   "triangle",
     "quadrilateral": "interval",
-    "hexahedron":    "quadrilateral"
+    "hexahedron":    "quadrilateral",
+    "OuterProductCell": None
     }
 
 affine_cells = set(("vertex", "interval", "triangle", "tetrahedron"))
 
 # Valid UFL cellnames
-ufl_cellnames = tuple(sorted(cellname2dim.keys()))
+ufl_cellnames = tuple(sorted(cellname2dim.keys() + ["OuterProductCell"]))
 
 
 # --- Basic cell representation classes
