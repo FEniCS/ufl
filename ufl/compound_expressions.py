@@ -63,7 +63,6 @@ def pseudo_inverse_expr(A):
 def determinant_expr(A):
     "Compute the determinant of A."
     sh = A.shape()
-
     if sh == ():
         return A
     elif sh[0] == sh[1]:
@@ -97,7 +96,10 @@ def inverse_expr(A):
     if sh == ():
         return 1.0 / A
     elif sh[0] == sh[1]:
-        return adj_expr(A) / determinant_expr(A)
+        if sh[0] == 1:
+            return as_tensor(((1.0 / A[0,0],),))
+        else:
+            return adj_expr(A) / determinant_expr(A)
     else:
         return pseudo_inverse_expr(A)
 

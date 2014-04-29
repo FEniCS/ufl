@@ -94,8 +94,6 @@ class CompoundExpander(ReuseTransformer):
         return cofactor_expr(A)
 
     def inverse(self, o, A):
-        if A.rank() == 0:
-            return 1.0 / A
         return inverse_expr(A)
 
     # ------------ Compound differential operators
