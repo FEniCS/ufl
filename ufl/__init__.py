@@ -60,6 +60,7 @@ A very brief overview of the language contents follows:
     EnrichedElement, RestrictedElement,
     TensorProductElement, OuterProductElement,
     OuterProductVectorElement, HDiv, HCurl
+    BrokenElement
 
 * Arguments::
 
@@ -204,7 +205,7 @@ from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
     MixedElement, VectorElement, TensorElement, EnrichedElement, \
     RestrictedElement, TensorProductElement, OuterProductElement, \
-    OuterProductVectorElement, HDiv, HCurl
+    OuterProductVectorElement, HDiv, HCurl, BrokenElement
 
 # Hook to extend predefined element families
 from ufl.finiteelement.elementlist import register_element, show_elements #, ufl_elements
@@ -294,6 +295,7 @@ __all__ = [
     'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
     'RestrictedElement', 'TensorProductElement', 'OuterProductElement',
     'OuterProductVectorElement', 'HDiv', 'HCurl',
+    'BrokenElement',
     'register_element', 'show_elements',
     'Argument', 'TestFunction', 'TrialFunction',
     'Arguments', 'TestFunctions', 'TrialFunctions',
