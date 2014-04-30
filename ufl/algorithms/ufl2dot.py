@@ -255,7 +255,7 @@ def ufl2dot(expression, formname="a", nodeoffset=0, begin=True, end=True, labeli
         nodes = {}
         edges = []
 
-        build_entities(integrand, nodes, edges, nodeoffset, labeller)
+        build_entities(expression, nodes, edges, nodeoffset, '', labeller)
         entitylist = format_entities(nodes, edges)
         s = exprgraphformat % entitylist
 
