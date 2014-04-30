@@ -37,3 +37,4 @@ from ufl.finiteelement.outerproductelement import OuterProductElement
 from ufl.finiteelement.outerproductelement import OuterProductVectorElement
 from ufl.finiteelement.hdivcurl import HDiv, HCurl
 from ufl.finiteelement.brokenelement import BrokenElement
+from ufl.finiteelement.trace import TraceSpace
