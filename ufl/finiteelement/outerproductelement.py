@@ -80,9 +80,9 @@ class OuterProductElement(FiniteElementBase):
         This differs from repr in that it does not include domain
         label and data, which must be reconstructed or supplied by other means.
         """
-        return "OuterProductElement(%s)" \
-            % str([self._A.reconstruction_signature(),
-                   self._B.reconstruction_signature()])
+        return "OuterProductElement(%r, %r, %s, %r)" % (
+            self._A, self._B, self.domain().reconstruction_signature(),
+            self._quad_scheme)
 
     def __str__(self):
         "Pretty-print."
@@ -95,11 +95,10 @@ class OuterProductElement(FiniteElementBase):
             % str([self._A.shortstr(), self._B.shortstr()])
 
     def signature_data(self, domain_numbering):
-        data = ("OuterProductElement",
-                ("no domain" if self._domain is None else self._domain
-                    .signature_data(domain_numbering=domain_numbering)),
-                tuple(e.signature_data(domain_numbering=domain_numbering)
-                      for e in (self._A, self._B)))
+        data = ("OuterProductElement", self._A, self._B,
+                self._quad_scheme,
+                ("no domain" if self._domain is None else
+                 self._domain.signature_data(domain_numbering=domain_numbering)))
         return data
 
 
@@ -145,7 +144,7 @@ class OuterProductVectorElement(MixedElement):
 
     def signature_data(self, domain_numbering):
         data = ("OuterProductVectorElement", self._A, self._B,
-                len(self._sub_elements), self._quad_scheme, self._form_degree,
+                len(self._sub_elements), self._quad_scheme,
                 ("no domain" if self._domain is None else
                     self._domain.signature_data(domain_numbering=domain_numbering)))
         return data
