@@ -20,9 +20,6 @@
 # Modified by Kristian B. Oelgaard
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Anders Logg 2014
-#
-# First added:  2008-03-03
-# Last changed: 2014-02-24
 
 from itertools import izip
 from ufl.assertions import ufl_assert
@@ -31,14 +28,23 @@ from ufl.common import product, index_to_component, component_to_index, istr, Em
 from ufl.geometry import as_domain, as_cell, cellname2facetname, ProductCell
 from ufl.log import info_blue, warning, warning_blue, error
 
-from ufl.finiteelement.elementlist import ufl_elements, aliases
+from ufl.finiteelement.elementlist import canonical_element_description
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 class FiniteElement(FiniteElementBase):
     "The basic finite element class for all simple finite elements"
-    def __init__(self, family, domain=None, degree=None, form_degree=None,
+    # TODO: Move these to base?
+    __slots__ = ("_short_name",
+                 "_sobolev_space",
+                 "_reference_value_shape",
+                )
+    def __init__(self,
+                 family,
+                 domain=None,
+                 degree=None,
+                 form_degree=None,
                  quad_scheme=None):
-        """Create finite element
+        """Create finite element.
 
         *Arguments*
             family (string)
@@ -60,52 +66,13 @@ class FiniteElement(FiniteElementBase):
             cell = domain.cell()
             ufl_assert(cell is not None, "Missing cell in given domain.")
 
-        # Check whether this family is an alias for something else
-        if family in aliases:
-            (name, dummy_cell, r) = aliases[family](family, cell, degree, form_degree)
-            #info_blue("%s, is an alias for %s " % (
-            #        (family, cell, degree, form_degree),
-            #        (name, dummy_cell, r)))
-            ufl_assert(cell == dummy_cell,
-                       "Breaking assumption in element alias mapping.")
-            self.__init__(name, domain, r, quad_scheme)
-            return
+        family, short_name, degree, value_shape, reference_value_shape, sobolev_space = \
+          canonical_element_description(family, cell, degree, form_degree)
 
-        # Check that the element family exists
-        ufl_assert(family in ufl_elements,
-                   'Unknown finite element "%s".' % family)
-
-        # Check that element data is valid (and also get common family name)
-        (family, self._short_name, value_rank, krange, cellnames) =\
-            ufl_elements[family]
-
-        # Validate cellname if a valid cell is specified
-        if cell is not None:
-            ufl_assert(cell.cellname() in cellnames,
-                       'Cellname "%s" invalid for "%s" finite element.' % (
-                           cell.cellname(), family))
-
-        # Validate degree if specified
-        if degree is not None:
-            ufl_assert(krange is not None,
-                       'Degree "%s" invalid for "%s" finite element, '\
-                           'should be None.' % (degree, family))
-            kmin, kmax = krange
-            ufl_assert(kmin is None or degree >= kmin,
-                       'Degree "%s" invalid for "%s" finite element.' %\
-                           (degree, family))
-            ufl_assert(kmax is None or degree <= kmax,
-                   'Degree "%s" invalid for "%s" finite element.' %\
-                           (istr(degree), family))
-
-        # Set value dimension (default to using geometric dimension in each axis)
-        if value_rank == 0:
-            value_shape = ()
-        else:
-            ufl_assert(domain is not None,
-                       "Cannot infer shape of element without a domain with geometric dimension.")
-            dim = domain.geometric_dimension()
-            value_shape = (dim,)*value_rank
+        # TODO: Move these to base? Might be better to instead simplify base though.
+        self._reference_value_shape = reference_value_shape
+        self._sobolev_space = sobolev_space
+        self._short_name = short_name
 
         # Initialize element data
         super(FiniteElement, self).__init__(family, domain, degree,
@@ -115,6 +82,9 @@ class FiniteElement(FiniteElementBase):
         self._repr = "FiniteElement(%r, %r, %r, quad_scheme=%r)" % (
             self.family(), self.domain(), self.degree(), self.quadrature_scheme())
         assert '"' not in self._repr
+
+    def sobolev_space(self):
+        return self._sobolev_space
 
     def reconstruction_signature(self):
         """Format as string for evaluation as Python object.

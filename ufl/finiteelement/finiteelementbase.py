@@ -19,9 +19,6 @@
 #
 # Modified by Kristian B. Oelgaard
 # Modified by Marie E. Rognes 2010, 2012
-#
-# First added:  2008-03-03
-# Last changed: 2013-01-10
 
 from itertools import izip
 from ufl.assertions import ufl_assert
@@ -30,12 +27,16 @@ from ufl.common import product, index_to_component, component_to_index, istr, Em
 from ufl.geometry import Cell, as_cell, as_domain, Domain, cellname2facetname, ProductCell
 from ufl.log import info_blue, warning, warning_blue, error
 
-from ufl.finiteelement.elementlist import ufl_elements, aliases
-
 class FiniteElementBase(object):
     "Base class for all finite elements"
-    __slots__ = ("_cell", "_domain", "_family", "_degree",
-                 "_quad_scheme", "_value_shape", "_repr", "__weakref__")
+    __slots__ = ("_family",
+                 "_cell", "_domain",
+                 "_degree",
+                 "_form_degree",
+                 "_quad_scheme",
+                 "_value_shape",
+                 "_repr",
+                 "__weakref__")
 
     def __init__(self, family, domain, degree, quad_scheme, value_shape):
         "Initialize basic finite element data"
