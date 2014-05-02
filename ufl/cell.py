@@ -28,7 +28,7 @@ from ufl.terminal import Terminal
 from ufl.protocols import id_or_none
 from collections import defaultdict
 
-# --- Expression node types
+# --- Basic cell properties
 
 # Mapping from cell name to topological dimension
 cellname2dim = {
@@ -36,12 +36,12 @@ cellname2dim = {
     "cell1D": 1,
     "cell2D": 2,
     "cell3D": 3,
-    "vertex": 0,
-    "interval": 1,
-    "triangle": 2,
-    "tetrahedron": 3,
+    "vertex":        0,
+    "interval":      1,
+    "triangle":      2,
+    "tetrahedron":   3,
     "quadrilateral": 2,
-    "hexahedron": 3,
+    "hexahedron":    3,
     }
 
 # Mapping from cell name to facet name
@@ -50,12 +50,12 @@ cellname2facetname = {
     "cell1D": "vertex",
     "cell2D": "cell1D",
     "cell3D": "cell2D",
-    "vertex": None,
-    "interval": "vertex",
-    "triangle": "interval",
-    "tetrahedron": "triangle",
+    "vertex":        None,
+    "interval":      "vertex",
+    "triangle":      "interval",
+    "tetrahedron":   "triangle",
     "quadrilateral": "interval",
-    "hexahedron": "quadrilateral"
+    "hexahedron":    "quadrilateral"
     }
 
 affine_cells = set(("vertex", "interval", "triangle", "tetrahedron"))
