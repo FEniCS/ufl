@@ -21,7 +21,7 @@
 
 import hashlib
 from itertools import chain
-from ufl.log import error
+from ufl.log import error, deprecate
 from ufl.assertions import ufl_assert
 import ufl.measure
 from ufl.integral import Integral, Measure
