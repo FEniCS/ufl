@@ -62,7 +62,7 @@ class SobolevSpace(object):
                             "SobolevSpace in another SobolevSpace. " +
                             "Did you mean to use <= instead?")
         return (other.sobolev_space() == self
-                or other.sobolev_space() in self.parents)
+                or self in other.sobolev_space().parents)
 
     def __lt__(self, other):
         """In common with intrinsic Python sets, < indicates "is a proper
