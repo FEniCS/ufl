@@ -27,9 +27,9 @@ class TestSobolevSpace(UflTestCase):
         l2_elements = [
             FiniteElement("Real", triangle, 0),
             FiniteElement("DG", triangle, 0),
-            # Should DG1 be in L2?
             FiniteElement("DG", triangle, 1),
             FiniteElement("DG", triangle, 2),
+            FiniteElement("CR", triangle, 1),
             ]
         for l2_element in l2_elements:
             assert l2_element in L2
@@ -43,12 +43,10 @@ class TestSobolevSpace(UflTestCase):
             # Standard Lagrange elements:
             FiniteElement("CG", triangle, 1),
             FiniteElement("CG", triangle, 2),
-            # Some special elements, is H1 right for all these?
+            # Some special elements:
             FiniteElement("AW", triangle),
-            FiniteElement("ARG", triangle, 1), # H2?
             FiniteElement("HER", triangle),
             FiniteElement("MTW", triangle),
-            FiniteElement("MOR", triangle), # H2?
             ]
         for h1_element in h1_elements:
             assert h1_element in H1
@@ -57,11 +55,23 @@ class TestSobolevSpace(UflTestCase):
             assert h1_element in L2
             assert h1_element not in H2
 
+    def test_contains_h2(self):
+        h2_elements = [
+            FiniteElement("ARG", triangle, 1),
+            FiniteElement("MOR", triangle),
+            ]
+        for h2_element in h2_elements:
+            assert h2_element in H2
+            assert h2_element in H1
+            assert h2_element in HDiv
+            assert h2_element in HCurl
+            assert h2_element in L2
+
     def test_contains_hdiv(self):
         hdiv_elements = [
             FiniteElement("RT", triangle, 1),
             FiniteElement("BDM", triangle, 1),
-            FiniteElement("BDFM", triangle, 1),
+            FiniteElement("BDFM", triangle, 2),
             ]
         for hdiv_element in hdiv_elements:
             assert hdiv_element in HDiv

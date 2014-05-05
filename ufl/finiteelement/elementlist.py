@@ -88,14 +88,14 @@ register_element("Nedelec 2nd kind H(curl)", "N2curl",   HCurl, (1, None), simpl
 register_element("Raviart-Thomas", "RT",                 HDiv,  (1, None), simplices[1:]) # "RTf" , "N1f" (3d)
 
 # Elements not in the periodic table
-register_element("Argyris", "ARG",                       H1,    (1, None), simplices[1:])
+register_element("Argyris", "ARG",                       H2,    (1, None), simplices[1:])
 register_element("Arnold-Winther", "AW",                 H1,    None,      ("triangle",))
 register_element("Brezzi-Douglas-Fortin-Marini", "BDFM", HDiv,  (1, None), simplices[1:])
 register_element("Crouzeix-Raviart", "CR",               L2,    (1, 1),    simplices[1:])
 register_element("Discontinuous Raviart-Thomas", "DRT",  HDiv,  (1, None), simplices[1:]) # TODO: Implement Tear operator for elements instead of this.
 register_element("Hermite", "HER",                       H1,    None,      simplices[1:])
 register_element("Mardal-Tai-Winther", "MTW",            H1,    None,      ("triangle",))
-register_element("Morley", "MOR",                        H1,    None,      ("triangle",))
+register_element("Morley", "MOR",                        H2,    None,      ("triangle",))
 
 # Special elements
 register_element("Boundary Quadrature", "BQ", L2, (0, None), any_cell)
