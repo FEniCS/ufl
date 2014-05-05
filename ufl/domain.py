@@ -407,7 +407,10 @@ def join_domains(domains):
                     error("Found different coordinates in domains with same label.")
 
             # Construct a new domain object with fully completed data
-            dom = Domain(cell, label=label, data=newdata)
+            if newcoordinates is not None:
+                dom = Domain(newcoordinates)
+            else:
+                dom = Domain(cell, label=label, data=newdata)
         newdomains.append(dom)
     return tuple(newdomains)
 
