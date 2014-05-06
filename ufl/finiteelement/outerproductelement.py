@@ -180,7 +180,7 @@ class OuterProductVectorElement(MixedElement):
     def __str__(self):
         "Format as string for pretty printing."
         return "<Outer product vector element: %r x %r>" % \
-               (self._sub_element)
+               (self._sub_element, self.num_sub_elements())
 
     def shortstr(self):
         "Format as string for pretty printing."
