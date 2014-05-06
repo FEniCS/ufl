@@ -47,6 +47,12 @@ class SobolevSpace(object):
     def __repr__(self):
         return "SobolevSpace(%r, %r)" % (self.name, list(self.parents))
 
+    def _repr_latex_(self):
+        if len(self.name) == 2:
+            return "$%s^%s$" % tuple(self.name)
+        else:
+            return "$%s(%s)$" % (self.name[0], self.name[1:].lower())
+
     def __eq__(self, other):
         return isinstance(other, SobolevSpace) and self.name == other.name
 
