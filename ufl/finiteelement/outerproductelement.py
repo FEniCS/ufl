@@ -43,7 +43,6 @@ class OuterProductElement(FiniteElementBase):
         "Create OuterProductElement from a given pair of elements."
         self._A = A
         self._B = B
-        self._repr = "OuterProductElement(*%r)" % list([self._A, self._B])
         family = "OuterProductElement"
 
         if domain is None:
@@ -55,6 +54,8 @@ class OuterProductElement(FiniteElementBase):
             cell = domain.cell()
             ufl_assert(cell is not None, "Missing cell in given domain.")
 
+        self._repr = "OuterProductElement(*%r, %r)" % (list([self._A, self._B]),
+                                                       domain)
         # Define polynomial degree as a tuple of sub-degrees
         degree = (A.degree(), B.degree())
 
