@@ -36,6 +36,7 @@ class FiniteElement(FiniteElementBase):
     # TODO: Move these to base?
     __slots__ = ("_short_name",
                  "_sobolev_space",
+                 "_mapping",
                  "_reference_value_shape",
                 )
     def __init__(self,
@@ -66,12 +67,13 @@ class FiniteElement(FiniteElementBase):
             cell = domain.cell()
             ufl_assert(cell is not None, "Missing cell in given domain.")
 
-        family, short_name, degree, value_shape, reference_value_shape, sobolev_space = \
+        family, short_name, degree, value_shape, reference_value_shape, sobolev_space, mapping = \
           canonical_element_description(family, cell, degree, form_degree)
 
         # TODO: Move these to base? Might be better to instead simplify base though.
         self._reference_value_shape = reference_value_shape
         self._sobolev_space = sobolev_space
+        self._mapping = mapping
         self._short_name = short_name
 
         # Initialize element data

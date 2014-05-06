@@ -32,16 +32,16 @@ ufl_elements = {}
 aliases = {}
 
 # Function for registering new elements
-def register_element(family, short_name, sobolev_space, degree_range, cellnames):
+def register_element(family, short_name, sobolev_space, mapping, degree_range, cellnames):
     "Register new finite element family"
     ufl_assert(family not in ufl_elements, 'Finite element \"%s\" has already been registered.' % family)
-    ufl_elements[family]     = (family, short_name, sobolev_space, degree_range, cellnames)
-    ufl_elements[short_name] = (family, short_name, sobolev_space, degree_range, cellnames)
+    ufl_elements[family]     = (family, short_name, sobolev_space, mapping, degree_range, cellnames)
+    ufl_elements[short_name] = (family, short_name, sobolev_space, mapping, degree_range, cellnames)
 
-def register_element2(family, sobolev_space, degree_range, cellnames):
+def register_element2(family, sobolev_space, mapping, degree_range, cellnames):
     "Register new finite element family"
     ufl_assert(family not in ufl_elements, 'Finite element \"%s\" has already been registered.' % family)
-    ufl_elements[family] = (family, family, sobolev_space, degree_range, cellnames)
+    ufl_elements[family] = (family, family, sobolev_space, mapping, degree_range, cellnames)
 
 def register_alias(alias, to):
     aliases[alias] = to
@@ -49,10 +49,11 @@ def register_alias(alias, to):
 def show_elements():
     print "Showing all registered elements:"
     for k in sorted(ufl_elements.keys()):
-        (family, short_name, sobolev_space, degree_range, cellnames) = ufl_elements[k]
+        (family, short_name, sobolev_space, mapping, degree_range, cellnames) = ufl_elements[k]
         print
         print "Finite Element Family: %s, %s" % (repr(family), repr(short_name))
         print "Sobolev space: %s" % (sobolev_space,)
+        print "Mapping: %s" % (mapping,)
         print "Degree range: ", degree_range
         print "Defined on cellnames:" , cellnames
 
@@ -80,31 +81,32 @@ any_cell  = (None,
              "quadrilateral", "hexahedron")
 
 # Elements in the periodic table # TODO: Register these as aliases of periodic table element description instead of the other way around
-register_element("Lagrange", "CG",                       H1,    (1, None), any_cell)      # "P"
-register_element("Brezzi-Douglas-Marini", "BDM",         HDiv,  (1, None), simplices[1:]) # "BDMf" (2d), "N2f" (3d)
-register_element("Discontinuous Lagrange", "DG",         L2,    (0, None), any_cell)      # "DG"
-register_element("Nedelec 1st kind H(curl)", "N1curl",   HCurl, (1, None), simplices[1:]) # "RTe" (2d), "N1e" (3d)
-register_element("Nedelec 2nd kind H(curl)", "N2curl",   HCurl, (1, None), simplices[1:]) # "BDMe" (2d), "N2e" (3d)
-register_element("Raviart-Thomas", "RT",                 HDiv,  (1, None), simplices[1:]) # "RTf" , "N1f" (3d)
+register_element("Lagrange", "CG",                       H1,    "affine", (1, None), any_cell)                   # "P"
+register_element("Brezzi-Douglas-Marini", "BDM",         HDiv,  "contravariant Piola", (1, None), simplices[1:]) # "BDMf" (2d), "N2f" (3d)
+register_element("Discontinuous Lagrange", "DG",         L2,    "affine", (0, None), any_cell)                   # "DG"
+register_element("Nedelec 1st kind H(curl)", "N1curl",   HCurl, "covariant Piola", (1, None), simplices[1:])     # "RTe" (2d), "N1e" (3d)
+register_element("Nedelec 2nd kind H(curl)", "N2curl",   HCurl, "covariant Piola", (1, None), simplices[1:])     # "BDMe" (2d), "N2e" (3d)
+register_element("Raviart-Thomas", "RT",                 HDiv,  "contravariant Piola", (1, None), simplices[1:]) # "RTf" , "N1f" (3d)
 
 # Elements not in the periodic table
-register_element("Argyris", "ARG",                       H2,    (1, None), simplices[1:])
-register_element("Arnold-Winther", "AW",                 H1,    None,      ("triangle",))
-register_element("Brezzi-Douglas-Fortin-Marini", "BDFM", HDiv,  (1, None), simplices[1:])
-register_element("Crouzeix-Raviart", "CR",               L2,    (1, 1),    simplices[1:])
-register_element("Discontinuous Raviart-Thomas", "DRT",  HDiv,  (1, None), simplices[1:]) # TODO: Implement Tear operator for elements instead of this.
-register_element("Hermite", "HER",                       H1,    None,      simplices[1:])
-register_element("Mardal-Tai-Winther", "MTW",            H1,    None,      ("triangle",))
-register_element("Morley", "MOR",                        H2,    None,      ("triangle",))
+register_element("Argyris", "ARG",                       H2,   "affine", (1, None), simplices[1:])
+register_element("Arnold-Winther", "AW",                 H1,   "affine", None, ("triangle",))
+register_element("Brezzi-Douglas-Fortin-Marini", "BDFM", HDiv, "contravariant Piola", (1, None), simplices[1:])
+register_element("Crouzeix-Raviart", "CR",               L2,   "affine", (1, 1), simplices[1:])
+# TODO: Implement generic Tear operator for elements instead of this:
+register_element("Discontinuous Raviart-Thomas", "DRT",  L2,   "contravariant Piola", (1, None), simplices[1:])
+register_element("Hermite", "HER",                       H1,   "affine", None, simplices[1:])
+register_element("Mardal-Tai-Winther", "MTW",            H1,   "affine", None, ("triangle",))
+register_element("Morley", "MOR",                        H2,   "affine", None, ("triangle",))
 
 # Special elements
-register_element("Boundary Quadrature", "BQ", L2, (0, None), any_cell)
-register_element("Bubble", "B",               H1, (2, None), simplices)
-register_element("Quadrature", "Quadrature",  L2, (0, None), any_cell)
-register_element("Real", "R",                 L2, (0, 0),    any_cell)
-register_element("Undefined", "U",            L2, (0, None), any_cell)
-register_element("Lobatto", "Lob",            L2, (1, None), ("interval",))
-register_element("Radau",   "Rad",            L2, (0, None), ("interval",))
+register_element("Boundary Quadrature", "BQ", L2, "affine", (0, None), any_cell)
+register_element("Bubble", "B",               H1, "affine", (2, None), simplices)
+register_element("Quadrature", "Quadrature",  L2, "affine", (0, None), any_cell)
+register_element("Real", "R",                 L2, "affine", (0, 0),    any_cell)
+register_element("Undefined", "U",            L2, "affine", (0, None), any_cell)
+register_element("Lobatto", "Lob",            L2, "affine", (1, None), ("interval",))
+register_element("Radau",   "Rad",            L2, "affine", (0, None), ("interval",))
 
 # Let Nedelec H(div) elements be aliases to BDMs/RTs
 register_alias("Nedelec 1st kind H(div)",
@@ -118,19 +120,19 @@ register_alias("N2div",
                lambda family, dim, order, degree: ("Brezzi-Douglas-Marini", order))
 
 # New elements introduced for the periodic table 2014
-register_element2("Q",     H1,    (1, None), cubes)
-register_element2("DGQ",   L2,    (0, None), cubes)
-register_element2("RTQe",  HCurl, (1, None), ("quadrilateral",))
-register_element2("RTQf",  HDiv,  (1, None), ("quadrilateral",))
-register_element2("NQe",   HCurl, (1, None), ("hexahedron",))
-register_element2("NQf",   HDiv,  (1, None), ("hexahedron",))
+register_element2("Q",     H1,    "affine",              (1, None), cubes)
+register_element2("DGQ",   L2,    "affine",              (0, None), cubes)
+register_element2("RTQe",  HCurl, "covariant Piola",     (1, None), ("quadrilateral",))
+register_element2("RTQf",  HDiv,  "contravariant Piola", (1, None), ("quadrilateral",))
+register_element2("NQe",   HCurl, "covariant Piola",     (1, None), ("hexahedron",))
+register_element2("NQf",   HDiv,  "contravariant Piola", (1, None), ("hexahedron",))
 
-register_element2("S",     H1,    (1, None), cubes)
-register_element2("DGS",   L2,    (1, None), cubes)
-register_element2("BDMSe", HCurl, (1, None), ("quadrilateral",))
-register_element2("BDMSf", HDiv,  (1, None), ("quadrilateral",))
-register_element2("AAe",   HCurl, (1, None), ("hexahedron",))
-register_element2("AAf",   HDiv,  (1, None), ("hexahedron",))
+register_element2("S",     H1,    "affine",              (1, None), cubes)
+register_element2("DGS",   L2,    "affine",              (1, None), cubes)
+register_element2("BDMSe", HCurl, "covariant Piola",     (1, None), ("quadrilateral",))
+register_element2("BDMSf", HDiv,  "contravariant Piola", (1, None), ("quadrilateral",))
+register_element2("AAe",   HCurl, "covariant Piola",     (1, None), ("hexahedron",))
+register_element2("AAf",   HDiv,  "contravariant Piola", (1, None), ("hexahedron",))
 
 # New aliases introduced for the periodic table 2014
 register_alias("P",    lambda family, dim, order, degree: ("Lagrange",                 order))
@@ -143,6 +145,7 @@ register_alias("BDMe", lambda family, dim, order, degree: ("Nedelec 2nd kind H(c
 register_alias("BDMf", lambda family, dim, order, degree: ("Brezzi-Douglas-Marini",    order))
 register_alias("N2e",  lambda family, dim, order, degree: ("Nedelec 2nd kind H(curl)", order))
 register_alias("N2f",  lambda family, dim, order, degree: ("Brezzi-Douglas-Marini",    order))
+
 
 # Finite element exterior calculus notation
 def feec_element(family, n, r, k):
@@ -216,7 +219,7 @@ def canonical_element_description(family, cell, order, form_degree):
                'Unknown finite element "%s".' % family)
 
     # Check that element data is valid (and also get common family name)
-    (family, short_name, sobolev_space, krange, cellnames) = ufl_elements[family]
+    (family, short_name, sobolev_space, mapping, krange, cellnames) = ufl_elements[family]
 
     # Validate cellname if a valid cell is specified
     ufl_assert(cellname is None or cellname in cellnames,
@@ -250,4 +253,4 @@ def canonical_element_description(family, cell, order, form_degree):
         reference_value_shape = ()
         value_shape = ()
 
-    return family, short_name, order, value_shape, reference_value_shape, sobolev_space
+    return family, short_name, order, value_shape, reference_value_shape, sobolev_space, mapping
