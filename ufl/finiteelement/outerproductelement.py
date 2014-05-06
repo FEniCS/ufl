@@ -71,6 +71,12 @@ class OuterProductElement(FiniteElementBase):
         super(OuterProductElement, self).__init__(family, domain, degree,
                                                   quad_scheme, value_shape)
 
+    def reconstruct(self, **kwargs):
+        """Construct a new OuterProductElement with some properties
+        replaced with new values."""
+        domain = kwargs.get("domain", self.domain())
+        return OuterProductElement(self._A, self._B, domain=domain)
+
     def reconstruction_signature(self):
         """Format as string for evaluation as Python object.
 
@@ -148,6 +154,14 @@ class OuterProductVectorElement(MixedElement):
                 ("no domain" if self._domain is None else
                     self._domain.signature_data(domain_numbering=domain_numbering)))
         return data
+
+    def reconstruct(self, **kwargs):
+        """Construct a new OuterProductVectorElement with some properties
+        replaced with new values."""
+        domain = kwargs.get("domain", self.domain())
+        dim = kwargs.get("dim", self.num_sub_elements())
+        return OuterProductVectorElement(self._A, self._B,
+                                         domain=domain, dim=dim)
 
     def reconstruction_signature(self):
         """Format as string for evaluation as Python object.

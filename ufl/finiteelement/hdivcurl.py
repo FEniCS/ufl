@@ -38,6 +38,13 @@ class HDiv(OuterProductElement):
         super(OuterProductElement, self).__init__(family, domain, degree,
                                                   quad_scheme, value_shape)
 
+    def reconstruct(self, **kwargs):
+        """Construct a new HDiv object with some properties
+        replaced with new values."""
+        domain = kwargs.get("domain", self.domain())
+        ele = self._element.reconstruct(domain=domain)
+        return HDiv(ele)
+
     def reconstruction_signature(self):
         return "HDiv(%s)" % self._element.reconstruction_signature()
 
@@ -73,6 +80,13 @@ class HCurl(OuterProductElement):
         value_shape = (element.cell().geometric_dimension(),)
         super(OuterProductElement, self).__init__(family, domain, degree,
                                                   quad_scheme, value_shape)
+
+    def reconstruct(self, **kwargs):
+        """Construct a new HCurl object with some properties
+        replaced with new values."""
+        domain = kwargs.get("domain", self.domain())
+        ele = self._element.reconstruct(domain=domain)
+        return HCurl(ele)
 
     def reconstruction_signature(self):
         return "HCurl(%s)" % self._element.reconstruction_signature()
