@@ -119,7 +119,7 @@ class OuterProductVectorElement(MixedElement):
         if domain is not None:
             domain = as_domain(domain)
 
-        sub_element = OuterProductElement(A, B)
+        sub_element = OuterProductElement(A, B, domain=domain)
         dim = dim or sub_element.cell().geometric_dimension()
         sub_elements = [sub_element]*dim
 
