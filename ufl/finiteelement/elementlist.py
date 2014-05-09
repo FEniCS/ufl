@@ -81,32 +81,32 @@ any_cell  = (None,
              "quadrilateral", "hexahedron")
 
 # Elements in the periodic table # TODO: Register these as aliases of periodic table element description instead of the other way around
-register_element("Lagrange", "CG",                       H1,    "affine", (1, None), any_cell)                   # "P"
+register_element("Lagrange", "CG",                       H1,    "identity", (1, None), any_cell)                   # "P"
 register_element("Brezzi-Douglas-Marini", "BDM",         HDiv,  "contravariant Piola", (1, None), simplices[1:]) # "BDMf" (2d), "N2f" (3d)
-register_element("Discontinuous Lagrange", "DG",         L2,    "affine", (0, None), any_cell)                   # "DG"
+register_element("Discontinuous Lagrange", "DG",         L2,    "identity", (0, None), any_cell)                   # "DG"
 register_element("Nedelec 1st kind H(curl)", "N1curl",   HCurl, "covariant Piola", (1, None), simplices[1:])     # "RTe" (2d), "N1e" (3d)
 register_element("Nedelec 2nd kind H(curl)", "N2curl",   HCurl, "covariant Piola", (1, None), simplices[1:])     # "BDMe" (2d), "N2e" (3d)
 register_element("Raviart-Thomas", "RT",                 HDiv,  "contravariant Piola", (1, None), simplices[1:]) # "RTf" , "N1f" (3d)
 
 # Elements not in the periodic table
-register_element("Argyris", "ARG",                       H2,   "affine", (1, None), simplices[1:])
-register_element("Arnold-Winther", "AW",                 H1,   "affine", None, ("triangle",))
+register_element("Argyris", "ARG",                       H2,   "identity", (1, None), simplices[1:])
+register_element("Arnold-Winther", "AW",                 H1,   "identity", None, ("triangle",))
 register_element("Brezzi-Douglas-Fortin-Marini", "BDFM", HDiv, "contravariant Piola", (1, None), simplices[1:])
-register_element("Crouzeix-Raviart", "CR",               L2,   "affine", (1, 1), simplices[1:])
+register_element("Crouzeix-Raviart", "CR",               L2,   "identity", (1, 1), simplices[1:])
 # TODO: Implement generic Tear operator for elements instead of this:
 register_element("Discontinuous Raviart-Thomas", "DRT",  L2,   "contravariant Piola", (1, None), simplices[1:])
-register_element("Hermite", "HER",                       H1,   "affine", None, simplices[1:])
-register_element("Mardal-Tai-Winther", "MTW",            H1,   "affine", None, ("triangle",))
-register_element("Morley", "MOR",                        H2,   "affine", None, ("triangle",))
+register_element("Hermite", "HER",                       H1,   "identity", None, simplices[1:])
+register_element("Mardal-Tai-Winther", "MTW",            H1,   "identity", None, ("triangle",))
+register_element("Morley", "MOR",                        H2,   "identity", None, ("triangle",))
 
 # Special elements
-register_element("Boundary Quadrature", "BQ", L2, "affine", (0, None), any_cell)
-register_element("Bubble", "B",               H1, "affine", (2, None), simplices)
-register_element("Quadrature", "Quadrature",  L2, "affine", (0, None), any_cell)
-register_element("Real", "R",                 L2, "affine", (0, 0),    any_cell)
-register_element("Undefined", "U",            L2, "affine", (0, None), any_cell)
-register_element("Lobatto", "Lob",            L2, "affine", (1, None), ("interval",))
-register_element("Radau",   "Rad",            L2, "affine", (0, None), ("interval",))
+register_element("Boundary Quadrature", "BQ", L2, "identity", (0, None), any_cell)
+register_element("Bubble", "B",               H1, "identity", (2, None), simplices)
+register_element("Quadrature", "Quadrature",  L2, "identity", (0, None), any_cell)
+register_element("Real", "R",                 L2, "identity", (0, 0),    any_cell)
+register_element("Undefined", "U",            L2, "identity", (0, None), any_cell)
+register_element("Lobatto", "Lob",            L2, "identity", (1, None), ("interval",))
+register_element("Radau",   "Rad",            L2, "identity", (0, None), ("interval",))
 
 # Let Nedelec H(div) elements be aliases to BDMs/RTs
 register_alias("Nedelec 1st kind H(div)",
@@ -120,15 +120,15 @@ register_alias("N2div",
                lambda family, dim, order, degree: ("Brezzi-Douglas-Marini", order))
 
 # New elements introduced for the periodic table 2014
-register_element2("Q",     H1,    "affine",              (1, None), cubes)
-register_element2("DGQ",   L2,    "affine",              (0, None), cubes)
+register_element2("Q",     H1,    "identity",            (1, None), cubes)
+register_element2("DGQ",   L2,    "identity",            (0, None), cubes)
 register_element2("RTQe",  HCurl, "covariant Piola",     (1, None), ("quadrilateral",))
 register_element2("RTQf",  HDiv,  "contravariant Piola", (1, None), ("quadrilateral",))
 register_element2("NQe",   HCurl, "covariant Piola",     (1, None), ("hexahedron",))
 register_element2("NQf",   HDiv,  "contravariant Piola", (1, None), ("hexahedron",))
 
-register_element2("S",     H1,    "affine",              (1, None), cubes)
-register_element2("DGS",   L2,    "affine",              (1, None), cubes)
+register_element2("S",     H1,    "identity",            (1, None), cubes)
+register_element2("DGS",   L2,    "identity",            (1, None), cubes)
 register_element2("BDMSe", HCurl, "covariant Piola",     (1, None), ("quadrilateral",))
 register_element2("BDMSf", HDiv,  "contravariant Piola", (1, None), ("quadrilateral",))
 register_element2("AAe",   HCurl, "covariant Piola",     (1, None), ("hexahedron",))
