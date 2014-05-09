@@ -1,5 +1,22 @@
 """Algorithms for building canonical data structure for integrals over subdomains."""
 
+# Copyright (C) 2009-2014 Anders Logg and Martin Sandve Alnes
+#
+# This file is part of UFL.
+#
+# UFL is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# UFL is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with UFL. If not, see <http://www.gnu.org/licenses/>.
+
 from collections import defaultdict
 
 import ufl
@@ -21,7 +38,8 @@ class IntegralData(object):
     where metadata is an empty dictionary that may be used for
     associating metadata with each object.
     """
-    __slots__ = ('domain', 'integral_type', 'subdomain_id', 'integrals', 'metadata')
+    __slots__ = ('domain', 'integral_type', 'subdomain_id', 'integrals', 'metadata',
+                 'enabled_coefficients')
     def __init__(self, domain, integral_type, subdomain_id, integrals, metadata):
         ufl_assert(all(domain.label() == itg.domain().label() for itg in integrals),
                    "Domain label mismatch in integral data.")
@@ -35,6 +53,9 @@ class IntegralData(object):
         self.subdomain_id = subdomain_id
 
         self.integrals = integrals
+
+        # FIXME: Add enabled_coefficients:
+        #self.enabled_coefficients = [bool for each form coefficient]
 
         # TODO: I think we can get rid of this with some refactoring in ffc:
         self.metadata = metadata
@@ -229,6 +250,8 @@ def build_integral_data(integrals, domains, common_domain):
                 # this is filled in by ffc to associate compiler
                 # specific information with this integral data
                 metadata = {}
+
+                # XXX FIXME: Get enabled_coefficients and pass to constructor here
 
                 # Finally wrap it all in IntegralData object!
                 ida = IntegralData(domain, integral_type, subdomain_id, integrals, {})
