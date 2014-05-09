@@ -54,8 +54,8 @@ class IntegralData(object):
 
         self.integrals = integrals
 
-        # FIXME: Add enabled_coefficients:
-        #self.enabled_coefficients = [bool for each form coefficient]
+        # This is populated in preprocess using data not available at this stage:
+        self.enabled_coefficients = None
 
         # TODO: I think we can get rid of this with some refactoring in ffc:
         self.metadata = metadata
@@ -250,8 +250,6 @@ def build_integral_data(integrals, domains, common_domain):
                 # this is filled in by ffc to associate compiler
                 # specific information with this integral data
                 metadata = {}
-
-                # XXX FIXME: Get enabled_coefficients and pass to constructor here
 
                 # Finally wrap it all in IntegralData object!
                 ida = IntegralData(domain, integral_type, subdomain_id, integrals, {})

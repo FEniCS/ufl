@@ -31,6 +31,7 @@ from ufl.protocols import id_or_none
 from ufl.geometry import as_domain
 from ufl.algorithms.replace import replace
 from ufl.algorithms.analysis import (extract_arguments_and_coefficients,
+                                     extract_coefficients,
                                      build_coefficient_replace_map,
                                      extract_elements, extract_sub_elements,
                                      unique_tuple,
@@ -139,7 +140,6 @@ def preprocess(form, object_names=None):
     # such that automatic names can be assigned externally
     form_data.name = object_names.get(id(original_form), "")
 
-
     # --- Processing form
 
     # Store collection of subdomain data objects for each domain label x domain type
@@ -192,6 +192,13 @@ def preprocess(form, object_names=None):
     tic('build_coefficient_replace_map')
     renumbered_coefficients, replace_map = \
         build_coefficient_replace_map(original_coefficients, element_mapping)
+
+    tic('build enabled_coefficients lists')
+    for itg_data in form_data.integral_data:
+        itg_coeffs = set()
+        for itg in itg_data.integrals:
+            itg_coeffs.update(extract_coefficients(itg.integrand()))
+        itg_data.enabled_coefficients = [bool(coeff in itg_coeffs) for coeff in original_coefficients]
 
     #############################################################################
     # Note: This is the earliest point the final form signature can be computed,
