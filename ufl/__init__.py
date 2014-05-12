@@ -78,10 +78,11 @@ A very brief overview of the language contents follows:
 
 * Geometric quantities::
 
-    SpatialCoordinate, CellCoordinate, FacetCoordinate, PhysicalCellOrigo,
+    SpatialCoordinate, CellCoordinate, FacetCoordinate,
+    PhysicalCellOrigo, CellFacetOrigo, PhysicalFacetOrigo,
     Jacobian, JacobianDeterminant, JacobianInverse,
     FacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse,
-    ReferenceFacetJacobian,
+    CellFacetJacobian,
     CellVolume, Circumradius,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
     FacetNormal, CellNormal, CellOrientation,
@@ -192,10 +193,11 @@ from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile
 from ufl.cell import as_cell, Cell, ProductCell
 from ufl.domain import as_domain, Domain, ProductDomain
 from ufl.geometry import (
-    SpatialCoordinate, CellCoordinate, FacetCoordinate, PhysicalCellOrigo,
+    SpatialCoordinate, CellCoordinate, FacetCoordinate,
+    PhysicalCellOrigo, CellFacetOrigo, PhysicalFacetOrigo,
     Jacobian, JacobianDeterminant, JacobianInverse,
     FacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse,
-    ReferenceFacetJacobian,
+    CellFacetJacobian,
     CellVolume, Circumradius,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
     FacetNormal, CellNormal, CellOrientation,
@@ -294,7 +296,7 @@ __all__ = [
     'FacetArea', 'MinFacetEdgeLength', 'MaxFacetEdgeLength',
     'Jacobian', 'JacobianDeterminant', 'JacobianInverse',
     'FacetJacobian', 'FacetJacobianDeterminant', 'FacetJacobianInverse',
-    'ReferenceFacetJacobian',
+    'CellFacetJacobian',
     'FacetNormal', 'CellNormal', 'CellOrientation',
     'QuadratureWeight',
     'FiniteElementBase', 'FiniteElement',

@@ -22,7 +22,7 @@ from ufl.assertions import ufl_assert
 from ufl.classes import (Terminal, ReferenceGrad, Grad,
                          Jacobian, JacobianInverse, JacobianDeterminant,
                          FacetJacobian, FacetJacobianInverse, FacetJacobianDeterminant,
-                         ReferenceFacetJacobian, QuadratureWeight)
+                         CellFacetJacobian, QuadratureWeight)
 from ufl.constantvalue import as_ufl
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
 from ufl.algorithms.analysis import extract_type
@@ -158,7 +158,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
         if r is None:
             domain = o.domain()
             J = self.jacobian(Jacobian(domain))
-            RFJ = ReferenceFacetJacobian(domain)
+            RFJ = CellFacetJacobian(domain)
             i,j,k = indices(3)
             r = as_tensor(J[i,k]*RFJ[k,j], (i,j))
             self._rcache[o] = r

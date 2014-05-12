@@ -60,7 +60,7 @@ Jxf = dx/dXf = grad_Xf x(Xf)  =  Jxc Jcf = dx/dX dX/dXf = grad_X x(X) grad_Xf X(
 Possible computation of X from Xf:
 
 X = Jcf Xf + X0f
-    CellCoordinate = CellFacetJacobian * FacetCoordinate + CellFacetOrigin
+    CellCoordinate = CellFacetJacobian * FacetCoordinate + CellFacetOrigo
 
 
 Possible computation of x from X:
@@ -75,17 +75,15 @@ x = Jxc X + x0
 Possible computation of x from Xf:
 
 x = Jxf Xf + x0f
-    SpatialCoordinate = PhysicalFacetJacobian * FacetCoordinate + PhysicalFacetOrigin
+    SpatialCoordinate = PhysicalFacetJacobian * FacetCoordinate + PhysicalFacetOrigo
 
 x = Jxc Jcf Xf + x0f
-    SpatialCoordinate = PhysicalCellJacobian * CellFacetJacobian * FacetCoordinate + PhysicalFacetOrigin
+    SpatialCoordinate = PhysicalCellJacobian * CellFacetJacobian * FacetCoordinate + PhysicalFacetOrigo
 
 
 Names:
 
-s/PhysicalCellOrigo/PhysicalCellOrigo/g
-
-s/ReferenceFacetJacobian/CellFacetJacobian/g
+s/CellFacetJacobian/CellFacetJacobian/g
 s/FacetJacobian/PhysicalFacetJacobian/g
 
 ...careful... 's/\<Jacobian\>/PhysicalCellJacobian/g'
@@ -138,7 +136,11 @@ class GeometricCellQuantity(GeometricQuantity):
 class GeometricFacetQuantity(GeometricQuantity):
     __slots__ = []
 
-class SpatialCoordinate(GeometricCellQuantity): # x
+
+# --- Physical coordinate represented in different coordinate systems
+
+# TODO: Rename to PhysicalCoordinate, then deprecate or make a pure user level SpatialCoordinate = PhysicalCoordinate
+class SpatialCoordinate(GeometricCellQuantity):
     "Representation of a spatial coordinate."
     __slots__ = ()
     name = "x"
@@ -162,7 +164,7 @@ class SpatialCoordinate(GeometricCellQuantity): # x
         else:
             return float(x[component[0]])
 
-class CellCoordinate(GeometricCellQuantity): # X
+class CellCoordinate(GeometricCellQuantity):
     "Representation of a local coordinate on the reference cell."
     __slots__ = ()
     name = "X"
@@ -177,7 +179,7 @@ class CellCoordinate(GeometricCellQuantity): # X
         t = self._domain.topological_dimension()
         return t == 0
 
-class FacetCoordinate(GeometricFacetQuantity): # Xf
+class FacetCoordinate(GeometricFacetQuantity):
     "Representation of a local coordinate on the reference cell of (a facet of the reference cell)."
     __slots__ = ()
     name = "Xf"
@@ -192,7 +194,10 @@ class FacetCoordinate(GeometricFacetQuantity): # Xf
         t = self._domain.topological_dimension()
         return t <= 1
 
-class PhysicalCellOrigo(GeometricCellQuantity): # x0
+
+# --- Origo of coordinate systems in larger coordinate systems
+
+class PhysicalCellOrigo(GeometricCellQuantity):
     "Representation of the physical coordinate corresponding to the origin on the reference cell."
     __slots__ = ()
     name = "x0"
@@ -204,25 +209,26 @@ class PhysicalCellOrigo(GeometricCellQuantity): # x0
     def is_cellwise_constant(self):
         return True
 
-# TODO: Add to init and classes and algorithms
-#class CellFacetOrigin(GeometricFacetQuantity): # X0f
-#    "Representation of the reference cell coordinate corresponding to the origin of the reference facet."
-#    __slots__ = ()
-#    name = "X0f"
-#
-#    def shape(self):
-#        t = self._domain.topological_dimension()
-#        return (t,)
+class CellFacetOrigo(GeometricFacetQuantity):
+    "Representation of the reference cell coordinate corresponding to the origin of the reference facet."
+    __slots__ = ()
+    name = "X0f"
 
-#class PhysicalFacetOrigin(GeometricFacetQuantity): # x0f
-#    "Representation of the physical coordinate corresponding to the origin of the reference facet."
-#    __slots__ = ()
-#    name = "X0f"
-#
-#    def shape(self):
-#        g = self._domain.geometric_dimension()
-#        return (g,)
+    def shape(self):
+        t = self._domain.topological_dimension()
+        return (t,)
 
+class PhysicalFacetOrigo(GeometricFacetQuantity):
+    "Representation of the physical coordinate corresponding to the origin of the reference facet."
+    __slots__ = ()
+    name = "X0f"
+
+    def shape(self):
+        g = self._domain.geometric_dimension()
+        return (g,)
+
+
+# --- Jacobians of mappings between coordinate systems
 
 class Jacobian(GeometricCellQuantity): # dx/dX
     "Representation of the Jacobian of the mapping from reference cell to physical coordinates."
@@ -239,32 +245,6 @@ class Jacobian(GeometricCellQuantity): # dx/dX
         # Only true for a piecewise linear coordinate field in simplex cells
         return self._domain.is_piecewise_linear_simplex_domain()
 
-class JacobianDeterminant(GeometricCellQuantity): # det(dx/dX)
-    "Representation of the (pseudo-)determinant of the Jacobian of the mapping from reference cell to physical coordinates."
-    __slots__ = ()
-    name = "detJ"
-
-    def is_cellwise_constant(self):
-        "Return whether this expression is spatially constant over each cell."
-        # Only true for a piecewise linear coordinate field in simplex cells
-        return self._domain.is_piecewise_linear_simplex_domain()
-
-class JacobianInverse(GeometricCellQuantity): # inv(dx/dX)
-    "Representation of the (pseudo-)inverse of the Jacobian of the mapping from reference cell to physical coordinates."
-    __slots__ = ()
-    name = "K"
-
-    def shape(self):
-        g = self._domain.geometric_dimension()
-        t = self._domain.topological_dimension()
-        return (t, g)
-
-    def is_cellwise_constant(self):
-        "Return whether this expression is spatially constant over each cell."
-        # Only true for a piecewise linear coordinate field in simplex cells
-        return self._domain.is_piecewise_linear_simplex_domain()
-
-
 class FacetJacobian(GeometricFacetQuantity): # dx/dXf = dx/dX dX/dXf
     "Representation of the Jacobian of the mapping from reference cell of facet to physical coordinates."
     __slots__ = ()
@@ -280,10 +260,65 @@ class FacetJacobian(GeometricFacetQuantity): # dx/dXf = dx/dX dX/dXf
         # Only true for a piecewise linear coordinate field in simplex cells
         return self._domain.is_piecewise_linear_simplex_domain()
 
+class CellFacetJacobian(GeometricFacetQuantity): # dX/dXf
+    "Representation of the Jacobian of the mapping from (coordinates on reference cell of facet) to (cell reference coordinates on facet of reference cell)."
+    __slots__ = ()
+    name = "RFJ"
+
+    def shape(self):
+        t = self._domain.topological_dimension()
+        return (t, t-1)
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        # This is always a constant mapping between two reference coordinate systems.
+        return True
+
+
+# --- Determinants (signed or pseudo) of geometry mapping Jacobians
+
+class JacobianDeterminant(GeometricCellQuantity): # det(dx/dX)
+    "Representation of the (pseudo-)determinant of the Jacobian of the mapping from reference cell to physical coordinates."
+    __slots__ = ()
+    name = "detJ"
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        # Only true for a piecewise linear coordinate field in simplex cells
+        return self._domain.is_piecewise_linear_simplex_domain()
+
 class FacetJacobianDeterminant(GeometricFacetQuantity): # det(dx/dXf)
     "Representation of the (pseudo-)determinant of the Jacobian of the mapping from reference cell of facet to physical coordinates."
     __slots__ = ()
     name = "detFJ"
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        # Only true for a piecewise linear coordinate field in simplex cells
+        return self._domain.is_piecewise_linear_simplex_domain()
+
+#class CellFacetJacobianDeterminant(GeometricFacetQuantity): # det(dX/dXf)
+#    "Representation of the (pseudo-)determinant of the Jacobian of the mapping from (coordinates on reference cell of facet) to (cell reference coordinates on facet of reference cell)."
+#    __slots__ = ()
+#    name = "detRFJ"
+#
+#    def is_cellwise_constant(self):
+#        "Return whether this expression is spatially constant over each cell."
+#        # Only true for a piecewise linear coordinate field in simplex cells
+#        return self._domain.is_piecewise_linear_simplex_domain()
+
+
+# --- Inverses (signed or pseudo) of geometry mapping Jacobians
+
+class JacobianInverse(GeometricCellQuantity): # inv(dx/dX)
+    "Representation of the (pseudo-)inverse of the Jacobian of the mapping from reference cell to physical coordinates."
+    __slots__ = ()
+    name = "K"
+
+    def shape(self):
+        g = self._domain.geometric_dimension()
+        t = self._domain.topological_dimension()
+        return (t, g)
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
@@ -305,32 +340,7 @@ class FacetJacobianInverse(iGeometricFacetQuantity): # inv(dx/dXf)
         # Only true for a piecewise linear coordinate field in simplex cells
         return self._domain.is_piecewise_linear_simplex_domain()
 
-
-class ReferenceFacetJacobian(GeometricFacetQuantity): # dX/dXf
-    "Representation of the Jacobian of the mapping from (coordinates on reference cell of facet) to (cell reference coordinates on facet of reference cell)."
-    __slots__ = ()
-    name = "RFJ"
-
-    def shape(self):
-        t = self._domain.topological_dimension()
-        return (t, t-1)
-
-    def is_cellwise_constant(self):
-        "Return whether this expression is spatially constant over each cell."
-        # This is always a constant mapping between two reference coordinate systems.
-        return True
-
-#class ReferenceFacetJacobianDeterminant(GeometricFacetQuantity): # det(dX/dXf)
-#    "Representation of the (pseudo-)determinant of the Jacobian of the mapping from (coordinates on reference cell of facet) to (cell reference coordinates on facet of reference cell)."
-#    __slots__ = ()
-#    name = "detRFJ"
-#
-#    def is_cellwise_constant(self):
-#        "Return whether this expression is spatially constant over each cell."
-#        # Only true for a piecewise linear coordinate field in simplex cells
-#        return self._domain.is_piecewise_linear_simplex_domain()
-
-#class ReferenceFacetJacobianInverse(GeometricFacetQuantity): # inv(dX/dXf)
+#class CellFacetJacobianInverse(GeometricFacetQuantity): # inv(dX/dXf)
 #    "Representation of the (pseudo-)inverse of the Jacobian of the mapping from (coordinates on reference cell of facet) to (cell reference coordinates on facet of reference cell)."
 #    __slots__ = ()
 #    name = "RFK"
@@ -345,7 +355,7 @@ class ReferenceFacetJacobian(GeometricFacetQuantity): # dX/dXf
 #        return self._domain.is_piecewise_linear_simplex_domain()
 
 
-# --- Types representing normal vectors
+# --- Types representing normal or tangent vectors
 
 class FacetNormal(GeometricFacetQuantity):
     "Representation of a facet normal."
@@ -373,25 +383,54 @@ class CellNormal(GeometricCellQuantity):
         g = self._domain.geometric_dimension()
         return (g,)
 
-
-# TODO: CellTangents (t,g), FacetTangents (t-1,g)
-
-
-# --- Types representing barycenter coordinates
-
-#class CellBarycenter(GeometricCellQuantity):
-#    "Representation of the physical barycenter coordinate of the cell."
+# TODO: Implement elsewhere
+#class FacetTangents(GeometricFacetQuantity):
+#    "Representation of the facet tangent(s)."
 #    __slots__ = ()
-#    name = "cell_barycenter"
+#    name = "t"
+#
+#    def shape(self):
+#        g = self._domain.geometric_dimension()
+#        t = self._domain.topological_dimension()
+#        return (t-1,g)
+#
+#    def is_cellwise_constant(self): # NB! Copied from FacetNormal
+#        "Return whether this expression is spatially constant over each cell."
+#        # TODO: For product cells, this depends on which facet. Seems like too much work to fix right now.
+#        # Only true for a piecewise linear coordinate field with simplex _facets_
+#        x = self._domain.coordinates()
+#        facet_cellname = cellname2facetname.get(self._domain.cell().cellname()) # Allowing None if unknown..
+#        return (x is None or x.element().degree() == 1) and (facet_cellname in affine_cells) # .. which will become false.
+
+# TODO: Implement elsewhere
+#class CellTangents(GeometricCellQuantity):
+#    "Representation of the cell tangent(s), for cells of tdim=gdim-1."
+#    __slots__ = ()
+#    name = "cell_tangents"
+#
+#    def shape(self):
+#        g = self._domain.geometric_dimension()
+#        t = self._domain.topological_dimension()
+#        return (t,g)
+
+
+# --- Types representing midpoint coordinates
+
+# TODO: Implement elsewhere
+#class CellMidpoint(GeometricCellQuantity):
+#    "Representation of the physical midpoint coordinate of the cell."
+#    __slots__ = ()
+#    name = "cell_midpoint"
 #
 #    def shape(self):
 #        g = self._domain.geometric_dimension()
 #        return (g,)
 
-#class FacetBarycenter(GeometricFacetQuantity):
-#    "Representation of the physical barycenter coordinate of the facet."
+# TODO: Implement elsewhere
+#class FacetMidpoint(GeometricFacetQuantity):
+#    "Representation of the physical midpoint coordinate of the facet."
 #    __slots__ = ()
-#    name = "facet_barycenter"
+#    name = "facet_midpoint"
 #
 #    def shape(self):
 #        g = self._domain.geometric_dimension()

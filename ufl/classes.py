@@ -44,11 +44,12 @@ from ufl.coefficient import (Coefficient, ConstantBase,
 from ufl.cell import Cell, ProductCell
 from ufl.domain import Domain, ProductDomain
 from ufl.geometry import (
-    GeometricQuantity,
-    SpatialCoordinate, CellCoordinate, FacetCoordinate, PhysicalCellOrigo,
+    GeometricQuantity, GeometricCellQuantity, GeometricFacetQuantity,
+    SpatialCoordinate, CellCoordinate, FacetCoordinate,
+    PhysicalCellOrigo, CellFacetOrigo, PhysicalFacetOrigo,
     Jacobian, JacobianDeterminant, JacobianInverse,
     FacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse,
-    ReferenceFacetJacobian,
+    CellFacetJacobian,
     FacetNormal, QuadratureWeight, CellNormal, CellOrientation,
     CellVolume, Circumradius,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
