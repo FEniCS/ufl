@@ -83,9 +83,7 @@ x = Jxc Jcf Xf + x0f
 
 Names:
 
-s/FacetCoordinate/FacetCoordinate/g
-
-s/CellOriginCoordinate/PhysicalCellOrigin/g
+s/PhysicalCellOrigin/PhysicalCellOrigin/g
 
 s/ReferenceFacetJacobian/CellFacetJacobian/g
 s/FacetJacobian/PhysicalFacetJacobian/g
@@ -194,7 +192,7 @@ class FacetCoordinate(GeometricFacetQuantity): # Xf
         t = self._domain.topological_dimension()
         return t <= 1
 
-class CellOriginCoordinate(GeometricCellQuantity): # x0
+class PhysicalCellOrigin(GeometricCellQuantity): # x0
     "Representation of the physical coordinate corresponding to the origin on the reference cell."
     __slots__ = ()
     name = "x0"
