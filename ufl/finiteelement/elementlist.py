@@ -32,16 +32,16 @@ ufl_elements = {}
 aliases = {}
 
 # Function for registering new elements
-def register_element(family, short_name, sobolev_space, mapping, degree_range, cellnames):
+def register_element(family, short_name, value_rank, sobolev_space, mapping, degree_range, cellnames):
     "Register new finite element family"
     ufl_assert(family not in ufl_elements, 'Finite element \"%s\" has already been registered.' % family)
-    ufl_elements[family]     = (family, short_name, sobolev_space, mapping, degree_range, cellnames)
-    ufl_elements[short_name] = (family, short_name, sobolev_space, mapping, degree_range, cellnames)
+    ufl_elements[family]     = (family, short_name, value_rank, sobolev_space, mapping, degree_range, cellnames)
+    ufl_elements[short_name] = (family, short_name, value_rank, sobolev_space, mapping, degree_range, cellnames)
 
-def register_element2(family, sobolev_space, mapping, degree_range, cellnames):
+def register_element2(family, value_rank, sobolev_space, mapping, degree_range, cellnames):
     "Register new finite element family"
     ufl_assert(family not in ufl_elements, 'Finite element \"%s\" has already been registered.' % family)
-    ufl_elements[family] = (family, family, sobolev_space, mapping, degree_range, cellnames)
+    ufl_elements[family] = (family, family, value_rank, sobolev_space, mapping, degree_range, cellnames)
 
 def register_alias(alias, to):
     aliases[alias] = to
@@ -81,32 +81,32 @@ any_cell  = (None,
              "quadrilateral", "hexahedron")
 
 # Elements in the periodic table # TODO: Register these as aliases of periodic table element description instead of the other way around
-register_element("Lagrange", "CG",                       H1,    "identity", (1, None), any_cell)                   # "P"
-register_element("Brezzi-Douglas-Marini", "BDM",         HDiv,  "contravariant Piola", (1, None), simplices[1:]) # "BDMf" (2d), "N2f" (3d)
-register_element("Discontinuous Lagrange", "DG",         L2,    "identity", (0, None), any_cell)                   # "DG"
-register_element("Nedelec 1st kind H(curl)", "N1curl",   HCurl, "covariant Piola", (1, None), simplices[1:])     # "RTe" (2d), "N1e" (3d)
-register_element("Nedelec 2nd kind H(curl)", "N2curl",   HCurl, "covariant Piola", (1, None), simplices[1:])     # "BDMe" (2d), "N2e" (3d)
-register_element("Raviart-Thomas", "RT",                 HDiv,  "contravariant Piola", (1, None), simplices[1:]) # "RTf" , "N1f" (3d)
+register_element("Lagrange", "CG",                       0, H1,    "identity", (1, None), any_cell)                   # "P"
+register_element("Brezzi-Douglas-Marini", "BDM",         1, HDiv,  "contravariant Piola", (1, None), simplices[1:]) # "BDMf" (2d), "N2f" (3d)
+register_element("Discontinuous Lagrange", "DG",         0, L2,    "identity", (0, None), any_cell)                   # "DG"
+register_element("Nedelec 1st kind H(curl)", "N1curl",   1, HCurl, "covariant Piola", (1, None), simplices[1:])     # "RTe" (2d), "N1e" (3d)
+register_element("Nedelec 2nd kind H(curl)", "N2curl",   1, HCurl, "covariant Piola", (1, None), simplices[1:])     # "BDMe" (2d), "N2e" (3d)
+register_element("Raviart-Thomas", "RT",                 1, HDiv,  "contravariant Piola", (1, None), simplices[1:]) # "RTf" , "N1f" (3d)
 
 # Elements not in the periodic table
-register_element("Argyris", "ARG",                       H2,   "identity", (1, None), simplices[1:])
-register_element("Arnold-Winther", "AW",                 H1,   "identity", None, ("triangle",))
-register_element("Brezzi-Douglas-Fortin-Marini", "BDFM", HDiv, "contravariant Piola", (1, None), simplices[1:])
-register_element("Crouzeix-Raviart", "CR",               L2,   "identity", (1, 1), simplices[1:])
+register_element("Argyris", "ARG",                       0, H2,   "identity", (1, None), simplices[1:])
+register_element("Arnold-Winther", "AW",                 0, H1,   "identity", None, ("triangle",))
+register_element("Brezzi-Douglas-Fortin-Marini", "BDFM", 1, HDiv, "contravariant Piola", (1, None), simplices[1:])
+register_element("Crouzeix-Raviart", "CR",               0, L2,   "identity", (1, 1), simplices[1:])
 # TODO: Implement generic Tear operator for elements instead of this:
-register_element("Discontinuous Raviart-Thomas", "DRT",  L2,   "contravariant Piola", (1, None), simplices[1:])
-register_element("Hermite", "HER",                       H1,   "identity", None, simplices[1:])
-register_element("Mardal-Tai-Winther", "MTW",            H1,   "identity", None, ("triangle",))
-register_element("Morley", "MOR",                        H2,   "identity", None, ("triangle",))
+register_element("Discontinuous Raviart-Thomas", "DRT",  1, L2,   "contravariant Piola", (1, None), simplices[1:])
+register_element("Hermite", "HER",                       0, H1,   "identity", None, simplices[1:])
+register_element("Mardal-Tai-Winther", "MTW",            0, H1,   "identity", None, ("triangle",))
+register_element("Morley", "MOR",                        0, H2,   "identity", None, ("triangle",))
 
 # Special elements
-register_element("Boundary Quadrature", "BQ", L2, "identity", (0, None), any_cell)
-register_element("Bubble", "B",               H1, "identity", (2, None), simplices)
-register_element("Quadrature", "Quadrature",  L2, "identity", (0, None), any_cell)
-register_element("Real", "R",                 L2, "identity", (0, 0),    any_cell)
-register_element("Undefined", "U",            L2, "identity", (0, None), any_cell)
-register_element("Lobatto", "Lob",            L2, "identity", (1, None), ("interval",))
-register_element("Radau",   "Rad",            L2, "identity", (0, None), ("interval",))
+register_element("Boundary Quadrature", "BQ", 0, L2, "identity", (0, None), any_cell)
+register_element("Bubble", "B",               0, H1, "identity", (2, None), simplices)
+register_element("Quadrature", "Quadrature",  0, L2, "identity", (0, None), any_cell)
+register_element("Real", "R",                 0, L2, "identity", (0, 0),    any_cell)
+register_element("Undefined", "U",            0, L2, "identity", (0, None), any_cell)
+register_element("Lobatto", "Lob",            0, L2, "identity", (1, None), ("interval",))
+register_element("Radau",   "Rad",            0, L2, "identity", (0, None), ("interval",))
 
 # Let Nedelec H(div) elements be aliases to BDMs/RTs
 register_alias("Nedelec 1st kind H(div)",
@@ -120,19 +120,19 @@ register_alias("N2div",
                lambda family, dim, order, degree: ("Brezzi-Douglas-Marini", order))
 
 # New elements introduced for the periodic table 2014
-register_element2("Q",     H1,    "identity",            (1, None), cubes)
-register_element2("DGQ",   L2,    "identity",            (0, None), cubes)
-register_element2("RTQe",  HCurl, "covariant Piola",     (1, None), ("quadrilateral",))
-register_element2("RTQf",  HDiv,  "contravariant Piola", (1, None), ("quadrilateral",))
-register_element2("NQe",   HCurl, "covariant Piola",     (1, None), ("hexahedron",))
-register_element2("NQf",   HDiv,  "contravariant Piola", (1, None), ("hexahedron",))
+register_element2("Q",     0, H1,    "identity",            (1, None), cubes)
+register_element2("DGQ",   0, L2,    "identity",            (0, None), cubes)
+register_element2("RTQe",  1, HCurl, "covariant Piola",     (1, None), ("quadrilateral",))
+register_element2("RTQf",  1, HDiv,  "contravariant Piola", (1, None), ("quadrilateral",))
+register_element2("NQe",   1, HCurl, "covariant Piola",     (1, None), ("hexahedron",))
+register_element2("NQf",   1, HDiv,  "contravariant Piola", (1, None), ("hexahedron",))
 
-register_element2("S",     H1,    "identity",            (1, None), cubes)
-register_element2("DGS",   L2,    "identity",            (1, None), cubes)
-register_element2("BDMSe", HCurl, "covariant Piola",     (1, None), ("quadrilateral",))
-register_element2("BDMSf", HDiv,  "contravariant Piola", (1, None), ("quadrilateral",))
-register_element2("AAe",   HCurl, "covariant Piola",     (1, None), ("hexahedron",))
-register_element2("AAf",   HDiv,  "contravariant Piola", (1, None), ("hexahedron",))
+register_element2("S",     0, H1,    "identity",            (1, None), cubes)
+register_element2("DGS",   0, L2,    "identity",            (1, None), cubes)
+register_element2("BDMSe", 1, HCurl, "covariant Piola",     (1, None), ("quadrilateral",))
+register_element2("BDMSf", 1, HDiv,  "contravariant Piola", (1, None), ("quadrilateral",))
+register_element2("AAe",   1, HCurl, "covariant Piola",     (1, None), ("hexahedron",))
+register_element2("AAf",   1, HDiv,  "contravariant Piola", (1, None), ("hexahedron",))
 
 # New aliases introduced for the periodic table 2014
 register_alias("P",    lambda family, dim, order, degree: ("Lagrange",                 order))
@@ -219,7 +219,7 @@ def canonical_element_description(family, cell, order, form_degree):
                'Unknown finite element "%s".' % family)
 
     # Check that element data is valid (and also get common family name)
-    (family, short_name, sobolev_space, mapping, krange, cellnames) = ufl_elements[family]
+    (family, short_name, value_rank, sobolev_space, mapping, krange, cellnames) = ufl_elements[family]
 
     # Validate cellname if a valid cell is specified
     ufl_assert(cellname is None or cellname in cellnames,
@@ -238,19 +238,21 @@ def canonical_element_description(family, cell, order, form_degree):
                'Order "%s" invalid for "%s" finite element.' %\
                        (istr(order), family))
 
-    # Override sobolev_space for piecewise constants (simplifies elementlist)
+    # Override sobolev_space for piecewise constants (TODO: necessary?)
     if order == 0:
         sobolev_space = L2
 
-    if sobolev_space == HDiv or sobolev_space == HCurl:
+    if value_rank == 1:
         # Vector valued fundamental elements in HDiv and HCurl have a shape
         ufl_assert(gdim != None and tdim != None,
                "Cannot infer shape of element without topological and geometric dimensions.")
         reference_value_shape = (tdim,)
         value_shape = (gdim,)
-    else:
+    elif value_rank == 0:
         # All other elements are scalar values
         reference_value_shape = ()
         value_shape = ()
+    else:
+        error("Invalid value rank %d." % value_rank)
 
     return family, short_name, order, value_shape, reference_value_shape, sobolev_space, mapping
