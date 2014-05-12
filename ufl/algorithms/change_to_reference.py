@@ -21,7 +21,7 @@ from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.classes import (Terminal, ReferenceGrad, Grad,
                          Jacobian, JacobianInverse, JacobianDeterminant,
-                         FacetJacobian, FacetJacobianInverse, FacetJacobianDeterminant,
+                         PhysicalFacetJacobian, FacetJacobianInverse, FacetJacobianDeterminant,
                          CellFacetJacobian, QuadratureWeight)
 from ufl.constantvalue import as_ufl
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
@@ -168,7 +168,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
         r = self._rcache.get(o)
         if r is None:
             domain = o.domain()
-            FJ = self.facet_jacobian(FacetJacobian(domain))
+            FJ = self.facet_jacobian(PhysicalFacetJacobian(domain))
             r = inverse_expr(FJ)
             self._rcache[o] = r
         return r
@@ -177,7 +177,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
         r = self._rcache.get(o)
         if r is None:
             domain = o.domain()
-            FJ = self.facet_jacobian(FacetJacobian(domain))
+            FJ = self.facet_jacobian(PhysicalFacetJacobian(domain))
             r = determinant_expr(FJ)
             self._rcache[o] = r
         return r
@@ -255,7 +255,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
             gdim = domain.geometric_dimension()
             tdim = domain.topological_dimension()
 
-            FJ = self.facet_jacobian(FacetJacobian(domain))
+            FJ = self.facet_jacobian(PhysicalFacetJacobian(domain))
 
             if tdim == 3:
                 ufl_assert(gdim == 3, "Inconsistent dimensions.")

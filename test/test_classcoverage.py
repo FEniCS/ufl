@@ -171,7 +171,7 @@ class ClasscoverageTest(UflTestCase):
         g = JacobianInverse(cell)
         test_object(g, (dim,dim), ())
 
-        g = FacetJacobian(cell)
+        g = PhysicalFacetJacobian(cell)
         test_object(g, (dim,dim-1), ())
         g = FacetJacobianDeterminant(cell)
         test_object(g, (), ())

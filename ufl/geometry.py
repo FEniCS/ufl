@@ -83,8 +83,7 @@ x = Jxc Jcf Xf + x0f
 
 Names:
 
-s/CellFacetJacobian/CellFacetJacobian/g
-s/FacetJacobian/PhysicalFacetJacobian/g
+s/\<PhysicalFacetJacobian\>/PhysicalFacetJacobian/g
 
 ...careful... 's/\<Jacobian\>/PhysicalCellJacobian/g'
 
@@ -245,7 +244,7 @@ class Jacobian(GeometricCellQuantity): # dx/dX
         # Only true for a piecewise linear coordinate field in simplex cells
         return self._domain.is_piecewise_linear_simplex_domain()
 
-class FacetJacobian(GeometricFacetQuantity): # dx/dXf = dx/dX dX/dXf
+class PhysicalFacetJacobian(GeometricFacetQuantity): # dx/dXf = dx/dX dX/dXf
     "Representation of the Jacobian of the mapping from reference cell of facet to physical coordinates."
     __slots__ = ()
     name = "FJ"
