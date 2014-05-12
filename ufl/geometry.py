@@ -83,8 +83,7 @@ x = Jxc Jcf Xf + x0f
 
 Names:
 
-s/CellCoordinate/CellCoordinate/g
-s/ReferenceFacetCoordinate/FacetCoordinate/g
+s/FacetCoordinate/FacetCoordinate/g
 
 s/CellOriginCoordinate/PhysicalCellOrigin/g
 
@@ -180,7 +179,7 @@ class CellCoordinate(GeometricCellQuantity): # X
         t = self._domain.topological_dimension()
         return t == 0
 
-class ReferenceFacetCoordinate(GeometricFacetQuantity): # Xf
+class FacetCoordinate(GeometricFacetQuantity): # Xf
     "Representation of a local coordinate on the reference cell of (a facet of the reference cell)."
     __slots__ = ()
     name = "Xf"
