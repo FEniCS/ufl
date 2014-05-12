@@ -668,7 +668,7 @@ class GradAD(ForwardAD):
 
     # TODO: Implement rules for some of these types?
 
-    def reference_facet_coordinate(self, o):
+    def facet_coordinate(self, o):
         error("Not expecting this low level type in AD.")
 
     def jacobian(self, o):
