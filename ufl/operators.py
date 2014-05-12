@@ -595,16 +595,19 @@ def exterior_derivative(f):
 
     # Extract the element from the input f
     if isinstance(f, Indexed):
-        if len(f._indices) > 1:
+        expression, indices = f.operands()
+        if len(indices) > 1:
             raise NotImplementedError
-        index = int(f._indices[0])
-        element = f._expression.element()
+        index = int(indices[0])
+        element = expression.element()
         element = element.extract_component(index)[1]
     elif isinstance(f, ListTensor):
-        if len(f._expressions[0]._indices) > 1:
+        f0 = f.operands()[0]
+        f0expr, f0indices = f0.operands() # FIXME: Assumption on type of f0!!!
+        if len(f0indices) > 1:
             raise NotImplementedError
-        index = int(f._expressions[0]._indices[0])
-        element = f._expressions[0]._expression.element()
+        index = int(f0indices[0])
+        element = f0expr.element()
         element = element.extract_component(index)[1]
     else:
         try:

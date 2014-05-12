@@ -29,36 +29,44 @@ from ufl.common import EmptyDict
 #--- Indexed expression ---
 
 class Indexed(WrapperType):
-    __slots__ = ("_expression", "_indices",
+    __slots__ = ("_ops",
                  "_free_indices", "_index_dimensions",)
     def __init__(self, expression, indices):
         WrapperType.__init__(self)
+
+        # Error checking
         if not isinstance(expression, Expr):
             error("Expecting Expr instance, not %s." % repr(expression))
-        self._expression = expression
 
         shape = expression.shape()
+
+        # Error checking
         if len(shape) != len(indices):
             error("Invalid number of indices (%d) for tensor "\
                 "expression of rank %d:\n\t%r\n"\
                 % (len(indices), expression.rank(), expression))
 
-        self._indices = as_multi_index(indices, shape)
+        # Store operands
+        indices = as_multi_index(indices, shape)
+        self._ops = (expression, indices)
 
-        for si, di in izip(shape, self._indices):
+        # Error checking
+        for si, di in izip(shape, indices):
             if isinstance(di, FixedIndex) and int(di) >= int(si):
                 error("Fixed index out of range!")
 
-        idims = dict((i, s) for (i, s) in izip(self._indices._indices, shape)
+        # Build free index tuple and dimensions
+        idims = dict((i, s) for (i, s) in izip(indices._indices, shape)
                      if isinstance(i, Index))
         idims.update(expression.index_dimensions())
-        fi = unique_indices(expression.free_indices() + self._indices._indices)
+        fi = unique_indices(expression.free_indices() + indices._indices)
 
+        # Cache free index and dimensions
         self._free_indices = fi
         self._index_dimensions = idims or EmptyDict
 
     def operands(self):
-        return (self._expression, self._indices)
+        return self._ops
 
     def free_indices(self):
         return self._free_indices
@@ -71,7 +79,7 @@ class Indexed(WrapperType):
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
-        return self._expression.is_cellwise_constant()
+        return self._ops[0].is_cellwise_constant()
 
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
         A, ii = self.operands()
@@ -82,10 +90,10 @@ class Indexed(WrapperType):
             return A.evaluate(x, mapping, component, index_values)
 
     def __str__(self):
-        return "%s[%s]" % (parstr(self._expression, self), self._indices)
+        return "%s[%s]" % (parstr(self._ops[0], self), self._ops[1])
 
     def __repr__(self):
-        return "Indexed(%r, %r)" % (self._expression, self._indices)
+        return "Indexed(%r, %r)" % self._ops
 
     def __getitem__(self, key):
         error("Attempting to index with %r, but object is already indexed: %r" % (key, self))

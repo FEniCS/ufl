@@ -192,6 +192,9 @@ class ComponentTensor(WrapperType):
     def operands(self):
         return (self._expression, self._indices)
 
+    def indices(self):
+        return self._indices
+
     def free_indices(self):
         return self._free_indices
 
