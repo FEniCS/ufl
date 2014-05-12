@@ -200,7 +200,8 @@ from ufl.geometry import (
     CellFacetJacobian,
     CellVolume, Circumradius,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
-    FacetNormal, CellNormal, CellOrientation,
+    FacetNormal, CellNormal,
+    CellOrientation,
     QuadratureWeight)
 
 # Sobolev spaces

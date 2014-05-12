@@ -51,10 +51,10 @@ Jcf = dX/dXf = grad_Xf X(Xf)
     CellFacetJacobian
 
 Jxc = dx/dX = grad_X x(X)
-    PhysicalCellJacobian
+    Jacobian
 
 Jxf = dx/dXf = grad_Xf x(Xf)  =  Jxc Jcf = dx/dX dX/dXf = grad_X x(X) grad_Xf X(Xf)
-    PhysicalFacetJacobian = PhysicalCellJacobian * CellFacetJacobian
+    PhysicalFacetJacobian = Jacobian * CellFacetJacobian
 
 
 Possible computation of X from Xf:
@@ -69,7 +69,7 @@ x = f(X)
     SpatialCoordinate = sum_k xdofs_k * xphi_k(X)
 
 x = Jxc X + x0
-    SpatialCoordinate = PhysicalCellJacobian * CellCoordinate + PhysicalCellOrigo
+    SpatialCoordinate = Jacobian * CellCoordinate + PhysicalCellOrigo
 
 
 Possible computation of x from Xf:
@@ -78,14 +78,15 @@ x = Jxf Xf + x0f
     SpatialCoordinate = PhysicalFacetJacobian * FacetCoordinate + PhysicalFacetOrigo
 
 x = Jxc Jcf Xf + x0f
-    SpatialCoordinate = PhysicalCellJacobian * CellFacetJacobian * FacetCoordinate + PhysicalFacetOrigo
+    SpatialCoordinate = Jacobian * CellFacetJacobian * FacetCoordinate + PhysicalFacetOrigo
 
 
-Names:
+Rename these:
+sed -i 's/\<SpatialCoordinate\>/PhysicalCoordinate/g' `find -name \*.py`
+sed -i 's/\<spatial_coordinate\>/physical_coordinate/g' `find -name \*.py`
 
-s/\<PhysicalFacetJacobian\>/PhysicalFacetJacobian/g
-
-...careful... 's/\<Jacobian\>/PhysicalCellJacobian/g'
+User level name translation:
+SpatialCoordinate = PhysicalCoordinate
 
 """
 
