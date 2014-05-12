@@ -194,7 +194,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
             else:
                 return x
 
-    def reference_coordinate(self, o):
+    def cell_coordinate(self, o):
         "Compute from physical coordinates if they are known, using the appropriate mappings."
         if self.physical_coordinates_known:
             r = self._rcache.get(o)
@@ -209,7 +209,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
         else:
             return o
 
-    def facet_reference_coordinate(self, o):
+    def facet_cell_coordinate(self, o):
         if self.physical_coordinates_known:
             error("Missing computation of facet reference coordinates from physical coordinates via mappings.")
         else:

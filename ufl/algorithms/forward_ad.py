@@ -660,7 +660,7 @@ class GradAD(ForwardAD):
             self._Id = Identity(gdim)
         return (o, self._Id)
 
-    def reference_coordinate(self, o):
+    def cell_coordinate(self, o):
         "Gradient of X w.r.t. x is K. But I'm not sure if we want to allow this."
         error("This has not been validated. Does it make sense to do this here?")
         K = JacobianInverse(o.domain())
