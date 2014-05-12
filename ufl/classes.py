@@ -48,7 +48,7 @@ from ufl.geometry import (
     SpatialCoordinate, CellCoordinate, FacetCoordinate,
     CellOrigo, CellFacetOrigo, FacetOrigo,
     Jacobian, JacobianDeterminant, JacobianInverse,
-    PhysicalFacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse,
+    FacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse,
     CellFacetJacobian,
     FacetNormal, QuadratureWeight, CellNormal, CellOrientation,
     CellVolume, Circumradius,

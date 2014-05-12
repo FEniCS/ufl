@@ -54,7 +54,7 @@ Jxc = dx/dX = grad_X x(X)
     Jacobian
 
 Jxf = dx/dXf = grad_Xf x(Xf)  =  Jxc Jcf = dx/dX dX/dXf = grad_X x(X) grad_Xf X(Xf)
-    PhysicalFacetJacobian = Jacobian * CellFacetJacobian
+    FacetJacobian = Jacobian * CellFacetJacobian
 
 
 Possible computation of X from Xf:
@@ -75,7 +75,7 @@ x = Jxc X + x0
 Possible computation of x from Xf:
 
 x = Jxf Xf + x0f
-    SpatialCoordinate = PhysicalFacetJacobian * FacetCoordinate + FacetOrigo
+    SpatialCoordinate = FacetJacobian * FacetCoordinate + FacetOrigo
 
 x = Jxc Jcf Xf + x0f
     SpatialCoordinate = Jacobian * CellFacetJacobian * FacetCoordinate + FacetOrigo
@@ -236,7 +236,7 @@ class Jacobian(GeometricCellQuantity): # dx/dX
         # Only true for a piecewise linear coordinate field in simplex cells
         return self._domain.is_piecewise_linear_simplex_domain()
 
-class PhysicalFacetJacobian(GeometricFacetQuantity): # dx/dXf = dx/dX dX/dXf
+class FacetJacobian(GeometricFacetQuantity): # dx/dXf = dx/dX dX/dXf
     "Representation of the Jacobian of the mapping from reference cell of facet to physical coordinates."
     __slots__ = ()
     name = "FJ"
