@@ -75,10 +75,10 @@ x = Jxc X + x0
 Possible computation of x from Xf:
 
 x = Jxf Xf + x0f
-    SpatialCoordinate = PhysicalFacetJacobian * FacetCoordinate + PhysicalFacetOrigo
+    SpatialCoordinate = PhysicalFacetJacobian * FacetCoordinate + FacetOrigo
 
 x = Jxc Jcf Xf + x0f
-    SpatialCoordinate = Jacobian * CellFacetJacobian * FacetCoordinate + PhysicalFacetOrigo
+    SpatialCoordinate = Jacobian * CellFacetJacobian * FacetCoordinate + FacetOrigo
 
 """
 
@@ -209,7 +209,7 @@ class CellFacetOrigo(GeometricFacetQuantity):
         t = self._domain.topological_dimension()
         return (t,)
 
-class PhysicalFacetOrigo(GeometricFacetQuantity):
+class FacetOrigo(GeometricFacetQuantity):
     "Representation of the physical coordinate corresponding to the origin of the reference facet."
     __slots__ = ()
     name = "X0f"

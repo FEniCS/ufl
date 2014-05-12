@@ -46,7 +46,7 @@ from ufl.domain import Domain, ProductDomain
 from ufl.geometry import (
     GeometricQuantity, GeometricCellQuantity, GeometricFacetQuantity,
     SpatialCoordinate, CellCoordinate, FacetCoordinate,
-    CellOrigo, CellFacetOrigo, PhysicalFacetOrigo,
+    CellOrigo, CellFacetOrigo, FacetOrigo,
     Jacobian, JacobianDeterminant, JacobianInverse,
     PhysicalFacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse,
     CellFacetJacobian,

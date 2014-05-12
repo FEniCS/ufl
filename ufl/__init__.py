@@ -79,7 +79,7 @@ A very brief overview of the language contents follows:
 * Geometric quantities::
 
     SpatialCoordinate, CellCoordinate, FacetCoordinate,
-    CellOrigo, CellFacetOrigo, PhysicalFacetOrigo,
+    CellOrigo, CellFacetOrigo, FacetOrigo,
     Jacobian, JacobianDeterminant, JacobianInverse,
     PhysicalFacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse,
     CellFacetJacobian,
@@ -194,7 +194,7 @@ from ufl.cell import as_cell, Cell, ProductCell
 from ufl.domain import as_domain, Domain, ProductDomain
 from ufl.geometry import (
     SpatialCoordinate, CellCoordinate, FacetCoordinate,
-    CellOrigo, CellFacetOrigo, PhysicalFacetOrigo,
+    CellOrigo, CellFacetOrigo, FacetOrigo,
     Jacobian, JacobianDeterminant, JacobianInverse,
     PhysicalFacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse,
     CellFacetJacobian,
