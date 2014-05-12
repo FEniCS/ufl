@@ -69,7 +69,7 @@ x = f(X)
     SpatialCoordinate = sum_k xdofs_k * xphi_k(X)
 
 x = Jxc X + x0
-    SpatialCoordinate = Jacobian * CellCoordinate + PhysicalCellOrigo
+    SpatialCoordinate = Jacobian * CellCoordinate + CellOrigo
 
 
 Possible computation of x from Xf:
@@ -79,14 +79,6 @@ x = Jxf Xf + x0f
 
 x = Jxc Jcf Xf + x0f
     SpatialCoordinate = Jacobian * CellFacetJacobian * FacetCoordinate + PhysicalFacetOrigo
-
-
-Rename these:
-sed -i 's/\<SpatialCoordinate\>/PhysicalCoordinate/g' `find -name \*.py`
-sed -i 's/\<spatial_coordinate\>/physical_coordinate/g' `find -name \*.py`
-
-User level name translation:
-SpatialCoordinate = PhysicalCoordinate
 
 """
 
@@ -139,7 +131,6 @@ class GeometricFacetQuantity(GeometricQuantity):
 
 # --- Physical coordinate represented in different coordinate systems
 
-# TODO: Rename to PhysicalCoordinate, then deprecate or make a pure user level SpatialCoordinate = PhysicalCoordinate
 class SpatialCoordinate(GeometricCellQuantity):
     "Representation of a spatial coordinate."
     __slots__ = ()
@@ -197,7 +188,7 @@ class FacetCoordinate(GeometricFacetQuantity):
 
 # --- Origo of coordinate systems in larger coordinate systems
 
-class PhysicalCellOrigo(GeometricCellQuantity):
+class CellOrigo(GeometricCellQuantity):
     "Representation of the physical coordinate corresponding to the origin on the reference cell."
     __slots__ = ()
     name = "x0"
@@ -325,7 +316,7 @@ class JacobianInverse(GeometricCellQuantity): # inv(dx/dX)
         # Only true for a piecewise linear coordinate field in simplex cells
         return self._domain.is_piecewise_linear_simplex_domain()
 
-class FacetJacobianInverse(iGeometricFacetQuantity): # inv(dx/dXf)
+class FacetJacobianInverse(GeometricFacetQuantity): # inv(dx/dXf)
     "Representation of the (pseudo-)inverse of the Jacobian of the mapping from reference cell of facet to physical coordinates."
     __slots__ = ()
     name = "FK"
