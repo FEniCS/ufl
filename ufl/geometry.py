@@ -83,7 +83,7 @@ x = Jxc Jcf Xf + x0f
 
 Names:
 
-s/ReferenceCoordinate/CellCoordinate/g
+s/CellCoordinate/CellCoordinate/g
 s/ReferenceFacetCoordinate/FacetCoordinate/g
 
 s/CellOriginCoordinate/PhysicalCellOrigin/g
@@ -165,7 +165,7 @@ class SpatialCoordinate(GeometricCellQuantity): # x
         else:
             return float(x[component[0]])
 
-class ReferenceCoordinate(GeometricCellQuantity): # X
+class CellCoordinate(GeometricCellQuantity): # X
     "Representation of a local coordinate on the reference cell."
     __slots__ = ()
     name = "X"
