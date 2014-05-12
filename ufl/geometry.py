@@ -30,6 +30,71 @@ from ufl.protocols import id_or_none
 from ufl.cell import as_cell, cellname2dim, cellname2facetname, affine_cells, Cell, ProductCell
 from ufl.domain import as_domain, Domain, extract_domains, join_domains, ProductDomain
 
+"""
+
+Possible coordinate bootstrapping:
+
+Xf = Xf[q]
+    FacetCoordinate = quadrature point on facet (ds,dS)
+
+X = X[q]
+    CellCoordinate = quadrature point on cell (dx)
+
+x = x[q]
+    SpatialCoordinate = quadrature point from input array (dc)
+
+
+
+Jacobians of mappings between coordinates:
+
+Jcf = dX/dXf = grad_Xf X(Xf)
+    CellFacetJacobian
+
+Jxc = dx/dX = grad_X x(X)
+    PhysicalCellJacobian
+
+Jxf = dx/dXf = grad_Xf x(Xf)  =  Jxc Jcf = dx/dX dX/dXf = grad_X x(X) grad_Xf X(Xf)
+    PhysicalFacetJacobian = PhysicalCellJacobian * CellFacetJacobian
+
+
+Possible computation of X from Xf:
+
+X = Jcf Xf + X0f
+    CellCoordinate = CellFacetJacobian * FacetCoordinate + CellFacetOrigin
+
+
+Possible computation of x from X:
+
+x = f(X)
+    SpatialCoordinate = sum_k xdofs_k * xphi_k(X)
+
+x = Jxc X + x0
+    SpatialCoordinate = PhysicalCellJacobian * CellCoordinate + PhysicalCellOrigin
+
+
+Possible computation of x from Xf:
+
+x = Jxf Xf + x0f
+    SpatialCoordinate = PhysicalFacetJacobian * FacetCoordinate + PhysicalFacetOrigin
+
+x = Jxc Jcf Xf + x0f
+    SpatialCoordinate = PhysicalCellJacobian * CellFacetJacobian * FacetCoordinate + PhysicalFacetOrigin
+
+
+Names:
+
+s/ReferenceCoordinate/CellCoordinate/g
+s/ReferenceFacetCoordinate/FacetCoordinate/g
+
+s/CellOriginCoordinate/PhysicalCellOrigin/g
+
+s/ReferenceFacetJacobian/CellFacetJacobian/g
+s/FacetJacobian/PhysicalFacetJacobian/g
+
+...careful... 's/\<Jacobian\>/PhysicalCellJacobian/g'
+
+"""
+
 
 # --- Expression node types
 
@@ -160,70 +225,6 @@ class CellOriginCoordinate(GeometricCellQuantity): # x0
 #    def shape(self):
 #        g = self._domain.geometric_dimension()
 #        return (g,)
-
-"""
-
-Possible coordinate bootstrapping:
-
-Xf = Xf[q]
-    FacetCoordinate = quadrature point on facet (ds,dS)
-
-X = X[q]
-    CellCoordinate = quadrature point on cell (dx)
-
-x = x[q]
-    PhysicalCoordinate = quadrature point from input array (dc)
-
-
-Jacobians of mappings between coordinates:
-
-Jcf = dX/dXf = grad_Xf X(Xf)
-    CellFacetJacobian
-
-Jxc = dx/dX = grad_X x(X)
-    PhysicalCellJacobian
-
-Jxf = dx/dXf = grad_Xf x(Xf)  =  Jxc Jcf = dx/dX dX/dXf = grad_X x(X) grad_Xf X(Xf)
-    PhysicalFacetJacobian = PhysicalCellJacobian * CellFacetJacobian
-
-
-Possible computation of X from Xf:
-
-X = Jcf Xf + X0f
-    CellCoordinate = CellFacetJacobian * FacetCoordinate + CellFacetOrigin
-
-
-Possible computation of x from X:
-
-x = f(X)
-    PhysicalCoordinate = sum_k xdofs_k * xphi_k(X)
-
-x = Jxc X + x0
-    PhysicalCoordinate = PhysicalCellJacobian * CellCoordinate + PhysicalCellOrigin
-
-
-Possible computation of x from Xf:
-
-x = Jxf Xf + x0f
-    PhysicalCoordinate = PhysicalFacetJacobian * FacetCoordinate + PhysicalFacetOrigin
-
-x = Jxc Jcf Xf + x0f
-    PhysicalCoordinate = PhysicalCellJacobian * CellFacetJacobian * FacetCoordinate + PhysicalFacetOrigin
-
-
-Names:
-
-s/SpatialCoordinate/PhysicalCoordinate/g
-s/ReferenceCoordinate/CellCoordinate/g
-s/ReferenceFacetCoordinate/FacetCoordinate/g
-
-s/CellOriginCoordinate/PhysicalCellOrigin/g
-
-s/ReferenceFacetJacobian/CellFacetJacobian/g
-s/FacetJacobian/PhysicalFacetJacobian/g
-s/Jacobian/PhysicalCellJacobian/g
-
-"""
 
 
 class Jacobian(GeometricCellQuantity): # dx/dX
@@ -492,4 +493,3 @@ Cell.n = property(_deprecated_geometric_quantity("n", FacetNormal))
 Cell.volume = property(_deprecated_geometric_quantity("volume", CellVolume))
 Cell.circumradius = property(_deprecated_geometric_quantity("circumradius", Circumradius))
 Cell.facet_area = property(_deprecated_geometric_quantity("facet_area", FacetArea))
-
