@@ -69,7 +69,7 @@ x = f(X)
     SpatialCoordinate = sum_k xdofs_k * xphi_k(X)
 
 x = Jxc X + x0
-    SpatialCoordinate = PhysicalCellJacobian * CellCoordinate + PhysicalCellOrigin
+    SpatialCoordinate = PhysicalCellJacobian * CellCoordinate + PhysicalCellOrigo
 
 
 Possible computation of x from Xf:
@@ -83,7 +83,7 @@ x = Jxc Jcf Xf + x0f
 
 Names:
 
-s/PhysicalCellOrigin/PhysicalCellOrigin/g
+s/PhysicalCellOrigo/PhysicalCellOrigo/g
 
 s/ReferenceFacetJacobian/CellFacetJacobian/g
 s/FacetJacobian/PhysicalFacetJacobian/g
@@ -192,7 +192,7 @@ class FacetCoordinate(GeometricFacetQuantity): # Xf
         t = self._domain.topological_dimension()
         return t <= 1
 
-class PhysicalCellOrigin(GeometricCellQuantity): # x0
+class PhysicalCellOrigo(GeometricCellQuantity): # x0
     "Representation of the physical coordinate corresponding to the origin on the reference cell."
     __slots__ = ()
     name = "x0"

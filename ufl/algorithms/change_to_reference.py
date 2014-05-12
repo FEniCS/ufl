@@ -201,7 +201,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
             if r is None:
                 K = self.jacobian_inverse(JacobianInverse(domain))
                 x = self.spatial_coordinate(SpatialCoordinate(domain))
-                x0 = PhysicalCellOrigin(domain)
+                x0 = PhysicalCellOrigo(domain)
                 i,j = indices(2)
                 X = as_tensor(K[i,j] * (x[j] - x0[j]), (i,))
                 r = X
