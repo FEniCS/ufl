@@ -680,7 +680,7 @@ class GradAD(ForwardAD):
     def jacobian_inverse(self, o):
         error("Not expecting this low level type in AD.")
 
-    def facet_jacobian(self, o):
+    def physical_facet_jacobian(self, o):
         error("Not expecting this low level type in AD.")
 
     def facet_jacobian_determinant(self, o):

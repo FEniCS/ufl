@@ -80,7 +80,7 @@ class RestrictionPropagator(ReuseTransformer):
 
     # These are all the same from both sides of a facet:
     # facet_area, min_facet_edge_length, max_facet_edge_length,
-    # facet_jacobian, facet_jacobian_determinant, facet_jacobian_inverse,
+    # physical_facet_jacobian, facet_jacobian_determinant, facet_jacobian_inverse,
     # These as well, but also not implemented anywhere:
     # facet_barycenter, facet_diameter
 

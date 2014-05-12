@@ -153,7 +153,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
             self._rcache[o] = r
         return r
 
-    def facet_jacobian(self, o):
+    def physical_facet_jacobian(self, o):
         r = self._rcache.get(o)
         if r is None:
             domain = o.domain()
@@ -168,7 +168,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
         r = self._rcache.get(o)
         if r is None:
             domain = o.domain()
-            FJ = self.facet_jacobian(PhysicalFacetJacobian(domain))
+            FJ = self.physical_facet_jacobian(PhysicalFacetJacobian(domain))
             r = inverse_expr(FJ)
             self._rcache[o] = r
         return r
@@ -177,7 +177,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
         r = self._rcache.get(o)
         if r is None:
             domain = o.domain()
-            FJ = self.facet_jacobian(PhysicalFacetJacobian(domain))
+            FJ = self.physical_facet_jacobian(PhysicalFacetJacobian(domain))
             r = determinant_expr(FJ)
             self._rcache[o] = r
         return r
@@ -255,7 +255,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
             gdim = domain.geometric_dimension()
             tdim = domain.topological_dimension()
 
-            FJ = self.facet_jacobian(PhysicalFacetJacobian(domain))
+            FJ = self.physical_facet_jacobian(PhysicalFacetJacobian(domain))
 
             if tdim == 3:
                 ufl_assert(gdim == 3, "Inconsistent dimensions.")
