@@ -78,14 +78,10 @@ A very brief overview of the language contents follows:
 
 * Geometric quantities::
 
-    SpatialCoordinate, ReferenceCoordinate, ReferenceFacetCoordinate, CellOriginCoordinate,
-    Jacobian, JacobianDeterminant, JacobianInverse,
-    FacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse,
-    ReferenceFacetJacobian,
+    SpatialCoordinate,
+    FacetNormal, CellNormal,
     CellVolume, Circumradius,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
-    FacetNormal, CellNormal, CellOrientation,
-    QuadratureWeight
 
 * Indices::
 
@@ -192,14 +188,11 @@ from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile
 from ufl.cell import as_cell, Cell, ProductCell
 from ufl.domain import as_domain, Domain, ProductDomain
 from ufl.geometry import (
-    SpatialCoordinate, ReferenceCoordinate, ReferenceFacetCoordinate, CellOriginCoordinate,
-    Jacobian, JacobianDeterminant, JacobianInverse,
-    FacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse,
-    ReferenceFacetJacobian,
+    SpatialCoordinate,
+    FacetNormal, CellNormal,
     CellVolume, Circumradius,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
-    FacetNormal, CellNormal, CellOrientation,
-    QuadratureWeight)
+    )
 
 # Sobolev spaces
 from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl
@@ -289,14 +282,10 @@ __all__ = [
     'as_cell', 'Cell', 'ProductCell',
     'as_domain', 'Domain', 'ProductDomain',
     'L2', 'H1', 'H2', 'HCurl', 'HDiv',
-    'SpatialCoordinate', 'ReferenceCoordinate', 'ReferenceFacetCoordinate', 'CellOriginCoordinate',
+    'SpatialCoordinate',
     'CellVolume', 'Circumradius',
     'FacetArea', 'MinFacetEdgeLength', 'MaxFacetEdgeLength',
-    'Jacobian', 'JacobianDeterminant', 'JacobianInverse',
-    'FacetJacobian', 'FacetJacobianDeterminant', 'FacetJacobianInverse',
-    'ReferenceFacetJacobian',
-    'FacetNormal', 'CellNormal', 'CellOrientation',
-    'QuadratureWeight',
+    'FacetNormal', 'CellNormal',
     'FiniteElementBase', 'FiniteElement',
     'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
     'RestrictedElement', 'TensorProductElement',

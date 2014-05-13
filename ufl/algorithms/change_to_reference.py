@@ -22,7 +22,7 @@ from ufl.assertions import ufl_assert
 from ufl.classes import (Terminal, ReferenceGrad, Grad,
                          Jacobian, JacobianInverse, JacobianDeterminant,
                          FacetJacobian, FacetJacobianInverse, FacetJacobianDeterminant,
-                         ReferenceFacetJacobian, QuadratureWeight)
+                         CellFacetJacobian, QuadratureWeight)
 from ufl.constantvalue import as_ufl
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
 from ufl.algorithms.analysis import extract_type
@@ -158,7 +158,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
         if r is None:
             domain = o.domain()
             J = self.jacobian(Jacobian(domain))
-            RFJ = ReferenceFacetJacobian(domain)
+            RFJ = CellFacetJacobian(domain)
             i,j,k = indices(3)
             r = as_tensor(J[i,k]*RFJ[k,j], (i,j))
             self._rcache[o] = r
@@ -194,14 +194,14 @@ class ChangeToReferenceGeometry(ReuseTransformer):
             else:
                 return x
 
-    def reference_coordinate(self, o):
+    def cell_coordinate(self, o):
         "Compute from physical coordinates if they are known, using the appropriate mappings."
         if self.physical_coordinates_known:
             r = self._rcache.get(o)
             if r is None:
                 K = self.jacobian_inverse(JacobianInverse(domain))
                 x = self.spatial_coordinate(SpatialCoordinate(domain))
-                x0 = CellOriginCoordinate(domain)
+                x0 = CellOrigo(domain)
                 i,j = indices(2)
                 X = as_tensor(K[i,j] * (x[j] - x0[j]), (i,))
                 r = X
@@ -209,7 +209,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
         else:
             return o
 
-    def facet_reference_coordinate(self, o):
+    def facet_cell_coordinate(self, o):
         if self.physical_coordinates_known:
             error("Missing computation of facet reference coordinates from physical coordinates via mappings.")
         else:

@@ -62,7 +62,7 @@ class SumDegreeEstimator(Transformer):
         else:
             return x.element().degree()
 
-    def reference_coordinate(self, v):
+    def cell_coordinate(self, v):
         "A coordinate provides one additional degree."
         return 1
 
