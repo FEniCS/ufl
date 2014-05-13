@@ -32,6 +32,22 @@ class BrokenElement(FiniteElementBase):
         super(BrokenElement, self).__init__(family, domain, degree,
                                          quad_scheme, value_shape)
 
+    def reconstruct(self, **kwargs):
+        """Construct a new BrokenElement object with some properties
+        replaced with new values."""
+        domain = kwargs.get("domain", self.domain())
+        ele = self._element.reconstruct(domain=domain)
+        return BrokenElement(ele)
+
+    def reconstruction_signature(self):
+        return "BrokenElement(%s)" % self._element.reconstruction_signature()
+
+    def signature_data(self, domain_numbering):
+        data = ("BrokenElement", self._element.signature_data(domain_numbering=domain_numbering),
+                ("no domain" if self._domain is None else self._domain
+                    .signature_data(domain_numbering=domain_numbering)))
+        return data
+
     def __str__(self):
         return "BrokenElement(%s)" % str(self._element)
 
