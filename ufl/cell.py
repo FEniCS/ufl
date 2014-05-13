@@ -28,7 +28,7 @@ from ufl.terminal import Terminal
 from ufl.protocols import id_or_none
 from collections import defaultdict
 
-# --- Expression node types
+# --- Basic cell properties
 
 # Mapping from cell name to topological dimension
 cellname2dim = {
@@ -36,12 +36,12 @@ cellname2dim = {
     "cell1D": 1,
     "cell2D": 2,
     "cell3D": 3,
-    "vertex": 0,
-    "interval": 1,
-    "triangle": 2,
-    "tetrahedron": 3,
+    "vertex":        0,
+    "interval":      1,
+    "triangle":      2,
+    "tetrahedron":   3,
     "quadrilateral": 2,
-    "hexahedron": 3,
+    "hexahedron":    3,
     }
 
 # Mapping from cell name to facet name
@@ -50,12 +50,12 @@ cellname2facetname = {
     "cell1D": "vertex",
     "cell2D": "cell1D",
     "cell3D": "cell2D",
-    "vertex": None,
-    "interval": "vertex",
-    "triangle": "interval",
-    "tetrahedron": "triangle",
+    "vertex":        None,
+    "interval":      "vertex",
+    "triangle":      "interval",
+    "tetrahedron":   "triangle",
     "quadrilateral": "interval",
-    "hexahedron": "quadrilateral"
+    "hexahedron":    "quadrilateral"
     }
 
 affine_cells = set(("vertex", "interval", "triangle", "tetrahedron"))
@@ -148,17 +148,39 @@ class Cell(object):
         return "Cell(%r, %r)" % (self._cellname, self._geometric_dimension)
 
     def _repr_svg_(self):
-        n = self.cellname()
-        svg = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1">\n<polyline points="%s" style="fill:none;stroke:black;stroke-width:3" />\n</svg>'
-        if n == "interval":
-            svg = svg % '0,0, 200,0'
-        elif n == "triangle":
-            svg = svg % '0,200 200,200 0,0 0,200'
-        elif n == "quadrilateral":
-            svg = svg % '0,200 200,200 200,0 0,0 0,200'
+        ""
+
+        name = self.cellname()
+        m = 200
+        if name == "interval":
+            points = [(0,0), (m,0)]
+        elif name == "triangle":
+            points = [(0,m), (m,m), (0,0), (0,m)]
+        elif name == "quadrilateral":
+            points = [(0,m), (m,m), (m,0), (0,0), (0,m)]
         else:
-            svg = None
-        return svg
+            points = None
+
+        svg = '''
+        <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="%s" height="%s">
+        <polyline points="%s" style="%s" />
+        </svg>
+        '''
+
+        if points:
+            fill = "none"
+            stroke = "black"
+            strokewidth = 3
+
+            width = max(p[0] for p in points) - min(p[0] for p in points)
+            height = max(p[1] for p in points) - min(p[1] for p in points)
+            width = max(width, strokewidth)
+            height = max(height, strokewidth)
+            style = "fill:%s; stroke:%s; stroke-width:%s" % (fill, stroke, strokewidth)
+            points = " ".join(','.join(map(str,p)) for p in points)
+            return svg % (width, height, points, style)
+        else:
+            return None
 
 class ProductCell(Cell):
     __slots__ = ("_cells",)

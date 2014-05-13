@@ -47,6 +47,12 @@ class SobolevSpace(object):
     def __repr__(self):
         return "SobolevSpace(%r, %r)" % (self.name, list(self.parents))
 
+    def _repr_latex_(self):
+        if len(self.name) == 2:
+            return "$%s^%s$" % tuple(self.name)
+        else:
+            return "$%s(%s)$" % (self.name[0], self.name[1:].lower())
+
     def __eq__(self, other):
         return isinstance(other, SobolevSpace) and self.name == other.name
 
@@ -62,7 +68,7 @@ class SobolevSpace(object):
                             "SobolevSpace in another SobolevSpace. " +
                             "Did you mean to use <= instead?")
         return (other.sobolev_space() == self
-                or other.sobolev_space() in self.parents)
+                or self in other.sobolev_space().parents)
 
     def __lt__(self, other):
         """In common with intrinsic Python sets, < indicates "is a proper
