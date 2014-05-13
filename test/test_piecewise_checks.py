@@ -6,7 +6,7 @@ Test the is_cellwise_constant function on all relevant terminal types.
 
 from ufltestcase import UflTestCase, main
 from ufl import *
-
+from ufl.classes import *
 
 class TestCellwiseConstantTerminals(UflTestCase):
 
