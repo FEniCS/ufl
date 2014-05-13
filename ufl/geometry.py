@@ -44,7 +44,6 @@ x = x[q]
     SpatialCoordinate = quadrature point from input array (dc)
 
 
-
 Jacobians of mappings between coordinates:
 
 Jcf = dX/dXf = grad_Xf X(Xf)
@@ -74,11 +73,22 @@ x = Jxc X + x0
 
 Possible computation of x from Xf:
 
+x = x(X(Xf))
+
 x = Jxf Xf + x0f
     SpatialCoordinate = FacetJacobian * FacetCoordinate + FacetOrigo
 
-x = Jxc Jcf Xf + x0f
-    SpatialCoordinate = Jacobian * CellFacetJacobian * FacetCoordinate + FacetOrigo
+
+Inverse relations:
+
+X = K * (x - x0)
+    CellCoordinate = JacobianInverse * (SpatialCoordinate - CellOrigio)
+
+Xf = FK * (x - x0f)
+    FacetCoordinate = FacetJacobianInverse * (SpatialCoordinate - FacetOrigo)
+
+Xf = CFK * (X - X0f)
+    FacetCoordinate = CellFacetJacobianInverse * (CellCoordinate - CellFacetOrigo)
 
 """
 
@@ -129,10 +139,17 @@ class GeometricFacetQuantity(GeometricQuantity):
     __slots__ = []
 
 
-# --- Physical coordinate represented in different coordinate systems
+# --- Coordinate represented in different coordinate systems
 
 class SpatialCoordinate(GeometricCellQuantity):
-    "Representation of a spatial coordinate."
+    """UFL geometry representation: The coordinate in a domain.
+
+    In the context of expression integration,
+    represents the domain coordinate of each quadrature point.
+
+    In the context of expression evaluation in a point,
+    represents the value of that point.
+    """
     __slots__ = ()
     name = "x"
 
@@ -156,7 +173,14 @@ class SpatialCoordinate(GeometricCellQuantity):
             return float(x[component[0]])
 
 class CellCoordinate(GeometricCellQuantity):
-    "Representation of a local coordinate on the reference cell."
+    """UFL geometry representation: The coordinate in a reference cell.
+
+    In the context of expression integration,
+    represents the reference cell coordinate of each quadrature point.
+
+    In the context of expression evaluation in a point in a cell,
+    represents that point in the reference coordinate system of the cell.
+    """
     __slots__ = ()
     name = "X"
 
@@ -171,7 +195,14 @@ class CellCoordinate(GeometricCellQuantity):
         return t == 0
 
 class FacetCoordinate(GeometricFacetQuantity):
-    "Representation of a local coordinate on the reference cell of (a facet of the reference cell)."
+    """UFL geometry representation: The coordinate in a reference cell of a facet.
+
+    In the context of expression integration over a facet,
+    represents the reference facet coordinate of each quadrature point.
+
+    In the context of expression evaluation in a point on a facet,
+    represents that point in the reference coordinate system of the facet.
+    """
     __slots__ = ()
     name = "Xf"
 
@@ -189,7 +220,7 @@ class FacetCoordinate(GeometricFacetQuantity):
 # --- Origo of coordinate systems in larger coordinate systems
 
 class CellOrigo(GeometricCellQuantity):
-    "Representation of the physical coordinate corresponding to the origin on the reference cell."
+    """UFL geometry representation: The spatial coordinate corresponding to origo of a reference cell."""
     __slots__ = ()
     name = "x0"
 
@@ -200,8 +231,17 @@ class CellOrigo(GeometricCellQuantity):
     def is_cellwise_constant(self):
         return True
 
+class FacetOrigo(GeometricFacetQuantity):
+    """UFL geometry representation: The spatial coordinate corresponding to origo of a reference facet."""
+    __slots__ = ()
+    name = "x0f"
+
+    def shape(self):
+        g = self._domain.geometric_dimension()
+        return (g,)
+
 class CellFacetOrigo(GeometricFacetQuantity):
-    "Representation of the reference cell coordinate corresponding to the origin of the reference facet."
+    """UFL geometry representation: The reference cell coordinate corresponding to origo of a reference facet."""
     __slots__ = ()
     name = "X0f"
 
@@ -209,20 +249,14 @@ class CellFacetOrigo(GeometricFacetQuantity):
         t = self._domain.topological_dimension()
         return (t,)
 
-class FacetOrigo(GeometricFacetQuantity):
-    "Representation of the physical coordinate corresponding to the origin of the reference facet."
-    __slots__ = ()
-    name = "X0f"
-
-    def shape(self):
-        g = self._domain.geometric_dimension()
-        return (g,)
-
 
 # --- Jacobians of mappings between coordinate systems
 
-class Jacobian(GeometricCellQuantity): # dx/dX
-    "Representation of the Jacobian of the mapping from reference cell to physical coordinates."
+class Jacobian(GeometricCellQuantity):
+    """UFL geometry representation: The Jacobian of the mapping from reference cell to spatial coordinates.
+
+    J_ij = dx_i/dX_j
+    """
     __slots__ = ()
     name = "J"
 
@@ -236,8 +270,16 @@ class Jacobian(GeometricCellQuantity): # dx/dX
         # Only true for a piecewise linear coordinate field in simplex cells
         return self._domain.is_piecewise_linear_simplex_domain()
 
-class FacetJacobian(GeometricFacetQuantity): # dx/dXf = dx/dX dX/dXf
-    "Representation of the Jacobian of the mapping from reference cell of facet to physical coordinates."
+class FacetJacobian(GeometricFacetQuantity):
+    """UFL geometry representation: The Jacobian of the mapping from reference facet to spatial coordinates.
+
+      FJ_ij = dx_i/dXf_j
+
+    The FacetJacobian is the product of the Jacobian and CellFacetJacobian:
+
+      FJ = dx/dXf = dx/dX dX/dXf = J * CFJ
+
+    """
     __slots__ = ()
     name = "FJ"
 
@@ -252,9 +294,12 @@ class FacetJacobian(GeometricFacetQuantity): # dx/dXf = dx/dX dX/dXf
         return self._domain.is_piecewise_linear_simplex_domain()
 
 class CellFacetJacobian(GeometricFacetQuantity): # dX/dXf
-    "Representation of the Jacobian of the mapping from (coordinates on reference cell of facet) to (cell reference coordinates on facet of reference cell)."
+    """UFL geometry representation: The Jacobian of the mapping from reference facet to reference cell coordinates.
+
+    CFJ_ij = dX_i/dXf_j
+    """
     __slots__ = ()
-    name = "RFJ"
+    name = "CFJ"
 
     def shape(self):
         t = self._domain.topological_dimension()
@@ -268,8 +313,11 @@ class CellFacetJacobian(GeometricFacetQuantity): # dX/dXf
 
 # --- Determinants (signed or pseudo) of geometry mapping Jacobians
 
-class JacobianDeterminant(GeometricCellQuantity): # det(dx/dX)
-    "Representation of the (pseudo-)determinant of the Jacobian of the mapping from reference cell to physical coordinates."
+class JacobianDeterminant(GeometricCellQuantity):
+    """UFL geometry representation: The determinant of the Jacobian.
+
+    Represents the signed determinant of a square Jacobian or the pseudo-determinant of a non-square Jacobian.
+    """
     __slots__ = ()
     name = "detJ"
 
@@ -278,8 +326,8 @@ class JacobianDeterminant(GeometricCellQuantity): # det(dx/dX)
         # Only true for a piecewise linear coordinate field in simplex cells
         return self._domain.is_piecewise_linear_simplex_domain()
 
-class FacetJacobianDeterminant(GeometricFacetQuantity): # det(dx/dXf)
-    "Representation of the (pseudo-)determinant of the Jacobian of the mapping from reference cell of facet to physical coordinates."
+class FacetJacobianDeterminant(GeometricFacetQuantity):
+    """UFL geometry representation: The pseudo-determinant of the FacetJacobian."""
     __slots__ = ()
     name = "detFJ"
 
@@ -288,21 +336,24 @@ class FacetJacobianDeterminant(GeometricFacetQuantity): # det(dx/dXf)
         # Only true for a piecewise linear coordinate field in simplex cells
         return self._domain.is_piecewise_linear_simplex_domain()
 
-#class CellFacetJacobianDeterminant(GeometricFacetQuantity): # det(dX/dXf)
-#    "Representation of the (pseudo-)determinant of the Jacobian of the mapping from (coordinates on reference cell of facet) to (cell reference coordinates on facet of reference cell)."
-#    __slots__ = ()
-#    name = "detRFJ"
-#
-#    def is_cellwise_constant(self):
-#        "Return whether this expression is spatially constant over each cell."
-#        # Only true for a piecewise linear coordinate field in simplex cells
-#        return self._domain.is_piecewise_linear_simplex_domain()
+class CellFacetJacobianDeterminant(GeometricFacetQuantity):
+    """UFL geometry representation: The pseudo-determinant of the CellFacetJacobian."""
+    __slots__ = ()
+    name = "detCFJ"
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        # Only true for a piecewise linear coordinate field in simplex cells
+        return self._domain.is_piecewise_linear_simplex_domain()
 
 
 # --- Inverses (signed or pseudo) of geometry mapping Jacobians
 
-class JacobianInverse(GeometricCellQuantity): # inv(dx/dX)
-    "Representation of the (pseudo-)inverse of the Jacobian of the mapping from reference cell to physical coordinates."
+class JacobianInverse(GeometricCellQuantity):
+    """UFL geometry representation: The inverse of the Jacobian.
+
+    Represents the inverse of a square Jacobian or the pseudo-inverse of a non-square Jacobian.
+    """
     __slots__ = ()
     name = "K"
 
@@ -316,8 +367,8 @@ class JacobianInverse(GeometricCellQuantity): # inv(dx/dX)
         # Only true for a piecewise linear coordinate field in simplex cells
         return self._domain.is_piecewise_linear_simplex_domain()
 
-class FacetJacobianInverse(GeometricFacetQuantity): # inv(dx/dXf)
-    "Representation of the (pseudo-)inverse of the Jacobian of the mapping from reference cell of facet to physical coordinates."
+class FacetJacobianInverse(GeometricFacetQuantity):
+    """UFL geometry representation: The pseudo-inverse of the FacetJacobian."""
     __slots__ = ()
     name = "FK"
 
@@ -331,25 +382,25 @@ class FacetJacobianInverse(GeometricFacetQuantity): # inv(dx/dXf)
         # Only true for a piecewise linear coordinate field in simplex cells
         return self._domain.is_piecewise_linear_simplex_domain()
 
-#class CellFacetJacobianInverse(GeometricFacetQuantity): # inv(dX/dXf)
-#    "Representation of the (pseudo-)inverse of the Jacobian of the mapping from (coordinates on reference cell of facet) to (cell reference coordinates on facet of reference cell)."
-#    __slots__ = ()
-#    name = "RFK"
-#
-#    def shape(self):
-#        t = self._domain.topological_dimension()
-#        return (t-1, t)
-#
-#    def is_cellwise_constant(self):
-#        "Return whether this expression is spatially constant over each cell."
-#        # Only true for a piecewise linear coordinate field in simplex cells
-#        return self._domain.is_piecewise_linear_simplex_domain()
+class CellFacetJacobianInverse(GeometricFacetQuantity):
+    """UFL geometry representation: The pseudo-inverse of the CellFacetJacobian."""
+    __slots__ = ()
+    name = "CFK"
+
+    def shape(self):
+        t = self._domain.topological_dimension()
+        return (t-1, t)
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        # Only true for a piecewise linear coordinate field in simplex cells
+        return self._domain.is_piecewise_linear_simplex_domain()
 
 
 # --- Types representing normal or tangent vectors
 
 class FacetNormal(GeometricFacetQuantity):
-    "Representation of a facet normal."
+    """UFL geometry representation: The outwards pointing normal vector of the current facet."""
     __slots__ = ()
     name = "n"
 
@@ -366,7 +417,7 @@ class FacetNormal(GeometricFacetQuantity):
         return (x is None or x.element().degree() == 1) and (facet_cellname in affine_cells) # .. which will become false.
 
 class CellNormal(GeometricCellQuantity):
-    "Representation of a cell normal, for cells of tdim=gdim-1."
+    """UFL geometry representation: The upwards pointing normal vector of the current manifold cell."""
     __slots__ = ()
     name = "cell_normal"
 
@@ -374,9 +425,9 @@ class CellNormal(GeometricCellQuantity):
         g = self._domain.geometric_dimension()
         return (g,)
 
-# TODO: Implement elsewhere
+# TODO: Implement in the rest of fenics
 #class FacetTangents(GeometricFacetQuantity):
-#    "Representation of the facet tangent(s)."
+#    """UFL geometry representation: The tangent vectors of the current facet."""
 #    __slots__ = ()
 #    name = "t"
 #
@@ -393,9 +444,9 @@ class CellNormal(GeometricCellQuantity):
 #        facet_cellname = cellname2facetname.get(self._domain.cell().cellname()) # Allowing None if unknown..
 #        return (x is None or x.element().degree() == 1) and (facet_cellname in affine_cells) # .. which will become false.
 
-# TODO: Implement elsewhere
+# TODO: Implement in the rest of fenics
 #class CellTangents(GeometricCellQuantity):
-#    "Representation of the cell tangent(s), for cells of tdim=gdim-1."
+#    """UFL geometry representation: The tangent vectors of the current manifold cell."""
 #    __slots__ = ()
 #    name = "cell_tangents"
 #
@@ -407,9 +458,9 @@ class CellNormal(GeometricCellQuantity):
 
 # --- Types representing midpoint coordinates
 
-# TODO: Implement elsewhere
+# TODO: Implement in the rest of fenics
 #class CellMidpoint(GeometricCellQuantity):
-#    "Representation of the physical midpoint coordinate of the cell."
+#    """UFL geometry representation: The midpoint coordinate of the current cell."""
 #    __slots__ = ()
 #    name = "cell_midpoint"
 #
@@ -417,9 +468,9 @@ class CellNormal(GeometricCellQuantity):
 #        g = self._domain.geometric_dimension()
 #        return (g,)
 
-# TODO: Implement elsewhere
+# TODO: Implement in the rest of fenics
 #class FacetMidpoint(GeometricFacetQuantity):
-#    "Representation of the physical midpoint coordinate of the facet."
+#    """UFL geometry representation: The midpoint coordinate of the current facet."""
 #    __slots__ = ()
 #    name = "facet_midpoint"
 #
@@ -430,41 +481,40 @@ class CellNormal(GeometricCellQuantity):
 
 # --- Types representing measures of the cell and entities of the cell, typically used for stabilisation terms
 
+# TODO: Clean up this set of types? Document!
+
 class CellVolume(GeometricCellQuantity):
-    "Representation of a cell volume."
+    """UFL geometry representation: The volume of the cell."""
     __slots__ = ()
     name = "volume"
 
 class Circumradius(GeometricCellQuantity):
-    "Representation of the circumradius of a cell."
+    """UFL geometry representation: The circumradius of the cell."""
     __slots__ = ()
     name = "circumradius"
 
 #class CellSurfaceArea(GeometricCellQuantity):
-#    "Representation of the total surface area of a cell."
+#    """UFL geometry representation: The total surface area of the cell."""
 #    __slots__ = ()
 #    name = "surfacearea"
 
 class FacetArea(GeometricFacetQuantity):
-    "Representation of the area of a cell facet."
+    """UFL geometry representation: The area of the facet."""
     __slots__ = ()
     name = "facetarea"
 
 #class FacetDiameter(GeometricFacetQuantity):
-#    """(EXPERIMENTAL) Representation of the diameter of a facet.
-#
-#    This is not yet defined.
-#    """
+#    """UFL geometry representation: The diameter of the facet."""
 #    __slots__ = ()
 #    name = "facetdiameter"
 
 class MinFacetEdgeLength(GeometricFacetQuantity):
-    "Representation of the minimum edge length of a facet."
+    """UFL geometry representation: The minimum edge length of the facet."""
     __slots__ = ()
     name = "minfacetedgelength"
 
 class MaxFacetEdgeLength(GeometricFacetQuantity):
-    "Representation of the maximum edge length of a facet."
+    """UFL geometry representation: The maximum edge length of the facet."""
     __slots__ = ()
     name = "maxfacetedgelength"
 
@@ -472,18 +522,24 @@ class MaxFacetEdgeLength(GeometricFacetQuantity):
 # --- Types representing other stuff
 
 class CellOrientation(GeometricCellQuantity):
-    """Representation of cell orientation, for cells of tdim==gdim-1.
+    """UFL geometry representation: The orientation (+1/-1) of the current cell.
 
-    For affine cells with tdim==gdim, this equals the sign of the Jacobian determinant.
+    For non-manifold cells (tdim == gdim), this equals the sign
+    of the Jacobian determinant, i.e. +1 if the physical cell is
+    oriented the same way as the reference cell and -1 otherwise.
 
-    For non-affine cells... you probably need to figure that out yourself and send a patch.
+    For manifold cells of tdim==gdim-1 this is input data belonging
+    to the mesh, used to distinguish between the sides of the manifold.
     """
     __slots__ = ()
     name = "cell_orientation"
 
 # This doesn't quite fit anywhere. Make a special set of symbolic terminal types instead?
 class QuadratureWeight(GeometricQuantity):
-    "Representation of the current quadrature weight. Only used inside a quadrature context."
+    """UFL geometry representation: The current quadrature weight.
+
+    Only used inside a quadrature context.
+    """
     __slots__ = ()
     name = "weight"
 

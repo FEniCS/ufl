@@ -46,13 +46,14 @@ from ufl.domain import Domain, ProductDomain
 from ufl.geometry import (
     GeometricQuantity, GeometricCellQuantity, GeometricFacetQuantity,
     SpatialCoordinate, CellCoordinate, FacetCoordinate,
-    CellOrigo, CellFacetOrigo, FacetOrigo,
+    CellOrigo, FacetOrigo, CellFacetOrigo,
     Jacobian, JacobianDeterminant, JacobianInverse,
     FacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse,
-    CellFacetJacobian,
-    FacetNormal, QuadratureWeight, CellNormal, CellOrientation,
+    CellFacetJacobian, CellFacetJacobianDeterminant, CellFacetJacobianInverse,
+    FacetNormal, CellNormal,
     CellVolume, Circumradius,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
+    CellOrientation, QuadratureWeight,
     )
 from ufl.indexing import IndexBase, FixedIndex, Index, MultiIndex
 
