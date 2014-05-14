@@ -156,7 +156,7 @@ class ClasscoverageTest(UflTestCase):
 
         x = SpatialCoordinate(cell)
         test_object(x, (dim,), ())
-        xi = ReferenceCoordinate(cell)
+        xi = CellCoordinate(cell)
         test_object(xi, (dim,), ())
 
         #g = CellBarycenter(cell)
