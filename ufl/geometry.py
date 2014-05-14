@@ -59,7 +59,7 @@ Jxf = dx/dXf = grad_Xf x(Xf)  =  Jxc Jcf = dx/dX dX/dXf = grad_X x(X) grad_Xf X(
 Possible computation of X from Xf:
 
 X = Jcf Xf + X0f
-    CellCoordinate = CellFacetJacobian * FacetCoordinate + CellFacetOrigo
+    CellCoordinate = CellFacetJacobian * FacetCoordinate + CellFacetOrigin
 
 
 Possible computation of x from X:
@@ -68,7 +68,7 @@ x = f(X)
     SpatialCoordinate = sum_k xdofs_k * xphi_k(X)
 
 x = Jxc X + x0
-    SpatialCoordinate = Jacobian * CellCoordinate + CellOrigo
+    SpatialCoordinate = Jacobian * CellCoordinate + CellOrigin
 
 
 Possible computation of x from Xf:
@@ -76,7 +76,7 @@ Possible computation of x from Xf:
 x = x(X(Xf))
 
 x = Jxf Xf + x0f
-    SpatialCoordinate = FacetJacobian * FacetCoordinate + FacetOrigo
+    SpatialCoordinate = FacetJacobian * FacetCoordinate + FacetOrigin
 
 
 Inverse relations:
@@ -85,10 +85,10 @@ X = K * (x - x0)
     CellCoordinate = JacobianInverse * (SpatialCoordinate - CellOrigio)
 
 Xf = FK * (x - x0f)
-    FacetCoordinate = FacetJacobianInverse * (SpatialCoordinate - FacetOrigo)
+    FacetCoordinate = FacetJacobianInverse * (SpatialCoordinate - FacetOrigin)
 
 Xf = CFK * (X - X0f)
-    FacetCoordinate = CellFacetJacobianInverse * (CellCoordinate - CellFacetOrigo)
+    FacetCoordinate = CellFacetJacobianInverse * (CellCoordinate - CellFacetOrigin)
 
 """
 
@@ -217,10 +217,10 @@ class FacetCoordinate(GeometricFacetQuantity):
         return t <= 1
 
 
-# --- Origo of coordinate systems in larger coordinate systems
+# --- Origin of coordinate systems in larger coordinate systems
 
-class CellOrigo(GeometricCellQuantity):
-    """UFL geometry representation: The spatial coordinate corresponding to origo of a reference cell."""
+class CellOrigin(GeometricCellQuantity):
+    """UFL geometry representation: The spatial coordinate corresponding to origin of a reference cell."""
     __slots__ = ()
     name = "x0"
 
@@ -231,8 +231,8 @@ class CellOrigo(GeometricCellQuantity):
     def is_cellwise_constant(self):
         return True
 
-class FacetOrigo(GeometricFacetQuantity):
-    """UFL geometry representation: The spatial coordinate corresponding to origo of a reference facet."""
+class FacetOrigin(GeometricFacetQuantity):
+    """UFL geometry representation: The spatial coordinate corresponding to origin of a reference facet."""
     __slots__ = ()
     name = "x0f"
 
@@ -240,8 +240,8 @@ class FacetOrigo(GeometricFacetQuantity):
         g = self._domain.geometric_dimension()
         return (g,)
 
-class CellFacetOrigo(GeometricFacetQuantity):
-    """UFL geometry representation: The reference cell coordinate corresponding to origo of a reference facet."""
+class CellFacetOrigin(GeometricFacetQuantity):
+    """UFL geometry representation: The reference cell coordinate corresponding to origin of a reference facet."""
     __slots__ = ()
     name = "X0f"
 
