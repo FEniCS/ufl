@@ -31,11 +31,51 @@ from ufl.tensors import as_tensor, as_vector
 from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
 from ufl.operators import sqrt
 
+class ChangeToReferenceValue(ReuseTransformer):
+    def __init__(self):
+        ReuseTransformer.__init__(self)
+
+    def form_argument(self, o):
+        # Represent 0-derivatives of form arguments on reference element
+
+        element = o.element()
+
+        local_value = PullbackOf(o) # FIXME implement PullbackOf type
+
+        if isinstance(element, FiniteElement):
+            S = element.sobolev_space()
+            if S == HDiv:
+                # Handle HDiv elements with contravariant piola mapping
+                # contravariant_hdiv_mapping = (1/det J) * J * PullbackOf(o)
+                J = FIXME
+                detJ = FIXME
+                mapping = (1/detJ) * J
+                i,j = indices(2)
+                global_value = as_vector(mapping[i,j] * local_value[j], i)
+            elif S == HCurl:
+                # Handle HCurl elements with covariant piola mapping
+                # covariant_hcurl_mapping = JinvT * PullbackOf(o)
+                JinvT = FIXME
+                mapping = JinvT
+                i,j = indices(2)
+                global_value = as_vector(mapping[i,j] * local_value[j], i)
+            else:
+                # Handle the rest with no mapping.
+                global_value = local_value
+        else:
+            error("FIXME: handle mixed element, components need different mappings")
+
+        return global_value
+
 class ChangeToReferenceGrad(ReuseTransformer):
     def __init__(self):
         ReuseTransformer.__init__(self)
 
     def grad(self, o):
+
+        # FIXME: Handle HDiv elements with contravariant piola mapping specially?
+        # FIXME: Handle HCurl elements with covariant piola mapping specially?
+
         # Peel off the Grads and count them
         ngrads = 0
         while isinstance(o, Grad):
@@ -72,10 +112,10 @@ class ChangeToReferenceGrad(ReuseTransformer):
         return jinv_lgrad_f
 
     def reference_grad(self, o):
-        error("Not expecting local grad while applying change to local grad.")
+        error("Not expecting reference grad while applying change to reference grad.")
 
     def coefficient_derivative(self, o):
-        error("Coefficient derivatives should be expanded before applying change to local grad.")
+        error("Coefficient derivatives should be expanded before applying change to reference grad.")
 
 class ChangeToReferenceGeometry(ReuseTransformer):
     def __init__(self, physical_coordinates_known):
@@ -283,7 +323,7 @@ def change_to_reference_grad(e):
 
 
 def change_to_reference_geometry(e, physical_coordinates_known):
-    """Change Grad objects in expression to products of JacobianInverse and ReferenceGrad.
+    """Change GeometricQuantity objects in expression to the lowest level GeometricQuantity objects.
 
     Assumes the expression is preprocessed or at least that derivatives have been expanded.
 

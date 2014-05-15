@@ -49,6 +49,10 @@ A very brief overview of the language contents follows:
     quadrilateral, hexahedron,
     cell1D, cell2D, cell3D,
 
+* Sobolev spaces::
+
+    L2, H1, H2, HDiv, HCurl
+
 * Elements::
 
     FiniteElement,
@@ -200,6 +204,9 @@ from ufl.geometry import (
     FacetNormal, CellNormal, CellOrientation,
     QuadratureWeight)
 
+# Sobolev spaces
+from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl
+
 # Finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
     MixedElement, VectorElement, TensorElement, EnrichedElement, \
@@ -285,6 +292,7 @@ __all__ = [
     'UFLException', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL',
     'as_cell', 'Cell', 'ProductCell', 'OuterProductCell',
     'as_domain', 'Domain', 'ProductDomain',
+    'L2', 'H1', 'H2', 'HCurl', 'HDiv',
     'SpatialCoordinate', 'ReferenceCoordinate', 'ReferenceFacetCoordinate', 'CellOriginCoordinate',
     'CellVolume', 'Circumradius',
     'FacetArea', 'MinFacetEdgeLength', 'MaxFacetEdgeLength',
