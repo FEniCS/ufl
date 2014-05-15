@@ -26,7 +26,6 @@ from ufl.constantvalue import Zero
 from ufl.algebra import AlgebraOperator
 from ufl.precedence import parstr
 from ufl.sorting import sorted_expr
-from ufl.tensors import ListTensor
 from ufl.common import EmptyDict
 
 def merge_indices(a, b):
@@ -186,11 +185,6 @@ class Inner(CompoundTensorOperator):
         if isinstance(a, Zero) or isinstance(b, Zero):
             free_indices, index_dimensions = merge_indices(a, b)
             return Zero((), free_indices, index_dimensions)
-        if isinstance(a, ListTensor) and isinstance(b, ListTensor):
-            iszero = lambda s, t: isinstance(s, Zero) or isinstance(t, Zero)
-            if all(iszero(s, t) for s, t in zip(a._expressions, b._expressions)):
-                free_indices, index_dimensions = merge_indices(a, b)
-                return Zero((), free_indices, index_dimensions)
         if ash == ():
             return a*b
         return CompoundTensorOperator.__new__(cls)

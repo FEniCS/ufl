@@ -21,7 +21,7 @@ from itertools import izip
 from ufl.log import error
 from ufl.expr import Expr
 from ufl.operatorbase import WrapperType
-from ufl.indexing import Index, FixedIndex, MultiIndex, as_multi_index
+from ufl.indexing import Index, FixedIndex, as_multi_index
 from ufl.indexutils import unique_indices
 from ufl.precedence import parstr
 from ufl.common import EmptyDict
@@ -31,19 +31,8 @@ from ufl.common import EmptyDict
 class Indexed(WrapperType):
     __slots__ = ("_ops",
                  "_free_indices", "_index_dimensions",)
-
-    def __new__(cls, arg, index):
-        from ufl.tensors import ListTensor
-        if isinstance(arg, ListTensor) and len(index) == 1 and isinstance(index[0], FixedIndex):
-            return arg._expressions[int(index[0])]
-        self = WrapperType.__new__(cls)
-        self._init(arg, index)
-        return self
-
     def __init__(self, expression, indices):
         WrapperType.__init__(self)
-
-    def _init(self, expression, indices):
 
         # Error checking
         if not isinstance(expression, Expr):
