@@ -29,9 +29,11 @@ from ufl.form import Form
 from ufl.common import istr, slice_dict
 from ufl.protocols import id_or_none
 from ufl.geometry import as_domain
+from ufl.classes import GeometricFacetQuantity
 from ufl.algorithms.replace import replace
 from ufl.algorithms.analysis import (extract_arguments_and_coefficients,
                                      extract_coefficients,
+                                     extract_classes,
                                      build_coefficient_replace_map,
                                      extract_elements, extract_sub_elements,
                                      unique_tuple,
@@ -260,8 +262,19 @@ def preprocess(form, object_names=None):
 
 
     # --- Checks
+    tic('error checking')
+    for itg_data in form_data.integral_data:
+        for itg in itg_data.integrals:
+            classes = extract_classes(itg.integrand())
+            it = itg_data.integral_type
+            # Facet geometry is only valid in facet integrals
+            if "facet" not in it:
+                for c in classes:
+                    ufl_assert(not issubclass(c, GeometricFacetQuantity),
+                               "Integral of type %s cannot contain a %s." % (it, c.__name__))
 
     # Check that we don't have a mixed linear/bilinear form or anything like that
+    # FIXME: This is slooow and should be moved to form compiler and/or replaced with something faster
     ufl_assert(len(compute_form_arities(form_data.preprocessed_form)) == 1,
                "All terms in form must have same rank.")
 
