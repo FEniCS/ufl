@@ -391,7 +391,7 @@ def _getitem(self, key):
 
     # Special case for simplifying ({ai}_i)[i] -> ai
     if isinstance(self, ComponentTensor):
-        if tuple(indices) == tuple(self._indices):
+        if tuple(indices) == tuple(self.indices()):
             return self._expression
 
     # Index self, yielding scalar valued expressions
