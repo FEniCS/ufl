@@ -22,7 +22,7 @@ from ufl.assertions import ufl_assert
 from ufl.classes import (Terminal, ReferenceGrad, Grad,
                          Jacobian, JacobianInverse, JacobianDeterminant,
                          FacetJacobian, FacetJacobianInverse, FacetJacobianDeterminant,
-                         ReferenceFacetJacobian, QuadratureWeight)
+                         CellFacetJacobian, QuadratureWeight)
 from ufl.constantvalue import as_ufl
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
 from ufl.algorithms.analysis import extract_type
@@ -31,11 +31,51 @@ from ufl.tensors import as_tensor, as_vector
 from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
 from ufl.operators import sqrt
 
+class ChangeToReferenceValue(ReuseTransformer):
+    def __init__(self):
+        ReuseTransformer.__init__(self)
+
+    def form_argument(self, o):
+        # Represent 0-derivatives of form arguments on reference element
+
+        element = o.element()
+
+        local_value = PullbackOf(o) # FIXME implement PullbackOf type
+
+        if isinstance(element, FiniteElement):
+            S = element.sobolev_space()
+            if S == HDiv:
+                # Handle HDiv elements with contravariant piola mapping
+                # contravariant_hdiv_mapping = (1/det J) * J * PullbackOf(o)
+                J = FIXME
+                detJ = FIXME
+                mapping = (1/detJ) * J
+                i,j = indices(2)
+                global_value = as_vector(mapping[i,j] * local_value[j], i)
+            elif S == HCurl:
+                # Handle HCurl elements with covariant piola mapping
+                # covariant_hcurl_mapping = JinvT * PullbackOf(o)
+                JinvT = FIXME
+                mapping = JinvT
+                i,j = indices(2)
+                global_value = as_vector(mapping[i,j] * local_value[j], i)
+            else:
+                # Handle the rest with no mapping.
+                global_value = local_value
+        else:
+            error("FIXME: handle mixed element, components need different mappings")
+
+        return global_value
+
 class ChangeToReferenceGrad(ReuseTransformer):
     def __init__(self):
         ReuseTransformer.__init__(self)
 
     def grad(self, o):
+
+        # FIXME: Handle HDiv elements with contravariant piola mapping specially?
+        # FIXME: Handle HCurl elements with covariant piola mapping specially?
+
         # Peel off the Grads and count them
         ngrads = 0
         while isinstance(o, Grad):
@@ -72,10 +112,10 @@ class ChangeToReferenceGrad(ReuseTransformer):
         return jinv_lgrad_f
 
     def reference_grad(self, o):
-        error("Not expecting local grad while applying change to local grad.")
+        error("Not expecting reference grad while applying change to reference grad.")
 
     def coefficient_derivative(self, o):
-        error("Coefficient derivatives should be expanded before applying change to local grad.")
+        error("Coefficient derivatives should be expanded before applying change to reference grad.")
 
 class ChangeToReferenceGeometry(ReuseTransformer):
     def __init__(self, physical_coordinates_known):
@@ -118,7 +158,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
         if r is None:
             domain = o.domain()
             J = self.jacobian(Jacobian(domain))
-            RFJ = ReferenceFacetJacobian(domain)
+            RFJ = CellFacetJacobian(domain)
             i,j,k = indices(3)
             r = as_tensor(J[i,k]*RFJ[k,j], (i,j))
             self._rcache[o] = r
@@ -154,14 +194,14 @@ class ChangeToReferenceGeometry(ReuseTransformer):
             else:
                 return x
 
-    def reference_coordinate(self, o):
+    def cell_coordinate(self, o):
         "Compute from physical coordinates if they are known, using the appropriate mappings."
         if self.physical_coordinates_known:
             r = self._rcache.get(o)
             if r is None:
                 K = self.jacobian_inverse(JacobianInverse(domain))
                 x = self.spatial_coordinate(SpatialCoordinate(domain))
-                x0 = CellOriginCoordinate(domain)
+                x0 = CellOrigin(domain)
                 i,j = indices(2)
                 X = as_tensor(K[i,j] * (x[j] - x0[j]), (i,))
                 r = X
@@ -169,7 +209,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
         else:
             return o
 
-    def facet_reference_coordinate(self, o):
+    def facet_cell_coordinate(self, o):
         if self.physical_coordinates_known:
             error("Missing computation of facet reference coordinates from physical coordinates via mappings.")
         else:
@@ -283,7 +323,7 @@ def change_to_reference_grad(e):
 
 
 def change_to_reference_geometry(e, physical_coordinates_known):
-    """Change Grad objects in expression to products of JacobianInverse and ReferenceGrad.
+    """Change GeometricQuantity objects in expression to the lowest level GeometricQuantity objects.
 
     Assumes the expression is preprocessed or at least that derivatives have been expanded.
 

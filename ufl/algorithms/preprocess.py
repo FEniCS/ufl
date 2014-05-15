@@ -18,9 +18,6 @@ raw input form given by a user."""
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
-#
-# First added:  2009-12-07
-# Last changed: 2012-04-12
 
 from itertools import chain
 from time import time
@@ -32,8 +29,11 @@ from ufl.form import Form
 from ufl.common import istr, slice_dict
 from ufl.protocols import id_or_none
 from ufl.geometry import as_domain
+from ufl.classes import GeometricFacetQuantity
 from ufl.algorithms.replace import replace
 from ufl.algorithms.analysis import (extract_arguments_and_coefficients,
+                                     extract_coefficients,
+                                     extract_classes,
                                      build_coefficient_replace_map,
                                      extract_elements, extract_sub_elements,
                                      unique_tuple,
@@ -142,7 +142,6 @@ def preprocess(form, object_names=None):
     # such that automatic names can be assigned externally
     form_data.name = object_names.get(id(original_form), "")
 
-
     # --- Processing form
 
     # Store collection of subdomain data objects for each domain label x domain type
@@ -195,6 +194,13 @@ def preprocess(form, object_names=None):
     tic('build_coefficient_replace_map')
     renumbered_coefficients, replace_map = \
         build_coefficient_replace_map(original_coefficients, element_mapping)
+
+    tic('build enabled_coefficients lists')
+    for itg_data in form_data.integral_data:
+        itg_coeffs = set()
+        for itg in itg_data.integrals:
+            itg_coeffs.update(extract_coefficients(itg.integrand()))
+        itg_data.enabled_coefficients = [bool(coeff in itg_coeffs) for coeff in original_coefficients]
 
     #############################################################################
     # Note: This is the earliest point the final form signature can be computed,
@@ -256,8 +262,19 @@ def preprocess(form, object_names=None):
 
 
     # --- Checks
+    tic('error checking')
+    for itg_data in form_data.integral_data:
+        for itg in itg_data.integrals:
+            classes = extract_classes(itg.integrand())
+            it = itg_data.integral_type
+            # Facet geometry is only valid in facet integrals
+            if "facet" not in it:
+                for c in classes:
+                    ufl_assert(not issubclass(c, GeometricFacetQuantity),
+                               "Integral of type %s cannot contain a %s." % (it, c.__name__))
 
     # Check that we don't have a mixed linear/bilinear form or anything like that
+    # FIXME: This is slooow and should be moved to form compiler and/or replaced with something faster
     ufl_assert(len(compute_form_arities(form_data.preprocessed_form)) == 1,
                "All terms in form must have same rank.")
 

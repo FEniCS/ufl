@@ -259,3 +259,10 @@ class Form(object):
     def x_repr_png_(self): # TODO: This works, but enable when form latex rendering is fixed
         from IPython.lib.latextools import latex_to_png
         return latex_to_png(self._repr_latex_())
+
+def as_form(form):
+    "Convert to form if not a form, otherwise return form."
+    if not isinstance(form, Form):
+        error("Unable to convert object to a UFL form: %s" % repr(form))
+
+    return form

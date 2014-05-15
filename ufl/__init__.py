@@ -49,6 +49,10 @@ A very brief overview of the language contents follows:
     quadrilateral, hexahedron,
     cell1D, cell2D, cell3D,
 
+* Sobolev spaces::
+
+    L2, H1, H2, HDiv, HCurl
+
 * Elements::
 
     FiniteElement,
@@ -75,14 +79,10 @@ A very brief overview of the language contents follows:
 
 * Geometric quantities::
 
-    SpatialCoordinate, ReferenceCoordinate, ReferenceFacetCoordinate, CellOriginCoordinate,
-    Jacobian, JacobianDeterminant, JacobianInverse,
-    FacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse,
-    ReferenceFacetJacobian,
+    SpatialCoordinate,
+    FacetNormal, CellNormal,
     CellVolume, Circumradius,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
-    FacetNormal, CellNormal, CellOrientation,
-    QuadratureWeight
 
 * Indices::
 
@@ -191,14 +191,14 @@ from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile
 from ufl.cell import as_cell, Cell, ProductCell, OuterProductCell
 from ufl.domain import as_domain, Domain, ProductDomain
 from ufl.geometry import (
-    SpatialCoordinate, ReferenceCoordinate, ReferenceFacetCoordinate, CellOriginCoordinate,
-    Jacobian, JacobianDeterminant, JacobianInverse,
-    FacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse,
-    ReferenceFacetJacobian,
+    SpatialCoordinate,
+    FacetNormal, CellNormal,
     CellVolume, Circumradius,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
-    FacetNormal, CellNormal, CellOrientation,
-    QuadratureWeight)
+    )
+
+# Sobolev spaces
+from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl
 
 # Finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
@@ -285,14 +285,11 @@ __all__ = [
     'UFLException', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL',
     'as_cell', 'Cell', 'ProductCell', 'OuterProductCell',
     'as_domain', 'Domain', 'ProductDomain',
-    'SpatialCoordinate', 'ReferenceCoordinate', 'ReferenceFacetCoordinate', 'CellOriginCoordinate',
+    'L2', 'H1', 'H2', 'HCurl', 'HDiv',
+    'SpatialCoordinate',
     'CellVolume', 'Circumradius',
     'FacetArea', 'MinFacetEdgeLength', 'MaxFacetEdgeLength',
-    'Jacobian', 'JacobianDeterminant', 'JacobianInverse',
-    'FacetJacobian', 'FacetJacobianDeterminant', 'FacetJacobianInverse',
-    'ReferenceFacetJacobian',
-    'FacetNormal', 'CellNormal', 'CellOrientation',
-    'QuadratureWeight',
+    'FacetNormal', 'CellNormal',
     'FiniteElementBase', 'FiniteElement',
     'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
     'RestrictedElement', 'TensorProductElement', 'OuterProductElement',
