@@ -18,14 +18,11 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2009
-#
-# First added:  2008-03-14
-# Last changed: 2013-01-02
 
 from itertools import izip
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.form import Form
+from ufl.form import Form, as_form
 from ufl.expr import Expr
 from ufl.split_functions import split
 from ufl.operatorbase import Tuple
@@ -46,8 +43,7 @@ from ufl.algorithms import compute_form_adjoint, \
                            compute_form_lhs, \
                            compute_form_rhs, \
                            compute_form_functional, \
-                           expand_derivatives, \
-                           as_form
+                           expand_derivatives
 
 # Part of the external interface
 from ufl.algorithms import replace
