@@ -18,9 +18,6 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2008
-#
-# First added:  2008-03-14
-# Last changed: 2011-06-02
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
@@ -159,4 +156,3 @@ def walk(a, pre_func, post_func, stack=None):
         stack = []
     for e in iter_expressions(a):
         _walk(e, pre_func, post_func, stack)
-
