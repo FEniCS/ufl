@@ -76,7 +76,7 @@ def compute_form_data(form, object_names):
 
     # Extract common domain
     self.domains = form.domains()
-    self.common_domain = self.domains[0] if len(self.domains) == 1 else None
+    common_domain = self.domains[0] if len(self.domains) == 1 else None
 
     # Compute signature, this can be a bit costly
     self.signature = form.signature()
@@ -93,7 +93,7 @@ def compute_form_data(form, object_names):
     # Build list of integral data objects (also does quite a bit of processing)
     # TODO: This is unclear, explain what kind of processing and/or refactor
     self.integral_data = \
-        build_integral_data(preprocessed_form.integrals(), self.domains, self.common_domain)
+        build_integral_data(preprocessed_form.integrals(), self.domains, common_domain)
 
     # Reconstruct final preprocessed form from these integrals,
     # in a more canonical representation than the original input
