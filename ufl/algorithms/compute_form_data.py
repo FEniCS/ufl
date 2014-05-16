@@ -107,18 +107,18 @@ def compute_form_data(form, object_names):
     element_mapping = _compute_element_mapping(extract_elements(form), common_domain)
     element_mapping = build_element_mapping(element_mapping,
                                             common_domain,
-                                            original_arguments,
-                                            original_coefficients)
+                                            self.original_arguments,
+                                            self.original_coefficients)
 
     renumbered_coefficients, replace_map = \
-        build_coefficient_replace_map(original_coefficients, element_mapping)
+        build_coefficient_replace_map(self.original_coefficients, element_mapping)
 
     # Figure out which form coefficients each integral should enable
     for itg_data in self.integral_data:
         itg_coeffs = set()
         for itg in itg_data.integrals:
             itg_coeffs.update(extract_coefficients(itg.integrand()))
-        itg_data.enabled_coefficients = [bool(coeff in itg_coeffs) for coeff in original_coefficients]
+        itg_data.enabled_coefficients = [bool(coeff in itg_coeffs) for coeff in self.original_coefficients]
 
     # Mappings from elements and coefficients
     # that reside in form to objects with canonical numbering as well as
@@ -137,7 +137,7 @@ def compute_form_data(form, object_names):
 
 
     # --- Store geometry data
-    self.integration_domains = processed_form.domains()
+    self.integration_domains = self.preprocessed_form.domains()
     if self.integration_domains:
         self.geometric_dimension = self.integration_domains[0].geometric_dimension()
     else:
