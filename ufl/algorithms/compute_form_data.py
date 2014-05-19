@@ -55,7 +55,7 @@ def compute_form_data(form, object_names):
     object_names = object_names or {}
 
     # Extract form arguments
-    self.original_arguments = form.coefficients()
+    self.original_arguments = form.arguments()
     self.original_coefficients = form.coefficients()
     self.rank = len(self.original_arguments)
     self.num_coefficients = len(self.original_coefficients)
@@ -168,3 +168,5 @@ def compute_form_data(form, object_names):
     # FIXME: This is slooow and should be moved to form compiler and/or replaced with something faster
     ufl_assert(len(compute_form_arities(self.preprocessed_form)) == 1,
                "All terms in form must have same rank.")
+
+    return self
