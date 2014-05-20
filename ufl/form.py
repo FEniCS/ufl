@@ -86,6 +86,7 @@ class Form(object):
         "_form_data",
         # Set to true if this form is the result of a preprocess of another form
         "_is_preprocessed",
+        "_old_signature",
         )
 
     def __init__(self, integrals):
@@ -116,6 +117,7 @@ class Form(object):
         # Internal variables for caching of hash and signature after first request
         self._hash = None
         self._signature = None
+        self._old_signature = None
 
         # Internal variables for caching preprocessing data
         self._form_data = None

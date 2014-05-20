@@ -311,11 +311,11 @@ def preprocess(form, object_names=None):
     # --- Caching
 
     # Attach signatures to original and preprocessed forms TODO: Avoid this?
-    ufl_assert(form_data.preprocessed_form._signature is None, "")
-    ufl_assert(original_form._signature is None, "")
+    ufl_assert(form_data.preprocessed_form._old_signature is None, "")
+    ufl_assert(original_form._old_signature is None, "")
     form_data.preprocessed_form._is_preprocessed = True
-    form_data.preprocessed_form._signature = form_data.signature
-    original_form._signature = form_data.signature
+    form_data.preprocessed_form._old_signature = form_data.signature
+    original_form._old_signature = form_data.signature
 
 
     # A coarse profiling implementation TODO: Add counting of nodes, Add memory usage
