@@ -35,7 +35,7 @@ from ufl.finiteelement import (FiniteElementBase, FiniteElement,
 from ufl.expr import Expr
 
 # Terminal types
-from ufl.terminal import Terminal, FormArgument, UtilityType, Data
+from ufl.terminal import Terminal, FormArgument, UtilityType
 from ufl.constantvalue import (ConstantValue, IndexAnnotated,
     Zero, ScalarValue, FloatValue, IntValue, Identity, PermutationSymbol)
 from ufl.argument import Argument, TestFunction, TrialFunction
@@ -58,7 +58,7 @@ from ufl.geometry import (
 from ufl.indexing import IndexBase, FixedIndex, Index, MultiIndex
 
 # Operator types
-from ufl.operatorbase import Operator, WrapperType, AlgebraOperator, Tuple
+from ufl.operatorbase import Operator, WrapperType, AlgebraOperator
 from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
 from ufl.variable import Variable, Label
@@ -75,6 +75,7 @@ from ufl.conditional import Condition, BinaryCondition,\
     EQ, NE, LE, GE, LT, GT,\
     AndCondition, OrCondition, NotCondition, Conditional
 from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted, CellAvg, FacetAvg
+from ufl.exprcontainers import ExprList, ExprMapping
 
 # Higher level abstractions
 from ufl.measure import Measure, MeasureSum, MeasureProduct

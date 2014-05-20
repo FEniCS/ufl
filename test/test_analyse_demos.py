@@ -27,12 +27,12 @@ class DemoTestCase(UflTestCase):
         super(DemoTestCase, self).setUp()
         #for f in glob("ufl_analyse_tmp_form*"):
         #    os.remove(f)
-    
+
     def tearDown(self):
         #for f in glob("ufl_analyse_tmp_form*"):
         #    os.remove(f)
         super(DemoTestCase, self).tearDown()
-    
+
     def _test_all_demos(self):
         # Check all at once
         skip = set(glob("../demo/_*.ufl"))
@@ -66,13 +66,14 @@ class DemoTestCase(UflTestCase):
                 of = open(name, "w")
                 of.write(output)
                 of.close()
-                print 
+                print
                 print output
                 print
 
     def test_each_demo_with_validate_form(self):
         "Check each form in each file with validate_form."
         for filename in self.get_demo_filenames():
+            print filename
             data = load_ufl_file(filename)
             for form in data.forms:
                 try:
@@ -80,7 +81,7 @@ class DemoTestCase(UflTestCase):
                     excepted = 0
                 except:
                     excepted = 1
-                self.assertEqual(excepted, 0)
+                self.assertEqual(excepted, 0, filename)
 
 if __name__ == "__main__":
     main()

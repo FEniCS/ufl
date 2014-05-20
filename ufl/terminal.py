@@ -142,18 +142,3 @@ class UtilityType(Terminal):
     def domains(self):
         "Return tuple of domains related to this terminal object."
         return ()
-
-#--- Non-tensor types ---
-
-class Data(UtilityType):
-    "For internal use, never to be created by users."
-    __slots__ = ("_data",)
-    def __init__(self, data):
-        UtilityType.__init__(self)
-        self._data = data
-
-    def __str__(self):
-        return "Data(%s)" % str(self._data)
-
-    def __repr__(self):
-        return "Data(%r)" % (self._data,)

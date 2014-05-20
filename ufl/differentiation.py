@@ -23,8 +23,9 @@ from ufl.log import warning, error
 from ufl.assertions import ufl_assert
 from ufl.common import subdict, mergedicts, EmptyDict
 from ufl.expr import Expr
-from ufl.terminal import Terminal, Data
-from ufl.operatorbase import Operator, Tuple
+from ufl.terminal import Terminal
+from ufl.operatorbase import Operator
+from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.constantvalue import Zero
 from ufl.indexing import Index, FixedIndex, MultiIndex, as_multi_index
 from ufl.indexed import Indexed
@@ -47,13 +48,12 @@ class CoefficientDerivative(Derivative):
                  "_coefficient_derivatives")
 
     def __new__(cls, integrand, coefficients, arguments, coefficient_derivatives):
-        ufl_assert(isinstance(coefficients, Tuple),
-            "Expecting Tuple instance with Coefficients.")
-        ufl_assert(isinstance(arguments, Tuple),
-            "Expecting Tuple instance with Arguments.")
-        ufl_assert(isinstance(coefficient_derivatives, (dict, Data)),
-                   "Expecting a dict for coefficient derivatives.")
-
+        ufl_assert(isinstance(coefficients, ExprList),
+                   "Expecting ExprList instance with Coefficients.")
+        ufl_assert(isinstance(arguments, ExprList),
+                   "Expecting ExprList instance with Arguments.")
+        ufl_assert(isinstance(coefficient_derivatives, ExprMapping),
+                   "Expecting ExprMapping for coefficient derivatives.")
         if isinstance(integrand, Zero):
             return integrand
         return Derivative.__new__(cls)
@@ -63,10 +63,10 @@ class CoefficientDerivative(Derivative):
         self._integrand = integrand
         self._coefficients = coefficients
         self._arguments = arguments
-        if isinstance(coefficient_derivatives, Data):
+        if isinstance(coefficient_derivatives, ExprMapping):
             self._coefficient_derivatives = coefficient_derivatives
         else:
-            self._coefficient_derivatives = Data(coefficient_derivatives)
+            self._coefficient_derivatives = ExprMapping(coefficient_derivatives)
 
     def operands(self):
         return (self._integrand, self._coefficients, self._arguments, self._coefficient_derivatives)

@@ -19,22 +19,23 @@
 #
 # Modified by Anders Logg, 2009
 
-from itertools import izip
+from itertools import izip, chain
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.form import Form, as_form
 from ufl.expr import Expr
 from ufl.split_functions import split
-from ufl.operatorbase import Tuple
+from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.variable import Variable
 from ufl.finiteelement import MixedElement
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.differentiation import CoefficientDerivative
-from ufl.constantvalue import is_true_ufl_scalar
+from ufl.constantvalue import is_true_ufl_scalar, as_ufl
 from ufl.indexed import Indexed
 from ufl.indexing import FixedIndex, MultiIndex
 from ufl.tensors import as_tensor
+from ufl.sorting import sorted_expr
 
 # An exception to the rule that ufl.* does not depend on ufl.algorithms.* ...
 from ufl.algorithms import compute_form_adjoint, \
@@ -208,8 +209,8 @@ def _handle_derivative_arguments(form, coefficient, argument):
 
     # Wrap and return generic tuples
     items = sorted(m.items(), key=lambda x: x[0].count())
-    coefficients = Tuple(*[item[0] for item in items])
-    arguments = Tuple(*[item[1] for item in items])
+    coefficients = ExprList(*[item[0] for item in items])
+    arguments = ExprList(*[item[1] for item in items])
     return coefficients, arguments
 
 def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
@@ -237,7 +238,13 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
 
     coefficients, arguments = _handle_derivative_arguments(form, coefficient, argument)
 
-    coefficient_derivatives = coefficient_derivatives or {}
+    if coefficient_derivatives is None:
+        coefficient_derivatives = ExprMapping()
+    else:
+        cd = []
+        for k in sorted_expr(coefficient_derivatives.keys()):
+            cd += [as_ufl(k), as_ufl(coefficient_derivatives[k])]
+        coefficient_derivatives = ExprMapping(*cd)
 
     # Got a form? Apply derivatives to the integrands in turn.
     if isinstance(form, Form):
