@@ -57,22 +57,13 @@ def compute_form_data(form, object_names):
     # Extract form arguments
     self.original_arguments = form.arguments()
     self.original_coefficients = form.coefficients()
+
     self.rank = len(self.original_arguments)
-    self.num_coefficients = len(self.original_coefficients)
+    #self.original_num_coefficients = len(self.original_coefficients)
 
     # Store name of form if given, otherwise empty string
     # such that automatic names can be assigned externally
     self.name = object_names.get(id(form), "")
-
-    # Store argument names
-    self.argument_names = \
-        [object_names.get(id(self.original_arguments[i]), "v%d" % i)
-        for i in range(self.rank)]
-
-    # Store coefficient names
-    self.coefficient_names = \
-        [object_names.get(id(self.original_coefficients[i]), "w%d" % i)
-        for i in range(self.num_coefficients)]
 
     # Extract common domain
     self.domains = form.domains()
@@ -110,15 +101,26 @@ def compute_form_data(form, object_names):
                                             self.original_arguments,
                                             self.original_coefficients)
 
-    renumbered_coefficients, replace_map = \
-        build_coefficient_replace_map(self.original_coefficients, element_mapping)
-
     # Figure out which form coefficients each integral should enable
+    reduced_coefficients_set = set()
     for itg_data in self.integral_data:
         itg_coeffs = set()
         for itg in itg_data.integrals:
             itg_coeffs.update(extract_coefficients(itg.integrand()))
-        itg_data.enabled_coefficients = [bool(coeff in itg_coeffs) for coeff in self.original_coefficients]
+        itg_data.integral_coefficients = itg_coeffs
+        reduced_coefficients_set.update(itg_coeffs)
+
+    self.reduced_coefficients = sorted(reduced_coefficients_set, key=lambda c: c.count())
+    self.num_coefficients = len(self.reduced_coefficients)
+    for itg_data in self.integral_data:
+        itg_data.enabled_coefficients = [bool(coeff in itg_data.integral_coefficients)
+                                         for coeff in self.reduced_coefficients]
+
+    self.reduced_coefficient_indices = [i for i,c in enumerate(self.original_coefficients)
+                                        if c in self.reduced_coefficients]
+
+    renumbered_coefficients, replace_map = \
+        build_coefficient_replace_map(self.reduced_coefficients, element_mapping)
 
     # Mappings from elements and coefficients
     # that reside in form to objects with canonical numbering as well as
@@ -150,6 +152,17 @@ def compute_form_data(form, object_names):
     # TODO: Support multiple domains throughout jit chain. For now keep a backwards compatible data structure.
     ufl_assert(len(self.num_sub_domains) == 1, "Not used for multiple domains yet. Might work.")
     self.num_sub_domains, = self.num_sub_domains.values()
+
+
+    # Store argument names
+    self.argument_names = \
+        [object_names.get(id(self.original_arguments[i]), "v%d" % i)
+        for i in range(self.rank)]
+
+    # Store coefficient names
+    self.coefficient_names = \
+        [object_names.get(id(self.reduced_coefficients[i]), "w%d" % i)
+        for i in range(self.num_coefficients)]
 
 
     # --- Checks

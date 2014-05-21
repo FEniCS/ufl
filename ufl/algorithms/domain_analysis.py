@@ -39,7 +39,7 @@ class IntegralData(object):
     associating metadata with each object.
     """
     __slots__ = ('domain', 'integral_type', 'subdomain_id', 'integrals', 'metadata',
-                 'enabled_coefficients')
+                 'integral_coefficients', 'enabled_coefficients')
     def __init__(self, domain, integral_type, subdomain_id, integrals, metadata):
         ufl_assert(all(domain.label() == itg.domain().label() for itg in integrals),
                    "Domain label mismatch in integral data.")
@@ -55,6 +55,7 @@ class IntegralData(object):
         self.integrals = integrals
 
         # This is populated in preprocess using data not available at this stage:
+        self.integral_coefficients = None
         self.enabled_coefficients = None
 
         # TODO: I think we can get rid of this with some refactoring in ffc:
