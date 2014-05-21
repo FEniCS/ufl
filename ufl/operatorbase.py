@@ -88,41 +88,11 @@ class WrapperType(Operator):
     def __init__(self):
         Operator.__init__(self)
 
-#--- Non-tensor types ---
-
-class Tuple(WrapperType):
-    "For internal use, never to be created by users."
-    __slots__ = ("_items",)
-    def __init__(self, *items):
-        WrapperType.__init__(self)
-        if not all(isinstance(i, Expr) for i in items):
-            error("Got non-Expr in Tuple, is this intended? If so, remove this error.")
-        self._items = tuple(items)
-
-    def operands(self):
-        return self._items
-
     def shape(self):
-        error("Calling shape on a utility type is an error.")
+        error("A non-tensor type has no shape.")
 
     def free_indices(self):
-        error("Calling free_indices on a utility type is an error.")
+        error("A non-tensor type has no indices.")
 
     def index_dimensions(self):
-        error("Calling free_indices on a utility type is an error.")
-
-    def __getitem__(self, i):
-        return self._items[i]
-
-    def __len__(self):
-        return len(self._items)
-
-    def __iter__(self):
-        return iter(self._items)
-
-    def __str__(self):
-        return "Tuple(*(%s,))" % ", ".join(str(i) for i in self._items)
-
-    def __repr__(self):
-        return "Tuple(*%s)" % repr(self._items)
-
+        error("A non-tensor type has no indices.")

@@ -21,9 +21,6 @@
 # Modified by Garth N. Wells, 2010.
 # Modified by Kristian B. Oelgaard, 2011
 # Modified by Jan Blechta, 2012.
-#
-# First added:  2008-08-19
-# Last changed: 2013-08-12
 
 from itertools import izip
 from math import pi
@@ -34,7 +31,6 @@ from ufl.indexutils import unique_indices
 
 # All classes:
 from ufl.terminal import Terminal
-from ufl.operatorbase import Tuple
 from ufl.constantvalue import ConstantValue, Zero, IntValue, Identity,\
     is_true_ufl_scalar, is_ufl_scalar
 from ufl.variable import Variable
@@ -51,7 +47,7 @@ from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
 from ufl.differentiation import Derivative, CoefficientDerivative,\
     VariableDerivative, Grad
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
-
+from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.operators import dot, inner, outer, lt, eq, conditional, sign, \
     sqrt, exp, ln, cos, sin, tan, cosh, sinh, tanh, acos, asin, atan, atan_2, \
     erf, bessel_J, bessel_Y, bessel_I, bessel_K, \
@@ -762,11 +758,13 @@ class CoefficientAD(ForwardAD):
     def __init__(self, coefficients, arguments, coefficient_derivatives, cache=None):
         ForwardAD.__init__(self, var_shape=(), var_free_indices=(),
                            var_index_dimensions={}, cache=cache)
+        ufl_assert(isinstance(coefficients, ExprList), "Expecting a ExprList.")
+        ufl_assert(isinstance(arguments, ExprList), "Expecting a ExprList.")
+        ufl_assert(isinstance(coefficient_derivatives, ExprMapping), "Expecting a ExprList.")
         self._v = arguments
         self._w = coefficients
-        self._cd = coefficient_derivatives
-        ufl_assert(isinstance(self._w, Tuple), "Expecting a Tuple.")
-        ufl_assert(isinstance(self._v, Tuple), "Expecting a Tuple.")
+        cd = coefficient_derivatives.operands()
+        self._cd = dict((cd[2*i],cd[2*i+1]) for i in range(len(cd)//2))
 
     def coefficient(self, o):
         # Define dw/dw := d/ds [w + s v] = v
@@ -783,9 +781,9 @@ class CoefficientAD(ForwardAD):
 
         # If o is not among coefficient derivatives, return do/dw=0
         oprimesum = Zero(o.shape())
-        oprimes = self._cd._data.get(o)
+        oprimes = self._cd.get(o)
         if oprimes is None:
-            if self._cd._data:
+            if self._cd:
                 # TODO: Make it possible to silence this message in particular?
                 #       It may be good to have for debugging...
                 warning("Assuming d{%s}/d{%s} = 0." % (o, self._w))
@@ -926,12 +924,12 @@ class CoefficientAD(ForwardAD):
             else:
                 error("Expecting coefficient or component of coefficient.")
 
-        # FIXME: Handle other coefficient derivatives: oprimes = self._cd._data.get(o)
+        # FIXME: Handle other coefficient derivatives: oprimes = self._cd.get(o)
 
         if 0:
-            oprimes = self._cd._data.get(o)
+            oprimes = self._cd.get(o)
             if oprimes is None:
-                if self._cd._data:
+                if self._cd:
                     # TODO: Make it possible to silence this message in particular?
                     #       It may be good to have for debugging...
                     warning("Assuming d{%s}/d{%s} = 0." % (o, self._w))
