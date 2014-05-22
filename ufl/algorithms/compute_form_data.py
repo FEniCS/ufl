@@ -116,8 +116,8 @@ def compute_form_data(form, object_names):
         itg_data.enabled_coefficients = [bool(coeff in itg_data.integral_coefficients)
                                          for coeff in self.reduced_coefficients]
 
-    self.reduced_coefficient_indices = [i for i,c in enumerate(self.original_coefficients)
-                                        if c in self.reduced_coefficients]
+    self.original_coefficient_positions = [i for i,c in enumerate(self.original_coefficients)
+                                           if c in self.reduced_coefficients]
 
     renumbered_coefficients, replace_map = \
         build_coefficient_replace_map(self.reduced_coefficients, element_mapping)
