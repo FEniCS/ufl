@@ -1,4 +1,6 @@
-"""Algorithm for building FormData with data about a form."""
+"""This module provides the compute_form_data function which form compilers
+will typically call prior to code generation to preprocess/simplify a
+raw input form given by a user."""
 
 # Copyright (C) 2008-2014 Martin Sandve Alnes
 #
@@ -46,6 +48,101 @@ from ufl.algorithms.propagate_restrictions import propagate_restrictions
 from ufl.algorithms.formtransformations import compute_form_arities
 from ufl.algorithms.signature import compute_expression_signature, compute_form_signature
 from ufl.algorithms.preprocess import _compute_element_mapping, build_element_mapping
+
+
+def _auto_select_degree(elements):
+    """
+    Automatically select degree for all elements of the form in cases
+    where this has not been specified by the user. This feature is
+    used by DOLFIN to allow the specification of Expressions with
+    undefined degrees.
+    """
+
+    # Use max degree of all elements
+    common_degree = max([e.degree() for e in elements] or [None])
+
+    # Default to linear element if no elements with degrees are provided
+    if common_degree is None:
+        common_degree = 1
+
+    # Degree must be at least 1 (to work with Lagrange elements)
+    common_degree = max(1, common_degree)
+
+    return common_degree
+
+def _compute_element_mapping(elements, common_domain):
+    "Compute element mapping for element replacement"
+
+    # Try to find a common degree for elements
+    elements = extract_sub_elements(elements)
+    common_degree = _auto_select_degree(elements)
+
+    # Compute element map
+    element_mapping = {}
+    for element in elements:
+
+        # Flag for whether element needs to be reconstructed
+        reconstruct = False
+
+        # Set domain/cell
+        domain = element.domain()
+        if domain is None:
+            ufl_assert(common_domain is not None,
+                       "Cannot replace unknown element domain without unique common domain in form.")
+            info("Adjusting missing element domain to %s." % (common_domain,))
+            domain = common_domain
+            reconstruct = True
+
+        # Set degree
+        degree = element.degree()
+        if degree is None:
+            info("Adjusting missing element degree to %d" % (common_degree,))
+            degree = common_degree
+            reconstruct = True
+
+        # Reconstruct element and add to map
+        if reconstruct:
+            element_mapping[element] = element.reconstruct(domain=domain,
+                                                           degree=degree)
+
+    return element_mapping
+
+def build_element_mapping(element_mapping, common_domain, arguments, coefficients):
+    """Complete an element mapping for all elements used by
+    arguments and coefficients, using a well defined common domain."""
+
+    # Build a new dict to avoid modifying the dict passed from non-ufl code
+    new_element_mapping = {}
+
+    # Check that the given initial mapping has no invalid entries as values
+    for element in element_mapping.itervalues():
+        ufl_assert(element.domain() is not None,
+                   "Found incomplete element with undefined domain in element mapping.")
+        ufl_assert(element.family() is not None,
+                   "Found incomplete element with undefined family in element mapping.")
+
+    # Reconstruct all elements we need to map
+    for f in chain(arguments, coefficients):
+        element = f.element()
+        # Prefer the given mapping:
+        new_element = element_mapping.get(element)
+        if new_element is None:
+            if element.domain() is None:
+                # Otherwise complete with domain by reconstructing if domain is missing
+                new_element = element.reconstruct(domain=common_domain)
+            else:
+                # Or just use the original element
+                new_element = element
+        new_element_mapping[element] = new_element
+
+    # Check that the new mapping has no invalid entries as values
+    for element in new_element_mapping.itervalues():
+        ufl_assert(element.domain() is not None,
+                   "Found incomplete element with undefined domain in new element mapping.")
+        ufl_assert(element.family() is not None,
+                   "Found incomplete element with undefined family in new element mapping.")
+
+    return new_element_mapping
 
 def compute_form_data(form, object_names):
     self = FormData()

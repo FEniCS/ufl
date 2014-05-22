@@ -29,7 +29,6 @@ from ufl.algorithms.traversal import iter_expressions, \
 from ufl.algorithms.formdata import FormData
 
 # Function for preprocessing a form
-from ufl.algorithms.preprocess import preprocess, preprocess_expression
 from ufl.algorithms.compute_form_data import compute_form_data
 
 # Utilities for extracting information from forms and expressions

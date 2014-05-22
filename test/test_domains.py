@@ -175,7 +175,7 @@ class FormDomainModelTestCase(UflTestCase):
         f = Coefficient(V)
 
         a = f*dx
-        ida, = a.compute_form_data().integral_data
+        ida, = compute_form_data(a).integral_data
 
         # Check some integral data
         self.assertEqual(ida.integral_type, "cell")

@@ -81,12 +81,6 @@ class Form(object):
         "_coefficient_numbering",
         "_hash",
         "_signature",
-        # --- Deprecated data to be removed later
-        # Cache of preprocess result applied to this form
-        "_form_data",
-        # Set to true if this form is the result of a preprocess of another form
-        "_is_preprocessed",
-        "_old_signature",
         )
 
     def __init__(self, integrals):
@@ -117,11 +111,6 @@ class Form(object):
         # Internal variables for caching of hash and signature after first request
         self._hash = None
         self._signature = None
-        self._old_signature = None
-
-        # Internal variables for caching preprocessing data
-        self._form_data = None
-        self._is_preprocessed = False
 
     # --- Accessor interface ---
 
@@ -139,6 +128,7 @@ class Form(object):
     #    return self._integrals_dict
 
     def empty(self):
+        "Returns whether the form has no integrals."
         return self.integrals() == ()
 
     def domains(self):
@@ -152,6 +142,30 @@ class Form(object):
         if self._integration_domains is None:
             self._analyze_domains()
         return self._integration_domains
+
+    def cell(self):
+        "Return the single cell this form is defined on, fails if multiple cells are found."
+        domains = self.domains()
+        ufl_assert(all(domain.cell() == domains[0].cell() for domain in domains),
+                   "Calling Form.domain() is only valid if all integrals share domain.")
+        # Need to support missing domain to allow
+        # assemble(Constant(1)*dx, mesh=mesh) in dolfin
+        return domains[0].cell() if domains else None
+
+    def domain(self):
+        """Return the single geometric integration domain occuring in the form.
+
+        Fails if multiple domains are found.
+
+        NB! This does not include domains of coefficients defined on other
+        meshes, look at form data for that additional information.
+        """
+        domains = self.domains()
+        ufl_assert(all(domain == domains[0] for domain in domains),
+                   "Calling Form.domain() is only valid if all integrals share domain.")
+        # Need to support missing domain to allow
+        # assemble(Constant(1)*dx, mesh=mesh) in dolfin
+        return domains[0] if domains else None
 
     def domain_numbering(self):
         "Return a contiguous numbering of domains in a mapping { domain: number }."
@@ -342,56 +356,6 @@ class Form(object):
 
         # TODO: Better solution is to avoid the function replace map altogether in signature computation:
         #self._signature = compute_form_signature2(self, self.domain_numbering(), self.coefficient_numbering())
-
-    # ------------------- Deprecated code to be removed later --------------------------
-
-    def cell(self): # TODO: Remove after next release?
-        deprecate("Form.cell() is not well defined and will be removed.")
-        domain = self.domain()
-        return None if domain is None else domain.cell()
-
-    def domain(self): # TODO: Remove after next release?
-        """Return the geometric integration domain occuring in the form.
-
-        NB! This does not include domains of coefficients defined on other
-        meshes, look at form data for that additional information.
-        """
-        deprecate("Form.domain() is not well defined and will be removed.")
-
-        domains = self.domains()
-
-        ufl_assert(all(domain == domains[0] for domain in domains),
-                   "Calling Form.domain() is only valid if all integrals share domain.")
-
-        # Need to support missing domain to allow
-        # assemble(Constant(1)*dx, mesh=mesh) in dolfin
-        return domains[0] if domains else None
-
-    def is_preprocessed(self): # TODO: Deprecate when new form data design is working
-        "Return true if this form is the result of a preprocessing of another form."
-        return self._is_preprocessed
-
-    def form_data(self): # TODO: Deprecate when new form data design is working
-        "Return form metadata (None if form has not been preprocessed)"
-        return self._form_data
-
-    def compute_form_data(self, object_names=None): # TODO: Deprecate when new form data design is working
-        "Compute and return form metadata"
-
-        # TODO: We should get rid of the form data caching, but need to
-        #       figure out how to do that and keep pydolfin working properly
-
-        # Only compute form data once, and never on an already processed form
-        ufl_assert(not self.is_preprocessed(), "You can not preprocess forms twice.")
-
-        if self._form_data is None:
-            from ufl.algorithms.preprocess import preprocess
-            self._form_data = preprocess(self, object_names=object_names)
-
-        # Always validate arguments, keeping sure that the validation works
-        self._form_data.validate(object_names=object_names)
-        return self.form_data()
-
 
 def as_form(form):
     "Convert to form if not a form, otherwise return form."

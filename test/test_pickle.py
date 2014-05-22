@@ -11,7 +11,7 @@ __license__  = "GNU GPL version 3 or any later version"
 
 from ufltestcase import UflTestCase, main
 from ufl import *
-from ufl.algorithms import preprocess, compute_form_signature
+from ufl.algorithms import compute_form_data, compute_form_signature
 
 import pickle
 p = pickle.HIGHEST_PROTOCOL
@@ -157,7 +157,7 @@ class PickleTestCase(UflTestCase):
 
         element_pickle = pickle.dumps(element, p)
         element_restore = pickle.loads(element_pickle)
-    
+
         assert(element == element_restore)
 
     def testMixedPoisson(self):
@@ -501,14 +501,14 @@ class PickleTestCase(UflTestCase):
         assert(compute_form_signature(L) == compute_form_signature(L_restore))
 
     def testIdentity(self):
-        
+
         i = Identity(2)
         i_pickle = pickle.dumps(i, p)
         i_restore = pickle.loads(i_pickle)
         assert(i == i_restore)
 
     def testFormData(self):
-        
+
         element = FiniteElement("Lagrange", "tetrahedron", 3)
 
         v = TestFunction(element)
@@ -516,7 +516,7 @@ class PickleTestCase(UflTestCase):
 
         a = v*u*dx
 
-        form_data = preprocess(a)
+        form_data = compute_form_data(a)
 
         form_data_pickle = pickle.dumps(form_data, p)
         form_data_restore = pickle.loads(form_data_pickle)

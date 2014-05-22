@@ -96,17 +96,17 @@ class TestMeasure(UflTestCase):
         d1 = (y*dx(1, {'k': 'yk', 'q':'yq'})
             + x*dx(0, {'k': 'xk', 'q':'xq'}))
 
-        a0s = a0.compute_form_data().signature
-        a1s = a1.compute_form_data().signature
-        a2s = a2.compute_form_data().signature
-        b0s = b0.compute_form_data().signature
-        b1s = b1.compute_form_data().signature
-        b2s = b2.compute_form_data().signature
-        c0s = c0.compute_form_data().signature
-        c1s = c1.compute_form_data().signature
-        c2s = c2.compute_form_data().signature
-        d0s = d0.compute_form_data().signature
-        d1s = d1.compute_form_data().signature
+        a0s = compute_form_data(a0).signature
+        a1s = compute_form_data(a1).signature
+        a2s = compute_form_data(a2).signature
+        b0s = compute_form_data(b0).signature
+        b1s = compute_form_data(b1).signature
+        b2s = compute_form_data(b2).signature
+        c0s = compute_form_data(c0).signature
+        c1s = compute_form_data(c1).signature
+        c2s = compute_form_data(c2).signature
+        d0s = compute_form_data(d0).signature
+        d1s = compute_form_data(d1).signature
 
         # Check stability w.r.t. ordering of terms without compiler data
         self.assertEqual(a0s, b0s)

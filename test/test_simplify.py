@@ -15,9 +15,9 @@ class SimplificationTestCase(UflTestCase):
         L = 0*v*dx
         a = 0*(u*v)*dx
         b = (0*u)*v*dx
-        self.assertEqual(len(L.compute_form_data().arguments), 1)
-        self.assertEqual(len(a.compute_form_data().arguments), 2)
-        self.assertEqual(len(b.compute_form_data().arguments), 2)
+        self.assertEqual(len(compute_form_data(L).arguments), 1)
+        self.assertEqual(len(compute_form_data(a).arguments), 2)
+        self.assertEqual(len(compute_form_data(b).arguments), 2)
 
     def test_divisions(self):
         element = FiniteElement("CG", triangle, 1)

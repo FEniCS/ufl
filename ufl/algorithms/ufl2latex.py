@@ -48,7 +48,7 @@ from ufl.classes import terminal_classes
 from ufl.geometry import Domain
 
 # Other algorithms:
-from ufl.algorithms.preprocess import preprocess
+from ufl.algorithms.compute_form_data import compute_form_data
 from ufl.algorithms.analysis import extract_variables
 from ufl.algorithms.formfiles import load_forms
 from ufl.algorithms.latextools import align, document, verbatim
@@ -496,7 +496,7 @@ def form2latex(form, formdata):
 def ufl2latex(expression):
     "Generate LaTeX code for a UFL expression or form (wrapper for form2latex and expression2latex)."
     if isinstance(expression, Form):
-        form_data = expression.compute_form_data()
+        form_data = compute_form_data(expression)
         preprocessed_form = form_data.preprocessed_form
         return form2latex(preprocessed_form, form_data)
     else:
@@ -658,7 +658,7 @@ def forms2latexdocument(forms, uflfilename, compile=False):
     for form in forms:
 
         # Compute form data
-        form_data = preprocess(form)
+        form_data = compute_form_data(form)
 
         # Generate LaTex code
         title = "Form %s" % form_data.name

@@ -177,22 +177,22 @@ class MeasureTestCase(UflTestCase):
         domain, = Mx.domains()
         self.assertEqual(domain.label(), mydomain.label())
         self.assertEqual(domain.data(), mymesh)
-        self.assertEqual(Mx.compute_form_data().subdomain_data[mydomain.label()]["cell"], cell_domains)
+        self.assertEqual(compute_form_data(Mx).subdomain_data[mydomain.label()]["cell"], cell_domains)
 
         domain, = Ms.domains()
         self.assertEqual(domain.data(), mymesh)
-        self.assertEqual(Ms.compute_form_data().subdomain_data[mydomain.label()]["exterior_facet"], exterior_facet_domains)
+        self.assertEqual(compute_form_data(Ms).subdomain_data[mydomain.label()]["exterior_facet"], exterior_facet_domains)
 
         domain, = MS.domains()
         self.assertEqual(domain.data(), mymesh)
-        self.assertEqual(MS.compute_form_data().subdomain_data[mydomain.label()]["interior_facet"], interior_facet_domains)
+        self.assertEqual(compute_form_data(MS).subdomain_data[mydomain.label()]["interior_facet"], interior_facet_domains)
 
         # Test joining of these domains in a single form
         domain, = M.domains()
         self.assertEqual(domain.data(), mymesh)
-        self.assertEqual(M.compute_form_data().subdomain_data[mydomain.label()]["cell"], cell_domains)
-        self.assertEqual(M.compute_form_data().subdomain_data[mydomain.label()]["exterior_facet"], exterior_facet_domains)
-        self.assertEqual(M.compute_form_data().subdomain_data[mydomain.label()]["interior_facet"], interior_facet_domains)
+        self.assertEqual(compute_form_data(M).subdomain_data[mydomain.label()]["cell"], cell_domains)
+        self.assertEqual(compute_form_data(M).subdomain_data[mydomain.label()]["exterior_facet"], exterior_facet_domains)
+        self.assertEqual(compute_form_data(M).subdomain_data[mydomain.label()]["interior_facet"], interior_facet_domains)
 
 
 # Don't touch these lines, they allow you to run this file directly
