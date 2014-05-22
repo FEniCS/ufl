@@ -11,7 +11,7 @@ from ufltestcase import UflTestCase, main
 from ufl import *
 
 #from ufl.classes import ...
-#from ufl.algorithms import ...
+from ufl.algorithms import compute_form_data
 
 
 class GradTestCase(UflTestCase):

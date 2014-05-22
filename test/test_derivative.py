@@ -244,8 +244,8 @@ class DerivativeTestCase(UflTestCase):
         bd = compute_form_data(expected*dx)
         b = bd.preprocessed_form.integrals_by_type(Measure.CELL)[0].integrand()
 
-        self.assertEqual([ad.function_replace_map[ac] for ac in ad.original_coefficients],
-                         [bd.function_replace_map[bc] for bc in bd.original_coefficients])
+        self.assertEqual([ad.function_replace_map[ac] for ac in ad.reduced_coefficients],
+                         [bd.function_replace_map[bc] for bc in bd.reduced_coefficients])
 
         n = ad.num_coefficients
         def make_value(c):

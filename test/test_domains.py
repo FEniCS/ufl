@@ -10,6 +10,7 @@ from ufltestcase import UflTestCase, main
 # This imports everything external code will see from ufl
 from ufl import *
 from ufl.geometry import as_domain
+from ufl.algorithms import compute_form_data
 
 all_cells = (cell1D, cell2D, cell3D,
              interval, triangle, tetrahedron,

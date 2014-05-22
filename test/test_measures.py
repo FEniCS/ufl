@@ -9,6 +9,7 @@ from ufltestcase import UflTestCase, main
 
 # This imports everything external code will see from ufl
 from ufl import *
+from ufl.algorithms import compute_form_data
 
 #all_cells = (cell1D, cell2D, cell3D,
 #             interval, triangle, tetrahedron,
@@ -177,22 +178,22 @@ class MeasureTestCase(UflTestCase):
         domain, = Mx.domains()
         self.assertEqual(domain.label(), mydomain.label())
         self.assertEqual(domain.data(), mymesh)
-        self.assertEqual(compute_form_data(Mx).subdomain_data[mydomain.label()]["cell"], cell_domains)
+        self.assertEqual(Mx.subdomain_data()[mydomain]["cell"], cell_domains)
 
         domain, = Ms.domains()
         self.assertEqual(domain.data(), mymesh)
-        self.assertEqual(compute_form_data(Ms).subdomain_data[mydomain.label()]["exterior_facet"], exterior_facet_domains)
+        self.assertEqual(Ms.subdomain_data()[mydomain]["exterior_facet"], exterior_facet_domains)
 
         domain, = MS.domains()
         self.assertEqual(domain.data(), mymesh)
-        self.assertEqual(compute_form_data(MS).subdomain_data[mydomain.label()]["interior_facet"], interior_facet_domains)
+        self.assertEqual(MS.subdomain_data()[mydomain]["interior_facet"], interior_facet_domains)
 
         # Test joining of these domains in a single form
         domain, = M.domains()
         self.assertEqual(domain.data(), mymesh)
-        self.assertEqual(compute_form_data(M).subdomain_data[mydomain.label()]["cell"], cell_domains)
-        self.assertEqual(compute_form_data(M).subdomain_data[mydomain.label()]["exterior_facet"], exterior_facet_domains)
-        self.assertEqual(compute_form_data(M).subdomain_data[mydomain.label()]["interior_facet"], interior_facet_domains)
+        self.assertEqual(M.subdomain_data()[mydomain]["cell"], cell_domains)
+        self.assertEqual(M.subdomain_data()[mydomain]["exterior_facet"], exterior_facet_domains)
+        self.assertEqual(M.subdomain_data()[mydomain]["interior_facet"], interior_facet_domains)
 
 
 # Don't touch these lines, they allow you to run this file directly

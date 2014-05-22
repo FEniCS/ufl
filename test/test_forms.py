@@ -166,12 +166,14 @@ class TestMeasure(UflTestCase):
                                                 "quadrature_degree":4}))
         c = c_0 + c_1
 
-        afd = a.compute_form_data()
-        cfd = c.compute_form_data()
-        bfd = b.compute_form_data()
+        afd = compute_form_data(a)
+        cfd = compute_form_data(c)
+        bfd = compute_form_data(b)
 
         self.assertNotEqual(afd.signature, bfd.signature)
-        self.assertEqual(afd.signature, cfd.signature)
+        self.assertEqual(afd.preprocessed_form.signature(),
+                         cfd.preprocessed_form.signature())
+        #self.assertEqual(afd.signature, cfd.signature) # Not true anymore, signature is computed before preprocessing
 
     def test_measures_with_subdomain_data_compare_equal_if_subdomain_data_ufl_id_returns_same(self):
         # Configure measure with some arbitrary data object as subdomain_data
@@ -233,7 +235,7 @@ class TestMeasure(UflTestCase):
 
         # Check that we get the right subdomain_data from a form
         def _check_form(form, subdomain_data):
-            fd = a.compute_form_data()
+            fd = compute_form_data(a)
 
             # Check form domains and domain data properties
             self.assertEqual(len(form.domains()), 1)
@@ -249,10 +251,14 @@ class TestMeasure(UflTestCase):
             self.assertEqual(domain.cell(), cell)
             self.assertIsNone(domain.data())
 
-            if fd.subdomain_data:
-                fd_subdomain_data, = fd.subdomain_data.values()
-                self.assertIs(fd_subdomain_data.get('cell'), subdomain_data)
-                self.assertTrue('exterior_facet' not in fd_subdomain_data)
+            fsd = form.subdomain_data()
+            if fsd:
+                sd, = form.subdomain_data().values()
+            else:
+                sd = None
+            if sd is not None:
+                self.assertIs(sd.get('cell'), subdomain_data)
+                self.assertTrue('exterior_facet' not in fsd)
             else:
                 self.assertIsNone(subdomain_data)
 
@@ -295,7 +301,7 @@ class TestMeasure(UflTestCase):
         a = f*dX(0) + f**2*dX(1) + f/3*dx
 
         # Check that integral_data list is consistent as well
-        fd = a.compute_form_data()
+        fd = compute_form_data(a)
         f2 = f.reconstruct(count=0)
         for itd in fd.integral_data:
             self.assertEqual(itd.integral_type, 'cell')
@@ -349,18 +355,13 @@ class TestIntegrals(UflTestCase):
         f = Coefficient(element)
         a = f*v*dx(0) + 2*v*ds + 3*v*dx(0) + 7*v*ds + 3*v*dx(2) + 7*v*dx(2)
         b = (f*v + 3*v)*dx(0) + (2*v + 7*v)*ds + (3*v + 7*v)*dx(2)
+
         # Check that integrals are represented canonically after preprocessing
         # (these forms have no indices with icky numbering issues)
-        afd = a.compute_form_data()
-        bfd = b.compute_form_data()
+        afd = compute_form_data(a)
+        bfd = compute_form_data(b)
         self.assertEqual(afd.preprocessed_form.integrals(),
                          bfd.preprocessed_form.integrals())
-        # And therefore the signatures should be the same
-        self.assertEqual(afd.signature, bfd.signature)
-        self.assertEqual(compute_form_signature(afd.preprocessed_form), afd.signature)
-        self.assertEqual(compute_form_signature(bfd.preprocessed_form), bfd.signature)
-        # Note that non-preprocessed signatures are not equal:
-        #self.assertEqual(compute_form_signature(a), compute_form_signature(b))
 
     def test_adding_zero(self):
         element = FiniteElement("Lagrange", triangle, 1)

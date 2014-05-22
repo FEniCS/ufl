@@ -47,7 +47,6 @@ from ufl.algorithms.ad import expand_derivatives
 from ufl.algorithms.propagate_restrictions import propagate_restrictions
 from ufl.algorithms.formtransformations import compute_form_arities
 from ufl.algorithms.signature import compute_expression_signature, compute_form_signature
-from ufl.algorithms.preprocess import _compute_element_mapping, build_element_mapping
 
 
 def _auto_select_degree(elements):
@@ -144,12 +143,13 @@ def build_element_mapping(element_mapping, common_domain, arguments, coefficient
 
     return new_element_mapping
 
-def compute_form_data(form, object_names):
+def compute_form_data(form, object_names=None):
     self = FormData()
 
     # Check input
     ufl_assert(isinstance(form, Form), "Expecting Form.")
     object_names = object_names or {}
+    self._input_object_names = object_names
 
     # Extract form arguments
     self.original_arguments = form.arguments()
