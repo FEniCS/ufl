@@ -6,6 +6,7 @@ each integral for each form in a .ufl file.
 """
 
 import sys, time
+import six
 _msg = None
 _t = None
 _time_log = []
@@ -98,7 +99,7 @@ for form in forms:
         print
         print "="*80
         print "== Showing all partitions:"
-        for key, part in P.iteritems():
+        for key, part in six.iteritems(P):
             print "-"*60
             print "-- Partition", key
             for i in part:

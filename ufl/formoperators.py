@@ -20,6 +20,7 @@
 # Modified by Anders Logg, 2009
 
 from itertools import izip, chain
+import six
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.form import Form, as_form
@@ -200,10 +201,10 @@ def _handle_derivative_arguments(form, coefficient, argument):
             m[f][i] = a
 
     # Merge coefficient derivatives (arguments) based on indices
-    for c, p in m.iteritems():
+    for c, p in six.iteritems(m):
         if isinstance(p, dict):
             a = zero_lists(c.shape())
-            for i, g in p.iteritems():
+            for i, g in six.iteritems(p):
                 set_list_item(a, i, g)
             m[c] = as_tensor(a)
 

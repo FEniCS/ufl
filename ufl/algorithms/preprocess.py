@@ -20,6 +20,7 @@ raw input form given by a user."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from itertools import chain
+import six
 from time import time
 import ufl
 from ufl.log import error, warning, info
@@ -209,7 +210,7 @@ def preprocess(form, object_names=None):
 
     # Build mapping to original coefficients, which is
     # useful if the original coefficient have data attached to them
-    inv_replace_map = dict((w,v) for (v,w) in replace_map.iteritems())
+    inv_replace_map = dict((w,v) for (v,w) in six.iteritems(replace_map))
 
     # TODO: What's the point of this? Added assertion to check for sanity.
     original_coefficients2 = [inv_replace_map[w] for w in renumbered_coefficients]
@@ -372,7 +373,7 @@ def build_element_mapping(element_mapping, common_domain, arguments, coefficient
     new_element_mapping = {}
 
     # Check that the given initial mapping has no invalid entries as values
-    for element in element_mapping.itervalues():
+    for element in six.itervalues(element_mapping):
         ufl_assert(element.domain() is not None,
                    "Found incomplete element with undefined domain in element mapping.")
         ufl_assert(element.family() is not None,
@@ -393,7 +394,7 @@ def build_element_mapping(element_mapping, common_domain, arguments, coefficient
         new_element_mapping[element] = new_element
 
     # Check that the new mapping has no invalid entries as values
-    for element in new_element_mapping.itervalues():
+    for element in six.itervalues(new_element_mapping):
         ufl_assert(element.domain() is not None,
                    "Found incomplete element with undefined domain in new element mapping.")
         ufl_assert(element.family() is not None,
@@ -477,7 +478,7 @@ def preprocess_expression(expr, object_names=None):
 
     # Build mapping to original arguments and coefficients, which is
     # useful if the original arguments have data attached to them
-    inv_replace_map = dict((w,v) for (v,w) in replace_map.iteritems())
+    inv_replace_map = dict((w,v) for (v,w) in six.iteritems(replace_map))
 
     # TODO: What's the point of this? Added assertion to check for sanity.
     original_coefficients2 = [inv_replace_map[w] for w in renumbered_coefficients]

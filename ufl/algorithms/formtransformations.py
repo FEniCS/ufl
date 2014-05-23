@@ -23,6 +23,7 @@ complete Forms into new related Forms."""
 # Modified by Marie E. Rognes, 2010.
 
 from ufl.common import product
+import six
 from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert
 
@@ -146,7 +147,7 @@ class PartExtracter(Transformer):
 
         # 3. Return the terms that provide the biggest set
         most_provided = frozenset()
-        for (provideds, parts) in parts_that_provide.iteritems(): # TODO: Just sort instead?
+        for (provideds, parts) in six.iteritems(parts_that_provide): # TODO: Just sort instead?
 
             # Throw error if size of sets are equal (and not zero)
             if len(provideds) == len(most_provided) and len(most_provided):

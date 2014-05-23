@@ -25,6 +25,7 @@
 # Last changed: 2014-02-24
 
 from itertools import izip, chain
+import six
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.common import product, index_to_component, component_to_index, istr, EmptyDict
@@ -142,7 +143,7 @@ class MixedElement(FiniteElementBase):
         for e in self._sub_elements:
             sh = e.value_shape()
             # Map symmetries of subelement into index space of this element
-            for c0, c1 in e.symmetry().iteritems():
+            for c0, c1 in six.iteritems(e.symmetry())
                 j0 = component_to_index(c0, sh) + j
                 j1 = component_to_index(c1, sh) + j
                 sm[(j0,)] = (j1,)
@@ -372,7 +373,7 @@ class TensorElement(MixedElement):
 
         # Validate indices in symmetry dict
         if isinstance(symmetry, dict):
-            for i,j in symmetry.iteritems():
+            for i,j in six.iteritems(symmetry):
                 ufl_assert(len(i) == len(j),
                            "Non-matching length of symmetry index tuples.")
                 for k in range(len(i)):
@@ -479,7 +480,7 @@ class TensorElement(MixedElement):
         "Format as string for pretty printing."
         sym = ""
         if isinstance(self._symmetry, dict):
-            tmp = ", ".join("%s -> %s" % (a,b) for (a,b) in self._symmetry.iteritems())
+            tmp = ", ".join("%s -> %s" % (a,b) for (a,b) in six.iteritems(self._symmetry))
             sym = " with symmetries (%s)" % tmp
         elif self._symmetry:
             sym = " with symmetry"
@@ -490,7 +491,7 @@ class TensorElement(MixedElement):
         "Format as string for pretty printing."
         sym = ""
         if isinstance(self._symmetry, dict):
-            tmp = ", ".join("%s -> %s" % (a,b) for (a,b) in self._symmetry.iteritems())
+            tmp = ", ".join("%s -> %s" % (a,b) for (a,b) in six.iteritems(self._symmetry))
             sym = " with symmetries (%s)" % tmp
         elif self._symmetry:
             sym = " with symmetry"

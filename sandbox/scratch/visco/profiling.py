@@ -1,4 +1,5 @@
 from sys import getsizeof
+import six
 import ufl
 from ufl.algorithms import pre_traversal
 from ufl.classes import Terminal, Operator
@@ -22,12 +23,12 @@ class ExpressionAnalysisReport(object):
         self.footprint_of_nodes = 0
 
     def __iadd__(self, other):
-        for k,v in vars(other).iteritems():
+        for k,v in six.iteritems(vars(other)):
             setattr(self, k, getattr(self, k) + v)
         return self
 
     def __isub__(self, other):
-        for k,v in vars(other).iteritems():
+        for k,v in six.iteritems(vars(other)):
             setattr(self, k, getattr(self, k) - v)
         return self
 
@@ -139,7 +140,7 @@ def rsizeof(obj, visited=None):
     elif hasattr(obj.__class__, '__slots__'):
         s += sum(rsizeof(getattr(obj,n)) for n in obj.__class__.__slots__)
     else:
-        s += sum(rsizeof(o) for o in vars(obj).itervalues())
+        s += sum(rsizeof(o) for o in six.itervalues(vars(obj)))
     return s
 
 from pympler.asizeof import asizeof

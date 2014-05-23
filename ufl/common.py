@@ -23,6 +23,7 @@
 # Last changed: 2011-06-02
 
 from itertools import izip
+import six
 import operator
 import time
 
@@ -73,7 +74,7 @@ def sorted_by_count(seq):
     return sorted(seq, key=lambda x: x._count)
 
 def sorted_items(mapping):
-    return sorted(mapping.iteritems(), key=lambda x: x[0])
+    return sorted(six.iteritems(mapping), key=lambda x: x[0])
 
 def mergedicts(dicts):
     d = dict(dicts[0])
@@ -194,7 +195,7 @@ def split_dict(d, criteria):
     "Split a dict d into two dicts based on a criteria on the keys."
     a = {}
     b = {}
-    for (k,v) in d.iteritems():
+    for (k,v) in six.iteritems(d):
         if criteria(k):
             a[k] = v
         else:
@@ -206,7 +207,7 @@ def slice_dict(dictionary, keys, default=None):
 
 def some_key(a_dict):
     "Return an arbitrary key from a dictionary."
-    return a_dict.iterkeys().next()
+    return six.iterkeys(a_dict).next()
 
 def camel2underscore(name):
     "Convert a CamelCaps string to underscore_syntax."
@@ -428,7 +429,7 @@ def topological_sorting(nodes, edges):
     L = []
     S = nodes[:]
     for node in nodes:
-        for es in edges.itervalues():
+        for es in six.itervalues(edges):
             if node in es and node in S:
                 S.remove(node)
                 continue
@@ -440,7 +441,7 @@ def topological_sorting(nodes, edges):
         while node_edges:
             m = node_edges.pop(0)
             found = False
-            for es in edges.itervalues():
+            for es in six.itervalues(edges):
                 found = m in es
                 if found:
                     break
