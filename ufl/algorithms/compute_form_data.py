@@ -69,11 +69,14 @@ def _auto_select_degree(elements):
 
     return common_degree
 
-def _compute_element_mapping(elements, common_domain):
+def _compute_element_mapping(form):
     "Compute element mapping for element replacement"
 
-    # Try to find a common degree for elements
+    # Extract all elements and include subelements of mixed elements
+    elements = [obj.element() for obj in chain(form.arguments(), form.coefficients())]
     elements = extract_sub_elements(elements)
+
+    # Try to find a common degree for elements
     common_degree = _auto_select_degree(elements)
 
     # Compute element map
@@ -86,10 +89,11 @@ def _compute_element_mapping(elements, common_domain):
         # Set domain/cell
         domain = element.domain()
         if domain is None:
-            ufl_assert(common_domain is not None,
+            domains = form.domains()
+            ufl_assert(len(domains) == 1,
                        "Cannot replace unknown element domain without unique common domain in form.")
-            info("Adjusting missing element domain to %s." % (common_domain,))
-            domain = common_domain
+            domain, = domains
+            info("Adjusting missing element domain to %s." % (domain,))
             reconstruct = True
 
         # Set degree
@@ -101,87 +105,88 @@ def _compute_element_mapping(elements, common_domain):
 
         # Reconstruct element and add to map
         if reconstruct:
-            element_mapping[element] = element.reconstruct(domain=domain,
-                                                           degree=degree)
+            element_mapping[element] = element.reconstruct(domain=domain, degree=degree)
+        else:
+            element_mapping[element] = element
 
     return element_mapping
 
-def build_element_mapping(element_mapping, common_domain, arguments, coefficients):
-    """Complete an element mapping for all elements used by
-    arguments and coefficients, using a well defined common domain."""
+def _compute_form_data_elements(self, arguments, coefficients):
+    self.argument_elements    = tuple(f.element() for f in arguments)
+    self.coefficient_elements = tuple(f.element() for f in coefficients)
+    self.elements             = self.argument_elements + self.coefficient_elements
+    self.unique_elements      = unique_tuple(self.elements)
+    self.sub_elements         = extract_sub_elements(self.elements)
+    self.unique_sub_elements  = unique_tuple(self.sub_elements)
 
-    # Build a new dict to avoid modifying the dict passed from non-ufl code
-    new_element_mapping = {}
-
-    # Check that the given initial mapping has no invalid entries as values
-    for element in element_mapping.itervalues():
+def _check_elements(form_data):
+    for element in chain(form_data.unique_elements, form_data.unique_sub_elements):
         ufl_assert(element.domain() is not None,
-                   "Found incomplete element with undefined domain in element mapping.")
+                   "Found element with undefined domain: %s" % repr(element))
         ufl_assert(element.family() is not None,
-                   "Found incomplete element with undefined family in element mapping.")
+                   "Found element with undefined familty: %s" % repr(element))
 
-    # Reconstruct all elements we need to map
-    for f in chain(arguments, coefficients):
-        element = f.element()
-        # Prefer the given mapping:
-        new_element = element_mapping.get(element)
-        if new_element is None:
-            if element.domain() is None:
-                # Otherwise complete with domain by reconstructing if domain is missing
-                new_element = element.reconstruct(domain=common_domain)
-            else:
-                # Or just use the original element
-                new_element = element
-        new_element_mapping[element] = new_element
+def _check_facet_geometry(integral_data):
+    for itg_data in integral_data:
+        for itg in itg_data.integrals:
+            classes = extract_classes(itg.integrand())
+            it = itg_data.integral_type
+            # Facet geometry is only valid in facet integrals
+            if "facet" not in it:
+                for c in classes:
+                    ufl_assert(not issubclass(c, GeometricFacetQuantity),
+                               "Integral of type %s cannot contain a %s." % (it, c.__name__))
 
-    # Check that the new mapping has no invalid entries as values
-    for element in new_element_mapping.itervalues():
-        ufl_assert(element.domain() is not None,
-                   "Found incomplete element with undefined domain in new element mapping.")
-        ufl_assert(element.family() is not None,
-                   "Found incomplete element with undefined family in new element mapping.")
+def _check_form_arity(preprocessed_form):
+    # Check that we don't have a mixed linear/bilinear form or anything like that
+    # FIXME: This is slooow and should be moved to form compiler and/or replaced with something faster
+    ufl_assert(len(compute_form_arities(preprocessed_form)) == 1,
+               "All terms in form must have same rank.")
 
-    return new_element_mapping
 
-def compute_form_data(form, object_names=None):
+def compute_form_data(form):
+
+    # TODO: Move this to the constructor instead
     self = FormData()
 
-    # Check input
-    ufl_assert(isinstance(form, Form), "Expecting Form.")
-    object_names = object_names or {}
-    self._input_object_names = object_names
+    # Store untouched form for reference.
+    # The user of FormData may get original arguments,
+    # original coefficients, and form signature from this object.
+    # But be aware that the set of original coefficients are not
+    # the same as the ones used in the final UFC form.
+    # See 'reduced_coefficients' below.
+    self.original_form = form
 
-    # Extract form arguments
-    self.original_arguments = form.arguments()
-    self.original_coefficients = form.coefficients()
+    # Get rank of form from argument list (assuming not a mixed arity form)
+    self.rank = len(form.arguments())
 
-    self.rank = len(self.original_arguments)
-    #self.original_num_coefficients = len(self.original_coefficients)
+    # Extract common geometric dimension (topological is not common!)
+    gdims = set(domain.geometric_dimension() for domain in form.domains())
+    ufl_assert(len(gdims) == 1,
+               "Expecting all integrals in a form to share geometric dimension, got %s." % str(tuple(sorted(gdims))))
+    self.geometric_dimension, = gdims
 
-    # Store name of form if given, otherwise empty string
-    # such that automatic names can be assigned externally
-    self.name = object_names.get(id(form), "")
-
-    # Extract common domain
-    self.domains = form.domains()
-    common_domain = self.domains[0] if len(self.domains) == 1 else None
-
-    # Compute signature, this can be a bit costly
-    self.signature = form.signature()
+    # Build mapping from old incomplete element objects to new well defined elements.
+    # This is to support the Expression construct in dolfin which subclasses Coefficient
+    # but doesn't provide an element, and the Constant construct that doesn't provide
+    # the domain that a Coefficient is supposed to have. A future design iteration in
+    # UFL/UFC/FFC/DOLFIN may allow removal of this mapping with the introduction of UFL
+    # types for .
+    self.element_replace_map = _compute_element_mapping(form)
 
 
     # --- Pass form through some symbolic manipulation
 
-    # FIXME: Extract this part such that a different symbolic pipeline can be used for uflacs.
-
     # Process form the way that is currently expected by FFC
     preprocessed_form = expand_derivatives(form)
+
+    # FIXME: Extract this part such that a different symbolic pipeline can be used for uflacs.
     preprocessed_form = propagate_restrictions(preprocessed_form)
 
     # Build list of integral data objects (also does quite a bit of processing)
     # TODO: This is unclear, explain what kind of processing and/or refactor
     self.integral_data = \
-        build_integral_data(preprocessed_form.integrals(), self.domains, common_domain)
+        build_integral_data(preprocessed_form.integrals(), form.domains())
 
     # Reconstruct final preprocessed form from these integrals,
     # in a more canonical representation than the original input
@@ -190,57 +195,43 @@ def compute_form_data(form, object_names=None):
 
     # --- Create replacements for arguments and coefficients
 
-    # Build mapping from old incomplete element objects to new well defined elements
-    # TODO: Refactor: merge build_element_mapping and _compute_element_mapping
-    element_mapping = _compute_element_mapping(extract_elements(form), common_domain)
-    element_mapping = build_element_mapping(element_mapping,
-                                            common_domain,
-                                            self.original_arguments,
-                                            self.original_coefficients)
-
     # Figure out which form coefficients each integral should enable
-    reduced_coefficients_set = set()
     for itg_data in self.integral_data:
         itg_coeffs = set()
         for itg in itg_data.integrals:
             itg_coeffs.update(extract_coefficients(itg.integrand()))
         itg_data.integral_coefficients = itg_coeffs
-        reduced_coefficients_set.update(itg_coeffs)
 
+    # Figure out which coefficients from the original form are actually used in any integral
+    # (Differentiation may reduce the set of coefficients w.r.t. the original form)
+    reduced_coefficients_set = set()
+    for itg_data in self.integral_data:
+        reduced_coefficients_set.update(itg_data.integral_coefficients)
     self.reduced_coefficients = sorted(reduced_coefficients_set, key=lambda c: c.count())
     self.num_coefficients = len(self.reduced_coefficients)
+    self.original_coefficient_positions = [i for i,c in enumerate(form.coefficients())
+                                           if c in self.reduced_coefficients]
+
+    # Store back into integral which form coefficients are used by each integral
     for itg_data in self.integral_data:
         itg_data.enabled_coefficients = [bool(coeff in itg_data.integral_coefficients)
                                          for coeff in self.reduced_coefficients]
 
-    self.original_coefficient_positions = [i for i,c in enumerate(self.original_coefficients)
-                                           if c in self.reduced_coefficients]
-
-    renumbered_coefficients, replace_map = \
-        build_coefficient_replace_map(self.reduced_coefficients, element_mapping)
-
     # Mappings from elements and coefficients
     # that reside in form to objects with canonical numbering as well as
     # completed cells and elements
-    self.element_replace_map = element_mapping
-    self.function_replace_map = replace_map
+    renumbered_coefficients, function_replace_map = \
+        build_coefficient_replace_map(self.reduced_coefficients, self.element_replace_map)
+    self.function_replace_map = function_replace_map
 
 
     # --- Store elements, sub elements and element map
-    self.argument_elements    = tuple(f.element() for f in self.original_arguments)
-    self.coefficient_elements = tuple(f.element() for f in renumbered_coefficients)
-    self.elements             = self.argument_elements + self.coefficient_elements
-    self.unique_elements      = unique_tuple(self.elements)
-    self.sub_elements         = extract_sub_elements(self.elements)
-    self.unique_sub_elements  = unique_tuple(self.sub_elements)
+    _compute_form_data_elements(self, form.arguments(), renumbered_coefficients)
 
 
     # --- Store geometry data
+
     self.integration_domains = self.preprocessed_form.domains()
-    if self.integration_domains:
-        self.geometric_dimension = self.integration_domains[0].geometric_dimension()
-    else:
-        warning("Got no integration domains!")
 
 
     # --- Store number of domains for integral types
@@ -251,32 +242,9 @@ def compute_form_data(form, object_names=None):
     self.num_sub_domains, = self.num_sub_domains.values()
 
 
-    # Store argument names
-    self.argument_names = \
-        [object_names.get(id(self.original_arguments[i]), "v%d" % i)
-        for i in range(self.rank)]
-
-    # Store coefficient names
-    self.coefficient_names = \
-        [object_names.get(id(self.reduced_coefficients[i]), "w%d" % i)
-        for i in range(self.num_coefficients)]
-
-
     # --- Checks
-
-    for itg_data in self.integral_data:
-        for itg in itg_data.integrals:
-            classes = extract_classes(itg.integrand())
-            it = itg_data.integral_type
-            # Facet geometry is only valid in facet integrals
-            if "facet" not in it:
-                for c in classes:
-                    ufl_assert(not issubclass(c, GeometricFacetQuantity),
-                               "Integral of type %s cannot contain a %s." % (it, c.__name__))
-
-    # Check that we don't have a mixed linear/bilinear form or anything like that
-    # FIXME: This is slooow and should be moved to form compiler and/or replaced with something faster
-    ufl_assert(len(compute_form_arities(self.preprocessed_form)) == 1,
-               "All terms in form must have same rank.")
+    _check_elements(self)
+    _check_form_arity(self.preprocessed_form)
+    _check_facet_geometry(self.integral_data)
 
     return self

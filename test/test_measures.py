@@ -53,8 +53,7 @@ class MeasureTestCase(UflTestCase):
 
         # Check that we can create a basic form with default measure
         one = as_ufl(1)
-        a = one*dx
-        #self.assertEqual(a.domain(), None) # FIXME: This is a key point
+        a = one*dx(Domain(triangle))
 
     def test_foo(self):
 

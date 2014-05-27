@@ -34,44 +34,40 @@ from ufl.protocols import id_or_none
 
 # --- The Form class, representing a complete variational form or functional ---
 
-def integral_sort_key(integral):
-    domain = integral.domain()
-    label = None if domain is None else domain.label()
-    return (label, integral.integral_type(), integral.subdomain_id())
+def _sorted_integrals(integrals):
+    """Sort integrals by domain id, integral type, subdomain id
+    for a more stable signature computation."""
 
-def replace_integral_domains(form, common_domain): # TODO: Move elsewhere
-    """Given a form and a domain, assign a common integration domain to all integrals.
+    # Group integrals in multilevel dict by keys [domain][integral_type][subdomain_id]
+    integrals_dict = defaultdict(lambda:defaultdict(lambda:defaultdict(list)))
+    for integral in integrals:
+        d = integral.domain()
+        ufl_assert(d is not None, "An Integral without a Domain is now illegal.")
+        it = integral.integral_type()
+        si = integral.subdomain_id()
+        integrals_dict[d][it][si] += [integral]
 
-    Does not modify the input form (Form should always be immutable).
-    This is to support ill formed forms with no domain specified,
-    some times occuring in pydolfin, e.g. assemble(1*dx, mesh=mesh).
-    """
-    domains = form.domains()
-    if common_domain is not None:
-        gdim = common_domain.geometric_dimension()
-        tdim = common_domain.topological_dimension()
-        ufl_assert(all((gdim == domain.geometric_dimension() and
-                        tdim == domain.topological_dimension())
-                        for domain in domains),
-            "Common domain does not share dimensions with form domains.")
-    reconstruct = False
-    integrals = []
-    for itg in form.integrals():
-        domain = itg.domain()
-        if domain is None or domain.label() != common_domain.label():
-            itg = itg.reconstruct(domain=common_domain)
-            reconstruct = True
-        integrals.append(itg)
-    if reconstruct:
-        form = Form(integrals)
-    return form
+    all_integrals = []
+
+    # Order integrals canonically to increase signature stability
+    for d in sorted(integrals_dict): # Assuming Domain is sortable
+        for it in sorted(integrals_dict[d]): # str is sortable
+            for si in sorted(integrals_dict[d][it]): # int/str are sortable
+                unsorted_integrals = integrals_dict[d][it][si]
+                # TODO: At this point we could order integrals by metadata and integrand,
+                #       or even add the integrands with the same metadata. This is done
+                #       in accumulate_integrands_with_same_metadata in algorithms/domain_analysis.py
+                #       and would further increase the signature stability.
+                all_integrals.extend(unsorted_integrals)
+                #integrals_dict[d][it][si] = unsorted_integrals
+
+    return all_integrals#, integrals_dict
 
 class Form(object):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
     __slots__ = (
         # --- List of Integral objects (a Form is a sum of these Integrals, everything else is derived)
         "_integrals",
-        #"_integrals_dict",
         # --- Internal variables for caching various data
         "_integration_domains",
         "_domain_numbering",
@@ -88,13 +84,8 @@ class Form(object):
         ufl_assert(all(isinstance(itg, Integral) for itg in integrals),
                    "Expecting list of integrals.")
 
-        # Store integral list sorted by canonical key
-        self._integrals = tuple(sorted(integrals, key=integral_sort_key))
-
-        # Group integrals in multilevel dict by keys [domain][integral_type][subdomain_id]
-        #self._integrals_dict = defaultdict(lambda:defaultdict(lambda:defaultdict(list)))
-        #for integral in integrals:
-        #    self._integrals_dict[integral.domain()][integral.integral_type()][integral.subdomain_id()] += [integral]
+        # Store integrals sorted canonically to increase signature stability
+        self._integrals = _sorted_integrals(integrals)
 
         # Internal variables for caching domain data
         self._integration_domains = None
@@ -134,8 +125,7 @@ class Form(object):
     def domains(self):
         """Return the geometric integration domains occuring in the form.
 
-        NB! This does not include domains of coefficients defined on other
-        meshes, look at form data for that additional information.
+        NB! This does not include domains of coefficients defined on other meshes.
 
         The return type is a tuple even if only a single domain exists.
         """
@@ -324,11 +314,12 @@ class Form(object):
         for integral in integrals:
             domain = integral.domain()
             it = integral.integral_type()
+            sd = integral.subdomain_data()
             data = subdomain_data[domain].get(it)
             if data is None:
-                subdomain_data[domain][it] = integral.subdomain_data()
-            else:
-                assert data.ufl_id() == integral.subdomain_data().ufl_id()
+                subdomain_data[domain][it] = sd
+            elif sd is not None:
+                ufl_assert(data.ufl_id() == sd.ufl_id(), "Integrals in form have different subdomain_data objects.")
         self._subdomain_data = subdomain_data
 
     def _analyze_form_arguments(self):
@@ -361,4 +352,33 @@ def as_form(form):
     "Convert to form if not a form, otherwise return form."
     if not isinstance(form, Form):
         error("Unable to convert object to a UFL form: %s" % repr(form))
+    return form
+
+
+
+def replace_integral_domains(form, common_domain): # TODO: Move elsewhere
+    """Given a form and a domain, assign a common integration domain to all integrals.
+
+    Does not modify the input form (Form should always be immutable).
+    This is to support ill formed forms with no domain specified,
+    some times occuring in pydolfin, e.g. assemble(1*dx, mesh=mesh).
+    """
+    domains = form.domains()
+    if common_domain is not None:
+        gdim = common_domain.geometric_dimension()
+        tdim = common_domain.topological_dimension()
+        ufl_assert(all((gdim == domain.geometric_dimension() and
+                        tdim == domain.topological_dimension())
+                        for domain in domains),
+            "Common domain does not share dimensions with form domains.")
+    reconstruct = False
+    integrals = []
+    for itg in form.integrals():
+        domain = itg.domain()
+        if domain is None or domain.label() != common_domain.label():
+            itg = itg.reconstruct(domain=common_domain)
+            reconstruct = True
+        integrals.append(itg)
+    if reconstruct:
+        form = Form(integrals)
     return form

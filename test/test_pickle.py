@@ -521,7 +521,6 @@ class PickleTestCase(UflTestCase):
         form_data_pickle = pickle.dumps(form_data, p)
         form_data_restore = pickle.loads(form_data_pickle)
 
-        form_data_restore.validate()
         assert(str(form_data)==str(form_data_restore))
 
 if __name__ == "__main__":

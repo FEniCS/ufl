@@ -262,8 +262,8 @@ class DerivativeTestCase(UflTestCase):
             else:
                 raise NotImplementedError("Tensor valued expressions not supported here.")
 
-        amapping = dict((c, make_value(c)) for c in chain(ad.original_coefficients, ad.original_arguments))
-        bmapping = dict((c, make_value(c)) for c in chain(bd.original_coefficients, bd.original_arguments))
+        amapping = dict((c, make_value(c)) for c in chain(ad.original_form.coefficients(), ad.original_form.arguments()))
+        bmapping = dict((c, make_value(c)) for c in chain(bd.original_form.coefficients(), bd.original_form.arguments()))
 
         acell = actual.cell()
         bcell = expected.cell()
@@ -557,19 +557,19 @@ class DerivativeTestCase(UflTestCase):
             assert derivatives == (0,)
             return dw
 
-        w, b, K = form_data_f.original_coefficients
+        w, b, K = form_data_f.original_form.coefficients()
         mapping = { K: Kv, b: bv, w: Nw }
         fv2 = f_expression((0,), mapping)
         self.assertAlmostEqual(fv, fv2)
 
-        w, b, K = form_data_F.original_coefficients
-        v, = form_data_F.original_arguments
+        w, b, K = form_data_F.original_form.coefficients()
+        v, = form_data_F.original_form.arguments()
         mapping = { K: Kv, b: bv, v: Nv, w: Nw }
         Fv2 = F_expression((0,), mapping)
         self.assertAlmostEqual(Fv, Fv2)
 
-        w, b, K = form_data_J.original_coefficients
-        v, u = form_data_J.original_arguments
+        w, b, K = form_data_J.original_form.coefficients()
+        v, u = form_data_J.original_form.arguments()
         mapping = { K: Kv, b: bv, v: Nv, u: Nu, w: Nw }
         Jv2 = J_expression((0,), mapping)
         self.assertAlmostEqual(Jv, Jv2)
