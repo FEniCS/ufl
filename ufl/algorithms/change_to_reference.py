@@ -22,7 +22,8 @@ from ufl.assertions import ufl_assert
 from ufl.classes import (Terminal, ReferenceGrad, Grad,
                          Jacobian, JacobianInverse, JacobianDeterminant,
                          FacetJacobian, FacetJacobianInverse, FacetJacobianDeterminant,
-                         CellFacetJacobian, QuadratureWeight)
+                         CellFacetJacobian,
+                         CellOrientation, FacetOrientation, QuadratureWeight)
 from ufl.constantvalue import as_ufl
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
 from ufl.algorithms.analysis import extract_type
@@ -265,7 +266,8 @@ class ChangeToReferenceGeometry(ReuseTransformer):
                 scale = self.jacobian_determinant(JacobianDeterminant(domain))
 
                 # Compute facet normal direction of 3D cell, product of two tangent vectors
-                ndir = scale * cross_expr(FJ[:,0], FJ[:,1])
+                fo = FacetOrientation(domain)
+                ndir = (fo * scale) * cross_expr(FJ[:,0], FJ[:,1])
 
                 # Normalise normal vector
                 i = Index()
@@ -274,6 +276,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
 
             elif tdim == 2:
                 if gdim == 2:
+                    # 2D facet normal in 2D space
                     ufl_assert(FJ.shape() == (2,1), "Inconsistent dimensions.")
 
                     # Compute facet tangent
@@ -285,6 +288,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
                     # Compute signed scaling factor
                     scale = self.jacobian_determinant(JacobianDeterminant(domain))
                 else:
+                    # 2D facet normal in 3D space
                     ufl_assert(FJ.shape() == (gdim,1), "Inconsistent dimensions.")
 
                     # Compute facet tangent
@@ -300,8 +304,9 @@ class ChangeToReferenceGeometry(ReuseTransformer):
                 ufl_assert(len(cell_normal) == 3, "Inconsistent dimensions.")
 
                 # Compute normal direction
-                cr = cross_expr(cell_normal, tangent)
-                ndir = scale * as_vector((cr[0], cr[1]))
+                cr = cross_expr(tangent, cell_normal)
+                fo = FacetOrientation(domain)
+                ndir = (fo*scale) * as_vector((cr[0], cr[1]))
 
                 # Normalise normal vector
                 i = Index()
@@ -309,6 +314,8 @@ class ChangeToReferenceGeometry(ReuseTransformer):
                 r = n
 
             self._rcache[o] = r
+
+        ufl_assert(r.shape() == o.shape(), "Inconsistent dimensions.")
         return r
 
 
