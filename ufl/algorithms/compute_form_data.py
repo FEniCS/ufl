@@ -156,7 +156,7 @@ def _check_form_arity(preprocessed_form):
                "All terms in form must have same rank.")
 
 
-def compute_form_data(form):
+def compute_form_data(form, apply_propagate_restrictions=True):
 
     # TODO: Move this to the constructor instead
     self = FormData()
@@ -187,46 +187,19 @@ def compute_form_data(form):
     self.element_replace_map = _compute_element_mapping(form)
 
 
-    # --- Pass form through some symbolic manipulation
-
+    # --- Pass form integrands through some symbolic manipulation
 
     # Process form the way that is currently expected by FFC
     preprocessed_form = expand_derivatives(form)
 
+    if apply_propagate_restrictions:
+        preprocessed_form = propagate_restrictions(preprocessed_form)
 
 
-    change_to_local = False
-    if change_to_local:
-
-        # Replace coefficients so they all have proper element and domain for what's to come
-        expr = replace(expr, form_data.function_replace_map)
-
-        # Change from physical gradients to reference gradients
-        expr = change_to_reference_grad(expr) # TODO: Make this optional depending on backend
-
-        # Compute and apply integration scaling factor
-        scale = compute_integrand_scaling_factor(integral.domain(), integral.integral_type())
-        expr = expr * scale
-
-        # Change geometric representation to lower level quantities
-        if integral.integral_type() == "quadrature":
-            physical_coordinates_known = True
-        else:
-            physical_coordinates_known = False
-        expr = change_to_reference_geometry(expr, physical_coordinates_known)
-
-
-
-    # FIXME: Extract this part such that a different symbolic pipeline can be used for uflacs.
-    preprocessed_form = propagate_restrictions(preprocessed_form)
-
-
-
-    # Build list of integral data objects (also does quite a bit of processing)
-    # TODO: This is unclear, explain what kind of processing and/or refactor
+    # --- Group and collect data about integrals
+    # TODO: Refactor this
     self.integral_data = \
         build_integral_data(preprocessed_form.integrals(), form.domains())
-
 
 
     # --- Create replacements for arguments and coefficients
