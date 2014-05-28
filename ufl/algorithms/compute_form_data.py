@@ -38,8 +38,7 @@ from ufl.algorithms.analysis import (extract_arguments_and_coefficients,
                                      extract_classes,
                                      build_coefficient_replace_map,
                                      extract_elements, extract_sub_elements,
-                                     unique_tuple,
-                                     extract_num_sub_domains)
+                                     unique_tuple)
 from ufl.algorithms.domain_analysis import build_integral_data, reconstruct_form_from_integral_data
 from ufl.algorithms.formdata import FormData, ExprData
 from ufl.algorithms.expand_indices import expand_indices
@@ -111,6 +110,19 @@ def _compute_element_mapping(form):
 
     return element_mapping
 
+def _compute_num_sub_domains(integral_data):
+    num_sub_domains = {}
+    for itg_data in integral_data:
+        it = itg_data.integral_type
+        si = itg_data.subdomain_id
+        if isinstance(si, str):
+            new = 0
+        else:
+            new = si + 1
+        prev = num_sub_domains.get(it)
+        num_sub_domains[it] = max(prev, new)
+    return num_sub_domains
+
 def _compute_form_data_elements(self, arguments, coefficients):
     self.argument_elements    = tuple(f.element() for f in arguments)
     self.coefficient_elements = tuple(f.element() for f in coefficients)
@@ -177,20 +189,44 @@ def compute_form_data(form):
 
     # --- Pass form through some symbolic manipulation
 
+
     # Process form the way that is currently expected by FFC
     preprocessed_form = expand_derivatives(form)
 
+
+
+    change_to_local = False
+    if change_to_local:
+
+        # Replace coefficients so they all have proper element and domain for what's to come
+        expr = replace(expr, form_data.function_replace_map)
+
+        # Change from physical gradients to reference gradients
+        expr = change_to_reference_grad(expr) # TODO: Make this optional depending on backend
+
+        # Compute and apply integration scaling factor
+        scale = compute_integrand_scaling_factor(integral.domain(), integral.integral_type())
+        expr = expr * scale
+
+        # Change geometric representation to lower level quantities
+        if integral.integral_type() == "quadrature":
+            physical_coordinates_known = True
+        else:
+            physical_coordinates_known = False
+        expr = change_to_reference_geometry(expr, physical_coordinates_known)
+
+
+
     # FIXME: Extract this part such that a different symbolic pipeline can be used for uflacs.
     preprocessed_form = propagate_restrictions(preprocessed_form)
+
+
 
     # Build list of integral data objects (also does quite a bit of processing)
     # TODO: This is unclear, explain what kind of processing and/or refactor
     self.integral_data = \
         build_integral_data(preprocessed_form.integrals(), form.domains())
 
-    # Reconstruct final preprocessed form from these integrals,
-    # in a more canonical representation than the original input
-    self.preprocessed_form = reconstruct_form_from_integral_data(self.integral_data)
 
 
     # --- Create replacements for arguments and coefficients
@@ -212,7 +248,7 @@ def compute_form_data(form):
     self.original_coefficient_positions = [i for i,c in enumerate(form.coefficients())
                                            if c in self.reduced_coefficients]
 
-    # Store back into integral which form coefficients are used by each integral
+    # Store back into integral data which form coefficients are used by each integral
     for itg_data in self.integral_data:
         itg_data.enabled_coefficients = [bool(coeff in itg_data.integral_coefficients)
                                          for coeff in self.reduced_coefficients]
@@ -224,27 +260,22 @@ def compute_form_data(form):
         build_coefficient_replace_map(self.reduced_coefficients, self.element_replace_map)
     self.function_replace_map = function_replace_map
 
-
-    # --- Store elements, sub elements and element map
+    # --- Store various lists of elements and sub elements
     _compute_form_data_elements(self, form.arguments(), renumbered_coefficients)
 
-
-    # --- Store geometry data
-
-    self.integration_domains = self.preprocessed_form.domains()
-
-
     # --- Store number of domains for integral types
-    self.num_sub_domains = extract_num_sub_domains(self.preprocessed_form)
-
-    # TODO: Support multiple domains throughout jit chain. For now keep a backwards compatible data structure.
-    ufl_assert(len(self.num_sub_domains) == 1, "Not used for multiple domains yet. Might work.")
-    self.num_sub_domains, = self.num_sub_domains.values()
-
+    # TODO: Group this by domain first. For now keep a backwards compatible data structure.
+    self.num_sub_domains = _compute_num_sub_domains(self.integral_data)
 
     # --- Checks
     _check_elements(self)
-    _check_form_arity(self.preprocessed_form)
     _check_facet_geometry(self.integral_data)
+
+    # TODO: This is a very expensive check... Replace with something faster!
+    preprocessed_form = reconstruct_form_from_integral_data(self.integral_data)
+    _check_form_arity(preprocessed_form)
+
+    # TODO: This is used by unit tests, change the tests!
+    self.preprocessed_form = preprocessed_form
 
     return self

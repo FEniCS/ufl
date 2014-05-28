@@ -169,6 +169,12 @@ class Form(object):
             self._analyze_subdomain_data()
         return self._subdomain_data
 
+    def max_subdomain_ids(self):
+        "Returns a mapping on the form { domain: { integral_type: max_subdomain_id } }."
+        if self._max_subdomain_ids is None:
+            self._analyze_subdomain_data()
+        return self._max_subdomain_ids
+
     def arguments(self):
         "Return all Argument objects found in form."
         if self._arguments is None:
@@ -307,14 +313,18 @@ class Form(object):
         integration_domains = self.domains()
         integrals = self.integrals()
 
-        # Collect subdomain data
+        # Make clear data structures to collect subdomain data in
         subdomain_data = {}
         for domain in integration_domains:
             subdomain_data[domain] = {}
+
         for integral in integrals:
+            # Get integral properties
             domain = integral.domain()
             it = integral.integral_type()
             sd = integral.subdomain_data()
+
+            # Collect subdomain data
             data = subdomain_data[domain].get(it)
             if data is None:
                 subdomain_data[domain][it] = sd
