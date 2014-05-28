@@ -300,7 +300,8 @@ class ChangeToReferenceGeometry(ReuseTransformer):
                 ufl_assert(len(cell_normal) == 3, "Inconsistent dimensions.")
 
                 # Compute normal direction
-                ndir = scale * cross_expr(tangent, cell_normal)
+                cr = cross_expr(cell_normal, tangent)
+                ndir = scale * as_vector((cr[0], cr[1]))
 
                 # Normalise normal vector
                 i = Index()
