@@ -216,6 +216,16 @@ class ChangeToReferenceGeometry(ReuseTransformer):
         else:
             return o
 
+    #def cell_volume(self, o): # FIXME: Validate!
+    #    r = self.jacobian_determinant(JacobianDeterminant(o.domain()))
+    #    r0 = { "interval": 1.0, "triangle": 0.5, "tetrahedron": 1.0/3.0 } # reference_cell_volume
+    #    return abs(r / r0)
+
+    #def facet_area(self, o): # FIXME: Validate!
+    #    r = self.facet_jacobian_determinant(FacetJacobianDeterminant(o.domain()))
+    #    r0 = FIXME # reference_facet_area
+    #    return r / r0
+
     def cell_normal(self, o):
         warning("Untested complicated code for cell normal. Please report if this works correctly or not.")
 
@@ -248,8 +258,6 @@ class ChangeToReferenceGeometry(ReuseTransformer):
         return r
 
     def facet_normal(self, o):
-        warning("Untested complicated code for facet normal. Please report if this works correctly or not.")
-
         r = self._rcache.get(o)
         if r is None:
             domain = o.domain()
@@ -312,6 +320,9 @@ class ChangeToReferenceGeometry(ReuseTransformer):
                 i = Index()
                 n = ndir / sqrt(ndir[i]*ndir[i])
                 r = n
+
+            elif tdim == 1:
+                r = FIXME
 
             self._rcache[o] = r
 
