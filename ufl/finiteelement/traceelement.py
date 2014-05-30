@@ -18,43 +18,43 @@
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
-class TraceSpace(FiniteElementBase):
+class TraceElement(FiniteElementBase):
     """A finite element space: the trace of a given hdiv element.
     This is effectively a scalar-valued restriction which is
     non-zero only on cell facets."""
     def __init__(self, element):
         self._element = element
-        self._repr = "Trace(%s)" % str(element._repr)
+        self._repr = "TraceElement(%s)" % str(element._repr)
 
-        family = "Trace"
+        family = "TraceElement"
         domain = element.domain()
         degree = element.degree()
         quad_scheme = element.quadrature_scheme()
         value_shape = ()
-        super(TraceSpace, self).__init__(family, domain, degree,
+        super(TraceElement, self).__init__(family, domain, degree,
                                          quad_scheme, value_shape)
 
     def reconstruct(self, **kwargs):
-        """Construct a new TraceSpace object with some properties
+        """Construct a new TraceElement object with some properties
         replaced with new values."""
         domain = kwargs.get("domain", self.domain())
         ele = self._element.reconstruct(domain=domain)
-        return TraceSpace(ele)
+        return TraceElement(ele)
 
     def reconstruction_signature(self):
-        return "Trace(%s)" % self._element.reconstruction_signature()
+        return "TraceElement(%s)" % self._element.reconstruction_signature()
 
     def signature_data(self, domain_numbering):
-        data = ("Trace", self._element.signature_data(domain_numbering=domain_numbering),
+        data = ("TraceElement", self._element.signature_data(domain_numbering=domain_numbering),
                 ("no domain" if self._domain is None else self._domain
                     .signature_data(domain_numbering=domain_numbering)))
         return data
 
     def __str__(self):
-        return "Trace(%s)" % str(self._element)
+        return "TraceElement(%s)" % str(self._element)
 
     def shortstr(self):
-        return "Trace(%s)" % str(self._element.shortstr())
+        return "TraceElement(%s)" % str(self._element.shortstr())
 
     def __repr__(self):
         return self._repr
