@@ -1,4 +1,4 @@
-1.4.0 [2014-05-2x]
+1.4.0 [2014-06-02]
  - New integral type custom_integral (*dc)
  - Add analysis of which coefficients each integral actually uses to optimize assembly
  - Improved svg rendering of cells and sobolevspaces in ipython notebook
