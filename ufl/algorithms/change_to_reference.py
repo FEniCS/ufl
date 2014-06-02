@@ -362,7 +362,7 @@ def compute_integrand_scaling_factor(domain, integral_type):
     elif integral_type == "exterior_facet":
         scale = FacetJacobianDeterminant(domain) * weight
     elif integral_type == "interior_facet":
-        scale = FacetJacobianDeterminant(domain)('-') * weight # TODO: Arbitrary restriction to '-', is that ok?
+        scale = FacetJacobianDeterminant(domain)('+') * weight # TODO: Arbitrary restriction to '+', is that ok?
     elif integral_type == "quadrature":
         scale = weight
     elif integral_type == "point":
