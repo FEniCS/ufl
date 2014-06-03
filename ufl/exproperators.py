@@ -18,9 +18,6 @@ Sum and its superclass Expr."""
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
-#
-# First added:  2008-08-18
-# Last changed: 2013-01-03
 
 from itertools import chain, izip
 
@@ -353,14 +350,6 @@ def analyse_key(ii, rank):
                     # TODO: Use ListTensor to support partial slices?
                     error("Partial slices not implemented, only complete slices like [:]")
             else:
-                print '\n', '='*60
-                print Index, id(Index)
-                print type(i), id(type(i))
-                print str(i)
-                print repr(i)
-                print type(i).__module__
-                print Index.__module__
-                print '\n', '='*60
                 error("Can't convert this object to index: %r" % i)
 
             # Store index in pre or post list

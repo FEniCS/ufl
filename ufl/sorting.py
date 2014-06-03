@@ -70,26 +70,26 @@ def cmp_expr(a, b):
                         pass # Both are Index, do not depend on count!
             # Failed to make a decision, return 0 by default (this does not mean equality, it could be e.g. [i,0] vs [j,0] because the counts of i,j cannot be used)
             return 0
- 
+
         # ... Label object?
         elif isinstance(a, Label):
             # Don't compare counts! Causes circular problems when renumbering to get a canonical form.
             # Therefore, even though a and b are not equal in general (__eq__ won't be True),
             # but for this sorting they are considered equal and we return 0.
             return 0
- 
+
         # ... Coefficient?
         elif isinstance(a, Coefficient):
             # It's ok to compare relative counts for Coefficients,
             # since their ordering is a property of the form
             return _cmp3(a._count, b._count)
- 
+
         # ... Argument?
         elif isinstance(a, Argument):
             # It's ok to compare relative number and part for Arguments,
             # since their ordering is a property of the form
             return _cmp3((a._number, a._part), (b._number, b._part))
- 
+
         # ... another kind of Terminal object?
         else:
             # The cost of repr on a terminal is fairly small, and bounded
@@ -99,7 +99,7 @@ def cmp_expr(a, b):
         if 0:
             if hash(a) == hash(b): # FIXME: Test this for performance improvement.
                 return 0
- 
+
         # TODO: Since the type is the same, the number of children is always the same? Remove?
         if 1:
             aops = a.operands()
@@ -107,7 +107,7 @@ def cmp_expr(a, b):
             c = _cmp3(len(aops), len(bops))
             if c != 0:
                 return c
- 
+
         # Sort by children in natural order
         for (r, s) in izip(aops, bops):
             # Ouch! This becomes worst case O(n) then?
@@ -115,12 +115,19 @@ def cmp_expr(a, b):
             c = cmp_expr(r, s)
             if c != 0:
                 return c
- 
+
         # All children compare as equal, a and b must be equal
         return 0
 
 # Not in python 2.6...
 #from functools import cmp_to_key
+
+class ExprKey(object):
+    __slots__ = ('x',)
+    def __init__(self, x):
+        self.x = x
+    def __lt__(self, other):
+        return cmp_expr(self.x, other.x) < 0
 
 class ExprKey(object):
     __slots__ = ('x',)
@@ -144,4 +151,3 @@ def sorted_expr_sum(seq):
 
 
 from ufl.common import topological_sorting # FIXME: Remove this, update whoever uses it in ufl and ffc etc.
-

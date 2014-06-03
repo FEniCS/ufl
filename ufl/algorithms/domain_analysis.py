@@ -39,7 +39,7 @@ class IntegralData(object):
     associating metadata with each object.
     """
     __slots__ = ('domain', 'integral_type', 'subdomain_id', 'integrals', 'metadata',
-                 'enabled_coefficients')
+                 'integral_coefficients', 'enabled_coefficients')
     def __init__(self, domain, integral_type, subdomain_id, integrals, metadata):
         ufl_assert(all(domain.label() == itg.domain().label() for itg in integrals),
                    "Domain label mismatch in integral data.")
@@ -55,6 +55,7 @@ class IntegralData(object):
         self.integrals = integrals
 
         # This is populated in preprocess using data not available at this stage:
+        self.integral_coefficients = None
         self.enabled_coefficients = None
 
         # TODO: I think we can get rid of this with some refactoring in ffc:
@@ -95,12 +96,11 @@ class ExprTupleKey(object):
 def expr_tuple_key(expr):
     return ExprTupleKey(expr)
 
-def group_integrals_by_domain_and_type(integrals, domains, common_domain):
+def group_integrals_by_domain_and_type(integrals, domains):
     """
     Input:
         integrals: list of Integral objects
         domains: list of Domain objects from the parent Form
-        common_domain: default Domain object for integrals with no domain
 
     Output:
         integrals_by_domain_and_type: dict: (domain, integral_type) -> list(Integral)
@@ -112,8 +112,7 @@ def group_integrals_by_domain_and_type(integrals, domains, common_domain):
     for itg in integrals:
         # Canonicalize domain
         domain = itg.domain()
-        if domain is None:
-            domain = common_domain
+        ufl_assert(domain is not None, "Integrals without a domain is now illegal.")
         domain = domains_by_label.get(domain.label())
         integral_type = itg.integral_type()
 
@@ -199,7 +198,9 @@ def accumulate_integrands_with_same_metadata(integrals):
     by_cdid = {}
     for itg in integrals:
         cd = itg.metadata()
-        cdid = id(cd) # TODO: Use hash instead of id? Safe to assume this to be a dict of basic python values?
+        # TODO: Use hash instead of id? Safe to assume
+        #       this to be a dict of basic python values?
+        cdid = id(cd)
         if cdid in by_cdid:
             by_cdid[cdid][0].append(itg)
         else:
@@ -216,12 +217,12 @@ def accumulate_integrands_with_same_metadata(integrals):
     # Sort integrands canonically by integrand first then compiler data
     return sorted(by_cdid.values(), key=expr_tuple_key)
 
-def build_integral_data(integrals, domains, common_domain):
+def build_integral_data(integrals, domains):
     integral_data = []
 
     # Group integrals by domain and type
     integrals_by_domain_and_type = \
-        group_integrals_by_domain_and_type(integrals, domains, common_domain)
+        group_integrals_by_domain_and_type(integrals, domains)
 
     for domain in domains:
         for integral_type in ufl.measure.integral_types():
