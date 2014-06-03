@@ -268,7 +268,7 @@ def preprocess(form, object_names=None):
             classes = extract_classes(itg.integrand())
             it = itg_data.integral_type
             # Facet geometry is only valid in facet integrals
-            if "facet" not in it:
+            if "facet" not in it and "custom" not in it:
                 for c in classes:
                     ufl_assert(not issubclass(c, GeometricFacetQuantity),
                                "Integral of type %s cannot contain a %s." % (it, c.__name__))
