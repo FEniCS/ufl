@@ -81,12 +81,12 @@ any_cell  = (None,
              "quadrilateral", "hexahedron")
 
 # Elements in the periodic table # TODO: Register these as aliases of periodic table element description instead of the other way around
-register_element("Lagrange", "CG",                       0, H1,    "identity", (1, None), any_cell)                   # "P"
-register_element("Brezzi-Douglas-Marini", "BDM",         1, HDiv,  "contravariant Piola", (1, None), simplices[1:]) # "BDMf" (2d), "N2f" (3d)
-register_element("Discontinuous Lagrange", "DG",         0, L2,    "identity", (0, None), any_cell)                   # "DG"
-register_element("Nedelec 1st kind H(curl)", "N1curl",   1, HCurl, "covariant Piola", (1, None), simplices[1:])     # "RTe" (2d), "N1e" (3d)
-register_element("Nedelec 2nd kind H(curl)", "N2curl",   1, HCurl, "covariant Piola", (1, None), simplices[1:])     # "BDMe" (2d), "N2e" (3d)
-register_element("Raviart-Thomas", "RT",                 1, HDiv,  "contravariant Piola", (1, None), simplices[1:]) # "RTf" , "N1f" (3d)
+register_element("Lagrange", "CG",                       0, H1,    "identity", (1, None), any_cell)                  # "P"
+register_element("Brezzi-Douglas-Marini", "BDM",         1, HDiv,  "contravariant Piola", (1, None), simplices[1:])  # "BDMF" (2d), "N2F" (3d)
+register_element("Discontinuous Lagrange", "DG",         0, L2,    "identity", (0, None), any_cell)                  # "DP"
+register_element("Nedelec 1st kind H(curl)", "N1curl",   1, HCurl, "covariant Piola", (1, None), simplices[1:])      # "RTE"  (2d), "N1E" (3d)
+register_element("Nedelec 2nd kind H(curl)", "N2curl",   1, HCurl, "covariant Piola", (1, None), simplices[1:])      # "BDME" (2d), "N2E" (3d)
+register_element("Raviart-Thomas", "RT",                 1, HDiv,  "contravariant Piola", (1, None), simplices[1:])  # "RTF"  (2d), "N1F" (3d)
 
 # Elements not in the periodic table
 register_element("Argyris", "ARG",                       0, H2,   "identity", (1, None), simplices[1:])
@@ -121,31 +121,31 @@ register_alias("N2div",
 
 # New elements introduced for the periodic table 2014
 register_element2("Q",     0, H1,    "identity",            (1, None), cubes)
-register_element2("DGQ",   0, L2,    "identity",            (0, None), cubes)
-register_element2("RTQe",  1, HCurl, "covariant Piola",     (1, None), ("quadrilateral",))
-register_element2("RTQf",  1, HDiv,  "contravariant Piola", (1, None), ("quadrilateral",))
-register_element2("NQe",   1, HCurl, "covariant Piola",     (1, None), ("hexahedron",))
-register_element2("NQf",   1, HDiv,  "contravariant Piola", (1, None), ("hexahedron",))
+register_element2("DQ",    0, L2,    "identity",            (0, None), cubes)
+register_element2("RTCE",  1, HCurl, "covariant Piola",     (1, None), ("quadrilateral",))
+register_element2("RTCF",  1, HDiv,  "contravariant Piola", (1, None), ("quadrilateral",))
+register_element2("NCE",   1, HCurl, "covariant Piola",     (1, None), ("hexahedron",))
+register_element2("NCF",   1, HDiv,  "contravariant Piola", (1, None), ("hexahedron",))
 
 register_element2("S",     0, H1,    "identity",            (1, None), cubes)
-register_element2("DGS",   0, L2,    "identity",            (1, None), cubes)
-register_element2("BDMSe", 1, HCurl, "covariant Piola",     (1, None), ("quadrilateral",))
-register_element2("BDMSf", 1, HDiv,  "contravariant Piola", (1, None), ("quadrilateral",))
-register_element2("AAe",   1, HCurl, "covariant Piola",     (1, None), ("hexahedron",))
-register_element2("AAf",   1, HDiv,  "contravariant Piola", (1, None), ("hexahedron",))
+register_element2("DPC",   0, L2,    "identity",            (1, None), cubes)
+register_element2("BDMCE", 1, HCurl, "covariant Piola",     (1, None), ("quadrilateral",))
+register_element2("BDMCF", 1, HDiv,  "contravariant Piola", (1, None), ("quadrilateral",))
+register_element2("AAE",   1, HCurl, "covariant Piola",     (1, None), ("hexahedron",))
+register_element2("AAF",   1, HDiv,  "contravariant Piola", (1, None), ("hexahedron",))
 
 # New aliases introduced for the periodic table 2014
 register_alias("P",    lambda family, dim, order, degree: ("Lagrange",                 order))
-register_alias("RTe",  lambda family, dim, order, degree: ("Nedelec 1st kind H(curl)", order))
-register_alias("RTf",  lambda family, dim, order, degree: ("Raviart-Thomas",           order))
-register_alias("N1e",  lambda family, dim, order, degree: ("Nedelec 1st kind H(curl)", order))
-register_alias("N1f",  lambda family, dim, order, degree: ("Raviart-Thomas",           order))
+register_alias("DP",   lambda family, dim, order, degree: ("Discontinuous Lagrange",   order))
+register_alias("RTE",  lambda family, dim, order, degree: ("Nedelec 1st kind H(curl)", order))
+register_alias("RTF",  lambda family, dim, order, degree: ("Raviart-Thomas",           order))
+register_alias("N1E",  lambda family, dim, order, degree: ("Nedelec 1st kind H(curl)", order))
+register_alias("N1F",  lambda family, dim, order, degree: ("Raviart-Thomas",           order))
 
-register_alias("BDMe", lambda family, dim, order, degree: ("Nedelec 2nd kind H(curl)", order))
-register_alias("BDMf", lambda family, dim, order, degree: ("Brezzi-Douglas-Marini",    order))
-register_alias("N2e",  lambda family, dim, order, degree: ("Nedelec 2nd kind H(curl)", order))
-register_alias("N2f",  lambda family, dim, order, degree: ("Brezzi-Douglas-Marini",    order))
-
+register_alias("BDME", lambda family, dim, order, degree: ("Nedelec 2nd kind H(curl)", order))
+register_alias("BDMF", lambda family, dim, order, degree: ("Brezzi-Douglas-Marini",    order))
+register_alias("N2E",  lambda family, dim, order, degree: ("Nedelec 2nd kind H(curl)", order))
+register_alias("N2F",  lambda family, dim, order, degree: ("Brezzi-Douglas-Marini",    order))
 
 # Finite element exterior calculus notation
 def feec_element(family, n, r, k):
@@ -153,38 +153,53 @@ def feec_element(family, n, r, k):
     # r = polynomial order
     # k = form_degree
 
-    # mapping from (feec name, domain dimension, form degree) to (family name, polynomial order)
+    # Note: We always map to edge elements in 2D, don't know how to differentiate otherwise?
+
+    # Mapping from (feec name, domain dimension, form degree) to (family name, polynomial order)
     _feec_elements = {
         "P- Lambda": (
-            (("P", r), ("DG", r - 1)),
-            (("P", r), ("RTe", r),      ("DG", r - 1)),
-            (("P", r), ("N1e", r),      ("N1f", r),   ("DG", r - 1)),
+            (("P", r), ("DP", r - 1)),
+            (("P", r), ("RTE", r),      ("DP", r - 1)),
+            (("P", r), ("N1E", r),      ("N1F", r),   ("DP", r - 1)),
             ),
         "P Lambda": (
-            (("P", r), ("DG", r)),
-            (("P", r), ("BDMe", r),     ("DG", r)),
-            (("P", r), ("N2e", r),      ("N2f", r),   ("DG", r)),
+            (("P", r), ("DP", r)),
+            (("P", r), ("BDME", r),     ("DP", r)),
+            (("P", r), ("N2E", r),      ("N2F", r),   ("DP", r)),
             ),
         "Q- Lambda": (
-            (("Q", r), ("DGQ", r - 1)),
-            (("Q", r), ("RTQe", r),     ("DGQ", r - 1)),
-            (("Q", r), ("NQe", r),      ("NQf", r),   ("DGQ", r - 1)),
+            (("Q", r), ("DQ", r - 1)),
+            (("Q", r), ("RTCE", r),     ("DQ", r - 1)),
+            (("Q", r), ("NCE", r),      ("NCF", r),   ("DQ", r - 1)),
             ),
         "S Lambda": (
-            (("S", r), ("DGS", r)),
-            (("S", r), ("BDMSe", r),    ("DGS", r)),
-            (("S", r), ("AAe", r),      ("AAf", r),   ("DGS", r)),
+            (("S", r), ("DPC", r)),
+            (("S", r), ("BDMCE", r),    ("DPC", r)),
+            (("S", r), ("AAE", r),      ("AAF", r),   ("DPC", r)),
             ),
         }
 
+    # New notation, old verbose notation (including "Lambda") might be removed
+    _feec_elements["P-"] = _feec_elements["P- Lambda"]
+    _feec_elements["P"]  = _feec_elements["P Lambda"]
+    _feec_elements["Q-"] = _feec_elements["Q- Lambda"]
+    _feec_elements["S"]  = _feec_elements["S Lambda"]
+
     family, r = _feec_elements[family][n - 1][k]
+
     return family, r
 
+# General FEEC notation, old verbose (can be removed)
 register_alias("P- Lambda", lambda family, dim, order, degree: feec_element(family, dim, order, degree))
 register_alias("P Lambda",  lambda family, dim, order, degree: feec_element(family, dim, order, degree))
 register_alias("Q- Lambda", lambda family, dim, order, degree: feec_element(family, dim, order, degree))
 register_alias("S Lambda",  lambda family, dim, order, degree: feec_element(family, dim, order, degree))
 
+# General FEEC notation, new compact notation
+register_alias("P-", lambda family, dim, order, degree: feec_element(family, dim, order, degree))
+#register_alias("P Lambda",  lambda family, dim, order, degree: feec_element(family, dim, order, degree))
+register_alias("Q-", lambda family, dim, order, degree: feec_element(family, dim, order, degree))
+#register_alias("S Lambda",  lambda family, dim, order, degree: feec_element(family, dim, order, degree))
 
 def canonical_element_description(family, cell, order, form_degree):
     """Given basic element information, return corresponding element information on canonical form.
@@ -205,6 +220,10 @@ def canonical_element_description(family, cell, order, form_degree):
         tdim = None
         gdim = None
         cellname = None
+
+    # Catch general FEEC notation "P" and "S"
+    if form_degree is not None and family in ("P", "S"):
+        family, order = feec_element(family, tdim, order, form_degree)
 
     # Check whether this family is an alias for something else
     while family in aliases:
