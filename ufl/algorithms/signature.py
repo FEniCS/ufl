@@ -18,7 +18,11 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 import hashlib
-from ufl.classes import Index, MultiIndex, Coefficient, Argument, Terminal, Label, FormArgument, GeometricQuantity, ConstantValue
+from ufl.classes import (Terminal, Label,
+                         Index, MultiIndex,
+                         Coefficient, Argument, FormArgument,
+                         GeometricQuantity, ConstantValue,
+                         ExprList, ExprMapping)
 from ufl.log import error
 from ufl.algorithms.traversal import traverse_unique_terminals
 from ufl.common import fast_pre_traversal, sorted_by_count
@@ -84,6 +88,12 @@ def compute_terminal_hashdata(expressions, domain_numbering, function_replace_ma
                 if data is None:
                     data = "L%d" % len(labels)
                     labels[expr] = data
+
+            elif isinstance(expr, ExprMapping):
+                data = "{}"
+
+            elif isinstance(expr, ExprList):
+                data = "[]"
 
             else:
                 error("Unknown terminal type %s" % type(expr))

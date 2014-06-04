@@ -37,9 +37,9 @@ def iter_expressions(a):
     - a is a  Form:      all integrand expressions of all integrals
     """
     if isinstance(a, Form):
-        return (itg._integrand for itg in a.integrals())
+        return (itg.integrand() for itg in a.integrals())
     elif isinstance(a, Integral):
-        return (a._integrand,)
+        return (a.integrand(),)
     elif isinstance(a, Expr):
         return (a,)
     error("Not an UFL type: %s" % str(type(a)))

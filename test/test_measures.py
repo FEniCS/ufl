@@ -9,6 +9,7 @@ from ufltestcase import UflTestCase, main
 
 # This imports everything external code will see from ufl
 from ufl import *
+from ufl.algorithms import compute_form_data
 
 #all_cells = (cell1D, cell2D, cell3D,
 #             interval, triangle, tetrahedron,
@@ -62,8 +63,7 @@ class MeasureTestCase(UflTestCase):
 
         # Check that we can create a basic form with default measure
         one = as_ufl(1)
-        a = one*dx
-        #self.assertEqual(a.domain(), None) # FIXME: This is a key point
+        a = one*dx(Domain(triangle))
 
     def test_foo(self):
 
@@ -187,22 +187,22 @@ class MeasureTestCase(UflTestCase):
         domain, = Mx.domains()
         self.assertEqual(domain.label(), mydomain.label())
         self.assertEqual(domain.data(), mymesh)
-        self.assertEqual(Mx.compute_form_data().subdomain_data[mydomain.label()]["cell"], cell_domains)
+        self.assertEqual(Mx.subdomain_data()[mydomain]["cell"], cell_domains)
 
         domain, = Ms.domains()
         self.assertEqual(domain.data(), mymesh)
-        self.assertEqual(Ms.compute_form_data().subdomain_data[mydomain.label()]["exterior_facet"], exterior_facet_domains)
+        self.assertEqual(Ms.subdomain_data()[mydomain]["exterior_facet"], exterior_facet_domains)
 
         domain, = MS.domains()
         self.assertEqual(domain.data(), mymesh)
-        self.assertEqual(MS.compute_form_data().subdomain_data[mydomain.label()]["interior_facet"], interior_facet_domains)
+        self.assertEqual(MS.subdomain_data()[mydomain]["interior_facet"], interior_facet_domains)
 
         # Test joining of these domains in a single form
         domain, = M.domains()
         self.assertEqual(domain.data(), mymesh)
-        self.assertEqual(M.compute_form_data().subdomain_data[mydomain.label()]["cell"], cell_domains)
-        self.assertEqual(M.compute_form_data().subdomain_data[mydomain.label()]["exterior_facet"], exterior_facet_domains)
-        self.assertEqual(M.compute_form_data().subdomain_data[mydomain.label()]["interior_facet"], interior_facet_domains)
+        self.assertEqual(M.subdomain_data()[mydomain]["cell"], cell_domains)
+        self.assertEqual(M.subdomain_data()[mydomain]["exterior_facet"], exterior_facet_domains)
+        self.assertEqual(M.subdomain_data()[mydomain]["interior_facet"], interior_facet_domains)
 
 
 # Don't touch these lines, they allow you to run this file directly

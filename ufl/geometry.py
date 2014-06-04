@@ -105,7 +105,7 @@ class GeometricQuantity(Terminal):
         return (self._domain,)
 
     def is_cellwise_constant(self):
-        "Return whether this expression is spatially constant over each cell."
+        "Return whether this expression is spatially constant over each cell (or over each facet for facet quantities)."
         # NB! Geometric quantities are piecewise constant by default. Override if needed.
         return True
 
@@ -533,6 +533,11 @@ class CellOrientation(GeometricCellQuantity):
     """
     __slots__ = ()
     name = "cell_orientation"
+
+class FacetOrientation(GeometricFacetQuantity):
+    """UFL geometry representation: The orientation (+1/-1) of the current facet relative to the reference cell."""
+    __slots__ = ()
+    name = "facet_orientation"
 
 # This doesn't quite fit anywhere. Make a special set of symbolic terminal types instead?
 class QuadratureWeight(GeometricQuantity):

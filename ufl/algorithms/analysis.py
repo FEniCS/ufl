@@ -286,29 +286,6 @@ def unique_tuple(objects):
             unique_objects.append(object)
     return tuple(unique_objects)
 
-def extract_num_sub_domains(form):
-    "Extract the upper limit of sub domain ids for each domain label/domain type."
-    num_sub_domains = {}
-    for integral in form.integrals():
-        domain = integral.domain()
-        label = None if domain is None else domain.label()
-        if label not in num_sub_domains:
-            num_sub_domains[label] = {}
-
-        subdomain_id = integral.subdomain_id()
-        max_subdomain_id = None
-        if isinstance(subdomain_id, int):
-            max_subdomain_id = subdomain_id
-        elif isinstance(subdomain_id, tuple):
-            max_subdomain_id = max(did for did in subdomain_id)
-
-        integral_type = integral.integral_type()
-        if max_subdomain_id is not None:
-            prev = num_sub_domains[label].get(integral_type, 0)
-            num_sub_domains[label][integral_type] = max(prev, max_subdomain_id + 1)
-
-    return num_sub_domains
-
 def sort_elements(elements):
     """
     Sort elements so that any sub elements appear before the

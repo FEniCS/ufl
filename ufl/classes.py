@@ -55,7 +55,7 @@ from ufl.geometry import (
     FacetNormal, CellNormal,
     CellVolume, Circumradius,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
-    CellOrientation, QuadratureWeight,
+    CellOrientation, FacetOrientation, QuadratureWeight,
     )
 from ufl.indexing import IndexBase, FixedIndex, Index, MultiIndex
 
