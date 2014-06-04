@@ -207,8 +207,14 @@ def compute_form_data(form, apply_propagate_restrictions=True):
     # Figure out which form coefficients each integral should enable
     for itg_data in self.integral_data:
         itg_coeffs = set()
+        # Get all coefficients in integrand
         for itg in itg_data.integrals:
             itg_coeffs.update(extract_coefficients(itg.integrand()))
+        # Add coefficient for integration domain if any
+        c = itg_data.domain.coordinates()
+        if c is not None:
+            itg_coeffs.add(c)
+        # Store with IntegralData object
         itg_data.integral_coefficients = itg_coeffs
 
     # Figure out which coefficients from the original form are actually used in any integral
