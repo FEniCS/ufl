@@ -98,6 +98,8 @@ class Domain(object):
             ufl_assert(self._coordinates.shape() == (self._cell.geometric_dimension(),),
                        "Shape of coordinates %s does not match geometric dimension %d of cell." %\
                 (self._coordinates.shape(), self._cell.geometric_dimension()))
+        else:
+            ufl_error("Invalid first argument to Domain.")
 
         # Now we should have a Cell or something went wrong
         ufl_assert(isinstance(self._cell, Cell), "Failed to construct a Cell from input arguments.")
@@ -202,7 +204,7 @@ class Domain(object):
         if self._coordinates is None:
             c = ""
         else:
-            c = "and coordinates %r" % self._coordinates
+            c = " and coordinates %r" % self._coordinates
         s = (self._cell, self._label, c)
         return "<Domain built from %s with label %s%s>" % s
 
