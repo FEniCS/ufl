@@ -11,7 +11,7 @@ from ufltestcase import UflTestCase, main
 from ufl import *
 
 #from ufl.classes import ...
-#from ufl.algorithms import ...
+from ufl.algorithms import compute_form_data
 
 
 class GradTestCase(UflTestCase):
@@ -123,18 +123,18 @@ class GradTestCase(UflTestCase):
         a8 = inner(div(grad(v)), v)*dx
         a9 = inner(div(grad(t)), t)*dx
 
-        fd0 = a0.compute_form_data()
-        fd1 = a1.compute_form_data()
-        fd2 = a2.compute_form_data()
-        fd3 = a3.compute_form_data()
+        fd0 = compute_form_data(a0)
+        fd1 = compute_form_data(a1)
+        fd2 = compute_form_data(a2)
+        fd3 = compute_form_data(a3)
 
-        fd4 = a4.compute_form_data()
-        fd5 = a5.compute_form_data()
-        fd6 = a6.compute_form_data()
+        fd4 = compute_form_data(a4)
+        fd5 = compute_form_data(a5)
+        fd6 = compute_form_data(a6)
 
-        fd7 = a7.compute_form_data()
-        fd8 = a8.compute_form_data()
-        fd9 = a9.compute_form_data()
+        fd7 = compute_form_data(a7)
+        fd8 = compute_form_data(a8)
+        fd9 = compute_form_data(a9)
 
         #self.assertTrue(False) # Just to show it runs
 

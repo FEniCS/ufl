@@ -10,6 +10,7 @@ from ufltestcase import UflTestCase, main
 # This imports everything external code will see from ufl
 from ufl import *
 from ufl.geometry import as_domain
+from ufl.algorithms import compute_form_data
 
 all_cells = (cell1D, cell2D, cell3D,
              interval, triangle, tetrahedron,
@@ -175,7 +176,7 @@ class FormDomainModelTestCase(UflTestCase):
         f = Coefficient(V)
 
         a = f*dx
-        ida, = a.compute_form_data().integral_data
+        ida, = compute_form_data(a).integral_data
 
         # Check some integral data
         self.assertEqual(ida.integral_type, "cell")

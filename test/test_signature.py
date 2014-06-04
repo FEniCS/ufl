@@ -417,17 +417,20 @@ class FormSignatureTestCase(UflTestCase):
     def check_unique_signatures(self, forms):
         count = 0
         sigs = set()
+        sigs2 = set()
         hashes = set()
         reprs = set()
         for a in forms:
             sig = compute_form_signature(a)
-
+            sig2 = a.signature()
             sigs.add(sig)
+            sigs2.add(sig2)
             self.assertTrue(sig)
             hashes.add(hash(a))
             reprs.add(repr(a))
             count += 1
         self.assertEqual(len(sigs), count)
+        self.assertEqual(len(sigs2), count)
         self.assertEqual(len(reprs), count)
         self.assertEqual(len(hashes), count)
 
@@ -486,6 +489,9 @@ class FormSignatureTestCase(UflTestCase):
         self.assertTrue(compute_form_signature(M1) != compute_form_signature(M2))
         self.assertTrue(compute_form_signature(M1) != compute_form_signature(M3))
         self.assertTrue(compute_form_signature(M2) != compute_form_signature(M3))
+        self.assertTrue(M1.signature() != M2.signature())
+        self.assertTrue(M1.signature() != M3.signature())
+        self.assertTrue(M2.signature() != M3.signature())
 
     def test_signature_of_forms_change_with_operators(self):
         def forms():
@@ -510,4 +516,3 @@ class FormSignatureTestCase(UflTestCase):
 # Don't touch these lines, they allow you to run this file directly
 if __name__ == "__main__":
     main()
-
