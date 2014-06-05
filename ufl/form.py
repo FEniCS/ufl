@@ -77,6 +77,7 @@ class Form(object):
         "_coefficient_numbering",
         "_hash",
         "_signature",
+        "_kernels"
         )
 
     def __init__(self, integrals):
