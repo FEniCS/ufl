@@ -119,8 +119,9 @@ class ChangeToReferenceGrad(ReuseTransformer):
         error("Coefficient derivatives should be expanded before applying change to reference grad.")
 
 class ChangeToReferenceGeometry(ReuseTransformer):
-    def __init__(self, physical_coordinates_known):
+    def __init__(self, physical_coordinates_known, coordinate_coefficient_mapping):
         ReuseTransformer.__init__(self)
+        self.coordinate_coefficient_mapping = coordinate_coefficient_mapping or {} # FIXME: Use this!
         self.physical_coordinates_known = physical_coordinates_known
         self._rcache = {}
 
@@ -132,6 +133,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
             if x is None:
                 r = o
             else:
+                x = self.coordinate_coefficient_mapping[x]
                 r = ReferenceGrad(x)
             self._rcache[o] = r
         return r
@@ -193,6 +195,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
             if x is None:
                 return o
             else:
+                x = self.coordinate_coefficient_mapping[x]
                 return x
 
     def cell_coordinate(self, o):
@@ -341,7 +344,7 @@ def change_to_reference_grad(e):
     return apply_transformer(e, ChangeToReferenceGrad())
 
 
-def change_to_reference_geometry(e, physical_coordinates_known):
+def change_to_reference_geometry(e, physical_coordinates_known, coordinate_coefficient_mapping=None):
     """Change GeometricQuantity objects in expression to the lowest level GeometricQuantity objects.
 
     Assumes the expression is preprocessed or at least that derivatives have been expanded.
@@ -349,7 +352,7 @@ def change_to_reference_geometry(e, physical_coordinates_known):
     @param e:
         An Expr or Form.
     """
-    return apply_transformer(e, ChangeToReferenceGeometry(physical_coordinates_known))
+    return apply_transformer(e, ChangeToReferenceGeometry(physical_coordinates_known, coordinate_coefficient_mapping))
 
 
 def compute_integrand_scaling_factor(domain, integral_type):
