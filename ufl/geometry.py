@@ -114,9 +114,9 @@ class GeometricQuantity(Terminal):
         # NB! Geometric quantities are scalar by default. Override if needed.
         return ()
 
-    def signature_data(self, domain_numbering):
+    def signature_data(self, renumbering):
         "Signature data of geometric quantities depend on the domain numbering."
-        return (type(self).__name__,) + self._domain.signature_data(domain_numbering)
+        return (self._uflclass.__name__,) + self._domain.signature_data(renumbering)
 
     def __str__(self):
         return self._uflclass.name

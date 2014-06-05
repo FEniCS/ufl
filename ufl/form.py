@@ -361,14 +361,27 @@ class Form(object):
         self._coefficients = tuple(sorted(set(coefficients), key=lambda x: x.count()))
         self._coefficient_numbering = dict((c,i) for i,c in enumerate(self._coefficients))
 
+    def _compute_renumbering(self):
+        # Include integration domains and coefficients in renumbering
+        dn = self.domain_numbering()
+        cn = self.coefficient_numbering()
+        renumbering = {}
+        renumbering.update(dn)
+        renumbering.update(cn)
+
+        # Add domains of coefficients, these may include domains not among integration domains
+        k = len(dn)
+        for c in cn:
+            d = c.domain()
+            if d is not None and d not in renumbering:
+                renumbering[d] = k
+                k += 1
+
+        return renumbering
+
     def _compute_signature(self):
         from ufl.algorithms.signature import compute_form_signature
-        # Temporary solution:
-        function_replace_map = dict((c, c.reconstruct(count=i)) for c,i in self.coefficient_numbering().items())
-        self._signature = compute_form_signature(self, function_replace_map)
-
-        # TODO: Better solution is to avoid the function replace map altogether in signature computation:
-        #self._signature = compute_form_signature2(self, self.domain_numbering(), self.coefficient_numbering())
+        self._signature = compute_form_signature(self, self._compute_renumbering())
 
 def as_form(form):
     "Convert to form if not a form, otherwise return form."

@@ -101,11 +101,12 @@ class OuterProductElement(FiniteElementBase):
         return "OuterProductElement(%s)" \
             % str([self._A.shortstr(), self._B.shortstr()])
 
-    def signature_data(self, domain_numbering):
-        data = ("OuterProductElement", self._A, self._B,
+    def signature_data(self, renumbering):
+        data = ("OuterProductElement",
+                self._A.signature_data(renumbering),
+                self._B.signature_data(renumbering),
                 self._quad_scheme,
-                ("no domain" if self._domain is None else
-                 self._domain.signature_data(domain_numbering=domain_numbering)))
+                ("no domain" if self._domain is None else self._domain.signature_data(renumbering)))
         return data
 
 

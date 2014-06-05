@@ -172,12 +172,13 @@ class Domain(object):
         "Return attached data object."
         return self._data
 
-    def signature_data(self, domain_numbering):
+    def signature_data(self, renumbering):
         "Signature data of domain depend on the global domain numbering."
-        c = self.cell()
-        key = (c, self.label())
-        data = (c, domain_numbering[key])
-        return data
+        count = renumbering[self]
+        cdata = self.cell()
+        x = self.coordinates()
+        xdata = (None if x is None else x.signature_data(renumbering))
+        return (count, cdata, xdata)
 
     def hash_data(self):
         # Including only id of data here.

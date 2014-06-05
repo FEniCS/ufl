@@ -41,11 +41,9 @@ from ufl.algorithms.analysis import (extract_arguments_and_coefficients,
                                      unique_tuple)
 from ufl.algorithms.domain_analysis import build_integral_data, reconstruct_form_from_integral_data
 from ufl.algorithms.formdata import FormData, ExprData
-from ufl.algorithms.expand_indices import expand_indices
 from ufl.algorithms.ad import expand_derivatives
 from ufl.algorithms.propagate_restrictions import propagate_restrictions
 from ufl.algorithms.formtransformations import compute_form_arities
-from ufl.algorithms.signature import compute_expression_signature, compute_form_signature
 
 
 def _auto_select_degree(elements):

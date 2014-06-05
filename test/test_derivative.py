@@ -9,7 +9,7 @@ from itertools import chain
 
 from ufl import *
 from ufl.constantvalue import as_ufl
-from ufl.algorithms import expand_indices, strip_variables, post_traversal, compute_form_data, compute_form_signature
+from ufl.algorithms import expand_indices, strip_variables, post_traversal, compute_form_data
 
 class DerivativeTestCase(UflTestCase):
 
@@ -418,7 +418,7 @@ class DerivativeTestCase(UflTestCase):
         J = derivative(F, u, dv, cd)
         fd = compute_form_data(J)
         actual = fd.preprocessed_form.integrals()[0].integrand()
-        self.assertEqual(compute_form_signature(actual*dx), compute_form_signature(expected*dx))
+        self.assertEqual((actual*dx).signature(), (expected*dx).signature())
         self.assertEqual(replace(actual, fd.function_replace_map), expected)
 
     def test_vector_coefficient_derivatives(self):
@@ -442,7 +442,7 @@ class DerivativeTestCase(UflTestCase):
         J = derivative(F, u, dv, cd)
         fd = compute_form_data(J)
         actual = fd.preprocessed_form.integrals()[0].integrand()
-        self.assertEqual(compute_form_signature(actual*dx), compute_form_signature(expected*dx))
+        self.assertEqual((actual*dx).signature(), (expected*dx).signature())
         #self.assertEqual(replace(actual, fd.function_replace_map), expected)
 
     def test_vector_coefficient_derivatives_of_product(self):

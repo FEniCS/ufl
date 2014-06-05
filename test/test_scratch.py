@@ -18,7 +18,6 @@ from ufl.tensors import as_scalar, unit_indexed_tensor, unwrap_list_tensor
 
 # TODO: Import only what you need from classes and algorithms:
 from ufl.classes import Grad, FormArgument, Zero, Indexed, FixedIndex, ListTensor
-from ufl.algorithms import compute_form_signature
 
 class MockForwardAD:
     def __init__(self):
@@ -152,7 +151,7 @@ class MockForwardAD:
                     oprimes = (oprimes,)
                     ufl_assert(len(oprimes) == len(self._v), "Got a tuple of arguments, "+\
                                    "expecting a matching tuple of coefficient derivatives.")
-    
+
                 # Compute dg/dw_j = dg/dw_h : v.
                 # Since we may actually have a tuple of oprimes and vs in a
                 # 'mixed' space, sum over them all to get the complete inner
@@ -287,8 +286,8 @@ class ScratchTestCase(UflTestCase):
         self.assertEqual(g.shape(), f.shape())
         self.assertEqual(dg.shape(), df.shape())
         self.assertEqual(g, f)
-        self.assertEqual(compute_form_signature(inner(dg,dg)*dx),
-                         compute_form_signature(inner(df,df)*dx))
+        self.assertEqual((inner(dg,dg)*dx).signature(),
+                         (inner(df,df)*dx).signature())
         #self.assertEqual(dg, df) # Expected to fail because of different index numbering
 
         # Multiple components of variation:
@@ -312,8 +311,8 @@ class ScratchTestCase(UflTestCase):
         self.assertEqual(g.shape(), f.shape())
         self.assertEqual(dg.shape(), df.shape())
         self.assertEqual(g, f)
-        self.assertEqual(compute_form_signature(inner(dg,dg)*dx),
-                         compute_form_signature(inner(df,df)*dx))
+        self.assertEqual((inner(dg,dg)*dx).signature(),
+                         (inner(df,df)*dx).signature())
         #self.assertEqual(dg, df) # Expected to fail because of different index numbering
 
     def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_variation_in_list(self):
@@ -341,8 +340,8 @@ class ScratchTestCase(UflTestCase):
         self.assertEqual(g.shape(), f.shape())
         self.assertEqual(dg.shape(), df.shape())
         self.assertEqual(g, f)
-        self.assertEqual(compute_form_signature(inner(dg,dg)*dx),
-                         compute_form_signature(inner(df,df)*dx))
+        self.assertEqual((inner(dg,dg)*dx).signature(),
+                         (inner(df,df)*dx).signature())
         #self.assertEqual(dg, df) # Expected to fail because of different index numbering
 
         # Multiple components of variation:
@@ -366,8 +365,8 @@ class ScratchTestCase(UflTestCase):
         self.assertEqual(g.shape(), f.shape())
         self.assertEqual(dg.shape(), df.shape())
         self.assertEqual(g, f)
-        self.assertEqual(compute_form_signature(inner(dg,dg)*dx),
-                         compute_form_signature(inner(df,df)*dx))
+        self.assertEqual((inner(dg,dg)*dx).signature(),
+                         (inner(df,df)*dx).signature())
         #self.assertEqual(dg, df) # Expected to fail because of different index numbering
 
 
@@ -423,11 +422,10 @@ class ScratchTestCase(UflTestCase):
         self.assertEqual(g.shape(), f.shape())
         self.assertEqual(dg.shape(), df.shape())
         self.assertEqual(g, f)
-        self.assertEqual(compute_form_signature(inner(dg,dg)*dx),
-                         compute_form_signature(inner(df,df)*dx))
+        self.assertEqual((inner(dg,dg)*dx).signature(),
+                         (inner(df,df)*dx).signature())
         #self.assertEqual(dg, df) # Expected to fail because of different index numbering
 
 # Don't touch these lines, they allow you to run this file directly
 if __name__ == "__main__":
     main()
-

@@ -121,7 +121,7 @@ class RestrictedElement(FiniteElementBase):
         "Return list of restricted sub elements."
         return (self._element,)
 
-    def signature_data(self, domain_numbering):
-        data = ("RestrictedElement", self._element.signature_data(domain_numbering=domain_numbering),
+    def signature_data(self, renumbering):
+        data = ("RestrictedElement", self._element.signature_data(renumbering),
                 repr(self._cell_restriction)) # Note: I'm pretty sure repr is safe here but that may change
         return data
