@@ -23,6 +23,7 @@ from ufl.classes import (Terminal, ReferenceGrad, Grad,
                          Jacobian, JacobianInverse, JacobianDeterminant,
                          FacetJacobian, FacetJacobianInverse, FacetJacobianDeterminant,
                          CellFacetJacobian,
+                         FacetNormal, CellNormal,
                          CellOrientation, FacetOrientation, QuadratureWeight)
 from ufl.constantvalue import as_ufl
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
@@ -316,8 +317,10 @@ class ChangeToReferenceGeometry(ReuseTransformer):
 
                 # Compute normal direction
                 cr = cross_expr(tangent, cell_normal)
+                if gdim == 2:
+                    cr = as_vector((cr[0], cr[1]))
                 fo = FacetOrientation(domain)
-                ndir = (fo*scale) * as_vector((cr[0], cr[1]))
+                ndir = (fo*scale) * cr
 
                 # Normalise normal vector
                 i = Index()
@@ -329,7 +332,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
 
             self._rcache[o] = r
 
-        ufl_assert(r.shape() == o.shape(), "Inconsistent dimensions.")
+        ufl_assert(r.shape() == o.shape(), "Inconsistent dimensions (in=%d, out=%d)." % (o.shape()[0], r.shape()[0]))
         return r
 
 
