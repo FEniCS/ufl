@@ -82,6 +82,14 @@ def compute_terminal_hashdata(expressions, renumbering):
                     data = "L%d" % len(labels)
                     labels[expr] = data
 
+            elif isinstance(expr, ExprList):
+                # Not really a terminal but can have 0 operands...
+                data = "[]"
+
+            elif isinstance(expr, ExprMapping):
+                # Not really a terminal but can have 0 operands...
+                data = "{}"
+
             else:
                 error("Unknown terminal type %s" % type(expr))
 
