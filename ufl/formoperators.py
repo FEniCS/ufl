@@ -99,10 +99,8 @@ def action(form, coefficient=None):
 
 def energy_norm(form, coefficient=None):
     """UFL form operator:
-    Given a bilinear form, return a linear form
-    with an additional coefficient, representing the
-    action of the form on the coefficient. This can be
-    used for matrix-free methods."""
+    Given a bilinear form a and a coefficient f,
+    return the functional a(f,f)."""
     form = as_form(form)
     form = expand_derivatives(form)
     return compute_energy_norm(form, coefficient)

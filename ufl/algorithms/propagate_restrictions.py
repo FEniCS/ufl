@@ -98,9 +98,9 @@ class RestrictionPropagator(ReuseTransformer):
     cell_coordinate = _require_restriction   # Depends on cell
     facet_coordinate = _ignore_restriction   # Independent of cell
 
-    cell_origo = _require_restriction       # Depends on cell
-    facet_origo = _default_restricted       # Depends on cell but only to get to the facet # TODO: Is this valid for quads?
-    cell_facet_origo = _require_restriction # Depends on cell
+    cell_origin = _require_restriction       # Depends on cell
+    facet_origin = _default_restricted       # Depends on cell but only to get to the facet # TODO: Is this valid for quads?
+    cell_facet_origin = _require_restriction # Depends on cell
 
     jacobian = _require_restriction             # Property of cell
     jacobian_determinant = _require_restriction # ...
@@ -133,6 +133,7 @@ class RestrictionPropagator(ReuseTransformer):
     max_facet_edge_length = _default_restricted # Depends on cell only to get to the facet
 
     cell_orientation = _require_restriction # Property of cell
+    facet_orientation = _require_restriction # Property of cell (depends on local facet number in cell)
     quadrature_weight = _ignore_restriction # Independent of cell
 
     def variable(self, o, e, l):

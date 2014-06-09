@@ -9,7 +9,7 @@ from itertools import chain
 
 from ufl import *
 from ufl.constantvalue import as_ufl
-from ufl.algorithms import expand_indices, strip_variables, post_traversal, preprocess, compute_form_signature
+from ufl.algorithms import expand_indices, strip_variables, post_traversal, compute_form_data, compute_form_signature
 
 class DerivativeTestCase(UflTestCase):
 
@@ -228,8 +228,8 @@ class DerivativeTestCase(UflTestCase):
     # --- Coefficient and argument input configurations
 
     def assertEqualExpr(self, a, b):
-        a2 = (a*dx).compute_form_data().preprocessed_form
-        b2 = (b*dx).compute_form_data().preprocessed_form
+        a2 = compute_form_data(a*dx).preprocessed_form
+        b2 = compute_form_data(b*dx).preprocessed_form
         if not a2 == b2:
             print
             print str(a2)
@@ -239,13 +239,13 @@ class DerivativeTestCase(UflTestCase):
         self.assertEqual(a2, b2)
 
     def assertEqualBySampling(self, actual, expected):
-        ad = (actual*dx).compute_form_data()
+        ad = compute_form_data(actual*dx)
         a = ad.preprocessed_form.integrals_by_type(Measure.CELL)[0].integrand()
-        bd = (expected*dx).compute_form_data()
+        bd = compute_form_data(expected*dx)
         b = bd.preprocessed_form.integrals_by_type(Measure.CELL)[0].integrand()
 
-        self.assertEqual([ad.function_replace_map[ac] for ac in ad.original_coefficients],
-                         [bd.function_replace_map[bc] for bc in bd.original_coefficients])
+        self.assertEqual([ad.function_replace_map[ac] for ac in ad.reduced_coefficients],
+                         [bd.function_replace_map[bc] for bc in bd.reduced_coefficients])
 
         n = ad.num_coefficients
         def make_value(c):
@@ -262,8 +262,8 @@ class DerivativeTestCase(UflTestCase):
             else:
                 raise NotImplementedError("Tensor valued expressions not supported here.")
 
-        amapping = dict((c, make_value(c)) for c in chain(ad.original_coefficients, ad.original_arguments))
-        bmapping = dict((c, make_value(c)) for c in chain(bd.original_coefficients, bd.original_arguments))
+        amapping = dict((c, make_value(c)) for c in chain(ad.original_form.coefficients(), ad.original_form.arguments()))
+        bmapping = dict((c, make_value(c)) for c in chain(bd.original_form.coefficients(), bd.original_form.arguments()))
 
         acell = actual.cell()
         bcell = expected.cell()
@@ -385,7 +385,7 @@ class DerivativeTestCase(UflTestCase):
         for i in range(cell.geometric_dimension()):
             for j in range(cell.geometric_dimension()):
                 form = Lvu[i,j]*dx
-                fd = form.compute_form_data()
+                fd = compute_form_data(form)
                 pf = fd.preprocessed_form
                 a = expand_indices(pf)
                 #print (i,j), str(a)
@@ -416,7 +416,7 @@ class DerivativeTestCase(UflTestCase):
 
         F = integrand*dx
         J = derivative(F, u, dv, cd)
-        fd = J.compute_form_data()
+        fd = compute_form_data(J)
         actual = fd.preprocessed_form.integrals()[0].integrand()
         self.assertEqual(compute_form_signature(actual*dx), compute_form_signature(expected*dx))
         self.assertEqual(replace(actual, fd.function_replace_map), expected)
@@ -440,7 +440,7 @@ class DerivativeTestCase(UflTestCase):
 
         F = integrand*dx
         J = derivative(F, u, dv, cd)
-        fd = J.compute_form_data()
+        fd = compute_form_data(J)
         actual = fd.preprocessed_form.integrals()[0].integrand()
         self.assertEqual(compute_form_signature(actual*dx), compute_form_signature(expected*dx))
         #self.assertEqual(replace(actual, fd.function_replace_map), expected)
@@ -466,7 +466,7 @@ class DerivativeTestCase(UflTestCase):
 
         F = integrand*dx
         J = derivative(F, u, dv, cd)
-        fd = J.compute_form_data()
+        fd = compute_form_data(J)
         actual = fd.preprocessed_form.integrals()[0].integrand()
 
         # Keeping this snippet here for a while for debugging purposes
@@ -518,9 +518,9 @@ class DerivativeTestCase(UflTestCase):
         F = derivative(f, w, v)
         J = derivative(F, w, u)
 
-        form_data_f = f.compute_form_data()
-        form_data_F = F.compute_form_data()
-        form_data_J = J.compute_form_data()
+        form_data_f = compute_form_data(f)
+        form_data_F = compute_form_data(F)
+        form_data_J = compute_form_data(J)
 
         f = form_data_f.preprocessed_form
         F = form_data_F.preprocessed_form
@@ -557,19 +557,19 @@ class DerivativeTestCase(UflTestCase):
             assert derivatives == (0,)
             return dw
 
-        w, b, K = form_data_f.original_coefficients
+        w, b, K = form_data_f.original_form.coefficients()
         mapping = { K: Kv, b: bv, w: Nw }
         fv2 = f_expression((0,), mapping)
         self.assertAlmostEqual(fv, fv2)
 
-        w, b, K = form_data_F.original_coefficients
-        v, = form_data_F.original_arguments
+        w, b, K = form_data_F.original_form.coefficients()
+        v, = form_data_F.original_form.arguments()
         mapping = { K: Kv, b: bv, v: Nv, w: Nw }
         Fv2 = F_expression((0,), mapping)
         self.assertAlmostEqual(Fv, Fv2)
 
-        w, b, K = form_data_J.original_coefficients
-        v, u = form_data_J.original_arguments
+        w, b, K = form_data_J.original_form.coefficients()
+        v, u = form_data_J.original_form.arguments()
         mapping = { K: Kv, b: bv, v: Nv, u: Nu, w: Nw }
         Jv2 = J_expression((0,), mapping)
         self.assertAlmostEqual(Jv, Jv2)

@@ -22,7 +22,8 @@ from ufl.assertions import ufl_assert
 from ufl.classes import (Terminal, ReferenceGrad, Grad,
                          Jacobian, JacobianInverse, JacobianDeterminant,
                          FacetJacobian, FacetJacobianInverse, FacetJacobianDeterminant,
-                         CellFacetJacobian, QuadratureWeight)
+                         CellFacetJacobian,
+                         CellOrientation, FacetOrientation, QuadratureWeight)
 from ufl.constantvalue import as_ufl
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
 from ufl.algorithms.analysis import extract_type
@@ -215,6 +216,16 @@ class ChangeToReferenceGeometry(ReuseTransformer):
         else:
             return o
 
+    #def cell_volume(self, o): # FIXME: Validate!
+    #    r = self.jacobian_determinant(JacobianDeterminant(o.domain()))
+    #    r0 = { "interval": 1.0, "triangle": 0.5, "tetrahedron": 1.0/3.0 } # reference_cell_volume
+    #    return abs(r / r0)
+
+    #def facet_area(self, o): # FIXME: Validate!
+    #    r = self.facet_jacobian_determinant(FacetJacobianDeterminant(o.domain()))
+    #    r0 = FIXME # reference_facet_area
+    #    return r / r0
+
     def cell_normal(self, o):
         warning("Untested complicated code for cell normal. Please report if this works correctly or not.")
 
@@ -247,8 +258,6 @@ class ChangeToReferenceGeometry(ReuseTransformer):
         return r
 
     def facet_normal(self, o):
-        warning("Untested complicated code for facet normal. Please report if this works correctly or not.")
-
         r = self._rcache.get(o)
         if r is None:
             domain = o.domain()
@@ -265,7 +274,8 @@ class ChangeToReferenceGeometry(ReuseTransformer):
                 scale = self.jacobian_determinant(JacobianDeterminant(domain))
 
                 # Compute facet normal direction of 3D cell, product of two tangent vectors
-                ndir = scale * cross_expr(FJ[:,0], FJ[:,1])
+                fo = FacetOrientation(domain)
+                ndir = (fo * scale) * cross_expr(FJ[:,0], FJ[:,1])
 
                 # Normalise normal vector
                 i = Index()
@@ -274,6 +284,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
 
             elif tdim == 2:
                 if gdim == 2:
+                    # 2D facet normal in 2D space
                     ufl_assert(FJ.shape() == (2,1), "Inconsistent dimensions.")
 
                     # Compute facet tangent
@@ -285,6 +296,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
                     # Compute signed scaling factor
                     scale = self.jacobian_determinant(JacobianDeterminant(domain))
                 else:
+                    # 2D facet normal in 3D space
                     ufl_assert(FJ.shape() == (gdim,1), "Inconsistent dimensions.")
 
                     # Compute facet tangent
@@ -300,14 +312,21 @@ class ChangeToReferenceGeometry(ReuseTransformer):
                 ufl_assert(len(cell_normal) == 3, "Inconsistent dimensions.")
 
                 # Compute normal direction
-                ndir = scale * cross_expr(tangent, cell_normal)
+                cr = cross_expr(tangent, cell_normal)
+                fo = FacetOrientation(domain)
+                ndir = (fo*scale) * as_vector((cr[0], cr[1]))
 
                 # Normalise normal vector
                 i = Index()
                 n = ndir / sqrt(ndir[i]*ndir[i])
                 r = n
 
+            elif tdim == 1:
+                r = FIXME
+
             self._rcache[o] = r
+
+        ufl_assert(r.shape() == o.shape(), "Inconsistent dimensions.")
         return r
 
 
@@ -343,7 +362,7 @@ def compute_integrand_scaling_factor(domain, integral_type):
     elif integral_type in ["exterior_facet", "exterior_facet_bottom", "exterior_facet_top", "exterior_facet_vert"]:
         scale = FacetJacobianDeterminant(domain) * weight
     elif integral_type in ["interior_facet", "interior_facet_horiz", "interior_facet_vert"]:
-        scale = FacetJacobianDeterminant(domain)('-') * weight # TODO: Arbitrary restriction to '-', is that ok?
+        scale = FacetJacobianDeterminant(domain)('+') * weight # TODO: Arbitrary restriction to '+', is that ok?
     elif integral_type == "quadrature":
         scale = weight
     elif integral_type == "point":

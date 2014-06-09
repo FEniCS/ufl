@@ -1,3 +1,5 @@
+ - Introduce notation from the Periodic Table of the Finite Elements
+ - Introduce notation for FEEC families of elements: P-, P, Q-, S
 1.4.0 [2014-06-02]
  - New integral type custom_integral (*dc)
  - Add analysis of which coefficients each integral actually uses to optimize assembly
@@ -5,7 +7,7 @@
  - Add sobolev spaces, use notation "element in HCurl" (HCurl, HDiv, H1, H2, L2)
  - Improved error checking of facet geometry in non-facet integrals
  - Improved restriction handling, restricting continuous coefficients and constants is now optional
- - Introduce notation for the Periodic Table of the Finite Elements
+ - Introduce notation from the Periodic Table of the Finite Elements (draft)
  - Remove alias "Q" for quadrature element, use "Quadrature"
  - New derivative type ReferenceGrad
  - New discontinuous RT element

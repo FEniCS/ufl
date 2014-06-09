@@ -48,7 +48,7 @@ class BookTestCase(UflTestCase):
         a = derivative(L, u, phi1)
 
     def test_uflcode_316(self):
-        shapestring = 'triangle'    
+        shapestring = 'triangle'
         cell = Cell(shapestring)
 
     def test_uflcode_323(self):
@@ -527,9 +527,8 @@ class BookTestCase(UflTestCase):
         # ...
         #print repr(preprocess(myform).preprocessed_form)
         # ...
-        r = repr(preprocess(myform).preprocessed_form)
+        r = repr(compute_form_data(myform).preprocessed_form)
 
 # Don't touch these lines, they allow you to run this file directly
 if __name__ == "__main__":
     main()
-

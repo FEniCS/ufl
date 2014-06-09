@@ -18,9 +18,6 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2008.
-#
-# First added:  2008-09-13
-# Last changed: 2013-01-09
 
 from ufl.common import lstr, tstr, estr
 from ufl.assertions import ufl_assert
@@ -40,27 +37,19 @@ class FormData(object):
         subdomains = tuple(("Number of %s subdomains" % integral_type,
                             self.num_sub_domains[integral_type]) for integral_type in types)
         return tstr(
-            (("Name",                               self.name),
-             # Geometry
+            (# Geometry
              ("Geometric dimension",                self.geometric_dimension),
              ) + subdomains + (
              # Arguments
              ("Rank",                               self.rank),
-             ("Arguments",                          lstr(self.original_arguments)),
-             ("Argument names",                     lstr(self.argument_names)),
+             ("Arguments",                          lstr(self.original_form.arguments())),
              # Coefficients
              ("Number of coefficients",             self.num_coefficients),
-             ("Coefficients",                       lstr(self.original_coefficients)),
-             ("Coefficient names",                  lstr(self.coefficient_names)),
+             ("Coefficients",                       lstr(self.reduced_coefficients)),
              # Elements
              ("Unique elements",                    estr(self.unique_elements)),
              ("Unique sub elements",                estr(self.unique_sub_elements)),
              ))
-
-    def validate(self, object_names=None):
-        "Validate that the form data was built from the same inputs."
-        ufl_assert((object_names or {}) == self._input_object_names,
-                   "Found non-matching object_names in form data validation.")
 
 class ExprData(object):
     """
