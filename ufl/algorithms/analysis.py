@@ -154,13 +154,16 @@ def build_coefficient_replace_map(coefficients, element_mapping=None):
     to new objects, and lists of the new objects."""
     if element_mapping is None:
         element_mapping = {}
-    def remap(args):
-        for (i, f) in enumerate(args):
-            old_e = f.element()
-            new_e = element_mapping.get(old_e, old_e)
-            yield f.reconstruct(element=new_e, count=i)
-    new_coefficients = list(remap(coefficients))
-    replace_map = dict(izip(coefficients, new_coefficients))
+
+    new_coefficients = []
+    replace_map = {}
+    for i, f in enumerate(coefficients):
+        old_e = f.element()
+        new_e = element_mapping.get(old_e, old_e)
+        new_f = f.reconstruct(element=new_e, count=i)
+        new_coefficients.append(new_f)
+        replace_map[f] = new_f
+
     return new_coefficients, replace_map
 
 # alternative implementation, kept as an example:

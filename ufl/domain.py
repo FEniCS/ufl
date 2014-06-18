@@ -94,10 +94,16 @@ class Domain(object):
             self._label = flat_domain.label()
             self._data = flat_domain.data()
 
-            # FIXME: Get geometric dimension from self._coordinates instead!
-            ufl_assert(self._coordinates.shape() == (self._cell.geometric_dimension(),),
-                       "Shape of coordinates %s does not match geometric dimension %d of cell." %\
-                (self._coordinates.shape(), self._cell.geometric_dimension()))
+            # Get geometric dimension from self._coordinates shape
+            gdim, = self._coordinates.shape()
+            if gdim != self._cell.geometric_dimension():
+                warning("Using geometric dimension from coordinates!")
+                self._cell = Cell(self._cell.cellname(), gdim)
+            #ufl_assert(self._coordinates.shape() == (self._cell.geometric_dimension(),),
+            #           "Shape of coordinates %s does not match geometric dimension %d of cell." %\
+            #    (self._coordinates.shape(), self._cell.geometric_dimension()))
+        else:
+            ufl_error("Invalid first argument to Domain.")
 
         # Now we should have a Cell or something went wrong
         ufl_assert(isinstance(self._cell, Cell), "Failed to construct a Cell from input arguments.")
@@ -170,12 +176,13 @@ class Domain(object):
         "Return attached data object."
         return self._data
 
-    def signature_data(self, domain_numbering):
+    def signature_data(self, renumbering):
         "Signature data of domain depend on the global domain numbering."
-        c = self.cell()
-        key = (c, self.label())
-        data = (c, domain_numbering[key])
-        return data
+        count = renumbering[self]
+        cdata = self.cell()
+        x = self.coordinates()
+        xdata = (None if x is None else x.signature_data(renumbering))
+        return (count, cdata, xdata)
 
     def hash_data(self):
         # Including only id of data here.
@@ -202,7 +209,7 @@ class Domain(object):
         if self._coordinates is None:
             c = ""
         else:
-            c = "and coordinates %r" % self._coordinates
+            c = " and coordinates %r" % self._coordinates
         s = (self._cell, self._label, c)
         return "<Domain built from %s with label %s%s>" % s
 
@@ -328,13 +335,14 @@ def check_domain_compatibility(domains):
     labels = set(domain.label() for domain in domains)
     ufl_assert(len(labels) == 1 or (len(labels) == 2 and None in labels),
                "Got incompatible domain labels %s in check_domain_compatibility." % (labels,))
-    cell = domains[0].cell()
-    coordinates = domains[0].coordinates()
-    for dom in domains[1:]:
-        if dom.cell() != cell:
-            error("Cell mismatch between domains with same label.")
-        if dom.coordinates() != coordinates:
-            error("Coordinates mismatch between domains with same label.")
+
+    all_cellnames = [dom.cell().cellname() for dom in domains]
+    if len(set(all_cellnames)) != 1:
+        error("Cellname mismatch between domains with same label.")
+
+    all_coordinates = set(dom.coordinates() for dom in domains) - set((None,))
+    if len(all_coordinates) > 1:
+        error("Coordinates mismatch between domains with same label.")
 
 def join_domains(domains):
     """Take a list of Domains and return a list with only unique domain objects.

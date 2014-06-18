@@ -310,7 +310,6 @@ class Form(object):
         self._domain_numbering = dict((d,i) for i,d in enumerate(self._integration_domains))
 
     def _analyze_subdomain_data(self):
-        # TODO: Not including domains from coefficients and arguments here, may need that later
         integration_domains = self.domains()
         integrals = self.integrals()
 
@@ -345,19 +344,45 @@ class Form(object):
                 arguments.append(t)
             elif isinstance(t, Coefficient):
                 coefficients.append(t)
+        # Include coordinate coefficients from integration domains
+        domains = self.domains()
+        coordinates = [c for c in (domain.coordinates() for domain in domains) if c is not None]
+        coefficients.extend(coordinates)
+
+        # TODO: Not including domains from coefficients and arguments here. Will we need that later?
+        #       I believe argument domains must be among integration domains in each integral, anything else is not well defined.
+        #       Furthermore if a coefficient domain differ from the integration domain, it will
+        #       currently be interpolated to the same element on the integration domain in dolfin.
+        #       Therefore their domain should not be included here.
+        #       In the future we may generate code for quadrature point evaluation of these instead,
+        #       and then the coefficient domains are still of no value in the code generation process.
+
         # Define canonical numbering of arguments and coefficients
-        self._arguments = tuple(sorted(arguments, key=lambda x: x.number()))
-        self._coefficients = tuple(sorted(coefficients, key=lambda x: x.count()))
+        self._arguments = tuple(sorted(set(arguments), key=lambda x: x.number()))
+        self._coefficients = tuple(sorted(set(coefficients), key=lambda x: x.count()))
         self._coefficient_numbering = dict((c,i) for i,c in enumerate(self._coefficients))
+
+    def _compute_renumbering(self):
+        # Include integration domains and coefficients in renumbering
+        dn = self.domain_numbering()
+        cn = self.coefficient_numbering()
+        renumbering = {}
+        renumbering.update(dn)
+        renumbering.update(cn)
+
+        # Add domains of coefficients, these may include domains not among integration domains
+        k = len(dn)
+        for c in cn:
+            d = c.domain()
+            if d is not None and d not in renumbering:
+                renumbering[d] = k
+                k += 1
+
+        return renumbering
 
     def _compute_signature(self):
         from ufl.algorithms.signature import compute_form_signature
-        # Temporary solution:
-        function_replace_map = dict((c, c.reconstruct(count=i)) for c,i in self.coefficient_numbering().items())
-        self._signature = compute_form_signature(self, function_replace_map)
-
-        # TODO: Better solution is to avoid the function replace map altogether in signature computation:
-        #self._signature = compute_form_signature2(self, self.domain_numbering(), self.coefficient_numbering())
+        self._signature = compute_form_signature(self, self._compute_renumbering())
 
 def as_form(form):
     "Convert to form if not a form, otherwise return form."
