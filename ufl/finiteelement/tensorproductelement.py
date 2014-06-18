@@ -83,7 +83,7 @@ class TensorProductElement(FiniteElementBase):
         label and data, which must be reconstructed or supplied by other means.
         """
         return "TensorProductElement(%s)" % (', '.join(e.reconstruction_signature() for e in self._sub_elements),)
-        
+
     def num_sub_elements(self):
         "Return number of subelements."
         return len(self._sub_elements)
@@ -118,7 +118,7 @@ class TensorProductElement(FiniteElementBase):
         return "TensorProductElement(%s)" \
             % str([e.shortstr() for e in self.sub_elements()])
 
-    def signature_data(self, domain_numbering):
-        data = ("TensorProductElement", 
-                tuple(e.signature_data(domain_numbering=domain_numbering) for e in self._sub_elements))
+    def signature_data(self, renumbering):
+        data = ("TensorProductElement",
+                tuple(e.signature_data(renumbering) for e in self._sub_elements))
         return data

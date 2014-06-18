@@ -13,7 +13,7 @@ from ufl import *
 from ufl.common import EmptyDictType
 from ufl.classes import MultiIndex
 from ufl.algorithms.signature import compute_multiindex_hashdata, \
-    compute_terminal_hashdata, compute_form_signature
+    compute_terminal_hashdata
 
 from itertools import chain
 
@@ -25,14 +25,11 @@ from itertools import chain
 # TODO: Test that we do not get collisions for some large sets of generated forms
 # TODO: How do we know that we have tested the signature reliably enough?
 
-from ufl.algorithms import compute_form_signature
-
 def domain_numbering2(*domains):
-    items = []
+    renumbering = {}
     for i,domain in enumerate(domains):
-        key = (domain.cell(), domain.label())
-        items.append((key, i))
-    return dict(items)
+        renumbering[domain] = i
+    return renumbering
 
 def domain_numbering(*cells):
     return domain_numbering2(*[as_domain(c) for c in cells])
@@ -47,8 +44,10 @@ class TerminalHashDataTestCase(UflTestCase):
             # Hash value holds when constructing two domains from a cell:
             self.assertEqual(hash(as_domain(cell)), hash(as_domain(cell)))
             # Signature data holds when constructing two domains from a cell:
-            self.assertEqual(as_domain(cell).signature_data(domain_numbering(cell)),
-                             as_domain(cell).signature_data(domain_numbering(cell)))
+            D1 = as_domain(cell)
+            D2 = as_domain(cell)
+            self.assertEqual(D1.signature_data({D1:0}),
+                             D2.signature_data({D2:0}))
 
     def compute_unique_terminal_hashdatas(self, hashdatas):
         count = 0
@@ -79,7 +78,8 @@ class TerminalHashDataTestCase(UflTestCase):
         reprs = set()
         hashes = set()
         def forms():
-            x = SpatialCoordinate(triangle)
+            domain = as_domain(triangle)
+            x = SpatialCoordinate(domain)
             i, j = indices(2)
             for d in (2, 3):
                 I = Identity(d)
@@ -89,7 +89,7 @@ class TerminalHashDataTestCase(UflTestCase):
 
                         reprs.add(repr(expr))
                         hashes.add(hash(expr))
-                        yield compute_terminal_hashdata(expr, domain_numbering(triangle))
+                        yield compute_terminal_hashdata(expr, {domain: 0})
 
         c, d, r, h = self.compute_unique_terminal_hashdatas(forms())
         self.assertEqual(c, 8)
@@ -164,12 +164,14 @@ class TerminalHashDataTestCase(UflTestCase):
                                 # Keep number and count fixed, we're not testing that here
                                 a = Argument(H, number=1)
                                 c = Coefficient(H, count=1)
+                                renumbering = domain_numbering(*cells)
+                                renumbering[c] = 0
                                 for f in (a, c):
                                     expr = inner(f,f)
 
                                     reprs.add(repr(expr))
                                     hashes.add(hash(expr))
-                                    yield compute_terminal_hashdata(expr, domain_numbering(*cells))
+                                    yield compute_terminal_hashdata(expr, renumbering)
 
         c, d, r, h = self.compute_unique_terminal_hashdatas(forms())
         c1 = nreps * len(cells) * len(degrees) * len(families) * nelm * 2 # Number of cases with repetitions
@@ -199,9 +201,13 @@ class TerminalHashDataTestCase(UflTestCase):
                         g = Coefficient(V, count=k+2)
                         expr = inner(f,g)
 
+                        renumbering = domain_numbering(*cells)
+                        renumbering[f] = 0
+                        renumbering[g] = 0
+
                         reprs.add(repr(expr))
                         hashes.add(hash(expr))
-                        yield compute_terminal_hashdata(expr, domain_numbering(*cells))
+                        yield compute_terminal_hashdata(expr, renumbering)
 
         c, d, r, h = self.compute_unique_terminal_hashdatas(forms())
         c0 = len(cells) # Number of actually unique cases from a code generation perspective
@@ -252,9 +258,9 @@ class TerminalHashDataTestCase(UflTestCase):
             d0 = Domain(cell)
             d1 = Domain(cell, label="domain1")
             d2 = Domain(cell, label="domain2")
-            s0 = d0.signature_data(domain_numbering2(*[d0]))
-            s1 = d1.signature_data(domain_numbering2(*[d1]))
-            s2 = d2.signature_data(domain_numbering2(*[d2]))
+            s0 = d0.signature_data({ d0: 0 })
+            s1 = d1.signature_data({ d1: 0 })
+            s2 = d2.signature_data({ d2: 0 })
             self.assertEqual(s0, s1)
             self.assertEqual(s0, s2)
             s0s.add(s0)
@@ -286,9 +292,11 @@ class TerminalHashDataTestCase(UflTestCase):
                         #print; print expr
                         reprs.add(repr(expr))
                         hashes.add(hash(expr))
+
                         # This numbering needs to be recreated to count 'domain' as 0 each time:
-                        dn = domain_numbering2(*[domain])
-                        yield compute_terminal_hashdata(expr, dn)
+                        renumbering = { domain: 0, f: 0 }
+
+                        yield compute_terminal_hashdata(expr, renumbering)
 
         c, d, r, h = self.compute_unique_terminal_hashdatas(forms())
         c0 = num_exprs * len(cells) # Number of actually unique cases from a code generation perspective
@@ -421,7 +429,7 @@ class FormSignatureTestCase(UflTestCase):
         hashes = set()
         reprs = set()
         for a in forms:
-            sig = compute_form_signature(a)
+            sig = a.signature()
             sig2 = a.signature()
             sigs.add(sig)
             sigs2.add(sig2)
@@ -486,9 +494,6 @@ class FormSignatureTestCase(UflTestCase):
         M1 = f*dx(0) + g*dx(1)
         M2 = g*dx(0) + f*dx(1)
         M3 = g*dx(0) + g*dx(1)
-        self.assertTrue(compute_form_signature(M1) != compute_form_signature(M2))
-        self.assertTrue(compute_form_signature(M1) != compute_form_signature(M3))
-        self.assertTrue(compute_form_signature(M2) != compute_form_signature(M3))
         self.assertTrue(M1.signature() != M2.signature())
         self.assertTrue(M1.signature() != M3.signature())
         self.assertTrue(M2.signature() != M3.signature())

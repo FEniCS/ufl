@@ -97,7 +97,7 @@ class Terminal(Expr):
             f = f[c]
         return f
 
-    def signature_data(self):
+    def signature_data(self, renumbering):
         "Default signature data for of terminals just return the repr string."
         return repr(self)
 

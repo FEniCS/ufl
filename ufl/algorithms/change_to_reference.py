@@ -23,6 +23,7 @@ from ufl.classes import (Terminal, ReferenceGrad, Grad,
                          Jacobian, JacobianInverse, JacobianDeterminant,
                          FacetJacobian, FacetJacobianInverse, FacetJacobianDeterminant,
                          CellFacetJacobian,
+                         FacetNormal, CellNormal,
                          CellOrientation, FacetOrientation, QuadratureWeight)
 from ufl.constantvalue import as_ufl
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
@@ -119,8 +120,9 @@ class ChangeToReferenceGrad(ReuseTransformer):
         error("Coefficient derivatives should be expanded before applying change to reference grad.")
 
 class ChangeToReferenceGeometry(ReuseTransformer):
-    def __init__(self, physical_coordinates_known):
+    def __init__(self, physical_coordinates_known, coordinate_coefficient_mapping):
         ReuseTransformer.__init__(self)
+        self.coordinate_coefficient_mapping = coordinate_coefficient_mapping or {} # FIXME: Use this!
         self.physical_coordinates_known = physical_coordinates_known
         self._rcache = {}
 
@@ -132,6 +134,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
             if x is None:
                 r = o
             else:
+                x = self.coordinate_coefficient_mapping[x]
                 r = ReferenceGrad(x)
             self._rcache[o] = r
         return r
@@ -193,6 +196,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
             if x is None:
                 return o
             else:
+                x = self.coordinate_coefficient_mapping[x]
                 return x
 
     def cell_coordinate(self, o):
@@ -313,8 +317,10 @@ class ChangeToReferenceGeometry(ReuseTransformer):
 
                 # Compute normal direction
                 cr = cross_expr(tangent, cell_normal)
+                if gdim == 2:
+                    cr = as_vector((cr[0], cr[1]))
                 fo = FacetOrientation(domain)
-                ndir = (fo*scale) * as_vector((cr[0], cr[1]))
+                ndir = (fo*scale) * cr
 
                 # Normalise normal vector
                 i = Index()
@@ -326,7 +332,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
 
             self._rcache[o] = r
 
-        ufl_assert(r.shape() == o.shape(), "Inconsistent dimensions.")
+        ufl_assert(r.shape() == o.shape(), "Inconsistent dimensions (in=%d, out=%d)." % (o.shape()[0], r.shape()[0]))
         return r
 
 
@@ -341,7 +347,7 @@ def change_to_reference_grad(e):
     return apply_transformer(e, ChangeToReferenceGrad())
 
 
-def change_to_reference_geometry(e, physical_coordinates_known):
+def change_to_reference_geometry(e, physical_coordinates_known, coordinate_coefficient_mapping=None):
     """Change GeometricQuantity objects in expression to the lowest level GeometricQuantity objects.
 
     Assumes the expression is preprocessed or at least that derivatives have been expanded.
@@ -349,7 +355,7 @@ def change_to_reference_geometry(e, physical_coordinates_known):
     @param e:
         An Expr or Form.
     """
-    return apply_transformer(e, ChangeToReferenceGeometry(physical_coordinates_known))
+    return apply_transformer(e, ChangeToReferenceGeometry(physical_coordinates_known, coordinate_coefficient_mapping))
 
 
 def compute_integrand_scaling_factor(domain, integral_type):

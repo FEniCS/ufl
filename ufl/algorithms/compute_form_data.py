@@ -41,11 +41,9 @@ from ufl.algorithms.analysis import (extract_arguments_and_coefficients,
                                      unique_tuple)
 from ufl.algorithms.domain_analysis import build_integral_data, reconstruct_form_from_integral_data
 from ufl.algorithms.formdata import FormData, ExprData
-from ufl.algorithms.expand_indices import expand_indices
 from ufl.algorithms.ad import expand_derivatives
 from ufl.algorithms.propagate_restrictions import propagate_restrictions
 from ufl.algorithms.formtransformations import compute_form_arities
-from ufl.algorithms.signature import compute_expression_signature, compute_form_signature
 
 
 def _auto_select_degree(elements):
@@ -207,8 +205,14 @@ def compute_form_data(form, apply_propagate_restrictions=True):
     # Figure out which form coefficients each integral should enable
     for itg_data in self.integral_data:
         itg_coeffs = set()
+        # Get all coefficients in integrand
         for itg in itg_data.integrals:
             itg_coeffs.update(extract_coefficients(itg.integrand()))
+        # Add coefficient for integration domain if any
+        c = itg_data.domain.coordinates()
+        if c is not None:
+            itg_coeffs.add(c)
+        # Store with IntegralData object
         itg_data.integral_coefficients = itg_coeffs
 
     # Figure out which coefficients from the original form are actually used in any integral
@@ -226,6 +230,43 @@ def compute_form_data(form, apply_propagate_restrictions=True):
         itg_data.enabled_coefficients = [bool(coeff in itg_data.integral_coefficients)
                                          for coeff in self.reduced_coefficients]
 
+    """
+    # Build mappings from coefficients, domains and geometric quantities
+    # that reside in form to objects with canonical numbering as well as
+    # completed elements
+
+    coordinate_functions = set(domain.coordinates() for domain in form.domains()) - set((None,))
+
+    coordinates_replace_map = {}
+    for i, f in enumerate(self.reduced_coefficients):
+        if f in coordinate_functions:
+            new_f = f.reconstruct(count=i)
+            coordinates_replace_map[f] = new_f
+
+    domains_replace_map = {}
+    for domain in form.domains():
+        FIXME
+
+    geometry_replace_map = {}
+    FIXME
+
+    coefficients_replace_map = {}
+    for i, f in enumerate(self.reduced_coefficients):
+        if f not in coordinate_functions:
+            old_e = f.element()
+            new_e = self.element_replace_map.get(old_e, old_e)
+            new_f = f.reconstruct(element=new_e, count=i)
+            coefficients_replace_map[f] = new_f
+
+    self.terminals_replace_map = {}
+    self.terminals_replace_map.update(coordinates_replace_map)
+    self.terminals_replace_map.update(domains_replace_map) # Not currently terminals but soon will be
+    self.terminals_replace_map.update(geometry_replace_map)
+    self.terminals_replace_map.update(coefficients_replace_map)
+
+    renumbered_coefficients = [self.terminals_replace_map[f] for f in self.reduced_coefficients]
+    """
+
     # Mappings from elements and coefficients
     # that reside in form to objects with canonical numbering as well as
     # completed cells and elements
@@ -233,12 +274,13 @@ def compute_form_data(form, apply_propagate_restrictions=True):
         build_coefficient_replace_map(self.reduced_coefficients, self.element_replace_map)
     self.function_replace_map = function_replace_map
 
-    # --- Store various lists of elements and sub elements
+    # --- Store various lists of elements and sub elements (adds members to self)
     _compute_form_data_elements(self, form.arguments(), renumbered_coefficients)
 
     # --- Store number of domains for integral types
     # TODO: Group this by domain first. For now keep a backwards compatible data structure.
     self.num_sub_domains = _compute_num_sub_domains(self.integral_data)
+
 
     # --- Checks
     _check_elements(self)

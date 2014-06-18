@@ -48,10 +48,10 @@ class HDiv(OuterProductElement):
     def reconstruction_signature(self):
         return "HDiv(%s)" % self._element.reconstruction_signature()
 
-    def signature_data(self, domain_numbering):
-        data = ("HDiv", self._element.signature_data(domain_numbering=domain_numbering),
+    def signature_data(self, renumbering):
+        data = ("HDiv", self._element.signature_data(renumbering),
                 ("no domain" if self._domain is None else self._domain
-                    .signature_data(domain_numbering=domain_numbering)))
+                    .signature_data(renumbering)))
         return data
 
     def __str__(self):
@@ -91,10 +91,10 @@ class HCurl(OuterProductElement):
     def reconstruction_signature(self):
         return "HCurl(%s)" % self._element.reconstruction_signature()
 
-    def signature_data(self, domain_numbering):
-        data = ("HCurl", self._element.signature_data(domain_numbering=domain_numbering),
+    def signature_data(self, renumbering):
+        data = ("HCurl", self._element.signature_data(renumbering),
                 ("no domain" if self._domain is None else self._domain
-                    .signature_data(domain_numbering=domain_numbering)))
+                    .signature_data(renumbering)))
         return data
 
     def __str__(self):

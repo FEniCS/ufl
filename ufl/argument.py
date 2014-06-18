@@ -95,6 +95,13 @@ class Argument(FormArgument):
         s = self._element.signature_data(domain_numbering=domain_numbering)
         return ("Argument", self._number, self._part) + s
 
+    def signature_data(self, renumbering):
+        "Signature data for form arguments depend on the global numbering of the form arguments and domains."
+        edata = self.element().signature_data(renumbering)
+        d = self.domain()
+        ddata = None if d is None else d.signature_data(renumbering)
+        return ("Coefficient", self._number, self._part, edata, ddata)
+
     def __str__(self):
         number = str(self._number)
         if len(number) == 1:

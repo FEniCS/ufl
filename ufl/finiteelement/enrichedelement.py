@@ -98,7 +98,7 @@ class EnrichedElement(FiniteElementBase):
         "Format as string for pretty printing."
         return "<%s>" % " + ".join(e.shortstr() for e in self._elements)
 
-    def signature_data(self, domain_numbering):
-        data = ("EnrichedElement", 
-                tuple(e.signature_data(domain_numbering=domain_numbering) for e in self._elements))
+    def signature_data(self, renumbering):
+        data = ("EnrichedElement",
+                tuple(e.signature_data(renumbering) for e in self._elements))
         return data

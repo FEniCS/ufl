@@ -43,11 +43,11 @@ def compute_multiindex_hashdata(expr, index_numbering):
             data.append(int(i))
     return tuple(data)
 
-def compute_terminal_hashdata(expressions, domain_numbering, function_replace_map=None):
+def compute_terminal_hashdata(expressions, renumbering):
+
     if not isinstance(expressions, list):
         expressions = [expressions]
-    if function_replace_map is None:
-        function_replace_map = {}
+    assert renumbering is not None
 
     # Extract a unique numbering of free indices,
     # as well as form arguments, and just take
@@ -56,7 +56,6 @@ def compute_terminal_hashdata(expressions, domain_numbering, function_replace_ma
     terminal_hashdata = {}
     labels = {}
     index_numbering = {}
-    coefficients = set()
     for expression in expressions:
         for expr in traverse_unique_terminals(expression):
 
@@ -65,50 +64,36 @@ def compute_terminal_hashdata(expressions, domain_numbering, function_replace_ma
                 data = compute_multiindex_hashdata(expr, index_numbering)
 
             elif isinstance(expr, ConstantValue):
-                # For literals no renumbering is necessary
-                # TODO: This may change if we annotate literals with an Argument
-                data = expr.signature_data()
+                data = expr.signature_data(renumbering)
 
             elif isinstance(expr, Coefficient):
-                # Save coefficients for renumbering in next phase
-                coefficients.add(expr)
-                continue
+                data = expr.signature_data(renumbering)
 
             elif isinstance(expr, Argument):
-                # With the new design where we specify argument number explicitly we avoid renumbering
-                data = expr.signature_data(domain_numbering=domain_numbering)
+                data = expr.signature_data(renumbering)
 
             elif isinstance(expr, GeometricQuantity):
-                # Assuming all geometric quantities are defined by just their class + domain
-                data = expr.signature_data(domain_numbering=domain_numbering)
+                data = expr.signature_data(renumbering)
 
             elif isinstance(expr, Label):
-                # Numbering labels as we visit them
+                # Numbering labels as we visit them # TODO: Include in renumbering
                 data = labels.get(expr)
                 if data is None:
                     data = "L%d" % len(labels)
                     labels[expr] = data
 
-            elif isinstance(expr, ExprMapping):
-                data = "{}"
-
             elif isinstance(expr, ExprList):
+                # Not really a terminal but can have 0 operands...
                 data = "[]"
+
+            elif isinstance(expr, ExprMapping):
+                # Not really a terminal but can have 0 operands...
+                data = "{}"
 
             else:
                 error("Unknown terminal type %s" % type(expr))
 
             terminal_hashdata[expr] = data
-
-    # Apply renumbering of coefficients
-    # (Note: some duplicated work here and in preprocess, to
-    # allow using this function without full preprocessing.)
-    for i, e in enumerate(sorted_by_count(coefficients)):
-        er = function_replace_map.get(e)
-        if er is None:
-            er = e
-        data = er.signature_data(count=i, domain_numbering=domain_numbering)
-        terminal_hashdata[e] = data
 
     return terminal_hashdata
 
@@ -121,8 +106,11 @@ def compute_expression_hashdata(expression, terminal_hashdata):
         if isinstance(expr, Terminal):
             data = terminal_hashdata[expr]
         else:
-            data = expr._classid
+            data = expr._classid # TODO: Use expr.signature_data()? More extensible, but more overhead.
         expression_hashdata.append(data)
+    # Oneliner: TODO: Benchmark, maybe use a generator?
+    #expression_hashdata = [(terminal_hashdata[expr] if isinstance(expr, Terminal) else expr._classid)
+    #                       for expr in fast_pre_traversal(expression)]
     return expression_hashdata
 
 def build_domain_numbering(domains):
@@ -164,13 +152,11 @@ def build_domain_numbering(domains):
 
     return domain_numbering
 
-def compute_expression_signature(expr, function_replace_map=None):
-    # Build a stable numbering of absolutely all domains from expr
-    domain_numbering = build_domain_numbering(list(expr.domains()))
+def compute_expression_signature(expr, renumbering): # FIXME: Fix callers
+    # FIXME: Rewrite in terms of compute_form_signature?
 
     # Build hashdata for all terminals first
-    terminal_hashdata = compute_terminal_hashdata([expr], domain_numbering,
-                                                  function_replace_map)
+    terminal_hashdata = compute_terminal_hashdata([expr], renumbering)
 
     # Build hashdata for full expression
     expression_hashdata = compute_expression_hashdata(expr,
@@ -179,41 +165,35 @@ def compute_expression_signature(expr, function_replace_map=None):
     # Pass it through a seriously overkill hashing algorithm :) TODO: How fast is this? Reduce?
     return hashlib.sha512(str(expression_hashdata)).hexdigest()
 
-def compute_form_signature(form, function_replace_map=None):
+def compute_form_signature(form, renumbering): # FIXME: Fix callers
     # Extract integrands
     integrals = form.integrals()
     integrands = [integral.integrand() for integral in integrals]
 
-    # Extract absolutely all domains from form
-    all_domains = list(form.domains())
-    for integrand in integrands:
-        all_domains.extend(integrand.domains())
-    domains = join_domains(all_domains)
-
-    # Build a stable numbering of absolutely all domains from form
-    domain_numbering = build_domain_numbering(domains)
-
     # Build hashdata for all terminals first, with on-the-fly
     # replacement of functions and index labels.
-    terminal_hashdata = compute_terminal_hashdata(integrands, domain_numbering,
-                                                  function_replace_map)
+    terminal_hashdata = compute_terminal_hashdata(integrands, renumbering)
+
     # Build hashdata for each integral
     hashdata = []
     for integral in integrals:
         # Compute hash data for expression, this is the expensive part
-        expression_hashdata = compute_expression_hashdata(integral.integrand(),
+        integrand_hashdata = compute_expression_hashdata(integral.integrand(),
                                                           terminal_hashdata)
+
+        domain_hashdata = integral.domain().signature_data(renumbering)
 
         # Collect all data about integral that should be reflected in signature,
         # including compiler data but not domain data, because compiler data
         # affects the way the integral is compiled while domain data is only
         # carried for convenience in the problem solving environment.
-        integral_hashdata = (expression_hashdata,
-                             integral.domain().signature_data(domain_numbering=domain_numbering),
-                             integral.integral_type(),
-                             integral.subdomain_id(),
-                             repr(integral.metadata()),
-                             )
+        integral_hashdata = (
+            integrand_hashdata,
+            domain_hashdata,
+            integral.integral_type(),
+            integral.subdomain_id(),
+            repr(integral.metadata()),
+            )
 
         hashdata.append(integral_hashdata)
 

@@ -85,9 +85,13 @@ class Coefficient(FormArgument):
         "Return tuple of domains related to this terminal object."
         return self._element.domains()
 
-    def signature_data(self, count, domain_numbering):
+    def signature_data(self, renumbering):
         "Signature data for form arguments depend on the global numbering of the form arguments and domains."
-        return ("Coefficient", count,) + self.element().signature_data(domain_numbering=domain_numbering)
+        count = renumbering[self]
+        edata = self.element().signature_data(renumbering)
+        d = self.domain()
+        ddata = None if d is None else d.signature_data(renumbering)
+        return ("Coefficient", count, edata, ddata)
 
     def __str__(self):
         count = str(self._count)
