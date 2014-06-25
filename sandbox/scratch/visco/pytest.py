@@ -25,9 +25,9 @@ class A(B):
 
     def __init__(self, value):
         if hasattr(self, 'x'):
-            print 'has attr x'
+            print('has attr x')
         else:
-            print 'has no attr x'
+            print('has no attr x')
             B.__init__(self)
             self.x = value
 
@@ -38,16 +38,16 @@ import sys
 
 objects  = [A(v) for v in range(5)]
 objects2 = [A(v) for v in range(5)]
-print sys.getsizeof(objects[0])
-print [id(o) for o in objects]
-print [id(o) for o in objects2]
-print [o for o in objects]
-print [o for o in objects2]
-print B.ccount, B.dcount
+print(sys.getsizeof(objects[0]))
+print([id(o) for o in objects])
+print([id(o) for o in objects2])
+print([o for o in objects])
+print([o for o in objects2])
+print(B.ccount, B.dcount)
 del objects
-print B.ccount, B.dcount
+print(B.ccount, B.dcount)
 del objects2
-print B.ccount, B.dcount
+print(B.ccount, B.dcount)
 
 """
 F:

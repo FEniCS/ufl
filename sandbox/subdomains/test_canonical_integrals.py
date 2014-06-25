@@ -51,15 +51,15 @@ def test():
     subdomain_data = extract_subdomain_data_from_integral_dict(form._dintegrals)
     integral_data = extract_integral_data_from_integral_dict(form._dintegrals)
 
-    print
-    print "Domain data:"
-    print subdomain_data
-    print
+    print()
+    print("Domain data:")
+    print(subdomain_data)
+    print()
 
-    print
-    print "Integral data:"
+    print()
+    print("Integral data:")
     for ida in integral_data:
-        print ida
-    print
+        print(ida)
+    print()
 
 test()

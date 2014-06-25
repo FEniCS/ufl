@@ -121,18 +121,18 @@ def test_check_physical_dimensions():
     assert str(d) == "s"
 
     d, w = check_physical_dimensions(f**2, m, {f: s})
-    if w: print w
+    if w: print(w)
     assert not w
     assert str(d) == "s^2"
 
     d, w = check_physical_dimensions(g*f**2, m, {f: s, g: m**2/s})
-    if w: print w
+    if w: print(w)
     assert not w
     assert str(d) == "m^2 s"
 
     # Test that sum gives no warning
     d, w = check_physical_dimensions(sqrt(g**2*f**2)*f + g*f**2, m, {f: s, g: m**2/s})
-    if w: print w
+    if w: print(w)
     assert not w
     assert str(d) == "m^2 s"
 
@@ -144,7 +144,7 @@ def test_check_physical_dimensions():
 
     # Test derivatives and x which uses xdim
     d, w = check_physical_dimensions(f.dx(0) + grad(f)[0] + div(grad(f))*triangle.x[0], m, {f: m/s})
-    if w: print w
+    if w: print(w)
     assert not w
     assert str(d) == "s^-1"
 

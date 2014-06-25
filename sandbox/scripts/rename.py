@@ -22,5 +22,5 @@ for f in files2:
     jobs.append(cmd)
 
 for cmd in jobs:
-    print cmd 
+    print(cmd) 
     os.system(cmd)

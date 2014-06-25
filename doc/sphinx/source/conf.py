@@ -36,8 +36,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'UFL'
-copyright = u'FEniCS Project, http://www.fenicsproject.org/'
+project = 'UFL'
+copyright = 'FEniCS Project, http://www.fenicsproject.org/'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

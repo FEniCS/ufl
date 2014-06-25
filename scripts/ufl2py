@@ -26,8 +26,8 @@ args = sys.argv[1:]
 (options, args) = parser.parse_args(args=args)
 
 if not args:
-    print "Missing files!"
-    print
+    print("Missing files!")
+    print()
     parser.print_usage()
     sys.exit(-1)
 filenames = args
@@ -42,7 +42,7 @@ footer = ""
 # Handle each form file separately
 for filename in filenames:
     if not filename.endswith(".ufl"):
-        print "Warning: Filename '%s' doesn't end with .ufl." % filename
+        print("Warning: Filename '%s' doesn't end with .ufl." % filename)
 
     # Read code
     fcode = read_ufl_file(filename)

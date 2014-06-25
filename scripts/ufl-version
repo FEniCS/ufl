@@ -23,4 +23,4 @@
 # This is a simple script that just prints the UFL version number.
 
 from ufl import __version__
-print __version__
+print(__version__)

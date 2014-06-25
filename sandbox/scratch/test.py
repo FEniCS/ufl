@@ -24,16 +24,16 @@ class Function(object):
         # If the __new__ function is called because we are instantiating a sub class
         # of Function. Instantiate the class directly using objects __new__
         if cls.__name__ != "Function":
-            print "It's alive"
+            print("It's alive")
             return object.__new__(cls)
         return object.__new__(Function_factory())
 
 V = ufl.FiniteElement("CG", "triangle", 1)
 v = ufl.TestFunction(V)
 f = Function(V, 3)
-print f._element
-print f._a
+print(f._element)
+print(f._a)
 
 L = f*v*ufl.dx
-print L
+print(L)
 

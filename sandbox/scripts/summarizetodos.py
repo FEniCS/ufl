@@ -27,10 +27,10 @@ for f in files:
         lines += ["%d FIXMEs:" % n] + fixmes
         num_fixmes += n
 
-print "\n".join(lines)
+print("\n".join(lines))
 
-print
-print "-"*80
-print "Number of TODOs: ", num_todos
-print "Number of FIXMEs:", num_fixmes
-print
+print()
+print("-"*80)
+print("Number of TODOs: ", num_todos)
+print("Number of FIXMEs:", num_fixmes)
+print()

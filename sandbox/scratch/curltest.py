@@ -20,25 +20,25 @@ a2 = (v[2] - v[0])*dx
 a3 = Form([])
 
 for f, b in zip((f0, f1, f2, f3), (a0, a1, a2, a3)):
-    print "."*80
-    print "f = ", f
+    print("."*80)
+    print("f = ", f)
     
     a = dot(curl(f), v)*dx
-    print "\na = ", a
+    print("\na = ", a)
 
     a = expand_compounds(a)
-    print "\na = ", a
+    print("\na = ", a)
     
     a = expand_derivatives(a)
-    print "\na = ", a
+    print("\na = ", a)
 
     a = renumber_indices(a)
-    print "\na = ", a
+    print("\na = ", a)
 
     a = expand_indices(a)
-    print "\na = ", a
+    print("\na = ", a)
 
-    print a == b
+    print(a == b)
 
 #
 #curl (y, -x, 0) = 

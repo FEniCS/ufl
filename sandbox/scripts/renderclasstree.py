@@ -49,4 +49,4 @@ dot = """strict digraph {
 %s
 %s
 }""" % (format, body)
-print dot
+print(dot)

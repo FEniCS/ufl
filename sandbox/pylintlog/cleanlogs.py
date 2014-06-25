@@ -3,7 +3,7 @@ import os, sys
 files = sys.argv[1:]
 
 def delete(f):
-    print "rm", f
+    print("rm", f)
     os.remove(f)
 
 for f in files:

@@ -154,13 +154,13 @@ def test():
     t = as_ufl(2)
     f = g**t
     e = u*f
-    print formatted_analysis(e, classes=True)
+    print(formatted_analysis(e, classes=True))
     #print rsizeof(V)
     for n in ['o', 't', 'u', 'v', 'g', 'f', 'e']:
         obj = eval(n)
-        print n, getsizeof(obj), rsizeof(obj), asizeof(obj), type(obj).__name__
-    print id(o._index_dimensions)
-    print id(t._index_dimensions)
-    print id(ufl.common.EmptyDict)
+        print(n, getsizeof(obj), rsizeof(obj), asizeof(obj), type(obj).__name__)
+    print(id(o._index_dimensions))
+    print(id(t._index_dimensions))
+    print(id(ufl.common.EmptyDict))
 test()
 

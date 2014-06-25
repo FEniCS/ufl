@@ -21,5 +21,5 @@ l.setLevel(logging.DEBUG)
 f = ufl.algorithms.load_forms("../../demo/Stiffness.ufl")
 fd = f[0].form_data()
 
-print "end of script"
+print("end of script")
 

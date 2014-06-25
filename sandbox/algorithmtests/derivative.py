@@ -35,18 +35,18 @@ for do_split in (True, False):
         F = derivative(L, (x,y), vv)
         J = derivative(F, (x,y), uu)
 
-    print "="*80
-    print do_split
-    print 
-    print 
-    print "F"
-    print str(F.form_data().form)
-    print 
-    print str(expand_indices(F.form_data().form))
-    print 
-    print "J"
-    print str(J.form_data().form)
-    print 
-    print str(expand_indices(J.form_data().form))
-    print 
+    print("="*80)
+    print(do_split)
+    print() 
+    print() 
+    print("F")
+    print(str(F.form_data().form))
+    print() 
+    print(str(expand_indices(F.form_data().form)))
+    print() 
+    print("J")
+    print(str(J.form_data().form))
+    print() 
+    print(str(expand_indices(J.form_data().form)))
+    print() 
 

@@ -42,14 +42,14 @@ def estimate_max_quad_degree(e):
 
 from ufl.testobjects import *
 if __name__ == "__main__":
-    print estimate_max_quad_degree(v)
-    print estimate_max_quad_degree(u*v)
-    print estimate_max_quad_degree(vv[0])
-    print estimate_max_quad_degree(u*vv[0])
-    print estimate_max_quad_degree(vu[0]*vv[0])
-    print estimate_max_quad_degree(u*v)
-    print estimate_max_quad_degree(vu[i]*vv[i])
-    print
+    print(estimate_max_quad_degree(v))
+    print(estimate_max_quad_degree(u*v))
+    print(estimate_max_quad_degree(vv[0]))
+    print(estimate_max_quad_degree(u*vv[0]))
+    print(estimate_max_quad_degree(vu[0]*vv[0]))
+    print(estimate_max_quad_degree(u*v))
+    print(estimate_max_quad_degree(vu[i]*vv[i]))
+    print()
     V1 = FiniteElement("CG", triangle, 1)
     V2 = FiniteElement("CG", triangle, 2)
     VM = V1 + V2
@@ -57,14 +57,14 @@ if __name__ == "__main__":
     u = TrialFunction(V2)
     f, g = Functions(VM)
     
-    print estimate_max_quad_degree(u)
-    print estimate_max_quad_degree(v)
-    print estimate_max_quad_degree(f)
-    print estimate_max_quad_degree(g)
-    print estimate_max_quad_degree(u*v)
-    print estimate_max_quad_degree(f*v)
-    print estimate_max_quad_degree(g*v)
-    print estimate_max_quad_degree(g*u*v)
-    print estimate_max_quad_degree(f*g*u.dx(0)*v.dx(0))
-    print estimate_max_quad_degree(g**3*v + f*v)
+    print(estimate_max_quad_degree(u))
+    print(estimate_max_quad_degree(v))
+    print(estimate_max_quad_degree(f))
+    print(estimate_max_quad_degree(g))
+    print(estimate_max_quad_degree(u*v))
+    print(estimate_max_quad_degree(f*v))
+    print(estimate_max_quad_degree(g*v))
+    print(estimate_max_quad_degree(g*u*v))
+    print(estimate_max_quad_degree(f*g*u.dx(0)*v.dx(0)))
+    print(estimate_max_quad_degree(g**3*v + f*v))
 

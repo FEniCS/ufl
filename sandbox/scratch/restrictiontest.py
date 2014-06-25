@@ -7,5 +7,5 @@ f = Function(e)
 v = TestFunction(e)
 L = f*v*dS
 
-print [propagate_restrictions(itg.integrand()) for itg in L.form_data().form.integrals()]
+print([propagate_restrictions(itg.integrand()) for itg in L.form_data().form.integrals()])
 
