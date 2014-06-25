@@ -42,20 +42,20 @@ def execute_codes():
 
     failed = []
     for code in codes:
-        print "-------------------------"
-        print code
+        print("-------------------------")
+        print(code)
 
         namespace = {}
         try:
             exec (code_prefix + code + code_suffix) in namespace
         except:
-            print "Code execution failed."
+            print("Code execution failed.")
 
         completed = namespace.get("completed", False)
         if completed:
-            print "SUCCESS"
+            print("SUCCESS")
         else:
-            print "FAILED"
+            print("FAILED")
         failed.append(code)
 
 #--- Generate unit test code ---

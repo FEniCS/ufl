@@ -77,7 +77,7 @@ def main(*args, **kwargs):
     return unittest.main(*args, **kwargs)
 
 if __name__ == "__main__":
-    print "Not to be run directly."
-    print "Call main function from this module"
-    print "in modules with test cases."
+    print("Not to be run directly.")
+    print("Call main function from this module")
+    print("in modules with test cases.")
 

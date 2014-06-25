@@ -46,11 +46,11 @@ class MockForwardAD:
 
         def apply_grads(f):
             if not isinstance(f, FormArgument):
-                print ','*60
-                print f
-                print o
-                print g
-                print ','*60
+                print(','*60)
+                print(f)
+                print(o)
+                print(g)
+                print(','*60)
                 error("What?")
             for i in range(ngrads):
                 f = Grad(f)
@@ -279,10 +279,10 @@ class ScratchTestCase(UflTestCase):
         df = as_tensor(Identity(2)[0,j]*grad(dv)[1,k], (j,k)) # Actual representation should have grad right next to dv
         g, dg = mad.grad(f)
         if 0:
-            print '\nf    ', f
-            print 'df   ', df
-            print 'g    ', g
-            print 'dg   ', dg
+            print('\nf    ', f)
+            print('df   ', df)
+            print('g    ', g)
+            print('dg   ', dg)
         self.assertEqual(f.shape(), df.shape())
         self.assertEqual(g.shape(), f.shape())
         self.assertEqual(dg.shape(), df.shape())
@@ -304,10 +304,10 @@ class ScratchTestCase(UflTestCase):
         df = (as_tensor(Identity(2)[0,j0]*grad(dv)[1,k0], (j0,k0))
             + as_tensor(Identity(2)[1,j1]*grad(dv)[0,k1], (j1,k1)))
         g, dg = mad.grad(f)
-        print '\nf    ', f
-        print 'df   ', df
-        print 'g    ', g
-        print 'dg   ', dg
+        print('\nf    ', f)
+        print('df   ', df)
+        print('g    ', g)
+        print('dg   ', dg)
         self.assertEqual(f.shape(), df.shape())
         self.assertEqual(g.shape(), f.shape())
         self.assertEqual(dg.shape(), df.shape())
@@ -333,10 +333,10 @@ class ScratchTestCase(UflTestCase):
         df = as_tensor(Identity(2)[0,j]*grad(dv)[1,k], (j,k)) # Actual representation should have grad right next to dv
         g, dg = mad.grad(f)
         if 0:
-            print '\nf    ', f
-            print 'df   ', df
-            print 'g    ', g
-            print 'dg   ', dg
+            print('\nf    ', f)
+            print('df   ', df)
+            print('g    ', g)
+            print('dg   ', dg)
         self.assertEqual(f.shape(), df.shape())
         self.assertEqual(g.shape(), f.shape())
         self.assertEqual(dg.shape(), df.shape())
@@ -358,10 +358,10 @@ class ScratchTestCase(UflTestCase):
         df = (as_tensor(Identity(2)[0,j0]*grad(dv)[1,k0], (j0,k0))
             + as_tensor(Identity(2)[1,j1]*grad(dv)[0,k1], (j1,k1)))
         g, dg = mad.grad(f)
-        print '\nf    ', f
-        print 'df   ', df
-        print 'g    ', g
-        print 'dg   ', dg
+        print('\nf    ', f)
+        print('df   ', df)
+        print('g    ', g)
+        print('dg   ', dg)
         self.assertEqual(f.shape(), df.shape())
         self.assertEqual(g.shape(), f.shape())
         self.assertEqual(dg.shape(), df.shape())
@@ -415,10 +415,10 @@ class ScratchTestCase(UflTestCase):
         df = as_tensor(E*Ddw, (i,j,k)) # Actual representation should have grad next to dv
         g, dg = mad.grad(f)
         if 0:
-            print '\nf    ', f
-            print 'df   ', df
-            print 'g    ', g
-            print 'dg   ', dg
+            print('\nf    ', f)
+            print('df   ', df)
+            print('g    ', g)
+            print('dg   ', dg)
         self.assertEqual(f.shape(), df.shape())
         self.assertEqual(g.shape(), f.shape())
         self.assertEqual(dg.shape(), df.shape())

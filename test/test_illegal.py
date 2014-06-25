@@ -105,9 +105,9 @@ class FormsTestCase(UflTestCase):
         self.assertRaises(UFLException, store_if_nothrow)
 
         if store_if_nothrow.nothrow:
-            print "in check_validate_raises:"
-            print "repr =", repr(a)
-            print "str =", str(a)
+            print("in check_validate_raises:")
+            print("repr =", repr(a))
+            print("str =", str(a))
 
     def test_duplicated_args(self):
         element = FiniteElement("Lagrange", "triangle", 1)

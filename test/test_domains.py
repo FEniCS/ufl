@@ -25,12 +25,12 @@ class RegionConstructionTestCase(UflTestCase):
             D2 = as_domain(cell)
             self.assertFalse(D1 is D2)
             if 0:
-                print
+                print()
                 for D in (D1, D2):
-                    print 'id', id(D)
-                    print 'str', str(D)
-                    print 'repr', repr(D)
-                    print
+                    print('id', id(D))
+                    print('str', str(D))
+                    print('repr', repr(D))
+                    print()
             self.assertEqual(D1, D2)
 
     def test_as_domain_from_cell_is_equal(self):

@@ -46,7 +46,7 @@ class DemoTestCase(UflTestCase):
         filenames = []
         for f in sorted(glob("../demo/*.ufl")):
             if f in skiplist:
-                print "Skipping demo %s" % f
+                print("Skipping demo %s" % f)
             else:
                 filenames.append(f)
         return filenames
@@ -58,22 +58,22 @@ class DemoTestCase(UflTestCase):
             status, output = get_status_output(cmd)
             self.assertEqual(status, 0)
             if status == 0:
-                print "Successfully analysed %s without problems" % f
+                print("Successfully analysed %s without problems" % f)
             else:
                 name = "%s.analysis" % f
-                print "Encountered problems when analysing %s "\
-                      "(return code %s), see output in file %s" % (f, status, name)
+                print("Encountered problems when analysing %s "\
+                      "(return code %s), see output in file %s" % (f, status, name))
                 of = open(name, "w")
                 of.write(output)
                 of.close()
-                print
-                print output
-                print
+                print()
+                print(output)
+                print()
 
     def test_each_demo_with_validate_form(self):
         "Check each form in each file with validate_form."
         for filename in self.get_demo_filenames():
-            print filename
+            print(filename)
             data = load_ufl_file(filename)
             for form in data.forms:
                 try:

@@ -231,11 +231,11 @@ class DerivativeTestCase(UflTestCase):
         a2 = (a*dx).compute_form_data().preprocessed_form
         b2 = (b*dx).compute_form_data().preprocessed_form
         if not a2 == b2:
-            print
-            print str(a2)
-            print
-            print str(b2)
-            print
+            print()
+            print(str(a2))
+            print()
+            print(str(b2))
+            print()
         self.assertEqual(a2, b2)
 
     def assertEqualBySampling(self, actual, expected):
@@ -278,14 +278,14 @@ class DerivativeTestCase(UflTestCase):
         bv = b(x, bmapping)
 
         if not av == bv:
-            print "Tried to sample expressions to compare but failed:"
-            print
-            print str(a)
-            print av
-            print
-            print str(b)
-            print bv
-            print
+            print("Tried to sample expressions to compare but failed:")
+            print()
+            print(str(a))
+            print(av)
+            print()
+            print(str(b))
+            print(bv)
+            print()
 
         self.assertEqual(av, bv)
 
@@ -471,19 +471,19 @@ class DerivativeTestCase(UflTestCase):
 
         # Keeping this snippet here for a while for debugging purposes
         if 0:
-            print '\n', 'str:'
-            print str(actual)
-            print str(expected)
-            print '\n', 'repr:'
-            print repr(actual)
-            print repr(expected)
+            print('\n', 'str:')
+            print(str(actual))
+            print(str(expected))
+            print('\n', 'repr:')
+            print(repr(actual))
+            print(repr(expected))
             from ufl.algorithms import tree_format
             open('actual.txt','w').write(tree_format(actual))
             open('expected.txt', 'w').write(tree_format(expected))
-            print '\n', 'equal:'
-            print str(actual) == str(expected)
-            print repr(actual) == repr(expected)
-            print actual == expected
+            print('\n', 'equal:')
+            print(str(actual) == str(expected))
+            print(repr(actual) == repr(expected))
+            print(actual == expected)
 
         # Tricky case! These are equal in representation except
         # that the outermost sum/indexsum are swapped.

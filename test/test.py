@@ -42,10 +42,10 @@ def run_suite(tests):
 
 def check_which_ufl():
     import ufl
-    print "******"
-    print "* Testing ufl version", ufl.__version__
-    print "* which is installed at:", ufl.__file__
-    print "******"
+    print("******")
+    print("* Testing ufl version", ufl.__version__)
+    print("* which is installed at:", ufl.__file__)
+    print("******")
 
 def main(args):
     check_which_ufl()
@@ -53,10 +53,10 @@ def main(args):
     configureLogging()
     result = run_suite(tests)
     if result.wasSuccessful():
-        print "All tests finished successfully."
+        print("All tests finished successfully.")
         return 0
     else:
-        print "Not all tests finished successfully."
+        print("Not all tests finished successfully.")
         return 1
 
 if __name__ == "__main__":

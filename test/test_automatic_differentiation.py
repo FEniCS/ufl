@@ -326,13 +326,13 @@ class ForwardADTestCase(UflTestCase):
         #for t in chain(collection.noncompounds, collection.compounds):
         for t in collection.noncompounds:
             for var in (u, v, w):
-                if debug: print '\n', '...:   ', t.shape(), var.shape(), '\n'
+                if debug: print('\n', '...:   ', t.shape(), var.shape(), '\n')
                 before = derivative(t, var)
-                if debug: print '\n', 'before:   ', str(before), '\n'
+                if debug: print('\n', 'before:   ', str(before), '\n')
                 after = self.ad_algorithm(before)
-                if debug: print '\n', 'after:    ', str(after), '\n'
+                if debug: print('\n', 'after:    ', str(after), '\n')
                 expected = 0*t
-                if debug: print '\n', 'expected: ', str(expected), '\n'
+                if debug: print('\n', 'expected: ', str(expected), '\n')
                 #print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
                 self.assertEqual(after, expected)
 
@@ -356,11 +356,11 @@ class ForwardADTestCase(UflTestCase):
         for t in collection.noncompounds:
             for var in (vu, vv, vw):
                 before = diff(t, var)
-                if debug: print '\n', 'before:   ', str(before), '\n'
+                if debug: print('\n', 'before:   ', str(before), '\n')
                 after = self.ad_algorithm(before)
-                if debug: print '\n', 'after:    ', str(after), '\n'
+                if debug: print('\n', 'after:    ', str(after), '\n')
                 expected = 0*outer(t, var)
-                if debug: print '\n', 'expected: ', str(expected), '\n'
+                if debug: print('\n', 'expected: ', str(expected), '\n')
                 #print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
                 self.assertEqual(after, expected)
 
@@ -381,16 +381,16 @@ class ForwardADTestCase(UflTestCase):
             for var in (u, v, w):
                 # Include d/dx [z ? y: x] but not d/dx [x ? f: z]
                 if isinstance(t, Conditional) and (var in fast_post_traversal2(t.operands()[0])):
-                    if debug: print "Depends on %s :: %s" % (str(var), str(t))
+                    if debug: print("Depends on %s :: %s" % (str(var), str(t)))
                     continue
 
-                if debug: print '\n', '...:   ', t.shape(), var.shape(), '\n'
+                if debug: print('\n', '...:   ', t.shape(), var.shape(), '\n')
                 before = derivative(t, var)
-                if debug: print '\n', 'before:   ', str(before), '\n'
+                if debug: print('\n', 'before:   ', str(before), '\n')
                 after = self.ad_algorithm(before)
-                if debug: print '\n', 'after:    ', str(after), '\n'
+                if debug: print('\n', 'after:    ', str(after), '\n')
                 expected_shape = 0*t
-                if debug: print '\n', 'expected_shape: ', str(expected_shape), '\n'
+                if debug: print('\n', 'expected_shape: ', str(expected_shape), '\n')
                 #print '\n', str(expected_shape), '\n', str(after), '\n', str(before), '\n'
 
                 if var in fast_post_traversal2(t):
@@ -420,15 +420,15 @@ class ForwardADTestCase(UflTestCase):
             for var in (vu, vv, vw):
                 # Include d/dx [z ? y: x] but not d/dx [x ? f: z]
                 if isinstance(t, Conditional) and (var in fast_post_traversal2(t.operands()[0])):
-                    if debug: print "Depends on %s :: %s" % (str(var), str(t))
+                    if debug: print("Depends on %s :: %s" % (str(var), str(t)))
                     continue
 
                 before = diff(t, var)
-                if debug: print '\n', 'before:   ', str(before), '\n'
+                if debug: print('\n', 'before:   ', str(before), '\n')
                 after = self.ad_algorithm(before)
-                if debug: print '\n', 'after:    ', str(after), '\n'
+                if debug: print('\n', 'after:    ', str(after), '\n')
                 expected_shape = 0*outer(t, var) # expected shape, not necessarily value
-                if debug: print '\n', 'expected_shape: ', str(expected_shape), '\n'
+                if debug: print('\n', 'expected_shape: ', str(expected_shape), '\n')
                 #print '\n', str(expected_shape), '\n', str(after), '\n', str(before), '\n'
 
                 if var in fast_post_traversal2(t):
@@ -449,8 +449,8 @@ class ForwardADTestCase(UflTestCase):
                 after = self.ad_algorithm(before)
 
                 if before.shape() != after.shape():
-                    print '\n', 'shapes:', before.shape(), after.shape()
-                    print '\n', str(before), '\n', str(after), '\n'
+                    print('\n', 'shapes:', before.shape(), after.shape())
+                    print('\n', str(before), '\n', str(after), '\n')
 
                 self.assertEqualTotalShape(before, after)
                 if f is u: # Differing by being wrapped in indexing types
@@ -488,9 +488,9 @@ class ForwardADTestCase(UflTestCase):
                 self.assertEqualTotalShape(before, after)
                 #self.assertEqual(after, expected)
                 if 0:
-                    print
-                    print 'B', f, "::", before
-                    print 'A', f, "::", after
+                    print()
+                    print('B', f, "::", before)
+                    print('A', f, "::", after)
 
     def xtest_derivative_grad_coeff_with_variation_components(self):
         for d in (1,2,3):
@@ -520,9 +520,9 @@ class ForwardADTestCase(UflTestCase):
                 self.assertEqualTotalShape(before, after)
                 #self.assertEqual(after, expected)
                 if 0:
-                    print
-                    print 'B', f, "::", before
-                    print 'A', f, "::", after
+                    print()
+                    print('B', f, "::", before)
+                    print('A', f, "::", after)
 
 # Don't touch these lines, they allow you to run this file directly
 if __name__ == "__main__":

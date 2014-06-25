@@ -105,19 +105,19 @@ class ExpandIndicesTestCase(UflTestCase):
         
     def compare(self, f, value):
         debug = 0
-        if debug: print 'f', f
+        if debug: print('f', f)
         g = expand_derivatives(f)
-        if debug: print 'g', g
+        if debug: print('g', g)
         gv = g(self.x, self.mapping)
         self.assertAlmostEqual(gv, value)
 
         g = expand_indices(g)
-        if debug: print 'g', g
+        if debug: print('g', g)
         gv = g(self.x, self.mapping)
         self.assertAlmostEqual(gv, value)
 
         g = renumber_indices(g)
-        if debug: print 'g', g
+        if debug: print('g', g)
         gv = g(self.x, self.mapping)
         self.assertAlmostEqual(gv, value)
 
@@ -274,11 +274,11 @@ class ExpandIndicesTestCase(UflTestCase):
             Lvf = div(Dvf)
             Lvf2 = dot(Lvf,Lvf)
             pp = (Lvf2*dx).compute_form_data().preprocessed_form.integrals()[0].integrand()
-            print 'vf', vf.shape(), str(vf)
-            print 'Dvf', Dvf.shape(), str(Dvf)
-            print 'Lvf', Lvf.shape(), str(Lvf)
-            print 'Lvf2', Lvf2.shape(), str(Lvf2)
-            print 'pp', pp.shape(), str(pp)
+            print('vf', vf.shape(), str(vf))
+            print('Dvf', Dvf.shape(), str(Dvf))
+            print('Lvf', Lvf.shape(), str(Lvf))
+            print('Lvf2', Lvf2.shape(), str(Lvf2))
+            print('pp', pp.shape(), str(pp))
 
         a = div(grad(vf))
         compare(dot(a,a), (0.20+0.40)**2 + (0.21+0.41)**2)
@@ -306,8 +306,8 @@ class ExpandIndicesTestCase(UflTestCase):
         compare(inner(a,a), (10.00+11.00)**2 + (10.01+11.01)**2 + (10.10+11.10)**2 + (10.11+11.11)**2)
 
     def xtest_expand_indices_list_tensor_problem(self):
-        print
-        print '='*40
+        print()
+        print('='*40)
         # TODO: This is the case marked in the expand_indices2 implementation
         #as not working. Fix and then try expand_indices2 on other tests!
         V = VectorElement("CG", triangle, 1)
@@ -315,17 +315,17 @@ class ExpandIndicesTestCase(UflTestCase):
         v = as_vector([w[0], 0])
         a = v[i]*w[i]
         # TODO: Compare
-        print type(a), str(a)
+        print(type(a), str(a))
         A, comp = a.operands()
-        print type(A), str(A)
-        print type(comp), str(comp)
+        print(type(A), str(A))
+        print(type(comp), str(comp))
 
         ei1 = expand_indices(a)
         ei2 = expand_indices2(a)
-        print str(ei1)
-        print str(ei2)
-        print '='*40
-        print
+        print(str(ei1))
+        print(str(ei2))
+        print('='*40)
+        print()
 
 if __name__ == "__main__":
     main()

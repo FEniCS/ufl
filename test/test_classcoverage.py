@@ -38,8 +38,8 @@ def test_object(a, shape, free_indices):
         assert len(set(fi) ^ set(free_indices)) == 0
     if shape is not None:
         if sh != shape:
-            print "sh:", sh
-            print "shape:", shape
+            print("sh:", sh)
+            print("shape:", shape)
         assert sh == shape
 
 def test_object2(a):
@@ -85,8 +85,8 @@ class ClasscoverageTest(UflTestCase):
         missing_classes = set(c.__name__ for c in all_expr_classes)\
             - set(c.__name__ for c in all_ufl_classes)
         if missing_classes:
-            print "The following subclasses of Expr were not exported from ufl.classes:"
-            print "\n".join(sorted(missing_classes))
+            print("The following subclasses of Expr were not exported from ufl.classes:")
+            print("\n".join(sorted(missing_classes)))
         self.assertEqual(missing_classes, set())
 
     def testAll(self):
@@ -601,21 +601,21 @@ class ClasscoverageTest(UflTestCase):
                             WrapperType, GeometricQuantity, CompoundTensorOperator, UtilityType))
             unused = set(ufl.classes.all_ufl_classes) - constructed - abstract
             if unused:
-                print
-                print "The following classes were never instantiated in class coverage test:"
-                print "\n".join(sorted(map(str,unused)))
-                print
+                print()
+                print("The following classes were never instantiated in class coverage test:")
+                print("\n".join(sorted(map(str,unused))))
+                print()
         # --- Check which classes had certain member variables
         if has_repr:
-            print
-            print "The following classes contain a _repr member:"
-            print "\n".join(sorted(map(str,has_repr)))
-            print
+            print()
+            print("The following classes contain a _repr member:")
+            print("\n".join(sorted(map(str,has_repr))))
+            print()
         if has_dict:
-            print
-            print "The following classes contain a __dict__ member:"
-            print "\n".join(sorted(map(str,has_dict)))
-            print
+            print()
+            print("The following classes contain a __dict__ member:")
+            print("\n".join(sorted(map(str,has_dict))))
+            print()
 
         # TODO: Add tests for bessel functions:
         #   BesselI
