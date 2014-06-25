@@ -20,6 +20,7 @@ mostly intended for debugging purposers."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from itertools import chain
+import six
 
 from ufl.log import error
 from ufl.expr import Expr
@@ -176,7 +177,7 @@ def build_entities(e, nodes, edges, nodeoffset, prefix="", labeller=None):
 
 def format_entities(nodes, edges):
     entities = []
-    for (nodename, label) in nodes.itervalues():
+    for (nodename, label) in six.itervalues(nodes):
         node = '  %s [label="%s"];' % (nodename, label)
         entities.append(node)
     for (aid, bid, label) in edges:

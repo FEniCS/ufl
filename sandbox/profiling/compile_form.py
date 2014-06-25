@@ -101,6 +101,7 @@ for form in forms:
         for key, part in P.iteritems():
             print("-"*60)
             print("-- Partition", key)
+
             for i in part:
                 v = V[i]
                 if Vout[i]:
@@ -108,6 +109,7 @@ for form in forms:
                 else:
                     ops = ""
                 print("s%d = %s%s" % (i, v._uflclass.__name__, ops))
+
 print()
 print("="*80)
 print("== Timing summary:")
