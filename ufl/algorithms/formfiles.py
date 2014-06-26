@@ -48,6 +48,9 @@ class FileData(object):
     def __nonzero__(self):
         return bool(self.elements or self.coefficients or self.forms or self.expressions or\
                     self.object_names or self.object_by_name or self.reserved_objects)
+    def __bool__(self):
+        return bool(self.elements or self.coefficients or self.forms or self.expressions or\
+                    self.object_names or self.object_by_name or self.reserved_objects)
 
 infostring = """An exception occured during evaluation of form file.
 To help you find the location of the error, a temporary script

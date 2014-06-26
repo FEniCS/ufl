@@ -68,7 +68,7 @@ def elem_op_items(op_ind, indices, *args):
 
 def elem_op(op, *args):
     "UFL operator: Take the elementwise application of operator op on scalar values from one or more tensor arguments."
-    args = map(as_ufl, args)
+    args = list(map(as_ufl, args))
     sh = args[0].shape()
     ufl_assert(all(sh == x.shape() for x in args),
                "Cannot take elementwise operation with different shapes.")

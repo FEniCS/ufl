@@ -96,7 +96,7 @@ def subsubsection(s):
     if isinstance(s, tuple):
         title, body = s
         if isinstance(body, list):
-            body = itemize(map(str,body))
+            body = itemize(list(map(str,body)))
         return subsubsectiontemplate % (title, body)
 
 def subsection(s):

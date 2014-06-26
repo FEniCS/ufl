@@ -38,7 +38,7 @@ def lists(n):
     return [[] for i in xrange(n)]
 
 def len_items(sequence):
-    return map(len, sequence)
+    return list(map(len, sequence))
 
 def join_lines(sequence):
     return "\n".join(map(str, sequence))

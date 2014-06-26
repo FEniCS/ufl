@@ -178,6 +178,9 @@ class Zero(IndexAnnotated):
 
     def __nonzero__(self):
         return False
+    def __bool__(self):
+        return False
+
 
     def __float__(self):
         return 0.0

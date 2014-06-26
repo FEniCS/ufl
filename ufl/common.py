@@ -207,7 +207,7 @@ def slice_dict(dictionary, keys, default=None):
 
 def some_key(a_dict):
     "Return an arbitrary key from a dictionary."
-    return six.iterkeys(a_dict).next()
+    return six.next(six.iterkeys(a_dict))
 
 def camel2underscore(name):
     "Convert a CamelCaps string to underscore_syntax."

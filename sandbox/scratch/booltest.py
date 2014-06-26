@@ -7,6 +7,8 @@ class Equation:
 
    def __nonzero__(self):
        return repr(self.lhs) == repr(self.rhs)
+   def __bool__(self):
+       return repr(self.lhs) == repr(self.rhs)
 
    def __eq__(self, other):
        return isinstance(other, Equation) and\

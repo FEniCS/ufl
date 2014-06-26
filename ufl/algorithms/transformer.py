@@ -98,7 +98,7 @@ class Transformer(object):
         # Is this a handler that expects transformed children as input?
         if visit_children_first:
             # Yes, visit all children first and then call h.
-            r = h(o, *map(self.visit, o.operands()))
+            r = h(o, *list(map(self.visit, o.operands())))
         else:
             # No, this is a handler that handles its own children
             # (arguments self and o, where self is already bound)
