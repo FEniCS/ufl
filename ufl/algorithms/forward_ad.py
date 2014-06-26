@@ -22,7 +22,7 @@
 # Modified by Kristian B. Oelgaard, 2011
 # Modified by Jan Blechta, 2012.
 
-from itertools import izip
+from six.moves import zip
 from math import pi
 from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert
@@ -775,7 +775,7 @@ class CoefficientAD(ForwardAD):
         debug("self._v = %s" % self._v)
 
         # Find o among w
-        for (w, v) in izip(self._w, self._v):
+        for (w, v) in zip(self._w, self._v):
             if o == w:
                 return (w, v)
 
@@ -798,7 +798,7 @@ class CoefficientAD(ForwardAD):
             # Since we may actually have a tuple of oprimes and vs in a
             # 'mixed' space, sum over them all to get the complete inner
             # product. Using indices to define a non-compound inner product.
-            for (oprime, v) in izip(oprimes, self._v):
+            for (oprime, v) in zip(oprimes, self._v):
                 so, oi = as_scalar(oprime)
                 rv = len(v.shape())
                 oi1 = oi[:-rv]
@@ -844,7 +844,7 @@ class CoefficientAD(ForwardAD):
             return f
 
         # Find o among all w without any indexing, which makes this easy
-        for (w, v) in izip(self._w, self._v):
+        for (w, v) in zip(self._w, self._v):
             if o == w and isinstance(v, FormArgument):
                 # Case: d/dt [w + t v]
                 return (g, apply_grads(v))
@@ -882,7 +882,7 @@ class CoefficientAD(ForwardAD):
             return gprimeterm
 
         # Accumulate contributions from variations in different components
-        for (w, v) in izip(self._w, self._v):
+        for (w, v) in zip(self._w, self._v):
 
             # Analyse differentiation variable coefficient
             if isinstance(w, FormArgument):
@@ -944,7 +944,7 @@ class CoefficientAD(ForwardAD):
                 # Since we may actually have a tuple of oprimes and vs in a
                 # 'mixed' space, sum over them all to get the complete inner
                 # product. Using indices to define a non-compound inner product.
-                for (oprime, v) in izip(oprimes, self._v):
+                for (oprime, v) in zip(oprimes, self._v):
                     error("FIXME: Figure out how to do this with ngrads")
                     so, oi = as_scalar(oprime)
                     rv = len(v.shape())

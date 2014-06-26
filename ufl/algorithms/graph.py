@@ -21,7 +21,7 @@
 # Last changed: 2012-04-12
 
 from collections import defaultdict
-from itertools import imap, izip
+from six.moves import zip
 from heapq import heapify, heappop, heappush
 
 #from ufl import *
@@ -41,10 +41,10 @@ def len_items(sequence):
     return map(len, sequence)
 
 def join_lines(sequence):
-    return "\n".join(imap(str, sequence))
+    return "\n".join(map(str, sequence))
 
 def all_is(seq1, seq2):
-    return all(a is b for (a, b) in izip(seq1, seq2))
+    return all(a is b for (a, b) in zip(seq1, seq2))
 
 def reorder(sequence, ordering):
     "Rearrange the items in a sequence."

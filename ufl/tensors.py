@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from itertools import izip
+from six.moves import zip
 from ufl.log import warning, error
 from ufl.common import subdict, EmptyDict
 from ufl.assertions import ufl_assert
@@ -212,7 +212,7 @@ class ComponentTensor(WrapperType):
                    "Expecting a component matching the indices tuple.")
 
         # Map component to indices
-        for i, c in izip(indices, component):
+        for i, c in zip(indices, component):
             index_values.push(i, c)
 
         a = a.evaluate(x, mapping, (), index_values)

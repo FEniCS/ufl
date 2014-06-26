@@ -20,7 +20,7 @@
 # First added:  2009-02-22
 # Last changed: 2012-04-12
 
-from itertools import izip
+from six.moves import zip
 from ufl.common import Stack, StackDict
 from ufl.log import error
 from ufl.expr import Expr
@@ -61,7 +61,7 @@ class IndexRenumberingTransformer(VariableRenumberingTransformer):
     def multi_index(self, o):
         new_indices = tuple(map(self.index, o._indices))
         idims = o.index_dimensions()
-        new_idims = dict((b, idims[a]) for (a,b) in izip(o._indices, new_indices) if isinstance(a, Index))
+        new_idims = dict((b, idims[a]) for (a,b) in zip(o._indices, new_indices) if isinstance(a, Index))
         return MultiIndex(new_indices, new_idims)
 
     def index(self, o):
@@ -121,7 +121,7 @@ class IndexRenumberingTransformer2(VariableRenumberingTransformer):
         return tuple(ni)
 
     def define_indices(self, ii, values):
-        for i, v in izip(ii, values):
+        for i, v in zip(ii, values):
             #print "::: Defining index", repr(i), "= ", repr(v)
             if v is None:
                 if self.index_map.get(i) is None:
@@ -165,7 +165,7 @@ class IndexRenumberingTransformer2(VariableRenumberingTransformer):
     def multi_index(self, o):
         new_indices = tuple(map(self.index, o._indices))
         idims = o.index_dimensions()
-        new_idims = dict((b, idims[a]) for (a,b) in izip(o._indices, new_indices) if isinstance(a, Index))
+        new_idims = dict((b, idims[a]) for (a,b) in zip(o._indices, new_indices) if isinstance(a, Index))
         return MultiIndex(new_indices, new_idims)
 
     def index_annotated(self, o):

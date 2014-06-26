@@ -23,7 +23,7 @@ if 0:
     # Other way found on internet:
     import networkx as nx
     import matplotlib.pyplot as plt
-    import StringIO
+    import io
     from matplotlib.figure import Figure
 
     class MyGraph(nx.Graph):
@@ -32,7 +32,7 @@ if 0:
             fig = plt.figure(figsize=(2,2))
             ax = fig.add_subplot(111)
             nx.draw_shell(self, ax=ax)
-            output = StringIO.StringIO()
+            output = io.StringIO()
             fig.savefig(output,format='svg')
             plt.ion() # turn on interactive mode
             return output.getvalue()

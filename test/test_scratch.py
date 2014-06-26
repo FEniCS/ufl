@@ -9,7 +9,7 @@ Next look at the TODO markers below for places to edit.
 
 # These are thin wrappers on top of unittest.TestCase and unittest.main
 from ufltestcase import UflTestCase, main
-from itertools import izip
+from six.moves import zip
 # This imports everything external code will see from ufl
 from ufl import *
 from ufl.log import error, warning
@@ -57,7 +57,7 @@ class MockForwardAD:
             return f
 
         # Find o among all w without any indexing, which makes this easy
-        for (w, v) in izip(self._w, self._v):
+        for (w, v) in zip(self._w, self._v):
             if o == w and isinstance(v, FormArgument):
                 # Case: d/dt [w + t v]
                 return (g, apply_grads(v))
@@ -95,7 +95,7 @@ class MockForwardAD:
             return gprimeterm
 
         # Accumulate contributions from variations in different components
-        for (w, v) in izip(self._w, self._v):
+        for (w, v) in zip(self._w, self._v):
 
             # Analyse differentiation variable coefficient
             if isinstance(w, FormArgument):
@@ -157,7 +157,7 @@ class MockForwardAD:
                 # Since we may actually have a tuple of oprimes and vs in a
                 # 'mixed' space, sum over them all to get the complete inner
                 # product. Using indices to define a non-compound inner product.
-                for (oprime, v) in izip(oprimes, self._v):
+                for (oprime, v) in zip(oprimes, self._v):
                     error("FIXME: Figure out how to do this with ngrads")
                     so, oi = as_scalar(oprime)
                     rv = len(v.shape())

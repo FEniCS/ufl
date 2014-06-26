@@ -19,7 +19,7 @@
 #
 # Modified by Anders Logg, 2009
 
-from itertools import izip, chain
+from six.moves import zip
 import six
 from ufl.log import error
 from ufl.assertions import ufl_assert
@@ -185,7 +185,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
 
     # Build mapping from coefficient to argument
     m = {}
-    for (c, a) in izip(coefficients, arguments):
+    for (c, a) in zip(coefficients, arguments):
         ufl_assert(c.shape() == a.shape(), "Coefficient and argument shapes do not match!")
         if isinstance(c, Coefficient):
             m[c] = a

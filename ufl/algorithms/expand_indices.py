@@ -24,7 +24,7 @@ indices only."""
 # First added:  2008-04-19
 # Last changed: 2012-04-12
 
-from itertools import izip
+from six.moves import zip
 from ufl.log import error
 from ufl.common import Stack, StackDict
 from ufl.assertions import ufl_assert
@@ -168,7 +168,7 @@ class IndexExpander(ReuseTransformer):
         # Update index map with component tuple values
         comp = self.component()
         ufl_assert(len(indices) == len(comp), "Index/component mismatch.")
-        for i, v in izip(indices._indices, comp):
+        for i, v in zip(indices._indices, comp):
             self._index2value.push(i, v)
         self._components.push(())
 

@@ -3,6 +3,7 @@ from ufl.log import error
 from ufl.operatorbase import Operator
 from ufl.terminal import Terminal
 from ufl.common import fast_pre_traversal
+from six.moves import zip
 
 def _expr_equals0(a, b):
     # Cutoff for different type
@@ -29,7 +30,7 @@ def _expr_equals0(a, b):
             if len(aops) != len(bops):
                 return False
             # Add children for checking
-            input.extend(izip(aops, bops))
+            input.extend(zip(aops, bops))
         else:
             # Compare terminals
             if not a == b:
@@ -46,7 +47,7 @@ def _expr_equals1(a, b):
     if a is b:
         return True
     # Compare entire expression structure
-    for x,y in izip(fast_pre_traversal(a), fast_pre_traversal(b)):
+    for x,y in zip(fast_pre_traversal(a), fast_pre_traversal(b)):
         if type(x) != type(y):
             return False
         #if isinstance(Terminal, x) and not x == y:
@@ -64,11 +65,11 @@ def _expr_equals2(a, b):
         return True
     from ufl.algorithms.traversal import traverse_terminals, traverse_operands
     # Check for equal terminals
-    for x,y in izip(traverse_terminals(a), traverse_terminals(b)):
+    for x,y in zip(traverse_terminals(a), traverse_terminals(b)):
         if x != y:
             return False
     # Check for matching operator types
-    for x,y in izip(traverse_operands(a), traverse_operands(b)):
+    for x,y in zip(traverse_operands(a), traverse_operands(b)):
         if type(x) != type(y):
             return False
     # Equal terminals and operands, a and b must be equal
@@ -119,7 +120,7 @@ def _expr_equals3(self, other): # Much faster than the more complex algorithms a
         # Just let python handle the recursion
         #equal = self.operands() == other.operands()
         # Recurse manually to call _expr_equals3 directly without the class EQ overhead!
-        equal = all(_expr_equals3(a, b) for (a,b) in zip(self.operands(), other.operands()))
+        equal = all(_expr_equals3(a, b) for (a,b) in list(zip(self.operands(), other.operands())))
     else:
         # Compare terminal representations to include all terminal data
         #equal = repr(self) == repr(other)

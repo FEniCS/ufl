@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from itertools import izip
+from six.moves import zip
 from ufl.log import error
 from ufl.expr import Expr
 from ufl.operatorbase import WrapperType
@@ -51,12 +51,12 @@ class Indexed(WrapperType):
         self._ops = (expression, indices)
 
         # Error checking
-        for si, di in izip(shape, indices):
+        for si, di in zip(shape, indices):
             if isinstance(di, FixedIndex) and int(di) >= int(si):
                 error("Fixed index out of range!")
 
         # Build free index tuple and dimensions
-        idims = dict((i, s) for (i, s) in izip(indices._indices, shape)
+        idims = dict((i, s) for (i, s) in zip(indices._indices, shape)
                      if isinstance(i, Index))
         idims.update(expression.index_dimensions())
         fi = unique_indices(expression.free_indices() + indices._indices)

@@ -20,7 +20,8 @@
 # Modified by Anders Logg, 2009-2010.
 # Modified by Johan Hake, 2010.
 
-from itertools import izip, chain
+from itertools import chain
+from six.moves import zip
 from collections import namedtuple
 
 from ufl.log import error, warning, info
@@ -160,7 +161,7 @@ def build_coefficient_replace_map(coefficients, element_mapping=None):
             new_e = element_mapping.get(old_e, old_e)
             yield f.reconstruct(element=new_e, count=i)
     new_coefficients = list(remap(coefficients))
-    replace_map = dict(izip(coefficients, new_coefficients))
+    replace_map = dict(zip(coefficients, new_coefficients))
     return new_coefficients, replace_map
 
 # alternative implementation, kept as an example:

@@ -24,7 +24,7 @@ is more robust w.r.t. argument numbering than using repr."""
 # First added:  2008-11-26
 # Last changed: 2013-01-02
 
-from itertools import izip
+from six.moves import zip
 
 from ufl.log import error
 from ufl.terminal import Terminal
@@ -54,7 +54,7 @@ def cmp_expr(a, b):
         # ... MultiIndex? Careful not to depend on Index.count() here! This is placed first because it is most frequent.
         if isinstance(a, MultiIndex):
             # Make decision based on the first index pair possible
-            for i,j in izip(a._indices, b._indices):
+            for i,j in zip(a._indices, b._indices):
                 if isinstance(i, FixedIndex):
                     if isinstance(j, FixedIndex):
                         # Both are FixedIndex, sort by value
@@ -109,7 +109,7 @@ def cmp_expr(a, b):
                 return c
  
         # Sort by children in natural order
-        for (r, s) in izip(aops, bops):
+        for (r, s) in zip(aops, bops):
             # Ouch! This becomes worst case O(n) then?
             # FIXME: Perhaps replace with comparison of hash value? Is that stable between runs?
             c = cmp_expr(r, s)

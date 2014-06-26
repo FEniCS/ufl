@@ -21,7 +21,7 @@ from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.common import counted_init, EmptyDict
 from ufl.terminal import UtilityType
-from itertools import izip
+from six.moves import zip
 
 #--- Index types ---
 
@@ -229,7 +229,7 @@ def _make_idims(ii, shape):
     if shape is None:
         return None
     else:
-        return dict((j,d) for (j,d) in izip(ii, shape) if isinstance(j, Index))
+        return dict((j,d) for (j,d) in zip(ii, shape) if isinstance(j, Index))
 
 def as_multi_index(ii, shape=None):
     if isinstance(ii, MultiIndex):

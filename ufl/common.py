@@ -22,7 +22,7 @@
 # First added:  2008-08-05
 # Last changed: 2011-06-02
 
-from itertools import izip
+from six.moves import zip
 import six
 import operator
 import time
@@ -109,11 +109,11 @@ def xor(a, b):
 
 def or_tuples(seqa, seqb):
     "Return 'or' of all pairs in two sequences of same length."
-    return tuple(a or b for (a,b) in izip(seqa, seqb))
+    return tuple(a or b for (a,b) in zip(seqa, seqb))
 
 def and_tuples(seqa, seqb):
     "Return 'and' of all pairs in two sequences of same length."
-    return tuple(a and b for (a,b) in izip(seqa, seqb))
+    return tuple(a and b for (a,b) in zip(seqa, seqb))
 
 def iter_tree(tree):
     """Iterate over all nodes in a tree represented
@@ -398,7 +398,7 @@ def strides(shape):
 
 def component_to_index(component, shape):
     i = 0
-    for (c,s) in izip(component, strides(shape)):
+    for (c,s) in zip(component, strides(shape)):
         i += c*s
     return i
 
@@ -412,7 +412,7 @@ def index_to_component(index, shape):
         index = b
         component.append(a)
     assert all(c >= 0 for c in component)
-    assert all(c < s for (c,s) in izip(component, shape))
+    assert all(c < s for (c,s) in zip(component, shape))
     return tuple(component)
 
 def topological_sorting(nodes, edges):
