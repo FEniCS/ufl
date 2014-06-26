@@ -130,7 +130,7 @@ def _partial_inner(a, b):
     "UFL operator: Take the partial inner product of a and b."
     ar, br = a.rank(), b.rank()
     n = min(ar, br)
-    return contraction(a, range(n-ar, n-ar+n), b, range(n))
+    return contraction(a, list(range(n-ar, n-ar+n)), b, list(range(n)))
 
 def dot(a, b):
     "UFL operator: Take the dot product of a and b."

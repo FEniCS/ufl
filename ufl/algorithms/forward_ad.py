@@ -22,7 +22,7 @@
 # Modified by Kristian B. Oelgaard, 2011
 # Modified by Jan Blechta, 2012.
 
-from six.moves import zip
+from six.moves import zip, range
 from math import pi
 from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert
@@ -312,7 +312,7 @@ class ForwardAD(Transformer):
         # Get operands and their derivatives
         ops2, dops2 = unzip(ops)
         o = self.reuse_if_possible(o, *ops2)
-        for i in xrange(len(ops)):
+        for i in range(len(ops)):
             # Get scalar representation of differentiated value of operand i
             dop = dops2[i]
             dop, ii = as_scalar(dop)

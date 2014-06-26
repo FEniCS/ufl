@@ -21,7 +21,7 @@
 # Last changed: 2012-04-12
 
 from collections import defaultdict
-from six.moves import zip
+from six.moves import zip, range
 from heapq import heapify, heappop, heappush
 
 #from ufl import *
@@ -35,7 +35,7 @@ from ufl.classes import Terminal
 #--- Basic utility functions ---
 
 def lists(n):
-    return [[] for i in xrange(n)]
+    return [[] for i in range(n)]
 
 def len_items(sequence):
     return list(map(len, sequence))
@@ -253,7 +253,7 @@ def depth_first_ordering(G):
 
     # Make a list and a heap of the same items
     n = len(V)
-    q = [HeapItem(Ein_count, Eout_count, i) for i in xrange(n)]
+    q = [HeapItem(Ein_count, Eout_count, i) for i in range(n)]
     heapify(q)
 
     ordering = []

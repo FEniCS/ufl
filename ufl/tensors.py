@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from six.moves import zip
+from six.moves import zip, range
 from ufl.log import warning, error
 from ufl.common import subdict, EmptyDict
 from ufl.assertions import ufl_assert
@@ -370,10 +370,10 @@ def relabel(A, indexmap):
 # --- Experimental support for dyadic notation:
 
 def unit_list(i, n):
-    return [(1 if i == j else 0) for j in xrange(n)]
+    return [(1 if i == j else 0) for j in range(n)]
 
 def unit_list2(i, j, n):
-    return [[(1 if (i == i0 and j == j0) else 0) for j0 in xrange(n)] for i0 in xrange(n)]
+    return [[(1 if (i == i0 and j == j0) else 0) for j0 in range(n)] for i0 in range(n)]
 
 def unit_vector(i, d):
     "UFL value: A constant unit vector in direction i with dimension d."
@@ -410,7 +410,7 @@ def unit_indexed_tensor(shape, component):
         return 0, ()
     jj = indices(r)
     es = []
-    for i in xrange(r):
+    for i in range(r):
         s = shape[i]
         c = component[i]
         j = jj[i]
@@ -426,7 +426,7 @@ def unwrap_list_tensor(lt):
     sh = lt.shape()
     subs = lt.operands()
     if len(sh) == 1:
-        for s in xrange(sh[0]):
+        for s in range(sh[0]):
             components.append(((s,),subs[s]))
     else:
         for s,sub in enumerate(subs):
