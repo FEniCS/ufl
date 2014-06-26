@@ -20,9 +20,9 @@ if isinstance(maintenance, int): # Numbered release
 else: # Pre-release (-alpha, -beta, -rc) or dev version (+, .0+)
     version = "%d.%d%s" % (major, minor, maintenance)
 
-print
-print version
-print
+print()
+print(version)
+print()
 
 scripts = [pjoin("scripts", "ufl-analyse"),
            pjoin("scripts", "ufl-convert"),
