@@ -322,7 +322,7 @@ def preprocess(form, object_names=None):
     # A coarse profiling implementation TODO: Add counting of nodes, Add memory usage
     tic.end()
     if preprocess.enable_profiling:
-        print tic
+        print(tic)
 
     return form_data
 preprocess.enable_profiling = False
@@ -543,7 +543,7 @@ def preprocess_expression(expr, object_names=None):
     # A coarse profiling implementation TODO: Add counting of nodes, Add memory usage
     tic.end()
     if preprocess_expression.enable_profiling:
-        print tic
+        print(tic)
 
     return expr_data
 preprocess_expression.enable_profiling = False

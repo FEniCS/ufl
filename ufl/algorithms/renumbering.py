@@ -113,8 +113,8 @@ class IndexRenumberingTransformer2(VariableRenumberingTransformer):
             ni.append(v)
             #print "::: Defining new index", repr(i), "= ", repr(v)
             if self.index_map.get(i) is not None:
-                print ";"*80
-                print i
+                print(";"*80)
+                print(i)
                 self.print_visit_stack()
                 error("Trying to define already defined index!")
             self.index_map.push(i, v)
@@ -125,14 +125,14 @@ class IndexRenumberingTransformer2(VariableRenumberingTransformer):
             #print "::: Defining index", repr(i), "= ", repr(v)
             if v is None:
                 if self.index_map.get(i) is None:
-                    print ";"*80
-                    print i
+                    print(";"*80)
+                    print(i)
                     self.print_visit_stack()
                     error("Trying to undefine index that isn't defined!")
             else:
                 if self.index_map.get(i) is not None:
-                    print ";"*80
-                    print i
+                    print(";"*80)
+                    print(i)
                     self.print_visit_stack()
                     error("Trying to define already defined index!")
             self.index_map.push(i, v)
@@ -156,8 +156,8 @@ class IndexRenumberingTransformer2(VariableRenumberingTransformer):
             return o
         i = self.index_map.get(o)
         if i is None:
-            print ";"*80
-            print o
+            print(";"*80)
+            print(o)
             self.print_visit_stack()
             error("Index %s isn't defined!" % repr(o))
         return i

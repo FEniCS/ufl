@@ -36,7 +36,7 @@ def print_expr_statistics():
     for k in sorted(Expr._class_usage_statistics.keys()):
         born = Expr._class_usage_statistics[k]
         live = born - Expr._class_del_statistics.get(k, 0)
-        print("%40s:  %10d  /  %10d" % (k.__name__, live, born))
+        print(("%40s:  %10d  /  %10d" % (k.__name__, live, born)))
 
 class Expr(object):
     "Base class for all UFL objects."

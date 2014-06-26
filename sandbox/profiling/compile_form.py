@@ -47,12 +47,12 @@ def print_timelog():
     format = "%%%ds: \t%%.2f" % msize
     for l, m, t in time_log:
         lines.append(format % (m, t))
-    print("\n".join(lines))
+    print(("\n".join(lines)))
 
 from ufl.algorithms import load_forms, expand_indices, Graph, partition
 
 filename = sys.argv[1] if len(sys.argv) > 1 else "../../demo/PoissonSystem.ufl"
-print("Trying to load file ", filename)
+print(("Trying to load file ", filename))
 tic("load_forms")
 forms = load_forms(filename)
 toc()
@@ -61,13 +61,13 @@ for form in forms:
     fd = form.form_data()
     f = fd.form
     print()
-    print("="*80)
-    print("== Handling form %s:" % fd.name)
+    print(("="*80))
+    print(("== Handling form %s:" % fd.name))
     
     for itg in f.integrals():
         print()
-        print("="*80)
-        print("== Preparing integral %s:" % str(itg.measure()))
+        print(("="*80))
+        print(("== Preparing integral %s:" % str(itg.measure())))
         idstr = "(%s, %s)" % (fd.name, str(itg.measure()))
     
         e = itg.integrand()
@@ -87,20 +87,20 @@ for form in forms:
         toc()
 
         print()
-        print("="*80)
+        print(("="*80))
         print("== Partition sizes:")
-        print("|V| =", len(G.V()))
-        print("|E| =", len(G.E()))
-        print("|P| =", len(P))
+        print(("|V| =", len(G.V())))
+        print(("|E| =", len(G.E())))
+        print(("|P| =", len(P)))
         for i, p in enumerate(P):
-            print("|p%d| =" % i, len(p))
+            print(("|p%d| =" % i, len(p)))
 
         print()
-        print("="*80)
+        print(("="*80))
         print("== Showing all partitions:")
         for key, part in six.iteritems(P):
-            print("-"*60)
-            print("-- Partition", key)
+            print(("-"*60))
+            print(("-- Partition", key))
 
             for i in part:
                 v = V[i]
@@ -108,10 +108,10 @@ for form in forms:
                     ops = " applied to (%s)" % ", ".join("s%d" % j for j in Vout[i])
                 else:
                     ops = ""
-                print("s%d = %s%s" % (i, v._uflclass.__name__, ops))
+                print(("s%d = %s%s" % (i, v._uflclass.__name__, ops)))
 
 print()
-print("="*80)
+print(("="*80))
 print("== Timing summary:")
 print_timelog()
 

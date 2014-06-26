@@ -16,5 +16,5 @@ class C(A, B):
         self.c = 3
 
 c = C()
-print(vars(c))
+print((vars(c)))
 

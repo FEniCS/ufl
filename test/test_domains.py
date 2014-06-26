@@ -27,9 +27,9 @@ class RegionConstructionTestCase(UflTestCase):
             if 0:
                 print()
                 for D in (D1, D2):
-                    print('id', id(D))
-                    print('str', str(D))
-                    print('repr', repr(D))
+                    print(('id', id(D)))
+                    print(('str', str(D)))
+                    print(('repr', repr(D)))
                     print()
             self.assertEqual(D1, D2)
 

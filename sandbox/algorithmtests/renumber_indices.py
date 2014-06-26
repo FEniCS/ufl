@@ -10,31 +10,31 @@ A = Function(telement)
 I = Identity(2)
 
 def printit(a, tree=False):
-    print("-"*80)
+    print(("-"*80))
     print() 
     print("a =")
-    print(str(a))
+    print((str(a)))
     if isinstance(a, str):
         return
     if tree:
         print() 
-        print(tree_format(a))
+        print((tree_format(a)))
 
     a = renumber_indices(a)
     print() 
     print("renumbered a =")
-    print(str(a))
+    print((str(a)))
     if tree:
         print() 
-        print(tree_format(a))
+        print((tree_format(a)))
 
     a = expand_indices(a)
     print() 
     print("expanded a =")
-    print(str(a))
+    print((str(a)))
     if tree:
         print() 
-        print(tree_format(a))
+        print((tree_format(a)))
     print() 
 
 if __name__ == "__main__":

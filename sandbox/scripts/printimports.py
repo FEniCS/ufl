@@ -21,5 +21,5 @@ for f in files:
                 d = m.groups()[0]
                 defs.append(d)
     print()
-    print("from %s%s import %s" % (prefix, f[:-3], ", ".join(defs)))
+    print(("from %s%s import %s" % (prefix, f[:-3], ", ".join(defs))))
         

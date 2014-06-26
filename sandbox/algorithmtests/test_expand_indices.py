@@ -12,13 +12,13 @@ def test1():
         fd = f.form_data()
         g = fd.form
         print() 
-        print(fd.name)
+        print((fd.name))
         print() 
-        print(str(f))
+        print((str(f)))
         print() 
-        print(str(g))
+        print((str(g)))
         print() 
-        print(str(expand_indices(g)))
+        print((str(expand_indices(g))))
         print() 
 
 def test2():
@@ -27,11 +27,11 @@ def test2():
     u = TrialFunction(element)
     
     a = div(grad(v))*u*dx
-    print(tree_format(a))
+    print((tree_format(a)))
     a = expand_derivatives(a)
-    print(tree_format(a))
+    print((tree_format(a)))
     a = expand_indices(a)
-    print(tree_format(a))
+    print((tree_format(a)))
 
 if __name__ == "__main__":
     test2()

@@ -43,8 +43,8 @@ def run_suite(tests):
 def check_which_ufl():
     import ufl
     print("******")
-    print("* Testing ufl version", ufl.__version__)
-    print("* which is installed at:", ufl.__file__)
+    print(("* Testing ufl version", ufl.__version__))
+    print(("* which is installed at:", ufl.__file__))
     print("******")
 
 def main(args):

@@ -400,25 +400,25 @@ if __name__ == "__main__":
     Ein = G.Ein()
     Eout = G.Eout()
 
-    print
-    print "Entire graph:"
+    print()
+    print("Entire graph:")
     for iv, v in enumerate(V):
-        print "Vertex %03d: %s" % (iv, v)
+        print("Vertex %03d: %s" % (iv, v))
     for ie, e in enumerate(E):
-        print "Edge %03d: %s" % (ie, e)
+        print("Edge %03d: %s" % (ie, e))
     for iv, eout in enumerate(Eout):
-        print "Edges out for vertex %03d: %s" % (iv, eout)
+        print("Edges out for vertex %03d: %s" % (iv, eout))
     for iv, ein in enumerate(Ein):
-        print "Edges in for vertex %03d: %s" % (iv, ein)
-    print
+        print("Edges in for vertex %03d: %s" % (iv, ein))
+    print()
 
     from ufl.common import sstr
     partitions, keys = partition(G, string_set_criteria)
     for k in partitions:
-        print
-        print "Partition with key", sstr(k)
+        print()
+        print("Partition with key", sstr(k))
         for iv in partitions[k]:
-            print "Vertex %03d: %s" % (iv, V[iv])
+            print("Vertex %03d: %s" % (iv, V[iv]))
 
 if __name__ == "__main_":
     expr = test_expr()
@@ -433,28 +433,28 @@ if __name__ == "__main_":
     Eout_count = len_items(Eout)
     dfo = depth_first_ordering(G)
 
-    print
-    print "expr:"
-    print expr
-    print
-    print "e2:"
-    print e2
-    print
-    print tree_format(expr)
-    print
-    print format_graph(G)
-    print
-    print "Ein:"
-    print join_lines(Ein)
-    print
-    print "Eout:"
-    print join_lines(Eout)
-    print
-    print "Ein_count:"
-    print join_lines(Ein_count)
-    print
-    print "Eout_count:"
-    print join_lines(Eout_count)
-    print
-    print "dfo:"
-    print join_lines(reorder(V, dfo))
+    print()
+    print("expr:")
+    print(expr)
+    print()
+    print("e2:")
+    print(e2)
+    print()
+    print(tree_format(expr))
+    print()
+    print(format_graph(G))
+    print()
+    print("Ein:")
+    print(join_lines(Ein))
+    print()
+    print("Eout:")
+    print(join_lines(Eout))
+    print()
+    print("Ein_count:")
+    print(join_lines(Ein_count))
+    print()
+    print("Eout_count:")
+    print(join_lines(Eout_count))
+    print()
+    print("dfo:")
+    print(join_lines(reorder(V, dfo)))

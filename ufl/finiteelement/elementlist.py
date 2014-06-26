@@ -47,15 +47,15 @@ def register_alias(alias, to):
     aliases[alias] = to
 
 def show_elements():
-    print "Showing all registered elements:"
+    print("Showing all registered elements:")
     for k in sorted(ufl_elements.keys()):
         (family, short_name, sobolev_space, mapping, degree_range, cellnames) = ufl_elements[k]
-        print
-        print "Finite Element Family: %s, %s" % (repr(family), repr(short_name))
-        print "Sobolev space: %s" % (sobolev_space,)
-        print "Mapping: %s" % (mapping,)
-        print "Degree range: ", degree_range
-        print "Defined on cellnames:" , cellnames
+        print()
+        print("Finite Element Family: %s, %s" % (repr(family), repr(short_name)))
+        print("Sobolev space: %s" % (sobolev_space,))
+        print("Mapping: %s" % (mapping,))
+        print("Degree range: ", degree_range)
+        print("Defined on cellnames:" , cellnames)
 
 # FIXME: Consider cleanup of element names. Use notation from periodic table as the main, keep old names as compatibility aliases.
 

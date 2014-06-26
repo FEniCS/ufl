@@ -56,24 +56,24 @@ a_J = derivative(a_F, u, w)
 
 forms = [a_f, a_F, a_J]
 
-print("=== f" + "="*70)
-print(str(a_f))
+print(("=== f" + "="*70))
+print((str(a_f)))
 
-print("=== F" + "="*70)
-print(str(a_F))
+print(("=== F" + "="*70))
+print((str(a_F)))
 
-print("=== J" + "="*70)
-print(str(a_J))
+print(("=== J" + "="*70))
+print((str(a_J)))
 
 
-print("=== f" + "="*70)
-print(str(strip_variables(a_f.form_data().form)))
+print(("=== f" + "="*70))
+print((str(strip_variables(a_f.form_data().form))))
 
-print("=== F" + "="*70)
-print(str(strip_variables(a_F.form_data().form)))
+print(("=== F" + "="*70))
+print((str(strip_variables(a_F.form_data().form))))
 
-print("=== J" + "="*70)
-print(str(strip_variables(a_J.form_data().form)))
+print(("=== J" + "="*70))
+print((str(strip_variables(a_J.form_data().form))))
 print() 
 #print str(expand_indices(strip_variables(a_J.form_data().form))) # pretty large expression...
 

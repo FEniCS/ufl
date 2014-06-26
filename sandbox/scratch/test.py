@@ -31,8 +31,8 @@ class Function(object):
 V = ufl.FiniteElement("CG", "triangle", 1)
 v = ufl.TestFunction(V)
 f = Function(V, 3)
-print(f._element)
-print(f._a)
+print((f._element))
+print((f._a))
 
 L = f*v*ufl.dx
 print(L)

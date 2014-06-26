@@ -21,6 +21,6 @@ b = fd.form
 print(b)
 #{ sum_{i_0} ((x)[i_0]) * (((x)[i_0]) + -1 * ((x)[i_0]))  } * dx0
 
-print(expand_indices(b))
+print((expand_indices(b)))
 #{ ((x)[0]) * (((x)[0]) + -1 * ((x)[0])) + ((x)[1]) * (((x)[1]) + -1 * ((x)[1])) } * dx0
 

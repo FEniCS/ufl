@@ -85,13 +85,13 @@ def print_collisions():
     for k in keys:
         co = collisions.get(k,0)
         ca = equalscalls[k]
-        print(k, co, ca, int(100.0*co/ca))
+        print((k, co, ca, int(100.0*co/ca)))
     print("Recursion statistics:")
     keys = sorted(keys, key=lambda x: equalsrecursed.get(x,0))
     for k in keys:
         r = equalsrecursed.get(k,0)
         ca = equalscalls[k]
-        print(k, r, ca, int(100.0*r/ca))
+        print((k, r, ca, int(100.0*r/ca)))
     print()
 
 def _expr_equals3(self, other): # Much faster than the more complex algorithms above!

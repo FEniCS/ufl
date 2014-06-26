@@ -205,7 +205,7 @@ def ufl2dot(expression, formname="a", nodeoffset=0, begin=True, end=True, labeli
         labeller = ReprLabeller()
     elif labeling == "compact":
         labeller = CompactLabeller(object_names or {})
-        print object_names
+        print(object_names)
 
     if isinstance(expression, Form):
         form = expression

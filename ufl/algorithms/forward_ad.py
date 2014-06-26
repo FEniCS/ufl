@@ -85,26 +85,26 @@ class ForwardAD(Transformer):
 
         if (c is not None):
             if r[0].free_indices() != c[0].free_indices():
-                print "="*70
-                print "=== f: Difference between cache and recomputed indices:"
-                print str(c[0].free_indices())
-                print str(r[0].free_indices())
-                print "="*70
+                print("="*70)
+                print("=== f: Difference between cache and recomputed indices:")
+                print(str(c[0].free_indices()))
+                print(str(r[0].free_indices()))
+                print("="*70)
             if r[1].free_indices() != c[1].free_indices():
-                print "="*70
-                print "=== df: Difference between cache and recomputed indices:"
-                print str(c[1].free_indices())
-                print str(r[1].free_indices())
-                print "="*70
+                print("="*70)
+                print("=== df: Difference between cache and recomputed indices:")
+                print(str(c[1].free_indices()))
+                print(str(r[1].free_indices()))
+                print("="*70)
             if (r != c):
-                print "="*70
-                print "=== Difference between cache and recomputed:"
-                print str(c[0])
-                print str(c[1])
-                print "-"*40
-                print str(r[0])
-                print str(r[1])
-                print "="*70
+                print("="*70)
+                print("=== Difference between cache and recomputed:")
+                print(str(c[0]))
+                print(str(c[1]))
+                print("-"*40)
+                print(str(r[0]))
+                print(str(r[1]))
+                print("="*70)
 
         # NB! Cache added in after copying from Transformer
         self._cache[o] = r
@@ -355,10 +355,10 @@ class ForwardAD(Transformer):
 
         # Debugging prints, should never happen:
         if not is_true_ufl_scalar(f):
-            print ":"*80
-            print "f =", str(f)
-            print "g =", str(g)
-            print ":"*80
+            print(":"*80)
+            print("f =", str(f))
+            print("g =", str(g))
+            print(":"*80)
         ufl_assert(is_true_ufl_scalar(f), "Expecting scalar expression f in f**g.")
         ufl_assert(is_true_ufl_scalar(g), "Expecting scalar expression g in f**g.")
 
@@ -833,11 +833,11 @@ class CoefficientAD(ForwardAD):
 
         def apply_grads(f):
             if not isinstance(f, FormArgument):
-                print ','*60
-                print f
-                print o
-                print g
-                print ','*60
+                print(','*60)
+                print(f)
+                print(o)
+                print(g)
+                print(','*60)
                 error("What?")
             for i in range(ngrads):
                 f = Grad(f)

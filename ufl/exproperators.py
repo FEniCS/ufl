@@ -353,14 +353,14 @@ def analyse_key(ii, rank):
                     # TODO: Use ListTensor to support partial slices?
                     error("Partial slices not implemented, only complete slices like [:]")
             else:
-                print('\n', '='*60)
-                print(Index, id(Index))
-                print(type(i), id(type(i)))
-                print(str(i))
-                print(repr(i))
-                print(type(i).__module__)
-                print(Index.__module__)
-                print('\n', '='*60)
+                print(('\n', '='*60))
+                print((Index, id(Index)))
+                print((type(i), id(type(i))))
+                print((str(i)))
+                print((repr(i)))
+                print((type(i).__module__))
+                print((Index.__module__))
+                print(('\n', '='*60))
                 error("Can't convert this object to index: %r" % i)
 
             # Store index in pre or post list

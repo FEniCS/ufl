@@ -36,7 +36,7 @@ def test():
     forms = [Form(1), Form(2), Form(1), Form(0)]
     for i, f in enumerate(forms):
         for j, g in enumerate(forms):
-            print('\nTesting forms', i, j, f, g)
+            print(('\nTesting forms', i, j, f, g))
             print({ f: 42, g: 84 })
             seq = f.a == g.a
             sne = f.a != g.a

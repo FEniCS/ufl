@@ -34,17 +34,17 @@ def devstr(d):
 
 print("Cofactors:")
 print()
-print(cofacstr(2))
+print((cofacstr(2)))
 print()
-print(cofacstr(3))
+print((cofacstr(3)))
 print()
-print(cofacstr(4))
+print((cofacstr(4)))
 print()
 
 print("Deviatoric:")
 print()
-print(devstr(2))
+print((devstr(2)))
 print()
-print(devstr(3))
+print((devstr(3)))
 print()
 

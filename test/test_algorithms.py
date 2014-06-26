@@ -41,26 +41,26 @@ class AlgorithmsTestCase(UflTestCase):
 
         if False:
             print()
-            print(form_info(a))
+            print((form_info(a)))
             print()
-            print(form_info(L))
+            print((form_info(L)))
             print()
-            print(form_info(b))
+            print((form_info(b)))
             print()
 
         if False:
             print()
             print([str(c) for c in self.coefficients])
             print()
-            print(str(self.forms[2]))
+            print((str(self.forms[2])))
             print()
             print([str(b) for b in extract_arguments(self.forms[2])])
             print()
-            print(self.coefficients)
+            print((self.coefficients))
             print()
-            print(repr(self.forms[2]))
+            print((repr(self.forms[2])))
             print()
-            print(extract_arguments(self.forms[2]))
+            print((extract_arguments(self.forms[2])))
             print()
 
     def test_arguments(self):

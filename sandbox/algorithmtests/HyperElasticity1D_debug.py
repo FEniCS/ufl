@@ -21,24 +21,24 @@ J = derivative(-F, u)
 forms = [f, F, J]
 
 
-print("=== f" + "="*70)
-print(str(f))
+print(("=== f" + "="*70))
+print((str(f)))
 
-print("=== F" + "="*70)
-print(str(F))
+print(("=== F" + "="*70))
+print((str(F)))
 
-print("=== J" + "="*70)
-print(str(J))
+print(("=== J" + "="*70))
+print((str(J)))
 
 
-print("=== f" + "="*70)
-print(str(strip_variables(f.form_data().form)))
+print(("=== f" + "="*70))
+print((str(strip_variables(f.form_data().form))))
 
-print("=== F" + "="*70)
-print(str(strip_variables(F.form_data().form)))
+print(("=== F" + "="*70))
+print((str(strip_variables(F.form_data().form))))
 
-print("=== J" + "="*70)
-print(str(strip_variables(J.form_data().form)))
+print(("=== J" + "="*70))
+print((str(strip_variables(J.form_data().form))))
 print() 
-print(str(expand_indices(strip_variables(J.form_data().form))))
+print((str(expand_indices(strip_variables(J.form_data().form)))))
 
