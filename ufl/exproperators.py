@@ -22,7 +22,7 @@ Sum and its superclass Expr."""
 # First added:  2008-08-18
 # Last changed: 2013-01-03
 
-from itertools import chain, izip
+from itertools import chain
 
 from ufl.log import error
 from ufl.assertions import ufl_assert

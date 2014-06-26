@@ -23,7 +23,6 @@
 # First added:  2008-03-03
 # Last changed: 2012-08-16
 
-from itertools import izip
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.common import product, index_to_component, component_to_index, istr, EmptyDict

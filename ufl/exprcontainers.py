@@ -22,7 +22,6 @@ from ufl.assertions import ufl_assert
 from ufl.common import EmptyDict
 from ufl.expr import Expr
 from ufl.operatorbase import Operator, WrapperType
-from itertools import izip, chain
 
 #--- Non-tensor types ---
 

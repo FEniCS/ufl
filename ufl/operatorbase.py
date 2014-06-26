@@ -19,7 +19,6 @@
 #
 # Modified by Anders Logg, 2008
 
-from itertools import imap
 from ufl.expr import Expr
 from ufl.log import error
 
