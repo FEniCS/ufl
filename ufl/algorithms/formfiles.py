@@ -87,7 +87,7 @@ def execute_ufl_code(uflcode, filename):
     namespace = {}
     try:
         pycode = "from ufl import *\n" + uflcode
-        exec pycode in namespace
+        exec(pycode, namespace)
     except:
         # Dump python code for debugging if this fails
         basename = os.path.splitext(os.path.basename(filename))[0]

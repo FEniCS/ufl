@@ -47,7 +47,7 @@ def execute_codes():
 
         namespace = {}
         try:
-            exec (code_prefix + code + code_suffix) in namespace
+            exec((code_prefix + code + code_suffix), namespace)
         except:
             print("Code execution failed.")
 

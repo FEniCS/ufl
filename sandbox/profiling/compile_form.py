@@ -98,7 +98,7 @@ for form in forms:
         print()
         print("="*80)
         print("== Showing all partitions:")
-        for key, part in P.iteritems():
+        for key, part in six.iteritems(P):
             print("-"*60)
             print("-- Partition", key)
 

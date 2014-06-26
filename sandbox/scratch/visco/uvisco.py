@@ -165,8 +165,8 @@ def find_the_memory_thief(expr):
         n = type(e).__name__
         memuse[n] = max(memuse.get(n,0), getsizeof(e))
         tmemuse[n] = tmemuse.get(n,0) + getsizeof(e)
-    worst = sorted(memuse.items(), key=lambda x: x[1])
-    tworst = sorted(tmemuse.items(), key=lambda x: x[1])
+    worst = sorted(list(memuse.items()), key=lambda x: x[1])
+    tworst = sorted(list(tmemuse.items()), key=lambda x: x[1])
     print()
     print('ids:', len(ids))
     print('reprtot bytes:', reprtot)

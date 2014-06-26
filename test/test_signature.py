@@ -63,7 +63,7 @@ class TerminalHashDataTestCase(UflTestCase):
             # ignoring the original terminals.
             assert isinstance(d, dict)
             # Sorting values by hash should be stable at least in a single test run:
-            t = tuple(sorted(d.values(), key=lambda x: hash(x)))
+            t = tuple(sorted(list(d.values()), key=lambda x: hash(x)))
             #print t
 
             # Add the hashdata values tuple to sets based on itself, its hash,

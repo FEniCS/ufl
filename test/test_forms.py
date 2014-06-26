@@ -250,7 +250,7 @@ class TestMeasure(UflTestCase):
             self.assertIsNone(domain.data())
 
             if fd.subdomain_data:
-                fd_subdomain_data, = fd.subdomain_data.values()
+                fd_subdomain_data, = list(fd.subdomain_data.values())
                 self.assertIs(fd_subdomain_data.get('cell'), subdomain_data)
                 self.assertTrue('exterior_facet' not in fd_subdomain_data)
             else:

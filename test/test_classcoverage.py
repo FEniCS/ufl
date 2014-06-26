@@ -77,9 +77,9 @@ class ClasscoverageTest(UflTestCase):
     def testExports(self):
         "Verify that ufl.classes exports all Expr subclasses."
         all_expr_classes = []
-        for m in vars(ufl).values():
+        for m in list(vars(ufl).values()):
             if isinstance(m, type(ufl)):
-                for c in vars(m).values():
+                for c in list(vars(m).values()):
                     if isinstance(c, type) and issubclass(c, Expr):
                         all_expr_classes.append(c)
         missing_classes = set(c.__name__ for c in all_expr_classes)\
