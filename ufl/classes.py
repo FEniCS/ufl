@@ -87,7 +87,7 @@ from ufl.equation import Equation
 from ufl import exproperators as __exproperators
 
 # Collect all classes in sets automatically classified by some properties
-__all_classes       = (c for c in locals().values() if isinstance(c, type))
+__all_classes       = (c for c in list(locals().values()) if isinstance(c, type))
 all_ufl_classes     = set(c for c in __all_classes if issubclass(c, Expr))
 abstract_classes    = set(s for c in all_ufl_classes for s in c.mro()[1:-1])
 abstract_classes.remove(Coefficient)

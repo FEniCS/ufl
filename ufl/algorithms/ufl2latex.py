@@ -591,7 +591,7 @@ def code2latex(G, partitions, formdata):
     Vout = extract_outgoing_vertex_connections(G)
 
     # Sort dependency sets in a sensible way (preclude to a good quadrature code generator)
-    deplistlist = dependency_sorting(partitions.keys(), len(bfn))
+    deplistlist = dependency_sorting(list(partitions.keys()), len(bfn))
 
     def format_v(i):
         return "s_{%d}" % i

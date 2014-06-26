@@ -214,7 +214,7 @@ def accumulate_integrands_with_same_metadata(integrals):
         by_cdid[cdid] = (integrands_sum, cd)
 
     # Sort integrands canonically by integrand first then compiler data
-    return sorted(by_cdid.values(), key=expr_tuple_key)
+    return sorted(list(by_cdid.values()), key=expr_tuple_key)
 
 def build_integral_data(integrals, domains, common_domain):
     integral_data = []

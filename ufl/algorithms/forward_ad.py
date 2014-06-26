@@ -60,7 +60,7 @@ class ForwardAD(Transformer):
         Transformer.__init__(self)
         ufl_assert(all(isinstance(i, Index) for i in var_free_indices), \
             "Expecting Index objects.")
-        ufl_assert(all(isinstance(i, Index) for i in var_index_dimensions.keys()), \
+        ufl_assert(all(isinstance(i, Index) for i in list(var_index_dimensions.keys())), \
             "Expecting Index objects.")
         self._var_shape = var_shape
         self._var_free_indices = var_free_indices

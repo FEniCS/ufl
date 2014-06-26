@@ -306,7 +306,7 @@ def preprocess(form, object_names=None):
 
     # TODO: Support multiple domains throughout jit chain. For now keep a backwards compatible data structure.
     ufl_assert(len(form_data.num_sub_domains) == 1, "Not used for multiple domains yet. Might work.")
-    form_data.num_sub_domains, = form_data.num_sub_domains.values()
+    form_data.num_sub_domains, = list(form_data.num_sub_domains.values())
 
 
     # --- Caching

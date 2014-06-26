@@ -34,7 +34,7 @@ class Replacer(ReuseTransformer):
     def __init__(self, mapping):
         ReuseTransformer.__init__(self)
         self._mapping = mapping
-        ufl_assert(all(isinstance(k, Terminal) for k in mapping.keys()), \
+        ufl_assert(all(isinstance(k, Terminal) for k in list(mapping.keys())), \
             "This implementation can only replace Terminal objects.")
 
     def terminal(self, o):
