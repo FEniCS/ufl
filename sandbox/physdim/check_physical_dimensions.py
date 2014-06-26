@@ -2,6 +2,7 @@
 import operator
 from ufl.algorithms import Transformer, expand_compounds
 from physical_dimensions import PhysicalDimension
+from functools import reduce
 
 class PhysicalDimensionChecker(Transformer):
     def __init__(self, xdim, function_dims):
