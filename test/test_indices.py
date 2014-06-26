@@ -185,7 +185,7 @@ class IndexTestCase(UflTestCase):
         # define the components of a fourth order tensor
         Cijkl = u[i]*v[j]*f[k]*g[l]
         self.assertEqual(Cijkl.rank(), 0)
-        self.assertEqual(set(Cijkl.free_indices()), set((i,j,k,l)))
+        self.assertEqual(set(Cijkl.free_indices()), {i,j,k,l})
         
         # make it a tensor
         C = as_tensor(Cijkl, (i,j,k,l))
@@ -198,7 +198,7 @@ class IndexTestCase(UflTestCase):
         self.assertSameIndices(A, ())
         A = C[:,:,i,j]
         self.assertEqual(A.rank(), 2)
-        self.assertEqual(set(A.free_indices()), set((i,j)))
+        self.assertEqual(set(A.free_indices()), {i,j})
 
         # legal?
         vv = as_vector([u[i], v[i]])
@@ -262,7 +262,7 @@ class IndexTestCase(UflTestCase):
         
         a = v.dx(i,j)
         #self.assertSameIndices(a, (i,j)) 
-        self.assertEqual(set(a.free_indices()), set((j,i)))
+        self.assertEqual(set(a.free_indices()), {j,i})
         self.assertNotIsInstance(a, IndexSum)
         self.assertEqual(a.shape(), (d,))
         
@@ -273,7 +273,7 @@ class IndexTestCase(UflTestCase):
         
         a = (v[i]*u[j]).dx(0, 1)
         # indices change place because of sorting, I guess this may be ok
-        self.assertEqual(set(a.free_indices()), set((i,j)))
+        self.assertEqual(set(a.free_indices()), {i,j})
         self.assertNotIsInstance(a, IndexSum)
         self.assertEqual(a.shape(), ())
         

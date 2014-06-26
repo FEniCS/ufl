@@ -266,9 +266,9 @@ class FormDomainModelTestCase(UflTestCase):
 
         # Check python protocol behaviour
         self.assertNotEqual(DA, DB)
-        self.assertEqual(set((DA,DA)), set((DA,)))
-        self.assertEqual(set((DB,DB)), set((DB,)))
-        self.assertEqual(set((DA,DB)), set((DB,DA)))
+        self.assertEqual({DA,DA}, {DA})
+        self.assertEqual({DB,DB}, {DB})
+        self.assertEqual({DA,DB}, {DB,DA})
         self.assertEqual(sorted((DA,DB,DA,DB)), sorted((DB,DA,DA,DB)))
 
         # Check basic properties

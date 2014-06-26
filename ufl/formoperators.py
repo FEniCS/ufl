@@ -158,7 +158,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
 
         # Don't know what to do with parts, let the user sort it out in that case
         parts = set(arg.part() for arg in form_arguments)
-        ufl_assert(len(parts - set((None,))) == 0, "Not expecting parts here, provide your own arguments.")
+        ufl_assert(len(parts - {None}) == 0, "Not expecting parts here, provide your own arguments.")
         part = None
 
         # Create argument and split it if in a mixed space

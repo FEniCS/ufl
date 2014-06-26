@@ -54,12 +54,12 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
     # FIXME DOMAIN: Add check for consistency between domains somehow
     domains = set(t.domain()
                   for e in iter_expressions(form)
-                  for t in traverse_terminals(e)) - set((None,))
+                  for t in traverse_terminals(e)) - {None}
     if not domains:
         errors.append("Missing domain definition in form.")
 
     # Check that cell is the same everywhere
-    cells = set(dom.cell() for dom in domains) - set((None,))
+    cells = set(dom.cell() for dom in domains) - {None}
     if not cells:
         errors.append("Missing cell definition in form.")
     elif len(cells) > 1:
