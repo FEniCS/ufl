@@ -192,10 +192,10 @@ class Domain(object):
         return hash(self.hash_data())
 
     def __eq__(self, other):
-        return type(self) == type(other) and self.hash_data() == other.hash_data()
+        return isinstance(self, type(other)) and self.hash_data() == other.hash_data()
 
     def __lt__(self, other):
-        if type(self) != type(other):
+        if not isinstance(self, type(other)):
             return NotImplemented
         return self.hash_data() < other.hash_data()
 

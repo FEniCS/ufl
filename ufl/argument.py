@@ -124,7 +124,7 @@ class Argument(FormArgument):
         point of view, e.g. TestFunction(V1) == TestFunction(V2) if V1 and V2
         are the same ufl element but different dolfin function spaces.
         """
-        return (type(self) == type(other) and
+        return (isinstance(self, type(other)) and
                 self._number == other._number and
                 self._part == other._part and
                 self._element == other._element)

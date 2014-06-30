@@ -24,8 +24,9 @@
 # First added:  2008-03-03
 # Last changed: 2014-02-24
 
-from itertools import izip, chain
+from itertools import chain
 import six
+from six.moves import zip
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.common import product, index_to_component, component_to_index, istr, EmptyDict
@@ -125,10 +126,10 @@ class MixedElement(FiniteElementBase):
 
     def reconstruct_from_elements(self, *elements):
         "Reconstruct a mixed element from new subelements."
-        if all(a == b for (a,b) in izip(elements, self._sub_elements)):
+        if all(a == b for (a,b) in zip(elements, self._sub_elements)):
             return self
         ufl_assert(all(a.value_shape() == b.value_shape()
-                       for (a,b) in izip(elements, self._sub_elements)),
+                       for (a,b) in zip(elements, self._sub_elements)),
             "Expecting new elements to have same value shape as old ones.")
         return MixedElement(*elements, value_shape=self.value_shape())
 

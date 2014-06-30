@@ -85,7 +85,7 @@ class FiniteElementBase(object):
 
     def __eq__(self, other):
         "Compute element equality for insertion in hashmaps."
-        return type(self) == type(other) and repr(self) == repr(other)
+        return isinstance(self, type(other)) and repr(self) == repr(other)
 
     def __lt__(self, other):
         "Compare elements by repr, to give a natural stable sorting."
