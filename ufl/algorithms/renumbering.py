@@ -61,7 +61,7 @@ class IndexRenumberingTransformer(VariableRenumberingTransformer):
     def multi_index(self, o):
         new_indices = tuple(map(self.index, o._indices))
         idims = o.index_dimensions()
-        new_idims = dict((b, idims[a]) for (a,b) in zip(o._indices, new_indices) if isinstance(a, Index))
+        new_idims = dict((b, idims[a]) for (a, b) in zip(o._indices, new_indices) if isinstance(a, Index))
         return MultiIndex(new_indices, new_idims)
 
     def index(self, o):
@@ -165,7 +165,7 @@ class IndexRenumberingTransformer2(VariableRenumberingTransformer):
     def multi_index(self, o):
         new_indices = tuple(map(self.index, o._indices))
         idims = o.index_dimensions()
-        new_idims = dict((b, idims[a]) for (a,b) in zip(o._indices, new_indices) if isinstance(a, Index))
+        new_idims = dict((b, idims[a]) for (a, b) in zip(o._indices, new_indices) if isinstance(a, Index))
         return MultiIndex(new_indices, new_idims)
 
     def index_annotated(self, o):

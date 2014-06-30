@@ -183,36 +183,36 @@ class ScratchTestCase(UflTestCase):
         self.assertTrue(42)
 
     def test_unit_tensor(self):
-        E2_1,ii = unit_indexed_tensor((2,), (1,))
-        E3_1,ii = unit_indexed_tensor((3,), (1,))
-        E22_10,ii = unit_indexed_tensor((2,2), (1,0))
+        E2_1, ii = unit_indexed_tensor((2,), (1,))
+        E3_1, ii = unit_indexed_tensor((3,), (1,))
+        E22_10, ii = unit_indexed_tensor((2, 2), (1, 0))
         # TODO: Evaluate and assert values
 
     def test_unwrap_list_tensor(self):
-        lt = as_tensor((1,2))
+        lt = as_tensor((1, 2))
         expected = [((0,), 1),
                     ((1,), 2),]
         comp = unwrap_list_tensor(lt)
         self.assertEqual(comp, expected)
 
-        lt = as_tensor(((1,2),(3,4)))
-        expected = [((0,0), 1),
-                    ((0,1), 2),
-                    ((1,0), 3),
-                    ((1,1), 4),]
+        lt = as_tensor(((1, 2), (3, 4)))
+        expected = [((0, 0), 1),
+                    ((0, 1), 2),
+                    ((1, 0), 3),
+                    ((1, 1), 4),]
         comp = unwrap_list_tensor(lt)
         self.assertEqual(comp, expected)
 
-        lt = as_tensor((((1,2),(3,4)),
-                        ((11,12),(13,14))))
-        expected = [((0,0,0), 1),
-                    ((0,0,1), 2),
-                    ((0,1,0), 3),
-                    ((0,1,1), 4),
-                    ((1,0,0), 11),
-                    ((1,0,1), 12),
-                    ((1,1,0), 13),
-                    ((1,1,1), 14),]
+        lt = as_tensor((((1, 2), (3, 4)),
+                        ((11, 12), (13, 14))))
+        expected = [((0, 0, 0), 1),
+                    ((0, 0, 1), 2),
+                    ((0, 1, 0), 3),
+                    ((0, 1, 1), 4),
+                    ((1, 0, 0), 11),
+                    ((1, 0, 1), 12),
+                    ((1, 1, 0), 13),
+                    ((1, 1, 1), 14),]
         comp = unwrap_list_tensor(lt)
         self.assertEqual(comp, expected)
 
@@ -274,9 +274,9 @@ class ScratchTestCase(UflTestCase):
         mad._w = (v[0],)
         mad._v = (dv[1],)
         f = grad(v)
-        df = grad(as_vector((dv[1],0))) # Mathematically this would be the natural result
-        j,k = indices(2)
-        df = as_tensor(Identity(2)[0,j]*grad(dv)[1,k], (j,k)) # Actual representation should have grad right next to dv
+        df = grad(as_vector((dv[1], 0))) # Mathematically this would be the natural result
+        j, k = indices(2)
+        df = as_tensor(Identity(2)[0, j]*grad(dv)[1, k], (j, k)) # Actual representation should have grad right next to dv
         g, dg = mad.grad(f)
         if 0:
             print(('\nf    ', f))
@@ -287,8 +287,8 @@ class ScratchTestCase(UflTestCase):
         self.assertEqual(g.shape(), f.shape())
         self.assertEqual(dg.shape(), df.shape())
         self.assertEqual(g, f)
-        self.assertEqual(compute_form_signature(inner(dg,dg)*dx),
-                         compute_form_signature(inner(df,df)*dx))
+        self.assertEqual(compute_form_signature(inner(dg, dg)*dx),
+                         compute_form_signature(inner(df, df)*dx))
         #self.assertEqual(dg, df) # Expected to fail because of different index numbering
 
         # Multiple components of variation:
@@ -297,12 +297,12 @@ class ScratchTestCase(UflTestCase):
         mad._v = (dv[1], dv[0])
         f = grad(v)
         # Mathematically this would be the natural result:
-        df = grad(as_vector((dv[1],dv[0])))
+        df = grad(as_vector((dv[1], dv[0])))
         # Actual representation should have grad right next to dv:
-        j0,k0 = indices(2)
-        j1,k1 = indices(2) # Using j0,k0 for both terms gives different signature
-        df = (as_tensor(Identity(2)[0,j0]*grad(dv)[1,k0], (j0,k0))
-            + as_tensor(Identity(2)[1,j1]*grad(dv)[0,k1], (j1,k1)))
+        j0, k0 = indices(2)
+        j1, k1 = indices(2) # Using j0,k0 for both terms gives different signature
+        df = (as_tensor(Identity(2)[0, j0]*grad(dv)[1, k0], (j0, k0))
+            + as_tensor(Identity(2)[1, j1]*grad(dv)[0, k1], (j1, k1)))
         g, dg = mad.grad(f)
         print(('\nf    ', f))
         print(('df   ', df))
@@ -312,8 +312,8 @@ class ScratchTestCase(UflTestCase):
         self.assertEqual(g.shape(), f.shape())
         self.assertEqual(dg.shape(), df.shape())
         self.assertEqual(g, f)
-        self.assertEqual(compute_form_signature(inner(dg,dg)*dx),
-                         compute_form_signature(inner(df,df)*dx))
+        self.assertEqual(compute_form_signature(inner(dg, dg)*dx),
+                         compute_form_signature(inner(df, df)*dx))
         #self.assertEqual(dg, df) # Expected to fail because of different index numbering
 
     def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_variation_in_list(self):
@@ -326,11 +326,11 @@ class ScratchTestCase(UflTestCase):
         # Component of variation:
         # grad(grad(c))[0,...] -> grad(grad(dc))[1,...]
         mad._w = (v,)
-        mad._v = (as_vector((dv[1],0)),)
+        mad._v = (as_vector((dv[1], 0)),)
         f = grad(v)
-        df = grad(as_vector((dv[1],0))) # Mathematically this would be the natural result
-        j,k = indices(2)
-        df = as_tensor(Identity(2)[0,j]*grad(dv)[1,k], (j,k)) # Actual representation should have grad right next to dv
+        df = grad(as_vector((dv[1], 0))) # Mathematically this would be the natural result
+        j, k = indices(2)
+        df = as_tensor(Identity(2)[0, j]*grad(dv)[1, k], (j, k)) # Actual representation should have grad right next to dv
         g, dg = mad.grad(f)
         if 0:
             print(('\nf    ', f))
@@ -341,8 +341,8 @@ class ScratchTestCase(UflTestCase):
         self.assertEqual(g.shape(), f.shape())
         self.assertEqual(dg.shape(), df.shape())
         self.assertEqual(g, f)
-        self.assertEqual(compute_form_signature(inner(dg,dg)*dx),
-                         compute_form_signature(inner(df,df)*dx))
+        self.assertEqual(compute_form_signature(inner(dg, dg)*dx),
+                         compute_form_signature(inner(df, df)*dx))
         #self.assertEqual(dg, df) # Expected to fail because of different index numbering
 
         # Multiple components of variation:
@@ -351,12 +351,12 @@ class ScratchTestCase(UflTestCase):
         mad._v = (as_vector((dv[1], dv[0])),)
         f = grad(v)
         # Mathematically this would be the natural result:
-        df = grad(as_vector((dv[1],dv[0])))
+        df = grad(as_vector((dv[1], dv[0])))
         # Actual representation should have grad right next to dv:
-        j0,k0 = indices(2)
-        j1,k1 = indices(2) # Using j0,k0 for both terms gives different signature
-        df = (as_tensor(Identity(2)[0,j0]*grad(dv)[1,k0], (j0,k0))
-            + as_tensor(Identity(2)[1,j1]*grad(dv)[0,k1], (j1,k1)))
+        j0, k0 = indices(2)
+        j1, k1 = indices(2) # Using j0,k0 for both terms gives different signature
+        df = (as_tensor(Identity(2)[0, j0]*grad(dv)[1, k0], (j0, k0))
+            + as_tensor(Identity(2)[1, j1]*grad(dv)[0, k1], (j1, k1)))
         g, dg = mad.grad(f)
         print(('\nf    ', f))
         print(('df   ', df))
@@ -366,8 +366,8 @@ class ScratchTestCase(UflTestCase):
         self.assertEqual(g.shape(), f.shape())
         self.assertEqual(dg.shape(), df.shape())
         self.assertEqual(g, f)
-        self.assertEqual(compute_form_signature(inner(dg,dg)*dx),
-                         compute_form_signature(inner(df,df)*dx))
+        self.assertEqual(compute_form_signature(inner(dg, dg)*dx),
+                         compute_form_signature(inner(df, df)*dx))
         #self.assertEqual(dg, df) # Expected to fail because of different index numbering
 
 
@@ -403,16 +403,16 @@ class ScratchTestCase(UflTestCase):
 
         # Component of variation:
         # grad(grad(c))[0,...] -> grad(grad(dc))[1,...]
-        wc = (1,0)
-        dwc = (0,1)
+        wc = (1, 0)
+        dwc = (0, 1)
         mad._w = (w[wc],)
         mad._v = (dw[dwc],)
         f = grad(w)
-        df = grad(as_matrix(((0,0),(dw[dwc],0)))) # Mathematically this is it.
-        i,j,k = indices(3)
-        E = outer(Identity(2)[wc[0],i],Identity(2)[wc[1],j])
+        df = grad(as_matrix(((0, 0), (dw[dwc], 0)))) # Mathematically this is it.
+        i, j, k = indices(3)
+        E = outer(Identity(2)[wc[0], i], Identity(2)[wc[1], j])
         Ddw = grad(dw)[dwc + (k,)]
-        df = as_tensor(E*Ddw, (i,j,k)) # Actual representation should have grad next to dv
+        df = as_tensor(E*Ddw, (i, j, k)) # Actual representation should have grad next to dv
         g, dg = mad.grad(f)
         if 0:
             print(('\nf    ', f))
@@ -423,8 +423,8 @@ class ScratchTestCase(UflTestCase):
         self.assertEqual(g.shape(), f.shape())
         self.assertEqual(dg.shape(), df.shape())
         self.assertEqual(g, f)
-        self.assertEqual(compute_form_signature(inner(dg,dg)*dx),
-                         compute_form_signature(inner(df,df)*dx))
+        self.assertEqual(compute_form_signature(inner(dg, dg)*dx),
+                         compute_form_signature(inner(df, df)*dx))
         #self.assertEqual(dg, df) # Expected to fail because of different index numbering
 
 # Don't touch these lines, they allow you to run this file directly

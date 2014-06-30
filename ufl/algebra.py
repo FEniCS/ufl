@@ -78,7 +78,7 @@ class Sum(AlgebraOperator):
         else:
             # Otherwise sort operands in a canonical order
             #operands = (b, a)
-            a, b = sorted_expr((a,b))
+            a, b = sorted_expr((a, b))
 
         # construct and initialize a new Sum object
         self = AlgebraOperator.__new__(cls)
@@ -139,7 +139,7 @@ class Product(AlgebraOperator):
         # Make sure everything is an Expr
         a = as_ufl(a)
         b = as_ufl(b)
-        operands = (a,b) # TODO: Temporary, rewrite below code to use a,b
+        operands = (a, b) # TODO: Temporary, rewrite below code to use a,b
 
         # Make sure everything is scalar
         if a.shape() or b.shape():
@@ -171,11 +171,11 @@ class Product(AlgebraOperator):
                 return a**2
         else:
             # Sort operands in a canonical order (NB! This is fragile! Small changes here can have large effects.)
-            a,b = sorted_expr((a,b))
+            a, b = sorted_expr((a, b))
 
         # Construct and initialize a new Product object
         self = AlgebraOperator.__new__(cls)
-        self._init(a,b)
+        self._init(a, b)
         return self
 
     def _init(self, a, b):

@@ -414,7 +414,7 @@ def unit_indexed_tensor(shape, component):
         s = shape[i]
         c = component[i]
         j = jj[i]
-        e = Identity(s)[c,j]
+        e = Identity(s)[c, j]
         es.append(e)
     E = es[0]
     for e in es[1:]:
@@ -427,9 +427,9 @@ def unwrap_list_tensor(lt):
     subs = lt.operands()
     if len(sh) == 1:
         for s in range(sh[0]):
-            components.append(((s,),subs[s]))
+            components.append(((s,), subs[s]))
     else:
-        for s,sub in enumerate(subs):
-            for c,v in unwrap_list_tensor(sub):
-                components.append(((s,)+c,v))
+        for s, sub in enumerate(subs):
+            for c, v in unwrap_list_tensor(sub):
+                components.append(((s,)+c, v))
     return components

@@ -84,8 +84,8 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
             elif isinstance(f, Argument):
                 n = f.number()
                 p = f.part()
-                if (n,p) in arguments:
-                    g = arguments[(n,p)]
+                if (n, p) in arguments:
+                    g = arguments[(n, p)]
                     if not f is g:
                         if n == 0: msg = "TestFunctions"
                         elif n == 1: msg = "TrialFunctions"
@@ -93,7 +93,7 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
                         msg = "Found different %s: %s and %s." % (msg, repr(f), repr(g))
                         errors.append(msg)
                 else:
-                    arguments[(n,p)] = f
+                    arguments[(n, p)] = f
 
     # Check that all integrands are scalar
     for expression in iter_expressions(form):

@@ -153,11 +153,11 @@ class Cell(object):
         name = self.cellname()
         m = 200
         if name == "interval":
-            points = [(0,0), (m,0)]
+            points = [(0, 0), (m, 0)]
         elif name == "triangle":
-            points = [(0,m), (m,m), (0,0), (0,m)]
+            points = [(0, m), (m, m), (0, 0), (0, m)]
         elif name == "quadrilateral":
-            points = [(0,m), (m,m), (m,0), (0,0), (0,m)]
+            points = [(0, m), (m, m), (m, 0), (0, 0), (0, m)]
         else:
             points = None
 
@@ -177,7 +177,7 @@ class Cell(object):
             width = max(width, strokewidth)
             height = max(height, strokewidth)
             style = "fill:%s; stroke:%s; stroke-width:%s" % (fill, stroke, strokewidth)
-            points = " ".join(','.join(map(str,p)) for p in points)
+            points = " ".join(','.join(map(str, p)) for p in points)
             return svg % (width, height, points, style)
         else:
             return None

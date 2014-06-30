@@ -151,10 +151,10 @@ def contraction(a, a_axes, b, b_axes):
     bii = indices(b.rank())
     cii = indices(len(ai))
     shape = [None]*len(ai)
-    for i,j in enumerate(ai):
+    for i, j in enumerate(ai):
         aii[j] = cii[i]
         shape[i] = ash[j]
-    for i,j in enumerate(bi):
+    for i, j in enumerate(bi):
         bii[j] = cii[i]
         ufl_assert(shape[i] == bsh[j], "Shape mismatch in contraction.")
     s = a[aii]*b[bii]
@@ -166,7 +166,7 @@ def perp(v):
     "UFL operator: Take the perp of v, i.e. (-v1, +v0)."
     v = as_ufl(v)
     ufl_assert(v.shape() == (2,), "Expecting a 2D vector expression.")
-    return as_vector((-v[1],v[0]))
+    return as_vector((-v[1], v[0]))
 
 def cross(a, b):
     "UFL operator: Take the cross product of a and b."
@@ -222,7 +222,7 @@ def diag(A):
     rows = []
     for i in range(n):
         row = [0]*n
-        row[i] = A[i] if r == 1 else A[i,i]
+        row[i] = A[i] if r == 1 else A[i, i]
         rows.append(row)
     return as_matrix(rows)
 
@@ -239,7 +239,7 @@ def diag_vector(A):
     ufl_assert(m == n, "Can only take diagonal of square tensors.")
 
     # Return diagonal vector
-    return as_vector([A[i,i] for i in range(n)])
+    return as_vector([A[i, i] for i in range(n)])
 
 def dev(A):
     "UFL operator: Take the deviatoric part of A."
@@ -540,7 +540,7 @@ def atan(f):
     "UFL operator: Take the inverse tangent of f."
     return _mathfunction(f, Atan)
 
-def atan_2(f1,f2):
+def atan_2(f1, f2):
     "UFL operator: Take the inverse tangent of f."
     f1 = as_ufl(f1)
     f2 = as_ufl(f2)

@@ -75,7 +75,7 @@ class IntegralData(object):
     def __str__(self):
         return "IntegralData object over domain (%s, %s), with integrals:\n%s\nand metadata:\n%s" % (
             self.integral_type, self.subdomain_id,
-            '\n\n'.join(map(str,self.integrals)), self.metadata)
+            '\n\n'.join(map(str, self.integrals)), self.metadata)
 
 
 # Tuple comparison helper

@@ -151,7 +151,7 @@ class MultiIndex(UtilityType):
         self._indices = ii
         self._idims = dict(idims) if idims else EmptyDict
 
-        if any(not isinstance(idims.get(k,0), int) for k in ii if isinstance(k, Index)):
+        if any(not isinstance(idims.get(k, 0), int) for k in ii if isinstance(k, Index)):
             error("Missing index or invalid dimension in provided idims.")
 
     def evaluate(self, x, mapping, component, index_values):
@@ -229,7 +229,7 @@ def _make_idims(ii, shape):
     if shape is None:
         return None
     else:
-        return dict((j,d) for (j,d) in zip(ii, shape) if isinstance(j, Index))
+        return dict((j, d) for (j, d) in zip(ii, shape) if isinstance(j, Index))
 
 def as_multi_index(ii, shape=None):
     if isinstance(ii, MultiIndex):

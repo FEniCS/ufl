@@ -79,10 +79,10 @@ def align(lines):
         n = len(lines[0])
         collengths = [0]*n
         for l in lines:
-            for i,s in enumerate(l):
+            for i, s in enumerate(l):
                 collengths[i] = max(collengths[i], len(s))
         def coljoin(cols):
-            return " & ".join(c.ljust(collengths[i]) for (i,c) in enumerate(cols))
+            return " & ".join(c.ljust(collengths[i]) for (i, c) in enumerate(cols))
         body = " \\\\\n".join(coljoin(l) for l in lines)
     return aligntemplate % body
 
@@ -96,7 +96,7 @@ def subsubsection(s):
     if isinstance(s, tuple):
         title, body = s
         if isinstance(body, list):
-            body = itemize(list(map(str,body)))
+            body = itemize(list(map(str, body)))
         return subsubsectiontemplate % (title, body)
 
 def subsection(s):

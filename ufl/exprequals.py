@@ -47,7 +47,7 @@ def _expr_equals1(a, b):
     if a is b:
         return True
     # Compare entire expression structure
-    for x,y in zip(fast_pre_traversal(a), fast_pre_traversal(b)):
+    for x, y in zip(fast_pre_traversal(a), fast_pre_traversal(b)):
         if type(x) != type(y):
             return False
         #if isinstance(Terminal, x) and not x == y:
@@ -65,11 +65,11 @@ def _expr_equals2(a, b):
         return True
     from ufl.algorithms.traversal import traverse_terminals, traverse_operands
     # Check for equal terminals
-    for x,y in zip(traverse_terminals(a), traverse_terminals(b)):
+    for x, y in zip(traverse_terminals(a), traverse_terminals(b)):
         if x != y:
             return False
     # Check for matching operator types
-    for x,y in zip(traverse_operands(a), traverse_operands(b)):
+    for x, y in zip(traverse_operands(a), traverse_operands(b)):
         if type(x) != type(y):
             return False
     # Equal terminals and operands, a and b must be equal
@@ -81,15 +81,15 @@ collisions = {}
 def print_collisions():
     print()
     print("Collision statistics:")
-    keys = sorted(list(equalscalls.keys()), key=lambda x: collisions.get(x,0))
+    keys = sorted(list(equalscalls.keys()), key=lambda x: collisions.get(x, 0))
     for k in keys:
-        co = collisions.get(k,0)
+        co = collisions.get(k, 0)
         ca = equalscalls[k]
         print((k, co, ca, int(100.0*co/ca)))
     print("Recursion statistics:")
-    keys = sorted(keys, key=lambda x: equalsrecursed.get(x,0))
+    keys = sorted(keys, key=lambda x: equalsrecursed.get(x, 0))
     for k in keys:
-        r = equalsrecursed.get(k,0)
+        r = equalsrecursed.get(k, 0)
         ca = equalscalls[k]
         print((k, r, ca, int(100.0*r/ca)))
     print()
@@ -120,7 +120,7 @@ def _expr_equals3(self, other): # Much faster than the more complex algorithms a
         # Just let python handle the recursion
         #equal = self.operands() == other.operands()
         # Recurse manually to call _expr_equals3 directly without the class EQ overhead!
-        equal = all(_expr_equals3(a, b) for (a,b) in list(zip(self.operands(), other.operands())))
+        equal = all(_expr_equals3(a, b) for (a, b) in list(zip(self.operands(), other.operands())))
     else:
         # Compare terminal representations to include all terminal data
         #equal = repr(self) == repr(other)

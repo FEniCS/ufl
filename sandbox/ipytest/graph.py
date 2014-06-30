@@ -4,8 +4,8 @@ class A:
         import matplotlib.pyplot as plt
         import networkx as nx
         G = nx.Graph()
-        G.add_nodes_from([1, 2,3])
-        G.add_edges_from([(1,2),(1,3), (2,3)])
+        G.add_nodes_from([1, 2, 3])
+        G.add_edges_from([(1, 2), (1, 3), (2, 3)])
 
         fig = plt.figure()
         nx.draw_spring(G)
@@ -29,11 +29,11 @@ if 0:
     class MyGraph(nx.Graph):
         def _repr_svg_(self):
             plt.ioff() # turn off interactive mode
-            fig = plt.figure(figsize=(2,2))
+            fig = plt.figure(figsize=(2, 2))
             ax = fig.add_subplot(111)
             nx.draw_shell(self, ax=ax)
             output = io.StringIO()
-            fig.savefig(output,format='svg')
+            fig.savefig(output, format='svg')
             plt.ion() # turn on interactive mode
             return output.getvalue()
 

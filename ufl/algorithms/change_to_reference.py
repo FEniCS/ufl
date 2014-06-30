@@ -51,15 +51,15 @@ class ChangeToReferenceValue(ReuseTransformer):
                 J = FIXME
                 detJ = FIXME
                 mapping = (1/detJ) * J
-                i,j = indices(2)
-                global_value = as_vector(mapping[i,j] * local_value[j], i)
+                i, j = indices(2)
+                global_value = as_vector(mapping[i, j] * local_value[j], i)
             elif S == HCurl:
                 # Handle HCurl elements with covariant piola mapping
                 # covariant_hcurl_mapping = JinvT * PullbackOf(o)
                 JinvT = FIXME
                 mapping = JinvT
-                i,j = indices(2)
-                global_value = as_vector(mapping[i,j] * local_value[j], i)
+                i, j = indices(2)
+                global_value = as_vector(mapping[i, j] * local_value[j], i)
             else:
                 # Handle the rest with no mapping.
                 global_value = local_value
@@ -104,8 +104,8 @@ class ChangeToReferenceGrad(ReuseTransformer):
 
         # Apply mappings with scalar indexing operations (assumes ReferenceGrad(Jinv) is zero)
         jinv_lgrad_f = lgrad[ii+jj]
-        for j,k in zip(jj,kk):
-            jinv_lgrad_f = Jinv[j,k]*jinv_lgrad_f
+        for j, k in zip(jj, kk):
+            jinv_lgrad_f = Jinv[j, k]*jinv_lgrad_f
 
         # Wrap back in tensor shape, derivative axes at the end
         jinv_lgrad_f = as_tensor(jinv_lgrad_f, ii+kk)
@@ -160,8 +160,8 @@ class ChangeToReferenceGeometry(ReuseTransformer):
             domain = o.domain()
             J = self.jacobian(Jacobian(domain))
             RFJ = CellFacetJacobian(domain)
-            i,j,k = indices(3)
-            r = as_tensor(J[i,k]*RFJ[k,j], (i,j))
+            i, j, k = indices(3)
+            r = as_tensor(J[i, k]*RFJ[k, j], (i, j))
             self._rcache[o] = r
         return r
 
@@ -203,8 +203,8 @@ class ChangeToReferenceGeometry(ReuseTransformer):
                 K = self.jacobian_inverse(JacobianInverse(domain))
                 x = self.spatial_coordinate(SpatialCoordinate(domain))
                 x0 = CellOrigin(domain)
-                i,j = indices(2)
-                X = as_tensor(K[i,j] * (x[j] - x0[j]), (i,))
+                i, j = indices(2)
+                X = as_tensor(K[i, j] * (x[j] - x0[j]), (i,))
                 r = X
             return r
         else:
@@ -229,11 +229,11 @@ class ChangeToReferenceGeometry(ReuseTransformer):
 
                 if tdim == 2: # Surface in 3D
                     J = self.jacobian(Jacobian(domain))
-                    cell_normal = cross_expr(J[:,0], J[:,1])
+                    cell_normal = cross_expr(J[:, 0], J[:, 1])
 
                 elif tdim == 1: # Line in 2D
                     # TODO: Sign here is ambiguous, which normal?
-                    cell_normal = as_vector((J[1,0], -J[0,0]))
+                    cell_normal = as_vector((J[1, 0], -J[0, 0]))
 
                 i = Index()
                 cell_normal = cell_normal / sqrt(cell_normal[i]*cell_normal[i])
@@ -260,13 +260,13 @@ class ChangeToReferenceGeometry(ReuseTransformer):
 
             if tdim == 3:
                 ufl_assert(gdim == 3, "Inconsistent dimensions.")
-                ufl_assert(FJ.shape() == (3,2), "Inconsistent dimensions.")
+                ufl_assert(FJ.shape() == (3, 2), "Inconsistent dimensions.")
 
                 # Compute signed scaling factor
                 scale = self.jacobian_determinant(JacobianDeterminant(domain))
 
                 # Compute facet normal direction of 3D cell, product of two tangent vectors
-                ndir = scale * cross_expr(FJ[:,0], FJ[:,1])
+                ndir = scale * cross_expr(FJ[:, 0], FJ[:, 1])
 
                 # Normalise normal vector
                 i = Index()
@@ -275,10 +275,10 @@ class ChangeToReferenceGeometry(ReuseTransformer):
 
             elif tdim == 2:
                 if gdim == 2:
-                    ufl_assert(FJ.shape() == (2,1), "Inconsistent dimensions.")
+                    ufl_assert(FJ.shape() == (2, 1), "Inconsistent dimensions.")
 
                     # Compute facet tangent
-                    tangent = as_vector((FJ[0,0], FJ[1,0], 0))
+                    tangent = as_vector((FJ[0, 0], FJ[1, 0], 0))
 
                     # Compute cell normal
                     cell_normal = as_vector((0, 0, 1))
@@ -286,10 +286,10 @@ class ChangeToReferenceGeometry(ReuseTransformer):
                     # Compute signed scaling factor
                     scale = self.jacobian_determinant(JacobianDeterminant(domain))
                 else:
-                    ufl_assert(FJ.shape() == (gdim,1), "Inconsistent dimensions.")
+                    ufl_assert(FJ.shape() == (gdim, 1), "Inconsistent dimensions.")
 
                     # Compute facet tangent
-                    tangent = FJ[:,0]
+                    tangent = FJ[:, 0]
 
                     # Compute cell normal
                     cell_normal = self.cell_normal(CellNormal(domain))

@@ -206,7 +206,7 @@ class BookTestCase(UflTestCase):
         Vy = FiniteElement("Lagrange", triangle, 1)
         u = Coefficient(Vx*Vy)
         x, y = split(u)
-        f = inner(grad(x), grad(x))*dx + y*dot(x,x)*dx
+        f = inner(grad(x), grad(x))*dx + y*dot(x, x)*dx
         F = derivative(f, u)
         J = derivative(F, u)
 
@@ -218,7 +218,7 @@ class BookTestCase(UflTestCase):
         u = TrialFunction(V)
         v = TestFunction(V)
         M = Coefficient(T)
-        a = M[i,j]*u[k].dx(j)*v[k].dx(i)*dx
+        a = M[i, j]*u[k].dx(j)*v[k].dx(i)*dx
         astar = adjoint(a)
 
     def test_uflcode_1120(self):

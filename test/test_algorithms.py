@@ -32,7 +32,7 @@ class AlgorithmsTestCase(UflTestCase):
 
         a = u*v*dx
         L = f*v*dx
-        b = u*v*dx(0) +inner(c*grad(u),grad(v))*dx(1) + dot(n, grad(u))*v*ds + f*v*dx
+        b = u*v*dx(0) +inner(c*grad(u), grad(v))*dx(1) + dot(n, grad(u))*v*ds + f*v*dx
 
         self.elements = (element,)
         self.arguments = (v, u)

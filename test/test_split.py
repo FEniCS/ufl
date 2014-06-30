@@ -19,16 +19,16 @@ class SplitTestCase(UflTestCase):
         w = VectorElement("CG", cell, 1, dim=d+1)
         t = TensorElement("CG", cell, 1)
         s = TensorElement("CG", cell, 1, symmetry=True)
-        r = TensorElement("CG", cell, 1, symmetry={(1,0): (0,1)}, shape=(d,d))
+        r = TensorElement("CG", cell, 1, symmetry={(1, 0): (0, 1)}, shape=(d, d))
         m = MixedElement(f, v, w, t, s, r)
 
         # Shapes of all these functions are correct:
         self.assertEqual((), Coefficient(f).shape())
         self.assertEqual((d,), Coefficient(v).shape())
         self.assertEqual((d+1,), Coefficient(w).shape())
-        self.assertEqual((d,d), Coefficient(t).shape())
-        self.assertEqual((d,d), Coefficient(s).shape())
-        self.assertEqual((d,d), Coefficient(r).shape())
+        self.assertEqual((d, d), Coefficient(t).shape())
+        self.assertEqual((d, d), Coefficient(s).shape())
+        self.assertEqual((d, d), Coefficient(r).shape())
         self.assertEqual((3*d*d + 2*d + 2,), Coefficient(m).shape()) # sum of value sizes, not accounting for symmetries
 
         # Shapes of subelements are reproduced:

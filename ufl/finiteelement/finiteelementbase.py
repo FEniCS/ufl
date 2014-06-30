@@ -157,7 +157,7 @@ class FiniteElementBase(object):
         "Check that component index i is valid"
         sh = self.value_shape()
         r = len(sh)
-        if not (len(i) == r and all(j < k for (j,k) in zip(i, sh))):
+        if not (len(i) == r and all(j < k for (j, k) in zip(i, sh))):
             error(("Illegal component index '%r' (value rank %d)" + \
                    "for element (value rank %d).") % (i, len(i), r))
 

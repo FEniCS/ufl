@@ -136,7 +136,7 @@ class Transformer(object):
             print("type(o) =", type(o))
             print("operands =")
             print()
-            print("\n\n".join(map(str,operands)))
+            print("\n\n".join(map(str, operands)))
             print()
             print("stack =")
             self.print_visit_stack()

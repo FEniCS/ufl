@@ -139,7 +139,7 @@ def set_list_item(li, i, v):
 
 def _handle_derivative_arguments(form, coefficient, argument):
     # Wrap single coefficient in tuple for uniform treatment below
-    if isinstance(coefficient, (list,tuple)):
+    if isinstance(coefficient, (list, tuple)):
         coefficients = tuple(coefficient)
     else:
         coefficients = (coefficient,)
@@ -171,7 +171,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
             arguments = (Argument(elm, number, part),)
     else:
         # Wrap single argument in tuple for uniform treatment below
-        if isinstance(argument, (list,tuple)):
+        if isinstance(argument, (list, tuple)):
             arguments = tuple(argument)
         else:
             n = len(coefficients)

@@ -73,7 +73,7 @@ from collections import defaultdict
 def join_subdomain_data(integrals, domains):
     labels = set((domain.label() if domain is not None else None) for domain in domains)
 
-    l2l = dict((l,l) for l in labels)
+    l2l = dict((l, l) for l in labels)
     if None in labels:
         labels.remove(None)
         if len(labels) == 1:
@@ -107,7 +107,7 @@ def join_subdomain_data(integrals, domains):
         if old_dd is None:
             subdomain_data[l][dt] = dd
         elif id_or_none(old_dd) != id_or_none(dd):
-            error("Subdomain data object mismatch in form, for label %s and domain type %s." % (l,dt))
+            error("Subdomain data object mismatch in form, for label %s and domain type %s." % (l, dt))
 
     return subdomain_data
 
@@ -210,11 +210,11 @@ def preprocess(form, object_names=None):
 
     # Build mapping to original coefficients, which is
     # useful if the original coefficient have data attached to them
-    inv_replace_map = dict((w,v) for (v,w) in six.iteritems(replace_map))
+    inv_replace_map = dict((w, v) for (v, w) in six.iteritems(replace_map))
 
     # TODO: What's the point of this? Added assertion to check for sanity.
     original_coefficients2 = [inv_replace_map[w] for w in renumbered_coefficients]
-    ufl_assert(all(c1 == c2 for c1,c2 in zip(original_coefficients, original_coefficients2)),
+    ufl_assert(all(c1 == c2 for c1, c2 in zip(original_coefficients, original_coefficients2)),
                "Got two versions of original coefficients?")
 
     # TODO: Build mapping from object to position instead? But we need mapped elements as well anyway.
@@ -478,11 +478,11 @@ def preprocess_expression(expr, object_names=None):
 
     # Build mapping to original arguments and coefficients, which is
     # useful if the original arguments have data attached to them
-    inv_replace_map = dict((w,v) for (v,w) in six.iteritems(replace_map))
+    inv_replace_map = dict((w, v) for (v, w) in six.iteritems(replace_map))
 
     # TODO: What's the point of this? Added assertion to check for sanity.
     original_coefficients2 = [inv_replace_map[w] for w in renumbered_coefficients]
-    ufl_assert(all(c1 == c2 for c1,c2 in zip(original_coefficients, original_coefficients2)),
+    ufl_assert(all(c1 == c2 for c1, c2 in zip(original_coefficients, original_coefficients2)),
                "Got two versions of original coefficients?")
 
     # Store data extracted by preprocessing

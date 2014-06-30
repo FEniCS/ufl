@@ -16,7 +16,7 @@ class ElementsTestCase(UflTestCase):
 
     def test_scalar_galerkin(self):
         for cell in all_cells:
-            for p in range(1,10):
+            for p in range(1, 10):
                 for family in ("Lagrange", "CG", "Discontinuous Lagrange", "DG"):
                     element = FiniteElement(family, cell, p)
                     self.assertEqual(element.value_shape(), ())
@@ -27,7 +27,7 @@ class ElementsTestCase(UflTestCase):
             dim = cell.geometric_dimension()
             #shape = () if dim == 1 else (dim,)
             shape = (dim,)
-            for p in range(1,10):
+            for p in range(1, 10):
                 for family in ("Lagrange", "CG", "Discontinuous Lagrange", "DG"):
                     element = VectorElement(family, cell, p)
                     self.assertEqual(element.value_shape(), shape)
@@ -40,36 +40,36 @@ class ElementsTestCase(UflTestCase):
         for cell in all_cells:
             dim = cell.geometric_dimension()
             #shape = () if dim == 1 else (dim,dim)
-            shape = (dim,dim)
-            for p in range(1,10):
+            shape = (dim, dim)
+            for p in range(1, 10):
                 for family in ("Lagrange", "CG", "Discontinuous Lagrange", "DG"):
                     element = TensorElement(family, cell, p)
                     self.assertEqual(element.value_shape(), shape)
                     self.assertEqual(element, eval(repr(element)))
                     for i in range(dim):
                         for j in range(dim):
-                            c = element.extract_component((i,j))
+                            c = element.extract_component((i, j))
                             self.assertEqual(c[0], ())
 
     def test_tensor_symmetry(self):
         for cell in all_cells:
             dim = cell.geometric_dimension()
-            for p in range(1,10):
-                for s in (None, True, {(0,1): (1,0)}):
+            for p in range(1, 10):
+                for s in (None, True, {(0, 1): (1, 0)}):
                     # Symmetry dict is invalid for interval cell
-                    if isinstance(s,dict) and cell == interval:
+                    if isinstance(s, dict) and cell == interval:
                         continue
 
                     for family in ("Lagrange", "CG", "Discontinuous Lagrange", "DG"):
                         if isinstance(s, dict):
-                            element = TensorElement(family, cell, p, shape=(dim,dim), symmetry=s)
+                            element = TensorElement(family, cell, p, shape=(dim, dim), symmetry=s)
                         else:
                             element = TensorElement(family, cell, p, symmetry=s)
-                        self.assertEqual(element.value_shape(), (dim,dim))
+                        self.assertEqual(element.value_shape(), (dim, dim))
                         self.assertEqual(element, eval(repr(element)))
                         for i in range(dim):
                             for j in range(dim):
-                                c = element.extract_component((i,j))
+                                c = element.extract_component((i, j))
                                 self.assertEqual(c[0], ())
 
     def test_mixed_tensor_symmetries(self):
@@ -108,7 +108,7 @@ class ElementsTestCase(UflTestCase):
         for cell in (triangle, tetrahedron):
             dim = cell.geometric_dimension()
             element = VectorElement("BDM", cell, 1)
-            self.assertEqual(element.value_shape(), (dim,dim))
+            self.assertEqual(element.value_shape(), (dim, dim))
             self.assertEqual(element, eval(repr(element)))
 
     def test_mixed(self):
@@ -154,7 +154,7 @@ class ElementsTestCase(UflTestCase):
             self.assertEqual(element, eval(repr(element)))
             element = VectorElement("Lagrange", cell, 1, dim=2)
             self.assertEqual(element, eval(repr(element)))
-            element = TensorElement("DG", cell, 1, shape=(2,2))
+            element = TensorElement("DG", cell, 1, shape=(2, 2))
             self.assertEqual(element, eval(repr(element)))
 
     def test_invalid_degree(self):

@@ -8,7 +8,7 @@ class SomeFunction(object):
         self._a = value
         self._b = 2*value
     
-    def __getattr__(self,name):
+    def __getattr__(self, name):
         return self.__dict__[name]
 
 def init(self, V, value):

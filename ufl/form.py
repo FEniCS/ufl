@@ -187,7 +187,7 @@ class Form(object):
             return False
         if len(self._integrals) != len(other._integrals):
             return False
-        return all(a == b for a,b in zip(self._integrals, other._integrals))
+        return all(a == b for a, b in zip(self._integrals, other._integrals))
 
     def __radd__(self, other):
         # Ordering of form additions make no difference
@@ -198,7 +198,7 @@ class Form(object):
             # Add integrals from both forms
             return Form(list(chain(self.integrals(), other.integrals())))
 
-        elif isinstance(other, (int,float)) and other == 0:
+        elif isinstance(other, (int, float)) and other == 0:
             # Allow adding 0 or 0.0 as a no-op, needed for sum([a,b])
             return self
 

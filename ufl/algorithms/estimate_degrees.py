@@ -75,7 +75,7 @@ class SumDegreeEstimator(Transformer):
         """A form argument provides a degree depending on the element,
         or the default degree if the element has no degree."""
         e = v.element()
-        e = self.element_replace_map.get(e,e)
+        e = self.element_replace_map.get(e, e)
         d = e.degree() # FIXME: Use component to improve accuracy for mixed elements
         if d is None:
             d = self.default_degree
@@ -192,9 +192,9 @@ class SumDegreeEstimator(Transformer):
         """
         #print "estimate",a,b
         if a or b:
-            return max(a,b)+2
+            return max(a, b)+2
         else:
-            return max(a,b)
+            return max(a, b)
 
 
     def math_function(self, v, a):

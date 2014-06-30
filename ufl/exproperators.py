@@ -427,7 +427,7 @@ def _dx(self, *ii):
     for i in ii:
         d = Grad(d)
     # Take all components, applying repeated index sums in the [] operation
-    return d[...,ii]
+    return d[..., ii]
 
 Expr.dx = _dx
 

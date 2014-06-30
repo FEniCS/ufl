@@ -713,7 +713,7 @@ class GradAD(ForwardAD):
         # 2) if not f.has_derivatives(n): return zero(...)
 
         f, = o.operands()
-        ufl_assert(isinstance(f, (Grad,Terminal)),
+        ufl_assert(isinstance(f, (Grad, Terminal)),
                    "Expecting derivatives of child to be already expanded.")
         return (o, Grad(o))
 
@@ -764,7 +764,7 @@ class CoefficientAD(ForwardAD):
         self._v = arguments
         self._w = coefficients
         cd = coefficient_derivatives.operands()
-        self._cd = dict((cd[2*i],cd[2*i+1]) for i in range(len(cd)//2))
+        self._cd = dict((cd[2*i], cd[2*i+1]) for i in range(len(cd)//2))
 
     def coefficient(self, o):
         # Define dw/dw := d/ds [w + s v] = v

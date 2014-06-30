@@ -52,7 +52,7 @@ def replace(e, mapping):
     @param mapping:
         A dict with from:to replacements to perform.
     """
-    mapping2 = dict((k, as_ufl(v)) for (k,v) in six.iteritems(mapping)) # TODO: Should this be sorted?
+    mapping2 = dict((k, as_ufl(v)) for (k, v) in six.iteritems(mapping)) # TODO: Should this be sorted?
 
     # Workaround for problem with delayed derivative evaluation
     if extract_type(e, CoefficientDerivative):

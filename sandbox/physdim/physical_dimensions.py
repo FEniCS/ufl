@@ -13,7 +13,7 @@ class PhysicalDimension:
         self.normalize()
 
     def normalize(self):
-        keys = [d for (d,c) in six.iteritems(self.counts) if c == 0]
+        keys = [d for (d, c) in six.iteritems(self.counts) if c == 0]
         for k in keys:
             del self.counts[k]
 

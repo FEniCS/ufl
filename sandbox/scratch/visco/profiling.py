@@ -23,12 +23,12 @@ class ExpressionAnalysisReport(object):
         self.footprint_of_nodes = 0
 
     def __iadd__(self, other):
-        for k,v in six.iteritems(vars(other)):
+        for k, v in six.iteritems(vars(other)):
             setattr(self, k, getattr(self, k) + v)
         return self
 
     def __isub__(self, other):
-        for k,v in six.iteritems(vars(other)):
+        for k, v in six.iteritems(vars(other)):
             setattr(self, k, getattr(self, k) - v)
         return self
 
@@ -45,7 +45,7 @@ class ExpressionAnalysisReport(object):
         return n
 
     def __str__(self):
-        return '\n'.join("%s  %s" % (l,getattr(self,k)) for k, l in varname_labels)
+        return '\n'.join("%s  %s" % (l, getattr(self, k)) for k, l in varname_labels)
 
 def accumulate_results(reports, e, visited_ids, hashes):
     # Count nodes with repetition
@@ -118,7 +118,7 @@ def format_expression_analysis(total_report, terminal_report, operator_report, t
             r = type_reports[c]
             if r.num_unique_nodes > 0:
                 sp = "" if len(c) >= maxlen else (maxlen-len(c))*" "
-                parts.append(_class_template.format(classname=c, spacing=sp, key=getattr(r,k)))
+                parts.append(_class_template.format(classname=c, spacing=sp, key=getattr(r, k)))
     return "\n".join(parts)
 
 def formatted_analysis(expr, classes=False):
@@ -138,7 +138,7 @@ def rsizeof(obj, visited=None):
     if 1:
         s += sum(rsizeof(o) for o in obj.operands())
     elif hasattr(obj.__class__, '__slots__'):
-        s += sum(rsizeof(getattr(obj,n)) for n in obj.__class__.__slots__)
+        s += sum(rsizeof(getattr(obj, n)) for n in obj.__class__.__slots__)
     else:
         s += sum(rsizeof(o) for o in six.itervalues(vars(obj)))
     return s

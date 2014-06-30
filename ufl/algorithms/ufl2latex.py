@@ -112,7 +112,7 @@ def format_multi_index(ii, formatstring="%s"):
 
 def bfname(i, p):
     s = "" if p is None else (",%d"%(p,))
-    return "{v_h^{%d%s}}" % (i,s)
+    return "{v_h^{%d%s}}" % (i, s)
 
 def cfname(i):
     return "{w_h^%d}" % i
@@ -421,7 +421,7 @@ def form2latex(form, formdata):
     for f in formdata.original_arguments:
         i = f.number()
         p = f.part()
-        lines.append("%s = %s \\in V_h^{%d} " % (argument_names[(i,p)], bfname(i,p), i)) # FIXME: Handle part in V_h
+        lines.append("%s = %s \\in V_h^{%d} " % (argument_names[(i, p)], bfname(i, p), i)) # FIXME: Handle part in V_h
     for i, f in enumerate(formdata.original_coefficients):
         lines.append("%s = %s \\in W_h^{%d} " % (coefficient_names[i], cfname(i), i))
     if lines:

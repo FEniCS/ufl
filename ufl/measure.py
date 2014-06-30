@@ -49,8 +49,8 @@ _integral_types = [
     #("interface", "dI"),          # Over facet fragment overlapping with two or more cells
     #("vertex", "dV"),             # TODO: Use this over vertices?
     ]
-integral_type_to_measure_name = dict((l,s) for l,s in _integral_types)
-measure_name_to_integral_type = dict((s,l) for l,s in _integral_types)
+integral_type_to_measure_name = dict((l, s) for l, s in _integral_types)
+measure_name_to_integral_type = dict((s, l) for l, s in _integral_types)
 
 def register_integral_type(integral_type, measure_name):
     global integral_type_to_measure_name, measure_name_to_integral_type
@@ -347,7 +347,7 @@ class Measure(object):
         from ufl.form import Form
 
         # Allow python literals: 1*dx and 1.0*dx
-        if isinstance(integrand, (int,float)):
+        if isinstance(integrand, (int, float)):
             integrand = as_ufl(integrand)
 
         # Let other types implement multiplication with Measure
@@ -368,7 +368,7 @@ class Measure(object):
 
         # Check that we have an integer subdomain or a string
         # ("everywhere" or "otherwise", any more?)
-        ufl_assert(isinstance(subdomain_id, (int,str)),
+        ufl_assert(isinstance(subdomain_id, (int, str)),
                    "Expecting integer or string domain id.")
 
         # If we don't have an integration domain, try to find one in integrand
@@ -433,7 +433,7 @@ class MeasureSum(object):
         return NotImplemented
 
     def __str__(self):
-        return "{\n    " + "\n  + ".join(map(str,self._measures)) + "\n}"
+        return "{\n    " + "\n  + ".join(map(str, self._measures)) + "\n}"
 
 class MeasureProduct(object):
     """Represents a product of measures.

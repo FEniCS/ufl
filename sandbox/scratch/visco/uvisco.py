@@ -32,7 +32,7 @@ ffc_options = {
 }
 
 if DOLFIN:
-    mesh = UnitCube(1,1,1)
+    mesh = UnitCube(1, 1, 1)
 else:
     cell = tetrahedron
 gdim = 3
@@ -163,8 +163,8 @@ def find_the_memory_thief(expr):
             reprtot += getsizeof(r)
             reprtot2 += len(r)
         n = type(e).__name__
-        memuse[n] = max(memuse.get(n,0), getsizeof(e))
-        tmemuse[n] = tmemuse.get(n,0) + getsizeof(e)
+        memuse[n] = max(memuse.get(n, 0), getsizeof(e))
+        tmemuse[n] = tmemuse.get(n, 0) + getsizeof(e)
     worst = sorted(list(memuse.items()), key=lambda x: x[1])
     tworst = sorted(list(tmemuse.items()), key=lambda x: x[1])
     print()

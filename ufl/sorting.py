@@ -54,7 +54,7 @@ def cmp_expr(a, b):
         # ... MultiIndex? Careful not to depend on Index.count() here! This is placed first because it is most frequent.
         if isinstance(a, MultiIndex):
             # Make decision based on the first index pair possible
-            for i,j in zip(a._indices, b._indices):
+            for i, j in zip(a._indices, b._indices):
                 if isinstance(i, FixedIndex):
                     if isinstance(j, FixedIndex):
                         # Both are FixedIndex, sort by value

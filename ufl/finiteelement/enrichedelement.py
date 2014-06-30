@@ -78,7 +78,7 @@ class EnrichedElement(FiniteElementBase):
         """Construct a new EnrichedElement object with some properties
         replaced with new values."""
         elements = [e.reconstruct(**kwargs) for e in self._elements]
-        if all(a == b for (a,b) in zip(elements, self._elements)):
+        if all(a == b for (a, b) in zip(elements, self._elements)):
             return self
         return EnrichedElement(*elements)
 

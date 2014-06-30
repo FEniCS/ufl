@@ -218,7 +218,7 @@ class Conditional(Operator):
         tfi = true_value.free_indices()
         ffi = false_value.free_indices()
         ufl_assert(tfi == ffi, "Free index mismatch between conditional branches.")
-        if isinstance(condition, (EQ,NE)):
+        if isinstance(condition, (EQ, NE)):
             ufl_assert(condition._left.shape() == ()
                        and condition._left.free_indices() == ()
                        and condition._right.shape() == ()

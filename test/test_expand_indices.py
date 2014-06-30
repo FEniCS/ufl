@@ -39,11 +39,11 @@ class ExpandIndicesTestCase(UflTestCase):
             elif derivatives == (1,):
                 return 0.31
             # second order derivatives
-            elif derivatives == (0,0):
+            elif derivatives == (0, 0):
                 return 0
-            elif derivatives in ((1,0), (0,1)):
+            elif derivatives in ((1, 0), (0, 1)):
                 return 0
-            elif derivatives == (1,1):
+            elif derivatives == (1, 1):
                 return 0
             # function value
             assert derivatives == ()
@@ -56,11 +56,11 @@ class ExpandIndicesTestCase(UflTestCase):
             elif derivatives == (1,):
                 return 0.31
             # second order derivatives
-            elif derivatives == (0,0):
+            elif derivatives == (0, 0):
                 return 3.300
-            elif derivatives in ((1,0), (0,1)):
+            elif derivatives in ((1, 0), (0, 1)):
                 return 3.310
-            elif derivatives == (1,1):
+            elif derivatives == (1, 1):
                 return 3.311
             # function value
             assert derivatives == ()
@@ -73,11 +73,11 @@ class ExpandIndicesTestCase(UflTestCase):
             elif derivatives == (1,):
                 return (0.51, 0.71)
             # second order derivatives
-            elif derivatives == (0,0):
+            elif derivatives == (0, 0):
                 return (0.20, 0.21)
-            elif derivatives in ((1,0), (0,1)):
+            elif derivatives in ((1, 0), (0, 1)):
                 return (0.30, 0.31)
-            elif derivatives == (1,1):
+            elif derivatives == (1, 1):
                 return (0.40, 0.41)
             # function value
             assert derivatives == ()
@@ -90,11 +90,11 @@ class ExpandIndicesTestCase(UflTestCase):
             elif derivatives == (1,):
                 return ((1.11, 1.31), (1.71, 1.91))
             # second order derivatives
-            elif derivatives == (0,0):
+            elif derivatives == (0, 0):
                 return ((10.00, 10.01), (10.10, 10.11))
-            elif derivatives in ((1,0), (0,1)):
+            elif derivatives in ((1, 0), (0, 1)):
                 return ((12.00, 12.01), (12.10, 12.11))
-            elif derivatives == (1,1):
+            elif derivatives == (1, 1):
                 return ((11.00, 11.01), (11.10, 11.11))
             # function value
             assert derivatives == ()
@@ -160,20 +160,20 @@ class ExpandIndicesTestCase(UflTestCase):
         compare(ln(vf[0]), math.log(5))
         
         # Double indexing
-        compare(tf[1,1], 19)
-        compare(tf[1,1] + 1, 20)
-        compare(tf[1,1] - 2.5, 16.5)
-        compare(tf[1,1]/2, 9.5)
-        compare(tf[1,1]/0.5, 38)
-        compare(tf[1,1]**2, 19**2)
-        compare(tf[1,1]**0.5, 19**0.5)
-        compare(tf[1,1]**3, 19**3)
-        compare(0.5**tf[1,1], 0.5**19)
-        compare(tf[1,1] * (tf[1,1]/6), 19*(19./6))
-        compare(sin(tf[1,1]), math.sin(19))
-        compare(cos(tf[1,1]), math.cos(19))
-        compare(exp(tf[1,1]), math.exp(19))
-        compare(ln(tf[1,1]), math.log(19))
+        compare(tf[1, 1], 19)
+        compare(tf[1, 1] + 1, 20)
+        compare(tf[1, 1] - 2.5, 16.5)
+        compare(tf[1, 1]/2, 9.5)
+        compare(tf[1, 1]/0.5, 38)
+        compare(tf[1, 1]**2, 19**2)
+        compare(tf[1, 1]**0.5, 19**0.5)
+        compare(tf[1, 1]**3, 19**3)
+        compare(0.5**tf[1, 1], 0.5**19)
+        compare(tf[1, 1] * (tf[1, 1]/6), 19*(19./6))
+        compare(sin(tf[1, 1]), math.sin(19))
+        compare(cos(tf[1, 1]), math.cos(19))
+        compare(exp(tf[1, 1]), math.exp(19))
+        compare(ln(tf[1, 1]), math.log(19))
 
     def test_expand_indices_index_sum(self):
         sf = self.sf
@@ -183,11 +183,11 @@ class ExpandIndicesTestCase(UflTestCase):
 
         # Basic index sums
         compare(vf[i]*vf[i], 5*5+7*7)
-        compare(vf[j]*tf[i,j]*vf[i], 5*5*11 + 5*7*13 + 5*7*17 + 7*7*19)
-        compare(vf[j]*tf.T[j,i]*vf[i], 5*5*11 + 5*7*13 + 5*7*17 + 7*7*19)
-        compare(tf[i,i], 11 + 19)
-        compare(tf[i,j]*(tf[j,i]+outer(vf, vf)[i,j]), (5*5+11)*11 + (7*5+17)*13 + (7*5+13)*17 + (7*7+19)*19)
-        compare( as_tensor( as_tensor(tf[i,j], (i,j))[k,l], (l,k) )[i,i], 11 + 19 )
+        compare(vf[j]*tf[i, j]*vf[i], 5*5*11 + 5*7*13 + 5*7*17 + 7*7*19)
+        compare(vf[j]*tf.T[j, i]*vf[i], 5*5*11 + 5*7*13 + 5*7*17 + 7*7*19)
+        compare(tf[i, i], 11 + 19)
+        compare(tf[i, j]*(tf[j, i]+outer(vf, vf)[i, j]), (5*5+11)*11 + (7*5+17)*13 + (7*5+13)*17 + (7*7+19)*19)
+        compare( as_tensor( as_tensor(tf[i, j], (i, j))[k, l], (l, k) )[i, i], 11 + 19 )
     
     def test_expand_indices_derivatives(self):
         sf = self.sf
@@ -217,10 +217,10 @@ class ExpandIndicesTestCase(UflTestCase):
         F01 = 0.51
         F10 = 0.70
         F11 = 1 + 0.71
-        compare(F[0,0], F00)
-        compare(F[0,1], F01)
-        compare(F[1,0], F10)
-        compare(F[1,1], F11)
+        compare(F[0, 0], F00)
+        compare(F[0, 1], F01)
+        compare(F[1, 0], F10)
+        compare(F[1, 1], F11)
 
         J = det(F)
         compare(J, (1 + 0.50)*(1 + 0.71) - 0.70*0.51)
@@ -232,20 +232,20 @@ class ExpandIndicesTestCase(UflTestCase):
         C01 = F00*F01 + F10*F11
         C10 = F01*F00 + F11*F10
         C11 = F01*F01 + F11*F11
-        compare(C[0,0], C00)
-        compare(C[0,1], C01)
-        compare(C[1,0], C10)
-        compare(C[1,1], C11)
+        compare(C[0, 0], C00)
+        compare(C[0, 1], C01)
+        compare(C[1, 0], C10)
+        compare(C[1, 1], C11)
         
         E = (C-I)/2
         E00 = (C00-1)/2
         E01 = (C01  )/2
         E10 = (C10  )/2
         E11 = (C11-1)/2
-        compare(E[0,0], E00)
-        compare(E[0,1], E01)
-        compare(E[1,0], E10)
-        compare(E[1,1], E11)
+        compare(E[0, 0], E00)
+        compare(E[0, 1], E01)
+        compare(E[1, 0], E10)
+        compare(E[1, 1], E11)
         
         # Strain energy
         Q = inner(E, E)
@@ -272,7 +272,7 @@ class ExpandIndicesTestCase(UflTestCase):
         if 0:
             Dvf = grad(vf)
             Lvf = div(Dvf)
-            Lvf2 = dot(Lvf,Lvf)
+            Lvf2 = dot(Lvf, Lvf)
             pp = (Lvf2*dx).compute_form_data().preprocessed_form.integrals()[0].integrand()
             print(('vf', vf.shape(), str(vf)))
             print(('Dvf', Dvf.shape(), str(Dvf)))
@@ -281,10 +281,10 @@ class ExpandIndicesTestCase(UflTestCase):
             print(('pp', pp.shape(), str(pp)))
 
         a = div(grad(vf))
-        compare(dot(a,a), (0.20+0.40)**2 + (0.21+0.41)**2)
+        compare(dot(a, a), (0.20+0.40)**2 + (0.21+0.41)**2)
 
         a = div(grad(tf))
-        compare(inner(a,a), (10.00+11.00)**2 + (10.01+11.01)**2 + (10.10+11.10)**2 + (10.11+11.11)**2)
+        compare(inner(a, a), (10.00+11.00)**2 + (10.01+11.01)**2 + (10.10+11.10)**2 + (10.11+11.11)**2)
 
     def test_expand_indices_nabla_div_grad(self):
         sf = self.sf
@@ -300,10 +300,10 @@ class ExpandIndicesTestCase(UflTestCase):
         compare(a, 3.300 + 3.311)
 
         a = nabla_div(nabla_grad(vf))
-        compare(dot(a,a), (0.20+0.40)**2 + (0.21+0.41)**2)
+        compare(dot(a, a), (0.20+0.40)**2 + (0.21+0.41)**2)
 
         a = nabla_div(nabla_grad(tf))
-        compare(inner(a,a), (10.00+11.00)**2 + (10.01+11.01)**2 + (10.10+11.10)**2 + (10.11+11.11)**2)
+        compare(inner(a, a), (10.00+11.00)**2 + (10.01+11.01)**2 + (10.10+11.10)**2 + (10.11+11.11)**2)
 
     def xtest_expand_indices_list_tensor_problem(self):
         print()

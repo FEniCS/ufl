@@ -77,13 +77,13 @@ def reverse_ad(expr, G): # TODO: Finish this!
         pdiffs = pdc(v)
         vi_edges = TODO
         for (j, dvidvj) in zip(vi_edges, pdiffs):
-            c[(i,j)] = dvidvj
+            c[(i, j)] = dvidvj
 
     # Reverse accumulation
     for i in range(m-1, n-1, -1):
         xdi = xd[i]
         for j in Eout[i-n]: # TODO: Correct edges, j should be the x indices of the operands of x[i]
-            xd[j] += xdi*c[i,j]
+            xd[j] += xdi*c[i, j]
     result = xd[:n]
 
     return result

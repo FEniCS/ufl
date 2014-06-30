@@ -137,7 +137,7 @@ class Zero(IndexAnnotated):
         if not free_indices:
             return self
         ufl_assert(len(free_indices) == len(self._free_indices), "Size mismatch between old and new indices.")
-        new_index_dimensions = dict((b, self._index_dimensions[a]) for (a,b) in zip(self._free_indices, free_indices))
+        new_index_dimensions = dict((b, self._index_dimensions[a]) for (a, b) in zip(self._free_indices, free_indices))
         return Zero(self._shape, free_indices, new_index_dimensions)
 
     def shape(self):
@@ -163,7 +163,7 @@ class Zero(IndexAnnotated):
 
     def __eq__(self, other):
         if not isinstance(other, Zero):
-            return isinstance(other, (int,float)) and other == 0
+            return isinstance(other, (int, float)) and other == 0
         if self is other:
             return True
         return (self._shape == other._shape and
@@ -219,7 +219,7 @@ class ScalarValue(IndexAnnotated):
         if not free_indices:
             return self
         ufl_assert(len(free_indices) == len(self._free_indices), "Size mismatch between old and new indices.")
-        new_index_dimensions = dict((b, self._index_dimensions[a]) for (a,b) in zip(self._free_indices, free_indices))
+        new_index_dimensions = dict((b, self._index_dimensions[a]) for (a, b) in zip(self._free_indices, free_indices))
         return self._uflclass(self._value, self._shape, free_indices, new_index_dimensions)
 
     def shape(self):
@@ -247,7 +247,7 @@ class ScalarValue(IndexAnnotated):
         can still succeed. These will however not have the same
         hash value and therefore not collide in a dict."""
         if not isinstance(other, self._uflclass):
-            return isinstance(other, (int,float)) and other == self._value
+            return isinstance(other, (int, float)) and other == self._value
         else:
             return self._value == other._value
 

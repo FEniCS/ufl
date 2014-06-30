@@ -114,7 +114,7 @@ class ClasscoverageTest(UflTestCase):
 
         test_object(v0, (), ())
         test_object(v1, (dim,), ())
-        test_object(v2, (dim,dim), ())
+        test_object(v2, (dim, dim), ())
         test_object(v3, (dim*dim+dim+1,), ())
 
         f0 = Coefficient(e0)
@@ -124,7 +124,7 @@ class ClasscoverageTest(UflTestCase):
 
         test_object(f0, (), ())
         test_object(f1, (dim,), ())
-        test_object(f2, (dim,dim), ())
+        test_object(f2, (dim, dim), ())
         test_object(f3, (dim*dim+dim+1,), ())
 
         c = Constant(cell)
@@ -134,7 +134,7 @@ class ClasscoverageTest(UflTestCase):
         test_object(c, (dim,), ())
 
         c = TensorConstant(cell)
-        test_object(c, (dim,dim), ())
+        test_object(c, (dim, dim), ())
 
         a = FloatValue(1.23)
         test_object(a, (), ())
@@ -143,16 +143,16 @@ class ClasscoverageTest(UflTestCase):
         test_object(a, (), ())
 
         I = Identity(1)
-        test_object(I, (1,1), ())
+        test_object(I, (1, 1), ())
         I = Identity(2)
-        test_object(I, (2,2), ())
+        test_object(I, (2, 2), ())
         I = Identity(3)
-        test_object(I, (3,3), ())
+        test_object(I, (3, 3), ())
 
         e = PermutationSymbol(2)
-        test_object(e, (2,2), ())
+        test_object(e, (2, 2), ())
         e = PermutationSymbol(3)
-        test_object(e, (3,3,3), ())
+        test_object(e, (3, 3, 3), ())
 
         x = SpatialCoordinate(cell)
         test_object(x, (dim,), ())
@@ -165,18 +165,18 @@ class ClasscoverageTest(UflTestCase):
         #test_object(g, (dim,), ())
 
         g = Jacobian(cell)
-        test_object(g, (dim,dim), ())
+        test_object(g, (dim, dim), ())
         g = JacobianDeterminant(cell)
         test_object(g, (), ())
         g = JacobianInverse(cell)
-        test_object(g, (dim,dim), ())
+        test_object(g, (dim, dim), ())
 
         g = FacetJacobian(cell)
-        test_object(g, (dim,dim-1), ())
+        test_object(g, (dim, dim-1), ())
         g = FacetJacobianDeterminant(cell)
         test_object(g, (), ())
         g = FacetJacobianInverse(cell)
-        test_object(g, (dim-1,dim), ())
+        test_object(g, (dim-1, dim), ())
 
         g = FacetNormal(cell)
         test_object(g, (dim,), ())
@@ -204,7 +204,7 @@ class ClasscoverageTest(UflTestCase):
         a = variable(v1)
         test_object(a, (dim,), ())
         a = variable(v2)
-        test_object(a, (dim,dim), ())
+        test_object(a, (dim, dim), ())
         a = variable(v3)
         test_object(a, (dim*dim+dim+1,), ())
         a = variable(f0)
@@ -212,7 +212,7 @@ class ClasscoverageTest(UflTestCase):
         a = variable(f1)
         test_object(a, (dim,), ())
         a = variable(f2)
-        test_object(a, (dim,dim), ())
+        test_object(a, (dim, dim), ())
         a = variable(f3)
         test_object(a, (dim*dim+dim+1,), ())
 
@@ -221,37 +221,37 @@ class ClasscoverageTest(UflTestCase):
         # --- Non-terminals:
 
         #a = Indexed()
-        a = v2[i,j]
-        test_object(a, (), (i,j))
-        a = v2[0,k]
+        a = v2[i, j]
+        test_object(a, (), (i, j))
+        a = v2[0, k]
         test_object(a, (), (k,))
-        a = v2[l,1]
+        a = v2[l, 1]
         test_object(a, (), (l,))
-        a = f2[i,j]
-        test_object(a, (), (i,j))
-        a = f2[0,k]
+        a = f2[i, j]
+        test_object(a, (), (i, j))
+        a = f2[0, k]
         test_object(a, (), (k,))
-        a = f2[l,1]
+        a = f2[l, 1]
         test_object(a, (), (l,))
 
         I = Identity(dim)
         a = inv(I)
-        test_object(a, (dim,dim), ())
+        test_object(a, (dim, dim), ())
         a = inv(v2)
-        test_object(a, (dim,dim), ())
+        test_object(a, (dim, dim), ())
         a = inv(f2)
-        test_object(a, (dim,dim), ())
+        test_object(a, (dim, dim), ())
 
-        for v in (v0,v1,v2,v3):
-            for f in (f0,f1,f2,f3):
+        for v in (v0, v1, v2, v3):
+            for f in (f0, f1, f2, f3):
                 a = outer(v, f)
                 test_object(a, None, None)
 
-        for v,f in zip((v0,v1,v2,v3), (f0,f1,f2,f3)):
+        for v, f in zip((v0, v1, v2, v3), (f0, f1, f2, f3)):
             a = inner(v, f)
             test_object(a, None, None)
 
-        for v,f in zip((v1,v2,v3),(f1,f2,f3)):
+        for v, f in zip((v1, v2, v3), (f1, f2, f3)):
             a = dot(v, f)
             sh = v.shape()[:-1] + f.shape()[1:]
             test_object(a, sh, None)
@@ -265,7 +265,7 @@ class ClasscoverageTest(UflTestCase):
         a = v1 + f1 + v1
         test_object(a, (dim,), ())
         a = v2 + f2 + v2
-        test_object(a, (dim,dim), ())
+        test_object(a, (dim, dim), ())
         #a = Product()
         a = 3*v0*(2.0*v0)*f0*(v0*3.0)
         test_object(a, (), ())
@@ -287,50 +287,50 @@ class ClasscoverageTest(UflTestCase):
         test_object(a, (3,), ())
         a = as_matrix([[1.0, 2.0*f0, f0**2],
                     [1.0, 2.0*f0, f0**2]])
-        test_object(a, (2,3), ())
+        test_object(a, (2, 3), ())
         a = as_tensor([ [[0.00, 0.01, 0.02],
                          [0.10, 0.11, 0.12] ],
                       [ [1.00, 1.01, 1.02],
                         [1.10, 1.11, 1.12]] ])
-        test_object(a, (2,2,3), ())
+        test_object(a, (2, 2, 3), ())
 
         #a = ComponentTensor()
         a = as_vector(v1[i]*f1[j], i)
         test_object(a, (dim,), (j,))
-        a = as_matrix(v1[i]*f1[j], (j,i))
+        a = as_matrix(v1[i]*f1[j], (j, i))
         test_object(a, (dim, dim), ())
-        a = as_tensor(v1[i]*f1[j], (i,j))
+        a = as_tensor(v1[i]*f1[j], (i, j))
         test_object(a, (dim, dim), ())
-        a = as_tensor(v2[i,j]*f2[j,k], (i,k))
+        a = as_tensor(v2[i, j]*f2[j, k], (i, k))
         test_object(a, (dim, dim), ())
 
         a = dev(v2)
-        test_object(a, (dim,dim), ())
+        test_object(a, (dim, dim), ())
         a = dev(f2)
-        test_object(a, (dim,dim), ())
+        test_object(a, (dim, dim), ())
         a = dev(f2*f0+v2*3)
-        test_object(a, (dim,dim), ())
+        test_object(a, (dim, dim), ())
 
         a = sym(v2)
-        test_object(a, (dim,dim), ())
+        test_object(a, (dim, dim), ())
         a = sym(f2)
-        test_object(a, (dim,dim), ())
+        test_object(a, (dim, dim), ())
         a = sym(f2*f0+v2*3)
-        test_object(a, (dim,dim), ())
+        test_object(a, (dim, dim), ())
 
         a = skew(v2)
-        test_object(a, (dim,dim), ())
+        test_object(a, (dim, dim), ())
         a = skew(f2)
-        test_object(a, (dim,dim), ())
+        test_object(a, (dim, dim), ())
         a = skew(f2*f0+v2*3)
-        test_object(a, (dim,dim), ())
+        test_object(a, (dim, dim), ())
 
         a = v2.T
-        test_object(a, (dim,dim), ())
+        test_object(a, (dim, dim), ())
         a = f2.T
-        test_object(a, (dim,dim), ())
+        test_object(a, (dim, dim), ())
         a = transpose(f2*f0+v2*3)
-        test_object(a, (dim,dim), ())
+        test_object(a, (dim, dim), ())
 
         a = det(v2)
         test_object(a, (), ())
@@ -347,11 +347,11 @@ class ClasscoverageTest(UflTestCase):
         test_object(a, (), ())
 
         a = cofac(v2)
-        test_object(a, (dim,dim), ())
+        test_object(a, (dim, dim), ())
         a = cofac(f2)
-        test_object(a, (dim,dim), ())
+        test_object(a, (dim, dim), ())
         a = cofac(f2*f0+v2*3)
-        test_object(a, (dim,dim), ())
+        test_object(a, (dim, dim), ())
 
         cond1 = le(f0, 1.0)
         cond2 = eq(3.0, f0)
@@ -439,8 +439,8 @@ class ClasscoverageTest(UflTestCase):
         test_object(a, (), ())
         a = f0.dx(i)
         test_object(a, (), (i,))
-        a = f0.dx(i,j,1)
-        test_object(a, (), (i,j))
+        a = f0.dx(i, j, 1)
+        test_object(a, (), (i, j))
 
         s0 = variable(f0)
         s1 = variable(f1)
@@ -448,15 +448,15 @@ class ClasscoverageTest(UflTestCase):
         f = dot(s0*s1, s2)
         test_object(s0, (), ())
         test_object(s1, (dim,), ())
-        test_object(s2, (dim,dim), ())
+        test_object(s2, (dim, dim), ())
         test_object(f, (dim,), ())
 
         a = diff(f, s0)
         test_object(a, (dim,), ())
         a = diff(f, s1)
-        test_object(a, (dim,dim,), ())
+        test_object(a, (dim, dim,), ())
         a = diff(f, s2)
-        test_object(a, (dim,dim,dim), ())
+        test_object(a, (dim, dim, dim), ())
 
         a = div(v1)
         test_object(a, (), ())
@@ -466,7 +466,7 @@ class ClasscoverageTest(UflTestCase):
         test_object(a, (dim,), ())
         a = div(f2)
         test_object(a, (dim,), ())
-        a = div(Outer(f1,f1))
+        a = div(Outer(f1, f1))
         test_object(a, (dim,), ())
 
         a = grad(v0)
@@ -490,7 +490,7 @@ class ClasscoverageTest(UflTestCase):
         test_object(a, (dim,), ())
         a = nabla_div(f2)
         test_object(a, (dim,), ())
-        a = nabla_div(Outer(f1,f1))
+        a = nabla_div(Outer(f1, f1))
         test_object(a, (dim,), ())
 
         a = nabla_grad(v0)
@@ -563,28 +563,28 @@ class ClasscoverageTest(UflTestCase):
         a = v0*dS(1)
         test_form(a)
 
-        a = v0*dot(v1,f1)*dx
+        a = v0*dot(v1, f1)*dx
         test_form(a)
-        a = v0*dot(v1,f1)*dx(0)
+        a = v0*dot(v1, f1)*dx(0)
         test_form(a)
-        a = v0*dot(v1,f1)*dx(1)
+        a = v0*dot(v1, f1)*dx(1)
         test_form(a)
-        a = v0*dot(v1,f1)*ds
+        a = v0*dot(v1, f1)*ds
         test_form(a)
-        a = v0*dot(v1,f1)*ds(0)
+        a = v0*dot(v1, f1)*ds(0)
         test_form(a)
-        a = v0*dot(v1,f1)*ds(1)
+        a = v0*dot(v1, f1)*ds(1)
         test_form(a)
-        a = v0*dot(v1,f1)*dS
+        a = v0*dot(v1, f1)*dS
         test_form(a)
-        a = v0*dot(v1,f1)*dS(0)
+        a = v0*dot(v1, f1)*dS(0)
         test_form(a)
-        a = v0*dot(v1,f1)*dS(1)
+        a = v0*dot(v1, f1)*dS(1)
         test_form(a)
 
         # --- Form transformations:
 
-        a = f0*v0*dx + f0*v0*dot(f1,v1)*dx
+        a = f0*v0*dx + f0*v0*dot(f1, v1)*dx
         #b = lhs(a) # TODO
         #c = rhs(a) # TODO
         d = derivative(a, f1, v1)
@@ -603,18 +603,18 @@ class ClasscoverageTest(UflTestCase):
             if unused:
                 print()
                 print("The following classes were never instantiated in class coverage test:")
-                print(("\n".join(sorted(map(str,unused)))))
+                print(("\n".join(sorted(map(str, unused)))))
                 print()
         # --- Check which classes had certain member variables
         if has_repr:
             print()
             print("The following classes contain a _repr member:")
-            print(("\n".join(sorted(map(str,has_repr)))))
+            print(("\n".join(sorted(map(str, has_repr)))))
             print()
         if has_dict:
             print()
             print("The following classes contain a __dict__ member:")
-            print(("\n".join(sorted(map(str,has_dict)))))
+            print(("\n".join(sorted(map(str, has_dict)))))
             print()
 
         # TODO: Add tests for bessel functions:

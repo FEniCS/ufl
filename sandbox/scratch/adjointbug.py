@@ -1,7 +1,7 @@
 
 from dolfin import *
 
-mesh = UnitSquare(3,3)
+mesh = UnitSquare(3, 3)
 
 V1 = FunctionSpace(mesh, "CG", 1)
 V2 = FunctionSpace(mesh, "CG", 2)

@@ -24,8 +24,8 @@ def dev(A):
     d = A.rows()
     I = matrix(d, d)
     for i in range(d):
-        I[i,i] = 1.0
-    alpha = sum(A[i,i] for i in range(d))
+        I[i, i] = 1.0
+    alpha = sum(A[i, i] for i in range(d))
     return A - alpha/d*I
 
 def devstr(d):

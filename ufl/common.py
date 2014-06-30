@@ -110,11 +110,11 @@ def xor(a, b):
 
 def or_tuples(seqa, seqb):
     "Return 'or' of all pairs in two sequences of same length."
-    return tuple(a or b for (a,b) in zip(seqa, seqb))
+    return tuple(a or b for (a, b) in zip(seqa, seqb))
 
 def and_tuples(seqa, seqb):
     "Return 'and' of all pairs in two sequences of same length."
-    return tuple(a and b for (a,b) in zip(seqa, seqb))
+    return tuple(a and b for (a, b) in zip(seqa, seqb))
 
 def iter_tree(tree):
     """Iterate over all nodes in a tree represented
@@ -196,7 +196,7 @@ def split_dict(d, criteria):
     "Split a dict d into two dicts based on a criteria on the keys."
     a = {}
     b = {}
-    for (k,v) in six.iteritems(d):
+    for (k, v) in six.iteritems(d):
         if criteria(k):
             a[k] = v
         else:
@@ -399,7 +399,7 @@ def strides(shape):
 
 def component_to_index(component, shape):
     i = 0
-    for (c,s) in zip(component, strides(shape)):
+    for (c, s) in zip(component, strides(shape)):
         i += c*s
     return i
 
@@ -413,7 +413,7 @@ def index_to_component(index, shape):
         index = b
         component.append(a)
     assert all(c >= 0 for c in component)
-    assert all(c < s for (c,s) in zip(component, shape))
+    assert all(c < s for (c, s) in zip(component, shape))
     return tuple(component)
 
 def topological_sorting(nodes, edges):
@@ -447,7 +447,7 @@ def topological_sorting(nodes, edges):
                 if found:
                     break
             if not found:
-                S.insert(0,m)
+                S.insert(0, m)
 
     return L
 

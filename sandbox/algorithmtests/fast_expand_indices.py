@@ -15,9 +15,9 @@ if __name__ == "__main__":
     print((expand_indices2(vu[0]*vv[0])))
     print((expand_indices2(u*v)))
     print((expand_indices2(vu[i]*vv[i])))
-    print((expand_indices2(vu[i]*as_vector([2,3])[i])))
+    print((expand_indices2(vu[i]*as_vector([2, 3])[i])))
     print((expand_indices2(as_vector(vu[i], i)[j]*vv[j])))
-    print((expand_indices2(expand_compounds( dot(dot(vu, as_tensor(vu[i]*vv[j], (i,j))), vv) ) )))
+    print((expand_indices2(expand_compounds( dot(dot(vu, as_tensor(vu[i]*vv[j], (i, j))), vv) ) )))
 
-    print((expand_indices(expand_compounds( dot(dot(vu, as_tensor(vu[i]*vv[j], (i,j))), vv) ) )))
+    print((expand_indices(expand_compounds( dot(dot(vu, as_tensor(vu[i]*vv[j], (i, j))), vv) ) )))
 

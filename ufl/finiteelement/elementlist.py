@@ -55,7 +55,7 @@ def show_elements():
         print("Sobolev space: %s" % (sobolev_space,))
         print("Mapping: %s" % (mapping,))
         print("Degree range: ", degree_range)
-        print("Defined on cellnames:" , cellnames)
+        print("Defined on cellnames:", cellnames)
 
 # FIXME: Consider cleanup of element names. Use notation from periodic table as the main, keep old names as compatibility aliases.
 

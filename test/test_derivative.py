@@ -50,7 +50,7 @@ class DerivativeTestCase(UflTestCase):
         self._test(f, df)
 
     def testIdentityLiteral(self):
-        def f(w):     return Identity(2)[i,i]
+        def f(w):     return Identity(2)[i, i]
         def df(w, v): return zero()
         self._test(f, df)
 
@@ -211,19 +211,19 @@ class DerivativeTestCase(UflTestCase):
                 ( (v,    2*v), (0,   0) ),
                 ( (v**2,   1), (2, v/2) ),
                 ))
-        self.assertEqual(f.shape(), (3,2,2))
+        self.assertEqual(f.shape(), (3, 2, 2))
         g = as_tensor((
                 ( (0, 0), (0, 0) ),
-                ( (1, 2), (0,0) ),
+                ( (1, 2), (0, 0) ),
                 ( (84, 0), (0, 0.5) ),
                 ))
-        self.assertEqual(g.shape(), (3,2,2))
+        self.assertEqual(g.shape(), (3, 2, 2))
         dfv = diff(f, v)
         x = None
         for i in range(3):
             for j in range(2):
                 for k in range(2):
-                    self.assertEqual(dfv[i,j,k](x), g[i,j,k](x))
+                    self.assertEqual(dfv[i, j, k](x), g[i, j, k](x))
 
     # --- Coefficient and argument input configurations
 
@@ -303,7 +303,7 @@ class DerivativeTestCase(UflTestCase):
         V = VectorElement("CG", cell, 1)
         u = Coefficient(V)
         v = TestFunction(V)
-        a = 3*dot(u,u)
+        a = 3*dot(u, u)
         actual = derivative(a, u, v)
         expected = 3*(2*(u[i]*v[i]))
         self.assertEqualBySampling(actual, expected)
@@ -318,13 +318,13 @@ class DerivativeTestCase(UflTestCase):
         v = TestFunction(M)
         vv, vw = split(v)
 
-        a = sin(uv)*dot(uw,uw)
+        a = sin(uv)*dot(uw, uw)
 
-        actual = derivative(a, (uv,uw), split(v))
+        actual = derivative(a, (uv, uw), split(v))
         expected = cos(uv)*vv * (uw[i]*uw[i]) + (uw[j]*vw[j])*2 * sin(uv)
         self.assertEqualBySampling(actual, expected)
 
-        actual = derivative(a, (uv,uw), v)
+        actual = derivative(a, (uv, uw), v)
         expected = cos(uv)*vv * (uw[i]*uw[i]) + (uw[j]*vw[j])*2 * sin(uv)
         self.assertEqualBySampling(actual, expected)
 
@@ -342,7 +342,7 @@ class DerivativeTestCase(UflTestCase):
 
         actual = derivative(a, u[0], v)
 
-        dw = v*u[k].dx(0) + u[i]*I[0,k]*v.dx(i)
+        dw = v*u[k].dx(0) + u[i]*I[0, k]*v.dx(i)
         expected = 2 * w[k] * dw
 
         self.assertEqualBySampling(actual, expected)
@@ -380,11 +380,11 @@ class DerivativeTestCase(UflTestCase):
         for i in range(cell.geometric_dimension()):
             Lv[i] = derivative(L, v[i], dv)
             for j in range(cell.geometric_dimension()):
-                Lvu[i,j] = derivative(Lv[i], u[j], du)
+                Lvu[i, j] = derivative(Lv[i], u[j], du)
 
         for i in range(cell.geometric_dimension()):
             for j in range(cell.geometric_dimension()):
-                form = Lvu[i,j]*dx
+                form = Lvu[i, j]*dx
                 fd = form.compute_form_data()
                 pf = fd.preprocessed_form
                 a = expand_indices(pf)
@@ -393,7 +393,7 @@ class DerivativeTestCase(UflTestCase):
         k = Index()
         for i in range(cell.geometric_dimension()):
             for j in range(cell.geometric_dimension()):
-                actual = Lvu[i,j]
+                actual = Lvu[i, j]
                 expected = du*u[i].dx(j)*dv + u[k]*du.dx(k)*dv
                 self.assertEqualBySampling(actual, expected)
 
@@ -436,7 +436,7 @@ class DerivativeTestCase(UflTestCase):
         integrand = inner(f, g)
 
         i0, i1, i2, i3, i4 = [Index(count=c) for c in range(5)]
-        expected = as_tensor(df[i2,i1]*dv[i1], (i2,))[i0]*g[i0]
+        expected = as_tensor(df[i2, i1]*dv[i1], (i2,))[i0]*g[i0]
 
         F = integrand*dx
         J = derivative(F, u, dv, cd)
@@ -461,8 +461,8 @@ class DerivativeTestCase(UflTestCase):
         integrand = f[i]*g[i]
 
         i0, i1, i2, i3, i4 = [Index(count=c) for c in range(5)]
-        expected = as_tensor(df[i2,i1]*dv[i1], (i2,))[i0]*g[i0] +\
-                   f[i0]*as_tensor(dg[i4,i3]*dv[i3], (i4,))[i0]
+        expected = as_tensor(df[i2, i1]*dv[i1], (i2,))[i0]*g[i0] +\
+                   f[i0]*as_tensor(dg[i4, i3]*dv[i3], (i4,))[i0]
 
         F = integrand*dx
         J = derivative(F, u, dv, cd)
@@ -478,7 +478,7 @@ class DerivativeTestCase(UflTestCase):
             print((repr(actual)))
             print((repr(expected)))
             from ufl.algorithms import tree_format
-            open('actual.txt','w').write(tree_format(actual))
+            open('actual.txt', 'w').write(tree_format(actual))
             open('expected.txt', 'w').write(tree_format(expected))
             print(('\n', 'equal:'))
             print((str(actual) == str(expected)))
@@ -489,8 +489,8 @@ class DerivativeTestCase(UflTestCase):
         # that the outermost sum/indexsum are swapped.
         # Sampling the expressions instead of comparing representations.
         x = (0, 0)
-        funcs = {dv: (13, 14), f: (1,2), g: (3,4), df: ((5,6),(7,8)), dg: ((9,10),(11,12))}
-        self.assertEqual(replace(actual,fd.function_replace_map)(x, funcs), expected(x, funcs))
+        funcs = {dv: (13, 14), f: (1, 2), g: (3, 4), df: ((5, 6), (7, 8)), dg: ((9, 10), (11, 12))}
+        self.assertEqual(replace(actual, fd.function_replace_map)(x, funcs), expected(x, funcs))
 
         # TODO: Add tests covering more cases, in particular mixed stuff
 
@@ -625,17 +625,17 @@ class DerivativeTestCase(UflTestCase):
         U = Coefficient(element)
 
         def planarGrad(u):
-            return as_matrix([[u[0].dx(0), 0 ,u[0].dx(1)],
-                              [ 0 , 0 , 0 ],
-                              [u[1].dx(0), 0 ,u[1].dx(1)]])
+            return as_matrix([[u[0].dx(0), 0, u[0].dx(1)],
+                              [ 0, 0, 0 ],
+                              [u[1].dx(0), 0, u[1].dx(1)]])
 
         def epsilon(u):
             return 0.5*(planarGrad(u)+planarGrad(u).T)
 
-        def NS_a(u,v):
-            return inner(epsilon(u),epsilon(v))
+        def NS_a(u, v):
+            return inner(epsilon(u), epsilon(v))
 
-        L = NS_a(U,v)*dx
+        L = NS_a(U, v)*dx
         a = derivative(L, U, du)
         # TODO: assert something
 

@@ -38,13 +38,13 @@ I = Identity(2)
 
 #a = as_tensor(v[i], i)[k] * I[k,0]
 if True:
-    a = A[j,q]
+    a = A[j, q]
     b = as_tensor(a, q)
     
     h = b[i]
     g = as_tensor( h, (j, i) )
-    f = g[k,l]
-    a = f * I[k,l]
+    f = g[k, l]
+    a = f * I[k, l]
 
 printit(a, True)
 

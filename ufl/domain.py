@@ -312,7 +312,7 @@ def as_domain(domain):
 def join_subdomain_data(subdomain_datas): # FIXME: Remove? Think it's unused now.
     newdata = {}
     for data in subdomain_datas:
-        for k,v in six.iteritems(data):
+        for k, v in six.iteritems(data):
             nv = newdata.get(k)
             if nv is None:
                 # New item, just add it
