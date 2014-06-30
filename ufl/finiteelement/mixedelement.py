@@ -48,7 +48,7 @@ class MixedElement(FiniteElementBase):
         if len(elements) == 1 and isinstance(elements[0], (tuple, list)):
             elements = elements[0]
         # Interpret nested tuples as sub-mixedelements recursively
-        elements = [MixedElement(e) if isinstance(e, (tuple,list)) else e
+        elements = [MixedElement(e) if isinstance(e, (tuple, list)) else e
                     for e in elements]
         self._sub_elements = elements
 
@@ -83,7 +83,7 @@ class MixedElement(FiniteElementBase):
         #                          values unpacked in a vector.
         value_shape = kwargs.get('value_shape', (value_size_sum,))
         # Validate value_shape
-        if type(self) is MixedElement:
+        if isinstance(self, MixedElement):
             # This is not valid for tensor elements with symmetries,
             # assume subclasses deal with their own validation
             ufl_assert(product(value_shape) == value_size_sum,
@@ -126,10 +126,10 @@ class MixedElement(FiniteElementBase):
 
     def reconstruct_from_elements(self, *elements):
         "Reconstruct a mixed element from new subelements."
-        if all(a == b for (a,b) in zip(elements, self._sub_elements)):
+        if all(a == b for (a, b) in zip(elements, self._sub_elements)):
             return self
         ufl_assert(all(a.value_shape() == b.value_shape()
-                       for (a,b) in zip(elements, self._sub_elements)),
+                       for (a, b) in zip(elements, self._sub_elements)),
             "Expecting new elements to have same value shape as old ones.")
         return MixedElement(*elements, value_shape=self.value_shape())
 
@@ -144,7 +144,7 @@ class MixedElement(FiniteElementBase):
         for e in self._sub_elements:
             sh = e.value_shape()
             # Map symmetries of subelement into index space of this element
-            for c0, c1 in six.iteritems(e.symmetry())
+            for c0, c1 in six.iteritems(e.symmetry()):
                 j0 = component_to_index(c0, sh) + j
                 j1 = component_to_index(c1, sh) + j
                 sm[(j0,)] = (j1,)
@@ -369,12 +369,12 @@ class TensorElement(MixedElement):
         if symmetry == True:
             ufl_assert(len(shape) == 2 and shape[0] == shape[1],
                        "Cannot set automatic symmetry for non-square tensor.")
-            symmetry = dict( ((i,j), (j,i)) for i in range(shape[0])
+            symmetry = dict( ((i, j), (j, i)) for i in range(shape[0])
                              for j in range(shape[1]) if i > j )
 
         # Validate indices in symmetry dict
         if isinstance(symmetry, dict):
-            for i,j in six.iteritems(symmetry):
+            for i, j in six.iteritems(symmetry):
                 ufl_assert(len(i) == len(j),
                            "Non-matching length of symmetry index tuples.")
                 for k in range(len(i)):
@@ -481,7 +481,7 @@ class TensorElement(MixedElement):
         "Format as string for pretty printing."
         sym = ""
         if isinstance(self._symmetry, dict):
-            tmp = ", ".join("%s -> %s" % (a,b) for (a,b) in six.iteritems(self._symmetry))
+            tmp = ", ".join("%s -> %s" % (a, b) for (a, b) in six.iteritems(self._symmetry))
             sym = " with symmetries (%s)" % tmp
         elif self._symmetry:
             sym = " with symmetry"
@@ -492,7 +492,7 @@ class TensorElement(MixedElement):
         "Format as string for pretty printing."
         sym = ""
         if isinstance(self._symmetry, dict):
-            tmp = ", ".join("%s -> %s" % (a,b) for (a,b) in six.iteritems(self._symmetry))
+            tmp = ", ".join("%s -> %s" % (a, b) for (a, b) in six.iteritems(self._symmetry))
             sym = " with symmetries (%s)" % tmp
         elif self._symmetry:
             sym = " with symmetry"
