@@ -39,6 +39,7 @@ class Equation:
             return self.lhs.equals(self.rhs)
         # Fall back to repr
         return repr(self.lhs) == repr(self.rhs)
+    
     def __bool__(self):
         "Evaluate bool(lhs_form == rhs_form)."
         if not isinstance(self.lhs, type(self.rhs)):
@@ -48,7 +49,6 @@ class Equation:
             return self.lhs.equals(self.rhs)
         # Fall back to repr
         return repr(self.lhs) == repr(self.rhs)
-
 
     def __eq__(self, other):
         "Compare two equations by comparing lhs and rhs."

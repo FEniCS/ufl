@@ -170,6 +170,9 @@ class Zero(IndexAnnotated):
                 self._free_indices == other._free_indices and
                 self._index_dimensions == other._index_dimensions)
 
+    def __hash__(self):
+        return hash(repr(self))
+
     def __neg__(self):
         return self
 
@@ -178,9 +181,9 @@ class Zero(IndexAnnotated):
 
     def __nonzero__(self):
         return False
+    
     def __bool__(self):
         return False
-
 
     def __float__(self):
         return 0.0
@@ -251,6 +254,9 @@ class ScalarValue(IndexAnnotated):
         else:
             return self._value == other._value
 
+    def __hash__(self):
+        return hash(repr(self))
+ 
     def __str__(self):
         return str(self._value)
 
@@ -339,6 +345,9 @@ class Identity(ConstantValue):
     def __eq__(self, other):
         return isinstance(other, Identity) and self._dim == other._dim
 
+    def __hash__(self):
+        return hash(repr(self))
+
     def __getnewargs__(self):
         return (self._dim,)
 
@@ -378,6 +387,9 @@ class PermutationSymbol(ConstantValue):
 
     def __eq__(self, other):
         return isinstance(other, PermutationSymbol) and self._dim == other._dim
+
+    def __hash__(self):
+        return hash(repr(self))
 
     def __eps(self, x):
         """This function body is taken from

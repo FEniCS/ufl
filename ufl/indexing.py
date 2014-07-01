@@ -217,6 +217,9 @@ class MultiIndex(UtilityType):
         return isinstance(other, MultiIndex) and \
             self._indices == other._indices
 
+    def __hash__(self):
+        return hash(repr(self)) 
+
 def as_index(i):
     if isinstance(i, IndexBase):
         return i

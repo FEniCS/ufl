@@ -203,7 +203,7 @@ class ProductCell(Cell):
         if not isinstance(other, ProductCell):
             return False
         return self._cells == other._cells
-
+    
     def __lt__(self, other):
         if not isinstance(other, ProductCell):
             return False
