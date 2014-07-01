@@ -83,7 +83,7 @@ class MixedElement(FiniteElementBase):
         #                          values unpacked in a vector.
         value_shape = kwargs.get('value_shape', (value_size_sum,))
         # Validate value_shape
-        if isinstance(self, MixedElement):
+        if type(self) is MixedElement:
             # This is not valid for tensor elements with symmetries,
             # assume subclasses deal with their own validation
             ufl_assert(product(value_shape) == value_size_sum,
