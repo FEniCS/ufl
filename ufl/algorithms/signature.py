@@ -167,7 +167,7 @@ def compute_expression_signature(expr, function_replace_map=None):
                                                       terminal_hashdata)
 
     # Pass it through a seriously overkill hashing algorithm :) TODO: How fast is this? Reduce?
-    return hashlib.sha512(str(expression_hashdata)).hexdigest()
+    return hashlib.sha512(str(expression_hashdata).encode('utf-8')).hexdigest()
 
 def compute_form_signature(form, function_replace_map=None):
     # Extract integrands
@@ -208,4 +208,4 @@ def compute_form_signature(form, function_replace_map=None):
         hashdata.append(integral_hashdata)
 
     # Pass hashdata through a seriously overkill hashing algorithm :) TODO: How fast is this? Reduce?
-    return hashlib.sha512(str(hashdata)).hexdigest()
+    return hashlib.sha512(str(hashdata).encode('utf-8')).hexdigest()
