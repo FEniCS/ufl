@@ -84,7 +84,8 @@ def elem_mult(A, B):
 
 def elem_div(A, B):
     "UFL operator: Take the elementwise division of the tensors A and B with the same shape."
-    return elem_op(operator.div, A, B)
+    return elem_op(operator.truediv, A, B)
+    #TODO: Is this working proporly for python 2.7 without from __future__ import division?
 
 def elem_pow(A, B):
     "UFL operator: Take the elementwise power of the tensors A and B with the same shape."
