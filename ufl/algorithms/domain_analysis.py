@@ -91,7 +91,15 @@ class ExprTupleKey(object):
             return False
         else:
             # NB! Comparing form compiler data here! Assuming this is an ok operation.
-            return self.x[1] < other.x[1]
+            # Python 3 can't compare dict, so done manualy
+            if [str(o) for o in self.x[1].keys()] < [str(o) for o in other.x[1].keys()]:
+                return True
+            elif [str(o) for o in self.x[1].keys()] > [str(o) for o in other.x[1].keys()]:
+                return False
+            else:
+                return [str(o) for o in self.x[1].values()] < [str(o) for o in other.x[1].values()]
+                
+
 def expr_tuple_key(expr):
     return ExprTupleKey(expr)
 
