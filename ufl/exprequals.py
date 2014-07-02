@@ -7,7 +7,7 @@ from six.moves import zip
 
 def _expr_equals0(a, b):
     # Cutoff for different type
-    if not isinstance(a, type(b)):
+    if type(a) != type(b):
         return False
 
     # Cutoff for same object
@@ -20,7 +20,7 @@ def _expr_equals0(a, b):
         a, b = input.pop()
 
         # Cutoff for different type
-        if not isinstance(a, type(b)):
+        if type(a) != type(b):
             return False
 
         # Get operands
@@ -41,14 +41,14 @@ def _expr_equals0(a, b):
 
 def _expr_equals1(a, b):
     # Cutoff for different type
-    if not isinstance(a, type(b)):
+    if type(a) != type(b):
         return False
     # Cutoff for same object
     if a is b:
         return True
     # Compare entire expression structure
     for x, y in zip(fast_pre_traversal(a), fast_pre_traversal(b)):
-        if not isinstance(x, type(y)):
+        if type(x) != type(y):
             return False
         #if isinstance(Terminal, x) and not x == y:
         if x.operands() == () and not x == y:
@@ -58,7 +58,7 @@ def _expr_equals1(a, b):
 
 def _expr_equals2(a, b):
     # Cutoff for different type
-    if not isinstance(a, type(b)):
+    if type(a) != type(b):
         return False
     # Cutoff for same object
     if a is b:
@@ -70,7 +70,7 @@ def _expr_equals2(a, b):
             return False
     # Check for matching operator types
     for x, y in zip(traverse_operands(a), traverse_operands(b)):
-        if not isinstance(x, type(y)):
+        if type(x) != type(y):
             return False
     # Equal terminals and operands, a and b must be equal
     return True
@@ -103,7 +103,7 @@ def _expr_equals3(self, other): # Much faster than the more complex algorithms a
     #equalscalls[type(self)] = equalscalls.get(type(self),0) + 1
 
     # Fast cutoff for common case
-    if not isinstance(self, type(other)):
+    if type(self) != type(other):
         return False
 
     # TODO: Test how this affects the run time:

@@ -321,7 +321,7 @@ class MultiIndexHashDataTestCase(UflTestCase):
             for i in range(3):
                 for ii in ((i,), (i, 0), (1, i)):
                     expr = MultiIndex(ii, {})
-                    self.assertTrue(isinstance(expr.index_dimensions(), EmptyDictType)) # Just a side check
+                    self.assertTrue(type(expr.index_dimensions()) is EmptyDictType) # Just a side check
                     reprs.add(repr(expr))
                     hashes.add(hash(expr))
                     yield compute_multiindex_hashdata(expr, {})

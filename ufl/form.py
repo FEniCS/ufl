@@ -183,7 +183,7 @@ class Form(object):
 
     def equals(self, other):
         "Evaluate 'bool(lhs_form == rhs_form)'."
-        if not isinstance(other, Form):
+        if type(other) != Form:
             return False
         if len(self._integrals) != len(other._integrals):
             return False
