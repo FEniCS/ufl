@@ -47,7 +47,7 @@ class IndexTestCase(UflTestCase):
         try:
             d = (u[i, i]+f[j, i])*dx
             self.fail()
-        except (UFLException, e):
+        except UFLException as e:
             pass
 
     def test_indexed_sum1(self):
@@ -58,7 +58,7 @@ class IndexTestCase(UflTestCase):
         try:
             a*dx
             self.fail()
-        except (UFLException, e):
+        except UFLException as e:
             pass
 
     def test_indexed_sum2(self):
@@ -70,7 +70,7 @@ class IndexTestCase(UflTestCase):
         try:
             a*dx
             self.fail()
-        except (UFLException, e):
+        except UFLException as e:
             pass
 
     def test_indexed_sum3(self):
@@ -80,7 +80,7 @@ class IndexTestCase(UflTestCase):
         try:
             a = u[i]+f[j]
             self.fail()
-        except (UFLException, e):
+        except UFLException as e:
             pass
 
     def test_indexed_function1(self):
@@ -113,7 +113,7 @@ class IndexTestCase(UflTestCase):
         try:
             c = sin(u[i] + f[i])*dx
             self.fail()
-        except (UFLException, e):
+        except UFLException as e:
             pass
     
     def test_vector_from_indices(self):
@@ -208,14 +208,14 @@ class IndexTestCase(UflTestCase):
         try:
             vv = as_vector([u[i], v[j]])
             self.fail()
-        except (UFLException, e):
+        except UFLException as e:
             pass
 
         # illegal
         try:
             A = as_matrix( [ [u[0], u[1]], [v[0],] ] )
             self.fail()
-        except (UFLException, e):
+        except UFLException as e:
             pass
         
         # ...
