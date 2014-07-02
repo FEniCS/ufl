@@ -91,7 +91,8 @@ class MixedElement(FiniteElementBase):
                 "value size of all subelements.")
 
         # Initialize element data
-        degree = max(e.degree() for e in self._sub_elements)
+        degree_list = (e.degree() for e in self._sub_elements)
+        degree = max(degree_list, key=lambda x: (str(type(x)), x))
         super(MixedElement, self).__init__("Mixed", domain, degree,
                                            quad_scheme, value_shape)
 

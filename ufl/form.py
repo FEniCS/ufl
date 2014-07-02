@@ -37,7 +37,7 @@ from ufl.protocols import id_or_none
 def integral_sort_key(integral):
     domain = integral.domain()
     label = None if domain is None else domain.label()
-    return (label, integral.integral_type(), integral.subdomain_id())
+    return (str(label), str(integral.integral_type()), str(integral.subdomain_id()))
 
 def replace_integral_domains(form, common_domain): # TODO: Move elsewhere
     """Given a form and a domain, assign a common integration domain to all integrals.
