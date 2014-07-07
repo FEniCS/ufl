@@ -32,7 +32,7 @@ ffc_options = {
 }
 
 if DOLFIN:
-    mesh = UnitCube(1,1,1)
+    mesh = UnitCube(1, 1, 1)
 else:
     cell = tetrahedron
 gdim = 3
@@ -144,9 +144,9 @@ def build_forms():
     return F, J
 
 def printmem():
-    print
+    print()
     ufl.expr.print_expr_statistics()
-    print
+    print()
 
 def find_the_memory_thief(expr):
     reprtot = 0
@@ -163,61 +163,61 @@ def find_the_memory_thief(expr):
             reprtot += getsizeof(r)
             reprtot2 += len(r)
         n = type(e).__name__
-        memuse[n] = max(memuse.get(n,0), getsizeof(e))
-        tmemuse[n] = tmemuse.get(n,0) + getsizeof(e)
-    worst = sorted(memuse.items(), key=lambda x: x[1])
-    tworst = sorted(tmemuse.items(), key=lambda x: x[1])
-    print
-    print 'ids:', len(ids)
-    print 'reprtot bytes:', reprtot
-    print 'reprtot2 len: ', reprtot2
-    print 'totmem (MB):', (sum(x[1] for x in tworst) / float(1024**2))
-    print "-"*60, 'worst'
-    print worst
-    print "-"*60, 'tworst'
-    print tworst
-    print
+        memuse[n] = max(memuse.get(n, 0), getsizeof(e))
+        tmemuse[n] = tmemuse.get(n, 0) + getsizeof(e)
+    worst = sorted(list(memuse.items()), key=lambda x: x[1])
+    tworst = sorted(list(tmemuse.items()), key=lambda x: x[1])
+    print()
+    print(('ids:', len(ids)))
+    print(('reprtot bytes:', reprtot))
+    print(('reprtot2 len: ', reprtot2))
+    print(('totmem (MB):', (sum(x[1] for x in tworst) / float(1024**2))))
+    print(("-"*60, 'worst'))
+    print(worst)
+    print(("-"*60, 'tworst'))
+    print(tworst)
+    print()
 
 def print_expr_size(expr):
-    print "::", getsizeof(expr), " ", asizeof(expr), " ", \
-          sum(1 for _ in ufl.algorithms.pre_traversal(expr))
+    print(("::", getsizeof(expr), " ", asizeof(expr), " ", \
+          sum(1 for _ in ufl.algorithms.pre_traversal(expr))))
 
 msize, mtime = 0, 0
 def process_form(F):
     global msize, mtime
 
     printmem()
-    print "size of form", asizeof(F)
+    print(("size of form", asizeof(F)))
     print_expr_size(F.integrals(Measure.CELL)[0].integrand())
 
     t1 = time.time()
-    print 'starting preprocess'
+    print('starting preprocess')
     Ffd = F.compute_form_data()
     t2 = time.time()
-    print 'preprocess took %d s' % (t2-t1)
-    print "size of form data (in MB)", asizeof(Ffd)/float(1024**2)
+    print(('preprocess took %d s' % (t2-t1)))
+    print(("size of form data (in MB)", asizeof(Ffd)/float(1024**2)))
     print_expr_size(Ffd.preprocessed_form.integrals(Measure.CELL)[0].integrand())
     printmem()
 
     printmem()
     t1 = time.time()
-    print 'starting expand_indices'
+    print('starting expand_indices')
     eiF = expand_indices(Ffd.preprocessed_form)
     t2 = time.time()
-    print 'expand_indices took %d s' % (t2-t1)
+    print(('expand_indices took %d s' % (t2-t1)))
     #print "REPR LEN", len(repr(eiF))
     msize = asizeof(eiF)/float(1024**2)
     mtime = t2-t1
-    print "size of expanded form (in MB)", msize
+    print(("size of expanded form (in MB)", msize))
     print_expr_size(eiF.integrals(Measure.CELL)[0].integrand())
     printmem()
 
     t1 = time.time()
-    print 'starting graph building'
+    print('starting graph building')
     FG = Graph(eiF.integrals(Measure.CELL)[0].integrand())
     t2 = time.time()
-    print 'graph building took %d s' % (t2-t1)
-    print "size of graph (in MB)", asizeof(FG)/float(1024**2)
+    print(('graph building took %d s' % (t2-t1)))
+    print(("size of graph (in MB)", asizeof(FG)/float(1024**2)))
     printmem()
 
     return eiF
@@ -226,14 +226,14 @@ def main():
     F, J = build_forms()
 
     if 0:
-        print '\n', '='*50, 'F'
+        print(('\n', '='*50, 'F'))
         ei = process_form(F)
 
     if 1:
-        print '\n', '='*50, 'J'
+        print(('\n', '='*50, 'J'))
         ei = process_form(J)
 
-    print '\n', '='*50, 'mem of only eiJ'
+    print(('\n', '='*50, 'mem of only eiJ'))
     del F
     del J
     printmem()
@@ -242,17 +242,17 @@ def main():
 
     #print formatted_analysis(ei, classes=True)
 
-    print
-    print msize
-    print mtime
+    print()
+    print(msize)
+    print(mtime)
 
     try:
         from guppy import hpy
         hp = hpy()
-        print "heap:"
-        print hp.heap()
+        print("heap:")
+        print((hp.heap()))
     except:
-        print "No guppy installed!"
+        print("No guppy installed!")
 
 main()
 

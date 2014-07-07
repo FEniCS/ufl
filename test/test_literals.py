@@ -103,31 +103,31 @@ class TestLiterals(UflTestCase):
                     value = (j-i)*(k-i)*(k-j)/2
                     self.assertEqual(e[i, j, k], value)
         i, j, k = indices(3)
-        self.assertIsInstance(e[i,j,k], Indexed)
-        x = (0,0,0)
-        self.assertEqual((e[i,j,k] * e[i,j,k])(x), 6)
+        self.assertIsInstance(e[i, j, k], Indexed)
+        x = (0, 0, 0)
+        self.assertEqual((e[i, j, k] * e[i, j, k])(x), 6)
 
     def test_permutation_symbol_n(self):
-        for n in range(2,5): # tested with upper limit 7, but evaluation is a bit slow then
+        for n in range(2, 5): # tested with upper limit 7, but evaluation is a bit slow then
             e = PermutationSymbol(n)
             self.assertEqual(e.shape(), (n,)*n)
             self.assertEqual(eval(repr(e)), e)
 
             ii = indices(n)
             x = (0,)*n
-            nfac = product(m for m in range(1,n+1))
+            nfac = product(m for m in range(1, n+1))
             self.assertEqual((e[ii] * e[ii])(x), nfac)
 
     def test_unit_dyads(self):
         from ufl.tensors import unit_vectors, unit_matrices
         ei, ej = unit_vectors(2)
-        self.assertEqual(as_vector((1,0)), ei)
-        self.assertEqual(as_vector((0,1)), ej)
+        self.assertEqual(as_vector((1, 0)), ei)
+        self.assertEqual(as_vector((0, 1)), ej)
         eii, eij, eji, ejj = unit_matrices(2)
-        self.assertEqual(as_matrix(((1,0),(0,0))), eii)
-        self.assertEqual(as_matrix(((0,1),(0,0))), eij)
-        self.assertEqual(as_matrix(((0,0),(1,0))), eji)
-        self.assertEqual(as_matrix(((0,0),(0,1))), ejj)
+        self.assertEqual(as_matrix(((1, 0), (0, 0))), eii)
+        self.assertEqual(as_matrix(((0, 1), (0, 0))), eij)
+        self.assertEqual(as_matrix(((0, 0), (1, 0))), eji)
+        self.assertEqual(as_matrix(((0, 0), (0, 1))), ejj)
 
 
 if __name__ == "__main__":

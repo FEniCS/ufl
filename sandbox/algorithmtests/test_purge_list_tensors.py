@@ -12,5 +12,5 @@ a = inner(as_tensor([v[0], v[1]]), as_tensor([u[0], u[1].dx(0)]))*dx
 fd = a.form_data()
 b = fd.form
 c = purge_list_tensors(b)
-print str(c)
+print((str(c)))
 

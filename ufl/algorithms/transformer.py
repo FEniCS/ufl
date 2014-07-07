@@ -74,14 +74,14 @@ class Transformer(object):
         self._visit_stack = []
 
     def print_visit_stack(self):
-        print "/"*80
-        print "Visit stack in Transformer:"
+        print("/"*80)
+        print("Visit stack in Transformer:")
         def sstr(s):
             ss = str(type(s)) + " ; "
             n = 160 - len(ss)
             return ss + str(s)[:n]
-        print "\n".join(sstr(s) for s in self._visit_stack)
-        print "\\"*80
+        print("\n".join(sstr(s) for s in self._visit_stack))
+        print("\\"*80)
 
     def visit(self, o):
         #debug("Visiting object of type %s." % type(o).__name__)
@@ -98,7 +98,7 @@ class Transformer(object):
         # Is this a handler that expects transformed children as input?
         if visit_children_first:
             # Yes, visit all children first and then call h.
-            r = h(o, *map(self.visit, o.operands()))
+            r = h(o, *list(map(self.visit, o.operands())))
         else:
             # No, this is a handler that handles its own children
             # (arguments self and o, where self is already bound)
@@ -131,16 +131,16 @@ class Transformer(object):
         try:
             r = o.reconstruct(*operands)
         except:
-            print
-            print "FAILURE in reuse_if_possible:"
-            print "type(o) =", type(o)
-            print "operands ="
-            print
-            print "\n\n".join(map(str,operands))
-            print
-            print "stack ="
+            print()
+            print("FAILURE in reuse_if_possible:")
+            print("type(o) =", type(o))
+            print("operands =")
+            print()
+            print("\n\n".join(map(str, operands)))
+            print()
+            print("stack =")
             self.print_visit_stack()
-            print
+            print()
             raise
         return r
 

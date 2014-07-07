@@ -120,13 +120,13 @@ def build_domain_numbering(domains):
 
     # Collect domain keys
     items = []
-    for i,domain in enumerate(domains):
+    for i, domain in enumerate(domains):
         key = (domain.cell(), domain.label())
         items.append((key, i))
 
     # Build domain numbering, not allowing repeated keys
     domain_numbering = {}
-    for key,i in items:
+    for key, i in items:
         if key in domain_numbering:
             error("Domain key %s occured twice!" % (key,))
         domain_numbering[key] = i
@@ -134,13 +134,13 @@ def build_domain_numbering(domains):
     # Build domain numbering extension for None-labeled domains, not allowing ambiguity
     from collections import defaultdict
     domain_numbering2 = defaultdict(list)
-    for key,i in items:
+    for key, i in items:
         cell, label = key
         key2 = (cell, None)
         domain_numbering2[key2].append(domain_numbering[key])
 
     # Add None-based key only where unambiguous
-    for key,i in items:
+    for key, i in items:
         cell, label = key
         key2 = (cell, None)
         if len(domain_numbering2[key2]) == 1:
@@ -163,7 +163,7 @@ def compute_expression_signature(expr, renumbering): # FIXME: Fix callers
                                                       terminal_hashdata)
 
     # Pass it through a seriously overkill hashing algorithm :) TODO: How fast is this? Reduce?
-    return hashlib.sha512(str(expression_hashdata)).hexdigest()
+    return hashlib.sha512(str(expression_hashdata).encode('utf-8')).hexdigest()
 
 def compute_form_signature(form, renumbering): # FIXME: Fix callers
     # Extract integrands
@@ -198,4 +198,4 @@ def compute_form_signature(form, renumbering): # FIXME: Fix callers
         hashdata.append(integral_hashdata)
 
     # Pass hashdata through a seriously overkill hashing algorithm :) TODO: How fast is this? Reduce?
-    return hashlib.sha512(str(hashdata)).hexdigest()
+    return hashlib.sha512(str(hashdata).encode('utf-8')).hexdigest()

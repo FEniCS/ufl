@@ -21,7 +21,7 @@
 # Last changed: 2012-04-12
 
 from collections import defaultdict
-from itertools import imap, izip
+from six.moves import zip, range
 from heapq import heapify, heappop, heappush
 
 #from ufl import *
@@ -35,16 +35,16 @@ from ufl.classes import Terminal
 #--- Basic utility functions ---
 
 def lists(n):
-    return [[] for i in xrange(n)]
+    return [[] for i in range(n)]
 
 def len_items(sequence):
-    return map(len, sequence)
+    return list(map(len, sequence))
 
 def join_lines(sequence):
-    return "\n".join(imap(str, sequence))
+    return "\n".join(map(str, sequence))
 
 def all_is(seq1, seq2):
-    return all(a is b for (a, b) in izip(seq1, seq2))
+    return all(a is b for (a, b) in zip(seq1, seq2))
 
 def reorder(sequence, ordering):
     "Rearrange the items in a sequence."
@@ -253,7 +253,7 @@ def depth_first_ordering(G):
 
     # Make a list and a heap of the same items
     n = len(V)
-    q = [HeapItem(Ein_count, Eout_count, i) for i in xrange(n)]
+    q = [HeapItem(Ein_count, Eout_count, i) for i in range(n)]
     heapify(q)
 
     ordering = []
@@ -400,25 +400,25 @@ if __name__ == "__main__":
     Ein = G.Ein()
     Eout = G.Eout()
 
-    print
-    print "Entire graph:"
+    print()
+    print("Entire graph:")
     for iv, v in enumerate(V):
-        print "Vertex %03d: %s" % (iv, v)
+        print("Vertex %03d: %s" % (iv, v))
     for ie, e in enumerate(E):
-        print "Edge %03d: %s" % (ie, e)
+        print("Edge %03d: %s" % (ie, e))
     for iv, eout in enumerate(Eout):
-        print "Edges out for vertex %03d: %s" % (iv, eout)
+        print("Edges out for vertex %03d: %s" % (iv, eout))
     for iv, ein in enumerate(Ein):
-        print "Edges in for vertex %03d: %s" % (iv, ein)
-    print
+        print("Edges in for vertex %03d: %s" % (iv, ein))
+    print()
 
     from ufl.common import sstr
     partitions, keys = partition(G, string_set_criteria)
     for k in partitions:
-        print
-        print "Partition with key", sstr(k)
+        print()
+        print("Partition with key", sstr(k))
         for iv in partitions[k]:
-            print "Vertex %03d: %s" % (iv, V[iv])
+            print("Vertex %03d: %s" % (iv, V[iv]))
 
 if __name__ == "__main_":
     expr = test_expr()
@@ -433,28 +433,28 @@ if __name__ == "__main_":
     Eout_count = len_items(Eout)
     dfo = depth_first_ordering(G)
 
-    print
-    print "expr:"
-    print expr
-    print
-    print "e2:"
-    print e2
-    print
-    print tree_format(expr)
-    print
-    print format_graph(G)
-    print
-    print "Ein:"
-    print join_lines(Ein)
-    print
-    print "Eout:"
-    print join_lines(Eout)
-    print
-    print "Ein_count:"
-    print join_lines(Ein_count)
-    print
-    print "Eout_count:"
-    print join_lines(Eout_count)
-    print
-    print "dfo:"
-    print join_lines(reorder(V, dfo))
+    print()
+    print("expr:")
+    print(expr)
+    print()
+    print("e2:")
+    print(e2)
+    print()
+    print(tree_format(expr))
+    print()
+    print(format_graph(G))
+    print()
+    print("Ein:")
+    print(join_lines(Ein))
+    print()
+    print("Eout:")
+    print(join_lines(Eout))
+    print()
+    print("Ein_count:")
+    print(join_lines(Ein_count))
+    print()
+    print("Eout_count:")
+    print(join_lines(Eout_count))
+    print()
+    print("dfo:")
+    print(join_lines(reorder(V, dfo)))

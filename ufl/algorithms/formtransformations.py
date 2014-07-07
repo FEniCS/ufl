@@ -23,6 +23,7 @@ complete Forms into new related Forms."""
 # Modified by Marie E. Rognes, 2010.
 
 from ufl.common import product
+import six
 from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert
 
@@ -82,7 +83,7 @@ class PartExtracter(Transformer):
         "Return itself unless itself provides too much."
 
         # An argument provides itself
-        provides = set((x,))
+        provides = {x}
 
         # If we provide more than we want, return zero
         if provides - self._want:
@@ -146,7 +147,7 @@ class PartExtracter(Transformer):
 
         # 3. Return the terms that provide the biggest set
         most_provided = frozenset()
-        for (provideds, parts) in parts_that_provide.iteritems(): # TODO: Just sort instead?
+        for (provideds, parts) in six.iteritems(parts_that_provide): # TODO: Just sort instead?
 
             # Throw error if size of sets are equal (and not zero)
             if len(provideds) == len(most_provided) and len(most_provided):
@@ -302,7 +303,7 @@ def compute_form_with_arity(form, arity, arguments=None):
         arguments = extract_arguments(form)
 
     parts = [arg.part() for arg in arguments]
-    if set(parts) - set((None,)):
+    if set(parts) - {None}:
         error("compute_form_with_arity cannot handle parts.")
 
     if len(arguments) < arity:
@@ -331,7 +332,7 @@ def compute_form_arities(form):
     arguments = extract_arguments(form)
 
     parts = [arg.part() for arg in arguments]
-    if set(parts) - set((None,)):
+    if set(parts) - {None}:
         error("compute_form_arities cannot handle parts.")
 
     arities = set()
@@ -388,7 +389,7 @@ def compute_form_action(form, coefficient):
     arguments = extract_arguments(form)
 
     parts = [arg.part() for arg in arguments]
-    if set(parts) - set((None,)):
+    if set(parts) - {None}:
         error("compute_form_action cannot handle parts.")
 
     # Pick last argument (will be replaced)
@@ -415,7 +416,7 @@ def compute_energy_norm(form, coefficient):
     arguments = extract_arguments(form)
 
     parts = [arg.part() for arg in arguments]
-    if set(parts) - set((None,)):
+    if set(parts) - {None}:
         error("compute_energy_norm cannot handle parts.")
 
     ufl_assert(len(arguments) == 2, "Expecting bilinear form.")
@@ -440,7 +441,7 @@ def compute_form_adjoint(form, reordered_arguments=None):
     arguments = extract_arguments(form)
 
     parts = [arg.part() for arg in arguments]
-    if set(parts) - set((None,)):
+    if set(parts) - {None}:
         error("compute_form_adjoint cannot handle parts.")
 
     ufl_assert(len(arguments) == 2, "Expecting bilinear form.")

@@ -5,8 +5,8 @@ class EmptyDictType(dict):
 EmptyDict = EmptyDictType()
 
 d = EmptyDictType()
-print d.get('foo')
+print((d.get('foo')))
 d.update(k=3)
-print d
+print(d)
 d['f'] = 1
 

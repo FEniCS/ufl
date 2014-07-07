@@ -93,7 +93,7 @@ class FormsTestCase(UflTestCase):
         element = TensorElement("Lagrange", "triangle", 1)
         v = TestFunction(element)
         u = TrialFunction(element)
-        a = inner(u,v)*dx
+        a = inner(u, v)*dx
         # TODO: Assert something? What are we testing here?
 
     def check_validate_raises(self, a):
@@ -105,9 +105,9 @@ class FormsTestCase(UflTestCase):
         self.assertRaises(UFLException, store_if_nothrow)
 
         if store_if_nothrow.nothrow:
-            print "in check_validate_raises:"
-            print "repr =", repr(a)
-            print "str =", str(a)
+            print("in check_validate_raises:")
+            print(("repr =", repr(a)))
+            print(("str =", str(a)))
 
     def test_duplicated_args(self):
         element = FiniteElement("Lagrange", "triangle", 1)
@@ -116,7 +116,7 @@ class FormsTestCase(UflTestCase):
         u = TrialFunction(element)
         V = TestFunction(element2)
         U = TrialFunction(element2)
-        a = inner(u,v)*dx + inner(V,U)*dx
+        a = inner(u, v)*dx + inner(V, U)*dx
         self.check_validate_raises(a)
 
     def test_duplicated_args2(self):

@@ -32,6 +32,16 @@ class Equation:
 
     def __nonzero__(self):
         "Evaluate bool(lhs_form == rhs_form)."
+        if  type(self.lhs) != type(self.rhs):
+            return False
+        # Try to delegate to equals function
+        if hasattr(self.lhs, "equals"):
+            return self.lhs.equals(self.rhs)
+        # Fall back to repr
+        return repr(self.lhs) == repr(self.rhs)
+    
+    def __bool__(self):
+        "Evaluate bool(lhs_form == rhs_form)."
         if type(self.lhs) != type(self.rhs):
             return False
         # Try to delegate to equals function

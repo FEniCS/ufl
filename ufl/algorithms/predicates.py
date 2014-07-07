@@ -45,7 +45,7 @@ def is_multilinear(form):
                     "'configuration', it has terms that are linear in %s "\
                     "arguments respectively." % str(nargs))
 
-    except NotMultiLinearException, msg:
+    except NotMultiLinearException as msg:
         warning("Form is not multilinear, the offending term is: %s" % msg)
         return False
 

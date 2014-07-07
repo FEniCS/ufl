@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from itertools import izip
+from six.moves import zip, range
 from ufl.log import warning, error
 from ufl.common import subdict, EmptyDict
 from ufl.assertions import ufl_assert
@@ -212,7 +212,7 @@ class ComponentTensor(WrapperType):
                    "Expecting a component matching the indices tuple.")
 
         # Map component to indices
-        for i, c in izip(indices, component):
+        for i, c in zip(indices, component):
             index_values.push(i, c)
 
         a = a.evaluate(x, mapping, (), index_values)
@@ -370,10 +370,10 @@ def relabel(A, indexmap):
 # --- Experimental support for dyadic notation:
 
 def unit_list(i, n):
-    return [(1 if i == j else 0) for j in xrange(n)]
+    return [(1 if i == j else 0) for j in range(n)]
 
 def unit_list2(i, j, n):
-    return [[(1 if (i == i0 and j == j0) else 0) for j0 in xrange(n)] for i0 in xrange(n)]
+    return [[(1 if (i == i0 and j == j0) else 0) for j0 in range(n)] for i0 in range(n)]
 
 def unit_vector(i, d):
     "UFL value: A constant unit vector in direction i with dimension d."
@@ -410,11 +410,11 @@ def unit_indexed_tensor(shape, component):
         return 0, ()
     jj = indices(r)
     es = []
-    for i in xrange(r):
+    for i in range(r):
         s = shape[i]
         c = component[i]
         j = jj[i]
-        e = Identity(s)[c,j]
+        e = Identity(s)[c, j]
         es.append(e)
     E = es[0]
     for e in es[1:]:
@@ -426,10 +426,10 @@ def unwrap_list_tensor(lt):
     sh = lt.shape()
     subs = lt.operands()
     if len(sh) == 1:
-        for s in xrange(sh[0]):
-            components.append(((s,),subs[s]))
+        for s in range(sh[0]):
+            components.append(((s,), subs[s]))
     else:
-        for s,sub in enumerate(subs):
-            for c,v in unwrap_list_tensor(sub):
-                components.append(((s,)+c,v))
+        for s, sub in enumerate(subs):
+            for c, v in unwrap_list_tensor(sub):
+                components.append(((s,)+c, v))
     return components

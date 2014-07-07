@@ -17,4 +17,4 @@ for f in sorted(glob("*.py")):
     lines.append(f)
     lines.append("tests = [%s]" % ", ".join(classes))
 
-print "\n".join(lines)
+print(("\n".join(lines)))

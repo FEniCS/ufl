@@ -33,8 +33,8 @@ args = sys.argv[1:]
 (options, args) = parser.parse_args(args=args)
 
 if not args:
-    print "Missing files!"
-    print
+    print("Missing files!")
+    print()
     parser.print_usage()
     sys.exit(-1)
 filenames = args
@@ -51,13 +51,13 @@ for filename in filenames:
 
     # Load form file, which triggers many consistency
     # checks while the form is being built
-    print "Loading form file '%s'" % filename
+    print("Loading form file '%s'" % filename)
     try:
         # TODO: Forms that fail will usually fail inside this, which doesn't produce any log... Perhaps we should pass a log file to load_forms?
         data = load_ufl_file(filename)
         forms = data.forms
     except:
-        print "Failed to load form file."
+        print("Failed to load form file.")
         raise
 
     outputfilename = filename + ".log"
@@ -70,7 +70,7 @@ for filename in filenames:
             outputfile.write(text)
             outputfile.flush()
         if not quiet:
-            print text
+            print(text)
 
     # Analyse each form separately
     for form in forms:

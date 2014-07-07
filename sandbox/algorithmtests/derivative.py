@@ -26,27 +26,27 @@ for do_split in (True, False):
     #L = dot(x,x)*dx # ok!
     #L = dot(x,x)*y*dx # ok!
     #L = inner(grad(x),grad(x))*dx # ok!
-    L = inner(grad(x),grad(x))*dx + dot(x,x)*y*dx # ok!
+    L = inner(grad(x), grad(x))*dx + dot(x, x)*y*dx # ok!
     
     if do_split:
         F = derivative(L, u, vv)
         J = derivative(F, u, uu)
     else:
-        F = derivative(L, (x,y), vv)
-        J = derivative(F, (x,y), uu)
+        F = derivative(L, (x, y), vv)
+        J = derivative(F, (x, y), uu)
 
-    print "="*80
-    print do_split
-    print 
-    print 
-    print "F"
-    print str(F.form_data().form)
-    print 
-    print str(expand_indices(F.form_data().form))
-    print 
-    print "J"
-    print str(J.form_data().form)
-    print 
-    print str(expand_indices(J.form_data().form))
-    print 
+    print(("="*80))
+    print(do_split)
+    print() 
+    print() 
+    print("F")
+    print((str(F.form_data().form)))
+    print() 
+    print((str(expand_indices(F.form_data().form))))
+    print() 
+    print("J")
+    print((str(J.form_data().form)))
+    print() 
+    print((str(expand_indices(J.form_data().form))))
+    print() 
 

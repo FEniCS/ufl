@@ -24,27 +24,27 @@ def dev(A):
     d = A.rows()
     I = matrix(d, d)
     for i in range(d):
-        I[i,i] = 1.0
-    alpha = sum(A[i,i] for i in range(d))
+        I[i, i] = 1.0
+    alpha = sum(A[i, i] for i in range(d))
     return A - alpha/d*I
 
 def devstr(d):
     A = symbolic_matrix(d, d, "A")
     return re.sub(r"(.)/", r"\1./", matrix2Matrix(dev(A)))
 
-print "Cofactors:"
-print
-print cofacstr(2)
-print
-print cofacstr(3)
-print
-print cofacstr(4)
-print
+print("Cofactors:")
+print()
+print((cofacstr(2)))
+print()
+print((cofacstr(3)))
+print()
+print((cofacstr(4)))
+print()
 
-print "Deviatoric:"
-print
-print devstr(2)
-print
-print devstr(3)
-print
+print("Deviatoric:")
+print()
+print((devstr(2)))
+print()
+print((devstr(3)))
+print()
 

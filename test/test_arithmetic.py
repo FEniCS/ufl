@@ -57,36 +57,36 @@ class ArithmeticTestCase(UflTestCase):
     def test_elem_mult(self):
         self.assertEqual(elem_mult(2, 3), 6)
 
-        v = as_vector((1,2,3))
-        u = as_vector((4,5,6))
-        self.assertEqual(elem_mult(v, u), as_vector((4,10,18)))
+        v = as_vector((1, 2, 3))
+        u = as_vector((4, 5, 6))
+        self.assertEqual(elem_mult(v, u), as_vector((4, 10, 18)))
 
     def test_elem_mult_on_matrices(self):
-        A = as_matrix(((1,2),(3,4)))
-        B = as_matrix(((4,5),(6,7)))
-        self.assertEqual(elem_mult(A, B), as_matrix(((4,10),(18,28))))
+        A = as_matrix(((1, 2), (3, 4)))
+        B = as_matrix(((4, 5), (6, 7)))
+        self.assertEqual(elem_mult(A, B), as_matrix(((4, 10), (18, 28))))
 
         x, y = SpatialCoordinate(triangle)
-        A = as_matrix(((x,y),(3,4)))
-        B = as_matrix(((4,5),(y,x)))
-        self.assertEqual(elem_mult(A, B), as_matrix(((4*x,5*y),(3*y,4*x))))
+        A = as_matrix(((x, y), (3, 4)))
+        B = as_matrix(((4, 5), (y, x)))
+        self.assertEqual(elem_mult(A, B), as_matrix(((4*x, 5*y), (3*y, 4*x))))
 
         x, y = SpatialCoordinate(triangle)
-        A = as_matrix(((x,y),(3,4)))
+        A = as_matrix(((x, y), (3, 4)))
         B = Identity(2)
-        self.assertEqual(elem_mult(A, B), as_matrix(((x,0),(0,4))))
+        self.assertEqual(elem_mult(A, B), as_matrix(((x, 0), (0, 4))))
 
     def test_elem_div(self):
         x, y, z = SpatialCoordinate(tetrahedron)
-        A = as_matrix(((x,y,z),(3,4,5)))
-        B = as_matrix(((7,8,9),(z,x,y)))
-        self.assertEqual(elem_div(A, B), as_matrix(((x/7,y/8,z/9),(3/z,4/x,5/y))))
+        A = as_matrix(((x, y, z), (3, 4, 5)))
+        B = as_matrix(((7, 8, 9), (z, x, y)))
+        self.assertEqual(elem_div(A, B), as_matrix(((x/7, y/8, z/9), (3/z, 4/x, 5/y))))
 
     def test_elem_op(self):
         x, y, z = SpatialCoordinate(tetrahedron)
-        A = as_matrix(((x,y,z),(3,4,5)))
-        self.assertEqual(elem_op(sin, A), as_matrix(((sin(x),sin(y),sin(z)),
-                                                     (sin(3),sin(4),sin(5)))))
+        A = as_matrix(((x, y, z), (3, 4, 5)))
+        self.assertEqual(elem_op(sin, A), as_matrix(((sin(x), sin(y), sin(z)),
+                                                     (sin(3), sin(4), sin(5)))))
         self.assertEqual(elem_op(sin, A).dx(0).shape(), (2, 3))
 
 if __name__ == "__main__":

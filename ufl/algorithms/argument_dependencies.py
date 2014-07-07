@@ -40,7 +40,7 @@ class ArgumentDependencyExtracter(Transformer):
         "Default for nonterminals: nonlinear in all operands."
         for d in opdeps:
             if d:
-                raise NotMultiLinearException, repr(o)
+                raise NotMultiLinearException(repr(o))
         return self._empty
 
     def terminal(self, o):
@@ -83,7 +83,7 @@ class ArgumentDependencyExtracter(Transformer):
 
     def variable_derivative(self, o, a, b):
         if b:
-            raise NotMultiLinearException, repr(o)
+            raise NotMultiLinearException(repr(o))
         return a
 
     def component_tensor(self, o, f, i):
@@ -94,19 +94,19 @@ class ArgumentDependencyExtracter(Transformer):
         d = opdeps[0]
         for d2 in opdeps[1:]:
             if not d == d2:
-                raise NotMultiLinearException, repr(o)
+                raise NotMultiLinearException(repr(o))
         return d
 
     def conditional(self, o, cond, t, f):
         "Considering EQ, NE, LE, GE, LT, GT nonlinear in this context."
         if cond or (not t == f):
-            raise NotMultiLinearException, repr(o)
+            raise NotMultiLinearException(repr(o))
         return t
 
     def division(self, o, a, b):
         "Arguments cannot be in the denominator."
         if b:
-            raise NotMultiLinearException, repr(o)
+            raise NotMultiLinearException(repr(o))
         return a
 
     def index_sum(self, o, f, i):
@@ -145,7 +145,7 @@ class ArgumentDependencyExtracter(Transformer):
                 cd = (ad | bd) - none
                 # build frozenset cd with the combined Argument dependencies from ad and bd
                 if not len(cd) == len(ad - none) + len(bd - none):
-                    raise NotMultiLinearException, repr(o)
+                    raise NotMultiLinearException(repr(o))
                 # remember this dependency combination
                 if cd:
                     c.append(cd)

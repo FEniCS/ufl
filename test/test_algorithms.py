@@ -32,7 +32,7 @@ class AlgorithmsTestCase(UflTestCase):
 
         a = u*v*dx
         L = f*v*dx
-        b = u*v*dx(0) +inner(c*grad(u),grad(v))*dx(1) + dot(n, grad(u))*v*ds + f*v*dx
+        b = u*v*dx(0) +inner(c*grad(u), grad(v))*dx(1) + dot(n, grad(u))*v*ds + f*v*dx
 
         self.elements = (element,)
         self.arguments = (v, u)
@@ -40,28 +40,28 @@ class AlgorithmsTestCase(UflTestCase):
         self.forms = (a, L, b)
 
         if False:
-            print
-            print form_info(a)
-            print
-            print form_info(L)
-            print
-            print form_info(b)
-            print
+            print()
+            print((form_info(a)))
+            print()
+            print((form_info(L)))
+            print()
+            print((form_info(b)))
+            print()
 
         if False:
-            print
-            print [str(c) for c in self.coefficients]
-            print
-            print str(self.forms[2])
-            print
-            print [str(b) for b in extract_arguments(self.forms[2])]
-            print
-            print self.coefficients
-            print
-            print repr(self.forms[2])
-            print
-            print extract_arguments(self.forms[2])
-            print
+            print()
+            print([str(c) for c in self.coefficients])
+            print()
+            print((str(self.forms[2])))
+            print()
+            print([str(b) for b in extract_arguments(self.forms[2])])
+            print()
+            print((self.coefficients))
+            print()
+            print((repr(self.forms[2])))
+            print()
+            print((extract_arguments(self.forms[2])))
+            print()
 
     def test_arguments(self):
         assert self.arguments == tuple(extract_arguments(self.forms[0]))

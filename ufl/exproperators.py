@@ -19,7 +19,7 @@ Sum and its superclass Expr."""
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from itertools import chain, izip
+from itertools import chain
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
@@ -416,7 +416,7 @@ def _dx(self, *ii):
     for i in ii:
         d = Grad(d)
     # Take all components, applying repeated index sums in the [] operation
-    return d[...,ii]
+    return d[..., ii]
 
 Expr.dx = _dx
 

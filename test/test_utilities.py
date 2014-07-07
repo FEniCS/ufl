@@ -11,14 +11,14 @@ class UtilityTestCase(UflTestCase):
 
     def test_component_numbering(self):
         from ufl.permutation import build_component_numbering
-        sh = (2,2)
-        sm = { (1,0): (0,1) }
+        sh = (2, 2)
+        sm = { (1, 0): (0, 1) }
         v, s = build_component_numbering(sh, sm)
         assert v == {(0, 1): 1, (1, 0): 1, (0, 0): 0, (1, 1): 2}
         assert s == [(0, 0), (0, 1), (1, 1)]
 
-        sh = (3,3)
-        sm = { (1,0): (0,1), (2,0): (0,2), (2,1): (1,2) }
+        sh = (3, 3)
+        sm = { (1, 0): (0, 1), (2, 0): (0, 2), (2, 1): (1, 2) }
         v, s = build_component_numbering(sh, sm)
         assert v == {(0, 1): 1, (1, 2): 4, (0, 0): 0, (2, 1): 4, (1, 1): 3,
                      (2, 0): 2, (2, 2): 5, (1, 0): 1, (0, 2): 2}
@@ -46,23 +46,23 @@ class UtilityTestCase(UflTestCase):
             #self.assertEqual(FIXME)
 
         # Tensor shape
-        s = (2,3)
-        self.assertEqual(strides(s), (3,1))
+        s = (2, 3)
+        self.assertEqual(strides(s), (3, 1))
         for i in range(s[0]):
             for j in range(s[1]):
-                c = (i,j)
+                c = (i, j)
                 q = component_to_index(c, s)
                 c2 = index_to_component(q, s)
                 #print c, q, c2
                 #self.assertEqual(FIXME)
     
         # Rank 3 tensor shape
-        s = (2,3,4)
-        self.assertEqual(strides(s), (12,4,1))
+        s = (2, 3, 4)
+        self.assertEqual(strides(s), (12, 4, 1))
         for i in range(s[0]):
             for j in range(s[1]):
                 for k in range(s[2]):
-                    c = (i,j,k)
+                    c = (i, j, k)
                     q = component_to_index(c, s)
                     c2 = index_to_component(q, s)
                     #print c, q, c2
@@ -94,7 +94,7 @@ class UtilityTestCase(UflTestCase):
     
         # Try a tensor/vector element:
         mixed_shape = (6,)
-        ts = (2,2)
+        ts = (2, 2)
         vs = (2,)
         offset = 4
     

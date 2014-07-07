@@ -54,12 +54,12 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
     # FIXME DOMAIN: Add check for consistency between domains somehow
     domains = set(t.domain()
                   for e in iter_expressions(form)
-                  for t in traverse_terminals(e)) - set((None,))
+                  for t in traverse_terminals(e)) - {None}
     if not domains:
         errors.append("Missing domain definition in form.")
 
     # Check that cell is the same everywhere
-    cells = set(dom.cell() for dom in domains) - set((None,))
+    cells = set(dom.cell() for dom in domains) - {None}
     if not cells:
         errors.append("Missing cell definition in form.")
     elif len(cells) > 1:
@@ -84,8 +84,8 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
             elif isinstance(f, Argument):
                 n = f.number()
                 p = f.part()
-                if (n,p) in arguments:
-                    g = arguments[(n,p)]
+                if (n, p) in arguments:
+                    g = arguments[(n, p)]
                     if not f is g:
                         if n == 0: msg = "TestFunctions"
                         elif n == 1: msg = "TrialFunctions"
@@ -93,7 +93,7 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
                         msg = "Found different %s: %s and %s." % (msg, repr(f), repr(g))
                         errors.append(msg)
                 else:
-                    arguments[(n,p)] = f
+                    arguments[(n, p)] = f
 
     # Check that all integrands are scalar
     for expression in iter_expressions(form):

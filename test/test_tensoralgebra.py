@@ -41,8 +41,8 @@ class TensorAlgebraTestCase(UflTestCase):
 
         C = outer(self.A, self.v)
         A, v = self.A, self.v
-        dims = (0,1)
-        D = as_tensor([[[self.A[i,j]*v[k] for k in dims] for j in dims] for i in dims])
+        dims = (0, 1)
+        D = as_tensor([[[self.A[i, j]*v[k] for k in dims] for j in dims] for i in dims])
         self.assertEqualValues(C, D)
 
         # TODO: Test other ranks
@@ -76,23 +76,23 @@ class TensorAlgebraTestCase(UflTestCase):
         self.assertEqualValues(C, D)
 
         C = dot(self.A, self.B)
-        dims = (0,1)
-        D = as_matrix([[sum(self.A[i,k]*self.B[k,j] for k in dims) \
+        dims = (0, 1)
+        D = as_matrix([[sum(self.A[i, k]*self.B[k, j] for k in dims) \
                             for j in dims] for i in dims])
         self.assertEqualValues(C, D)
 
     def test_cross(self):
-        u = as_vector([3,3,3])
-        v = as_vector([2,2,2])
+        u = as_vector([3, 3, 3])
+        v = as_vector([2, 2, 2])
         C = cross(u, v)
         D = zero(3)
         self.assertEqualValues(C, D)
 
-        u = as_vector([3,3,0])
-        v = as_vector([-2,2,0])
+        u = as_vector([3, 3, 0])
+        v = as_vector([-2, 2, 0])
         C = cross(u, v)
-        z = det(as_matrix([[3,3],[-2,2]]))
-        D = as_vector([0,0,z])
+        z = det(as_matrix([[3, 3], [-2, 2]]))
+        D = as_vector([0, 0, z])
         self.assertEqualValues(C, D)
 
     def xtest_dev(self):
@@ -102,27 +102,27 @@ class TensorAlgebraTestCase(UflTestCase):
 
     def test_skew(self):
         C = skew(self.A)
-        A, dims = self.A, (0,1)
-        D = 0.5*as_matrix([[A[i,j] - A[j,i] for j in dims] for i in dims])
+        A, dims = self.A, (0, 1)
+        D = 0.5*as_matrix([[A[i, j] - A[j, i] for j in dims] for i in dims])
         self.assertEqualValues(C, D)
 
     def test_sym(self):
         C = sym(self.A)
-        A, dims = self.A, (0,1)
-        D = 0.5*as_matrix([[A[i,j] + A[j,i] for j in dims] for i in dims])
+        A, dims = self.A, (0, 1)
+        D = 0.5*as_matrix([[A[i, j] + A[j, i] for j in dims] for i in dims])
         self.assertEqualValues(C, D)
 
     def test_transpose(self):
         C = transpose(self.A)
-        dims = (0,1)
-        D = as_matrix([[self.A[j,i] for j in dims] for i in dims])
+        dims = (0, 1)
+        D = as_matrix([[self.A[j, i] for j in dims] for i in dims])
         self.assertEqualValues(C, D)
 
     def test_diag(self):
-        dims = (0,1)
+        dims = (0, 1)
 
         C = diag(self.A)
-        D = as_matrix([[(0 if i != j else self.A[i,i]) for j in dims] for i in dims])
+        D = as_matrix([[(0 if i != j else self.A[i, i]) for j in dims] for i in dims])
         self.assertEqualValues(C, D)
 
         C = diag(self.u)
@@ -130,15 +130,15 @@ class TensorAlgebraTestCase(UflTestCase):
         self.assertEqualValues(C, D)
 
     def test_diag_vector(self):
-        dims = (0,1)
+        dims = (0, 1)
         C = diag_vector(self.A)
-        D = as_vector([self.A[i,i] for i in dims])
+        D = as_vector([self.A[i, i] for i in dims])
         self.assertEqualValues(C, D)
 
     def test_tr(self):
         C = tr(self.A)
-        A, dims = self.A, (0,1)
-        D = sum(A[i,i] for i in dims)
+        A, dims = self.A, (0, 1)
+        D = sum(A[i, i] for i in dims)
         self.assertEqualValues(C, D)
 
     def xtest_det(self):

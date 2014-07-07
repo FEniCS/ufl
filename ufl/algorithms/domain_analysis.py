@@ -76,7 +76,7 @@ class IntegralData(object):
     def __str__(self):
         return "IntegralData object over domain (%s, %s), with integrals:\n%s\nand metadata:\n%s" % (
             self.integral_type, self.subdomain_id,
-            '\n\n'.join(map(str,self.integrals)), self.metadata)
+            '\n\n'.join(map(str, self.integrals)), self.metadata)
 
 
 # Tuple comparison helper
@@ -92,7 +92,15 @@ class ExprTupleKey(object):
             return False
         else:
             # NB! Comparing form compiler data here! Assuming this is an ok operation.
-            return self.x[1] < other.x[1]
+            # Python 3 can't compare dict, so done manualy
+            if [str(o) for o in self.x[1].keys()] < [str(o) for o in other.x[1].keys()]:
+                return True
+            elif [str(o) for o in self.x[1].keys()] > [str(o) for o in other.x[1].keys()]:
+                return False
+            else:
+                return [str(o) for o in self.x[1].values()] < [str(o) for o in other.x[1].values()]
+                
+
 def expr_tuple_key(expr):
     return ExprTupleKey(expr)
 
@@ -215,7 +223,7 @@ def accumulate_integrands_with_same_metadata(integrals):
         by_cdid[cdid] = (integrands_sum, cd)
 
     # Sort integrands canonically by integrand first then compiler data
-    return sorted(by_cdid.values(), key=expr_tuple_key)
+    return sorted(list(by_cdid.values()), key=expr_tuple_key)
 
 def build_integral_data(integrals, domains):
     integral_data = []

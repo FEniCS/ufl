@@ -28,17 +28,17 @@ def format_dict(di):
     return '\n'.join('%s: %s' % (n, di[n]) for n in sorted(di.keys()))
 
 sep = '\n' + '='*80 + '\n'
-print sep+"Terminals:"
-print format_dict(terminals)
-print sep+"Operators:"
-print format_dict(operators)
-print sep+"Form operators:"
-print format_dict(formoperators)
-print sep+"Other:"
-print format_dict(other)
-print sep+"Other names:"
-print '\n'.join(sorted(other.keys()))
-print sep+"Missing:"
-print '\n'.join(sorted(missing.keys()))
-print sep+"Missing by module:"
-print format_dict(missingmods)
+print((sep+"Terminals:"))
+print((format_dict(terminals)))
+print((sep+"Operators:"))
+print((format_dict(operators)))
+print((sep+"Form operators:"))
+print((format_dict(formoperators)))
+print((sep+"Other:"))
+print((format_dict(other)))
+print((sep+"Other names:"))
+print(('\n'.join(sorted(other.keys()))))
+print((sep+"Missing:"))
+print(('\n'.join(sorted(missing.keys()))))
+print((sep+"Missing by module:"))
+print((format_dict(missingmods)))

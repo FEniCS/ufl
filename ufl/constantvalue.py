@@ -19,7 +19,7 @@
 #
 # Modified by Anders Logg, 2011.
 
-from itertools import izip
+from six.moves import zip, range
 from ufl.log import warning, error
 from ufl.assertions import ufl_assert, expecting_python_scalar
 from ufl.expr import Expr
@@ -137,7 +137,7 @@ class Zero(IndexAnnotated):
         if not free_indices:
             return self
         ufl_assert(len(free_indices) == len(self._free_indices), "Size mismatch between old and new indices.")
-        new_index_dimensions = dict((b, self._index_dimensions[a]) for (a,b) in izip(self._free_indices, free_indices))
+        new_index_dimensions = dict((b, self._index_dimensions[a]) for (a, b) in zip(self._free_indices, free_indices))
         return Zero(self._shape, free_indices, new_index_dimensions)
 
     def shape(self):
@@ -163,12 +163,15 @@ class Zero(IndexAnnotated):
 
     def __eq__(self, other):
         if not isinstance(other, Zero):
-            return isinstance(other, (int,float)) and other == 0
+            return isinstance(other, (int, float)) and other == 0
         if self is other:
             return True
         return (self._shape == other._shape and
                 self._free_indices == other._free_indices and
                 self._index_dimensions == other._index_dimensions)
+
+    def __hash__(self):
+        return hash(repr(self))
 
     def __neg__(self):
         return self
@@ -177,6 +180,9 @@ class Zero(IndexAnnotated):
         return self
 
     def __nonzero__(self):
+        return False
+    
+    def __bool__(self):
         return False
 
     def __float__(self):
@@ -216,7 +222,7 @@ class ScalarValue(IndexAnnotated):
         if not free_indices:
             return self
         ufl_assert(len(free_indices) == len(self._free_indices), "Size mismatch between old and new indices.")
-        new_index_dimensions = dict((b, self._index_dimensions[a]) for (a,b) in izip(self._free_indices, free_indices))
+        new_index_dimensions = dict((b, self._index_dimensions[a]) for (a, b) in zip(self._free_indices, free_indices))
         return self._uflclass(self._value, self._shape, free_indices, new_index_dimensions)
 
     def shape(self):
@@ -244,10 +250,13 @@ class ScalarValue(IndexAnnotated):
         can still succeed. These will however not have the same
         hash value and therefore not collide in a dict."""
         if not isinstance(other, self._uflclass):
-            return isinstance(other, (int,float)) and other == self._value
+            return isinstance(other, (int, float)) and other == self._value
         else:
             return self._value == other._value
 
+    def __hash__(self):
+        return hash(repr(self))
+ 
     def __str__(self):
         return str(self._value)
 
@@ -336,6 +345,9 @@ class Identity(ConstantValue):
     def __eq__(self, other):
         return isinstance(other, Identity) and self._dim == other._dim
 
+    def __hash__(self):
+        return hash(repr(self))
+
     def __getnewargs__(self):
         return (self._dim,)
 
@@ -376,12 +388,15 @@ class PermutationSymbol(ConstantValue):
     def __eq__(self, other):
         return isinstance(other, PermutationSymbol) and self._dim == other._dim
 
+    def __hash__(self):
+        return hash(repr(self))
+
     def __eps(self, x):
         """This function body is taken from
         http://www.mathkb.com/Uwe/Forum.aspx/math/29865/N-integer-Levi-Civita"""
         result = IntValue(1)
         for i, x1 in enumerate(x):
-            for j in xrange(i + 1, len(x)):
+            for j in range(i + 1, len(x)):
                 x2 = x[j]
                 if x1 > x2:
                     result = -result

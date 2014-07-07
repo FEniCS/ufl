@@ -113,6 +113,9 @@ class Coefficient(FormArgument):
         return (self._count == other._count and
                 self._element == other._element)
 
+    def __hash__(self):
+        return hash(repr(self))
+
 # --- Subclasses for defining constant coefficients without specifying element ---
 
 class ConstantBase(Coefficient):

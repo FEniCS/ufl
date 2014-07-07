@@ -61,7 +61,7 @@ class Logger:
         h = logging.StreamHandler(sys.stdout)
         h.setLevel(WARNING)
         # Override emit() in handler for indentation
-        h.emit = types.MethodType(emit, h, h.__class__)
+        h.emit = types.MethodType(emit, h)
         self._handler = h
 
         # Set up logger
@@ -88,7 +88,7 @@ class Logger:
             self.warning("Trying to add logfile %s multiple times." % filename)
             return
         h = logging.FileHandler(filename, mode)
-        h.emit = types.MethodType(emit, h, h.__class__)
+        h.emit = types.MethodType(emit, h)
         h.setLevel(level)
         self._log.addHandler(h)
         self._logfiles[filename] = h

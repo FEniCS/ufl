@@ -23,7 +23,7 @@
 # First added:  2008-03-03
 # Last changed: 2012-08-16
 
-from itertools import izip
+from six.moves import zip
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.common import product, index_to_component, component_to_index, istr, EmptyDict
@@ -81,7 +81,7 @@ class EnrichedElement(FiniteElementBase):
         """Construct a new EnrichedElement object with some properties
         replaced with new values."""
         elements = [e.reconstruct(**kwargs) for e in self._elements]
-        if all(a == b for (a,b) in izip(elements, self._elements)):
+        if all(a == b for (a, b) in zip(elements, self._elements)):
             return self
         return EnrichedElement(*elements)
 

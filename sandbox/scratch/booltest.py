@@ -7,6 +7,8 @@ class Equation:
 
    def __nonzero__(self):
        return repr(self.lhs) == repr(self.rhs)
+   def __bool__(self):
+       return repr(self.lhs) == repr(self.rhs)
 
    def __eq__(self, other):
        return isinstance(other, Equation) and\
@@ -34,8 +36,8 @@ def test():
     forms = [Form(1), Form(2), Form(1), Form(0)]
     for i, f in enumerate(forms):
         for j, g in enumerate(forms):
-            print '\nTesting forms', i, j, f, g
-            print { f: 42, g: 84 }
+            print(('\nTesting forms', i, j, f, g))
+            print({ f: 42, g: 84 })
             seq = f.a == g.a
             sne = f.a != g.a
             assert (f == g) == (f == g)

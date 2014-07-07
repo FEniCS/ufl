@@ -20,6 +20,6 @@ for f in files:
                 m = re.search(r"%s([^:(]*)" % s, l)
                 d = m.groups()[0]
                 defs.append(d)
-    print
-    print "from %s%s import %s" % (prefix, f[:-3], ", ".join(defs))
+    print()
+    print(("from %s%s import %s" % (prefix, f[:-3], ", ".join(defs))))
         

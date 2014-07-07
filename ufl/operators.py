@@ -68,7 +68,7 @@ def elem_op_items(op_ind, indices, *args):
 
 def elem_op(op, *args):
     "UFL operator: Take the elementwise application of operator op on scalar values from one or more tensor arguments."
-    args = map(as_ufl, args)
+    args = list(map(as_ufl, args))
     sh = args[0].shape()
     ufl_assert(all(sh == x.shape() for x in args),
                "Cannot take elementwise operation with different shapes.")
@@ -84,7 +84,8 @@ def elem_mult(A, B):
 
 def elem_div(A, B):
     "UFL operator: Take the elementwise division of the tensors A and B with the same shape."
-    return elem_op(operator.div, A, B)
+    return elem_op(operator.truediv, A, B)
+    #TODO: Is this working proporly for python 2.7 without from __future__ import division?
 
 def elem_pow(A, B):
     "UFL operator: Take the elementwise power of the tensors A and B with the same shape."
@@ -130,7 +131,7 @@ def _partial_inner(a, b):
     "UFL operator: Take the partial inner product of a and b."
     ar, br = a.rank(), b.rank()
     n = min(ar, br)
-    return contraction(a, range(n-ar, n-ar+n), b, range(n))
+    return contraction(a, list(range(n-ar, n-ar+n)), b, list(range(n)))
 
 def dot(a, b):
     "UFL operator: Take the dot product of a and b."
@@ -151,10 +152,10 @@ def contraction(a, a_axes, b, b_axes):
     bii = indices(b.rank())
     cii = indices(len(ai))
     shape = [None]*len(ai)
-    for i,j in enumerate(ai):
+    for i, j in enumerate(ai):
         aii[j] = cii[i]
         shape[i] = ash[j]
-    for i,j in enumerate(bi):
+    for i, j in enumerate(bi):
         bii[j] = cii[i]
         ufl_assert(shape[i] == bsh[j], "Shape mismatch in contraction.")
     s = a[aii]*b[bii]
@@ -166,7 +167,7 @@ def perp(v):
     "UFL operator: Take the perp of v, i.e. (-v1, +v0)."
     v = as_ufl(v)
     ufl_assert(v.shape() == (2,), "Expecting a 2D vector expression.")
-    return as_vector((-v[1],v[0]))
+    return as_vector((-v[1], v[0]))
 
 def cross(a, b):
     "UFL operator: Take the cross product of a and b."
@@ -222,7 +223,7 @@ def diag(A):
     rows = []
     for i in range(n):
         row = [0]*n
-        row[i] = A[i] if r == 1 else A[i,i]
+        row[i] = A[i] if r == 1 else A[i, i]
         rows.append(row)
     return as_matrix(rows)
 
@@ -239,7 +240,7 @@ def diag_vector(A):
     ufl_assert(m == n, "Can only take diagonal of square tensors.")
 
     # Return diagonal vector
-    return as_vector([A[i,i] for i in range(n)])
+    return as_vector([A[i, i] for i in range(n)])
 
 def dev(A):
     "UFL operator: Take the deviatoric part of A."
@@ -540,7 +541,7 @@ def atan(f):
     "UFL operator: Take the inverse tangent of f."
     return _mathfunction(f, Atan)
 
-def atan_2(f1,f2):
+def atan_2(f1, f2):
     "UFL operator: Take the inverse tangent of f."
     f1 = as_ufl(f1)
     f2 = as_ufl(f2)

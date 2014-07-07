@@ -24,7 +24,9 @@
 # First added:  2008-03-03
 # Last changed: 2014-02-24
 
-from itertools import izip, chain
+from itertools import chain
+import six
+from six.moves import zip
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.common import product, index_to_component, component_to_index, istr, EmptyDict
@@ -46,7 +48,7 @@ class MixedElement(FiniteElementBase):
         if len(elements) == 1 and isinstance(elements[0], (tuple, list)):
             elements = elements[0]
         # Interpret nested tuples as sub-mixedelements recursively
-        elements = [MixedElement(e) if isinstance(e, (tuple,list)) else e
+        elements = [MixedElement(e) if isinstance(e, (tuple, list)) else e
                     for e in elements]
         self._sub_elements = elements
 
@@ -89,7 +91,8 @@ class MixedElement(FiniteElementBase):
                 "value size of all subelements.")
 
         # Initialize element data
-        degree = max(e.degree() for e in self._sub_elements)
+        degree_list = (e.degree() for e in self._sub_elements)
+        degree = max(degree_list, key=lambda x: (str(type(x)), x))
         super(MixedElement, self).__init__("Mixed", domain, degree,
                                            quad_scheme, value_shape)
 
@@ -124,10 +127,10 @@ class MixedElement(FiniteElementBase):
 
     def reconstruct_from_elements(self, *elements):
         "Reconstruct a mixed element from new subelements."
-        if all(a == b for (a,b) in izip(elements, self._sub_elements)):
+        if all(a == b for (a, b) in zip(elements, self._sub_elements)):
             return self
         ufl_assert(all(a.value_shape() == b.value_shape()
-                       for (a,b) in izip(elements, self._sub_elements)),
+                       for (a, b) in zip(elements, self._sub_elements)),
             "Expecting new elements to have same value shape as old ones.")
         return MixedElement(*elements, value_shape=self.value_shape())
 
@@ -142,7 +145,7 @@ class MixedElement(FiniteElementBase):
         for e in self._sub_elements:
             sh = e.value_shape()
             # Map symmetries of subelement into index space of this element
-            for c0, c1 in e.symmetry().iteritems():
+            for c0, c1 in six.iteritems(e.symmetry()):
                 j0 = component_to_index(c0, sh) + j
                 j1 = component_to_index(c1, sh) + j
                 sm[(j0,)] = (j1,)
@@ -368,12 +371,12 @@ class TensorElement(MixedElement):
         if symmetry == True:
             ufl_assert(len(shape) == 2 and shape[0] == shape[1],
                        "Cannot set automatic symmetry for non-square tensor.")
-            symmetry = dict( ((i,j), (j,i)) for i in range(shape[0])
+            symmetry = dict( ((i, j), (j, i)) for i in range(shape[0])
                              for j in range(shape[1]) if i > j )
 
         # Validate indices in symmetry dict
         if isinstance(symmetry, dict):
-            for i,j in symmetry.iteritems():
+            for i, j in six.iteritems(symmetry):
                 ufl_assert(len(i) == len(j),
                            "Non-matching length of symmetry index tuples.")
                 for k in range(len(i)):
@@ -480,7 +483,7 @@ class TensorElement(MixedElement):
         "Format as string for pretty printing."
         sym = ""
         if isinstance(self._symmetry, dict):
-            tmp = ", ".join("%s -> %s" % (a,b) for (a,b) in self._symmetry.iteritems())
+            tmp = ", ".join("%s -> %s" % (a, b) for (a, b) in six.iteritems(self._symmetry))
             sym = " with symmetries (%s)" % tmp
         elif self._symmetry:
             sym = " with symmetry"
@@ -491,7 +494,7 @@ class TensorElement(MixedElement):
         "Format as string for pretty printing."
         sym = ""
         if isinstance(self._symmetry, dict):
-            tmp = ", ".join("%s -> %s" % (a,b) for (a,b) in self._symmetry.iteritems())
+            tmp = ", ".join("%s -> %s" % (a, b) for (a, b) in six.iteritems(self._symmetry))
             sym = " with symmetries (%s)" % tmp
         elif self._symmetry:
             sym = " with symmetry"

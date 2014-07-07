@@ -79,10 +79,10 @@ def align(lines):
         n = len(lines[0])
         collengths = [0]*n
         for l in lines:
-            for i,s in enumerate(l):
+            for i, s in enumerate(l):
                 collengths[i] = max(collengths[i], len(s))
         def coljoin(cols):
-            return " & ".join(c.ljust(collengths[i]) for (i,c) in enumerate(cols))
+            return " & ".join(c.ljust(collengths[i]) for (i, c) in enumerate(cols))
         body = " \\\\\n".join(coljoin(l) for l in lines)
     return aligntemplate % body
 
@@ -96,7 +96,7 @@ def subsubsection(s):
     if isinstance(s, tuple):
         title, body = s
         if isinstance(body, list):
-            body = itemize(map(str,body))
+            body = itemize(list(map(str, body)))
         return subsubsectiontemplate % (title, body)
 
 def subsection(s):
@@ -124,22 +124,22 @@ def document(title, sections):
 def testdocument():
     title = "Test title 1"
     sections = ["sec1", "sec2"]
-    print document(title, sections)
+    print(document(title, sections))
 
     title = "Test title 2"
     sections = [("sec1", "secbody1"), ("sec2", "secbody2")]
-    print document(title, sections)
+    print(document(title, sections))
 
     title = "Test title 3"
     section1 = [("subsec1", "subsecbody1"), ("subsec2", "subsecbody2")]
     section2 = [("subsec1", "subsecbody1"), ("subsec2", "subsecbody2"), ("subsec3", "subsecbody3"), ]
     section3 = "\\section{manual sec}\ntestelest"
     sections = [("sec1", section1), ("sec2", section2), ("sec3", section3)]
-    print document(title, sections)
+    print(document(title, sections))
 
     matrix = [ ("a(...) ", "= \\int_\\Omega foo dx0"),
                ("",        "+ \\int_\\Omega foo dx1"),
                ("",        "+ \\int_\\Omega foo dx1"),
             ]
-    print align(matrix)
+    print(align(matrix))
 

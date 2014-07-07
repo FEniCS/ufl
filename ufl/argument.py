@@ -135,7 +135,9 @@ class Argument(FormArgument):
                 self._number == other._number and
                 self._part == other._part and
                 self._element == other._element)
-
+    
+    def __hash__(self):
+        return hash(repr(self))
 
 # --- Helper functions for pretty syntax ---
 

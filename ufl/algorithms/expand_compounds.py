@@ -37,7 +37,7 @@ class CompoundExpander(ReuseTransformer):
 
     def trace(self, o, A):
         i = Index()
-        return A[i,i]
+        return A[i, i]
 
     def transposed(self, o, A):
         i, j = indices(2)
@@ -54,16 +54,16 @@ class CompoundExpander(ReuseTransformer):
 
     def skew(self, o, A):
         i, j = indices(2)
-        return as_matrix( (A[i,j] - A[j,i]) / 2, (i,j) )
+        return as_matrix( (A[i, j] - A[j, i]) / 2, (i, j) )
 
     def sym(self, o, A):
         i, j = indices(2)
-        return as_matrix( (A[i,j] + A[j,i]) / 2, (i,j) )
+        return as_matrix( (A[i, j] + A[j, i]) / 2, (i, j) )
 
     def cross(self, o, a, b):
         def c(i, j):
-            return Product(a[i],b[j]) - Product(a[j],b[i])
-        return as_vector((c(1,2), c(2,0), c(0,1)))
+            return Product(a[i], b[j]) - Product(a[j], b[i])
+        return as_vector((c(1, 2), c(2, 0), c(0, 1)))
 
     def dot(self, o, a, b):
         ai = indices(a.rank()-1)
@@ -100,14 +100,14 @@ class CompoundExpander(ReuseTransformer):
 
     def div(self, o, a):
         i = Index()
-        return a[...,i].dx(i)
+        return a[..., i].dx(i)
 
     def grad(self, o, a):
         return self.reuse_if_possible(o, a)
 
     def nabla_div(self, o, a):
         i = Index()
-        return a[i,...].dx(i)
+        return a[i, ...].dx(i)
 
     def nabla_grad(self, o, a):
         j = Index()
@@ -127,9 +127,9 @@ class CompoundExpander(ReuseTransformer):
         if sh == ():
             return as_vector((a.dx(1), -a.dx(0)))
         if sh == (2,):
-            return c(0,1)
+            return c(0, 1)
         if sh == (3,):
-            return as_vector((c(1,2), c(2,0), c(0,1)))
+            return as_vector((c(1, 2), c(2, 0), c(0, 1)))
         error("Invalid shape %s of curl argument." % (sh,))
 
 
@@ -157,11 +157,11 @@ class CompoundExpanderPreDiff(CompoundExpander):
 
     def div(self, o, a):
         i = Index()
-        return Grad(a)[...,i,i]
+        return Grad(a)[..., i, i]
 
     def nabla_div(self, o, a):
         i = Index()
-        return Grad(a)[i,...,i]
+        return Grad(a)[i, ..., i]
 
     def curl(self, o, a):
         # o = curl a = "[a.dx(1), -a.dx(0)]"            if a.shape() == ()
@@ -170,15 +170,15 @@ class CompoundExpanderPreDiff(CompoundExpander):
         Da = Grad(a)
         def c(i, j):
             #return a[j].dx(i) - a[i].dx(j)
-            return Da[j,i] - Da[i,j]
+            return Da[j, i] - Da[i, j]
         sh = a.shape()
         if sh == ():
             #return as_vector((a.dx(1), -a.dx(0)))
             return as_vector((Da[1], -Da[0]))
         if sh == (2,):
-            return c(0,1)
+            return c(0, 1)
         if sh == (3,):
-            return as_vector((c(1,2), c(2,0), c(0,1)))
+            return as_vector((c(1, 2), c(2, 0), c(0, 1)))
         error("Invalid shape %s of curl argument." % (sh,))
 
 class CompoundExpanderPostDiff(CompoundExpander):

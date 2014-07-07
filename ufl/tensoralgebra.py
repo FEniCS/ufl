@@ -195,7 +195,7 @@ class Inner(CompoundTensorOperator):
         # sort operands for unique representation,
         # must be independent of various counts etc.
         # as explained in cmp_expr
-        a, b = sorted_expr((a,b))
+        a, b = sorted_expr((a, b))
 
         # old version, slow and unsafe:
         #a, b = sorted((a,b), key = lambda x: repr(x))

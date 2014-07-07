@@ -46,6 +46,11 @@ class Condition(Operator):
         # Showing explicit error here to protect against misuse
         error("UFL conditions cannot be evaluated as bool in a Python context.")
         #return NotImplemented
+    def __bool__(self):
+        # Showing explicit error here to protect against misuse
+        error("UFL conditions cannot be evaluated as bool in a Python context.")
+        #return NotImplemented
+
 
 class BinaryCondition(Condition):
     __slots__ = ('_name', '_left', '_right',)
@@ -98,6 +103,9 @@ class EQ(BinaryCondition):
 
     def __nonzero__(self):
         return expr_equals(self._left, self._right)
+    def __bool__(self):
+        return expr_equals(self._left, self._right)
+
 
 class NE(BinaryCondition):
     __slots__ = ()
@@ -111,6 +119,9 @@ class NE(BinaryCondition):
 
     def __nonzero__(self):
         return not expr_equals(self._left, self._right)
+    def __bool__(self):
+        return not expr_equals(self._left, self._right)
+
 
 class LE(BinaryCondition):
     __slots__ = ()
@@ -207,7 +218,7 @@ class Conditional(Operator):
         tfi = true_value.free_indices()
         ffi = false_value.free_indices()
         ufl_assert(tfi == ffi, "Free index mismatch between conditional branches.")
-        if isinstance(condition, (EQ,NE)):
+        if isinstance(condition, (EQ, NE)):
             ufl_assert(condition._left.shape() == ()
                        and condition._left.free_indices() == ()
                        and condition._right.shape() == ()

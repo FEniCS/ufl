@@ -1,4 +1,5 @@
 from collections import defaultdict
+import six
 
 class PhysicalDimension:
     def __init__(self, dims):
@@ -12,7 +13,7 @@ class PhysicalDimension:
         self.normalize()
 
     def normalize(self):
-        keys = [d for (d,c) in self.counts.iteritems() if c == 0]
+        keys = [d for (d, c) in six.iteritems(self.counts) if c == 0]
         for k in keys:
             del self.counts[k]
 

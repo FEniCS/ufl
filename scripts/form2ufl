@@ -10,13 +10,13 @@ import re
 from os.path import exists
 
 def help():
-    print "Simple conversion script from old FFC .form format to UFL format."
-    print ""
-    print "Usage: form2ufl <filename>.form"
+    print("Simple conversion script from old FFC .form format to UFL format.")
+    print("")
+    print("Usage: form2ufl <filename>.form")
 
 def error(message=None):
     if not message is None:
-        print message
+        print(message)
     else:
         help()
     sys.exit(1)
@@ -90,7 +90,7 @@ def main(args):
     if exists(ufl_filename):
         error("File already exists: " + ufl_filename)
 
-    print "Converting %s --> %s" % (form_filename, ufl_filename)
+    print("Converting %s --> %s" % (form_filename, ufl_filename))
 
     # Read file
     try:

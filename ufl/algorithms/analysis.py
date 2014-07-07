@@ -20,7 +20,8 @@
 # Modified by Anders Logg, 2009-2010.
 # Modified by Johan Hake, 2010.
 
-from itertools import izip, chain
+from itertools import chain
+from six.moves import zip
 from collections import namedtuple
 
 from ufl.log import error, warning, info

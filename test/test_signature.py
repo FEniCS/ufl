@@ -62,7 +62,7 @@ class TerminalHashDataTestCase(UflTestCase):
             # ignoring the original terminals.
             assert isinstance(d, dict)
             # Sorting values by hash should be stable at least in a single test run:
-            t = tuple(sorted(d.values(), key=lambda x: hash(x)))
+            t = tuple(sorted(list(d.values()), key=lambda x: hash(x)))
             #print t
 
             # Add the hashdata values tuple to sets based on itself, its hash,
@@ -85,7 +85,7 @@ class TerminalHashDataTestCase(UflTestCase):
                 I = Identity(d)
                 for fv in (1.1, 2.2):
                     for iv in (5, 7):
-                        expr = (I[0,j]*(fv*x[j]))**iv
+                        expr = (I[0, j]*(fv*x[j]))**iv
 
                         reprs.add(repr(expr))
                         hashes.add(hash(expr))
@@ -120,7 +120,7 @@ class TerminalHashDataTestCase(UflTestCase):
                 qs = (r, a, v) #, s)
                 for w in ws:
                     for q in qs:
-                        expr = (I[0,j]*(q*w[j]))
+                        expr = (I[0, j]*(q*w[j]))
 
                         reprs.add(repr(expr))
                         hashes.add(hash(expr))
@@ -156,7 +156,7 @@ class TerminalHashDataTestCase(UflTestCase):
                             W2 = VectorElement(family, cell, degree, dim=d+1)
                             T = TensorElement(family, cell, degree)
                             S = TensorElement(family, cell, degree, symmetry=True)
-                            S2 = TensorElement(family, cell, degree, shape=(d,d), symmetry={(0,0):(1,1)})
+                            S2 = TensorElement(family, cell, degree, shape=(d, d), symmetry={(0, 0):(1, 1)})
                             elements = [V, W, W2, T, S, S2]
                             assert len(elements) == nelm
 
@@ -167,7 +167,7 @@ class TerminalHashDataTestCase(UflTestCase):
                                 renumbering = domain_numbering(*cells)
                                 renumbering[c] = 0
                                 for f in (a, c):
-                                    expr = inner(f,f)
+                                    expr = inner(f, f)
 
                                     reprs.add(repr(expr))
                                     hashes.add(hash(expr))
@@ -188,7 +188,7 @@ class TerminalHashDataTestCase(UflTestCase):
     def test_terminal_hashdata_does_not_depend_on_coefficient_count_values_only_ordering(self):
         reprs = set()
         hashes = set()
-        counts = list(range(-3,4))
+        counts = list(range(-3, 4))
         cells = (cell1D, triangle, hexahedron)
         assert len(counts) == 7
         nreps = 1
@@ -199,7 +199,7 @@ class TerminalHashDataTestCase(UflTestCase):
                         V = FiniteElement("CG", cell, 2)
                         f = Coefficient(V, count=k)
                         g = Coefficient(V, count=k+2)
-                        expr = inner(f,g)
+                        expr = inner(f, g)
 
                         renumbering = domain_numbering(*cells)
                         renumbering[f] = 0
@@ -233,7 +233,7 @@ class TerminalHashDataTestCase(UflTestCase):
                         V = FiniteElement("CG", cell, 2)
                         f = Argument(V, k)
                         g = Argument(V, k+2)
-                        expr = inner(f,g)
+                        expr = inner(f, g)
 
                         reprs.add(repr(expr))
                         hashes.add(hash(expr))
@@ -286,17 +286,15 @@ class TerminalHashDataTestCase(UflTestCase):
                     v = TestFunction(V)
                     x = SpatialCoordinate(domain)
                     n = FacetNormal(domain)
-                    exprs = [inner(x,n), inner(f,v)]
+                    exprs = [inner(x, n), inner(f, v)]
                     assert num_exprs == len(exprs) # Assumed in checks below
                     for expr in exprs:
                         #print; print expr
                         reprs.add(repr(expr))
                         hashes.add(hash(expr))
-
                         # This numbering needs to be recreated to count 'domain' as 0 each time:
-                        renumbering = { domain: 0, f: 0 }
-
-                        yield compute_terminal_hashdata(expr, renumbering)
+                        dn = domain_numbering2(*[domain])
+                        yield compute_terminal_hashdata(expr, dn)
 
         c, d, r, h = self.compute_unique_terminal_hashdatas(forms())
         c0 = num_exprs * len(cells) # Number of actually unique cases from a code generation perspective
@@ -327,7 +325,7 @@ class MultiIndexHashDataTestCase(UflTestCase):
         hashes = set()
         def hashdatas():
             for i in range(3):
-                for ii in ((i,), (i,0), (1,i)):
+                for ii in ((i,), (i, 0), (1, i)):
                     expr = MultiIndex(ii, {})
                     self.assertTrue(type(expr.index_dimensions()) is EmptyDictType) # Just a side check
                     reprs.add(repr(expr))
@@ -350,8 +348,8 @@ class MultiIndexHashDataTestCase(UflTestCase):
             for i in iind:
                 ijs.append((i,))
                 for j in jind:
-                    ijs.append((i,j))
-                    ijs.append((j,i))
+                    ijs.append((i, j))
+                    ijs.append((j, i))
             for ij in ijs:
                 expr = MultiIndex(ij, {i:2,j:3})
                 reprs.add(repr(expr))
@@ -378,12 +376,12 @@ class MultiIndexHashDataTestCase(UflTestCase):
                 idims = {i:2,j:3,k:4,l:5}
                 for expr in (MultiIndex((i,), idims),
                              MultiIndex((i,), idims), # r
-                             MultiIndex((i,j), idims),
-                             MultiIndex((j,i), idims),
-                             MultiIndex((i,j), idims), # r
-                             MultiIndex((i,j,k), idims),
-                             MultiIndex((k,j,i), idims),
-                             MultiIndex((j,i), idims)): # r
+                             MultiIndex((i, j), idims),
+                             MultiIndex((j, i), idims),
+                             MultiIndex((i, j), idims), # r
+                             MultiIndex((i, j, k), idims),
+                             MultiIndex((k, j, i), idims),
+                             MultiIndex((j, i), idims)): # r
                     reprs.add(repr(expr))
                     hashes.add(hash(expr))
                     yield compute_multiindex_hashdata(expr, index_numbering)
@@ -408,8 +406,8 @@ class MultiIndexHashDataTestCase(UflTestCase):
                 idims2 = {i:3,j:4}
                 for expr in (MultiIndex((i,), idims1),
                              MultiIndex((i,), idims2),
-                             MultiIndex((i,j), idims1),
-                             MultiIndex((i,j), idims2)):
+                             MultiIndex((i, j), idims1),
+                             MultiIndex((i, j), idims2)):
                     reprs.add(repr(expr))
                     hashes.add(hash(expr))
                     yield compute_multiindex_hashdata(expr, index_numbering)
@@ -446,7 +444,7 @@ class FormSignatureTestCase(UflTestCase):
         def forms():
             for family in ("CG", "DG"):
                 for cell in (triangle, tetrahedron, quadrilateral):
-                    for degree in (1,2):
+                    for degree in (1, 2):
                         V = FiniteElement(family, cell, degree)
                         u = Coefficient(V)
                         v = TestFunction(V)
@@ -479,7 +477,7 @@ class FormSignatureTestCase(UflTestCase):
                     w = Coefficient(W)
                     vu = variable(u)
                     vw = variable(w)
-                    f = vu*dot(vw,vu**k*vw)
+                    f = vu*dot(vw, vu**k*vw)
                     g = diff(f, vu)
                     h = dot(diff(f, vw), FacetNormal(cell))
                     a = f*dx(1) + g*dx(2) + h*ds(0)
@@ -521,3 +519,4 @@ class FormSignatureTestCase(UflTestCase):
 # Don't touch these lines, they allow you to run this file directly
 if __name__ == "__main__":
     main()
+

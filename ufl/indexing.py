@@ -21,7 +21,7 @@ from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.common import counted_init, EmptyDict
 from ufl.terminal import UtilityType
-from itertools import izip
+from six.moves import zip
 
 #--- Index types ---
 
@@ -151,7 +151,7 @@ class MultiIndex(UtilityType):
         self._indices = ii
         self._idims = dict(idims) if idims else EmptyDict
 
-        if any(not isinstance(idims.get(k,0), int) for k in ii if isinstance(k, Index)):
+        if any(not isinstance(idims.get(k, 0), int) for k in ii if isinstance(k, Index)):
             error("Missing index or invalid dimension in provided idims.")
 
     def evaluate(self, x, mapping, component, index_values):
@@ -217,6 +217,9 @@ class MultiIndex(UtilityType):
         return isinstance(other, MultiIndex) and \
             self._indices == other._indices
 
+    def __hash__(self):
+        return hash(repr(self)) 
+
 def as_index(i):
     if isinstance(i, IndexBase):
         return i
@@ -229,7 +232,7 @@ def _make_idims(ii, shape):
     if shape is None:
         return None
     else:
-        return dict((j,d) for (j,d) in izip(ii, shape) if isinstance(j, Index))
+        return dict((j, d) for (j, d) in zip(ii, shape) if isinstance(j, Index))
 
 def as_multi_index(ii, shape=None):
     if isinstance(ii, MultiIndex):

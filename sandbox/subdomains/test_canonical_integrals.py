@@ -12,11 +12,11 @@ from ufl.algorithms.domain_analysis import (extract_subdomain_data_from_integral
 def test():
 
     # Mock objects for compiler data and solver data
-    comp1 = [1,2,3]
+    comp1 = [1, 2, 3]
     comp2 = ('a', 'b')
     comp3 = {'1':1}
-    sol1 = (0,3,5)
-    sol2 = (0,3,7)
+    sol1 = (0, 3, 5)
+    sol2 = (0, 3, 7)
 
     # Basic UFL expressions for integrands
     V = FiniteElement("CG", triangle, 1)
@@ -36,11 +36,11 @@ def test():
                          Integral2(f**3, "cell", 1, comp1, None),
                          Integral2(g**3, "cell", 1, comp1, sol1),
                          # Integral over 0 and 1 with compiler_data object found in 0 but not 1 above:
-                         Integral2(f**4, "cell", (0,1), comp2, None),
+                         Integral2(f**4, "cell", (0, 1), comp2, None),
                          # Integral over 0 and 1 with its own compiler_data object:
-                         Integral2(g**4, "cell", (0,1), comp3, None),
+                         Integral2(g**4, "cell", (0, 1), comp3, None),
                          # Integral over 0 and 1 no compiler_data object:
-                         Integral2(h/3, "cell", (0,1), None, None),
+                         Integral2(h/3, "cell", (0, 1), None, None),
                          # Integral over everywhere with no compiler data:
                          Integral2(h/2, "cell", Measure.DOMAIN_ID_EVERYWHERE, None, None),
                          ]
@@ -51,15 +51,15 @@ def test():
     subdomain_data = extract_subdomain_data_from_integral_dict(form._dintegrals)
     integral_data = extract_integral_data_from_integral_dict(form._dintegrals)
 
-    print
-    print "Domain data:"
-    print subdomain_data
-    print
+    print()
+    print("Domain data:")
+    print(subdomain_data)
+    print()
 
-    print
-    print "Integral data:"
+    print()
+    print("Integral data:")
     for ida in integral_data:
-        print ida
-    print
+        print(ida)
+    print()
 
 test()

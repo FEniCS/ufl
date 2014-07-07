@@ -20,7 +20,7 @@
 # First added:  2008-12-28
 # Last changed: 2011-06-02
 
-from itertools import izip
+from six.moves import zip
 from ufl.algorithms.pdiffs import PartialDerivativeComputer
 from ufl.differentiation import SpatialDerivative, VariableDerivative, CoefficientDerivative
 
@@ -76,14 +76,14 @@ def reverse_ad(expr, G): # TODO: Finish this!
     for i, v in enumerate(V):
         pdiffs = pdc(v)
         vi_edges = TODO
-        for (j, dvidvj) in izip(vi_edges, pdiffs):
-            c[(i,j)] = dvidvj
+        for (j, dvidvj) in zip(vi_edges, pdiffs):
+            c[(i, j)] = dvidvj
 
     # Reverse accumulation
     for i in range(m-1, n-1, -1):
         xdi = xd[i]
         for j in Eout[i-n]: # TODO: Correct edges, j should be the x indices of the operands of x[i]
-            xd[j] += xdi*c[i,j]
+            xd[j] += xdi*c[i, j]
     result = xd[:n]
 
     return result

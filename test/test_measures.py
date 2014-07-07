@@ -120,9 +120,9 @@ class MeasureTestCase(UflTestCase):
         self.assertEqual(dx.subdomain_id(), "everywhere")
 
         # Set subdomain_id to (2,3), still no domain set
-        dx23 = dx((2,3))
+        dx23 = dx((2, 3))
         self.assertEqual(dx23.domain(), None)
-        self.assertEqual(dx23.subdomain_id(), (2,3))
+        self.assertEqual(dx23.subdomain_id(), (2, 3))
 
         # Map metadata to metadata, ffc interprets as before
         dxm = dx(metadata={"dummy":123})

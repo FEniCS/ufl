@@ -45,6 +45,7 @@ class Label(UtilityType):
     def __repr__(self):
         return "Label(%d)" % self._count
 
+
 class Variable(WrapperType):
     """A Variable is a representative for another expression.
 
@@ -102,6 +103,9 @@ class Variable(WrapperType):
 
     def __str__(self):
         return "var%d(%s)" % (self._label.count(), self._expression)
+
+    def __hash__(self):
+        return hash(repr(self))
 
     def __repr__(self):
         return "Variable(%r, %r)" % (self._expression, self._label)
