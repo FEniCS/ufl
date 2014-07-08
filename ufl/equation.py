@@ -1,6 +1,6 @@
 "The Equation class, used to express equations like a == L."
 
-# Copyright (C) 2012 Anders Logg and Martin Sandve Alnes
+# Copyright (C) 2012-2014 Anders Logg and Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -16,9 +16,6 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
-#
-# First added:  2011-06-21
-# Last changed: 2011-06-22
 
 class Equation:
     """This class is used to represent equations expressed by the "=="
@@ -46,6 +43,9 @@ class Equation:
         return isinstance(other, Equation) and \
             bool(self.lhs == other.lhs) and \
             bool(self.rhs == other.rhs)
+
+    def __hash__(self):
+        return hash((hash(self.lhs), hash(self.rhs)))
 
     def __repr__(self):
         return "Equation(%r, %r)" % (self.lhs, self.rhs)

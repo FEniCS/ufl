@@ -19,13 +19,10 @@ of related classes, including Constant."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2008-2009.
-#
-# First added:  2008-03-14
-# Last changed: 2011-10-20
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
-from ufl.terminal import FormArgument
+from ufl.terminal import Terminal, FormArgument
 from ufl.finiteelement import FiniteElementBase, FiniteElement, VectorElement, TensorElement
 from ufl.split_functions import split
 from ufl.common import counted_init
@@ -112,9 +109,7 @@ class Coefficient(FormArgument):
             return True
         return (self._count == other._count and
                 self._element == other._element)
-
-    def __hash__(self):
-        return hash(repr(self))
+    __hash__ = Terminal.__hash__
 
 # --- Subclasses for defining constant coefficients without specifying element ---
 

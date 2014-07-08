@@ -25,14 +25,12 @@ from itertools import chain
 # TODO: Test that we do not get collisions for some large sets of generated forms
 # TODO: How do we know that we have tested the signature reliably enough?
 
-def domain_numbering2(*domains):
+def domain_numbering(*cells):
     renumbering = {}
-    for i,domain in enumerate(domains):
+    for i,cell in enumerate(cells):
+        domain = as_domain(cell)
         renumbering[domain] = i
     return renumbering
-
-def domain_numbering(*cells):
-    return domain_numbering2(*[as_domain(c) for c in cells])
 
 class TerminalHashDataTestCase(UflTestCase):
 
@@ -203,7 +201,7 @@ class TerminalHashDataTestCase(UflTestCase):
 
                         renumbering = domain_numbering(*cells)
                         renumbering[f] = 0
-                        renumbering[g] = 0
+                        renumbering[g] = 1
 
                         reprs.add(repr(expr))
                         hashes.add(hash(expr))
@@ -288,13 +286,14 @@ class TerminalHashDataTestCase(UflTestCase):
                     n = FacetNormal(domain)
                     exprs = [inner(x, n), inner(f, v)]
                     assert num_exprs == len(exprs) # Assumed in checks below
+
+                    # This numbering needs to be recreated to count 'domain' and 'f' as 0 each time:
+                    renumbering = { f: 0, domain: 0 }
+
                     for expr in exprs:
-                        #print; print expr
                         reprs.add(repr(expr))
                         hashes.add(hash(expr))
-                        # This numbering needs to be recreated to count 'domain' as 0 each time:
-                        dn = domain_numbering2(*[domain])
-                        yield compute_terminal_hashdata(expr, dn)
+                        yield compute_terminal_hashdata(expr, renumbering)
 
         c, d, r, h = self.compute_unique_terminal_hashdatas(forms())
         c0 = num_exprs * len(cells) # Number of actually unique cases from a code generation perspective
@@ -519,4 +518,3 @@ class FormSignatureTestCase(UflTestCase):
 # Don't touch these lines, they allow you to run this file directly
 if __name__ == "__main__":
     main()
-

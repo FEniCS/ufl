@@ -19,13 +19,10 @@ classes (functions), including TestFunction and TrialFunction."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2008-2009.
-#
-# First added:  2008-03-14
-# Last changed: 2011-10-20
 
 from ufl.log import deprecate
 from ufl.assertions import ufl_assert
-from ufl.terminal import FormArgument
+from ufl.terminal import Terminal, FormArgument
 from ufl.split_functions import split
 from ufl.finiteelement import FiniteElementBase
 
@@ -135,9 +132,7 @@ class Argument(FormArgument):
                 self._number == other._number and
                 self._part == other._part and
                 self._element == other._element)
-    
-    def __hash__(self):
-        return hash(repr(self))
+    __hash__ = Terminal.__hash__
 
 # --- Helper functions for pretty syntax ---
 
