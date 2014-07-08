@@ -261,7 +261,7 @@ class SumDegreeEstimator(Transformer):
         For improving accuracy of quadrature
         near condition transition surface
         quadrature order must be adjusted manually."""
-        return max(t, f)
+        return self._max_degrees(v, t, f)
 
     def min_value(self, v, l, r):
         """Same as conditional."""
