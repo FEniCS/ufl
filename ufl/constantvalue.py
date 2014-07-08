@@ -179,11 +179,9 @@ class Zero(IndexAnnotated):
     def __abs__(self):
         return self
 
-    def __nonzero__(self):
-        return False
-    
     def __bool__(self):
         return False
+    __nonzero__ = __bool__
 
     def __float__(self):
         return 0.0
@@ -256,7 +254,7 @@ class ScalarValue(IndexAnnotated):
 
     def __hash__(self):
         return hash(repr(self))
- 
+
     def __str__(self):
         return str(self._value)
 

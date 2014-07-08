@@ -182,12 +182,10 @@ class Expr(object):
         mathematically equal or equivalent! Used by sets and dicts."""
         raise NotImplementedError(self.__class__.__eq__)
 
-    def __nonzero__(self):
-        "By default, all Expr are nonzero."
-        return True
     def __bool__(self):
         "By default, all Expr are nonzero."
         return True
+    __nonzero__ = __bool__
 
     def __len__(self):
         "Length of expression. Used for iteration over vector expressions."

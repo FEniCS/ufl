@@ -42,14 +42,11 @@ class Condition(Operator):
     def shape(self):
         error("Calling shape on Condition is an error.")
 
-    def __nonzero__(self):
-        # Showing explicit error here to protect against misuse
-        error("UFL conditions cannot be evaluated as bool in a Python context.")
-        #return NotImplemented
     def __bool__(self):
         # Showing explicit error here to protect against misuse
         error("UFL conditions cannot be evaluated as bool in a Python context.")
         #return NotImplemented
+    __nonzero__ = __bool__
 
 
 class BinaryCondition(Condition):
@@ -101,10 +98,9 @@ class EQ(BinaryCondition):
         b = self._right.evaluate(x, mapping, component, index_values)
         return bool(a == b)
 
-    def __nonzero__(self):
-        return expr_equals(self._left, self._right)
     def __bool__(self):
         return expr_equals(self._left, self._right)
+    __nonzero__ = __bool__
 
 
 class NE(BinaryCondition):
@@ -117,10 +113,9 @@ class NE(BinaryCondition):
         b = self._right.evaluate(x, mapping, component, index_values)
         return bool(a != b)
 
-    def __nonzero__(self):
-        return not expr_equals(self._left, self._right)
     def __bool__(self):
         return not expr_equals(self._left, self._right)
+    __nonzero__ = __bool__
 
 
 class LE(BinaryCondition):
@@ -253,4 +248,3 @@ class Conditional(Operator):
 
     def __repr__(self):
         return "Conditional(%r, %r, %r)" % self.operands()
-
