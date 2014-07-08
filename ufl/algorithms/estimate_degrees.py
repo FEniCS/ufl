@@ -229,10 +229,7 @@ class SumDegreeEstimator(Transformer):
         gives a somewhat high integration degree.
         """
         if a:
-            if isinstance(a, int):
-                return a+2
-            else:
-                return tuple(foo+2 for foo in a)
+            return self._add_degrees(v, a, 2)
         else:
             return a
 
