@@ -20,9 +20,6 @@
 # Modified by Kristian B. Oelgaard
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Anders Logg 2014
-#
-# First added:  2008-03-03
-# Last changed: 2014-02-24
 
 from itertools import chain
 import six
@@ -91,8 +88,8 @@ class MixedElement(FiniteElementBase):
                 "value size of all subelements.")
 
         # Initialize element data
-        degree_list = (e.degree() for e in self._sub_elements)
-        degree = max(degree_list, key=lambda x: (str(type(x)), x))
+        degree_list = [d for d in (e.degree() for e in self._sub_elements) if d is not None]
+        degree = max(degree_list) if degree_list else None
         super(MixedElement, self).__init__("Mixed", domain, degree,
                                            quad_scheme, value_shape)
 

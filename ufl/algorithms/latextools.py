@@ -16,9 +16,6 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
-#
-# First added:  2008-05-07
-# Last changed: 2011-06-02
 
 # --- Basic LaTeX tools ---
 
@@ -142,4 +139,3 @@ def testdocument():
                ("",        "+ \\int_\\Omega foo dx1"),
             ]
     print(align(matrix))
-

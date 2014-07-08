@@ -18,12 +18,9 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Kristian Oelgaard, 2009
-#
-# First added:  2008-08-05
-# Last changed: 2011-06-02
 
-from six.moves import zip
 import six
+from six.moves import zip, range
 import operator
 import time
 
@@ -75,7 +72,7 @@ def sorted_by_count(seq):
     return sorted(seq, key=lambda x: x._count)
 
 def sorted_items(mapping):
-    return sorted(six.iteritems(mapping), key=lambda x: str(x[0]))
+    return sorted(six.iteritems(mapping), key=lambda x: (type(x[0]).__name__, x[0]))
 
 def mergedicts(dicts):
     d = dict(dicts[0])

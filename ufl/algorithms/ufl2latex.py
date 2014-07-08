@@ -546,7 +546,7 @@ def dependency_sorting(deplist, rank):
     # Permutations of 0/1 dependence of arguments
     indices = compute_indices((2,)*rank)
     for bfs in indices[1:]: # skip (0,...,0), already handled that
-        for i, bf in reversed(list(enumerate(bfs))):
+        for i, bf in reversed(enumerate(bfs)):
             n = "v%d" % i
             if bf:
                 if n in state:
@@ -570,7 +570,7 @@ def dependency_sorting(deplist, rank):
 
     indices = compute_indices((2,)*rank)
     for bfs in indices[1:]: # skip (0,...,0), already handled that
-        for i, bf in reversed(list(enumerate(bfs))):
+        for i, bf in reversed(enumerate(bfs)):
             n = "v%d" % i
             if bf:
                 state.add(n)

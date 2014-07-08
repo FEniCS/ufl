@@ -207,7 +207,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
             m[c] = as_tensor(a)
 
     # Wrap and return generic tuples
-    items = sorted(list(m.items()), key=lambda x: x[0].count())
+    items = sorted(m.items(), key=lambda x: x[0].count())
     coefficients = ExprList(*[item[0] for item in items])
     arguments = ExprList(*[item[1] for item in items])
     return coefficients, arguments
@@ -241,7 +241,7 @@ def derivative(form, coefficient, argument=None, coefficient_derivatives=None):
         coefficient_derivatives = ExprMapping()
     else:
         cd = []
-        for k in sorted_expr(list(coefficient_derivatives.keys())):
+        for k in sorted_expr(coefficient_derivatives.keys()):
             cd += [as_ufl(k), as_ufl(coefficient_derivatives[k])]
         coefficient_derivatives = ExprMapping(*cd)
 

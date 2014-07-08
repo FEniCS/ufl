@@ -21,10 +21,6 @@ algorithms."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2009-2010
-#
-# First added:  2008-05-07
-# Last changed: 2012-04-12
-
 
 from inspect import getargspec
 from ufl.log import error, debug
@@ -98,7 +94,7 @@ class Transformer(object):
         # Is this a handler that expects transformed children as input?
         if visit_children_first:
             # Yes, visit all children first and then call h.
-            r = h(o, *list(map(self.visit, o.operands())))
+            r = h(o, *[self.visit(op) for op in o.operands()])
         else:
             # No, this is a handler that handles its own children
             # (arguments self and o, where self is already bound)

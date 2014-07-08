@@ -80,7 +80,7 @@ equalscalls = {}
 collisions = {}
 def print_collisions():
     print("Collision statistics:")
-    keys = sorted(list(equalscalls.keys()), key=lambda x: collisions.get(x, 0))
+    keys = sorted(equalscalls.keys(), key=lambda x: collisions.get(x, 0))
     for k in keys:
         co = collisions.get(k, 0)
         ca = equalscalls[k]
@@ -118,7 +118,7 @@ def _expr_equals3(self, other): # Much faster than the more complex algorithms a
         # Just let python handle the recursion
         #equal = self.operands() == other.operands()
         # Recurse manually to call _expr_equals3 directly without the class EQ overhead!
-        equal = all(_expr_equals3(a, b) for (a, b) in list(zip(self.operands(), other.operands())))
+        equal = all(_expr_equals3(a, b) for (a, b) in zip(self.operands(), other.operands()))
     else:
         # Compare terminal representations to include all terminal data
         #equal = repr(self) == repr(other)

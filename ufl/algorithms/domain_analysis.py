@@ -18,6 +18,8 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from collections import defaultdict
+from six.moves import zip
+from six import iteritems
 
 import ufl
 from ufl.common import sorted_items
@@ -78,6 +80,18 @@ class IntegralData(object):
             self.integral_type, self.subdomain_id,
             '\n\n'.join(map(str, self.integrals)), self.metadata)
 
+def dicts_lt(a, b):
+    na = 0 if a is None else len(a)
+    nb = 0 if b is None else len(b)
+    if na != nb:
+        return len(a) < len(b)
+    for ia, ib in zip(sorted_items(a), sorted_items(b)):
+        # Assuming keys are sortable (usually str)
+        if ia[0] != ib[0]:
+            return ia[0] < ib[0]
+        # Assuming values are sortable
+        if ia[1] != ib[1]:
+            return ia[1] < ib[1]
 
 # Tuple comparison helper
 class ExprTupleKey(object):
@@ -92,14 +106,7 @@ class ExprTupleKey(object):
             return False
         else:
             # NB! Comparing form compiler data here! Assuming this is an ok operation.
-            # Python 3 can't compare dict, so done manualy
-            if [str(o) for o in self.x[1].keys()] < [str(o) for o in other.x[1].keys()]:
-                return True
-            elif [str(o) for o in self.x[1].keys()] > [str(o) for o in other.x[1].keys()]:
-                return False
-            else:
-                return [str(o) for o in self.x[1].values()] < [str(o) for o in other.x[1].values()]
-                
+            return dicts_lt(self.x[1], other.x[1])
 
 def expr_tuple_key(expr):
     return ExprTupleKey(expr)
@@ -223,7 +230,7 @@ def accumulate_integrands_with_same_metadata(integrals):
         by_cdid[cdid] = (integrands_sum, cd)
 
     # Sort integrands canonically by integrand first then compiler data
-    return sorted(list(by_cdid.values()), key=expr_tuple_key)
+    return sorted(by_cdid.values(), key=expr_tuple_key)
 
 def build_integral_data(integrals, domains):
     integral_data = []

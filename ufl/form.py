@@ -52,7 +52,7 @@ def _sorted_integrals(integrals):
     # Order integrals canonically to increase signature stability
     for d in sorted(integrals_dict): # Assuming Domain is sortable
         for it in sorted(integrals_dict[d]): # str is sortable
-            for si in sorted(integrals_dict[d][it]): # int/str are sortable
+            for si in sorted(integrals_dict[d][it], key=lambda x: (type(x).__name__, x)): # int/str are sortable
                 unsorted_integrals = integrals_dict[d][it][si]
                 # TODO: At this point we could order integrals by metadata and integrand,
                 #       or even add the integrands with the same metadata. This is done

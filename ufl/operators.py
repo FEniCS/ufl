@@ -23,6 +23,7 @@ objects."""
 # Modified by Kristian B. Oelgaard, 2011
 
 import operator
+from six.moves import map, range
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.form import Form
@@ -58,9 +59,10 @@ def shape(f):
 
 def elem_op_items(op_ind, indices, *args):
     sh = args[0].shape()
+    indices = tuple(indices)
     n = sh[len(indices)]
     def extind(ii):
-        return tuple(list(indices) + [ii])
+        return indices + (ii,)
     if len(sh) == len(indices)+1:
         return [op_ind(extind(i), *args) for i in range(n)]
     else:
@@ -85,7 +87,6 @@ def elem_mult(A, B):
 def elem_div(A, B):
     "UFL operator: Take the elementwise division of the tensors A and B with the same shape."
     return elem_op(operator.truediv, A, B)
-    #TODO: Is this working proporly for python 2.7 without from __future__ import division?
 
 def elem_pow(A, B):
     "UFL operator: Take the elementwise power of the tensors A and B with the same shape."
