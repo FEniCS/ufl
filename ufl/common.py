@@ -20,7 +20,7 @@
 # Modified by Kristian Oelgaard, 2009
 
 import six
-from six.moves import zip, range
+from six.moves import zip, xrange
 import operator
 import time
 
@@ -462,7 +462,7 @@ class Timer:
     def __str__(self):
         line = "-"*60
         s = [line, "Timing of %s" % self.name]
-        for i in range(len(self.times)-1):
+        for i in xrange(len(self.times)-1):
             t = self.times[i+1][0] - self.times[i][0]
             msg = self.times[i][1]
             s.append("%9.2e s    %s" % (t, msg))

@@ -19,8 +19,8 @@
 #
 # Modified by Anders Logg, 2009
 
-from six.moves import zip
 import six
+from six.moves import zip, xrange
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.form import Form, as_form
@@ -125,7 +125,7 @@ def zero_lists(shape):
     if len(shape) == 1:
         return [0]*shape[0]
     else:
-        return [zero_lists(shape[1:]) for i in range(shape[0])]
+        return [zero_lists(shape[1:]) for i in xrange(shape[0])]
 
 def set_list_item(li, i, v):
     # Get to the innermost list
@@ -177,7 +177,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
                 arguments = (argument,)
             else:
                 if argument.shape() == (n,):
-                    arguments = tuple(argument[i] for i in range(n))
+                    arguments = tuple(argument[i] for i in xrange(n))
                 else:
                     arguments = split(argument)
 

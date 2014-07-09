@@ -18,10 +18,8 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2008
-#
-# First added:  2008-03-14
-# Last changed: 2011-06-22
 
+from six.moves import xrange
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.common import product, EmptyDict
@@ -64,7 +62,7 @@ def split(v):
         elif rank == 1:
             # This subelement is a vector, always maps to a sequence of values
             sub_size, = shape
-            components = [v[j] for j in range(offset, offset + sub_size)]
+            components = [v[j] for j in xrange(offset, offset + sub_size)]
             subv = as_vector(components)
             offset += sub_size
 
@@ -85,9 +83,9 @@ def split(v):
             #print s
             # Build list of lists of value components
             components = []
-            for ii in range(shape[0]):
+            for ii in xrange(shape[0]):
                 row = []
-                for jj in range(shape[1]):
+                for jj in xrange(shape[1]):
                     # Map component (i,j) through symmetry mapping
                     c = (ii, jj)
                     c = s.get(c, c)

@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
+from six.moves import xrange
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.expr import Expr
@@ -98,7 +99,7 @@ class IndexSum(AlgebraOperator):
     def evaluate(self, x, mapping, component, index_values):
         i, = self._index
         tmp = 0
-        for k in range(self._dimension):
+        for k in xrange(self._dimension):
             index_values.push(i, k)
             tmp += self._summand.evaluate(x, mapping, component, index_values)
             index_values.pop()

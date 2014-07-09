@@ -23,7 +23,7 @@
 
 from itertools import chain
 import six
-from six.moves import zip
+from six.moves import zip, xrange
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.common import product, index_to_component, component_to_index, istr, EmptyDict
@@ -368,15 +368,15 @@ class TensorElement(MixedElement):
         if symmetry == True:
             ufl_assert(len(shape) == 2 and shape[0] == shape[1],
                        "Cannot set automatic symmetry for non-square tensor.")
-            symmetry = dict( ((i, j), (j, i)) for i in range(shape[0])
-                             for j in range(shape[1]) if i > j )
+            symmetry = dict( ((i, j), (j, i)) for i in xrange(shape[0])
+                             for j in xrange(shape[1]) if i > j )
 
         # Validate indices in symmetry dict
         if isinstance(symmetry, dict):
             for i, j in six.iteritems(symmetry):
                 ufl_assert(len(i) == len(j),
                            "Non-matching length of symmetry index tuples.")
-                for k in range(len(i)):
+                for k in xrange(len(i)):
                     ufl_assert(i[k] >= 0 and j[k] >= 0 and
                                i[k] < shape[k] and j[k] < shape[k],
                                "Symmetry dimensions out of bounds.")

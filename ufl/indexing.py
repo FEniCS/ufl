@@ -17,11 +17,11 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
+from six.moves import zip, xrange
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.common import counted_init, EmptyDict
 from ufl.terminal import UtilityType
-from six.moves import zip
 
 #--- Index types ---
 
@@ -246,7 +246,7 @@ def as_multi_index(ii, shape=None):
 
 def indices(n):
     "UFL value: Return a tuple of n new Index objects."
-    return tuple(Index() for _i in range(n))
+    return tuple(Index() for _i in xrange(n))
 
 # TODO: Fix imports everywhere else instead
 from ufl.indexutils import complete_shape

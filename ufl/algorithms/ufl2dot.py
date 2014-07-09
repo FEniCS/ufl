@@ -21,6 +21,7 @@ mostly intended for debugging purposers."""
 
 from itertools import chain
 import six
+from six.moves import xrange
 
 from ufl.log import error
 from ufl.expr import Expr
@@ -164,7 +165,7 @@ def build_entities(e, nodes, edges, nodeoffset, prefix="", labeller=None):
         #oplabels = ["left", "right"]
         oplabels = ["L", "R"]
     elif n > 2:
-        oplabels = ["op%d" % i for i in range(n)]
+        oplabels = ["op%d" % i for i in xrange(n)]
     else:
         oplabels = [None]*n
 

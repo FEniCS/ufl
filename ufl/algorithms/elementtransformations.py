@@ -14,10 +14,8 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
-#
-# First added:  2011-01-17
-# Last changed: 2011-06-02
 
+from six.moves import xrange
 from ufl.assertions import ufl_assert
 from ufl.finiteelement import FiniteElement, MixedElement
 
@@ -31,14 +29,14 @@ def change_regularity(element, family):
     if n > 0:
         subs = element.sub_elements()
         return MixedElement([change_regularity(subs[i], family)
-                             for i in range(n)])
+                             for i in xrange(n)])
     shape = element.value_shape()
     if not shape:
         return FiniteElement(family, element.domain(), element.degree())
 
     ufl_assert(len(shape) == 1, "TODO: Update this code to handle tensor elements.")
     return MixedElement([FiniteElement(family, element.domain(i), element.degree(i))
-                               for i in range(shape[0])])
+                               for i in xrange(shape[0])])
 
 def tear(V):
     "For a finite element, return the corresponding discontinuous element."
@@ -52,7 +50,7 @@ def increase_order(element):
     n = element.num_sub_elements()
     if n > 0:
         subs = element.sub_elements()
-        return MixedElement([increase_order(subs[i]) for i in range(n)])
+        return MixedElement([increase_order(subs[i]) for i in xrange(n)])
 
     if element.family() == "Real":
         return element

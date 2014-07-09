@@ -22,7 +22,7 @@
 # Modified by Kristian B. Oelgaard, 2011
 # Modified by Jan Blechta, 2012.
 
-from six.moves import zip, range
+from six.moves import zip, xrange
 from math import pi
 from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert
@@ -312,7 +312,7 @@ class ForwardAD(Transformer):
         # Get operands and their derivatives
         ops2, dops2 = unzip(ops)
         o = self.reuse_if_possible(o, *ops2)
-        for i in range(len(ops)):
+        for i in xrange(len(ops)):
             # Get scalar representation of differentiated value of operand i
             dop = dops2[i]
             dop, ii = as_scalar(dop)
@@ -764,7 +764,7 @@ class CoefficientAD(ForwardAD):
         self._v = arguments
         self._w = coefficients
         cd = coefficient_derivatives.operands()
-        self._cd = dict((cd[2*i], cd[2*i+1]) for i in range(len(cd)//2))
+        self._cd = dict((cd[2*i], cd[2*i+1]) for i in xrange(len(cd)//2))
 
     def coefficient(self, o):
         # Define dw/dw := d/ds [w + s v] = v
@@ -839,7 +839,7 @@ class CoefficientAD(ForwardAD):
                 print(g)
                 print(','*60)
                 error("What?")
-            for i in range(ngrads):
+            for i in xrange(ngrads):
                 f = Grad(f)
             return f
 

@@ -23,7 +23,7 @@ objects."""
 # Modified by Kristian B. Oelgaard, 2011
 
 import operator
-from six.moves import map, range
+from six.moves import map, xrange
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.form import Form
@@ -64,9 +64,9 @@ def elem_op_items(op_ind, indices, *args):
     def extind(ii):
         return indices + (ii,)
     if len(sh) == len(indices)+1:
-        return [op_ind(extind(i), *args) for i in range(n)]
+        return [op_ind(extind(i), *args) for i in xrange(n)]
     else:
-        return [elem_op_items(op_ind, extind(i), *args) for i in range(n)]
+        return [elem_op_items(op_ind, extind(i), *args) for i in xrange(n)]
 
 def elem_op(op, *args):
     "UFL operator: Take the elementwise application of operator op on scalar values from one or more tensor arguments."
@@ -132,7 +132,7 @@ def _partial_inner(a, b):
     "UFL operator: Take the partial inner product of a and b."
     ar, br = a.rank(), b.rank()
     n = min(ar, br)
-    return contraction(a, list(range(n-ar, n-ar+n)), b, list(range(n)))
+    return contraction(a, list(xrange(n-ar, n-ar+n)), b, list(xrange(n)))
 
 def dot(a, b):
     "UFL operator: Take the dot product of a and b."
@@ -222,7 +222,7 @@ def diag(A):
 
     # Build matrix row by row
     rows = []
-    for i in range(n):
+    for i in xrange(n):
         row = [0]*n
         row[i] = A[i] if r == 1 else A[i, i]
         rows.append(row)
@@ -241,7 +241,7 @@ def diag_vector(A):
     ufl_assert(m == n, "Can only take diagonal of square tensors.")
 
     # Return diagonal vector
-    return as_vector([A[i, i] for i in range(n)])
+    return as_vector([A[i, i] for i in xrange(n)])
 
 def dev(A):
     "UFL operator: Take the deviatoric part of A."

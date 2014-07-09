@@ -22,8 +22,10 @@ complete Forms into new related Forms."""
 # Modified by Garth N. Wells, 2010.
 # Modified by Marie E. Rognes, 2010.
 
-from ufl.common import product
 import six
+from six.moves import xrange
+
+from ufl.common import product
 from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert
 
@@ -336,7 +338,7 @@ def compute_form_arities(form):
         error("compute_form_arities cannot handle parts.")
 
     arities = set()
-    for arity in range(len(arguments)+1):
+    for arity in xrange(len(arguments)+1):
 
         # Compute parts with arity "arity"
         parts = compute_form_with_arity(form, arity, arguments)

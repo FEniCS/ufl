@@ -29,6 +29,7 @@ This is to avoid circular dependencies between Expr and its subclasses.
 
 #--- The base object for all UFL expression tree nodes ---
 
+from six.moves import xrange
 from collections import defaultdict
 from ufl.log import warning, error
 
@@ -196,7 +197,7 @@ class Expr(object):
 
     def __iter__(self):
         "Iteration over vector expressions."
-        for i in range(len(self)):
+        for i in xrange(len(self)):
             yield self[i]
 
     def __floordiv__(self, other):
