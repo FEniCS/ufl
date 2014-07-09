@@ -1,8 +1,0 @@
-q = 1
-cell = triangle
-element = FiniteElement("CG", cell, q)
-
-v = TestFunction(element)
-u = TrialFunction(element)
-f = Function(element)
-

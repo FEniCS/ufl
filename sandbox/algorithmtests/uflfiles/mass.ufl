@@ -1,5 +1,0 @@
-#include common.ufl
-# Mass form:
-a = u*v*dx
-
-# End of file
