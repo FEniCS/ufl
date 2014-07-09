@@ -22,7 +22,7 @@
 # Modified by Kristian B. Oelgaard, 2011
 # Modified by Jan Blechta, 2012.
 
-from itertools import izip
+from six.moves import zip, xrange
 from math import pi
 from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert
@@ -60,7 +60,7 @@ class ForwardAD(Transformer):
         Transformer.__init__(self)
         ufl_assert(all(isinstance(i, Index) for i in var_free_indices), \
             "Expecting Index objects.")
-        ufl_assert(all(isinstance(i, Index) for i in var_index_dimensions.keys()), \
+        ufl_assert(all(isinstance(i, Index) for i in list(var_index_dimensions.keys())), \
             "Expecting Index objects.")
         self._var_shape = var_shape
         self._var_free_indices = var_free_indices
@@ -85,26 +85,26 @@ class ForwardAD(Transformer):
 
         if (c is not None):
             if r[0].free_indices() != c[0].free_indices():
-                print "="*70
-                print "=== f: Difference between cache and recomputed indices:"
-                print str(c[0].free_indices())
-                print str(r[0].free_indices())
-                print "="*70
+                print("="*70)
+                print("=== f: Difference between cache and recomputed indices:")
+                print(str(c[0].free_indices()))
+                print(str(r[0].free_indices()))
+                print("="*70)
             if r[1].free_indices() != c[1].free_indices():
-                print "="*70
-                print "=== df: Difference between cache and recomputed indices:"
-                print str(c[1].free_indices())
-                print str(r[1].free_indices())
-                print "="*70
+                print("="*70)
+                print("=== df: Difference between cache and recomputed indices:")
+                print(str(c[1].free_indices()))
+                print(str(r[1].free_indices()))
+                print("="*70)
             if (r != c):
-                print "="*70
-                print "=== Difference between cache and recomputed:"
-                print str(c[0])
-                print str(c[1])
-                print "-"*40
-                print str(r[0])
-                print str(r[1])
-                print "="*70
+                print("="*70)
+                print("=== Difference between cache and recomputed:")
+                print(str(c[0]))
+                print(str(c[1]))
+                print("-"*40)
+                print(str(r[0]))
+                print(str(r[1]))
+                print("="*70)
 
         # NB! Cache added in after copying from Transformer
         self._cache[o] = r
@@ -355,10 +355,10 @@ class ForwardAD(Transformer):
 
         # Debugging prints, should never happen:
         if not is_true_ufl_scalar(f):
-            print ":"*80
-            print "f =", str(f)
-            print "g =", str(g)
-            print ":"*80
+            print(":"*80)
+            print("f =", str(f))
+            print("g =", str(g))
+            print(":"*80)
         ufl_assert(is_true_ufl_scalar(f), "Expecting scalar expression f in f**g.")
         ufl_assert(is_true_ufl_scalar(g), "Expecting scalar expression g in f**g.")
 
@@ -713,7 +713,7 @@ class GradAD(ForwardAD):
         # 2) if not f.has_derivatives(n): return zero(...)
 
         f, = o.operands()
-        ufl_assert(isinstance(f, (Grad,Terminal)),
+        ufl_assert(isinstance(f, (Grad, Terminal)),
                    "Expecting derivatives of child to be already expanded.")
         return (o, Grad(o))
 
@@ -764,7 +764,7 @@ class CoefficientAD(ForwardAD):
         self._v = arguments
         self._w = coefficients
         cd = coefficient_derivatives.operands()
-        self._cd = dict((cd[2*i],cd[2*i+1]) for i in range(len(cd)//2))
+        self._cd = dict((cd[2*i], cd[2*i+1]) for i in xrange(len(cd)//2))
 
     def coefficient(self, o):
         # Define dw/dw := d/ds [w + s v] = v
@@ -775,7 +775,7 @@ class CoefficientAD(ForwardAD):
         debug("self._v = %s" % self._v)
 
         # Find o among w
-        for (w, v) in izip(self._w, self._v):
+        for (w, v) in zip(self._w, self._v):
             if o == w:
                 return (w, v)
 
@@ -798,7 +798,7 @@ class CoefficientAD(ForwardAD):
             # Since we may actually have a tuple of oprimes and vs in a
             # 'mixed' space, sum over them all to get the complete inner
             # product. Using indices to define a non-compound inner product.
-            for (oprime, v) in izip(oprimes, self._v):
+            for (oprime, v) in zip(oprimes, self._v):
                 so, oi = as_scalar(oprime)
                 rv = len(v.shape())
                 oi1 = oi[:-rv]
@@ -833,18 +833,18 @@ class CoefficientAD(ForwardAD):
 
         def apply_grads(f):
             if not isinstance(f, FormArgument):
-                print ','*60
-                print f
-                print o
-                print g
-                print ','*60
+                print(','*60)
+                print(f)
+                print(o)
+                print(g)
+                print(','*60)
                 error("What?")
-            for i in range(ngrads):
+            for i in xrange(ngrads):
                 f = Grad(f)
             return f
 
         # Find o among all w without any indexing, which makes this easy
-        for (w, v) in izip(self._w, self._v):
+        for (w, v) in zip(self._w, self._v):
             if o == w and isinstance(v, FormArgument):
                 # Case: d/dt [w + t v]
                 return (g, apply_grads(v))
@@ -882,7 +882,7 @@ class CoefficientAD(ForwardAD):
             return gprimeterm
 
         # Accumulate contributions from variations in different components
-        for (w, v) in izip(self._w, self._v):
+        for (w, v) in zip(self._w, self._v):
 
             # Analyse differentiation variable coefficient
             if isinstance(w, FormArgument):
@@ -944,7 +944,7 @@ class CoefficientAD(ForwardAD):
                 # Since we may actually have a tuple of oprimes and vs in a
                 # 'mixed' space, sum over them all to get the complete inner
                 # product. Using indices to define a non-compound inner product.
-                for (oprime, v) in izip(oprimes, self._v):
+                for (oprime, v) in zip(oprimes, self._v):
                     error("FIXME: Figure out how to do this with ngrads")
                     so, oi = as_scalar(oprime)
                     rv = len(v.shape())

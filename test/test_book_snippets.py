@@ -206,7 +206,7 @@ class BookTestCase(UflTestCase):
         Vy = FiniteElement("Lagrange", triangle, 1)
         u = Coefficient(Vx*Vy)
         x, y = split(u)
-        f = inner(grad(x), grad(x))*dx + y*dot(x,x)*dx
+        f = inner(grad(x), grad(x))*dx + y*dot(x, x)*dx
         F = derivative(f, u)
         J = derivative(F, u)
 
@@ -218,7 +218,7 @@ class BookTestCase(UflTestCase):
         u = TrialFunction(V)
         v = TestFunction(V)
         M = Coefficient(T)
-        a = M[i,j]*u[k].dx(j)*v[k].dx(i)*dx
+        a = M[i, j]*u[k].dx(j)*v[k].dx(i)*dx
         astar = adjoint(a)
 
     def test_uflcode_1120(self):
@@ -297,9 +297,9 @@ class BookTestCase(UflTestCase):
         V, E, = G
 
         if 0:
-            print "str(e) = %s\n" % str(e)
-            print "\n".join("V[%d] = %s" % (i, v) for (i, v) in enumerate(V)), "\n"
-            print "\n".join("E[%d] = %s" % (i, e) for (i, e) in enumerate(E)), "\n"
+            print(("str(e) = %s\n" % str(e)))
+            print(("\n".join("V[%d] = %s" % (i, v) for (i, v) in enumerate(V)), "\n"))
+            print(("\n".join("E[%d] = %s" % (i, e) for (i, e) in enumerate(E)), "\n"))
 
     def test_python_1512(self):
         cell = triangle
@@ -421,10 +421,10 @@ class BookTestCase(UflTestCase):
         element = FiniteElement("Lagrange", cell, 1)
         x = cell.x
         if 0:
-            print m(Argument(element, 2))
-            print m(x)
-            print m(x[0] + x[1])
-            print m(x[0] * x[1])
+            print((m(Argument(element, 2))))
+            print((m(x)))
+            print((m(x[0] + x[1])))
+            print((m(x[0] * x[1])))
 
     def test_python_2066(self):
         def apply(e, multifunction):
@@ -466,10 +466,10 @@ class BookTestCase(UflTestCase):
         aif = tree_format(ai)
 
         if 0:
-            print "\na: ", str(a),  "\n", tree_format(a)
-            print "\nac:", str(ac), "\n", tree_format(ac)
-            print "\nad:", str(ad), "\n", tree_format(ad)
-            print "\nai:", str(ai), "\n", tree_format(ai)
+            print(("\na: ", str(a),  "\n", tree_format(a)))
+            print(("\nac:", str(ac), "\n", tree_format(ac)))
+            print(("\nad:", str(ad), "\n", tree_format(ad)))
+            print(("\nai:", str(ai), "\n", tree_format(ai)))
 
     def test_python_2328(self):
         cell = triangle

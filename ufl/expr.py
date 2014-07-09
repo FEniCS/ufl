@@ -29,6 +29,7 @@ This is to avoid circular dependencies between Expr and its subclasses.
 
 #--- The base object for all UFL expression tree nodes ---
 
+from six.moves import xrange
 from collections import defaultdict
 from ufl.log import warning, error
 
@@ -36,7 +37,7 @@ def print_expr_statistics():
     for k in sorted(Expr._class_usage_statistics.keys()):
         born = Expr._class_usage_statistics[k]
         live = born - Expr._class_del_statistics.get(k, 0)
-        print "%40s:  %10d  /  %10d" % (k.__name__, live, born)
+        print(("%40s:  %10d  /  %10d" % (k.__name__, live, born)))
 
 class Expr(object):
     "Base class for all UFL objects."
@@ -182,9 +183,10 @@ class Expr(object):
         mathematically equal or equivalent! Used by sets and dicts."""
         raise NotImplementedError(self.__class__.__eq__)
 
-    def __nonzero__(self):
+    def __bool__(self):
         "By default, all Expr are nonzero."
         return True
+    __nonzero__ = __bool__
 
     def __len__(self):
         "Length of expression. Used for iteration over vector expressions."
@@ -195,7 +197,7 @@ class Expr(object):
 
     def __iter__(self):
         "Iteration over vector expressions."
-        for i in range(len(self)):
+        for i in xrange(len(self)):
             yield self[i]
 
     def __floordiv__(self, other):

@@ -73,7 +73,7 @@ cellname2facetname = {
     "OuterProductCell": None
     }
 
-affine_cells = set(("vertex", "interval", "triangle", "tetrahedron"))
+affine_cells = {"vertex", "interval", "triangle", "tetrahedron"}
 
 # Valid UFL cellnames
 ufl_cellnames = tuple(sorted(cellname2dim.keys() + ["OuterProductCell"]))
@@ -168,11 +168,11 @@ class Cell(object):
         name = self.cellname()
         m = 200
         if name == "interval":
-            points = [(0,0), (m,0)]
+            points = [(0, 0), (m, 0)]
         elif name == "triangle":
-            points = [(0,m), (m,m), (0,0), (0,m)]
+            points = [(0, m), (m, m), (0, 0), (0, m)]
         elif name == "quadrilateral":
-            points = [(0,m), (m,m), (m,0), (0,0), (0,m)]
+            points = [(0, m), (m, m), (m, 0), (0, 0), (0, m)]
         else:
             points = None
 
@@ -192,7 +192,7 @@ class Cell(object):
             width = max(width, strokewidth)
             height = max(height, strokewidth)
             style = "fill:%s; stroke:%s; stroke-width:%s" % (fill, stroke, strokewidth)
-            points = " ".join(','.join(map(str,p)) for p in points)
+            points = " ".join(','.join(map(str, p)) for p in points)
             return svg % (width, height, points, style)
         else:
             return None
@@ -218,7 +218,7 @@ class ProductCell(Cell):
         if not isinstance(other, ProductCell):
             return False
         return self._cells == other._cells
-
+    
     def __lt__(self, other):
         if not isinstance(other, ProductCell):
             return False

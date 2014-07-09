@@ -19,7 +19,8 @@
 #
 # Modified by Anders Logg, 2009
 
-from itertools import izip, chain
+import six
+from six.moves import zip, xrange
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.form import Form, as_form
@@ -124,7 +125,7 @@ def zero_lists(shape):
     if len(shape) == 1:
         return [0]*shape[0]
     else:
-        return [zero_lists(shape[1:]) for i in range(shape[0])]
+        return [zero_lists(shape[1:]) for i in xrange(shape[0])]
 
 def set_list_item(li, i, v):
     # Get to the innermost list
@@ -136,7 +137,7 @@ def set_list_item(li, i, v):
 
 def _handle_derivative_arguments(form, coefficient, argument):
     # Wrap single coefficient in tuple for uniform treatment below
-    if isinstance(coefficient, (list,tuple)):
+    if isinstance(coefficient, (list, tuple)):
         coefficients = tuple(coefficient)
     else:
         coefficients = (coefficient,)
@@ -155,7 +156,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
 
         # Don't know what to do with parts, let the user sort it out in that case
         parts = set(arg.part() for arg in form_arguments)
-        ufl_assert(len(parts - set((None,))) == 0, "Not expecting parts here, provide your own arguments.")
+        ufl_assert(len(parts - {None}) == 0, "Not expecting parts here, provide your own arguments.")
         part = None
 
         # Create argument and split it if in a mixed space
@@ -168,7 +169,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
             arguments = (Argument(elm, number, part),)
     else:
         # Wrap single argument in tuple for uniform treatment below
-        if isinstance(argument, (list,tuple)):
+        if isinstance(argument, (list, tuple)):
             arguments = tuple(argument)
         else:
             n = len(coefficients)
@@ -176,13 +177,13 @@ def _handle_derivative_arguments(form, coefficient, argument):
                 arguments = (argument,)
             else:
                 if argument.shape() == (n,):
-                    arguments = tuple(argument[i] for i in range(n))
+                    arguments = tuple(argument[i] for i in xrange(n))
                 else:
                     arguments = split(argument)
 
     # Build mapping from coefficient to argument
     m = {}
-    for (c, a) in izip(coefficients, arguments):
+    for (c, a) in zip(coefficients, arguments):
         ufl_assert(c.shape() == a.shape(), "Coefficient and argument shapes do not match!")
         if isinstance(c, Coefficient):
             m[c] = a
@@ -198,10 +199,10 @@ def _handle_derivative_arguments(form, coefficient, argument):
             m[f][i] = a
 
     # Merge coefficient derivatives (arguments) based on indices
-    for c, p in m.iteritems():
+    for c, p in six.iteritems(m):
         if isinstance(p, dict):
             a = zero_lists(c.shape())
-            for i, g in p.iteritems():
+            for i, g in six.iteritems(p):
                 set_list_item(a, i, g)
             m[c] = as_tensor(a)
 

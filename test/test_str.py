@@ -92,7 +92,7 @@ class TestStrOfTensors(UflTestCase):
                        (0, 0)))
         a = str(2*x)
         b = str(3*y)
-        c = str(as_vector((0,0)))
+        c = str(as_vector((0, 0)))
         self.assertEqual(str(v), "[\n  [%s, %s],\n%s\n]" % (a, b, c))
 
     # FIXME: Add more tests for tensors collapsing

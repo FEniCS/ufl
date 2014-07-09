@@ -18,6 +18,8 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from collections import defaultdict
+from six.moves import zip
+from six import iteritems
 
 import ufl
 from ufl.common import sorted_items
@@ -76,8 +78,20 @@ class IntegralData(object):
     def __str__(self):
         return "IntegralData object over domain (%s, %s), with integrals:\n%s\nand metadata:\n%s" % (
             self.integral_type, self.subdomain_id,
-            '\n\n'.join(map(str,self.integrals)), self.metadata)
+            '\n\n'.join(map(str, self.integrals)), self.metadata)
 
+def dicts_lt(a, b):
+    na = 0 if a is None else len(a)
+    nb = 0 if b is None else len(b)
+    if na != nb:
+        return len(a) < len(b)
+    for ia, ib in zip(sorted_items(a), sorted_items(b)):
+        # Assuming keys are sortable (usually str)
+        if ia[0] != ib[0]:
+            return ia[0] < ib[0]
+        # Assuming values are sortable
+        if ia[1] != ib[1]:
+            return ia[1] < ib[1]
 
 # Tuple comparison helper
 class ExprTupleKey(object):
@@ -92,7 +106,8 @@ class ExprTupleKey(object):
             return False
         else:
             # NB! Comparing form compiler data here! Assuming this is an ok operation.
-            return self.x[1] < other.x[1]
+            return dicts_lt(self.x[1], other.x[1])
+
 def expr_tuple_key(expr):
     return ExprTupleKey(expr)
 

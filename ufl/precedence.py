@@ -21,6 +21,7 @@
 # Last changed: 2011-06-07
 
 from ufl.log import warning
+import six
 
 def parstr(child, parent, pre="(", post=")", format=str):
     # Execute when needed instead of on import,
@@ -99,7 +100,7 @@ def build_precedence_mapping(precedence_list):
 def assign_precedences(precedence_list):
     "Given a precedence list, assign ints to class._precedence."
     pm, missing = build_precedence_mapping(precedence_list)
-    for c, p in sorted(pm.iteritems(), key=lambda x: x[0].__name__):
+    for c, p in sorted(six.iteritems(pm), key=lambda x: x[0].__name__):
         c._precedence = p
     if missing:
         msg = "Missing precedence levels for classes:\n" +\

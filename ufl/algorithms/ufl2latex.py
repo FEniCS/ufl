@@ -112,7 +112,7 @@ def format_multi_index(ii, formatstring="%s"):
 
 def bfname(i, p):
     s = "" if p is None else (",%d"%(p,))
-    return "{v_h^{%d%s}}" % (i,s)
+    return "{v_h^{%d%s}}" % (i, s)
 
 def cfname(i):
     return "{w_h^%d}" % i
@@ -426,7 +426,7 @@ def form2latex(form, formdata):
     for f in formdata.original_arguments:
         i = f.number()
         p = f.part()
-        lines.append("%s = %s \\in V_h^{%d} " % (argument_names[(i,p)], bfname(i,p), i)) # FIXME: Handle part in V_h
+        lines.append("%s = %s \\in V_h^{%d} " % (argument_names[(i, p)], bfname(i, p), i)) # FIXME: Handle part in V_h
     for i, f in enumerate(formdata.original_coefficients):
         lines.append("%s = %s \\in W_h^{%d} " % (coefficient_names[i], cfname(i), i))
     if lines:
@@ -546,7 +546,7 @@ def dependency_sorting(deplist, rank):
     # Permutations of 0/1 dependence of arguments
     indices = compute_indices((2,)*rank)
     for bfs in indices[1:]: # skip (0,...,0), already handled that
-        for i, bf in reversed(list(enumerate(bfs))):
+        for i, bf in reversed(enumerate(bfs)):
             n = "v%d" % i
             if bf:
                 if n in state:
@@ -570,7 +570,7 @@ def dependency_sorting(deplist, rank):
 
     indices = compute_indices((2,)*rank)
     for bfs in indices[1:]: # skip (0,...,0), already handled that
-        for i, bf in reversed(list(enumerate(bfs))):
+        for i, bf in reversed(enumerate(bfs)):
             n = "v%d" % i
             if bf:
                 state.add(n)
@@ -601,7 +601,7 @@ def code2latex(G, partitions, formdata):
     Vout = extract_outgoing_vertex_connections(G)
 
     # Sort dependency sets in a sensible way (preclude to a good quadrature code generator)
-    deplistlist = dependency_sorting(partitions.keys(), len(bfn))
+    deplistlist = dependency_sorting(list(partitions.keys()), len(bfn))
 
     def format_v(i):
         return "s_{%d}" % i

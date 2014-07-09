@@ -58,10 +58,10 @@ class ConditionalsTestCase(UflTestCase):
         self.assertTrue(isinstance(expr3, bool))
         self.assertTrue(isinstance(expr4, bool))
         # Comparing representations correctly:
-        self.assertTrue(bool(expr1 == eq(f,g)))
-        self.assertTrue(bool(expr1 != eq(g,g)))
-        self.assertTrue(bool(expr2 == eq(f,f)))
-        self.assertTrue(bool(expr2 != eq(g,f)))
+        self.assertTrue(bool(expr1 == eq(f, g)))
+        self.assertTrue(bool(expr1 != eq(g, g)))
+        self.assertTrue(bool(expr2 == eq(f, f)))
+        self.assertTrue(bool(expr2 != eq(g, f)))
         # Bool evaluation yields actual bools:
         self.assertTrue(isinstance(bool(expr1), bool))
         self.assertTrue(isinstance(bool(expr2), bool))

@@ -12,8 +12,8 @@ from ufl.classes import IndexSum
 class IndexTestCase(UflTestCase):
 
     def test_index_utils(self):
-        shape = (1,2,None,4,None)
-        self.assertEqual((1,2,3,4,3), complete_shape(shape, 3))
+        shape = (1, 2, None, 4, None)
+        self.assertEqual((1, 2, 3, 4, 3), complete_shape(shape, 3))
         
         ii = indices(3)
         self.assertEqual(ii, unique_indices(ii) )
@@ -41,13 +41,13 @@ class IndexTestCase(UflTestCase):
         element = TensorElement("CG", "triangle", 1)
         u = Argument(element, 2)
         f = Coefficient(element)
-        a = u[i,j]*f[i,j]*dx
-        b = u[j,i]*f[i,j]*dx
-        c = u[j,i]*f[j,i]*dx
+        a = u[i, j]*f[i, j]*dx
+        b = u[j, i]*f[i, j]*dx
+        c = u[j, i]*f[j, i]*dx
         try:
-            d = (u[i,i]+f[j,i])*dx
+            d = (u[i, i]+f[j, i])*dx
             self.fail()
-        except (UFLException, e):
+        except UFLException as e:
             pass
 
     def test_indexed_sum1(self):
@@ -58,7 +58,7 @@ class IndexTestCase(UflTestCase):
         try:
             a*dx
             self.fail()
-        except (UFLException, e):
+        except UFLException as e:
             pass
 
     def test_indexed_sum2(self):
@@ -70,7 +70,7 @@ class IndexTestCase(UflTestCase):
         try:
             a*dx
             self.fail()
-        except (UFLException, e):
+        except UFLException as e:
             pass
 
     def test_indexed_sum3(self):
@@ -80,7 +80,7 @@ class IndexTestCase(UflTestCase):
         try:
             a = u[i]+f[j]
             self.fail()
-        except (UFLException, e):
+        except UFLException as e:
             pass
 
     def test_indexed_function1(self):
@@ -113,7 +113,7 @@ class IndexTestCase(UflTestCase):
         try:
             c = sin(u[i] + f[i])*dx
             self.fail()
-        except (UFLException, e):
+        except UFLException as e:
             pass
     
     def test_vector_from_indices(self):
@@ -136,8 +136,8 @@ class IndexTestCase(UflTestCase):
         v  = TestFunction(element)
         u  = TrialFunction(element)
         
-        A  = as_matrix(u[i]*v[j], (i,j))
-        B  = as_matrix(v[k]*v[k]*u[i]*v[j], (j,i))
+        A  = as_matrix(u[i]*v[j], (i, j))
+        B  = as_matrix(v[k]*v[k]*u[i]*v[j], (j, i))
         C  = A + A
         C  = B + B
         D  = A + B
@@ -165,7 +165,7 @@ class IndexTestCase(UflTestCase):
         # create matrix from list
         A  = as_matrix( [ [u[0], u[1]], [v[0], v[1]] ] )
         # create matrix from indices
-        B  = as_matrix( (v[k]*v[k]) * u[i]*v[j], (j,i) )
+        B  = as_matrix( (v[k]*v[k]) * u[i]*v[j], (j, i) )
         # Test addition
         C  = A + A
         C  = B + B
@@ -185,20 +185,20 @@ class IndexTestCase(UflTestCase):
         # define the components of a fourth order tensor
         Cijkl = u[i]*v[j]*f[k]*g[l]
         self.assertEqual(Cijkl.rank(), 0)
-        self.assertEqual(set(Cijkl.free_indices()), set((i,j,k,l)))
+        self.assertEqual(set(Cijkl.free_indices()), {i, j, k, l})
         
         # make it a tensor
-        C = as_tensor(Cijkl, (i,j,k,l))
+        C = as_tensor(Cijkl, (i, j, k, l))
         self.assertEqual(C.rank(), 4)
         self.assertSameIndices(C, ())
 
         # get sub-matrix
-        A = C[:,:,0,0]
+        A = C[:,:, 0, 0]
         self.assertEqual(A.rank(), 2)
         self.assertSameIndices(A, ())
-        A = C[:,:,i,j]
+        A = C[:,:, i, j]
         self.assertEqual(A.rank(), 2)
-        self.assertEqual(set(A.free_indices()), set((i,j)))
+        self.assertEqual(set(A.free_indices()), {i, j})
 
         # legal?
         vv = as_vector([u[i], v[i]])
@@ -208,14 +208,14 @@ class IndexTestCase(UflTestCase):
         try:
             vv = as_vector([u[i], v[j]])
             self.fail()
-        except (UFLException, e):
+        except UFLException as e:
             pass
 
         # illegal
         try:
             A = as_matrix( [ [u[0], u[1]], [v[0],] ] )
             self.fail()
-        except (UFLException, e):
+        except UFLException as e:
             pass
         
         # ...
@@ -230,10 +230,10 @@ class IndexTestCase(UflTestCase):
         a = v[i]
         self.assertSameIndices(a, (i,))
         
-        a = outer(v,u)[i,j]
-        self.assertSameIndices(a, (i,j))
+        a = outer(v, u)[i, j]
+        self.assertSameIndices(a, (i, j))
         
-        a = outer(v,u)[i,i]
+        a = outer(v, u)[i, i]
         self.assertSameIndices(a, ())
         self.assertIsInstance(a, IndexSum)
 
@@ -251,18 +251,18 @@ class IndexTestCase(UflTestCase):
         self.assertEqual(a.shape(), ())
         
         a = v[i].dx(j)
-        self.assertSameIndices(a, (i,j))
+        self.assertSameIndices(a, (i, j))
         self.assertNotIsInstance(a, IndexSum)
         self.assertEqual(a.shape(), ())
         
-        a = (v[i]*u[j]).dx(i,j)
+        a = (v[i]*u[j]).dx(i, j)
         self.assertSameIndices(a, ())
         self.assertIsInstance(a, IndexSum)
         self.assertEqual(a.shape(), ())
         
-        a = v.dx(i,j)
+        a = v.dx(i, j)
         #self.assertSameIndices(a, (i,j)) 
-        self.assertEqual(set(a.free_indices()), set((j,i)))
+        self.assertEqual(set(a.free_indices()), {j, i})
         self.assertNotIsInstance(a, IndexSum)
         self.assertEqual(a.shape(), (d,))
         
@@ -273,7 +273,7 @@ class IndexTestCase(UflTestCase):
         
         a = (v[i]*u[j]).dx(0, 1)
         # indices change place because of sorting, I guess this may be ok
-        self.assertEqual(set(a.free_indices()), set((i,j)))
+        self.assertEqual(set(a.free_indices()), {i, j})
         self.assertNotIsInstance(a, IndexSum)
         self.assertEqual(a.shape(), ())
         

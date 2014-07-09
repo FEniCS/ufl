@@ -18,16 +18,15 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Kristian Oelgaard, 2009
-#
-# First added:  2008-08-05
-# Last changed: 2011-06-02
 
-from itertools import izip
+import six
+from six.moves import zip, xrange
 import operator
 import time
 
 # Taken from http://ivory.idyll.org/blog/mar-07/replacing-commands-with-subprocess
 from subprocess import Popen, PIPE, STDOUT
+from functools import reduce
 def get_status_output(cmd, input=None, cwd=None, env=None):
     pipe = Popen(cmd, shell=True, cwd=cwd, env=env, stdout=PIPE, stderr=STDOUT)
 
@@ -73,7 +72,7 @@ def sorted_by_count(seq):
     return sorted(seq, key=lambda x: x._count)
 
 def sorted_items(mapping):
-    return sorted(mapping.iteritems(), key=lambda x: x[0])
+    return sorted(six.iteritems(mapping), key=lambda x: (type(x[0]).__name__, x[0]))
 
 def mergedicts(dicts):
     d = dict(dicts[0])
@@ -108,11 +107,11 @@ def xor(a, b):
 
 def or_tuples(seqa, seqb):
     "Return 'or' of all pairs in two sequences of same length."
-    return tuple(a or b for (a,b) in izip(seqa, seqb))
+    return tuple(a or b for (a, b) in zip(seqa, seqb))
 
 def and_tuples(seqa, seqb):
     "Return 'and' of all pairs in two sequences of same length."
-    return tuple(a and b for (a,b) in izip(seqa, seqb))
+    return tuple(a and b for (a, b) in zip(seqa, seqb))
 
 def iter_tree(tree):
     """Iterate over all nodes in a tree represented
@@ -194,7 +193,7 @@ def split_dict(d, criteria):
     "Split a dict d into two dicts based on a criteria on the keys."
     a = {}
     b = {}
-    for (k,v) in d.iteritems():
+    for (k, v) in six.iteritems(d):
         if criteria(k):
             a[k] = v
         else:
@@ -206,7 +205,7 @@ def slice_dict(dictionary, keys, default=None):
 
 def some_key(a_dict):
     "Return an arbitrary key from a dictionary."
-    return a_dict.iterkeys().next()
+    return six.next(six.iterkeys(a_dict))
 
 def camel2underscore(name):
     "Convert a CamelCaps string to underscore_syntax."
@@ -397,7 +396,7 @@ def strides(shape):
 
 def component_to_index(component, shape):
     i = 0
-    for (c,s) in izip(component, strides(shape)):
+    for (c, s) in zip(component, strides(shape)):
         i += c*s
     return i
 
@@ -411,7 +410,7 @@ def index_to_component(index, shape):
         index = b
         component.append(a)
     assert all(c >= 0 for c in component)
-    assert all(c < s for (c,s) in izip(component, shape))
+    assert all(c < s for (c, s) in zip(component, shape))
     return tuple(component)
 
 def topological_sorting(nodes, edges):
@@ -428,7 +427,7 @@ def topological_sorting(nodes, edges):
     L = []
     S = nodes[:]
     for node in nodes:
-        for es in edges.itervalues():
+        for es in six.itervalues(edges):
             if node in es and node in S:
                 S.remove(node)
                 continue
@@ -440,12 +439,12 @@ def topological_sorting(nodes, edges):
         while node_edges:
             m = node_edges.pop(0)
             found = False
-            for es in edges.itervalues():
+            for es in six.itervalues(edges):
                 found = m in es
                 if found:
                     break
             if not found:
-                S.insert(0,m)
+                S.insert(0, m)
 
     return L
 
@@ -463,7 +462,7 @@ class Timer:
     def __str__(self):
         line = "-"*60
         s = [line, "Timing of %s" % self.name]
-        for i in range(len(self.times)-1):
+        for i in xrange(len(self.times)-1):
             t = self.times[i+1][0] - self.times[i][0]
             msg = self.times[i][1]
             s.append("%9.2e s    %s" % (t, msg))

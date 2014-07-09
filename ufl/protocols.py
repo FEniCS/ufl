@@ -15,9 +15,9 @@ def id_or_none(obj):
         return id(obj)
 
 def metadata_equal(a, b):
-    return (sorted((k,id(v)) for k,v in a.items()) ==
-            sorted((k,id(v)) for k,v in b.items()))
+    return (sorted((k, id(v)) for k, v in list(a.items())) ==
+            sorted((k, id(v)) for k, v in list(b.items())))
 
 def metadata_hashdata(md):
-    return tuple(sorted((k,id(v)) for k,v in md.items()))
+    return tuple(sorted((k, id(v)) for k, v in list(md.items())))
 

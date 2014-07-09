@@ -20,6 +20,8 @@ mostly intended for debugging purposers."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from itertools import chain
+import six
+from six.moves import xrange
 
 from ufl.log import error
 from ufl.expr import Expr
@@ -163,7 +165,7 @@ def build_entities(e, nodes, edges, nodeoffset, prefix="", labeller=None):
         #oplabels = ["left", "right"]
         oplabels = ["L", "R"]
     elif n > 2:
-        oplabels = ["op%d" % i for i in range(n)]
+        oplabels = ["op%d" % i for i in xrange(n)]
     else:
         oplabels = [None]*n
 
@@ -176,7 +178,7 @@ def build_entities(e, nodes, edges, nodeoffset, prefix="", labeller=None):
 
 def format_entities(nodes, edges):
     entities = []
-    for (nodename, label) in nodes.itervalues():
+    for (nodename, label) in six.itervalues(nodes):
         node = '  %s [label="%s"];' % (nodename, label)
         entities.append(node)
     for (aid, bid, label) in edges:
@@ -204,7 +206,7 @@ def ufl2dot(expression, formname="a", nodeoffset=0, begin=True, end=True, labeli
         labeller = ReprLabeller()
     elif labeling == "compact":
         labeller = CompactLabeller(object_names or {})
-        print object_names
+        print(object_names)
 
     if isinstance(expression, Form):
         form = expression

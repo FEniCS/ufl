@@ -56,59 +56,59 @@ class GradTestCase(UflTestCase):
 
         self.assertEqual(s.shape(), ())
         self.assertEqual(v.shape(), (d,))
-        self.assertEqual(t.shape(), (d,d))
+        self.assertEqual(t.shape(), (d, d))
 
         self.assertEqual(cs.shape(), ())
         self.assertEqual(cv.shape(), (d,))
-        self.assertEqual(ct.shape(), (d,d))
+        self.assertEqual(ct.shape(), (d, d))
 
         self.assertEqual(s(x, mapping=mapping), eval_s(x))
         self.assertEqual(v(x, mapping=mapping), eval_v(x))
         self.assertEqual(t(x, mapping=mapping), eval_t(x))
 
         self.assertEqual(grad(s).shape(), (d,))
-        self.assertEqual(grad(v).shape(), (d,d))
-        self.assertEqual(grad(t).shape(), (d,d,d))
+        self.assertEqual(grad(v).shape(), (d, d))
+        self.assertEqual(grad(t).shape(), (d, d, d))
 
         self.assertEqual(grad(cs).shape(), (d,))
-        self.assertEqual(grad(cv).shape(), (d,d))
-        self.assertEqual(grad(ct).shape(), (d,d,d))
+        self.assertEqual(grad(cv).shape(), (d, d))
+        self.assertEqual(grad(ct).shape(), (d, d, d))
 
         self.assertEqual(grad(s)[0](x, mapping=mapping), eval_s(x, (0,)))
-        self.assertEqual(grad(v)[d-1,d-1](x, mapping=mapping),
+        self.assertEqual(grad(v)[d-1, d-1](x, mapping=mapping),
                          eval_v(x, derivatives=(d-1,))[d-1])
-        self.assertEqual(grad(t)[d-1,d-1,d-1](x, mapping=mapping),
+        self.assertEqual(grad(t)[d-1, d-1, d-1](x, mapping=mapping),
                          eval_t(x, derivatives=(d-1,))[d-1][d-1])
 
         self.assertEqual(div(grad(cs)).shape(), ())
         self.assertEqual(div(grad(cv)).shape(), (d,))
-        self.assertEqual(div(grad(ct)).shape(), (d,d))
+        self.assertEqual(div(grad(ct)).shape(), (d, d))
 
         self.assertEqual(s.dx(0).shape(), ())
         self.assertEqual(v.dx(0).shape(), (d,))
-        self.assertEqual(t.dx(0).shape(), (d,d))
+        self.assertEqual(t.dx(0).shape(), (d, d))
 
-        self.assertEqual(s.dx(0,0).shape(), ())
-        self.assertEqual(v.dx(0,0).shape(), (d,))
-        self.assertEqual(t.dx(0,0).shape(), (d,d))
+        self.assertEqual(s.dx(0, 0).shape(), ())
+        self.assertEqual(v.dx(0, 0).shape(), (d,))
+        self.assertEqual(t.dx(0, 0).shape(), (d, d))
 
-        i,j = indices(2)
+        i, j = indices(2)
         self.assertEqual(s.dx(i).shape(), ())
         self.assertEqual(v.dx(i).shape(), (d,))
-        self.assertEqual(t.dx(i).shape(), (d,d))
+        self.assertEqual(t.dx(i).shape(), (d, d))
 
         self.assertEqual(s.dx(i).free_indices(), (i,))
         self.assertEqual(v.dx(i).free_indices(), (i,))
         self.assertEqual(t.dx(i).free_indices(), (i,))
 
-        self.assertEqual(s.dx(i,j).shape(), ())
-        self.assertEqual(v.dx(i,j).shape(), (d,))
-        self.assertEqual(t.dx(i,j).shape(), (d,d))
+        self.assertEqual(s.dx(i, j).shape(), ())
+        self.assertEqual(v.dx(i, j).shape(), (d,))
+        self.assertEqual(t.dx(i, j).shape(), (d, d))
 
         # This comparison is unstable w.r.t. sorting of i,j
-        self.assertTrue(s.dx(i,j).free_indices() in [(i,j), (j,i)])
-        self.assertTrue(v.dx(i,j).free_indices() in [(i,j), (j,i)])
-        self.assertTrue(t.dx(i,j).free_indices() in [(i,j), (j,i)])
+        self.assertTrue(s.dx(i, j).free_indices() in [(i, j), (j, i)])
+        self.assertTrue(v.dx(i, j).free_indices() in [(i, j), (j, i)])
+        self.assertTrue(t.dx(i, j).free_indices() in [(i, j), (j, i)])
 
         a0 = s.dx(0)*dx
         a1 = s.dx(0)**2*dx

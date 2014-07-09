@@ -21,7 +21,6 @@
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Anders Logg 2014
 
-from itertools import izip
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.common import product, index_to_component, component_to_index, istr, EmptyDict

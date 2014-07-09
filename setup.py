@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+from __future__ import print_function
 from distutils.core import setup
 from distutils import sysconfig
 from os.path import join as pjoin, split as psplit
@@ -20,9 +20,9 @@ if isinstance(maintenance, int): # Numbered release
 else: # Pre-release (-alpha, -beta, -rc) or dev version (+, .0+)
     version = "%d.%d%s" % (major, minor, maintenance)
 
-print
-print version
-print
+print()
+print(version)
+print()
 
 scripts = [pjoin("scripts", "ufl-analyse"),
            pjoin("scripts", "ufl-convert"),

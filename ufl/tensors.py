@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from itertools import izip
+from six.moves import zip, xrange
 from ufl.log import warning, error
 from ufl.common import subdict, EmptyDict
 from ufl.assertions import ufl_assert
@@ -212,7 +212,7 @@ class ComponentTensor(WrapperType):
                    "Expecting a component matching the indices tuple.")
 
         # Map component to indices
-        for i, c in izip(indices, component):
+        for i, c in zip(indices, component):
             index_values.push(i, c)
 
         a = a.evaluate(x, mapping, (), index_values)
@@ -234,7 +234,7 @@ def numpy2nestedlists(arr):
     from numpy import ndarray
     if not isinstance(arr, ndarray):
         return arr
-    return [numpy2nestedlists(arr[k]) for k in range(arr.shape[0])]
+    return [numpy2nestedlists(arr[k]) for k in xrange(arr.shape[0])]
 
 def _as_list_tensor(expressions):
     if isinstance(expressions, (list, tuple)):
@@ -381,7 +381,7 @@ def unit_vector(i, d):
 
 def unit_vectors(d):
     "UFL value: A tuple of constant unit vectors in all directions with dimension d."
-    return tuple(unit_vector(i, d) for i in range(d))
+    return tuple(unit_vector(i, d) for i in xrange(d))
 
 def unit_matrix(i, j, d):
     "UFL value: A constant unit matrix in direction i,j with dimension d."
@@ -389,7 +389,7 @@ def unit_matrix(i, j, d):
 
 def unit_matrices(d):
     "UFL value: A tuple of constant unit matrices in all directions with dimension d."
-    return tuple(unit_matrix(i, j, d) for i in range(d) for j in range(d))
+    return tuple(unit_matrix(i, j, d) for i in xrange(d) for j in xrange(d))
 
 def dyad(d, *iota):
     "TODO: Develop this concept, can e.g. write A[i,j]*dyad(j,i) for the transpose."
@@ -414,7 +414,7 @@ def unit_indexed_tensor(shape, component):
         s = shape[i]
         c = component[i]
         j = jj[i]
-        e = Identity(s)[c,j]
+        e = Identity(s)[c, j]
         es.append(e)
     E = es[0]
     for e in es[1:]:
@@ -427,9 +427,9 @@ def unwrap_list_tensor(lt):
     subs = lt.operands()
     if len(sh) == 1:
         for s in xrange(sh[0]):
-            components.append(((s,),subs[s]))
+            components.append(((s,), subs[s]))
     else:
-        for s,sub in enumerate(subs):
-            for c,v in unwrap_list_tensor(sub):
-                components.append(((s,)+c,v))
+        for s, sub in enumerate(subs):
+            for c, v in unwrap_list_tensor(sub):
+                components.append(((s,)+c, v))
     return components

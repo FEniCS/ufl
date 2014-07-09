@@ -242,9 +242,9 @@ class Atan2(Operator):
         a = self._arg1.evaluate(x, mapping, component, index_values)
         b = self._arg2.evaluate(x, mapping, component, index_values)
         try:
-            res = math.atan2(a,b)
+            res = math.atan2(a, b)
         except ValueError:
-            warning('Value error in evaluation of function %s with arguments %s, %s.' % (self._name, a,b))
+            warning('Value error in evaluation of function %s with arguments %s, %s.' % (self._name, a, b))
             raise
         return res
 

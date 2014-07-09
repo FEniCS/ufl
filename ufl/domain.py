@@ -22,6 +22,7 @@
 # Modified by Marie E. Rognes 2012
 
 from collections import defaultdict
+import six
 
 from ufl.log import warning, error, deprecate
 from ufl.assertions import ufl_assert
@@ -318,7 +319,7 @@ def as_domain(domain):
 def join_subdomain_data(subdomain_datas): # FIXME: Remove? Think it's unused now.
     newdata = {}
     for data in subdomain_datas:
-        for k,v in data.iteritems():
+        for k, v in six.iteritems(data):
             nv = newdata.get(k)
             if nv is None:
                 # New item, just add it
@@ -366,7 +367,7 @@ def join_domains(domains):
         elif len(label2domlist) == 2:
             none_domains = label2domlist[None]
             del label2domlist[None]
-            key, = label2domlist.keys()
+            key, = list(label2domlist.keys())
             label2domlist[key].extend(none_domains)
         else:
             error("Ambiguous mapping of domains with label None to multiple domains with different labels.")

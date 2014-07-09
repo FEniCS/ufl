@@ -19,9 +19,6 @@ for all types that are terminal nodes in the expression trees."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2008
-#
-# First added:  2008-03-14
-# Last changed: 2011-08-08
 
 from ufl.expr import Expr
 from ufl.log import error, warning

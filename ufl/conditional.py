@@ -42,10 +42,12 @@ class Condition(Operator):
     def shape(self):
         error("Calling shape on Condition is an error.")
 
-    def __nonzero__(self):
+    def __bool__(self):
         # Showing explicit error here to protect against misuse
         error("UFL conditions cannot be evaluated as bool in a Python context.")
         #return NotImplemented
+    __nonzero__ = __bool__
+
 
 class BinaryCondition(Condition):
     __slots__ = ('_name', '_left', '_right',)
@@ -96,8 +98,10 @@ class EQ(BinaryCondition):
         b = self._right.evaluate(x, mapping, component, index_values)
         return bool(a == b)
 
-    def __nonzero__(self):
+    def __bool__(self):
         return expr_equals(self._left, self._right)
+    __nonzero__ = __bool__
+
 
 class NE(BinaryCondition):
     __slots__ = ()
@@ -109,8 +113,10 @@ class NE(BinaryCondition):
         b = self._right.evaluate(x, mapping, component, index_values)
         return bool(a != b)
 
-    def __nonzero__(self):
+    def __bool__(self):
         return not expr_equals(self._left, self._right)
+    __nonzero__ = __bool__
+
 
 class LE(BinaryCondition):
     __slots__ = ()
@@ -207,7 +213,7 @@ class Conditional(Operator):
         tfi = true_value.free_indices()
         ffi = false_value.free_indices()
         ufl_assert(tfi == ffi, "Free index mismatch between conditional branches.")
-        if isinstance(condition, (EQ,NE)):
+        if isinstance(condition, (EQ, NE)):
             ufl_assert(condition._left.shape() == ()
                        and condition._left.free_indices() == ()
                        and condition._right.shape() == ()
@@ -242,4 +248,3 @@ class Conditional(Operator):
 
     def __repr__(self):
         return "Conditional(%r, %r, %r)" % self.operands()
-

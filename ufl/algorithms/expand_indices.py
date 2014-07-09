@@ -20,11 +20,8 @@ indices only."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2009.
-#
-# First added:  2008-04-19
-# Last changed: 2012-04-12
 
-from itertools import izip
+from six.moves import zip, xrange
 from ufl.log import error
 from ufl.common import Stack, StackDict
 from ufl.assertions import ufl_assert
@@ -119,7 +116,7 @@ class IndexExpander(ReuseTransformer):
         # if index not in self._to_expand:
         #     return self.expr(x, *[self.visit(o) for o in x.operands()])
 
-        for value in range(x.dimension()):
+        for value in xrange(x.dimension()):
             self._index2value.push(index, value)
             ops.append(self.visit(summand))
             self._index2value.pop()
@@ -168,7 +165,7 @@ class IndexExpander(ReuseTransformer):
         # Update index map with component tuple values
         comp = self.component()
         ufl_assert(len(indices) == len(comp), "Index/component mismatch.")
-        for i, v in izip(indices._indices, comp):
+        for i, v in zip(indices._indices, comp):
             self._index2value.push(i, v)
         self._components.push(())
 

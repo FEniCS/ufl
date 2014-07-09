@@ -20,7 +20,7 @@
 # Modified by Kristian B. Oelgaard
 # Modified by Marie E. Rognes 2010, 2012
 
-from itertools import izip
+from six.moves import zip
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.common import product, index_to_component, component_to_index, istr, EmptyDict
@@ -157,7 +157,7 @@ class FiniteElementBase(object):
         "Check that component index i is valid"
         sh = self.value_shape()
         r = len(sh)
-        if not (len(i) == r and all(j < k for (j,k) in izip(i, sh))):
+        if not (len(i) == r and all(j < k for (j, k) in zip(i, sh))):
             error(("Illegal component index '%r' (value rank %d)" + \
                    "for element (value rank %d).") % (i, len(i), r))
 

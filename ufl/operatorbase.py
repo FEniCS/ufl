@@ -19,7 +19,6 @@
 #
 # Modified by Anders Logg, 2008
 
-from itertools import imap
 from ufl.expr import Expr
 from ufl.log import error
 
@@ -38,7 +37,7 @@ def compute_hash_with_stats(expr):
     _hashes.add(h)
     _hashes_added += 1
     if _hashes_added % 10000 == 0:
-        print "HASHRATIO", len(_hashes)/float(_hashes_added)
+        print("HASHRATIO", len(_hashes)/float(_hashes_added))
 
     return h
 

@@ -398,7 +398,7 @@ class TestFormScaling(UflTestCase):
         v = TrialFunction(V)
         f = Coefficient(V)
         a = u*v*dx
-        self.assertEqual(a*f, action(a,f))
+        self.assertEqual(a*f, action(a, f))
         self.assertRaises(TypeError, lambda: a*"foo")
 
 
@@ -414,13 +414,13 @@ class TestExampleForms(UflTestCase):
         element = VectorElement("Lagrange", triangle, 1)
         v = TestFunction(element)
         f = Coefficient(element)
-        a = dot(f,v)*dx
+        a = dot(f, v)*dx
 
     def test_source3(self):
         element = TensorElement("Lagrange", triangle, 1)
         v = TestFunction(element)
         f = Coefficient(element)
-        a = inner(f,v)*dx
+        a = inner(f, v)*dx
 
     def test_source4(self):
         element = FiniteElement("Lagrange", triangle, 1)
@@ -446,13 +446,13 @@ class TestExampleForms(UflTestCase):
         element = VectorElement("Lagrange", triangle, 1)
         v = TestFunction(element)
         u = TrialFunction(element)
-        a = dot(u,v)*dx
+        a = dot(u, v)*dx
 
     def test_mass4(self):
         element = TensorElement("Lagrange", triangle, 1)
         v = TestFunction(element)
         u = TrialFunction(element)
-        a = inner(u,v)*dx
+        a = inner(u, v)*dx
 
 
     def test_point1(self):
@@ -532,7 +532,7 @@ class TestExampleForms(UflTestCase):
         Re = Constant(cell)
         dt = Constant(cell)
 
-        a = (dot(u, v) + dt*dot(dot(w,nabla_grad(u)), v)
+        a = (dot(u, v) + dt*dot(dot(w, nabla_grad(u)), v)
             - dt*Re*inner(grad(u), grad(v))
             + dt*dot(grad(p), v))*dx
         L = dot(f, v)*dx

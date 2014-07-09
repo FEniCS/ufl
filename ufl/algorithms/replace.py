@@ -23,6 +23,7 @@
 # Last changed: 2012-04-12
 
 from ufl.log import error
+import six
 from ufl.assertions import ufl_assert
 from ufl.classes import Terminal, CoefficientDerivative
 from ufl.constantvalue import as_ufl
@@ -33,7 +34,7 @@ class Replacer(ReuseTransformer):
     def __init__(self, mapping):
         ReuseTransformer.__init__(self)
         self._mapping = mapping
-        ufl_assert(all(isinstance(k, Terminal) for k in mapping.keys()), \
+        ufl_assert(all(isinstance(k, Terminal) for k in list(mapping.keys())), \
             "This implementation can only replace Terminal objects.")
 
     def terminal(self, o):
@@ -51,7 +52,7 @@ def replace(e, mapping):
     @param mapping:
         A dict with from:to replacements to perform.
     """
-    mapping2 = dict((k, as_ufl(v)) for (k,v) in mapping.iteritems()) # TODO: Should this be sorted?
+    mapping2 = dict((k, as_ufl(v)) for (k, v) in six.iteritems(mapping)) # TODO: Should this be sorted?
 
     # Workaround for problem with delayed derivative evaluation
     if extract_type(e, CoefficientDerivative):

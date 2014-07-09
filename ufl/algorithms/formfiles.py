@@ -45,9 +45,10 @@ class FileData(object):
         self.object_by_name = {}
         self.reserved_objects = {}
 
-    def __nonzero__(self):
+    def __bool__(self):
         return bool(self.elements or self.coefficients or self.forms or self.expressions or\
                     self.object_names or self.object_by_name or self.reserved_objects)
+    __nonzero__ = __bool__
 
 infostring = """An exception occured during evaluation of form file.
 To help you find the location of the error, a temporary script
@@ -87,7 +88,7 @@ def execute_ufl_code(uflcode, filename):
     namespace = {}
     try:
         pycode = "from ufl import *\n" + uflcode
-        exec pycode in namespace
+        exec(pycode, namespace)
     except:
         # Dump python code for debugging if this fails
         basename = os.path.splitext(os.path.basename(filename))[0]

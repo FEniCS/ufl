@@ -17,16 +17,13 @@ expressions as variables for differentiation."""
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
-#
-# First added:  2008-05-20
-# Last changed: 2011-06-02
 
 from ufl.common import counted_init
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.expr import Expr
 from ufl.terminal import UtilityType
-from ufl.operatorbase import WrapperType
+from ufl.operatorbase import Operator, WrapperType
 from ufl.constantvalue import as_ufl
 
 class Label(UtilityType):
@@ -44,6 +41,7 @@ class Label(UtilityType):
 
     def __repr__(self):
         return "Label(%d)" % self._count
+
 
 class Variable(WrapperType):
     """A Variable is a representative for another expression.
@@ -98,7 +96,10 @@ class Variable(WrapperType):
         return self._label
 
     def __eq__(self, other):
-        return isinstance(other, Variable) and self._label == other._label and self._expression == other._expression
+        return (isinstance(other, Variable)
+                and self._label == other._label
+                and self._expression == other._expression)
+    __hash__ = Operator.__hash__
 
     def __str__(self):
         return "var%d(%s)" % (self._label.count(), self._expression)
