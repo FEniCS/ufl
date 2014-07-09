@@ -233,15 +233,24 @@ class OuterProductCell(Cell):
     two existing cells"""
     __slots__ = ("_A", "_B", "facet_horiz", "facet_vert")
 
-    def __init__(self, A, B):
+    def __init__(self, A, B, gdim=None):
         self._A = A
         self._B = B
 
         tdim = A.topological_dimension() + B.topological_dimension()
-        # "only as big as it needs to be, but not smaller than A or B"
-        gdim = max(A.geometric_dimension(),
-                   B.geometric_dimension(),
-                   A.topological_dimension() + B.topological_dimension())
+        # default gdim -- "only as big as it needs to be, but not smaller than A or B"
+        gdim_temp = max(A.geometric_dimension(),
+                        B.geometric_dimension(),
+                        A.topological_dimension() + B.topological_dimension())
+        if gdim is None:
+            # default gdim
+            gdim = gdim_temp
+        else:
+            # otherwise, validate custom gdim
+            if not isinstance(gdim, int):
+                raise TypeError("gdim must be an integer")
+            if gdim < gdim_temp:
+                raise ValueError("gdim must be at least %d" % gdim_temp)
         Cell.__init__(self, "OuterProductCell", gdim, tdim)
 
         # facets for extruded cells
@@ -269,7 +278,7 @@ class OuterProductCell(Cell):
         # are essentially the same: triangular prisms with gdim = tdim = 3.
         # For safety, though, we will only compare equal if the
         # subcells are *identical*, including immersion.
-        return self._A == other._A and self._B == other._B
+        return self._A == other._A and self._B == other._B and self.geometric_dimension() == other.geometric_dimension()
 
     def __lt__(self, other):
         # No idea what this might be used for
