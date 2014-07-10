@@ -76,7 +76,7 @@ cellname2facetname = {
 affine_cells = {"vertex", "interval", "triangle", "tetrahedron"}
 
 # Valid UFL cellnames
-ufl_cellnames = tuple(sorted(cellname2dim.keys() + ["OuterProductCell"]))
+ufl_cellnames = tuple(sorted(list(cellname2dim.keys()) + ["OuterProductCell"]))
 
 
 # --- Basic cell representation classes
