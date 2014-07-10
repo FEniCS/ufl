@@ -118,7 +118,7 @@ def _compute_num_sub_domains(integral_data):
         else:
             new = si + 1
         prev = num_sub_domains.get(it)
-        num_sub_domains[it] = max(prev, new)
+        num_sub_domains[it] = max(prev, new, key=lambda x: (str(type(x)), x))
     return num_sub_domains
 
 def _compute_form_data_elements(self, arguments, coefficients):
