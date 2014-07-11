@@ -23,7 +23,9 @@
 
 from itertools import chain
 import six
-from six.moves import zip, xrange
+from six import iteritems
+from six.moves import zip
+from six.moves import xrange as range
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.common import product, istr, EmptyDict
@@ -144,7 +146,7 @@ class MixedElement(FiniteElementBase):
             sh = e.value_shape()
             st = shape_to_strides(sh)
             # Map symmetries of subelement into index space of this element
-            for c0, c1 in six.iteritems(e.symmetry()):
+            for c0, c1 in iteritems(e.symmetry()):
                 j0 = flatten_multiindex(c0, st) + j
                 j1 = flatten_multiindex(c1, st) + j
                 sm[(j0,)] = (j1,)
@@ -371,15 +373,15 @@ class TensorElement(MixedElement):
         if symmetry == True:
             ufl_assert(len(shape) == 2 and shape[0] == shape[1],
                        "Cannot set automatic symmetry for non-square tensor.")
-            symmetry = dict( ((i, j), (j, i)) for i in xrange(shape[0])
-                             for j in xrange(shape[1]) if i > j )
+            symmetry = dict( ((i, j), (j, i)) for i in range(shape[0])
+                             for j in range(shape[1]) if i > j )
 
         # Validate indices in symmetry dict
         if isinstance(symmetry, dict):
-            for i, j in six.iteritems(symmetry):
+            for i, j in iteritems(symmetry):
                 ufl_assert(len(i) == len(j),
                            "Non-matching length of symmetry index tuples.")
-                for k in xrange(len(i)):
+                for k in range(len(i)):
                     ufl_assert(i[k] >= 0 and j[k] >= 0 and
                                i[k] < shape[k] and j[k] < shape[k],
                                "Symmetry dimensions out of bounds.")
@@ -483,7 +485,7 @@ class TensorElement(MixedElement):
         "Format as string for pretty printing."
         sym = ""
         if isinstance(self._symmetry, dict):
-            tmp = ", ".join("%s -> %s" % (a, b) for (a, b) in six.iteritems(self._symmetry))
+            tmp = ", ".join("%s -> %s" % (a, b) for (a, b) in iteritems(self._symmetry))
             sym = " with symmetries (%s)" % tmp
         elif self._symmetry:
             sym = " with symmetry"
@@ -494,7 +496,7 @@ class TensorElement(MixedElement):
         "Format as string for pretty printing."
         sym = ""
         if isinstance(self._symmetry, dict):
-            tmp = ", ".join("%s -> %s" % (a, b) for (a, b) in six.iteritems(self._symmetry))
+            tmp = ", ".join("%s -> %s" % (a, b) for (a, b) in iteritems(self._symmetry))
             sym = " with symmetries (%s)" % tmp
         elif self._symmetry:
             sym = " with symmetry"

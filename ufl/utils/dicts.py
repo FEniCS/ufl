@@ -17,7 +17,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from six import iterkeys, iteritems, next
+from six import iterkeys, iteritems
+from six import advance_iterator as next
 
 def split_dict(d, criteria):
     "Split a dict d into two dicts based on a criteria on the keys."
