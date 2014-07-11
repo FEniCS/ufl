@@ -7,10 +7,10 @@ Test internal utility functions.
 # These are thin wrappers on top of unittest.TestCase and unittest.main
 from ufltestcase import UflTestCase, main
 
+from six.moves import xrange as range
 
 # FIXME: Use these tests copied and modified from uflacs
 """
-from six.moves import xrange
 from ufl.utils.indexflattening import shape_to_strides, flatten_multiindex, unflatten_index
 
 from ufl.analysis.indexing import indexing_to_component

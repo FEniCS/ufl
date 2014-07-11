@@ -22,7 +22,7 @@
 # Modified by Marie E. Rognes 2012
 
 from collections import defaultdict
-import six
+from six import iteritems
 
 from ufl.log import warning, error, deprecate
 from ufl.assertions import ufl_assert
@@ -319,7 +319,7 @@ def as_domain(domain):
 def join_subdomain_data(subdomain_datas): # FIXME: Remove? Think it's unused now.
     newdata = {}
     for data in subdomain_datas:
-        for k, v in six.iteritems(data):
+        for k, v in iteritems(data):
             nv = newdata.get(k)
             if nv is None:
                 # New item, just add it

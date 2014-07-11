@@ -17,7 +17,9 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from six.moves import zip, xrange
+from six.moves import zip
+from six.moves import xrange as range
+
 from ufl.log import warning, error
 from ufl.common import subdict, EmptyDict
 from ufl.assertions import ufl_assert
@@ -234,7 +236,7 @@ def numpy2nestedlists(arr):
     from numpy import ndarray
     if not isinstance(arr, ndarray):
         return arr
-    return [numpy2nestedlists(arr[k]) for k in xrange(arr.shape[0])]
+    return [numpy2nestedlists(arr[k]) for k in range(arr.shape[0])]
 
 def _as_list_tensor(expressions):
     if isinstance(expressions, (list, tuple)):
@@ -370,10 +372,10 @@ def relabel(A, indexmap):
 # --- Experimental support for dyadic notation:
 
 def unit_list(i, n):
-    return [(1 if i == j else 0) for j in xrange(n)]
+    return [(1 if i == j else 0) for j in range(n)]
 
 def unit_list2(i, j, n):
-    return [[(1 if (i == i0 and j == j0) else 0) for j0 in xrange(n)] for i0 in xrange(n)]
+    return [[(1 if (i == i0 and j == j0) else 0) for j0 in range(n)] for i0 in range(n)]
 
 def unit_vector(i, d):
     "UFL value: A constant unit vector in direction i with dimension d."
@@ -381,7 +383,7 @@ def unit_vector(i, d):
 
 def unit_vectors(d):
     "UFL value: A tuple of constant unit vectors in all directions with dimension d."
-    return tuple(unit_vector(i, d) for i in xrange(d))
+    return tuple(unit_vector(i, d) for i in range(d))
 
 def unit_matrix(i, j, d):
     "UFL value: A constant unit matrix in direction i,j with dimension d."
@@ -389,7 +391,7 @@ def unit_matrix(i, j, d):
 
 def unit_matrices(d):
     "UFL value: A tuple of constant unit matrices in all directions with dimension d."
-    return tuple(unit_matrix(i, j, d) for i in xrange(d) for j in xrange(d))
+    return tuple(unit_matrix(i, j, d) for i in range(d) for j in range(d))
 
 def dyad(d, *iota):
     "TODO: Develop this concept, can e.g. write A[i,j]*dyad(j,i) for the transpose."
@@ -410,7 +412,7 @@ def unit_indexed_tensor(shape, component):
         return 0, ()
     jj = indices(r)
     es = []
-    for i in xrange(r):
+    for i in range(r):
         s = shape[i]
         c = component[i]
         j = jj[i]
@@ -426,7 +428,7 @@ def unwrap_list_tensor(lt):
     sh = lt.shape()
     subs = lt.operands()
     if len(sh) == 1:
-        for s in xrange(sh[0]):
+        for s in range(sh[0]):
             components.append(((s,), subs[s]))
     else:
         for s, sub in enumerate(subs):

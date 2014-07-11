@@ -16,12 +16,10 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
-#
-# First added:  2008-12-28
-# Last changed: 2012-04-12
 
 from collections import defaultdict
-from six.moves import zip, xrange
+from six.moves import xrange as range
+from six.moves import zip, map
 from heapq import heapify, heappop, heappush
 
 #from ufl import *
@@ -35,7 +33,7 @@ from ufl.classes import Terminal
 #--- Basic utility functions ---
 
 def lists(n):
-    return [[] for i in xrange(n)]
+    return [[] for i in range(n)]
 
 def len_items(sequence):
     return list(map(len, sequence))
@@ -253,7 +251,7 @@ def depth_first_ordering(G):
 
     # Make a list and a heap of the same items
     n = len(V)
-    q = [HeapItem(Ein_count, Eout_count, i) for i in xrange(n)]
+    q = [HeapItem(Ein_count, Eout_count, i) for i in range(n)]
     heapify(q)
 
     ordering = []

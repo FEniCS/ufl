@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-import six
 from six.moves import zip
 import operator
 import time

@@ -22,10 +22,11 @@
 # Modified by Anders Logg 2014
 
 from itertools import chain
-import six
+
 from six import iteritems
 from six.moves import zip
 from six.moves import xrange as range
+
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.common import product, istr, EmptyDict

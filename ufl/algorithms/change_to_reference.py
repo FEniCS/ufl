@@ -17,7 +17,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from six.moves import xrange
+from six.moves import xrange as range
+
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.classes import (Terminal, ReferenceGrad, Grad,
@@ -101,7 +102,7 @@ class ChangeToReferenceGrad(ReuseTransformer):
 
         # Apply the same number of ReferenceGrad without mappings
         lgrad = f
-        for i in xrange(ngrads):
+        for i in range(ngrads):
             lgrad = ReferenceGrad(lgrad)
 
         # Apply mappings with scalar indexing operations (assumes ReferenceGrad(Jinv) is zero)

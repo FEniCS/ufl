@@ -17,7 +17,9 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from six.moves import zip, xrange
+from six.moves import zip
+from six.moves import xrange as range
+
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.common import counted_init, EmptyDict
@@ -218,7 +220,7 @@ class MultiIndex(UtilityType):
             self._indices == other._indices
 
     def __hash__(self):
-        return hash(repr(self)) 
+        return hash(repr(self))
 
 def as_index(i):
     if isinstance(i, IndexBase):
@@ -246,10 +248,9 @@ def as_multi_index(ii, shape=None):
 
 def indices(n):
     "UFL value: Return a tuple of n new Index objects."
-    return tuple(Index() for _i in xrange(n))
+    return tuple(Index() for _i in range(n))
 
 # TODO: Fix imports everywhere else instead
 from ufl.indexutils import complete_shape
 from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
-
