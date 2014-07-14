@@ -19,13 +19,10 @@
 #
 # Modified by Kristian B. Oelgaard
 # Modified by Marie E. Rognes 2010, 2012
-#
-# First added:  2008-03-03
-# Last changed: 2012-08-16
 
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
-from ufl.common import product, index_to_component, component_to_index, istr, EmptyDict
+from ufl.common import product, istr, EmptyDict
 from ufl.geometry import Cell, as_cell, cellname2facetname
 from ufl.log import info_blue, warning, warning_blue, error
 

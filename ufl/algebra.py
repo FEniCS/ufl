@@ -20,7 +20,7 @@
 # Modified by Anders Logg, 2008
 
 from itertools import chain
-import six
+from six import iteritems
 
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
@@ -185,7 +185,7 @@ class Product(AlgebraOperator):
 
         # Extract indices
         self._free_indices     = unique_indices(tuple(chain(a.free_indices(), b.free_indices())))
-        #self._index_dimensions = frozendict(chain(six.iteritems(o.index_dimensions()) for o in (a,b))) or EmptyDict
+        #self._index_dimensions = frozendict(chain(iteritems(o.index_dimensions()) for o in (a,b))) or EmptyDict
         self._index_dimensions = mergedicts2(a.index_dimensions(), b.index_dimensions()) or EmptyDict
 
     def __init__(self, a, b):

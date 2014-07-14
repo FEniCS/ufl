@@ -22,11 +22,15 @@
 # Modified by Anders Logg 2014
 
 from itertools import chain
-import six
-from six.moves import zip, xrange
+
+from six import iteritems
+from six.moves import zip
+from six.moves import xrange as range
+
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
-from ufl.common import product, index_to_component, component_to_index, istr, EmptyDict
+from ufl.common import product, istr, EmptyDict
+from ufl.utils.indexflattening import flatten_multiindex, unflatten_index, shape_to_strides
 from ufl.geometry import as_domain
 from ufl.log import info_blue, warning, warning_blue, error
 
@@ -141,10 +145,11 @@ class MixedElement(FiniteElementBase):
         j = 0
         for e in self._sub_elements:
             sh = e.value_shape()
+            st = shape_to_strides(sh)
             # Map symmetries of subelement into index space of this element
-            for c0, c1 in six.iteritems(e.symmetry()):
-                j0 = component_to_index(c0, sh) + j
-                j1 = component_to_index(c1, sh) + j
+            for c0, c1 in iteritems(e.symmetry()):
+                j0 = flatten_multiindex(c0, st) + j
+                j1 = flatten_multiindex(c1, st) + j
                 sm[(j0,)] = (j1,)
             # Update base index for next element
             j += product(sh)
@@ -194,7 +199,8 @@ class MixedElement(FiniteElementBase):
             ufl_assert(j >= 0, "Moved past last value component!")
 
             # Convert index into a shape tuple
-            j = index_to_component(j, sh)
+            st = shape_to_strides(sh)
+            j = unflatten_index(j, st)
         else:
             # Indexing into a multidimensional tensor
             # where subelement index is first axis
@@ -368,15 +374,15 @@ class TensorElement(MixedElement):
         if symmetry == True:
             ufl_assert(len(shape) == 2 and shape[0] == shape[1],
                        "Cannot set automatic symmetry for non-square tensor.")
-            symmetry = dict( ((i, j), (j, i)) for i in xrange(shape[0])
-                             for j in xrange(shape[1]) if i > j )
+            symmetry = dict( ((i, j), (j, i)) for i in range(shape[0])
+                             for j in range(shape[1]) if i > j )
 
         # Validate indices in symmetry dict
         if isinstance(symmetry, dict):
-            for i, j in six.iteritems(symmetry):
+            for i, j in iteritems(symmetry):
                 ufl_assert(len(i) == len(j),
                            "Non-matching length of symmetry index tuples.")
-                for k in xrange(len(i)):
+                for k in range(len(i)):
                     ufl_assert(i[k] >= 0 and j[k] >= 0 and
                                i[k] < shape[k] and j[k] < shape[k],
                                "Symmetry dimensions out of bounds.")
@@ -480,7 +486,7 @@ class TensorElement(MixedElement):
         "Format as string for pretty printing."
         sym = ""
         if isinstance(self._symmetry, dict):
-            tmp = ", ".join("%s -> %s" % (a, b) for (a, b) in six.iteritems(self._symmetry))
+            tmp = ", ".join("%s -> %s" % (a, b) for (a, b) in iteritems(self._symmetry))
             sym = " with symmetries (%s)" % tmp
         elif self._symmetry:
             sym = " with symmetry"
@@ -491,7 +497,7 @@ class TensorElement(MixedElement):
         "Format as string for pretty printing."
         sym = ""
         if isinstance(self._symmetry, dict):
-            tmp = ", ".join("%s -> %s" % (a, b) for (a, b) in six.iteritems(self._symmetry))
+            tmp = ", ".join("%s -> %s" % (a, b) for (a, b) in iteritems(self._symmetry))
             sym = " with symmetries (%s)" % tmp
         elif self._symmetry:
             sym = " with symmetry"

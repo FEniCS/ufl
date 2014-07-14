@@ -18,12 +18,10 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2009-2010
-#
-# First added:  2008-05-07
-# Last changed: 2012-04-12
+
+from six import iteritems
 
 from ufl.log import error
-import six
 from ufl.assertions import ufl_assert
 from ufl.classes import Terminal, CoefficientDerivative
 from ufl.constantvalue import as_ufl
@@ -52,7 +50,7 @@ def replace(e, mapping):
     @param mapping:
         A dict with from:to replacements to perform.
     """
-    mapping2 = dict((k, as_ufl(v)) for (k, v) in six.iteritems(mapping)) # TODO: Should this be sorted?
+    mapping2 = dict((k, as_ufl(v)) for (k, v) in iteritems(mapping)) # TODO: Should this be sorted?
 
     # Workaround for problem with delayed derivative evaluation
     if extract_type(e, CoefficientDerivative):

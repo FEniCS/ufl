@@ -21,7 +21,9 @@ indices only."""
 #
 # Modified by Anders Logg, 2009.
 
-from six.moves import zip, xrange
+from six.moves import zip
+from six.moves import xrange as range
+
 from ufl.log import error
 from ufl.common import Stack, StackDict
 from ufl.assertions import ufl_assert
@@ -116,7 +118,7 @@ class IndexExpander(ReuseTransformer):
         # if index not in self._to_expand:
         #     return self.expr(x, *[self.visit(o) for o in x.operands()])
 
-        for value in xrange(x.dimension()):
+        for value in range(x.dimension()):
             self._index2value.push(index, value)
             ops.append(self.visit(summand))
             self._index2value.pop()

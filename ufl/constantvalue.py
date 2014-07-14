@@ -19,7 +19,9 @@
 #
 # Modified by Anders Logg, 2011.
 
-from six.moves import zip, xrange
+from six.moves import zip
+from six.moves import xrange as range
+
 from ufl.log import warning, error
 from ufl.assertions import ufl_assert, expecting_python_scalar
 from ufl.expr import Expr
@@ -358,7 +360,7 @@ class PermutationSymbol(ConstantValue):
 
     def shape(self):
         s = ()
-        for i in xrange(self._dim):
+        for i in range(self._dim):
             s += (self._dim,)
         return s
 
@@ -386,7 +388,7 @@ class PermutationSymbol(ConstantValue):
         http://www.mathkb.com/Uwe/Forum.aspx/math/29865/N-integer-Levi-Civita"""
         result = IntValue(1)
         for i, x1 in enumerate(x):
-            for j in xrange(i + 1, len(x)):
+            for j in range(i + 1, len(x)):
                 x2 = x[j]
                 if x1 > x2:
                     result = -result

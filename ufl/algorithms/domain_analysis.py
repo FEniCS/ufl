@@ -22,7 +22,7 @@ from six.moves import zip
 from six import iteritems
 
 import ufl
-from ufl.common import sorted_items
+from ufl.utils.sorting import sorted_by_key
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.geometry import Domain
@@ -85,7 +85,7 @@ def dicts_lt(a, b):
     nb = 0 if b is None else len(b)
     if na != nb:
         return len(a) < len(b)
-    for ia, ib in zip(sorted_items(a), sorted_items(b)):
+    for ia, ib in zip(sorted_by_key(a), sorted_by_key(b)):
         # Assuming keys are sortable (usually str)
         if ia[0] != ib[0]:
             return ia[0] < ib[0]
@@ -253,7 +253,7 @@ def build_integral_data(integrals, domains):
             single_subdomain_integrals = \
                 rearrange_integrals_by_single_subdomains(ddt_integrals)
 
-            for subdomain_id, ss_integrals in sorted_items(single_subdomain_integrals):
+            for subdomain_id, ss_integrals in sorted_by_key(single_subdomain_integrals):
                 # Accumulate integrands of integrals that share the same compiler data
                 integrands_and_cds = \
                     accumulate_integrands_with_same_metadata(ss_integrals)

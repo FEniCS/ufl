@@ -23,7 +23,7 @@
 from six.moves import zip
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
-from ufl.common import product, index_to_component, component_to_index, istr, EmptyDict
+from ufl.common import product, istr, EmptyDict
 from ufl.geometry import Cell, as_cell, as_domain, Domain, cellname2facetname, ProductCell
 from ufl.log import info_blue, warning, warning_blue, error
 

@@ -1,7 +1,5 @@
 """A collection of utility algorithms for handling UFL files."""
 
-from __future__ import with_statement
-
 # Copyright (C) 2008-2014 Martin Sandve Alnes
 #
 # This file is part of UFL.
@@ -21,13 +19,10 @@ from __future__ import with_statement
 #
 # Modified by Anders Logg, 2008-2009.
 # Modified by Marie E. Rognes, 2011.
-#
-# First added:  2008-03-14
-# Last changed: 2012-12-11
 
 import os, re
 from ufl.log import error, warning
-from ufl.common import sorted_items
+from ufl.utils.sorting import sorted_by_key
 from ufl.assertions import ufl_assert
 from ufl.form import Form
 from ufl.finiteelement import FiniteElementBase
@@ -111,7 +106,7 @@ def interpret_ufl_namespace(namespace):
     # The use of id(obj) as key in object_names is necessary
     # because we need to distinguish between instances,
     # and not just between objects with different values.
-    for name, value in sorted_items(namespace):
+    for name, value in sorted_by_key(namespace):
         # Store objects by reserved name OR instance id
         reserved_names = ("unknown",) # Currently only one reserved name
         if name in reserved_names:
