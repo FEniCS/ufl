@@ -103,12 +103,12 @@ def _compute_num_sub_domains(integral_data):
     for itg_data in integral_data:
         it = itg_data.integral_type
         si = itg_data.subdomain_id
-        if isinstance(si, str):
-            new = 0
+        if isinstance(si, int):
+            newmax = si + 1
         else:
-            new = si + 1
-        prev = num_sub_domains.get(it)
-        num_sub_domains[it] = max(prev, new)
+            newmax = 0
+        prevmax = num_sub_domains.get(it, 0)
+        num_sub_domains[it] = max(prevmax, newmax)
     return num_sub_domains
 
 def _compute_form_data_elements(self, arguments, coefficients):
