@@ -22,12 +22,14 @@
 # Modified by Marie E. Rognes 2012
 # Modified by Andrew T. T. McRae, 2014
 
+from itertools import chain
+from collections import defaultdict
+
 from ufl.log import warning, error, deprecate
 from ufl.assertions import ufl_assert
 from ufl.common import istr, EmptyDict
 from ufl.terminal import Terminal
 from ufl.protocols import id_or_none
-from collections import defaultdict
 
 # --- Basic cell properties
 
@@ -76,7 +78,7 @@ cellname2facetname = {
 affine_cells = {"vertex", "interval", "triangle", "tetrahedron"}
 
 # Valid UFL cellnames
-ufl_cellnames = tuple(sorted(cellname2dim.keys() + ["OuterProductCell"]))
+ufl_cellnames = tuple(sorted(chain(cellname2dim.keys(), ["OuterProductCell"])))
 
 
 # --- Basic cell representation classes
@@ -218,7 +220,7 @@ class ProductCell(Cell):
         if not isinstance(other, ProductCell):
             return False
         return self._cells == other._cells
-    
+
     def __lt__(self, other):
         if not isinstance(other, ProductCell):
             return False
@@ -292,4 +294,3 @@ def as_cell(cell):
         return Cell(cell)
     else:
         error("Invalid cell %s." % cell)
-
