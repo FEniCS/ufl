@@ -222,15 +222,24 @@ class ChangeToReferenceGeometry(ReuseTransformer):
         else:
             return o
 
-    #def cell_volume(self, o): # FIXME: Validate!
-    #    r = self.jacobian_determinant(JacobianDeterminant(o.domain()))
-    #    r0 = { "interval": 1.0, "triangle": 0.5, "tetrahedron": 1.0/3.0 } # reference_cell_volume
-    #    return abs(r / r0)
+    def cell_volume(self, o):
+        domain = o.domain()
+        if not domain.is_piecewise_linear_simplex_domain():
+            error("Only know how to compute the cell volume of an affine cell.")
+        reference_cell_volume = { "interval": 1.0, "triangle": 0.5, "tetrahedron": 1.0/6.0 }
+        r = self.jacobian_determinant(JacobianDeterminant(domain))
+        r0 = reference_cell_volume[domain.cell().cellname()]
+        return abs(r * r0)
 
-    #def facet_area(self, o): # FIXME: Validate!
-    #    r = self.facet_jacobian_determinant(FacetJacobianDeterminant(o.domain()))
-    #    r0 = FIXME # reference_facet_area
-    #    return r / r0
+    def facet_area(self, o):
+        error("FIXME: reference_facet_area is facet specific so we need a ufl type for it and a ufc array.")
+        domain = o.domain()
+        if not domain.is_piecewise_linear_simplex_domain():
+            error("Only know how to compute the facet area of an affine cell.")
+        reference_facet_area = { "interval": 1.0, "triangle": 1.0 or 0.5**0.5, "tetrahedron": 0.5 or something }
+        r = self.facet_jacobian_determinant(FacetJacobianDeterminant(domain))
+        r0 = reference_facet_area[domain.cell().cellname()]
+        return abs(r * r0)
 
     def cell_normal(self, o):
         warning("Untested complicated code for cell normal. Please report if this works correctly or not.")
