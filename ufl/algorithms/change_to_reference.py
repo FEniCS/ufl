@@ -35,6 +35,8 @@ from ufl.tensors import as_tensor, as_vector
 from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
 from ufl.operators import sqrt
 
+from ufl.cell import reference_cell_volume
+
 class ChangeToReferenceValue(ReuseTransformer):
     def __init__(self):
         ReuseTransformer.__init__(self)
@@ -226,19 +228,16 @@ class ChangeToReferenceGeometry(ReuseTransformer):
         domain = o.domain()
         if not domain.is_piecewise_linear_simplex_domain():
             error("Only know how to compute the cell volume of an affine cell.")
-        reference_cell_volume = { "interval": 1.0, "triangle": 0.5, "tetrahedron": 1.0/6.0 }
         r = self.jacobian_determinant(JacobianDeterminant(domain))
         r0 = reference_cell_volume[domain.cell().cellname()]
         return abs(r * r0)
 
     def facet_area(self, o):
-        error("FIXME: reference_facet_area is facet specific so we need a ufl type for it and a ufc array.")
         domain = o.domain()
         if not domain.is_piecewise_linear_simplex_domain():
             error("Only know how to compute the facet area of an affine cell.")
-        reference_facet_area = { "interval": 1.0, "triangle": 1.0 or 0.5**0.5, "tetrahedron": 0.5 or something }
         r = self.facet_jacobian_determinant(FacetJacobianDeterminant(domain))
-        r0 = reference_facet_area[domain.cell().cellname()]
+        r0 = reference_cell_volume[domain.cell().facet_cellname()]
         return abs(r * r0)
 
     def cell_normal(self, o):

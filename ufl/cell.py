@@ -75,6 +75,15 @@ cellname2facetname = {
     "OuterProductCell": None
     }
 
+reference_cell_volume = {
+    "vertex": 0.0,
+    "interval": 1.0,
+    "triangle": 0.5,
+    "tetrahedron": 1.0/6.0,
+    "quadrilateral": 1.0,
+    "hexahedron": 1.0
+    }
+
 affine_cells = {"vertex", "interval", "triangle", "tetrahedron"}
 
 # Valid UFL cellnames
