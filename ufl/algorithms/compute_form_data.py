@@ -53,18 +53,8 @@ def _auto_select_degree(elements):
     used by DOLFIN to allow the specification of Expressions with
     undefined degrees.
     """
-
-    # Use max degree of all elements
-    common_degree = max([e.degree() for e in elements] or [None])
-
-    # Default to linear element if no elements with degrees are provided
-    if common_degree is None:
-        common_degree = 1
-
-    # Degree must be at least 1 (to work with Lagrange elements)
-    common_degree = max(1, common_degree)
-
-    return common_degree
+    # Use max degree of all elements, at least 1 (to work with Lagrange elements)
+    return max({ e.degree() for e in elements } - { None } | { 1 })
 
 def _compute_element_mapping(form):
     "Compute element mapping for element replacement"
