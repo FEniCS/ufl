@@ -76,7 +76,7 @@ def determinant_expr(A):
         return pseudo_determinant_expr(A)
 
     # TODO: Implement generally for all dimensions?
-    error("determinant_expr not implemented for dimension %s." % sh[0])
+    error("determinant_expr not implemented for shape %s." % (sh,))
 
 def _det_2x2(B, i, j, k, l):
     return B[i, k]*B[j, l] - B[i, l]*B[j, k]
@@ -212,4 +212,3 @@ def deviatoric_expr_3x3(A):
     return as_matrix([[-1./3*A[1, 1]-1./3*A[2, 2]+2./3*A[0, 0],   A[0, 1],   A[0, 2]],
                       [A[1, 0],  2./3*A[1, 1]-1./3*A[2, 2]-1./3*A[0, 0],   A[1, 2]],
                       [A[2, 0],  A[2, 1],   -1./3*A[1, 1]+2./3*A[2, 2]-1./3*A[0, 0]]])
-

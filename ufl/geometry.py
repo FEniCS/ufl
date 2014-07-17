@@ -206,6 +206,11 @@ class FacetCoordinate(GeometricFacetQuantity):
     __slots__ = ()
     name = "Xf"
 
+    def __init__(self, domain):
+        GeometricFacetQuantity.__init__(self, domain)
+        t = self._domain.topological_dimension()
+        ufl_assert(t > 1, "FacetCoordinate is only defined for topological dimensions > 1.")
+
     def shape(self):
         t = self._domain.topological_dimension()
         return (t-1,)
@@ -283,6 +288,11 @@ class FacetJacobian(GeometricFacetQuantity):
     __slots__ = ()
     name = "FJ"
 
+    def __init__(self, domain):
+        GeometricFacetQuantity.__init__(self, domain)
+        t = self._domain.topological_dimension()
+        ufl_assert(t > 1, "FacetJacobian is only defined for topological dimensions > 1.")
+
     def shape(self):
         g = self._domain.geometric_dimension()
         t = self._domain.topological_dimension()
@@ -300,6 +310,11 @@ class CellFacetJacobian(GeometricFacetQuantity): # dX/dXf
     """
     __slots__ = ()
     name = "CFJ"
+
+    def __init__(self, domain):
+        GeometricFacetQuantity.__init__(self, domain)
+        t = self._domain.topological_dimension()
+        ufl_assert(t > 1, "CellFacetJacobian is only defined for topological dimensions > 1.")
 
     def shape(self):
         t = self._domain.topological_dimension()
@@ -372,6 +387,11 @@ class FacetJacobianInverse(GeometricFacetQuantity):
     __slots__ = ()
     name = "FK"
 
+    def __init__(self, domain):
+        GeometricFacetQuantity.__init__(self, domain)
+        t = self._domain.topological_dimension()
+        ufl_assert(t > 1, "FacetJacobianInverse is only defined for topological dimensions > 1.")
+
     def shape(self):
         g = self._domain.geometric_dimension()
         t = self._domain.topological_dimension()
@@ -386,6 +406,11 @@ class CellFacetJacobianInverse(GeometricFacetQuantity):
     """UFL geometry representation: The pseudo-inverse of the CellFacetJacobian."""
     __slots__ = ()
     name = "CFK"
+
+    def __init__(self, domain):
+        GeometricFacetQuantity.__init__(self, domain)
+        t = self._domain.topological_dimension()
+        ufl_assert(t > 1, "CellFacetJacobianInverse is only defined for topological dimensions > 1.")
 
     def shape(self):
         t = self._domain.topological_dimension()
@@ -430,6 +455,11 @@ class CellNormal(GeometricCellQuantity):
 #    """UFL geometry representation: The tangent vectors of the current facet."""
 #    __slots__ = ()
 #    name = "t"
+#
+#    def __init__(self, domain):
+#        GeometricFacetQuantity.__init__(self, domain)
+#        t = self._domain.topological_dimension()
+#        ufl_assert(t > 1, "FacetTangents is only defined for topological dimensions > 1.")
 #
 #    def shape(self):
 #        g = self._domain.geometric_dimension()
@@ -498,7 +528,7 @@ class Circumradius(GeometricCellQuantity):
 #    __slots__ = ()
 #    name = "surfacearea"
 
-class FacetArea(GeometricFacetQuantity):
+class FacetArea(GeometricFacetQuantity): # FIXME: Should this be allowed for interval domain?
     """UFL geometry representation: The area of the facet."""
     __slots__ = ()
     name = "facetarea"
