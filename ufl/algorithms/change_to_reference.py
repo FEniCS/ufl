@@ -35,6 +35,8 @@ from ufl.tensors import as_tensor, as_vector
 from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
 from ufl.operators import sqrt
 
+from ufl.cell import reference_cell_volume
+
 class ChangeToReferenceValue(ReuseTransformer):
     def __init__(self):
         ReuseTransformer.__init__(self)
@@ -222,15 +224,21 @@ class ChangeToReferenceGeometry(ReuseTransformer):
         else:
             return o
 
-    #def cell_volume(self, o): # FIXME: Validate!
-    #    r = self.jacobian_determinant(JacobianDeterminant(o.domain()))
-    #    r0 = { "interval": 1.0, "triangle": 0.5, "tetrahedron": 1.0/3.0 } # reference_cell_volume
-    #    return abs(r / r0)
+    def cell_volume(self, o):
+        domain = o.domain()
+        if not domain.is_piecewise_linear_simplex_domain():
+            error("Only know how to compute the cell volume of an affine cell.")
+        r = self.jacobian_determinant(JacobianDeterminant(domain))
+        r0 = reference_cell_volume[domain.cell().cellname()]
+        return abs(r * r0)
 
-    #def facet_area(self, o): # FIXME: Validate!
-    #    r = self.facet_jacobian_determinant(FacetJacobianDeterminant(o.domain()))
-    #    r0 = FIXME # reference_facet_area
-    #    return r / r0
+    def facet_area(self, o):
+        domain = o.domain()
+        if not domain.is_piecewise_linear_simplex_domain():
+            error("Only know how to compute the facet area of an affine cell.")
+        r = self.facet_jacobian_determinant(FacetJacobianDeterminant(domain))
+        r0 = reference_cell_volume[domain.cell().facet_cellname()]
+        return abs(r * r0)
 
     def cell_normal(self, o):
         warning("Untested complicated code for cell normal. Please report if this works correctly or not.")
