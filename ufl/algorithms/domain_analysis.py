@@ -88,10 +88,10 @@ def dicts_lt(a, b):
     for ia, ib in zip(sorted_by_key(a), sorted_by_key(b)):
         # Assuming keys are sortable (usually str)
         if ia[0] != ib[0]:
-            return ia[0] < ib[0]
+            return (ia[0].__class__.__name__, ia[0]) < (ib[0].__class__.__name__, ib[0]) # Hack to preserve type sorting in py3
         # Assuming values are sortable
         if ia[1] != ib[1]:
-            return ia[1] < ib[1]
+            return (ia[1].__class__.__name__, ia[1]) < (ib[1].__class__.__name__, ib[1]) # Hack to preserve type sorting in py3
 
 # Tuple comparison helper
 class ExprTupleKey(object):
