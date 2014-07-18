@@ -37,6 +37,87 @@ from ufl.operators import sqrt
 
 from ufl.cell import reference_cell_volume
 
+
+"""
+# Some notes:
+# Below, let v_i mean physical coordinate of vertex i and V_i mean the reference cell coordinate of the same vertex.
+
+
+# Add a type for CellVertices? Note that vertices must be computed in linear cell cases!
+triangle_vertices[i,j] = component j of vertex i, following ufc numbering conventions
+
+
+# Add a type for CellEdgeLengths? Note that these are only easy to define in the linear cell case!
+# TODO: Check ufc numbering conventions
+triangle_edge_lengths    = [v1v2, v0v2, v0v1] # shape (3,)
+tetrahedron_edge_lengths = [v0v1, v0v2, v0v3, v1v2, v1v3, v2v3] # shape (6,)
+
+
+# Here's how to compute edge lengths from the Jacobian:
+J =[ [dx0/dX0, dx0/dX1],
+     [dx1/dX0, dx1/dX1] ]
+# First compute the edge vector, which is constant for each edge: the vector from one vertex to the other
+reference_edge_vector_0 = V2 - V1 # Example! Add a type ReferenceEdgeVectors?
+# Then apply J to it and take the length of the resulting vector, this is generic for affine cells
+edge_length_i = || dot(J, reference_edge_vector_i) ||
+
+e2 = || J[:,0] . < 1, 0> || = || J[:,0] || = || dx/dX0 || = edge length of edge 2 (v0-v1)
+e1 = || J[:,1] . < 0, 1> || = || J[:,1] || = || dx/dX1 || = edge length of edge 1 (v0-v2)
+e0 = || J[:,:] . <-1, 1> || = || < J[0,1]-J[0,0], J[1,1]-J[1,0] > || = || dx/dX <-1,1> || = edge length of edge 0 (v1-v2)
+
+trev = triangle_reference_edge_vector
+evec0 = J00 * trev[edge][0] + J01 * trev[edge][1]
+evec1 = J10 * trev[edge][0] + J11 * trev[edge][1]
+elen[edge] = sqrt(evec0*evec0 + evec1*evec1)
+
+trev = triangle_reference_edge_vector
+evec0 = J00 * trev[edge][0] + J01 * trev[edge][1]
+evec1 = J10 * trev[edge][0] + J11 * trev[edge][1]
+evec2 = J20 * trev[edge][0] + J21 * trev[edge][1] # Manifold: triangle in 3D
+elen[edge] = sqrt(evec0*evec0 + evec1*evec1 + evec2*evec2)
+
+trev = tetrahedron_reference_edge_vector
+evec0 = J00 * trev[edge][0] + J01 * trev[edge][1] + J02 * trev[edge][2]
+evec1 = J10 * trev[edge][0] + J11 * trev[edge][1] + J12 * trev[edge][2]
+evec2 = J20 * trev[edge][0] + J21 * trev[edge][1] + J22 * trev[edge][2]
+elen[edge] = sqrt(evec0*evec0 + evec1*evec1 + evec2*evec2)
+
+
+# Here's how to compute min/max facet edge length:
+triangle: == facetarea
+tetrahedron: min(elen[edge] for edge in range(6))
+or min( min(elen[0], min(elen[1], elen[2])), min(elen[3], min(elen[4], elen[5])) )
+(want proper Min/Max types for this!)
+
+
+# Here's how to compute circumradius for an interval:
+circumradius_interval = cellvolume / 2
+
+
+# Here's how to compute circumradius for a triangle:
+e0 = elen[0]
+e1 = elen[1]
+e2 = elen[2]
+circumradius_triangle = (e0*e1*e2) / (4*cellvolume)
+
+
+# Here's how to compute circumradius for a tetrahedron:
+# v1v2 = edge length between vertex 1 and 2
+# la,lb,lc = lengths of the sides of an intermediate triangle
+la = v1v2 * v0v3
+lb = v0v2 * v1v3
+lc = v0v1 * v2v3
+# p = perimeter
+p = (la + lb + lc)
+# s = semiperimeter
+s = p / 2
+# area of intermediate triangle with Herons formula
+tmp_area = sqrt(s * (s - la) * (s - lb) * (s - lc))
+circumradius_tetrahedron = tmp_area / (6*cellvolume)
+
+"""
+
+
 class ChangeToReferenceValue(ReuseTransformer):
     def __init__(self):
         ReuseTransformer.__init__(self)
@@ -417,6 +498,11 @@ def compute_integrand_scaling_factor(domain, integral_type):
 
 def change_integrand_geometry_representation(integrand, scale, integral_type):
     """Change integrand geometry to the right representations."""
+
+    # FIXME: We have a serious problem here:
+    # - Applying propagate_restrictions before change_integrand_geometry_representation will fail because we need grad(u)('+') not grad(u('+'))
+    # - Applying propagate_restrictions after change_integrand_geometry_representation will fail to set e.g. n('+') = -n('-') because n is rewritten
+    # - Possible solution: treat grad(u('+')) in grad handler above as grad(u)('+') and apply propagate_restrictions first
 
     integrand = change_to_reference_grad(integrand)
 

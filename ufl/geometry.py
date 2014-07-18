@@ -441,6 +441,7 @@ class FacetNormal(GeometricFacetQuantity):
         facet_cellname = cellname2facetname.get(self._domain.cell().cellname()) # Allowing None if unknown..
         return (x is None or x.element().degree() == 1) and (facet_cellname in affine_cells) # .. which will become false.
 
+# TODO: Implement in change_to_reference_geometry, should it be CellNormals? For interval in 3D we have two!
 class CellNormal(GeometricCellQuantity):
     """UFL geometry representation: The upwards pointing normal vector of the current manifold cell."""
     __slots__ = ()
@@ -450,7 +451,7 @@ class CellNormal(GeometricCellQuantity):
         g = self._domain.geometric_dimension()
         return (g,)
 
-# TODO: Implement in the rest of fenics
+# TODO: Implement in change_to_reference_geometry and enable
 #class FacetTangents(GeometricFacetQuantity):
 #    """UFL geometry representation: The tangent vectors of the current facet."""
 #    __slots__ = ()
@@ -474,7 +475,7 @@ class CellNormal(GeometricCellQuantity):
 #        facet_cellname = cellname2facetname.get(self._domain.cell().cellname()) # Allowing None if unknown..
 #        return (x is None or x.element().degree() == 1) and (facet_cellname in affine_cells) # .. which will become false.
 
-# TODO: Implement in the rest of fenics
+# TODO: Implement in change_to_reference_geometry and enable
 #class CellTangents(GeometricCellQuantity):
 #    """UFL geometry representation: The tangent vectors of the current manifold cell."""
 #    __slots__ = ()
@@ -537,6 +538,16 @@ class FacetArea(GeometricFacetQuantity): # FIXME: Should this be allowed for int
 #    """UFL geometry representation: The diameter of the facet."""
 #    __slots__ = ()
 #    name = "facetdiameter"
+
+#class MinCellEdgeLength(GeometricCellQuantity):
+#    """UFL geometry representation: The minimum edge length of the cell."""
+#    __slots__ = ()
+#    name = "mincelledgelength"
+
+#class MaxCellEdgeLength(GeometricCellQuantity):
+#    """UFL geometry representation: The maximum edge length of the cell."""
+#    __slots__ = ()
+#    name = "maxcelledgelength"
 
 class MinFacetEdgeLength(GeometricFacetQuantity):
     """UFL geometry representation: The minimum edge length of the facet."""
