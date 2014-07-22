@@ -25,7 +25,7 @@ from ufl.classes import (Terminal, Label,
                          ExprList, ExprMapping)
 from ufl.log import error
 from ufl.algorithms.traversal import traverse_unique_terminals
-from ufl.common import fast_pre_traversal, sorted_by_count
+from ufl.common import pre_traversal, sorted_by_count
 from ufl.geometry import join_domains
 
 def compute_multiindex_hashdata(expr, index_numbering):
@@ -102,7 +102,7 @@ def compute_expression_hashdata(expression, terminal_hashdata):
     # prefix operator notation, i.e. we store the equivalent
     # of '+ * a b * c d' for the expression (a*b)+(c*d)
     expression_hashdata = []
-    for expr in fast_pre_traversal(expression):
+    for expr in pre_traversal(expression):
         if isinstance(expr, Terminal):
             data = terminal_hashdata[expr]
         else:
@@ -110,7 +110,7 @@ def compute_expression_hashdata(expression, terminal_hashdata):
         expression_hashdata.append(data)
     # Oneliner: TODO: Benchmark, maybe use a generator?
     #expression_hashdata = [(terminal_hashdata[expr] if isinstance(expr, Terminal) else expr._classid)
-    #                       for expr in fast_pre_traversal(expression)]
+    #                       for expr in pre_traversal(expression)]
     return expression_hashdata
 
 def build_domain_numbering(domains):

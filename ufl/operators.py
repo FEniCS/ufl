@@ -23,7 +23,9 @@ objects."""
 # Modified by Kristian B. Oelgaard, 2011
 
 import operator
-from six.moves import map, range
+from six.moves import map
+from six.moves import xrange as range
+
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.form import Form

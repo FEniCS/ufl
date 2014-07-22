@@ -18,12 +18,9 @@ and generating index lists."""
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
-# Modified by Martin Alnes 2009
-#
-# First added:  2008-05-22
-# Last changed: 2011-06-08
+# Modified by Martin Alnes 2009-2014
 
-from six.moves import range
+from six.moves import xrange as range
 
 def compute_indices(shape):
     "Compute all index combinations for given shape"
@@ -117,4 +114,3 @@ def compute_order_tuples(k, n):
         for order_tuple in compute_order_tuples(k - i, n - 1):
             order_tuples.append(order_tuple + (i,))
     return tuple(order_tuples)
-

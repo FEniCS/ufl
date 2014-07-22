@@ -1,2 +1,0 @@
-#include common.ufl
-a = inner(grad(u),grad(v))*dx

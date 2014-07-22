@@ -17,7 +17,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from six.moves import range
+from six.moves import xrange as range
+
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.classes import (Terminal, ReferenceGrad, Grad,
@@ -33,6 +34,8 @@ from ufl.indexing import Index, indices
 from ufl.tensors import as_tensor, as_vector
 from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
 from ufl.operators import sqrt
+
+from ufl.cell import reference_cell_volume
 
 class ChangeToReferenceValue(ReuseTransformer):
     def __init__(self):
@@ -221,15 +224,21 @@ class ChangeToReferenceGeometry(ReuseTransformer):
         else:
             return o
 
-    #def cell_volume(self, o): # FIXME: Validate!
-    #    r = self.jacobian_determinant(JacobianDeterminant(o.domain()))
-    #    r0 = { "interval": 1.0, "triangle": 0.5, "tetrahedron": 1.0/3.0 } # reference_cell_volume
-    #    return abs(r / r0)
+    def cell_volume(self, o):
+        domain = o.domain()
+        if not domain.is_piecewise_linear_simplex_domain():
+            error("Only know how to compute the cell volume of an affine cell.")
+        r = self.jacobian_determinant(JacobianDeterminant(domain))
+        r0 = reference_cell_volume[domain.cell().cellname()]
+        return abs(r * r0)
 
-    #def facet_area(self, o): # FIXME: Validate!
-    #    r = self.facet_jacobian_determinant(FacetJacobianDeterminant(o.domain()))
-    #    r0 = FIXME # reference_facet_area
-    #    return r / r0
+    def facet_area(self, o):
+        domain = o.domain()
+        if not domain.is_piecewise_linear_simplex_domain():
+            error("Only know how to compute the facet area of an affine cell.")
+        r = self.facet_jacobian_determinant(FacetJacobianDeterminant(domain))
+        r0 = reference_cell_volume[domain.cell().facet_cellname()]
+        return abs(r * r0)
 
     def cell_normal(self, o):
         warning("Untested complicated code for cell normal. Please report if this works correctly or not.")
@@ -269,9 +278,9 @@ class ChangeToReferenceGeometry(ReuseTransformer):
             gdim = domain.geometric_dimension()
             tdim = domain.topological_dimension()
 
-            FJ = self.facet_jacobian(FacetJacobian(domain))
-
             if tdim == 3:
+                FJ = self.facet_jacobian(FacetJacobian(domain))
+
                 ufl_assert(gdim == 3, "Inconsistent dimensions.")
                 ufl_assert(FJ.shape() == (3, 2), "Inconsistent dimensions.")
 
@@ -288,6 +297,8 @@ class ChangeToReferenceGeometry(ReuseTransformer):
                 r = n
 
             elif tdim == 2:
+                FJ = self.facet_jacobian(FacetJacobian(domain))
+
                 if gdim == 2:
                     # 2D facet normal in 2D space
                     ufl_assert(FJ.shape() == (2, 1), "Inconsistent dimensions.")
@@ -329,7 +340,16 @@ class ChangeToReferenceGeometry(ReuseTransformer):
                 r = n
 
             elif tdim == 1:
-                r = FIXME
+                J = self.jacobian(Jacobian(domain)) # dx/dX
+                fo = FacetOrientation(domain)
+                ndir = fo * J[:,0]
+                if gdim == 1:
+                    nlen = abs(ndir[0])
+                else:
+                    i = Index()
+                    nlen = sqrt(ndir[i]*ndir[i])
+                n = ndir / nlen
+                r = n
 
             self._rcache[o] = r
 
@@ -363,16 +383,33 @@ def compute_integrand_scaling_factor(domain, integral_type):
     """Change integrand geometry to the right representations."""
 
     weight = QuadratureWeight(domain)
+    tdim = domain.topological_dimension()
 
     if integral_type == "cell":
         scale = abs(JacobianDeterminant(domain)) * weight
+
     elif integral_type in ["exterior_facet", "exterior_facet_bottom", "exterior_facet_top", "exterior_facet_vert"]:
-        scale = FacetJacobianDeterminant(domain) * weight
+        if tdim > 1:
+            # Scaling integral by facet jacobian determinant and quadrature weight
+            scale = FacetJacobianDeterminant(domain) * weight
+        else:
+            # No need to scale 'integral' over a vertex
+            scale = 1
+
     elif integral_type in ["interior_facet", "interior_facet_horiz", "interior_facet_vert"]:
-        scale = FacetJacobianDeterminant(domain)('+') * weight # TODO: Arbitrary restriction to '+', is that ok?
-    elif integral_type == "quadrature":
+        if tdim > 1:
+            # Scaling integral by facet jacobian determinant from one side and quadrature weight
+            scale = FacetJacobianDeterminant(domain)('+') * weight
+        else:
+            # No need to scale 'integral' over a vertex
+            scale = 1
+
+    elif integral_type == "custom":
+        # Scaling with custom weight, which includes eventual volume scaling
         scale = weight
+
     elif integral_type == "point":
+        # No need to scale 'integral' over a point
         scale = 1
 
     return scale

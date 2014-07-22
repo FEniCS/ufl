@@ -2,7 +2,7 @@
 from ufl.log import error
 from ufl.operatorbase import Operator
 from ufl.terminal import Terminal
-from ufl.common import fast_pre_traversal
+from ufl.common import pre_traversal
 from six.moves import zip
 
 def _expr_equals0(a, b):
@@ -47,7 +47,7 @@ def _expr_equals1(a, b):
     if a is b:
         return True
     # Compare entire expression structure
-    for x, y in zip(fast_pre_traversal(a), fast_pre_traversal(b)):
+    for x, y in zip(pre_traversal(a), pre_traversal(b)):
         if type(x) != type(y):
             return False
         #if isinstance(Terminal, x) and not x == y:

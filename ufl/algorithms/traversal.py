@@ -87,7 +87,7 @@ def traverse_operands(expr):
             input.extend(e.operands())
 
 # Moved to common because it is without dependencies and this avoids circular deps
-from ufl.common import fast_pre_traversal, fast_post_traversal
+from ufl.common import pre_traversal, post_traversal
 
 def pre_traversal(expr, stack=None):
     """Yields o for each tree node o in expr, parent before child.

@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
+from six.moves import xrange as range
+
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.expr import Expr
@@ -109,4 +111,3 @@ class IndexSum(AlgebraOperator):
 
     def __repr__(self):
         return "IndexSum(%r, %r)" % (self._summand, self._index)
-

@@ -18,9 +18,8 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2008
-#
-# First added:  2008-03-14
-# Last changed: 2011-06-22
+
+from six.moves import xrange as range
 
 from ufl.log import error
 from ufl.assertions import ufl_assert

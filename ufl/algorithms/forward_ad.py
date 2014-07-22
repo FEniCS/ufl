@@ -22,7 +22,9 @@
 # Modified by Kristian B. Oelgaard, 2011
 # Modified by Jan Blechta, 2012.
 
-from six.moves import zip, range
+from six.moves import xrange as range
+from six.moves import zip
+
 from math import pi
 from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert

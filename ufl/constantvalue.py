@@ -19,7 +19,9 @@
 #
 # Modified by Anders Logg, 2011.
 
-from six.moves import zip, range
+from six.moves import zip
+from six.moves import xrange as range
+
 from ufl.log import warning, error
 from ufl.assertions import ufl_assert, expecting_python_scalar
 from ufl.expr import Expr

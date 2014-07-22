@@ -16,16 +16,14 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
-#
-# First added:  2008-12-28
-# Last changed: 2012-04-12
 
 from collections import defaultdict
-from six.moves import zip, range
+from six.moves import xrange as range
+from six.moves import zip, map
 from heapq import heapify, heappop, heappush
 
 #from ufl import *
-from ufl.algorithms.traversal import fast_pre_traversal
+from ufl.algorithms.traversal import pre_traversal
 from ufl.algorithms.printing import tree_format
 from ufl.algorithms.multifunction import MultiFunction
 from ufl.classes import Terminal
@@ -65,7 +63,7 @@ def build_graph(expr): # O(n)
     E = []
     handled = {}
     #for v in post_traversal(expr):
-    for v in reversed(list(fast_pre_traversal(expr))):
+    for v in reversed(list(pre_traversal(expr))):
         i = handled.get(v)
         if i is None:
             i = len(V)

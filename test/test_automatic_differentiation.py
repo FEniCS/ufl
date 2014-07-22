@@ -17,7 +17,7 @@ import ufl
 from ufl import *
 
 import ufl.algorithms
-from ufl.common import fast_post_traversal2
+from ufl.common import unique_post_traversal
 from ufl.conditional import Conditional
 from ufl.algorithms import expand_derivatives
 from ufl.algorithms.traversal import traverse_terminals2
@@ -380,7 +380,7 @@ class ForwardADTestCase(UflTestCase):
         for t in collection.noncompounds:
             for var in (u, v, w):
                 # Include d/dx [z ? y: x] but not d/dx [x ? f: z]
-                if isinstance(t, Conditional) and (var in fast_post_traversal2(t.operands()[0])):
+                if isinstance(t, Conditional) and (var in unique_post_traversal(t.operands()[0])):
                     if debug: print(("Depends on %s :: %s" % (str(var), str(t))))
                     continue
 
@@ -393,7 +393,7 @@ class ForwardADTestCase(UflTestCase):
                 if debug: print(('\n', 'expected_shape: ', str(expected_shape), '\n'))
                 #print '\n', str(expected_shape), '\n', str(after), '\n', str(before), '\n'
 
-                if var in fast_post_traversal2(t):
+                if var in unique_post_traversal(t):
                     self.assertEqualTotalShape(after, expected_shape)
                     self.assertNotEqual(after, expected_shape)
                 else:
@@ -419,7 +419,7 @@ class ForwardADTestCase(UflTestCase):
             t = replace(t, {u:vu, v:vv, w:vw})
             for var in (vu, vv, vw):
                 # Include d/dx [z ? y: x] but not d/dx [x ? f: z]
-                if isinstance(t, Conditional) and (var in fast_post_traversal2(t.operands()[0])):
+                if isinstance(t, Conditional) and (var in unique_post_traversal(t.operands()[0])):
                     if debug: print(("Depends on %s :: %s" % (str(var), str(t))))
                     continue
 
@@ -431,7 +431,7 @@ class ForwardADTestCase(UflTestCase):
                 if debug: print(('\n', 'expected_shape: ', str(expected_shape), '\n'))
                 #print '\n', str(expected_shape), '\n', str(after), '\n', str(before), '\n'
 
-                if var in fast_post_traversal2(t):
+                if var in unique_post_traversal(t):
                     self.assertEqualTotalShape(after, expected_shape)
                     self.assertNotEqual(after, expected_shape)
                 else:

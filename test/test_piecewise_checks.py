@@ -140,6 +140,9 @@ class TestCellwiseConstantTerminals(UflTestCase):
             self.assertTrue(e.is_cellwise_constant())
             e = JacobianInverse(D)
             self.assertTrue(e.is_cellwise_constant())
+        for D in domains:
+            if D.topological_dimension() == 1:
+                continue
             e = FacetJacobian(D)
             self.assertTrue(e.is_cellwise_constant())
             e = FacetJacobianDeterminant(D)
@@ -158,6 +161,9 @@ class TestCellwiseConstantTerminals(UflTestCase):
             self.assertFalse(e.is_cellwise_constant())
             e = JacobianInverse(D)
             self.assertFalse(e.is_cellwise_constant())
+        for D in domains:
+            if D.topological_dimension() == 1:
+                continue
             e = FacetJacobian(D)
             self.assertFalse(e.is_cellwise_constant())
             e = FacetJacobianDeterminant(D)

@@ -14,10 +14,8 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
-#
-# First added:  2011-01-17
-# Last changed: 2011-06-02
 
+from six.moves import xrange as range
 from ufl.assertions import ufl_assert
 from ufl.finiteelement import FiniteElement, MixedElement
 

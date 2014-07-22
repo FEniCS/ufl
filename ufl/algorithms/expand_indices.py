@@ -20,11 +20,10 @@ indices only."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2009.
-#
-# First added:  2008-04-19
-# Last changed: 2012-04-12
 
 from six.moves import zip
+from six.moves import xrange as range
+
 from ufl.log import error
 from ufl.common import Stack, StackDict
 from ufl.assertions import ufl_assert

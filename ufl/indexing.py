@@ -17,11 +17,13 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
+from six.moves import zip
+from six.moves import xrange as range
+
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.common import counted_init, EmptyDict
 from ufl.terminal import UtilityType
-from six.moves import zip
 
 #--- Index types ---
 
@@ -218,7 +220,7 @@ class MultiIndex(UtilityType):
             self._indices == other._indices
 
     def __hash__(self):
-        return hash(repr(self)) 
+        return hash(repr(self))
 
 def as_index(i):
     if isinstance(i, IndexBase):
@@ -252,4 +254,3 @@ def indices(n):
 from ufl.indexutils import complete_shape
 from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
-
