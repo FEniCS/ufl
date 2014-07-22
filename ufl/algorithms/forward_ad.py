@@ -604,6 +604,20 @@ class ForwardAD(Transformer):
             op = conditional(c[0], 1, 0)*t[1] + conditional(c[0], 0, 1)*f[1]
         return (o, op)
 
+    def max_value(self, o, x, y):
+        #d/dx max(f, g) =
+        # f > g: df/dx
+        # f < g: dg/dx
+        op = conditional(x[0] > y[0], x[1], y[1])
+        return (o, op)
+
+    def min_value(self, o, x, y):
+        #d/dx min(f, g) =
+        # f < g: df/dx
+        # else: dg/dx
+        op = conditional(x[0] < y[0], x[1], y[1])
+        return (o, op)
+
     # --- Other derivatives
 
     def derivative(self, o):

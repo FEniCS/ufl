@@ -23,6 +23,8 @@ from ufl.operatorbase import Operator
 from ufl.constantvalue import as_ufl
 from ufl.precedence import parstr
 from ufl.exprequals import expr_equals
+from ufl.checks import is_true_ufl_scalar
+from ufl.common import EmptyDict
 
 #--- Condition classes ---
 
@@ -248,3 +250,84 @@ class Conditional(Operator):
 
     def __repr__(self):
         return "Conditional(%r, %r, %r)" % self.operands()
+
+
+#--- Specific functions higher level than a conditional ---
+
+class MinValue(Operator):
+    "UFL operator: Take the minimum of two values."
+
+    __slots__ = ("_ops",)
+
+    def __init__(self, left, right):
+        Operator.__init__(self)
+        ufl_assert(is_true_ufl_scalar(left) and is_true_ufl_scalar(right), "Expecting scalar arguments.")
+        self._ops = (left, right)
+
+    def operands(self):
+        return self._ops
+
+    def free_indices(self):
+        return ()
+
+    def index_dimensions(self):
+        return EmptyDict
+
+    def shape(self):
+        return ()
+
+    def evaluate(self, x, mapping, component, index_values):
+        a, b = self._ops
+        a = a.evaluate(x, mapping, component, index_values)
+        b = b.evaluate(x, mapping, component, index_values)
+        try:
+            res = min(a, b)
+        except ValueError:
+            warning('Value error in evaluation of min() of %s and %s.' % self._ops)
+            raise
+        return res
+
+    def __str__(self):
+        return "min_value(%s, %s)" % self._ops
+
+    def __repr__(self):
+        return "MinValue(%r, %r)" % self._ops
+
+class MaxValue(Operator):
+    "UFL operator: Take the maximum of two values."
+
+    __slots__ = ("_ops",)
+
+    def __init__(self, left, right):
+        Operator.__init__(self)
+        ufl_assert(is_true_ufl_scalar(left) and is_true_ufl_scalar(right), "Expecting scalar arguments.")
+        self._ops = (left, right)
+
+    def operands(self):
+        return self._ops
+
+    def free_indices(self):
+        return ()
+
+    def index_dimensions(self):
+        return EmptyDict
+
+    def shape(self):
+        return ()
+
+    def evaluate(self, x, mapping, component, index_values):
+        a, b = self._ops
+        a = a.evaluate(x, mapping, component, index_values)
+        b = b.evaluate(x, mapping, component, index_values)
+        try:
+            res = max(a, b)
+        except ValueError:
+            warning('Value error in evaluation of max() of %s and %s.' % self._ops)
+            raise
+        return res
+
+    def __str__(self):
+        return "max_value(%s, %s)" % self._ops
+
+    def __repr__(self):
+        return "MaxValue(%r, %r)" % self._ops

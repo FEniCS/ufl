@@ -75,7 +75,7 @@ from ufl.differentiation import Derivative, CompoundDerivative, CoefficientDeriv
     VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv, ReferenceGrad
 from ufl.conditional import Condition, BinaryCondition,\
     EQ, NE, LE, GE, LT, GT,\
-    AndCondition, OrCondition, NotCondition, Conditional
+    AndCondition, OrCondition, NotCondition, Conditional, MinValue, MaxValue
 from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted, CellAvg, FacetAvg
 from ufl.exprcontainers import ExprList, ExprMapping
 
