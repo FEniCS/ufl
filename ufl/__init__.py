@@ -81,7 +81,7 @@ A very brief overview of the language contents follows:
 
     SpatialCoordinate,
     FacetNormal, CellNormal,
-    CellVolume, Circumradius,
+    CellVolume, Circumradius, MinCellEdgeLength, MaxCellEdgeLength,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
 
 * Indices::
@@ -193,7 +193,7 @@ from ufl.domain import as_domain, Domain, ProductDomain
 from ufl.geometry import (
     SpatialCoordinate,
     FacetNormal, CellNormal,
-    CellVolume, Circumradius,
+    CellVolume, Circumradius, MinCellEdgeLength, MaxCellEdgeLength,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
     )
 
@@ -287,7 +287,7 @@ __all__ = [
     'as_domain', 'Domain', 'ProductDomain',
     'L2', 'H1', 'H2', 'HCurl', 'HDiv',
     'SpatialCoordinate',
-    'CellVolume', 'Circumradius',
+    'CellVolume', 'Circumradius', 'MinCellEdgeLength', 'MaxCellEdgeLength',
     'FacetArea', 'MinFacetEdgeLength', 'MaxFacetEdgeLength',
     'FacetNormal', 'CellNormal',
     'FiniteElementBase', 'FiniteElement',

@@ -27,6 +27,7 @@ from ufl.classes import (Terminal, ReferenceGrad, Grad,
                          CellFacetJacobian,
                          CellEdgeVectors, FacetEdgeVectors,
                          FacetNormal, CellNormal,
+                         CellVolume, FacetArea,
                          CellOrientation, FacetOrientation, QuadratureWeight)
 from ufl.constantvalue import as_ufl
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
@@ -34,7 +35,7 @@ from ufl.algorithms.analysis import extract_type
 from ufl.indexing import Index, indices
 from ufl.tensors import as_tensor, as_vector
 from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
-from ufl.operators import sqrt
+from ufl.operators import sqrt, max_value, min_value
 
 from ufl.cell import reference_cell_volume
 
@@ -48,13 +49,12 @@ from ufl.cell import reference_cell_volume
 triangle_vertices[i,j] = component j of vertex i, following ufc numbering conventions
 
 
-# Add a type for CellEdgeLengths? Note that these are only easy to define in the linear cell case!
-# TODO: Check ufc numbering conventions
+# DONE Add a type for CellEdgeLengths? Note that these are only easy to define in the linear cell case!
 triangle_edge_lengths    = [v1v2, v0v2, v0v1] # shape (3,)
 tetrahedron_edge_lengths = [v0v1, v0v2, v0v3, v1v2, v1v3, v2v3] # shape (6,)
 
 
-# Here's how to compute edge lengths from the Jacobian:
+# DONE Here's how to compute edge lengths from the Jacobian:
 J =[ [dx0/dX0, dx0/dX1],
      [dx1/dX0, dx1/dX1] ]
 # First compute the edge vector, which is constant for each edge: the vector from one vertex to the other
@@ -67,24 +67,24 @@ e1 = || J[:,1] . < 0, 1> || = || J[:,1] || = || dx/dX1 || = edge length of edge 
 e0 = || J[:,:] . <-1, 1> || = || < J[0,1]-J[0,0], J[1,1]-J[1,0] > || = || dx/dX <-1,1> || = edge length of edge 0 (v1-v2)
 
 trev = triangle_reference_edge_vector
-evec0 = J00 * trev[edge][0] + J01 * trev[edge][1]
+evec0 = J00 * trev[edge][0] + J01 * trev[edge][1]  =  J*trev[edge]
 evec1 = J10 * trev[edge][0] + J11 * trev[edge][1]
-elen[edge] = sqrt(evec0*evec0 + evec1*evec1)
+elen[edge] = sqrt(evec0*evec0 + evec1*evec1)  = sqrt((J*trev[edge])**2)
 
 trev = triangle_reference_edge_vector
-evec0 = J00 * trev[edge][0] + J01 * trev[edge][1]
+evec0 = J00 * trev[edge][0] + J01 * trev[edge][1]  =  J*trev
 evec1 = J10 * trev[edge][0] + J11 * trev[edge][1]
 evec2 = J20 * trev[edge][0] + J21 * trev[edge][1] # Manifold: triangle in 3D
-elen[edge] = sqrt(evec0*evec0 + evec1*evec1 + evec2*evec2)
+elen[edge] = sqrt(evec0*evec0 + evec1*evec1 + evec2*evec2)  = sqrt((J*trev[edge])**2)
 
 trev = tetrahedron_reference_edge_vector
 evec0 = sum(J[0,k] * trev[edge][k] for k in range(3))
 evec1 = sum(J[1,k] * trev[edge][k] for k in range(3))
 evec2 = sum(J[2,k] * trev[edge][k] for k in range(3))
-elen[edge] = sqrt(evec0*evec0 + evec1*evec1 + evec2*evec2)
+elen[edge] = sqrt(evec0*evec0 + evec1*evec1 + evec2*evec2)  = sqrt((J*trev[edge])**2)
 
 
-# Here's how to compute min/max facet edge length:
+# DONE Here's how to compute min/max facet edge length:
 triangle:
   r = facetarea
 tetrahedron:
@@ -102,14 +102,14 @@ or
 circumradius_interval = cellvolume / 2
 
 
-# Here's how to compute circumradius for a triangle:
+# DONE Here's how to compute circumradius for a triangle:
 e0 = elen[0]
 e1 = elen[1]
 e2 = elen[2]
 circumradius_triangle = (e0*e1*e2) / (4*cellvolume)
 
 
-# Here's how to compute circumradius for a tetrahedron:
+# DONE Here's how to compute circumradius for a tetrahedron:
 # v1v2 = edge length between vertex 1 and 2
 # la,lb,lc = lengths of the sides of an intermediate triangle
 la = v1v2 * v0v3
@@ -343,21 +343,138 @@ class ChangeToReferenceGeometry(ReuseTransformer):
         if not domain.is_piecewise_linear_simplex_domain():
             error("Only know how to compute the circumradius of an affine cell.")
         cellname = domain.cell().cellname()
+        cellvolume = self.cell_volume(CellVolume(domain))
 
         if cellname == "interval":
-            r = 0.5 * self.cell_volume(CellVolume(domain))
+            r = 0.5 * cellvolume
 
         elif cellname == "triangle":
-            r = fixme
+            J = self.jacobian(Jacobian(domain))
+            trev = CellEdgeVectors(domain)
+            num_edges = 3
+            i, j, k = indices(3)
+            elen = [sqrt((J[i,j]*trev[edge,j])*(J[i,k]*trev[edge,k])) for edge in range(num_edges)]
+
+            r = (elen[0] * elen[1] * elen[2]) / (4.0 * cellvolume)
 
         elif cellname == "tetrahedron":
-            r = fixme
+            J = self.jacobian(Jacobian(domain))
+            trev = CellEdgeVectors(domain)
+            num_edges = 6
+            i, j, k = indices(3)
+            elen = [sqrt((J[i,j]*trev[edge,j])*(J[i,k]*trev[edge,k])) for edge in range(num_edges)]
+
+            # elen[3] = length of edge 3
+            # la, lb, lc = lengths of the sides of an intermediate triangle
+            la = elen[3] * elen[2]
+            lb = elen[4] * elen[1]
+            lc = elen[5] * elen[0]
+            # p = perimeter
+            p = (la + lb + lc)
+            # s = semiperimeter
+            s = p / 2
+            # area of intermediate triangle with Herons formula
+            triangle_area = sqrt(s * (s - la) * (s - lb) * (s - lc))
+            r = triangle_area / (6.0 * cellvolume)
 
         else:
             error("Unhandled cell type %s." % cellname)
 
-        #r = self.jacobian(Jacobian(domain))
-        #r0 = reference_cell_volume[domain.cell().cellname()]
+        return r
+
+    def min_cell_edge_length(self, o):
+        domain = o.domain()
+        if not domain.is_piecewise_linear_simplex_domain():
+            error("Only know how to compute the min_cell_edge_length of an affine cell.")
+        cellname = domain.cell().cellname()
+
+        J = self.jacobian(Jacobian(domain))
+        trev = CellEdgeVectors(domain)
+        num_edges = trev.shape()[0]
+        i, j, k = indices(3)
+        elen = [sqrt((J[i,j]*trev[edge,j])*(J[i,k]*trev[edge,k])) for edge in range(num_edges)]
+
+        if cellname == "triangle":
+            r = min_value(elen[0], min_value(elen[1], elen[2]))
+
+        elif cellname == "tetrahedron":
+            min1 = min_value(elen[0], min_value(elen[1], elen[2]))
+            min2 = min_value(elen[3], min_value(elen[4], elen[5]))
+            r = min_value(min1, min2)
+
+        else:
+            error("Unhandled cell type %s." % cellname)
+
+        return r
+
+    def max_cell_edge_length(self, o):
+        domain = o.domain()
+        if not domain.is_piecewise_linear_simplex_domain():
+            error("Only know how to compute the max_cell_edge_length of an affine cell.")
+        cellname = domain.cell().cellname()
+
+        J = self.jacobian(Jacobian(domain))
+        trev = CellEdgeVectors(domain)
+        num_edges = trev.shape()[0]
+        i, j, k = indices(3)
+        elen = [sqrt((J[i,j]*trev[edge,j])*(J[i,k]*trev[edge,k])) for edge in range(num_edges)]
+
+        if cellname == "triangle":
+            r = max_value(elen[0], max_value(elen[1], elen[2]))
+
+        elif cellname == "tetrahedron":
+            max1 = max_value(elen[0], max_value(elen[1], elen[2]))
+            max2 = max_value(elen[3], max_value(elen[4], elen[5]))
+            r = max_value(max1, max2)
+
+        else:
+            error("Unhandled cell type %s." % cellname)
+
+        return r
+
+    def min_facet_edge_length(self, o):
+        domain = o.domain()
+        if not domain.is_piecewise_linear_simplex_domain():
+            error("Only know how to compute the min_facet_edge_length of an affine cell.")
+        cellname = domain.cell().cellname()
+
+        if cellname == "triangle":
+            facet_area = self.facet_area(FacetArea(domain))
+            r = facet_area
+
+        elif cellname == "tetrahedron":
+            J = self.jacobian(Jacobian(domain))
+            trev = FacetEdgeVectors(domain)
+            num_edges = 3
+            i, j, k = indices(3)
+            elen = [sqrt((J[i,j]*trev[edge,j])*(J[i,k]*trev[edge,k])) for edge in range(num_edges)]
+            r = min_value(elen[0], min_value(elen[1], elen[2]))
+
+        else:
+            error("Unhandled cell type %s." % cellname)
+
+        return r
+
+    def max_facet_edge_length(self, o):
+        domain = o.domain()
+        if not domain.is_piecewise_linear_simplex_domain():
+            error("Only know how to compute the max_facet_edge_length of an affine cell.")
+        cellname = domain.cell().cellname()
+
+        if cellname == "triangle":
+            facet_area = self.facet_area(FacetArea(domain))
+            r = facet_area
+
+        elif cellname == "tetrahedron":
+            J = self.jacobian(Jacobian(domain))
+            trev = FacetEdgeVectors(domain)
+            num_edges = 3
+            i, j, k = indices(3)
+            elen = [sqrt((J[i,j]*trev[edge,j])*(J[i,k]*trev[edge,k])) for edge in range(num_edges)]
+            r = max_value(elen[0], max_value(elen[1], elen[2]))
+
+        else:
+            error("Unhandled cell type %s." % cellname)
 
         return r
 
@@ -377,8 +494,8 @@ class ChangeToReferenceGeometry(ReuseTransformer):
                     cell_normal = cross_expr(J[:, 0], J[:, 1])
 
                 elif tdim == 1: # Line in 2D
-                    # TODO: Sign here is ambiguous, which normal?
-                    cell_normal = as_vector((J[1, 0], -J[0, 0]))
+                    # TODO: Document which normal direction this is
+                    cell_normal = as_vector((-J[1, 0], J[0, 0]))
 
                 i = Index()
                 cell_normal = cell_normal / sqrt(cell_normal[i]*cell_normal[i])

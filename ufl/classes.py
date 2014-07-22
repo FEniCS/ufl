@@ -54,7 +54,7 @@ from ufl.geometry import (
     CellFacetJacobian, CellFacetJacobianDeterminant, CellFacetJacobianInverse,
     CellEdgeVectors, FacetEdgeVectors,
     FacetNormal, CellNormal,
-    CellVolume, Circumradius,
+    CellVolume, Circumradius, MinCellEdgeLength, MaxCellEdgeLength,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
     CellOrientation, FacetOrientation, QuadratureWeight,
     )

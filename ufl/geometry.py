@@ -576,20 +576,15 @@ class FacetArea(GeometricFacetQuantity): # FIXME: Should this be allowed for int
     __slots__ = ()
     name = "facetarea"
 
-#class FacetDiameter(GeometricFacetQuantity):
-#    """UFL geometry representation: The diameter of the facet."""
-#    __slots__ = ()
-#    name = "facetdiameter"
+class MinCellEdgeLength(GeometricCellQuantity):
+    """UFL geometry representation: The minimum edge length of the cell."""
+    __slots__ = ()
+    name = "mincelledgelength"
 
-#class MinCellEdgeLength(GeometricCellQuantity):
-#    """UFL geometry representation: The minimum edge length of the cell."""
-#    __slots__ = ()
-#    name = "mincelledgelength"
-
-#class MaxCellEdgeLength(GeometricCellQuantity):
-#    """UFL geometry representation: The maximum edge length of the cell."""
-#    __slots__ = ()
-#    name = "maxcelledgelength"
+class MaxCellEdgeLength(GeometricCellQuantity):
+    """UFL geometry representation: The maximum edge length of the cell."""
+    __slots__ = ()
+    name = "maxcelledgelength"
 
 class MinFacetEdgeLength(GeometricFacetQuantity):
     """UFL geometry representation: The minimum edge length of the facet."""
