@@ -27,7 +27,7 @@ from ufl.assertions import ufl_assert
 from ufl.common import istr, EmptyDict
 from ufl.terminal import Terminal
 from ufl.protocols import id_or_none
-from ufl.cell import as_cell, cellname2dim, cell2dim, cellname2facetname, affine_cells, Cell, ProductCell
+from ufl.cell import as_cell, cellname2dim, cell2dim, cellname2facetname, affine_cells, Cell, ProductCell, num_cell_edges
 from ufl.domain import as_domain, Domain, extract_domains, join_domains, ProductDomain
 
 """
@@ -323,6 +323,48 @@ class CellFacetJacobian(GeometricFacetQuantity): # dX/dXf
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
         # This is always a constant mapping between two reference coordinate systems.
+        return True
+
+class CellEdgeVectors(GeometricCellQuantity):
+    """UFL geometry representation: The vectors between reference cell vertices for each edge in cell."""
+    __slots__ = ()
+    name = "CEV"
+
+    def __init__(self, domain):
+        GeometricCellQuantity.__init__(self, domain)
+        t = self._domain.topological_dimension()
+        ufl_assert(t > 1, "CellEdgeVectors is only defined for topological dimensions >= 2.")
+
+    def shape(self):
+        cell = self.domain().cell()
+        ne = num_cell_edges[cell.cellname()]
+        t = cell.topological_dimension()
+        return (ne, t)
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        # This is always constant for a given cell type
+        return True
+
+class FacetEdgeVectors(GeometricFacetQuantity):
+    """UFL geometry representation: The vectors between reference cell vertices for each edge in current facet."""
+    __slots__ = ()
+    name = "FEV"
+
+    def __init__(self, domain):
+        GeometricFacetQuantity.__init__(self, domain)
+        t = self._domain.topological_dimension()
+        ufl_assert(t > 2, "FacetEdgeVectors is only defined for topological dimensions >= 3.")
+
+    def shape(self):
+        cell = self.domain().cell()
+        ne = num_cell_edges[cell.facet_cellname()]
+        t = cell.topological_dimension()
+        return (ne, t)
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        # This is always constant for a given cell type
         return True
 
 

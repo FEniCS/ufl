@@ -84,6 +84,13 @@ reference_cell_volume = {
     "hexahedron": 1.0
     }
 
+num_cell_edges = {
+    "triangle":      3,
+    "tetrahedron":   6,
+    "quadrilateral": 4,
+    "hexahedron":    12,
+    }
+
 affine_cells = {"vertex", "interval", "triangle", "tetrahedron"}
 
 # Valid UFL cellnames

@@ -1,5 +1,5 @@
 """This file is useful for external code like tests and form compilers,
-since it enables the syntax "from ufl.classes import FooBar" for getting
+since it enables the syntax "from ufl.classes import CellFacetooBar" for getting
 implementation details not exposed through the default ufl namespace.
 It also contains functionality used by algorithms for dealing with groups
 of classes, and for mapping types to different handler functions."""
@@ -52,6 +52,7 @@ from ufl.geometry import (
     Jacobian, JacobianDeterminant, JacobianInverse,
     FacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse,
     CellFacetJacobian, CellFacetJacobianDeterminant, CellFacetJacobianInverse,
+    CellEdgeVectors, FacetEdgeVectors,
     FacetNormal, CellNormal,
     CellVolume, Circumradius,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,

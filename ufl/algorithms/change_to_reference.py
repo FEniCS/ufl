@@ -25,6 +25,7 @@ from ufl.classes import (Terminal, ReferenceGrad, Grad,
                          Jacobian, JacobianInverse, JacobianDeterminant,
                          FacetJacobian, FacetJacobianInverse, FacetJacobianDeterminant,
                          CellFacetJacobian,
+                         CellEdgeVectors, FacetEdgeVectors,
                          FacetNormal, CellNormal,
                          CellOrientation, FacetOrientation, QuadratureWeight)
 from ufl.constantvalue import as_ufl
@@ -77,20 +78,27 @@ evec2 = J20 * trev[edge][0] + J21 * trev[edge][1] # Manifold: triangle in 3D
 elen[edge] = sqrt(evec0*evec0 + evec1*evec1 + evec2*evec2)
 
 trev = tetrahedron_reference_edge_vector
-evec0 = J00 * trev[edge][0] + J01 * trev[edge][1] + J02 * trev[edge][2]
-evec1 = J10 * trev[edge][0] + J11 * trev[edge][1] + J12 * trev[edge][2]
-evec2 = J20 * trev[edge][0] + J21 * trev[edge][1] + J22 * trev[edge][2]
+evec0 = sum(J[0,k] * trev[edge][k] for k in range(3))
+evec1 = sum(J[1,k] * trev[edge][k] for k in range(3))
+evec2 = sum(J[2,k] * trev[edge][k] for k in range(3))
 elen[edge] = sqrt(evec0*evec0 + evec1*evec1 + evec2*evec2)
 
 
 # Here's how to compute min/max facet edge length:
-triangle: == facetarea
-tetrahedron: min(elen[edge] for edge in range(6))
-or min( min(elen[0], min(elen[1], elen[2])), min(elen[3], min(elen[4], elen[5])) )
+triangle:
+  r = facetarea
+tetrahedron:
+  min(elen[edge] for edge in range(6))
+or
+  min( min(elen[0], min(elen[1], elen[2])), min(elen[3], min(elen[4], elen[5])) )
+or
+  min1 = min_value(elen[0], min_value(elen[1], elen[2]))
+  min2 = min_value(elen[3], min_value(elen[4], elen[5]))
+  r = min_value(min1, min2)
 (want proper Min/Max types for this!)
 
 
-# Here's how to compute circumradius for an interval:
+# DONE Here's how to compute circumradius for an interval:
 circumradius_interval = cellvolume / 2
 
 
@@ -216,7 +224,7 @@ class ChangeToReferenceGrad(ReuseTransformer):
 class ChangeToReferenceGeometry(ReuseTransformer):
     def __init__(self, physical_coordinates_known, coordinate_coefficient_mapping):
         ReuseTransformer.__init__(self)
-        self.coordinate_coefficient_mapping = coordinate_coefficient_mapping or {} # FIXME: Use this!
+        self.coordinate_coefficient_mapping = coordinate_coefficient_mapping or {}
         self.physical_coordinates_known = physical_coordinates_known
         self._rcache = {}
 
@@ -329,6 +337,29 @@ class ChangeToReferenceGeometry(ReuseTransformer):
         r = self.facet_jacobian_determinant(FacetJacobianDeterminant(domain))
         r0 = reference_cell_volume[domain.cell().facet_cellname()]
         return abs(r * r0)
+
+    def circumradius(self, o):
+        domain = o.domain()
+        if not domain.is_piecewise_linear_simplex_domain():
+            error("Only know how to compute the circumradius of an affine cell.")
+        cellname = domain.cell().cellname()
+
+        if cellname == "interval":
+            r = 0.5 * self.cell_volume(CellVolume(domain))
+
+        elif cellname == "triangle":
+            r = fixme
+
+        elif cellname == "tetrahedron":
+            r = fixme
+
+        else:
+            error("Unhandled cell type %s." % cellname)
+
+        #r = self.jacobian(Jacobian(domain))
+        #r0 = reference_cell_volume[domain.cell().cellname()]
+
+        return r
 
     def cell_normal(self, o):
         warning("Untested complicated code for cell normal. Please report if this works correctly or not.")
@@ -507,11 +538,6 @@ def compute_integrand_scaling_factor(domain, integral_type):
 
 def change_integrand_geometry_representation(integrand, scale, integral_type):
     """Change integrand geometry to the right representations."""
-
-    # FIXME: We have a serious problem here:
-    # - Applying propagate_restrictions before change_integrand_geometry_representation will fail because we need grad(u)('+') not grad(u('+'))
-    # - Applying propagate_restrictions after change_integrand_geometry_representation will fail to set e.g. n('+') = -n('-') because n is rewritten
-    # - Possible solution: treat grad(u('+')) in grad handler above as grad(u)('+') and apply propagate_restrictions first
 
     integrand = change_to_reference_grad(integrand)
 
