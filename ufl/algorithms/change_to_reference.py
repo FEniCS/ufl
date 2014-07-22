@@ -159,15 +159,19 @@ class ChangeToReferenceGrad(ReuseTransformer):
         ReuseTransformer.__init__(self)
 
     def grad(self, o):
-
         # FIXME: Handle HDiv elements with contravariant piola mapping specially?
         # FIXME: Handle HCurl elements with covariant piola mapping specially?
 
-        # Peel off the Grads and count them
+        # Peel off the Grads and count them, and get restriction if it's between the grad and the terminal
         ngrads = 0
-        while isinstance(o, Grad):
-            o, = o.operands()
-            ngrads += 1
+        restricted = ''
+        while not isinstance(o, Terminal):
+            if isinstance(o, Grad):
+                o, = o.operands()
+                ngrads += 1
+            elif isinstance(o, Restricted):
+                o, = o.operands()
+                restricted = o.side()
         f = o
 
         # Get domain and create Jacobian inverse object
@@ -182,6 +186,11 @@ class ChangeToReferenceGrad(ReuseTransformer):
         ii = indices(f.rank()) # Indices to get to the scalar component of f
         jj = indices(ngrads)   # Indices to sum over the local gradient axes with the inverse Jacobian
         kk = indices(ngrads)   # Indices for the leftover inverse Jacobian axes
+
+        # Preserve restricted property
+        if restricted:
+            Jinv = Jinv(restricted)
+            f = f(restricted)
 
         # Apply the same number of ReferenceGrad without mappings
         lgrad = f

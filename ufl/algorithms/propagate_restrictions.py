@@ -114,8 +114,8 @@ class RestrictionPropagator(ReuseTransformer):
     cell_facet_jacobian_determinant = _require_restriction # ...
     cell_facet_jacobian_inverse = _require_restriction     # ...
 
-    #facet_normal = _opposite           # Opposite pointing vector depending on cell # Enabling this changes the FFC reference code too much, will test if the performance is just as good later.
-    facet_normal = _require_restriction # Direction depends on cell, make it explicit
+    facet_normal = _opposite           # Opposite pointing vector depending on cell # Enabling this changes the FFC reference code too much, will test if the performance is just as good later.
+    #facet_normal = _require_restriction # Direction depends on cell, make it explicit
     cell_normal = _require_restriction  # Property of cell
 
     #facet_tangents = _default_restricted # Independent of cell
