@@ -27,7 +27,7 @@ from itertools import chain
 
 def domain_numbering(*cells):
     renumbering = {}
-    for i,cell in enumerate(cells):
+    for i, cell in enumerate(cells):
         domain = as_domain(cell)
         renumbering[domain] = i
     return renumbering

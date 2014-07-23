@@ -351,7 +351,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
             trev = CellEdgeVectors(domain)
             num_edges = 3
             i, j, k = indices(3)
-            elen = [sqrt((J[i,j]*trev[edge,j])*(J[i,k]*trev[edge,k])) for edge in range(num_edges)]
+            elen = [sqrt((J[i, j]*trev[edge, j])*(J[i, k]*trev[edge, k])) for edge in range(num_edges)]
 
             r = (elen[0] * elen[1] * elen[2]) / (4.0 * cellvolume)
 
@@ -360,7 +360,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
             trev = CellEdgeVectors(domain)
             num_edges = 6
             i, j, k = indices(3)
-            elen = [sqrt((J[i,j]*trev[edge,j])*(J[i,k]*trev[edge,k])) for edge in range(num_edges)]
+            elen = [sqrt((J[i, j]*trev[edge, j])*(J[i, k]*trev[edge, k])) for edge in range(num_edges)]
 
             # elen[3] = length of edge 3
             # la, lb, lc = lengths of the sides of an intermediate triangle
@@ -390,7 +390,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
         trev = CellEdgeVectors(domain)
         num_edges = trev.shape()[0]
         i, j, k = indices(3)
-        elen = [sqrt((J[i,j]*trev[edge,j])*(J[i,k]*trev[edge,k])) for edge in range(num_edges)]
+        elen = [sqrt((J[i, j]*trev[edge, j])*(J[i, k]*trev[edge, k])) for edge in range(num_edges)]
 
         if cellname == "triangle":
             r = min_value(elen[0], min_value(elen[1], elen[2]))
@@ -415,7 +415,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
         trev = CellEdgeVectors(domain)
         num_edges = trev.shape()[0]
         i, j, k = indices(3)
-        elen = [sqrt((J[i,j]*trev[edge,j])*(J[i,k]*trev[edge,k])) for edge in range(num_edges)]
+        elen = [sqrt((J[i, j]*trev[edge, j])*(J[i, k]*trev[edge, k])) for edge in range(num_edges)]
 
         if cellname == "triangle":
             r = max_value(elen[0], max_value(elen[1], elen[2]))
@@ -445,7 +445,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
             trev = FacetEdgeVectors(domain)
             num_edges = 3
             i, j, k = indices(3)
-            elen = [sqrt((J[i,j]*trev[edge,j])*(J[i,k]*trev[edge,k])) for edge in range(num_edges)]
+            elen = [sqrt((J[i, j]*trev[edge, j])*(J[i, k]*trev[edge, k])) for edge in range(num_edges)]
             r = min_value(elen[0], min_value(elen[1], elen[2]))
 
         else:
@@ -468,7 +468,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
             trev = FacetEdgeVectors(domain)
             num_edges = 3
             i, j, k = indices(3)
-            elen = [sqrt((J[i,j]*trev[edge,j])*(J[i,k]*trev[edge,k])) for edge in range(num_edges)]
+            elen = [sqrt((J[i, j]*trev[edge, j])*(J[i, k]*trev[edge, k])) for edge in range(num_edges)]
             r = max_value(elen[0], max_value(elen[1], elen[2]))
 
         else:
@@ -578,7 +578,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
             elif tdim == 1:
                 J = self.jacobian(Jacobian(domain)) # dx/dX
                 fo = FacetOrientation(domain)
-                ndir = fo * J[:,0]
+                ndir = fo * J[:, 0]
                 if gdim == 1:
                     nlen = abs(ndir[0])
                 else:
