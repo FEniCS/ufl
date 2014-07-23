@@ -37,8 +37,6 @@ from ufl.tensors import as_tensor, as_vector
 from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
 from ufl.operators import sqrt, max_value, min_value
 
-from ufl.cell import reference_cell_volume
-
 
 """
 # Some notes:
@@ -327,7 +325,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
         if not domain.is_piecewise_linear_simplex_domain():
             error("Only know how to compute the cell volume of an affine cell.")
         r = self.jacobian_determinant(JacobianDeterminant(domain))
-        r0 = reference_cell_volume[domain.cell().cellname()]
+        r0 = domain.cell().reference_volume()
         return abs(r * r0)
 
     def facet_area(self, o):
@@ -335,7 +333,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
         if not domain.is_piecewise_linear_simplex_domain():
             error("Only know how to compute the facet area of an affine cell.")
         r = self.facet_jacobian_determinant(FacetJacobianDeterminant(domain))
-        r0 = reference_cell_volume[domain.cell().facet_cellname()]
+        r0 = domain.cell().reference_facet_volume()
         return abs(r * r0)
 
     def circumradius(self, o):

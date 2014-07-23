@@ -27,7 +27,7 @@ from ufl.assertions import ufl_assert
 from ufl.common import istr, EmptyDict
 from ufl.terminal import Terminal
 from ufl.protocols import id_or_none
-from ufl.cell import as_cell, cellname2dim, cell2dim, cellname2facetname, affine_cells, Cell, ProductCell, num_cell_edges
+from ufl.cell import as_cell, affine_cells, Cell, ProductCell
 from ufl.domain import as_domain, Domain, extract_domains, join_domains, ProductDomain
 
 """
@@ -337,7 +337,7 @@ class CellEdgeVectors(GeometricCellQuantity):
 
     def shape(self):
         cell = self.domain().cell()
-        ne = num_cell_edges[cell.cellname()]
+        ne = cell.num_edges()
         t = cell.topological_dimension()
         return (ne, t)
 
@@ -358,9 +358,9 @@ class FacetEdgeVectors(GeometricFacetQuantity):
 
     def shape(self):
         cell = self.domain().cell()
-        ne = num_cell_edges[cell.facet_cellname()]
+        nfe = cell.num_facet_edges()
         t = cell.topological_dimension()
-        return (ne, t)
+        return (nfe, t)
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
@@ -478,12 +478,17 @@ class FacetNormal(GeometricFacetQuantity):
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
         # TODO: For product cells, this depends on which facet. Seems like too much work to fix right now.
+
         # Only true for a piecewise linear coordinate field with simplex _facets_
         x = self._domain.coordinates()
-        facet_cellname = cellname2facetname.get(self._domain.cell().cellname()) # Allowing None if unknown..
-        return (x is None or x.element().degree() == 1) and (facet_cellname in affine_cells) # .. which will become false.
+        is_piecewise_linear = (x is None or x.element().degree() == 1)
 
-# TODO: Implement in change_to_reference_geometry, should it be CellNormals? For interval in 3D we have two!
+        facet_cellname = self._domain.cell().facet_cellname()
+        has_simplex_facets = (facet_cellname in affine_cells)
+
+        return is_piecewise_linear and has_simplex_facets
+
+# TODO: Should it be CellNormals? For interval in 3D we have two!
 class CellNormal(GeometricCellQuantity):
     """UFL geometry representation: The upwards pointing normal vector of the current manifold cell."""
     __slots__ = ()
@@ -512,10 +517,15 @@ class CellNormal(GeometricCellQuantity):
 #    def is_cellwise_constant(self): # NB! Copied from FacetNormal
 #        "Return whether this expression is spatially constant over each cell."
 #        # TODO: For product cells, this depends on which facet. Seems like too much work to fix right now.
+#
 #        # Only true for a piecewise linear coordinate field with simplex _facets_
 #        x = self._domain.coordinates()
-#        facet_cellname = cellname2facetname.get(self._domain.cell().cellname()) # Allowing None if unknown..
-#        return (x is None or x.element().degree() == 1) and (facet_cellname in affine_cells) # .. which will become false.
+#        is_piecewise_linear = (x is None or x.element().degree() == 1)
+#
+#        facet_cellname = self._domain.cell().facet_cellname()
+#        has_simplex_facets = (facet_cellname in affine_cells)
+#
+#        return is_piecewise_linear and has_simplex_facets
 
 # TODO: Implement in change_to_reference_geometry and enable
 #class CellTangents(GeometricCellQuantity):
