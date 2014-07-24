@@ -32,6 +32,8 @@ from ufl.form import Form
 
 from ufl.sorting import cmp_expr
 from ufl.sorting import sorted_expr
+from ufl.utils.sorting import canonicalize_metadata
+
 
 class IntegralData(object):
     """Utility class with the members
@@ -99,14 +101,17 @@ class ExprTupleKey(object):
     def __init__(self, x):
         self.x = x
     def __lt__(self, other):
+        # Comparing expression first
         c = cmp_expr(self.x[0], other.x[0])
         if c < 0:
             return True
         elif c > 0:
             return False
         else:
-            # NB! Comparing form compiler data here! Assuming this is an ok operation.
-            return dicts_lt(self.x[1], other.x[1])
+            # Comparing form compiler data
+            mds = canonicalize_metadata(self.x[1])
+            mdo = canonicalize_metadata(other.x[1])
+            return mds < mdo
 
 def expr_tuple_key(expr):
     return ExprTupleKey(expr)
@@ -198,6 +203,7 @@ def rearrange_integrals_by_single_subdomains(integrals):
 
     return single_subdomain_integrals
 
+
 def accumulate_integrands_with_same_metadata(integrals):
     """
     Taking input on the form:
@@ -209,17 +215,14 @@ def accumulate_integrands_with_same_metadata(integrals):
 
     where integrand0 < integrand1 by the canonical ufl expression ordering criteria.
     """
-    # Group integrals by compiler data object id
+    # Group integrals by compiler data hash
     by_cdid = {}
     for itg in integrals:
         cd = itg.metadata()
-        # TODO: Use hash instead of id? Safe to assume
-        #       this to be a dict of basic python values?
-        cdid = id(cd)
-        if cdid in by_cdid:
-            by_cdid[cdid][0].append(itg)
-        else:
-            by_cdid[cdid] = ([itg], cd)
+        cdid = hash(canonicalize_metadata(cd))
+        if cdid not in by_cdid:
+            by_cdid[cdid] = ([], cd)
+        by_cdid[cdid][0].append(itg)
 
     # Accumulate integrands separately for each compiler data object id
     for cdid in by_cdid:

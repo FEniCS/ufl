@@ -62,3 +62,30 @@ def sorted_by_key(mapping):
     "Sort dict items by key, allowing different key types."
     # Python3 doesn't allow comparing builtins of different type, therefore the typename trick here
     return sorted(iteritems(mapping), key=lambda x: (type(x[0]).__name__, x[0]))
+
+
+def canonicalize_metadata(metadata):
+    """Assuming metadata to be a dict with string keys and builtin python types as values.
+
+    Transform dict to a list of items ordered by key,
+    with subdicts converted the same way recursively.
+    """
+    if metadata is None:
+        return ()
+
+    if isinstance(metadata, dict):
+        keys = sorted(metadata.keys())
+        values = [metadata[key] for key in keys]
+    elif isinstance(metadata, (tuple, list)):
+        values = metadata
+
+    newvalues = []
+    for value in values:
+        if isinstance(value, (dict, list, tuple)):
+            value = canonicalize_metadata(value)
+        newvalues.append(value)
+
+    if isinstance(metadata, dict):
+        return tuple(zip(keys, values))
+    else:
+        return tuple(values)
