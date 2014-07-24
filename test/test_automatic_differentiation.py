@@ -178,7 +178,7 @@ class ForwardADTestCase(UflTestCase):
     def setUp(self):
         super(ForwardADTestCase, self).setUp()
         self.expr = {}
-        self.expr[1] = ExpressionCollection(cell1D)
+        self.expr[1] = ExpressionCollection(interval)
         self.expr[2] = ExpressionCollection(cell2D)
         self.expr[3] = ExpressionCollection(cell3D)
 

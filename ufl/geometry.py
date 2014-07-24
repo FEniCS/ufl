@@ -27,7 +27,7 @@ from ufl.assertions import ufl_assert
 from ufl.common import istr, EmptyDict
 from ufl.terminal import Terminal
 from ufl.protocols import id_or_none
-from ufl.cell import as_cell, cellname2dim, cell2dim, cellname2facetname, affine_cells, Cell, ProductCell
+from ufl.cell import as_cell, affine_cells, Cell, ProductCell
 from ufl.domain import as_domain, Domain, extract_domains, join_domains, ProductDomain
 
 """
@@ -325,6 +325,48 @@ class CellFacetJacobian(GeometricFacetQuantity): # dX/dXf
         # This is always a constant mapping between two reference coordinate systems.
         return True
 
+class CellEdgeVectors(GeometricCellQuantity):
+    """UFL geometry representation: The vectors between reference cell vertices for each edge in cell."""
+    __slots__ = ()
+    name = "CEV"
+
+    def __init__(self, domain):
+        GeometricCellQuantity.__init__(self, domain)
+        t = self._domain.topological_dimension()
+        ufl_assert(t > 1, "CellEdgeVectors is only defined for topological dimensions >= 2.")
+
+    def shape(self):
+        cell = self.domain().cell()
+        ne = cell.num_edges()
+        t = cell.topological_dimension()
+        return (ne, t)
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        # This is always constant for a given cell type
+        return True
+
+class FacetEdgeVectors(GeometricFacetQuantity):
+    """UFL geometry representation: The vectors between reference cell vertices for each edge in current facet."""
+    __slots__ = ()
+    name = "FEV"
+
+    def __init__(self, domain):
+        GeometricFacetQuantity.__init__(self, domain)
+        t = self._domain.topological_dimension()
+        ufl_assert(t > 2, "FacetEdgeVectors is only defined for topological dimensions >= 3.")
+
+    def shape(self):
+        cell = self.domain().cell()
+        nfe = cell.num_facet_edges()
+        t = cell.topological_dimension()
+        return (nfe, t)
+
+    def is_cellwise_constant(self):
+        "Return whether this expression is spatially constant over each cell."
+        # This is always constant for a given cell type
+        return True
+
 
 # --- Determinants (signed or pseudo) of geometry mapping Jacobians
 
@@ -436,11 +478,17 @@ class FacetNormal(GeometricFacetQuantity):
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
         # TODO: For product cells, this depends on which facet. Seems like too much work to fix right now.
+
         # Only true for a piecewise linear coordinate field with simplex _facets_
         x = self._domain.coordinates()
-        facet_cellname = cellname2facetname.get(self._domain.cell().cellname()) # Allowing None if unknown..
-        return (x is None or x.element().degree() == 1) and (facet_cellname in affine_cells) # .. which will become false.
+        is_piecewise_linear = (x is None or x.element().degree() == 1)
 
+        facet_cellname = self._domain.cell().facet_cellname()
+        has_simplex_facets = (facet_cellname in affine_cells)
+
+        return is_piecewise_linear and has_simplex_facets
+
+# TODO: Should it be CellNormals? For interval in 3D we have two!
 class CellNormal(GeometricCellQuantity):
     """UFL geometry representation: The upwards pointing normal vector of the current manifold cell."""
     __slots__ = ()
@@ -450,7 +498,7 @@ class CellNormal(GeometricCellQuantity):
         g = self._domain.geometric_dimension()
         return (g,)
 
-# TODO: Implement in the rest of fenics
+# TODO: Implement in change_to_reference_geometry and enable
 #class FacetTangents(GeometricFacetQuantity):
 #    """UFL geometry representation: The tangent vectors of the current facet."""
 #    __slots__ = ()
@@ -469,12 +517,17 @@ class CellNormal(GeometricCellQuantity):
 #    def is_cellwise_constant(self): # NB! Copied from FacetNormal
 #        "Return whether this expression is spatially constant over each cell."
 #        # TODO: For product cells, this depends on which facet. Seems like too much work to fix right now.
+#
 #        # Only true for a piecewise linear coordinate field with simplex _facets_
 #        x = self._domain.coordinates()
-#        facet_cellname = cellname2facetname.get(self._domain.cell().cellname()) # Allowing None if unknown..
-#        return (x is None or x.element().degree() == 1) and (facet_cellname in affine_cells) # .. which will become false.
+#        is_piecewise_linear = (x is None or x.element().degree() == 1)
+#
+#        facet_cellname = self._domain.cell().facet_cellname()
+#        has_simplex_facets = (facet_cellname in affine_cells)
+#
+#        return is_piecewise_linear and has_simplex_facets
 
-# TODO: Implement in the rest of fenics
+# TODO: Implement in change_to_reference_geometry and enable
 #class CellTangents(GeometricCellQuantity):
 #    """UFL geometry representation: The tangent vectors of the current manifold cell."""
 #    __slots__ = ()
@@ -533,10 +586,15 @@ class FacetArea(GeometricFacetQuantity): # FIXME: Should this be allowed for int
     __slots__ = ()
     name = "facetarea"
 
-#class FacetDiameter(GeometricFacetQuantity):
-#    """UFL geometry representation: The diameter of the facet."""
-#    __slots__ = ()
-#    name = "facetdiameter"
+class MinCellEdgeLength(GeometricCellQuantity):
+    """UFL geometry representation: The minimum edge length of the cell."""
+    __slots__ = ()
+    name = "mincelledgelength"
+
+class MaxCellEdgeLength(GeometricCellQuantity):
+    """UFL geometry representation: The maximum edge length of the cell."""
+    __slots__ = ()
+    name = "maxcelledgelength"
 
 class MinFacetEdgeLength(GeometricFacetQuantity):
     """UFL geometry representation: The minimum edge length of the facet."""

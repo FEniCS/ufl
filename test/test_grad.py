@@ -17,7 +17,7 @@ from ufl.algorithms import compute_form_data
 class GradTestCase(UflTestCase):
 
     def xtest_grad_div_curl_properties_in_1D(self):
-       self._test_grad_div_curl_properties(cell1D)
+       self._test_grad_div_curl_properties(interval)
 
     def test_grad_div_curl_properties_in_2D(self):
        self._test_grad_div_curl_properties(cell2D)

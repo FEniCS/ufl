@@ -49,6 +49,9 @@ class Restricted(Operator):
     def index_dimensions(self):
         return self._f.index_dimensions()
 
+    def side(self):
+        return self._side
+
     def evaluate(self, x, mapping, component, index_values):
         return self._f.evaluate(x, mapping, component, index_values)
 

@@ -306,7 +306,7 @@ class Form(object):
         self._integration_domains = tuple(sorted(integration_domains, key=lambda x: x.label()))
 
         # TODO: Not including domains from coefficients and arguments here, may need that later
-        self._domain_numbering = dict((d,i) for i,d in enumerate(self._integration_domains))
+        self._domain_numbering = dict((d, i) for i, d in enumerate(self._integration_domains))
 
     def _analyze_subdomain_data(self):
         integration_domains = self.domains()
@@ -359,7 +359,7 @@ class Form(object):
         # Define canonical numbering of arguments and coefficients
         self._arguments = tuple(sorted(set(arguments), key=lambda x: x.number()))
         self._coefficients = tuple(sorted(set(coefficients), key=lambda x: x.count()))
-        self._coefficient_numbering = dict((c,i) for i,c in enumerate(self._coefficients))
+        self._coefficient_numbering = dict((c, i) for i, c in enumerate(self._coefficients))
 
     def _compute_renumbering(self):
         # Include integration domains and coefficients in renumbering

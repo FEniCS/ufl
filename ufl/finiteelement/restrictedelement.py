@@ -23,7 +23,7 @@
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.common import product, istr, EmptyDict
-from ufl.geometry import Cell, as_cell, cellname2facetname
+from ufl.geometry import Cell, as_cell
 from ufl.log import info_blue, warning, warning_blue, error
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
@@ -46,7 +46,7 @@ class RestrictedElement(FiniteElementBase):
         elif cell_restriction == "facet":
             # Create a cell
             cell = element.cell()
-            self._cell_restriction = Cell(cellname2facetname[cell.cellname()],
+            self._cell_restriction = Cell(cell.facet_cellname(),
                                           geometric_dimension=cell.geometric_dimension())
 
         self._repr = "RestrictedElement(%r, %r)" % (self._element, self._cell_restriction)

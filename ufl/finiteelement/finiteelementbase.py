@@ -24,7 +24,7 @@ from six.moves import zip
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.common import product, istr, EmptyDict
-from ufl.geometry import Cell, as_cell, as_domain, Domain, cellname2facetname, ProductCell
+from ufl.geometry import Cell, as_cell, as_domain, Domain
 from ufl.log import info_blue, warning, warning_blue, error
 
 class FiniteElementBase(object):

@@ -260,6 +260,11 @@ class SumDegreeEstimator(Transformer):
         quadrature order must be adjusted manually."""
         return max(t, f)
 
+    def min_value(self, v, l, r):
+        """Same as conditional."""
+        return max(l, r)
+    max_value = min_value
+
 def estimate_total_polynomial_degree(e, default_degree=1, element_replace_map={}):
     """Estimate total polynomial degree of integrand.
 

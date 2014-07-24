@@ -212,7 +212,7 @@ def compute_form_data(form, apply_propagate_restrictions=True):
         reduced_coefficients_set.update(itg_data.integral_coefficients)
     self.reduced_coefficients = sorted(reduced_coefficients_set, key=lambda c: c.count())
     self.num_coefficients = len(self.reduced_coefficients)
-    self.original_coefficient_positions = [i for i,c in enumerate(form.coefficients())
+    self.original_coefficient_positions = [i for i, c in enumerate(form.coefficients())
                                            if c in self.reduced_coefficients]
 
     # Store back into integral data which form coefficients are used by each integral
