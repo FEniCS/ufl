@@ -21,7 +21,7 @@ from six.moves import xrange as range
 
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
-from ufl.classes import (Terminal, ReferenceGrad, Grad,
+from ufl.classes import (Terminal, ReferenceGrad, Grad, Restricted,
                          Jacobian, JacobianInverse, JacobianDeterminant,
                          FacetJacobian, FacetJacobianInverse, FacetJacobianDeterminant,
                          CellFacetJacobian,
@@ -176,8 +176,8 @@ class ChangeToReferenceGrad(ReuseTransformer):
                 o, = o.operands()
                 ngrads += 1
             elif isinstance(o, Restricted):
-                o, = o.operands()
                 restricted = o.side()
+                o, = o.operands()
         f = o
 
         # Get domain and create Jacobian inverse object
