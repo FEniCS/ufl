@@ -79,6 +79,7 @@ def canonicalize_metadata(metadata):
 
     if isinstance(metadata, dict):
         keys = sorted(metadata.keys())
+        assert all(isinstance(key, str) for key in keys)
         values = [metadata[key] for key in keys]
     elif isinstance(metadata, (tuple, list)):
         values = metadata
@@ -95,6 +96,6 @@ def canonicalize_metadata(metadata):
         newvalues.append(value)
 
     if isinstance(metadata, dict):
-        return tuple(zip(keys, values))
+        return tuple(zip(keys, newvalues))
     else:
-        return tuple(values)
+        return tuple(newvalues)
