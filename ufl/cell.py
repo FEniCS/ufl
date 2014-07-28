@@ -326,8 +326,11 @@ class OuterProductCell(Cell):
 
     def num_entities(self, dim):
         "The number of cell entities of given topological dimension."
-        error("Not implemented for OuterProductCell.")
-        return num_cell_entities[self.cellname()][dim] # TODO: Not sure how to implement this in general
+        # Return None unless asked for the number of vertices / volumes
+        templist = [None,] * (self.topological_dimension() + 1)
+        templist[0] = self._A.num_vertices() * self._B.num_vertices()
+        templist[-1] = 1
+        return templist[dim]
 
     def reference_volume(self):
         "The volume of a reference cell of the same type."
