@@ -56,7 +56,7 @@ class Transformer(object):
                 # Iterate over the inheritance chain (NB! This assumes that all UFL classes inherits a single Expr subclass and that this is the first superclass!)
                 for c in classobject.mro():
                     # Register classobject with handler for the first encountered superclass
-                    name = c._handlername
+                    name = c._ufl_handler_name_
                     function = getattr(self, name, None)
                     if function:
                         cache_data[classobject._ufl_typecode_] = name, is_post_handler(function)

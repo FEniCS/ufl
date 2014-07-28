@@ -40,7 +40,7 @@ class MultiFunction(object):
                 # is always from the UFL Expr hierarchy!)
                 for c in classobject.mro():
                     # Register classobject with handler for the first encountered superclass
-                    name = c._handlername
+                    name = c._ufl_handler_name_
                     if getattr(self, name, None):
                         cache_data[classobject._ufl_typecode_] = name
                         break
