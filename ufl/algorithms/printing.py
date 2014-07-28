@@ -124,7 +124,7 @@ def _indent_string(n):
 
 def _tree_format_expression(expression, indentation, parentheses):
     ind = _indent_string(indentation)
-    if isinstance(expression, Terminal):
+    if expression._ufl_is_terminal_:
         s = ind + "%s" % repr(expression)
     else:
         sops = [_tree_format_expression(o, indentation+1, parentheses) for o in expression.operands()]

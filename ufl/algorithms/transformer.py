@@ -226,7 +226,7 @@ class VariableStripper(ReuseTransformer):
 def transform(expression, handlers):
     """Convert a UFLExpression according to rules defined by
     the mapping handlers = dict: class -> conversion function."""
-    if isinstance(expression, Terminal):
+    if expression._ufl_is_terminal_:
         ops = ()
     else:
         ops = [transform(o, handlers) for o in expression.operands()]

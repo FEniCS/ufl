@@ -99,7 +99,7 @@ def extract_terminals(a):
     "Build a set of all Terminal objects in a."
     return set(o for e in iter_expressions(a) \
                  for o in post_traversal(e) \
-                 if isinstance(o, Terminal))
+                 if o._ufl_is_terminal_)
 
 def sorted_by_number_and_part(seq):
     return sorted(seq, key=lambda x: (x.number(), x.part()))

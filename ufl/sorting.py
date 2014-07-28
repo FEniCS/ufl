@@ -50,7 +50,7 @@ def cmp_expr(a, b):
 
     # Now we know that the type is the same, check further based on type specific properties.
     # Is it a...
-    if isinstance(a, Terminal):
+    if a._ufl_is_terminal_:
         # ... MultiIndex? Careful not to depend on Index.count() here! This is placed first because it is most frequent.
         if isinstance(a, MultiIndex):
             # Make decision based on the first index pair possible

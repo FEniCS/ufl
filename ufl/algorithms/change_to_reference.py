@@ -171,7 +171,7 @@ class ChangeToReferenceGrad(ReuseTransformer):
         # Peel off the Grads and count them, and get restriction if it's between the grad and the terminal
         ngrads = 0
         restricted = ''
-        while not isinstance(o, Terminal):
+        while not o._ufl_is_terminal_:
             if isinstance(o, Grad):
                 o, = o.operands()
                 ngrads += 1

@@ -103,7 +103,7 @@ class VariableDerivative(Derivative):
     __slots__ = ("_f", "_v", "_free_indices", "_index_dimensions", "_shape",)
     def __new__(cls, f, v):
         # Return zero if expression is trivially independent of variable
-        if isinstance(f, Terminal):
+        if f._ufl_is_terminal_:
             free_indices = tuple(set(f.free_indices()) ^ set(v.free_indices()))
             index_dimensions = mergedicts([f.index_dimensions(), v.index_dimensions()])
             index_dimensions = subdict(index_dimensions, free_indices)

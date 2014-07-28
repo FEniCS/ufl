@@ -341,7 +341,7 @@ class BookTestCase(UflTestCase):
 
     def test_python_1843(self):
         def apply_ad(e, ad_routine):
-            if isinstance(e, Terminal):
+            if e._ufl_is_terminal_:
                 return e
             ops = [apply_ad(o, ad_routine) for o in e.operands()]
             e = e.reconstruct(*ops)

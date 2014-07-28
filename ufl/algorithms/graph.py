@@ -284,7 +284,7 @@ def rebuild_tree(G):
     subtrees = [None]*n
     for i in dfo:
         v = V[i]
-        if not isinstance(v, Terminal):
+        if not v._ufl_is_terminal_:
             # Fetch already reconstructed child vertices
             # and reconstruct non-terminal node from them
             ops = tuple(subtrees[j] for j in Vout[i])

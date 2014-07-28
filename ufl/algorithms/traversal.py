@@ -46,7 +46,7 @@ def iter_expressions(a):
 
 # Slow recursive version of traverse_terminals, kept here for illustration:
 def __old_traverse_terminals(expr):
-    if isinstance(expr, Terminal):
+    if expr._ufl_is_terminal_:
         yield expr
     else:
         for o in expr.operands():
@@ -59,7 +59,7 @@ def traverse_terminals(expr):
     while input:
         e = input.pop()
         ops = e.operands()
-        if ops: # Checking ops is faster than isinstance(e, Terminal)
+        if ops: # Checking ops is faster than e._ufl_is_terminal_
             input.extend(ops)
         else:
             yield e
@@ -82,7 +82,7 @@ def traverse_operands(expr):
     input = [expr]
     while input:
         e = input.pop()
-        if not isinstance(e, Terminal):
+        if not e._ufl_is_terminal_:
             yield e
             input.extend(e.operands())
 
@@ -96,7 +96,7 @@ def pre_traversal(expr, stack=None):
     # yield parent
     yield expr
     # yield children
-    if not isinstance(expr, Terminal):
+    if not expr._ufl_is_terminal_:
         if stack is not None:
             stack.append(expr)
         for o in expr.operands():

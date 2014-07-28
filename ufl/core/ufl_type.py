@@ -91,13 +91,16 @@ def ufl_type(is_abstract=False,
 
 
         # Get trait is_terminal.
-        # It's faster to access this property than to use isinstance(expr, Terminal)
+        # It's faster to use expr._ufl_is_terminal_ than to use isinstance(expr, Terminal)
         auto_is_terminal = get_base_attr(cls, "_ufl_is_terminal_")
         if is_terminal is None and auto_is_terminal is None:
             msg = "Class {0.__name__} has not specified the is_terminal trait. Did you forget to inherit from Terminal or Operator?"
             raise TypeError(msg.format(cls))
-        else:
+        elif auto_is_terminal is None:
             auto_is_terminal = is_terminal
+        elif is_terminal is not None and (auto_is_terminal != is_terminal):
+            msg = "Conflicting given and automatic 'is_terminal' trait for class {0.__name__}. Check if you meant to inherit from Terminal or Operator."
+            raise TypeError(msg.format(cls))
         cls._ufl_is_terminal_ = auto_is_terminal
 
 

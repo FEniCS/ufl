@@ -45,7 +45,7 @@ from ufl.algorithms.forward_ad import apply_nested_forward_ad
 #        return self.ad_routine(self.expr(e, *ops))
 #
 #def apply_ad(e, ad_routine):
-#    if isinstance(e, Terminal):
+#    if e._ufl_is_terminal_:
 #        #print 'T apply_ad', e
 #        return e
 #    else:

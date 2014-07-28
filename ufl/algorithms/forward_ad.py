@@ -1009,7 +1009,7 @@ def compute_coefficient_forward_ad(f, w, v, cd):
     return ediff
 
 def apply_nested_forward_ad(expr):
-    if isinstance(expr, Terminal):
+    if expr._ufl_is_terminal_:
         # A terminal needs no differentiation applied
         return expr
     elif not isinstance(expr, Derivative):
