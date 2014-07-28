@@ -40,7 +40,7 @@ class ReprLabeller(MultiFunction):
     def terminal(self, e):
         return repr(e)
     def operator(self, e):
-        return e._uflclass.__name__.split(".")[-1]
+        return e._ufl_class_.__name__.split(".")[-1]
 
 class CompactLabeller(ReprLabeller):
     def __init__(self, function_mapping=None):

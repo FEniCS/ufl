@@ -24,7 +24,7 @@ from ufl.log import error
 from ufl.core.ufl_type import ufl_type
 
 def _compute_hash(expr): # Best so far
-    hashdata = ( (expr.__class__._uflclass,)
+    hashdata = ( (expr.__class__._ufl_class_,)
             + tuple(hash(o) for o in expr.operands()) )
     return hash(str(hashdata))
 
@@ -71,7 +71,7 @@ class Operator(Expr):
 
     def reconstruct(self, *operands):
         "Return a new object of the same type with new operands."
-        return self.__class__._uflclass(*operands)
+        return self.__class__._ufl_class_(*operands)
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."

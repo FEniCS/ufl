@@ -106,7 +106,7 @@ class Transformer(object):
 
     def undefined(self, o):
         "Trigger error."
-        error("No handler defined for %s." % o._uflclass.__name__)
+        error("No handler defined for %s." % o._ufl_class_.__name__)
 
     def reuse(self, o):
         "Always reuse Expr (ignore children)"
@@ -230,7 +230,7 @@ def transform(expression, handlers):
         ops = ()
     else:
         ops = [transform(o, handlers) for o in expression.operands()]
-    c = expression._uflclass
+    c = expression._ufl_class_
     h = handlers.get(c, None)
     if c is None:
         error("Didn't find class %s among handlers." % c)

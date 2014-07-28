@@ -69,9 +69,9 @@ class BinaryCondition(Condition):
         elif name in ('&&', '||'):
             # Binary operators acting on boolean expressions allow only conditions
             ufl_assert(isinstance(self._left, Condition),
-                       "Expecting a Condition, not a %s." % self._left._uflclass)
+                       "Expecting a Condition, not a %s." % self._left._ufl_class_)
             ufl_assert(isinstance(self._right, Condition),
-                       "Expecting a Condition, not a %s." % self._right._uflclass)
+                       "Expecting a Condition, not a %s." % self._right._ufl_class_)
         else:
             # Binary operators acting on non-boolean expressions allow only scalars
             ufl_assert(self._left.shape() == () \

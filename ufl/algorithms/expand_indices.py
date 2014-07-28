@@ -91,7 +91,7 @@ class IndexExpander(ReuseTransformer):
         s = set(x.free_indices()) - set(self._index2value.keys())
         if s: error("Free index set mismatch, these indices have no value assigned: %s." % str(s))
 
-        return x._uflclass(x.value())
+        return x._ufl_class_(x.value())
 
     def division(self, x):
         a, b = x.operands()

@@ -54,7 +54,7 @@ class MultiFunction(object):
 
     def undefined(self, o):
         "Trigger error."
-        error("No handler defined for %s." % o._uflclass.__name__)
+        error("No handler defined for %s." % o._ufl_class_.__name__)
 
     # Set default behaviour for any Expr
     expr = undefined

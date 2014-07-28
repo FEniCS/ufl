@@ -118,13 +118,13 @@ class GeometricQuantity(Terminal):
 
     def signature_data(self, renumbering):
         "Signature data of geometric quantities depend on the domain numbering."
-        return (self._uflclass.__name__,) + self._domain.signature_data(renumbering)
+        return (self._ufl_class_.__name__,) + self._domain.signature_data(renumbering)
 
     def __str__(self):
-        return self._uflclass.name
+        return self._ufl_class_.name
 
     def __repr__(self):
-        return "%s(%r)" % (self._uflclass.__name__, self._domain)
+        return "%s(%r)" % (self._ufl_class_.__name__, self._domain)
 
     def __hash__(self):
         if self._hash is None:
@@ -132,7 +132,7 @@ class GeometricQuantity(Terminal):
         return self._hash
 
     def __eq__(self, other):
-        return isinstance(other, self._uflclass) and other._domain == self._domain
+        return isinstance(other, self._ufl_class_) and other._domain == self._domain
 
 @ufl_type(is_abstract=True)
 class GeometricCellQuantity(GeometricQuantity):

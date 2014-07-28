@@ -192,7 +192,7 @@ class Grad(CompoundDerivative):
                        "Free index mismatch in Grad reconstruct.")
             return Zero(self.shape(), self.free_indices(),
                         self.index_dimensions())
-        return self.__class__._uflclass(op)
+        return self.__class__._ufl_class_(op)
 
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
         "Get child from mapping and return the component asked for."
@@ -251,7 +251,7 @@ class ReferenceGrad(CompoundDerivative):
                        "Free index mismatch in ReferenceGrad reconstruct.")
             return Zero(self.shape(), self.free_indices(),
                         self.index_dimensions())
-        return self.__class__._uflclass(op)
+        return self.__class__._ufl_class_(op)
 
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
         "Get child from mapping and return the component asked for."
@@ -344,7 +344,7 @@ class NablaGrad(CompoundDerivative):
                        "Free index mismatch in NablaGrad reconstruct.")
             return Zero(self.shape(), self.free_indices(),
                         self.index_dimensions())
-        return self.__class__._uflclass(op)
+        return self.__class__._ufl_class_(op)
 
     def operands(self):
         return (self._f, )

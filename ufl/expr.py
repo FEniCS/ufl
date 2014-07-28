@@ -214,7 +214,7 @@ class Expr(object):
 
     def evaluate(self, x, mapping, component, index_values):
         """Evaluate expression at given coordinate with given values for terminals."""
-        error("Symbolic evaluation of %s not available." % self._uflclass.__name__)
+        error("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
 
     def __float__(self):
         if self.shape() != () or self.free_indices() != ():

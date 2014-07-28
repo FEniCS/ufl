@@ -106,11 +106,11 @@ class SumDegreeEstimator(Transformer):
             return tuple(map(max, zip(*tempops)))
 
     def _not_handled(self, v, *args):
-        error("Missing degree handler for type %s" % v._uflclass.__name__)
+        error("Missing degree handler for type %s" % v._ufl_class_.__name__)
 
     def expr(self, v, *ops):
         "For most operators we take the max degree of its operands."
-        warning("Missing degree estimation handler for type %s" % v._uflclass.__name__)
+        warning("Missing degree estimation handler for type %s" % v._ufl_class_.__name__)
         return self._add_degrees(v, *ops)
 
     # Utility types with no degree concept

@@ -623,7 +623,7 @@ def code2latex(G, partitions, formdata):
                 vl = format_v(iv)
                 args = ", ".join(format_v(i) for i in vout)
                 if args:
-                    el = r"{\mbox{%s}}(%s)" % (v._uflclass.__name__, args)
+                    el = r"{\mbox{%s}}(%s)" % (v._ufl_class_.__name__, args)
                 else: # terminal
                     el = r"{\mbox{%s}}" % (repr(v),)
                 lines.append((vl, "= " + el))

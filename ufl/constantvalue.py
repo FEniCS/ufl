@@ -226,7 +226,7 @@ class ScalarValue(IndexAnnotated):
             return self
         ufl_assert(len(free_indices) == len(self._free_indices), "Size mismatch between old and new indices.")
         new_index_dimensions = dict((b, self._index_dimensions[a]) for (a, b) in zip(self._free_indices, free_indices))
-        return self._uflclass(self._value, self._shape, free_indices, new_index_dimensions)
+        return self._ufl_class_(self._value, self._shape, free_indices, new_index_dimensions)
 
     def shape(self):
         return self._shape
@@ -252,7 +252,7 @@ class ScalarValue(IndexAnnotated):
             FloatValue(1.0) == 1
         can still succeed. These will however not have the same
         hash value and therefore not collide in a dict."""
-        if not isinstance(other, self._uflclass):
+        if not isinstance(other, self._ufl_class_):
             return isinstance(other, (int, float)) and other == self._value
         else:
             return self._value == other._value

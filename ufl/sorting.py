@@ -44,7 +44,7 @@ def cmp_expr(a, b):
     "Sorting rule for Expr objects. NB! Do not use to compare for equality!"
 
     # First sort quickly by type name
-    c = _cmp3(a._uflclass.__name__, b._uflclass.__name__)
+    c = _cmp3(a._ufl_class_.__name__, b._ufl_class_.__name__)
     if c != 0:
         return c
 

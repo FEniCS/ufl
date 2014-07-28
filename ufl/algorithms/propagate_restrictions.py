@@ -49,7 +49,7 @@ class RestrictionPropagator(ReuseTransformer):
 
     def _require_restriction(self, o):
         "Restrict a discontinuous quantity to current side, require a side to be set."
-        ufl_assert(self.current_restriction is not None, "Discontinuous type %s must be restricted." % o._uflclass.__name__)
+        ufl_assert(self.current_restriction is not None, "Discontinuous type %s must be restricted." % o._ufl_class_.__name__)
         return o(self.current_restriction)
 
     def _default_restricted(self, o):
@@ -62,14 +62,14 @@ class RestrictionPropagator(ReuseTransformer):
     def _opposite(self, o):
         "Restrict a quantity to default side, if the current restriction is different swap the sign, require a side to be set."
         if self.current_restriction is None:
-            ufl_error("Discontinuous type %s must be restricted." % o._uflclass.__name__)
+            ufl_error("Discontinuous type %s must be restricted." % o._ufl_class_.__name__)
         elif self.current_restriction == self.default_restriction:
             return o(self.default_restriction)
         else:
             return -o(self.default_restriction)
 
     def _missing_rule(self, o):
-        error("Missing rule for %s" % o._uflclass.__name__)
+        error("Missing rule for %s" % o._ufl_class_.__name__)
 
     # Default: Literals should ignore restriction
     terminal = _ignore_restriction
