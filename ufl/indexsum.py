@@ -26,9 +26,11 @@ from ufl.operatorbase import AlgebraOperator
 from ufl.indexing import Index, MultiIndex, as_multi_index
 from ufl.precedence import parstr
 from ufl.common import EmptyDict
+from ufl.core.ufl_type import ufl_type
 
 #--- Sum over an index ---
 
+@ufl_type(num_ops=2)
 class IndexSum(AlgebraOperator):
     __slots__ = ("_summand", "_index", "_dimension", "_free_indices", "_index_dimensions")
 

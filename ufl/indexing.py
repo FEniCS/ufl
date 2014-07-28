@@ -24,6 +24,7 @@ from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.common import counted_init, EmptyDict
 from ufl.terminal import UtilityType
+from ufl.core.ufl_type import ufl_type
 
 #--- Index types ---
 
@@ -101,6 +102,7 @@ class FixedIndex(IndexBase):
     def __hash__(self):
         return self._hash
 
+@ufl_type()
 class MultiIndex(UtilityType):
     "Represents a sequence of indices, either fixed or free."
     __slots__ = ("_indices", "_idims",)

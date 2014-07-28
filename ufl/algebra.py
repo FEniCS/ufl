@@ -32,9 +32,11 @@ from ufl.checks import is_ufl_scalar, is_true_ufl_scalar
 from ufl.indexutils import unique_indices
 from ufl.sorting import sorted_expr
 from ufl.precedence import parstr
+from ufl.core.ufl_type import ufl_type
 
 #--- Algebraic operators ---
 
+@ufl_type(num_ops=2)
 class Sum(AlgebraOperator):
     __slots__ = ("_operands",)
 
@@ -131,6 +133,7 @@ class Sum(AlgebraOperator):
     def __repr__(self):
         return "Sum(%s)" % ", ".join(repr(o) for o in self._operands)
 
+@ufl_type(num_ops=2)
 class Product(AlgebraOperator):
     """The product of two or more UFL objects."""
     __slots__ = ("_operands", "_free_indices", "_index_dimensions",)
@@ -241,6 +244,7 @@ class Product(AlgebraOperator):
     def __repr__(self):
         return "Product(%s)" % ", ".join(repr(o) for o in self._operands)
 
+@ufl_type(num_ops=2)
 class Division(AlgebraOperator):
     __slots__ = ("_a", "_b",)
 
@@ -309,6 +313,7 @@ class Division(AlgebraOperator):
     def __repr__(self):
         return "Division(%r, %r)" % (self._a, self._b)
 
+@ufl_type(num_ops=2)
 class Power(AlgebraOperator):
     __slots__ = ("_a", "_b",)
 
@@ -370,6 +375,7 @@ class Power(AlgebraOperator):
     def __repr__(self):
         return "Power(%r, %r)" % (self._a, self._b)
 
+@ufl_type(num_ops=1)
 class Abs(AlgebraOperator):
     __slots__ = ("_a",)
 

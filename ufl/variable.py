@@ -25,7 +25,9 @@ from ufl.expr import Expr
 from ufl.terminal import UtilityType
 from ufl.operatorbase import Operator, WrapperType
 from ufl.constantvalue import as_ufl
+from ufl.core.ufl_type import ufl_type
 
+@ufl_type()
 class Label(UtilityType):
     __slots__ = ("_count",)
     _globalcount = 0
@@ -43,6 +45,7 @@ class Label(UtilityType):
         return "Label(%d)" % self._count
 
 
+@ufl_type(is_shaping=True, num_ops=1)
 class Variable(WrapperType):
     """A Variable is a representative for another expression.
 

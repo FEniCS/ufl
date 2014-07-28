@@ -25,9 +25,11 @@ from ufl.indexing import Index, FixedIndex, as_multi_index
 from ufl.indexutils import unique_indices
 from ufl.precedence import parstr
 from ufl.common import EmptyDict
+from ufl.core.ufl_type import ufl_type
 
 #--- Indexed expression ---
 
+@ufl_type(is_shaping=True, num_ops=2)
 class Indexed(WrapperType):
     __slots__ = ("_ops",
                  "_free_indices", "_index_dimensions",)

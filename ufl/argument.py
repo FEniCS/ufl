@@ -25,9 +25,11 @@ from ufl.assertions import ufl_assert
 from ufl.terminal import Terminal, FormArgument
 from ufl.split_functions import split
 from ufl.finiteelement import FiniteElementBase
+from ufl.core.ufl_type import ufl_type
 
 # --- Class representing an argument (basis function) in a form ---
 
+@ufl_type()
 class Argument(FormArgument):
     """UFL value: Representation of an argument to a form."""
     __slots__ = ("_element", "_number", "_part", "_repr")

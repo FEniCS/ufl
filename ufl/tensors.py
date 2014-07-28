@@ -28,9 +28,11 @@ from ufl.operatorbase import WrapperType
 from ufl.constantvalue import as_ufl, Zero
 from ufl.indexing import Index, FixedIndex, MultiIndex, indices
 from ufl.indexed import Indexed
+from ufl.core.ufl_type import ufl_type
 
 # --- Classes representing tensors of UFL expressions ---
 
+@ufl_type(is_shaping=True, num_ops="variable")
 class ListTensor(WrapperType):
     """UFL operator type: Wraps a list of expressions into a tensor valued expression of one higher rank."""
     __slots__ = ("_expressions", "_free_indices", "_shape")
@@ -133,6 +135,7 @@ class ListTensor(WrapperType):
     def __repr__(self):
         return "ListTensor(%s)" % ", ".join(repr(e) for e in self._expressions)
 
+@ufl_type(is_shaping=True, num_ops="variable")
 class ComponentTensor(WrapperType):
     """UFL operator type: Maps the free indices of a scalar valued expression to tensor axes."""
     __slots__ = ("_expression", "_indices", "_free_indices",

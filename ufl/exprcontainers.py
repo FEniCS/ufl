@@ -22,9 +22,11 @@ from ufl.assertions import ufl_assert
 from ufl.common import EmptyDict
 from ufl.expr import Expr
 from ufl.operatorbase import Operator, WrapperType
+from ufl.core.ufl_type import ufl_type
 
 #--- Non-tensor types ---
 
+@ufl_type(num_ops="variable")
 class ExprList(WrapperType):
     "List of Expr objects. For internal use, never to be created by end users."
     __slots__ = ("_operands",)
@@ -52,6 +54,7 @@ class ExprList(WrapperType):
     def __repr__(self):
         return "ExprList(*%r)" % (self._operands,)
 
+@ufl_type(num_ops="variable")
 class ExprMapping(WrapperType):
     "Mapping of Expr objects. For internal use, never to be created by end users."
     __slots__ = ("_operands",)

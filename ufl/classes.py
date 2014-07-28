@@ -90,11 +90,11 @@ from ufl import exproperators as __exproperators
 
 # Collect all classes in sets automatically classified by some properties
 __all_classes       = (c for c in list(locals().values()) if isinstance(c, type))
-all_ufl_classes     = set(c for c in __all_classes if issubclass(c, Expr))
-abstract_classes    = set(s for c in all_ufl_classes for s in c.mro()[1:-1])
-ufl_classes         = set(c for c in all_ufl_classes if c not in abstract_classes)
-terminal_classes    = set(c for c in all_ufl_classes if issubclass(c, Terminal))
-nonterminal_classes = set(c for c in all_ufl_classes if not issubclass(c, Terminal))
+all_ufl_classes     = set(Expr._ufl_all_classes_)
+abstract_classes    = set(c for c in all_ufl_classes if c._ufl_is_abstract_)
+ufl_classes         = set(c for c in all_ufl_classes if not c._ufl_is_abstract_)
+terminal_classes    = set(c for c in all_ufl_classes if c._ufl_is_terminal_)
+nonterminal_classes = set(c for c in all_ufl_classes if not c._ufl_is_terminal_)
 
 # Add _uflclass and _classid to all classes:
 from ufl.common import camel2underscore as _camel2underscore
