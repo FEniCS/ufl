@@ -29,6 +29,7 @@ from ufl.terminal import Terminal
 from ufl.protocols import id_or_none
 from ufl.cell import as_cell, affine_cells, Cell, ProductCell
 from ufl.domain import as_domain, Domain, extract_domains, join_domains, ProductDomain
+from ufl.core.ufl_type import ufl_type
 
 """
 
@@ -95,6 +96,7 @@ Xf = CFK * (X - X0f)
 
 # --- Expression node types
 
+@ufl_type(is_abstract=True)
 class GeometricQuantity(Terminal):
     __slots__ = ("_domain",)
     def __init__(self, domain):
@@ -132,15 +134,18 @@ class GeometricQuantity(Terminal):
     def __eq__(self, other):
         return isinstance(other, self._uflclass) and other._domain == self._domain
 
+@ufl_type(is_abstract=True)
 class GeometricCellQuantity(GeometricQuantity):
     __slots__ = []
 
+@ufl_type(is_abstract=True)
 class GeometricFacetQuantity(GeometricQuantity):
     __slots__ = []
 
 
 # --- Coordinate represented in different coordinate systems
 
+@ufl_type()
 class SpatialCoordinate(GeometricCellQuantity):
     """UFL geometry representation: The coordinate in a domain.
 
@@ -172,6 +177,7 @@ class SpatialCoordinate(GeometricCellQuantity):
         else:
             return float(x[component[0]])
 
+@ufl_type()
 class CellCoordinate(GeometricCellQuantity):
     """UFL geometry representation: The coordinate in a reference cell.
 
@@ -194,6 +200,7 @@ class CellCoordinate(GeometricCellQuantity):
         t = self._domain.topological_dimension()
         return t == 0
 
+@ufl_type()
 class FacetCoordinate(GeometricFacetQuantity):
     """UFL geometry representation: The coordinate in a reference cell of a facet.
 
@@ -224,6 +231,7 @@ class FacetCoordinate(GeometricFacetQuantity):
 
 # --- Origin of coordinate systems in larger coordinate systems
 
+@ufl_type()
 class CellOrigin(GeometricCellQuantity):
     """UFL geometry representation: The spatial coordinate corresponding to origin of a reference cell."""
     __slots__ = ()
@@ -236,6 +244,7 @@ class CellOrigin(GeometricCellQuantity):
     def is_cellwise_constant(self):
         return True
 
+@ufl_type()
 class FacetOrigin(GeometricFacetQuantity):
     """UFL geometry representation: The spatial coordinate corresponding to origin of a reference facet."""
     __slots__ = ()
@@ -245,6 +254,7 @@ class FacetOrigin(GeometricFacetQuantity):
         g = self._domain.geometric_dimension()
         return (g,)
 
+@ufl_type()
 class CellFacetOrigin(GeometricFacetQuantity):
     """UFL geometry representation: The reference cell coordinate corresponding to origin of a reference facet."""
     __slots__ = ()
@@ -257,6 +267,7 @@ class CellFacetOrigin(GeometricFacetQuantity):
 
 # --- Jacobians of mappings between coordinate systems
 
+@ufl_type()
 class Jacobian(GeometricCellQuantity):
     """UFL geometry representation: The Jacobian of the mapping from reference cell to spatial coordinates.
 
@@ -275,6 +286,7 @@ class Jacobian(GeometricCellQuantity):
         # Only true for a piecewise linear coordinate field in simplex cells
         return self._domain.is_piecewise_linear_simplex_domain()
 
+@ufl_type()
 class FacetJacobian(GeometricFacetQuantity):
     """UFL geometry representation: The Jacobian of the mapping from reference facet to spatial coordinates.
 
@@ -303,6 +315,7 @@ class FacetJacobian(GeometricFacetQuantity):
         # Only true for a piecewise linear coordinate field in simplex cells
         return self._domain.is_piecewise_linear_simplex_domain()
 
+@ufl_type()
 class CellFacetJacobian(GeometricFacetQuantity): # dX/dXf
     """UFL geometry representation: The Jacobian of the mapping from reference facet to reference cell coordinates.
 
@@ -325,6 +338,7 @@ class CellFacetJacobian(GeometricFacetQuantity): # dX/dXf
         # This is always a constant mapping between two reference coordinate systems.
         return True
 
+@ufl_type()
 class CellEdgeVectors(GeometricCellQuantity):
     """UFL geometry representation: The vectors between reference cell vertices for each edge in cell."""
     __slots__ = ()
@@ -346,6 +360,7 @@ class CellEdgeVectors(GeometricCellQuantity):
         # This is always constant for a given cell type
         return True
 
+@ufl_type()
 class FacetEdgeVectors(GeometricFacetQuantity):
     """UFL geometry representation: The vectors between reference cell vertices for each edge in current facet."""
     __slots__ = ()
@@ -370,6 +385,7 @@ class FacetEdgeVectors(GeometricFacetQuantity):
 
 # --- Determinants (signed or pseudo) of geometry mapping Jacobians
 
+@ufl_type()
 class JacobianDeterminant(GeometricCellQuantity):
     """UFL geometry representation: The determinant of the Jacobian.
 
@@ -383,6 +399,7 @@ class JacobianDeterminant(GeometricCellQuantity):
         # Only true for a piecewise linear coordinate field in simplex cells
         return self._domain.is_piecewise_linear_simplex_domain()
 
+@ufl_type()
 class FacetJacobianDeterminant(GeometricFacetQuantity):
     """UFL geometry representation: The pseudo-determinant of the FacetJacobian."""
     __slots__ = ()
@@ -393,6 +410,7 @@ class FacetJacobianDeterminant(GeometricFacetQuantity):
         # Only true for a piecewise linear coordinate field in simplex cells
         return self._domain.is_piecewise_linear_simplex_domain()
 
+@ufl_type()
 class CellFacetJacobianDeterminant(GeometricFacetQuantity):
     """UFL geometry representation: The pseudo-determinant of the CellFacetJacobian."""
     __slots__ = ()
@@ -406,6 +424,7 @@ class CellFacetJacobianDeterminant(GeometricFacetQuantity):
 
 # --- Inverses (signed or pseudo) of geometry mapping Jacobians
 
+@ufl_type()
 class JacobianInverse(GeometricCellQuantity):
     """UFL geometry representation: The inverse of the Jacobian.
 
@@ -424,6 +443,7 @@ class JacobianInverse(GeometricCellQuantity):
         # Only true for a piecewise linear coordinate field in simplex cells
         return self._domain.is_piecewise_linear_simplex_domain()
 
+@ufl_type()
 class FacetJacobianInverse(GeometricFacetQuantity):
     """UFL geometry representation: The pseudo-inverse of the FacetJacobian."""
     __slots__ = ()
@@ -444,6 +464,7 @@ class FacetJacobianInverse(GeometricFacetQuantity):
         # Only true for a piecewise linear coordinate field in simplex cells
         return self._domain.is_piecewise_linear_simplex_domain()
 
+@ufl_type()
 class CellFacetJacobianInverse(GeometricFacetQuantity):
     """UFL geometry representation: The pseudo-inverse of the CellFacetJacobian."""
     __slots__ = ()
@@ -466,6 +487,7 @@ class CellFacetJacobianInverse(GeometricFacetQuantity):
 
 # --- Types representing normal or tangent vectors
 
+@ufl_type()
 class FacetNormal(GeometricFacetQuantity):
     """UFL geometry representation: The outwards pointing normal vector of the current facet."""
     __slots__ = ()
@@ -489,6 +511,7 @@ class FacetNormal(GeometricFacetQuantity):
         return is_piecewise_linear and has_simplex_facets
 
 # TODO: Should it be CellNormals? For interval in 3D we have two!
+@ufl_type()
 class CellNormal(GeometricCellQuantity):
     """UFL geometry representation: The upwards pointing normal vector of the current manifold cell."""
     __slots__ = ()
@@ -499,6 +522,7 @@ class CellNormal(GeometricCellQuantity):
         return (g,)
 
 # TODO: Implement in change_to_reference_geometry and enable
+#@ufl_type()
 #class FacetTangents(GeometricFacetQuantity):
 #    """UFL geometry representation: The tangent vectors of the current facet."""
 #    __slots__ = ()
@@ -528,6 +552,7 @@ class CellNormal(GeometricCellQuantity):
 #        return is_piecewise_linear and has_simplex_facets
 
 # TODO: Implement in change_to_reference_geometry and enable
+#@ufl_type()
 #class CellTangents(GeometricCellQuantity):
 #    """UFL geometry representation: The tangent vectors of the current manifold cell."""
 #    __slots__ = ()
@@ -542,6 +567,7 @@ class CellNormal(GeometricCellQuantity):
 # --- Types representing midpoint coordinates
 
 # TODO: Implement in the rest of fenics
+#@ufl_type()
 #class CellMidpoint(GeometricCellQuantity):
 #    """UFL geometry representation: The midpoint coordinate of the current cell."""
 #    __slots__ = ()
@@ -552,6 +578,7 @@ class CellNormal(GeometricCellQuantity):
 #        return (g,)
 
 # TODO: Implement in the rest of fenics
+#@ufl_type()
 #class FacetMidpoint(GeometricFacetQuantity):
 #    """UFL geometry representation: The midpoint coordinate of the current facet."""
 #    __slots__ = ()
@@ -566,41 +593,49 @@ class CellNormal(GeometricCellQuantity):
 
 # TODO: Clean up this set of types? Document!
 
+@ufl_type()
 class CellVolume(GeometricCellQuantity):
     """UFL geometry representation: The volume of the cell."""
     __slots__ = ()
     name = "volume"
 
+@ufl_type()
 class Circumradius(GeometricCellQuantity):
     """UFL geometry representation: The circumradius of the cell."""
     __slots__ = ()
     name = "circumradius"
 
+#@ufl_type()
 #class CellSurfaceArea(GeometricCellQuantity):
 #    """UFL geometry representation: The total surface area of the cell."""
 #    __slots__ = ()
 #    name = "surfacearea"
 
+@ufl_type()
 class FacetArea(GeometricFacetQuantity): # FIXME: Should this be allowed for interval domain?
     """UFL geometry representation: The area of the facet."""
     __slots__ = ()
     name = "facetarea"
 
+@ufl_type()
 class MinCellEdgeLength(GeometricCellQuantity):
     """UFL geometry representation: The minimum edge length of the cell."""
     __slots__ = ()
     name = "mincelledgelength"
 
+@ufl_type()
 class MaxCellEdgeLength(GeometricCellQuantity):
     """UFL geometry representation: The maximum edge length of the cell."""
     __slots__ = ()
     name = "maxcelledgelength"
 
+@ufl_type()
 class MinFacetEdgeLength(GeometricFacetQuantity):
     """UFL geometry representation: The minimum edge length of the facet."""
     __slots__ = ()
     name = "minfacetedgelength"
 
+@ufl_type()
 class MaxFacetEdgeLength(GeometricFacetQuantity):
     """UFL geometry representation: The maximum edge length of the facet."""
     __slots__ = ()
@@ -609,6 +644,7 @@ class MaxFacetEdgeLength(GeometricFacetQuantity):
 
 # --- Types representing other stuff
 
+@ufl_type()
 class CellOrientation(GeometricCellQuantity):
     """UFL geometry representation: The orientation (+1/-1) of the current cell.
 
@@ -622,12 +658,14 @@ class CellOrientation(GeometricCellQuantity):
     __slots__ = ()
     name = "cell_orientation"
 
+@ufl_type()
 class FacetOrientation(GeometricFacetQuantity):
     """UFL geometry representation: The orientation (+1/-1) of the current facet relative to the reference cell."""
     __slots__ = ()
     name = "facet_orientation"
 
 # This doesn't quite fit anywhere. Make a special set of symbolic terminal types instead?
+@ufl_type()
 class QuadratureWeight(GeometricQuantity):
     """UFL geometry representation: The current quadrature weight.
 

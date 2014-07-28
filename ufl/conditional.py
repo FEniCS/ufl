@@ -25,9 +25,11 @@ from ufl.precedence import parstr
 from ufl.exprequals import expr_equals
 from ufl.checks import is_true_ufl_scalar
 from ufl.common import EmptyDict
+from ufl.core.ufl_type import ufl_type
 
 #--- Condition classes ---
 
+@ufl_type(is_abstract=True, is_scalar=True)
 class Condition(Operator):
     __slots__ = ()
     def __init__(self):
@@ -51,6 +53,7 @@ class Condition(Operator):
     __nonzero__ = __bool__
 
 
+@ufl_type(is_abstract=True, num_ops=2)
 class BinaryCondition(Condition):
     __slots__ = ('_name', '_left', '_right',)
     def __init__(self, name, left, right):
@@ -90,6 +93,8 @@ class BinaryCondition(Condition):
     def __repr__(self):
         return "%s(%r, %r)" % (type(self).__name__, self._left, self._right)
 
+
+@ufl_type()
 class EQ(BinaryCondition):
     __slots__ = ()
     def __init__(self, left, right):
@@ -105,6 +110,7 @@ class EQ(BinaryCondition):
     __nonzero__ = __bool__
 
 
+@ufl_type()
 class NE(BinaryCondition):
     __slots__ = ()
     def __init__(self, left, right):
@@ -120,6 +126,7 @@ class NE(BinaryCondition):
     __nonzero__ = __bool__
 
 
+@ufl_type()
 class LE(BinaryCondition):
     __slots__ = ()
     def __init__(self, left, right):
@@ -130,6 +137,8 @@ class LE(BinaryCondition):
         b = self._right.evaluate(x, mapping, component, index_values)
         return bool(a <= b)
 
+
+@ufl_type()
 class GE(BinaryCondition):
     __slots__ = ()
     def __init__(self, left, right):
@@ -140,6 +149,7 @@ class GE(BinaryCondition):
         b = self._right.evaluate(x, mapping, component, index_values)
         return bool(a >= b)
 
+@ufl_type()
 class LT(BinaryCondition):
     __slots__ = ()
     def __init__(self, left, right):
@@ -150,6 +160,7 @@ class LT(BinaryCondition):
         b = self._right.evaluate(x, mapping, component, index_values)
         return bool(a < b)
 
+@ufl_type()
 class GT(BinaryCondition):
     __slots__ = ()
     def __init__(self, left, right):
@@ -160,6 +171,7 @@ class GT(BinaryCondition):
         b = self._right.evaluate(x, mapping, component, index_values)
         return bool(a > b)
 
+@ufl_type()
 class AndCondition(BinaryCondition):
     __slots__ = ()
     def __init__(self, left, right):
@@ -170,6 +182,7 @@ class AndCondition(BinaryCondition):
         b = self._right.evaluate(x, mapping, component, index_values)
         return bool(a and b)
 
+@ufl_type()
 class OrCondition(BinaryCondition):
     __slots__ = ()
     def __init__(self, left, right):
@@ -180,6 +193,7 @@ class OrCondition(BinaryCondition):
         b = self._right.evaluate(x, mapping, component, index_values)
         return bool(a or b)
 
+@ufl_type(num_ops=1)
 class NotCondition(Condition):
     __slots__ = ('_condition',)
     def __init__(self, condition):
@@ -202,6 +216,7 @@ class NotCondition(Condition):
 
 #--- Conditional expression (condition ? true_value : false_value) ---
 
+@ufl_type(is_scalar=True, num_ops=3)
 class Conditional(Operator):
     __slots__ = ("_condition", "_true_value", "_false_value",)
     def __init__(self, condition, true_value, false_value):
@@ -254,6 +269,7 @@ class Conditional(Operator):
 
 #--- Specific functions higher level than a conditional ---
 
+@ufl_type(is_scalar=True, num_ops=1)
 class MinValue(Operator):
     "UFL operator: Take the minimum of two values."
 
@@ -293,6 +309,7 @@ class MinValue(Operator):
     def __repr__(self):
         return "MinValue(%r, %r)" % self._ops
 
+@ufl_type(is_scalar=True, num_ops=1)
 class MaxValue(Operator):
     "UFL operator: Take the maximum of two values."
 

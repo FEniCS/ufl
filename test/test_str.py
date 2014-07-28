@@ -59,10 +59,6 @@ class TestStrOfArguments(UflTestCase):
 
     #def test_str_vector_coefficient(self): # FIXME
 
-    #def test_str_scalar_constant(self): # FIXME
-
-    #def test_str_vector_constant(self): # FIXME
-
 
 class TestStrOfTensors(UflTestCase):
 
@@ -100,4 +96,3 @@ class TestStrOfTensors(UflTestCase):
 
 if __name__ == "__main__":
     main()
-

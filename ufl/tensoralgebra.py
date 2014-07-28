@@ -16,9 +16,6 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
-#
-# First added:  2008-03-14
-# Last changed: 2013-01-02
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
@@ -27,6 +24,7 @@ from ufl.algebra import AlgebraOperator
 from ufl.precedence import parstr
 from ufl.sorting import sorted_expr
 from ufl.common import EmptyDict
+from ufl.core.ufl_type import ufl_type
 
 def merge_indices(a, b):
     ai = a.free_indices()
@@ -70,6 +68,7 @@ def merge_indices(a, b):
 
 # --- Classes representing compound tensor algebra operations ---
 
+@ufl_type(is_abstract=True)
 class CompoundTensorOperator(AlgebraOperator):
     __slots__ = ()
     def __init__(self):
@@ -107,6 +106,7 @@ class CompoundTensorOperator(AlgebraOperator):
 #    "Absolute value of nonscalar expression."
 #    pass
 
+@ufl_type(is_shaping=True, num_ops=1)
 class Transposed(CompoundTensorOperator):
     __slots__ = ("_A",)
 
@@ -140,6 +140,7 @@ class Transposed(CompoundTensorOperator):
     def __repr__(self):
         return "Transposed(%r)" % self._A
 
+@ufl_type(num_ops=2)
 class Outer(CompoundTensorOperator):
     __slots__ = ("_a", "_b", "_free_indices", "_index_dimensions")
 
@@ -176,6 +177,7 @@ class Outer(CompoundTensorOperator):
     def __repr__(self):
         return "Outer(%r, %r)" % (self._a, self._b)
 
+@ufl_type(num_ops=2)
 class Inner(CompoundTensorOperator):
     __slots__ = ("_a", "_b", "_free_indices", "_index_dimensions")
 
@@ -222,6 +224,7 @@ class Inner(CompoundTensorOperator):
     def __repr__(self):
         return "Inner(%r, %r)" % (self._a, self._b)
 
+@ufl_type(num_ops=2)
 class Dot(CompoundTensorOperator):
     __slots__ = ("_a", "_b", "_free_indices", "_index_dimensions")
 
@@ -267,6 +270,7 @@ class Dot(CompoundTensorOperator):
     def __repr__(self):
         return "Dot(%r, %r)" % (self._a, self._b)
 
+@ufl_type(num_ops=2)
 class Cross(CompoundTensorOperator):
     __slots__ = ("_a", "_b", "_free_indices", "_index_dimensions")
 
@@ -305,6 +309,7 @@ class Cross(CompoundTensorOperator):
     def __repr__(self):
         return "Cross(%r, %r)" % (self._a, self._b)
 
+@ufl_type(num_ops=1)
 class Trace(CompoundTensorOperator):
     __slots__ = ("_A",)
 
@@ -336,6 +341,7 @@ class Trace(CompoundTensorOperator):
     def __repr__(self):
         return "Trace(%r)" % self._A
 
+@ufl_type(num_ops=1)
 class Determinant(CompoundTensorOperator):
     __slots__ = ("_A",)
 
@@ -377,6 +383,7 @@ class Determinant(CompoundTensorOperator):
         return "Determinant(%r)" % self._A
 
 # TODO: Drop Inverse and represent it as product of Determinant and Cofactor?
+@ufl_type(num_ops=1)
 class Inverse(CompoundTensorOperator):
     __slots__ = ("_A",)
 
@@ -419,6 +426,7 @@ class Inverse(CompoundTensorOperator):
     def __repr__(self):
         return "Inverse(%r)" % self._A
 
+@ufl_type(num_ops=1)
 class Cofactor(CompoundTensorOperator):
     __slots__ = ("_A",)
 
@@ -450,6 +458,7 @@ class Cofactor(CompoundTensorOperator):
     def __repr__(self):
         return "Cofactor(%r)" % self._A
 
+@ufl_type(num_ops=1)
 class Deviatoric(CompoundTensorOperator):
     __slots__ = ("_A",)
 
@@ -485,6 +494,7 @@ class Deviatoric(CompoundTensorOperator):
     def __repr__(self):
         return "Deviatoric(%r)" % self._A
 
+@ufl_type(num_ops=1)
 class Skew(CompoundTensorOperator):
     __slots__ = ("_A",)
 
@@ -520,6 +530,7 @@ class Skew(CompoundTensorOperator):
     def __repr__(self):
         return "Skew(%r)" % self._A
 
+@ufl_type(num_ops=1)
 class Sym(CompoundTensorOperator):
     __slots__ = ("_A",)
 

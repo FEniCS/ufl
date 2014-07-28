@@ -16,17 +16,16 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
-#
-# First added:  2008-06-08
-# Last changed: 2011-06-02
 
 from ufl.log import error
 from ufl.operatorbase import Operator
 from ufl.precedence import parstr
 from ufl.common import EmptyDict
+from ufl.core.ufl_type import ufl_type
 
 #--- Restriction operators ---
 
+@ufl_type(is_abstract=True, num_ops=1)
 class Restricted(Operator):
     __slots__ = ("_f", "_side")
 
@@ -58,6 +57,7 @@ class Restricted(Operator):
     def __str__(self):
         return "%s('%s')" % (parstr(self._f, self), self._side)
 
+@ufl_type()
 class PositiveRestricted(Restricted):
     __slots__ = ()
     def __init__(self, f):
@@ -66,6 +66,7 @@ class PositiveRestricted(Restricted):
     def __repr__(self):
         return "PositiveRestricted(%r)" % self._f
 
+@ufl_type()
 class NegativeRestricted(Restricted):
     __slots__ = ()
     def __init__(self, f):
@@ -76,6 +77,7 @@ class NegativeRestricted(Restricted):
 
 
 # TODO: Place in a better file?
+@ufl_type()
 class CellAvg(Operator):
     __slots__ = ("_f",)
 
@@ -109,6 +111,7 @@ class CellAvg(Operator):
 
 
 # TODO: Place in a better file?
+@ufl_type()
 class FacetAvg(Operator):
     __slots__ = ("_f",)
 

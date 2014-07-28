@@ -41,8 +41,7 @@ from ufl.terminal import Terminal, FormArgument, UtilityType
 from ufl.constantvalue import (ConstantValue, IndexAnnotated,
     Zero, ScalarValue, FloatValue, IntValue, Identity, PermutationSymbol)
 from ufl.argument import Argument, TestFunction, TrialFunction
-from ufl.coefficient import (Coefficient, ConstantBase,
-    VectorConstant, TensorConstant, Constant)
+from ufl.coefficient import Coefficient
 from ufl.cell import Cell, ProductCell, OuterProductCell
 from ufl.domain import Domain, ProductDomain
 from ufl.geometry import (
@@ -93,7 +92,6 @@ from ufl import exproperators as __exproperators
 __all_classes       = (c for c in list(locals().values()) if isinstance(c, type))
 all_ufl_classes     = set(c for c in __all_classes if issubclass(c, Expr))
 abstract_classes    = set(s for c in all_ufl_classes for s in c.mro()[1:-1])
-abstract_classes.remove(Coefficient)
 ufl_classes         = set(c for c in all_ufl_classes if c not in abstract_classes)
 terminal_classes    = set(c for c in all_ufl_classes if issubclass(c, Terminal))
 nonterminal_classes = set(c for c in all_ufl_classes if not issubclass(c, Terminal))

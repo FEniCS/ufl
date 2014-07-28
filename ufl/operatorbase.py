@@ -21,6 +21,7 @@
 
 from ufl.expr import Expr
 from ufl.log import error
+from ufl.core.ufl_type import ufl_type
 
 def _compute_hash(expr): # Best so far
     hashdata = ( (expr.__class__._uflclass,)
@@ -48,6 +49,7 @@ compute_hash = _compute_hash
 
 #--- Base class for operator objects ---
 
+@ufl_type(is_abstract=True, is_terminal=False)
 class Operator(Expr):
     __slots__ = ("_hash",) # TODO: Add _ops tuple here and use that from all operator types instead of separate slots specs for each operator.
     def __init__(self): # *ops):
@@ -77,11 +79,13 @@ class Operator(Expr):
 
 #--- Subgroups of terminals ---
 
+@ufl_type(is_abstract=True)
 class AlgebraOperator(Operator):
     __slots__ = ()
     def __init__(self):
         Operator.__init__(self)
 
+@ufl_type(is_abstract=True)
 class WrapperType(Operator):
     __slots__ = ()
     def __init__(self):

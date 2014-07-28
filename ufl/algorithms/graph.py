@@ -326,10 +326,6 @@ class StringDependencyDefiner(MultiFunction):
         default = frozenset(("c", "x"))
         return self.coefficient_deps.get(x, default)
 
-    def constant(self, x):
-        default = frozenset(("c",))
-        return self.coefficient_deps.get(x, default)
-
     def geometric_quantity(self, x):
         deps = frozenset(("c", "x",))
         return deps

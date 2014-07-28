@@ -25,9 +25,11 @@ from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.common import EmptyDict
 from ufl.common import counted_init
+from ufl.core.ufl_type import ufl_type
 
 #--- Base class for terminal objects ---
 
+@ufl_type(is_abstract=True, is_terminal=True)
 class Terminal(Expr):
     "A terminal node in the UFL expression tree."
     __slots__ = ("_hash",)
@@ -114,11 +116,14 @@ class Terminal(Expr):
 
 #--- Subgroups of terminals ---
 
+@ufl_type(is_abstract=True)
 class FormArgument(Terminal):
     __slots__ = ()
     def __init__(self):
         Terminal.__init__(self)
 
+# TODO: This type breaks the data model, can we make it fit in better?
+@ufl_type(is_abstract=True)
 class UtilityType(Terminal):
     __slots__ = ()
     def __init__(self):

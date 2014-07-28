@@ -595,7 +595,7 @@ class ClasscoverageTest(UflTestCase):
         if Expr._class_usage_statistics:
             s = Expr._class_usage_statistics
             constructed = set(s.keys())
-            abstract = {Expr, Terminal, Operator, FormArgument, ConstantBase, AlgebraOperator,
+            abstract = {Expr, Terminal, Operator, FormArgument, AlgebraOperator,
                             Condition, BinaryCondition, MathFunction, BesselFunction, Restricted, ScalarValue,
                             ConstantValue, IndexAnnotated, CompoundDerivative, Derivative,
                             WrapperType, GeometricQuantity, CompoundTensorOperator, UtilityType}
@@ -629,4 +629,3 @@ class ClasscoverageTest(UflTestCase):
 
 if __name__ == "__main__":
     main()
-

@@ -32,15 +32,18 @@ from ufl.indexed import Indexed
 from ufl.indexutils import unique_indices
 from ufl.variable import Variable
 from ufl.precedence import parstr
+from ufl.core.ufl_type import ufl_type
 
 #--- Basic differentiation objects ---
 
+@ufl_type(is_abstract=True)
 class Derivative(Operator):
     "Base class for all derivative types."
     __slots__ = ()
     def __init__(self):
         Operator.__init__(self)
 
+@ufl_type(num_ops=4)
 class CoefficientDerivative(Derivative):
     """Derivative of the integrand of a form w.r.t. the
     degrees of freedom in a discrete Coefficient."""
@@ -95,6 +98,7 @@ def split_indices(expression, idx):
     fi = unique_indices(expression.free_indices() + (idx,))
     return fi, idims
 
+@ufl_type(num_ops=2)
 class VariableDerivative(Derivative):
     __slots__ = ("_f", "_v", "_free_indices", "_index_dimensions", "_shape",)
     def __new__(cls, f, v):
@@ -154,12 +158,14 @@ class VariableDerivative(Derivative):
 
 #--- Compound differentiation objects ---
 
+@ufl_type(is_abstract=True)
 class CompoundDerivative(Derivative):
     "Base class for all compound derivative types."
     __slots__ = ()
     def __init__(self):
         Derivative.__init__(self)
 
+@ufl_type(num_ops=1)
 class Grad(CompoundDerivative):
     __slots__ = ("_f", "_dim",)
 
@@ -215,7 +221,8 @@ class Grad(CompoundDerivative):
     def __repr__(self):
         return "Grad(%r)" % self._f
 
-class ReferenceGrad(CompoundDerivative): # FIXME: Check implementation!
+@ufl_type(num_ops=1)
+class ReferenceGrad(CompoundDerivative):
     __slots__ = ("_f", "_dim",)
 
     def __new__(cls, f):
@@ -273,6 +280,7 @@ class ReferenceGrad(CompoundDerivative): # FIXME: Check implementation!
     def __repr__(self):
         return "ReferenceGrad(%r)" % self._f
 
+@ufl_type(num_ops=1)
 class Div(CompoundDerivative):
     __slots__ = ("_f",)
 
@@ -309,6 +317,7 @@ class Div(CompoundDerivative):
     def __repr__(self):
         return "Div(%r)" % self._f
 
+@ufl_type(num_ops=1)
 class NablaGrad(CompoundDerivative):
     __slots__ = ("_f", "_dim",)
 
@@ -355,6 +364,7 @@ class NablaGrad(CompoundDerivative):
     def __repr__(self):
         return "NablaGrad(%r)" % self._f
 
+@ufl_type(num_ops=1)
 class NablaDiv(CompoundDerivative):
     __slots__ = ("_f",)
 
@@ -391,6 +401,7 @@ class NablaDiv(CompoundDerivative):
     def __repr__(self):
         return "NablaDiv(%r)" % self._f
 
+@ufl_type(num_ops=1)
 class Curl(CompoundDerivative):
     __slots__ = ("_f", "_shape",)
 

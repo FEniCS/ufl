@@ -26,6 +26,7 @@ from ufl.assertions import ufl_assert
 from ufl.operatorbase import Operator
 from ufl.constantvalue import is_true_ufl_scalar, ScalarValue, Zero, FloatValue, IntValue, as_ufl
 from ufl.common import EmptyDict
+from ufl.core.ufl_type import ufl_type
 
 """
 TODO: Include additional functions available in <cmath> (need derivatives as well):
@@ -50,8 +51,9 @@ Implementation in C++ std::tr1:: or boost::math::tr1::
 
 #--- Function representations ---
 
+@ufl_type(is_abstract=True, is_scalar=True, num_ops=1)
 class MathFunction(Operator):
-    "Base class for all math functions"
+    "Base class for all unary scalar math functions."
     # Freeze member variables for objects in this class
     __slots__ = ("_name", "_argument",)
     def __init__(self, name, argument):
@@ -87,6 +89,7 @@ class MathFunction(Operator):
     def __repr__(self):
         return "%s(%r)" % (self._name, self._argument)
 
+@ufl_type()
 class Sqrt(MathFunction):
     __slots__ = ()
     def __new__(cls, argument):
@@ -97,6 +100,7 @@ class Sqrt(MathFunction):
     def __init__(self, argument):
         MathFunction.__init__(self, "sqrt", argument)
 
+@ufl_type()
 class Exp(MathFunction):
     __slots__ = ()
     def __new__(cls, argument):
@@ -107,6 +111,7 @@ class Exp(MathFunction):
     def __init__(self, argument):
         MathFunction.__init__(self, "exp", argument)
 
+@ufl_type()
 class Ln(MathFunction):
     __slots__ = ()
     def __new__(cls, argument):
@@ -121,6 +126,7 @@ class Ln(MathFunction):
         a = self._argument.evaluate(x, mapping, component, index_values)
         return math.log(a)
 
+@ufl_type()
 class Cos(MathFunction):
     __slots__ = ()
     def __new__(cls, argument):
@@ -131,6 +137,7 @@ class Cos(MathFunction):
     def __init__(self, argument):
         MathFunction.__init__(self, "cos", argument)
 
+@ufl_type()
 class Sin(MathFunction):
     __slots__ = ()
     def __new__(cls, argument):
@@ -141,6 +148,7 @@ class Sin(MathFunction):
     def __init__(self, argument):
         MathFunction.__init__(self, "sin", argument)
 
+@ufl_type()
 class Tan(MathFunction):
     __slots__ = ()
     def __new__(cls, argument):
@@ -151,6 +159,7 @@ class Tan(MathFunction):
     def __init__(self, argument):
         MathFunction.__init__(self, "tan", argument)
 
+@ufl_type()
 class Cosh(MathFunction):
     __slots__ = ()
     def __new__(cls, argument):
@@ -161,6 +170,7 @@ class Cosh(MathFunction):
     def __init__(self, argument):
         MathFunction.__init__(self, "cosh", argument)
 
+@ufl_type()
 class Sinh(MathFunction):
     __slots__ = ()
     def __new__(cls, argument):
@@ -171,6 +181,7 @@ class Sinh(MathFunction):
     def __init__(self, argument):
         MathFunction.__init__(self, "sinh", argument)
 
+@ufl_type()
 class Tanh(MathFunction):
     __slots__ = ()
     def __new__(cls, argument):
@@ -181,6 +192,7 @@ class Tanh(MathFunction):
     def __init__(self, argument):
         MathFunction.__init__(self, "tanh", argument)
 
+@ufl_type()
 class Acos(MathFunction):
     __slots__ = ()
     def __new__(cls, argument):
@@ -191,6 +203,7 @@ class Acos(MathFunction):
     def __init__(self, argument):
         MathFunction.__init__(self, "acos", argument)
 
+@ufl_type()
 class Asin(MathFunction):
     __slots__ = ()
     def __new__(cls, argument):
@@ -201,6 +214,7 @@ class Asin(MathFunction):
     def __init__(self, argument):
         MathFunction.__init__(self, "asin", argument)
 
+@ufl_type()
 class Atan(MathFunction):
     __slots__ = ()
     def __new__(cls, argument):
@@ -211,6 +225,7 @@ class Atan(MathFunction):
     def __init__(self, argument):
         MathFunction.__init__(self, "atan", argument)
 
+@ufl_type(num_ops=2)
 class Atan2(Operator):
     __slots__ = ("_name", "_arg1", "_arg2", "_classname")
     def __new__(cls, arg1, arg2):
@@ -264,6 +279,7 @@ def _find_erf():
         return scipy.special.erf
     return None
 
+@ufl_type()
 class Erf(MathFunction):
     __slots__ = ()
     def __new__(cls, argument):
@@ -283,6 +299,7 @@ class Erf(MathFunction):
             error("No python implementation of erf available on this system, cannot evaluate. Upgrade python or install scipy.")
         return erf(a)
 
+@ufl_type(is_abstract=True, is_scalar=True, num_ops=2)
 class BesselFunction(Operator):
     "Base class for all bessel functions"
     # Freeze member variables for objects in this class
@@ -336,21 +353,25 @@ class BesselFunction(Operator):
     def __repr__(self):
         return "%s(%r, %r)" % (self._classname, self._nu, self._argument)
 
+@ufl_type()
 class BesselJ(BesselFunction):
     __slots__ = ()
     def __init__(self, nu, argument):
         BesselFunction.__init__(self, "cyl_bessel_j", "BesselJ", nu, argument)
 
+@ufl_type()
 class BesselY(BesselFunction):
     __slots__ = ()
     def __init__(self, nu, argument):
         BesselFunction.__init__(self, "cyl_bessel_y", "BesselY", nu, argument)
 
+@ufl_type()
 class BesselI(BesselFunction):
     __slots__ = ()
     def __init__(self, nu, argument):
         BesselFunction.__init__(self, "cyl_bessel_i", "BesselI", nu, argument)
 
+@ufl_type()
 class BesselK(BesselFunction):
     __slots__ = ()
     def __init__(self, nu, argument):

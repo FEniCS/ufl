@@ -28,6 +28,7 @@ from ufl.expr import Expr
 from ufl.terminal import Terminal
 from ufl.indexing import Index, FixedIndex
 from ufl.common import EmptyDict
+from ufl.core.ufl_type import ufl_type
 
 #--- Helper functions imported here for compatibility---
 from ufl.checks import is_python_scalar, is_ufl_scalar, is_true_ufl_scalar
@@ -43,6 +44,7 @@ def format_float(x):
 
 #--- Base classes for constant types ---
 
+@ufl_type(is_abstract=True)
 class ConstantValue(Terminal):
     __slots__ = ()
     def __init__(self):
@@ -56,6 +58,7 @@ class ConstantValue(Terminal):
         "Return tuple of domains related to this terminal object."
         return ()
 
+@ufl_type(is_abstract=True)
 class IndexAnnotated(ConstantValue):
     """Class to annotate expressions that don't depend on
     indices with a set of free indices, used internally to keep
@@ -112,6 +115,7 @@ class IndexAnnotated(ConstantValue):
 #--- Class for representing zero tensors of different shapes ---
 
 # TODO: Add geometric dimension and Argument dependencies to Zero?
+@ufl_type()
 class Zero(IndexAnnotated):
     "UFL literal type: Representation of a zero valued expression."
     __slots__ = ()
@@ -198,6 +202,7 @@ def zero(*shape):
 
 #--- Scalar value types ---
 
+@ufl_type(is_abstract=True)
 class ScalarValue(IndexAnnotated):
     "A constant scalar value."
     __slots__ = ("_value",)
@@ -268,6 +273,7 @@ class ScalarValue(IndexAnnotated):
     def __abs__(self):
         return type(self)(abs(self._value))
 
+@ufl_type(wraps_type=float)
 class FloatValue(ScalarValue):
     "UFL literal type: Representation of a constant scalar floating point value."
     __slots__ = ()
@@ -285,6 +291,7 @@ class FloatValue(ScalarValue):
                                        repr(self._free_indices),
                                        repr(self._index_dimensions))
 
+@ufl_type(wraps_type=int)
 class IntValue(ScalarValue):
     "UFL literal type: Representation of a constant scalar integer value."
     __slots__ = ()
@@ -311,6 +318,7 @@ class IntValue(ScalarValue):
 
 #--- Identity matrix ---
 
+@ufl_type()
 class Identity(ConstantValue):
     "UFL literal type: Representation of an identity matrix."
     __slots__ = ("_dim",)
@@ -347,6 +355,7 @@ class Identity(ConstantValue):
 
 #--- Permutation symbol ---
 
+@ufl_type()
 class PermutationSymbol(ConstantValue):
     """UFL literal type: Representation of a permutation symbol.
 

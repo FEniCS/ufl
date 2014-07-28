@@ -36,7 +36,7 @@ from ufl.terminal import Terminal
 from ufl.constantvalue import ConstantValue, Zero, IntValue, Identity,\
     is_true_ufl_scalar, is_ufl_scalar
 from ufl.variable import Variable
-from ufl.coefficient import ConstantBase, Coefficient, FormArgument
+from ufl.coefficient import Coefficient, FormArgument
 from ufl.indexing import MultiIndex, Index, FixedIndex, indices
 from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
