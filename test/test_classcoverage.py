@@ -91,6 +91,8 @@ class ClasscoverageTest(UflTestCase):
 
     def testAll(self):
 
+        Expr.ufl_enable_profiling()
+
         # --- Elements:
         cell = triangle
         dim = cell.geometric_dimension()
@@ -592,25 +594,30 @@ class ClasscoverageTest(UflTestCase):
         #e = action(b)
 
         # --- Check which classes have been created
-        if Expr._class_usage_statistics:
-            s = Expr._class_usage_statistics
-            constructed = set(s.keys())
-            abstract = {Expr, Terminal, Operator, FormArgument, AlgebraOperator,
-                            Condition, BinaryCondition, MathFunction, BesselFunction, Restricted, ScalarValue,
-                            ConstantValue, IndexAnnotated, CompoundDerivative, Derivative,
-                            WrapperType, GeometricQuantity, CompoundTensorOperator, UtilityType}
-            unused = set(ufl.classes.all_ufl_classes) - constructed - abstract
-            if unused:
-                print()
-                print("The following classes were never instantiated in class coverage test:")
-                print(("\n".join(sorted(map(str, unused)))))
-                print()
+        ic, dc = Expr.ufl_disable_profiling()
+
+        constructed = set()
+        unused = set(Expr._ufl_all_classes_)
+        for cls in Expr._ufl_all_classes_:
+            tc = cls._ufl_typecode_
+            if ic[tc]:
+                constructed.add(cls)
+            if cls._ufl_is_abstract_:
+                unused.remove(cls)
+
+        if unused:
+            print()
+            print("The following classes were never instantiated in class coverage test:")
+            print(("\n".join(sorted(map(str, unused)))))
+            print()
+
         # --- Check which classes had certain member variables
         if has_repr:
             print()
             print("The following classes contain a _repr member:")
             print(("\n".join(sorted(map(str, has_repr)))))
             print()
+
         if has_dict:
             print()
             print("The following classes contain a __dict__ member:")

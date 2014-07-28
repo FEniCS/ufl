@@ -36,6 +36,7 @@ class Coefficient(FormArgument):
 
     # Slots are disabled here because they cause trouble in PyDOLFIN multiple inheritance pattern:
     #__slots__ = ("_count", "_element", "_repr", "_gradient", "_derivatives")
+    _ufl_noslots_ = True
     _globalcount = 0
 
     def __init__(self, element, count=None):

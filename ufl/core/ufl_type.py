@@ -53,14 +53,6 @@ def ufl_type(is_abstract=False,
                 msg = "Base class {0.__name__} of class {1.__name__} is not an abstract subclass of {2.__name__}."
                 raise TypeError(msg.format(base, cls, Expr))
 
-        return cls
-
-
-    # TODO: Move bit by bit from this function to the above
-
-
-    def uflcore__ufl_type_decorator_(cls):
-
 
         # Check if type has __slots__ or is marked as exception with _ufl_noslots_
         if "_ufl_noslots_" not in cls.__dict__:
@@ -77,6 +69,91 @@ def ufl_type(is_abstract=False,
 
         # Type is a shaping operation, e.g. indexing, slicing, transposing, not introducing new computation.
         cls._ufl_is_shaping_ = is_shaping
+
+
+        # Assign the class object itself.
+        # Makes it possible to do type(f)._ufl_class_ and be sure you get
+        # the actual UFL class instead of a subclass from another library.
+        cls._ufl_class_ = cls
+        Expr._ufl_all_classes_.append(cls)
+
+
+        # Assign a handler function name.
+        # This is used for initial detection of multifunction handlers
+        cls._ufl_handler_name_ = camel2underscore(cls.__name__)
+        Expr._ufl_all_handler_names_.add(cls._ufl_handler_name_)
+
+
+        # Assign an integer type code.
+        # This is used for fast lookup into multifunction handler tables
+        cls._ufl_typecode_ = Expr._ufl_num_typecodes_
+        Expr._ufl_num_typecodes_ += 1
+
+
+        # Get trait is_terminal.
+        # It's faster to access this property than to use isinstance(expr, Terminal)
+        auto_is_terminal = get_base_attr(cls, "_ufl_is_terminal_")
+        if is_terminal is None and auto_is_terminal is None:
+            msg = "Class {0.__name__} has not specified the is_terminal trait. Did you forget to inherit from Terminal or Operator?"
+            raise TypeError(msg.format(cls))
+        else:
+            auto_is_terminal = is_terminal
+        cls._ufl_is_terminal_ = auto_is_terminal
+
+
+        # Require num_ops to be set for non-abstract classes if it cannot be determined automatically
+        auto_num_ops = num_ops
+
+        # Determine from other args
+        if auto_num_ops is None:
+            if cls._ufl_is_terminal_:
+                auto_num_ops = 0
+            elif unop:
+                auto_num_ops = 1
+            elif binop or rbinop:
+                auto_num_ops = 2
+
+        # Determine from base class
+        if auto_num_ops is None:
+            auto_num_ops = get_base_attr(cls, "_ufl_num_ops_")
+
+        cls._ufl_num_ops_ = auto_num_ops
+
+
+        # Add to collection of language operators.
+        # This collection is used later to populate the official language namespace.
+        if not is_abstract and hasattr(cls, "_ufl_function_"):
+            cls._ufl_function_.__func__.__doc__ = cls.__doc__
+            Expr._ufl_language_operators_[cls._ufl_handler_name_] = cls._ufl_function_
+
+
+        # Append space for counting object creation and destriction of this this type.
+        Expr._ufl_obj_init_counts_.append(0)
+        Expr._ufl_obj_del_counts_.append(0)
+
+
+        # Consistency checks
+        assert Expr._ufl_num_typecodes_ == len(Expr._ufl_all_handler_names_)
+        assert Expr._ufl_num_typecodes_ == len(Expr._ufl_all_classes_)
+        assert Expr._ufl_num_typecodes_ == len(Expr._ufl_obj_init_counts_)
+        assert Expr._ufl_num_typecodes_ == len(Expr._ufl_obj_del_counts_)
+
+        if not is_abstract and cls._ufl_num_ops_ is None:
+            msg = "Class {0.__name__} has not specified num_ops."
+            raise TypeError(msg.format(cls))
+
+        if cls._ufl_is_terminal_ and cls._ufl_num_ops_ != 0:
+            msg = "Class {0.__name__} has num_ops > 0 but is terminal."
+            raise TypeError(msg.format(cls))
+
+
+        return cls
+
+
+    # TODO: Move bit by bit from this function to the above
+
+
+    def uflcore__ufl_type_decorator_(cls):
 
 
         # Simplify implementation of purely scalar types
@@ -115,25 +192,6 @@ def ufl_type(is_abstract=False,
                     raise TypeError(msg.format(cls, attr))
 
 
-        # Assign the class object itself.
-        # Makes it possible to do type(f)._ufl_class_ and be sure you get
-        # the actual UFL class instead of a subclass from another library.
-        cls._ufl_class_ = cls
-        Expr._ufl_all_classes_.append(cls)
-
-
-        # Assign a handler function name.
-        # This is used for initial detection of multifunction handlers
-        cls._ufl_handler_name_ = camel2underscore(cls.__name__)
-        Expr._ufl_all_handler_names_.add(cls._ufl_handler_name_)
-
-
-        # Assign an integer type code.
-        # This is used for fast lookup into multifunction handler tables
-        cls._ufl_typecode_ = Expr._ufl_num_typecodes_
-        Expr._ufl_num_typecodes_ += 1
-
-
         # Attach builtin type wrappers to Expr
         if wraps_type is not None:
             if not isinstance(wraps_type, type):
@@ -144,36 +202,6 @@ def ufl_type(is_abstract=False,
                 return cls(value)
             as_type_name = "_ufl_as_{0}_".format(wraps_type.__name__)
             setattr(Expr, as_type_name, staticmethod(_ufl_as_type_))
-
-
-        # Get trait is_terminal.
-        # It's faster to access this property than to use isinstance(expr, Terminal)
-        auto_is_terminal = get_base_attr(cls, "_ufl_is_terminal_")
-        if is_terminal is None and auto_is_terminal is None:
-            msg = "Class {0.__name__} has not specified the is_terminal trait. Did you forget to inherit from Terminal or Operator?"
-            raise TypeError(msg.format(cls))
-        else:
-            auto_is_terminal = is_terminal
-        cls._ufl_is_terminal_ = auto_is_terminal
-
-
-        # Require num_ops to be set for non-abstract classes if it cannot be determined automatically
-        auto_num_ops = num_ops
-
-        # Determine from other args
-        if auto_num_ops is None:
-            if cls._ufl_is_terminal_:
-                auto_num_ops = 0
-            elif unop:
-                auto_num_ops = 1
-            elif binop or rbinop:
-                auto_num_ops = 2
-
-        # Determine from base class
-        if auto_num_ops is None:
-            auto_num_ops = get_base_attr(cls, "_ufl_num_ops_")
-
-        cls._ufl_num_ops_ = auto_num_ops
 
 
         # Attach special function to Expr.
@@ -192,32 +220,6 @@ def ufl_type(is_abstract=False,
                 return cls(other, self)
             setattr(Expr, rbinop, _ufl_expr_rbinop_)
 
-
-        # Add to collection of language operators.
-        # This collection is used later to populate the official language namespace.
-        if not is_abstract and hasattr(cls, "_ufl_function_"):
-            cls._ufl_function_.__func__.__doc__ = cls.__doc__
-            Expr._ufl_language_operators_[cls._ufl_handler_name_] = cls._ufl_function_
-
-
-        # Append space for counting object creation and destriction of this this type.
-        Expr._ufl_obj_init_counts_.append(0)
-        Expr._ufl_obj_del_counts_.append(0)
-
-
-        # Consistency checks
-        assert Expr._ufl_num_typecodes_ == len(Expr._ufl_all_handler_names_)
-        assert Expr._ufl_num_typecodes_ == len(Expr._ufl_all_classes_)
-        assert Expr._ufl_num_typecodes_ == len(Expr._ufl_obj_init_counts_)
-        assert Expr._ufl_num_typecodes_ == len(Expr._ufl_obj_del_counts_)
-
-        if not is_abstract and cls._ufl_num_ops_ is None:
-            msg = "Class {0.__name__} has not specified num_ops."
-            raise TypeError(msg.format(cls))
-
-        if cls._ufl_is_terminal_ and cls._ufl_num_ops_ != 0:
-            msg = "Class {0.__name__} has num_ops > 0 but is terminal."
-            raise TypeError(msg.format(cls))
 
         return cls
 

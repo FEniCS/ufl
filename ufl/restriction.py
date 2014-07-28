@@ -77,7 +77,7 @@ class NegativeRestricted(Restricted):
 
 
 # TODO: Place in a better file?
-@ufl_type()
+@ufl_type(num_ops=1)
 class CellAvg(Operator):
     __slots__ = ("_f",)
 
@@ -111,7 +111,7 @@ class CellAvg(Operator):
 
 
 # TODO: Place in a better file?
-@ufl_type()
+@ufl_type(num_ops=1)
 class FacetAvg(Operator):
     __slots__ = ("_f",)
 

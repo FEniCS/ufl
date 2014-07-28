@@ -27,36 +27,123 @@ This is to avoid circular dependencies between Expr and its subclasses.
 #
 # Modified by Anders Logg, 2008
 
-#--- The base object for all UFL expression tree nodes ---
-
 from six.moves import xrange as range
-from collections import defaultdict
 
 from ufl.log import warning, error
 
-def print_expr_statistics():
-    for k in sorted(Expr._class_usage_statistics.keys()):
-        born = Expr._class_usage_statistics[k]
-        live = born - Expr._class_del_statistics.get(k, 0)
-        print(("%40s:  %10d  /  %10d" % (k.__name__, live, born)))
+
+#--- The base object for all UFL expression tree nodes ---
 
 class Expr(object):
-    "Base class for all UFL objects."
-    # Freeze member variables for objects of this class
-    __slots__ = () # "_hash",)
+    """Base class for all UFL expression types."""
 
-    _class_usage_statistics = defaultdict(int)
-    _class_del_statistics = defaultdict(int)
+    #: Each Expr subclass must define __slots__ or _ufl_noslots_ at the top,
+    #: to freeze member variables for objects of this class and save memory
+    #: by skipping the per-instance dict
+
+    #__slots__ = ("_hash",) # uflcore version
+    __slots__ = ()
+    #_ufl_noslots_ = True
+
+
+    # --- Type traits are added to subclasses by the ufl_type class decorator ---
+
+    # Note: Some of these are modified after the Expr class definition
+    # because Expr is not defined yet at this point.
+
+    # This makes it possible to do type(f)._ufl_class_ and be sure you get
+    # the actual UFL class instead of a subclass from another library.
+    _ufl_class_ = None
+
+    # The handler name, used to look for type handlers in a multifunction.
+    _ufl_handler_name_ = "expr"
+
+    # The integer typecode, a contiguous index different for each type.
+    _ufl_typecode_ = 0
+
+    # Number of operands, None if not applicable for abstract types.
+    _ufl_num_ops_ = None
+
+    # True if the type is abstract, False otherwise.
+    _ufl_is_abstract_ = True
+
+    # True if the type is terminal, False otherwise, None only for Expr.
+    _ufl_is_terminal_ = None
+
+    # True if the type is a shaping operation.
+    _ufl_is_shaping_ = False
+
+    # True if the type is purely scalar, having no shape or indices.
+    _ufl_is_scalar_ = False
+
+
+    # --- Basic object behaviour ---
 
     def __init__(self):
-        # Comment out this line to disable class construction
-        # statistics (used in some unit tests)
-        Expr._class_usage_statistics[self.__class__._uflclass] += 1
+        self._hash = None
 
-    def x__del__(self): # Enable for profiling
-        # Comment out this line to disable class construction
-        # statistics (used for manual memory profiling)
-        Expr._class_del_statistics[self.__class__._uflclass] += 1
+    def __del__(self):
+        pass
+
+    def __hash__(self):
+        if self._hash is None:
+            self._hash = self._ufl_compute_hash_()
+        return self._hash
+
+
+    # --- Global variables for collecting all types ---
+
+    # A global counter of the number of typecodes assigned
+    _ufl_num_typecodes_ = 1
+
+    # A global set of all handler names added
+    _ufl_all_handler_names_ = set()
+
+    # A global array of all Expr subclasses, indexed by typecode
+    _ufl_all_classes_ = []
+
+    # A global dict mapping language_operator_name to the type it produces
+    _ufl_language_operators_ = {}
+
+
+    # --- Mechanism for profiling object creation and deletion ---
+
+    # A global array of the number of initialized objects for each typecode
+    _ufl_obj_init_counts_ = [0]
+
+    # A global array of the number of deleted objects for each typecode
+    _ufl_obj_del_counts_ = [0]
+
+    # Backup of default init and del
+    _ufl_regular__init__ = __init__
+    _ufl_regular__del__ = __del__
+
+    def _ufl_profiling__init__(self):
+        "Replacement constructor with object counting."
+        Expr._ufl_regular__init__(self)
+        Expr._ufl_obj_init_counts_[self._ufl_typecode_] += 1
+
+    def _ufl_profiling__del__(self):
+        "Replacement destructor with object counting."
+        Expr._ufl_regular__del__(self)
+        Expr._ufl_obj_del_counts_[self._ufl_typecode_] -= 1
+
+    @staticmethod
+    def ufl_enable_profiling():
+        "Turn on object counting mechanism and reset counts to zero."
+        Expr.__init__ = Expr._ufl_profiling__init__
+        Expr.__del__ = Expr._ufl_profiling__del__
+        for i in range(len(Expr._ufl_obj_init_counts_)):
+            Expr._ufl_obj_init_counts_[i] = 0
+            Expr._ufl_obj_del_counts_[i] = 0
+
+    @staticmethod
+    def ufl_disable_profiling():
+        "Turn off object counting mechanism. Returns object init and del counts."
+        Expr.__init__ = Expr._ufl_regular__init__
+        Expr.__del__ = Expr._ufl_regular__del__
+        return (Expr._ufl_obj_init_counts_, Expr._ufl_obj_del_counts_)
+
 
     #=== Abstract functions that must be implemented by subclasses ===
 
@@ -174,10 +261,6 @@ class Expr(object):
 
     #--- Special functions used for processing expressions ---
 
-    def __hash__(self):
-        "Compute a hash code for this expression. Used by sets and dicts."
-        raise NotImplementedError(self.__class__.__hash__)
-
     def __eq__(self, other):
         """Checks whether the two expressions are represented the
         exact same way. This does not check if the expressions are
@@ -187,7 +270,10 @@ class Expr(object):
     def __bool__(self):
         "By default, all Expr are nonzero."
         return True
-    __nonzero__ = __bool__
+
+    def __nonzero__(self):
+        "By default, all Expr are nonzero."
+        return bool(self)
 
     def __len__(self):
         "Length of expression. Used for iteration over vector expressions."
@@ -212,3 +298,9 @@ class Expr(object):
     #def __getnewargs__(self): # TODO: Test pickle and copy with this. Must implement differently for Terminal objects though.
     #    "Used for pickle and copy operations."
     #    return self.operands()
+
+
+# Initializing traits here because Expr is not defined in the class declaration
+Expr._ufl_class_ = Expr
+Expr._ufl_all_handler_names_.add(Expr)
+Expr._ufl_all_classes_.append(Expr)
