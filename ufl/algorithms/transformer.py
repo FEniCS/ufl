@@ -59,7 +59,7 @@ class Transformer(object):
                     name = c._handlername
                     function = getattr(self, name, None)
                     if function:
-                        cache_data[classobject._classid] = name, is_post_handler(function)
+                        cache_data[classobject._ufl_typecode_] = name, is_post_handler(function)
                         break
             Transformer._handlers_cache[type(self)] = cache_data
 
@@ -85,7 +85,7 @@ class Transformer(object):
         self._visit_stack.append(o)
 
         # Get handler for the UFL class of o (type(o) may be an external subclass of the actual UFL class)
-        h, visit_children_first = self._handlers[o._classid]
+        h, visit_children_first = self._handlers[o._ufl_typecode_]
 
         #if not h:
         #    # Failed to find a handler! Should never happen, but will happen if a non-Expr object is visited.

@@ -107,10 +107,10 @@ def compute_expression_hashdata(expression, terminal_hashdata):
         if isinstance(expr, Terminal):
             data = terminal_hashdata[expr]
         else:
-            data = expr._classid # TODO: Use expr.signature_data()? More extensible, but more overhead.
+            data = expr._ufl_typecode_ # TODO: Use expr.signature_data()? More extensible, but more overhead.
         expression_hashdata.append(data)
     # Oneliner: TODO: Benchmark, maybe use a generator?
-    #expression_hashdata = [(terminal_hashdata[expr] if isinstance(expr, Terminal) else expr._classid)
+    #expression_hashdata = [(terminal_hashdata[expr] if isinstance(expr, Terminal) else expr._ufl_typecode_)
     #                       for expr in pre_traversal(expression)]
     return expression_hashdata
 

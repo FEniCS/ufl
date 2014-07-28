@@ -58,7 +58,7 @@ class Operator(Expr):
         #self._ops = ops
 
     def signature_data(self):
-        return self._classid
+        return self._ufl_typecode_
 
     def __hash__(self):
         "Compute a hash code for this expression. Used by sets and dicts."

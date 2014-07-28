@@ -42,14 +42,14 @@ class MultiFunction(object):
                     # Register classobject with handler for the first encountered superclass
                     name = c._handlername
                     if getattr(self, name, None):
-                        cache_data[classobject._classid] = name
+                        cache_data[classobject._ufl_typecode_] = name
                         break
             MultiFunction._handlers_cache[type(self)] = cache_data
         # Build handler list for this particular class (get functions bound to self)
         self._handlers = [getattr(self, name) for name in cache_data]
 
     def __call__(self, o, *args, **kwargs):
-        h = self._handlers[o._classid]
+        h = self._handlers[o._ufl_typecode_]
         return h(o, *args, **kwargs)
 
     def undefined(self, o):

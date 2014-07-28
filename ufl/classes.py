@@ -99,7 +99,6 @@ nonterminal_classes = set(c for c in all_ufl_classes if not c._ufl_is_terminal_)
 # Add _uflclass and _classid to all classes:
 from ufl.common import camel2underscore as _camel2underscore
 for _i, _c in enumerate(sorted(all_ufl_classes, key=lambda x:x.__name__)):
-    _c._classid = _i
     _c._handlername = _camel2underscore(_c.__name__)
 
 #__all__ = all_ufl_classes
