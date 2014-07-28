@@ -92,8 +92,8 @@ class MixedElement(FiniteElementBase):
                 "value size of all subelements.")
 
         # Initialize element data
-        degree_list = [d for d in (e.degree() for e in self._sub_elements) if d is not None]
-        degree = max(degree_list) if degree_list else None
+        degrees = { e.degree() for e in self._sub_elements } - { None }
+        degree = max(degrees) if degrees else None
         super(MixedElement, self).__init__("Mixed", domain, degree,
                                            quad_scheme, value_shape)
 

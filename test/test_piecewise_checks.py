@@ -14,7 +14,6 @@ class TestCellwiseConstantTerminals(UflTestCase):
         super(TestCellwiseConstantTerminals, self).setUp()
 
         self.all_cells = [
-            cell1D,
             interval,
             cell2D,
             triangle,
@@ -52,7 +51,7 @@ class TestCellwiseConstantTerminals(UflTestCase):
 
         self.affine_facet_cells = [
             interval,
-            cell1D,
+            cell2D,
             triangle,
             quadrilateral,
             tetrahedron,
@@ -80,7 +79,6 @@ class TestCellwiseConstantTerminals(UflTestCase):
             self.nonaffine_domains_with_linear_coordinates.append(E)
 
         self.nonaffine_facet_cells = [
-            cell2D,
             cell3D,
             hexahedron,
             ]
@@ -140,6 +138,9 @@ class TestCellwiseConstantTerminals(UflTestCase):
             self.assertTrue(e.is_cellwise_constant())
             e = JacobianInverse(D)
             self.assertTrue(e.is_cellwise_constant())
+        for D in domains:
+            if D.topological_dimension() == 1:
+                continue
             e = FacetJacobian(D)
             self.assertTrue(e.is_cellwise_constant())
             e = FacetJacobianDeterminant(D)
@@ -158,6 +159,9 @@ class TestCellwiseConstantTerminals(UflTestCase):
             self.assertFalse(e.is_cellwise_constant())
             e = JacobianInverse(D)
             self.assertFalse(e.is_cellwise_constant())
+        for D in domains:
+            if D.topological_dimension() == 1:
+                continue
             e = FacetJacobian(D)
             self.assertFalse(e.is_cellwise_constant())
             e = FacetJacobianDeterminant(D)

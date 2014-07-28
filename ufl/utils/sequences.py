@@ -23,7 +23,10 @@ import time
 
 def product(sequence):
     "Return the product of all elements in a sequence."
-    return reduce(operator.__mul__, sequence, 1)
+    p = 1
+    for f in sequence:
+        p *= f
+    return p
 
 def unzip(seq):
     "Inverse operation of zip: unzip(zip(a, b)) == (a, b)"

@@ -27,7 +27,7 @@ from itertools import chain
 
 def domain_numbering(*cells):
     renumbering = {}
-    for i,cell in enumerate(cells):
+    for i, cell in enumerate(cells):
         domain = as_domain(cell)
         renumbering[domain] = i
     return renumbering
@@ -35,7 +35,7 @@ def domain_numbering(*cells):
 class TerminalHashDataTestCase(UflTestCase):
 
     def test_domain_signatures_of_cell2domains(self):
-        all_cells = (interval, quadrilateral, hexahedron, triangle, tetrahedron, cell1D, cell2D, cell3D)
+        all_cells = (interval, quadrilateral, hexahedron, triangle, tetrahedron, cell2D, cell3D)
         for cell in all_cells:
             # Equality holds when constructing two domains from a cell:
             self.assertEqual(as_domain(cell), as_domain(cell))
@@ -187,7 +187,7 @@ class TerminalHashDataTestCase(UflTestCase):
         reprs = set()
         hashes = set()
         counts = list(range(-3, 4))
-        cells = (cell1D, triangle, hexahedron)
+        cells = (interval, triangle, hexahedron)
         assert len(counts) == 7
         nreps = 1
         def forms():
@@ -222,7 +222,7 @@ class TerminalHashDataTestCase(UflTestCase):
         reprs = set()
         hashes = set()
         counts = list(range(4))
-        cells = (cell1D, triangle, hexahedron)
+        cells = (interval, triangle, hexahedron)
         nreps = 2
         def forms():
             for rep in range(nreps):

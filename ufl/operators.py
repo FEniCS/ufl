@@ -36,7 +36,7 @@ from ufl.tensoralgebra import Transposed, Inner, Outer, Dot, Cross, \
 from ufl.variable import Variable
 from ufl.tensors import as_tensor, as_matrix, as_vector, ListTensor
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, \
-    AndCondition, OrCondition, NotCondition, Conditional
+    AndCondition, OrCondition, NotCondition, Conditional, MaxValue, MinValue
 from ufl.mathfunctions import Sqrt, Exp, Ln, Erf,\
     Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan, Atan2,\
     BesselJ, BesselY, BesselI, BesselK
@@ -477,15 +477,27 @@ def sign(x):
     # TODO: Add a Sign type for this?
     return conditional(eq(x, 0), 0, conditional(lt(x, 0), -1, +1))
 
-def Max(x, y):
+def max_value(x, y):
     "UFL operator: Take the maximum of x and y."
-    # TODO: Add a Maximum type for this?
-    return conditional(gt(x, y), x, y)
+    x = as_ufl(x)
+    y = as_ufl(y)
+    return MaxValue(x, y)
 
-def Min(x, y):
+def min_value(x, y):
     "UFL operator: Take the minimum of x and y."
-    # TODO: Add a Minimum type for this?
-    return conditional(lt(x, y), x, y)
+    x = as_ufl(x)
+    y = as_ufl(y)
+    return MinValue(x, y)
+
+def Max(x, y): # TODO: Deprecate this notation?
+    "UFL operator: Take the maximum of x and y."
+    #return conditional(gt(x, y), x, y)
+    return max_value(x, y)
+
+def Min(x, y): # TODO: Deprecate this notation?
+    "UFL operator: Take the minimum of x and y."
+    #return conditional(lt(x, y), x, y)
+    return min_value(x, y)
 
 #--- Math functions ---
 

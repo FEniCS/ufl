@@ -25,7 +25,7 @@ def stiffness():
     element = FiniteElement("Lagrange", domain, 1)
     v = TestFunction(element)
     u = TrialFunction(element)
-    return inner(grad(u),grad(v))*dx
+    return inner(grad(u), grad(v))*dx
 
 @pytest.fixture
 def convection():

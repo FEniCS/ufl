@@ -1,5 +1,5 @@
 """This file is useful for external code like tests and form compilers,
-since it enables the syntax "from ufl.classes import FooBar" for getting
+since it enables the syntax "from ufl.classes import CellFacetooBar" for getting
 implementation details not exposed through the default ufl namespace.
 It also contains functionality used by algorithms for dealing with groups
 of classes, and for mapping types to different handler functions."""
@@ -52,8 +52,9 @@ from ufl.geometry import (
     Jacobian, JacobianDeterminant, JacobianInverse,
     FacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse,
     CellFacetJacobian, CellFacetJacobianDeterminant, CellFacetJacobianInverse,
+    CellEdgeVectors, FacetEdgeVectors,
     FacetNormal, CellNormal,
-    CellVolume, Circumradius,
+    CellVolume, Circumradius, MinCellEdgeLength, MaxCellEdgeLength,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
     CellOrientation, FacetOrientation, QuadratureWeight,
     )
@@ -75,7 +76,7 @@ from ufl.differentiation import Derivative, CompoundDerivative, CoefficientDeriv
     VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv, ReferenceGrad
 from ufl.conditional import Condition, BinaryCondition,\
     EQ, NE, LE, GE, LT, GT,\
-    AndCondition, OrCondition, NotCondition, Conditional
+    AndCondition, OrCondition, NotCondition, Conditional, MinValue, MaxValue
 from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted, CellAvg, FacetAvg
 from ufl.exprcontainers import ExprList, ExprMapping
 

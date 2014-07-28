@@ -53,18 +53,8 @@ def _auto_select_degree(elements):
     used by DOLFIN to allow the specification of Expressions with
     undefined degrees.
     """
-
-    # Use max degree of all elements
-    common_degree = max([e.degree() for e in elements] or [None])
-
-    # Default to linear element if no elements with degrees are provided
-    if common_degree is None:
-        common_degree = 1
-
-    # Degree must be at least 1 (to work with Lagrange elements)
-    common_degree = max(1, common_degree)
-
-    return common_degree
+    # Use max degree of all elements, at least 1 (to work with Lagrange elements)
+    return max({ e.degree() for e in elements } - { None } | { 1 })
 
 def _compute_element_mapping(form):
     "Compute element mapping for element replacement"
@@ -113,12 +103,12 @@ def _compute_num_sub_domains(integral_data):
     for itg_data in integral_data:
         it = itg_data.integral_type
         si = itg_data.subdomain_id
-        if isinstance(si, str):
-            new = 0
+        if isinstance(si, int):
+            newmax = si + 1
         else:
-            new = si + 1
-        prev = num_sub_domains.get(it)
-        num_sub_domains[it] = max(prev, new)
+            newmax = 0
+        prevmax = num_sub_domains.get(it, 0)
+        num_sub_domains[it] = max(prevmax, newmax)
     return num_sub_domains
 
 def _compute_form_data_elements(self, arguments, coefficients):
@@ -222,7 +212,7 @@ def compute_form_data(form, apply_propagate_restrictions=True):
         reduced_coefficients_set.update(itg_data.integral_coefficients)
     self.reduced_coefficients = sorted(reduced_coefficients_set, key=lambda c: c.count())
     self.num_coefficients = len(self.reduced_coefficients)
-    self.original_coefficient_positions = [i for i,c in enumerate(form.coefficients())
+    self.original_coefficient_positions = [i for i, c in enumerate(form.coefficients())
                                            if c in self.reduced_coefficients]
 
     # Store back into integral data which form coefficients are used by each integral
