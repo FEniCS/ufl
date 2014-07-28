@@ -89,16 +89,10 @@ from ufl.equation import Equation
 from ufl import exproperators as __exproperators
 
 # Collect all classes in sets automatically classified by some properties
-__all_classes       = (c for c in list(locals().values()) if isinstance(c, type))
 all_ufl_classes     = set(Expr._ufl_all_classes_)
 abstract_classes    = set(c for c in all_ufl_classes if c._ufl_is_abstract_)
 ufl_classes         = set(c for c in all_ufl_classes if not c._ufl_is_abstract_)
 terminal_classes    = set(c for c in all_ufl_classes if c._ufl_is_terminal_)
 nonterminal_classes = set(c for c in all_ufl_classes if not c._ufl_is_terminal_)
-
-# Add _uflclass and _classid to all classes:
-from ufl.common import camel2underscore as _camel2underscore
-for _i, _c in enumerate(sorted(all_ufl_classes, key=lambda x:x.__name__)):
-    _c._ufl_handler_name_ = _camel2underscore(_c.__name__)
 
 #__all__ = all_ufl_classes
