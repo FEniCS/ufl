@@ -216,9 +216,9 @@ class SumDegreeEstimator(Transformer):
         """
         #print "estimate",a,b
         if a or b:
-            return max(a, b)+2
+            return self._add_degrees(v, self._max_degrees(v, a, b), 2)
         else:
-            return max(a, b)
+            return self._max_degrees(v, a, b)
 
 
     def math_function(self, v, a):
@@ -241,7 +241,7 @@ class SumDegreeEstimator(Transformer):
         gives a somewhat high integration degree.
         """
         if x:
-            return x+2
+            return self._add_degrees(v, x, 2)
         else:
             return x
 
@@ -262,7 +262,7 @@ class SumDegreeEstimator(Transformer):
 
     def min_value(self, v, l, r):
         """Same as conditional."""
-        return max(l, r)
+        return self._max_degrees(v, l, r)
     max_value = min_value
 
 def estimate_total_polynomial_degree(e, default_degree=1, element_replace_map={}):
