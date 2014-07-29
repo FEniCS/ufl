@@ -271,7 +271,7 @@ class Expr(object):
 
     def __nonzero__(self):
         "By default, all Expr are nonzero."
-        return bool(self)
+        return self.__bool__()
 
     def __len__(self):
         "Length of expression. Used for iteration over vector expressions."
