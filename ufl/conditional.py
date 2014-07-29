@@ -202,7 +202,7 @@ class NotCondition(Condition):
 
 #--- Conditional expression (condition ? true_value : false_value) ---
 
-@ufl_type(num_ops=3)
+@ufl_type(num_ops=3, inherit_shape_from_operand=1, inherit_indices_from_operand=1)
 class Conditional(Operator):
     __slots__ = ()
 
@@ -224,16 +224,6 @@ class Conditional(Operator):
                        "Non-scalar == or != is not allowed.")
 
         Operator.__init__(self, (condition, true_value, false_value))
-
-    @property
-    def ufl_shape(self):
-        return self.ufl_operands[1].ufl_shape
-
-    def free_indices(self):
-        return self.ufl_operands[1].free_indices()
-
-    def index_dimensions(self):
-        return self.ufl_operands[1].index_dimensions()
 
     def evaluate(self, x, mapping, component, index_values):
         c = self.ufl_operands[0].evaluate(x, mapping, component, index_values)

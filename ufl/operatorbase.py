@@ -118,7 +118,15 @@ class WrapperType(Operator):
     def ufl_shape(self):
         error("A non-tensor type has no shape.")
 
+    @property
+    def ufl_free_indices(self):
+        error("A non-tensor type has no indices.")
+
     def free_indices(self):
+        error("A non-tensor type has no indices.")
+
+    @property
+    def ufl_index_dimensions(self):
         error("A non-tensor type has no indices.")
 
     def index_dimensions(self):

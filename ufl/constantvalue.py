@@ -78,7 +78,14 @@ class IndexAnnotated(ConstantValue):
         if (set(self._free_indices) ^ set(self._index_dimensions.keys())):
             error("Index set mismatch.")
 
+    def free_indices(self):
+        return self._free_indices
+
+    def index_dimensions(self):
+        return self._index_dimensions
+
 #--- Class for representing abstract constant symbol only for use internally in form compilers
+#@ufl_type()
 #class AbstractSymbol(ConstantValue):
 #    "UFL literal type: Representation of a constant valued symbol with unknown properties."
 #    __slots__ = ("_name", "ufl_shape")
@@ -94,13 +101,6 @@ class IndexAnnotated(ConstantValue):
 #        if name is None:
 #            name = self._name
 #        return AbstractSymbol(name, self.ufl_shape)
-#
-#
-#    def free_indices(self):
-#        return ()
-#
-#    def index_dimensions(self):
-#        return EmptyDict
 #
 #    def __str__(self):
 #        return "<Abstract symbol named '%s' with shape %s>" % (self._name, self.ufl_shape)
@@ -130,9 +130,6 @@ class Zero(IndexAnnotated):
                 Zero._cache[shape] = self
         return self
 
-    def __getnewargs__(self):
-        return (self.ufl_shape, self._free_indices, self._index_dimensions)
-
     def __init__(self, shape=(), free_indices=(), index_dimensions=None):
         if not hasattr(self, '_shape'):
             ufl_assert(isinstance(free_indices, tuple),
@@ -146,11 +143,8 @@ class Zero(IndexAnnotated):
         new_index_dimensions = dict((b, self._index_dimensions[a]) for (a, b) in zip(self._free_indices, free_indices))
         return Zero(self.ufl_shape, free_indices, new_index_dimensions)
 
-    def free_indices(self):
-        return self._free_indices
-
-    def index_dimensions(self):
-        return self._index_dimensions
+    def __getnewargs__(self):
+        return (self.ufl_shape, self._free_indices, self._index_dimensions)
 
     def evaluate(self, x, mapping, component, index_values):
         return 0.0
@@ -224,12 +218,6 @@ class ScalarValue(IndexAnnotated):
         ufl_assert(len(free_indices) == len(self._free_indices), "Size mismatch between old and new indices.")
         new_index_dimensions = dict((b, self._index_dimensions[a]) for (a, b) in zip(self._free_indices, free_indices))
         return self._ufl_class_(self._value, self.ufl_shape, free_indices, new_index_dimensions)
-
-    def free_indices(self):
-        return self._free_indices
-
-    def index_dimensions(self):
-        return self._index_dimensions
 
     def value(self):
         return self._value

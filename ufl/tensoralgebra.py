@@ -28,17 +28,29 @@ from ufl.core.ufl_type import ufl_type
 def merge_indices(a, b):
     ai = a.free_indices()
     bi = b.free_indices()
-    #free_indices = unique_indices(ai + bi) # if repeated indices are allowed, do this instead of the next three lines
-    ri = set(ai) & set(bi)
-    ufl_assert(not ri, "Not expecting repeated indices.")
-    free_indices = ai+bi
-
     aid = a.index_dimensions()
     bid = b.index_dimensions()
+
+    ufl_assert(not (set(ai) & set(bi)), "Not expecting repeated indices.")
+    free_indices = ai + bi
+
     index_dimensions = dict(aid)
     index_dimensions.update(bid)
 
     return free_indices, index_dimensions
+
+
+def new_merge_indices(a, b):
+    """Given two expression objects, merge their non-overlapping
+    ufl_free_indices/ufl_index_dimensions tuples into one pair of tuples."""
+    ai = a.ufl_free_indices
+    bi = b.ufl_free_indices
+    aid = a.ufl_index_dimensions
+    bid = b.ufl_index_dimensions
+    free_indices, index_dimensions = zip(*sorted(zip(ai + bi, aid + bid)))
+    ufl_assert(len(set(free_indices)) == len(ai) + len(bi), "Not expecting repeated indices.")
+    return free_indices, index_dimensions
+
 
 ### Algebraic operations on tensors:
 # FloatValues:

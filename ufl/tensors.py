@@ -164,6 +164,7 @@ class ComponentTensor(WrapperType):
             error("Missing indices %s in expression %s." % (missingset, expression))
 
         self._index_dimensions = dict((i, dims[i]) for i in self._free_indices) or EmptyDict
+
         self.ufl_shape = tuple(dims[i] for i in indices)
 
     def is_cellwise_constant(self):
