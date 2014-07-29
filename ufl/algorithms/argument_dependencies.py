@@ -103,6 +103,13 @@ class ArgumentDependencyExtracter(Transformer):
             raise NotMultiLinearException(repr(o))
         return t
 
+    def min_value(self, o, l, r):
+        "Considering min, max nonlinear in this context."
+        if l or r:
+            raise NotMultiLinearException(repr(o))
+        return t
+    max_value = min_value
+
     def division(self, o, a, b):
         "Arguments cannot be in the denominator."
         if b:

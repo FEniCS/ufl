@@ -86,7 +86,7 @@ class RestrictionPropagator(ReuseTransformer):
         # TODO: Move this choice to the element class?
         if (f == "Lagrange" and d > 0) or f == "Real":
             # If the coefficient _value_ is _fully_ continuous
-            return self._default_restricted(o) # Must still be computed from one of the sides, don't care which
+            return self._default_restricted(o) # Must still be computed from one of the sides, we just don't care which
         else:
             return self._require_restriction(o)
 

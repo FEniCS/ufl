@@ -19,9 +19,6 @@
 #
 # Modified by Anders Logg, 2009-2010
 # Modified by Jan Blechta, 2012
-#
-# First added:  2008-05-07
-# Last changed: 2012-11-04
 
 from ufl.assertions import ufl_assert
 from ufl.log import warning
@@ -90,6 +87,7 @@ class SumDegreeEstimator(Transformer):
         else:
             # if tuple, do not reduce
             return f
+
     def _add_degrees(self, v, *ops):
         if all(isinstance(o, int) for o in ops):
             return sum(ops)
@@ -99,12 +97,14 @@ class SumDegreeEstimator(Transformer):
             # 0 to (0, 0) when making tempops]
             tempops = [foo if isinstance(foo, tuple) else (foo, foo) for foo in ops]
             return tuple(map(sum, zip(*tempops)))
+
     def _max_degrees(self, v, *ops):
         if all(isinstance(o, int) for o in ops):
             return max(ops + (0,))
         else:
             tempops = [foo if isinstance(foo, tuple) else (foo, foo) for foo in ops]
             return tuple(map(max, zip(*tempops)))
+
     def _not_handled(self, v, *args):
         error("Missing degree handler for type %s" % v._uflclass.__name__)
 
@@ -260,6 +260,11 @@ class SumDegreeEstimator(Transformer):
         quadrature order must be adjusted manually."""
         return max(t, f)
 
+    def min_value(self, v, l, r):
+        """Same as conditional."""
+        return max(l, r)
+    max_value = min_value
+
 def estimate_total_polynomial_degree(e, default_degree=1, element_replace_map={}):
     """Estimate total polynomial degree of integrand.
 
@@ -279,4 +284,5 @@ def estimate_total_polynomial_degree(e, default_degree=1, element_replace_map={}
         degrees = [de.visit(e.integrand())]
     else:
         degrees = [de.visit(e)]
-    return max(degrees + [0])
+    degree = max(degrees) if degrees else default_degree
+    return degree

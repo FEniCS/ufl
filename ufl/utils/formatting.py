@@ -51,7 +51,7 @@ def tstr(t, colsize=80):
         return ""
 
     # Compute maximum key length
-    keylen = max([len(str(item[0])) for item in t])
+    keylen = max(len(str(item[0])) for item in t)
 
     # Key-length cannot be larger than colsize
     if keylen > colsize:

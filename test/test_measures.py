@@ -11,7 +11,7 @@ from ufltestcase import UflTestCase, main
 from ufl import *
 from ufl.algorithms import compute_form_data
 
-#all_cells = (cell1D, cell2D, cell3D,
+#all_cells = (cell2D, cell3D,
 #             interval, triangle, tetrahedron,
 #             quadrilateral, hexahedron)
 

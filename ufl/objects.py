@@ -19,9 +19,6 @@
 #
 # Modified by Anders Logg, 2008
 # Modified by Kristian Oelgaard, 2009
-#
-# First added:  2008-03-14
-# Last changed: 2014-03-19
 
 from ufl.indexing import indices
 from ufl.integral import Measure
@@ -46,7 +43,6 @@ dc = Measure("custom")
 dE = Measure("macro_cell")
 
 # Cell types
-cell1D        = Cell("cell1D", 1)
 cell2D        = Cell("cell2D", 2)
 cell3D        = Cell("cell3D", 3)
 vertex        = Cell("vertex", 0)

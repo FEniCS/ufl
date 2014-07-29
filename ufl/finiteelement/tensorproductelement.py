@@ -53,7 +53,8 @@ class TensorProductElement(FiniteElementBase):
         domain = ProductDomain([e.domain() for e in self._sub_elements])
 
         # Define polynomial degree as the maximal of each subelement
-        degree = max(e.degree() for e in self._sub_elements)
+        degrees = { e.degree() for e in self._sub_elements } - { None }
+        degree = max(degrees) if degrees else None
 
         # No quadrature scheme defined
         quad_scheme = None

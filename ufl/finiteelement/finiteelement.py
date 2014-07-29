@@ -24,7 +24,7 @@
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.common import product, istr, EmptyDict
-from ufl.geometry import as_domain, as_cell, cellname2facetname, ProductCell
+from ufl.geometry import as_domain, as_cell
 from ufl.log import info_blue, warning, warning_blue, error
 
 from ufl.finiteelement.elementlist import canonical_element_description

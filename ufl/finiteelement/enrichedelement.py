@@ -41,7 +41,8 @@ class EnrichedElement(FiniteElementBase):
                    "Domain mismatch for sub elements of enriched element.")
 
         if isinstance(elements[0].degree(), int):
-            degree = max(e.degree() for e in elements)
+            degrees = { e.degree() for e in elements } - { None }
+            degree = max(degrees) if degrees else None
         else:
             degree = tuple(map(max, zip(*[e.degree() for e in elements])))
 

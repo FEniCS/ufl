@@ -365,6 +365,12 @@ class Expression2LatexHandler(Transformer):
         l += "\\end{cases}"
         return l
 
+    def min_value(self, o, a, b):
+        return "min(%s, %s)" % (a, b)
+
+    def max_value(self, o, a, b):
+        return "max(%s, %s)" % (a, b)
+
     def expr(self, o):
         error("Missing handler for type %s" % str(type(o)))
 

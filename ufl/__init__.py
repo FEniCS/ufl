@@ -47,7 +47,7 @@ A very brief overview of the language contents follows:
     Cell, ProductCell, OuterProductCell,
     interval, triangle, tetrahedron,
     quadrilateral, hexahedron,
-    cell1D, cell2D, cell3D,
+    cell2D, cell3D,
 
 * Sobolev spaces::
 
@@ -83,7 +83,7 @@ A very brief overview of the language contents follows:
 
     SpatialCoordinate,
     FacetNormal, CellNormal,
-    CellVolume, Circumradius,
+    CellVolume, Circumradius, MinCellEdgeLength, MaxCellEdgeLength,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
 
 * Indices::
@@ -119,7 +119,7 @@ A very brief overview of the language contents follows:
 
 * Nonlinear functions::
 
-    Max, Min,
+    max_value, min_value,
     abs, sign, sqrt,
     exp, ln, erf,
     cos, sin, tan,
@@ -195,7 +195,7 @@ from ufl.domain import as_domain, Domain, ProductDomain
 from ufl.geometry import (
     SpatialCoordinate,
     FacetNormal, CellNormal,
-    CellVolume, Circumradius,
+    CellVolume, Circumradius, MinCellEdgeLength, MaxCellEdgeLength,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
     )
 
@@ -248,7 +248,7 @@ from ufl.operators import rank, shape, \
                        cosh, sinh, tanh, \
                        bessel_J, bessel_Y, bessel_I, bessel_K, \
                        eq, ne, le, ge, lt, gt, And, Or, Not, \
-                       conditional, sign, Max, Min, \
+                       conditional, sign, max_value, min_value, Max, Min, \
                        variable, diff, \
                        Dx,  grad, div, curl, rot, nabla_grad, nabla_div, Dn, exterior_derivative, \
                        jump, avg, cell_avg, facet_avg, \
@@ -274,7 +274,7 @@ from ufl.formoperators import replace, derivative, action, energy_norm, rhs, lhs
 # Predefined convenience objects
 from ufl.objects import \
     vertex, interval, triangle, tetrahedron, \
-    quadrilateral, hexahedron, facet, cell1D, cell2D, cell3D, \
+    quadrilateral, hexahedron, facet, cell2D, cell3D, \
     i, j, k, l, p, q, r, s, \
     dx, ds, ds_b, ds_t, ds_tb, ds_v, dS, dS_h, dS_v, dP, dc, dE
 
@@ -289,7 +289,7 @@ __all__ = [
     'as_domain', 'Domain', 'ProductDomain',
     'L2', 'H1', 'H2', 'HCurl', 'HDiv',
     'SpatialCoordinate',
-    'CellVolume', 'Circumradius',
+    'CellVolume', 'Circumradius', 'MinCellEdgeLength', 'MaxCellEdgeLength',
     'FacetArea', 'MinFacetEdgeLength', 'MaxFacetEdgeLength',
     'FacetNormal', 'CellNormal',
     'FiniteElementBase', 'FiniteElement',
@@ -317,7 +317,7 @@ __all__ = [
     'cosh', 'sinh', 'tanh',
     'bessel_J', 'bessel_Y', 'bessel_I', 'bessel_K',
     'eq', 'ne', 'le', 'ge', 'lt', 'gt', 'And', 'Or', 'Not',
-    'conditional', 'sign', 'Max', 'Min',
+    'conditional', 'sign', 'max_value', 'min_value', 'Max', 'Min',
     'variable', 'diff',
     'Dx', 'grad', 'div', 'curl', 'rot', 'nabla_grad', 'nabla_div', 'Dn', 'exterior_derivative',
     'jump', 'avg', 'cell_avg', 'facet_avg',
@@ -329,7 +329,7 @@ __all__ = [
     'dx', 'ds', 'ds_b', 'ds_t', 'ds_tb', 'ds_v', 'dS', 'dS_h', 'dS_v', 'dP', 'dc', 'dE',
     'vertex', 'interval', 'triangle', 'tetrahedron',
     'quadrilateral', 'hexahedron', 'facet',
-    'cell1D', 'cell2D', 'cell3D',
+    'cell2D', 'cell3D',
     'i', 'j', 'k', 'l', 'p', 'q', 'r', 's',
     'e', 'pi',
     ]

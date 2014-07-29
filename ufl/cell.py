@@ -35,10 +35,8 @@ from ufl.protocols import id_or_none
 
 # Mapping from cell name to topological dimension
 cellname2dim = {
-    "cell0D": 0,
-    "cell1D": 1,
-    "cell2D": 2,
-    "cell3D": 3,
+    "cell2D":        2,
+    "cell3D":        3,
     "vertex":        0,
     "interval":      1,
     "triangle":      2,
@@ -61,21 +59,17 @@ def cell2dim(cell):
         return cellname2dim[cellname]
 
 # Mapping from cell name to facet name
-cellname2facetname = {
-    "cell0D": None,
-    "cell1D": "vertex",
-    "cell2D": "cell1D",
-    "cell3D": "cell2D",
-    "vertex":        None,
+_cellname2facetname = {
     "interval":      "vertex",
+    "cell2D":        "interval",
     "triangle":      "interval",
-    "tetrahedron":   "triangle",
     "quadrilateral": "interval",
+    "cell3D":        "cell2D",
+    "tetrahedron":   "triangle",
     "hexahedron":    "quadrilateral",
-    "OuterProductCell": None
     }
 
-reference_cell_volume = {
+_reference_cell_volume = {
     "vertex": 0.0,
     "interval": 1.0,
     "triangle": 0.5,
@@ -84,10 +78,15 @@ reference_cell_volume = {
     "hexahedron": 1.0
     }
 
-affine_cells = {"vertex", "interval", "triangle", "tetrahedron"}
+num_cell_entities = {
+    "interval":      (2, 1),
+    "triangle":      (3,  3, 1),
+    "quadrilateral": (4,  4, 1),
+    "tetrahedron":   (4,  6, 4, 1),
+    "hexahedron":    (8, 12, 6, 1),
+    }
 
-# Valid UFL cellnames
-ufl_cellnames = tuple(sorted(chain(cellname2dim.keys(), ["OuterProductCell"])))
+affine_cells = {"vertex", "interval", "triangle", "tetrahedron"}
 
 
 # --- Basic cell representation classes
@@ -127,30 +126,83 @@ class Cell(object):
         self._topological_dimension = tdim
         self._geometric_dimension = gdim
 
-    def geometric_dimension(self):
-        "Return the dimension of the space this cell is embedded in."
-        return self._geometric_dimension
+    # --- Fundamental dimensions ---
 
     def topological_dimension(self):
         "Return the dimension of the topology of this cell."
         return self._topological_dimension
 
+    def geometric_dimension(self):
+        "Return the dimension of the space this cell is embedded in."
+        return self._geometric_dimension
+
+    # --- Cell properties ---
+
     def cellname(self):
         "Return the cellname of the cell."
         return self._cellname
 
+    def num_entities(self, dim=None):
+        "The number of cell entities of given topological dimension."
+        num = num_cell_entities[self.cellname()]
+        if dim is None:
+            return num
+        else:
+            return num[dim]
+
+    def num_vertices(self):
+        "The number of cell vertices."
+        return self.num_entities(0)
+
+    def num_edges(self):
+        "The number of cell edges."
+        return self.num_entities(1)
+
+    def num_facets(self):
+        "The number of cell facets."
+        tdim = self.topological_dimension()
+        return self.num_entities(tdim-1)
+
+    def reference_volume(self):
+        "The volume of a reference cell of the same type."
+        return _reference_cell_volume[self.cellname()]
+
+    # --- Facet properties ---
+    # TODO: The concept of a fixed name and number of entities for a facet does not work with product cells.
+    #       Search for 'facet_cellname' and 'num_facet_' to find usage and figure out another way to handle those places.
+
+    # TODO: Maybe return a facet cell instead of all these accessors
+    #def facet(self):
+    #    return Cell(self.facet_cellname(), self.geometric_dimension())
+
     def facet_cellname(self):
-        "Return the cellname of the facet of this cell."
-        facet_cellname = cellname2facetname.get(self._cellname)
-        ufl_assert(facet_cellname is not None,
-                   "Name of facet cell not available for cell type %s." % self._cellname)
-        return facet_cellname
+        "Return the cellname of the facet of this cell, or None if not available."
+        return _cellname2facetname.get(self.cellname())
+
+    def num_facet_entities(self, dim):
+        "Return the number of cell entities of given topological dimension, or None if not available."
+        num = num_cell_entities.get(self.cellname())
+        return num[dim] if num else None
+
+    def num_facet_vertices(self):
+        "The number of cell vertices, or None if not available."
+        return self.num_facet_entities(0)
+
+    def num_facet_edges(self):
+        "The number of facet edges, or None if not available."
+        return self.num_facet_entities(1)
+
+    def reference_facet_volume(self):
+        "The volume of a reference cell of the same type."
+        return _reference_cell_volume[self.facet_cellname()]
+
+    # --- Special functions for proper object behaviour ---
 
     def __eq__(self, other):
         if not isinstance(other, Cell):
             return False
-        s = (self._geometric_dimension, self._topological_dimension, self._cellname)
-        o = (other._geometric_dimension, other._topological_dimension, other._cellname)
+        s = (self.geometric_dimension(), self.topological_dimension(), self.cellname())
+        o = (other.geometric_dimension(), other.topological_dimension(), other.cellname())
         return s == o
 
     def __ne__(self, other):
@@ -159,19 +211,19 @@ class Cell(object):
     def __lt__(self, other):
         if not isinstance(other, Cell):
             return False
-        s = (self._geometric_dimension, self._topological_dimension, self._cellname)
-        o = (other._geometric_dimension, other._topological_dimension, other._cellname)
+        s = (self.geometric_dimension(), self.topological_dimension(), self.cellname())
+        o = (other.geometric_dimension(), other.topological_dimension(), other.cellname())
         return s < o
 
     def __hash__(self):
         return hash(repr(self))
 
     def __str__(self):
-        return "<%s cell in %sD>" % (istr(self._cellname),
-                                     istr(self._geometric_dimension))
+        return "<%s cell in %sD>" % (istr(self.cellname()),
+                                     istr(self.geometric_dimension()))
 
     def __repr__(self):
-        return "Cell(%r, %r)" % (self._cellname, self._geometric_dimension)
+        return "Cell(%r, %r)" % (self.cellname(), self.geometric_dimension())
 
     def _repr_svg_(self):
         ""
@@ -220,10 +272,6 @@ class ProductCell(Cell):
     def sub_cells(self):
         "Return list of cell factors."
         return self._cells
-
-    def facet_cellname(self):
-        "Return the cellname of the facet of this cell."
-        error("Makes no sense for product cell.")
 
     def __eq__(self, other):
         if not isinstance(other, ProductCell):
@@ -276,9 +324,17 @@ class OuterProductCell(Cell):
                 # Don't know how to extrude this
                 self.facet_vert = None
 
-    def facet_cellname(self):
-        "Return the cellname of the facet of this cell."
-        error("Makes no sense for OuterProductCell.")
+    def num_entities(self, dim):
+        "The number of cell entities of given topological dimension."
+        # Return None unless asked for the number of vertices / volumes
+        templist = [None,] * (self.topological_dimension() + 1)
+        templist[0] = self._A.num_vertices() * self._B.num_vertices()
+        templist[-1] = 1
+        return templist[dim]
+
+    def reference_volume(self):
+        "The volume of a reference cell of the same type."
+        return _reference_cell_volume[self._A.cellname()] * _reference_cell_volume[self._B.cellname()]
 
     def __eq__(self, other):
         if not isinstance(other, OuterProductCell):
@@ -289,11 +345,12 @@ class OuterProductCell(Cell):
         # are essentially the same: triangular prisms with gdim = tdim = 3.
         # For safety, though, we will only compare equal if the
         # subcells are *identical*, including immersion.
-        return self._A == other._A and self._B == other._B and self.geometric_dimension() == other.geometric_dimension()
+        return (self._A, self._B) == (other._A, other._B) and self.geometric_dimension() == other.geometric_dimension()
 
     def __lt__(self, other):
-        # No idea what this might be used for
-        error("Makes no sense for OuterProductCell")
+        if not isinstance(other, OuterProductCell):
+            return NotImplemented
+        return (self._A, self._B) < (other._A, other._B)
 
     def __repr__(self):
         return "OuterProductCell(*%r)" % list([self._A, self._B])
