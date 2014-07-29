@@ -261,10 +261,10 @@ class Conditional(Operator):
         return a.evaluate(x, mapping, component, index_values)
 
     def __str__(self):
-        return "%s ? %s : %s" % tuple(parstr(o, self) for o in self.operands())
+        return "%s ? %s : %s" % tuple(parstr(o, self) for o in self.ufl_operands)
 
     def __repr__(self):
-        return "Conditional(%r, %r, %r)" % self.operands()
+        return "Conditional(%r, %r, %r)" % self.ufl_operands
 
 
 #--- Specific functions higher level than a conditional ---

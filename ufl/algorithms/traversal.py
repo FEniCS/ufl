@@ -49,7 +49,7 @@ def __old_traverse_terminals(expr):
     if expr._ufl_is_terminal_:
         yield expr
     else:
-        for o in expr.operands():
+        for o in expr.ufl_operands:
             for t in traverse_terminals(o):
                 yield t
 
@@ -58,7 +58,7 @@ def traverse_terminals(expr):
     input = [expr]
     while input:
         e = input.pop()
-        ops = e.operands()
+        ops = e.ufl_operands
         if ops: # Checking ops is faster than e._ufl_is_terminal_
             input.extend(ops)
         else:
@@ -71,7 +71,7 @@ def traverse_unique_terminals(expr, visited=None):
         e = input.pop()
         if e not in visited:
             visited.add(e)
-            ops = e.operands()
+            ops = e.ufl_operands
             if ops:
                 input.extend(ops)
             else:
@@ -84,7 +84,7 @@ def traverse_operands(expr):
         e = input.pop()
         if not e._ufl_is_terminal_:
             yield e
-            input.extend(e.operands())
+            input.extend(e.ufl_operands)
 
 # Moved to common because it is without dependencies and this avoids circular deps
 from ufl.common import pre_traversal, post_traversal
@@ -99,7 +99,7 @@ def pre_traversal(expr, stack=None):
     if not expr._ufl_is_terminal_:
         if stack is not None:
             stack.append(expr)
-        for o in expr.operands():
+        for o in expr.ufl_operands:
             for i in pre_traversal(o, stack):
                 yield i
         if stack is not None:
@@ -112,7 +112,7 @@ def post_traversal(expr, stack=None):
     # yield children
     if stack is not None:
         stack.append(expr)
-    for o in expr.operands():
+    for o in expr.ufl_operands:
         for i in post_traversal(o, stack):
             yield i
     if stack is not None:
@@ -139,7 +139,7 @@ def _walk(expr, pre_func, post_func, stack):
     pre_func(expr, stack)
     # visit children
     stack.append(expr)
-    for o in expr.operands():
+    for o in expr.ufl_operands:
         _walk(o, pre_func, post_func, stack)
     stack.pop()
     # visit parent on the way out

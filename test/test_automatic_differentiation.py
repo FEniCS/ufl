@@ -380,7 +380,7 @@ class ForwardADTestCase(UflTestCase):
         for t in collection.noncompounds:
             for var in (u, v, w):
                 # Include d/dx [z ? y: x] but not d/dx [x ? f: z]
-                if isinstance(t, Conditional) and (var in unique_post_traversal(t.operands()[0])):
+                if isinstance(t, Conditional) and (var in unique_post_traversal(t.ufl_operands[0])):
                     if debug: print(("Depends on %s :: %s" % (str(var), str(t))))
                     continue
 
@@ -419,7 +419,7 @@ class ForwardADTestCase(UflTestCase):
             t = replace(t, {u:vu, v:vv, w:vw})
             for var in (vu, vv, vw):
                 # Include d/dx [z ? y: x] but not d/dx [x ? f: z]
-                if isinstance(t, Conditional) and (var in unique_post_traversal(t.operands()[0])):
+                if isinstance(t, Conditional) and (var in unique_post_traversal(t.ufl_operands[0])):
                     if debug: print(("Depends on %s :: %s" % (str(var), str(t))))
                     continue
 

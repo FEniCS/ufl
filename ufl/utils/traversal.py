@@ -23,17 +23,17 @@ def pre_traversal(expr):
     while input:
         l = input.pop()
         yield l
-        input.extend(l.operands())
+        input.extend(l.ufl_operands)
 
 def post_traversal(expr):
     """Yields o for each node o in expr, child before parent."""
     stack = []
-    stack.append((expr, list(expr.operands())))
+    stack.append((expr, list(expr.ufl_operands)))
     while stack:
         expr, ops = stack[-1]
         if ops:
             o = ops.pop()
-            stack.append((o, list(o.operands())))
+            stack.append((o, list(o.ufl_operands)))
         else:
             yield expr
             stack.pop()
@@ -50,20 +50,20 @@ def unique_pre_traversal(expr, visited=None):
         if l not in visited:
             visited.add(l)
             yield l
-            input.extend(l.operands())
+            input.extend(l.ufl_operands)
 
 def unique_post_traversal(expr, visited=None):
     """Yields o for each node o in expr, child before parent.
 
     Never visits a node twice."""
     stack = []
-    stack.append((expr, list(expr.operands())))
+    stack.append((expr, list(expr.ufl_operands)))
     visited = visited or set()
     while stack:
         expr, ops = stack[-1]
         for i, o in enumerate(ops):
             if o is not None and o not in visited:
-                stack.append((o, list(o.operands())))
+                stack.append((o, list(o.ufl_operands)))
                 ops[i] = None
                 break
         else:

@@ -343,7 +343,7 @@ class BookTestCase(UflTestCase):
         def apply_ad(e, ad_routine):
             if e._ufl_is_terminal_:
                 return e
-            ops = [apply_ad(o, ad_routine) for o in e.operands()]
+            ops = [apply_ad(o, ad_routine) for o in e.ufl_operands]
             e = e.reconstruct(*ops)
             if isinstance(e, Derivative):
                 e = ad_routine(e)
@@ -359,13 +359,13 @@ class BookTestCase(UflTestCase):
     def test_python_1942(self):
         def walk(expression, pre_action, post_action):
             pre_action(expression)
-            for o in expression.operands():
+            for o in expression.ufl_operands:
                 walk(o)
             post_action(expression)
 
     def test_python_1955(self):
         def post_traversal(root):
-            for o in root.operands():
+            for o in root.ufl_operands:
                 yield post_traversal(o)
             yield root
 
@@ -428,7 +428,7 @@ class BookTestCase(UflTestCase):
 
     def test_python_2066(self):
         def apply(e, multifunction):
-            ops = [apply(o, multifunction) for o in e.operands()]
+            ops = [apply(o, multifunction) for o in e.ufl_operands]
             return multifunction(e, *ops)
 
     def test_python_2087(self):

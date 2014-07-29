@@ -153,7 +153,7 @@ def build_entities(e, nodes, edges, nodeoffset, prefix="", labeller=None):
         ops = (e._expression,)
         label = "variable %d" % e._label._count
     else:
-        ops = e.operands()
+        ops = e.ufl_operands
         label = labeller(e)
 
     # Create node for parent e

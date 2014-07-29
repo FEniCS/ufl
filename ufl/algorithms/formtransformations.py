@@ -68,7 +68,7 @@ class PartExtracter(Transformer):
         "Return relevant parts of this variable."
 
         # Extract parts/provides from this variable's expression
-        expression, label = x.operands()
+        expression, label = x.ufl_operands
         part, provides = self.visit(expression)
 
         # If the extracted part is zero or we provide more than we
@@ -124,7 +124,7 @@ class PartExtracter(Transformer):
         parts_that_provide = {}
 
         # 1. Skip terms that provide too much
-        original_terms = x.operands()
+        original_terms = x.ufl_operands
         assert len(original_terms) == 2
         for term in original_terms:
 
@@ -201,7 +201,7 @@ class PartExtracter(Transformer):
         "Return parts_of_numerator/denominator."
 
         # Get numerator and denominator
-        numerator, denominator = x.operands()
+        numerator, denominator = x.ufl_operands
 
         # Check for Arguments in the denominator
         if expr_has_terminal_types(denominator, Argument):
@@ -253,7 +253,7 @@ class PartExtracter(Transformer):
         """Return parts of expression belonging to this indexed
         expression."""
 
-        expression, index = x.operands()
+        expression, index = x.ufl_operands
         part, provides = self.visit(expression)
 
         # Return zero if extracted part is zero. (The expression

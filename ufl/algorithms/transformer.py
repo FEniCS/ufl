@@ -94,7 +94,7 @@ class Transformer(object):
         # Is this a handler that expects transformed children as input?
         if visit_children_first:
             # Yes, visit all children first and then call h.
-            r = h(o, *[self.visit(op) for op in o.operands()])
+            r = h(o, *[self.visit(op) for op in o.ufl_operands])
         else:
             # No, this is a handler that handles its own children
             # (arguments self and o, where self is already bound)
@@ -117,9 +117,9 @@ class Transformer(object):
 
         # FIXME: Use hashes of operands instead for a faster probability based version?
 
-        #if all(a is b for (a, b) in izip(operands, o.operands())):
-        ufl_assert(len(operands) == len(o.operands()), "Expecting number of operands to match")
-        if operands == o.operands():
+        #if all(a is b for (a, b) in izip(operands, o.ufl_operands)):
+        ufl_assert(len(operands) == len(o.ufl_operands), "Expecting number of operands to match")
+        if operands == o.ufl_operands:
             return o
 
         #return o.reconstruct(*operands)
@@ -152,7 +152,7 @@ class Transformer(object):
 
     def reuse_variable(self, o):
         # Check variable cache to reuse previously transformed variable if possible
-        e, l = o.operands()
+        e, l = o.ufl_operands
         v = self._variable_cache.get(l)
         if v is not None:
             return v
@@ -173,7 +173,7 @@ class Transformer(object):
 
     def reconstruct_variable(self, o):
         # Check variable cache to reuse previously transformed variable if possible
-        e, l = o.operands()
+        e, l = o.ufl_operands
         v = self._variable_cache.get(l)
         if v is not None:
             return v
@@ -229,7 +229,7 @@ def transform(expression, handlers):
     if expression._ufl_is_terminal_:
         ops = ()
     else:
-        ops = [transform(o, handlers) for o in expression.operands()]
+        ops = [transform(o, handlers) for o in expression.ufl_operands]
     c = expression._ufl_class_
     h = handlers.get(c, None)
     if c is None:

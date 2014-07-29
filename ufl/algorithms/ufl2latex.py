@@ -162,7 +162,7 @@ class Expression2LatexHandler(Transformer):
 
     def variable(self, o):
         # TODO: Ensure variable has been handled
-        e, l = o.operands()
+        e, l = o.ufl_operands
         return "s_{%d}" % l._count
 
     # --- Non-terminal objects ---
@@ -306,12 +306,12 @@ class Expression2LatexHandler(Transformer):
     def list_tensor(self, o):
         shape = o.shape()
         if len(shape) == 1:
-            ops = [self.visit(op) for op in o.operands()]
+            ops = [self.visit(op) for op in o.ufl_operands]
             l = " \\\\ \n ".join(ops)
         elif len(shape) == 2:
             rows = []
-            for row in o.operands():
-                cols = (self.visit(op) for op in row.operands())
+            for row in o.ufl_operands:
+                cols = (self.visit(op) for op in row.ufl_operands)
                 rows.append( " & \n ".join(cols) )
             l = " \\\\ \n ".join(rows)
         else:

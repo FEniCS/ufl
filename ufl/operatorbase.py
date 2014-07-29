@@ -25,7 +25,7 @@ from ufl.core.ufl_type import ufl_type
 
 def _compute_hash(expr): # Best so far
     hashdata = ( (expr.__class__._ufl_class_,)
-            + tuple(hash(o) for o in expr.operands()) )
+            + tuple(hash(o) for o in expr.ufl_operands) )
     return hash(str(hashdata))
 
 _hashes = set()
@@ -51,11 +51,15 @@ compute_hash = _compute_hash
 
 @ufl_type(is_abstract=True, is_terminal=False)
 class Operator(Expr):
-    __slots__ = ("_hash",) # TODO: Add _ops tuple here and use that from all operator types instead of separate slots specs for each operator.
+    __slots__ = ("_hash",)
+
     def __init__(self): # *ops):
         Expr.__init__(self)
         self._hash = None
-        #self._ops = ops
+
+    def reconstruct(self, *operands):
+        "Return a new object of the same type with new operands."
+        return self.__class__._ufl_class_(*operands)
 
     def signature_data(self):
         return self._ufl_typecode_
@@ -67,15 +71,28 @@ class Operator(Expr):
         return self._hash
 
     def __getnewargs__(self):
-        return self.operands()
-
-    def reconstruct(self, *operands):
-        "Return a new object of the same type with new operands."
-        return self.__class__._ufl_class_(*operands)
+        return self.ufl_operands
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
-        return all(o.is_cellwise_constant() for o in self.operands())
+        return all(o.is_cellwise_constant() for o in self.ufl_operands)
+
+    # --- Transitional property getters, to be implemented directly in all classes ---
+
+    @property
+    def ufl_operands(self):
+        "Intermediate helper property getter to transition from .operands() to .ufl_operands."
+        return self.operands()
+
+    @property
+    def ufl_free_indices(self):
+        "Intermediate helper property getter to transition from .free_indices() to .ufl_free_indices."
+        return tuple(sorted(i.count() for i in self.free_indices()))
+
+    @property
+    def ufl_index_dimensions(self):
+        "Intermediate helper property getter to transition from .index_dimensions() to .ufl_index_dimensions."
+        return tuple(d for i, d in sorted(iteritems(self.index_dimensions()), key=lambda x: x[0].count()))
 
 #--- Subgroups of terminals ---
 

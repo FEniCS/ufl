@@ -106,7 +106,7 @@ class Sum(AlgebraOperator):
         return self._operands[0].shape()
 
     def evaluate(self, x, mapping, component, index_values):
-        return sum(o.evaluate(x, mapping, component, index_values) for o in self.operands())
+        return sum(o.evaluate(x, mapping, component, index_values) for o in self.ufl_operands)
 
     def __str__(self):
         ops = [parstr(o, self) for o in self._operands]
@@ -207,7 +207,7 @@ class Product(AlgebraOperator):
         return ()
 
     def evaluate(self, x, mapping, component, index_values):
-        ops = self.operands()
+        ops = self.ufl_operands
         sh = self.shape()
         if sh:
             ufl_assert(sh == ops[-1].shape(), "Expecting nonscalar product operand to be the last by convention.")
@@ -301,7 +301,7 @@ class Division(AlgebraOperator):
         return () # self._a.shape()
 
     def evaluate(self, x, mapping, component, index_values):
-        a, b = self.operands()
+        a, b = self.ufl_operands
         a = a.evaluate(x, mapping, component, index_values)
         b = b.evaluate(x, mapping, component, index_values)
         # Avoiding integer division by casting to float
@@ -364,7 +364,7 @@ class Power(AlgebraOperator):
         return ()
 
     def evaluate(self, x, mapping, component, index_values):
-        a, b = self.operands()
+        a, b = self.ufl_operands
         a = a.evaluate(x, mapping, component, index_values)
         b = b.evaluate(x, mapping, component, index_values)
         return a**b

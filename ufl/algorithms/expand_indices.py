@@ -94,7 +94,7 @@ class IndexExpander(ReuseTransformer):
         return x._ufl_class_(x.value())
 
     def division(self, x):
-        a, b = x.operands()
+        a, b = x.ufl_operands
 
         # Not accepting nonscalars in division anymore
         ufl_assert(a.shape() == (), "Not expecting tensor in division.")
@@ -111,12 +111,12 @@ class IndexExpander(ReuseTransformer):
 
     def index_sum(self, x):
         ops = []
-        summand, multiindex = x.operands()
+        summand, multiindex = x.ufl_operands
         index, = multiindex
 
         # TODO: For the list tensor purging algorithm, do something like:
         # if index not in self._to_expand:
-        #     return self.expr(x, *[self.visit(o) for o in x.operands()])
+        #     return self.expr(x, *[self.visit(o) for o in x.ufl_operands])
 
         for value in range(x.dimension()):
             self._index2value.push(index, value)
@@ -137,7 +137,7 @@ class IndexExpander(ReuseTransformer):
         return MultiIndex(self._multi_index(x), {})
 
     def indexed(self, x):
-        A, ii = x.operands()
+        A, ii = x.ufl_operands
 
         # Push new component built from index value map
         self._components.push(self._multi_index(ii))
@@ -161,7 +161,7 @@ class IndexExpander(ReuseTransformer):
     def component_tensor(self, x):
         # This function evaluates the tensor expression
         # with indices equal to the current component tuple
-        expression, indices = x.operands()
+        expression, indices = x.ufl_operands
         ufl_assert(expression.shape() == (), "Expecting scalar base expression.")
 
         # Update index map with component tuple values
@@ -184,7 +184,7 @@ class IndexExpander(ReuseTransformer):
         # Pick the right subtensor and subcomponent
         c = self.component()
         c0, c1 = c[0], c[1:]
-        op = x.operands()[c0]
+        op = x.ufl_operands[c0]
         # Evaluate subtensor with this subcomponent
         self._components.push(c1)
         r = self.visit(op)
@@ -192,7 +192,7 @@ class IndexExpander(ReuseTransformer):
         return r
 
     def grad(self, x):
-        f, = x.operands()
+        f, = x.ufl_operands
         ufl_assert(isinstance(f, (Terminal, Grad)),
                    "Expecting expand_derivatives to have been applied.")
         # No need to visit child as long as it is on the form [Grad]([Grad](terminal))

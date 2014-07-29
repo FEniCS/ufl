@@ -46,6 +46,13 @@ class Expr(object):
     #_ufl_noslots_ = True
 
 
+    # --- Transitional property getters, to be implemented directly in all classes ---
+
+    @property
+    def ufl_shape(self):
+        "Intermediate helper property getter to transition from .shape() to .ufl_shape."
+        return self.shape()
+
     # --- Type traits are added to subclasses by the ufl_type class decorator ---
 
     # Note: Some of these are modified after the Expr class definition
@@ -297,7 +304,7 @@ class Expr(object):
 
     #def __getnewargs__(self): # TODO: Test pickle and copy with this. Must implement differently for Terminal objects though.
     #    "Used for pickle and copy operations."
-    #    return self.operands()
+    #    return self.ufl_operands
 
 
 # Initializing traits here because Expr is not defined in the class declaration

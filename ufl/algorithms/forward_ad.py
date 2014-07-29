@@ -211,7 +211,7 @@ class ForwardAD(Transformer):
         """Variable objects are just 'labels', so by default the derivative
         of a variable is the derivative of its referenced expression."""
         # Check variable cache to reuse previously transformed variable if possible
-        e, l = o.operands()
+        e, l = o.ufl_operands
         r = self._variable_cache.get(l) # cache contains (v, vp) tuple
         if r is not None:
             return r
@@ -233,7 +233,7 @@ class ForwardAD(Transformer):
         return (o, None) # oprime here should never be used, this might even not be called?
 
     def indexed(self, o):
-        A, jj = o.operands()
+        A, jj = o.ufl_operands
         A2, Ap = self.visit(A)
         o = self.reuse_if_possible(o, A2, jj)
 
@@ -256,7 +256,7 @@ class ForwardAD(Transformer):
         return (o, op)
 
     def component_tensor(self, o):
-        A, ii = o.operands()
+        A, ii = o.ufl_operands
         A, Ap = self.visit(A)
         o = self.reuse_if_possible(o, A, ii)
 
@@ -270,7 +270,7 @@ class ForwardAD(Transformer):
     # --- Algebra operators
 
     def index_sum(self, o):
-        A, i = o.operands()
+        A, i = o.ufl_operands
 
         # Consider the following case:
         #   (v[i]*u[i]).dx(i)
@@ -630,7 +630,7 @@ class ForwardAD(Transformer):
         # If we hit this type, it has already been propagated
         # to a terminal, so we can simply apply our derivative
         # to its operand since differentiation commutes.
-        f, ii = o.operands()
+        f, ii = o.ufl_operands
         f, fp = self.visit(f)
         o = self.reuse_if_possible(o, f, ii)
 
@@ -728,7 +728,7 @@ class GradAD(ForwardAD):
         # 1) n = count number of Grads, get f
         # 2) if not f.has_derivatives(n): return zero(...)
 
-        f, = o.operands()
+        f, = o.ufl_operands
         ufl_assert(isinstance(f, (Grad, Terminal)),
                    "Expecting derivatives of child to be already expanded.")
         return (o, Grad(o))
@@ -749,7 +749,7 @@ class VariableAD(ForwardAD):
 
     def variable(self, o):
         # Check cache
-        e, l = o.operands()
+        e, l = o.ufl_operands
         c = self._variable_cache.get(l)
 
         if c is not None:
@@ -779,7 +779,7 @@ class CoefficientAD(ForwardAD):
         ufl_assert(isinstance(coefficient_derivatives, ExprMapping), "Expecting a ExprList.")
         self._v = arguments
         self._w = coefficients
-        cd = coefficient_derivatives.operands()
+        cd = coefficient_derivatives.ufl_operands
         self._cd = dict((cd[2*i], cd[2*i+1]) for i in range(len(cd)//2))
 
     def coefficient(self, o):
@@ -842,7 +842,7 @@ class CoefficientAD(ForwardAD):
         ngrads = 0
         o = g
         while isinstance(o, Grad):
-            o, = o.operands()
+            o, = o.ufl_operands
             ngrads += 1
         if not isinstance(o, FormArgument):
             error("Expecting gradient of a FormArgument, not %r" % (o,))
@@ -876,7 +876,7 @@ class CoefficientAD(ForwardAD):
             elif isinstance(v, Indexed):
                 # Case: d/dt [w + t v[...]]
                 # Case: d/dt [w[...] + t v[...]]
-                vval, vcomp = v.operands()
+                vval, vcomp = v.ufl_operands
                 vcomp = tuple(vcomp)
             else:
                 error("Expecting argument or component of argument.")
@@ -927,7 +927,7 @@ class CoefficientAD(ForwardAD):
             elif isinstance(w, Indexed): # This path is tested in unit tests, but not actually used?
                 # Case: d/dt [w[...] + t v[...]]
                 # Case: d/dt [w[...] + t v]
-                wval, wcomp = w.operands()
+                wval, wcomp = w.ufl_operands
                 if not wval == o: continue
                 assert isinstance(wval, FormArgument)
                 ufl_assert(all(isinstance(k, FixedIndex) for k in wcomp),
@@ -976,7 +976,7 @@ class CoefficientAD(ForwardAD):
 
     def variable(self, o):
         # Check variable cache to reuse previously transformed variable if possible
-        e, l = o.operands()
+        e, l = o.ufl_operands
         c = self._variable_cache.get(l)
         if c is not None:
             return c
@@ -1014,7 +1014,7 @@ def apply_nested_forward_ad(expr):
         return expr
     elif not isinstance(expr, Derivative):
         # Apply AD recursively to children
-        preops = expr.operands()
+        preops = expr.ufl_operands
         postops = tuple(apply_nested_forward_ad(o) for o in preops)
         # Reconstruct if necessary
         need_reconstruct = not (preops == postops) # FIXME: Is this efficient? O(n)?
@@ -1023,20 +1023,20 @@ def apply_nested_forward_ad(expr):
         return expr
     elif isinstance(expr, Grad):
         # Apply AD recursively to children
-        f, = expr.operands()
+        f, = expr.ufl_operands
         f = apply_nested_forward_ad(f)
         # Apply Grad-specialized AD to expanded child
         gdim = expr.shape()[-1]
         return compute_grad_forward_ad(f, gdim)
     elif isinstance(expr, VariableDerivative):
         # Apply AD recursively to children
-        f, v = expr.operands()
+        f, v = expr.ufl_operands
         f = apply_nested_forward_ad(f)
         # Apply Variable-specialized AD to expanded child
         return compute_variable_forward_ad(f, v)
     elif isinstance(expr, CoefficientDerivative):
         # Apply AD recursively to children
-        f, w, v, cd = expr.operands()
+        f, w, v, cd = expr.ufl_operands
         f = apply_nested_forward_ad(f)
         # Apply Coefficient-specialized AD to expanded child
         return compute_coefficient_forward_ad(f, w, v, cd)

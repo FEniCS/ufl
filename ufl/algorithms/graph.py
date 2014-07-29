@@ -69,7 +69,7 @@ def build_graph(expr): # O(n)
             i = len(V)
             handled[v] = i
             V.append(v)
-            for o in v.operands():
+            for o in v.ufl_operands:
                 j = handled[o]
                 e = (i, j)
                 E.append(e)
@@ -288,7 +288,7 @@ def rebuild_tree(G):
             # Fetch already reconstructed child vertices
             # and reconstruct non-terminal node from them
             ops = tuple(subtrees[j] for j in Vout[i])
-            if all_is(ops, v.operands()):
+            if all_is(ops, v.ufl_operands):
                 pass
             else:
                 v = v.reconstruct(*ops)

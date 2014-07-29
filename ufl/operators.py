@@ -297,8 +297,8 @@ def diff(f, v):
         return grad(f)
     # TODO: Allow this? Must be tested well!
     #elif (isinstance(v, Indexed)
-    #      and isinstance(v.operands()[0], SpatialCoordinate)):
-    #    return grad(f)[...,v.operands()[1]]
+    #      and isinstance(v.ufl_operands[0], SpatialCoordinate)):
+    #    return grad(f)[...,v.ufl_operands[1]]
     elif isinstance(v, Variable):
         return VariableDerivative(f, v)
     else:
@@ -412,13 +412,13 @@ def avg(v):
 
 def cell_avg(f):
     "UFL operator: Take the average of v over a cell."
-    #ufl_assert((isinstance(f, Restricted) and isinstance(f.operands()[0], FormArgument)) or
+    #ufl_assert((isinstance(f, Restricted) and isinstance(f.ufl_operands[0], FormArgument)) or
     #    isinstance(f, FormArgument), "Can only take the cell average of a (optionally restricted) Coefficient or Argument.")
     return CellAvg(f)
 
 def facet_avg(f):
     "UFL operator: Take the average of v over a facet."
-    #ufl_assert((isinstance(f, Restricted) and isinstance(f.operands()[0], FormArgument)) or
+    #ufl_assert((isinstance(f, Restricted) and isinstance(f.ufl_operands[0], FormArgument)) or
     #    isinstance(f, FormArgument), "Can only take the cell average of a (optionally restricted) Coefficient or Argument.")
     return FacetAvg(f)
 
@@ -608,15 +608,15 @@ def exterior_derivative(f):
 
     # Extract the element from the input f
     if isinstance(f, Indexed):
-        expression, indices = f.operands()
+        expression, indices = f.ufl_operands
         if len(indices) > 1:
             raise NotImplementedError
         index = int(indices[0])
         element = expression.element()
         element = element.extract_component(index)[1]
     elif isinstance(f, ListTensor):
-        f0 = f.operands()[0]
-        f0expr, f0indices = f0.operands() # FIXME: Assumption on type of f0!!!
+        f0 = f.ufl_operands[0]
+        f0expr, f0indices = f0.ufl_operands # FIXME: Assumption on type of f0!!!
         if len(f0indices) > 1:
             raise NotImplementedError
         index = int(f0indices[0])

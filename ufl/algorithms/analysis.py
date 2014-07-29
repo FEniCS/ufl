@@ -67,7 +67,7 @@ def expr_has_terminal_types(expr, ufl_types):
     input = [expr]
     while input:
         e = input.pop()
-        ops = e.operands()
+        ops = e.ufl_operands
         if ops:
             input.extend(ops)
         elif isinstance(e, ufl_types):
@@ -80,7 +80,7 @@ def expr_has_types(expr, ufl_types):
         e = input.pop()
         if isinstance(e, ufl_types):
             return True
-        input.extend(e.operands())
+        input.extend(e.ufl_operands)
     return False
 
 def has_type(a, ufl_types):
@@ -227,7 +227,7 @@ def extract_variables(a):
     for e in iter_expressions(a):
         for o in post_traversal(e):
             if isinstance(o, Variable):
-                expr, label = o.operands()
+                expr, label = o.ufl_operands
                 if not label in handled:
                     variables.append(o)
                     handled.add(label)
@@ -254,7 +254,7 @@ def count_nodes(expr, ids=None):
         # Skip already visited subtrees
         return
     # Extend set with children recursively
-    for o in expr.operands():
+    for o in expr.ufl_operands:
         count_nodes(o, ids)
     ids.add(i)
     return len(ids)

@@ -192,7 +192,7 @@ class SumDegreeEstimator(Transformer):
         degree(a**b) == degree(a)*b
         otherwise use the heuristic
         degree(a**b) == degree(a)*2"""
-        f, g = v.operands()
+        f, g = v.ufl_operands
         try:
             gi = abs(int(g))
             if isinstance(a, int):

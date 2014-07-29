@@ -71,6 +71,43 @@ def ufl_type(is_abstract=False,
         cls._ufl_is_shaping_ = is_shaping
 
 
+        # Simplify implementation of purely scalar types
+        cls._ufl_is_scalar_ = is_scalar
+        if is_scalar:
+            # Scalar? Then we can simplify the implementation of tensor properties by attaching them here.
+            cls.ufl_shape = ()
+            cls.ufl_free_indices = ()
+            cls.ufl_index_dimensions = ()
+        else:
+            # Not scalar? Then check that we do not have a scalar base class (this works recursively).
+            if get_base_attr(cls, "_ufl_is_scalar_"):
+                msg = "Non-scalar class {0.__name__} is has a scalar base class."
+                raise TypeError(msg.format(cls))
+
+        # Check if type implements the required methods
+        """ # TODO
+        if not is_abstract:
+            for attr in Expr._ufl_required_methods_:
+                if not hasattr(cls, attr):
+                    msg = "Class {0.__name__} has no {1} method."
+                    raise TypeError(msg.format(cls, attr))
+                elif not callable(getattr(cls, attr)):
+                    msg = "Required method {1} of class {0.__name__} is not callable."
+                    raise TypeError(msg.format(cls, attr))
+        """
+
+        # Check if type implements the required properties
+        """ # TODO
+        if not is_abstract:
+            for attr in Expr._ufl_required_properties_:
+                if not hasattr(cls, attr):
+                    msg = "Class {0.__name__} has no {1} property."
+                    raise TypeError(msg.format(cls, attr))
+                elif callable(getattr(cls, attr)):
+                    msg = "Required property {1} of class {0.__name__} is a callable method."
+                    raise TypeError(msg.format(cls, attr))
+        """
+
         # Assign the class object itself.
         # Makes it possible to do type(f)._ufl_class_ and be sure you get
         # the actual UFL class instead of a subclass from another library.
@@ -88,6 +125,39 @@ def ufl_type(is_abstract=False,
         # This is used for fast lookup into multifunction handler tables
         cls._ufl_typecode_ = Expr._ufl_num_typecodes_
         Expr._ufl_num_typecodes_ += 1
+
+
+        # Attach builtin type wrappers to Expr
+        """ # TODO
+        if wraps_type is not None:
+            if not isinstance(wraps_type, type):
+                msg = "Expecting a type, not a {0.__name__} for the wraps_type argument in definition of {1.__name__}."
+                raise TypeError(msg.format(type(wraps_type), cls))
+
+            def _ufl_as_type_(value):
+                return cls(value)
+            as_type_name = "_ufl_as_{0}_".format(wraps_type.__name__)
+            setattr(Expr, as_type_name, staticmethod(_ufl_as_type_))
+        """
+
+
+        # Attach special function to Expr.
+        # Avoids the circular dependency problem of making
+        # Expr.__foo__ return a Foo that is a subclass of Expr.
+        """ # TODO
+        if unop:
+            def _ufl_expr_unop_(self):
+                return cls(self)
+            setattr(Expr, unop, _ufl_expr_unop_)
+        if binop:
+            def _ufl_expr_binop_(self, other):
+                return cls(self, other)
+            setattr(Expr, binop, _ufl_expr_binop_)
+        if rbinop:
+            def _ufl_expr_rbinop_(self, other):
+                return cls(other, self)
+            setattr(Expr, rbinop, _ufl_expr_rbinop_)
+        """
 
 
         # Get trait is_terminal.
@@ -148,80 +218,6 @@ def ufl_type(is_abstract=False,
         if cls._ufl_is_terminal_ and cls._ufl_num_ops_ != 0:
             msg = "Class {0.__name__} has num_ops > 0 but is terminal."
             raise TypeError(msg.format(cls))
-
-
-        return cls
-
-
-    # TODO: Move bit by bit from this function to the above
-
-
-    def uflcore__ufl_type_decorator_(cls):
-
-
-        # Simplify implementation of purely scalar types
-        cls._ufl_is_scalar_ = is_scalar
-        if is_scalar:
-            # Scalar? Then we can simplify the implementation of tensor properties by attaching them here.
-            cls.ufl_shape = ()
-            cls.ufl_free_indices = ()
-            cls.ufl_index_dimensions = ()
-        else:
-            # Not scalar? Then check that we do not have a scalar base class (this works recursively).
-            if get_base_attr(cls, "_ufl_is_scalar_"):
-                msg = "Non-scalar class {0.__name__} is has a scalar base class."
-                raise TypeError(msg.format(cls))
-
-
-        # Check if type implements the required methods
-        if not is_abstract:
-            for attr in Expr._ufl_required_methods_:
-                if not hasattr(cls, attr):
-                    msg = "Class {0.__name__} has no {1} method."
-                    raise TypeError(msg.format(cls, attr))
-                elif not callable(getattr(cls, attr)):
-                    msg = "Required method {1} of class {0.__name__} is not callable."
-                    raise TypeError(msg.format(cls, attr))
-
-
-        # Check if type implements the required properties
-        if not is_abstract:
-            for attr in Expr._ufl_required_properties_:
-                if not hasattr(cls, attr):
-                    msg = "Class {0.__name__} has no {1} property."
-                    raise TypeError(msg.format(cls, attr))
-                elif callable(getattr(cls, attr)):
-                    msg = "Required property {1} of class {0.__name__} is a callable method."
-                    raise TypeError(msg.format(cls, attr))
-
-
-        # Attach builtin type wrappers to Expr
-        if wraps_type is not None:
-            if not isinstance(wraps_type, type):
-                msg = "Expecting a type, not a {0.__name__} for the wraps_type argument in definition of {1.__name__}."
-                raise TypeError(msg.format(type(wraps_type), cls))
-
-            def _ufl_as_type_(value):
-                return cls(value)
-            as_type_name = "_ufl_as_{0}_".format(wraps_type.__name__)
-            setattr(Expr, as_type_name, staticmethod(_ufl_as_type_))
-
-
-        # Attach special function to Expr.
-        # Avoids the circular dependency problem of making
-        # Expr.__foo__ return a Foo that is a subclass of Expr.
-        if unop:
-            def _ufl_expr_unop_(self):
-                return cls(self)
-            setattr(Expr, unop, _ufl_expr_unop_)
-        if binop:
-            def _ufl_expr_binop_(self, other):
-                return cls(self, other)
-            setattr(Expr, binop, _ufl_expr_binop_)
-        if rbinop:
-            def _ufl_expr_rbinop_(self, other):
-                return cls(other, self)
-            setattr(Expr, rbinop, _ufl_expr_rbinop_)
 
 
         return cls

@@ -37,7 +37,7 @@ class VariableRenumberingTransformer(ReuseTransformer):
         self.variable_map = {}
 
     def variable(self, o):
-        e, l = o.operands()
+        e, l = o.ufl_operands
         v = self.variable_map.get(l)
         if v is None:
             e = self.visit(e)
@@ -205,7 +205,7 @@ class IndexRenumberingTransformer2(VariableRenumberingTransformer):
         they represent new indices in a different scope."""
 
         # Get expression and indices
-        g, ii = f.operands()
+        g, ii = f.ufl_operands
 
         # Get values of indices
         c = self.multi_index(ii)
@@ -232,7 +232,7 @@ class IndexRenumberingTransformer2(VariableRenumberingTransformer):
 
     def index_sum(self, o):
         "Defines a new index."
-        f, ii = o.operands()
+        f, ii = o.ufl_operands
         ni = self.define_new_indices(ii)
         g = self.visit(f)
         r = IndexSum(g, ni)
@@ -241,7 +241,7 @@ class IndexRenumberingTransformer2(VariableRenumberingTransformer):
 
     def component_tensor(self, o):
         """Maps component to indices."""
-        f, ii = o.operands()
+        f, ii = o.ufl_operands
 
         # Read component and push new one
         c = self.components.peek()

@@ -76,7 +76,7 @@ class ListTensor(WrapperType):
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
-        return all(e.is_cellwise_constant() for e in self.operands())
+        return all(e.is_cellwise_constant() for e in self.ufl_operands)
 
     def operands(self):
         return self._expressions
@@ -188,7 +188,7 @@ class ComponentTensor(WrapperType):
     def reconstruct(self, expressions, indices):
         # Special case for simplification as_tensor(A[ii], ii) -> A
         if isinstance(expressions, Indexed):
-            A, ii = expressions.operands()
+            A, ii = expressions.ufl_operands
             if indices == ii:
                 #print "RETURNING", A, "FROM", expressions, indices, "SELF IS", self
                 return A
@@ -302,7 +302,7 @@ def as_tensor(expressions, indices = None):
 
         # Special case for simplification as_tensor(A[ii], ii) -> A
         if isinstance(expressions, Indexed):
-            A, ii = expressions.operands()
+            A, ii = expressions.ufl_operands
             if indices == ii._indices:
                 return A
 
@@ -429,7 +429,7 @@ def unit_indexed_tensor(shape, component):
 def unwrap_list_tensor(lt):
     components = []
     sh = lt.shape()
-    subs = lt.operands()
+    subs = lt.ufl_operands
     if len(sh) == 1:
         for s in range(sh[0]):
             components.append(((s,), subs[s]))

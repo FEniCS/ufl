@@ -24,8 +24,8 @@ def _expr_equals0(a, b):
             return False
 
         # Get operands
-        aops = a.operands()
-        bops = b.operands()
+        aops = a.ufl_operands
+        bops = b.ufl_operands
         if aops:
             if len(aops) != len(bops):
                 return False
@@ -51,7 +51,7 @@ def _expr_equals1(a, b):
         if type(x) != type(y):
             return False
         #if isinstance(Terminal, x) and not x == y:
-        if x.operands() == () and not x == y:
+        if x.ufl_operands == () and not x == y:
             return False
     # Equal terminals and types, a and b must be equal
     return True
@@ -116,9 +116,9 @@ def _expr_equals3(self, other): # Much faster than the more complex algorithms a
 
     if isinstance(self, Operator):
         # Just let python handle the recursion
-        #equal = self.operands() == other.operands()
+        #equal = self.ufl_operands == other.ufl_operands
         # Recurse manually to call _expr_equals3 directly without the class EQ overhead!
-        equal = all(_expr_equals3(a, b) for (a, b) in zip(self.operands(), other.operands()))
+        equal = all(_expr_equals3(a, b) for (a, b) in zip(self.ufl_operands, other.ufl_operands))
     else:
         # Compare terminal representations to include all terminal data
         #equal = repr(self) == repr(other)

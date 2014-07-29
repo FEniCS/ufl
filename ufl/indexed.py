@@ -84,7 +84,7 @@ class Indexed(WrapperType):
         return self._ops[0].is_cellwise_constant()
 
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
-        A, ii = self.operands()
+        A, ii = self.ufl_operands
         component = ii.evaluate(x, mapping, None, index_values)
         if derivatives:
             return A.evaluate(x, mapping, component, index_values, derivatives)

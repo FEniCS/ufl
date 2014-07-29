@@ -37,7 +37,7 @@ class RestrictionPropagator(ReuseTransformer):
                    "Cannot restrict to different sides.")
 
         self.current_restriction = o._side
-        e, = o.operands()
+        e, = o.ufl_operands
         r = self.visit(e)
 
         self.current_restriction = prev_restricted
@@ -157,7 +157,7 @@ class RestrictionChecker(Transformer):
         ufl_assert(self.current_restriction is None,
             "Not expecting twice restricted expression.")
         self.current_restriction = o._side
-        e, = o.operands()
+        e, = o.ufl_operands
         self.visit(e)
         self.current_restriction = None
 

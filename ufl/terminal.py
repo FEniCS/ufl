@@ -43,6 +43,10 @@ class Terminal(Expr):
         operands and error("Got call to reconstruct in a terminal with non-empty operands.")
         return self
 
+    ufl_operands = ()
+    ufl_free_indices = ()
+    ufl_index_dimensions = ()
+
     def operands(self):
         "A Terminal object never has operands."
         return ()

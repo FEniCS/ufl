@@ -49,7 +49,7 @@ class ArgumentDependencyExtracter(Transformer):
 
     def variable(self, o):
         # Check variable cache to reuse previously transformed variable if possible
-        e, l = o.operands()
+        e, l = o.ufl_operands
         d = self._variable_cache.get(l)
         if d is None:
             # Visit the expression our variable represents

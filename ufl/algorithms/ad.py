@@ -50,7 +50,7 @@ from ufl.algorithms.forward_ad import apply_nested_forward_ad
 #        return e
 #    else:
 #        #print 'O apply_ad', e
-#        ops1 = e.operands()
+#        ops1 = e.ufl_operands
 #        ops2 = tuple(apply_ad(o, ad_routine) for o in ops1)
 #        if not (ops1 == ops2):
 #            e = e.reconstruct(*ops2)

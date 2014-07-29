@@ -38,7 +38,7 @@ class MockForwardAD:
         ngrads = 0
         o = g
         while isinstance(o, Grad):
-            o, = o.operands()
+            o, = o.ufl_operands
             ngrads += 1
         if not isinstance(o, FormArgument):
             error("Expecting gradient of a FormArgument, not %r" % (o,))
@@ -72,7 +72,7 @@ class MockForwardAD:
             elif isinstance(v, Indexed):
                 # Case: d/dt [w + t v[...]]
                 # Case: d/dt [w[...] + t v[...]]
-                vval, vcomp = v.operands()
+                vval, vcomp = v.ufl_operands
                 vcomp = tuple(vcomp)
             else:
                 error("Expecting argument or component of argument.")
@@ -123,7 +123,7 @@ class MockForwardAD:
             elif isinstance(w, Indexed): # This path is tested in unit tests, but not actually used?
                 # Case: d/dt [w[...] + t v[...]]
                 # Case: d/dt [w[...] + t v]
-                wval, wcomp = w.operands()
+                wval, wcomp = w.ufl_operands
                 if not wval == o: continue
                 assert isinstance(wval, FormArgument)
                 ufl_assert(all(isinstance(k, FixedIndex) for k in wcomp),

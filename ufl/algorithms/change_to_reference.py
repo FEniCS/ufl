@@ -173,11 +173,11 @@ class ChangeToReferenceGrad(ReuseTransformer):
         restricted = ''
         while not o._ufl_is_terminal_:
             if isinstance(o, Grad):
-                o, = o.operands()
+                o, = o.ufl_operands
                 ngrads += 1
             elif isinstance(o, Restricted):
                 restricted = o.side()
-                o, = o.operands()
+                o, = o.ufl_operands
         f = o
 
         # Get domain and create Jacobian inverse object

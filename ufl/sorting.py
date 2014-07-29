@@ -102,8 +102,8 @@ def cmp_expr(a, b):
 
         # TODO: Since the type is the same, the number of children is always the same? Remove?
         if 1:
-            aops = a.operands()
-            bops = b.operands()
+            aops = a.ufl_operands
+            bops = b.ufl_operands
             c = _cmp3(len(aops), len(bops))
             if c != 0:
                 return c

@@ -191,7 +191,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
             m[c] = a
         else:
             ufl_assert(isinstance(c, Indexed), "Invalid coefficient type for %s" % repr(c))
-            f, i = c.operands()
+            f, i = c.ufl_operands
             ufl_assert(isinstance(f, Coefficient), "Expecting an indexed coefficient, not %s" % repr(f))
             ufl_assert(isinstance(i, MultiIndex) and all(isinstance(j, FixedIndex) for j in i),
                        "Expecting one or more fixed indices, not %s" % repr(i))

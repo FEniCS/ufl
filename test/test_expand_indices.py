@@ -316,7 +316,7 @@ class ExpandIndicesTestCase(UflTestCase):
         a = v[i]*w[i]
         # TODO: Compare
         print((type(a), str(a)))
-        A, comp = a.operands()
+        A, comp = a.ufl_operands
         print((type(A), str(A)))
         print((type(comp), str(comp)))
 
