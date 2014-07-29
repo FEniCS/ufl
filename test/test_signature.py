@@ -448,7 +448,7 @@ class FormSignatureTestCase(UflTestCase):
                         u = Coefficient(V)
                         v = TestFunction(V)
                         x = SpatialCoordinate(cell)
-                        w = as_vector([v]*x.shape()[0])
+                        w = as_vector([v]*x.ufl_shape[0])
                         f = dot(w, u*x)
                         a = f*dx
                         yield a

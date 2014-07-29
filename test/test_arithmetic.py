@@ -87,7 +87,7 @@ class ArithmeticTestCase(UflTestCase):
         A = as_matrix(((x, y, z), (3, 4, 5)))
         self.assertEqual(elem_op(sin, A), as_matrix(((sin(x), sin(y), sin(z)),
                                                      (sin(3), sin(4), sin(5)))))
-        self.assertEqual(elem_op(sin, A).dx(0).shape(), (2, 3))
+        self.assertEqual(elem_op(sin, A).dx(0).ufl_shape, (2, 3))
 
 if __name__ == "__main__":
     main()

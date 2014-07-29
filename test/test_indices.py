@@ -248,39 +248,39 @@ class IndexTestCase(UflTestCase):
         a = v[i].dx(i)
         self.assertSameIndices(a, ())
         self.assertIsInstance(a, IndexSum)
-        self.assertEqual(a.shape(), ())
+        self.assertEqual(a.ufl_shape, ())
         
         a = v[i].dx(j)
         self.assertSameIndices(a, (i, j))
         self.assertNotIsInstance(a, IndexSum)
-        self.assertEqual(a.shape(), ())
+        self.assertEqual(a.ufl_shape, ())
         
         a = (v[i]*u[j]).dx(i, j)
         self.assertSameIndices(a, ())
         self.assertIsInstance(a, IndexSum)
-        self.assertEqual(a.shape(), ())
+        self.assertEqual(a.ufl_shape, ())
         
         a = v.dx(i, j)
         #self.assertSameIndices(a, (i,j)) 
         self.assertEqual(set(a.free_indices()), {j, i})
         self.assertNotIsInstance(a, IndexSum)
-        self.assertEqual(a.shape(), (d,))
+        self.assertEqual(a.ufl_shape, (d,))
         
         a = v[i].dx(0)
         self.assertSameIndices(a, (i,))
         self.assertNotIsInstance(a, IndexSum)
-        self.assertEqual(a.shape(), ())
+        self.assertEqual(a.ufl_shape, ())
         
         a = (v[i]*u[j]).dx(0, 1)
         # indices change place because of sorting, I guess this may be ok
         self.assertEqual(set(a.free_indices()), {i, j})
         self.assertNotIsInstance(a, IndexSum)
-        self.assertEqual(a.shape(), ())
+        self.assertEqual(a.ufl_shape, ())
         
         a = v.dx(i)[i]
         self.assertSameIndices(a, ())
         self.assertIsInstance(a, IndexSum)
-        self.assertEqual(a.shape(), ())
+        self.assertEqual(a.ufl_shape, ())
 
     def test_renumbering(self):
         pass

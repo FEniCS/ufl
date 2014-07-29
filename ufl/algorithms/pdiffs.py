@@ -71,8 +71,8 @@ class PartialDerivativeComputer(MultiFunction):
         d/dy x/y = -x/y**2 = -f/y"""
         x, y = f.ufl_operands
         # Nonscalar x not supported
-        ufl_assert(x.shape() == (), "Expecting scalars in division.")
-        ufl_assert(y.shape() == (), "Expecting scalars in division.")
+        ufl_assert(x.ufl_shape == (), "Expecting scalars in division.")
+        ufl_assert(y.ufl_shape == (), "Expecting scalars in division.")
         d = 1 / y
         return (d, -f*d)
 
@@ -173,7 +173,7 @@ class PartialDerivativeComputer(MultiFunction):
 
     def indexed(self, f): # TODO: Is this right? Fix for non-scalars too.
         "d/dx x_i = (1)_i = 1"
-        s = f.shape()
+        s = f.ufl_shape
         ufl_assert(s == (), "TODO: Assuming a scalar expression.")
         _1 = IntValue(1) # TODO: Non-scalars
         return (_1, None)
@@ -182,13 +182,13 @@ class PartialDerivativeComputer(MultiFunction):
         "d/dx_i [x_0, ..., x_n-1] = e_i (unit vector)"
         ops = f.ufl_operands
         n = len(ops)
-        s = ops[0].shape()
+        s = ops[0].ufl_shape
         ufl_assert(s == (), "TODO: Assuming a vector, i.e. scalar operands.")
         return unit_vectors(n) # TODO: Non-scalars
 
     def component_tensor(self, f):
         x, i = f.ufl_operands
-        s = f.shape()
+        s = f.ufl_shape
         ufl_assert(len(s) == 1, "TODO: Assuming a vector, i.e. scalar operands.")
         n, = s
         d = ListTensor([1]*n) # TODO: Non-scalars
@@ -218,7 +218,7 @@ class PartialDerivativeComputer(MultiFunction):
 
     def conditional(self, f): # TODO: Is this right? What about non-scalars?
         c, a, b = f.ufl_operands
-        s = f.shape()
+        s = f.ufl_shape
         ufl_assert(s == (), "TODO: Assuming scalar valued expressions.")
         _0 = Zero()
         _1 = IntValue(1)

@@ -46,13 +46,6 @@ class Expr(object):
     #_ufl_noslots_ = True
 
 
-    # --- Transitional property getters, to be implemented directly in all classes ---
-
-    @property
-    def ufl_shape(self):
-        "Intermediate helper property getter to transition from .shape() to .ufl_shape."
-        return self.shape()
-
     # --- Type traits are added to subclasses by the ufl_type class decorator ---
 
     # Note: Some of these are modified after the Expr class definition
@@ -168,17 +161,7 @@ class Expr(object):
         "Return a sequence with all subtree nodes in expression tree."
         raise NotImplementedError(self.__class__.operands)
 
-    #--- Functions for general properties of expression ---
-
-    # All subclasses must implement shape
-    def shape(self):
-        "Return the tensor shape of the expression."
-        raise NotImplementedError(self.__class__.shape)
-
-    # Subclasses can implement rank if it is known directly
-    def rank(self):
-        "Return the tensor rank of the expression."
-        return len(self.shape())
+    #--- Functions for geometric properties of expression ---
 
     # All subclasses must implement domains if it is known
     def domains(self):
@@ -224,11 +207,19 @@ class Expr(object):
         error("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
 
     def __float__(self):
-        if self.shape() != () or self.free_indices() != ():
+        if self.ufl_shape != () or self.free_indices() != ():
             raise NotImplementedError(self.__class__.__float__)
         return self(()) # No known x
 
-    #--- Functions for index handling ---
+    #--- Functions for shape and index handling ---
+
+    def shape(self):
+        "Return the tensor shape of the expression."
+        return self.ufl_shape
+
+    def rank(self):
+        "Return the tensor rank of the expression."
+        return len(self.ufl_shape)
 
     # All subclasses that can have indices must implement free_indices
     def free_indices(self):
@@ -284,7 +275,7 @@ class Expr(object):
 
     def __len__(self):
         "Length of expression. Used for iteration over vector expressions."
-        s = self.shape()
+        s = self.ufl_shape
         if len(s) == 1:
             return s[0]
         raise NotImplementedError("Cannot take length of non-vector expression.")

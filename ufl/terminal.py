@@ -133,7 +133,8 @@ class UtilityType(Terminal):
     def __init__(self):
         Terminal.__init__(self)
 
-    def shape(self):
+    @property
+    def ufl_shape(self):
         error("Calling shape on a utility type is an error.")
 
     def free_indices(self):

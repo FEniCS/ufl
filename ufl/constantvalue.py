@@ -64,7 +64,7 @@ class IndexAnnotated(ConstantValue):
     indices with a set of free indices, used internally to keep
     index properties intact during automatic differentiation."""
 
-    __slots__ = ("_shape", "_free_indices", "_index_dimensions")
+    __slots__ = ("ufl_shape", "_free_indices", "_index_dimensions")
 
     def __init__(self, shape=(), free_indices=(), index_dimensions=None):
         ConstantValue.__init__(self)
@@ -72,7 +72,7 @@ class IndexAnnotated(ConstantValue):
             error("Expecting tuple of int.")
         if not all(isinstance(i, Index) for i in free_indices):
             error("Expecting tuple of Index objects.")
-        self._shape = shape
+        self.ufl_shape = shape
         self._free_indices = tuple(sorted(free_indices, key=lambda x: x.count()))
         self._index_dimensions = dict(index_dimensions) if index_dimensions else EmptyDict
         if (set(self._free_indices) ^ set(self._index_dimensions.keys())):
@@ -81,22 +81,20 @@ class IndexAnnotated(ConstantValue):
 #--- Class for representing abstract constant symbol only for use internally in form compilers
 #class AbstractSymbol(ConstantValue):
 #    "UFL literal type: Representation of a constant valued symbol with unknown properties."
-#    __slots__ = ("_name", "_shape")
+#    __slots__ = ("_name", "ufl_shape")
 #    def __init__(self, name, shape):
 #        ConstantValue.__init__(self)
 #        self._name = name
-#        self._shape = shape
+#        self.ufl_shape = shape
 #
 #    def __getnewargs__(self):
-#        return (self._name, self._shape)
+#        return (self._name, self.ufl_shape)
 #
 #    def reconstruct(self, name=None):
 #        if name is None:
 #            name = self._name
-#        return AbstractSymbol(name, self._shape)
+#        return AbstractSymbol(name, self.ufl_shape)
 #
-#    def shape(self):
-#        return self._shape
 #
 #    def free_indices(self):
 #        return ()
@@ -105,13 +103,13 @@ class IndexAnnotated(ConstantValue):
 #        return EmptyDict
 #
 #    def __str__(self):
-#        return "<Abstract symbol named '%s' with shape %s>" % (self._name, self._shape)
+#        return "<Abstract symbol named '%s' with shape %s>" % (self._name, self.ufl_shape)
 #
 #    def __repr__(self):
-#        return "AbstractSymbol(%r, %r)" % (self._name, self._shape)
+#        return "AbstractSymbol(%r, %r)" % (self._name, self.ufl_shape)
 #
 #    def __eq__(self, other):
-#        return isinstance(other, AbstractSymbol) and self._name == other._name and self._shape == other._shape
+#        return isinstance(other, AbstractSymbol) and self._name == other._name and self.ufl_shape == other.ufl_shape
 
 
 #--- Class for representing zero tensors of different shapes ---
@@ -133,7 +131,7 @@ class Zero(IndexAnnotated):
         return self
 
     def __getnewargs__(self):
-        return (self._shape, self._free_indices, self._index_dimensions)
+        return (self.ufl_shape, self._free_indices, self._index_dimensions)
 
     def __init__(self, shape=(), free_indices=(), index_dimensions=None):
         if not hasattr(self, '_shape'):
@@ -146,10 +144,7 @@ class Zero(IndexAnnotated):
             return self
         ufl_assert(len(free_indices) == len(self._free_indices), "Size mismatch between old and new indices.")
         new_index_dimensions = dict((b, self._index_dimensions[a]) for (a, b) in zip(self._free_indices, free_indices))
-        return Zero(self._shape, free_indices, new_index_dimensions)
-
-    def shape(self):
-        return self._shape
+        return Zero(self.ufl_shape, free_indices, new_index_dimensions)
 
     def free_indices(self):
         return self._free_indices
@@ -161,12 +156,12 @@ class Zero(IndexAnnotated):
         return 0.0
 
     def __str__(self):
-        if self._shape == () and self._free_indices == ():
+        if self.ufl_shape == () and self._free_indices == ():
             return "0"
-        return "(0<%r, %r>)" % (self._shape, self._free_indices)
+        return "(0<%r, %r>)" % (self.ufl_shape, self._free_indices)
 
     def __repr__(self):
-        return "Zero(%r, %r, %r)" % (self._shape,
+        return "Zero(%r, %r, %r)" % (self.ufl_shape,
                 self._free_indices, self._index_dimensions)
 
     def __eq__(self, other):
@@ -174,7 +169,7 @@ class Zero(IndexAnnotated):
             return isinstance(other, (int, float)) and other == 0
         if self is other:
             return True
-        return (self._shape == other._shape and
+        return (self.ufl_shape == other.ufl_shape and
                 self._free_indices == other._free_indices and
                 self._index_dimensions == other._index_dimensions)
     __hash__ = Terminal.__hash__
@@ -216,7 +211,7 @@ class ScalarValue(IndexAnnotated):
         return IndexAnnotated.__new__(cls)
 
     def __getnewargs__(self):
-        return (self._value, self._shape, self._free_indices, self._index_dimensions)
+        return (self._value, self.ufl_shape, self._free_indices, self._index_dimensions)
 
     def __init__(self, value, shape=(), free_indices=(), index_dimensions=None):
         IndexAnnotated.__init__(self, shape, free_indices, index_dimensions)
@@ -228,10 +223,7 @@ class ScalarValue(IndexAnnotated):
             return self
         ufl_assert(len(free_indices) == len(self._free_indices), "Size mismatch between old and new indices.")
         new_index_dimensions = dict((b, self._index_dimensions[a]) for (a, b) in zip(self._free_indices, free_indices))
-        return self._ufl_class_(self._value, self._shape, free_indices, new_index_dimensions)
-
-    def shape(self):
-        return self._shape
+        return self._ufl_class_(self._value, self.ufl_shape, free_indices, new_index_dimensions)
 
     def free_indices(self):
         return self._free_indices
@@ -289,7 +281,7 @@ class FloatValue(ScalarValue):
     def __repr__(self):
         return "%s(%s, %s, %s, %s)" % (type(self).__name__,
                                        format_float(self._value),
-                                       repr(self._shape),
+                                       repr(self.ufl_shape),
                                        repr(self._free_indices),
                                        repr(self._index_dimensions))
 
@@ -315,7 +307,7 @@ class IntValue(ScalarValue):
 
     def __repr__(self):
         return "%s(%s, %s, %s, %s)" % (type(self).__name__, repr(self._value),
-                                       repr(self._shape), repr(self._free_indices),
+                                       repr(self.ufl_shape), repr(self._free_indices),
                                        repr(self._index_dimensions))
 
 #--- Identity matrix ---
@@ -323,14 +315,12 @@ class IntValue(ScalarValue):
 @ufl_type()
 class Identity(ConstantValue):
     "UFL literal type: Representation of an identity matrix."
-    __slots__ = ("_dim",)
+    __slots__ = ("_dim", "ufl_shape")
 
     def __init__(self, dim):
         ConstantValue.__init__(self)
         self._dim = dim
-
-    def shape(self):
-        return (self._dim, self._dim)
+        self.ufl_shape = (dim, dim)
 
     def evaluate(self, x, mapping, component, index_values):
         a, b = component
@@ -363,17 +353,12 @@ class PermutationSymbol(ConstantValue):
 
     This is also known as the Levi-Civita symbol, antisymmetric symbol,
     or alternating symbol."""
-    __slots__ = ("_dim",)
+    __slots__ = ("ufl_shape", "_dim")
 
     def __init__(self, dim):
         ConstantValue.__init__(self)
         self._dim = dim
-
-    def shape(self):
-        s = ()
-        for i in range(self._dim):
-            s += (self._dim,)
-        return s
+        self.ufl_shape = (dim,)*dim
 
     def evaluate(self, x, mapping, component, index_values):
         return self.__eps(component)

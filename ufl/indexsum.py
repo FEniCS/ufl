@@ -40,7 +40,7 @@ class IndexSum(AlgebraOperator):
 
         from ufl.constantvalue import Zero
         if isinstance(summand, Zero):
-            sh = summand.shape()
+            sh = summand.ufl_shape
 
             if isinstance(index, Index):
                 j = index
@@ -83,14 +83,15 @@ class IndexSum(AlgebraOperator):
     def dimension(self):
         return self._dimension
 
+    @property
+    def ufl_shape(self):
+        return self.ufl_operands[0].ufl_shape
+
     def free_indices(self):
         return self._free_indices
 
     def index_dimensions(self):
         return self._index_dimensions
-
-    def shape(self):
-        return self.ufl_operands[0].shape()
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."

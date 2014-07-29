@@ -3,7 +3,7 @@
 #from ufl.core.expr import Expr
 from ufl.expr import Expr
 
-from ufl.common import camel2underscore
+from ufl.common import camel2underscore, EmptyDict
 
 # Make UFL type coercion available under the as_ufl name
 #as_ufl = Expr._ufl_coerce_
@@ -161,14 +161,25 @@ def ufl_type(is_abstract=False,
         cls._ufl_is_terminal_ = auto_is_terminal
 
 
-        # Simplify implementation of purely scalar types
+        # Get trait is_scalar.
         cls._ufl_is_scalar_ = is_scalar
+        # TODO: Add is_index_free trait?
+        is_index_free = is_scalar
 
-        if not is_scalar:
-            # Scalar? Then we can simplify the implementation of tensor properties by attaching them here.
+        # Scalar or index-free? Then we can simplify the implementation of tensor properties by attaching them here.
+        if is_scalar:
+            # New interface
             cls.ufl_shape = ()
+            # Legacy interface
+            cls.shape = lambda self: ()
+
+        if is_scalar or is_index_free:
+            # New interface
             cls.ufl_free_indices = ()
             cls.ufl_index_dimensions = ()
+            # Legacy interface
+            cls.free_indices = lambda self: ()
+            cls.index_dimensions = lambda self: EmptyDict
 
 
         # Require num_ops to be set for non-abstract classes if it cannot be determined automatically

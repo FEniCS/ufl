@@ -62,7 +62,7 @@ class MockForwardAD:
                 return (g, apply_grads(v))
 
         # If o is not among coefficient derivatives, return do/dw=0
-        gprimesum = Zero(g.shape())
+        gprimesum = Zero(g.ufl_shape)
 
         def analyse_variation_argument(v):
             # Analyse variation argument
@@ -99,7 +99,7 @@ class MockForwardAD:
             # Analyse differentiation variable coefficient
             if isinstance(w, FormArgument):
                 if not w == o: continue
-                wshape = w.shape()
+                wshape = w.ufl_shape
 
                 if isinstance(v, FormArgument):
                     # Case: d/dt [w + t v]
@@ -128,7 +128,7 @@ class MockForwardAD:
                 assert isinstance(wval, FormArgument)
                 ufl_assert(all(isinstance(k, FixedIndex) for k in wcomp),
                            "Expecting only fixed indices in differentiation variable.")
-                wshape = wval.shape()
+                wshape = wval.ufl_shape
 
                 vval, vcomp = analyse_variation_argument(v)
                 gprimesum = gprimesum + compute_gprimeterm(ngrads, vval, vcomp, wshape, wcomp)
@@ -159,7 +159,7 @@ class MockForwardAD:
                 for (oprime, v) in zip(oprimes, self._v):
                     error("FIXME: Figure out how to do this with ngrads")
                     so, oi = as_scalar(oprime)
-                    rv = len(v.shape())
+                    rv = len(v.ufl_shape)
                     oi1 = oi[:-rv]
                     oi2 = oi[-rv:]
                     prod = so*v[oi2]
@@ -282,9 +282,9 @@ class ScratchTestCase(UflTestCase):
             print(('df   ', df))
             print(('g    ', g))
             print(('dg   ', dg))
-        self.assertEqual(f.shape(), df.shape())
-        self.assertEqual(g.shape(), f.shape())
-        self.assertEqual(dg.shape(), df.shape())
+        self.assertEqual(f.ufl_shape, df.ufl_shape)
+        self.assertEqual(g.ufl_shape, f.ufl_shape)
+        self.assertEqual(dg.ufl_shape, df.ufl_shape)
         self.assertEqual(g, f)
         self.assertEqual((inner(dg, dg)*dx).signature(),
                          (inner(df, df)*dx).signature())
@@ -307,9 +307,9 @@ class ScratchTestCase(UflTestCase):
         print(('df   ', df))
         print(('g    ', g))
         print(('dg   ', dg))
-        self.assertEqual(f.shape(), df.shape())
-        self.assertEqual(g.shape(), f.shape())
-        self.assertEqual(dg.shape(), df.shape())
+        self.assertEqual(f.ufl_shape, df.ufl_shape)
+        self.assertEqual(g.ufl_shape, f.ufl_shape)
+        self.assertEqual(dg.ufl_shape, df.ufl_shape)
         self.assertEqual(g, f)
         self.assertEqual((inner(dg, dg)*dx).signature(),
                          (inner(df, df)*dx).signature())
@@ -336,9 +336,9 @@ class ScratchTestCase(UflTestCase):
             print(('df   ', df))
             print(('g    ', g))
             print(('dg   ', dg))
-        self.assertEqual(f.shape(), df.shape())
-        self.assertEqual(g.shape(), f.shape())
-        self.assertEqual(dg.shape(), df.shape())
+        self.assertEqual(f.ufl_shape, df.ufl_shape)
+        self.assertEqual(g.ufl_shape, f.ufl_shape)
+        self.assertEqual(dg.ufl_shape, df.ufl_shape)
         self.assertEqual(g, f)
         self.assertEqual((inner(dg, dg)*dx).signature(),
                          (inner(df, df)*dx).signature())
@@ -361,9 +361,9 @@ class ScratchTestCase(UflTestCase):
         print(('df   ', df))
         print(('g    ', g))
         print(('dg   ', dg))
-        self.assertEqual(f.shape(), df.shape())
-        self.assertEqual(g.shape(), f.shape())
-        self.assertEqual(dg.shape(), df.shape())
+        self.assertEqual(f.ufl_shape, df.ufl_shape)
+        self.assertEqual(g.ufl_shape, f.ufl_shape)
+        self.assertEqual(dg.ufl_shape, df.ufl_shape)
         self.assertEqual(g, f)
         self.assertEqual((inner(dg, dg)*dx).signature(),
                          (inner(df, df)*dx).signature())
@@ -418,9 +418,9 @@ class ScratchTestCase(UflTestCase):
             print(('df   ', df))
             print(('g    ', g))
             print(('dg   ', dg))
-        self.assertEqual(f.shape(), df.shape())
-        self.assertEqual(g.shape(), f.shape())
-        self.assertEqual(dg.shape(), df.shape())
+        self.assertEqual(f.ufl_shape, df.ufl_shape)
+        self.assertEqual(g.ufl_shape, f.ufl_shape)
+        self.assertEqual(dg.ufl_shape, df.ufl_shape)
         self.assertEqual(g, f)
         self.assertEqual((inner(dg, dg)*dx).signature(),
                          (inner(df, df)*dx).signature())

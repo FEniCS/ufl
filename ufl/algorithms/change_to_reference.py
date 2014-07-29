@@ -388,7 +388,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
 
         J = self.jacobian(Jacobian(domain))
         trev = CellEdgeVectors(domain)
-        num_edges = trev.shape()[0]
+        num_edges = trev.ufl_shape[0]
         i, j, k = indices(3)
         elen = [sqrt((J[i, j]*trev[edge, j])*(J[i, k]*trev[edge, k])) for edge in range(num_edges)]
 
@@ -413,7 +413,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
 
         J = self.jacobian(Jacobian(domain))
         trev = CellEdgeVectors(domain)
-        num_edges = trev.shape()[0]
+        num_edges = trev.ufl_shape[0]
         i, j, k = indices(3)
         elen = [sqrt((J[i, j]*trev[edge, j])*(J[i, k]*trev[edge, k])) for edge in range(num_edges)]
 
@@ -518,7 +518,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
                 FJ = self.facet_jacobian(FacetJacobian(domain))
 
                 ufl_assert(gdim == 3, "Inconsistent dimensions.")
-                ufl_assert(FJ.shape() == (3, 2), "Inconsistent dimensions.")
+                ufl_assert(FJ.ufl_shape == (3, 2), "Inconsistent dimensions.")
 
                 # Compute signed scaling factor
                 scale = self.jacobian_determinant(JacobianDeterminant(domain))
@@ -537,7 +537,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
 
                 if gdim == 2:
                     # 2D facet normal in 2D space
-                    ufl_assert(FJ.shape() == (2, 1), "Inconsistent dimensions.")
+                    ufl_assert(FJ.ufl_shape == (2, 1), "Inconsistent dimensions.")
 
                     # Compute facet tangent
                     tangent = as_vector((FJ[0, 0], FJ[1, 0], 0))
@@ -549,7 +549,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
                     scale = self.jacobian_determinant(JacobianDeterminant(domain))
                 else:
                     # 2D facet normal in 3D space
-                    ufl_assert(FJ.shape() == (gdim, 1), "Inconsistent dimensions.")
+                    ufl_assert(FJ.ufl_shape == (gdim, 1), "Inconsistent dimensions.")
 
                     # Compute facet tangent
                     tangent = FJ[:, 0]
@@ -589,7 +589,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
 
             self._rcache[o] = r
 
-        ufl_assert(r.shape() == o.shape(), "Inconsistent dimensions (in=%d, out=%d)." % (o.shape()[0], r.shape()[0]))
+        ufl_assert(r.ufl_shape == o.ufl_shape, "Inconsistent dimensions (in=%d, out=%d)." % (o.ufl_shape[0], r.ufl_shape[0]))
         return r
 
 

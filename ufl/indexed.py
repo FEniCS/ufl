@@ -37,7 +37,7 @@ class Indexed(WrapperType):
         if not isinstance(expression, Expr):
             error("Expecting Expr instance, not %s." % repr(expression))
 
-        shape = expression.shape()
+        shape = expression.ufl_shape
 
         # Error checking
         if len(shape) != len(indices):
@@ -65,15 +65,13 @@ class Indexed(WrapperType):
         self._free_indices = fi
         self._index_dimensions = idims or EmptyDict
 
+    ufl_shape = ()
+
     def free_indices(self):
         return self._free_indices
 
     def index_dimensions(self):
         return self._index_dimensions
-
-    ufl_shape = ()
-    def shape(self):
-        return ()
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."

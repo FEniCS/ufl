@@ -59,7 +59,7 @@ class UflTestCase(CompatibilityTestCase):
         self.assertEqual(expr.free_indices(), free_indices, msg=msg)
 
     def assertSameShape(self, expr, shape, msg=None):
-        self.assertEqual(expr.shape(), shape, msg=msg)
+        self.assertEqual(expr.ufl_shape, shape, msg=msg)
 
     def assertSameExprProps(self, expr, shape=None, free_indices=None, terminal=None, msg=None):
         if shape is not None:

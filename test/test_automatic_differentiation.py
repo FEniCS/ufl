@@ -186,7 +186,7 @@ class ForwardADTestCase(UflTestCase):
         super(ForwardADTestCase, self).tearDown()
 
     def assertEqualTotalShape(self, value, expected):
-        self.assertEqual(value.shape(), expected.shape())
+        self.assertEqual(value.ufl_shape, expected.ufl_shape)
         self.assertEqual(set(value.free_indices()), set(expected.free_indices()))
         self.assertEqual(value.index_dimensions(), expected.index_dimensions())
 
@@ -326,7 +326,7 @@ class ForwardADTestCase(UflTestCase):
         #for t in chain(collection.noncompounds, collection.compounds):
         for t in collection.noncompounds:
             for var in (u, v, w):
-                if debug: print(('\n', '...:   ', t.shape(), var.shape(), '\n'))
+                if debug: print(('\n', '...:   ', t.ufl_shape, var.ufl_shape, '\n'))
                 before = derivative(t, var)
                 if debug: print(('\n', 'before:   ', str(before), '\n'))
                 after = self.ad_algorithm(before)
@@ -384,7 +384,7 @@ class ForwardADTestCase(UflTestCase):
                     if debug: print(("Depends on %s :: %s" % (str(var), str(t))))
                     continue
 
-                if debug: print(('\n', '...:   ', t.shape(), var.shape(), '\n'))
+                if debug: print(('\n', '...:   ', t.ufl_shape, var.ufl_shape, '\n'))
                 before = derivative(t, var)
                 if debug: print(('\n', 'before:   ', str(before), '\n'))
                 after = self.ad_algorithm(before)
@@ -448,8 +448,8 @@ class ForwardADTestCase(UflTestCase):
                 before = grad(f)
                 after = self.ad_algorithm(before)
 
-                if before.shape() != after.shape():
-                    print(('\n', 'shapes:', before.shape(), after.shape()))
+                if before.ufl_shape != after.ufl_shape:
+                    print(('\n', 'shapes:', before.ufl_shape, after.ufl_shape))
                     print(('\n', str(before), '\n', str(after), '\n'))
 
                 self.assertEqualTotalShape(before, after)

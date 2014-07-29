@@ -178,7 +178,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
             if n == 1:
                 arguments = (argument,)
             else:
-                if argument.shape() == (n,):
+                if argument.ufl_shape == (n,):
                     arguments = tuple(argument[i] for i in range(n))
                 else:
                     arguments = split(argument)
@@ -186,7 +186,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
     # Build mapping from coefficient to argument
     m = {}
     for (c, a) in zip(coefficients, arguments):
-        ufl_assert(c.shape() == a.shape(), "Coefficient and argument shapes do not match!")
+        ufl_assert(c.ufl_shape == a.ufl_shape, "Coefficient and argument shapes do not match!")
         if isinstance(c, Coefficient):
             m[c] = a
         else:
@@ -203,7 +203,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
     # Merge coefficient derivatives (arguments) based on indices
     for c, p in iteritems(m):
         if isinstance(p, dict):
-            a = zero_lists(c.shape())
+            a = zero_lists(c.ufl_shape)
             for i, g in iteritems(p):
                 set_list_item(a, i, g)
             m[c] = as_tensor(a)

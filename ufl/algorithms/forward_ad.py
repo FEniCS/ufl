@@ -136,7 +136,7 @@ class ForwardAD(Transformer):
     def _make_zero_diff(self, o):
         # Define a zero with the right indices
         # (kind of cumbersome this... any simpler way?)
-        sh = o.shape() + self._var_shape
+        sh = o.ufl_shape + self._var_shape
         fi = o.free_indices()
         idims = dict(o.index_dimensions())
         if self._var_free_indices:
@@ -149,11 +149,11 @@ class ForwardAD(Transformer):
         return fp
 
     def _make_ones_diff(self, o):
-        ufl_assert(o.shape() == self._var_shape, "This is only used by VariableDerivative, yes?")
+        ufl_assert(o.ufl_shape == self._var_shape, "This is only used by VariableDerivative, yes?")
         # Define a scalar value with the right indices
         # (kind of cumbersome this... any simpler way?)
 
-        sh = o.shape()
+        sh = o.ufl_shape
         fi = o.free_indices()
         idims = dict(o.index_dimensions())
 
@@ -599,7 +599,7 @@ class ForwardAD(Transformer):
             tp = t[1] # Assuming t[1] and f[1] have the same indices here, which should be the case
             fi = tp.free_indices()
             fid = subdict(tp.index_dimensions(), fi)
-            op = Zero(tp.shape(), fi, fid)
+            op = Zero(tp.ufl_shape, fi, fid)
         else:
             op = conditional(c[0], 1, 0)*t[1] + conditional(c[0], 0, 1)*f[1]
         return (o, op)
@@ -636,7 +636,7 @@ class ForwardAD(Transformer):
 
         # FIXME: Make plenty of test cases around this kind of situation to document what's going on...
         if fp.is_cellwise_constant():
-            sh = fp.shape()
+            sh = fp.ufl_shape
             fi = fp.free_indices()
             idims = dict(fp.index_dimensions())
             j, = ii
@@ -736,7 +736,7 @@ class GradAD(ForwardAD):
 class VariableAD(ForwardAD):
     def __init__(self, var, cache=None):
         ForwardAD.__init__(self,
-                           var_shape=var.shape(),
+                           var_shape=var.ufl_shape,
                            var_free_indices=var.free_indices(),
                            var_index_dimensions=var.index_dimensions(),
                            cache=cache)
@@ -796,7 +796,7 @@ class CoefficientAD(ForwardAD):
                 return (w, v)
 
         # If o is not among coefficient derivatives, return do/dw=0
-        oprimesum = Zero(o.shape())
+        oprimesum = Zero(o.ufl_shape)
         oprimes = self._cd.get(o)
         if oprimes is None:
             if self._cd:
@@ -816,7 +816,7 @@ class CoefficientAD(ForwardAD):
             # product. Using indices to define a non-compound inner product.
             for (oprime, v) in zip(oprimes, self._v):
                 so, oi = as_scalar(oprime)
-                rv = len(v.shape())
+                rv = len(v.ufl_shape)
                 oi1 = oi[:-rv]
                 oi2 = oi[-rv:]
                 prod = so*v[oi2]
@@ -866,7 +866,7 @@ class CoefficientAD(ForwardAD):
                 return (g, apply_grads(v))
 
         # If o is not among coefficient derivatives, return do/dw=0
-        gprimesum = Zero(g.shape())
+        gprimesum = Zero(g.ufl_shape)
 
         def analyse_variation_argument(v):
             # Analyse variation argument
@@ -903,7 +903,7 @@ class CoefficientAD(ForwardAD):
             # Analyse differentiation variable coefficient
             if isinstance(w, FormArgument):
                 if not w == o: continue
-                wshape = w.shape()
+                wshape = w.ufl_shape
 
                 if isinstance(v, FormArgument):
                     # Case: d/dt [w + t v]
@@ -932,7 +932,7 @@ class CoefficientAD(ForwardAD):
                 assert isinstance(wval, FormArgument)
                 ufl_assert(all(isinstance(k, FixedIndex) for k in wcomp),
                            "Expecting only fixed indices in differentiation variable.")
-                wshape = wval.shape()
+                wshape = wval.ufl_shape
 
                 vval, vcomp = analyse_variation_argument(v)
                 gprimesum = gprimesum + compute_gprimeterm(ngrads, vval, vcomp, wshape, wcomp)
@@ -963,7 +963,7 @@ class CoefficientAD(ForwardAD):
                 for (oprime, v) in zip(oprimes, self._v):
                     error("FIXME: Figure out how to do this with ngrads")
                     so, oi = as_scalar(oprime)
-                    rv = len(v.shape())
+                    rv = len(v.ufl_shape)
                     oi1 = oi[:-rv]
                     oi2 = oi[-rv:]
                     prod = so*v[oi2]
@@ -1026,7 +1026,7 @@ def apply_nested_forward_ad(expr):
         f, = expr.ufl_operands
         f = apply_nested_forward_ad(f)
         # Apply Grad-specialized AD to expanded child
-        gdim = expr.shape()[-1]
+        gdim = expr.ufl_shape[-1]
         return compute_grad_forward_ad(f, gdim)
     elif isinstance(expr, VariableDerivative):
         # Apply AD recursively to children

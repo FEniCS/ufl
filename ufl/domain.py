@@ -96,13 +96,13 @@ class Domain(object):
             self._data = flat_domain.data()
 
             # Get geometric dimension from self._coordinates shape
-            gdim, = self._coordinates.shape()
+            gdim, = self._coordinates.ufl_shape
             if gdim != self._cell.geometric_dimension():
                 warning("Using geometric dimension from coordinates!")
                 self._cell = Cell(self._cell.cellname(), gdim)
-            #ufl_assert(self._coordinates.shape() == (self._cell.geometric_dimension(),),
+            #ufl_assert(self._coordinates.ufl_shape == (self._cell.geometric_dimension(),),
             #           "Shape of coordinates %s does not match geometric dimension %d of cell." %\
-            #    (self._coordinates.shape(), self._cell.geometric_dimension()))
+            #    (self._coordinates.ufl_shape, self._cell.geometric_dimension()))
         else:
             ufl_error("Invalid first argument to Domain.")
 

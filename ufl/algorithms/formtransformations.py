@@ -41,7 +41,7 @@ from ufl.algorithms.transformer import Transformer, transform_integrands
 from ufl.algorithms.replace import replace
 
 def zero(e):
-    return Zero(e.shape(), e.free_indices(), e.index_dimensions())
+    return Zero(e.ufl_shape, e.free_indices(), e.index_dimensions())
 
 class PartExtracter(Transformer):
     """

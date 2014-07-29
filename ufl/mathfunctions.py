@@ -61,15 +61,6 @@ class MathFunction(Operator):
         ufl_assert(is_true_ufl_scalar(argument), "Expecting scalar argument.")
         self._name     = name
 
-    def free_indices(self):
-        return ()
-
-    def index_dimensions(self):
-        return EmptyDict
-
-    def shape(self):
-        return ()
-
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
         try:
@@ -235,15 +226,6 @@ class Atan2(Operator):
         ufl_assert(is_true_ufl_scalar(arg1), "Expecting scalar argument 1.")
         ufl_assert(is_true_ufl_scalar(arg2), "Expecting scalar argument 2.")
 
-    def free_indices(self):
-        return ()
-
-    def index_dimensions(self):
-        return EmptyDict
-
-    def shape(self):
-        return ()
-
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
         b = self.ufl_operands[1].evaluate(x, mapping, component, index_values)
@@ -311,15 +293,6 @@ class BesselFunction(Operator):
 
         self._classname = classname
         self._name     = name
-
-    def free_indices(self):
-        return ()
-
-    def index_dimensions(self):
-        return EmptyDict
-
-    def shape(self):
-        return ()
 
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[1].evaluate(x, mapping, component, index_values)

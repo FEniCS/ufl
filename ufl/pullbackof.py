@@ -11,7 +11,8 @@ class PullbackOf(Operator):
         Operator.__init__(self, (f,))
         error("Not fully implemented.")
 
-    def shape(self):
+    @property
+    def ufl_shape(self):
         return self._f.element().reference_value_shape()
 
     def free_indices(self):

@@ -35,7 +35,7 @@ from ufl.core.ufl_type import ufl_type
 @ufl_type(is_shaping=True, num_ops="varying")
 class ListTensor(WrapperType):
     """UFL operator type: Wraps a list of expressions into a tensor valued expression of one higher rank."""
-    __slots__ = ("_free_indices", "_shape")
+    __slots__ = ("_free_indices", "ufl_shape")
 
     def __new__(cls, *expressions):
         # All lists and tuples should already be unwrapped in as_tensor
@@ -44,12 +44,12 @@ class ListTensor(WrapperType):
 
         # Get properties of the first expression
         e0 = expressions[0]
-        sh    = e0.shape()
+        sh    = e0.ufl_shape
         fi    = e0.free_indices()
         idim  = e0.index_dimensions()
 
         # Obviously, each subexpression must have the same shape
-        if any(sh != e.shape() for e in expressions):
+        if any(sh != e.ufl_shape for e in expressions):
             error("Cannot create a tensor by joining subexpressions with different shapes.")
         if any(set(fi) - set(e.free_indices()) for e in expressions):
             error("Cannot create a tensor where the components have different free indices.")
@@ -67,8 +67,8 @@ class ListTensor(WrapperType):
         WrapperType.__init__(self, expressions)
 
         e0 = expressions[0]
-        sh = e0.shape()
-        self._shape = (len(expressions),) + sh
+        sh = e0.ufl_shape
+        self.ufl_shape = (len(expressions),) + sh
 
         indexset = set(e0.free_indices())
         ufl_assert(all(not (indexset ^ set(e.free_indices())) for e in self.ufl_operands),\
@@ -84,13 +84,10 @@ class ListTensor(WrapperType):
     def index_dimensions(self):
         return self.ufl_operands[0].index_dimensions()
 
-    def shape(self):
-        return self._shape
-
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
-        ufl_assert(len(component) == len(self._shape),
+        ufl_assert(len(component) == len(self.ufl_shape),
                    "Can only evaluate scalars, expecting a component "\
-                   "tuple of length %d, not %s." % (len(self._shape), component))
+                   "tuple of length %d, not %s." % (len(self.ufl_shape), component))
         a = self.ufl_operands[component[0]]
         component = component[1:]
         if derivatives:
@@ -135,7 +132,7 @@ class ListTensor(WrapperType):
 @ufl_type(is_shaping=True, num_ops="varying")
 class ComponentTensor(WrapperType):
     """UFL operator type: Maps the free indices of a scalar valued expression to tensor axes."""
-    __slots__ = ("_free_indices", "_index_dimensions", "_shape")
+    __slots__ = ("_free_indices", "_index_dimensions", "ufl_shape")
 
     def __new__(cls, expression, indices):
         if isinstance(expression, Zero):
@@ -152,7 +149,7 @@ class ComponentTensor(WrapperType):
 
     def __init__(self, expression, indices):
         ufl_assert(isinstance(expression, Expr), "Expecting ufl expression.")
-        ufl_assert(expression.shape() == (), "Expecting scalar valued expression.")
+        ufl_assert(expression.ufl_shape == (), "Expecting scalar valued expression.")
         ufl_assert(all(isinstance(i, Index) for i in indices),
            "Expecting sequence of Index objects, not %s." % repr(indices))
 
@@ -172,7 +169,7 @@ class ComponentTensor(WrapperType):
             error("Missing indices %s in expression %s." % (missingset, expression))
 
         self._index_dimensions = dict((i, dims[i]) for i in self._free_indices) or EmptyDict
-        self._shape = tuple(dims[i] for i in indices)
+        self.ufl_shape = tuple(dims[i] for i in indices)
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
@@ -195,9 +192,6 @@ class ComponentTensor(WrapperType):
 
     def index_dimensions(self):
         return self._index_dimensions
-
-    def shape(self):
-        return self._shape
 
     def evaluate(self, x, mapping, component, index_values):
         indices = self.ufl_operands[1]
@@ -418,7 +412,7 @@ def unit_indexed_tensor(shape, component):
 
 def unwrap_list_tensor(lt):
     components = []
-    sh = lt.shape()
+    sh = lt.ufl_shape
     subs = lt.ufl_operands
     if len(sh) == 1:
         for s in range(sh[0]):

@@ -50,17 +50,17 @@ from ufl.geometry import SpatialCoordinate
 def rank(f):
     "UFL operator: The rank of f."
     f = as_ufl(f)
-    return len(f.shape())
+    return len(f.ufl_shape)
 
 def shape(f):
     "UFL operator: The shape of f."
     f = as_ufl(f)
-    return f.shape()
+    return f.ufl_shape
 
 #--- Elementwise tensor operators ---
 
 def elem_op_items(op_ind, indices, *args):
-    sh = args[0].shape()
+    sh = args[0].ufl_shape
     indices = tuple(indices)
     n = sh[len(indices)]
     def extind(ii):
@@ -73,8 +73,8 @@ def elem_op_items(op_ind, indices, *args):
 def elem_op(op, *args):
     "UFL operator: Take the elementwise application of operator op on scalar values from one or more tensor arguments."
     args = list(map(as_ufl, args))
-    sh = args[0].shape()
-    ufl_assert(all(sh == x.shape() for x in args),
+    sh = args[0].ufl_shape
+    ufl_assert(all(sh == x.ufl_shape for x in args),
                "Cannot take elementwise operation with different shapes.")
     if sh == ():
         return op(*args)
@@ -100,7 +100,7 @@ def elem_pow(A, B):
 def transpose(A):
     "UFL operator: Take the transposed of tensor A."
     A = as_ufl(A)
-    if A.shape() == ():
+    if A.ufl_shape == ():
         return A
     return Transposed(A)
 
@@ -116,7 +116,7 @@ def outer(*operands):
         b = operands[-1]
     a = as_ufl(a)
     b = as_ufl(b)
-    if a.shape() == () and b.shape() == ():
+    if a.ufl_shape == () and b.ufl_shape == ():
         return a*b
     return Outer(a, b)
 
@@ -124,7 +124,7 @@ def inner(a, b):
     "UFL operator: Take the inner product of a and b."
     a = as_ufl(a)
     b = as_ufl(b)
-    if a.shape() == () and b.shape() == ():
+    if a.ufl_shape == () and b.ufl_shape == ():
         return a*b
     return Inner(a, b)
 
@@ -140,7 +140,7 @@ def dot(a, b):
     "UFL operator: Take the dot product of a and b."
     a = as_ufl(a)
     b = as_ufl(b)
-    if a.shape() == () and b.shape() == ():
+    if a.ufl_shape == () and b.ufl_shape == ():
         return a*b
     return Dot(a, b)
     #return contraction(a, (a.rank()-1,), b, (b.rank()-1,))
@@ -149,8 +149,8 @@ def contraction(a, a_axes, b, b_axes):
     "UFL operator: Take the contraction of a and b over given axes."
     ai, bi = a_axes, b_axes
     ufl_assert(len(ai) == len(bi), "Contraction must be over the same number of axes.")
-    ash = a.shape()
-    bsh = b.shape()
+    ash = a.ufl_shape
+    bsh = b.ufl_shape
     aii = indices(a.rank())
     bii = indices(b.rank())
     cii = indices(len(ai))
@@ -169,28 +169,28 @@ def contraction(a, a_axes, b, b_axes):
 def perp(v):
     "UFL operator: Take the perp of v, i.e. (-v1, +v0)."
     v = as_ufl(v)
-    ufl_assert(v.shape() == (2,), "Expecting a 2D vector expression.")
+    ufl_assert(v.ufl_shape == (2,), "Expecting a 2D vector expression.")
     return as_vector((-v[1], v[0]))
 
 def cross(a, b):
     "UFL operator: Take the cross product of a and b."
     a = as_ufl(a)
     b = as_ufl(b)
-    #ufl_assert(a.shape() == (3,) and b.shape() == (3,),
+    #ufl_assert(a.ufl_shape == (3,) and b.ufl_shape == (3,),
     #           "Expecting 3D vectors in cross product.")
     return Cross(a, b)
 
 def det(A):
     "UFL operator: Take the determinant of A."
     A = as_ufl(A)
-    if A.shape() == ():
+    if A.ufl_shape == ():
         return A
     return Determinant(A)
 
 def inv(A):
     "UFL operator: Take the inverse of A."
     A = as_ufl(A)
-    if A.shape() == ():
+    if A.ufl_shape == ():
         return 1 / A
     return Inverse(A)
 
@@ -215,9 +215,9 @@ def diag(A):
     # Get and check dimensions
     r = A.rank()
     if r == 1:
-        n, = A.shape()
+        n, = A.ufl_shape
     elif r == 2:
-        m, n = A.shape()
+        m, n = A.ufl_shape
         ufl_assert(m == n, "Can only take diagonal of square tensors.")
     else:
         error("Expecting rank 1 or 2 tensor.")
@@ -239,7 +239,7 @@ def diag_vector(A):
 
     # Get and check dimensions
     ufl_assert(A.rank() == 2, "Expecting rank 2 tensor.")
-    m, n = A.shape()
+    m, n = A.ufl_shape
     ufl_assert(m == n, "Can only take diagonal of square tensors.")
 
     # Return diagonal vector
@@ -278,7 +278,7 @@ def Dn(f):
     facet normal direction, Dn(f) := dot(grad(f), n)."""
     f = as_ufl(f)
     if f.is_cellwise_constant():
-        return Zero(f.shape(), f.free_indices(), f.index_dimensions())
+        return Zero(f.ufl_shape, f.free_indices(), f.index_dimensions())
     from ufl.geometry import FacetNormal
     return dot(grad(f), FacetNormal(f.domain()))
 
@@ -403,7 +403,7 @@ def jump(v, n=None):
         # the jump is zero. In other words, I'm assuming that
         # "not v.domains()" is equivalent with "v is a constant".
         # Update: This is NOT true for jump(Expression("x[0]")) from dolfin.
-        return Zero(v.shape(), v.free_indices(), v.index_dimensions())
+        return Zero(v.ufl_shape, v.free_indices(), v.index_dimensions())
 
 def avg(v):
     "UFL operator: Take the average of v across a facet."

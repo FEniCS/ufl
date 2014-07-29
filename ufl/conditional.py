@@ -29,22 +29,13 @@ from ufl.core.ufl_type import ufl_type
 
 #--- Condition classes ---
 
+# TODO: Would be nice with some kind of type system to show that this is a boolean type not a float type
+
 @ufl_type(is_abstract=True, is_scalar=True)
 class Condition(Operator):
     __slots__ = ()
     def __init__(self, operands):
         Operator.__init__(self, operands)
-
-    # Functions like these are an indication that a better type system could be useful:
-
-    def free_indices(self):
-        error("Calling free_indices on Condition is an error.")
-
-    def index_dimensions(self):
-        error("Calling index_dimensions on Condition is an error.")
-
-    def shape(self):
-        error("Calling shape on Condition is an error.")
 
     def __bool__(self):
         # Showing explicit error here to protect against misuse
@@ -77,8 +68,8 @@ class BinaryCondition(Condition):
                        "Expecting a Condition, not a %s." % right._ufl_class_)
         else:
             # Binary operators acting on non-boolean expressions allow only scalars
-            ufl_assert(left.shape() == () \
-                           and  right.shape() == (),
+            ufl_assert(left.ufl_shape == () \
+                           and  right.ufl_shape == (),
                        "Expecting scalar arguments.")
             ufl_assert(left.free_indices() == () \
                            and right.free_indices() == (),
@@ -211,7 +202,7 @@ class NotCondition(Condition):
 
 #--- Conditional expression (condition ? true_value : false_value) ---
 
-@ufl_type(is_scalar=True, num_ops=3)
+@ufl_type(num_ops=3)
 class Conditional(Operator):
     __slots__ = ()
 
@@ -219,29 +210,30 @@ class Conditional(Operator):
         ufl_assert(isinstance(condition, Condition), "Expectiong condition as first argument.")
         true_value = as_ufl(true_value)
         false_value = as_ufl(false_value)
-        tsh = true_value.shape()
-        fsh = false_value.shape()
+        tsh = true_value.ufl_shape
+        fsh = false_value.ufl_shape
         ufl_assert(tsh == fsh, "Shape mismatch between conditional branches.")
         tfi = true_value.free_indices()
         ffi = false_value.free_indices()
         ufl_assert(tfi == ffi, "Free index mismatch between conditional branches.")
         if isinstance(condition, (EQ, NE)):
-            ufl_assert(    condition.ufl_operands[0].shape() == ()
+            ufl_assert(    condition.ufl_operands[0].ufl_shape == ()
                        and condition.ufl_operands[0].free_indices() == ()
-                       and condition.ufl_operands[1].shape() == ()
+                       and condition.ufl_operands[1].ufl_shape == ()
                        and condition.ufl_operands[1].free_indices() == (),
                        "Non-scalar == or != is not allowed.")
 
         Operator.__init__(self, (condition, true_value, false_value))
+
+    @property
+    def ufl_shape(self):
+        return self.ufl_operands[1].ufl_shape
 
     def free_indices(self):
         return self.ufl_operands[1].free_indices()
 
     def index_dimensions(self):
         return self.ufl_operands[1].index_dimensions()
-
-    def shape(self):
-        return self.ufl_operands[1].shape()
 
     def evaluate(self, x, mapping, component, index_values):
         c = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
@@ -269,15 +261,6 @@ class MinValue(Operator):
         Operator.__init__(self, (left, right))
         ufl_assert(is_true_ufl_scalar(left) and is_true_ufl_scalar(right), "Expecting scalar arguments.")
 
-    def free_indices(self):
-        return ()
-
-    def index_dimensions(self):
-        return EmptyDict
-
-    def shape(self):
-        return ()
-
     def evaluate(self, x, mapping, component, index_values):
         a, b = self.ufl_operands
         a = a.evaluate(x, mapping, component, index_values)
@@ -303,15 +286,6 @@ class MaxValue(Operator):
     def __init__(self, left, right):
         Operator.__init__(self, (left, right))
         ufl_assert(is_true_ufl_scalar(left) and is_true_ufl_scalar(right), "Expecting scalar arguments.")
-
-    def free_indices(self):
-        return ()
-
-    def index_dimensions(self):
-        return EmptyDict
-
-    def shape(self):
-        return ()
 
     def evaluate(self, x, mapping, component, index_values):
         a, b = self.ufl_operands

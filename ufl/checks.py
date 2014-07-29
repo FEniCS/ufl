@@ -28,13 +28,13 @@ def is_python_scalar(expression):
 def is_ufl_scalar(expression):
     """Return True iff expression is scalar-valued,
     but possibly containing free indices."""
-    return isinstance(expression, Expr) and not expression.shape()
+    return isinstance(expression, Expr) and not expression.ufl_shape
 
 def is_true_ufl_scalar(expression):
     """Return True iff expression is scalar-valued,
     with no free indices."""
     return isinstance(expression, Expr) and \
-        not (expression.shape() or expression.free_indices())
+        not (expression.ufl_shape or expression.free_indices())
 
 def is_globally_constant(expr):
     """Check if an expression is globally constant, which
@@ -62,6 +62,6 @@ def is_scalar_constant_expression(expr):
     """Check if an expression is a globally constant scalar expression."""
     if is_python_scalar(expr):
         return True
-    if expr.shape() != ():
+    if expr.ufl_shape != ():
         return False
     return is_globally_constant(expr)

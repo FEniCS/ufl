@@ -108,7 +108,7 @@ def _mult(a, b):
     # Pick out valid non-scalar products here (dot products):
     # - matrix-matrix (A*B, M*grad(u)) => A . B
     # - matrix-vector (A*v) => A . v
-    s1, s2 = a.shape(), b.shape()
+    s1, s2 = a.ufl_shape, b.ufl_shape
     r1, r2 = len(s1), len(s2)
     if r1 == 2 and r2 in (1, 2):
         ufl_assert(not ri, "Not expecting repeated indices in non-scalar product.")
@@ -212,7 +212,7 @@ Expr.__rsub__ = _rsub
 def _div(self, o):
     if not isinstance(o, _valid_types):
         return NotImplemented
-    sh = self.shape()
+    sh = self.ufl_shape
     if sh:
         ii = indices(len(sh))
         d = Division(self[ii], o)
@@ -231,7 +231,7 @@ Expr.__rtruediv__ = _rdiv
 def _pow(self, o):
     if not isinstance(o, _valid_types):
         return NotImplemented
-    if self.shape() and o == 2:
+    if self.ufl_shape and o == 2:
         return Inner(self, self)
     return Power(self, o)
 Expr.__pow__ = _pow
@@ -399,7 +399,7 @@ def _getitem(self, key):
 
     # Check for zero (last so we can get indices etc from a)
     if isinstance(self, Zero):
-        shape = a.shape()
+        shape = a.ufl_shape
         fi = a.free_indices()
         idims = subdict(a.index_dimensions(), fi)
         a = Zero(shape, fi, idims)

@@ -21,7 +21,7 @@ class TensorAlgebraTestCase(UflTestCase):
 
     def assertEqualValues(self, A, B):
         B = as_ufl(B)
-        self.assertEqual(A.shape(), B.shape())
+        self.assertEqual(A.ufl_shape, B.ufl_shape)
         self.assertEqual(inner(A-B, A-B)(None), 0)
 
     def test_repeated_as_tensor(self):

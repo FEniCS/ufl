@@ -72,14 +72,15 @@ class Variable(WrapperType):
 
         WrapperType.__init__(self, (expression, label))
 
+    @property
+    def ufl_shape(self):
+        return self.ufl_operands[0].ufl_shape
+
     def free_indices(self):
         return self.ufl_operands[0].free_indices()
 
     def index_dimensions(self):
         return self.ufl_operands[0].index_dimensions()
-
-    def shape(self):
-        return self.ufl_operands[0].shape()
 
     def domains(self):
         return self.ufl_operands[0].domains()

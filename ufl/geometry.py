@@ -111,10 +111,8 @@ class GeometricQuantity(Terminal):
         # NB! Geometric quantities are piecewise constant by default. Override if needed.
         return True
 
-    def shape(self):
-        "Scalar shaped."
-        # NB! Geometric quantities are scalar by default. Override if needed.
-        return ()
+    # NB! Geometric quantities are scalar by default. Override if needed.
+    ufl_shape = ()
 
     def signature_data(self, renumbering):
         "Signature data of geometric quantities depend on the domain numbering."
@@ -158,7 +156,8 @@ class SpatialCoordinate(GeometricCellQuantity):
     __slots__ = ()
     name = "x"
 
-    def shape(self):
+    @property
+    def ufl_shape(self):
         g = self._domain.geometric_dimension()
         return (g,)
 
@@ -190,7 +189,8 @@ class CellCoordinate(GeometricCellQuantity):
     __slots__ = ()
     name = "X"
 
-    def shape(self):
+    @property
+    def ufl_shape(self):
         t = self._domain.topological_dimension()
         return (t,)
 
@@ -218,7 +218,8 @@ class FacetCoordinate(GeometricFacetQuantity):
         t = self._domain.topological_dimension()
         ufl_assert(t > 1, "FacetCoordinate is only defined for topological dimensions > 1.")
 
-    def shape(self):
+    @property
+    def ufl_shape(self):
         t = self._domain.topological_dimension()
         return (t-1,)
 
@@ -237,7 +238,8 @@ class CellOrigin(GeometricCellQuantity):
     __slots__ = ()
     name = "x0"
 
-    def shape(self):
+    @property
+    def ufl_shape(self):
         g = self._domain.geometric_dimension()
         return (g,)
 
@@ -250,7 +252,8 @@ class FacetOrigin(GeometricFacetQuantity):
     __slots__ = ()
     name = "x0f"
 
-    def shape(self):
+    @property
+    def ufl_shape(self):
         g = self._domain.geometric_dimension()
         return (g,)
 
@@ -260,7 +263,8 @@ class CellFacetOrigin(GeometricFacetQuantity):
     __slots__ = ()
     name = "X0f"
 
-    def shape(self):
+    @property
+    def ufl_shape(self):
         t = self._domain.topological_dimension()
         return (t,)
 
@@ -276,7 +280,8 @@ class Jacobian(GeometricCellQuantity):
     __slots__ = ()
     name = "J"
 
-    def shape(self):
+    @property
+    def ufl_shape(self):
         g = self._domain.geometric_dimension()
         t = self._domain.topological_dimension()
         return (g, t)
@@ -305,7 +310,8 @@ class FacetJacobian(GeometricFacetQuantity):
         t = self._domain.topological_dimension()
         ufl_assert(t > 1, "FacetJacobian is only defined for topological dimensions > 1.")
 
-    def shape(self):
+    @property
+    def ufl_shape(self):
         g = self._domain.geometric_dimension()
         t = self._domain.topological_dimension()
         return (g, t-1)
@@ -329,7 +335,8 @@ class CellFacetJacobian(GeometricFacetQuantity): # dX/dXf
         t = self._domain.topological_dimension()
         ufl_assert(t > 1, "CellFacetJacobian is only defined for topological dimensions > 1.")
 
-    def shape(self):
+    @property
+    def ufl_shape(self):
         t = self._domain.topological_dimension()
         return (t, t-1)
 
@@ -349,7 +356,8 @@ class CellEdgeVectors(GeometricCellQuantity):
         t = self._domain.topological_dimension()
         ufl_assert(t > 1, "CellEdgeVectors is only defined for topological dimensions >= 2.")
 
-    def shape(self):
+    @property
+    def ufl_shape(self):
         cell = self.domain().cell()
         ne = cell.num_edges()
         t = cell.topological_dimension()
@@ -371,7 +379,8 @@ class FacetEdgeVectors(GeometricFacetQuantity):
         t = self._domain.topological_dimension()
         ufl_assert(t > 2, "FacetEdgeVectors is only defined for topological dimensions >= 3.")
 
-    def shape(self):
+    @property
+    def ufl_shape(self):
         cell = self.domain().cell()
         nfe = cell.num_facet_edges()
         t = cell.topological_dimension()
@@ -433,7 +442,8 @@ class JacobianInverse(GeometricCellQuantity):
     __slots__ = ()
     name = "K"
 
-    def shape(self):
+    @property
+    def ufl_shape(self):
         g = self._domain.geometric_dimension()
         t = self._domain.topological_dimension()
         return (t, g)
@@ -454,7 +464,8 @@ class FacetJacobianInverse(GeometricFacetQuantity):
         t = self._domain.topological_dimension()
         ufl_assert(t > 1, "FacetJacobianInverse is only defined for topological dimensions > 1.")
 
-    def shape(self):
+    @property
+    def ufl_shape(self):
         g = self._domain.geometric_dimension()
         t = self._domain.topological_dimension()
         return (t-1, g)
@@ -475,7 +486,8 @@ class CellFacetJacobianInverse(GeometricFacetQuantity):
         t = self._domain.topological_dimension()
         ufl_assert(t > 1, "CellFacetJacobianInverse is only defined for topological dimensions > 1.")
 
-    def shape(self):
+    @property
+    def ufl_shape(self):
         t = self._domain.topological_dimension()
         return (t-1, t)
 
@@ -493,7 +505,8 @@ class FacetNormal(GeometricFacetQuantity):
     __slots__ = ()
     name = "n"
 
-    def shape(self):
+    @property
+    def ufl_shape(self):
         g = self._domain.geometric_dimension()
         return (g,)
 
@@ -517,7 +530,8 @@ class CellNormal(GeometricCellQuantity):
     __slots__ = ()
     name = "cell_normal"
 
-    def shape(self):
+    @property
+    def ufl_shape(self):
         g = self._domain.geometric_dimension()
         return (g,)
 
@@ -533,7 +547,8 @@ class CellNormal(GeometricCellQuantity):
 #        t = self._domain.topological_dimension()
 #        ufl_assert(t > 1, "FacetTangents is only defined for topological dimensions > 1.")
 #
-#    def shape(self):
+#    @property
+#    def ufl_shape(self):
 #        g = self._domain.geometric_dimension()
 #        t = self._domain.topological_dimension()
 #        return (t-1,g)
@@ -558,7 +573,8 @@ class CellNormal(GeometricCellQuantity):
 #    __slots__ = ()
 #    name = "cell_tangents"
 #
-#    def shape(self):
+#    @property
+#    def ufl_shape(self):
 #        g = self._domain.geometric_dimension()
 #        t = self._domain.topological_dimension()
 #        return (t,g)
@@ -573,7 +589,8 @@ class CellNormal(GeometricCellQuantity):
 #    __slots__ = ()
 #    name = "cell_midpoint"
 #
-#    def shape(self):
+#    @property
+#    def ufl_shape(self):
 #        g = self._domain.geometric_dimension()
 #        return (g,)
 
@@ -584,7 +601,8 @@ class CellNormal(GeometricCellQuantity):
 #    __slots__ = ()
 #    name = "facet_midpoint"
 #
-#    def shape(self):
+#    @property
+#    def ufl_shape(self):
 #        g = self._domain.geometric_dimension()
 #        return (g,)
 

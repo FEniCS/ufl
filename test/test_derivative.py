@@ -211,13 +211,13 @@ class DerivativeTestCase(UflTestCase):
                 ( (v,    2*v), (0,   0) ),
                 ( (v**2,   1), (2, v/2) ),
                 ))
-        self.assertEqual(f.shape(), (3, 2, 2))
+        self.assertEqual(f.ufl_shape, (3, 2, 2))
         g = as_tensor((
                 ( (0, 0), (0, 0) ),
                 ( (1, 2), (0, 0) ),
                 ( (84, 0), (0, 0.5) ),
                 ))
-        self.assertEqual(g.shape(), (3, 2, 2))
+        self.assertEqual(g.ufl_shape, (3, 2, 2))
         dfv = diff(f, v)
         x = None
         for i in range(3):
@@ -255,10 +255,10 @@ class DerivativeTestCase(UflTestCase):
             else:
                 z = 0.7
                 m = c.number()
-            if c.shape() == ():
+            if c.ufl_shape == ():
                 return z * (0.1 + 0.9 * m / n)
-            elif len(c.shape()) == 1:
-                return tuple((z * (j + 0.1 + 0.9 * m / n) for j in range(c.shape()[0])))
+            elif len(c.ufl_shape) == 1:
+                return tuple((z * (j + 0.1 + 0.9 * m / n) for j in range(c.ufl_shape[0])))
             else:
                 raise NotImplementedError("Tensor valued expressions not supported here.")
 

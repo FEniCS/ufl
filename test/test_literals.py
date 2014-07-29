@@ -95,7 +95,7 @@ class TestLiterals(UflTestCase):
 
     def test_permutation_symbol_3(self):
         e = PermutationSymbol(3)
-        self.assertEqual(e.shape(), (3, 3, 3))
+        self.assertEqual(e.ufl_shape, (3, 3, 3))
         self.assertEqual(eval(repr(e)), e)
         for i in range(3):
             for j in range(3):
@@ -110,7 +110,7 @@ class TestLiterals(UflTestCase):
     def test_permutation_symbol_n(self):
         for n in range(2, 5): # tested with upper limit 7, but evaluation is a bit slow then
             e = PermutationSymbol(n)
-            self.assertEqual(e.shape(), (n,)*n)
+            self.assertEqual(e.ufl_shape, (n,)*n)
             self.assertEqual(eval(repr(e)), e)
 
             ii = indices(n)

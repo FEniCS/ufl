@@ -114,7 +114,8 @@ class WrapperType(Operator):
     def __init__(self, operands):
         Operator.__init__(self, operands)
 
-    def shape(self):
+    @property
+    def ufl_shape(self):
         error("A non-tensor type has no shape.")
 
     def free_indices(self):

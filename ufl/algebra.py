@@ -46,10 +46,10 @@ class Sum(AlgebraOperator):
         b = as_ufl(b)
 
         # Assert consistent tensor properties
-        sh = a.shape()
+        sh = a.ufl_shape
         fi = a.free_indices()
         fid = a.index_dimensions()
-        if b.shape() != sh:
+        if b.ufl_shape != sh:
             error("Can't add expressions with different shapes.")
         if set(fi) ^ set(b.free_indices()):
             error("Can't add expressions with different free indices.")
@@ -93,14 +93,15 @@ class Sum(AlgebraOperator):
     def __init__(self, a, b):
         AlgebraOperator.__init__(self)
 
+    @property
+    def ufl_shape(self):
+        return self.ufl_operands[0].ufl_shape
+
     def free_indices(self):
         return self.ufl_operands[0].free_indices()
 
     def index_dimensions(self):
         return self.ufl_operands[0].index_dimensions()
-
-    def shape(self):
-        return self.ufl_operands[0].shape()
 
     def evaluate(self, x, mapping, component, index_values):
         return sum(o.evaluate(x, mapping, component, index_values) for o in self.ufl_operands)
@@ -142,7 +143,7 @@ class Product(AlgebraOperator):
         operands = (a, b) # TODO: Temporary, rewrite below code to use a,b
 
         # Make sure everything is scalar
-        if a.shape() or b.shape():
+        if a.ufl_shape or b.ufl_shape:
             error("Product can only represent products of scalars.")
 
         # Got any zeros? Return zero.
@@ -191,20 +192,19 @@ class Product(AlgebraOperator):
     def __init__(self, a, b):
         AlgebraOperator.__init__(self)
 
+    ufl_shape = ()
+
     def free_indices(self):
         return self._free_indices
 
     def index_dimensions(self):
         return self._index_dimensions
 
-    def shape(self):
-        return ()
-
     def evaluate(self, x, mapping, component, index_values):
         ops = self.ufl_operands
-        sh = self.shape()
+        sh = self.ufl_shape
         if sh:
-            ufl_assert(sh == ops[-1].shape(), "Expecting nonscalar product operand to be the last by convention.")
+            ufl_assert(sh == ops[-1].ufl_shape, "Expecting nonscalar product operand to be the last by convention.")
             tmp = ops[-1].evaluate(x, mapping, component, index_values)
             ops = ops[:-1]
         else:
@@ -264,7 +264,7 @@ class Division(AlgebraOperator):
         if isinstance(a, ScalarValue) and isinstance(b, ScalarValue):
             return as_ufl(float(a._value) / float(b._value))
         # Simplification "a / a" -> "1"
-        if not a.free_indices() and not a.shape() and a == b:
+        if not a.free_indices() and not a.ufl_shape and a == b:
             return as_ufl(1)
 
         # construct and initialize a new Division object
@@ -281,14 +281,13 @@ class Division(AlgebraOperator):
     def __init__(self, a, b):
         AlgebraOperator.__init__(self)
 
+    ufl_shape = () # self.ufl_operands[0].ufl_shape
+
     def free_indices(self):
         return self.ufl_operands[0].free_indices()
 
     def index_dimensions(self):
         return self.ufl_operands[0].index_dimensions()
-
-    def shape(self):
-        return () # self.ufl_operands[0].shape()
 
     def evaluate(self, x, mapping, component, index_values):
         a, b = self.ufl_operands
@@ -340,14 +339,13 @@ class Power(AlgebraOperator):
     def __init__(self, a, b):
         AlgebraOperator.__init__(self)
 
+    ufl_shape = ()
+
     def free_indices(self):
         return self.ufl_operands[0].free_indices()
 
     def index_dimensions(self):
         return self.ufl_operands[0].index_dimensions()
-
-    def shape(self):
-        return ()
 
     def evaluate(self, x, mapping, component, index_values):
         a, b = self.ufl_operands
@@ -370,14 +368,15 @@ class Abs(AlgebraOperator):
         ufl_assert(isinstance(a, Expr), "Expecting Expr instance.")
         if not isinstance(a, Expr): error("Expecting Expr instances.")
 
+    @property
+    def ufl_shape(self):
+        return self.ufl_operands[0].ufl_shape
+
     def free_indices(self):
         return self.ufl_operands[0].free_indices()
 
     def index_dimensions(self):
         return self.ufl_operands[0].index_dimensions()
-
-    def shape(self):
-        return self.ufl_operands[0].shape()
 
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)

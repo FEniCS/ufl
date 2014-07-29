@@ -35,8 +35,9 @@ class Restricted(Operator):
         Operator.__init__(self, (f,))
         self._side = side
 
-    def shape(self):
-        return self.ufl_operands[0].shape()
+    @property
+    def ufl_shape(self):
+        return self.ufl_operands[0].ufl_shape
 
     def free_indices(self):
         return self.ufl_operands[0].free_indices()
@@ -82,8 +83,9 @@ class CellAvg(Operator):
     def __init__(self, f):
         Operator.__init__(self, (f,))
 
-    def shape(self):
-        return self.ufl_operands[0].shape()
+    @property
+    def ufl_shape(self):
+        return self.ufl_operands[0].ufl_shape
 
     def free_indices(self):
         return ()
@@ -112,8 +114,9 @@ class FacetAvg(Operator):
     def __init__(self, f):
         Operator.__init__(self, (f,))
 
-    def shape(self):
-        return self.ufl_operands[0].shape()
+    @property
+    def ufl_shape(self):
+        return self.ufl_operands[0].ufl_shape
 
     def free_indices(self):
         return ()

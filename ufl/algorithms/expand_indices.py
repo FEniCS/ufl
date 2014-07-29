@@ -51,14 +51,14 @@ class IndexExpander(ReuseTransformer):
         return ()
 
     def terminal(self, x):
-        if x.shape():
+        if x.ufl_shape:
             c = self.component()
-            ufl_assert(len(x.shape()) == len(c), "Component size mismatch.")
+            ufl_assert(len(x.ufl_shape) == len(c), "Component size mismatch.")
             return x[c]
         return x
 
     def form_argument(self, x):
-        sh = x.shape()
+        sh = x.ufl_shape
         if sh == ():
             return x
         else:
@@ -77,16 +77,16 @@ class IndexExpander(ReuseTransformer):
             return x[c]
 
     def zero(self, x):
-        ufl_assert(len(x.shape()) == len(self.component()), "Component size mismatch.")
+        ufl_assert(len(x.ufl_shape) == len(self.component()), "Component size mismatch.")
         s = set(x.free_indices()) - set(self._index2value.keys())
         if s: error("Free index set mismatch, these indices have no value assigned: %s." % str(s))
         # There is no index/shape info in this zero because that is asserted above
         return Zero()
 
     def scalar_value(self, x):
-        if len(x.shape()) != len(self.component()):
+        if len(x.ufl_shape) != len(self.component()):
             self.print_visit_stack()
-        ufl_assert(len(x.shape()) == len(self.component()), "Component size mismatch.")
+        ufl_assert(len(x.ufl_shape) == len(self.component()), "Component size mismatch.")
 
         s = set(x.free_indices()) - set(self._index2value.keys())
         if s: error("Free index set mismatch, these indices have no value assigned: %s." % str(s))
@@ -97,10 +97,10 @@ class IndexExpander(ReuseTransformer):
         a, b = x.ufl_operands
 
         # Not accepting nonscalars in division anymore
-        ufl_assert(a.shape() == (), "Not expecting tensor in division.")
+        ufl_assert(a.ufl_shape == (), "Not expecting tensor in division.")
         ufl_assert(self.component() == (), "Not expecting component in division.")
 
-        ufl_assert(b.shape() == (), "Not expecting division by tensor.")
+        ufl_assert(b.ufl_shape == (), "Not expecting division by tensor.")
         a = self.visit(a)
 
         #self._components.push(())
@@ -162,7 +162,7 @@ class IndexExpander(ReuseTransformer):
         # This function evaluates the tensor expression
         # with indices equal to the current component tuple
         expression, indices = x.ufl_operands
-        ufl_assert(expression.shape() == (), "Expecting scalar base expression.")
+        ufl_assert(expression.ufl_shape == (), "Expecting scalar base expression.")
 
         # Update index map with component tuple values
         comp = self.component()

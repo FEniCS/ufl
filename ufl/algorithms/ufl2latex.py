@@ -128,12 +128,12 @@ class Expression2LatexHandler(Transformer):
     # --- Terminal objects ---
 
     def scalar_value(self, o):
-        if o.shape():
+        if o.ufl_shape:
             return r"{\mathbf %s}" % o._value
         return "{%s}" % o._value
 
     def zero(self, o):
-        return "0" if not o.shape() else r"{\mathbf 0}"
+        return "0" if not o.ufl_shape else r"{\mathbf 0}"
 
     def identity(self, o):
         return r"{\mathbf I}"
@@ -304,7 +304,7 @@ class Expression2LatexHandler(Transformer):
         return "sym{%s}" % par(A) # TODO: Get built-in function syntax like \sin for this
 
     def list_tensor(self, o):
-        shape = o.shape()
+        shape = o.ufl_shape
         if len(shape) == 1:
             ops = [self.visit(op) for op in o.ufl_operands]
             l = " \\\\ \n ".join(ops)

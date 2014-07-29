@@ -74,7 +74,8 @@ class Coefficient(FormArgument):
     def element(self):
         return self._element
 
-    def shape(self):
+    @property
+    def ufl_shape(self):
         return self._element.value_shape()
 
     def is_cellwise_constant(self):

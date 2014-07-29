@@ -74,7 +74,8 @@ class Argument(FormArgument):
         ufl_assert(self.part() is None, "Deprecation transition for count() will not work with parts.")
         return self.number() # I think this will work ok in most cases during the deprecation transition
 
-    def shape(self):
+    @property
+    def ufl_shape(self):
         return self._element.value_shape()
 
     def is_cellwise_constant(self):

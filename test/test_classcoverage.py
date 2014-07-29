@@ -30,7 +30,7 @@ def test_object(a, shape, free_indices):
 
     # Check that some properties are at least available
     fi = a.free_indices()
-    sh = a.shape()
+    sh = a.ufl_shape
     ce = a.cell()
 
     # Compare with provided properties
@@ -255,7 +255,7 @@ class ClasscoverageTest(UflTestCase):
 
         for v, f in zip((v1, v2, v3), (f1, f2, f3)):
             a = dot(v, f)
-            sh = v.shape()[:-1] + f.shape()[1:]
+            sh = v.ufl_shape[:-1] + f.ufl_shape[1:]
             test_object(a, sh, None)
 
         a = cross(v13D, f13D)

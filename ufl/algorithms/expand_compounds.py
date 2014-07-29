@@ -44,7 +44,7 @@ class CompoundExpander(ReuseTransformer):
         return as_tensor(A[i, j], (j, i))
 
     def _square_matrix_shape(self, A):
-        sh = A.shape()
+        sh = A.ufl_shape
         ufl_assert(sh[0] == sh[1], "Expecting square matrix.")
         ufl_assert(sh[0] is not None, "Unknown dimension.")
         return sh
@@ -118,12 +118,12 @@ class CompoundExpander(ReuseTransformer):
             return as_tensor(a.dx(j), (j,))
 
     def curl(self, o, a):
-        # o = curl a = "[a.dx(1), -a.dx(0)]"            if a.shape() == ()
-        # o = curl a = "cross(nabla, (a0, a1, 0))[2]" if a.shape() == (2,)
-        # o = curl a = "cross(nabla, a)"              if a.shape() == (3,)
+        # o = curl a = "[a.dx(1), -a.dx(0)]"            if a.ufl_shape == ()
+        # o = curl a = "cross(nabla, (a0, a1, 0))[2]" if a.ufl_shape == (2,)
+        # o = curl a = "cross(nabla, a)"              if a.ufl_shape == (3,)
         def c(i, j):
             return a[j].dx(i) - a[i].dx(j)
-        sh = a.shape()
+        sh = a.ufl_shape
         if sh == ():
             return as_vector((a.dx(1), -a.dx(0)))
         if sh == (2,):
@@ -164,14 +164,14 @@ class CompoundExpanderPreDiff(CompoundExpander):
         return Grad(a)[i, ..., i]
 
     def curl(self, o, a):
-        # o = curl a = "[a.dx(1), -a.dx(0)]"            if a.shape() == ()
-        # o = curl a = "cross(nabla, (a0, a1, 0))[2]" if a.shape() == (2,)
-        # o = curl a = "cross(nabla, a)"              if a.shape() == (3,)
+        # o = curl a = "[a.dx(1), -a.dx(0)]"            if a.ufl_shape == ()
+        # o = curl a = "cross(nabla, (a0, a1, 0))[2]" if a.ufl_shape == (2,)
+        # o = curl a = "cross(nabla, a)"              if a.ufl_shape == (3,)
         Da = Grad(a)
         def c(i, j):
             #return a[j].dx(i) - a[i].dx(j)
             return Da[j, i] - Da[i, j]
-        sh = a.shape()
+        sh = a.ufl_shape
         if sh == ():
             #return as_vector((a.dx(1), -a.dx(0)))
             return as_vector((Da[1], -Da[0]))
