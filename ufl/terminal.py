@@ -137,6 +137,14 @@ class UtilityType(Terminal):
     def ufl_shape(self):
         error("Calling shape on a utility type is an error.")
 
+    @property
+    def ufl_free_indices(self):
+        error("Calling free_indices on a utility type is an error.")
+
+    @property
+    def ufl_index_dimensions(self):
+        error("Calling index_dimensions on a utility type is an error.")
+
     def free_indices(self):
         error("Calling free_indices on a utility type is an error.")
 

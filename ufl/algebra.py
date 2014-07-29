@@ -36,7 +36,7 @@ from ufl.core.ufl_type import ufl_type
 
 #--- Algebraic operators ---
 
-@ufl_type(num_ops=2)
+@ufl_type(num_ops=2, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class Sum(AlgebraOperator):
     __slots__ = ()
 
@@ -92,16 +92,6 @@ class Sum(AlgebraOperator):
 
     def __init__(self, a, b):
         AlgebraOperator.__init__(self)
-
-    @property
-    def ufl_shape(self):
-        return self.ufl_operands[0].ufl_shape
-
-    def free_indices(self):
-        return self.ufl_operands[0].free_indices()
-
-    def index_dimensions(self):
-        return self.ufl_operands[0].index_dimensions()
 
     def evaluate(self, x, mapping, component, index_values):
         return sum(o.evaluate(x, mapping, component, index_values) for o in self.ufl_operands)
@@ -238,7 +228,7 @@ class Product(AlgebraOperator):
     def __repr__(self):
         return "Product(%s)" % ", ".join(repr(o) for o in self.ufl_operands)
 
-@ufl_type(num_ops=2)
+@ufl_type(num_ops=2, inherit_indices_from_operand=0)
 class Division(AlgebraOperator):
     __slots__ = ()
 
@@ -283,12 +273,6 @@ class Division(AlgebraOperator):
 
     ufl_shape = () # self.ufl_operands[0].ufl_shape
 
-    def free_indices(self):
-        return self.ufl_operands[0].free_indices()
-
-    def index_dimensions(self):
-        return self.ufl_operands[0].index_dimensions()
-
     def evaluate(self, x, mapping, component, index_values):
         a, b = self.ufl_operands
         a = a.evaluate(x, mapping, component, index_values)
@@ -302,7 +286,7 @@ class Division(AlgebraOperator):
     def __repr__(self):
         return "Division(%r, %r)" % (self.ufl_operands[0], self.ufl_operands[1])
 
-@ufl_type(num_ops=2)
+@ufl_type(num_ops=2, inherit_indices_from_operand=0)
 class Power(AlgebraOperator):
     __slots__ = ()
 
@@ -341,12 +325,6 @@ class Power(AlgebraOperator):
 
     ufl_shape = ()
 
-    def free_indices(self):
-        return self.ufl_operands[0].free_indices()
-
-    def index_dimensions(self):
-        return self.ufl_operands[0].index_dimensions()
-
     def evaluate(self, x, mapping, component, index_values):
         a, b = self.ufl_operands
         a = a.evaluate(x, mapping, component, index_values)
@@ -359,7 +337,7 @@ class Power(AlgebraOperator):
     def __repr__(self):
         return "Power(%r, %r)" % (self.ufl_operands[0], self.ufl_operands[1])
 
-@ufl_type(num_ops=1)
+@ufl_type(num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class Abs(AlgebraOperator):
     __slots__ = ()
 
@@ -367,16 +345,6 @@ class Abs(AlgebraOperator):
         AlgebraOperator.__init__(self, (a,))
         ufl_assert(isinstance(a, Expr), "Expecting Expr instance.")
         if not isinstance(a, Expr): error("Expecting Expr instances.")
-
-    @property
-    def ufl_shape(self):
-        return self.ufl_operands[0].ufl_shape
-
-    def free_indices(self):
-        return self.ufl_operands[0].free_indices()
-
-    def index_dimensions(self):
-        return self.ufl_operands[0].index_dimensions()
 
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)

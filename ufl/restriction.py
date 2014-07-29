@@ -20,12 +20,11 @@
 from ufl.log import error
 from ufl.operatorbase import Operator
 from ufl.precedence import parstr
-from ufl.common import EmptyDict
 from ufl.core.ufl_type import ufl_type
 
 #--- Restriction operators ---
 
-@ufl_type(is_abstract=True, num_ops=1)
+@ufl_type(is_abstract=True, num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class Restricted(Operator):
     __slots__ = ("_side",)
 
@@ -34,16 +33,6 @@ class Restricted(Operator):
     def __init__(self, f, side):
         Operator.__init__(self, (f,))
         self._side = side
-
-    @property
-    def ufl_shape(self):
-        return self.ufl_operands[0].ufl_shape
-
-    def free_indices(self):
-        return self.ufl_operands[0].free_indices()
-
-    def index_dimensions(self):
-        return self.ufl_operands[0].index_dimensions()
 
     def side(self):
         return self._side
@@ -74,7 +63,7 @@ class NegativeRestricted(Restricted):
 
 
 # TODO: Place in a better file?
-@ufl_type(num_ops=1)
+@ufl_type(is_index_free=True, num_ops=1)
 class CellAvg(Operator):
     __slots__ = ()
 
@@ -86,12 +75,6 @@ class CellAvg(Operator):
     @property
     def ufl_shape(self):
         return self.ufl_operands[0].ufl_shape
-
-    def free_indices(self):
-        return ()
-
-    def index_dimensions(self):
-        return EmptyDict
 
     def evaluate(self, x, mapping, component, index_values):
         "Performs an approximate symbolic evaluation, since we dont have a cell."
@@ -105,7 +88,7 @@ class CellAvg(Operator):
 
 
 # TODO: Place in a better file?
-@ufl_type(num_ops=1)
+@ufl_type(is_index_free=True, num_ops=1)
 class FacetAvg(Operator):
     __slots__ = ()
 
@@ -117,12 +100,6 @@ class FacetAvg(Operator):
     @property
     def ufl_shape(self):
         return self.ufl_operands[0].ufl_shape
-
-    def free_indices(self):
-        return ()
-
-    def index_dimensions(self):
-        return EmptyDict
 
     def evaluate(self, x, mapping, component, index_values):
         "Performs an approximate symbolic evaluation, since we dont have a cell."

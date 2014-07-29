@@ -22,8 +22,11 @@ def get_base_attr(cls, name):
 def ufl_type(is_abstract=False,
              is_terminal=None,
              is_scalar=False,
+             is_index_free=False,
              is_shaping=False,
              num_ops=None,
+             inherit_shape_from_operand=None,
+             inherit_indices_from_operand=None,
              wraps_type=None,
              unop=None,
              binop=None,
@@ -161,25 +164,43 @@ def ufl_type(is_abstract=False,
         cls._ufl_is_terminal_ = auto_is_terminal
 
 
-        # Get trait is_scalar.
+        # Get traits is_scalar and is_index_free, is_scalar implies is_index_free.
         cls._ufl_is_scalar_ = is_scalar
-        # TODO: Add is_index_free trait?
-        is_index_free = is_scalar
+        cls._ufl_is_index_free_ = is_index_free or is_scalar
 
         # Scalar or index-free? Then we can simplify the implementation of tensor properties by attaching them here.
-        if is_scalar:
+        if cls._ufl_is_scalar_:
             # New interface
             cls.ufl_shape = ()
             # Legacy interface
             cls.shape = lambda self: ()
 
-        if is_scalar or is_index_free:
+        if cls._ufl_is_scalar_ or cls._ufl_is_index_free_:
             # New interface
             cls.ufl_free_indices = ()
             cls.ufl_index_dimensions = ()
             # Legacy interface
             cls.free_indices = lambda self: ()
             cls.index_dimensions = lambda self: EmptyDict
+
+
+        # Automate direct inheriting of shape and indices from one of the operands.
+        # This simplifies refactoring because a lot of types do this.
+        if inherit_shape_from_operand is not None:
+            def _inherit_ufl_shape(self):
+                return self.ufl_operands[inherit_shape_from_operand].ufl_shape
+            # New interface
+            cls.ufl_shape = property(_inherit_ufl_shape)
+            # Legacy interface
+            cls.shape = _inherit_ufl_shape
+
+        if inherit_indices_from_operand is not None:
+            # New interface
+            cls.ufl_free_indices = property(lambda self: self.ufl_operands[inherit_indices_from_operand].ufl_free_indices)
+            cls.ufl_index_dimensions = property(lambda self: self.ufl_operands[inherit_indices_from_operand].ufl_index_dimensions)
+            # Legacy interface
+            cls.free_indices = lambda self: self.ufl_operands[inherit_indices_from_operand].free_indices()
+            cls.index_dimensions = lambda self: self.ufl_operands[inherit_indices_from_operand].index_dimensions()
 
 
         # Require num_ops to be set for non-abstract classes if it cannot be determined automatically

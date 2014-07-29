@@ -32,7 +32,7 @@ from ufl.core.ufl_type import ufl_type
 
 # --- Classes representing tensors of UFL expressions ---
 
-@ufl_type(is_shaping=True, num_ops="varying")
+@ufl_type(is_shaping=True, num_ops="varying", inherit_indices_from_operand=0)
 class ListTensor(WrapperType):
     """UFL operator type: Wraps a list of expressions into a tensor valued expression of one higher rank."""
     __slots__ = ("_free_indices", "ufl_shape")
@@ -77,12 +77,6 @@ class ListTensor(WrapperType):
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
         return all(e.is_cellwise_constant() for e in self.ufl_operands)
-
-    def free_indices(self):
-        return self.ufl_operands[0].free_indices()
-
-    def index_dimensions(self):
-        return self.ufl_operands[0].index_dimensions()
 
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
         ufl_assert(len(component) == len(self.ufl_shape),

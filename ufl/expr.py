@@ -76,6 +76,9 @@ class Expr(object):
     # True if the type is purely scalar, having no shape or indices.
     _ufl_is_scalar_ = False
 
+    # True if the type never has free indices.
+    _ufl_is_index_free_ = False
+
 
     # --- Basic object behaviour ---
 

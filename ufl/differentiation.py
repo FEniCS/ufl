@@ -43,7 +43,7 @@ class Derivative(Operator):
     def __init__(self, operands):
         Operator.__init__(self, operands)
 
-@ufl_type(num_ops=4)
+@ufl_type(num_ops=4, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class CoefficientDerivative(Derivative):
     """Derivative of the integrand of a form w.r.t. the
     degrees of freedom in a discrete Coefficient."""
@@ -64,16 +64,6 @@ class CoefficientDerivative(Derivative):
         if not isinstance(coefficient_derivatives, ExprMapping):
             coefficient_derivatives = ExprMapping(coefficient_derivatives)
         Derivative.__init__(self, (integrand, coefficients, arguments, coefficient_derivatives))
-
-    @property
-    def ufl_shape(self):
-        return self.ufl_operands[0].ufl_shape
-
-    def free_indices(self):
-        return self.ufl_operands[0].free_indices()
-
-    def index_dimensions(self):
-        return self.ufl_operands[0].index_dimensions()
 
     def __str__(self):
         return "d/dfj { %s }, with fh=%s, dfh/dfj = %s, and coefficient derivatives %s"\
@@ -152,7 +142,7 @@ class CompoundDerivative(Derivative):
         Derivative.__init__(self, operands)
 
 
-@ufl_type(num_ops=1)
+@ufl_type(num_ops=1, inherit_indices_from_operand=0)
 class Grad(CompoundDerivative):
     __slots__ = ("_dim",)
 
@@ -189,12 +179,6 @@ class Grad(CompoundDerivative):
                                   derivatives=derivatives)
         return result
 
-    def free_indices(self):
-        return self.ufl_operands[0].free_indices()
-
-    def index_dimensions(self):
-        return self.ufl_operands[0].index_dimensions()
-
     @property
     def ufl_shape(self):
         return self.ufl_operands[0].ufl_shape + (self._dim,)
@@ -205,7 +189,7 @@ class Grad(CompoundDerivative):
     def __repr__(self):
         return "Grad(%r)" % self.ufl_operands[0]
 
-@ufl_type(num_ops=1)
+@ufl_type(num_ops=1, inherit_indices_from_operand=0)
 class ReferenceGrad(CompoundDerivative):
     __slots__ = ("_dim",)
 
@@ -245,12 +229,6 @@ class ReferenceGrad(CompoundDerivative):
                                   derivatives=derivatives)
         return result
 
-    def free_indices(self):
-        return self.ufl_operands[0].free_indices()
-
-    def index_dimensions(self):
-        return self.ufl_operands[0].index_dimensions()
-
     @property
     def ufl_shape(self):
         return self.ufl_operands[0].ufl_shape + (self._dim,)
@@ -261,7 +239,7 @@ class ReferenceGrad(CompoundDerivative):
     def __repr__(self):
         return "ReferenceGrad(%r)" % self.ufl_operands[0]
 
-@ufl_type(num_ops=1)
+@ufl_type(num_ops=1, inherit_indices_from_operand=0)
 class Div(CompoundDerivative):
     __slots__ = ()
 
@@ -279,12 +257,6 @@ class Div(CompoundDerivative):
     def __init__(self, f):
         CompoundDerivative.__init__(self, (f,))
 
-    def free_indices(self):
-        return self.ufl_operands[0].free_indices()
-
-    def index_dimensions(self):
-        return self.ufl_operands[0].index_dimensions()
-
     @property
     def ufl_shape(self):
         return self.ufl_operands[0].ufl_shape[:-1]
@@ -295,7 +267,7 @@ class Div(CompoundDerivative):
     def __repr__(self):
         return "Div(%r)" % self.ufl_operands[0]
 
-@ufl_type(num_ops=1)
+@ufl_type(num_ops=1, inherit_indices_from_operand=0)
 class NablaGrad(CompoundDerivative):
     __slots__ = ("_dim",)
 
@@ -323,12 +295,6 @@ class NablaGrad(CompoundDerivative):
                         self.index_dimensions())
         return self.__class__._ufl_class_(op)
 
-    def free_indices(self):
-        return self.ufl_operands[0].free_indices()
-
-    def index_dimensions(self):
-        return self.ufl_operands[0].index_dimensions()
-
     @property
     def ufl_shape(self):
         return (self._dim,) + self.ufl_operands[0].ufl_shape
@@ -339,7 +305,7 @@ class NablaGrad(CompoundDerivative):
     def __repr__(self):
         return "NablaGrad(%r)" % self.ufl_operands[0]
 
-@ufl_type(num_ops=1)
+@ufl_type(num_ops=1, inherit_indices_from_operand=0)
 class NablaDiv(CompoundDerivative):
     __slots__ = ()
 
@@ -357,12 +323,6 @@ class NablaDiv(CompoundDerivative):
     def __init__(self, f):
         CompoundDerivative.__init__(self, (f,))
 
-    def free_indices(self):
-        return self.ufl_operands[0].free_indices()
-
-    def index_dimensions(self):
-        return self.ufl_operands[0].index_dimensions()
-
     @property
     def ufl_shape(self):
         return self.ufl_operands[0].ufl_shape[1:]
@@ -374,7 +334,7 @@ class NablaDiv(CompoundDerivative):
         return "NablaDiv(%r)" % self.ufl_operands[0]
 
 _curl_shapes = { (): (2,), (2,): (), (3,): (3,) }
-@ufl_type(num_ops=1)
+@ufl_type(num_ops=1, inherit_indices_from_operand=0)
 class Curl(CompoundDerivative):
     __slots__ = ("ufl_shape",)
 
@@ -398,12 +358,6 @@ class Curl(CompoundDerivative):
         global _curl_shapes
         CompoundDerivative.__init__(self, (f,))
         self.ufl_shape = _curl_shapes[f.ufl_shape]
-
-    def free_indices(self):
-        return self.ufl_operands[0].free_indices()
-
-    def index_dimensions(self):
-        return self.ufl_operands[0].index_dimensions()
 
     def __str__(self):
         return "curl(%s)" % self.ufl_operands[0]

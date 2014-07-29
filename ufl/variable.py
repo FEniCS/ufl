@@ -44,8 +44,7 @@ class Label(UtilityType):
     def __repr__(self):
         return "Label(%d)" % self._count
 
-
-@ufl_type(is_shaping=True, num_ops=1)
+@ufl_type(is_shaping=True, num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class Variable(WrapperType):
     """A Variable is a representative for another expression.
 
@@ -71,16 +70,6 @@ class Variable(WrapperType):
         ufl_assert(isinstance(label, Label), "Expecting a Label.")
 
         WrapperType.__init__(self, (expression, label))
-
-    @property
-    def ufl_shape(self):
-        return self.ufl_operands[0].ufl_shape
-
-    def free_indices(self):
-        return self.ufl_operands[0].free_indices()
-
-    def index_dimensions(self):
-        return self.ufl_operands[0].index_dimensions()
 
     def domains(self):
         return self.ufl_operands[0].domains()
