@@ -31,11 +31,8 @@ from ufl.core.ufl_type import ufl_type
 
 @ufl_type(is_shaping=True, num_ops=2)
 class Indexed(WrapperType):
-    __slots__ = ("_ops",
-                 "_free_indices", "_index_dimensions",)
+    __slots__ = ("_free_indices", "_index_dimensions",)
     def __init__(self, expression, indices):
-        WrapperType.__init__(self)
-
         # Error checking
         if not isinstance(expression, Expr):
             error("Expecting Expr instance, not %s." % repr(expression))
@@ -50,7 +47,8 @@ class Indexed(WrapperType):
 
         # Store operands
         indices = as_multi_index(indices, shape)
-        self._ops = (expression, indices)
+
+        WrapperType.__init__(self, (expression, indices))
 
         # Error checking
         for si, di in zip(shape, indices):
@@ -67,21 +65,19 @@ class Indexed(WrapperType):
         self._free_indices = fi
         self._index_dimensions = idims or EmptyDict
 
-    def operands(self):
-        return self._ops
-
     def free_indices(self):
         return self._free_indices
 
     def index_dimensions(self):
         return self._index_dimensions
 
+    ufl_shape = ()
     def shape(self):
         return ()
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
-        return self._ops[0].is_cellwise_constant()
+        return self.ufl_operands[0].is_cellwise_constant()
 
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
         A, ii = self.ufl_operands
@@ -92,10 +88,10 @@ class Indexed(WrapperType):
             return A.evaluate(x, mapping, component, index_values)
 
     def __str__(self):
-        return "%s[%s]" % (parstr(self._ops[0], self), self._ops[1])
+        return "%s[%s]" % (parstr(self.ufl_operands[0], self), self.ufl_operands[1])
 
     def __repr__(self):
-        return "Indexed(%r, %r)" % self._ops
+        return "Indexed(%r, %r)" % self.ufl_operands
 
     def __getitem__(self, key):
         error("Attempting to index with %r, but object is already indexed: %r" % (key, self))

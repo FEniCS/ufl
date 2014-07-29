@@ -32,10 +32,10 @@ from ufl.core.ufl_type import ufl_type
 
 # --- Classes representing tensors of UFL expressions ---
 
-@ufl_type(is_shaping=True, num_ops="variable")
+@ufl_type(is_shaping=True, num_ops="varying")
 class ListTensor(WrapperType):
     """UFL operator type: Wraps a list of expressions into a tensor valued expression of one higher rank."""
-    __slots__ = ("_expressions", "_free_indices", "_shape")
+    __slots__ = ("_free_indices", "_shape")
 
     def __new__(cls, *expressions):
         # All lists and tuples should already be unwrapped in as_tensor
@@ -64,28 +64,25 @@ class ListTensor(WrapperType):
         return WrapperType.__new__(cls)
 
     def __init__(self, *expressions):
-        WrapperType.__init__(self)
+        WrapperType.__init__(self, expressions)
+
         e0 = expressions[0]
         sh = e0.shape()
         self._shape = (len(expressions),) + sh
-        self._expressions = tuple(expressions)
 
         indexset = set(e0.free_indices())
-        ufl_assert(all(not (indexset ^ set(e.free_indices())) for e in self._expressions),\
+        ufl_assert(all(not (indexset ^ set(e.free_indices())) for e in self.ufl_operands),\
             "Can't combine subtensor expressions with different sets of free indices.")
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
         return all(e.is_cellwise_constant() for e in self.ufl_operands)
 
-    def operands(self):
-        return self._expressions
-
     def free_indices(self):
-        return self._expressions[0].free_indices()
+        return self.ufl_operands[0].free_indices()
 
     def index_dimensions(self):
-        return self._expressions[0].index_dimensions()
+        return self.ufl_operands[0].index_dimensions()
 
     def shape(self):
         return self._shape
@@ -94,7 +91,7 @@ class ListTensor(WrapperType):
         ufl_assert(len(component) == len(self._shape),
                    "Can only evaluate scalars, expecting a component "\
                    "tuple of length %d, not %s." % (len(self._shape), component))
-        a = self._expressions[component[0]]
+        a = self.ufl_operands[component[0]]
         component = component[1:]
         if derivatives:
             return a.evaluate(x, mapping, component, index_values, derivatives)
@@ -110,7 +107,7 @@ class ListTensor(WrapperType):
             key = (key,)
         k = key[0]
         if isinstance(k, (int, FixedIndex)):
-            sub = self._expressions[int(k)]
+            sub = self.ufl_operands[int(k)]
             return sub if len(key) == 1 else sub[key[1:]]
 
         return Expr.__getitem__(self, origkey)
@@ -122,7 +119,7 @@ class ListTensor(WrapperType):
                 substrings = []
                 for e in expressions:
                     if isinstance(e, ListTensor):
-                        substrings.append(substring(e._expressions, indent+2))
+                        substrings.append(substring(e.ufl_operands, indent+2))
                     else:
                         substrings.append(str(e))
                 s = (",\n" + ind).join(substrings)
@@ -130,16 +127,15 @@ class ListTensor(WrapperType):
             else:
                 s = ", ".join(str(e) for e in expressions)
                 return "%s[%s]" % (ind, s)
-        return substring(self._expressions, 0)
+        return substring(self.ufl_operands, 0)
 
     def __repr__(self):
-        return "ListTensor(%s)" % ", ".join(repr(e) for e in self._expressions)
+        return "ListTensor(%s)" % ", ".join(repr(e) for e in self.ufl_operands)
 
-@ufl_type(is_shaping=True, num_ops="variable")
+@ufl_type(is_shaping=True, num_ops="varying")
 class ComponentTensor(WrapperType):
     """UFL operator type: Maps the free indices of a scalar valued expression to tensor axes."""
-    __slots__ = ("_expression", "_indices", "_free_indices",
-                 "_index_dimensions", "_shape")
+    __slots__ = ("_free_indices", "_index_dimensions", "_shape")
 
     def __new__(cls, expression, indices):
         if isinstance(expression, Zero):
@@ -155,22 +151,19 @@ class ComponentTensor(WrapperType):
         return WrapperType.__new__(cls)
 
     def __init__(self, expression, indices):
-        WrapperType.__init__(self)
         ufl_assert(isinstance(expression, Expr), "Expecting ufl expression.")
         ufl_assert(expression.shape() == (), "Expecting scalar valued expression.")
-        self._expression = expression
-
         ufl_assert(all(isinstance(i, Index) for i in indices),
            "Expecting sequence of Index objects, not %s." % repr(indices))
 
         dims = expression.index_dimensions()
-
         if not isinstance(indices, MultiIndex): # if constructed from repr
             indices = MultiIndex(indices, subdict(dims, indices))
-        self._indices = indices
+
+        WrapperType.__init__(self, (expression, indices))
 
         eset = set(expression.free_indices())
-        iset = set(self._indices)
+        iset = set(indices)
         freeset = eset - iset
         self._free_indices = tuple(freeset)
 
@@ -179,11 +172,11 @@ class ComponentTensor(WrapperType):
             error("Missing indices %s in expression %s." % (missingset, expression))
 
         self._index_dimensions = dict((i, dims[i]) for i in self._free_indices) or EmptyDict
-        self._shape = tuple(dims[i] for i in self._indices)
+        self._shape = tuple(dims[i] for i in indices)
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
-        return self._expression.is_cellwise_constant()
+        return self.ufl_operands[0].is_cellwise_constant()
 
     def reconstruct(self, expressions, indices):
         # Special case for simplification as_tensor(A[ii], ii) -> A
@@ -194,11 +187,8 @@ class ComponentTensor(WrapperType):
                 return A
         return WrapperType.reconstruct(self, expressions, indices)
 
-    def operands(self):
-        return (self._expression, self._indices)
-
     def indices(self):
-        return self._indices
+        return self.ufl_operands[1]
 
     def free_indices(self):
         return self._free_indices
@@ -210,8 +200,8 @@ class ComponentTensor(WrapperType):
         return self._shape
 
     def evaluate(self, x, mapping, component, index_values):
-        indices = self._indices
-        a = self._expression
+        indices = self.ufl_operands[1]
+        a = self.ufl_operands[0]
 
         ufl_assert(len(indices) == len(component),
                    "Expecting a component matching the indices tuple.")
@@ -228,10 +218,10 @@ class ComponentTensor(WrapperType):
         return a
 
     def __str__(self):
-        return "{ A | A_{%s} = %s }" % (self._indices, self._expression)
+        return "{ A | A_{%s} = %s }" % (self.ufl_operands[1], self.ufl_operands[0])
 
     def __repr__(self):
-        return "ComponentTensor(%r, %r)" % (self._expression, self._indices)
+        return "ComponentTensor(%r, %r)" % (self.ufl_operands[0], self.ufl_operands[1])
 
 # --- User-level functions to wrap expressions in the correct way ---
 

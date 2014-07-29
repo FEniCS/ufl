@@ -51,11 +51,16 @@ compute_hash = _compute_hash
 
 @ufl_type(is_abstract=True, is_terminal=False)
 class Operator(Expr):
-    __slots__ = ("_hash",)
+    __slots__ = ("_hash", "ufl_operands")
 
-    def __init__(self): # *ops):
+    def __init__(self, operands=None):
         Expr.__init__(self)
         self._hash = None
+
+        # If operands is None, the type sets this itself. This is to get around
+        # some tricky too-fancy __new__/__init__ design in algebra.py, for now.
+        if operands is not None:
+            self.ufl_operands = operands
 
     def reconstruct(self, *operands):
         "Return a new object of the same type with new operands."
@@ -79,34 +84,35 @@ class Operator(Expr):
 
     # --- Transitional property getters, to be implemented directly in all classes ---
 
-    @property
-    def ufl_operands(self):
-        "Intermediate helper property getter to transition from .operands() to .ufl_operands."
-        return self.operands()
+    def operands(self):
+        return self.ufl_operands
 
-    @property
-    def ufl_free_indices(self):
-        "Intermediate helper property getter to transition from .free_indices() to .ufl_free_indices."
-        return tuple(sorted(i.count() for i in self.free_indices()))
+    #@property
+    #def ufl_free_indices(self):
+    #    "Intermediate helper property getter to transition from .free_indices() to .ufl_free_indices."
+    #    return tuple(sorted(i.count() for i in self.free_indices()))
 
-    @property
-    def ufl_index_dimensions(self):
-        "Intermediate helper property getter to transition from .index_dimensions() to .ufl_index_dimensions."
-        return tuple(d for i, d in sorted(iteritems(self.index_dimensions()), key=lambda x: x[0].count()))
+    #@property
+    #def ufl_index_dimensions(self):
+    #    "Intermediate helper property getter to transition from .index_dimensions() to .ufl_index_dimensions."
+    #    return tuple(d for i, d in sorted(iteritems(self.index_dimensions()), key=lambda x: x[0].count()))
+
 
 #--- Subgroups of terminals ---
 
 @ufl_type(is_abstract=True)
 class AlgebraOperator(Operator):
     __slots__ = ()
-    def __init__(self):
-        Operator.__init__(self)
+
+    def __init__(self, operands=None):
+        Operator.__init__(self, operands)
+
 
 @ufl_type(is_abstract=True)
 class WrapperType(Operator):
     __slots__ = ()
-    def __init__(self):
-        Operator.__init__(self)
+    def __init__(self, operands):
+        Operator.__init__(self, operands)
 
     def shape(self):
         error("A non-tensor type has no shape.")

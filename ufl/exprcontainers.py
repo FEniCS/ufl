@@ -26,65 +26,59 @@ from ufl.core.ufl_type import ufl_type
 
 #--- Non-tensor types ---
 
-@ufl_type(num_ops="variable")
+@ufl_type(num_ops="varying")
 class ExprList(WrapperType):
     "List of Expr objects. For internal use, never to be created by end users."
-    __slots__ = ("_operands",)
+    __slots__ = ()
+
     def __init__(self, *operands):
-        WrapperType.__init__(self)
+        WrapperType.__init__(self, operands)
         if not all(isinstance(i, Expr) for i in operands):
             error("Expecting Expr in ExprList.")
-        self._operands = operands
-
-    def operands(self):
-        return self._operands
 
     def __getitem__(self, i):
-        return self._operands[i]
+        return self.ufl_operands[i]
 
     def __len__(self):
-        return len(self._operands)
+        return len(self.ufl_operands)
 
     def __iter__(self):
-        return iter(self._operands)
+        return iter(self.ufl_operands)
 
     def __str__(self):
-        return "ExprList(*(%s,))" % ", ".join(str(i) for i in self._operands)
+        return "ExprList(*(%s,))" % ", ".join(str(i) for i in self.ufl_operands)
 
     def __repr__(self):
-        return "ExprList(*%r)" % (self._operands,)
+        return "ExprList(*%r)" % (self.ufl_operands,)
 
-@ufl_type(num_ops="variable")
+@ufl_type(num_ops="varying")
 class ExprMapping(WrapperType):
     "Mapping of Expr objects. For internal use, never to be created by end users."
-    __slots__ = ("_operands",)
+    __slots__ = ()
+
     def __init__(self, *operands):
-        WrapperType.__init__(self)
+        WrapperType.__init__(self, operands)
         if not all(isinstance(e, Expr) for e in operands):
             error("Expecting Expr in ExprMapping.")
-        self._operands = operands
-
-    def operands(self):
-        return self._operands
 
     def domains(self):
         # Because this type can act like a terminal if it has no operands, we need to override some recursive operations
-        if self._operands:
+        if self.ufl_operands:
             return WrapperType.domains()
         else:
             return []
 
     #def __getitem__(self, key):
-    #    return self._operands[key]
+    #    return self.ufl_operands[key]
 
     #def __len__(self):
-    #    return len(self._operands) // 2
+    #    return len(self.ufl_operands) // 2
 
     #def __iter__(self):
-    #    return iter(self._operands[::2])
+    #    return iter(self.ufl_operands[::2])
 
     def __str__(self):
-        return "ExprMapping(*%r)" % (self._operands,)
+        return "ExprMapping(*%r)" % (self.ufl_operands,)
 
     def __repr__(self):
-        return "ExprMapping(*%r)" % (self._operands,)
+        return "ExprMapping(*%r)" % (self.ufl_operands,)

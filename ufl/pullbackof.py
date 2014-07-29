@@ -6,20 +6,16 @@ from ufl.common import EmptyDict
 
 class PullbackOf(Operator):
     "Pullback of form argument to reference cell representation."
-    __slots__ = ("_op",)
+    __slots__ = ()
     def __init__(self, f):
-        Operator.__init__(self)
-        self._f = f
+        Operator.__init__(self, (f,))
         error("Not fully implemented.")
 
-    def operands(self):
-        return (self._f,)
+    def shape(self):
+        return self._f.element().reference_value_shape()
 
     def free_indices(self):
         return ()
 
     def index_dimensions(self):
         return EmptyDict
-
-    def shape(self):
-        return self._f.element().reference_value_shape()

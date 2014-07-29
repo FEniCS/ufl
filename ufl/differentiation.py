@@ -40,15 +40,14 @@ from ufl.core.ufl_type import ufl_type
 class Derivative(Operator):
     "Base class for all derivative types."
     __slots__ = ()
-    def __init__(self):
-        Operator.__init__(self)
+    def __init__(self, operands):
+        Operator.__init__(self, operands)
 
 @ufl_type(num_ops=4)
 class CoefficientDerivative(Derivative):
     """Derivative of the integrand of a form w.r.t. the
     degrees of freedom in a discrete Coefficient."""
-    __slots__ = ("_integrand", "_coefficients", "_arguments",
-                 "_coefficient_derivatives")
+    __slots__ = ()
 
     def __new__(cls, integrand, coefficients, arguments, coefficient_derivatives):
         ufl_assert(isinstance(coefficients, ExprList),
@@ -62,34 +61,26 @@ class CoefficientDerivative(Derivative):
         return Derivative.__new__(cls)
 
     def __init__(self, integrand, coefficients, arguments, coefficient_derivatives):
-        Derivative.__init__(self)
-        self._integrand = integrand
-        self._coefficients = coefficients
-        self._arguments = arguments
-        if isinstance(coefficient_derivatives, ExprMapping):
-            self._coefficient_derivatives = coefficient_derivatives
-        else:
-            self._coefficient_derivatives = ExprMapping(coefficient_derivatives)
-
-    def operands(self):
-        return (self._integrand, self._coefficients, self._arguments, self._coefficient_derivatives)
+        if not isinstance(coefficient_derivatives, ExprMapping):
+            coefficient_derivatives = ExprMapping(coefficient_derivatives)
+        Derivative.__init__(self, (integrand, coefficients, arguments, coefficient_derivatives))
 
     def shape(self):
-        return self._integrand.shape()
+        return self.ufl_operands[0].shape()
 
     def free_indices(self):
-        return self._integrand.free_indices()
+        return self.ufl_operands[0].free_indices()
 
     def index_dimensions(self):
-        return self._integrand.index_dimensions()
+        return self.ufl_operands[0].index_dimensions()
 
     def __str__(self):
         return "d/dfj { %s }, with fh=%s, dfh/dfj = %s, and coefficient derivatives %s"\
-            % (self._integrand, self._coefficients, self._arguments, self._coefficient_derivatives)
+            % (self.ufl_operands[0], self.ufl_operands[1], self.ufl_operands[2], self.ufl_operands[3])
 
     def __repr__(self):
         return "CoefficientDerivative(%r, %r, %r, %r)"\
-            % (self._integrand, self._coefficients, self._arguments, self._coefficient_derivatives)
+            % (self.ufl_operands[0], self.ufl_operands[1], self.ufl_operands[2], self.ufl_operands[3])
 
 def split_indices(expression, idx):
     idims = dict(expression.index_dimensions())
@@ -100,7 +91,7 @@ def split_indices(expression, idx):
 
 @ufl_type(num_ops=2)
 class VariableDerivative(Derivative):
-    __slots__ = ("_f", "_v", "_free_indices", "_index_dimensions", "_shape",)
+    __slots__ = ("_free_indices", "_index_dimensions", "_shape",)
     def __new__(cls, f, v):
         # Return zero if expression is trivially independent of variable
         if f._ufl_is_terminal_:
@@ -111,7 +102,6 @@ class VariableDerivative(Derivative):
         return Derivative.__new__(cls)
 
     def __init__(self, f, v):
-        Derivative.__init__(self)
         ufl_assert(isinstance(f, Expr), "Expecting an Expr in VariableDerivative.")
         if isinstance(v, Indexed):
             ufl_assert(isinstance(v._expression, Variable), \
@@ -120,8 +110,9 @@ class VariableDerivative(Derivative):
         else:
             ufl_assert(isinstance(v, Variable), \
                 "Expecting a Variable in VariableDerivative.")
-        self._f = f
-        self._v = v
+
+        Derivative.__init__(self, (f, v))
+
         fi = f.free_indices()
         vi = v.free_indices()
         fid = f.index_dimensions()
@@ -136,9 +127,6 @@ class VariableDerivative(Derivative):
         self._index_dimensions.update(vid)
         self._shape = f.shape() + v.shape()
 
-    def operands(self):
-        return (self._f, self._v)
-
     def free_indices(self):
         return self._free_indices
 
@@ -149,12 +137,12 @@ class VariableDerivative(Derivative):
         return self._shape
 
     def __str__(self):
-        if isinstance(self._f, Terminal):
-            return "d%s/d[%s]" % (self._f, self._v)
-        return "d/d[%s] %s" % (self._v, parstr(self._f, self))
+        if isinstance(self.ufl_operands[0], Terminal):
+            return "d%s/d[%s]" % (self.ufl_operands[0], self.ufl_operands[1])
+        return "d/d[%s] %s" % (self.ufl_operands[1], parstr(self.ufl_operands[0], self))
 
     def __repr__(self):
-        return "VariableDerivative(%r, %r)" % (self._f, self._v)
+        return "VariableDerivative(%r, %r)" % (self.ufl_operands[0], self.ufl_operands[1])
 
 #--- Compound differentiation objects ---
 
@@ -162,12 +150,13 @@ class VariableDerivative(Derivative):
 class CompoundDerivative(Derivative):
     "Base class for all compound derivative types."
     __slots__ = ()
-    def __init__(self):
-        Derivative.__init__(self)
+    def __init__(self, operands):
+        Derivative.__init__(self, operands)
+
 
 @ufl_type(num_ops=1)
 class Grad(CompoundDerivative):
-    __slots__ = ("_f", "_dim",)
+    __slots__ = ("_dim",)
 
     def __new__(cls, f):
         # Return zero if expression is trivially constant
@@ -179,16 +168,15 @@ class Grad(CompoundDerivative):
         return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):
-        CompoundDerivative.__init__(self)
-        self._f = f
+        CompoundDerivative.__init__(self, (f,))
         self._dim = f.geometric_dimension()
 
     def reconstruct(self, op):
         "Return a new object of the same type with new operands."
         if op.is_cellwise_constant():
-            ufl_assert(op.shape() == self._f.shape(),
+            ufl_assert(op.shape() == self.ufl_operands[0].shape(),
                        "Operand shape mismatch in Grad reconstruct.")
-            ufl_assert(self._f.free_indices() == op.free_indices(),
+            ufl_assert(self.ufl_operands[0].free_indices() == op.free_indices(),
                        "Free index mismatch in Grad reconstruct.")
             return Zero(self.shape(), self.free_indices(),
                         self.index_dimensions())
@@ -199,31 +187,28 @@ class Grad(CompoundDerivative):
         r = len(component)
         component, i = component[:-1], component[-1]
         derivatives = derivatives + (i,)
-        result = self._f.evaluate(x, mapping, component, index_values,
+        result = self.ufl_operands[0].evaluate(x, mapping, component, index_values,
                                   derivatives=derivatives)
         return result
 
-    def operands(self):
-        return (self._f,)
-
     def free_indices(self):
-        return self._f.free_indices()
+        return self.ufl_operands[0].free_indices()
 
     def index_dimensions(self):
-        return self._f.index_dimensions()
+        return self.ufl_operands[0].index_dimensions()
 
     def shape(self):
-        return self._f.shape() + (self._dim,)
+        return self.ufl_operands[0].shape() + (self._dim,)
 
     def __str__(self):
-        return "grad(%s)" % self._f
+        return "grad(%s)" % self.ufl_operands[0]
 
     def __repr__(self):
-        return "Grad(%r)" % self._f
+        return "Grad(%r)" % self.ufl_operands[0]
 
 @ufl_type(num_ops=1)
 class ReferenceGrad(CompoundDerivative):
-    __slots__ = ("_f", "_dim",)
+    __slots__ = ("_dim",)
 
     def __new__(cls, f):
         # Return zero if expression is trivially constant
@@ -236,18 +221,17 @@ class ReferenceGrad(CompoundDerivative):
         return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):
-        CompoundDerivative.__init__(self)
+        CompoundDerivative.__init__(self, (f,))
         domain = f.domain()
         dim = domain.topological_dimension()
-        self._f = f
         self._dim = dim
 
     def reconstruct(self, op):
         "Return a new object of the same type with new operands."
         if op.is_cellwise_constant():
-            ufl_assert(op.shape() == self._f.shape(),
+            ufl_assert(op.shape() == self.ufl_operands[0].shape(),
                        "Operand shape mismatch in ReferenceGrad reconstruct.")
-            ufl_assert(self._f.free_indices() == op.free_indices(),
+            ufl_assert(self.ufl_operands[0].free_indices() == op.free_indices(),
                        "Free index mismatch in ReferenceGrad reconstruct.")
             return Zero(self.shape(), self.free_indices(),
                         self.index_dimensions())
@@ -258,31 +242,28 @@ class ReferenceGrad(CompoundDerivative):
         r = len(component)
         component, i = component[:-1], component[-1]
         derivatives = derivatives + (i,)
-        result = self._f.evaluate(x, mapping, component, index_values,
+        result = self.ufl_operands[0].evaluate(x, mapping, component, index_values,
                                   derivatives=derivatives)
         return result
 
-    def operands(self):
-        return (self._f,)
-
     def free_indices(self):
-        return self._f.free_indices()
+        return self.ufl_operands[0].free_indices()
 
     def index_dimensions(self):
-        return self._f.index_dimensions()
+        return self.ufl_operands[0].index_dimensions()
 
     def shape(self):
-        return self._f.shape() + (self._dim,)
+        return self.ufl_operands[0].shape() + (self._dim,)
 
     def __str__(self):
-        return "reference_grad(%s)" % self._f
+        return "reference_grad(%s)" % self.ufl_operands[0]
 
     def __repr__(self):
-        return "ReferenceGrad(%r)" % self._f
+        return "ReferenceGrad(%r)" % self.ufl_operands[0]
 
 @ufl_type(num_ops=1)
 class Div(CompoundDerivative):
-    __slots__ = ("_f",)
+    __slots__ = ()
 
     def __new__(cls, f):
         ufl_assert(not f.free_indices(), \
@@ -296,30 +277,26 @@ class Div(CompoundDerivative):
         return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):
-        CompoundDerivative.__init__(self)
-        self._f = f
-
-    def operands(self):
-        return (self._f, )
+        CompoundDerivative.__init__(self, (f,))
 
     def free_indices(self):
-        return self._f.free_indices()
+        return self.ufl_operands[0].free_indices()
 
     def index_dimensions(self):
-        return self._f.index_dimensions()
+        return self.ufl_operands[0].index_dimensions()
 
     def shape(self):
-        return self._f.shape()[:-1]
+        return self.ufl_operands[0].shape()[:-1]
 
     def __str__(self):
-        return "div(%s)" % self._f
+        return "div(%s)" % self.ufl_operands[0]
 
     def __repr__(self):
-        return "Div(%r)" % self._f
+        return "Div(%r)" % self.ufl_operands[0]
 
 @ufl_type(num_ops=1)
 class NablaGrad(CompoundDerivative):
-    __slots__ = ("_f", "_dim",)
+    __slots__ = ("_dim",)
 
     def __new__(cls, f):
         # Return zero if expression is trivially constant
@@ -331,42 +308,38 @@ class NablaGrad(CompoundDerivative):
         return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):
-        CompoundDerivative.__init__(self)
-        self._f = f
+        CompoundDerivative.__init__(self, (f,))
         self._dim = f.geometric_dimension()
 
     def reconstruct(self, op):
         "Return a new object of the same type with new operands."
         if op.is_cellwise_constant():
-            ufl_assert(op.shape() == self._f.shape(),
+            ufl_assert(op.shape() == self.ufl_operands[0].shape(),
                        "Operand shape mismatch in NablaGrad reconstruct.")
-            ufl_assert(self._f.free_indices() == op.free_indices(),
+            ufl_assert(self.ufl_operands[0].free_indices() == op.free_indices(),
                        "Free index mismatch in NablaGrad reconstruct.")
             return Zero(self.shape(), self.free_indices(),
                         self.index_dimensions())
         return self.__class__._ufl_class_(op)
 
-    def operands(self):
-        return (self._f, )
-
     def free_indices(self):
-        return self._f.free_indices()
+        return self.ufl_operands[0].free_indices()
 
     def index_dimensions(self):
-        return self._f.index_dimensions()
+        return self.ufl_operands[0].index_dimensions()
 
     def shape(self):
-        return (self._dim,) + self._f.shape()
+        return (self._dim,) + self.ufl_operands[0].shape()
 
     def __str__(self):
-        return "nabla_grad(%s)" % self._f
+        return "nabla_grad(%s)" % self.ufl_operands[0]
 
     def __repr__(self):
-        return "NablaGrad(%r)" % self._f
+        return "NablaGrad(%r)" % self.ufl_operands[0]
 
 @ufl_type(num_ops=1)
 class NablaDiv(CompoundDerivative):
-    __slots__ = ("_f",)
+    __slots__ = ()
 
     def __new__(cls, f):
         ufl_assert(not f.free_indices(), \
@@ -380,30 +353,26 @@ class NablaDiv(CompoundDerivative):
         return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):
-        CompoundDerivative.__init__(self)
-        self._f = f
-
-    def operands(self):
-        return (self._f, )
+        CompoundDerivative.__init__(self, (f,))
 
     def free_indices(self):
-        return self._f.free_indices()
+        return self.ufl_operands[0].free_indices()
 
     def index_dimensions(self):
-        return self._f.index_dimensions()
+        return self.ufl_operands[0].index_dimensions()
 
     def shape(self):
-        return self._f.shape()[1:]
+        return self.ufl_operands[0].shape()[1:]
 
     def __str__(self):
-        return "nabla_div(%s)" % self._f
+        return "nabla_div(%s)" % self.ufl_operands[0]
 
     def __repr__(self):
-        return "NablaDiv(%r)" % self._f
+        return "NablaDiv(%r)" % self.ufl_operands[0]
 
 @ufl_type(num_ops=1)
 class Curl(CompoundDerivative):
-    __slots__ = ("_f", "_shape",)
+    __slots__ = ("_shape",)
 
     def __new__(cls, f):
         # Validate input
@@ -422,25 +391,21 @@ class Curl(CompoundDerivative):
         return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):
-        CompoundDerivative.__init__(self)
+        CompoundDerivative.__init__(self, (f,))
         sh = { (): (2,), (2,): (), (3,): (3,) }[f.shape()]
-        self._f = f
         self._shape = sh
 
-    def operands(self):
-        return (self._f, )
-
     def free_indices(self):
-        return self._f.free_indices()
+        return self.ufl_operands[0].free_indices()
 
     def index_dimensions(self):
-        return self._f.index_dimensions()
+        return self.ufl_operands[0].index_dimensions()
 
     def shape(self):
         return self._shape
 
     def __str__(self):
-        return "curl(%s)" % self._f
+        return "curl(%s)" % self.ufl_operands[0]
 
     def __repr__(self):
-        return "Curl(%r)" % self._f
+        return "Curl(%r)" % self.ufl_operands[0]

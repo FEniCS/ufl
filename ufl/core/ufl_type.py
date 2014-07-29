@@ -71,19 +71,6 @@ def ufl_type(is_abstract=False,
         cls._ufl_is_shaping_ = is_shaping
 
 
-        # Simplify implementation of purely scalar types
-        cls._ufl_is_scalar_ = is_scalar
-        if is_scalar:
-            # Scalar? Then we can simplify the implementation of tensor properties by attaching them here.
-            cls.ufl_shape = ()
-            cls.ufl_free_indices = ()
-            cls.ufl_index_dimensions = ()
-        else:
-            # Not scalar? Then check that we do not have a scalar base class (this works recursively).
-            if get_base_attr(cls, "_ufl_is_scalar_"):
-                msg = "Non-scalar class {0.__name__} is has a scalar base class."
-                raise TypeError(msg.format(cls))
-
         # Check if type implements the required methods
         """ # TODO
         if not is_abstract:
@@ -174,6 +161,16 @@ def ufl_type(is_abstract=False,
         cls._ufl_is_terminal_ = auto_is_terminal
 
 
+        # Simplify implementation of purely scalar types
+        cls._ufl_is_scalar_ = is_scalar
+
+        if not is_scalar:
+            # Scalar? Then we can simplify the implementation of tensor properties by attaching them here.
+            cls.ufl_shape = ()
+            cls.ufl_free_indices = ()
+            cls.ufl_index_dimensions = ()
+
+
         # Require num_ops to be set for non-abstract classes if it cannot be determined automatically
         auto_num_ops = num_ops
 
@@ -211,14 +208,27 @@ def ufl_type(is_abstract=False,
         assert Expr._ufl_num_typecodes_ == len(Expr._ufl_obj_init_counts_)
         assert Expr._ufl_num_typecodes_ == len(Expr._ufl_obj_del_counts_)
 
-        if not is_abstract and cls._ufl_num_ops_ is None:
-            msg = "Class {0.__name__} has not specified num_ops."
-            raise TypeError(msg.format(cls))
+        if not is_abstract:
+            # Check that non-abstract types always specify num_ops
+            if cls._ufl_num_ops_ is None:
+                msg = "Class {0.__name__} has not specified num_ops."
+                raise TypeError(msg.format(cls))
 
+            # Check that num_ops has the right type
+            if not (isinstance(cls._ufl_num_ops_, int) or cls._ufl_num_ops_ == "varying"):
+                msg = 'Class {0.__name__} has invalid num_ops value {1} (integer or "varying").'
+                raise TypeError(msg.format(cls, cls._ufl_num_ops_))
+
+        # Check that num_ops is not set to nonzero for a terminal
         if cls._ufl_is_terminal_ and cls._ufl_num_ops_ != 0:
             msg = "Class {0.__name__} has num_ops > 0 but is terminal."
             raise TypeError(msg.format(cls))
 
+        # Not scalar? Then check that we do not have a scalar base class (this works recursively).
+        if not is_scalar:
+            if get_base_attr(cls, "_ufl_is_scalar_"):
+                msg = "Non-scalar class {0.__name__} is has a scalar base class."
+                raise TypeError(msg.format(cls))
 
         return cls
 

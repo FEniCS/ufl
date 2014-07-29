@@ -220,7 +220,7 @@ class VariableStripper(ReuseTransformer):
         ReuseTransformer.__init__(self)
 
     def variable(self, o):
-        return self.visit(o._expression)
+        return self.visit(o.ufl_operands[0])
 
 
 def transform(expression, handlers):

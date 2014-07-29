@@ -63,7 +63,9 @@ class IndexAnnotated(ConstantValue):
     """Class to annotate expressions that don't depend on
     indices with a set of free indices, used internally to keep
     index properties intact during automatic differentiation."""
+
     __slots__ = ("_shape", "_free_indices", "_index_dimensions")
+
     def __init__(self, shape=(), free_indices=(), index_dimensions=None):
         ConstantValue.__init__(self)
         if not all(isinstance(i, int) for i in shape):

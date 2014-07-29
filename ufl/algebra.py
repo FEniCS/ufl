@@ -38,7 +38,7 @@ from ufl.core.ufl_type import ufl_type
 
 @ufl_type(num_ops=2)
 class Sum(AlgebraOperator):
-    __slots__ = ("_operands",)
+    __slots__ = ()
 
     def __new__(cls, a, b):
         # Make sure everything is an Expr
@@ -88,28 +88,25 @@ class Sum(AlgebraOperator):
         return self
 
     def _init(self, a, b):
-        self._operands = (a, b)
+        self.ufl_operands = (a, b)
 
     def __init__(self, a, b):
         AlgebraOperator.__init__(self)
 
-    def operands(self):
-        return self._operands
-
     def free_indices(self):
-        return self._operands[0].free_indices()
+        return self.ufl_operands[0].free_indices()
 
     def index_dimensions(self):
-        return self._operands[0].index_dimensions()
+        return self.ufl_operands[0].index_dimensions()
 
     def shape(self):
-        return self._operands[0].shape()
+        return self.ufl_operands[0].shape()
 
     def evaluate(self, x, mapping, component, index_values):
         return sum(o.evaluate(x, mapping, component, index_values) for o in self.ufl_operands)
 
     def __str__(self):
-        ops = [parstr(o, self) for o in self._operands]
+        ops = [parstr(o, self) for o in self.ufl_operands]
         if False:
             # Implementation with line splitting:
             limit = 70
@@ -131,12 +128,12 @@ class Sum(AlgebraOperator):
         return "%s" % " + ".join(ops)
 
     def __repr__(self):
-        return "Sum(%s)" % ", ".join(repr(o) for o in self._operands)
+        return "Sum(%s)" % ", ".join(repr(o) for o in self.ufl_operands)
 
 @ufl_type(num_ops=2)
 class Product(AlgebraOperator):
     """The product of two or more UFL objects."""
-    __slots__ = ("_operands", "_free_indices", "_index_dimensions",)
+    __slots__ = ("_free_indices", "_index_dimensions",)
 
     def __new__(cls, a, b):
         # Make sure everything is an Expr
@@ -184,7 +181,7 @@ class Product(AlgebraOperator):
     def _init(self, a, b):
         "Constructor, called by __new__ with already checked arguments."
         # Store basic properties
-        self._operands = (a, b)
+        self.ufl_operands = (a, b)
 
         # Extract indices
         self._free_indices     = unique_indices(tuple(chain(a.free_indices(), b.free_indices())))
@@ -193,9 +190,6 @@ class Product(AlgebraOperator):
 
     def __init__(self, a, b):
         AlgebraOperator.__init__(self)
-
-    def operands(self):
-        return self._operands
 
     def free_indices(self):
         return self._free_indices
@@ -220,7 +214,7 @@ class Product(AlgebraOperator):
         return tmp
 
     def __str__(self):
-        ops = [parstr(o, self) for o in self._operands]
+        ops = [parstr(o, self) for o in self.ufl_operands]
         if False:
             # Implementation with line splitting:
             limit = 70
@@ -242,11 +236,11 @@ class Product(AlgebraOperator):
         return "%s" % " * ".join(ops)
 
     def __repr__(self):
-        return "Product(%s)" % ", ".join(repr(o) for o in self._operands)
+        return "Product(%s)" % ", ".join(repr(o) for o in self.ufl_operands)
 
 @ufl_type(num_ops=2)
 class Division(AlgebraOperator):
-    __slots__ = ("_a", "_b",)
+    __slots__ = ()
 
     def __new__(cls, a, b):
         a = as_ufl(a)
@@ -282,23 +276,19 @@ class Division(AlgebraOperator):
         #ufl_assert(isinstance(a, Expr) and isinstance(b, Expr), "Expecting Expr instances.")
         if not (isinstance(a, Expr) and isinstance(b, Expr)):
             error("Expecting Expr instances.")
-        self._a = a
-        self._b = b
+        self.ufl_operands = (a, b)
 
     def __init__(self, a, b):
         AlgebraOperator.__init__(self)
 
-    def operands(self):
-        return (self._a, self._b)
-
     def free_indices(self):
-        return self._a.free_indices()
+        return self.ufl_operands[0].free_indices()
 
     def index_dimensions(self):
-        return self._a.index_dimensions()
+        return self.ufl_operands[0].index_dimensions()
 
     def shape(self):
-        return () # self._a.shape()
+        return () # self.ufl_operands[0].shape()
 
     def evaluate(self, x, mapping, component, index_values):
         a, b = self.ufl_operands
@@ -308,14 +298,14 @@ class Division(AlgebraOperator):
         return float(a) / float(b)
 
     def __str__(self):
-        return "%s / %s" % (parstr(self._a, self), parstr(self._b, self))
+        return "%s / %s" % (parstr(self.ufl_operands[0], self), parstr(self.ufl_operands[1], self))
 
     def __repr__(self):
-        return "Division(%r, %r)" % (self._a, self._b)
+        return "Division(%r, %r)" % (self.ufl_operands[0], self.ufl_operands[1])
 
 @ufl_type(num_ops=2)
 class Power(AlgebraOperator):
-    __slots__ = ("_a", "_b",)
+    __slots__ = ()
 
     def __new__(cls, a, b):
         a = as_ufl(a)
@@ -345,20 +335,16 @@ class Power(AlgebraOperator):
         #ufl_assert(isinstance(a, Expr) and isinstance(b, Expr), "Expecting Expr instances.")
         if not (isinstance(a, Expr) and isinstance(b, Expr)):
             error("Expecting Expr instances.")
-        self._a = a
-        self._b = b
+        self.ufl_operands = (a, b)
 
     def __init__(self, a, b):
         AlgebraOperator.__init__(self)
 
-    def operands(self):
-        return (self._a, self._b)
-
     def free_indices(self):
-        return self._a.free_indices()
+        return self.ufl_operands[0].free_indices()
 
     def index_dimensions(self):
-        return self._a.index_dimensions()
+        return self.ufl_operands[0].index_dimensions()
 
     def shape(self):
         return ()
@@ -370,39 +356,35 @@ class Power(AlgebraOperator):
         return a**b
 
     def __str__(self):
-        return "%s ** %s" % (parstr(self._a, self), parstr(self._b, self))
+        return "%s ** %s" % (parstr(self.ufl_operands[0], self), parstr(self.ufl_operands[1], self))
 
     def __repr__(self):
-        return "Power(%r, %r)" % (self._a, self._b)
+        return "Power(%r, %r)" % (self.ufl_operands[0], self.ufl_operands[1])
 
 @ufl_type(num_ops=1)
 class Abs(AlgebraOperator):
-    __slots__ = ("_a",)
+    __slots__ = ()
 
     def __init__(self, a):
-        AlgebraOperator.__init__(self)
+        AlgebraOperator.__init__(self, (a,))
         ufl_assert(isinstance(a, Expr), "Expecting Expr instance.")
         if not isinstance(a, Expr): error("Expecting Expr instances.")
-        self._a = a
-
-    def operands(self):
-        return (self._a, )
 
     def free_indices(self):
-        return self._a.free_indices()
+        return self.ufl_operands[0].free_indices()
 
     def index_dimensions(self):
-        return self._a.index_dimensions()
+        return self.ufl_operands[0].index_dimensions()
 
     def shape(self):
-        return self._a.shape()
+        return self.ufl_operands[0].shape()
 
     def evaluate(self, x, mapping, component, index_values):
-        a = self._a.evaluate(x, mapping, component, index_values)
+        a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
         return abs(a)
 
     def __str__(self):
-        return "| %s |" % parstr(self._a, self)
+        return "| %s |" % parstr(self.ufl_operands[0], self)
 
     def __repr__(self):
-        return "Abs(%r)" % self._a
+        return "Abs(%r)" % self.ufl_operands[0]
