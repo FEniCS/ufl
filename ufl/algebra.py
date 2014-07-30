@@ -301,7 +301,7 @@ class Power(AlgebraOperator):
         if a == 0 and isinstance(b, ScalarValue):
             bf = float(b)
             if bf < 0:
-                error("Division by zero, annot raise 0 to a negative power.")
+                error("Division by zero, cannot raise 0 to a negative power.")
             else:
                 return zero()
         if b == 1:

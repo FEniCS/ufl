@@ -114,10 +114,6 @@ class Terminal(Expr):
         "Default comparison of terminals just compare repr strings."
         return repr(self) == repr(other)
 
-    #def __getnewargs__(self): # TODO: Test pickle and copy with this. Must implement differently for Terminal objects though.
-    #    "Used for pickle and copy operations."
-    #    raise NotImplementedError, "Must reimplement in each Terminal, or?"
-
 #--- Subgroups of terminals ---
 
 @ufl_type(is_abstract=True)

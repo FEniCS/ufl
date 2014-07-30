@@ -296,9 +296,12 @@ class Expr(object):
         "Unary + is a no-op."
         return self
 
-    #def __getnewargs__(self): # TODO: Test pickle and copy with this. Must implement differently for Terminal objects though.
-    #    "Used for pickle and copy operations."
-    #    return self.ufl_operands
+    def __getnewargs__(self):
+        """The tuple returned here is passed to as args to cls.__new__(cls, *args).
+
+        May be necessary to override if __new__ is implemented in a subclass.
+        """
+        return self.ufl_operands
 
 
 # Initializing traits here because Expr is not defined in the class declaration

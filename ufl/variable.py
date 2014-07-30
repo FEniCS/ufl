@@ -98,6 +98,3 @@ class Variable(WrapperType):
 
     def __repr__(self):
         return "Variable(%r, %r)" % (self.ufl_operands[0], self.ufl_operands[1])
-
-    def __getnewargs__(self):
-        return ()

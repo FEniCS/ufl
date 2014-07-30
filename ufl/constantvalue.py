@@ -94,9 +94,6 @@ class IndexAnnotated(ConstantValue):
 #        self._name = name
 #        self.ufl_shape = shape
 #
-#    def __getnewargs__(self):
-#        return (self._name, self.ufl_shape)
-#
 #    def reconstruct(self, name=None):
 #        if name is None:
 #            name = self._name
@@ -330,9 +327,6 @@ class Identity(ConstantValue):
         return isinstance(other, Identity) and self._dim == other._dim
     __hash__ = Terminal.__hash__
 
-    def __getnewargs__(self):
-        return (self._dim,)
-
 #--- Permutation symbol ---
 
 @ufl_type()
@@ -379,9 +373,6 @@ class PermutationSymbol(ConstantValue):
                 elif x1 == x2:
                     return Zero()
         return result
-
-    def __getnewargs__(self):
-        return (self._dim,)
 
 def as_ufl(expression):
     "Converts expression to an Expr if possible."

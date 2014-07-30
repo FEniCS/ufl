@@ -35,7 +35,7 @@ from ufl.core.ufl_type import ufl_type
 @ufl_type(is_shaping=True, num_ops="varying", inherit_indices_from_operand=0)
 class ListTensor(WrapperType):
     """UFL operator type: Wraps a list of expressions into a tensor valued expression of one higher rank."""
-    __slots__ = ("ufl_shape",)
+    __slots__ = ()
 
     def __new__(cls, *expressions):
         # All lists and tuples should already be unwrapped in as_tensor
@@ -73,7 +73,7 @@ class ListTensor(WrapperType):
 
     @property
     def ufl_shape(self):
-        return (len(self.ufl_operands),) + self.ufl_operands.ufl_shape
+        return (len(self.ufl_operands),) + self.ufl_operands[0].ufl_shape
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."

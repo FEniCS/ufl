@@ -75,9 +75,6 @@ class Operator(Expr):
             self._hash = compute_hash(self)
         return self._hash
 
-    def __getnewargs__(self):
-        return self.ufl_operands
-
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
         return all(o.is_cellwise_constant() for o in self.ufl_operands)
