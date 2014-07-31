@@ -27,7 +27,7 @@ from ufl.terminal import Terminal
 from ufl.operatorbase import Operator
 from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.constantvalue import Zero
-from ufl.indexing import Index, FixedIndex, MultiIndex, as_multi_index
+from ufl.indexing import Index, FixedIndex, MultiIndex
 from ufl.indexed import Indexed
 from ufl.indexutils import unique_indices
 from ufl.variable import Variable

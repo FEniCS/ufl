@@ -392,6 +392,41 @@ def _getitem(self, key):
         a = Zero(shape, fi, idims)
 
     return a
+
+# TODO: Debug and use this implementation instead. I think it will be faster.
+from ufl.index_combination_utils import create_slice_indices, find_repeated_free_indices
+def _getitem2(self, component):
+
+    if not isinstance(component, tuple):
+        component = (component,)
+
+    shape = self.ufl_shape
+
+    # Analyse slices (:) and Ellipsis (...)
+    all_indices, slice_indices = create_slice_indices(component, shape)
+
+    # Special case for foo[...] => foo, foo[:] => foo or similar
+    if len(slice_indices) == len(all_indices):
+        return self
+
+    # Index self, yielding scalar valued expressions
+    multi_index = MultiIndex(all_indices, shape)
+    a = Indexed(self, multi_index)
+
+    # TODO: I think applying as_tensor afterwards results in cleaner expression graphs.
+
+    # If any slices or ellipsis was found, wrap as tensor
+    # valued with the slice indices created at the top here
+    if slice_indices:
+        a = as_tensor(a, slice_indices)
+
+    # Apply sum for each repeated index
+    ri = find_repeated_free_indices(all_indices)
+    for i in ri:
+        a = IndexSum(a, i)
+
+    return a
+
 Expr.__getitem__ = _getitem
 
 #--- Extend Expr with spatial differentiation operator a.dx(i) ---

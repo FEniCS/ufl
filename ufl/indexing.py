@@ -102,6 +102,16 @@ class FixedIndex(IndexBase):
     def __hash__(self):
         return self._hash
 
+
+def _as_index(i):
+    if isinstance(i, IndexBase):
+        return i
+    elif isinstance(i, int):
+        return FixedIndex(i)
+    else:
+        error("Invalid object %s to create index from." % repr(i))
+
+
 @ufl_type()
 class MultiIndex(UtilityType):
     "Represents a sequence of indices, either fixed or free."
@@ -120,7 +130,7 @@ class MultiIndex(UtilityType):
             key = (ii,)
             ii = (FixedIndex(ii),)
         elif isinstance(ii, tuple):
-            ii = tuple(as_index(j) for j in ii)
+            ii = tuple(_as_index(j) for j in ii)
             if all(isinstance(jj, FixedIndex) for jj in ii):
                 key = tuple(jj._value for jj in ii)
             else:
@@ -221,14 +231,6 @@ class MultiIndex(UtilityType):
         return isinstance(other, MultiIndex) and \
             self._indices == other._indices
 
-def as_index(i):
-    if isinstance(i, IndexBase):
-        return i
-    elif isinstance(i, int):
-        return FixedIndex(i)
-    else:
-        error("Invalid object %s to create index from." % repr(i))
-
 def _make_idims(ii, shape):
     if shape is None:
         return None
@@ -247,7 +249,7 @@ def as_multi_index(ii, shape=None):
 
 def indices(n):
     "UFL value: Return a tuple of n new Index objects."
-    return tuple(Index() for _i in range(n))
+    return tuple(Index() for i in range(n))
 
 # TODO: Fix imports everywhere else instead
 from ufl.indexutils import complete_shape
