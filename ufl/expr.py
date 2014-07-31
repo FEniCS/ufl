@@ -313,10 +313,43 @@ class Expr(object):
         """Evaluate expression at given coordinate with given values for terminals."""
         error("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
 
-    def __float__(self):
+    def _ufl_evaluate_scalar_(self):
         if self.ufl_shape != () or self.free_indices() != ():
-            raise NotImplementedError(self.__class__.__float__)
+            raise TypeError("Cannot evaluate a nonscalar expression to a scalar value.")
         return self(()) # No known x
+
+    def __float__(self):
+        "Try to evaluate as scalar and cast to float."
+        return float(self._ufl_evaluate_scalar_())
+
+    def __int__(self):
+        "Try to evaluate as scalar and cast to int."
+        return int(self._ufl_evaluate_scalar_())
+
+    def __bool__(self):
+        "By default, all Expr are nonzero/False."
+        return True
+
+    def __nonzero__(self):
+        "By default, all Expr are nonzero/False."
+        return self.__bool__()
+
+    @staticmethod
+    def _ufl_coerce_(value):
+        "Convert any value to a UFL type."
+        # Quick skip for most types
+        if isinstance(value, Expr):
+            return value
+
+        # Conversion from non-ufl types
+        # (the _ufl_from_*_ functions are attached to Expr by ufl_type)
+        ufl_from_type = "_ufl_from_{0}_".format(value.__class__.__name__)
+        return getattr(Expr, ufl_from_type)(value)
+
+        #if hasattr(Expr, ufl_from_type):
+        #    return getattr(Expr, ufl_from_type)(value)
+        ## Fail gracefully if no valid type conversion found
+        #raise TypeError("Cannot convert a {0.__class__.__name__} to UFL type.".format(value))
 
     #--- Functions for shape and index handling ---
 
@@ -371,14 +404,6 @@ class Expr(object):
         exact same way. This does not check if the expressions are
         mathematically equal or equivalent! Used by sets and dicts."""
         raise NotImplementedError(self.__class__.__eq__)
-
-    def __bool__(self):
-        "By default, all Expr are nonzero."
-        return True
-
-    def __nonzero__(self):
-        "By default, all Expr are nonzero."
-        return self.__bool__()
 
     def __len__(self):
         "Length of expression. Used for iteration over vector expressions."

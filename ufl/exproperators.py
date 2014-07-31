@@ -41,15 +41,6 @@ from ufl.differentiation import Grad
 #--- Boolean operators ---
 
 from ufl.conditional import EQ, NE, LE, GE, LT, GT
-#    AndCondition, OrCondition, NotCondition, Conditional
-
-#def _eq(left, right):
-#    "UFL operator: A boolean expresion (left == right) for use with conditional."
-#    return EQ(left, right)
-
-#def _ne(left, right):
-#    "UFL operator: A boolean expresion (left != right) for use with conditional."
-#    return NE(left, right)
 
 def _le(left, right):
     "UFL operator: A boolean expresion (left <= right) for use with conditional."
@@ -76,14 +67,10 @@ def _gt(left, right):
 # anything about dict and set calling __eq__...
 from ufl.exprequals import expr_equals
 Expr.__eq__ = expr_equals
-#Expr.__eq__ = _eq
 
 # != is used at least by tests, possibly in code as well, and must mean
-# the opposite of ==, i.e. when evaluated as bool it must mean equal representation.
-# To keep things simple and consistent we treat it just like ==.
-#def not_expr_equals(self, other):
-#    return not expr_equals(self, other)
-#Expr.__ne__ = not_expr_equals
+# the opposite of ==, i.e. when evaluated as bool it must mean 'not equal representation'.
+# We achieve this by not defining it such that == is used and negated by Python.
 #Expr.__ne__ = _ne
 
 Expr.__lt__ = _lt
@@ -419,9 +406,3 @@ def _dx(self, *ii):
     return d[..., ii]
 
 Expr.dx = _dx
-
-#def _d(self, v):
-#    "Return the partial derivative with respect to variable v."
-#    # TODO: Maybe v can be an Indexed of a Variable, in which case we can use indexing to extract the right component?
-#    return VariableDerivative(self, v)
-#Expr.d = _d

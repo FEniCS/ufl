@@ -36,7 +36,9 @@ from ufl.core.ufl_type import ufl_type
 
 #--- Algebraic operators ---
 
-@ufl_type(num_ops=2, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+@ufl_type(num_ops=2,
+          inherit_shape_from_operand=0, inherit_indices_from_operand=0,
+          binop="__add__", rbinop="__radd__")
 class Sum(AlgebraOperator):
     __slots__ = ()
 
@@ -121,7 +123,8 @@ class Sum(AlgebraOperator):
     def __repr__(self):
         return "Sum(%s)" % ", ".join(repr(o) for o in self.ufl_operands)
 
-@ufl_type(num_ops=2)
+@ufl_type(num_ops=2,
+          binop="__mul__", rbinop="__rmul__")
 class Product(AlgebraOperator):
     """The product of two or more UFL objects."""
     __slots__ = ("_free_indices", "_index_dimensions",)
@@ -228,7 +231,9 @@ class Product(AlgebraOperator):
     def __repr__(self):
         return "Product(%s)" % ", ".join(repr(o) for o in self.ufl_operands)
 
-@ufl_type(num_ops=2, inherit_indices_from_operand=0)
+@ufl_type(num_ops=2,
+          inherit_indices_from_operand=0,
+          binop="__div__", rbinop="__rdiv__")
 class Division(AlgebraOperator):
     __slots__ = ()
 
@@ -286,7 +291,9 @@ class Division(AlgebraOperator):
     def __repr__(self):
         return "Division(%r, %r)" % (self.ufl_operands[0], self.ufl_operands[1])
 
-@ufl_type(num_ops=2, inherit_indices_from_operand=0)
+@ufl_type(num_ops=2,
+          inherit_indices_from_operand=0,
+          binop="__pow__", rbinop="__rpow__")
 class Power(AlgebraOperator):
     __slots__ = ()
 
@@ -337,7 +344,9 @@ class Power(AlgebraOperator):
     def __repr__(self):
         return "Power(%r, %r)" % (self.ufl_operands[0], self.ufl_operands[1])
 
-@ufl_type(num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+@ufl_type(num_ops=1,
+          inherit_shape_from_operand=0, inherit_indices_from_operand=0,
+          unop="__abs__")
 class Abs(AlgebraOperator):
     __slots__ = ()
 

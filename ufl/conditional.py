@@ -82,6 +82,7 @@ class BinaryCondition(Condition):
         return "%s(%r, %r)" % (type(self).__name__, self.ufl_operands[0], self.ufl_operands[1])
 
 
+# Not associating with __eq__, the concept of equality with == is reserved for object equivalence for use in set and dict.
 @ufl_type()
 class EQ(BinaryCondition):
     __slots__ = ()
@@ -98,6 +99,7 @@ class EQ(BinaryCondition):
     __nonzero__ = __bool__
 
 
+# Not associating with __ne__, the concept of equality with == is reserved for object equivalence for use in set and dict.
 @ufl_type()
 class NE(BinaryCondition):
     __slots__ = ()
@@ -114,7 +116,7 @@ class NE(BinaryCondition):
     __nonzero__ = __bool__
 
 
-@ufl_type()
+@ufl_type(binop="__le__")
 class LE(BinaryCondition):
     __slots__ = ()
     def __init__(self, left, right):
@@ -126,7 +128,7 @@ class LE(BinaryCondition):
         return bool(a <= b)
 
 
-@ufl_type()
+@ufl_type(binop="__ge__")
 class GE(BinaryCondition):
     __slots__ = ()
     def __init__(self, left, right):
@@ -137,7 +139,7 @@ class GE(BinaryCondition):
         b = self.ufl_operands[1].evaluate(x, mapping, component, index_values)
         return bool(a >= b)
 
-@ufl_type()
+@ufl_type(binop="__lt__")
 class LT(BinaryCondition):
     __slots__ = ()
     def __init__(self, left, right):
@@ -148,7 +150,7 @@ class LT(BinaryCondition):
         b = self.ufl_operands[1].evaluate(x, mapping, component, index_values)
         return bool(a < b)
 
-@ufl_type()
+@ufl_type(binop="__gt__")
 class GT(BinaryCondition):
     __slots__ = ()
     def __init__(self, left, right):

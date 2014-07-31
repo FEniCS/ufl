@@ -250,6 +250,7 @@ class ScalarValue(IndexAnnotated):
     def __abs__(self):
         return type(self)(abs(self._value))
 
+
 @ufl_type(wraps_type=float)
 class FloatValue(ScalarValue):
     "UFL literal type: Representation of a constant scalar floating point value."
@@ -374,9 +375,9 @@ def as_ufl(expression):
     "Converts expression to an Expr if possible."
     if isinstance(expression, Expr):
         return expression
-    if isinstance(expression, int):
-        return IntValue(expression)
     if isinstance(expression, float):
         return FloatValue(expression)
+    if isinstance(expression, int):
+        return IntValue(expression)
     error(("Invalid type conversion: %s can not be converted to any UFL type.\n"+\
            "The representation of the object is:\n%r") % (type(expression), expression))

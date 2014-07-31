@@ -101,37 +101,43 @@ def ufl_type(is_abstract=False,
 
 
         # Attach builtin type wrappers to Expr
-        """ # TODO
+        """ # These are currently handled in the as_ufl implementation in constantvalue.py
         if wraps_type is not None:
             if not isinstance(wraps_type, type):
                 msg = "Expecting a type, not a {0.__name__} for the wraps_type argument in definition of {1.__name__}."
                 raise TypeError(msg.format(type(wraps_type), cls))
 
-            def _ufl_as_type_(value):
+            def _ufl_from_type_(value):
                 return cls(value)
-            as_type_name = "_ufl_as_{0}_".format(wraps_type.__name__)
-            setattr(Expr, as_type_name, staticmethod(_ufl_as_type_))
+            from_type_name = "_ufl_from_{0}_".format(wraps_type.__name__)
+            setattr(Expr, from_type_name, staticmethod(_ufl_from_type_))
         """
-
 
         # Attach special function to Expr.
         # Avoids the circular dependency problem of making
         # Expr.__foo__ return a Foo that is a subclass of Expr.
-        """ # TODO
+        """ # These are currently attached in exproperators.py
         if unop:
             def _ufl_expr_unop_(self):
                 return cls(self)
             setattr(Expr, unop, _ufl_expr_unop_)
         if binop:
             def _ufl_expr_binop_(self, other):
+                try:
+                    other = Expr._ufl_coerce_(other)
+                except:
+                    return NotImplemented
                 return cls(self, other)
             setattr(Expr, binop, _ufl_expr_binop_)
         if rbinop:
             def _ufl_expr_rbinop_(self, other):
+                try:
+                    other = Expr._ufl_coerce_(other)
+                except:
+                    return NotImplemented
                 return cls(other, self)
             setattr(Expr, rbinop, _ufl_expr_rbinop_)
         """
-
 
         # Get trait is_terminal.
         # It's faster to use expr._ufl_is_terminal_ than to use isinstance(expr, Terminal)
