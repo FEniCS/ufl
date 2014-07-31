@@ -51,11 +51,10 @@ compute_hash = _compute_hash
 
 @ufl_type(is_abstract=True, is_terminal=False)
 class Operator(Expr):
-    __slots__ = ("_hash", "ufl_operands")
+    __slots__ = ("ufl_operands",)
 
     def __init__(self, operands=None):
         Expr.__init__(self)
-        self._hash = None
 
         # If operands is None, the type sets this itself. This is to get around
         # some tricky too-fancy __new__/__init__ design in algebra.py, for now.
@@ -69,11 +68,9 @@ class Operator(Expr):
     def signature_data(self):
         return self._ufl_typecode_
 
-    def __hash__(self):
+    def _ufl_compute_hash_(self):
         "Compute a hash code for this expression. Used by sets and dicts."
-        if self._hash is None:
-            self._hash = compute_hash(self)
-        return self._hash
+        return compute_hash(self)
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
@@ -84,15 +81,23 @@ class Operator(Expr):
     def operands(self):
         return self.ufl_operands
 
-    #@property
-    #def ufl_free_indices(self):
-    #    "Intermediate helper property getter to transition from .free_indices() to .ufl_free_indices."
-    #    return tuple(sorted(i.count() for i in self.free_indices()))
+    def free_indices(self):
+        "Intermediate helper property getter to transition from .free_indices() to .ufl_free_indices."
+        return tuple(Index(count=i) for i in self.ufl_free_indices)
 
-    #@property
-    #def ufl_index_dimensions(self):
-    #    "Intermediate helper property getter to transition from .index_dimensions() to .ufl_index_dimensions."
-    #    return tuple(d for i, d in sorted(iteritems(self.index_dimensions()), key=lambda x: x[0].count()))
+    def index_dimensions(self):
+        "Intermediate helper property getter to transition from .index_dimensions() to .ufl_index_dimensions."
+        return { i: d for i, d in zip(self.ufl_free_indices, self.ufl_index_dimensions) }
+
+    @property
+    def ufl_free_indices(self):
+        "Intermediate helper property getter to transition from .free_indices() to .ufl_free_indices."
+        return tuple(sorted(i.count() for i in self.free_indices()))
+
+    @property
+    def ufl_index_dimensions(self):
+        "Intermediate helper property getter to transition from .index_dimensions() to .ufl_index_dimensions."
+        return tuple(d for i, d in sorted(iteritems(self.index_dimensions()), key=lambda x: x[0].count()))
 
 
 #--- Subgroups of terminals ---

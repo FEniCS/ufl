@@ -35,15 +35,91 @@ from ufl.log import warning, error
 #--- The base object for all UFL expression tree nodes ---
 
 class Expr(object):
-    """Base class for all UFL expression types."""
+    """Base class for all UFL expression types.
 
-    #: Each Expr subclass must define __slots__ or _ufl_noslots_ at the top,
-    #: to freeze member variables for objects of this class and save memory
-    #: by skipping the per-instance dict
+    *Instance properties*
+        Every expression instance will have certain properties.
+        Most important are the ``ufl_operands``, ``ufl_shape``,
+        ``ufl_free_indices``, and ``ufl_index_dimensions`` properties.
+        Expressions are immutable and hashable.
 
-    #__slots__ = ("_hash",) # uflcore version
-    __slots__ = ()
+    *Type traits*
+        The Expr API defines a number of type traits that each subclass
+        needs to provide. Most of these are specified indirectly via
+        the arguments to the ``ufl_type`` class decorator, allowing UFL
+        to do some consistency checks and automate most of the traits
+        for most types. The type traits are accessed via a class or
+        instance object on the form obj._ufl_traitname_. See the source
+        code for description of each type trait.
+
+    *Operators*
+        Some Python special functions are implemented in this class,
+        some are implemented in subclasses, and some are attached to
+        this class in the ``ufl_type`` class decorator.
+
+    *Defining subclasses*
+        To define a new expression class, inherit from either
+        ``Terminal`` or ``Operator``, and apply the ``ufl_type`` class
+        decorator with suitable arguments.  See the docstring of
+        ``ufl_type`` for details on its arguments.  Looking at existing
+        classes similar to the one you wish to add is a good
+        idea. Looking through the comments in the ``Expr`` class and
+        ``ufl_type`` to understand all the properties that may need to
+        be specified is also a good idea. Note that many algorithms in
+        UFL and form compilers will need handlers implemented for each
+        new type.
+
+        .. code-block:: python
+
+            @ufl_type()
+            class MyOperator(Operator):
+                pass
+
+    *Type collections*
+        All ``Expr`` subclasses are collected by ``ufl_type`` in global
+        variables available via ``Expr``.
+
+    *Profiling*
+        Object creation statistics can be collected by doing
+
+        .. code-block:: python
+
+            Expr.ufl_enable_profiling()
+            # ... run some code
+            initstats, delstats = Expr.ufl_disable_profiling()
+
+        Giving a list of creation and deletion counts for each typecode.
+    """
+
+    # --- Each Expr subclass must define __slots__ or _ufl_noslots_ at the top ---
+    # This is to freeze member variables for objects of this class and save memory
+    # by skipping the per-instance dict.
+
+    __slots__ = ("_hash",)
     #_ufl_noslots_ = True
+
+
+    # --- Basic object behaviour ---
+
+    def __getnewargs__(self):
+        """The tuple returned here is passed to as args to cls.__new__(cls, *args).
+
+        This implementation passes the operands, which is () for terminals.
+
+        May be necessary to override if __new__ is implemented in a subclass.
+        """
+        return self.ufl_operands
+
+    def __init__(self):
+        self._hash = None
+
+    def __del__(self):
+        pass
+
+    def __hash__(self):
+        if self._hash is None:
+            self._hash = self._ufl_compute_hash_()
+        return self._hash
 
 
     # --- Type traits are added to subclasses by the ufl_type class decorator ---
@@ -80,18 +156,46 @@ class Expr(object):
     _ufl_is_index_free_ = False
 
 
-    # --- Basic object behaviour ---
+    # --- All subclasses must define these object attributes ---
 
-    def __init__(self):
-        self._hash = None
+    # FIXME: Enable checks in ufl_type
+    _ufl_required_properties_ = (
+        # A tuple of operands, all of them Expr instances.
+        "ufl_operands",
 
-    def __del__(self):
-        pass
+        # A tuple of ints, the value shape of the expression.
+        "ufl_shape",
 
-    def __hash__(self):
-        if self._hash is None:
-            self._hash = self._ufl_compute_hash_()
-        return self._hash
+        # A tuple of free index counts.
+        "ufl_free_indices",
+
+        # A tuple providing the int dimension for each free index.
+        "ufl_index_dimensions",
+        )
+
+    # FIXME: Add more and enable all
+    _ufl_required_methods_ = (
+        # To compute the hash on demand, this method is called.
+        "_ufl_compute_hash_",
+
+        # The == operator must be implemented to compare for identical representation, used by set() and dict().
+        "__eq__",
+
+        # To reconstruct an object of the same type with operands or properties changed.
+        "reconstruct",
+
+        # Return whether this expression is spatially constant over each cell.
+        "domains",
+        "is_cellwise_constant",
+        #"cell",
+        #"domain",
+        #"geometric_dimension",
+
+        #"__str__",
+        #"__repr__",
+        #"signature_data",
+        #"__repr__",
+        )
 
 
     # --- Global variables for collecting all types ---
@@ -295,13 +399,6 @@ class Expr(object):
     def __pos__(self):
         "Unary + is a no-op."
         return self
-
-    def __getnewargs__(self):
-        """The tuple returned here is passed to as args to cls.__new__(cls, *args).
-
-        May be necessary to override if __new__ is implemented in a subclass.
-        """
-        return self.ufl_operands
 
 
 # Initializing traits here because Expr is not defined in the class declaration

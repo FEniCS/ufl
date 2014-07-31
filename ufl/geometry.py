@@ -124,10 +124,8 @@ class GeometricQuantity(Terminal):
     def __repr__(self):
         return "%s(%r)" % (self._ufl_class_.__name__, self._domain)
 
-    def __hash__(self):
-        if self._hash is None:
-            self._hash = hash((type(self).__name__,) + self._domain.hash_data())
-        return self._hash
+    def _ufl_compute_hash_(self):
+        return hash((type(self).__name__,) + self._domain.hash_data())
 
     def __eq__(self, other):
         return isinstance(other, self._ufl_class_) and other._domain == self._domain

@@ -135,7 +135,6 @@ class Argument(FormArgument):
                 self._number == other._number and
                 self._part == other._part and
                 self._element == other._element)
-    __hash__ = Terminal.__hash__
 
 # --- Helper functions for pretty syntax ---
 

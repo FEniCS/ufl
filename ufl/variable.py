@@ -91,7 +91,6 @@ class Variable(WrapperType):
         return (isinstance(other, Variable)
                 and self.ufl_operands[1] == other.ufl_operands[1]
                 and self.ufl_operands[0] == other.ufl_operands[0])
-    __hash__ = Operator.__hash__
 
     def __str__(self):
         return "var%d(%s)" % (self.ufl_operands[1].count(), self.ufl_operands[0])

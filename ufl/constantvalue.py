@@ -163,7 +163,6 @@ class Zero(IndexAnnotated):
         return (self.ufl_shape == other.ufl_shape and
                 self._free_indices == other._free_indices and
                 self._index_dimensions == other._index_dimensions)
-    __hash__ = Terminal.__hash__
 
     def __neg__(self):
         return self
@@ -235,7 +234,6 @@ class ScalarValue(IndexAnnotated):
             return isinstance(other, (int, float)) and other == self._value
         else:
             return self._value == other._value
-    __hash__ = Terminal.__hash__
 
     def __str__(self):
         return str(self._value)
@@ -325,7 +323,6 @@ class Identity(ConstantValue):
 
     def __eq__(self, other):
         return isinstance(other, Identity) and self._dim == other._dim
-    __hash__ = Terminal.__hash__
 
 #--- Permutation symbol ---
 
@@ -359,7 +356,6 @@ class PermutationSymbol(ConstantValue):
 
     def __eq__(self, other):
         return isinstance(other, PermutationSymbol) and self._dim == other._dim
-    __hash__ = Terminal.__hash__
 
     def __eps(self, x):
         """This function body is taken from

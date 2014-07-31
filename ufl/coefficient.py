@@ -113,7 +113,6 @@ class Coefficient(FormArgument):
             return True
         return (self._count == other._count and
                 self._element == other._element)
-    __hash__ = Terminal.__hash__
 
 # --- Helper functions for defining constant coefficients without specifying element ---
 

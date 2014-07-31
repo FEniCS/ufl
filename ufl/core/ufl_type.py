@@ -74,30 +74,6 @@ def ufl_type(is_abstract=False,
         cls._ufl_is_shaping_ = is_shaping
 
 
-        # Check if type implements the required methods
-        """ # TODO
-        if not is_abstract:
-            for attr in Expr._ufl_required_methods_:
-                if not hasattr(cls, attr):
-                    msg = "Class {0.__name__} has no {1} method."
-                    raise TypeError(msg.format(cls, attr))
-                elif not callable(getattr(cls, attr)):
-                    msg = "Required method {1} of class {0.__name__} is not callable."
-                    raise TypeError(msg.format(cls, attr))
-        """
-
-        # Check if type implements the required properties
-        """ # TODO
-        if not is_abstract:
-            for attr in Expr._ufl_required_properties_:
-                if not hasattr(cls, attr):
-                    msg = "Class {0.__name__} has no {1} property."
-                    raise TypeError(msg.format(cls, attr))
-                elif callable(getattr(cls, attr)):
-                    msg = "Required property {1} of class {0.__name__} is a callable method."
-                    raise TypeError(msg.format(cls, attr))
-        """
-
         # Assign the class object itself.
         # Makes it possible to do type(f)._ufl_class_ and be sure you get
         # the actual UFL class instead of a subclass from another library.
@@ -115,6 +91,13 @@ def ufl_type(is_abstract=False,
         # This is used for fast lookup into multifunction handler tables
         cls._ufl_typecode_ = Expr._ufl_num_typecodes_
         Expr._ufl_num_typecodes_ += 1
+
+
+        # Make sure every non-abstract class has its own __hash__ and __eq__.
+        # Python 3 will set __hash__ to None if cls has __eq__, but we've
+        # implemented it in Expr and want to inherit it.
+        if cls.__hash__ is None:
+            cls.__hash__ = Expr.__hash__
 
 
         # Attach builtin type wrappers to Expr
@@ -220,6 +203,28 @@ def ufl_type(is_abstract=False,
             auto_num_ops = get_base_attr(cls, "_ufl_num_ops_")
 
         cls._ufl_num_ops_ = auto_num_ops
+
+
+        # Check if type implements the required methods
+        # (this must happen after the automatic implementations above!)
+        if not is_abstract:
+            for attr in Expr._ufl_required_methods_:
+                if not hasattr(cls, attr):
+                    msg = "Class {0.__name__} has no {1} method."
+                    raise TypeError(msg.format(cls, attr))
+                elif not callable(getattr(cls, attr)):
+                    msg = "Required method {1} of class {0.__name__} is not callable."
+                    raise TypeError(msg.format(cls, attr))
+
+        # Check if type implements the required properties
+        if not is_abstract:
+            for attr in Expr._ufl_required_properties_:
+                if not hasattr(cls, attr):
+                    msg = "Class {0.__name__} has no {1} property."
+                    raise TypeError(msg.format(cls, attr))
+                elif callable(getattr(cls, attr)):
+                    msg = "Required property {1} of class {0.__name__} is a callable method."
+                    raise TypeError(msg.format(cls, attr))
 
 
         # Add to collection of language operators.

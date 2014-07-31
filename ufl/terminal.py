@@ -32,11 +32,10 @@ from ufl.core.ufl_type import ufl_type
 @ufl_type(is_abstract=True, is_terminal=True)
 class Terminal(Expr):
     "A terminal node in the UFL expression tree."
-    __slots__ = ("_hash",)
+    __slots__ = ()
 
     def __init__(self):
         Expr.__init__(self)
-        self._hash = None
 
     def reconstruct(self, *operands):
         "Return self."
@@ -104,11 +103,9 @@ class Terminal(Expr):
         "Default signature data for of terminals just return the repr string."
         return repr(self)
 
-    def __hash__(self):
+    def _ufl_compute_hash_(self):
         "Default hash of terminals just hash the repr string."
-        if self._hash is None:
-            self._hash = hash(repr(self))
-        return self._hash
+        return hash(repr(self))
 
     def __eq__(self, other):
         "Default comparison of terminals just compare repr strings."
