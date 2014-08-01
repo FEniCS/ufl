@@ -44,7 +44,7 @@ class Label(UtilityType):
     def __repr__(self):
         return "Label(%d)" % self._count
 
-@ufl_type(is_shaping=True, num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+@ufl_type(is_shaping=True, is_index_free=True, num_ops=1, inherit_shape_from_operand=0)
 class Variable(WrapperType):
     """A Variable is a representative for another expression.
 
@@ -68,6 +68,7 @@ class Variable(WrapperType):
         # Checks
         ufl_assert(isinstance(expression, Expr), "Expecting Expr.")
         ufl_assert(isinstance(label, Label), "Expecting a Label.")
+        ufl_assert(not expression.free_indices(), "Variable cannot wrap an expression with free indices.")
 
         WrapperType.__init__(self, (expression, label))
 

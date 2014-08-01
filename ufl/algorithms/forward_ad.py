@@ -58,17 +58,9 @@ from ufl.algorithms.transformer import Transformer
 
 
 class ForwardAD(Transformer):
-    def __init__(self, var_shape, var_free_indices, var_index_dimensions, cache=None):
+    def __init__(self, var_shape, cache=None):
         Transformer.__init__(self)
-        ufl_assert(all(isinstance(i, Index) for i in var_free_indices), \
-            "Expecting Index objects.")
-        ufl_assert(all(isinstance(i, Index) for i in list(var_index_dimensions.keys())), \
-            "Expecting Index objects.")
         self._var_shape = var_shape
-        self._var_free_indices = var_free_indices
-        self._var_index_dimensions = dict(var_index_dimensions)
-        if self._var_free_indices:
-            error("TODO: Free indices in differentiation variable may be buggy!")
         self._cache = {} if cache is None else cache
 
     def _debug_visit(self, o):
@@ -95,21 +87,8 @@ class ForwardAD(Transformer):
         # Define a zero with the right indices
         # (kind of cumbersome this... any simpler way?)
         sh = o.ufl_shape + self._var_shape
-
         fi = o.ufl_free_indices
         fid = o.ufl_index_dimensions
-        if self._var_free_indices:
-            # Currently assuming only one free variable index
-            i, = self._var_free_indices # INDEXING: Change format
-            d, = self._var_index_dimensions # INDEXING: Change format
-            if i in fi:
-                pos = fi.index(i)
-                fi = fi[:pos] + fi[pos+1:]
-                fid = fid[:pos] + fid[pos+1:]
-            else:
-                fi = tuple(sorted(fi + (i,)))
-                pos = fi.index(i)
-                fid = fid[:pos] + (d,) + fid[pos:]
         fp = Zero(sh, fi, fid) # INDEXING: Change format
         return fp
 
@@ -118,114 +97,9 @@ class ForwardAD(Transformer):
         # (kind of cumbersome this... any simpler way?)
         sh = o.ufl_shape + self._var_shape
         fi = o.free_indices()
-        idims = dict(o.index_dimensions())
-        if self._var_free_indices:
-            # Currently assuming only one free variable index
-            i, = self._var_free_indices
-            if i not in idims:
-                fi = unique_indices(fi + (i,))
-                idims[i] = self._var_index_dimensions[i]
+        idims = o.index_dimensions()
         fp = Zero(sh, fi, idims)
         return fp
-
-    def _new_make_ones_diff(self, o): # INDEXING
-        ufl_assert(o.ufl_shape == self._var_shape, "This is only used by VariableDerivative, yes?")
-        # Define a scalar value with the right indices
-        # (kind of cumbersome this... any simpler way?)
-
-        sh = o.ufl_shape
-        fi = o.ufl_free_indices
-        fid = o.ufl_index_dimensions
-
-        if self._var_free_indices:
-            # Currently assuming only one free variable index
-            i, = self._var_free_indices
-            d, = self._var_index_dimensions # INDEXING: Change format
-            if i in fi:
-                pos = fi.index(i)
-                fi = fi[:pos] + fi[pos+1:]
-                fid = fid[:pos] + fid[pos+1:]
-            else:
-                fi = tuple(sorted(fi + (i,)))
-                pos = fi.index(i)
-                fid = fid[:pos] + (d,) + fid[pos:]
-
-        # Create a 1 with index annotations
-        one = IntValue(1, (), fi, fid) # INDEXING Change format
-
-        res = None
-        if sh == ():
-            return one
-        elif len(sh) == 1:
-            # FIXME: If sh == (1,), I think this will get the wrong shape?
-            # I think we should make sure sh=(1,...,1) is always converted to () early.
-            fp = Identity(sh[0])
-        else:
-            ind1 = ()
-            ind2 = ()
-            for d in sh:
-                i, j = indices(2)
-                dij = Identity(d)[i, j]
-                if res is None:
-                    res = dij
-                else:
-                    res *= dij
-                ind1 += (i,)
-                ind2 += (j,)
-            fp = as_tensor(res, ind1 + ind2)
-
-        # Apply index annotations
-        if fi:
-            fp *= one
-
-        return fp
-
-    def _make_ones_diff(self, o):
-        ufl_assert(o.ufl_shape == self._var_shape, "This is only used by VariableDerivative, yes?")
-        # Define a scalar value with the right indices
-        # (kind of cumbersome this... any simpler way?)
-
-        sh = o.ufl_shape
-        fi = o.free_indices()
-        idims = dict(o.index_dimensions())
-
-        if self._var_free_indices:
-            # Currently assuming only one free variable index
-            i, = self._var_free_indices
-            if i not in idims:
-                fi = unique_indices(fi + (i,))
-                idims[i] = self._var_index_dimensions[i]
-
-        # Create a 1 with index annotations
-        one = IntValue(1, (), fi, idims)
-
-        res = None
-        if sh == ():
-            return one
-        elif len(sh) == 1:
-            # FIXME: If sh == (1,), I think this will get the wrong shape?
-            # I think we should make sure sh=(1,...,1) is always converted to () early.
-            fp = Identity(sh[0])
-        else:
-            ind1 = ()
-            ind2 = ()
-            for d in sh:
-                i, j = indices(2)
-                dij = Identity(d)[i, j]
-                if res is None:
-                    res = dij
-                else:
-                    res *= dij
-                ind1 += (i,)
-                ind2 += (j,)
-            fp = as_tensor(res, ind1 + ind2)
-
-        # Apply index annotations
-        if fi:
-            fp *= one
-
-        return fp
-
     # --- Default rules
 
     def expr(self, o):
@@ -303,32 +177,6 @@ class ForwardAD(Transformer):
 
     def index_sum(self, o):
         A, i = o.ufl_operands
-
-        # Consider the following case:
-        #   (v[i]*u[i]).dx(i)
-        # which is represented like
-        #   SpatialDerivative(IndexSum(..., i), i)
-        # if we move the derivative inside the sum,
-        # then the derivative suddenly gets accumulated,
-        # which is completely wrong!
-        if self._var_free_indices:
-            if i[0] in self._var_free_indices:
-                error("Index scope collision. Work around this by reusing indices less in different expressions.\n"\
-                      "An example where this occurs is (v[i]*v[i]).dx(i) where the same index i\n"\
-                      "is bound to an index sum inside the derivative .dx(i).")
-
-                # TODO: OR get around this by temporarily setting _var_free_indices to nothing?
-                #store = self._var_free_indices
-                #self._var_free_indices = nothing?
-                #visit children
-                #self._var_free_indices = store
-                # But... What would this mean? Will it be correct?
-
-                # TODO: Get around this with relabeling algorithm!
-                # j = Index()
-                # A = relabel(A, { i0: j })
-                # i = (j,)
-
         A2, Ap = self.visit(A)
         o = self.reuse_if_possible(o, A2, i)
         op = IndexSum(Ap, i)
@@ -628,11 +476,10 @@ class ForwardAD(Transformer):
     def conditional(self, o, c, t, f):
         o = self.reuse_if_possible(o, c[0], t[0], f[0])
         if isinstance(t[1], Zero) and isinstance(f[1], Zero):
-            tp = t[1] # Assuming t[1] and f[1] have the same indices here, which should be the case
-            fi = tp.free_indices()
-            fid = subdict(tp.index_dimensions(), fi)
-            op = Zero(tp.ufl_shape, fi, fid)
+            # Assuming t[1] and f[1] have the same indices here, which should be the case
+            op = t[1]
         else:
+            # Placing t[1],f[1] outside here to avoid getting arguments inside conditionals
             op = conditional(c[0], 1, 0)*t[1] + conditional(c[0], 0, 1)*f[1]
         return (o, op)
 
@@ -658,37 +505,10 @@ class ForwardAD(Transformer):
     def grad(self, o):
         error("FIXME")
 
-    def xspatial_derivative(self, o): # FIXME: Translate to grad situation
-        # If we hit this type, it has already been propagated
-        # to a terminal, so we can simply apply our derivative
-        # to its operand since differentiation commutes.
-        f, ii = o.ufl_operands
-        f, fp = self.visit(f)
-        o = self.reuse_if_possible(o, f, ii)
-
-        # FIXME: Make plenty of test cases around this kind of situation to document what's going on...
-        if fp.is_cellwise_constant():
-            sh = fp.ufl_shape
-            fi = fp.free_indices()
-            idims = dict(fp.index_dimensions())
-            j, = ii
-            if isinstance(j, Index) and j not in idims:
-                fi = fi + (j,)
-                idims.update(ii.index_dimensions())
-            oprime = Zero(sh, fi, idims)
-            #oprime = self._make_zero_diff(o) # FIXME: Can we just use this?
-        else:
-            oprime = SpatialDerivative(fp, ii)
-        return (o, oprime)
-
 # TODO: Add a ReferenceGradAD ruleset
 class GradAD(ForwardAD):
     def __init__(self, geometric_dimension, cache=None):
-        ForwardAD.__init__(self,
-                           var_shape=(geometric_dimension,),
-                           var_free_indices=(),
-                           var_index_dimensions={},
-                           cache=cache)
+        ForwardAD.__init__(self, var_shape=(geometric_dimension,), cache=cache)
 
     def geometric_quantity(self, o):
         "Represent grad(g) as Grad(g)."
@@ -767,17 +587,40 @@ class GradAD(ForwardAD):
 
 class VariableAD(ForwardAD):
     def __init__(self, var, cache=None):
-        ForwardAD.__init__(self,
-                           var_shape=var.ufl_shape,
-                           var_free_indices=var.free_indices(),
-                           var_index_dimensions=var.index_dimensions(),
-                           cache=cache)
+        ForwardAD.__init__(self, var_shape=var.ufl_shape, cache=cache)
+        ufl_assert(not var.ufl_free_indices, "Differentiation variable cannot have free indices.")
         self._variable = var
 
     def grad(self, o):
         # If we hit this type, it has already been propagated
         # to a coefficient, so it cannot depend on the variable. # FIXME: Assert this!
         return self.terminal(o)
+
+    def _make_self_diff_identity(self, o):
+        sh = o.ufl_shape
+        res = None
+        if sh == ():
+            # Scalar dv/dv is scalar
+            return IntValue(1)
+        elif len(sh) == 1:
+            # Vector v makes dv/dv the identity matrix
+            return Identity(sh[0])
+        else:
+            # Tensor v makes dv/dv some kind of higher rank identity tensor
+            ind1 = ()
+            ind2 = ()
+            for d in sh:
+                i, j = indices(2)
+                dij = Identity(d)[i, j]
+                if res is None:
+                    res = dij
+                else:
+                    res *= dij
+                ind1 += (i,)
+                ind2 += (j,)
+            fp = as_tensor(res, ind1 + ind2)
+
+        return fp
 
     def variable(self, o):
         # Check cache
@@ -788,8 +631,8 @@ class VariableAD(ForwardAD):
             return c
 
         if o.label() == self._variable.label():
-            # dv/dv = "1"
-            op = self._make_ones_diff(o)
+            # dv/dv = identity of rank 2*rank(v)
+            op = self._make_self_diff_identity(o)
         else:
             # differentiate expression behind variable
             e2, ep = self.visit(e)
@@ -804,8 +647,7 @@ class VariableAD(ForwardAD):
 class CoefficientAD(ForwardAD):
     "Apply AFD (Automatic Functional Differentiation) to expression."
     def __init__(self, coefficients, arguments, coefficient_derivatives, cache=None):
-        ForwardAD.__init__(self, var_shape=(), var_free_indices=(),
-                           var_index_dimensions={}, cache=cache)
+        ForwardAD.__init__(self, var_shape=(), cache=cache)
         ufl_assert(isinstance(coefficients, ExprList), "Expecting a ExprList.")
         ufl_assert(isinstance(arguments, ExprList), "Expecting a ExprList.")
         ufl_assert(isinstance(coefficient_derivatives, ExprMapping), "Expecting a ExprList.")

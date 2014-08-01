@@ -122,16 +122,20 @@ class Zero(IndexAnnotated):
             self = IndexAnnotated.__new__(cls)
         else:
             self = Zero._cache.get(shape)
-            if self is None:
-                self = IndexAnnotated.__new__(cls)
-                Zero._cache[shape] = self
+            if self is not None:
+                return self
+            self = IndexAnnotated.__new__(cls)
+            Zero._cache[shape] = self
+        self._init(shape, free_indices, index_dimensions)
         return self
 
+    def _init(self, shape=(), free_indices=(), index_dimensions=None):
+        ufl_assert(isinstance(free_indices, tuple),
+                   "Expecting tuple of free indices, not %s" % str(free_indices))
+        IndexAnnotated.__init__(self, shape, free_indices, index_dimensions)
+
     def __init__(self, shape=(), free_indices=(), index_dimensions=None):
-        if not hasattr(self, '_shape'):
-            ufl_assert(isinstance(free_indices, tuple),
-                       "Expecting tuple of free indices, not %s" % str(free_indices))
-            IndexAnnotated.__init__(self, shape, free_indices, index_dimensions)
+        pass
 
     def reconstruct(self, free_indices=None):
         if not free_indices:
