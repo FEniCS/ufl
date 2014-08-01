@@ -105,7 +105,10 @@ class Index(IndexBase):
         return isinstance(other, Index) and (self._count == other._count)
 
     def __str__(self):
-        return "i%d" % self._count
+        c = str(self._count)
+        if len(c) > 1:
+            c = "{%s}" % c
+        return "i_%s" % c
 
     def __repr__(self):
         return "Index(%d)" % self._count
@@ -130,9 +133,9 @@ class MultiIndex(UtilityType):
     def __getnewargs__(self):
         return (self._indices,)
 
-    def x__new__(cls, indices):
-        # FIXME: Require indices to be a tuple of FixedIndex/Index objects already
-        assert isinstance(indices, tuple)
+    def __new__(cls, indices):
+        ufl_assert(isinstance(indices, tuple), "Expecting a tuple of indices.")
+
         if all(isinstance(ind, FixedIndex) for ind in indices):
             # Cache multiindices consisting of purely fixed indices (aka flyweight pattern)
             key = tuple(ind._value for ind in indices)
@@ -143,46 +146,10 @@ class MultiIndex(UtilityType):
             MultiIndex._cache[key] = self
         else:
             # Create a new object if we have any free indices (too many combinations to cache)
-            assert all(isinstance(ind, IndexBase) for ind in indices)
+            ufl_assert(all(isinstance(ind, IndexBase) for ind in indices), "Expecting only Index and FixedIndex objects.")
             self = UtilityType.__new__(cls)
 
         # Initialize here instead of in __init__ to avoid overwriting self._indices from cached objects
-        self._init(indices)
-        return self
-
-    def __new__(cls, indices):
-
-        # Convert indices to proper type and check if input is cache-able
-        if isinstance(indices, FixedIndex):
-            key = (indices._value,)
-            indices = (indices,)
-        elif isinstance(indices, Index):
-            key = None # Not cachable
-            indices = (indices,)
-        elif isinstance(indices, int):
-            key = (indices,)
-            indices = (FixedIndex(indices),)
-        elif isinstance(indices, tuple):
-            indices = tuple(_as_index(j) for j in indices)
-            if all(isinstance(jj, FixedIndex) for jj in indices):
-                key = tuple(jj._value for jj in indices)
-            else:
-                key = None
-        else:
-            error("Expecting tuple of UFL indices, not %s." % (indices,))
-
-        if key is not None:
-            # Lookup in cache if we have a key
-            self = MultiIndex._cache.get(key)
-            if self is not None:
-                return self
-            self = UtilityType.__new__(cls)
-            MultiIndex._cache[key] = self
-        else:
-            # Or skip cache for other cases
-            self = UtilityType.__new__(cls)
-
-        # Initialize here to avoid repeating the checks on indices from above in __init__
         self._init(indices)
         return self
 
@@ -205,27 +172,6 @@ class MultiIndex(UtilityType):
             elif isinstance(i, Index):
                 component.append(index_values[i])
         return tuple(component)
-
-    @property
-    def ufl_shape(self):
-        # In the future we may wish to let multiindex have shape = (len(self),)
-        # but then self[0] should return the index at position 0 and index
-        # classes must become part of the Expr hierarchy.
-        error("MultiIndex is not a tensor-valued expression.")
-
-    @property
-    def ufl_free_indices(self):
-        error("MultiIndex is not a tensor-valued expression.")
-
-    @property
-    def ufl_index_dimensions(self):
-        error("MultiIndex is not a tensor-valued expression.")
-
-    def free_indices(self):
-        error("MultiIndex is not a tensor-valued expression.")
-
-    def index_dimensions(self):
-        error("MultiIndex is not a tensor-valued expression.")
 
     def __add__(self, other):
         if isinstance(other, tuple):

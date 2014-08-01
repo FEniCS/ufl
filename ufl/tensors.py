@@ -131,10 +131,6 @@ class ComponentTensor(WrapperType):
 
     def __new__(cls, expression, indices):
         if isinstance(expression, Zero):
-            if isinstance(indices, MultiIndex):
-                indices = tuple(indices)
-            elif not isinstance(indices, tuple):
-                indices = (indices,)
             dims = expression.index_dimensions()
             shape = tuple(dims[i] for i in indices)
             fi = tuple(set(expression.free_indices()) - set(indices))
@@ -145,27 +141,22 @@ class ComponentTensor(WrapperType):
     def __init__(self, expression, indices):
         ufl_assert(isinstance(expression, Expr), "Expecting ufl expression.")
         ufl_assert(expression.ufl_shape == (), "Expecting scalar valued expression.")
+        ufl_assert(isinstance(indices, MultiIndex), "Expecting a MultiIndex.")
         ufl_assert(all(isinstance(i, Index) for i in indices),
            "Expecting sequence of Index objects, not %s." % repr(indices))
-
-        # FIXME: Require a MultiIndex
-        if not isinstance(indices, MultiIndex):
-            indices = MultiIndex(indices)
 
         WrapperType.__init__(self, (expression, indices))
 
         eset = set(expression.free_indices())
         iset = set(indices)
         freeset = eset - iset
-        self._free_indices = tuple(freeset)
-
         missingset = iset - eset
         if missingset:
             error("Missing indices %s in expression %s." % (missingset, expression))
-
         dims = expression.index_dimensions()
-        self._index_dimensions = dict((i, dims[i]) for i in self._free_indices) or EmptyDict
 
+        self._free_indices = tuple(freeset)
+        self._index_dimensions = dict((i, dims[i]) for i in self._free_indices) or EmptyDict
         self.ufl_shape = tuple(dims[i] for i in indices)
 
     def is_cellwise_constant(self):
@@ -238,7 +229,7 @@ def from_numpy_to_lists(expressions):
         pass
     return expressions
 
-def as_tensor(expressions, indices = None):
+def as_tensor(expressions, indices=None):
     """UFL operator: Make a tensor valued expression.
 
     This works in two different ways, by using indices or lists.
@@ -288,6 +279,7 @@ def as_tensor(expressions, indices = None):
                 return A
 
         # Make a tensor from given scalar expression with free indices
+        indices = MultiIndex(indices)
         return ComponentTensor(expressions, indices)
 
 def as_matrix(expressions, indices = None):

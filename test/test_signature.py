@@ -11,7 +11,7 @@ from ufltestcase import UflTestCase, main
 from ufl import *
 
 from ufl.common import EmptyDictType
-from ufl.classes import MultiIndex
+from ufl.classes import MultiIndex, FixedIndex
 from ufl.algorithms.signature import compute_multiindex_hashdata, \
     compute_terminal_hashdata
 
@@ -325,7 +325,8 @@ class MultiIndexHashDataTestCase(UflTestCase):
         def hashdatas():
             for i in range(3):
                 for ii in ((i,), (i, 0), (1, i)):
-                    expr = MultiIndex(ii)
+                    jj = tuple(FixedIndex(j) for j in ii)
+                    expr = MultiIndex(jj)
                     reprs.add(repr(expr))
                     hashes.add(hash(expr))
                     yield compute_multiindex_hashdata(expr, {})
@@ -371,7 +372,6 @@ class MultiIndexHashDataTestCase(UflTestCase):
                 # because new indices are created each repetition.
                 index_numbering = {}
                 i, j, k, l = indices(4)
-                idims = {i:2,j:3,k:4,l:5}
                 for expr in (MultiIndex((i,)),
                              MultiIndex((i,)), # r
                              MultiIndex((i, j)),

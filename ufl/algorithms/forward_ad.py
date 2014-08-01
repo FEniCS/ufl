@@ -264,7 +264,7 @@ class ForwardAD(Transformer):
             op = self._make_zero_diff(o)
         else:
             Ap, jj = as_scalar(Ap)
-            op = ComponentTensor(Ap, ii.indices() + jj)
+            op = as_tensor(Ap, ii.indices() + jj)
         return (o, op)
 
     # --- Algebra operators

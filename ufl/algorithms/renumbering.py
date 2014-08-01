@@ -58,9 +58,6 @@ class IndexRenumberingTransformer(VariableRenumberingTransformer):
     zero = index_annotated
     scalar_value = index_annotated
 
-    def multi_index(self, o):
-        return MultiIndex(tuple(self.index(i) for i in o.indices()))
-
     def index(self, o):
         if isinstance(o, FixedIndex):
             return o
@@ -70,6 +67,9 @@ class IndexRenumberingTransformer(VariableRenumberingTransformer):
             i = Index(len(self.index_map))
             self.index_map[c] = i
         return i
+
+    def multi_index(self, o):
+        return MultiIndex(tuple(self.index(i) for i in o.indices()))
 
 # TODO: Concepts in this implementation can handle unique
 #       renumbering of indices used multiple places, like
@@ -137,27 +137,12 @@ class IndexRenumberingTransformer2(VariableRenumberingTransformer):
     def revert_indices(self, ii):
         for i in ii:
             j = self.index_map.pop()
-            #print "::: Reverting index", repr(i), "(j =", repr(j), ")"
-
-    #    as_tensor(
-    #                 u[i,j]
-    #              *  v[i]
-    #             , j )
-    #             [i]
-    # *  (
-    #       u[i,j]
-    #     * (v + w)[j])
 
     def index(self, o):
         if isinstance(o, FixedIndex):
             return o
-        i = self.index_map.get(o)
-        if i is None:
-            print(";"*80)
-            print(o)
-            self.print_visit_stack()
-            error("Index %s isn't defined!" % repr(o))
-        return i
+        else:
+            return self.index_map[o]
 
     def multi_index(self, o):
         return MultiIndex(tuple(self.index(i) for i in o.indices()))
