@@ -31,39 +31,48 @@ from ufl.core.ufl_type import ufl_type
 
 @ufl_type(is_shaping=True, num_ops=2)
 class Indexed(WrapperType):
+    #__slots__ = ("ufl_free_indices", "ufl_index_dimensions",) # INDEXING
     __slots__ = ("_free_indices", "_index_dimensions",)
-    def __init__(self, expression, indices):
+
+    def __init__(self, expression, multiindex):
         # Error checking
         if not isinstance(expression, Expr):
             error("Expecting Expr instance, not %s." % repr(expression))
-        if not isinstance(indices, MultiIndex):
-            error("Expecting MultiIndex instance, not %s." % repr(indices))
+        if not isinstance(multiindex, MultiIndex):
+            error("Expecting MultiIndex instance, not %s." % repr(multiindex))
 
         shape = expression.ufl_shape
 
         # Error checking
-        if len(shape) != len(indices):
+        if len(shape) != len(multiindex):
             error("Invalid number of indices (%d) for tensor "\
                 "expression of rank %d:\n\t%r\n"\
-                % (len(indices), expression.rank(), expression))
+                % (len(multiindex), expression.rank(), expression))
 
         # Store operands
-        WrapperType.__init__(self, (expression, indices))
+        WrapperType.__init__(self, (expression, multiindex))
 
         # Error checking
-        for si, di in zip(shape, indices):
+        for si, di in zip(shape, multiindex):
             if isinstance(di, FixedIndex) and int(di) >= int(si):
                 error("Fixed index out of range!")
 
         # Build free index tuple and dimensions
-        idims = dict((i, s) for (i, s) in zip(indices._indices, shape)
+        idims = dict((i, s) for (i, s) in zip(multiindex._indices, shape)
                      if isinstance(i, Index))
         idims.update(expression.index_dimensions())
-        fi = unique_indices(expression.free_indices() + indices._indices)
+        fi = unique_indices(expression.free_indices() + multiindex._indices)
 
         # Cache free index and dimensions
         self._free_indices = fi
         self._index_dimensions = idims or EmptyDict
+
+        # INDEXING: FIXME
+        #mi = [ind.count() for ind in multiindex._indices if isinstance(ind, Index)]
+        #fi = tuple(sorted(expression.ufl_free_indices + mi))
+        # Cache free index and dimensions # INDEXING
+        #self.ufl_free_indices = fi
+        #self.ufl_index_dimensions = fid
 
     ufl_shape = ()
 

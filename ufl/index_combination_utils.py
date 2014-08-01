@@ -207,7 +207,7 @@ def merge_indices(a, b):
 
 
 # Outer etc.
-def new_merge_nonoverlapping_indices(a, b):
+def merge_nonoverlapping_indices(a, b):
     """Merge non-overlapping free indices into one representation.
 
     Example:

@@ -116,7 +116,12 @@ class IndexAnnotated(ConstantValue):
 class Zero(IndexAnnotated):
     "UFL literal type: Representation of a zero valued expression."
     __slots__ = ()
+
     _cache = {}
+
+    def __getnewargs__(self):
+        return (self.ufl_shape, self._free_indices, self._index_dimensions)
+
     def __new__(cls, shape=(), free_indices=(), index_dimensions=None):
         if free_indices:
             self = IndexAnnotated.__new__(cls)
@@ -143,9 +148,6 @@ class Zero(IndexAnnotated):
         ufl_assert(len(free_indices) == len(self._free_indices), "Size mismatch between old and new indices.")
         new_index_dimensions = dict((b, self._index_dimensions[a]) for (a, b) in zip(self._free_indices, free_indices))
         return Zero(self.ufl_shape, free_indices, new_index_dimensions)
-
-    def __getnewargs__(self):
-        return (self.ufl_shape, self._free_indices, self._index_dimensions)
 
     def evaluate(self, x, mapping, component, index_values):
         return 0.0
