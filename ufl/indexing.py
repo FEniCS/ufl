@@ -218,6 +218,5 @@ def indices(n):
     return tuple(Index() for i in range(n))
 
 # TODO: Fix imports everywhere else instead
-from ufl.indexutils import complete_shape
 from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
