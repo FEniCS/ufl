@@ -59,10 +59,7 @@ class IndexRenumberingTransformer(VariableRenumberingTransformer):
     scalar_value = index_annotated
 
     def multi_index(self, o):
-        new_indices = tuple(map(self.index, o._indices))
-        idims = o.index_dimensions()
-        new_idims = dict((b, idims[a]) for (a, b) in zip(o._indices, new_indices) if isinstance(a, Index))
-        return MultiIndex(new_indices, new_idims)
+        return MultiIndex(tuple(self.index(i) for i in o.indices()))
 
     def index(self, o):
         if isinstance(o, FixedIndex):
@@ -163,10 +160,7 @@ class IndexRenumberingTransformer2(VariableRenumberingTransformer):
         return i
 
     def multi_index(self, o):
-        new_indices = tuple(map(self.index, o._indices))
-        idims = o.index_dimensions()
-        new_idims = dict((b, idims[a]) for (a, b) in zip(o._indices, new_indices) if isinstance(a, Index))
-        return MultiIndex(new_indices, new_idims)
+        return MultiIndex(tuple(self.index(i) for i in o.indices()))
 
     def index_annotated(self, o):
         new_indices = tuple(map(self.index, o.free_indices()))
@@ -284,4 +278,3 @@ def renumber_variables(expr):
     if isinstance(expr, Expr) and expr.free_indices():
         error("Not expecting any free indices left in expression.")
     return apply_transformer(expr, VariableRenumberingTransformer())
-

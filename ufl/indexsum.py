@@ -66,11 +66,10 @@ class IndexSum(AlgebraOperator):
         self._index_dimensions = dict(summand.index_dimensions())
         self._free_indices = tuple(i for i in summand.free_indices() if not i == j)
 
-        d = self._index_dimensions[j]
-        index = as_multi_index(index, (d,))
+        index = as_multi_index(index)
         ufl_assert(isinstance(index, MultiIndex), "Error in initialization of index sum.")
 
-        self._dimension = d
+        self._dimension = self._index_dimensions[j]
         del self._index_dimensions[j]
         if not self._index_dimensions:
             self._index_dimensions = EmptyDict

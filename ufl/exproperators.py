@@ -400,17 +400,15 @@ def _getitem2(self, component):
     if not isinstance(component, tuple):
         component = (component,)
 
-    shape = self.ufl_shape
-
     # Analyse slices (:) and Ellipsis (...)
-    all_indices, slice_indices = create_slice_indices(component, shape)
+    all_indices, slice_indices = create_slice_indices(component, self.ufl_shape)
 
     # Special case for foo[...] => foo, foo[:] => foo or similar
     if len(slice_indices) == len(all_indices):
         return self
 
     # Index self, yielding scalar valued expressions
-    multi_index = MultiIndex(all_indices, shape)
+    multi_index = MultiIndex(all_indices)
     a = Indexed(self, multi_index)
 
     # TODO: I think applying as_tensor afterwards results in cleaner expression graphs.

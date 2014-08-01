@@ -325,8 +325,7 @@ class MultiIndexHashDataTestCase(UflTestCase):
         def hashdatas():
             for i in range(3):
                 for ii in ((i,), (i, 0), (1, i)):
-                    expr = MultiIndex(ii, {})
-                    self.assertTrue(type(expr.index_dimensions()) is EmptyDictType) # Just a side check
+                    expr = MultiIndex(ii)
                     reprs.add(repr(expr))
                     hashes.add(hash(expr))
                     yield compute_multiindex_hashdata(expr, {})
@@ -350,7 +349,7 @@ class MultiIndexHashDataTestCase(UflTestCase):
                     ijs.append((i, j))
                     ijs.append((j, i))
             for ij in ijs:
-                expr = MultiIndex(ij, {i:2,j:3})
+                expr = MultiIndex(ij)
                 reprs.add(repr(expr))
                 hashes.add(hash(expr))
                 yield compute_multiindex_hashdata(expr, {})
@@ -373,14 +372,14 @@ class MultiIndexHashDataTestCase(UflTestCase):
                 index_numbering = {}
                 i, j, k, l = indices(4)
                 idims = {i:2,j:3,k:4,l:5}
-                for expr in (MultiIndex((i,), idims),
-                             MultiIndex((i,), idims), # r
-                             MultiIndex((i, j), idims),
-                             MultiIndex((j, i), idims),
-                             MultiIndex((i, j), idims), # r
-                             MultiIndex((i, j, k), idims),
-                             MultiIndex((k, j, i), idims),
-                             MultiIndex((j, i), idims)): # r
+                for expr in (MultiIndex((i,)),
+                             MultiIndex((i,)), # r
+                             MultiIndex((i, j)),
+                             MultiIndex((j, i)),
+                             MultiIndex((i, j)), # r
+                             MultiIndex((i, j, k)),
+                             MultiIndex((k, j, i)),
+                             MultiIndex((j, i))): # r
                     reprs.add(repr(expr))
                     hashes.add(hash(expr))
                     yield compute_multiindex_hashdata(expr, index_numbering)
@@ -389,32 +388,6 @@ class MultiIndexHashDataTestCase(UflTestCase):
         self.assertEqual(d, 5)
         self.assertEqual(len(reprs), nrep*5)
         self.assertEqual(len(hashes), nrep*5)
-
-    def test_multiindex_hashdata_does_not_depend_on_index_dimension(self):
-        # The index dimensions are always inferred from the
-        # surrounding expression, and therefore don't need
-        # to be included in the form signature.
-        reprs = set()
-        hashes = set()
-        nrep = 3
-        def hashdatas():
-            for rep in range(nrep):
-                index_numbering = {}
-                i, j = indices(2)
-                idims1 = {i:1,j:2}
-                idims2 = {i:3,j:4}
-                for expr in (MultiIndex((i,), idims1),
-                             MultiIndex((i,), idims2),
-                             MultiIndex((i, j), idims1),
-                             MultiIndex((i, j), idims2)):
-                    reprs.add(repr(expr))
-                    hashes.add(hash(expr))
-                    yield compute_multiindex_hashdata(expr, index_numbering)
-        c, d, r, h = self.compute_unique_multiindex_hashdatas(hashdatas())
-        self.assertEqual(c, nrep*4)
-        self.assertEqual(d, 2)
-        self.assertEqual(len(reprs), nrep*4)
-        self.assertEqual(len(hashes), nrep*4)
 
 
 class FormSignatureTestCase(UflTestCase):

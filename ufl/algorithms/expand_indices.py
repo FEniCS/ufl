@@ -124,9 +124,9 @@ class IndexExpander(ReuseTransformer):
             self._index2value.pop()
         return sum(ops)
 
-    def _multi_index(self, x):
+    def _multi_index_values(self, x):
         comp = []
-        for i in x:
+        for i in x._indices:
             if isinstance(i, FixedIndex):
                 comp.append(i._value)
             elif isinstance(i, Index):
@@ -134,13 +134,14 @@ class IndexExpander(ReuseTransformer):
         return tuple(comp)
 
     def multi_index(self, x):
-        return MultiIndex(self._multi_index(x), {})
+        comp = self._multi_index_values(x)
+        return MultiIndex(tuple(FixedIndex(i) for i in comp))
 
     def indexed(self, x):
         A, ii = x.ufl_operands
 
         # Push new component built from index value map
-        self._components.push(self._multi_index(ii))
+        self._components.push(self._multi_index_values(ii))
 
         # Hide index values (doing this is not correct behaviour)
         #for i in ii:
@@ -167,7 +168,7 @@ class IndexExpander(ReuseTransformer):
         # Update index map with component tuple values
         comp = self.component()
         ufl_assert(len(indices) == len(comp), "Index/component mismatch.")
-        for i, v in zip(indices._indices, comp):
+        for i, v in zip(indices.indices(), comp):
             self._index2value.push(i, v)
         self._components.push(())
 

@@ -94,7 +94,7 @@ class ListTensor(WrapperType):
         origkey = key
 
         if isinstance(key, MultiIndex):
-            key = key._indices
+            key = key.indices()
         if not isinstance(key, tuple):
             key = (key,)
         k = key[0]
@@ -148,9 +148,9 @@ class ComponentTensor(WrapperType):
         ufl_assert(all(isinstance(i, Index) for i in indices),
            "Expecting sequence of Index objects, not %s." % repr(indices))
 
-        dims = expression.index_dimensions()
-        if not isinstance(indices, MultiIndex): # if constructed from repr
-            indices = MultiIndex(indices, subdict(dims, indices))
+        # FIXME: Require a MultiIndex
+        if not isinstance(indices, MultiIndex):
+            indices = MultiIndex(indices)
 
         WrapperType.__init__(self, (expression, indices))
 
@@ -163,6 +163,7 @@ class ComponentTensor(WrapperType):
         if missingset:
             error("Missing indices %s in expression %s." % (missingset, expression))
 
+        dims = expression.index_dimensions()
         self._index_dimensions = dict((i, dims[i]) for i in self._free_indices) or EmptyDict
 
         self.ufl_shape = tuple(dims[i] for i in indices)
@@ -283,7 +284,7 @@ def as_tensor(expressions, indices = None):
         # Special case for simplification as_tensor(A[ii], ii) -> A
         if isinstance(expressions, Indexed):
             A, ii = expressions.ufl_operands
-            if indices == ii._indices:
+            if indices == ii.indices():
                 return A
 
         # Make a tensor from given scalar expression with free indices

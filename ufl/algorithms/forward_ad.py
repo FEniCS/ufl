@@ -243,7 +243,7 @@ class ForwardAD(Transformer):
             r = Ap.rank() - len(jj)
             if r:
                 ii = indices(r)
-                op = Indexed(Ap, jj._indices + ii)
+                op = Indexed(Ap, jj.indices() + ii)
                 op = as_tensor(op, ii)
             else:
                 op = Indexed(Ap, jj)
@@ -264,7 +264,7 @@ class ForwardAD(Transformer):
             op = self._make_zero_diff(o)
         else:
             Ap, jj = as_scalar(Ap)
-            op = ComponentTensor(Ap, ii._indices + jj)
+            op = ComponentTensor(Ap, ii.indices() + jj)
         return (o, op)
 
     # --- Algebra operators

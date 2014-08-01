@@ -61,7 +61,7 @@ def _sorted_integrals(integrals):
                 all_integrals.extend(unsorted_integrals)
                 #integrals_dict[d][it][si] = unsorted_integrals
 
-    return all_integrals#, integrals_dict
+    return tuple(all_integrals) #, integrals_dict
 
 class Form(object):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
