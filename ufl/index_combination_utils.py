@@ -17,12 +17,18 @@ def create_slice_indices(component, shape):
     slice_indices = []
 
     for ind in component:
-        if isinstance(ind, (Index, FixedIndex)):
+        if isinstance(ind, Index):
+            all_indices.append(ind)
+        elif isinstance(ind, FixedIndex):
+            ufl_assert(int(ind) < shape[len(all_indices)],
+                       "Index out of bounds.")
             all_indices.append(ind)
         elif isinstance(ind, int):
+            ufl_assert(int(ind) < shape[len(all_indices)],
+                       "Index out of bounds.")
             all_indices.append(FixedIndex(ind))
         elif isinstance(ind, slice):
-            assert ind == slice(None)
+            ufl_assert(ind == slice(None), "Only full slices (:) allowed.")
             i = Index()
             slice_indices.append(i)
             all_indices.append(i)
@@ -33,12 +39,13 @@ def create_slice_indices(component, shape):
             all_indices.extend(ii)
         else:
             error("Not expecting {0}.".format(ind))
-    assert len(all_indices) == len(shape)
+    ufl_assert(len(all_indices) == len(shape),
+               "Component and shape length don't match.")
     return tuple(all_indices), tuple(slice_indices)
 
 
 def find_repeated_free_indices(free_indices):
-    free_indices = sorted(free_indices, key=lambda x: x.count())
+    "Assumes free_indices is sorted."
     repeated = []
     for pos in range(1, len(free_indices)):
         if free_indices[pos-1].count() == free_indices[pos].count():
@@ -56,11 +63,12 @@ def analyze_getitem_component(component, shape):
             fixed.append(fixed_tuple_type(int(ind), pos, shape[pos]))
         else:
             error("Not expecting {0}.".format(ind))
-    assert len(free) + len(fixed) == len(shape)
+    ufl_assert(len(free) + len(fixed) == len(shape),
+               "Index and shape lengths don't match.")
     return tuple(sorted(free)), tuple(fixed)
 
 
-def find_repeated_free_indices(free_indices):
+def __find_repeated_free_indices(free_indices):
     "Assumes free_indices is sorted."
     r = len(free_indices)
     pos = 0

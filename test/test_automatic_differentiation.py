@@ -6,6 +6,8 @@ algorithm at a technical level, and are thus implementation specific.
 Other tests check for mathematical correctness of diff and derivative.
 """
 
+from __future__ import division, absolute_import, print_function, unicode_literals
+
 # These are thin wrappers on top of unittest.TestCase and unittest.main
 from ufltestcase import UflTestCase, main
 
@@ -34,7 +36,7 @@ class ExpressionCollection(object):
         f = FacetArea(cell)
         #s = CellSurfaceArea(cell)
         # FIXME: Add all new geometry types here!
- 
+
         I = Identity(d)
         eps = PermutationSymbol(d)
 
@@ -48,22 +50,22 @@ class ExpressionCollection(object):
         du = Argument(U, 0)
         dv = Argument(V, 1)
         dw = Argument(W, 2)
- 
+
         class ObjectCollection(object):
             pass
         self.shared_objects = ObjectCollection()
         for key, value in list(locals().items()):
             setattr(self.shared_objects, key, value)
- 
+
         self.literals = list(map(as_ufl, [0, 1, 3.14, I, eps]))
         self.geometry = [x, n, c, h, f]
         self.functions = [u, du, v, dv, w, dw]
- 
+
         self.terminals = []
         self.terminals += self.literals
         self.terminals += self.geometry
         self.terminals += self.functions
- 
+
         self.algebra = ([
             u*2, v*2, w*2,
             u+2*u, v+2*v, w+2*w,
@@ -120,7 +122,7 @@ class ExpressionCollection(object):
                 (v[i]*v[i])('+'),
                 (v[i]*v[j])('+')*w[i, j]('+'),
                 ])
- 
+
         self.noncompounds = []
         self.noncompounds += self.algebra
         self.noncompounds += self.mathfunctions
@@ -128,7 +130,7 @@ class ExpressionCollection(object):
         self.noncompounds += self.indexing
         self.noncompounds += self.conditionals
         self.noncompounds += self.restrictions
- 
+
         if d == 1:
             self.tensorproducts = []
         else:
@@ -143,7 +145,7 @@ class ExpressionCollection(object):
                 outer(v, w),
                 outer(w, w),
                 ])
- 
+
         if d == 1:
             self.tensoralgebra = []
         else:
@@ -151,7 +153,7 @@ class ExpressionCollection(object):
                 w.T, sym(w), skew(w), dev(w),
                 det(w), tr(w), cofac(w), inv(w),
                 ])
- 
+
         if d != 3:
             self.crossproducts = []
         else:
@@ -162,12 +164,12 @@ class ExpressionCollection(object):
                 cross(v, w[:, 1]),
                 cross(w[:, 0], v),
                 ])
- 
+
         self.compounds = []
         self.compounds += self.tensorproducts
         self.compounds += self.tensoralgebra
         self.compounds += self.crossproducts
- 
+
         self.all_expressions = []
         self.all_expressions += self.terminals
         self.all_expressions += self.noncompounds
@@ -356,11 +358,11 @@ class ForwardADTestCase(UflTestCase):
         for t in collection.noncompounds:
             for var in (vu, vv, vw):
                 before = diff(t, var)
-                if debug: print(('\n', 'before:   ', str(before), '\n'))
+                if debug: print('\n', 'before:   ', str(before), '\n')
                 after = self.ad_algorithm(before)
-                if debug: print(('\n', 'after:    ', str(after), '\n'))
+                if debug: print('\n', 'after:    ', str(after), '\n')
                 expected = 0*outer(t, var)
-                if debug: print(('\n', 'expected: ', str(expected), '\n'))
+                if debug: print('\n', 'expected: ', str(expected), '\n')
                 #print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
                 self.assertEqual(after, expected)
 
@@ -371,7 +373,7 @@ class ForwardADTestCase(UflTestCase):
 
     def _test_nonzero_derivatives_of_noncompounds_produce_the_right_types_and_shapes(self, collection):
         debug = 0
-        
+
         u = collection.shared_objects.u
         v = collection.shared_objects.v
         w = collection.shared_objects.w
@@ -440,7 +442,7 @@ class ForwardADTestCase(UflTestCase):
     def test_grad_coeff(self):
         for d in (1, 2, 3):
             collection = self.expr[d]
-            
+
             u = collection.shared_objects.u
             v = collection.shared_objects.v
             w = collection.shared_objects.w
@@ -460,7 +462,7 @@ class ForwardADTestCase(UflTestCase):
                 after = self.ad_algorithm(before)
                 self.assertEqualTotalShape(before, after)
                 #self.assertEqual(before, after) # Differing by being wrapped in indexing types
-    
+
                 before = grad(grad(grad(f)))
                 after = self.ad_algorithm(before)
                 self.assertEqualTotalShape(before, after)

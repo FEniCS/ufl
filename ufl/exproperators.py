@@ -404,15 +404,25 @@ def _getitem2(self, component):
     if not isinstance(component, tuple):
         component = (component,)
 
+    shape = self.ufl_shape
+
     # Analyse slices (:) and Ellipsis (...)
-    all_indices, slice_indices = create_slice_indices(component, self.ufl_shape)
+    component_indices, slice_indices = create_slice_indices(component, shape)
+
+    if len(shape) != len(component_indices):
+        error("Invalid number of indices {0} for expression of rank {1}.".format(len(component_indices), len(shape)))
 
     # Special case for foo[...] => foo, foo[:] => foo or similar
-    if len(slice_indices) == len(all_indices):
+    if len(slice_indices) == len(component_indices):
         return self
 
+    # Special case for simplifying ({ai}_i)[i] -> ai
+    if isinstance(self, ComponentTensor):
+        if component_indices == self.indices().indices():
+            return self.ufl_operands[0]
+
     # Index self, yielding scalar valued expressions
-    mi = MultiIndex(all_indices)
+    mi = MultiIndex(component_indices)
     a = Indexed(self, mi)
 
     # TODO: I think applying as_tensor afterwards results in cleaner expression graphs.
@@ -423,14 +433,25 @@ def _getitem2(self, component):
         a = as_tensor(a, slice_indices)
 
     # Apply sum for each repeated index
-    repeated_indices = find_repeated_free_indices(all_indices)
+    all_indices = chain(self.free_indices(), component_indices)
+    free_indices = sorted((i for i in all_indices
+                           if isinstance(i, Index)),
+                           key=lambda x: x.count())
+    repeated_indices = find_repeated_free_indices(free_indices)
     for i in repeated_indices:
         mi = MultiIndex((i,))
         a = IndexSum(a, mi)
 
+    # Check for zero (last so we can get indices etc from a)
+    if isinstance(self, Zero):
+        shape = a.ufl_shape
+        fi = a.free_indices()
+        idims = subdict(a.index_dimensions(), fi)
+        a = Zero(shape, fi, idims)
+
     return a
 
-Expr.__getitem__ = _getitem
+Expr.__getitem__ = _getitem2
 
 #--- Extend Expr with spatial differentiation operator a.dx(i) ---
 
@@ -441,6 +462,6 @@ def _dx(self, *ii):
     for i in ii:
         d = Grad(d)
     # Take all components, applying repeated index sums in the [] operation
-    return d[..., ii]
+    return d.__getitem__((Ellipsis,) + ii)
 
 Expr.dx = _dx

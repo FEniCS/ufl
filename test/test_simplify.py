@@ -119,8 +119,10 @@ class SimplificationTestCase(UflTestCase):
             self.assertEqual(math.atan(i), atan(i))
             self.assertEqual(math.exp(i), exp(i))
             self.assertEqual(math.log(i), ln(i))
-            self.assertEqual(i, float(Max(i, i-1))) # TODO: Implement automatic simplification of conditionals?
-            self.assertEqual(i, float(Min(i, i+1))) # TODO: Implement automatic simplification of conditionals?
+            # TODO: Implement automatic simplification of conditionals?
+            self.assertEqual(i, float(Max(i, i-1)))
+            # TODO: Implement automatic simplification of conditionals?
+            self.assertEqual(i, float(Min(i, i+1)))
 
     def test_indexing(self):
         u = VectorConstant(triangle)
@@ -132,8 +134,11 @@ class SimplificationTestCase(UflTestCase):
 
         Bij = u[i]*v[j]
         Bij2 = as_tensor(Bij, (i, j))[i, j]
-        print Bij
-        print Bij2
+        Bij3 = as_tensor(Bij, (i, j))
+        print "BIJ:  ", Bij.free_indices()
+        print "BIJ2: ", Bij2.free_indices()
+        print "BIJ:  ", Bij
+        print "BIJ2: ", Bij2
         self.assertEqual(Bij2, Bij)
 
 if __name__ == "__main__":
