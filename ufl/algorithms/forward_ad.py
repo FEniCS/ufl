@@ -67,51 +67,9 @@ class ForwardAD(Transformer):
         self._var_shape = var_shape
         self._var_free_indices = var_free_indices
         self._var_index_dimensions = dict(var_index_dimensions)
-        #if self._var_free_indices:
-        #    warning("TODO: Free indices in differentiation variable may be buggy!")
+        if self._var_free_indices:
+            error("TODO: Free indices in differentiation variable may be buggy!")
         self._cache = {} if cache is None else cache
-
-    def _cache_visit(self, o):
-        "Cache hook, disable this by renaming to something else than 'visit'."
-        #debug("Visiting object of type %s." % type(o).__name__)
-
-        # TODO: This doesn't work, why?
-
-        # NB! Cache added in after copying from Transformer
-        c = self._cache.get(o)
-        if c is not None:
-            return c
-
-        # Reuse default visit function
-        r = Transformer.visit(self, o)
-
-        if (c is not None):
-            if r[0].free_indices() != c[0].free_indices():
-                print("="*70)
-                print("=== f: Difference between cache and recomputed indices:")
-                print(str(c[0].free_indices()))
-                print(str(r[0].free_indices()))
-                print("="*70)
-            if r[1].free_indices() != c[1].free_indices():
-                print("="*70)
-                print("=== df: Difference between cache and recomputed indices:")
-                print(str(c[1].free_indices()))
-                print(str(r[1].free_indices()))
-                print("="*70)
-            if (r != c):
-                print("="*70)
-                print("=== Difference between cache and recomputed:")
-                print(str(c[0]))
-                print(str(c[1]))
-                print("-"*40)
-                print(str(r[0]))
-                print(str(r[1]))
-                print("="*70)
-
-        # NB! Cache added in after copying from Transformer
-        self._cache[o] = r
-
-        return r
 
     def _debug_visit(self, o):
         "Debugging hook, enable this by renaming to 'visit'."
@@ -122,16 +80,38 @@ class ForwardAD(Transformer):
             debug("  o:  %s" % str(o))
             debug("  f:  %s" % str(f))
             debug("  df: %s" % str(df))
-        fi_diff = set(f.free_indices()) ^ set(df.free_indices())
+        fi_diff = set(f.ufl_free_indices) ^ set(df.ufl_free_indices)
         if fi_diff:
             debug("In ForwardAD.visit, got free indices diff:")
             debug("  o:  %s" % str(o))
             debug("  f:  %s" % str(f))
             debug("  df: %s" % str(df))
-            debug("  f.fi():  %s" % lstr(f.free_indices()))
-            debug("  df.fi(): %s" % lstr(df.free_indices()))
+            debug("  f.fi():  %s" % lstr(f.ufl_free_indices))
+            debug("  df.fi(): %s" % lstr(df.ufl_free_indices))
             debug("  fi_diff: %s" % str(fi_diff))
         return r
+
+    def _new_make_zero_diff(self, o): # INDEXING
+        # Define a zero with the right indices
+        # (kind of cumbersome this... any simpler way?)
+        sh = o.ufl_shape + self._var_shape
+
+        fi = o.ufl_free_indices
+        fid = o.ufl_index_dimensions
+        if self._var_free_indices:
+            # Currently assuming only one free variable index
+            i, = self._var_free_indices # INDEXING: Change format
+            d, = self._var_index_dimensions # INDEXING: Change format
+            if i in fi:
+                pos = fi.index(i)
+                fi = fi[:pos] + fi[pos+1:]
+                fid = fid[:pos] + fid[pos+1:]
+            else:
+                fi = tuple(sorted(fi + (i,)))
+                pos = fi.index(i)
+                fid = fid[:pos] + (d,) + fid[pos:]
+        fp = Zero(sh, fi, fid) # INDEXING: Change format
+        return fp
 
     def _make_zero_diff(self, o):
         # Define a zero with the right indices
@@ -146,6 +126,58 @@ class ForwardAD(Transformer):
                 fi = unique_indices(fi + (i,))
                 idims[i] = self._var_index_dimensions[i]
         fp = Zero(sh, fi, idims)
+        return fp
+
+    def _new_make_ones_diff(self, o): # INDEXING
+        ufl_assert(o.ufl_shape == self._var_shape, "This is only used by VariableDerivative, yes?")
+        # Define a scalar value with the right indices
+        # (kind of cumbersome this... any simpler way?)
+
+        sh = o.ufl_shape
+        fi = o.ufl_free_indices
+        fid = o.ufl_index_dimensions
+
+        if self._var_free_indices:
+            # Currently assuming only one free variable index
+            i, = self._var_free_indices
+            d, = self._var_index_dimensions # INDEXING: Change format
+            if i in fi:
+                pos = fi.index(i)
+                fi = fi[:pos] + fi[pos+1:]
+                fid = fid[:pos] + fid[pos+1:]
+            else:
+                fi = tuple(sorted(fi + (i,)))
+                pos = fi.index(i)
+                fid = fid[:pos] + (d,) + fid[pos:]
+
+        # Create a 1 with index annotations
+        one = IntValue(1, (), fi, fid) # INDEXING Change format
+
+        res = None
+        if sh == ():
+            return one
+        elif len(sh) == 1:
+            # FIXME: If sh == (1,), I think this will get the wrong shape?
+            # I think we should make sure sh=(1,...,1) is always converted to () early.
+            fp = Identity(sh[0])
+        else:
+            ind1 = ()
+            ind2 = ()
+            for d in sh:
+                i, j = indices(2)
+                dij = Identity(d)[i, j]
+                if res is None:
+                    res = dij
+                else:
+                    res *= dij
+                ind1 += (i,)
+                ind2 += (j,)
+            fp = as_tensor(res, ind1 + ind2)
+
+        # Apply index annotations
+        if fi:
+            fp *= one
+
         return fp
 
     def _make_ones_diff(self, o):
