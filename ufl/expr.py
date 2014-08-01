@@ -320,11 +320,11 @@ class Expr(object):
 
     def __float__(self):
         "Try to evaluate as scalar and cast to float."
-        return float(self._ufl_evaluate_scalar_())
-
-    def __int__(self):
-        "Try to evaluate as scalar and cast to int."
-        return int(self._ufl_evaluate_scalar_())
+        try:
+            v = float(self._ufl_evaluate_scalar_())
+        except:
+            v = NotImplemented
+        return v
 
     def __bool__(self):
         "By default, all Expr are nonzero/False."
