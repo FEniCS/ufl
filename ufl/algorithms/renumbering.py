@@ -108,11 +108,7 @@ class IndexRenumberingTransformer2(VariableRenumberingTransformer):
         for i in ii:
             v = self.new_index()
             ni.append(v)
-            #print "::: Defining new index", repr(i), "= ", repr(v)
             if self.index_map.get(i) is not None:
-                print(";"*80)
-                print(i)
-                self.print_visit_stack()
                 error("Trying to define already defined index!")
             self.index_map.push(i, v)
         return tuple(ni)
@@ -157,9 +153,6 @@ class IndexRenumberingTransformer2(VariableRenumberingTransformer):
         r = self.reuse_if_possible(o, *ops)
         c = self.components.peek()
         if c:
-            #if isinstance(r, ListTensor):
-            #    pass # TODO: If c has FixedIndex objects, extract subtensor, or evt. move this functionality from ListTensor.__getitem__ to Indexed.__new__
-            # Take component
             r = Indexed(r, c)
         return r
 
@@ -212,7 +205,7 @@ class IndexRenumberingTransformer2(VariableRenumberingTransformer):
     def index_sum(self, o):
         "Defines a new index."
         f, ii = o.ufl_operands
-        ni = self.define_new_indices(ii)
+        ni = MultiIndex(self.define_new_indices(ii))
         g = self.visit(f)
         r = IndexSum(g, ni)
         self.revert_indices(ii)

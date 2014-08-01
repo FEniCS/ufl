@@ -132,6 +132,8 @@ class SimplificationTestCase(UflTestCase):
 
         Bij = u[i]*v[j]
         Bij2 = as_tensor(Bij, (i, j))[i, j]
+        print Bij
+        print Bij2
         self.assertEqual(Bij2, Bij)
 
 if __name__ == "__main__":

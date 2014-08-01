@@ -21,7 +21,7 @@ from six.moves import zip
 from ufl.log import error
 from ufl.expr import Expr
 from ufl.operatorbase import WrapperType
-from ufl.indexing import Index, FixedIndex, as_multi_index
+from ufl.indexing import Index, FixedIndex, MultiIndex, as_multi_index
 from ufl.indexutils import unique_indices
 from ufl.precedence import parstr
 from ufl.common import EmptyDict
@@ -36,6 +36,8 @@ class Indexed(WrapperType):
         # Error checking
         if not isinstance(expression, Expr):
             error("Expecting Expr instance, not %s." % repr(expression))
+        if not isinstance(indices, MultiIndex):
+            error("Expecting MultiIndex instance, not %s." % repr(indices))
 
         shape = expression.ufl_shape
 
@@ -46,8 +48,6 @@ class Indexed(WrapperType):
                 % (len(indices), expression.rank(), expression))
 
         # Store operands
-        indices = as_multi_index(indices, shape)
-
         WrapperType.__init__(self, (expression, indices))
 
         # Error checking

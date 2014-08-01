@@ -272,14 +272,15 @@ def as_tensor(expressions, indices=None):
         if indices == ():
             return expressions
 
+        indices = MultiIndex(indices)
+
         # Special case for simplification as_tensor(A[ii], ii) -> A
         if isinstance(expressions, Indexed):
             A, ii = expressions.ufl_operands
-            if indices == ii.indices():
+            if indices.indices() == ii.indices():
                 return A
 
         # Make a tensor from given scalar expression with free indices
-        indices = MultiIndex(indices)
         return ComponentTensor(expressions, indices)
 
 def as_matrix(expressions, indices = None):

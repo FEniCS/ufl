@@ -144,14 +144,16 @@ def _mult(a, b):
 
         # Apply index sums
         for i in ri:
-            p = IndexSum(p, i)
+            mi = MultiIndex((i,))
+            p = IndexSum(p, mi)
 
         return p
 
     # Scalar products use Product and IndexSum for implicit sums:
     p = Product(a, b)
     for i in ri:
-        p = IndexSum(p, i)
+        mi = MultiIndex((i,))
+        p = IndexSum(p, mi)
     return p
 
 #--- Extend Expr with algebraic operators ---
@@ -359,30 +361,32 @@ def analyse_key(ii, rank):
 def _getitem(self, key):
     # Analyse key, getting rid of slices and the ellipsis
     r = self.rank()
-    indices, axis_indices = analyse_key(key, r)
+    all_indices, slice_indices = analyse_key(key, r)
 
     # Special case for foo[...] => foo
-    if len(indices) == len(axis_indices):
+    if len(all_indices) == len(slice_indices):
         return self
 
     # Special case for simplifying ({ai}_i)[i] -> ai
     if isinstance(self, ComponentTensor):
-        if tuple(indices) == tuple(self.indices()):
+        if all_indices == self.indices().indices():
             return self.ufl_operands[0]
 
     # Index self, yielding scalar valued expressions
-    a = Indexed(self, indices)
+    mi = MultiIndex(all_indices)
+    a = Indexed(self, mi)
 
     # Make a tensor from components designated by axis indices
-    if axis_indices:
-        a = as_tensor(a, axis_indices)
+    if slice_indices:
+        a = as_tensor(a, slice_indices)
 
     # TODO: Should we apply IndexSum or as_tensor first?
 
     # Apply sum for each repeated index
-    ri = repeated_indices(self.free_indices() + indices)
+    ri = repeated_indices(self.free_indices() + all_indices)
     for i in ri:
-        a = IndexSum(a, i)
+        mi = MultiIndex((i,))
+        a = IndexSum(a, mi)
 
     # Check for zero (last so we can get indices etc from a)
     if isinstance(self, Zero):
@@ -408,8 +412,8 @@ def _getitem2(self, component):
         return self
 
     # Index self, yielding scalar valued expressions
-    multi_index = MultiIndex(all_indices)
-    a = Indexed(self, multi_index)
+    mi = MultiIndex(all_indices)
+    a = Indexed(self, mi)
 
     # TODO: I think applying as_tensor afterwards results in cleaner expression graphs.
 
@@ -419,9 +423,10 @@ def _getitem2(self, component):
         a = as_tensor(a, slice_indices)
 
     # Apply sum for each repeated index
-    ri = find_repeated_free_indices(all_indices)
-    for i in ri:
-        a = IndexSum(a, i)
+    repeated_indices = find_repeated_free_indices(all_indices)
+    for i in repeated_indices:
+        mi = MultiIndex((i,))
+        a = IndexSum(a, mi)
 
     return a
 

@@ -243,7 +243,7 @@ class ForwardAD(Transformer):
             r = Ap.rank() - len(jj)
             if r:
                 ii = indices(r)
-                op = Indexed(Ap, jj.indices() + ii)
+                op = Indexed(Ap, MultiIndex(jj.indices() + ii))
                 op = as_tensor(op, ii)
             else:
                 op = Indexed(Ap, jj)

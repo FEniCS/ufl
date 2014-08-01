@@ -37,18 +37,15 @@ class IndexSum(AlgebraOperator):
     def __new__(cls, summand, index):
         if not isinstance(summand, Expr):
             error("Expecting Expr instance, not %s." % repr(summand))
+        if not isinstance(index, MultiIndex):
+            error("Expecting MultiIndex instance, not %s." % repr(index))
+        if len(index) != 1:
+            error("Expecting a single Index only.")
 
         from ufl.constantvalue import Zero
         if isinstance(summand, Zero):
             sh = summand.ufl_shape
-
-            if isinstance(index, Index):
-                j = index
-            elif isinstance(index, MultiIndex):
-                if len(index) != 1:
-                    error("Expecting a single Index only.")
-                j, = index
-
+            j, = index
             fi = tuple(i for i in summand.free_indices() if not i == j)
             idims = dict(summand.index_dimensions())
             del idims[j]
@@ -56,24 +53,12 @@ class IndexSum(AlgebraOperator):
         return AlgebraOperator.__new__(cls)
 
     def __init__(self, summand, index):
-        if isinstance(index, Index):
-            j = index
-        elif isinstance(index, MultiIndex):
-            if len(index) != 1:
-                error("Expecting a single Index only.")
-            j, = index
-
-        self._index_dimensions = dict(summand.index_dimensions())
+        j, = index
         self._free_indices = tuple(i for i in summand.free_indices() if not i == j)
-
-        index = as_multi_index(index)
-        ufl_assert(isinstance(index, MultiIndex), "Error in initialization of index sum.")
-
-        self._dimension = self._index_dimensions[j]
-        del self._index_dimensions[j]
+        self._index_dimensions = dict(summand.index_dimensions())
+        self._dimension = self._index_dimensions.pop(j)
         if not self._index_dimensions:
             self._index_dimensions = EmptyDict
-
         AlgebraOperator.__init__(self, (summand, index))
 
     def index(self):

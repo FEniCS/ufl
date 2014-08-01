@@ -17,12 +17,11 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from six.moves import zip
 from six.moves import xrange as range
 
-from ufl.log import error, warning
+from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.common import counted_init, EmptyDict
+from ufl.common import counted_init
 from ufl.terminal import UtilityType
 from ufl.core.ufl_type import ufl_type
 
@@ -65,13 +64,7 @@ class FixedIndex(IndexBase):
         return self._hash
 
     def __eq__(self, other):
-        # FIXME: Disallow comparison with int. If the user wants that, int(index) == value does that.
-        #return isinstance(other, FixedIndex) and (self._value == other._value)
-        if isinstance(other, FixedIndex):
-            return self._value == other._value
-        elif isinstance(other, int): # Allow scalar comparison
-            return self._value == other
-        return False
+        return isinstance(other, FixedIndex) and (self._value == other._value)
 
     def __int__(self):
         return self._value
@@ -163,6 +156,13 @@ class MultiIndex(UtilityType):
     def indices(self):
         return self._indices
 
+    def _ufl_compute_hash_(self):
+        return hash(("MultiIndex",) + tuple(hash(ind) for ind in self._indices))
+
+    def __eq__(self, other):
+        return isinstance(other, MultiIndex) and \
+            self._indices == other._indices
+
     def evaluate(self, x, mapping, component, index_values):
         # Build component from index values
         component = []
@@ -172,6 +172,8 @@ class MultiIndex(UtilityType):
             elif isinstance(i, Index):
                 component.append(index_values[i])
         return tuple(component)
+
+    # --- Adding multiindices ---
 
     def __add__(self, other):
         if isinstance(other, tuple):
@@ -187,11 +189,15 @@ class MultiIndex(UtilityType):
             return MultiIndex(other._indices + self._indices)
         return NotImplemented
 
+    # --- String formatting ---
+
     def __str__(self):
         return ", ".join(str(i) for i in self._indices)
 
     def __repr__(self):
         return "MultiIndex(%r)" % (self._indices,)
+
+    # --- Iteration protocol ---
 
     def __len__(self):
         return len(self._indices)
@@ -201,10 +207,6 @@ class MultiIndex(UtilityType):
 
     def __iter__(self):
         return iter(self._indices)
-
-    def __eq__(self, other):
-        return isinstance(other, MultiIndex) and \
-            self._indices == other._indices
 
 def as_multi_index(ii, shape=None):
     if isinstance(ii, MultiIndex):
