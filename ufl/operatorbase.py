@@ -19,9 +19,12 @@
 #
 # Modified by Anders Logg, 2008
 
+from six import iteritems
+
 from ufl.expr import Expr
 from ufl.log import error
 from ufl.core.ufl_type import ufl_type
+from ufl.core.index import Index
 
 def _compute_hash(expr): # Best so far
     hashdata = ( (expr.__class__._ufl_class_,)
@@ -87,7 +90,7 @@ class Operator(Expr):
 
     def index_dimensions(self):
         "Intermediate helper property getter to transition from .index_dimensions() to .ufl_index_dimensions."
-        return { i: d for i, d in zip(self.ufl_free_indices, self.ufl_index_dimensions) }
+        return { Index(count=i): d for i, d in zip(self.ufl_free_indices, self.ufl_index_dimensions) }
 
     @property
     def ufl_free_indices(self):
@@ -98,38 +101,3 @@ class Operator(Expr):
     def ufl_index_dimensions(self):
         "Intermediate helper property getter to transition from .index_dimensions() to .ufl_index_dimensions."
         return tuple(d for i, d in sorted(iteritems(self.index_dimensions()), key=lambda x: x[0].count()))
-
-
-#--- Subgroups of terminals ---
-
-@ufl_type(is_abstract=True)
-class AlgebraOperator(Operator):
-    __slots__ = ()
-
-    def __init__(self, operands=None):
-        Operator.__init__(self, operands)
-
-
-@ufl_type(is_abstract=True)
-class WrapperType(Operator):
-    __slots__ = ()
-    def __init__(self, operands):
-        Operator.__init__(self, operands)
-
-    @property
-    def ufl_shape(self):
-        error("A non-tensor type has no shape.")
-
-    @property
-    def ufl_free_indices(self):
-        error("A non-tensor type has no indices.")
-
-    def free_indices(self):
-        error("A non-tensor type has no indices.")
-
-    @property
-    def ufl_index_dimensions(self):
-        error("A non-tensor type has no indices.")
-
-    def index_dimensions(self):
-        error("A non-tensor type has no indices.")

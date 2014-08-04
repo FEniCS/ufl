@@ -21,18 +21,18 @@ from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.common import EmptyDict
 from ufl.expr import Expr
-from ufl.operatorbase import Operator, WrapperType
+from ufl.operatorbase import Operator
 from ufl.core.ufl_type import ufl_type
 
 #--- Non-tensor types ---
 
 @ufl_type(num_ops="varying")
-class ExprList(WrapperType):
+class ExprList(Operator):
     "List of Expr objects. For internal use, never to be created by end users."
     __slots__ = ()
 
     def __init__(self, *operands):
-        WrapperType.__init__(self, operands)
+        Operator.__init__(self, operands)
         if not all(isinstance(i, Expr) for i in operands):
             error("Expecting Expr in ExprList.")
 
@@ -51,20 +51,39 @@ class ExprList(WrapperType):
     def __repr__(self):
         return "ExprList(*%r)" % (self.ufl_operands,)
 
+    @property
+    def ufl_shape(self):
+        error("A non-tensor type has no ufl_shape.")
+
+    @property
+    def ufl_free_indices(self):
+        error("A non-tensor type has no ufl_free_indices.")
+
+    def free_indices(self):
+        error("A non-tensor type has no free_indices.")
+
+    @property
+    def ufl_index_dimensions(self):
+        error("A non-tensor type has no ufl_index_dimensions.")
+
+    def index_dimensions(self):
+        error("A non-tensor type has no index_dimensions.")
+
+
 @ufl_type(num_ops="varying")
-class ExprMapping(WrapperType):
+class ExprMapping(Operator):
     "Mapping of Expr objects. For internal use, never to be created by end users."
     __slots__ = ()
 
     def __init__(self, *operands):
-        WrapperType.__init__(self, operands)
+        Operator.__init__(self, operands)
         if not all(isinstance(e, Expr) for e in operands):
             error("Expecting Expr in ExprMapping.")
 
     def domains(self):
         # Because this type can act like a terminal if it has no operands, we need to override some recursive operations
         if self.ufl_operands:
-            return WrapperType.domains()
+            return Operator.domains()
         else:
             return []
 
@@ -82,3 +101,21 @@ class ExprMapping(WrapperType):
 
     def __repr__(self):
         return "ExprMapping(*%r)" % (self.ufl_operands,)
+
+    @property
+    def ufl_shape(self):
+        error("A non-tensor type has no ufl_shape.")
+
+    @property
+    def ufl_free_indices(self):
+        error("A non-tensor type has no ufl_free_indices.")
+
+    def free_indices(self):
+        error("A non-tensor type has no free_indices.")
+
+    @property
+    def ufl_index_dimensions(self):
+        error("A non-tensor type has no ufl_index_dimensions.")
+
+    def index_dimensions(self):
+        error("A non-tensor type has no index_dimensions.")

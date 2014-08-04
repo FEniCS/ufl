@@ -12,6 +12,24 @@ fixed_tuple_type = namedtuple("fixed_tuple_type", "value pos dim")
 slice_tuple_type = namedtuple("slice_tuple_type", "pos dim")
 
 
+def unique_sorted_indices(indices):
+    """Given a list of (id, dim) tuples already sorted by id,
+    return a unique list with duplicates removed.
+    Also checks that the dimensions of duplicates are matching.
+    """
+    newindices = []
+    prev = (None, None)
+    for i in indices:
+        if i[0] != prev[0]:
+            newindices.append(i)
+            prev = i
+        else:
+            if i[1] != prev[1]:
+                print "NONMATCHING:", indices
+            ufl_assert(i[1] == prev[1], "Nonmatching dimensions for free indices with same id!")
+    return tuple(newindices)
+
+
 def create_slice_indices(component, shape):
     all_indices = []
     slice_indices = []

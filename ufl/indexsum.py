@@ -22,7 +22,7 @@ from six.moves import xrange as range
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.expr import Expr
-from ufl.operatorbase import AlgebraOperator
+from ufl.operatorbase import Operator
 from ufl.indexing import Index, MultiIndex, as_multi_index
 from ufl.precedence import parstr
 from ufl.common import EmptyDict
@@ -31,8 +31,10 @@ from ufl.core.ufl_type import ufl_type
 #--- Sum over an index ---
 
 @ufl_type(num_ops=2)
-class IndexSum(AlgebraOperator):
-    __slots__ = ("_dimension", "_free_indices", "_index_dimensions")
+class IndexSum(Operator):
+    __slots__ = ("_dimension",
+                 "_free_indices", "_index_dimensions")
+                 #"ufl_free_indices", "ufl_index_dimensions") # INDEXING
 
     def __new__(cls, summand, index):
         if not isinstance(summand, Expr):
@@ -50,16 +52,20 @@ class IndexSum(AlgebraOperator):
             idims = dict(summand.index_dimensions())
             del idims[j]
             return Zero(sh, fi, idims)
-        return AlgebraOperator.__new__(cls)
+
+        return Operator.__new__(cls)
 
     def __init__(self, summand, index):
         j, = index
+
         self._free_indices = tuple(i for i in summand.free_indices() if not i == j)
         self._index_dimensions = dict(summand.index_dimensions())
         self._dimension = self._index_dimensions.pop(j)
+
         if not self._index_dimensions:
             self._index_dimensions = EmptyDict
-        AlgebraOperator.__init__(self, (summand, index))
+
+        Operator.__init__(self, (summand, index))
 
     def index(self):
         return self.ufl_operands[1][0]

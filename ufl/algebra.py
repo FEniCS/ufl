@@ -26,7 +26,7 @@ from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.common import product, mergedicts2, subdict, EmptyDict
 from ufl.expr import Expr
-from ufl.operatorbase import AlgebraOperator
+from ufl.operatorbase import Operator
 from ufl.constantvalue import Zero, zero, ScalarValue, IntValue, as_ufl
 from ufl.checks import is_ufl_scalar, is_true_ufl_scalar
 from ufl.indexutils import unique_indices
@@ -39,7 +39,7 @@ from ufl.core.ufl_type import ufl_type
 @ufl_type(num_ops=2,
           inherit_shape_from_operand=0, inherit_indices_from_operand=0,
           binop="__add__", rbinop="__radd__")
-class Sum(AlgebraOperator):
+class Sum(Operator):
     __slots__ = ()
 
     def __new__(cls, a, b):
@@ -85,7 +85,7 @@ class Sum(AlgebraOperator):
             a, b = sorted_expr((a, b))
 
         # construct and initialize a new Sum object
-        self = AlgebraOperator.__new__(cls)
+        self = Operator.__new__(cls)
         self._init(a, b)
         return self
 
@@ -93,7 +93,7 @@ class Sum(AlgebraOperator):
         self.ufl_operands = (a, b)
 
     def __init__(self, a, b):
-        AlgebraOperator.__init__(self)
+        Operator.__init__(self)
 
     def evaluate(self, x, mapping, component, index_values):
         return sum(o.evaluate(x, mapping, component, index_values) for o in self.ufl_operands)
@@ -125,7 +125,7 @@ class Sum(AlgebraOperator):
 
 @ufl_type(num_ops=2,
           binop="__mul__", rbinop="__rmul__")
-class Product(AlgebraOperator):
+class Product(Operator):
     """The product of two or more UFL objects."""
     __slots__ = ("_free_indices", "_index_dimensions",)
 
@@ -168,7 +168,7 @@ class Product(AlgebraOperator):
             a, b = sorted_expr((a, b))
 
         # Construct and initialize a new Product object
-        self = AlgebraOperator.__new__(cls)
+        self = Operator.__new__(cls)
         self._init(a, b)
         return self
 
@@ -183,7 +183,7 @@ class Product(AlgebraOperator):
         self._index_dimensions = mergedicts2(a.index_dimensions(), b.index_dimensions()) or EmptyDict
 
     def __init__(self, a, b):
-        AlgebraOperator.__init__(self)
+        Operator.__init__(self)
 
     ufl_shape = ()
 
@@ -234,7 +234,7 @@ class Product(AlgebraOperator):
 @ufl_type(num_ops=2,
           inherit_indices_from_operand=0,
           binop="__div__", rbinop="__rdiv__")
-class Division(AlgebraOperator):
+class Division(Operator):
     __slots__ = ()
 
     def __new__(cls, a, b):
@@ -263,7 +263,7 @@ class Division(AlgebraOperator):
             return as_ufl(1)
 
         # construct and initialize a new Division object
-        self = AlgebraOperator.__new__(cls)
+        self = Operator.__new__(cls)
         self._init(a, b)
         return self
 
@@ -274,7 +274,7 @@ class Division(AlgebraOperator):
         self.ufl_operands = (a, b)
 
     def __init__(self, a, b):
-        AlgebraOperator.__init__(self)
+        Operator.__init__(self)
 
     ufl_shape = () # self.ufl_operands[0].ufl_shape
 
@@ -294,7 +294,7 @@ class Division(AlgebraOperator):
 @ufl_type(num_ops=2,
           inherit_indices_from_operand=0,
           binop="__pow__", rbinop="__rpow__")
-class Power(AlgebraOperator):
+class Power(Operator):
     __slots__ = ()
 
     def __new__(cls, a, b):
@@ -317,7 +317,7 @@ class Power(AlgebraOperator):
             return IntValue(1)
 
         # construct and initialize a new Power object
-        self = AlgebraOperator.__new__(cls)
+        self = Operator.__new__(cls)
         self._init(a, b)
         return self
 
@@ -328,7 +328,7 @@ class Power(AlgebraOperator):
         self.ufl_operands = (a, b)
 
     def __init__(self, a, b):
-        AlgebraOperator.__init__(self)
+        Operator.__init__(self)
 
     ufl_shape = ()
 
@@ -347,11 +347,11 @@ class Power(AlgebraOperator):
 @ufl_type(num_ops=1,
           inherit_shape_from_operand=0, inherit_indices_from_operand=0,
           unop="__abs__")
-class Abs(AlgebraOperator):
+class Abs(Operator):
     __slots__ = ()
 
     def __init__(self, a):
-        AlgebraOperator.__init__(self, (a,))
+        Operator.__init__(self, (a,))
         ufl_assert(isinstance(a, Expr), "Expecting Expr instance.")
         if not isinstance(a, Expr): error("Expecting Expr instances.")
 

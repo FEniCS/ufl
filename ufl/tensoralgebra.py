@@ -20,7 +20,7 @@
 from ufl.log import warning
 from ufl.assertions import ufl_assert
 from ufl.constantvalue import Zero
-from ufl.algebra import AlgebraOperator
+from ufl.algebra import Operator
 from ufl.precedence import parstr
 from ufl.sorting import sorted_expr
 from ufl.core.ufl_type import ufl_type
@@ -55,10 +55,10 @@ from ufl.index_combination_utils import merge_indices, merge_nonoverlapping_indi
 # --- Classes representing compound tensor algebra operations ---
 
 @ufl_type(is_abstract=True)
-class CompoundTensorOperator(AlgebraOperator):
+class CompoundTensorOperator(Operator):
     __slots__ = ()
     def __init__(self, operands):
-        AlgebraOperator.__init__(self, operands)
+        Operator.__init__(self, operands)
 
 # TODO: Use this and make Sum handle scalars only?
 #       This would simplify some algorithms. The only

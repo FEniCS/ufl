@@ -21,6 +21,7 @@
 
 from six.moves import zip
 from six.moves import xrange as range
+from six import iteritems
 
 from ufl.log import warning, error
 from ufl.assertions import ufl_assert, expecting_python_scalar
@@ -64,25 +65,73 @@ class IndexAnnotated(ConstantValue):
     indices with a set of free indices, used internally to keep
     index properties intact during automatic differentiation."""
 
-    __slots__ = ("ufl_shape", "_free_indices", "_index_dimensions")
+    __slots__ = ("ufl_shape",
+                 "_free_indices", "_index_dimensions")
+                 #"ufl_free_indices", "ufl_index_dimensions") # INDEXING
+
+    def x__init__(self, shape=(), ufl_free_indices=(), ufl_index_dimensions=()):
+        ConstantValue.__init__(self)
+
+        if not all(isinstance(i, int) for i in shape):
+            error("Expecting tuple of int.")
+        if not (isinstance(ufl_free_indices, tuple)
+                and all(isinstance(i, int) for i in ufl_free_indices)):
+            error("Expecting tuple of index ids, not %s" % str(ufl_free_indices))
+        if not (isinstance(ufl_index_dimensions, tuple)
+                and all(isinstance(i, int) for i in ufl_index_dimensions)):
+            error("Expecting tuple of index dimensions, not %s" % str(ufl_index_dimensions))
+
+        ufl_assert(sorted(ufl_free_indices) == list(ufl_free_indices),
+                   "Expecting sorted input. Remove this check later for efficiency.")
+
+        self.ufl_shape = shape
+        self.ufl_free_indices = ufl_free_indices
+        self.ufl_index_dimensions = ufl_index_dimensions
+
 
     def __init__(self, shape=(), free_indices=(), index_dimensions=None):
         ConstantValue.__init__(self)
+
         if not all(isinstance(i, int) for i in shape):
             error("Expecting tuple of int.")
+        self.ufl_shape = shape
+
+
+        ufl_assert(isinstance(free_indices, tuple),
+                   "Expecting tuple of free indices, not %s" % str(free_indices))
         if not all(isinstance(i, Index) for i in free_indices):
             error("Expecting tuple of Index objects.")
-        self.ufl_shape = shape
+
         self._free_indices = tuple(sorted(free_indices, key=lambda x: x.count()))
         self._index_dimensions = dict(index_dimensions) if index_dimensions else EmptyDict
+
         if (set(self._free_indices) ^ set(self._index_dimensions.keys())):
             error("Index set mismatch.")
+
+    #def free_indices(self):
+    #    "Intermediate helper property getter to transition from .free_indices() to .ufl_free_indices."
+    #    return tuple(Index(count=i) for i in self.ufl_free_indices)
+
+    #def index_dimensions(self):
+    #    "Intermediate helper property getter to transition from .index_dimensions() to .ufl_index_dimensions."
+    #    return { i: d for i, d in zip(self.ufl_free_indices, self.ufl_index_dimensions) }
 
     def free_indices(self):
         return self._free_indices
 
     def index_dimensions(self):
         return self._index_dimensions
+
+    @property
+    def ufl_free_indices(self):
+        "Intermediate helper property getter to transition from .free_indices() to .ufl_free_indices."
+        return tuple(sorted(i.count() for i in self.free_indices()))
+
+    @property
+    def ufl_index_dimensions(self):
+        "Intermediate helper property getter to transition from .index_dimensions() to .ufl_index_dimensions."
+        return tuple(d for i, d in sorted(iteritems(self.index_dimensions()), key=lambda x: x[0].count()))
+
 
 #--- Class for representing abstract constant symbol only for use internally in form compilers
 #@ufl_type()
@@ -135,8 +184,6 @@ class Zero(IndexAnnotated):
         return self
 
     def _init(self, shape=(), free_indices=(), index_dimensions=None):
-        ufl_assert(isinstance(free_indices, tuple),
-                   "Expecting tuple of free indices, not %s" % str(free_indices))
         IndexAnnotated.__init__(self, shape, free_indices, index_dimensions)
 
     def __init__(self, shape=(), free_indices=(), index_dimensions=None):

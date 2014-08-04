@@ -20,9 +20,10 @@
 from six.moves import zip
 from ufl.log import error
 from ufl.expr import Expr
-from ufl.operatorbase import WrapperType
+from ufl.operatorbase import Operator
 from ufl.indexing import Index, FixedIndex, MultiIndex, as_multi_index
 from ufl.indexutils import unique_indices
+from ufl.index_combination_utils import unique_sorted_indices
 from ufl.precedence import parstr
 from ufl.common import EmptyDict
 from ufl.core.ufl_type import ufl_type
@@ -30,11 +31,15 @@ from ufl.core.ufl_type import ufl_type
 #--- Indexed expression ---
 
 @ufl_type(is_shaping=True, num_ops=2)
-class Indexed(WrapperType):
-    #__slots__ = ("ufl_free_indices", "ufl_index_dimensions",) # INDEXING
+class Indexed(Operator):
     __slots__ = ("_free_indices", "_index_dimensions",)
+    #__slots__ = ("ufl_free_indices", "ufl_index_dimensions",) # INDEXING
 
     def __init__(self, expression, multiindex):
+        # Store operands
+        Operator.__init__(self, (expression, multiindex))
+
+
         # Error checking
         if not isinstance(expression, Expr):
             error("Expecting Expr instance, not %s." % repr(expression))
@@ -48,37 +53,61 @@ class Indexed(WrapperType):
             error("Invalid number of indices (%d) for tensor "\
                 "expression of rank %d:\n\t%r\n"\
                 % (len(multiindex), expression.rank(), expression))
+        if any(int(di) >= int(si) for si, di in zip(shape, multiindex) if isinstance(di, FixedIndex)):
+            error("Fixed index out of range!")
 
-        # Store operands
-        WrapperType.__init__(self, (expression, multiindex))
 
-        # Error checking
-        for si, di in zip(shape, multiindex):
-            if isinstance(di, FixedIndex) and int(di) >= int(si):
-                error("Fixed index out of range!")
-
+        # OLD INDEXING:
         # Build free index tuple and dimensions
-        idims = dict((i, s) for (i, s) in zip(multiindex._indices, shape)
-                     if isinstance(i, Index))
-        idims.update(expression.index_dimensions())
-        fi = unique_indices(expression.free_indices() + multiindex._indices)
+        if 1:
+            idims = dict((i, s) for (i, s) in zip(multiindex._indices, shape)
+                         if isinstance(i, Index))
+            idims.update(expression.index_dimensions())
+            fi = unique_indices(expression.free_indices() + multiindex._indices)
 
-        # Cache free index and dimensions
-        self._free_indices = fi
-        self._index_dimensions = idims or EmptyDict
+            # Cache free index and dimensions
+            self._free_indices = fi
+            self._index_dimensions = idims or EmptyDict
 
-        # INDEXING: FIXME
-        #mi = [ind.count() for ind in multiindex._indices if isinstance(ind, Index)]
-        #fi = tuple(sorted(expression.ufl_free_indices + mi))
-        # Cache free index and dimensions # INDEXING
-        #self.ufl_free_indices = fi
-        #self.ufl_index_dimensions = fid
+
+        # NEW INDEXING:
+        if 0:
+            # Build tuples of free index ids and dimensions
+            efi = expression.ufl_free_indices
+            efid = expression.ufl_index_dimensions
+            fi = list(zip(efi, efid))
+            for pos, ind in enumerate(multiindex._indices):
+                if isinstance(ind, Index):
+                    fi.append((ind.count(), shape[pos]))
+            fi = unique_sorted_indices(sorted(fi))
+            if fi:
+                fi, fid = zip(*fi)
+            else:
+                fid = ()
+
+            # Cache free index and dimensions
+            self.ufl_free_indices = fi
+            self.ufl_index_dimensions = fid
+
+
+        # INDEXING DEBUG:
+        if 0:
+            if len(_free_indices) != len(fi) or len(_index_dimensions) != len(fid):
+                print "DEBUG", len(_free_indices), len(fi), len(_index_dimensions), len(fid)
+                print "DEBUG", expression, multiindex
+                print "DEBUG", fi, fid
+                print "DEBUG", _free_indices
+                print "DEBUG", _index_dimensions
+            assert len(_free_indices) == len(fi)
+            assert len(_index_dimensions) == len(fid)
+            assert tuple(sorted(i.count() for i in _free_indices)) == fi
+            assert tuple(_index_dimensions[Index(i)] for i in fi) == fid
 
     ufl_shape = ()
 
+    # INDEXING:
     def free_indices(self):
         return self._free_indices
-
     def index_dimensions(self):
         return self._index_dimensions
 

@@ -23,7 +23,7 @@ from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.expr import Expr
 from ufl.terminal import UtilityType
-from ufl.operatorbase import Operator, WrapperType
+from ufl.operatorbase import Operator, Operator
 from ufl.constantvalue import as_ufl
 from ufl.core.ufl_type import ufl_type
 
@@ -45,7 +45,7 @@ class Label(UtilityType):
         return "Label(%d)" % self._count
 
 @ufl_type(is_shaping=True, is_index_free=True, num_ops=1, inherit_shape_from_operand=0)
-class Variable(WrapperType):
+class Variable(Operator):
     """A Variable is a representative for another expression.
 
     It will be used by the end-user mainly for defining
@@ -70,7 +70,7 @@ class Variable(WrapperType):
         ufl_assert(isinstance(label, Label), "Expecting a Label.")
         ufl_assert(not expression.free_indices(), "Variable cannot wrap an expression with free indices.")
 
-        WrapperType.__init__(self, (expression, label))
+        Operator.__init__(self, (expression, label))
 
     def domains(self):
         return self.ufl_operands[0].domains()

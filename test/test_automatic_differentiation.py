@@ -326,16 +326,19 @@ class ForwardADTestCase(UflTestCase):
         w = Coefficient(collection.shared_objects.W)
 
         #for t in chain(collection.noncompounds, collection.compounds):
+        debug = True
         for t in collection.noncompounds:
             for var in (u, v, w):
-                if debug: print(('\n', '...:   ', t.ufl_shape, var.ufl_shape, '\n'))
+                if debug: print('\n', 'shapes:   ', t.ufl_shape, var.ufl_shape, '\n')
+                if debug: print('\n', 't:        ', str(t), '\n')
+                if debug: print('\n', 't ind:    ', str(t.free_indices()), '\n')
+                if debug: print('\n', 'var:      ', str(var), '\n')
                 before = derivative(t, var)
-                if debug: print(('\n', 'before:   ', str(before), '\n'))
+                if debug: print('\n', 'before:   ', str(before), '\n')
                 after = self.ad_algorithm(before)
-                if debug: print(('\n', 'after:    ', str(after), '\n'))
+                if debug: print('\n', 'after:    ', str(after), '\n')
                 expected = 0*t
-                if debug: print(('\n', 'expected: ', str(expected), '\n'))
-                #print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
+                if debug: print('\n', 'expected: ', str(expected), '\n')
                 self.assertEqual(after, expected)
 
     def test_zero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self):

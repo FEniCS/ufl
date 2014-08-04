@@ -24,7 +24,7 @@ from ufl.log import warning, error
 from ufl.common import subdict, EmptyDict
 from ufl.assertions import ufl_assert
 from ufl.expr import Expr
-from ufl.operatorbase import WrapperType
+from ufl.operatorbase import Operator
 from ufl.constantvalue import as_ufl, Zero
 from ufl.indexing import Index, FixedIndex, MultiIndex, indices
 from ufl.indexed import Indexed
@@ -33,7 +33,7 @@ from ufl.core.ufl_type import ufl_type
 # --- Classes representing tensors of UFL expressions ---
 
 @ufl_type(is_shaping=True, num_ops="varying", inherit_indices_from_operand=0)
-class ListTensor(WrapperType):
+class ListTensor(Operator):
     """UFL operator type: Wraps a list of expressions into a tensor valued expression of one higher rank."""
     __slots__ = ()
 
@@ -61,10 +61,10 @@ class ListTensor(WrapperType):
             shape = (len(expressions),) + sh
             return Zero(shape, fi, idim)
 
-        return WrapperType.__new__(cls)
+        return Operator.__new__(cls)
 
     def __init__(self, *expressions):
-        WrapperType.__init__(self, expressions)
+        Operator.__init__(self, expressions)
 
         # Checks
         indexset = set(self.ufl_operands[0].free_indices())
@@ -125,7 +125,7 @@ class ListTensor(WrapperType):
         return "ListTensor(%s)" % ", ".join(repr(e) for e in self.ufl_operands)
 
 @ufl_type(is_shaping=True, num_ops="varying")
-class ComponentTensor(WrapperType):
+class ComponentTensor(Operator):
     """UFL operator type: Maps the free indices of a scalar valued expression to tensor axes."""
     __slots__ = ("_free_indices", "_index_dimensions", "ufl_shape")
 
@@ -136,7 +136,7 @@ class ComponentTensor(WrapperType):
             fi = tuple(set(expression.free_indices()) - set(indices))
             idim = dict((i, dims[i]) for i in fi)
             return Zero(shape, fi, idim)
-        return WrapperType.__new__(cls)
+        return Operator.__new__(cls)
 
     def __init__(self, expression, indices):
         ufl_assert(isinstance(expression, Expr), "Expecting ufl expression.")
@@ -145,7 +145,7 @@ class ComponentTensor(WrapperType):
         ufl_assert(all(isinstance(i, Index) for i in indices),
            "Expecting sequence of Index objects, not %s." % repr(indices))
 
-        WrapperType.__init__(self, (expression, indices))
+        Operator.__init__(self, (expression, indices))
 
         eset = set(expression.free_indices())
         iset = set(indices)
@@ -170,7 +170,7 @@ class ComponentTensor(WrapperType):
             if indices == ii:
                 #print "RETURNING", A, "FROM", expressions, indices, "SELF IS", self
                 return A
-        return WrapperType.reconstruct(self, expressions, indices)
+        return Operator.reconstruct(self, expressions, indices)
 
     def indices(self):
         return self.ufl_operands[1]
