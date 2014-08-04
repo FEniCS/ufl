@@ -380,7 +380,7 @@ class ForwardAD(Transformer):
             error("Differentiation of bessel function w.r.t. nu is not supported.")
         f, fp = x
         o = self.reuse_if_possible(o, nu, f)
-        if nu == 0:
+        if isinstance(nu, Zero):
             op = -bessel_J(1, f)
         else:
             op = 0.5 * (bessel_J(nu-1, f) - bessel_J(nu+1, f))
@@ -392,7 +392,7 @@ class ForwardAD(Transformer):
             error("Differentiation of bessel function w.r.t. nu is not supported.")
         f, fp = x
         o = self.reuse_if_possible(o, nu, f)
-        if nu == 0:
+        if isinstance(nu, Zero):
             op = -bessel_Y(1, f)
         else:
             op = 0.5 * (bessel_Y(nu-1, f) - bessel_Y(nu+1, f))
@@ -404,7 +404,7 @@ class ForwardAD(Transformer):
             error("Differentiation of bessel function w.r.t. nu is not supported.")
         f, fp = x
         o = self.reuse_if_possible(o, nu, f)
-        if nu == 0:
+        if isinstance(nu, Zero):
             op = bessel_I(1, f)
         else:
             op = 0.5 * (bessel_I(nu-1, f) + bessel_I(nu+1, f))
@@ -416,7 +416,7 @@ class ForwardAD(Transformer):
             error("Differentiation of bessel function w.r.t. nu is not supported.")
         f, fp = x
         o = self.reuse_if_possible(o, nu, f)
-        if nu == 0:
+        if isinstance(nu, Zero):
             op = -bessel_K(1, f)
         else:
             op = -0.5 * (bessel_K(nu-1, f) + bessel_K(nu+1, f))

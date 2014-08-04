@@ -183,13 +183,16 @@ class Zero(ConstantValue):
                 self.ufl_free_indices, self.ufl_index_dimensions)
 
     def __eq__(self, other):
-        if not isinstance(other, Zero):
-            return isinstance(other, (int, float)) and other == 0
-        if self is other:
-            return True
-        return (self.ufl_shape == other.ufl_shape and
-                self.ufl_free_indices == other.ufl_free_indices and
-                self.ufl_index_dimensions == other.ufl_index_dimensions)
+        if isinstance(other, Zero):
+            if self is other:
+                return True
+            return (self.ufl_shape == other.ufl_shape and
+                    self.ufl_free_indices == other.ufl_free_indices and
+                    self.ufl_index_dimensions == other.ufl_index_dimensions)
+        elif isinstance(other, (int, float)):
+            return other == 0
+        else:
+            return False
 
     def __neg__(self):
         return self
@@ -240,12 +243,15 @@ class ScalarValue(ConstantValue):
             IntValue(1) == 1.0
             FloatValue(1.0) == 1
         can still succeed. These will however not have the same
-        hash value and therefore not collide in a dict."""
-        if not isinstance(other, self._ufl_class_):
-            return isinstance(other, (int, float)) and other == self._value
-        else:
-            # FIXME: Disallow this, require explicit 'expr == IntValue(3)' instead to avoid ambiguities!
+        hash value and therefore not collide in a dict.
+        """
+        if isinstance(other, self._ufl_class_):
             return self._value == other._value
+        elif isinstance(other, (int, float)):
+            # FIXME: Disallow this, require explicit 'expr == IntValue(3)' instead to avoid ambiguities!
+            return other == self._value
+        else:
+            return False
 
     def __str__(self):
         return str(self._value)

@@ -25,10 +25,14 @@ class TestLiterals(UflTestCase):
         #self.assertTrue(z1 is z5)
         #self.assertTrue(z1 is z6)
         self.assertEqual(z1, z1)
-        self.assertEqual(z1, 0)
-        self.assertEqual(z1, 0.0)
+        self.assertEqual(int(z1), 0)
+        self.assertEqual(float(z1), 0.0)
         self.assertNotEqual(z1, 1.0)
         self.assertFalse(z1)
+
+        # If zero() == 0 is to be allowed, it must not have the same hash or it will collide with 0 as key in dicts...
+        self.assertNotEqual(hash(z1), hash(0.0))
+        self.assertNotEqual(hash(z1), hash(0))
 
     def test_float(self):
         f1 = as_ufl(1)

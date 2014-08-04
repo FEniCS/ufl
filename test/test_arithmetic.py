@@ -18,8 +18,8 @@ class ArithmeticTestCase(UflTestCase):
         r = as_ufl(4)
         self.assertIsInstance(f, FloatValue)
         self.assertIsInstance(r, IntValue)
-        self.assertEqual(f, 2.0)
-        self.assertEqual(r, 4)
+        self.assertEqual(float(f), 2.0)
+        self.assertEqual(int(r), 4)
 
     def test_ufl_float_division(self):
         d = SpatialCoordinate(triangle)[0] / 10.0 # TODO: Use mock instead of x
@@ -32,19 +32,19 @@ class ArithmeticTestCase(UflTestCase):
     def test_float_division(self):
         d = as_ufl(20.0) / 10.0
         self.assertIsInstance(d, FloatValue)
-        self.assertEqual(d, 2)
+        self.assertEqual(float(d), 2.0)
 
     def test_int_division(self):
         # UFL treats all divisions as true division
         d = as_ufl(40) / 7
         self.assertIsInstance(d, FloatValue)
-        self.assertEqual(d, 40.0 / 7.0)
-        #self.assertAlmostEqual(d, 40 / 7.0, 15)
+        self.assertEqual(float(d), 40.0 / 7.0)
+        #self.assertAlmostEqual(float(d), 40 / 7.0, 15)
 
     def test_float_int_division(self):
         d = as_ufl(20.0) / 5
         self.assertIsInstance(d, FloatValue)
-        self.assertEqual(d, 4)
+        self.assertEqual(float(d), 4.0)
 
     def test_floor_division_fails(self):
         f = as_ufl(2.0)
@@ -55,7 +55,7 @@ class ArithmeticTestCase(UflTestCase):
         self.assertRaises(NotImplementedError, lambda: f // s)
 
     def test_elem_mult(self):
-        self.assertEqual(elem_mult(2, 3), 6)
+        self.assertEqual(int(elem_mult(2, 3)), 6)
 
         v = as_vector((1, 2, 3))
         u = as_vector((4, 5, 6))

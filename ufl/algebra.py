@@ -252,7 +252,7 @@ class Division(Operator):
             error("Division by zero!")
 
         # Simplification a/b -> a
-        if isinstance(a, Zero) or b == 1:
+        if isinstance(a, Zero) or (isinstance(b, ScalarValue) and b._value == 1):
             return a
         # Simplification "literal a / literal b" -> "literal value of a/b"
         # Avoiding integer division by casting to float
@@ -305,15 +305,15 @@ class Power(Operator):
 
         if isinstance(a, ScalarValue) and isinstance(b, ScalarValue):
             return as_ufl(a._value ** b._value)
-        if a == 0 and isinstance(b, ScalarValue):
+        if isinstance(a, Zero) and isinstance(b, ScalarValue):
             bf = float(b)
             if bf < 0:
                 error("Division by zero, cannot raise 0 to a negative power.")
             else:
                 return zero()
-        if b == 1:
+        if isinstance(b, ScalarValue) and b._value == 1:
             return a
-        if b == 0:
+        if isinstance(b, Zero):
             return IntValue(1)
 
         # construct and initialize a new Power object
