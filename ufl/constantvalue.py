@@ -66,10 +66,10 @@ class IndexAnnotated(ConstantValue):
     index properties intact during automatic differentiation."""
 
     __slots__ = ("ufl_shape",
-                 "_free_indices", "_index_dimensions")
-                 #"ufl_free_indices", "ufl_index_dimensions") # INDEXING
+                 #"_free_indices", "_index_dimensions")
+                 "ufl_free_indices", "ufl_index_dimensions") # INDEXING
 
-    def x__init__(self, shape=(), ufl_free_indices=(), ufl_index_dimensions=()):
+    def x__init__(self, shape=(), ufl_free_indices=(), ufl_index_dimensions=()): # New input, new result
         ConstantValue.__init__(self)
 
         if not all(isinstance(i, int) for i in shape):
@@ -88,49 +88,34 @@ class IndexAnnotated(ConstantValue):
         self.ufl_free_indices = ufl_free_indices
         self.ufl_index_dimensions = ufl_index_dimensions
 
-
-    def __init__(self, shape=(), free_indices=(), index_dimensions=None):
+    def __init__(self, shape=(), free_indices=(), index_dimensions=None): # Old input, new result
         ConstantValue.__init__(self)
 
         if not all(isinstance(i, int) for i in shape):
             error("Expecting tuple of int.")
+        if not (isinstance(free_indices, tuple)
+                and all(isinstance(i, Index) for i in free_indices)):
+            error("Expecting tuple of Index objects, not %s" % str(free_indices))
+        if len(free_indices) > 0 and not (isinstance(index_dimensions, dict)
+                and all(isinstance(i, Index) for i in index_dimensions.keys())):
+            print "DEBUG", free_indices, index_dimensions
+            error("Expecting tuple of index dimensions, not %s" % str(index_dimensions))
+
         self.ufl_shape = shape
-
-
-        ufl_assert(isinstance(free_indices, tuple),
-                   "Expecting tuple of free indices, not %s" % str(free_indices))
-        if not all(isinstance(i, Index) for i in free_indices):
-            error("Expecting tuple of Index objects.")
-
-        self._free_indices = tuple(sorted(free_indices, key=lambda x: x.count()))
-        self._index_dimensions = dict(index_dimensions) if index_dimensions else EmptyDict
-
-        if (set(self._free_indices) ^ set(self._index_dimensions.keys())):
-            error("Index set mismatch.")
-
-    #def free_indices(self):
-    #    "Intermediate helper property getter to transition from .free_indices() to .ufl_free_indices."
-    #    return tuple(Index(count=i) for i in self.ufl_free_indices)
-
-    #def index_dimensions(self):
-    #    "Intermediate helper property getter to transition from .index_dimensions() to .ufl_index_dimensions."
-    #    return { i: d for i, d in zip(self.ufl_free_indices, self.ufl_index_dimensions) }
+        if free_indices:
+            self.ufl_free_indices = tuple(sorted(i.count() for i in free_indices))
+            self.ufl_index_dimensions = tuple(d for i, d in sorted(iteritems(index_dimensions), key=lambda x: x[0].count()))
+        else:
+            self.ufl_free_indices = ()
+            self.ufl_index_dimensions = ()
 
     def free_indices(self):
-        return self._free_indices
+        "Intermediate helper property getter to transition from .free_indices() to .ufl_free_indices."
+        return tuple(Index(count=i) for i in self.ufl_free_indices)
 
     def index_dimensions(self):
-        return self._index_dimensions
-
-    @property
-    def ufl_free_indices(self):
-        "Intermediate helper property getter to transition from .free_indices() to .ufl_free_indices."
-        return tuple(sorted(i.count() for i in self.free_indices()))
-
-    @property
-    def ufl_index_dimensions(self):
         "Intermediate helper property getter to transition from .index_dimensions() to .ufl_index_dimensions."
-        return tuple(d for i, d in sorted(iteritems(self.index_dimensions()), key=lambda x: x[0].count()))
+        return { Index(count=i): d for i, d in zip(self.ufl_free_indices, self.ufl_index_dimensions) }
 
 
 #--- Class for representing abstract constant symbol only for use internally in form compilers
@@ -169,7 +154,8 @@ class Zero(IndexAnnotated):
     _cache = {}
 
     def __getnewargs__(self):
-        return (self.ufl_shape, self._free_indices, self._index_dimensions)
+        #return (self.ufl_shape, self._free_indices, self._index_dimensions)
+        return (self.ufl_shape, ufl_free_indices, ufl_index_dimensions)
 
     def __new__(cls, shape=(), free_indices=(), index_dimensions=None):
         if free_indices:
@@ -192,21 +178,23 @@ class Zero(IndexAnnotated):
     def reconstruct(self, free_indices=None):
         if not free_indices:
             return self
-        ufl_assert(len(free_indices) == len(self._free_indices), "Size mismatch between old and new indices.")
-        new_index_dimensions = dict((b, self._index_dimensions[a]) for (a, b) in zip(self._free_indices, free_indices))
-        return Zero(self.ufl_shape, free_indices, new_index_dimensions)
+        ufl_assert(len(free_indices) == len(self.ufl_free_indices),
+                   "Size mismatch between old and new indices.")
+        fid = self.ufl_index_dimensions
+        new_fi, new_fid = zip(*tuple(sorted((free_indices[pos], fid[pos]) for pos, a in enumerate(self.ufl_free_indices))))
+        return Zero(self.ufl_shape, new_fi, new_fid)
 
     def evaluate(self, x, mapping, component, index_values):
         return 0.0
 
     def __str__(self):
-        if self.ufl_shape == () and self._free_indices == ():
+        if self.ufl_shape == () and self.ufl_free_indices == ():
             return "0"
-        return "(0<%r, %r>)" % (self.ufl_shape, self._free_indices)
+        return "(0<%r, %r>)" % (self.ufl_shape, self.ufl_free_indices)
 
     def __repr__(self):
         return "Zero(%r, %r, %r)" % (self.ufl_shape,
-                self._free_indices, self._index_dimensions)
+                self.ufl_free_indices, self.ufl_index_dimensions)
 
     def __eq__(self, other):
         if not isinstance(other, Zero):
@@ -214,8 +202,8 @@ class Zero(IndexAnnotated):
         if self is other:
             return True
         return (self.ufl_shape == other.ufl_shape and
-                self._free_indices == other._free_indices and
-                self._index_dimensions == other._index_dimensions)
+                self.ufl_free_indices == other.ufl_free_indices and
+                self.ufl_index_dimensions == other.ufl_index_dimensions)
 
     def __neg__(self):
         return self
@@ -254,7 +242,7 @@ class ScalarValue(IndexAnnotated):
         return IndexAnnotated.__new__(cls)
 
     def __getnewargs__(self):
-        return (self._value, self.ufl_shape, self._free_indices, self._index_dimensions)
+        return (self._value, self.ufl_shape, self.ufl_free_indices, self.ufl_index_dimensions)
 
     def __init__(self, value, shape=(), free_indices=(), index_dimensions=None):
         IndexAnnotated.__init__(self, shape, free_indices, index_dimensions)
@@ -264,9 +252,11 @@ class ScalarValue(IndexAnnotated):
         "Reconstruct with new free indices."
         if not free_indices:
             return self
-        ufl_assert(len(free_indices) == len(self._free_indices), "Size mismatch between old and new indices.")
-        new_index_dimensions = dict((b, self._index_dimensions[a]) for (a, b) in zip(self._free_indices, free_indices))
-        return self._ufl_class_(self._value, self.ufl_shape, free_indices, new_index_dimensions)
+        ufl_assert(len(free_indices) == len(self.ufl_free_indices),
+                   "Size mismatch between old and new indices.")
+        fid = self.ufl_index_dimensions
+        new_fi, new_fid = zip(*tuple(sorted((free_indices[pos], fid[pos]) for pos, a in enumerate(self.ufl_free_indices))))
+        return self._ufl_class_(self._value, self.ufl_shape, new_fi, new_fid)
 
     def value(self):
         return self._value
@@ -319,8 +309,8 @@ class FloatValue(ScalarValue):
         return "%s(%s, %s, %s, %s)" % (type(self).__name__,
                                        format_float(self._value),
                                        repr(self.ufl_shape),
-                                       repr(self._free_indices),
-                                       repr(self._index_dimensions))
+                                       repr(self.ufl_free_indices),
+                                       repr(self.ufl_index_dimensions))
 
 @ufl_type(wraps_type=int)
 class IntValue(ScalarValue):
@@ -344,8 +334,8 @@ class IntValue(ScalarValue):
 
     def __repr__(self):
         return "%s(%s, %s, %s, %s)" % (type(self).__name__, repr(self._value),
-                                       repr(self.ufl_shape), repr(self._free_indices),
-                                       repr(self._index_dimensions))
+                                       repr(self.ufl_shape), repr(self.ufl_free_indices),
+                                       repr(self.ufl_index_dimensions))
 
 #--- Identity matrix ---
 
