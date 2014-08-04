@@ -114,44 +114,35 @@ class Zero(ConstantValue):
     def __init__(self, shape=(), free_indices=(), index_dimensions=None):
         pass
 
-    def _init(self, shape=(), free_indices=(), index_dimensions=None): # Old input, new result
+    def _init(self, shape=(), free_indices=(), index_dimensions=None):
         ConstantValue.__init__(self)
 
         if not all(isinstance(i, int) for i in shape):
             error("Expecting tuple of int.")
-        if not (isinstance(free_indices, tuple)
-                and all(isinstance(i, Index) for i in free_indices)):
-            error("Expecting tuple of Index objects, not %s" % str(free_indices))
-        if len(free_indices) > 0 and not (isinstance(index_dimensions, dict)
-                and all(isinstance(i, Index) for i in index_dimensions.keys())):
-            error("Expecting tuple of index dimensions, not %s" % str(index_dimensions))
+        if not isinstance(free_indices, tuple):
+            error("Expecting tuple for free_indices, not %s" % str(free_indices))
 
         self.ufl_shape = shape
-        if free_indices:
-            self.ufl_free_indices = tuple(sorted(i.count() for i in free_indices))
-            self.ufl_index_dimensions = tuple(d for i, d in sorted(iteritems(index_dimensions), key=lambda x: x[0].count()))
-        else:
+        if not free_indices:
             self.ufl_free_indices = ()
             self.ufl_index_dimensions = ()
-
-    def x_init(self, shape=(), ufl_free_indices=(), ufl_index_dimensions=()): # New input, new result
-        ConstantValue.__init__(self)
-
-        if not all(isinstance(i, int) for i in shape):
-            error("Expecting tuple of int.")
-        if not (isinstance(ufl_free_indices, tuple)
-                and all(isinstance(i, int) for i in ufl_free_indices)):
-            error("Expecting tuple of index ids, not %s" % str(ufl_free_indices))
-        if not (isinstance(ufl_index_dimensions, tuple)
-                and all(isinstance(i, int) for i in ufl_index_dimensions)):
-            error("Expecting tuple of index dimensions, not %s" % str(ufl_index_dimensions))
-
-        ufl_assert(sorted(ufl_free_indices) == list(ufl_free_indices),
-                   "Expecting sorted input. Remove this check later for efficiency.")
-
-        self.ufl_shape = shape
-        self.ufl_free_indices = ufl_free_indices
-        self.ufl_index_dimensions = ufl_index_dimensions
+        elif all(isinstance(i, Index) for i in free_indices): # Handle old input format
+            if not (isinstance(index_dimensions, dict)
+                    and all(isinstance(i, Index) for i in index_dimensions.keys())):
+                error("Expecting tuple of index dimensions, not %s" % str(index_dimensions))
+            self.ufl_free_indices = tuple(sorted(i.count() for i in free_indices))
+            self.ufl_index_dimensions = tuple(d for i, d in sorted(iteritems(index_dimensions), key=lambda x: x[0].count()))
+        else: # Handle new input format
+            if not all(isinstance(i, int) for i in free_indices):
+                error("Expecting tuple of integer free index ids, not %s" % str(free_indices))
+            if not (isinstance(index_dimensions, tuple)
+                    and all(isinstance(i, int) for i in index_dimensions)):
+                error("Expecting tuple of integer index dimensions, not %s" % str(index_dimensions))
+            # TODO: Assume sorted and avoid this cost.
+            ufl_assert(sorted(free_indices) == list(free_indices),
+                       "Expecting sorted input. Remove this check later for efficiency.")
+            self.ufl_free_indices = free_indices
+            self.ufl_index_dimensions = index_dimensions
 
     def free_indices(self):
         "Intermediate helper property getter to transition from .free_indices() to .ufl_free_indices."

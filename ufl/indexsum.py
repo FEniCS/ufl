@@ -27,16 +27,16 @@ from ufl.indexing import Index, MultiIndex, as_multi_index
 from ufl.precedence import parstr
 from ufl.common import EmptyDict
 from ufl.core.ufl_type import ufl_type
+from ufl.constantvalue import Zero
 
 #--- Sum over an index ---
 
 @ufl_type(num_ops=2)
 class IndexSum(Operator):
-    __slots__ = ("_dimension",
-                 "_free_indices", "_index_dimensions")
-                 #"ufl_free_indices", "ufl_index_dimensions") # INDEXING
+    __slots__ = ("_dimension", "ufl_free_indices", "ufl_index_dimensions")
 
     def __new__(cls, summand, index):
+        # Error checks
         if not isinstance(summand, Expr):
             error("Expecting Expr instance, not %s." % repr(summand))
         if not isinstance(index, MultiIndex):
@@ -44,27 +44,27 @@ class IndexSum(Operator):
         if len(index) != 1:
             error("Expecting a single Index only.")
 
-        from ufl.constantvalue import Zero
+        # Simplification to zero
         if isinstance(summand, Zero):
             sh = summand.ufl_shape
             j, = index
-            fi = tuple(i for i in summand.free_indices() if not i == j)
-            idims = dict(summand.index_dimensions())
-            del idims[j]
-            return Zero(sh, fi, idims)
+            fi = summand.ufl_free_indices
+            fid = summand.ufl_index_dimensions
+            pos = fi.index(j.count())
+            fi = fi[:pos] + fi[pos+1:]
+            fid = fid[:pos] + fid[pos+1:]
+            return Zero(sh, fi, fid)
 
         return Operator.__new__(cls)
 
     def __init__(self, summand, index):
         j, = index
-
-        self._free_indices = tuple(i for i in summand.free_indices() if not i == j)
-        self._index_dimensions = dict(summand.index_dimensions())
-        self._dimension = self._index_dimensions.pop(j)
-
-        if not self._index_dimensions:
-            self._index_dimensions = EmptyDict
-
+        fi = summand.ufl_free_indices
+        fid = summand.ufl_index_dimensions
+        pos = fi.index(j.count())
+        self._dimension = fid[pos]
+        self.ufl_free_indices = fi[:pos] + fi[pos+1:]
+        self.ufl_index_dimensions = fid[:pos] + fid[pos+1:]
         Operator.__init__(self, (summand, index))
 
     def index(self):
@@ -76,12 +76,6 @@ class IndexSum(Operator):
     @property
     def ufl_shape(self):
         return self.ufl_operands[0].ufl_shape
-
-    def free_indices(self):
-        return self._free_indices
-
-    def index_dimensions(self):
-        return self._index_dimensions
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
