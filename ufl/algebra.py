@@ -49,12 +49,14 @@ class Sum(Operator):
 
         # Assert consistent tensor properties
         sh = a.ufl_shape
-        fi = a.free_indices()
-        fid = a.index_dimensions()
+        fi = a.ufl_free_indices
+        fid = a.ufl_index_dimensions
         if b.ufl_shape != sh:
             error("Can't add expressions with different shapes.")
-        if set(fi) ^ set(b.free_indices()):
+        if b.ufl_free_indices != fi:
             error("Can't add expressions with different free indices.")
+        if b.ufl_index_dimensions != fid:
+            error("Can't add expressions with different index dimensions.")
 
         # Skip adding zero
         if isinstance(a, Zero):
