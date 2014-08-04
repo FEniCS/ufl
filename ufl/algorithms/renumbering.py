@@ -47,11 +47,9 @@ class IndexRenumberingTransformer(VariableRenumberingTransformer):
         VariableRenumberingTransformer.__init__(self)
         self.index_map = {}
 
-    def index_annotated(self, o):
+    def zero(self, o):
         new_indices = tuple(map(self.index, o.free_indices()))
         return o.reconstruct(new_indices)
-    zero = index_annotated
-    scalar_value = index_annotated
 
     def index(self, o):
         if isinstance(o, FixedIndex):

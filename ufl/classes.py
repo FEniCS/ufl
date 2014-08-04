@@ -38,7 +38,7 @@ from ufl.expr import Expr
 
 # Terminal types
 from ufl.terminal import Terminal, FormArgument, UtilityType
-from ufl.constantvalue import (ConstantValue, IndexAnnotated,
+from ufl.constantvalue import (ConstantValue,
     Zero, ScalarValue, FloatValue, IntValue, Identity, PermutationSymbol)
 from ufl.argument import Argument, TestFunction, TrialFunction
 from ufl.coefficient import Coefficient
