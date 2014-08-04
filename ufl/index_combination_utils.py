@@ -240,12 +240,14 @@ def merge_nonoverlapping_indices(a, b):
     bid = b.ufl_index_dimensions
 
     # Merge lists to return
-    free_indices, index_dimensions = zip(*sorted(zip(ai + bi, aid + bid)))
-
-    # Consistency checks
-    ufl_assert(len(set(free_indices)) == len(free_indices), "Not expecting repeated indices.")
-
-    return tuple(free_indices), tuple(index_dimensions)
+    s = sorted(zip(ai + bi, aid + bid))
+    if s:
+        free_indices, index_dimensions = zip(*s)
+        # Consistency checks
+        ufl_assert(len(set(free_indices)) == len(free_indices), "Not expecting repeated indices.")
+    else:
+        free_indices, index_dimensions = (), ()
+    return free_indices, index_dimensions
 
 
 # Product
