@@ -82,47 +82,26 @@ def split_indices(expression, idx):
 
 @ufl_type(num_ops=2)
 class VariableDerivative(Derivative):
-    __slots__ = ("ufl_shape", "_free_indices", "_index_dimensions",)
+    __slots__ = ("ufl_shape", "ufl_free_indices", "ufl_index_dimensions",)
     def __new__(cls, f, v):
+        # Checks
+        ufl_assert(isinstance(f, Expr), "Expecting an Expr in VariableDerivative.")
+        ufl_assert(isinstance(v, Variable), "Expecting a Variable in VariableDerivative.")
+        ufl_assert(not v.ufl_free_indices, "Differentiation variable cannot have free indices.")
+
+        # Simplification
         # Return zero if expression is trivially independent of variable
         if f._ufl_is_terminal_:
-            free_indices = tuple(set(f.free_indices()) ^ set(v.free_indices()))
-            index_dimensions = mergedicts([f.index_dimensions(), v.index_dimensions()])
-            index_dimensions = subdict(index_dimensions, free_indices)
-            return Zero(f.ufl_shape + v.ufl_shape, free_indices, index_dimensions)
+            return Zero(f.ufl_shape + v.ufl_shape, f.ufl_free_indices, f.ufl_index_dimensions)
+
+        # Construction
         return Derivative.__new__(cls)
 
     def __init__(self, f, v):
-        ufl_assert(isinstance(f, Expr), "Expecting an Expr in VariableDerivative.")
-        if isinstance(v, Indexed):
-            ufl_assert(isinstance(v._expression, Variable), \
-                "Expecting a Variable in VariableDerivative.")
-            error("diff(f, v[i]) isn't handled properly in all code.") # TODO: Should we allow this? Can do diff(f, v)[..., i], which leads to additional work but does the same.
-        else:
-            ufl_assert(isinstance(v, Variable), \
-                "Expecting a Variable in VariableDerivative.")
-
         Derivative.__init__(self, (f, v))
-
-        fi = f.free_indices()
-        vi = v.free_indices()
-        fid = f.index_dimensions()
-        vid = v.index_dimensions()
-        #print "set(fi)", set(fi)
-        #print "set(vi)", set(vi)
-        #print "^", (set(fi) ^ set(vi))
-        ufl_assert(not (set(fi) & set(vi)), \
-            "Repeated indices not allowed in VariableDerivative.") # TODO: Allow diff(f[i], v[i]) = sum_i VariableDerivative(f[i], v[i])? Can implement direct expansion in diff as a first approximation.
-        self._free_indices = tuple(fi + vi)
-        self._index_dimensions = dict(fid)
-        self._index_dimensions.update(vid)
+        self.ufl_free_indices = f.ufl_free_indices
+        self.ufl_index_dimensions = f.ufl_index_dimensions
         self.ufl_shape = f.ufl_shape + v.ufl_shape
-
-    def free_indices(self):
-        return self._free_indices
-
-    def index_dimensions(self):
-        return self._index_dimensions
 
     def __str__(self):
         if isinstance(self.ufl_operands[0], Terminal):
@@ -150,9 +129,8 @@ class Grad(CompoundDerivative):
         # Return zero if expression is trivially constant
         if f.is_cellwise_constant():
             dim = f.geometric_dimension()
-            free_indices = f.free_indices()
-            index_dimensions = subdict(f.index_dimensions(), free_indices)
-            return Zero(f.ufl_shape + (dim,), free_indices, index_dimensions)
+            return Zero(f.ufl_shape + (dim,), f.ufl_free_indices, f.ufl_index_dimensions)
+
         return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):
@@ -164,10 +142,9 @@ class Grad(CompoundDerivative):
         if op.is_cellwise_constant():
             ufl_assert(op.ufl_shape == self.ufl_operands[0].ufl_shape,
                        "Operand shape mismatch in Grad reconstruct.")
-            ufl_assert(self.ufl_operands[0].free_indices() == op.free_indices(),
+            ufl_assert(self.ufl_operands[0].ufl_free_indices == op.ufl_free_indices,
                        "Free index mismatch in Grad reconstruct.")
-            return Zero(self.ufl_shape, self.free_indices(),
-                        self.index_dimensions())
+            return Zero(self.ufl_shape, self.ufl_free_indices, self.ufl_index_dimensions)
         return self.__class__._ufl_class_(op)
 
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
@@ -196,11 +173,8 @@ class ReferenceGrad(CompoundDerivative):
     def __new__(cls, f):
         # Return zero if expression is trivially constant
         if f.is_cellwise_constant():
-            domain = f.domain()
-            dim = domain.topological_dimension()
-            free_indices = f.free_indices()
-            index_dimensions = subdict(f.index_dimensions(), free_indices)
-            return Zero(f.ufl_shape + (dim,), free_indices, index_dimensions)
+            dim = f.domain().topological_dimension()
+            return Zero(f.ufl_shape + (dim,), f.ufl_free_indices, f.ufl_index_dimensions)
         return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):
@@ -214,10 +188,9 @@ class ReferenceGrad(CompoundDerivative):
         if op.is_cellwise_constant():
             ufl_assert(op.ufl_shape == self.ufl_operands[0].ufl_shape,
                        "Operand shape mismatch in ReferenceGrad reconstruct.")
-            ufl_assert(self.ufl_operands[0].free_indices() == op.free_indices(),
+            ufl_assert(self.ufl_operands[0].ufl_free_indices == op.ufl_free_indices,
                        "Free index mismatch in ReferenceGrad reconstruct.")
-            return Zero(self.ufl_shape, self.free_indices(),
-                        self.index_dimensions())
+            return Zero(self.ufl_shape, self.ufl_free_indices, self.ufl_index_dimensions)
         return self.__class__._ufl_class_(op)
 
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
@@ -244,9 +217,8 @@ class Div(CompoundDerivative):
     __slots__ = ()
 
     def __new__(cls, f):
-        ufl_assert(not f.free_indices(), \
-            "TODO: Taking divergence of an expression with free indices,"\
-            "should this be a valid expression? Please provide examples!")
+        ufl_assert(not f.ufl_free_indices,
+            "Free indices in the divergence argument is not allowed.")
 
         # Return zero if expression is trivially constant
         if f.is_cellwise_constant():
@@ -275,9 +247,7 @@ class NablaGrad(CompoundDerivative):
         # Return zero if expression is trivially constant
         if f.is_cellwise_constant():
             dim = f.geometric_dimension()
-            free_indices = f.free_indices()
-            index_dimensions = subdict(f.index_dimensions(), free_indices)
-            return Zero((dim,) + f.ufl_shape, free_indices, index_dimensions)
+            return Zero((dim,) + f.ufl_shape, f.ufl_free_indices, f.ufl_index_dimensions)
         return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):
@@ -289,10 +259,10 @@ class NablaGrad(CompoundDerivative):
         if op.is_cellwise_constant():
             ufl_assert(op.ufl_shape == self.ufl_operands[0].ufl_shape,
                        "Operand shape mismatch in NablaGrad reconstruct.")
-            ufl_assert(self.ufl_operands[0].free_indices() == op.free_indices(),
+            ufl_assert(self.ufl_operands[0].ufl_free_indices == op.ufl_free_indices,
                        "Free index mismatch in NablaGrad reconstruct.")
-            return Zero(self.ufl_shape, self.free_indices(),
-                        self.index_dimensions())
+            return Zero(self.ufl_shape, self.ufl_free_indices,
+                        self.ufl_index_dimensions)
         return self.__class__._ufl_class_(op)
 
     @property
@@ -310,9 +280,8 @@ class NablaDiv(CompoundDerivative):
     __slots__ = ()
 
     def __new__(cls, f):
-        ufl_assert(not f.free_indices(), \
-            "TODO: Taking divergence of an expression with free indices,"\
-            "should this be a valid expression? Please provide examples!")
+        ufl_assert(not f.ufl_free_indices,
+            "Free indices in the divergence argument is not allowed.")
 
         # Return zero if expression is trivially constant
         if f.is_cellwise_constant():
@@ -342,16 +311,13 @@ class Curl(CompoundDerivative):
         # Validate input
         sh = f.ufl_shape
         ufl_assert(f.ufl_shape in ((), (2,), (3,)), "Expecting a scalar, 2D vector or 3D vector.")
-        ufl_assert(not f.free_indices(), \
-            "TODO: Taking curl of an expression with free indices, should this be a valid expression? Please provide examples!")
+        ufl_assert(not f.ufl_free_indices,
+            "Free indices in the curl argument is not allowed.")
 
         # Return zero if expression is trivially constant
         if f.is_cellwise_constant():
             sh = { (): (2,), (2,): (), (3,): (3,) }[sh]
-            #free_indices = f.free_indices()
-            #index_dimensions = subdict(f.index_dimensions(), free_indices)
-            #return Zero((f.geometric_dimension(),), free_indices, index_dimensions)
-            return Zero(sh)
+            return Zero(sh) # No free indices asserted above
         return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):
