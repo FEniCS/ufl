@@ -334,6 +334,46 @@ def merge_nonoverlapping_indices(a, b):
 
 
 # Product
+def merge_overlapping_indices(afi, afid, bfi, bfid):
+    """Merge overlapping free indices into one free and one repeated representation.
+
+    Example:
+      C[j,r] := A[i,j,k] * B[i,r,k]
+      A, B -> (j,r), (jdim,rdim), (i,k), (idim,kdim)
+    """
+
+    # Extract input properties
+    an = len(afi)
+    bn = len(bfi)
+
+    # Lists to return
+    free_indices = []
+    index_dimensions = []
+    repeated_indices = []
+    repeated_index_dimensions = []
+
+    # Find repeated indices, brute force version
+    for i0 in range(an):
+        for i1 in range(bn):
+            if afi[i0] == bfi[i1]:
+                repeated_indices.append(afi[i0])
+                repeated_index_dimensions.append(afid[i0])
+                break
+
+    # Collect only non-repeated indices, brute force version
+    for i, d in sorted(zip(afi + bfi, afid + bfid)):
+        if i not in repeated_indices:
+            free_indices.append(i)
+            index_dimensions.append(d)
+
+    # Consistency checks
+    ufl_assert(len(set(free_indices)) == len(free_indices), "Not expecting repeated indices left.")
+    ufl_assert(len(free_indices) + 2*len(repeated_indices) == an + bn, "Expecting only twice repeated indices.")
+
+    return tuple(free_indices), tuple(index_dimensions), tuple(repeated_indices), tuple(repeated_index_dimensions)
+
+
+# Product
 def new_merge_overlapping_indices(a, b):
     """Merge overlapping free indices into one free and one repeated representation.
 

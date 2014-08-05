@@ -338,7 +338,7 @@ class ForwardADTestCase(UflTestCase):
         w = Coefficient(collection.shared_objects.W)
 
         #for t in chain(collection.noncompounds, collection.compounds):
-        debug = True
+        #debug = True
         for t in collection.noncompounds:
             for var in (u, v, w):
                 if debug: print('\n', 'shapes:   ', t.ufl_shape, var.ufl_shape, '\n')

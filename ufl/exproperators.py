@@ -36,7 +36,7 @@ from ufl.indexutils import repeated_indices, single_indices
 from ufl.tensors import as_tensor, ComponentTensor
 from ufl.restriction import PositiveRestricted, NegativeRestricted
 from ufl.differentiation import Grad
-from ufl.index_combination_utils import create_slice_indices, find_repeated_free_indices
+from ufl.index_combination_utils import create_slice_indices, find_repeated_free_indices, merge_overlapping_indices
 
 
 #--- Boolean operators ---
@@ -88,77 +88,70 @@ Expr.__ge__ = _ge
 
 def _mult(a, b):
     # Discover repeated indices, which results in index sums
-    ai = a.free_indices()
-    bi = b.free_indices()
-    ii = ai + bi
-    ri = repeated_indices(ii)
+    afi = a.ufl_free_indices
+    bfi = b.ufl_free_indices
+    afid = a.ufl_index_dimensions
+    bfid = b.ufl_index_dimensions
+    fi, fid, ri, rid = merge_overlapping_indices(afi, afid, bfi, bfid)
 
     # Pick out valid non-scalar products here (dot products):
     # - matrix-matrix (A*B, M*grad(u)) => A . B
     # - matrix-vector (A*v) => A . v
     s1, s2 = a.ufl_shape, b.ufl_shape
     r1, r2 = len(s1), len(s2)
-    if r1 == 2 and r2 in (1, 2):
-        ufl_assert(not ri, "Not expecting repeated indices in non-scalar product.")
 
-        # Check for zero, simplifying early if possible
-        if isinstance(a, Zero) or isinstance(b, Zero):
-            shape = s1[:-1] + s2[1:]
-            fi = single_indices(ii)
-            idims = mergedicts((a.index_dimensions(), b.index_dimensions()))
-            idims = subdict(idims, fi)
-            return Zero(shape, fi, idims)
+    if r1 == 0 and r2 == 0:
+        # Create scalar product
+        p = Product(a, b)
+        ti = ()
 
-        # Return dot product in index notation
-        ai = indices(a.rank()-1)
-        bi = indices(b.rank()-1)
-        k = indices(1)
-        s = a[ai+k]*b[k+bi]
-        return as_tensor(s, ai+bi)
-
-    elif not (r1 == 0 and r2 == 0):
-
+    elif r1 == 0 or r2 == 0:
         # Scalar - tensor product
         if r2 == 0:
             a, b = b, a
-            s1, s2 = s2, s1
 
         # Check for zero, simplifying early if possible
         if isinstance(a, Zero) or isinstance(b, Zero):
-            shape = s2
-            fi = single_indices(ii)
-            idims = mergedicts((a.index_dimensions(), b.index_dimensions()))
-            idims = subdict(idims, fi)
-            return Zero(shape, fi, idims)
+            shape = s1 or s2
+            return Zero(shape, fi, fid)
 
         # Repeated indices are allowed, like in:
         #v[i]*M[i,:]
 
         # Apply product to scalar components
-        ii = indices(b.rank())
-        p = Product(a, b[ii])
+        ti = indices(b.rank())
+        p = Product(a, b[ti])
 
-        # TODO: I think applying as_tensor after index sums results in cleaner expression graphs.
+    elif r1 == 2 and r2 in (1, 2): # Matrix-matrix or matrix-vector
+        ufl_assert(not ri, "Not expecting repeated indices in non-scalar product.")
 
-        # Wrap as tensor again
-        p = as_tensor(p, ii)
+        # Check for zero, simplifying early if possible
+        if isinstance(a, Zero) or isinstance(b, Zero):
+            shape = s1[:-1] + s2[1:]
+            return Zero(shape, fi, fid)
 
-        # If any repeated indices were found, apply implicit summation over those
-        for i in ri:
-            mi = MultiIndex((i,))
-            p = IndexSum(p, mi)
+        # Return dot product in index notation
+        ai = indices(a.rank() - 1)
+        bi = indices(b.rank() - 1)
+        k = indices(1)
 
-        return p
+        p = a[ai + k] * b[k + bi]
+        ti = ai + bi
+
     else:
-        # Create scalar product
-        p = Product(a, b)
+        error("Invalid ranks {0} and {1} in product.".format(r1, r2))
 
-        # If any repeated indices were found, apply implicit summation over those
-        for i in ri:
-            mi = MultiIndex((i,))
-            p = IndexSum(p, mi)
+    # TODO: I think applying as_tensor after index sums results in cleaner expression graphs.
+    # Wrap as tensor again
+    if ti:
+        p = as_tensor(p, ti)
 
-        return p
+    # If any repeated indices were found, apply implicit summation over those
+    for i in ri:
+        mi = MultiIndex((Index(count=i),))
+        p = IndexSum(p, mi)
+
+    return p
 
 #--- Extend Expr with algebraic operators ---
 
