@@ -79,9 +79,9 @@ class Sum(Operator):
             # Place scalar first
             #operands = (b, a)
             a, b = b, a
-        elif a == b:
-            # Replace a+b with 2*foo
-            return 2*a
+        #elif a == b:
+        #    # Replace a+b with 2*foo
+        #    return 2*a
         else:
             # Otherwise sort operands in a canonical order
             #operands = (b, a)
@@ -161,9 +161,9 @@ class Product(Operator):
             if b._value == 1:
                 return a
             a, b = b, a
-        elif a == b: # a * a = a**2 # TODO: Why? Maybe just remove this?
-            if not a.ufl_free_indices:
-                return a**2
+        #elif a == b: # a * a = a**2 # TODO: Why? Maybe just remove this?
+        #    if not a.ufl_free_indices:
+        #        return a**2
         else: # a * b = b * a
             # Sort operands in a semi-canonical order
             # (NB! This is fragile! Small changes here can have large effects.)
@@ -239,8 +239,8 @@ class Division(Operator):
         if isinstance(a, ScalarValue) and isinstance(b, ScalarValue):
             return as_ufl(float(a._value) / float(b._value))
         # Simplification "a / a" -> "1"
-        if not a.ufl_free_indices and not a.ufl_shape and a == b:
-            return as_ufl(1)
+        #if not a.ufl_free_indices and not a.ufl_shape and a == b:
+        #    return as_ufl(1)
 
         # Construction
         self = Operator.__new__(cls)
