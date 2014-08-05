@@ -120,9 +120,9 @@ def nonrecursive_expr_equals(self, other):
     while left:
         s, o = left.pop()
 
-        if self._ufl_is_terminal_:
+        if s._ufl_is_terminal_:
             # Compare terminals
-            if self != other:
+            if not s == o:
                 return False
         else:
             # Delve into subtrees
