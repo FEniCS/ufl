@@ -113,11 +113,11 @@ def _mult(a, b):
         ai = indices(a.rank()-1)
         bi = indices(b.rank()-1)
         k = indices(1)
-        # Create an IndexSum over a Product
         s = a[ai+k]*b[k+bi]
         return as_tensor(s, ai+bi)
 
     elif not (r1 == 0 and r2 == 0):
+
         # Scalar - tensor product
         if r2 == 0:
             a, b = b, a
@@ -138,24 +138,27 @@ def _mult(a, b):
         ii = indices(b.rank())
         p = Product(a, b[ii])
 
+        # TODO: I think applying as_tensor after index sums results in cleaner expression graphs.
+
         # Wrap as tensor again
         p = as_tensor(p, ii)
 
-        # TODO: Should we apply IndexSum or as_tensor first?
-
-        # Apply index sums
+        # If any repeated indices were found, apply implicit summation over those
         for i in ri:
             mi = MultiIndex((i,))
             p = IndexSum(p, mi)
 
         return p
+    else:
+        # Create scalar product
+        p = Product(a, b)
 
-    # Scalar products use Product and IndexSum for implicit sums:
-    p = Product(a, b)
-    for i in ri:
-        mi = MultiIndex((i,))
-        p = IndexSum(p, mi)
-    return p
+        # If any repeated indices were found, apply implicit summation over those
+        for i in ri:
+            mi = MultiIndex((i,))
+            p = IndexSum(p, mi)
+
+        return p
 
 #--- Extend Expr with algebraic operators ---
 
