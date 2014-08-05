@@ -71,8 +71,9 @@ Expr.__eq__ = expr_equals
 
 # != is used at least by tests, possibly in code as well, and must mean
 # the opposite of ==, i.e. when evaluated as bool it must mean 'not equal representation'.
-# We achieve this by not defining it such that == is used and negated by Python.
-#Expr.__ne__ = _ne
+def _ne(self, other):
+    return not self.__eq__(other)
+Expr.__ne__ = _ne
 
 Expr.__lt__ = _lt
 Expr.__gt__ = _gt
