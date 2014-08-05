@@ -30,6 +30,7 @@ from ufl.operatorbase import Operator
 from ufl.constantvalue import Zero, zero, ScalarValue, IntValue, as_ufl
 from ufl.checks import is_ufl_scalar, is_true_ufl_scalar
 from ufl.indexutils import unique_indices
+from ufl.index_combination_utils import merge_unique_indices
 from ufl.sorting import sorted_expr
 from ufl.precedence import parstr
 from ufl.core.ufl_type import ufl_type
@@ -129,71 +130,64 @@ class Sum(Operator):
           binop="__mul__", rbinop="__rmul__")
 class Product(Operator):
     """The product of two or more UFL objects."""
-    __slots__ = ("_free_indices", "_index_dimensions",)
+    __slots__ = ("ufl_free_indices", "ufl_index_dimensions",)
 
     def __new__(cls, a, b):
-        # Make sure everything is an Expr
+        # Conversion
         a = as_ufl(a)
         b = as_ufl(b)
-        operands = (a, b) # TODO: Temporary, rewrite below code to use a,b
 
+        # Type checking
         # Make sure everything is scalar
         if a.ufl_shape or b.ufl_shape:
             error("Product can only represent products of scalars.")
 
-        # Got any zeros? Return zero.
+        # Simplification
         if isinstance(a, Zero) or isinstance(b, Zero):
-            free_indices     = unique_indices(tuple(chain(a.free_indices(), b.free_indices())))
-            index_dimensions = subdict(mergedicts2(a.index_dimensions(), b.index_dimensions()), free_indices)
-            return Zero((), free_indices, index_dimensions)
-
-        # Merge if both are scalars
+            # Got any zeros? Return zero.
+            fi, fid = merge_unique_indices(a.ufl_free_indices, a.ufl_index_dimensions,
+                                           b.ufl_free_indices, b.ufl_index_dimensions)
+            return Zero((), fi, fid)
         sa = isinstance(a, ScalarValue)
         sb = isinstance(b, ScalarValue)
-        if sa and sb:
+        if sa and sb: # const * const = const
             # FIXME: Handle free indices like with zero? I think IntValue may be index annotated now?
             return as_ufl(a._value * b._value)
-        elif sa:
+        elif sa: # 1 * b = b
             if a._value == 1:
                 return b
             # a, b = a, b
-        elif sb:
+        elif sb: # a * 1 = a
             if b._value == 1:
                 return a
             a, b = b, a
-        elif a == b:
-            # Replace a*a with a**2 # TODO: Why? Maybe just remove this?
-            if not a.free_indices():
+        elif a == b: # a * a = a**2 # TODO: Why? Maybe just remove this?
+            if not a.ufl_free_indices:
                 return a**2
-        else:
-            # Sort operands in a canonical order (NB! This is fragile! Small changes here can have large effects.)
+        else: # a * b = b * a
+            # Sort operands in a semi-canonical order
+            # (NB! This is fragile! Small changes here can have large effects.)
             a, b = sorted_expr((a, b))
 
-        # Construct and initialize a new Product object
+        # Construction
         self = Operator.__new__(cls)
         self._init(a, b)
         return self
 
     def _init(self, a, b):
         "Constructor, called by __new__ with already checked arguments."
-        # Store basic properties
         self.ufl_operands = (a, b)
 
         # Extract indices
-        self._free_indices     = unique_indices(tuple(chain(a.free_indices(), b.free_indices())))
-        #self._index_dimensions = frozendict(chain(iteritems(o.index_dimensions()) for o in (a,b))) or EmptyDict
-        self._index_dimensions = mergedicts2(a.index_dimensions(), b.index_dimensions()) or EmptyDict
+        fi, fid = merge_unique_indices(a.ufl_free_indices, a.ufl_index_dimensions,
+                                       b.ufl_free_indices, b.ufl_index_dimensions)
+        self.ufl_free_indices = fi
+        self.ufl_index_dimensions = fid
 
     def __init__(self, a, b):
         Operator.__init__(self)
 
     ufl_shape = ()
-
-    def free_indices(self):
-        return self._free_indices
-
-    def index_dimensions(self):
-        return self._index_dimensions
 
     def evaluate(self, x, mapping, component, index_values):
         ops = self.ufl_operands
@@ -209,29 +203,11 @@ class Product(Operator):
         return tmp
 
     def __str__(self):
-        ops = [parstr(o, self) for o in self.ufl_operands]
-        if False:
-            # Implementation with line splitting:
-            limit = 70
-            delimop = " * \\\n    * "
-            op = " * "
-            s = ops[0]
-            n = len(s)
-            for o in ops[1:]:
-                m = len(o)
-                if n+m > limit:
-                    s += delimop
-                    n = m
-                else:
-                    s += op
-                    n += m
-                s += o
-            return s
-        # Implementation with no line splitting:
-        return "%s" % " * ".join(ops)
+        a, b = self.ufl_operands
+        return " * ".join((parstr(a, self), parstr(b, self)))
 
     def __repr__(self):
-        return "Product(%s)" % ", ".join(repr(o) for o in self.ufl_operands)
+        return "Product(%r, %r)" % self.ufl_operands
 
 @ufl_type(num_ops=2,
           inherit_indices_from_operand=0,
@@ -240,10 +216,11 @@ class Division(Operator):
     __slots__ = ()
 
     def __new__(cls, a, b):
+        # Conversion
         a = as_ufl(a)
         b = as_ufl(b)
 
-        # Assertions
+        # Type checking
         # TODO: Enabled workaround for nonscalar division in __div__,
         # so maybe we can keep this assertion. Some algorithms may need updating.
         if not is_ufl_scalar(a):
@@ -253,6 +230,7 @@ class Division(Operator):
         if isinstance(b, Zero):
             error("Division by zero!")
 
+        # Simplification
         # Simplification a/b -> a
         if isinstance(a, Zero) or (isinstance(b, ScalarValue) and b._value == 1):
             return a
@@ -261,18 +239,15 @@ class Division(Operator):
         if isinstance(a, ScalarValue) and isinstance(b, ScalarValue):
             return as_ufl(float(a._value) / float(b._value))
         # Simplification "a / a" -> "1"
-        if not a.free_indices() and not a.ufl_shape and a == b:
+        if not a.ufl_free_indices and not a.ufl_shape and a == b:
             return as_ufl(1)
 
-        # construct and initialize a new Division object
+        # Construction
         self = Operator.__new__(cls)
         self._init(a, b)
         return self
 
     def _init(self, a, b):
-        #ufl_assert(isinstance(a, Expr) and isinstance(b, Expr), "Expecting Expr instances.")
-        if not (isinstance(a, Expr) and isinstance(b, Expr)):
-            error("Expecting Expr instances.")
         self.ufl_operands = (a, b)
 
     def __init__(self, a, b):
@@ -300,11 +275,17 @@ class Power(Operator):
     __slots__ = ()
 
     def __new__(cls, a, b):
+        # Conversion
         a = as_ufl(a)
         b = as_ufl(b)
-        if not is_true_ufl_scalar(a): error("Cannot take the power of a non-scalar expression.")
-        if not is_true_ufl_scalar(b): error("Cannot raise an expression to a non-scalar power.")
 
+        # Type checking
+        if not is_true_ufl_scalar(a):
+            error("Cannot take the power of a non-scalar expression.")
+        if not is_true_ufl_scalar(b):
+            error("Cannot raise an expression to a non-scalar power.")
+
+        # Simplification
         if isinstance(a, ScalarValue) and isinstance(b, ScalarValue):
             return as_ufl(a._value ** b._value)
         if isinstance(a, Zero) and isinstance(b, ScalarValue):
@@ -318,15 +299,12 @@ class Power(Operator):
         if isinstance(b, Zero):
             return IntValue(1)
 
-        # construct and initialize a new Power object
+        # Construction
         self = Operator.__new__(cls)
         self._init(a, b)
         return self
 
     def _init(self, a, b):
-        #ufl_assert(isinstance(a, Expr) and isinstance(b, Expr), "Expecting Expr instances.")
-        if not (isinstance(a, Expr) and isinstance(b, Expr)):
-            error("Expecting Expr instances.")
         self.ufl_operands = (a, b)
 
     def __init__(self, a, b):
@@ -341,10 +319,11 @@ class Power(Operator):
         return a**b
 
     def __str__(self):
-        return "%s ** %s" % (parstr(self.ufl_operands[0], self), parstr(self.ufl_operands[1], self))
+        a, b = self.ufl_operands
+        return "%s ** %s" % (parstr(a, self), parstr(b, self))
 
     def __repr__(self):
-        return "Power(%r, %r)" % (self.ufl_operands[0], self.ufl_operands[1])
+        return "Power(%r, %r)" % self.ufl_operands
 
 @ufl_type(num_ops=1,
           inherit_shape_from_operand=0, inherit_indices_from_operand=0,
@@ -362,7 +341,8 @@ class Abs(Operator):
         return abs(a)
 
     def __str__(self):
-        return "| %s |" % parstr(self.ufl_operands[0], self)
+        a, = self.ufl_operands
+        return "|%s|" % (parstr(a, self),)
 
     def __repr__(self):
-        return "Abs(%r)" % self.ufl_operands[0]
+        return "Abs(%r)" % self.ufl_operands

@@ -1,6 +1,8 @@
 
 from six.moves import zip
 from six.moves import xrange as range
+from itertools import chain
+
 from collections import namedtuple
 
 from ufl.assertions import ufl_assert
@@ -24,10 +26,84 @@ def unique_sorted_indices(indices):
             newindices.append(i)
             prev = i
         else:
-            if i[1] != prev[1]:
-                print "NONMATCHING:", indices
             ufl_assert(i[1] == prev[1], "Nonmatching dimensions for free indices with same id!")
     return tuple(newindices)
+
+
+def merge_unique_indices(afi, afid, bfi, bfid):
+    """Merge two pairs of (index ids, index dimensions) sequences into one pair without duplicates.
+
+    The id tuples afi, bfi are assumed already sorted by id.
+    Given a list of (id, dim) tuples already sorted by id,
+    return a unique list with duplicates removed.
+    Also checks that the dimensions of duplicates are matching.
+    """
+
+    # TODO: Could be faster to loop over (afi,afid) and (bfi,bfid) in
+    # parallel without presorting because they're both already sorted
+    fiid = sorted(chain(zip(afi, afid), zip(bfi, bfid)))
+
+    newfiid = []
+    prev = (None, None)
+    for curr in fiid:
+        if curr[0] != prev[0]:
+            newfiid.append(curr)
+            prev = curr
+        else:
+            ufl_assert(curr[1] == prev[1], "Nonmatching dimensions for free indices with same id!")
+
+    # Unpack into two tuples
+    fii, fid = zip(*newfiid) if fiid else ((), ())
+    return fii, fid
+
+
+def remove_indices(fi, fid, rfi):
+    """
+    """
+    if not rfi:
+        return fi, fid
+
+    rfip = sorted((r,p) for p, r in enumerate(rfi))
+
+    nrfi = len(rfi)
+    nfi = len(fi)
+    shape = [None]*nrfi
+    k = 0
+    pos = 0
+    newfiid = []
+    while pos < nfi:
+        rk = rfip[k][0]
+
+        # Keep
+        while fi[pos] < rk:
+            newfiid.append((fi[pos], fid[pos]))
+            pos += 1
+
+        # Skip
+        removed = 0
+        while pos < nfi and fi[pos] == rk:
+            shape[rfip[k][1]] = fid[pos]
+            pos += 1
+            removed += 1
+
+        # Expecting to find each index from rfi in fi
+        if not removed:
+            error("Index to be removed ({0}) not part of indices ({1}).".format(rk, fi))
+
+        # Next to remove
+        k += 1
+        if k == nrfi:
+            # No more to remove, keep the rest
+            if pos < nfi:
+                newfiid.extend(zip(fi[pos:], fid[pos:]))
+            break
+
+    assert None not in shape
+
+    # Unpack into two tuples
+    fi, fid = zip(*newfiid) if newfiid else ((), ())
+
+    return fi, fid, tuple(shape)
 
 
 def create_slice_indices(component, shape):

@@ -35,6 +35,11 @@ def test_object(a, shape, free_indices):
 
     # Compare with provided properties
     if free_indices is not None:
+        if len(set(fi) ^ set(free_indices)) != 0:
+            print type(a)
+            print a
+            print fi
+            print free_indices
         assert len(set(fi) ^ set(free_indices)) == 0
     if shape is not None:
         if sh != shape:

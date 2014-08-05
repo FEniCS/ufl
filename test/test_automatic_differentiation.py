@@ -82,6 +82,16 @@ class ExpressionCollection(object):
             variable(w*u), 3*variable(w*u),
             ])
 
+        if d == 1:
+            w2 = as_matrix(((u**2,),))
+        if d == 2:
+            w2 = as_matrix(((u**2, u**3),
+                            (u**4, u**5)))
+        if d == 3:
+            w2 = as_matrix(((u**2, u**3, u**4),
+                            (u**4, u**5, u**6),
+                            (u**6, u**7, u**8)))
+
         # Indexed,  ListTensor, ComponentTensor, IndexSum
         i, j, k, l = indices(4)
         self.indexing = ([
@@ -95,8 +105,10 @@ class ExpressionCollection(object):
                 as_tensor(v[i]*w[k, 0], (k, i))[:, l],
                 as_tensor(w[i, j]*w[k, l], (k, j, l, i)),
                 as_tensor(w[i, j]*w[k, l], (k, j, l, i))[0, 0, 0, 0],
-                as_vector((u, 2, 3)), as_matrix(((u**2, u**3), (u**4, u**5))),
-                as_vector((u, 2, 3))[i], as_matrix(((u**2, u**3), (u**4, u**5)))[i, j]*w[i, j],
+                as_vector((u, 2, 3)),
+                as_matrix(((u**2, u**3), (u**4, u**5))),
+                as_vector((u, 2, 3))[i],
+                w2[i, j]*w[i, j],
                 ])
         self.conditionals = ([
             conditional(le(u, 1.0), 1, 0),

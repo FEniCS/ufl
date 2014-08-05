@@ -23,7 +23,7 @@ from ufl.expr import Expr
 from ufl.operatorbase import Operator
 from ufl.indexing import Index, FixedIndex, MultiIndex, as_multi_index
 from ufl.indexutils import unique_indices
-from ufl.index_combination_utils import unique_sorted_indices
+from ufl.index_combination_utils import unique_sorted_indices, merge_unique_indices
 from ufl.precedence import parstr
 from ufl.common import EmptyDict
 from ufl.core.ufl_type import ufl_type
@@ -56,17 +56,24 @@ class Indexed(Operator):
             error("Fixed index out of range!")
 
         # Build tuples of free index ids and dimensions
-        efi = expression.ufl_free_indices
-        efid = expression.ufl_index_dimensions
-        fi = list(zip(efi, efid))
-        for pos, ind in enumerate(multiindex._indices):
-            if isinstance(ind, Index):
-                fi.append((ind.count(), shape[pos]))
-        fi = unique_sorted_indices(sorted(fi))
-        if fi:
-            fi, fid = zip(*fi)
+        if 1:
+            efi = expression.ufl_free_indices
+            efid = expression.ufl_index_dimensions
+            fi = list(zip(efi, efid))
+            for pos, ind in enumerate(multiindex._indices):
+                if isinstance(ind, Index):
+                    fi.append((ind.count(), shape[pos]))
+            fi = unique_sorted_indices(sorted(fi))
+            if fi:
+                fi, fid = zip(*fi)
+            else:
+                fi, fid = (), ()
+
         else:
-            fi, fid = (), ()
+            mfiid = [(ind.count(), shape[pos]) for pos, ind in enumerate(multiindex._indices) if isinstance(ind, Index)]
+            mfi, mfid = zip(*mfiid) if mfiid else ((), ())
+            fi, fid = merge_unique_indices(expression.ufl_free_indices, expression.ufl_index_dimensions, mfi, mfid)
+
 
         # Cache free index and dimensions
         self.ufl_free_indices = fi

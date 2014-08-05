@@ -28,6 +28,7 @@ from ufl.operatorbase import Operator
 from ufl.constantvalue import as_ufl, Zero
 from ufl.indexing import Index, FixedIndex, MultiIndex, indices
 from ufl.indexed import Indexed
+from ufl.index_combination_utils import remove_indices
 from ufl.core.ufl_type import ufl_type
 
 # --- Classes representing tensors of UFL expressions ---
@@ -45,21 +46,21 @@ class ListTensor(Operator):
         # Get properties of the first expression
         e0 = expressions[0]
         sh    = e0.ufl_shape
-        fi    = e0.free_indices()
-        idim  = e0.index_dimensions()
+        fi    = e0.ufl_free_indices
+        fid   = e0.ufl_index_dimensions
 
         # Obviously, each subexpression must have the same shape
-        if any(sh != e.ufl_shape for e in expressions):
+        if any(sh != e.ufl_shape for e in expressions[1:]):
             error("Cannot create a tensor by joining subexpressions with different shapes.")
-        if any(set(fi) - set(e.free_indices()) for e in expressions):
+        if any(fi != e.ufl_free_indices for e in expressions[1:]):
             error("Cannot create a tensor where the components have different free indices.")
-        if any(idim != e.index_dimensions() for e in expressions):
-            error("Cannot create a tensor where the free indices of the components have different dimensions.")
+        if any(fid != e.ufl_index_dimensions for e in expressions[1:]):
+            error("Cannot create a tensor where the components have different free index dimensions.")
 
         # Simplify to Zero if possible
         if all(isinstance(e, Zero) for e in expressions):
             shape = (len(expressions),) + sh
-            return Zero(shape, fi, idim)
+            return Zero(shape, fi, fid)
 
         return Operator.__new__(cls)
 
@@ -67,8 +68,8 @@ class ListTensor(Operator):
         Operator.__init__(self, expressions)
 
         # Checks
-        indexset = set(self.ufl_operands[0].free_indices())
-        ufl_assert(all(not (indexset ^ set(e.free_indices())) for e in self.ufl_operands),\
+        indexset = set(self.ufl_operands[0].ufl_free_indices)
+        ufl_assert(all(not (indexset ^ set(e.ufl_free_indices)) for e in self.ufl_operands),\
             "Can't combine subtensor expressions with different sets of free indices.")
 
     @property
@@ -127,15 +128,18 @@ class ListTensor(Operator):
 @ufl_type(is_shaping=True, num_ops="varying")
 class ComponentTensor(Operator):
     """UFL operator type: Maps the free indices of a scalar valued expression to tensor axes."""
-    __slots__ = ("_free_indices", "_index_dimensions", "ufl_shape")
+    __slots__ = ("ufl_shape", "ufl_free_indices", "ufl_index_dimensions")
 
     def __new__(cls, expression, indices):
+
+        # Simplify
         if isinstance(expression, Zero):
-            dims = expression.index_dimensions()
-            shape = tuple(dims[i] for i in indices)
-            fi = tuple(set(expression.free_indices()) - set(indices))
-            idim = dict((i, dims[i]) for i in fi)
-            return Zero(shape, fi, idim)
+            fi, fid, sh = remove_indices(expression.ufl_free_indices,
+                                         expression.ufl_index_dimensions,
+                                         [ind.count() for ind in indices])
+            return Zero(sh, fi, fid)
+
+        # Construct
         return Operator.__new__(cls)
 
     def __init__(self, expression, indices):
@@ -147,17 +151,12 @@ class ComponentTensor(Operator):
 
         Operator.__init__(self, (expression, indices))
 
-        eset = set(expression.free_indices())
-        iset = set(indices)
-        freeset = eset - iset
-        missingset = iset - eset
-        if missingset:
-            error("Missing indices %s in expression %s." % (missingset, expression))
-        dims = expression.index_dimensions()
-
-        self._free_indices = tuple(freeset)
-        self._index_dimensions = dict((i, dims[i]) for i in self._free_indices) or EmptyDict
-        self.ufl_shape = tuple(dims[i] for i in indices)
+        fi, fid, sh = remove_indices(expression.ufl_free_indices,
+                                 expression.ufl_index_dimensions,
+                                 [ind.count() for ind in indices])
+        self.ufl_free_indices = fi
+        self.ufl_index_dimensions = fid
+        self.ufl_shape = sh
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
@@ -174,12 +173,6 @@ class ComponentTensor(Operator):
 
     def indices(self):
         return self.ufl_operands[1]
-
-    def free_indices(self):
-        return self._free_indices
-
-    def index_dimensions(self):
-        return self._index_dimensions
 
     def evaluate(self, x, mapping, component, index_values):
         indices = self.ufl_operands[1]

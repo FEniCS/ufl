@@ -76,10 +76,10 @@ class TerminalHashDataTestCase(UflTestCase):
         reprs = set()
         hashes = set()
         def forms():
-            domain = as_domain(triangle)
-            x = SpatialCoordinate(domain)
             i, j = indices(2)
             for d in (2, 3):
+                domain = as_domain({2:triangle,3:tetrahedron}[d])
+                x = SpatialCoordinate(domain)
                 I = Identity(d)
                 for fv in (1.1, 2.2):
                     for iv in (5, 7):
