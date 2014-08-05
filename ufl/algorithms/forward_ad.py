@@ -83,23 +83,10 @@ class ForwardAD(Transformer):
             debug("  fi_diff: %s" % str(fi_diff))
         return r
 
-    def _new_make_zero_diff(self, o): # INDEXING
-        # Define a zero with the right indices
-        # (kind of cumbersome this... any simpler way?)
-        sh = o.ufl_shape + self._var_shape
-        fi = o.ufl_free_indices
-        fid = o.ufl_index_dimensions
-        fp = Zero(sh, fi, fid) # INDEXING: Change format
-        return fp
-
     def _make_zero_diff(self, o):
-        # Define a zero with the right indices
-        # (kind of cumbersome this... any simpler way?)
-        sh = o.ufl_shape + self._var_shape
-        fi = o.free_indices()
-        idims = o.index_dimensions()
-        fp = Zero(sh, fi, idims)
-        return fp
+        # Define a zero with the right shape and indices
+        return Zero(o.ufl_shape + self._var_shape, o.ufl_free_indices, o.ufl_index_dimensions)
+
     # --- Default rules
 
     def expr(self, o):

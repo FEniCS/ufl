@@ -48,30 +48,31 @@ class IndexRenumberingTransformer(VariableRenumberingTransformer):
         self.index_map = {}
 
     def zero(self, o):
-        new_indices = tuple(map(self.index, o.free_indices()))
+        new_indices = tuple(self.index(Index(count=i) for i in o.ufl_free_indices))
         return o.reconstruct(new_indices)
 
     def index(self, o):
         if isinstance(o, FixedIndex):
             return o
-        c = o._count
-        i = self.index_map.get(c)
-        if i is None:
-            i = Index(len(self.index_map))
-            self.index_map[c] = i
-        return i
+        else:
+            c = o._count
+            i = self.index_map.get(c)
+            if i is None:
+                i = Index(count=len(self.index_map))
+                self.index_map[c] = i
+            return i
 
     def multi_index(self, o):
         return MultiIndex(tuple(self.index(i) for i in o.indices()))
 
 def renumber_indices(expr):
     if isinstance(expr, Expr):
-        num_free_indices = len(expr.free_indices())
+        num_free_indices = len(expr.ufl_free_indices)
         #error("Not expecting any free indices left in expression.")
 
     result = apply_transformer(expr, IndexRenumberingTransformer())
 
     if isinstance(expr, Expr):
-        ufl_assert(num_free_indices == len(result.free_indices()),
+        ufl_assert(num_free_indices == len(result.ufl_free_indices),
                    "The number of free indices left in expression should be invariant w.r.t. renumbering.")
     return result

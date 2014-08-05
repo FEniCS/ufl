@@ -24,7 +24,7 @@ from ufl.algebra import Operator
 from ufl.precedence import parstr
 from ufl.sorting import sorted_expr
 from ufl.core.ufl_type import ufl_type
-from ufl.index_combination_utils import merge_indices, merge_nonoverlapping_indices
+from ufl.index_combination_utils import merge_nonoverlapping_indices
 
 
 ### Algebraic operations on tensors:

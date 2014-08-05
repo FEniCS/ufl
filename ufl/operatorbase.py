@@ -91,13 +91,3 @@ class Operator(Expr):
     def index_dimensions(self):
         "Intermediate helper property getter to transition from .index_dimensions() to .ufl_index_dimensions."
         return { Index(count=i): d for i, d in zip(self.ufl_free_indices, self.ufl_index_dimensions) }
-
-    @property
-    def ufl_free_indices(self):
-        "Intermediate helper property getter to transition from .free_indices() to .ufl_free_indices."
-        return tuple(sorted(i.count() for i in self.free_indices()))
-
-    @property
-    def ufl_index_dimensions(self):
-        "Intermediate helper property getter to transition from .index_dimensions() to .ufl_index_dimensions."
-        return tuple(d for i, d in sorted(iteritems(self.index_dimensions()), key=lambda x: x[0].count()))

@@ -40,8 +40,8 @@ from ufl.algorithms.analysis import extract_arguments, expr_has_terminal_types
 from ufl.algorithms.transformer import Transformer, transform_integrands
 from ufl.algorithms.replace import replace
 
-def zero(e):
-    return Zero(e.ufl_shape, e.free_indices(), e.index_dimensions())
+def zero_expr(e):
+    return Zero(e.ufl_shape, e.ufl_free_indices, e.ufl_index_dimensions)
 
 class PartExtracter(Transformer):
     """
@@ -74,7 +74,7 @@ class PartExtracter(Transformer):
         # If the extracted part is zero or we provide more than we
         # want, return zero
         if isinstance(part, Zero) or (provides - self._want):
-            return (zero(x), set())
+            return (zero_expr(x), set())
 
         # Reuse varible if possible (or reconstruct from part)
         x = self.reuse_if_possible(x, part, label)
@@ -89,7 +89,7 @@ class PartExtracter(Transformer):
 
         # If we provide more than we want, return zero
         if provides - self._want:
-            return (zero(x), set())
+            return (zero_expr(x), set())
 
         return (x, provides)
 
@@ -145,7 +145,7 @@ class PartExtracter(Transformer):
 
         # 2. If there are no remaining terms, return zero
         if not parts_that_provide:
-            return (zero(x), set())
+            return (zero_expr(x), set())
 
         # 3. Return the terms that provide the biggest set
         most_provided = frozenset()
@@ -177,7 +177,7 @@ class PartExtracter(Transformer):
 
             # If any factor is zero, return
             if isinstance(factor, Zero):
-                return (zero(x), set())
+                return (zero_expr(x), set())
 
             # Add factor to factors and extend provides
             factors.append(factor)
@@ -185,7 +185,7 @@ class PartExtracter(Transformer):
 
             # If we provide more than we want, return zero
             if provides - self._want:
-                return (zero(x), provides)
+                return (zero_expr(x), provides)
 
         # Reuse product if possible (or reconstruct from factors)
         x = self.reuse_if_possible(x, *factors)
@@ -213,7 +213,7 @@ class PartExtracter(Transformer):
         # If numerator is zero, return zero. (No need to check whether
         # it provides too much, already checked by visit.)
         if isinstance(numerator_parts, Zero):
-            return (zero(x), set())
+            return (zero_expr(x), set())
 
         # Reuse x if possible, otherwise reconstruct from (parts of)
         # numerator and denominator
@@ -232,7 +232,7 @@ class PartExtracter(Transformer):
         # Discard if part is zero. (No need to check whether we
         # provide too much, already checked by children.)
         if isinstance(part, Zero):
-            return (zero(x), set())
+            return (zero_expr(x), set())
 
         x = self.reuse_if_possible(x, part)
 
@@ -259,7 +259,7 @@ class PartExtracter(Transformer):
         # Return zero if extracted part is zero. (The expression
         # should already have checked if it provides too much.)
         if isinstance(part, Zero):
-            return (zero(x), set())
+            return (zero_expr(x), set())
 
         # Reuse x if possible (or reconstruct by indexing part)
         x = self.reuse_if_possible(x, part, index)

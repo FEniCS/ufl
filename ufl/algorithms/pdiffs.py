@@ -19,9 +19,6 @@ all relevant operands for use with reverse mode AD."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Kristian B. Oelgaard, 2011
-#
-# First added:  2009-01-06
-# Last changed: 2012-04-12
 
 from math import pi
 from ufl.log import error
@@ -55,7 +52,6 @@ class PartialDerivativeComputer(MultiFunction):
 
     def sum(self, f):
         "d/dx_i sum_j x_j = 1"
-        #_1 = IntValue(1, o.free_indices(), o.index_dimensions())
         _1 = IntValue(1) # TODO: Handle non-scalars
         return (_1,)*len(f.ufl_operands)
 
@@ -154,7 +150,7 @@ class PartialDerivativeComputer(MultiFunction):
     def atan_2(self, f):
         """
         f = atan2(x,y)
-        d/dx atan2(x,y) = y / (x**2 + y**2 ) 
+        d/dx atan2(x,y) = y / (x**2 + y**2 )
         d/dy atan2(x,y) = -x / (x**2 + y**2)
         """
         x, y = f.ufl_operands
@@ -250,4 +246,3 @@ class PartialDerivativeComputer(MultiFunction):
 def pdiffs(exprs):
     pd = PartialDerivativeComputer()
     return [pd(e) for e in exprs]
-
