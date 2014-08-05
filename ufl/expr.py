@@ -314,7 +314,7 @@ class Expr(object):
         error("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
 
     def _ufl_evaluate_scalar_(self):
-        if self.ufl_shape != () or self.free_indices() != ():
+        if self.ufl_shape or self.ufl_free_indices:
             raise TypeError("Cannot evaluate a nonscalar expression to a scalar value.")
         return self(()) # No known x
 

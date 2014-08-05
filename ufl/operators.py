@@ -278,7 +278,7 @@ def Dn(f):
     facet normal direction, Dn(f) := dot(grad(f), n)."""
     f = as_ufl(f)
     if f.is_cellwise_constant():
-        return Zero(f.ufl_shape, f.free_indices(), f.index_dimensions())
+        return Zero(f.ufl_shape, f.ufl_free_indices, f.ufl_index_dimensions)
     from ufl.geometry import FacetNormal
     return dot(grad(f), FacetNormal(f.domain()))
 
@@ -403,7 +403,7 @@ def jump(v, n=None):
         # the jump is zero. In other words, I'm assuming that
         # "not v.domains()" is equivalent with "v is a constant".
         # Update: This is NOT true for jump(Expression("x[0]")) from dolfin.
-        return Zero(v.ufl_shape, v.free_indices(), v.index_dimensions())
+        return Zero(v.ufl_shape, v.ufl_free_indices, v.ufl_index_dimensions)
 
 def avg(v):
     "UFL operator: Take the average of v across a facet."

@@ -239,7 +239,7 @@ class Form(object):
             # Allow adding 0 or 0.0 as a no-op, needed for sum([a,b])
             return self
 
-        elif isinstance(other, Zero) and not (other.ufl_shape or other.free_indices()):
+        elif isinstance(other, Zero) and not (other.ufl_shape or other.ufl_free_indices):
             # Allow adding ufl Zero as a no-op, needed for sum([a,b])
             return self
 

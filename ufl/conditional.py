@@ -68,11 +68,9 @@ class BinaryCondition(Condition):
                        "Expecting a Condition, not a %s." % right._ufl_class_)
         else:
             # Binary operators acting on non-boolean expressions allow only scalars
-            ufl_assert(left.ufl_shape == () \
-                           and  right.ufl_shape == (),
+            ufl_assert(left.ufl_shape == () and right.ufl_shape == (),
                        "Expecting scalar arguments.")
-            ufl_assert(left.free_indices() == () \
-                           and right.free_indices() == (),
+            ufl_assert(left.ufl_free_indices == () and right.ufl_free_indices == (),
                        "Expecting scalar arguments.")
 
     def __str__(self):
@@ -215,14 +213,14 @@ class Conditional(Operator):
         tsh = true_value.ufl_shape
         fsh = false_value.ufl_shape
         ufl_assert(tsh == fsh, "Shape mismatch between conditional branches.")
-        tfi = true_value.free_indices()
-        ffi = false_value.free_indices()
+        tfi = true_value.ufl_free_indices
+        ffi = false_value.ufl_free_indices
         ufl_assert(tfi == ffi, "Free index mismatch between conditional branches.")
         if isinstance(condition, (EQ, NE)):
             ufl_assert(    condition.ufl_operands[0].ufl_shape == ()
-                       and condition.ufl_operands[0].free_indices() == ()
+                       and condition.ufl_operands[0].ufl_free_indices == ()
                        and condition.ufl_operands[1].ufl_shape == ()
-                       and condition.ufl_operands[1].free_indices() == (),
+                       and condition.ufl_operands[1].ufl_free_indices == (),
                        "Non-scalar == or != is not allowed.")
 
         Operator.__init__(self, (condition, true_value, false_value))

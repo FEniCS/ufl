@@ -106,13 +106,18 @@ def remove_indices(fi, fid, rfi):
     return fi, fid, tuple(shape)
 
 
-def create_slice_indices(component, shape):
+def create_slice_indices(component, shape, fi):
     all_indices = []
     slice_indices = []
+    repeated_indices = []
+    free_indices = []
 
     for ind in component:
         if isinstance(ind, Index):
             all_indices.append(ind)
+            if ind.count() in fi or ind in free_indices:
+                repeated_indices.append(ind)
+            free_indices.append(ind)
         elif isinstance(ind, FixedIndex):
             ufl_assert(int(ind) < shape[len(all_indices)],
                        "Index out of bounds.")
@@ -133,9 +138,11 @@ def create_slice_indices(component, shape):
             all_indices.extend(ii)
         else:
             error("Not expecting {0}.".format(ind))
+
     ufl_assert(len(all_indices) == len(shape),
                "Component and shape length don't match.")
-    return tuple(all_indices), tuple(slice_indices)
+
+    return tuple(all_indices), tuple(slice_indices), tuple(repeated_indices)
 
 
 def find_repeated_free_indices(free_indices):

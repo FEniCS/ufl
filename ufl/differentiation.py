@@ -73,13 +73,6 @@ class CoefficientDerivative(Derivative):
         return "CoefficientDerivative(%r, %r, %r, %r)"\
             % (self.ufl_operands[0], self.ufl_operands[1], self.ufl_operands[2], self.ufl_operands[3])
 
-def split_indices(expression, idx):
-    idims = dict(expression.index_dimensions())
-    if isinstance(idx, Index) and idims.get(idx) is None:
-        idims[idx] = expression.geometric_dimension()
-    fi = unique_indices(expression.free_indices() + (idx,))
-    return fi, idims
-
 @ufl_type(num_ops=2)
 class VariableDerivative(Derivative):
     __slots__ = ("ufl_shape", "ufl_free_indices", "ufl_index_dimensions",)

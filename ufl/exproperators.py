@@ -36,6 +36,7 @@ from ufl.indexutils import repeated_indices, single_indices
 from ufl.tensors import as_tensor, ComponentTensor
 from ufl.restriction import PositiveRestricted, NegativeRestricted
 from ufl.differentiation import Grad
+from ufl.index_combination_utils import create_slice_indices, find_repeated_free_indices
 
 
 #--- Boolean operators ---
@@ -358,100 +359,56 @@ def analyse_key(ii, rank):
     axis_indices = tuple(i for i in all_indices if i in axis_indices)
     return all_indices, axis_indices
 
-def _getitem(self, key):
-    # Analyse key, getting rid of slices and the ellipsis
-    r = self.rank()
-    all_indices, slice_indices = analyse_key(key, r)
+def _getitem(self, component):
 
-    # Special case for foo[...] => foo
-    if len(all_indices) == len(slice_indices):
-        return self
-
-    # Special case for simplifying ({ai}_i)[i] -> ai
-    if isinstance(self, ComponentTensor):
-        if all_indices == self.indices().indices():
-            return self.ufl_operands[0]
-
-    # Index self, yielding scalar valued expressions
-    mi = MultiIndex(all_indices)
-    a = Indexed(self, mi)
-
-    # Make a tensor from components designated by axis indices
-    if slice_indices:
-        a = as_tensor(a, slice_indices)
-
-    # TODO: Should we apply IndexSum or as_tensor first?
-
-    # Apply sum for each repeated index
-    ri = repeated_indices(self.free_indices() + all_indices)
-    for i in ri:
-        mi = MultiIndex((i,))
-        a = IndexSum(a, mi)
-
-    # Check for zero (last so we can get indices etc from a)
-    if isinstance(self, Zero):
-        shape = a.ufl_shape
-        fi = a.free_indices()
-        idims = subdict(a.index_dimensions(), fi)
-        a = Zero(shape, fi, idims)
-
-    return a
-
-# TODO: Debug and use this implementation instead. I think it will be faster.
-from ufl.index_combination_utils import create_slice_indices, find_repeated_free_indices
-def _getitem2(self, component):
-
+    # Treat component consistently as tuple below
     if not isinstance(component, tuple):
         component = (component,)
 
     shape = self.ufl_shape
 
     # Analyse slices (:) and Ellipsis (...)
-    component_indices, slice_indices = create_slice_indices(component, shape)
+    all_indices, slice_indices, repeated_indices = create_slice_indices(component, shape, self.ufl_free_indices)
 
-    if len(shape) != len(component_indices):
-        error("Invalid number of indices {0} for expression of rank {1}.".format(len(component_indices), len(shape)))
+    # Check that we have the right number of indices for a tensor with this shape
+    if len(shape) != len(all_indices):
+        error("Invalid number of indices {0} for expression of rank {1}.".format(len(all_indices), len(shape)))
 
-    # Special case for foo[...] => foo, foo[:] => foo or similar
-    if len(slice_indices) == len(component_indices):
+    # Special case for simplifying foo[...] => foo, foo[:] => foo or similar
+    if len(slice_indices) == len(all_indices):
         return self
 
-    # Special case for simplifying ({ai}_i)[i] -> ai
+    # Special case for simplifying as_tensor(ai,(i,))[i] => ai
     if isinstance(self, ComponentTensor):
-        if component_indices == self.indices().indices():
+        if all_indices == self.indices().indices():
             return self.ufl_operands[0]
 
-    # Index self, yielding scalar valued expressions
-    mi = MultiIndex(component_indices)
+    # Apply all indices to index self, yielding a scalar valued expression
+    mi = MultiIndex(all_indices)
     a = Indexed(self, mi)
 
-    # TODO: I think applying as_tensor afterwards results in cleaner expression graphs.
+    # TODO: I think applying as_tensor after index sums results in cleaner expression graphs.
 
-    # If any slices or ellipsis was found, wrap as tensor
+    # If the Ellipsis or any slices were found, wrap as tensor
     # valued with the slice indices created at the top here
     if slice_indices:
         a = as_tensor(a, slice_indices)
 
-    # Apply sum for each repeated index
-    all_indices = chain(self.free_indices(), component_indices)
-    free_indices = sorted((i for i in all_indices
-                           if isinstance(i, Index)),
-                           key=lambda x: x.count())
-    repeated_indices = find_repeated_free_indices(free_indices)
+    # If any repeated indices were found, apply implicit summation over those
     for i in repeated_indices:
         mi = MultiIndex((i,))
         a = IndexSum(a, mi)
 
-    # Check for zero (last so we can get indices etc from a)
+    # Check for zero (last so we can get indices etc from a, could possibly be done faster by checking early instead)
     if isinstance(self, Zero):
         shape = a.ufl_shape
-        fi = a.free_indices()
-        idims = subdict(a.index_dimensions(), fi)
-        a = Zero(shape, fi, idims)
+        fi = a.ufl_free_indices
+        fid = a.ufl_index_dimensions
+        a = Zero(shape, fi, fid)
 
     return a
 
-Expr.__getitem__ = _getitem2
+Expr.__getitem__ = _getitem
 
 #--- Extend Expr with spatial differentiation operator a.dx(i) ---
 

@@ -124,15 +124,17 @@ class Outer(CompoundTensorOperator):
     def __new__(cls, a, b):
         ash, bsh = a.ufl_shape, b.ufl_shape
         if isinstance(a, Zero) or isinstance(b, Zero):
-            free_indices, index_dimensions = merge_nonoverlapping_indices(a, b)
-            return Zero(ash + bsh, free_indices, index_dimensions)
+            fi, fid = merge_nonoverlapping_indices(a, b)
+            return Zero(ash + bsh, fi, fid)
         if ash == () or bsh == ():
             return a * b
         return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, a, b):
         CompoundTensorOperator.__init__(self, (a, b))
-        self.ufl_free_indices, self.ufl_index_dimensions = merge_nonoverlapping_indices(a, b)
+        fi, fid = merge_nonoverlapping_indices(a, b)
+        self.ufl_free_indices = fi
+        self.ufl_index_dimensions = fid
 
     @property
     def ufl_shape(self):
@@ -149,13 +151,17 @@ class Inner(CompoundTensorOperator):
     __slots__ = ("ufl_free_indices", "ufl_index_dimensions")
 
     def __new__(cls, a, b):
+        # Checks
         ash, bsh = a.ufl_shape, b.ufl_shape
         ufl_assert(ash == bsh, "Shape mismatch.")
+
+        # Simplification
         if isinstance(a, Zero) or isinstance(b, Zero):
-            free_indices, index_dimensions = merge_nonoverlapping_indices(a, b)
-            return Zero((), free_indices, index_dimensions)
-        if ash == ():
+            fi, fid = merge_nonoverlapping_indices(a, b)
+            return Zero((), fi, fid)
+        elif ash == ():
             return a*b
+
         return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, a, b):
@@ -164,12 +170,11 @@ class Inner(CompoundTensorOperator):
         # as explained in cmp_expr
         a, b = sorted_expr((a, b))
 
-        # old version, slow and unsafe:
-        #a, b = sorted((a,b), key = lambda x: repr(x))
-
         CompoundTensorOperator.__init__(self, (a, b))
 
-        self.ufl_free_indices, self.ufl_index_dimensions = merge_nonoverlapping_indices(a, b)
+        fi, fid = merge_nonoverlapping_indices(a, b)
+        self.ufl_free_indices = fi
+        self.ufl_index_dimensions = fid
 
     ufl_shape = ()
 
@@ -188,22 +193,29 @@ class Dot(CompoundTensorOperator):
         bsh = b.ufl_shape
         ar, br = len(ash), len(bsh)
         scalar = (ar == 0 and br == 0)
+
+        # Checks
         ufl_assert((ar >= 1 and br >= 1) or scalar,
             "Dot product requires non-scalar arguments, "\
             "got arguments with ranks %d and %d." % \
             (ar, br))
         ufl_assert(scalar or ash[-1] == bsh[0], "Dimension mismatch in dot product.")
+
+        # Simplification
         if isinstance(a, Zero) or isinstance(b, Zero):
             shape = ash[:-1] + bsh[1:]
-            free_indices, index_dimensions = merge_nonoverlapping_indices(a, b)
-            return Zero(shape, free_indices, index_dimensions)
-        if scalar: # TODO: Move this to def dot()?
+            fi, fid = merge_nonoverlapping_indices(a, b)
+            return Zero(shape, fi, fid)
+        elif scalar: # TODO: Move this to def dot()?
             return a * b
+
         return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, a, b):
         CompoundTensorOperator.__init__(self, (a, b))
-        self.ufl_free_indices, self.ufl_index_dimensions = merge_nonoverlapping_indices(a, b)
+        fi, fid = merge_nonoverlapping_indices(a, b)
+        self.ufl_free_indices = fi
+        self.ufl_index_dimensions = fid
 
     @property
     def ufl_shape(self):
@@ -220,10 +232,14 @@ class Cross(CompoundTensorOperator):
     __slots__ = ("ufl_free_indices", "ufl_index_dimensions")
 
     def __new__(cls, a, b):
-        ash, bsh = a.ufl_shape, b.ufl_shape
+        ash = a.ufl_shape
+        bsh = b.ufl_shape
+
+        # Checks
         ufl_assert(len(ash) == 1 and ash == bsh,
             "Cross product requires arguments of rank 1.")
 
+        # Simplification
         if isinstance(a, Zero) or isinstance(b, Zero):
             fi, fid = merge_nonoverlapping_indices(a, b)
             return Zero(ash, fi, fid)
@@ -249,9 +265,13 @@ class Trace(CompoundTensorOperator):
     __slots__ = ()
 
     def __new__(cls, A):
+        # Checks
         ufl_assert(A.rank() == 2, "Trace of tensor with rank != 2 is undefined.")
+
+        # Simplification
         if isinstance(A, Zero):
             return Zero((), A.ufl_free_indices, A.ufl_index_dimensions)
+
         return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, A):
@@ -272,16 +292,22 @@ class Determinant(CompoundTensorOperator):
     def __new__(cls, A):
         sh = A.ufl_shape
         r = len(sh)
+        Afi = A.ufl_free_indices
+
+        # Checks
         ufl_assert(r == 0 or r == 2,
             "Determinant of tensor with rank != 2 is undefined.")
         ufl_assert(r == 0 or sh[0] == sh[1],
             "Cannot take determinant of rectangular rank 2 tensor.")
-        ufl_assert(not A.free_indices(),
+        ufl_assert(not Afi,
             "Not expecting free indices in determinant.")
+
+        # Simplification
         if isinstance(A, Zero):
-            return Zero((), A.ufl_free_indices, A.ufl_index_dimensions)
+            return Zero((), Afi, A.ufl_index_dimensions)
         if r == 0:
             return A
+
         return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, A):
@@ -301,18 +327,23 @@ class Inverse(CompoundTensorOperator):
     def __new__(cls, A):
         sh = A.ufl_shape
         r = len(sh)
-        if A.free_indices():
+
+        # Checks
+        if A.ufl_free_indices:
             error("Not expecting free indices in Inverse.")
         if isinstance(A, Zero):
             error("Division by zero!")
 
+        # Simplification
         if r == 0:
             return 1 / A
 
+        # More checks
         if r != 2:
             error("Inverse of tensor with rank != 2 is undefined.")
         if sh[0] != sh[1]:
             error("Cannot take inverse of rectangular matrix with dimensions %s." % repr(sh))
+
         return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, A):
@@ -335,11 +366,12 @@ class Cofactor(CompoundTensorOperator):
     def __init__(self, A):
         CompoundTensorOperator.__init__(self, (A,))
 
+        # Checks
         sh = A.ufl_shape
         ufl_assert(len(sh) == 2, "Cofactor of tensor with rank != 2 is undefined.")
         if sh[0] != sh[1]:
             error("Cannot take cofactor of rectangular matrix with dimensions %s." % repr(sh))
-        ufl_assert(not A.free_indices(), "Not expecting free indices in Cofactor.")
+        ufl_assert(not A.ufl_free_indices, "Not expecting free indices in Cofactor.")
         ufl_assert(not isinstance(A, Zero), "Cannot take cofactor of zero matrix.")
 
     @property
@@ -358,12 +390,17 @@ class Deviatoric(CompoundTensorOperator):
 
     def __new__(cls, A):
         sh = A.ufl_shape
+
+        # Checks
         ufl_assert(len(sh) == 2, "Deviatoric part of tensor with rank != 2 is undefined.")
         if sh[0] != sh[1]:
             error("Cannot take deviatoric part of rectangular matrix with dimensions %s." % repr(sh))
-        ufl_assert(not A.free_indices(), "Not expecting free indices in Deviatoric.")
+        ufl_assert(not A.ufl_free_indices, "Not expecting free indices in Deviatoric.")
+
+        # Simplification
         if isinstance(A, Zero):
             return Zero(A.ufl_shape, A.ufl_free_indices, A.ufl_index_dimensions)
+
         return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, A):
@@ -381,12 +418,18 @@ class Skew(CompoundTensorOperator):
 
     def __new__(cls, A):
         sh = A.ufl_shape
+        Afi = A.ufl_free_indices
+
+        # Checks
         ufl_assert(len(sh) == 2, "Skew symmetric part of tensor with rank != 2 is undefined.")
         if sh[0] != sh[1]:
             error("Cannot take skew part of rectangular matrix with dimensions %s." % repr(sh))
-        ufl_assert(not A.free_indices(), "Not expecting free indices in Skew.")
+        ufl_assert(not Afi, "Not expecting free indices in Skew.")
+
+        # Simplification
         if isinstance(A, Zero):
-            return Zero(A.ufl_shape, A.ufl_free_indices, A.ufl_index_dimensions)
+            return Zero(A.ufl_shape, Afi, A.ufl_index_dimensions)
+
         return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, A):
@@ -404,12 +447,18 @@ class Sym(CompoundTensorOperator):
 
     def __new__(cls, A):
         sh = A.ufl_shape
+        Afi = A.ufl_free_indices
+
+        # Checks
         ufl_assert(len(sh) == 2, "Symmetric part of tensor with rank != 2 is undefined.")
         if sh[0] != sh[1]:
             error("Cannot take symmetric part of rectangular matrix with dimensions %s." % repr(sh))
-        ufl_assert(not A.free_indices(), "Not expecting free indices in Sym.")
+        ufl_assert(not Afi, "Not expecting free indices in Sym.")
+
+        # Simplification
         if isinstance(A, Zero):
-            return Zero(A.ufl_shape, A.ufl_free_indices, A.ufl_index_dimensions)
+            return Zero(A.ufl_shape, Afi, A.ufl_index_dimensions)
+
         return CompoundTensorOperator.__new__(cls)
 
     def __init__(self, A):

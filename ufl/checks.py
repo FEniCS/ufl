@@ -34,7 +34,7 @@ def is_true_ufl_scalar(expression):
     """Return True iff expression is scalar-valued,
     with no free indices."""
     return isinstance(expression, Expr) and \
-        not (expression.ufl_shape or expression.free_indices())
+        not (expression.ufl_shape or expression.ufl_free_indices)
 
 def is_globally_constant(expr):
     """Check if an expression is globally constant, which

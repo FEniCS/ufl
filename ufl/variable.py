@@ -68,7 +68,7 @@ class Variable(Operator):
         # Checks
         ufl_assert(isinstance(expression, Expr), "Expecting Expr.")
         ufl_assert(isinstance(label, Label), "Expecting a Label.")
-        ufl_assert(not expression.free_indices(), "Variable cannot wrap an expression with free indices.")
+        ufl_assert(not expression.ufl_free_indices, "Variable cannot wrap an expression with free indices.")
 
         Operator.__init__(self, (expression, label))
 
