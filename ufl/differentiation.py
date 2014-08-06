@@ -29,7 +29,6 @@ from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.constantvalue import Zero
 from ufl.indexing import Index, FixedIndex, MultiIndex
 from ufl.indexed import Indexed
-from ufl.indexutils import unique_indices
 from ufl.variable import Variable
 from ufl.precedence import parstr
 from ufl.core.ufl_type import ufl_type

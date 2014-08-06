@@ -29,7 +29,6 @@ from ufl.expr import Expr
 from ufl.operatorbase import Operator
 from ufl.constantvalue import Zero, zero, ScalarValue, IntValue, as_ufl
 from ufl.checks import is_ufl_scalar, is_true_ufl_scalar
-from ufl.indexutils import unique_indices
 from ufl.index_combination_utils import merge_unique_indices
 from ufl.sorting import sorted_expr
 from ufl.precedence import parstr

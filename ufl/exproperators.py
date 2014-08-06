@@ -32,11 +32,10 @@ from ufl.tensoralgebra import Transposed, Inner
 from ufl.indexing import MultiIndex, Index, FixedIndex, IndexBase, indices
 from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
-from ufl.indexutils import repeated_indices, single_indices
 from ufl.tensors import as_tensor, ComponentTensor
 from ufl.restriction import PositiveRestricted, NegativeRestricted
 from ufl.differentiation import Grad
-from ufl.index_combination_utils import create_slice_indices, find_repeated_free_indices, merge_overlapping_indices
+from ufl.index_combination_utils import create_slice_indices, merge_overlapping_indices
 
 
 #--- Boolean operators ---

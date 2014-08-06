@@ -29,7 +29,6 @@ from math import pi
 from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert
 from ufl.common import unzip, subdict, lstr
-from ufl.indexutils import unique_indices
 
 # All classes:
 from ufl.terminal import Terminal

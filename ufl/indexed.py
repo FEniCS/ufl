@@ -22,7 +22,6 @@ from ufl.log import error
 from ufl.expr import Expr
 from ufl.operatorbase import Operator
 from ufl.indexing import Index, FixedIndex, MultiIndex, as_multi_index
-from ufl.indexutils import unique_indices
 from ufl.index_combination_utils import unique_sorted_indices, merge_unique_indices
 from ufl.precedence import parstr
 from ufl.common import EmptyDict
