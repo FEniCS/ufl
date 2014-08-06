@@ -39,58 +39,44 @@ class SimplificationTestCase(UflTestCase):
         b = 0*f
         self.assertEqual(a, b)
 
-        # Test simplification of division by self
-        a = f/f
-        b = 1
-        self.assertEqual(a, b)
+        # Test simplification of division by self (this simplification has been disabled)
+        #a = f/f
+        #b = 1
+        #self.assertEqual(a, b)
 
     def test_products(self):
         element = FiniteElement("CG", triangle, 1)
         f = Coefficient(element)
         g = Coefficient(element)
 
-        # Test simplification of basic multiplication
-        a = f
-        b = 1*f
-        self.assertEqual(a, b)
+        # Test simplification of literal multiplication
+        assert f*0 == as_ufl(0)
+        assert 0*f == as_ufl(0)
+        assert 1*f == f
+        assert f*1 == f
+        assert as_ufl(2)*as_ufl(3) == as_ufl(6)
+        assert as_ufl(2.0)*as_ufl(3.0) == as_ufl(6.0)
 
-        # Test simplification of self-multiplication
-        a = f*f
-        b = f**2
-        self.assertEqual(a, b)
+        # Test reordering of operands
+        assert f*g == g*f
 
-        # Test simplification of flattened self-multiplication (may occur in algorithms)
-        #a = Product(f,f,f)
-        #b = f**3
-        #self.assertEqual(a, b)
-
-        # Test simplification of flattened self-multiplication (may occur in algorithms)
-        #a = Product(f,f,f,f)
-        #b = f**4
-        #self.assertEqual(a, b)
+        # Test simplification of self-multiplication (this simplification has been disabled)
+        #assert f*f == f**2
 
     def test_sums(self):
         element = FiniteElement("CG", triangle, 1)
         f = Coefficient(element)
         g = Coefficient(element)
 
-        # Test collapsing of basic sum
-        a = f + f
-        b = 2*f
-        self.assertEqual(a, b)
-
-        # Test collapsing of flattened sum (may occur in algorithms)
-        #a = Sum(f, f, f)
-        #b = 3*f
-        #self.assertEqual(a, b)
-        #a = Sum(f, f, f, f)
-        #b = 4*f
-        #self.assertEqual(a, b)
-
         # Test reordering of operands
-        a = f + g
-        b = g + f
-        self.assertEqual(a, b)
+        assert f + g == g + f
+
+        # Test adding zero
+        assert f + 0 == f
+        assert 0 + f == f
+
+        # Test collapsing of basic sum (this simplification has been disabled)
+        #assert f + f == 2 * f
 
         # Test reordering of operands and collapsing sum
         a = f + g + f # not collapsed, but ordered

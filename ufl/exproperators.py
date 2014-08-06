@@ -217,7 +217,7 @@ Expr.__rtruediv__ = _rdiv
 def _pow(self, o):
     if not isinstance(o, _valid_types):
         return NotImplemented
-    if self.ufl_shape and o == 2:
+    if o == 2 and self.ufl_shape:
         return Inner(self, self)
     return Power(self, o)
 Expr.__pow__ = _pow
