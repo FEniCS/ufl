@@ -29,8 +29,8 @@ from ufl.assertions import ufl_assert
 from ufl.sorting import topological_sorting
 from ufl.common import sorted_by_count
 
-from ufl.expr import Expr
-from ufl.terminal import Terminal, FormArgument
+from ufl.core.expr import Expr
+from ufl.core.terminal import Terminal, FormArgument
 from ufl.finiteelement import MixedElement, RestrictedElement
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient

@@ -21,7 +21,7 @@
 
 from ufl.assertions import ufl_assert
 from ufl.log import error, warning
-from ufl.expr import Expr
+from ufl.core.expr import Expr
 from ufl.geometry import Domain, as_domain
 from ufl.checks import is_true_ufl_scalar
 from ufl.constantvalue import as_ufl

@@ -34,10 +34,10 @@ from ufl.finiteelement import (FiniteElementBase, FiniteElement,
     OuterProductElement, OuterProductVectorElement)
 
 # Base class for all expressions
-from ufl.expr import Expr
+from ufl.core.expr import Expr
 
 # Terminal types
-from ufl.terminal import Terminal, FormArgument, UtilityType
+from ufl.core.terminal import Terminal, FormArgument, UtilityType
 from ufl.constantvalue import (ConstantValue,
     Zero, ScalarValue, FloatValue, IntValue, Identity, PermutationSymbol)
 from ufl.argument import Argument, TestFunction, TrialFunction

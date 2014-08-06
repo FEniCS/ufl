@@ -20,7 +20,7 @@ for all types that are terminal nodes in the expression trees."""
 #
 # Modified by Anders Logg, 2008
 
-from ufl.expr import Expr
+from ufl.core.expr import Expr
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.common import EmptyDict

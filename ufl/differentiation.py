@@ -22,8 +22,8 @@
 from ufl.log import warning, error
 from ufl.assertions import ufl_assert
 from ufl.common import subdict, mergedicts, EmptyDict
-from ufl.expr import Expr
-from ufl.terminal import Terminal
+from ufl.core.expr import Expr
+from ufl.core.terminal import Terminal
 from ufl.operatorbase import Operator
 from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.constantvalue import Zero

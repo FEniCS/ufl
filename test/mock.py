@@ -1,6 +1,6 @@
 
 from ufl import *
-from ufl.expr import Expr
+from ufl.core.expr import Expr
 
 class MockExpr(Expr):
     "A mock type for unit testing."

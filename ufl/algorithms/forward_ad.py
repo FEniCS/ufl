@@ -31,7 +31,7 @@ from ufl.assertions import ufl_assert
 from ufl.common import unzip, subdict, lstr
 
 # All classes:
-from ufl.terminal import Terminal
+from ufl.core.terminal import Terminal
 from ufl.constantvalue import ConstantValue, Zero, IntValue, Identity,\
     is_true_ufl_scalar, is_ufl_scalar
 from ufl.variable import Variable

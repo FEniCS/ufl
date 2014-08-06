@@ -24,7 +24,7 @@ from itertools import chain
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.common import mergedicts, subdict, StackDict
-from ufl.expr import Expr
+from ufl.core.expr import Expr
 from ufl.operatorbase import Operator
 from ufl.constantvalue import Zero, as_ufl
 from ufl.algebra import Sum, Product, Division, Power, Abs

@@ -2,10 +2,10 @@
 from collections import defaultdict
 from six.moves import zip
 
-from ufl.expr import Expr
+from ufl.core.expr import Expr
 from ufl.log import error
 from ufl.operatorbase import Operator
-from ufl.terminal import Terminal
+from ufl.core.terminal import Terminal
 from ufl.common import pre_traversal
 
 

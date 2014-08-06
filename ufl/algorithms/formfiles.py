@@ -26,7 +26,7 @@ from ufl.utils.sorting import sorted_by_key
 from ufl.assertions import ufl_assert
 from ufl.form import Form
 from ufl.finiteelement import FiniteElementBase
-from ufl.expr import Expr
+from ufl.core.expr import Expr
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 

@@ -22,7 +22,7 @@ of related classes, including Constant."""
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
-from ufl.terminal import Terminal, FormArgument
+from ufl.core.terminal import Terminal, FormArgument
 from ufl.finiteelement import FiniteElementBase, FiniteElement, VectorElement, TensorElement
 from ufl.split_functions import split
 from ufl.common import counted_init

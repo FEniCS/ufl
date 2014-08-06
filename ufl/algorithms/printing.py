@@ -24,8 +24,8 @@ from itertools import chain
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.expr import Expr
-from ufl.terminal import Terminal
+from ufl.core.expr import Expr
+from ufl.core.terminal import Terminal
 from ufl.form import Form
 from ufl.integral import Integral, Measure
 from ufl.algorithms.analysis import extract_arguments, extract_coefficients

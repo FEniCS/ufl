@@ -25,7 +25,7 @@ from collections import defaultdict
 from ufl.log import warning, error, deprecate
 from ufl.assertions import ufl_assert
 from ufl.common import istr, EmptyDict
-from ufl.terminal import Terminal
+from ufl.core.terminal import Terminal
 from ufl.protocols import id_or_none
 from ufl.cell import as_cell, affine_cells, Cell, ProductCell
 from ufl.domain import as_domain, Domain, extract_domains, join_domains, ProductDomain

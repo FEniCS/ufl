@@ -23,7 +23,7 @@ from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.common import counted_init
 from ufl.core.ufl_type import ufl_type
-from ufl.terminal import UtilityType
+from ufl.core.terminal import UtilityType
 
 
 class IndexBase(object):

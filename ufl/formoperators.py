@@ -26,7 +26,7 @@ from six.moves import xrange as range
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.form import Form, as_form
-from ufl.expr import Expr
+from ufl.core.expr import Expr
 from ufl.split_functions import split
 from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.variable import Variable

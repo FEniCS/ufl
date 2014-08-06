@@ -25,8 +25,8 @@ from six import itervalues
 from six.moves import xrange as range
 
 from ufl.log import error
-from ufl.expr import Expr
-from ufl.terminal import Terminal
+from ufl.core.expr import Expr
+from ufl.core.terminal import Terminal
 from ufl.form import Form
 from ufl.integral import Measure
 from ufl.variable import Variable

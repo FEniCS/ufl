@@ -27,7 +27,7 @@ from ufl.common import lstr, tstr, estr, istr, slice_dict
 from ufl.common import Timer
 from ufl.assertions import ufl_assert
 from ufl.log import error, warning, info
-from ufl.expr import Expr
+from ufl.core.expr import Expr
 from ufl.form import Form
 from ufl.protocols import id_or_none
 from ufl.geometry import as_domain

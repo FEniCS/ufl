@@ -21,7 +21,7 @@
 
 from six import iteritems
 
-from ufl.expr import Expr
+from ufl.core.expr import Expr
 from ufl.log import error
 from ufl.core.ufl_type import ufl_type
 from ufl.core.index import Index

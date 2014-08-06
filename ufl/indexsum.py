@@ -21,7 +21,7 @@ from six.moves import xrange as range
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.expr import Expr
+from ufl.core.expr import Expr
 from ufl.operatorbase import Operator
 from ufl.indexing import Index, MultiIndex, as_multi_index
 from ufl.precedence import parstr

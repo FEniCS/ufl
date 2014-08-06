@@ -3,7 +3,7 @@
 from ufltestcase import UflTestCase, main
 
 from ufl import *
-from ufl.indexutils import *
+#from ufl.indexutils import *
 from ufl.algorithms import *
 from ufl.classes import IndexSum
 
@@ -11,7 +11,7 @@ from ufl.classes import IndexSum
 
 class IndexTestCase(UflTestCase):
 
-    def test_index_utils(self):
+    def xtest_index_utils(self):
         ii = indices(3)
         self.assertEqual(ii, unique_indices(ii) )
         self.assertEqual(ii, unique_indices(ii+ii) )

@@ -1,7 +1,7 @@
 
 
 #from ufl.core.expr import Expr
-from ufl.expr import Expr
+from ufl.core.expr import Expr
 
 from ufl.common import camel2underscore, EmptyDict
 

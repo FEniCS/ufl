@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from ufl.expr import Expr
+from ufl.core.expr import Expr
 from ufl.classes import Measure
 from ufl.assertions import ufl_assert
 from ufl.algorithms.transformer import Transformer, ReuseTransformer, apply_transformer

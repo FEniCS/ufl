@@ -22,7 +22,7 @@ classes (functions), including TestFunction and TrialFunction."""
 
 from ufl.log import deprecate
 from ufl.assertions import ufl_assert
-from ufl.terminal import Terminal, FormArgument
+from ufl.core.terminal import Terminal, FormArgument
 from ufl.split_functions import split
 from ufl.finiteelement import FiniteElementBase
 from ufl.core.ufl_type import ufl_type

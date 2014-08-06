@@ -19,7 +19,7 @@
 #
 # Modified by Anders Logg, 2008-2009
 
-from ufl.expr import Expr
+from ufl.core.expr import Expr
 
 def is_python_scalar(expression):
     "Return True iff expression is of a Python scalar type."

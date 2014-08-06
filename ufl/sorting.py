@@ -27,7 +27,7 @@ is more robust w.r.t. argument numbering than using repr."""
 from six.moves import zip
 
 from ufl.log import error
-from ufl.terminal import Terminal
+from ufl.core.terminal import Terminal
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.indexing import Index, FixedIndex, MultiIndex

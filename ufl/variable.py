@@ -21,8 +21,8 @@ expressions as variables for differentiation."""
 from ufl.common import counted_init
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.expr import Expr
-from ufl.terminal import UtilityType
+from ufl.core.expr import Expr
+from ufl.core.terminal import UtilityType
 from ufl.operatorbase import Operator, Operator
 from ufl.constantvalue import as_ufl
 from ufl.core.ufl_type import ufl_type

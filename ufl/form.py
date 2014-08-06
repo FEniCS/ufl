@@ -28,7 +28,7 @@ import ufl.measure
 from ufl.integral import Integral, Measure
 from ufl.checks import is_scalar_constant_expression
 from ufl.equation import Equation
-from ufl.expr import Expr
+from ufl.core.expr import Expr
 from ufl.constantvalue import Zero
 from ufl.protocols import id_or_none
 
