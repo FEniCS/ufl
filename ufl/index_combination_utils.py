@@ -30,7 +30,7 @@ def unique_sorted_indices(indices):
     return tuple(newindices)
 
 
-def merge_unique_indices(afi, afid, bfi, bfid):
+def old_merge_unique_indices(afi, afid, bfi, bfid):
     """Merge two pairs of (index ids, index dimensions) sequences into one pair without duplicates.
 
     The id tuples afi, bfi are assumed already sorted by id.
@@ -55,6 +55,57 @@ def merge_unique_indices(afi, afid, bfi, bfid):
     # Unpack into two tuples
     fii, fid = zip(*newfiid) if fiid else ((), ())
     return fii, fid
+
+
+def merge_unique_indices(afi, afid, bfi, bfid):
+    """Merge two pairs of (index ids, index dimensions) sequences into one pair without duplicates.
+
+    The id tuples afi, bfi are assumed already sorted by id.
+    Given a list of (id, dim) tuples already sorted by id,
+    return a unique list with duplicates removed.
+    Also checks that the dimensions of duplicates are matching.
+    """
+
+    na = len(afi)
+    nb = len(bfi)
+
+    if na == 0:
+        return bfi, bfid
+    elif nb == 0:
+        return afi, afid
+
+    ak = 0
+    bk = 0
+
+    fi = []
+    fid = []
+
+    while True:
+        if afi[ak] < bfi[bk]:
+            fi.append(afi[ak])
+            fid.append(afid[ak])
+            ak += 1
+        elif afi[ak] > bfi[bk]:
+            fi.append(bfi[bk])
+            fid.append(bfid[bk])
+            bk += 1
+        else:
+            fi.append(afi[ak])
+            fid.append(afid[ak])
+            ak += 1
+            bk += 1
+
+        if ak == na:
+            if bk != nb:
+                fi.extend(bfi[bk:])
+                fid.extend(bfid[bk:])
+            break
+        elif bk == nb:
+            fi.extend(afi[ak:])
+            fid.extend(afid[ak:])
+            break
+
+    return tuple(fi), tuple(fid)
 
 
 def remove_indices(fi, fid, rfi):
