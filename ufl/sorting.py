@@ -50,9 +50,14 @@ def _cmp_terminal(a, b):
             fix2 = isinstance(j, FixedIndex)
             if fix1 and fix2:
                 # Both are FixedIndex, sort by value
-                c = _cmp3(i._value, j._value)
-                if c:
-                    return c
+                x, y = i._value, j._value
+                if x < y:
+                    return -1
+                elif x > y:
+                    return +1
+                else:
+                    # Same value, no decision
+                    continue
             elif fix1:
                 # Sort fixed before free
                 return -1
@@ -60,7 +65,8 @@ def _cmp_terminal(a, b):
                 # Sort fixed before free
                 return +1
             else:
-                pass # Both are Index, do not depend on count!
+                # Both are Index, no decision, do not depend on count!
+                pass
         # Failed to make a decision, return 0 by default
         # (this does not mean equality, it could be e.g.
         # [i,0] vs [j,0] because the counts of i,j cannot be used)
@@ -77,18 +83,37 @@ def _cmp_terminal(a, b):
     elif isinstance(a, Coefficient):
         # It's ok to compare relative counts for Coefficients,
         # since their ordering is a property of the form
-        return _cmp3(a._count, b._count)
+        x, y = a._count, b._count
+        if x < y:
+            return -1
+        elif x > y:
+            return +1
+        else:
+            return 0
 
     # ... Argument?
     elif isinstance(a, Argument):
         # It's ok to compare relative number and part for Arguments,
         # since their ordering is a property of the form
-        return _cmp3((a._number, a._part), (b._number, b._part))
+        x = (a._number, a._part)
+        y = (b._number, b._part)
+        if x < y:
+            return -1
+        elif x > y:
+            return +1
+        else:
+            return 0
 
     # ... another kind of Terminal object?
     else:
         # The cost of repr on a terminal is fairly small, and bounded
-        return _cmp3(repr(a), repr(b))
+        x, y = repr(a), repr(b)
+        if x < y:
+            return -1
+        elif x > y:
+            return +1
+        else:
+            return 0
 
 
 def _cmp_operator(a, b):
@@ -141,9 +166,11 @@ def cmp_expr(a, b):
         a, b = left.pop()
 
         # First sort quickly by type code
-        c = _cmp3(a._ufl_typecode_, b._ufl_typecode_)
-        if c:
-            return c
+        x, y = a._ufl_typecode_, b._ufl_typecode_
+        if x < y:
+            return -1
+        elif x > y:
+            return +1
 
         # Now we know that the type is the same, check further based on type specific properties.
         if a._ufl_is_terminal_:
@@ -174,9 +201,11 @@ def cmp_expr(a, b):
             # A few type, notably ExprList and ExprMapping, can have a different number of operands.
             # Sort by the length if it's different. Doing this after sorting by children because
             # these types are rare so we try to avoid the cost of this check for most nodes.
-            c = _cmp3(len(aops), len(bops))
-            if c:
-                return c
+            x, y = len(aops), len(bops)
+            if x < y:
+                return -1
+            elif x > y:
+                return +1
 
     # Equal if we get out of the above loop!
     return 0

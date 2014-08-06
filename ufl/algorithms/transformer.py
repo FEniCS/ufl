@@ -115,30 +115,18 @@ class Transformer(object):
     def reuse_if_possible(self, o, *operands):
         "Reuse Expr if possible, otherwise reconstruct from given operands."
 
-        # FIXME: Use hashes of operands instead for a faster probability based version?
-
-        #if all(a is b for (a, b) in izip(operands, o.ufl_operands)):
         ufl_assert(len(operands) == len(o.ufl_operands), "Expecting number of operands to match")
+
+        # TODO: Try using hashes of operands instead for a faster probability based version? One benchmark showed == to be faster.
+        #if all(op0 is op1 for op0, op1 in zip(operands, o.ufl_operands)):
+        #    return o
+        #if all(op0 is op1 or hash(op0) == hash(op1) for op0, op1 in zip(operands, o.ufl_operands)):
+        #    return o
+        #if all(hash(op0) == hash(op1) for op0, op1 in zip(operands, o.ufl_operands)):
+        #    return o
         if operands == o.ufl_operands:
             return o
-
-        #return o.reconstruct(*operands)
-        # Debugging version:
-        try:
-            r = o.reconstruct(*operands)
-        except:
-            print()
-            print("FAILURE in reuse_if_possible:")
-            print("type(o) =", type(o))
-            print("operands =")
-            print()
-            print("\n\n".join(map(str, operands)))
-            print()
-            print("stack =")
-            self.print_visit_stack()
-            print()
-            raise
-        return r
+        return o.reconstruct(*operands)
 
     def always_reconstruct(self, o, *operands):
         "Always reconstruct expr."
