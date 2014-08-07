@@ -36,7 +36,7 @@ from ufl.constantvalue import ConstantValue, Zero, IntValue, Identity,\
     is_true_ufl_scalar, is_ufl_scalar
 from ufl.variable import Variable
 from ufl.coefficient import Coefficient, FormArgument
-from ufl.indexing import MultiIndex, Index, FixedIndex, indices
+from ufl.core.multiindex import MultiIndex, Index, FixedIndex, indices
 from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
 from ufl.tensors import ListTensor, ComponentTensor, as_tensor, as_scalar, unit_indexed_tensor, unwrap_list_tensor

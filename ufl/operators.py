@@ -41,7 +41,7 @@ from ufl.mathfunctions import Sqrt, Exp, Ln, Erf,\
     Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan, Atan2,\
     BesselJ, BesselY, BesselI, BesselK
 from ufl.restriction import CellAvg, FacetAvg
-from ufl.indexing import indices
+from ufl.core.multiindex import indices
 from ufl.indexed import Indexed
 from ufl.geometry import SpatialCoordinate
 

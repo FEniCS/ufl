@@ -35,7 +35,7 @@ from ufl.finiteelement import MixedElement, RestrictedElement
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.variable import Variable
-from ufl.indexing import Index, MultiIndex
+from ufl.core.multiindex import Index, MultiIndex
 from ufl.geometry import Domain
 from ufl.integral import Measure, Integral
 from ufl.form import Form

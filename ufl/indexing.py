@@ -18,4 +18,4 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 # TODO: Fix imports and remove this file
-from ufl.core.index import IndexBase, Index, FixedIndex, MultiIndex, indices, as_multi_index
+from ufl.core.multiindex import IndexBase, Index, FixedIndex, MultiIndex, indices, as_multi_index

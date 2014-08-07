@@ -21,7 +21,7 @@
 
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
-from ufl.indexing import indices
+from ufl.core.multiindex import indices
 from ufl.tensors import as_tensor, as_matrix, as_vector
 from ufl.operators import sqrt
 

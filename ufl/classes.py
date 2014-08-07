@@ -121,9 +121,11 @@ __all__ += [
     ]
 
 # Other non-Expr types
-from ufl.core.index import IndexBase, FixedIndex, Index
+from ufl.argument import TestFunction, TrialFunction, TestFunctions, TrialFunctions
+from ufl.core.multiindex import IndexBase, FixedIndex, Index
 
 __all__ += [
+    "TestFunction", "TrialFunction", "TestFunctions", "TrialFunctions",
     "IndexBase", "FixedIndex", "Index",
     ]
 

@@ -21,7 +21,7 @@ from six.moves import zip
 from ufl.common import Stack, StackDict
 from ufl.log import error
 from ufl.core.expr import Expr
-from ufl.indexing import Index, FixedIndex, MultiIndex
+from ufl.core.multiindex import Index, FixedIndex, MultiIndex
 from ufl.variable import Label, Variable
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
 from ufl.assertions import ufl_assert

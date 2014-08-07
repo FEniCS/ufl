@@ -29,7 +29,7 @@ from ufl.core.operator import Operator
 from ufl.constantvalue import Zero, as_ufl
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import Transposed, Inner
-from ufl.indexing import MultiIndex, Index, FixedIndex, IndexBase, indices
+from ufl.core.multiindex import MultiIndex, Index, FixedIndex, IndexBase, indices
 from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
 from ufl.tensors import as_tensor, ComponentTensor

@@ -22,17 +22,20 @@ from ufl.common import counted_init
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.core.expr import Expr
-from ufl.core.terminal import UtilityType
-from ufl.core.operator import Operator, Operator
-from ufl.constantvalue import as_ufl
 from ufl.core.ufl_type import ufl_type
+from ufl.core.terminal import Terminal
+from ufl.core.operator import Operator
+from ufl.constantvalue import as_ufl
+
 
 @ufl_type()
-class Label(UtilityType):
+class Label(Terminal):
     __slots__ = ("_count",)
+
     _globalcount = 0
+
     def __init__(self, count=None):
-        UtilityType.__init__(self)
+        Terminal.__init__(self)
         counted_init(self, count, Label)
 
     def count(self):
@@ -43,6 +46,27 @@ class Label(UtilityType):
 
     def __repr__(self):
         return "Label(%d)" % self._count
+
+    @property
+    def ufl_shape(self):
+        error("Label has no shape (it is not a tensor expression).")
+
+    @property
+    def ufl_free_indices(self):
+        error("Label has no free indices (it is not a tensor expression).")
+
+    @property
+    def ufl_index_dimensions(self):
+        error("Label has no free indices (it is not a tensor expression).")
+
+    def is_cellwise_constant(self):
+        error("Asking if a Label is cellwise constant makes no sense (it is not a tensor expression).")
+        #return True # Could also just return True, after all it doesn't change with the cell
+
+    def domains(self):
+        "Return tuple of domains related to this terminal object."
+        return ()
+
 
 @ufl_type(is_shaping=True, is_index_free=True, num_ops=1, inherit_shape_from_operand=0)
 class Variable(Operator):

@@ -36,7 +36,7 @@ from ufl.coefficient import Coefficient
 from ufl.differentiation import CoefficientDerivative
 from ufl.constantvalue import is_true_ufl_scalar, as_ufl
 from ufl.indexed import Indexed
-from ufl.indexing import FixedIndex, MultiIndex
+from ufl.core.multiindex import FixedIndex, MultiIndex
 from ufl.tensors import as_tensor
 from ufl.sorting import sorted_expr
 

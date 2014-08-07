@@ -21,33 +21,10 @@
 
 from six import iteritems
 
-from ufl.core.expr import Expr
 from ufl.log import error
+from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
-from ufl.core.index import Index
-
-def _compute_hash(expr): # Best so far
-    hashdata = ( (expr.__class__._ufl_class_,)
-            + tuple(hash(o) for o in expr.ufl_operands) )
-    return hash(str(hashdata))
-
-_hashes = set()
-_hashes_added = 0
-def compute_hash_with_stats(expr):
-    global _hashes, _hashes_added
-
-    h = compute_hash(expr)
-
-    _hashes.add(h)
-    _hashes_added += 1
-    if _hashes_added % 10000 == 0:
-        print("HASHRATIO", len(_hashes)/float(_hashes_added))
-
-    return h
-
-# This seems to be the best of the above
-compute_hash = _compute_hash
-#compute_hash = compute_hash_with_stats
+from ufl.core.multiindex import Index
 
 
 #--- Base class for operator objects ---
@@ -61,25 +38,29 @@ class Operator(Expr):
 
         # If operands is None, the type sets this itself. This is to get around
         # some tricky too-fancy __new__/__init__ design in algebra.py, for now.
+        # It would be nicer to make the classes in algebra.py pass operands here.
         if operands is not None:
             self.ufl_operands = operands
 
     def reconstruct(self, *operands):
         "Return a new object of the same type with new operands."
-        return self.__class__._ufl_class_(*operands)
+        return self._ufl_class_(*operands)
 
     def signature_data(self):
         return self._ufl_typecode_
 
     def _ufl_compute_hash_(self):
         "Compute a hash code for this expression. Used by sets and dicts."
-        return compute_hash(self)
+        #hashdata = ( (self._ufl_typecode_,) + tuple(hash(o) for o in self.ufl_operands) ) # TODO: Try this?
+        #hashdata = self._ufl_handlername_ + ' '.join(str(hash(o)) for o in self.ufl_operands) # TODO: Try this?
+        hashdata = ( (self.__class__._ufl_class_,) + tuple(hash(o) for o in self.ufl_operands) )
+        return hash(str(hashdata))
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
         return all(o.is_cellwise_constant() for o in self.ufl_operands)
 
-    # --- Transitional property getters, to be implemented directly in all classes ---
+    # --- Transitional property getters ---
 
     def operands(self):
         return self.ufl_operands

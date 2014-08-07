@@ -20,11 +20,11 @@ for all types that are terminal nodes in the expression trees."""
 #
 # Modified by Anders Logg, 2008
 
-from ufl.core.expr import Expr
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.common import EmptyDict
 from ufl.common import counted_init
+from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
 
 #--- Base class for terminal objects ---
@@ -39,7 +39,8 @@ class Terminal(Expr):
 
     def reconstruct(self, *operands):
         "Return self."
-        operands and error("Got call to reconstruct in a terminal with non-empty operands.")
+        if operands:
+            error("Got call to reconstruct in a terminal with non-empty operands.")
         return self
 
     ufl_operands = ()
@@ -111,6 +112,7 @@ class Terminal(Expr):
         "Default comparison of terminals just compare repr strings."
         return repr(self) == repr(other)
 
+
 #--- Subgroups of terminals ---
 
 @ufl_type(is_abstract=True)
@@ -118,35 +120,3 @@ class FormArgument(Terminal):
     __slots__ = ()
     def __init__(self):
         Terminal.__init__(self)
-
-# TODO: This type breaks the data model, can we make it fit in better?
-@ufl_type(is_abstract=True)
-class UtilityType(Terminal):
-    __slots__ = ()
-    def __init__(self):
-        Terminal.__init__(self)
-
-    @property
-    def ufl_shape(self):
-        error("Calling shape on a utility type is an error.")
-
-    @property
-    def ufl_free_indices(self):
-        error("Calling free_indices on a utility type is an error.")
-
-    @property
-    def ufl_index_dimensions(self):
-        error("Calling index_dimensions on a utility type is an error.")
-
-    def free_indices(self):
-        error("Calling free_indices on a utility type is an error.")
-
-    def index_dimensions(self):
-        error("Calling index_dimensions on a utility type is an error.")
-
-    def is_cellwise_constant(self):
-        error("Calling is_cellwise_constant on a utility type is an error.")
-
-    def domains(self):
-        "Return tuple of domains related to this terminal object."
-        return ()

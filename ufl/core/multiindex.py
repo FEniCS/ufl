@@ -23,7 +23,7 @@ from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.common import counted_init
 from ufl.core.ufl_type import ufl_type
-from ufl.core.terminal import UtilityType
+from ufl.core.terminal import Terminal
 
 
 class IndexBase(object):
@@ -107,7 +107,7 @@ class Index(IndexBase):
 
 
 @ufl_type()
-class MultiIndex(UtilityType):
+class MultiIndex(Terminal):
     "Represents a sequence of indices, either fixed or free."
     __slots__ = ("_indices",)
 
@@ -125,12 +125,12 @@ class MultiIndex(UtilityType):
             self = MultiIndex._cache.get(key)
             if self is not None:
                 return self
-            self = UtilityType.__new__(cls)
+            self = Terminal.__new__(cls)
             MultiIndex._cache[key] = self
         else:
             # Create a new object if we have any free indices (too many combinations to cache)
             ufl_assert(all(isinstance(ind, IndexBase) for ind in indices), "Expecting only Index and FixedIndex objects.")
-            self = UtilityType.__new__(cls)
+            self = Terminal.__new__(cls)
 
         # Initialize here instead of in __init__ to avoid overwriting self._indices from cached objects
         self._init(indices)
@@ -140,7 +140,7 @@ class MultiIndex(UtilityType):
         pass
 
     def _init(self, indices):
-        UtilityType.__init__(self)
+        Terminal.__init__(self)
         self._indices = indices
 
     def indices(self):
@@ -162,6 +162,26 @@ class MultiIndex(UtilityType):
             elif isinstance(i, Index):
                 component.append(index_values[i])
         return tuple(component)
+
+    @property
+    def ufl_shape(self):
+        error("Multiindex has no shape (it is not a tensor expression).")
+
+    @property
+    def ufl_free_indices(self):
+        error("Multiindex has no free indices (it is not a tensor expression).")
+
+    @property
+    def ufl_index_dimensions(self):
+        error("Multiindex has no free indices (it is not a tensor expression).")
+
+    def is_cellwise_constant(self):
+        error("Asking if a Multiindex is cellwise constant makes no sense (it is not a tensor expression).")
+        #return True # Could also just return True, after all it doesn't change with the cell
+
+    def domains(self):
+        "Return tuple of domains related to this terminal object."
+        return ()
 
     # --- Adding multiindices ---
 

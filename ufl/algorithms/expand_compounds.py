@@ -23,7 +23,7 @@ equivalent representations using basic operators."""
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.classes import Product, Index, Zero, FormArgument, Grad
-from ufl.indexing import indices
+from ufl.core.multiindex import indices
 from ufl.tensors import as_tensor, as_matrix, as_vector
 from ufl.algorithms.transformer import Transformer, ReuseTransformer, apply_transformer
 from ufl.compound_expressions import deviatoric_expr, determinant_expr, cofactor_expr, adj_expr, inverse_expr

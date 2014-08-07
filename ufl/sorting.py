@@ -30,7 +30,7 @@ from ufl.log import error
 from ufl.core.terminal import Terminal
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
-from ufl.indexing import Index, FixedIndex, MultiIndex
+from ufl.core.multiindex import Index, FixedIndex, MultiIndex
 from ufl.variable import Label
 from ufl.geometry import GeometricQuantity
 

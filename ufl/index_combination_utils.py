@@ -22,7 +22,7 @@ from six.moves import xrange as range
 
 from ufl.assertions import ufl_assert
 from ufl.log import error
-from ufl.indexing import FixedIndex, Index, indices
+from ufl.core.multiindex import FixedIndex, Index, indices
 
 
 # FIXME: Some of these might be merged into one function, some might be optimized

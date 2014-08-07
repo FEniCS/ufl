@@ -32,7 +32,7 @@ from ufl.permutation import compute_indices
 
 # All classes:
 from ufl.variable import Variable
-from ufl.indexing import Index, FixedIndex
+from ufl.core.multiindex import Index, FixedIndex
 from ufl.indexed import Indexed
 from ufl.tensors import ListTensor, ComponentTensor
 from ufl.algebra import Sum, Product, Division, Power, Abs
