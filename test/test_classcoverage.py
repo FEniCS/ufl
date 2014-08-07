@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-09-06 -- 2009-02-10"
 
@@ -36,10 +38,10 @@ def test_object(a, shape, free_indices):
     # Compare with provided properties
     if free_indices is not None:
         if len(set(fi) ^ set(free_indices)) != 0:
-            print type(a)
-            print a
-            print fi
-            print free_indices
+            print(type(a))
+            print(a)
+            print(fi)
+            print(free_indices)
         assert len(set(fi) ^ set(free_indices)) == 0
     if shape is not None:
         if sh != shape:
