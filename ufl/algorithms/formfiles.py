@@ -90,7 +90,7 @@ def execute_ufl_code(uflcode, filename):
         basename = "%s_debug" % basename
         pyname = "%s.py" % basename
         pycode = "#!/usr/bin/env python\nfrom ufl import *\nset_level(DEBUG)\n" + uflcode
-        with file(pyname, "w") as f:
+        with open(pyname, "w") as f:
             f.write(pycode)
         warning(infostring % pyname)
         m = __import__(basename)

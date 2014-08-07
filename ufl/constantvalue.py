@@ -300,10 +300,10 @@ class IntValue(ScalarValue):
             self = IntValue._cache.get(value)
             if self is not None:
                 return self
-            self = ScalarValue.__new__(cls, value)
+            self = ScalarValue.__new__(cls)
             IntValue._cache[value] = self
         else:
-            self = ScalarValue.__new__(cls, value)
+            self = ScalarValue.__new__(cls)
         self._init(value)
         return self
 
