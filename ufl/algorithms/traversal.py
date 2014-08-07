@@ -76,15 +76,7 @@ def traverse_unique_terminals(expr, visited=None):
                 input.extend(ops)
             else:
                 yield e
-traverse_terminals2 = traverse_unique_terminals # TODO: Replace calls with this more descriptive name
 
-def traverse_operands(expr):
-    input = [expr]
-    while input:
-        e = input.pop()
-        if not e._ufl_is_terminal_:
-            yield e
-            input.extend(e.ufl_operands)
 
 # Moved to common because it is without dependencies and this avoids circular deps
 from ufl.common import pre_traversal, post_traversal

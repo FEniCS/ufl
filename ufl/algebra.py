@@ -26,7 +26,7 @@ from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.common import product, mergedicts2, subdict, EmptyDict
 from ufl.core.expr import Expr
-from ufl.operatorbase import Operator
+from ufl.core.operator import Operator
 from ufl.constantvalue import Zero, zero, ScalarValue, IntValue, as_ufl
 from ufl.checks import is_ufl_scalar, is_true_ufl_scalar
 from ufl.index_combination_utils import merge_unique_indices

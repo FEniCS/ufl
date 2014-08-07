@@ -19,7 +19,7 @@
 
 from ufl.log import warning, error
 from ufl.assertions import ufl_assert
-from ufl.operatorbase import Operator
+from ufl.core.operator import Operator
 from ufl.constantvalue import as_ufl
 from ufl.precedence import parstr
 from ufl.exprequals import expr_equals

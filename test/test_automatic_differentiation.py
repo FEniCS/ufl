@@ -22,7 +22,6 @@ import ufl.algorithms
 from ufl.common import unique_post_traversal
 from ufl.conditional import Conditional
 from ufl.algorithms import expand_derivatives
-from ufl.algorithms.traversal import traverse_terminals2
 
 class ExpressionCollection(object):
     def __init__(self, cell):

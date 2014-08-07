@@ -23,7 +23,7 @@ from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.core.expr import Expr
 from ufl.core.terminal import UtilityType
-from ufl.operatorbase import Operator, Operator
+from ufl.core.operator import Operator, Operator
 from ufl.constantvalue import as_ufl
 from ufl.core.ufl_type import ufl_type
 

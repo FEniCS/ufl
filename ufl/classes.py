@@ -60,7 +60,7 @@ from ufl.geometry import (
 from ufl.indexing import IndexBase, FixedIndex, Index, MultiIndex
 
 # Operator types
-from ufl.operatorbase import Operator
+from ufl.core.operator import Operator
 from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
 from ufl.variable import Variable, Label

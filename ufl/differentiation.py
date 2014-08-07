@@ -24,7 +24,7 @@ from ufl.assertions import ufl_assert
 from ufl.common import subdict, mergedicts, EmptyDict
 from ufl.core.expr import Expr
 from ufl.core.terminal import Terminal
-from ufl.operatorbase import Operator
+from ufl.core.operator import Operator
 from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.constantvalue import Zero
 from ufl.indexing import Index, FixedIndex, MultiIndex

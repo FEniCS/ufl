@@ -4,7 +4,7 @@ from six.moves import zip
 
 from ufl.core.expr import Expr
 from ufl.log import error
-from ufl.operatorbase import Operator
+from ufl.core.operator import Operator
 from ufl.core.terminal import Terminal
 from ufl.common import pre_traversal
 

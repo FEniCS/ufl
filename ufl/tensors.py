@@ -24,7 +24,7 @@ from ufl.log import warning, error
 from ufl.common import subdict, EmptyDict
 from ufl.assertions import ufl_assert
 from ufl.core.expr import Expr
-from ufl.operatorbase import Operator
+from ufl.core.operator import Operator
 from ufl.constantvalue import as_ufl, Zero
 from ufl.indexing import Index, FixedIndex, MultiIndex, indices
 from ufl.indexed import Indexed
