@@ -21,6 +21,8 @@ elements by calling the function register_element."""
 #
 # Modified by Marie E. Rognes <meg@simula.no>, 2010
 
+from __future__ import print_function
+
 from ufl.assertions import ufl_assert
 from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl
 from ufl.common import istr
@@ -48,14 +50,21 @@ def register_alias(alias, to):
 
 def show_elements():
     print("Showing all registered elements:")
+    print("================================")
+    shown = set()
     for k in sorted(ufl_elements.keys()):
-        (family, short_name, sobolev_space, mapping, degree_range, cellnames) = ufl_elements[k]
-        print()
-        print("Finite Element Family: %s, %s" % (repr(family), repr(short_name)))
+        data = ufl_elements[k]
+        if data in shown:
+            continue
+        shown.add(data)
+        (family, short_name, value_rank, sobolev_space, mapping, degree_range, cellnames) = data
+        print("Finite element family: %s, %s" % (repr(family), repr(short_name)))
         print("Sobolev space: %s" % (sobolev_space,))
         print("Mapping: %s" % (mapping,))
-        print("Degree range: ", degree_range)
-        print("Defined on cellnames:", cellnames)
+        print("Degree range: %s" % (degree_range,))
+        print("Value rank: %s" % (value_rank,))
+        print("Defined on cellnames: %s" % (cellnames,))
+        print()
 
 # FIXME: Consider cleanup of element names. Use notation from periodic table as the main, keep old names as compatibility aliases.
 
@@ -75,7 +84,7 @@ def show_elements():
 simplices = ("interval", "triangle", "tetrahedron")
 cubes     = ("interval", "quadrilateral", "hexahedron")
 any_cell  = (None,
-             "cell0D", "cell1D", "cell2D", "cell3D",
+             "cell2D", "cell3D",
              "vertex", "interval",
              "triangle", "tetrahedron",
              "quadrilateral", "hexahedron")
