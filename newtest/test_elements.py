@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env py.test
 
 # Last changed: 2014-02-24
 

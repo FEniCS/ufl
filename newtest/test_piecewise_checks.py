@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env py.test
 
 """
 Test the is_cellwise_constant function on all relevant terminal types.

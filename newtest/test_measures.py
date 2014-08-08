@@ -1,4 +1,4 @@
-#!/use/bin/env python
+#!/use/bin/env py.test
 
 """
 Tests of the various ways Measure objects can be created and used.

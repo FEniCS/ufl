@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env py.test
 
 __authors__ = "David Ham"
 __date__ = "2014-03-04"

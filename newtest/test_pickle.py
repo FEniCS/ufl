@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env py.test
 """Pickle all the unit test forms from FFC 0.5.0"""
 
 __author__ = "Anders Logg (logg@simula.no) et al."

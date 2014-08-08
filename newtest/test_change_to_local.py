@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env py.test
 
 """
 Tests of the change to local representaiton algorithms.

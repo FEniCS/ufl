@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env py.test
 
 """
 Tests of domain language and attaching domains to forms.
