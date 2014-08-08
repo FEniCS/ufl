@@ -91,11 +91,14 @@ class MixedElement(FiniteElementBase):
                 "Provided value_shape doesn't match the total "\
                 "value size of all subelements.")
 
+        # Always use a flat reference value shape
+        reference_value_shape = (sum(product(s.reference_value_shape()) for s in self._sub_elements),)
+
         # Initialize element data
         degrees = { e.degree() for e in self._sub_elements } - { None }
         degree = max(degrees) if degrees else None
-        super(MixedElement, self).__init__("Mixed", domain, degree,
-                                           quad_scheme, value_shape)
+        FiniteElementBase.__init__(self, "Mixed", domain, degree, quad_scheme,
+                                   value_shape, reference_value_shape)
 
         # Cache repr string
         self._repr = "MixedElement(*%r, **{'value_shape': %r })" %\
@@ -305,7 +308,7 @@ class VectorElement(MixedElement):
         value_shape = shape + sub_element.value_shape()
 
         # Initialize element data
-        super(VectorElement, self).__init__(sub_elements, value_shape=value_shape)
+        MixedElement.__init__(self, sub_elements, value_shape=value_shape)
         self._family = family
         self._degree = degree
         self._sub_element = sub_element
@@ -415,7 +418,7 @@ class TensorElement(MixedElement):
         value_shape = shape + sub_element.value_shape()
 
         # Initialize element data
-        super(TensorElement, self).__init__(sub_elements, value_shape=value_shape)
+        MixedElement.__init__(self, sub_elements, value_shape=value_shape)
         self._family = family
         self._degree = degree
         self._sub_element = sub_element

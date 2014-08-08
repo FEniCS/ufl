@@ -36,8 +36,8 @@ class RestrictedElement(FiniteElementBase):
         ufl_assert(isinstance(cell_restriction, Cell) or cell_restriction == "facet",
                    "Expecting a Cell instance, or the string 'facet'.")
 
-        super(RestrictedElement, self).__init__("RestrictedElement", element.cell(),
-            element.degree(), element.quadrature_scheme(), element.value_shape())
+        FiniteElementBase.__init__(self, "RestrictedElement", element.cell(),
+            element.degree(), element.quadrature_scheme(), element.value_shape(), element.reference_value_shape())
         self._element = element
 
         if isinstance(cell_restriction, Cell):

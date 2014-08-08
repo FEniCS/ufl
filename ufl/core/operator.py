@@ -53,7 +53,7 @@ class Operator(Expr):
         "Compute a hash code for this expression. Used by sets and dicts."
         #hashdata = ( (self._ufl_typecode_,) + tuple(hash(o) for o in self.ufl_operands) ) # TODO: Try this?
         #hashdata = self._ufl_handlername_ + ' '.join(str(hash(o)) for o in self.ufl_operands) # TODO: Try this?
-        hashdata = ( (self.__class__._ufl_class_,) + tuple(hash(o) for o in self.ufl_operands) )
+        hashdata = ( (self._ufl_class_,) + tuple(hash(o) for o in self.ufl_operands) )
         return hash(str(hashdata))
 
     def is_cellwise_constant(self):

@@ -21,7 +21,7 @@ from six.moves import xrange as range
 
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
-from ufl.classes import (Terminal, ReferenceGrad, Grad, Restricted,
+from ufl.classes import (Terminal, ReferenceGrad, Grad, Restricted, ReferenceValue,
                          Jacobian, JacobianInverse, JacobianDeterminant,
                          FacetJacobian, FacetJacobianInverse, FacetJacobianDeterminant,
                          CellFacetJacobian,
@@ -133,7 +133,7 @@ class ChangeToReferenceValue(ReuseTransformer):
 
         element = o.element()
 
-        local_value = PullbackOf(o) # FIXME implement PullbackOf type
+        local_value = ReferenceValue(o)
 
         if isinstance(element, FiniteElement):
             S = element.sobolev_space()

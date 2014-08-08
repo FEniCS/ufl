@@ -63,12 +63,13 @@ class TensorProductElement(FiniteElementBase):
         # shape, and use this.
         # TODO: Not sure if this makes sense, what kind of product is used to build the basis?
         value_shape = self._sub_elements[0].value_shape()
+        reference_value_shape = self._sub_elements[0].reference_value_shape()
         ufl_assert(all(e.value_shape() == value_shape
                        for e in self._sub_elements),
                    "All subelements in must have same value shape")
 
-        super(TensorProductElement, self).__init__(family, domain, degree,
-                                                   quad_scheme, value_shape)
+        FiniteElementBase.__init__(self, family, domain, degree,
+                                   quad_scheme, value_shape, reference_value_shape)
 
     def reconstruction_signature(self):
         """Format as string for evaluation as Python object.

@@ -35,14 +35,16 @@ class FiniteElementBase(object):
                  "_form_degree",
                  "_quad_scheme",
                  "_value_shape",
+                 "_reference_value_shape",
                  "_repr",
                  "__weakref__")
 
-    def __init__(self, family, domain, degree, quad_scheme, value_shape):
+    def __init__(self, family, domain, degree, quad_scheme, value_shape, reference_value_shape):
         "Initialize basic finite element data"
         ufl_assert(isinstance(family, str), "Invalid family type.")
         ufl_assert(isinstance(degree, (int, tuple)) or degree is None, "Invalid degree type.")
         ufl_assert(isinstance(value_shape, tuple), "Invalid value_shape type.")
+        ufl_assert(isinstance(reference_value_shape, tuple), "Invalid reference_value_shape type.")
 
         # TODO: Support multiple domains for composite mesh mixed elements
         if domain is None:
@@ -57,6 +59,7 @@ class FiniteElementBase(object):
         self._family = family
         self._degree = degree
         self._value_shape = value_shape
+        self._reference_value_shape = reference_value_shape
         self._quad_scheme = quad_scheme
 
     def __repr__(self):
@@ -75,7 +78,9 @@ class FiniteElementBase(object):
         raise NotImplementedError("Class %s must implement FiniteElementBase.reconstruction_signature" % (type(self).__name__,))
 
     def signature_data(self, renumbering):
-        data = ("FiniteElementBase", self._family, self._degree, self._value_shape, self._quad_scheme,
+        data = ("FiniteElementBase", self._family, self._degree,
+                self._value_shape, self._reference_value_shape,
+                self._quad_scheme,
                 ("no domain" if self._domain is None else self._domain.signature_data(renumbering)))
         return data
 
@@ -136,8 +141,12 @@ class FiniteElementBase(object):
         return self.family() == "Real" or self.degree() == 0
 
     def value_shape(self):
-        "Return the shape of the value space"
+        "Return the shape of the value space on the global domain."
         return self._value_shape
+
+    def reference_value_shape(self):
+        "Return the shape of the value space on the reference cell."
+        return self._reference_value_shape
 
     def symmetry(self): # FIXME: different approach
         """Return the symmetry dict, which is a mapping c0 -> c1

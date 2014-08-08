@@ -54,12 +54,13 @@ class EnrichedElement(FiniteElementBase):
             "Quadrature scheme mismatch.")
 
         value_shape = elements[0].value_shape()
+        reference_value_shape = elements[0].reference_value_shape()
         ufl_assert(all(e.value_shape() == value_shape for e in elements),
                    "Element value shape mismatch.")
 
         # Initialize element data
-        super(EnrichedElement, self).__init__("EnrichedElement", domain, degree,
-                                              quad_scheme, value_shape)
+        FiniteElementBase.__init__(self, "EnrichedElement", domain, degree,
+                                   quad_scheme, value_shape, reference_value_shape)
 
         # Cache repr string
         self._repr =  "EnrichedElement(*%r)" % ([repr(e) for e in self._elements],)

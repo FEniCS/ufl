@@ -59,6 +59,7 @@ import ufl.differentiation
 import ufl.conditional
 import ufl.restriction
 import ufl.exprcontainers
+import ufl.referencevalue
 
 # Make sure we import exproperators which attaches special functions to Expr
 from ufl import exproperators as __exproperators
