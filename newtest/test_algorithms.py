@@ -16,35 +16,29 @@ from ufl.classes import Sum, Product
 # TODO: add more tests, covering all utility algorithms
 
 
-def get_element():
+@pytest.fixture(scope='module')
+def element():
     return FiniteElement("CG", triangle, 1)
 
 
-@pytest.fixture
-def elements():
-    return (get_element(), )
-
-
-@pytest.fixture
-def arguments():
-    element = get_element()
+@pytest.fixture(scope='module')
+def arguments(element):
     v = TestFunction(element)
     u = TrialFunction(element)
     return (v, u)
 
 
-@pytest.fixture
-def coefficients():
-    element = get_element()
+@pytest.fixture(scope='module')
+def coefficients(element):
     c = Coefficient(element)
     f = Coefficient(element)
     return (c, f)
 
 
 @pytest.fixture
-def forms():
-    v, u = arguments()
-    c, f = coefficients()
+def forms(arguments, coefficients):
+    v, u = arguments
+    c, f = coefficients
     n = FacetNormal(triangle)
     a = u * v * dx
     L = f * v * dx
