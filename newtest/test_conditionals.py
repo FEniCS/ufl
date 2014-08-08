@@ -6,24 +6,28 @@ __date__ = "2008-08-20 -- 2012-11-30"
 import pytest
 
 from ufl import *
-#from ufl.algorithms import *
+# from ufl.algorithms import *
 from ufl.classes import *
+
 
 @pytest.fixture
 def f():
     element = FiniteElement("Lagrange", triangle, 1)
     return Coefficient(element)
 
+
 @pytest.fixture
 def g():
     element = FiniteElement("Lagrange", triangle, 1)
     return Coefficient(element)
+
 
 def test_conditional_does_not_allow_bool_condition(f, g):
     # The reason for this test is that it protects from the case
     # conditional(a == b, t, f) in which a == b means comparing representations
     with pytest.raises(UFLException):
         conditional(True, 1, 0)
+
 
 def test_eq_produces_ufl_expr(f, g):
     expr1 = eq(f, f)
@@ -35,6 +39,7 @@ def test_eq_produces_ufl_expr(f, g):
     assert bool(expr1 != expr2)
     assert bool(expr2 == expr3)
 
+
 def test_eq_oper_produces_bool(f, g):
     expr1 = f == f
     expr2 = f == g
@@ -42,6 +47,7 @@ def test_eq_oper_produces_bool(f, g):
     assert isinstance(expr2, bool)
     assert expr1
     assert not expr2
+
 
 def xtest_eq_produces_ufl_expr(f, g):
     expr1 = f == g
@@ -79,6 +85,7 @@ def test_eq_produces_ufl_expr(f, g):
     assert not bool(expr3)
     assert bool(expr4)
 
+
 def test_ne_produces_ufl_expr(f, g):
     expr1 = ne(f, g)
     expr2 = ne(f, f)
@@ -105,6 +112,7 @@ def test_ne_produces_ufl_expr(f, g):
     assert bool(expr1)
     assert not bool(expr2)
 
+
 def test_lt_produces_ufl_expr(f, g):
     expr1 = lt(f, g)
     expr2 = f < g
@@ -116,6 +124,7 @@ def test_lt_produces_ufl_expr(f, g):
     # Protection from misuse in boolean python expression context:
     with pytest.raises(UFLException):
         bool(expr1)
+
 
 def test_gt_produces_ufl_expr(f, g):
     expr1 = gt(f, g)
@@ -129,6 +138,7 @@ def test_gt_produces_ufl_expr(f, g):
     with pytest.raises(UFLException):
         bool(expr1)
 
+
 def test_le_produces_ufl_expr(f, g):
     expr1 = le(f, g)
     expr2 = f <= g
@@ -141,6 +151,7 @@ def test_le_produces_ufl_expr(f, g):
     with pytest.raises(UFLException):
         bool(expr1)
 
+
 def test_ge_produces_ufl_expr(f, g):
     expr1 = ge(f, g)
     expr2 = f >= g
@@ -150,7 +161,7 @@ def test_ge_produces_ufl_expr(f, g):
     # Representations are the same:
     assert bool(expr1 == expr2)
     # Protection from misuse in boolean python expression context:
-    with pytest.raises(UFLException): 
+    with pytest.raises(UFLException):
         bool(expr1)
 
 

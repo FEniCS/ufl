@@ -35,6 +35,7 @@ def test_comparison_of_coefficients():
     assert not v1 == u1
     assert not v2 == u2
 
+
 def test_comparison_of_products():
     V = FiniteElement("CG", triangle, 1)
     v = Coefficient(V)
@@ -45,6 +46,7 @@ def test_comparison_of_products():
     assert a == b
     assert not a == c
     assert not b == c
+
 
 def test_comparison_of_sums():
     V = FiniteElement("CG", triangle, 1)
@@ -57,20 +59,22 @@ def test_comparison_of_sums():
     assert not a == c
     assert not b == c
 
+
 def test_comparison_of_deeply_nested_expression():
     V = FiniteElement("CG", triangle, 1)
     v = Coefficient(V, count=1)
     u = Coefficient(V, count=1)
     w = Coefficient(V, count=2)
+
     def build_expr(a):
-	for i in range(100):
-	    if i % 3 == 0:
-		a = a + i
-	    elif i % 3 == 1:
-		a = a * i
-	    elif i % 3 == 2:
-		a = a**i
-	return a
+        for i in range(100):
+            if i % 3 == 0:
+                a = a + i
+            elif i % 3 == 1:
+                a = a * i
+            elif i % 3 == 2:
+                a = a ** i
+        return a
     a = build_expr(u)
     b = build_expr(v)
     c = build_expr(w)
@@ -81,4 +85,3 @@ def test_comparison_of_deeply_nested_expression():
 # Don't touch these lines, they allow you to run this file directly
 if __name__ == "__main__":
     main()
-

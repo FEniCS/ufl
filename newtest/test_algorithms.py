@@ -15,8 +15,10 @@ from ufl.classes import Sum, Product
 
 # TODO: add more tests, covering all utility algorithms
 
+
 def get_element():
     return FiniteElement("CG", triangle, 1)
+
 
 @pytest.fixture
 def elements():
@@ -44,9 +46,10 @@ def forms():
     v, u = arguments()
     c, f = coefficients()
     n = FacetNormal(triangle)
-    a = u*v*dx
-    L = f*v*dx
-    b = u*v*dx(0) + inner(c*grad(u), grad(v))*dx(1) + dot(n, grad(u))*v*ds + f*v*dx
+    a = u * v * dx
+    L = f * v * dx
+    b = u * v * dx(0) + inner(c * grad(u), grad(v)) * \
+        dx(1) + dot(n, grad(u)) * v * ds + f * v * dx
     return (a, L, b)
 
 
@@ -60,14 +63,14 @@ def test_coefficients(coefficients, forms):
 
 
 def test_elements(forms):
-    #print elements(forms[2])
-    #print unique_elements(forms[2])
-    #print unique_classes(forms[2])
+    # print elements(forms[2])
+    # print unique_elements(forms[2])
+    # print unique_classes(forms[2])
     b = forms[2]
     integrals = b.integrals_by_type(Measure.CELL)
     integrand = integrals[0].integrand()
     d = extract_duplications(integrand)
-    #pprint(list(d))
+    # pprint(list(d))
 
     element1 = FiniteElement("CG", triangle, 1)
     element2 = FiniteElement("CG", triangle, 1)
@@ -75,7 +78,7 @@ def test_elements(forms):
     v = TestFunction(element1)
     u = TrialFunction(element2)
 
-    a = u*v*dx
+    a = u * v * dx
     assert (element1, element2) == extract_elements(a)
     assert (element1,) == extract_unique_elements(a)
 
@@ -84,23 +87,27 @@ def test_walk():
     element = FiniteElement("CG", "triangle", 1)
     v = TestFunction(element)
     f = Coefficient(element)
-    p = f*v
-    a = p*dx
+    p = f * v
+    a = p * dx
 
     prestore = []
+
     def pre(o, stack):
-	prestore.append((o, len(stack)))
+        prestore.append((o, len(stack)))
     poststore = []
+
     def post(o, stack):
-	poststore.append((o, len(stack)))
+        poststore.append((o, len(stack)))
 
     for itg in a.integrals_by_type(Measure.CELL):
-	walk(itg.integrand(), pre, post)
+        walk(itg.integrand(), pre, post)
 
-    assert prestore == [(p, 0), (v, 1), (f, 1)]  # NB! Sensitive to ordering of expressions.
-    assert poststore == [(v, 1), (f, 1), (p, 0)] # NB! Sensitive to ordering of expressions.
-    #print "\n"*2 + "\n".join(map(str,prestore))
-    #print "\n"*2 + "\n".join(map(str,poststore))
+    assert prestore == [(p, 0), (v, 1), (f, 1)]
+                         # NB! Sensitive to ordering of expressions.
+    assert poststore == [(v, 1), (f, 1), (p, 0)]
+                          # NB! Sensitive to ordering of expressions.
+    # print "\n"*2 + "\n".join(map(str,prestore))
+    # print "\n"*2 + "\n".join(map(str,poststore))
 
 
 def test_traversal():
@@ -108,14 +115,16 @@ def test_traversal():
     v = TestFunction(element)
     f = Coefficient(element)
     g = Coefficient(element)
-    p1 = f*v
-    p2 = g*v
+    p1 = f * v
+    p2 = g * v
     s = p1 + p2
     pre_traverse = list(pre_traversal(s))
     post_traverse = list(post_traversal(s))
 
-    assert pre_traverse == [s, p1, v, f, p2, v, g] # NB! Sensitive to ordering of expressions.
-    assert post_traverse == [v, f, p1, v, g, p2, s] # NB! Sensitive to ordering of expressions.
+    assert pre_traverse == [s, p1, v, f, p2, v, g]
+        # NB! Sensitive to ordering of expressions.
+    assert post_traverse == [v, f, p1, v, g, p2, s]
+        # NB! Sensitive to ordering of expressions.
 
 
 def test_expand_indices():
@@ -124,14 +133,14 @@ def test_expand_indices():
     u = TrialFunction(element)
 
     def evaluate(form):
-	return form.cell_integral()[0].integrand()((), { v: 3, u: 5 }) # TODO: How to define values of derivatives?
+        return form.cell_integral()[0].integrand()((), {v: 3, u: 5})  # TODO: How to define values of derivatives?
 
-    a = div(grad(v))*u*dx
-    #a1 = evaluate(a)
+    a = div(grad(v)) * u * dx
+    # a1 = evaluate(a)
     a = expand_derivatives(a)
-    #a2 = evaluate(a)
+    # a2 = evaluate(a)
     a = expand_indices(a)
-    #a3 = evaluate(a)
+    # a3 = evaluate(a)
     # TODO: Compare a1, a2, a3
     # TODO: Test something more
 
@@ -150,7 +159,7 @@ def test_adjoint():
     v2 = Argument(V2, 3)
     assert u2.number() < v2.number()
 
-    a = u*v*dx
+    a = u * v * dx
     a_arg_degrees = [arg.element().degree() for arg in extract_arguments(a)]
     assert a_arg_degrees == [2, 1]
 
