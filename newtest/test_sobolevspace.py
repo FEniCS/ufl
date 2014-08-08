@@ -98,5 +98,3 @@ def test_contains_hcurl():
         assert hcurl_element not in HDiv
         assert hcurl_element not in H2
 
-if __name__ == "__main__":
-    main()

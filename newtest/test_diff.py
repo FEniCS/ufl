@@ -191,5 +191,3 @@ def testDiffX():
 
 # TODO: More tests involving wrapper types and indices
 
-if __name__ == "__main__":
-    main()

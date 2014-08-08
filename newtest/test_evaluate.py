@@ -364,5 +364,3 @@ def test_cofac():
 def test_inv():
     pass  # TODO
 
-if __name__ == "__main__":
-    main()

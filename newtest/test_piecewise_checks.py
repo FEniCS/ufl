@@ -246,6 +246,3 @@ def test_coefficient_mostly_not_cellwise_constant(domains_not_linear):
     e = TestFunction(V)
     assert not e.is_cellwise_constant()
 
-# Don't touch these lines, they allow you to run this file directly
-if __name__ == "__main__":
-    main()

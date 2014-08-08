@@ -82,6 +82,3 @@ def test_comparison_of_deeply_nested_expression():
     assert not a == c
     assert not b == c
 
-# Don't touch these lines, they allow you to run this file directly
-if __name__ == "__main__":
-    main()

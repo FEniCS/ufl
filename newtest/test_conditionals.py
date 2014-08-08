@@ -165,5 +165,3 @@ def test_ge_produces_ufl_expr(f, g):
         bool(expr1)
 
 
-if __name__ == "__main__":
-    main()

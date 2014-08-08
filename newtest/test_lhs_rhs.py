@@ -71,5 +71,3 @@ def test_lhs_rhs_slightly_obscure():
     a, L = system(F)
     assert(len(L.integrals()) == 1)
 
-if __name__ == "__main__":
-    main()

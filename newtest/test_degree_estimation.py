@@ -125,5 +125,3 @@ def test_some_compound_types():
     assert etpd(dot(grad(v), grad(v))) == 2 - 1 + 2 - 1
     assert etpd(inner(grad(v), grad(v))) == 2 - 1 + 2 - 1
 
-if __name__ == "__main__":
-    main()

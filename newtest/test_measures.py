@@ -207,6 +207,3 @@ def test_foo():
         "interior_facet"] == interior_facet_domains
 
 
-# Don't touch these lines, they allow you to run this file directly
-if __name__ == "__main__":
-    main()

@@ -551,5 +551,3 @@ def testFormData():
 
     assert(str(form_data) == str(form_data_restore))
 
-if __name__ == "__main__":
-    main()

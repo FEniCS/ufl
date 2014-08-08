@@ -461,6 +461,3 @@ def xtest_subdomain_stuff():  # Old sketch, not working
     aronly = ur * vr * \
         dx(D3)  # integral_3 knows that only subelement VR is active
 
-# Don't touch these lines, they allow you to run this file directly
-if __name__ == "__main__":
-    main()

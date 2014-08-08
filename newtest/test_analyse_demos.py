@@ -74,5 +74,3 @@ def test_each_demo_with_validate_form():
                 excepted = 1
             assert excepted == 0, filename
 
-if __name__ == "__main__":
-    main()

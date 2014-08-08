@@ -87,5 +87,3 @@ def test_add_vectorexpr_b(vg, v, u, vf, b):
         tmp + b
 
 
-if __name__ == "__main__":
-    main()

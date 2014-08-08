@@ -194,5 +194,3 @@ def test_radau():
         element = FiniteElement("Radau", cell, degree)
         assert element == eval(repr(element))
 
-if __name__ == "__main__":
-    main()

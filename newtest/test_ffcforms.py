@@ -395,5 +395,3 @@ def testVectorLaplaceGradCurl():
 
     [a, L] = HodgeLaplaceGradCurl(GRAD * CURL, VectorLagrange)
 
-if __name__ == "__main__":
-    main()

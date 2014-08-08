@@ -181,5 +181,3 @@ def test_stackdict():
     d.pop()
     assert d["a"] == 1
 
-if __name__ == "__main__":
-    main()

@@ -66,6 +66,3 @@ def test_change_to_reference_grad():
     # print tree_format(renumber_indices(actual))
     # print tree_format(renumber_indices(expected))
 
-# Don't touch these lines, they allow you to run this file directly
-if __name__ == "__main__":
-    main()

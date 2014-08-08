@@ -168,6 +168,3 @@ def test_adjoint():
     d = adjoint(b)
     d_arg_degrees = [arg.element().degree() for arg in extract_arguments(d)]
     assert d_arg_degrees == [2, 1]
-
-if __name__ == "__main__":
-    main()
