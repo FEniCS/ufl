@@ -22,9 +22,9 @@ def test_zero(self):
     #self.assertTrue(z1 is z4)
     #self.assertTrue(z1 is z5)
     #self.assertTrue(z1 is z6)
-    self.assertEqual(z1, z1)
-    self.assertEqual(int(z1), 0)
-    self.assertEqual(float(z1), 0.0)
+    assert z1 == z1
+    assert int(z1) == 0
+    assert float(z1) == 0.0
     self.assertNotEqual(z1, 1.0)
     self.assertFalse(z1)
 
@@ -40,12 +40,12 @@ def test_float(self):
     f5 = 3 - FloatValue(1) - 1
     f6 = 3 * FloatValue(2) / 6
 
-    self.assertEqual(f1, f1)
+    assert f1 == f1
     self.assertNotEqual(f1, f2) # IntValue vs FloatValue, == compares representations!
-    self.assertEqual(f2, f3)
-    self.assertEqual(f2, f4)
-    self.assertEqual(f2, f5)
-    self.assertEqual(f2, f6)
+    assert f2 == f3
+    assert f2 == f4
+    assert f2 == f5
+    assert f2 == f6
 
 def test_int(self):
     f1 = as_ufl(1)
@@ -55,12 +55,12 @@ def test_int(self):
     f5 = 3 - IntValue(1) - 1
     f6 = 3 * IntValue(2) / 6
 
-    self.assertEqual(f1, f1)
+    assert f1 == f1
     self.assertNotEqual(f1, f2) # IntValue vs FloatValue, == compares representations!
-    self.assertEqual(f1, f3)
-    self.assertEqual(f1, f4)
-    self.assertEqual(f1, f5)
-    self.assertEqual(f2, f6) # Division produces a FloatValue
+    assert f1 == f3
+    assert f1 == f4
+    assert f1 == f5
+    assert f2 == f6 # Division produces a FloatValue
 
 def test_scalar_sums(self):
     n = 10
@@ -70,35 +70,35 @@ def test_scalar_sums(self):
         self.assertNotEqual(s[i], i+1)
 
     for i in range(n):
-        self.assertEqual(s[i], i)
+        assert s[i] == i
 
     for i in range(n):
-        self.assertEqual(0 + s[i], i)
+        assert 0 + s[i] == i
 
     for i in range(n):
-        self.assertEqual(s[i] + 0, i)
+        assert s[i] + 0 == i
 
     for i in range(n):
-        self.assertEqual(0 + s[i] + 0, i)
+        assert 0 + s[i] + 0 == i
 
     for i in range(n):
-        self.assertEqual(1 + s[i] - 1, i)
+        assert 1 + s[i] - 1 == i
 
-    self.assertEqual(s[1] + s[1], 2)
-    self.assertEqual(s[1] + s[2], 3)
-    self.assertEqual(s[1] + s[2] + s[3], s[6])
-    self.assertEqual(s[5] - s[2], 3)
-    self.assertEqual(1*s[5], 5)
-    self.assertEqual(2*s[5], 10)
-    self.assertEqual(s[6]/3, 2)
+    assert s[1] + s[1] == 2
+    assert s[1] + s[2] == 3
+    assert s[1] + s[2] + s[3] == s[6]
+    assert s[5] - s[2] == 3
+    assert 1*s[5] == 5
+    assert 2*s[5] == 10
+    assert s[6]/3 == 2
 
 def test_identity(self):
     pass # FIXME
 
 def test_permutation_symbol_3(self):
     e = PermutationSymbol(3)
-    self.assertEqual(e.ufl_shape, (3, 3, 3))
-    self.assertEqual(eval(repr(e)), e)
+    assert e.ufl_shape == (3, 3, 3)
+    assert eval(repr(e)) == e
     for i in range(3):
         for j in range(3):
             for k in range(3):
@@ -112,13 +112,13 @@ def test_permutation_symbol_3(self):
 def test_permutation_symbol_n(self):
     for n in range(2, 5): # tested with upper limit 7, but evaluation is a bit slow then
         e = PermutationSymbol(n)
-        self.assertEqual(e.ufl_shape, (n,)*n)
-        self.assertEqual(eval(repr(e)), e)
+        assert e.ufl_shape == (n,)*n
+        assert eval(repr(e)) == e
 
         ii = indices(n)
         x = (0,)*n
         nfac = product(m for m in range(1, n+1))
-        self.assertEqual((e[ii] * e[ii])(x), nfac)
+        assert (e[ii] * e[ii])(x) == nfac
 
 def test_unit_dyads(self):
     from ufl.tensors import unit_vectors, unit_matrices

@@ -51,25 +51,25 @@ def _test_grad_div_curl_properties(self, cell):
                 ct: eval_t, t: eval_t, }
     x = tuple(1.0+float(k) for k in range(d))
 
-    self.assertEqual(s.ufl_shape, ())
-    self.assertEqual(v.ufl_shape, (d,))
-    self.assertEqual(t.ufl_shape, (d, d))
+    assert s.ufl_shape == ()
+    assert v.ufl_shape == (d,)
+    assert t.ufl_shape == (d, d)
 
-    self.assertEqual(cs.ufl_shape, ())
-    self.assertEqual(cv.ufl_shape, (d,))
-    self.assertEqual(ct.ufl_shape, (d, d))
+    assert cs.ufl_shape == ()
+    assert cv.ufl_shape == (d,)
+    assert ct.ufl_shape == (d, d)
 
     self.assertEqual(s(x, mapping=mapping), eval_s(x))
     self.assertEqual(v(x, mapping=mapping), eval_v(x))
     self.assertEqual(t(x, mapping=mapping), eval_t(x))
 
-    self.assertEqual(grad(s).ufl_shape, (d,))
-    self.assertEqual(grad(v).ufl_shape, (d, d))
-    self.assertEqual(grad(t).ufl_shape, (d, d, d))
+    assert grad(s).ufl_shape == (d,)
+    assert grad(v).ufl_shape == (d, d)
+    assert grad(t).ufl_shape == (d, d, d)
 
-    self.assertEqual(grad(cs).ufl_shape, (d,))
-    self.assertEqual(grad(cv).ufl_shape, (d, d))
-    self.assertEqual(grad(ct).ufl_shape, (d, d, d))
+    assert grad(cs).ufl_shape == (d,)
+    assert grad(cv).ufl_shape == (d, d)
+    assert grad(ct).ufl_shape == (d, d, d)
 
     self.assertEqual(grad(s)[0](x, mapping=mapping), eval_s(x, (0,)))
     self.assertEqual(grad(v)[d-1, d-1](x, mapping=mapping),
@@ -77,26 +77,26 @@ def _test_grad_div_curl_properties(self, cell):
     self.assertEqual(grad(t)[d-1, d-1, d-1](x, mapping=mapping),
                      eval_t(x, derivatives=(d-1,))[d-1][d-1])
 
-    self.assertEqual(div(grad(cs)).ufl_shape, ())
-    self.assertEqual(div(grad(cv)).ufl_shape, (d,))
-    self.assertEqual(div(grad(ct)).ufl_shape, (d, d))
+    assert div(grad(cs)).ufl_shape == ()
+    assert div(grad(cv)).ufl_shape == (d,)
+    assert div(grad(ct)).ufl_shape == (d, d)
 
-    self.assertEqual(s.dx(0).ufl_shape, ())
-    self.assertEqual(v.dx(0).ufl_shape, (d,))
-    self.assertEqual(t.dx(0).ufl_shape, (d, d))
+    assert s.dx(0).ufl_shape == ()
+    assert v.dx(0).ufl_shape == (d,)
+    assert t.dx(0).ufl_shape == (d, d)
 
-    self.assertEqual(s.dx(0, 0).ufl_shape, ())
-    self.assertEqual(v.dx(0, 0).ufl_shape, (d,))
-    self.assertEqual(t.dx(0, 0).ufl_shape, (d, d))
+    assert s.dx(0 == 0).ufl_shape, ()
+    assert v.dx(0 == 0).ufl_shape, (d,)
+    assert t.dx(0 == 0).ufl_shape, (d, d)
 
     i, j = indices(2)
-    self.assertEqual(s.dx(i).ufl_shape, ())
-    self.assertEqual(v.dx(i).ufl_shape, (d,))
-    self.assertEqual(t.dx(i).ufl_shape, (d, d))
+    assert s.dx(i).ufl_shape == ()
+    assert v.dx(i).ufl_shape == (d,)
+    assert t.dx(i).ufl_shape == (d, d)
 
-    self.assertEqual(s.dx(i).free_indices(), (i,))
-    self.assertEqual(v.dx(i).free_indices(), (i,))
-    self.assertEqual(t.dx(i).free_indices(), (i,))
+    assert s.dx(i).free_indices() == (i,)
+    assert v.dx(i).free_indices() == (i,)
+    assert t.dx(i).free_indices() == (i,)
 
     self.assertEqual(s.dx(i, j).ufl_shape, ())
     self.assertEqual(v.dx(i, j).ufl_shape, (d,))

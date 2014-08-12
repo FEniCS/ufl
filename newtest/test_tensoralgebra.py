@@ -32,10 +32,10 @@ def test_repeated_as_tensor(self, A, B, u, v):
     B2 = as_matrix(B)
     u2 = as_tensor(u)
     v2 = as_vector(v)
-    self.assertEqual(A2, A)
-    self.assertEqual(B2, B)
-    self.assertEqual(u2, u)
-    self.assertEqual(v2, v)
+    assert A2 == A
+    assert B2 == B
+    assert u2 == u
+    assert v2 == v
 
 def test_outer(self, A, B, u, v):
     C = outer(u, v)
@@ -62,13 +62,13 @@ def test_inner(self, A, B, u, v):
 def test_pow2_inner(self, A, u):
     f = FacetNormal(triangle)[0]
     f2 = f*f
-    self.assertEqual(f2, inner(f, f))
+    assert f2 == inner(f, f)
 
     u2 = u**2
-    self.assertEqual(u2, inner(u, u))
+    assert u2 == inner(u, u)
 
     A2 = A**2
-    self.assertEqual(A2, inner(A, A))
+    assert A2 == inner(A, A)
 
     # Only tensor**2 notation is supported:
     self.assertRaises(UFLException, lambda: A**3)

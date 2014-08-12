@@ -171,9 +171,6 @@ class MockForwardAD:
         return (g, gprimesum)
 
 
-def test_something(self):
-    self.assertTrue(42)
-
 def test_unit_tensor(self):
     E2_1, ii = unit_indexed_tensor((2,), (1,))
     E3_1, ii = unit_indexed_tensor((3,), (1,))
@@ -185,7 +182,7 @@ def test_unwrap_list_tensor(self):
     expected = [((0,), 1),
                 ((1,), 2),]
     comp = unwrap_list_tensor(lt)
-    self.assertEqual(comp, expected)
+    assert comp == expected
 
     lt = as_tensor(((1, 2), (3, 4)))
     expected = [((0, 0), 1),
@@ -193,7 +190,7 @@ def test_unwrap_list_tensor(self):
                 ((1, 0), 3),
                 ((1, 1), 4),]
     comp = unwrap_list_tensor(lt)
-    self.assertEqual(comp, expected)
+    assert comp == expected
 
     lt = as_tensor((((1, 2), (3, 4)),
                     ((11, 12), (13, 14))))
@@ -206,7 +203,7 @@ def test_unwrap_list_tensor(self):
                 ((1, 1, 0), 13),
                 ((1, 1, 1), 14),]
     comp = unwrap_list_tensor(lt)
-    self.assertEqual(comp, expected)
+    assert comp == expected
 
 def test__forward_coefficient_ad__grad_of_scalar_coefficient(self):
     U = FiniteElement("CG", cell2D, 1)
@@ -221,15 +218,15 @@ def test__forward_coefficient_ad__grad_of_scalar_coefficient(self):
     f = grad(u)
     df = grad(du)
     g, dg = mad.grad(f)
-    self.assertEqual(g, f)
-    self.assertEqual(dg, df)
+    assert g == f
+    assert dg == df
 
     # Simple grad(grad(coefficient)) -> grad(grad(variation))
     f = grad(grad(u))
     df = grad(grad(du))
     g, dg = mad.grad(f)
-    self.assertEqual(g, f)
-    self.assertEqual(dg, df)
+    assert g == f
+    assert dg == df
 
 def test__forward_coefficient_ad__grad_of_vector_coefficient(self):
     V = VectorElement("CG", cell2D, 1)
@@ -244,15 +241,15 @@ def test__forward_coefficient_ad__grad_of_vector_coefficient(self):
     f = grad(v)
     df = grad(dv)
     g, dg = mad.grad(f)
-    self.assertEqual(g, f)
-    self.assertEqual(dg, df)
+    assert g == f
+    assert dg == df
 
     # Simple grad(grad(coefficient)) -> grad(grad(variation))
     f = grad(grad(v))
     df = grad(grad(dv))
     g, dg = mad.grad(f)
-    self.assertEqual(g, f)
-    self.assertEqual(dg, df)
+    assert g == f
+    assert dg == df
 
 def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_variation(self):
     V = VectorElement("CG", cell2D, 1)
@@ -275,13 +272,13 @@ def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_var
         print(('df   ', df))
         print(('g    ', g))
         print(('dg   ', dg))
-    self.assertEqual(f.ufl_shape, df.ufl_shape)
-    self.assertEqual(g.ufl_shape, f.ufl_shape)
-    self.assertEqual(dg.ufl_shape, df.ufl_shape)
-    self.assertEqual(g, f)
+    assert f.ufl_shape == df.ufl_shape
+    assert g.ufl_shape == f.ufl_shape
+    assert dg.ufl_shape == df.ufl_shape
+    assert g == f
     self.assertEqual((inner(dg, dg)*dx).signature(),
                      (inner(df, df)*dx).signature())
-    #self.assertEqual(dg, df) # Expected to fail because of different index numbering
+    #assert dg == df # Expected to fail because of different index numbering
 
     # Multiple components of variation:
     # grad(grad(c))[0,1,:,:] -> grad(grad(dc))[1,0,:,:]
@@ -300,13 +297,13 @@ def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_var
     print(('df   ', df))
     print(('g    ', g))
     print(('dg   ', dg))
-    self.assertEqual(f.ufl_shape, df.ufl_shape)
-    self.assertEqual(g.ufl_shape, f.ufl_shape)
-    self.assertEqual(dg.ufl_shape, df.ufl_shape)
-    self.assertEqual(g, f)
+    assert f.ufl_shape == df.ufl_shape
+    assert g.ufl_shape == f.ufl_shape
+    assert dg.ufl_shape == df.ufl_shape
+    assert g == f
     self.assertEqual((inner(dg, dg)*dx).signature(),
                      (inner(df, df)*dx).signature())
-    #self.assertEqual(dg, df) # Expected to fail because of different index numbering
+    #assert dg == df # Expected to fail because of different index numbering
 
 def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_variation_in_list(self):
     V = VectorElement("CG", cell2D, 1)
@@ -329,13 +326,13 @@ def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_var
         print(('df   ', df))
         print(('g    ', g))
         print(('dg   ', dg))
-    self.assertEqual(f.ufl_shape, df.ufl_shape)
-    self.assertEqual(g.ufl_shape, f.ufl_shape)
-    self.assertEqual(dg.ufl_shape, df.ufl_shape)
-    self.assertEqual(g, f)
+    assert f.ufl_shape == df.ufl_shape
+    assert g.ufl_shape == f.ufl_shape
+    assert dg.ufl_shape == df.ufl_shape
+    assert g == f
     self.assertEqual((inner(dg, dg)*dx).signature(),
                      (inner(df, df)*dx).signature())
-    #self.assertEqual(dg, df) # Expected to fail because of different index numbering
+    #assert dg == df # Expected to fail because of different index numbering
 
     # Multiple components of variation:
     # grad(grad(c))[0,1,:,:] -> grad(grad(dc))[1,0,:,:]
@@ -354,13 +351,13 @@ def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_var
     print(('df   ', df))
     print(('g    ', g))
     print(('dg   ', dg))
-    self.assertEqual(f.ufl_shape, df.ufl_shape)
-    self.assertEqual(g.ufl_shape, f.ufl_shape)
-    self.assertEqual(dg.ufl_shape, df.ufl_shape)
-    self.assertEqual(g, f)
+    assert f.ufl_shape == df.ufl_shape
+    assert g.ufl_shape == f.ufl_shape
+    assert dg.ufl_shape == df.ufl_shape
+    assert g == f
     self.assertEqual((inner(dg, dg)*dx).signature(),
                      (inner(df, df)*dx).signature())
-    #self.assertEqual(dg, df) # Expected to fail because of different index numbering
+    #assert dg == df # Expected to fail because of different index numbering
 
 
 def test__forward_coefficient_ad__grad_of_tensor_coefficient(self):
@@ -376,15 +373,15 @@ def test__forward_coefficient_ad__grad_of_tensor_coefficient(self):
     f = grad(w)
     df = grad(dw)
     g, dg = mad.grad(f)
-    self.assertEqual(g, f)
-    self.assertEqual(dg, df)
+    assert g == f
+    assert dg == df
 
     # Simple grad(grad(coefficient)) -> grad(grad(variation))
     f = grad(grad(w))
     df = grad(grad(dw))
     g, dg = mad.grad(f)
-    self.assertEqual(g, f)
-    self.assertEqual(dg, df)
+    assert g == f
+    assert dg == df
 
 def test__forward_coefficient_ad__grad_of_tensor_coefficient__with_component_variation(self):
     W = TensorElement("CG", cell2D, 1)
@@ -411,10 +408,10 @@ def test__forward_coefficient_ad__grad_of_tensor_coefficient__with_component_var
         print(('df   ', df))
         print(('g    ', g))
         print(('dg   ', dg))
-    self.assertEqual(f.ufl_shape, df.ufl_shape)
-    self.assertEqual(g.ufl_shape, f.ufl_shape)
-    self.assertEqual(dg.ufl_shape, df.ufl_shape)
-    self.assertEqual(g, f)
+    assert f.ufl_shape == df.ufl_shape
+    assert g.ufl_shape == f.ufl_shape
+    assert dg.ufl_shape == df.ufl_shape
+    assert g == f
     self.assertEqual((inner(dg, dg)*dx).signature(),
                      (inner(df, df)*dx).signature())
-    #self.assertEqual(dg, df) # Expected to fail because of different index numbering
+    #assert dg == df # Expected to fail because of different index numbering

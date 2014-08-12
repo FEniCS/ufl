@@ -11,19 +11,19 @@ from ufl.classes import IndexSum
 
 def xtest_index_utils(self):
     ii = indices(3)
-    self.assertEqual(ii, unique_indices(ii) )
-    self.assertEqual(ii, unique_indices(ii+ii) )
+    assert ii == unique_indices(ii)
+    assert ii == unique_indices(ii+ii)
 
-    self.assertEqual((), repeated_indices(ii) )
-    self.assertEqual(ii, repeated_indices(ii+ii) )
+    assert () == repeated_indices(ii)
+    assert ii == repeated_indices(ii+ii)
 
-    self.assertEqual(ii, shared_indices(ii, ii) )
-    self.assertEqual(ii, shared_indices(ii, ii+ii) )
-    self.assertEqual(ii, shared_indices(ii+ii, ii) )
-    self.assertEqual(ii, shared_indices(ii+ii, ii+ii) )
+    assert ii == shared_indices(ii, ii)
+    assert ii == shared_indices(ii, ii+ii)
+    assert ii == shared_indices(ii+ii, ii)
+    assert ii == shared_indices(ii+ii, ii+ii)
 
-    self.assertEqual(ii, single_indices(ii) )
-    self.assertEqual((), single_indices(ii+ii) )
+    assert ii == single_indices(ii)
+    assert () == single_indices(ii+ii)
 
 def test_vector_indices(self):
     element = VectorElement("CG", "triangle", 1)
@@ -82,10 +82,10 @@ def test_indexed_function2(self):
     bfun  = cos(f[0])
     left  = u[i] + f[i]
     right = v[i] * bfun
-    self.assertEqual(len(left.free_indices()), 1)
-    self.assertEqual(left.free_indices()[0], i)
-    self.assertEqual(len(right.free_indices()), 1)
-    self.assertEqual(right.free_indices()[0], i)
+    assert len(left.free_indices()) == 1
+    assert left.free_indices()[0] == i
+    assert len(right.free_indices()) == 1
+    assert right.free_indices()[0] == i
     b = left * right * dx
 
 def test_indexed_function3(self):
@@ -106,10 +106,10 @@ def test_vector_from_indices(self):
     uu = as_vector(v[j], j)
     w  = v + u
     ww = vv + uu
-    self.assertEqual(vv.rank(), 1)
-    self.assertEqual(uu.rank(), 1)
-    self.assertEqual(w.rank(), 1)
-    self.assertEqual(ww.rank(), 1)
+    assert vv.rank() == 1
+    assert uu.rank() == 1
+    assert w.rank() == 1
+    assert ww.rank() == 1
 
 def test_matrix_from_indices(self):
     element = VectorElement("CG", "triangle", 1)
@@ -121,10 +121,10 @@ def test_matrix_from_indices(self):
     C  = A + A
     C  = B + B
     D  = A + B
-    self.assertEqual(A.rank(), 2)
-    self.assertEqual(B.rank(), 2)
-    self.assertEqual(C.rank(), 2)
-    self.assertEqual(D.rank(), 2)
+    assert A.rank() == 2
+    assert B.rank() == 2
+    assert C.rank() == 2
+    assert D.rank() == 2
 
 def test_vector_from_list(self):
     element = VectorElement("CG", "triangle", 1)
@@ -134,8 +134,8 @@ def test_vector_from_list(self):
     # create vector from list
     vv = as_vector([u[0], v[0]])
     ww = vv + vv
-    self.assertEqual(vv.rank(), 1)
-    self.assertEqual(ww.rank(), 1)
+    assert vv.rank() == 1
+    assert ww.rank() == 1
 
 def test_matrix_from_list(self):
     element = VectorElement("CG", "triangle", 1)
@@ -150,10 +150,10 @@ def test_matrix_from_list(self):
     C  = A + A
     C  = B + B
     D  = A + B
-    self.assertEqual(A.rank(), 2)
-    self.assertEqual(B.rank(), 2)
-    self.assertEqual(C.rank(), 2)
-    self.assertEqual(D.rank(), 2)
+    assert A.rank() == 2
+    assert B.rank() == 2
+    assert C.rank() == 2
+    assert D.rank() == 2
 
 def test_tensor(self):
     element = VectorElement("CG", "triangle", 1)
@@ -164,21 +164,21 @@ def test_tensor(self):
 
     # define the components of a fourth order tensor
     Cijkl = u[i]*v[j]*f[k]*g[l]
-    self.assertEqual(Cijkl.rank(), 0)
-    self.assertEqual(set(Cijkl.free_indices()), {i, j, k, l})
+    assert Cijkl.rank() == 0
+    assert set(Cijkl.free_indices()) == {i, j, k, l}
 
     # make it a tensor
     C = as_tensor(Cijkl, (i, j, k, l))
-    self.assertEqual(C.rank(), 4)
+    assert C.rank() == 4
     self.assertSameIndices(C, ())
 
     # get sub-matrix
     A = C[:,:, 0, 0]
-    self.assertEqual(A.rank(), 2)
+    assert A.rank() == 2
     self.assertSameIndices(A, ())
     A = C[:,:, i, j]
-    self.assertEqual(A.rank(), 2)
-    self.assertEqual(set(A.free_indices()), {i, j})
+    assert A.rank() == 2
+    assert set(A.free_indices()) == {i, j}
 
     # legal?
     vv = as_vector([u[i], v[i]])
@@ -222,39 +222,39 @@ def test_spatial_derivative(self):
     a = v[i].dx(i)
     self.assertSameIndices(a, ())
     self.assertIsInstance(a, IndexSum)
-    self.assertEqual(a.ufl_shape, ())
+    assert a.ufl_shape == ()
 
     a = v[i].dx(j)
     self.assertSameIndices(a, (i, j))
     self.assertNotIsInstance(a, IndexSum)
-    self.assertEqual(a.ufl_shape, ())
+    assert a.ufl_shape == ()
 
     a = (v[i]*u[j]).dx(i, j)
     self.assertSameIndices(a, ())
     self.assertIsInstance(a, IndexSum)
-    self.assertEqual(a.ufl_shape, ())
+    assert a.ufl_shape == ()
 
     a = v.dx(i, j)
     #self.assertSameIndices(a, (i,j))
-    self.assertEqual(set(a.free_indices()), {j, i})
+    assert set(a.free_indices()) == {j, i}
     self.assertNotIsInstance(a, IndexSum)
-    self.assertEqual(a.ufl_shape, (d,))
+    assert a.ufl_shape == (d,)
 
     a = v[i].dx(0)
     self.assertSameIndices(a, (i,))
     self.assertNotIsInstance(a, IndexSum)
-    self.assertEqual(a.ufl_shape, ())
+    assert a.ufl_shape == ()
 
     a = (v[i]*u[j]).dx(0, 1)
     # indices change place because of sorting, I guess this may be ok
-    self.assertEqual(set(a.free_indices()), {i, j})
+    assert set(a.free_indices()) == {i, j}
     self.assertNotIsInstance(a, IndexSum)
-    self.assertEqual(a.ufl_shape, ())
+    assert a.ufl_shape == ()
 
     a = v.dx(i)[i]
     self.assertSameIndices(a, ())
     self.assertIsInstance(a, IndexSum)
-    self.assertEqual(a.ufl_shape, ())
+    assert a.ufl_shape == ()
 
 def test_renumbering(self):
     pass

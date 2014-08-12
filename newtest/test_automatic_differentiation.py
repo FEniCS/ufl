@@ -230,7 +230,7 @@ def _test_no_derivatives_no_change(self, collection):
         after = ad_algorithm(before)
         #print '\n', str(before), '\n', str(after), '\n'
         self.assertEqualTotalShape(before, after)
-        self.assertEqual(before, after)
+        assert before == after
 
 def _test_no_derivatives_but_still_changed(self, collection):
     # Planning to fix these:
@@ -239,7 +239,7 @@ def _test_no_derivatives_but_still_changed(self, collection):
         after = ad_algorithm(before)
         #print '\n', str(before), '\n', str(after), '\n'
         self.assertEqualTotalShape(before, after)
-        #self.assertEqual(before, after) # Without expand_compounds
+        #assert before == after # Without expand_compounds
         self.assertNotEqual(before, after) # With expand_compounds
 
 def test_only_terminals_no_change(self, d_expr):
@@ -271,13 +271,13 @@ def _test_zero_derivatives_of_terminals_produce_the_right_types_and_shapes(self,
             after = ad_algorithm(before)
             expected = 0*t
             #print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
-            self.assertEqual(after, expected)
+            assert after == expected
 
             before = derivative(c*t, var) # This will usually not get simplified to zero
             after = ad_algorithm(before)
             expected = 0*t
             #print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
-            self.assertEqual(after, expected)
+            assert after == expected
 
 def test_zero_diffs_of_terminals_produce_the_right_types_and_shapes(self, d_expr):
     d, ex = d_expr
@@ -299,13 +299,13 @@ def _test_zero_diffs_of_terminals_produce_the_right_types_and_shapes(self, colle
             after = ad_algorithm(before)
             expected = 0*outer(t, var)
             #print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
-            self.assertEqual(after, expected)
+            assert after == expected
 
             before = diff(c*t, var) # This will usually not get simplified to zero
             after = ad_algorithm(before)
             expected = 0*outer(t, var)
             #print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
-            self.assertEqual(after, expected)
+            assert after == expected
 
 def test_zero_derivatives_of_noncompounds_produce_the_right_types_and_shapes(self, d_expr):
     d, ex = d_expr
@@ -332,7 +332,7 @@ def _test_zero_derivatives_of_noncompounds_produce_the_right_types_and_shapes(se
             if debug: print('\n', 'after:    ', str(after), '\n')
             expected = 0*t
             if debug: print('\n', 'expected: ', str(expected), '\n')
-            self.assertEqual(after, expected)
+            assert after == expected
 
 def test_zero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self, d_expr):
     d, ex = d_expr
@@ -359,7 +359,7 @@ def _test_zero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self, co
             expected = 0*outer(t, var)
             if debug: print('\n', 'expected: ', str(expected), '\n')
             #print '\n', str(expected), '\n', str(after), '\n', str(before), '\n'
-            self.assertEqual(after, expected)
+            assert after == expected
 
 def test_nonzero_derivatives_of_noncompounds_produce_the_right_types_and_shapes(self, d_expr):
     d, ex = d_expr
@@ -393,7 +393,7 @@ def _test_nonzero_derivatives_of_noncompounds_produce_the_right_types_and_shapes
                 self.assertEqualTotalShape(after, expected_shape)
                 self.assertNotEqual(after, expected_shape)
             else:
-                self.assertEqual(after, expected_shape)
+                assert after == expected_shape
 
 def test_nonzero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self, d_expr):
     d, ex = d_expr
@@ -430,7 +430,7 @@ def _test_nonzero_diffs_of_noncompounds_produce_the_right_types_and_shapes(self,
                 self.assertEqualTotalShape(after, expected_shape)
                 self.assertNotEqual(after, expected_shape)
             else:
-                self.assertEqual(after, expected_shape)
+                assert after == expected_shape
 
 def test_grad_coeff(self, d_expr):
     d, collection = d_expr
@@ -448,17 +448,17 @@ def test_grad_coeff(self, d_expr):
 
         self.assertEqualTotalShape(before, after)
         if f is u: # Differing by being wrapped in indexing types
-            self.assertEqual(before, after)
+            assert before == after
 
         before = grad(grad(f))
         after = ad_algorithm(before)
         self.assertEqualTotalShape(before, after)
-        #self.assertEqual(before, after) # Differing by being wrapped in indexing types
+        #assert before == after # Differing by being wrapped in indexing types
 
         before = grad(grad(grad(f)))
         after = ad_algorithm(before)
         self.assertEqualTotalShape(before, after)
-        #self.assertEqual(before, after) # Differing by being wrapped in indexing types
+        #assert before == after # Differing by being wrapped in indexing types
 
 def test_derivative_grad_coeff(self, d_expr):
     d, collection = d_expr
@@ -470,17 +470,17 @@ def test_derivative_grad_coeff(self, d_expr):
         before = derivative(grad(f), f)
         after = ad_algorithm(before)
         self.assertEqualTotalShape(before, after)
-        #self.assertEqual(after, expected)
+        #assert after == expected
 
         before = derivative(grad(grad(f)), f)
         after = ad_algorithm(before)
         self.assertEqualTotalShape(before, after)
-        #self.assertEqual(after, expected)
+        #assert after == expected
 
         before = derivative(grad(grad(grad(f))), f)
         after = ad_algorithm(before)
         self.assertEqualTotalShape(before, after)
-        #self.assertEqual(after, expected)
+        #assert after == expected
         if 0:
             print()
             print(('B', f, "::", before))
@@ -502,17 +502,17 @@ def xtest_derivative_grad_coeff_with_variation_components(self, d_expr):
         before = derivative(grad(g), f, df)
         after = ad_algorithm(before)
         self.assertEqualTotalShape(before, after)
-        #self.assertEqual(after, expected)
+        #assert after == expected
 
         before = derivative(grad(grad(g)), f, df)
         after = ad_algorithm(before)
         self.assertEqualTotalShape(before, after)
-        #self.assertEqual(after, expected)
+        #assert after == expected
 
         before = derivative(grad(grad(grad(g))), f, df)
         after = ad_algorithm(before)
         self.assertEqualTotalShape(before, after)
-        #self.assertEqual(after, expected)
+        #assert after == expected
         if 0:
             print()
             print(('B', f, "::", before))

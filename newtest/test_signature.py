@@ -36,9 +36,9 @@ def test_domain_signatures_of_cell2domains(self):
     all_cells = (interval, quadrilateral, hexahedron, triangle, tetrahedron, cell2D, cell3D)
     for cell in all_cells:
         # Equality holds when constructing two domains from a cell:
-        self.assertEqual(as_domain(cell), as_domain(cell))
+        assert as_domain(cell) == as_domain(cell)
         # Hash value holds when constructing two domains from a cell:
-        self.assertEqual(hash(as_domain(cell)), hash(as_domain(cell)))
+        assert hash(as_domain(cell)) == hash(as_domain(cell))
         # Signature data holds when constructing two domains from a cell:
         D1 = as_domain(cell)
         D2 = as_domain(cell)
@@ -88,12 +88,12 @@ def test_terminal_hashdata_depends_on_literals(self):
                     yield compute_terminal_hashdata(expr, {domain: 0})
 
     c, d, r, h = compute_unique_terminal_hashdatas(forms())
-    self.assertEqual(c, 8)
-    self.assertEqual(d, c)
-    self.assertEqual(r, c)
-    self.assertEqual(h, c)
-    self.assertEqual(len(reprs), c)
-    self.assertEqual(len(hashes), c)
+    assert c == 8
+    assert d == c
+    assert r == c
+    assert h == c
+    assert len(reprs) == c
+    assert len(hashes) == c
 
 def test_terminal_hashdata_depends_on_geometry(self):
     reprs = set()
@@ -123,12 +123,12 @@ def test_terminal_hashdata_depends_on_geometry(self):
                     yield compute_terminal_hashdata(expr, domain_numbering(*cells))
 
     c, d, r, h = compute_unique_terminal_hashdatas(forms())
-    self.assertEqual(c, 2*3*4) # len(ws)*len(qs)*len(cells)
-    self.assertEqual(d, c)
-    self.assertEqual(r, c)
-    self.assertEqual(h, c)
-    self.assertEqual(len(reprs), c)
-    self.assertEqual(len(hashes), c)
+    assert c == 2*3*4 # len(ws)*len(qs)*len(cells)
+    assert d == c
+    assert r == c
+    assert h == c
+    assert len(reprs) == c
+    assert len(hashes) == c
 
 def test_terminal_hashdata_depends_on_form_argument_properties(self):
     reprs = set()
@@ -171,15 +171,15 @@ def test_terminal_hashdata_depends_on_form_argument_properties(self):
 
     c, d, r, h = compute_unique_terminal_hashdatas(forms())
     c1 = nreps * len(cells) * len(degrees) * len(families) * nelm * 2 # Number of cases with repetitions
-    self.assertEqual(c, c1)
+    assert c == c1
 
     c0 = len(cells) * len(degrees) * (len(families)-1) * nelm * 2 # Number of unique cases, "CG" == "Lagrange"
     #c0 = len(cells) * len(degrees) * (len(families)) * nelm * 2 # Number of unique cases, "CG" != "Lagrange"
-    self.assertEqual(d, c0)
-    self.assertEqual(r, c0)
-    self.assertEqual(h, c0)
-    self.assertEqual(len(reprs), c0)
-    self.assertEqual(len(hashes), c0)
+    assert d == c0
+    assert r == c0
+    assert h == c0
+    assert len(reprs) == c0
+    assert len(hashes) == c0
 
 def test_terminal_hashdata_does_not_depend_on_coefficient_count_values_only_ordering(self):
     reprs = set()
@@ -208,12 +208,12 @@ def test_terminal_hashdata_does_not_depend_on_coefficient_count_values_only_orde
     c, d, r, h = compute_unique_terminal_hashdatas(forms())
     c0 = len(cells) # Number of actually unique cases from a code generation perspective
     c1 = len(counts) * c0 # Number of unique cases from a symbolic representation perspective
-    self.assertEqual(len(reprs), c1)
-    self.assertEqual(len(hashes), c1)
-    self.assertEqual(c, nreps * c1) # number of inner loop executions in forms() above
-    self.assertEqual(d, c0)
-    self.assertEqual(r, c0)
-    self.assertEqual(h, c0)
+    assert len(reprs) == c1
+    assert len(hashes) == c1
+    assert c == nreps * c1 # number of inner loop executions in forms() above
+    assert d == c0
+    assert r == c0
+    assert h == c0
 
 def test_terminal_hashdata_does_depend_on_argument_number_values(self):
     # TODO: Include part numbers as well
@@ -238,12 +238,12 @@ def test_terminal_hashdata_does_depend_on_argument_number_values(self):
     c, d, r, h = compute_unique_terminal_hashdatas(forms())
     c0 = len(cells) * len(counts) # Number of actually unique cases from a code generation perspective
     c1 = 1 * c0 # Number of unique cases from a symbolic representation perspective
-    self.assertEqual(len(reprs), c1)
-    self.assertEqual(len(hashes), c1)
+    assert len(reprs) == c1
+    assert len(hashes) == c1
     self.assertEqual(c, nreps * c1) # number of inner loop executions in forms() above
-    self.assertEqual(d, c0)
-    self.assertEqual(r, c0)
-    self.assertEqual(h, c0)
+    assert d == c0
+    assert r == c0
+    assert h == c0
 
 def test_domain_signature_data_does_not_depend_on_domain_label_value(self):
     cells = [triangle, tetrahedron, hexahedron]
@@ -257,14 +257,14 @@ def test_domain_signature_data_does_not_depend_on_domain_label_value(self):
         s0 = d0.signature_data({ d0: 0 })
         s1 = d1.signature_data({ d1: 0 })
         s2 = d2.signature_data({ d2: 0 })
-        self.assertEqual(s0, s1)
-        self.assertEqual(s0, s2)
+        assert s0 == s1
+        assert s0 == s2
         s0s.add(s0)
         s1s.add(s1)
         s2s.add(s2)
-    self.assertEqual(len(s0s), len(cells))
-    self.assertEqual(len(s1s), len(cells))
-    self.assertEqual(len(s2s), len(cells))
+    assert len(s0s) == len(cells)
+    assert len(s1s) == len(cells)
+    assert len(s2s) == len(cells)
 
 def test_terminal_hashdata_does_not_depend_on_domain_label_value(self):
     reprs = set()
@@ -296,12 +296,12 @@ def test_terminal_hashdata_does_not_depend_on_domain_label_value(self):
     c, d, r, h = compute_unique_terminal_hashdatas(forms())
     c0 = num_exprs * len(cells) # Number of actually unique cases from a code generation perspective
     c1 = num_exprs * len(domains) # Number of unique cases from a symbolic representation perspective
-    self.assertEqual(len(reprs), c1)
-    self.assertEqual(len(hashes), c1)
+    assert len(reprs) == c1
+    assert len(hashes) == c1
     self.assertEqual(c, nreps * c1) # number of inner loop executions in forms() above
-    self.assertEqual(d, c0)
-    self.assertEqual(r, c0)
-    self.assertEqual(h, c0)
+    assert d == c0
+    assert r == c0
+    assert h == c0
 
 def compute_unique_multiindex_hashdatas(hashdatas):
     count = 0
@@ -328,10 +328,10 @@ def test_multiindex_hashdata_depends_on_fixed_index_values(self):
                 yield compute_multiindex_hashdata(expr, {})
 
     c, d, r, h = compute_unique_multiindex_hashdatas(hashdatas())
-    self.assertEqual(c, 9)
-    self.assertEqual(d, 9-1) # (1,0) is repeated, therefore -1
-    self.assertEqual(len(reprs), 9-1)
-    self.assertEqual(len(hashes), 9-1)
+    assert c == 9
+    assert d == 9-1 # (1,0 is repeated, therefore -1)
+    assert len(reprs) == 9-1
+    assert len(hashes) == 9-1
 
 def test_multiindex_hashdata_does_not_depend_on_counts(self):
     reprs = set()
@@ -351,10 +351,10 @@ def test_multiindex_hashdata_does_not_depend_on_counts(self):
             hashes.add(hash(expr))
             yield compute_multiindex_hashdata(expr, {})
     c, d, r, h = compute_unique_multiindex_hashdatas(hashdatas())
-    self.assertEqual(c, 3+9+9)
-    self.assertEqual(d, 1+1)
-    self.assertEqual(len(reprs), 3+9+9)
-    self.assertEqual(len(hashes), 3+9+9)
+    assert c == 3+9+9
+    assert d == 1+1
+    assert len(reprs) == 3+9+9
+    assert len(hashes) == 3+9+9
 
 def test_multiindex_hashdata_depends_on_the_order_indices_are_observed(self):
     reprs = set()
@@ -380,10 +380,10 @@ def test_multiindex_hashdata_depends_on_the_order_indices_are_observed(self):
                 hashes.add(hash(expr))
                 yield compute_multiindex_hashdata(expr, index_numbering)
     c, d, r, h = compute_unique_multiindex_hashdatas(hashdatas())
-    self.assertEqual(c, nrep*8)
-    self.assertEqual(d, 5)
-    self.assertEqual(len(reprs), nrep*5)
-    self.assertEqual(len(hashes), nrep*5)
+    assert c == nrep*8
+    assert d == 5
+    assert len(reprs) == nrep*5
+    assert len(hashes) == nrep*5
 
 
 def check_unique_signatures(forms):

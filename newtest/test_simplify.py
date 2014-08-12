@@ -13,9 +13,9 @@ def xtest_zero_times_argument(self):
     L = 0*v*dx
     a = 0*(u*v)*dx
     b = (0*u)*v*dx
-    self.assertEqual(len(compute_form_data(L).arguments), 1)
-    self.assertEqual(len(compute_form_data(a).arguments), 2)
-    self.assertEqual(len(compute_form_data(b).arguments), 2)
+    assert len(compute_form_data(L).arguments) == 1
+    assert len(compute_form_data(a).arguments) == 2
+    assert len(compute_form_data(b).arguments) == 2
 
 def test_divisions(self):
     element = FiniteElement("CG", triangle, 1)
@@ -25,22 +25,22 @@ def test_divisions(self):
     # Test simplification of division by 1
     a = f
     b = f/1
-    self.assertEqual(a, b)
+    assert a == b
 
     # Test simplification of division by 1.0
     a = f
     b = f/1.0
-    self.assertEqual(a, b)
+    assert a == b
 
     # Test simplification of division by of zero by something
     a = 0/f
     b = 0*f
-    self.assertEqual(a, b)
+    assert a == b
 
     # Test simplification of division by self (this simplification has been disabled)
     #a = f/f
     #b = 1
-    #self.assertEqual(a, b)
+    #assert a == b
 
 def test_products(self):
     element = FiniteElement("CG", triangle, 1)
@@ -81,32 +81,32 @@ def test_sums(self):
     b = g + f + f # not collapsed, but ordered
     c = (g + f) + f # not collapsed, but ordered
     d = f + (f + g) # not collapsed, but ordered
-    self.assertEqual(a, b)
-    self.assertEqual(a, c)
-    self.assertEqual(a, d)
+    assert a == b
+    assert a == c
+    assert a == d
 
     # Test reordering of operands and collapsing sum
     a = f + f + g # collapsed
     b = g + (f + f) # collapsed
-    self.assertEqual(a, b)
+    assert a == b
 
 def test_mathfunctions(self):
     for i in (0.1, 0.3, 0.9):
-        self.assertEqual(math.sin(i), sin(i))
-        self.assertEqual(math.cos(i), cos(i))
-        self.assertEqual(math.tan(i), tan(i))
-        self.assertEqual(math.sinh(i), sinh(i))
-        self.assertEqual(math.cosh(i), cosh(i))
-        self.assertEqual(math.tanh(i), tanh(i))
-        self.assertEqual(math.asin(i), asin(i))
-        self.assertEqual(math.acos(i), acos(i))
-        self.assertEqual(math.atan(i), atan(i))
-        self.assertEqual(math.exp(i), exp(i))
-        self.assertEqual(math.log(i), ln(i))
+        assert math.sin(i) == sin(i)
+        assert math.cos(i) == cos(i)
+        assert math.tan(i) == tan(i)
+        assert math.sinh(i) == sinh(i)
+        assert math.cosh(i) == cosh(i)
+        assert math.tanh(i) == tanh(i)
+        assert math.asin(i) == asin(i)
+        assert math.acos(i) == acos(i)
+        assert math.atan(i) == atan(i)
+        assert math.exp(i) == exp(i)
+        assert math.log(i) == ln(i)
         # TODO: Implement automatic simplification of conditionals?
-        self.assertEqual(i, float(Max(i, i-1)))
+        assert i == float(Max(i, i-1))
         # TODO: Implement automatic simplification of conditionals?
-        self.assertEqual(i, float(Min(i, i+1)))
+        assert i == float(Min(i, i+1))
 
 def test_indexing(self):
     u = VectorConstant(triangle)
@@ -114,7 +114,7 @@ def test_indexing(self):
 
     A = outer(u, v)
     A2 = as_tensor(A[i, j], (i, j))
-    self.assertEqual(A2, A)
+    assert A2 == A
 
     Bij = u[i]*v[j]
     Bij2 = as_tensor(Bij, (i, j))[i, j]
@@ -123,4 +123,4 @@ def test_indexing(self):
     #print "BIJ2: ", Bij2.free_indices()
     #print "BIJ:  ", Bij
     #print "BIJ2: ", Bij2
-    self.assertEqual(Bij2, Bij)
+    assert Bij2 == Bij

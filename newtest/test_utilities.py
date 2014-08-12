@@ -7,20 +7,14 @@ Test internal utility functions.
 import pytest
 from six.moves import xrange as range
 
-# FIXME: Use these tests copied and modified from uflacs
-"""
 from ufl.utils.indexflattening import shape_to_strides, flatten_multiindex, unflatten_index
 
-from ufl.analysis.indexing import indexing_to_component
-
-from operator import eq as equal
-
 def test_shape_to_strides():
-    assert () == shape_to_strides(())
-    assert equal((1,),     shape_to_strides((3,)))
-    assert equal((2, 1),    shape_to_strides((3, 2)))
-    assert equal((4, 1),    shape_to_strides((3, 4)))
-    assert equal((12, 4, 1), shape_to_strides((6, 3, 4)))
+    assert ()         == shape_to_strides(())
+    assert (1,)       == shape_to_strides((3,))
+    assert (2, 1)     == shape_to_strides((3, 2))
+    assert (4, 1)     == shape_to_strides((3, 4))
+    assert (12, 4, 1) == shape_to_strides((6, 3, 4))
 
 def test_flatten_multiindex_to_multiindex():
     sh = (2, 3, 5)
@@ -34,15 +28,14 @@ def test_flatten_multiindex_to_multiindex():
                 assert index == index2
 
 def test_indexing_to_component():
-    assert equal(0, flatten_multiindex(  (), shape_to_strides(())))
-    assert equal(0, flatten_multiindex((0,), shape_to_strides((2,))))
-    assert equal(1, flatten_multiindex((1,), shape_to_strides((2,))))
-    assert equal(3, flatten_multiindex((1, 1), shape_to_strides((2, 2))))
+    assert 0 == flatten_multiindex(  (), shape_to_strides(()))
+    assert 0 == flatten_multiindex((0,), shape_to_strides((2,)))
+    assert 1 == flatten_multiindex((1,), shape_to_strides((2,)))
+    assert 3 == flatten_multiindex((1, 1), shape_to_strides((2, 2)))
     for i in range(5):
         for j in range(3):
             for k in range(2):
-                assert equal(15*k+5*j+i, flatten_multiindex((k, j, i), shape_to_strides((2, 3, 5))))
-"""
+                assert 15*k+5*j+i == flatten_multiindex((k, j, i), shape_to_strides((2, 3, 5)))
 
 
 def test_component_numbering():
@@ -81,8 +74,7 @@ def test_index_flattening():
         c = (i,)
         q = flatten_multiindex(c, st)
         c2 = unflatten_index(q, st)
-        # print c, q, c2
-        # self.assertEqual(FIXME)
+        assert c == c2
 
     # Tensor shape
     s = (2, 3)
@@ -93,8 +85,7 @@ def test_index_flattening():
             c = (i, j)
             q = flatten_multiindex(c, st)
             c2 = unflatten_index(q, st)
-            # print c, q, c2
-            # self.assertEqual(FIXME)
+            assert c == c2
 
     # Rank 3 tensor shape
     s = (2, 3, 4)
@@ -106,8 +97,7 @@ def test_index_flattening():
                 c = (i, j, k)
                 q = flatten_multiindex(c, st)
                 c2 = unflatten_index(q, st)
-                # print c, q, c2
-                # self.assertEqual(FIXME)
+                assert c == c2
 
     # Taylor-Hood example:
 
@@ -117,10 +107,9 @@ def test_index_flattening():
     i = flatten_multiindex(c, shape_to_strides((4,)))
     # remove offset:
     i -= 3
-    # map back to component:
-    c = unflatten_index(i, shape_to_strides(()))
-    # print c
-    # self.assertEqual(FIXME)
+    # map back to scalar component:
+    c2 = unflatten_index(i, shape_to_strides(()))
+    assert () == c2
 
     # vector element y-component is index 1:
     c = (1,)
@@ -128,16 +117,15 @@ def test_index_flattening():
     i = flatten_multiindex(c, shape_to_strides((4,)))
     # remove offset:
     i -= 0
-    # map back to component:
-    c = unflatten_index(i, shape_to_strides((3,)))
-    # print c
-    # self.assertEqual(FIXME)
+    # map back to vector component:
+    c2 = unflatten_index(i, shape_to_strides((3,)))
+    assert (1,) == c2
 
     # Try a tensor/vector element:
     mixed_shape = (6,)
     ts = (2, 2)
     vs = (2,)
-    offset = 4
+    offset = 4 # product(ts)
 
     # vector element y-component is index offset+1:
     c = (offset + 1,)
@@ -146,9 +134,8 @@ def test_index_flattening():
     # remove offset:
     i -= offset
     # map back to vector component:
-    c = unflatten_index(i, shape_to_strides(vs))
-    # print c
-    # self.assertEqual(FIXME)
+    c2 = unflatten_index(i, shape_to_strides(vs))
+    assert (1,) == c2
 
     for k in range(4):
         # tensor element (1,1)-component is index 3:
@@ -157,10 +144,9 @@ def test_index_flattening():
         i = flatten_multiindex(c, shape_to_strides(mixed_shape))
         # remove offset:
         i -= 0
-        # map back to vector component:
-        c = unflatten_index(i, shape_to_strides(ts))
-        # print c
-        # self.assertEqual(FIXME)
+        # map back to tensor component:
+        c2 = unflatten_index(i, shape_to_strides(ts))
+        assert (k//2, k%2) == c2
 
 
 def test_stackdict():
@@ -180,4 +166,3 @@ def test_stackdict():
     assert d["a"] == 2
     d.pop()
     assert d["a"] == 1
-

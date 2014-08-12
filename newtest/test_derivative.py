@@ -82,13 +82,13 @@ def _test(self, f, df):
     dfv2 = df(w, v)
     dfv1 = dfv1(x, mapping)
     dfv2 = dfv2(x, mapping)
-    self.assertEqual(dfv1, dfv2)
+    assert dfv1 == dfv2
 
     dfv1 = derivative(f(7*w), w, v)
     dfv2 = 7*df(7*w, v)
     dfv1 = dfv1(x, mapping)
     dfv2 = dfv2(x, mapping)
-    self.assertEqual(dfv1, dfv2)
+    assert dfv1 == dfv2
 
 # --- Literals
 
@@ -259,13 +259,13 @@ def testListTensor(self):
             ( (v,    2*v), (0,   0) ),
             ( (v**2,   1), (2, v/2) ),
             ))
-    self.assertEqual(f.ufl_shape, (3, 2, 2))
+    assert f.ufl_shape == (3, 2, 2)
     g = as_tensor((
             ( (0, 0), (0, 0) ),
             ( (1, 2), (0, 0) ),
             ( (84, 0), (0, 0.5) ),
             ))
-    self.assertEqual(g.ufl_shape, (3, 2, 2))
+    assert g.ufl_shape == (3, 2, 2)
     dfv = diff(f, v)
     x = None
     for i in range(3):
@@ -404,7 +404,7 @@ def test_coefficient_derivatives(self):
     J = derivative(F, u, dv, cd)
     fd = compute_form_data(J)
     actual = fd.preprocessed_form.integrals()[0].integrand()
-    self.assertEqual((actual*dx).signature(), (expected*dx).signature())
+    assert (actual*dx).signature() == (expected*dx).signature()
     self.assertEqual(replace(actual, fd.function_replace_map), expected)
 
 def test_vector_coefficient_derivatives(self):
@@ -428,7 +428,7 @@ def test_vector_coefficient_derivatives(self):
     J = derivative(F, u, dv, cd)
     fd = compute_form_data(J)
     actual = fd.preprocessed_form.integrals()[0].integrand()
-    self.assertEqual((actual*dx).signature(), (expected*dx).signature())
+    assert (actual*dx).signature() == (expected*dx).signature()
     #self.assertEqual(replace(actual, fd.function_replace_map), expected)
 
 def test_vector_coefficient_derivatives_of_product(self):
