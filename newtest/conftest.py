@@ -3,6 +3,12 @@ import pytest
 
 class Tester:
 
+    def assertTrue(self, a):
+        assert a
+
+    def assertFalse(self, a):
+        assert not a
+
     def assertEqual(self, a, b):
         assert a == b
 
