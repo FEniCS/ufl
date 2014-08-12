@@ -15,6 +15,11 @@ class Tester:
     def assertRaises(self, e, f):
         assert pytest.raises(e, f)
 
+    def assertEqualTotalShape(self, value, expected):
+        self.assertEqual(value.ufl_shape, expected.ufl_shape)
+        self.assertEqual(set(value.free_indices()), set(expected.free_indices()))
+        self.assertEqual(value.index_dimensions(), expected.index_dimensions())
+
 @pytest.fixture(scope="session")
 def self():
     return Tester()
