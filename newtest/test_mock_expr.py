@@ -1,3 +1,6 @@
+#!/usr/bin/env py.test
+
+import pytest
 
 from ufl import *
 from ufl.core.expr import Expr
@@ -54,7 +57,7 @@ class MockExpr(Expr):
     def __iter__(self):
         raise NotImplementedError
 
-def _test():
+def test_mock_expr():
     a = MockExpr(shape=(1,))
     b = MockExpr(shape=(2,))
     assert not a.matches(b)
@@ -70,7 +73,4 @@ def _test():
     assert g.matches(f)
     h = MockExpr(shape=(1,), free_indices=(), index_dimensions={}, cell=triangle)
     assert not h.matches(f)
-
-if __name__ == "__main__":
-    _test()
 
