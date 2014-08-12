@@ -27,7 +27,7 @@ def test_reference_shapes():
 
     T = TensorElement("CG", cell, 1)
     assert T.value_shape() == (3, 3)
-    assert T.reference_value_shape() == (3, 3)
+    assert T.reference_value_shape() == (9,)
 
     M = MixedElement(V, U, W)
     assert M.value_shape() == (7,)
