@@ -1,12 +1,9 @@
-test_automatic_differentiation.py
 test_book_snippets.py
 test_classcoverage.py
 test_derivative.py
 test_expand_indices.py
-test_future_division.py
 test_grad.py
 test_indices.py
-test_literals.py
 test_scratch.py
 test_signature.py
 test_simplify.py
