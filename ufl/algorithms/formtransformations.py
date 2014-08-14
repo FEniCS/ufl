@@ -36,7 +36,6 @@ from ufl.constantvalue import Zero
 from ufl.algebra import Sum
 
 # Other algorithms:
-from ufl.algorithms.analysis import extract_arguments
 from ufl.algorithms.transformer import Transformer, transform_integrands
 from ufl.algorithms.replace import replace
 
@@ -317,7 +316,7 @@ def compute_form_with_arity(form, arity, arguments=None):
 
     # Extract all arguments in form
     if arguments is None:
-        arguments = extract_arguments(form)
+        arguments = form.arguments()
 
     parts = [arg.part() for arg in arguments]
     if set(parts) - {None}:
@@ -346,7 +345,7 @@ def compute_form_arities(form):
     #ufl_assert(form.is_preprocessed(), "Assuming a preprocessed form.")
 
     # Extract all arguments present in form
-    arguments = extract_arguments(form)
+    arguments = form.arguments()
 
     parts = [arg.part() for arg in arguments]
     if set(parts) - {None}:
@@ -403,7 +402,7 @@ def compute_form_action(form, coefficient):
     # TODO: Check whatever makes sense for coefficient
 
     # Extract all arguments
-    arguments = extract_arguments(form)
+    arguments = form.arguments()
 
     parts = [arg.part() for arg in arguments]
     if set(parts) - {None}:
@@ -430,7 +429,7 @@ def compute_energy_norm(form, coefficient):
     Arguments, and one additional Coefficient at the
     end if no coefficient has been provided.
     """
-    arguments = extract_arguments(form)
+    arguments = form.arguments()
 
     parts = [arg.part() for arg in arguments]
     if set(parts) - {None}:
@@ -455,7 +454,7 @@ def compute_form_adjoint(form, reordered_arguments=None):
     This works simply by swapping the number and part of the two arguments,
     but keeping their elements and places in the integrand expressions.
     """
-    arguments = extract_arguments(form)
+    arguments = form.arguments()
 
     parts = [arg.part() for arg in arguments]
     if set(parts) - {None}:

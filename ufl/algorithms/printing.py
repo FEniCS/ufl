@@ -28,7 +28,6 @@ from ufl.core.expr import Expr
 from ufl.core.terminal import Terminal
 from ufl.form import Form
 from ufl.integral import Integral, Measure
-from ufl.algorithms.analysis import extract_arguments, extract_coefficients
 
 #--- Utilities for constructing informative strings from UFL objects ---
 
@@ -54,8 +53,8 @@ def integral_info(integral):
 def form_info(form):
     ufl_assert(isinstance(form, Form), "Expecting a Form.")
 
-    bf = extract_arguments(form)
-    cf = extract_coefficients(form)
+    bf = form.arguments()
+    cf = form.coefficients()
 
     ci = form.integrals_by_type("cell")
     ei = form.integrals_by_type("exterior_facet")

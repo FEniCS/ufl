@@ -131,7 +131,7 @@ The arguments found are:\n%s""" % "\n".join("  %s" % f for f in coefficients)
 
 def extract_elements(form):
     "Build sorted tuple of all elements used in form."
-    args = chain(extract_arguments(form), extract_coefficients(form))
+    args = chain(*extract_arguments_and_coefficients(form))
     return tuple(f.element() for f in args)
 
 

@@ -47,7 +47,8 @@ from ufl.algorithms import compute_form_adjoint, \
                            compute_form_lhs, \
                            compute_form_rhs, \
                            compute_form_functional, \
-                           expand_derivatives
+                           expand_derivatives, \
+                           extract_arguments
 
 # Part of the external interface
 from ufl.algorithms import replace
@@ -150,8 +151,11 @@ def _handle_derivative_arguments(form, coefficient, argument):
             error("Can only create arguments automatically for non-indexed coefficients.")
 
         # Get existing arguments from form and position the new one with the next argument number
-        from ufl.algorithms import extract_arguments
-        form_arguments = extract_arguments(form)
+        if isinstance(form, Form):
+            form_arguments = form.arguments()
+        else:
+            # To handler derivative(expression), which is at least used in tests. Remove?
+            form_arguments = extract_arguments(form)
 
         numbers = sorted(set(arg.number() for arg in form_arguments))
         number = max(numbers + [-1]) + 1
