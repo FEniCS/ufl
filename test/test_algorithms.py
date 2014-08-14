@@ -63,8 +63,6 @@ def test_elements(forms):
     b = forms[2]
     integrals = b.integrals_by_type(Measure.CELL)
     integrand = integrals[0].integrand()
-    d = extract_duplications(integrand)
-    # pprint(list(d))
 
     element1 = FiniteElement("CG", triangle, 1)
     element2 = FiniteElement("CG", triangle, 1)

@@ -221,18 +221,6 @@ def extract_variables(a):
                     handled.add(label)
     return variables
 
-def extract_duplications(expression):
-    "Build a set of all repeated expressions in expression."
-    # TODO: Handle indices in a canonical way, maybe create a transformation that does this to apply before extract_duplications?
-    ufl_assert(isinstance(expression, Expr), "Expecting UFL expression.")
-    handled = set()
-    duplicated = set()
-    for o in post_traversal(expression):
-        if o in handled:
-            duplicated.add(o)
-        handled.add(o)
-    return duplicated
-
 def count_nodes(expr, ids=None):
     "Count the number of unique Expr instances in expression."
     i = id(expr)
