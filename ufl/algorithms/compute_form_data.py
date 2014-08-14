@@ -34,10 +34,7 @@ from ufl.protocols import id_or_none
 from ufl.geometry import as_domain
 from ufl.classes import GeometricFacetQuantity
 from ufl.algorithms.replace import replace
-from ufl.algorithms.analysis import (extract_arguments_and_coefficients,
-                                     extract_coefficients,
-                                     extract_elements, extract_sub_elements,
-                                     unique_tuple)
+from ufl.algorithms.analysis import extract_coefficients, extract_sub_elements, unique_tuple
 from ufl.algorithms.domain_analysis import build_integral_data, reconstruct_form_from_integral_data
 from ufl.algorithms.formdata import FormData, ExprData
 from ufl.algorithms.ad import expand_derivatives
