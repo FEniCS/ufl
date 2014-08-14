@@ -24,7 +24,7 @@ from ufl.classes import (Terminal, Label,
                          GeometricQuantity, ConstantValue,
                          ExprList, ExprMapping)
 from ufl.log import error
-from ufl.algorithms.traversal import traverse_unique_terminals
+from ufl.core.traversal import traverse_unique_terminals
 from ufl.common import pre_traversal, sorted_by_count
 from ufl.geometry import join_domains
 from ufl.algorithms.domain_analysis import canonicalize_metadata

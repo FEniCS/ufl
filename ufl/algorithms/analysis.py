@@ -39,7 +39,8 @@ from ufl.core.multiindex import Index, MultiIndex
 from ufl.geometry import Domain
 from ufl.integral import Measure, Integral
 from ufl.form import Form
-from ufl.algorithms.traversal import iter_expressions, post_traversal, post_walk, traverse_terminals
+from ufl.algorithms.traversal import iter_expressions
+from ufl.core.traversal import post_traversal, traverse_terminals
 
 #--- Utilities to extract information from an expression ---
 
@@ -166,19 +167,6 @@ def build_coefficient_replace_map(coefficients, element_mapping=None):
         replace_map[f] = new_f
 
     return new_coefficients, replace_map
-
-# alternative implementation, kept as an example:
-def _extract_coefficients(a):
-    """Build a sorted list of all coefficients in a,
-    which can be a Form, Integral or Expr."""
-    # build set of all unique coefficients
-    s = set()
-    def func(o):
-        if isinstance(o, Coefficient):
-            s.add(o)
-    post_walk(a, func)
-    # sort by count
-    return sorted_by_count(s)
 
 def extract_elements(form):
     "Build sorted tuple of all elements used in form."

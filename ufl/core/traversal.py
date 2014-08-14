@@ -1,4 +1,9 @@
-"Various expression traversal utilities."
+"""Various expression traversal utilities.
+
+The algorithms here are non-recursive, which is both faster
+than recursion by a factor 10 or so because of the function
+call overhead, and avoids the finite recursive call limit.
+"""
 
 # Copyright (C) 2008-2014 Martin Sandve Alnes
 #
@@ -17,6 +22,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
+
 def pre_traversal(expr):
     """Yields o for each tree node o in expr, parent before child."""
     input = [expr]
@@ -24,6 +30,7 @@ def pre_traversal(expr):
         l = input.pop()
         yield l
         input.extend(l.ufl_operands)
+
 
 def post_traversal(expr):
     """Yields o for each node o in expr, child before parent."""
@@ -38,6 +45,7 @@ def post_traversal(expr):
             yield expr
             stack.pop()
 
+
 def unique_pre_traversal(expr, visited=None):
     """Yields o for each tree node o in expr, parent before child.
 
@@ -51,6 +59,7 @@ def unique_pre_traversal(expr, visited=None):
             visited.add(l)
             yield l
             input.extend(l.ufl_operands)
+
 
 def unique_post_traversal(expr, visited=None):
     """Yields o for each node o in expr, child before parent.
@@ -70,3 +79,30 @@ def unique_post_traversal(expr, visited=None):
             yield expr
             visited.add(expr)
             stack.pop()
+
+
+def traverse_terminals(expr):
+    "Iterate over all terminal objects in expression, including duplicates."
+    input = [expr]
+    while input:
+        e = input.pop()
+        ops = e.ufl_operands
+        if ops: # Checking ops is faster than e._ufl_is_terminal_
+            input.extend(ops)
+        else:
+            yield e
+
+
+def traverse_unique_terminals(expr, visited=None):
+    "Iterate over all terminal objects in expression, not including duplicates."
+    input = [expr]
+    visited = visited or set()
+    while input:
+        e = input.pop()
+        if e not in visited:
+            visited.add(e)
+            ops = e.ufl_operands
+            if ops:
+                input.extend(ops)
+            else:
+                yield e

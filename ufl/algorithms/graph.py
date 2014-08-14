@@ -23,7 +23,7 @@ from six.moves import zip, map
 from heapq import heapify, heappop, heappush
 
 #from ufl import *
-from ufl.algorithms.traversal import pre_traversal
+from ufl.core.traversal import pre_traversal
 from ufl.algorithms.printing import tree_format
 from ufl.algorithms.multifunction import MultiFunction
 from ufl.classes import Terminal

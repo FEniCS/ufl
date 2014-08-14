@@ -20,6 +20,7 @@
 # Modified by Anders Logg, 2008-2009
 
 from ufl.core.expr import Expr
+from ufl.core.traversal import traverse_unique_terminals
 
 def is_python_scalar(expression):
     "Return True iff expression is of a Python scalar type."
@@ -42,8 +43,6 @@ def is_globally_constant(expr):
     are not known before assembly time."""
 
     # TODO: This does not consider gradients of coefficients, so false negatives are possible.
-
-    from ufl.algorithms.traversal import traverse_unique_terminals
     from ufl.argument import Argument
     from ufl.coefficient import Coefficient
 

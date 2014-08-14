@@ -77,33 +77,6 @@ def test_elements(forms):
     assert (element1,) == extract_unique_elements(a)
 
 
-def test_walk():
-    element = FiniteElement("CG", "triangle", 1)
-    v = TestFunction(element)
-    f = Coefficient(element)
-    p = f * v
-    a = p * dx
-
-    prestore = []
-
-    def pre(o, stack):
-        prestore.append((o, len(stack)))
-    poststore = []
-
-    def post(o, stack):
-        poststore.append((o, len(stack)))
-
-    for itg in a.integrals_by_type(Measure.CELL):
-        walk(itg.integrand(), pre, post)
-
-    assert prestore == [(p, 0), (v, 1), (f, 1)]
-                         # NB! Sensitive to ordering of expressions.
-    assert poststore == [(v, 1), (f, 1), (p, 0)]
-                          # NB! Sensitive to ordering of expressions.
-    # print "\n"*2 + "\n".join(map(str,prestore))
-    # print "\n"*2 + "\n".join(map(str,poststore))
-
-
 def test_traversal():
     element = FiniteElement("CG", "triangle", 1)
     v = TestFunction(element)
@@ -115,10 +88,9 @@ def test_traversal():
     pre_traverse = list(pre_traversal(s))
     post_traverse = list(post_traversal(s))
 
-    assert pre_traverse == [s, p1, v, f, p2, v, g]
-        # NB! Sensitive to ordering of expressions.
-    assert post_traverse == [v, f, p1, v, g, p2, s]
-        # NB! Sensitive to ordering of expressions.
+    # NB! Sensitive to ordering of expressions:
+    assert pre_traverse == [s, p2, g, v, p1, f, v]
+    assert post_traverse == [g, v, p2, f, v, p1, s]
 
 
 def test_expand_indices():

@@ -24,6 +24,7 @@
 from collections import defaultdict
 from six import iteritems
 
+from ufl.core.traversal import traverse_unique_terminals
 from ufl.log import warning, error, deprecate
 from ufl.assertions import ufl_assert
 from ufl.common import istr, EmptyDict
@@ -424,7 +425,6 @@ def join_domains(domains):
     return tuple(newdomains)
 
 def extract_domains(expr):
-    from ufl.algorithms.traversal import traverse_unique_terminals
     domainlist = []
     for t in traverse_unique_terminals(expr):
         domainlist.extend(t.domains())

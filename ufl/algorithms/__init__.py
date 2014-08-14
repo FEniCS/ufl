@@ -20,10 +20,10 @@
 # Modified by Anders Logg, 2008-2009.
 
 # Utilities for traversing over expression trees in different ways
-from ufl.algorithms.traversal import iter_expressions, \
-                                     traverse_terminals, traverse_unique_terminals, \
-                                     post_traversal, pre_traversal, \
-                                     post_walk, pre_walk, walk
+from ufl.algorithms.traversal import iter_expressions
+# Keeping these here for backwards compatibility, doesn't cost anything. Prefer importing from ufl.core.traversal.
+from ufl.core.traversal import pre_traversal, post_traversal
+from ufl.core.traversal import traverse_terminals, traverse_unique_terminals
 
 # Class for simple extraction of form meta data
 from ufl.algorithms.formdata import FormData
