@@ -35,7 +35,31 @@ from ufl.constantvalue import Zero
 from ufl.core.multiindex import Index, FixedIndex, MultiIndex
 from ufl.differentiation import Grad
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer, transform_integrands
-from ufl.algorithms.analysis import has_type
+from ufl.algorithms.analysis import expr_has_terminal_types
+
+
+def _expr_has_types(expr, ufl_types):
+    input = [expr]
+    while input:
+        e = input.pop()
+        if isinstance(e, ufl_types):
+            return True
+        input.extend(e.ufl_operands)
+    return False
+
+
+def _has_type(a, ufl_types):
+    """Check if any class from ufl_types is found in a.
+    The argument a can be a Form, Integral or Expr."""
+    if issubclass(ufl_types, Expr):
+        ufl_types = (ufl_types,)
+    if all(issubclass(ufl_type, Terminal) for ufl_type in ufl_types):
+        return any(expr_has_terminal_types(e, ufl_types)
+                   for e in iter_expressions(a))
+    else:
+        return any(_expr_has_types(e, ufl_types)
+                   for e in iter_expressions(a))
+
 
 class IndexExpander(ReuseTransformer):
     """..."""
@@ -208,6 +232,6 @@ def purge_list_tensors(e):
     """Get rid of all ListTensor instances by expanding
     expressions to use their components directly.
     Will usually increase the size of the expression."""
-    if has_type(e, ListTensor):
+    if _has_type(e, ListTensor):
         return expand_indices(e) # TODO: Only expand what's necessary to get rid of list tensors
     return e

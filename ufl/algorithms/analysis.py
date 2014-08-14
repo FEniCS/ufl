@@ -75,27 +75,6 @@ def expr_has_terminal_types(expr, ufl_types):
             return True
     return False
 
-def expr_has_types(expr, ufl_types):
-    input = [expr]
-    while input:
-        e = input.pop()
-        if isinstance(e, ufl_types):
-            return True
-        input.extend(e.ufl_operands)
-    return False
-
-def has_type(a, ufl_types):
-    """Check if any class from ufl_types is found in a.
-    The argument a can be a Form, Integral or Expr."""
-    if issubclass(ufl_types, Expr):
-        ufl_types = (ufl_types,)
-    if all(issubclass(ufl_type, Terminal) for ufl_type in ufl_types):
-        return any(expr_has_terminal_types(e, ufl_types)
-                   for e in iter_expressions(a))
-    else:
-        return any(expr_has_types(e, ufl_types)
-                   for e in iter_expressions(a))
-
 def extract_terminals(a):
     "Build a set of all Terminal objects in a."
     return set(o for e in iter_expressions(a) \
