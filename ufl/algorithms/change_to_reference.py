@@ -31,7 +31,6 @@ from ufl.classes import (Terminal, ReferenceGrad, Grad, Restricted, ReferenceVal
                          CellOrientation, FacetOrientation, QuadratureWeight)
 from ufl.constantvalue import as_ufl
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
-from ufl.algorithms.analysis import extract_type
 from ufl.core.multiindex import Index, indices
 from ufl.tensors import as_tensor, as_vector
 from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr

@@ -86,23 +86,21 @@ def traverse_terminals(expr):
     input = [expr]
     while input:
         e = input.pop()
-        ops = e.ufl_operands
-        if ops: # Checking ops is faster than e._ufl_is_terminal_
-            input.extend(ops)
-        else:
+        if e._ufl_is_terminal_:
             yield e
+        else:
+            input.extend(e.ufl_operands)
 
 
-def traverse_unique_terminals(expr, visited=None):
+def traverse_unique_terminals(expr):
     "Iterate over all terminal objects in expression, not including duplicates."
     input = [expr]
-    visited = visited or set()
+    visited = set()
     while input:
         e = input.pop()
         if e not in visited:
             visited.add(e)
-            ops = e.ufl_operands
-            if ops:
-                input.extend(ops)
-            else:
+            if e._ufl_is_terminal_:
                 yield e
+            else:
+                input.extend(e.ufl_operands)

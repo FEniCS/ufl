@@ -27,7 +27,7 @@ from collections import namedtuple
 from ufl.log import error, warning, info
 from ufl.assertions import ufl_assert
 from ufl.sorting import topological_sorting
-from ufl.common import sorted_by_count
+from ufl.utils.sorting import sorted_by_count
 
 from ufl.core.expr import Expr
 from ufl.core.terminal import Terminal, FormArgument
@@ -40,38 +40,53 @@ from ufl.geometry import Domain
 from ufl.integral import Measure, Integral
 from ufl.form import Form
 from ufl.algorithms.traversal import iter_expressions
-from ufl.core.traversal import post_traversal, traverse_terminals
+from ufl.core.traversal import pre_traversal, traverse_terminals
 
-#--- Utilities to extract information from an expression ---
 
 # TODO: Some of these can possibly be optimised by implementing inlined stack based traversal algorithms
+
+
+def sorted_by_number_and_part(seq):
+    return sorted(seq, key=lambda x: (x.number(), x.part()))
+
+
+def unique_tuple(objects):
+    "Return tuple of unique objects, preserving initial ordering."
+    unique_objects = []
+    handled = set()
+    for obj in objects:
+        if obj not in handled:
+            handled.add(obj)
+            unique_objects.append(obj)
+    return tuple(unique_objects)
+
+
+#--- Utilities to extract information from an expression ---
 
 def extract_classes(a):
     """Build a set of all unique Expr subclasses used in a.
     The argument a can be a Form, Integral or Expr."""
     return set(o._ufl_class_
                for e in iter_expressions(a)
-               for o in post_traversal(e))
+               for o in pre_traversal(e))
 
 def extract_type(a, ufl_type):
     """Build a set of all objects of class ufl_type found in a.
     The argument a can be a Form, Integral or Expr."""
     if issubclass(ufl_type, Terminal):
+        # Optimization
         return set(o for e in iter_expressions(a)
                    for o in traverse_terminals(e)
                    if isinstance(o, ufl_type))
-    return set(o for e in iter_expressions(a)
-               for o in post_traversal(e)
-               if isinstance(o, ufl_type))
+    else:
+        return set(o for e in iter_expressions(a)
+                   for o in pre_traversal(e)
+                   if isinstance(o, ufl_type))
 
 def extract_terminals(a):
     "Build a set of all Terminal objects in a."
     return set(o for e in iter_expressions(a) \
-                 for o in post_traversal(e) \
-                 if o._ufl_is_terminal_)
-
-def sorted_by_number_and_part(seq):
-    return sorted(seq, key=lambda x: (x.number(), x.part()))
+                 for o in traverse_terminals(e))
 
 def extract_arguments(a):
     """Build a sorted list of all arguments in a,
@@ -187,14 +202,6 @@ def estimate_quadrature_degree(integral):
     if len(arguments) == 1:
         return 2*degrees[0]
     return sum(degrees)
-
-def unique_tuple(objects):
-    "Return tuple of unique objects."
-    unique_objects = []
-    for object in objects:
-        if not object in unique_objects:
-            unique_objects.append(object)
-    return tuple(unique_objects)
 
 def sort_elements(elements):
     """
