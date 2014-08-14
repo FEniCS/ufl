@@ -197,20 +197,6 @@ def extract_element_map(elements):
         element_map[element] = i
     return element_map
 
-def count_nodes(expr, ids=None):
-    "Count the number of unique Expr instances in expression."
-    i = id(expr)
-    if ids is None:
-        ids = set()
-    elif i in ids:
-        # Skip already visited subtrees
-        return
-    # Extend set with children recursively
-    for o in expr.ufl_operands:
-        count_nodes(o, ids)
-    ids.add(i)
-    return len(ids)
-
 def extract_max_quadrature_element_degree(integral):
     """Extract quadrature integration order from quadrature
     elements in integral. Returns None if not found."""
