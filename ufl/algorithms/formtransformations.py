@@ -36,12 +36,27 @@ from ufl.constantvalue import Zero
 from ufl.algebra import Sum
 
 # Other algorithms:
-from ufl.algorithms.analysis import extract_arguments, expr_has_terminal_types
+from ufl.algorithms.analysis import extract_arguments
 from ufl.algorithms.transformer import Transformer, transform_integrands
 from ufl.algorithms.replace import replace
 
+
+# FIXME: Don't use this below, it makes partextracter more expensive than necessary
+def _expr_has_terminal_types(expr, ufl_types):
+    input = [expr]
+    while input:
+        e = input.pop()
+        ops = e.ufl_operands
+        if ops:
+            input.extend(ops)
+        elif isinstance(e, ufl_types):
+            return True
+    return False
+
+
 def zero_expr(e):
     return Zero(e.ufl_shape, e.ufl_free_indices, e.ufl_index_dimensions)
+
 
 class PartExtracter(Transformer):
     """
@@ -56,7 +71,7 @@ class PartExtracter(Transformer):
     def expr(self, x):
         """The default is a nonlinear operator not accepting any
         Arguments among its children."""
-        if expr_has_terminal_types(x, Argument):
+        if _expr_has_terminal_types(x, Argument):
             error("Found Argument in %s, this is an invalid expression." % repr(x))
         return (x, set())
 
@@ -204,7 +219,7 @@ class PartExtracter(Transformer):
         numerator, denominator = x.ufl_operands
 
         # Check for Arguments in the denominator
-        if expr_has_terminal_types(denominator, Argument):
+        if _expr_has_terminal_types(denominator, Argument):
             error("Found Argument in denominator of %s , this is an invalid expression." % repr(x))
 
         # Visit numerator

@@ -64,17 +64,6 @@ def extract_type(a, ufl_type):
                for o in post_traversal(e)
                if isinstance(o, ufl_type))
 
-def expr_has_terminal_types(expr, ufl_types):
-    input = [expr]
-    while input:
-        e = input.pop()
-        ops = e.ufl_operands
-        if ops:
-            input.extend(ops)
-        elif isinstance(e, ufl_types):
-            return True
-    return False
-
 def extract_terminals(a):
     "Build a set of all Terminal objects in a."
     return set(o for e in iter_expressions(a) \
