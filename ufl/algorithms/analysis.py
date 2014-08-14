@@ -197,15 +197,6 @@ def extract_element_map(elements):
         element_map[element] = i
     return element_map
 
-def extract_indices(expression):
-    "Build a set of all Index objects used in expression."
-    warning("Is this used for anything? Doesn't make much sense.")
-    multi_indices = extract_type(expression, MultiIndex)
-    indices = set()
-    for mi in multi_indices:
-        indices.update(i for i in mi if isinstance(i, Index))
-    return indices
-
 def count_nodes(expr, ids=None):
     "Count the number of unique Expr instances in expression."
     i = id(expr)
