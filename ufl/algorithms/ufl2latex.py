@@ -49,7 +49,6 @@ from ufl.geometry import Domain
 
 # Other algorithms:
 from ufl.algorithms.compute_form_data import compute_form_data
-from ufl.algorithms.analysis import extract_variables
 from ufl.algorithms.formfiles import load_forms
 from ufl.algorithms.latextools import align, document, verbatim
 
@@ -58,6 +57,24 @@ from ufl.algorithms.graph import build_graph, partition, extract_outgoing_vertex
 
 
 # TODO: Maybe this can be cleaner written using the graph utilities
+
+
+
+def _extract_variables(a):
+    """Build a list of all Variable objects in a,
+    which can be a Form, Integral or Expr.
+    The ordering in the list obeys dependency order."""
+    handled = set()
+    variables = []
+    for e in iter_expressions(a):
+        for o in post_traversal(e):
+            if isinstance(o, Variable):
+                expr, label = o.ufl_operands
+                if not label in handled:
+                    variables.append(o)
+                    handled.add(label)
+    return variables
+
 
 
 # --- Tools for LaTeX rendering of UFL expressions ---
@@ -457,7 +474,7 @@ def form2latex(form, formdata):
                "Not handling non-standard integral types!")
     lines = []
     for itg in integrals:
-        variables = extract_variables(itg.integrand())
+        variables = _extract_variables(itg.integrand())
         for v in variables:
             l = v._label
             if not l in handled_variables:

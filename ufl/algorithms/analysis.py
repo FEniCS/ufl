@@ -206,21 +206,6 @@ def extract_indices(expression):
         indices.update(i for i in mi if isinstance(i, Index))
     return indices
 
-def extract_variables(a):
-    """Build a list of all Variable objects in a,
-    which can be a Form, Integral or Expr.
-    The ordering in the list obeys dependency order."""
-    handled = set()
-    variables = []
-    for e in iter_expressions(a):
-        for o in post_traversal(e):
-            if isinstance(o, Variable):
-                expr, label = o.ufl_operands
-                if not label in handled:
-                    variables.append(o)
-                    handled.add(label)
-    return variables
-
 def count_nodes(expr, ids=None):
     "Count the number of unique Expr instances in expression."
     i = id(expr)
