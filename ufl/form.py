@@ -333,16 +333,9 @@ class Form(object):
 
     def _analyze_form_arguments(self):
         "Analyze which Argument and Coefficient objects can be found in the form."
-        from ufl.classes import Argument, Coefficient
-        from ufl.algorithms.analysis import extract_terminals
-        terminals = extract_terminals(self)
-        arguments = []
-        coefficients = []
-        for t in terminals:
-            if isinstance(t, Argument):
-                arguments.append(t)
-            elif isinstance(t, Coefficient):
-                coefficients.append(t)
+        from ufl.algorithms.analysis import extract_arguments_and_coefficients
+        arguments, coefficients = extract_arguments_and_coefficients(self)
+
         # Include coordinate coefficients from integration domains
         domains = self.domains()
         coordinates = [c for c in (domain.coordinates() for domain in domains) if c is not None]

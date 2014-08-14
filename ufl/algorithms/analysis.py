@@ -46,7 +46,7 @@ from ufl.core.traversal import pre_traversal, traverse_terminals
 # TODO: Some of these can possibly be optimised by implementing inlined stack based traversal algorithms
 
 
-def sorted_by_number_and_part(seq):
+def _sorted_by_number_and_part(seq):
     return sorted(seq, key=lambda x: (x.number(), x.part()))
 
 
@@ -63,7 +63,7 @@ def unique_tuple(objects):
 
 #--- Utilities to extract information from an expression ---
 
-def extract_classes(a):
+def __unused__extract_classes(a):
     """Build a set of all unique Expr subclasses used in a.
     The argument a can be a Form, Integral or Expr."""
     return set(o._ufl_class_
@@ -83,15 +83,10 @@ def extract_type(a, ufl_type):
                    for o in pre_traversal(e)
                    if isinstance(o, ufl_type))
 
-def extract_terminals(a):
-    "Build a set of all Terminal objects in a."
-    return set(o for e in iter_expressions(a) \
-                 for o in traverse_terminals(e))
-
 def extract_arguments(a):
     """Build a sorted list of all arguments in a,
     which can be a Form, Integral or Expr."""
-    return sorted_by_number_and_part(extract_type(a, Argument))
+    return _sorted_by_number_and_part(extract_type(a, Argument))
 
 def extract_coefficients(a):
     """Build a sorted list of all coefficients in a,
@@ -128,37 +123,22 @@ The arguments found are:\n%s""" % "\n".join("  %s" % f for f in coefficients)
         error(msg)
 
     # Passed checks, so we can safely sort the instances by count
-    arguments = sorted_by_number_and_part(arguments)
+    arguments = _sorted_by_number_and_part(arguments)
     coefficients = sorted_by_count(coefficients)
 
     return arguments, coefficients
 
-def build_coefficient_replace_map(coefficients, element_mapping=None):
-    """Create new Coefficient objects
-    with count starting at 0. Return mapping from old
-    to new objects, and lists of the new objects."""
-    if element_mapping is None:
-        element_mapping = {}
-
-    new_coefficients = []
-    replace_map = {}
-    for i, f in enumerate(coefficients):
-        old_e = f.element()
-        new_e = element_mapping.get(old_e, old_e)
-        new_f = f.reconstruct(element=new_e, count=i)
-        new_coefficients.append(new_f)
-        replace_map[f] = new_f
-
-    return new_coefficients, replace_map
 
 def extract_elements(form):
     "Build sorted tuple of all elements used in form."
     args = chain(extract_arguments(form), extract_coefficients(form))
     return tuple(f.element() for f in args)
 
+
 def extract_unique_elements(form):
     "Build sorted tuple of all unique elements used in form."
     return unique_tuple(extract_elements(form))
+
 
 def extract_sub_elements(elements):
     "Build sorted tuple of all sub elements (including parent element)."
@@ -166,11 +146,13 @@ def extract_sub_elements(elements):
     if not sub_elements: return tuple(elements)
     return tuple(elements) + extract_sub_elements(sub_elements)
 
-def extract_unique_sub_elements(elements):
+
+def __unused__extract_unique_sub_elements(elements):
     "Build sorted tuple of all unique sub elements (including parent element)."
     return unique_tuple(extract_sub_elements(elements))
 
-def extract_element_map(elements):
+
+def __unused__extract_element_map(elements):
     "Build map from elements to element index in ordered tuple."
     element_map = {}
     unique_elements = unique_tuple(elements)
@@ -180,28 +162,6 @@ def extract_element_map(elements):
         element_map[element] = i
     return element_map
 
-def extract_max_quadrature_element_degree(integral):
-    """Extract quadrature integration order from quadrature
-    elements in integral. Returns None if not found."""
-    quadrature_elements = [e for e in extract_elements(integral) if "Quadrature" in e.family()]
-    degrees = [element.degree() for element in quadrature_elements]
-    degrees = [q for q in degrees if not q is None]
-    if not degrees:
-        return None
-    max_degree = quadrature_elements[0].degree()
-    ufl_assert(all(max_degree == q for q in degrees),
-               "Incompatible quadrature elements specified (orders must be equal).")
-    return max_degree
-
-def estimate_quadrature_degree(integral):
-    "Estimate the necessary quadrature order for integral using the sum of argument degrees."
-    arguments = extract_arguments(integral)
-    degrees = [v.element().degree() for v in arguments]
-    if len(arguments) == 0:
-        return None
-    if len(arguments) == 1:
-        return 2*degrees[0]
-    return sum(degrees)
 
 def sort_elements(elements):
     """

@@ -32,14 +32,16 @@ from ufl.algorithms.formdata import FormData
 from ufl.algorithms.compute_form_data import compute_form_data
 
 # Utilities for extracting information from forms and expressions
-from ufl.algorithms.analysis import extract_classes, extract_type, \
-                                    extract_arguments, extract_coefficients, \
-                                    extract_arguments_and_coefficients, \
-                                    extract_elements, extract_unique_elements, \
-                                    extract_sub_elements, extract_unique_sub_elements, \
-                                    extract_max_quadrature_element_degree, \
-                                    estimate_quadrature_degree, \
-                                    sort_elements
+from ufl.algorithms.analysis import (
+    extract_type,
+    extract_arguments,
+    extract_coefficients,
+    extract_arguments_and_coefficients,
+    extract_elements,
+    extract_unique_elements,
+    extract_sub_elements,
+    sort_elements,
+    )
 
 # Utilities for checking properties of forms
 from ufl.algorithms.predicates import is_multilinear

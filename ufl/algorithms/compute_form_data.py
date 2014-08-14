@@ -28,6 +28,7 @@ from ufl.common import Timer
 from ufl.assertions import ufl_assert
 from ufl.log import error, warning, info
 from ufl.core.expr import Expr
+from ufl.core.traversal import traverse_terminals
 from ufl.form import Form
 from ufl.protocols import id_or_none
 from ufl.geometry import as_domain
@@ -35,8 +36,6 @@ from ufl.classes import GeometricFacetQuantity
 from ufl.algorithms.replace import replace
 from ufl.algorithms.analysis import (extract_arguments_and_coefficients,
                                      extract_coefficients,
-                                     extract_classes,
-                                     build_coefficient_replace_map,
                                      extract_elements, extract_sub_elements,
                                      unique_tuple)
 from ufl.algorithms.domain_analysis import build_integral_data, reconstruct_form_from_integral_data
@@ -98,6 +97,7 @@ def _compute_element_mapping(form):
 
     return element_mapping
 
+
 def _compute_num_sub_domains(integral_data):
     num_sub_domains = {}
     for itg_data in integral_data:
@@ -111,6 +111,7 @@ def _compute_num_sub_domains(integral_data):
         num_sub_domains[it] = max(prevmax, newmax)
     return num_sub_domains
 
+
 def _compute_form_data_elements(self, arguments, coefficients):
     self.argument_elements    = tuple(f.element() for f in arguments)
     self.coefficient_elements = tuple(f.element() for f in coefficients)
@@ -119,6 +120,7 @@ def _compute_form_data_elements(self, arguments, coefficients):
     self.sub_elements         = extract_sub_elements(self.elements)
     self.unique_sub_elements  = unique_tuple(self.sub_elements)
 
+
 def _check_elements(form_data):
     for element in chain(form_data.unique_elements, form_data.unique_sub_elements):
         ufl_assert(element.domain() is not None,
@@ -126,16 +128,20 @@ def _check_elements(form_data):
         ufl_assert(element.family() is not None,
                    "Found element with undefined familty: %s" % repr(element))
 
+
 def _check_facet_geometry(integral_data):
     for itg_data in integral_data:
         for itg in itg_data.integrals:
-            classes = extract_classes(itg.integrand())
             it = itg_data.integral_type
-            # Facet geometry is only valid in facet integrals
+            # Facet geometry is only valid in facet integrals.
+            # Allowing custom integrals to pass as well, although that's not really strict enough.
             if "facet" not in it and "custom" not in it:
-                for c in classes:
-                    ufl_assert(not issubclass(c, GeometricFacetQuantity),
-                               "Integral of type %s cannot contain a %s." % (it, c.__name__))
+                # Not a facet integral
+                for expr in traverse_terminals(itg.integrand()):
+                    cls = expr._ufl_class_
+                    if issubclass(cls, GeometricFacetQuantity):
+                        error("Integral of type %s cannot contain a %s." % (it, cls.__name__))
+
 
 def _check_form_arity(preprocessed_form):
     # Check that we don't have a mixed linear/bilinear form or anything like that
@@ -143,6 +149,24 @@ def _check_form_arity(preprocessed_form):
     ufl_assert(len(compute_form_arities(preprocessed_form)) == 1,
                "All terms in form must have same rank.")
 
+
+def _build_coefficient_replace_map(coefficients, element_mapping=None):
+    """Create new Coefficient objects
+    with count starting at 0. Return mapping from old
+    to new objects, and lists of the new objects."""
+    if element_mapping is None:
+        element_mapping = {}
+
+    new_coefficients = []
+    replace_map = {}
+    for i, f in enumerate(coefficients):
+        old_e = f.element()
+        new_e = element_mapping.get(old_e, old_e)
+        new_f = f.reconstruct(element=new_e, count=i)
+        new_coefficients.append(new_f)
+        replace_map[f] = new_f
+
+    return new_coefficients, replace_map
 
 def compute_form_data(form, apply_propagate_restrictions=True):
 
@@ -261,7 +285,7 @@ def compute_form_data(form, apply_propagate_restrictions=True):
     # that reside in form to objects with canonical numbering as well as
     # completed cells and elements
     renumbered_coefficients, function_replace_map = \
-        build_coefficient_replace_map(self.reduced_coefficients, self.element_replace_map)
+        _build_coefficient_replace_map(self.reduced_coefficients, self.element_replace_map)
     self.function_replace_map = function_replace_map
 
     # --- Store various lists of elements and sub elements (adds members to self)
