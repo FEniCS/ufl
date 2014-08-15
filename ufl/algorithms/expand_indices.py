@@ -35,6 +35,7 @@ from ufl.constantvalue import Zero
 from ufl.core.multiindex import Index, FixedIndex, MultiIndex
 from ufl.differentiation import Grad
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer, transform_integrands
+from ufl.core.traversal import pre_traversal
 
 
 class IndexExpander(ReuseTransformer):
