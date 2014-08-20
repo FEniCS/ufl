@@ -82,28 +82,15 @@ class TensorProductElement(FiniteElementBase):
         """
         return "TensorProductElement(%s)" % (', '.join(e.reconstruction_signature() for e in self._sub_elements),)
 
+    def mapping(self):
+        error("The mapping of a mixed element is not defined. Inspect subelements instead.")
+
     def num_sub_elements(self):
         "Return number of subelements."
         return len(self._sub_elements)
 
     def sub_elements(self):
         "Return subelements (factors)."
-        # TODO: I don't think the concept of sub elements is quite well defined across
-        # all the current element types. Need to investigate how sub_elements is used in
-        # existing code, and eventually redesign here, hopefully just adding another function.
-        # Summary of different behaviours:
-        # - In MixedElement and subclasses each subelement corresponds to different value components.
-        # - In EnrichedElement sub_elements returns [] even though it contains multiple "children".
-        # - In RestrictedElement it returns the sub elements of its single children.
-        # - Here in TensorProductElement it returns sub elements that correspond to factors, not components.
-        return self._sub_elements
-
-    def num_tensorproduct_sub_elements(self): # FIXME: Use this where intended, for disambiguation w.r.t. different sub_elements meanings.
-        "Return number of tensorproduct sub elements."
-        return len(self._sub_elements)
-
-    def tensorproduct_sub_elements(self): # FIXME: Use this where intended, for disambiguation w.r.t. different sub_elements meanings.
-        "Return list of tensorproduct sub elements."
         return self._sub_elements
 
     def __str__(self):

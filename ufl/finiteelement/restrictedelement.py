@@ -78,6 +78,9 @@ class RestrictedElement(FiniteElementBase):
         "Return the element which is restricted."
         return self._element
 
+    def mapping(self):
+        return self._element.mapping()
+
     def cell_restriction(self):
         "Return the domain onto which the element is restricted."
         return self._cell_restriction

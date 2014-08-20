@@ -27,6 +27,7 @@ from ufl.common import product, istr, EmptyDict
 from ufl.geometry import Cell, as_cell, as_domain, Domain
 from ufl.log import info_blue, warning, warning_blue, error
 
+
 class FiniteElementBase(object):
     "Base class for all finite elements"
     __slots__ = ("_family",
@@ -96,11 +97,23 @@ class FiniteElementBase(object):
         "Compare elements by repr, to give a natural stable sorting."
         return repr(self) < repr(other)
 
-    def cell_restriction(self):
-        "Return the cell type onto which the element is restricted."
-        return None # Overloaded by RestrictedElement
+    def family(self): # FIXME: Undefined for base?
+        "Return finite element family"
+        return self._family
 
-    def cell(self): # TODO: Deprecate this
+    def degree(self, component=None):
+        "Return polynomial degree of finite element"
+        # FIXME: Consider embedded_degree concept for more accurate degree, see blueprint
+        return self._degree
+
+    def quadrature_scheme(self):
+        "Return quadrature scheme of finite element"
+        return self._quad_scheme
+
+    def mapping(self):
+        error("Missing implementation of mapping().")
+
+    def cell(self):
         "Return cell of finite element"
         return self._cell
 
@@ -122,19 +135,6 @@ class FiniteElementBase(object):
         else:
             return (self._domain,)
 
-    def family(self): # FIXME: Undefined for base?
-        "Return finite element family"
-        return self._family
-
-    def degree(self, component=None):
-        "Return polynomial degree of finite element"
-        # FIXME: Consider embedded_degree concept for more accurate degree, see blueprint
-        return self._degree
-
-    def quadrature_scheme(self):
-        "Return quadrature scheme of finite element"
-        return self._quad_scheme
-
     def is_cellwise_constant(self, component=None):
         """Return whether the basis functions of this
         element is spatially constant over each cell."""
@@ -152,15 +152,6 @@ class FiniteElementBase(object):
         """Return the symmetry dict, which is a mapping c0 -> c1
         meaning that component c0 is represented by component c1."""
         return EmptyDict
-
-    def unique_basic_elements(self):
-        # FIXME: Return list of unique basic elements for all subclasses
-        return []
-
-    def basic_element_instances(self):
-        # FIXME: Return list of non-unique basic elements for all subclasses,
-        #        or list of indices into unique_basic_elements?
-        return []
 
     def _check_component(self, i):
         "Check that component index i is valid"
@@ -186,11 +177,35 @@ class FiniteElementBase(object):
         self._check_component(i)
         return (i, self)
 
+    def _check_reference_component(self, i):
+        "Check that reference component index i is valid"
+        sh = self.value_shape()
+        r = len(sh)
+        if not (len(i) == r and all(j < k for (j, k) in zip(i, sh))):
+            error(("Illegal component index '%r' (value rank %d)" + \
+                   "for element (value rank %d).") % (i, len(i), r))
+
+    def extract_subelement_reference_component(self, i):
+        """Extract direct subelement index and subelement relative
+        reference component index for a given reference component index"""
+        if isinstance(i, int):
+            i = (i,)
+        self._check_reference_component(i)
+        return (None, i)
+
+    def extract_reference_component(self, i):
+        """Recursively extract reference component index relative to a (simple) element
+        and that element for given reference value component index"""
+        if isinstance(i, int):
+            i = (i,)
+        self._check_reference_component(i)
+        return (i, self)
+
     def num_sub_elements(self):
         "Return number of sub elements"
         return 0
 
-    def sub_elements(self): # FIXME: Replace with alternative variants
+    def sub_elements(self):
         "Return list of sub elements"
         return []
 

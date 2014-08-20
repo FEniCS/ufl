@@ -82,6 +82,9 @@ class FiniteElement(FiniteElementBase):
             self.family(), self.domain(), self.degree(), self.quadrature_scheme())
         assert '"' not in self._repr
 
+    def mapping(self):
+        return self._mapping
+
     def sobolev_space(self):
         return self._sobolev_space
 

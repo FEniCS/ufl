@@ -75,6 +75,9 @@ class OuterProductElement(FiniteElementBase):
         FiniteElementBase.__init__(self, family, domain, degree,
                                    quad_scheme, value_shape, reference_value_shape)
 
+    def mapping(self):
+        error("TODO: The mapping of an outer product element is not implemented.")
+
     def reconstruct(self, **kwargs):
         """Construct a new OuterProductElement with some properties
         replaced with new values."""
