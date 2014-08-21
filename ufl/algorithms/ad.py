@@ -22,7 +22,7 @@
 from ufl.log import debug, error
 from ufl.assertions import ufl_assert
 from ufl.classes import Terminal, Derivative
-from ufl.algorithms.map_integrands import map_integrand_dags
+from ufl.algorithms.map_integrands import map_integrands
 from ufl.algorithms.expand_compounds import expand_compounds, expand_compounds_postdiff
 from ufl.algorithms.forward_ad import apply_nested_forward_ad
 
@@ -64,4 +64,4 @@ def expand_derivatives(form, dim=None,
         return expression
 
     # Apply chosen algorithm to all integrands
-    return map_integrand_dags(_expand_derivatives, form)
+    return map_integrands(_expand_derivatives, form)

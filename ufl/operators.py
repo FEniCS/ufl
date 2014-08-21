@@ -289,8 +289,8 @@ def diff(f, v):
     """
     # Apply to integrands
     if isinstance(f, Form):
-        from ufl.algorithms.map_integrands import map_integrand_dags
-        return map_integrand_dags(lambda e: diff(e, v), f)
+        from ufl.algorithms.map_integrands import map_integrands
+        return map_integrands(lambda e: diff(e, v), f)
 
     # Apply to expression
     f = as_ufl(f)

@@ -27,7 +27,7 @@ from ufl.log import error, debug
 from ufl.assertions import ufl_assert
 
 from ufl.classes import Expr, Terminal, Variable, Zero, all_ufl_classes
-from ufl.algorithms.map_integrands import map_integrand_dags
+from ufl.algorithms.map_integrands import map_integrands
 
 from ufl.integral import Integral
 from ufl.form import Form
@@ -217,7 +217,7 @@ class VariableStripper(ReuseTransformer):
 def apply_transformer(e, transformer, integral_type=None):
     """Apply transformer.visit(expression) to each integrand
     expression in form, or to form if it is an Expr."""
-    return map_integrand_dags(lambda expr: transformer.visit(expr), e, integral_type)
+    return map_integrands(lambda expr: transformer.visit(expr), e, integral_type)
 
 def ufl2ufl(e):
     """Convert an UFL expression to a new UFL expression, with no changes.

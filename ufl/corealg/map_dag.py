@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from ufl.core.traversal import post_traversal
+from ufl.corealg.traversal import post_traversal
 
 def map_expr_dag(function, expression, compress=True):
     """Apply a function to each subexpression node in expression dag.
