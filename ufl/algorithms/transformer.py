@@ -25,9 +25,12 @@ algorithms."""
 from inspect import getargspec
 from ufl.log import error, debug
 from ufl.assertions import ufl_assert
-from ufl.form import Form
-from ufl.integral import Integral
+
 from ufl.classes import Expr, Terminal, Variable, Zero, all_ufl_classes
+from ufl.algorithms.map_integrands import map_integrand_dags
+
+from ufl.integral import Integral
+from ufl.form import Form
 
 
 def is_post_handler(function):
@@ -211,41 +214,10 @@ class VariableStripper(ReuseTransformer):
         return self.visit(o.ufl_operands[0])
 
 
-def transform_integrands(form, transform, integral_type=None):
-    """Apply transform(expression) to each integrand
-    expression in form, or to form if it is an Expr."""
-
-    if isinstance(form, Form):
-        newintegrals = []
-        for itg in form.integrals():
-            integrand = itg.integrand()
-            if integral_type is None or itg.integral_type() in integral_type:
-                integrand = transform(integrand)
-            if not isinstance(integrand, Zero):
-                newitg = itg.reconstruct(integrand)
-                newintegrals.append(newitg)
-        if not newintegrals:
-            debug("No integrals left after transformation, returning empty form.")
-        return Form(newintegrals)
-
-    elif isinstance(form, Integral):
-        integral = form
-        integrand = transform(integral.integrand())
-        new_integral = integral.reconstruct(integrand)
-        return new_integral
-
-    elif isinstance(form, Expr):
-        expr = form
-        return transform(expr)
-    else:
-        error("Expecting Form or Expr.")
-
 def apply_transformer(e, transformer, integral_type=None):
     """Apply transformer.visit(expression) to each integrand
     expression in form, or to form if it is an Expr."""
-    def _transform(expr):
-        return transformer.visit(expr)
-    return transform_integrands(e, _transform, integral_type)
+    return map_integrand_dags(lambda expr: transformer.visit(expr), e, integral_type)
 
 def ufl2ufl(e):
     """Convert an UFL expression to a new UFL expression, with no changes.

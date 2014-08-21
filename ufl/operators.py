@@ -287,18 +287,15 @@ def diff(f, v):
 
     If f is a form, diff is applied to each integrand.
     """
+    # Apply to integrands
     if isinstance(f, Form):
-        from ufl.algorithms.transformer import transform_integrands
-        return transform_integrands(f, lambda e: diff(e, v))
-    else:
-        f = as_ufl(f)
+        from ufl.algorithms.map_integrands import map_integrand_dags
+        return map_integrand_dags(lambda e: diff(e, v), f)
 
+    # Apply to expression
+    f = as_ufl(f)
     if isinstance(v, SpatialCoordinate):
         return grad(f)
-    # TODO: Allow this? Must be tested well!
-    #elif (isinstance(v, Indexed)
-    #      and isinstance(v.ufl_operands[0], SpatialCoordinate)):
-    #    return grad(f)[...,v.ufl_operands[1]]
     elif isinstance(v, Variable):
         return VariableDerivative(f, v)
     else:

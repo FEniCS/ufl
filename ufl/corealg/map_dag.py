@@ -19,7 +19,7 @@
 
 from ufl.core.traversal import post_traversal
 
-def map_dag(function, expression, compress=True):
+def map_expr_dag(function, expression, compress=True):
     """Apply a function to each subexpression node in expression dag.
 
     If compress is True (default), the output object from

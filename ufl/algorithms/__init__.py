@@ -53,7 +53,7 @@ from ufl.algorithms.checks import validate_form
 # Utilites for modifying expressions and forms
 from ufl.algorithms.multifunction import MultiFunction
 from ufl.algorithms.transformer import Transformer, is_post_handler, \
-                                       transform, transform_integrands, apply_transformer, \
+                                       apply_transformer, \
                                        ReuseTransformer, ufl2ufl, \
                                        CopyTransformer, ufl2uflcopy, \
                                        VariableStripper, strip_variables

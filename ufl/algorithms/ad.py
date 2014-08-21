@@ -18,46 +18,13 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2009.
-#
-# First added:  2008-12-28
-# Last changed: 2012-04-12
 
 from ufl.log import debug, error
 from ufl.assertions import ufl_assert
 from ufl.classes import Terminal, Derivative
-
-from ufl.algorithms.transformer import transform_integrands, Transformer
+from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.algorithms.expand_compounds import expand_compounds, expand_compounds_postdiff
 from ufl.algorithms.forward_ad import apply_nested_forward_ad
-
-#class ADApplyer(Transformer):
-#    def __init__(self, ad_routine):
-#        Transformer.__init__(self)
-#        self.ad_routine = ad_routine
-#
-#    def terminal(self, e):
-#        return e
-#
-#    def expr(self, e, *ops):
-#        return self.reuse_if_possible(e, *ops)
-#
-#    def derivative(self, e, *ops):
-#        return self.ad_routine(self.expr(e, *ops))
-#
-#def apply_ad(e, ad_routine):
-#    if e._ufl_is_terminal_:
-#        #print 'T apply_ad', e
-#        return e
-#    else:
-#        #print 'O apply_ad', e
-#        ops1 = e.ufl_operands
-#        ops2 = tuple(apply_ad(o, ad_routine) for o in ops1)
-#        if not (ops1 == ops2):
-#            e = e.reconstruct(*ops2)
-#        if isinstance(e, Derivative):
-#            #print 'apply_ad calling ad_routine', e
-#            e = ad_routine(e)
-#        return e
 
 def expand_derivatives(form, dim=None,
                        apply_expand_compounds_before=True,
@@ -97,5 +64,4 @@ def expand_derivatives(form, dim=None,
         return expression
 
     # Apply chosen algorithm to all integrands
-    return transform_integrands(form, _expand_derivatives)
-
+    return map_integrand_dags(_expand_derivatives, form)

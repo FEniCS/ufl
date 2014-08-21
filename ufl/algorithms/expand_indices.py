@@ -34,7 +34,7 @@ from ufl.permutation import compute_indices
 from ufl.constantvalue import Zero
 from ufl.core.multiindex import Index, FixedIndex, MultiIndex
 from ufl.differentiation import Grad
-from ufl.algorithms.transformer import ReuseTransformer, apply_transformer, transform_integrands
+from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
 from ufl.corealg.traversal import pre_traversal
 
 

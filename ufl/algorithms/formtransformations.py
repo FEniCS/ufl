@@ -36,7 +36,8 @@ from ufl.constantvalue import Zero
 from ufl.algebra import Sum
 
 # Other algorithms:
-from ufl.algorithms.transformer import Transformer, transform_integrands
+from ufl.algorithms.map_integrands import map_integrand_dags
+from ufl.algorithms.transformer import Transformer
 from ufl.algorithms.replace import replace
 
 
@@ -337,8 +338,7 @@ def compute_form_with_arity(form, arity, arguments=None):
         if provides == sub_arguments:
             return e
         return Zero()
-    res = transform_integrands(form, _transform)
-    return res
+    return map_integrand_dags(_transform, form)
 
 def compute_form_arities(form):
     """Return set of arities of terms present in form."""
