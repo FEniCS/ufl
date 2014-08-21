@@ -43,6 +43,19 @@ from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
 from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
 
 
+# TODO: Move to ufl.corealg.multifunction?
+def memoized_handler(handler, cachename="_cache"):
+    def _memoized_handler(self, o):
+        c = getattr(self, cachename)
+        r = c.get(o)
+        if r is None:
+            r = handler(self, o)
+            c[o] = r
+        return r
+    return _memoized_handler
+
+
+
 """
 # Some notes:
 # Below, let v_i mean physical coordinate of vertex i and V_i mean the reference cell coordinate of the same vertex.
@@ -165,11 +178,21 @@ class ChangeToReferenceValue(ReuseTransformer):
 
         return global_value
 
-class ChangeToReferenceGrad(ReuseTransformer):
+#class ChangeToReferenceGrad(ReuseTransformer):
+#    def __init__(self):
+#        ReuseTransformer.__init__(self)
+class ChangeToReferenceGrad(MultiFunction):
     def __init__(self):
-        ReuseTransformer.__init__(self)
+        MultiFunction.__init__(self)
+        #self._cache = {}
 
-    def grad(self, o):
+    def expr(self, o, *ops):
+        return o.reconstruct(*ops)
+
+    def terminal(self, o):
+        return o
+
+    def grad(self, o, dummy_op):
         # FIXME: Handle HDiv elements with contravariant piola mapping specially?
         # FIXME: Handle HCurl elements with covariant piola mapping specially?
 
@@ -218,27 +241,13 @@ class ChangeToReferenceGrad(ReuseTransformer):
 
         return jinv_lgrad_f
 
-    def reference_grad(self, o):
+    def reference_grad(self, o, dummy_op):
         error("Not expecting reference grad while applying change to reference grad.")
 
-    def coefficient_derivative(self, o):
+    def coefficient_derivative(self, o, *dummy_ops):
         error("Coefficient derivatives should be expanded before applying change to reference grad.")
 
 
-def memoized_handler(handler, cachename="_cache"):
-    def _memoized_handler(self, o):
-        c = getattr(self, cachename)
-        r = c.get(o)
-        if r is None:
-            r = handler(self, o)
-            c[o] = r
-        return r
-    return _memoized_handler
-
-
-#class ChangeToReferenceGeometry(ReuseTransformer):
-#    def __init__(self, physical_coordinates_known, coordinate_coefficient_mapping):
-#        ReuseTransformer.__init__(self)
 class ChangeToReferenceGeometry(MultiFunction):
     def __init__(self, physical_coordinates_known, coordinate_coefficient_mapping):
         MultiFunction.__init__(self)
@@ -587,7 +596,9 @@ def change_to_reference_grad(e):
     @param e:
         An Expr or Form.
     """
-    return apply_transformer(e, ChangeToReferenceGrad())
+    #return apply_transformer(e, ChangeToReferenceGrad())
+    mf = ChangeToReferenceGrad()
+    return map_expr_dag(mf, e)
 
 
 def change_to_reference_geometry(e, physical_coordinates_known, coordinate_coefficient_mapping=None):
@@ -598,7 +609,6 @@ def change_to_reference_geometry(e, physical_coordinates_known, coordinate_coeff
     @param e:
         An Expr or Form.
     """
-    #return apply_transformer(e, ChangeToReferenceGeometry(physical_coordinates_known, coordinate_coefficient_mapping))
     mf = ChangeToReferenceGeometry(physical_coordinates_known, coordinate_coefficient_mapping)
     return map_expr_dag(mf, e)
 
