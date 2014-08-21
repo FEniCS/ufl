@@ -40,7 +40,7 @@ from ufl.geometry import Domain
 from ufl.integral import Measure, Integral
 from ufl.form import Form
 from ufl.algorithms.traversal import iter_expressions
-from ufl.core.traversal import pre_traversal, traverse_terminals
+from ufl.corealg.traversal import pre_traversal, traverse_terminals
 
 
 # TODO: Some of these can possibly be optimised by implementing inlined stack based traversal algorithms

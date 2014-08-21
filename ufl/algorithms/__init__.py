@@ -21,9 +21,9 @@
 
 # Utilities for traversing over expression trees in different ways
 from ufl.algorithms.traversal import iter_expressions
-# Keeping these here for backwards compatibility, doesn't cost anything. Prefer importing from ufl.core.traversal.
-from ufl.core.traversal import pre_traversal, post_traversal
-from ufl.core.traversal import traverse_terminals, traverse_unique_terminals
+# Keeping these here for backwards compatibility, doesn't cost anything. Prefer importing from ufl.corealg.traversal.
+from ufl.corealg.traversal import pre_traversal, post_traversal
+from ufl.corealg.traversal import traverse_terminals, traverse_unique_terminals
 
 # Class for simple extraction of form meta data
 from ufl.algorithms.formdata import FormData

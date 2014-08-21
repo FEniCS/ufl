@@ -24,7 +24,7 @@
 from collections import defaultdict
 from six import iteritems
 
-from ufl.core.traversal import traverse_unique_terminals
+from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.log import warning, error, deprecate
 from ufl.assertions import ufl_assert
 from ufl.common import istr, EmptyDict

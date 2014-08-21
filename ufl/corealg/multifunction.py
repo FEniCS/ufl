@@ -1,4 +1,4 @@
-"""Base class for UFL expression multifunctions."""
+"""Base class for multifunctions with UFL Expr type dispatch."""
 
 # Copyright (C) 2008-2014 Martin Sandve Alnes
 #
@@ -17,42 +17,56 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-
 from ufl.log import error
 from ufl.core.expr import Expr
 
 class MultiFunction(object):
-    """Base class for collections of nonrecursive expression node handlers."""
+    """Base class for collections of nonrecursive expression node handlers.
+
+    Subclass this (remember to call the __init__ method of this class),
+    and implement handler functions for each Expr type, using the lower case
+    handler name of the type (exprtype._ufl_handler_name_).
+
+    This class is optimized for efficient type based dispatch in the __call__
+    operator via typecode based lookup of the handler function bound to the
+    algorithm object. Of course function call overhead of Python still applies.
+    """
+
     _handlers_cache = {}
+
     def __init__(self):
         # Analyse class properties and cache handler data the
         # first time this is run for a particular class
+        # (cached for each algorithm for performance)
         algorithm_class = type(self).__name__
         cache_data = MultiFunction._handlers_cache.get(algorithm_class)
         if not cache_data:
             cache_data = [None]*len(Expr._ufl_all_classes_)
-            # For all UFL classes
+
+            # Iterate over the inheritance chain for each Expr subclass
+            # (NB! This assumes that all UFL classes inherits from
+            # a single Expr subclass and that the first superclass
+            # is always from the UFL Expr hierarchy!)
             for classobject in Expr._ufl_all_classes_:
-                # Iterate over the inheritance chain
-                # (NB! This assumes that all UFL classes inherits from
-                # a single Expr subclass and that the first superclass
-                # is always from the UFL Expr hierarchy!)
                 for c in classobject.mro():
                     # Register classobject with handler for the first encountered superclass
                     name = c._ufl_handler_name_
-                    if getattr(self, name, None):
+                    if hasattr(self, name):
                         cache_data[classobject._ufl_typecode_] = name
                         break
             MultiFunction._handlers_cache[algorithm_class] = cache_data
-        # Build handler list for this particular class (get functions bound to self)
+
+        # Build handler list for this particular class
+        # (get functions bound to self, these cannot be cached)
         self._handlers = [getattr(self, name) for name in cache_data]
 
-    def __call__(self, o, *args, **kwargs):
-        return self._handlers[o._ufl_typecode_](o, *args, **kwargs)
+    def __call__(self, o, *args):
+        "Delegate to handler function based on typecode of first argument."
+        return self._handlers[o._ufl_typecode_](o, *args)
 
-    def undefined(self, o):
-        "Trigger error."
+    def undefined(self, o, *args):
+        "Trigger error for types with missing handlers."
         error("No handler defined for %s." % o._ufl_class_.__name__)
 
-    # Set default behaviour for any Expr
+    # Set default behaviour for any Expr as undefined
     expr = undefined

@@ -20,7 +20,7 @@
 # Modified by Anders Logg, 2008-2009
 
 from ufl.core.expr import Expr
-from ufl.core.traversal import traverse_unique_terminals
+from ufl.corealg.traversal import traverse_unique_terminals
 
 def is_python_scalar(expression):
     "Return True iff expression is of a Python scalar type."

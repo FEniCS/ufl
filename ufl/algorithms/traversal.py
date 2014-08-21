@@ -43,4 +43,4 @@ def iter_expressions(a):
     error("Not an UFL type: %s" % str(type(a)))
 
 # The rest is moved here:
-#from ufl.core.traversal import pre_traversal, post_traversal, traverse_terminals, traverse_unique_terminals
+#from ufl.corealg.traversal import pre_traversal, post_traversal, traverse_terminals, traverse_unique_terminals

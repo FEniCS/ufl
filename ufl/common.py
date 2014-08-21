@@ -23,7 +23,7 @@
 
 from ufl.utils.indexflattening import shape_to_strides, unflatten_index, flatten_multiindex
 from ufl.utils.sequences import product, unzip, xor, or_tuples, and_tuples, iter_tree, recursive_chain
-from ufl.core.traversal import (pre_traversal, unique_pre_traversal,
+from ufl.corealg.traversal import (pre_traversal, unique_pre_traversal,
                                 unique_pre_traversal, unique_post_traversal,
                                 post_traversal, unique_post_traversal)
 from ufl.utils.formatting import lstr, estr, istr, sstr, tstr, dstr, camel2underscore
