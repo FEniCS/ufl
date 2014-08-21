@@ -46,7 +46,7 @@ def map_integrands(function, form, only_integral_type=None):
             return itg
 
     elif isinstance(form, Expr):
-        ufl_assert(only_integral_type is None, "Restricting integral type is only valid with Form and Integral.")
+        #ufl_assert(only_integral_type is None, "Restricting integral type is only valid with Form and Integral.")
         integrand = form
         return function(integrand)
 

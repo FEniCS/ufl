@@ -21,6 +21,11 @@ from six.moves import xrange as range
 
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
+
+from ufl.core.multiindex import Index, indices
+from ufl.corealg.multifunction import MultiFunction
+from ufl.corealg.map_dag import map_expr_dag
+
 from ufl.classes import (Terminal, ReferenceGrad, Grad, Restricted, ReferenceValue,
                          Jacobian, JacobianInverse, JacobianDeterminant,
                          FacetJacobian, FacetJacobianInverse, FacetJacobianDeterminant,
@@ -29,12 +34,13 @@ from ufl.classes import (Terminal, ReferenceGrad, Grad, Restricted, ReferenceVal
                          FacetNormal, CellNormal,
                          CellVolume, FacetArea,
                          CellOrientation, FacetOrientation, QuadratureWeight)
+
 from ufl.constantvalue import as_ufl
-from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
-from ufl.core.multiindex import Index, indices
 from ufl.tensors import as_tensor, as_vector
-from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
 from ufl.operators import sqrt, max_value, min_value
+
+from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
+from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
 
 
 """
@@ -218,12 +224,21 @@ class ChangeToReferenceGrad(ReuseTransformer):
     def coefficient_derivative(self, o):
         error("Coefficient derivatives should be expanded before applying change to reference grad.")
 
-class ChangeToReferenceGeometry(ReuseTransformer):
+#class ChangeToReferenceGeometry(ReuseTransformer):
+#    def __init__(self, physical_coordinates_known, coordinate_coefficient_mapping):
+#        ReuseTransformer.__init__(self)
+class ChangeToReferenceGeometry(MultiFunction):
     def __init__(self, physical_coordinates_known, coordinate_coefficient_mapping):
-        ReuseTransformer.__init__(self)
+        MultiFunction.__init__(self)
         self.coordinate_coefficient_mapping = coordinate_coefficient_mapping or {}
         self.physical_coordinates_known = physical_coordinates_known
         self._rcache = {}
+
+    def expr(self, o, *ops):
+        return o.reconstruct(*ops)
+
+    def terminal(self, o):
+        return o
 
     def jacobian(self, o):
         r = self._rcache.get(o)
@@ -611,7 +626,9 @@ def change_to_reference_geometry(e, physical_coordinates_known, coordinate_coeff
     @param e:
         An Expr or Form.
     """
-    return apply_transformer(e, ChangeToReferenceGeometry(physical_coordinates_known, coordinate_coefficient_mapping))
+    #return apply_transformer(e, ChangeToReferenceGeometry(physical_coordinates_known, coordinate_coefficient_mapping))
+    mf = ChangeToReferenceGeometry(physical_coordinates_known, coordinate_coefficient_mapping)
+    return map_expr_dag(mf, e)
 
 
 def compute_integrand_scaling_factor(domain, integral_type):
