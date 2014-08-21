@@ -211,19 +211,6 @@ class VariableStripper(ReuseTransformer):
         return self.visit(o.ufl_operands[0])
 
 
-def transform(expression, handlers):
-    """Convert a UFLExpression according to rules defined by
-    the mapping handlers = dict: class -> conversion function."""
-    if expression._ufl_is_terminal_:
-        ops = ()
-    else:
-        ops = [transform(o, handlers) for o in expression.ufl_operands]
-    c = expression._ufl_class_
-    h = handlers.get(c, None)
-    if c is None:
-        error("Didn't find class %s among handlers." % c)
-    return h(expression, *ops)
-
 def transform_integrands(form, transform, integral_type=None):
     """Apply transform(expression) to each integrand
     expression in form, or to form if it is an Expr."""
