@@ -26,7 +26,7 @@ from ufl.core.multiindex import MultiIndex, Index, FixedIndex, indices
 
 from ufl.tensors import as_tensor, as_scalar, as_scalars, unit_indexed_tensor, unwrap_list_tensor
 
-from ufl.classes import ConstantValue, Identity, Zero
+from ufl.classes import ConstantValue, Identity, Zero, FloatValue
 from ufl.classes import Coefficient, FormArgument
 from ufl.classes import Grad, Variable
 from ufl.classes import Indexed, ListTensor, ComponentTensor
@@ -38,6 +38,8 @@ from ufl.operators import dot, inner, outer, lt, eq, conditional, sign, \
     sqrt, exp, ln, cos, sin, tan, cosh, sinh, tanh, acos, asin, atan, atan_2, \
     erf, bessel_J, bessel_Y, bessel_I, bessel_K, \
     cell_avg, facet_avg
+
+from math import pi
 
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
@@ -156,7 +158,7 @@ class GenericDerivativeRuleset(MultiFunction):
 
     # --- Indexing and component handling
 
-    def indexed(self, o, Ap, ii):
+    def indexed(self, o, Ap, ii): # TODO: (Partially) duplicated in nesting rules
         # Propagate zeros
         if isinstance(Ap, Zero):
             return self.independent_operator(o)
@@ -166,10 +168,12 @@ class GenericDerivativeRuleset(MultiFunction):
             B, jj = Ap.ufl_operands
             if isinstance(B, Indexed):
                 C, kk = B.ufl_operands
-                Cind = list(kk)
-                for i, j in zip(ii, jj):
-                    Cind[kk.index(j)] = i
-                return Indexed(C, MultiIndex(tuple(Cind)))
+                kk = list(kk)
+                if all(j in kk for j in jj):
+                    Cind = list(kk)
+                    for i, j in zip(ii, jj):
+                        Cind[kk.index(j)] = i
+                    return Indexed(C, MultiIndex(tuple(Cind)))
 
         # Otherwise a more generic approach
         r = Ap.rank() - len(ii)
@@ -243,7 +247,7 @@ class GenericDerivativeRuleset(MultiFunction):
         #do/dg  = ln(f) * f**g = ln(f) * o
         #do/df * df + do/dg * dg = o * (g / f * df + ln(f) * dg)
 
-        if isinstance(dg, Zero):
+        if isinstance(gp, Zero):
             # This probably produces better results for the common case of f**constant
             op = fp * g * f**(g-1)
         else:
@@ -813,7 +817,7 @@ class DerivativeRuleDispatcher(MultiFunction):
         rules = GateauxDerivativeRuleset(w, v, cd)
         return map_expr_dag(rules, f)
 
-    def indexed(self, o, Ap, ii):
+    def indexed(self, o, Ap, ii): # TODO: (Partially) duplicated in generic rules
         # Reuse if untouched
         if Ap is o.ufl_operands[0]:
             return o
@@ -823,11 +827,13 @@ class DerivativeRuleDispatcher(MultiFunction):
             B, jj = Ap.ufl_operands
             if isinstance(B, Indexed):
                 C, kk = B.ufl_operands
+
                 kk = list(kk)
-                Cind = list(kk)
-                for i, j in zip(ii, jj):
-                    Cind[kk.index(j)] = i
-                return Indexed(C, MultiIndex(tuple(Cind)))
+                if all(j in kk for j in jj):
+                    Cind = list(kk)
+                    for i, j in zip(ii, jj):
+                        Cind[kk.index(j)] = i
+                    return Indexed(C, MultiIndex(tuple(Cind)))
 
         # Otherwise a more generic approach
         r = Ap.rank() - len(ii)

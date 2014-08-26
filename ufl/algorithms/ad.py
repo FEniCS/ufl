@@ -25,6 +25,7 @@ from ufl.classes import Terminal, Derivative
 from ufl.algorithms.map_integrands import map_integrands
 from ufl.algorithms.expand_compounds import expand_compounds, expand_compounds_postdiff
 from ufl.algorithms.forward_ad import apply_nested_forward_ad
+from ufl.algorithms.apply_derivatives import apply_derivatives
 
 def expand_derivatives(form, dim=None,
                        apply_expand_compounds_before=True,
@@ -49,7 +50,8 @@ def expand_derivatives(form, dim=None,
             #print 'after expand_compounds', expression
 
         # Apply recursive forward mode AD
-        expression = apply_nested_forward_ad(expression)
+        #expression = apply_nested_forward_ad(expression)
+        expression = apply_derivatives(expression)
 
         # FIXME: Form compilers assume expand_compounds have been applied.
         #        This means quite a bit of work to handle all compounds
@@ -62,6 +64,8 @@ def expand_derivatives(form, dim=None,
             #expression = expand_compounds(expression)
             expression = expand_compounds_postdiff(expression)
         return expression
+
+
 
     # Apply chosen algorithm to all integrands
     return map_integrands(_expand_derivatives, form)
