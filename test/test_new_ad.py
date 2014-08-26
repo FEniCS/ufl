@@ -1,14 +1,13 @@
 #!/usr/bin/env py.test
 
 from ufl import *
-
+from ufl.assertions import ufl_assert
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.algorithms.map_integrands import map_integrand_dags
-from ufl.classes import Zero
-
-from ufl.tensors import as_tensor, as_scalar
-
+from ufl.classes import MultiIndex, Index, FixedIndex, Terminal, Zero, Grad, Product, Sum, Indexed, IndexSum, ComponentTensor, ExprList, ExprMapping
+from ufl.tensors import as_tensor, as_scalar, as_scalars
+from ufl.algorithms import tree_format, renumber_indices
 
 class GenericDerivativeRuleset(MultiFunction):
     def __init__(self, var_shape):
@@ -122,17 +121,29 @@ class GenericDerivativeRuleset(MultiFunction):
 
     # --- Indexing and component handling
 
-    def indexed(self, o, Ap, jj):
+    def indexed(self, o, Ap, ii):
+        # Propagate zeros
         if isinstance(Ap, Zero):
-            op = self.independent_operator(o)
+            return self.independent_operator(o)
+
+        # Untangle as_tensor(C[kk], jj)[ii] -> C[ll] to simplify resulting expression
+        if isinstance(Ap, ComponentTensor):
+            B, jj = Ap.ufl_operands
+            if isinstance(B, Indexed):
+                C, kk = B.ufl_operands
+                Cind = list(kk)
+                for i, j in zip(ii, jj):
+                    Cind[kk.index(j)] = i
+                return Indexed(C, MultiIndex(tuple(Cind)))
+
+        # Otherwise a more generic approach
+        r = Ap.rank() - len(ii)
+        if r:
+            kk = indices(r)
+            op = Indexed(Ap, MultiIndex(ii.indices() + kk))
+            op = as_tensor(op, kk)
         else:
-            r = Ap.rank() - len(jj)
-            if r:
-                ii = indices(r)
-                op = Indexed(Ap, MultiIndex(jj.indices() + ii))
-                op = as_tensor(op, ii)
-            else:
-                op = Indexed(Ap, jj)
+            op = Indexed(Ap, ii)
         return op
 
     def list_tensor(self, o, *dops):
@@ -156,6 +167,7 @@ class GenericDerivativeRuleset(MultiFunction):
 
     def product(self, o, da, db):
         # Even though arguments to o are scalar, da and db may be tensor valued
+        a, b = o.ufl_operands
         (da, db), ii = as_scalars(da, db)
         pa = Product(da, b)
         pb = Product(a, db)
@@ -533,8 +545,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
 
         # Build more convenient dict {f: df/dw} for each coefficient f where df/dw is nonzero
         cd = coefficient_derivatives.ufl_operands
-        fs, dfs = zip(*[(cd[2*i], cd[2*i+1]) for i in range(len(cd)//2)])
-        self._cd = {f: df for f, df in zip(fs, dfs)}
+        self._cd = {cd[2*i]: cd[2*i+1] for i in range(len(cd)//2)}
 
     # Explicitly defining dg/dw == 0
     geometric_quantity = GenericDerivativeRuleset.independent_terminal
@@ -752,13 +763,7 @@ class DerivativeRuleDispatcher(MultiFunction):
     def derivative(self, o, *ops):
         error("Missing derivative handler for {0}.".format(type(o).__name__))
 
-    def reuse_if_untouched(self, o, *ops):
-        if all(a is b for a, b in zip(o.ufl_operands, ops)):
-            return o
-        else:
-            return o.reconstruct(*ops)
-
-    expr = reuse_if_untouched
+    expr = MultiFunction.reuse_if_untouched
 
     def grad(self, o, f):
         rules = GradRuleset(o.ufl_shape[-1])
@@ -769,9 +774,35 @@ class DerivativeRuleDispatcher(MultiFunction):
         return map_expr_dag(rules, f)
 
     def coefficient_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
-        dummy, w, v, cd = expr.ufl_operands
+        dummy, w, v, cd = o.ufl_operands
         rules = GateauxDerivativeRuleset(w, v, cd)
         return map_expr_dag(rules, f)
+
+    def indexed(self, o, Ap, ii):
+        # Reuse if untouched
+        if Ap is o.ufl_operands[0]:
+            return o
+
+        # Untangle as_tensor(C[kk], jj)[ii] -> C[ll] to simplify resulting expression
+        if isinstance(Ap, ComponentTensor):
+            B, jj = Ap.ufl_operands
+            if isinstance(B, Indexed):
+                C, kk = B.ufl_operands
+                kk = list(kk)
+                Cind = list(kk)
+                for i, j in zip(ii, jj):
+                    Cind[kk.index(j)] = i
+                return Indexed(C, MultiIndex(tuple(Cind)))
+
+        # Otherwise a more generic approach
+        r = Ap.rank() - len(ii)
+        if r:
+            kk = indices(r)
+            op = Indexed(Ap, MultiIndex(ii.indices() + kk))
+            op = as_tensor(op, kk)
+        else:
+            op = Indexed(Ap, ii)
+        return op
 
 
 #def _nested_apply_derivatives(expr):
@@ -786,5 +817,196 @@ def apply_derivatives(expression):
     return map_integrand_dags(rules, expression)
 
 
+def test_apply_derivatives_doesnt_change_expression_without_derivatives():
+    cell = triangle
+    d = cell.geometric_dimension()
+    V0 = FiniteElement("DG", cell, 0)
+    V1 = FiniteElement("Lagrange", cell, 1)
+
+    # Literals
+    z = zero((3, 2))
+    one = as_ufl(1)
+    two = as_ufl(2.0)
+    I = Identity(d)
+    literals = [z, one, two, I]
+
+    # Geometry
+    x = SpatialCoordinate(cell)
+    n = FacetNormal(cell)
+    volume = CellVolume(cell)
+    geometry = [x, n, volume]
+
+    # Arguments
+    v0 = TestFunction(V0)
+    v1 = TestFunction(V1)
+    arguments = [v0, v1]
+
+    # Coefficients
+    f0 = Coefficient(V0)
+    f1 = Coefficient(V1)
+    coefficients = [f0, f1]
+
+    # Expressions
+    e0 = f0 + f1
+    e1 = v0 * (f1/3 - f0**2)
+    e2 = exp(sin(cos(tan(ln(x[0])))))
+    expressions = [e0, e1, e2]
+
+    # Check that all are unchanged
+    for expr in literals + geometry + arguments + coefficients + expressions:
+        # Note the use of "is" here instead of ==, this property
+        # is important for efficiency and memory usage
+        assert apply_derivatives(expr) is expr
+
+
 def test_literal_derivatives_are_zero():
-    assert apply_derivatives(as_ufl(1.0)) == as_ufl(1.0)
+    cell = triangle
+    d = cell.geometric_dimension()
+
+    # Literals
+    one = as_ufl(1)
+    two = as_ufl(2.0)
+    I = Identity(d)
+    E = PermutationSymbol(d)
+    literals = [one, two, I]
+
+    # Generic ruleset handles literals directly:
+    for l in literals:
+        for sh in [(), (d,), (d,d+1)]:
+            assert GenericDerivativeRuleset(sh)(l) == zero(l.ufl_shape + sh)
+
+    # Variables
+    v0 = variable(one)
+    v1 = variable(zero((d,)))
+    v2 = variable(I)
+    variables = [v0, v1, v2]
+
+    # Test literals via apply_derivatives and variable ruleset:
+    for l in literals:
+        for v in variables:
+            assert apply_derivatives(diff(l, v)) == zero(l.ufl_shape + v.ufl_shape)
+
+    V0 = FiniteElement("DG", cell, 0)
+    V1 = FiniteElement("Lagrange", cell, 1)
+    u0 = Coefficient(V0)
+    u1 = Coefficient(V1)
+    v0 = TestFunction(V0)
+    v1 = TestFunction(V1)
+    args = [(u0, v0), (u1, v1)]
+
+    # Test literals via apply_derivatives and variable ruleset:
+    for l in literals:
+        for u, v in args:
+            assert apply_derivatives(derivative(l, u, v)) == zero(l.ufl_shape + v.ufl_shape)
+
+    # Test grad ruleset directly since grad(literal) is invalid:
+    assert GradRuleset(d)(one) == zero((d,))
+    assert GradRuleset(d)(one) == zero((d,))
+
+
+def test_grad_ruleset():
+    cell = triangle
+    d = cell.geometric_dimension()
+
+    V0 = FiniteElement("DG", cell, 0)
+    V1 = FiniteElement("Lagrange", cell, 1)
+    V2 = FiniteElement("Lagrange", cell, 2)
+    W0 = VectorElement("DG", cell, 0)
+    W1 = VectorElement("Lagrange", cell, 1)
+    W2 = VectorElement("Lagrange", cell, 2)
+
+    # Literals
+    one = as_ufl(1)
+    two = as_ufl(2.0)
+    I = Identity(d)
+    literals = [one, two, I]
+
+    # Geometry
+    x = SpatialCoordinate(cell)
+    n = FacetNormal(cell)
+    volume = CellVolume(cell)
+    geometry = [x, n, volume]
+
+    # Arguments
+    u0 = TestFunction(V0)
+    u1 = TestFunction(V1)
+    arguments = [u0, u1]
+
+    # Coefficients
+    r = Constant(cell)
+    vr = VectorConstant(cell)
+    f0 = Coefficient(V0)
+    f1 = Coefficient(V1)
+    f2 = Coefficient(V2)
+    vf0 = Coefficient(W0)
+    vf1 = Coefficient(W1)
+    vf2 = Coefficient(W2)
+    coefficients = [f0, f1, vf0, vf1]
+
+    # Expressions
+    e0 = f0 + f1
+    e1 = u0 * (f1/3 - f0**2)
+    e2 = exp(sin(cos(tan(ln(x[0])))))
+    expressions = [e0, e1, e2]
+
+    # Variables
+    v0 = variable(one)
+    v1 = variable(f1)
+    v2 = variable(f0*f1)
+    variables = [v0, v1, v2]
+
+    rules = GradRuleset(d)
+
+    # Literals
+    assert rules(one) == zero((d,))
+    assert rules(two) == zero((d,))
+    assert rules(I) == zero((d,d,d))
+
+    # Assumed piecewise constant geometry
+    for g in [n, volume]:
+        assert rules(g) == zero(g.ufl_shape + (d,))
+
+    # Non-constant geometry
+    assert rules(x) == I
+
+    # Arguments
+    for u in arguments:
+        assert rules(u) == grad(u)
+
+    # Piecewise constant coefficients (Constant)
+    assert rules(r) == zero((d,))
+    assert rules(vr) == zero((d,d))
+    assert rules(grad(r)) == zero((d,d))
+    assert rules(grad(vr)) == zero((d,d,d))
+
+    # Piecewise constant coefficients (DG0)
+    assert rules(f0) == zero((d,))
+    assert rules(vf0) == zero((d,d))
+    assert rules(grad(f0)) == zero((d,d))
+    assert rules(grad(vf0)) == zero((d,d,d))
+
+    # Piecewise linear coefficients
+    assert rules(f1) == grad(f1)
+    assert rules(vf1) == grad(vf1)
+    #assert rules(grad(f1)) == zero((d,d)) # TODO: Use degree to make this work
+    #assert rules(grad(vf1)) == zero((d,d,d))
+
+    # Piecewise quadratic coefficients
+    assert rules(grad(f2)) == grad(grad(f2))
+    assert rules(grad(vf2)) == grad(grad(vf2))
+
+    # Indexed coefficients
+    assert renumber_indices(apply_derivatives(grad(vf2[0]))) == renumber_indices(grad(vf2)[0,:])
+    assert renumber_indices(apply_derivatives(grad(vf2[1])[0])) == renumber_indices(grad(vf2)[1,0])
+
+    # Grad of expressions
+    assert apply_derivatives(grad(2*f0)) == zero((d,))
+    assert renumber_indices(apply_derivatives(grad(2*f1))) == renumber_indices(2*grad(f1))
+
+
+def test_variable_ruleset():
+    pass
+
+
+def test_gateaux_ruleset():
+    pass

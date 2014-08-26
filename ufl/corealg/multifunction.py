@@ -68,5 +68,19 @@ class MultiFunction(object):
         "Trigger error for types with missing handlers."
         error("No handler defined for %s." % o._ufl_class_.__name__)
 
+    def reuse_if_untouched(self, o, *ops):
+        """Reuse object if operands are the same objects.
+
+        Use in your own subclass by setting e.g.
+
+            expr = MultiFunction.reuse_if_untouched
+
+        as a default rule.
+        """
+        if all(a is b for a, b in zip(o.ufl_operands, ops)):
+            return o
+        else:
+            return o.reconstruct(*ops)
+
     # Set default behaviour for any Expr as undefined
     expr = undefined

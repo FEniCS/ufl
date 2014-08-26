@@ -1,6 +1,7 @@
 
 import pytest
 
+import ufl
 from ufl import as_ufl, inner, dx
 from ufl.algorithms import compute_form_data
 
@@ -51,3 +52,8 @@ class Tester:
 @pytest.fixture(scope="session")
 def self():
     return Tester()
+
+_all_cells = [ufl.interval, ufl.triangle, ufl.tetrahedron]
+@pytest.fixture(params=_all_cells)
+def cell(request):
+    return request.param
