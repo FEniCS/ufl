@@ -60,7 +60,7 @@ class ForwardAD(Transformer):
     def __init__(self, var_shape, cache=None):
         Transformer.__init__(self)
         self._var_shape = var_shape
-        self._cache = {} if cache is None else cache
+        self._variable_cache = {} if cache is None else cache
 
     def _debug_visit(self, o):
         "Debugging hook, enable this by renaming to 'visit'."

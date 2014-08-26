@@ -206,7 +206,7 @@ def compute_form_data(form, apply_propagate_restrictions=True):
 
 
     # --- Group and collect data about integrals
-    # TODO: Refactor this
+    # TODO: Refactor this # TODO: Is form.domains() right here?
     self.integral_data = \
         build_integral_data(preprocessed_form.integrals(), form.domains())
 
