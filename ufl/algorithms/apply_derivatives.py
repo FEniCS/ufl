@@ -252,7 +252,18 @@ class GenericDerivativeRuleset(MultiFunction):
             op = fp * g * f**(g-1)
         else:
             # Note: This produces expressions like (1/w)*w**5 instead of w**4
-            op = o * (fp * g / f + gp * ln(f))
+            #op = o * (fp * g / f + gp * ln(f)) # This reuses o
+            op = f**(g-1) * (g*fp + f*ln(f)*gp) # This gives better accuracy in dolfin integration test
+
+        # Example: d/dx[x**(x**3)]:
+        #f = x
+        #g = x**3
+        #df = 1
+        #dg = 3*x**2
+        #op1 = o * (fp * g / f + gp * ln(f))
+        #    = x**(x**3)   * (x**3/x + 3*x**2*ln(x))
+        #op2 = f**(g-1) * (g*fp + f*ln(f)*gp)
+        #    = x**(x**3-1) * (x**3 + x*3*x**2*ln(x))
 
         return op
 
