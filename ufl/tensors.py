@@ -331,6 +331,18 @@ def as_scalar(expression):
         expression = expression[ii]
     return expression, ii
 
+def as_scalars(*expressions):
+    """Given multiple scalar or tensor valued expressions A, returns either of the tuples::
+
+      (a,b) = (A, ())
+      (a,b) = ([A[0][indices], ..., A[-1][indices]], indices)
+
+    such that a is always a list of scalar valued expressions."""
+    ii = indices(expressions[0].rank())
+    if ii:
+        expressions = [expression[ii] for expression in expressions]
+    return expressions, ii
+
 def relabel(A, indexmap):
     "UFL operator: Relabel free indices of A with new indices, using the given mapping."
     ii = tuple(sorted(indexmap.keys()))
