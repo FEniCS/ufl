@@ -235,7 +235,7 @@ class GenericDerivativeRuleset(MultiFunction):
         return fp / (2*o)
 
     def exp(self, o, fp):
-        return fp*o
+        return fp * o
 
     def ln(self, o, fp):
         f, = o.ufl_operands
@@ -244,7 +244,7 @@ class GenericDerivativeRuleset(MultiFunction):
 
     def cos(self, o, fp):
         f, = o.ufl_operands
-        return -fp * sin(f)
+        return fp * -sin(f)
 
     def sin(self, o, fp):
         f, = o.ufl_operands
@@ -999,9 +999,11 @@ def test_grad_ruleset():
     assert renumber_indices(apply_derivatives(grad(vf2[0]))) == renumber_indices(grad(vf2)[0,:])
     assert renumber_indices(apply_derivatives(grad(vf2[1])[0])) == renumber_indices(grad(vf2)[1,0])
 
-    # Grad of expressions
+    # Grad of gradually more complex expressions
     assert apply_derivatives(grad(2*f0)) == zero((d,))
     assert renumber_indices(apply_derivatives(grad(2*f1))) == renumber_indices(2*grad(f1))
+    assert renumber_indices(apply_derivatives(grad(sin(f1)))) == renumber_indices(cos(f1) * grad(f1))
+    assert renumber_indices(apply_derivatives(grad(cos(f1)))) == renumber_indices(-sin(f1) * grad(f1))
 
 
 def test_variable_ruleset():
