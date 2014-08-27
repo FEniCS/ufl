@@ -56,7 +56,9 @@ class Transformer(object):
             cache_data = [None]*len(all_ufl_classes)
             # For all UFL classes
             for classobject in all_ufl_classes:
-                # Iterate over the inheritance chain (NB! This assumes that all UFL classes inherits a single Expr subclass and that this is the first superclass!)
+                # Iterate over the inheritance chain
+                # (NB! This assumes that all UFL classes inherits a single
+                # Expr subclass and that this is the first superclass!)
                 for c in classobject.mro():
                     # Register classobject with handler for the first encountered superclass
                     name = c._ufl_handler_name_

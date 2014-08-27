@@ -17,8 +17,14 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
+from inspect import getargspec
+
 from ufl.log import error
 from ufl.core.expr import Expr
+
+def get_num_args(function):
+    insp = getargspec(function)
+    return len(insp[0]) + int(insp[1] is not None)
 
 class MultiFunction(object):
     """Base class for collections of nonrecursive expression node handlers.
@@ -59,6 +65,7 @@ class MultiFunction(object):
         # Build handler list for this particular class
         # (get functions bound to self, these cannot be cached)
         self._handlers = [getattr(self, name) for name in cache_data]
+        self._is_cutoff_type = [get_num_args(h) == 2 for h in self._handlers]
 
     def __call__(self, o, *args):
         "Delegate to handler function based on typecode of first argument."

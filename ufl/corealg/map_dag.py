@@ -17,7 +17,9 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from ufl.corealg.traversal import post_traversal
+from ufl.core.expr import Expr
+from ufl.corealg.traversal import post_traversal, cutoff_post_traversal
+from ufl.corealg.multifunction import MultiFunction
 
 def map_expr_dag(function, expression, compress=True):
     """Apply a function to each subexpression node in expression dag.
@@ -34,8 +36,16 @@ def map_expr_dag(function, expression, compress=True):
     rcache = {}
     results = []
 
+    if isinstance(function, MultiFunction):
+        # Build mapping typecode:bool, for which types to skip the subtree of
+        cutoff_types = function._is_cutoff_type
+        traversal = lambda expression: cutoff_post_traversal(expression, cutoff_types)
+    else:
+        cutoff_types = [False]*Expr._ufl_num_typecodes_
+        traversal = lambda expression: post_traversal(expression)
+
     # Iterate over all subexpression nodes, child before parent
-    for v in post_traversal(expression):
+    for v in traversal(expression):
 
         # Check if v is in vcache (to be able to skip transformations)
         i = vcache.get(v)
@@ -45,10 +55,13 @@ def map_expr_dag(function, expression, compress=True):
             continue
 
         # Cache miss: Get transformed operands, then apply transformation
-        rops = [results[vcache[u]] for u in v.ufl_operands]
-        r = function(v, *rops)
+        if cutoff_types[v._ufl_typecode_]:
+            r = function(v)
+        else:
+            rops = [results[vcache[u]] for u in v.ufl_operands]
+            r = function(v, *rops)
 
-        # Check if r is in rcache (to be able to keep representation of result compact)
+        # Optionally check if r is in rcache (to be able to keep representation of result compact)
         i = rcache.get(r) if compress else None
 
         if i is None:

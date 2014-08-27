@@ -54,19 +54,19 @@ class GenericDerivativeRuleset(MultiFunction):
 
     # --- Error checking for missing handlers and unexpected types
 
-    def expr(self, o, *ops):
+    def expr(self, o):
         error("Missing differentiation handler for type {0}. Have you added a new type?".format(o._ufl_class_.__name__))
 
-    def unexpected(self, o, *ops):
+    def unexpected(self, o):
         error("Unexpected type {0} in AD rules.".format(o._ufl_class_.__name__))
 
-    def override(self, o, *ops):
+    def override(self, o):
         error("Type {0} must be overridden in specialized AD rule set.".format(o._ufl_class_.__name__))
 
-    def derivative(self, o, *ops):
+    def derivative(self, o):
         error("Unhandled derivative type {0}, nested differentiation has failed.".format(o._ufl_class_.__name__))
 
-    def fixme(self, o, *ops):
+    def fixme(self, o):
         error("FIXME: Unimplemented differentiation handler for type {0}.".format(o._ufl_class_.__name__))
 
 
@@ -472,7 +472,7 @@ class GradRuleset(GenericDerivativeRuleset):
 
     # --- Nesting of gradients
 
-    def grad(self, o, *dummy_ops):
+    def grad(self, o):
         "Represent grad(grad(f)) as Grad(Grad(f))."
 
         # Check that o is a "differential terminal"
@@ -481,7 +481,7 @@ class GradRuleset(GenericDerivativeRuleset):
 
         return Grad(o)
 
-    def _grad(self, o, *dummy_ops):
+    def _grad(self, o):
         pass
         # TODO: Not sure how to detect that gradient of f is cellwise constant.
         #       Can we trust element degrees?
@@ -562,7 +562,7 @@ class VariableRuleset(GenericDerivativeRuleset):
             # df/v = df
             return df
 
-    def grad(self, o, *dummy_ops):
+    def grad(self, o):
         "Variable derivative of a gradient of a terminal must be 0."
         # Check that o is a "differential terminal"
         ufl_assert(isinstance(o.ufl_operands[0], (Grad, Terminal)),
@@ -654,7 +654,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
         # Facet average of a single function and differentiation commutes, D_f[v](facet_avg(f)) = facet_avg(v)
         return cell_avg(fp)
 
-    def grad(self, g, *dummy_ops):
+    def grad(self, g):
         # If we hit this type, it has already been propagated
         # to a coefficient (or grad of a coefficient), # FIXME: Assert this!
         # so we need to take the gradient of the variation or return zero.
@@ -810,7 +810,7 @@ class DerivativeRuleDispatcher(MultiFunction):
     def terminal(self, o):
         return o
 
-    def derivative(self, o, *ops):
+    def derivative(self, o):
         error("Missing derivative handler for {0}.".format(type(o).__name__))
 
     expr = MultiFunction.reuse_if_untouched

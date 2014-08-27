@@ -38,12 +38,26 @@ def post_traversal(expr):
     stack.append((expr, list(expr.ufl_operands)))
     while stack:
         expr, ops = stack[-1]
-        if ops:
-            o = ops.pop()
-            stack.append((o, list(o.ufl_operands)))
-        else:
+        if len(ops) == 0:
             yield expr
             stack.pop()
+        else:
+            o = ops.pop()
+            stack.append((o, list(o.ufl_operands)))
+
+
+def cutoff_post_traversal(expr, cutofftypes):
+    """Yields o for each node o in expr, child before parent, but skipping subtrees of the cutofftypes."""
+    stack = []
+    stack.append((expr, list(expr.ufl_operands)))
+    while stack:
+        expr, ops = stack[-1]
+        if len(ops) == 0 or cutofftypes[expr._ufl_typecode_]:
+            yield expr
+            stack.pop()
+        else:
+            o = ops.pop()
+            stack.append((o, list(o.ufl_operands)))
 
 
 def unique_pre_traversal(expr, visited=None):
