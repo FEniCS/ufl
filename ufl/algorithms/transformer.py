@@ -117,21 +117,22 @@ class Transformer(object):
         "Always reuse Expr (ignore children)"
         return o
 
-    def reuse_if_possible(self, o, *operands):
-        "Reuse Expr if possible, otherwise reconstruct from given operands."
+    def reuse_if_untouched(self, o, *ops):
+        """Reuse object if operands are the same objects.
 
-        ufl_assert(len(operands) == len(o.ufl_operands), "Expecting number of operands to match")
+        Use in your own subclass by setting e.g.
 
-        # TODO: Try using hashes of operands instead for a faster probability based version? One benchmark showed == to be faster.
-        #if all(op0 is op1 for op0, op1 in zip(operands, o.ufl_operands)):
-        #    return o
-        #if all(op0 is op1 or hash(op0) == hash(op1) for op0, op1 in zip(operands, o.ufl_operands)):
-        #    return o
-        #if all(hash(op0) == hash(op1) for op0, op1 in zip(operands, o.ufl_operands)):
-        #    return o
-        if operands == o.ufl_operands:
+            expr = MultiFunction.reuse_if_untouched
+
+        as a default rule.
+        """
+        if all(a is b for a, b in zip(o.ufl_operands, ops)):
             return o
-        return o.reconstruct(*operands)
+        else:
+            return o.reconstruct(*ops)
+
+    # It's just so slow to compare all operands, avoiding it now
+    reuse_if_possible = reuse_if_untouched
 
     def always_reconstruct(self, o, *operands):
         "Always reconstruct expr."
@@ -185,7 +186,7 @@ class ReuseTransformer(Transformer):
         Transformer.__init__(self, variable_cache)
 
     # Set default behaviour for any Expr
-    expr = Transformer.reuse_if_possible
+    expr = Transformer.reuse_if_untouched
 
     # Set default behaviour for any Terminal
     terminal = Transformer.reuse
