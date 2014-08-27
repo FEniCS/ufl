@@ -285,7 +285,6 @@ class PartExtracter(Transformer):
     indexed = linear_indexed_type
     index_sum = linear_indexed_type
     component_tensor = linear_indexed_type
-    spatial_derivative = linear_indexed_type
 
     def list_tensor(self, x, *ops):
         # list_tensor is a visit-children-first handler. ops contains

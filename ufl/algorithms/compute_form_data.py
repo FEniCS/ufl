@@ -40,6 +40,7 @@ from ufl.algorithms.formdata import FormData, ExprData
 from ufl.algorithms.ad import expand_derivatives
 from ufl.algorithms.propagate_restrictions import propagate_restrictions
 from ufl.algorithms.formtransformations import compute_form_arities
+from ufl.algorithms.check_arities import check_form_arity
 
 
 def _auto_select_degree(elements):
@@ -299,7 +300,8 @@ def compute_form_data(form, apply_propagate_restrictions=True):
 
     # TODO: This is a very expensive check... Replace with something faster!
     preprocessed_form = reconstruct_form_from_integral_data(self.integral_data)
-    _check_form_arity(preprocessed_form)
+    #_check_form_arity(preprocessed_form)
+    check_form_arity(preprocessed_form, form.arguments()) # Currently testing how fast this is
 
     # TODO: This is used by unit tests, change the tests!
     self.preprocessed_form = preprocessed_form
