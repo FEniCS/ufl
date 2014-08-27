@@ -46,6 +46,13 @@ from ufl.corealg.map_dag import map_expr_dag
 from ufl.algorithms.map_integrands import map_integrand_dags
 
 
+# TODO: Add more rulesets?
+# - DivRuleset
+# - CurlRuleset
+# - ReferenceGradRuleset
+# - ReferenceDivRuleset
+
+
 class GenericDerivativeRuleset(MultiFunction):
     def __init__(self, var_shape):
         MultiFunction.__init__(self)
@@ -789,18 +796,6 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
                         gprimesum += prod
 
         return gprimesum
-
-
-# FIXME: Write UNIT tests for all terminal derivatives!
-# FIXME: Add operator derivatives to generic ruleset!
-# FIXME: Write UNIT tests for operator derivatives!
-# FIXME: Implement nested AD on top!
-
-# TODO: Add more rulesets?
-# - DivRuleset
-# - CurlRuleset
-# - ReferenceGradRuleset
-# - ReferenceDivRuleset
 
 
 class DerivativeRuleDispatcher(MultiFunction):

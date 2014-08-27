@@ -10,6 +10,15 @@ from ufl.algorithms import renumber_indices
 from ufl.algorithms.apply_derivatives import apply_derivatives, GenericDerivativeRuleset, \
      GradRuleset, VariableRuleset, GateauxDerivativeRuleset
 
+
+# Note: the old tests in test_automatic_differentiation.py are a bit messy
+#       but still cover many things that are not in here yet.
+
+
+# FIXME: Write UNIT tests for all terminal derivatives!
+# FIXME: Write UNIT tests for operator derivatives!
+
+
 def test_apply_derivatives_doesnt_change_expression_without_derivatives():
     cell = triangle
     d = cell.geometric_dimension()
