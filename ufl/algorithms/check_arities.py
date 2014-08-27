@@ -2,38 +2,43 @@
 
 from itertools import chain
 
-from ufl.corealg.map_dag import map_expr_dag
-from ufl.corealg.multifunction import MultiFunction
 from ufl.log import UFLException
+from ufl.corealg.traversal import traverse_terminals
+from ufl.corealg.multifunction import MultiFunction
+from ufl.corealg.map_dag import map_expr_dag
+from ufl.classes import Argument
+
 
 class ArityMismatch(UFLException):
     pass
+
 
 class ArityChecker(MultiFunction):
     def __init__(self, arguments):
         MultiFunction.__init__(self)
         self.arguments = arguments
+        self._et = ()
 
     def terminal(self, o):
-        return ()
+        return self._et
 
     def argument(self, o):
-        #identifier = (o.number(), o.part())
-        #return [identifier]
         return (o,)
 
-    def nonlinear_operator(self, o, *ops):
-        if any(ops):
-            raise ArityMismatch("Applying nonlinear operator to expression depending on form arguments {0}.".format(a))
-        return ops[0]
+    def nonlinear_operator(self, o):
+        # Cutoff traversal by not having *ops in argument list of this handler.
+        # Traverse only the terminals under here the fastest way we know of:
+        for t in traverse_terminals(o):
+            if t._ufl_typecode_ == Argument._ufl_typecode_:
+                raise ArityMismatch("Applying nonlinear operator to expression depending on form argument {0}.".format(t))
+        return self._et
 
     expr = nonlinear_operator
 
     def sum(self, o, a, b):
-        if a == b:
-            return a
-        else:
+        if a != b:
             raise ArityMismatch("Adding expressions with non-matching form arguments {0} vs {1}.".format(a, b))
+        return a
 
     def division(self, o, a, b):
         if b:
@@ -42,17 +47,16 @@ class ArityChecker(MultiFunction):
 
     def product(self, o, a, b):
         if a and b:
+            # Check that we don't have test*test, trial*trial, even for different parts in a block system
+            anumbers = set(x.number() for x in a)
+            for x in b:
+                if x.number() in anumbers:
+                    raise ArityMismatch("Multiplying expressions with overlapping form argument number {0}, argument is {1}.".format(x.number(), x))
             # Combine argument lists
             c = tuple(sorted(set(a + b), key=lambda x: (x.number(), x.part())))
             # Check that we don't have any arguments shared between a and b
             if len(c) != len(a) + len(b):
                 raise ArityMismatch("Multiplying expressions with overlapping form arguments {0} vs {1}.".format(a, b))
-            # Check that we don't have test*test, trial*trial, even for different parts in a block system
-            anumbers = set(x.number() for x in a)
-            bnumbers = set(x.number() for x in b)
-            cnumbers = set(x.number() for x in c)
-            if len(cnumbers) != len(anumbers) + len(bnumbers):
-                raise ArityMismatch("Multiplying expressions with overlapping form argument numbers {0} vs {1}.".format(a, b))
             # It's fine for argument parts to overlap
             return c
         elif a:
