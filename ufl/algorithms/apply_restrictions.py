@@ -1,4 +1,4 @@
-"Algorithms related to restrictions."
+"""This module contains the apply_restrictions algorithm which propagates restrictions in a form towards the terminals."""
 
 # Copyright (C) 2008-2014 Martin Sandve Alnes
 #
@@ -17,31 +17,35 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from ufl.core.expr import Expr
-from ufl.classes import Measure
-from ufl.assertions import ufl_assert
-from ufl.algorithms.transformer import Transformer, ReuseTransformer, apply_transformer
 
-class RestrictionPropagator(ReuseTransformer):
-    def __init__(self):
-        ReuseTransformer.__init__(self)
-        self.current_restriction = None
+from ufl.assertions import ufl_assert
+from ufl.log import error
+
+from ufl.core.terminal import Terminal
+from ufl.corealg.multifunction import MultiFunction
+from ufl.corealg.map_dag import map_expr_dag
+from ufl.algorithms.map_integrands import map_integrand_dags
+from ufl.measure import Measure
+
+class RestrictionPropagator(MultiFunction):
+    def __init__(self, side=None):
+        MultiFunction.__init__(self)
+        self.current_restriction = side
         self.default_restriction = "+"
-        self._variables = {}
+        if self.current_restriction is None:
+            self._rp = {
+                "+": RestrictionPropagator("+"),
+                "-": RestrictionPropagator("-")
+                }
 
     def restricted(self, o):
-        "When hitting a restricted quantity, store the restriction state, visit child, and reset the restriction state."
-        prev_restricted = self.current_restriction
+        "When hitting a restricted quantity, visit child with a separate restriction algorithm."
+        # Assure that we have only two levels here, inside or outside the Restricted node
+        ufl_assert(self.current_restriction is None, "Cannot restrict an expression twice.")
+        # Configure a propagator for this side and apply to subtree
+        return map_expr_dag(self._rp[o.side()], o.ufl_operands[0]) # FIXME: Reuse cache between these calls!
 
-        ufl_assert(prev_restricted is None or prev_restricted == o._side,
-                   "Cannot restrict to different sides.")
-
-        self.current_restriction = o._side
-        e, = o.ufl_operands
-        r = self.visit(e)
-
-        self.current_restriction = prev_restricted
-        return r
+    # --- Reusable rules
 
     def _ignore_restriction(self, o):
         "Ignore current restriction, quantity is independent of side also from a computational point of view."
@@ -62,7 +66,7 @@ class RestrictionPropagator(ReuseTransformer):
     def _opposite(self, o):
         "Restrict a quantity to default side, if the current restriction is different swap the sign, require a side to be set."
         if self.current_restriction is None:
-            ufl_error("Discontinuous type %s must be restricted." % o._ufl_class_.__name__)
+            error("Discontinuous type %s must be restricted." % o._ufl_class_.__name__)
         elif self.current_restriction == self.default_restriction:
             return o(self.default_restriction)
         else:
@@ -71,8 +75,26 @@ class RestrictionPropagator(ReuseTransformer):
     def _missing_rule(self, o):
         error("Missing rule for %s" % o._ufl_class_.__name__)
 
+
+    # --- Rules for operators
+
+    # Default: Operators should reconstruct only if subtrees are not touched
+    operator = MultiFunction.reuse_if_untouched
+
+    # Assuming apply_derivatives has been called, propagating Grad inside the Restricted nodes.
+    grad = _require_restriction # Considering all grads to be discontinuous, may need something else for facet functions in future
+    # Assuming averages are also applied directly to the terminal or grad nodes
+    cell_avg = _require_restriction
+    facet_avg = _ignore_restriction
+
+    def variable(self, o, op):
+        "Strip variable."
+        return op
+
+    # --- Rules for terminals
+
     # Default: Literals should ignore restriction
-    terminal = _ignore_restriction
+    terminal = _ignore_restriction # TODO: Require handlers to be specified for all terminals? That would be safer.
 
     # Even arguments with continuous elements such as Lagrange must be
     # restricted to associate with the right part of the element matrix
@@ -88,6 +110,30 @@ class RestrictionPropagator(ReuseTransformer):
             # If the coefficient _value_ is _fully_ continuous
             return self._default_restricted(o) # Must still be computed from one of the sides, we just don't care which
         else:
+            return self._require_restriction(o)
+
+    def facet_normal(self, o):
+        domain = o.domain()
+
+        x = domain.coordinates()
+        if x is None:
+            f, d = "Lagrange", 1
+        else:
+            d = e.degree()
+            f = e.family()
+
+        # TODO: Get coordinate element directly instead.
+        #e = domain.coordinate_element()
+        #d = e.degree()
+        #f = e.family()
+
+        if f == "Lagrange" and d == 1:
+            # For continuous linear meshes, the facet normal from side - points
+            # in the opposite direction of the one from side +.
+            # We still require a side to be chosen by the user but rewrite n- -> n+.
+            return self._opposite(o)
+        else:
+            # For other meshes, we require a side to be chosen by the user and respect that
             return self._require_restriction(o)
 
     # Defaults for geometric quantities
@@ -114,8 +160,6 @@ class RestrictionPropagator(ReuseTransformer):
     cell_facet_jacobian_determinant = _require_restriction # ...
     cell_facet_jacobian_inverse = _require_restriction     # ...
 
-    facet_normal = _opposite           # Opposite pointing vector depending on cell # Enabling this changes the FFC reference code too much, will test if the performance is just as good later.
-    #facet_normal = _require_restriction # Direction depends on cell, make it explicit
     cell_normal = _require_restriction  # Property of cell
 
     #facet_tangents = _default_restricted # Independent of cell
@@ -136,51 +180,9 @@ class RestrictionPropagator(ReuseTransformer):
     facet_orientation = _require_restriction # Property of cell (depends on local facet number in cell)
     quadrature_weight = _ignore_restriction # Independent of cell
 
-    def variable(self, o, e, l):
-        "Recreate variable with same label but cache so it only happens once."
-        v = self._variables.get(l)
-        if v is None:
-            v = self.visit(e)
-            self._variables[l] = v
-        return v
 
-class RestrictionChecker(Transformer):
-    def __init__(self, require_restriction):
-        Transformer.__init__(self)
-        self.current_restriction = None
-        self.require_restriction = require_restriction
-
-    def expr(self, o):
-        pass
-
-    def restricted(self, o):
-        ufl_assert(self.current_restriction is None,
-            "Not expecting twice restricted expression.")
-        self.current_restriction = o._side
-        e, = o.ufl_operands
-        self.visit(e)
-        self.current_restriction = None
-
-    def facet_normal(self, o):
-        if self.require_restriction:
-            ufl_assert(self.current_restriction is not None, "Facet normal must be restricted in interior facet integrals.")
-        else:
-            ufl_assert(self.current_restriction is None, "Restrictions are only allowed for interior facet integrals.")
-
-    def form_argument(self, o):
-        if self.require_restriction:
-            ufl_assert(self.current_restriction is not None, "Form argument must be restricted in interior facet integrals.")
-        else:
-            ufl_assert(self.current_restriction is None, "Restrictions are only allowed for interior facet integrals.")
-
-def old_propagate_restrictions(expression):
-    "Propagate restriction nodes to wrap terminal objects directly."
-    return apply_transformer(expression, RestrictionPropagator(), integral_type=[Measure.INTERIOR_FACET, Measure.INTERIOR_FACET_HORIZ, Measure.INTERIOR_FACET_VERT])
-
-def propagate_restrictions(expression):
-    from ufl.algorithms.apply_restrictions import apply_restrictions
-    return apply_restrictions(expression)
-
-def check_restrictions(expression, require_restriction):
-    ufl_assert(isinstance(expression, Expr), "Expecting Expr instance.")
-    return RestrictionChecker(require_restriction).visit(expression)
+def apply_restrictions(expression):
+    "Propagate restriction nodes to wrap differential terminals directly."
+    integral_types = [Measure.INTERIOR_FACET, Measure.INTERIOR_FACET_HORIZ, Measure.INTERIOR_FACET_VERT]
+    rules = RestrictionPropagator()
+    return map_integrand_dags(rules, expression, only_integral_type=integral_types)
