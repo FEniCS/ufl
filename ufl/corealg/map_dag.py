@@ -36,12 +36,17 @@ def map_expr_dag(function, expression, compress=True):
     rcache = {}
     results = []
 
+    # Build mapping typecode:bool, for which types to skip the subtree of
     if isinstance(function, MultiFunction):
-        # Build mapping typecode:bool, for which types to skip the subtree of
         cutoff_types = function._is_cutoff_type
+    else:
+        # Regular function: no skipping supported
+        cutoff_types = [False]*Expr._ufl_num_typecodes_
+
+    # Pick faster traversal algorithm if we have no cutoffs
+    if any(cutoff_types):
         traversal = lambda expression: cutoff_post_traversal(expression, cutoff_types)
     else:
-        cutoff_types = [False]*Expr._ufl_num_typecodes_
         traversal = lambda expression: post_traversal(expression)
 
     # Iterate over all subexpression nodes, child before parent

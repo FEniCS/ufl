@@ -25,39 +25,60 @@ call overhead, and avoids the finite recursive call limit.
 
 def pre_traversal(expr):
     """Yields o for each tree node o in expr, parent before child."""
-    input = [expr]
-    while input:
-        l = input.pop()
-        yield l
-        input.extend(l.ufl_operands)
+    stackcap = 1000
+    stack = [None]*stackcap
+    stack[0] = expr
+    stacksize = 1
+    while stacksize > 0:
+        expr = stack[stacksize-1]
+        stacksize -= 1
+        yield expr
+        for op in expr.ufl_operands:
+            stack[stacksize] = op
+            stacksize += 1
 
 
 def post_traversal(expr):
     """Yields o for each node o in expr, child before parent."""
-    stack = []
-    stack.append((expr, list(expr.ufl_operands)))
-    while stack:
-        expr, ops = stack[-1]
+    stackcap = 1000
+    stack = [None]*stackcap
+    stack[0] = (expr, list(expr.ufl_operands))
+    stacksize = 1
+    while stacksize > 0:
+        expr, ops = stack[stacksize-1]
         if len(ops) == 0:
             yield expr
-            stack.pop()
+            stacksize -= 1
         else:
             o = ops.pop()
-            stack.append((o, list(o.ufl_operands)))
+            if stacksize >= stackcap:
+                stack.append(None)
+                stackcap += 1
+            stack[stacksize] = (o, list(o.ufl_operands))
+            stacksize += 1
 
 
 def cutoff_post_traversal(expr, cutofftypes):
     """Yields o for each node o in expr, child before parent, but skipping subtrees of the cutofftypes."""
-    stack = []
-    stack.append((expr, list(expr.ufl_operands)))
-    while stack:
-        expr, ops = stack[-1]
+    stackcap = 1000
+    stack = [None]*stackcap
+    stack[0] = (expr, list(expr.ufl_operands))
+    stacksize = 1
+    while stacksize > 0:
+        expr, ops = stack[stacksize-1]
         if len(ops) == 0 or cutofftypes[expr._ufl_typecode_]:
             yield expr
-            stack.pop()
+            stacksize -= 1
         else:
             o = ops.pop()
-            stack.append((o, list(o.ufl_operands)))
+            if stacksize >= stackcap:
+                stack.append(None)
+                stackcap += 1
+            stack[stacksize] = (o, list(o.ufl_operands))
+            stacksize += 1
+
+
+# TODO: Apply faster manual stack handling to below algorithms like above (becomes a bit uglier but is faster)
 
 
 def unique_pre_traversal(expr, visited=None):
@@ -65,14 +86,14 @@ def unique_pre_traversal(expr, visited=None):
 
     This version only visits each node once!
     """
-    input = [expr]
+    stack = [expr]
     visited = visited or set()
-    while input:
-        l = input.pop()
-        if l not in visited:
-            visited.add(l)
-            yield l
-            input.extend(l.ufl_operands)
+    while stack:
+        expr = stack.pop()
+        if expr not in visited:
+            visited.add(expr)
+            yield expr
+            stack.extend(expr.ufl_operands)
 
 
 def unique_post_traversal(expr, visited=None):
@@ -97,24 +118,24 @@ def unique_post_traversal(expr, visited=None):
 
 def traverse_terminals(expr):
     "Iterate over all terminal objects in expression, including duplicates."
-    input = [expr]
-    while input:
-        e = input.pop()
+    stack = [expr]
+    while stack:
+        e = stack.pop()
         if e._ufl_is_terminal_:
             yield e
         else:
-            input.extend(e.ufl_operands)
+            stack.extend(e.ufl_operands)
 
 
 def traverse_unique_terminals(expr):
     "Iterate over all terminal objects in expression, not including duplicates."
-    input = [expr]
+    stack = [expr]
     visited = set()
-    while input:
-        e = input.pop()
+    while stack:
+        e = stack.pop()
         if e not in visited:
             visited.add(e)
             if e._ufl_is_terminal_:
                 yield e
             else:
-                input.extend(e.ufl_operands)
+                stack.extend(e.ufl_operands)
