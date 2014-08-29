@@ -51,10 +51,7 @@ class Operator(Expr):
 
     def _ufl_compute_hash_(self):
         "Compute a hash code for this expression. Used by sets and dicts."
-        #hashdata = ( (self._ufl_typecode_,) + tuple(hash(o) for o in self.ufl_operands) ) # TODO: Try this?
-        #hashdata = self._ufl_handlername_ + ' '.join(str(hash(o)) for o in self.ufl_operands) # TODO: Try this?
-        hashdata = ( (self._ufl_class_,) + tuple(hash(o) for o in self.ufl_operands) )
-        return hash(str(hashdata))
+        return hash((self._ufl_typecode_,) + tuple(hash(o) for o in self.ufl_operands))
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
