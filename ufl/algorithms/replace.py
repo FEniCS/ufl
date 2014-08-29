@@ -27,7 +27,7 @@ from ufl.classes import CoefficientDerivative
 from ufl.constantvalue import as_ufl
 from ufl.corealg.multifunction import MultiFunction
 from ufl.algorithms.map_integrands import map_integrand_dags
-from ufl.algorithms.analysis import extract_type
+from ufl.algorithms.analysis import has_exact_type
 
 class Replacer(MultiFunction):
     def __init__(self, mapping):
@@ -61,7 +61,7 @@ def replace(e, mapping):
     mapping2 = dict((k, as_ufl(v)) for (k, v) in iteritems(mapping))
 
     # Workaround for problem with delayed derivative evaluation
-    if extract_type(e, CoefficientDerivative):
+    if has_exact_type(e, CoefficientDerivative):
         # Hack to avoid circular dependencies
         from ufl.algorithms.ad import expand_derivatives
         e = expand_derivatives(e)
