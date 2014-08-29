@@ -83,6 +83,27 @@ def extract_type(a, ufl_type):
                    for o in pre_traversal(e)
                    if isinstance(o, ufl_type))
 
+def has_type(a, ufl_type):
+    """Return if an object of class ufl_type can be found in a.
+    The argument a can be a Form, Integral or Expr."""
+    if issubclass(ufl_type, Terminal):
+        # Optimization
+        traversal = traverse_terminals
+    else:
+        traversal = pre_traversal
+    return any(isinstance(o, ufl_type) for e in iter_expressions(a) for o in traversal(e))
+
+def has_exact_type(a, ufl_type):
+    """Return if an object of class ufl_type can be found in a.
+    The argument a can be a Form, Integral or Expr."""
+    tc = ufl_type._ufl_typecode_
+    if issubclass(ufl_type, Terminal):
+        # Optimization
+        traversal = traverse_terminals
+    else:
+        traversal = pre_traversal
+    return any(o._ufl_typecode_ == tc for e in iter_expressions(a) for o in traversal(e))
+
 def extract_arguments(a):
     """Build a sorted list of all arguments in a,
     which can be a Form, Integral or Expr."""
