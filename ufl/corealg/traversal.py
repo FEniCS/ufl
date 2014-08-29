@@ -40,16 +40,22 @@ def pre_traversal(expr):
 def post_traversal(expr):
     """Yields o for each node o in expr, child before parent."""
     stack = [None]*_recursion_limit_
-    stack[0] = (expr, list(expr.ufl_operands))
-    stacksize = 1
+    stacksize = 0
+
+    ops = expr.ufl_operands
+    stack[stacksize] = [expr, ops, len(ops)]
+    stacksize += 1
+
     while stacksize > 0:
-        expr, ops = stack[stacksize - 1]
-        if len(ops) == 0:
-            yield expr
+        entry = stack[stacksize - 1]
+        if entry[2] == 0:
+            yield entry[0]
             stacksize -= 1
         else:
-            o = ops.pop()
-            stack[stacksize] = (o, list(o.ufl_operands))
+            entry[2] -= 1
+            o = entry[1][entry[2]]
+            oops = o.ufl_operands
+            stack[stacksize] = [o, oops, len(oops)]
             stacksize += 1
 
 
