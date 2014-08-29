@@ -19,28 +19,36 @@
 #
 # Modified by Anders Logg, 2009-2010
 
-from six import iteritems
+from six import iteritems, iterkeys
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.classes import Terminal, CoefficientDerivative
+from ufl.classes import CoefficientDerivative
 from ufl.constantvalue import as_ufl
-from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
+from ufl.corealg.multifunction import MultiFunction
+from ufl.algorithms.map_integrands import map_integrand_dags
 from ufl.algorithms.analysis import extract_type
 
-class Replacer(ReuseTransformer):
+class Replacer(MultiFunction):
     def __init__(self, mapping):
-        ReuseTransformer.__init__(self)
+        MultiFunction.__init__(self)
         self._mapping = mapping
-        ufl_assert(all(k._ufl_is_terminal_ for k in list(mapping.keys())), \
+        ufl_assert(all(k._ufl_is_terminal_ for k in iterkeys(mapping)),
             "This implementation can only replace Terminal objects.")
+        ufl_assert(all(k.ufl_shape == v.ufl_shape for k, v in iteritems(mapping)),
+            "Replacement expressions must have the same shape as what they replace.")
+
+    expr = MultiFunction.reuse_if_untouched
 
     def terminal(self, o):
         e = self._mapping.get(o)
-        return o if e is None else e
+        if e is None:
+            return o
+        else:
+            return e
 
     def coefficient_derivative(self, o):
-        error("Coefficient derivatives should be expanded before applying replace.")
+        error("Derivatives should be applied before executing replace.")
 
 def replace(e, mapping):
     """Replace terminal objects in expression.
@@ -50,7 +58,7 @@ def replace(e, mapping):
     @param mapping:
         A dict with from:to replacements to perform.
     """
-    mapping2 = dict((k, as_ufl(v)) for (k, v) in iteritems(mapping)) # TODO: Should this be sorted?
+    mapping2 = dict((k, as_ufl(v)) for (k, v) in iteritems(mapping))
 
     # Workaround for problem with delayed derivative evaluation
     if extract_type(e, CoefficientDerivative):
@@ -58,4 +66,4 @@ def replace(e, mapping):
         from ufl.algorithms.ad import expand_derivatives
         e = expand_derivatives(e)
 
-    return apply_transformer(e, Replacer(mapping2))
+    return map_integrand_dags(Replacer(mapping2), e)
