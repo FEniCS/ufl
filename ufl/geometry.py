@@ -511,14 +511,9 @@ class FacetNormal(GeometricFacetQuantity):
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
         # TODO: For product cells, this depends on which facet. Seems like too much work to fix right now.
-
         # Only true for a piecewise linear coordinate field with simplex _facets_
-        x = self._domain.coordinates()
-        is_piecewise_linear = (x is None or x.element().degree() == 1)
-
-        facet_cellname = self._domain.cell().facet_cellname()
-        has_simplex_facets = (facet_cellname in affine_cells)
-
+        is_piecewise_linear = self._domain.coordinate_element().degree() == 1
+        has_simplex_facets = (self._domain.cell().facet_cellname() in affine_cells)
         return is_piecewise_linear and has_simplex_facets
 
 # TODO: Should it be CellNormals? For interval in 3D we have two!
@@ -554,14 +549,9 @@ class CellNormal(GeometricCellQuantity):
 #    def is_cellwise_constant(self): # NB! Copied from FacetNormal
 #        "Return whether this expression is spatially constant over each cell."
 #        # TODO: For product cells, this depends on which facet. Seems like too much work to fix right now.
-#
 #        # Only true for a piecewise linear coordinate field with simplex _facets_
-#        x = self._domain.coordinates()
-#        is_piecewise_linear = (x is None or x.element().degree() == 1)
-#
-#        facet_cellname = self._domain.cell().facet_cellname()
-#        has_simplex_facets = (facet_cellname in affine_cells)
-#
+#        is_piecewise_linear = self._domain.coordinate_element().degree() == 1
+#        has_simplex_facets = (self._domain.cell().facet_cellname() in affine_cells)
 #        return is_piecewise_linear and has_simplex_facets
 
 # TODO: Implement in change_to_reference_geometry and enable

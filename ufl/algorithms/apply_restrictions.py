@@ -113,19 +113,9 @@ class RestrictionPropagator(MultiFunction):
             return self._require_restriction(o)
 
     def facet_normal(self, o):
-        domain = o.domain()
-
-        x = domain.coordinates()
-        if x is None:
-            f, d = "Lagrange", 1
-        else:
-            d = e.degree()
-            f = e.family()
-
-        # TODO: Get coordinate element directly instead.
-        #e = domain.coordinate_element()
-        #d = e.degree()
-        #f = e.family()
+        e = o.domain().coordinate_element()
+        f = e.family()
+        d = e.degree()
 
         if f == "Lagrange" and d == 1:
             # For continuous linear meshes, the facet normal from side - points

@@ -268,6 +268,13 @@ class ChangeToReferenceGeometry(MultiFunction):
         return r
 
     @memoized_handler
+    def _future_jacobian(self, o):
+        # If we're not using Coefficient to represent the spatial coordinate,
+        # we can just as well just return o here too unless we add representation
+        # of basis functions and dofs to the ufl layer (which is nice to avoid).
+        return o
+
+    @memoized_handler
     def jacobian_inverse(self, o):
         domain = o.domain()
         J = self.jacobian(Jacobian(domain))
@@ -312,6 +319,17 @@ class ChangeToReferenceGeometry(MultiFunction):
             else:
                 x = self.coordinate_coefficient_mapping[x]
                 return x
+
+    @memoized_handler
+    def _future_spatial_coordinate(self, o):
+        "Fall through to coordinate field of domain if it exists."
+        if self.physical_coordinates_known:
+            return o
+        else:
+            # If we're not using Coefficient to represent the spatial coordinate,
+            # we can just as well just return o here too unless we add representation
+            # of basis functions and dofs to the ufl layer (which is nice to avoid).
+            return o
 
     @memoized_handler
     def cell_coordinate(self, o):

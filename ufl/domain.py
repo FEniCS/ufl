@@ -180,8 +180,7 @@ class Domain(object):
         return self._label
 
     def is_piecewise_linear_simplex_domain(self):
-        x = self.coordinates()
-        return (x is None or x.element().degree() == 1) and (self.cell().cellname() in affine_cells)
+        return (self.coordinate_element().degree() == 1) and (self.cell().cellname() in affine_cells)
 
     def data(self):
         "Return attached data object."
