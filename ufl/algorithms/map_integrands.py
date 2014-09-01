@@ -21,6 +21,7 @@
 # as part of a careful refactoring process, and this file depends on ufl.form
 # which drags in a lot of stuff.
 
+from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.core.expr import Expr
 from ufl.corealg.map_dag import map_expr_dag

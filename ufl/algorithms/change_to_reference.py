@@ -178,21 +178,17 @@ class ChangeToReferenceValue(ReuseTransformer):
 
         return global_value
 
-#class ChangeToReferenceGrad(ReuseTransformer):
-#    def __init__(self):
-#        ReuseTransformer.__init__(self)
+
 class ChangeToReferenceGrad(MultiFunction):
     def __init__(self):
         MultiFunction.__init__(self)
-        #self._cache = {}
 
-    def expr(self, o, *ops):
-        return o.reconstruct(*ops)
+    expr = MultiFunction.reuse_if_untouched
 
     def terminal(self, o):
         return o
 
-    def grad(self, o, dummy_op):
+    def grad(self, o):
         # FIXME: Handle HDiv elements with contravariant piola mapping specially?
         # FIXME: Handle HCurl elements with covariant piola mapping specially?
 
@@ -241,10 +237,10 @@ class ChangeToReferenceGrad(MultiFunction):
 
         return jinv_lgrad_f
 
-    def reference_grad(self, o, dummy_op):
+    def reference_grad(self, o):
         error("Not expecting reference grad while applying change to reference grad.")
 
-    def coefficient_derivative(self, o, *dummy_ops):
+    def coefficient_derivative(self, o):
         error("Coefficient derivatives should be expanded before applying change to reference grad.")
 
 
@@ -253,10 +249,9 @@ class ChangeToReferenceGeometry(MultiFunction):
         MultiFunction.__init__(self)
         self.coordinate_coefficient_mapping = coordinate_coefficient_mapping or {}
         self.physical_coordinates_known = physical_coordinates_known
-        self._cache = {}
+        self._cache = {} # Needed by memoized_handler
 
-    def expr(self, o, *ops):
-        return o.reconstruct(*ops)
+    expr = MultiFunction.reuse_if_untouched
 
     def terminal(self, o):
         return o
