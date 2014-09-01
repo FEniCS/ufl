@@ -54,16 +54,23 @@ class EnrichedElement(FiniteElementBase):
             "Quadrature scheme mismatch.")
 
         value_shape = elements[0].value_shape()
-        reference_value_shape = elements[0].reference_value_shape()
         ufl_assert(all(e.value_shape() == value_shape for e in elements),
                    "Element value shape mismatch.")
+
+        reference_value_shape = elements[0].reference_value_shape()
+        ufl_assert(all(e.reference_value_shape() == reference_value_shape for e in elements),
+                   "Element reference value shape mismatch.")
+
+        #mapping = elements[0].mapping() # FIXME: This fails for a mixed subelement here.
+        #ufl_assert(all(e.mapping() == mapping for e in elements),
+        #           "Element mapping mismatch.")
 
         # Initialize element data
         FiniteElementBase.__init__(self, "EnrichedElement", domain, degree,
                                    quad_scheme, value_shape, reference_value_shape)
 
         # Cache repr string
-        self._repr =  "EnrichedElement(*%r)" % ([repr(e) for e in self._elements],)
+        self._repr = "EnrichedElement(*%r)" % ([repr(e) for e in self._elements],)
 
     def reconstruction_signature(self):
         """Format as string for evaluation as Python object.
@@ -88,6 +95,9 @@ class EnrichedElement(FiniteElementBase):
         """Return whether the basis functions of this
         element is spatially constant over each cell."""
         return all(e.is_cellwise_constant() for e in self._elements)
+
+    def mapping(self):
+        return self._elements[0].mapping()
 
     def __str__(self):
         "Format as string for pretty printing."

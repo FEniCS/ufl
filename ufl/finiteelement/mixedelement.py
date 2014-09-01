@@ -160,24 +160,15 @@ class MixedElement(FiniteElementBase):
                    "Size mismatch in symmetry algorithm.")
         return sm or EmptyDict
 
+    def mapping(self):
+        error("The mapping of a mixed element is not defined. Inspect subelements instead.")
+
     def num_sub_elements(self):
         "Return number of sub elements."
         return len(self._sub_elements)
 
     def sub_elements(self):
         "Return list of sub elements."
-        return self._sub_elements
-
-    def num_mixed_sub_elements(self):
-        "Return number of mixed sub elements."
-        # FIXME: Use this where intended, for disambiguation
-        #        w.r.t. different sub_elements meanings.
-        return len(self._sub_elements)
-
-    def mixed_sub_elements(self):
-        "Return list of mixed sub elements."
-        # FIXME: Use this where intended, for disambiguation
-        #        w.r.t. different sub_elements meanings.
         return self._sub_elements
 
     def extract_subelement_component(self, i):
@@ -193,7 +184,7 @@ class MixedElement(FiniteElementBase):
             j, = i
 
             # Find subelement for this index
-            for k, e in enumerate(self._sub_elements):
+            for sub_element_index, e in enumerate(self._sub_elements):
                 sh = e.value_shape()
                 si = product(sh)
                 if j < si:
@@ -203,21 +194,53 @@ class MixedElement(FiniteElementBase):
 
             # Convert index into a shape tuple
             st = shape_to_strides(sh)
-            j = unflatten_index(j, st)
+            component = unflatten_index(j, st)
         else:
             # Indexing into a multidimensional tensor
             # where subelement index is first axis
-            k = i[0]
-            ufl_assert(k < len(self._sub_elements),
-                       "Illegal component index (dimension %d)." % k)
-            j = i[1:]
-        return (k, j)
+            sub_element_index = i[0]
+            ufl_assert(sub_element_index < len(self._sub_elements),
+                       "Illegal component index (dimension %d)." % sub_element_index)
+            component = i[1:]
+        return (sub_element_index, component)
 
     def extract_component(self, i):
         """Recursively extract component index relative to a (simple) element
         and that element for given value component index"""
-        k, j = self.extract_subelement_component(i)
-        return self._sub_elements[k].extract_component(j)
+        sub_element_index, component = self.extract_subelement_component(i)
+        return self._sub_elements[sub_element_index].extract_component(component)
+
+    def extract_subelement_reference_component(self, i):
+        """Extract direct subelement index and subelement relative
+        reference_component index for a given reference_component index"""
+        if isinstance(i, int):
+            i = (i,)
+        self._check_reference_component(i)
+
+        # Select between indexing modes
+        assert len(self.reference_value_shape()) == 1
+        # Indexing into a long vector of flattened subelement shapes
+        j, = i
+
+        # Find subelement for this index
+        for sub_element_index, e in enumerate(self._sub_elements):
+            sh = e.reference_value_shape()
+            si = product(sh)
+            if j < si:
+                break
+            j -= si
+        ufl_assert(j >= 0, "Moved past last value reference_component!")
+
+        # Convert index into a shape tuple
+        st = shape_to_strides(sh)
+        reference_component = unflatten_index(j, st)
+        return (sub_element_index, reference_component)
+
+    def extract_reference_component(self, i):
+        """Recursively extract reference_component index relative to a (simple) element
+        and that element for given value reference_component index"""
+        sub_element_index, reference_component = self.extract_subelement_reference_component(i)
+        return self._sub_elements[sub_element_index].extract_reference_component(reference_component)
 
     def is_cellwise_constant(self, component=None):
         """Return whether the basis functions of this
@@ -318,6 +341,9 @@ class VectorElement(MixedElement):
         self._repr = "VectorElement(%r, %r, %r, dim=%d, quad_scheme=%r)" % \
             (self._family, self.domain(), self._degree,
              len(self._sub_elements), self._quad_scheme)
+
+    def mapping(self):
+        return self._sub_element.mapping()
 
     def signature_data(self, renumbering):
         data = ("VectorElement", self._family, self._degree, len(self._sub_elements), self._quad_scheme, self._form_degree,
@@ -430,6 +456,9 @@ class TensorElement(MixedElement):
         self._repr = "TensorElement(%r, %r, %r, shape=%r, symmetry=%r, quad_scheme=%r)" % \
             (self._family, self.domain(), self._degree, self._shape,
              self._symmetry, self._quad_scheme)
+
+    def mapping(self):
+        return self._sub_element.mapping()
 
     def signature_data(self, renumbering):
         data = ("TensorElement", self._family, self._degree, self._shape, repr(self._symmetry), self._quad_scheme,
