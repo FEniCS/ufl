@@ -166,6 +166,15 @@ class Domain(object):
         "Return the coordinate vector field this domain is defined in terms of."
         return self._coordinates
 
+    def coordinate_element(self):
+        "Return the finite element of the coordinate vector field of this domain."
+        x = self.coordinates()
+        if x is None:
+            from ufl import VectorElement
+            return VectorElement("Lagrange", self, 1)
+        else:
+            return x.element()
+
     def label(self):
         "Return the label identifying this domain. None means no label has been set."
         return self._label
