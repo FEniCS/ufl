@@ -96,14 +96,20 @@ class ArityChecker(MultiFunction):
     component_tensor = linear_indexed_type
 
     def list_tensor(self, o, *ops):
-        numbers = set(arg.number() for op in ops for arg in op)
-        if len(numbers) == 0:
-            return ops[0]
-        elif len(numbers) == 1:
+        args = set(chain(*ops))
+        if args:
+            # Check that each list tensor component has the same argument numbers (ignoring parts)
+            numbers = set(tuple(sorted(set(arg.number() for arg in op))) for op in ops)
+            if () in numbers: # Allow e.g. <v[0], 0, v[1]> but not <v[0], u[0]>
+                numbers.remove(())
+            if len(numbers) > 1:
+                raise ArityMismatch("Listtensor components must depend on the same argument numbers, found {0}.".format(numbers))
+
             # Allow different parts with the same number
-            return tuple(sorted(set(chain(*ops)), key=lambda x: (x.number(), x.part())))
+            return tuple(sorted(args, key=lambda x: (x.number(), x.part())))
         else:
-            raise ArityMismatch("A listtensor can only hold form argument with the same numbers, found {0}.".format(ops))
+            # No argument dependencies
+            return self._et
 
 def check_integrand_arity(expr, arguments):
     arguments = tuple(sorted(set(arguments), key=lambda x: (x.number(), x.part())))
