@@ -33,6 +33,7 @@ from ufl.constantvalue import Zero, ScalarValue, as_ufl
 from ufl.differentiation import VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
 from ufl.tensoralgebra import Transposed, Inner, Outer, Dot, Cross, \
     Determinant, Inverse, Cofactor, Trace, Deviatoric, Skew, Sym
+from ufl.coefficient import Coefficient
 from ufl.variable import Variable
 from ufl.tensors import as_tensor, as_matrix, as_vector, ListTensor
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, \
@@ -296,7 +297,7 @@ def diff(f, v):
     f = as_ufl(f)
     if isinstance(v, SpatialCoordinate):
         return grad(f)
-    elif isinstance(v, Variable):
+    elif isinstance(v, (Variable, Coefficient)):
         return VariableDerivative(f, v)
     else:
         error("Expecting a Variable or SpatialCoordinate in diff.")

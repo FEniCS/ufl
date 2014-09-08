@@ -27,6 +27,7 @@ from ufl.core.terminal import Terminal
 from ufl.core.operator import Operator
 from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.constantvalue import Zero
+from ufl.coefficient import Coefficient
 from ufl.core.multiindex import Index, FixedIndex, MultiIndex
 from ufl.indexed import Indexed
 from ufl.variable import Variable
@@ -78,7 +79,7 @@ class VariableDerivative(Derivative):
     def __new__(cls, f, v):
         # Checks
         ufl_assert(isinstance(f, Expr), "Expecting an Expr in VariableDerivative.")
-        ufl_assert(isinstance(v, Variable), "Expecting a Variable in VariableDerivative.")
+        ufl_assert(isinstance(v, (Variable, Coefficient)), "Expecting a Variable in VariableDerivative.")
         ufl_assert(not v.ufl_free_indices, "Differentiation variable cannot have free indices.")
 
         # Simplification
