@@ -21,7 +21,7 @@
 
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
-from ufl.indexing import indices
+from ufl.core.multiindex import indices
 from ufl.tensors import as_tensor, as_matrix, as_vector
 from ufl.operators import sqrt
 
@@ -62,7 +62,7 @@ def pseudo_inverse_expr(A):
 
 def determinant_expr(A):
     "Compute the determinant of A."
-    sh = A.shape()
+    sh = A.ufl_shape
     if sh == ():
         return A
     elif sh[0] == sh[1]:
@@ -92,7 +92,7 @@ def determinant_expr_3x3(A):
 
 def inverse_expr(A):
     "Compute the inverse of A."
-    sh = A.shape()
+    sh = A.ufl_shape
     if sh == ():
         return 1.0 / A
     elif sh[0] == sh[1]:
@@ -104,7 +104,7 @@ def inverse_expr(A):
         return pseudo_inverse_expr(A)
 
 def adj_expr(A):
-    sh = A.shape()
+    sh = A.ufl_shape
     ufl_assert(sh[0] == sh[1], "Expecting square matrix.")
 
     if sh[0] == 2:
@@ -149,7 +149,7 @@ def adj_expr_4x4(A):
 
 
 def cofactor_expr(A):
-    sh = A.shape()
+    sh = A.ufl_shape
     ufl_assert(sh[0] == sh[1], "Expecting square matrix.")
 
     if sh[0] == 2:
@@ -194,7 +194,7 @@ def cofactor_expr_4x4(A):
 
 
 def deviatoric_expr(A):
-    sh = A.shape()
+    sh = A.ufl_shape
     ufl_assert(sh[0] == sh[1], "Expecting square matrix.")
 
     if sh[0] == 2:

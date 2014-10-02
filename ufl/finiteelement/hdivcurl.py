@@ -14,9 +14,6 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
-#
-# First added:  2013-11-03
-# Last changed: 2014-03-18
 
 from ufl.finiteelement.outerproductelement import OuterProductElement
 
@@ -35,8 +32,10 @@ class HDiv(OuterProductElement):
         degree = element.degree()
         quad_scheme = element.quadrature_scheme()
         value_shape = (element.cell().geometric_dimension(),)
-        super(OuterProductElement, self).__init__(family, domain, degree,
-                                                  quad_scheme, value_shape)
+        reference_value_shape = (element.cell().topological_dimension(),) # TODO: Is this right?
+        # Skipping OuterProductElement constructor! Bad code smell, refactor to avoid this non-inheritance somehow.
+        FiniteElementBase.__init__(self, family, domain, degree,
+                                   quad_scheme, value_shape, reference_value_shape)
 
     def reconstruct(self, **kwargs):
         """Construct a new HDiv object with some properties
@@ -78,8 +77,10 @@ class HCurl(OuterProductElement):
         degree = element.degree()
         quad_scheme = element.quadrature_scheme()
         value_shape = (element.cell().geometric_dimension(),)
-        super(OuterProductElement, self).__init__(family, domain, degree,
-                                                  quad_scheme, value_shape)
+        reference_value_shape = (element.cell().topological_dimension(),) # TODO: Is this right?
+        # Skipping OuterProductElement constructor! Bad code smell, refactor to avoid this non-inheritance somehow.
+        FiniteElementBase.__init__(self, family, domain, degree,
+                                    quad_scheme, value_shape, reference_value_shape)
 
     def reconstruct(self, **kwargs):
         """Construct a new HCurl object with some properties

@@ -19,70 +19,73 @@
 
 from six.moves import zip
 from ufl.log import error
-from ufl.expr import Expr
-from ufl.operatorbase import WrapperType
-from ufl.indexing import Index, FixedIndex, as_multi_index
-from ufl.indexutils import unique_indices
+from ufl.core.expr import Expr
+from ufl.core.operator import Operator
+from ufl.core.multiindex import Index, FixedIndex, MultiIndex, as_multi_index
+from ufl.index_combination_utils import unique_sorted_indices, merge_unique_indices
 from ufl.precedence import parstr
 from ufl.common import EmptyDict
+from ufl.core.ufl_type import ufl_type
 
 #--- Indexed expression ---
 
-class Indexed(WrapperType):
-    __slots__ = ("_ops",
-                 "_free_indices", "_index_dimensions",)
-    def __init__(self, expression, indices):
-        WrapperType.__init__(self)
+@ufl_type(is_shaping=True, num_ops=2)
+class Indexed(Operator):
+    __slots__ = ("ufl_free_indices", "ufl_index_dimensions",)
+
+    def __init__(self, expression, multiindex):
+        # Store operands
+        Operator.__init__(self, (expression, multiindex))
+
 
         # Error checking
         if not isinstance(expression, Expr):
             error("Expecting Expr instance, not %s." % repr(expression))
+        if not isinstance(multiindex, MultiIndex):
+            error("Expecting MultiIndex instance, not %s." % repr(multiindex))
 
-        shape = expression.shape()
+        shape = expression.ufl_shape
 
         # Error checking
-        if len(shape) != len(indices):
+        if len(shape) != len(multiindex):
             error("Invalid number of indices (%d) for tensor "\
                 "expression of rank %d:\n\t%r\n"\
-                % (len(indices), expression.rank(), expression))
+                % (len(multiindex), expression.rank(), expression))
+        if any(int(di) >= int(si) for si, di in zip(shape, multiindex) if isinstance(di, FixedIndex)):
+            error("Fixed index out of range!")
 
-        # Store operands
-        indices = as_multi_index(indices, shape)
-        self._ops = (expression, indices)
+        # Build tuples of free index ids and dimensions
+        if 1:
+            efi = expression.ufl_free_indices
+            efid = expression.ufl_index_dimensions
+            fi = list(zip(efi, efid))
+            for pos, ind in enumerate(multiindex._indices):
+                if isinstance(ind, Index):
+                    fi.append((ind.count(), shape[pos]))
+            fi = unique_sorted_indices(sorted(fi))
+            if fi:
+                fi, fid = zip(*fi)
+            else:
+                fi, fid = (), ()
 
-        # Error checking
-        for si, di in zip(shape, indices):
-            if isinstance(di, FixedIndex) and int(di) >= int(si):
-                error("Fixed index out of range!")
+        else:
+            mfiid = [(ind.count(), shape[pos]) for pos, ind in enumerate(multiindex._indices) if isinstance(ind, Index)]
+            mfi, mfid = zip(*mfiid) if mfiid else ((), ())
+            fi, fid = merge_unique_indices(expression.ufl_free_indices, expression.ufl_index_dimensions, mfi, mfid)
 
-        # Build free index tuple and dimensions
-        idims = dict((i, s) for (i, s) in zip(indices._indices, shape)
-                     if isinstance(i, Index))
-        idims.update(expression.index_dimensions())
-        fi = unique_indices(expression.free_indices() + indices._indices)
 
         # Cache free index and dimensions
-        self._free_indices = fi
-        self._index_dimensions = idims or EmptyDict
+        self.ufl_free_indices = fi
+        self.ufl_index_dimensions = fid
 
-    def operands(self):
-        return self._ops
-
-    def free_indices(self):
-        return self._free_indices
-
-    def index_dimensions(self):
-        return self._index_dimensions
-
-    def shape(self):
-        return ()
+    ufl_shape = ()
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
-        return self._ops[0].is_cellwise_constant()
+        return self.ufl_operands[0].is_cellwise_constant()
 
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
-        A, ii = self.operands()
+        A, ii = self.ufl_operands
         component = ii.evaluate(x, mapping, None, index_values)
         if derivatives:
             return A.evaluate(x, mapping, component, index_values, derivatives)
@@ -90,10 +93,10 @@ class Indexed(WrapperType):
             return A.evaluate(x, mapping, component, index_values)
 
     def __str__(self):
-        return "%s[%s]" % (parstr(self._ops[0], self), self._ops[1])
+        return "%s[%s]" % (parstr(self.ufl_operands[0], self), self.ufl_operands[1])
 
     def __repr__(self):
-        return "Indexed(%r, %r)" % self._ops
+        return "Indexed(%r, %r)" % self.ufl_operands
 
     def __getitem__(self, key):
         error("Attempting to index with %r, but object is already indexed: %r" % (key, self))

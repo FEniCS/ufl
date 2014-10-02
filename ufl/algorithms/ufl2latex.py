@@ -32,7 +32,7 @@ from ufl.permutation import compute_indices
 
 # All classes:
 from ufl.variable import Variable
-from ufl.indexing import Index, FixedIndex
+from ufl.core.multiindex import Index, FixedIndex
 from ufl.indexed import Indexed
 from ufl.tensors import ListTensor, ComponentTensor
 from ufl.algebra import Sum, Product, Division, Power, Abs
@@ -49,7 +49,6 @@ from ufl.geometry import Domain
 
 # Other algorithms:
 from ufl.algorithms.compute_form_data import compute_form_data
-from ufl.algorithms.analysis import extract_variables
 from ufl.algorithms.formfiles import load_forms
 from ufl.algorithms.latextools import align, document, verbatim
 
@@ -58,6 +57,24 @@ from ufl.algorithms.graph import build_graph, partition, extract_outgoing_vertex
 
 
 # TODO: Maybe this can be cleaner written using the graph utilities
+
+
+
+def _extract_variables(a):
+    """Build a list of all Variable objects in a,
+    which can be a Form, Integral or Expr.
+    The ordering in the list obeys dependency order."""
+    handled = set()
+    variables = []
+    for e in iter_expressions(a):
+        for o in post_traversal(e):
+            if isinstance(o, Variable):
+                expr, label = o.ufl_operands
+                if not label in handled:
+                    variables.append(o)
+                    handled.add(label)
+    return variables
+
 
 
 # --- Tools for LaTeX rendering of UFL expressions ---
@@ -128,12 +145,12 @@ class Expression2LatexHandler(Transformer):
     # --- Terminal objects ---
 
     def scalar_value(self, o):
-        if o.shape():
+        if o.ufl_shape:
             return r"{\mathbf %s}" % o._value
         return "{%s}" % o._value
 
     def zero(self, o):
-        return "0" if not o.shape() else r"{\mathbf 0}"
+        return "0" if not o.ufl_shape else r"{\mathbf 0}"
 
     def identity(self, o):
         return r"{\mathbf I}"
@@ -162,7 +179,7 @@ class Expression2LatexHandler(Transformer):
 
     def variable(self, o):
         # TODO: Ensure variable has been handled
-        e, l = o.operands()
+        e, l = o.ufl_operands
         return "s_{%d}" % l._count
 
     # --- Non-terminal objects ---
@@ -304,14 +321,14 @@ class Expression2LatexHandler(Transformer):
         return "sym{%s}" % par(A) # TODO: Get built-in function syntax like \sin for this
 
     def list_tensor(self, o):
-        shape = o.shape()
+        shape = o.ufl_shape
         if len(shape) == 1:
-            ops = [self.visit(op) for op in o.operands()]
+            ops = [self.visit(op) for op in o.ufl_operands]
             l = " \\\\ \n ".join(ops)
         elif len(shape) == 2:
             rows = []
-            for row in o.operands():
-                cols = (self.visit(op) for op in row.operands())
+            for row in o.ufl_operands:
+                cols = (self.visit(op) for op in row.ufl_operands)
                 rows.append( " & \n ".join(cols) )
             l = " \\\\ \n ".join(rows)
         else:
@@ -457,7 +474,7 @@ def form2latex(form, formdata):
                "Not handling non-standard integral types!")
     lines = []
     for itg in integrals:
-        variables = extract_variables(itg.integrand())
+        variables = _extract_variables(itg.integrand())
         for v in variables:
             l = v._label
             if not l in handled_variables:
@@ -623,7 +640,7 @@ def code2latex(G, partitions, formdata):
                 vl = format_v(iv)
                 args = ", ".join(format_v(i) for i in vout)
                 if args:
-                    el = r"{\mbox{%s}}(%s)" % (v._uflclass.__name__, args)
+                    el = r"{\mbox{%s}}(%s)" % (v._ufl_class_.__name__, args)
                 else: # terminal
                     el = r"{\mbox{%s}}" % (repr(v),)
                 lines.append((vl, "= " + el))

@@ -45,19 +45,11 @@ class SumDegreeEstimator(Transformer):
             return 0
         else:
             # As a heuristic, just returning domain degree to bump up degree somewhat
-            x = v.domain().coordinates()
-            if x is None:
-                return 1
-            else:
-                return x.element().degree()
+            return v.domain().coordinate_element().degree()
 
     def spatial_coordinate(self, v):
         "A coordinate provides additional degrees depending on coordinate field of domain."
-        x = v.domain().coordinates()
-        if x is None:
-            return 1
-        else:
-            return x.element().degree()
+        return v.domain().coordinate_element().degree()
 
     def cell_coordinate(self, v):
         "A coordinate provides one additional degree."
@@ -106,11 +98,11 @@ class SumDegreeEstimator(Transformer):
             return tuple(map(max, zip(*tempops)))
 
     def _not_handled(self, v, *args):
-        error("Missing degree handler for type %s" % v._uflclass.__name__)
+        error("Missing degree handler for type %s" % v._ufl_class_.__name__)
 
     def expr(self, v, *ops):
         "For most operators we take the max degree of its operands."
-        warning("Missing degree estimation handler for type %s" % v._uflclass.__name__)
+        warning("Missing degree estimation handler for type %s" % v._ufl_class_.__name__)
         return self._add_degrees(v, *ops)
 
     # Utility types with no degree concept
@@ -192,7 +184,7 @@ class SumDegreeEstimator(Transformer):
         degree(a**b) == degree(a)*b
         otherwise use the heuristic
         degree(a**b) == degree(a)*2"""
-        f, g = v.operands()
+        f, g = v.ufl_operands
         try:
             gi = abs(int(g))
             if isinstance(a, int):
@@ -265,6 +257,7 @@ class SumDegreeEstimator(Transformer):
         return self._max_degrees(v, l, r)
     max_value = min_value
 
+
 def estimate_total_polynomial_degree(e, default_degree=1, element_replace_map={}):
     """Estimate total polynomial degree of integrand.
 
@@ -286,3 +279,31 @@ def estimate_total_polynomial_degree(e, default_degree=1, element_replace_map={}
         degrees = [de.visit(e)]
     degree = max(degrees) if degrees else default_degree
     return degree
+
+
+# TODO: Do these contain useful ideas or should we just delete them?
+
+
+def __unused__extract_max_quadrature_element_degree(integral):
+    """Extract quadrature integration order from quadrature
+    elements in integral. Returns None if not found."""
+    quadrature_elements = [e for e in extract_elements(integral) if "Quadrature" in e.family()]
+    degrees = [element.degree() for element in quadrature_elements]
+    degrees = [q for q in degrees if not q is None]
+    if not degrees:
+        return None
+    max_degree = quadrature_elements[0].degree()
+    ufl_assert(all(max_degree == q for q in degrees),
+               "Incompatible quadrature elements specified (orders must be equal).")
+    return max_degree
+
+
+def __unused__estimate_quadrature_degree(integral):
+    "Estimate the necessary quadrature order for integral using the sum of argument degrees."
+    arguments = extract_arguments(integral)
+    degrees = [v.element().degree() for v in arguments]
+    if len(arguments) == 0:
+        return None
+    if len(arguments) == 1:
+        return 2*degrees[0]
+    return sum(degrees)

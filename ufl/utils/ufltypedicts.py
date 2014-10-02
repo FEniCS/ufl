@@ -22,16 +22,16 @@ class UFLTypeDict(dict):
         dict.__init__(self)
 
     def __getitem__(self, key):
-        return dict.__getitem__(self, key._uflclass)
+        return dict.__getitem__(self, key._ufl_class_)
 
     def __setitem__(self, key, value):
-        return dict.__setitem__(self, key._uflclass, value)
+        return dict.__setitem__(self, key._ufl_class_, value)
 
     def __delitem__(self, key):
-        return dict.__delitem__(self, key._uflclass)
+        return dict.__delitem__(self, key._ufl_class_)
 
     def __contains__(self, key):
-        return dict.__contains__(self, key._uflclass)
+        return dict.__contains__(self, key._ufl_class_)
 
 class UFLTypeDefaultDict(dict):
     def __init__(self, default):
@@ -41,13 +41,13 @@ class UFLTypeDefaultDict(dict):
         self.setdefault(make_default)
 
     def __getitem__(self, key):
-        return dict.__getitem__(self, key._uflclass)
+        return dict.__getitem__(self, key._ufl_class_)
 
     def __setitem__(self, key, value):
-        return dict.__setitem__(self, key._uflclass, value)
+        return dict.__setitem__(self, key._ufl_class_, value)
 
     def __delitem__(self, key):
-        return dict.__delitem__(self, key._uflclass)
+        return dict.__delitem__(self, key._ufl_class_)
 
     def __contains__(self, key):
-        return dict.__contains__(self, key._uflclass)
+        return dict.__contains__(self, key._ufl_class_)

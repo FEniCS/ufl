@@ -20,7 +20,7 @@
 # Modified by Anders Logg, 2008
 # Modified by Kristian Oelgaard, 2009
 
-from ufl.indexing import indices
+from ufl.core.multiindex import indices
 from ufl.integral import Measure
 from ufl.geometry import Cell
 

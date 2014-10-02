@@ -33,6 +33,7 @@ from ufl.constantvalue import Zero, ScalarValue, as_ufl
 from ufl.differentiation import VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv
 from ufl.tensoralgebra import Transposed, Inner, Outer, Dot, Cross, \
     Determinant, Inverse, Cofactor, Trace, Deviatoric, Skew, Sym
+from ufl.coefficient import Coefficient
 from ufl.variable import Variable
 from ufl.tensors import as_tensor, as_matrix, as_vector, ListTensor
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, \
@@ -41,7 +42,7 @@ from ufl.mathfunctions import Sqrt, Exp, Ln, Erf,\
     Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan, Atan2,\
     BesselJ, BesselY, BesselI, BesselK
 from ufl.restriction import CellAvg, FacetAvg
-from ufl.indexing import indices
+from ufl.core.multiindex import indices
 from ufl.indexed import Indexed
 from ufl.geometry import SpatialCoordinate
 
@@ -50,17 +51,17 @@ from ufl.geometry import SpatialCoordinate
 def rank(f):
     "UFL operator: The rank of f."
     f = as_ufl(f)
-    return len(f.shape())
+    return len(f.ufl_shape)
 
 def shape(f):
     "UFL operator: The shape of f."
     f = as_ufl(f)
-    return f.shape()
+    return f.ufl_shape
 
 #--- Elementwise tensor operators ---
 
 def elem_op_items(op_ind, indices, *args):
-    sh = args[0].shape()
+    sh = args[0].ufl_shape
     indices = tuple(indices)
     n = sh[len(indices)]
     def extind(ii):
@@ -73,8 +74,8 @@ def elem_op_items(op_ind, indices, *args):
 def elem_op(op, *args):
     "UFL operator: Take the elementwise application of operator op on scalar values from one or more tensor arguments."
     args = list(map(as_ufl, args))
-    sh = args[0].shape()
-    ufl_assert(all(sh == x.shape() for x in args),
+    sh = args[0].ufl_shape
+    ufl_assert(all(sh == x.ufl_shape for x in args),
                "Cannot take elementwise operation with different shapes.")
     if sh == ():
         return op(*args)
@@ -100,7 +101,7 @@ def elem_pow(A, B):
 def transpose(A):
     "UFL operator: Take the transposed of tensor A."
     A = as_ufl(A)
-    if A.shape() == ():
+    if A.ufl_shape == ():
         return A
     return Transposed(A)
 
@@ -116,7 +117,7 @@ def outer(*operands):
         b = operands[-1]
     a = as_ufl(a)
     b = as_ufl(b)
-    if a.shape() == () and b.shape() == ():
+    if a.ufl_shape == () and b.ufl_shape == ():
         return a*b
     return Outer(a, b)
 
@@ -124,7 +125,7 @@ def inner(a, b):
     "UFL operator: Take the inner product of a and b."
     a = as_ufl(a)
     b = as_ufl(b)
-    if a.shape() == () and b.shape() == ():
+    if a.ufl_shape == () and b.ufl_shape == ():
         return a*b
     return Inner(a, b)
 
@@ -140,7 +141,7 @@ def dot(a, b):
     "UFL operator: Take the dot product of a and b."
     a = as_ufl(a)
     b = as_ufl(b)
-    if a.shape() == () and b.shape() == ():
+    if a.ufl_shape == () and b.ufl_shape == ():
         return a*b
     return Dot(a, b)
     #return contraction(a, (a.rank()-1,), b, (b.rank()-1,))
@@ -149,8 +150,8 @@ def contraction(a, a_axes, b, b_axes):
     "UFL operator: Take the contraction of a and b over given axes."
     ai, bi = a_axes, b_axes
     ufl_assert(len(ai) == len(bi), "Contraction must be over the same number of axes.")
-    ash = a.shape()
-    bsh = b.shape()
+    ash = a.ufl_shape
+    bsh = b.ufl_shape
     aii = indices(a.rank())
     bii = indices(b.rank())
     cii = indices(len(ai))
@@ -169,28 +170,28 @@ def contraction(a, a_axes, b, b_axes):
 def perp(v):
     "UFL operator: Take the perp of v, i.e. (-v1, +v0)."
     v = as_ufl(v)
-    ufl_assert(v.shape() == (2,), "Expecting a 2D vector expression.")
+    ufl_assert(v.ufl_shape == (2,), "Expecting a 2D vector expression.")
     return as_vector((-v[1], v[0]))
 
 def cross(a, b):
     "UFL operator: Take the cross product of a and b."
     a = as_ufl(a)
     b = as_ufl(b)
-    #ufl_assert(a.shape() == (3,) and b.shape() == (3,),
+    #ufl_assert(a.ufl_shape == (3,) and b.ufl_shape == (3,),
     #           "Expecting 3D vectors in cross product.")
     return Cross(a, b)
 
 def det(A):
     "UFL operator: Take the determinant of A."
     A = as_ufl(A)
-    if A.shape() == ():
+    if A.ufl_shape == ():
         return A
     return Determinant(A)
 
 def inv(A):
     "UFL operator: Take the inverse of A."
     A = as_ufl(A)
-    if A.shape() == ():
+    if A.ufl_shape == ():
         return 1 / A
     return Inverse(A)
 
@@ -215,9 +216,9 @@ def diag(A):
     # Get and check dimensions
     r = A.rank()
     if r == 1:
-        n, = A.shape()
+        n, = A.ufl_shape
     elif r == 2:
-        m, n = A.shape()
+        m, n = A.ufl_shape
         ufl_assert(m == n, "Can only take diagonal of square tensors.")
     else:
         error("Expecting rank 1 or 2 tensor.")
@@ -239,7 +240,7 @@ def diag_vector(A):
 
     # Get and check dimensions
     ufl_assert(A.rank() == 2, "Expecting rank 2 tensor.")
-    m, n = A.shape()
+    m, n = A.ufl_shape
     ufl_assert(m == n, "Can only take diagonal of square tensors.")
 
     # Return diagonal vector
@@ -278,7 +279,7 @@ def Dn(f):
     facet normal direction, Dn(f) := dot(grad(f), n)."""
     f = as_ufl(f)
     if f.is_cellwise_constant():
-        return Zero(f.shape(), f.free_indices(), f.index_dimensions())
+        return Zero(f.ufl_shape, f.ufl_free_indices, f.ufl_index_dimensions)
     from ufl.geometry import FacetNormal
     return dot(grad(f), FacetNormal(f.domain()))
 
@@ -287,19 +288,16 @@ def diff(f, v):
 
     If f is a form, diff is applied to each integrand.
     """
+    # Apply to integrands
     if isinstance(f, Form):
-        from ufl.algorithms.transformer import transform_integrands
-        return transform_integrands(f, lambda e: diff(e, v))
-    else:
-        f = as_ufl(f)
+        from ufl.algorithms.map_integrands import map_integrands
+        return map_integrands(lambda e: diff(e, v), f)
 
+    # Apply to expression
+    f = as_ufl(f)
     if isinstance(v, SpatialCoordinate):
         return grad(f)
-    # TODO: Allow this? Must be tested well!
-    #elif (isinstance(v, Indexed)
-    #      and isinstance(v.operands()[0], SpatialCoordinate)):
-    #    return grad(f)[...,v.operands()[1]]
-    elif isinstance(v, Variable):
+    elif isinstance(v, (Variable, Coefficient)):
         return VariableDerivative(f, v)
     else:
         error("Expecting a Variable or SpatialCoordinate in diff.")
@@ -403,7 +401,7 @@ def jump(v, n=None):
         # the jump is zero. In other words, I'm assuming that
         # "not v.domains()" is equivalent with "v is a constant".
         # Update: This is NOT true for jump(Expression("x[0]")) from dolfin.
-        return Zero(v.shape(), v.free_indices(), v.index_dimensions())
+        return Zero(v.ufl_shape, v.ufl_free_indices, v.ufl_index_dimensions)
 
 def avg(v):
     "UFL operator: Take the average of v across a facet."
@@ -412,13 +410,13 @@ def avg(v):
 
 def cell_avg(f):
     "UFL operator: Take the average of v over a cell."
-    #ufl_assert((isinstance(f, Restricted) and isinstance(f.operands()[0], FormArgument)) or
+    #ufl_assert((isinstance(f, Restricted) and isinstance(f.ufl_operands[0], FormArgument)) or
     #    isinstance(f, FormArgument), "Can only take the cell average of a (optionally restricted) Coefficient or Argument.")
     return CellAvg(f)
 
 def facet_avg(f):
     "UFL operator: Take the average of v over a facet."
-    #ufl_assert((isinstance(f, Restricted) and isinstance(f.operands()[0], FormArgument)) or
+    #ufl_assert((isinstance(f, Restricted) and isinstance(f.ufl_operands[0], FormArgument)) or
     #    isinstance(f, FormArgument), "Can only take the cell average of a (optionally restricted) Coefficient or Argument.")
     return FacetAvg(f)
 
@@ -608,15 +606,15 @@ def exterior_derivative(f):
 
     # Extract the element from the input f
     if isinstance(f, Indexed):
-        expression, indices = f.operands()
+        expression, indices = f.ufl_operands
         if len(indices) > 1:
             raise NotImplementedError
         index = int(indices[0])
         element = expression.element()
         element = element.extract_component(index)[1]
     elif isinstance(f, ListTensor):
-        f0 = f.operands()[0]
-        f0expr, f0indices = f0.operands() # FIXME: Assumption on type of f0!!!
+        f0 = f.ufl_operands[0]
+        f0expr, f0indices = f0.ufl_operands # FIXME: Assumption on type of f0!!!
         if len(f0indices) > 1:
             raise NotImplementedError
         index = int(f0indices[0])

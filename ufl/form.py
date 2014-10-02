@@ -28,7 +28,7 @@ import ufl.measure
 from ufl.integral import Integral, Measure
 from ufl.checks import is_scalar_constant_expression
 from ufl.equation import Equation
-from ufl.expr import Expr
+from ufl.core.expr import Expr
 from ufl.constantvalue import Zero
 from ufl.protocols import id_or_none
 
@@ -61,7 +61,7 @@ def _sorted_integrals(integrals):
                 all_integrals.extend(unsorted_integrals)
                 #integrals_dict[d][it][si] = unsorted_integrals
 
-    return all_integrals#, integrals_dict
+    return tuple(all_integrals) #, integrals_dict
 
 class Form(object):
     """Description of a weak form consisting of a sum of integrals over subdomains."""
@@ -240,7 +240,7 @@ class Form(object):
             # Allow adding 0 or 0.0 as a no-op, needed for sum([a,b])
             return self
 
-        elif isinstance(other, Zero) and not (other.shape() or other.free_indices()):
+        elif isinstance(other, Zero) and not (other.ufl_shape or other.ufl_free_indices):
             # Allow adding ufl Zero as a no-op, needed for sum([a,b])
             return self
 
@@ -334,16 +334,9 @@ class Form(object):
 
     def _analyze_form_arguments(self):
         "Analyze which Argument and Coefficient objects can be found in the form."
-        from ufl.classes import Argument, Coefficient
-        from ufl.algorithms.analysis import extract_terminals
-        terminals = extract_terminals(self)
-        arguments = []
-        coefficients = []
-        for t in terminals:
-            if isinstance(t, Argument):
-                arguments.append(t)
-            elif isinstance(t, Coefficient):
-                coefficients.append(t)
+        from ufl.algorithms.analysis import extract_arguments_and_coefficients
+        arguments, coefficients = extract_arguments_and_coefficients(self)
+
         # Include coordinate coefficients from integration domains
         domains = self.domains()
         coordinates = [c for c in (domain.coordinates() for domain in domains) if c is not None]

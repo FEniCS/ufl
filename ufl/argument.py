@@ -22,12 +22,14 @@ classes (functions), including TestFunction and TrialFunction."""
 
 from ufl.log import deprecate
 from ufl.assertions import ufl_assert
-from ufl.terminal import Terminal, FormArgument
+from ufl.core.terminal import Terminal, FormArgument
 from ufl.split_functions import split
 from ufl.finiteelement import FiniteElementBase
+from ufl.core.ufl_type import ufl_type
 
 # --- Class representing an argument (basis function) in a form ---
 
+@ufl_type()
 class Argument(FormArgument):
     """UFL value: Representation of an argument to a form."""
     __slots__ = ("_element", "_number", "_part", "_repr")
@@ -72,7 +74,8 @@ class Argument(FormArgument):
         ufl_assert(self.part() is None, "Deprecation transition for count() will not work with parts.")
         return self.number() # I think this will work ok in most cases during the deprecation transition
 
-    def shape(self):
+    @property
+    def ufl_shape(self):
         return self._element.value_shape()
 
     def is_cellwise_constant(self):
@@ -132,7 +135,6 @@ class Argument(FormArgument):
                 self._number == other._number and
                 self._part == other._part and
                 self._element == other._element)
-    __hash__ = Terminal.__hash__
 
 # --- Helper functions for pretty syntax ---
 

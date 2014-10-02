@@ -24,7 +24,7 @@ from ufl.classes import (Terminal, Label,
                          GeometricQuantity, ConstantValue,
                          ExprList, ExprMapping)
 from ufl.log import error
-from ufl.algorithms.traversal import traverse_unique_terminals
+from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.common import pre_traversal, sorted_by_count
 from ufl.geometry import join_domains
 from ufl.algorithms.domain_analysis import canonicalize_metadata
@@ -104,13 +104,13 @@ def compute_expression_hashdata(expression, terminal_hashdata):
     # of '+ * a b * c d' for the expression (a*b)+(c*d)
     expression_hashdata = []
     for expr in pre_traversal(expression):
-        if isinstance(expr, Terminal):
+        if expr._ufl_is_terminal_:
             data = terminal_hashdata[expr]
         else:
-            data = expr._classid # TODO: Use expr.signature_data()? More extensible, but more overhead.
+            data = expr._ufl_typecode_ # TODO: Use expr.signature_data()? More extensible, but more overhead.
         expression_hashdata.append(data)
     # Oneliner: TODO: Benchmark, maybe use a generator?
-    #expression_hashdata = [(terminal_hashdata[expr] if isinstance(expr, Terminal) else expr._classid)
+    #expression_hashdata = [(terminal_hashdata[expr] if expr._ufl_is_terminal_ else expr._ufl_typecode_)
     #                       for expr in pre_traversal(expression)]
     return expression_hashdata
 

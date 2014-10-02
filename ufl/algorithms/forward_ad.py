@@ -29,15 +29,14 @@ from math import pi
 from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert
 from ufl.common import unzip, subdict, lstr
-from ufl.indexutils import unique_indices
 
 # All classes:
-from ufl.terminal import Terminal
+from ufl.core.terminal import Terminal
 from ufl.constantvalue import ConstantValue, Zero, IntValue, Identity,\
     is_true_ufl_scalar, is_ufl_scalar
 from ufl.variable import Variable
-from ufl.coefficient import ConstantBase, Coefficient, FormArgument
-from ufl.indexing import MultiIndex, Index, FixedIndex, indices
+from ufl.coefficient import Coefficient, FormArgument
+from ufl.core.multiindex import MultiIndex, Index, FixedIndex, indices
 from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
 from ufl.tensors import ListTensor, ComponentTensor, as_tensor, as_scalar, unit_indexed_tensor, unwrap_list_tensor
@@ -58,60 +57,10 @@ from ufl.algorithms.transformer import Transformer
 
 
 class ForwardAD(Transformer):
-    def __init__(self, var_shape, var_free_indices, var_index_dimensions, cache=None):
+    def __init__(self, var_shape, cache=None):
         Transformer.__init__(self)
-        ufl_assert(all(isinstance(i, Index) for i in var_free_indices), \
-            "Expecting Index objects.")
-        ufl_assert(all(isinstance(i, Index) for i in list(var_index_dimensions.keys())), \
-            "Expecting Index objects.")
         self._var_shape = var_shape
-        self._var_free_indices = var_free_indices
-        self._var_index_dimensions = dict(var_index_dimensions)
-        #if self._var_free_indices:
-        #    warning("TODO: Free indices in differentiation variable may be buggy!")
-        self._cache = {} if cache is None else cache
-
-    def _cache_visit(self, o):
-        "Cache hook, disable this by renaming to something else than 'visit'."
-        #debug("Visiting object of type %s." % type(o).__name__)
-
-        # TODO: This doesn't work, why?
-
-        # NB! Cache added in after copying from Transformer
-        c = self._cache.get(o)
-        if c is not None:
-            return c
-
-        # Reuse default visit function
-        r = Transformer.visit(self, o)
-
-        if (c is not None):
-            if r[0].free_indices() != c[0].free_indices():
-                print("="*70)
-                print("=== f: Difference between cache and recomputed indices:")
-                print(str(c[0].free_indices()))
-                print(str(r[0].free_indices()))
-                print("="*70)
-            if r[1].free_indices() != c[1].free_indices():
-                print("="*70)
-                print("=== df: Difference between cache and recomputed indices:")
-                print(str(c[1].free_indices()))
-                print(str(r[1].free_indices()))
-                print("="*70)
-            if (r != c):
-                print("="*70)
-                print("=== Difference between cache and recomputed:")
-                print(str(c[0]))
-                print(str(c[1]))
-                print("-"*40)
-                print(str(r[0]))
-                print(str(r[1]))
-                print("="*70)
-
-        # NB! Cache added in after copying from Transformer
-        self._cache[o] = r
-
-        return r
+        self._variable_cache = {} if cache is None else cache
 
     def _debug_visit(self, o):
         "Debugging hook, enable this by renaming to 'visit'."
@@ -122,77 +71,20 @@ class ForwardAD(Transformer):
             debug("  o:  %s" % str(o))
             debug("  f:  %s" % str(f))
             debug("  df: %s" % str(df))
-        fi_diff = set(f.free_indices()) ^ set(df.free_indices())
+        fi_diff = set(f.ufl_free_indices) ^ set(df.ufl_free_indices)
         if fi_diff:
             debug("In ForwardAD.visit, got free indices diff:")
             debug("  o:  %s" % str(o))
             debug("  f:  %s" % str(f))
             debug("  df: %s" % str(df))
-            debug("  f.fi():  %s" % lstr(f.free_indices()))
-            debug("  df.fi(): %s" % lstr(df.free_indices()))
+            debug("  f.fi():  %s" % lstr(f.ufl_free_indices))
+            debug("  df.fi(): %s" % lstr(df.ufl_free_indices))
             debug("  fi_diff: %s" % str(fi_diff))
         return r
 
     def _make_zero_diff(self, o):
-        # Define a zero with the right indices
-        # (kind of cumbersome this... any simpler way?)
-        sh = o.shape() + self._var_shape
-        fi = o.free_indices()
-        idims = dict(o.index_dimensions())
-        if self._var_free_indices:
-            # Currently assuming only one free variable index
-            i, = self._var_free_indices
-            if i not in idims:
-                fi = unique_indices(fi + (i,))
-                idims[i] = self._var_index_dimensions[i]
-        fp = Zero(sh, fi, idims)
-        return fp
-
-    def _make_ones_diff(self, o):
-        ufl_assert(o.shape() == self._var_shape, "This is only used by VariableDerivative, yes?")
-        # Define a scalar value with the right indices
-        # (kind of cumbersome this... any simpler way?)
-
-        sh = o.shape()
-        fi = o.free_indices()
-        idims = dict(o.index_dimensions())
-
-        if self._var_free_indices:
-            # Currently assuming only one free variable index
-            i, = self._var_free_indices
-            if i not in idims:
-                fi = unique_indices(fi + (i,))
-                idims[i] = self._var_index_dimensions[i]
-
-        # Create a 1 with index annotations
-        one = IntValue(1, (), fi, idims)
-
-        res = None
-        if sh == ():
-            return one
-        elif len(sh) == 1:
-            # FIXME: If sh == (1,), I think this will get the wrong shape?
-            # I think we should make sure sh=(1,...,1) is always converted to () early.
-            fp = Identity(sh[0])
-        else:
-            ind1 = ()
-            ind2 = ()
-            for d in sh:
-                i, j = indices(2)
-                dij = Identity(d)[i, j]
-                if res is None:
-                    res = dij
-                else:
-                    res *= dij
-                ind1 += (i,)
-                ind2 += (j,)
-            fp = as_tensor(res, ind1 + ind2)
-
-        # Apply index annotations
-        if fi:
-            fp *= one
-
-        return fp
+        # Define a zero with the right shape and indices
+        return Zero(o.ufl_shape + self._var_shape, o.ufl_free_indices, o.ufl_index_dimensions)
 
     # --- Default rules
 
@@ -211,7 +103,7 @@ class ForwardAD(Transformer):
         """Variable objects are just 'labels', so by default the derivative
         of a variable is the derivative of its referenced expression."""
         # Check variable cache to reuse previously transformed variable if possible
-        e, l = o.operands()
+        e, l = o.ufl_operands
         r = self._variable_cache.get(l) # cache contains (v, vp) tuple
         if r is not None:
             return r
@@ -233,7 +125,7 @@ class ForwardAD(Transformer):
         return (o, None) # oprime here should never be used, this might even not be called?
 
     def indexed(self, o):
-        A, jj = o.operands()
+        A, jj = o.ufl_operands
         A2, Ap = self.visit(A)
         o = self.reuse_if_possible(o, A2, jj)
 
@@ -243,7 +135,7 @@ class ForwardAD(Transformer):
             r = Ap.rank() - len(jj)
             if r:
                 ii = indices(r)
-                op = Indexed(Ap, jj._indices + ii)
+                op = Indexed(Ap, MultiIndex(jj.indices() + ii))
                 op = as_tensor(op, ii)
             else:
                 op = Indexed(Ap, jj)
@@ -256,7 +148,7 @@ class ForwardAD(Transformer):
         return (o, op)
 
     def component_tensor(self, o):
-        A, ii = o.operands()
+        A, ii = o.ufl_operands
         A, Ap = self.visit(A)
         o = self.reuse_if_possible(o, A, ii)
 
@@ -264,39 +156,13 @@ class ForwardAD(Transformer):
             op = self._make_zero_diff(o)
         else:
             Ap, jj = as_scalar(Ap)
-            op = ComponentTensor(Ap, ii._indices + jj)
+            op = as_tensor(Ap, ii.indices() + jj)
         return (o, op)
 
     # --- Algebra operators
 
     def index_sum(self, o):
-        A, i = o.operands()
-
-        # Consider the following case:
-        #   (v[i]*u[i]).dx(i)
-        # which is represented like
-        #   SpatialDerivative(IndexSum(..., i), i)
-        # if we move the derivative inside the sum,
-        # then the derivative suddenly gets accumulated,
-        # which is completely wrong!
-        if self._var_free_indices:
-            if i[0] in self._var_free_indices:
-                error("Index scope collision. Work around this by reusing indices less in different expressions.\n"\
-                      "An example where this occurs is (v[i]*v[i]).dx(i) where the same index i\n"\
-                      "is bound to an index sum inside the derivative .dx(i).")
-
-                # TODO: OR get around this by temporarily setting _var_free_indices to nothing?
-                #store = self._var_free_indices
-                #self._var_free_indices = nothing?
-                #visit children
-                #self._var_free_indices = store
-                # But... What would this mean? Will it be correct?
-
-                # TODO: Get around this with relabeling algorithm!
-                # j = Index()
-                # A = relabel(A, { i0: j })
-                # i = (j,)
-
+        A, i = o.ufl_operands
         A2, Ap = self.visit(A)
         o = self.reuse_if_possible(o, A2, i)
         op = IndexSum(Ap, i)
@@ -500,7 +366,7 @@ class ForwardAD(Transformer):
             error("Differentiation of bessel function w.r.t. nu is not supported.")
         f, fp = x
         o = self.reuse_if_possible(o, nu, f)
-        if nu == 0:
+        if isinstance(nu, Zero):
             op = -bessel_J(1, f)
         else:
             op = 0.5 * (bessel_J(nu-1, f) - bessel_J(nu+1, f))
@@ -512,7 +378,7 @@ class ForwardAD(Transformer):
             error("Differentiation of bessel function w.r.t. nu is not supported.")
         f, fp = x
         o = self.reuse_if_possible(o, nu, f)
-        if nu == 0:
+        if isinstance(nu, Zero):
             op = -bessel_Y(1, f)
         else:
             op = 0.5 * (bessel_Y(nu-1, f) - bessel_Y(nu+1, f))
@@ -524,7 +390,7 @@ class ForwardAD(Transformer):
             error("Differentiation of bessel function w.r.t. nu is not supported.")
         f, fp = x
         o = self.reuse_if_possible(o, nu, f)
-        if nu == 0:
+        if isinstance(nu, Zero):
             op = bessel_I(1, f)
         else:
             op = 0.5 * (bessel_I(nu-1, f) + bessel_I(nu+1, f))
@@ -536,7 +402,7 @@ class ForwardAD(Transformer):
             error("Differentiation of bessel function w.r.t. nu is not supported.")
         f, fp = x
         o = self.reuse_if_possible(o, nu, f)
-        if nu == 0:
+        if isinstance(nu, Zero):
             op = -bessel_K(1, f)
         else:
             op = -0.5 * (bessel_K(nu-1, f) + bessel_K(nu+1, f))
@@ -596,11 +462,10 @@ class ForwardAD(Transformer):
     def conditional(self, o, c, t, f):
         o = self.reuse_if_possible(o, c[0], t[0], f[0])
         if isinstance(t[1], Zero) and isinstance(f[1], Zero):
-            tp = t[1] # Assuming t[1] and f[1] have the same indices here, which should be the case
-            fi = tp.free_indices()
-            fid = subdict(tp.index_dimensions(), fi)
-            op = Zero(tp.shape(), fi, fid)
+            # Assuming t[1] and f[1] have the same indices here, which should be the case
+            op = t[1]
         else:
+            # Placing t[1],f[1] outside here to avoid getting arguments inside conditionals
             op = conditional(c[0], 1, 0)*t[1] + conditional(c[0], 0, 1)*f[1]
         return (o, op)
 
@@ -626,37 +491,10 @@ class ForwardAD(Transformer):
     def grad(self, o):
         error("FIXME")
 
-    def xspatial_derivative(self, o): # FIXME: Translate to grad situation
-        # If we hit this type, it has already been propagated
-        # to a terminal, so we can simply apply our derivative
-        # to its operand since differentiation commutes.
-        f, ii = o.operands()
-        f, fp = self.visit(f)
-        o = self.reuse_if_possible(o, f, ii)
-
-        # FIXME: Make plenty of test cases around this kind of situation to document what's going on...
-        if fp.is_cellwise_constant():
-            sh = fp.shape()
-            fi = fp.free_indices()
-            idims = dict(fp.index_dimensions())
-            j, = ii
-            if isinstance(j, Index) and j not in idims:
-                fi = fi + (j,)
-                idims.update(ii.index_dimensions())
-            oprime = Zero(sh, fi, idims)
-            #oprime = self._make_zero_diff(o) # FIXME: Can we just use this?
-        else:
-            oprime = SpatialDerivative(fp, ii)
-        return (o, oprime)
-
 # TODO: Add a ReferenceGradAD ruleset
 class GradAD(ForwardAD):
     def __init__(self, geometric_dimension, cache=None):
-        ForwardAD.__init__(self,
-                           var_shape=(geometric_dimension,),
-                           var_free_indices=(),
-                           var_index_dimensions={},
-                           cache=cache)
+        ForwardAD.__init__(self, var_shape=(geometric_dimension,), cache=cache)
 
     def geometric_quantity(self, o):
         "Represent grad(g) as Grad(g)."
@@ -728,18 +566,15 @@ class GradAD(ForwardAD):
         # 1) n = count number of Grads, get f
         # 2) if not f.has_derivatives(n): return zero(...)
 
-        f, = o.operands()
+        f, = o.ufl_operands
         ufl_assert(isinstance(f, (Grad, Terminal)),
                    "Expecting derivatives of child to be already expanded.")
         return (o, Grad(o))
 
 class VariableAD(ForwardAD):
     def __init__(self, var, cache=None):
-        ForwardAD.__init__(self,
-                           var_shape=var.shape(),
-                           var_free_indices=var.free_indices(),
-                           var_index_dimensions=var.index_dimensions(),
-                           cache=cache)
+        ForwardAD.__init__(self, var_shape=var.ufl_shape, cache=cache)
+        ufl_assert(not var.ufl_free_indices, "Differentiation variable cannot have free indices.")
         self._variable = var
 
     def grad(self, o):
@@ -747,17 +582,43 @@ class VariableAD(ForwardAD):
         # to a coefficient, so it cannot depend on the variable. # FIXME: Assert this!
         return self.terminal(o)
 
+    def _make_self_diff_identity(self, o):
+        sh = o.ufl_shape
+        res = None
+        if sh == ():
+            # Scalar dv/dv is scalar
+            return IntValue(1)
+        elif len(sh) == 1:
+            # Vector v makes dv/dv the identity matrix
+            return Identity(sh[0])
+        else:
+            # Tensor v makes dv/dv some kind of higher rank identity tensor
+            ind1 = ()
+            ind2 = ()
+            for d in sh:
+                i, j = indices(2)
+                dij = Identity(d)[i, j]
+                if res is None:
+                    res = dij
+                else:
+                    res *= dij
+                ind1 += (i,)
+                ind2 += (j,)
+            fp = as_tensor(res, ind1 + ind2)
+
+        return fp
+
     def variable(self, o):
         # Check cache
-        e, l = o.operands()
+        e, l = o.ufl_operands
         c = self._variable_cache.get(l)
 
         if c is not None:
             return c
 
         if o.label() == self._variable.label():
-            # dv/dv = "1"
-            op = self._make_ones_diff(o)
+            # dv/dv = identity of rank 2*rank(v)
+            op = self._make_self_diff_identity(o)
         else:
             # differentiate expression behind variable
             e2, ep = self.visit(e)
@@ -772,14 +633,13 @@ class VariableAD(ForwardAD):
 class CoefficientAD(ForwardAD):
     "Apply AFD (Automatic Functional Differentiation) to expression."
     def __init__(self, coefficients, arguments, coefficient_derivatives, cache=None):
-        ForwardAD.__init__(self, var_shape=(), var_free_indices=(),
-                           var_index_dimensions={}, cache=cache)
+        ForwardAD.__init__(self, var_shape=(), cache=cache)
         ufl_assert(isinstance(coefficients, ExprList), "Expecting a ExprList.")
         ufl_assert(isinstance(arguments, ExprList), "Expecting a ExprList.")
         ufl_assert(isinstance(coefficient_derivatives, ExprMapping), "Expecting a ExprList.")
         self._v = arguments
         self._w = coefficients
-        cd = coefficient_derivatives.operands()
+        cd = coefficient_derivatives.ufl_operands
         self._cd = dict((cd[2*i], cd[2*i+1]) for i in range(len(cd)//2))
 
     def coefficient(self, o):
@@ -796,7 +656,7 @@ class CoefficientAD(ForwardAD):
                 return (w, v)
 
         # If o is not among coefficient derivatives, return do/dw=0
-        oprimesum = Zero(o.shape())
+        oprimesum = Zero(o.ufl_shape)
         oprimes = self._cd.get(o)
         if oprimes is None:
             if self._cd:
@@ -816,7 +676,7 @@ class CoefficientAD(ForwardAD):
             # product. Using indices to define a non-compound inner product.
             for (oprime, v) in zip(oprimes, self._v):
                 so, oi = as_scalar(oprime)
-                rv = len(v.shape())
+                rv = len(v.ufl_shape)
                 oi1 = oi[:-rv]
                 oi2 = oi[-rv:]
                 prod = so*v[oi2]
@@ -842,7 +702,7 @@ class CoefficientAD(ForwardAD):
         ngrads = 0
         o = g
         while isinstance(o, Grad):
-            o, = o.operands()
+            o, = o.ufl_operands
             ngrads += 1
         if not isinstance(o, FormArgument):
             error("Expecting gradient of a FormArgument, not %r" % (o,))
@@ -866,7 +726,7 @@ class CoefficientAD(ForwardAD):
                 return (g, apply_grads(v))
 
         # If o is not among coefficient derivatives, return do/dw=0
-        gprimesum = Zero(g.shape())
+        gprimesum = Zero(g.ufl_shape)
 
         def analyse_variation_argument(v):
             # Analyse variation argument
@@ -876,7 +736,7 @@ class CoefficientAD(ForwardAD):
             elif isinstance(v, Indexed):
                 # Case: d/dt [w + t v[...]]
                 # Case: d/dt [w[...] + t v[...]]
-                vval, vcomp = v.operands()
+                vval, vcomp = v.ufl_operands
                 vcomp = tuple(vcomp)
             else:
                 error("Expecting argument or component of argument.")
@@ -903,7 +763,7 @@ class CoefficientAD(ForwardAD):
             # Analyse differentiation variable coefficient
             if isinstance(w, FormArgument):
                 if not w == o: continue
-                wshape = w.shape()
+                wshape = w.ufl_shape
 
                 if isinstance(v, FormArgument):
                     # Case: d/dt [w + t v]
@@ -927,12 +787,12 @@ class CoefficientAD(ForwardAD):
             elif isinstance(w, Indexed): # This path is tested in unit tests, but not actually used?
                 # Case: d/dt [w[...] + t v[...]]
                 # Case: d/dt [w[...] + t v]
-                wval, wcomp = w.operands()
+                wval, wcomp = w.ufl_operands
                 if not wval == o: continue
                 assert isinstance(wval, FormArgument)
                 ufl_assert(all(isinstance(k, FixedIndex) for k in wcomp),
                            "Expecting only fixed indices in differentiation variable.")
-                wshape = wval.shape()
+                wshape = wval.ufl_shape
 
                 vval, vcomp = analyse_variation_argument(v)
                 gprimesum = gprimesum + compute_gprimeterm(ngrads, vval, vcomp, wshape, wcomp)
@@ -963,7 +823,7 @@ class CoefficientAD(ForwardAD):
                 for (oprime, v) in zip(oprimes, self._v):
                     error("FIXME: Figure out how to do this with ngrads")
                     so, oi = as_scalar(oprime)
-                    rv = len(v.shape())
+                    rv = len(v.ufl_shape)
                     oi1 = oi[:-rv]
                     oi2 = oi[-rv:]
                     prod = so*v[oi2]
@@ -976,7 +836,7 @@ class CoefficientAD(ForwardAD):
 
     def variable(self, o):
         # Check variable cache to reuse previously transformed variable if possible
-        e, l = o.operands()
+        e, l = o.ufl_operands
         c = self._variable_cache.get(l)
         if c is not None:
             return c
@@ -1009,12 +869,12 @@ def compute_coefficient_forward_ad(f, w, v, cd):
     return ediff
 
 def apply_nested_forward_ad(expr):
-    if isinstance(expr, Terminal):
+    if expr._ufl_is_terminal_:
         # A terminal needs no differentiation applied
         return expr
     elif not isinstance(expr, Derivative):
         # Apply AD recursively to children
-        preops = expr.operands()
+        preops = expr.ufl_operands
         postops = tuple(apply_nested_forward_ad(o) for o in preops)
         # Reconstruct if necessary
         need_reconstruct = not (preops == postops) # FIXME: Is this efficient? O(n)?
@@ -1023,20 +883,20 @@ def apply_nested_forward_ad(expr):
         return expr
     elif isinstance(expr, Grad):
         # Apply AD recursively to children
-        f, = expr.operands()
+        f, = expr.ufl_operands
         f = apply_nested_forward_ad(f)
         # Apply Grad-specialized AD to expanded child
-        gdim = expr.shape()[-1]
+        gdim = expr.ufl_shape[-1]
         return compute_grad_forward_ad(f, gdim)
     elif isinstance(expr, VariableDerivative):
         # Apply AD recursively to children
-        f, v = expr.operands()
+        f, v = expr.ufl_operands
         f = apply_nested_forward_ad(f)
         # Apply Variable-specialized AD to expanded child
         return compute_variable_forward_ad(f, v)
     elif isinstance(expr, CoefficientDerivative):
         # Apply AD recursively to children
-        f, w, v, cd = expr.operands()
+        f, w, v, cd = expr.ufl_operands
         f = apply_nested_forward_ad(f)
         # Apply Coefficient-specialized AD to expanded child
         return compute_coefficient_forward_ad(f, w, v, cd)

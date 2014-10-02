@@ -22,18 +22,21 @@ of related classes, including Constant."""
 
 from ufl.log import warning
 from ufl.assertions import ufl_assert
-from ufl.terminal import Terminal, FormArgument
+from ufl.core.terminal import Terminal, FormArgument
 from ufl.finiteelement import FiniteElementBase, FiniteElement, VectorElement, TensorElement
 from ufl.split_functions import split
 from ufl.common import counted_init
+from ufl.core.ufl_type import ufl_type
 
 # --- The Coefficient class represents a coefficient in a form ---
 
+@ufl_type()
 class Coefficient(FormArgument):
     """UFL form argument type: Representation of a form coefficient."""
 
     # Slots are disabled here because they cause trouble in PyDOLFIN multiple inheritance pattern:
     #__slots__ = ("_count", "_element", "_repr", "_gradient", "_derivatives")
+    _ufl_noslots_ = True
     _globalcount = 0
 
     def __init__(self, element, count=None):
@@ -71,7 +74,8 @@ class Coefficient(FormArgument):
     def element(self):
         return self._element
 
-    def shape(self):
+    @property
+    def ufl_shape(self):
         return self._element.value_shape()
 
     def is_cellwise_constant(self):
@@ -109,74 +113,23 @@ class Coefficient(FormArgument):
             return True
         return (self._count == other._count and
                 self._element == other._element)
-    __hash__ = Terminal.__hash__
 
-# --- Subclasses for defining constant coefficients without specifying element ---
+# --- Helper functions for defining constant coefficients without specifying element ---
 
-class ConstantBase(Coefficient):
-    __slots__ = ()
-    def __init__(self, element, count):
-        Coefficient.__init__(self, element, count)
-
-class Constant(ConstantBase):
+def Constant(domain, count=None):
     """UFL value: Represents a globally constant scalar valued coefficient."""
-    __slots__ = ()
+    e = FiniteElement("Real", domain, 0)
+    return Coefficient(e, count=count)
 
-    def __init__(self, domain, count=None):
-        e = FiniteElement("Real", domain, 0)
-        ConstantBase.__init__(self, e, count)
-        self._repr = "Constant(%r, %r)" % (e.domain(), self._count)
-
-    def _reconstruct(self, element, count):
-        return Constant(element.domain(), count)
-
-    def __str__(self):
-        count = str(self._count)
-        if len(count) == 1:
-            return "c_%s" % count
-        else:
-            return "c_{%s}" % count
-
-class VectorConstant(ConstantBase):
+def VectorConstant(domain, dim=None, count=None):
     """UFL value: Represents a globally constant vector valued coefficient."""
-    __slots__ = ()
+    e = VectorElement("Real", domain, 0, dim)
+    return Coefficient(e, count=count)
 
-    def __init__(self, domain, dim=None, count=None):
-        e = VectorElement("Real", domain, 0, dim)
-        ConstantBase.__init__(self, e, count)
-        ufl_assert(self._repr is None, "Repr should not have been set yet!")
-        self._repr = "VectorConstant(%r, %r, %r)" % (e.domain(), e.value_shape()[0], self._count)
-
-    def _reconstruct(self, element, count):
-        return VectorConstant(element.domain(), element.value_shape()[0], count)
-
-    def __str__(self):
-        count = str(self._count)
-        if len(count) == 1:
-            return "C_%s" % count
-        else:
-            return "C_{%s}" % count
-
-class TensorConstant(ConstantBase):
+def TensorConstant(domain, shape=None, symmetry=None, count=None):
     """UFL value: Represents a globally constant tensor valued coefficient."""
-    __slots__ = ()
-
-    def __init__(self, domain, shape=None, symmetry=None, count=None):
-        e = TensorElement("Real", domain, 0, shape=shape, symmetry=symmetry)
-        ConstantBase.__init__(self, e, count)
-        ufl_assert(self._repr is None, "Repr should not have been set yet!")
-        self._repr = "TensorConstant(%r, %r, %r, %r)" % (e.domain(), e.value_shape(), e._symmetry, self._count)
-
-    def _reconstruct(self, element, count):
-        e = element
-        return TensorConstant(e.domain(), e.value_shape(), e._symmetry, count)
-
-    def __str__(self):
-        count = str(self._count)
-        if len(count) == 1:
-            return "C_%s" % count
-        else:
-            return "C_{%s}" % count
+    e = TensorElement("Real", domain, 0, shape=shape, symmetry=symmetry)
+    return Coefficient(e, count=count)
 
 # --- Helper functions for subfunctions on mixed elements ---
 

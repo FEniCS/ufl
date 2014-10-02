@@ -226,7 +226,7 @@ from ufl.split_functions import split
 from ufl.constantvalue import PermutationSymbol, Identity, zero, as_ufl
 
 # Indexing of tensor expressions
-from ufl.indexing import Index, indices
+from ufl.core.multiindex import Index, indices
 
 # Special functions for expression base classes
 # (ensure this is imported, since it attaches operators to Expr)

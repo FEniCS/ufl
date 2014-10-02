@@ -20,26 +20,32 @@ for all types that are terminal nodes in the expression trees."""
 #
 # Modified by Anders Logg, 2008
 
-from ufl.expr import Expr
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 from ufl.common import EmptyDict
 from ufl.common import counted_init
+from ufl.core.expr import Expr
+from ufl.core.ufl_type import ufl_type
 
 #--- Base class for terminal objects ---
 
+@ufl_type(is_abstract=True, is_terminal=True)
 class Terminal(Expr):
     "A terminal node in the UFL expression tree."
-    __slots__ = ("_hash",)
+    __slots__ = ()
 
     def __init__(self):
         Expr.__init__(self)
-        self._hash = None
 
     def reconstruct(self, *operands):
         "Return self."
-        operands and error("Got call to reconstruct in a terminal with non-empty operands.")
+        if operands:
+            error("Got call to reconstruct in a terminal with non-empty operands.")
         return self
+
+    ufl_operands = ()
+    ufl_free_indices = ()
+    ufl_index_dimensions = ()
 
     def operands(self):
         "A Terminal object never has operands."
@@ -98,44 +104,19 @@ class Terminal(Expr):
         "Default signature data for of terminals just return the repr string."
         return repr(self)
 
-    def __hash__(self):
+    def _ufl_compute_hash_(self):
         "Default hash of terminals just hash the repr string."
-        if self._hash is None:
-            self._hash = hash(repr(self))
-        return self._hash
+        return hash(repr(self))
 
     def __eq__(self, other):
         "Default comparison of terminals just compare repr strings."
         return repr(self) == repr(other)
 
-    #def __getnewargs__(self): # TODO: Test pickle and copy with this. Must implement differently for Terminal objects though.
-    #    "Used for pickle and copy operations."
-    #    raise NotImplementedError, "Must reimplement in each Terminal, or?"
 
 #--- Subgroups of terminals ---
 
+@ufl_type(is_abstract=True)
 class FormArgument(Terminal):
     __slots__ = ()
     def __init__(self):
         Terminal.__init__(self)
-
-class UtilityType(Terminal):
-    __slots__ = ()
-    def __init__(self):
-        Terminal.__init__(self)
-
-    def shape(self):
-        error("Calling shape on a utility type is an error.")
-
-    def free_indices(self):
-        error("Calling free_indices on a utility type is an error.")
-
-    def index_dimensions(self):
-        error("Calling index_dimensions on a utility type is an error.")
-
-    def is_cellwise_constant(self):
-        error("Calling is_cellwise_constant on a utility type is an error.")
-
-    def domains(self):
-        "Return tuple of domains related to this terminal object."
-        return ()

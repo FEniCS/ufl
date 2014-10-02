@@ -36,7 +36,6 @@ class FiniteElement(FiniteElementBase):
     __slots__ = ("_short_name",
                  "_sobolev_space",
                  "_mapping",
-                 "_reference_value_shape",
                 )
     def __init__(self,
                  family,
@@ -70,19 +69,21 @@ class FiniteElement(FiniteElementBase):
           canonical_element_description(family, cell, degree, form_degree)
 
         # TODO: Move these to base? Might be better to instead simplify base though.
-        self._reference_value_shape = reference_value_shape
         self._sobolev_space = sobolev_space
         self._mapping = mapping
         self._short_name = short_name
 
         # Initialize element data
-        super(FiniteElement, self).__init__(family, domain, degree,
-                                            quad_scheme, value_shape)
+        FiniteElementBase.__init__(self, family, domain, degree,
+                                   quad_scheme, value_shape, reference_value_shape)
 
         # Cache repr string
         self._repr = "FiniteElement(%r, %r, %r, quad_scheme=%r)" % (
             self.family(), self.domain(), self.degree(), self.quadrature_scheme())
         assert '"' not in self._repr
+
+    def mapping(self):
+        return self._mapping
 
     def sobolev_space(self):
         return self._sobolev_space
@@ -100,7 +101,9 @@ class FiniteElement(FiniteElementBase):
             self.family(), self.domain().reconstruction_signature(), self.degree(), self.quadrature_scheme())
 
     def signature_data(self, renumbering):
-        data = ("FiniteElement", self._family, self._degree, self._value_shape, self._quad_scheme,
+        data = ("FiniteElement", self._family, self._degree,
+                self._value_shape, self._reference_value_shape,
+                self._quad_scheme,
                 ("no domain" if self._domain is None else self._domain.signature_data(renumbering)))
         return data
 

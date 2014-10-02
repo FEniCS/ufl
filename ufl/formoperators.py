@@ -26,7 +26,7 @@ from six.moves import xrange as range
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.form import Form, as_form
-from ufl.expr import Expr
+from ufl.core.expr import Expr
 from ufl.split_functions import split
 from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.variable import Variable
@@ -36,7 +36,7 @@ from ufl.coefficient import Coefficient
 from ufl.differentiation import CoefficientDerivative
 from ufl.constantvalue import is_true_ufl_scalar, as_ufl
 from ufl.indexed import Indexed
-from ufl.indexing import FixedIndex, MultiIndex
+from ufl.core.multiindex import FixedIndex, MultiIndex
 from ufl.tensors import as_tensor
 from ufl.sorting import sorted_expr
 
@@ -47,7 +47,8 @@ from ufl.algorithms import compute_form_adjoint, \
                            compute_form_lhs, \
                            compute_form_rhs, \
                            compute_form_functional, \
-                           expand_derivatives
+                           expand_derivatives, \
+                           extract_arguments
 
 # Part of the external interface
 from ufl.algorithms import replace
@@ -150,8 +151,11 @@ def _handle_derivative_arguments(form, coefficient, argument):
             error("Can only create arguments automatically for non-indexed coefficients.")
 
         # Get existing arguments from form and position the new one with the next argument number
-        from ufl.algorithms import extract_arguments
-        form_arguments = extract_arguments(form)
+        if isinstance(form, Form):
+            form_arguments = form.arguments()
+        else:
+            # To handler derivative(expression), which is at least used in tests. Remove?
+            form_arguments = extract_arguments(form)
 
         numbers = sorted(set(arg.number() for arg in form_arguments))
         number = max(numbers + [-1]) + 1
@@ -178,7 +182,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
             if n == 1:
                 arguments = (argument,)
             else:
-                if argument.shape() == (n,):
+                if argument.ufl_shape == (n,):
                     arguments = tuple(argument[i] for i in range(n))
                 else:
                     arguments = split(argument)
@@ -186,12 +190,12 @@ def _handle_derivative_arguments(form, coefficient, argument):
     # Build mapping from coefficient to argument
     m = {}
     for (c, a) in zip(coefficients, arguments):
-        ufl_assert(c.shape() == a.shape(), "Coefficient and argument shapes do not match!")
+        ufl_assert(c.ufl_shape == a.ufl_shape, "Coefficient and argument shapes do not match!")
         if isinstance(c, Coefficient):
             m[c] = a
         else:
             ufl_assert(isinstance(c, Indexed), "Invalid coefficient type for %s" % repr(c))
-            f, i = c.operands()
+            f, i = c.ufl_operands
             ufl_assert(isinstance(f, Coefficient), "Expecting an indexed coefficient, not %s" % repr(f))
             ufl_assert(isinstance(i, MultiIndex) and all(isinstance(j, FixedIndex) for j in i),
                        "Expecting one or more fixed indices, not %s" % repr(i))
@@ -203,7 +207,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
     # Merge coefficient derivatives (arguments) based on indices
     for c, p in iteritems(m):
         if isinstance(p, dict):
-            a = zero_lists(c.shape())
+            a = zero_lists(c.ufl_shape)
             for i, g in iteritems(p):
                 set_list_item(a, i, g)
             m[c] = as_tensor(a)

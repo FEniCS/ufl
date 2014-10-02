@@ -36,12 +36,27 @@ from ufl.constantvalue import Zero
 from ufl.algebra import Sum
 
 # Other algorithms:
-from ufl.algorithms.analysis import extract_arguments, expr_has_terminal_types
-from ufl.algorithms.transformer import Transformer, transform_integrands
+from ufl.algorithms.map_integrands import map_integrands
+from ufl.algorithms.transformer import Transformer
 from ufl.algorithms.replace import replace
 
-def zero(e):
-    return Zero(e.shape(), e.free_indices(), e.index_dimensions())
+
+# FIXME: Don't use this below, it makes partextracter more expensive than necessary
+def _expr_has_terminal_types(expr, ufl_types):
+    input = [expr]
+    while input:
+        e = input.pop()
+        ops = e.ufl_operands
+        if ops:
+            input.extend(ops)
+        elif isinstance(e, ufl_types):
+            return True
+    return False
+
+
+def zero_expr(e):
+    return Zero(e.ufl_shape, e.ufl_free_indices, e.ufl_index_dimensions)
+
 
 class PartExtracter(Transformer):
     """
@@ -56,7 +71,7 @@ class PartExtracter(Transformer):
     def expr(self, x):
         """The default is a nonlinear operator not accepting any
         Arguments among its children."""
-        if expr_has_terminal_types(x, Argument):
+        if _expr_has_terminal_types(x, Argument):
             error("Found Argument in %s, this is an invalid expression." % repr(x))
         return (x, set())
 
@@ -68,13 +83,13 @@ class PartExtracter(Transformer):
         "Return relevant parts of this variable."
 
         # Extract parts/provides from this variable's expression
-        expression, label = x.operands()
+        expression, label = x.ufl_operands
         part, provides = self.visit(expression)
 
         # If the extracted part is zero or we provide more than we
         # want, return zero
         if isinstance(part, Zero) or (provides - self._want):
-            return (zero(x), set())
+            return (zero_expr(x), set())
 
         # Reuse varible if possible (or reconstruct from part)
         x = self.reuse_if_possible(x, part, label)
@@ -89,7 +104,7 @@ class PartExtracter(Transformer):
 
         # If we provide more than we want, return zero
         if provides - self._want:
-            return (zero(x), set())
+            return (zero_expr(x), set())
 
         return (x, provides)
 
@@ -124,7 +139,7 @@ class PartExtracter(Transformer):
         parts_that_provide = {}
 
         # 1. Skip terms that provide too much
-        original_terms = x.operands()
+        original_terms = x.ufl_operands
         assert len(original_terms) == 2
         for term in original_terms:
 
@@ -145,7 +160,7 @@ class PartExtracter(Transformer):
 
         # 2. If there are no remaining terms, return zero
         if not parts_that_provide:
-            return (zero(x), set())
+            return (zero_expr(x), set())
 
         # 3. Return the terms that provide the biggest set
         most_provided = frozenset()
@@ -177,7 +192,7 @@ class PartExtracter(Transformer):
 
             # If any factor is zero, return
             if isinstance(factor, Zero):
-                return (zero(x), set())
+                return (zero_expr(x), set())
 
             # Add factor to factors and extend provides
             factors.append(factor)
@@ -185,7 +200,7 @@ class PartExtracter(Transformer):
 
             # If we provide more than we want, return zero
             if provides - self._want:
-                return (zero(x), provides)
+                return (zero_expr(x), provides)
 
         # Reuse product if possible (or reconstruct from factors)
         x = self.reuse_if_possible(x, *factors)
@@ -201,10 +216,10 @@ class PartExtracter(Transformer):
         "Return parts_of_numerator/denominator."
 
         # Get numerator and denominator
-        numerator, denominator = x.operands()
+        numerator, denominator = x.ufl_operands
 
         # Check for Arguments in the denominator
-        if expr_has_terminal_types(denominator, Argument):
+        if _expr_has_terminal_types(denominator, Argument):
             error("Found Argument in denominator of %s , this is an invalid expression." % repr(x))
 
         # Visit numerator
@@ -213,7 +228,7 @@ class PartExtracter(Transformer):
         # If numerator is zero, return zero. (No need to check whether
         # it provides too much, already checked by visit.)
         if isinstance(numerator_parts, Zero):
-            return (zero(x), set())
+            return (zero_expr(x), set())
 
         # Reuse x if possible, otherwise reconstruct from (parts of)
         # numerator and denominator
@@ -232,7 +247,7 @@ class PartExtracter(Transformer):
         # Discard if part is zero. (No need to check whether we
         # provide too much, already checked by children.)
         if isinstance(part, Zero):
-            return (zero(x), set())
+            return (zero_expr(x), set())
 
         x = self.reuse_if_possible(x, part)
 
@@ -253,13 +268,13 @@ class PartExtracter(Transformer):
         """Return parts of expression belonging to this indexed
         expression."""
 
-        expression, index = x.operands()
+        expression, index = x.ufl_operands
         part, provides = self.visit(expression)
 
         # Return zero if extracted part is zero. (The expression
         # should already have checked if it provides too much.)
         if isinstance(part, Zero):
-            return (zero(x), set())
+            return (zero_expr(x), set())
 
         # Reuse x if possible (or reconstruct by indexing part)
         x = self.reuse_if_possible(x, part, index)
@@ -270,7 +285,6 @@ class PartExtracter(Transformer):
     indexed = linear_indexed_type
     index_sum = linear_indexed_type
     component_tensor = linear_indexed_type
-    spatial_derivative = linear_indexed_type
 
     def list_tensor(self, x, *ops):
         # list_tensor is a visit-children-first handler. ops contains
@@ -302,7 +316,7 @@ def compute_form_with_arity(form, arity, arguments=None):
 
     # Extract all arguments in form
     if arguments is None:
-        arguments = extract_arguments(form)
+        arguments = form.arguments()
 
     parts = [arg.part() for arg in arguments]
     if set(parts) - {None}:
@@ -323,15 +337,14 @@ def compute_form_with_arity(form, arity, arguments=None):
         if provides == sub_arguments:
             return e
         return Zero()
-    res = transform_integrands(form, _transform)
-    return res
+    return map_integrands(_transform, form)
 
 def compute_form_arities(form):
     """Return set of arities of terms present in form."""
     #ufl_assert(form.is_preprocessed(), "Assuming a preprocessed form.")
 
     # Extract all arguments present in form
-    arguments = extract_arguments(form)
+    arguments = form.arguments()
 
     parts = [arg.part() for arg in arguments]
     if set(parts) - {None}:
@@ -388,7 +401,7 @@ def compute_form_action(form, coefficient):
     # TODO: Check whatever makes sense for coefficient
 
     # Extract all arguments
-    arguments = extract_arguments(form)
+    arguments = form.arguments()
 
     parts = [arg.part() for arg in arguments]
     if set(parts) - {None}:
@@ -415,7 +428,7 @@ def compute_energy_norm(form, coefficient):
     Arguments, and one additional Coefficient at the
     end if no coefficient has been provided.
     """
-    arguments = extract_arguments(form)
+    arguments = form.arguments()
 
     parts = [arg.part() for arg in arguments]
     if set(parts) - {None}:
@@ -440,7 +453,7 @@ def compute_form_adjoint(form, reordered_arguments=None):
     This works simply by swapping the number and part of the two arguments,
     but keeping their elements and places in the integrand expressions.
     """
-    arguments = extract_arguments(form)
+    arguments = form.arguments()
 
     parts = [arg.part() for arg in arguments]
     if set(parts) - {None}:

@@ -21,7 +21,7 @@
 
 from ufl.assertions import ufl_assert
 from ufl.log import error, warning
-from ufl.expr import Expr
+from ufl.core.expr import Expr
 from ufl.geometry import Domain, as_domain
 from ufl.checks import is_true_ufl_scalar
 from ufl.constantvalue import as_ufl
@@ -223,14 +223,14 @@ class Measure(object):
         Its intension is to give a context in which the domain id is interpreted."""
         return self._subdomain_data
 
-    def __call__(self, subdomain_id=None, metadata=None, domain=None, subdomain_data=None):
+    # Note: Must keep the order of the first two arguments here (subdomain_id, metadata) for
+    # backwards compatibility, because some tutorials write e.g. dx(0, {...}) to set metadata.
+    def __call__(self, subdomain_id=None, metadata=None, domain=None, subdomain_data=None, degree=None, rule=None):
         """Reconfigure measure with new domain specification or metadata."""
-        # Note: Keeping the order of arguments here (subdomain_id, metadata) for backwards
-        # compatibility, because some tutorials write e.g. dx(0, {...}) to set metadata
 
         # Let syntax dx() mean integral over everywhere
-        args = (subdomain_id, metadata, domain, subdomain_data)
-        if all(arg is None for arg in args):
+        all_args = (subdomain_id, metadata, domain, subdomain_data, degree, rule)
+        if all(arg is None for arg in all_args):
             return self.reconstruct(subdomain_id="everywhere")
 
         # Let syntax dx(domain) or dx(domain, metadata) mean integral over entire domain.
@@ -238,6 +238,15 @@ class Measure(object):
         if subdomain_id is not None and (isinstance(subdomain_id, Domain) or hasattr(subdomain_id, 'ufl_domain')):
             ufl_assert(domain is None, "Ambiguous: setting domain both as keyword argument and first argument.")
             subdomain_id, domain = "everywhere", as_domain(subdomain_id)
+
+        # If degree or rule is set, inject into metadata. This is a quick fix to enable
+        # the dx(..., degree=3) notation. TODO: Make degree and rule properties of integrals.
+        if (degree, rule) != (None, None):
+            metadata = {} if metadata is None else metadata.copy()
+            if degree is not None:
+                metadata["quadrature_degree"] = degree
+            if rule is not None:
+                metadata["quadrature_rule"] = rule
 
         # If we get any keywords, use them to reconstruct Measure.
         # Note that if only one argument is given, it is the subdomain_id,
@@ -369,7 +378,7 @@ class Measure(object):
         if not is_true_ufl_scalar(integrand):
             msg = ("Can only integrate scalar expressions. The integrand is a " +
                    "tensor expression with value rank %d and free indices %r.")
-            error(msg % (integrand.rank(), integrand.free_indices()))
+            error(msg % (integrand.rank(), integrand.ufl_free_indices))
 
         # If we have a tuple of domain ids, delegate composition to Integral.__add__:
         subdomain_id = self.subdomain_id()

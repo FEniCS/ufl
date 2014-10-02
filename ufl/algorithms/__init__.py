@@ -20,10 +20,10 @@
 # Modified by Anders Logg, 2008-2009.
 
 # Utilities for traversing over expression trees in different ways
-from ufl.algorithms.traversal import iter_expressions, \
-                                     traverse_terminals, traverse_unique_terminals, \
-                                     post_traversal, pre_traversal, \
-                                     post_walk, pre_walk, walk
+from ufl.algorithms.traversal import iter_expressions
+# Keeping these here for backwards compatibility, doesn't cost anything. Prefer importing from ufl.corealg.traversal.
+from ufl.corealg.traversal import pre_traversal, post_traversal
+from ufl.corealg.traversal import traverse_terminals, traverse_unique_terminals
 
 # Class for simple extraction of form meta data
 from ufl.algorithms.formdata import FormData
@@ -32,15 +32,16 @@ from ufl.algorithms.formdata import FormData
 from ufl.algorithms.compute_form_data import compute_form_data
 
 # Utilities for extracting information from forms and expressions
-from ufl.algorithms.analysis import extract_classes, extract_type, has_type, \
-                                    extract_arguments, extract_coefficients, \
-                                    extract_arguments_and_coefficients, \
-                                    extract_elements, extract_unique_elements, \
-                                    extract_sub_elements, extract_unique_sub_elements, \
-                                    extract_variables, extract_duplications, \
-                                    extract_max_quadrature_element_degree, \
-                                    estimate_quadrature_degree, \
-                                    sort_elements
+from ufl.algorithms.analysis import (
+    extract_type,
+    extract_arguments,
+    extract_coefficients,
+    extract_arguments_and_coefficients,
+    extract_elements,
+    extract_unique_elements,
+    extract_sub_elements,
+    sort_elements,
+    )
 
 # Utilities for checking properties of forms
 from ufl.algorithms.predicates import is_multilinear
@@ -52,7 +53,7 @@ from ufl.algorithms.checks import validate_form
 # Utilites for modifying expressions and forms
 from ufl.algorithms.multifunction import MultiFunction
 from ufl.algorithms.transformer import Transformer, is_post_handler, \
-                                       transform, transform_integrands, apply_transformer, \
+                                       apply_transformer, \
                                        ReuseTransformer, ufl2ufl, \
                                        CopyTransformer, ufl2uflcopy, \
                                        VariableStripper, strip_variables

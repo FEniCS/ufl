@@ -16,9 +16,6 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
-#
-# First added:  2008-03-14
-# Last changed: 2012-04-12
 
 from ufl.log import warning, debug
 from ufl.algorithms.traversal import iter_expressions
@@ -50,44 +47,3 @@ def is_multilinear(form):
         return False
 
     return True
-
-
-# TODO: Remove this code if nobody needs it for anything:
-#===============================================================================
-# def is_multilinear(form):
-#    "Check if form is multilinear."
-#
-#    # Check that we get a form
-#    ufl_assert(isinstance(form, Form), "Not a form: %s" % str(form))
-#
-#    # Check that all operators applied to arguments are linear
-#    for e in iter_expressions(form):
-#        stack = []
-#        for o in pre_traversal(e, stack):
-#            if isinstance(o, Argument):
-#                for operator in stack:
-#                    if not operator.is_linear():
-#                        warning("Nonlinear operator applied to argument:" + str(operator))
-#                        return False
-#
-#    # Extract monomials
-#    monomials = []
-#    for e in iter_expressions(form):
-#        monomials += _extract_monomials(e)
-#
-#    # Extract arguments
-#    arguments = set()
-#    for monomial in monomials:
-#        for v in monomial:
-#            arguments.add(v)
-#
-#    # Check that each argument appears exactly once in each monomial term
-#    for monomial in monomials:
-#        for v in arguments:
-#            if not len([w for w in monomial if w == v]) == 1:
-#                warning("Argument %s does not appear exactly once in each term." % str(v))
-#                return False
-#
-#    return True
-#===============================================================================
-

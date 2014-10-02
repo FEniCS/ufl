@@ -21,16 +21,21 @@ expressions as variables for differentiation."""
 from ufl.common import counted_init
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.expr import Expr
-from ufl.terminal import UtilityType
-from ufl.operatorbase import Operator, WrapperType
+from ufl.core.expr import Expr
+from ufl.core.ufl_type import ufl_type
+from ufl.core.terminal import Terminal
+from ufl.core.operator import Operator
 from ufl.constantvalue import as_ufl
 
-class Label(UtilityType):
+
+@ufl_type()
+class Label(Terminal):
     __slots__ = ("_count",)
+
     _globalcount = 0
+
     def __init__(self, count=None):
-        UtilityType.__init__(self)
+        Terminal.__init__(self)
         counted_init(self, count, Label)
 
     def count(self):
@@ -42,8 +47,29 @@ class Label(UtilityType):
     def __repr__(self):
         return "Label(%d)" % self._count
 
+    @property
+    def ufl_shape(self):
+        error("Label has no shape (it is not a tensor expression).")
 
-class Variable(WrapperType):
+    @property
+    def ufl_free_indices(self):
+        error("Label has no free indices (it is not a tensor expression).")
+
+    @property
+    def ufl_index_dimensions(self):
+        error("Label has no free indices (it is not a tensor expression).")
+
+    def is_cellwise_constant(self):
+        error("Asking if a Label is cellwise constant makes no sense (it is not a tensor expression).")
+        #return True # Could also just return True, after all it doesn't change with the cell
+
+    def domains(self):
+        "Return tuple of domains related to this terminal object."
+        return ()
+
+
+@ufl_type(is_shaping=True, is_index_free=True, num_ops=1, inherit_shape_from_operand=0)
+class Variable(Operator):
     """A Variable is a representative for another expression.
 
     It will be used by the end-user mainly for defining
@@ -55,57 +81,44 @@ class Variable(WrapperType):
       f = exp(e**2)
       df = diff(f, e)
     """
-    __slots__ = ("_expression", "_label",)
-    def __init__(self, expression, label=None):
-        WrapperType.__init__(self)
-        expression = as_ufl(expression)
-        ufl_assert(isinstance(expression, Expr), "Expecting Expr.")
-        self._expression = expression
+    __slots__ = ()
 
+    def __init__(self, expression, label=None):
+        # Conversion
+        expression = as_ufl(expression)
         if label is None:
             label = Label()
+
+        # Checks
+        ufl_assert(isinstance(expression, Expr), "Expecting Expr.")
         ufl_assert(isinstance(label, Label), "Expecting a Label.")
-        self._label = label
+        ufl_assert(not expression.ufl_free_indices, "Variable cannot wrap an expression with free indices.")
 
-    def operands(self):
-        return (self._expression, self._label)
-
-    def free_indices(self):
-        return self._expression.free_indices()
-
-    def index_dimensions(self):
-        return self._expression.index_dimensions()
-
-    def shape(self):
-        return self._expression.shape()
+        Operator.__init__(self, (expression, label))
 
     def domains(self):
-        return self._expression.domains()
+        return self.ufl_operands[0].domains()
 
     def is_cellwise_constant(self):
-        return self._expression.is_cellwise_constant()
+        return self.ufl_operands[0].is_cellwise_constant()
 
     def evaluate(self, x, mapping, component, index_values):
-        a = self._expression.evaluate(x, mapping, component, index_values)
+        a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)
         return a
 
     def expression(self):
-        return self._expression
+        return self.ufl_operands[0]
 
     def label(self):
-        return self._label
+        return self.ufl_operands[1]
 
     def __eq__(self, other):
         return (isinstance(other, Variable)
-                and self._label == other._label
-                and self._expression == other._expression)
-    __hash__ = Operator.__hash__
+                and self.ufl_operands[1] == other.ufl_operands[1]
+                and self.ufl_operands[0] == other.ufl_operands[0])
 
     def __str__(self):
-        return "var%d(%s)" % (self._label.count(), self._expression)
+        return "var%d(%s)" % (self.ufl_operands[1].count(), self.ufl_operands[0])
 
     def __repr__(self):
-        return "Variable(%r, %r)" % (self._expression, self._label)
-
-    def __getnewargs__(self):
-        return ()
+        return "Variable(%r, %r)" % (self.ufl_operands[0], self.ufl_operands[1])
