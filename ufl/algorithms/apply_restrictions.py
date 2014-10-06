@@ -113,14 +113,18 @@ class RestrictionPropagator(MultiFunction):
             return self._require_restriction(o)
 
     def facet_normal(self, o):
-        e = o.domain().coordinate_element()
+        D = o.domain()
+        e = D.coordinate_element()
         f = e.family()
         d = e.degree()
+        gd = D.geometric_dimension()
+        td = D.topological_dimension()
 
-        if f == "Lagrange" and d == 1:
-            # For continuous linear meshes, the facet normal from side - points
-            # in the opposite direction of the one from side +.
-            # We still require a side to be chosen by the user but rewrite n- -> n+.
+        if f == "Lagrange" and d == 1 and gd == td:
+            # For meshes with a continuous linear non-manifold coordinate field,
+            # the facet normal from side - points in the opposite direction of the one from side +.
+            # We must still require a side to be chosen by the user but rewrite n- -> n+.
+            # This is an optimization, possibly premature, however it's more difficult to do at a later stage.
             return self._opposite(o)
         else:
             # For other meshes, we require a side to be chosen by the user and respect that
