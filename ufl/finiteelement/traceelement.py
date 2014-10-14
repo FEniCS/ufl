@@ -31,8 +31,9 @@ class TraceElement(FiniteElementBase):
         degree = element.degree()
         quad_scheme = element.quadrature_scheme()
         value_shape = ()
-        super(TraceElement, self).__init__(family, domain, degree,
-                                         quad_scheme, value_shape)
+        reference_value_shape = ()
+        FiniteElementBase.__init__(self, family, domain, degree,
+                                   quad_scheme, value_shape, reference_value_shape)
 
     def reconstruct(self, **kwargs):
         """Construct a new TraceElement object with some properties
