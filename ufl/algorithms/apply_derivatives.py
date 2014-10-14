@@ -424,15 +424,19 @@ class GenericDerivativeRuleset(MultiFunction):
         #d/dx max(f, g) =
         # f > g: df/dx
         # f < g: dg/dx
+        # Placing df,dg outside here to avoid getting arguments inside conditionals
         f, g = o.ufl_operands
-        return conditional(f > g, df, dg)
+        dc = conditional(f > g, 1, 0)
+        return dc*df + (1.0 - dc)*dg
 
     def min_value(self, o, df, dg):
         #d/dx min(f, g) =
         # f < g: df/dx
         # else: dg/dx
+        # Placing df,dg outside here to avoid getting arguments inside conditionals
         f, g = o.ufl_operands
-        return conditional(f < g, df, dg)
+        dc = conditional(f < g, 1, 0)
+        return dc*df + (1.0 - dc)*dg
 
 
 class GradRuleset(GenericDerivativeRuleset):
