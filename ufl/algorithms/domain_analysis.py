@@ -113,9 +113,6 @@ class ExprTupleKey(object):
             mdo = canonicalize_metadata(other.x[1])
             return mds < mdo
 
-def expr_tuple_key(expr):
-    return ExprTupleKey(expr)
-
 def group_integrals_by_domain_and_type(integrals, domains):
     """
     Input:
@@ -233,7 +230,7 @@ def accumulate_integrands_with_same_metadata(integrals):
         by_cdid[cdid] = (integrands_sum, cd)
 
     # Sort integrands canonically by integrand first then compiler data
-    return sorted(by_cdid.values(), key=expr_tuple_key)
+    return sorted(by_cdid.values(), key=ExprTupleKey)
 
 def build_integral_data(integrals, domains):
     integral_data = []

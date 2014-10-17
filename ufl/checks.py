@@ -19,7 +19,8 @@
 #
 # Modified by Anders Logg, 2008-2009
 
-from ufl.expr import Expr
+from ufl.core.expr import Expr
+from ufl.corealg.traversal import traverse_unique_terminals
 
 def is_python_scalar(expression):
     "Return True iff expression is of a Python scalar type."
@@ -28,13 +29,13 @@ def is_python_scalar(expression):
 def is_ufl_scalar(expression):
     """Return True iff expression is scalar-valued,
     but possibly containing free indices."""
-    return isinstance(expression, Expr) and not expression.shape()
+    return isinstance(expression, Expr) and not expression.ufl_shape
 
 def is_true_ufl_scalar(expression):
     """Return True iff expression is scalar-valued,
     with no free indices."""
     return isinstance(expression, Expr) and \
-        not (expression.shape() or expression.free_indices())
+        not (expression.ufl_shape or expression.ufl_free_indices)
 
 def is_globally_constant(expr):
     """Check if an expression is globally constant, which
@@ -42,8 +43,6 @@ def is_globally_constant(expr):
     are not known before assembly time."""
 
     # TODO: This does not consider gradients of coefficients, so false negatives are possible.
-
-    from ufl.algorithms.traversal import traverse_unique_terminals
     from ufl.argument import Argument
     from ufl.coefficient import Coefficient
 
@@ -62,6 +61,6 @@ def is_scalar_constant_expression(expr):
     """Check if an expression is a globally constant scalar expression."""
     if is_python_scalar(expr):
         return True
-    if expr.shape() != ():
+    if expr.ufl_shape != ():
         return False
     return is_globally_constant(expr)

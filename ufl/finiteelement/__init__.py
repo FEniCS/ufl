@@ -21,9 +21,6 @@
 # Modified by Marie E. Rognes 2010, 2012
 # Modified by Andrew T. T. McRae 2014
 # Modified by Lawrence Mitchell 2014
-#
-# First added:  2008-03-03
-# Last changed: 2014-03-18
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 from ufl.finiteelement.finiteelement import FiniteElement

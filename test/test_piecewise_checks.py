@@ -1,223 +1,248 @@
-#!/usr/bin/env python
+#!/usr/bin/env py.test
 
 """
 Test the is_cellwise_constant function on all relevant terminal types.
 """
 
-from ufltestcase import UflTestCase, main
+import pytest
 from ufl import *
 from ufl.classes import *
 
-class TestCellwiseConstantTerminals(UflTestCase):
 
-    def setUp(self):
-        super(TestCellwiseConstantTerminals, self).setUp()
+def get_domains():
+    all_cells = [
+        interval,
+        cell2D,
+        triangle,
+        quadrilateral,
+        cell3D,
+        tetrahedron,
+        hexahedron,
+    ]
+    return [Domain(cell) for cell in all_cells]
 
-        self.all_cells = [
-            interval,
-            cell2D,
-            triangle,
-            quadrilateral,
-            cell3D,
-            tetrahedron,
-            hexahedron,
-            ]
-        self.domains = [Domain(cell) for cell in self.all_cells]
-        self.domains_with_linear_coordinates = []
-        for D in self.domains:
-            V = VectorElement("CG", D, 1)
-            x = Coefficient(V)
-            E = Domain(x)
-            self.domains_with_linear_coordinates.append(E)
-        self.domains_with_quadratic_coordinates = []
-        for D in self.domains:
-            V = VectorElement("CG", D, 2)
-            x = Coefficient(V)
-            E = Domain(x)
-            self.domains_with_quadratic_coordinates.append(E)
 
-        self.affine_cells = [
-            interval,
-            triangle,
-            tetrahedron,
-            ]
-        self.affine_domains = [Domain(cell) for cell in self.affine_cells]
-        self.affine_domains_with_linear_coordinates = []
-        for D in self.affine_domains:
-            V = VectorElement("CG", D, 1)
-            x = Coefficient(V)
-            E = Domain(x)
-            self.affine_domains_with_linear_coordinates.append(E)
+def get_nonlinear():
+    domains_with_quadratic_coordinates = []
+    for D in get_domains():
+        V = VectorElement("CG", D, 2)
+        x = Coefficient(V)
+        E = Domain(x)
+        domains_with_quadratic_coordinates.append(E)
 
-        self.affine_facet_cells = [
-            interval,
-            cell2D,
-            triangle,
-            quadrilateral,
-            tetrahedron,
-            ]
-        self.affine_facet_domains = [Domain(cell) for cell in self.affine_facet_cells]
-        self.affine_facet_domains_with_linear_coordinates = []
-        for D in self.affine_facet_domains:
-            V = VectorElement("CG", D, 1)
-            x = Coefficient(V)
-            E = Domain(x)
-            self.affine_facet_domains_with_linear_coordinates.append(E)
+    return domains_with_quadratic_coordinates
 
-        self.nonaffine_cells = [
-            cell2D,
-            quadrilateral,
-            cell3D,
-            hexahedron,
-            ]
-        self.nonaffine_domains = [Domain(cell) for cell in self.nonaffine_cells]
-        self.nonaffine_domains_with_linear_coordinates = []
-        for D in self.nonaffine_domains:
-            V = VectorElement("CG", D, 1)
-            x = Coefficient(V)
-            E = Domain(x)
-            self.nonaffine_domains_with_linear_coordinates.append(E)
 
-        self.nonaffine_facet_cells = [
-            cell3D,
-            hexahedron,
-            ]
-        self.nonaffine_facet_domains = [Domain(cell) for cell in self.nonaffine_facet_cells]
-        self.nonaffine_facet_domains_with_linear_coordinates = []
-        for D in self.nonaffine_facet_domains:
-            V = VectorElement("CG", D, 1)
-            x = Coefficient(V)
-            E = Domain(x)
-            self.nonaffine_facet_domains_with_linear_coordinates.append(E)
+@pytest.fixture(params=list(range(7)))
+def nonlinear_domains(request):
+    return get_nonlinear()[request.param]
 
-    def test_always_cellwise_constant_geometric_quantities(self):
-        "Test geometric quantities that are always constant over a cell."
-        domains = []
-        domains += self.domains
-        domains += self.domains_with_linear_coordinates
-        domains += self.domains_with_quadratic_coordinates
-        for D in domains:
-            e = CellVolume(D)
-            self.assertTrue(e.is_cellwise_constant())
-            e = Circumradius(D)
-            self.assertTrue(e.is_cellwise_constant())
-            e = FacetArea(D)
-            self.assertTrue(e.is_cellwise_constant())
-            e = MinFacetEdgeLength(D)
-            self.assertTrue(e.is_cellwise_constant())
-            e = MaxFacetEdgeLength(D)
-            self.assertTrue(e.is_cellwise_constant())
 
-    def test_coordinates_never_cellwise_constant(self):
-        domains = []
-        domains += self.domains
-        domains += self.domains_with_linear_coordinates
-        domains += self.domains_with_quadratic_coordinates
-        for D in domains:
-            e = SpatialCoordinate(D)
-            self.assertFalse(e.is_cellwise_constant())
-            e = CellCoordinate(D)
-            self.assertFalse(e.is_cellwise_constant())
+@pytest.fixture(params=list(range(14)))
+def domains_not_linear(request):
+    all_domains_not_linear = get_domains() + get_nonlinear()
+    return all_domains_not_linear[request.param]
 
-        # The only exception here:
-        D = Domain(Cell("vertex", 3))
-        self.assertEqual(D.cell().cellname(), "vertex")
-        e = SpatialCoordinate(D)
-        self.assertTrue(e.is_cellwise_constant())
-        e = CellCoordinate(D)
-        self.assertTrue(e.is_cellwise_constant())
 
-    def test_mappings_are_cellwise_constant_only_on_linear_affine_cells(self):
-        domains = []
-        domains += self.affine_domains
-        domains += self.affine_domains_with_linear_coordinates
-        for D in domains:
-            e = Jacobian(D)
-            self.assertTrue(e.is_cellwise_constant())
-            e = JacobianDeterminant(D)
-            self.assertTrue(e.is_cellwise_constant())
-            e = JacobianInverse(D)
-            self.assertTrue(e.is_cellwise_constant())
-        for D in domains:
-            if D.topological_dimension() == 1:
-                continue
-            e = FacetJacobian(D)
-            self.assertTrue(e.is_cellwise_constant())
-            e = FacetJacobianDeterminant(D)
-            self.assertTrue(e.is_cellwise_constant())
-            e = FacetJacobianInverse(D)
-            self.assertTrue(e.is_cellwise_constant())
+@pytest.fixture(params=list(range(21)))
+def domains(request):
+    domains = get_domains()
+    domains_with_linear_coordinates = []
+    for D in domains:
+        V = VectorElement("CG", D, 1)
+        x = Coefficient(V)
+        E = Domain(x)
+        domains_with_linear_coordinates.append(E)
 
-        domains = []
-        domains += self.nonaffine_domains
-        domains += self.nonaffine_domains_with_linear_coordinates
-        domains += self.domains_with_quadratic_coordinates
-        for D in domains:
-            e = Jacobian(D)
-            self.assertFalse(e.is_cellwise_constant())
-            e = JacobianDeterminant(D)
-            self.assertFalse(e.is_cellwise_constant())
-            e = JacobianInverse(D)
-            self.assertFalse(e.is_cellwise_constant())
-        for D in domains:
-            if D.topological_dimension() == 1:
-                continue
-            e = FacetJacobian(D)
-            self.assertFalse(e.is_cellwise_constant())
-            e = FacetJacobianDeterminant(D)
-            self.assertFalse(e.is_cellwise_constant())
-            e = FacetJacobianInverse(D)
-            self.assertFalse(e.is_cellwise_constant())
+    all_domains = domains + domains_with_linear_coordinates + get_nonlinear()
+    return all_domains[request.param]
 
-    def test_facetnormal_sometimes_cellwise_constant(self):
-        domains = []
-        domains += self.affine_facet_domains
-        domains += self.affine_facet_domains_with_linear_coordinates
-        for D in domains:
-            e = FacetNormal(D)
-            self.assertTrue(e.is_cellwise_constant())
 
-        domains = []
-        domains += self.nonaffine_facet_domains
-        domains += self.nonaffine_facet_domains_with_linear_coordinates
-        domains += self.domains_with_quadratic_coordinates
-        for D in domains:
-            e = FacetNormal(D)
-            self.assertFalse(e.is_cellwise_constant())
+@pytest.fixture(params=list(range(6)))
+def affine_domains(request):
+    affine_cells = [
+        interval,
+        triangle,
+        tetrahedron,
+    ]
+    affine_domains = [Domain(cell) for cell in affine_cells]
 
-    def test_coefficient_sometimes_cellwise_constant(self):
-        domains = []
-        domains += self.domains
-        domains += self.domains_with_quadratic_coordinates
-        for D in domains:
-            e = Constant(D)
-            self.assertTrue(e.is_cellwise_constant())
+    affine_domains_with_linear_coordinates = []
+    for D in affine_domains:
+        V = VectorElement("CG", D, 1)
+        x = Coefficient(V)
+        E = Domain(x)
+        affine_domains_with_linear_coordinates.append(E)
 
-            V = FiniteElement("DG", D, 0)
-            e = Coefficient(V)
-            self.assertTrue(e.is_cellwise_constant())
-            V = FiniteElement("R", D, 0)
-            e = Coefficient(V)
-            self.assertTrue(e.is_cellwise_constant())
+    all_affine_domains = affine_domains + \
+        affine_domains_with_linear_coordinates
+    return all_affine_domains[request.param]
 
-            # This should be true, but that has to wait for a fix of issue #13
-            #e = TestFunction(V)
-            #self.assertTrue(e.is_cellwise_constant())
-            #V = FiniteElement("R", D, 0)
-            #e = TestFunction(V)
-            #self.assertTrue(e.is_cellwise_constant())
 
-    def test_coefficient_mostly_not_cellwise_constant(self):
-        domains = []
-        domains += self.domains
-        domains += self.domains_with_quadratic_coordinates
-        for D in domains:
-            V = FiniteElement("DG", D, 1)
-            e = Coefficient(V)
-            self.assertFalse(e.is_cellwise_constant())
-            e = TestFunction(V)
-            self.assertFalse(e.is_cellwise_constant())
+@pytest.fixture(params=list(range(10)))
+def affine_facet_domains(request):
+    affine_facet_cells = [
+        interval,
+        cell2D,
+        triangle,
+        quadrilateral,
+        tetrahedron,
+    ]
+    affine_facet_domains = [Domain(cell) for cell in affine_facet_cells]
+    affine_facet_domains_with_linear_coordinates = []
+    for D in affine_facet_domains:
+        V = VectorElement("CG", D, 1)
+        x = Coefficient(V)
+        E = Domain(x)
+        affine_facet_domains_with_linear_coordinates.append(E)
 
-# Don't touch these lines, they allow you to run this file directly
-if __name__ == "__main__":
-    main()
+    all_affine_facet_domains = affine_facet_domains + \
+        affine_facet_domains_with_linear_coordinates
+
+    return all_affine_facet_domains[request.param]
+
+
+@pytest.fixture(params=list(range(8)))
+def nonaffine_domains(request):
+    nonaffine_cells = [
+        cell2D,
+        quadrilateral,
+        cell3D,
+        hexahedron,
+    ]
+    nonaffine_domains = [Domain(cell) for cell in nonaffine_cells]
+    nonaffine_domains_with_linear_coordinates = []
+    for D in nonaffine_domains:
+        V = VectorElement("CG", D, 1)
+        x = Coefficient(V)
+        E = Domain(x)
+        nonaffine_domains_with_linear_coordinates.append(E)
+
+    all_nonaffine_domains = nonaffine_domains + \
+        nonaffine_domains_with_linear_coordinates
+
+    return all_nonaffine_domains[request.param]
+
+
+@pytest.fixture(params=list(range(4)))
+def nonaffine_facet_domains(request):
+    nonaffine_facet_cells = [
+        cell3D,
+        hexahedron,
+    ]
+    nonaffine_facet_domains = [Domain(cell) for cell in nonaffine_facet_cells]
+    nonaffine_facet_domains_with_linear_coordinates = []
+    for D in nonaffine_facet_domains:
+        V = VectorElement("CG", D, 1)
+        x = Coefficient(V)
+        E = Domain(x)
+        nonaffine_facet_domains_with_linear_coordinates.append(E)
+
+    all_nonaffine_facet_domains = nonaffine_facet_domains + \
+        nonaffine_facet_domains_with_linear_coordinates
+
+    return all_nonaffine_facet_domains[request.param]
+
+
+def test_always_cellwise_constant_geometric_quantities(domains):
+    "Test geometric quantities that are always constant over a cell."
+    e = CellVolume(domains)
+    assert e.is_cellwise_constant()
+    e = Circumradius(domains)
+    assert e.is_cellwise_constant()
+    e = FacetArea(domains)
+    assert e.is_cellwise_constant()
+    e = MinFacetEdgeLength(domains)
+    assert e.is_cellwise_constant()
+    e = MaxFacetEdgeLength(domains)
+    assert e.is_cellwise_constant()
+
+
+def test_coordinates_never_cellwise_constant(domains):
+    e = SpatialCoordinate(domains)
+    assert not e.is_cellwise_constant()
+    e = CellCoordinate(domains)
+    assert not e.is_cellwise_constant()
+
+
+def test_coordinates_never_cellwise_constant_vertex():
+    # The only exception here:
+    domains = Domain(Cell("vertex", 3))
+    assert domains.cell().cellname() == "vertex"
+    e = SpatialCoordinate(domains)
+    assert e.is_cellwise_constant()
+    e = CellCoordinate(domains)
+    assert e.is_cellwise_constant()
+
+
+def mappings_are_cellwise_constant(domain, test):
+    e = Jacobian(domain)
+    assert e.is_cellwise_constant() == test
+    e = JacobianDeterminant(domain)
+    assert e.is_cellwise_constant() == test
+    e = JacobianInverse(domain)
+    assert e.is_cellwise_constant() == test
+    if domain.topological_dimension() != 1:
+        e = FacetJacobian(domain)
+        assert e.is_cellwise_constant() == test
+        e = FacetJacobianDeterminant(domain)
+        assert e.is_cellwise_constant() == test
+        e = FacetJacobianInverse(domain)
+        assert e.is_cellwise_constant() == test
+
+
+def test_mappings_are_cellwise_constant_on_linear_affine_cells(affine_domains):
+    mappings_are_cellwise_constant(affine_domains, True)
+
+
+def test_mappings_are_cellwise_not_constant_on_nonaffine_cells(nonaffine_domains):
+    mappings_are_cellwise_constant(nonaffine_domains, False)
+
+
+def test_mappings_are_cellwise_not_constant_on_nonlinear_cells(nonlinear_domains):
+    mappings_are_cellwise_constant(nonlinear_domains, False)
+
+
+def facetnormal_cellwise_constant(domain, test):
+    e = FacetNormal(domain)
+    assert e.is_cellwise_constant() == test
+
+
+def test_facetnormal_cellwise_constant_affine(affine_facet_domains):
+    facetnormal_cellwise_constant(affine_facet_domains, True)
+
+
+def test_facetnormal_not_cellwise_constant_nonaffine(nonaffine_facet_domains):
+    facetnormal_cellwise_constant(nonaffine_facet_domains, False)
+
+
+def test_facetnormal_not_cellwise_constant_nonlinear(nonlinear_domains):
+    facetnormal_cellwise_constant(nonlinear_domains, False)
+
+
+def test_coefficient_sometimes_cellwise_constant(domains_not_linear):
+    e = Constant(domains_not_linear)
+    assert e.is_cellwise_constant()
+
+    V = FiniteElement("DG", domains_not_linear, 0)
+    e = Coefficient(V)
+    assert e.is_cellwise_constant()
+    V = FiniteElement("R", domains_not_linear, 0)
+    e = Coefficient(V)
+    assert e.is_cellwise_constant()
+
+    # This should be true, but that has to wait for a fix of issue #13
+    # e = TestFunction(V)
+    # assert e.is_cellwise_constant()
+    # V = FiniteElement("R", domains_not_linear, 0)
+    # e = TestFunction(V)
+    # assert e.is_cellwise_constant()
+
+
+def test_coefficient_mostly_not_cellwise_constant(domains_not_linear):
+    V = FiniteElement("DG", domains_not_linear, 1)
+    e = Coefficient(V)
+    assert not e.is_cellwise_constant()
+    e = TestFunction(V)
+    assert not e.is_cellwise_constant()
+

@@ -25,9 +25,12 @@ algorithms."""
 from inspect import getargspec
 from ufl.log import error, debug
 from ufl.assertions import ufl_assert
-from ufl.form import Form
-from ufl.integral import Integral
+
 from ufl.classes import Expr, Terminal, Variable, Zero, all_ufl_classes
+from ufl.algorithms.map_integrands import map_integrands
+
+from ufl.integral import Integral
+from ufl.form import Form
 
 
 def is_post_handler(function):
@@ -53,13 +56,15 @@ class Transformer(object):
             cache_data = [None]*len(all_ufl_classes)
             # For all UFL classes
             for classobject in all_ufl_classes:
-                # Iterate over the inheritance chain (NB! This assumes that all UFL classes inherits a single Expr subclass and that this is the first superclass!)
+                # Iterate over the inheritance chain
+                # (NB! This assumes that all UFL classes inherits a single
+                # Expr subclass and that this is the first superclass!)
                 for c in classobject.mro():
                     # Register classobject with handler for the first encountered superclass
-                    name = c._handlername
+                    name = c._ufl_handler_name_
                     function = getattr(self, name, None)
                     if function:
-                        cache_data[classobject._classid] = name, is_post_handler(function)
+                        cache_data[classobject._ufl_typecode_] = name, is_post_handler(function)
                         break
             Transformer._handlers_cache[type(self)] = cache_data
 
@@ -85,7 +90,7 @@ class Transformer(object):
         self._visit_stack.append(o)
 
         # Get handler for the UFL class of o (type(o) may be an external subclass of the actual UFL class)
-        h, visit_children_first = self._handlers[o._classid]
+        h, visit_children_first = self._handlers[o._ufl_typecode_]
 
         #if not h:
         #    # Failed to find a handler! Should never happen, but will happen if a non-Expr object is visited.
@@ -94,7 +99,7 @@ class Transformer(object):
         # Is this a handler that expects transformed children as input?
         if visit_children_first:
             # Yes, visit all children first and then call h.
-            r = h(o, *[self.visit(op) for op in o.operands()])
+            r = h(o, *[self.visit(op) for op in o.ufl_operands])
         else:
             # No, this is a handler that handles its own children
             # (arguments self and o, where self is already bound)
@@ -106,39 +111,28 @@ class Transformer(object):
 
     def undefined(self, o):
         "Trigger error."
-        error("No handler defined for %s." % o._uflclass.__name__)
+        error("No handler defined for %s." % o._ufl_class_.__name__)
 
     def reuse(self, o):
         "Always reuse Expr (ignore children)"
         return o
 
-    def reuse_if_possible(self, o, *operands):
-        "Reuse Expr if possible, otherwise reconstruct from given operands."
+    def reuse_if_untouched(self, o, *ops):
+        """Reuse object if operands are the same objects.
 
-        # FIXME: Use hashes of operands instead for a faster probability based version?
+        Use in your own subclass by setting e.g.
 
-        #if all(a is b for (a, b) in izip(operands, o.operands())):
-        ufl_assert(len(operands) == len(o.operands()), "Expecting number of operands to match")
-        if operands == o.operands():
+            expr = MultiFunction.reuse_if_untouched
+
+        as a default rule.
+        """
+        if all(a is b for a, b in zip(o.ufl_operands, ops)):
             return o
+        else:
+            return o.reconstruct(*ops)
 
-        #return o.reconstruct(*operands)
-        # Debugging version:
-        try:
-            r = o.reconstruct(*operands)
-        except:
-            print()
-            print("FAILURE in reuse_if_possible:")
-            print("type(o) =", type(o))
-            print("operands =")
-            print()
-            print("\n\n".join(map(str, operands)))
-            print()
-            print("stack =")
-            self.print_visit_stack()
-            print()
-            raise
-        return r
+    # It's just so slow to compare all operands, avoiding it now
+    reuse_if_possible = reuse_if_untouched
 
     def always_reconstruct(self, o, *operands):
         "Always reconstruct expr."
@@ -152,7 +146,7 @@ class Transformer(object):
 
     def reuse_variable(self, o):
         # Check variable cache to reuse previously transformed variable if possible
-        e, l = o.operands()
+        e, l = o.ufl_operands
         v = self._variable_cache.get(l)
         if v is not None:
             return v
@@ -173,7 +167,7 @@ class Transformer(object):
 
     def reconstruct_variable(self, o):
         # Check variable cache to reuse previously transformed variable if possible
-        e, l = o.operands()
+        e, l = o.ufl_operands
         v = self._variable_cache.get(l)
         if v is not None:
             return v
@@ -192,7 +186,7 @@ class ReuseTransformer(Transformer):
         Transformer.__init__(self, variable_cache)
 
     # Set default behaviour for any Expr
-    expr = Transformer.reuse_if_possible
+    expr = Transformer.reuse_if_untouched
 
     # Set default behaviour for any Terminal
     terminal = Transformer.reuse
@@ -220,57 +214,13 @@ class VariableStripper(ReuseTransformer):
         ReuseTransformer.__init__(self)
 
     def variable(self, o):
-        return self.visit(o._expression)
+        return self.visit(o.ufl_operands[0])
 
-
-def transform(expression, handlers):
-    """Convert a UFLExpression according to rules defined by
-    the mapping handlers = dict: class -> conversion function."""
-    if isinstance(expression, Terminal):
-        ops = ()
-    else:
-        ops = [transform(o, handlers) for o in expression.operands()]
-    c = expression._uflclass
-    h = handlers.get(c, None)
-    if c is None:
-        error("Didn't find class %s among handlers." % c)
-    return h(expression, *ops)
-
-def transform_integrands(form, transform, integral_type=None):
-    """Apply transform(expression) to each integrand
-    expression in form, or to form if it is an Expr."""
-
-    if isinstance(form, Form):
-        newintegrals = []
-        for itg in form.integrals():
-            integrand = itg.integrand()
-            if integral_type is None or itg.integral_type() in integral_type:
-                integrand = transform(integrand)
-            if not isinstance(integrand, Zero):
-                newitg = itg.reconstruct(integrand)
-                newintegrals.append(newitg)
-        if not newintegrals:
-            debug("No integrals left after transformation, returning empty form.")
-        return Form(newintegrals)
-
-    elif isinstance(form, Integral):
-        integral = form
-        integrand = transform(integral.integrand())
-        new_integral = integral.reconstruct(integrand)
-        return new_integral
-
-    elif isinstance(form, Expr):
-        expr = form
-        return transform(expr)
-    else:
-        error("Expecting Form or Expr.")
 
 def apply_transformer(e, transformer, integral_type=None):
     """Apply transformer.visit(expression) to each integrand
     expression in form, or to form if it is an Expr."""
-    def _transform(expr):
-        return transformer.visit(expr)
-    return transform_integrands(e, _transform, integral_type)
+    return map_integrands(lambda expr: transformer.visit(expr), e, integral_type)
 
 def ufl2ufl(e):
     """Convert an UFL expression to a new UFL expression, with no changes.

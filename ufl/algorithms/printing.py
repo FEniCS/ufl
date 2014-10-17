@@ -24,11 +24,10 @@ from itertools import chain
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.expr import Expr
-from ufl.terminal import Terminal
+from ufl.core.expr import Expr
+from ufl.core.terminal import Terminal
 from ufl.form import Form
 from ufl.integral import Integral, Measure
-from ufl.algorithms.analysis import extract_arguments, extract_coefficients
 
 #--- Utilities for constructing informative strings from UFL objects ---
 
@@ -54,8 +53,8 @@ def integral_info(integral):
 def form_info(form):
     ufl_assert(isinstance(form, Form), "Expecting a Form.")
 
-    bf = extract_arguments(form)
-    cf = extract_coefficients(form)
+    bf = form.arguments()
+    cf = form.coefficients()
 
     ci = form.integrals_by_type("cell")
     ei = form.integrals_by_type("exterior_facet")
@@ -124,11 +123,11 @@ def _indent_string(n):
 
 def _tree_format_expression(expression, indentation, parentheses):
     ind = _indent_string(indentation)
-    if isinstance(expression, Terminal):
+    if expression._ufl_is_terminal_:
         s = ind + "%s" % repr(expression)
     else:
-        sops = [_tree_format_expression(o, indentation+1, parentheses) for o in expression.operands()]
-        s = ind + "%s\n" % expression._uflclass.__name__
+        sops = [_tree_format_expression(o, indentation+1, parentheses) for o in expression.ufl_operands]
+        s = ind + "%s\n" % expression._ufl_class_.__name__
         if parentheses and len(sops) > 1:
             s += ind + "(\n"
         s += "\n".join(sops)

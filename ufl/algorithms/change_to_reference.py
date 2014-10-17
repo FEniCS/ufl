@@ -21,7 +21,12 @@ from six.moves import xrange as range
 
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
-from ufl.classes import (Terminal, ReferenceGrad, Grad, Restricted,
+
+from ufl.core.multiindex import Index, indices
+from ufl.corealg.multifunction import MultiFunction
+from ufl.corealg.map_dag import map_expr_dag
+
+from ufl.classes import (Terminal, ReferenceGrad, Grad, Restricted, ReferenceValue,
                          Jacobian, JacobianInverse, JacobianDeterminant,
                          FacetJacobian, FacetJacobianInverse, FacetJacobianDeterminant,
                          CellFacetJacobian,
@@ -29,13 +34,26 @@ from ufl.classes import (Terminal, ReferenceGrad, Grad, Restricted,
                          FacetNormal, CellNormal,
                          CellVolume, FacetArea,
                          CellOrientation, FacetOrientation, QuadratureWeight)
+
 from ufl.constantvalue import as_ufl
-from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
-from ufl.algorithms.analysis import extract_type
-from ufl.indexing import Index, indices
 from ufl.tensors import as_tensor, as_vector
-from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
 from ufl.operators import sqrt, max_value, min_value
+
+from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
+from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
+
+
+# TODO: Move to ufl.corealg.multifunction?
+def memoized_handler(handler, cachename="_cache"):
+    def _memoized_handler(self, o):
+        c = getattr(self, cachename)
+        r = c.get(o)
+        if r is None:
+            r = handler(self, o)
+            c[o] = r
+        return r
+    return _memoized_handler
+
 
 
 """
@@ -133,7 +151,7 @@ class ChangeToReferenceValue(ReuseTransformer):
 
         element = o.element()
 
-        local_value = PullbackOf(o) # FIXME implement PullbackOf type
+        local_value = ReferenceValue(o)
 
         if isinstance(element, FiniteElement):
             S = element.sobolev_space()
@@ -160,9 +178,15 @@ class ChangeToReferenceValue(ReuseTransformer):
 
         return global_value
 
-class ChangeToReferenceGrad(ReuseTransformer):
+
+class ChangeToReferenceGrad(MultiFunction):
     def __init__(self):
-        ReuseTransformer.__init__(self)
+        MultiFunction.__init__(self)
+
+    expr = MultiFunction.reuse_if_untouched
+
+    def terminal(self, o):
+        return o
 
     def grad(self, o):
         # FIXME: Handle HDiv elements with contravariant piola mapping specially?
@@ -171,13 +195,13 @@ class ChangeToReferenceGrad(ReuseTransformer):
         # Peel off the Grads and count them, and get restriction if it's between the grad and the terminal
         ngrads = 0
         restricted = ''
-        while not isinstance(o, Terminal):
+        while not o._ufl_is_terminal_:
             if isinstance(o, Grad):
-                o, = o.operands()
+                o, = o.ufl_operands
                 ngrads += 1
             elif isinstance(o, Restricted):
                 restricted = o.side()
-                o, = o.operands()
+                o, = o.ufl_operands
         f = o
 
         # Get domain and create Jacobian inverse object
@@ -219,73 +243,70 @@ class ChangeToReferenceGrad(ReuseTransformer):
     def coefficient_derivative(self, o):
         error("Coefficient derivatives should be expanded before applying change to reference grad.")
 
-class ChangeToReferenceGeometry(ReuseTransformer):
+
+class ChangeToReferenceGeometry(MultiFunction):
     def __init__(self, physical_coordinates_known, coordinate_coefficient_mapping):
-        ReuseTransformer.__init__(self)
+        MultiFunction.__init__(self)
         self.coordinate_coefficient_mapping = coordinate_coefficient_mapping or {}
         self.physical_coordinates_known = physical_coordinates_known
-        self._rcache = {}
+        self._cache = {} # Needed by memoized_handler
 
+    expr = MultiFunction.reuse_if_untouched
+
+    def terminal(self, o):
+        return o
+
+    @memoized_handler
     def jacobian(self, o):
-        r = self._rcache.get(o)
-        if r is None:
-            domain = o.domain()
-            x = domain.coordinates()
-            if x is None:
-                r = o
-            else:
-                x = self.coordinate_coefficient_mapping[x]
-                r = ReferenceGrad(x)
-            self._rcache[o] = r
+        domain = o.domain()
+        x = domain.coordinates()
+        if x is None:
+            r = o
+        else:
+            x = self.coordinate_coefficient_mapping[x]
+            r = ReferenceGrad(x)
         return r
 
+    @memoized_handler
+    def _future_jacobian(self, o):
+        # If we're not using Coefficient to represent the spatial coordinate,
+        # we can just as well just return o here too unless we add representation
+        # of basis functions and dofs to the ufl layer (which is nice to avoid).
+        return o
+
+    @memoized_handler
     def jacobian_inverse(self, o):
-        r = self._rcache.get(o)
-        if r is None:
-            domain = o.domain()
-            J = self.jacobian(Jacobian(domain))
-            r = inverse_expr(J)
-            self._rcache[o] = r
-        return r
+        domain = o.domain()
+        J = self.jacobian(Jacobian(domain))
+        return inverse_expr(J)
 
+    @memoized_handler
     def jacobian_determinant(self, o):
-        r = self._rcache.get(o)
-        if r is None:
-            domain = o.domain()
-            J = self.jacobian(Jacobian(domain))
-            r = determinant_expr(J)
-            self._rcache[o] = r
-        return r
+        domain = o.domain()
+        J = self.jacobian(Jacobian(domain))
+        return determinant_expr(J)
 
+    @memoized_handler
     def facet_jacobian(self, o):
-        r = self._rcache.get(o)
-        if r is None:
-            domain = o.domain()
-            J = self.jacobian(Jacobian(domain))
-            RFJ = CellFacetJacobian(domain)
-            i, j, k = indices(3)
-            r = as_tensor(J[i, k]*RFJ[k, j], (i, j))
-            self._rcache[o] = r
-        return r
+        domain = o.domain()
+        J = self.jacobian(Jacobian(domain))
+        RFJ = CellFacetJacobian(domain)
+        i, j, k = indices(3)
+        return as_tensor(J[i, k]*RFJ[k, j], (i, j))
 
+    @memoized_handler
     def facet_jacobian_inverse(self, o):
-        r = self._rcache.get(o)
-        if r is None:
-            domain = o.domain()
-            FJ = self.facet_jacobian(FacetJacobian(domain))
-            r = inverse_expr(FJ)
-            self._rcache[o] = r
-        return r
+        domain = o.domain()
+        FJ = self.facet_jacobian(FacetJacobian(domain))
+        return inverse_expr(FJ)
 
+    @memoized_handler
     def facet_jacobian_determinant(self, o):
-        r = self._rcache.get(o)
-        if r is None:
-            domain = o.domain()
-            FJ = self.facet_jacobian(FacetJacobian(domain))
-            r = determinant_expr(FJ)
-            self._rcache[o] = r
-        return r
+        domain = o.domain()
+        FJ = self.facet_jacobian(FacetJacobian(domain))
+        return determinant_expr(FJ)
 
+    @memoized_handler
     def spatial_coordinate(self, o):
         "Fall through to coordinate field of domain if it exists."
         if self.physical_coordinates_known:
@@ -299,27 +320,38 @@ class ChangeToReferenceGeometry(ReuseTransformer):
                 x = self.coordinate_coefficient_mapping[x]
                 return x
 
+    @memoized_handler
+    def _future_spatial_coordinate(self, o):
+        "Fall through to coordinate field of domain if it exists."
+        if self.physical_coordinates_known:
+            return o
+        else:
+            # If we're not using Coefficient to represent the spatial coordinate,
+            # we can just as well just return o here too unless we add representation
+            # of basis functions and dofs to the ufl layer (which is nice to avoid).
+            return o
+
+    @memoized_handler
     def cell_coordinate(self, o):
         "Compute from physical coordinates if they are known, using the appropriate mappings."
         if self.physical_coordinates_known:
-            r = self._rcache.get(o)
-            if r is None:
-                K = self.jacobian_inverse(JacobianInverse(domain))
-                x = self.spatial_coordinate(SpatialCoordinate(domain))
-                x0 = CellOrigin(domain)
-                i, j = indices(2)
-                X = as_tensor(K[i, j] * (x[j] - x0[j]), (i,))
-                r = X
-            return r
+            K = self.jacobian_inverse(JacobianInverse(domain))
+            x = self.spatial_coordinate(SpatialCoordinate(domain))
+            x0 = CellOrigin(domain)
+            i, j = indices(2)
+            X = as_tensor(K[i, j] * (x[j] - x0[j]), (i,))
+            return X
         else:
             return o
 
+    @memoized_handler
     def facet_cell_coordinate(self, o):
         if self.physical_coordinates_known:
             error("Missing computation of facet reference coordinates from physical coordinates via mappings.")
         else:
             return o
 
+    @memoized_handler
     def cell_volume(self, o):
         domain = o.domain()
         if not domain.is_piecewise_linear_simplex_domain():
@@ -328,6 +360,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
         r0 = domain.cell().reference_volume()
         return abs(r * r0)
 
+    @memoized_handler
     def facet_area(self, o):
         domain = o.domain()
         if not domain.is_piecewise_linear_simplex_domain():
@@ -336,6 +369,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
         r0 = domain.cell().reference_facet_volume()
         return abs(r * r0)
 
+    @memoized_handler
     def circumradius(self, o):
         domain = o.domain()
         if not domain.is_piecewise_linear_simplex_domain():
@@ -380,6 +414,7 @@ class ChangeToReferenceGeometry(ReuseTransformer):
 
         return r
 
+    @memoized_handler
     def min_cell_edge_length(self, o):
         domain = o.domain()
         if not domain.is_piecewise_linear_simplex_domain():
@@ -388,23 +423,20 @@ class ChangeToReferenceGeometry(ReuseTransformer):
 
         J = self.jacobian(Jacobian(domain))
         trev = CellEdgeVectors(domain)
-        num_edges = trev.shape()[0]
+        num_edges = trev.ufl_shape[0]
         i, j, k = indices(3)
         elen = [sqrt((J[i, j]*trev[edge, j])*(J[i, k]*trev[edge, k])) for edge in range(num_edges)]
 
         if cellname == "triangle":
-            r = min_value(elen[0], min_value(elen[1], elen[2]))
-
+            return min_value(elen[0], min_value(elen[1], elen[2]))
         elif cellname == "tetrahedron":
             min1 = min_value(elen[0], min_value(elen[1], elen[2]))
             min2 = min_value(elen[3], min_value(elen[4], elen[5]))
-            r = min_value(min1, min2)
-
+            return min_value(min1, min2)
         else:
             error("Unhandled cell type %s." % cellname)
 
-        return r
-
+    @memoized_handler
     def max_cell_edge_length(self, o):
         domain = o.domain()
         if not domain.is_piecewise_linear_simplex_domain():
@@ -413,23 +445,20 @@ class ChangeToReferenceGeometry(ReuseTransformer):
 
         J = self.jacobian(Jacobian(domain))
         trev = CellEdgeVectors(domain)
-        num_edges = trev.shape()[0]
+        num_edges = trev.ufl_shape[0]
         i, j, k = indices(3)
         elen = [sqrt((J[i, j]*trev[edge, j])*(J[i, k]*trev[edge, k])) for edge in range(num_edges)]
 
         if cellname == "triangle":
-            r = max_value(elen[0], max_value(elen[1], elen[2]))
-
+            return max_value(elen[0], max_value(elen[1], elen[2]))
         elif cellname == "tetrahedron":
             max1 = max_value(elen[0], max_value(elen[1], elen[2]))
             max2 = max_value(elen[3], max_value(elen[4], elen[5]))
-            r = max_value(max1, max2)
-
+            return max_value(max1, max2)
         else:
             error("Unhandled cell type %s." % cellname)
 
-        return r
-
+    @memoized_handler
     def min_facet_edge_length(self, o):
         domain = o.domain()
         if not domain.is_piecewise_linear_simplex_domain():
@@ -437,22 +466,18 @@ class ChangeToReferenceGeometry(ReuseTransformer):
         cellname = domain.cell().cellname()
 
         if cellname == "triangle":
-            facet_area = self.facet_area(FacetArea(domain))
-            r = facet_area
-
+            return self.facet_area(FacetArea(domain))
         elif cellname == "tetrahedron":
             J = self.jacobian(Jacobian(domain))
             trev = FacetEdgeVectors(domain)
             num_edges = 3
             i, j, k = indices(3)
             elen = [sqrt((J[i, j]*trev[edge, j])*(J[i, k]*trev[edge, k])) for edge in range(num_edges)]
-            r = min_value(elen[0], min_value(elen[1], elen[2]))
-
+            return min_value(elen[0], min_value(elen[1], elen[2]))
         else:
             error("Unhandled cell type %s." % cellname)
 
-        return r
-
+    @memoized_handler
     def max_facet_edge_length(self, o):
         domain = o.domain()
         if not domain.is_piecewise_linear_simplex_domain():
@@ -460,136 +485,119 @@ class ChangeToReferenceGeometry(ReuseTransformer):
         cellname = domain.cell().cellname()
 
         if cellname == "triangle":
-            facet_area = self.facet_area(FacetArea(domain))
-            r = facet_area
-
+            return self.facet_area(FacetArea(domain))
         elif cellname == "tetrahedron":
             J = self.jacobian(Jacobian(domain))
             trev = FacetEdgeVectors(domain)
             num_edges = 3
             i, j, k = indices(3)
             elen = [sqrt((J[i, j]*trev[edge, j])*(J[i, k]*trev[edge, k])) for edge in range(num_edges)]
-            r = max_value(elen[0], max_value(elen[1], elen[2]))
-
+            return max_value(elen[0], max_value(elen[1], elen[2]))
         else:
             error("Unhandled cell type %s." % cellname)
 
-        return r
-
+    @memoized_handler
     def cell_normal(self, o):
         warning("Untested complicated code for cell normal. Please report if this works correctly or not.")
 
-        r = self._rcache.get(o)
-        if r is None:
-            domain = o.domain()
-            gdim = domain.geometric_dimension()
-            tdim = domain.topological_dimension()
+        domain = o.domain()
+        gdim = domain.geometric_dimension()
+        tdim = domain.topological_dimension()
 
-            if tdim == gdim - 1:
+        if tdim == gdim - 1:
+            if tdim == 2: # Surface in 3D
+                J = self.jacobian(Jacobian(domain))
+                cell_normal = cross_expr(J[:, 0], J[:, 1])
+            elif tdim == 1: # Line in 2D
+                # TODO: Document which normal direction this is
+                cell_normal = as_vector((-J[1, 0], J[0, 0]))
+            i = Index()
+            return cell_normal / sqrt(cell_normal[i]*cell_normal[i])
+        elif tdim == gdim:
+            return as_vector((0.0,)*tdim + (1.0,))
+        else:
+            error("What do you mean by cell normal in gdim={0}, tdim={1}?".format(gdim, tdim))
 
-                if tdim == 2: # Surface in 3D
-                    J = self.jacobian(Jacobian(domain))
-                    cell_normal = cross_expr(J[:, 0], J[:, 1])
-
-                elif tdim == 1: # Line in 2D
-                    # TODO: Document which normal direction this is
-                    cell_normal = as_vector((-J[1, 0], J[0, 0]))
-
-                i = Index()
-                cell_normal = cell_normal / sqrt(cell_normal[i]*cell_normal[i])
-
-            elif tdim == gdim:
-                cell_normal = as_vector((0.0,)*tdim + (1.0,))
-
-            else:
-                error("What do you mean by cell normal in gdim={0}, tdim={1}?".format(gdim, tdim))
-
-            r = cell_normal
-        return r
-
+    @memoized_handler
     def facet_normal(self, o):
-        r = self._rcache.get(o)
-        if r is None:
-            domain = o.domain()
-            gdim = domain.geometric_dimension()
-            tdim = domain.topological_dimension()
+        domain = o.domain()
+        gdim = domain.geometric_dimension()
+        tdim = domain.topological_dimension()
 
-            if tdim == 3:
-                FJ = self.facet_jacobian(FacetJacobian(domain))
+        if tdim == 3:
+            FJ = self.facet_jacobian(FacetJacobian(domain))
 
-                ufl_assert(gdim == 3, "Inconsistent dimensions.")
-                ufl_assert(FJ.shape() == (3, 2), "Inconsistent dimensions.")
+            ufl_assert(gdim == 3, "Inconsistent dimensions.")
+            ufl_assert(FJ.ufl_shape == (3, 2), "Inconsistent dimensions.")
+
+            # Compute signed scaling factor
+            scale = self.jacobian_determinant(JacobianDeterminant(domain))
+
+            # Compute facet normal direction of 3D cell, product of two tangent vectors
+            fo = FacetOrientation(domain)
+            ndir = (fo * scale) * cross_expr(FJ[:, 0], FJ[:, 1])
+
+            # Normalise normal vector
+            i = Index()
+            n = ndir / sqrt(ndir[i]*ndir[i])
+            r = n
+
+        elif tdim == 2:
+            FJ = self.facet_jacobian(FacetJacobian(domain))
+
+            if gdim == 2:
+                # 2D facet normal in 2D space
+                ufl_assert(FJ.ufl_shape == (2, 1), "Inconsistent dimensions.")
+
+                # Compute facet tangent
+                tangent = as_vector((FJ[0, 0], FJ[1, 0], 0))
+
+                # Compute cell normal
+                cell_normal = as_vector((0, 0, 1))
 
                 # Compute signed scaling factor
                 scale = self.jacobian_determinant(JacobianDeterminant(domain))
+            else:
+                # 2D facet normal in 3D space
+                ufl_assert(FJ.ufl_shape == (gdim, 1), "Inconsistent dimensions.")
 
-                # Compute facet normal direction of 3D cell, product of two tangent vectors
-                fo = FacetOrientation(domain)
-                ndir = (fo * scale) * cross_expr(FJ[:, 0], FJ[:, 1])
+                # Compute facet tangent
+                tangent = FJ[:, 0]
 
-                # Normalise normal vector
+                # Compute cell normal
+                cell_normal = self.cell_normal(CellNormal(domain))
+
+                # Compute signed scaling factor (input in the manifold case)
+                scale = CellOrientation(domain)
+
+            ufl_assert(len(tangent) == 3, "Inconsistent dimensions.")
+            ufl_assert(len(cell_normal) == 3, "Inconsistent dimensions.")
+
+            # Compute normal direction
+            cr = cross_expr(tangent, cell_normal)
+            if gdim == 2:
+                cr = as_vector((cr[0], cr[1]))
+            fo = FacetOrientation(domain)
+            ndir = (fo * scale) * cr
+
+            # Normalise normal vector
+            i = Index()
+            n = ndir / sqrt(ndir[i]*ndir[i])
+            r = n
+
+        elif tdim == 1:
+            J = self.jacobian(Jacobian(domain)) # dx/dX
+            fo = FacetOrientation(domain)
+            ndir = fo * J[:, 0]
+            if gdim == 1:
+                nlen = abs(ndir[0])
+            else:
                 i = Index()
-                n = ndir / sqrt(ndir[i]*ndir[i])
-                r = n
+                nlen = sqrt(ndir[i]*ndir[i])
+            n = ndir / nlen
+            r = n
 
-            elif tdim == 2:
-                FJ = self.facet_jacobian(FacetJacobian(domain))
-
-                if gdim == 2:
-                    # 2D facet normal in 2D space
-                    ufl_assert(FJ.shape() == (2, 1), "Inconsistent dimensions.")
-
-                    # Compute facet tangent
-                    tangent = as_vector((FJ[0, 0], FJ[1, 0], 0))
-
-                    # Compute cell normal
-                    cell_normal = as_vector((0, 0, 1))
-
-                    # Compute signed scaling factor
-                    scale = self.jacobian_determinant(JacobianDeterminant(domain))
-                else:
-                    # 2D facet normal in 3D space
-                    ufl_assert(FJ.shape() == (gdim, 1), "Inconsistent dimensions.")
-
-                    # Compute facet tangent
-                    tangent = FJ[:, 0]
-
-                    # Compute cell normal
-                    cell_normal = self.cell_normal(CellNormal(domain))
-
-                    # Compute signed scaling factor (input in the manifold case)
-                    scale = CellOrientation(domain)
-
-                ufl_assert(len(tangent) == 3, "Inconsistent dimensions.")
-                ufl_assert(len(cell_normal) == 3, "Inconsistent dimensions.")
-
-                # Compute normal direction
-                cr = cross_expr(tangent, cell_normal)
-                if gdim == 2:
-                    cr = as_vector((cr[0], cr[1]))
-                fo = FacetOrientation(domain)
-                ndir = (fo * scale) * cr
-
-                # Normalise normal vector
-                i = Index()
-                n = ndir / sqrt(ndir[i]*ndir[i])
-                r = n
-
-            elif tdim == 1:
-                J = self.jacobian(Jacobian(domain)) # dx/dX
-                fo = FacetOrientation(domain)
-                ndir = fo * J[:, 0]
-                if gdim == 1:
-                    nlen = abs(ndir[0])
-                else:
-                    i = Index()
-                    nlen = sqrt(ndir[i]*ndir[i])
-                n = ndir / nlen
-                r = n
-
-            self._rcache[o] = r
-
-        ufl_assert(r.shape() == o.shape(), "Inconsistent dimensions (in=%d, out=%d)." % (o.shape()[0], r.shape()[0]))
+        ufl_assert(r.ufl_shape == o.ufl_shape, "Inconsistent dimensions (in=%d, out=%d)." % (o.ufl_shape[0], r.ufl_shape[0]))
         return r
 
 
@@ -601,7 +609,9 @@ def change_to_reference_grad(e):
     @param e:
         An Expr or Form.
     """
-    return apply_transformer(e, ChangeToReferenceGrad())
+    #return apply_transformer(e, ChangeToReferenceGrad())
+    mf = ChangeToReferenceGrad()
+    return map_expr_dag(mf, e)
 
 
 def change_to_reference_geometry(e, physical_coordinates_known, coordinate_coefficient_mapping=None):
@@ -612,7 +622,8 @@ def change_to_reference_geometry(e, physical_coordinates_known, coordinate_coeff
     @param e:
         An Expr or Form.
     """
-    return apply_transformer(e, ChangeToReferenceGeometry(physical_coordinates_known, coordinate_coefficient_mapping))
+    mf = ChangeToReferenceGeometry(physical_coordinates_known, coordinate_coefficient_mapping)
+    return map_expr_dag(mf, e)
 
 
 def compute_integrand_scaling_factor(domain, integral_type):

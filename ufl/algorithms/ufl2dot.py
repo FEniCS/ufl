@@ -25,8 +25,8 @@ from six import itervalues
 from six.moves import xrange as range
 
 from ufl.log import error
-from ufl.expr import Expr
-from ufl.terminal import Terminal
+from ufl.core.expr import Expr
+from ufl.core.terminal import Terminal
 from ufl.form import Form
 from ufl.integral import Measure
 from ufl.variable import Variable
@@ -40,7 +40,7 @@ class ReprLabeller(MultiFunction):
     def terminal(self, e):
         return repr(e)
     def operator(self, e):
-        return e._uflclass.__name__.split(".")[-1]
+        return e._ufl_class_.__name__.split(".")[-1]
 
 class CompactLabeller(ReprLabeller):
     def __init__(self, function_mapping=None):
@@ -153,7 +153,7 @@ def build_entities(e, nodes, edges, nodeoffset, prefix="", labeller=None):
         ops = (e._expression,)
         label = "variable %d" % e._label._count
     else:
-        ops = e.operands()
+        ops = e.ufl_operands
         label = labeller(e)
 
     # Create node for parent e

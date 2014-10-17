@@ -20,9 +20,7 @@
 # Modified by Anders Logg, 2008
 
 from ufl.log import error
-from ufl.assertions import ufl_assert
-from ufl.expr import Expr
-from ufl.terminal import Terminal
+from ufl.core.expr import Expr
 from ufl.integral import Integral
 from ufl.form import Form
 
@@ -44,115 +42,5 @@ def iter_expressions(a):
         return (a,)
     error("Not an UFL type: %s" % str(type(a)))
 
-# Slow recursive version of traverse_terminals, kept here for illustration:
-def __old_traverse_terminals(expr):
-    if isinstance(expr, Terminal):
-        yield expr
-    else:
-        for o in expr.operands():
-            for t in traverse_terminals(o):
-                yield t
-
-# Faster (factor 10 or so) non-recursive version using a table instead of recursion (dynamic programming)
-def traverse_terminals(expr):
-    input = [expr]
-    while input:
-        e = input.pop()
-        ops = e.operands()
-        if ops: # Checking ops is faster than isinstance(e, Terminal)
-            input.extend(ops)
-        else:
-            yield e
-
-def traverse_unique_terminals(expr, visited=None):
-    input = [expr]
-    visited = visited or set()
-    while input:
-        e = input.pop()
-        if e not in visited:
-            visited.add(e)
-            ops = e.operands()
-            if ops:
-                input.extend(ops)
-            else:
-                yield e
-traverse_terminals2 = traverse_unique_terminals # TODO: Replace calls with this more descriptive name
-
-def traverse_operands(expr):
-    input = [expr]
-    while input:
-        e = input.pop()
-        if not isinstance(e, Terminal):
-            yield e
-            input.extend(e.operands())
-
-# Moved to common because it is without dependencies and this avoids circular deps
-from ufl.common import pre_traversal, post_traversal
-
-def pre_traversal(expr, stack=None):
-    """Yields o for each tree node o in expr, parent before child.
-    If a list is provided, the stack is updated while iterating."""
-    ufl_assert(isinstance(expr, Expr), "Expecting Expr.")
-    # yield parent
-    yield expr
-    # yield children
-    if not isinstance(expr, Terminal):
-        if stack is not None:
-            stack.append(expr)
-        for o in expr.operands():
-            for i in pre_traversal(o, stack):
-                yield i
-        if stack is not None:
-            stack.pop()
-
-def post_traversal(expr, stack=None):
-    """Yields o for each tree node o in expr, parent after child.
-    If a list is provided, the stack is updated while iterating."""
-    ufl_assert(isinstance(expr, Expr), "Expecting Expr.")
-    # yield children
-    if stack is not None:
-        stack.append(expr)
-    for o in expr.operands():
-        for i in post_traversal(o, stack):
-            yield i
-    if stack is not None:
-        stack.pop()
-    # yield parent
-    yield expr
-
-def pre_walk(a, func):
-    """Call func on each expression tree node in a, parent before child.
-    The argument a can be a Form, Integral or Expr."""
-    for e in iter_expressions(a):
-        for o in pre_traversal(e):
-            func(o)
-
-def post_walk(a, func):
-    """Call func on each expression tree node in a, parent after child.
-    The argument a can be a Form, Integral or Expr."""
-    for e in iter_expressions(a):
-        for o in post_traversal(e):
-            func(o)
-
-def _walk(expr, pre_func, post_func, stack):
-    # visit parent on the way in
-    pre_func(expr, stack)
-    # visit children
-    stack.append(expr)
-    for o in expr.operands():
-        _walk(o, pre_func, post_func, stack)
-    stack.pop()
-    # visit parent on the way out
-    post_func(expr, stack)
-
-def walk(a, pre_func, post_func, stack=None):
-    """Call pre_func and post_func on each expression tree node in a.
-
-    The functions are called on a node before and
-    after its children are visited respectively.
-
-    The argument a can be a Form, Integral or Expr."""
-    if stack is None:
-        stack = []
-    for e in iter_expressions(a):
-        _walk(e, pre_func, post_func, stack)
+# The rest is moved here:
+#from ufl.corealg.traversal import pre_traversal, post_traversal, traverse_terminals, traverse_unique_terminals

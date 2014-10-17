@@ -22,7 +22,7 @@
 import ufl
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
-from ufl.expr import Expr
+from ufl.core.expr import Expr
 from ufl.checks import (is_true_ufl_scalar, is_python_scalar, is_globally_constant,
                         is_scalar_constant_expression)
 from ufl.measure import Measure

@@ -32,10 +32,11 @@ from ufl.classes import Expr, Terminal, ListTensor, IndexSum, Indexed, FormArgum
 from ufl.tensors import as_tensor, ComponentTensor
 from ufl.permutation import compute_indices
 from ufl.constantvalue import Zero
-from ufl.indexing import Index, FixedIndex, MultiIndex
+from ufl.core.multiindex import Index, FixedIndex, MultiIndex
 from ufl.differentiation import Grad
-from ufl.algorithms.transformer import ReuseTransformer, apply_transformer, transform_integrands
-from ufl.algorithms.analysis import has_type
+from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
+from ufl.corealg.traversal import pre_traversal
+
 
 class IndexExpander(ReuseTransformer):
     """..."""
@@ -51,14 +52,14 @@ class IndexExpander(ReuseTransformer):
         return ()
 
     def terminal(self, x):
-        if x.shape():
+        if x.ufl_shape:
             c = self.component()
-            ufl_assert(len(x.shape()) == len(c), "Component size mismatch.")
+            ufl_assert(len(x.ufl_shape) == len(c), "Component size mismatch.")
             return x[c]
         return x
 
     def form_argument(self, x):
-        sh = x.shape()
+        sh = x.ufl_shape
         if sh == ():
             return x
         else:
@@ -77,30 +78,32 @@ class IndexExpander(ReuseTransformer):
             return x[c]
 
     def zero(self, x):
-        ufl_assert(len(x.shape()) == len(self.component()), "Component size mismatch.")
-        s = set(x.free_indices()) - set(self._index2value.keys())
+        ufl_assert(len(x.ufl_shape) == len(self.component()), "Component size mismatch.")
+
+        s = set(x.ufl_free_indices) - set(i.count() for i in self._index2value.keys())
         if s: error("Free index set mismatch, these indices have no value assigned: %s." % str(s))
+
         # There is no index/shape info in this zero because that is asserted above
         return Zero()
 
     def scalar_value(self, x):
-        if len(x.shape()) != len(self.component()):
+        if len(x.ufl_shape) != len(self.component()):
             self.print_visit_stack()
-        ufl_assert(len(x.shape()) == len(self.component()), "Component size mismatch.")
+        ufl_assert(len(x.ufl_shape) == len(self.component()), "Component size mismatch.")
 
-        s = set(x.free_indices()) - set(self._index2value.keys())
+        s = set(x.ufl_free_indices) - set(i.count() for i in self._index2value.keys())
         if s: error("Free index set mismatch, these indices have no value assigned: %s." % str(s))
 
-        return x._uflclass(x.value())
+        return x._ufl_class_(x.value())
 
     def division(self, x):
-        a, b = x.operands()
+        a, b = x.ufl_operands
 
         # Not accepting nonscalars in division anymore
-        ufl_assert(a.shape() == (), "Not expecting tensor in division.")
+        ufl_assert(a.ufl_shape == (), "Not expecting tensor in division.")
         ufl_assert(self.component() == (), "Not expecting component in division.")
 
-        ufl_assert(b.shape() == (), "Not expecting division by tensor.")
+        ufl_assert(b.ufl_shape == (), "Not expecting division by tensor.")
         a = self.visit(a)
 
         #self._components.push(())
@@ -111,12 +114,12 @@ class IndexExpander(ReuseTransformer):
 
     def index_sum(self, x):
         ops = []
-        summand, multiindex = x.operands()
+        summand, multiindex = x.ufl_operands
         index, = multiindex
 
         # TODO: For the list tensor purging algorithm, do something like:
         # if index not in self._to_expand:
-        #     return self.expr(x, *[self.visit(o) for o in x.operands()])
+        #     return self.expr(x, *[self.visit(o) for o in x.ufl_operands])
 
         for value in range(x.dimension()):
             self._index2value.push(index, value)
@@ -124,9 +127,9 @@ class IndexExpander(ReuseTransformer):
             self._index2value.pop()
         return sum(ops)
 
-    def _multi_index(self, x):
+    def _multi_index_values(self, x):
         comp = []
-        for i in x:
+        for i in x._indices:
             if isinstance(i, FixedIndex):
                 comp.append(i._value)
             elif isinstance(i, Index):
@@ -134,13 +137,14 @@ class IndexExpander(ReuseTransformer):
         return tuple(comp)
 
     def multi_index(self, x):
-        return MultiIndex(self._multi_index(x), {})
+        comp = self._multi_index_values(x)
+        return MultiIndex(tuple(FixedIndex(i) for i in comp))
 
     def indexed(self, x):
-        A, ii = x.operands()
+        A, ii = x.ufl_operands
 
         # Push new component built from index value map
-        self._components.push(self._multi_index(ii))
+        self._components.push(self._multi_index_values(ii))
 
         # Hide index values (doing this is not correct behaviour)
         #for i in ii:
@@ -161,13 +165,13 @@ class IndexExpander(ReuseTransformer):
     def component_tensor(self, x):
         # This function evaluates the tensor expression
         # with indices equal to the current component tuple
-        expression, indices = x.operands()
-        ufl_assert(expression.shape() == (), "Expecting scalar base expression.")
+        expression, indices = x.ufl_operands
+        ufl_assert(expression.ufl_shape == (), "Expecting scalar base expression.")
 
         # Update index map with component tuple values
         comp = self.component()
         ufl_assert(len(indices) == len(comp), "Index/component mismatch.")
-        for i, v in zip(indices._indices, comp):
+        for i, v in zip(indices.indices(), comp):
             self._index2value.push(i, v)
         self._components.push(())
 
@@ -184,7 +188,7 @@ class IndexExpander(ReuseTransformer):
         # Pick the right subtensor and subcomponent
         c = self.component()
         c0, c1 = c[0], c[1:]
-        op = x.operands()[c0]
+        op = x.ufl_operands[c0]
         # Evaluate subtensor with this subcomponent
         self._components.push(c1)
         r = self.visit(op)
@@ -192,19 +196,21 @@ class IndexExpander(ReuseTransformer):
         return r
 
     def grad(self, x):
-        f, = x.operands()
+        f, = x.ufl_operands
         ufl_assert(isinstance(f, (Terminal, Grad)),
                    "Expecting expand_derivatives to have been applied.")
         # No need to visit child as long as it is on the form [Grad]([Grad](terminal))
         return x[self.component()]
 
+
 def expand_indices(e):
     return apply_transformer(e, IndexExpander())
 
-def purge_list_tensors(e):
+
+def purge_list_tensors(expr):
     """Get rid of all ListTensor instances by expanding
     expressions to use their components directly.
     Will usually increase the size of the expression."""
-    if has_type(e, ListTensor):
-        return expand_indices(e) # TODO: Only expand what's necessary to get rid of list tensors
-    return e
+    if any(isinstance(subexpr, ListTensor) for subexpr in pre_traversal(expr)):
+        return expand_indices(expr) # TODO: Only expand what's necessary to get rid of list tensors
+    return expr

@@ -26,7 +26,7 @@ from ufl.utils.sorting import sorted_by_key
 from ufl.assertions import ufl_assert
 from ufl.form import Form
 from ufl.finiteelement import FiniteElementBase
-from ufl.expr import Expr
+from ufl.core.expr import Expr
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 
@@ -90,7 +90,7 @@ def execute_ufl_code(uflcode, filename):
         basename = "%s_debug" % basename
         pyname = "%s.py" % basename
         pycode = "#!/usr/bin/env python\nfrom ufl import *\nset_level(DEBUG)\n" + uflcode
-        with file(pyname, "w") as f:
+        with open(pyname, "w") as f:
             f.write(pycode)
         warning(infostring % pyname)
         m = __import__(basename)

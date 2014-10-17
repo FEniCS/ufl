@@ -27,123 +27,211 @@ is more robust w.r.t. argument numbering than using repr."""
 from six.moves import zip
 
 from ufl.log import error
-from ufl.terminal import Terminal
+from ufl.core.terminal import Terminal
 from ufl.argument import Argument
 from ufl.coefficient import Coefficient
-from ufl.indexing import Index, FixedIndex, MultiIndex
+from ufl.core.multiindex import Index, FixedIndex, MultiIndex
 from ufl.variable import Label
 from ufl.geometry import GeometricQuantity
 
+
 def _cmp3(a, b):
     "Replacement for cmp(), removed in Python 3."
-    # TODO: Which is faster?
     return -1 if (a < b) else (+1 if a > b else 0)
-    #return (a > b) - (a < b)
 
-def cmp_expr(a, b):
+
+def _cmp_terminal(a, b):
+    # Is it a...
+    # ... MultiIndex? Careful not to depend on Index.count() here! This is placed first because it is most frequent.
+    if isinstance(a, MultiIndex):
+        # Make decision based on the first index pair possible
+        for i, j in zip(a._indices, b._indices):
+            fix1 = isinstance(i, FixedIndex)
+            fix2 = isinstance(j, FixedIndex)
+            if fix1 and fix2:
+                # Both are FixedIndex, sort by value
+                x, y = i._value, j._value
+                if x < y:
+                    return -1
+                elif x > y:
+                    return +1
+                else:
+                    # Same value, no decision
+                    continue
+            elif fix1:
+                # Sort fixed before free
+                return -1
+            elif fix2:
+                # Sort fixed before free
+                return +1
+            else:
+                # Both are Index, no decision, do not depend on count!
+                pass
+        # Failed to make a decision, return 0 by default
+        # (this does not mean equality, it could be e.g.
+        # [i,0] vs [j,0] because the counts of i,j cannot be used)
+        return 0
+
+    # ... Label object?
+    elif isinstance(a, Label):
+        # Don't compare counts! Causes circular problems when renumbering to get a canonical form.
+        # Therefore, even though a and b are not equal in general (__eq__ won't be True),
+        # but for this sorting they are considered equal and we return 0.
+        return 0
+
+    # ... Coefficient?
+    elif isinstance(a, Coefficient):
+        # It's ok to compare relative counts for Coefficients,
+        # since their ordering is a property of the form
+        x, y = a._count, b._count
+        if x < y:
+            return -1
+        elif x > y:
+            return +1
+        else:
+            return 0
+
+    # ... Argument?
+    elif isinstance(a, Argument):
+        # It's ok to compare relative number and part for Arguments,
+        # since their ordering is a property of the form
+        x = (a._number, a._part)
+        y = (b._number, b._part)
+        if x < y:
+            return -1
+        elif x > y:
+            return +1
+        else:
+            return 0
+
+    # ... another kind of Terminal object?
+    else:
+        # The cost of repr on a terminal is fairly small, and bounded
+        x, y = repr(a), repr(b)
+        if x < y:
+            return -1
+        elif x > y:
+            return +1
+        else:
+            return 0
+
+
+def _cmp_operator(a, b):
+    # If the hash is the same, assume equal for the purpose of sorting.
+    # This introduces a minor chance of nondeterministic behaviour, just as with MultiIndex.
+    # Although collected statistics for complicated forms suggest that the hash
+    # function is pretty good so there shouldn't be collisions.
+    if hash(a) == hash(b): # FIXME: Test this for performance improvement.
+        return 0
+
+    aops = a.ufl_operands
+    bops = b.ufl_operands
+
+    # Sort by children in natural order
+    for (r, s) in zip(aops, bops):
+        # Ouch! This becomes worst case O(n) then?
+        # FIXME: Perhaps replace with comparison of hash value? But that's not stable between python versions.
+        c = cmp_expr(r, s)
+        if c:
+            return c
+
+    # All children compare as equal, a and b must be equal. Except for...
+    # A few type, notably ExprList and ExprMapping, can have a different number of operands.
+    # Sort by the length if it's different. Doing this after sorting by children because
+    # these types are rare so we try to avoid the cost of this check for most nodes.
+    return _cmp3(len(aops), len(bops))
+
+
+def cmp_expr2(a, b):
     "Sorting rule for Expr objects. NB! Do not use to compare for equality!"
 
-    # First sort quickly by type name
-    c = _cmp3(a._uflclass.__name__, b._uflclass.__name__)
-    if c != 0:
+    # First sort quickly by type code
+    c = _cmp3(a._ufl_typecode_, b._ufl_typecode_)
+    if c:
         return c
 
     # Now we know that the type is the same, check further based on type specific properties.
-    # Is it a...
-    if isinstance(a, Terminal):
-        # ... MultiIndex? Careful not to depend on Index.count() here! This is placed first because it is most frequent.
-        if isinstance(a, MultiIndex):
-            # Make decision based on the first index pair possible
-            for i, j in zip(a._indices, b._indices):
-                if isinstance(i, FixedIndex):
-                    if isinstance(j, FixedIndex):
-                        # Both are FixedIndex, sort by value
-                        c = _cmp3(i._value, j._value)
-                        if c:
-                            return c
-                    else:
-                        return +1
-                else:
-                    if isinstance(j, FixedIndex):
-                        return -1
-                    else:
-                        pass # Both are Index, do not depend on count!
-            # Failed to make a decision, return 0 by default (this does not mean equality, it could be e.g. [i,0] vs [j,0] because the counts of i,j cannot be used)
-            return 0
-
-        # ... Label object?
-        elif isinstance(a, Label):
-            # Don't compare counts! Causes circular problems when renumbering to get a canonical form.
-            # Therefore, even though a and b are not equal in general (__eq__ won't be True),
-            # but for this sorting they are considered equal and we return 0.
-            return 0
-
-        # ... Coefficient?
-        elif isinstance(a, Coefficient):
-            # It's ok to compare relative counts for Coefficients,
-            # since their ordering is a property of the form
-            return _cmp3(a._count, b._count)
-
-        # ... Argument?
-        elif isinstance(a, Argument):
-            # It's ok to compare relative number and part for Arguments,
-            # since their ordering is a property of the form
-            return _cmp3((a._number, a._part), (b._number, b._part))
-
-        # ... another kind of Terminal object?
-        else:
-            # The cost of repr on a terminal is fairly small, and bounded
-            return _cmp3(repr(a), repr(b))
+    if a._ufl_is_terminal_:
+        return _cmp_terminal(a, b)
     else:
-        # If the hash is the same, assume equal for the purpose of sorting. This introduces a minor chance of nondeterministic behaviour.
-        if 0:
-            if hash(a) == hash(b): # FIXME: Test this for performance improvement.
-                return 0
+        return _cmp_operator(a, b)
 
-        # TODO: Since the type is the same, the number of children is always the same? Remove?
-        if 1:
-            aops = a.operands()
-            bops = b.operands()
-            c = _cmp3(len(aops), len(bops))
-            if c != 0:
+
+# FIXME: Test and benchmark this! Could be faster since it avoids the recursion.
+def cmp_expr(a, b):
+
+    # Modelled after pre_traversal to avoid recursion:
+    left = [(a, b)]
+    while left:
+        a, b = left.pop()
+
+        # First sort quickly by type code
+        x, y = a._ufl_typecode_, b._ufl_typecode_
+        if x < y:
+            return -1
+        elif x > y:
+            return +1
+
+        # Now we know that the type is the same, check further based on type specific properties.
+        if a._ufl_is_terminal_:
+            c = _cmp_terminal(a, b)
+            if c:
                 return c
+        else:
+            # If the hash is the same, assume equal for the purpose of sorting.
+            # This introduces a minor chance of nondeterministic behaviour, just as with MultiIndex.
+            # Although collected statistics for complicated forms suggest that the hash
+            # function is pretty good so there shouldn't be collisions.
+            #if hash(a) == hash(b): # FIXME: Test this for performance improvement.
+            #    return 0
 
-        # Sort by children in natural order
-        for (r, s) in zip(aops, bops):
-            # Ouch! This becomes worst case O(n) then?
-            # FIXME: Perhaps replace with comparison of hash value? Is that stable between runs?
-            c = cmp_expr(r, s)
-            if c != 0:
-                return c
+            # Delve into subtrees
+            aops = a.ufl_operands
+            bops = b.ufl_operands
 
-        # All children compare as equal, a and b must be equal
-        return 0
+            # Sort by children in natural order
+            for (r, s) in zip(aops, bops):
+                # Skip subtree if objects are the same
+                if r is s:
+                    continue
+                # Append subtree for further inspection
+                left.append((r, s))
+
+            # All children compare as equal, a and b must be equal. Except for...
+            # A few type, notably ExprList and ExprMapping, can have a different number of operands.
+            # Sort by the length if it's different. Doing this after sorting by children because
+            # these types are rare so we try to avoid the cost of this check for most nodes.
+            x, y = len(aops), len(bops)
+            if x < y:
+                return -1
+            elif x > y:
+                return +1
+
+    # Equal if we get out of the above loop!
+    return 0
+
+
 
 # Not in python 2.6...
 #from functools import cmp_to_key
 
-class ExprKey(object):
-    __slots__ = ('x',)
-    def __init__(self, x):
-        self.x = x
-    def __lt__(self, other):
-        return cmp_expr(self.x, other.x) < 0
 
 class ExprKey(object):
     __slots__ = ('x',)
+
     def __init__(self, x):
         self.x = x
+
     def __lt__(self, other):
         return cmp_expr(self.x, other.x) < 0
 
-def expr_key(expr):
-    return ExprKey(expr)
 
 def sorted_expr(seq):
-    return sorted(seq, key=expr_key)
+    return sorted(seq, key=ExprKey)
+
 
 def sorted_expr_sum(seq):
-    seq2 = sorted(seq, key=expr_key)
+    seq2 = sorted(seq, key=ExprKey)
     s = seq2[0]
     for e in seq2[1:]:
         s = s + e

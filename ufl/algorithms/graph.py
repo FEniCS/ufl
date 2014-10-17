@@ -23,7 +23,7 @@ from six.moves import zip, map
 from heapq import heapify, heappop, heappush
 
 #from ufl import *
-from ufl.algorithms.traversal import pre_traversal
+from ufl.corealg.traversal import pre_traversal
 from ufl.algorithms.printing import tree_format
 from ufl.algorithms.multifunction import MultiFunction
 from ufl.classes import Terminal
@@ -69,7 +69,7 @@ def build_graph(expr): # O(n)
             i = len(V)
             handled[v] = i
             V.append(v)
-            for o in v.operands():
+            for o in v.ufl_operands:
                 j = handled[o]
                 e = (i, j)
                 E.append(e)
@@ -284,11 +284,11 @@ def rebuild_tree(G):
     subtrees = [None]*n
     for i in dfo:
         v = V[i]
-        if not isinstance(v, Terminal):
+        if not v._ufl_is_terminal_:
             # Fetch already reconstructed child vertices
             # and reconstruct non-terminal node from them
             ops = tuple(subtrees[j] for j in Vout[i])
-            if all_is(ops, v.operands()):
+            if all_is(ops, v.ufl_operands):
                 pass
             else:
                 v = v.reconstruct(*ops)
@@ -324,10 +324,6 @@ class StringDependencyDefiner(MultiFunction):
 
     def coefficient(self, x):
         default = frozenset(("c", "x"))
-        return self.coefficient_deps.get(x, default)
-
-    def constant(self, x):
-        default = frozenset(("c",))
         return self.coefficient_deps.get(x, default)
 
     def geometric_quantity(self, x):

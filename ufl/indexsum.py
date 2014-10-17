@@ -21,93 +21,77 @@ from six.moves import xrange as range
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.expr import Expr
-from ufl.operatorbase import AlgebraOperator
-from ufl.indexing import Index, MultiIndex, as_multi_index
+from ufl.core.expr import Expr
+from ufl.core.operator import Operator
+from ufl.core.multiindex import Index, MultiIndex, as_multi_index
 from ufl.precedence import parstr
 from ufl.common import EmptyDict
+from ufl.core.ufl_type import ufl_type
+from ufl.constantvalue import Zero
 
 #--- Sum over an index ---
 
-class IndexSum(AlgebraOperator):
-    __slots__ = ("_summand", "_index", "_dimension", "_free_indices", "_index_dimensions")
+@ufl_type(num_ops=2)
+class IndexSum(Operator):
+    __slots__ = ("_dimension", "ufl_free_indices", "ufl_index_dimensions")
 
     def __new__(cls, summand, index):
+        # Error checks
         if not isinstance(summand, Expr):
             error("Expecting Expr instance, not %s." % repr(summand))
+        if not isinstance(index, MultiIndex):
+            error("Expecting MultiIndex instance, not %s." % repr(index))
+        if len(index) != 1:
+            error("Expecting a single Index only.")
 
-        from ufl.constantvalue import Zero
+        # Simplification to zero
         if isinstance(summand, Zero):
-            sh = summand.shape()
+            sh = summand.ufl_shape
+            j, = index
+            fi = summand.ufl_free_indices
+            fid = summand.ufl_index_dimensions
+            pos = fi.index(j.count())
+            fi = fi[:pos] + fi[pos+1:]
+            fid = fid[:pos] + fid[pos+1:]
+            return Zero(sh, fi, fid)
 
-            if isinstance(index, Index):
-                j = index
-            elif isinstance(index, MultiIndex):
-                if len(index) != 1:
-                    error("Expecting a single Index only.")
-                j, = index
-
-            fi = tuple(i for i in summand.free_indices() if not i == j)
-            idims = dict(summand.index_dimensions())
-            del idims[j]
-            return Zero(sh, fi, idims)
-        return AlgebraOperator.__new__(cls)
+        return Operator.__new__(cls)
 
     def __init__(self, summand, index):
-        AlgebraOperator.__init__(self)
-
-        if isinstance(index, Index):
-            j = index
-        elif isinstance(index, MultiIndex):
-            if len(index) != 1:
-                error("Expecting a single Index only.")
-            j, = index
-
-        self._summand = summand
-        self._index_dimensions = dict(summand.index_dimensions())
-        self._free_indices = tuple(i for i in summand.free_indices() if not i == j)
-
-        d = self._index_dimensions[j]
-        self._index = as_multi_index(index, (d,))
-        ufl_assert(isinstance(self._index, MultiIndex), "Error in initialization of index sum.")
-        self._dimension = d
-        del self._index_dimensions[j]
-        if not self._index_dimensions:
-            self._index_dimensions = EmptyDict
+        j, = index
+        fi = summand.ufl_free_indices
+        fid = summand.ufl_index_dimensions
+        pos = fi.index(j.count())
+        self._dimension = fid[pos]
+        self.ufl_free_indices = fi[:pos] + fi[pos+1:]
+        self.ufl_index_dimensions = fid[:pos] + fid[pos+1:]
+        Operator.__init__(self, (summand, index))
 
     def index(self):
-        return self._index[0]
+        return self.ufl_operands[1][0]
 
     def dimension(self):
         return self._dimension
 
-    def operands(self):
-        return (self._summand, self._index)
-
-    def free_indices(self):
-        return self._free_indices
-
-    def index_dimensions(self):
-        return self._index_dimensions
-
-    def shape(self):
-        return self._summand.shape()
+    @property
+    def ufl_shape(self):
+        return self.ufl_operands[0].ufl_shape
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
-        return self._summand.is_cellwise_constant()
+        return self.ufl_operands[0].is_cellwise_constant()
 
     def evaluate(self, x, mapping, component, index_values):
-        i, = self._index
+        i, = self.ufl_operands[1]
         tmp = 0
         for k in range(self._dimension):
             index_values.push(i, k)
-            tmp += self._summand.evaluate(x, mapping, component, index_values)
+            tmp += self.ufl_operands[0].evaluate(x, mapping, component, index_values)
             index_values.pop()
         return tmp
 
     def __str__(self):
-        return "sum_{%s} %s " % (str(self._index), parstr(self._summand, self))
+        return "sum_{%s} %s " % (str(self.ufl_operands[1]), parstr(self.ufl_operands[0], self))
 
     def __repr__(self):
-        return "IndexSum(%r, %r)" % (self._summand, self._index)
+        return "IndexSum(%r, %r)" % (self.ufl_operands[0], self.ufl_operands[1])

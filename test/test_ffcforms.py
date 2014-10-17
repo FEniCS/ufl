@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env py.test
 """Unit tests including all demo forms from FFC 0.5.0. The forms are
 modified (with comments) to work with the UFL notation which differs
 from the FFC notation in some places."""
@@ -6,367 +6,392 @@ from the FFC notation in some places."""
 __author__ = "Anders Logg (logg@simula.no) et al."
 __date__ = "2008-04-09 -- 2008-09-26"
 __copyright__ = "Copyright (C) 2008 Anders Logg et al."
-__license__  = "GNU GPL version 3 or any later version"
+__license__ = "GNU GPL version 3 or any later version"
 
 # Examples copied from the FFC demo directory, examples contributed
 # by Johan Jansson, Kristian Oelgaard, Marie Rognes, and Garth Wells.
 
-from ufltestcase import UflTestCase, main
+import pytest
 from ufl import *
 
-class FFCTestCase(UflTestCase):
 
-    def testConstant(self):
+def testConstant():
 
-        element = FiniteElement("Lagrange", "triangle", 1)
+    element = FiniteElement("Lagrange", "triangle", 1)
 
-        v = TestFunction(element)
-        u = TrialFunction(element)
-        f = Coefficient(element)
+    v = TestFunction(element)
+    u = TrialFunction(element)
+    f = Coefficient(element)
 
-        c = Constant("triangle")
-        d = VectorConstant("triangle")
+    c = Constant("triangle")
+    d = VectorConstant("triangle")
 
-        a = c*dot(grad(v), grad(u))*dx
+    a = c * dot(grad(v), grad(u)) * dx
 
-        # FFC notation: L = dot(d, grad(v))*dx
-        L = inner(d, grad(v))*dx
+    # FFC notation: L = dot(d, grad(v))*dx
+    L = inner(d, grad(v)) * dx
 
-    def testElasticity(self):
 
-        element = VectorElement("Lagrange", "tetrahedron", 1)
+def testElasticity():
 
-        v = TestFunction(element)
-        u = TrialFunction(element)
+    element = VectorElement("Lagrange", "tetrahedron", 1)
 
-        def eps(v):
-            # FFC notation: return grad(v) + transp(grad(v))
-            return grad(v) + (grad(v)).T
+    v = TestFunction(element)
+    u = TrialFunction(element)
 
-        # FFC notation: a = 0.25*dot(eps(v), eps(u))*dx
-        a = 0.25*inner(eps(v), eps(u))*dx
+    def eps(v):
+        # FFC notation: return grad(v) + transp(grad(v))
+        return grad(v) + (grad(v)).T
 
-    def testEnergyNorm(self):
+    # FFC notation: a = 0.25*dot(eps(v), eps(u))*dx
+    a = 0.25 * inner(eps(v), eps(u)) * dx
 
-        element = FiniteElement("Lagrange", "tetrahedron", 1)
 
-        v = Coefficient(element)
-        a = (v*v + dot(grad(v), grad(v)))*dx
+def testEnergyNorm():
 
-    def testEquation(self):
+    element = FiniteElement("Lagrange", "tetrahedron", 1)
 
-        element = FiniteElement("Lagrange", "triangle", 1)
+    v = Coefficient(element)
+    a = (v * v + dot(grad(v), grad(v))) * dx
 
-        k = 0.1
 
-        v = TestFunction(element)
-        u = TrialFunction(element)
-        u0 = Coefficient(element)
+def testEquation():
 
-        F = v*(u - u0)*dx + k*dot(grad(v), grad(0.5*(u0 + u)))*dx
+    element = FiniteElement("Lagrange", "triangle", 1)
 
-        a = lhs(F)
-        L = rhs(F)
+    k = 0.1
 
-    def testFunctionOperators(self):
+    v = TestFunction(element)
+    u = TrialFunction(element)
+    u0 = Coefficient(element)
 
-        element = FiniteElement("Lagrange", "triangle", 1)
+    F = v * (u - u0) * dx + k * dot(grad(v), grad(0.5 * (u0 + u))) * dx
 
-        v = TestFunction(element)
-        u = TrialFunction(element)
-        f = Coefficient(element)
-        g = Coefficient(element)
+    a = lhs(F)
+    L = rhs(F)
 
-        # FFC notation: a = sqrt(1/modulus(1/f))*sqrt(g)*dot(grad(v), grad(u))*dx + v*u*sqrt(f*g)*g*dx
-        a = sqrt(1/abs(1/f))*sqrt(g)*dot(grad(v), grad(u))*dx + v*u*sqrt(f*g)*g*dx
 
-    def testHeat(self):
+def testFunctionOperators():
 
-        element = FiniteElement("Lagrange", "triangle", 1)
+    element = FiniteElement("Lagrange", "triangle", 1)
 
-        v  = TestFunction(element)
-        u1 = TrialFunction(element)
-        u0 = Coefficient(element)
-        c  = Coefficient(element)
-        f  = Coefficient(element)
-        k  = Constant("triangle")
+    v = TestFunction(element)
+    u = TrialFunction(element)
+    f = Coefficient(element)
+    g = Coefficient(element)
 
-        a = v*u1*dx + k*c*dot(grad(v), grad(u1))*dx
-        L = v*u0*dx + k*v*f*dx
+    # FFC notation: a = sqrt(1/modulus(1/f))*sqrt(g)*dot(grad(v), grad(u))*dx
+    # + v*u*sqrt(f*g)*g*dx
+    a = sqrt(1 / abs(1 / f)) * sqrt(g) * \
+        dot(grad(v), grad(u)) * dx + v * u * sqrt(f * g) * g * dx
 
-    def testMass(self):
 
-        element = FiniteElement("Lagrange", "tetrahedron", 3)
+def testHeat():
 
-        v = TestFunction(element)
-        u = TrialFunction(element)
+    element = FiniteElement("Lagrange", "triangle", 1)
 
-        a = v*u*dx
+    v = TestFunction(element)
+    u1 = TrialFunction(element)
+    u0 = Coefficient(element)
+    c = Coefficient(element)
+    f = Coefficient(element)
+    k = Constant("triangle")
 
-    def testMixedMixedElement(self):
+    a = v * u1 * dx + k * c * dot(grad(v), grad(u1)) * dx
+    L = v * u0 * dx + k * v * f * dx
 
-        P3 = FiniteElement("Lagrange", "triangle", 3)
 
-        element = (P3 * P3) * (P3 * P3)
+def testMass():
 
-    def testMixedPoisson(self):
+    element = FiniteElement("Lagrange", "tetrahedron", 3)
 
-        q = 1
+    v = TestFunction(element)
+    u = TrialFunction(element)
 
-        BDM = FiniteElement("Brezzi-Douglas-Marini", "triangle", q)
-        DG  = FiniteElement("Discontinuous Lagrange", "triangle", q - 1)
+    a = v * u * dx
 
-        mixed_element = BDM * DG
 
-        (tau, w) = TestFunctions(mixed_element)
-        (sigma, u) = TrialFunctions(mixed_element)
+def testMixedMixedElement():
 
-        f = Coefficient(DG)
+    P3 = FiniteElement("Lagrange", "triangle", 3)
 
-        a = (dot(tau, sigma) - div(tau)*u + w*div(sigma))*dx
-        L = w*f*dx
+    element = (P3 * P3) * (P3 * P3)
 
-    def testNavierStokes(self):
 
-        element = VectorElement("Lagrange", "tetrahedron", 1)
+def testMixedPoisson():
 
-        v = TestFunction(element)
-        u = TrialFunction(element)
+    q = 1
 
-        w = Coefficient(element)
+    BDM = FiniteElement("Brezzi-Douglas-Marini", "triangle", q)
+    DG = FiniteElement("Discontinuous Lagrange", "triangle", q - 1)
 
-        # FFC notation: a = v[i]*w[j]*D(u[i], j)*dx
-        a = v[i]*w[j]*Dx(u[i], j)*dx
+    mixed_element = BDM * DG
 
-    def testNeumannProblem(self):
+    (tau, w) = TestFunctions(mixed_element)
+    (sigma, u) = TrialFunctions(mixed_element)
 
-        element = VectorElement("Lagrange", "triangle", 1)
+    f = Coefficient(DG)
 
-        v = TestFunction(element)
-        u = TrialFunction(element)
-        f = Coefficient(element)
-        g = Coefficient(element)
+    a = (dot(tau, sigma) - div(tau) * u + w * div(sigma)) * dx
+    L = w * f * dx
 
-        # FFC notation: a = dot(grad(v), grad(u))*dx
-        a = inner(grad(v), grad(u))*dx
 
-        # FFC notation: L = dot(v, f)*dx + dot(v, g)*ds
-        L = inner(v, f)*dx + inner(v, g)*ds
+def testNavierStokes():
 
-    def testOptimization(self):
+    element = VectorElement("Lagrange", "tetrahedron", 1)
 
-        element = FiniteElement("Lagrange", "triangle", 3)
+    v = TestFunction(element)
+    u = TrialFunction(element)
 
-        v = TestFunction(element)
-        u = TrialFunction(element)
-        f = Coefficient(element)
+    w = Coefficient(element)
 
-        a = dot(grad(v), grad(u))*dx
-        L = v*f*dx
+    # FFC notation: a = v[i]*w[j]*D(u[i], j)*dx
+    a = v[i] * w[j] * Dx(u[i], j) * dx
 
-    def testP5tet(self):
 
-        element = FiniteElement("Lagrange", tetrahedron, 5)
+def testNeumannProblem():
 
-    def testP5tri(self):
+    element = VectorElement("Lagrange", "triangle", 1)
 
-        element = FiniteElement("Lagrange", triangle, 5)
+    v = TestFunction(element)
+    u = TrialFunction(element)
+    f = Coefficient(element)
+    g = Coefficient(element)
 
-    def testPoissonDG(self):
+    # FFC notation: a = dot(grad(v), grad(u))*dx
+    a = inner(grad(v), grad(u)) * dx
 
-        element = FiniteElement("Discontinuous Lagrange", triangle, 1)
+    # FFC notation: L = dot(v, f)*dx + dot(v, g)*ds
+    L = inner(v, f) * dx + inner(v, g) * ds
 
-        v = TestFunction(element)
-        u = TrialFunction(element)
-        f = Coefficient(element)
 
-        n = FacetNormal(triangle)
+def testOptimization():
 
-        # FFC notation: h = MeshSize("triangle"), not supported by UFL
-        h = Constant(triangle)
+    element = FiniteElement("Lagrange", "triangle", 3)
 
-        gN = Coefficient(element)
+    v = TestFunction(element)
+    u = TrialFunction(element)
+    f = Coefficient(element)
 
-        alpha = 4.0
-        gamma = 8.0
+    a = dot(grad(v), grad(u)) * dx
+    L = v * f * dx
 
-        # FFC notation
-        #a = dot(grad(v), grad(u))*dx \
-        #    - dot(avg(grad(v)), jump(u, n))*dS \
-        #    - dot(jump(v, n), avg(grad(u)))*dS \
-        #    + alpha/h('+')*dot(jump(v, n), jump(u, n))*dS \
-        #    - dot(grad(v), mult(u,n))*ds \
-        #    - dot(mult(v,n), grad(u))*ds \
-        #    + gamma/h*v*u*ds
 
-        a = inner(grad(v), grad(u))*dx \
-            - inner(avg(grad(v)), jump(u, n))*dS \
-            - inner(jump(v, n), avg(grad(u)))*dS \
-            + alpha/h('+')*dot(jump(v, n), jump(u, n))*dS \
-            - inner(grad(v), u*n)*ds \
-            - inner(u*n, grad(u))*ds \
-            + gamma/h*v*u*ds
+def testP5tet():
 
-        L = v*f*dx + v*gN*ds
+    element = FiniteElement("Lagrange", tetrahedron, 5)
 
-    def testPoisson(self):
 
-        element = FiniteElement("Lagrange", "triangle", 1)
+def testP5tri():
 
-        v = TestFunction(element)
-        u = TrialFunction(element)
-        f = Coefficient(element)
+    element = FiniteElement("Lagrange", triangle, 5)
 
-        # Note: inner() also works
-        a = dot(grad(v), grad(u))*dx
-        L = v*f*dx
 
-    def testPoissonSystem(self):
+def testPoissonDG():
 
-        element = VectorElement("Lagrange", "triangle", 1)
+    element = FiniteElement("Discontinuous Lagrange", triangle, 1)
 
-        v = TestFunction(element)
-        u = TrialFunction(element)
-        f = Coefficient(element)
+    v = TestFunction(element)
+    u = TrialFunction(element)
+    f = Coefficient(element)
 
-        # FFC notation: a = dot(grad(v), grad(u))*dx
-        a = inner(grad(v), grad(u))*dx
+    n = FacetNormal(triangle)
+
+    # FFC notation: h = MeshSize("triangle"), not supported by UFL
+    h = Constant(triangle)
+
+    gN = Coefficient(element)
+
+    alpha = 4.0
+    gamma = 8.0
+
+    # FFC notation
+    # a = dot(grad(v), grad(u))*dx \
+    #    - dot(avg(grad(v)), jump(u, n))*dS \
+    #    - dot(jump(v, n), avg(grad(u)))*dS \
+    #    + alpha/h('+')*dot(jump(v, n), jump(u, n))*dS \
+    #    - dot(grad(v), mult(u,n))*ds \
+    #    - dot(mult(v,n), grad(u))*ds \
+    #    + gamma/h*v*u*ds
+
+    a = inner(grad(v), grad(u)) * dx \
+        - inner(avg(grad(v)), jump(u, n)) * dS \
+        - inner(jump(v, n), avg(grad(u))) * dS \
+        + alpha / h('+') * dot(jump(v, n), jump(u, n)) * dS \
+        - inner(grad(v), u * n) * ds \
+        - inner(u * n, grad(u)) * ds \
+        + gamma / h * v * u * ds
+
+    L = v * f * dx + v * gN * ds
+
+
+def testPoisson():
+
+    element = FiniteElement("Lagrange", "triangle", 1)
+
+    v = TestFunction(element)
+    u = TrialFunction(element)
+    f = Coefficient(element)
+
+    # Note: inner() also works
+    a = dot(grad(v), grad(u)) * dx
+    L = v * f * dx
+
+
+def testPoissonSystem():
+
+    element = VectorElement("Lagrange", "triangle", 1)
+
+    v = TestFunction(element)
+    u = TrialFunction(element)
+    f = Coefficient(element)
+
+    # FFC notation: a = dot(grad(v), grad(u))*dx
+    a = inner(grad(v), grad(u)) * dx
+
+    # FFC notation: L = dot(v, f)*dx
+    L = inner(v, f) * dx
+
+
+def testProjection():
+
+    # Projections are not supported by UFL and have been broken
+    # in FFC for a while. For DOLFIN, the current (global) L^2
+    # projection can be extended to handle also local projections.
+
+    P0 = FiniteElement("Discontinuous Lagrange", "triangle", 0)
+    P1 = FiniteElement("Lagrange", "triangle", 1)
+    P2 = FiniteElement("Lagrange", "triangle", 2)
+
+    v = TestFunction(P1)
+    f = Coefficient(P1)
+
+    # pi0 = Projection(P0)
+    # pi1 = Projection(P1)
+    # pi2 = Projection(P2)
+    #
+    # a = v*(pi0(f) + pi1(f) + pi2(f))*dx
+
+
+def testQuadratureElement():
+
+    element = FiniteElement("Lagrange", "triangle", 2)
+
+    # FFC notation:
+    # QE = QuadratureElement("triangle", 3)
+    # sig = VectorQuadratureElement("triangle", 3)
+
+    QE = FiniteElement("Quadrature", "triangle", 3)
+    sig = VectorElement("Quadrature", "triangle", 3)
+
+    v = TestFunction(element)
+    u = TrialFunction(element)
+    u0 = Coefficient(element)
+    C = Coefficient(QE)
+    sig0 = Coefficient(sig)
+    f = Coefficient(element)
+
+    a = v.dx(i) * C * u.dx(i) * dx + v.dx(i) * 2 * u0 * u * u0.dx(i) * dx
+    L = v * f * dx - dot(grad(v), sig0) * dx
+
+
+def testStokes():
+
+    # UFLException: Shape mismatch in sum.
+
+    P2 = VectorElement("Lagrange", "triangle", 2)
+    P1 = FiniteElement("Lagrange", "triangle", 1)
+    TH = P2 * P1
+
+    (v, q) = TestFunctions(TH)
+    (u, p) = TrialFunctions(TH)
+
+    f = Coefficient(P2)
+
+    # FFC notation:
+    # a = (dot(grad(v), grad(u)) - div(v)*p + q*div(u))*dx
+    a = (inner(grad(v), grad(u)) - div(v) * p + q * div(u)) * dx
+
+    L = dot(v, f) * dx
+
+
+def testSubDomain():
+
+    element = FiniteElement("CG", "tetrahedron", 1)
+
+    v = TestFunction(element)
+    u = TrialFunction(element)
+    f = Coefficient(element)
+
+    M = f * dx(2) + f * ds(5)
+
+
+def testSubDomains():
+
+    element = FiniteElement("CG", "tetrahedron", 1)
+
+    v = TestFunction(element)
+    u = TrialFunction(element)
+
+    a = v * u * dx(0) + 10.0 * v * u * dx(1) + v * u * ds(0) + 2.0 * v * u * \
+        ds(1) + v('+') * u('+') * dS(0) + 4.3 * v('+') * u('+') * dS(1)
+
+
+def testTensorWeightedPoisson():
+
+    # FFC notation:
+    # P1 = FiniteElement("Lagrange", "triangle", 1)
+    # P0 = FiniteElement("Discontinuous Lagrange", "triangle", 0)
+    #
+    # v = TestFunction(P1)
+    # u = TrialFunction(P1)
+    # f = Coefficient(P1)
+    #
+    # c00 = Coefficient(P0)
+    # c01 = Coefficient(P0)
+    # c10 = Coefficient(P0)
+    # c11 = Coefficient(P0)
+    #
+    # C = [[c00, c01], [c10, c11]]
+    #
+    # a = dot(grad(v), mult(C, grad(u)))*dx
+
+    P1 = FiniteElement("Lagrange", "triangle", 1)
+    P0 = TensorElement("Discontinuous Lagrange", "triangle", 0, shape=(2, 2))
+
+    v = TestFunction(P1)
+    u = TrialFunction(P1)
+    C = Coefficient(P0)
+
+    a = inner(grad(v), C * grad(u)) * dx
+
+
+def testVectorLaplaceGradCurl():
+
+    def HodgeLaplaceGradCurl(element, felement):
+        (tau, v) = TestFunctions(element)
+        (sigma, u) = TrialFunctions(element)
+        f = Coefficient(felement)
+
+        # FFC notation: a = (dot(tau, sigma) - dot(grad(tau), u) + dot(v,
+        # grad(sigma)) + dot(curl(v), curl(u)))*dx
+        a = (inner(tau, sigma) - inner(grad(tau), u) +
+             inner(v, grad(sigma)) + inner(curl(v), curl(u))) * dx
 
         # FFC notation: L = dot(v, f)*dx
-        L = inner(v, f)*dx
+        L = inner(v, f) * dx
 
-    def testProjection(self):
+        return [a, L]
 
-        # Projections are not supported by UFL and have been broken
-        # in FFC for a while. For DOLFIN, the current (global) L^2
-        # projection can be extended to handle also local projections.
+    shape = "tetrahedron"
+    order = 1
 
-        P0 = FiniteElement("Discontinuous Lagrange", "triangle", 0)
-        P1 = FiniteElement("Lagrange", "triangle", 1)
-        P2 = FiniteElement("Lagrange", "triangle", 2)
+    GRAD = FiniteElement("Lagrange", shape, order)
 
-        v = TestFunction(P1)
-        f = Coefficient(P1)
+    # FFC notation: CURL = FiniteElement("Nedelec", shape, order-1)
+    CURL = FiniteElement("N1curl", shape, order)
 
-        #pi0 = Projection(P0)
-        #pi1 = Projection(P1)
-        #pi2 = Projection(P2)
-        #
-        #a = v*(pi0(f) + pi1(f) + pi2(f))*dx
+    VectorLagrange = VectorElement("Lagrange", shape, order + 1)
 
-    def testQuadratureElement(self):
+    [a, L] = HodgeLaplaceGradCurl(GRAD * CURL, VectorLagrange)
 
-        element = FiniteElement("Lagrange", "triangle", 2)
-
-        # FFC notation:
-        #QE = QuadratureElement("triangle", 3)
-        #sig = VectorQuadratureElement("triangle", 3)
-
-        QE = FiniteElement("Quadrature", "triangle", 3)
-        sig = VectorElement("Quadrature", "triangle", 3)
-
-        v = TestFunction(element)
-        u = TrialFunction(element)
-        u0= Coefficient(element)
-        C = Coefficient(QE)
-        sig0 = Coefficient(sig)
-        f = Coefficient(element)
-
-        a = v.dx(i)*C*u.dx(i)*dx + v.dx(i)*2*u0*u*u0.dx(i)*dx
-        L = v*f*dx - dot(grad(v), sig0)*dx
-
-    def testStokes(self):
-
-        # UFLException: Shape mismatch in sum.
-
-        P2 = VectorElement("Lagrange", "triangle", 2)
-        P1 = FiniteElement("Lagrange", "triangle", 1)
-        TH = P2 * P1
-
-        (v, q) = TestFunctions(TH)
-        (u, p) = TrialFunctions(TH)
-
-        f = Coefficient(P2)
-
-        # FFC notation:
-        # a = (dot(grad(v), grad(u)) - div(v)*p + q*div(u))*dx
-        a = (inner(grad(v), grad(u)) - div(v)*p + q*div(u))*dx
-
-        L = dot(v, f)*dx
-
-    def testSubDomain(self):
-
-        element = FiniteElement("CG", "tetrahedron", 1)
-
-        v = TestFunction(element)
-        u = TrialFunction(element)
-        f = Coefficient(element)
-
-        M = f*dx(2) + f*ds(5)
-
-    def testSubDomains(self):
-
-        element = FiniteElement("CG", "tetrahedron", 1)
-
-        v = TestFunction(element)
-        u = TrialFunction(element)
-
-        a = v*u*dx(0) + 10.0*v*u*dx(1) + v*u*ds(0) + 2.0*v*u*ds(1) + v('+')*u('+')*dS(0) + 4.3*v('+')*u('+')*dS(1)
-
-    def testTensorWeightedPoisson(self):
-
-        # FFC notation:
-        #P1 = FiniteElement("Lagrange", "triangle", 1)
-        #P0 = FiniteElement("Discontinuous Lagrange", "triangle", 0)
-        #
-        #v = TestFunction(P1)
-        #u = TrialFunction(P1)
-        #f = Coefficient(P1)
-        #
-        #c00 = Coefficient(P0)
-        #c01 = Coefficient(P0)
-        #c10 = Coefficient(P0)
-        #c11 = Coefficient(P0)
-        #
-        #C = [[c00, c01], [c10, c11]]
-        #
-        #a = dot(grad(v), mult(C, grad(u)))*dx
-
-        P1 = FiniteElement("Lagrange", "triangle", 1)
-        P0 = TensorElement("Discontinuous Lagrange", "triangle", 0, shape=(2, 2))
-
-        v = TestFunction(P1)
-        u = TrialFunction(P1)
-        C = Coefficient(P0)
-
-        a = inner(grad(v), C*grad(u))*dx
-
-    def testVectorLaplaceGradCurl(self):
-
-        def HodgeLaplaceGradCurl(element, felement):
-            (tau, v) = TestFunctions(element)
-            (sigma, u) = TrialFunctions(element)
-            f = Coefficient(felement)
-
-            # FFC notation: a = (dot(tau, sigma) - dot(grad(tau), u) + dot(v, grad(sigma)) + dot(curl(v), curl(u)))*dx
-            a = (inner(tau, sigma) - inner(grad(tau), u) + inner(v, grad(sigma)) + inner(curl(v), curl(u)))*dx
-
-            # FFC notation: L = dot(v, f)*dx
-            L = inner(v, f)*dx
-
-            return [a, L]
-
-        shape = "tetrahedron"
-        order = 1
-
-        GRAD = FiniteElement("Lagrange", shape, order)
-
-        # FFC notation: CURL = FiniteElement("Nedelec", shape, order-1)
-        CURL = FiniteElement("N1curl", shape, order)
-
-        VectorLagrange = VectorElement("Lagrange", shape, order+1)
-
-        [a, L] = HodgeLaplaceGradCurl(GRAD * CURL, VectorLagrange)
-
-if __name__ == "__main__":
-    main()

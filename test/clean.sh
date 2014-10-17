@@ -12,3 +12,7 @@ rm -f *.log
 # temp files from emacs
 rm -f *~
 
+# temp files from py.test
+rm -rf __pycache__
+
+

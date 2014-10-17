@@ -24,10 +24,11 @@
 from collections import defaultdict
 from six import iteritems
 
+from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.log import warning, error, deprecate
 from ufl.assertions import ufl_assert
 from ufl.common import istr, EmptyDict
-from ufl.terminal import Terminal
+from ufl.core.terminal import Terminal
 from ufl.protocols import id_or_none
 from ufl.cell import as_cell, affine_cells, Cell, ProductCell
 
@@ -96,13 +97,13 @@ class Domain(object):
             self._data = flat_domain.data()
 
             # Get geometric dimension from self._coordinates shape
-            gdim, = self._coordinates.shape()
+            gdim, = self._coordinates.ufl_shape
             if gdim != self._cell.geometric_dimension():
                 warning("Using geometric dimension from coordinates!")
                 self._cell = Cell(self._cell.cellname(), gdim)
-            #ufl_assert(self._coordinates.shape() == (self._cell.geometric_dimension(),),
+            #ufl_assert(self._coordinates.ufl_shape == (self._cell.geometric_dimension(),),
             #           "Shape of coordinates %s does not match geometric dimension %d of cell." %\
-            #    (self._coordinates.shape(), self._cell.geometric_dimension()))
+            #    (self._coordinates.ufl_shape, self._cell.geometric_dimension()))
         else:
             ufl_error("Invalid first argument to Domain.")
 
@@ -165,13 +166,21 @@ class Domain(object):
         "Return the coordinate vector field this domain is defined in terms of."
         return self._coordinates
 
+    def coordinate_element(self):
+        "Return the finite element of the coordinate vector field of this domain."
+        x = self.coordinates()
+        if x is None:
+            from ufl import VectorElement
+            return VectorElement("Lagrange", self, 1)
+        else:
+            return x.element()
+
     def label(self):
         "Return the label identifying this domain. None means no label has been set."
         return self._label
 
     def is_piecewise_linear_simplex_domain(self):
-        x = self.coordinates()
-        return (x is None or x.element().degree() == 1) and (self.cell().cellname() in affine_cells)
+        return (self.coordinate_element().degree() == 1) and (self.cell().cellname() in affine_cells)
 
     def data(self):
         "Return attached data object."
@@ -424,7 +433,6 @@ def join_domains(domains):
     return tuple(newdomains)
 
 def extract_domains(expr):
-    from ufl.algorithms.traversal import traverse_unique_terminals
     domainlist = []
     for t in traverse_unique_terminals(expr):
         domainlist.extend(t.domains())

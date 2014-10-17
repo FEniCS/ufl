@@ -30,7 +30,8 @@ from ufl.constantvalue import is_true_ufl_scalar
 from ufl.integral import Measure
 
 # UFL algorithms
-from ufl.algorithms.traversal import iter_expressions, traverse_terminals
+from ufl.algorithms.traversal import iter_expressions
+from ufl.corealg.traversal import traverse_terminals
 from ufl.algorithms.propagate_restrictions import check_restrictions
 
 def validate_form(form): # TODO: Can we make this return a list of errors instead of raising exception?

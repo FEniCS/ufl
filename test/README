@@ -1,3 +1,14 @@
+To run tests, you need the py.test module.
+
+Just run
+
+  cd <ufl>/test
+  py.test
+
+Or to run a single test file
+
+  py.test test_literals.py
+
 To run these tests from within the source tree without
 needing to install the UFL Python module, update your
 PYTHONPATH and PATH by running

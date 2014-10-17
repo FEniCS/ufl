@@ -62,15 +62,21 @@ class OuterProductElement(FiniteElementBase):
         # match FIAT implementation
         if len(A.value_shape()) == 0 and len(B.value_shape()) == 0:
             value_shape = ()
+            reference_value_shape = ()
         elif len(A.value_shape()) == 1 and len(B.value_shape()) == 0:
             value_shape = (A.value_shape()[0],)
+            reference_value_shape = (A.reference_value_shape()[0],) # TODO: Is this right?
         elif len(A.value_shape()) == 0 and len(B.value_shape()) == 1:
             value_shape = (B.value_shape()[0],)
+            reference_value_shape = (B.reference_value_shape()[0],) # TODO: Is this right?
         else:
             raise Exception("Product of vector-valued elements not supported")
 
-        super(OuterProductElement, self).__init__(family, domain, degree,
-                                                  quad_scheme, value_shape)
+        FiniteElementBase.__init__(self, family, domain, degree,
+                                   quad_scheme, value_shape, reference_value_shape)
+
+    def mapping(self):
+        error("TODO: The mapping of an outer product element is not implemented.")
 
     def reconstruct(self, **kwargs):
         """Construct a new OuterProductElement with some properties
@@ -132,8 +138,7 @@ class OuterProductVectorElement(MixedElement):
         value_shape = shape + sub_element.value_shape()
 
         # Initialize element data
-        super(OuterProductVectorElement, self).__init__(sub_elements,
-                                                        value_shape=value_shape)
+        MixedElement.__init__(self, sub_elements, value_shape=value_shape)
         self._family = family
         self._degree = A.degree(), B.degree()
 

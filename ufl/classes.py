@@ -25,60 +25,110 @@ of classes, and for mapping types to different handler functions."""
 # Modified by Kristian B. Oelgaard, 2011
 # Modified by Andrew T. T. McRae, 2014
 
-from ufl.assertions import ufl_assert
 
-# Elements
-from ufl.finiteelement import (FiniteElementBase, FiniteElement,
-    MixedElement, VectorElement, TensorElement,
-    EnrichedElement, RestrictedElement, TensorProductElement,
-    OuterProductElement, OuterProductVectorElement)
+# This will be populated part by part below
+__all__ = []
 
-# Base class for all expressions
-from ufl.expr import Expr
+
+#
+# Import all submodules, triggering execution of the
+# ufl_type class decorator for each Expr class.
+#
+
+# Base classes of Expr type hierarchy
+import ufl.core.expr
+import ufl.core.terminal
+import ufl.core.operator
 
 # Terminal types
-from ufl.terminal import Terminal, FormArgument, UtilityType
-from ufl.constantvalue import (ConstantValue, IndexAnnotated,
-    Zero, ScalarValue, FloatValue, IntValue, Identity, PermutationSymbol)
-from ufl.argument import Argument, TestFunction, TrialFunction
-from ufl.coefficient import (Coefficient, ConstantBase,
-    VectorConstant, TensorConstant, Constant)
-from ufl.cell import Cell, ProductCell, OuterProductCell
-from ufl.domain import Domain, ProductDomain
-from ufl.geometry import (
-    GeometricQuantity, GeometricCellQuantity, GeometricFacetQuantity,
-    SpatialCoordinate, CellCoordinate, FacetCoordinate,
-    CellOrigin, FacetOrigin, CellFacetOrigin,
-    Jacobian, JacobianDeterminant, JacobianInverse,
-    FacetJacobian, FacetJacobianDeterminant, FacetJacobianInverse,
-    CellFacetJacobian, CellFacetJacobianDeterminant, CellFacetJacobianInverse,
-    CellEdgeVectors, FacetEdgeVectors,
-    FacetNormal, CellNormal,
-    CellVolume, Circumradius, MinCellEdgeLength, MaxCellEdgeLength,
-    FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
-    CellOrientation, FacetOrientation, QuadratureWeight,
-    )
-from ufl.indexing import IndexBase, FixedIndex, Index, MultiIndex
+import ufl.constantvalue
+import ufl.argument
+import ufl.coefficient
+import ufl.geometry
+import ufl.indexing
 
 # Operator types
-from ufl.operatorbase import Operator, WrapperType, AlgebraOperator
-from ufl.indexed import Indexed
-from ufl.indexsum import IndexSum
-from ufl.variable import Variable, Label
-from ufl.tensors import ListTensor, ComponentTensor
-from ufl.algebra import Sum, Product, Division, Power, Abs
-from ufl.tensoralgebra import CompoundTensorOperator, Transposed, Outer,\
-    Inner, Dot, Cross, Trace, Determinant, Cofactor, Inverse, Deviatoric, Skew, Sym
-from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Erf,\
-    Cos, Sin, Tan, Cosh, Sinh, Tanh, Acos, Asin, Atan, Atan2, \
-    BesselFunction, BesselJ, BesselY, BesselI, BesselK
-from ufl.differentiation import Derivative, CompoundDerivative, CoefficientDerivative,\
-    VariableDerivative, Grad, Div, Curl, NablaGrad, NablaDiv, ReferenceGrad
-from ufl.conditional import Condition, BinaryCondition,\
-    EQ, NE, LE, GE, LT, GT,\
-    AndCondition, OrCondition, NotCondition, Conditional, MinValue, MaxValue
-from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted, CellAvg, FacetAvg
-from ufl.exprcontainers import ExprList, ExprMapping
+import ufl.indexed
+import ufl.indexsum
+import ufl.variable
+import ufl.tensors
+import ufl.algebra
+import ufl.tensoralgebra
+import ufl.mathfunctions
+import ufl.differentiation
+import ufl.conditional
+import ufl.restriction
+import ufl.exprcontainers
+import ufl.referencevalue
+
+# Make sure we import exproperators which attaches special functions to Expr
+from ufl import exproperators as __exproperators
+
+
+#
+# Make sure to import modules with new Expr subclasses here!
+#
+
+# Collect all classes in sets automatically classified by some properties
+all_ufl_classes     = set(ufl.core.expr.Expr._ufl_all_classes_)
+abstract_classes    = set(c for c in all_ufl_classes if c._ufl_is_abstract_)
+ufl_classes         = set(c for c in all_ufl_classes if not c._ufl_is_abstract_)
+terminal_classes    = set(c for c in all_ufl_classes if c._ufl_is_terminal_)
+nonterminal_classes = set(c for c in all_ufl_classes if not c._ufl_is_terminal_)
+
+__all__ += [
+    "all_ufl_classes",
+    "abstract_classes",
+    "ufl_classes",
+    "terminal_classes",
+    "nonterminal_classes",
+    ]
+
+def populate_namespace_with_expr_classes(namespace):
+    """Export all Expr subclasses into the namespace under their natural name."""
+    names = []
+    classes = ufl.core.expr.Expr._ufl_all_classes_
+    for cls in classes:
+        class_name = cls.__name__
+        namespace[class_name] = cls
+        names.append(class_name)
+    return names
+
+__all__ += populate_namespace_with_expr_classes(locals())
+
+# Domain types
+from ufl.cell import Cell, ProductCell, OuterProductCell
+from ufl.domain import Domain, ProductDomain
+
+__all__ += [
+    "Cell", "ProductCell", "OuterProductCell",
+    "Domain", "ProductDomain",
+    ]
+
+# Elements
+from ufl.finiteelement import (
+    FiniteElementBase,
+    FiniteElement,
+    MixedElement, VectorElement, TensorElement,
+    EnrichedElement, RestrictedElement,
+    TensorProductElement, OuterProductElement, OuterProductVectorElement)
+
+__all__ += [
+    "FiniteElementBase",
+    "FiniteElement",
+    "MixedElement", "VectorElement", "TensorElement",
+    "EnrichedElement", "RestrictedElement",
+    "TensorProductElement", "OuterProductElement", "OuterProductVectorElement",
+    ]
+
+# Other non-Expr types
+from ufl.argument import TestFunction, TrialFunction, TestFunctions, TrialFunctions
+from ufl.core.multiindex import IndexBase, FixedIndex, Index
+
+__all__ += [
+    "TestFunction", "TrialFunction", "TestFunctions", "TrialFunctions",
+    "IndexBase", "FixedIndex", "Index",
+    ]
 
 # Higher level abstractions
 from ufl.measure import Measure, MeasureSum, MeasureProduct
@@ -86,23 +136,9 @@ from ufl.integral import Integral
 from ufl.form import Form
 from ufl.equation import Equation
 
-# Make sure we import exproperators which attaches special functions to Expr
-from ufl import exproperators as __exproperators
-
-# Collect all classes in sets automatically classified by some properties
-__all_classes       = (c for c in list(locals().values()) if isinstance(c, type))
-all_ufl_classes     = set(c for c in __all_classes if issubclass(c, Expr))
-abstract_classes    = set(s for c in all_ufl_classes for s in c.mro()[1:-1])
-abstract_classes.remove(Coefficient)
-ufl_classes         = set(c for c in all_ufl_classes if c not in abstract_classes)
-terminal_classes    = set(c for c in all_ufl_classes if issubclass(c, Terminal))
-nonterminal_classes = set(c for c in all_ufl_classes if not issubclass(c, Terminal))
-
-# Add _uflclass and _classid to all classes:
-from ufl.common import camel2underscore as _camel2underscore
-for _i, _c in enumerate(sorted(all_ufl_classes, key=lambda x:x.__name__)):
-    _c._classid = _i
-    _c._uflclass = _c
-    _c._handlername = _camel2underscore(_c.__name__)
-
-#__all__ = all_ufl_classes
+__all__ += [
+    "Measure", "MeasureSum", "MeasureProduct",
+    "Integral",
+    "Form",
+    "Equation",
+    ]

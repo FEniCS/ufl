@@ -24,32 +24,23 @@ from itertools import chain
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.common import mergedicts, subdict, StackDict
-from ufl.expr import Expr
-from ufl.operatorbase import Operator
+from ufl.core.expr import Expr
+from ufl.core.operator import Operator
 from ufl.constantvalue import Zero, as_ufl
 from ufl.algebra import Sum, Product, Division, Power, Abs
 from ufl.tensoralgebra import Transposed, Inner
-from ufl.indexing import MultiIndex, Index, FixedIndex, IndexBase, indices
+from ufl.core.multiindex import MultiIndex, Index, FixedIndex, IndexBase, indices
 from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
-from ufl.indexutils import repeated_indices, single_indices
 from ufl.tensors import as_tensor, ComponentTensor
 from ufl.restriction import PositiveRestricted, NegativeRestricted
 from ufl.differentiation import Grad
+from ufl.index_combination_utils import create_slice_indices, merge_overlapping_indices
 
 
 #--- Boolean operators ---
 
 from ufl.conditional import EQ, NE, LE, GE, LT, GT
-#    AndCondition, OrCondition, NotCondition, Conditional
-
-#def _eq(left, right):
-#    "UFL operator: A boolean expresion (left == right) for use with conditional."
-#    return EQ(left, right)
-
-#def _ne(left, right):
-#    "UFL operator: A boolean expresion (left != right) for use with conditional."
-#    return NE(left, right)
 
 def _le(left, right):
     "UFL operator: A boolean expresion (left <= right) for use with conditional."
@@ -76,15 +67,12 @@ def _gt(left, right):
 # anything about dict and set calling __eq__...
 from ufl.exprequals import expr_equals
 Expr.__eq__ = expr_equals
-#Expr.__eq__ = _eq
 
 # != is used at least by tests, possibly in code as well, and must mean
-# the opposite of ==, i.e. when evaluated as bool it must mean equal representation.
-# To keep things simple and consistent we treat it just like ==.
-#def not_expr_equals(self, other):
-#    return not expr_equals(self, other)
-#Expr.__ne__ = not_expr_equals
-#Expr.__ne__ = _ne
+# the opposite of ==, i.e. when evaluated as bool it must mean 'not equal representation'.
+def _ne(self, other):
+    return not self.__eq__(other)
+Expr.__ne__ = _ne
 
 Expr.__lt__ = _lt
 Expr.__gt__ = _gt
@@ -100,71 +88,69 @@ Expr.__ge__ = _ge
 
 def _mult(a, b):
     # Discover repeated indices, which results in index sums
-    ai = a.free_indices()
-    bi = b.free_indices()
-    ii = ai + bi
-    ri = repeated_indices(ii)
+    afi = a.ufl_free_indices
+    bfi = b.ufl_free_indices
+    afid = a.ufl_index_dimensions
+    bfid = b.ufl_index_dimensions
+    fi, fid, ri, rid = merge_overlapping_indices(afi, afid, bfi, bfid)
 
     # Pick out valid non-scalar products here (dot products):
     # - matrix-matrix (A*B, M*grad(u)) => A . B
     # - matrix-vector (A*v) => A . v
-    s1, s2 = a.shape(), b.shape()
+    s1, s2 = a.ufl_shape, b.ufl_shape
     r1, r2 = len(s1), len(s2)
-    if r1 == 2 and r2 in (1, 2):
-        ufl_assert(not ri, "Not expecting repeated indices in non-scalar product.")
 
-        # Check for zero, simplifying early if possible
-        if isinstance(a, Zero) or isinstance(b, Zero):
-            shape = s1[:-1] + s2[1:]
-            fi = single_indices(ii)
-            idims = mergedicts((a.index_dimensions(), b.index_dimensions()))
-            idims = subdict(idims, fi)
-            return Zero(shape, fi, idims)
+    if r1 == 0 and r2 == 0:
+        # Create scalar product
+        p = Product(a, b)
+        ti = ()
 
-        # Return dot product in index notation
-        ai = indices(a.rank()-1)
-        bi = indices(b.rank()-1)
-        k = indices(1)
-        # Create an IndexSum over a Product
-        s = a[ai+k]*b[k+bi]
-        return as_tensor(s, ai+bi)
-
-    elif not (r1 == 0 and r2 == 0):
+    elif r1 == 0 or r2 == 0:
         # Scalar - tensor product
         if r2 == 0:
             a, b = b, a
-            s1, s2 = s2, s1
 
         # Check for zero, simplifying early if possible
         if isinstance(a, Zero) or isinstance(b, Zero):
-            shape = s2
-            fi = single_indices(ii)
-            idims = mergedicts((a.index_dimensions(), b.index_dimensions()))
-            idims = subdict(idims, fi)
-            return Zero(shape, fi, idims)
+            shape = s1 or s2
+            return Zero(shape, fi, fid)
 
         # Repeated indices are allowed, like in:
         #v[i]*M[i,:]
 
         # Apply product to scalar components
-        ii = indices(b.rank())
-        p = Product(a, b[ii])
+        ti = indices(b.rank())
+        p = Product(a, b[ti])
 
-        # Wrap as tensor again
-        p = as_tensor(p, ii)
+    elif r1 == 2 and r2 in (1, 2): # Matrix-matrix or matrix-vector
+        ufl_assert(not ri, "Not expecting repeated indices in non-scalar product.")
 
-        # TODO: Should we apply IndexSum or as_tensor first?
+        # Check for zero, simplifying early if possible
+        if isinstance(a, Zero) or isinstance(b, Zero):
+            shape = s1[:-1] + s2[1:]
+            return Zero(shape, fi, fid)
 
-        # Apply index sums
-        for i in ri:
-            p = IndexSum(p, i)
+        # Return dot product in index notation
+        ai = indices(a.rank() - 1)
+        bi = indices(b.rank() - 1)
+        k = indices(1)
 
-        return p
+        p = a[ai + k] * b[k + bi]
+        ti = ai + bi
 
-    # Scalar products use Product and IndexSum for implicit sums:
-    p = Product(a, b)
+    else:
+        error("Invalid ranks {0} and {1} in product.".format(r1, r2))
+
+    # TODO: I think applying as_tensor after index sums results in cleaner expression graphs.
+    # Wrap as tensor again
+    if ti:
+        p = as_tensor(p, ti)
+
+    # If any repeated indices were found, apply implicit summation over those
     for i in ri:
-        p = IndexSum(p, i)
+        mi = MultiIndex((Index(count=i),))
+        p = IndexSum(p, mi)
+
     return p
 
 #--- Extend Expr with algebraic operators ---
@@ -212,7 +198,7 @@ Expr.__rsub__ = _rsub
 def _div(self, o):
     if not isinstance(o, _valid_types):
         return NotImplemented
-    sh = self.shape()
+    sh = self.ufl_shape
     if sh:
         ii = indices(len(sh))
         d = Division(self[ii], o)
@@ -231,7 +217,7 @@ Expr.__rtruediv__ = _rdiv
 def _pow(self, o):
     if not isinstance(o, _valid_types):
         return NotImplemented
-    if self.shape() and o == 2:
+    if o == 2 and self.ufl_shape:
         return Inner(self, self)
     return Power(self, o)
 Expr.__pow__ = _pow
@@ -369,42 +355,55 @@ def analyse_key(ii, rank):
     axis_indices = tuple(i for i in all_indices if i in axis_indices)
     return all_indices, axis_indices
 
-def _getitem(self, key):
-    # Analyse key, getting rid of slices and the ellipsis
-    r = self.rank()
-    indices, axis_indices = analyse_key(key, r)
+def _getitem(self, component):
 
-    # Special case for foo[...] => foo
-    if len(indices) == len(axis_indices):
+    # Treat component consistently as tuple below
+    if not isinstance(component, tuple):
+        component = (component,)
+
+    shape = self.ufl_shape
+
+    # Analyse slices (:) and Ellipsis (...)
+    all_indices, slice_indices, repeated_indices = create_slice_indices(component, shape, self.ufl_free_indices)
+
+    # Check that we have the right number of indices for a tensor with this shape
+    if len(shape) != len(all_indices):
+        error("Invalid number of indices {0} for expression of rank {1}.".format(len(all_indices), len(shape)))
+
+    # Special case for simplifying foo[...] => foo, foo[:] => foo or similar
+    if len(slice_indices) == len(all_indices):
         return self
 
-    # Special case for simplifying ({ai}_i)[i] -> ai
+    # Special case for simplifying as_tensor(ai,(i,))[i] => ai
     if isinstance(self, ComponentTensor):
-        if tuple(indices) == tuple(self.indices()):
-            return self._expression
+        if all_indices == self.indices().indices():
+            return self.ufl_operands[0]
 
-    # Index self, yielding scalar valued expressions
-    a = Indexed(self, indices)
+    # Apply all indices to index self, yielding a scalar valued expression
+    mi = MultiIndex(all_indices)
+    a = Indexed(self, mi)
 
-    # Make a tensor from components designated by axis indices
-    if axis_indices:
-        a = as_tensor(a, axis_indices)
+    # TODO: I think applying as_tensor after index sums results in cleaner expression graphs.
 
-    # TODO: Should we apply IndexSum or as_tensor first?
+    # If the Ellipsis or any slices were found, wrap as tensor
+    # valued with the slice indices created at the top here
+    if slice_indices:
+        a = as_tensor(a, slice_indices)
 
-    # Apply sum for each repeated index
-    ri = repeated_indices(self.free_indices() + indices)
-    for i in ri:
-        a = IndexSum(a, i)
+    # If any repeated indices were found, apply implicit summation over those
+    for i in repeated_indices:
+        mi = MultiIndex((i,))
+        a = IndexSum(a, mi)
 
-    # Check for zero (last so we can get indices etc from a)
+    # Check for zero (last so we can get indices etc from a, could possibly be done faster by checking early instead)
     if isinstance(self, Zero):
-        shape = a.shape()
-        fi = a.free_indices()
-        idims = subdict(a.index_dimensions(), fi)
-        a = Zero(shape, fi, idims)
+        shape = a.ufl_shape
+        fi = a.ufl_free_indices
+        fid = a.ufl_index_dimensions
+        a = Zero(shape, fi, fid)
 
     return a
+
 Expr.__getitem__ = _getitem
 
 #--- Extend Expr with spatial differentiation operator a.dx(i) ---
@@ -416,12 +415,6 @@ def _dx(self, *ii):
     for i in ii:
         d = Grad(d)
     # Take all components, applying repeated index sums in the [] operation
-    return d[..., ii]
+    return d.__getitem__((Ellipsis,) + ii)
 
 Expr.dx = _dx
-
-#def _d(self, v):
-#    "Return the partial derivative with respect to variable v."
-#    # TODO: Maybe v can be an Indexed of a Variable, in which case we can use indexing to extract the right component?
-#    return VariableDerivative(self, v)
-#Expr.d = _d
