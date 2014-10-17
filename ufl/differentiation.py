@@ -84,7 +84,7 @@ class VariableDerivative(Derivative):
 
         # Simplification
         # Return zero if expression is trivially independent of variable
-        if f._ufl_is_terminal_:
+        if f._ufl_is_terminal_ and f != v:
             return Zero(f.ufl_shape + v.ufl_shape, f.ufl_free_indices, f.ufl_index_dimensions)
 
         # Construction
