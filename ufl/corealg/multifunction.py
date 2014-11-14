@@ -44,7 +44,7 @@ class MultiFunction(object):
         # Analyse class properties and cache handler data the
         # first time this is run for a particular class
         # (cached for each algorithm for performance)
-        algorithm_class = type(self).__name__
+        algorithm_class = type(self)
         cache_data = MultiFunction._handlers_cache.get(algorithm_class)
         if not cache_data:
             cache_data = [None]*len(Expr._ufl_all_classes_)
