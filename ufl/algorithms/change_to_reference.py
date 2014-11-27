@@ -47,7 +47,7 @@ from ufl.permutation import compute_indices
 
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
 from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
-from ufl.finiteelement import FiniteElement, EnrichedElement, VectorElement, MixedElement
+from ufl.finiteelement import FiniteElement, EnrichedElement, VectorElement, MixedElement, OuterProductElement
 
 
 # TODO: Move to ufl.corealg.multifunction?
@@ -160,7 +160,7 @@ class ChangeToReferenceValue(ReuseTransformer):
 
         local_value = ReferenceValue(o)
 
-        if isinstance(element, (FiniteElement, EnrichedElement)):
+        if isinstance(element, (FiniteElement, EnrichedElement, OuterProductElement)):
             mapping = element.mapping()
             if mapping == "identity":
                 global_value = local_value
