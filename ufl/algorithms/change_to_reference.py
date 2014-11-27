@@ -47,7 +47,7 @@ from ufl.permutation import compute_indices
 
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
 from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
-from ufl.finiteelement import FiniteElement
+from ufl.finiteelement import FiniteElement, EnrichedElement, VectorElement, MixedElement
 
 
 # TODO: Move to ufl.corealg.multifunction?
@@ -160,7 +160,7 @@ class ChangeToReferenceValue(ReuseTransformer):
 
         local_value = ReferenceValue(o)
 
-        if isinstance(element, FiniteElement):
+        if isinstance(element, (FiniteElement, EnrichedElement)):
             mapping = element.mapping()
             if mapping == "identity":
                 global_value = local_value
@@ -180,8 +180,16 @@ class ChangeToReferenceValue(ReuseTransformer):
                 global_value = as_vector(mapping[i, j] * local_value[j], i)
             else:
                 error("Mapping type %s not handled" % mapping)
+        elif isinstance(element, VectorElement):
+            # Allow VectorElement of CG/DG (scalar-valued), throw error
+            # on anything else (can be supported at a later date, if needed)
+            mapping = element.mapping()
+            if mapping == "identity" and len(o.element().value_shape()) == 1:
+                global_value = local_value
+        elif isinstance(element, MixedElement):
+            error("Mixed Functions must be split")
         else:
-            error("FIXME: handle mixed element, components need different mappings")
+            error("Unknown element %s", str(element))
 
         return global_value
 
