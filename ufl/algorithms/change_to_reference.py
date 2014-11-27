@@ -41,13 +41,13 @@ from ufl.finiteelement import MixedElement
 
 from ufl.constantvalue import as_ufl
 from ufl.tensoralgebra import Transposed
-from ufl.tensors import as_tensor, as_vector
+from ufl.tensors import as_tensor, as_vector, ComponentTensor
 from ufl.operators import sqrt, max_value, min_value
 from ufl.permutation import compute_indices
 
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
 from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
-from ufl.finiteelement import FiniteElement, EnrichedElement, VectorElement, MixedElement, OuterProductElement
+from ufl.finiteelement import FiniteElement, EnrichedElement, VectorElement, MixedElement, OuterProductElement, OuterProductVectorElement
 
 
 # TODO: Move to ufl.corealg.multifunction?
@@ -180,7 +180,7 @@ class ChangeToReferenceValue(ReuseTransformer):
                 global_value = as_vector(mapping[i, j] * local_value[j], i)
             else:
                 error("Mapping type %s not handled" % mapping)
-        elif isinstance(element, VectorElement):
+        elif isinstance(element, (VectorElement, OuterProductVectorElement)):
             # Allow VectorElement of CG/DG (scalar-valued), throw error
             # on anything else (can be supported at a later date, if needed)
             mapping = element.mapping()

@@ -160,6 +160,9 @@ class OuterProductVectorElement(MixedElement):
     def _B(self):
         return self._sub_element._B
 
+    def mapping(self):
+        return self._sub_element.mapping()
+
     def signature_data(self, renumbering):
         data = ("OuterProductVectorElement", self._A, self._B,
                 len(self._sub_elements), self._quad_scheme,
