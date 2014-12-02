@@ -157,41 +157,11 @@ class ChangeToReferenceValue(ReuseTransformer):
         # Represent 0-derivatives of form arguments on reference element
 
         element = o.element()
-
         local_value = ReferenceValue(o)
+        domain = o.domain()
 
-        if isinstance(element, (FiniteElement, EnrichedElement, OuterProductElement)):
-            mapping = element.mapping()
-            if mapping == "identity":
-                global_value = local_value
-            elif mapping == "contravariant Piola":
-                # contravariant_hdiv_mapping = (1/det J) * J * PullbackOf(o)
-                J = Jacobian(o.domain())
-                detJ = JacobianDeterminant(o.domain())
-                mapping = (1/detJ) * J
-                i, j = indices(2)
-                global_value = as_vector(mapping[i, j] * local_value[j], i)
-            elif mapping == "covariant Piola":
-                # covariant_hcurl_mapping = JinvT * PullbackOf(o)
-                Jinv = JacobianInverse(o.domain())
-                i, j = indices(2)
-                JinvT = as_tensor(Jinv[i, j], (j, i))
-                mapping = JinvT
-                global_value = as_vector(mapping[i, j] * local_value[j], i)
-            else:
-                error("Mapping type %s not handled" % mapping)
-        elif isinstance(element, (VectorElement, OuterProductVectorElement)):
-            # Allow VectorElement of CG/DG (scalar-valued), throw error
-            # on anything else (can be supported at a later date, if needed)
-            mapping = element.mapping()
-            if mapping == "identity" and len(o.element().value_shape()) == 1:
-                global_value = local_value
-        elif isinstance(element, MixedElement):
-            error("Mixed Functions must be split")
-        else:
-            error("Unknown element %s", str(element))
-
-        return global_value
+        # split into a separate function to allow MixedElement recursion
+        return _reference_value_helper(domain, element, local_value)
 
     form_coefficient = form_argument
 
@@ -931,3 +901,38 @@ def change_integrand_geometry_representation(integrand, scale, integral_type):
     integrand = change_to_reference_geometry(integrand, physical_coordinates_known)
 
     return integrand
+
+
+def _reference_value_helper(domain, element, local_value):
+    if isinstance(element, (FiniteElement, EnrichedElement, OuterProductElement)):
+        mapping = element.mapping()
+        if mapping == "identity":
+            return local_value
+        elif mapping == "contravariant Piola":
+            # contravariant_hdiv_mapping = (1/det J) * J * PullbackOf(o)
+            J = Jacobian(domain)
+            detJ = JacobianDeterminant(domain)
+            piola_trans = (1/detJ) * J
+            i, j = indices(2)
+            return as_vector(piola_trans[i, j] * local_value[j], i)
+        elif mapping == "covariant Piola":
+            # covariant_hcurl_mapping = JinvT * PullbackOf(o)
+            Jinv = JacobianInverse(domain)
+            i, j = indices(2)
+            JinvT = as_tensor(Jinv[i, j], (j, i))
+            piola_trans = JinvT
+            return as_vector(piola_trans[i, j] * local_value[j], i)
+        else:
+            error("Mapping type %s not handled" % mapping)
+    elif isinstance(element, (VectorElement, OuterProductVectorElement)):
+        # Allow VectorElement of CG/DG (scalar-valued), throw error
+        # on anything else (can be supported at a later date, if needed)
+        mapping = element.mapping()
+        if mapping == "identity" and len(element.value_shape()) == 1:
+            return local_value
+        else:
+            error("Don't know how to handle %s", str(element))
+    elif isinstance(element, MixedElement):
+        error("Mixed Functions must be split")
+    else:
+        error("Unknown element %s", str(element))
