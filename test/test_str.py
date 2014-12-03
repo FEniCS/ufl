@@ -25,11 +25,11 @@ def test_str_index(self):
 
 def test_str_coordinate(self):
     assert str(SpatialCoordinate(triangle)) == "x"
-    assert str(SpatialCoordinate(triangle)[0]) == "(x)[0]" # FIXME: Get rid of extra (
+    assert str(SpatialCoordinate(triangle)[0]) == "x[0]"
 
 def test_str_normal(self):
     assert str(FacetNormal(triangle)) == "n"
-    assert str(FacetNormal(triangle)[0]) == "(n)[0]" # FIXME: Get rid of extra (
+    assert str(FacetNormal(triangle)[0]) == "n[0]"
 
 def test_str_circumradius(self):
     assert str(Circumradius(triangle)) == "circumradius"

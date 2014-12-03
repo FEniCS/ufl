@@ -20,6 +20,8 @@
 from ufl.log import warning
 from six import iteritems
 
+# FIXME: This code is crap...
+
 def parstr(child, parent, pre="(", post=")", format=str):
     # Execute when needed instead of on import,
     # which leads to all kinds of circular trouble.
@@ -32,27 +34,27 @@ def parstr(child, parent, pre="(", post=")", format=str):
     # we later wrap in ().
     s = format(child)
 
-    # Operators where operands are always parenthesized
+    # Operators where operands are always parenthesized because precedence is not defined below
     if parent._precedence == 0:
         return pre + s + post
 
     # If parent operator binds stronger than child, must parenthesize child
     # FIXME: Is this correct for all possible positions of () in a + b + c?
-    if parent._precedence > child._precedence:
+    # FIXME: Left-right rule
+    if parent._precedence > child._precedence: # parent = indexed, child = terminal
         return pre + s + post
 
     # Nothing needed
     return s
 
 def build_precedence_list():
-    from ufl.classes import Operator, Terminal, Sum, IndexSum, Product, Division, Power, MathFunction, Abs
+    from ufl.classes import Operator, Terminal, Sum, IndexSum, Product, Division, Power, MathFunction, BesselFunction, Abs, Indexed
 
     # TODO: Fill in other types...
-    #Power <= Indexed
     #Power <= Transposed
 
     precedence_list = []
-    # Default behaviour: should always add parentheses
+    # Default operator behaviour: should always add parentheses
     precedence_list.append((Operator,))
 
     precedence_list.append((Sum,))
@@ -63,8 +65,11 @@ def build_precedence_list():
     precedence_list.append((Product, Division,))
 
     # NB! Depends on language!
-    precedence_list.append((Power, MathFunction, Abs))
+    precedence_list.append((Power, MathFunction, BesselFunction, Abs))
 
+    precedence_list.append((Indexed,))
+
+    # Default terminal behaviour: should never add parentheses
     precedence_list.append((Terminal,))
     return precedence_list
 
