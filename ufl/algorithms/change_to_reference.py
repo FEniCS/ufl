@@ -39,9 +39,9 @@ from ufl.classes import (FormArgument, GeometricQuantity,
 
 from ufl.finiteelement import MixedElement
 
-from ufl.constantvalue import as_ufl
+from ufl.constantvalue import as_ufl, Identity
 from ufl.tensoralgebra import Transposed
-from ufl.tensors import as_tensor, as_vector, ComponentTensor
+from ufl.tensors import as_tensor, as_vector, as_scalar, ComponentTensor
 from ufl.operators import sqrt, max_value, min_value
 from ufl.permutation import compute_indices
 
@@ -161,7 +161,15 @@ class ChangeToReferenceValue(ReuseTransformer):
         domain = o.domain()
 
         # split into a separate function to allow MixedElement recursion
-        return _reference_value_helper(domain, element, local_value)
+        transform = _reference_value_helper(domain, element)
+
+        if len(transform.shape()) == 0:
+            return transform*local_value
+        elif len(transform.shape()) == 2:
+            i, j = indices(2)
+            return as_vector(transform[i, j] * local_value[j], i)
+        else:
+            error("Unknown transform %s", str(transform))
 
     form_coefficient = form_argument
 
@@ -903,25 +911,24 @@ def change_integrand_geometry_representation(integrand, scale, integral_type):
     return integrand
 
 
-def _reference_value_helper(domain, element, local_value):
+def _reference_value_helper(domain, element):
     if isinstance(element, (FiniteElement, EnrichedElement, OuterProductElement)):
         mapping = element.mapping()
         if mapping == "identity":
-            return local_value
+            return as_ufl(1.0)
         elif mapping == "contravariant Piola":
             # contravariant_hdiv_mapping = (1/det J) * J * PullbackOf(o)
             J = Jacobian(domain)
             detJ = JacobianDeterminant(domain)
             piola_trans = (1/detJ) * J
-            i, j = indices(2)
-            return as_vector(piola_trans[i, j] * local_value[j], i)
+            return piola_trans
         elif mapping == "covariant Piola":
             # covariant_hcurl_mapping = JinvT * PullbackOf(o)
             Jinv = JacobianInverse(domain)
             i, j = indices(2)
             JinvT = as_tensor(Jinv[i, j], (j, i))
             piola_trans = JinvT
-            return as_vector(piola_trans[i, j] * local_value[j], i)
+            return piola_trans
         else:
             error("Mapping type %s not handled" % mapping)
     elif isinstance(element, (VectorElement, OuterProductVectorElement)):
@@ -929,10 +936,35 @@ def _reference_value_helper(domain, element, local_value):
         # on anything else (can be supported at a later date, if needed)
         mapping = element.mapping()
         if mapping == "identity" and len(element.value_shape()) == 1:
-            return local_value
+            return Identity(element.value_shape()[0])
         else:
             error("Don't know how to handle %s", str(element))
     elif isinstance(element, MixedElement):
-        error("Mixed Functions must be split")
+        temp = [_reference_value_helper(domain, foo) for foo in element.sub_elements()]
+        # "current" position to insert to
+        hh = 0
+        # number of columns
+        width = element.reference_value_shape()[0]
+
+        new_tensor = []
+        for ii, subelt in enumerate(element.sub_elements()):
+            if len(subelt.value_shape()) == 0:
+                # scalar-valued
+                new_row = [0,]*width
+                new_row[hh] = temp[ii]
+                new_tensor.append(new_row)
+                hh += 1
+            elif len(subelt.value_shape()) == 1:
+                # vector-valued
+                local_width = subelt.reference_value_shape()[0]
+                for jj in range(subelt.value_shape()[0]):
+                    new_row = [0,]*width
+                    new_row[hh:hh+local_width] = temp[ii][jj,:]
+                    new_tensor.append(new_row)
+                hh += local_width
+            else:
+                error("can't handle %s in a MixedElement", str(subelt))
+
+        return as_tensor(new_tensor)
     else:
         error("Unknown element %s", str(element))
