@@ -24,6 +24,10 @@ print()
 print(version)
 print()
 
+if sys.version_info < (2, 7):
+    print("Python 2.7 or higher required, please upgrade.")
+    sys.exit(1)
+
 scripts = [pjoin("scripts", "ufl-analyse"),
            pjoin("scripts", "ufl-convert"),
            pjoin("scripts", "ufl-version"),
