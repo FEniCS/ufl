@@ -920,7 +920,8 @@ def _reference_value_helper(domain, element):
             # contravariant_hdiv_mapping = (1/det J) * J * PullbackOf(o)
             J = Jacobian(domain)
             detJ = JacobianDeterminant(domain)
-            piola_trans = (1/detJ) * J
+            # FFC may or may not ignore CellOrientation, depending on tdim/gdim
+            piola_trans = CellOrientation(domain) * (1/detJ) * J
             return piola_trans
         elif mapping == "covariant Piola":
             # covariant_hcurl_mapping = JinvT * PullbackOf(o)
