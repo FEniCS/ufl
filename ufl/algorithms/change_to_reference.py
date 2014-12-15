@@ -47,7 +47,7 @@ from ufl.permutation import compute_indices
 
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
 from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
-from ufl.finiteelement import FiniteElement, EnrichedElement, VectorElement, MixedElement, OuterProductElement, OuterProductVectorElement
+from ufl.finiteelement import FiniteElement, EnrichedElement, VectorElement, MixedElement, OuterProductElement, OuterProductVectorElement, TensorElement
 
 
 # TODO: Move to ufl.corealg.multifunction?
@@ -912,7 +912,7 @@ def change_integrand_geometry_representation(integrand, scale, integral_type):
 
 
 def _reference_value_helper(domain, element):
-    if isinstance(element, (FiniteElement, EnrichedElement, OuterProductElement)):
+    if isinstance(element, (FiniteElement, EnrichedElement, OuterProductElement, TensorElement)):
         mapping = element.mapping()
         if mapping == "identity":
             return as_ufl(1.0)
