@@ -42,7 +42,7 @@ from ufl.finiteelement import MixedElement
 from ufl.constantvalue import as_ufl, Identity
 from ufl.tensoralgebra import Transposed
 from ufl.tensors import as_tensor, as_vector, as_scalar, ComponentTensor
-from ufl.operators import sqrt, max_value, min_value
+from ufl.operators import sqrt, max_value, min_value, sign
 from ufl.permutation import compute_indices
 
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
@@ -749,16 +749,16 @@ class ChangeToReferenceGeometry(MultiFunction):
             ufl_assert(gdim == 3, "Inconsistent dimensions.")
             ufl_assert(FJ.ufl_shape == (3, 2), "Inconsistent dimensions.")
 
-            # Compute signed scaling factor
-            scale = self.jacobian_determinant(JacobianDeterminant(domain))
+            # Compute unsigned, unnormalised normal of 3D cell, cross product of two tangent vectors
+            ndir = cross_expr(FJ[:, 0], FJ[:, 1])
 
-            # Compute facet normal direction of 3D cell, product of two tangent vectors
+            # Compute sign, the product of sgn(detJ) with the 'facet orientation' on the reference cell
+            scale = sign(self.jacobian_determinant(JacobianDeterminant(domain)))
             fo = FacetOrientation(domain)
-            ndir = (fo * scale) * cross_expr(FJ[:, 0], FJ[:, 1])
 
-            # Normalise normal vector
+            # Compute signed, normalised normal vector
             i = Index()
-            n = ndir / sqrt(ndir[i]*ndir[i])
+            n = (fo * scale) * ndir / sqrt(ndir[i]*ndir[i])
             r = n
 
         elif tdim == 2:
@@ -775,7 +775,7 @@ class ChangeToReferenceGeometry(MultiFunction):
                 cell_normal = as_vector((0, 0, 1))
 
                 # Compute signed scaling factor
-                scale = self.jacobian_determinant(JacobianDeterminant(domain))
+                scale = sign(self.jacobian_determinant(JacobianDeterminant(domain)))
             else:
                 # 2D facet normal in 3D space
                 ufl_assert(FJ.ufl_shape == (gdim, 1), "Inconsistent dimensions.")
@@ -792,28 +792,28 @@ class ChangeToReferenceGeometry(MultiFunction):
             ufl_assert(len(tangent) == 3, "Inconsistent dimensions.")
             ufl_assert(len(cell_normal) == 3, "Inconsistent dimensions.")
 
-            # Compute normal direction
+            # Compute unsigned, unnormalised normal
             cr = cross_expr(tangent, cell_normal)
             if gdim == 2:
                 cr = as_vector((cr[0], cr[1]))
-            fo = FacetOrientation(domain)
-            ndir = (fo * scale) * cr
+            ndir = cr
 
-            # Normalise normal vector
+            # Compute signed, normalised normal vector
+            fo = FacetOrientation(domain)
             i = Index()
-            n = ndir / sqrt(ndir[i]*ndir[i])
+            n = (fo * scale) * ndir / sqrt(ndir[i]*ndir[i])
             r = n
 
         elif tdim == 1:
             J = self.jacobian(Jacobian(domain)) # dx/dX
-            fo = FacetOrientation(domain)
-            ndir = fo * J[:, 0]
+            ndir = J[:, 0]
             if gdim == 1:
                 nlen = abs(ndir[0])
             else:
                 i = Index()
                 nlen = sqrt(ndir[i]*ndir[i])
-            n = ndir / nlen
+            fo = FacetOrientation(domain)
+            n = fo * ndir / nlen
             r = n
 
         ufl_assert(r.ufl_shape == o.ufl_shape, "Inconsistent dimensions (in=%d, out=%d)." % (o.ufl_shape[0], r.ufl_shape[0]))
