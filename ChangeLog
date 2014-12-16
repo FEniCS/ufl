@@ -1,5 +1,39 @@
+ - Require Python 2.7
+ - Python 3 support
+ - Change to py.test
+ - Rewrite parts of expression representation core, providing
+   significant optimizations in speed and memory use, as well
+   as a more elaborate type metadata system for internal use
+ - Use expr.ufl_shape instead of ufl.shape()
+ - Use expr.ufl_indices instead of ufl.indices(),
+   returns tuple of free index ids, not Index objects
+ - Use expr.ufl_index_dimensions instead of ufl.index_dimensions(),
+   returns tuple of dimensions ordered corresponding to expr.ufl_indices, not a dict
+ - Rewrite core algorithms for expression traversal
+ - Add new core algorithms map_expr_dag(), map_integrand_dag(),
+   similar to python map() but applying a callable MultiFunction
+   recursively to each Expr node, without Python recursion
+ - Highly recommend rewriting algorithms based on Transformer using
+   map_expr_dag and MultiFunction, avoiding Python recursion overhead
+ - Rewrite core algorithms apply_derivatives, apply_restrictions
+ - Form signature is now computed without applying derivatives first,
+   introducing smaller overhead on jit cache hits
+ - Use form.signature() to compute form signature
+ - Use form.arguments() instead of extract_arguments(form)
+ - Use form.coefficients() instead of extract_coefficients(form)
+ - Small improvement to str and latex output of expressions
+ - Allow diff(expr, coefficient) without wrapping coefficient in variable
+ - Add keywords to measures: dx(..., degree=3, rule="canonical")
  - Introduce notation from the Periodic Table of the Finite Elements
  - Introduce notation for FEEC families of elements: P-, P, Q-, S
+ - Experimental support for high-order geometric domains
+ - Algorithms for symbolic rewriting of geometric quantities (used by uflacs)
+ - Remove the *Constant* classes, using Coefficient with a Real element instead
+ - Add types for MinValue and MaxValue
+ - Disable automatic rewriting a+a->2*a, a*a->a**2, a/a->1, these are
+   costly and the compiler should handle them instead
+ - Fix signature stability w.r.t. metadata dicts
+ - Minor bugfixes, removal of unused code and cleanups
 1.4.0 [2014-06-02]
  - New integral type custom_integral (*dc)
  - Add analysis of which coefficients each integral actually uses to optimize assembly
