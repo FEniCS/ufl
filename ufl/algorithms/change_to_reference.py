@@ -917,13 +917,20 @@ def _reference_value_helper(domain, element):
         if mapping == "identity":
             return as_ufl(1.0)
         elif mapping == "contravariant Piola":
+            ufl_assert(domain.topological_dimension() >= 2, "Cannot have Piola-mapped element in 1D")
+
             # contravariant_hdiv_mapping = (1/det J) * J * PullbackOf(o)
             J = Jacobian(domain)
             detJ = JacobianDeterminant(domain)
-            # FFC may or may not ignore CellOrientation, depending on tdim/gdim
-            piola_trans = CellOrientation(domain) * (1/detJ) * J
+            # Only insert symbolic CellOrientation if tdim != gdim
+            if domain.topological_dimension() == domain.geometric_dimension():
+                piola_trans = (1/detJ) * J
+            else:
+                piola_trans = CellOrientation(domain) * (1/detJ) * J
             return piola_trans
         elif mapping == "covariant Piola":
+            ufl_assert(domain.topological_dimension() >= 2, "Cannot have Piola-mapped element in 1D")
+
             # covariant_hcurl_mapping = JinvT * PullbackOf(o)
             Jinv = JacobianInverse(domain)
             i, j = indices(2)
