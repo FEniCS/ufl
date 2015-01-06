@@ -19,11 +19,11 @@ from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
 class InteriorElement(FiniteElementBase):
-    """A version of an existing Finite Element space in which only the vertices
+    """A version of an existing Finite Element space in which only the dofs
     associated with the interior have been kept"""
     def __init__(self, element):
         self._element = element
-        self._repr = "InteriorElement(%s)" % str(element._repr)
+        self._repr = "InteriorElement(%r)" % element
 
         family = "InteriorElement"
         domain = element.domain()

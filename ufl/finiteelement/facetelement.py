@@ -19,11 +19,11 @@ from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
 class FacetElement(FiniteElementBase):
-    """A version of an existing Finite Element space in which all vertices
+    """A version of an existing Finite Element space in which all dofs
     associated with the interior have been discarded"""
     def __init__(self, element):
         self._element = element
-        self._repr = "FacetElement(%s)" % str(element._repr)
+        self._repr = "FacetElement(%r)" % element
 
         family = "FacetElement"
         domain = element.domain()
