@@ -416,7 +416,8 @@ class TensorElement(MixedElement):
                                i[k] < shape[k] and j[k] < shape[k],
                                "Symmetry dimensions out of bounds.")
         else:
-            ufl_assert(symmetry is None, "Expecting symmetry to be None, True, or dict.")
+            ufl_assert(symmetry is None, "Expecting symmetry to be None (unset), True, or dict.")
+            symmetry = EmptyDict
 
         # Compute all index combinations for given shape
         indices = compute_indices(shape)
@@ -427,14 +428,14 @@ class TensorElement(MixedElement):
         sub_elements = []
         sub_element_mapping = {}
         for index in indices:
-            if symmetry and index in symmetry:
+            if index in symmetry:
                 continue
             sub_element_mapping[index] = len(sub_elements)
             sub_elements += [sub_element]
 
         # Update mapping for symmetry
         for index in indices:
-            if symmetry and index in symmetry:
+            if index in symmetry:
                 sub_element_mapping[index] = sub_element_mapping[symmetry[index]]
 
         # Get common family name (checked in FiniteElement.__init__)
@@ -512,26 +513,24 @@ class TensorElement(MixedElement):
     def symmetry(self):
         """Return the symmetry dict, which is a mapping c0 -> c1
         meaning that component c0 is represented by component c1."""
-        return self._symmetry or EmptyDict
+        return self._symmetry
 
     def __str__(self):
         "Format as string for pretty printing."
-        sym = ""
-        if isinstance(self._symmetry, dict):
+        if self._symmetry:
             tmp = ", ".join("%s -> %s" % (a, b) for (a, b) in iteritems(self._symmetry))
             sym = " with symmetries (%s)" % tmp
-        elif self._symmetry:
-            sym = " with symmetry"
+        else:
+            sym = ""
         return "<%s tensor element of degree %s and shape %s on a %s%s>" % \
             (self.family(), istr(self.degree()), self.value_shape(), self.domain(), sym)
 
     def shortstr(self):
         "Format as string for pretty printing."
-        sym = ""
-        if isinstance(self._symmetry, dict):
+        if self._symmetry:
             tmp = ", ".join("%s -> %s" % (a, b) for (a, b) in iteritems(self._symmetry))
             sym = " with symmetries (%s)" % tmp
-        elif self._symmetry:
-            sym = " with symmetry"
+        else:
+            sym = ""
         return "Tensor<%s x %s%s>" % (self.value_shape(),
                                       self._sub_element.shortstr(), sym)

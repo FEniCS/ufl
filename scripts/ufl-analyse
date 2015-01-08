@@ -4,11 +4,11 @@ __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-05-09"
 
 # Modified by Anders Logg, 2009.
-# Last changed: 2011-04-26
+# Last changed: 2015-01-05
 
 import sys, optparse
 from ufl.log import warning
-from ufl.algorithms import load_ufl_file, validate_form, ufl2latex, tree_format, preprocess
+from ufl.algorithms import load_ufl_file, validate_form, ufl2latex, tree_format
 
 # Get commandline options
 
