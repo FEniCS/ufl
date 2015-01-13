@@ -1,3 +1,4 @@
+1.5.0 [2015-01-12]
  - Require Python 2.7
  - Python 3 support
  - Change to py.test
