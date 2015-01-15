@@ -35,3 +35,5 @@ from ufl.finiteelement.outerproductelement import OuterProductVectorElement
 from ufl.finiteelement.hdivcurl import HDiv, HCurl
 from ufl.finiteelement.brokenelement import BrokenElement
 from ufl.finiteelement.traceelement import TraceElement
+from ufl.finiteelement.facetelement import FacetElement
+from ufl.finiteelement.interiorelement import InteriorElement
