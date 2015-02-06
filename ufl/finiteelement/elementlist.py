@@ -90,12 +90,12 @@ any_cell  = (None,
              "quadrilateral", "hexahedron")
 
 # Elements in the periodic table # TODO: Register these as aliases of periodic table element description instead of the other way around
-register_element("Lagrange", "CG",                       0, H1,    "identity", (1, None), any_cell)                  # "P"
-register_element("Brezzi-Douglas-Marini", "BDM",         1, HDiv,  "contravariant Piola", (1, None), simplices[1:])  # "BDMF" (2d), "N2F" (3d)
-register_element("Discontinuous Lagrange", "DG",         0, L2,    "identity", (0, None), any_cell)                  # "DP"
-register_element("Nedelec 1st kind H(curl)", "N1curl",   1, HCurl, "covariant Piola", (1, None), simplices[1:])      # "RTE"  (2d), "N1E" (3d)
-register_element("Nedelec 2nd kind H(curl)", "N2curl",   1, HCurl, "covariant Piola", (1, None), simplices[1:])      # "BDME" (2d), "N2E" (3d)
-register_element("Raviart-Thomas", "RT",                 1, HDiv,  "contravariant Piola", (1, None), simplices[1:])  # "RTF"  (2d), "N1F" (3d)
+register_element("Lagrange", "CG",                       0, H1,    "identity", (1, None), any_cell + ("OuterProductCell",))  # "P"
+register_element("Brezzi-Douglas-Marini", "BDM",         1, HDiv,  "contravariant Piola", (1, None), simplices[1:])          # "BDMF" (2d), "N2F" (3d)
+register_element("Discontinuous Lagrange", "DG",         0, L2,    "identity", (0, None), any_cell + ("OuterProductCell",))  # "DP"
+register_element("Nedelec 1st kind H(curl)", "N1curl",   1, HCurl, "covariant Piola", (1, None), simplices[1:])              # "RTE"  (2d), "N1E" (3d)
+register_element("Nedelec 2nd kind H(curl)", "N2curl",   1, HCurl, "covariant Piola", (1, None), simplices[1:])              # "BDME" (2d), "N2E" (3d)
+register_element("Raviart-Thomas", "RT",                 1, HDiv,  "contravariant Piola", (1, None), simplices[1:])          # "RTF"  (2d), "N1F" (3d)
 
 # Elements not in the periodic table
 register_element("Argyris", "ARG",                       0, H2,   "identity", (1, None), simplices[1:])
@@ -131,8 +131,8 @@ register_alias("N2div",
 # New elements introduced for the periodic table 2014
 register_element2("Q",     0, H1,    "identity",            (1, None), cubes)
 register_element2("DQ",    0, L2,    "identity",            (0, None), cubes)
-register_element2("RTCE",  1, HCurl, "covariant Piola",     (1, None), ("quadrilateral",))
-register_element2("RTCF",  1, HDiv,  "contravariant Piola", (1, None), ("quadrilateral",))
+register_element2("RTCE",  1, HCurl, "covariant Piola",     (1, None), ("quadrilateral", "OuterProductCell"))
+register_element2("RTCF",  1, HDiv,  "contravariant Piola", (1, None), ("quadrilateral", "OuterProductCell"))
 register_element2("NCE",   1, HCurl, "covariant Piola",     (1, None), ("hexahedron",))
 register_element2("NCF",   1, HDiv,  "contravariant Piola", (1, None), ("hexahedron",))
 
