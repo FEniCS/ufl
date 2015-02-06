@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 from __future__ import print_function
 from distutils.core import setup
-from distutils import sysconfig
 from os.path import join as pjoin, split as psplit
+import re
 import sys
 import platform
 
@@ -29,7 +29,8 @@ if platform.system() == "Windows" or "bdist_wininst" in sys.argv:
         batch_files.append(batch_file)
     scripts.extend(batch_files)
 
-from ufl import __version__ as version
+version = re.findall('__version__ = "(.*)"',
+                     open('ufl/__init__.py', 'r').read())[0]
 
 setup(name="UFL",
       version = version,
