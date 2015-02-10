@@ -64,12 +64,6 @@ class FiniteElement(FiniteElementBase):
             from ufl.finiteelement.enrichedelement import EnrichedElement
             from ufl.finiteelement.hdivcurl import HDiv, HCurl
 
-            # Initially degree is an integer,
-            # but it is a tuple during reconstruction.
-            if isinstance(degree, tuple):
-                assert len(degree) == 2 and degree[0] == degree[1]
-                degree = degree[0]
-
             if family in ["RTCF", "RTCE"]:
                 ufl_assert(cell._A.topological_dimension() == 1, "%s is available on OuterProductCell(interval, interval) only." % family)
                 ufl_assert(cell._B.topological_dimension() == 1, "%s is available on OuterProductCell(interval, interval) only." % family)
