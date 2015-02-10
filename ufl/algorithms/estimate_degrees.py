@@ -27,6 +27,14 @@ from ufl.integral import Integral
 from ufl.algorithms.transformer import Transformer
 
 
+class IrreducibleInt(int):
+    """Degree type used by quadrilaterals.
+
+    Unlike int, values of this type are not decremeneted by _reduce_degree.
+    """
+    pass
+
+
 class SumDegreeEstimator(Transformer):
     "This algorithm is exact for a few operators and heuristic for many."
 
@@ -73,29 +81,41 @@ class SumDegreeEstimator(Transformer):
     def _reduce_degree(self, v, f):
         """Reduces the estimated degree by one; used when derivatives
         are taken. Does not reduce the degree when OuterProduct elements
-        are involved."""
-        if isinstance(f, int):
+        or quadrilateral elements are involved."""
+        if isinstance(f, int) and not isinstance(f, IrreducibleInt):
             return max(f-1, 0)
         else:
             # if tuple, do not reduce
             return f
 
     def _add_degrees(self, v, *ops):
-        if all(isinstance(o, int) for o in ops):
-            return sum(ops)
-        else:
+        def add_single(ops):
+            if any(isinstance(o, IrreducibleInt) for o in ops):
+                return IrreducibleInt(sum(ops))
+            else:
+                return sum(ops)
+
+        if any(isinstance(o, tuple) for o in ops):
             # we can add a slight hack here to handle things
             # like adding 0 to (3, 3) [by expanding
             # 0 to (0, 0) when making tempops]
             tempops = [foo if isinstance(foo, tuple) else (foo, foo) for foo in ops]
-            return tuple(map(sum, zip(*tempops)))
+            return tuple(map(add_single, zip(*tempops)))
+        else:
+            return add_single(ops)
 
     def _max_degrees(self, v, *ops):
-        if all(isinstance(o, int) for o in ops):
-            return max(ops + (0,))
-        else:
+        def max_single(ops):
+            if any(isinstance(o, IrreducibleInt) for o in ops):
+                return IrreducibleInt(max(ops))
+            else:
+                return max(ops)
+
+        if any(isinstance(o, tuple) for o in ops):
             tempops = [foo if isinstance(foo, tuple) else (foo, foo) for foo in ops]
-            return tuple(map(max, zip(*tempops)))
+            return tuple(map(max_single, zip(*tempops)))
+        else:
+            return max_single(ops + (0,))
 
     def _not_handled(self, v, *args):
         error("Missing degree handler for type %s" % v._ufl_class_.__name__)

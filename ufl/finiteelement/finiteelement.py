@@ -133,11 +133,11 @@ class FiniteElement(FiniteElementBase):
         self._mapping = mapping
         self._short_name = short_name
 
-        # Finite elements on quadrilaterals have a pair as degree
-        # 'degree' might already be a pair here, e.g. during reconstruction.
+        # Finite elements on quadrilaterals have an IrreducibleInt as degree
         if domain is not None:
-            if cell.cellname() == "quadrilateral" and isinstance(degree, int):
-                degree = (degree, degree)
+            if cell.cellname() == "quadrilateral":
+                from ufl.algorithms.estimate_degrees import IrreducibleInt
+                degree = IrreducibleInt(degree)
 
         # Initialize element data
         FiniteElementBase.__init__(self, family, domain, degree,
