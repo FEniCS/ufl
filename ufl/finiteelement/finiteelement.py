@@ -28,7 +28,7 @@ from ufl.geometry import as_domain, as_cell
 from ufl.log import info_blue, warning, warning_blue, error
 
 from ufl.cell import OuterProductCell
-from ufl.finiteelement.elementlist import canonical_element_description
+from ufl.finiteelement.elementlist import canonical_element_description, simplices
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 class FiniteElement(FiniteElementBase):
@@ -79,9 +79,16 @@ class FiniteElement(FiniteElementBase):
                 if family == "RTCE":
                     return EnrichedElement(HCurl(CxD_elt), HCurl(DxC_elt))
 
-            elif family in ["Lagrange", "Discontinuous Lagrange"]:
-                return OuterProductElement(FiniteElement(family, cell._A, degree, form_degree, quad_scheme),
-                                           FiniteElement(family, cell._B, degree, form_degree, quad_scheme),
+            elif family == "Q":
+                return OuterProductElement(FiniteElement("CG", cell._A, degree, form_degree, quad_scheme),
+                                           FiniteElement("CG", cell._B, degree, form_degree, quad_scheme),
+                                           domain, form_degree, quad_scheme)
+
+            elif family == "DQ":
+                family_A = "DG" if cell._A.cellname() in simplices else "DQ"
+                family_B = "DG" if cell._B.cellname() in simplices else "DQ"
+                return OuterProductElement(FiniteElement(family_A, cell._A, degree, form_degree, quad_scheme),
+                                           FiniteElement(family_B, cell._B, degree, form_degree, quad_scheme),
                                            domain, form_degree, quad_scheme)
 
         return super(FiniteElement, cls).__new__(cls,
