@@ -68,11 +68,11 @@ class FiniteElement(FiniteElementBase):
                 ufl_assert(cell._A.topological_dimension() == 1, "%s is available on OuterProductCell(interval, interval) only." % family)
                 ufl_assert(cell._B.topological_dimension() == 1, "%s is available on OuterProductCell(interval, interval) only." % family)
 
-                C_elt = FiniteElement("CG", "interval", degree, form_degree, quad_scheme)
-                D_elt = FiniteElement("DG", "interval", degree - 1, form_degree, quad_scheme)
+                C_elt = FiniteElement("CG", "interval", degree, 0, quad_scheme)
+                D_elt = FiniteElement("DG", "interval", degree - 1, 1, quad_scheme)
 
-                CxD_elt = OuterProductElement(C_elt, D_elt, domain, form_degree, quad_scheme)
-                DxC_elt = OuterProductElement(D_elt, C_elt, domain, form_degree, quad_scheme)
+                CxD_elt = OuterProductElement(C_elt, D_elt, domain, 1, quad_scheme)
+                DxC_elt = OuterProductElement(D_elt, C_elt, domain, 1, quad_scheme)
 
                 if family == "RTCF":
                     return EnrichedElement(HDiv(CxD_elt), HDiv(DxC_elt))
@@ -80,15 +80,15 @@ class FiniteElement(FiniteElementBase):
                     return EnrichedElement(HCurl(CxD_elt), HCurl(DxC_elt))
 
             elif family == "Q":
-                return OuterProductElement(FiniteElement("CG", cell._A, degree, form_degree, quad_scheme),
-                                           FiniteElement("CG", cell._B, degree, form_degree, quad_scheme),
+                return OuterProductElement(FiniteElement("CG", cell._A, degree, 0, quad_scheme),
+                                           FiniteElement("CG", cell._B, degree, 0, quad_scheme),
                                            domain, form_degree, quad_scheme)
 
             elif family == "DQ":
                 family_A = "DG" if cell._A.cellname() in simplices else "DQ"
                 family_B = "DG" if cell._B.cellname() in simplices else "DQ"
-                return OuterProductElement(FiniteElement(family_A, cell._A, degree, form_degree, quad_scheme),
-                                           FiniteElement(family_B, cell._B, degree, form_degree, quad_scheme),
+                return OuterProductElement(FiniteElement(family_A, cell._A, degree, cell._A.topological_dimension(), quad_scheme),
+                                           FiniteElement(family_B, cell._B, degree, cell._B.topological_dimension(), quad_scheme),
                                            domain, form_degree, quad_scheme)
 
         return super(FiniteElement, cls).__new__(cls,
