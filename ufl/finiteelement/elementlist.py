@@ -23,6 +23,7 @@ elements by calling the function register_element."""
 
 from __future__ import print_function
 
+from ufl.log import warning as ufl_warning
 from ufl.assertions import ufl_assert
 from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl
 from ufl.common import istr
@@ -90,12 +91,12 @@ any_cell  = (None,
              "quadrilateral", "hexahedron")
 
 # Elements in the periodic table # TODO: Register these as aliases of periodic table element description instead of the other way around
-register_element("Lagrange", "CG",                       0, H1,    "identity", (1, None), any_cell)                  # "P"
-register_element("Brezzi-Douglas-Marini", "BDM",         1, HDiv,  "contravariant Piola", (1, None), simplices[1:])  # "BDMF" (2d), "N2F" (3d)
-register_element("Discontinuous Lagrange", "DG",         0, L2,    "identity", (0, None), any_cell)                  # "DP"
-register_element("Nedelec 1st kind H(curl)", "N1curl",   1, HCurl, "covariant Piola", (1, None), simplices[1:])      # "RTE"  (2d), "N1E" (3d)
-register_element("Nedelec 2nd kind H(curl)", "N2curl",   1, HCurl, "covariant Piola", (1, None), simplices[1:])      # "BDME" (2d), "N2E" (3d)
-register_element("Raviart-Thomas", "RT",                 1, HDiv,  "contravariant Piola", (1, None), simplices[1:])  # "RTF"  (2d), "N1F" (3d)
+register_element("Lagrange", "CG",                       0, H1,    "identity", (1, None), any_cell + ("OuterProductCell",))  # "P", "Q"
+register_element("Brezzi-Douglas-Marini", "BDM",         1, HDiv,  "contravariant Piola", (1, None), simplices[1:])          # "BDMF" (2d), "N2F" (3d)
+register_element("Discontinuous Lagrange", "DG",         0, L2,    "identity", (0, None), any_cell + ("OuterProductCell",))  # "DP", "DQ"
+register_element("Nedelec 1st kind H(curl)", "N1curl",   1, HCurl, "covariant Piola", (1, None), simplices[1:])              # "RTE"  (2d), "N1E" (3d)
+register_element("Nedelec 2nd kind H(curl)", "N2curl",   1, HCurl, "covariant Piola", (1, None), simplices[1:])              # "BDME" (2d), "N2E" (3d)
+register_element("Raviart-Thomas", "RT",                 1, HDiv,  "contravariant Piola", (1, None), simplices[1:])          # "RTF"  (2d), "N1F" (3d)
 
 # Elements not in the periodic table
 register_element("Argyris", "ARG",                       0, H2,   "identity", (1, None), simplices[1:])
@@ -129,10 +130,10 @@ register_alias("N2div",
                lambda family, dim, order, degree: ("Brezzi-Douglas-Marini", order))
 
 # New elements introduced for the periodic table 2014
-register_element2("Q",     0, H1,    "identity",            (1, None), cubes)
-register_element2("DQ",    0, L2,    "identity",            (0, None), cubes)
-register_element2("RTCE",  1, HCurl, "covariant Piola",     (1, None), ("quadrilateral",))
-register_element2("RTCF",  1, HDiv,  "contravariant Piola", (1, None), ("quadrilateral",))
+register_element2("Q",     0, H1,    "identity",            (1, None), cubes + ("OuterProductCell",))
+register_element2("DQ",    0, L2,    "identity",            (0, None), cubes + ("OuterProductCell",))
+register_element2("RTCE",  1, HCurl, "covariant Piola",     (1, None), ("quadrilateral", "OuterProductCell"))
+register_element2("RTCF",  1, HDiv,  "contravariant Piola", (1, None), ("quadrilateral", "OuterProductCell"))
 register_element2("NCE",   1, HCurl, "covariant Piola",     (1, None), ("hexahedron",))
 register_element2("NCF",   1, HDiv,  "contravariant Piola", (1, None), ("hexahedron",))
 
@@ -248,6 +249,14 @@ def canonical_element_description(family, cell, order, form_degree):
 
     # Check that element data is valid (and also get common family name)
     (family, short_name, value_rank, sobolev_space, mapping, krange, cellnames) = ufl_elements[family]
+
+    # Accept CG/DG on all kind of cells, but use Q/DQ on "product" cells
+    if family == "Lagrange" and cellname not in simplices:
+        family = "Q"
+    elif family == "Discontinuous Lagrange" and cellname not in simplices:
+        if order >= 1:
+            ufl_warning("Discontinuous Lagrange element requested on %s, creating DQ element." % cellname)
+        family = "DQ"
 
     # Validate cellname if a valid cell is specified
     ufl_assert(cellname is None or cellname in cellnames,

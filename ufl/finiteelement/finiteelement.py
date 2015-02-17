@@ -27,7 +27,8 @@ from ufl.common import product, istr, EmptyDict
 from ufl.geometry import as_domain, as_cell
 from ufl.log import info_blue, warning, warning_blue, error
 
-from ufl.finiteelement.elementlist import canonical_element_description
+from ufl.cell import OuterProductCell
+from ufl.finiteelement.elementlist import canonical_element_description, simplices
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 class FiniteElement(FiniteElementBase):
@@ -37,6 +38,66 @@ class FiniteElement(FiniteElementBase):
                  "_sobolev_space",
                  "_mapping",
                 )
+
+    def __new__(cls,
+                family,
+                domain=None,
+                degree=None,
+                form_degree=None,
+                quad_scheme=None):
+        """Intercepts construction to expand CG, DG, RTCE and RTCF spaces
+        on OuterProductCells.
+        """
+        if domain is None:
+            cell = None
+        else:
+            domain = as_domain(domain)
+            cell = domain.cell()
+            ufl_assert(cell is not None, "Missing cell in given domain.")
+
+        family, short_name, degree, value_shape, reference_value_shape, sobolev_space, mapping = \
+          canonical_element_description(family, cell, degree, form_degree)
+
+        if isinstance(cell, OuterProductCell):
+            # Delay import to avoid circular dependency at module load time
+            from ufl.finiteelement.outerproductelement import OuterProductElement
+            from ufl.finiteelement.enrichedelement import EnrichedElement
+            from ufl.finiteelement.hdivcurl import HDiv, HCurl
+
+            if family in ["RTCF", "RTCE"]:
+                ufl_assert(cell._A.topological_dimension() == 1, "%s is available on OuterProductCell(interval, interval) only." % family)
+                ufl_assert(cell._B.topological_dimension() == 1, "%s is available on OuterProductCell(interval, interval) only." % family)
+
+                C_elt = FiniteElement("CG", "interval", degree, 0, quad_scheme)
+                D_elt = FiniteElement("DG", "interval", degree - 1, 1, quad_scheme)
+
+                CxD_elt = OuterProductElement(C_elt, D_elt, domain, 1, quad_scheme)
+                DxC_elt = OuterProductElement(D_elt, C_elt, domain, 1, quad_scheme)
+
+                if family == "RTCF":
+                    return EnrichedElement(HDiv(CxD_elt), HDiv(DxC_elt))
+                if family == "RTCE":
+                    return EnrichedElement(HCurl(CxD_elt), HCurl(DxC_elt))
+
+            elif family == "Q":
+                return OuterProductElement(FiniteElement("CG", cell._A, degree, 0, quad_scheme),
+                                           FiniteElement("CG", cell._B, degree, 0, quad_scheme),
+                                           domain, form_degree, quad_scheme)
+
+            elif family == "DQ":
+                family_A = "DG" if cell._A.cellname() in simplices else "DQ"
+                family_B = "DG" if cell._B.cellname() in simplices else "DQ"
+                return OuterProductElement(FiniteElement(family_A, cell._A, degree, cell._A.topological_dimension(), quad_scheme),
+                                           FiniteElement(family_B, cell._B, degree, cell._B.topological_dimension(), quad_scheme),
+                                           domain, form_degree, quad_scheme)
+
+        return super(FiniteElement, cls).__new__(cls,
+                                                 family,
+                                                 domain,
+                                                 degree,
+                                                 form_degree,
+                                                 quad_scheme)
+
     def __init__(self,
                  family,
                  domain=None,
@@ -72,6 +133,12 @@ class FiniteElement(FiniteElementBase):
         self._sobolev_space = sobolev_space
         self._mapping = mapping
         self._short_name = short_name
+
+        # Finite elements on quadrilaterals have an IrreducibleInt as degree
+        if domain is not None:
+            if cell.cellname() == "quadrilateral":
+                from ufl.algorithms.estimate_degrees import IrreducibleInt
+                degree = IrreducibleInt(degree)
 
         # Initialize element data
         FiniteElementBase.__init__(self, family, domain, degree,

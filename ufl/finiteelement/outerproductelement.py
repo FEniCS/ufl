@@ -121,12 +121,25 @@ class OuterProductVectorElement(MixedElement):
     elements are equal OuterProductElements"""
     __slots__ = ("_sub_element")
 
-    def __init__(self, A, B, domain=None, dim=None,
-                 form_degree=None, quad_scheme=None):
+    def __init__(self, *args, **kwargs):
+        if isinstance(args[0], OuterProductElement):
+            self._from_sub_element(*args, **kwargs)
+        else:
+            self._from_product_parts(*args, **kwargs)
+
+    def _from_product_parts(self, A, B, domain=None, dim=None,
+                            form_degree=None, quad_scheme=None):
         if domain is not None:
             domain = as_domain(domain)
 
-        sub_element = OuterProductElement(A, B, domain=domain)
+        sub_element = OuterProductElement(A, B, domain=domain,
+                                          form_degree=form_degree,
+                                          quad_scheme=quad_scheme)
+        self._from_sub_element(sub_element, dim=dim)
+
+    def _from_sub_element(self, sub_element, dim=None):
+        assert isinstance(sub_element, OuterProductElement)
+
         dim = dim or sub_element.cell().geometric_dimension()
         sub_elements = [sub_element]*dim
 
@@ -140,7 +153,7 @@ class OuterProductVectorElement(MixedElement):
         # Initialize element data
         MixedElement.__init__(self, sub_elements, value_shape=value_shape)
         self._family = family
-        self._degree = A.degree(), B.degree()
+        self._degree = sub_element.degree()
 
         self._sub_element = sub_element
         # Cache repr string

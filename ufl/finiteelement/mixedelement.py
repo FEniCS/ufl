@@ -288,6 +288,28 @@ class MixedElement(FiniteElementBase):
 class VectorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal"
 
+    def __new__(cls, family, domain, degree, dim=None,
+                form_degree=None, quad_scheme=None):
+        """Intercepts construction, such that it returns an
+        OuterProductVectorElement when FiniteElement returns an
+        OuterProductElement.
+        """
+        if domain is not None:
+            domain = as_domain(domain)
+
+        # Create mixed element from list of finite elements
+        sub_element = FiniteElement(family, domain, degree,
+                                    form_degree=form_degree,
+                                    quad_scheme=quad_scheme)
+
+        from ufl.finiteelement.outerproductelement import OuterProductElement
+        from ufl.finiteelement.outerproductelement import OuterProductVectorElement
+        if isinstance(sub_element, OuterProductElement):
+            return OuterProductVectorElement(sub_element, dim=dim)
+
+        return super(VectorElement, cls).__new__(cls, family, domain, degree,
+                                                 dim, form_degree, quad_scheme)
+
     def __init__(self, family, domain, degree, dim=None,
                  form_degree=None, quad_scheme=None):
         """
