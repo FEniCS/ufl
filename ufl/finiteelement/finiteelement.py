@@ -65,19 +65,45 @@ class FiniteElement(FiniteElementBase):
             from ufl.finiteelement.hdivcurl import HDiv, HCurl
 
             if family in ["RTCF", "RTCE"]:
-                ufl_assert(cell._A.topological_dimension() == 1, "%s is available on OuterProductCell(interval, interval) only." % family)
-                ufl_assert(cell._B.topological_dimension() == 1, "%s is available on OuterProductCell(interval, interval) only." % family)
+                ufl_assert(cell._A.cellname() == "interval", "%s is available on OuterProductCell(interval, interval) only." % family)
+                ufl_assert(cell._B.cellname() == "interval", "%s is available on OuterProductCell(interval, interval) only." % family)
 
                 C_elt = FiniteElement("CG", "interval", degree, 0, quad_scheme)
                 D_elt = FiniteElement("DG", "interval", degree - 1, 1, quad_scheme)
 
-                CxD_elt = OuterProductElement(C_elt, D_elt, domain, 1, quad_scheme)
-                DxC_elt = OuterProductElement(D_elt, C_elt, domain, 1, quad_scheme)
+                CxD_elt = OuterProductElement(C_elt, D_elt, domain, form_degree, quad_scheme)
+                DxC_elt = OuterProductElement(D_elt, C_elt, domain, form_degree, quad_scheme)
 
                 if family == "RTCF":
                     return EnrichedElement(HDiv(CxD_elt), HDiv(DxC_elt))
                 if family == "RTCE":
                     return EnrichedElement(HCurl(CxD_elt), HCurl(DxC_elt))
+
+            elif family == "NCF":
+                ufl_assert(cell._A.cellname() == "quadrilateral", "%s is available on OuterProductCell(quadrilateral, interval) only." % family)
+                ufl_assert(cell._B.cellname() == "interval", "%s is available on OuterProductCell(quadrilateral, interval) only." % family)
+
+                Qc_elt = FiniteElement("RTCF", "quadrilateral", degree, 1, quad_scheme)
+                Qd_elt = FiniteElement("DQ", "quadrilateral", degree - 1, 2, quad_scheme)
+
+                Id_elt = FiniteElement("DG", "interval", degree - 1, 1, quad_scheme)
+                Ic_elt = FiniteElement("CG", "interval", degree, 0, quad_scheme)
+
+                return EnrichedElement(HDiv(OuterProductElement(Qc_elt, Id_elt, domain, form_degree, quad_scheme)),
+                                       HDiv(OuterProductElement(Qd_elt, Ic_elt, domain, form_degree, quad_scheme)))
+
+            elif family == "NCE":
+                ufl_assert(cell._A.cellname() == "quadrilateral", "%s is available on OuterProductCell(quadrilateral, interval) only." % family)
+                ufl_assert(cell._B.cellname() == "interval", "%s is available on OuterProductCell(quadrilateral, interval) only." % family)
+
+                Qc_elt = FiniteElement("Q", "quadrilateral", degree, 0, quad_scheme)
+                Qd_elt = FiniteElement("RTCE", "quadrilateral", degree, 1, quad_scheme)
+
+                Id_elt = FiniteElement("DG", "interval", degree - 1, 1, quad_scheme)
+                Ic_elt = FiniteElement("CG", "interval", degree, 0, quad_scheme)
+
+                return EnrichedElement(HCurl(OuterProductElement(Qc_elt, Id_elt, domain, form_degree, quad_scheme)),
+                                       HCurl(OuterProductElement(Qd_elt, Ic_elt, domain, form_degree, quad_scheme)))
 
             elif family == "Q":
                 return OuterProductElement(FiniteElement("CG", cell._A, degree, 0, quad_scheme),

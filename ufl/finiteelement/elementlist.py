@@ -134,8 +134,8 @@ register_element2("Q",     0, H1,    "identity",            (1, None), cubes + (
 register_element2("DQ",    0, L2,    "identity",            (0, None), cubes + ("OuterProductCell",))
 register_element2("RTCE",  1, HCurl, "covariant Piola",     (1, None), ("quadrilateral", "OuterProductCell"))
 register_element2("RTCF",  1, HDiv,  "contravariant Piola", (1, None), ("quadrilateral", "OuterProductCell"))
-register_element2("NCE",   1, HCurl, "covariant Piola",     (1, None), ("hexahedron",))
-register_element2("NCF",   1, HDiv,  "contravariant Piola", (1, None), ("hexahedron",))
+register_element2("NCE",   1, HCurl, "covariant Piola",     (1, None), ("hexahedron", "OuterProductCell"))
+register_element2("NCF",   1, HDiv,  "contravariant Piola", (1, None), ("hexahedron", "OuterProductCell"))
 
 register_element2("S",     0, H1,    "identity",            (1, None), cubes)
 register_element2("DPC",   0, L2,    "identity",            (1, None), cubes)
