@@ -31,6 +31,7 @@ def ufl_type(is_abstract=False,
              unop=None,
              binop=None,
              rbinop=None,
+             language_name="ufl"
              ):
     """This decorator is to be applied to every subclass in the UFL Expr hierarchy.
 
@@ -46,7 +47,6 @@ def ufl_type(is_abstract=False,
 
         # An abstract class cannot be instantiated and does not need all properties specified
         cls._ufl_is_abstract_ = is_abstract
-
 
         # Check that the first base classes up to Expr are other UFL types
         for base in cls.mro():
