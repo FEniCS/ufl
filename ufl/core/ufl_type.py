@@ -28,8 +28,7 @@ def ufl_type(is_abstract=False,
              wraps_type=None,
              unop=None,
              binop=None,
-             rbinop=None,
-             language_name="ufl"
+             rbinop=None
              ):
     """This decorator is to be applied to every subclass in the UFL Expr hierarchy.
 
