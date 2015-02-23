@@ -1,6 +1,5 @@
 
 
-#from ufl.core.expr import Expr
 from ufl.core.expr import Expr
 
 from ufl.common import camel2underscore, EmptyDict
@@ -17,7 +16,6 @@ def get_base_attr(cls, name):
             if attr is not None:
                 return attr
     return None
-
 
 def ufl_type(is_abstract=False,
              is_terminal=None,
@@ -101,7 +99,7 @@ def ufl_type(is_abstract=False,
 
 
         # Attach builtin type wrappers to Expr
-        """ # These are currently handled in the as_ufl implementation in constantvalue.py
+        """# These are currently handled in the as_ufl implementation in constantvalue.py
         if wraps_type is not None:
             if not isinstance(wraps_type, type):
                 msg = "Expecting a type, not a {0.__name__} for the wraps_type argument in definition of {1.__name__}."
@@ -116,7 +114,7 @@ def ufl_type(is_abstract=False,
         # Attach special function to Expr.
         # Avoids the circular dependency problem of making
         # Expr.__foo__ return a Foo that is a subclass of Expr.
-        """ # These are currently attached in exproperators.py
+        """# These are currently attached in exproperators.py
         if unop:
             def _ufl_expr_unop_(self):
                 return cls(self)
@@ -143,12 +141,14 @@ def ufl_type(is_abstract=False,
         # It's faster to use expr._ufl_is_terminal_ than to use isinstance(expr, Terminal)
         auto_is_terminal = get_base_attr(cls, "_ufl_is_terminal_")
         if is_terminal is None and auto_is_terminal is None:
-            msg = "Class {0.__name__} has not specified the is_terminal trait. Did you forget to inherit from Terminal or Operator?"
+            msg = ("Class {0.__name__} has not specified the is_terminal trait."
+                + " Did you forget to inherit from Terminal or Operator?")
             raise TypeError(msg.format(cls))
         elif auto_is_terminal is None:
             auto_is_terminal = is_terminal
         elif is_terminal is not None and (auto_is_terminal != is_terminal):
-            msg = "Conflicting given and automatic 'is_terminal' trait for class {0.__name__}. Check if you meant to inherit from Terminal or Operator."
+            msg = ("Conflicting given and automatic 'is_terminal' trait for class {0.__name__}."
+                + " Check if you meant to inherit from Terminal or Operator.")
             raise TypeError(msg.format(cls))
         cls._ufl_is_terminal_ = auto_is_terminal
 
@@ -157,42 +157,57 @@ def ufl_type(is_abstract=False,
         cls._ufl_is_scalar_ = is_scalar
         cls._ufl_is_index_free_ = is_index_free or is_scalar
 
-        # Scalar or index-free? Then we can simplify the implementation of tensor properties by attaching them here.
+        # Scalar or index-free? Then we can simplify the implementation of tensor
+        # properties by attaching them here.
         if cls._ufl_is_scalar_:
             # New interface
             cls.ufl_shape = ()
             # Legacy interface
-            cls.shape = lambda self: ()
+            def _scalar_shape(self):
+                return ()
+            cls.shape = _scalar_shape
 
         if cls._ufl_is_scalar_ or cls._ufl_is_index_free_:
             # New interface
             cls.ufl_free_indices = ()
             cls.ufl_index_dimensions = ()
             # Legacy interface
-            cls.free_indices = lambda self: ()
-            cls.index_dimensions = lambda self: EmptyDict
-
+            def _empty_free_indices(self):
+                return ()
+            def _empty_index_dimensions(self):
+                return EmptyDict
+            cls.free_indices = _empty_free_indices
+            cls.index_dimensions = _empty_index_dimensions
 
         # Automate direct inheriting of shape and indices from one of the operands.
         # This simplifies refactoring because a lot of types do this.
         if inherit_shape_from_operand is not None:
-            def _inherit_ufl_shape(self):
+            def _inherited_ufl_shape(self):
                 return self.ufl_operands[inherit_shape_from_operand].ufl_shape
             # New interface
-            cls.ufl_shape = property(_inherit_ufl_shape)
+            cls.ufl_shape = property(_inherited_ufl_shape)
             # Legacy interface
-            cls.shape = _inherit_ufl_shape
+            cls.shape = _inherited_ufl_shape
 
         if inherit_indices_from_operand is not None:
             # New interface
-            cls.ufl_free_indices = property(lambda self: self.ufl_operands[inherit_indices_from_operand].ufl_free_indices)
-            cls.ufl_index_dimensions = property(lambda self: self.ufl_operands[inherit_indices_from_operand].ufl_index_dimensions)
+            def _inherited_ufl_free_indices(self):
+                return self.ufl_operands[inherit_indices_from_operand].ufl_free_indices
+            def _inherited_ufl_index_dimensions(self):
+                return self.ufl_operands[inherit_indices_from_operand].ufl_index_dimensions
+            cls.ufl_free_indices = property(_inherited_ufl_free_indices)
+            cls.ufl_index_dimensions = property(_inherited_ufl_index_dimensions)
             # Legacy interface
-            cls.free_indices = lambda self: self.ufl_operands[inherit_indices_from_operand].free_indices()
-            cls.index_dimensions = lambda self: self.ufl_operands[inherit_indices_from_operand].index_dimensions()
+            def _inherited_legacy_free_indices(self):
+                return self.ufl_operands[inherit_indices_from_operand].free_indices()
+            def _inherited_legacy_index_dimensions(self):
+                return self.ufl_operands[inherit_indices_from_operand].index_dimensions()
+            cls.free_indices = _inherited_legacy_free_indices
+            cls.index_dimensions = _inherited_legacy_index_dimensions
 
 
-        # Require num_ops to be set for non-abstract classes if it cannot be determined automatically
+        # Require num_ops to be set for non-abstract classes
+        # if it cannot be determined automatically
         auto_num_ops = num_ops
 
         # Determine from other args
