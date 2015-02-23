@@ -6,24 +6,6 @@ from os.path import join as pjoin, split as psplit
 import sys
 import platform
 
-# Version number
-major = 1
-minor = 5
-maintenance = '.0+'
-#maintenance = 0
-#maintenance = '-alpha'
-#maintenance = '-beta'
-#maintenance = '-rc'
-
-if isinstance(maintenance, int): # Numbered release
-    version = "%d.%d.%d" % (major, minor, maintenance)
-else: # Pre-release (-alpha, -beta, -rc) or dev version (+, .0+)
-    version = "%d.%d%s" % (major, minor, maintenance)
-
-print()
-print(version)
-print()
-
 if sys.version_info < (2, 7):
     print("Python 2.7 or higher required, please upgrade.")
     sys.exit(1)
@@ -47,7 +29,9 @@ if platform.system() == "Windows" or "bdist_wininst" in sys.argv:
         batch_files.append(batch_file)
     scripts.extend(batch_files)
 
-setup(name = "UFL",
+from ufl import __version__ as version
+
+setup(name="UFL",
       version = version,
       description = "Unified Form Language",
       author = "Martin Sandve Alnes, Anders Logg",
