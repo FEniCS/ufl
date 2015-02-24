@@ -41,7 +41,7 @@ def parstr(child, parent, pre="(", post=")", format=str):
     # If parent operator binds stronger than child, must parenthesize child
     # FIXME: Is this correct for all possible positions of () in a + b + c?
     # FIXME: Left-right rule
-    if parent._precedence < child._precedence: # parent = indexed, child = terminal
+    if parent._precedence > child._precedence: # parent = indexed, child = terminal
         return pre + s + post
 
     # Nothing needed
