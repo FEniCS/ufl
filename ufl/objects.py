@@ -38,9 +38,9 @@ ds_tb = ds_b + ds_t
 dS = Measure("interior_facet")
 dS_h = Measure("interior_facet_horiz")
 dS_v = Measure("interior_facet_vert")
-dP = Measure("point")
+dP = Measure("vertex")
 dc = Measure("custom")
-dE = Measure("macro_cell")
+#dE = Measure("macro_cell")
 
 # Cell types
 cell2D        = Cell("cell2D", 2)

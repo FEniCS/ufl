@@ -20,7 +20,7 @@ from mockobjects import MockMesh, MockMeshFunction
 def test_construct_forms_from_default_measures():
     # Create defaults:
     dx = Measure("dx")
-    dE = Measure("dE")
+    #dE = Measure("dE")
     # dO = Measure("dO")
 
     ds = Measure("ds")
@@ -38,7 +38,7 @@ def test_construct_forms_from_default_measures():
 
     # Check that names are mapped properly
     assert dx.integral_type() == "cell"
-    assert dE.integral_type() == "macro_cell"
+    #assert dE.integral_type() == "macro_cell"
     # assert dO.integral_type() == "overlap"
 
     assert ds.integral_type() == "exterior_facet"
@@ -51,7 +51,7 @@ def test_construct_forms_from_default_measures():
     assert dc.integral_type() == "custom"
     # assert dI.integral_type() == "interface"
 
-    assert dP.integral_type() == "point"
+    assert dP.integral_type() == "vertex"
     # assert dV.integral_type() == "vertex"
     # TODO: Continue this checking
 

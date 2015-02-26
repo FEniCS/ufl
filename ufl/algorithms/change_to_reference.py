@@ -655,7 +655,7 @@ def compute_integrand_scaling_factor(domain, integral_type):
         # Scaling with custom weight, which includes eventual volume scaling
         scale = weight
 
-    elif integral_type == "point":
+    elif integral_type == "vertex":
         # No need to scale 'integral' over a point
         scale = 1
 
