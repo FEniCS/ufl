@@ -105,7 +105,7 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
     # Check that restrictions are permissible
     for integral in form.integrals():
         # Only allow restrictions on interior facet integrals and surface measures
-        if integral.integral_type() in (Measure.INTERIOR_FACET, Measure.INTERIOR_FACET_HORIZ, Measure.INTERIOR_FACET_VERT, Measure.SURFACE):
+        if integral.integral_type() in (Measure.INTERIOR_FACET, Measure.INTERIOR_FACET_HORIZ, Measure.INTERIOR_FACET_VERT):
             check_restrictions(integral.integrand(), True)
         else:
             check_restrictions(integral.integrand(), False)

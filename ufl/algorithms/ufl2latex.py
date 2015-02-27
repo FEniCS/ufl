@@ -410,10 +410,8 @@ domain_strings = { "cell": r"\Omega",
                    "interior_facet": r"\Gamma^{int}",
                    "interior_facet_horiz": r"\Gamma_{horiz}^{int}",
                    "interior_facet_vert": r"\Gamma_{vert}^{int}",
-                   "point": r"\Gamma^{point}",
-                   "quadrature": r"\Gamma^{quadrature}",
-                   "macro_cell": r"\Omega^{macro}",
-                   "surface": r"\Gamma^{surface}",
+                   "vertex": r"\Gamma^{vertex}",
+                   "custom": r"\Gamma^{custom}",
                  }
 default_domain_string = "d(?)"
 

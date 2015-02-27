@@ -35,21 +35,21 @@ from ufl.protocols import id_or_none, metadata_equal, metadata_hashdata
 # Enumeration of valid domain types
 _integral_types = [
     # === Integration over full topological dimension:
-    ("cell", "dx"),                # Over a single cell
+    ("cell", "dx"),                     # Over cells of a mesh
     # === Integration over topological dimension - 1:
-    ("exterior_facet", "ds"),           # Over facet of a single cell
+    ("exterior_facet", "ds"),           # Over one-sided exterior facets of a mesh
     ("exterior_facet_bottom", "ds_b"),  # Over bottom facets on extruded mesh
     ("exterior_facet_top", "ds_t"),     # Over top facets on extruded mesh
     ("exterior_facet_vert", "ds_v"),    # Over side facets of an extruded mesh
-    ("interior_facet", "dS"),           # Over facet between two adjacent cells
+    ("interior_facet", "dS"),           # Over two-sided facets between pairs of adjacent cells of a mesh
     ("interior_facet_horiz", "dS_h"),   # Over horizontal facets of an extruded mesh
     ("interior_facet_vert", "dS_v"),    # Over vertical facets of an extruded mesh
     # === Integration over topological dimension 0
-    ("point", "dP"),               # TODO: Is this over arbitrary point cloud or vertices?
+    ("vertex", "dP"),               # Over vertices of a mesh
     # === Integration over custom domains
     ("custom", "dc"),              # Over custom user-defined domains (defined in terms of quadrature points)
     # === Other types (up for discussion, unclear whether they are used)
-    ("macro_cell", "dE"),          # Over a group of adjacent cells (TODO: Arbitrary cell group? Where is this used?)
+    #("macro_cell", "dE"),          # Over a group of adjacent cells (TODO: Arbitrary cell group? Where is this used?)
     #("overlap", "dO"),            # TODO: Over a cell fragment overlapping with two or more cells
     #("interface", "dI"),          # Over facet fragment overlapping with two or more cells
     #("vertex", "dV"),             # TODO: Use this over vertices?
@@ -105,10 +105,10 @@ class Measure(object):
     INTERIOR_FACET = "interior_facet"
     INTERIOR_FACET_HORIZ = "interior_facet_horiz"
     INTERIOR_FACET_VERT = "interior_facet_vert"
-    POINT          = "point"
-    QUADRATURE     = "quadrature"
-    MACRO_CELL     = "macro_cell"
-    SURFACE        = "surface"
+    POINT          = "vertex"
+    CUSTOM         = "custom"
+    #MACRO_CELL     = "macro_cell"
+    #SURFACE        = "surface"
 
     def __init__(self,
                  integral_type, # "dx" etc
