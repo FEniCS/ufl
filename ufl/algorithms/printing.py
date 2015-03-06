@@ -64,9 +64,8 @@ def form_info(form):
     ii = form.integrals_by_type("interior_facet")
     ihi = form.integrals_by_type("interior_facet_horiz")
     ivi = form.integrals_by_type("interior_facet_vert")
-    pi = form.integrals_by_type("point")
-    qi = form.integrals_by_type("quadrature")
-    mi = form.integrals_by_type("macro_cell")
+    pi = form.integrals_by_type("vertex")
+    qi = form.integrals_by_type("custom")
 
     s  = "Form info:\n"
     s += "  rank:                          %d\n" % len(bf)
@@ -79,9 +78,8 @@ def form_info(form):
     s += "  num_interior_facet_integrals:  %d\n" % len(ii)
     s += "  num_interior_horiz_facet_integrals:  %d\n" % len(ihi)
     s += "  num_interior_vert_facet_integrals:  %d\n" % len(ivi)
-    s += "  num_point_integrals:           %d\n" % len(pi)
-    s += "  num_quadrature_integrals:      %d\n" % len(qi)
-    s += "  num_macro_cell_integrals:      %d\n" % len(mi)
+    s += "  num_vertex_integrals:           %d\n" % len(pi)
+    s += "  num_custom_integrals:      %d\n" % len(qi)
 
     for f in cf:
         if f._name:
@@ -147,12 +145,11 @@ def tree_format(expression, indentation=0, parentheses=True):
         ii = expression.integrals_by_type("interior_facet")
         ihi = expression.integrals_by_type("interior_facet_horiz")
         ivi = expression.integrals_by_type("interior_facet_vert")
-        pi = expression.integrals_by_type("point")
-        qi = expression.integrals_by_type("quadrature")
-        mi = expression.integrals_by_type("macro_cell")
+        pi = expression.integrals_by_type("vertex")
+        qi = expression.integrals_by_type("custom")
         ind = _indent_string(indentation)
         s += ind + "Form:\n"
-        s += "\n".join(tree_format(itg, indentation+1, parentheses) for itg in chain(ci, ei, ebi, eti, evi, ii, ihi, ivi, pi, qi, mi))
+        s += "\n".join(tree_format(itg, indentation+1, parentheses) for itg in chain(ci, ei, ebi, eti, evi, ii, ihi, ivi, pi, qi))
 
     elif isinstance(expression, Integral):
         ind = _indent_string(indentation)

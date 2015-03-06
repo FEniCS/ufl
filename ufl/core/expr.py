@@ -425,6 +425,10 @@ class Expr(object):
         "Unary + is a no-op."
         return self
 
+    def __round__(self, n=None):
+        "Round to nearest integer or to nearest nth decimal."
+        return round(float(self), n)
+
 
 # Initializing traits here because Expr is not defined in the class declaration
 Expr._ufl_class_ = Expr

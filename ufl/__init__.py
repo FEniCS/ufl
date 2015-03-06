@@ -139,7 +139,7 @@ A very brief overview of the language contents follows:
 
 * Integral measures::
 
-    dx, ds, ds_b, ds_t, ds_tb, ds_v, dS, dS_h, dS_v, dP, dc, dE
+    dx, ds, ds_b, ds_t, ds_tb, ds_v, dS, dS_h, dS_v, dP, dc
 
 * Form transformations::
 
@@ -172,7 +172,7 @@ A very brief overview of the language contents follows:
 # Modified by Andrew T. T. McRae, 2014
 # Modified by Lawrence Mitchell, 2014
 
-__version__ = "1.5.0+"
+__version__ = "1.6.0dev"
 
 ########## README
 # Imports here should be what the user sees when doing "from ufl import *",
@@ -277,7 +277,7 @@ from ufl.objects import \
     vertex, interval, triangle, tetrahedron, \
     quadrilateral, hexahedron, facet, cell2D, cell3D, \
     i, j, k, l, p, q, r, s, \
-    dx, ds, ds_b, ds_t, ds_tb, ds_v, dS, dS_h, dS_v, dP, dc, dE
+    dx, ds, ds_b, ds_t, ds_tb, ds_v, dS, dS_h, dS_v, dP, dc
 
 # Useful constants
 from math import e, pi
@@ -327,7 +327,7 @@ __all__ = [
     'Integral', 'Measure', 'register_integral_type', 'integral_types',
     'replace', 'replace_integral_domains', 'derivative', 'action', 'energy_norm', 'rhs', 'lhs',
     'system', 'functional', 'adjoint', 'sensitivity_rhs',
-    'dx', 'ds', 'ds_b', 'ds_t', 'ds_tb', 'ds_v', 'dS', 'dS_h', 'dS_v', 'dP', 'dc', 'dE',
+    'dx', 'ds', 'ds_b', 'ds_t', 'ds_tb', 'ds_v', 'dS', 'dS_h', 'dS_v', 'dP', 'dc',
     'vertex', 'interval', 'triangle', 'tetrahedron',
     'quadrilateral', 'hexahedron', 'facet',
     'cell2D', 'cell3D',

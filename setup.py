@@ -1,28 +1,10 @@
 #!/usr/bin/env python
 from __future__ import print_function
 from distutils.core import setup
-from distutils import sysconfig
 from os.path import join as pjoin, split as psplit
+import re
 import sys
 import platform
-
-# Version number
-major = 1
-minor = 5
-maintenance = '.0+'
-#maintenance = 0
-#maintenance = '-alpha'
-#maintenance = '-beta'
-#maintenance = '-rc'
-
-if isinstance(maintenance, int): # Numbered release
-    version = "%d.%d.%d" % (major, minor, maintenance)
-else: # Pre-release (-alpha, -beta, -rc) or dev version (+, .0+)
-    version = "%d.%d%s" % (major, minor, maintenance)
-
-print()
-print(version)
-print()
 
 if sys.version_info < (2, 7):
     print("Python 2.7 or higher required, please upgrade.")
@@ -47,7 +29,10 @@ if platform.system() == "Windows" or "bdist_wininst" in sys.argv:
         batch_files.append(batch_file)
     scripts.extend(batch_files)
 
-setup(name = "UFL",
+version = re.findall('__version__ = "(.*)"',
+                     open('ufl/__init__.py', 'r').read())[0]
+
+setup(name="UFL",
       version = version,
       description = "Unified Form Language",
       author = "Martin Sandve Alnes, Anders Logg",
