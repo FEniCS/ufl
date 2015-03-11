@@ -1,4 +1,4 @@
-# Copyright (C) 2012 Marie E. Rognes (meg@simula.no)
+# Copyright (C) 2012--2015 Marie E. Rognes (meg@simula.no)
 #
 # This file is part of UFL.
 #
@@ -18,14 +18,32 @@
 # First added:  2012-08-16
 # Last changed: 2015-03-11
 
-V0 = FiniteElement("CG", triangle, 1)
-V1 = FiniteElement("DG", interval, 0)
-V2 = FiniteElement("DG", tetrahedron, 0)
+# Creating global tensor product spaces:
+D_0 = Mesh(interval)
+D_1 = Mesh(tetrahedron)
 
-V = TensorProductElement(V0, V1, V2)
+E_0 = FiniteElement("DG", interval, 3)
+E_1 = FiniteElement("CG", tetrahedron, 1)
 
-u = TrialFunction(V)
+V_0 = FunctionSpace(D_0, E_0)
+V_1 = FunctionSpace(D_1, E_1)
+
+V = TensorProductFunctionSpace(V_0, V_1)
+
 v = TestFunction(V)
+u = TrialFunction(V)
 
-dxxx = dx*dx*ds
-a = u*v*dxxx
+dxs = dx(D_0)*ds(D_1)
+a = u*v*dxs
+
+f = Coefficient(V_0)
+L = f*v*dxs
+
+# Creating local tensor product spaces:
+E = TensorProductElement(E_0, E_1)
+
+D = MyExtrudedMesh()
+
+V = FunctionSpace(D, E)
+
+# Creating global tensor product spaces:
