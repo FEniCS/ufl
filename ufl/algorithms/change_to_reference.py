@@ -26,18 +26,23 @@ from ufl.core.multiindex import Index, indices
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
 
-from ufl.classes import (Terminal, ReferenceGrad, Grad, Restricted, ReferenceValue,
+from ufl.classes import (FormArgument,
+                         Terminal, ReferenceGrad, Grad, Restricted, ReferenceValue,
                          Jacobian, JacobianInverse, JacobianDeterminant,
                          FacetJacobian, FacetJacobianInverse, FacetJacobianDeterminant,
                          CellFacetJacobian,
                          CellEdgeVectors, FacetEdgeVectors,
                          FacetNormal, CellNormal,
                          CellVolume, FacetArea,
-                         CellOrientation, FacetOrientation, QuadratureWeight)
+                         CellOrientation, FacetOrientation, QuadratureWeight,
+                         Indexed, MultiIndex, FixedIndex)
+
+from ufl.finiteelement import MixedElement
 
 from ufl.constantvalue import as_ufl
 from ufl.tensors import as_tensor, as_vector
 from ufl.operators import sqrt, max_value, min_value
+from ufl.permutation import compute_indices
 
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
 from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
@@ -142,45 +147,8 @@ circumradius_tetrahedron = tmp_area / (6*cellvolume)
 """
 
 
-class ChangeToReferenceValue(ReuseTransformer):
-    def __init__(self):
-        ReuseTransformer.__init__(self)
-
-    def form_argument(self, o):
-        # Represent 0-derivatives of form arguments on reference element
-
-        element = o.element()
-
-        local_value = ReferenceValue(o)
-
-        if isinstance(element, FiniteElement):
-            S = element.sobolev_space()
-            if S == HDiv:
-                # Handle HDiv elements with contravariant piola mapping
-                # contravariant_hdiv_mapping = (1/det J) * J * PullbackOf(o)
-                J = FIXME
-                detJ = FIXME
-                mapping = (1/detJ) * J
-                i, j = indices(2)
-                global_value = as_vector(mapping[i, j] * local_value[j], i)
-            elif S == HCurl:
-                # Handle HCurl elements with covariant piola mapping
-                # covariant_hcurl_mapping = JinvT * PullbackOf(o)
-                JinvT = FIXME
-                mapping = JinvT
-                i, j = indices(2)
-                global_value = as_vector(mapping[i, j] * local_value[j], i)
-            else:
-                # Handle the rest with no mapping.
-                global_value = local_value
-        else:
-            error("FIXME: handle mixed element, components need different mappings")
-
-        return global_value
-
-
 # FIXME: This implementation semeed to work last year but lead to performance problems. Look through and test again now.
-class NEWChangeToReferenceGrad(MultiFunction):
+class ChangeToReferenceGrad(MultiFunction):
     def __init__(self):
         MultiFunction.__init__(self)
         self._ngrads = 0
@@ -318,7 +286,9 @@ class NEWChangeToReferenceGrad(MultiFunction):
             if isinstance(t, FormArgument):
 
                 # Find basic subelement and element-local component
-                ec, element, eoffset = t.element().extract_component2(gtc)
+                #ec, element, eoffset = t.element().extract_component2(gtc) # FIXME: Translate this correctly
+                eoffset = 0
+                ec, element = t.element().extract_reference_component(gtc)
 
                 # Select mapping M from element, pick row emapping = M[ec,:], or emapping = [] if no mapping
                 ufl_assert(not isinstance(element, MixedElement),
@@ -401,7 +371,7 @@ class NEWChangeToReferenceGrad(MultiFunction):
         return tensor
 
 
-class ChangeToReferenceGrad(MultiFunction):
+class OLDChangeToReferenceGrad(MultiFunction):
     def __init__(self):
         MultiFunction.__init__(self)
 
