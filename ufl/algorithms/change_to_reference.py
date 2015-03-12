@@ -411,6 +411,10 @@ class OLDChangeToReferenceGrad(MultiFunction):
         # FIXME: Handle HDiv elements with contravariant piola mapping specially?
         # FIXME: Handle HCurl elements with covariant piola mapping specially?
 
+        # FIXME - ATTM: This optimisation attempt was wrong and needs rewriting.
+        # It is currently turning Grad(Grad(...)) into J^(-T)J^(-T)RefGrad(RefGrad(...))
+        # rather than J^(-T)RefGrad(J^(-T)RefGrad(...))
+
         # Peel off the Grads and count them, and get restriction if it's between the grad and the terminal
         ngrads = 0
         restricted = ''
