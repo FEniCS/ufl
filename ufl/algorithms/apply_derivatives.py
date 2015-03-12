@@ -28,7 +28,7 @@ from ufl.tensors import as_tensor, as_scalar, as_scalars, unit_indexed_tensor, u
 
 from ufl.classes import ConstantValue, Identity, Zero, FloatValue
 from ufl.classes import Coefficient, FormArgument
-from ufl.classes import Grad, Variable
+from ufl.classes import Grad, ReferenceGrad, Variable
 from ufl.classes import Indexed, ListTensor, ComponentTensor
 from ufl.classes import ExprList, ExprMapping
 from ufl.classes import Product, Sum, IndexSum
@@ -535,11 +535,13 @@ class ReferenceGradRuleset(GenericDerivativeRuleset):
     # --- Specialized rules for form arguments
 
     def coefficient(self, o):
-        if o.is_cellwise_constant():
-            return self.independent_terminal(o)
-        return ReferenceGrad(o)
+        # should be wrapped in ReferenceValue by now
+        return o
 
-    def argument(self, o):
+    argument = coefficient
+
+    def reference_value(self, o, f):
+        ufl_assert(f._ufl_is_terminal_, "ReferenceValue can only wrap a terminal")
         return ReferenceGrad(o)
 
     def _argument(self, o): # TODO: Enable this after fixing issue#13, unless we move simplification to a separate stage?
