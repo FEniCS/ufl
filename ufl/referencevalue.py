@@ -19,6 +19,9 @@
 
 from ufl.core.ufl_type import ufl_type
 from ufl.core.operator import Operator
+from ufl.log import error
+from ufl.assertions import ufl_assert
+
 
 @ufl_type(num_ops=1, is_index_free=True)
 class ReferenceValue(Operator):
@@ -26,6 +29,7 @@ class ReferenceValue(Operator):
     __slots__ = ()
 
     def __init__(self, f):
+        ufl_assert(isinstance(f, FormArgument), "Can only take reference value of form arguments.")
         Operator.__init__(self, (f,))
 
     @property
@@ -39,10 +43,6 @@ class ReferenceValue(Operator):
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
         "Get child from mapping and return the component asked for."
         error("Evaluate not implemented.")
-
-    @property
-    def ufl_shape(self):
-        return self.ufl_operands[0].ufl_shape + (self._dim,)
 
     def __str__(self):
         return "reference_value(%s)" % self.ufl_operands[0]
