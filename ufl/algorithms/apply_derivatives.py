@@ -507,6 +507,66 @@ class GradRuleset(GenericDerivativeRuleset):
     facet_avg = GenericDerivativeRuleset.independent_operator
 
 
+class ReferenceGradRuleset(GenericDerivativeRuleset):
+    def __init__(self, geometric_dimension):
+        GenericDerivativeRuleset.__init__(self, var_shape=(geometric_dimension,))
+        self._Id = Identity(geometric_dimension)
+
+    # --- Specialized rules for geometric quantities
+
+    def geometric_quantity(self, o):
+        "dg/dX = 0 if piecewise constant, otherwise ReferenceGrad(g)"
+        if o.is_cellwise_constant():
+            return self.independent_terminal(o)
+        else:
+            # TODO: Which types does this involve? I don't think the form compilers will handle this.
+            return ReferenceGrad(o)
+
+    def spatial_coordinate(self, o):
+        "dx/dX = J"
+        return Jacobian(o.domain())
+
+    def cell_coordinate(self, o):
+        "dX/dX = I"
+        return self._Id
+
+    # TODO: Add more geometry types here, with non-affine domains several should be non-zero.
+
+    # --- Specialized rules for form arguments
+
+    def coefficient(self, o):
+        if o.is_cellwise_constant():
+            return self.independent_terminal(o)
+        return ReferenceGrad(o)
+
+    def argument(self, o):
+        return ReferenceGrad(o)
+
+    def _argument(self, o): # TODO: Enable this after fixing issue#13, unless we move simplification to a separate stage?
+        if o.is_cellwise_constant():
+            # Collapse gradient of cellwise constant function to zero
+            return AnnotatedZero(o.ufl_shape + self._var_shape, arguments=(o,)) # TODO: Missing this type
+        else:
+            return ReferenceGrad(o)
+
+    # --- Nesting of gradients
+
+    def grad(self, o):
+        error("Grad should have been transformed by this point, but got {0}.".format(type(o).__name__))
+
+    def reference_grad(self, o):
+        "Represent ref_grad(ref_grad(f)) as RefGrad(RefGrad(f))."
+
+        # Check that o is a "differential terminal"
+        ufl_assert(isinstance(o.ufl_operands[0], (ReferenceGrad, Terminal)),
+                   "Expecting only grads applied to a terminal.")
+
+        return ReferenceGrad(o)
+
+    cell_avg = GenericDerivativeRuleset.independent_operator
+    facet_avg = GenericDerivativeRuleset.independent_operator
+
+
 class VariableRuleset(GenericDerivativeRuleset):
     def __init__(self, var):
         GenericDerivativeRuleset.__init__(self, var_shape=var.ufl_shape)
@@ -856,6 +916,65 @@ class DerivativeRuleDispatcher(MultiFunction):
         return op
 
 
+class ReferenceDerivativeRuleDispatcher(MultiFunction):
+    def __init__(self):
+        MultiFunction.__init__(self)
+
+    def terminal(self, o):
+        return o
+
+    def derivative(self, o):
+        error("Missing reference derivative handler for {0}.".format(type(o).__name__))
+
+    expr = MultiFunction.reuse_if_untouched
+
+    def reference_grad(self, o, f):
+        rules = ReferenceGradRuleset(o.ufl_shape[-1])
+        return map_expr_dag(rules, f)
+
+    def grad(self, o, f):
+        error("Missing reference derivative handler for {0}.".format(type(o).__name__))
+
+    def variable_derivative(self, o, f, dummy_v):
+        error("Missing reference derivative handler for {0}.".format(type(o).__name__))
+
+    def coefficient_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
+        error("Missing reference derivative handler for {0}.".format(type(o).__name__))
+
+    def indexed(self, o, Ap, ii): # TODO: (Partially) duplicated in generic rules
+        # Reuse if untouched
+        if Ap is o.ufl_operands[0]:
+            return o
+
+        # Untangle as_tensor(C[kk], jj)[ii] -> C[ll] to simplify resulting expression
+        if isinstance(Ap, ComponentTensor):
+            B, jj = Ap.ufl_operands
+            if isinstance(B, Indexed):
+                C, kk = B.ufl_operands
+
+                kk = list(kk)
+                if all(j in kk for j in jj):
+                    Cind = list(kk)
+                    for i, j in zip(ii, jj):
+                        Cind[kk.index(j)] = i
+                    return Indexed(C, MultiIndex(tuple(Cind)))
+
+        # Otherwise a more generic approach
+        r = Ap.rank() - len(ii)
+        if r:
+            kk = indices(r)
+            op = Indexed(Ap, MultiIndex(ii.indices() + kk))
+            op = as_tensor(op, kk)
+        else:
+            op = Indexed(Ap, ii)
+        return op
+
+
 def apply_derivatives(expression):
     rules = DerivativeRuleDispatcher()
+    return map_integrand_dags(rules, expression)
+
+
+def apply_ref_derivatives(expression):
+    rules = ReferenceDerivativeRuleDispatcher()
     return map_integrand_dags(rules, expression)
