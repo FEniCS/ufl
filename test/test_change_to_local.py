@@ -1,10 +1,8 @@
 #!/usr/bin/env py.test
-
 """
 Tests of the change to local representaiton algorithms.
 """
 
-# These are thin wrappers on top of unittest.TestCase and unittest.main
 import pytest
 
 from ufl import *
@@ -65,4 +63,3 @@ def test_change_to_reference_grad():
     # print tree_format(actual)
     # print tree_format(renumber_indices(actual))
     # print tree_format(renumber_indices(expected))
-

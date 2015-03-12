@@ -1,5 +1,4 @@
 #!/usr/bin/env py.test
-
 """
 This file contains snippets from the FEniCS book,
 and allows us to test that these can still run
@@ -8,7 +7,6 @@ these and please do keep UFL compatible with these
 snippets as long as possible.
 """
 
-# These are thin wrappers on top of unittest.TestCase and unittest.main
 import pytest
 
 from ufl import *

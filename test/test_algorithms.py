@@ -13,6 +13,8 @@ from ufl import *
 from ufl.algorithms import *
 from ufl.classes import Sum, Product
 
+from ufl.corealg.traversal import *
+
 # TODO: add more tests, covering all utility algorithms
 
 
@@ -47,19 +49,16 @@ def forms(arguments, coefficients):
     return (a, L, b)
 
 
-def test_arguments(arguments, forms):
+def test_extract_arguments_vs_fixture(arguments, forms):
     assert arguments == tuple(extract_arguments(forms[0]))
     assert tuple(arguments[:1]) == tuple(extract_arguments(forms[1]))
 
 
-def test_coefficients(coefficients, forms):
+def test_extract_coefficients_vs_fixture(coefficients, forms):
     assert coefficients == tuple(extract_coefficients(forms[2]))
 
 
-def test_elements(forms):
-    # print elements(forms[2])
-    # print unique_elements(forms[2])
-    # print unique_classes(forms[2])
+def test_extract_elements_and_extract_unique_elements(forms):
     b = forms[2]
     integrals = b.integrals_by_type(Measure.CELL)
     integrand = integrals[0].integrand()
@@ -71,11 +70,11 @@ def test_elements(forms):
     u = TrialFunction(element2)
 
     a = u * v * dx
-    assert (element1, element2) == extract_elements(a)
-    assert (element1,) == extract_unique_elements(a)
+    assert extract_elements(a) == (element1, element2)
+    assert extract_unique_elements(a) == (element1,)
 
 
-def test_traversal():
+def test_pre_and_post_traversal():
     element = FiniteElement("CG", "triangle", 1)
     v = TestFunction(element)
     f = Coefficient(element)
@@ -83,12 +82,13 @@ def test_traversal():
     p1 = f * v
     p2 = g * v
     s = p1 + p2
-    pre_traverse = list(pre_traversal(s))
-    post_traverse = list(post_traversal(s))
 
-    # NB! Sensitive to ordering of expressions:
-    assert pre_traverse == [s, p2, g, v, p1, f, v]
-    assert post_traverse == [g, v, p2, f, v, p1, s]
+    # NB! These traversal algorithms are intended to guarantee only
+    # parent before child and vice versa, not this particular ordering:
+    assert list(pre_traversal(s)) == [s, p2, g, v, p1, f, v]
+    assert list(post_traversal(s)) == [g, v, p2, f, v, p1, s]
+    assert list(unique_pre_traversal(s)) == [s, p2, g, v, p1, f]
+    assert list(unique_post_traversal(s)) == [v, f, p1, g, p2, s]
 
 
 def test_expand_indices():

@@ -1,13 +1,10 @@
 #!/usr/bin/env py.test
-
 """
 Test the computation of form signatures.
 """
 
-# These are thin wrappers on top of unittest.TestCase and unittest.main
 import pytest
 
-# This imports everything external code will see from ufl
 from ufl import *
 
 from ufl.common import EmptyDictType
