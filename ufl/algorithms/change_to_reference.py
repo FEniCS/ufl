@@ -35,9 +35,7 @@ from ufl.classes import (FormArgument, GeometricQuantity,
                          FacetNormal, CellNormal,
                          CellVolume, FacetArea,
                          CellOrientation, FacetOrientation, QuadratureWeight,
-                         Indexed, MultiIndex, FixedIndex)
-
-from ufl.finiteelement import MixedElement
+                         SpatialCoordinate, Indexed, MultiIndex, FixedIndex)
 
 from ufl.constantvalue import as_ufl, Identity
 from ufl.tensoralgebra import Transposed
@@ -482,13 +480,7 @@ class ChangeToReferenceGeometry(MultiFunction):
     @memoized_handler
     def jacobian(self, o):
         domain = o.domain()
-        x = domain.coordinates()
-        if x is None:
-            r = o
-        else:
-            x = self.coordinate_coefficient_mapping[x]
-            r = ReferenceGrad(x)
-        return r
+        return ReferenceGrad(self.spatial_coordinate(SpatialCoordinate(domain)))
 
     @memoized_handler
     def _future_jacobian(self, o):
@@ -541,7 +533,7 @@ class ChangeToReferenceGeometry(MultiFunction):
                 return o
             else:
                 x = self.coordinate_coefficient_mapping[x]
-                return x
+                return ReferenceValue(x)
 
     @memoized_handler
     def _future_spatial_coordinate(self, o):

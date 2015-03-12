@@ -535,13 +535,13 @@ class ReferenceGradRuleset(GenericDerivativeRuleset):
     # --- Specialized rules for form arguments
 
     def coefficient(self, o):
-        # should be wrapped in ReferenceValue by now
-        return o
+        error("Coefficient should be wrapped in ReferenceValue by now")
 
-    argument = coefficient
+    def argument(self, o):
+        error("Argument should be wrapped in ReferenceValue by now")
 
-    def reference_value(self, o, f):
-        ufl_assert(f._ufl_is_terminal_, "ReferenceValue can only wrap a terminal")
+    def reference_value(self, o):
+        ufl_assert(o.ufl_operands[0]._ufl_is_terminal_, "ReferenceValue can only wrap a terminal")
         return ReferenceGrad(o)
 
     def _argument(self, o): # TODO: Enable this after fixing issue#13, unless we move simplification to a separate stage?
@@ -880,6 +880,10 @@ class DerivativeRuleDispatcher(MultiFunction):
         rules = GradRuleset(o.ufl_shape[-1])
         return map_expr_dag(rules, f)
 
+    def reference_grad(self, o, f):
+        rules = ReferenceGradRuleset(o.ufl_shape[-1])
+        return map_expr_dag(rules, f)
+
     def variable_derivative(self, o, f, dummy_v):
         rules = VariableRuleset(o.ufl_operands[1])
         return map_expr_dag(rules, f)
@@ -918,65 +922,6 @@ class DerivativeRuleDispatcher(MultiFunction):
         return op
 
 
-class ReferenceDerivativeRuleDispatcher(MultiFunction):
-    def __init__(self):
-        MultiFunction.__init__(self)
-
-    def terminal(self, o):
-        return o
-
-    def derivative(self, o):
-        error("Missing reference derivative handler for {0}.".format(type(o).__name__))
-
-    expr = MultiFunction.reuse_if_untouched
-
-    def reference_grad(self, o, f):
-        rules = ReferenceGradRuleset(o.ufl_shape[-1])
-        return map_expr_dag(rules, f)
-
-    def grad(self, o, f):
-        error("Missing reference derivative handler for {0}.".format(type(o).__name__))
-
-    def variable_derivative(self, o, f, dummy_v):
-        error("Missing reference derivative handler for {0}.".format(type(o).__name__))
-
-    def coefficient_derivative(self, o, f, dummy_w, dummy_v, dummy_cd):
-        error("Missing reference derivative handler for {0}.".format(type(o).__name__))
-
-    def indexed(self, o, Ap, ii): # TODO: (Partially) duplicated in generic rules
-        # Reuse if untouched
-        if Ap is o.ufl_operands[0]:
-            return o
-
-        # Untangle as_tensor(C[kk], jj)[ii] -> C[ll] to simplify resulting expression
-        if isinstance(Ap, ComponentTensor):
-            B, jj = Ap.ufl_operands
-            if isinstance(B, Indexed):
-                C, kk = B.ufl_operands
-
-                kk = list(kk)
-                if all(j in kk for j in jj):
-                    Cind = list(kk)
-                    for i, j in zip(ii, jj):
-                        Cind[kk.index(j)] = i
-                    return Indexed(C, MultiIndex(tuple(Cind)))
-
-        # Otherwise a more generic approach
-        r = Ap.rank() - len(ii)
-        if r:
-            kk = indices(r)
-            op = Indexed(Ap, MultiIndex(ii.indices() + kk))
-            op = as_tensor(op, kk)
-        else:
-            op = Indexed(Ap, ii)
-        return op
-
-
 def apply_derivatives(expression):
     rules = DerivativeRuleDispatcher()
-    return map_integrand_dags(rules, expression)
-
-
-def apply_ref_derivatives(expression):
-    rules = ReferenceDerivativeRuleDispatcher()
     return map_integrand_dags(rules, expression)
