@@ -508,9 +508,9 @@ class GradRuleset(GenericDerivativeRuleset):
 
 
 class ReferenceGradRuleset(GenericDerivativeRuleset):
-    def __init__(self, geometric_dimension):
-        GenericDerivativeRuleset.__init__(self, var_shape=(geometric_dimension,))
-        self._Id = Identity(geometric_dimension)
+    def __init__(self, topological_dimension):
+        GenericDerivativeRuleset.__init__(self, var_shape=(topological_dimension,))
+        self._Id = Identity(topological_dimension)
 
     # --- Specialized rules for geometric quantities
 
