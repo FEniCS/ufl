@@ -609,7 +609,6 @@ def change_to_reference_grad(e):
     @param e:
         An Expr or Form.
     """
-    #return apply_transformer(e, ChangeToReferenceGrad())
     mf = ChangeToReferenceGrad()
     return map_expr_dag(mf, e)
 
