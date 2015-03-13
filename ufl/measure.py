@@ -105,20 +105,6 @@ class Measure(object):
     transferred to a Form on multiplication with a scalar expression.
     """
 
-    # Enumeration of valid domain types (TODO: Remove these)
-    CELL           = "cell"
-    EXTERIOR_FACET = "exterior_facet"
-    EXTERIOR_FACET_BOTTOM = "exterior_facet_bottom"
-    EXTERIOR_FACET_TOP = "exterior_facet_top"
-    EXTERIOR_FACET_VERT = "exterior_facet_vert"
-    INTERIOR_FACET = "interior_facet"
-    INTERIOR_FACET_HORIZ = "interior_facet_horiz"
-    INTERIOR_FACET_VERT = "interior_facet_vert"
-    POINT          = "vertex"
-    CUSTOM         = "custom"
-    #MACRO_CELL     = "macro_cell"
-    #SURFACE        = "surface"
-
     def __init__(self,
                  integral_type, # "dx" etc
                  domain=None,

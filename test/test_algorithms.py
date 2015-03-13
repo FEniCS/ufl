@@ -60,7 +60,7 @@ def test_extract_coefficients_vs_fixture(coefficients, forms):
 
 def test_extract_elements_and_extract_unique_elements(forms):
     b = forms[2]
-    integrals = b.integrals_by_type(Measure.CELL)
+    integrals = b.integrals_by_type("cell")
     integrand = integrals[0].integrand()
 
     element1 = FiniteElement("CG", triangle, 1)

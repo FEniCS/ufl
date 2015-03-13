@@ -211,20 +211,10 @@ def ufl2dot(expression, formname="a", nodeoffset=0, begin=True, end=True, labeli
 
     if isinstance(expression, Form):
         form = expression
-        ci = form.integrals_by_type(Measure.CELL)
-        ei = form.integrals_by_type(Measure.EXTERIOR_FACET)
-        ebi = form.integrals_by_type(Measure.EXTERIOR_FACET_BOTTOM)
-        eti = form.integrals_by_type(Measure.EXTERIOR_FACET_TOP)
-        evi = form.integrals_by_type(Measure.EXTERIOR_FACET_VERT)
-        ii = form.integrals_by_type(Measure.INTERIOR_FACET)
-        ihi = form.integrals_by_type(Measure.INTERIOR_FACET_HORIZ)
-        ivi = form.integrals_by_type(Measure.INTERIOR_FACET_VERT)
-        pi = form.integrals_by_type(Measure.POINT)
-        mi = form.integrals_by_type(Measure.MACRO_CELL)
 
         subgraphs = []
         k = 0
-        for itgs in (ci, ei, ebi, eti, evi, ii, ihi, ivi, pi, mi):
+        for itgs in form.integrals():
             for itg in itgs:
                 prefix = "itg%d_" % k
                 integralkey = "%s%s" % (itg.integral_type(), itg.subdomain_id())
