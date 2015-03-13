@@ -46,8 +46,7 @@ A very brief overview of the language contents follows:
 
     Cell, ProductCell, OuterProductCell,
     interval, triangle, tetrahedron,
-    quadrilateral, hexahedron,
-    cell2D, cell3D,
+    quadrilateral, hexahedron
 
 * Sobolev spaces::
 
@@ -272,7 +271,7 @@ from ufl.formoperators import replace, derivative, action, energy_norm, rhs, lhs
 # Predefined convenience objects
 from ufl.objects import \
     vertex, interval, triangle, tetrahedron, \
-    quadrilateral, hexahedron, facet, cell2D, cell3D, \
+    quadrilateral, hexahedron, facet, \
     i, j, k, l, p, q, r, s, \
     dx, ds, ds_b, ds_t, ds_tb, ds_v, dS, dS_h, dS_v, dP, dc
 
@@ -326,7 +325,6 @@ __all__ = [
     'dx', 'ds', 'ds_b', 'ds_t', 'ds_tb', 'ds_v', 'dS', 'dS_h', 'dS_v', 'dP', 'dc',
     'vertex', 'interval', 'triangle', 'tetrahedron',
     'quadrilateral', 'hexahedron', 'facet',
-    'cell2D', 'cell3D',
     'i', 'j', 'k', 'l', 'p', 'q', 'r', 's',
     'e', 'pi',
     ]

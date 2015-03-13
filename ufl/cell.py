@@ -35,8 +35,6 @@ from ufl.protocols import id_or_none
 
 # Mapping from cell name to topological dimension
 cellname2dim = {
-    "cell2D":        2,
-    "cell3D":        3,
     "vertex":        0,
     "interval":      1,
     "triangle":      2,
@@ -61,10 +59,8 @@ def cell2dim(cell):
 # Mapping from cell name to facet name
 _cellname2facetname = {
     "interval":      "vertex",
-    "cell2D":        "interval",
     "triangle":      "interval",
     "quadrilateral": "interval",
-    "cell3D":        "cell2D",
     "tetrahedron":   "triangle",
     "hexahedron":    "quadrilateral",
     }

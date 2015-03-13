@@ -29,22 +29,12 @@ i, j, k, l = indices(4)
 p, q, r, s = indices(4)
 
 # Default measures for integration
-dx = Measure("cell")
-ds = Measure("exterior_facet")
-ds_b = Measure("exterior_facet_bottom")
-ds_t = Measure("exterior_facet_top")
-ds_v = Measure("exterior_facet_vert")
-ds_tb = ds_b + ds_t
-dS = Measure("interior_facet")
-dS_h = Measure("interior_facet_horiz")
-dS_v = Measure("interior_facet_vert")
-dP = Measure("vertex")
-dc = Measure("custom")
-#dE = Measure("macro_cell")
+from ufl.measure import integral_type_to_measure_name
+for integral_type, measure_name in integral_type_to_measure_name.items():
+    globals()[measure_name] = Measure(integral_type)
+ds_tb = ds_b + ds_t # TODO: Firedrake hack, remove later
 
 # Cell types
-cell2D        = Cell("cell2D", 2)
-cell3D        = Cell("cell3D", 3)
 vertex        = Cell("vertex", 0)
 interval      = Cell("interval", 1)
 triangle      = Cell("triangle", 2)

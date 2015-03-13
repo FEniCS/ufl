@@ -36,23 +36,32 @@ from ufl.protocols import id_or_none, metadata_equal, metadata_hashdata
 _integral_types = [
     # === Integration over full topological dimension:
     ("cell", "dx"),                     # Over cells of a mesh
+    #("macro_cell", "dE"),              # Over a group of adjacent cells (TODO: Arbitrary cell group? Not currently used.)
+
     # === Integration over topological dimension - 1:
     ("exterior_facet", "ds"),           # Over one-sided exterior facets of a mesh
+    ("interior_facet", "dS"),           # Over two-sided facets between pairs of adjacent cells of a mesh
+
+    # === Integration over topological dimension 0
+    ("vertex", "dP"),                   # Over vertices of a mesh
+    #("vertex", "dV"),                  # TODO: Use this over vertices?
+    #("point", "dP"),                   # TODO: Use this over arbitrary points inside cells?
+
+    # === Integration over custom domains
+    ("custom", "dc"),                   # Over custom user-defined domains (defined in terms of quadrature points)
+    # TODO: Replace custum with these:
+    #("overlap", "do")                  # Over a cell fragment overlapping with two or more cells (run-time quadrature points)
+    #("interface", "di")                # Over facet fragment overlapping with two or more cells (run-time quadrature points)
+    #("cutcell", "dc")                  # Over a cell with some part cut away (run-time quadrature points)
+    #("custom", "dC")                   # Over custom user-defined domains (run-time quadrature points)
+
+    # === Firedrake specific hacks on the way out:
+    # TODO: Remove these, firedrake can use metadata instead and create the measure objects in firedrake:
     ("exterior_facet_bottom", "ds_b"),  # Over bottom facets on extruded mesh
     ("exterior_facet_top", "ds_t"),     # Over top facets on extruded mesh
     ("exterior_facet_vert", "ds_v"),    # Over side facets of an extruded mesh
-    ("interior_facet", "dS"),           # Over two-sided facets between pairs of adjacent cells of a mesh
     ("interior_facet_horiz", "dS_h"),   # Over horizontal facets of an extruded mesh
     ("interior_facet_vert", "dS_v"),    # Over vertical facets of an extruded mesh
-    # === Integration over topological dimension 0
-    ("vertex", "dP"),               # Over vertices of a mesh
-    # === Integration over custom domains
-    ("custom", "dc"),              # Over custom user-defined domains (defined in terms of quadrature points)
-    # === Other types (up for discussion, unclear whether they are used)
-    #("macro_cell", "dE"),          # Over a group of adjacent cells (TODO: Arbitrary cell group? Where is this used?)
-    #("overlap", "dO"),            # TODO: Over a cell fragment overlapping with two or more cells
-    #("interface", "dI"),          # Over facet fragment overlapping with two or more cells
-    #("vertex", "dV"),             # TODO: Use this over vertices?
     ]
 integral_type_to_measure_name = dict((l, s) for l, s in _integral_types)
 measure_name_to_integral_type = dict((s, l) for l, s in _integral_types)
