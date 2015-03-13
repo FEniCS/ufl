@@ -26,7 +26,7 @@ from ufl.core.multiindex import Index, indices
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
 
-from ufl.classes import (FormArgument,
+from ufl.classes import (FormArgument, GeometricQuantity,
                          Terminal, ReferenceGrad, Grad, Restricted, ReferenceValue,
                          Jacobian, JacobianInverse, JacobianDeterminant,
                          FacetJacobian, FacetJacobianInverse, FacetJacobianDeterminant,
@@ -148,7 +148,7 @@ circumradius_tetrahedron = tmp_area / (6*cellvolume)
 
 
 # FIXME: This implementation semeed to work last year but lead to performance problems. Look through and test again now.
-class ChangeToReferenceGrad(MultiFunction):
+class NEWChangeToReferenceGrad(MultiFunction):
     def __init__(self):
         MultiFunction.__init__(self)
         self._ngrads = 0
@@ -801,7 +801,8 @@ def change_to_reference_grad(e):
     @param e:
         An Expr or Form.
     """
-    mf = ChangeToReferenceGrad()
+    #mf = OLDChangeToReferenceGrad()
+    mf = NEWChangeToReferenceGrad()
     return map_expr_dag(mf, e)
 
 
