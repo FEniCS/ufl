@@ -801,8 +801,8 @@ def change_to_reference_grad(e):
     @param e:
         An Expr or Form.
     """
-    #mf = OLDChangeToReferenceGrad()
-    mf = NEWChangeToReferenceGrad()
+    mf = OLDChangeToReferenceGrad()
+    #mf = NEWChangeToReferenceGrad()
     return map_expr_dag(mf, e)
 
 
