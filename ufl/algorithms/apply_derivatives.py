@@ -27,7 +27,7 @@ from ufl.core.multiindex import MultiIndex, Index, FixedIndex, indices
 from ufl.tensors import as_tensor, as_scalar, as_scalars, unit_indexed_tensor, unwrap_list_tensor
 
 from ufl.classes import ConstantValue, Identity, Zero, FloatValue
-from ufl.classes import Coefficient, FormArgument
+from ufl.classes import Coefficient, FormArgument, ReferenceValue
 from ufl.classes import Grad, ReferenceGrad, Variable
 from ufl.classes import Indexed, ListTensor, ComponentTensor
 from ufl.classes import ExprList, ExprMapping
@@ -560,7 +560,7 @@ class ReferenceGradRuleset(GenericDerivativeRuleset):
         "Represent ref_grad(ref_grad(f)) as RefGrad(RefGrad(f))."
 
         # Check that o is a "differential terminal"
-        ufl_assert(isinstance(o.ufl_operands[0], (ReferenceGrad, Terminal)),
+        ufl_assert(isinstance(o.ufl_operands[0], (ReferenceGrad, ReferenceValue, Terminal)),
                    "Expecting only grads applied to a terminal.")
 
         return ReferenceGrad(o)
