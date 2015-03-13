@@ -22,6 +22,7 @@ from ufl.assertions import ufl_assert
 from ufl.log import error
 
 from ufl.core.terminal import Terminal
+from ufl.classes import Coefficient, Argument, GeometricQuantity, Restricted
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.algorithms.map_integrands import map_integrand_dags
@@ -90,6 +91,17 @@ class RestrictionPropagator(MultiFunction):
     def variable(self, o, op):
         "Strip variable."
         return op
+
+    def reference_value(self, o):
+        "Reference value of something follows same restriction rule as the underlying object."
+        f, = o.ufl_operands
+        assert f._ufl_is_terminal_
+        g = self(f)
+        if isinstance(g, Restricted):
+            side = g.side()
+            return o(side)
+        else:
+            return o
 
     # --- Rules for terminals
 
