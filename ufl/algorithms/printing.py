@@ -56,30 +56,10 @@ def form_info(form):
     bf = form.arguments()
     cf = form.coefficients()
 
-    ci = form.integrals_by_type("cell")
-    ei = form.integrals_by_type("exterior_facet")
-    ebi = form.integrals_by_type("exterior_facet_bottom")
-    eti = form.integrals_by_type("exterior_facet_top")
-    evi = form.integrals_by_type("exterior_facet_vert")
-    ii = form.integrals_by_type("interior_facet")
-    ihi = form.integrals_by_type("interior_facet_horiz")
-    ivi = form.integrals_by_type("interior_facet_vert")
-    pi = form.integrals_by_type("vertex")
-    qi = form.integrals_by_type("custom")
-
     s  = "Form info:\n"
     s += "  rank:                          %d\n" % len(bf)
     s += "  num_coefficients:              %d\n" % len(cf)
-    s += "  num_cell_integrals:            %d\n" % len(ci)
-    s += "  num_exterior_facet_integrals:  %d\n" % len(ei)
-    s += "  num_exterior_bottom_facet_integrals:  %d\n" % len(ebi)
-    s += "  num_exterior_top_facet_integrals:  %d\n" % len(eti)
-    s += "  num_exterior_vert_facet_integrals:  %d\n" % len(evi)
-    s += "  num_interior_facet_integrals:  %d\n" % len(ii)
-    s += "  num_interior_horiz_facet_integrals:  %d\n" % len(ihi)
-    s += "  num_interior_vert_facet_integrals:  %d\n" % len(ivi)
-    s += "  num_vertex_integrals:           %d\n" % len(pi)
-    s += "  num_custom_integrals:      %d\n" % len(qi)
+    s += "\n"
 
     for f in cf:
         if f._name:
@@ -87,33 +67,19 @@ def form_info(form):
             s += "  Coefficient %d is named '%s'" % (f._count, f._name)
     s += "\n"
 
-    for itg in ci:
-        s += "\n"
-        s += integral_info(itg)
-    for itg in ei:
-        s += "\n"
-        s += integral_info(itg)
-    for itg in ebi:
-        s += "\n"
-        s += integral_info(itg)
-    for itg in eti:
-        s += "\n"
-        s += integral_info(itg)
-    for itg in evi:
-        s += "\n"
-        s += integral_info(itg)
-    for itg in ii:
-        s += "\n"
-        s += integral_info(itg)
-    for itg in ihi:
-        s += "\n"
-        s += integral_info(itg)
-    for itg in ivi:
-        s += "\n"
-        s += integral_info(itg)
-    for itg in mi:
-        s += "\n"
-        s += integral_info(itg)
+    integrals = form.integrals()
+    integral_types = sorted(set(itg.integral_type() for itg in integrals))
+    for integral_type in integral_types:
+        itgs = form.integrals_by_type(integral_type)
+        s += "  num_{0}_integrals:  {1}\n".format(integral_type, len(itgs))
+    s += "\n"
+
+    for integral_type in integral_types:
+        itgs = form.integrals_by_type(integral_type)
+        for itg in itgs:
+            s += integral_info(itg)
+            s += "\n"
+
     return s
 
 def _indent_string(n):
@@ -137,26 +103,23 @@ def tree_format(expression, indentation=0, parentheses=True):
     s = ""
 
     if isinstance(expression, Form):
-        ci = expression.integrals_by_type("cell")
-        ei = expression.integrals_by_type("exterior_facet")
-        ebi = expression.integrals_by_type("exterior_facet_bottom")
-        eti = expression.integrals_by_type("exterior_facet_top")
-        evi = expression.integrals_by_type("exterior_facet_vert")
-        ii = expression.integrals_by_type("interior_facet")
-        ihi = expression.integrals_by_type("interior_facet_horiz")
-        ivi = expression.integrals_by_type("interior_facet_vert")
-        pi = expression.integrals_by_type("vertex")
-        qi = expression.integrals_by_type("custom")
+        form = expression
+        integrals = form.integrals()
+        integral_types = sorted(set(itg.integral_type() for itg in integrals))
+        itgs = []
+        for integral_type in integral_types:
+            itgs += list(form.integrals_by_type(integral_type))
+
         ind = _indent_string(indentation)
         s += ind + "Form:\n"
-        s += "\n".join(tree_format(itg, indentation+1, parentheses) for itg in chain(ci, ei, ebi, eti, evi, ii, ihi, ivi, pi, qi))
+        s += "\n".join(tree_format(itg, indentation+1, parentheses) for itg in itgs)
 
     elif isinstance(expression, Integral):
         ind = _indent_string(indentation)
         s += ind + "Integral:\n"
         ind = _indent_string(indentation+1)
-        s += ind + "domain type: %s\n" % expression.integral_type()
-        s += ind + "domain id: %s\n" % expression.subdomain_id()
+        s += ind + "integral type: %s\n" % expression.integral_type()
+        s += ind + "subdomain id: %s\n" % expression.subdomain_id()
         s += ind + "integrand:\n"
         s += tree_format(expression._integrand, indentation+2, parentheses)
 

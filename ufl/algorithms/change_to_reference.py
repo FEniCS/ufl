@@ -827,7 +827,7 @@ def compute_integrand_scaling_factor(domain, integral_type):
     if integral_type == "cell":
         scale = abs(JacobianDeterminant(domain)) * weight
 
-    elif integral_type in ["exterior_facet", "exterior_facet_bottom", "exterior_facet_top", "exterior_facet_vert"]:
+    elif integral_type.startswith("exterior_facet"):
         if tdim > 1:
             # Scaling integral by facet jacobian determinant and quadrature weight
             scale = FacetJacobianDeterminant(domain) * weight
@@ -835,7 +835,7 @@ def compute_integrand_scaling_factor(domain, integral_type):
             # No need to scale 'integral' over a vertex
             scale = 1
 
-    elif integral_type in ["interior_facet", "interior_facet_horiz", "interior_facet_vert"]:
+    elif integral_type.startswith("interior_facet"):
         if tdim > 1:
             # Scaling integral by facet jacobian determinant from one side and quadrature weight
             scale = FacetJacobianDeterminant(domain)('+') * weight
@@ -843,13 +843,16 @@ def compute_integrand_scaling_factor(domain, integral_type):
             # No need to scale 'integral' over a vertex
             scale = 1
 
-    elif integral_type == "custom":
+    elif integral_type in ("custom", "interface", "overlap", "cutcell"):
         # Scaling with custom weight, which includes eventual volume scaling
         scale = weight
 
-    elif integral_type == "vertex":
+    elif integral_type in ("vertex", "point"):
         # No need to scale 'integral' over a point
         scale = 1
+
+    else:
+        error("Unknown integral type {}, don't know how to scale.".format(integral_type))
 
     return scale
 
