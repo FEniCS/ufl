@@ -26,6 +26,7 @@ from ufl.classes import Coefficient, Argument, GeometricQuantity, Restricted
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.algorithms.map_integrands import map_integrand_dags
+from ufl.measure import integral_type_to_measure_name
 
 class RestrictionPropagator(MultiFunction):
     def __init__(self, side=None):

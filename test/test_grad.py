@@ -17,10 +17,10 @@ def xtest_grad_div_curl_properties_in_1D(self):
    _test_grad_div_curl_properties(self, interval)
 
 def xtest_grad_div_curl_properties_in_2D(self):
-   _test_grad_div_curl_properties(self, cell2D)
+   _test_grad_div_curl_properties(self, triangle)
 
 def xtest_grad_div_curl_properties_in_3D(self):
-   _test_grad_div_curl_properties(self, cell3D)
+   _test_grad_div_curl_properties(self, tetrahedron)
 
 def _test_grad_div_curl_properties(self, cell):
     d = cell.geometric_dimension()

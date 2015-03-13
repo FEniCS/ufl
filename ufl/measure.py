@@ -48,12 +48,10 @@ _integral_types = [
     #("point", "dP"),                   # TODO: Use this over arbitrary points inside cells?
 
     # === Integration over custom domains
-    ("custom", "dc"),                   # Over custom user-defined domains (defined in terms of quadrature points)
-    # TODO: Replace custum with these:
-    #("overlap", "do")                  # Over a cell fragment overlapping with two or more cells (run-time quadrature points)
-    #("interface", "di")                # Over facet fragment overlapping with two or more cells (run-time quadrature points)
-    #("cutcell", "dc")                  # Over a cell with some part cut away (run-time quadrature points)
-    #("custom", "dC")                   # Over custom user-defined domains (run-time quadrature points)
+    ("custom", "dc"),                   # Over custom user-defined domains (run-time quadrature points)
+    ("overlap", "dO"),                  # Over a cell fragment overlapping with two or more cells (run-time quadrature points)
+    ("interface", "dI"),                # Over facet fragment overlapping with two or more cells (run-time quadrature points)
+    ("cutcell", "dC"),                  # Over a cell with some part cut away (run-time quadrature points)
 
     # === Firedrake specific hacks on the way out:
     # TODO: Remove these, firedrake can use metadata instead and create the measure objects in firedrake:

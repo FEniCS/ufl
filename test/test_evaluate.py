@@ -230,7 +230,7 @@ def testCoefficientDerivative():
 
 
 def test_dot():
-    x = SpatialCoordinate(cell2D)
+    x = SpatialCoordinate(triangle)
     s = dot(x, 2 * x)
     e = s((5, 7))
     v = 2 * (5 * 5 + 7 * 7)
@@ -238,7 +238,7 @@ def test_dot():
 
 
 def test_inner():
-    x = SpatialCoordinate(cell2D)
+    x = SpatialCoordinate(triangle)
     xx = as_matrix(((2 * x[0], 3 * x[0]), (2 * x[1], 3 * x[1])))
     s = inner(xx, 2 * xx)
     e = s((5, 7))
@@ -247,7 +247,7 @@ def test_inner():
 
 
 def test_outer():
-    x = SpatialCoordinate(cell2D)
+    x = SpatialCoordinate(triangle)
     xx = outer(outer(x, x), as_vector((2, 3)))
     s = inner(xx, 2 * xx)
     e = s((5, 7))
@@ -256,7 +256,7 @@ def test_outer():
 
 
 def test_cross():
-    x = SpatialCoordinate(cell3D)
+    x = SpatialCoordinate(tetrahedron)
     xv = (3, 5, 7)
 
     # Test cross product of triplets of orthogonal
@@ -288,7 +288,7 @@ def test_cross():
 
 
 def xtest_dev():
-    x = SpatialCoordinate(cell2D)
+    x = SpatialCoordinate(triangle)
     xv = (5, 7)
     xx = outer(x, x)
     s1 = dev(2 * xx)
@@ -299,7 +299,7 @@ def xtest_dev():
 
 
 def test_skew():
-    x = SpatialCoordinate(cell2D)
+    x = SpatialCoordinate(triangle)
     xv = (5, 7)
     xx = outer(x, x)
     s1 = skew(2 * xx)
@@ -310,7 +310,7 @@ def test_skew():
 
 
 def test_sym():
-    x = SpatialCoordinate(cell2D)
+    x = SpatialCoordinate(triangle)
     xv = (5, 7)
     xx = outer(x, x)
     s1 = sym(2 * xx)
@@ -321,7 +321,7 @@ def test_sym():
 
 
 def test_tr():
-    x = SpatialCoordinate(cell2D)
+    x = SpatialCoordinate(triangle)
     xv = (5, 7)
     xx = outer(x, x)
     s = tr(2 * xx)
@@ -331,7 +331,7 @@ def test_tr():
 
 
 def test_det2D():
-    x = SpatialCoordinate(cell2D)
+    x = SpatialCoordinate(triangle)
     xv = (5, 7)
     a, b = 6.5, -4
     xx = as_matrix(((x[0], x[1]), (a, b)))
@@ -342,7 +342,7 @@ def test_det2D():
 
 
 def xtest_det3D():  # FIXME
-    x = SpatialCoordinate(cell3D)
+    x = SpatialCoordinate(tetrahedron)
     xv = (5, 7, 9)
     a, b, c = 6.5, -4, 3
     d, e, f = 2, 3, 4

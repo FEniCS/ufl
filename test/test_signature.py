@@ -30,7 +30,7 @@ def domain_numbering(*cells):
     return renumbering
 
 def test_domain_signatures_of_cell2domains(self):
-    all_cells = (interval, quadrilateral, hexahedron, triangle, tetrahedron, cell2D, cell3D)
+    all_cells = (interval, quadrilateral, hexahedron, triangle, tetrahedron)
     for cell in all_cells:
         # Equality holds when constructing two domains from a cell:
         assert as_domain(cell) == as_domain(cell)
@@ -97,7 +97,7 @@ def test_terminal_hashdata_depends_on_geometry(self):
     hashes = set()
     def forms():
         i, j = indices(2)
-        cells = (triangle, tetrahedron, cell2D, cell3D)
+        cells = (triangle, tetrahedron)
         for cell in cells:
 
             d = cell.geometric_dimension()
@@ -120,7 +120,7 @@ def test_terminal_hashdata_depends_on_geometry(self):
                     yield compute_terminal_hashdata(expr, domain_numbering(*cells))
 
     c, d, r, h = compute_unique_terminal_hashdatas(forms())
-    assert c == 2*3*4 # len(ws)*len(qs)*len(cells)
+    assert c == 2*3*2 # len(ws)*len(qs)*len(cells)
     assert d == c
     assert r == c
     assert h == c
@@ -134,7 +134,7 @@ def test_terminal_hashdata_depends_on_form_argument_properties(self):
     nreps = 2
 
     # Data
-    cells = (triangle, tetrahedron, cell2D, cell3D)
+    cells = (triangle, tetrahedron)
     degrees = (1, 2)
     families = ("CG", "Lagrange", "DG")
 
@@ -420,7 +420,7 @@ def test_signature_is_affected_by_element_properties(self):
 
 def test_signature_is_affected_by_domains(self):
     def forms():
-        for cell in (cell2D, cell3D):
+        for cell in (triangle, tetrahedron):
             for di in (1, 2):
                 for dj in (1, 2):
                     for dk in (1, 2):
@@ -432,7 +432,7 @@ def test_signature_is_affected_by_domains(self):
 
 def test_signature_of_forms_with_diff(self):
     def forms():
-        for cell in (cell2D, cell3D):
+        for cell in (triangle, tetrahedron):
             for k in (1, 2, 3):
                 V = FiniteElement("CG", cell, 1)
                 W = VectorElement("CG", cell, 1)
@@ -448,7 +448,7 @@ def test_signature_of_forms_with_diff(self):
     check_unique_signatures(forms())
 
 def test_signature_of_form_depend_on_coefficient_numbering_across_integrals(self):
-    cell = cell2D
+    cell = triangle
     V = FiniteElement("CG", cell, 1)
     f = Coefficient(V)
     g = Coefficient(V)
@@ -461,7 +461,7 @@ def test_signature_of_form_depend_on_coefficient_numbering_across_integrals(self
 
 def test_signature_of_forms_change_with_operators(self):
     def forms():
-        for cell in (cell2D, cell3D):
+        for cell in (triangle, tetrahedron):
             V = FiniteElement("CG", cell, 1)
             u = Coefficient(V)
             v = Coefficient(V)

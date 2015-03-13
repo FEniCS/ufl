@@ -9,8 +9,7 @@ from ufl import *
 from ufl.geometry import as_domain
 from ufl.algorithms import compute_form_data
 
-all_cells = (cell2D, cell3D,
-             interval, triangle, tetrahedron,
+all_cells = (interval, triangle, tetrahedron,
              quadrilateral, hexahedron)
 
 from mockobjects import MockMesh, MockMeshFunction
