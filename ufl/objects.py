@@ -21,8 +21,8 @@
 # Modified by Kristian Oelgaard, 2009
 
 from ufl.core.multiindex import indices
-from ufl.integral import Measure
-from ufl.geometry import Cell
+from ufl.cell import Cell
+from ufl.measure import Measure
 
 # Default indices
 i, j, k, l = indices(4)
