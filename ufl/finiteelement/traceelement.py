@@ -35,6 +35,9 @@ class TraceElement(FiniteElementBase):
         FiniteElementBase.__init__(self, family, domain, degree,
                                    quad_scheme, value_shape, reference_value_shape)
 
+    def mapping(self):
+        return "identity"
+
     def reconstruct(self, **kwargs):
         """Construct a new TraceElement object with some properties
         replaced with new values."""
