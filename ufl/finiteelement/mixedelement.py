@@ -91,8 +91,12 @@ class MixedElement(FiniteElementBase):
                 "Provided value_shape doesn't match the total "\
                 "value size of all subelements.")
 
-        # Always use a flat reference value shape
-        reference_value_shape = (sum(product(s.reference_value_shape()) for s in self._sub_elements),)
+        # Use a flat reference value shape unless TensorElement (only support CG/DG for now)
+        # FIXME: probably breaks for Tensor inside Mixed!
+        if type(self) is TensorElement:
+            reference_value_shape = value_shape
+        else:
+            reference_value_shape = (sum(product(s.reference_value_shape()) for s in self._sub_elements),)
 
         # Initialize element data
         degrees = { e.degree() for e in self._sub_elements } - { None }
