@@ -32,7 +32,7 @@ from ufl.classes import (FormArgument, GeometricQuantity,
                          FacetJacobian, FacetJacobianInverse, FacetJacobianDeterminant,
                          CellFacetJacobian,
                          CellEdgeVectors, FacetEdgeVectors,
-                         FacetNormal, CellNormal,
+                         FacetNormal, CellNormal, ReferenceNormal,
                          CellVolume, FacetArea,
                          CellOrientation, FacetOrientation, QuadratureWeight,
                          SpatialCoordinate, Indexed, MultiIndex, FixedIndex)
@@ -735,81 +735,42 @@ class ChangeToReferenceGeometry(MultiFunction):
 
     @memoized_handler
     def facet_normal(self, o):
+        # Recall that the covariant Piola transform u -> J^(-T)*u preserves
+        # tangential components. The normal vector is characterised by
+        # having zero tangential component in reference and physical space.
+
+        # Special-case 1D (possibly immersed), for which we say that
+        # n is just in the direction of J.
+
         domain = o.domain()
-        gdim = domain.geometric_dimension()
         tdim = domain.topological_dimension()
 
-        if tdim == 3:
-            FJ = self.facet_jacobian(FacetJacobian(domain))
-
-            ufl_assert(gdim == 3, "Inconsistent dimensions.")
-            ufl_assert(FJ.ufl_shape == (3, 2), "Inconsistent dimensions.")
-
-            # Compute unsigned, unnormalised normal of 3D cell, cross product of two tangent vectors
-            ndir = cross_expr(FJ[:, 0], FJ[:, 1])
-
-            # Compute sign, the product of sgn(detJ) with the 'facet orientation' on the reference cell
-            scale = sign(self.jacobian_determinant(JacobianDeterminant(domain)))
-            fo = FacetOrientation(domain)
-
-            # Compute signed, normalised normal vector
-            i = Index()
-            n = (fo * scale) * ndir / sqrt(ndir[i]*ndir[i])
-            r = n
-
-        elif tdim == 2:
-            FJ = self.facet_jacobian(FacetJacobian(domain))
-
-            if gdim == 2:
-                # 2D facet normal in 2D space
-                ufl_assert(FJ.ufl_shape == (2, 1), "Inconsistent dimensions.")
-
-                # Compute facet tangent
-                tangent = as_vector((FJ[0, 0], FJ[1, 0], 0))
-
-                # Compute cell normal
-                cell_normal = as_vector((0, 0, 1))
-
-                # Compute signed scaling factor
-                scale = sign(self.jacobian_determinant(JacobianDeterminant(domain)))
-            else:
-                # 2D facet normal in 3D space
-                ufl_assert(FJ.ufl_shape == (gdim, 1), "Inconsistent dimensions.")
-
-                # Compute facet tangent
-                tangent = FJ[:, 0]
-
-                # Compute cell normal
-                cell_normal = self.cell_normal(CellNormal(domain))
-
-                # Compute signed scaling factor (input in the manifold case)
-                scale = CellOrientation(domain)
-
-            ufl_assert(len(tangent) == 3, "Inconsistent dimensions.")
-            ufl_assert(len(cell_normal) == 3, "Inconsistent dimensions.")
-
-            # Compute unsigned, unnormalised normal
-            cr = cross_expr(tangent, cell_normal)
-            if gdim == 2:
-                cr = as_vector((cr[0], cr[1]))
-            ndir = cr
-
-            # Compute signed, normalised normal vector
-            fo = FacetOrientation(domain)
-            i = Index()
-            n = (fo * scale) * ndir / sqrt(ndir[i]*ndir[i])
-            r = n
-
-        elif tdim == 1:
+        if tdim == 1:
             J = self.jacobian(Jacobian(domain)) # dx/dX
             ndir = J[:, 0]
+
+            gdim = domain.geometric_dimension()
             if gdim == 1:
                 nlen = abs(ndir[0])
             else:
                 i = Index()
                 nlen = sqrt(ndir[i]*ndir[i])
-            fo = FacetOrientation(domain)
-            n = fo * ndir / nlen
+
+            rn = ReferenceNormal(domain)  # +/- 1.0 here
+            n = rn[0] * ndir / nlen
+            r = n
+
+        else:
+            Jinv = self.jacobian_inverse(JacobianInverse(domain))
+            i, j = indices(2)
+
+            rn = ReferenceNormal(domain)
+            # compute signed, unnormalised normal; note transpose
+            ndir = as_vector(Jinv[j, i] * rn[j], i)
+
+            # normalise
+            i = Index()
+            n = ndir / sqrt(ndir[i]*ndir[i])
             r = n
 
         ufl_assert(r.ufl_shape == o.ufl_shape, "Inconsistent dimensions (in=%d, out=%d)." % (o.ufl_shape[0], r.ufl_shape[0]))

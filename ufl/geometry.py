@@ -528,6 +528,17 @@ class CellNormal(GeometricCellQuantity):
         g = self._domain.geometric_dimension()
         return (g,)
 
+@ufl_type()
+class ReferenceNormal(GeometricFacetQuantity):
+    """UFL geometry representation: The outwards pointing normal vector of the current facet on the reference cell"""
+    __slots__ = ()
+    name = "reference_normal"
+
+    @property
+    def ufl_shape(self):
+        t = self._domain.topological_dimension()
+        return (t,)
+
 # TODO: Implement in change_to_reference_geometry and enable
 #@ufl_type()
 #class FacetTangents(GeometricFacetQuantity):
