@@ -406,13 +406,6 @@ class OLDChangeToReferenceGrad(MultiFunction):
         return o
 
     def grad(self, o):
-        # FIXME: Handle HDiv elements with contravariant piola mapping specially?
-        # FIXME: Handle HCurl elements with covariant piola mapping specially?
-
-        # FIXME - ATTM: This optimisation attempt was wrong and needs rewriting.
-        # It is currently turning Grad(Grad(...)) into J^(-T)J^(-T)RefGrad(RefGrad(...))
-        # rather than J^(-T)RefGrad(J^(-T)RefGrad(...))
-
         # Peel off the Grads and count them, and get restriction if it's between the grad and the terminal
         ngrads = 0
         restricted = ''
@@ -429,32 +422,51 @@ class OLDChangeToReferenceGrad(MultiFunction):
         domain = f.domain()
         Jinv = JacobianInverse(domain)
 
-        # This is an assumption in the below code TODO: Handle grad(grad(.)) for non-affine domains.
-        ufl_assert(ngrads == 1 or Jinv.is_cellwise_constant(),
-                   "Multiple grads for non-affine domains not currently supported in this algorithm.")
+        if Jinv.is_cellwise_constant():
+            # Optimise slightly by turning Grad(Grad(...)) into J^(-T)J^(-T)RefGrad(RefGrad(...))
+            # rather than J^(-T)RefGrad(J^(-T)RefGrad(...))
 
-        # Create some new indices
-        ii = indices(f.rank()) # Indices to get to the scalar component of f
-        jj = indices(ngrads)   # Indices to sum over the local gradient axes with the inverse Jacobian
-        kk = indices(ngrads)   # Indices for the leftover inverse Jacobian axes
+            # Create some new indices
+            ii = indices(f.rank()) # Indices to get to the scalar component of f
+            jj = indices(ngrads)   # Indices to sum over the local gradient axes with the inverse Jacobian
+            kk = indices(ngrads)   # Indices for the leftover inverse Jacobian axes
 
-        # Preserve restricted property
-        if restricted:
-            Jinv = Jinv(restricted)
-            f = f(restricted)
+            # Preserve restricted property
+            if restricted:
+                Jinv = Jinv(restricted)
+                f = f(restricted)
 
-        # Apply the same number of ReferenceGrad without mappings
-        lgrad = f
-        for i in range(ngrads):
-            lgrad = ReferenceGrad(lgrad)
+            # Apply the same number of ReferenceGrad without mappings
+            lgrad = f
+            for i in range(ngrads):
+                lgrad = ReferenceGrad(lgrad)
 
-        # Apply mappings with scalar indexing operations (assumes ReferenceGrad(Jinv) is zero)
-        jinv_lgrad_f = lgrad[ii+jj]
-        for j, k in zip(jj, kk):
-            jinv_lgrad_f = Jinv[j, k]*jinv_lgrad_f
+            # Apply mappings with scalar indexing operations (assumes ReferenceGrad(Jinv) is zero)
+            jinv_lgrad_f = lgrad[ii+jj]
+            for j, k in zip(jj, kk):
+                jinv_lgrad_f = Jinv[j, k]*jinv_lgrad_f
 
-        # Wrap back in tensor shape, derivative axes at the end
-        jinv_lgrad_f = as_tensor(jinv_lgrad_f, ii+kk)
+            # Wrap back in tensor shape, derivative axes at the end
+            jinv_lgrad_f = as_tensor(jinv_lgrad_f, ii+kk)
+
+        else:
+            # J^(-T)RefGrad(J^(-T)RefGrad(...))
+
+            # Preserve restricted property
+            if restricted:
+                Jinv = Jinv(restricted)
+                f = f(restricted)
+
+            jinv_lgrad_f = f
+            for foo in range(ngrads):
+                ii = indices(jinv_lgrad_f.rank()) # Indices to get to the scalar component of f
+                j, k = indices(2)
+
+                lgrad = ReferenceGrad(jinv_lgrad_f)
+                jinv_lgrad_f = Jinv[j, k]*lgrad[ii+(j,)]
+
+                # Wrap back in tensor shape, derivative axes at the end
+                jinv_lgrad_f = as_tensor(jinv_lgrad_f, ii+(k,))
 
         return jinv_lgrad_f
 
