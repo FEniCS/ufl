@@ -457,19 +457,7 @@ def form2latex(form, formdata):
 
     # Define variables
     handled_variables = set()
-    integrals = list(chain(form.integrals_by_type(Measure.CELL),
-                           form.integrals_by_type(Measure.EXTERIOR_FACET),
-                           form.integrals_by_type(Measure.EXTERIOR_FACET_BOTTOM),
-                           form.integrals_by_type(Measure.EXTERIOR_FACET_TOP),
-                           form.integrals_by_type(Measure.EXTERIOR_FACET_VERT),
-                           form.integrals_by_type(Measure.INTERIOR_FACET),
-                           form.integrals_by_type(Measure.INTERIOR_FACET_HORIZ),
-                           form.integrals_by_type(Measure.INTERIOR_FACET_VERT),
-                           form.integrals_by_type(Measure.POINT),
-                           form.integrals_by_type(Measure.MACRO_CELL),
-                           form.integrals_by_type(Measure.SURFACE)))
-    ufl_assert(len(integrals) == len(form.integrals()),
-               "Not handling non-standard integral types!")
+    integrals = form.integrals()
     lines = []
     for itg in integrals:
         variables = _extract_variables(itg.integrand())
@@ -668,7 +656,7 @@ def form2code2latex(formdata):
     sections = [(title, body)]
 
     # Render each integral as a separate section
-    for itg in formdata.form.integrals_by_type(Measure.CELL):
+    for itg in formdata.form.integrals():
         title = "%s integral over domain %d" % (itg.integral_type(), itg.subdomain_id())
 
         G, partitions = integrand2code(itg.integrand(), formdata)

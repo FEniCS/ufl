@@ -1,19 +1,15 @@
 #!/usr/bin/env py.test
-
 """
 Tests of domain language and attaching domains to forms.
 """
 
-# These are thin wrappers on top of unittest.TestCase and unittest.main
 import pytest
 
-# This imports everything external code will see from ufl
 from ufl import *
 from ufl.geometry import as_domain
 from ufl.algorithms import compute_form_data
 
-all_cells = (cell2D, cell3D,
-             interval, triangle, tetrahedron,
+all_cells = (interval, triangle, tetrahedron,
              quadrilateral, hexahedron)
 
 from mockobjects import MockMesh, MockMeshFunction
@@ -460,4 +456,3 @@ def xtest_subdomain_stuff():  # Old sketch, not working
           # integral_2 knows that both subelements are active
     aronly = ur * vr * \
         dx(D3)  # integral_3 knows that only subelement VR is active
-

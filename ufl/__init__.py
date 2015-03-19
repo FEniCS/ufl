@@ -46,8 +46,7 @@ A very brief overview of the language contents follows:
 
     Cell, ProductCell, OuterProductCell,
     interval, triangle, tetrahedron,
-    quadrilateral, hexahedron,
-    cell2D, cell3D,
+    quadrilateral, hexahedron
 
 * Sobolev spaces::
 
@@ -139,7 +138,9 @@ A very brief overview of the language contents follows:
 
 * Integral measures::
 
-    dx, ds, ds_b, ds_t, ds_tb, ds_v, dS, dS_h, dS_v, dP, dc
+    dx, ds, dS, dP,
+    dc, dC, dO, dI,
+    ds_b, ds_t, ds_tb, ds_v, dS_h, dS_v
 
 * Form transformations::
 
@@ -273,11 +274,14 @@ from ufl.formoperators import replace, derivative, action, energy_norm, rhs, lhs
     system, functional, adjoint, sensitivity_rhs #, dirichlet_functional
 
 # Predefined convenience objects
-from ufl.objects import \
-    vertex, interval, triangle, tetrahedron, \
-    quadrilateral, hexahedron, facet, cell2D, cell3D, \
-    i, j, k, l, p, q, r, s, \
-    dx, ds, ds_b, ds_t, ds_tb, ds_v, dS, dS_h, dS_v, dP, dc
+from ufl.objects import (
+    vertex, interval, triangle, tetrahedron,
+    quadrilateral, hexahedron, facet,
+    i, j, k, l, p, q, r, s,
+    dx, ds, dS, dP,
+    dc, dC, dO, dI,
+    ds_b, ds_t, ds_tb, ds_v, dS_h, dS_v
+    )
 
 # Useful constants
 from math import e, pi
@@ -327,10 +331,11 @@ __all__ = [
     'Integral', 'Measure', 'register_integral_type', 'integral_types',
     'replace', 'replace_integral_domains', 'derivative', 'action', 'energy_norm', 'rhs', 'lhs',
     'system', 'functional', 'adjoint', 'sensitivity_rhs',
-    'dx', 'ds', 'ds_b', 'ds_t', 'ds_tb', 'ds_v', 'dS', 'dS_h', 'dS_v', 'dP', 'dc',
+    'dx', 'ds', 'dS', 'dP',
+    'dc', 'dC', 'dO', 'dI',
+    'ds_b', 'ds_t', 'ds_tb', 'ds_v', 'dS_h', 'dS_v',
     'vertex', 'interval', 'triangle', 'tetrahedron',
     'quadrilateral', 'hexahedron', 'facet',
-    'cell2D', 'cell3D',
     'i', 'j', 'k', 'l', 'p', 'q', 'r', 's',
     'e', 'pi',
     ]

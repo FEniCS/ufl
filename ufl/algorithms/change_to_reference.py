@@ -26,18 +26,23 @@ from ufl.core.multiindex import Index, indices
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
 
-from ufl.classes import (Terminal, ReferenceGrad, Grad, Restricted, ReferenceValue,
+from ufl.classes import (FormArgument, GeometricQuantity,
+                         Terminal, ReferenceGrad, Grad, Restricted, ReferenceValue,
                          Jacobian, JacobianInverse, JacobianDeterminant,
                          FacetJacobian, FacetJacobianInverse, FacetJacobianDeterminant,
                          CellFacetJacobian,
                          CellEdgeVectors, FacetEdgeVectors,
                          FacetNormal, CellNormal,
                          CellVolume, FacetArea,
-                         CellOrientation, FacetOrientation, QuadratureWeight)
+                         CellOrientation, FacetOrientation, QuadratureWeight,
+                         Indexed, MultiIndex, FixedIndex)
+
+from ufl.finiteelement import MixedElement
 
 from ufl.constantvalue import as_ufl
 from ufl.tensors import as_tensor, as_vector
 from ufl.operators import sqrt, max_value, min_value
+from ufl.permutation import compute_indices
 
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
 from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
@@ -142,44 +147,231 @@ circumradius_tetrahedron = tmp_area / (6*cellvolume)
 """
 
 
-class ChangeToReferenceValue(ReuseTransformer):
+# FIXME: This implementation semeed to work last year but lead to performance problems. Look through and test again now.
+class NEWChangeToReferenceGrad(MultiFunction):
     def __init__(self):
-        ReuseTransformer.__init__(self)
+        MultiFunction.__init__(self)
+        self._ngrads = 0
+        self._restricted = ''
+        self._avg = ''
 
-    def form_argument(self, o):
-        # Represent 0-derivatives of form arguments on reference element
+    def expr(self, o, *ops):
+        return o.reconstruct(*ops)
 
-        element = o.element()
+    def terminal(self, o):
+        return o
 
-        local_value = ReferenceValue(o)
+    def coefficient_derivative(self, o, *dummy_ops):
+        error("Coefficient derivatives should be expanded before applying change to reference grad.")
 
-        if isinstance(element, FiniteElement):
-            S = element.sobolev_space()
-            if S == HDiv:
-                # Handle HDiv elements with contravariant piola mapping
-                # contravariant_hdiv_mapping = (1/det J) * J * PullbackOf(o)
-                J = FIXME
-                detJ = FIXME
-                mapping = (1/detJ) * J
-                i, j = indices(2)
-                global_value = as_vector(mapping[i, j] * local_value[j], i)
-            elif S == HCurl:
-                # Handle HCurl elements with covariant piola mapping
-                # covariant_hcurl_mapping = JinvT * PullbackOf(o)
-                JinvT = FIXME
-                mapping = JinvT
-                i, j = indices(2)
-                global_value = as_vector(mapping[i, j] * local_value[j], i)
-            else:
-                # Handle the rest with no mapping.
-                global_value = local_value
+    def reference_grad(self, o, *dummy_ops):
+        error("Not expecting reference grad while applying change to reference grad.")
+
+    def restricted(self, o, *dummy_ops):
+        "Store modifier state."
+        ufl_assert(self._restricted == '', "Not expecting nested restrictions.")
+        self._restricted = o.side()
+        f, = o.ufl_operands
+        r = self(f)
+        self._restricted = ''
+        return r
+
+    def grad(self, o, *dummy_ops):
+        "Store modifier state."
+        self._ngrads += 1
+        f, = o.ufl_operands
+        r = self(f)
+        self._ngrads -= 1
+        return r
+
+    def facet_avg(self, o, *dummy_ops):
+        ufl_assert(self._avg == '', "Not expecting nested averages.")
+        self._avg = "facet"
+        f, = o.ufl_operands
+        r = self(f)
+        self._avg = ""
+        return r
+
+    def cell_avg(self, o, *dummy_ops):
+        ufl_assert(self._avg == '', "Not expecting nested averages.")
+        self._avg = "cell"
+        f, = o.ufl_operands
+        r = self(f)
+        self._avg = ""
+        return r
+
+    def form_argument(self, t):
+        return self._mapped(t)
+
+    def geometric_quantity(self, t):
+        if self._restricted or self._ngrads or self._avg:
+            return self._mapped(t)
         else:
-            error("FIXME: handle mixed element, components need different mappings")
+            return t
 
-        return global_value
+    def _mapped(self, t):
+        # Check that we have a valid input object
+        ufl_assert(isinstance(t, Terminal), "Expecting a Terminal.")
+
+        # Get modifiers accumulated by previous handler calls
+        ngrads = self._ngrads
+        restricted = self._restricted
+        avg = self._avg
+        ufl_assert(avg == "", "Averaging not implemented.") # FIXME
+
+        # These are the global (g) and reference (r) values
+        if isinstance(t, FormArgument):
+            g = t
+            r = ReferenceValue(g)
+        elif isinstance(t, GeometricQuantity):
+            g = t
+            r = g
+        else:
+            error("Unexpected type {0}.".format(type(t).__name__))
+
+        # Some geometry mapping objects we may need multiple times below
+        domain = t.domain()
+        J = Jacobian(domain)
+        detJ = JacobianDeterminant(domain)
+        K = JacobianInverse(domain)
+
+        # Restrict geometry objects if applicable
+        if restricted:
+            J = J(restricted)
+            detJ = detJ(restricted)
+            K = K(restricted)
+
+        # Create Hdiv mapping from possibly restricted geometry objects
+        Mdiv = (1.0/detJ) * J
+
+        # Get component indices of global and reference terminal objects
+        gtsh = g.ufl_shape
+        rtsh = r.ufl_shape
+        gtcomponents = compute_indices(gtsh)
+        rtcomponents = compute_indices(rtsh)
+
+        # Create core modified terminal, with eventual
+        # layers of grad applied directly to the terminal,
+        # then eventual restriction applied last
+        for i in range(ngrads):
+            g = Grad(g)
+            r = ReferenceGrad(r)
+        if restricted:
+            g = g(restricted)
+            r = r(restricted)
+
+        # Get component indices of global and reference objects with grads applied
+        gsh = g.ufl_shape
+        rsh = r.ufl_shape
+        gcomponents = compute_indices(gsh)
+        rcomponents = compute_indices(rsh)
+
+        # Get derivative component indices
+        dsh = gsh[len(gtsh):]
+        dcomponents = compute_indices(dsh)
+
+        # Create nested array to hold expressions for global components mapped from reference values
+        def ndarray(shape):
+            if len(shape) == 0:
+                return [None]
+            elif len(shape) == 1:
+                return [None]*shape[-1]
+            else:
+                return [ndarray(shape[1:]) for i in range(shape[0])]
+        global_components = ndarray(gsh)
+
+        # Compute mapping from reference values for each global component
+        for gtc in gtcomponents:
+
+            if isinstance(t, FormArgument):
+
+                # Find basic subelement and element-local component
+                #ec, element, eoffset = t.element().extract_component2(gtc) # FIXME: Translate this correctly
+                eoffset = 0
+                ec, element = t.element().extract_reference_component(gtc)
+
+                # Select mapping M from element, pick row emapping = M[ec,:], or emapping = [] if no mapping
+                ufl_assert(not isinstance(element, MixedElement),
+                           "Expecting a basic element here.")
+                mapping = element.mapping()
+                if mapping == "contravariant Piola": #S == HDiv:
+                    # Handle HDiv elements with contravariant piola mapping
+                    # contravariant_hdiv_mapping = (1/det J) * J * PullbackOf(o)
+                    ec, = ec
+                    emapping = Mdiv[ec,:]
+                elif mapping == "covariant Piola": #S == HCurl:
+                    # Handle HCurl elements with covariant piola mapping
+                    # covariant_hcurl_mapping = JinvT * PullbackOf(o)
+                    ec, = ec
+                    emapping = K[:,ec] # Column of K is row of K.T
+                elif mapping == "identity":
+                    emapping = None
+                else:
+                    error("Unknown mapping {0}".format(mapping))
+
+            elif isinstance(t, GeometricQuantity):
+                eoffset = 0
+                emapping = None
+
+            else:
+                error("Unexpected type {0}.".format(type(t).__name__))
+
+            # Create indices
+            #if rtsh:
+            #    i = Index()
+            ufl_assert(len(dsh) == ngrads, "Mismatch between derivative shape and ngrads.")
+            if ngrads:
+                ii = indices(ngrads)
+            else:
+                ii = ()
+
+            # Apply mapping row to reference object
+            if emapping: # Mapped, always nonscalar terminal
+                # Not using IndexSum for the mapping row dot product to keep it simple,
+                # because we don't have a slice type
+                emapped_ops = [emapping[s] * Indexed(r, MultiIndex((FixedIndex(eoffset + s),) + ii))
+                               for s in range(len(emapping))]
+                emapped = sum(emapped_ops[1:], emapped_ops[0])
+            elif gtc: # Nonscalar terminal, unmapped
+                emapped = Indexed(r, MultiIndex((FixedIndex(eoffset),) + ii))
+            elif ngrads: # Scalar terminal, unmapped, with derivatives
+                emapped = Indexed(r, MultiIndex(ii))
+            else: # Scalar terminal, unmapped, no derivatives
+                emapped = r
+
+            for di in dcomponents:
+                # Multiply derivative mapping rows, parameterized by free column indices
+                dmapping = as_ufl(1)
+                for j in range(ngrads):
+                    dmapping *= K[ii[j], di[j]] # Row of K is column of JinvT
+
+                # Compute mapping from reference values for this particular global component
+                global_value = dmapping * emapped
+
+                # Apply index sums
+                #if rtsh:
+                #    global_value = IndexSum(global_value, MultiIndex((i,)))
+                #for j in range(ngrads): # Applied implicitly in the dmapping * emapped above
+                #    global_value = IndexSum(global_value, MultiIndex((ii[j],)))
+
+                # This is the component index into the full object with grads applied
+                gc = gtc + di
+
+                # Insert in nested list
+                comp = global_components
+                for i in gc[:-1]:
+                    comp = comp[i]
+                comp[0 if gc == () else gc[-1]] = global_value
+
+        # Wrap nested list in as_tensor unless we have a scalar expression
+        if gsh:
+            tensor = as_tensor(global_components)
+        else:
+            tensor, = global_components
+        return tensor
 
 
-class ChangeToReferenceGrad(MultiFunction):
+class OLDChangeToReferenceGrad(MultiFunction):
     def __init__(self):
         MultiFunction.__init__(self)
 
@@ -609,8 +801,8 @@ def change_to_reference_grad(e):
     @param e:
         An Expr or Form.
     """
-    #return apply_transformer(e, ChangeToReferenceGrad())
-    mf = ChangeToReferenceGrad()
+    mf = OLDChangeToReferenceGrad()
+    #mf = NEWChangeToReferenceGrad()
     return map_expr_dag(mf, e)
 
 
@@ -635,7 +827,7 @@ def compute_integrand_scaling_factor(domain, integral_type):
     if integral_type == "cell":
         scale = abs(JacobianDeterminant(domain)) * weight
 
-    elif integral_type in ["exterior_facet", "exterior_facet_bottom", "exterior_facet_top", "exterior_facet_vert"]:
+    elif integral_type.startswith("exterior_facet"):
         if tdim > 1:
             # Scaling integral by facet jacobian determinant and quadrature weight
             scale = FacetJacobianDeterminant(domain) * weight
@@ -643,7 +835,7 @@ def compute_integrand_scaling_factor(domain, integral_type):
             # No need to scale 'integral' over a vertex
             scale = 1
 
-    elif integral_type in ["interior_facet", "interior_facet_horiz", "interior_facet_vert"]:
+    elif integral_type.startswith("interior_facet"):
         if tdim > 1:
             # Scaling integral by facet jacobian determinant from one side and quadrature weight
             scale = FacetJacobianDeterminant(domain)('+') * weight
@@ -651,13 +843,16 @@ def compute_integrand_scaling_factor(domain, integral_type):
             # No need to scale 'integral' over a vertex
             scale = 1
 
-    elif integral_type == "custom":
+    elif integral_type in ("custom", "interface", "overlap", "cutcell"):
         # Scaling with custom weight, which includes eventual volume scaling
         scale = weight
 
-    elif integral_type == "vertex":
+    elif integral_type in ("vertex", "point"):
         # No need to scale 'integral' over a point
         scale = 1
+
+    else:
+        error("Unknown integral type {}, don't know how to scale.".format(integral_type))
 
     return scale
 

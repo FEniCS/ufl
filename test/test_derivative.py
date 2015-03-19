@@ -14,9 +14,9 @@ from ufl.algorithms import expand_indices, strip_variables, post_traversal, comp
 
 def assertEqualBySampling(actual, expected):
     ad = compute_form_data(actual*dx)
-    a = ad.preprocessed_form.integrals_by_type(Measure.CELL)[0].integrand()
+    a = ad.preprocessed_form.integrals_by_type("cell")[0].integrand()
     bd = compute_form_data(expected*dx)
-    b = bd.preprocessed_form.integrals_by_type(Measure.CELL)[0].integrand()
+    b = bd.preprocessed_form.integrals_by_type("cell")[0].integrand()
 
     assert ([ad.function_replace_map[ac] for ac in ad.reduced_coefficients]
            == [bd.function_replace_map[bc] for bc in bd.reduced_coefficients])
@@ -512,9 +512,9 @@ def testHyperElasticity(self):
     F = form_data_F.preprocessed_form
     J = form_data_J.preprocessed_form
 
-    f_expression = strip_variables(f.integrals_by_type(Measure.CELL)[0].integrand())
-    F_expression = strip_variables(F.integrals_by_type(Measure.CELL)[0].integrand())
-    J_expression = strip_variables(J.integrals_by_type(Measure.CELL)[0].integrand())
+    f_expression = strip_variables(f.integrals_by_type("cell")[0].integrand())
+    F_expression = strip_variables(F.integrals_by_type("cell")[0].integrand())
+    J_expression = strip_variables(J.integrals_by_type("cell")[0].integrand())
 
     #classes = set(c.__class__ for c in post_traversal(f_expression))
 

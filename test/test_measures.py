@@ -10,8 +10,7 @@ import pytest
 from ufl import *
 from ufl.algorithms import compute_form_data
 
-# all_cells = (cell2D, cell3D,
-#             interval, triangle, tetrahedron,
+# all_cells = (interval, triangle, tetrahedron,
 #             quadrilateral, hexahedron)
 
 from mockobjects import MockMesh, MockMeshFunction
@@ -21,39 +20,47 @@ def test_construct_forms_from_default_measures():
     # Create defaults:
     dx = Measure("dx")
     #dE = Measure("dE")
-    # dO = Measure("dO")
 
     ds = Measure("ds")
+    dS = Measure("dS")
+
+    dP = Measure("dP")
+    #dV = Measure("dV")
+
+    dc = Measure("dc")
+    #dC = Measure("dC")
+    #dO = Measure("dO")
+    #dI = Measure("dI")
+
     ds_b = Measure("ds_b")
     ds_t = Measure("ds_t")
     ds_v = Measure("ds_v")
-    dS = Measure("dS")
     dS_h = Measure("dS_h")
     dS_v = Measure("dS_v")
-    dc = Measure("dc")
-    # dI = Measure("dI")
-
-    dP = Measure("dP")
-    # dV = Measure("dV")
 
     # Check that names are mapped properly
     assert dx.integral_type() == "cell"
     #assert dE.integral_type() == "macro_cell"
-    # assert dO.integral_type() == "overlap"
 
     assert ds.integral_type() == "exterior_facet"
+    assert dS.integral_type() == "interior_facet"
+
+    assert dP.integral_type() == "vertex"
+    # TODO: Change dP to dV:
+    #assert dP.integral_type() == "point"
+    #assert dV.integral_type() == "vertex"
+
+    assert dc.integral_type() == "custom"
+    assert dC.integral_type() == "cutcell"
+    assert dO.integral_type() == "overlap"
+    assert dI.integral_type() == "interface"
+
+    # TODO: Remove firedrake hacks:
     assert ds_b.integral_type() == "exterior_facet_bottom"
     assert ds_t.integral_type() == "exterior_facet_top"
     assert ds_v.integral_type() == "exterior_facet_vert"
-    assert dS.integral_type() == "interior_facet"
     assert dS_h.integral_type() == "interior_facet_horiz"
     assert dS_v.integral_type() == "interior_facet_vert"
-    assert dc.integral_type() == "custom"
-    # assert dI.integral_type() == "interface"
-
-    assert dP.integral_type() == "vertex"
-    # assert dV.integral_type() == "vertex"
-    # TODO: Continue this checking
 
     # Check that defaults are set properly
     assert dx.domain() == None
@@ -205,5 +212,3 @@ def test_foo():
         "exterior_facet"] == exterior_facet_domains
     assert M.subdomain_data()[mydomain][
         "interior_facet"] == interior_facet_domains
-
-

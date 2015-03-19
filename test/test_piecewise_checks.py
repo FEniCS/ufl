@@ -11,11 +11,10 @@ from ufl.classes import *
 
 def get_domains():
     all_cells = [
+        #vertex,
         interval,
-        cell2D,
         triangle,
         quadrilateral,
-        cell3D,
         tetrahedron,
         hexahedron,
     ]
@@ -33,18 +32,18 @@ def get_nonlinear():
     return domains_with_quadratic_coordinates
 
 
-@pytest.fixture(params=list(range(7)))
+@pytest.fixture(params=list(range(5)))
 def nonlinear_domains(request):
     return get_nonlinear()[request.param]
 
 
-@pytest.fixture(params=list(range(14)))
+@pytest.fixture(params=list(range(10)))
 def domains_not_linear(request):
     all_domains_not_linear = get_domains() + get_nonlinear()
     return all_domains_not_linear[request.param]
 
 
-@pytest.fixture(params=list(range(21)))
+@pytest.fixture(params=list(range(15)))
 def domains(request):
     domains = get_domains()
     domains_with_linear_coordinates = []
@@ -79,11 +78,10 @@ def affine_domains(request):
     return all_affine_domains[request.param]
 
 
-@pytest.fixture(params=list(range(10)))
+@pytest.fixture(params=list(range(8)))
 def affine_facet_domains(request):
     affine_facet_cells = [
         interval,
-        cell2D,
         triangle,
         quadrilateral,
         tetrahedron,
@@ -102,12 +100,10 @@ def affine_facet_domains(request):
     return all_affine_facet_domains[request.param]
 
 
-@pytest.fixture(params=list(range(8)))
+@pytest.fixture(params=list(range(4)))
 def nonaffine_domains(request):
     nonaffine_cells = [
-        cell2D,
         quadrilateral,
-        cell3D,
         hexahedron,
     ]
     nonaffine_domains = [Domain(cell) for cell in nonaffine_cells]
@@ -124,10 +120,9 @@ def nonaffine_domains(request):
     return all_nonaffine_domains[request.param]
 
 
-@pytest.fixture(params=list(range(4)))
+@pytest.fixture(params=list(range(2)))
 def nonaffine_facet_domains(request):
     nonaffine_facet_cells = [
-        cell3D,
         hexahedron,
     ]
     nonaffine_facet_domains = [Domain(cell) for cell in nonaffine_facet_cells]
@@ -245,4 +240,3 @@ def test_coefficient_mostly_not_cellwise_constant(domains_not_linear):
     assert not e.is_cellwise_constant()
     e = TestFunction(V)
     assert not e.is_cellwise_constant()
-

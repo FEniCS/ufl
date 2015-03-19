@@ -1,13 +1,10 @@
 #!/usr/bin/env py.test
-
 """
 Test tensor algebra operators.
 """
 
-# These are thin wrappers on top of unittest.TestCase and unittest.main
 import pytest
 
-# This imports everything external code will see from ufl
 from ufl import *
 
 @pytest.fixture(scope="module")

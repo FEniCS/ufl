@@ -1,5 +1,4 @@
 #!/usr/bin/env py.test
-
 """
 This is a template file you can copy when making a new test case.
 Begin by copying this file to a filename matching test_*.py.
@@ -7,9 +6,9 @@ The tests in the file will then automatically be run by ./test.py.
 Next look at the TODO markers below for places to edit.
 """
 
-# These are thin wrappers on top of unittest.TestCase and unittest.main
 import pytest
 from six.moves import zip
+
 # This imports everything external code will see from ufl
 from ufl import *
 from ufl.log import error, warning
@@ -206,7 +205,7 @@ def test_unwrap_list_tensor(self):
     assert comp == expected
 
 def test__forward_coefficient_ad__grad_of_scalar_coefficient(self):
-    U = FiniteElement("CG", cell2D, 1)
+    U = FiniteElement("CG", triangle, 1)
     u = Coefficient(U)
     du = TestFunction(U)
 
@@ -229,7 +228,7 @@ def test__forward_coefficient_ad__grad_of_scalar_coefficient(self):
     assert dg == df
 
 def test__forward_coefficient_ad__grad_of_vector_coefficient(self):
-    V = VectorElement("CG", cell2D, 1)
+    V = VectorElement("CG", triangle, 1)
     v = Coefficient(V)
     dv = TestFunction(V)
 
@@ -252,7 +251,7 @@ def test__forward_coefficient_ad__grad_of_vector_coefficient(self):
     assert dg == df
 
 def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_variation(self):
-    V = VectorElement("CG", cell2D, 1)
+    V = VectorElement("CG", triangle, 1)
     v = Coefficient(V)
     dv = TestFunction(V)
 
@@ -306,7 +305,7 @@ def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_var
     #assert dg == df # Expected to fail because of different index numbering
 
 def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_variation_in_list(self):
-    V = VectorElement("CG", cell2D, 1)
+    V = VectorElement("CG", triangle, 1)
     v = Coefficient(V)
     dv = TestFunction(V)
 
@@ -361,7 +360,7 @@ def test__forward_coefficient_ad__grad_of_vector_coefficient__with_component_var
 
 
 def test__forward_coefficient_ad__grad_of_tensor_coefficient(self):
-    W = TensorElement("CG", cell2D, 1)
+    W = TensorElement("CG", triangle, 1)
     w = Coefficient(W)
     dw = TestFunction(W)
 
@@ -384,7 +383,7 @@ def test__forward_coefficient_ad__grad_of_tensor_coefficient(self):
     assert dg == df
 
 def test__forward_coefficient_ad__grad_of_tensor_coefficient__with_component_variation(self):
-    W = TensorElement("CG", cell2D, 1)
+    W = TensorElement("CG", triangle, 1)
     w = Coefficient(W)
     dw = TestFunction(W)
 

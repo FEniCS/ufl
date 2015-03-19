@@ -187,7 +187,7 @@ class ExpressionCollection(object):
 @pytest.fixture(params=(1,2,3))
 def d_expr(request):
     d = request.param
-    cell = { 1: interval, 2: cell2D, 3: cell3D }[d]
+    cell = { 1: interval, 2: triangle, 3: tetrahedron }[d]
     expr = ExpressionCollection(cell)
     return d, expr
 

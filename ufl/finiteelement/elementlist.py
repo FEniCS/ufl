@@ -85,7 +85,6 @@ def show_elements():
 simplices = ("interval", "triangle", "tetrahedron")
 cubes     = ("interval", "quadrilateral", "hexahedron")
 any_cell  = (None,
-             "cell2D", "cell3D",
              "vertex", "interval",
              "triangle", "tetrahedron",
              "quadrilateral", "hexahedron")
