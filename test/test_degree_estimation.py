@@ -84,10 +84,17 @@ def test_total_degree_estimation():
     assert estimate_total_polynomial_degree(u1 ** 3 + u2 * u2) == (4, 3)
     assert estimate_total_polynomial_degree(u2 ** 2 * u1) == (5, 3)
 
-    # Based on the arbitrary chosen math function heuristics...
+    # Math functions of constant values are constant values
     nx, ny = FacetNormal(triangle)
-    assert estimate_total_polynomial_degree(sin(nx ** 2)) == 0
-    assert estimate_total_polynomial_degree(sin(x ** 3)) == 3 + 2
+    e = nx ** 2
+    for f in [sin, cos, tan, abs, lambda z:z**7]:
+        assert estimate_total_polynomial_degree(f(e)) == 0
+
+    # Based on the arbitrary chosen math function heuristics...
+    heuristic_add = 2
+    e = x**3
+    for f in [sin, cos, tan]:
+        assert estimate_total_polynomial_degree(f(e)) == 3 + heuristic_add
 
 
 def test_some_compound_types():
@@ -124,4 +131,3 @@ def test_some_compound_types():
 
     assert etpd(dot(grad(v), grad(v))) == 2 - 1 + 2 - 1
     assert etpd(inner(grad(v), grad(v))) == 2 - 1 + 2 - 1
-
