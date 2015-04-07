@@ -111,7 +111,7 @@ register_element("Morley", "MOR",                        0, H2,   "identity", No
 register_element("Boundary Quadrature", "BQ", 0, L2, "identity", (0, None), any_cell)
 register_element("Bubble", "B",               0, H1, "identity", (2, None), simplices)
 register_element("Quadrature", "Quadrature",  0, L2, "identity", (0, None), any_cell)
-register_element("Real", "R",                 0, L2, "identity", (0, 0),    any_cell)
+register_element("Real", "R",                 0, L2, "identity", (0, 0),    any_cell + ("OuterProductCell",))
 register_element("Undefined", "U",            0, L2, "identity", (0, None), any_cell)
 register_element("Lobatto", "Lob",            0, L2, "identity", (1, None), ("interval",))
 register_element("Radau",   "Rad",            0, L2, "identity", (0, None), ("interval",))
