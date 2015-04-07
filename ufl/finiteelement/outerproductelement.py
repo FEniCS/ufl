@@ -109,8 +109,8 @@ class OuterProductElement(FiniteElementBase):
 
     def signature_data(self, renumbering):
         data = ("OuterProductElement",
-                self._A.signature_data(renumbering),
-                self._B.signature_data(renumbering),
+                self._A,
+                self._B,
                 self._quad_scheme,
                 ("no domain" if self._domain is None else self._domain.signature_data(renumbering)))
         return data
@@ -155,11 +155,11 @@ class OuterProductVectorElement(MixedElement):
     def _B(self):
         return self._sub_element._B
 
-    def signature_data(self, domain_numbering):
+    def signature_data(self, renumbering):
         data = ("OuterProductVectorElement", self._A, self._B,
                 len(self._sub_elements), self._quad_scheme,
                 ("no domain" if self._domain is None else
-                    self._domain.signature_data(domain_numbering=domain_numbering)))
+                    self._domain.signature_data(renumbering)))
         return data
 
     def reconstruct(self, **kwargs):
