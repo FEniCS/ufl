@@ -50,10 +50,10 @@ from ufl.geometry import Domain
 # Other algorithms:
 from ufl.algorithms.compute_form_data import compute_form_data
 from ufl.algorithms.formfiles import load_forms
-from ufl.algorithms.latextools import align, document, verbatim
-
 from ufl.algorithms.transformer import Transformer
-from ufl.algorithms.graph import build_graph, partition, extract_outgoing_vertex_connections
+
+from ufl.formatting.graph import build_graph, partition, extract_outgoing_vertex_connections
+from ufl.formatting.latextools import align, document, verbatim
 
 
 # TODO: Maybe this can be cleaner written using the graph utilities

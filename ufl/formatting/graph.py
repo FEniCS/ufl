@@ -19,14 +19,11 @@
 
 from collections import defaultdict
 from six.moves import xrange as range
-from six.moves import zip, map
+from six.moves import map
 from heapq import heapify, heappop, heappush
 
-#from ufl import *
 from ufl.corealg.traversal import pre_traversal
-from ufl.algorithms.printing import tree_format
-from ufl.algorithms.multifunction import MultiFunction
-from ufl.classes import Terminal
+from ufl.corealg.multifunction import MultiFunction
 
 # O(n) = O(|V|) = O(|E|), since |E| < c|V| for a fairly small c.
 
@@ -37,16 +34,6 @@ def lists(n):
 
 def len_items(sequence):
     return list(map(len, sequence))
-
-def join_lines(sequence):
-    return "\n".join(map(str, sequence))
-
-def all_is(seq1, seq2):
-    return all(a is b for (a, b) in zip(seq1, seq2))
-
-def reorder(sequence, ordering):
-    "Rearrange the items in a sequence."
-    return [sequence[i] for i in ordering]
 
 #--- Graph building functions ---
 
@@ -94,21 +81,6 @@ def extract_outgoing_edges(G): # O(n)
         Eout[e[0]].append(i)
     return Eout
 
-def extract_edges(G): # O(n)
-    """Build lists of incoming and outgoing edges
-    to and from each vertex in a linearized graph.
-
-    Returns lists Ein and Eout."""
-    V, E = G
-    n = len(V)
-    Ein  = lists(n)
-    Eout = lists(n)
-    for i, e in enumerate(E):
-        a, b = e
-        Ein[b].append(i)
-        Eout[a].append(i)
-    return Ein, Eout
-
 def extract_incoming_vertex_connections(G): # O(n)
     """Build lists of vertices in incoming and outgoing
     edges to and from each vertex in a linearized graph.
@@ -133,19 +105,6 @@ def extract_outgoing_vertex_connections(G): # O(n)
         Vout[a].append(b)
     return Vout
 
-def extract_vertex_connections(G): # O(n)
-    """Build lists of vertices in incoming and outgoing
-    edges to and from each vertex in a linearized graph.
-
-    Returns lists Vin and Vout."""
-    V, E = G
-    n = len(V)
-    Vin  = lists(n)
-    Vout = lists(n)
-    for a, b in E:
-        Vin[b].append(a)
-        Vout[a].append(b)
-    return Vin, Vout
 
 #--- Graph class ---
 
@@ -186,37 +145,6 @@ class Graph:
 
     def __iter__(self):
         return iter((self._V, self._E))
-
-#--- Graph algorithms ---
-
-def format_graph(G):
-    V, E = G
-    lines = ["Graph with %d vertices and %d edges:" % (len(V), sum(map(len, E)))]
-    lines.extend(("", "Vertices:"))
-    lines.extend("v%d: \t%s" % (i, v) for (i, v) in enumerate(V))
-    lines.extend(("", "Edges:"))
-    lines.extend("e%d: \tv%d -> v%d" % (i, e[0], e[1]) for (i, e) in enumerate(E))
-    return join_lines(lines)
-
-def find_dependencies(G, targets):
-    """Find the set of vertices in a computational
-    graph that a set of target vertices depend on."""
-    # G is a graph
-    V, E = G
-    n = len(V)
-    # targets is a sequence of vertex indices
-    todo = list(targets)
-    heapify(todo)
-
-    keep = [False]*n
-    while todo:
-        t = heappop(todo)
-        if not keep[t]:
-            keep[t] = True
-            for edges in Eout[t]:
-                for e in edges:
-                    heappush(todo, e[1])
-    return keep
 
 #--- Scheduling algorithms ---
 
@@ -266,35 +194,6 @@ def depth_first_ordering(G):
 
     # TODO: Can later accumulate dependencies as well during dft-like algorithm.
     return ordering
-
-#--- Expression tree reconstruction algorithms ---
-
-def rebuild_tree(G):
-    """Rebuild expression tree from linearized graph.
-
-    Does not touch the input graph. Assumes the graph
-    is directed, acyclic, and connected, such that there
-    is only one root node.
-    """
-    V = G.V()
-    E = G.E()
-    n = len(V)
-    Vout = G.Vout()
-    dfo = depth_first_ordering(G)
-    subtrees = [None]*n
-    for i in dfo:
-        v = V[i]
-        if not v._ufl_is_terminal_:
-            # Fetch already reconstructed child vertices
-            # and reconstruct non-terminal node from them
-            ops = tuple(subtrees[j] for j in Vout[i])
-            if all_is(ops, v.ufl_operands):
-                pass
-            else:
-                v = v.reconstruct(*ops)
-        subtrees[i] = v
-    # Assuming last vertex is the root!
-    return v
 
 #--- Graph partitoning ---
 
@@ -373,82 +272,3 @@ def partition(G, criteria=string_set_criteria):
         partitions[key].append(iv)
         keys[iv] = key
     return partitions, keys
-
-#--- Test code ---
-
-def test_expr():
-    from ufl import triangle, FiniteElement, TestFunction, TrialFunction, Coefficient
-    element = FiniteElement("CG", triangle, 1)
-    v = TestFunction(element)
-    u = TrialFunction(element)
-    f = Coefficient(element)
-    g = Coefficient(element)
-    expr = (f+g)*u.dx(0)*(g-1)*v
-    return expr
-
-if __name__ == "__main__":
-    expr = test_expr()
-    G = Graph(expr)
-    V, E = G
-    n = len(V)
-    Ein = G.Ein()
-    Eout = G.Eout()
-
-    print()
-    print("Entire graph:")
-    for iv, v in enumerate(V):
-        print("Vertex %03d: %s" % (iv, v))
-    for ie, e in enumerate(E):
-        print("Edge %03d: %s" % (ie, e))
-    for iv, eout in enumerate(Eout):
-        print("Edges out for vertex %03d: %s" % (iv, eout))
-    for iv, ein in enumerate(Ein):
-        print("Edges in for vertex %03d: %s" % (iv, ein))
-    print()
-
-    from ufl.common import sstr
-    partitions, keys = partition(G, string_set_criteria)
-    for k in partitions:
-        print()
-        print("Partition with key", sstr(k))
-        for iv in partitions[k]:
-            print("Vertex %03d: %s" % (iv, V[iv]))
-
-if __name__ == "__main_":
-    expr = test_expr()
-
-    G = Graph(expr)
-    V, E = G
-    e2 = rebuild_tree(G)
-
-    Ein  = G.Ein()
-    Eout = G.Eout()
-    Ein_count  = len_items(Ein)
-    Eout_count = len_items(Eout)
-    dfo = depth_first_ordering(G)
-
-    print()
-    print("expr:")
-    print(expr)
-    print()
-    print("e2:")
-    print(e2)
-    print()
-    print(tree_format(expr))
-    print()
-    print(format_graph(G))
-    print()
-    print("Ein:")
-    print(join_lines(Ein))
-    print()
-    print("Eout:")
-    print(join_lines(Eout))
-    print()
-    print("Ein_count:")
-    print(join_lines(Ein_count))
-    print()
-    print("Eout_count:")
-    print(join_lines(Eout_count))
-    print()
-    print("dfo:")
-    print(join_lines(reorder(V, dfo)))
