@@ -77,7 +77,10 @@ class Form(object):
         "_coefficient_numbering",
         "_hash",
         "_signature",
-        "_kernels"
+        # --- Dict that external frameworks can place framework-specific
+        #     data in to be carried with the form
+        #     Never use this internally in ufl!
+        "_cache",
         )
 
     def __init__(self, integrals):
@@ -103,6 +106,9 @@ class Form(object):
         # Internal variables for caching of hash and signature after first request
         self._hash = None
         self._signature = None
+
+        # Never use this internally in ufl!
+        self._cache = {}
 
     # --- Accessor interface ---
 
