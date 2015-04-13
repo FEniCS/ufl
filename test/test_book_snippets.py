@@ -288,14 +288,14 @@ def test_python_1446(self):
     f = Coefficient(V)
     e = c*f**2*u*v
 
-    from ufl.algorithms import Graph, partition
-    G = Graph(e)
-    V, E, = G
+    # The linearized Graph functionality has been removed from UFL:
+    #from ufl.algorithms import Graph, partition
+    #G = Graph(e)
+    #V, E, = G
 
-    if 0:
-        print(("str(e) = %s\n" % str(e)))
-        print(("\n".join("V[%d] = %s" % (i, v) for (i, v) in enumerate(V)), "\n"))
-        print(("\n".join("E[%d] = %s" % (i, e) for (i, e) in enumerate(E)), "\n"))
+    #print(("str(e) = %s\n" % str(e)))
+    #print(("\n".join("V[%d] = %s" % (i, v) for (i, v) in enumerate(V)), "\n"))
+    #print(("\n".join("E[%d] = %s" % (i, e) for (i, e) in enumerate(E)), "\n"))
 
 def test_python_1512(self):
     cell = triangle
@@ -306,12 +306,13 @@ def test_python_1512(self):
     f = Coefficient(V)
     e = c*f**2*u*v
 
-    from ufl.algorithms import Graph, partition
-    G = Graph(e)
-    V, E, = G
+    # The linearized Graph functionality has been removed from UFL:
+    #from ufl.algorithms import Graph, partition
+    #G = Graph(e)
+    #V, E, = G
     # ...
-    Vin = G.Vin()
-    Vout = G.Vout()
+    #Vin = G.Vin()
+    #Vout = G.Vout()
 
 def test_python_1557(self):
     cell = triangle
@@ -322,18 +323,19 @@ def test_python_1557(self):
     f = Coefficient(V)
     e = c*f**2*u*v
 
-    from ufl.algorithms import Graph, partition
-    G = Graph(e)
-    V, E, = G
+    # The linearized Graph functionality has been removed from UFL:
+    #from ufl.algorithms import Graph, partition
+    #G = Graph(e)
+    #V, E, = G
     # ...
-    partitions, keys = partition(G)
-    for deps in sorted(partitions.keys()):
-        P = partitions[deps]
-        #print "The following depends on", tuple(deps)
-        for i in sorted(P):
-            #print "V[%d] = %s" % (i, V[i])
-            # ...
-            v = V[i]
+    #partitions, keys = partition(G)
+    #for deps in sorted(partitions.keys()):
+    #    P = partitions[deps]
+    #    #print "The following depends on", tuple(deps)
+    #    for i in sorted(P):
+    #        #print "V[%d] = %s" % (i, V[i])
+    #        # ...
+    #        v = V[i]
 
 def test_python_1843(self):
     def apply_ad(e, ad_routine):
