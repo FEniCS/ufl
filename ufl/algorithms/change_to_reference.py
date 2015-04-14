@@ -40,12 +40,14 @@ from ufl.classes import (FormArgument, GeometricQuantity,
 from ufl.finiteelement import MixedElement
 
 from ufl.constantvalue import as_ufl
+from ufl.tensoralgebra import Transposed
 from ufl.tensors import as_tensor, as_vector
 from ufl.operators import sqrt, max_value, min_value
 from ufl.permutation import compute_indices
 
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
 from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
+from ufl.finiteelement import FiniteElement
 
 
 # TODO: Move to ufl.corealg.multifunction?
@@ -145,6 +147,45 @@ tmp_area = sqrt(s * (s - la) * (s - lb) * (s - lc))
 circumradius_tetrahedron = tmp_area / (6*cellvolume)
 
 """
+
+
+class ChangeToReferenceValue(ReuseTransformer):
+    def __init__(self):
+        ReuseTransformer.__init__(self)
+
+    def form_argument(self, o):
+        # Represent 0-derivatives of form arguments on reference element
+
+        element = o.element()
+
+        local_value = ReferenceValue(o)
+
+        if isinstance(element, FiniteElement):
+            mapping = element.mapping()
+            if mapping == "identity":
+                global_value = local_value
+            elif mapping == "contravariant Piola":
+                # contravariant_hdiv_mapping = (1/det J) * J * PullbackOf(o)
+                J = Jacobian(o.domain())
+                detJ = JacobianDeterminant(o.domain())
+                mapping = (1/detJ) * J
+                i, j = indices(2)
+                global_value = as_vector(mapping[i, j] * local_value[j], i)
+            elif mapping == "covariant Piola":
+                # covariant_hcurl_mapping = JinvT * PullbackOf(o)
+                Jinv = JacobianInverse(o.domain())
+                i, j = indices(2)
+                JinvT = as_tensor(Jinv[i, j], (j, i))
+                mapping = JinvT
+                global_value = as_vector(mapping[i, j] * local_value[j], i)
+            else:
+                error("Mapping type %s not handled" % mapping)
+        else:
+            error("FIXME: handle mixed element, components need different mappings")
+
+        return global_value
+
+    form_coefficient = form_argument
 
 
 # FIXME: This implementation semeed to work last year but lead to performance problems. Look through and test again now.
@@ -793,6 +834,15 @@ class ChangeToReferenceGeometry(MultiFunction):
         return r
 
 
+def change_to_reference_value(e):
+    """Change coefficients and arguments in expression to apply Piola mappings
+
+    @param e:
+        An Expr or Form.
+    """
+    return apply_transformer(e, ChangeToReferenceValue())
+
+
 def change_to_reference_grad(e):
     """Change Grad objects in expression to products of JacobianInverse and ReferenceGrad.
 
@@ -861,6 +911,8 @@ def change_integrand_geometry_representation(integrand, scale, integral_type):
     """Change integrand geometry to the right representations."""
 
     integrand = change_to_reference_grad(integrand)
+
+    integrand = change_to_reference_value(integrand)
 
     integrand = integrand * scale
 
