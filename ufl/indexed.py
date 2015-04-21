@@ -29,7 +29,7 @@ from ufl.core.ufl_type import ufl_type
 
 #--- Indexed expression ---
 
-@ufl_type(is_shaping=True, num_ops=2)
+@ufl_type(is_shaping=True, num_ops=2, is_terminal_modifier=True)
 class Indexed(Operator):
     __slots__ = ("ufl_free_indices", "ufl_index_dimensions",)
 

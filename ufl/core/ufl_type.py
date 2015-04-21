@@ -22,6 +22,7 @@ def ufl_type(is_abstract=False,
              is_scalar=False,
              is_index_free=False,
              is_shaping=False,
+             is_terminal_modifier=False,
              num_ops=None,
              inherit_shape_from_operand=None,
              inherit_indices_from_operand=None,
@@ -151,6 +152,10 @@ def ufl_type(is_abstract=False,
             raise TypeError(msg.format(cls))
         cls._ufl_is_terminal_ = auto_is_terminal
 
+        # Get trait is_terminal_modifier.
+        cls._ufl_is_terminal_modifier_ = is_terminal_modifier
+        if is_terminal_modifier:
+            Expr._ufl_terminal_modifiers_.append(cls)
 
         # Get traits is_scalar and is_index_free, is_scalar implies is_index_free.
         cls._ufl_is_scalar_ = is_scalar

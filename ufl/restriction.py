@@ -24,7 +24,8 @@ from ufl.core.ufl_type import ufl_type
 
 #--- Restriction operators ---
 
-@ufl_type(is_abstract=True, num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+@ufl_type(is_abstract=True, num_ops=1, is_terminal_modifier=True,
+          inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class Restricted(Operator):
     __slots__ = ("_side",)
 
@@ -63,7 +64,7 @@ class NegativeRestricted(Restricted):
 
 
 # TODO: Place in a better file?
-@ufl_type(is_index_free=True, num_ops=1)
+@ufl_type(is_index_free=True, num_ops=1, is_terminal_modifier=True)
 class CellAvg(Operator):
     __slots__ = ()
 
@@ -88,7 +89,7 @@ class CellAvg(Operator):
 
 
 # TODO: Place in a better file?
-@ufl_type(is_index_free=True, num_ops=1)
+@ufl_type(is_index_free=True, num_ops=1, is_terminal_modifier=True)
 class FacetAvg(Operator):
     __slots__ = ()
 

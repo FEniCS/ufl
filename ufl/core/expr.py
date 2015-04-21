@@ -140,11 +140,17 @@ class Expr(object):
     # Number of operands, None if not applicable for abstract types.
     _ufl_num_ops_ = None
 
-    # True if the type is abstract, False otherwise.
+    # True if the type is abstract.
     _ufl_is_abstract_ = True
 
     # True if the type is terminal, False otherwise, None only for Expr.
     _ufl_is_terminal_ = None
+
+    # True if the type is a terminal modifier.
+    _ufl_is_terminal_modifier_ = False
+
+    # List of all terminal modifier types
+    _ufl_terminal_modifiers_ = []
 
     # True if the type is a shaping operation.
     _ufl_is_shaping_ = False
