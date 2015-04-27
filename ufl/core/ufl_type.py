@@ -154,7 +154,7 @@ def ufl_type(is_abstract=False,
 
         # Get trait is_terminal_modifier.
         cls._ufl_is_terminal_modifier_ = is_terminal_modifier
-        if is_terminal_modifier:
+        if cls._ufl_is_terminal_modifier_:
             Expr._ufl_terminal_modifiers_.append(cls)
 
         # Get traits is_scalar and is_index_free, is_scalar implies is_index_free.
