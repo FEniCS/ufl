@@ -27,8 +27,8 @@ from ufl.core.multiindex import MultiIndex, Index, FixedIndex, indices
 from ufl.tensors import as_tensor, as_scalar, as_scalars, unit_indexed_tensor, unwrap_list_tensor
 
 from ufl.classes import ConstantValue, Identity, Zero, FloatValue
-from ufl.classes import Coefficient, FormArgument
-from ufl.classes import Grad, Variable
+from ufl.classes import Coefficient, FormArgument, ReferenceValue
+from ufl.classes import Grad, ReferenceGrad, Variable
 from ufl.classes import Indexed, ListTensor, ComponentTensor
 from ufl.classes import ExprList, ExprMapping
 from ufl.classes import Product, Sum, IndexSum
@@ -507,6 +507,68 @@ class GradRuleset(GenericDerivativeRuleset):
     facet_avg = GenericDerivativeRuleset.independent_operator
 
 
+class ReferenceGradRuleset(GenericDerivativeRuleset):
+    def __init__(self, topological_dimension):
+        GenericDerivativeRuleset.__init__(self, var_shape=(topological_dimension,))
+        self._Id = Identity(topological_dimension)
+
+    # --- Specialized rules for geometric quantities
+
+    def geometric_quantity(self, o):
+        "dg/dX = 0 if piecewise constant, otherwise ReferenceGrad(g)"
+        if o.is_cellwise_constant():
+            return self.independent_terminal(o)
+        else:
+            # TODO: Which types does this involve? I don't think the form compilers will handle this.
+            return ReferenceGrad(o)
+
+    def spatial_coordinate(self, o):
+        "dx/dX = J"
+        return Jacobian(o.domain())
+
+    def cell_coordinate(self, o):
+        "dX/dX = I"
+        return self._Id
+
+    # TODO: Add more geometry types here, with non-affine domains several should be non-zero.
+
+    # --- Specialized rules for form arguments
+
+    def coefficient(self, o):
+        error("Coefficient should be wrapped in ReferenceValue by now")
+
+    def argument(self, o):
+        error("Argument should be wrapped in ReferenceValue by now")
+
+    def reference_value(self, o):
+        ufl_assert(o.ufl_operands[0]._ufl_is_terminal_, "ReferenceValue can only wrap a terminal")
+        return ReferenceGrad(o)
+
+    def _argument(self, o): # TODO: Enable this after fixing issue#13, unless we move simplification to a separate stage?
+        if o.is_cellwise_constant():
+            # Collapse gradient of cellwise constant function to zero
+            return AnnotatedZero(o.ufl_shape + self._var_shape, arguments=(o,)) # TODO: Missing this type
+        else:
+            return ReferenceGrad(o)
+
+    # --- Nesting of gradients
+
+    def grad(self, o):
+        error("Grad should have been transformed by this point, but got {0}.".format(type(o).__name__))
+
+    def reference_grad(self, o):
+        "Represent ref_grad(ref_grad(f)) as RefGrad(RefGrad(f))."
+
+        # Check that o is a "differential terminal"
+        ufl_assert(isinstance(o.ufl_operands[0], (ReferenceGrad, ReferenceValue, Terminal)),
+                   "Expecting only grads applied to a terminal.")
+
+        return ReferenceGrad(o)
+
+    cell_avg = GenericDerivativeRuleset.independent_operator
+    facet_avg = GenericDerivativeRuleset.independent_operator
+
+
 class VariableRuleset(GenericDerivativeRuleset):
     def __init__(self, var):
         GenericDerivativeRuleset.__init__(self, var_shape=var.ufl_shape)
@@ -816,6 +878,10 @@ class DerivativeRuleDispatcher(MultiFunction):
 
     def grad(self, o, f):
         rules = GradRuleset(o.ufl_shape[-1])
+        return map_expr_dag(rules, f)
+
+    def reference_grad(self, o, f):
+        rules = ReferenceGradRuleset(o.ufl_shape[-1])
         return map_expr_dag(rules, f)
 
     def variable_derivative(self, o, f, dummy_v):

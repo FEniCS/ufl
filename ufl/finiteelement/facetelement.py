@@ -34,6 +34,9 @@ class FacetElement(FiniteElementBase):
         FiniteElementBase.__init__(self, family, domain, degree,
                                    quad_scheme, value_shape, reference_value_shape)
 
+    def mapping(self):
+        return self._element.mapping()
+
     def reconstruct(self, **kwargs):
         """Construct a new FacetElement object with some properties
         replaced with new values."""

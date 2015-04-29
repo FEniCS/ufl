@@ -27,6 +27,7 @@ class HDiv(OuterProductElement):
     def __init__(self, element):
         self._element = element
         self._repr = "HDiv(%s)" % str(element._repr)
+        self._mapping = "contravariant Piola"
 
         family = "OuterProductElement"
         domain = element.domain()
@@ -72,6 +73,7 @@ class HCurl(OuterProductElement):
     def __init__(self, element):
         self._element = element
         self._repr = "HCurl(%s)" % str(element._repr)
+        self._mapping = "covariant Piola"
 
         family = "OuterProductElement"
         domain = element.domain()

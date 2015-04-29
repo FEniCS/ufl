@@ -32,20 +32,20 @@ from ufl.classes import (FormArgument, GeometricQuantity,
                          FacetJacobian, FacetJacobianInverse, FacetJacobianDeterminant,
                          CellFacetJacobian,
                          CellEdgeVectors, FacetEdgeVectors,
-                         FacetNormal, CellNormal,
+                         FacetNormal, CellNormal, ReferenceNormal,
                          CellVolume, FacetArea,
                          CellOrientation, FacetOrientation, QuadratureWeight,
-                         Indexed, MultiIndex, FixedIndex)
+                         SpatialCoordinate, Indexed, MultiIndex, FixedIndex)
 
-from ufl.finiteelement import MixedElement
-
-from ufl.constantvalue import as_ufl
-from ufl.tensors import as_tensor, as_vector
-from ufl.operators import sqrt, max_value, min_value
+from ufl.constantvalue import as_ufl, Identity
+from ufl.tensoralgebra import Transposed
+from ufl.tensors import as_tensor, as_vector, as_scalar, ComponentTensor
+from ufl.operators import sqrt, max_value, min_value, sign
 from ufl.permutation import compute_indices
 
 from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
 from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
+from ufl.finiteelement import FiniteElement, EnrichedElement, VectorElement, MixedElement, OuterProductElement, OuterProductVectorElement, TensorElement, FacetElement, InteriorElement, BrokenElement, TraceElement
 
 
 # TODO: Move to ufl.corealg.multifunction?
@@ -145,6 +145,31 @@ tmp_area = sqrt(s * (s - la) * (s - lb) * (s - lc))
 circumradius_tetrahedron = tmp_area / (6*cellvolume)
 
 """
+
+
+class ChangeToReferenceValue(ReuseTransformer):
+    def __init__(self):
+        ReuseTransformer.__init__(self)
+
+    def form_argument(self, o):
+        # Represent 0-derivatives of form arguments on reference element
+
+        element = o.element()
+        local_value = ReferenceValue(o)
+        domain = o.domain()
+
+        # split into a separate function to allow MixedElement recursion
+        transform = _reference_value_helper(domain, element)
+
+        if len(transform.shape()) == 0:
+            return transform*local_value
+        elif len(transform.shape()) == 2:
+            i, j = indices(2)
+            return as_vector(transform[i, j] * local_value[j], i)
+        else:
+            error("Unknown transform %s", str(transform))
+
+    form_coefficient = form_argument
 
 
 # FIXME: This implementation semeed to work last year but lead to performance problems. Look through and test again now.
@@ -381,9 +406,6 @@ class OLDChangeToReferenceGrad(MultiFunction):
         return o
 
     def grad(self, o):
-        # FIXME: Handle HDiv elements with contravariant piola mapping specially?
-        # FIXME: Handle HCurl elements with covariant piola mapping specially?
-
         # Peel off the Grads and count them, and get restriction if it's between the grad and the terminal
         ngrads = 0
         restricted = ''
@@ -400,32 +422,51 @@ class OLDChangeToReferenceGrad(MultiFunction):
         domain = f.domain()
         Jinv = JacobianInverse(domain)
 
-        # This is an assumption in the below code TODO: Handle grad(grad(.)) for non-affine domains.
-        ufl_assert(ngrads == 1 or Jinv.is_cellwise_constant(),
-                   "Multiple grads for non-affine domains not currently supported in this algorithm.")
+        if Jinv.is_cellwise_constant():
+            # Optimise slightly by turning Grad(Grad(...)) into J^(-T)J^(-T)RefGrad(RefGrad(...))
+            # rather than J^(-T)RefGrad(J^(-T)RefGrad(...))
 
-        # Create some new indices
-        ii = indices(f.rank()) # Indices to get to the scalar component of f
-        jj = indices(ngrads)   # Indices to sum over the local gradient axes with the inverse Jacobian
-        kk = indices(ngrads)   # Indices for the leftover inverse Jacobian axes
+            # Create some new indices
+            ii = indices(f.rank()) # Indices to get to the scalar component of f
+            jj = indices(ngrads)   # Indices to sum over the local gradient axes with the inverse Jacobian
+            kk = indices(ngrads)   # Indices for the leftover inverse Jacobian axes
 
-        # Preserve restricted property
-        if restricted:
-            Jinv = Jinv(restricted)
-            f = f(restricted)
+            # Preserve restricted property
+            if restricted:
+                Jinv = Jinv(restricted)
+                f = f(restricted)
 
-        # Apply the same number of ReferenceGrad without mappings
-        lgrad = f
-        for i in range(ngrads):
-            lgrad = ReferenceGrad(lgrad)
+            # Apply the same number of ReferenceGrad without mappings
+            lgrad = f
+            for i in range(ngrads):
+                lgrad = ReferenceGrad(lgrad)
 
-        # Apply mappings with scalar indexing operations (assumes ReferenceGrad(Jinv) is zero)
-        jinv_lgrad_f = lgrad[ii+jj]
-        for j, k in zip(jj, kk):
-            jinv_lgrad_f = Jinv[j, k]*jinv_lgrad_f
+            # Apply mappings with scalar indexing operations (assumes ReferenceGrad(Jinv) is zero)
+            jinv_lgrad_f = lgrad[ii+jj]
+            for j, k in zip(jj, kk):
+                jinv_lgrad_f = Jinv[j, k]*jinv_lgrad_f
 
-        # Wrap back in tensor shape, derivative axes at the end
-        jinv_lgrad_f = as_tensor(jinv_lgrad_f, ii+kk)
+            # Wrap back in tensor shape, derivative axes at the end
+            jinv_lgrad_f = as_tensor(jinv_lgrad_f, ii+kk)
+
+        else:
+            # J^(-T)RefGrad(J^(-T)RefGrad(...))
+
+            # Preserve restricted property
+            if restricted:
+                Jinv = Jinv(restricted)
+                f = f(restricted)
+
+            jinv_lgrad_f = f
+            for foo in range(ngrads):
+                ii = indices(jinv_lgrad_f.rank()) # Indices to get to the scalar component of f
+                j, k = indices(2)
+
+                lgrad = ReferenceGrad(jinv_lgrad_f)
+                jinv_lgrad_f = Jinv[j, k]*lgrad[ii+(j,)]
+
+                # Wrap back in tensor shape, derivative axes at the end
+                jinv_lgrad_f = as_tensor(jinv_lgrad_f, ii+(k,))
 
         return jinv_lgrad_f
 
@@ -451,13 +492,7 @@ class ChangeToReferenceGeometry(MultiFunction):
     @memoized_handler
     def jacobian(self, o):
         domain = o.domain()
-        x = domain.coordinates()
-        if x is None:
-            r = o
-        else:
-            x = self.coordinate_coefficient_mapping[x]
-            r = ReferenceGrad(x)
-        return r
+        return ReferenceGrad(self.spatial_coordinate(SpatialCoordinate(domain)))
 
     @memoized_handler
     def _future_jacobian(self, o):
@@ -510,7 +545,7 @@ class ChangeToReferenceGeometry(MultiFunction):
                 return o
             else:
                 x = self.coordinate_coefficient_mapping[x]
-                return x
+                return ReferenceValue(x)
 
     @memoized_handler
     def _future_spatial_coordinate(self, o):
@@ -712,85 +747,55 @@ class ChangeToReferenceGeometry(MultiFunction):
 
     @memoized_handler
     def facet_normal(self, o):
+        # Recall that the covariant Piola transform u -> J^(-T)*u preserves
+        # tangential components. The normal vector is characterised by
+        # having zero tangential component in reference and physical space.
+
+        # Special-case 1D (possibly immersed), for which we say that
+        # n is just in the direction of J.
+
         domain = o.domain()
-        gdim = domain.geometric_dimension()
         tdim = domain.topological_dimension()
 
-        if tdim == 3:
-            FJ = self.facet_jacobian(FacetJacobian(domain))
-
-            ufl_assert(gdim == 3, "Inconsistent dimensions.")
-            ufl_assert(FJ.ufl_shape == (3, 2), "Inconsistent dimensions.")
-
-            # Compute signed scaling factor
-            scale = self.jacobian_determinant(JacobianDeterminant(domain))
-
-            # Compute facet normal direction of 3D cell, product of two tangent vectors
-            fo = FacetOrientation(domain)
-            ndir = (fo * scale) * cross_expr(FJ[:, 0], FJ[:, 1])
-
-            # Normalise normal vector
-            i = Index()
-            n = ndir / sqrt(ndir[i]*ndir[i])
-            r = n
-
-        elif tdim == 2:
-            FJ = self.facet_jacobian(FacetJacobian(domain))
-
-            if gdim == 2:
-                # 2D facet normal in 2D space
-                ufl_assert(FJ.ufl_shape == (2, 1), "Inconsistent dimensions.")
-
-                # Compute facet tangent
-                tangent = as_vector((FJ[0, 0], FJ[1, 0], 0))
-
-                # Compute cell normal
-                cell_normal = as_vector((0, 0, 1))
-
-                # Compute signed scaling factor
-                scale = self.jacobian_determinant(JacobianDeterminant(domain))
-            else:
-                # 2D facet normal in 3D space
-                ufl_assert(FJ.ufl_shape == (gdim, 1), "Inconsistent dimensions.")
-
-                # Compute facet tangent
-                tangent = FJ[:, 0]
-
-                # Compute cell normal
-                cell_normal = self.cell_normal(CellNormal(domain))
-
-                # Compute signed scaling factor (input in the manifold case)
-                scale = CellOrientation(domain)
-
-            ufl_assert(len(tangent) == 3, "Inconsistent dimensions.")
-            ufl_assert(len(cell_normal) == 3, "Inconsistent dimensions.")
-
-            # Compute normal direction
-            cr = cross_expr(tangent, cell_normal)
-            if gdim == 2:
-                cr = as_vector((cr[0], cr[1]))
-            fo = FacetOrientation(domain)
-            ndir = (fo * scale) * cr
-
-            # Normalise normal vector
-            i = Index()
-            n = ndir / sqrt(ndir[i]*ndir[i])
-            r = n
-
-        elif tdim == 1:
+        if tdim == 1:
             J = self.jacobian(Jacobian(domain)) # dx/dX
-            fo = FacetOrientation(domain)
-            ndir = fo * J[:, 0]
+            ndir = J[:, 0]
+
+            gdim = domain.geometric_dimension()
             if gdim == 1:
                 nlen = abs(ndir[0])
             else:
                 i = Index()
                 nlen = sqrt(ndir[i]*ndir[i])
-            n = ndir / nlen
+
+            rn = ReferenceNormal(domain)  # +/- 1.0 here
+            n = rn[0] * ndir / nlen
+            r = n
+
+        else:
+            Jinv = self.jacobian_inverse(JacobianInverse(domain))
+            i, j = indices(2)
+
+            rn = ReferenceNormal(domain)
+            # compute signed, unnormalised normal; note transpose
+            ndir = as_vector(Jinv[j, i] * rn[j], i)
+
+            # normalise
+            i = Index()
+            n = ndir / sqrt(ndir[i]*ndir[i])
             r = n
 
         ufl_assert(r.ufl_shape == o.ufl_shape, "Inconsistent dimensions (in=%d, out=%d)." % (o.ufl_shape[0], r.ufl_shape[0]))
         return r
+
+
+def change_to_reference_value(e):
+    """Change coefficients and arguments in expression to apply Piola mappings
+
+    @param e:
+        An Expr or Form.
+    """
+    return apply_transformer(e, ChangeToReferenceValue())
 
 
 def change_to_reference_grad(e):
@@ -862,6 +867,8 @@ def change_integrand_geometry_representation(integrand, scale, integral_type):
 
     integrand = change_to_reference_grad(integrand)
 
+    integrand = change_to_reference_value(integrand)
+
     integrand = integrand * scale
 
     if integral_type == "quadrature":
@@ -871,3 +878,70 @@ def change_integrand_geometry_representation(integrand, scale, integral_type):
     integrand = change_to_reference_geometry(integrand, physical_coordinates_known)
 
     return integrand
+
+
+def _reference_value_helper(domain, element):
+    if isinstance(element, (FiniteElement, EnrichedElement, OuterProductElement, TensorElement, FacetElement, InteriorElement, BrokenElement, TraceElement)):
+        mapping = element.mapping()
+        if mapping == "identity":
+            return as_ufl(1.0)
+        elif mapping == "contravariant Piola":
+            ufl_assert(domain.topological_dimension() >= 2, "Cannot have Piola-mapped element in 1D")
+
+            # contravariant_hdiv_mapping = (1/det J) * J * PullbackOf(o)
+            J = Jacobian(domain)
+            detJ = JacobianDeterminant(domain)
+            # Only insert symbolic CellOrientation if tdim != gdim
+            if domain.topological_dimension() == domain.geometric_dimension():
+                piola_trans = (1/detJ) * J
+            else:
+                piola_trans = CellOrientation(domain) * (1/detJ) * J
+            return piola_trans
+        elif mapping == "covariant Piola":
+            ufl_assert(domain.topological_dimension() >= 2, "Cannot have Piola-mapped element in 1D")
+
+            # covariant_hcurl_mapping = JinvT * PullbackOf(o)
+            Jinv = JacobianInverse(domain)
+            i, j = indices(2)
+            JinvT = as_tensor(Jinv[i, j], (j, i))
+            piola_trans = JinvT
+            return piola_trans
+        else:
+            error("Mapping type %s not handled" % mapping)
+    elif isinstance(element, (VectorElement, OuterProductVectorElement)):
+        # Allow VectorElement of CG/DG (scalar-valued), throw error
+        # on anything else (can be supported at a later date, if needed)
+        mapping = element.mapping()
+        if mapping == "identity" and len(element.value_shape()) == 1:
+            return Identity(element.value_shape()[0])
+        else:
+            error("Don't know how to handle %s", str(element))
+    elif isinstance(element, MixedElement):
+        temp = [_reference_value_helper(domain, foo) for foo in element.sub_elements()]
+        # "current" position to insert to
+        hh = 0
+        # number of columns
+        width = element.reference_value_shape()[0]
+
+        new_tensor = []
+        for ii, subelt in enumerate(element.sub_elements()):
+            if len(subelt.value_shape()) == 0:
+                # scalar-valued
+                new_row = [0,]*width
+                new_row[hh] = temp[ii]
+                new_tensor.append(new_row)
+                hh += 1
+            elif len(subelt.value_shape()) == 1:
+                # vector-valued
+                local_width = subelt.reference_value_shape()[0]
+                for jj in range(subelt.value_shape()[0]):
+                    new_row = [0,]*width
+                    new_row[hh:hh+local_width] = temp[ii][jj,:]
+                    new_tensor.append(new_row)
+                hh += local_width
+            else:
+                error("can't handle %s in a MixedElement", str(subelt))
+
+        return as_tensor(new_tensor)
+    else:
+        error("Unknown element %s", str(element))
