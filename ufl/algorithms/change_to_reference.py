@@ -26,7 +26,7 @@ from ufl.core.multiindex import Index, indices
 from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
 
-from ufl.classes import (FormArgument, GeometricQuantity,
+from ufl.classes import (Expr, FormArgument, GeometricQuantity,
                          Terminal, ReferenceGrad, Grad, Restricted, ReferenceValue,
                          Jacobian, JacobianInverse, JacobianDeterminant,
                          FacetJacobian, FacetJacobianInverse, FacetJacobianDeterminant,
@@ -478,21 +478,47 @@ class OLDChangeToReferenceGrad(MultiFunction):
 
 
 class ChangeToReferenceGeometry(MultiFunction):
-    def __init__(self, physical_coordinates_known, coordinate_coefficient_mapping):
+    def __init__(self, physical_coordinates_known,
+                 coordinate_coefficient_mapping,
+                 preserve_types=None):
         MultiFunction.__init__(self)
+
+        # TODO: Remove this:
         self.coordinate_coefficient_mapping = coordinate_coefficient_mapping or {}
-        self.physical_coordinates_known = physical_coordinates_known
-        self._cache = {} # Needed by memoized_handler
+
+        # Avoid rewriting the types in this list:
+        preserve_types = list(preserve_types or [])
+
+        # Temporary code during transition to more flexible preserve_types:
+        if physical_coordinates_known:
+            preserve_types += [SpatialCoordinate, Jacobian]
+
+        # Store preserve_types as boolean lookup table
+        self._preserve_types = [False]*Expr._ufl_num_typecodes_
+        for cls in preserve_types:
+            self._preserve_types[cls._ufl_typecode_] = True
+
+        # Cache for memoized_handler
+        self._cache = {}
 
     expr = MultiFunction.reuse_if_untouched
 
-    def terminal(self, o):
-        return o
+    def terminal(self, t):
+        return t
 
     @memoized_handler
     def jacobian(self, o):
+        if self._preserve_types[o._ufl_typecode_]:
+            return o
+
         domain = o.domain()
-        return ReferenceGrad(self.spatial_coordinate(SpatialCoordinate(domain)))
+        if domain.coordinates() is None:
+            # Affine case in FEniCS: preserve J if there's no coordinate function
+            # (the handling of coordinate functions will soon be refactored)
+            return o
+
+        x = self.spatial_coordinate(SpatialCoordinate(domain))
+        return ReferenceGrad(x)
 
     @memoized_handler
     def _future_jacobian(self, o):
@@ -503,18 +529,27 @@ class ChangeToReferenceGeometry(MultiFunction):
 
     @memoized_handler
     def jacobian_inverse(self, o):
+        if self._preserve_types[o._ufl_typecode_]:
+            return o
+
         domain = o.domain()
         J = self.jacobian(Jacobian(domain))
         return inverse_expr(J)
 
     @memoized_handler
     def jacobian_determinant(self, o):
+        if self._preserve_types[o._ufl_typecode_]:
+            return o
+
         domain = o.domain()
         J = self.jacobian(Jacobian(domain))
         return determinant_expr(J)
 
     @memoized_handler
     def facet_jacobian(self, o):
+        if self._preserve_types[o._ufl_typecode_]:
+            return o
+
         domain = o.domain()
         J = self.jacobian(Jacobian(domain))
         RFJ = CellFacetJacobian(domain)
@@ -523,12 +558,18 @@ class ChangeToReferenceGeometry(MultiFunction):
 
     @memoized_handler
     def facet_jacobian_inverse(self, o):
+        if self._preserve_types[o._ufl_typecode_]:
+            return o
+
         domain = o.domain()
         FJ = self.facet_jacobian(FacetJacobian(domain))
         return inverse_expr(FJ)
 
     @memoized_handler
     def facet_jacobian_determinant(self, o):
+        if self._preserve_types[o._ufl_typecode_]:
+            return o
+
         domain = o.domain()
         FJ = self.facet_jacobian(FacetJacobian(domain))
         return determinant_expr(FJ)
@@ -536,50 +577,51 @@ class ChangeToReferenceGeometry(MultiFunction):
     @memoized_handler
     def spatial_coordinate(self, o):
         "Fall through to coordinate field of domain if it exists."
-        if self.physical_coordinates_known:
+        if self._preserve_types[o._ufl_typecode_]:
             return o
-        else:
-            domain = o.domain()
-            x = domain.coordinates()
-            if x is None:
-                return o
-            else:
-                x = self.coordinate_coefficient_mapping[x]
-                return ReferenceValue(x)
 
-    @memoized_handler
-    def _future_spatial_coordinate(self, o):
-        "Fall through to coordinate field of domain if it exists."
-        if self.physical_coordinates_known:
+        domain = o.domain()
+        x = domain.coordinates()
+        if x is None:
+            # Old affine domains
             return o
-        else:
-            # If we're not using Coefficient to represent the spatial coordinate,
-            # we can just as well just return o here too unless we add representation
-            # of basis functions and dofs to the ufl layer (which is nice to avoid).
-            return o
+
+        # TODO: If we're not using Coefficient to represent the spatial coordinate,
+        # we can just as well always return o here too unless we add representation
+        # of basis functions and dofs to the ufl layer (which is nice to avoid).
+
+        x = self.coordinate_coefficient_mapping[x]
+        if x.element().mapping() != "identity":
+            error("Piola mapped coordinates are not implemented.")
+        return ReferenceValue(x)
 
     @memoized_handler
     def cell_coordinate(self, o):
         "Compute from physical coordinates if they are known, using the appropriate mappings."
-        if self.physical_coordinates_known:
-            K = self.jacobian_inverse(JacobianInverse(domain))
-            x = self.spatial_coordinate(SpatialCoordinate(domain))
-            x0 = CellOrigin(domain)
-            i, j = indices(2)
-            X = as_tensor(K[i, j] * (x[j] - x0[j]), (i,))
-            return X
-        else:
+        if self._preserve_types[o._ufl_typecode_]:
             return o
+
+        domain = o.domain()
+        K = self.jacobian_inverse(JacobianInverse(domain))
+        x = self.spatial_coordinate(SpatialCoordinate(domain))
+        x0 = CellOrigin(domain)
+        i, j = indices(2)
+        X = as_tensor(K[i, j] * (x[j] - x0[j]), (i,))
+        return X
 
     @memoized_handler
     def facet_cell_coordinate(self, o):
-        if self.physical_coordinates_known:
-            error("Missing computation of facet reference coordinates from physical coordinates via mappings.")
-        else:
+        if self._preserve_types[o._ufl_typecode_]:
             return o
+
+        error("Missing computation of facet reference coordinates "
+              "from physical coordinates via mappings.")
 
     @memoized_handler
     def cell_volume(self, o):
+        if self._preserve_types[o._ufl_typecode_]:
+            return o
+
         domain = o.domain()
         if not domain.is_piecewise_linear_simplex_domain():
             error("Only know how to compute the cell volume of an affine cell.")
@@ -589,6 +631,9 @@ class ChangeToReferenceGeometry(MultiFunction):
 
     @memoized_handler
     def facet_area(self, o):
+        if self._preserve_types[o._ufl_typecode_]:
+            return o
+
         domain = o.domain()
         if not domain.is_piecewise_linear_simplex_domain():
             error("Only know how to compute the facet area of an affine cell.")
@@ -598,6 +643,9 @@ class ChangeToReferenceGeometry(MultiFunction):
 
     @memoized_handler
     def circumradius(self, o):
+        if self._preserve_types[o._ufl_typecode_]:
+            return o
+
         domain = o.domain()
         if not domain.is_piecewise_linear_simplex_domain():
             error("Only know how to compute the circumradius of an affine cell.")
@@ -643,6 +691,9 @@ class ChangeToReferenceGeometry(MultiFunction):
 
     @memoized_handler
     def min_cell_edge_length(self, o):
+        if self._preserve_types[o._ufl_typecode_]:
+            return o
+
         domain = o.domain()
         if not domain.is_piecewise_linear_simplex_domain():
             error("Only know how to compute the min_cell_edge_length of an affine cell.")
@@ -665,6 +716,9 @@ class ChangeToReferenceGeometry(MultiFunction):
 
     @memoized_handler
     def max_cell_edge_length(self, o):
+        if self._preserve_types[o._ufl_typecode_]:
+            return o
+
         domain = o.domain()
         if not domain.is_piecewise_linear_simplex_domain():
             error("Only know how to compute the max_cell_edge_length of an affine cell.")
@@ -687,6 +741,9 @@ class ChangeToReferenceGeometry(MultiFunction):
 
     @memoized_handler
     def min_facet_edge_length(self, o):
+        if self._preserve_types[o._ufl_typecode_]:
+            return o
+
         domain = o.domain()
         if not domain.is_piecewise_linear_simplex_domain():
             error("Only know how to compute the min_facet_edge_length of an affine cell.")
@@ -706,6 +763,9 @@ class ChangeToReferenceGeometry(MultiFunction):
 
     @memoized_handler
     def max_facet_edge_length(self, o):
+        if self._preserve_types[o._ufl_typecode_]:
+            return o
+
         domain = o.domain()
         if not domain.is_piecewise_linear_simplex_domain():
             error("Only know how to compute the max_facet_edge_length of an affine cell.")
@@ -725,6 +785,9 @@ class ChangeToReferenceGeometry(MultiFunction):
 
     @memoized_handler
     def cell_normal(self, o):
+        if self._preserve_types[o._ufl_typecode_]:
+            return o
+
         warning("Untested complicated code for cell normal. Please report if this works correctly or not.")
 
         domain = o.domain()
@@ -747,6 +810,9 @@ class ChangeToReferenceGeometry(MultiFunction):
 
     @memoized_handler
     def facet_normal(self, o):
+        if self._preserve_types[o._ufl_typecode_]:
+            return o
+
         # Recall that the covariant Piola transform u -> J^(-T)*u preserves
         # tangential components. The normal vector is characterised by
         # having zero tangential component in reference and physical space.
