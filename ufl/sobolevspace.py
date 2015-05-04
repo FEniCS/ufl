@@ -21,6 +21,7 @@ symbolic reasoning about the spaces in which finite elements lie."""
 # Written by David Ham 2014
 #
 # Modified by Martin Alnaes 2014
+# Modified by Lizao Li 2015
 
 
 class SobolevSpace(object):
@@ -95,3 +96,4 @@ HDiv = SobolevSpace("HDiv", [L2])
 HCurl = SobolevSpace("HCurl", [L2])
 H1 = SobolevSpace("H1", [HDiv, HCurl, L2])
 H2 = SobolevSpace("H2", [H1])
+HEin = SobolevSpace("HEin", [L2])
