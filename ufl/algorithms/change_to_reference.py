@@ -169,8 +169,6 @@ class ChangeToReferenceValue(ReuseTransformer):
         else:
             error("Unknown transform %s", str(transform))
 
-    form_coefficient = form_argument
-
 
 # FIXME: This implementation semeed to work last year but lead to performance problems. Look through and test again now.
 class NEWChangeToReferenceGrad(MultiFunction):
@@ -964,7 +962,8 @@ def _reference_value_helper(domain, element):
                 piola_trans = CellOrientation(domain) * (1/detJ) * J
             return piola_trans
         elif mapping == "covariant Piola":
-            ufl_assert(domain.topological_dimension() >= 2, "Cannot have Piola-mapped element in 1D")
+            ufl_assert(domain.topological_dimension() >= 2,
+                       "Cannot have Piola-mapped element in 1D")
 
             # covariant_hcurl_mapping = JinvT * PullbackOf(o)
             Jinv = JacobianInverse(domain)
@@ -974,6 +973,7 @@ def _reference_value_helper(domain, element):
             return piola_trans
         else:
             error("Mapping type %s not handled" % mapping)
+
     elif isinstance(element, (VectorElement, OuterProductVectorElement)):
         # Allow VectorElement of CG/DG (scalar-valued), throw error
         # on anything else (can be supported at a later date, if needed)
@@ -982,6 +982,7 @@ def _reference_value_helper(domain, element):
             return Identity(element.value_shape()[0])
         else:
             error("Don't know how to handle %s", str(element))
+
     elif isinstance(element, MixedElement):
         temp = [_reference_value_helper(domain, foo) for foo in element.sub_elements()]
         # "current" position to insert to
@@ -1009,5 +1010,6 @@ def _reference_value_helper(domain, element):
                 error("can't handle %s in a MixedElement", str(subelt))
 
         return as_tensor(new_tensor)
+
     else:
         error("Unknown element %s", str(element))
