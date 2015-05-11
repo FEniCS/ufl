@@ -114,7 +114,7 @@ class CompoundDerivative(Derivative):
         Derivative.__init__(self, operands)
 
 
-@ufl_type(num_ops=1, inherit_indices_from_operand=0)
+@ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True)
 class Grad(CompoundDerivative):
     __slots__ = ("_dim",)
 
@@ -159,7 +159,7 @@ class Grad(CompoundDerivative):
     def __repr__(self):
         return "Grad(%r)" % self.ufl_operands[0]
 
-@ufl_type(num_ops=1, inherit_indices_from_operand=0)
+@ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True)
 class ReferenceGrad(CompoundDerivative):
     __slots__ = ("_dim",)
 
@@ -205,7 +205,7 @@ class ReferenceGrad(CompoundDerivative):
     def __repr__(self):
         return "ReferenceGrad(%r)" % self.ufl_operands[0]
 
-@ufl_type(num_ops=1, inherit_indices_from_operand=0)
+@ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True)
 class Div(CompoundDerivative):
     __slots__ = ()
 
@@ -231,6 +231,33 @@ class Div(CompoundDerivative):
 
     def __repr__(self):
         return "Div(%r)" % self.ufl_operands[0]
+
+@ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True)
+class ReferenceDiv(CompoundDerivative):
+    __slots__ = ()
+
+    def __new__(cls, f):
+        ufl_assert(not f.ufl_free_indices,
+            "Free indices in the divergence argument is not allowed.")
+
+        # Return zero if expression is trivially constant
+        if f.is_cellwise_constant():
+            return Zero(f.ufl_shape[:-1]) # No free indices asserted above
+
+        return CompoundDerivative.__new__(cls)
+
+    def __init__(self, f):
+        CompoundDerivative.__init__(self, (f,))
+
+    @property
+    def ufl_shape(self):
+        return self.ufl_operands[0].ufl_shape[:-1]
+
+    def __str__(self):
+        return "reference_div(%s)" % self.ufl_operands[0]
+
+    def __repr__(self):
+        return "ReferenceDiv(%r)" % self.ufl_operands[0]
 
 @ufl_type(num_ops=1, inherit_indices_from_operand=0)
 class NablaGrad(CompoundDerivative):
@@ -296,7 +323,7 @@ class NablaDiv(CompoundDerivative):
         return "NablaDiv(%r)" % self.ufl_operands[0]
 
 _curl_shapes = { (): (2,), (2,): (), (3,): (3,) }
-@ufl_type(num_ops=1, inherit_indices_from_operand=0)
+@ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True)
 class Curl(CompoundDerivative):
     __slots__ = ("ufl_shape",)
 
@@ -323,3 +350,31 @@ class Curl(CompoundDerivative):
 
     def __repr__(self):
         return "Curl(%r)" % self.ufl_operands[0]
+
+@ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True)
+class ReferenceCurl(CompoundDerivative):
+    __slots__ = ("ufl_shape",)
+
+    def __new__(cls, f):
+        # Validate input
+        sh = f.ufl_shape
+        ufl_assert(f.ufl_shape in ((), (2,), (3,)), "Expecting a scalar, 2D vector or 3D vector.")
+        ufl_assert(not f.ufl_free_indices,
+            "Free indices in the curl argument is not allowed.")
+
+        # Return zero if expression is trivially constant
+        if f.is_cellwise_constant():
+            sh = { (): (2,), (2,): (), (3,): (3,) }[sh]
+            return Zero(sh) # No free indices asserted above
+        return CompoundDerivative.__new__(cls)
+
+    def __init__(self, f):
+        global _curl_shapes
+        CompoundDerivative.__init__(self, (f,))
+        self.ufl_shape = _curl_shapes[f.ufl_shape]
+
+    def __str__(self):
+        return "reference_curl(%s)" % self.ufl_operands[0]
+
+    def __repr__(self):
+        return "ReferenceCurl(%r)" % self.ufl_operands[0]

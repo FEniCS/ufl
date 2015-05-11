@@ -89,7 +89,7 @@ class ConstantValue(Terminal):
 #--- Class for representing zero tensors of different shapes ---
 
 # TODO: Add geometric dimension/domain and Argument dependencies to Zero?
-@ufl_type()
+@ufl_type(is_literal=True)
 class Zero(ConstantValue):
     "UFL literal type: Representation of a zero valued expression."
     __slots__ = ("ufl_shape", "ufl_free_indices", "ufl_index_dimensions")
@@ -260,7 +260,7 @@ class ScalarValue(ConstantValue):
         return type(self)(abs(self._value))
 
 
-@ufl_type(wraps_type=float)
+@ufl_type(wraps_type=float, is_literal=True)
 class FloatValue(ScalarValue):
     "UFL literal type: Representation of a constant scalar floating point value."
     __slots__ = ()
@@ -281,7 +281,7 @@ class FloatValue(ScalarValue):
         return "%s(%s)" % (type(self).__name__, format_float(self._value))
 
 
-@ufl_type(wraps_type=int)
+@ufl_type(wraps_type=int, is_literal=True)
 class IntValue(ScalarValue):
     "UFL literal type: Representation of a constant scalar integer value."
     __slots__ = ()

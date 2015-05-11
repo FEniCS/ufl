@@ -20,12 +20,13 @@ elements by calling the function register_element."""
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Marie E. Rognes <meg@simula.no>, 2010
+# Modified by Lizao Li <lzlarryli@gmail.com>, 2015
 
 from __future__ import print_function
 
 from ufl.log import warning as ufl_warning
 from ufl.assertions import ufl_assert
-from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl
+from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl, HEin
 from ufl.common import istr
 
 # List of valid elements
@@ -117,6 +118,7 @@ register_element("Undefined", "U",            0, L2, "identity", (0, None), any_
 register_element("Lobatto", "Lob",            0, L2, "identity", (1, None), ("interval",))
 register_element("Radau",   "Rad",            0, L2, "identity", (0, None), ("interval",))
 register_element("Discontinuous Lagrange Trace", "DGT", 0, L2, "identity", (0, None), any_cell)
+register_element("Regge", "Regge",            2, HEin, "pullback as metric", (0, None), simplices[1:])
 
 # Let Nedelec H(div) elements be aliases to BDMs/RTs
 register_alias("Nedelec 1st kind H(div)",
@@ -278,8 +280,13 @@ def canonical_element_description(family, cell, order, form_degree):
     # Override sobolev_space for piecewise constants (TODO: necessary?)
     if order == 0:
         sobolev_space = L2
-
-    if value_rank == 1:
+    if value_rank == 2:
+        # Tensor valued fundamental elements in HEin have this shape
+        ufl_assert(gdim is not None and tdim is not None,
+               "Cannot infer shape of element without topological and geometric dimensions.")
+        reference_value_shape = (tdim, tdim)
+        value_shape = (gdim, gdim)
+    elif value_rank == 1:
         # Vector valued fundamental elements in HDiv and HCurl have a shape
         ufl_assert(gdim != None and tdim != None,
                "Cannot infer shape of element without topological and geometric dimensions.")

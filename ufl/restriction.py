@@ -24,15 +24,15 @@ from ufl.core.ufl_type import ufl_type
 
 #--- Restriction operators ---
 
-@ufl_type(is_abstract=True, num_ops=1, inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+@ufl_type(is_abstract=True, num_ops=1,
+          inherit_shape_from_operand=0, inherit_indices_from_operand=0)
 class Restricted(Operator):
-    __slots__ = ("_side",)
+    __slots__ = ()
 
     # TODO: Add __new__ operator here, e.g. restricted(literal) == literal
 
-    def __init__(self, f, side):
+    def __init__(self, f):
         Operator.__init__(self, (f,))
-        self._side = side
 
     def side(self):
         return self._side
@@ -43,27 +43,22 @@ class Restricted(Operator):
     def __str__(self):
         return "%s('%s')" % (parstr(self.ufl_operands[0], self), self._side)
 
-@ufl_type()
+    def __repr__(self):
+        return "%s(%r)" % (self._ufl_class_.__name__, self.ufl_operands[0])
+
+@ufl_type(is_terminal_modifier=True)
 class PositiveRestricted(Restricted):
     __slots__ = ()
-    def __init__(self, f):
-        Restricted.__init__(self, f, "+")
+    _side = "+"
 
-    def __repr__(self):
-        return "PositiveRestricted(%r)" % self.ufl_operands[0]
-
-@ufl_type()
+@ufl_type(is_terminal_modifier=True)
 class NegativeRestricted(Restricted):
     __slots__ = ()
-    def __init__(self, f):
-        Restricted.__init__(self, f, "-")
-
-    def __repr__(self):
-        return "NegativeRestricted(%r)" % self.ufl_operands[0]
+    _side = "-"
 
 
 # TODO: Place in a better file?
-@ufl_type(is_index_free=True, num_ops=1)
+@ufl_type(is_index_free=True, num_ops=1, is_terminal_modifier=True)
 class CellAvg(Operator):
     __slots__ = ()
 
@@ -88,7 +83,7 @@ class CellAvg(Operator):
 
 
 # TODO: Place in a better file?
-@ufl_type(is_index_free=True, num_ops=1)
+@ufl_type(is_index_free=True, num_ops=1, is_terminal_modifier=True)
 class FacetAvg(Operator):
     __slots__ = ()
 
