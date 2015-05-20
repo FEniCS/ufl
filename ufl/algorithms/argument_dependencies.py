@@ -36,8 +36,8 @@ class ArgumentDependencyExtracter(Transformer):
         Transformer.__init__(self)
         self._empty = frozenset()
 
-    def expr(self, o, *opdeps):
-        "Default for nonterminals: nonlinear in all operands."
+    def operator(self, o, *opdeps):
+        "Default for Operators: nonlinear in all operands."
         for d in opdeps:
             if d:
                 raise NotMultiLinearException(repr(o))
@@ -64,12 +64,18 @@ class ArgumentDependencyExtracter(Transformer):
     def linear(self, o, a):
         "Nonterminals that are linear with a single argument."
         return a
+    nabla_grad = linear
+    nabla_div = linear
     grad = linear
     div = linear
     curl = linear
+    reference_grad = linear
+    reference_div = linear
+    reference_curl = linear
     transposed = linear
     trace = linear
     skew = linear
+    sym = linear
     positive_restricted = linear
     negative_restricted = linear
     cell_avg = linear
