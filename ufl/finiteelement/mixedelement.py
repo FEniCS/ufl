@@ -294,9 +294,6 @@ class VectorElement(MixedElement):
         OuterProductVectorElement when FiniteElement returns an
         OuterProductElement.
         """
-        if domain is not None:
-            domain = as_domain(domain)
-
         # Create mixed element from list of finite elements
         sub_element = FiniteElement(family, domain, degree,
                                     form_degree=form_degree,
@@ -307,8 +304,7 @@ class VectorElement(MixedElement):
         if isinstance(sub_element, OuterProductElement):
             return OuterProductVectorElement(sub_element, dim=dim)
 
-        return super(VectorElement, cls).__new__(cls, family, domain, degree,
-                                                 dim, form_degree, quad_scheme)
+        return super(VectorElement, cls).__new__(cls)
 
     def __init__(self, family, domain, degree, dim=None,
                  form_degree=None, quad_scheme=None):
@@ -408,6 +404,23 @@ class VectorElement(MixedElement):
 class TensorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal"
     __slots__ = ("_sub_element", "_shape", "_symmetry", "_sub_element_mapping",)
+
+    def __new__(cls, family, domain, degree, shape=None,
+                symmetry=None, quad_scheme=None):
+        """Intercepts construction, such that it returns an
+        OuterProductTensorElement when FiniteElement returns an
+        OuterProductElement.
+        """
+        # Compute sub element
+        sub_element = FiniteElement(family, domain, degree, quad_scheme)
+
+        from ufl.finiteelement.outerproductelement import OuterProductElement
+        from ufl.finiteelement.outerproductelement import OuterProductTensorElement
+        if isinstance(sub_element, OuterProductElement):
+            return OuterProductTensorElement(sub_element, shape=shape, symmetry=symmetry)
+
+        return super(TensorElement, cls).__new__(cls)
+
     def __init__(self, family, domain, degree, shape=None,
                  symmetry=None, quad_scheme=None):
         "Create tensor element (repeated mixed element with optional symmetries)"

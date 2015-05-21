@@ -111,7 +111,8 @@ from ufl.finiteelement import (
     FiniteElement,
     MixedElement, VectorElement, TensorElement,
     EnrichedElement, RestrictedElement,
-    TensorProductElement, OuterProductElement, OuterProductVectorElement)
+    TensorProductElement,
+    OuterProductElement, OuterProductVectorElement, OuterProductTensorElement)
 
 __all__ += [
     "FiniteElementBase",
