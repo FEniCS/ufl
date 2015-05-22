@@ -123,6 +123,9 @@ class ElementMappingApplier(MultiFunction):
 
     expr = MultiFunction.reuse_if_untouched
 
+    def terminal(self, t):
+        return t
+
     @memoized_handler
     def form_argument(self, o):
         # Represent 0-derivatives of form arguments on reference element
