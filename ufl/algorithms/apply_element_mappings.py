@@ -23,8 +23,8 @@ from ufl.log import error
 from ufl.assertions import ufl_assert
 
 from ufl.core.multiindex import indices
-from ufl.corealg.multifunction import MultiFunction
-from ufl.corealg.map_dag import map_integrand_dags
+from ufl.corealg.multifunction import MultiFunction, memoized_handler
+from ufl.corealg.map_dag import map_expr_dag
 
 from ufl.classes import (ReferenceValue,
                          Jacobian, JacobianInverse, JacobianDeterminant,
@@ -153,6 +153,6 @@ def apply_element_mappings(expr):
     form arguments in reference value.
 
     @param expr:
-        An Expr or Form.
+        An Expr.
     """
-    return map_integrand_dags(ElementMappingApplier(), expr)
+    return map_expr_dag(ElementMappingApplier(), expr)

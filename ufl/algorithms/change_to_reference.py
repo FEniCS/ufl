@@ -374,6 +374,7 @@ class OLDChangeToReferenceGrad(MultiFunction):
         # Peel off the Grads and count them, and get restriction if it's between the grad and the terminal
         ngrads = 0
         restricted = ''
+        rv = False
         while not o._ufl_is_terminal_:
             if isinstance(o, Grad):
                 o, = o.ufl_operands
@@ -381,7 +382,14 @@ class OLDChangeToReferenceGrad(MultiFunction):
             elif isinstance(o, Restricted):
                 restricted = o.side()
                 o, = o.ufl_operands
-        f = ReferenceValue(o)
+            elif isinstance(o, ReferenceValue):
+                rv = True
+                o, = o.ufl_operands
+            else:
+                error("Invalid type %s" % str(o))
+        f = o
+        if rv:
+            f = ReferenceValue(f)
 
         # Get domain and create Jacobian inverse object
         domain = o.domain()
