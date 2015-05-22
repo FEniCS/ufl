@@ -47,18 +47,9 @@ from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
 from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
 from ufl.finiteelement import FiniteElement, EnrichedElement, VectorElement, MixedElement, OuterProductElement, OuterProductVectorElement, TensorElement, FacetElement, InteriorElement, BrokenElement, TraceElement
 
+from ufl.corealg.multifunction import memoized_handler
 
-# TODO: Move to ufl.corealg.multifunction?
-def memoized_handler(handler, cachename="_cache"):
-    def _memoized_handler(self, o):
-        c = getattr(self, cachename)
-        r = c.get(o)
-        if r is None:
-            r = handler(self, o)
-            c[o] = r
-        return r
-    return _memoized_handler
-
+from ufl.algorithms.apply_element_mappings import apply_element_mappings
 
 
 """
@@ -145,29 +136,6 @@ tmp_area = sqrt(s * (s - la) * (s - lb) * (s - lc))
 circumradius_tetrahedron = tmp_area / (6*cellvolume)
 
 """
-
-
-class ChangeToReferenceValue(ReuseTransformer):
-    def __init__(self):
-        ReuseTransformer.__init__(self)
-
-    def form_argument(self, o):
-        # Represent 0-derivatives of form arguments on reference element
-
-        element = o.element()
-        local_value = ReferenceValue(o)
-        domain = o.domain()
-
-        # split into a separate function to allow MixedElement recursion
-        transform = _reference_value_helper(domain, element)
-
-        if len(transform.shape()) == 0:
-            return transform*local_value
-        elif len(transform.shape()) == 2:
-            i, j = indices(2)
-            return as_vector(transform[i, j] * local_value[j], i)
-        else:
-            error("Unknown transform %s", str(transform))
 
 
 # FIXME: This implementation semeed to work last year but lead to performance problems. Look through and test again now.
@@ -414,10 +382,10 @@ class OLDChangeToReferenceGrad(MultiFunction):
             elif isinstance(o, Restricted):
                 restricted = o.side()
                 o, = o.ufl_operands
-        f = o
+        f = ReferenceValue(o)
 
         # Get domain and create Jacobian inverse object
-        domain = f.domain()
+        domain = o.domain()
         Jinv = JacobianInverse(domain)
 
         if Jinv.is_cellwise_constant():
@@ -495,9 +463,6 @@ class ChangeToReferenceGeometry(MultiFunction):
         self._preserve_types = [False]*Expr._ufl_num_typecodes_
         for cls in preserve_types:
             self._preserve_types[cls._ufl_typecode_] = True
-
-        # Cache for memoized_handler
-        self._cache = {}
 
     expr = MultiFunction.reuse_if_untouched
 
@@ -853,15 +818,6 @@ class ChangeToReferenceGeometry(MultiFunction):
         return r
 
 
-def change_to_reference_value(e):
-    """Change coefficients and arguments in expression to apply Piola mappings
-
-    @param e:
-        An Expr or Form.
-    """
-    return apply_transformer(e, ChangeToReferenceValue())
-
-
 def change_to_reference_grad(e):
     """Change Grad objects in expression to products of JacobianInverse and ReferenceGrad.
 
@@ -929,9 +885,9 @@ def compute_integrand_scaling_factor(domain, integral_type):
 def change_integrand_geometry_representation(integrand, scale, integral_type):
     """Change integrand geometry to the right representations."""
 
-    integrand = change_to_reference_grad(integrand)
+    integrand = apply_element_mappings(integrand)
 
-    integrand = change_to_reference_value(integrand)
+    integrand = change_to_reference_grad(integrand)
 
     integrand = integrand * scale
 
@@ -942,74 +898,3 @@ def change_integrand_geometry_representation(integrand, scale, integral_type):
     integrand = change_to_reference_geometry(integrand, physical_coordinates_known)
 
     return integrand
-
-
-def _reference_value_helper(domain, element):
-    if isinstance(element, (FiniteElement, EnrichedElement, OuterProductElement, TensorElement, FacetElement, InteriorElement, BrokenElement, TraceElement)):
-        mapping = element.mapping()
-        if mapping == "identity":
-            return as_ufl(1.0)
-        elif mapping == "contravariant Piola":
-            ufl_assert(domain.topological_dimension() >= 2, "Cannot have Piola-mapped element in 1D")
-
-            # contravariant_hdiv_mapping = (1/det J) * J * PullbackOf(o)
-            J = Jacobian(domain)
-            detJ = JacobianDeterminant(domain)
-            # Only insert symbolic CellOrientation if tdim != gdim
-            if domain.topological_dimension() == domain.geometric_dimension():
-                piola_trans = (1/detJ) * J
-            else:
-                piola_trans = CellOrientation(domain) * (1/detJ) * J
-            return piola_trans
-        elif mapping == "covariant Piola":
-            ufl_assert(domain.topological_dimension() >= 2,
-                       "Cannot have Piola-mapped element in 1D")
-
-            # covariant_hcurl_mapping = JinvT * PullbackOf(o)
-            Jinv = JacobianInverse(domain)
-            i, j = indices(2)
-            JinvT = as_tensor(Jinv[i, j], (j, i))
-            piola_trans = JinvT
-            return piola_trans
-        else:
-            error("Mapping type %s not handled" % mapping)
-
-    elif isinstance(element, (VectorElement, OuterProductVectorElement)):
-        # Allow VectorElement of CG/DG (scalar-valued), throw error
-        # on anything else (can be supported at a later date, if needed)
-        mapping = element.mapping()
-        if mapping == "identity" and len(element.value_shape()) == 1:
-            return Identity(element.value_shape()[0])
-        else:
-            error("Don't know how to handle %s", str(element))
-
-    elif isinstance(element, MixedElement):
-        temp = [_reference_value_helper(domain, foo) for foo in element.sub_elements()]
-        # "current" position to insert to
-        hh = 0
-        # number of columns
-        width = element.reference_value_shape()[0]
-
-        new_tensor = []
-        for ii, subelt in enumerate(element.sub_elements()):
-            if len(subelt.value_shape()) == 0:
-                # scalar-valued
-                new_row = [0,]*width
-                new_row[hh] = temp[ii]
-                new_tensor.append(new_row)
-                hh += 1
-            elif len(subelt.value_shape()) == 1:
-                # vector-valued
-                local_width = subelt.reference_value_shape()[0]
-                for jj in range(subelt.value_shape()[0]):
-                    new_row = [0,]*width
-                    new_row[hh:hh+local_width] = temp[ii][jj,:]
-                    new_tensor.append(new_row)
-                hh += local_width
-            else:
-                error("can't handle %s in a MixedElement", str(subelt))
-
-        return as_tensor(new_tensor)
-
-    else:
-        error("Unknown element %s", str(element))
