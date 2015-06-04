@@ -401,6 +401,7 @@ class VectorElement(MixedElement):
         return "Vector<%d x %s>" % (len(self._sub_elements),
                                     self._sub_element.shortstr())
 
+
 class TensorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal"
     __slots__ = ("_sub_element", "_shape", "_symmetry", "_sub_element_mapping",)
@@ -424,54 +425,10 @@ class TensorElement(MixedElement):
     def __init__(self, family, domain, degree, shape=None,
                  symmetry=None, quad_scheme=None):
         "Create tensor element (repeated mixed element with optional symmetries)"
-        if domain is not None:
-            domain = as_domain(domain)
-
-        # Set default shape if not specified
-        if shape is None:
-            ufl_assert(domain is not None,
-                       "Cannot infer vector dimension without a domain.")
-            dim = domain.geometric_dimension()
-            shape = (dim, dim)
-
-        # Construct default symmetry for matrix elements
-        if symmetry == True:
-            ufl_assert(len(shape) == 2 and shape[0] == shape[1],
-                       "Cannot set automatic symmetry for non-square tensor.")
-            symmetry = dict( ((i, j), (j, i)) for i in range(shape[0])
-                             for j in range(shape[1]) if i > j )
-
-        # Validate indices in symmetry dict
-        if isinstance(symmetry, dict):
-            for i, j in iteritems(symmetry):
-                ufl_assert(len(i) == len(j),
-                           "Non-matching length of symmetry index tuples.")
-                for k in range(len(i)):
-                    ufl_assert(i[k] >= 0 and j[k] >= 0 and
-                               i[k] < shape[k] and j[k] < shape[k],
-                               "Symmetry dimensions out of bounds.")
-        else:
-            ufl_assert(symmetry is None, "Expecting symmetry to be None (unset), True, or dict.")
-            symmetry = EmptyDict
-
-        # Compute all index combinations for given shape
-        indices = compute_indices(shape)
-
-        # Compute sub elements and mapping from indices
-        # to sub elements, accounting for symmetry
         sub_element = FiniteElement(family, domain, degree, quad_scheme)
-        sub_elements = []
-        sub_element_mapping = {}
-        for index in indices:
-            if index in symmetry:
-                continue
-            sub_element_mapping[index] = len(sub_elements)
-            sub_elements += [sub_element]
 
-        # Update mapping for symmetry
-        for index in indices:
-            if index in symmetry:
-                sub_element_mapping[index] = sub_element_mapping[symmetry[index]]
+        shape, symmetry, sub_elements, sub_element_mapping = \
+          _tensor_sub_elements(sub_element, shape, symmetry)
 
         # Get common family name (checked in FiniteElement.__init__)
         family = sub_element.family()
@@ -569,3 +526,52 @@ class TensorElement(MixedElement):
             sym = ""
         return "Tensor<%s x %s%s>" % (self.value_shape(),
                                       self._sub_element.shortstr(), sym)
+
+
+def _tensor_sub_elements(sub_element, shape, symmetry):
+    # Set default shape if not specified
+    if shape is None:
+        ufl_assert(sub_element.domain() is not None,
+                   "Cannot infer vector dimension without a domain.")
+        dim = sub_element.domain().geometric_dimension()
+        shape = (dim, dim)
+
+    # Construct default symmetry for matrix elements
+    if symmetry == True:
+        ufl_assert(len(shape) == 2 and shape[0] == shape[1],
+                   "Cannot set automatic symmetry for non-square tensor.")
+        symmetry = dict( ((i, j), (j, i)) for i in range(shape[0])
+                         for j in range(shape[1]) if i > j )
+
+    # Validate indices in symmetry dict
+    if isinstance(symmetry, dict):
+        for i, j in iteritems(symmetry):
+            ufl_assert(len(i) == len(j),
+                       "Non-matching length of symmetry index tuples.")
+            for k in range(len(i)):
+                ufl_assert(i[k] >= 0 and j[k] >= 0 and
+                           i[k] < shape[k] and j[k] < shape[k],
+                           "Symmetry dimensions out of bounds.")
+    else:
+        ufl_assert(symmetry is None, "Expecting symmetry to be None (unset), True, or dict.")
+        symmetry = EmptyDict
+
+    # Compute all index combinations for given shape
+    indices = compute_indices(shape)
+
+    # Compute sub elements and mapping from indices
+    # to sub elements, accounting for symmetry
+    sub_elements = []
+    sub_element_mapping = {}
+    for index in indices:
+        if index in symmetry:
+            continue
+        sub_element_mapping[index] = len(sub_elements)
+        sub_elements += [sub_element]
+
+    # Update mapping for symmetry
+    for index in indices:
+        if index in symmetry:
+            sub_element_mapping[index] = sub_element_mapping[symmetry[index]]
+
+    return shape, symmetry, sub_elements, sub_element_mapping
