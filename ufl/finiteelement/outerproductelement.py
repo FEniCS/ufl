@@ -24,7 +24,7 @@
 from ufl.assertions import ufl_assert
 from ufl.cell import OuterProductCell
 from ufl.domain import as_domain
-from ufl.finiteelement.mixedelement import MixedElement
+from ufl.finiteelement.mixedelement import MixedElement, _tensor_sub_elements
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
@@ -129,9 +129,6 @@ class OuterProductVectorElement(MixedElement):
 
     def _from_product_parts(self, A, B, domain=None, dim=None,
                             form_degree=None, quad_scheme=None):
-        if domain is not None:
-            domain = as_domain(domain)
-
         sub_element = OuterProductElement(A, B, domain=domain,
                                           form_degree=form_degree,
                                           quad_scheme=quad_scheme)
@@ -157,8 +154,8 @@ class OuterProductVectorElement(MixedElement):
 
         self._sub_element = sub_element
         # Cache repr string
-        self._repr = "OuterProductVectorElement(%r, %r, dim=%d)" % \
-            (self._sub_element, self.domain(), len(self._sub_elements))
+        self._repr = "OuterProductVectorElement(%r, dim=%d)" % \
+            (self._sub_element, len(self._sub_elements))
 
     @property
     def _A(self):
@@ -204,3 +201,92 @@ class OuterProductVectorElement(MixedElement):
     def shortstr(self):
         "Format as string for pretty printing."
         return "OPVector"
+
+
+class OuterProductTensorElement(MixedElement):
+    """A special case of a mixed finite element where all
+    elements are equal OuterProductElements"""
+    __slots__ = ("_sub_element", "_shape", "_symmetry", "_sub_element_mapping")
+
+    def __init__(self, *args, **kwargs):
+        if isinstance(args[0], OuterProductElement):
+            self._from_sub_element(*args, **kwargs)
+        else:
+            self._from_product_parts(*args, **kwargs)
+
+    def _from_product_parts(self, A, B, domain=None,
+                            shape=None, symmetry=None, quad_scheme=None):
+        sub_element = OuterProductElement(A, B, domain=domain,
+                                          quad_scheme=quad_scheme)
+        self._from_sub_element(sub_element, shape=shape, symmetry=symmetry)
+
+    def _from_sub_element(self, sub_element, shape=None, symmetry=None):
+        assert isinstance(sub_element, OuterProductElement)
+
+        shape, symmetry, sub_elements, sub_element_mapping = \
+          _tensor_sub_elements(sub_element, shape, symmetry)
+
+        # Get common family name (checked in FiniteElement.__init__)
+        family = sub_element.family()
+
+        # Compute value shape
+        value_shape = shape + sub_element.value_shape()
+
+        # Initialize element data
+        MixedElement.__init__(self, sub_elements, value_shape=value_shape)
+        self._family = family
+        self._degree = sub_element.degree()
+        self._sub_element = sub_element
+        self._shape = shape
+        self._symmetry = symmetry
+        self._sub_element_mapping = sub_element_mapping
+
+        # Cache repr string
+        self._repr = "OuterProductTensorElement(%r, shape=%r, symmetry=%r)" % \
+            (self._sub_element, self._shape, self._symmetry)
+
+    @property
+    def _A(self):
+        return self._sub_element._A
+
+    @property
+    def _B(self):
+        return self._sub_element._B
+
+    def signature_data(self, renumbering):
+        data = ("OuterProductTensorElement", self._A, self._B,
+                self._shape, self._symmetry, self._quad_scheme,
+                ("no domain" if self._domain is None else
+                    self._domain.signature_data(renumbering)))
+        return data
+
+    def reconstruct(self, **kwargs):
+        """Construct a new OuterProductTensorElement with some properties
+        replaced with new values."""
+        domain = kwargs.get("domain", self.domain())
+        shape = kwargs.get("shape", self._shape)
+        symmetry = kwargs.get("symmetry", self._symmetry)
+        return OuterProductTensorElement(self._A, self._B, domain=domain,
+                                         shape=shape, symmetry=symmetry)
+
+    def reconstruction_signature(self):
+        """Format as string for evaluation as Python object.
+
+        For use with cross language frameworks, stored in generated code
+        and evaluated later in Python to reconstruct this object.
+
+        This differs from repr in that it does not include domain
+        label and data, which must be reconstructed or supplied by other means.
+        """
+        return "OuterProductTensorElement(%r, %r, %r, %r)" % (
+            self._sub_element, self._shape,
+            self._symmetry, self._quad_scheme)
+
+    def __str__(self):
+        "Format as string for pretty printing."
+        return "<Outer product tensor element: %r x %r>" % \
+               (self._sub_element, self._shape)
+
+    def shortstr(self):
+        "Format as string for pretty printing."
+        return "OPTensor"
