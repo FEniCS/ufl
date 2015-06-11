@@ -37,7 +37,7 @@ from ufl.differentiation import CoefficientDerivative
 from ufl.constantvalue import is_true_ufl_scalar, as_ufl
 from ufl.indexed import Indexed
 from ufl.core.multiindex import FixedIndex, MultiIndex
-from ufl.tensors import as_tensor
+from ufl.tensors import as_tensor, ListTensor
 from ufl.sorting import sorted_expr
 
 # An exception to the rule that ufl.* does not depend on ufl.algorithms.* ...
@@ -140,7 +140,7 @@ def set_list_item(li, i, v):
 
 def _handle_derivative_arguments(form, coefficient, argument):
     # Wrap single coefficient in tuple for uniform treatment below
-    if isinstance(coefficient, (list, tuple)):
+    if isinstance(coefficient, (list, tuple, ListTensor)):
         coefficients = tuple(coefficient)
     else:
         coefficients = (coefficient,)
