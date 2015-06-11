@@ -23,7 +23,10 @@ from ufl.core.terminal import FormArgument
 from ufl.log import error
 from ufl.assertions import ufl_assert
 
-@ufl_type(num_ops=1, is_index_free=True, is_terminal_modifier=True)
+@ufl_type(num_ops=1,
+          is_index_free=True,
+          is_terminal_modifier=True,
+          is_in_reference_frame=True)
 class ReferenceValue(Operator):
     "Representation of the reference cell value of a form argument."
     __slots__ = ()

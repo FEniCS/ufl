@@ -126,42 +126,59 @@ class Expr(object):
 
     # Note: Some of these are modified after the Expr class definition
     # because Expr is not defined yet at this point.
+    # Note: Boolean type traits that categorize types are mostly set to
+    # None for Expr but should be True or False for any non-abstract type.
 
+    # A reference to the UFL class itself.
     # This makes it possible to do type(f)._ufl_class_ and be sure you get
     # the actual UFL class instead of a subclass from another library.
     _ufl_class_ = None
 
-    # The handler name, used to look for type handlers in a multifunction.
+    # The handler name.
+    # This is the name of the handler function you implement for this type in a multifunction.
     _ufl_handler_name_ = "expr"
 
     # The integer typecode, a contiguous index different for each type.
+    # This is used for fast lookup into e.g. multifunction handler tables.
     _ufl_typecode_ = 0
 
-    # Number of operands, None if not applicable for abstract types.
+    # Number of operands, "varying" for some types, or None if not applicable for abstract types.
     _ufl_num_ops_ = None
 
-    # True if the type is abstract.
+    # Type trait: If the type is abstract.
+    # An abstract class cannot be instantiated and does not need all properties specified.
     _ufl_is_abstract_ = True
 
-    # True if the type is terminal, False otherwise, None only for Expr.
+    # Type trait: If the type is terminal.
     _ufl_is_terminal_ = None
 
-    # True if the type is a literal, False otherwise.
+    # Type trait: If the type is a literal.
     _ufl_is_literal_ = None
 
-    # True if the type is a terminal modifier.
-    _ufl_is_terminal_modifier_ = False
+    # Type trait: If the type is classified as a 'terminal modifier', for form compiler use.
+    _ufl_is_terminal_modifier_ = None
 
-    # List of all terminal modifier types
-    _ufl_terminal_modifiers_ = []
-
-    # True if the type is a shaping operation.
+    # Type trait: If the type is a shaping operator.
+    # Shaping operations include indexing, slicing, transposing,
+    # i.e. not introducing computation of a new value.
     _ufl_is_shaping_ = False
 
-    # True if the type is purely scalar, having no shape or indices.
-    _ufl_is_scalar_ = False
+    # Type trait: If the type is in reference frame.
+    _ufl_is_in_reference_frame_ = None
 
-    # True if the type never has free indices.
+    # Type trait: If the type is a restriction to a geometric entity.
+    _ufl_is_restriction_ = None
+
+    # Type trait: If the type is evaluation in a particular way.
+    _ufl_is_evaluation_ = None
+
+    # Type trait: If the type is a differential operator.
+    _ufl_is_differential_ = None
+
+    # Type trait: If the type is purely scalar, having no shape or indices.
+    _ufl_is_scalar_ = None
+
+    # Type trait: If the type never has free indices.
     _ufl_is_index_free_ = False
 
 
@@ -220,6 +237,9 @@ class Expr(object):
 
     # A global dict mapping language_operator_name to the type it produces
     _ufl_language_operators_ = {}
+
+    # List of all terminal modifier types
+    _ufl_terminal_modifiers_ = []
 
 
     # --- Mechanism for profiling object creation and deletion ---

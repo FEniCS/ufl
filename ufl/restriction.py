@@ -1,6 +1,6 @@
 """Restriction operations."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -24,8 +24,11 @@ from ufl.core.ufl_type import ufl_type
 
 #--- Restriction operators ---
 
-@ufl_type(is_abstract=True, num_ops=1,
-          inherit_shape_from_operand=0, inherit_indices_from_operand=0)
+@ufl_type(is_abstract=True,
+          num_ops=1,
+          inherit_shape_from_operand=0,
+          inherit_indices_from_operand=0,
+          is_restriction=True)
 class Restricted(Operator):
     __slots__ = ()
 
@@ -58,7 +61,10 @@ class NegativeRestricted(Restricted):
 
 
 # TODO: Place in a better file?
-@ufl_type(is_index_free=True, num_ops=1, is_terminal_modifier=True)
+@ufl_type(is_index_free=True,
+          num_ops=1,
+          is_terminal_modifier=True,
+          is_evaluation=True)
 class CellAvg(Operator):
     __slots__ = ()
 
@@ -83,7 +89,10 @@ class CellAvg(Operator):
 
 
 # TODO: Place in a better file?
-@ufl_type(is_index_free=True, num_ops=1, is_terminal_modifier=True)
+@ufl_type(is_index_free=True,
+          num_ops=1,
+          is_terminal_modifier=True,
+          is_evaluation=True)
 class FacetAvg(Operator):
     __slots__ = ()
 
