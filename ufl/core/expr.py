@@ -116,11 +116,10 @@ class Expr(object):
     def __del__(self):
         pass
 
-    def __hash__(self):
+    def x__hash__(self):
         if self._hash is None:
             self._hash = self._ufl_compute_hash_()
         return self._hash
-
 
     # --- Type traits are added to subclasses by the ufl_type class decorator ---
 
