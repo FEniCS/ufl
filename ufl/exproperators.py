@@ -58,10 +58,6 @@ def _gt(left, right):
     "UFL operator: A boolean expresion (left > right) for use with conditional."
     return GT(left, right)
 
-# Attach a fast non-recursive hash computation algorithm
-from ufl.corealg.compute_expr_hash import compute_expr_hash
-Expr.__hash__ = compute_expr_hash
-
 # '==' needs to implement comparison of expression representations for use in
 # hashmaps (dict and set), but the others can be overloaded in the language.
 # It is possible that we can overload eq as well, but we'll need to fix some
