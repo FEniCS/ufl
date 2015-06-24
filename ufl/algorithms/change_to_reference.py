@@ -386,7 +386,7 @@ class OLDChangeToReferenceGrad(MultiFunction):
                 rv = True
                 o, = o.ufl_operands
             else:
-                error("Invalid type %s" % str(o))
+                error("Invalid type %s" % o._ufl_class_.__name__)
         f = o
         if rv:
             f = ReferenceValue(f)
