@@ -36,7 +36,8 @@ from ufl.core.ufl_type import ufl_type
 
 #--- Basic differentiation objects ---
 
-@ufl_type(is_abstract=True)
+@ufl_type(is_abstract=True,
+          is_differential=True)
 class Derivative(Operator):
     "Base class for all derivative types."
     __slots__ = ()
@@ -159,7 +160,10 @@ class Grad(CompoundDerivative):
     def __repr__(self):
         return "Grad(%r)" % self.ufl_operands[0]
 
-@ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True)
+@ufl_type(num_ops=1,
+          inherit_indices_from_operand=0,
+          is_terminal_modifier=True,
+          is_in_reference_frame=True)
 class ReferenceGrad(CompoundDerivative):
     __slots__ = ("_dim",)
 
@@ -232,7 +236,10 @@ class Div(CompoundDerivative):
     def __repr__(self):
         return "Div(%r)" % self.ufl_operands[0]
 
-@ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True)
+@ufl_type(num_ops=1,
+          inherit_indices_from_operand=0,
+          is_terminal_modifier=True,
+          is_in_reference_frame=True)
 class ReferenceDiv(CompoundDerivative):
     __slots__ = ()
 
@@ -351,7 +358,10 @@ class Curl(CompoundDerivative):
     def __repr__(self):
         return "Curl(%r)" % self.ufl_operands[0]
 
-@ufl_type(num_ops=1, inherit_indices_from_operand=0, is_terminal_modifier=True)
+@ufl_type(num_ops=1,
+          inherit_indices_from_operand=0,
+          is_terminal_modifier=True,
+          is_in_reference_frame=True)
 class ReferenceCurl(CompoundDerivative):
     __slots__ = ("ufl_shape",)
 
