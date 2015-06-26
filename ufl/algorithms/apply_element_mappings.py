@@ -24,7 +24,7 @@ from ufl.assertions import ufl_assert
 
 from ufl.core.multiindex import indices
 from ufl.corealg.multifunction import MultiFunction, memoized_handler
-from ufl.corealg.map_dag import map_expr_dag
+from ufl.algorithms.map_integrands import map_integrand_dags
 
 from ufl.classes import (ReferenceValue,
                          Jacobian, JacobianInverse, JacobianDeterminant,
@@ -37,85 +37,70 @@ from ufl.finiteelement import (FiniteElement, EnrichedElement, VectorElement, Mi
                                OuterProductElement, OuterProductVectorElement, TensorElement,
                                FacetElement, InteriorElement, BrokenElement, TraceElement)
 
-def _reference_value_helper(domain, element):
-    element_types = (FiniteElement, EnrichedElement,
-                     OuterProductElement, TensorElement,
-                     FacetElement, InteriorElement,
-                     BrokenElement, TraceElement)
-    if isinstance(element, element_types):
-        mapping = element.mapping()
+def contravariant_hdiv_mapping(domain):
+    "Return the contravariant H(div) mapping matrix (1/det J) * J"
+    tdim = domain.topological_dimension()
+    gdim = domain.geometric_dimension()
+    ufl_assert(tdim > 1, "Cannot have Piola-mapped element in 1D")
+    J = Jacobian(domain)
+    detJ = JacobianDeterminant(domain)
+    piola_trans = (1.0/detJ) * J
+    # Only insert symbolic CellOrientation if tdim != gdim
+    if tdim != gdim:
+        piola_trans = CellOrientation(domain) * piola_trans
+    return piola_trans
 
-        if mapping == "identity":
-            return as_ufl(1.0)
+def covariant_hcurl_mapping(domain):
+    "Return the covariant H(curl) mapping matrix JinvT."
+    tdim = domain.topological_dimension()
+    gdim = domain.geometric_dimension()
+    ufl_assert(tdim > 1, "Cannot have Piola-mapped element in 1D")
+    Jinv = JacobianInverse(domain)
+    # Using indexing for the transpose
+    i, j = indices(2)
+    JinvT = as_tensor(Jinv[i, j], (j, i))
+    piola_trans = JinvT
+    return piola_trans
 
-        elif mapping == "contravariant Piola":
-            ufl_assert(domain.topological_dimension() >= 2,
-                       "Cannot have Piola-mapped element in 1D")
+def combine_transforms(element, subtransforms):
+    # "current" position to insert to
+    pos = 0
+    # number of columns
+    width = element.reference_value_shape()[0]
 
-            # contravariant_hdiv_mapping = (1/det J) * J * PullbackOf(o)
-            J = Jacobian(domain)
-            detJ = JacobianDeterminant(domain)
-            # Only insert symbolic CellOrientation if tdim != gdim
-            if domain.topological_dimension() == domain.geometric_dimension():
-                piola_trans = (1/detJ) * J
-            else:
-                piola_trans = CellOrientation(domain) * (1/detJ) * J
-            return piola_trans
-
-        elif mapping == "covariant Piola":
-            ufl_assert(domain.topological_dimension() >= 2,
-                       "Cannot have Piola-mapped element in 1D")
-
-            # covariant_hcurl_mapping = JinvT * PullbackOf(o)
-            Jinv = JacobianInverse(domain)
-            i, j = indices(2)
-            JinvT = as_tensor(Jinv[i, j], (j, i))
-            piola_trans = JinvT
-            return piola_trans
-
-        else:
-            error("Mapping type %s not handled" % mapping)
-
-    elif isinstance(element, (VectorElement, OuterProductVectorElement)):
-        # Allow VectorElement of CG/DG (scalar-valued), throw error
-        # on anything else (can be supported at a later date, if needed)
-        mapping = element.mapping()
-        if mapping == "identity" and len(element.value_shape()) == 1:
-            return Identity(element.value_shape()[0])
-        else:
-            error("Don't know how to handle %s", str(element))
-
-    elif isinstance(element, MixedElement):
-        temp = [_reference_value_helper(domain, foo) for foo in element.sub_elements()]
-        # "current" position to insert to
-        hh = 0
-        # number of columns
-        width = element.reference_value_shape()[0]
-
-        new_tensor = []
-        for ii, subelt in enumerate(element.sub_elements()):
-            if len(subelt.value_shape()) == 0:
-                # scalar-valued
+    new_tensor = []
+    for ii, subelt in enumerate(element.sub_elements()):
+        if len(subelt.value_shape()) == 0:
+            # scalar-valued
+            new_row = [0,]*width
+            new_row[pos] = subtransforms[ii]
+            new_tensor.append(new_row)
+            pos += 1
+        elif len(subelt.value_shape()) == 1:
+            # vector-valued
+            local_width = subelt.reference_value_shape()[0]
+            for jj in range(subelt.value_shape()[0]):
                 new_row = [0,]*width
-                new_row[hh] = temp[ii]
+                new_row[pos:pos+local_width] = subtransforms[ii][jj,:]
                 new_tensor.append(new_row)
-                hh += 1
-            elif len(subelt.value_shape()) == 1:
-                # vector-valued
-                local_width = subelt.reference_value_shape()[0]
-                for jj in range(subelt.value_shape()[0]):
-                    new_row = [0,]*width
-                    new_row[hh:hh+local_width] = temp[ii][jj,:]
-                    new_tensor.append(new_row)
-                hh += local_width
-            else:
-                error("can't handle %s in a MixedElement", str(subelt))
+            pos += local_width
+        else:
+            error("can't handle %s in a MixedElement", str(subelt))
+    return as_tensor(new_tensor)
 
-        return as_tensor(new_tensor)
-
+def build_pullback_transform(domain, element):
+    mapping = element.mapping()
+    if mapping == "identity":
+        return as_ufl(1.0)
+    elif mapping == "contravariant Piola":
+        return contravariant_hdiv_mapping(domain)
+    elif mapping == "covariant Piola":
+        return covariant_hcurl_mapping(domain)
+    elif isinstance(element, MixedElement):
+        subtransforms = [build_pullback_transform(domain, elm) for elm in element.sub_elements()]
+        return combine_transforms(subtransforms)
     else:
-        error("Unknown element %s", str(element))
-
+        error("Mapping type %s not handled for element type %s" % (mapping, element.__class__.__name__))
 
 class ElementMappingApplier(MultiFunction):
     def __init__(self):
@@ -135,9 +120,9 @@ class ElementMappingApplier(MultiFunction):
         domain = o.domain()
 
         # Split into a separate function to allow MixedElement recursion
-        transform = _reference_value_helper(domain, element)
+        transform = build_pullback_transform(domain, element)
 
-        r = len(transform.shape())
+        r = len(transform.ufl_shape)
         if r == 0:
             return transform*local_value
         elif r == 2:
@@ -155,4 +140,4 @@ def apply_element_mappings(expr):
     @param expr:
         An Expr.
     """
-    return map_expr_dag(ElementMappingApplier(), expr)
+    return map_integrand_dags(ElementMappingApplier(), expr)
