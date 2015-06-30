@@ -165,7 +165,10 @@ class MixedElement(FiniteElementBase):
         return sm or EmptyDict
 
     def mapping(self):
-        error("The mapping of a mixed element is not defined. Inspect subelements instead.")
+        if all(e.mapping() == "identity" for e in self._sub_elements):
+            return "identity"
+        else:
+            return "undefined"
 
     def num_sub_elements(self):
         "Return number of sub elements."
@@ -346,9 +349,6 @@ class VectorElement(MixedElement):
             (self._family, self.domain(), self._degree,
              len(self._sub_elements), self._quad_scheme)
 
-    def mapping(self):
-        return self._sub_element.mapping()
-
     def signature_data(self, renumbering):
         data = ("VectorElement", self._family, self._degree, len(self._sub_elements), self._quad_scheme, self._form_degree,
                 ("no domain" if self._domain is None else self._domain.signature_data(renumbering)))
@@ -461,9 +461,6 @@ class TensorElement(MixedElement):
         self._repr = "TensorElement(%r, %r, %r, shape=%r, symmetry=%r, quad_scheme=%r)" % \
             (self._family, self.domain(), self._degree, self._shape,
              self._symmetry, self._quad_scheme)
-
-    def mapping(self):
-        return self._sub_element.mapping()
 
     def signature_data(self, renumbering):
         data = ("TensorElement", self._family, self._degree, self._shape, repr(self._symmetry), self._quad_scheme,
