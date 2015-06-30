@@ -42,13 +42,13 @@ class VariableRenumberingTransformer(ReuseTransformer):
         return v
 
 class IndexRenumberingTransformer(VariableRenumberingTransformer):
-
+    "This is a poorly designed algorithm. It is used in some tests, please do not use for anything else."
     def __init__(self):
         VariableRenumberingTransformer.__init__(self)
         self.index_map = {}
 
     def zero(self, o):
-        new_indices = tuple(self.index(Index(count=i) for i in o.ufl_free_indices))
+        new_indices = tuple(self.index(Index(count=i)) for i in o.ufl_free_indices)
         return o.reconstruct(new_indices)
 
     def index(self, o):
@@ -63,7 +63,8 @@ class IndexRenumberingTransformer(VariableRenumberingTransformer):
             return i
 
     def multi_index(self, o):
-        return MultiIndex(tuple(self.index(i) for i in o.indices()))
+        new_indices = tuple(self.index(i) for i in o.indices())
+        return MultiIndex(new_indices)
 
 def renumber_indices(expr):
     if isinstance(expr, Expr):

@@ -1,3 +1,4 @@
+#!/usr/bin/env py.test
 
 from pytest import raises
 from ufl import *

@@ -76,6 +76,7 @@ def combine_transforms(element, subtransforms):
             new_row[pos] = subtransforms[ii]
             new_tensor.append(new_row)
             pos += 1
+
         elif len(subelt.value_shape()) == 1:
             # vector-valued
             local_width = subelt.reference_value_shape()[0]
@@ -84,9 +85,12 @@ def combine_transforms(element, subtransforms):
                 new_row[pos:pos+local_width] = subtransforms[ii][jj,:]
                 new_tensor.append(new_row)
             pos += local_width
+
         else:
-            error("can't handle %s in a MixedElement", str(subelt))
+            # FIXME: Tensor-valued elements
+            error("Can't handle %s in a MixedElement", str(subelt))
     return as_tensor(new_tensor)
+
 
 def build_pullback_transform(domain, element):
     mapping = element.mapping()
@@ -97,12 +101,47 @@ def build_pullback_transform(domain, element):
     elif mapping == "covariant Piola":
         return covariant_hcurl_mapping(domain)
     elif isinstance(element, MixedElement):
-        subtransforms = [build_pullback_transform(domain, elm) for elm in element.sub_elements()]
-        return combine_transforms(subtransforms)
+        return [build_pullback_transform(domain, elm) for elm in element.sub_elements()]
     else:
         error("Mapping type %s not handled for element type %s" % (mapping, element.__class__.__name__))
 
-class ElementMappingApplier(MultiFunction):
+def _apply_mixed_pullback_transform_by_applying_big_matrix(local_value, element, domain):
+    subtransforms = build_pullback_transform(domain, element)
+    transform = combine_transforms(element, subtransforms)
+    i, j = indices(2)
+    mapped_value = as_vector(transform[i, j] * local_value[j], i)
+    return mapped_value
+
+def _apply_mixed_pullback_transform_by_concatenation(local_value, element, domain):
+    subtransforms = build_pullback_transform(domain, element)
+
+    # FIXME: Rewrite this to work for arbitrary mixed elements
+    transform = combine_transforms(element, subtransforms)
+    i, j = indices(2)
+    mapped_value = as_vector(transform[i, j] * local_value[j], i)
+
+    return mapped_value
+
+_apply_mixed_pullback_transform = _apply_mixed_pullback_transform_by_concatenation
+
+def _apply_pullback_transform(local_value, element, domain):
+    mapping = element.mapping()
+    if mapping == "identity":
+        # Identity mappings (Lagrange elements etc.)
+        return local_value
+    elif mapping == "undefined":
+        # Mixed mappings
+        return _apply_mixed_pullback_transform(local_value, element, domain)
+    else:
+        # Piola mappings etc.
+        transform = build_pullback_transform(domain, element)
+        assert len(transform.ufl_shape) == 2
+        assert len(local_value.ufl_shape) == 1
+        i, j = indices(2)
+        return as_vector(transform[i, j] * local_value[j], i)
+
+
+class FunctionPullbackApplier(MultiFunction):
     def __init__(self):
         MultiFunction.__init__(self)
 
@@ -114,25 +153,12 @@ class ElementMappingApplier(MultiFunction):
     @memoized_handler
     def form_argument(self, o):
         # Represent 0-derivatives of form arguments on reference element
-
-        element = o.element()
         local_value = ReferenceValue(o)
+        element = o.element()
         domain = o.domain()
+        return _apply_pullback_transform(local_value, element, domain)
 
-        # Split into a separate function to allow MixedElement recursion
-        transform = build_pullback_transform(domain, element)
-
-        r = len(transform.ufl_shape)
-        if r == 0:
-            return transform*local_value
-        elif r == 2:
-            i, j = indices(2)
-            return as_vector(transform[i, j] * local_value[j], i)
-        else:
-            error("Unknown transform %s", str(transform))
-
-
-def apply_element_mappings(expr):
+def apply_function_pullbacks(expr):
     """Change representation of coefficients and arguments in expression
     by applying Piola mappings where applicable and representing all
     form arguments in reference value.
@@ -140,4 +166,4 @@ def apply_element_mappings(expr):
     @param expr:
         An Expr.
     """
-    return map_integrand_dags(ElementMappingApplier(), expr)
+    return map_integrand_dags(FunctionPullbackApplier(), expr)

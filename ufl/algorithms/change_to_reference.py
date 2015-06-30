@@ -47,7 +47,7 @@ from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
 from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
 from ufl.finiteelement import FiniteElement, EnrichedElement, VectorElement, MixedElement, OuterProductElement, OuterProductVectorElement, TensorElement, FacetElement, InteriorElement, BrokenElement, TraceElement
 
-from ufl.algorithms.apply_element_mappings import apply_element_mappings
+from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 
 
@@ -506,7 +506,7 @@ def compute_integrand_scaling_factor(domain, integral_type):
 def change_integrand_geometry_representation(integrand, scale, integral_type):
     """Change integrand geometry to the right representations."""
 
-    integrand = apply_element_mappings(integrand)
+    integrand = apply_function_pullbacks(integrand)
 
     integrand = change_to_reference_grad(integrand)
 

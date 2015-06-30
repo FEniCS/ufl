@@ -171,7 +171,7 @@ def compute_form_data(form, apply_propagate_restrictions=True):
     # TODO: Move this to the constructor instead
     self = FormData()
 
-    # Store untouched form for reference.
+    # --- Store untouched form for reference.
     # The user of FormData may get original arguments,
     # original coefficients, and form signature from this object.
     # But be aware that the set of original coefficients are not
@@ -179,37 +179,48 @@ def compute_form_data(form, apply_propagate_restrictions=True):
     # See 'reduced_coefficients' below.
     self.original_form = form
 
-    # Get rank of form from argument list (assuming not a mixed arity form)
-    self.rank = len(form.arguments())
-
-    # Extract common geometric dimension (topological is not common!)
-    gdims = set(domain.geometric_dimension() for domain in form.domains())
-    ufl_assert(len(gdims) == 1,
-               "Expecting all integrals in a form to share geometric dimension, got %s." % str(tuple(sorted(gdims))))
-    self.geometric_dimension, = gdims
-
-    # Build mapping from old incomplete element objects to new well defined elements.
-    # This is to support the Expression construct in dolfin which subclasses Coefficient
-    # but doesn't provide an element, and the Constant construct that doesn't provide
-    # the domain that a Coefficient is supposed to have. A future design iteration in
-    # UFL/UFC/FFC/DOLFIN may allow removal of this mapping with the introduction of UFL
-    # types for .
-    self.element_replace_map = _compute_element_mapping(form)
-
 
     # --- Pass form integrands through some symbolic manipulation
 
-    # Process form the way that is currently expected by FFC
-    preprocessed_form = expand_derivatives(form)
+    if do_apply_function_pullbacks: # TODO: Make argument
+        # Decision: Do not allow grad(Expression) without a Domain.
+        #           Current dolfin works if Expression has a cell.
+        # TODO: Rename s/apply_function_pullbacks/apply_function_pullbacks/g
+        form = apply_function_pullbacks(form)
 
-    if apply_propagate_restrictions:
-        preprocessed_form = propagate_restrictions(preprocessed_form)
+    # Process form the way that is currently expected by FFC
+    form = expand_derivatives(form)
+    #form = apply_derivatives(form)
+
+    if do_apply_geometry_lowering:
+        # FIXME: Annotate with "reference" in the Integral after this
+        form = apply_integral_scaling(form)
+        # Compute and apply integration scaling factor
+        #scale = compute_integrand_scaling_factor(integral.domain(), integral.integral_type())
+        #expr = expr * scale
+
+    if do_apply_geometry_lowering:
+        # TODO: Make which types to lower configurable for form compiler flexibility
+        form = apply_geometry_lowering(form)
+        # Change geometric representation to lower level quantities
+        #if integral.integral_type() in ("custom", "vertex"):
+        #    physical_coordinates_known = True
+        #else:
+        #    physical_coordinates_known = False
+        #expr = apply_geometry_lowering(expr, physical_coordinates_known,
+        #                               form_data.function_replace_map)
+
+    do_apply_restrictions = apply_propagate_restrictions # TODO: Make argument
+    if do_apply_restrictions:
+        form = propagate_restrictions(form)
+
+    processed_integrals = form.integrals()
 
 
     # --- Group and collect data about integrals
-    # TODO: Refactor this # TODO: Is form.domains() right here?
+    # TODO: Refactor this # TODO: Is self.original_form.domains() right here?
     self.integral_data = \
-        build_integral_data(preprocessed_form.integrals(), form.domains())
+        build_integral_data(processed_integrals, self.original_form.domains())
 
 
     # --- Create replacements for arguments and coefficients
@@ -234,13 +245,31 @@ def compute_form_data(form, apply_propagate_restrictions=True):
         reduced_coefficients_set.update(itg_data.integral_coefficients)
     self.reduced_coefficients = sorted(reduced_coefficients_set, key=lambda c: c.count())
     self.num_coefficients = len(self.reduced_coefficients)
-    self.original_coefficient_positions = [i for i, c in enumerate(form.coefficients())
+    self.original_coefficient_positions = [i for i, c in enumerate(self.original_form.coefficients())
                                            if c in self.reduced_coefficients]
 
     # Store back into integral data which form coefficients are used by each integral
     for itg_data in self.integral_data:
         itg_data.enabled_coefficients = [bool(coeff in itg_data.integral_coefficients)
                                          for coeff in self.reduced_coefficients]
+
+
+    # --- Collect some trivial data
+
+    # Get rank of form from argument list (assuming not a mixed arity form)
+    self.rank = len(self.original_form.arguments())
+
+    # Extract common geometric dimension (topological is not common!)
+    self.geometric_dimension = self.original_form.geometric_dimension()
+
+
+    # --- Build mapping from old incomplete element objects to new well defined elements.
+    # This is to support the Expression construct in dolfin which subclasses Coefficient
+    # but doesn't provide an element, and the Constant construct that doesn't provide
+    # the domain that a Coefficient is supposed to have. A future design iteration in
+    # UFL/UFC/FFC/DOLFIN may allow removal of this mapping with the introduction of UFL
+    # types for .
+    self.element_replace_map = _compute_element_mapping(self.original_form)
 
     """
     # Build mappings from coefficients, domains and geometric quantities
@@ -286,8 +315,10 @@ def compute_form_data(form, apply_propagate_restrictions=True):
         _build_coefficient_replace_map(self.reduced_coefficients, self.element_replace_map)
     self.function_replace_map = function_replace_map
 
+
     # --- Store various lists of elements and sub elements (adds members to self)
-    _compute_form_data_elements(self, form.arguments(), renumbered_coefficients)
+    _compute_form_data_elements(self, self.original_form.arguments(), renumbered_coefficients)
+
 
     # --- Store number of domains for integral types
     # TODO: Group this by domain first. For now keep a backwards compatible data structure.
@@ -301,9 +332,9 @@ def compute_form_data(form, apply_propagate_restrictions=True):
     # TODO: This is a very expensive check... Replace with something faster!
     preprocessed_form = reconstruct_form_from_integral_data(self.integral_data)
     #_check_form_arity(preprocessed_form)
-    check_form_arity(preprocessed_form, form.arguments()) # Currently testing how fast this is
+    check_form_arity(preprocessed_form, self.original_form.arguments()) # Currently testing how fast this is
 
-    # TODO: This is used by unit tests, change the tests!
+    # TODO: This member is used by unit tests, change the tests to remove this!
     self.preprocessed_form = preprocessed_form
 
     return self
