@@ -37,7 +37,7 @@ from ufl.finiteelement import (FiniteElement, EnrichedElement, VectorElement, Mi
                                OuterProductElement, OuterProductVectorElement, TensorElement,
                                FacetElement, InteriorElement, BrokenElement, TraceElement)
 
-def contravariant_hdiv_mapping(domain):
+def contravariant_hdiv_transform(domain):
     "Return the contravariant H(div) mapping matrix (1/det J) * J"
     tdim = domain.topological_dimension()
     gdim = domain.geometric_dimension()
@@ -50,7 +50,7 @@ def contravariant_hdiv_mapping(domain):
         piola_trans = CellOrientation(domain) * piola_trans
     return piola_trans
 
-def covariant_hcurl_mapping(domain):
+def covariant_hcurl_transform(domain):
     "Return the covariant H(curl) mapping matrix JinvT."
     tdim = domain.topological_dimension()
     gdim = domain.geometric_dimension()
@@ -91,15 +91,14 @@ def combine_transforms(element, subtransforms):
             error("Can't handle %s in a MixedElement", str(subelt))
     return as_tensor(new_tensor)
 
-
 def build_pullback_transform(domain, element):
     mapping = element.mapping()
     if mapping == "identity":
         return as_ufl(1.0)
     elif mapping == "contravariant Piola":
-        return contravariant_hdiv_mapping(domain)
+        return contravariant_hdiv_transform(domain)
     elif mapping == "covariant Piola":
-        return covariant_hcurl_mapping(domain)
+        return covariant_hcurl_transform(domain)
     elif isinstance(element, MixedElement):
         return [build_pullback_transform(domain, elm) for elm in element.sub_elements()]
     else:
@@ -127,13 +126,13 @@ _apply_mixed_pullback_transform = _apply_mixed_pullback_transform_by_concatenati
 def _apply_pullback_transform(local_value, element, domain):
     mapping = element.mapping()
     if mapping == "identity":
-        # Identity mappings (Lagrange elements etc.)
+        # Identity transform (Lagrange elements etc.)
         return local_value
     elif mapping == "undefined":
-        # Mixed mappings
+        # Mixed transforms
         return _apply_mixed_pullback_transform(local_value, element, domain)
     else:
-        # Piola mappings etc.
+        # Piola transform etc.
         transform = build_pullback_transform(domain, element)
         assert len(transform.ufl_shape) == 2
         assert len(local_value.ufl_shape) == 1
