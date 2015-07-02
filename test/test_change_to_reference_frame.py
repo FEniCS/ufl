@@ -9,7 +9,7 @@ from ufl.classes import Form, Integral, Expr, ReferenceGrad, ReferenceValue
 
 '''
 from ufl.classes import ReferenceGrad, JacobianInverse
-from ufl.algorithms import tree_format, change_to_reference_grad, renumber_indices
+from ufl.algorithms import tree_format, change_to_reference_grad
 
 from six.moves import xrange as range
 

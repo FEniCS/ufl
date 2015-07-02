@@ -1,6 +1,10 @@
-"""Algorithm for replacing gradients in an expression with reference gradients and coordinate mappings."""
+"""Algorithm for lowering abstractions of geometric types.
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+This means replacing high-level types with expressions
+of mostly the Jacobian and reference cell data.
+"""
+
+# Copyright (C) 2013-2015 Martin Sandve Alnes
 #
 # This file is part of UFL.
 #
@@ -45,21 +49,8 @@ from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
 
 
 class GeometryLoweringApplier(MultiFunction):
-    def __init__(self, physical_coordinates_known,
-                 coordinate_coefficient_mapping,
-                 preserve_types=None):
+    def __init__(self, preserve_types=()):
         MultiFunction.__init__(self)
-
-        # TODO: Remove this:
-        self.coordinate_coefficient_mapping = coordinate_coefficient_mapping or {}
-
-        # Avoid rewriting the types in this list:
-        preserve_types = list(preserve_types or [])
-
-        # TODO: Temporary code during transition to more flexible preserve_types:
-        if physical_coordinates_known:
-            preserve_types += [SpatialCoordinate, Jacobian]
-
         # Store preserve_types as boolean lookup table
         self._preserve_types = [False]*Expr._ufl_num_typecodes_
         for cls in preserve_types:
@@ -153,8 +144,6 @@ class GeometryLoweringApplier(MultiFunction):
         # TODO: If we're not using Coefficient to represent the spatial coordinate,
         # we can just as well always return o here too unless we add representation
         # of basis functions and dofs to the ufl layer (which is nice to avoid).
-
-        x = self.coordinate_coefficient_mapping[x]
         if x.element().mapping() != "identity":
             error("Piola mapped coordinates are not implemented.")
         return ReferenceValue(x)
@@ -425,14 +414,28 @@ class GeometryLoweringApplier(MultiFunction):
                    "Inconsistent dimensions (in=%d, out=%d)." % (o.ufl_shape[0], r.ufl_shape[0]))
         return r
 
-
-def apply_geometry_lowering(e, physical_coordinates_known, coordinate_coefficient_mapping=None):
+def apply_geometry_lowering(form, preserve_types=()):
     """Change GeometricQuantity objects in expression to the lowest level GeometricQuantity objects.
 
     Assumes the expression is preprocessed or at least that derivatives have been expanded.
 
-    @param e:
+    @param form:
         An Expr or Form.
     """
-    mf = GeometryLoweringApplier(physical_coordinates_known, coordinate_coefficient_mapping)
-    return map_expr_dag(mf, e)
+    if isinstance(form, Form):
+        newintegrals = [apply_geometry_lowering(integral, preserve_types)
+                        for integral in form.integrals()]
+        return form.reconstruct(newintegrals)
+
+    elif isinstance(form, Integral):
+        if integral.integral_type() in ("custom", "vertex"):
+            preserve_types = set(preserve_types) + set([SpatialCoordinate, Jacobian])
+
+        newintegrand = map_expr_dag(GeometryLoweringApplier(preserve_types), form.integrand())
+        return form.reconstruct(integrand=newintegrand)
+
+    elif isinstance(form, Expr):
+        return map_expr_dag(GeometryLoweringApplier(preserve_types), form)
+
+    else:
+        error("Invalid type %s" % (form.__class__.__name__,))

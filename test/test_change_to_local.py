@@ -7,7 +7,8 @@ import pytest
 
 from ufl import *
 from ufl.classes import ReferenceGrad, JacobianInverse
-from ufl.algorithms import tree_format, change_to_reference_grad, renumber_indices
+from ufl.algorithms import tree_format, change_to_reference_grad
+from ufl.algorithms.renumbering import renumber_indices
 
 
 def test_change_to_reference_grad():

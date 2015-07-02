@@ -58,8 +58,3 @@ class RestrictionChecker(Transformer):
 def check_restrictions(expression, require_restriction):
     ufl_assert(isinstance(expression, Expr), "Expecting Expr instance.")
     return RestrictionChecker(require_restriction).visit(expression)
-
-def propagate_restrictions(expression):
-    "Legacy wrapper for apply_restrictions."
-    from ufl.algorithms.apply_restrictions import apply_restrictions
-    return apply_restrictions(expression)

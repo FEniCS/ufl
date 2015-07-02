@@ -3,7 +3,7 @@
 from pytest import raises
 from ufl import *
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks, apply_single_function_pullbacks
-from ufl.algorithms import renumber_indices
+from ufl.algorithms.renumbering import renumber_indices
 from ufl.classes import Jacobian, JacobianInverse, JacobianDeterminant, ReferenceValue, CellOrientation
 
 def check_single_function_pullback(g, mappings):

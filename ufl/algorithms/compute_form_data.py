@@ -37,15 +37,16 @@ from ufl.algorithms.replace import replace
 from ufl.algorithms.analysis import extract_coefficients, extract_sub_elements, unique_tuple
 from ufl.algorithms.domain_analysis import build_integral_data, reconstruct_form_from_integral_data
 from ufl.algorithms.formdata import FormData, ExprData
-from ufl.algorithms.ad import expand_derivatives
-from ufl.algorithms.propagate_restrictions import propagate_restrictions
 from ufl.algorithms.formtransformations import compute_form_arities
 from ufl.algorithms.check_arities import check_form_arity
 
+
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
-# FIXME:
-#from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
-#from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
+from ufl.algorithms.ad import expand_derivatives
+#from ufl.algorithms.apply_derivatives import apply_derivatives # TODO: Use newer
+from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
+from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
+from ufl.algorithms.apply_restrictions import apply_restrictions
 
 
 def _auto_select_degree(elements):
@@ -176,6 +177,7 @@ def compute_form_data(form,
                       do_apply_function_pullbacks=False,
                       do_apply_integral_scaling=False,
                       do_apply_geometry_lowering=False,
+                      preserve_geometry_types=(),
                       do_apply_restrictions=True,
                       ):
 
@@ -204,25 +206,13 @@ def compute_form_data(form,
     #form = apply_derivatives(form) # FIXME: Add reference_value rule to this algorithm
 
     if do_apply_integral_scaling:
-        # FIXME: Annotate with "reference" in the Integral after this
         form = apply_integral_scaling(form)
-        # Compute and apply integration scaling factor
-        #scale = compute_integrand_scaling_factor(integral.domain(), integral.integral_type())
-        #expr = expr * scale
 
     if do_apply_geometry_lowering:
-        # TODO: Make which types to lower configurable for form compiler flexibility
-        form = apply_geometry_lowering(form)
-        # Change geometric representation to lower level quantities
-        #if integral.integral_type() in ("custom", "vertex"):
-        #    physical_coordinates_known = True
-        #else:
-        #    physical_coordinates_known = False
-        #expr = apply_geometry_lowering(expr, physical_coordinates_known,
-        #                               form_data.function_replace_map)
+        form = apply_geometry_lowering(form, preserve_geometry_types)
 
     if do_apply_restrictions:
-        form = propagate_restrictions(form)
+        form = apply_restrictions(form)
 
     processed_integrals = form.integrals()
 
