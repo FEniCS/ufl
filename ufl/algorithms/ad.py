@@ -65,7 +65,5 @@ def expand_derivatives(form, dim=None,
             expression = expand_compounds_postdiff(expression)
         return expression
 
-
-
     # Apply chosen algorithm to all integrands
     return map_integrands(_expand_derivatives, form)

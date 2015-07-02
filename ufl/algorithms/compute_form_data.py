@@ -19,34 +19,30 @@ raw input form given by a user."""
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from collections import defaultdict
 from itertools import chain
-from time import time
-import ufl
-from ufl.common import lstr, tstr, estr, istr, slice_dict
-from ufl.common import Timer
-from ufl.assertions import ufl_assert
+
 from ufl.log import error, warning, info
-from ufl.core.expr import Expr
-from ufl.corealg.traversal import traverse_terminals
-from ufl.form import Form
-from ufl.protocols import id_or_none
-from ufl.geometry import as_domain
+from ufl.assertions import ufl_assert
+
 from ufl.classes import GeometricFacetQuantity
-from ufl.algorithms.replace import replace
+from ufl.corealg.traversal import traverse_terminals
 from ufl.algorithms.analysis import extract_coefficients, extract_sub_elements, unique_tuple
-from ufl.algorithms.domain_analysis import build_integral_data, reconstruct_form_from_integral_data
-from ufl.algorithms.formdata import FormData, ExprData
+from ufl.algorithms.formdata import FormData#, ExprData
 from ufl.algorithms.formtransformations import compute_form_arities
 from ufl.algorithms.check_arities import check_form_arity
 
-
+# These are the main symbolic processing steps:
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
-from ufl.algorithms.ad import expand_derivatives
-#from ufl.algorithms.apply_derivatives import apply_derivatives # TODO: Use newer
+from ufl.algorithms.ad import expand_derivatives # TODO: Use apply_compound_lowering + apply_derivatives explicitly in this file
+#from ufl.algorithms.apply_compound_lowering import apply_compound_lowering # TODO: Rewrite expand_compounds using MultiFunction
+#from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.algorithms.apply_restrictions import apply_restrictions
+
+# See TODOs at the call sites of these below:
+from ufl.algorithms.domain_analysis import build_integral_data
+from ufl.algorithms.domain_analysis import reconstruct_form_from_integral_data
 
 
 def _auto_select_degree(elements):
