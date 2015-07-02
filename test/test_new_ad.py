@@ -1,4 +1,4 @@
-
+#!/usr/bin/env py.test
 import pytest
 
 from ufl import *

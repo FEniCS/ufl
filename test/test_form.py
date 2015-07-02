@@ -1,3 +1,4 @@
+#!/usr/bin/env py.test
 import pytest
 
 from ufl import *
@@ -120,4 +121,3 @@ def form_integrals(mass, boundary_load):
     assert isinstance(boundary_load.integrals_by_type("cell"), tuple)
     assert len(boundary_load.integrals_by_type("cell")) == 0
     assert len(boundary_load.integrals_by_type("exterior_facet")) == 1
-
