@@ -42,6 +42,11 @@ from ufl.algorithms.propagate_restrictions import propagate_restrictions
 from ufl.algorithms.formtransformations import compute_form_arities
 from ufl.algorithms.check_arities import check_form_arity
 
+from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
+# FIXME:
+#from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
+#from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
+
 
 def _auto_select_degree(elements):
     """
@@ -166,7 +171,13 @@ def _build_coefficient_replace_map(coefficients, element_mapping=None):
 
     return new_coefficients, replace_map
 
-def compute_form_data(form, apply_propagate_restrictions=True):
+def compute_form_data(form,
+                      # Default arguments configured to behave the way old FFC expects it:
+                      do_apply_function_pullbacks=False,
+                      do_apply_integral_scaling=False,
+                      do_apply_geometry_lowering=False,
+                      do_apply_restrictions=True,
+                      ):
 
     # TODO: Move this to the constructor instead
     self = FormData()
@@ -182,17 +193,17 @@ def compute_form_data(form, apply_propagate_restrictions=True):
 
     # --- Pass form integrands through some symbolic manipulation
 
-    if do_apply_function_pullbacks: # TODO: Make argument
+    if do_apply_function_pullbacks:
         # Decision: Do not allow grad(Expression) without a Domain.
-        #           Current dolfin works if Expression has a cell.
-        # TODO: Rename s/apply_function_pullbacks/apply_function_pullbacks/g
+        #           Current dolfin works if Expression has a cell
+        #           but this should be changed to a mesh.
         form = apply_function_pullbacks(form)
 
     # Process form the way that is currently expected by FFC
     form = expand_derivatives(form)
-    #form = apply_derivatives(form)
+    #form = apply_derivatives(form) # FIXME: Add reference_value rule to this algorithm
 
-    if do_apply_geometry_lowering:
+    if do_apply_integral_scaling:
         # FIXME: Annotate with "reference" in the Integral after this
         form = apply_integral_scaling(form)
         # Compute and apply integration scaling factor
@@ -210,7 +221,6 @@ def compute_form_data(form, apply_propagate_restrictions=True):
         #expr = apply_geometry_lowering(expr, physical_coordinates_known,
         #                               form_data.function_replace_map)
 
-    do_apply_restrictions = apply_propagate_restrictions # TODO: Make argument
     if do_apply_restrictions:
         form = propagate_restrictions(form)
 
