@@ -22,12 +22,14 @@ from six.moves import xrange as range
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 
-from ufl.classes import JacobianDeterminant, FacetJacobianDeterminant, QuadratureWeight
+from ufl.classes import JacobianDeterminant, FacetJacobianDeterminant, QuadratureWeight, Form, Integral
 
 
-def compute_integrand_scaling_factor(domain, integral_type):
+def compute_integrand_scaling_factor(integral):
     """Change integrand geometry to the right representations."""
 
+    domain = integral.domain()
+    integral_type = integral.integral_type()
     weight = QuadratureWeight(domain)
     tdim = domain.topological_dimension()
 
@@ -71,13 +73,14 @@ def apply_integral_scaling(form):
     if isinstance(form, Form):
         newintegrals = [apply_integral_scaling(integral)
                         for integral in form.integrals()]
-        return form.reconstruct(newintegrals)
+        return Form(newintegrals)
 
     elif isinstance(form, Integral):
+        integral = form
         # Compute and apply integration scaling factor
-        scale = compute_integrand_scaling_factor(integral.domain(), integral.integral_type())
+        scale = compute_integrand_scaling_factor(integral)
         newintegrand = integral.integrand() * scale
-        return form.reconstruct(integrand=newintegrand)
+        return integral.reconstruct(integrand=newintegrand)
 
     else:
         error("Invalid type %s" % (form.__class__.__name__,))

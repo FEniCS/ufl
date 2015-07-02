@@ -30,7 +30,7 @@ from ufl.core.multiindex import Index, indices
 from ufl.corealg.multifunction import MultiFunction, memoized_handler
 from ufl.corealg.map_dag import map_expr_dag
 
-from ufl.classes import (Expr,
+from ufl.classes import (Expr, Form, Integral,
                          ReferenceGrad, ReferenceValue,
                          Jacobian, JacobianInverse, JacobianDeterminant,
                          FacetJacobian, FacetJacobianDeterminant,
@@ -425,17 +425,21 @@ def apply_geometry_lowering(form, preserve_types=()):
     if isinstance(form, Form):
         newintegrals = [apply_geometry_lowering(integral, preserve_types)
                         for integral in form.integrals()]
-        return form.reconstruct(newintegrals)
+        return Form(newintegrals)
 
     elif isinstance(form, Integral):
+        integral = form
         if integral.integral_type() in ("custom", "vertex"):
             preserve_types = set(preserve_types) + set([SpatialCoordinate, Jacobian])
 
-        newintegrand = map_expr_dag(GeometryLoweringApplier(preserve_types), form.integrand())
-        return form.reconstruct(integrand=newintegrand)
+        mf = GeometryLoweringApplier(preserve_types)
+        newintegrand = map_expr_dag(mf, integral.integrand())
+        return integral.reconstruct(integrand=newintegrand)
 
     elif isinstance(form, Expr):
-        return map_expr_dag(GeometryLoweringApplier(preserve_types), form)
+        expr = form
+        mf = GeometryLoweringApplier(preserve_types)
+        return map_expr_dag(mf, expr)
 
     else:
         error("Invalid type %s" % (form.__class__.__name__,))

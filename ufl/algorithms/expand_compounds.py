@@ -110,12 +110,13 @@ class CompoundExpander(ReuseTransformer):
         return a[i, ...].dx(i)
 
     def nabla_grad(self, o, a):
-        j = Index()
-        if a.rank() > 0:
-            ii = tuple(indices(a.rank()))
-            return as_tensor(a[ii].dx(j), (j,) + ii)
+        sh = a.ufl_shape
+        if sh == ():
+            return Grad(a)
         else:
-            return as_tensor(a.dx(j), (j,))
+            j = Index()
+            ii = tuple(indices(len(sh)))
+            return as_tensor(a[ii].dx(j), (j,) + ii)
 
     def curl(self, o, a):
         # o = curl a = "[a.dx(1), -a.dx(0)]"            if a.ufl_shape == ()

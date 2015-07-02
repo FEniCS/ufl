@@ -453,6 +453,7 @@ class GradRuleset(GenericDerivativeRuleset):
         else:
             # TODO: Which types does this involve? I don't think the form compilers will handle this.
             return Grad(o)
+    # TODO: Add more explicit geometry type handlers here, with non-affine domains several should be non-zero.
 
     def spatial_coordinate(self, o):
         "dx/dx = I"
@@ -461,8 +462,6 @@ class GradRuleset(GenericDerivativeRuleset):
     def cell_coordinate(self, o):
         "dX/dx = inv(dx/dX) = inv(J) = K"
         return JacobianInverse(o.domain())
-
-    # TODO: Add more geometry types here, with non-affine domains several should be non-zero.
 
     # --- Specialized rules for form arguments
 
@@ -480,6 +479,26 @@ class GradRuleset(GenericDerivativeRuleset):
             return AnnotatedZero(o.ufl_shape + self._var_shape, arguments=(o,)) # TODO: Missing this type
         else:
             return Grad(o)
+
+    # --- Rules for values or derivatives in reference frame
+
+    def reference_value(self, o):
+        # grad(o) == grad(rv(f)) -> K_ji*rgrad(rv(f))_rj
+        f = o.ufl_operands[0]
+        ufl_assert(f._ufl_is_terminal_, "ReferenceValue can only wrap a terminal")
+        K = JacobianInverse(f.domain())
+        r = indices(o.rank())
+        i, j = indices(2)
+        return as_tensor(K[j,i]*ReferenceGrad(o)[r + (j,)], r + (i,))
+
+    def reference_grad(self, o):
+        # grad(o) == grad(rgrad(rv(f))) -> K_ji*rgrad(rgrad(rv(f)))_rj
+        f = o.ufl_operands[0]
+        ufl_assert(f._ufl_is_in_reference_frame_, "ReferenceGrad can only wrap a reference frame type!")
+        K = JacobianInverse(f.domain())
+        r = indices(o.rank())
+        i, j = indices(2)
+        return as_tensor(K[j,i]*ReferenceGrad(o)[r + (j,)], r + (i,))
 
     # --- Nesting of gradients
 
