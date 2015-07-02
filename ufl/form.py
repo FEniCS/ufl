@@ -166,7 +166,7 @@ class Form(object):
 
     def geometric_dimension(self):
         "Return the geometric dimension shared by all domains and functions in this form."
-        gdims = set(domain.geometric_dimension() for domain in form.domains())
+        gdims = tuple(set(domain.geometric_dimension() for domain in self.domains()))
         ufl_assert(len(gdims) == 1,
                   "Expecting all domains and functions in a form to share geometric dimension, got %s." % str(tuple(sorted(gdims))))
         return gdims[0]
