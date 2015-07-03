@@ -61,14 +61,11 @@ from ufl.algorithms.checks import validate_form
 from ufl.corealg.multifunction import MultiFunction
 from ufl.algorithms.transformer import Transformer, is_post_handler, \
                                        apply_transformer, \
-                                       ReuseTransformer, ufl2ufl, \
-                                       CopyTransformer, ufl2uflcopy, \
+                                       ReuseTransformer, \
                                        VariableStripper, strip_variables
 from ufl.algorithms.replace import Replacer, replace
 from ufl.algorithms.change_to_reference import change_to_reference_grad
-from ufl.algorithms.expand_compounds import CompoundExpander, expand_compounds, \
-                                            CompoundExpanderPreDiff, expand_compounds_prediff, \
-                                            CompoundExpanderPostDiff, expand_compounds_postdiff
+from ufl.algorithms.expand_compounds import expand_compounds
 from ufl.algorithms.estimate_degrees import SumDegreeEstimator, estimate_total_polynomial_degree
 from ufl.algorithms.argument_dependencies import ArgumentDependencyExtracter, extract_argument_dependencies, NotMultiLinearException
 from ufl.algorithms.expand_indices import expand_indices, purge_list_tensors

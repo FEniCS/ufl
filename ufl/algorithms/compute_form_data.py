@@ -33,9 +33,8 @@ from ufl.algorithms.check_arities import check_form_arity
 
 # These are the main symbolic processing steps:
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
-from ufl.algorithms.ad import expand_derivatives # TODO: Use apply_compound_lowering + apply_derivatives explicitly in this file
-#from ufl.algorithms.apply_compound_lowering import apply_compound_lowering # TODO: Rewrite expand_compounds using MultiFunction
-#from ufl.algorithms.apply_derivatives import apply_derivatives
+from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
+from ufl.algorithms.apply_derivatives import apply_derivatives
 from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
 from ufl.algorithms.apply_restrictions import apply_restrictions
@@ -197,26 +196,31 @@ def compute_form_data(form,
         #           but this should be changed to a mesh.
         form = apply_function_pullbacks(form)
 
-    # Process form the way that is currently expected by FFC
-    form = expand_derivatives(form)
-    #form = apply_derivatives(form) # FIXME: Add reference_value rule to this algorithm
+    # Process form the way that is currently expected by FFC:
+    # Lower abstractions for tensor-algebra types into index notation
+    form = apply_algebra_lowering(form)
 
+    # Apply differentiation
+    form = apply_derivatives(form)
+
+    # Scale integral to reference frame
     if do_apply_integral_scaling:
         form = apply_integral_scaling(form)
 
+    # Lower abstractions for geometric quantities into a smaller set of quantities
     if do_apply_geometry_lowering:
         form = apply_geometry_lowering(form, preserve_geometry_types)
 
+    # Propagate restrictions to terminals
     if do_apply_restrictions:
         form = apply_restrictions(form)
 
-    processed_integrals = form.integrals()
-
 
     # --- Group and collect data about integrals
-    # TODO: Refactor this # TODO: Is self.original_form.domains() right here?
-    self.integral_data = \
-        build_integral_data(processed_integrals, self.original_form.domains())
+    # TODO: Refactor this, it's rather opaque what this does
+    # TODO: Is self.original_form.domains() right here?
+    #       It will matter when we start including 'num_domains' in ufc form.
+    self.integral_data = build_integral_data(form.integrals(), self.original_form.domains())
 
 
     # --- Create replacements for arguments and coefficients

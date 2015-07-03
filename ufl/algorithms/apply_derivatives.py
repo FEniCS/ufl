@@ -32,6 +32,7 @@ from ufl.classes import Grad, ReferenceGrad, Variable
 from ufl.classes import Indexed, ListTensor, ComponentTensor
 from ufl.classes import ExprList, ExprMapping
 from ufl.classes import Product, Sum, IndexSum
+from ufl.classes import JacobianInverse
 
 from ufl.constantvalue import is_true_ufl_scalar, is_ufl_scalar
 from ufl.operators import dot, inner, outer, lt, eq, conditional, sign, \
@@ -661,6 +662,30 @@ class VariableRuleset(GenericDerivativeRuleset):
                    "Expecting only grads applied to a terminal.")
         return self.independent_terminal(o)
 
+    # --- Rules for values or derivatives in reference frame
+
+    def reference_value(self, o):
+        # d/dv(o) == d/dv(rv(f)) = 0 if v is not f, or rv(dv/df)
+        v = self._variable
+        if isinstance(v, Coefficient) and o.ufl_operands[0] == v:
+            if v.element().mapping() != "identity":
+                # FIXME: This is a bit tricky, instead of Identity it is
+                #   actually inverse(transform), or we should rather not
+                #   convert to reference frame in the first place
+                error("Missing implementation: To handle derivatives of rv(f) w.r.t. f for" +
+                      " mapped elements, rewriting to reference frame should not happen first...")
+            # dv/dv = identity of rank 2*rank(v)
+            return self._Id
+        else:
+            # df/v = 0
+            return self.independent_terminal(o)
+
+    def reference_grad(self, o):
+        "Variable derivative of a gradient of a terminal must be 0."
+        ufl_assert(isinstance(o.ufl_operands[0], (ReferenceGrad, ReferenceValue)),
+                   "Unexpected argument to reference_grad.")
+        return self.independent_terminal(o)
+
     cell_avg = GenericDerivativeRuleset.independent_operator
     facet_avg = GenericDerivativeRuleset.independent_operator
 
@@ -691,6 +716,14 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
 
     # Explicitly defining dg/dw == 0
     geometric_quantity = GenericDerivativeRuleset.independent_terminal
+
+    def cell_avg(self, o, fp):
+        # Cell average of a single function and differentiation commutes, D_f[v](cell_avg(f)) = cell_avg(v)
+        return cell_avg(fp)
+
+    def facet_avg(self, o, fp):
+        # Facet average of a single function and differentiation commutes, D_f[v](facet_avg(f)) = facet_avg(v)
+        return facet_avg(fp)
 
     # Explicitly defining da/dw == 0
     argument = GenericDerivativeRuleset.independent_terminal
@@ -738,13 +771,11 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
                     dosum += prod
             return dosum
 
-    def cell_avg(self, o, fp):
-        # Cell average of a single function and differentiation commutes, D_f[v](cell_avg(f)) = cell_avg(v)
-        return cell_avg(fp)
+    def reference_value(self, o):
+        FIXME
 
-    def facet_avg(self, o, fp):
-        # Facet average of a single function and differentiation commutes, D_f[v](facet_avg(f)) = facet_avg(v)
-        return cell_avg(fp)
+    def reference_grad(self, o):
+        FIXME
 
     def grad(self, g):
         # If we hit this type, it has already been propagated
@@ -900,7 +931,7 @@ class DerivativeRuleDispatcher(MultiFunction):
         return map_expr_dag(rules, f)
 
     def reference_grad(self, o, f):
-        rules = ReferenceGradRuleset(o.ufl_shape[-1])
+        rules = ReferenceGradRuleset(o.ufl_shape[-1]) # FIXME: Look over this and test better.
         return map_expr_dag(rules, f)
 
     def variable_derivative(self, o, f, dummy_v):

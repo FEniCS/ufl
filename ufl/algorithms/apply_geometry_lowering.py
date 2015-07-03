@@ -89,6 +89,7 @@ class GeometryLoweringApplier(MultiFunction):
 
         domain = o.domain()
         J = self.jacobian(Jacobian(domain))
+        # This could in principle use preserve_types[JacobianDeterminant] with minor refactoring:
         return inverse_expr(J)
 
     @memoized_handler
@@ -118,6 +119,7 @@ class GeometryLoweringApplier(MultiFunction):
 
         domain = o.domain()
         FJ = self.facet_jacobian(FacetJacobian(domain))
+        # This could in principle use preserve_types[JacobianDeterminant] with minor refactoring:
         return inverse_expr(FJ)
 
     @memoized_handler

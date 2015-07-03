@@ -43,7 +43,6 @@ from ufl.tensors import as_tensor, as_vector, as_scalar, ComponentTensor
 from ufl.operators import sqrt, max_value, min_value, sign
 from ufl.permutation import compute_indices
 
-from ufl.algorithms.transformer import ReuseTransformer, apply_transformer
 from ufl.compound_expressions import determinant_expr, cross_expr, inverse_expr
 from ufl.finiteelement import FiniteElement, EnrichedElement, VectorElement, MixedElement, OuterProductElement, OuterProductVectorElement, TensorElement, FacetElement, InteriorElement, BrokenElement, TraceElement
 
