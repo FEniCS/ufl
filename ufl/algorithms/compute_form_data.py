@@ -190,26 +190,40 @@ def compute_form_data(form,
 
     # --- Pass form integrands through some symbolic manipulation
 
+    # Note: Default behaviour here will process form the way that is currently expected by vanilla FFC
+
+    # Lower abstractions for tensor-algebra types into index notation,
+    # reducing the number of operators later algorithms and form compilers
+    # need to handle
+    form = apply_algebra_lowering(form)
+
+    # Apply differentiation before function pullbacks, because for example
+    # coefficient derivatives are more complicated to derive after coefficients
+    # are rewritten, and in particular for user-defined coefficient relations it just gets too messy
+    form = apply_derivatives(form)
+
     if do_apply_function_pullbacks:
-        # Decision: Do not allow grad(Expression) without a Domain.
+        # Rewrite coefficients and arguments in terms of their reference cell values
+        # with Piola transforms and symmetry transforms injected where needed.
+        # Decision: Not supporting grad(dolfin.Expression) without a Domain.
         #           Current dolfin works if Expression has a cell
         #           but this should be changed to a mesh.
         form = apply_function_pullbacks(form)
 
-    # Process form the way that is currently expected by FFC:
-    # Lower abstractions for tensor-algebra types into index notation
-    form = apply_algebra_lowering(form)
-
-    # Apply differentiation
-    form = apply_derivatives(form)
-
-    # Scale integral to reference frame
+    # Scale integrals to reference cell frames
     if do_apply_integral_scaling:
         form = apply_integral_scaling(form)
 
-    # Lower abstractions for geometric quantities into a smaller set of quantities
+    # Lower abstractions for geometric quantities into a smaller set of quantities,
+    # allowing the form compiler to deal with a smaller set of types and treating
+    # geometric quantities like any other expressions w.r.t. loop-invariant code motion etc.
     if do_apply_geometry_lowering:
         form = apply_geometry_lowering(form, preserve_geometry_types)
+
+    # Apply differentiation again, because the algorithms above can generate
+    # new derivatives or rewrite expressions inside derivatives
+    if do_apply_function_pullbacks or do_apply_geometry_lowering:
+        form = apply_derivatives(form)
 
     # Propagate restrictions to terminals
     if do_apply_restrictions:

@@ -78,11 +78,15 @@ class GenericDerivativeRuleset(MultiFunction):
         error("FIXME: Unimplemented differentiation handler for type {0}.".format(o._ufl_class_.__name__))
 
 
-    # --- Helper functions for creating zeros with the right shapes
+    # --- Some types just don't have any derivative, this is just to make algorithm structure generic
 
     def non_differentiable_terminal(self, o):
         "Labels and indices are not differentiable. It's convenient to return the non-differentiated object."
         return o
+    label = non_differentiable_terminal
+    multi_index = non_differentiable_terminal
+
+    # --- Helper functions for creating zeros with the right shapes
 
     def independent_terminal(self, o):
         "Return a zero with the right shape for terminals independent of differentiation variable."
@@ -100,11 +104,7 @@ class GenericDerivativeRuleset(MultiFunction):
 
     # --- Default rules for terminals
 
-    # Some types just don't have any derivative, this is just to make algorithm structure generic
-    label = non_differentiable_terminal
-    multi_index = non_differentiable_terminal
-
-    # Literals are assumed independent of the differentiation variable by default
+    # Literals are by definition independent of any differentiation variable
     constant_value = independent_terminal
 
     # Rules for form arguments must be specified in specialized rule set
@@ -115,43 +115,43 @@ class GenericDerivativeRuleset(MultiFunction):
 
     # These types are currently assumed independent, but for non-affine domains
     # this no longer holds and we want to implement rules for them.
-    facet_normal = independent_terminal
-    spatial_coordinate = independent_terminal
-    cell_coordinate = independent_terminal
+    #facet_normal = independent_terminal
+    #spatial_coordinate = independent_terminal
+    #cell_coordinate = independent_terminal
 
     # Measures of cell entities, assuming independent although
     # this will not be true for all of these for non-affine domains
-    cell_volume = independent_terminal
-    circumradius = independent_terminal
-    facet_area = independent_terminal
+    #cell_volume = independent_terminal
+    #circumradius = independent_terminal
+    #facet_area = independent_terminal
     #cell_surface_area = independent_terminal
-    min_cell_edge_length = independent_terminal
-    max_cell_edge_length = independent_terminal
-    min_facet_edge_length = independent_terminal
-    max_facet_edge_length = independent_terminal
+    #min_cell_edge_length = independent_terminal
+    #max_cell_edge_length = independent_terminal
+    #min_facet_edge_length = independent_terminal
+    #max_facet_edge_length = independent_terminal
 
     # Other stuff
-    cell_orientation = independent_terminal
-    quadrature_weigth = independent_terminal
+    #cell_orientation = independent_terminal
+    #quadrature_weigth = independent_terminal
 
     # These types are currently not expected to show up in AD pass.
     # To make some of these available to the end-user, they need to be implemented here.
-    facet_coordinate = unexpected
-    cell_origin = unexpected
-    facet_origin = unexpected
-    cell_facet_origin = unexpected
-    jacobian = unexpected
-    jacobian_determinant = unexpected
-    jacobian_inverse = unexpected
-    facet_jacobian = unexpected
-    facet_jacobian_determinant = unexpected
-    facet_jacobian_inverse = unexpected
-    cell_facet_jacobian = unexpected
-    cell_facet_jacobian_determinant = unexpected
-    cell_facet_jacobian_inverse = unexpected
-    cell_edge_vectors = unexpected
-    facet_edge_vectors = unexpected
-    cell_normal = unexpected # TODO: Expecting rename
+    #facet_coordinate = unexpected
+    #cell_origin = unexpected
+    #facet_origin = unexpected
+    #cell_facet_origin = unexpected
+    #jacobian = unexpected
+    #jacobian_determinant = unexpected
+    #jacobian_inverse = unexpected
+    #facet_jacobian = unexpected
+    #facet_jacobian_determinant = unexpected
+    #facet_jacobian_inverse = unexpected
+    #cell_facet_jacobian = unexpected
+    #cell_facet_jacobian_determinant = unexpected
+    #cell_facet_jacobian_inverse = unexpected
+    #cell_edge_vectors = unexpected
+    #facet_edge_vectors = unexpected
+    #cell_normal = unexpected # TODO: Expecting rename
     #cell_normals = unexpected
     #facet_tangents = unexpected
     #cell_tangents = unexpected
@@ -161,7 +161,7 @@ class GenericDerivativeRuleset(MultiFunction):
 
     # --- Default rules for operators
 
-    def variable(self, o, df, l):
+    def variable(self, o, df, unused_l):
         return df
 
     # --- Indexing and component handling
@@ -395,9 +395,9 @@ class GenericDerivativeRuleset(MultiFunction):
     # --- Restrictions
 
     def restricted(self, o, fp):
-        # Restriction and differentiation commutes, at least for the derivatives we support.
+        # Restriction and differentiation commutes
         if isinstance(fp, ConstantValue):
-            return fp # TODO: Necessary? Can't restriction simplify directly instead?
+            return fp # TODO: Add simplification to Restricted instead?
         else:
             return fp(o._side) # (f+-)' == (f')+-
 
@@ -411,7 +411,7 @@ class GenericDerivativeRuleset(MultiFunction):
         # Should not be used anywhere...
         return None
 
-    def conditional(self, o, dc, dt, df):
+    def conditional(self, o, unused_dc, dt, df):
         if isinstance(dt, Zero) and isinstance(df, Zero):
             # Assuming dt and df have the same indices here, which should be the case
             return dt
@@ -448,7 +448,8 @@ class GradRuleset(GenericDerivativeRuleset):
     # --- Specialized rules for geometric quantities
 
     def geometric_quantity(self, o):
-        "dg/dx = 0 if piecewise constant, otherwise Grad(g)"
+        """Default for geometric quantities is dg/dx = 0 if piecewise constant, otherwise keep Grad(g).
+        Override for specific types if other behaviour is needed."""
         if o.is_cellwise_constant():
             return self.independent_terminal(o)
         else:
@@ -772,10 +773,22 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
             return dosum
 
     def reference_value(self, o):
-        FIXME
+        error("Currently no support for ReferenceValue in CoefficientDerivative.")
+        # TODO: This is implementable for regular derivative(M(f),f,v) but too messy
+        #       if customized coefficient derivative relations are given by the user.
+        #       We would only need this to allow the user to write derivative(...ReferenceValue...,...).
+        #f, = o.ufl_operands
+        #ufl_assert(f._ufl_is_terminal_, "ReferenceValue can only wrap terminals directly.")
+        #if f is w: # FIXME: check all cases like in coefficient
+        #    return ReferenceValue(v) # FIXME: requires that v is an Argument with the same element mapping!
+        #else:
+        #    return self.independent_terminal(o)
 
     def reference_grad(self, o):
-        FIXME
+        error("Currently no support for ReferenceGrad in CoefficientDerivative.")
+        # TODO: This is implementable for regular derivative(M(f),f,v) but too messy
+        #       if customized coefficient derivative relations are given by the user.
+        #       We would only need this to allow the user to write derivative(...ReferenceValue...,...).
 
     def grad(self, g):
         # If we hit this type, it has already been propagated

@@ -30,7 +30,7 @@ class ArityChecker(MultiFunction):
         # Traverse only the terminals under here the fastest way we know of:
         for t in traverse_terminals(o):
             if t._ufl_typecode_ == Argument._ufl_typecode_:
-                raise ArityMismatch("Applying nonlinear operator to expression depending on form argument {0}.".format(t))
+                raise ArityMismatch("Applying nonlinear operator {0} to expression depending on form argument {1}.".format(o._ufl_class_.__name__, t))
         return self._et
 
     expr = nonlinear_operator
@@ -82,6 +82,8 @@ class ArityChecker(MultiFunction):
 
     # Grad is a linear operator
     grad = linear_operator
+    reference_grad = linear_operator
+    reference_value = linear_operator
 
     # Does it make sense to have a Variable(Argument)? I see no problem.
     def variable(self, o, f, l):
