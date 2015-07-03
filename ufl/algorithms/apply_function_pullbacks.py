@@ -99,15 +99,22 @@ def reshape_to_nested_list(components, shape):
 def apply_single_function_pullbacks(g):
     element = g.element()
     mapping = element.mapping()
-    domain = g.domain()
+
     r = ReferenceValue(g)
 
     gsh = g.ufl_shape
     rsh = r.ufl_shape
+
+    # Shortcut the "identity" case which includes Expression and Constant from dolfin that may be ill-formed without a domain (until we get that fixed)
+    if mapping == "identity":
+        assert rsh == gsh
+        return r
+
     gsize = product(gsh)
     rsize = product(rsh)
 
     # Create some geometric objects for reuse
+    domain = g.domain()
     J = Jacobian(domain)
     detJ = JacobianDeterminant(domain)
     Jinv = JacobianInverse(domain)
@@ -121,14 +128,10 @@ def apply_single_function_pullbacks(g):
         # Only insert symbolic CellOrientation if tdim != gdim
         transform_hdiv = CellOrientation(domain) * transform_hdiv
 
-
     # Shortcut simple cases for a more efficient representation,
     # including directly Piola-mapped elements and mixed elements
     # of any combination of affinely mapped elements without symmetries
-    if mapping == "identity":
-        assert rsh == gsh
-        return r
-    elif mapping == "symmetries":
+    if mapping == "symmetries":
         fcm = element.flattened_sub_element_mapping()
         assert gsize >= rsize
         assert len(fcm) == gsize
