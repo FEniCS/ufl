@@ -432,7 +432,7 @@ def apply_geometry_lowering(form, preserve_types=()):
     elif isinstance(form, Integral):
         integral = form
         if integral.integral_type() in ("custom", "vertex"):
-            preserve_types = set(preserve_types) + set([SpatialCoordinate, Jacobian])
+            preserve_types = set(preserve_types) | set([SpatialCoordinate, Jacobian])
 
         mf = GeometryLoweringApplier(preserve_types)
         newintegrand = map_expr_dag(mf, integral.integrand())

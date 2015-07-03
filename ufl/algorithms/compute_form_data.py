@@ -225,6 +225,11 @@ def compute_form_data(form,
     if do_apply_function_pullbacks or do_apply_geometry_lowering:
         form = apply_derivatives(form)
 
+        # Neverending story: apply_derivatives introduces new Jinvs, which needs more geometry lowering
+        if do_apply_geometry_lowering:
+            form = apply_geometry_lowering(form, preserve_geometry_types)
+            #form = apply_derivatives(form) # FIXME: Do we need yet another pass of this?
+
     # Propagate restrictions to terminals
     if do_apply_restrictions:
         form = apply_restrictions(form)
