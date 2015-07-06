@@ -463,6 +463,7 @@ class GradRuleset(GenericDerivativeRuleset):
 
     def cell_coordinate(self, o):
         "dX/dx = inv(dx/dX) = inv(J) = K"
+        # FIXME: Is this true for manifolds?
         return JacobianInverse(o.domain())
 
     # --- Specialized rules for form arguments

@@ -23,8 +23,8 @@ equivalent representations using basic operators."""
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
 
-from ufl.classes import Product, Index, Grad
-from ufl.core.multiindex import indices
+from ufl.classes import Product, Grad
+from ufl.core.multiindex import indices, Index, FixedIndex
 from ufl.tensors import as_tensor, as_matrix, as_vector
 
 from ufl.compound_expressions import deviatoric_expr, determinant_expr, cofactor_expr, adj_expr, inverse_expr
@@ -73,18 +73,50 @@ class LowerCompoundAlgebra(MultiFunction):
             return Product(a[i], b[j]) - Product(a[j], b[i])
         return as_vector((c(1, 2), c(2, 0), c(0, 1)))
 
-    def dot(self, o, a, b):
-        ai = indices(a.rank()-1)
-        bi = indices(b.rank()-1)
-        k  = indices(1)
-        # Create an IndexSum over a Product
+    def altenative_dot(self, o, a, b): # TODO: Test this
+        ash = a.ufl_shape
+        bsh = b.ufl_shape
+        ai = indices(len(ash)-1)
+        bi = indices(len(bsh)-1)
+        # Simplification for tensors where the dot-sum dimension has length 1
+        if ash[-1] == 1:
+            k = (FixedIndex(0),)
+        else:
+            k = (Index(),)
+        # Potentially creates a single IndexSum over a Product
         s = a[ai+k]*b[k+bi]
         return as_tensor(s, ai+bi)
 
+    def dot(self, o, a, b):
+        ai = indices(a.rank()-1)
+        bi = indices(b.rank()-1)
+        k = (Index(),)
+        # Creates a single IndexSum over a Product
+        s = a[ai+k]*b[k+bi]
+        return as_tensor(s, ai+bi)
+
+    def alternative_inner(self, o, a, b): # TODO: Test this
+        ash = a.ufl_shape
+        bsh = b.ufl_shape
+        ufl_assert(ash == bsh)
+        # Simplification for tensors with one or more dimensions of length 1
+        ii = []
+        zi = FixedIndex(0)
+        for n in ash:
+            if n == 1:
+                ii.append(zi)
+            else:
+                ii.append(Index())
+        ii = tuple(ii)
+        #ii = indices(a.rank())
+        # Potentially creates multiple IndexSums over a Product
+        s = a[ii]*b[ii]
+        return s
+
     def inner(self, o, a, b):
-        ufl_assert(a.rank() == b.rank())
+        ufl_assert(a.ufl_shape == b.ufl_shape)
         ii = indices(a.rank())
-        # Create multiple IndexSums over a Product
+        # Creates multiple IndexSums over a Product
         s = a[ii]*b[ii]
         return s
 
