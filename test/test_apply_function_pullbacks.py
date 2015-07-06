@@ -88,11 +88,11 @@ def test_apply_single_function_pullbacks_triangle3d():
     J = Jacobian(domain)
     detJ = JacobianDeterminant(domain)
     Jinv = JacobianInverse(domain)
-    o = CellOrientation(domain)
+    #o = CellOrientation(domain)
     i, j, k, l = indices(4)
 
     # Contravariant H(div) Piola mapping:
-    M_hdiv = o * ((1.0/detJ) * J)
+    M_hdiv = ((1.0/detJ) * J) # Not applying cell orientation here
     # Covariant H(curl) Piola mapping: Jinv.T
 
     mappings = {

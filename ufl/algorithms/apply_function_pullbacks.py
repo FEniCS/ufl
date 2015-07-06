@@ -39,32 +39,6 @@ from ufl.finiteelement import (FiniteElement, EnrichedElement, VectorElement, Mi
                                FacetElement, InteriorElement, BrokenElement, TraceElement)
 from ufl.common import product
 
-def contravariant_hdiv_transform(domain):
-    "Return the contravariant H(div) mapping matrix (1/det J) * J"
-    tdim = domain.topological_dimension()
-    gdim = domain.geometric_dimension()
-    ufl_assert(tdim > 1, "Cannot have Piola-mapped element in 1D")
-    J = Jacobian(domain)
-    detJ = JacobianDeterminant(domain)
-    piola_trans = (1.0/detJ) * J
-    # Only insert symbolic CellOrientation if tdim != gdim
-    if tdim != gdim:
-        piola_trans = CellOrientation(domain) * piola_trans
-    return piola_trans
-
-def covariant_hcurl_transform(domain):
-    "Return the covariant H(curl) mapping matrix JinvT."
-    tdim = domain.topological_dimension()
-    gdim = domain.geometric_dimension()
-    ufl_assert(tdim > 1, "Cannot have Piola-mapped element in 1D")
-    Jinv = JacobianInverse(domain)
-    # Using indexing for the transpose
-    i, j = indices(2)
-    JinvT = as_tensor(Jinv[i, j], (j, i))
-    piola_trans = JinvT
-    return piola_trans
-
-
 def sub_elements_with_mappings(element):
     "Return an ordered list of the largest subelements that have a defined mapping."
     if element.mapping() != "undefined":
@@ -124,9 +98,10 @@ def apply_single_function_pullbacks(g):
 
     # Create contravariant transform for reuse
     transform_hdiv = (1.0/detJ) * J
-    if tdim != gdim:
-        # Only insert symbolic CellOrientation if tdim != gdim
-        transform_hdiv = CellOrientation(domain) * transform_hdiv
+    # Disabled because this gives wrong results:
+    #if tdim != gdim:
+    #    # Only insert symbolic CellOrientation if tdim != gdim
+    #    transform_hdiv = CellOrientation(domain) * transform_hdiv
 
     # Shortcut simple cases for a more efficient representation,
     # including directly Piola-mapped elements and mixed elements

@@ -111,6 +111,8 @@ class SumDegreeEstimator(Transformer):
     def label(self, v):
         return None
     # Fall-through, indexing and similar types
+    def reference_value(self, rv, f):
+        return f
     def variable(self, v, e, l):
         return e
     def transposed(self, v, A):
