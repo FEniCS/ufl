@@ -78,7 +78,7 @@ def pseudo_inverse_expr(A):
     if n == 1:
         # Simpler special case for 1d
         i, j, k = indices(3)
-        return as_tensor(J[i,j], (j,i)) / (J[k,0]*J[k,0])
+        return as_tensor(A[i,j], (j,i)) / (A[k,0]*A[k,0])
     else:
         # Generic formulation
         return generic_pseudo_inverse_expr(A)
