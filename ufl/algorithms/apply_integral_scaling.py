@@ -30,8 +30,10 @@ def compute_integrand_scaling_factor(integral):
 
     domain = integral.domain()
     integral_type = integral.integral_type()
+    #co = CellOrientation(domain)
     weight = QuadratureWeight(domain)
     tdim = domain.topological_dimension()
+    #gdim = domain.geometric_dimension()
 
     if integral_type == "cell":
         scale = abs(JacobianDeterminant(domain)) * weight

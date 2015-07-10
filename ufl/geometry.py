@@ -83,7 +83,7 @@ x = Jxf Xf + x0f
 Inverse relations:
 
 X = K * (x - x0)
-    CellCoordinate = JacobianInverse * (SpatialCoordinate - CellOrigio)
+    CellCoordinate = JacobianInverse * (SpatialCoordinate - CellOrigin)
 
 Xf = FK * (x - x0f)
     FacetCoordinate = FacetJacobianInverse * (SpatialCoordinate - FacetOrigin)

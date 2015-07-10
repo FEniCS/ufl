@@ -33,6 +33,7 @@ from ufl.corealg.map_dag import map_expr_dag
 from ufl.classes import (Expr, Form, Integral,
                          ReferenceGrad, ReferenceValue,
                          Jacobian, JacobianInverse, JacobianDeterminant,
+                         CellOrientation, CellOrigin, CellCoordinate,
                          FacetJacobian, FacetJacobianDeterminant,
                          CellFacetJacobian,
                          CellEdgeVectors, FacetEdgeVectors,
@@ -99,7 +100,11 @@ class GeometryLoweringApplier(MultiFunction):
 
         domain = o.domain()
         J = self.jacobian(Jacobian(domain))
-        return determinant_expr(J)
+        detJ = determinant_expr(J)
+        if domain.topological_dimension() < domain.geometric_dimension():
+            co = CellOrientation(domain)
+            detJ = co*detJ
+        return detJ
 
     @memoized_handler
     def facet_jacobian(self, o):
@@ -129,7 +134,11 @@ class GeometryLoweringApplier(MultiFunction):
 
         domain = o.domain()
         FJ = self.facet_jacobian(FacetJacobian(domain))
-        return determinant_expr(FJ)
+        detFJ = determinant_expr(FJ)
+        if domain.topological_dimension() < domain.geometric_dimension():
+            co = CellOrientation(domain)
+            detFJ = co*detFJ # TODO: Is CellOrientation correct here?
+        return detFJ
 
     @memoized_handler
     def spatial_coordinate(self, o):
@@ -349,42 +358,42 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        warning("Untested complicated code for cell normal. Please report if this works correctly or not.")
-
         domain = o.domain()
         gdim = domain.geometric_dimension()
         tdim = domain.topological_dimension()
 
-        if tdim == gdim - 1:
-            if tdim == 2: # Surface in 3D
-                J = self.jacobian(Jacobian(domain))
-                cell_normal = cross_expr(J[:, 0], J[:, 1])
-            elif tdim == 1: # Line in 2D
-                # TODO: Document which normal direction this is
-                cell_normal = as_vector((-J[1, 0], J[0, 0]))
+        if tdim == gdim - 1: # n-manifold embedded in n-1 space
             i = Index()
-            return cell_normal / sqrt(cell_normal[i]*cell_normal[i])
-        elif tdim == gdim:
-            return as_vector((0.0,)*tdim + (1.0,))
+            J = self.jacobian(Jacobian(domain))
+
+            if tdim == 2:
+                # Surface in 3D
+                t0 = as_vector(J[i, 0], i)
+                t1 = as_vector(J[i, 1], i)
+                cell_normal = cross_expr(t0, t1)
+            elif tdim == 1:
+                # Line in 2D (cell normal is 'up' for a line pointing to the 'right')
+                cell_normal = as_vector((-J[1, 0], J[0, 0]))
+            else:
+                error("Cell normal not implemented for tdim %d, gdim %d" % (tdim, gdim))
+
+            # Return normalized vector, sign corrected by cell orientation
+            co = CellOrientation(domain)
+            return co * cell_normal / sqrt(cell_normal[i]*cell_normal[i])
         else:
-            error("What do you mean by cell normal in gdim={0}, tdim={1}?".format(gdim, tdim))
+            error("What do you want cell normal in gdim={0}, tdim={1} to be?".format(gdim, tdim))
 
     @memoized_handler
     def facet_normal(self, o):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        # Recall that the covariant Piola transform u -> J^(-T)*u preserves
-        # tangential components. The normal vector is characterised by
-        # having zero tangential component in reference and physical space.
-
-        # Special-case 1D (possibly immersed), for which we say that
-        # n is just in the direction of J.
-
         domain = o.domain()
         tdim = domain.topological_dimension()
 
         if tdim == 1:
+            # Special-case 1D (possibly immersed), for which we say that
+            # n is just in the direction of J.
             J = self.jacobian(Jacobian(domain)) # dx/dX
             ndir = J[:, 0]
 
@@ -398,8 +407,10 @@ class GeometryLoweringApplier(MultiFunction):
             rn = ReferenceNormal(domain)  # +/- 1.0 here
             n = rn[0] * ndir / nlen
             r = n
-
         else:
+            # Recall that the covariant Piola transform u -> J^(-T)*u preserves
+            # tangential components. The normal vector is characterised by
+            # having zero tangential component in reference and physical space.
             Jinv = self.jacobian_inverse(JacobianInverse(domain))
             i, j = indices(2)
 
@@ -432,7 +443,10 @@ def apply_geometry_lowering(form, preserve_types=()):
     elif isinstance(form, Integral):
         integral = form
         if integral.integral_type() in ("custom", "vertex"):
-            preserve_types = set(preserve_types) | set([SpatialCoordinate, Jacobian])
+            automatic_preserve_types = [SpatialCoordinate, Jacobian]
+        else:
+            automatic_preserve_types = [CellCoordinate]
+        preserve_types = set(preserve_types) | set(automatic_preserve_types)
 
         mf = GeometryLoweringApplier(preserve_types)
         newintegrand = map_expr_dag(mf, integral.integrand())
