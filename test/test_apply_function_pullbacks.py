@@ -26,12 +26,12 @@ def check_single_function_pullback(g, mappings):
         print
     assert ract == rexp
 
-
 def test_apply_single_function_pullbacks_triangle3d():
     triangle3d = Cell("triangle", geometric_dimension=3)
     cell = triangle3d
     domain = as_domain(cell)
 
+    U0 = FiniteElement("DG", cell, 0)
     U = FiniteElement("CG", cell, 1)
     V = VectorElement("CG", cell, 1)
     Vd = FiniteElement("RT", cell, 1)
@@ -45,6 +45,8 @@ def test_apply_single_function_pullbacks_triangle3d():
     Vcm = Vd*Vc
     Tm = Vc*T
     Sm = T*S
+
+    Vd0 = Vd*U0 # case from failing ffc demo
 
     W = S*T*Vc*Vd*V*U
 
@@ -62,6 +64,8 @@ def test_apply_single_function_pullbacks_triangle3d():
     tm = Coefficient(Tm)
     sm = Coefficient(Sm)
 
+    vd0m = Coefficient(Vd0) # case from failing ffc demo
+
     w = Coefficient(W)
 
     ru = ReferenceValue(u)
@@ -78,11 +82,16 @@ def test_apply_single_function_pullbacks_triangle3d():
     rtm = ReferenceValue(tm)
     rsm = ReferenceValue(sm)
 
+    rvd0m = ReferenceValue(vd0m)
+
     rw = ReferenceValue(w)
     assert len(w) == 9 + 9 + 3 + 3 + 3 + 1
     assert len(rw) == 6 + 9 + 2 + 2 + 3 + 1
     assert len(w) == 28
     assert len(rw) == 23
+
+    assert len(vd0m) == 4
+    assert len(rvd0m) == 3
 
     # Geometric quantities we need:
     J = Jacobian(domain)
@@ -147,6 +156,13 @@ def test_apply_single_function_pullbacks_triangle3d():
             rsm[ 9], rsm[10], rsm[11],
             rsm[10], rsm[12], rsm[13],
             rsm[11], rsm[13], rsm[14],
+            ]),
+        # Case from failing ffc demo:
+        vd0m: as_vector([
+            M_hdiv[0,j]*as_vector([rvd0m[0],rvd0m[1]])[j],
+            M_hdiv[1,j]*as_vector([rvd0m[0],rvd0m[1]])[j],
+            M_hdiv[2,j]*as_vector([rvd0m[0],rvd0m[1]])[j],
+            rvd0m[2]
             ]),
         # This combines it all:
         w: as_vector([
