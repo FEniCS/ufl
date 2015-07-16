@@ -12,6 +12,7 @@ from pprint import *
 
 from ufl import *
 from ufl.algorithms import *
+from ufl.algorithms.renumbering import renumber_indices
 from ufl.classes import Sum, Product
 
 # TODO: Test expand_indices2 throuroughly for correctness, then efficiency:

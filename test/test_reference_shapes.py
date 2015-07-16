@@ -27,9 +27,12 @@ def test_reference_shapes():
 
     T = TensorElement("CG", cell, 1)
     assert T.value_shape() == (3, 3)
-    assert T.reference_value_shape() == (9,)
+    assert T.reference_value_shape() == (3,3)
+
+    S = TensorElement("CG", cell, 1, symmetry=True)
+    assert S.value_shape() == (3, 3)
+    assert S.reference_value_shape() == (6,)
 
     M = MixedElement(V, U, W)
     assert M.value_shape() == (7,)
     assert M.reference_value_shape() == (5,)
-

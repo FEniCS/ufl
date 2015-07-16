@@ -1,8 +1,9 @@
+#!/usr/bin/env py.test
 
 from pytest import raises
 from ufl import *
 from ufl.algorithms.apply_restrictions import apply_restrictions
-from ufl.algorithms import renumber_indices
+from ufl.algorithms.renumbering import renumber_indices
 
 def test_apply_restrictions():
     cell = triangle
