@@ -1,6 +1,7 @@
 
 
 from ufl.core.expr import Expr
+from ufl.core.compute_expr_hash import compute_expr_hash
 
 from ufl.common import camel2underscore, EmptyDict
 
@@ -216,6 +217,7 @@ def ufl_type(is_abstract=False,
              is_restriction=False,
              is_evaluation=False,
              is_differential=None,
+             use_default_hash=True,
              num_ops=None,
              inherit_shape_from_operand=None,
              inherit_indices_from_operand=None,
@@ -311,9 +313,10 @@ def ufl_type(is_abstract=False,
 
         # Make sure every non-abstract class has its own __hash__ and __eq__.
         # Python 3 will set __hash__ to None if cls has __eq__, but we've
-        # implemented it in Expr and want to inherit it.
-        if cls.__hash__ is None:
-            cls.__hash__ = Expr.__hash__
+        # implemented it in a separate function and want to inherit/use that
+        # for all types. Allow overriding by setting use_default_hash=False.
+        if use_default_hash:
+            cls.__hash__ = compute_expr_hash
 
         # NB! This function conditionally adds some methods to the class!
         # This approach significantly reduces the amount of small functions to

@@ -21,7 +21,10 @@ by a factor 10 or so because of the function call overhead.
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-_recursion_limit_ = 2000
+
+# This limits the _depth_ of expression trees
+_recursion_limit_ = 6400 # should be enough for everyone
+
 
 def pre_traversal(expr):
     """Yields o for each tree node o in expr, parent before child."""
