@@ -214,7 +214,9 @@ class OuterProductVectorElement(MixedElement):
 class OuterProductTensorElement(MixedElement):
     """A special case of a mixed finite element where all
     elements are equal OuterProductElements"""
-    __slots__ = ("_sub_element", "_shape", "_symmetry", "_sub_element_mapping")
+    __slots__ = ("_sub_element", "_shape", "_symmetry",
+                 "_sub_element_mapping", "_flattened_sub_element_mapping",
+                 "_mapping")
 
     def __init__(self, *args, **kwargs):
         if isinstance(args[0], OuterProductElement):
@@ -231,23 +233,20 @@ class OuterProductTensorElement(MixedElement):
     def _from_sub_element(self, sub_element, shape=None, symmetry=None):
         assert isinstance(sub_element, OuterProductElement)
 
-        shape, symmetry, sub_elements, sub_element_mapping = \
-          _tensor_sub_elements(sub_element, shape, symmetry)
-
-        # Get common family name (checked in FiniteElement.__init__)
-        family = sub_element.family()
-
-        # Compute value shape
-        value_shape = shape + sub_element.value_shape()
+        shape, symmetry, sub_elements, sub_element_mapping, flattened_sub_element_mapping, \
+          reference_value_shape, mapping = _tensor_sub_elements(sub_element, shape, symmetry)
 
         # Initialize element data
-        MixedElement.__init__(self, sub_elements, value_shape=value_shape)
-        self._family = family
+        MixedElement.__init__(self, sub_elements, value_shape=shape,
+                              reference_value_shape=reference_value_shape)
+        self._family = sub_element.family()
         self._degree = sub_element.degree()
         self._sub_element = sub_element
         self._shape = shape
         self._symmetry = symmetry
         self._sub_element_mapping = sub_element_mapping
+        self._flattened_sub_element_mapping = flattened_sub_element_mapping
+        self._mapping = mapping
 
         # Cache repr string
         self._repr = "OuterProductTensorElement(%r, shape=%r, symmetry=%r)" % \

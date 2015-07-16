@@ -434,24 +434,12 @@ class TensorElement(MixedElement):
         ufl_assert(sub_element.value_shape() == (),
                    "Expecting only scalar valued subelement for TensorElement.")
 
-        shape, symmetry, sub_elements, sub_element_mapping, flattened_sub_element_mapping = \
-          _tensor_sub_elements(sub_element, shape, symmetry)
-
-        # Compute value shape
-        value_shape = shape
-
-        # Compute reference value shape based on symmetries
-        if symmetry:
-            # Flatten and subtract symmetries
-            reference_value_shape = (product(shape)-len(symmetry),)
-            self._mapping = "symmetries"
-        else:
-            # Do not flatten if there are no symmetries
-            reference_value_shape = shape
-            self._mapping = "identity"
+        shape, symmetry, sub_elements, sub_element_mapping, flattened_sub_element_mapping, \
+          reference_value_shape, mapping = _tensor_sub_elements(sub_element, shape, symmetry)
 
         # Initialize element data
-        MixedElement.__init__(self, sub_elements, value_shape=value_shape, reference_value_shape=reference_value_shape)
+        MixedElement.__init__(self, sub_elements, value_shape=shape,
+                              reference_value_shape=reference_value_shape)
         self._family = sub_element.family()
         self._degree = degree
         self._sub_element = sub_element
@@ -459,6 +447,7 @@ class TensorElement(MixedElement):
         self._symmetry = symmetry
         self._sub_element_mapping = sub_element_mapping
         self._flattened_sub_element_mapping = flattened_sub_element_mapping
+        self._mapping = mapping
 
         # Cache repr string
         self._repr = "TensorElement(%r, %r, %r, shape=%r, symmetry=%r, quad_scheme=%r)" % \
@@ -595,4 +584,16 @@ def _tensor_sub_elements(sub_element, shape, symmetry):
         if index in symmetry:
             sub_element_mapping[index] = sub_element_mapping[symmetry[index]]
 
-    return shape, symmetry, sub_elements, sub_element_mapping, flattened_sub_element_mapping
+    # Compute reference value shape based on symmetries
+    if symmetry:
+        # Flatten and subtract symmetries
+        reference_value_shape = (product(shape)-len(symmetry),)
+        mapping = "symmetries"
+    else:
+        # Do not flatten if there are no symmetries
+        reference_value_shape = shape
+        mapping = "identity"
+
+
+    return shape, symmetry, sub_elements, sub_element_mapping, \
+      flattened_sub_element_mapping, reference_value_shape, mapping
