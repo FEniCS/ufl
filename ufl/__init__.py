@@ -173,7 +173,7 @@ A very brief overview of the language contents follows:
 # Modified by Andrew T. T. McRae, 2014
 # Modified by Lawrence Mitchell, 2014
 
-__version__ = "1.6.0dev"
+__version__ = "1.6.0"
 
 ########## README
 # Imports here should be what the user sees when doing "from ufl import *",
