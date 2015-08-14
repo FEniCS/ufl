@@ -91,7 +91,12 @@ class GeometryLoweringApplier(MultiFunction):
         domain = o.domain()
         J = self.jacobian(Jacobian(domain))
         # This could in principle use preserve_types[JacobianDeterminant] with minor refactoring:
-        return inverse_expr(J)
+        K = inverse_expr(J)
+        # TODO: Should this be "signed" for manifolds?
+        #if domain.topological_dimension() < domain.geometric_dimension():
+        #    co = CellOrientation(domain)
+        #    K = co*K
+        return K
 
     @memoized_handler
     def jacobian_determinant(self, o):
@@ -101,6 +106,7 @@ class GeometryLoweringApplier(MultiFunction):
         domain = o.domain()
         J = self.jacobian(Jacobian(domain))
         detJ = determinant_expr(J)
+        # TODO: Is "signing" this for manifolds the cleanest approach?
         if domain.topological_dimension() < domain.geometric_dimension():
             co = CellOrientation(domain)
             detJ = co*detJ
