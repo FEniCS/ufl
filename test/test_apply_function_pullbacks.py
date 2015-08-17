@@ -1,5 +1,7 @@
 #!/usr/bin/env py.test
 
+from __future__ import print_function
+
 from pytest import raises
 from ufl import *
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks, apply_single_function_pullbacks
@@ -12,18 +14,18 @@ def check_single_function_pullback(g, mappings):
     rexp = renumber_indices(expected)
     ract = renumber_indices(actual)
     if not rexp == ract:
-        print
-        print "In check_single_function_pullback:"
-        print "input:"
-        print repr(g)
-        print "expected:"
-        print str(rexp)
-        print "actual:"
-        print str(ract)
-        print "signatures:"
-        print (expected**2*dx).signature()
-        print (actual**2*dx).signature()
-        print
+        print()
+        print("In check_single_function_pullback:")
+        print("input:")
+        print(repr(g))
+        print("expected:")
+        print(str(rexp))
+        print("actual:")
+        print(str(ract))
+        print("signatures:")
+        print((expected**2*dx).signature())
+        print((actual**2*dx).signature())
+        print()
     assert ract == rexp
 
 def test_apply_single_function_pullbacks_triangle3d():
