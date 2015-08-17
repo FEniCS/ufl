@@ -28,7 +28,6 @@ from ufl.algorithms.map_integrands import map_integrand_dags
 
 from ufl.classes import (ReferenceValue,
                          Jacobian, JacobianInverse, JacobianDeterminant,
-                         CellOrientation, FacetOrientation,
                          Index)
 
 from ufl.constantvalue import as_ufl, Identity
@@ -97,11 +96,8 @@ def apply_single_function_pullbacks(g):
     gdim = domain.geometric_dimension()
 
     # Create contravariant transform for reuse
+    # (note that detJ is the _signed_ (pseudo-)determinant)
     transform_hdiv = (1.0/detJ) * J
-    # Disabled because this gives wrong results:
-    #if tdim != gdim:
-    #    # Only insert symbolic CellOrientation if tdim != gdim
-    #    transform_hdiv = CellOrientation(domain) * transform_hdiv
 
     # Shortcut simple cases for a more efficient representation,
     # including directly Piola-mapped elements and mixed elements

@@ -32,7 +32,7 @@ from ufl.classes import Grad, ReferenceGrad, Variable
 from ufl.classes import Indexed, ListTensor, ComponentTensor
 from ufl.classes import ExprList, ExprMapping
 from ufl.classes import Product, Sum, IndexSum
-from ufl.classes import JacobianInverse, CellOrientation
+from ufl.classes import JacobianInverse
 
 from ufl.constantvalue import is_true_ufl_scalar, is_ufl_scalar
 from ufl.operators import dot, inner, outer, lt, eq, conditional, sign, \
@@ -494,8 +494,6 @@ class GradRuleset(GenericDerivativeRuleset):
         r = indices(o.rank())
         i, j = indices(2)
         Do = as_tensor(K[j,i]*ReferenceGrad(o)[r + (j,)], r + (i,))
-        if domain.topological_dimension() < domain.geometric_dimension():
-            Do = CellOrientation(domain) * Do
         return Do
 
     def reference_grad(self, o):
@@ -507,8 +505,6 @@ class GradRuleset(GenericDerivativeRuleset):
         r = indices(o.rank())
         i, j = indices(2)
         Do = as_tensor(K[j,i]*ReferenceGrad(o)[r + (j,)], r + (i,))
-        if domain.topological_dimension() < domain.geometric_dimension():
-            Do = CellOrientation(domain) * Do
         return Do
 
     # --- Nesting of gradients
