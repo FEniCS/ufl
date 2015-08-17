@@ -83,7 +83,10 @@ class TensorProductElement(FiniteElementBase):
         return "TensorProductElement(%s)" % (', '.join(e.reconstruction_signature() for e in self._sub_elements),)
 
     def mapping(self):
-        error("The mapping of a mixed element is not defined. Inspect subelements instead.")
+        if all(e.mapping() == "identity" for e in self._sub_elements):
+            return "identity"
+        else:
+            return "undefined"
 
     def num_sub_elements(self):
         "Return number of subelements."

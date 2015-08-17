@@ -123,12 +123,12 @@ class Measure(object):
             a single subdomain id int,
             or tuple of ints
 
-        metadata
+        metadata:
             dict, with additional compiler-specific parameters
             affecting how code is generated, including parameters
             for optimization or debugging of generated code.
 
-        subdomain_data
+        subdomain_data:
             object representing data to interpret subdomain_id with.
         """
         # Map short name to long name and require a valid one
@@ -389,25 +389,10 @@ class Measure(object):
             domains = integrand.domains()
             if len(domains) == 1:
                 domain, = domains
+            elif len(domains) == 0:
+                error("This integral is missing an integration domain.")
             else:
-                # TODO: Should this be an error? For now we need to support
-                # assemble(1*dx, mesh=mesh) in dolfin for compatibility.
-                # Maybe we can add a deprecation warning?
-                #deprecation_warning("Integrals over undefined domains are deprecated.")
-                domain = None
-
-        # FIXME: Fix getitem so we can support this as well:
-        # (probably need to store subdomain_data with Form or Integral?)
-        # Suggestion to store canonically in Form:
-        #   integral.subdomain_data() = value
-        #   form.subdomain_data()[label][key] = value
-        #   all(domain.data() == {} for domain in form.domains())
-        # Then getitem data follows the data flow:
-        #   dxs = dx[gd];  dxs._subdomain_data is gd
-        #   dxs0 = dxs(0); dxs0._subdomain_data is gd
-        #   M = 1*dxs0; M.integrals()[0].subdomain_data() is gd
-        #   ; M.subdomain_data()[None][dxs.integral_type()] is gd
-        #assemble(1*dx[cells] + 1*ds[bnd], mesh=mesh)
+                error("Multiple domains found, making the choice of integration domain ambiguous.")
 
         # Otherwise create and return a one-integral form
         integral = Integral(integrand=integrand,

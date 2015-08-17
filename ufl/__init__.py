@@ -84,6 +84,7 @@ A very brief overview of the language contents follows:
     FacetNormal, CellNormal,
     CellVolume, Circumradius, MinCellEdgeLength, MaxCellEdgeLength,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
+    Jacobian, JacobianDeterminant, JacobianInverse
 
 * Indices::
 
@@ -198,6 +199,7 @@ from ufl.geometry import (
     FacetNormal, CellNormal,
     CellVolume, Circumradius, MinCellEdgeLength, MaxCellEdgeLength,
     FacetArea, MinFacetEdgeLength, MaxFacetEdgeLength,
+    Jacobian, JacobianDeterminant, JacobianInverse
     )
 
 # Sobolev spaces
@@ -297,6 +299,7 @@ __all__ = [
     'CellVolume', 'Circumradius', 'MinCellEdgeLength', 'MaxCellEdgeLength',
     'FacetArea', 'MinFacetEdgeLength', 'MaxFacetEdgeLength',
     'FacetNormal', 'CellNormal',
+    'Jacobian', 'JacobianDeterminant', 'JacobianInverse',
     'FiniteElementBase', 'FiniteElement',
     'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
     'RestrictedElement', 'TensorProductElement', 'OuterProductElement',

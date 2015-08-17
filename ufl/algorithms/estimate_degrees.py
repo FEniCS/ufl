@@ -111,6 +111,8 @@ class SumDegreeEstimator(Transformer):
     def label(self, v):
         return None
     # Fall-through, indexing and similar types
+    def reference_value(self, rv, f):
+        return f
     def variable(self, v, e, l):
         return e
     def transposed(self, v, A):
@@ -133,11 +135,14 @@ class SumDegreeEstimator(Transformer):
     # TODO: Need a new algorithm which considers direction of derivatives of form arguments
     # A spatial derivative reduces the degree with one
     grad = _reduce_degree
+    reference_grad = _reduce_degree
     # Handling these types although they should not occur... please apply preprocessing before using this algorithm:
     nabla_grad = _reduce_degree
     div = _reduce_degree
+    reference_div = _reduce_degree
     nabla_div = _reduce_degree
     curl = _reduce_degree
+    reference_curl = _reduce_degree
 
     def cell_avg(self, v, a):
         "Cell average of a function is always cellwise constant."

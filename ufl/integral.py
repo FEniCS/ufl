@@ -135,4 +135,3 @@ class Integral(object):
                     hash(self._domain), self._subdomain_id,
                     id_or_none(self._subdomain_data))
         return hash(hashdata)
-

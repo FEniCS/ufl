@@ -1,4 +1,4 @@
-
+#!/usr/bin/env py.test
 import pytest
 from ufl import *
 from ufl.algorithms.compute_form_data import compute_form_data

@@ -36,7 +36,7 @@ class OuterProductElement(FiniteElementBase):
     Given bases :math:`{\phi_A, \phi_B}` for :math:`A, B`,
     :math:`{\phi_A * \phi_B}` forms a basis for :math:`V`.
     """
-    __slots__ = ("_A", "_B")
+    __slots__ = ("_A", "_B", "_mapping")
 
     def __init__(self, A, B, domain=None, form_degree=None,
                  quad_scheme=None):
@@ -72,11 +72,16 @@ class OuterProductElement(FiniteElementBase):
         else:
             raise Exception("Product of vector-valued elements not supported")
 
+        if A.mapping() == "identity" and B.mapping() == "identity":
+            self._mapping = "identity"
+        else:
+            self._mapping = "undefined"
+
         FiniteElementBase.__init__(self, family, domain, degree,
                                    quad_scheme, value_shape, reference_value_shape)
 
     def mapping(self):
-        error("TODO: The mapping of an outer product element is not implemented.")
+        return self._mapping
 
     def reconstruct(self, **kwargs):
         """Construct a new OuterProductElement with some properties
@@ -154,6 +159,9 @@ class OuterProductVectorElement(MixedElement):
     @property
     def _B(self):
         return self._sub_element._B
+
+    def mapping(self):
+        return self._sub_element.mapping()
 
     def signature_data(self, renumbering):
         data = ("OuterProductVectorElement", self._A, self._B,

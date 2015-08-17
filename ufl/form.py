@@ -164,6 +164,13 @@ class Form(object):
         # assemble(Constant(1)*dx, mesh=mesh) in dolfin
         return domains[0] if domains else None
 
+    def geometric_dimension(self):
+        "Return the geometric dimension shared by all domains and functions in this form."
+        gdims = tuple(set(domain.geometric_dimension() for domain in self.domains()))
+        ufl_assert(len(gdims) == 1,
+                  "Expecting all domains and functions in a form to share geometric dimension, got %s." % str(tuple(sorted(gdims))))
+        return gdims[0]
+
     def domain_numbering(self):
         "Return a contiguous numbering of domains in a mapping { domain: number }."
         if self._domain_numbering is None:

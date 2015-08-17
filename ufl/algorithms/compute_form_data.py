@@ -19,28 +19,29 @@ raw input form given by a user."""
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from collections import defaultdict
 from itertools import chain
-from time import time
-import ufl
-from ufl.common import lstr, tstr, estr, istr, slice_dict
-from ufl.common import Timer
-from ufl.assertions import ufl_assert
+
 from ufl.log import error, warning, info
-from ufl.core.expr import Expr
-from ufl.corealg.traversal import traverse_terminals
-from ufl.form import Form
-from ufl.protocols import id_or_none
-from ufl.geometry import as_domain
+from ufl.assertions import ufl_assert
+
 from ufl.classes import GeometricFacetQuantity
-from ufl.algorithms.replace import replace
+from ufl.corealg.traversal import traverse_terminals
 from ufl.algorithms.analysis import extract_coefficients, extract_sub_elements, unique_tuple
-from ufl.algorithms.domain_analysis import build_integral_data, reconstruct_form_from_integral_data
-from ufl.algorithms.formdata import FormData, ExprData
-from ufl.algorithms.ad import expand_derivatives
-from ufl.algorithms.propagate_restrictions import propagate_restrictions
+from ufl.algorithms.formdata import FormData#, ExprData
 from ufl.algorithms.formtransformations import compute_form_arities
 from ufl.algorithms.check_arities import check_form_arity
+
+# These are the main symbolic processing steps:
+from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
+from ufl.algorithms.apply_algebra_lowering import apply_algebra_lowering
+from ufl.algorithms.apply_derivatives import apply_derivatives
+from ufl.algorithms.apply_integral_scaling import apply_integral_scaling
+from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
+from ufl.algorithms.apply_restrictions import apply_restrictions
+
+# See TODOs at the call sites of these below:
+from ufl.algorithms.domain_analysis import build_integral_data
+from ufl.algorithms.domain_analysis import reconstruct_form_from_integral_data
 
 
 def _auto_select_degree(elements):
@@ -166,12 +167,19 @@ def _build_coefficient_replace_map(coefficients, element_mapping=None):
 
     return new_coefficients, replace_map
 
-def compute_form_data(form, apply_propagate_restrictions=True):
+def compute_form_data(form,
+                      # Default arguments configured to behave the way old FFC expects it:
+                      do_apply_function_pullbacks=False,
+                      do_apply_integral_scaling=False,
+                      do_apply_geometry_lowering=False,
+                      preserve_geometry_types=(),
+                      do_apply_restrictions=True,
+                      ):
 
     # TODO: Move this to the constructor instead
     self = FormData()
 
-    # Store untouched form for reference.
+    # --- Store untouched form for reference.
     # The user of FormData may get original arguments,
     # original coefficients, and form signature from this object.
     # But be aware that the set of original coefficients are not
@@ -179,37 +187,59 @@ def compute_form_data(form, apply_propagate_restrictions=True):
     # See 'reduced_coefficients' below.
     self.original_form = form
 
-    # Get rank of form from argument list (assuming not a mixed arity form)
-    self.rank = len(form.arguments())
-
-    # Extract common geometric dimension (topological is not common!)
-    gdims = set(domain.geometric_dimension() for domain in form.domains())
-    ufl_assert(len(gdims) == 1,
-               "Expecting all integrals in a form to share geometric dimension, got %s." % str(tuple(sorted(gdims))))
-    self.geometric_dimension, = gdims
-
-    # Build mapping from old incomplete element objects to new well defined elements.
-    # This is to support the Expression construct in dolfin which subclasses Coefficient
-    # but doesn't provide an element, and the Constant construct that doesn't provide
-    # the domain that a Coefficient is supposed to have. A future design iteration in
-    # UFL/UFC/FFC/DOLFIN may allow removal of this mapping with the introduction of UFL
-    # types for .
-    self.element_replace_map = _compute_element_mapping(form)
-
 
     # --- Pass form integrands through some symbolic manipulation
 
-    # Process form the way that is currently expected by FFC
-    preprocessed_form = expand_derivatives(form)
+    # Note: Default behaviour here will process form the way that is currently expected by vanilla FFC
 
-    if apply_propagate_restrictions:
-        preprocessed_form = propagate_restrictions(preprocessed_form)
+    # Lower abstractions for tensor-algebra types into index notation,
+    # reducing the number of operators later algorithms and form compilers
+    # need to handle
+    form = apply_algebra_lowering(form)
+
+    # Apply differentiation before function pullbacks, because for example
+    # coefficient derivatives are more complicated to derive after coefficients
+    # are rewritten, and in particular for user-defined coefficient relations it just gets too messy
+    form = apply_derivatives(form)
+
+    if do_apply_function_pullbacks:
+        # Rewrite coefficients and arguments in terms of their reference cell values
+        # with Piola transforms and symmetry transforms injected where needed.
+        # Decision: Not supporting grad(dolfin.Expression) without a Domain.
+        #           Current dolfin works if Expression has a cell
+        #           but this should be changed to a mesh.
+        form = apply_function_pullbacks(form)
+
+    # Scale integrals to reference cell frames
+    if do_apply_integral_scaling:
+        form = apply_integral_scaling(form)
+
+    # Lower abstractions for geometric quantities into a smaller set of quantities,
+    # allowing the form compiler to deal with a smaller set of types and treating
+    # geometric quantities like any other expressions w.r.t. loop-invariant code motion etc.
+    if do_apply_geometry_lowering:
+        form = apply_geometry_lowering(form, preserve_geometry_types)
+
+    # Apply differentiation again, because the algorithms above can generate
+    # new derivatives or rewrite expressions inside derivatives
+    if do_apply_function_pullbacks or do_apply_geometry_lowering:
+        form = apply_derivatives(form)
+
+        # Neverending story: apply_derivatives introduces new Jinvs, which needs more geometry lowering
+        if do_apply_geometry_lowering:
+            form = apply_geometry_lowering(form, preserve_geometry_types)
+            #form = apply_derivatives(form) # FIXME: Do we need yet another pass of this?
+
+    # Propagate restrictions to terminals
+    if do_apply_restrictions:
+        form = apply_restrictions(form)
 
 
     # --- Group and collect data about integrals
-    # TODO: Refactor this # TODO: Is form.domains() right here?
-    self.integral_data = \
-        build_integral_data(preprocessed_form.integrals(), form.domains())
+    # TODO: Refactor this, it's rather opaque what this does
+    # TODO: Is self.original_form.domains() right here?
+    #       It will matter when we start including 'num_domains' in ufc form.
+    self.integral_data = build_integral_data(form.integrals(), self.original_form.domains())
 
 
     # --- Create replacements for arguments and coefficients
@@ -234,13 +264,31 @@ def compute_form_data(form, apply_propagate_restrictions=True):
         reduced_coefficients_set.update(itg_data.integral_coefficients)
     self.reduced_coefficients = sorted(reduced_coefficients_set, key=lambda c: c.count())
     self.num_coefficients = len(self.reduced_coefficients)
-    self.original_coefficient_positions = [i for i, c in enumerate(form.coefficients())
+    self.original_coefficient_positions = [i for i, c in enumerate(self.original_form.coefficients())
                                            if c in self.reduced_coefficients]
 
     # Store back into integral data which form coefficients are used by each integral
     for itg_data in self.integral_data:
         itg_data.enabled_coefficients = [bool(coeff in itg_data.integral_coefficients)
                                          for coeff in self.reduced_coefficients]
+
+
+    # --- Collect some trivial data
+
+    # Get rank of form from argument list (assuming not a mixed arity form)
+    self.rank = len(self.original_form.arguments())
+
+    # Extract common geometric dimension (topological is not common!)
+    self.geometric_dimension = self.original_form.geometric_dimension()
+
+
+    # --- Build mapping from old incomplete element objects to new well defined elements.
+    # This is to support the Expression construct in dolfin which subclasses Coefficient
+    # but doesn't provide an element, and the Constant construct that doesn't provide
+    # the domain that a Coefficient is supposed to have. A future design iteration in
+    # UFL/UFC/FFC/DOLFIN may allow removal of this mapping with the introduction of UFL
+    # types for .
+    self.element_replace_map = _compute_element_mapping(self.original_form)
 
     """
     # Build mappings from coefficients, domains and geometric quantities
@@ -286,8 +334,10 @@ def compute_form_data(form, apply_propagate_restrictions=True):
         _build_coefficient_replace_map(self.reduced_coefficients, self.element_replace_map)
     self.function_replace_map = function_replace_map
 
+
     # --- Store various lists of elements and sub elements (adds members to self)
-    _compute_form_data_elements(self, form.arguments(), renumbered_coefficients)
+    _compute_form_data_elements(self, self.original_form.arguments(), renumbered_coefficients)
+
 
     # --- Store number of domains for integral types
     # TODO: Group this by domain first. For now keep a backwards compatible data structure.
@@ -301,9 +351,9 @@ def compute_form_data(form, apply_propagate_restrictions=True):
     # TODO: This is a very expensive check... Replace with something faster!
     preprocessed_form = reconstruct_form_from_integral_data(self.integral_data)
     #_check_form_arity(preprocessed_form)
-    check_form_arity(preprocessed_form, form.arguments()) # Currently testing how fast this is
+    check_form_arity(preprocessed_form, self.original_form.arguments()) # Currently testing how fast this is
 
-    # TODO: This is used by unit tests, change the tests!
+    # TODO: This member is used by unit tests, change the tests to remove this!
     self.preprocessed_form = preprocessed_form
 
     return self
