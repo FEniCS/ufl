@@ -94,6 +94,7 @@ any_cell  = (None,
 register_element("Lagrange", "CG",                       0, H1,    "identity", (1, None), any_cell + ("OuterProductCell",))  # "P", "Q"
 register_element("Brezzi-Douglas-Marini", "BDM",         1, HDiv,  "contravariant Piola", (1, None), simplices[1:])          # "BDMF" (2d), "N2F" (3d)
 register_element("Discontinuous Lagrange", "DG",         0, L2,    "identity", (0, None), any_cell + ("OuterProductCell",))  # "DP", "DQ"
+register_element("Discontinuous Taylor", "TDG",         0, L2,    "identity", (0, None), ("interval",)) 
 register_element("Nedelec 1st kind H(curl)", "N1curl",   1, HCurl, "covariant Piola", (1, None), simplices[1:])              # "RTE"  (2d), "N1E" (3d)
 register_element("Nedelec 2nd kind H(curl)", "N2curl",   1, HCurl, "covariant Piola", (1, None), simplices[1:])              # "BDME" (2d), "N2E" (3d)
 register_element("Raviart-Thomas", "RT",                 1, HDiv,  "contravariant Piola", (1, None), simplices[1:])          # "RTF"  (2d), "N1F" (3d)
