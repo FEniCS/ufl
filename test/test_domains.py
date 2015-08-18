@@ -1,4 +1,5 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 """
 Tests of domain language and attaching domains to forms.
 """

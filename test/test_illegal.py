@@ -1,4 +1,5 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 
 import pytest
 
@@ -85,5 +86,3 @@ def test_add_vectorexpr_b(vg, v, u, vf, b):
     tmp = vg + v + u + vf
     with pytest.raises(UFLException):
         tmp + b
-
-

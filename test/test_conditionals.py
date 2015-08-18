@@ -1,4 +1,5 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2008-08-20 -- 2012-11-30"
@@ -163,5 +164,3 @@ def test_ge_produces_ufl_expr(f, g):
     # Protection from misuse in boolean python expression context:
     with pytest.raises(UFLException):
         bool(expr1)
-
-

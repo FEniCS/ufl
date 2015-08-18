@@ -1,4 +1,5 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 
 __authors__ = "Martin Sandve Alnes"
 __date__ = "2011-04-14 -- 2011-04-14"

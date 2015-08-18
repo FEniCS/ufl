@@ -1,4 +1,5 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 
 __authors__ = "David Ham"
 __date__ = "2014-03-04"
@@ -97,4 +98,3 @@ def test_contains_hcurl():
         assert hcurl_element not in H1
         assert hcurl_element not in HDiv
         assert hcurl_element not in H2
-

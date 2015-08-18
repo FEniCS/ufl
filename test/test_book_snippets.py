@@ -1,4 +1,5 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 """
 This file contains snippets from the FEniCS book,
 and allows us to test that these can still run
