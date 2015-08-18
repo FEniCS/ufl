@@ -41,7 +41,7 @@ from ufl.classes import (Expr, Form, Integral,
                          CellVolume, FacetArea,
                          SpatialCoordinate)
 #FacetJacobianInverse,
-#CellOrientation, FacetOrientation, QuadratureWeight,
+#FacetOrientation, QuadratureWeight,
 
 from ufl.tensors import as_tensor, as_vector
 from ufl.operators import sqrt, max_value, min_value
@@ -90,8 +90,9 @@ class GeometryLoweringApplier(MultiFunction):
 
         domain = o.domain()
         J = self.jacobian(Jacobian(domain))
-        # This could in principle use preserve_types[JacobianDeterminant] with minor refactoring:
-        return inverse_expr(J)
+        # TODO: This could in principle use preserve_types[JacobianDeterminant] with minor refactoring:
+        K = inverse_expr(J)
+        return K
 
     @memoized_handler
     def jacobian_determinant(self, o):
@@ -101,9 +102,13 @@ class GeometryLoweringApplier(MultiFunction):
         domain = o.domain()
         J = self.jacobian(Jacobian(domain))
         detJ = determinant_expr(J)
+
+        # TODO: Is "signing" the determinant for manifolds the cleanest approach?
+        #       The alternative is to have a specific type for the unsigned pseudo-determinant.
         if domain.topological_dimension() < domain.geometric_dimension():
             co = CellOrientation(domain)
             detJ = co*detJ
+
         return detJ
 
     @memoized_handler
@@ -135,9 +140,13 @@ class GeometryLoweringApplier(MultiFunction):
         domain = o.domain()
         FJ = self.facet_jacobian(FacetJacobian(domain))
         detFJ = determinant_expr(FJ)
-        if domain.topological_dimension() < domain.geometric_dimension():
-            co = CellOrientation(domain)
-            detFJ = co*detFJ # TODO: Is CellOrientation correct here?
+
+        # TODO: Should we "sign" the facet jacobian determinant for manifolds?
+        #       It's currently used unsigned in apply_integral_scaling.
+        #if domain.topological_dimension() < domain.geometric_dimension():
+        #    co = CellOrientation(domain)
+        #    detFJ = co*detFJ
+
         return detFJ
 
     @memoized_handler
