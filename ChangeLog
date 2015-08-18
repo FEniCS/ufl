@@ -1,3 +1,7 @@
+1.7.0dev
+ - Remove ancient form2ufl script
+ - Large reworking of symbolic geometry pipeline
+ - Implement symbolic Piola mappings
 1.6.0 [2015-07-28]
  - Change approach to attaching __hash__ implementation to accomodate python 3
  - Implement new non-recursive traversal based hash computation
