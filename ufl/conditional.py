@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """This module defines classes for conditional expressions."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnæs
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #

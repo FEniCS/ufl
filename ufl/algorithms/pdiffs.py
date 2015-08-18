@@ -2,7 +2,7 @@
 """This module defines partial differentiation rules for
 all relevant operands for use with reverse mode AD."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnæs
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #

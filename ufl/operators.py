@@ -4,7 +4,7 @@ which are either already available as member functions on UFL objects
 or defined as compound operators involving basic operations on the UFL
 objects."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnæs and Anders Logg
+# Copyright (C) 2008-2015 Martin Sandve Alnæs and Anders Logg
 #
 # This file is part of UFL.
 #

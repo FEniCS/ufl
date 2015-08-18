@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Functions to check properties of forms and integrals."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnæs and Anders Logg
+# Copyright (C) 2008-2015 Martin Sandve Alnæs and Anders Logg
 #
 # This file is part of UFL.
 #

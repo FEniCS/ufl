@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 "Various utilities accessing system io."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnæs and Johannes Ring
+# Copyright (C) 2008-2015 Martin Sandve Alnæs and Johannes Ring
 #
 # This file is part of UFL.
 #

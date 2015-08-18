@@ -152,7 +152,7 @@ A very brief overview of the language contents follows:
     sensitivity_rhs, derivative
 """
 
-# Copyright (C) 2008-2014 Martin Sandve Alnæs and Anders Logg
+# Copyright (C) 2008-2015 Martin Sandve Alnæs and Anders Logg
 #
 # This file is part of UFL.
 #

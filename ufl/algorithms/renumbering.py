@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 "Algorithms for renumbering of counted objects, currently variables and indices."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnæs and Anders Logg
+# Copyright (C) 2008-2015 Martin Sandve Alnæs and Anders Logg
 #
 # This file is part of UFL.
 #
