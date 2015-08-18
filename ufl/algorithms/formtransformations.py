@@ -2,7 +2,7 @@
 """This module defines utilities for transforming
 complete Forms into new related Forms."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2014 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #

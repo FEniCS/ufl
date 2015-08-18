@@ -3,7 +3,7 @@
 either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2014 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #

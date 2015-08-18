@@ -3,7 +3,7 @@
 of UFL objects in the DOT graph visualization language,
 mostly intended for debugging purposers."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2014 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #

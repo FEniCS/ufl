@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Utility functions for checking properties of expressions."""
 
-# Copyright (C) 2013-2014 Martin Sandve Alnes
+# Copyright (C) 2013-2014 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #

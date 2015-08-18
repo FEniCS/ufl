@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 "This module defines the UFL finite element classes."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2014 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #

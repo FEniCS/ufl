@@ -19,7 +19,7 @@ and generating index lists."""
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
-# Modified by Martin Alnes 2009-2014
+# Modified by Martin Alnæs 2009-2014
 
 from six.moves import xrange as range
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env py.test
 # -*- coding: utf-8 -*-
 
-__authors__ = "Martin Sandve Alnes"
+__authors__ = "Martin Sandve Alnæs"
 __date__ = "2008-03-12 -- 2009-01-28"
 
 # Modified by Anders Logg, 2008

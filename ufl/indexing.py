@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """This module defines the single index types and some internal index utilities."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes and Anders Logg
+# Copyright (C) 2008-2014 Martin Sandve Alnæs and Anders Logg
 #
 # This file is part of UFL.
 #

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Functions implementing compound expressions as equivalent representations using basic operators."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes and Anders Logg
+# Copyright (C) 2008-2014 Martin Sandve Alnæs and Anders Logg
 #
 # This file is part of UFL.
 #

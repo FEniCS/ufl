@@ -3,7 +3,7 @@
 for expanding free indices in expressions to explicit fixed
 indices only."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2014 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #

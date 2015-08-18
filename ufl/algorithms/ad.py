@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Front-end for AD routines."""
 
-# Copyright (C) 2008-2015 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 "Utilities for analysing and manipulating free index tuples"
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2014 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #

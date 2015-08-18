@@ -5,7 +5,7 @@ The algorithms here are non-recursive, which is faster than recursion
 by a factor 10 or so because of the function call overhead.
 """
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2014 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
