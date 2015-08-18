@@ -19,14 +19,14 @@ from ufl.finiteelement.outerproductelement import OuterProductElement
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
-class HDiv(OuterProductElement):
+class HDivElement(OuterProductElement):
     """A div-conforming version of an outer product element, assuming
     this makes mathematical sense."""
     __slots__ = ("_element")
 
     def __init__(self, element):
         self._element = element
-        self._repr = "HDiv(%s)" % str(element._repr)
+        self._repr = "HDivElement(%r)" % element
         self._mapping = "contravariant Piola"
 
         family = "OuterProductElement"
@@ -40,39 +40,39 @@ class HDiv(OuterProductElement):
                                    quad_scheme, value_shape, reference_value_shape)
 
     def reconstruct(self, **kwargs):
-        """Construct a new HDiv object with some properties
+        """Construct a new HDivElement object with some properties
         replaced with new values."""
         domain = kwargs.get("domain", self.domain())
         ele = self._element.reconstruct(domain=domain)
-        return HDiv(ele)
+        return HDivElement(ele)
 
     def reconstruction_signature(self):
-        return "HDiv(%s)" % self._element.reconstruction_signature()
+        return "HDivElement(%s)" % self._element.reconstruction_signature()
 
     def signature_data(self, renumbering):
-        data = ("HDiv", self._element.signature_data(renumbering),
+        data = ("HDivElement", self._element.signature_data(renumbering),
                 ("no domain" if self._domain is None else self._domain
                     .signature_data(renumbering)))
         return data
 
     def __str__(self):
-        return "HDiv(%s)" % str(self._element)
+        return "HDivElement(%s)" % str(self._element)
 
     def shortstr(self):
-        return "HDiv(%s)" % str(self._element.shortstr())
+        return "HDivElement(%s)" % str(self._element.shortstr())
 
     def __repr__(self):
         return self._repr
 
 
-class HCurl(OuterProductElement):
+class HCurlElement(OuterProductElement):
     """A curl-conforming version of an outer product element, assuming
     this makes mathematical sense."""
     __slots__ = ("_element")
 
     def __init__(self, element):
         self._element = element
-        self._repr = "HCurl(%s)" % str(element._repr)
+        self._repr = "HCurlElement(%r)" % element
         self._mapping = "covariant Piola"
 
         family = "OuterProductElement"
@@ -86,26 +86,26 @@ class HCurl(OuterProductElement):
                                     quad_scheme, value_shape, reference_value_shape)
 
     def reconstruct(self, **kwargs):
-        """Construct a new HCurl object with some properties
+        """Construct a new HCurlElement object with some properties
         replaced with new values."""
         domain = kwargs.get("domain", self.domain())
         ele = self._element.reconstruct(domain=domain)
-        return HCurl(ele)
+        return HCurlElement(ele)
 
     def reconstruction_signature(self):
-        return "HCurl(%s)" % self._element.reconstruction_signature()
+        return "HCurlElement(%s)" % self._element.reconstruction_signature()
 
     def signature_data(self, renumbering):
-        data = ("HCurl", self._element.signature_data(renumbering),
+        data = ("HCurlElement", self._element.signature_data(renumbering),
                 ("no domain" if self._domain is None else self._domain
                     .signature_data(renumbering)))
         return data
 
     def __str__(self):
-        return "HCurl(%s)" % str(self._element)
+        return "HCurlElement(%s)" % str(self._element)
 
     def shortstr(self):
-        return "HCurl(%s)" % str(self._element.shortstr())
+        return "HCurlElement(%s)" % str(self._element.shortstr())
 
     def __repr__(self):
         return self._repr
