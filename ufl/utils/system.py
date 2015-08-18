@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 "Various utilities accessing system io."
 
 # Copyright (C) 2008-2014 Martin Sandve Alnes and Johannes Ring

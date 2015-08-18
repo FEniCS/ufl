@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 
 from ufl.core.expr import Expr

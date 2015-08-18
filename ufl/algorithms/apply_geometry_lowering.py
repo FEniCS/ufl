@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Algorithm for lowering abstractions of geometric types.
 
 This means replacing high-level types with expressions

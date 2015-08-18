@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 "This module contains a collection of common utilities."
 
 # Copyright (C) 2008-2014 Martin Sandve Alnes and Anders Logg

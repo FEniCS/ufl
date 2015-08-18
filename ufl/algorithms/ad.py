@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Front-end for AD routines."""
 
 # Copyright (C) 2008-2015 Martin Sandve Alnes

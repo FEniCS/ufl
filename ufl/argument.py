@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """This module defines the class Argument and a number of related
 classes (functions), including TestFunction and TrialFunction."""
 

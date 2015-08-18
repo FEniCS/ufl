@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """This module defines the Coefficient class and a number
 of related classes, including Constant."""
 

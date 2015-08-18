@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Defines the Variable and Label classes, used to label
 expressions as variables for differentiation."""
 

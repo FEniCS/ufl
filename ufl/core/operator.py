@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 "Base class for all operators, i.e. non-terminal expr types."
 
 # Copyright (C) 2008-2014 Martin Sandve Alnes

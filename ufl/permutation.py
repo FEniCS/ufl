@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """This module provides utility functions for computing permutations
 and generating index lists."""
 

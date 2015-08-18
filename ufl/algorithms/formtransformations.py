@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """This module defines utilities for transforming
 complete Forms into new related Forms."""
 

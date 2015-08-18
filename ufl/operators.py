@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """This module extends the form language with free function operators,
 which are either already available as member functions on UFL objects
 or defined as compound operators involving basic operations on the UFL

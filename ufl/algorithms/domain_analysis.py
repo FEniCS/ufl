@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Algorithms for building canonical data structure for integrals over subdomains."""
 
 # Copyright (C) 2009-2014 Anders Logg and Martin Sandve Alnes

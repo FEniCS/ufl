@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """A collection of utility algorithms for printing
 of UFL objects in the DOT graph visualization language,
 mostly intended for debugging purposers."""

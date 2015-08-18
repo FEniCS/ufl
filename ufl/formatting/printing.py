@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """A collection of utility algorithms for printing
 of UFL objects, mostly intended for debugging purposes."""
 

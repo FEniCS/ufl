@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 "This module defines basic utilities for stitching together LaTeX documents."
 
 # Copyright (C) 2008-2014 Martin Sandve Alnes

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Utility algorithms for inspection of and information extraction from UFL objects in various ways."""
 
 # Copyright (C) 2008-2014 Martin Sandve Alnes

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """This module provides assertion functions used by the UFL implementation."""
 
 # Copyright (C) 2008-2014 Martin Sandve Alnes

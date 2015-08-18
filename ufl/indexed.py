@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """This module defines the Indexed class."""
 
 # Copyright (C) 2008-2014 Martin Sandve Alnes

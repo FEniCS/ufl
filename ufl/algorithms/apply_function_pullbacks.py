@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Algorithm for replacing gradients in an expression with reference gradients and coordinate mappings."""
 
 # Copyright (C) 2008-2015 Martin Sandve Alnes

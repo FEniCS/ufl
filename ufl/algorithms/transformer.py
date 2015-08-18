@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """This module defines the Transformer base class and some
 basic specializations to further base other algorithms upon,
 as well as some utilities for easier application of such

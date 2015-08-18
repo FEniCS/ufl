@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 "This module collects algorithms and utility functions operating on UFL objects."
 
 # Copyright (C) 2008-2015 Martin Sandve Alnes

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Algorithm for expanding compound expressions into
 equivalent representations using basic operators."""
 

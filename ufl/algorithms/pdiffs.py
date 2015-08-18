@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """This module defines partial differentiation rules for
 all relevant operands for use with reverse mode AD."""
 

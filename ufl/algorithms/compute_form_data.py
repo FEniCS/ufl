@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """This module provides the compute_form_data function which form compilers
 will typically call prior to code generation to preprocess/simplify a
 raw input form given by a user."""

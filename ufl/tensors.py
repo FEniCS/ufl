@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Classes used to group scalar expressions into expressions with rank > 0."""
 
 # Copyright (C) 2008-2014 Martin Sandve Alnes

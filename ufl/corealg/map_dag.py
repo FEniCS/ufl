@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Basic algorithms for applying functions to subexpressions."""
 
 # Copyright (C) 2014 Martin Sandve Alnes

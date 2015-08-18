@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 "This module defines classes representing constant values."
 
 # Copyright (C) 2008-2014 Martin Sandve Alnes

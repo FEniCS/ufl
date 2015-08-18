@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Algorithms for working with linearized computational graphs."""
 
 # Copyright (C) 2008-2014 Martin Sandve Alnes

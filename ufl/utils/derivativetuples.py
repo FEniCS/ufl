@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 "This module contains a collection of utilities for representing partial derivatives as integer tuples."
 
 # Copyright (C) 2013-2014 Martin Sandve Alnes and Anders Logg

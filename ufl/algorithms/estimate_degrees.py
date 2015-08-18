@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Algorithms for estimating polynomial degrees of expressions."""
 
 # Copyright (C) 2008-2014 Martin Sandve Alnes and Anders Logg

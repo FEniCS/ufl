@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Algorithm for replacing terminals in an expression."""
 
 # Copyright (C) 2008-2014 Martin Sandve Alnes and Anders Logg

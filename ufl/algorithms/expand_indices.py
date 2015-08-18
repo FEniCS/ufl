@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """This module defines expression transformation utilities,
 for expanding free indices in expressions to explicit fixed
 indices only."""

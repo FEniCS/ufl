@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 "The Form class."
 
 # Copyright (C) 2008-2014 Martin Sandve Alnes

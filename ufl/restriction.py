@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Restriction operations."""
 
 # Copyright (C) 2008-2015 Martin Sandve Alnes

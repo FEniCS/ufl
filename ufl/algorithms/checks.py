@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Functions to check the validity of forms."""
 
 # Copyright (C) 2008-2014 Martin Sandve Alnes

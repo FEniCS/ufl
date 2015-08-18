@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """This module attaches special functions to Expr.
 This way we avoid circular dependencies between e.g.
 Sum and its superclass Expr."""

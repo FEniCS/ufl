@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 "Utilites for types with a global unique counter attached to each object."
 
 # Copyright (C) 2008-2014 Martin Sandve Alnes

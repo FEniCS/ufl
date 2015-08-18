@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 "Representation of the reference value of a function."
 
 # Copyright (C) 2008-2014 Martin Sandve Alnes

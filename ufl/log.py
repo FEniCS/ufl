@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """This module provides functions used by the UFL implementation to
 output messages. These may be redirected by the user of UFL."""
 

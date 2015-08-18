@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 "Utility objects for pretty syntax in user code."
 
 # Copyright (C) 2008-2014 Martin Sandve Alnes

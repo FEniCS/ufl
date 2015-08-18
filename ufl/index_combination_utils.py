@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 "Utilities for analysing and manipulating free index tuples"
 
 # Copyright (C) 2008-2014 Martin Sandve Alnes

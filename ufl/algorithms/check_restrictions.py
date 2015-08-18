@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 "Algorithms related to restrictions."
 
 # Copyright (C) 2008-2015 Martin Sandve Alnes

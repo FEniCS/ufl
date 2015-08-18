@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """This module defines expression transformation utilities,
 either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""

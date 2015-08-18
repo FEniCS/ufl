@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Compound tensor algebra operations."""
 
 # Copyright (C) 2008-2014 Martin Sandve Alnes

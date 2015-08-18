@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """This module defines the Expr class, the superclass
 for all expression tree node types in UFL.
 

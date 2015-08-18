@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """This module contains the apply_derivatives algorithm which computes the derivatives of a form of expression."""
 
 # Copyright (C) 2008-2014 Martin Sandve Alnes

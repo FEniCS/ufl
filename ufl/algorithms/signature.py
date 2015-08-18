@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Signature computation for forms."""
 
 # Copyright (C) 2012-2014 Martin Sandve Alnes

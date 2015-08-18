@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """This module provides basic mathematical functions."""
 
 # Copyright (C) 2008-2014 Martin Sandve Alnes

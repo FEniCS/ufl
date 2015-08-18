@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 "The Equation class, used to express equations like a == L."
 
 # Copyright (C) 2012-2014 Anders Logg and Martin Sandve Alnes

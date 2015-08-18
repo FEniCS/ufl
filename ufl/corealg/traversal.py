@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Various expression traversal utilities.
 
 The algorithms here are non-recursive, which is faster than recursion

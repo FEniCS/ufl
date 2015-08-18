@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 "Various string formatting utilities."
 
 # Copyright (C) 2008-2014 Martin Sandve Alnes and Anders Logg

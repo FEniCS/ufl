@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 "Various high level ways to transform a complete Form into a new Form."
 
 # Copyright (C) 2008-2014 Martin Sandve Alnes

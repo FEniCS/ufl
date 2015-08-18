@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (C) 2008-2014 Andrew T. T. McRae
 #
 # This file is part of UFL.

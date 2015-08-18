@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """This file is useful for external code like tests and form compilers,
 since it enables the syntax "from ufl.classes import CellFacetooBar" for getting
 implementation details not exposed through the default ufl namespace.
