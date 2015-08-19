@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 """Algorithm for lowering abstractions of geometric types.
 
 This means replacing high-level types with expressions
 of mostly the Jacobian and reference cell data.
 """
 
-# Copyright (C) 2013-2015 Martin Sandve Alnes
+# Copyright (C) 2013-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #

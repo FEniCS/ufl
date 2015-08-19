@@ -1,4 +1,5 @@
 #!/use/bin/env py.test
+# -*- coding: utf-8 -*-
 
 """
 Tests of the various ways Measure objects can be created and used.

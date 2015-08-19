@@ -1,8 +1,9 @@
+# -*- coding: utf-8 -*-
 """This module defines expression transformation utilities,
 for expanding free indices in expressions to explicit fixed
 indices only."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #

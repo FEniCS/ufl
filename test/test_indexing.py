@@ -1,4 +1,5 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 import pytest
 from ufl import *
 from ufl.classes import *

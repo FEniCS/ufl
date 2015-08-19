@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 "Utilites for sorting."
 
-# Copyright (C) 2008-2014 Johan Hake
+# Copyright (C) 2008-2015 Johan Hake
 #
 # This file is part of UFL.
 #

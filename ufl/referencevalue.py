@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 "Representation of the reference value of a function."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #

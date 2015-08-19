@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """The Measure class."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -17,7 +18,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
-# Modified by Anders Logg 2008-2014
+# Modified by Anders Logg 2008-2015
 
 from ufl.assertions import ufl_assert
 from ufl.log import error, warning

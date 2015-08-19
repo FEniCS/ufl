@@ -1,7 +1,8 @@
+# -*- coding: utf-8 -*-
 """A collection of utility algorithms for printing
 of UFL objects, mostly intended for debugging purposes."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #

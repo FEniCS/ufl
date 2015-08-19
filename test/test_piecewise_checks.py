@@ -1,4 +1,5 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 
 """
 Test the is_cellwise_constant function on all relevant terminal types.

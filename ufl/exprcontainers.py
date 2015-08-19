@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """This module defines special types for representing mapping of expressions to expressions."""
 
-# Copyright (C) 2014 Martin Sandve Alnes
+# Copyright (C) 2014 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #

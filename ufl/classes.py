@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 """This file is useful for external code like tests and form compilers,
 since it enables the syntax "from ufl.classes import CellFacetooBar" for getting
 implementation details not exposed through the default ufl namespace.
 It also contains functionality used by algorithms for dealing with groups
 of classes, and for mapping types to different handler functions."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #

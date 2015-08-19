@@ -1,4 +1,5 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 
 # Last changed: 2014-02-24
 
@@ -193,4 +194,3 @@ def test_radau():
 
         element = FiniteElement("Radau", cell, degree)
         assert element == eval(repr(element))
-

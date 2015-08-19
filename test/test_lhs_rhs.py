@@ -1,4 +1,5 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 
 __authors__ = "Marie E. Rognes"
 
@@ -70,4 +71,3 @@ def test_lhs_rhs_slightly_obscure():
     F = f * w * dx
     a, L = system(F)
     assert(len(L.integrals()) == 1)
-

@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 "Base class for all operators, i.e. non-terminal expr types."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #

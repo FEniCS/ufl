@@ -1,6 +1,7 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 
-__authors__ = "Martin Sandve Alnes"
+__authors__ = "Martin Sandve Alnæs"
 __date__ = "2009-02-17 -- 2009-02-17"
 
 import pytest

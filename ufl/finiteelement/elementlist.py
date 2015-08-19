@@ -1,8 +1,9 @@
+# -*- coding: utf-8 -*-
 """This module provides an extensive list of predefined finite element
 families. Users or more likely, form compilers, may register new
 elements by calling the function register_element."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes and Anders Logg
+# Copyright (C) 2008-2015 Martin Sandve Alnæs and Anders Logg
 #
 # This file is part of UFL.
 #

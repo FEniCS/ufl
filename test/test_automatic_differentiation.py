@@ -1,4 +1,5 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 
 """
 These tests should cover the behaviour of the automatic differentiation

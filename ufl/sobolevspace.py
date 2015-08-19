@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """This module defines a symbolic heirarchy of Sobolev spaces to enable
 symbolic reasoning about the spaces in which finite elements lie."""
 

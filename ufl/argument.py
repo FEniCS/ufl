@@ -1,7 +1,8 @@
+# -*- coding: utf-8 -*-
 """This module defines the class Argument and a number of related
 classes (functions), including TestFunction and TrialFunction."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
