@@ -31,7 +31,7 @@ from ufl.assertions import ufl_assert
 from ufl.common import istr, EmptyDict
 from ufl.core.terminal import Terminal
 from ufl.protocols import id_or_none
-from ufl.cell import as_cell, affine_cells, Cell, ProductCell
+from ufl.cell import as_cell, AbstractCell, Cell, ProductCell
 
 
 class Domain(object):
@@ -82,7 +82,7 @@ class Domain(object):
         # To avoid circular dependencies...
         from ufl.coefficient import Coefficient
 
-        if isinstance(arg, Cell):
+        if isinstance(arg, AbstractCell):
             # Allow keyword arguments for label or data
             self._coordinates = None
             self._cell = arg
@@ -109,7 +109,7 @@ class Domain(object):
             ufl_error("Invalid first argument to Domain.")
 
         # Now we should have a Cell or something went wrong
-        ufl_assert(isinstance(self._cell, Cell), "Failed to construct a Cell from input arguments.")
+        ufl_assert(isinstance(self._cell, AbstractCell), "Failed to construct a Cell from input arguments.")
         self._geometric_dimension = self._cell.geometric_dimension()
         self._topological_dimension = self._cell.topological_dimension()
 
@@ -181,7 +181,7 @@ class Domain(object):
         return self._label
 
     def is_piecewise_linear_simplex_domain(self):
-        return (self.coordinate_element().degree() == 1) and (self.cell().cellname() in affine_cells)
+        return (self.coordinate_element().degree() == 1) and self.cell().is_simplex()
 
     def data(self):
         "Return attached data object."

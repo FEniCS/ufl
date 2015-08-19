@@ -25,7 +25,8 @@ from six.moves import zip
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
 from ufl.common import product, istr, EmptyDict
-from ufl.geometry import Cell, as_cell, as_domain, Domain
+from ufl.cell import AbstractCell
+from ufl.geometry import as_cell, as_domain, Domain
 from ufl.log import info_blue, warning, warning_blue, error
 
 
@@ -56,7 +57,7 @@ class FiniteElementBase(object):
             self._domain = as_domain(domain)
             self._cell = self._domain.cell()
             ufl_assert(isinstance(self._domain, Domain), "Invalid domain type.")
-            ufl_assert(isinstance(self._cell, Cell), "Invalid cell type.")
+            ufl_assert(isinstance(self._cell, AbstractCell), "Invalid cell type.")
 
         self._family = family
         self._degree = degree
@@ -228,13 +229,7 @@ class FiniteElementBase(object):
 
     def __getitem__(self, index):
         "Restrict finite element to a subdomain, subcomponent or topology (cell)."
-        # NOTE: RestrictedElement will not be used to represent restriction
-        #       to subdomains, as that is represented by the element having
-        #       a domain property that is a Region.
-        # NOTE: Implementing restriction to subdomains with [] should not be
-        #       done, as V[1] is ambiguously similar to both indexing expressions
-        #       and obtaining a subdomain, such as myexpr[1] and mydomain[1].
-        if isinstance(index, Cell) or index == "facet":
+        if index in ("facet", "interior"):
             from ufl.finiteelement import RestrictedElement
             return RestrictedElement(self, index)
         return NotImplemented
