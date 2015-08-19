@@ -6,7 +6,8 @@ __date__ = "2014-03-04"
 
 import pytest
 from ufl import FiniteElement, triangle
-from ufl.sobolevspace import H2, H1, HDiv, HCurl, L2, SobolevSpace
+from ufl.sobolevspace import SobolevSpace
+from ufl import H2, H1, HDiv, HCurl, L2
 
 # TODO: Add construction of all elements with periodic table notation here.
 
