@@ -39,6 +39,7 @@ from ufl.classes import (Expr, Form, Integral,
                          CellFacetJacobian,
                          CellEdgeVectors, FacetEdgeVectors,
                          FacetNormal, CellNormal, ReferenceNormal,
+                         ReferenceCellVolume, ReferenceFacetVolume,
                          CellVolume, FacetArea,
                          SpatialCoordinate)
 #FacetJacobianInverse,
@@ -198,9 +199,12 @@ class GeometryLoweringApplier(MultiFunction):
 
         domain = o.domain()
         if not domain.is_piecewise_linear_simplex_domain():
-            error("Only know how to compute the cell volume of an affine cell.")
+            # Don't lower for non-affine cells, instead leave it to form compiler
+            warning("Only know how to compute the cell volume of an affine cell.")
+            return o
+
         r = self.jacobian_determinant(JacobianDeterminant(domain))
-        r0 = domain.cell().reference_volume()
+        r0 = ReferenceCellVolume(domain)
         return abs(r * r0)
 
     @memoized_handler
@@ -210,9 +214,12 @@ class GeometryLoweringApplier(MultiFunction):
 
         domain = o.domain()
         if not domain.is_piecewise_linear_simplex_domain():
-            error("Only know how to compute the facet area of an affine cell.")
+            # Don't lower for non-affine cells, instead leave it to form compiler
+            warning("Only know how to compute the facet area of an affine cell.")
+            return o
+
         r = self.facet_jacobian_determinant(FacetJacobianDeterminant(domain))
-        r0 = domain.cell().reference_facet_volume()
+        r0 = ReferenceFacetVolume(domain)
         return abs(r * r0)
 
     @memoized_handler
@@ -222,7 +229,10 @@ class GeometryLoweringApplier(MultiFunction):
 
         domain = o.domain()
         if not domain.is_piecewise_linear_simplex_domain():
-            error("Only know how to compute the circumradius of an affine cell.")
+            # Don't lower for non-affine cells, instead leave it to form compiler
+            warning("Only know how to compute the circumradius of an affine cell.")
+            return o
+
         cellname = domain.cell().cellname()
         cellvolume = self.cell_volume(CellVolume(domain))
 
@@ -272,7 +282,10 @@ class GeometryLoweringApplier(MultiFunction):
 
         domain = o.domain()
         if not domain.is_piecewise_linear_simplex_domain():
-            error("Only know how to compute the min_cell_edge_length of an affine cell.")
+            # Don't lower for non-affine cells, instead leave it to form compiler
+            warning("Only know how to compute the min_cell_edge_length of an affine cell.")
+            return o
+
         cellname = domain.cell().cellname()
 
         J = self.jacobian(Jacobian(domain))
@@ -298,7 +311,10 @@ class GeometryLoweringApplier(MultiFunction):
 
         domain = o.domain()
         if not domain.is_piecewise_linear_simplex_domain():
-            error("Only know how to compute the max_cell_edge_length of an affine cell.")
+            # Don't lower for non-affine cells, instead leave it to form compiler
+            warning("Only know how to compute the max_cell_edge_length of an affine cell.")
+            return o
+
         cellname = domain.cell().cellname()
 
         J = self.jacobian(Jacobian(domain))
@@ -324,7 +340,10 @@ class GeometryLoweringApplier(MultiFunction):
 
         domain = o.domain()
         if not domain.is_piecewise_linear_simplex_domain():
-            error("Only know how to compute the min_facet_edge_length of an affine cell.")
+            # Don't lower for non-affine cells, instead leave it to form compiler
+            warning("Only know how to compute the min_facet_edge_length of an affine cell.")
+            return o
+
         cellname = domain.cell().cellname()
 
         if cellname == "triangle":
@@ -347,7 +366,10 @@ class GeometryLoweringApplier(MultiFunction):
 
         domain = o.domain()
         if not domain.is_piecewise_linear_simplex_domain():
-            error("Only know how to compute the max_facet_edge_length of an affine cell.")
+            # Don't lower for non-affine cells, instead leave it to form compiler
+            warning("Only know how to compute the max_facet_edge_length of an affine cell.")
+            return o
+
         cellname = domain.cell().cellname()
 
         if cellname == "triangle":

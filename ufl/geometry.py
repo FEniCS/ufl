@@ -28,7 +28,7 @@ from ufl.assertions import ufl_assert
 from ufl.common import istr, EmptyDict
 from ufl.core.terminal import Terminal
 from ufl.protocols import id_or_none
-from ufl.cell import as_cell, affine_cells, Cell, ProductCell
+from ufl.cell import as_cell, Cell, ProductCell
 from ufl.domain import as_domain, Domain, extract_domains, join_domains, ProductDomain
 from ufl.core.ufl_type import ufl_type
 
@@ -511,11 +511,10 @@ class FacetNormal(GeometricFacetQuantity):
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
-        # TODO: For product cells, this depends on which facet. Seems like too much work to fix right now.
-        # Only true for a piecewise linear coordinate field with simplex _facets_
+        # For product cells, this is only true for some but not all facets. Seems like too much work to fix right now.
+        # Only true for a piecewise linear coordinate field with simplex _facets_.
         is_piecewise_linear = self._domain.coordinate_element().degree() == 1
-        has_simplex_facets = (self._domain.cell().facet_cellname() in affine_cells)
-        return is_piecewise_linear and has_simplex_facets
+        return is_piecewise_linear and self._domain.cell().has_simplex_facets()
 
 # TODO: Should it be CellNormals? For interval in 3D we have two!
 @ufl_type()
@@ -563,7 +562,7 @@ class ReferenceNormal(GeometricFacetQuantity):
 #        # TODO: For product cells, this depends on which facet. Seems like too much work to fix right now.
 #        # Only true for a piecewise linear coordinate field with simplex _facets_
 #        is_piecewise_linear = self._domain.coordinate_element().degree() == 1
-#        has_simplex_facets = (self._domain.cell().facet_cellname() in affine_cells)
+#        has_simplex_facets = self._domain.cell().has_simplex_facets()
 #        return is_piecewise_linear and has_simplex_facets
 
 # TODO: Implement in change_to_reference_geometry and enable
@@ -610,6 +609,18 @@ class ReferenceNormal(GeometricFacetQuantity):
 # --- Types representing measures of the cell and entities of the cell, typically used for stabilisation terms
 
 # TODO: Clean up this set of types? Document!
+
+@ufl_type()
+class ReferenceCellVolume(GeometricCellQuantity):
+    """UFL geometry representation: The volume of the reference cell."""
+    __slots__ = ()
+    name = "reference_cell_volume"
+
+@ufl_type()
+class ReferenceFacetVolume(GeometricFacetQuantity):
+    """UFL geometry representation: The volume of the reference cell of the current facet."""
+    __slots__ = ()
+    name = "reference_facet_volume"
 
 @ufl_type()
 class CellVolume(GeometricCellQuantity):
