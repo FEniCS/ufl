@@ -20,7 +20,7 @@
 
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
-from ufl.common import EmptyDict
+from ufl.utils.dicts import EmptyDict
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type

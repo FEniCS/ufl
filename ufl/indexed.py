@@ -25,7 +25,7 @@ from ufl.core.operator import Operator
 from ufl.core.multiindex import Index, FixedIndex, MultiIndex, as_multi_index
 from ufl.index_combination_utils import unique_sorted_indices, merge_unique_indices
 from ufl.precedence import parstr
-from ufl.common import EmptyDict
+from ufl.utils.dicts import EmptyDict
 from ufl.core.ufl_type import ufl_type
 
 #--- Indexed expression ---

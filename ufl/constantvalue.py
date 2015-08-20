@@ -29,7 +29,7 @@ from ufl.assertions import ufl_assert, expecting_python_scalar
 from ufl.core.expr import Expr
 from ufl.core.terminal import Terminal
 from ufl.core.multiindex import Index, FixedIndex
-from ufl.common import EmptyDict
+from ufl.utils.dicts import EmptyDict
 from ufl.core.ufl_type import ufl_type
 
 #--- Helper functions imported here for compatibility---

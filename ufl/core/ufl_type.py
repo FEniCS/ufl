@@ -4,7 +4,8 @@
 from ufl.core.expr import Expr
 from ufl.core.compute_expr_hash import compute_expr_hash
 
-from ufl.common import camel2underscore, EmptyDict
+from ufl.utils.formatting import camel2underscore
+from ufl.utils.dicts import EmptyDict
 
 # Make UFL type coercion available under the as_ufl name
 #as_ufl = Expr._ufl_coerce_

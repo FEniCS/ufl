@@ -25,7 +25,7 @@ from ufl.constantvalue import as_ufl
 from ufl.precedence import parstr
 from ufl.exprequals import expr_equals
 from ufl.checks import is_true_ufl_scalar
-from ufl.common import EmptyDict
+from ufl.utils.dicts import EmptyDict
 from ufl.core.ufl_type import ufl_type
 
 #--- Condition classes ---

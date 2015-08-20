@@ -19,7 +19,7 @@ expressions as variables for differentiation."""
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from ufl.common import counted_init
+from ufl.utils.counted import counted_init
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.core.expr import Expr

@@ -25,7 +25,8 @@
 from collections import defaultdict
 from ufl.log import warning, error, deprecate
 from ufl.assertions import ufl_assert
-from ufl.common import istr, EmptyDict
+from ufl.utils.formatting import istr
+from ufl.utils.dicts import EmptyDict
 from ufl.core.terminal import Terminal
 from ufl.protocols import id_or_none
 from ufl.cell import as_cell, Cell, ProductCell

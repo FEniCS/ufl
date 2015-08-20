@@ -26,7 +26,7 @@ from ufl.log import warning, error
 from ufl.assertions import ufl_assert
 from ufl.core.operator import Operator
 from ufl.constantvalue import is_true_ufl_scalar, ScalarValue, Zero, FloatValue, IntValue, as_ufl
-from ufl.common import EmptyDict
+from ufl.utils.dicts import EmptyDict
 from ufl.core.ufl_type import ufl_type
 
 """

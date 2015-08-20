@@ -22,15 +22,15 @@ from six.moves import zip
 from six.moves import xrange as range
 
 from ufl.log import warning, error
-from ufl.common import subdict, EmptyDict
+from ufl.utils.dicts import subdict, EmptyDict
 from ufl.assertions import ufl_assert
+from ufl.core.ufl_type import ufl_type
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
 from ufl.constantvalue import as_ufl, Zero
 from ufl.core.multiindex import Index, FixedIndex, MultiIndex, indices
 from ufl.indexed import Indexed
 from ufl.index_combination_utils import remove_indices
-from ufl.core.ufl_type import ufl_type
 
 # --- Classes representing tensors of UFL expressions ---
 

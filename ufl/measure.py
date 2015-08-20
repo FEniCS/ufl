@@ -26,7 +26,7 @@ from ufl.core.expr import Expr
 from ufl.geometry import Domain, as_domain
 from ufl.checks import is_true_ufl_scalar
 from ufl.constantvalue import as_ufl
-from ufl.common import EmptyDict
+from ufl.utils.dicts import EmptyDict
 
 from ufl.protocols import id_or_none, metadata_equal, metadata_hashdata
 

@@ -27,7 +27,7 @@ from __future__ import print_function
 
 from ufl.assertions import ufl_assert
 from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl, HEin
-from ufl.common import istr
+from ufl.utils.formatting import istr
 
 # List of valid elements
 ufl_elements = {}

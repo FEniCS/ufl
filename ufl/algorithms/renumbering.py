@@ -19,7 +19,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from six.moves import zip
-from ufl.common import Stack, StackDict
+from ufl.utils.stacks import Stack, StackDict
 from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.core.multiindex import Index, FixedIndex, MultiIndex

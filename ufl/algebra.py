@@ -25,7 +25,6 @@ from six import iteritems
 
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
-from ufl.common import product, mergedicts2, subdict, EmptyDict
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
 from ufl.constantvalue import Zero, zero, ScalarValue, IntValue, as_ufl

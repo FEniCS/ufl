@@ -27,8 +27,7 @@ from collections import namedtuple
 
 from ufl.log import error, warning, info
 from ufl.assertions import ufl_assert
-from ufl.sorting import topological_sorting
-from ufl.utils.sorting import sorted_by_count
+from ufl.utils.sorting import sorted_by_count, topological_sorting
 
 from ufl.core.expr import Expr
 from ufl.core.terminal import Terminal, FormArgument

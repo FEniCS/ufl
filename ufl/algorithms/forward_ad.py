@@ -29,7 +29,9 @@ from six.moves import zip
 from math import pi
 from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert
-from ufl.common import unzip, subdict, lstr
+from ufl.utils.sequences import unzip
+from ufl.utils.dicts import subdict
+from ufl.utils.formatting import lstr
 
 # All classes:
 from ufl.core.terminal import Terminal
