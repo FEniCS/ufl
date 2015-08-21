@@ -22,7 +22,7 @@
 
 from ufl.log import warning, error
 from ufl.assertions import ufl_assert
-from ufl.common import subdict, mergedicts, EmptyDict
+from ufl.utils.dicts import subdict, mergedicts, EmptyDict
 from ufl.core.expr import Expr
 from ufl.core.terminal import Terminal
 from ufl.core.operator import Operator

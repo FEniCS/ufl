@@ -24,7 +24,8 @@ from itertools import chain
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.common import mergedicts, subdict, StackDict
+from ufl.utils.dicts import mergedicts, subdict
+from ufl.utils.stacks import StackDict
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
 from ufl.constantvalue import Zero, as_ufl

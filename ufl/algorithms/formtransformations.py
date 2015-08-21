@@ -26,7 +26,7 @@ complete Forms into new related Forms."""
 from six import iteritems
 from six.moves import xrange as range
 
-from ufl.common import product
+from ufl.utils.sequences import product
 from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert
 

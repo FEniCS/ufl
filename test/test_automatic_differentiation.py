@@ -18,7 +18,7 @@ import ufl
 from ufl import *
 
 import ufl.algorithms
-from ufl.common import unique_post_traversal
+from ufl.corealg.traversal import unique_post_traversal
 from ufl.conditional import Conditional
 from ufl.algorithms import expand_derivatives
 

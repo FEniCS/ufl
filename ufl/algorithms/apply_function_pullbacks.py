@@ -37,7 +37,7 @@ from ufl.tensors import as_tensor, as_vector
 from ufl.finiteelement import (FiniteElement, EnrichedElement, VectorElement, MixedElement,
                                OuterProductElement, OuterProductVectorElement, TensorElement,
                                FacetElement, InteriorElement, BrokenElement, TraceElement)
-from ufl.common import product
+from ufl.utils.sequences import product
 
 def sub_elements_with_mappings(element):
     "Return an ordered list of the largest subelements that have a defined mapping."

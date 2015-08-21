@@ -28,7 +28,7 @@ from itertools import chain
 import ufl
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
-from ufl.common import write_file, pdflatex, openpdf
+from ufl.utils.system import write_file, pdflatex, openpdf
 from ufl.permutation import compute_indices
 
 # All classes:

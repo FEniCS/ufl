@@ -23,8 +23,7 @@ for all types that are terminal nodes in the expression trees."""
 
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
-from ufl.common import EmptyDict
-from ufl.common import counted_init
+from ufl.utils.dicts import EmptyDict
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
 

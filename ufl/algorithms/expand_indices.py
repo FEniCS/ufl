@@ -26,7 +26,7 @@ from six.moves import zip
 from six.moves import xrange as range
 
 from ufl.log import error
-from ufl.common import Stack, StackDict
+from ufl.utils.stacks import Stack, StackDict
 from ufl.assertions import ufl_assert
 from ufl.finiteelement import TensorElement
 from ufl.classes import Expr, Terminal, ListTensor, IndexSum, Indexed, FormArgument

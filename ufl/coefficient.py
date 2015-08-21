@@ -26,7 +26,7 @@ from ufl.assertions import ufl_assert
 from ufl.core.terminal import Terminal, FormArgument
 from ufl.finiteelement import FiniteElementBase, FiniteElement, VectorElement, TensorElement
 from ufl.split_functions import split
-from ufl.common import counted_init
+from ufl.utils.counted import counted_init
 from ufl.core.ufl_type import ufl_type
 
 # --- The Coefficient class represents a coefficient in a form ---

@@ -25,7 +25,8 @@
 
 from ufl.log import warning, error
 from ufl.assertions import ufl_assert
-from ufl.common import istr, product
+from ufl.utils.formatting import istr
+from ufl.utils.dicts import EmptyDict
 from ufl.core.terminal import Terminal
 
 

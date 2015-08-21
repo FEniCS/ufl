@@ -20,7 +20,7 @@
 #
 # Modified by Anders Logg, 2008.
 
-from ufl.common import lstr, tstr, estr
+from ufl.utils.formatting import lstr, tstr, estr
 from ufl.assertions import ufl_assert
 
 class FormData(object):

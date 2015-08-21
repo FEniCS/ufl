@@ -22,8 +22,6 @@
 # Modified by Marie E. Rognes 2010, 2012
 
 from ufl.assertions import ufl_assert
-from ufl.permutation import compute_indices
-from ufl.common import product, istr, EmptyDict
 from ufl.geometry import Cell, as_cell
 from ufl.log import info_blue, warning, warning_blue, error
 

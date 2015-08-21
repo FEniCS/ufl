@@ -22,7 +22,7 @@ from six.moves import xrange as range
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.common import counted_init
+from ufl.utils.counted import counted_init
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal
 

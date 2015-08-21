@@ -24,9 +24,11 @@
 from six.moves import zip
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
-from ufl.common import product, istr, EmptyDict
 from ufl.cell import AbstractCell
-from ufl.geometry import as_cell, as_domain, Domain
+from ufl.utils.sequences import product
+from ufl.utils.formatting import istr
+from ufl.utils.dicts import EmptyDict
+from ufl.geometry import Cell, as_cell, as_domain, Domain
 from ufl.log import info_blue, warning, warning_blue, error
 
 

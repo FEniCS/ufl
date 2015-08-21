@@ -186,7 +186,7 @@ __version__ = "1.7.0dev"
 
 # Utility functions (product is the counterpart of the built-in
 # python function sum, can be useful for users as well?)
-from ufl.common import product
+from ufl.utils.sequences import product
 
 # Output control
 from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile, \

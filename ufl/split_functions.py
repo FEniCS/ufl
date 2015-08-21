@@ -24,7 +24,8 @@ from six.moves import xrange as range
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.common import product, EmptyDict
+from ufl.utils.sequences import product
+from ufl.utils.dicts import EmptyDict
 from ufl.finiteelement import MixedElement, TensorElement
 from ufl.tensors import as_vector, as_matrix, as_tensor
 

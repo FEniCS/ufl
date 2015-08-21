@@ -23,8 +23,7 @@
 # Modified by Anders Logg 2014
 
 from ufl.assertions import ufl_assert
-from ufl.permutation import compute_indices
-from ufl.common import product, istr, EmptyDict
+from ufl.utils.formatting import istr
 from ufl.geometry import as_domain, as_cell
 from ufl.log import info_blue, warning, warning_blue, error
 
