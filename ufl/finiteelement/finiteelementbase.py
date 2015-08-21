@@ -57,7 +57,7 @@ class FiniteElementBase(object):
             self._cell = None
         else:
             self._domain = as_domain(domain)
-            self._cell = self._domain.cell()
+            self._cell = self._domain.ufl_cell
             ufl_assert(isinstance(self._domain, Domain), "Invalid domain type.")
             ufl_assert(isinstance(self._cell, AbstractCell), "Invalid cell type.")
 

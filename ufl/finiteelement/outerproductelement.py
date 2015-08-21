@@ -52,7 +52,7 @@ class OuterProductElement(FiniteElementBase):
             domain = as_domain(cell)
         else:
             domain = as_domain(domain)
-            cell = domain.cell()
+            cell = domain.ufl_cell
             ufl_assert(cell is not None, "Missing cell in given domain.")
 
         self._repr = "OuterProductElement(*%r, %r)" % (list([self._A, self._B]),

@@ -123,7 +123,7 @@ def build_domain_numbering(domains):
     # Collect domain keys
     items = []
     for i, domain in enumerate(domains):
-        key = (domain.cell(), domain.label())
+        key = (domain.ufl_cell, domain.label())
         items.append((key, i))
 
     # Build domain numbering, not allowing repeated keys

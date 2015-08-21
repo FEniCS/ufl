@@ -94,7 +94,7 @@ class Domain(object):
             # Disallow additional label and data, get from underlying 'flat domain'
             self._coordinates = arg
             flat_domain = arg.domain()
-            self._cell = flat_domain.cell()
+            self._cell = flat_domain.ufl_cell
             self._label = flat_domain.label()
             self._data = flat_domain.data()
 
