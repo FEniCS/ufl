@@ -514,7 +514,7 @@ class FacetNormal(GeometricFacetQuantity):
         "Return whether this expression is spatially constant over each cell."
         # For product cells, this is only true for some but not all facets. Seems like too much work to fix right now.
         # Only true for a piecewise linear coordinate field with simplex _facets_.
-        is_piecewise_linear = self._domain.coordinate_element().degree() == 1
+        is_piecewise_linear = self._domain.ufl_coordinate_element.degree() == 1
         return is_piecewise_linear and self._domain.ufl_cell().has_simplex_facets()
 
 # TODO: Should it be CellNormals? For interval in 3D we have two!
@@ -562,7 +562,7 @@ class ReferenceNormal(GeometricFacetQuantity):
 #        "Return whether this expression is spatially constant over each cell."
 #        # TODO: For product cells, this depends on which facet. Seems like too much work to fix right now.
 #        # Only true for a piecewise linear coordinate field with simplex _facets_
-#        is_piecewise_linear = self._domain.coordinate_element().degree() == 1
+#        is_piecewise_linear = self._domain.ufl_coordinate_element.degree() == 1
 #        has_simplex_facets = self._domain.ufl_cell().has_simplex_facets()
 #        return is_piecewise_linear and has_simplex_facets
 

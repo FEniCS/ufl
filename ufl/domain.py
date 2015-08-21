@@ -161,7 +161,7 @@ class Domain(object):
         return self._topological_dimension
 
     def is_piecewise_linear_simplex_domain(self):
-        return (self.coordinate_element().degree() == 1) and self.ufl_cell().is_simplex()
+        return (self.ufl_coordinate_element.degree() == 1) and self.ufl_cell().is_simplex()
 
 
     #@property # Not a property because that would break dolfin backwards compatibility when subclassing this
