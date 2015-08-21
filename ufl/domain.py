@@ -96,7 +96,7 @@ class Domain(object):
             flat_domain = arg.domain()
             self._cell = flat_domain.ufl_cell()
             self._label = flat_domain.label()
-            self._data = flat_domain.data()
+            self._data = flat_domain.ufl_get_mesh()
 
             # Get geometric dimension from self._coordinates shape
             gdim, = self._coordinates.ufl_shape
@@ -145,7 +145,7 @@ class Domain(object):
             if label is None:
                 label = self.label()
             if data is None:
-                data = self.data()
+                data = self.ufl_get_mesh()
             return Domain(cell, label=label, data=data)
         else:
             ufl_assert(all((cell is None, label is None, data is None)),
@@ -339,7 +339,7 @@ def join_domains(domains):
 
             # Pick first non-None data object
             for dom in domlist:
-                newdata = dom.data()
+                newdata = dom.ufl_get_mesh()
                 if newdata is not None:
                     break
             cell = dom.ufl_cell()
@@ -348,7 +348,7 @@ def join_domains(domains):
 
             # Validate that data ids match if present
             if newdata is not None:
-                data_ids = [id_or_none(dom.data()) for dom in domlist]
+                data_ids = [id_or_none(dom.ufl_get_mesh()) for dom in domlist]
                 data_ids = set(i for i in data_ids if i is not None)
                 if len(data_ids) > 1:
                     error("Found data objects with different ids in domains with same label.")
