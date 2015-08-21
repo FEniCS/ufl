@@ -381,3 +381,22 @@ def extract_domains(expr):
     for t in traverse_unique_terminals(expr):
         domainlist.extend(t.domains())
     return sorted(join_domains(domainlist))
+
+class ProductDomain(Domain):
+    """WARNING: This is work in progress, design is in no way completed."""
+    __slots__ = ("_child_domains",)
+    def __init__(self, domains, data=None):
+        # Get the right properties of this domain
+        gdim = sum(domain.geometric_dimension() for domain in domains)
+        tdim = sum(domain.topological_dimension() for domain in domains)
+        cell = ProductCell(*[domain.cell() for domain in domains])
+        label = "product_of_%s" % "_".join(str(domain.label()) for domain in domains)
+
+        # Initialize parent class
+        Domain.__init__(self, cell, gdim, tdim, label=label, data=data)
+
+        # Save child domains for later
+        self._child_domains = tuple(domains)
+
+    def child_domains(self):
+        return self._child_domains
