@@ -144,11 +144,11 @@ class Form(object):
     def cell(self):
         "Return the single cell this form is defined on, fails if multiple cells are found."
         domains = self.domains()
-        ufl_assert(all(domain.ufl_cell == domains[0].cell() for domain in domains),
+        ufl_assert(all(domain.ufl_cell == domains[0].ufl_cell for domain in domains),
                    "Calling Form.domain() is only valid if all integrals share domain.")
         # Need to support missing domain to allow
         # assemble(Constant(1)*dx, mesh=mesh) in dolfin
-        return domains[0].cell() if domains else None
+        return domains[0].ufl_cell if domains else None
 
     def domain(self):
         """Return the single geometric integration domain occuring in the form.
