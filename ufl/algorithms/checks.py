@@ -62,7 +62,7 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
         errors.append("Missing domain definition in form.")
 
     # Check that cell is the same everywhere
-    cells = set(dom.ufl_cell for dom in domains) - {None}
+    cells = set(dom.ufl_cell() for dom in domains) - {None}
     if not cells:
         errors.append("Missing cell definition in form.")
     elif len(cells) > 1:

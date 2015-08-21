@@ -94,7 +94,7 @@ class Domain(object):
             # Disallow additional label and data, get from underlying 'flat domain'
             self._coordinates = arg
             flat_domain = arg.domain()
-            self._cell = flat_domain.ufl_cell
+            self._cell = flat_domain.ufl_cell()
             self._label = flat_domain.label()
             self._data = flat_domain.data()
 
@@ -141,7 +141,7 @@ class Domain(object):
         "Create a new Domain object with possibly changed label or data."
         if coordinates is None:
             if cell is None:
-                cell = self.ufl_cell
+                cell = self.ufl_cell()
             if label is None:
                 label = self.label()
             if data is None:
@@ -161,10 +161,10 @@ class Domain(object):
         return self._topological_dimension
 
     def is_piecewise_linear_simplex_domain(self):
-        return (self.coordinate_element().degree() == 1) and self.ufl_cell.is_simplex()
+        return (self.coordinate_element().degree() == 1) and self.ufl_cell().is_simplex()
 
 
-    @property
+    #@property # Not a property because that would break dolfin backwards compatibility when subclassing this
     def ufl_cell(self):
         "Return the cell this domain is defined in terms of."
         return self._cell
@@ -196,8 +196,8 @@ class Domain(object):
 
     # Deprecations
     def cell(self):
-        deprecate("Domain.cell() is deprecated, please use domain.ufl_cell property instead.")
-        return self.ufl_cell
+        deprecate("Domain.cell() is deprecated, please use domain.ufl_cell() method instead.")
+        return self.ufl_cell()
     def coordinates(self):
         deprecate("Domain.coordinates() is deprecated, please use domain.ufl_coordinates property instead.")
         return self.ufl_coordinates
@@ -215,7 +215,7 @@ class Domain(object):
     def signature_data(self, renumbering):
         "Signature data of domain depend on the global domain numbering."
         count = renumbering[self]
-        cdata = self.ufl_cell
+        cdata = self.ufl_cell()
         x = self.coordinates()
         xdata = (None if x is None else x.signature_data(renumbering))
         return (count, cdata, xdata)
@@ -290,7 +290,7 @@ def check_domain_compatibility(domains):
     ufl_assert(len(labels) == 1 or (len(labels) == 2 and None in labels),
                "Got incompatible domain labels %s in check_domain_compatibility." % (labels,))
 
-    all_cellnames = [dom.ufl_cell.cellname() for dom in domains]
+    all_cellnames = [dom.ufl_cell().cellname() for dom in domains]
     if len(set(all_cellnames)) != 1:
         error("Cellname mismatch between domains with same label.")
 
@@ -342,7 +342,7 @@ def join_domains(domains):
                 newdata = dom.data()
                 if newdata is not None:
                     break
-            cell = dom.ufl_cell
+            cell = dom.ufl_cell()
             gdim = dom.geometric_dimension()
             tdim = dom.topological_dimension()
 

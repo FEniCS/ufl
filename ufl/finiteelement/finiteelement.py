@@ -62,7 +62,7 @@ class FiniteElement(FiniteElementBase):
             cell = None
         else:
             domain = as_domain(domain)
-            cell = domain.ufl_cell
+            cell = domain.ufl_cell()
             ufl_assert(cell is not None, "Missing cell in given domain.")
 
         family, short_name, degree, value_shape, reference_value_shape, sobolev_space, mapping = \

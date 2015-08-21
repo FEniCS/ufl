@@ -322,7 +322,7 @@ class Expr(object):
     def cell(self): # TODO: Deprecate this
         "Return the cell this expression is defined on."
         domain = self.domain()
-        return domain.ufl_cell if domain is not None else None
+        return domain.ufl_cell() if domain is not None else None
 
     # This function was introduced to clarify and
     # eventually reduce direct dependencies on cells.

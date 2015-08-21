@@ -56,7 +56,7 @@ def test_domains_sort_by_name():
                 for cell in sorted(all_cells)]
     sdomains = sorted(domains1, key=lambda D: (D.geometric_dimension(),
                                                D.topological_dimension(),
-                      D.ufl_cell,
+                      D.ufl_cell(),
                       D.label()))
     assert sdomains != domains1
     assert sdomains == domains2
@@ -292,7 +292,7 @@ def xtest_form_domain_model():
     assert DA.name() == 'DA'
     assert DA.geometric_dimension() == 3
     assert DA.topological_dimension() == 3
-    assert DA.ufl_cell == tetrahedron
+    assert DA.ufl_cell() == tetrahedron
 
     # Check region/domain getters
     assert DA.top_domain() == DA

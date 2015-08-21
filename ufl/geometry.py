@@ -358,7 +358,7 @@ class CellEdgeVectors(GeometricCellQuantity):
 
     @property
     def ufl_shape(self):
-        cell = self.domain().ufl_cell
+        cell = self.domain().ufl_cell()
         ne = cell.num_edges()
         t = cell.topological_dimension()
         return (ne, t)
@@ -381,7 +381,7 @@ class FacetEdgeVectors(GeometricFacetQuantity):
 
     @property
     def ufl_shape(self):
-        cell = self.domain().ufl_cell
+        cell = self.domain().ufl_cell()
         nfe = cell.num_facet_edges()
         t = cell.topological_dimension()
         return (nfe, t)
@@ -515,7 +515,7 @@ class FacetNormal(GeometricFacetQuantity):
         # For product cells, this is only true for some but not all facets. Seems like too much work to fix right now.
         # Only true for a piecewise linear coordinate field with simplex _facets_.
         is_piecewise_linear = self._domain.coordinate_element().degree() == 1
-        return is_piecewise_linear and self._domain.ufl_cell.has_simplex_facets()
+        return is_piecewise_linear and self._domain.ufl_cell().has_simplex_facets()
 
 # TODO: Should it be CellNormals? For interval in 3D we have two!
 @ufl_type()
@@ -563,7 +563,7 @@ class ReferenceNormal(GeometricFacetQuantity):
 #        # TODO: For product cells, this depends on which facet. Seems like too much work to fix right now.
 #        # Only true for a piecewise linear coordinate field with simplex _facets_
 #        is_piecewise_linear = self._domain.coordinate_element().degree() == 1
-#        has_simplex_facets = self._domain.ufl_cell.has_simplex_facets()
+#        has_simplex_facets = self._domain.ufl_cell().has_simplex_facets()
 #        return is_piecewise_linear and has_simplex_facets
 
 # TODO: Implement in change_to_reference_geometry and enable
