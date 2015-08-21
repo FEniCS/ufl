@@ -70,7 +70,7 @@ class GeometryLoweringApplier(MultiFunction):
             return o
 
         domain = o.domain()
-        if domain.coordinates() is None:
+        if domain.ufl_coordinates is None:
             # Affine case in FEniCS: preserve J if there's no coordinate function
             # (the handling of coordinate functions will soon be refactored)
             return o
@@ -158,7 +158,7 @@ class GeometryLoweringApplier(MultiFunction):
             return o
 
         domain = o.domain()
-        x = domain.coordinates()
+        x = domain.ufl_coordinates
         if x is None:
             # Old affine domains
             return o

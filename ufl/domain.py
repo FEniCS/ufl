@@ -127,7 +127,7 @@ class Domain(object):
         if self._coordinates is not None:
             ufl_assert(isinstance(self._coordinates, Coefficient),
                         "Expecting None or Coefficient for coordinates.")
-            ufl_assert(self._coordinates.domain().coordinates() is None,
+            ufl_assert(self._coordinates.domain().ufl_coordinates is None,
                         "Coordinates must be defined on a domain without coordinates of its own.")
         ufl_assert(self._label is None or isinstance(self._label, str),
                    "Expecting None or str for label.")
@@ -177,7 +177,7 @@ class Domain(object):
     @property
     def ufl_coordinate_element(self):
         "Return the finite element of the coordinate vector field of this domain."
-        x = self.coordinates()
+        x = self.ufl_coordinates
         if x is None:
             from ufl import VectorElement
             return VectorElement("Lagrange", self, 1)
@@ -199,10 +199,10 @@ class Domain(object):
         deprecate("Domain.cell() is deprecated, please use domain.ufl_cell() method instead.")
         return self.ufl_cell()
     def coordinates(self):
-        deprecate("Domain.coordinates() is deprecated, please use domain.ufl_coordinates property instead.")
+        deprecate("Domain.ufl_coordinates is deprecated, please use domain.ufl_coordinates property instead.")
         return self.ufl_coordinates
     def coordinate_element(self):
-        deprecate("Domain.coordinates() is deprecated, please use domain.ufl_coordinates property instead.")
+        deprecate("Domain.ufl_coordinates is deprecated, please use domain.ufl_coordinates property instead.")
         return self.ufl_coordinate_element
     def label(self):
         deprecate("Domain.ufl_label is deprecated, please use domain.ufl_label property instead.")
@@ -216,7 +216,7 @@ class Domain(object):
         "Signature data of domain depend on the global domain numbering."
         count = renumbering[self]
         cdata = self.ufl_cell()
-        x = self.coordinates()
+        x = self.ufl_coordinates
         xdata = (None if x is None else x.signature_data(renumbering))
         return (count, cdata, xdata)
 
@@ -294,7 +294,7 @@ def check_domain_compatibility(domains):
     if len(set(all_cellnames)) != 1:
         error("Cellname mismatch between domains with same label.")
 
-    all_coordinates = set(dom.coordinates() for dom in domains) - set((None,))
+    all_coordinates = set(dom.ufl_coordinates for dom in domains) - set((None,))
     if len(all_coordinates) > 1:
         error("Coordinates mismatch between domains with same label.")
 
@@ -355,15 +355,15 @@ def join_domains(domains):
 
             # Pick first non-None coordinates object
             for dom in domlist:
-                newcoordinates = dom.coordinates()
+                newcoordinates = dom.ufl_coordinates
                 if newcoordinates is not None:
-                    ufl_assert(newcoordinates.domain().coordinates() is None,
+                    ufl_assert(newcoordinates.domain().ufl_coordinates is None,
                                "A coordinate domain cannot have coordinates.")
                     break
 
             # Validate that coordinates match if present
             if newcoordinates is not None:
-                all_coordinates = [dom.coordinates() for dom in domlist]
+                all_coordinates = [dom.ufl_coordinates for dom in domlist]
                 all_coordinates = set(c for c in all_coordinates if c is not None)
                 if len(all_coordinates) > 1:
                     error("Found different coordinates in domains with same label.")

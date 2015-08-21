@@ -353,7 +353,7 @@ class Form(object):
 
         # Include coordinate coefficients from integration domains
         domains = self.domains()
-        coordinates = [c for c in (domain.coordinates() for domain in domains) if c is not None]
+        coordinates = [c for c in (domain.ufl_coordinates for domain in domains) if c is not None]
         coefficients.extend(coordinates)
 
         # TODO: Not including domains from coefficients and arguments here. Will we need that later?
