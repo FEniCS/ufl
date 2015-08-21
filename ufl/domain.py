@@ -160,15 +160,22 @@ class Domain(object):
         "Return the dimension of the topology of this domain."
         return self._topological_dimension
 
-    def cell(self):
+    def is_piecewise_linear_simplex_domain(self):
+        return (self.coordinate_element().degree() == 1) and self.cell().is_simplex()
+
+
+    @property
+    def ufl_cell(self):
         "Return the cell this domain is defined in terms of."
         return self._cell
 
-    def coordinates(self):
+    @property
+    def ufl_coordinates(self):
         "Return the coordinate vector field this domain is defined in terms of."
         return self._coordinates
 
-    def coordinate_element(self):
+    @property
+    def ufl_coordinate_element(self):
         "Return the finite element of the coordinate vector field of this domain."
         x = self.coordinates()
         if x is None:
@@ -177,16 +184,33 @@ class Domain(object):
         else:
             return x.element()
 
-    def label(self):
+    @property
+    def ufl_label(self): # TODO: Replace with count/ufl_id when Mesh becomes subclass
         "Return the label identifying this domain. None means no label has been set."
         return self._label
 
-    def is_piecewise_linear_simplex_domain(self):
-        return (self.coordinate_element().degree() == 1) and self.cell().is_simplex()
-
-    def data(self):
-        "Return attached data object."
+    def ufl_get_mesh(self):
+        #return self # FIXME: When later subclassing this from dolfin, just return self initially, then remove this method
         return self._data
+
+
+    # Deprecations
+    def cell(self):
+        deprecate("Domain.cell() is deprecated, please use domain.ufl_cell property instead.")
+        return self.ufl_cell
+    def coordinates(self):
+        deprecate("Domain.coordinates() is deprecated, please use domain.ufl_coordinates property instead.")
+        return self.ufl_coordinates
+    def coordinate_element(self):
+        deprecate("Domain.coordinates() is deprecated, please use domain.ufl_coordinates property instead.")
+        return self.ufl_coordinate_element
+    def label(self):
+        deprecate("Domain.label() is deprecated, please use domain.ufl_label property instead.")
+        return self.ufl_label
+    def data(self):
+        deprecate("Domain.data() is deprecated, please use domain.ufl_get_mesh() instead, until this becomes obsolete in later redesign.")
+        return self._data
+
 
     def signature_data(self, renumbering):
         "Signature data of domain depend on the global domain numbering."
@@ -247,73 +271,6 @@ class Domain(object):
             s = (self._coordinates,)
             return "Domain(%r)" % s
 
-class OverlapDomain(Domain):
-    """WARNING: This is work in progress, design is in no way completed."""
-    __slots__ = ("_child_domains",)
-    def __init__(self, domain1, domain2, label=None, data=None):
-        # Check domain compatibility
-        ufl_assert(domain1.cell() == domain2.cell(),
-                   "Cell mismatch in overlap domain.")
-        ufl_assert(domain1.geometric_dimension() == domain2.geometric_dimension(),
-                   "Dimension mismatch in overlap domain.")
-        ufl_assert(domain1.topological_dimension() == domain2.topological_dimension(),
-                   "Dimension mismatch in overlap domain.")
-
-        # Initialize parent class
-        Domain.__init__(self, domain1.cell(), label=label, data=data)
-
-        # Save child domains for later
-        self._child_domains = (domain1, domain2)
-
-    def child_domains(self):
-        return self._child_domains
-
-class IntersectionDomain(Domain):
-    """WARNING: This is work in progress, design is in no way completed."""
-    __slots__ = ("_child_domains",)
-    def __init__(self, domain1, domain2, label=None, data=None):
-        # Check domain compatibility
-        ufl_assert(domain1.cell() == domain2.cell(),
-                   "Cell mismatch in overlap domain.")
-        ufl_assert(domain1.geometric_dimension() == domain2.geometric_dimension(),
-                   "Dimension mismatch in overlap domain.")
-        ufl_assert(domain1.topological_dimension() == domain2.topological_dimension(),
-                   "Dimension mismatch in overlap domain.")
-
-        # Get the right properties of this domain
-        gdim = domain1.geometric_dimension()
-        tdim = domain1.topological_dimension()-1
-        cell = Cell(domain1.cell().facet_cellname(), gdim)
-        ufl_assert(cell.topological_dimension() == tdim)
-
-        # Initialize parent class
-        Domain.__init__(self, cell, gdim, tdim, label=label, data=data)
-
-        # Save child domains for later
-        self._child_domains = (domain1, domain2)
-
-    def child_domains(self):
-        return self._child_domains
-
-class ProductDomain(Domain):
-    """WARNING: This is work in progress, design is in no way completed."""
-    __slots__ = ("_child_domains",)
-    def __init__(self, domains, data=None):
-        # Get the right properties of this domain
-        gdim = sum(domain.geometric_dimension() for domain in domains)
-        tdim = sum(domain.topological_dimension() for domain in domains)
-        cell = ProductCell(*[domain.cell() for domain in domains])
-        label = "product_of_%s" % "_".join(str(domain.label()) for domain in domains)
-
-        # Initialize parent class
-        Domain.__init__(self, cell, gdim, tdim, label=label, data=data)
-
-        # Save child domains for later
-        self._child_domains = tuple(domains)
-
-    def child_domains(self):
-        return self._child_domains
-
 # --- Utility conversion functions
 
 
@@ -326,21 +283,6 @@ def as_domain(domain):
         return domain.ufl_domain()
     else:
         return Domain(as_cell(domain))
-
-def join_subdomain_data(subdomain_datas): # FIXME: Remove? Think it's unused now.
-    newdata = {}
-    for data in subdomain_datas:
-        for k, v in iteritems(data):
-            nv = newdata.get(k)
-            if nv is None:
-                # New item, just add it
-                newdata[k] = v
-            elif v is not None:
-                id1 = id_or_none(nv)
-                id2 = id_or_none(v)
-                if id1 != id2:
-                    error("Found multiple data objects with key %s." % k)
-    return newdata
 
 def check_domain_compatibility(domains):
     # Validate that the domains are the same except for possibly the data
