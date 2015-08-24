@@ -164,17 +164,14 @@ class Domain(object):
         return (self.ufl_coordinate_element.degree() == 1) and self.ufl_cell().is_simplex()
 
 
-    #@property # Not a property because that would break dolfin backwards compatibility when subclassing this
     def ufl_cell(self):
         "Return the cell this domain is defined in terms of."
         return self._cell
 
-    @property
     def ufl_coordinates(self):
         "Return the coordinate vector field this domain is defined in terms of."
         return self._coordinates
 
-    @property
     def ufl_coordinate_element(self):
         "Return the finite element of the coordinate vector field of this domain."
         x = self.ufl_coordinates
@@ -184,7 +181,6 @@ class Domain(object):
         else:
             return x.element()
 
-    @property
     def ufl_label(self): # TODO: Replace with count/ufl_id when Mesh becomes subclass
         "Return the label identifying this domain. None means no label has been set."
         return self._label
@@ -196,16 +192,16 @@ class Domain(object):
 
     # Deprecations
     def cell(self):
-        deprecate("Domain.cell() is deprecated, please use domain.ufl_cell() method instead.")
+        deprecate("Domain.cell() is deprecated, please use domain.ufl_cell() instead.")
         return self.ufl_cell()
     def coordinates(self):
-        deprecate("Domain.ufl_coordinates is deprecated, please use domain.ufl_coordinates property instead.")
+        deprecate("Domain.coordinates() is deprecated, please use domain.ufl_coordinates() instead.")
         return self.ufl_coordinates
     def coordinate_element(self):
-        deprecate("Domain.ufl_coordinates is deprecated, please use domain.ufl_coordinates property instead.")
+        deprecate("Domain.coordinate_element() is deprecated, please use domain.ufl_coordinate_element() instead.")
         return self.ufl_coordinate_element
     def label(self):
-        deprecate("Domain.ufl_label is deprecated, please use domain.ufl_label property instead.")
+        deprecate("Domain.label() is deprecated, please use domain.ufl_label() instead.")
         return self.ufl_label
     def data(self):
         deprecate("Domain.data() is deprecated, please use domain.ufl_get_mesh() instead, until this becomes obsolete in later redesign.")
