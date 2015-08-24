@@ -627,9 +627,9 @@ def exterior_derivative(f):
         except:
             error("Unable to determine element from %s" % f)
 
-    # Extract the family and the
+    # Extract the family and the geometric dimension
     family = element.family()
-    gdim = element.domain().geometric_dimension()
+    gdim = element.cell().geometric_dimension()
 
     # L^2 elements:
     if "Disc" in family:
