@@ -46,11 +46,11 @@ class SumDegreeEstimator(Transformer):
             return 0
         else:
             # As a heuristic, just returning domain degree to bump up degree somewhat
-            return v.domain().ufl_coordinate_element.degree()
+            return v.domain().ufl_coordinate_element().degree()
 
     def spatial_coordinate(self, v):
         "A coordinate provides additional degrees depending on coordinate field of domain."
-        return v.domain().ufl_coordinate_element.degree()
+        return v.domain().ufl_coordinate_element().degree()
 
     def cell_coordinate(self, v):
         "A coordinate provides one additional degree."

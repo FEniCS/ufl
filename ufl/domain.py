@@ -161,7 +161,7 @@ class Domain(object):
         return self._topological_dimension
 
     def is_piecewise_linear_simplex_domain(self):
-        return (self.ufl_coordinate_element.degree() == 1) and self.ufl_cell().is_simplex()
+        return (self.ufl_coordinate_element().degree() == 1) and self.ufl_cell().is_simplex()
 
 
     def ufl_cell(self):
@@ -198,8 +198,8 @@ class Domain(object):
         deprecate("Domain.coordinates() is deprecated, please use domain.ufl_coordinates() instead.")
         return self.ufl_coordinates
     def coordinate_element(self):
-        deprecate("Domain.coordinate_element() is deprecated, please use domain.ufl_coordinate_element() instead.")
-        return self.ufl_coordinate_element
+        deprecate("Domain.coordinate_element() is deprecated, please use domain.ufl_coordinate_element()() instead.")
+        return self.ufl_coordinate_element()
     def label(self):
         deprecate("Domain.label() is deprecated, please use domain.ufl_label()() instead.")
         return self.ufl_label()
