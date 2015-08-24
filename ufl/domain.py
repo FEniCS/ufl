@@ -163,13 +163,13 @@ class Domain(object):
     def is_piecewise_linear_simplex_domain(self):
         return (self.ufl_coordinate_element().degree() == 1) and self.ufl_cell().is_simplex()
 
-
     def ufl_cell(self):
         "Return the cell this domain is defined in terms of."
         return self._cell
 
     def ufl_coordinates(self):
         "Return the coordinate vector field this domain is defined in terms of."
+        # TODO: deprecate("Domain.ufl_coordinates() is deprecated, please use SpatialCoordinate(domain) to represent coordinates.")
         return self._coordinates
 
     def ufl_coordinate_element(self):
