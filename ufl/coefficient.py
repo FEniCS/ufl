@@ -66,10 +66,6 @@ class Coefficient(FormArgument):
                    "Expecting an int, not %s" % count)
         ufl_assert(element.value_shape() == self._element.value_shape(),
                    "Cannot reconstruct a Coefficient with a different value shape.")
-        return self._reconstruct(element, count)
-
-    def _reconstruct(self, element, count):
-        # This code is class specific
         return Coefficient(element, count)
 
     def element(self):
