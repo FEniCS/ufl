@@ -252,7 +252,7 @@ def compute_form_data(form,
         for itg in itg_data.integrals:
             itg_coeffs.update(extract_coefficients(itg.integrand()))
         # Add coefficient for integration domain if any
-        c = itg_data.domain.ufl_coordinates
+        c = itg_data.domain.ufl_coordinates()
         if c is not None:
             itg_coeffs.add(c)
         # Store with IntegralData object
@@ -296,7 +296,7 @@ def compute_form_data(form,
     # that reside in form to objects with canonical numbering as well as
     # completed elements
 
-    coordinate_functions = set(domain.ufl_coordinates for domain in form.domains()) - set((None,))
+    coordinate_functions = set(domain.ufl_coordinates() for domain in form.domains()) - set((None,))
 
     coordinates_replace_map = {}
     for i, f in enumerate(self.reduced_coefficients):
