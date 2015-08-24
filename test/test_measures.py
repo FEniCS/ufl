@@ -87,7 +87,7 @@ def test_foo():
     assert mydomain.topological_dimension() == tdim
     assert mydomain.geometric_dimension() == gdim
     assert mydomain.ufl_cell() == cell
-    assert mydomain.ufl_label == "Omega"
+    assert mydomain.ufl_label() == "Omega"
     assert mydomain.ufl_get_mesh() == mymesh
 
     # Define a coefficient for use in tests below
@@ -100,7 +100,7 @@ def test_foo():
                    domain=mydomain,
                    subdomain_id=3,
                    metadata=metadata)
-    assert mydx.domain().ufl_label == mydomain.ufl_label
+    assert mydx.domain().ufl_label() == mydomain.ufl_label()
     assert mydx.metadata() == metadata
     M = f * mydx
 
@@ -183,7 +183,7 @@ def test_foo():
 
     # Test extracting domain data from a form for each measure:
     domain, = Mx.domains()
-    assert domain.ufl_label == mydomain.ufl_label
+    assert domain.ufl_label() == mydomain.ufl_label()
     assert domain.ufl_get_mesh() == mymesh
     assert Mx.subdomain_data()[mydomain]["cell"] == cell_domains
 

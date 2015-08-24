@@ -489,7 +489,7 @@ def form2latex(form, formdata):
         dstr = domain_strings[integral_type]
 
         domain = itg.domain()
-        label = domain.ufl_label
+        label = domain.ufl_label()
         # TODO: Use domain label!
 
         subdomain_id = itg.subdomain_id()

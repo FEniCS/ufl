@@ -95,7 +95,7 @@ class Domain(object):
             self._coordinates = arg
             flat_domain = arg.domain()
             self._cell = flat_domain.ufl_cell()
-            self._label = flat_domain.ufl_label
+            self._label = flat_domain.ufl_label()
             self._data = flat_domain.ufl_get_mesh()
 
             # Get geometric dimension from self._coordinates shape
@@ -143,7 +143,7 @@ class Domain(object):
             if cell is None:
                 cell = self.ufl_cell()
             if label is None:
-                label = self.ufl_label
+                label = self.ufl_label()
             if data is None:
                 data = self.ufl_get_mesh()
             return Domain(cell, label=label, data=data)
@@ -201,8 +201,8 @@ class Domain(object):
         deprecate("Domain.coordinate_element() is deprecated, please use domain.ufl_coordinate_element() instead.")
         return self.ufl_coordinate_element
     def label(self):
-        deprecate("Domain.label() is deprecated, please use domain.ufl_label() instead.")
-        return self.ufl_label
+        deprecate("Domain.label() is deprecated, please use domain.ufl_label()() instead.")
+        return self.ufl_label()
     def data(self):
         deprecate("Domain.data() is deprecated, please use domain.ufl_get_mesh() instead, until this becomes obsolete in later redesign.")
         return self._data
@@ -282,7 +282,7 @@ def as_domain(domain):
 
 def check_domain_compatibility(domains):
     # Validate that the domains are the same except for possibly the data
-    labels = set(domain.ufl_label for domain in domains)
+    labels = set(domain.ufl_label() for domain in domains)
     ufl_assert(len(labels) == 1 or (len(labels) == 2 and None in labels),
                "Got incompatible domain labels %s in check_domain_compatibility." % (labels,))
 
@@ -306,7 +306,7 @@ def join_domains(domains):
     # Build lists of domain objects with same label
     label2domlist = defaultdict(list)
     for domain in domains:
-        label2domlist[domain.ufl_label].append(domain)
+        label2domlist[domain.ufl_label()].append(domain)
 
     # Extract None list from this dict, map to label but only if only one exists
     if None in label2domlist:

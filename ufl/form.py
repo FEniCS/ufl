@@ -318,7 +318,7 @@ class Form(object):
 
         # Collect integration domains and make canonical list of them
         integration_domains = join_domains([itg.domain() for itg in self._integrals])
-        self._integration_domains = tuple(sorted(integration_domains, key=lambda x: x.ufl_label))
+        self._integration_domains = tuple(sorted(integration_domains, key=lambda x: x.ufl_label()))
 
         # TODO: Not including domains from coefficients and arguments here, may need that later
         self._domain_numbering = dict((d, i) for i, d in enumerate(self._integration_domains))
@@ -418,7 +418,7 @@ def replace_integral_domains(form, common_domain): # TODO: Move elsewhere
     integrals = []
     for itg in form.integrals():
         domain = itg.domain()
-        if domain is None or domain.ufl_label != common_domain.ufl_label:
+        if domain is None or domain.ufl_label() != common_domain.ufl_label():
             itg = itg.reconstruct(domain=common_domain)
             reconstruct = True
         integrals.append(itg)
