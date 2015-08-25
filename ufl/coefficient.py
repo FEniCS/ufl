@@ -102,8 +102,11 @@ class Coefficient(FormArgument):
         "Signature data for form arguments depend on the global numbering of the form arguments and domains."
         count = renumbering[self]
         edata = self.ufl_element().signature_data(renumbering)
-        d = self.ufl_domain()
-        ddata = None if d is None else d.signature_data(renumbering)
+        domain = self.ufl_domain()
+        if domain is None:
+            ddata = None
+        else:
+            ddata = domain.signature_data(renumbering)
         return ("Coefficient", count, edata, ddata)
 
     def __str__(self):

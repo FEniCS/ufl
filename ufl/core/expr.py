@@ -220,15 +220,17 @@ class Expr(object):
         "reconstruct",
 
         # Return whether this expression is spatially constant over each cell.
-        "domains",
         "is_cellwise_constant",
-        #"cell",
-        #"domain",
+
+        "ufl_domains",
+        #"ufl_cell",
+        #"ufl_domain",
         #"geometric_dimension",
 
-        #"__str__",
-        #"__repr__",
         #"signature_data",
+        #"reconstruction_signature",
+
+        #"__str__",
         #"__repr__",
         )
 
@@ -418,7 +420,7 @@ class Expr(object):
     #--- Special functions for string representations ---
 
     # All subclasses must implement signature_data
-    def signature_data(self):
+    def signature_data(self, renumbering):
         "Return data that uniquely identifies form compiler relevant aspects of this object."
         raise NotImplementedError(self.__class__.signature_data)
 
