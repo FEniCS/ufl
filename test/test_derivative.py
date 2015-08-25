@@ -40,8 +40,8 @@ def assertEqualBySampling(actual, expected):
     amapping = dict((c, make_value(c)) for c in chain(ad.original_form.coefficients(), ad.original_form.arguments()))
     bmapping = dict((c, make_value(c)) for c in chain(bd.original_form.coefficients(), bd.original_form.arguments()))
 
-    acell = actual.cell()
-    bcell = expected.cell()
+    acell = actual.ufl_cell()
+    bcell = expected.ufl_cell()
     assert acell == bcell
     if acell.geometric_dimension() == 1:
         x = (0.3,)
