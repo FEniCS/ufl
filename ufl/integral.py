@@ -127,7 +127,7 @@ class Integral(object):
     def __eq__(self, other):
         return (isinstance(other, Integral)
             and self._integral_type == other._integral_type
-            and self._ufl_domain == other._domain
+            and self._ufl_domain == other._ufl_domain
             and self._subdomain_id == other._subdomain_id
             and self._integrand == other._integrand
             and self._metadata == other._metadata
