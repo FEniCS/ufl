@@ -49,7 +49,7 @@ from ufl.finiteelement import FiniteElement, EnrichedElement, VectorElement, Mix
 
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
-
+from ufl.checks import is_cellwise_constant
 
 """
 # Some notes:
@@ -395,7 +395,7 @@ class OLDChangeToReferenceGrad(MultiFunction):
         domain = o.ufl_domain()
         Jinv = JacobianInverse(domain)
 
-        if Jinv.is_cellwise_constant():
+        if is_cellwise_constant(Jinv):
             # Optimise slightly by turning Grad(Grad(...)) into J^(-T)J^(-T)RefGrad(RefGrad(...))
             # rather than J^(-T)RefGrad(J^(-T)RefGrad(...))
 

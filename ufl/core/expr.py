@@ -303,8 +303,8 @@ class Expr(object):
 
     def is_cellwise_constant(self): # TODO: Deprecate this and use is_cellwise_constant(expr)
         "Return whether this expression is spatially constant over each cell."
-        from ufl.domain import is_cellwise_constant
-        #deprecate("Expr.is_cellwise_constant() is deprecated, please use is_cellwise_constant(expr) instead.")
+        from ufl.checks import is_cellwise_constant
+        deprecate("Expr.is_cellwise_constant() is deprecated, please use is_cellwise_constant(expr) instead.")
         return is_cellwise_constant(self)
 
     #--- Functions for float evaluation ---

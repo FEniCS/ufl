@@ -38,23 +38,25 @@ def is_true_ufl_scalar(expression):
     return isinstance(expression, Expr) and \
         not (expression.ufl_shape or expression.ufl_free_indices)
 
+def is_cellwise_constant(expr):
+    "Return whether expression is constant over a single cell."
+    # TODO: Implement more accurately considering e.g. derivatives?
+    return all(t.is_cellwise_constant() for t in traverse_unique_terminals(expr))
+
 def is_globally_constant(expr):
     """Check if an expression is globally constant, which
     includes spatially independent constant coefficients that
     are not known before assembly time."""
-
     # TODO: This does not consider gradients of coefficients, so false negatives are possible.
     from ufl.argument import Argument
     from ufl.coefficient import Coefficient
-
     for e in traverse_unique_terminals(expr):
         if isinstance(e, Argument):
             return False
         if isinstance(e, Coefficient) and e.ufl_element().family() != "Real":
             return False
-        if not e.is_cellwise_constant():
+        if e.ufl_domains():
             return False
-
     # All terminals passed constant check
     return True
 

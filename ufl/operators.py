@@ -45,8 +45,8 @@ from ufl.mathfunctions import Sqrt, Exp, Ln, Erf,\
 from ufl.restriction import CellAvg, FacetAvg
 from ufl.core.multiindex import indices
 from ufl.indexed import Indexed
-from ufl.geometry import SpatialCoordinate
-from ufl.domain import is_constant_everywhere
+from ufl.geometry import SpatialCoordinate, FacetNormal
+from ufl.checks import is_globally_constant, is_cellwise_constant
 
 #--- Basic operators ---
 
@@ -280,9 +280,8 @@ def Dn(f):
     """UFL operator: Take the directional derivative of f in the
     facet normal direction, Dn(f) := dot(grad(f), n)."""
     f = as_ufl(f)
-    if f.is_cellwise_constant():
+    if is_cellwise_constant(f):
         return Zero(f.ufl_shape, f.ufl_free_indices, f.ufl_index_dimensions)
-    from ufl.geometry import FacetNormal
     return dot(grad(f), FacetNormal(f.ufl_domain()))
 
 def diff(f, v):
@@ -387,7 +386,7 @@ rot = curl
 def jump(v, n=None):
     "UFL operator: Take the jump of v across a facet."
     v = as_ufl(v)
-    if is_constant_everywhere(v)
+    if is_globally_constant(v)
         if n is None:
             return v('+') - v('-')
         r = len(v.ufl_shape)

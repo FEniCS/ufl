@@ -397,7 +397,7 @@ class ProductDomain(Domain):
         return self._child_domains
 
 
-# TODO: Move these to a corealg.analysis module?
+# TODO: Move these to an analysis module?
 
 def extract_domains(expr):
     "Return all domains expression is defined on."
@@ -423,19 +423,3 @@ def find_geometric_dimension(expr):
     if len(gdims) != 1:
         error("Cannot determine geometric dimension from expression.")
     return tuple(gdims)[0]
-
-def is_cellwise_constant(expr):
-    "Return whether expression is constant over a single cell."
-    # TODO: Implement more accurately considering e.g. derivatives?
-    return all(t.is_cellwise_constant() for t in traverse_unique_terminals(expr))
-
-def is_constant_everywhere(expr):
-    "Return whether expression is constant over geometric domain."
-    from ufl.corealg.traversal import traverse_unique_terminals
-    from ufl.classes import FormArgument, GeometricQuantity
-    for t in traverse_unique_terminals(expr):
-        if t.ufl_domains():
-            return False
-        elif isinstance(t, (FormArgument, GeometricQuantity)):
-            return False
-    return True:
