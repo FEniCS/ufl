@@ -49,17 +49,17 @@ class Terminal(Expr):
 
     def operands(self):
         "A Terminal object never has operands."
-        #deprecate("Expr.operands() is deprecated, please use property Expr.ufl_operands instead.")
+        deprecate("Expr.operands() is deprecated, please use property Expr.ufl_operands instead.")
         return ()
 
     def free_indices(self):
         "A Terminal object never has free indices."
-        #deprecate("Expr.free_indices() is deprecated, please use property Expr.ufl_free_indices instead.")
+        deprecate("Expr.free_indices() is deprecated, please use property Expr.ufl_free_indices instead.")
         return ()
 
     def index_dimensions(self):
         "A Terminal object never has free indices."
-        #deprecate("Expr.index_dimensions() is deprecated, please use property Expr.ufl_index_dimensions instead.")
+        deprecate("Expr.index_dimensions() is deprecated, please use property Expr.ufl_index_dimensions instead.")
         return EmptyDict
 
     def ufl_domains(self):

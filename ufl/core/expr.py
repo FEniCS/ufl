@@ -381,16 +381,6 @@ class Expr(object):
         ## Fail gracefully if no valid type conversion found
         #raise TypeError("Cannot convert a {0.__class__.__name__} to UFL type.".format(value))
 
-    #--- Functions for shape and index handling ---
-
-    def shape(self):
-        "Return the tensor shape of the expression."
-        return self.ufl_shape
-
-    def rank(self):
-        "Return the tensor rank of the expression."
-        return len(self.ufl_shape)
-
     #--- Special functions for string representations ---
 
     # All subclasses must implement _ufl_signature_data_
@@ -466,6 +456,16 @@ class Expr(object):
     def operands(self):
         deprecate("Expr.operands() is deprecated, please use property Expr.ufl_operands instead.")
         raise NotImplementedError(self.__class__.operands)
+
+    def shape(self):
+        "Return the tensor shape of the expression."
+        deprecate("Expr.shape() is deprecated, please use expr.ufl_shape instead.")
+        return self.ufl_shape
+
+    def rank(self):
+        "Return the tensor rank of the expression."
+        deprecate("Expr.rank() is deprecated, please use len(expr.ufl_shape) instead.")
+        return len(self.ufl_shape)
 
     def free_indices(self):
         deprecate("Expr.free_indices() is deprecated, please use property Expr.ufl_free_indices instead.")
