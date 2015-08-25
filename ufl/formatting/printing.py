@@ -38,7 +38,7 @@ def integral_info(integral):
     s += "    Type:\n"
     s += "      %s\n" % integral.integral_type()
     s += "    Domain:\n"
-    s += "      %r\n" % integral.domain()
+    s += "      %r\n" % integral.ufl_domain()
     s += "    Domain id:\n"
     s += "      %r\n" % integral.subdomain_id()
     s += "    Domain data:\n"

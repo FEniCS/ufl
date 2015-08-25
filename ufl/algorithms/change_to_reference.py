@@ -220,7 +220,7 @@ class NEWChangeToReferenceGrad(MultiFunction):
             error("Unexpected type {0}.".format(type(t).__name__))
 
         # Some geometry mapping objects we may need multiple times below
-        domain = t.domain()
+        domain = t.ufl_domain()
         J = Jacobian(domain)
         detJ = JacobianDeterminant(domain)
         K = JacobianInverse(domain)
@@ -392,7 +392,7 @@ class OLDChangeToReferenceGrad(MultiFunction):
             f = ReferenceValue(f)
 
         # Get domain and create Jacobian inverse object
-        domain = o.domain()
+        domain = o.ufl_domain()
         Jinv = JacobianInverse(domain)
 
         if Jinv.is_cellwise_constant():

@@ -488,7 +488,7 @@ def form2latex(form, formdata):
         integral_type = itg.integral_type()
         dstr = domain_strings[integral_type]
 
-        domain = itg.domain()
+        domain = itg.ufl_domain()
         label = domain.ufl_label()
         # TODO: Use domain label!
 

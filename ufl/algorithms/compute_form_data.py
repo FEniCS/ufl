@@ -73,7 +73,7 @@ def _compute_element_mapping(form):
         reconstruct = False
 
         # Set domain/cell
-        domain = element.domain()
+        domain = element.ufl_domain()
         if domain is None:
             domains = form.domains()
             ufl_assert(len(domains) == 1,
@@ -123,7 +123,7 @@ def _compute_form_data_elements(self, arguments, coefficients):
 
 def _check_elements(form_data):
     for element in chain(form_data.unique_elements, form_data.unique_sub_elements):
-        ufl_assert(element.domain() is not None,
+        ufl_assert(element.ufl_domain() is not None,
                    "Found element with undefined domain: %s" % repr(element))
         ufl_assert(element.family() is not None,
                    "Found element with undefined familty: %s" % repr(element))

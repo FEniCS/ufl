@@ -26,7 +26,7 @@ class BrokenElement(FiniteElementBase):
         self._repr = "BrokenElement(%s)" % str(element._repr)
 
         family = "BrokenElement"
-        domain = element.domain()
+        domain = element.ufl_domain()
         degree = element.degree()
         quad_scheme = element.quadrature_scheme()
         value_shape = element.value_shape()
@@ -40,7 +40,7 @@ class BrokenElement(FiniteElementBase):
     def reconstruct(self, **kwargs):
         """Construct a new BrokenElement object with some properties
         replaced with new values."""
-        domain = kwargs.get("domain", self.domain())
+        domain = kwargs.get("domain", self.ufl_domain())
         ele = self._element.reconstruct(domain=domain)
         return BrokenElement(ele)
 

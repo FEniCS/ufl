@@ -112,7 +112,7 @@ def test_creating_domains_with_coordinate_fields():
 
     # Test the gymnastics that dolfin will have to go through
     V2 = eval(V.reconstruction_signature())
-    E2 = V2.domain().reconstruct(coordinates=x)
+    E2 = V2.ufl_domain().reconstruct(coordinates=x)
     V2 = V2.reconstruct(domain=E2)
     f2 = f.reconstruct(element=V2)
     assert f == f2
@@ -237,7 +237,7 @@ def xtest_mixed_elements_on_overlapping_regions():
     assert M.domain(5) == DL
 
     assert M.domain(6) == DR
-    # assert M.domain() == None # FIXME: What?
+    # assert M.ufl_domain() == None # FIXME: What?
 
     # Create a mixed function and fetch components with names for more
     # readable test code below
@@ -327,9 +327,9 @@ def xtest_form_domain_model():
     VBR = FiniteElement("CG", DBR, 1)
 
     # Check that regions are available through elements
-    assert VA.domain() == DA
-    assert VAL.domain() == DAL
-    assert VAR.domain() == DAR
+    assert VA.ufl_domain() == DA
+    assert VAL.ufl_domain() == DAL
+    assert VAR.ufl_domain() == DAR
 
     # Create functions in each space on DA
     fa = Coefficient(VA)

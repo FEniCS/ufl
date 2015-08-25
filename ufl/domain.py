@@ -93,7 +93,7 @@ class Domain(object):
         elif isinstance(arg, Coefficient):
             # Disallow additional label and data, get from underlying 'flat domain'
             self._coordinates = arg
-            flat_domain = arg.domain()
+            flat_domain = arg.ufl_domain()
             self._cell = flat_domain.ufl_cell()
             self._label = flat_domain.ufl_label()
             self._data = flat_domain.ufl_get_mesh()
@@ -127,7 +127,7 @@ class Domain(object):
         if self._coordinates is not None:
             ufl_assert(isinstance(self._coordinates, Coefficient),
                         "Expecting None or Coefficient for coordinates.")
-            ufl_assert(self._coordinates.domain().ufl_coordinates() is None,
+            ufl_assert(self._coordinates.ufl_domain().ufl_coordinates() is None,
                         "Coordinates must be defined on a domain without coordinates of its own.")
         ufl_assert(self._label is None or isinstance(self._label, str),
                    "Expecting None or str for label.")
@@ -354,7 +354,7 @@ def join_domains(domains):
             for dom in domlist:
                 newcoordinates = dom.ufl_coordinates()
                 if newcoordinates is not None:
-                    ufl_assert(newcoordinates.domain().ufl_coordinates() is None,
+                    ufl_assert(newcoordinates.ufl_domain().ufl_coordinates() is None,
                                "A coordinate domain cannot have coordinates.")
                     break
 

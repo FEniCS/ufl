@@ -60,7 +60,7 @@ class MixedElement(FiniteElementBase):
         self._sub_elements = elements
 
         # Pick the first domain, for now all should be equal
-        domains = tuple(sorted(set(element.domain() for element in elements) - set([None])))
+        domains = tuple(sorted(set(element.ufl_domain() for element in elements) - set([None])))
         self._domains = domains
         if domains:
             # Base class currently only handles one domain, this is work in progress
@@ -347,7 +347,7 @@ class VectorElement(MixedElement):
 
         # Cache repr string
         self._repr = "VectorElement(%r, %r, %r, dim=%d, quad_scheme=%r)" % \
-            (self._family, self.domain(), self._degree,
+            (self._family, self.ufl_domain(), self._degree,
              len(self._sub_elements), self._quad_scheme)
 
     def signature_data(self, renumbering):
@@ -365,12 +365,12 @@ class VectorElement(MixedElement):
         label and data, which must be reconstructed or supplied by other means.
         """
         return "VectorElement(%r, %s, %r, %d, %r)" % (
-                self._family, self.domain().reconstruction_signature(), self._degree,
+                self._family, self.ufl_domain().reconstruction_signature(), self._degree,
                 len(self._sub_elements), self._quad_scheme)
 
     def reconstruct(self, **kwargs):
         kwargs["family"] = kwargs.get("family", self.family())
-        kwargs["domain"] = kwargs.get("domain", self.domain())
+        kwargs["domain"] = kwargs.get("domain", self.ufl_domain())
         kwargs["degree"] = kwargs.get("degree", self.degree())
         ufl_assert("dim" not in kwargs, "Cannot change dim in reconstruct.")
         kwargs["dim"] = len(self._sub_elements)
@@ -380,7 +380,7 @@ class VectorElement(MixedElement):
     def __str__(self):
         "Format as string for pretty printing."
         return "<%s vector element of degree %s on a %s: %d x %s>" % \
-               (self.family(), istr(self.degree()), self.domain(),
+               (self.family(), istr(self.degree()), self.ufl_domain(),
                 len(self._sub_elements), self._sub_element)
 
     def shortstr(self):
@@ -474,7 +474,7 @@ class TensorElement(MixedElement):
 
         # Cache repr string
         self._repr = "TensorElement(%r, %r, %r, shape=%r, symmetry=%r, quad_scheme=%r)" % \
-            (self._family, self.domain(), self._degree, self._shape,
+            (self._family, self.ufl_domain(), self._degree, self._shape,
              self._symmetry, self._quad_scheme)
 
     def signature_data(self, renumbering):
@@ -492,12 +492,12 @@ class TensorElement(MixedElement):
         label and data, which must be reconstructed or supplied by other means.
         """
         return "TensorElement(%r, %s, %r, %r, %r, %r)" % (
-            self._family, self.domain().reconstruction_signature(), self._degree,
+            self._family, self.ufl_domain().reconstruction_signature(), self._degree,
             self._shape, self._symmetry, self._quad_scheme)
 
     def reconstruct(self, **kwargs):
         kwargs["family"] = kwargs.get("family", self.family())
-        kwargs["domain"] = kwargs.get("domain", self.domain())
+        kwargs["domain"] = kwargs.get("domain", self.ufl_domain())
         kwargs["degree"] = kwargs.get("degree", self.degree())
 
         ufl_assert("shape" not in kwargs, "Cannot change shape in reconstruct.")
@@ -548,7 +548,7 @@ class TensorElement(MixedElement):
         else:
             sym = ""
         return "<%s tensor element of degree %s and shape %s on a %s%s>" % \
-            (self.family(), istr(self.degree()), self.value_shape(), self.domain(), sym)
+            (self.family(), istr(self.degree()), self.value_shape(), self.ufl_domain(), sym)
 
     def shortstr(self):
         "Format as string for pretty printing."

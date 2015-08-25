@@ -301,13 +301,21 @@ class Expr(object):
     #--- Functions for geometric properties of expression ---
 
     # All subclasses must implement domains if it is known
-    def domains(self):
+    def domains(self): # TODO: Deprecate this
         # TODO: Is it better to use an external traversal algorithm for this?
         from ufl.geometry import extract_domains
         return extract_domains(self)
 
-    # All subclasses must implement domain if it is known
+    def cell(self):
+        deprecate("Expr.cell() is deprecated, please use .ufl_cell() instead.")
+        return self.ufl_cell()
+
     def domain(self):
+        deprecate("Expr.domain() is deprecated, please use .ufl_domain() instead.")
+        return self.ufl_domain()
+
+    # All subclasses must implement domain if it is known
+    def ufl_domain(self):
         "Return the single unique domain this expression is defined on or throw an error."
         domains = self.domains()
         if len(domains) == 1:
@@ -319,21 +327,21 @@ class Expr(object):
             return None
 
     # All subclasses must implement cell if it is known
-    def cell(self): # TODO: Deprecate this
+    def ufl_cell(self): # TODO: Deprecate this
         "Return the cell this expression is defined on."
-        domain = self.domain()
+        domain = self.ufl_domain()
         return domain.ufl_cell() if domain is not None else None
 
     # This function was introduced to clarify and
     # eventually reduce direct dependencies on cells.
-    def geometric_dimension(self):
+    def geometric_dimension(self): # TODO: Deprecate this
         "Return the geometric dimension this expression lives in."
         # TODO: Deprecate this, and use external analysis algorithm?
         for domain in self.domains():
             return domain.geometric_dimension()
         error("Cannot get geometric dimension from an expression with no domains!")
 
-    def is_cellwise_constant(self):
+    def is_cellwise_constant(self): # TODO: Deprecate this
         "Return whether this expression is spatially constant over each cell."
         raise NotImplementedError(self.__class__.is_cellwise_constant)
 

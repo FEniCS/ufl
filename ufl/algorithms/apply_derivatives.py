@@ -465,7 +465,7 @@ class GradRuleset(GenericDerivativeRuleset):
     def cell_coordinate(self, o):
         "dX/dx = inv(dx/dX) = inv(J) = K"
         # FIXME: Is this true for manifolds? What about orientation?
-        return JacobianInverse(o.domain())
+        return JacobianInverse(o.ufl_domain())
 
     # --- Specialized rules for form arguments
 
@@ -490,7 +490,7 @@ class GradRuleset(GenericDerivativeRuleset):
         # grad(o) == grad(rv(f)) -> K_ji*rgrad(rv(f))_rj
         f = o.ufl_operands[0]
         ufl_assert(f._ufl_is_terminal_, "ReferenceValue can only wrap a terminal")
-        domain = f.domain()
+        domain = f.ufl_domain()
         K = JacobianInverse(domain)
         r = indices(o.rank())
         i, j = indices(2)
@@ -501,7 +501,7 @@ class GradRuleset(GenericDerivativeRuleset):
         # grad(o) == grad(rgrad(rv(f))) -> K_ji*rgrad(rgrad(rv(f)))_rj
         f = o.ufl_operands[0]
         ufl_assert(f._ufl_is_in_reference_frame_, "ReferenceGrad can only wrap a reference frame type!")
-        domain = f.domain()
+        domain = f.ufl_domain()
         K = JacobianInverse(domain)
         r = indices(o.rank())
         i, j = indices(2)
@@ -551,7 +551,7 @@ class ReferenceGradRuleset(GenericDerivativeRuleset):
 
     def spatial_coordinate(self, o):
         "dx/dX = J"
-        return Jacobian(o.domain())
+        return Jacobian(o.ufl_domain())
 
     def cell_coordinate(self, o):
         "dX/dX = I"

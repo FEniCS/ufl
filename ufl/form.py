@@ -42,7 +42,7 @@ def _sorted_integrals(integrals):
     # Group integrals in multilevel dict by keys [domain][integral_type][subdomain_id]
     integrals_dict = defaultdict(lambda:defaultdict(lambda:defaultdict(list)))
     for integral in integrals:
-        d = integral.domain()
+        d = integral.ufl_domain()
         ufl_assert(d is not None, "An Integral without a Domain is now illegal.")
         it = integral.integral_type()
         si = integral.subdomain_id()
@@ -142,15 +142,18 @@ class Form(object):
         return self._integration_domains
 
     def cell(self):
-        "Return the single cell this form is defined on, fails if multiple cells are found."
-        domains = self.domains()
-        ufl_assert(all(domain.ufl_cell() == domains[0].ufl_cell() for domain in domains),
-                   "Calling Form.domain() is only valid if all integrals share domain.")
-        # Need to support missing domain to allow
-        # assemble(Constant(1)*dx, mesh=mesh) in dolfin
-        return domains[0].ufl_cell() if domains else None
+        deprecate("Form.cell() is deprecated, please use .ufl_cell() instead.")
+        return self.ufl_cell()
 
     def domain(self):
+        deprecate("Form.domain() is deprecated, please use .ufl_domain() instead.")
+        return self.ufl_domain()
+
+    def ufl_cell(self):
+        "Return the single cell this form is defined on, fails if multiple cells are found."
+        return self.ufl_domain().ufl_cell()
+
+    def ufl_domain(self):
         """Return the single geometric integration domain occuring in the form.
 
         Fails if multiple domains are found.
@@ -158,12 +161,13 @@ class Form(object):
         NB! This does not include domains of coefficients defined on other
         meshes, look at form data for that additional information.
         """
+        # Collect all domains
         domains = self.domains()
+        # Check that all are equal TODO: don't return more than one if all are equal?
         ufl_assert(all(domain == domains[0] for domain in domains),
                    "Calling Form.domain() is only valid if all integrals share domain.")
-        # Need to support missing domain to allow
-        # assemble(Constant(1)*dx, mesh=mesh) in dolfin
-        return domains[0] if domains else None
+        # Return the one and only domain
+        return domains[0]
 
     def geometric_dimension(self):
         "Return the geometric dimension shared by all domains and functions in this form."
@@ -317,7 +321,7 @@ class Form(object):
         from ufl.geometry import join_domains
 
         # Collect integration domains and make canonical list of them
-        integration_domains = join_domains([itg.domain() for itg in self._integrals])
+        integration_domains = join_domains([itg.ufl_domain() for itg in self._integrals])
         self._integration_domains = tuple(sorted(integration_domains, key=lambda x: x.ufl_label()))
 
         # TODO: Not including domains from coefficients and arguments here, may need that later
@@ -334,7 +338,7 @@ class Form(object):
 
         for integral in integrals:
             # Get integral properties
-            domain = integral.domain()
+            domain = integral.ufl_domain()
             it = integral.integral_type()
             sd = integral.subdomain_data()
 
@@ -380,7 +384,7 @@ class Form(object):
         # Add domains of coefficients, these may include domains not among integration domains
         k = len(dn)
         for c in cn:
-            d = c.domain()
+            d = c.ufl_domain()
             if d is not None and d not in renumbering:
                 renumbering[d] = k
                 k += 1
@@ -417,7 +421,7 @@ def replace_integral_domains(form, common_domain): # TODO: Move elsewhere
     reconstruct = False
     integrals = []
     for itg in form.integrals():
-        domain = itg.domain()
+        domain = itg.ufl_domain()
         if domain is None or domain.ufl_label() != common_domain.ufl_label():
             itg = itg.reconstruct(domain=common_domain)
             reconstruct = True

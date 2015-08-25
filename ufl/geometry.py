@@ -358,7 +358,7 @@ class CellEdgeVectors(GeometricCellQuantity):
 
     @property
     def ufl_shape(self):
-        cell = self.domain().ufl_cell()
+        cell = self.ufl_domain().ufl_cell()
         ne = cell.num_edges()
         t = cell.topological_dimension()
         return (ne, t)
@@ -381,7 +381,7 @@ class FacetEdgeVectors(GeometricFacetQuantity):
 
     @property
     def ufl_shape(self):
-        cell = self.domain().ufl_cell()
+        cell = self.ufl_domain().ufl_cell()
         nfe = cell.num_facet_edges()
         t = cell.topological_dimension()
         return (nfe, t)

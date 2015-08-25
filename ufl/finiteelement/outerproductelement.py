@@ -87,7 +87,7 @@ class OuterProductElement(FiniteElementBase):
     def reconstruct(self, **kwargs):
         """Construct a new OuterProductElement with some properties
         replaced with new values."""
-        domain = kwargs.get("domain", self.domain())
+        domain = kwargs.get("domain", self.ufl_domain())
         return OuterProductElement(self._A, self._B, domain=domain)
 
     def reconstruction_signature(self):
@@ -100,7 +100,7 @@ class OuterProductElement(FiniteElementBase):
         label and data, which must be reconstructed or supplied by other means.
         """
         return "OuterProductElement(%r, %r, %s, %r)" % (
-            self._A, self._B, self.domain().reconstruction_signature(),
+            self._A, self._B, self.ufl_domain().reconstruction_signature(),
             self._quad_scheme)
 
     def __str__(self):
@@ -151,7 +151,7 @@ class OuterProductVectorElement(MixedElement):
         self._sub_element = sub_element
         # Cache repr string
         self._repr = "OuterProductVectorElement(%r, %r, dim=%d)" % \
-            (self._sub_element, self.domain(), len(self._sub_elements))
+            (self._sub_element, self.ufl_domain(), len(self._sub_elements))
 
     @property
     def _A(self):
@@ -174,7 +174,7 @@ class OuterProductVectorElement(MixedElement):
     def reconstruct(self, **kwargs):
         """Construct a new OuterProductVectorElement with some properties
         replaced with new values."""
-        domain = kwargs.get("domain", self.domain())
+        domain = kwargs.get("domain", self.ufl_domain())
         dim = kwargs.get("dim", self.num_sub_elements())
         return OuterProductVectorElement(self._A, self._B,
                                          domain=domain, dim=dim)
@@ -189,7 +189,7 @@ class OuterProductVectorElement(MixedElement):
         label and data, which must be reconstructed or supplied by other means.
         """
         return "OuterProductVectorElement(%r, %s, %d, %r)" % (
-            self._sub_element, self.domain().reconstruction_signature(),
+            self._sub_element, self.ufl_domain().reconstruction_signature(),
             len(self._sub_elements), self._quad_scheme)
 
     def __str__(self):

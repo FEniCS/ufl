@@ -79,7 +79,7 @@ class FiniteElement(FiniteElementBase):
 
         # Cache repr string
         self._repr = "FiniteElement(%r, %r, %r, quad_scheme=%r)" % (
-            self.family(), self.domain(), self.degree(), self.quadrature_scheme())
+            self.family(), self.ufl_domain(), self.degree(), self.quadrature_scheme())
         assert '"' not in self._repr
 
     def mapping(self):
@@ -98,7 +98,7 @@ class FiniteElement(FiniteElementBase):
         label and data, which must be reconstructed or supplied by other means.
         """
         return "FiniteElement(%r, %s, %r, %r)" % (
-            self.family(), self.domain().reconstruction_signature(), self.degree(), self.quadrature_scheme())
+            self.family(), self.ufl_domain().reconstruction_signature(), self.degree(), self.quadrature_scheme())
 
     def signature_data(self, renumbering):
         data = ("FiniteElement", self._family, self._degree,
@@ -111,7 +111,7 @@ class FiniteElement(FiniteElementBase):
         """Construct a new FiniteElement object with some properties
         replaced with new values."""
         kwargs["family"] = kwargs.get("family", self.family())
-        kwargs["domain"] = kwargs.get("domain", self.domain())
+        kwargs["domain"] = kwargs.get("domain", self.ufl_domain())
         kwargs["degree"] = kwargs.get("degree", self.degree())
         kwargs["quad_scheme"] = kwargs.get("quad_scheme", self.quadrature_scheme())
         return FiniteElement(**kwargs)
@@ -121,7 +121,7 @@ class FiniteElement(FiniteElementBase):
         qs = self.quadrature_scheme()
         qs = "" if qs is None else "(%s)" % qs
         return "<%s%s%s on a %s>" % (self._short_name, istr(self.degree()),\
-                                           qs, self.domain())
+                                           qs, self.ufl_domain())
 
     def shortstr(self):
         "Format as string for pretty printing."

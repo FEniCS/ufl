@@ -516,7 +516,7 @@ class GradAD(ForwardAD):
     def cell_coordinate(self, o):
         "Gradient of X w.r.t. x is K. But I'm not sure if we want to allow this."
         error("This has not been validated. Does it make sense to do this here?")
-        K = JacobianInverse(o.domain())
+        K = JacobianInverse(o.ufl_domain())
         return (o, K)
 
     # TODO: Implement rules for some of these types?

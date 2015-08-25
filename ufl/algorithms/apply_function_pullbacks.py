@@ -88,7 +88,7 @@ def apply_single_function_pullbacks(g):
     rsize = product(rsh)
 
     # Create some geometric objects for reuse
-    domain = g.domain()
+    domain = g.ufl_domain()
     J = Jacobian(domain)
     detJ = JacobianDeterminant(domain)
     Jinv = JacobianInverse(domain)

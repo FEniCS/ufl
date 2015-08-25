@@ -29,7 +29,7 @@ from ufl.classes import JacobianDeterminant, FacetJacobianDeterminant, Quadratur
 def compute_integrand_scaling_factor(integral):
     """Change integrand geometry to the right representations."""
 
-    domain = integral.domain()
+    domain = integral.ufl_domain()
     integral_type = integral.integral_type()
     #co = CellOrientation(domain)
     weight = QuadratureWeight(domain)

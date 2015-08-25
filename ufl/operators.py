@@ -282,7 +282,7 @@ def Dn(f):
     if f.is_cellwise_constant():
         return Zero(f.ufl_shape, f.ufl_free_indices, f.ufl_index_dimensions)
     from ufl.geometry import FacetNormal
-    return dot(grad(f), FacetNormal(f.domain()))
+    return dot(grad(f), FacetNormal(f.ufl_domain()))
 
 def diff(f, v):
     """UFL operator: Take the derivative of f with respect to the variable v.

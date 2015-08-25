@@ -37,7 +37,7 @@ class RestrictedElement(FiniteElementBase):
         ufl_assert(restriction_domain in valid_restriction_domains,
                    "Expecting one of the strings %r." % (valid_restriction_domains,))
 
-        FiniteElementBase.__init__(self, "RestrictedElement", element.domain(),
+        FiniteElementBase.__init__(self, "RestrictedElement", element.ufl_domain(),
             element.degree(), element.quadrature_scheme(), element.value_shape(), element.reference_value_shape())
 
         self._element = element

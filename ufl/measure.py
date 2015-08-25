@@ -167,6 +167,10 @@ class Measure(object):
         return self._integral_type
 
     def domain(self):
+        deprecate("Measure.domain() is deprecated, please use .ufl_domain() instead.")
+        return self.ufl_domain()
+
+    def ufl_domain(self):
         """Return the domain associated with this measure.
 
         This may be None or a Domain object.
@@ -203,7 +207,7 @@ class Measure(object):
         if subdomain_id is None:
             subdomain_id = self.subdomain_id()
         if domain is None:
-            domain = self.domain()
+            domain = self.ufl_domain()
         if metadata is None:
             metadata = self.metadata()
         if subdomain_data is None:
@@ -385,7 +389,7 @@ class Measure(object):
                    "Expecting integer or string domain id.")
 
         # If we don't have an integration domain, try to find one in integrand
-        domain = self.domain()
+        domain = self.ufl_domain()
         if domain is None:
             domains = integrand.domains()
             if len(domains) == 1:

@@ -171,15 +171,13 @@ class ReferenceGrad(CompoundDerivative):
     def __new__(cls, f):
         # Return zero if expression is trivially constant
         if f.is_cellwise_constant():
-            dim = f.domain().topological_dimension()
+            dim = f.ufl_domain().topological_dimension()
             return Zero(f.ufl_shape + (dim,), f.ufl_free_indices, f.ufl_index_dimensions)
         return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):
         CompoundDerivative.__init__(self, (f,))
-        domain = f.domain()
-        dim = domain.topological_dimension()
-        self._dim = dim
+        self._dim = f.ufl_domain().topological_dimension()
 
     def reconstruct(self, op):
         "Return a new object of the same type with new operands."

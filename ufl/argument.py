@@ -66,7 +66,7 @@ class Argument(FormArgument):
     #    return FunctionSpace(self.ufl_domain(), self.ufl_element())
 
     def ufl_domain(self):
-        return self._ufl_element.domain() # FIXME: Get from function space
+        return self._ufl_element.ufl_domain() # FIXME: Get from function space
 
     def ufl_element(self):
         return self._ufl_element
@@ -114,7 +114,7 @@ class Argument(FormArgument):
     def signature_data(self, renumbering):
         "Signature data for form arguments depend on the global numbering of the form arguments and domains."
         edata = self.ufl_element().signature_data(renumbering)
-        d = self.domain()
+        d = self.ufl_domain()
         ddata = None if d is None else d.signature_data(renumbering)
         return ("Coefficient", self._number, self._part, edata, ddata)
 
