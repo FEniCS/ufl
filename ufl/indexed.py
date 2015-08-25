@@ -81,10 +81,6 @@ class Indexed(Operator):
 
     ufl_shape = ()
 
-    def is_cellwise_constant(self):
-        "Return whether this expression is spatially constant over each cell."
-        return self.ufl_operands[0].is_cellwise_constant()
-
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
         A, ii = self.ufl_operands
         component = ii.evaluate(x, mapping, None, index_values)

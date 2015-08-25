@@ -32,15 +32,6 @@ from six.moves import xrange as range
 
 from ufl.log import warning, error, deprecate
 
-
-def find_geometric_dimension(expr): # TODO: Move to corealg.analysis module
-    "Find the geometric dimension of an expression."
-    gdims = set(domain.geometric_dimension() for domain in expr.ufl_domains())
-    if len(gdims) != 1:
-        error("Cannot determine geometric dimension from expression.")
-    return tuple(gdims)[0]
-
-
 #--- The base object for all UFL expression tree nodes ---
 
 class Expr(object):
@@ -222,9 +213,6 @@ class Expr(object):
         # To reconstruct an object of the same type with operands or properties changed.
         "reconstruct",
 
-        # Return whether this expression is spatially constant over each cell.
-        "is_cellwise_constant",
-
         "ufl_domains",
         #"ufl_cell",
         #"ufl_domain",
@@ -303,31 +291,28 @@ class Expr(object):
 
     #--- Functions for geometric properties of expression ---
 
-    # All subclasses must implement ufl_domains if it is known
-    def ufl_domains(self): # TODO: Deprecate this and use extract_domains
-        from ufl.geometry import extract_domains # TODO: Move to corealg.analysis module
+    def ufl_domains(self): # TODO: Deprecate this and use extract_domains(expr)
+        "Return all domains this expression is defined on."
+        from ufl.domain import extract_domains
         return extract_domains(self)
 
-    # All subclasses must implement ufl_domain if it is known
-    def ufl_domain(self):
+    def ufl_domain(self): # TODO: Deprecate this and use extract_unique_domain(expr)
         "Return the single unique domain this expression is defined on or throw an error."
-        domains = self.ufl_domains()
-        if len(domains) == 1:
-            domain, = domains
-            return domain
-        elif domains:
-            error("Found multiple domains, cannot return just one.")
-        else:
-            return None
+        from ufl.domain import extract_unique_domain
+        return extract_unique_domain(self)
 
-    def is_cellwise_constant(self): # TODO: Deprecate this
+    def is_cellwise_constant(self): # TODO: Deprecate this and use is_cellwise_constant(expr)
         "Return whether this expression is spatially constant over each cell."
-        raise NotImplementedError(self.__class__.is_cellwise_constant)
+        from ufl.domain import is_cellwise_constant
+        #deprecate("Expr.is_cellwise_constant() is deprecated, please use is_cellwise_constant(expr) instead.")
+        return is_cellwise_constant(self)
 
     #--- Functions for float evaluation ---
 
-    def evaluate(self, x, mapping, component, index_values): # TODO: Move to corealg.eval module
+    def evaluate(self, x, mapping, component, index_values):
         """Evaluate expression at given coordinate with given values for terminals."""
+        #from ufl.corealg.evaluate import evaluate_expr # TODO: Implement in corealg.eval module
+        #return evaluate_expr(self, ...) # ... then deprecate and remove expr.evaluate()
         error("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
 
     def _ufl_evaluate_scalar_(self):
@@ -430,7 +415,7 @@ class Expr(object):
 
     def geometric_dimension(self):
         "Return the geometric dimension this expression lives in."
-        #from ufl.corealg.analysis import find_geometric_dimension
+        from ufl.domain import find_geometric_dimension
         deprecate("Expr.geometric_dimension() is deprecated, please use find_geometric_dimension(expr) instead.")
         return find_geometric_dimension(self)
 

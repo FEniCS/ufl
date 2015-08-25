@@ -46,6 +46,7 @@ from ufl.restriction import CellAvg, FacetAvg
 from ufl.core.multiindex import indices
 from ufl.indexed import Indexed
 from ufl.geometry import SpatialCoordinate
+from ufl.domain import is_constant_everywhere
 
 #--- Basic operators ---
 
@@ -386,8 +387,7 @@ rot = curl
 def jump(v, n=None):
     "UFL operator: Take the jump of v across a facet."
     v = as_ufl(v)
-    is_not_constant = len(v.ufl_domains()) > 0 # FIXME: Not quite right...
-    if is_not_constant:
+    if is_constant_everywhere(v)
         if n is None:
             return v('+') - v('-')
         r = len(v.ufl_shape)
@@ -397,10 +397,10 @@ def jump(v, n=None):
             return dot(v('+'), n('+')) + dot(v('-'), n('-'))
     else:
         warning("Returning zero from jump of expression without a domain. This may be erroneous.")
-        # FIXME: Is this right? If v has no cell, it doesn't depend on
+        # FIXME: Is this right? If v has no domain, it doesn't depend on
         # anything spatially variable or any form arguments, and thus
         # the jump is zero. In other words, I'm assuming that
-        # "not v.ufl_domains()" is equivalent with "v is a constant".
+        # "v has no geometric domains" is equivalent with "v is a spatial constant".
         # Update: This is NOT true for jump(Expression("x[0]")) from dolfin.
         return Zero(v.ufl_shape, v.ufl_free_indices, v.ufl_index_dimensions)
 

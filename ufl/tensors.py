@@ -77,10 +77,6 @@ class ListTensor(Operator):
     def ufl_shape(self):
         return (len(self.ufl_operands),) + self.ufl_operands[0].ufl_shape
 
-    def is_cellwise_constant(self):
-        "Return whether this expression is spatially constant over each cell."
-        return all(e.is_cellwise_constant() for e in self.ufl_operands)
-
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
         ufl_assert(len(component) == len(self.ufl_shape),
                    "Can only evaluate scalars, expecting a component "\
@@ -158,10 +154,6 @@ class ComponentTensor(Operator):
         self.ufl_free_indices = fi
         self.ufl_index_dimensions = fid
         self.ufl_shape = sh
-
-    def is_cellwise_constant(self):
-        "Return whether this expression is spatially constant over each cell."
-        return self.ufl_operands[0].is_cellwise_constant()
 
     def reconstruct(self, expressions, indices):
         # Special case for simplification as_tensor(A[ii], ii) -> A

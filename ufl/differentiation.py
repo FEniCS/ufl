@@ -36,8 +36,7 @@ from ufl.coefficient import Coefficient
 from ufl.indexed import Indexed
 from ufl.variable import Variable
 from ufl.precedence import parstr
-
-from ufl.core.expr import find_geometric_dimension # TODO: Move to corealg.analysis
+from ufl.domain import is_cellwise_constant, find_geometric_dimension
 
 #--- Basic differentiation objects ---
 
@@ -126,7 +125,7 @@ class Grad(CompoundDerivative):
 
     def __new__(cls, f):
         # Return zero if expression is trivially constant
-        if f.is_cellwise_constant():
+        if is_cellwise_constant(f):
             dim = find_geometric_dimension(f)
             return Zero(f.ufl_shape + (dim,), f.ufl_free_indices, f.ufl_index_dimensions)
         return CompoundDerivative.__new__(cls)
@@ -137,7 +136,7 @@ class Grad(CompoundDerivative):
 
     def reconstruct(self, op):
         "Return a new object of the same type with new operands."
-        if op.is_cellwise_constant():
+        if is_cellwise_constant(op):
             ufl_assert(op.ufl_shape == self.ufl_operands[0].ufl_shape,
                        "Operand shape mismatch in Grad reconstruct.")
             ufl_assert(self.ufl_operands[0].ufl_free_indices == op.ufl_free_indices,
@@ -173,7 +172,7 @@ class ReferenceGrad(CompoundDerivative):
 
     def __new__(cls, f):
         # Return zero if expression is trivially constant
-        if f.is_cellwise_constant():
+        if is_cellwise_constant(f):
             dim = f.ufl_domain().topological_dimension()
             return Zero(f.ufl_shape + (dim,), f.ufl_free_indices, f.ufl_index_dimensions)
         return CompoundDerivative.__new__(cls)
@@ -184,7 +183,7 @@ class ReferenceGrad(CompoundDerivative):
 
     def reconstruct(self, op):
         "Return a new object of the same type with new operands."
-        if op.is_cellwise_constant():
+        if is_cellwise_constant(op):
             ufl_assert(op.ufl_shape == self.ufl_operands[0].ufl_shape,
                        "Operand shape mismatch in ReferenceGrad reconstruct.")
             ufl_assert(self.ufl_operands[0].ufl_free_indices == op.ufl_free_indices,
@@ -220,7 +219,7 @@ class Div(CompoundDerivative):
             "Free indices in the divergence argument is not allowed.")
 
         # Return zero if expression is trivially constant
-        if f.is_cellwise_constant():
+        if is_cellwise_constant(f):
             return Zero(f.ufl_shape[:-1]) # No free indices asserted above
 
         return CompoundDerivative.__new__(cls)
@@ -250,7 +249,7 @@ class ReferenceDiv(CompoundDerivative):
             "Free indices in the divergence argument is not allowed.")
 
         # Return zero if expression is trivially constant
-        if f.is_cellwise_constant():
+        if is_cellwise_constant(f):
             return Zero(f.ufl_shape[:-1]) # No free indices asserted above
 
         return CompoundDerivative.__new__(cls)
@@ -274,7 +273,7 @@ class NablaGrad(CompoundDerivative):
 
     def __new__(cls, f):
         # Return zero if expression is trivially constant
-        if f.is_cellwise_constant():
+        if is_cellwise_constant(f):
             dim = find_geometric_dimension(f)
             return Zero((dim,) + f.ufl_shape, f.ufl_free_indices, f.ufl_index_dimensions)
         return CompoundDerivative.__new__(cls)
@@ -285,7 +284,7 @@ class NablaGrad(CompoundDerivative):
 
     def reconstruct(self, op):
         "Return a new object of the same type with new operands."
-        if op.is_cellwise_constant():
+        if is_cellwise_constant(op):
             ufl_assert(op.ufl_shape == self.ufl_operands[0].ufl_shape,
                        "Operand shape mismatch in NablaGrad reconstruct.")
             ufl_assert(self.ufl_operands[0].ufl_free_indices == op.ufl_free_indices,
@@ -313,7 +312,7 @@ class NablaDiv(CompoundDerivative):
             "Free indices in the divergence argument is not allowed.")
 
         # Return zero if expression is trivially constant
-        if f.is_cellwise_constant():
+        if is_cellwise_constant(f):
             return Zero(f.ufl_shape[1:]) # No free indices asserted above
 
         return CompoundDerivative.__new__(cls)
@@ -344,7 +343,7 @@ class Curl(CompoundDerivative):
             "Free indices in the curl argument is not allowed.")
 
         # Return zero if expression is trivially constant
-        if f.is_cellwise_constant():
+        if is_cellwise_constant(f):
             sh = { (): (2,), (2,): (), (3,): (3,) }[sh]
             return Zero(sh) # No free indices asserted above
         return CompoundDerivative.__new__(cls)
@@ -375,7 +374,7 @@ class ReferenceCurl(CompoundDerivative):
             "Free indices in the curl argument is not allowed.")
 
         # Return zero if expression is trivially constant
-        if f.is_cellwise_constant():
+        if is_cellwise_constant(f):
             sh = { (): (2,), (2,): (), (3,): (3,) }[sh]
             return Zero(sh) # No free indices asserted above
         return CompoundDerivative.__new__(cls)

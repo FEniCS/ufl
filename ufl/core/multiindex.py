@@ -177,8 +177,7 @@ class MultiIndex(Terminal):
         error("Multiindex has no free indices (it is not a tensor expression).")
 
     def is_cellwise_constant(self):
-        error("Asking if a Multiindex is cellwise constant makes no sense (it is not a tensor expression).")
-        #return True # Could also just return True, after all it doesn't change with the cell
+        return True
 
     def ufl_domains(self):
         "Return tuple of domains related to this terminal object."

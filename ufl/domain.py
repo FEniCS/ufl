@@ -377,12 +377,6 @@ def join_domains(domains):
         newdomains.append(dom)
     return tuple(newdomains)
 
-def extract_domains(expr):
-    domainlist = []
-    for t in traverse_unique_terminals(expr):
-        domainlist.extend(t.ufl_domains())
-    return sorted(join_domains(domainlist))
-
 class ProductDomain(Domain):
     """WARNING: This is work in progress, design is in no way completed."""
     __slots__ = ("_child_domains",)
@@ -401,3 +395,47 @@ class ProductDomain(Domain):
 
     def child_domains(self):
         return self._child_domains
+
+
+# TODO: Move these to a corealg.analysis module?
+
+def extract_domains(expr):
+    "Return all domains expression is defined on."
+    domainlist = []
+    for t in traverse_unique_terminals(expr):
+        domainlist.extend(t.ufl_domains())
+    return sorted(join_domains(domainlist))
+
+def extract_unique_domain(expr):
+    "Return the single unique domain expression is defined on or throw an error."
+    domains = extract_domains(expr)
+    if len(domains) == 1:
+        return domains[0]
+    elif domains:
+        error("Found multiple domains, cannot return just one.")
+    else:
+        #error("Found no domains.")
+        return None
+
+def find_geometric_dimension(expr):
+    "Find the geometric dimension of an expression."
+    gdims = set(domain.geometric_dimension() for domain in extract_domains(expr))
+    if len(gdims) != 1:
+        error("Cannot determine geometric dimension from expression.")
+    return tuple(gdims)[0]
+
+def is_cellwise_constant(expr):
+    "Return whether expression is constant over a single cell."
+    # TODO: Implement more accurately considering e.g. derivatives?
+    return all(t.is_cellwise_constant() for t in traverse_unique_terminals(expr))
+
+def is_constant_everywhere(expr):
+    "Return whether expression is constant over geometric domain."
+    from ufl.corealg.traversal import traverse_unique_terminals
+    from ufl.classes import FormArgument, GeometricQuantity
+    for t in traverse_unique_terminals(expr):
+        if t.ufl_domains():
+            return False
+        elif isinstance(t, (FormArgument, GeometricQuantity)):
+            return False
+    return True:
