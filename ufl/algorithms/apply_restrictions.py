@@ -127,7 +127,7 @@ class RestrictionPropagator(MultiFunction):
 
     def facet_normal(self, o):
         D = o.domain()
-        e = D.coordinate_element()
+        e = D.ufl_coordinate_element()
         f = e.family()
         d = e.degree()
         gd = D.geometric_dimension()
@@ -145,7 +145,7 @@ class RestrictionPropagator(MultiFunction):
 
     def reference_normal(self, o):
         D = o.domain()
-        e = D.coordinate_element()
+        e = D.ufl_coordinate_element()
         f = e.family()
         d = e.degree()
         gd = D.geometric_dimension()

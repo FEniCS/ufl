@@ -86,9 +86,9 @@ def test_foo():
     assert cell.cellname() == "triangle"
     assert mydomain.topological_dimension() == tdim
     assert mydomain.geometric_dimension() == gdim
-    assert mydomain.cell() == cell
-    assert mydomain.label() == "Omega"
-    assert mydomain.data() == mymesh
+    assert mydomain.ufl_cell() == cell
+    assert mydomain.ufl_label() == "Omega"
+    assert mydomain.ufl_get_mesh() == mymesh
 
     # Define a coefficient for use in tests below
     V = FiniteElement("CG", mydomain, 1)
@@ -100,7 +100,7 @@ def test_foo():
                    domain=mydomain,
                    subdomain_id=3,
                    metadata=metadata)
-    assert mydx.domain().label() == mydomain.label()
+    assert mydx.domain().ufl_label() == mydomain.ufl_label()
     assert mydx.metadata() == metadata
     M = f * mydx
 
@@ -174,14 +174,6 @@ def test_foo():
     assert dxd.subdomain_data() is cell_domains
     assert dsd.subdomain_data() is exterior_facet_domains
     assert dSd.subdomain_data() is interior_facet_domains
-    # Considered behaviour at one point:
-    # assert dxd.domain().label() == "MockMesh"
-    # assert dsd.domain().label() == "MockMesh"
-    # assert dSd.domain().label() == "MockMesh"
-    # assert dxd.domain().data() == { "mesh": mesh, "cell": cell_domains }
-    # assert dsd.domain().data() == { "mesh": mesh, "exterior_facet": exterior_facet_domains }
-    # assert dSd.domain().data() == { "mesh": mesh, "interior_facet":
-    # interior_facet_domains }
 
     # Create some forms with these measures (used in checks below):
     Mx = f * dxd
@@ -191,23 +183,23 @@ def test_foo():
 
     # Test extracting domain data from a form for each measure:
     domain, = Mx.domains()
-    assert domain.label() == mydomain.label()
-    assert domain.data() == mymesh
+    assert domain.ufl_label() == mydomain.ufl_label()
+    assert domain.ufl_get_mesh() == mymesh
     assert Mx.subdomain_data()[mydomain]["cell"] == cell_domains
 
     domain, = Ms.domains()
-    assert domain.data() == mymesh
+    assert domain.ufl_get_mesh() == mymesh
     assert Ms.subdomain_data()[mydomain][
         "exterior_facet"] == exterior_facet_domains
 
     domain, = MS.domains()
-    assert domain.data() == mymesh
+    assert domain.ufl_get_mesh() == mymesh
     assert MS.subdomain_data()[mydomain][
         "interior_facet"] == interior_facet_domains
 
     # Test joining of these domains in a single form
     domain, = M.domains()
-    assert domain.data() == mymesh
+    assert domain.ufl_get_mesh() == mymesh
     assert M.subdomain_data()[mydomain]["cell"] == cell_domains
     assert M.subdomain_data()[mydomain][
         "exterior_facet"] == exterior_facet_domains

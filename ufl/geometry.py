@@ -358,7 +358,7 @@ class CellEdgeVectors(GeometricCellQuantity):
 
     @property
     def ufl_shape(self):
-        cell = self.domain().cell()
+        cell = self.domain().ufl_cell()
         ne = cell.num_edges()
         t = cell.topological_dimension()
         return (ne, t)
@@ -381,7 +381,7 @@ class FacetEdgeVectors(GeometricFacetQuantity):
 
     @property
     def ufl_shape(self):
-        cell = self.domain().cell()
+        cell = self.domain().ufl_cell()
         nfe = cell.num_facet_edges()
         t = cell.topological_dimension()
         return (nfe, t)
@@ -514,8 +514,8 @@ class FacetNormal(GeometricFacetQuantity):
         "Return whether this expression is spatially constant over each cell."
         # For product cells, this is only true for some but not all facets. Seems like too much work to fix right now.
         # Only true for a piecewise linear coordinate field with simplex _facets_.
-        is_piecewise_linear = self._domain.coordinate_element().degree() == 1
-        return is_piecewise_linear and self._domain.cell().has_simplex_facets()
+        is_piecewise_linear = self._domain.ufl_coordinate_element().degree() == 1
+        return is_piecewise_linear and self._domain.ufl_cell().has_simplex_facets()
 
 @ufl_type()
 class CellNormal(GeometricCellQuantity):
@@ -563,8 +563,8 @@ class ReferenceNormal(GeometricFacetQuantity):
 #        "Return whether this expression is spatially constant over each cell."
 #        # For product cells, this is only true for some but not all facets. Seems like too much work to fix right now.
 #        # Only true for a piecewise linear coordinate field with simplex _facets_.
-#        is_piecewise_linear = self._domain.coordinate_element().degree() == 1
-#        return is_piecewise_linear and self._domain.cell().has_simplex_facets()
+#        is_piecewise_linear = self._domain.ufl_coordinate_element().degree() == 1
+#        return is_piecewise_linear and self._domain.ufl_cell().has_simplex_facets()
 
 # TODO: Implement in apply_geometry_lowering and enable
 #@ufl_type()

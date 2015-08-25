@@ -144,11 +144,11 @@ class Form(object):
     def cell(self):
         "Return the single cell this form is defined on, fails if multiple cells are found."
         domains = self.domains()
-        ufl_assert(all(domain.cell() == domains[0].cell() for domain in domains),
+        ufl_assert(all(domain.ufl_cell() == domains[0].ufl_cell() for domain in domains),
                    "Calling Form.domain() is only valid if all integrals share domain.")
         # Need to support missing domain to allow
         # assemble(Constant(1)*dx, mesh=mesh) in dolfin
-        return domains[0].cell() if domains else None
+        return domains[0].ufl_cell() if domains else None
 
     def domain(self):
         """Return the single geometric integration domain occuring in the form.
@@ -318,7 +318,7 @@ class Form(object):
 
         # Collect integration domains and make canonical list of them
         integration_domains = join_domains([itg.domain() for itg in self._integrals])
-        self._integration_domains = tuple(sorted(integration_domains, key=lambda x: x.label()))
+        self._integration_domains = tuple(sorted(integration_domains, key=lambda x: x.ufl_label()))
 
         # TODO: Not including domains from coefficients and arguments here, may need that later
         self._domain_numbering = dict((d, i) for i, d in enumerate(self._integration_domains))
@@ -353,7 +353,7 @@ class Form(object):
 
         # Include coordinate coefficients from integration domains
         domains = self.domains()
-        coordinates = [c for c in (domain.coordinates() for domain in domains) if c is not None]
+        coordinates = [c for c in (domain.ufl_coordinates() for domain in domains) if c is not None]
         coefficients.extend(coordinates)
 
         # TODO: Not including domains from coefficients and arguments here. Will we need that later?
@@ -418,7 +418,7 @@ def replace_integral_domains(form, common_domain): # TODO: Move elsewhere
     integrals = []
     for itg in form.integrals():
         domain = itg.domain()
-        if domain is None or domain.label() != common_domain.label():
+        if domain is None or domain.ufl_label() != common_domain.ufl_label():
             itg = itg.reconstruct(domain=common_domain)
             reconstruct = True
         integrals.append(itg)

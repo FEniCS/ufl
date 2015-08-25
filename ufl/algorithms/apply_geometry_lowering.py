@@ -70,7 +70,7 @@ class GeometryLoweringApplier(MultiFunction):
             return o
 
         domain = o.domain()
-        if domain.coordinates() is None:
+        if domain.ufl_coordinates() is None:
             # Affine case in FEniCS: preserve J if there's no coordinate function
             # (the handling of coordinate functions will soon be refactored)
             return o
@@ -158,7 +158,7 @@ class GeometryLoweringApplier(MultiFunction):
             return o
 
         domain = o.domain()
-        x = domain.coordinates()
+        x = domain.ufl_coordinates()
         if x is None:
             # Old affine domains
             return o
@@ -233,7 +233,7 @@ class GeometryLoweringApplier(MultiFunction):
             warning("Only know how to compute the circumradius of an affine cell.")
             return o
 
-        cellname = domain.cell().cellname()
+        cellname = domain.ufl_cell().cellname()
         cellvolume = self.cell_volume(CellVolume(domain))
 
         if cellname == "interval":
@@ -286,7 +286,7 @@ class GeometryLoweringApplier(MultiFunction):
             warning("Only know how to compute the min_cell_edge_length of an affine cell.")
             return o
 
-        cellname = domain.cell().cellname()
+        cellname = domain.ufl_cell().cellname()
 
         J = self.jacobian(Jacobian(domain))
         trev = CellEdgeVectors(domain)
@@ -315,7 +315,7 @@ class GeometryLoweringApplier(MultiFunction):
             warning("Only know how to compute the max_cell_edge_length of an affine cell.")
             return o
 
-        cellname = domain.cell().cellname()
+        cellname = domain.ufl_cell().cellname()
 
         J = self.jacobian(Jacobian(domain))
         trev = CellEdgeVectors(domain)
@@ -344,7 +344,7 @@ class GeometryLoweringApplier(MultiFunction):
             warning("Only know how to compute the min_facet_edge_length of an affine cell.")
             return o
 
-        cellname = domain.cell().cellname()
+        cellname = domain.ufl_cell().cellname()
 
         if cellname == "triangle":
             return self.facet_area(FacetArea(domain))
@@ -370,7 +370,7 @@ class GeometryLoweringApplier(MultiFunction):
             warning("Only know how to compute the max_facet_edge_length of an affine cell.")
             return o
 
-        cellname = domain.cell().cellname()
+        cellname = domain.ufl_cell().cellname()
 
         if cellname == "triangle":
             return self.facet_area(FacetArea(domain))

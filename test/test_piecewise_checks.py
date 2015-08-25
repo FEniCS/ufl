@@ -164,7 +164,7 @@ def test_coordinates_never_cellwise_constant(domains):
 def test_coordinates_never_cellwise_constant_vertex():
     # The only exception here:
     domains = Domain(Cell("vertex", 3))
-    assert domains.cell().cellname() == "vertex"
+    assert domains.ufl_cell().cellname() == "vertex"
     e = SpatialCoordinate(domains)
     assert e.is_cellwise_constant()
     e = CellCoordinate(domains)

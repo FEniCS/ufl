@@ -36,7 +36,7 @@ class Coefficient(FormArgument):
     """UFL form argument type: Representation of a form coefficient."""
 
     # Slots are disabled here because they cause trouble in PyDOLFIN multiple inheritance pattern:
-    #__slots__ = ("_count", "_element", "_repr", "_gradient", "_derivatives")
+    #__slots__ = ("_count", "_element", "_repr",)
     _ufl_noslots_ = True
     _globalcount = 0
 
@@ -66,10 +66,6 @@ class Coefficient(FormArgument):
                    "Expecting an int, not %s" % count)
         ufl_assert(element.value_shape() == self._element.value_shape(),
                    "Cannot reconstruct a Coefficient with a different value shape.")
-        return self._reconstruct(element, count)
-
-    def _reconstruct(self, element, count):
-        # This code is class specific
         return Coefficient(element, count)
 
     def element(self):
