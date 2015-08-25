@@ -195,15 +195,19 @@ class Domain(object):
     def cell(self):
         deprecate("Domain.cell() is deprecated, please use domain.ufl_cell() instead.")
         return self.ufl_cell()
+
     def coordinates(self):
         deprecate("Domain.coordinates() is deprecated, please use domain.ufl_coordinates()() instead.")
         return self.ufl_coordinates()
+
     def coordinate_element(self):
         deprecate("Domain.coordinate_element() is deprecated, please use domain.ufl_coordinate_element()() instead.")
         return self.ufl_coordinate_element()
+
     def label(self):
         deprecate("Domain.label() is deprecated, please use domain.ufl_label()() instead.")
         return self.ufl_label()
+
     def data(self):
         deprecate("Domain.data() is deprecated, please use domain.ufl_get_mesh() instead, until this becomes obsolete in later redesign.")
         return self._data
@@ -386,7 +390,7 @@ class ProductDomain(Domain):
         # Get the right properties of this domain
         gdim = sum(domain.geometric_dimension() for domain in domains)
         tdim = sum(domain.topological_dimension() for domain in domains)
-        cell = ProductCell(*[domain.cell() for domain in domains])
+        cell = ProductCell(*[domain.ufl_cell() for domain in domains])
         label = "product_of_%s" % "_".join(str(domain.label()) for domain in domains)
 
         # Initialize parent class
