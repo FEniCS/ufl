@@ -61,12 +61,16 @@ class Operator(Expr):
     # --- Transitional property getters ---
 
     def operands(self):
+        "Intermediate helper property getter to transition from .operands() to .ufl_operands."
+        #deprecate("Expr.operands() is deprecated, please use property Expr.ufl_operands instead.")
         return self.ufl_operands
 
     def free_indices(self):
         "Intermediate helper property getter to transition from .free_indices() to .ufl_free_indices."
+        #deprecate("Expr.free_indices() is deprecated, please use property Expr.ufl_free_indices instead.")
         return tuple(Index(count=i) for i in self.ufl_free_indices)
 
     def index_dimensions(self):
         "Intermediate helper property getter to transition from .index_dimensions() to .ufl_index_dimensions."
+        #deprecate("Expr.index_dimensions() is deprecated, please use property Expr.ufl_index_dimensions instead.")
         return { Index(count=i): d for i, d in zip(self.ufl_free_indices, self.ufl_index_dimensions) }
