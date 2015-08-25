@@ -115,7 +115,7 @@ class RestrictionPropagator(MultiFunction):
 
     def coefficient(self, o):
         "Allow coefficients to be unrestricted (apply default if so) if the values are fully continuous across the facet."
-        e = o.element()
+        e = o.ufl_element()
         d = e.degree()
         f = e.family()
         # TODO: Move this choice to the element class?

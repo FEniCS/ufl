@@ -675,7 +675,7 @@ class VariableRuleset(GenericDerivativeRuleset):
         # d/dv(o) == d/dv(rv(f)) = 0 if v is not f, or rv(dv/df)
         v = self._variable
         if isinstance(v, Coefficient) and o.ufl_operands[0] == v:
-            if v.element().mapping() != "identity":
+            if v.ufl_element().mapping() != "identity":
                 # FIXME: This is a bit tricky, instead of Identity it is
                 #   actually inverse(transform), or we should rather not
                 #   convert to reference frame in the first place

@@ -59,12 +59,12 @@ class SumDegreeEstimator(Transformer):
     def argument(self, v):
         """A form argument provides a degree depending on the element,
         or the default degree if the element has no degree."""
-        return v.element().degree() # FIXME: Use component to improve accuracy for mixed elements
+        return v.ufl_element().degree() # FIXME: Use component to improve accuracy for mixed elements
 
     def coefficient(self, v):
         """A form argument provides a degree depending on the element,
         or the default degree if the element has no degree."""
-        e = v.element()
+        e = v.ufl_element()
         e = self.element_replace_map.get(e, e)
         d = e.degree() # FIXME: Use component to improve accuracy for mixed elements
         if d is None:
@@ -307,7 +307,7 @@ def __unused__extract_max_quadrature_element_degree(integral):
 def __unused__estimate_quadrature_degree(integral):
     "Estimate the necessary quadrature order for integral using the sum of argument degrees."
     arguments = extract_arguments(integral)
-    degrees = [v.element().degree() for v in arguments]
+    degrees = [v.ufl_element().degree() for v in arguments]
     if len(arguments) == 0:
         return None
     if len(arguments) == 1:

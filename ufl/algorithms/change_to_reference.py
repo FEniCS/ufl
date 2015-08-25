@@ -276,9 +276,9 @@ class NEWChangeToReferenceGrad(MultiFunction):
             if isinstance(t, FormArgument):
 
                 # Find basic subelement and element-local component
-                #ec, element, eoffset = t.element().extract_component2(gtc) # FIXME: Translate this correctly
+                #ec, element, eoffset = t.ufl_element().extract_component2(gtc) # FIXME: Translate this correctly
                 eoffset = 0
-                ec, element = t.element().extract_reference_component(gtc)
+                ec, element = t.ufl_element().extract_reference_component(gtc)
 
                 # Select mapping M from element, pick row emapping = M[ec,:], or emapping = [] if no mapping
                 ufl_assert(not isinstance(element, MixedElement),

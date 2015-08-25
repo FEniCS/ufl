@@ -166,7 +166,7 @@ class GeometryLoweringApplier(MultiFunction):
         # TODO: If we're not using Coefficient to represent the spatial coordinate,
         # we can just as well always return o here too unless we add representation
         # of basis functions and dofs to the ufl layer (which is nice to avoid).
-        if x.element().mapping() != "identity":
+        if x.ufl_element().mapping() != "identity":
             error("Piola mapped coordinates are not implemented.")
         return ReferenceValue(x)
 

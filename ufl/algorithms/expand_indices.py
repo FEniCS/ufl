@@ -64,7 +64,7 @@ class IndexExpander(ReuseTransformer):
         if sh == ():
             return x
         else:
-            e = x.element()
+            e = x.ufl_element()
             r = len(sh)
 
             # Get component

@@ -59,7 +59,7 @@ def _compute_element_mapping(form):
     "Compute element mapping for element replacement"
 
     # Extract all elements and include subelements of mixed elements
-    elements = [obj.element() for obj in chain(form.arguments(), form.coefficients())]
+    elements = [obj.ufl_element() for obj in chain(form.arguments(), form.coefficients())]
     elements = extract_sub_elements(elements)
 
     # Try to find a common degree for elements
@@ -113,8 +113,8 @@ def _compute_num_sub_domains(integral_data):
 
 
 def _compute_form_data_elements(self, arguments, coefficients):
-    self.argument_elements    = tuple(f.element() for f in arguments)
-    self.coefficient_elements = tuple(f.element() for f in coefficients)
+    self.argument_elements    = tuple(f.ufl_element() for f in arguments)
+    self.coefficient_elements = tuple(f.ufl_element() for f in coefficients)
     self.elements             = self.argument_elements + self.coefficient_elements
     self.unique_elements      = unique_tuple(self.elements)
     self.sub_elements         = extract_sub_elements(self.elements)
@@ -160,7 +160,7 @@ def _build_coefficient_replace_map(coefficients, element_mapping=None):
     new_coefficients = []
     replace_map = {}
     for i, f in enumerate(coefficients):
-        old_e = f.element()
+        old_e = f.ufl_element()
         new_e = element_mapping.get(old_e, old_e)
         new_f = f.reconstruct(element=new_e, count=i)
         new_coefficients.append(new_f)
@@ -314,7 +314,7 @@ def compute_form_data(form,
     coefficients_replace_map = {}
     for i, f in enumerate(self.reduced_coefficients):
         if f not in coordinate_functions:
-            old_e = f.element()
+            old_e = f.ufl_element()
             new_e = self.element_replace_map.get(old_e, old_e)
             new_f = f.reconstruct(element=new_e, count=i)
             coefficients_replace_map[f] = new_f

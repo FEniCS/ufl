@@ -193,7 +193,7 @@ def test_everywhere_integrals_with_backwards_compatibility():
     itg1 = ida.integrals[0].integrand()
     itg2 = a.integrals()[0].integrand()
     assert type(itg1) == type(itg2)
-    assert itg1.element() == itg2.element()
+    assert itg1.ufl_element() == itg2.ufl_element()
 
 
 def xtest_mixed_elements_on_overlapping_regions():

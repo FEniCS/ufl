@@ -60,7 +60,7 @@ class MixedElement(FiniteElementBase):
         self._sub_elements = elements
 
         # Pick the first domain, for now all should be equal
-        domains = tuple(sorted(set(chain(*[element.domains() for element in elements]))))
+        domains = tuple(sorted(set(element.domain() for element in elements) - set([None])))
         self._domains = domains
         if domains:
             # Base class currently only handles one domain, this is work in progress

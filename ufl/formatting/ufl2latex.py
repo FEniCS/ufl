@@ -428,9 +428,9 @@ def form2latex(form, formdata):
     # Define elements
     lines = []
     for i, f in enumerate(formdata.original_arguments):
-        lines.append(r"\mathcal{P}_{%d} = \{%s\} " % (i, element2latex(f.element())))
+        lines.append(r"\mathcal{P}_{%d} = \{%s\} " % (i, element2latex(f.ufl_element())))
     for i, f in enumerate(formdata.original_coefficients):
-        lines.append(r"\mathcal{Q}_{%d} = \{%s\} " % (i, element2latex(f.element())))
+        lines.append(r"\mathcal{Q}_{%d} = \{%s\} " % (i, element2latex(f.ufl_element())))
     if lines:
         sections.append(("Finite elements", align(lines)))
 

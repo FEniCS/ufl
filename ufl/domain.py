@@ -174,12 +174,13 @@ class Domain(object):
 
     def ufl_coordinate_element(self):
         "Return the finite element of the coordinate vector field of this domain."
+        #return self._ufl_coordinate_element # TODO: Make this THE constructor argument
         x = self.ufl_coordinates()
         if x is None:
             from ufl import VectorElement
             return VectorElement("Lagrange", self, 1)
         else:
-            return x.element()
+            return x.ufl_element()
 
     def ufl_label(self): # TODO: Replace with count/ufl_id when Mesh becomes subclass
         "Return the label identifying this domain. None means no label has been set."
