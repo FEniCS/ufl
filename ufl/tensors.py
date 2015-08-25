@@ -331,7 +331,7 @@ def as_scalars(*expressions):
       (a,b) = ([A[0][indices], ..., A[-1][indices]], indices)
 
     such that a is always a list of scalar valued expressions."""
-    ii = indices(expressions[0].rank())
+    ii = indices(len(expressions[0].ufl_shape))
     if ii:
         expressions = [expression[ii] for expression in expressions]
     return expressions, ii
