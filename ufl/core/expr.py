@@ -326,13 +326,6 @@ class Expr(object):
         domain = self.ufl_domain()
         return domain.ufl_cell() if domain is not None else None
 
-    # This function was introduced to clarify and
-    # eventually reduce direct dependencies on cells.
-    def geometric_dimension(self): # TODO: Deprecate this
-        "Return the geometric dimension this expression lives in."
-        #from ufl.corealg.analysis import find_geometric_dimension
-        return find_geometric_dimension(self)
-
     def is_cellwise_constant(self): # TODO: Deprecate this
         "Return whether this expression is spatially constant over each cell."
         raise NotImplementedError(self.__class__.is_cellwise_constant)
@@ -441,6 +434,12 @@ class Expr(object):
 
     #--- Deprecated functions
 
+    def geometric_dimension(self):
+        "Return the geometric dimension this expression lives in."
+        #from ufl.corealg.analysis import find_geometric_dimension
+        deprecate("Expr.geometric_dimension() is deprecated, please use find_geometric_dimension(expr) instead.")
+        return find_geometric_dimension(self)
+
     def domains(self):
         deprecate("Expr.domains() is deprecated, please use .ufl_domains() instead.")
         return self.ufl_domains()
@@ -455,7 +454,7 @@ class Expr(object):
 
     def operands(self):
         deprecate("Expr.operands() is deprecated, please use property Expr.ufl_operands instead.")
-        raise NotImplementedError(self.__class__.operands)
+        return self.ufl_operands
 
     def shape(self):
         "Return the tensor shape of the expression."
@@ -464,16 +463,23 @@ class Expr(object):
 
     def rank(self):
         "Return the tensor rank of the expression."
-        deprecate("Expr.rank() is deprecated, please use len(expr.ufl_shape) instead.")
+        deprecate("Expr.rank() is deprecated," +
+                  " please use len(expr.ufl_shape) instead.")
         return len(self.ufl_shape)
 
     def free_indices(self):
-        deprecate("Expr.free_indices() is deprecated, please use property Expr.ufl_free_indices instead.")
-        raise NotImplementedError(self.__class__.free_indices)
+        from ufl.core.multiindex import Index
+        deprecate("Expr.free_indices() is deprecated," +
+                  " please use property Expr.ufl_free_indices instead.")
+        return tuple(Index(count=i) for i in self.ufl_free_indices)
 
     def index_dimensions(self):
-        deprecate("Expr.index_dimensions() is deprecated, please use property Expr.ufl_index_dimensions instead.")
-        raise NotImplementedError(self.__class__.index_dimensions)
+        from ufl.core.multiindex import Index
+        from ufl.utils.dicts import EmptyDict
+        deprecate("Expr.index_dimensions() is deprecated," +
+                  " please use property Expr.ufl_index_dimensions instead.")
+        idims = { Index(count=i): d for i, d in zip(self.ufl_free_indices, self.ufl_index_dimensions) }
+        return idims or EmptyDict
 
 
 # Initializing traits here because Expr is not defined in the class declaration

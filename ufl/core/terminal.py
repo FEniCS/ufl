@@ -23,7 +23,6 @@ for all types that are terminal nodes in the expression trees."""
 
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
-from ufl.utils.dicts import EmptyDict
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
 
@@ -46,21 +45,6 @@ class Terminal(Expr):
     ufl_operands = ()
     ufl_free_indices = ()
     ufl_index_dimensions = ()
-
-    def operands(self):
-        "A Terminal object never has operands."
-        deprecate("Expr.operands() is deprecated, please use property Expr.ufl_operands instead.")
-        return ()
-
-    def free_indices(self):
-        "A Terminal object never has free indices."
-        deprecate("Expr.free_indices() is deprecated, please use property Expr.ufl_free_indices instead.")
-        return ()
-
-    def index_dimensions(self):
-        "A Terminal object never has free indices."
-        deprecate("Expr.index_dimensions() is deprecated, please use property Expr.ufl_index_dimensions instead.")
-        return EmptyDict
 
     def ufl_domains(self):
         "Return tuple of domains related to this terminal object."
