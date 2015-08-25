@@ -184,7 +184,7 @@ class Expr(object):
 
     # --- All subclasses must define these object attributes ---
 
-    # FIXME: Enable checks in ufl_type
+    # Each subclass of Expr is checked to have these properties in ufl_type
     _ufl_required_properties_ = (
         # A tuple of operands, all of them Expr instances.
         "ufl_operands",
@@ -199,27 +199,32 @@ class Expr(object):
         "ufl_index_dimensions",
         )
 
+    # Each subclass of Expr is checked to have these methods in ufl_type
     # FIXME: Add more and enable all
     _ufl_required_methods_ = (
         # To compute the hash on demand, this method is called.
         "_ufl_compute_hash_",
 
-        # To compute the signature of a form, the data returned from this method is used
+        # The data returned from this method is used to compute the signature of a form
         "_ufl_signature_data_",
 
-        # The == operator must be implemented to compare for identical representation, used by set() and dict().
+        # The == operator must be implemented to compare for identical representation,
+        # used by set() and dict(). The __hash__ operator is added by ufl_type.
         "__eq__",
 
         # To reconstruct an object of the same type with operands or properties changed.
-        "reconstruct",
+        "reconstruct", # TODO: Rename to _ufl_reconstruct_, simplify implementations?
 
         "ufl_domains",
         #"ufl_cell",
         #"ufl_domain",
-        #"geometric_dimension",
 
         #"__str__",
         #"__repr__",
+
+        # TODO: Add checks for methods/properties of terminals only?
+        # Required for terminals:
+        #"is_cellwise_constant", # TODO: Rename to ufl_is_cellwise_constant?
         )
 
 

@@ -57,7 +57,8 @@ from ufl.operators import dot, inner, outer, lt, eq, conditional, sign, \
     erf, bessel_J, bessel_Y, bessel_I, bessel_K, \
     cell_avg, facet_avg
 from ufl.algorithms.transformer import Transformer
-from ufl.domain import is_cellwise_constant, find_geometric_dimension
+from ufl.domain import find_geometric_dimension
+from ufl.checks import is_cellwise_constant
 
 
 class ForwardAD(Transformer):

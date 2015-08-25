@@ -36,7 +36,8 @@ from ufl.coefficient import Coefficient
 from ufl.indexed import Indexed
 from ufl.variable import Variable
 from ufl.precedence import parstr
-from ufl.domain import is_cellwise_constant, find_geometric_dimension
+from ufl.domain import find_geometric_dimension
+from ufl.checks import is_cellwise_constant
 
 #--- Basic differentiation objects ---
 

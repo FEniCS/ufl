@@ -47,6 +47,7 @@ from ufl.core.multiindex import indices
 from ufl.indexed import Indexed
 from ufl.geometry import SpatialCoordinate, FacetNormal
 from ufl.checks import is_globally_constant, is_cellwise_constant
+from ufl.domain import extract_domains
 
 #--- Basic operators ---
 
@@ -386,7 +387,8 @@ rot = curl
 def jump(v, n=None):
     "UFL operator: Take the jump of v across a facet."
     v = as_ufl(v)
-    if is_globally_constant(v)
+    is_constant = len(extract_domains(v)) > 0
+    if is_constant:
         if n is None:
             return v('+') - v('-')
         r = len(v.ufl_shape)
@@ -395,7 +397,7 @@ def jump(v, n=None):
         else:
             return dot(v('+'), n('+')) + dot(v('-'), n('-'))
     else:
-        warning("Returning zero from jump of expression without a domain. This may be erroneous.")
+        warning("Returning zero from jump of expression without a domain. This may be erroneous if a dolfin.Expression is involved.")
         # FIXME: Is this right? If v has no domain, it doesn't depend on
         # anything spatially variable or any form arguments, and thus
         # the jump is zero. In other words, I'm assuming that
