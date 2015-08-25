@@ -59,7 +59,7 @@ class Terminal(Expr):
         "A Terminal object never has free indices."
         return EmptyDict
 
-    def domains(self):
+    def ufl_domains(self):
         "Return tuple of domains related to this terminal object."
         raise NotImplementedError("Missing implementation of domains().")
 

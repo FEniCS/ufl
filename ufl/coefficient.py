@@ -90,7 +90,7 @@ class Coefficient(FormArgument):
         "Return whether this expression is spatially constant over each cell."
         return self._ufl_element.is_cellwise_constant()
 
-    def domains(self):
+    def ufl_domains(self):
         "Return tuple of domains related to this terminal object."
         d = self.ufl_domain() # FIXME: Get from function space
         if d is None:

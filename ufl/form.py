@@ -131,6 +131,10 @@ class Form(object):
         return self.integrals() == ()
 
     def domains(self):
+        deprecate("Form.domains() is deprecated, please use .ufl_domains() instead.")
+        return self.ufl_domains()
+
+    def ufl_domains(self):
         """Return the geometric integration domains occuring in the form.
 
         NB! This does not include domains of coefficients defined on other meshes.

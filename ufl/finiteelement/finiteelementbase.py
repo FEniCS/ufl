@@ -137,6 +137,10 @@ class FiniteElementBase(object):
             error("Cannot return the requested single domain, as this element has multiple domains.")
 
     def domains(self, component=None):
+        deprecate("FiniteElementBase.domains() is deprecated, please use .ufl_domains() instead.")
+        return self.ufl_domains(component)
+
+    def ufl_domains(self, component=None):
         "Return the domain on which this element is defined."
         if self._domain is None:
             return ()

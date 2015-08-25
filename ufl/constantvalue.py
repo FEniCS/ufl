@@ -57,7 +57,7 @@ class ConstantValue(Terminal):
         "Return whether this expression is spatially constant over each cell."
         return True
 
-    def domains(self):
+    def ufl_domains(self):
         "Return tuple of domains related to this terminal object."
         return ()
 

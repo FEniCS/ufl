@@ -261,7 +261,7 @@ class MixedElement(FiniteElementBase):
             i, e = self.extract_component(component)
             return e.is_cellwise_constant()
 
-    def domains(self, component=None):
+    def ufl_domains(self, component=None):
         "Return the domain(s) on which this element is defined."
         if component is None:
             # Return all unique domains

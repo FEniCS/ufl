@@ -180,7 +180,7 @@ class MultiIndex(Terminal):
         error("Asking if a Multiindex is cellwise constant makes no sense (it is not a tensor expression).")
         #return True # Could also just return True, after all it doesn't change with the cell
 
-    def domains(self):
+    def ufl_domains(self):
         "Return tuple of domains related to this terminal object."
         return ()
 

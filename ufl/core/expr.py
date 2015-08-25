@@ -301,8 +301,11 @@ class Expr(object):
     #--- Functions for geometric properties of expression ---
 
     # All subclasses must implement domains if it is known
-    def domains(self): # TODO: Deprecate this
-        # TODO: Is it better to use an external traversal algorithm for this?
+    def domains(self):
+        deprecate("Expr.domains() is deprecated, please use .ufl_domains() instead.")
+        return self.ufl_domains()
+
+    def ufl_domains(self): # TODO: Deprecate this and use extract_domains
         from ufl.geometry import extract_domains
         return extract_domains(self)
 

@@ -105,7 +105,7 @@ class GeometricQuantity(Terminal):
         Terminal.__init__(self)
         self._domain = as_domain(domain)
 
-    def domains(self):
+    def ufl_domains(self):
         return (self._domain,)
 
     def is_cellwise_constant(self):
