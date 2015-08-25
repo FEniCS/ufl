@@ -320,12 +320,6 @@ class Expr(object):
         else:
             return None
 
-    # All subclasses must implement cell if it is known
-    def ufl_cell(self): # TODO: Deprecate this
-        "Return the cell this expression is defined on."
-        domain = self.ufl_domain()
-        return domain.ufl_cell() if domain is not None else None
-
     def is_cellwise_constant(self): # TODO: Deprecate this
         "Return whether this expression is spatially constant over each cell."
         raise NotImplementedError(self.__class__.is_cellwise_constant)
@@ -445,8 +439,9 @@ class Expr(object):
         return self.ufl_domains()
 
     def cell(self):
-        deprecate("Expr.cell() is deprecated, please use .ufl_cell() instead.")
-        return self.ufl_cell()
+        deprecate("Expr.cell() is deprecated, please use .ufl_domain() instead.")
+        domain = self.ufl_domain()
+        return domain.ufl_cell() if domain is not None else None
 
     def domain(self):
         deprecate("Expr.domain() is deprecated, please use .ufl_domain() instead.")
