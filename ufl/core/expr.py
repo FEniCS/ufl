@@ -33,6 +33,14 @@ from six.moves import xrange as range
 from ufl.log import warning, error
 
 
+def find_geometric_dimension(expr): # TODO: Move to corealg.analysis module
+    "Find the geometric dimension of an expression."
+    gdims = set(domain.geometric_dimension() for domain in expr.ufl_domains())
+    if len(gdims) != 1:
+        error("Cannot determine geometric dimension from expression.")
+    return tuple(gdims)[0]
+
+
 #--- The base object for all UFL expression tree nodes ---
 
 class Expr(object):
@@ -306,7 +314,7 @@ class Expr(object):
         return self.ufl_domains()
 
     def ufl_domains(self): # TODO: Deprecate this and use extract_domains
-        from ufl.geometry import extract_domains
+        from ufl.geometry import extract_domains # TODO: Move to corealg.analysis module
         return extract_domains(self)
 
     def cell(self):
@@ -339,10 +347,8 @@ class Expr(object):
     # eventually reduce direct dependencies on cells.
     def geometric_dimension(self): # TODO: Deprecate this
         "Return the geometric dimension this expression lives in."
-        # TODO: Deprecate this, and use external analysis algorithm?
-        for domain in self.domains():
-            return domain.geometric_dimension()
-        error("Cannot get geometric dimension from an expression with no domains!")
+        #from ufl.corealg.analysis import find_geometric_dimension
+        return find_geometric_dimension(self)
 
     def is_cellwise_constant(self): # TODO: Deprecate this
         "Return whether this expression is spatially constant over each cell."
@@ -350,7 +356,7 @@ class Expr(object):
 
     #--- Functions for float evaluation ---
 
-    def evaluate(self, x, mapping, component, index_values):
+    def evaluate(self, x, mapping, component, index_values): # TODO: Move to corealg.eval module
         """Evaluate expression at given coordinate with given values for terminals."""
         error("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
 

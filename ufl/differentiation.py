@@ -23,17 +23,21 @@
 from ufl.log import warning, error
 from ufl.assertions import ufl_assert
 from ufl.utils.dicts import subdict, mergedicts, EmptyDict
+
 from ufl.core.expr import Expr
 from ufl.core.terminal import Terminal
 from ufl.core.operator import Operator
+from ufl.core.ufl_type import ufl_type
+from ufl.core.multiindex import Index, FixedIndex, MultiIndex
+
 from ufl.exprcontainers import ExprList, ExprMapping
 from ufl.constantvalue import Zero
 from ufl.coefficient import Coefficient
-from ufl.core.multiindex import Index, FixedIndex, MultiIndex
 from ufl.indexed import Indexed
 from ufl.variable import Variable
 from ufl.precedence import parstr
-from ufl.core.ufl_type import ufl_type
+
+from ufl.core.expr import find_geometric_dimension # TODO: Move to corealg.analysis
 
 #--- Basic differentiation objects ---
 
@@ -123,14 +127,13 @@ class Grad(CompoundDerivative):
     def __new__(cls, f):
         # Return zero if expression is trivially constant
         if f.is_cellwise_constant():
-            dim = f.geometric_dimension()
+            dim = find_geometric_dimension(f)
             return Zero(f.ufl_shape + (dim,), f.ufl_free_indices, f.ufl_index_dimensions)
-
         return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):
         CompoundDerivative.__init__(self, (f,))
-        self._dim = f.geometric_dimension()
+        self._dim = find_geometric_dimension(f)
 
     def reconstruct(self, op):
         "Return a new object of the same type with new operands."
@@ -272,13 +275,13 @@ class NablaGrad(CompoundDerivative):
     def __new__(cls, f):
         # Return zero if expression is trivially constant
         if f.is_cellwise_constant():
-            dim = f.geometric_dimension()
+            dim = find_geometric_dimension(f)
             return Zero((dim,) + f.ufl_shape, f.ufl_free_indices, f.ufl_index_dimensions)
         return CompoundDerivative.__new__(cls)
 
     def __init__(self, f):
         CompoundDerivative.__init__(self, (f,))
-        self._dim = f.geometric_dimension()
+        self._dim = find_geometric_dimension(f)
 
     def reconstruct(self, op):
         "Return a new object of the same type with new operands."

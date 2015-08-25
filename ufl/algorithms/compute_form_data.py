@@ -280,7 +280,7 @@ def compute_form_data(form,
     self.rank = len(self.original_form.arguments())
 
     # Extract common geometric dimension (topological is not common!)
-    self.geometric_dimension = self.original_form.geometric_dimension()
+    self.geometric_dimension = self.original_form.integrals()[0].ufl_domain().geometric_dimension()
 
 
     # --- Build mapping from old incomplete element objects to new well defined elements.

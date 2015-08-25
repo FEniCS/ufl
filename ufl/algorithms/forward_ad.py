@@ -57,6 +57,7 @@ from ufl.operators import dot, inner, outer, lt, eq, conditional, sign, \
     erf, bessel_J, bessel_Y, bessel_I, bessel_K, \
     cell_avg, facet_avg
 from ufl.algorithms.transformer import Transformer
+from ufl.core.expr import find_geometric_dimension # TODO: Move to corealg.analysis
 
 
 class ForwardAD(Transformer):
@@ -509,7 +510,7 @@ class GradAD(ForwardAD):
     def spatial_coordinate(self, o):
         "Gradient of x w.r.t. x is Id."
         if not hasattr(self, '_Id'):
-            gdim = o.geometric_dimension()
+            gdim = find_geometric_dimension(o)
             self._Id = Identity(gdim)
         return (o, self._Id)
 
