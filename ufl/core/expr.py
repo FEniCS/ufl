@@ -30,7 +30,7 @@ This is to avoid circular dependencies between Expr and its subclasses.
 
 from six.moves import xrange as range
 
-from ufl.log import warning, error
+from ufl.log import warning, error, deprecate
 
 
 def find_geometric_dimension(expr): # TODO: Move to corealg.analysis module
