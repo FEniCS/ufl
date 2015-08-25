@@ -213,6 +213,9 @@ class Expr(object):
         # To compute the hash on demand, this method is called.
         "_ufl_compute_hash_",
 
+        # To compute the signature of a form, the data returned from this method is used
+        "_ufl_signature_data_",
+
         # The == operator must be implemented to compare for identical representation, used by set() and dict().
         "__eq__",
 
@@ -226,9 +229,6 @@ class Expr(object):
         #"ufl_cell",
         #"ufl_domain",
         #"geometric_dimension",
-
-        #"signature_data",
-        #"reconstruction_signature",
 
         #"__str__",
         #"__repr__",
@@ -391,38 +391,12 @@ class Expr(object):
         "Return the tensor rank of the expression."
         return len(self.ufl_shape)
 
-    #--- Deprecated functions
-
-    def domains(self):
-        deprecate("Expr.domains() is deprecated, please use .ufl_domains() instead.")
-        return self.ufl_domains()
-
-    def cell(self):
-        deprecate("Expr.cell() is deprecated, please use .ufl_cell() instead.")
-        return self.ufl_cell()
-
-    def domain(self):
-        deprecate("Expr.domain() is deprecated, please use .ufl_domain() instead.")
-        return self.ufl_domain()
-
-    def operands(self):
-        deprecate("Expr.operands() is deprecated, please use property Expr.ufl_operands instead.")
-        raise NotImplementedError(self.__class__.operands)
-
-    def free_indices(self):
-        deprecate("Expr.free_indices() is deprecated, please use property Expr.ufl_free_indices instead.")
-        raise NotImplementedError(self.__class__.free_indices)
-
-    def index_dimensions(self):
-        deprecate("Expr.index_dimensions() is deprecated, please use property Expr.ufl_index_dimensions instead.")
-        raise NotImplementedError(self.__class__.index_dimensions)
-
     #--- Special functions for string representations ---
 
-    # All subclasses must implement signature_data
-    def signature_data(self, renumbering):
+    # All subclasses must implement _ufl_signature_data_
+    def _ufl_signature_data_(self, renumbering):
         "Return data that uniquely identifies form compiler relevant aspects of this object."
-        raise NotImplementedError(self.__class__.signature_data)
+        raise NotImplementedError(self.__class__._ufl_signature_data_)
 
     # All subclasses must implement __repr__
     def __repr__(self):
@@ -473,6 +447,33 @@ class Expr(object):
     def __round__(self, n=None):
         "Round to nearest integer or to nearest nth decimal."
         return round(float(self), n)
+
+
+    #--- Deprecated functions
+
+    def domains(self):
+        deprecate("Expr.domains() is deprecated, please use .ufl_domains() instead.")
+        return self.ufl_domains()
+
+    def cell(self):
+        deprecate("Expr.cell() is deprecated, please use .ufl_cell() instead.")
+        return self.ufl_cell()
+
+    def domain(self):
+        deprecate("Expr.domain() is deprecated, please use .ufl_domain() instead.")
+        return self.ufl_domain()
+
+    def operands(self):
+        deprecate("Expr.operands() is deprecated, please use property Expr.ufl_operands instead.")
+        raise NotImplementedError(self.__class__.operands)
+
+    def free_indices(self):
+        deprecate("Expr.free_indices() is deprecated, please use property Expr.ufl_free_indices instead.")
+        raise NotImplementedError(self.__class__.free_indices)
+
+    def index_dimensions(self):
+        deprecate("Expr.index_dimensions() is deprecated, please use property Expr.ufl_index_dimensions instead.")
+        raise NotImplementedError(self.__class__.index_dimensions)
 
 
 # Initializing traits here because Expr is not defined in the class declaration

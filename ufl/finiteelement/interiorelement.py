@@ -48,10 +48,10 @@ class InteriorElement(FiniteElementBase):
     def reconstruction_signature(self):
         return "InteriorElement(%s)" % self._element.reconstruction_signature()
 
-    def signature_data(self, renumbering):
-        data = ("InteriorElement", self._element.signature_data(renumbering),
+    def _ufl_signature_data_(self, renumbering):
+        data = ("InteriorElement", self._element._ufl_signature_data_(renumbering),
                 ("no domain" if self._domain is None else self._domain
-                    .signature_data(renumbering)))
+                    ._ufl_signature_data_(renumbering)))
         return data
 
     def __str__(self):

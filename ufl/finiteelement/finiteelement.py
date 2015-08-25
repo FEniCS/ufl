@@ -100,11 +100,11 @@ class FiniteElement(FiniteElementBase):
         return "FiniteElement(%r, %s, %r, %r)" % (
             self.family(), self.ufl_domain().reconstruction_signature(), self.degree(), self.quadrature_scheme())
 
-    def signature_data(self, renumbering):
+    def _ufl_signature_data_(self, renumbering):
         data = ("FiniteElement", self._family, self._degree,
                 self._value_shape, self._reference_value_shape,
                 self._quad_scheme,
-                ("no domain" if self._domain is None else self._domain.signature_data(renumbering)))
+                ("no domain" if self._domain is None else self._domain._ufl_signature_data_(renumbering)))
         return data
 
     def reconstruct(self, **kwargs):

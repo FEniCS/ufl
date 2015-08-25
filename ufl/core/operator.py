@@ -47,7 +47,7 @@ class Operator(Expr):
         "Return a new object of the same type with new operands."
         return self._ufl_class_(*operands)
 
-    def signature_data(self):
+    def _ufl_signature_data_(self):
         return self._ufl_typecode_
 
     def _ufl_compute_hash_(self):

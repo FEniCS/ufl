@@ -103,7 +103,7 @@ class Terminal(Expr):
             f = f[c]
         return f
 
-    def signature_data(self, renumbering):
+    def _ufl_signature_data_(self, renumbering):
         "Default signature data for of terminals just return the repr string."
         return repr(self)
 

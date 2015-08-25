@@ -213,12 +213,12 @@ class Domain(object):
         return self._data
 
 
-    def signature_data(self, renumbering):
+    def _ufl_signature_data_(self, renumbering):
         "Signature data of domain depend on the global domain numbering."
         count = renumbering[self]
         cdata = self.ufl_cell()
         x = self.ufl_coordinates()
-        xdata = (None if x is None else x.signature_data(renumbering))
+        xdata = (None if x is None else x._ufl_signature_data_(renumbering))
         return (count, cdata, xdata)
 
     def hash_data(self):

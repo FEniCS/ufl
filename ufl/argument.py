@@ -101,10 +101,10 @@ class Argument(FormArgument):
         else:
             return (d,)
 
-    def signature_data(self, renumbering):
+    def _ufl_signature_data_(self, renumbering):
         "Signature data for form arguments depend on the global numbering of the form arguments and domains."
-        edata = self.ufl_element().signature_data(renumbering)
-        ddata = self.ufl_domain().signature_data(renumbering)
+        edata = self.ufl_element()._ufl_signature_data_(renumbering)
+        ddata = self.ufl_domain()._ufl_signature_data_(renumbering)
         return ("Argument", self._number, self._part, edata, ddata)
 
     def __str__(self):

@@ -47,10 +47,10 @@ class BrokenElement(FiniteElementBase):
     def reconstruction_signature(self):
         return "BrokenElement(%s)" % self._element.reconstruction_signature()
 
-    def signature_data(self, renumbering):
-        data = ("BrokenElement", self._element.signature_data(renumbering),
+    def _ufl_signature_data_(self, renumbering):
+        data = ("BrokenElement", self._element._ufl_signature_data_(renumbering),
                 ("no domain" if self._domain is None else self._domain
-                    .signature_data(renumbering)))
+                    ._ufl_signature_data_(renumbering)))
         return data
 
     def __str__(self):

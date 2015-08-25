@@ -279,8 +279,8 @@ class MixedElement(FiniteElementBase):
             i, e = self.extract_component(component)
             return e.degree()
 
-    def signature_data(self, renumbering):
-        data = ("MixedElement", tuple(e.signature_data(renumbering) for e in self._sub_elements))
+    def _ufl_signature_data_(self, renumbering):
+        data = ("MixedElement", tuple(e._ufl_signature_data_(renumbering) for e in self._sub_elements))
         return data
 
     def __str__(self):
@@ -350,9 +350,9 @@ class VectorElement(MixedElement):
             (self._family, self.ufl_domain(), self._degree,
              len(self._sub_elements), self._quad_scheme)
 
-    def signature_data(self, renumbering):
+    def _ufl_signature_data_(self, renumbering):
         data = ("VectorElement", self._family, self._degree, len(self._sub_elements), self._quad_scheme, self._form_degree,
-                ("no domain" if self._domain is None else self._domain.signature_data(renumbering)))
+                ("no domain" if self._domain is None else self._domain._ufl_signature_data_(renumbering)))
         return data
 
     def reconstruction_signature(self):
@@ -477,9 +477,9 @@ class TensorElement(MixedElement):
             (self._family, self.ufl_domain(), self._degree, self._shape,
              self._symmetry, self._quad_scheme)
 
-    def signature_data(self, renumbering):
+    def _ufl_signature_data_(self, renumbering):
         data = ("TensorElement", self._family, self._degree, self._shape, repr(self._symmetry), self._quad_scheme,
-                ("no domain" if self._domain is None else self._domain.signature_data(renumbering)))
+                ("no domain" if self._domain is None else self._domain._ufl_signature_data_(renumbering)))
         return data
 
     def reconstruction_signature(self):

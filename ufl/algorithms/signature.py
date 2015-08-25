@@ -66,16 +66,16 @@ def compute_terminal_hashdata(expressions, renumbering):
                 data = compute_multiindex_hashdata(expr, index_numbering)
 
             elif isinstance(expr, ConstantValue):
-                data = expr.signature_data(renumbering)
+                data = expr._ufl_signature_data_(renumbering)
 
             elif isinstance(expr, Coefficient):
-                data = expr.signature_data(renumbering)
+                data = expr._ufl_signature_data_(renumbering)
 
             elif isinstance(expr, Argument):
-                data = expr.signature_data(renumbering)
+                data = expr._ufl_signature_data_(renumbering)
 
             elif isinstance(expr, GeometricQuantity):
-                data = expr.signature_data(renumbering)
+                data = expr._ufl_signature_data_(renumbering)
 
             elif isinstance(expr, Label):
                 # Numbering labels as we visit them # TODO: Include in renumbering
@@ -108,7 +108,7 @@ def compute_expression_hashdata(expression, terminal_hashdata):
         if expr._ufl_is_terminal_:
             data = terminal_hashdata[expr]
         else:
-            data = expr._ufl_typecode_ # TODO: Use expr.signature_data()? More extensible, but more overhead.
+            data = expr._ufl_typecode_ # TODO: Use expr._ufl_signature_data_()? More extensible, but more overhead.
         expression_hashdata.append(data)
     # Oneliner: TODO: Benchmark, maybe use a generator?
     #expression_hashdata = [(terminal_hashdata[expr] if expr._ufl_is_terminal_ else expr._ufl_typecode_)
@@ -183,7 +183,7 @@ def compute_form_signature(form, renumbering): # FIXME: Fix callers
         integrand_hashdata = compute_expression_hashdata(integral.integrand(),
                                                           terminal_hashdata)
 
-        domain_hashdata = integral.ufl_domain().signature_data(renumbering)
+        domain_hashdata = integral.ufl_domain()._ufl_signature_data_(renumbering)
 
         # Collect all data about integral that should be reflected in signature,
         # including compiler data but not domain data, because compiler data
