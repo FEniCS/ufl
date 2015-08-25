@@ -83,10 +83,10 @@ def test_indexed_function2(self):
     bfun  = cos(f[0])
     left  = u[i] + f[i]
     right = v[i] * bfun
-    assert len(left.free_indices()) == 1
-    assert left.free_indices()[0] == i
-    assert len(right.free_indices()) == 1
-    assert right.free_indices()[0] == i
+    assert len(left.ufl_free_indices) == 1
+    assert left.ufl_free_indices[0] == i.count()
+    assert len(right.ufl_free_indices) == 1
+    assert right.ufl_free_indices[0] == i.count()
     b = left * right * dx
 
 def test_indexed_function3(self):
@@ -166,7 +166,7 @@ def test_tensor(self):
     # define the components of a fourth order tensor
     Cijkl = u[i]*v[j]*f[k]*g[l]
     assert len(Cijkl.ufl_shape) == 0
-    assert set(Cijkl.free_indices()) == {i, j, k, l}
+    assert set(Cijkl.ufl_free_indices) == {i.count(), j.count(), k.count(), l.count()}
 
     # make it a tensor
     C = as_tensor(Cijkl, (i, j, k, l))
@@ -179,7 +179,7 @@ def test_tensor(self):
     self.assertSameIndices(A, ())
     A = C[:,:, i, j]
     assert len(A.ufl_shape) == 2
-    assert set(A.free_indices()) == {i, j}
+    assert set(A.ufl_free_indices) == {i.count(), j.count()}
 
     # legal?
     vv = as_vector([u[i], v[i]])
@@ -237,7 +237,7 @@ def test_spatial_derivative(self):
 
     a = v.dx(i, j)
     #self.assertSameIndices(a, (i,j))
-    assert set(a.free_indices()) == {j, i}
+    assert set(a.ufl_free_indices) == {j.count(), i.count()}
     self.assertNotIsInstance(a, IndexSum)
     assert a.ufl_shape == (d,)
 
@@ -247,8 +247,7 @@ def test_spatial_derivative(self):
     assert a.ufl_shape == ()
 
     a = (v[i]*u[j]).dx(0, 1)
-    # indices change place because of sorting, I guess this may be ok
-    assert set(a.free_indices()) == {i, j}
+    assert set(a.ufl_free_indices) == {i.count(), j.count()}
     self.assertNotIsInstance(a, IndexSum)
     assert a.ufl_shape == ()
 

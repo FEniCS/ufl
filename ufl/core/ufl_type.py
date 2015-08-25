@@ -144,50 +144,26 @@ def attach_implementations_of_indexing_interface(cls, inherit_shape_from_operand
     # Scalar or index-free? Then we can simplify the implementation of tensor
     # properties by attaching them here.
     if cls._ufl_is_scalar_:
-        # New interface
         cls.ufl_shape = ()
-        # Legacy interface
-        def _scalar_shape(self):
-            return ()
-        cls.shape = _scalar_shape
 
     if cls._ufl_is_scalar_ or cls._ufl_is_index_free_:
-        # New interface
         cls.ufl_free_indices = ()
         cls.ufl_index_dimensions = ()
-        # Legacy interface
-        def _empty_free_indices(self):
-            return ()
-        def _empty_index_dimensions(self):
-            return EmptyDict
-        cls.free_indices = _empty_free_indices
-        cls.index_dimensions = _empty_index_dimensions
 
     # Automate direct inheriting of shape and indices from one of the operands.
     # This simplifies refactoring because a lot of types do this.
     if inherit_shape_from_operand is not None:
         def _inherited_ufl_shape(self):
             return self.ufl_operands[inherit_shape_from_operand].ufl_shape
-        # New interface
         cls.ufl_shape = property(_inherited_ufl_shape)
-        # Legacy interface
-        cls.shape = _inherited_ufl_shape
 
     if inherit_indices_from_operand is not None:
-        # New interface
         def _inherited_ufl_free_indices(self):
             return self.ufl_operands[inherit_indices_from_operand].ufl_free_indices
         def _inherited_ufl_index_dimensions(self):
             return self.ufl_operands[inherit_indices_from_operand].ufl_index_dimensions
         cls.ufl_free_indices = property(_inherited_ufl_free_indices)
         cls.ufl_index_dimensions = property(_inherited_ufl_index_dimensions)
-        # Legacy interface
-        def _inherited_legacy_free_indices(self):
-            return self.ufl_operands[inherit_indices_from_operand].free_indices()
-        def _inherited_legacy_index_dimensions(self):
-            return self.ufl_operands[inherit_indices_from_operand].index_dimensions()
-        cls.free_indices = _inherited_legacy_free_indices
-        cls.index_dimensions = _inherited_legacy_index_dimensions
 
 def update_global_expr_attributes(cls):
     "Update global Expr attributes, mainly by adding cls to global collections of ufl types."

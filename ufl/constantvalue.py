@@ -145,14 +145,6 @@ class Zero(ConstantValue):
             self.ufl_free_indices = free_indices
             self.ufl_index_dimensions = index_dimensions
 
-    def free_indices(self):
-        "Intermediate helper property getter to transition from .free_indices() to .ufl_free_indices."
-        return tuple(Index(count=i) for i in self.ufl_free_indices)
-
-    def index_dimensions(self):
-        "Intermediate helper property getter to transition from .index_dimensions() to .ufl_index_dimensions."
-        return { Index(count=i): d for i, d in zip(self.ufl_free_indices, self.ufl_index_dimensions) }
-
     def reconstruct(self, free_indices=None):
         if not free_indices:
             return self

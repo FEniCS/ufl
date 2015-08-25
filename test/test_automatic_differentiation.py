@@ -325,7 +325,7 @@ def _test_zero_derivatives_of_noncompounds_produce_the_right_types_and_shapes(se
         for var in (u, v, w):
             if debug: print('\n', 'shapes:   ', t.ufl_shape, var.ufl_shape, '\n')
             if debug: print('\n', 't:        ', str(t), '\n')
-            if debug: print('\n', 't ind:    ', str(t.free_indices()), '\n')
+            if debug: print('\n', 't ind:    ', str(t.ufl_free_indices), '\n')
             if debug: print('\n', 'var:      ', str(var), '\n')
             before = derivative(t, var)
             if debug: print('\n', 'before:   ', str(before), '\n')
