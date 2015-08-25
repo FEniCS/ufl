@@ -165,7 +165,7 @@ class Form(object):
         domains = self.domains()
         # Check that all are equal TODO: don't return more than one if all are equal?
         ufl_assert(all(domain == domains[0] for domain in domains),
-                   "Calling Form.domain() is only valid if all integrals share domain.")
+                   "Calling Form.ufl_domain() is only valid if all integrals share domain.")
         # Return the one and only domain
         return domains[0]
 

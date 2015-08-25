@@ -228,15 +228,15 @@ def xtest_mixed_elements_on_overlapping_regions():
 
     # Check that we can get the domain for each value component of the mixed
     # space
-    assert M.domain(0) == D
-    assert M.domain(1) == DD
-    assert M.domain(2) == DD
+    assert M.ufl_domain(0) == D
+    assert M.ufl_domain(1) == DD
+    assert M.ufl_domain(2) == DD
 
-    assert M.domain(3) == DL  # Vector element
-    assert M.domain(4) == DL
-    assert M.domain(5) == DL
+    assert M.ufl_domain(3) == DL  # Vector element
+    assert M.ufl_domain(4) == DL
+    assert M.ufl_domain(5) == DL
 
-    assert M.domain(6) == DR
+    assert M.ufl_domain(6) == DR
     # assert M.ufl_domain() == None # FIXME: What?
 
     # Create a mixed function and fetch components with names for more
