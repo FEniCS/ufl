@@ -64,7 +64,7 @@ class Label(Terminal):
         error("Asking if a Label is cellwise constant makes no sense (it is not a tensor expression).")
         #return True # Could also just return True, after all it doesn't change with the cell
 
-    def domains(self):
+    def ufl_domains(self):
         "Return tuple of domains related to this terminal object."
         return ()
 
@@ -97,8 +97,8 @@ class Variable(Operator):
 
         Operator.__init__(self, (expression, label))
 
-    def domains(self):
-        return self.ufl_operands[0].domains()
+    def ufl_domains(self):
+        return self.ufl_operands[0].ufl_domains()
 
     def is_cellwise_constant(self):
         return self.ufl_operands[0].is_cellwise_constant()

@@ -81,10 +81,10 @@ class ExprMapping(Operator):
         if not all(isinstance(e, Expr) for e in operands):
             error("Expecting Expr in ExprMapping.")
 
-    def domains(self):
+    def ufl_domains(self):
         # Because this type can act like a terminal if it has no operands, we need to override some recursive operations
         if self.ufl_operands:
-            return Operator.domains()
+            return Operator.ufl_domains()
         else:
             return []
 

@@ -59,7 +59,7 @@ def _compute_element_mapping(form):
     "Compute element mapping for element replacement"
 
     # Extract all elements and include subelements of mixed elements
-    elements = [obj.element() for obj in chain(form.arguments(), form.coefficients())]
+    elements = [obj.ufl_element() for obj in chain(form.arguments(), form.coefficients())]
     elements = extract_sub_elements(elements)
 
     # Try to find a common degree for elements
@@ -73,9 +73,9 @@ def _compute_element_mapping(form):
         reconstruct = False
 
         # Set domain/cell
-        domain = element.domain()
+        domain = element.ufl_domain()
         if domain is None:
-            domains = form.domains()
+            domains = form.ufl_domains()
             ufl_assert(len(domains) == 1,
                        "Cannot replace unknown element domain without unique common domain in form.")
             domain, = domains
@@ -113,8 +113,8 @@ def _compute_num_sub_domains(integral_data):
 
 
 def _compute_form_data_elements(self, arguments, coefficients):
-    self.argument_elements    = tuple(f.element() for f in arguments)
-    self.coefficient_elements = tuple(f.element() for f in coefficients)
+    self.argument_elements    = tuple(f.ufl_element() for f in arguments)
+    self.coefficient_elements = tuple(f.ufl_element() for f in coefficients)
     self.elements             = self.argument_elements + self.coefficient_elements
     self.unique_elements      = unique_tuple(self.elements)
     self.sub_elements         = extract_sub_elements(self.elements)
@@ -123,7 +123,7 @@ def _compute_form_data_elements(self, arguments, coefficients):
 
 def _check_elements(form_data):
     for element in chain(form_data.unique_elements, form_data.unique_sub_elements):
-        ufl_assert(element.domain() is not None,
+        ufl_assert(element.ufl_domain() is not None,
                    "Found element with undefined domain: %s" % repr(element))
         ufl_assert(element.family() is not None,
                    "Found element with undefined familty: %s" % repr(element))
@@ -160,7 +160,7 @@ def _build_coefficient_replace_map(coefficients, element_mapping=None):
     new_coefficients = []
     replace_map = {}
     for i, f in enumerate(coefficients):
-        old_e = f.element()
+        old_e = f.ufl_element()
         new_e = element_mapping.get(old_e, old_e)
         new_f = f.reconstruct(element=new_e, count=i)
         new_coefficients.append(new_f)
@@ -238,9 +238,9 @@ def compute_form_data(form,
 
     # --- Group and collect data about integrals
     # TODO: Refactor this, it's rather opaque what this does
-    # TODO: Is self.original_form.domains() right here?
+    # TODO: Is self.original_form.ufl_domains() right here?
     #       It will matter when we start including 'num_domains' in ufc form.
-    self.integral_data = build_integral_data(form.integrals(), self.original_form.domains())
+    self.integral_data = build_integral_data(form.integrals(), self.original_form.ufl_domains())
 
 
     # --- Create replacements for arguments and coefficients
@@ -280,7 +280,7 @@ def compute_form_data(form,
     self.rank = len(self.original_form.arguments())
 
     # Extract common geometric dimension (topological is not common!)
-    self.geometric_dimension = self.original_form.geometric_dimension()
+    self.geometric_dimension = self.original_form.integrals()[0].ufl_domain().geometric_dimension()
 
 
     # --- Build mapping from old incomplete element objects to new well defined elements.
@@ -296,7 +296,7 @@ def compute_form_data(form,
     # that reside in form to objects with canonical numbering as well as
     # completed elements
 
-    coordinate_functions = set(domain.ufl_coordinates() for domain in form.domains()) - set((None,))
+    coordinate_functions = set(domain.ufl_coordinates() for domain in form.ufl_domains()) - set((None,))
 
     coordinates_replace_map = {}
     for i, f in enumerate(self.reduced_coefficients):
@@ -305,7 +305,7 @@ def compute_form_data(form,
             coordinates_replace_map[f] = new_f
 
     domains_replace_map = {}
-    for domain in form.domains():
+    for domain in form.ufl_domains():
         FIXME
 
     geometry_replace_map = {}
@@ -314,7 +314,7 @@ def compute_form_data(form,
     coefficients_replace_map = {}
     for i, f in enumerate(self.reduced_coefficients):
         if f not in coordinate_functions:
-            old_e = f.element()
+            old_e = f.ufl_element()
             new_e = self.element_replace_map.get(old_e, old_e)
             new_f = f.reconstruct(element=new_e, count=i)
             coefficients_replace_map[f] = new_f

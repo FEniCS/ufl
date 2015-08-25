@@ -27,7 +27,7 @@ class InteriorElement(FiniteElementBase):
         self._repr = "InteriorElement(%r)" % element
 
         family = "InteriorElement"
-        domain = element.domain()
+        domain = element.ufl_domain()
         degree = element.degree()
         quad_scheme = element.quadrature_scheme()
         value_shape = element.value_shape()
@@ -41,7 +41,7 @@ class InteriorElement(FiniteElementBase):
     def reconstruct(self, **kwargs):
         """Construct a new InteriorElement object with some properties
         replaced with new values."""
-        domain = kwargs.get("domain", self.domain())
+        domain = kwargs.get("domain", self.ufl_domain())
         ele = self._element.reconstruct(domain=domain)
         return InteriorElement(ele)
 

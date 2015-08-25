@@ -282,7 +282,7 @@ def Dn(f):
     if f.is_cellwise_constant():
         return Zero(f.ufl_shape, f.ufl_free_indices, f.ufl_index_dimensions)
     from ufl.geometry import FacetNormal
-    return dot(grad(f), FacetNormal(f.domain()))
+    return dot(grad(f), FacetNormal(f.ufl_domain()))
 
 def diff(f, v):
     """UFL operator: Take the derivative of f with respect to the variable v.
@@ -386,7 +386,7 @@ rot = curl
 def jump(v, n=None):
     "UFL operator: Take the jump of v across a facet."
     v = as_ufl(v)
-    is_not_constant = len(v.domains()) > 0 # FIXME: Not quite right...
+    is_not_constant = len(v.ufl_domains()) > 0 # FIXME: Not quite right...
     if is_not_constant:
         if n is None:
             return v('+') - v('-')
@@ -400,7 +400,7 @@ def jump(v, n=None):
         # FIXME: Is this right? If v has no cell, it doesn't depend on
         # anything spatially variable or any form arguments, and thus
         # the jump is zero. In other words, I'm assuming that
-        # "not v.domains()" is equivalent with "v is a constant".
+        # "not v.ufl_domains()" is equivalent with "v is a constant".
         # Update: This is NOT true for jump(Expression("x[0]")) from dolfin.
         return Zero(v.ufl_shape, v.ufl_free_indices, v.ufl_index_dimensions)
 
@@ -611,7 +611,7 @@ def exterior_derivative(f):
         if len(indices) > 1:
             raise NotImplementedError
         index = int(indices[0])
-        element = expression.element()
+        element = expression.ufl_element()
         element = element.extract_component(index)[1]
     elif isinstance(f, ListTensor):
         f0 = f.ufl_operands[0]
@@ -619,11 +619,11 @@ def exterior_derivative(f):
         if len(f0indices) > 1:
             raise NotImplementedError
         index = int(f0indices[0])
-        element = f0expr.element()
+        element = f0expr.ufl_element()
         element = element.extract_component(index)[1]
     else:
         try:
-            element = f.element()
+            element = f.ufl_element()
         except:
             error("Unable to determine element from %s" % f)
 

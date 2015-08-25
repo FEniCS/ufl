@@ -31,7 +31,7 @@ class HDivElement(OuterProductElement):
         self._mapping = "contravariant Piola"
 
         family = "OuterProductElement"
-        domain = element.domain()
+        domain = element.ufl_domain()
         degree = element.degree()
         quad_scheme = element.quadrature_scheme()
         value_shape = (element.cell().geometric_dimension(),)
@@ -43,7 +43,7 @@ class HDivElement(OuterProductElement):
     def reconstruct(self, **kwargs):
         """Construct a new HDivElement object with some properties
         replaced with new values."""
-        domain = kwargs.get("domain", self.domain())
+        domain = kwargs.get("domain", self.ufl_domain())
         ele = self._element.reconstruct(domain=domain)
         return HDivElement(ele)
 
@@ -77,11 +77,12 @@ class HCurlElement(OuterProductElement):
         self._mapping = "covariant Piola"
 
         family = "OuterProductElement"
-        domain = element.domain()
+        domain = element.ufl_domain()
         degree = element.degree()
         quad_scheme = element.quadrature_scheme()
-        value_shape = (element.cell().geometric_dimension(),)
-        reference_value_shape = (element.cell().topological_dimension(),) # TODO: Is this right?
+        cell = element.cell()
+        value_shape = (cell.geometric_dimension(),)
+        reference_value_shape = (cell.topological_dimension(),) # TODO: Is this right?
         # Skipping OuterProductElement constructor! Bad code smell, refactor to avoid this non-inheritance somehow.
         FiniteElementBase.__init__(self, family, domain, degree,
                                     quad_scheme, value_shape, reference_value_shape)
@@ -89,7 +90,7 @@ class HCurlElement(OuterProductElement):
     def reconstruct(self, **kwargs):
         """Construct a new HCurlElement object with some properties
         replaced with new values."""
-        domain = kwargs.get("domain", self.domain())
+        domain = kwargs.get("domain", self.ufl_domain())
         ele = self._element.reconstruct(domain=domain)
         return HCurlElement(ele)
 

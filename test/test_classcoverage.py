@@ -34,7 +34,6 @@ def _test_object(a, shape, free_indices):
     # Check that some properties are at least available
     fi = a.free_indices()
     sh = a.ufl_shape
-    ce = a.cell()
 
     # Compare with provided properties
     if free_indices is not None:
@@ -64,9 +63,6 @@ def _test_object2(a):
 
     # Can't really test str more than that it exists
     s = str(a)
-
-    # Check that some properties are at least available
-    ce = a.cell()
 
 def _test_form(a):
     # Test reproduction via repr string

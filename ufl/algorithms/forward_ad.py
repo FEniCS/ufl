@@ -57,6 +57,7 @@ from ufl.operators import dot, inner, outer, lt, eq, conditional, sign, \
     erf, bessel_J, bessel_Y, bessel_I, bessel_K, \
     cell_avg, facet_avg
 from ufl.algorithms.transformer import Transformer
+from ufl.core.expr import find_geometric_dimension # TODO: Move to corealg.analysis
 
 
 class ForwardAD(Transformer):
@@ -509,14 +510,14 @@ class GradAD(ForwardAD):
     def spatial_coordinate(self, o):
         "Gradient of x w.r.t. x is Id."
         if not hasattr(self, '_Id'):
-            gdim = o.geometric_dimension()
+            gdim = find_geometric_dimension(o)
             self._Id = Identity(gdim)
         return (o, self._Id)
 
     def cell_coordinate(self, o):
         "Gradient of X w.r.t. x is K. But I'm not sure if we want to allow this."
         error("This has not been validated. Does it make sense to do this here?")
-        K = JacobianInverse(o.domain())
+        K = JacobianInverse(o.ufl_domain())
         return (o, K)
 
     # TODO: Implement rules for some of these types?
@@ -958,7 +959,7 @@ class UnusedADRules(object):
     curl = commute
     def grad(self, o, a):
         a, aprime = a
-        if aprime.domains(): # TODO: Assuming this is equivalent to 'is_constant', which may not be the case...
+        if aprime.ufl_domains(): # TODO: Assuming this is equivalent to 'is_constant', which may not be the case...
             oprime = o.reconstruct(aprime)
         else:
             oprime = self._make_zero_diff(o)

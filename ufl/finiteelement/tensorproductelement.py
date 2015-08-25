@@ -49,7 +49,7 @@ class TensorProductElement(FiniteElementBase):
         family = "TensorProductElement"
 
         # Define domain as the product of each elements domain
-        domain = ProductDomain([e.domain() for e in self._sub_elements])
+        domain = ProductDomain([e.ufl_domain() for e in self._sub_elements])
 
         # Define polynomial degree as the maximal of each subelement
         degrees = { e.degree() for e in self._sub_elements } - { None }

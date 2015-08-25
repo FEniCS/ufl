@@ -71,7 +71,7 @@ def reshape_to_nested_list(components, shape):
         return [reshape_to_nested_list(components[n*i:n*(i+1)], shape[1:]) for i in range(shape[0])]
 
 def apply_single_function_pullbacks(g):
-    element = g.element()
+    element = g.ufl_element()
     mapping = element.mapping()
 
     r = ReferenceValue(g)
@@ -88,7 +88,7 @@ def apply_single_function_pullbacks(g):
     rsize = product(rsh)
 
     # Create some geometric objects for reuse
-    domain = g.domain()
+    domain = g.ufl_domain()
     J = Jacobian(domain)
     detJ = JacobianDeterminant(domain)
     Jinv = JacobianInverse(domain)

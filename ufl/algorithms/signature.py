@@ -183,7 +183,7 @@ def compute_form_signature(form, renumbering): # FIXME: Fix callers
         integrand_hashdata = compute_expression_hashdata(integral.integrand(),
                                                           terminal_hashdata)
 
-        domain_hashdata = integral.domain().signature_data(renumbering)
+        domain_hashdata = integral.ufl_domain().signature_data(renumbering)
 
         # Collect all data about integral that should be reflected in signature,
         # including compiler data but not domain data, because compiler data

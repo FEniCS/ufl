@@ -121,9 +121,13 @@ class FiniteElementBase(object):
         "Return cell of finite element"
         return self._cell
 
-    def domain(self, component=None): # TODO: Deprecate this
+    def domain(self):
+        deprecate("FiniteElementBase.domain() is deprecated, please use .ufl_domain() instead.")
+        return self.ufl_domain()
+
+    def ufl_domain(self, component=None): # TODO: Deprecate this
         "Return the domain on which this element is defined."
-        domains = self.domains(component)
+        domains = self.ufl_domains(component)
         n = len(domains)
         if n == 0:
             return None
@@ -133,6 +137,10 @@ class FiniteElementBase(object):
             error("Cannot return the requested single domain, as this element has multiple domains.")
 
     def domains(self, component=None):
+        deprecate("FiniteElementBase.domains() is deprecated, please use .ufl_domains() instead.")
+        return self.ufl_domains(component)
+
+    def ufl_domains(self, component=None):
         "Return the domain on which this element is defined."
         if self._domain is None:
             return ()

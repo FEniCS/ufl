@@ -93,7 +93,7 @@ class Domain(object):
         elif isinstance(arg, Coefficient):
             # Disallow additional label and data, get from underlying 'flat domain'
             self._coordinates = arg
-            flat_domain = arg.domain()
+            flat_domain = arg.ufl_domain()
             self._cell = flat_domain.ufl_cell()
             self._label = flat_domain.ufl_label()
             self._data = flat_domain.ufl_get_mesh()
@@ -127,7 +127,7 @@ class Domain(object):
         if self._coordinates is not None:
             ufl_assert(isinstance(self._coordinates, Coefficient),
                         "Expecting None or Coefficient for coordinates.")
-            ufl_assert(self._coordinates.domain().ufl_coordinates() is None,
+            ufl_assert(self._coordinates.ufl_domain().ufl_coordinates() is None,
                         "Coordinates must be defined on a domain without coordinates of its own.")
         ufl_assert(self._label is None or isinstance(self._label, str),
                    "Expecting None or str for label.")
@@ -174,12 +174,13 @@ class Domain(object):
 
     def ufl_coordinate_element(self):
         "Return the finite element of the coordinate vector field of this domain."
+        #return self._ufl_coordinate_element # TODO: Make this THE constructor argument
         x = self.ufl_coordinates()
         if x is None:
             from ufl import VectorElement
             return VectorElement("Lagrange", self, 1)
         else:
-            return x.element()
+            return x.ufl_element()
 
     def ufl_label(self): # TODO: Replace with count/ufl_id when Mesh becomes subclass
         "Return the label identifying this domain. None means no label has been set."
@@ -194,15 +195,19 @@ class Domain(object):
     def cell(self):
         deprecate("Domain.cell() is deprecated, please use domain.ufl_cell() instead.")
         return self.ufl_cell()
+
     def coordinates(self):
         deprecate("Domain.coordinates() is deprecated, please use domain.ufl_coordinates()() instead.")
         return self.ufl_coordinates()
+
     def coordinate_element(self):
         deprecate("Domain.coordinate_element() is deprecated, please use domain.ufl_coordinate_element()() instead.")
         return self.ufl_coordinate_element()
+
     def label(self):
         deprecate("Domain.label() is deprecated, please use domain.ufl_label()() instead.")
         return self.ufl_label()
+
     def data(self):
         deprecate("Domain.data() is deprecated, please use domain.ufl_get_mesh() instead, until this becomes obsolete in later redesign.")
         return self._data
@@ -353,7 +358,7 @@ def join_domains(domains):
             for dom in domlist:
                 newcoordinates = dom.ufl_coordinates()
                 if newcoordinates is not None:
-                    ufl_assert(newcoordinates.domain().ufl_coordinates() is None,
+                    ufl_assert(newcoordinates.ufl_domain().ufl_coordinates() is None,
                                "A coordinate domain cannot have coordinates.")
                     break
 
@@ -375,7 +380,7 @@ def join_domains(domains):
 def extract_domains(expr):
     domainlist = []
     for t in traverse_unique_terminals(expr):
-        domainlist.extend(t.domains())
+        domainlist.extend(t.ufl_domains())
     return sorted(join_domains(domainlist))
 
 class ProductDomain(Domain):
@@ -385,7 +390,7 @@ class ProductDomain(Domain):
         # Get the right properties of this domain
         gdim = sum(domain.geometric_dimension() for domain in domains)
         tdim = sum(domain.topological_dimension() for domain in domains)
-        cell = ProductCell(*[domain.cell() for domain in domains])
+        cell = ProductCell(*[domain.ufl_cell() for domain in domains])
         label = "product_of_%s" % "_".join(str(domain.label()) for domain in domains)
 
         # Initialize parent class

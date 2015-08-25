@@ -50,7 +50,7 @@ def is_globally_constant(expr):
     for e in traverse_unique_terminals(expr):
         if isinstance(e, Argument):
             return False
-        if isinstance(e, Coefficient) and e.element().family() != "Real":
+        if isinstance(e, Coefficient) and e.ufl_element().family() != "Real":
             return False
         if not e.is_cellwise_constant():
             return False

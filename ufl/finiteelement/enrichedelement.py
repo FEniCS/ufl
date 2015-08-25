@@ -35,8 +35,8 @@ class EnrichedElement(FiniteElementBase):
     def __init__(self, *elements):
         self._elements = elements
 
-        domain = elements[0].domain()
-        ufl_assert(all(e.domain() == domain for e in elements),
+        domain = elements[0].ufl_domain()
+        ufl_assert(all(e.ufl_domain() == domain for e in elements),
                    "Domain mismatch for sub elements of enriched element.")
 
         if isinstance(elements[0].degree(), int):

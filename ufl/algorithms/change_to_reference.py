@@ -220,7 +220,7 @@ class NEWChangeToReferenceGrad(MultiFunction):
             error("Unexpected type {0}.".format(type(t).__name__))
 
         # Some geometry mapping objects we may need multiple times below
-        domain = t.domain()
+        domain = t.ufl_domain()
         J = Jacobian(domain)
         detJ = JacobianDeterminant(domain)
         K = JacobianInverse(domain)
@@ -276,9 +276,9 @@ class NEWChangeToReferenceGrad(MultiFunction):
             if isinstance(t, FormArgument):
 
                 # Find basic subelement and element-local component
-                #ec, element, eoffset = t.element().extract_component2(gtc) # FIXME: Translate this correctly
+                #ec, element, eoffset = t.ufl_element().extract_component2(gtc) # FIXME: Translate this correctly
                 eoffset = 0
-                ec, element = t.element().extract_reference_component(gtc)
+                ec, element = t.ufl_element().extract_reference_component(gtc)
 
                 # Select mapping M from element, pick row emapping = M[ec,:], or emapping = [] if no mapping
                 ufl_assert(not isinstance(element, MixedElement),
@@ -392,7 +392,7 @@ class OLDChangeToReferenceGrad(MultiFunction):
             f = ReferenceValue(f)
 
         # Get domain and create Jacobian inverse object
-        domain = o.domain()
+        domain = o.ufl_domain()
         Jinv = JacobianInverse(domain)
 
         if Jinv.is_cellwise_constant():

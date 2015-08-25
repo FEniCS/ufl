@@ -77,10 +77,10 @@ def test_cell_legacy_case():
 
     V = FiniteElement("CG", triangle, 1)
     f = Coefficient(V)
-    assert f.domains() == (D, )
+    assert f.ufl_domains() == (D, )
 
     M = f * dx
-    assert M.domains() == (D, )
+    assert M.ufl_domains() == (D, )
 
 
 def test_simple_domain_case():
@@ -89,10 +89,10 @@ def test_simple_domain_case():
 
     V = FiniteElement("CG", D, 1)
     f = Coefficient(V)
-    assert f.domains() == (D, )
+    assert f.ufl_domains() == (D, )
 
     M = f * dx
-    assert M.domains() == (D, )
+    assert M.ufl_domains() == (D, )
 
 
 def test_creating_domains_with_coordinate_fields():
@@ -100,19 +100,19 @@ def test_creating_domains_with_coordinate_fields():
     D = Domain(triangle)
     P2 = VectorElement("CG", D, 2)
     x = Coefficient(P2)
-    assert x.domains() == (D, )
+    assert x.ufl_domains() == (D, )
 
     # Definition of higher order domain, element, coefficient, form
     E = Domain(x)
     V = FiniteElement("CG", E, 1)
     f = Coefficient(V)
     M = f * dx
-    assert f.domains() == (E, )
-    assert M.domains() == (E, )
+    assert f.ufl_domains() == (E, )
+    assert M.ufl_domains() == (E, )
 
     # Test the gymnastics that dolfin will have to go through
     V2 = eval(V.reconstruction_signature())
-    E2 = V2.domain().reconstruct(coordinates=x)
+    E2 = V2.ufl_domain().reconstruct(coordinates=x)
     V2 = V2.reconstruct(domain=E2)
     f2 = f.reconstruct(element=V2)
     assert f == f2
@@ -193,7 +193,7 @@ def test_everywhere_integrals_with_backwards_compatibility():
     itg1 = ida.integrals[0].integrand()
     itg2 = a.integrals()[0].integrand()
     assert type(itg1) == type(itg2)
-    assert itg1.element() == itg2.element()
+    assert itg1.ufl_element() == itg2.ufl_element()
 
 
 def xtest_mixed_elements_on_overlapping_regions():
@@ -228,16 +228,16 @@ def xtest_mixed_elements_on_overlapping_regions():
 
     # Check that we can get the domain for each value component of the mixed
     # space
-    assert M.domain(0) == D
-    assert M.domain(1) == DD
-    assert M.domain(2) == DD
+    assert M.ufl_domain(0) == D
+    assert M.ufl_domain(1) == DD
+    assert M.ufl_domain(2) == DD
 
-    assert M.domain(3) == DL  # Vector element
-    assert M.domain(4) == DL
-    assert M.domain(5) == DL
+    assert M.ufl_domain(3) == DL  # Vector element
+    assert M.ufl_domain(4) == DL
+    assert M.ufl_domain(5) == DL
 
-    assert M.domain(6) == DR
-    # assert M.domain() == None # FIXME: What?
+    assert M.ufl_domain(6) == DR
+    # assert M.ufl_domain() == None # FIXME: What?
 
     # Create a mixed function and fetch components with names for more
     # readable test code below
@@ -327,9 +327,9 @@ def xtest_form_domain_model():
     VBR = FiniteElement("CG", DBR, 1)
 
     # Check that regions are available through elements
-    assert VA.domain() == DA
-    assert VAL.domain() == DAL
-    assert VAR.domain() == DAR
+    assert VA.ufl_domain() == DA
+    assert VAL.ufl_domain() == DAL
+    assert VAR.ufl_domain() == DAR
 
     # Create functions in each space on DA
     fa = Coefficient(VA)

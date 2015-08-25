@@ -34,7 +34,7 @@ def split(v):
     """UFL operator: If v is a Coefficient or Argument in a mixed space, returns
     a tuple with the function components corresponding to the subelements."""
     # Special case: simple element, just return function in a tuple
-    element = v.element()
+    element = v.ufl_element()
     if not isinstance(element, MixedElement):
         return (v,)
 
