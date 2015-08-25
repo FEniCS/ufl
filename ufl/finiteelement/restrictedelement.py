@@ -23,7 +23,7 @@
 
 from ufl.assertions import ufl_assert
 from ufl.geometry import Cell, as_cell
-from ufl.log import info_blue, warning, warning_blue, error
+from ufl.log import info_blue, warning, warning_blue, error, deprecate
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
@@ -69,9 +69,13 @@ class RestrictedElement(FiniteElementBase):
         element is spatially constant over each cell."""
         return self._element.is_cellwise_constant()
 
-    def element(self):
+    def sub_element(self):
         "Return the element which is restricted."
         return self._element
+
+    def element(self):
+        deprecate("RestrictedElement.element() is deprecated, please use .sub_element() instead.")
+        return self.sub_element()
 
     def mapping(self):
         return self._element.mapping()
