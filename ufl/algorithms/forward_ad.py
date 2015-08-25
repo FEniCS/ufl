@@ -959,7 +959,7 @@ class UnusedADRules(object):
     curl = commute
     def grad(self, o, a):
         a, aprime = a
-        if aprime.domains(): # TODO: Assuming this is equivalent to 'is_constant', which may not be the case...
+        if aprime.ufl_domains(): # TODO: Assuming this is equivalent to 'is_constant', which may not be the case...
             oprime = o.reconstruct(aprime)
         else:
             oprime = self._make_zero_diff(o)

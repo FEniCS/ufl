@@ -77,10 +77,10 @@ def test_cell_legacy_case():
 
     V = FiniteElement("CG", triangle, 1)
     f = Coefficient(V)
-    assert f.domains() == (D, )
+    assert f.ufl_domains() == (D, )
 
     M = f * dx
-    assert M.domains() == (D, )
+    assert M.ufl_domains() == (D, )
 
 
 def test_simple_domain_case():
@@ -89,10 +89,10 @@ def test_simple_domain_case():
 
     V = FiniteElement("CG", D, 1)
     f = Coefficient(V)
-    assert f.domains() == (D, )
+    assert f.ufl_domains() == (D, )
 
     M = f * dx
-    assert M.domains() == (D, )
+    assert M.ufl_domains() == (D, )
 
 
 def test_creating_domains_with_coordinate_fields():
@@ -100,15 +100,15 @@ def test_creating_domains_with_coordinate_fields():
     D = Domain(triangle)
     P2 = VectorElement("CG", D, 2)
     x = Coefficient(P2)
-    assert x.domains() == (D, )
+    assert x.ufl_domains() == (D, )
 
     # Definition of higher order domain, element, coefficient, form
     E = Domain(x)
     V = FiniteElement("CG", E, 1)
     f = Coefficient(V)
     M = f * dx
-    assert f.domains() == (E, )
-    assert M.domains() == (E, )
+    assert f.ufl_domains() == (E, )
+    assert M.ufl_domains() == (E, )
 
     # Test the gymnastics that dolfin will have to go through
     V2 = eval(V.reconstruction_signature())

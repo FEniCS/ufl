@@ -127,7 +127,7 @@ class FiniteElementBase(object):
 
     def ufl_domain(self, component=None): # TODO: Deprecate this
         "Return the domain on which this element is defined."
-        domains = self.domains(component)
+        domains = self.ufl_domains(component)
         n = len(domains)
         if n == 0:
             return None

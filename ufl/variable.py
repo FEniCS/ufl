@@ -98,7 +98,7 @@ class Variable(Operator):
         Operator.__init__(self, (expression, label))
 
     def ufl_domains(self):
-        return self.ufl_operands[0].domains()
+        return self.ufl_operands[0].ufl_domains()
 
     def is_cellwise_constant(self):
         return self.ufl_operands[0].is_cellwise_constant()

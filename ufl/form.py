@@ -166,7 +166,7 @@ class Form(object):
         meshes, look at form data for that additional information.
         """
         # Collect all domains
-        domains = self.domains()
+        domains = self.ufl_domains()
         # Check that all are equal TODO: don't return more than one if all are equal?
         ufl_assert(all(domain == domains[0] for domain in domains),
                    "Calling Form.ufl_domain() is only valid if all integrals share domain.")
@@ -175,7 +175,7 @@ class Form(object):
 
     def geometric_dimension(self):
         "Return the geometric dimension shared by all domains and functions in this form."
-        gdims = tuple(set(domain.geometric_dimension() for domain in self.domains()))
+        gdims = tuple(set(domain.geometric_dimension() for domain in self.ufl_domains()))
         ufl_assert(len(gdims) == 1,
                   "Expecting all domains and functions in a form to share geometric dimension, got %s." % str(tuple(sorted(gdims))))
         return gdims[0]
@@ -332,7 +332,7 @@ class Form(object):
         self._domain_numbering = dict((d, i) for i, d in enumerate(self._integration_domains))
 
     def _analyze_subdomain_data(self):
-        integration_domains = self.domains()
+        integration_domains = self.ufl_domains()
         integrals = self.integrals()
 
         # Make clear data structures to collect subdomain data in
@@ -360,7 +360,7 @@ class Form(object):
         arguments, coefficients = extract_arguments_and_coefficients(self)
 
         # Include coordinate coefficients from integration domains
-        domains = self.domains()
+        domains = self.ufl_domains()
         coordinates = [c for c in (domain.ufl_coordinates() for domain in domains) if c is not None]
         coefficients.extend(coordinates)
 
@@ -414,7 +414,7 @@ def replace_integral_domains(form, common_domain): # TODO: Move elsewhere
     This is to support ill formed forms with no domain specified,
     some times occuring in pydolfin, e.g. assemble(1*dx, mesh=mesh).
     """
-    domains = form.domains()
+    domains = form.ufl_domains()
     if common_domain is not None:
         gdim = common_domain.geometric_dimension()
         tdim = common_domain.topological_dimension()

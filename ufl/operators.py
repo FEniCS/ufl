@@ -386,7 +386,7 @@ rot = curl
 def jump(v, n=None):
     "UFL operator: Take the jump of v across a facet."
     v = as_ufl(v)
-    is_not_constant = len(v.domains()) > 0 # FIXME: Not quite right...
+    is_not_constant = len(v.ufl_domains()) > 0 # FIXME: Not quite right...
     if is_not_constant:
         if n is None:
             return v('+') - v('-')
@@ -400,7 +400,7 @@ def jump(v, n=None):
         # FIXME: Is this right? If v has no cell, it doesn't depend on
         # anything spatially variable or any form arguments, and thus
         # the jump is zero. In other words, I'm assuming that
-        # "not v.domains()" is equivalent with "v is a constant".
+        # "not v.ufl_domains()" is equivalent with "v is a constant".
         # Update: This is NOT true for jump(Expression("x[0]")) from dolfin.
         return Zero(v.ufl_shape, v.ufl_free_indices, v.ufl_index_dimensions)
 

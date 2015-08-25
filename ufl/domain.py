@@ -376,7 +376,7 @@ def join_domains(domains):
 def extract_domains(expr):
     domainlist = []
     for t in traverse_unique_terminals(expr):
-        domainlist.extend(t.domains())
+        domainlist.extend(t.ufl_domains())
     return sorted(join_domains(domainlist))
 
 class ProductDomain(Domain):

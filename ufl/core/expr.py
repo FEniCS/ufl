@@ -328,7 +328,7 @@ class Expr(object):
     # All subclasses must implement domain if it is known
     def ufl_domain(self):
         "Return the single unique domain this expression is defined on or throw an error."
-        domains = self.domains()
+        domains = self.ufl_domains()
         if len(domains) == 1:
             domain, = domains
             return domain

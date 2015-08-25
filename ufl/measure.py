@@ -391,7 +391,7 @@ class Measure(object):
         # If we don't have an integration domain, try to find one in integrand
         domain = self.ufl_domain()
         if domain is None:
-            domains = integrand.domains()
+            domains = integrand.ufl_domains()
             if len(domains) == 1:
                 domain, = domains
             elif len(domains) == 0:

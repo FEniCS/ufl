@@ -182,23 +182,23 @@ def test_foo():
     M = f * dxd + f ** 2 * dsd + f('+') * dSd
 
     # Test extracting domain data from a form for each measure:
-    domain, = Mx.domains()
+    domain, = Mx.ufl_domains()
     assert domain.ufl_label() == mydomain.ufl_label()
     assert domain.ufl_get_mesh() == mymesh
     assert Mx.subdomain_data()[mydomain]["cell"] == cell_domains
 
-    domain, = Ms.domains()
+    domain, = Ms.ufl_domains()
     assert domain.ufl_get_mesh() == mymesh
     assert Ms.subdomain_data()[mydomain][
         "exterior_facet"] == exterior_facet_domains
 
-    domain, = MS.domains()
+    domain, = MS.ufl_domains()
     assert domain.ufl_get_mesh() == mymesh
     assert MS.subdomain_data()[mydomain][
         "interior_facet"] == interior_facet_domains
 
     # Test joining of these domains in a single form
-    domain, = M.domains()
+    domain, = M.ufl_domains()
     assert domain.ufl_get_mesh() == mymesh
     assert M.subdomain_data()[mydomain]["cell"] == cell_domains
     assert M.subdomain_data()[mydomain][

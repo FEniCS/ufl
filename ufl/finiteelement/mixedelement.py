@@ -269,7 +269,7 @@ class MixedElement(FiniteElementBase):
         else:
             # Return the domains of subelement
             i, e = self.extract_component(component)
-            return e.domains()
+            return e.ufl_domains()
 
     def degree(self, component=None):
         "Return polynomial degree of finite element"

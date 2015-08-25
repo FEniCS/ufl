@@ -75,7 +75,7 @@ def _compute_element_mapping(form):
         # Set domain/cell
         domain = element.ufl_domain()
         if domain is None:
-            domains = form.domains()
+            domains = form.ufl_domains()
             ufl_assert(len(domains) == 1,
                        "Cannot replace unknown element domain without unique common domain in form.")
             domain, = domains
@@ -238,9 +238,9 @@ def compute_form_data(form,
 
     # --- Group and collect data about integrals
     # TODO: Refactor this, it's rather opaque what this does
-    # TODO: Is self.original_form.domains() right here?
+    # TODO: Is self.original_form.ufl_domains() right here?
     #       It will matter when we start including 'num_domains' in ufc form.
-    self.integral_data = build_integral_data(form.integrals(), self.original_form.domains())
+    self.integral_data = build_integral_data(form.integrals(), self.original_form.ufl_domains())
 
 
     # --- Create replacements for arguments and coefficients
@@ -296,7 +296,7 @@ def compute_form_data(form,
     # that reside in form to objects with canonical numbering as well as
     # completed elements
 
-    coordinate_functions = set(domain.ufl_coordinates() for domain in form.domains()) - set((None,))
+    coordinate_functions = set(domain.ufl_coordinates() for domain in form.ufl_domains()) - set((None,))
 
     coordinates_replace_map = {}
     for i, f in enumerate(self.reduced_coefficients):
@@ -305,7 +305,7 @@ def compute_form_data(form,
             coordinates_replace_map[f] = new_f
 
     domains_replace_map = {}
-    for domain in form.domains():
+    for domain in form.ufl_domains():
         FIXME
 
     geometry_replace_map = {}

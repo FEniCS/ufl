@@ -84,7 +84,7 @@ class ExprMapping(Operator):
     def ufl_domains(self):
         # Because this type can act like a terminal if it has no operands, we need to override some recursive operations
         if self.ufl_operands:
-            return Operator.domains()
+            return Operator.ufl_domains()
         else:
             return []
 
