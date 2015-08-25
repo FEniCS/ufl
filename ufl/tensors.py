@@ -282,7 +282,7 @@ def as_matrix(expressions, indices = None):
     if indices is None:
         # Allow as_matrix(as_matrix(A)) in user code
         if isinstance(expressions, Expr):
-            ufl_assert(expressions.rank() == 2, "Expecting rank 2 tensor.")
+            ufl_assert(len(expressions.ufl_shape) == 2, "Expecting rank 2 tensor.")
             return expressions
 
         # To avoid importing numpy unneeded, it's quite slow...
@@ -304,7 +304,7 @@ def as_vector(expressions, index = None):
     if index is None:
         # Allow as_vector(as_vector(v)) in user code
         if isinstance(expressions, Expr):
-            ufl_assert(expressions.rank() == 1, "Expecting rank 1 tensor.")
+            ufl_assert(len(expressions.ufl_shape) == 1, "Expecting rank 1 tensor.")
             return expressions
 
         # To avoid importing numpy unneeded, it's quite slow...
@@ -327,7 +327,7 @@ def as_scalar(expression):
       (a,b) = (A[indices], indices)
 
     such that a is always a scalar valued expression."""
-    ii = indices(expression.rank())
+    ii = indices(len(expression.ufl_shape))
     if ii:
         expression = expression[ii]
     return expression, ii

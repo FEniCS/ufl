@@ -107,10 +107,10 @@ def test_vector_from_indices(self):
     uu = as_vector(v[j], j)
     w  = v + u
     ww = vv + uu
-    assert vv.rank() == 1
-    assert uu.rank() == 1
-    assert w.rank() == 1
-    assert ww.rank() == 1
+    assert len(vv.ufl_shape) == 1
+    assert len(uu.ufl_shape) == 1
+    assert len(w.ufl_shape) == 1
+    assert len(ww.ufl_shape) == 1
 
 def test_matrix_from_indices(self):
     element = VectorElement("CG", "triangle", 1)
@@ -122,10 +122,10 @@ def test_matrix_from_indices(self):
     C  = A + A
     C  = B + B
     D  = A + B
-    assert A.rank() == 2
-    assert B.rank() == 2
-    assert C.rank() == 2
-    assert D.rank() == 2
+    assert len(A.ufl_shape) == 2
+    assert len(B.ufl_shape) == 2
+    assert len(C.ufl_shape) == 2
+    assert len(D.ufl_shape) == 2
 
 def test_vector_from_list(self):
     element = VectorElement("CG", "triangle", 1)
@@ -135,8 +135,8 @@ def test_vector_from_list(self):
     # create vector from list
     vv = as_vector([u[0], v[0]])
     ww = vv + vv
-    assert vv.rank() == 1
-    assert ww.rank() == 1
+    assert len(vv.ufl_shape) == 1
+    assert len(ww.ufl_shape) == 1
 
 def test_matrix_from_list(self):
     element = VectorElement("CG", "triangle", 1)
@@ -151,10 +151,10 @@ def test_matrix_from_list(self):
     C  = A + A
     C  = B + B
     D  = A + B
-    assert A.rank() == 2
-    assert B.rank() == 2
-    assert C.rank() == 2
-    assert D.rank() == 2
+    assert len(A.ufl_shape) == 2
+    assert len(B.ufl_shape) == 2
+    assert len(C.ufl_shape) == 2
+    assert len(D.ufl_shape) == 2
 
 def test_tensor(self):
     element = VectorElement("CG", "triangle", 1)
@@ -165,20 +165,20 @@ def test_tensor(self):
 
     # define the components of a fourth order tensor
     Cijkl = u[i]*v[j]*f[k]*g[l]
-    assert Cijkl.rank() == 0
+    assert len(Cijkl.ufl_shape) == 0
     assert set(Cijkl.free_indices()) == {i, j, k, l}
 
     # make it a tensor
     C = as_tensor(Cijkl, (i, j, k, l))
-    assert C.rank() == 4
+    assert len(C.ufl_shape) == 4
     self.assertSameIndices(C, ())
 
     # get sub-matrix
     A = C[:,:, 0, 0]
-    assert A.rank() == 2
+    assert len(A.ufl_shape) == 2
     self.assertSameIndices(A, ())
     A = C[:,:, i, j]
-    assert A.rank() == 2
+    assert len(A.ufl_shape) == 2
     assert set(A.free_indices()) == {i, j}
 
     # legal?

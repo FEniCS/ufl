@@ -136,7 +136,7 @@ class ForwardAD(Transformer):
         if isinstance(Ap, Zero):
             op = self._make_zero_diff(o)
         else:
-            r = Ap.rank() - len(jj)
+            r = len(Ap.ufl_shape) - len(jj)
             if r:
                 ii = indices(r)
                 op = Indexed(Ap, MultiIndex(jj.indices() + ii))

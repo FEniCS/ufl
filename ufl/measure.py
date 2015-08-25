@@ -376,7 +376,7 @@ class Measure(object):
         if not is_true_ufl_scalar(integrand):
             msg = ("Can only integrate scalar expressions. The integrand is a " +
                    "tensor expression with value rank %d and free indices %r.")
-            error(msg % (integrand.rank(), integrand.ufl_free_indices))
+            error(msg % (len(integrand.ufl_shape), integrand.ufl_free_indices))
 
         # If we have a tuple of domain ids, delegate composition to Integral.__add__:
         subdomain_id = self.subdomain_id()

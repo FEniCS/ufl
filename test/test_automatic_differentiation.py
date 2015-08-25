@@ -496,7 +496,7 @@ def xtest_derivative_grad_coeff_with_variation_components(self, d_expr):
     dw = collection.shared_objects.dw
     for g, dg in ((v, dv), (w, dw)):
         # Pick a single component
-        ii = (0,)*(g.rank())
+        ii = (0,)*(len(g.ufl_shape))
         f = g[ii]
         df = dg[ii]
 

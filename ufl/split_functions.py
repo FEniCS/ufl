@@ -94,12 +94,12 @@ def split(v):
                     c = s.get(c, c)
                     i, j = c
                     # Extract component c of this subvalue from global tensor v
-                    if v.rank() == 1:
+                    if len(v.ufl_shape) == 1:
                         # Mapping into a flattened vector
                         k = offset + i*shape[1] + j
                         component = v[k]
                         #print "k, offset, i, j, shape, component", k, offset, i, j, shape, component
-                    elif v.rank() == 2:
+                    elif len(v.ufl_shape) == 2:
                         # Mapping into a concatenated tensor (is this a figment of my imagination?)
                         error("Not implemented.")
                         row_offset, col_offset = 0, 0 # TODO

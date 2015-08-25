@@ -121,7 +121,7 @@ def _mult(a, b):
         #v[i]*M[i,:]
 
         # Apply product to scalar components
-        ti = indices(b.rank())
+        ti = indices(len(b.ufl_shape))
         p = Product(a, b[ti])
 
     elif r1 == 2 and r2 in (1, 2): # Matrix-matrix or matrix-vector
@@ -133,8 +133,8 @@ def _mult(a, b):
             return Zero(shape, fi, fid)
 
         # Return dot product in index notation
-        ai = indices(a.rank() - 1)
-        bi = indices(b.rank() - 1)
+        ai = indices(len(a.ufl_shape) - 1)
+        bi = indices(len(b.ufl_shape) - 1)
         k = indices(1)
 
         p = a[ai + k] * b[k + bi]

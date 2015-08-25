@@ -105,7 +105,7 @@ class Transposed(CompoundTensorOperator):
 
     def __init__(self, A):
         CompoundTensorOperator.__init__(self, (A,))
-        ufl_assert(A.rank() == 2, "Transposed is only defined for rank 2 tensors.")
+        ufl_assert(len(A.ufl_shape) == 2, "Transposed is only defined for rank 2 tensors.")
 
     @property
     def ufl_shape(self):
@@ -267,7 +267,7 @@ class Trace(CompoundTensorOperator):
 
     def __new__(cls, A):
         # Checks
-        ufl_assert(A.rank() == 2, "Trace of tensor with rank != 2 is undefined.")
+        ufl_assert(len(A.ufl_shape) == 2, "Trace of tensor with rank != 2 is undefined.")
 
         # Simplification
         if isinstance(A, Zero):

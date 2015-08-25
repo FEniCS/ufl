@@ -400,7 +400,7 @@ class OLDChangeToReferenceGrad(MultiFunction):
             # rather than J^(-T)RefGrad(J^(-T)RefGrad(...))
 
             # Create some new indices
-            ii = indices(f.rank()) # Indices to get to the scalar component of f
+            ii = indices(len(f.ufl_shape)) # Indices to get to the scalar component of f
             jj = indices(ngrads)   # Indices to sum over the local gradient axes with the inverse Jacobian
             kk = indices(ngrads)   # Indices for the leftover inverse Jacobian axes
 
@@ -432,7 +432,7 @@ class OLDChangeToReferenceGrad(MultiFunction):
 
             jinv_lgrad_f = f
             for foo in range(ngrads):
-                ii = indices(jinv_lgrad_f.rank()) # Indices to get to the scalar component of f
+                ii = indices(len(jinv_lgrad_f.ufl_shape)) # Indices to get to the scalar component of f
                 j, k = indices(2)
 
                 lgrad = ReferenceGrad(jinv_lgrad_f)

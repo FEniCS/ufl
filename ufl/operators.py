@@ -131,10 +131,10 @@ def inner(a, b):
     return Inner(a, b)
 
 # TODO: Something like this would be useful in some cases,
-# but should inner just support a.rank() != b.rank() instead?
+# but should inner just support len(a.ufl_shape) != len(b.ufl_shape) instead?
 def _partial_inner(a, b):
     "UFL operator: Take the partial inner product of a and b."
-    ar, br = a.rank(), b.rank()
+    ar, br = len(a.ufl_shape), len(b.ufl_shape)
     n = min(ar, br)
     return contraction(a, list(range(n-ar, n-ar+n)), b, list(range(n)))
 
@@ -145,7 +145,7 @@ def dot(a, b):
     if a.ufl_shape == () and b.ufl_shape == ():
         return a*b
     return Dot(a, b)
-    #return contraction(a, (a.rank()-1,), b, (b.rank()-1,))
+    #return contraction(a, (len(a.ufl_shape)-1,), b, (len(b.ufl_shape)-1,))
 
 def contraction(a, a_axes, b, b_axes):
     "UFL operator: Take the contraction of a and b over given axes."
@@ -153,8 +153,8 @@ def contraction(a, a_axes, b, b_axes):
     ufl_assert(len(ai) == len(bi), "Contraction must be over the same number of axes.")
     ash = a.ufl_shape
     bsh = b.ufl_shape
-    aii = indices(a.rank())
-    bii = indices(b.rank())
+    aii = indices(len(a.ufl_shape))
+    bii = indices(len(b.ufl_shape))
     cii = indices(len(ai))
     shape = [None]*len(ai)
     for i, j in enumerate(ai):
@@ -215,7 +215,7 @@ def diag(A):
     # TODO: Make a compound type or two for this operator
 
     # Get and check dimensions
-    r = A.rank()
+    r = len(A.ufl_shape)
     if r == 1:
         n, = A.ufl_shape
     elif r == 2:
@@ -240,7 +240,7 @@ def diag_vector(A):
     # TODO: Make a compound type for this operator
 
     # Get and check dimensions
-    ufl_assert(A.rank() == 2, "Expecting rank 2 tensor.")
+    ufl_assert(len(A.ufl_shape) == 2, "Expecting rank 2 tensor.")
     m, n = A.ufl_shape
     ufl_assert(m == n, "Can only take diagonal of square tensors.")
 
@@ -390,7 +390,7 @@ def jump(v, n=None):
     if is_not_constant:
         if n is None:
             return v('+') - v('-')
-        r = v.rank()
+        r = len(v.ufl_shape)
         if r == 0:
             return v('+')*n('+') + v('-')*n('-')
         else:

@@ -185,7 +185,7 @@ class GenericDerivativeRuleset(MultiFunction):
                     return Indexed(C, MultiIndex(tuple(Cind)))
 
         # Otherwise a more generic approach
-        r = Ap.rank() - len(ii)
+        r = len(Ap.ufl_shape) - len(ii)
         if r:
             kk = indices(r)
             op = Indexed(Ap, MultiIndex(ii.indices() + kk))
@@ -492,7 +492,7 @@ class GradRuleset(GenericDerivativeRuleset):
         ufl_assert(f._ufl_is_terminal_, "ReferenceValue can only wrap a terminal")
         domain = f.ufl_domain()
         K = JacobianInverse(domain)
-        r = indices(o.rank())
+        r = indices(len(o.ufl_shape))
         i, j = indices(2)
         Do = as_tensor(K[j,i]*ReferenceGrad(o)[r + (j,)], r + (i,))
         return Do
@@ -503,7 +503,7 @@ class GradRuleset(GenericDerivativeRuleset):
         ufl_assert(f._ufl_is_in_reference_frame_, "ReferenceGrad can only wrap a reference frame type!")
         domain = f.ufl_domain()
         K = JacobianInverse(domain)
-        r = indices(o.rank())
+        r = indices(len(o.ufl_shape))
         i, j = indices(2)
         Do = as_tensor(K[j,i]*ReferenceGrad(o)[r + (j,)], r + (i,))
         return Do
@@ -981,7 +981,7 @@ class DerivativeRuleDispatcher(MultiFunction):
                     return Indexed(C, MultiIndex(tuple(Cind)))
 
         # Otherwise a more generic approach
-        r = Ap.rank() - len(ii)
+        r = len(Ap.ufl_shape) - len(ii)
         if r:
             kk = indices(r)
             op = Indexed(Ap, MultiIndex(ii.indices() + kk))
