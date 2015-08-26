@@ -57,7 +57,8 @@ from ufl.operators import dot, inner, outer, lt, eq, conditional, sign, \
     erf, bessel_J, bessel_Y, bessel_I, bessel_K, \
     cell_avg, facet_avg
 from ufl.algorithms.transformer import Transformer
-from ufl.core.expr import find_geometric_dimension # TODO: Move to corealg.analysis
+from ufl.domain import find_geometric_dimension
+from ufl.checks import is_cellwise_constant
 
 
 class ForwardAD(Transformer):
@@ -136,7 +137,7 @@ class ForwardAD(Transformer):
         if isinstance(Ap, Zero):
             op = self._make_zero_diff(o)
         else:
-            r = Ap.rank() - len(jj)
+            r = len(Ap.ufl_shape) - len(jj)
             if r:
                 ii = indices(r)
                 op = Indexed(Ap, MultiIndex(jj.indices() + ii))
@@ -503,7 +504,7 @@ class GradAD(ForwardAD):
     def geometric_quantity(self, o):
         "Represent grad(g) as Grad(g)."
         # Collapse gradient of cellwise constant function to zero
-        if o.is_cellwise_constant():
+        if is_cellwise_constant(o):
             return self.terminal(o)
         return (o, Grad(o))
 
@@ -547,14 +548,14 @@ class GradAD(ForwardAD):
         "Represent grad(f) as Grad(f)."
         # Collapse gradient of cellwise constant function to zero
         # FIXME: Enable this after fixing issue#13
-        #if o.is_cellwise_constant():
+        #if is_cellwise_constant(o):
         #    return zero(...) # TODO: zero annotated with argument
         return (o, Grad(o))
 
     def coefficient(self, o):
         "Represent grad(f) as Grad(f)."
         # Collapse gradient of cellwise constant function to zero
-        if o.is_cellwise_constant():
+        if is_cellwise_constant(o):
             return self.terminal(o)
         return (o, Grad(o))
 
@@ -563,7 +564,7 @@ class GradAD(ForwardAD):
 
         # TODO: Not sure how to detect that gradient of f is cellwise constant.
         #       Can we trust element degrees?
-        #if o.is_cellwise_constant():
+        #if is_cellwise_constant(o):
         #    return self.terminal(o)
         # TODO: Maybe we can ask "f.has_derivatives_of_order(n)" to check
         #       if we should make a zero here?
@@ -959,10 +960,10 @@ class UnusedADRules(object):
     curl = commute
     def grad(self, o, a):
         a, aprime = a
-        if aprime.ufl_domains(): # TODO: Assuming this is equivalent to 'is_constant', which may not be the case...
-            oprime = o.reconstruct(aprime)
-        else:
+        if is_cellwise_constant(aprime):
             oprime = self._make_zero_diff(o)
+        else:
+            oprime = o.reconstruct(aprime)
         return (o, oprime)
 
 class UnimplementedADRules(object):

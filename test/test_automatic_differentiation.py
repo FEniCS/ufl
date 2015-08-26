@@ -325,7 +325,7 @@ def _test_zero_derivatives_of_noncompounds_produce_the_right_types_and_shapes(se
         for var in (u, v, w):
             if debug: print('\n', 'shapes:   ', t.ufl_shape, var.ufl_shape, '\n')
             if debug: print('\n', 't:        ', str(t), '\n')
-            if debug: print('\n', 't ind:    ', str(t.free_indices()), '\n')
+            if debug: print('\n', 't ind:    ', str(t.ufl_free_indices), '\n')
             if debug: print('\n', 'var:      ', str(var), '\n')
             before = derivative(t, var)
             if debug: print('\n', 'before:   ', str(before), '\n')
@@ -496,7 +496,7 @@ def xtest_derivative_grad_coeff_with_variation_components(self, d_expr):
     dw = collection.shared_objects.dw
     for g, dg in ((v, dv), (w, dw)):
         # Pick a single component
-        ii = (0,)*(g.rank())
+        ii = (0,)*(len(g.ufl_shape))
         f = g[ii]
         df = dg[ii]
 

@@ -23,11 +23,10 @@
 from ufl.assertions import ufl_assert
 from ufl.log import error, warning
 from ufl.core.expr import Expr
-from ufl.geometry import Domain, as_domain
 from ufl.checks import is_true_ufl_scalar
 from ufl.constantvalue import as_ufl
 from ufl.utils.dicts import EmptyDict
-
+from ufl.domain import Domain, as_domain, extract_domains
 from ufl.protocols import id_or_none, metadata_equal, metadata_hashdata
 
 # TODO: Design a class DomainType(name, shortname, codim, num_cells, ...)?
@@ -376,7 +375,7 @@ class Measure(object):
         if not is_true_ufl_scalar(integrand):
             msg = ("Can only integrate scalar expressions. The integrand is a " +
                    "tensor expression with value rank %d and free indices %r.")
-            error(msg % (integrand.rank(), integrand.ufl_free_indices))
+            error(msg % (len(integrand.ufl_shape), integrand.ufl_free_indices))
 
         # If we have a tuple of domain ids, delegate composition to Integral.__add__:
         subdomain_id = self.subdomain_id()
@@ -391,7 +390,7 @@ class Measure(object):
         # If we don't have an integration domain, try to find one in integrand
         domain = self.ufl_domain()
         if domain is None:
-            domains = integrand.ufl_domains()
+            domains = extract_domains(integrand)
             if len(domains) == 1:
                 domain, = domains
             elif len(domains) == 0:

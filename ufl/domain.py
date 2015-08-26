@@ -213,12 +213,12 @@ class Domain(object):
         return self._data
 
 
-    def signature_data(self, renumbering):
+    def _ufl_signature_data_(self, renumbering):
         "Signature data of domain depend on the global domain numbering."
         count = renumbering[self]
         cdata = self.ufl_cell()
         x = self.ufl_coordinates()
-        xdata = (None if x is None else x.signature_data(renumbering))
+        xdata = (None if x is None else x._ufl_signature_data_(renumbering))
         return (count, cdata, xdata)
 
     def hash_data(self):
@@ -377,12 +377,6 @@ def join_domains(domains):
         newdomains.append(dom)
     return tuple(newdomains)
 
-def extract_domains(expr):
-    domainlist = []
-    for t in traverse_unique_terminals(expr):
-        domainlist.extend(t.ufl_domains())
-    return sorted(join_domains(domainlist))
-
 class ProductDomain(Domain):
     """WARNING: This is work in progress, design is in no way completed."""
     __slots__ = ("_child_domains",)
@@ -401,3 +395,31 @@ class ProductDomain(Domain):
 
     def child_domains(self):
         return self._child_domains
+
+
+# TODO: Move these to an analysis module?
+
+def extract_domains(expr):
+    "Return all domains expression is defined on."
+    domainlist = []
+    for t in traverse_unique_terminals(expr):
+        domainlist.extend(t.ufl_domains())
+    return sorted(join_domains(domainlist))
+
+def extract_unique_domain(expr):
+    "Return the single unique domain expression is defined on or throw an error."
+    domains = extract_domains(expr)
+    if len(domains) == 1:
+        return domains[0]
+    elif domains:
+        error("Found multiple domains, cannot return just one.")
+    else:
+        #error("Found no domains.")
+        return None
+
+def find_geometric_dimension(expr):
+    "Find the geometric dimension of an expression."
+    gdims = set(domain.geometric_dimension() for domain in extract_domains(expr))
+    if len(gdims) != 1:
+        error("Cannot determine geometric dimension from expression.")
+    return tuple(gdims)[0]

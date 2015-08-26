@@ -72,7 +72,7 @@ class Argument(FormArgument):
         return self._ufl_element
 
     def element(self):
-        deprecate("Argument.element() is deprecated, please use Coefficient.ufl_element() instead.")
+        deprecate("Argument.element() is deprecated, please use Argument.ufl_element() instead.")
         return self.ufl_element()
 
     def number(self):
@@ -80,11 +80,6 @@ class Argument(FormArgument):
 
     def part(self):
         return self._part
-
-    def count(self):
-        deprecate("The count of an Argument has been replaced with number() and part().")
-        ufl_assert(self.part() is None, "Deprecation transition for count() will not work with parts.")
-        return self.number() # I think this will work ok in most cases during the deprecation transition
 
     @property
     def ufl_shape(self):
@@ -106,17 +101,11 @@ class Argument(FormArgument):
         else:
             return (d,)
 
-    def signature_data(self, domain_numbering):
+    def _ufl_signature_data_(self, renumbering):
         "Signature data for form arguments depend on the global numbering of the form arguments and domains."
-        s = self._ufl_element.signature_data(domain_numbering=domain_numbering)
-        return ("Argument", self._number, self._part) + s
-
-    def signature_data(self, renumbering):
-        "Signature data for form arguments depend on the global numbering of the form arguments and domains."
-        edata = self.ufl_element().signature_data(renumbering)
-        d = self.ufl_domain()
-        ddata = None if d is None else d.signature_data(renumbering)
-        return ("Coefficient", self._number, self._part, edata, ddata)
+        edata = self.ufl_element()._ufl_signature_data_(renumbering)
+        ddata = self.ufl_domain()._ufl_signature_data_(renumbering)
+        return ("Argument", self._number, self._part, edata, ddata)
 
     def __str__(self):
         number = str(self._number)

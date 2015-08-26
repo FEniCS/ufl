@@ -25,7 +25,6 @@ from six import iteritems
 from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
-from ufl.core.multiindex import Index
 
 
 #--- Base class for operator objects ---
@@ -47,30 +46,9 @@ class Operator(Expr):
         "Return a new object of the same type with new operands."
         return self._ufl_class_(*operands)
 
-    def signature_data(self):
+    def _ufl_signature_data_(self):
         return self._ufl_typecode_
 
     def _ufl_compute_hash_(self):
         "Compute a hash code for this expression. Used by sets and dicts."
         return hash((self._ufl_typecode_,) + tuple(hash(o) for o in self.ufl_operands))
-
-    def is_cellwise_constant(self):
-        "Return whether this expression is spatially constant over each cell."
-        return all(o.is_cellwise_constant() for o in self.ufl_operands)
-
-    # --- Transitional property getters ---
-
-    def operands(self):
-        "Intermediate helper property getter to transition from .operands() to .ufl_operands."
-        #deprecate("Expr.operands() is deprecated, please use property Expr.ufl_operands instead.")
-        return self.ufl_operands
-
-    def free_indices(self):
-        "Intermediate helper property getter to transition from .free_indices() to .ufl_free_indices."
-        #deprecate("Expr.free_indices() is deprecated, please use property Expr.ufl_free_indices instead.")
-        return tuple(Index(count=i) for i in self.ufl_free_indices)
-
-    def index_dimensions(self):
-        "Intermediate helper property getter to transition from .index_dimensions() to .ufl_index_dimensions."
-        #deprecate("Expr.index_dimensions() is deprecated, please use property Expr.ufl_index_dimensions instead.")
-        return { Index(count=i): d for i, d in zip(self.ufl_free_indices, self.ufl_index_dimensions) }

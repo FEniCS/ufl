@@ -47,6 +47,7 @@ from ufl.corealg.multifunction import MultiFunction
 from ufl.corealg.map_dag import map_expr_dag
 from ufl.algorithms.map_integrands import map_integrand_dags
 
+from ufl.checks import is_cellwise_constant
 
 # TODO: Add more rulesets?
 # - DivRuleset
@@ -185,7 +186,7 @@ class GenericDerivativeRuleset(MultiFunction):
                     return Indexed(C, MultiIndex(tuple(Cind)))
 
         # Otherwise a more generic approach
-        r = Ap.rank() - len(ii)
+        r = len(Ap.ufl_shape) - len(ii)
         if r:
             kk = indices(r)
             op = Indexed(Ap, MultiIndex(ii.indices() + kk))
@@ -451,7 +452,7 @@ class GradRuleset(GenericDerivativeRuleset):
     def geometric_quantity(self, o):
         """Default for geometric quantities is dg/dx = 0 if piecewise constant, otherwise keep Grad(g).
         Override for specific types if other behaviour is needed."""
-        if o.is_cellwise_constant():
+        if is_cellwise_constant(o):
             return self.independent_terminal(o)
         else:
             # TODO: Which types does this involve? I don't think the form compilers will handle this.
@@ -470,7 +471,7 @@ class GradRuleset(GenericDerivativeRuleset):
     # --- Specialized rules for form arguments
 
     def coefficient(self, o):
-        if o.is_cellwise_constant():
+        if is_cellwise_constant(o):
             return self.independent_terminal(o)
         return Grad(o)
 
@@ -478,7 +479,7 @@ class GradRuleset(GenericDerivativeRuleset):
         return Grad(o)
 
     def _argument(self, o): # TODO: Enable this after fixing issue#13, unless we move simplification to a separate stage?
-        if o.is_cellwise_constant():
+        if is_cellwise_constant(o):
             # Collapse gradient of cellwise constant function to zero
             return AnnotatedZero(o.ufl_shape + self._var_shape, arguments=(o,)) # TODO: Missing this type
         else:
@@ -492,7 +493,7 @@ class GradRuleset(GenericDerivativeRuleset):
         ufl_assert(f._ufl_is_terminal_, "ReferenceValue can only wrap a terminal")
         domain = f.ufl_domain()
         K = JacobianInverse(domain)
-        r = indices(o.rank())
+        r = indices(len(o.ufl_shape))
         i, j = indices(2)
         Do = as_tensor(K[j,i]*ReferenceGrad(o)[r + (j,)], r + (i,))
         return Do
@@ -503,7 +504,7 @@ class GradRuleset(GenericDerivativeRuleset):
         ufl_assert(f._ufl_is_in_reference_frame_, "ReferenceGrad can only wrap a reference frame type!")
         domain = f.ufl_domain()
         K = JacobianInverse(domain)
-        r = indices(o.rank())
+        r = indices(len(o.ufl_shape))
         i, j = indices(2)
         Do = as_tensor(K[j,i]*ReferenceGrad(o)[r + (j,)], r + (i,))
         return Do
@@ -523,7 +524,7 @@ class GradRuleset(GenericDerivativeRuleset):
         pass
         # TODO: Not sure how to detect that gradient of f is cellwise constant.
         #       Can we trust element degrees?
-        #if o.is_cellwise_constant():
+        #if is_cellwise_constant(o):
         #    return self.terminal(o)
         # TODO: Maybe we can ask "f.has_derivatives_of_order(n)" to check
         #       if we should make a zero here?
@@ -543,7 +544,7 @@ class ReferenceGradRuleset(GenericDerivativeRuleset):
 
     def geometric_quantity(self, o):
         "dg/dX = 0 if piecewise constant, otherwise ReferenceGrad(g)"
-        if o.is_cellwise_constant():
+        if is_cellwise_constant(o):
             return self.independent_terminal(o)
         else:
             # TODO: Which types does this involve? I don't think the form compilers will handle this.
@@ -572,7 +573,7 @@ class ReferenceGradRuleset(GenericDerivativeRuleset):
         return ReferenceGrad(o)
 
     def _argument(self, o): # TODO: Enable this after fixing issue#13, unless we move simplification to a separate stage?
-        if o.is_cellwise_constant():
+        if is_cellwise_constant(o):
             # Collapse gradient of cellwise constant function to zero
             return AnnotatedZero(o.ufl_shape + self._var_shape, arguments=(o,)) # TODO: Missing this type
         else:
@@ -981,7 +982,7 @@ class DerivativeRuleDispatcher(MultiFunction):
                     return Indexed(C, MultiIndex(tuple(Cind)))
 
         # Otherwise a more generic approach
-        r = Ap.rank() - len(ii)
+        r = len(Ap.ufl_shape) - len(ii)
         if r:
             kk = indices(r)
             op = Indexed(Ap, MultiIndex(ii.indices() + kk))

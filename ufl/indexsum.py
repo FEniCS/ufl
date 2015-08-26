@@ -78,10 +78,6 @@ class IndexSum(Operator):
     def ufl_shape(self):
         return self.ufl_operands[0].ufl_shape
 
-    def is_cellwise_constant(self):
-        "Return whether this expression is spatially constant over each cell."
-        return self.ufl_operands[0].is_cellwise_constant()
-
     def evaluate(self, x, mapping, component, index_values):
         i, = self.ufl_operands[1]
         tmp = 0

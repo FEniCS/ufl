@@ -26,6 +26,7 @@ from ufl.log import warning
 from ufl.form import Form
 from ufl.integral import Integral
 from ufl.algorithms.transformer import Transformer
+from ufl.checks import is_cellwise_constant
 
 
 class SumDegreeEstimator(Transformer):
@@ -42,7 +43,7 @@ class SumDegreeEstimator(Transformer):
 
     def geometric_quantity(self, v):
         "Some geometric quantities are cellwise constant. Others are nonpolynomial and thus hard to estimate."
-        if v.is_cellwise_constant():
+        if is_cellwise_constant(v):
             return 0
         else:
             # As a heuristic, just returning domain degree to bump up degree somewhat

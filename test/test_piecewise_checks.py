@@ -8,6 +8,7 @@ Test the is_cellwise_constant function on all relevant terminal types.
 import pytest
 from ufl import *
 from ufl.classes import *
+from ufl.checks import is_cellwise_constant
 
 
 def get_domains():
@@ -143,22 +144,22 @@ def nonaffine_facet_domains(request):
 def test_always_cellwise_constant_geometric_quantities(domains):
     "Test geometric quantities that are always constant over a cell."
     e = CellVolume(domains)
-    assert e.is_cellwise_constant()
+    assert is_cellwise_constant(e)
     e = Circumradius(domains)
-    assert e.is_cellwise_constant()
+    assert is_cellwise_constant(e)
     e = FacetArea(domains)
-    assert e.is_cellwise_constant()
+    assert is_cellwise_constant(e)
     e = MinFacetEdgeLength(domains)
-    assert e.is_cellwise_constant()
+    assert is_cellwise_constant(e)
     e = MaxFacetEdgeLength(domains)
-    assert e.is_cellwise_constant()
+    assert is_cellwise_constant(e)
 
 
 def test_coordinates_never_cellwise_constant(domains):
     e = SpatialCoordinate(domains)
-    assert not e.is_cellwise_constant()
+    assert not is_cellwise_constant(e)
     e = CellCoordinate(domains)
-    assert not e.is_cellwise_constant()
+    assert not is_cellwise_constant(e)
 
 
 def test_coordinates_never_cellwise_constant_vertex():
@@ -166,25 +167,25 @@ def test_coordinates_never_cellwise_constant_vertex():
     domains = Domain(Cell("vertex", 3))
     assert domains.ufl_cell().cellname() == "vertex"
     e = SpatialCoordinate(domains)
-    assert e.is_cellwise_constant()
+    assert is_cellwise_constant(e)
     e = CellCoordinate(domains)
-    assert e.is_cellwise_constant()
+    assert is_cellwise_constant(e)
 
 
 def mappings_are_cellwise_constant(domain, test):
     e = Jacobian(domain)
-    assert e.is_cellwise_constant() == test
+    assert is_cellwise_constant(e) == test
     e = JacobianDeterminant(domain)
-    assert e.is_cellwise_constant() == test
+    assert is_cellwise_constant(e) == test
     e = JacobianInverse(domain)
-    assert e.is_cellwise_constant() == test
+    assert is_cellwise_constant(e) == test
     if domain.topological_dimension() != 1:
         e = FacetJacobian(domain)
-        assert e.is_cellwise_constant() == test
+        assert is_cellwise_constant(e) == test
         e = FacetJacobianDeterminant(domain)
-        assert e.is_cellwise_constant() == test
+        assert is_cellwise_constant(e) == test
         e = FacetJacobianInverse(domain)
-        assert e.is_cellwise_constant() == test
+        assert is_cellwise_constant(e) == test
 
 
 def test_mappings_are_cellwise_constant_on_linear_affine_cells(affine_domains):
@@ -201,7 +202,7 @@ def test_mappings_are_cellwise_not_constant_on_nonlinear_cells(nonlinear_domains
 
 def facetnormal_cellwise_constant(domain, test):
     e = FacetNormal(domain)
-    assert e.is_cellwise_constant() == test
+    assert is_cellwise_constant(e) == test
 
 
 def test_facetnormal_cellwise_constant_affine(affine_facet_domains):
@@ -218,26 +219,26 @@ def test_facetnormal_not_cellwise_constant_nonlinear(nonlinear_domains):
 
 def test_coefficient_sometimes_cellwise_constant(domains_not_linear):
     e = Constant(domains_not_linear)
-    assert e.is_cellwise_constant()
+    assert is_cellwise_constant(e)
 
     V = FiniteElement("DG", domains_not_linear, 0)
     e = Coefficient(V)
-    assert e.is_cellwise_constant()
+    assert is_cellwise_constant(e)
     V = FiniteElement("R", domains_not_linear, 0)
     e = Coefficient(V)
-    assert e.is_cellwise_constant()
+    assert is_cellwise_constant(e)
 
     # This should be true, but that has to wait for a fix of issue #13
     # e = TestFunction(V)
-    # assert e.is_cellwise_constant()
+    # assert is_cellwise_constant(e)
     # V = FiniteElement("R", domains_not_linear, 0)
     # e = TestFunction(V)
-    # assert e.is_cellwise_constant()
+    # assert is_cellwise_constant(e)
 
 
 def test_coefficient_mostly_not_cellwise_constant(domains_not_linear):
     V = FiniteElement("DG", domains_not_linear, 1)
     e = Coefficient(V)
-    assert not e.is_cellwise_constant()
+    assert not is_cellwise_constant(e)
     e = TestFunction(V)
-    assert not e.is_cellwise_constant()
+    assert not is_cellwise_constant(e)

@@ -32,15 +32,6 @@ from six.moves import xrange as range
 
 from ufl.log import warning, error, deprecate
 
-
-def find_geometric_dimension(expr): # TODO: Move to corealg.analysis module
-    "Find the geometric dimension of an expression."
-    gdims = set(domain.geometric_dimension() for domain in expr.ufl_domains())
-    if len(gdims) != 1:
-        error("Cannot determine geometric dimension from expression.")
-    return tuple(gdims)[0]
-
-
 #--- The base object for all UFL expression tree nodes ---
 
 class Expr(object):
@@ -193,7 +184,7 @@ class Expr(object):
 
     # --- All subclasses must define these object attributes ---
 
-    # FIXME: Enable checks in ufl_type
+    # Each subclass of Expr is checked to have these properties in ufl_type
     _ufl_required_properties_ = (
         # A tuple of operands, all of them Expr instances.
         "ufl_operands",
@@ -208,28 +199,32 @@ class Expr(object):
         "ufl_index_dimensions",
         )
 
+    # Each subclass of Expr is checked to have these methods in ufl_type
     # FIXME: Add more and enable all
     _ufl_required_methods_ = (
         # To compute the hash on demand, this method is called.
         "_ufl_compute_hash_",
 
-        # The == operator must be implemented to compare for identical representation, used by set() and dict().
+        # The data returned from this method is used to compute the signature of a form
+        "_ufl_signature_data_",
+
+        # The == operator must be implemented to compare for identical representation,
+        # used by set() and dict(). The __hash__ operator is added by ufl_type.
         "__eq__",
 
         # To reconstruct an object of the same type with operands or properties changed.
-        "reconstruct",
+        "reconstruct", # TODO: Rename to _ufl_reconstruct_, simplify implementations?
 
-        # Return whether this expression is spatially constant over each cell.
-        "domains",
-        "is_cellwise_constant",
-        #"cell",
-        #"domain",
-        #"geometric_dimension",
+        "ufl_domains",
+        #"ufl_cell",
+        #"ufl_domain",
 
         #"__str__",
         #"__repr__",
-        #"signature_data",
-        #"__repr__",
+
+        # TODO: Add checks for methods/properties of terminals only?
+        # Required for terminals:
+        #"is_cellwise_constant", # TODO: Rename to ufl_is_cellwise_constant?
         )
 
 
@@ -301,44 +296,28 @@ class Expr(object):
 
     #--- Functions for geometric properties of expression ---
 
-    # All subclasses must implement ufl_domains if it is known
-    def ufl_domains(self): # TODO: Deprecate this and use extract_domains
-        from ufl.geometry import extract_domains # TODO: Move to corealg.analysis module
+    def ufl_domains(self): # TODO: Deprecate this and use extract_domains(expr)
+        "Return all domains this expression is defined on."
+        from ufl.domain import extract_domains
         return extract_domains(self)
 
-    # All subclasses must implement ufl_domain if it is known
-    def ufl_domain(self):
+    def ufl_domain(self): # TODO: Deprecate this and use extract_unique_domain(expr)
         "Return the single unique domain this expression is defined on or throw an error."
-        domains = self.ufl_domains()
-        if len(domains) == 1:
-            domain, = domains
-            return domain
-        elif domains:
-            error("Found multiple domains, cannot return just one.")
-        else:
-            return None
+        from ufl.domain import extract_unique_domain
+        return extract_unique_domain(self)
 
-    # All subclasses must implement cell if it is known
-    def ufl_cell(self): # TODO: Deprecate this
-        "Return the cell this expression is defined on."
-        domain = self.ufl_domain()
-        return domain.ufl_cell() if domain is not None else None
-
-    # This function was introduced to clarify and
-    # eventually reduce direct dependencies on cells.
-    def geometric_dimension(self): # TODO: Deprecate this
-        "Return the geometric dimension this expression lives in."
-        #from ufl.corealg.analysis import find_geometric_dimension
-        return find_geometric_dimension(self)
-
-    def is_cellwise_constant(self): # TODO: Deprecate this
+    def is_cellwise_constant(self): # TODO: Deprecate this and use is_cellwise_constant(expr)
         "Return whether this expression is spatially constant over each cell."
-        raise NotImplementedError(self.__class__.is_cellwise_constant)
+        from ufl.checks import is_cellwise_constant
+        deprecate("Expr.is_cellwise_constant() is deprecated, please use is_cellwise_constant(expr) instead.")
+        return is_cellwise_constant(self)
 
     #--- Functions for float evaluation ---
 
-    def evaluate(self, x, mapping, component, index_values): # TODO: Move to corealg.eval module
+    def evaluate(self, x, mapping, component, index_values):
         """Evaluate expression at given coordinate with given values for terminals."""
+        #from ufl.corealg.evaluate import evaluate_expr # TODO: Implement in corealg.eval module
+        #return evaluate_expr(self, ...) # ... then deprecate and remove expr.evaluate()
         error("Symbolic evaluation of %s not available." % self._ufl_class_.__name__)
 
     def _ufl_evaluate_scalar_(self):
@@ -379,48 +358,12 @@ class Expr(object):
         ## Fail gracefully if no valid type conversion found
         #raise TypeError("Cannot convert a {0.__class__.__name__} to UFL type.".format(value))
 
-    #--- Functions for shape and index handling ---
-
-    def shape(self):
-        "Return the tensor shape of the expression."
-        return self.ufl_shape
-
-    def rank(self):
-        "Return the tensor rank of the expression."
-        return len(self.ufl_shape)
-
-    #--- Deprecated functions
-
-    def domains(self):
-        deprecate("Expr.domains() is deprecated, please use .ufl_domains() instead.")
-        return self.ufl_domains()
-
-    def cell(self):
-        deprecate("Expr.cell() is deprecated, please use .ufl_cell() instead.")
-        return self.ufl_cell()
-
-    def domain(self):
-        deprecate("Expr.domain() is deprecated, please use .ufl_domain() instead.")
-        return self.ufl_domain()
-
-    def operands(self):
-        deprecate("Expr.operands() is deprecated, please use property Expr.ufl_operands instead.")
-        raise NotImplementedError(self.__class__.operands)
-
-    def free_indices(self):
-        deprecate("Expr.free_indices() is deprecated, please use property Expr.ufl_free_indices instead.")
-        raise NotImplementedError(self.__class__.free_indices)
-
-    def index_dimensions(self):
-        deprecate("Expr.index_dimensions() is deprecated, please use property Expr.ufl_index_dimensions instead.")
-        raise NotImplementedError(self.__class__.index_dimensions)
-
     #--- Special functions for string representations ---
 
-    # All subclasses must implement signature_data
-    def signature_data(self):
+    # All subclasses must implement _ufl_signature_data_
+    def _ufl_signature_data_(self, renumbering):
         "Return data that uniquely identifies form compiler relevant aspects of this object."
-        raise NotImplementedError(self.__class__.signature_data)
+        raise NotImplementedError(self.__class__._ufl_signature_data_)
 
     # All subclasses must implement __repr__
     def __repr__(self):
@@ -471,6 +414,57 @@ class Expr(object):
     def __round__(self, n=None):
         "Round to nearest integer or to nearest nth decimal."
         return round(float(self), n)
+
+
+    #--- Deprecated functions
+
+    def geometric_dimension(self):
+        "Return the geometric dimension this expression lives in."
+        from ufl.domain import find_geometric_dimension
+        deprecate("Expr.geometric_dimension() is deprecated, please use find_geometric_dimension(expr) instead.")
+        return find_geometric_dimension(self)
+
+    def domains(self):
+        deprecate("Expr.domains() is deprecated, please use .ufl_domains() instead.")
+        return self.ufl_domains()
+
+    def cell(self):
+        deprecate("Expr.cell() is deprecated, please use .ufl_domain() instead.")
+        domain = self.ufl_domain()
+        return domain.ufl_cell() if domain is not None else None
+
+    def domain(self):
+        deprecate("Expr.domain() is deprecated, please use .ufl_domain() instead.")
+        return self.ufl_domain()
+
+    def operands(self):
+        deprecate("Expr.operands() is deprecated, please use property Expr.ufl_operands instead.")
+        return self.ufl_operands
+
+    def shape(self):
+        "Return the tensor shape of the expression."
+        deprecate("Expr.shape() is deprecated, please use expr.ufl_shape instead.")
+        return self.ufl_shape
+
+    def rank(self):
+        "Return the tensor rank of the expression."
+        deprecate("Expr.rank() is deprecated," +
+                  " please use len(expr.ufl_shape) instead.")
+        return len(self.ufl_shape)
+
+    def free_indices(self):
+        from ufl.core.multiindex import Index
+        deprecate("Expr.free_indices() is deprecated," +
+                  " please use property Expr.ufl_free_indices instead.")
+        return tuple(Index(count=i) for i in self.ufl_free_indices)
+
+    def index_dimensions(self):
+        from ufl.core.multiindex import Index
+        from ufl.utils.dicts import EmptyDict
+        deprecate("Expr.index_dimensions() is deprecated," +
+                  " please use property Expr.ufl_index_dimensions instead.")
+        idims = { Index(count=i): d for i, d in zip(self.ufl_free_indices, self.ufl_index_dimensions) }
+        return idims or EmptyDict
 
 
 # Initializing traits here because Expr is not defined in the class declaration

@@ -61,8 +61,7 @@ class Label(Terminal):
         error("Label has no free indices (it is not a tensor expression).")
 
     def is_cellwise_constant(self):
-        error("Asking if a Label is cellwise constant makes no sense (it is not a tensor expression).")
-        #return True # Could also just return True, after all it doesn't change with the cell
+        return True
 
     def ufl_domains(self):
         "Return tuple of domains related to this terminal object."
@@ -99,9 +98,6 @@ class Variable(Operator):
 
     def ufl_domains(self):
         return self.ufl_operands[0].ufl_domains()
-
-    def is_cellwise_constant(self):
-        return self.ufl_operands[0].is_cellwise_constant()
 
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)

@@ -113,12 +113,12 @@ class OuterProductElement(FiniteElementBase):
         return "OuterProductElement(%s)" \
             % str([self._A.shortstr(), self._B.shortstr()])
 
-    def signature_data(self, renumbering):
+    def _ufl_signature_data_(self, renumbering):
         data = ("OuterProductElement",
                 self._A,
                 self._B,
                 self._quad_scheme,
-                ("no domain" if self._domain is None else self._domain.signature_data(renumbering)))
+                ("no domain" if self._domain is None else self._domain._ufl_signature_data_(renumbering)))
         return data
 
 
@@ -164,11 +164,11 @@ class OuterProductVectorElement(MixedElement):
     def mapping(self):
         return self._sub_element.mapping()
 
-    def signature_data(self, renumbering):
+    def _ufl_signature_data_(self, renumbering):
         data = ("OuterProductVectorElement", self._A, self._B,
                 len(self._sub_elements), self._quad_scheme,
                 ("no domain" if self._domain is None else
-                    self._domain.signature_data(renumbering)))
+                    self._domain._ufl_signature_data_(renumbering)))
         return data
 
     def reconstruct(self, **kwargs):

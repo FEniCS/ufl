@@ -82,11 +82,11 @@ class FiniteElementBase(object):
         """
         raise NotImplementedError("Class %s must implement FiniteElementBase.reconstruction_signature" % (type(self).__name__,))
 
-    def signature_data(self, renumbering):
+    def _ufl_signature_data_(self, renumbering):
         data = ("FiniteElementBase", self._family, self._degree,
                 self._value_shape, self._reference_value_shape,
                 self._quad_scheme,
-                ("no domain" if self._domain is None else self._domain.signature_data(renumbering)))
+                ("no domain" if self._domain is None else self._domain._ufl_signature_data_(renumbering)))
         return data
 
     def __hash__(self):

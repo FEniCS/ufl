@@ -45,7 +45,9 @@ from ufl.mathfunctions import Sqrt, Exp, Ln, Erf,\
 from ufl.restriction import CellAvg, FacetAvg
 from ufl.core.multiindex import indices
 from ufl.indexed import Indexed
-from ufl.geometry import SpatialCoordinate
+from ufl.geometry import SpatialCoordinate, FacetNormal
+from ufl.checks import is_globally_constant, is_cellwise_constant
+from ufl.domain import extract_domains
 
 #--- Basic operators ---
 
@@ -131,10 +133,10 @@ def inner(a, b):
     return Inner(a, b)
 
 # TODO: Something like this would be useful in some cases,
-# but should inner just support a.rank() != b.rank() instead?
+# but should inner just support len(a.ufl_shape) != len(b.ufl_shape) instead?
 def _partial_inner(a, b):
     "UFL operator: Take the partial inner product of a and b."
-    ar, br = a.rank(), b.rank()
+    ar, br = len(a.ufl_shape), len(b.ufl_shape)
     n = min(ar, br)
     return contraction(a, list(range(n-ar, n-ar+n)), b, list(range(n)))
 
@@ -145,7 +147,7 @@ def dot(a, b):
     if a.ufl_shape == () and b.ufl_shape == ():
         return a*b
     return Dot(a, b)
-    #return contraction(a, (a.rank()-1,), b, (b.rank()-1,))
+    #return contraction(a, (len(a.ufl_shape)-1,), b, (len(b.ufl_shape)-1,))
 
 def contraction(a, a_axes, b, b_axes):
     "UFL operator: Take the contraction of a and b over given axes."
@@ -153,8 +155,8 @@ def contraction(a, a_axes, b, b_axes):
     ufl_assert(len(ai) == len(bi), "Contraction must be over the same number of axes.")
     ash = a.ufl_shape
     bsh = b.ufl_shape
-    aii = indices(a.rank())
-    bii = indices(b.rank())
+    aii = indices(len(a.ufl_shape))
+    bii = indices(len(b.ufl_shape))
     cii = indices(len(ai))
     shape = [None]*len(ai)
     for i, j in enumerate(ai):
@@ -215,7 +217,7 @@ def diag(A):
     # TODO: Make a compound type or two for this operator
 
     # Get and check dimensions
-    r = A.rank()
+    r = len(A.ufl_shape)
     if r == 1:
         n, = A.ufl_shape
     elif r == 2:
@@ -240,7 +242,7 @@ def diag_vector(A):
     # TODO: Make a compound type for this operator
 
     # Get and check dimensions
-    ufl_assert(A.rank() == 2, "Expecting rank 2 tensor.")
+    ufl_assert(len(A.ufl_shape) == 2, "Expecting rank 2 tensor.")
     m, n = A.ufl_shape
     ufl_assert(m == n, "Can only take diagonal of square tensors.")
 
@@ -279,9 +281,8 @@ def Dn(f):
     """UFL operator: Take the directional derivative of f in the
     facet normal direction, Dn(f) := dot(grad(f), n)."""
     f = as_ufl(f)
-    if f.is_cellwise_constant():
+    if is_cellwise_constant(f):
         return Zero(f.ufl_shape, f.ufl_free_indices, f.ufl_index_dimensions)
-    from ufl.geometry import FacetNormal
     return dot(grad(f), FacetNormal(f.ufl_domain()))
 
 def diff(f, v):
@@ -386,21 +387,21 @@ rot = curl
 def jump(v, n=None):
     "UFL operator: Take the jump of v across a facet."
     v = as_ufl(v)
-    is_not_constant = len(v.ufl_domains()) > 0 # FIXME: Not quite right...
-    if is_not_constant:
+    is_constant = len(extract_domains(v)) > 0
+    if is_constant:
         if n is None:
             return v('+') - v('-')
-        r = v.rank()
+        r = len(v.ufl_shape)
         if r == 0:
             return v('+')*n('+') + v('-')*n('-')
         else:
             return dot(v('+'), n('+')) + dot(v('-'), n('-'))
     else:
-        warning("Returning zero from jump of expression without a domain. This may be erroneous.")
-        # FIXME: Is this right? If v has no cell, it doesn't depend on
+        warning("Returning zero from jump of expression without a domain. This may be erroneous if a dolfin.Expression is involved.")
+        # FIXME: Is this right? If v has no domain, it doesn't depend on
         # anything spatially variable or any form arguments, and thus
         # the jump is zero. In other words, I'm assuming that
-        # "not v.ufl_domains()" is equivalent with "v is a constant".
+        # "v has no geometric domains" is equivalent with "v is a spatial constant".
         # Update: This is NOT true for jump(Expression("x[0]")) from dolfin.
         return Zero(v.ufl_shape, v.ufl_free_indices, v.ufl_index_dimensions)
 

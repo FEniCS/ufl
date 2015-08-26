@@ -105,7 +105,7 @@ class TensorProductElement(FiniteElementBase):
         return "TensorProductElement(%s)" \
             % str([e.shortstr() for e in self.sub_elements()])
 
-    def signature_data(self, renumbering):
+    def _ufl_signature_data_(self, renumbering):
         data = ("TensorProductElement",
-                tuple(e.signature_data(renumbering) for e in self._sub_elements))
+                tuple(e._ufl_signature_data_(renumbering) for e in self._sub_elements))
         return data
