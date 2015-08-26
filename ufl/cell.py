@@ -325,6 +325,30 @@ class OuterProductCell(AbstractCell): # TODO: Remove this and use ProductCell in
 
 # --- Utility conversion functions
 
+# Mapping from topological dimension to reference cell name for simplices
+_simplex_dim2cellname = {
+    0: "vertex",
+    1: "interval",
+    2: "triangle",
+    3: "tetrahedron",
+    }
+
+# Mapping from topological dimension to reference cell name for hypercubes
+_hypercube_dim2cellname = {
+    0: "vertex",
+    1: "interval",
+    2: "quadrilateral",
+    3: "hexahedron",
+    }
+
+def simplex(topological_dimension, geometric_dimension=None):
+    "Return a simplex cell of given dimension."
+    return Cell(_simplex_dim2cellname[topological_dimension], geometric_dimension)
+
+def hypercube(topological_dimension, geometric_dimension=None):
+    "Return a hypercube cell of given dimension."
+    return Cell(_hypercube_dim2cellname[topological_dimension], geometric_dimension)
+
 def as_cell(cell):
     """Convert any valid object to a Cell or return cell if it is already a Cell.
 
