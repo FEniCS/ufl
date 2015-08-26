@@ -48,15 +48,25 @@ def is_globally_constant(expr):
     includes spatially independent constant coefficients that
     are not known before assembly time."""
     # TODO: This does not consider gradients of coefficients, so false negatives are possible.
-    from ufl.argument import Argument
-    from ufl.coefficient import Coefficient
+    #from ufl.argument import Argument
+    #from ufl.coefficient import Coefficient
+    from ufl.geometry import GeometricQuantity
+    from ufl.core.terminal import FormArgument
     for e in traverse_unique_terminals(expr):
-        if isinstance(e, Argument):
+        # Return False if any single terminal is not constant
+        if e._ufl_is_literal_:
+            # Accept literals first, they are the most common terminals
+            continue
+        elif isinstance(e, FormArgument):
+            # Accept only Real valued Arguments and Coefficients
+            if e.ufl_element().family() == "Real":
+                continue
+            else:
+                return False
+        elif isinstance(e, GeometricQuantity):
+            # Reject all geometric quantities, they all vary over cells
             return False
-        if isinstance(e, Coefficient) and e.ufl_element().family() != "Real":
-            return False
-        if e.ufl_domains():
-            return False
+
     # All terminals passed constant check
     return True
 
@@ -64,6 +74,6 @@ def is_scalar_constant_expression(expr):
     """Check if an expression is a globally constant scalar expression."""
     if is_python_scalar(expr):
         return True
-    if expr.ufl_shape != ():
+    if expr.ufl_shape:
         return False
     return is_globally_constant(expr)
