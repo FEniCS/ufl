@@ -45,10 +45,16 @@ def emit(self, record):
     self.stream.write(format_string % message)
     self.flush()
 
-# Colors
-RED   = "\033[1;37;31m%s\033[0m"
-BLUE  = "\033[1;37;34m%s\033[0m"
-GREEN = "\033[1;37;32m%s\033[0m"
+# Colors if the terminal supports it (disabled e.g. when piped to file)
+import sys
+if sys.stdout.isatty() and sys.stderr.isatty():
+    RED   = "\033[1;37;31m%s\033[0m"
+    BLUE  = "\033[1;37;34m%s\033[0m"
+    GREEN = "\033[1;37;32m%s\033[0m"
+else:
+    RED   = "%s"
+    BLUE  = "%s"
+    GREEN = "%s"
 
 # Logger class
 class Logger:
