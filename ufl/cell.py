@@ -34,10 +34,8 @@ from ufl.core.ufl_type import attach_operators_from_hash_data
 
 class AbstractCell(object):
     "Representation of an abstract finite element cell with only the dimensions known."
-    __slots__ = ("_geometric_dimension", "_topological_dimension")
-    def __init__(self, geometric_dimension, topological_dimension):
-        "Initialize basic cell dimensions."
-
+    __slots__ = ("_topological_dimension", "_geometric_dimension")
+    def __init__(self, topological_dimension, geometric_dimension):
         # Validate dimensions
         ufl_assert(isinstance(geometric_dimension, int),
                    "Expecting integer geometric dimension, not '%r'" % (geometric_dimension,))
@@ -46,7 +44,7 @@ class AbstractCell(object):
         ufl_assert(topological_dimension <= geometric_dimension,
                    "Topological dimension cannot be larger than geometric dimension.")
 
-        # Finally store validated data
+        # Store validated dimensions
         self._topological_dimension = topological_dimension
         self._geometric_dimension = geometric_dimension
 
@@ -118,7 +116,7 @@ class Cell(AbstractCell):
         # so the cellname must be among the known ones,
         # so we can find the known dimension, unless we have
         # a product cell, in which the given dimension is used
-        topological_dimension = len(num_cell_entities[cellname])-1
+        topological_dimension = len(num_cell_entities[cellname]) - 1
 
         # The geometric dimension defaults to equal the topological
         # dimension unless overridden for embedded cells
@@ -126,7 +124,7 @@ class Cell(AbstractCell):
             geometric_dimension = topological_dimension
 
         # Initialize and validate dimensions
-        AbstractCell.__init__(self, geometric_dimension, topological_dimension)
+        AbstractCell.__init__(self, topological_dimension, geometric_dimension)
 
     # --- Overrides of AbstractCell methods ---
 
@@ -191,7 +189,7 @@ class ProductCell(AbstractCell):
         gdim = sum(gdims)
         tdim = sum(tdims)
 
-        AbstractCell.__init__(self, gdim, tdim)
+        AbstractCell.__init__(self, tdim, gdim)
 
     def is_simplex(self):
         "Return True if this is a simplex cell."
@@ -256,7 +254,7 @@ class OuterProductCell(AbstractCell): # TODO: Remove this and use ProductCell in
             if gdim < gdim_temp:
                 raise ValueError("gdim must be at least %d" % gdim_temp)
 
-        AbstractCell.__init__(self, gdim, tdim)
+        AbstractCell.__init__(self, tdim, gdim)
 
         # facets for extruded cells
         if B.cellname() == "interval":

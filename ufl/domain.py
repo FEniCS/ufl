@@ -35,8 +35,34 @@ from ufl.utils.dicts import EmptyDict
 from ufl.protocols import id_or_none
 from ufl.cell import as_cell, AbstractCell, Cell, ProductCell
 
+
+class AbstractDomain(object):
+    """Symbolic representation of a geometric domain with only a geometric and topological dimension."""
+    __slots__ = ("_topological_dimension", "_geometric_dimension")
+    def __init__(self, topological_dimension, geometric_dimension):
+        # Validate dimensions
+        ufl_assert(isinstance(geometric_dimension, int),
+                   "Expecting integer geometric dimension, not '%r'" % (geometric_dimension,))
+        ufl_assert(isinstance(topological_dimension, int),
+                   "Expecting integer topological dimension, not '%r'" % (topological_dimension,))
+        ufl_assert(topological_dimension <= geometric_dimension,
+                   "Topological dimension cannot be larger than geometric dimension.")
+
+        # Store validated dimensions
+        self._topological_dimension = topological_dimension
+        self._geometric_dimension = geometric_dimension
+
+    def geometric_dimension(self):
+        "Return the dimension of the space this domain is embedded in."
+        return self._geometric_dimension
+
+    def topological_dimension(self):
+        "Return the dimension of the topology of this domain."
+        return self._topological_dimension
+
+
 @attach_operators_from_hash_data
-class Domain(object):
+class Domain(AbstractDomain):
     """Symbolic representation of a geometrical domain.
 
     Used in the definition of geometric terminal expressions,
@@ -69,8 +95,6 @@ class Domain(object):
 
     """
     __slots__ = (
-        "_geometric_dimension",
-        "_topological_dimension",
         "_cell",
         "_coordinates",
         "_label",
@@ -112,18 +136,9 @@ class Domain(object):
 
         # Now we should have a Cell or something went wrong
         ufl_assert(isinstance(self._cell, AbstractCell), "Failed to construct a Cell from input arguments.")
-        self._geometric_dimension = self._cell.geometric_dimension()
-        self._topological_dimension = self._cell.topological_dimension()
-
-        # Sanity checks
-        ufl_assert(isinstance(self._geometric_dimension, int),
-                   "Expecting integer geometric dimension.")
-        ufl_assert(isinstance(self._topological_dimension, int),
-                   "Expecting integer topological dimension.")
-        ufl_assert(self._topological_dimension <= self._geometric_dimension,
-                   "Topological dimension cannot be greater than geometric dimension.")
-        ufl_assert(self._topological_dimension >= 0,
-                   "Topological dimension must be non-negative.")
+        tdim = self._cell.topological_dimension()
+        gdim = self._cell.geometric_dimension()
+        AbstractDomain.__init__(self, tdim, gdim)
 
         if self._coordinates is not None:
             ufl_assert(isinstance(self._coordinates, Coefficient),
@@ -137,29 +152,6 @@ class Domain(object):
 
         # Check that we didn't get any arguments that we havent interpreted
         ufl_assert(not kwargs, "Got unused keyword arguments %s" % ', '.join(sorted(kwargs)))
-
-    def reconstruct(self, cell=None, coordinates=None, label=None, data=None):
-        "Create a new Domain object with possibly changed label or data."
-        if coordinates is None:
-            if cell is None:
-                cell = self.ufl_cell()
-            if label is None:
-                label = self.ufl_label()
-            if data is None:
-                data = self.ufl_get_mesh()
-            return Domain(cell, label=label, data=data)
-        else:
-            ufl_assert(all((cell is None, label is None, data is None)),
-                       "No other arguments allowed with coordinates.")
-            return Domain(coordinates)
-
-    def geometric_dimension(self):
-        "Return the dimension of the space this domain is embedded in."
-        return self._geometric_dimension
-
-    def topological_dimension(self):
-        "Return the dimension of the topology of this domain."
-        return self._topological_dimension
 
     def is_piecewise_linear_simplex_domain(self):
         return (self.ufl_coordinate_element().degree() == 1) and self.ufl_cell().is_simplex()
@@ -377,7 +369,7 @@ def join_domains(domains):
         newdomains.append(dom)
     return tuple(newdomains)
 
-class ProductDomain(Domain):
+class ProductDomain(Domain): # TODO: AbstractDomain
     """WARNING: This is work in progress, design is in no way completed."""
     __slots__ = ("_child_domains",)
     def __init__(self, domains, data=None):
