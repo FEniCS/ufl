@@ -63,6 +63,10 @@ A very brief overview of the language contents follows:
     BrokenElement, TraceElement
     FacetElement, InteriorElement
 
+* Function spaces::
+
+    FunctionSpace
+
 * Arguments::
 
     Argument, TestFunction, TrialFunction
@@ -216,6 +220,9 @@ from ufl.finiteelement import FiniteElementBase, FiniteElement, \
 # Hook to extend predefined element families
 from ufl.finiteelement.elementlist import register_element, show_elements #, ufl_elements
 
+# Function spaces
+from ufl.functionspace import FunctionSpace
+
 # Arguments
 from ufl.argument import Argument, TestFunction, TrialFunction, \
                          Arguments, TestFunctions, TrialFunctions
@@ -307,6 +314,7 @@ __all__ = [
     'OuterProductVectorElement', 'HDivElement', 'HCurlElement',
     'BrokenElement', 'TraceElement', 'FacetElement', 'InteriorElement',
     'register_element', 'show_elements',
+    'FunctionSpace',
     'Argument', 'TestFunction', 'TrialFunction',
     'Arguments', 'TestFunctions', 'TrialFunctions',
     'Coefficient', 'Coefficients',

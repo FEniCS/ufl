@@ -55,9 +55,9 @@ def test_domains_sort_by_name():
     domains2 = [Domain(cell, label="D%s" % cell.cellname())
                 for cell in sorted(all_cells)]
     sdomains = sorted(domains1, key=lambda D: (D.geometric_dimension(),
-                                               D.topological_dimension(),
-                      D.ufl_cell(),
-                      D.ufl_label()))
+                                          D.topological_dimension(),
+                                          D.ufl_cell(),
+                                          D.ufl_label()))
     assert sdomains != domains1
     assert sdomains == domains2
 

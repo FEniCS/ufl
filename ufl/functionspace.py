@@ -52,16 +52,24 @@ class FunctionSpace(AbstractFunctionSpace):
         return self._ufl_element
 
     def _ufl_hash_data_(self):
-        return (self.__class__.__name__,) + (self.ufl_domain()._ufl_hash_data_(), self.ufl_element()._ufl_hash_data_())
+        edata = self.ufl_element()._ufl_hash_data_()
+        domain = self.ufl_domain()
+        ddata = None if domain is None else domain._ufl_hash_data_()
+        return ("FunctionSpace", ddata, edata)
 
     def _ufl_signature_data_(self, renumbering):
-        return (self.ufl_domain()._ufl_signature_data_(renumbering),
-                self.ufl_element()._ufl_signature_data_(renumbering))
+        edata = self.ufl_element()._ufl_signature_data_(renumbering)
+        domain = self.ufl_domain()
+        ddata = None if domain is None else domain._ufl_signature_data_(renumbering)
+        return ("FunctionSpace", ddata, edata)
+
+    def __repr__(self):
+        return "FunctionSpace(%r, %r)" % (self._ufl_domain, self._ufl_element)
 
 @attach_operators_from_hash_data
 class MixedFunctionSpace(AbstractFunctionSpace):
     __slots__ = ("_ufl_function_spaces",)
-    def __init__(self, function_spaces):
+    def __init__(self, *function_spaces):
         AbstractFunctionSpace.__init__(self)
         self._ufl_function_spaces = function_spaces
 
@@ -69,15 +77,18 @@ class MixedFunctionSpace(AbstractFunctionSpace):
         return (self._ufl_function_spaces,)
 
     def _ufl_hash_data_(self):
-        return (self.__class__.__name__,) + tuple(V._ufl_hash_data_() for V in self.ufl_sub_spaces())
+        return ("MixedFunctionSpace",) + tuple(V._ufl_hash_data_() for V in self.ufl_sub_spaces())
 
     def _ufl_signature_data_(self, renumbering):
-        return tuple(V._ufl_signature_data_(renumbering) for V in self.ufl_sub_spaces())
+        return ("MixedFunctionSpace",) + tuple(V._ufl_signature_data_(renumbering) for V in self.ufl_sub_spaces())
+
+    def __repr__(self):
+        return "MixedFunctionSpace(*%r)" % (self._ufl_function_spaces,)
 
 @attach_operators_from_hash_data
 class TensorProductFunctionSpace(AbstractFunctionSpace):
     __slots__ = ("_ufl_function_spaces",)
-    def __init__(self, function_spaces):
+    def __init__(self, *function_spaces):
         AbstractFunctionSpace.__init__(self)
         self._ufl_function_spaces = function_spaces
 
@@ -85,7 +96,10 @@ class TensorProductFunctionSpace(AbstractFunctionSpace):
         return (self._ufl_function_spaces,)
 
     def _ufl_hash_data_(self):
-        return (self.__class__.__name__,) + tuple(V._ufl_hash_data_() for V in self.ufl_sub_spaces())
+        return ("TensorProductFunctionSpace",) + tuple(V._ufl_hash_data_() for V in self.ufl_sub_spaces())
 
     def _ufl_signature_data_(self, renumbering):
-        return tuple(V._ufl_signature_data_(renumbering) for V in self.ufl_sub_spaces())
+        return ("TensorProductFunctionSpace",) + tuple(V._ufl_signature_data_(renumbering) for V in self.ufl_sub_spaces())
+
+    def __repr__(self):
+        return "TensorProductFunctionSpace(*%r)" % (self._ufl_function_spaces,)

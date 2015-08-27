@@ -66,6 +66,16 @@ class AbstractCell(object):
         "Return True if all the facets of this cell are simplex cells."
         raise NotImplementedError("Implement this to allow important checks and optimizations.")
 
+    def __lt__(self, other):
+        "Define an arbitrarily chosen but fixed sort order for all cells."
+        if not isinstance(other, AbstractCell):
+            return NotImplemented
+        # Sort by gdim first, tdim next, then whatever's left depending on the subclass
+        s = (self.geometric_dimension(), self.topological_dimension())
+        o = (other.geometric_dimension(), other.topological_dimension())
+        if s != o: return s < o
+        return self._ufl_hash_data_() < other._ufl_hash_data_()
+
 
 # --- Basic topological properties of known basic cells
 
@@ -155,9 +165,6 @@ class Cell(AbstractCell):
 
     # --- Special functions for proper object behaviour ---
 
-    def __repr__(self):
-        return "Cell(%r, %r)" % (self.cellname(), self.geometric_dimension())
-
     def __str__(self):
         gdim = self.geometric_dimension()
         tdim = self.topological_dimension()
@@ -166,16 +173,11 @@ class Cell(AbstractCell):
             s += " in %dD" % gdim
         return s
 
+    def __repr__(self):
+        return "Cell(%r, %r)" % (self.cellname(), self.geometric_dimension())
+
     def _ufl_hash_data_(self):
         return (self._geometric_dimension, self._topological_dimension, self._cellname)
-
-    def __lt__(self, other):
-        error("Just checking, is this used anywhere?")
-        if not isinstance(other, Cell):
-            return False
-        s = (self.geometric_dimension(), self.topological_dimension(), self.cellname())
-        o = (other.geometric_dimension(), other.topological_dimension(), other.cellname())
-        return s < o
 
 
 @attach_operators_from_hash_data
@@ -219,17 +221,14 @@ class ProductCell(AbstractCell):
         "Return list of cell factors."
         return self._cells
 
+    def __str__(self):
+        return repr(self)
+
     def __repr__(self):
-        return "ProductCell(*%r)" % (self._cells,)
+        return "ProductCell(%s)" % ", ".join(repr(c) for c in self._cells)
 
     def _ufl_hash_data_(self):
         return tuple(c._ufl_hash_data_() for c in self._cells)
-
-    def __lt__(self, other):
-        error("Just checking, is this used anywhere?")
-        if not isinstance(other, ProductCell):
-            return False
-        return self._cells < other._cells
 
 
 @attach_operators_from_hash_data
@@ -292,17 +291,11 @@ class OuterProductCell(AbstractCell): # TODO: Remove this and use ProductCell in
         "The number of cell facets."
         return self._A.num_facets() + self._B.num_facets()
 
-    def _ufl_hash_data_(self):
-        return tuple(c._ufl_hash_data_() for c in (self._A, self._B))
-
-    def __lt__(self, other):
-        error("Just checking, is this used anywhere?")
-        if not isinstance(other, OuterProductCell):
-            return NotImplemented
-        return (self._A, self._B) < (other._A, other._B)
-
     def __repr__(self):
         return "OuterProductCell(*%r)" % list([self._A, self._B])
+
+    def _ufl_hash_data_(self):
+        return tuple(c._ufl_hash_data_() for c in (self._A, self._B))
 
 
 # --- Utility conversion functions
