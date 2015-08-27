@@ -306,8 +306,11 @@ class Measure(object):
 
     def __hash__(self):
         "Return a hash value for this Measure."
-        hashdata = (self._integral_type, self._subdomain_id, hash(self._domain),
-                    metadata_hashdata(self._metadata), id_or_none(self._subdomain_data))
+        hashdata = (self._integral_type,
+                    self._subdomain_id,
+                    hash(self._domain),
+                    metadata_hashdata(self._metadata),
+                    id_or_none(self._subdomain_data))
         return hash(hashdata)
 
     def __eq__(self, other):

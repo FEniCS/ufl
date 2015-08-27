@@ -22,16 +22,15 @@
 # Modified by Kristian B. Oelgaard, 2009
 # Modified by Marie E. Rognes 2012
 
-from collections import defaultdict
 from ufl.log import warning, error, deprecate
 from ufl.assertions import ufl_assert
-from ufl.utils.formatting import istr
-from ufl.utils.dicts import EmptyDict
-from ufl.core.terminal import Terminal
-from ufl.protocols import id_or_none
-from ufl.cell import as_cell, Cell, ProductCell
-from ufl.domain import as_domain, Domain, extract_domains, join_domains, ProductDomain
 from ufl.core.ufl_type import ufl_type
+from ufl.core.terminal import Terminal
+from ufl.domain import as_domain
+
+from ufl.cell import as_cell, Cell, ProductCell
+from ufl.domain import Domain, ProductDomain, join_domains
+
 
 """
 
@@ -127,7 +126,7 @@ class GeometricQuantity(Terminal):
         return "%s(%r)" % (self._ufl_class_.__name__, self._domain)
 
     def _ufl_compute_hash_(self):
-        return hash((type(self).__name__,) + self._domain.hash_data())
+        return hash((type(self).__name__,) + self._domain._ufl_hash_data_())
 
     def __eq__(self, other):
         return isinstance(other, self._ufl_class_) and other._domain == self._domain

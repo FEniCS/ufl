@@ -25,16 +25,17 @@
 from collections import defaultdict
 from six import iteritems
 
+from ufl.core.terminal import Terminal
+from ufl.core.ufl_type import attach_operators_from_hash_data
 from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.log import warning, error, deprecate
 from ufl.assertions import ufl_assert
 from ufl.utils.formatting import istr
 from ufl.utils.dicts import EmptyDict
-from ufl.core.terminal import Terminal
 from ufl.protocols import id_or_none
 from ufl.cell import as_cell, AbstractCell, Cell, ProductCell
 
-
+@attach_operators_from_hash_data
 class Domain(object):
     """Symbolic representation of a geometrical domain.
 
@@ -221,7 +222,7 @@ class Domain(object):
         xdata = (None if x is None else x._ufl_signature_data_(renumbering))
         return (count, cdata, xdata)
 
-    def hash_data(self):
+    def _ufl_hash_data_(self):
         # Including only id of data here.
         # If this is a problem in pydolfin, the user will just have
         # to create explicit Domain objects to avoid problems.
@@ -231,16 +232,11 @@ class Domain(object):
                 self._coordinates, # None or a Coefficient
                 id_or_none(self._data))
 
-    def __hash__(self):
-        return hash(self.hash_data())
-
-    def __eq__(self, other):
-        return type(self) == type(other) and self.hash_data() == other.hash_data()
-
     def __lt__(self, other):
+        error("Just testing, is this used?")
         if type(self) != type(other):
             return NotImplemented
-        return self.hash_data() < other.hash_data()
+        return self._ufl_hash_data_() < other._ufl_hash_data_()
 
     def __str__(self):
         if self._coordinates is None:

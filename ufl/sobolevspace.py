@@ -57,6 +57,9 @@ class SobolevSpace(object):
     def __eq__(self, other):
         return isinstance(other, SobolevSpace) and self.name == other.name
 
+    def __ne__(self, other):
+        return not self == other
+
     def __hash__(self):
         return hash(("SobolevSpace", self.name))
 

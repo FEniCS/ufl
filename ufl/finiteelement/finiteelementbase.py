@@ -31,7 +31,6 @@ from ufl.utils.dicts import EmptyDict
 from ufl.geometry import Cell, as_cell, as_domain, Domain
 from ufl.log import info_blue, warning, warning_blue, error
 
-
 class FiniteElementBase(object):
     "Base class for all finite elements"
     __slots__ = ("_family",
@@ -88,6 +87,9 @@ class FiniteElementBase(object):
                 self._quad_scheme,
                 ("no domain" if self._domain is None else self._domain._ufl_signature_data_(renumbering)))
         return data
+
+    def _ufl_hash_data_(self):
+        return repr(self)
 
     def __hash__(self):
         "Compute hash code for insertion in hashmaps."

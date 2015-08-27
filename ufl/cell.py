@@ -28,7 +28,7 @@ from ufl.assertions import ufl_assert
 from ufl.utils.formatting import istr
 from ufl.utils.dicts import EmptyDict
 from ufl.core.terminal import Terminal
-
+from ufl.core.ufl_type import attach_operators_from_hash_data
 
 # --- The most abstract cell class, base class for other cell types
 
@@ -95,6 +95,7 @@ cellname2facetname = {
 
 # --- Basic cell representation classes
 
+@attach_operators_from_hash_data
 class Cell(AbstractCell):
     "Representation of a named finite element cell with known structure."
     __slots__ = ("_cellname",)
@@ -165,18 +166,11 @@ class Cell(AbstractCell):
             s += " in %dD" % gdim
         return s
 
-    def __hash__(self):
-        return hash(repr(self))
-
-    def __eq__(self, other):
-        return (isinstance(other, Cell)
-                and self.geometric_dimension() == other.geometric_dimension()
-                and self.cellname() == other.cellname())
-
-    def __ne__(self, other):
-        return not self == other
+    def _ufl_hash_data_(self):
+        return (self._geometric_dimension, self._topological_dimension, self._cellname)
 
     def __lt__(self, other):
+        error("Just checking, is this used anywhere?")
         if not isinstance(other, Cell):
             return False
         s = (self.geometric_dimension(), self.topological_dimension(), self.cellname())
@@ -184,6 +178,7 @@ class Cell(AbstractCell):
         return s < o
 
 
+@attach_operators_from_hash_data
 class ProductCell(AbstractCell):
     __slots__ = ("_cells",)
     def __init__(self, *cells):
@@ -227,23 +222,17 @@ class ProductCell(AbstractCell):
     def __repr__(self):
         return "ProductCell(*%r)" % (self._cells,)
 
-    def __hash__(self):
-        return hash(repr(self))
-
-    def __eq__(self, other):
-        if not isinstance(other, ProductCell):
-            return False
-        return self._cells == other._cells
-
-    def __ne__(self, other):
-        return not self == other
+    def _ufl_hash_data_(self):
+        return tuple(c._ufl_hash_data_() for c in self._cells)
 
     def __lt__(self, other):
+        error("Just checking, is this used anywhere?")
         if not isinstance(other, ProductCell):
             return False
         return self._cells < other._cells
 
 
+@attach_operators_from_hash_data
 class OuterProductCell(AbstractCell): # TODO: Remove this and use ProductCell instead
     """Representation of a cell formed as the Cartesian product of
     two existing cells"""
@@ -303,18 +292,11 @@ class OuterProductCell(AbstractCell): # TODO: Remove this and use ProductCell in
         "The number of cell facets."
         return self._A.num_facets() + self._B.num_facets()
 
-    def __eq__(self, other):
-        if not isinstance(other, OuterProductCell):
-            return False
-        # This is quite subtle: my intuition says that the OPCs of
-        # Cell("triangle") with Cell("interval"), and
-        # Cell("triangle", 3) with Cell("interval")
-        # are essentially the same: triangular prisms with gdim = tdim = 3.
-        # For safety, though, we will only compare equal if the
-        # subcells are *identical*, including immersion.
-        return (self._A, self._B) == (other._A, other._B) and self.geometric_dimension() == other.geometric_dimension()
+    def _ufl_hash_data_(self):
+        return tuple(c._ufl_hash_data_() for c in (self._A, self._B))
 
     def __lt__(self, other):
+        error("Just checking, is this used anywhere?")
         if not isinstance(other, OuterProductCell):
             return NotImplemented
         return (self._A, self._B) < (other._A, other._B)

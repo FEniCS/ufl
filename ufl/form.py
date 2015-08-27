@@ -231,13 +231,17 @@ class Form(object):
         return self._hash
 
     def __eq__(self, other):
-        """Delayed evaluation of the __eq__ operator!
+        """Delayed evaluation of the == operator!
 
         Just 'lhs_form == rhs_form' gives an Equation,
         while 'bool(lhs_form == rhs_form)' delegates
         to lhs_form.equals(rhs_form).
         """
         return Equation(self, other)
+
+    def __ne__(self, other):
+        "Immediate evaluation of the != operator (as opposed to the == operator)."
+        return not self.equals(other)
 
     def equals(self, other):
         "Evaluate 'bool(lhs_form == rhs_form)'."

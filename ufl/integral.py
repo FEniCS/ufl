@@ -136,7 +136,9 @@ class Integral(object):
     def __hash__(self):
         # Assuming few collisions by ignoring hash(self._metadata)
         # (a dict is not hashable but we assume it is immutable in practice)
-        hashdata = (hash(self._integrand), self._integral_type,
-                    hash(self._ufl_domain), self._subdomain_id,
+        hashdata = (hash(self._integrand),
+                    self._integral_type,
+                    hash(self._ufl_domain),
+                    self._subdomain_id,
                     id_or_none(self._subdomain_data))
         return hash(hashdata)
