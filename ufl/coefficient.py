@@ -21,14 +21,14 @@ of related classes, including Constant."""
 #
 # Modified by Anders Logg, 2008-2009.
 
-from ufl.log import warning
+from ufl.log import deprecate
 from ufl.assertions import ufl_assert
+from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal, FormArgument
 from ufl.finiteelement import FiniteElementBase, FiniteElement, VectorElement, TensorElement
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
 from ufl.split_functions import split
 from ufl.utils.counted import counted_init
-from ufl.core.ufl_type import ufl_type
 
 # --- The Coefficient class represents a coefficient in a form ---
 
@@ -37,7 +37,7 @@ class Coefficient(FormArgument):
     """UFL form argument type: Representation of a form coefficient."""
 
     # Slots are disabled here because they cause trouble in PyDOLFIN multiple inheritance pattern:
-    #__slots__ = ("_count", "_ufl_function_space", "_repr",)
+    #__slots__ = ("_count", "_ufl_function_space", "_repr", "_ufl_shape")
     _ufl_noslots_ = True
     _globalcount = 0
 
@@ -46,8 +46,10 @@ class Coefficient(FormArgument):
         counted_init(self, count, Coefficient)
 
         if isinstance(element, FiniteElementBase):
-            # Temporary legacy support TODO: Deprecate?
+            # Temporary legacy support
             fs = FunctionSpace(element.ufl_domain(), element)
+            # FIXME: Future legacy support for .ufl files when element.domain() has been removed:
+            #fs = FunctionSpace(as_domain(element.cell()), element)
         elif isinstance(element, AbstractFunctionSpace):
             fs = element
         else:
@@ -56,7 +58,8 @@ class Coefficient(FormArgument):
         self._ufl_function_space = fs
 
         self._ufl_shape = fs.ufl_element().value_shape()
-        self._repr = None
+
+        self._repr = "Coefficient(%r, %r)" % (self._ufl_function_space, self._count)
 
     def count(self):
         return self._count
@@ -77,25 +80,25 @@ class Coefficient(FormArgument):
                    "Cannot reconstruct a Coefficient with a different value shape.")
         return Coefficient(element, count)
 
+    @property
+    def ufl_shape(self):
+        return self._ufl_shape
+
     def ufl_function_space(self):
         "Get the function space of this coefficient."
         return self._ufl_function_space
 
     def ufl_domain(self):
         #TODO: deprecate("Coefficient.ufl_domain() is deprecated, please use .ufl_function_space().ufl_domain() instead.")
-        return self.ufl_function_space().ufl_domain()
+        return self._ufl_function_space.ufl_domain()
 
     def ufl_element(self):
         #TODO: deprecate("Coefficient.ufl_domain() is deprecated, please use .ufl_function_space().ufl_element() instead.")
-        return self.ufl_function_space().ufl_element()
+        return self._ufl_function_space.ufl_element()
 
     def element(self):
         deprecate("Coefficient.element() is deprecated, please use Coefficient.ufl_element() instead.")
         return self.ufl_element()
-
-    @property
-    def ufl_shape(self):
-        return self._ufl_shape
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
@@ -112,7 +115,7 @@ class Coefficient(FormArgument):
     def _ufl_signature_data_(self, renumbering):
         "Signature data for form arguments depend on the global numbering of the form arguments and domains."
         count = renumbering[self]
-        fsdata = self.ufl_function_space()._ufl_signature_data_(renumbering)
+        fsdata = self._ufl_function_space._ufl_signature_data_(renumbering)
         return ("Coefficient", count, fsdata)
 
     def __str__(self):
@@ -123,8 +126,6 @@ class Coefficient(FormArgument):
             return "w_{%s}" % count
 
     def __repr__(self):
-        if self._repr is None:
-            self._repr = "Coefficient(%r, %r)" % (self._ufl_function_space, self._count)
         return self._repr
 
     def __eq__(self, other):
