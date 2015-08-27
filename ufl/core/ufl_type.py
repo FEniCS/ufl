@@ -10,6 +10,23 @@ from ufl.utils.dicts import EmptyDict
 # Make UFL type coercion available under the as_ufl name
 #as_ufl = Expr._ufl_coerce_
 
+def attach_operators_from_hash_data(cls):
+    "Class decorator to attach __hash__, __eq__ and __ne__ implementations based on a ._ufl_hash_data() method on the class."
+    assert hasattr(cls, "_ufl_hash_data_")
+    def __hash__(self):
+        "__hash__ implementation attached in attach_operators_from_hash_data"
+        return hash(self._ufl_hash_data_())
+    def __eq__(self, other):
+        "__eq__ implementation attached in attach_operators_from_hash_data"
+        return type(self) == type(other) and self._ufl_hash_data_() == other._ufl_hash_data_()
+    def __ne__(self, other):
+        "__ne__ implementation attached in attach_operators_from_hash_data"
+        return not self == other
+    cls.__hash__ = __hash__
+    cls.__eq__ = __eq__
+    cls.__ne__ = __ne__
+    return cls
+
 def get_base_attr(cls, name):
     "Return first non-None attribute of given name among base classes."
     for base in cls.mro():
