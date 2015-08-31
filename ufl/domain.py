@@ -60,10 +60,79 @@ class AbstractDomain(object):
         "Return the dimension of the topology of this domain."
         return self._topological_dimension
 
+def affine_mesh(cell):
+    "Create a Mesh over a given cell type with an affine geometric parameterization."
+    cell = as_cell(cell)
+    gdim = cell.geometric_dimension()
+    degree = 1
+    coordinate_element = VectorElement("Lagrange", cell, degree, dim=gdim)
+    return Mesh(coordinate_element)
 
 @attach_operators_from_hash_data
-class Domain(AbstractDomain):
-    """Symbolic representation of a geometrical domain.
+class Mesh(AbstractDomain):
+    """Symbolic representation of a mesh."""
+    __slots__ = (
+        "_ufl_coordinate_element",
+        "_ufl_id",
+        )
+    def __init__(self, coordinate_element, ufl_id=None):
+        if isinstance(coordinate_element, Coefficient):
+            error("Expecting a coordinate element in the ufl.Mesh construct.")
+
+        # FIXME: use ufl_id
+        self._ufl_id = ufl_id
+
+        # Store coordinate element
+        self._ufl_coordinate_element = coordinate_element
+
+        # Derive dimensions from element
+        gdim, = coordinate_element.ufl_shape
+        tdim = coordinate_element.cell().topological_dimension()
+        AbstractDomain.__init__(self, gdim, tdim)
+
+    def ufl_id(self):
+        return self._ufl_id
+
+    def ufl_coordinate_element(self):
+        return self._ufl_coordinate_element
+
+    def ufl_cell(self):
+        return self._ufl_coordinate_element.cell()
+
+    def is_piecewise_linear_simplex_domain(self):
+        return (self._ufl_coordinate_element.degree() == 1) and self.ufl_cell().is_simplex()
+
+    def __repr__(self):
+        return "Mesh(%r, %r)" % (self._ufl_coordinate_element, self._ufl_id)
+
+    def __str__(self):
+        return "Mesh(%r, %r)" % (self._ufl_coordinate_element, self._ufl_id)
+
+    def _ufl_hash_data_(self):
+        return (self._ufl_id, self._ufl_coordinate_element)
+
+    def _ufl_signature_data_(self, renumbering):
+        return ("Mesh", renumbering[self], self._ufl_coordinate_element)
+
+    def reconstruction_signature(self):
+        return "Mesh(%r, %r)" % (self._ufl_coordinate_element, self._ufl_id)
+
+    # NB! Dropped __lt__ here as well
+
+    def ufl_coordinates(self):
+        error("Coordinate function support has been removed!")
+
+    def ufl_get_mesh(self):
+        error("Instead of calling this, just use the mesh!")
+        return self
+
+    def ufl_label(self):
+        error("Use ufl_id instead!")
+
+
+@attach_operators_from_hash_data
+class Domain(AbstractDomain): # Legacy class we're moving away from
+    """Symbolic representation of a geometric domain.
 
     Used in the definition of geometric terminal expressions,
     finite element spaces, and integration measures.
@@ -182,7 +251,6 @@ class Domain(AbstractDomain):
     def ufl_get_mesh(self):
         #return self # FIXME: When later subclassing this from dolfin, just return self initially, then remove this method
         return self._data
-
 
     # Deprecations
     def cell(self):
