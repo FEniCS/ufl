@@ -162,7 +162,7 @@ def _build_coefficient_replace_map(coefficients, element_mapping=None):
     for i, f in enumerate(coefficients):
         old_e = f.ufl_element()
         new_e = element_mapping.get(old_e, old_e)
-        new_f = f.reconstruct(element=new_e, count=i)
+        new_f = Coefficient(new_e, count=i)
         new_coefficients.append(new_f)
         replace_map[f] = new_f
 
@@ -301,7 +301,7 @@ def compute_form_data(form,
     coordinates_replace_map = {}
     for i, f in enumerate(self.reduced_coefficients):
         if f in coordinate_functions:
-            new_f = f.reconstruct(count=i)
+            new_f = Coefficient(f.ufl_element(), count=i)
             coordinates_replace_map[f] = new_f
 
     domains_replace_map = {}
@@ -316,7 +316,7 @@ def compute_form_data(form,
         if f not in coordinate_functions:
             old_e = f.ufl_element()
             new_e = self.element_replace_map.get(old_e, old_e)
-            new_f = f.reconstruct(element=new_e, count=i)
+            new_f = Coefficient(new_e, count=i)
             coefficients_replace_map[f] = new_f
 
     self.terminals_replace_map = {}

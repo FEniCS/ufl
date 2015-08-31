@@ -69,6 +69,7 @@ def affine_mesh(cell):
     return Mesh(coordinate_element)
 
 @attach_operators_from_hash_data
+@attach_ufl_id
 class Mesh(AbstractDomain):
     """Symbolic representation of a mesh."""
     __slots__ = (
@@ -76,11 +77,10 @@ class Mesh(AbstractDomain):
         "_ufl_id",
         )
     def __init__(self, coordinate_element, ufl_id=None):
+        self._ufl_id = self._init_ufl_id(ufl_id)
+
         if isinstance(coordinate_element, Coefficient):
             error("Expecting a coordinate element in the ufl.Mesh construct.")
-
-        # FIXME: use ufl_id
-        self._ufl_id = ufl_id
 
         # Store coordinate element
         self._ufl_coordinate_element = coordinate_element
@@ -89,9 +89,6 @@ class Mesh(AbstractDomain):
         gdim, = coordinate_element.ufl_shape
         tdim = coordinate_element.cell().topological_dimension()
         AbstractDomain.__init__(self, gdim, tdim)
-
-    def ufl_id(self):
-        return self._ufl_id
 
     def ufl_coordinate_element(self):
         return self._ufl_coordinate_element
@@ -115,7 +112,7 @@ class Mesh(AbstractDomain):
         return ("Mesh", renumbering[self], self._ufl_coordinate_element)
 
     def reconstruction_signature(self):
-        return "Mesh(%r, %r)" % (self._ufl_coordinate_element, self._ufl_id)
+        return "Mesh(%r, %r)" % (self._ufl_coordinate_element, self._ufl_id) # FIXME: This can't be right, including the ufl_id.
 
     # NB! Dropped __lt__ here as well
 

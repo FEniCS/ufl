@@ -60,6 +60,10 @@ def sorted_by_count(seq):
     "Sort a sequence by the item.count()."
     return sorted(seq, key=lambda x: x.count())
 
+def sorted_by_ufl_id(seq):
+    "Sort a sequence by the item.ufl_id()."
+    return sorted(seq, key=lambda x: x.ufl_id())
+
 def sorted_by_key(mapping):
     "Sort dict items by key, allowing different key types."
     # Python3 doesn't allow comparing builtins of different type, therefore the typename trick here
