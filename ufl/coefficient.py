@@ -26,6 +26,7 @@ from ufl.assertions import ufl_assert
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal, FormArgument
 from ufl.finiteelement import FiniteElementBase, FiniteElement, VectorElement, TensorElement
+from ufl.domain import as_domain
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
 from ufl.split_functions import split
 from ufl.utils.counted import counted_init
@@ -41,23 +42,18 @@ class Coefficient(FormArgument):
     _ufl_noslots_ = True
     _globalcount = 0
 
-    def __init__(self, element, count=None):
+    def __init__(self, function_space, count=None):
         FormArgument.__init__(self)
         counted_init(self, count, Coefficient)
 
-        if isinstance(element, FiniteElementBase):
-            # Temporary legacy support
-            fs = FunctionSpace(element.ufl_domain(), element)
-            # FIXME: Future legacy support for .ufl files when element.domain() has been removed:
-            #fs = FunctionSpace(as_domain(element.cell()), element)
-        elif isinstance(element, AbstractFunctionSpace):
-            fs = element
-        else:
+        if isinstance(function_space, FiniteElementBase):
+            # For legacy support for .ufl files using cells, we map the cell to The Default Domain
+            function_space = FunctionSpace(as_domain(function_space.cell()), function_space)
+        elif not isinstance(function_space, AbstractFunctionSpace):
             error("Expecting a FunctionSpace or FiniteElement.")
 
-        self._ufl_function_space = fs
-
-        self._ufl_shape = fs.ufl_element().value_shape()
+        self._ufl_function_space = function_space
+        self._ufl_shape = function_space.ufl_element().value_shape()
 
         self._repr = "Coefficient(%r, %r)" % (self._ufl_function_space, self._count)
 
@@ -89,11 +85,11 @@ class Coefficient(FormArgument):
         return self._ufl_function_space
 
     def ufl_domain(self):
-        #TODO: deprecate("Coefficient.ufl_domain() is deprecated, please use .ufl_function_space().ufl_domain() instead.")
+        "Shortcut to get the domain of the function space of this coefficient."
         return self._ufl_function_space.ufl_domain()
 
     def ufl_element(self):
-        #TODO: deprecate("Coefficient.ufl_domain() is deprecated, please use .ufl_function_space().ufl_element() instead.")
+        "Shortcut to get the finite element of the function space of this coefficient."
         return self._ufl_function_space.ufl_element()
 
     def element(self):
@@ -140,22 +136,31 @@ class Coefficient(FormArgument):
 
 def Constant(domain, count=None):
     """UFL value: Represents a globally constant scalar valued coefficient."""
-    e = FiniteElement("Real", domain, 0)
-    return Coefficient(e, count=count)
+    domain = as_domain(domain)
+    cell = domain.ufl_cell()
+    element = FiniteElement("Real", cell, 0)
+    fs = FunctionSpace(domain, element)
+    return Coefficient(fs, count=count)
 
 def VectorConstant(domain, dim=None, count=None):
     """UFL value: Represents a globally constant vector valued coefficient."""
-    e = VectorElement("Real", domain, 0, dim)
-    return Coefficient(e, count=count)
+    domain = as_domain(domain)
+    cell = domain.ufl_cell()
+    element = VectorElement("Real", cell, 0, dim)
+    fs = FunctionSpace(domain, element)
+    return Coefficient(fs, count=count)
 
 def TensorConstant(domain, shape=None, symmetry=None, count=None):
     """UFL value: Represents a globally constant tensor valued coefficient."""
-    e = TensorElement("Real", domain, 0, shape=shape, symmetry=symmetry)
-    return Coefficient(e, count=count)
+    domain = as_domain(domain)
+    cell = domain.ufl_cell()
+    element = TensorElement("Real", cell, 0, shape=shape, symmetry=symmetry)
+    fs = FunctionSpace(domain, element)
+    return Coefficient(fs, count=count)
 
 # --- Helper functions for subfunctions on mixed elements ---
 
-def Coefficients(element):
+def Coefficients(function_space):
     """UFL value: Create a Coefficient in a mixed space, and return a
     tuple with the function components corresponding to the subelements."""
-    return split(Coefficient(element))
+    return split(Coefficient(function_space))

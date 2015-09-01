@@ -27,6 +27,7 @@ from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal, FormArgument
 from ufl.split_functions import split
 from ufl.finiteelement import FiniteElementBase
+from ufl.domain import as_domain
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
 
 # --- Class representing an argument (basis function) in a form ---
@@ -36,22 +37,17 @@ class Argument(FormArgument):
     """UFL value: Representation of an argument to a form."""
     __slots__ = ("_ufl_function_space", "_ufl_shape", "_number", "_part", "_repr")
 
-    def __init__(self, element, number, part=None):
+    def __init__(self, function_space, number, part=None):
         FormArgument.__init__(self)
 
-        if isinstance(element, FiniteElementBase):
-            # Temporary legacy support
-            fs = FunctionSpace(element.ufl_domain(), element)
-            # FIXME: Future legacy support for .ufl files when element.domain() has been removed:
-            #fs = FunctionSpace(as_domain(element.cell()), element)
-        elif isinstance(element, AbstractFunctionSpace):
-            fs = element
-        else:
+        if isinstance(function_space, FiniteElementBase):
+            # For legacy support for .ufl files using cells, we map the cell to The Default Domain
+            function_space = FunctionSpace(as_domain(function_space.cell()), function_space)
+        elif not isinstance(function_space, AbstractFunctionSpace):
             error("Expecting a FunctionSpace or FiniteElement.")
 
-        self._ufl_function_space = fs
-
-        self._ufl_shape = fs.ufl_element().value_shape()
+        self._ufl_function_space = function_space
+        self._ufl_shape = function_space.ufl_element().value_shape()
 
         ufl_assert(isinstance(number, int),
                    "Expecting an int for number, not %s" % (number,))
