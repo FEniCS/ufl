@@ -154,27 +154,27 @@ class Argument(FormArgument):
 
 # --- Helper functions for pretty syntax ---
 
-def TestFunction(element, part=None):
+def TestFunction(function_space, part=None):
     """UFL value: Create a test function argument to a form."""
-    return Argument(element, 0, part)
+    return Argument(function_space, 0, part)
 
-def TrialFunction(element, part=None):
+def TrialFunction(function_space, part=None):
     """UFL value: Create a trial function argument to a form."""
-    return Argument(element, 1, part)
+    return Argument(function_space, 1, part)
 
 # --- Helper functions for creating subfunctions on mixed elements ---
 
-def Arguments(element, number):
+def Arguments(function_space, number):
     """UFL value: Create an Argument in a mixed space, and return a
     tuple with the function components corresponding to the subelements."""
-    return split(Argument(element, number))
+    return split(Argument(function_space, number))
 
-def TestFunctions(element):
+def TestFunctions(function_space):
     """UFL value: Create a TestFunction in a mixed space, and return a
     tuple with the function components corresponding to the subelements."""
-    return Arguments(element, 0)
+    return Arguments(function_space, 0)
 
-def TrialFunctions(element):
+def TrialFunctions(function_space):
     """UFL value: Create a TrialFunction in a mixed space, and return a
     tuple with the function components corresponding to the subelements."""
-    return Arguments(element, 1)
+    return Arguments(function_space, 1)
