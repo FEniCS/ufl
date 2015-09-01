@@ -27,6 +27,7 @@ from six import iteritems
 
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import attach_operators_from_hash_data
+from ufl.core.ufl_id import attach_ufl_id
 from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.log import warning, error, deprecate
 from ufl.assertions import ufl_assert
