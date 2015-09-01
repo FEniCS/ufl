@@ -32,6 +32,7 @@ from ufl.equation import Equation
 from ufl.core.expr import Expr
 from ufl.constantvalue import Zero
 from ufl.protocols import id_or_none
+from ufl.coefficient import Coefficient
 
 # --- The Form class, representing a complete variational form or functional ---
 
