@@ -33,10 +33,10 @@ def change_regularity(element, family):
                              for i in range(n)])
     shape = element.value_shape()
     if not shape:
-        return FiniteElement(family, element.ufl_domain(), element.degree())
+        return FiniteElement(family, element.cell(), element.degree())
 
     ufl_assert(len(shape) == 1, "TODO: Update this code to handle tensor elements.")
-    return MixedElement([FiniteElement(family, element.ufl_domain(i), element.degree(i))
+    return MixedElement([FiniteElement(family, element.cell(), element.degree(i))
                                for i in range(shape[0])])
 
 def tear(V):
@@ -56,4 +56,4 @@ def increase_order(element):
     if element.family() == "Real":
         return element
 
-    return FiniteElement(element.family(), element.ufl_domain(), element.degree()+1)
+    return FiniteElement(element.family(), element.cell(), element.degree()+1)
