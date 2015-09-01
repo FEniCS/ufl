@@ -69,6 +69,13 @@ def affine_mesh(cell):
     coordinate_element = VectorElement("Lagrange", cell, degree, dim=gdim)
     return Mesh(coordinate_element)
 
+# TODO: Would it be useful to have a domain representing R^d? E.g. for Expression.
+#class EuclideanSpace(AbstractDomain):
+#    __slots__ = ()
+#    def __init__(self, geometric_dimension):
+#        AbstractDomain.__init__(self, geometric_dimension, geometric_dimension)
+
+
 @attach_operators_from_hash_data
 @attach_ufl_id
 class Mesh(AbstractDomain):
