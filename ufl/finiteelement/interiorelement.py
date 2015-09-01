@@ -27,12 +27,12 @@ class InteriorElement(FiniteElementBase):
         self._repr = "InteriorElement(%r)" % element
 
         family = "InteriorElement"
-        domain = element.ufl_domain()
+        cell = element.cell()
         degree = element.degree()
         quad_scheme = element.quadrature_scheme()
         value_shape = element.value_shape()
         reference_value_shape = element.reference_value_shape()
-        FiniteElementBase.__init__(self, family, domain, degree,
+        FiniteElementBase.__init__(self, family, cell, degree,
                                    quad_scheme, value_shape, reference_value_shape)
 
     def mapping(self):
@@ -41,18 +41,9 @@ class InteriorElement(FiniteElementBase):
     def reconstruct(self, **kwargs):
         """Construct a new InteriorElement object with some properties
         replaced with new values."""
-        domain = kwargs.get("domain", self.ufl_domain())
-        ele = self._element.reconstruct(domain=domain)
+        cell = kwargs.get("cell", self.cell())
+        ele = self._element.reconstruct(cell=cell)
         return InteriorElement(ele)
-
-    def reconstruction_signature(self):
-        return "InteriorElement(%s)" % self._element.reconstruction_signature()
-
-    def _ufl_signature_data_(self, renumbering):
-        data = ("InteriorElement", self._element._ufl_signature_data_(renumbering),
-                ("no domain" if self._domain is None else self._domain
-                    ._ufl_signature_data_(renumbering)))
-        return data
 
     def __str__(self):
         return "InteriorElement(%s)" % str(self._element)

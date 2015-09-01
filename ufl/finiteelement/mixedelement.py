@@ -35,6 +35,7 @@ from ufl.utils.formatting import istr
 from ufl.utils.dicts import EmptyDict
 from ufl.utils.indexflattening import flatten_multiindex, unflatten_index, shape_to_strides
 from ufl.geometry import as_domain
+from ufl.cell import as_cell
 from ufl.log import info_blue, warning, warning_blue, error
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
@@ -111,18 +112,6 @@ class MixedElement(FiniteElementBase):
         # Cache repr string
         if type(self) is MixedElement:
             self._repr = "MixedElement(*%r)" % (self._sub_elements,)
-
-    def reconstruction_signature(self):
-        """Format as string for evaluation as Python object.
-
-        For use with cross language frameworks, stored in generated code
-        and evaluated later in Python to reconstruct this object.
-
-        This differs from repr in that it does not include domain
-        label and data, which must be reconstructed or supplied by other means.
-        """
-        return "MixedElement(%s)" % \
-            (', '.join(e.reconstruction_signature() for e in self._sub_elements),)
 
     def reconstruct(self, **kwargs):
         """Construct a new MixedElement object with some
@@ -261,16 +250,6 @@ class MixedElement(FiniteElementBase):
             i, e = self.extract_component(component)
             return e.is_cellwise_constant()
 
-    def ufl_domains(self, component=None):
-        "Return the domain(s) on which this element is defined."
-        if component is None:
-            # Return all unique domains
-            return self._domains
-        else:
-            # Return the domains of subelement
-            i, e = self.extract_component(component)
-            return e.ufl_domains()
-
     def degree(self, component=None):
         "Return polynomial degree of finite element"
         if component is None:
@@ -278,10 +257,6 @@ class MixedElement(FiniteElementBase):
         else:
             i, e = self.extract_component(component)
             return e.degree()
-
-    def _ufl_signature_data_(self, renumbering):
-        data = ("MixedElement", tuple(e._ufl_signature_data_(renumbering) for e in self._sub_elements))
-        return data
 
     def __str__(self):
         "Format as string for pretty printing."
@@ -297,7 +272,7 @@ class MixedElement(FiniteElementBase):
 class VectorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal"
 
-    def __init__(self, family, domain, degree, dim=None,
+    def __init__(self, family, cell, degree, dim=None,
                  form_degree=None, quad_scheme=None):
         """
         Create vector element (repeated mixed element)
@@ -317,17 +292,17 @@ class VectorElement(MixedElement):
             quad_scheme
                The quadrature scheme (optional)
         """
-        if domain is not None:
-            domain = as_domain(domain)
+        if cell is not None:
+            cell = as_cell(cell)
 
         # Set default size if not specified
         if dim is None:
-            ufl_assert(domain is not None,
-                       "Cannot infer vector dimension without a domain.")
-            dim = domain.geometric_dimension()
+            ufl_assert(cell is not None,
+                       "Cannot infer vector dimension without a cell.")
+            dim = cell.geometric_dimension()
 
         # Create sub element
-        sub_element = FiniteElement(family, domain, degree,
+        sub_element = FiniteElement(family, cell, degree,
                                     form_degree=form_degree,
                                     quad_scheme=quad_scheme)
 
@@ -340,6 +315,7 @@ class VectorElement(MixedElement):
 
         # Initialize element data
         MixedElement.__init__(self, sub_elements, value_shape=value_shape, reference_value_shape=reference_value_shape)
+        # FIXME: Storing this here is strange, isn't that handled by subclass?
         self._family = sub_element.family()
         self._degree = degree
         self._sub_element = sub_element
@@ -347,30 +323,12 @@ class VectorElement(MixedElement):
 
         # Cache repr string
         self._repr = "VectorElement(%r, %r, %r, dim=%d, quad_scheme=%r)" % \
-            (self._family, self.ufl_domain(), self._degree,
+            (self._family, self.cell(), self._degree,
              len(self._sub_elements), self._quad_scheme)
-
-    def _ufl_signature_data_(self, renumbering):
-        data = ("VectorElement", self._family, self._degree, len(self._sub_elements), self._quad_scheme, self._form_degree,
-                ("no domain" if self._domain is None else self._domain._ufl_signature_data_(renumbering)))
-        return data
-
-    def reconstruction_signature(self):
-        """Format as string for evaluation as Python object.
-
-        For use with cross language frameworks, stored in generated code
-        and evaluated later in Python to reconstruct this object.
-
-        This differs from repr in that it does not include domain
-        label and data, which must be reconstructed or supplied by other means.
-        """
-        return "VectorElement(%r, %s, %r, %d, %r)" % (
-                self._family, self.ufl_domain().reconstruction_signature(), self._degree,
-                len(self._sub_elements), self._quad_scheme)
 
     def reconstruct(self, **kwargs):
         kwargs["family"] = kwargs.get("family", self.family())
-        kwargs["domain"] = kwargs.get("domain", self.ufl_domain())
+        kwargs["cell"] = kwargs.get("cell", self.cell())
         kwargs["degree"] = kwargs.get("degree", self.degree())
         ufl_assert("dim" not in kwargs, "Cannot change dim in reconstruct.")
         kwargs["dim"] = len(self._sub_elements)
@@ -380,7 +338,7 @@ class VectorElement(MixedElement):
     def __str__(self):
         "Format as string for pretty printing."
         return "<%s vector element of degree %s on a %s: %d x %s>" % \
-               (self.family(), istr(self.degree()), self.ufl_domain(),
+               (self.family(), istr(self.degree()), self.cell(),
                 len(self._sub_elements), self._sub_element)
 
     def shortstr(self):
@@ -393,22 +351,22 @@ class TensorElement(MixedElement):
     __slots__ = ("_sub_element", "_shape", "_symmetry",
                  "_sub_element_mapping", "_flattened_sub_element_mapping",
                  "_mapping")
-    def __init__(self, family, domain, degree, shape=None,
+    def __init__(self, family, cell, degree, shape=None,
                  symmetry=None, quad_scheme=None):
         "Create tensor element (repeated mixed element with optional symmetries)"
-        if domain is not None:
-            domain = as_domain(domain)
+        if cell is not None:
+            cell = as_cell(cell)
 
         # Create scalar sub element
-        sub_element = FiniteElement(family, domain, degree, quad_scheme)
+        sub_element = FiniteElement(family, cell, degree, quad_scheme)
         ufl_assert(sub_element.value_shape() == (),
                    "Expecting only scalar valued subelement for TensorElement.")
 
         # Set default shape if not specified
         if shape is None:
-            ufl_assert(domain is not None,
-                       "Cannot infer tensor shape without a domain.")
-            dim = domain.geometric_dimension()
+            ufl_assert(cell is not None,
+                       "Cannot infer tensor shape without a cell.")
+            dim = cell.geometric_dimension()
             shape = (dim, dim)
 
         if symmetry is None:
@@ -474,26 +432,8 @@ class TensorElement(MixedElement):
 
         # Cache repr string
         self._repr = "TensorElement(%r, %r, %r, shape=%r, symmetry=%r, quad_scheme=%r)" % \
-            (self._family, self.ufl_domain(), self._degree, self._shape,
+            (self._family, self.cell(), self._degree, self._shape,
              self._symmetry, self._quad_scheme)
-
-    def _ufl_signature_data_(self, renumbering):
-        data = ("TensorElement", self._family, self._degree, self._shape, repr(self._symmetry), self._quad_scheme,
-                ("no domain" if self._domain is None else self._domain._ufl_signature_data_(renumbering)))
-        return data
-
-    def reconstruction_signature(self):
-        """Format as string for evaluation as Python object.
-
-        For use with cross language frameworks, stored in generated code
-        and evaluated later in Python to reconstruct this object.
-
-        This differs from repr in that it does not include domain
-        label and data, which must be reconstructed or supplied by other means.
-        """
-        return "TensorElement(%r, %s, %r, %r, %r, %r)" % (
-            self._family, self.ufl_domain().reconstruction_signature(), self._degree,
-            self._shape, self._symmetry, self._quad_scheme)
 
     def reconstruct(self, **kwargs):
         kwargs["family"] = kwargs.get("family", self.family())

@@ -23,8 +23,7 @@
 # Modified by Lawrence Mitchell 2014
 
 from ufl.assertions import ufl_assert
-from ufl.cell import OuterProductCell
-from ufl.domain import as_domain
+from ufl.cell import OuterProductCell, as_cell
 from ufl.finiteelement.mixedelement import MixedElement
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
@@ -39,21 +38,18 @@ class OuterProductElement(FiniteElementBase):
     """
     __slots__ = ("_A", "_B", "_mapping")
 
-    def __init__(self, A, B, domain=None, form_degree=None,
+    def __init__(self, A, B, cell=None, form_degree=None,
                  quad_scheme=None):
         "Create OuterProductElement from a given pair of elements."
         self._A = A
         self._B = B
         family = "OuterProductElement"
 
-        if domain is None:
+        if cell is None:
             # Define cell as the product of sub-cells
             cell = OuterProductCell(A.cell(), B.cell())
-            domain = as_domain(cell)
         else:
-            domain = as_domain(domain)
-            cell = domain.ufl_cell()
-            ufl_assert(cell is not None, "Missing cell in given domain.")
+            cell = as_cell(cell)
 
         self._repr = "OuterProductElement(*%r, %r)" % (list([self._A, self._B]),
                                                        domain)
@@ -61,17 +57,10 @@ class OuterProductElement(FiniteElementBase):
         degree = (A.degree(), B.degree())
 
         # match FIAT implementation
-        if len(A.value_shape()) == 0 and len(B.value_shape()) == 0:
-            value_shape = ()
-            reference_value_shape = ()
-        elif len(A.value_shape()) == 1 and len(B.value_shape()) == 0:
-            value_shape = (A.value_shape()[0],)
-            reference_value_shape = (A.reference_value_shape()[0],) # TODO: Is this right?
-        elif len(A.value_shape()) == 0 and len(B.value_shape()) == 1:
-            value_shape = (B.value_shape()[0],)
-            reference_value_shape = (B.reference_value_shape()[0],) # TODO: Is this right?
-        else:
-            raise Exception("Product of vector-valued elements not supported")
+        value_shape = A.value_shape() + B.value_shape()
+        reference_value_shape = A.reference_value_shape() + B.reference_value_shape()
+        ufl_assert(len(value_shape) <= 1, "Product of vector-valued elements not supported")
+        ufl_assert(len(reference_value_shape) <= 1, "Product of vector-valued elements not supported")
 
         if A.mapping() == "identity" and B.mapping() == "identity":
             self._mapping = "identity"
@@ -87,21 +76,8 @@ class OuterProductElement(FiniteElementBase):
     def reconstruct(self, **kwargs):
         """Construct a new OuterProductElement with some properties
         replaced with new values."""
-        domain = kwargs.get("domain", self.ufl_domain())
-        return OuterProductElement(self._A, self._B, domain=domain)
-
-    def reconstruction_signature(self):
-        """Format as string for evaluation as Python object.
-
-        For use with cross language frameworks, stored in generated code
-        and evaluated later in Python to reconstruct this object.
-
-        This differs from repr in that it does not include domain
-        label and data, which must be reconstructed or supplied by other means.
-        """
-        return "OuterProductElement(%r, %r, %s, %r)" % (
-            self._A, self._B, self.ufl_domain().reconstruction_signature(),
-            self._quad_scheme)
+        cell = kwargs.get("cell", self.cell())
+        return OuterProductElement(self._A, self._B, cell=cell)
 
     def __str__(self):
         "Pretty-print."
@@ -113,26 +89,18 @@ class OuterProductElement(FiniteElementBase):
         return "OuterProductElement(%s)" \
             % str([self._A.shortstr(), self._B.shortstr()])
 
-    def _ufl_signature_data_(self, renumbering):
-        data = ("OuterProductElement",
-                self._A,
-                self._B,
-                self._quad_scheme,
-                ("no domain" if self._domain is None else self._domain._ufl_signature_data_(renumbering)))
-        return data
-
 
 class OuterProductVectorElement(MixedElement):
     """A special case of a mixed finite element where all
     elements are equal OuterProductElements"""
     __slots__ = ("_sub_element")
 
-    def __init__(self, A, B, domain=None, dim=None,
+    def __init__(self, A, B, cell=None, dim=None,
                  form_degree=None, quad_scheme=None):
-        if domain is not None:
-            domain = as_domain(domain)
+        if cell is not None:
+            cell = as_cell(cell)
 
-        sub_element = OuterProductElement(A, B, domain=domain)
+        sub_element = OuterProductElement(A, B, cell=cell)
         dim = dim or sub_element.cell().geometric_dimension()
         sub_elements = [sub_element]*dim
 
@@ -140,18 +108,17 @@ class OuterProductVectorElement(MixedElement):
         family = sub_element.family()
 
         # Compute value shape
-        shape = (dim,)
-        value_shape = shape + sub_element.value_shape()
+        value_shape = (dim,) + sub_element.value_shape()
 
         # Initialize element data
         MixedElement.__init__(self, sub_elements, value_shape=value_shape)
         self._family = family
-        self._degree = A.degree(), B.degree()
+        self._degree = (A.degree(), B.degree())
 
         self._sub_element = sub_element
         # Cache repr string
         self._repr = "OuterProductVectorElement(%r, %r, dim=%d)" % \
-            (self._sub_element, self.ufl_domain(), len(self._sub_elements))
+            (self._sub_element, self.cell(), len(self._sub_elements))
 
     @property
     def _A(self):
@@ -164,33 +131,13 @@ class OuterProductVectorElement(MixedElement):
     def mapping(self):
         return self._sub_element.mapping()
 
-    def _ufl_signature_data_(self, renumbering):
-        data = ("OuterProductVectorElement", self._A, self._B,
-                len(self._sub_elements), self._quad_scheme,
-                ("no domain" if self._domain is None else
-                    self._domain._ufl_signature_data_(renumbering)))
-        return data
-
     def reconstruct(self, **kwargs):
         """Construct a new OuterProductVectorElement with some properties
         replaced with new values."""
-        domain = kwargs.get("domain", self.ufl_domain())
+        cell = kwargs.get("cell", self.cell())
         dim = kwargs.get("dim", self.num_sub_elements())
         return OuterProductVectorElement(self._A, self._B,
-                                         domain=domain, dim=dim)
-
-    def reconstruction_signature(self):
-        """Format as string for evaluation as Python object.
-
-        For use with cross language frameworks, stored in generated code
-        and evaluated later in Python to reconstruct this object.
-
-        This differs from repr in that it does not include domain
-        label and data, which must be reconstructed or supplied by other means.
-        """
-        return "OuterProductVectorElement(%r, %s, %d, %r)" % (
-            self._sub_element, self.ufl_domain().reconstruction_signature(),
-            len(self._sub_elements), self._quad_scheme)
+                                         cell=cell, dim=dim)
 
     def __str__(self):
         "Format as string for pretty printing."
