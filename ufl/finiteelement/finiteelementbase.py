@@ -63,9 +63,6 @@ class FiniteElementBase(object):
         "Format as string for evaluation as Python object."
         return self._repr
 
-    def reconstruction_signature(self): # TODO: Remove when unused
-        return repr(self)
-
     def _ufl_hash_data_(self):
         return repr(self)
 

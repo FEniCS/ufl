@@ -111,7 +111,7 @@ def test_creating_domains_with_coordinate_fields():
     assert M.ufl_domains() == (E, )
 
     # Test the gymnastics that dolfin will have to go through
-    V2 = eval(V.reconstruction_signature())
+    V2 = eval(repr(V))
     E2 = E #V2.ufl_domain().reconstruct(coordinates=x)
     V2 = V2.reconstruct(domain=E2)
     f2 = f.reconstruct(element=V2)
