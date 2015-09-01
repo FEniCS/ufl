@@ -66,9 +66,6 @@ class FiniteElementBase(object):
     def reconstruction_signature(self): # TODO: Remove when unused
         return repr(self)
 
-    def _ufl_signature_data_(self, renumbering): # TODO: Remove when unused
-        return repr(self)
-
     def _ufl_hash_data_(self):
         return repr(self)
 
