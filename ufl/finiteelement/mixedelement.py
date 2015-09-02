@@ -113,18 +113,6 @@ class MixedElement(FiniteElementBase):
         if type(self) is MixedElement:
             self._repr = "MixedElement(*%r)" % (self._sub_elements,)
 
-    def reconstruct(self, **kwargs):
-        """Construct a new MixedElement object with some
-        properties replaced with new values."""
-        elements = [e.reconstruct(**kwargs) for e in self._sub_elements]
-        # Value shape cannot be changed.
-        # Reconstructing an expression with a reconstructed
-        # coefficient with a different value shape would
-        # be way into undefined behaviour territory...
-        ufl_assert("value_shape" not in kwargs,
-                   "Cannot change value_shape in reconstruct.")
-        return self.reconstruct_from_elements(*elements)
-
     def reconstruct_from_elements(self, *elements):
         "Reconstruct a mixed element from new subelements."
         if all(a == b for (a, b) in zip(elements, self._sub_elements)):
@@ -326,15 +314,6 @@ class VectorElement(MixedElement):
             (self._family, self.cell(), self._degree,
              len(self._sub_elements), self._quad_scheme)
 
-    def reconstruct(self, **kwargs):
-        kwargs["family"] = kwargs.get("family", self.family())
-        kwargs["cell"] = kwargs.get("cell", self.cell())
-        kwargs["degree"] = kwargs.get("degree", self.degree())
-        ufl_assert("dim" not in kwargs, "Cannot change dim in reconstruct.")
-        kwargs["dim"] = len(self._sub_elements)
-        kwargs["quad_scheme"] = kwargs.get("quad_scheme", self.quadrature_scheme())
-        return VectorElement(**kwargs)
-
     def __str__(self):
         "Format as string for pretty printing."
         return "<%s vector element of degree %s on a %s: %d x %s>" % \
@@ -434,21 +413,6 @@ class TensorElement(MixedElement):
         self._repr = "TensorElement(%r, %r, %r, shape=%r, symmetry=%r, quad_scheme=%r)" % \
             (self._family, self.cell(), self._degree, self._shape,
              self._symmetry, self._quad_scheme)
-
-    def reconstruct(self, **kwargs):
-        kwargs["family"] = kwargs.get("family", self.family())
-        kwargs["domain"] = kwargs.get("domain", self.ufl_domain())
-        kwargs["degree"] = kwargs.get("degree", self.degree())
-
-        ufl_assert("shape" not in kwargs, "Cannot change shape in reconstruct.")
-        kwargs["shape"] = self.value_shape() # Must use same shape as self!
-
-        # Not sure about symmetry, but no use case I can see
-        ufl_assert("symmetry" not in kwargs, "Cannot change symmetry in reconstruct.")
-        kwargs["symmetry"] = self.symmetry()
-
-        kwargs["quad_scheme"] = kwargs.get("quad_scheme", self.quadrature_scheme())
-        return TensorElement(**kwargs)
 
     def mapping(self):
         if self._symmetry:

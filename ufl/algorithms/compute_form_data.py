@@ -25,6 +25,8 @@ from itertools import chain
 from ufl.log import error, warning, info
 from ufl.assertions import ufl_assert
 
+from ufl.finiteelement import FiniteElement, VectorElement, TensorElement
+
 from ufl.classes import GeometricFacetQuantity, Coefficient
 from ufl.corealg.traversal import traverse_terminals
 from ufl.algorithms.analysis import extract_coefficients, extract_sub_elements, unique_tuple
@@ -55,8 +57,21 @@ def _auto_select_degree(elements):
     # Use max degree of all elements, at least 1 (to work with Lagrange elements)
     return max({ e.degree() for e in elements } - { None } | { 1 })
 
+def _reconstruct_element(element, cell, degree):
+    if isinstance(element, FiniteElement):
+        return FiniteElement(element.family(), cell, degree)
+    elif isinstance(element, VectorElement):
+        return VectorElement(element.family(), cell, degree, dim=element.value_shape()[0])
+    elif isinstance(element, TensorElement):
+        return TensorElement(element.family(), cell, degree, shape=element.value_shape())
+    else:
+        error("Element reconstruction is only done to stay compatible with hacks in DOLFIN. Not expecting a %r" % (element,))
+
 def _compute_element_mapping(form):
     "Compute element mapping for element replacement"
+    # The element mapping is a slightly messy concept with two use cases:
+    # - Expression with missing cell or element TODO: Implement proper Expression handling in UFL and get rid of this
+    # - Constant with missing cell TODO: Fix anything that needs to be worked around to drop this requirement
 
     # Extract all elements and include subelements of mixed elements
     elements = [obj.ufl_element() for obj in chain(form.arguments(), form.coefficients())]
@@ -73,9 +88,6 @@ def _compute_element_mapping(form):
         reconstruct = False
 
         # Set cell
-        # USE CASES:
-        # - Constant with missing cell
-        # - Expression with missing cell or element
         cell = element.cell()
         if cell is None:
             domains = form.ufl_domains()
@@ -86,8 +98,6 @@ def _compute_element_mapping(form):
             info("Adjusting missing element cell to %s." % (cell,))
             reconstruct = True
 
-        # USE CASES:
-        # Expression with missing degree or element
         # Set degree
         degree = element.degree()
         if degree is None:
@@ -97,7 +107,7 @@ def _compute_element_mapping(form):
 
         # Reconstruct element and add to map
         if reconstruct:
-            element_mapping[element] = element.reconstruct(cell=cell, degree=degree)
+            element_mapping[element] = _reconstruct_element(element, cell, degree)
         else:
             element_mapping[element] = element
 

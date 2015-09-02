@@ -419,7 +419,7 @@ class Expr(object):
 
     def reconstruct(self, *operands):
         "Return a new object of the same type with new operands."
-        deprecated("Expr.reconstruct() is deprecated, please use Expr._ufl_expr_reconstruct_() instead."
+        deprecated("Expr.reconstruct() is deprecated, please use Expr._ufl_expr_reconstruct_() instead.")
         return self._ufl_expr_reconstruct_(*operands)
 
     def geometric_dimension(self):

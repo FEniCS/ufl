@@ -40,13 +40,6 @@ class HDivElement(OuterProductElement):
         FiniteElementBase.__init__(self, family, cell, degree,
                                    quad_scheme, value_shape, reference_value_shape)
 
-    def reconstruct(self, **kwargs):
-        """Construct a new HDivElement object with some properties
-        replaced with new values."""
-        cell = kwargs.get("cell", self.cell())
-        ele = self._element.reconstruct(cell=cell)
-        return HDivElement(ele)
-
     def __str__(self):
         return "HDivElement(%s)" % str(self._element)
 

@@ -46,13 +46,6 @@ class RestrictedElement(FiniteElementBase):
 
         self._repr = "RestrictedElement(%r, %r)" % (self._element, self._restriction_domain)
 
-    def reconstruct(self, **kwargs):
-        """Construct a new RestrictedElement object with
-        some properties replaced with new values."""
-        element = self._element.reconstruct(**kwargs)
-        restriction_domain = kwargs.get("restriction_domain", self.restriction_domain())
-        return RestrictedElement(element=element, restriction_domain=restriction_domain)
-
     def is_cellwise_constant(self):
         """Return whether the basis functions of this
         element is spatially constant over each cell."""

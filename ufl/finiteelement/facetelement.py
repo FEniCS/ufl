@@ -38,13 +38,6 @@ class FacetElement(FiniteElementBase):
     def mapping(self):
         return self._element.mapping()
 
-    def reconstruct(self, **kwargs):
-        """Construct a new FacetElement object with some properties
-        replaced with new values."""
-        cell = kwargs.get("cell", self.cell())
-        ele = self._element.reconstruct(cell=cell)
-        return FacetElement(ele)
-
     def __str__(self):
         return "FacetElement(%s)" % str(self._element)
 

@@ -37,7 +37,7 @@ def change_regularity(element, family):
 
     ufl_assert(len(shape) == 1, "TODO: Update this code to handle tensor elements.")
     return MixedElement([FiniteElement(family, element.cell(), element.degree(i))
-                               for i in range(shape[0])])
+                         for i in range(shape[0])])
 
 def tear(V):
     "For a finite element, return the corresponding discontinuous element."

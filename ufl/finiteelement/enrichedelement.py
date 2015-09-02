@@ -71,14 +71,6 @@ class EnrichedElement(FiniteElementBase):
         # Cache repr string
         self._repr = "EnrichedElement(*%r)" % ([repr(e) for e in self._elements],)
 
-    def reconstruct(self, **kwargs):
-        """Construct a new EnrichedElement object with some properties
-        replaced with new values."""
-        elements = [e.reconstruct(**kwargs) for e in self._elements]
-        if all(a == b for (a, b) in zip(elements, self._elements)):
-            return self
-        return EnrichedElement(*elements)
-
     def is_cellwise_constant(self):
         """Return whether the basis functions of this
         element is spatially constant over each cell."""

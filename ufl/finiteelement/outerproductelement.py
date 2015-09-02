@@ -73,12 +73,6 @@ class OuterProductElement(FiniteElementBase):
     def mapping(self):
         return self._mapping
 
-    def reconstruct(self, **kwargs):
-        """Construct a new OuterProductElement with some properties
-        replaced with new values."""
-        cell = kwargs.get("cell", self.cell())
-        return OuterProductElement(self._A, self._B, cell=cell)
-
     def __str__(self):
         "Pretty-print."
         return "OuterProductElement(%s)" \
@@ -130,14 +124,6 @@ class OuterProductVectorElement(MixedElement):
 
     def mapping(self):
         return self._sub_element.mapping()
-
-    def reconstruct(self, **kwargs):
-        """Construct a new OuterProductVectorElement with some properties
-        replaced with new values."""
-        cell = kwargs.get("cell", self.cell())
-        dim = kwargs.get("dim", self.num_sub_elements())
-        return OuterProductVectorElement(self._A, self._B,
-                                         cell=cell, dim=dim)
 
     def __str__(self):
         "Format as string for pretty printing."

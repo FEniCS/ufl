@@ -39,13 +39,6 @@ class TraceElement(FiniteElementBase):
     def mapping(self):
         return "identity"
 
-    def reconstruct(self, **kwargs):
-        """Construct a new TraceElement object with some properties
-        replaced with new values."""
-        cell = kwargs.get("cell", self.cell())
-        ele = self._element.reconstruct(cell=cell)
-        return TraceElement(ele)
-
     def __str__(self):
         return "TraceElement(%s)" % str(self._element)
 
