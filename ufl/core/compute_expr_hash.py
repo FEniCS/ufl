@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 """Non-recursive traversal based hash computation algorithm.
 
 Fast iteration over nodes in an Expr DAG to compute
 memoized hashes for all unique nodes.
 """
 
-# Copyright (C) 2015 Martin Sandve Alnes
+# Copyright (C) 2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #

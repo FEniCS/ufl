@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 "This module defines the UFL finite element classes."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -22,8 +23,6 @@
 
 from six.moves import zip
 from ufl.assertions import ufl_assert
-from ufl.permutation import compute_indices
-from ufl.common import product, istr, EmptyDict
 from ufl.log import info_blue, warning, warning_blue, error
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
@@ -36,8 +35,8 @@ class EnrichedElement(FiniteElementBase):
     def __init__(self, *elements):
         self._elements = elements
 
-        domain = elements[0].domain()
-        ufl_assert(all(e.domain() == domain for e in elements),
+        domain = elements[0].ufl_domain()
+        ufl_assert(all(e.ufl_domain() == domain for e in elements),
                    "Domain mismatch for sub elements of enriched element.")
 
         if isinstance(elements[0].degree(), int):
@@ -107,7 +106,7 @@ class EnrichedElement(FiniteElementBase):
         "Format as string for pretty printing."
         return "<%s>" % " + ".join(e.shortstr() for e in self._elements)
 
-    def signature_data(self, renumbering):
+    def _ufl_signature_data_(self, renumbering):
         data = ("EnrichedElement",
-                tuple(e.signature_data(renumbering) for e in self._elements))
+                tuple(e._ufl_signature_data_(renumbering) for e in self._elements))
         return data

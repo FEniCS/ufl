@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 "Various high level ways to transform a complete Form into a new Form."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -166,7 +167,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
         part = None
 
         # Create argument and split it if in a mixed space
-        elements = [c.element() for c in coefficients]
+        elements = [c.ufl_element() for c in coefficients]
         if len(elements) > 1:
             elm = MixedElement(*elements)
             arguments = split(Argument(elm, number, part))

@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 """Algorithm for lowering abstractions of geometric types.
 
 This means replacing high-level types with expressions
 of mostly the Jacobian and reference cell data.
 """
 
-# Copyright (C) 2013-2015 Martin Sandve Alnes
+# Copyright (C) 2013-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -38,6 +39,7 @@ from ufl.classes import (Expr, Form, Integral,
                          CellFacetJacobian,
                          CellEdgeVectors, FacetEdgeVectors,
                          FacetNormal, CellNormal, ReferenceNormal,
+                         ReferenceCellVolume, ReferenceFacetVolume,
                          CellVolume, FacetArea,
                          SpatialCoordinate)
 #FacetJacobianInverse,
@@ -67,8 +69,8 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.domain()
-        if domain.coordinates() is None:
+        domain = o.ufl_domain()
+        if domain.ufl_coordinates() is None:
             # Affine case in FEniCS: preserve J if there's no coordinate function
             # (the handling of coordinate functions will soon be refactored)
             return o
@@ -88,7 +90,7 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.domain()
+        domain = o.ufl_domain()
         J = self.jacobian(Jacobian(domain))
         # TODO: This could in principle use preserve_types[JacobianDeterminant] with minor refactoring:
         K = inverse_expr(J)
@@ -99,7 +101,7 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.domain()
+        domain = o.ufl_domain()
         J = self.jacobian(Jacobian(domain))
         detJ = determinant_expr(J)
 
@@ -116,7 +118,7 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.domain()
+        domain = o.ufl_domain()
         J = self.jacobian(Jacobian(domain))
         RFJ = CellFacetJacobian(domain)
         i, j, k = indices(3)
@@ -127,7 +129,7 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.domain()
+        domain = o.ufl_domain()
         FJ = self.facet_jacobian(FacetJacobian(domain))
         # This could in principle use preserve_types[JacobianDeterminant] with minor refactoring:
         return inverse_expr(FJ)
@@ -137,7 +139,7 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.domain()
+        domain = o.ufl_domain()
         FJ = self.facet_jacobian(FacetJacobian(domain))
         detFJ = determinant_expr(FJ)
 
@@ -155,8 +157,8 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.domain()
-        x = domain.coordinates()
+        domain = o.ufl_domain()
+        x = domain.ufl_coordinates()
         if x is None:
             # Old affine domains
             return o
@@ -164,7 +166,7 @@ class GeometryLoweringApplier(MultiFunction):
         # TODO: If we're not using Coefficient to represent the spatial coordinate,
         # we can just as well always return o here too unless we add representation
         # of basis functions and dofs to the ufl layer (which is nice to avoid).
-        if x.element().mapping() != "identity":
+        if x.ufl_element().mapping() != "identity":
             error("Piola mapped coordinates are not implemented.")
         return ReferenceValue(x)
 
@@ -174,7 +176,7 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.domain()
+        domain = o.ufl_domain()
         K = self.jacobian_inverse(JacobianInverse(domain))
         x = self.spatial_coordinate(SpatialCoordinate(domain))
         x0 = CellOrigin(domain)
@@ -195,11 +197,14 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.domain()
+        domain = o.ufl_domain()
         if not domain.is_piecewise_linear_simplex_domain():
-            error("Only know how to compute the cell volume of an affine cell.")
+            # Don't lower for non-affine cells, instead leave it to form compiler
+            warning("Only know how to compute the cell volume of an affine cell.")
+            return o
+
         r = self.jacobian_determinant(JacobianDeterminant(domain))
-        r0 = domain.cell().reference_volume()
+        r0 = ReferenceCellVolume(domain)
         return abs(r * r0)
 
     @memoized_handler
@@ -207,11 +212,14 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.domain()
+        domain = o.ufl_domain()
         if not domain.is_piecewise_linear_simplex_domain():
-            error("Only know how to compute the facet area of an affine cell.")
+            # Don't lower for non-affine cells, instead leave it to form compiler
+            warning("Only know how to compute the facet area of an affine cell.")
+            return o
+
         r = self.facet_jacobian_determinant(FacetJacobianDeterminant(domain))
-        r0 = domain.cell().reference_facet_volume()
+        r0 = ReferenceFacetVolume(domain)
         return abs(r * r0)
 
     @memoized_handler
@@ -219,10 +227,13 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.domain()
+        domain = o.ufl_domain()
         if not domain.is_piecewise_linear_simplex_domain():
-            error("Only know how to compute the circumradius of an affine cell.")
-        cellname = domain.cell().cellname()
+            # Don't lower for non-affine cells, instead leave it to form compiler
+            warning("Only know how to compute the circumradius of an affine cell.")
+            return o
+
+        cellname = domain.ufl_cell().cellname()
         cellvolume = self.cell_volume(CellVolume(domain))
 
         if cellname == "interval":
@@ -269,10 +280,13 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.domain()
+        domain = o.ufl_domain()
         if not domain.is_piecewise_linear_simplex_domain():
-            error("Only know how to compute the min_cell_edge_length of an affine cell.")
-        cellname = domain.cell().cellname()
+            # Don't lower for non-affine cells, instead leave it to form compiler
+            warning("Only know how to compute the min_cell_edge_length of an affine cell.")
+            return o
+
+        cellname = domain.ufl_cell().cellname()
 
         J = self.jacobian(Jacobian(domain))
         trev = CellEdgeVectors(domain)
@@ -295,10 +309,13 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.domain()
+        domain = o.ufl_domain()
         if not domain.is_piecewise_linear_simplex_domain():
-            error("Only know how to compute the max_cell_edge_length of an affine cell.")
-        cellname = domain.cell().cellname()
+            # Don't lower for non-affine cells, instead leave it to form compiler
+            warning("Only know how to compute the max_cell_edge_length of an affine cell.")
+            return o
+
+        cellname = domain.ufl_cell().cellname()
 
         J = self.jacobian(Jacobian(domain))
         trev = CellEdgeVectors(domain)
@@ -321,10 +338,13 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.domain()
+        domain = o.ufl_domain()
         if not domain.is_piecewise_linear_simplex_domain():
-            error("Only know how to compute the min_facet_edge_length of an affine cell.")
-        cellname = domain.cell().cellname()
+            # Don't lower for non-affine cells, instead leave it to form compiler
+            warning("Only know how to compute the min_facet_edge_length of an affine cell.")
+            return o
+
+        cellname = domain.ufl_cell().cellname()
 
         if cellname == "triangle":
             return self.facet_area(FacetArea(domain))
@@ -344,10 +364,13 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.domain()
+        domain = o.ufl_domain()
         if not domain.is_piecewise_linear_simplex_domain():
-            error("Only know how to compute the max_facet_edge_length of an affine cell.")
-        cellname = domain.cell().cellname()
+            # Don't lower for non-affine cells, instead leave it to form compiler
+            warning("Only know how to compute the max_facet_edge_length of an affine cell.")
+            return o
+
+        cellname = domain.ufl_cell().cellname()
 
         if cellname == "triangle":
             return self.facet_area(FacetArea(domain))
@@ -367,7 +390,7 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.domain()
+        domain = o.ufl_domain()
         gdim = domain.geometric_dimension()
         tdim = domain.topological_dimension()
 
@@ -397,7 +420,7 @@ class GeometryLoweringApplier(MultiFunction):
         if self._preserve_types[o._ufl_typecode_]:
             return o
 
-        domain = o.domain()
+        domain = o.ufl_domain()
         tdim = domain.topological_dimension()
 
         if tdim == 1:

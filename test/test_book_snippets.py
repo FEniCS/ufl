@@ -1,4 +1,5 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 """
 This file contains snippets from the FEniCS book,
 and allows us to test that these can still run
@@ -159,7 +160,8 @@ def test_uflcode_824(self):
 def test_uflcode_886(self):
     cell = triangle
     # ...
-    g = sin(cell.x[0])
+    x = SpatialCoordinate(cell) # Original: x = cell.x
+    g = sin(x[0])
     v = variable(g)
     f = exp(v**2)
     h = diff(f, v)
@@ -417,7 +419,7 @@ def test_python_2024(self):
 
     cell = triangle
     element = FiniteElement("Lagrange", cell, 1)
-    x = cell.x
+    x = SpatialCoordinate(cell) # Original: x = cell.x
     if 0:
         print((m(Argument(element, 2))))
         print((m(x)))
@@ -471,7 +473,7 @@ def test_python_2189(self):
 
 def test_python_2328(self):
     cell = triangle
-    x = cell.x
+    x = SpatialCoordinate(cell) # Original: x = cell.x
     e = x[0] + x[1]
     #print e((0.5, 0.7)) # prints 1.2
     # ...
@@ -479,7 +481,7 @@ def test_python_2328(self):
 
 def test_python_2338(self):
     cell = triangle
-    x = cell.x
+    x = SpatialCoordinate(cell) # Original: x = cell.x
     # ...
     c = Constant(cell)
     e = c*(x[0] + x[1])

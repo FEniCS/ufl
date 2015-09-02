@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """FormData class easy for collecting of various data about a form."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -19,7 +20,7 @@
 #
 # Modified by Anders Logg, 2008.
 
-from ufl.common import lstr, tstr, estr
+from ufl.utils.formatting import lstr, tstr, estr
 from ufl.assertions import ufl_assert
 
 class FormData(object):

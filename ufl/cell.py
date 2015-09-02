@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 "Types for representing a cell."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -22,107 +23,30 @@
 # Modified by Marie E. Rognes 2012
 # Modified by Andrew T. T. McRae, 2014
 
-from itertools import chain
-from collections import defaultdict
-
-from ufl.log import warning, error, deprecate
+from ufl.log import warning, error
 from ufl.assertions import ufl_assert
-from ufl.common import istr, EmptyDict
+from ufl.utils.formatting import istr
+from ufl.utils.dicts import EmptyDict
 from ufl.core.terminal import Terminal
-from ufl.protocols import id_or_none
+from ufl.core.ufl_type import attach_operators_from_hash_data
 
-# --- Basic cell properties
+# --- The most abstract cell class, base class for other cell types
 
-# Mapping from cell name to topological dimension
-cellname2dim = {
-    "vertex":        0,
-    "interval":      1,
-    "triangle":      2,
-    "tetrahedron":   3,
-    "quadrilateral": 2,
-    "hexahedron":    3,
-    }
-
-def cell2dim(cell):
-    "Maps from UFL cell or cell name to topological dimension"
-    if isinstance(cell, str):
-        # Backwards compatibility
-        cellname = cell
-    else:
-        cellname = cell.cellname()
-
-    if cellname == "OuterProductCell":
-        return cell2dim(cell._A) + cell2dim(cell._B)
-    else:
-        return cellname2dim[cellname]
-
-# Mapping from cell name to facet name
-_cellname2facetname = {
-    "interval":      "vertex",
-    "triangle":      "interval",
-    "quadrilateral": "interval",
-    "tetrahedron":   "triangle",
-    "hexahedron":    "quadrilateral",
-    }
-
-_reference_cell_volume = {
-    "vertex": 0.0,
-    "interval": 1.0,
-    "triangle": 0.5,
-    "tetrahedron": 1.0/6.0,
-    "quadrilateral": 1.0,
-    "hexahedron": 1.0
-    }
-
-num_cell_entities = {
-    "interval":      (2, 1),
-    "triangle":      (3,  3, 1),
-    "quadrilateral": (4,  4, 1),
-    "tetrahedron":   (4,  6, 4, 1),
-    "hexahedron":    (8, 12, 6, 1),
-    }
-
-affine_cells = {"vertex", "interval", "triangle", "tetrahedron"}
-
-
-# --- Basic cell representation classes
-
-class Cell(object):
-    "Representation of a finite element cell."
-    __slots__ = ("_cellname",
-                 "_geometric_dimension",
-                 "_topological_dimension"
-                 )
-    def __init__(self, cellname, geometric_dimension=None, topological_dimension=None):
-        "Initialize basic cell description."
-
-        # The topological dimension is defined by the cell type,
-        # so the cellname must be among the known ones,
-        # so we can find the known dimension, unless we have
-        # a product cell, in which the given dimension is used
-        tdim = cellname2dim.get(cellname, topological_dimension)
-
-        # The geometric dimension defaults to equal the topological
-        # dimension if undefined
-        if geometric_dimension is None:
-            gdim = tdim
-        else:
-            gdim = geometric_dimension
-
+class AbstractCell(object):
+    "Representation of an abstract finite element cell with only the dimensions known."
+    __slots__ = ("_topological_dimension", "_geometric_dimension")
+    def __init__(self, topological_dimension, geometric_dimension):
         # Validate dimensions
-        ufl_assert(isinstance(gdim, int),
-                   "Expecting integer dimension, not '%r'" % (gdim,))
-        ufl_assert(isinstance(tdim, int),
-                   "Expecting integer dimension, not '%r'" % (tdim,))
-        ufl_assert(tdim <= gdim,
+        ufl_assert(isinstance(geometric_dimension, int),
+                   "Expecting integer geometric dimension, not '%r'" % (geometric_dimension,))
+        ufl_assert(isinstance(topological_dimension, int),
+                   "Expecting integer topological dimension, not '%r'" % (topological_dimension,))
+        ufl_assert(topological_dimension <= geometric_dimension,
                    "Topological dimension cannot be larger than geometric dimension.")
 
-        # ... Finally store validated data
-        self._cellname = cellname
-        self._topological_dimension = tdim
-        self._geometric_dimension = gdim
-
-    # --- Fundamental dimensions ---
+        # Store validated dimensions
+        self._topological_dimension = topological_dimension
+        self._geometric_dimension = geometric_dimension
 
     def topological_dimension(self):
         "Return the dimension of the topology of this cell."
@@ -132,158 +56,181 @@ class Cell(object):
         "Return the dimension of the space this cell is embedded in."
         return self._geometric_dimension
 
-    # --- Cell properties ---
+    def is_simplex(self):
+        "Return True if this is a simplex cell."
+        raise NotImplementedError("Implement this to allow important checks and optimizations.")
+
+    def has_simplex_facets(self):
+        "Return True if all the facets of this cell are simplex cells."
+        raise NotImplementedError("Implement this to allow important checks and optimizations.")
+
+    def __lt__(self, other):
+        "Define an arbitrarily chosen but fixed sort order for all cells."
+        if not isinstance(other, AbstractCell):
+            return NotImplemented
+        # Sort by gdim first, tdim next, then whatever's left depending on the subclass
+        s = (self.geometric_dimension(), self.topological_dimension())
+        o = (other.geometric_dimension(), other.topological_dimension())
+        if s != o: return s < o
+        return self._ufl_hash_data_() < other._ufl_hash_data_()
+
+
+# --- Basic topological properties of known basic cells
+
+# Mapping from cell name to number of cell entities of each topological dimension
+num_cell_entities = {
+    "vertex":        (1,),
+    "interval":      (2,  1),
+    "triangle":      (3,  3, 1),
+    "quadrilateral": (4,  4, 1),
+    "tetrahedron":   (4,  6, 4, 1),
+    "hexahedron":    (8, 12, 6, 1),
+    }
+
+# Mapping from cell name to topological dimension
+cellname2dim = dict((k, len(v)-1) for k,v in num_cell_entities.items())
+
+# Mapping from cell name to facet name
+# Note: This is not generalizable to product elements but it's still in use a couple of places.
+cellname2facetname = {
+    "interval":      "vertex",
+    "triangle":      "interval",
+    "quadrilateral": "interval",
+    "tetrahedron":   "triangle",
+    "hexahedron":    "quadrilateral",
+    }
+
+
+# --- Basic cell representation classes
+
+@attach_operators_from_hash_data
+class Cell(AbstractCell):
+    "Representation of a named finite element cell with known structure."
+    __slots__ = ("_cellname",)
+    def __init__(self, cellname, geometric_dimension=None):
+        "Initialize basic cell description."
+
+        self._cellname = cellname
+
+        # The topological dimension is defined by the cell type,
+        # so the cellname must be among the known ones,
+        # so we can find the known dimension, unless we have
+        # a product cell, in which the given dimension is used
+        topological_dimension = len(num_cell_entities[cellname]) - 1
+
+        # The geometric dimension defaults to equal the topological
+        # dimension unless overridden for embedded cells
+        if geometric_dimension is None:
+            geometric_dimension = topological_dimension
+
+        # Initialize and validate dimensions
+        AbstractCell.__init__(self, topological_dimension, geometric_dimension)
+
+    # --- Overrides of AbstractCell methods ---
+
+    def is_simplex(self):
+        return self.num_vertices() == self.topological_dimension() + 1
+
+    def has_simplex_facets(self):
+        return self.is_simplex() or self.cellname() == "quadrilateral"
+
+    # --- Specific cell properties ---
 
     def cellname(self):
         "Return the cellname of the cell."
         return self._cellname
 
-    def num_entities(self, dim=None):
-        "The number of cell entities of given topological dimension."
-        num = num_cell_entities[self.cellname()]
-        if dim is None:
-            return num
-        else:
-            return num[dim]
-
     def num_vertices(self):
         "The number of cell vertices."
-        return self.num_entities(0)
+        return num_cell_entities[self.cellname()][0]
 
     def num_edges(self):
         "The number of cell edges."
-        return self.num_entities(1)
+        return num_cell_entities[self.cellname()][1]
 
     def num_facets(self):
         "The number of cell facets."
         tdim = self.topological_dimension()
-        return self.num_entities(tdim-1)
-
-    def reference_volume(self):
-        "The volume of a reference cell of the same type."
-        return _reference_cell_volume[self.cellname()]
+        return num_cell_entities[self.cellname()][tdim-1]
 
     # --- Facet properties ---
-    # TODO: The concept of a fixed name and number of entities for a facet does not work with product cells.
-    #       Search for 'facet_cellname' and 'num_facet_' to find usage and figure out another way to handle those places.
-
-    # TODO: Maybe return a facet cell instead of all these accessors
-    #def facet(self):
-    #    return Cell(self.facet_cellname(), self.geometric_dimension())
-
-    def facet_cellname(self):
-        "Return the cellname of the facet of this cell, or None if not available."
-        return _cellname2facetname.get(self.cellname())
-
-    def num_facet_entities(self, dim):
-        "Return the number of cell entities of given topological dimension, or None if not available."
-        num = num_cell_entities.get(self.cellname())
-        return num[dim] if num else None
-
-    def num_facet_vertices(self):
-        "The number of cell vertices, or None if not available."
-        return self.num_facet_entities(0)
 
     def num_facet_edges(self):
-        "The number of facet edges, or None if not available."
-        return self.num_facet_entities(1)
-
-    def reference_facet_volume(self):
-        "The volume of a reference cell of the same type."
-        return _reference_cell_volume[self.facet_cellname()]
+        "The number of facet edges."
+        # This is used in geometry.py
+        fn = cellname2facetname[self.cellname()]
+        return num_cell_entities[fn][1]
 
     # --- Special functions for proper object behaviour ---
 
-    def __eq__(self, other):
-        if not isinstance(other, Cell):
-            return False
-        s = (self.geometric_dimension(), self.topological_dimension(), self.cellname())
-        o = (other.geometric_dimension(), other.topological_dimension(), other.cellname())
-        return s == o
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __lt__(self, other):
-        if not isinstance(other, Cell):
-            return False
-        s = (self.geometric_dimension(), self.topological_dimension(), self.cellname())
-        o = (other.geometric_dimension(), other.topological_dimension(), other.cellname())
-        return s < o
-
-    def __hash__(self):
-        return hash(repr(self))
-
     def __str__(self):
-        return "<%s cell in %sD>" % (istr(self.cellname()),
-                                     istr(self.geometric_dimension()))
+        gdim = self.geometric_dimension()
+        tdim = self.topological_dimension()
+        s = self.cellname()
+        if gdim > tdim:
+            s += " in %dD" % gdim
+        return s
 
     def __repr__(self):
         return "Cell(%r, %r)" % (self.cellname(), self.geometric_dimension())
 
-    def _repr_svg_(self):
-        ""
+    def _ufl_hash_data_(self):
+        return (self._geometric_dimension, self._topological_dimension, self._cellname)
 
-        name = self.cellname()
-        m = 200
-        if name == "interval":
-            points = [(0, 0), (m, 0)]
-        elif name == "triangle":
-            points = [(0, m), (m, m), (0, 0), (0, m)]
-        elif name == "quadrilateral":
-            points = [(0, m), (m, m), (m, 0), (0, 0), (0, m)]
-        else:
-            points = None
 
-        svg = '''
-        <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="%s" height="%s">
-        <polyline points="%s" style="%s" />
-        </svg>
-        '''
-
-        if points:
-            fill = "none"
-            stroke = "black"
-            strokewidth = 3
-
-            width = max(p[0] for p in points) - min(p[0] for p in points)
-            height = max(p[1] for p in points) - min(p[1] for p in points)
-            width = max(width, strokewidth)
-            height = max(height, strokewidth)
-            style = "fill:%s; stroke:%s; stroke-width:%s" % (fill, stroke, strokewidth)
-            points = " ".join(','.join(map(str, p)) for p in points)
-            return svg % (width, height, points, style)
-        else:
-            return None
-
-class ProductCell(Cell):
+@attach_operators_from_hash_data
+class ProductCell(AbstractCell):
     __slots__ = ("_cells",)
     def __init__(self, *cells):
-        cells = tuple(as_cell(cell) for cell in cells)
-        gdim = sum(cell.geometric_dimension() for cell in cells)
-        tdim = sum(cell.topological_dimension() for cell in cells)
-        Cell.__init__(self, "product", gdim, tdim)
-        self._cells = tuple(cells)
+        self._cells = tuple(as_cell(cell) for cell in cells)
+
+        gdims = [cell.geometric_dimension() for cell in self._cells]
+        tdims = [cell.topological_dimension() for cell in self._cells]
+        gdim = sum(gdims)
+        tdim = sum(tdims)
+
+        AbstractCell.__init__(self, tdim, gdim)
+
+    def is_simplex(self):
+        "Return True if this is a simplex cell."
+        if len(self._cells) == 1:
+            return self._cells.is_simplex()
+        return False
+
+    def has_simplex_facets(self):
+        "Return True if all the facets of this cell are simplex cells."
+        if len(self._cells) == 1:
+            return self._cells.has_simplex_facets()
+        return False
+
+    def num_vertices(self):
+        "The number of cell vertices."
+        return product(c.num_vertices() for c in self._cells)
+
+    def num_edges(self):
+        "The number of cell edges."
+        error("Not defined for ProductCell.")
+
+    def num_facets(self):
+        "The number of cell facets."
+        return sum(c.num_facets() for c in self._cells if c.topological_dimension() > 0)
 
     def sub_cells(self):
         "Return list of cell factors."
         return self._cells
 
-    def __eq__(self, other):
-        if not isinstance(other, ProductCell):
-            return False
-        return self._cells == other._cells
-
-    def __lt__(self, other):
-        if not isinstance(other, ProductCell):
-            return False
-        return self._cells < other._cells
+    def __str__(self):
+        return repr(self)
 
     def __repr__(self):
-        return "ProductCell(*%r)" % (self._cells,)
+        return "ProductCell(%s)" % ", ".join(repr(c) for c in self._cells)
+
+    def _ufl_hash_data_(self):
+        return tuple(c._ufl_hash_data_() for c in self._cells)
 
 
-class OuterProductCell(Cell):
+@attach_operators_from_hash_data
+class OuterProductCell(AbstractCell): # TODO: Remove this and use ProductCell instead
     """Representation of a cell formed as the Cartesian product of
     two existing cells"""
     __slots__ = ("_A", "_B", "facet_horiz", "facet_vert")
@@ -306,7 +253,8 @@ class OuterProductCell(Cell):
                 raise TypeError("gdim must be an integer")
             if gdim < gdim_temp:
                 raise ValueError("gdim must be at least %d" % gdim_temp)
-        Cell.__init__(self, "OuterProductCell", gdim, tdim)
+
+        AbstractCell.__init__(self, tdim, gdim)
 
         # facets for extruded cells
         if B.cellname() == "interval":
@@ -320,48 +268,72 @@ class OuterProductCell(Cell):
                 # Don't know how to extrude this
                 self.facet_vert = None
 
-    def num_entities(self, dim):
-        "The number of cell entities of given topological dimension."
-        # Return None unless asked for the number of vertices / volumes
-        templist = [None,] * (self.topological_dimension() + 1)
-        templist[0] = self._A.num_vertices() * self._B.num_vertices()
-        templist[-1] = 1
-        return templist[dim]
+    def is_simplex(self):
+        "Return True if this is a simplex cell."
+        return False
 
-    def reference_volume(self):
-        "The volume of a reference cell of the same type."
-        return _reference_cell_volume[self._A.cellname()] * _reference_cell_volume[self._B.cellname()]
+    def has_simplex_facets(self):
+        "Return True if all the facets of this cell are simplex cells."
+        # Actually sometimes true
+        return False
 
-    def __eq__(self, other):
-        if not isinstance(other, OuterProductCell):
-            return False
-        # This is quite subtle: my intuition says that the OPCs of
-        # Cell("triangle") with Cell("interval"), and
-        # Cell("triangle", 3) with Cell("interval")
-        # are essentially the same: triangular prisms with gdim = tdim = 3.
-        # For safety, though, we will only compare equal if the
-        # subcells are *identical*, including immersion.
-        return (self._A, self._B) == (other._A, other._B) and self.geometric_dimension() == other.geometric_dimension()
+    def num_vertices(self):
+        "The number of cell vertices."
+        return self._A.num_vertices() * self._B.num_vertices()
 
-    def __lt__(self, other):
-        if not isinstance(other, OuterProductCell):
-            return NotImplemented
-        return (self._A, self._B) < (other._A, other._B)
+    def num_edges(self):
+        "The number of cell edges."
+        error("Not defined for OuterProductCell.")
+
+    def num_facets(self):
+        "The number of cell facets."
+        return self._A.num_facets() + self._B.num_facets()
 
     def __repr__(self):
         return "OuterProductCell(*%r)" % list([self._A, self._B])
 
+    def _ufl_hash_data_(self):
+        return tuple(c._ufl_hash_data_() for c in (self._A, self._B))
+
 
 # --- Utility conversion functions
 
+# Mapping from topological dimension to reference cell name for simplices
+_simplex_dim2cellname = {
+    0: "vertex",
+    1: "interval",
+    2: "triangle",
+    3: "tetrahedron",
+    }
+
+# Mapping from topological dimension to reference cell name for hypercubes
+_hypercube_dim2cellname = {
+    0: "vertex",
+    1: "interval",
+    2: "quadrilateral",
+    3: "hexahedron",
+    }
+
+def simplex(topological_dimension, geometric_dimension=None):
+    "Return a simplex cell of given dimension."
+    return Cell(_simplex_dim2cellname[topological_dimension], geometric_dimension)
+
+def hypercube(topological_dimension, geometric_dimension=None):
+    "Return a hypercube cell of given dimension."
+    return Cell(_hypercube_dim2cellname[topological_dimension], geometric_dimension)
+
 def as_cell(cell):
-    """Convert any valid object to a Cell (in particular, cellname string),
-    or return cell if it is already a Cell."""
-    if isinstance(cell, Cell):
+    """Convert any valid object to a Cell or return cell if it is already a Cell.
+
+    Allows an already valid cell, a known cellname string, or a tuple of cells for a product cell.
+    """
+    if isinstance(cell, AbstractCell):
         return cell
-    elif hasattr(cell, "ufl_cell"):
-        return cell.ufl_cell()
     elif isinstance(cell, str):
         return Cell(cell)
+    elif isinstance(cell, tuple):
+        return ProductCell(*map(as_cell, cell))
+    elif hasattr(cell, "ufl_cell"):
+        return cell.ufl_cell()
     else:
         error("Invalid cell %s." % cell)

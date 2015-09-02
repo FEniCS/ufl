@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """The Unified Form Language is an embedded domain specific language
 for definition of variational forms intended for finite element
 discretization. More precisely, it defines a fixed interface for choosing
@@ -57,11 +58,14 @@ A very brief overview of the language contents follows:
     FiniteElement,
     MixedElement, VectorElement, TensorElement
     EnrichedElement, RestrictedElement,
-    TensorProductElement,
-    OuterProductElement, OuterProductVectorElement, OuterProductTensorElement,
-    HDiv, HCurl
+    TensorProductElement, OuterProductElement, OuterProductVectorElement, OuterProductTensorElement
+    HDivElement, HCurlElement
     BrokenElement, TraceElement
     FacetElement, InteriorElement
+
+* Function spaces::
+
+    FunctionSpace
 
 * Arguments::
 
@@ -152,7 +156,7 @@ A very brief overview of the language contents follows:
     sensitivity_rhs, derivative
 """
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes and Anders Logg
+# Copyright (C) 2008-2015 Martin Sandve Alnæs and Anders Logg
 #
 # This file is part of UFL.
 #
@@ -186,7 +190,7 @@ __version__ = "1.7.0dev"
 
 # Utility functions (product is the counterpart of the built-in
 # python function sum, can be useful for users as well?)
-from ufl.common import product
+from ufl.utils.sequences import product
 
 # Output control
 from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile, \
@@ -210,11 +214,15 @@ from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
     MixedElement, VectorElement, TensorElement, EnrichedElement, \
     RestrictedElement, TensorProductElement, OuterProductElement, \
-    OuterProductVectorElement, OuterProductTensorElement, HDiv, HCurl, \
-    BrokenElement, TraceElement, FacetElement, InteriorElement
+    OuterProductVectorElement, OuterProductTensorElement, \
+    HDivElement, HCurlElement, BrokenElement, TraceElement, \
+    FacetElement, InteriorElement
 
 # Hook to extend predefined element families
 from ufl.finiteelement.elementlist import register_element, show_elements #, ufl_elements
+
+# Function spaces
+from ufl.functionspace import FunctionSpace
 
 # Arguments
 from ufl.argument import Argument, TestFunction, TrialFunction, \
@@ -304,9 +312,10 @@ __all__ = [
     'FiniteElementBase', 'FiniteElement',
     'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
     'RestrictedElement', 'TensorProductElement', 'OuterProductElement',
-    'OuterProductVectorElement', 'OuterProductTensorElement', 'HDiv', 'HCurl',
+    'OuterProductVectorElement', 'OuterProductTensorElement', 'HDivElement', 'HCurlElement',
     'BrokenElement', 'TraceElement', 'FacetElement', 'InteriorElement',
     'register_element', 'show_elements',
+    'FunctionSpace',
     'Argument', 'TestFunction', 'TrialFunction',
     'Arguments', 'TestFunctions', 'TrialFunctions',
     'Coefficient', 'Coefficients',

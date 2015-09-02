@@ -1,7 +1,8 @@
+# -*- coding: utf-8 -*-
 """This module defines the Coefficient class and a number
 of related classes, including Constant."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -20,13 +21,14 @@ of related classes, including Constant."""
 #
 # Modified by Anders Logg, 2008-2009.
 
-from ufl.log import warning
+from ufl.log import deprecate
 from ufl.assertions import ufl_assert
+from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal, FormArgument
 from ufl.finiteelement import FiniteElementBase, FiniteElement, VectorElement, TensorElement
+from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
 from ufl.split_functions import split
-from ufl.common import counted_init
-from ufl.core.ufl_type import ufl_type
+from ufl.utils.counted import counted_init
 
 # --- The Coefficient class represents a coefficient in a form ---
 
@@ -35,7 +37,7 @@ class Coefficient(FormArgument):
     """UFL form argument type: Representation of a form coefficient."""
 
     # Slots are disabled here because they cause trouble in PyDOLFIN multiple inheritance pattern:
-    #__slots__ = ("_count", "_element", "_repr", "_gradient", "_derivatives")
+    #__slots__ = ("_count", "_ufl_function_space", "_repr", "_ufl_shape")
     _ufl_noslots_ = True
     _globalcount = 0
 
@@ -43,56 +45,78 @@ class Coefficient(FormArgument):
         FormArgument.__init__(self)
         counted_init(self, count, Coefficient)
 
-        ufl_assert(isinstance(element, FiniteElementBase),
-            "Expecting a FiniteElementBase instance.")
-        self._element = element
-        self._repr = None
+        if isinstance(element, FiniteElementBase):
+            # Temporary legacy support
+            fs = FunctionSpace(element.ufl_domain(), element)
+            # FIXME: Future legacy support for .ufl files when element.domain() has been removed:
+            #fs = FunctionSpace(as_domain(element.cell()), element)
+        elif isinstance(element, AbstractFunctionSpace):
+            fs = element
+        else:
+            error("Expecting a FunctionSpace or FiniteElement.")
+
+        self._ufl_function_space = fs
+
+        self._ufl_shape = fs.ufl_element().value_shape()
+
+        self._repr = "Coefficient(%r, %r)" % (self._ufl_function_space, self._count)
 
     def count(self):
         return self._count
 
     def reconstruct(self, element=None, count=None):
         # This code is shared with the FooConstant classes
-        if element is None or element == self._element:
-            element = self._element
+        if element is None or element == self.ufl_element():
+            element = self.ufl_element()
         if count is None or count == self._count:
             count = self._count
-        if count is self._count and element is self._element:
+        if count is self._count and element is self.ufl_element():
             return self
         ufl_assert(isinstance(element, FiniteElementBase),
                    "Expecting an element, not %s" % element)
         ufl_assert(isinstance(count, int),
                    "Expecting an int, not %s" % count)
-        ufl_assert(element.value_shape() == self._element.value_shape(),
+        ufl_assert(element.value_shape() == self.ufl_element().value_shape(),
                    "Cannot reconstruct a Coefficient with a different value shape.")
-        return self._reconstruct(element, count)
-
-    def _reconstruct(self, element, count):
-        # This code is class specific
         return Coefficient(element, count)
-
-    def element(self):
-        return self._element
 
     @property
     def ufl_shape(self):
-        return self._element.value_shape()
+        return self._ufl_shape
+
+    def ufl_function_space(self):
+        "Get the function space of this coefficient."
+        return self._ufl_function_space
+
+    def ufl_domain(self):
+        #TODO: deprecate("Coefficient.ufl_domain() is deprecated, please use .ufl_function_space().ufl_domain() instead.")
+        return self._ufl_function_space.ufl_domain()
+
+    def ufl_element(self):
+        #TODO: deprecate("Coefficient.ufl_domain() is deprecated, please use .ufl_function_space().ufl_element() instead.")
+        return self._ufl_function_space.ufl_element()
+
+    def element(self):
+        deprecate("Coefficient.element() is deprecated, please use Coefficient.ufl_element() instead.")
+        return self.ufl_element()
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
-        return self._element.is_cellwise_constant()
+        return self.ufl_element().is_cellwise_constant()
 
-    def domains(self):
+    def ufl_domains(self):
         "Return tuple of domains related to this terminal object."
-        return self._element.domains()
+        d = self.ufl_domain() # TODO: Can we get more than one domain from a mixed function space?
+        if d is None:
+            return ()
+        else:
+            return (d,)
 
-    def signature_data(self, renumbering):
+    def _ufl_signature_data_(self, renumbering):
         "Signature data for form arguments depend on the global numbering of the form arguments and domains."
         count = renumbering[self]
-        edata = self.element().signature_data(renumbering)
-        d = self.domain()
-        ddata = None if d is None else d.signature_data(renumbering)
-        return ("Coefficient", count, edata, ddata)
+        fsdata = self._ufl_function_space._ufl_signature_data_(renumbering)
+        return ("Coefficient", count, fsdata)
 
     def __str__(self):
         count = str(self._count)
@@ -102,8 +126,6 @@ class Coefficient(FormArgument):
             return "w_{%s}" % count
 
     def __repr__(self):
-        if self._repr is None:
-            self._repr = "Coefficient(%r, %r)" % (self._element, self._count)
         return self._repr
 
     def __eq__(self, other):
@@ -112,7 +134,7 @@ class Coefficient(FormArgument):
         if self is other:
             return True
         return (self._count == other._count and
-                self._element == other._element)
+                self._ufl_function_space == other._ufl_function_space)
 
 # --- Helper functions for defining constant coefficients without specifying element ---
 

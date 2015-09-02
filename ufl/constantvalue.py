@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 "This module defines classes representing constant values."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -28,7 +29,7 @@ from ufl.assertions import ufl_assert, expecting_python_scalar
 from ufl.core.expr import Expr
 from ufl.core.terminal import Terminal
 from ufl.core.multiindex import Index, FixedIndex
-from ufl.common import EmptyDict
+from ufl.utils.dicts import EmptyDict
 from ufl.core.ufl_type import ufl_type
 
 #--- Helper functions imported here for compatibility---
@@ -56,7 +57,7 @@ class ConstantValue(Terminal):
         "Return whether this expression is spatially constant over each cell."
         return True
 
-    def domains(self):
+    def ufl_domains(self):
         "Return tuple of domains related to this terminal object."
         return ()
 
@@ -143,14 +144,6 @@ class Zero(ConstantValue):
                        "Expecting sorted input. Remove this check later for efficiency.")
             self.ufl_free_indices = free_indices
             self.ufl_index_dimensions = index_dimensions
-
-    def free_indices(self):
-        "Intermediate helper property getter to transition from .free_indices() to .ufl_free_indices."
-        return tuple(Index(count=i) for i in self.ufl_free_indices)
-
-    def index_dimensions(self):
-        "Intermediate helper property getter to transition from .index_dimensions() to .ufl_index_dimensions."
-        return { Index(count=i): d for i, d in zip(self.ufl_free_indices, self.ufl_index_dimensions) }
 
     def reconstruct(self, free_indices=None):
         if not free_indices:

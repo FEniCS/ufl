@@ -1,4 +1,5 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 
 """
 Test internal utility functions.
@@ -150,7 +151,7 @@ def test_index_flattening():
 
 
 def test_stackdict():
-    from ufl.common import StackDict
+    from ufl.utils.stacks import StackDict
     d = StackDict(a=1)
     assert d["a"] == 1
     d.push("a", 2)

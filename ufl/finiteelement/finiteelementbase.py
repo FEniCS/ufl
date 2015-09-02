@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 "This module defines the UFL finite element classes."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -23,10 +24,12 @@
 from six.moves import zip
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
-from ufl.common import product, istr, EmptyDict
+from ufl.cell import AbstractCell
+from ufl.utils.sequences import product
+from ufl.utils.formatting import istr
+from ufl.utils.dicts import EmptyDict
 from ufl.geometry import Cell, as_cell, as_domain, Domain
 from ufl.log import info_blue, warning, warning_blue, error
-
 
 class FiniteElementBase(object):
     "Base class for all finite elements"
@@ -53,9 +56,9 @@ class FiniteElementBase(object):
             self._cell = None
         else:
             self._domain = as_domain(domain)
-            self._cell = self._domain.cell()
+            self._cell = self._domain.ufl_cell()
             ufl_assert(isinstance(self._domain, Domain), "Invalid domain type.")
-            ufl_assert(isinstance(self._cell, Cell), "Invalid cell type.")
+            ufl_assert(isinstance(self._cell, AbstractCell), "Invalid cell type.")
 
         self._family = family
         self._degree = degree
@@ -78,12 +81,15 @@ class FiniteElementBase(object):
         """
         raise NotImplementedError("Class %s must implement FiniteElementBase.reconstruction_signature" % (type(self).__name__,))
 
-    def signature_data(self, renumbering):
+    def _ufl_signature_data_(self, renumbering):
         data = ("FiniteElementBase", self._family, self._degree,
                 self._value_shape, self._reference_value_shape,
                 self._quad_scheme,
-                ("no domain" if self._domain is None else self._domain.signature_data(renumbering)))
+                ("no domain" if self._domain is None else self._domain._ufl_signature_data_(renumbering)))
         return data
+
+    def _ufl_hash_data_(self):
+        return repr(self)
 
     def __hash__(self):
         "Compute hash code for insertion in hashmaps."
@@ -117,9 +123,13 @@ class FiniteElementBase(object):
         "Return cell of finite element"
         return self._cell
 
-    def domain(self, component=None): # TODO: Deprecate this
+    def domain(self):
+        deprecate("FiniteElementBase.domain() is deprecated, please use .ufl_domain() instead.")
+        return self.ufl_domain()
+
+    def ufl_domain(self, component=None): # TODO: Deprecate this
         "Return the domain on which this element is defined."
-        domains = self.domains(component)
+        domains = self.ufl_domains(component)
         n = len(domains)
         if n == 0:
             return None
@@ -129,6 +139,10 @@ class FiniteElementBase(object):
             error("Cannot return the requested single domain, as this element has multiple domains.")
 
     def domains(self, component=None):
+        deprecate("FiniteElementBase.domains() is deprecated, please use .ufl_domains() instead.")
+        return self.ufl_domains(component)
+
+    def ufl_domains(self, component=None):
         "Return the domain on which this element is defined."
         if self._domain is None:
             return ()
@@ -227,13 +241,7 @@ class FiniteElementBase(object):
 
     def __getitem__(self, index):
         "Restrict finite element to a subdomain, subcomponent or topology (cell)."
-        # NOTE: RestrictedElement will not be used to represent restriction
-        #       to subdomains, as that is represented by the element having
-        #       a domain property that is a Region.
-        # NOTE: Implementing restriction to subdomains with [] should not be
-        #       done, as V[1] is ambiguously similar to both indexing expressions
-        #       and obtaining a subdomain, such as myexpr[1] and mydomain[1].
-        if isinstance(index, Cell) or index == "facet":
+        if index in ("facet", "interior"):
             from ufl.finiteelement import RestrictedElement
             return RestrictedElement(self, index)
         return NotImplemented

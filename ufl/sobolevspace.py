@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """This module defines a symbolic heirarchy of Sobolev spaces to enable
 symbolic reasoning about the spaces in which finite elements lie."""
 
@@ -22,7 +23,6 @@ symbolic reasoning about the spaces in which finite elements lie."""
 #
 # Modified by Martin Alnaes 2014
 # Modified by Lizao Li 2015
-
 
 class SobolevSpace(object):
     """Symbolic representation of a Sobolev space. This implements a
@@ -57,6 +57,9 @@ class SobolevSpace(object):
     def __eq__(self, other):
         return isinstance(other, SobolevSpace) and self.name == other.name
 
+    def __ne__(self, other):
+        return not self == other
+
     def __hash__(self):
         return hash(("SobolevSpace", self.name))
 
@@ -90,6 +93,16 @@ class SobolevSpace(object):
         """In common with intrinsic Python sets, >= indicates "is a superset
         of." """
         return (self == other) or (self in other.parents)
+
+    def __call__(self, element):
+        """Syntax shortcut to create a HDivElement or HCurlElement."""
+        if self.name == "HDiv":
+            from ufl.finiteelement import HDivElement
+            return HDivElement(element)
+        elif self.name == "HCurl":
+            from ufl.finiteelement import HCurlElement
+            return HCurlElement(element)
+        raise NotImplementedError("SobolevSpace has no call operator (only the specific HDiv and HCurl instances).")
 
 L2 = SobolevSpace("L2")
 HDiv = SobolevSpace("HDiv", [L2])

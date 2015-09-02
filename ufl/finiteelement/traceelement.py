@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (C) 2014 Andrew T. T. McRae
 #
 # This file is part of UFL.
@@ -27,7 +28,7 @@ class TraceElement(FiniteElementBase):
         self._repr = "TraceElement(%s)" % str(element._repr)
 
         family = "TraceElement"
-        domain = element.domain()
+        domain = element.ufl_domain()
         degree = element.degree()
         quad_scheme = element.quadrature_scheme()
         value_shape = ()
@@ -41,17 +42,17 @@ class TraceElement(FiniteElementBase):
     def reconstruct(self, **kwargs):
         """Construct a new TraceElement object with some properties
         replaced with new values."""
-        domain = kwargs.get("domain", self.domain())
+        domain = kwargs.get("domain", self.ufl_domain())
         ele = self._element.reconstruct(domain=domain)
         return TraceElement(ele)
 
     def reconstruction_signature(self):
         return "TraceElement(%s)" % self._element.reconstruction_signature()
 
-    def signature_data(self, renumbering):
-        data = ("TraceElement", self._element.signature_data(renumbering),
+    def _ufl_signature_data_(self, renumbering):
+        data = ("TraceElement", self._element._ufl_signature_data_(renumbering),
                 ("no domain" if self._domain is None else self._domain
-                    .signature_data(renumbering)))
+                    ._ufl_signature_data_(renumbering)))
         return data
 
     def __str__(self):

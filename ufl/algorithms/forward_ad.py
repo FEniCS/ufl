@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """Forward mode AD implementation."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -28,7 +29,9 @@ from six.moves import zip
 from math import pi
 from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert
-from ufl.common import unzip, subdict, lstr
+from ufl.utils.sequences import unzip
+from ufl.utils.dicts import subdict
+from ufl.utils.formatting import lstr
 
 # All classes:
 from ufl.core.terminal import Terminal
@@ -54,6 +57,8 @@ from ufl.operators import dot, inner, outer, lt, eq, conditional, sign, \
     erf, bessel_J, bessel_Y, bessel_I, bessel_K, \
     cell_avg, facet_avg
 from ufl.algorithms.transformer import Transformer
+from ufl.domain import find_geometric_dimension
+from ufl.checks import is_cellwise_constant
 
 
 class ForwardAD(Transformer):
@@ -132,7 +137,7 @@ class ForwardAD(Transformer):
         if isinstance(Ap, Zero):
             op = self._make_zero_diff(o)
         else:
-            r = Ap.rank() - len(jj)
+            r = len(Ap.ufl_shape) - len(jj)
             if r:
                 ii = indices(r)
                 op = Indexed(Ap, MultiIndex(jj.indices() + ii))
@@ -499,21 +504,21 @@ class GradAD(ForwardAD):
     def geometric_quantity(self, o):
         "Represent grad(g) as Grad(g)."
         # Collapse gradient of cellwise constant function to zero
-        if o.is_cellwise_constant():
+        if is_cellwise_constant(o):
             return self.terminal(o)
         return (o, Grad(o))
 
     def spatial_coordinate(self, o):
         "Gradient of x w.r.t. x is Id."
         if not hasattr(self, '_Id'):
-            gdim = o.geometric_dimension()
+            gdim = find_geometric_dimension(o)
             self._Id = Identity(gdim)
         return (o, self._Id)
 
     def cell_coordinate(self, o):
         "Gradient of X w.r.t. x is K. But I'm not sure if we want to allow this."
         error("This has not been validated. Does it make sense to do this here?")
-        K = JacobianInverse(o.domain())
+        K = JacobianInverse(o.ufl_domain())
         return (o, K)
 
     # TODO: Implement rules for some of these types?
@@ -543,14 +548,14 @@ class GradAD(ForwardAD):
         "Represent grad(f) as Grad(f)."
         # Collapse gradient of cellwise constant function to zero
         # FIXME: Enable this after fixing issue#13
-        #if o.is_cellwise_constant():
+        #if is_cellwise_constant(o):
         #    return zero(...) # TODO: zero annotated with argument
         return (o, Grad(o))
 
     def coefficient(self, o):
         "Represent grad(f) as Grad(f)."
         # Collapse gradient of cellwise constant function to zero
-        if o.is_cellwise_constant():
+        if is_cellwise_constant(o):
             return self.terminal(o)
         return (o, Grad(o))
 
@@ -559,7 +564,7 @@ class GradAD(ForwardAD):
 
         # TODO: Not sure how to detect that gradient of f is cellwise constant.
         #       Can we trust element degrees?
-        #if o.is_cellwise_constant():
+        #if is_cellwise_constant(o):
         #    return self.terminal(o)
         # TODO: Maybe we can ask "f.has_derivatives_of_order(n)" to check
         #       if we should make a zero here?
@@ -955,10 +960,10 @@ class UnusedADRules(object):
     curl = commute
     def grad(self, o, a):
         a, aprime = a
-        if aprime.domains(): # TODO: Assuming this is equivalent to 'is_constant', which may not be the case...
-            oprime = o.reconstruct(aprime)
-        else:
+        if is_cellwise_constant(aprime):
             oprime = self._make_zero_diff(o)
+        else:
+            oprime = o.reconstruct(aprime)
         return (o, oprime)
 
 class UnimplementedADRules(object):

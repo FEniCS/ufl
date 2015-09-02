@@ -1,4 +1,5 @@
 #!/use/bin/env py.test
+# -*- coding: utf-8 -*-
 
 """
 Tests of the various ways Measure objects can be created and used.
@@ -63,7 +64,7 @@ def test_construct_forms_from_default_measures():
     assert dS_v.integral_type() == "interior_facet_vert"
 
     # Check that defaults are set properly
-    assert dx.domain() == None
+    assert dx.ufl_domain() == None
     assert dx.metadata() == {}
 
     # Check that we can create a basic form with default measure
@@ -85,9 +86,9 @@ def test_foo():
     assert cell.cellname() == "triangle"
     assert mydomain.topological_dimension() == tdim
     assert mydomain.geometric_dimension() == gdim
-    assert mydomain.cell() == cell
-    assert mydomain.label() == "Omega"
-    assert mydomain.data() == mymesh
+    assert mydomain.ufl_cell() == cell
+    assert mydomain.ufl_label() == "Omega"
+    assert mydomain.ufl_get_mesh() == mymesh
 
     # Define a coefficient for use in tests below
     V = FiniteElement("CG", mydomain, 1)
@@ -99,7 +100,7 @@ def test_foo():
                    domain=mydomain,
                    subdomain_id=3,
                    metadata=metadata)
-    assert mydx.domain().label() == mydomain.label()
+    assert mydx.ufl_domain().ufl_label() == mydomain.ufl_label()
     assert mydx.metadata() == metadata
     M = f * mydx
 
@@ -108,26 +109,26 @@ def test_foo():
     # domain=None,
     # subdomain_id="everywhere",
     # metadata=None)
-    assert dx.domain() == None
+    assert dx.ufl_domain() == None
     assert dx.subdomain_id() == "everywhere"
 
     # Set subdomain_id to "everywhere", still no domain set
     dxe = dx()
-    assert dxe.domain() == None
+    assert dxe.ufl_domain() == None
     assert dxe.subdomain_id() == "everywhere"
 
     # Set subdomain_id to 5, still no domain set
     dx5 = dx(5)
-    assert dx5.domain() == None
+    assert dx5.ufl_domain() == None
     assert dx5.subdomain_id() == 5
 
     # Check that original dx is untouched
-    assert dx.domain() == None
+    assert dx.ufl_domain() == None
     assert dx.subdomain_id() == "everywhere"
 
     # Set subdomain_id to (2,3), still no domain set
     dx23 = dx((2, 3))
-    assert dx23.domain() == None
+    assert dx23.ufl_domain() == None
     assert dx23.subdomain_id(), (2 == 3)
 
     # Map metadata to metadata, ffc interprets as before
@@ -135,7 +136,7 @@ def test_foo():
     # assert dxm.metadata() == {"dummy":123}
     assert dxm.metadata() == {"dummy": 123}  # Deprecated, TODO: Remove
 
-    assert dxm.domain() == None
+    assert dxm.ufl_domain() == None
     assert dxm.subdomain_id() == "everywhere"
 
     # dxm = dx(metadata={"dummy":123})
@@ -143,7 +144,7 @@ def test_foo():
     dxm = dx(metadata={"dummy": 123})
     assert dxm.metadata() == {"dummy": 123}
 
-    assert dxm.domain() == None
+    assert dxm.ufl_domain() == None
     assert dxm.subdomain_id() == "everywhere"
 
     dxi = dx(metadata={"quadrature_degree": 3})
@@ -167,20 +168,12 @@ def test_foo():
     dSd = dS[interior_facet_domains]
     # Current behaviour: no domain created, measure domain data is a single
     # object not a full dict
-    assert dxd.domain() == None
-    assert dsd.domain() == None
-    assert dSd.domain() == None
+    assert dxd.ufl_domain() == None
+    assert dsd.ufl_domain() == None
+    assert dSd.ufl_domain() == None
     assert dxd.subdomain_data() is cell_domains
     assert dsd.subdomain_data() is exterior_facet_domains
     assert dSd.subdomain_data() is interior_facet_domains
-    # Considered behaviour at one point:
-    # assert dxd.domain().label() == "MockMesh"
-    # assert dsd.domain().label() == "MockMesh"
-    # assert dSd.domain().label() == "MockMesh"
-    # assert dxd.domain().data() == { "mesh": mesh, "cell": cell_domains }
-    # assert dsd.domain().data() == { "mesh": mesh, "exterior_facet": exterior_facet_domains }
-    # assert dSd.domain().data() == { "mesh": mesh, "interior_facet":
-    # interior_facet_domains }
 
     # Create some forms with these measures (used in checks below):
     Mx = f * dxd
@@ -189,24 +182,24 @@ def test_foo():
     M = f * dxd + f ** 2 * dsd + f('+') * dSd
 
     # Test extracting domain data from a form for each measure:
-    domain, = Mx.domains()
-    assert domain.label() == mydomain.label()
-    assert domain.data() == mymesh
+    domain, = Mx.ufl_domains()
+    assert domain.ufl_label() == mydomain.ufl_label()
+    assert domain.ufl_get_mesh() == mymesh
     assert Mx.subdomain_data()[mydomain]["cell"] == cell_domains
 
-    domain, = Ms.domains()
-    assert domain.data() == mymesh
+    domain, = Ms.ufl_domains()
+    assert domain.ufl_get_mesh() == mymesh
     assert Ms.subdomain_data()[mydomain][
         "exterior_facet"] == exterior_facet_domains
 
-    domain, = MS.domains()
-    assert domain.data() == mymesh
+    domain, = MS.ufl_domains()
+    assert domain.ufl_get_mesh() == mymesh
     assert MS.subdomain_data()[mydomain][
         "interior_facet"] == interior_facet_domains
 
     # Test joining of these domains in a single form
-    domain, = M.domains()
-    assert domain.data() == mymesh
+    domain, = M.ufl_domains()
+    assert domain.ufl_get_mesh() == mymesh
     assert M.subdomain_data()[mydomain]["cell"] == cell_domains
     assert M.subdomain_data()[mydomain][
         "exterior_facet"] == exterior_facet_domains

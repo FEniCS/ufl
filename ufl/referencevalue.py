@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 "Representation of the reference value of a function."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -37,7 +38,7 @@ class ReferenceValue(Operator):
 
     @property
     def ufl_shape(self):
-        return self.ufl_operands[0].element().reference_value_shape()
+        return self.ufl_operands[0].ufl_element().reference_value_shape()
 
     def reconstruct(self, op):
         "Return a new object of the same type with new operands."

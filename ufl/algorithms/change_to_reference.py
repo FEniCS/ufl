@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """Algorithm for replacing gradients in an expression with reference gradients and coordinate mappings."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -48,7 +49,7 @@ from ufl.finiteelement import FiniteElement, EnrichedElement, VectorElement, Mix
 
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
 from ufl.algorithms.apply_geometry_lowering import apply_geometry_lowering
-
+from ufl.checks import is_cellwise_constant
 
 """
 # Some notes:
@@ -219,7 +220,7 @@ class NEWChangeToReferenceGrad(MultiFunction):
             error("Unexpected type {0}.".format(type(t).__name__))
 
         # Some geometry mapping objects we may need multiple times below
-        domain = t.domain()
+        domain = t.ufl_domain()
         J = Jacobian(domain)
         detJ = JacobianDeterminant(domain)
         K = JacobianInverse(domain)
@@ -275,9 +276,9 @@ class NEWChangeToReferenceGrad(MultiFunction):
             if isinstance(t, FormArgument):
 
                 # Find basic subelement and element-local component
-                #ec, element, eoffset = t.element().extract_component2(gtc) # FIXME: Translate this correctly
+                #ec, element, eoffset = t.ufl_element().extract_component2(gtc) # FIXME: Translate this correctly
                 eoffset = 0
-                ec, element = t.element().extract_reference_component(gtc)
+                ec, element = t.ufl_element().extract_reference_component(gtc)
 
                 # Select mapping M from element, pick row emapping = M[ec,:], or emapping = [] if no mapping
                 ufl_assert(not isinstance(element, MixedElement),
@@ -391,15 +392,15 @@ class OLDChangeToReferenceGrad(MultiFunction):
             f = ReferenceValue(f)
 
         # Get domain and create Jacobian inverse object
-        domain = o.domain()
+        domain = o.ufl_domain()
         Jinv = JacobianInverse(domain)
 
-        if Jinv.is_cellwise_constant():
+        if is_cellwise_constant(Jinv):
             # Optimise slightly by turning Grad(Grad(...)) into J^(-T)J^(-T)RefGrad(RefGrad(...))
             # rather than J^(-T)RefGrad(J^(-T)RefGrad(...))
 
             # Create some new indices
-            ii = indices(f.rank()) # Indices to get to the scalar component of f
+            ii = indices(len(f.ufl_shape)) # Indices to get to the scalar component of f
             jj = indices(ngrads)   # Indices to sum over the local gradient axes with the inverse Jacobian
             kk = indices(ngrads)   # Indices for the leftover inverse Jacobian axes
 
@@ -431,7 +432,7 @@ class OLDChangeToReferenceGrad(MultiFunction):
 
             jinv_lgrad_f = f
             for foo in range(ngrads):
-                ii = indices(jinv_lgrad_f.rank()) # Indices to get to the scalar component of f
+                ii = indices(len(jinv_lgrad_f.ufl_shape)) # Indices to get to the scalar component of f
                 j, k = indices(2)
 
                 lgrad = ReferenceGrad(jinv_lgrad_f)

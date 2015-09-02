@@ -1,4 +1,5 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 """Tests of the change to reference frame algorithm."""
 
 import pytest
@@ -61,7 +62,7 @@ def change_integral_to_reference_frame(form, context):
         integrand = change_to_reference_frame(integral.integrand())
 
         # Compute and apply integration scaling factor
-        scale = compute_integrand_scaling_factor(integral.domain(),
+        scale = compute_integrand_scaling_factor(integral.ufl_domain(),
                                                  integral.integral_type())
 
         return integral.reconstruct(integrand * scale) # TODO: , reference=True)
@@ -239,7 +240,7 @@ def new_analyse_modified_terminal(expr):
     terminal = t
 
     # This will only be correct for derivatives = grad^n
-    gdim = terminal.domain().geometric_dimension()
+    gdim = terminal.ufl_domain().geometric_dimension()
     derivatives_shape = (gdim,)*num_derivatives
 
     # Get shapes

@@ -1,8 +1,9 @@
+# -*- coding: utf-8 -*-
 """This module defines expression transformation utilities,
 either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -27,7 +28,7 @@ from itertools import chain
 import ufl
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
-from ufl.common import write_file, pdflatex, openpdf
+from ufl.utils.system import write_file, pdflatex, openpdf
 from ufl.permutation import compute_indices
 
 # All classes:
@@ -427,9 +428,9 @@ def form2latex(form, formdata):
     # Define elements
     lines = []
     for i, f in enumerate(formdata.original_arguments):
-        lines.append(r"\mathcal{P}_{%d} = \{%s\} " % (i, element2latex(f.element())))
+        lines.append(r"\mathcal{P}_{%d} = \{%s\} " % (i, element2latex(f.ufl_element())))
     for i, f in enumerate(formdata.original_coefficients):
-        lines.append(r"\mathcal{Q}_{%d} = \{%s\} " % (i, element2latex(f.element())))
+        lines.append(r"\mathcal{Q}_{%d} = \{%s\} " % (i, element2latex(f.ufl_element())))
     if lines:
         sections.append(("Finite elements", align(lines)))
 
@@ -487,8 +488,8 @@ def form2latex(form, formdata):
         integral_type = itg.integral_type()
         dstr = domain_strings[integral_type]
 
-        domain = itg.domain()
-        label = domain.label()
+        domain = itg.ufl_domain()
+        label = domain.ufl_label()
         # TODO: Use domain label!
 
         subdomain_id = itg.subdomain_id()

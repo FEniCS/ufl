@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 "This module defines the UFL finite element classes."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -33,7 +34,7 @@ from ufl.finiteelement.tensorproductelement import TensorProductElement
 from ufl.finiteelement.outerproductelement import OuterProductElement
 from ufl.finiteelement.outerproductelement import OuterProductVectorElement
 from ufl.finiteelement.outerproductelement import OuterProductTensorElement
-from ufl.finiteelement.hdivcurl import HDiv, HCurl
+from ufl.finiteelement.hdivcurl import HDivElement, HCurlElement
 from ufl.finiteelement.brokenelement import BrokenElement
 from ufl.finiteelement.traceelement import TraceElement
 from ufl.finiteelement.facetelement import FacetElement

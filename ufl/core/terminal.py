@@ -1,7 +1,8 @@
+# -*- coding: utf-8 -*-
 """This module defines the Terminal class, the superclass
 for all types that are terminal nodes in the expression trees."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -22,8 +23,6 @@ for all types that are terminal nodes in the expression trees."""
 
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
-from ufl.common import EmptyDict
-from ufl.common import counted_init
 from ufl.core.expr import Expr
 from ufl.core.ufl_type import ufl_type
 
@@ -47,19 +46,7 @@ class Terminal(Expr):
     ufl_free_indices = ()
     ufl_index_dimensions = ()
 
-    def operands(self):
-        "A Terminal object never has operands."
-        return ()
-
-    def free_indices(self):
-        "A Terminal object never has free indices."
-        return ()
-
-    def index_dimensions(self):
-        "A Terminal object never has free indices."
-        return EmptyDict
-
-    def domains(self):
+    def ufl_domains(self):
         "Return tuple of domains related to this terminal object."
         raise NotImplementedError("Missing implementation of domains().")
 
@@ -100,7 +87,7 @@ class Terminal(Expr):
             f = f[c]
         return f
 
-    def signature_data(self, renumbering):
+    def _ufl_signature_data_(self, renumbering):
         "Default signature data for of terminals just return the repr string."
         return repr(self)
 

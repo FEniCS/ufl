@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 "Algorithms for renumbering of counted objects, currently variables and indices."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes and Anders Logg
+# Copyright (C) 2008-2015 Martin Sandve Alnæs and Anders Logg
 #
 # This file is part of UFL.
 #
@@ -18,7 +19,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from six.moves import zip
-from ufl.common import Stack, StackDict
+from ufl.utils.stacks import Stack, StackDict
 from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.core.multiindex import Index, FixedIndex, MultiIndex

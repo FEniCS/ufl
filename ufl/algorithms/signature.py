@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """Signature computation for forms."""
 
-# Copyright (C) 2012-2014 Martin Sandve Alnes
+# Copyright (C) 2012-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -24,8 +25,8 @@ from ufl.classes import (Terminal, Label,
                          GeometricQuantity, ConstantValue,
                          ExprList, ExprMapping)
 from ufl.log import error
-from ufl.corealg.traversal import traverse_unique_terminals
-from ufl.common import pre_traversal, sorted_by_count
+from ufl.corealg.traversal import traverse_unique_terminals, pre_traversal
+from ufl.utils.sorting import sorted_by_count
 from ufl.geometry import join_domains
 from ufl.algorithms.domain_analysis import canonicalize_metadata
 
@@ -65,16 +66,16 @@ def compute_terminal_hashdata(expressions, renumbering):
                 data = compute_multiindex_hashdata(expr, index_numbering)
 
             elif isinstance(expr, ConstantValue):
-                data = expr.signature_data(renumbering)
+                data = expr._ufl_signature_data_(renumbering)
 
             elif isinstance(expr, Coefficient):
-                data = expr.signature_data(renumbering)
+                data = expr._ufl_signature_data_(renumbering)
 
             elif isinstance(expr, Argument):
-                data = expr.signature_data(renumbering)
+                data = expr._ufl_signature_data_(renumbering)
 
             elif isinstance(expr, GeometricQuantity):
-                data = expr.signature_data(renumbering)
+                data = expr._ufl_signature_data_(renumbering)
 
             elif isinstance(expr, Label):
                 # Numbering labels as we visit them # TODO: Include in renumbering
@@ -107,7 +108,7 @@ def compute_expression_hashdata(expression, terminal_hashdata):
         if expr._ufl_is_terminal_:
             data = terminal_hashdata[expr]
         else:
-            data = expr._ufl_typecode_ # TODO: Use expr.signature_data()? More extensible, but more overhead.
+            data = expr._ufl_typecode_ # TODO: Use expr._ufl_signature_data_()? More extensible, but more overhead.
         expression_hashdata.append(data)
     # Oneliner: TODO: Benchmark, maybe use a generator?
     #expression_hashdata = [(terminal_hashdata[expr] if expr._ufl_is_terminal_ else expr._ufl_typecode_)
@@ -122,7 +123,7 @@ def build_domain_numbering(domains):
     # Collect domain keys
     items = []
     for i, domain in enumerate(domains):
-        key = (domain.cell(), domain.label())
+        key = (domain.ufl_cell(), domain.ufl_label())
         items.append((key, i))
 
     # Build domain numbering, not allowing repeated keys
@@ -182,7 +183,7 @@ def compute_form_signature(form, renumbering): # FIXME: Fix callers
         integrand_hashdata = compute_expression_hashdata(integral.integrand(),
                                                           terminal_hashdata)
 
-        domain_hashdata = integral.domain().signature_data(renumbering)
+        domain_hashdata = integral.ufl_domain()._ufl_signature_data_(renumbering)
 
         # Collect all data about integral that should be reflected in signature,
         # including compiler data but not domain data, because compiler data

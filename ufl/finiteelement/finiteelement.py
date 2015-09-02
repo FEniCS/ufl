@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 "This module defines the UFL finite element classes."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -22,8 +23,7 @@
 # Modified by Anders Logg 2014
 
 from ufl.assertions import ufl_assert
-from ufl.permutation import compute_indices
-from ufl.common import product, istr, EmptyDict
+from ufl.utils.formatting import istr
 from ufl.geometry import as_domain, as_cell
 from ufl.log import info_blue, warning, warning_blue, error
 
@@ -149,7 +149,7 @@ class FiniteElement(FiniteElementBase):
             cell = None
         else:
             domain = as_domain(domain)
-            cell = domain.cell()
+            cell = domain.ufl_cell()
             ufl_assert(cell is not None, "Missing cell in given domain.")
 
         family, short_name, degree, value_shape, reference_value_shape, sobolev_space, mapping = \
@@ -172,7 +172,7 @@ class FiniteElement(FiniteElementBase):
 
         # Cache repr string
         self._repr = "FiniteElement(%r, %r, %r, quad_scheme=%r)" % (
-            self.family(), self.domain(), self.degree(), self.quadrature_scheme())
+            self.family(), self.ufl_domain(), self.degree(), self.quadrature_scheme())
         assert '"' not in self._repr
 
     def mapping(self):
@@ -191,20 +191,20 @@ class FiniteElement(FiniteElementBase):
         label and data, which must be reconstructed or supplied by other means.
         """
         return "FiniteElement(%r, %s, %r, %r)" % (
-            self.family(), self.domain().reconstruction_signature(), self.degree(), self.quadrature_scheme())
+            self.family(), self.ufl_domain().reconstruction_signature(), self.degree(), self.quadrature_scheme())
 
-    def signature_data(self, renumbering):
+    def _ufl_signature_data_(self, renumbering):
         data = ("FiniteElement", self._family, self._degree,
                 self._value_shape, self._reference_value_shape,
                 self._quad_scheme,
-                ("no domain" if self._domain is None else self._domain.signature_data(renumbering)))
+                ("no domain" if self._domain is None else self._domain._ufl_signature_data_(renumbering)))
         return data
 
     def reconstruct(self, **kwargs):
         """Construct a new FiniteElement object with some properties
         replaced with new values."""
         kwargs["family"] = kwargs.get("family", self.family())
-        kwargs["domain"] = kwargs.get("domain", self.domain())
+        kwargs["domain"] = kwargs.get("domain", self.ufl_domain())
         kwargs["degree"] = kwargs.get("degree", self.degree())
         kwargs["quad_scheme"] = kwargs.get("quad_scheme", self.quadrature_scheme())
         return FiniteElement(**kwargs)
@@ -214,7 +214,7 @@ class FiniteElement(FiniteElementBase):
         qs = self.quadrature_scheme()
         qs = "" if qs is None else "(%s)" % qs
         return "<%s%s%s on a %s>" % (self._short_name, istr(self.degree()),\
-                                           qs, self.domain())
+                                           qs, self.ufl_domain())
 
     def shortstr(self):
         "Format as string for pretty printing."

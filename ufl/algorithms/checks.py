@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """Functions to check the validity of forms."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -54,14 +55,14 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
     #    errors.append("Form is not multilinear in arguments.")
 
     # FIXME DOMAIN: Add check for consistency between domains somehow
-    domains = set(t.domain()
+    domains = set(t.ufl_domain()
                   for e in iter_expressions(form)
                   for t in traverse_terminals(e)) - {None}
     if not domains:
         errors.append("Missing domain definition in form.")
 
     # Check that cell is the same everywhere
-    cells = set(dom.cell() for dom in domains) - {None}
+    cells = set(dom.ufl_cell() for dom in domains) - {None}
     if not cells:
         errors.append("Missing cell definition in form.")
     elif len(cells) > 1:

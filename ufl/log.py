@@ -1,7 +1,8 @@
+# -*- coding: utf-8 -*-
 """This module provides functions used by the UFL implementation to
 output messages. These may be redirected by the user of UFL."""
 
-# Copyright (C) 2005-2014 Anders Logg and Martin Sandve Alnaes
+# Copyright (C) 2005-2015 Anders Logg and Martin Sandve Alnaes
 #
 # This file is part of UFL.
 #
@@ -44,10 +45,16 @@ def emit(self, record):
     self.stream.write(format_string % message)
     self.flush()
 
-# Colors
-RED   = "\033[1;37;31m%s\033[0m"
-BLUE  = "\033[1;37;34m%s\033[0m"
-GREEN = "\033[1;37;32m%s\033[0m"
+# Colors if the terminal supports it (disabled e.g. when piped to file)
+import sys
+if sys.stdout.isatty() and sys.stderr.isatty():
+    RED   = "\033[1;37;31m%s\033[0m"
+    BLUE  = "\033[1;37;34m%s\033[0m"
+    GREEN = "\033[1;37;32m%s\033[0m"
+else:
+    RED   = "%s"
+    BLUE  = "%s"
+    GREEN = "%s"
 
 # Logger class
 class Logger:

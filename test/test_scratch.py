@@ -1,4 +1,5 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 """
 This is a template file you can copy when making a new test case.
 Begin by copying this file to a filename matching test_*.py.

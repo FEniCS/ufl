@@ -1,4 +1,5 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 
 """
 Test use of grad in various situations.
@@ -94,18 +95,17 @@ def _test_grad_div_curl_properties(self, cell):
     assert v.dx(i).ufl_shape == (d,)
     assert t.dx(i).ufl_shape == (d, d)
 
-    assert s.dx(i).free_indices() == (i,)
-    assert v.dx(i).free_indices() == (i,)
-    assert t.dx(i).free_indices() == (i,)
+    assert s.dx(i).ufl_free_indices == (i.count(),)
+    assert v.dx(i).ufl_free_indices == (i.count(),)
+    assert t.dx(i).ufl_free_indices == (i.count(),)
 
     self.assertEqual(s.dx(i, j).ufl_shape, ())
     self.assertEqual(v.dx(i, j).ufl_shape, (d,))
     self.assertEqual(t.dx(i, j).ufl_shape, (d, d))
 
-    # This comparison is unstable w.r.t. sorting of i,j
-    self.assertTrue(s.dx(i, j).free_indices() in [(i, j), (j, i)])
-    self.assertTrue(v.dx(i, j).free_indices() in [(i, j), (j, i)])
-    self.assertTrue(t.dx(i, j).free_indices() in [(i, j), (j, i)])
+    self.assertTrue(s.dx(i, j).ufl_free_indices == tuple(sorted([i.count(), j.count()])))
+    self.assertTrue(v.dx(i, j).ufl_free_indices == tuple(sorted([i.count(), j.count()])))
+    self.assertTrue(t.dx(i, j).ufl_free_indices == tuple(sorted([i.count(), j.count()])))
 
     a0 = s.dx(0)*dx
     a1 = s.dx(0)**2*dx

@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 "Types for representing a geometric domain."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -24,17 +25,112 @@
 from collections import defaultdict
 from six import iteritems
 
+from ufl.core.terminal import Terminal
+from ufl.core.ufl_type import attach_operators_from_hash_data
+from ufl.core.ufl_id import attach_ufl_id
 from ufl.corealg.traversal import traverse_unique_terminals
 from ufl.log import warning, error, deprecate
 from ufl.assertions import ufl_assert
-from ufl.common import istr, EmptyDict
-from ufl.core.terminal import Terminal
+from ufl.utils.formatting import istr
+from ufl.utils.dicts import EmptyDict
 from ufl.protocols import id_or_none
-from ufl.cell import as_cell, affine_cells, Cell, ProductCell
+from ufl.cell import as_cell, AbstractCell, Cell, ProductCell
 
 
-class Domain(object):
-    """Symbolic representation of a geometrical domain.
+class AbstractDomain(object):
+    """Symbolic representation of a geometric domain with only a geometric and topological dimension."""
+    __slots__ = ("_topological_dimension", "_geometric_dimension")
+    def __init__(self, topological_dimension, geometric_dimension):
+        # Validate dimensions
+        ufl_assert(isinstance(geometric_dimension, int),
+                   "Expecting integer geometric dimension, not '%r'" % (geometric_dimension,))
+        ufl_assert(isinstance(topological_dimension, int),
+                   "Expecting integer topological dimension, not '%r'" % (topological_dimension,))
+        ufl_assert(topological_dimension <= geometric_dimension,
+                   "Topological dimension cannot be larger than geometric dimension.")
+
+        # Store validated dimensions
+        self._topological_dimension = topological_dimension
+        self._geometric_dimension = geometric_dimension
+
+    def geometric_dimension(self):
+        "Return the dimension of the space this domain is embedded in."
+        return self._geometric_dimension
+
+    def topological_dimension(self):
+        "Return the dimension of the topology of this domain."
+        return self._topological_dimension
+
+def affine_mesh(cell):
+    "Create a Mesh over a given cell type with an affine geometric parameterization."
+    cell = as_cell(cell)
+    gdim = cell.geometric_dimension()
+    degree = 1
+    coordinate_element = VectorElement("Lagrange", cell, degree, dim=gdim)
+    return Mesh(coordinate_element)
+
+@attach_operators_from_hash_data
+@attach_ufl_id
+class Mesh(AbstractDomain):
+    """Symbolic representation of a mesh."""
+    __slots__ = (
+        "_ufl_coordinate_element",
+        "_ufl_id",
+        )
+    def __init__(self, coordinate_element, ufl_id=None):
+        self._ufl_id = self._init_ufl_id(ufl_id)
+
+        if isinstance(coordinate_element, Coefficient):
+            error("Expecting a coordinate element in the ufl.Mesh construct.")
+
+        # Store coordinate element
+        self._ufl_coordinate_element = coordinate_element
+
+        # Derive dimensions from element
+        gdim, = coordinate_element.ufl_shape
+        tdim = coordinate_element.cell().topological_dimension()
+        AbstractDomain.__init__(self, gdim, tdim)
+
+    def ufl_coordinate_element(self):
+        return self._ufl_coordinate_element
+
+    def ufl_cell(self):
+        return self._ufl_coordinate_element.cell()
+
+    def is_piecewise_linear_simplex_domain(self):
+        return (self._ufl_coordinate_element.degree() == 1) and self.ufl_cell().is_simplex()
+
+    def __repr__(self):
+        return "Mesh(%r, %r)" % (self._ufl_coordinate_element, self._ufl_id)
+
+    def __str__(self):
+        return "Mesh(%r, %r)" % (self._ufl_coordinate_element, self._ufl_id)
+
+    def _ufl_hash_data_(self):
+        return (self._ufl_id, self._ufl_coordinate_element)
+
+    def _ufl_signature_data_(self, renumbering):
+        return ("Mesh", renumbering[self], self._ufl_coordinate_element)
+
+    def reconstruction_signature(self):
+        return "Mesh(%r, %r)" % (self._ufl_coordinate_element, self._ufl_id) # FIXME: This can't be right, including the ufl_id.
+
+    # NB! Dropped __lt__ here as well
+
+    def ufl_coordinates(self):
+        error("Coordinate function support has been removed!")
+
+    def ufl_get_mesh(self):
+        error("Instead of calling this, just use the mesh!")
+        return self
+
+    def ufl_label(self):
+        error("Use ufl_id instead!")
+
+
+@attach_operators_from_hash_data
+class Domain(AbstractDomain): # Legacy class we're moving away from
+    """Symbolic representation of a geometric domain.
 
     Used in the definition of geometric terminal expressions,
     finite element spaces, and integration measures.
@@ -66,8 +162,6 @@ class Domain(object):
 
     """
     __slots__ = (
-        "_geometric_dimension",
-        "_topological_dimension",
         "_cell",
         "_coordinates",
         "_label",
@@ -81,7 +175,7 @@ class Domain(object):
         # To avoid circular dependencies...
         from ufl.coefficient import Coefficient
 
-        if isinstance(arg, Cell):
+        if isinstance(arg, AbstractCell):
             # Allow keyword arguments for label or data
             self._coordinates = None
             self._cell = arg
@@ -91,10 +185,10 @@ class Domain(object):
         elif isinstance(arg, Coefficient):
             # Disallow additional label and data, get from underlying 'flat domain'
             self._coordinates = arg
-            flat_domain = arg.domain()
-            self._cell = flat_domain.cell()
-            self._label = flat_domain.label()
-            self._data = flat_domain.data()
+            flat_domain = arg.ufl_domain()
+            self._cell = flat_domain.ufl_cell()
+            self._label = flat_domain.ufl_label()
+            self._data = flat_domain.ufl_get_mesh()
 
             # Get geometric dimension from self._coordinates shape
             gdim, = self._coordinates.ufl_shape
@@ -108,24 +202,15 @@ class Domain(object):
             ufl_error("Invalid first argument to Domain.")
 
         # Now we should have a Cell or something went wrong
-        ufl_assert(isinstance(self._cell, Cell), "Failed to construct a Cell from input arguments.")
-        self._geometric_dimension = self._cell.geometric_dimension()
-        self._topological_dimension = self._cell.topological_dimension()
-
-        # Sanity checks
-        ufl_assert(isinstance(self._geometric_dimension, int),
-                   "Expecting integer geometric dimension.")
-        ufl_assert(isinstance(self._topological_dimension, int),
-                   "Expecting integer topological dimension.")
-        ufl_assert(self._topological_dimension <= self._geometric_dimension,
-                   "Topological dimension cannot be greater than geometric dimension.")
-        ufl_assert(self._topological_dimension >= 0,
-                   "Topological dimension must be non-negative.")
+        ufl_assert(isinstance(self._cell, AbstractCell), "Failed to construct a Cell from input arguments.")
+        tdim = self._cell.topological_dimension()
+        gdim = self._cell.geometric_dimension()
+        AbstractDomain.__init__(self, tdim, gdim)
 
         if self._coordinates is not None:
             ufl_assert(isinstance(self._coordinates, Coefficient),
                         "Expecting None or Coefficient for coordinates.")
-            ufl_assert(self._coordinates.domain().coordinates() is None,
+            ufl_assert(self._coordinates.ufl_domain().ufl_coordinates() is None,
                         "Coordinates must be defined on a domain without coordinates of its own.")
         ufl_assert(self._label is None or isinstance(self._label, str),
                    "Expecting None or str for label.")
@@ -135,66 +220,67 @@ class Domain(object):
         # Check that we didn't get any arguments that we havent interpreted
         ufl_assert(not kwargs, "Got unused keyword arguments %s" % ', '.join(sorted(kwargs)))
 
-    def reconstruct(self, cell=None, coordinates=None, label=None, data=None):
-        "Create a new Domain object with possibly changed label or data."
-        if coordinates is None:
-            if cell is None:
-                cell = self.cell()
-            if label is None:
-                label = self.label()
-            if data is None:
-                data = self.data()
-            return Domain(cell, label=label, data=data)
-        else:
-            ufl_assert(all((cell is None, label is None, data is None)),
-                       "No other arguments allowed with coordinates.")
-            return Domain(coordinates)
+    def is_piecewise_linear_simplex_domain(self):
+        return (self.ufl_coordinate_element().degree() == 1) and self.ufl_cell().is_simplex()
 
-    def geometric_dimension(self):
-        "Return the dimension of the space this domain is embedded in."
-        return self._geometric_dimension
-
-    def topological_dimension(self):
-        "Return the dimension of the topology of this domain."
-        return self._topological_dimension
-
-    def cell(self):
+    def ufl_cell(self):
         "Return the cell this domain is defined in terms of."
         return self._cell
 
-    def coordinates(self):
+    def ufl_coordinates(self):
         "Return the coordinate vector field this domain is defined in terms of."
+        # TODO: deprecate("Domain.ufl_coordinates() is deprecated, please use SpatialCoordinate(domain) to represent coordinates.")
         return self._coordinates
 
-    def coordinate_element(self):
+    def ufl_coordinate_element(self):
         "Return the finite element of the coordinate vector field of this domain."
-        x = self.coordinates()
+        #return self._ufl_coordinate_element # TODO: Make this THE constructor argument
+        x = self.ufl_coordinates()
         if x is None:
             from ufl import VectorElement
             return VectorElement("Lagrange", self, 1)
         else:
-            return x.element()
+            return x.ufl_element()
 
-    def label(self):
+    def ufl_label(self): # TODO: Replace with count/ufl_id when Mesh becomes subclass
         "Return the label identifying this domain. None means no label has been set."
         return self._label
 
-    def is_piecewise_linear_simplex_domain(self):
-        return (self.coordinate_element().degree() == 1) and (self.cell().cellname() in affine_cells)
-
-    def data(self):
-        "Return attached data object."
+    def ufl_get_mesh(self):
+        #return self # FIXME: When later subclassing this from dolfin, just return self initially, then remove this method
         return self._data
 
-    def signature_data(self, renumbering):
+    # Deprecations
+    def cell(self):
+        deprecate("Domain.cell() is deprecated, please use domain.ufl_cell() instead.")
+        return self.ufl_cell()
+
+    def coordinates(self):
+        deprecate("Domain.coordinates() is deprecated, please use domain.ufl_coordinates()() instead.")
+        return self.ufl_coordinates()
+
+    def coordinate_element(self):
+        deprecate("Domain.coordinate_element() is deprecated, please use domain.ufl_coordinate_element()() instead.")
+        return self.ufl_coordinate_element()
+
+    def label(self):
+        deprecate("Domain.label() is deprecated, please use domain.ufl_label()() instead.")
+        return self.ufl_label()
+
+    def data(self):
+        deprecate("Domain.data() is deprecated, please use domain.ufl_get_mesh() instead, until this becomes obsolete in later redesign.")
+        return self._data
+
+
+    def _ufl_signature_data_(self, renumbering):
         "Signature data of domain depend on the global domain numbering."
         count = renumbering[self]
-        cdata = self.cell()
-        x = self.coordinates()
-        xdata = (None if x is None else x.signature_data(renumbering))
+        cdata = self.ufl_cell()
+        x = self.ufl_coordinates()
+        xdata = (None if x is None else x._ufl_signature_data_(renumbering))
         return (count, cdata, xdata)
 
-    def hash_data(self):
+    def _ufl_hash_data_(self):
         # Including only id of data here.
         # If this is a problem in pydolfin, the user will just have
         # to create explicit Domain objects to avoid problems.
@@ -204,16 +290,15 @@ class Domain(object):
                 self._coordinates, # None or a Coefficient
                 id_or_none(self._data))
 
-    def __hash__(self):
-        return hash(self.hash_data())
-
-    def __eq__(self, other):
-        return type(self) == type(other) and self.hash_data() == other.hash_data()
-
     def __lt__(self, other):
+        "Define an arbitrarily chosen but fixed sort ordering."
         if type(self) != type(other):
             return NotImplemented
-        return self.hash_data() < other.hash_data()
+        # Sort by gdim first, tdim next, then whatever's left depending on the subclass
+        s = (self.geometric_dimension(), self.topological_dimension())
+        o = (other.geometric_dimension(), other.topological_dimension())
+        if s != o: return s < o
+        return self._ufl_hash_data_() < other._ufl_hash_data_() # TODO: Safe for sorting?
 
     def __str__(self):
         if self._coordinates is None:
@@ -245,73 +330,6 @@ class Domain(object):
             s = (self._coordinates,)
             return "Domain(%r)" % s
 
-class OverlapDomain(Domain):
-    """WARNING: This is work in progress, design is in no way completed."""
-    __slots__ = ("_child_domains",)
-    def __init__(self, domain1, domain2, label=None, data=None):
-        # Check domain compatibility
-        ufl_assert(domain1.cell() == domain2.cell(),
-                   "Cell mismatch in overlap domain.")
-        ufl_assert(domain1.geometric_dimension() == domain2.geometric_dimension(),
-                   "Dimension mismatch in overlap domain.")
-        ufl_assert(domain1.topological_dimension() == domain2.topological_dimension(),
-                   "Dimension mismatch in overlap domain.")
-
-        # Initialize parent class
-        Domain.__init__(self, domain1.cell(), label=label, data=data)
-
-        # Save child domains for later
-        self._child_domains = (domain1, domain2)
-
-    def child_domains(self):
-        return self._child_domains
-
-class IntersectionDomain(Domain):
-    """WARNING: This is work in progress, design is in no way completed."""
-    __slots__ = ("_child_domains",)
-    def __init__(self, domain1, domain2, label=None, data=None):
-        # Check domain compatibility
-        ufl_assert(domain1.cell() == domain2.cell(),
-                   "Cell mismatch in overlap domain.")
-        ufl_assert(domain1.geometric_dimension() == domain2.geometric_dimension(),
-                   "Dimension mismatch in overlap domain.")
-        ufl_assert(domain1.topological_dimension() == domain2.topological_dimension(),
-                   "Dimension mismatch in overlap domain.")
-
-        # Get the right properties of this domain
-        gdim = domain1.geometric_dimension()
-        tdim = domain1.topological_dimension()-1
-        cell = Cell(domain1.cell().facet_cellname(), gdim)
-        ufl_assert(cell.topological_dimension() == tdim)
-
-        # Initialize parent class
-        Domain.__init__(self, cell, gdim, tdim, label=label, data=data)
-
-        # Save child domains for later
-        self._child_domains = (domain1, domain2)
-
-    def child_domains(self):
-        return self._child_domains
-
-class ProductDomain(Domain):
-    """WARNING: This is work in progress, design is in no way completed."""
-    __slots__ = ("_child_domains",)
-    def __init__(self, domains, data=None):
-        # Get the right properties of this domain
-        gdim = sum(domain.geometric_dimension() for domain in domains)
-        tdim = sum(domain.topological_dimension() for domain in domains)
-        cell = ProductCell(*[domain.cell() for domain in domains])
-        label = "product_of_%s" % "_".join(str(domain.label()) for domain in domains)
-
-        # Initialize parent class
-        Domain.__init__(self, cell, gdim, tdim, label=label, data=data)
-
-        # Save child domains for later
-        self._child_domains = tuple(domains)
-
-    def child_domains(self):
-        return self._child_domains
-
 # --- Utility conversion functions
 
 
@@ -325,32 +343,17 @@ def as_domain(domain):
     else:
         return Domain(as_cell(domain))
 
-def join_subdomain_data(subdomain_datas): # FIXME: Remove? Think it's unused now.
-    newdata = {}
-    for data in subdomain_datas:
-        for k, v in iteritems(data):
-            nv = newdata.get(k)
-            if nv is None:
-                # New item, just add it
-                newdata[k] = v
-            elif v is not None:
-                id1 = id_or_none(nv)
-                id2 = id_or_none(v)
-                if id1 != id2:
-                    error("Found multiple data objects with key %s." % k)
-    return newdata
-
 def check_domain_compatibility(domains):
     # Validate that the domains are the same except for possibly the data
-    labels = set(domain.label() for domain in domains)
+    labels = set(domain.ufl_label() for domain in domains)
     ufl_assert(len(labels) == 1 or (len(labels) == 2 and None in labels),
                "Got incompatible domain labels %s in check_domain_compatibility." % (labels,))
 
-    all_cellnames = [dom.cell().cellname() for dom in domains]
+    all_cellnames = [dom.ufl_cell().cellname() for dom in domains]
     if len(set(all_cellnames)) != 1:
         error("Cellname mismatch between domains with same label.")
 
-    all_coordinates = set(dom.coordinates() for dom in domains) - set((None,))
+    all_coordinates = set(dom.ufl_coordinates() for dom in domains) - set((None,))
     if len(all_coordinates) > 1:
         error("Coordinates mismatch between domains with same label.")
 
@@ -366,7 +369,7 @@ def join_domains(domains):
     # Build lists of domain objects with same label
     label2domlist = defaultdict(list)
     for domain in domains:
-        label2domlist[domain.label()].append(domain)
+        label2domlist[domain.ufl_label()].append(domain)
 
     # Extract None list from this dict, map to label but only if only one exists
     if None in label2domlist:
@@ -395,31 +398,31 @@ def join_domains(domains):
 
             # Pick first non-None data object
             for dom in domlist:
-                newdata = dom.data()
+                newdata = dom.ufl_get_mesh()
                 if newdata is not None:
                     break
-            cell = dom.cell()
+            cell = dom.ufl_cell()
             gdim = dom.geometric_dimension()
             tdim = dom.topological_dimension()
 
             # Validate that data ids match if present
             if newdata is not None:
-                data_ids = [id_or_none(dom.data()) for dom in domlist]
+                data_ids = [id_or_none(dom.ufl_get_mesh()) for dom in domlist]
                 data_ids = set(i for i in data_ids if i is not None)
                 if len(data_ids) > 1:
                     error("Found data objects with different ids in domains with same label.")
 
             # Pick first non-None coordinates object
             for dom in domlist:
-                newcoordinates = dom.coordinates()
+                newcoordinates = dom.ufl_coordinates()
                 if newcoordinates is not None:
-                    ufl_assert(newcoordinates.domain().coordinates() is None,
+                    ufl_assert(newcoordinates.ufl_domain().ufl_coordinates() is None,
                                "A coordinate domain cannot have coordinates.")
                     break
 
             # Validate that coordinates match if present
             if newcoordinates is not None:
-                all_coordinates = [dom.coordinates() for dom in domlist]
+                all_coordinates = [dom.ufl_coordinates() for dom in domlist]
                 all_coordinates = set(c for c in all_coordinates if c is not None)
                 if len(all_coordinates) > 1:
                     error("Found different coordinates in domains with same label.")
@@ -432,8 +435,49 @@ def join_domains(domains):
         newdomains.append(dom)
     return tuple(newdomains)
 
+class ProductDomain(Domain): # TODO: AbstractDomain
+    """WARNING: This is work in progress, design is in no way completed."""
+    __slots__ = ("_child_domains",)
+    def __init__(self, domains, data=None):
+        # Get the right properties of this domain
+        gdim = sum(domain.geometric_dimension() for domain in domains)
+        tdim = sum(domain.topological_dimension() for domain in domains)
+        cell = ProductCell(*[domain.ufl_cell() for domain in domains])
+        label = "product_of_%s" % "_".join(str(domain.label()) for domain in domains)
+
+        # Initialize parent class
+        Domain.__init__(self, cell, gdim, tdim, label=label, data=data)
+
+        # Save child domains for later
+        self._child_domains = tuple(domains)
+
+    def child_domains(self):
+        return self._child_domains
+
+
+# TODO: Move these to an analysis module?
+
 def extract_domains(expr):
+    "Return all domains expression is defined on."
     domainlist = []
     for t in traverse_unique_terminals(expr):
-        domainlist.extend(t.domains())
+        domainlist.extend(t.ufl_domains())
     return sorted(join_domains(domainlist))
+
+def extract_unique_domain(expr):
+    "Return the single unique domain expression is defined on or throw an error."
+    domains = extract_domains(expr)
+    if len(domains) == 1:
+        return domains[0]
+    elif domains:
+        error("Found multiple domains, cannot return just one.")
+    else:
+        #error("Found no domains.")
+        return None
+
+def find_geometric_dimension(expr):
+    "Find the geometric dimension of an expression."
+    gdims = set(domain.geometric_dimension() for domain in extract_domains(expr))
+    if len(gdims) != 1:
+        error("Cannot determine geometric dimension from expression.")
+    return tuple(gdims)[0]

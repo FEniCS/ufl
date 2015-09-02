@@ -1,7 +1,8 @@
+# -*- coding: utf-8 -*-
 """This module contains a sorting rule for expr objects that
 is more robust w.r.t. argument numbering than using repr."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -20,9 +21,6 @@ is more robust w.r.t. argument numbering than using repr."""
 #
 # Modified by Anders Logg, 2009-2010.
 # Modified by Johan Hake, 2010.
-#
-# First added:  2008-11-26
-# Last changed: 2013-01-02
 
 from six.moves import zip
 
@@ -32,7 +30,6 @@ from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.core.multiindex import Index, FixedIndex, MultiIndex
 from ufl.variable import Label
-from ufl.geometry import GeometricQuantity
 
 
 def _cmp3(a, b):
@@ -236,6 +233,3 @@ def sorted_expr_sum(seq):
     for e in seq2[1:]:
         s = s + e
     return s
-
-
-from ufl.common import topological_sorting # FIXME: Remove this, update whoever uses it in ufl and ffc etc.

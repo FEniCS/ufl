@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 "This module defines the UFL finite element classes."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes and Andrew T. T. McRae
+# Copyright (C) 2008-2015 Martin Sandve Alnæs and Andrew T. T. McRae
 #
 # This file is part of UFL.
 #
@@ -51,7 +52,7 @@ class OuterProductElement(FiniteElementBase):
             domain = as_domain(cell)
         else:
             domain = as_domain(domain)
-            cell = domain.cell()
+            cell = domain.ufl_cell()
             ufl_assert(cell is not None, "Missing cell in given domain.")
 
         self._repr = "OuterProductElement(*%r, %r)" % (list([self._A, self._B]),
@@ -86,7 +87,7 @@ class OuterProductElement(FiniteElementBase):
     def reconstruct(self, **kwargs):
         """Construct a new OuterProductElement with some properties
         replaced with new values."""
-        domain = kwargs.get("domain", self.domain())
+        domain = kwargs.get("domain", self.ufl_domain())
         return OuterProductElement(self._A, self._B, domain=domain)
 
     def reconstruction_signature(self):
@@ -99,7 +100,7 @@ class OuterProductElement(FiniteElementBase):
         label and data, which must be reconstructed or supplied by other means.
         """
         return "OuterProductElement(%r, %r, %s, %r)" % (
-            self._A, self._B, self.domain().reconstruction_signature(),
+            self._A, self._B, self.ufl_domain().reconstruction_signature(),
             self._quad_scheme)
 
     def __str__(self):
@@ -112,12 +113,12 @@ class OuterProductElement(FiniteElementBase):
         return "OuterProductElement(%s)" \
             % str([self._A.shortstr(), self._B.shortstr()])
 
-    def signature_data(self, renumbering):
+    def _ufl_signature_data_(self, renumbering):
         data = ("OuterProductElement",
                 self._A,
                 self._B,
                 self._quad_scheme,
-                ("no domain" if self._domain is None else self._domain.signature_data(renumbering)))
+                ("no domain" if self._domain is None else self._domain._ufl_signature_data_(renumbering)))
         return data
 
 
@@ -173,17 +174,17 @@ class OuterProductVectorElement(MixedElement):
     def mapping(self):
         return self._sub_element.mapping()
 
-    def signature_data(self, renumbering):
+    def _ufl_signature_data_(self, renumbering):
         data = ("OuterProductVectorElement", self._A, self._B,
                 len(self._sub_elements), self._quad_scheme,
                 ("no domain" if self._domain is None else
-                    self._domain.signature_data(renumbering)))
+                    self._domain._ufl_signature_data_(renumbering)))
         return data
 
     def reconstruct(self, **kwargs):
         """Construct a new OuterProductVectorElement with some properties
         replaced with new values."""
-        domain = kwargs.get("domain", self.domain())
+        domain = kwargs.get("domain", self.ufl_domain())
         dim = kwargs.get("dim", self.num_sub_elements())
         return OuterProductVectorElement(self._A, self._B,
                                          domain=domain, dim=dim)
@@ -198,7 +199,7 @@ class OuterProductVectorElement(MixedElement):
         label and data, which must be reconstructed or supplied by other means.
         """
         return "OuterProductVectorElement(%r, %s, %d, %r)" % (
-            self._sub_element, self.domain().reconstruction_signature(),
+            self._sub_element, self.ufl_domain().reconstruction_signature(),
             len(self._sub_elements), self._quad_scheme)
 
     def __str__(self):

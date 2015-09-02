@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """Algorithms for estimating polynomial degrees of expressions."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes and Anders Logg
+# Copyright (C) 2008-2015 Martin Sandve Alnæs and Anders Logg
 #
 # This file is part of UFL.
 #
@@ -25,6 +26,7 @@ from ufl.log import warning
 from ufl.form import Form
 from ufl.integral import Integral
 from ufl.algorithms.transformer import Transformer
+from ufl.checks import is_cellwise_constant
 
 
 class IrreducibleInt(int):
@@ -49,15 +51,15 @@ class SumDegreeEstimator(Transformer):
 
     def geometric_quantity(self, v):
         "Some geometric quantities are cellwise constant. Others are nonpolynomial and thus hard to estimate."
-        if v.is_cellwise_constant():
+        if is_cellwise_constant(v):
             return 0
         else:
             # As a heuristic, just returning domain degree to bump up degree somewhat
-            return v.domain().coordinate_element().degree()
+            return v.ufl_domain().ufl_coordinate_element().degree()
 
     def spatial_coordinate(self, v):
         "A coordinate provides additional degrees depending on coordinate field of domain."
-        return v.domain().coordinate_element().degree()
+        return v.ufl_domain().ufl_coordinate_element().degree()
 
     def cell_coordinate(self, v):
         "A coordinate provides one additional degree."
@@ -66,12 +68,12 @@ class SumDegreeEstimator(Transformer):
     def argument(self, v):
         """A form argument provides a degree depending on the element,
         or the default degree if the element has no degree."""
-        return v.element().degree() # FIXME: Use component to improve accuracy for mixed elements
+        return v.ufl_element().degree() # FIXME: Use component to improve accuracy for mixed elements
 
     def coefficient(self, v):
         """A form argument provides a degree depending on the element,
         or the default degree if the element has no degree."""
-        e = v.element()
+        e = v.ufl_element()
         e = self.element_replace_map.get(e, e)
         d = e.degree() # FIXME: Use component to improve accuracy for mixed elements
         if d is None:
@@ -326,7 +328,7 @@ def __unused__extract_max_quadrature_element_degree(integral):
 def __unused__estimate_quadrature_degree(integral):
     "Estimate the necessary quadrature order for integral using the sum of argument degrees."
     arguments = extract_arguments(integral)
-    degrees = [v.element().degree() for v in arguments]
+    degrees = [v.ufl_element().degree() for v in arguments]
     if len(arguments) == 0:
         return None
     if len(arguments) == 1:

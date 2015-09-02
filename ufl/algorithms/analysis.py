@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """Utility algorithms for inspection of and information extraction from UFL objects in various ways."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -26,8 +27,7 @@ from collections import namedtuple
 
 from ufl.log import error, warning, info
 from ufl.assertions import ufl_assert
-from ufl.sorting import topological_sorting
-from ufl.utils.sorting import sorted_by_count
+from ufl.utils.sorting import sorted_by_count, topological_sorting
 
 from ufl.core.expr import Expr
 from ufl.core.terminal import Terminal, FormArgument
@@ -153,7 +153,7 @@ The arguments found are:\n%s""" % "\n".join("  %s" % f for f in coefficients)
 def extract_elements(form):
     "Build sorted tuple of all elements used in form."
     args = chain(*extract_arguments_and_coefficients(form))
-    return tuple(f.element() for f in args)
+    return tuple(f.ufl_element() for f in args)
 
 
 def extract_unique_elements(form):

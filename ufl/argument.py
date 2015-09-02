@@ -1,7 +1,8 @@
+# -*- coding: utf-8 -*-
 """This module defines the class Argument and a number of related
 classes (functions), including TestFunction and TrialFunction."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -22,61 +23,83 @@ classes (functions), including TestFunction and TrialFunction."""
 
 from ufl.log import deprecate
 from ufl.assertions import ufl_assert
+from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal, FormArgument
 from ufl.split_functions import split
 from ufl.finiteelement import FiniteElementBase
-from ufl.core.ufl_type import ufl_type
+from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
 
 # --- Class representing an argument (basis function) in a form ---
 
 @ufl_type()
 class Argument(FormArgument):
     """UFL value: Representation of an argument to a form."""
-    __slots__ = ("_element", "_number", "_part", "_repr")
+    __slots__ = ("_ufl_function_space", "_ufl_shape", "_number", "_part", "_repr")
 
     def __init__(self, element, number, part=None):
         FormArgument.__init__(self)
-        ufl_assert(isinstance(element, FiniteElementBase),
-                   "Expecting an element, not %s" % (element,))
+
+        if isinstance(element, FiniteElementBase):
+            # Temporary legacy support
+            fs = FunctionSpace(element.ufl_domain(), element)
+            # FIXME: Future legacy support for .ufl files when element.domain() has been removed:
+            #fs = FunctionSpace(as_domain(element.cell()), element)
+        elif isinstance(element, AbstractFunctionSpace):
+            fs = element
+        else:
+            error("Expecting a FunctionSpace or FiniteElement.")
+
+        self._ufl_function_space = fs
+
+        self._ufl_shape = fs.ufl_element().value_shape()
+
         ufl_assert(isinstance(number, int),
                    "Expecting an int for number, not %s" % (number,))
         ufl_assert(part is None or isinstance(part, int),
                    "Expecting None or an int for part, not %s" % (part,))
-        self._element = element
         self._number = number
         self._part = part
-        self._repr = "Argument(%r, %r, %r)" % (self._element, self._number, self._part)
+
+        self._repr = "Argument(%r, %r, %r)" % (self._ufl_function_space, self._number, self._part)
 
     def reconstruct(self, element=None, number=None, part=None):
-        if element is None or (element == self._element): # TODO: Is the == here a workaround for some bug?
-            element = self._element
+        if element is None or (element == self.ufl_element()): # TODO: Is the == here a workaround for some bug?
+            element = self.ufl_element()
         if number is None:
             number = self._number
         if part is None:
             part = self._part
-        if number == self._number and part == self._part and element is self._element:
+        if number == self._number and part == self._part and element is self.ufl_element():
             return self
-        ufl_assert(element.value_shape() == self._element.value_shape(),
+        ufl_assert(element.value_shape() == self.ufl_element().value_shape(),
                    "Cannot reconstruct an Argument with a different value shape.")
         return Argument(element, number, part)
 
+    @property
+    def ufl_shape(self):
+        return self._ufl_shape
+
+    def ufl_function_space(self):
+        "Get the function space of this Argument."
+        return self._ufl_function_space
+
+    def ufl_domain(self):
+        #TODO: deprecate("Argument.ufl_domain() is deprecated, please use .ufl_function_space().ufl_domain() instead.")
+        return self._ufl_function_space.ufl_domain()
+
+    def ufl_element(self):
+        #TODO: deprecate("Argument.ufl_domain() is deprecated, please use .ufl_function_space().ufl_element() instead.")
+        return self._ufl_function_space.ufl_element()
+
     def element(self):
-        return self._element
+        deprecate("Argument.element() is deprecated, please use Argument.ufl_element() instead.")
+        return self.ufl_element()
 
     def number(self):
         return self._number
 
     def part(self):
         return self._part
-
-    def count(self):
-        deprecate("The count of an Argument has been replaced with number() and part().")
-        ufl_assert(self.part() is None, "Deprecation transition for count() will not work with parts.")
-        return self.number() # I think this will work ok in most cases during the deprecation transition
-
-    @property
-    def ufl_shape(self):
-        return self._element.value_shape()
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
@@ -86,21 +109,18 @@ class Argument(FormArgument):
         # When we can annotate zero with arguments, we can change this.
         return False
 
-    def domains(self):
+    def ufl_domains(self):
         "Return tuple of domains related to this terminal object."
-        return self._element.domains()
+        d = self.ufl_domain() # TODO: Can we get more than one domain from a mixed function space?
+        if d is None:
+            return ()
+        else:
+            return (d,)
 
-    def signature_data(self, domain_numbering):
+    def _ufl_signature_data_(self, renumbering):
         "Signature data for form arguments depend on the global numbering of the form arguments and domains."
-        s = self._element.signature_data(domain_numbering=domain_numbering)
-        return ("Argument", self._number, self._part) + s
-
-    def signature_data(self, renumbering):
-        "Signature data for form arguments depend on the global numbering of the form arguments and domains."
-        edata = self.element().signature_data(renumbering)
-        d = self.domain()
-        ddata = None if d is None else d.signature_data(renumbering)
-        return ("Coefficient", self._number, self._part, edata, ddata)
+        fsdata = self._ufl_function_space._ufl_signature_data_(renumbering)
+        return ("Argument", self._number, self._part, fsdata)
 
     def __str__(self):
         number = str(self._number)
@@ -134,7 +154,7 @@ class Argument(FormArgument):
         return (type(self) == type(other) and
                 self._number == other._number and
                 self._part == other._part and
-                self._element == other._element)
+                self._ufl_function_space == other._ufl_function_space)
 
 # --- Helper functions for pretty syntax ---
 

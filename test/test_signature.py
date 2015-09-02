@@ -1,4 +1,5 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 """
 Test the computation of form signatures.
 """
@@ -7,7 +8,7 @@ import pytest
 
 from ufl import *
 
-from ufl.common import EmptyDictType
+from ufl.utils.dicts import EmptyDictType
 from ufl.classes import MultiIndex, FixedIndex
 from ufl.algorithms.signature import compute_multiindex_hashdata, \
     compute_terminal_hashdata
@@ -39,8 +40,8 @@ def test_domain_signatures_of_cell2domains(self):
         # Signature data holds when constructing two domains from a cell:
         D1 = as_domain(cell)
         D2 = as_domain(cell)
-        self.assertEqual(D1.signature_data({D1:0}),
-                         D2.signature_data({D2:0}))
+        self.assertEqual(D1._ufl_signature_data_({D1:0}),
+                         D2._ufl_signature_data_({D2:0}))
 
 def compute_unique_terminal_hashdatas(hashdatas):
     count = 0
@@ -251,9 +252,9 @@ def test_domain_signature_data_does_not_depend_on_domain_label_value(self):
         d0 = Domain(cell)
         d1 = Domain(cell, label="domain1")
         d2 = Domain(cell, label="domain2")
-        s0 = d0.signature_data({ d0: 0 })
-        s1 = d1.signature_data({ d1: 0 })
-        s2 = d2.signature_data({ d2: 0 })
+        s0 = d0._ufl_signature_data_({ d0: 0 })
+        s1 = d1._ufl_signature_data_({ d1: 0 })
+        s2 = d2._ufl_signature_data_({ d2: 0 })
         assert s0 == s1
         assert s0 == s2
         s0s.add(s0)

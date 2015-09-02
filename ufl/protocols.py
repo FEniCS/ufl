@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 def id_or_none(obj):
     """Returns None if the object is None, obj.ufl_id() if available, or id(obj) if not.

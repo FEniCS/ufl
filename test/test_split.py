@@ -1,8 +1,9 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 
 from ufl import *
 
-__authors__ = "Martin Sandve Alnes"
+__authors__ = "Martin Sandve Alnæs"
 __date__ = "2009-03-14 -- 2009-03-14"
 
 import pytest

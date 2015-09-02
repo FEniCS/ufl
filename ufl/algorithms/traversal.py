@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """This module contains algorithms for traversing expression trees in different ways."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes and Anders Logg
+# Copyright (C) 2008-2015 Martin Sandve Alnæs and Anders Logg
 #
 # This file is part of UFL.
 #

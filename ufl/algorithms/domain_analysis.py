@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """Algorithms for building canonical data structure for integrals over subdomains."""
 
-# Copyright (C) 2009-2014 Anders Logg and Martin Sandve Alnes
+# Copyright (C) 2009-2015 Anders Logg and Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -45,7 +46,7 @@ class IntegralData(object):
     __slots__ = ('domain', 'integral_type', 'subdomain_id', 'integrals', 'metadata',
                  'integral_coefficients', 'enabled_coefficients')
     def __init__(self, domain, integral_type, subdomain_id, integrals, metadata):
-        ufl_assert(all(domain.label() == itg.domain().label() for itg in integrals),
+        ufl_assert(all(domain.ufl_label() == itg.ufl_domain().ufl_label() for itg in integrals),
                    "Domain label mismatch in integral data.")
         ufl_assert(all(integral_type == itg.integral_type() for itg in integrals),
                    "Domain type mismatch in integral data.")
@@ -123,14 +124,14 @@ def group_integrals_by_domain_and_type(integrals, domains):
         integrals_by_domain_and_type: dict: (domain, integral_type) -> list(Integral)
     """
     integral_data = []
-    domains_by_label = dict((domain.label(), domain) for domain in domains)
+    domains_by_label = dict((domain.ufl_label(), domain) for domain in domains)
 
     integrals_by_domain_and_type = defaultdict(list)
     for itg in integrals:
         # Canonicalize domain
-        domain = itg.domain()
+        domain = itg.ufl_domain()
         ufl_assert(domain is not None, "Integrals without a domain is now illegal.")
-        domain = domains_by_label.get(domain.label())
+        domain = domains_by_label.get(domain.ufl_label())
         integral_type = itg.integral_type()
 
         # Append integral to list of integrals with shared key

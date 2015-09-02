@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 "Algorithm for splitting a Coefficient or Argument into subfunctions."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -23,7 +24,8 @@ from six.moves import xrange as range
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.common import product, EmptyDict
+from ufl.utils.sequences import product
+from ufl.utils.dicts import EmptyDict
 from ufl.finiteelement import MixedElement, TensorElement
 from ufl.tensors import as_vector, as_matrix, as_tensor
 
@@ -32,7 +34,7 @@ def split(v):
     """UFL operator: If v is a Coefficient or Argument in a mixed space, returns
     a tuple with the function components corresponding to the subelements."""
     # Special case: simple element, just return function in a tuple
-    element = v.element()
+    element = v.ufl_element()
     if not isinstance(element, MixedElement):
         return (v,)
 
@@ -92,12 +94,12 @@ def split(v):
                     c = s.get(c, c)
                     i, j = c
                     # Extract component c of this subvalue from global tensor v
-                    if v.rank() == 1:
+                    if len(v.ufl_shape) == 1:
                         # Mapping into a flattened vector
                         k = offset + i*shape[1] + j
                         component = v[k]
                         #print "k, offset, i, j, shape, component", k, offset, i, j, shape, component
-                    elif v.rank() == 2:
+                    elif len(v.ufl_shape) == 2:
                         # Mapping into a concatenated tensor (is this a figment of my imagination?)
                         error("Not implemented.")
                         row_offset, col_offset = 0, 0 # TODO

@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """A collection of utility algorithms for handling UFL files."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #

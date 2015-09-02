@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """Algorithm for replacing gradients in an expression with reference gradients and coordinate mappings."""
 
-# Copyright (C) 2008-2015 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -36,7 +37,7 @@ from ufl.tensors import as_tensor, as_vector
 from ufl.finiteelement import (FiniteElement, EnrichedElement, VectorElement, MixedElement,
                                OuterProductElement, OuterProductVectorElement, TensorElement,
                                FacetElement, InteriorElement, BrokenElement, TraceElement)
-from ufl.common import product
+from ufl.utils.sequences import product
 
 def sub_elements_with_mappings(element):
     "Return an ordered list of the largest subelements that have a defined mapping."
@@ -70,7 +71,7 @@ def reshape_to_nested_list(components, shape):
         return [reshape_to_nested_list(components[n*i:n*(i+1)], shape[1:]) for i in range(shape[0])]
 
 def apply_single_function_pullbacks(g):
-    element = g.element()
+    element = g.ufl_element()
     mapping = element.mapping()
 
     r = ReferenceValue(g)
@@ -87,7 +88,7 @@ def apply_single_function_pullbacks(g):
     rsize = product(rsh)
 
     # Create some geometric objects for reuse
-    domain = g.domain()
+    domain = g.ufl_domain()
     J = Jacobian(domain)
     detJ = JacobianDeterminant(domain)
     Jinv = JacobianInverse(domain)

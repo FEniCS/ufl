@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 "This module defines the UFL finite element classes."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -21,8 +22,6 @@
 # Modified by Marie E. Rognes 2010, 2012
 
 from ufl.assertions import ufl_assert
-from ufl.permutation import compute_indices
-from ufl.common import product, istr, EmptyDict
 from ufl.geometry import as_domain, as_cell, ProductCell, ProductDomain
 from ufl.log import info_blue, warning, warning_blue, error
 
@@ -50,7 +49,7 @@ class TensorProductElement(FiniteElementBase):
         family = "TensorProductElement"
 
         # Define domain as the product of each elements domain
-        domain = ProductDomain([e.domain() for e in self._sub_elements])
+        domain = ProductDomain([e.ufl_domain() for e in self._sub_elements])
 
         # Define polynomial degree as the maximal of each subelement
         degrees = { e.degree() for e in self._sub_elements } - { None }
@@ -106,7 +105,7 @@ class TensorProductElement(FiniteElementBase):
         return "TensorProductElement(%s)" \
             % str([e.shortstr() for e in self.sub_elements()])
 
-    def signature_data(self, renumbering):
+    def _ufl_signature_data_(self, renumbering):
         data = ("TensorProductElement",
-                tuple(e.signature_data(renumbering) for e in self._sub_elements))
+                tuple(e._ufl_signature_data_(renumbering) for e in self._sub_elements))
         return data

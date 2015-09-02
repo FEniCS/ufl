@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """This module contains the apply_restrictions algorithm which propagates restrictions in a form towards the terminals."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -114,7 +115,7 @@ class RestrictionPropagator(MultiFunction):
 
     def coefficient(self, o):
         "Allow coefficients to be unrestricted (apply default if so) if the values are fully continuous across the facet."
-        e = o.element()
+        e = o.ufl_element()
         d = e.degree()
         f = e.family()
         # TODO: Move this choice to the element class?
@@ -125,8 +126,8 @@ class RestrictionPropagator(MultiFunction):
             return self._require_restriction(o)
 
     def facet_normal(self, o):
-        D = o.domain()
-        e = D.coordinate_element()
+        D = o.ufl_domain()
+        e = D.ufl_coordinate_element()
         f = e.family()
         d = e.degree()
         gd = D.geometric_dimension()
@@ -143,8 +144,8 @@ class RestrictionPropagator(MultiFunction):
             return self._require_restriction(o)
 
     def reference_normal(self, o):
-        D = o.domain()
-        e = D.coordinate_element()
+        D = o.ufl_domain()
+        e = D.ufl_coordinate_element()
         f = e.family()
         d = e.degree()
         gd = D.geometric_dimension()

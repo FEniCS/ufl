@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """Base class for multifunctions with UFL Expr type dispatch."""
 
-# Copyright (C) 2008-2015 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #

@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """The Measure class."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -17,16 +18,15 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
-# Modified by Anders Logg 2008-2014
+# Modified by Anders Logg 2008-2015
 
 from ufl.assertions import ufl_assert
 from ufl.log import error, warning
 from ufl.core.expr import Expr
-from ufl.geometry import Domain, as_domain
 from ufl.checks import is_true_ufl_scalar
 from ufl.constantvalue import as_ufl
-from ufl.common import EmptyDict
-
+from ufl.utils.dicts import EmptyDict
+from ufl.domain import Domain, as_domain, extract_domains
 from ufl.protocols import id_or_none, metadata_equal, metadata_hashdata
 
 # TODO: Design a class DomainType(name, shortname, codim, num_cells, ...)?
@@ -166,6 +166,10 @@ class Measure(object):
         return self._integral_type
 
     def domain(self):
+        deprecate("Measure.domain() is deprecated, please use .ufl_domain() instead.")
+        return self.ufl_domain()
+
+    def ufl_domain(self):
         """Return the domain associated with this measure.
 
         This may be None or a Domain object.
@@ -202,7 +206,7 @@ class Measure(object):
         if subdomain_id is None:
             subdomain_id = self.subdomain_id()
         if domain is None:
-            domain = self.domain()
+            domain = self.ufl_domain()
         if metadata is None:
             metadata = self.metadata()
         if subdomain_data is None:
@@ -302,8 +306,11 @@ class Measure(object):
 
     def __hash__(self):
         "Return a hash value for this Measure."
-        hashdata = (self._integral_type, self._subdomain_id, hash(self._domain),
-                    metadata_hashdata(self._metadata), id_or_none(self._subdomain_data))
+        hashdata = (self._integral_type,
+                    self._subdomain_id,
+                    hash(self._domain),
+                    metadata_hashdata(self._metadata),
+                    id_or_none(self._subdomain_data))
         return hash(hashdata)
 
     def __eq__(self, other):
@@ -371,7 +378,7 @@ class Measure(object):
         if not is_true_ufl_scalar(integrand):
             msg = ("Can only integrate scalar expressions. The integrand is a " +
                    "tensor expression with value rank %d and free indices %r.")
-            error(msg % (integrand.rank(), integrand.ufl_free_indices))
+            error(msg % (len(integrand.ufl_shape), integrand.ufl_free_indices))
 
         # If we have a tuple of domain ids, delegate composition to Integral.__add__:
         subdomain_id = self.subdomain_id()
@@ -384,9 +391,9 @@ class Measure(object):
                    "Expecting integer or string domain id.")
 
         # If we don't have an integration domain, try to find one in integrand
-        domain = self.domain()
+        domain = self.ufl_domain()
         if domain is None:
-            domains = integrand.domains()
+            domains = extract_domains(integrand)
             if len(domains) == 1:
                 domain, = domains
             elif len(domains) == 0:

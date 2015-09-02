@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (C) 2014 Andrew T. T. McRae
 #
 # This file is part of UFL.
@@ -26,7 +27,7 @@ class InteriorElement(FiniteElementBase):
         self._repr = "InteriorElement(%r)" % element
 
         family = "InteriorElement"
-        domain = element.domain()
+        domain = element.ufl_domain()
         degree = element.degree()
         quad_scheme = element.quadrature_scheme()
         value_shape = element.value_shape()
@@ -40,17 +41,17 @@ class InteriorElement(FiniteElementBase):
     def reconstruct(self, **kwargs):
         """Construct a new InteriorElement object with some properties
         replaced with new values."""
-        domain = kwargs.get("domain", self.domain())
+        domain = kwargs.get("domain", self.ufl_domain())
         ele = self._element.reconstruct(domain=domain)
         return InteriorElement(ele)
 
     def reconstruction_signature(self):
         return "InteriorElement(%s)" % self._element.reconstruction_signature()
 
-    def signature_data(self, renumbering):
-        data = ("InteriorElement", self._element.signature_data(renumbering),
+    def _ufl_signature_data_(self, renumbering):
+        data = ("InteriorElement", self._element._ufl_signature_data_(renumbering),
                 ("no domain" if self._domain is None else self._domain
-                    .signature_data(renumbering)))
+                    ._ufl_signature_data_(renumbering)))
         return data
 
     def __str__(self):

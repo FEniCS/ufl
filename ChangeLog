@@ -1,3 +1,11 @@
+1.7.0dev
+ - Deprecate .cell(), .domain(), .element() in favour of .ufl_cell(),
+	.ufl_domain(), .ufl_element(), in multiple classes, to allow
+	closer integration with dolfin.
+ - Remove deprecated properties cell.{d,x,n,volume,circumradius,facet_area}.
+ - Remove ancient form2ufl script
+ - Large reworking of symbolic geometry pipeline
+ - Implement symbolic Piola mappings
 1.6.0 [2015-07-28]
  - Change approach to attaching __hash__ implementation to accomodate python 3
  - Implement new non-recursive traversal based hash computation

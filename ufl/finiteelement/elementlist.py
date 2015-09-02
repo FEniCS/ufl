@@ -1,8 +1,9 @@
+# -*- coding: utf-8 -*-
 """This module provides an extensive list of predefined finite element
 families. Users or more likely, form compilers, may register new
 elements by calling the function register_element."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes and Anders Logg
+# Copyright (C) 2008-2015 Martin Sandve Alnæs and Anders Logg
 #
 # This file is part of UFL.
 #
@@ -27,7 +28,7 @@ from __future__ import print_function
 from ufl.log import warning as ufl_warning
 from ufl.assertions import ufl_assert
 from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl, HEin
-from ufl.common import istr
+from ufl.utils.formatting import istr
 
 # List of valid elements
 ufl_elements = {}

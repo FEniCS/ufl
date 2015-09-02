@@ -1,4 +1,5 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 
 # This file must be separate from the other arithmetic
 # tests to test the effect of this future statment

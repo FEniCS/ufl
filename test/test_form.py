@@ -1,4 +1,5 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 import pytest
 
 from ufl import *
@@ -100,11 +101,11 @@ def test_form_domains():
     f = Coefficient(element)
     x = SpatialCoordinate(domain)[0]
 
-    assert (x * dx).domains() == (domain,)
-    assert (v * dx).domains() == (domain,)
-    assert (f * dx).domains() == (domain,)
-    assert (x * v * f * dx).domains() == (domain,)
-    assert (1 * dx(domain)).domains() == (domain,)
+    assert (x * dx).ufl_domains() == (domain,)
+    assert (v * dx).ufl_domains() == (domain,)
+    assert (f * dx).ufl_domains() == (domain,)
+    assert (x * v * f * dx).ufl_domains() == (domain,)
+    assert (1 * dx(domain)).ufl_domains() == (domain,)
 
 
 def test_form_empty(mass):

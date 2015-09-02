@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """This module defines the single index types and some internal index utilities."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes and Anders Logg
+# Copyright (C) 2008-2015 Martin Sandve Alnæs and Anders Logg
 #
 # This file is part of UFL.
 #
@@ -21,7 +22,7 @@ from six.moves import xrange as range
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.common import counted_init
+from ufl.utils.counted import counted_init
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal
 
@@ -176,10 +177,9 @@ class MultiIndex(Terminal):
         error("Multiindex has no free indices (it is not a tensor expression).")
 
     def is_cellwise_constant(self):
-        error("Asking if a Multiindex is cellwise constant makes no sense (it is not a tensor expression).")
-        #return True # Could also just return True, after all it doesn't change with the cell
+        return True
 
-    def domains(self):
+    def ufl_domains(self):
         "Return tuple of domains related to this terminal object."
         return ()
 

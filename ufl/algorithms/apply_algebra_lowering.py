@@ -1,7 +1,8 @@
+# -*- coding: utf-8 -*-
 """Algorithm for expanding compound expressions into
 equivalent representations using basic operators."""
 
-# Copyright (C) 2008-2015 Martin Sandve Alnes and Anders Logg
+# Copyright (C) 2008-2015 Martin Sandve Alnæs and Anders Logg
 #
 # This file is part of UFL.
 #
@@ -88,8 +89,8 @@ class LowerCompoundAlgebra(MultiFunction):
         return as_tensor(s, ai+bi)
 
     def dot(self, o, a, b):
-        ai = indices(a.rank()-1)
-        bi = indices(b.rank()-1)
+        ai = indices(len(a.ufl_shape)-1)
+        bi = indices(len(b.ufl_shape)-1)
         k = (Index(),)
         # Creates a single IndexSum over a Product
         s = a[ai+k]*b[k+bi]
@@ -108,21 +109,21 @@ class LowerCompoundAlgebra(MultiFunction):
             else:
                 ii.append(Index())
         ii = tuple(ii)
-        #ii = indices(a.rank())
+        #ii = indices(len(a.ufl_shape))
         # Potentially creates multiple IndexSums over a Product
         s = a[ii]*b[ii]
         return s
 
     def inner(self, o, a, b):
         ufl_assert(a.ufl_shape == b.ufl_shape)
-        ii = indices(a.rank())
+        ii = indices(len(a.ufl_shape))
         # Creates multiple IndexSums over a Product
         s = a[ii]*b[ii]
         return s
 
     def outer(self, o, a, b):
-        ii = indices(a.rank())
-        jj = indices(b.rank())
+        ii = indices(len(a.ufl_shape))
+        jj = indices(len(b.ufl_shape))
         # Create a Product with no shared indices
         s = a[ii]*b[jj]
         return as_tensor(s, ii+jj)
