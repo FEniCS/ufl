@@ -13,9 +13,10 @@ from ufl.algorithms.renumbering import renumber_indices
 
 
 def test_change_to_reference_grad():
-    domain = Domain(triangle)
-    U = FiniteElement("CG", domain, 1)
-    V = VectorElement("CG", domain, 1)
+    cell = triangle
+    domain = Domain(cell)
+    U = FunctionSpace(domain, FiniteElement("CG", cell, 1))
+    V = FunctionSpace(domain, VectorElement("CG", cell, 1))
     u = Coefficient(U)
     v = Coefficient(V)
     Jinv = JacobianInverse(domain)
