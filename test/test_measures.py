@@ -91,7 +91,7 @@ def test_foo():
     assert mydomain.ufl_get_mesh() == mymesh
 
     # Define a coefficient for use in tests below
-    V = FiniteElement("CG", mydomain, 1)
+    V = FunctionSpace(mydomain, FiniteElement("CG", cell, 1))
     f = Coefficient(V)
 
     # Test definition of a custom measure with explicit parameters

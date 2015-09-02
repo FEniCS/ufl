@@ -139,10 +139,10 @@ def _compute_form_data_elements(self, arguments, coefficients):
 
 def _check_elements(form_data):
     for element in chain(form_data.unique_elements, form_data.unique_sub_elements):
-        ufl_assert(element.ufl_domain() is not None,
-                   "Found element with undefined domain: %s" % repr(element))
         ufl_assert(element.family() is not None,
                    "Found element with undefined familty: %s" % repr(element))
+        ufl_assert(element.cell() is not None,
+                   "Found element with undefined cell: %s" % repr(element))
 
 
 def _check_facet_geometry(integral_data):

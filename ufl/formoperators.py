@@ -40,6 +40,7 @@ from ufl.indexed import Indexed
 from ufl.core.multiindex import FixedIndex, MultiIndex
 from ufl.tensors import as_tensor, ListTensor
 from ufl.sorting import sorted_expr
+from ufl.functionspace import FunctionSpace
 
 # An exception to the rule that ufl.* does not depend on ufl.algorithms.* ...
 from ufl.algorithms import compute_form_adjoint, \

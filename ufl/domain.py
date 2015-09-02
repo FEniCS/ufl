@@ -339,16 +339,31 @@ class Domain(AbstractDomain): # Legacy class we're moving away from
 
 # --- Utility conversion functions
 
+_default_domains = {}
+def default_domain(cell):
+    "Create a singular default Domain from a cell, always returning the same Domain object for the same cell."
+    global _default_domains
+    assert isinstance(cell, AbstractCell)
+    domain = _default_domains.get(cell)
+    if domain is None:
+        domain = Domain(cell)
+        _default_domains[cell] = domain
+    return domain
 
 def as_domain(domain):
     """Convert any valid object to a Domain (in particular, cell or cellname string),
     or return domain if it is already a Domain."""
-    if isinstance(domain, Domain):
+    if isinstance(domain, AbstractDomain):
+        # Modern .ufl files and dolfin behaviour
         return domain
     elif hasattr(domain, "ufl_domain"):
+        # If we get a dolfin.Mesh before it's changed to inherit from ufl.Mesh
         return domain.ufl_domain()
     else:
-        return Domain(as_cell(domain))
+        # Legacy .ufl files # FIXME: Make this conversion in the relevant constructors closer to the user interface
+        return default_domain(as_cell(domain))
+    #else:
+    #    error("Invalid domain %s" % (domain,))
 
 def check_domain_compatibility(domains):
     # Validate that the domains are the same except for possibly the data

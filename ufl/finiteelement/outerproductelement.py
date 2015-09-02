@@ -51,8 +51,8 @@ class OuterProductElement(FiniteElementBase):
         else:
             cell = as_cell(cell)
 
-        self._repr = "OuterProductElement(*%r, %r)" % (list([self._A, self._B]),
-                                                       domain)
+        self._repr = "OuterProductElement(*%r, %r)" % (list([self._A, self._B]), cell)
+
         # Define polynomial degree as a tuple of sub-degrees
         degree = (A.degree(), B.degree())
 
@@ -67,7 +67,7 @@ class OuterProductElement(FiniteElementBase):
         else:
             self._mapping = "undefined"
 
-        FiniteElementBase.__init__(self, family, domain, degree,
+        FiniteElementBase.__init__(self, family, cell, degree,
                                    quad_scheme, value_shape, reference_value_shape)
 
     def mapping(self):

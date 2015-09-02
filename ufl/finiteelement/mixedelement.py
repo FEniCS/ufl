@@ -34,7 +34,6 @@ from ufl.utils.sequences import product
 from ufl.utils.formatting import istr
 from ufl.utils.dicts import EmptyDict
 from ufl.utils.indexflattening import flatten_multiindex, unflatten_index, shape_to_strides
-from ufl.geometry import as_domain
 from ufl.cell import as_cell
 from ufl.log import info_blue, warning, warning_blue, error
 
@@ -44,7 +43,7 @@ from ufl.finiteelement.finiteelement import FiniteElement
 
 class MixedElement(FiniteElementBase):
     "A finite element composed of a nested hierarchy of mixed or simple elements"
-    __slots__ = ("_sub_elements", "_domains")
+    __slots__ = ("_sub_elements", "_cells")
 
     def __init__(self, *elements, **kwargs):
         "Create mixed finite element from given list of elements"
@@ -60,24 +59,16 @@ class MixedElement(FiniteElementBase):
                     for e in elements]
         self._sub_elements = elements
 
-        # Pick the first domain, for now all should be equal
-        domains = tuple(sorted(set(element.ufl_domain() for element in elements) - set([None])))
-        self._domains = domains
-        if domains:
-            # Base class currently only handles one domain, this is work in progress
-            domain = domains[0]
-
-            # Check that domains have same geometric dimension
-            gdim = domain.geometric_dimension()
-            ufl_assert(all(dom.geometric_dimension() == gdim for dom in domains),
-                       "Sub elements must live in the same geometric dimension.")
-            # Require that all elements are defined on the same domain
-            # TODO: allow mixed elements on different domains,
-            #       or add a CompositeMixedElement class for that
-            ufl_assert(all(dom == domain for dom in domains),
-                       "Sub elements must live on the same domain (for now).")
+        # Pick the first cell, for now all should be equal
+        cells = tuple(sorted(set(element.cell() for element in elements) - set([None])))
+        self._cells = cells
+        if cells:
+            cell = cells[0]
+            # Require that all elements are defined on the same cell
+            ufl_assert(all(c == cell for c in cells[1:]),
+                       "Sub elements must live on the same cell.")
         else:
-            domain = None
+            cell = None
 
         # Check that all elements use the same quadrature scheme
         # TODO: We can allow the scheme not to be defined.
@@ -106,7 +97,7 @@ class MixedElement(FiniteElementBase):
         # Initialize element data
         degrees = { e.degree() for e in self._sub_elements } - { None }
         degree = max(degrees) if degrees else None
-        FiniteElementBase.__init__(self, "Mixed", domain, degree, quad_scheme,
+        FiniteElementBase.__init__(self, "Mixed", cell, degree, quad_scheme,
                                    value_shape, reference_value_shape)
 
         # Cache repr string
@@ -268,8 +259,8 @@ class VectorElement(MixedElement):
         *Arguments*
             family (string)
                The finite element family
-            domain
-               The geometric domain
+            cell
+               The geometric cell
             degree (int)
                The polynomial degree
             dim (int)
@@ -452,7 +443,7 @@ class TensorElement(MixedElement):
         else:
             sym = ""
         return "<%s tensor element of degree %s and shape %s on a %s%s>" % \
-            (self.family(), istr(self.degree()), self.value_shape(), self.ufl_domain(), sym)
+            (self.family(), istr(self.degree()), self.value_shape(), self.cell(), sym)
 
     def shortstr(self):
         "Format as string for pretty printing."

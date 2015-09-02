@@ -48,8 +48,10 @@ class FiniteElementBase(object):
         ufl_assert(isinstance(degree, (int, tuple)) or degree is None, "Invalid degree type.")
         ufl_assert(isinstance(value_shape, tuple), "Invalid value_shape type.")
         ufl_assert(isinstance(reference_value_shape, tuple), "Invalid reference_value_shape type.")
-        cell = as_cell(cell)
-        ufl_assert(isinstance(cell, AbstractCell), "Invalid cell type.")
+
+        if cell is not None:
+            cell = as_cell(cell)
+            ufl_assert(isinstance(cell, AbstractCell), "Invalid cell type.")
 
         self._family = family
         self._cell = cell

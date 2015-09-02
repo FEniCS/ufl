@@ -333,7 +333,5 @@ def as_cell(cell):
         return Cell(cell)
     elif isinstance(cell, tuple):
         return ProductCell(*map(as_cell, cell))
-    elif hasattr(cell, "ufl_cell"):
-        return cell.ufl_cell()
     else:
         error("Invalid cell %s." % cell)
