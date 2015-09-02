@@ -464,8 +464,8 @@ def compute_form_adjoint(form, reordered_arguments=None):
     ufl_assert(v.number() < u.number(), "Mistaken assumption in code!")
 
     if reordered_arguments is None:
-        reordered_u = u.reconstruct(number=v.number(), part=v.part())
-        reordered_v = v.reconstruct(number=u.number(), part=u.part())
+        reordered_u = Argument(u.ufl_function_space(), number=v.number(), part=v.part())
+        reordered_v = Argument(v.ufl_function_space(), number=u.number(), part=u.part())
     else:
         reordered_u, reordered_v = reordered_arguments
 

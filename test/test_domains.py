@@ -104,20 +104,19 @@ def test_creating_domains_with_coordinate_fields():
 
     # Definition of higher order domain, element, coefficient, form
     E = Domain(x)
-    V = FiniteElement("CG", E, 1)
+    V = FunctionSpace(E, FiniteElement("CG", E.ufl_cell(), 1))
     f = Coefficient(V)
     M = f * dx
     assert f.ufl_domains() == (E, )
     assert M.ufl_domains() == (E, )
 
     # Test the gymnastics that dolfin will have to go through
-    V2 = eval(repr(V))
     E2 = E #V2.ufl_domain().reconstruct(coordinates=x)
-    V2 = V2.reconstruct(domain=E2)
-    f2 = f.reconstruct(element=V2)
+    V2 = FunctionSpace(E2, eval(repr(V.ufl_element())))
+    f2 = Coefficient(V2)
     assert f == f2
-    assert V == V2
     assert E == E2
+    assert V == V2
 
 
 def test_join_domains():

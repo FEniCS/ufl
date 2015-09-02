@@ -102,7 +102,7 @@ class MultiFunction(object):
         if all(a is b for a, b in zip(o.ufl_operands, ops)):
             return o
         else:
-            return o.reconstruct(*ops)
+            return o._ufl_expr_reconstruct_(*ops)
 
     # Set default behaviour for any Expr as undefined
     expr = undefined

@@ -60,22 +60,6 @@ class Coefficient(FormArgument):
     def count(self):
         return self._count
 
-    def reconstruct(self, element=None, count=None):
-        # This code is shared with the FooConstant classes
-        if element is None or element == self.ufl_element():
-            element = self.ufl_element()
-        if count is None or count == self._count:
-            count = self._count
-        if count is self._count and element is self.ufl_element():
-            return self
-        ufl_assert(isinstance(element, FiniteElementBase),
-                   "Expecting an element, not %s" % element)
-        ufl_assert(isinstance(count, int),
-                   "Expecting an int, not %s" % count)
-        ufl_assert(element.value_shape() == self.ufl_element().value_shape(),
-                   "Cannot reconstruct a Coefficient with a different value shape.")
-        return Coefficient(element, count)
-
     @property
     def ufl_shape(self):
         return self._ufl_shape

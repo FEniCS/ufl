@@ -36,10 +36,10 @@ class Terminal(Expr):
     def __init__(self):
         Expr.__init__(self)
 
-    def reconstruct(self, *operands):
+    def _ufl_expr_reconstruct_(self, *operands):
         "Return self."
         if operands:
-            error("Got call to reconstruct in a terminal with non-empty operands.")
+            error("Terminal has no operands.")
         return self
 
     ufl_operands = ()

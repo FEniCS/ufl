@@ -58,19 +58,6 @@ class Argument(FormArgument):
 
         self._repr = "Argument(%r, %r, %r)" % (self._ufl_function_space, self._number, self._part)
 
-    def reconstruct(self, element=None, number=None, part=None):
-        if element is None or (element == self.ufl_element()): # TODO: Is the == here a workaround for some bug?
-            element = self.ufl_element()
-        if number is None:
-            number = self._number
-        if part is None:
-            part = self._part
-        if number == self._number and part == self._part and element is self.ufl_element():
-            return self
-        ufl_assert(element.value_shape() == self.ufl_element().value_shape(),
-                   "Cannot reconstruct an Argument with a different value shape.")
-        return Argument(element, number, part)
-
     @property
     def ufl_shape(self):
         return self._ufl_shape
