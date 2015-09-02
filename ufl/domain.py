@@ -87,6 +87,7 @@ class Mesh(AbstractDomain):
     def __init__(self, coordinate_element, ufl_id=None):
         self._ufl_id = self._init_ufl_id(ufl_id)
 
+        from ufl.coefficient import Coefficient
         if isinstance(coordinate_element, Coefficient):
             error("Expecting a coordinate element in the ufl.Mesh construct.")
 
@@ -94,7 +95,7 @@ class Mesh(AbstractDomain):
         self._ufl_coordinate_element = coordinate_element
 
         # Derive dimensions from element
-        gdim, = coordinate_element.ufl_shape
+        gdim, = coordinate_element.value_shape()
         tdim = coordinate_element.cell().topological_dimension()
         AbstractDomain.__init__(self, gdim, tdim)
 
@@ -119,9 +120,6 @@ class Mesh(AbstractDomain):
     def _ufl_signature_data_(self, renumbering):
         return ("Mesh", renumbering[self], self._ufl_coordinate_element)
 
-    def reconstruction_signature(self):
-        return "Mesh(%r, %r)" % (self._ufl_coordinate_element, self._ufl_id) # FIXME: This can't be right, including the ufl_id.
-
     # NB! Dropped __lt__ here as well
 
     def ufl_coordinates(self):
@@ -132,7 +130,8 @@ class Mesh(AbstractDomain):
         return self
 
     def ufl_label(self):
-        error("Use ufl_id instead!")
+        #error("Use ufl_id instead!") # FIXME:
+        return "mesh_%d" % self.ufl_id()
 
 
 @attach_operators_from_hash_data
@@ -314,19 +313,6 @@ class Domain(AbstractDomain): # Legacy class we're moving away from
             c = " and coordinates %r" % self._coordinates
         s = (self._cell, self._label, c)
         return "<Domain built from %s with label %s%s>" % s
-
-    def reconstruction_signature(self):
-        """Format as string for evaluation as Python object.
-
-        For use with cross language frameworks, stored in generated code
-        and evaluated later in Python to reconstruct this object.
-
-        This differs from repr in that it does not include domain
-        label and data or coordinates, which must be reconstructed
-        or supplied by other means.
-        """
-        s = (self._cell,)
-        return "Domain(%r)" % s
 
     def __repr__(self):
         if self._coordinates is None:

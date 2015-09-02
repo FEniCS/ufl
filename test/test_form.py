@@ -8,16 +8,14 @@ from ufl import *
 @pytest.fixture
 def element():
     cell = triangle
-    domain = Domain(cell)
-    element = FiniteElement("Lagrange", domain, 1)
+    element = FiniteElement("Lagrange", cell, 1)
     return element
 
 
 @pytest.fixture
 def mass():
     cell = triangle
-    domain = Domain(cell)
-    element = FiniteElement("Lagrange", domain, 1)
+    element = FiniteElement("Lagrange", cell, 1)
     v = TestFunction(element)
     u = TrialFunction(element)
     return u * v * dx
@@ -26,8 +24,7 @@ def mass():
 @pytest.fixture
 def stiffness():
     cell = triangle
-    domain = Domain(cell)
-    element = FiniteElement("Lagrange", domain, 1)
+    element = FiniteElement("Lagrange", cell, 1)
     v = TestFunction(element)
     u = TrialFunction(element)
     return inner(grad(u), grad(v)) * dx
@@ -36,8 +33,7 @@ def stiffness():
 @pytest.fixture
 def convection():
     cell = triangle
-    domain = Domain(cell)
-    element = VectorElement("Lagrange", domain, 1)
+    element = VectorElement("Lagrange", cell, 1)
     v = TestFunction(element)
     u = TrialFunction(element)
     w = Coefficient(element)
@@ -47,8 +43,7 @@ def convection():
 @pytest.fixture
 def load():
     cell = triangle
-    domain = Domain(cell)
-    element = FiniteElement("Lagrange", domain, 1)
+    element = FiniteElement("Lagrange", cell, 1)
     f = Coefficient(element)
     v = TestFunction(element)
     return f * v * dx
@@ -57,8 +52,7 @@ def load():
 @pytest.fixture
 def boundary_load():
     cell = triangle
-    domain = Domain(cell)
-    element = FiniteElement("Lagrange", domain, 1)
+    element = FiniteElement("Lagrange", cell, 1)
     f = Coefficient(element)
     v = TestFunction(element)
     return f * v * ds
@@ -95,10 +89,11 @@ def test_form_coefficients(element):
 def test_form_domains():
     cell = triangle
     domain = Domain(cell)
-    element = FiniteElement("Lagrange", domain, 1)
+    element = FiniteElement("Lagrange", cell, 1)
+    V = FunctionSpace(domain, element)
 
-    v = TestFunction(element)
-    f = Coefficient(element)
+    v = TestFunction(V)
+    f = Coefficient(V)
     x = SpatialCoordinate(domain)[0]
 
     assert (x * dx).ufl_domains() == (domain,)
