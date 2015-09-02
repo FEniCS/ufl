@@ -72,16 +72,22 @@ def _compute_element_mapping(form):
         # Flag for whether element needs to be reconstructed
         reconstruct = False
 
-        # Set domain/cell
-        domain = element.ufl_domain()
-        if domain is None:
+        # Set cell
+        # USE CASES:
+        # - Constant with missing cell
+        # - Expression with missing cell or element
+        cell = element.cell()
+        if cell is None:
             domains = form.ufl_domains()
             ufl_assert(len(domains) == 1,
-                       "Cannot replace unknown element domain without unique common domain in form.")
+                       "Cannot replace unknown element cell without unique common cell in form.")
             domain, = domains
-            info("Adjusting missing element domain to %s." % (domain,))
+            cell = domain.ufl_cell()
+            info("Adjusting missing element cell to %s." % (cell,))
             reconstruct = True
 
+        # USE CASES:
+        # Expression with missing degree or element
         # Set degree
         degree = element.degree()
         if degree is None:
@@ -91,7 +97,7 @@ def _compute_element_mapping(form):
 
         # Reconstruct element and add to map
         if reconstruct:
-            element_mapping[element] = element.reconstruct(domain=domain, degree=degree)
+            element_mapping[element] = element.reconstruct(cell=cell, degree=degree)
         else:
             element_mapping[element] = element
 
@@ -288,7 +294,7 @@ def compute_form_data(form,
     # but doesn't provide an element, and the Constant construct that doesn't provide
     # the domain that a Coefficient is supposed to have. A future design iteration in
     # UFL/UFC/FFC/DOLFIN may allow removal of this mapping with the introduction of UFL
-    # types for .
+    # types for Expression-like functions that can be evaluated in quadrature points.
     self.element_replace_map = _compute_element_mapping(self.original_form)
 
     """
