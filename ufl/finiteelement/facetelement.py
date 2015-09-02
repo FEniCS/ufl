@@ -24,7 +24,7 @@ class FacetElement(FiniteElementBase):
     associated with the interior have been discarded"""
     def __init__(self, element):
         self._element = element
-        self._repr = "FacetElement(%r)" % element
+        self._repr = "FacetElement(%r)" % (element,)
 
         family = "FacetElement"
         cell = element.cell()

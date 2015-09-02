@@ -69,7 +69,7 @@ class EnrichedElement(FiniteElementBase):
                                    quad_scheme, value_shape, reference_value_shape)
 
         # Cache repr string
-        self._repr = "EnrichedElement(*%r)" % ([repr(e) for e in self._elements],)
+        self._repr = "EnrichedElement(%s)" % ", ".join(repr(e) for e in self._elements)
 
     def is_cellwise_constant(self):
         """Return whether the basis functions of this

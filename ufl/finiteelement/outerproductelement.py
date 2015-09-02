@@ -38,8 +38,7 @@ class OuterProductElement(FiniteElementBase):
     """
     __slots__ = ("_A", "_B", "_mapping")
 
-    def __init__(self, A, B, cell=None, form_degree=None,
-                 quad_scheme=None):
+    def __init__(self, A, B, cell=None):
         "Create OuterProductElement from a given pair of elements."
         self._A = A
         self._B = B
@@ -51,7 +50,7 @@ class OuterProductElement(FiniteElementBase):
         else:
             cell = as_cell(cell)
 
-        self._repr = "OuterProductElement(*%r, %r)" % (list([self._A, self._B]), cell)
+        self._repr = "OuterProductElement(%r, %r, %r)" % (self._A, self._B, cell)
 
         # Define polynomial degree as a tuple of sub-degrees
         degree = (A.degree(), B.degree())
@@ -68,7 +67,7 @@ class OuterProductElement(FiniteElementBase):
             self._mapping = "undefined"
 
         FiniteElementBase.__init__(self, family, cell, degree,
-                                   quad_scheme, value_shape, reference_value_shape)
+                                   None, value_shape, reference_value_shape)
 
     def mapping(self):
         return self._mapping
@@ -89,8 +88,7 @@ class OuterProductVectorElement(MixedElement):
     elements are equal OuterProductElements"""
     __slots__ = ("_sub_element")
 
-    def __init__(self, A, B, cell=None, dim=None,
-                 form_degree=None, quad_scheme=None):
+    def __init__(self, A, B, cell=None, dim=None):
         if cell is not None:
             cell = as_cell(cell)
 
@@ -110,6 +108,7 @@ class OuterProductVectorElement(MixedElement):
         self._degree = (A.degree(), B.degree())
 
         self._sub_element = sub_element
+
         # Cache repr string
         self._repr = "OuterProductVectorElement(%r, %r, dim=%d)" % \
             (self._sub_element, self.cell(), len(self._sub_elements))

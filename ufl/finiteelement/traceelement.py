@@ -25,7 +25,7 @@ class TraceElement(FiniteElementBase):
     non-zero only on cell facets."""
     def __init__(self, element):
         self._element = element
-        self._repr = "TraceElement(%s)" % str(element._repr)
+        self._repr = "TraceElement(%s)" % repr(element)
 
         family = "TraceElement"
         cell = element.cell()

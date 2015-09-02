@@ -24,7 +24,7 @@ class InteriorElement(FiniteElementBase):
     associated with the interior have been kept"""
     def __init__(self, element):
         self._element = element
-        self._repr = "InteriorElement(%r)" % element
+        self._repr = "InteriorElement(%r)" % (element,)
 
         family = "InteriorElement"
         cell = element.cell()

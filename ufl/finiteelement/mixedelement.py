@@ -102,7 +102,7 @@ class MixedElement(FiniteElementBase):
 
         # Cache repr string
         if type(self) is MixedElement:
-            self._repr = "MixedElement(*%r)" % (self._sub_elements,)
+            self._repr = "MixedElement(%s)" % ", ".join(repr(e) for e in self._sub_elements)
 
     def reconstruct_from_elements(self, *elements):
         "Reconstruct a mixed element from new subelements."
@@ -301,9 +301,11 @@ class VectorElement(MixedElement):
         self._form_degree = form_degree # Storing for signature_data, not sure if it's needed
 
         # Cache repr string
-        self._repr = "VectorElement(%r, %r, %r, dim=%d, quad_scheme=%r)" % \
+        qs = self.quadrature_scheme()
+        quad_str = "" if qs is None else ", quad_scheme=%r" % (qs,)
+        self._repr = "VectorElement(%r, %r, %r, dim=%d%s)" % \
             (self._family, self.cell(), self._degree,
-             len(self._sub_elements), self._quad_scheme)
+             len(self._sub_elements), quad_str)
 
     def __str__(self):
         "Format as string for pretty printing."
@@ -401,9 +403,11 @@ class TensorElement(MixedElement):
         self._flattened_sub_element_mapping = flattened_sub_element_mapping
 
         # Cache repr string
-        self._repr = "TensorElement(%r, %r, %r, shape=%r, symmetry=%r, quad_scheme=%r)" % \
+        qs = self.quadrature_scheme()
+        quad_str = "" if qs is None else ", quad_scheme=%r" % (qs,)
+        self._repr = "TensorElement(%r, %r, %r, shape=%r, symmetry=%r%s)" % \
             (self._family, self.cell(), self._degree, self._shape,
-             self._symmetry, self._quad_scheme)
+             self._symmetry, quad_str)
 
     def mapping(self):
         if self._symmetry:

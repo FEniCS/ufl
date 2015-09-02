@@ -75,8 +75,9 @@ class FiniteElement(FiniteElementBase):
                                    quad_scheme, value_shape, reference_value_shape)
 
         # Cache repr string
-        self._repr = "FiniteElement(%r, %r, %r, quad_scheme=%r)" % (
-            self.family(), self.cell(), self.degree(), self.quadrature_scheme())
+        qs = self.quadrature_scheme()
+        quad_str = "" if qs is None else ", quad_scheme=%r" % (qs,)
+        self._repr = "FiniteElement(%r, %r, %r%s)" % (self.family(), self.cell(), self.degree(), quad_str)
         assert '"' not in self._repr
 
     def mapping(self):

@@ -27,7 +27,7 @@ class HDivElement(OuterProductElement):
 
     def __init__(self, element):
         self._element = element
-        self._repr = "HDivElement(%r)" % element
+        self._repr = "HDivElement(%r)" % (element,)
         self._mapping = "contravariant Piola"
 
         family = "OuterProductElement"
@@ -35,7 +35,8 @@ class HDivElement(OuterProductElement):
         degree = element.degree()
         quad_scheme = element.quadrature_scheme()
         value_shape = (element.cell().geometric_dimension(),)
-        reference_value_shape = (element.cell().topological_dimension(),) # TODO: Is this right?
+        reference_value_shape = (element.cell().topological_dimension(),)
+
         # Skipping OuterProductElement constructor! Bad code smell, refactor to avoid this non-inheritance somehow.
         FiniteElementBase.__init__(self, family, cell, degree,
                                    quad_scheme, value_shape, reference_value_shape)
@@ -57,7 +58,7 @@ class HCurlElement(OuterProductElement):
 
     def __init__(self, element):
         self._element = element
-        self._repr = "HCurlElement(%r)" % element
+        self._repr = "HCurlElement(%r)" % (element,)
         self._mapping = "covariant Piola"
 
         family = "OuterProductElement"
@@ -70,13 +71,6 @@ class HCurlElement(OuterProductElement):
         # Skipping OuterProductElement constructor! Bad code smell, refactor to avoid this non-inheritance somehow.
         FiniteElementBase.__init__(self, family, cell, degree,
                                     quad_scheme, value_shape, reference_value_shape)
-
-    def reconstruct(self, **kwargs):
-        """Construct a new HCurlElement object with some properties
-        replaced with new values."""
-        cell = kwargs.get("cell", self.cell())
-        ele = self._element.reconstruct(cell=cell)
-        return HCurlElement(ele)
 
     def __str__(self):
         return "HCurlElement(%s)" % str(self._element)
