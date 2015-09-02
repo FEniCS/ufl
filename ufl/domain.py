@@ -245,7 +245,7 @@ class Domain(AbstractDomain): # Legacy class we're moving away from
         x = self.ufl_coordinates()
         if x is None:
             from ufl import VectorElement
-            return VectorElement("Lagrange", self, 1)
+            return VectorElement("Lagrange", self.ufl_cell(), 1)
         else:
             return x.ufl_element()
 
