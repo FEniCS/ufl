@@ -168,11 +168,19 @@ class Cell(AbstractCell):
         tdim = self.topological_dimension()
         s = self.cellname()
         if gdim > tdim:
-            s += " in %dD" % gdim
+            s += "%dD" % gdim
         return s
 
     def __repr__(self):
-        return "Cell(%r, %r)" % (self.cellname(), self.geometric_dimension())
+        # For standard cells, return name of builtin cell object if possible.
+        # This reduces the size of the repr strings for domains, elements, etc. as well
+        gdim = self.geometric_dimension()
+        tdim = self.topological_dimension()
+        name = self.cellname()
+        if gdim == tdim and name in cellname2dim:
+            return name
+        else:
+            return "Cell(%r, %r)" % (name, gdim)
 
     def _ufl_hash_data_(self):
         return (self._geometric_dimension, self._topological_dimension, self._cellname)

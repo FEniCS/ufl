@@ -18,11 +18,11 @@
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
-
 class TraceElement(FiniteElementBase):
     """A finite element space: the trace of a given hdiv element.
     This is effectively a scalar-valued restriction which is
     non-zero only on cell facets."""
+
     def __init__(self, element):
         self._element = element
         self._repr = "TraceElement(%s)" % repr(element)
