@@ -391,11 +391,11 @@ def test_coefficient_derivatives(self):
 
     dv = TestFunction(V)
 
-    f = Coefficient(V).reconstruct(count=0)
-    g = Coefficient(V).reconstruct(count=1)
-    df = Coefficient(V).reconstruct(count=2)
-    dg = Coefficient(V).reconstruct(count=3)
-    u = Coefficient(V).reconstruct(count=4)
+    f = Coefficient(V, count=0)
+    g = Coefficient(V, count=1)
+    df = Coefficient(V, count=2)
+    dg = Coefficient(V, count=3)
+    u = Coefficient(V, count=4)
     cd = { f: df, g: dg }
 
     integrand = inner(f, g)
@@ -414,10 +414,10 @@ def test_vector_coefficient_derivatives(self):
 
     dv = TestFunction(V)
 
-    df = Coefficient(VV).reconstruct(count=0)
-    g = Coefficient(V).reconstruct(count=1)
-    f = Coefficient(V).reconstruct(count=2)
-    u = Coefficient(V).reconstruct(count=3)
+    df = Coefficient(VV, count=0)
+    g = Coefficient(V, count=1)
+    f = Coefficient(V, count=2)
+    u = Coefficient(V, count=3)
     cd = { f: df }
 
     integrand = inner(f, g)
@@ -438,11 +438,11 @@ def test_vector_coefficient_derivatives_of_product(self):
 
     dv = TestFunction(V)
 
-    df = Coefficient(VV).reconstruct(count=0)
-    g = Coefficient(V).reconstruct(count=1)
-    dg = Coefficient(VV).reconstruct(count=2)
-    f = Coefficient(V).reconstruct(count=3)
-    u = Coefficient(V).reconstruct(count=4)
+    df = Coefficient(VV, count=0)
+    g = Coefficient(V, count=1)
+    dg = Coefficient(VV, count=2)
+    f = Coefficient(V, count=3)
+    u = Coefficient(V, count=4)
     cd = { f: df, g: dg }
 
     integrand = f[i]*g[i]
