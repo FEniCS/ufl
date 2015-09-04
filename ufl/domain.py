@@ -485,7 +485,19 @@ def extract_unique_domain(expr):
 
 def find_geometric_dimension(expr):
     "Find the geometric dimension of an expression."
-    gdims = set(domain.geometric_dimension() for domain in extract_domains(expr))
+    gdims = set()
+    for t in traverse_unique_terminals(expr):
+        if hasattr(t, "ufl_domain"):
+            domain = t.ufl_domain()
+            if domain is not None:
+                gdims.add(domain.geometric_dimension())
+        if hasattr(t, "ufl_element"):
+            element = t.ufl_element()
+            if element is not None:
+                cell = element.cell()
+                if cell is not None:
+                    gdims.add(cell.geometric_dimension())
     if len(gdims) != 1:
         error("Cannot determine geometric dimension from expression.")
-    return tuple(gdims)[0]
+    gdim, = gdims
+    return gdim
