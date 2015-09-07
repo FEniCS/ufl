@@ -185,11 +185,10 @@ class Cell(AbstractCell):
     def _ufl_hash_data_(self):
         return (self._geometric_dimension, self._topological_dimension, self._cellname)
 
-
 @attach_operators_from_hash_data
-class ProductCell(AbstractCell):
+class TensorProductCell(AbstractCell):
     __slots__ = ("_cells",)
-    def __init__(self, *cells):
+    def __init__(self, cells):
         self._cells = tuple(as_cell(cell) for cell in cells)
 
         gdims = [cell.geometric_dimension() for cell in self._cells]
@@ -217,7 +216,7 @@ class ProductCell(AbstractCell):
 
     def num_edges(self):
         "The number of cell edges."
-        error("Not defined for ProductCell.")
+        error("Not defined for TensorProductCell.")
 
     def num_facets(self):
         "The number of cell facets."
@@ -231,14 +230,14 @@ class ProductCell(AbstractCell):
         return repr(self)
 
     def __repr__(self):
-        return "ProductCell(%s)" % ", ".join(repr(c) for c in self._cells)
+        return "TensorProductCell(%s)" % ", ".join(repr(c) for c in self._cells)
 
     def _ufl_hash_data_(self):
         return tuple(c._ufl_hash_data_() for c in self._cells)
 
 
 @attach_operators_from_hash_data
-class OuterProductCell(AbstractCell): # TODO: Remove this and use ProductCell instead
+class OuterProductCell(AbstractCell): # TODO: Remove this and use TensorProductCell instead
     """Representation of a cell formed as the Cartesian product of
     two existing cells"""
     __slots__ = ("_A", "_B", "facet_horiz", "facet_vert")
@@ -340,6 +339,6 @@ def as_cell(cell):
     elif isinstance(cell, str):
         return Cell(cell)
     elif isinstance(cell, tuple):
-        return ProductCell(*map(as_cell, cell))
+        return TensorProductCell(cell)
     else:
         error("Invalid cell %s." % cell)

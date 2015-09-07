@@ -38,8 +38,10 @@ class TensorProductElement(FiniteElementBase):
     """
     __slots__ = ("_sub_elements",)
 
-    def __init__(self, *elements):
+    def __init__(self, elements):
         "Create TensorProductElement from a given list of elements."
+
+        warning("The TensorProductElement is work in progress and the design may change at any moment without notice.")
 
         self._sub_elements = elements
         ufl_assert(len(self._sub_elements) > 0,

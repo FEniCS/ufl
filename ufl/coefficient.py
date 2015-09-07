@@ -121,24 +121,21 @@ class Coefficient(FormArgument):
 def Constant(domain, count=None):
     """UFL value: Represents a globally constant scalar valued coefficient."""
     domain = as_domain(domain)
-    cell = domain.ufl_cell()
-    element = FiniteElement("Real", cell, 0)
+    element = FiniteElement("Real", domain.ufl_cell(), 0)
     fs = FunctionSpace(domain, element)
     return Coefficient(fs, count=count)
 
 def VectorConstant(domain, dim=None, count=None):
     """UFL value: Represents a globally constant vector valued coefficient."""
     domain = as_domain(domain)
-    cell = domain.ufl_cell()
-    element = VectorElement("Real", cell, 0, dim)
+    element = VectorElement("Real", domain.ufl_cell(), 0, dim)
     fs = FunctionSpace(domain, element)
     return Coefficient(fs, count=count)
 
 def TensorConstant(domain, shape=None, symmetry=None, count=None):
     """UFL value: Represents a globally constant tensor valued coefficient."""
     domain = as_domain(domain)
-    cell = domain.ufl_cell()
-    element = TensorElement("Real", cell, 0, shape=shape, symmetry=symmetry)
+    element = TensorElement("Real", domain.ufl_cell(), 0, shape=shape, symmetry=symmetry)
     fs = FunctionSpace(domain, element)
     return Coefficient(fs, count=count)
 

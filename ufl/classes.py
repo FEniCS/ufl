@@ -98,12 +98,12 @@ def populate_namespace_with_expr_classes(namespace):
 __all__ += populate_namespace_with_expr_classes(locals())
 
 # Domain types
-from ufl.cell import AbstractCell, Cell, ProductCell, OuterProductCell
-from ufl.domain import AbstractDomain, Mesh, Domain, ProductDomain
+from ufl.cell import AbstractCell, Cell, TensorProductCell, OuterProductCell
+from ufl.domain import AbstractDomain, Mesh, MeshView, TensorProductMesh
 
 __all__ += [
-    "AbstractCell", "Cell", "ProductCell", "OuterProductCell",
-    "AbstractDomain", "Mesh", "Domain", "ProductDomain",
+    "AbstractCell", "Cell", "TensorProductCell", "OuterProductCell",
+    "AbstractDomain", "Mesh", "MeshView", "TensorProductMesh",
     ]
 
 # Elements
