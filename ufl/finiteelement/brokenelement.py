@@ -23,35 +23,19 @@ class BrokenElement(FiniteElementBase):
     """The discontinuous version of an existing Finite Element space"""
     def __init__(self, element):
         self._element = element
-        self._repr = "BrokenElement(%s)" % str(element._repr)
+        self._repr = "BrokenElement(%r)" % (element,)
 
         family = "BrokenElement"
-        domain = element.ufl_domain()
+        cell = element.cell()
         degree = element.degree()
         quad_scheme = element.quadrature_scheme()
         value_shape = element.value_shape()
         reference_value_shape = element.reference_value_shape()
-        FiniteElementBase.__init__(self, family, domain, degree,
+        FiniteElementBase.__init__(self, family, cell, degree,
                                    quad_scheme, value_shape, reference_value_shape)
 
     def mapping(self):
         return self._element.mapping()
-
-    def reconstruct(self, **kwargs):
-        """Construct a new BrokenElement object with some properties
-        replaced with new values."""
-        domain = kwargs.get("domain", self.ufl_domain())
-        ele = self._element.reconstruct(domain=domain)
-        return BrokenElement(ele)
-
-    def reconstruction_signature(self):
-        return "BrokenElement(%s)" % self._element.reconstruction_signature()
-
-    def _ufl_signature_data_(self, renumbering):
-        data = ("BrokenElement", self._element._ufl_signature_data_(renumbering),
-                ("no domain" if self._domain is None else self._domain
-                    ._ufl_signature_data_(renumbering)))
-        return data
 
     def __str__(self):
         return "BrokenElement(%s)" % str(self._element)

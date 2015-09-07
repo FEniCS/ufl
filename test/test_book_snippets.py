@@ -344,7 +344,7 @@ def test_python_1843(self):
         if e._ufl_is_terminal_:
             return e
         ops = [apply_ad(o, ad_routine) for o in e.ufl_operands]
-        e = e.reconstruct(*ops)
+        e = e._ufl_expr_reconstruct_(*ops)
         if isinstance(e, Derivative):
             e = ad_routine(e)
         return e
@@ -438,7 +438,7 @@ def test_python_2087(self):
             self.mapping = mapping
 
         def operator(self, e, *ops):
-            return e.reconstruct(*ops)
+            return e._ufl_expr_reconstruct_(*ops)
 
         def terminal(self, e):
             return self.mapping.get(e, e)

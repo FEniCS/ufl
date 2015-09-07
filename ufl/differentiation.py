@@ -135,7 +135,7 @@ class Grad(CompoundDerivative):
         CompoundDerivative.__init__(self, (f,))
         self._dim = find_geometric_dimension(f)
 
-    def reconstruct(self, op):
+    def _ufl_expr_reconstruct_(self, op):
         "Return a new object of the same type with new operands."
         if is_cellwise_constant(op):
             ufl_assert(op.ufl_shape == self.ufl_operands[0].ufl_shape,
@@ -182,7 +182,7 @@ class ReferenceGrad(CompoundDerivative):
         CompoundDerivative.__init__(self, (f,))
         self._dim = f.ufl_domain().topological_dimension()
 
-    def reconstruct(self, op):
+    def _ufl_expr_reconstruct_(self, op):
         "Return a new object of the same type with new operands."
         if is_cellwise_constant(op):
             ufl_assert(op.ufl_shape == self.ufl_operands[0].ufl_shape,
@@ -283,7 +283,7 @@ class NablaGrad(CompoundDerivative):
         CompoundDerivative.__init__(self, (f,))
         self._dim = find_geometric_dimension(f)
 
-    def reconstruct(self, op):
+    def _ufl_expr_reconstruct_(self, op):
         "Return a new object of the same type with new operands."
         if is_cellwise_constant(op):
             ufl_assert(op.ufl_shape == self.ufl_operands[0].ufl_shape,

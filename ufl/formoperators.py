@@ -40,6 +40,7 @@ from ufl.indexed import Indexed
 from ufl.core.multiindex import FixedIndex, MultiIndex
 from ufl.tensors import as_tensor, ListTensor
 from ufl.sorting import sorted_expr
+from ufl.functionspace import FunctionSpace
 
 # An exception to the rule that ufl.* does not depend on ufl.algorithms.* ...
 from ufl.algorithms import compute_form_adjoint, \
@@ -155,7 +156,7 @@ def _handle_derivative_arguments(form, coefficient, argument):
         if isinstance(form, Form):
             form_arguments = form.arguments()
         else:
-            # To handler derivative(expression), which is at least used in tests. Remove?
+            # To handle derivative(expression), which is at least used in tests. Remove?
             form_arguments = extract_arguments(form)
 
         numbers = sorted(set(arg.number() for arg in form_arguments))
@@ -167,13 +168,17 @@ def _handle_derivative_arguments(form, coefficient, argument):
         part = None
 
         # Create argument and split it if in a mixed space
-        elements = [c.ufl_element() for c in coefficients]
-        if len(elements) > 1:
-            elm = MixedElement(*elements)
-            arguments = split(Argument(elm, number, part))
+        function_spaces = [c.ufl_function_space() for c in coefficients]
+        domains = [fs.ufl_domain() for fs in function_spaces]
+        elements = [fs.ufl_element() for fs in function_spaces]
+        if len(function_spaces) == 1:
+            arguments = (Argument(function_spaces[0], number, part),)
         else:
-            elm, = elements
-            arguments = (Argument(elm, number, part),)
+            # Create in mixed space over assumed (for now) same domain
+            assert all(fs.ufl_domain() == domains[0] for fs in function_spaces)
+            elm = MixedElement(*elements)
+            fs = FunctionSpace(domains[0], elm)
+            arguments = split(Argument(fs, number, part))
     else:
         # Wrap single argument in tuple for uniform treatment below
         if isinstance(argument, (list, tuple)):

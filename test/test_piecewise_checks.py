@@ -26,7 +26,7 @@ def get_domains():
 def get_nonlinear():
     domains_with_quadratic_coordinates = []
     for D in get_domains():
-        V = VectorElement("CG", D, 2)
+        V = VectorElement("CG", D.ufl_cell(), 2)
         x = Coefficient(V)
         E = Domain(x)
         domains_with_quadratic_coordinates.append(E)
@@ -50,7 +50,7 @@ def domains(request):
     domains = get_domains()
     domains_with_linear_coordinates = []
     for D in domains:
-        V = VectorElement("CG", D, 1)
+        V = VectorElement("CG", D.ufl_cell(), 1)
         x = Coefficient(V)
         E = Domain(x)
         domains_with_linear_coordinates.append(E)
@@ -70,7 +70,7 @@ def affine_domains(request):
 
     affine_domains_with_linear_coordinates = []
     for D in affine_domains:
-        V = VectorElement("CG", D, 1)
+        V = VectorElement("CG", D.ufl_cell(), 1)
         x = Coefficient(V)
         E = Domain(x)
         affine_domains_with_linear_coordinates.append(E)
@@ -91,7 +91,7 @@ def affine_facet_domains(request):
     affine_facet_domains = [Domain(cell) for cell in affine_facet_cells]
     affine_facet_domains_with_linear_coordinates = []
     for D in affine_facet_domains:
-        V = VectorElement("CG", D, 1)
+        V = VectorElement("CG", D.ufl_cell(), 1)
         x = Coefficient(V)
         E = Domain(x)
         affine_facet_domains_with_linear_coordinates.append(E)
@@ -111,7 +111,7 @@ def nonaffine_domains(request):
     nonaffine_domains = [Domain(cell) for cell in nonaffine_cells]
     nonaffine_domains_with_linear_coordinates = []
     for D in nonaffine_domains:
-        V = VectorElement("CG", D, 1)
+        V = VectorElement("CG", D.ufl_cell(), 1)
         x = Coefficient(V)
         E = Domain(x)
         nonaffine_domains_with_linear_coordinates.append(E)
@@ -130,7 +130,7 @@ def nonaffine_facet_domains(request):
     nonaffine_facet_domains = [Domain(cell) for cell in nonaffine_facet_cells]
     nonaffine_facet_domains_with_linear_coordinates = []
     for D in nonaffine_facet_domains:
-        V = VectorElement("CG", D, 1)
+        V = VectorElement("CG", D.ufl_cell(), 1)
         x = Coefficient(V)
         E = Domain(x)
         nonaffine_facet_domains_with_linear_coordinates.append(E)
@@ -221,23 +221,23 @@ def test_coefficient_sometimes_cellwise_constant(domains_not_linear):
     e = Constant(domains_not_linear)
     assert is_cellwise_constant(e)
 
-    V = FiniteElement("DG", domains_not_linear, 0)
+    V = FiniteElement("DG", domains_not_linear.ufl_cell(), 0)
     e = Coefficient(V)
     assert is_cellwise_constant(e)
-    V = FiniteElement("R", domains_not_linear, 0)
+    V = FiniteElement("R", domains_not_linear.ufl_cell(), 0)
     e = Coefficient(V)
     assert is_cellwise_constant(e)
 
     # This should be true, but that has to wait for a fix of issue #13
     # e = TestFunction(V)
     # assert is_cellwise_constant(e)
-    # V = FiniteElement("R", domains_not_linear, 0)
+    # V = FiniteElement("R", domains_not_linear.ufl_cell(), 0)
     # e = TestFunction(V)
     # assert is_cellwise_constant(e)
 
 
 def test_coefficient_mostly_not_cellwise_constant(domains_not_linear):
-    V = FiniteElement("DG", domains_not_linear, 1)
+    V = FiniteElement("DG", domains_not_linear.ufl_cell(), 1)
     e = Coefficient(V)
     assert not is_cellwise_constant(e)
     e = TestFunction(V)

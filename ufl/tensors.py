@@ -155,14 +155,14 @@ class ComponentTensor(Operator):
         self.ufl_index_dimensions = fid
         self.ufl_shape = sh
 
-    def reconstruct(self, expressions, indices):
+    def _ufl_expr_reconstruct_(self, expressions, indices):
         # Special case for simplification as_tensor(A[ii], ii) -> A
         if isinstance(expressions, Indexed):
             A, ii = expressions.ufl_operands
             if indices == ii:
                 #print "RETURNING", A, "FROM", expressions, indices, "SELF IS", self
                 return A
-        return Operator.reconstruct(self, expressions, indices)
+        return Operator._ufl_expr_reconstruct_(self, expressions, indices)
 
     def indices(self):
         return self.ufl_operands[1]

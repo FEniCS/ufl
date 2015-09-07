@@ -42,7 +42,7 @@ class Operator(Expr):
         if operands is not None:
             self.ufl_operands = operands
 
-    def reconstruct(self, *operands):
+    def _ufl_expr_reconstruct_(self, *operands):
         "Return a new object of the same type with new operands."
         return self._ufl_class_(*operands)
 

@@ -52,13 +52,13 @@ class FunctionSpace(AbstractFunctionSpace):
         return self._ufl_element
 
     def _ufl_hash_data_(self):
-        edata = self.ufl_element()._ufl_hash_data_()
+        edata = repr(self.ufl_element())
         domain = self.ufl_domain()
         ddata = None if domain is None else domain._ufl_hash_data_()
         return ("FunctionSpace", ddata, edata)
 
     def _ufl_signature_data_(self, renumbering):
-        edata = self.ufl_element()._ufl_signature_data_(renumbering)
+        edata = repr(self.ufl_element())
         domain = self.ufl_domain()
         ddata = None if domain is None else domain._ufl_signature_data_(renumbering)
         return ("FunctionSpace", ddata, edata)

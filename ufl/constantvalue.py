@@ -72,11 +72,6 @@ class ConstantValue(Terminal):
 #        self._name = name
 #        self.ufl_shape = shape
 #
-#    def reconstruct(self, name=None):
-#        if name is None:
-#            name = self._name
-#        return AbstractSymbol(name, self.ufl_shape)
-#
 #    def __str__(self):
 #        return "<Abstract symbol named '%s' with shape %s>" % (self._name, self.ufl_shape)
 #
@@ -144,15 +139,6 @@ class Zero(ConstantValue):
                        "Expecting sorted input. Remove this check later for efficiency.")
             self.ufl_free_indices = free_indices
             self.ufl_index_dimensions = index_dimensions
-
-    def reconstruct(self, free_indices=None):
-        if not free_indices:
-            return self
-        ufl_assert(len(free_indices) == len(self.ufl_free_indices),
-                   "Size mismatch between old and new indices.")
-        fid = self.ufl_index_dimensions
-        new_fi, new_fid = zip(*tuple(sorted((free_indices[pos], fid[pos]) for pos, a in enumerate(self.ufl_free_indices))))
-        return Zero(self.ufl_shape, new_fi, new_fid)
 
     def evaluate(self, x, mapping, component, index_values):
         return 0.0

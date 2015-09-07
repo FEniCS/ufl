@@ -6,8 +6,9 @@ from ufl.algorithms.compute_form_data import compute_form_data
 
 def test_check_arities():
     # Code from bitbucket issue #49
-    D = Domain(tetrahedron)
-    V = VectorElement("P", D, 2)
+    cell = tetrahedron
+    D = Domain(cell)
+    V = FunctionSpace(D, VectorElement("P", cell, 2))
     dv = TestFunction(V)
     du = TrialFunction(V)
 

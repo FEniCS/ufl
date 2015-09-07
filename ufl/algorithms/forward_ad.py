@@ -884,7 +884,7 @@ def apply_nested_forward_ad(expr):
         # Reconstruct if necessary
         need_reconstruct = not (preops == postops) # FIXME: Is this efficient? O(n)?
         if need_reconstruct:
-            expr = expr.reconstruct(*postops)
+            expr = expr._ufl_expr_reconstruct_(*postops)
         return expr
     elif isinstance(expr, Grad):
         # Apply AD recursively to children
@@ -917,7 +917,7 @@ class UnusedADRules(object):
         v, vp = v
         ufl_assert(isinstance(vp, Zero), "TODO: What happens if vp != 0, i.e. v depends the differentiation variable?")
         # Are there any issues with indices here? Not sure, think through it...
-        oprime = o.reconstruct(fp, v)
+        oprime = o._ufl_expr_reconstruct_(fp, v)
         return (o, oprime)
 
     # --- Tensor algebra (compound types)
@@ -946,7 +946,7 @@ class UnusedADRules(object):
     def commute(self, o, a):
         "This should work for all single argument operators that commute with d/dw with w scalar."
         aprime = a[1]
-        return (o, o.reconstruct(aprime))
+        return (o, o._ufl_expr_reconstruct_(aprime))
 
     # FIXME: Not true for derivatives w.r.t. nonscalar variables...
     transposed = commute
@@ -963,7 +963,7 @@ class UnusedADRules(object):
         if is_cellwise_constant(aprime):
             oprime = self._make_zero_diff(o)
         else:
-            oprime = o.reconstruct(aprime)
+            oprime = o._ufl_expr_reconstruct_(aprime)
         return (o, oprime)
 
 class UnimplementedADRules(object):

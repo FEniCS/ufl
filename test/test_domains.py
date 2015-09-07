@@ -87,7 +87,7 @@ def test_simple_domain_case():
     # Creating domain from just cell with label like new dolfin will do
     D = Domain(triangle, label="foo")
 
-    V = FiniteElement("CG", D, 1)
+    V = FunctionSpace(D, FiniteElement("CG", D.ufl_cell(), 1))
     f = Coefficient(V)
     assert f.ufl_domains() == (D, )
 
@@ -95,29 +95,30 @@ def test_simple_domain_case():
     assert M.ufl_domains() == (D, )
 
 
-def test_creating_domains_with_coordinate_fields():
-    # P2 field for coordinates
-    D = Domain(triangle)
-    P2 = VectorElement("CG", D, 2)
-    x = Coefficient(P2)
-    assert x.ufl_domains() == (D, )
-
+def test_creating_domains_with_coordinate_fields(): # FIXME: Rewrite for new approach
     # Definition of higher order domain, element, coefficient, form
-    E = Domain(x)
-    V = FiniteElement("CG", E, 1)
+
+    # Mesh with P2 representation of coordinates
+    cell = triangle
+    P2 = VectorElement("CG", cell, 2)
+    domain = Mesh(P2)
+
+    # Piecewise linear function space over quadratic mesh
+    element = FiniteElement("CG", cell, 1)
+    V = FunctionSpace(domain, element)
+
     f = Coefficient(V)
     M = f * dx
-    assert f.ufl_domains() == (E, )
-    assert M.ufl_domains() == (E, )
+    assert f.ufl_domains() == (domain, )
+    assert M.ufl_domains() == (domain, )
 
     # Test the gymnastics that dolfin will have to go through
-    V2 = eval(V.reconstruction_signature())
-    E2 = E #V2.ufl_domain().reconstruct(coordinates=x)
-    V2 = V2.reconstruct(domain=E2)
-    f2 = f.reconstruct(element=V2)
+    domain2 = Mesh(P2, ufl_id=domain.ufl_id())
+    V2 = FunctionSpace(domain2, eval(repr(V.ufl_element())))
+    f2 = Coefficient(V2, count=f.count())
     assert f == f2
+    assert domain == domain2
     assert V == V2
-    assert E == E2
 
 
 def test_join_domains():
@@ -125,8 +126,8 @@ def test_join_domains():
     mesh1 = MockMesh(11)
     mesh2 = MockMesh(13)
     triangle3 = Cell("triangle", geometric_dimension=3)
-    xa = Coefficient(VectorElement("CG", Domain(triangle, label="A"), 1))
-    xb = Coefficient(VectorElement("CG", Domain(triangle, label="B"), 1))
+    xa = Coefficient(FunctionSpace(Domain(triangle, label="A"), VectorElement("CG", triangle, 1)))
+    xb = Coefficient(FunctionSpace(Domain(triangle, label="B"), VectorElement("CG", triangle, 1)))
 
     # Equal domains are joined
     assert 1 == len(join_domains([Domain(triangle), Domain(triangle)]))
@@ -150,8 +151,8 @@ def test_join_domains():
     # Domain(quadrilateral)])) # FIXME: Figure out
 
     # Incompatible coordinates require labeling
-    xc = Coefficient(VectorElement("CG", Domain(triangle), 1))
-    xd = Coefficient(VectorElement("CG", Domain(triangle), 1))
+    xc = Coefficient(FunctionSpace(Domain(triangle), VectorElement("CG", triangle, 1)))
+    xd = Coefficient(FunctionSpace(Domain(triangle), VectorElement("CG", triangle, 1)))
     with pytest.raises(UFLException):
         join_domains([Domain(xc), Domain(xd)])
 
@@ -178,7 +179,7 @@ def test_join_domains():
 def test_everywhere_integrals_with_backwards_compatibility():
     D = Domain(triangle)
 
-    V = FiniteElement("CG", D, 1)
+    V = FunctionSpace(D, FiniteElement("CG", triangle, 1))
     f = Coefficient(V)
 
     a = f * dx
@@ -196,9 +197,11 @@ def test_everywhere_integrals_with_backwards_compatibility():
     assert itg1.ufl_element() == itg2.ufl_element()
 
 
-def xtest_mixed_elements_on_overlapping_regions():
+def xtest_mixed_elements_on_overlapping_regions():  # Old sketch, not working
+
     # Create domain and both disjoint and overlapping regions
-    D = Domain(tetrahedron, label='D')
+    cell = tetrahedron
+    D = Domain(cell, label='D')
     DD = Region(D, (0, 4), "DD")
     DL = Region(D, (1, 2), "DL")
     DR = Region(D, (2, 3), "DR")
@@ -275,7 +278,7 @@ def xtest_mixed_elements_on_overlapping_regions():
     # fail
 
 
-def xtest_form_domain_model():
+def xtest_form_domain_model():  # Old sketch, not working
     # Create domains with different celltypes
     # TODO: Figure out PyDOLFIN integration with Domain
     DA = Domain(tetrahedron, label='DA')

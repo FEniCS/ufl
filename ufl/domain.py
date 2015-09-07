@@ -69,6 +69,13 @@ def affine_mesh(cell):
     coordinate_element = VectorElement("Lagrange", cell, degree, dim=gdim)
     return Mesh(coordinate_element)
 
+# TODO: Would it be useful to have a domain representing R^d? E.g. for Expression.
+#class EuclideanSpace(AbstractDomain):
+#    __slots__ = ()
+#    def __init__(self, geometric_dimension):
+#        AbstractDomain.__init__(self, geometric_dimension, geometric_dimension)
+
+
 @attach_operators_from_hash_data
 @attach_ufl_id
 class Mesh(AbstractDomain):
@@ -80,6 +87,7 @@ class Mesh(AbstractDomain):
     def __init__(self, coordinate_element, ufl_id=None):
         self._ufl_id = self._init_ufl_id(ufl_id)
 
+        from ufl.coefficient import Coefficient
         if isinstance(coordinate_element, Coefficient):
             error("Expecting a coordinate element in the ufl.Mesh construct.")
 
@@ -87,7 +95,7 @@ class Mesh(AbstractDomain):
         self._ufl_coordinate_element = coordinate_element
 
         # Derive dimensions from element
-        gdim, = coordinate_element.ufl_shape
+        gdim, = coordinate_element.value_shape()
         tdim = coordinate_element.cell().topological_dimension()
         AbstractDomain.__init__(self, gdim, tdim)
 
@@ -112,9 +120,6 @@ class Mesh(AbstractDomain):
     def _ufl_signature_data_(self, renumbering):
         return ("Mesh", renumbering[self], self._ufl_coordinate_element)
 
-    def reconstruction_signature(self):
-        return "Mesh(%r, %r)" % (self._ufl_coordinate_element, self._ufl_id) # FIXME: This can't be right, including the ufl_id.
-
     # NB! Dropped __lt__ here as well
 
     def ufl_coordinates(self):
@@ -125,7 +130,8 @@ class Mesh(AbstractDomain):
         return self
 
     def ufl_label(self):
-        error("Use ufl_id instead!")
+        #error("Use ufl_id instead!") # FIXME:
+        return "mesh_%d" % self.ufl_id()
 
 
 @attach_operators_from_hash_data
@@ -238,7 +244,7 @@ class Domain(AbstractDomain): # Legacy class we're moving away from
         x = self.ufl_coordinates()
         if x is None:
             from ufl import VectorElement
-            return VectorElement("Lagrange", self, 1)
+            return VectorElement("Lagrange", self.ufl_cell(), 1)
         else:
             return x.ufl_element()
 
@@ -308,19 +314,6 @@ class Domain(AbstractDomain): # Legacy class we're moving away from
         s = (self._cell, self._label, c)
         return "<Domain built from %s with label %s%s>" % s
 
-    def reconstruction_signature(self):
-        """Format as string for evaluation as Python object.
-
-        For use with cross language frameworks, stored in generated code
-        and evaluated later in Python to reconstruct this object.
-
-        This differs from repr in that it does not include domain
-        label and data or coordinates, which must be reconstructed
-        or supplied by other means.
-        """
-        s = (self._cell,)
-        return "Domain(%r)" % s
-
     def __repr__(self):
         if self._coordinates is None:
             d = None if self._data is None else "<data with id %s>" % id_or_none(self._data)
@@ -332,16 +325,31 @@ class Domain(AbstractDomain): # Legacy class we're moving away from
 
 # --- Utility conversion functions
 
+_default_domains = {}
+def default_domain(cell):
+    "Create a singular default Domain from a cell, always returning the same Domain object for the same cell."
+    global _default_domains
+    assert isinstance(cell, AbstractCell)
+    domain = _default_domains.get(cell)
+    if domain is None:
+        domain = Domain(cell)
+        _default_domains[cell] = domain
+    return domain
 
 def as_domain(domain):
     """Convert any valid object to a Domain (in particular, cell or cellname string),
     or return domain if it is already a Domain."""
-    if isinstance(domain, Domain):
+    if isinstance(domain, AbstractDomain):
+        # Modern .ufl files and dolfin behaviour
         return domain
     elif hasattr(domain, "ufl_domain"):
+        # If we get a dolfin.Mesh before it's changed to inherit from ufl.Mesh
         return domain.ufl_domain()
     else:
-        return Domain(as_cell(domain))
+        # Legacy .ufl files # FIXME: Make this conversion in the relevant constructors closer to the user interface
+        return default_domain(as_cell(domain))
+    #else:
+    #    error("Invalid domain %s" % (domain,))
 
 def check_domain_compatibility(domains):
     # Validate that the domains are the same except for possibly the data
@@ -477,7 +485,19 @@ def extract_unique_domain(expr):
 
 def find_geometric_dimension(expr):
     "Find the geometric dimension of an expression."
-    gdims = set(domain.geometric_dimension() for domain in extract_domains(expr))
+    gdims = set()
+    for t in traverse_unique_terminals(expr):
+        if hasattr(t, "ufl_domain"):
+            domain = t.ufl_domain()
+            if domain is not None:
+                gdims.add(domain.geometric_dimension())
+        if hasattr(t, "ufl_element"):
+            element = t.ufl_element()
+            if element is not None:
+                cell = element.cell()
+                if cell is not None:
+                    gdims.add(cell.geometric_dimension())
     if len(gdims) != 1:
         error("Cannot determine geometric dimension from expression.")
-    return tuple(gdims)[0]
+    gdim, = gdims
+    return gdim

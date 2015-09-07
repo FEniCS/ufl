@@ -40,10 +40,6 @@ class ReferenceValue(Operator):
     def ufl_shape(self):
         return self.ufl_operands[0].ufl_element().reference_value_shape()
 
-    def reconstruct(self, op):
-        "Return a new object of the same type with new operands."
-        return self._ufl_class_(op)
-
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
         "Get child from mapping and return the component asked for."
         error("Evaluate not implemented.")

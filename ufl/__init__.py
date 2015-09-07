@@ -41,7 +41,7 @@ A very brief overview of the language contents follows:
 
 * Domains::
 
-    Domain, ProductDomain
+    Domain, ProductDomain, Mesh
 
 * Cells::
 
@@ -198,7 +198,7 @@ from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile
 
 # Types for geometric quantities
 from ufl.cell import as_cell, Cell, ProductCell, OuterProductCell
-from ufl.domain import as_domain, Domain, ProductDomain
+from ufl.domain import as_domain, Domain, ProductDomain, Mesh
 from ufl.geometry import (
     SpatialCoordinate,
     FacetNormal, CellNormal,
@@ -301,7 +301,7 @@ __all__ = [
     'get_handler', 'get_logger', 'set_handler', 'set_level', 'add_logfile',
     'UFLException', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL',
     'as_cell', 'Cell', 'ProductCell', 'OuterProductCell',
-    'as_domain', 'Domain', 'ProductDomain',
+    'as_domain', 'Domain', 'ProductDomain', 'Mesh',
     'L2', 'H1', 'H2', 'HCurl', 'HDiv',
     'SpatialCoordinate',
     'CellVolume', 'Circumradius', 'MinCellEdgeLength', 'MaxCellEdgeLength',

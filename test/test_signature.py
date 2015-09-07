@@ -275,7 +275,7 @@ def test_terminal_hashdata_does_not_depend_on_domain_label_value(self):
     def forms():
         for rep in range(nreps):
             for domain in domains:
-                V = FiniteElement("CG", domain, 2)
+                V = FunctionSpace(domain, FiniteElement("CG", domain.ufl_cell(), 2))
                 f = Coefficient(V, count=0)
                 v = TestFunction(V)
                 x = SpatialCoordinate(domain)

@@ -25,6 +25,8 @@ from itertools import chain
 from ufl.log import error, warning, info
 from ufl.assertions import ufl_assert
 
+from ufl.finiteelement import FiniteElement, VectorElement, TensorElement
+
 from ufl.classes import GeometricFacetQuantity, Coefficient
 from ufl.corealg.traversal import traverse_terminals
 from ufl.algorithms.analysis import extract_coefficients, extract_sub_elements, unique_tuple
@@ -55,8 +57,21 @@ def _auto_select_degree(elements):
     # Use max degree of all elements, at least 1 (to work with Lagrange elements)
     return max({ e.degree() for e in elements } - { None } | { 1 })
 
+def _reconstruct_element(element, cell, degree):
+    if isinstance(element, FiniteElement):
+        return FiniteElement(element.family(), cell, degree)
+    elif isinstance(element, VectorElement):
+        return VectorElement(element.family(), cell, degree, dim=element.value_shape()[0])
+    elif isinstance(element, TensorElement):
+        return TensorElement(element.family(), cell, degree, shape=element.value_shape())
+    else:
+        error("Element reconstruction is only done to stay compatible with hacks in DOLFIN. Not expecting a %r" % (element,))
+
 def _compute_element_mapping(form):
     "Compute element mapping for element replacement"
+    # The element mapping is a slightly messy concept with two use cases:
+    # - Expression with missing cell or element TODO: Implement proper Expression handling in UFL and get rid of this
+    # - Constant with missing cell TODO: Fix anything that needs to be worked around to drop this requirement
 
     # Extract all elements and include subelements of mixed elements
     elements = [obj.ufl_element() for obj in chain(form.arguments(), form.coefficients())]
@@ -72,14 +87,15 @@ def _compute_element_mapping(form):
         # Flag for whether element needs to be reconstructed
         reconstruct = False
 
-        # Set domain/cell
-        domain = element.ufl_domain()
-        if domain is None:
+        # Set cell
+        cell = element.cell()
+        if cell is None:
             domains = form.ufl_domains()
             ufl_assert(len(domains) == 1,
-                       "Cannot replace unknown element domain without unique common domain in form.")
+                       "Cannot replace unknown element cell without unique common cell in form.")
             domain, = domains
-            info("Adjusting missing element domain to %s." % (domain,))
+            cell = domain.ufl_cell()
+            info("Adjusting missing element cell to %s." % (cell,))
             reconstruct = True
 
         # Set degree
@@ -91,7 +107,7 @@ def _compute_element_mapping(form):
 
         # Reconstruct element and add to map
         if reconstruct:
-            element_mapping[element] = element.reconstruct(domain=domain, degree=degree)
+            element_mapping[element] = _reconstruct_element(element, cell, degree)
         else:
             element_mapping[element] = element
 
@@ -123,10 +139,10 @@ def _compute_form_data_elements(self, arguments, coefficients):
 
 def _check_elements(form_data):
     for element in chain(form_data.unique_elements, form_data.unique_sub_elements):
-        ufl_assert(element.ufl_domain() is not None,
-                   "Found element with undefined domain: %s" % repr(element))
         ufl_assert(element.family() is not None,
                    "Found element with undefined familty: %s" % repr(element))
+        ufl_assert(element.cell() is not None,
+                   "Found element with undefined cell: %s" % repr(element))
 
 
 def _check_facet_geometry(integral_data):
@@ -288,7 +304,7 @@ def compute_form_data(form,
     # but doesn't provide an element, and the Constant construct that doesn't provide
     # the domain that a Coefficient is supposed to have. A future design iteration in
     # UFL/UFC/FFC/DOLFIN may allow removal of this mapping with the introduction of UFL
-    # types for .
+    # types for Expression-like functions that can be evaluated in quadrature points.
     self.element_replace_map = _compute_element_mapping(self.original_form)
 
     """
