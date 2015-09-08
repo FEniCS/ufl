@@ -22,7 +22,7 @@
 # Modified by Marie E. Rognes 2010, 2012
 
 from ufl.assertions import ufl_assert
-from ufl.cell import as_cell, ProductCell
+from ufl.cell import as_cell, TensorProductCell
 from ufl.log import info_blue, warning, warning_blue, error
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
@@ -51,7 +51,7 @@ class TensorProductElement(FiniteElementBase):
         family = "TensorProductElement"
 
         # Define cell as the product of each elements cell
-        cell = ProductCell(*[e.cell() for e in self._sub_elements])
+        cell = TensorProductCell([e.cell() for e in self._sub_elements])
 
         # Define polynomial degree as the maximal of each subelement
         degrees = { e.degree() for e in self._sub_elements } - { None }

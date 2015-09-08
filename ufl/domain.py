@@ -87,9 +87,16 @@ class Mesh(AbstractDomain):
     def __init__(self, coordinate_element, ufl_id=None):
         self._ufl_id = self._init_ufl_id(ufl_id)
 
+        # No longer accepting coordinates provided as a Coefficient
         from ufl.coefficient import Coefficient
         if isinstance(coordinate_element, Coefficient):
             error("Expecting a coordinate element in the ufl.Mesh construct.")
+
+        # Accept a cell in place of an element for brevity Mesh(triangle)
+        if isinstance(coordinate_element, AbstractCell):
+            from ufl.finiteelement import VectorElement
+            cell = coordinate_element
+            coordinate_element = VectorElement("Lagrange", cell, 1, dim=cell.geometric_dimension())
 
         # Store coordinate element
         self._ufl_coordinate_element = coordinate_element
