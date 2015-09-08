@@ -97,12 +97,19 @@ def populate_namespace_with_expr_classes(namespace):
 
 __all__ += populate_namespace_with_expr_classes(locals())
 
-# Domain types
+# TODO: Automate imports below:
+
+# Cell types
 from ufl.cell import AbstractCell, Cell, TensorProductCell, OuterProductCell
-from ufl.domain import AbstractDomain, Mesh, MeshView, TensorProductMesh
 
 __all__ += [
     "AbstractCell", "Cell", "TensorProductCell", "OuterProductCell",
+    ]
+
+# Domain types
+from ufl.domain import AbstractDomain, Mesh, MeshView, TensorProductMesh
+
+__all__ += [
     "AbstractDomain", "Mesh", "MeshView", "TensorProductMesh",
     ]
 
@@ -112,7 +119,8 @@ from ufl.finiteelement import (
     FiniteElement,
     MixedElement, VectorElement, TensorElement,
     EnrichedElement, RestrictedElement,
-    TensorProductElement, OuterProductElement, OuterProductVectorElement)
+    TensorProductElement,
+    OuterProductElement, OuterProductVectorElement)
 
 __all__ += [
     "FiniteElementBase",
@@ -123,22 +131,26 @@ __all__ += [
     ]
 
 # Other non-Expr types
-from ufl.argument import TestFunction, TrialFunction, TestFunctions, TrialFunctions
 from ufl.core.multiindex import IndexBase, FixedIndex, Index
+__all__ += [
+    "IndexBase", "FixedIndex", "Index",
+    ]
 
+from ufl.argument import TestFunction, TrialFunction, TestFunctions, TrialFunctions
 __all__ += [
     "TestFunction", "TrialFunction", "TestFunctions", "TrialFunctions",
-    "IndexBase", "FixedIndex", "Index",
     ]
 
 # Higher level abstractions
 from ufl.measure import Measure, MeasureSum, MeasureProduct
+__all__ += [
+    "Measure", "MeasureSum", "MeasureProduct",
+    ]
+
 from ufl.integral import Integral
 from ufl.form import Form
 from ufl.equation import Equation
-
 __all__ += [
-    "Measure", "MeasureSum", "MeasureProduct",
     "Integral",
     "Form",
     "Equation",

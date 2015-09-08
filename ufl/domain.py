@@ -120,12 +120,10 @@ class Mesh(AbstractDomain):
     def _ufl_signature_data_(self, renumbering):
         return ("Mesh", renumbering[self], self._ufl_coordinate_element)
 
-    # NB! Dropped __lt__ here as well
-
-    def ufl_coordinates(self):
-        error("Coordinate function support has been removed!\n"
-              "Use mesh.ufl_coordinate_element() to get the coordinate element,\n"
-              "and SpatialCoordinate(mesh) to represent the coordinate field in a form.")
+    # NB! Dropped __lt__ here, don't want users to write 'mesh1 < mesh2'.
+    def _ufl_sort_key_(self):
+        typespecific = (self._ufl_id, self._ufl_coordinate_element)
+        return (self.geometric_dimension(), self.topological_dimension(), "Mesh", typespecific)
 
     def ufl_get_mesh(self):
         deprecate("Instead of calling 'mesh.ufl_get_mesh()', just use 'mesh'!")
@@ -141,8 +139,14 @@ class Mesh(AbstractDomain):
         return self.ufl_cell()
 
     def coordinates(self):
-        deprecate("Mesh.coordinates() is deprecated.")
-        return self.ufl_coordinates()
+        error("Coordinate function support has been removed!\n"
+              "Use mesh.ufl_coordinate_element() to get the coordinate element,\n"
+              "and SpatialCoordinate(mesh) to represent the coordinate field in a form.")
+
+    def ufl_coordinates(self):
+        error("Coordinate function support has been removed!\n"
+              "Use mesh.ufl_coordinate_element() to get the coordinate element,\n"
+              "and SpatialCoordinate(mesh) to represent the coordinate field in a form.")
 
 
 @attach_operators_from_hash_data
@@ -184,6 +188,11 @@ class MeshView(AbstractDomain):
 
     def _ufl_signature_data_(self, renumbering):
         return ("MeshView", renumbering[self], self._ufl_mesh._ufl_signature_data_(renumbering))
+
+    # NB! Dropped __lt__ here, don't want users to write 'mesh1 < mesh2'.
+    def _ufl_sort_key_(self):
+        typespecific = (self._ufl_id, self._ufl_mesh)
+        return (self.geometric_dimension(), self.topological_dimension(), "MeshView", typespecific)
 
 
 @attach_operators_from_hash_data
@@ -235,31 +244,33 @@ class TensorProductMesh(AbstractDomain):
         return (self._ufl_id,) + tuple(mesh._ufl_hash_data_() for mesh in self._ufl_meshes)
 
     def _ufl_signature_data_(self, renumbering):
-        return ("TensorProductMesh",) + tuple(mesh._ufl_signature_data_() for mesh in self._ufl_meshes)
+        return ("TensorProductMesh",) + tuple(mesh._ufl_signature_data_(renumbering) for mesh in self._ufl_meshes)
+
+    # NB! Dropped __lt__ here, don't want users to write 'mesh1 < mesh2'.
+    def _ufl_sort_key_(self):
+        typespecific = (self._ufl_id, tuple(mesh._ufl_sort_key_() for mesh in self._ufl_meshes))
+        return (self.geometric_dimension(), self.topological_dimension(), "TensorProductMesh", typespecific)
 
 
 # --- Utility conversion functions
 
 _default_domains = {}
 def default_domain(cell):
-    "Create a singular default Domain from a cell, always returning the same Domain object for the same cell."
+    "Create a singular default Mesh from a cell, always returning the same Mesh object for the same cell."
     global _default_domains
     assert isinstance(cell, AbstractCell)
     domain = _default_domains.get(cell)
     if domain is None:
-        domain = Domain(cell)
+        domain = Mesh(cell)
         _default_domains[cell] = domain
     return domain
 
 
 def as_domain(domain):
-    """Convert any valid object to a Domain (in particular, cell or cellname string),
-    or return domain if it is already a Domain."""
+    """Convert any valid object to an AbstractDomain type."""
     if isinstance(domain, AbstractDomain):
         # Modern .ufl files and dolfin behaviour
         return domain
-    elif isinstance(domain, tuple):
-        return TensorProductMesh([as_domain(mesh) for mesh in domain])
     elif hasattr(domain, "ufl_domain"):
         # If we get a dolfin.Mesh before it's changed to inherit from ufl.Mesh
         return domain.ufl_domain()
@@ -273,8 +284,13 @@ def as_domain(domain):
     #    error("Invalid domain %s" % (domain,))
 
 
+def sort_domains(domains):
+    "Sort domains in a canonical ordering."
+    return tuple(sorted(domains, key=lambda domain: domain._ufl_sort_key_()))
+
+
 def join_domains(domains):
-    """Take a list of Domains and return a tuple with only unique domain objects.
+    """Take a list of domains and return a tuple with only unique domain objects.
 
     Checks that domains with the same id are compatible.
     """
@@ -307,7 +323,7 @@ def join_domains(domains):
                   "These should not be used interchangeably. To find the legacy\n"
                   "domain, note that it is automatically created from a cell so\n"
                   "look for constructors taking a cell.")
-        return legacy_domains
+        return tuple(legacy_domains)
 
     # Handle modern domains checking (assuming correct by construction)
     return tuple(modern_domains)

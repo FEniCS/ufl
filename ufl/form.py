@@ -44,7 +44,8 @@ def _sorted_integrals(integrals):
     integrals_dict = defaultdict(lambda:defaultdict(lambda:defaultdict(list)))
     for integral in integrals:
         d = integral.ufl_domain()
-        ufl_assert(d is not None, "An Integral without a Domain is now illegal.")
+        if d is None:
+            error("Each integral in a form must have a uniquely defined integration domain.")
         it = integral.integral_type()
         si = integral.subdomain_id()
         integrals_dict[d][it][si] += [integral]
@@ -326,12 +327,13 @@ class Form(object):
     # --- Analysis functions, precomputation and caching of various quantities ---
 
     def _analyze_domains(self):
-        # TODO: join_domains function needs work, later when dolfin integration of a Domain or ufl.Mesh class is finished.
-        from ufl.geometry import join_domains
+        from ufl.domain import join_domains, sort_domains
 
-        # Collect integration domains and make canonical list of them
+        # Collect unique integration domains
         integration_domains = join_domains([itg.ufl_domain() for itg in self._integrals])
-        self._integration_domains = tuple(sorted(integration_domains, key=lambda x: x.ufl_label()))
+
+        # Make canonically ordered list of the domains
+        self._integration_domains = sort_domains(integration_domains)
 
         # TODO: Not including domains from coefficients and arguments here, may need that later
         self._domain_numbering = dict((d, i) for i, d in enumerate(self._integration_domains))
@@ -364,19 +366,6 @@ class Form(object):
         from ufl.algorithms.analysis import extract_arguments_and_coefficients
         arguments, coefficients = extract_arguments_and_coefficients(self)
 
-        # Include coordinate coefficients from integration domains
-        domains = self.ufl_domains()
-        coordinates = [c for c in (domain.ufl_coordinates() for domain in domains) if c is not None]
-        coefficients.extend(coordinates)
-
-        # TODO: Not including domains from coefficients and arguments here. Will we need that later?
-        #       I believe argument domains must be among integration domains in each integral, anything else is not well defined.
-        #       Furthermore if a coefficient domain differ from the integration domain, it will
-        #       currently be interpolated to the same element on the integration domain in dolfin.
-        #       Therefore their domain should not be included here.
-        #       In the future we may generate code for quadrature point evaluation of these instead,
-        #       and then the coefficient domains are still of no value in the code generation process.
-
         # Define canonical numbering of arguments and coefficients
         self._arguments = tuple(sorted(set(arguments), key=lambda x: x.number()))
         self._coefficients = tuple(sorted(set(coefficients), key=lambda x: x.count()))
@@ -404,12 +393,12 @@ class Form(object):
         from ufl.algorithms.signature import compute_form_signature
         self._signature = compute_form_signature(self, self._compute_renumbering())
 
+
 def as_form(form):
     "Convert to form if not a form, otherwise return form."
     if not isinstance(form, Form):
         error("Unable to convert object to a UFL form: %s" % repr(form))
     return form
-
 
 
 def replace_integral_domains(form, common_domain): # TODO: Move elsewhere
@@ -427,11 +416,12 @@ def replace_integral_domains(form, common_domain): # TODO: Move elsewhere
                         tdim == domain.topological_dimension())
                         for domain in domains),
             "Common domain does not share dimensions with form domains.")
+
     reconstruct = False
     integrals = []
     for itg in form.integrals():
         domain = itg.ufl_domain()
-        if domain is None or domain.ufl_label() != common_domain.ufl_label():
+        if domain != common_domain:
             itg = itg.reconstruct(domain=common_domain)
             reconstruct = True
         integrals.append(itg)

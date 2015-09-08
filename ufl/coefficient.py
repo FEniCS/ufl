@@ -26,7 +26,7 @@ from ufl.assertions import ufl_assert
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal, FormArgument
 from ufl.finiteelement import FiniteElementBase, FiniteElement, VectorElement, TensorElement
-from ufl.domain import as_domain
+from ufl.domain import as_domain, default_domain
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
 from ufl.split_functions import split
 from ufl.utils.counted import counted_init
@@ -47,8 +47,10 @@ class Coefficient(FormArgument):
         counted_init(self, count, Coefficient)
 
         if isinstance(function_space, FiniteElementBase):
-            # For legacy support for .ufl files using cells, we map the cell to The Default Domain
-            function_space = FunctionSpace(as_domain(function_space.cell()), function_space)
+            # For legacy support for .ufl files using cells, we map the cell to The Default Mesh
+            element = function_space
+            domain = default_domain(element.cell())
+            function_space = FunctionSpace(domain, element)
         elif not isinstance(function_space, AbstractFunctionSpace):
             error("Expecting a FunctionSpace or FiniteElement.")
 
