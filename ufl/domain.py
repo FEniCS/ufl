@@ -258,6 +258,7 @@ class TensorProductMesh(AbstractDomain):
 
 def affine_mesh(cell, ufl_id=None):
     "Create a Mesh over a given cell type with an affine geometric parameterization."
+    from ufl.finiteelement import VectorElement
     cell = as_cell(cell)
     gdim = cell.geometric_dimension()
     degree = 1
