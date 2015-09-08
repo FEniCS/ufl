@@ -33,7 +33,7 @@ from ufl.classes import Grad, ReferenceGrad, Variable
 from ufl.classes import Indexed, ListTensor, ComponentTensor
 from ufl.classes import ExprList, ExprMapping
 from ufl.classes import Product, Sum, IndexSum
-from ufl.classes import JacobianInverse
+from ufl.classes import Jacobian, JacobianInverse
 
 from ufl.constantvalue import is_true_ufl_scalar, is_ufl_scalar
 from ufl.operators import dot, inner, outer, lt, eq, conditional, sign, \
