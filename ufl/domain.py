@@ -104,7 +104,7 @@ class Mesh(AbstractDomain):
         # Derive dimensions from element
         gdim, = coordinate_element.value_shape()
         tdim = coordinate_element.cell().topological_dimension()
-        AbstractDomain.__init__(self, gdim, tdim)
+        AbstractDomain.__init__(self, tdim, gdim)
 
     def ufl_coordinate_element(self):
         return self._ufl_coordinate_element
@@ -173,7 +173,7 @@ class MeshView(AbstractDomain):
         # Derive dimensions from element
         gdim, = coordinate_element.value_shape()
         tdim = coordinate_element.cell().topological_dimension()
-        AbstractDomain.__init__(self, gdim, tdim)
+        AbstractDomain.__init__(self, tdim, gdim)
 
     def ufl_mesh(self):
         return self._ufl_mesh
@@ -230,7 +230,7 @@ class TensorProductMesh(AbstractDomain):
         gdim = sum(mesh.geometric_dimension() for mesh in meshes)
         tdim = sum(mesh.topological_dimension() for mesh in meshes)
 
-        AbstractDomain.__init__(self, gdim, tdim)
+        AbstractDomain.__init__(self, tdim, gdim)
 
     def ufl_coordinate_element(self):
         return self._ufl_coordinate_element
