@@ -61,13 +61,6 @@ class AbstractDomain(object):
         "Return the dimension of the topology of this domain."
         return self._topological_dimension
 
-def affine_mesh(cell):
-    "Create a Mesh over a given cell type with an affine geometric parameterization."
-    cell = as_cell(cell)
-    gdim = cell.geometric_dimension()
-    degree = 1
-    coordinate_element = VectorElement("Lagrange", cell, degree, dim=gdim)
-    return Mesh(coordinate_element)
 
 # TODO: Would it be useful to have a domain representing R^d? E.g. for Expression.
 #class EuclideanSpace(AbstractDomain):
@@ -83,9 +76,15 @@ class Mesh(AbstractDomain):
     __slots__ = (
         "_ufl_coordinate_element",
         "_ufl_id",
+        "_ufl_cargo",
         )
-    def __init__(self, coordinate_element, ufl_id=None):
+    def __init__(self, coordinate_element, ufl_id=None, cargo=None):
         self._ufl_id = self._init_ufl_id(ufl_id)
+
+        # Store reference to object that will not be used by UFL
+        self._ufl_cargo = cargo
+        if cargo is not None and cargo.ufl_id() != self._ufl_id:
+            error("Expecting cargo object (e.g. dolfin.Mesh) to have the same ufl_id.")
 
         # No longer accepting coordinates provided as a Coefficient
         from ufl.coefficient import Coefficient
@@ -105,6 +104,10 @@ class Mesh(AbstractDomain):
         gdim, = coordinate_element.value_shape()
         tdim = coordinate_element.cell().topological_dimension()
         AbstractDomain.__init__(self, tdim, gdim)
+
+    def ufl_cargo(self):
+        "Return carried object that will not be used by UFL."
+        return self._ufl_cargo
 
     def ufl_coordinate_element(self):
         return self._ufl_coordinate_element
@@ -131,14 +134,6 @@ class Mesh(AbstractDomain):
     def _ufl_sort_key_(self):
         typespecific = (self._ufl_id, self._ufl_coordinate_element)
         return (self.geometric_dimension(), self.topological_dimension(), "Mesh", typespecific)
-
-    def ufl_get_mesh(self):
-        deprecate("Instead of calling 'mesh.ufl_get_mesh()', just use 'mesh'!")
-        return self
-
-    def ufl_label(self):
-        deprecate("Use ufl_id instead of ufl_label!") # FIXME:
-        return "mesh_%d" % self.ufl_id()
 
     # Deprecations inherited from Domain
     def cell(self):
@@ -261,6 +256,14 @@ class TensorProductMesh(AbstractDomain):
 
 # --- Utility conversion functions
 
+def affine_mesh(cell, ufl_id=None):
+    "Create a Mesh over a given cell type with an affine geometric parameterization."
+    cell = as_cell(cell)
+    gdim = cell.geometric_dimension()
+    degree = 1
+    coordinate_element = VectorElement("Lagrange", cell, degree, dim=gdim)
+    return Mesh(coordinate_element, ufl_id=ufl_id)
+
 _default_domains = {}
 def default_domain(cell):
     "Create a singular default Mesh from a cell, always returning the same Mesh object for the same cell."
@@ -268,10 +271,12 @@ def default_domain(cell):
     assert isinstance(cell, AbstractCell)
     domain = _default_domains.get(cell)
     if domain is None:
-        domain = Mesh(cell)
+        # Create one and only one affine Mesh with
+        # a negative ufl_id to avoid id collision
+        ufl_id = -(len(_default_domains)+1)
+        domain = affine_mesh(cell, ufl_id=ufl_id)
         _default_domains[cell] = domain
     return domain
-
 
 def as_domain(domain):
     """Convert any valid object to an AbstractDomain type."""
@@ -290,11 +295,9 @@ def as_domain(domain):
     #else:
     #    error("Invalid domain %s" % (domain,))
 
-
 def sort_domains(domains):
     "Sort domains in a canonical ordering."
     return tuple(sorted(domains, key=lambda domain: domain._ufl_sort_key_()))
-
 
 def join_domains(domains):
     """Take a list of domains and return a tuple with only unique domain objects.
@@ -318,7 +321,8 @@ def join_domains(domains):
     legacy_domains = []
     modern_domains = []
     for domain in domains:
-        if isinstance(domain, Mesh) and domain is default_domain(domain.ufl_cell()):
+        if isinstance(domain, Mesh) and domain.ufl_id() < 0:
+            assert domain.ufl_cargo() is None
             legacy_domains.append(domain)
         else:
             modern_domains.append(domain)
