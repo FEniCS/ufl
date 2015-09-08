@@ -57,7 +57,7 @@ def test_domains_sort_by_name():
     sdomains = sorted(domains1, key=lambda D: (D.geometric_dimension(),
                                           D.topological_dimension(),
                                           D.ufl_cell(),
-                                          D.ufl_label()))
+                                          D.ufl_id()))
     assert sdomains != domains1
     assert sdomains == domains2
 
