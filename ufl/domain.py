@@ -285,7 +285,8 @@ def as_domain(domain):
         # Modern .ufl files and dolfin behaviour
         return domain
     elif hasattr(domain, "ufl_domain"):
-        # If we get a dolfin.Mesh before it's changed to inherit from ufl.Mesh
+        # If we get a dolfin.Mesh, it can provide us a corresponding ufl.Mesh.
+        # This would be unnecessary if dolfin.Mesh could subclass ufl.Mesh.
         return domain.ufl_domain()
     else:
         # Legacy .ufl files

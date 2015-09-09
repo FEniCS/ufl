@@ -135,8 +135,8 @@ class Measure(object):
         self._integral_type = as_integral_type(integral_type)
 
         # Check that we either have a proper AbstractDomain or none
-        ufl_assert(domain is None or isinstance(domain, AbstractDomain), "Invalid domain.")
         self._domain = None if domain is None else as_domain(domain)
+        ufl_assert(self._domain is None or isinstance(self._domain, AbstractDomain), "Invalid domain.")
 
         # Store subdomain data
         self._subdomain_data = subdomain_data
