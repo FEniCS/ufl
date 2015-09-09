@@ -21,7 +21,7 @@
 # Modified by Anders Logg 2008-2015
 
 from ufl.assertions import ufl_assert
-from ufl.log import error, warning
+from ufl.log import error, warning, deprecate
 from ufl.core.expr import Expr
 from ufl.checks import is_true_ufl_scalar
 from ufl.constantvalue import as_ufl
