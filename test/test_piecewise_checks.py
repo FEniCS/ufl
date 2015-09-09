@@ -27,8 +27,7 @@ def get_nonlinear():
     domains_with_quadratic_coordinates = []
     for D in get_domains():
         V = VectorElement("CG", D.ufl_cell(), 2)
-        x = Coefficient(V)
-        E = Mesh(x)
+        E = Mesh(V)
         domains_with_quadratic_coordinates.append(E)
 
     return domains_with_quadratic_coordinates
@@ -51,8 +50,7 @@ def domains(request):
     domains_with_linear_coordinates = []
     for D in domains:
         V = VectorElement("CG", D.ufl_cell(), 1)
-        x = Coefficient(V)
-        E = Mesh(x)
+        E = Mesh(V)
         domains_with_linear_coordinates.append(E)
 
     all_domains = domains + domains_with_linear_coordinates + get_nonlinear()
@@ -71,8 +69,7 @@ def affine_domains(request):
     affine_domains_with_linear_coordinates = []
     for D in affine_domains:
         V = VectorElement("CG", D.ufl_cell(), 1)
-        x = Coefficient(V)
-        E = Mesh(x)
+        E = Mesh(V)
         affine_domains_with_linear_coordinates.append(E)
 
     all_affine_domains = affine_domains + \
@@ -92,8 +89,7 @@ def affine_facet_domains(request):
     affine_facet_domains_with_linear_coordinates = []
     for D in affine_facet_domains:
         V = VectorElement("CG", D.ufl_cell(), 1)
-        x = Coefficient(V)
-        E = Mesh(x)
+        E = Mesh(V)
         affine_facet_domains_with_linear_coordinates.append(E)
 
     all_affine_facet_domains = affine_facet_domains + \
@@ -112,8 +108,7 @@ def nonaffine_domains(request):
     nonaffine_domains_with_linear_coordinates = []
     for D in nonaffine_domains:
         V = VectorElement("CG", D.ufl_cell(), 1)
-        x = Coefficient(V)
-        E = Mesh(x)
+        E = Mesh(V)
         nonaffine_domains_with_linear_coordinates.append(E)
 
     all_nonaffine_domains = nonaffine_domains + \
@@ -131,8 +126,7 @@ def nonaffine_facet_domains(request):
     nonaffine_facet_domains_with_linear_coordinates = []
     for D in nonaffine_facet_domains:
         V = VectorElement("CG", D.ufl_cell(), 1)
-        x = Coefficient(V)
-        E = Mesh(x)
+        E = Mesh(V)
         nonaffine_facet_domains_with_linear_coordinates.append(E)
 
     all_nonaffine_facet_domains = nonaffine_facet_domains + \
