@@ -7,7 +7,7 @@ Tests of domain language and attaching domains to forms.
 import pytest
 
 from ufl import *
-from ufl.domain import as_domain
+from ufl.domain import as_domain, default_domain
 from ufl.algorithms import compute_form_data
 
 all_cells = (interval, triangle, tetrahedron,
@@ -18,9 +18,12 @@ from mockobjects import MockMesh, MockMeshFunction
 
 def test_construct_domains_from_cells():
     for cell in all_cells:
-        D1 = Mesh(cell)
+        D0 = Mesh(cell)
+        D1 = default_domain(cell)
         D2 = as_domain(cell)
-        assert D1 is not D2
+        assert D0 is not D1
+        assert D0 is not D2
+        assert D1 is D2
         if 0:
             print()
             for D in (D1, D2):
@@ -28,6 +31,8 @@ def test_construct_domains_from_cells():
                 print(('str', str(D)))
                 print(('repr', repr(D)))
                 print()
+        assert D0 != D1
+        assert D0 != D2
         assert D1 == D2
 
 
@@ -123,27 +128,27 @@ def test_creating_domains_with_coordinate_fields(): # FIXME: Rewrite for new app
 
 def test_join_domains():
     from ufl.domain import join_domains
-    mesh1 = MockMesh(11)
-    mesh2 = MockMesh(13)
+    mesh7 = MockMesh(7)
+    mesh8 = MockMesh(8)
     triangle3 = Cell("triangle", geometric_dimension=3)
-    xa = Coefficient(FunctionSpace(Mesh(triangle, ufl_id=7), VectorElement("CG", triangle, 1)))
-    xb = Coefficient(FunctionSpace(Mesh(triangle, ufl_id=8), VectorElement("CG", triangle, 1)))
+    xa = VectorElement("CG", triangle, 1)
+    xb = VectorElement("CG", triangle, 1)
 
     # Equal domains are joined
-    assert 1 == len(join_domains([Mesh(triangle), Mesh(triangle)]))
     assert 1 == len(join_domains([Mesh(triangle, ufl_id=7),
                                   Mesh(triangle, ufl_id=7)]))
-    assert 1 == len(join_domains([Mesh(triangle, ufl_id=7, cargo=mesh1),
-                                  Mesh(triangle, ufl_id=7, cargo=mesh1)]))
-    assert 1 == len(join_domains([Mesh(xa), Mesh(xa)]))
+    assert 1 == len(join_domains([Mesh(triangle, ufl_id=7, cargo=mesh7),
+                                  Mesh(triangle, ufl_id=7, cargo=mesh7)]))
+    assert 1 == len(join_domains([Mesh(xa, ufl_id=3), Mesh(xa, ufl_id=3)]))
 
     # Different domains are not joined
+    assert 2 == len(join_domains([Mesh(triangle), Mesh(triangle)]))
     assert 2 == len(join_domains([Mesh(triangle, ufl_id=7),
                                   Mesh(triangle, ufl_id=8)]))
     assert 2 == len(join_domains([Mesh(triangle, ufl_id=7),
                                   Mesh(quadrilateral, ufl_id=8)]))
-    assert 2 == len(join_domains([Mesh(xa),
-                                  Mesh(xb)]))
+    assert 2 == len(join_domains([Mesh(xa, ufl_id=7), Mesh(xa, ufl_id=8)]))
+    assert 2 == len(join_domains([Mesh(xa), Mesh(xb)]))
 
     # Incompatible cells require labeling
     # self.assertRaises(UFLException, lambda: join_domains([Mesh(triangle), Mesh(triangle3)]))     # FIXME: Figure out
@@ -157,22 +162,28 @@ def test_join_domains():
         join_domains([Mesh(xc), Mesh(xd)])
 
     # Incompatible data is checked if and only if the domains are the same
-    assert 2 == len(join_domains([Mesh(triangle, ufl_id=7, cargo=mesh1),
-                                  Mesh(triangle, ufl_id=8, cargo=mesh2)]))
-    assert 2 == len(join_domains([Mesh(triangle, ufl_id=7, cargo=mesh1),
-                                  Mesh(triangle3, ufl_id=8, cargo=mesh2)]))
-    assert 2 == len(join_domains([Mesh(triangle, ufl_id=7, cargo=mesh1),
-                                  Mesh(quadrilateral, ufl_id=8, cargo=mesh2)]))
+    assert 2 == len(join_domains([Mesh(triangle, ufl_id=7, cargo=mesh7),
+                                  Mesh(triangle, ufl_id=8, cargo=mesh8)]))
+    assert 2 == len(join_domains([Mesh(triangle, ufl_id=7, cargo=mesh7),
+                                  Mesh(quadrilateral, ufl_id=8, cargo=mesh8)]))
+    # Geometric dimensions must match
     with pytest.raises(UFLException):
-        join_domains([Mesh(triangle, ufl_id=7, cargo=mesh1),
-                      Mesh(triangle, ufl_id=7, cargo=mesh2)])
+        join_domains([Mesh(triangle),
+                      Mesh(triangle3)])
+    with pytest.raises(UFLException):
+        join_domains([Mesh(triangle, ufl_id=7, cargo=mesh7),
+                      Mesh(triangle3, ufl_id=8, cargo=mesh8)])
+    # Cargo and mesh ids must match
+    with pytest.raises(UFLException):
+        Mesh(triangle, ufl_id=7, cargo=mesh8)
 
     # Nones are removed
-    assert 1 == len(
-        join_domains([None, Mesh(triangle), None, Mesh(triangle), None]))
+    assert 2 == len(join_domains([None, Mesh(triangle, ufl_id=3),
+                                  None, Mesh(triangle, ufl_id=3),
+                                  None, Mesh(triangle, ufl_id=4)]))
     assert 2 == len(join_domains([Mesh(triangle, ufl_id=7), None,
                                   Mesh(quadrilateral, ufl_id=8)]))
-    assert None not in join_domains([Mesh(triangle, ufl_id=7), None,
+    assert None not in join_domains([Mesh(triangle3, ufl_id=7), None,
                                      Mesh(tetrahedron, ufl_id=8)])
 
 
