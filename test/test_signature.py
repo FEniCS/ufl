@@ -249,7 +249,7 @@ def test_domain_signature_data_does_not_depend_on_domain_label_value(self):
     s1s = set()
     s2s = set()
     for cell in cells:
-        d0 = Domain(cell)
+        d0 = Mesh(cell)
         d1 = Domain(cell, label="domain1")
         d2 = Domain(cell, label="domain2")
         s0 = d0._ufl_signature_data_({ d0: 0 })

@@ -88,7 +88,7 @@ def test_form_coefficients(element):
 
 def test_form_domains():
     cell = triangle
-    domain = Domain(cell)
+    domain = Mesh(cell)
     element = FiniteElement("Lagrange", cell, 1)
     V = FunctionSpace(domain, element)
 

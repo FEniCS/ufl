@@ -20,7 +20,7 @@ def get_domains():
         tetrahedron,
         hexahedron,
     ]
-    return [Domain(cell) for cell in all_cells]
+    return [Mesh(cell) for cell in all_cells]
 
 
 def get_nonlinear():
@@ -28,7 +28,7 @@ def get_nonlinear():
     for D in get_domains():
         V = VectorElement("CG", D.ufl_cell(), 2)
         x = Coefficient(V)
-        E = Domain(x)
+        E = Mesh(x)
         domains_with_quadratic_coordinates.append(E)
 
     return domains_with_quadratic_coordinates
@@ -52,7 +52,7 @@ def domains(request):
     for D in domains:
         V = VectorElement("CG", D.ufl_cell(), 1)
         x = Coefficient(V)
-        E = Domain(x)
+        E = Mesh(x)
         domains_with_linear_coordinates.append(E)
 
     all_domains = domains + domains_with_linear_coordinates + get_nonlinear()
@@ -66,13 +66,13 @@ def affine_domains(request):
         triangle,
         tetrahedron,
     ]
-    affine_domains = [Domain(cell) for cell in affine_cells]
+    affine_domains = [Mesh(cell) for cell in affine_cells]
 
     affine_domains_with_linear_coordinates = []
     for D in affine_domains:
         V = VectorElement("CG", D.ufl_cell(), 1)
         x = Coefficient(V)
-        E = Domain(x)
+        E = Mesh(x)
         affine_domains_with_linear_coordinates.append(E)
 
     all_affine_domains = affine_domains + \
@@ -88,12 +88,12 @@ def affine_facet_domains(request):
         quadrilateral,
         tetrahedron,
     ]
-    affine_facet_domains = [Domain(cell) for cell in affine_facet_cells]
+    affine_facet_domains = [Mesh(cell) for cell in affine_facet_cells]
     affine_facet_domains_with_linear_coordinates = []
     for D in affine_facet_domains:
         V = VectorElement("CG", D.ufl_cell(), 1)
         x = Coefficient(V)
-        E = Domain(x)
+        E = Mesh(x)
         affine_facet_domains_with_linear_coordinates.append(E)
 
     all_affine_facet_domains = affine_facet_domains + \
@@ -108,12 +108,12 @@ def nonaffine_domains(request):
         quadrilateral,
         hexahedron,
     ]
-    nonaffine_domains = [Domain(cell) for cell in nonaffine_cells]
+    nonaffine_domains = [Mesh(cell) for cell in nonaffine_cells]
     nonaffine_domains_with_linear_coordinates = []
     for D in nonaffine_domains:
         V = VectorElement("CG", D.ufl_cell(), 1)
         x = Coefficient(V)
-        E = Domain(x)
+        E = Mesh(x)
         nonaffine_domains_with_linear_coordinates.append(E)
 
     all_nonaffine_domains = nonaffine_domains + \
@@ -127,12 +127,12 @@ def nonaffine_facet_domains(request):
     nonaffine_facet_cells = [
         hexahedron,
     ]
-    nonaffine_facet_domains = [Domain(cell) for cell in nonaffine_facet_cells]
+    nonaffine_facet_domains = [Mesh(cell) for cell in nonaffine_facet_cells]
     nonaffine_facet_domains_with_linear_coordinates = []
     for D in nonaffine_facet_domains:
         V = VectorElement("CG", D.ufl_cell(), 1)
         x = Coefficient(V)
-        E = Domain(x)
+        E = Mesh(x)
         nonaffine_facet_domains_with_linear_coordinates.append(E)
 
     all_nonaffine_facet_domains = nonaffine_facet_domains + \

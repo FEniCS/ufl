@@ -18,7 +18,7 @@ from mockobjects import MockMesh, MockMeshFunction
 
 def test_construct_domains_from_cells():
     for cell in all_cells:
-        D1 = Domain(cell)
+        D1 = Mesh(cell)
         D2 = as_domain(cell)
         assert D1 is not D2
         if 0:
@@ -63,11 +63,11 @@ def test_domains_sort_by_name():
 
 
 def test_topdomain_creation():
-    D = Domain(interval)
+    D = Mesh(interval)
     assert D.geometric_dimension() == 1
-    D = Domain(triangle)
+    D = Mesh(triangle)
     assert D.geometric_dimension() == 2
-    D = Domain(tetrahedron)
+    D = Mesh(tetrahedron)
     assert D.geometric_dimension() == 3
 
 
@@ -130,31 +130,31 @@ def test_join_domains():
     xb = Coefficient(FunctionSpace(Domain(triangle, label="B"), VectorElement("CG", triangle, 1)))
 
     # Equal domains are joined
-    assert 1 == len(join_domains([Domain(triangle), Domain(triangle)]))
+    assert 1 == len(join_domains([Mesh(triangle), Mesh(triangle)]))
     assert 1 == len(join_domains([Domain(triangle, label="A"),
                                   Domain(triangle, label="A")]))
     assert 1 == len(join_domains([Domain(triangle, label="A", data=mesh1),
                                   Domain(triangle, label="A", data=mesh1)]))
-    assert 1 == len(join_domains([Domain(xa), Domain(xa)]))
+    assert 1 == len(join_domains([Mesh(xa), Mesh(xa)]))
 
     # Different domains are not joined
     assert 2 == len(join_domains([Domain(triangle, label="A"),
                                   Domain(triangle, label="B")]))
     assert 2 == len(join_domains([Domain(triangle, label="A"),
                                   Domain(quadrilateral, label="B")]))
-    assert 2 == len(join_domains([Domain(xa),
-                                  Domain(xb)]))
+    assert 2 == len(join_domains([Mesh(xa),
+                                  Mesh(xb)]))
 
     # Incompatible cells require labeling
-    # self.assertRaises(UFLException, lambda: join_domains([Domain(triangle), Domain(triangle3)]))     # FIXME: Figure out
-    # self.assertRaises(UFLException, lambda: join_domains([Domain(triangle),
-    # Domain(quadrilateral)])) # FIXME: Figure out
+    # self.assertRaises(UFLException, lambda: join_domains([Mesh(triangle), Domain(triangle3)]))     # FIXME: Figure out
+    # self.assertRaises(UFLException, lambda: join_domains([Mesh(triangle),
+    # Mesh(quadrilateral)])) # FIXME: Figure out
 
     # Incompatible coordinates require labeling
-    xc = Coefficient(FunctionSpace(Domain(triangle), VectorElement("CG", triangle, 1)))
-    xd = Coefficient(FunctionSpace(Domain(triangle), VectorElement("CG", triangle, 1)))
+    xc = Coefficient(FunctionSpace(Mesh(triangle), VectorElement("CG", triangle, 1)))
+    xd = Coefficient(FunctionSpace(Mesh(triangle), VectorElement("CG", triangle, 1)))
     with pytest.raises(UFLException):
-        join_domains([Domain(xc), Domain(xd)])
+        join_domains([Mesh(xc), Mesh(xd)])
 
     # Incompatible data is checked if and only if the domains are the same
     assert 2 == len(join_domains([Domain(triangle, label="A", data=mesh1),
@@ -169,7 +169,7 @@ def test_join_domains():
 
     # Nones are removed
     assert 1 == len(
-        join_domains([None, Domain(triangle), None, Domain(triangle), None]))
+        join_domains([None, Mesh(triangle), None, Mesh(triangle), None]))
     assert 2 == len(join_domains([Domain(triangle, label="A"), None,
                                   Domain(quadrilateral, label="B")]))
     assert None not in join_domains([Domain(triangle, label="A"), None,
@@ -177,7 +177,7 @@ def test_join_domains():
 
 
 def test_everywhere_integrals_with_backwards_compatibility():
-    D = Domain(triangle)
+    D = Mesh(triangle)
 
     V = FunctionSpace(D, FiniteElement("CG", triangle, 1))
     f = Coefficient(V)
@@ -396,7 +396,7 @@ def xtest_form_domain_model():  # Old sketch, not working
 
 
 def xtest_subdomain_stuff():  # Old sketch, not working
-    D = Domain(triangle)
+    D = Mesh(triangle)
 
     D1 = D[1]
     D2 = D[2]
