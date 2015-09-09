@@ -40,9 +40,9 @@ def test_as_domain_from_cell_is_equal():
 
 def test_construct_domains_with_names():
     for cell in all_cells:
-        D2 = Domain(cell, label="D2")
-        D3 = Domain(cell, label="D3")
-        D3b = Domain(cell, label="D3")
+        D2 = Mesh(cell, ufl_id=2)
+        D3 = Mesh(cell, ufl_id=3)
+        D3b = Mesh(cell, ufl_id=3)
         assert D2 != D3
         assert D3 == D3b
 
@@ -50,9 +50,9 @@ def test_construct_domains_with_names():
 def test_domains_sort_by_name():
     # This ordering is rather arbitrary, but at least this shows sorting is
     # working
-    domains1 = [Domain(cell, label="D%s" % cell.cellname())
+    domains1 = [Mesh(cell, ufl_id=hash(cell.cellname()))
                 for cell in all_cells]
-    domains2 = [Domain(cell, label="D%s" % cell.cellname())
+    domains2 = [Mesh(cell, ufl_id=hash(cell.cellname()))
                 for cell in sorted(all_cells)]
     sdomains = sorted(domains1, key=lambda D: (D.geometric_dimension(),
                                           D.topological_dimension(),
@@ -85,7 +85,7 @@ def test_cell_legacy_case():
 
 def test_simple_domain_case():
     # Creating domain from just cell with label like new dolfin will do
-    D = Domain(triangle, label="foo")
+    D = Mesh(triangle, ufl_id=3)
 
     V = FunctionSpace(D, FiniteElement("CG", D.ufl_cell(), 1))
     f = Coefficient(V)
@@ -126,27 +126,27 @@ def test_join_domains():
     mesh1 = MockMesh(11)
     mesh2 = MockMesh(13)
     triangle3 = Cell("triangle", geometric_dimension=3)
-    xa = Coefficient(FunctionSpace(Domain(triangle, label="A"), VectorElement("CG", triangle, 1)))
-    xb = Coefficient(FunctionSpace(Domain(triangle, label="B"), VectorElement("CG", triangle, 1)))
+    xa = Coefficient(FunctionSpace(Mesh(triangle, ufl_id=7), VectorElement("CG", triangle, 1)))
+    xb = Coefficient(FunctionSpace(Mesh(triangle, ufl_id=8), VectorElement("CG", triangle, 1)))
 
     # Equal domains are joined
     assert 1 == len(join_domains([Mesh(triangle), Mesh(triangle)]))
-    assert 1 == len(join_domains([Domain(triangle, label="A"),
-                                  Domain(triangle, label="A")]))
-    assert 1 == len(join_domains([Domain(triangle, label="A", data=mesh1),
-                                  Domain(triangle, label="A", data=mesh1)]))
+    assert 1 == len(join_domains([Mesh(triangle, ufl_id=7),
+                                  Mesh(triangle, ufl_id=7)]))
+    assert 1 == len(join_domains([Mesh(triangle, ufl_id=7, cargo=mesh1),
+                                  Mesh(triangle, ufl_id=7, cargo=mesh1)]))
     assert 1 == len(join_domains([Mesh(xa), Mesh(xa)]))
 
     # Different domains are not joined
-    assert 2 == len(join_domains([Domain(triangle, label="A"),
-                                  Domain(triangle, label="B")]))
-    assert 2 == len(join_domains([Domain(triangle, label="A"),
-                                  Domain(quadrilateral, label="B")]))
+    assert 2 == len(join_domains([Mesh(triangle, ufl_id=7),
+                                  Mesh(triangle, ufl_id=8)]))
+    assert 2 == len(join_domains([Mesh(triangle, ufl_id=7),
+                                  Mesh(quadrilateral, ufl_id=8)]))
     assert 2 == len(join_domains([Mesh(xa),
                                   Mesh(xb)]))
 
     # Incompatible cells require labeling
-    # self.assertRaises(UFLException, lambda: join_domains([Mesh(triangle), Domain(triangle3)]))     # FIXME: Figure out
+    # self.assertRaises(UFLException, lambda: join_domains([Mesh(triangle), Mesh(triangle3)]))     # FIXME: Figure out
     # self.assertRaises(UFLException, lambda: join_domains([Mesh(triangle),
     # Mesh(quadrilateral)])) # FIXME: Figure out
 
@@ -157,23 +157,23 @@ def test_join_domains():
         join_domains([Mesh(xc), Mesh(xd)])
 
     # Incompatible data is checked if and only if the domains are the same
-    assert 2 == len(join_domains([Domain(triangle, label="A", data=mesh1),
-                                  Domain(triangle, label="B", data=mesh2)]))
-    assert 2 == len(join_domains([Domain(triangle, label="A", data=mesh1),
-                                  Domain(triangle3, label="B", data=mesh2)]))
-    assert 2 == len(join_domains([Domain(triangle, label="A", data=mesh1),
-                                  Domain(quadrilateral, label="B", data=mesh2)]))
+    assert 2 == len(join_domains([Mesh(triangle, ufl_id=7, cargo=mesh1),
+                                  Mesh(triangle, ufl_id=8, cargo=mesh2)]))
+    assert 2 == len(join_domains([Mesh(triangle, ufl_id=7, cargo=mesh1),
+                                  Mesh(triangle3, ufl_id=8, cargo=mesh2)]))
+    assert 2 == len(join_domains([Mesh(triangle, ufl_id=7, cargo=mesh1),
+                                  Mesh(quadrilateral, ufl_id=8, cargo=mesh2)]))
     with pytest.raises(UFLException):
-        join_domains([Domain(triangle, label="A", data=mesh1),
-                      Domain(triangle, label="A", data=mesh2)])
+        join_domains([Mesh(triangle, ufl_id=7, cargo=mesh1),
+                      Mesh(triangle, ufl_id=7, cargo=mesh2)])
 
     # Nones are removed
     assert 1 == len(
         join_domains([None, Mesh(triangle), None, Mesh(triangle), None]))
-    assert 2 == len(join_domains([Domain(triangle, label="A"), None,
-                                  Domain(quadrilateral, label="B")]))
-    assert None not in join_domains([Domain(triangle, label="A"), None,
-                                     Domain(tetrahedron, label="B")])
+    assert 2 == len(join_domains([Mesh(triangle, ufl_id=7), None,
+                                  Mesh(quadrilateral, ufl_id=8)]))
+    assert None not in join_domains([Mesh(triangle, ufl_id=7), None,
+                                     Mesh(tetrahedron, ufl_id=8)])
 
 
 def test_everywhere_integrals_with_backwards_compatibility():
@@ -201,7 +201,7 @@ def xtest_mixed_elements_on_overlapping_regions():  # Old sketch, not working
 
     # Create domain and both disjoint and overlapping regions
     cell = tetrahedron
-    D = Domain(cell, label='D')
+    D = Mesh(cell, label='D')
     DD = Region(D, (0, 4), "DD")
     DL = Region(D, (1, 2), "DL")
     DR = Region(D, (2, 3), "DR")
@@ -280,9 +280,9 @@ def xtest_mixed_elements_on_overlapping_regions():  # Old sketch, not working
 
 def xtest_form_domain_model():  # Old sketch, not working
     # Create domains with different celltypes
-    # TODO: Figure out PyDOLFIN integration with Domain
-    DA = Domain(tetrahedron, label='DA')
-    DB = Domain(hexahedron, label='DB')
+    # TODO: Figure out PyDOLFIN integration with Mesh
+    DA = Mesh(tetrahedron, label='DA')
+    DB = Mesh(hexahedron, label='DB')
 
     # Check python protocol behaviour
     assert DA != DB
@@ -353,12 +353,12 @@ def xtest_form_domain_model():  # Old sketch, not working
 
     # Create measure proxy objects from strings and ints, requiring
     # domains and regions to be part of their integrands
-    dxb = dx('DB')   # Get Domain by name
+    dxb = dx('DB')   # Get Mesh by name
     dxbl = dx(Region(DB, (1, 4), 'DBL2'))
               # Provide a region with different name but same subdomain ids as
               # DBL
     dxbr = dx((1, 4))
-              # Assume unique Domain and provide subdomain ids explicitly
+              # Assume unique Mesh and provide subdomain ids explicitly
 
     # Not checking measure objects in detail, as long as
     # they carry information to construct integrals below
