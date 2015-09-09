@@ -201,13 +201,13 @@ class TensorProductCell(AbstractCell):
     def is_simplex(self):
         "Return True if this is a simplex cell."
         if len(self._cells) == 1:
-            return self._cells.is_simplex()
+            return self._cells[0].is_simplex()
         return False
 
     def has_simplex_facets(self):
         "Return True if all the facets of this cell are simplex cells."
         if len(self._cells) == 1:
-            return self._cells.has_simplex_facets()
+            return self._cells[0].has_simplex_facets()
         return False
 
     def num_vertices(self):
