@@ -128,10 +128,12 @@ def _compute_num_sub_domains(integral_data):
     return num_sub_domains
 
 
-def _compute_form_data_elements(self, arguments, coefficients):
+def _compute_form_data_elements(self, arguments, coefficients, domains):
     self.argument_elements    = tuple(f.ufl_element() for f in arguments)
     self.coefficient_elements = tuple(f.ufl_element() for f in coefficients)
-    self.elements             = self.argument_elements + self.coefficient_elements
+    self.coordinate_elements  = tuple(domain.ufl_coordinate_element() for domain in domains)
+    # TODO: Include coordinate elements from argument and coefficient domains as well? Can they differ?
+    self.elements             = self.argument_elements + self.coefficient_elements + self.coordinate_elements
     self.unique_elements      = unique_tuple(self.elements)
     self.sub_elements         = extract_sub_elements(self.elements)
     self.unique_sub_elements  = unique_tuple(self.sub_elements)
@@ -310,10 +312,11 @@ def compute_form_data(form,
         _build_coefficient_replace_map(self.reduced_coefficients, self.element_replace_map)
     self.function_replace_map = function_replace_map
 
-
     # --- Store various lists of elements and sub elements (adds members to self)
-    _compute_form_data_elements(self, self.original_form.arguments(), renumbered_coefficients)
-
+    _compute_form_data_elements(self,
+                                self.original_form.arguments(),
+                                renumbered_coefficients,
+                                self.original_form.ufl_domains())
 
     # --- Store number of domains for integral types
     # TODO: Group this by domain first. For now keep a backwards compatible data structure.
