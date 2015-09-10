@@ -267,10 +267,6 @@ def compute_form_data(form,
         # Get all coefficients in integrand
         for itg in itg_data.integrals:
             itg_coeffs.update(extract_coefficients(itg.integrand()))
-        # Add coefficient for integration domain if any
-        c = itg_data.domain.ufl_coordinates()
-        if c is not None:
-            itg_coeffs.add(c)
         # Store with IntegralData object
         itg_data.integral_coefficients = itg_coeffs
 
@@ -306,43 +302,6 @@ def compute_form_data(form,
     # UFL/UFC/FFC/DOLFIN may allow removal of this mapping with the introduction of UFL
     # types for Expression-like functions that can be evaluated in quadrature points.
     self.element_replace_map = _compute_element_mapping(self.original_form)
-
-    """
-    # Build mappings from coefficients, domains and geometric quantities
-    # that reside in form to objects with canonical numbering as well as
-    # completed elements
-
-    coordinate_functions = set(domain.ufl_coordinates() for domain in form.ufl_domains()) - set((None,))
-
-    coordinates_replace_map = {}
-    for i, f in enumerate(self.reduced_coefficients):
-        if f in coordinate_functions:
-            new_f = Coefficient(f.ufl_element(), count=i)
-            coordinates_replace_map[f] = new_f
-
-    domains_replace_map = {}
-    for domain in form.ufl_domains():
-        FIXME
-
-    geometry_replace_map = {}
-    FIXME
-
-    coefficients_replace_map = {}
-    for i, f in enumerate(self.reduced_coefficients):
-        if f not in coordinate_functions:
-            old_e = f.ufl_element()
-            new_e = self.element_replace_map.get(old_e, old_e)
-            new_f = Coefficient(new_e, count=i)
-            coefficients_replace_map[f] = new_f
-
-    self.terminals_replace_map = {}
-    self.terminals_replace_map.update(coordinates_replace_map)
-    self.terminals_replace_map.update(domains_replace_map) # Not currently terminals but soon will be
-    self.terminals_replace_map.update(geometry_replace_map)
-    self.terminals_replace_map.update(coefficients_replace_map)
-
-    renumbered_coefficients = [self.terminals_replace_map[f] for f in self.reduced_coefficients]
-    """
 
     # Mappings from elements and coefficients
     # that reside in form to objects with canonical numbering as well as

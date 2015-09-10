@@ -36,7 +36,6 @@ from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.variable import Variable
 from ufl.core.multiindex import Index, MultiIndex
-from ufl.geometry import Domain
 from ufl.integral import Measure, Integral
 from ufl.form import Form
 from ufl.algorithms.traversal import iter_expressions

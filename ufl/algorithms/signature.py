@@ -27,7 +27,7 @@ from ufl.classes import (Terminal, Label,
 from ufl.log import error
 from ufl.corealg.traversal import traverse_unique_terminals, pre_traversal
 from ufl.utils.sorting import sorted_by_count
-from ufl.geometry import join_domains
+from ufl.domain import join_domains
 from ufl.algorithms.domain_analysis import canonicalize_metadata
 
 def compute_multiindex_hashdata(expr, index_numbering):
@@ -114,45 +114,6 @@ def compute_expression_hashdata(expression, terminal_hashdata):
     #expression_hashdata = [(terminal_hashdata[expr] if expr._ufl_is_terminal_ else expr._ufl_typecode_)
     #                       for expr in pre_traversal(expression)]
     return expression_hashdata
-
-def build_domain_numbering(domains):
-    # Create canonical numbering of domains for stable signature
-    # (ordering defined by __lt__ implementation in Domain class)
-    assert None not in domains
-
-    # Collect domain keys
-    items = []
-    for i, domain in enumerate(domains):
-        key = (domain.ufl_cell(), domain.ufl_label())
-        items.append((key, i))
-
-    # Build domain numbering, not allowing repeated keys
-    domain_numbering = {}
-    for key, i in items:
-        if key in domain_numbering:
-            error("Domain key %s occured twice!" % (key,))
-        domain_numbering[key] = i
-
-    # Build domain numbering extension for None-labeled domains, not allowing ambiguity
-    from collections import defaultdict
-    domain_numbering2 = defaultdict(list)
-    for key, i in items:
-        cell, label = key
-        key2 = (cell, None)
-        domain_numbering2[key2].append(domain_numbering[key])
-
-    # Add None-based key only where unambiguous
-    for key, i in items:
-        cell, label = key
-        key2 = (cell, None)
-        if len(domain_numbering2[key2]) == 1:
-            domain_numbering[key2] = domain_numbering[key]
-        else:
-            # Two domains occur with same properties but different label,
-            # so we cannot decide which one to map None-labeled Domains to.
-            pass
-
-    return domain_numbering
 
 def compute_expression_signature(expr, renumbering): # FIXME: Fix callers
     # FIXME: Rewrite in terms of compute_form_signature?

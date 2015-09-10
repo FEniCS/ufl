@@ -249,9 +249,9 @@ def test_domain_signature_data_does_not_depend_on_domain_label_value(self):
     s1s = set()
     s2s = set()
     for cell in cells:
-        d0 = Domain(cell)
-        d1 = Domain(cell, label="domain1")
-        d2 = Domain(cell, label="domain2")
+        d0 = Mesh(cell)
+        d1 = Mesh(cell, ufl_id=1)
+        d2 = Mesh(cell, ufl_id=2)
         s0 = d0._ufl_signature_data_({ d0: 0 })
         s1 = d1._ufl_signature_data_({ d1: 0 })
         s2 = d2._ufl_signature_data_({ d2: 0 })
@@ -267,9 +267,9 @@ def test_domain_signature_data_does_not_depend_on_domain_label_value(self):
 def test_terminal_hashdata_does_not_depend_on_domain_label_value(self):
     reprs = set()
     hashes = set()
-    labels = ["domain1", "domain2"]
+    ufl_ids = [1, 2]
     cells = [triangle, quadrilateral]
-    domains = [Domain(cell, label=label) for cell in cells for label in labels]
+    domains = [Mesh(cell, ufl_id=ufl_id) for cell in cells for ufl_id in ufl_ids]
     nreps = 2
     num_exprs = 2
     def forms():

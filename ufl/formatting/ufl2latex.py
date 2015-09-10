@@ -46,7 +46,6 @@ from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.form import Form
 from ufl.integral import Measure
 from ufl.classes import terminal_classes
-from ufl.geometry import Domain
 
 # Other algorithms:
 from ufl.algorithms.compute_form_data import compute_form_data
@@ -489,8 +488,7 @@ def form2latex(form, formdata):
         dstr = domain_strings[integral_type]
 
         domain = itg.ufl_domain()
-        label = domain.ufl_label()
-        # TODO: Use domain label!
+        # TODO: Render domain description
 
         subdomain_id = itg.subdomain_id()
         if isinstance(subdomain_id, int):

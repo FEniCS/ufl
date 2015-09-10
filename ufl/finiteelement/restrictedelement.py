@@ -22,7 +22,7 @@
 # Modified by Marie E. Rognes 2010, 2012
 
 from ufl.assertions import ufl_assert
-from ufl.geometry import Cell, as_cell
+from ufl.cell import Cell, as_cell
 from ufl.log import info_blue, warning, warning_blue, error, deprecate
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase

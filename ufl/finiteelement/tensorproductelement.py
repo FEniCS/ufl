@@ -22,7 +22,7 @@
 # Modified by Marie E. Rognes 2010, 2012
 
 from ufl.assertions import ufl_assert
-from ufl.cell import as_cell, ProductCell
+from ufl.cell import as_cell, TensorProductCell
 from ufl.log import info_blue, warning, warning_blue, error
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
@@ -38,8 +38,10 @@ class TensorProductElement(FiniteElementBase):
     """
     __slots__ = ("_sub_elements",)
 
-    def __init__(self, *elements):
+    def __init__(self, elements):
         "Create TensorProductElement from a given list of elements."
+
+        warning("The TensorProductElement is work in progress and the design may change at any moment without notice.")
 
         self._sub_elements = elements
         ufl_assert(len(self._sub_elements) > 0,
@@ -49,7 +51,7 @@ class TensorProductElement(FiniteElementBase):
         family = "TensorProductElement"
 
         # Define cell as the product of each elements cell
-        cell = ProductCell(*[e.cell() for e in self._sub_elements])
+        cell = TensorProductCell([e.cell() for e in self._sub_elements])
 
         # Define polynomial degree as the maximal of each subelement
         degrees = { e.degree() for e in self._sub_elements } - { None }

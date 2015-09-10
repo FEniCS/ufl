@@ -21,15 +21,15 @@
 # Modified by Anders Logg 2008-2015
 
 from ufl.assertions import ufl_assert
-from ufl.log import error, warning
+from ufl.log import error, warning, deprecate
 from ufl.core.expr import Expr
 from ufl.checks import is_true_ufl_scalar
 from ufl.constantvalue import as_ufl
 from ufl.utils.dicts import EmptyDict
-from ufl.domain import Domain, as_domain, extract_domains
+from ufl.domain import as_domain, AbstractDomain, extract_domains
 from ufl.protocols import id_or_none, metadata_equal, metadata_hashdata
 
-# TODO: Design a class DomainType(name, shortname, codim, num_cells, ...)?
+# TODO: Design a class IntegralType(name, shortname, codim, num_cells, ...)?
 # TODO: Improve descriptions below:
 
 # Enumeration of valid domain types
@@ -67,7 +67,7 @@ measure_name_to_integral_type = dict((s, l) for l, s in _integral_types)
 def register_integral_type(integral_type, measure_name):
     global integral_type_to_measure_name, measure_name_to_integral_type
     ufl_assert(measure_name == integral_type_to_measure_name.get(integral_type, measure_name),
-               "Domain type already added with different measure name!")
+               "Integral type already added with different measure name!")
     ufl_assert(integral_type == measure_name_to_integral_type.get(measure_name, integral_type),
                "Measure name already used for another domain type!")
     integral_type_to_measure_name[integral_type] = measure_name
@@ -116,7 +116,7 @@ class Measure(object):
             or short form "dx", etc.
 
         domain:
-            a Domain object (includes cell, dims, label, domain data)
+            an AbstractDomain object (most often a Mesh)
 
         subdomain_id:
             either string "everywhere",
@@ -134,10 +134,9 @@ class Measure(object):
         # Map short name to long name and require a valid one
         self._integral_type = as_integral_type(integral_type)
 
-        # Check that we either have a proper Domain or none
+        # Check that we either have a proper AbstractDomain or none
         self._domain = None if domain is None else as_domain(domain)
-        ufl_assert(self._domain is None or isinstance(self._domain, Domain),
-                   "Invalid domain.")
+        ufl_assert(self._domain is None or isinstance(self._domain, AbstractDomain), "Invalid domain.")
 
         # Store subdomain data
         self._subdomain_data = subdomain_data
@@ -232,7 +231,7 @@ class Measure(object):
 
         # Let syntax dx(domain) or dx(domain, metadata) mean integral over entire domain.
         # To do this we need to hijack the first argument:
-        if subdomain_id is not None and (isinstance(subdomain_id, Domain) or hasattr(subdomain_id, 'ufl_domain')):
+        if subdomain_id is not None and (isinstance(subdomain_id, AbstractDomain) or hasattr(subdomain_id, 'ufl_domain')):
             ufl_assert(domain is None, "Ambiguous: setting domain both as keyword argument and first argument.")
             subdomain_id, domain = "everywhere", as_domain(subdomain_id)
 
@@ -253,21 +252,14 @@ class Measure(object):
     def __getitem__(self, data):
         """This operator supports legacy syntax in python dolfin programs.
 
-        The implementation makes assumptions on the type of data,
-        namely that it is a dolfin MeshFunction with a member mesh()
-        which returns a dolfin Mesh.
-
-        The intention is to deprecase and remove this operator at
-        some later point. Please attach your domain data to a Domain
-        object instead of using the ds[data] syntax.
-
         The old documentation reads:
         Return a new Measure for same integration type with an attached
         context for interpreting domain ids. By default this new Measure
         integrates over everywhere, but it can be restricted with a domain id
         as usual. Example: dx = dx[boundaries]; L = f*v*dx + g*v+dx(1).
         """
-        return self.reconstruct(subdomain_data=data)
+        deprecate("Notation dx[meshfunction] is deprecated. Please use dx(subdomain_data=meshfunction) instead.")
+        return self(subdomain_data=data)
 
     def __str__(self):
         global integral_type_to_measure_name

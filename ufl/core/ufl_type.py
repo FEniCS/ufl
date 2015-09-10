@@ -11,20 +11,28 @@ from ufl.utils.dicts import EmptyDict
 #as_ufl = Expr._ufl_coerce_
 
 def attach_operators_from_hash_data(cls):
-    "Class decorator to attach __hash__, __eq__ and __ne__ implementations based on a ._ufl_hash_data() method on the class."
+    """Class decorator to attach __hash__, __eq__ and __ne__ implementations.
+
+    These are implemented in terms of a ._ufl_hash_data() method on the class,
+    which should return a tuple or hashable and comparable data.
+    """
     assert hasattr(cls, "_ufl_hash_data_")
+
     def __hash__(self):
         "__hash__ implementation attached in attach_operators_from_hash_data"
         return hash(self._ufl_hash_data_())
+    cls.__hash__ = __hash__
+
     def __eq__(self, other):
         "__eq__ implementation attached in attach_operators_from_hash_data"
         return type(self) == type(other) and self._ufl_hash_data_() == other._ufl_hash_data_()
+    cls.__eq__ = __eq__
+
     def __ne__(self, other):
         "__ne__ implementation attached in attach_operators_from_hash_data"
-        return not self == other
-    cls.__hash__ = __hash__
-    cls.__eq__ = __eq__
+        return type(self) != type(other) or self._ufl_hash_data_() != other._ufl_hash_data_()
     cls.__ne__ = __ne__
+
     return cls
 
 def get_base_attr(cls, name):

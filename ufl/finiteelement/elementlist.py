@@ -28,6 +28,7 @@ from __future__ import print_function
 from ufl.assertions import ufl_assert
 from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl, HEin
 from ufl.utils.formatting import istr
+from ufl.cell import Cell
 
 # List of valid elements
 ufl_elements = {}
@@ -227,7 +228,10 @@ def canonical_element_description(family, cell, order, form_degree):
     if cell is not None:
         tdim = cell.topological_dimension()
         gdim = cell.geometric_dimension()
-        cellname = cell.cellname()
+        if isinstance(cell, Cell):
+            cellname = cell.cellname()
+        else:
+            cellname = None
     else:
         tdim = None
         gdim = None
