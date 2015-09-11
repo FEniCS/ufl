@@ -132,11 +132,18 @@ def _compute_form_data_elements(self, arguments, coefficients, domains):
     self.argument_elements    = tuple(f.ufl_element() for f in arguments)
     self.coefficient_elements = tuple(f.ufl_element() for f in coefficients)
     self.coordinate_elements  = tuple(domain.ufl_coordinate_element() for domain in domains)
+
     # TODO: Include coordinate elements from argument and coefficient domains as well? Can they differ?
-    self.elements             = self.argument_elements + self.coefficient_elements + self.coordinate_elements
-    self.unique_elements      = unique_tuple(self.elements)
-    self.sub_elements         = extract_sub_elements(self.elements)
-    self.unique_sub_elements  = unique_tuple(self.sub_elements)
+
+    # Note: Removed self.elements and self.sub_elements to make sure code that
+    #       depends on the selection of argument + coefficient elements blow up,
+    #       as opposed to silently almost working, with the introduction of the coordinate elements here.
+
+    all_elements = self.argument_elements + self.coefficient_elements + self.coordinate_elements
+    all_sub_elements = extract_sub_elements(all_elements)
+
+    self.unique_elements      = unique_tuple(all_elements)
+    self.unique_sub_elements  = unique_tuple(all_sub_elements)
 
 
 def _check_elements(form_data):
