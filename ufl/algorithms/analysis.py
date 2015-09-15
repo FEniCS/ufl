@@ -193,7 +193,7 @@ def sort_elements(elements):
     """
 
     # Set nodes
-    nodes = list(elements)
+    nodes = sorted(elements)
 
     # Set edges
     edges = dict((node, []) for node in nodes)
