@@ -29,6 +29,14 @@
 
 from ufl.core.ufl_type import attach_operators_from_hash_data
 
+# Export list for ufl.classes
+__all_classes__ = [
+    "AbstractFunctionSpace",
+    "FunctionSpace",
+    "MixedFunctionSpace",
+    "TensorProductFunctionSpace",
+    ]
+
 class AbstractFunctionSpace(object):
     def ufl_sub_spaces(self):
         raise NotImplementedError("Missing implementation of IFunctionSpace.ufl_sub_spaces in %s." % self.__class__.__name__)

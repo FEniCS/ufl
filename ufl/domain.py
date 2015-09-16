@@ -37,6 +37,10 @@ from ufl.protocols import id_or_none
 from ufl.cell import as_cell, AbstractCell, Cell, TensorProductCell
 
 
+# Export list for ufl.classes
+__all_classes__ = ["AbstractDomain", "Mesh", "MeshView", "TensorProductMesh"]
+
+
 class AbstractDomain(object):
     """Symbolic representation of a geometric domain with only a geometric and topological dimension."""
     __slots__ = ("_topological_dimension", "_geometric_dimension")

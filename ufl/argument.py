@@ -30,6 +30,11 @@ from ufl.finiteelement import FiniteElementBase
 from ufl.domain import default_domain
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
 
+
+# Export list for ufl.classes (TODO: not actually classes: drop? these are in ufl.*)
+__all_classes__ = ["TestFunction", "TrialFunction", "TestFunctions", "TrialFunctions"]
+
+
 # --- Class representing an argument (basis function) in a form ---
 
 @ufl_type()

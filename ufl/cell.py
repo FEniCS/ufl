@@ -30,6 +30,11 @@ from ufl.utils.dicts import EmptyDict
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import attach_operators_from_hash_data
 
+
+# Export list for ufl.classes
+__all_classes__ = ["AbstractCell", "Cell", "TensorProductCell", "OuterProductCell"]
+
+
 # --- The most abstract cell class, base class for other cell types
 
 class AbstractCell(object):

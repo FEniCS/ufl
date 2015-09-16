@@ -29,6 +29,11 @@ from ufl.utils.dicts import EmptyDict
 from ufl.domain import as_domain, AbstractDomain, extract_domains
 from ufl.protocols import id_or_none, metadata_equal, metadata_hashdata
 
+
+# Export list for ufl.classes
+__all_classes__ = ["Measure", "MeasureSum", "MeasureProduct"]
+
+
 # TODO: Design a class IntegralType(name, shortname, codim, num_cells, ...)?
 # TODO: Improve descriptions below:
 

@@ -27,6 +27,10 @@ from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal
 
 
+# Export list for ufl.classes
+__all_classes__ = ["IndexBase", "FixedIndex", "Index"]
+
+
 class IndexBase(object):
     __slots__ = ()
     def __init__(self):

@@ -29,6 +29,9 @@ from ufl.checks import (is_true_ufl_scalar, is_python_scalar, is_globally_consta
 from ufl.measure import Measure
 from ufl.protocols import id_or_none
 
+# Export list for ufl.classes
+__all_classes__ = ["Integral"]
+
 class Integral(object):
     "An integral over a single domain."
     __slots__ = ("_integrand",
