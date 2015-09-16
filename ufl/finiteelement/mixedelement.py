@@ -343,7 +343,7 @@ class TensorElement(MixedElement):
 
         if symmetry is None:
             symmetry = EmptyDict
-        elif symmetry == True:
+        elif symmetry is True:
             # Construct default symmetry dict for matrix elements
             ufl_assert(len(shape) == 2 and shape[0] == shape[1],
                        "Cannot set automatic symmetry for non-square tensor.")

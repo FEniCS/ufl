@@ -33,8 +33,6 @@ class PartialDerivativeComputer(MultiFunction):
     """NB! The main reason for keeping this out of the Expr hierarchy is
     to avoid user mistakes in the form of mixups with total derivatives,
     and to allow both reverse and forward mode AD."""
-    #def __init__(self, spatial_dim):
-        #self._spatial_dim = spatial_dim
     def __init__(self):
         MultiFunction.__init__(self)
 

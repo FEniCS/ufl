@@ -167,7 +167,7 @@ def contraction(a, a_axes, b, b_axes):
         ufl_assert(shape[i] == bsh[j], "Shape mismatch in contraction.")
     s = a[aii]*b[bii]
     cii = set(cii)
-    ii = tuple(i for i in (aii + bii) if not i in cii)
+    ii = tuple(i for i in (aii + bii) if i not in cii)
     return as_tensor(s, ii)
 
 def perp(v):

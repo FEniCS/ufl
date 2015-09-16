@@ -284,7 +284,7 @@ def canonical_element_description(family, cell, order, form_degree):
         value_shape = (gdim, gdim)
     elif value_rank == 1:
         # Vector valued fundamental elements in HDiv and HCurl have a shape
-        ufl_assert(gdim != None and tdim != None,
+        ufl_assert(gdim is not None and tdim is not None,
                "Cannot infer shape of element without topological and geometric dimensions.")
         reference_value_shape = (tdim,)
         value_shape = (gdim,)

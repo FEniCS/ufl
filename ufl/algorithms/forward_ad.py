@@ -71,7 +71,7 @@ class ForwardAD(Transformer):
         "Debugging hook, enable this by renaming to 'visit'."
         r = Transformer.visit(self, o)
         f, df = r
-        if not f is o:
+        if f is not o:
             debug("In ForwardAD.visit, didn't get back o:")
             debug("  o:  %s" % str(o))
             debug("  f:  %s" % str(f))

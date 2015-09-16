@@ -78,7 +78,7 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
                 c = f.count()
                 if c in coefficients:
                     g = coefficients[c]
-                    if not f is g:
+                    if f is not g:
                         errors.append("Found different Coefficients with " + \
                                    "same count: %s and %s." % (repr(f), repr(g)))
                 else:
@@ -89,7 +89,7 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
                 p = f.part()
                 if (n, p) in arguments:
                     g = arguments[(n, p)]
-                    if not f is g:
+                    if f is not g:
                         if n == 0: msg = "TestFunctions"
                         elif n == 1: msg = "TrialFunctions"
                         else: msg = "Arguments with same number and part"

@@ -70,7 +70,7 @@ def compute_permutations(k, n, skip = None):
     if skip is None:
         skip = []
     if k == 1:
-        return [(i,) for i in range(n) if not i in skip]
+        return [(i,) for i in range(n) if i not in skip]
     pp = compute_permutations(k - 1, n, skip)
     permutations = []
     for i in range(n):

@@ -296,7 +296,7 @@ def __unused__extract_max_quadrature_element_degree(integral):
     elements in integral. Returns None if not found."""
     quadrature_elements = [e for e in extract_elements(integral) if "Quadrature" in e.family()]
     degrees = [element.degree() for element in quadrature_elements]
-    degrees = [q for q in degrees if not q is None]
+    degrees = [q for q in degrees if q is not None]
     if not degrees:
         return None
     max_degree = quadrature_elements[0].degree()
