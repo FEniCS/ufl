@@ -333,7 +333,8 @@ class Abs(Operator):
     def __init__(self, a):
         Operator.__init__(self, (a,))
         ufl_assert(isinstance(a, Expr), "Expecting Expr instance.")
-        if not isinstance(a, Expr): error("Expecting Expr instances.")
+        if not isinstance(a, Expr):
+            error("Expecting Expr instances.")
 
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)

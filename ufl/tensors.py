@@ -70,7 +70,7 @@ class ListTensor(Operator):
 
         # Checks
         indexset = set(self.ufl_operands[0].ufl_free_indices)
-        ufl_assert(all(not (indexset ^ set(e.ufl_free_indices)) for e in self.ufl_operands),\
+        ufl_assert(all(not (indexset ^ set(e.ufl_free_indices)) for e in self.ufl_operands),
             "Can't combine subtensor expressions with different sets of free indices.")
 
     @property
@@ -79,7 +79,7 @@ class ListTensor(Operator):
 
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
         ufl_assert(len(component) == len(self.ufl_shape),
-                   "Can only evaluate scalars, expecting a component "\
+                   "Can only evaluate scalars, expecting a component "
                    "tuple of length %d, not %s." % (len(self.ufl_shape), component))
         a = self.ufl_operands[component[0]]
         component = component[1:]

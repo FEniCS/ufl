@@ -73,7 +73,7 @@ class MixedElement(FiniteElementBase):
         # Check that all elements use the same quadrature scheme
         # TODO: We can allow the scheme not to be defined.
         quad_scheme = elements[0].quadrature_scheme()
-        ufl_assert(all(e.quadrature_scheme() == quad_scheme for e in elements),\
+        ufl_assert(all(e.quadrature_scheme() == quad_scheme for e in elements),
             "Quadrature scheme mismatch for sub elements of mixed element.")
 
         # Compute value sizes in global and reference configurations
@@ -91,7 +91,7 @@ class MixedElement(FiniteElementBase):
             # This is not valid for tensor elements with symmetries,
             # assume subclasses deal with their own validation
             ufl_assert(product(value_shape) == value_size_sum,
-                "Provided value_shape doesn't match the total "\
+                "Provided value_shape doesn't match the total "
                 "value size of all subelements.")
 
         # Initialize element data
@@ -303,15 +303,15 @@ class VectorElement(MixedElement):
         # Cache repr string
         qs = self.quadrature_scheme()
         quad_str = "" if qs is None else ", quad_scheme=%r" % (qs,)
-        self._repr = "VectorElement(%r, %r, %r, dim=%d%s)" % \
+        self._repr = ("VectorElement(%r, %r, %r, dim=%d%s)" %
             (self._family, self.cell(), self._degree,
-             len(self._sub_elements), quad_str)
+             len(self._sub_elements), quad_str))
 
     def __str__(self):
         "Format as string for pretty printing."
-        return "<%s vector element of degree %s on a %s: %d x %s>" % \
+        return ("<%s vector element of degree %s on a %s: %d x %s>" %
                (self.family(), istr(self.degree()), self.cell(),
-                len(self._sub_elements), self._sub_element)
+                len(self._sub_elements), self._sub_element))
 
     def shortstr(self):
         "Format as string for pretty printing."
@@ -405,9 +405,9 @@ class TensorElement(MixedElement):
         # Cache repr string
         qs = self.quadrature_scheme()
         quad_str = "" if qs is None else ", quad_scheme=%r" % (qs,)
-        self._repr = "TensorElement(%r, %r, %r, shape=%r, symmetry=%r%s)" % \
+        self._repr = ("TensorElement(%r, %r, %r, shape=%r, symmetry=%r%s)" %
             (self._family, self.cell(), self._degree, self._shape,
-             self._symmetry, quad_str)
+             self._symmetry, quad_str))
 
     def mapping(self):
         if self._symmetry:
@@ -446,8 +446,8 @@ class TensorElement(MixedElement):
             sym = " with symmetries (%s)" % tmp
         else:
             sym = ""
-        return "<%s tensor element of degree %s and shape %s on a %s%s>" % \
-            (self.family(), istr(self.degree()), self.value_shape(), self.cell(), sym)
+        return ("<%s tensor element of degree %s and shape %s on a %s%s>" %
+            (self.family(), istr(self.degree()), self.value_shape(), self.cell(), sym))
 
     def shortstr(self):
         "Format as string for pretty printing."

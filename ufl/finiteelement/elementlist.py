@@ -263,14 +263,14 @@ def canonical_element_description(family, cell, order, form_degree):
     # Validate order if specified
     if order is not None:
         ufl_assert(krange is not None,
-                   'Order "%s" invalid for "%s" finite element, '\
+                   'Order "%s" invalid for "%s" finite element, '
                        'should be None.' % (order, family))
         kmin, kmax = krange
         ufl_assert(kmin is None or order >= kmin,
-                   'Order "%s" invalid for "%s" finite element.' %\
+                   'Order "%s" invalid for "%s" finite element.' %
                        (order, family))
         ufl_assert(kmax is None or order <= kmax,
-               'Order "%s" invalid for "%s" finite element.' %\
+               'Order "%s" invalid for "%s" finite element.' %
                        (istr(order), family))
 
     # Override sobolev_space for piecewise constants (TODO: necessary?)

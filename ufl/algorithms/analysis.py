@@ -163,7 +163,8 @@ def extract_unique_elements(form):
 def extract_sub_elements(elements):
     "Build sorted tuple of all sub elements (including parent element)."
     sub_elements = tuple(chain(*[e.sub_elements() for e in elements]))
-    if not sub_elements: return tuple(elements)
+    if not sub_elements:
+        return tuple(elements)
     return tuple(elements) + extract_sub_elements(sub_elements)
 
 

@@ -49,7 +49,7 @@ class EnrichedElement(FiniteElementBase):
         quad_schemes = [e.quadrature_scheme() for e in elements]
         quad_schemes = [qs for qs in quad_schemes if qs is not None]
         quad_scheme = quad_schemes[0] if quad_schemes else None
-        ufl_assert(all(qs == quad_scheme for qs in quad_schemes),\
+        ufl_assert(all(qs == quad_scheme for qs in quad_schemes),
             "Quadrature scheme mismatch.")
 
         value_shape = elements[0].value_shape()

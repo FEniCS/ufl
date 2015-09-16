@@ -381,5 +381,5 @@ def as_ufl(expression):
         return FloatValue(expression)
     if isinstance(expression, int):
         return IntValue(expression)
-    error(("Invalid type conversion: %s can not be converted to any UFL type.\n"+\
+    error(("Invalid type conversion: %s can not be converted to any UFL type.\n"+
            "The representation of the object is:\n%r") % (type(expression), expression))

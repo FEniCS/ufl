@@ -76,7 +76,8 @@ class AbstractCell(object):
         # Sort by gdim first, tdim next, then whatever's left depending on the subclass
         s = (self.geometric_dimension(), self.topological_dimension())
         o = (other.geometric_dimension(), other.topological_dimension())
-        if s != o: return s < o
+        if s != o:
+            return s < o
         return self._ufl_hash_data_() < other._ufl_hash_data_()
 
 

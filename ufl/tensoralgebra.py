@@ -197,8 +197,8 @@ class Dot(CompoundTensorOperator):
 
         # Checks
         ufl_assert((ar >= 1 and br >= 1) or scalar,
-            "Dot product requires non-scalar arguments, "\
-            "got arguments with ranks %d and %d." % \
+            "Dot product requires non-scalar arguments, "
+            "got arguments with ranks %d and %d." %
             (ar, br))
         ufl_assert(scalar or ash[-1] == bsh[0], "Dimension mismatch in dot product.")
 

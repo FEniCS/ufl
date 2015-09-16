@@ -35,22 +35,23 @@ class FormData(object):
     def __str__(self):
         "Return formatted summary of form data"
         types = sorted(self.num_sub_domains.keys())
+        geometry = (
+                   ("Geometric dimension", self.geometric_dimension),
+                   )
         subdomains = tuple(("Number of %s subdomains" % integral_type,
                             self.num_sub_domains[integral_type]) for integral_type in types)
-        return tstr(
-            (# Geometry
-             ("Geometric dimension",                self.geometric_dimension),
-             ) + subdomains + (
-             # Arguments
-             ("Rank",                               self.rank),
-             ("Arguments",                          lstr(self.original_form.arguments())),
-             # Coefficients
-             ("Number of coefficients",             self.num_coefficients),
-             ("Coefficients",                       lstr(self.reduced_coefficients)),
-             # Elements
-             ("Unique elements",                    estr(self.unique_elements)),
-             ("Unique sub elements",                estr(self.unique_sub_elements)),
-             ))
+        functions = (
+                # Arguments
+                ("Rank",                               self.rank),
+                ("Arguments",                          lstr(self.original_form.arguments())),
+                # Coefficients
+                ("Number of coefficients",             self.num_coefficients),
+                ("Coefficients",                       lstr(self.reduced_coefficients)),
+                # Elements
+                ("Unique elements",                    estr(self.unique_elements)),
+                ("Unique sub elements",                estr(self.unique_sub_elements)),
+                    )
+        return tstr(geometry + subdomains + functions)
 
 class ExprData(object):
     """

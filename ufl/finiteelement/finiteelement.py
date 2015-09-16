@@ -90,7 +90,7 @@ class FiniteElement(FiniteElementBase):
         "Format as string for pretty printing."
         qs = self.quadrature_scheme()
         qs = "" if qs is None else "(%s)" % qs
-        return "<%s%s%s on a %s>" % (self._short_name, istr(self.degree()),\
+        return "<%s%s%s on a %s>" % (self._short_name, istr(self.degree()),
                                            qs, self.cell())
 
     def shortstr(self):

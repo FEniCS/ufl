@@ -441,8 +441,8 @@ def compute_energy_norm(form, coefficient):
     if coefficient is None:
         coefficient = Coefficient(e)
     else:
-        ufl_assert(coefficient.ufl_function_space() == e, \
-            "Trying to compute action of form on a "\
+        ufl_assert(coefficient.ufl_function_space() == e,
+            "Trying to compute action of form on a "
             "coefficient in an incompatible element space.")
     return replace(form, { u: coefficient, v: coefficient })
 

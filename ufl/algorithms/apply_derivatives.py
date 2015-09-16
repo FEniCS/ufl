@@ -36,10 +36,10 @@ from ufl.classes import Product, Sum, IndexSum
 from ufl.classes import Jacobian, JacobianInverse
 
 from ufl.constantvalue import is_true_ufl_scalar, is_ufl_scalar
-from ufl.operators import dot, inner, outer, lt, eq, conditional, sign, \
-    sqrt, exp, ln, cos, sin, tan, cosh, sinh, tanh, acos, asin, atan, atan_2, \
-    erf, bessel_J, bessel_Y, bessel_I, bessel_K, \
-    cell_avg, facet_avg
+from ufl.operators import (dot, inner, outer, lt, eq, conditional, sign,
+    sqrt, exp, ln, cos, sin, tan, cosh, sinh, tanh, acos, asin, atan, atan_2,
+    erf, bessel_J, bessel_Y, bessel_I, bessel_K,
+    cell_avg, facet_avg)
 
 from math import pi
 
@@ -860,7 +860,8 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
 
             # Analyse differentiation variable coefficient
             if isinstance(w, FormArgument):
-                if not w == o: continue
+                if not w == o:
+                    continue
                 wshape = w.ufl_shape
 
                 if isinstance(v, FormArgument):
@@ -912,7 +913,7 @@ class GateauxDerivativeRuleset(GenericDerivativeRuleset):
                 # Make sure we have a tuple to match the self._v tuple
                 if not isinstance(oprimes, tuple):
                     oprimes = (oprimes,)
-                    ufl_assert(len(oprimes) == len(self._v), "Got a tuple of arguments, "+\
+                    ufl_assert(len(oprimes) == len(self._v), "Got a tuple of arguments, "+
                                    "expecting a matching tuple of coefficient derivatives.")
 
                 # Compute dg/dw_j = dg/dw_h : v.
