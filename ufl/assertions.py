@@ -36,4 +36,3 @@ expecting_true_ufl_scalar = lambda v:    error("Expecting UFL scalar expression 
 def ufl_assert(condition, *message):
     "Assert that condition is true and otherwise issue an error with given message."
     if not condition: error(*message)
-
