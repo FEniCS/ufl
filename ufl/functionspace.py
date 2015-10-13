@@ -43,7 +43,9 @@ class AbstractFunctionSpace(object):
 
 @attach_operators_from_hash_data
 class FunctionSpace(AbstractFunctionSpace):
-    __slots__ = ("_ufl_domain", "_ufl_element")
+    # Slots are disabled here because they cause trouble in PyDOLFIN multiple inheritance pattern:
+    #__slots__ = ("_ufl_domain", "_ufl_element")
+    _ufl_noslots_ = True
 
     def __init__(self, domain, element):
         AbstractFunctionSpace.__init__(self)
@@ -76,6 +78,7 @@ class FunctionSpace(AbstractFunctionSpace):
 
 @attach_operators_from_hash_data
 class MixedFunctionSpace(AbstractFunctionSpace):
+    # TODO: Disable slots also here? Will be subject to PyDOLFIN iheritance?
     __slots__ = ("_ufl_function_spaces",)
     def __init__(self, *function_spaces):
         AbstractFunctionSpace.__init__(self)
@@ -95,6 +98,7 @@ class MixedFunctionSpace(AbstractFunctionSpace):
 
 @attach_operators_from_hash_data
 class TensorProductFunctionSpace(AbstractFunctionSpace):
+    # TODO: Disable slots also here? Will be subject to PyDOLFIN iheritance?
     __slots__ = ("_ufl_function_spaces",)
     def __init__(self, *function_spaces):
         AbstractFunctionSpace.__init__(self)
