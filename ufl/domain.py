@@ -43,7 +43,6 @@ __all_classes__ = ["AbstractDomain", "Mesh", "MeshView", "TensorProductMesh"]
 
 class AbstractDomain(object):
     """Symbolic representation of a geometric domain with only a geometric and topological dimension."""
-    __slots__ = ("_topological_dimension", "_geometric_dimension")
     def __init__(self, topological_dimension, geometric_dimension):
         # Validate dimensions
         ufl_assert(isinstance(geometric_dimension, int),
@@ -68,7 +67,6 @@ class AbstractDomain(object):
 
 # TODO: Would it be useful to have a domain representing R^d? E.g. for Expression.
 #class EuclideanSpace(AbstractDomain):
-#    __slots__ = ()
 #    def __init__(self, geometric_dimension):
 #        AbstractDomain.__init__(self, geometric_dimension, geometric_dimension)
 
@@ -77,11 +75,6 @@ class AbstractDomain(object):
 @attach_ufl_id
 class Mesh(AbstractDomain):
     """Symbolic representation of a mesh."""
-    __slots__ = (
-        "_ufl_coordinate_element",
-        "_ufl_id",
-        "_ufl_cargo",
-        )
     def __init__(self, coordinate_element, ufl_id=None, cargo=None):
         self._ufl_id = self._init_ufl_id(ufl_id)
 
@@ -159,10 +152,6 @@ class Mesh(AbstractDomain):
 @attach_ufl_id
 class MeshView(AbstractDomain):
     """Symbolic representation of a mesh."""
-    __slots__ = (
-        "_ufl_mesh",
-        "_ufl_id",
-        )
     def __init__(self, mesh, topological_dimension, ufl_id=None):
         self._ufl_id = self._init_ufl_id(ufl_id)
 
@@ -205,12 +194,6 @@ class MeshView(AbstractDomain):
 @attach_ufl_id
 class TensorProductMesh(AbstractDomain):
     """Symbolic representation of a mesh."""
-    __slots__ = (
-        "_ufl_meshes",
-        "_ufl_id",
-        "_ufl_cell",
-        "_ufl_coordinate_element",
-        )
     def __init__(self, meshes, ufl_id=None):
         self._ufl_id = self._init_ufl_id(ufl_id)
 
