@@ -160,7 +160,7 @@ def _check_facet_geometry(integral_data):
             it = itg_data.integral_type
             # Facet geometry is only valid in facet integrals.
             # Allowing custom integrals to pass as well, although that's not really strict enough.
-            if "facet" not in it and "custom" not in it:
+            if not ("facet" in it or "custom" in it or "interface" in it):
                 # Not a facet integral
                 for expr in traverse_terminals(itg.integrand()):
                     cls = expr._ufl_class_
