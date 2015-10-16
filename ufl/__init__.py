@@ -290,7 +290,7 @@ from ufl.objects import (
     quadrilateral, hexahedron, facet,
     i, j, k, l, p, q, r, s,
     dx, ds, dS, dP,
-    dc, dC, dO, dI,
+    dc, dC, dO, dI, dX,
     ds_b, ds_t, ds_tb, ds_v, dS_h, dS_v
     )
 
