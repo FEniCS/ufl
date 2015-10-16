@@ -53,18 +53,18 @@ _integral_types = [
     #("point", "dP"),                   # TODO: Use this over arbitrary points inside cells?
 
     # === Integration over custom domains
-    ("custom", "dc"),                   # Over custom user-defined domains (run-time quadrature points)
-    ("overlap", "dO"),                  # Over a cell fragment overlapping with two or more cells (run-time quadrature points)
-    ("interface", "dI"),                # Over facet fragment overlapping with two or more cells (run-time quadrature points)
-    ("cutcell", "dC"),                  # Over a cell with some part cut away (run-time quadrature points)
+    ("custom",    "dc"),                # Over custom user-defined domains (run-time quadrature points)
+    ("overlap",   "dO"),                # Over a cell fragment overlapping with two or more cells (run-time quadrature points)
+    ("interface", "dI"),                # Over a facet fragment overlapping with two or more cells (run-time quadrature points)
+    ("cutcell",   "dC"),                # Over a cell with some part cut away (run-time quadrature points)
 
     # === Firedrake specific hacks on the way out:
     # TODO: Remove these, firedrake can use metadata instead and create the measure objects in firedrake:
     ("exterior_facet_bottom", "ds_b"),  # Over bottom facets on extruded mesh
-    ("exterior_facet_top", "ds_t"),     # Over top facets on extruded mesh
-    ("exterior_facet_vert", "ds_v"),    # Over side facets of an extruded mesh
-    ("interior_facet_horiz", "dS_h"),   # Over horizontal facets of an extruded mesh
-    ("interior_facet_vert", "dS_v"),    # Over vertical facets of an extruded mesh
+    ("exterior_facet_top",    "ds_t"),  # Over top facets on extruded mesh
+    ("exterior_facet_vert",   "ds_v"),  # Over side facets of an extruded mesh
+    ("interior_facet_horiz",  "dS_h"),  # Over horizontal facets of an extruded mesh
+    ("interior_facet_vert",   "dS_v"),  # Over vertical facets of an extruded mesh
     ]
 integral_type_to_measure_name = dict((l, s) for l, s in _integral_types)
 measure_name_to_integral_type = dict((s, l) for l, s in _integral_types)
