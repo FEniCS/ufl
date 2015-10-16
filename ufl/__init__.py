@@ -145,7 +145,7 @@ A very brief overview of the language contents follows:
 * Integral measures::
 
     dx, ds, dS, dP,
-    dc, dC, dO, dI,
+    dc, dC, dO, dI, dX
     ds_b, ds_t, ds_tb, ds_v, dS_h, dS_v
 
 * Form transformations::
@@ -345,7 +345,7 @@ __all__ = [
     'replace', 'replace_integral_domains', 'derivative', 'action', 'energy_norm', 'rhs', 'lhs',
     'system', 'functional', 'adjoint', 'sensitivity_rhs',
     'dx', 'ds', 'dS', 'dP',
-    'dc', 'dC', 'dO', 'dI',
+    'dc', 'dC', 'dO', 'dI', 'dX',
     'ds_b', 'ds_t', 'ds_tb', 'ds_v', 'dS_h', 'dS_v',
     'vertex', 'interval', 'triangle', 'tetrahedron',
     'quadrilateral', 'hexahedron', 'facet',
