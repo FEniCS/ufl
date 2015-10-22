@@ -54,9 +54,9 @@ _integral_types = [
 
     # === Integration over custom domains
     ("custom",    "dc"),                # Over custom user-defined domains (run-time quadrature points)
-    ("overlap",   "dO"),                # Over a cell fragment overlapping with two or more cells (run-time quadrature points)
-    ("interface", "dI"),                # Over a facet fragment overlapping with two or more cells (run-time quadrature points)
     ("cutcell",   "dC"),                # Over a cell with some part cut away (run-time quadrature points)
+    ("interface", "dI"),                # Over a facet fragment overlapping with two or more cells (run-time quadrature points)
+    ("overlap",   "dO"),                # Over a cell fragment overlapping with two or more cells (run-time quadrature points)
 
     # === Firedrake specific hacks on the way out:
     # TODO: Remove these, firedrake can use metadata instead and create the measure objects in firedrake:
