@@ -68,6 +68,7 @@ _integral_types = [
     ]
 integral_type_to_measure_name = dict((l, s) for l, s in _integral_types)
 measure_name_to_integral_type = dict((s, l) for l, s in _integral_types)
+custom_integral_types = ("custom", "cutcell", "interface", "overlap")
 
 def register_integral_type(integral_type, measure_name):
     global integral_type_to_measure_name, measure_name_to_integral_type
