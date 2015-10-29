@@ -77,7 +77,7 @@ def _increase_degree(element, degree_rise):
         return MixedElement([_increase_degree(e, degree_rise)
                              for e in element.sub_elements()])
     elif isinstance(element, EnrichedElement):
-        return EnrichedElement([_increase_degre(e, degree_rise)
+        return EnrichedElement([_increase_degree(e, degree_rise)
                                 for e in element.sub_elements()])
     else:
         error("Element reconstruction is only done to stay compatible with hacks in DOLFIN. Not expecting a %r" % (element,))
