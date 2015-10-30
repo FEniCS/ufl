@@ -114,8 +114,8 @@ def _compute_element_mapping(form):
     return element_mapping
 
 
-def _compute_num_sub_domains(integral_data):
-    num_sub_domains = {}
+def _compute_max_subdomain_ids(integral_data):
+    max_subdomain_ids = {}
     for itg_data in integral_data:
         it = itg_data.integral_type
         si = itg_data.subdomain_id
@@ -123,9 +123,9 @@ def _compute_num_sub_domains(integral_data):
             newmax = si + 1
         else:
             newmax = 0
-        prevmax = num_sub_domains.get(it, 0)
-        num_sub_domains[it] = max(prevmax, newmax)
-    return num_sub_domains
+        prevmax = max_subdomain_ids.get(it, 0)
+        max_subdomain_ids[it] = max(prevmax, newmax)
+    return max_subdomain_ids
 
 
 def _compute_form_data_elements(self, arguments, coefficients, domains):
@@ -327,7 +327,7 @@ def compute_form_data(form,
 
     # --- Store number of domains for integral types
     # TODO: Group this by domain first. For now keep a backwards compatible data structure.
-    self.num_sub_domains = _compute_num_sub_domains(self.integral_data)
+    self.max_subdomain_ids = _compute_max_subdomain_ids(self.integral_data)
 
 
     # --- Checks

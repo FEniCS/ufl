@@ -34,12 +34,12 @@ class FormData(object):
 
     def __str__(self):
         "Return formatted summary of form data"
-        types = sorted(self.num_sub_domains.keys())
+        types = sorted(self.max_subdomain_ids.keys())
         geometry = (
                    ("Geometric dimension", self.geometric_dimension),
                    )
         subdomains = tuple(("Number of %s subdomains" % integral_type,
-                            self.num_sub_domains[integral_type]) for integral_type in types)
+                            self.max_subdomain_ids[integral_type]) for integral_type in types)
         functions = (
                 # Arguments
                 ("Rank",                               self.rank),
