@@ -25,7 +25,8 @@ from itertools import chain
 from ufl.log import error, warning, info
 from ufl.assertions import ufl_assert
 
-from ufl.finiteelement import FiniteElement, VectorElement, TensorElement
+from ufl.finiteelement import FiniteElement, VectorElement, TensorElement, \
+        MixedElement, EnrichedElement
 
 from ufl.classes import GeometricFacetQuantity, Coefficient
 from ufl.corealg.traversal import traverse_terminals
@@ -57,13 +58,40 @@ def _auto_select_degree(elements):
     # Use max degree of all elements, at least 1 (to work with Lagrange elements)
     return max({ e.degree() for e in elements } - { None } | { 1 })
 
-def _reconstruct_element(element, cell, degree):
+def _reconstruct_element(element, family, cell, degree):
     if isinstance(element, FiniteElement):
-        return FiniteElement(element.family(), cell, degree)
+        return FiniteElement(family, cell, degree)
     elif isinstance(element, VectorElement):
-        return VectorElement(element.family(), cell, degree, dim=element.value_shape()[0])
+        return VectorElement(family, cell, degree, dim=element.value_shape()[0])
     elif isinstance(element, TensorElement):
-        return TensorElement(element.family(), cell, degree, shape=element.value_shape())
+        return TensorElement(family, cell, degree, shape=element.value_shape())
+    else:
+        error("Element reconstruction is only done to stay compatible with hacks in DOLFIN. Not expecting a %r" % (element,))
+
+def _increase_degree(element, degree_rise):
+    """Helper function used in dolfin.fem.formmanipulations.increase_order()"""
+    if isinstance(element, (FiniteElement, VectorElement, TensorElement)):
+        return _reconstruct_element(element, element.family(), element.cell(),
+                                    element.degree() + degree_rise)
+    elif isinstance(element, MixedElement):
+        return MixedElement([_increase_degree(e, degree_rise)
+                             for e in element.sub_elements()])
+    elif isinstance(element, EnrichedElement):
+        return EnrichedElement([_increase_degree(e, degree_rise)
+                                for e in element.sub_elements()])
+    else:
+        error("Element reconstruction is only done to stay compatible with hacks in DOLFIN. Not expecting a %r" % (element,))
+
+def _change_family(element, family):
+    """Helper function used in dolfin.fem.formmanipulations.change_regularity()"""
+    if isinstance(element, (FiniteElement, VectorElement, TensorElement)):
+        return _reconstruct_element(element, family, element.cell(), element.degree())
+    elif isinstance(element, MixedElement):
+        return MixedElement([_change_family(e, family)
+                             for e in element.sub_elements()])
+    elif isinstance(element, EnrichedElement):
+        return EnrichedElement([_change_family(e, family)
+                                for e in element.sub_elements()])
     else:
         error("Element reconstruction is only done to stay compatible with hacks in DOLFIN. Not expecting a %r" % (element,))
 
@@ -107,7 +135,8 @@ def _compute_element_mapping(form):
 
         # Reconstruct element and add to map
         if reconstruct:
-            element_mapping[element] = _reconstruct_element(element, cell, degree)
+            element_mapping[element] = _reconstruct_element(element,
+                    element.family(), cell, degree)
         else:
             element_mapping[element] = element
 
