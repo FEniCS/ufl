@@ -26,10 +26,10 @@ Contributors:
 
 UFL is described in the paper:
 
-Alnæs, M. S., Logg A., Ølgaard, K. B., Rognes, M. E. and Wells, G. N. (2014).
-Unified Form Language: A domain-specific language for weak formulations of
-partial differential equations.
-*ACM Transactions on Mathematical Software* 40(2), Article 9, 37 pages.
+Alnæs, M. S., Logg A., Ølgaard, K. B., Rognes, M. E. and Wells,
+G. N. (2014).  Unified Form Language: A domain-specific language for
+weak formulations of partial differential equations.  *ACM
+Transactions on Mathematical Software* 40(2), Article 9, 37 pages.
 <http://dx.doi.org/doi:10.1145/2566630>,
 <http://arxiv.org/abs/1211.4047>
 
@@ -59,15 +59,12 @@ Directories
 
 - doc/
 
-  The UFL manual resides here.
+  The UFL documentation resides here.
 
 - test/
 
-  Unit tests for the UFL implementation. Run all tests by typing "python test.py" inside the test/ directory.
-
-- sandbox/
-
-  A place for experimental scripts and other unofficial code.
+  Unit tests for the UFL implementation. Run all tests by typing
+  "python test.py" inside the test/ directory.
 
 
 Utilities
@@ -85,11 +82,13 @@ after installation.
 About the Python modules
 ========================
 
-The global namespace of the module ufl contains the entire UFL language::
+The global namespace of the module ufl contains the entire UFL
+language::
 
   from ufl import *
 
-Form compilers may want to import additional implementation details like::
+Form compilers may want to import additional implementation details
+like::
 
   from ufl.classes import *
 
