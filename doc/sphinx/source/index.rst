@@ -34,6 +34,8 @@ Installation
 Manual from source
 ^^^^^^^^^^^^^^^^^^
 
+To install UFL::
+
     python setup.py install
 
 
@@ -44,9 +46,8 @@ Documentation
 .. toctree::
    :maxdepth: 2
 
-
-* :ref:`genindex`
 * :ref:`modindex`
+* :ref:`genindex`
 * :ref:`search`
 
 
