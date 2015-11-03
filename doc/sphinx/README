@@ -1,4 +1,0 @@
-To build the documentation, run `scripts/makedoc` from the
-top-level UFL directory. Running `make html` directly from
-within this directory won't work (unless the makedoc script
-has been run first).
