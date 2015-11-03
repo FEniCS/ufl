@@ -22,8 +22,6 @@ UFL is most commonly used as the input language for the FEniCS Form
 Compiler (FFC) and in combination with the problem solving environment
 DOLFIN.
 
-Test Bitbucket hook
-
 
 Installation
 ------------
