@@ -99,15 +99,6 @@ applehelp:
 	      "~/Library/Documentation/Help or install it in your application" \
 	      "bundle."
 
-devhelp:
-	$(SPHINXBUILD) -b devhelp $(ALLSPHINXOPTS) $(BUILDDIR)/devhelp
-	@echo
-	@echo "Build finished."
-	@echo "To view the help file:"
-	@echo "# mkdir -p $$HOME/.local/share/devhelp/UnifiedFormLanguageUFL"
-	@echo "# ln -s $(BUILDDIR)/devhelp $$HOME/.local/share/devhelp/UnifiedFormLanguageUFL"
-	@echo "# devhelp"
-
 epub:
 	$(SPHINXBUILD) -b epub $(ALLSPHINXOPTS) $(BUILDDIR)/epub
 	@echo

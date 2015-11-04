@@ -34,6 +34,12 @@ Transactions on Mathematical Software* 40(2), Article 9, 37 pages.
 <http://arxiv.org/abs/1211.4047>
 
 
+Documentation
+=============
+
+The UFL documentation is hosted at http://fenics-ufl.rtfd.org/.
+
+
 Installation
 ============
 
@@ -59,7 +65,8 @@ Directories
 
 - doc/
 
-  The UFL documentation resides here.
+  The UFL documentation resides here. See doc/sphinx/README for how to
+  generate the docucmentation.
 
 - test/
 

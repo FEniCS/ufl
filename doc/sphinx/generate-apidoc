@@ -16,18 +16,14 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 # This script calls sphinx-apidoc to generate files ready for autodoc
-#
-# Run from the top level UFL directory:
-#
-#    ./scripts/makedoc
-#
 
 echo ""
 echo "--- Generating UFL autodoc RST files"
 echo ""
 
-SPHINX_DIR=.
+# Get location of Sphinx files
+SPHINX_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 SPHINX_SOURCE_DIR=$SPHINX_DIR/source
 
 # Generate .rst files ready for autodoc
-sphinx-apidoc -f -d 1 -o $SPHINX_SOURCE_DIR/api-doc ../../ufl
+sphinx-apidoc -f -d 1 -o $SPHINX_SOURCE_DIR/api-doc $SPHINX_DIR/../../ufl
