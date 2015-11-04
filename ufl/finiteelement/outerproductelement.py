@@ -23,12 +23,12 @@
 # Modified by Lawrence Mitchell 2014
 
 from ufl.assertions import ufl_assert
-from ufl.cell import OuterProductCell, as_cell
+from ufl.cell import TensorProductCell, as_cell
 from ufl.finiteelement.mixedelement import MixedElement, _tensor_sub_elements
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 
-class OuterProductElement(FiniteElementBase):
+class TensorProductElement(FiniteElementBase):
     r"""The outer (tensor) product of 2 element spaces:
 
     .. math:: V = A \otimes B
@@ -42,15 +42,15 @@ class OuterProductElement(FiniteElementBase):
         "Create OuterProductElement from a given pair of elements."
         self._A = A
         self._B = B
-        family = "OuterProductElement"
+        family = "TensorProductElement"
 
         if cell is None:
             # Define cell as the product of sub-cells
-            cell = OuterProductCell(A.cell(), B.cell())
+            cell = TensorProductCell(A.cell(), B.cell())
         else:
             cell = as_cell(cell)
 
-        self._repr = "OuterProductElement(%r, %r, %r)" % (self._A, self._B, cell)
+        self._repr = "TensorProductElement(%r, %r, %r)" % (self._A, self._B, cell)
 
         # Define polynomial degree as a tuple of sub-degrees
         degree = (A.degree(), B.degree())
@@ -74,32 +74,32 @@ class OuterProductElement(FiniteElementBase):
 
     def __str__(self):
         "Pretty-print."
-        return "OuterProductElement(%s)" \
+        return "TensorProductElement(%s)" \
             % str([str(self._A), str(self._B)])
 
     def shortstr(self):
         "Short pretty-print."
-        return "OuterProductElement(%s)" \
+        return "TensorProductElement(%s)" \
             % str([self._A.shortstr(), self._B.shortstr()])
 
 
-class OuterProductVectorElement(MixedElement):
+class TensorProductVectorElement(MixedElement):
     """A special case of a mixed finite element where all
-    elements are equal OuterProductElements"""
+    elements are equal TensorProductElements"""
     __slots__ = ("_sub_element")
 
     def __init__(self, *args, **kwargs):
-        if isinstance(args[0], OuterProductElement):
+        if isinstance(args[0], TensorProductElement):
             self._from_sub_element(*args, **kwargs)
         else:
             self._from_product_parts(*args, **kwargs)
 
     def _from_product_parts(self, A, B, cell=None, dim=None):
-        sub_element = OuterProductElement(A, B, cell=cell)
+        sub_element = TensorProductElement(A, B, cell=cell)
         self._from_sub_element(sub_element, dim=dim)
 
     def _from_sub_element(self, sub_element, dim=None):
-        assert isinstance(sub_element, OuterProductElement)
+        assert isinstance(sub_element, TensorProductElement)
 
         dim = dim or sub_element.cell().geometric_dimension()
         sub_elements = [sub_element]*dim
@@ -118,7 +118,7 @@ class OuterProductVectorElement(MixedElement):
         self._sub_element = sub_element
 
         # Cache repr string
-        self._repr = "OuterProductVectorElement(%r, dim=%d)" % \
+        self._repr = "TensorProductVectorElement(%r, dim=%d)" % \
             (self._sub_element, len(self._sub_elements))
 
     @property
@@ -142,27 +142,27 @@ class OuterProductVectorElement(MixedElement):
         return "OPVector"
 
 
-class OuterProductTensorElement(MixedElement):
+class TensorProductTensorElement(MixedElement):
     """A special case of a mixed finite element where all
-    elements are equal OuterProductElements"""
+    elements are equal TensorProductElements"""
     __slots__ = ("_sub_element", "_shape", "_symmetry",
                  "_sub_element_mapping", "_flattened_sub_element_mapping",
                  "_mapping")
 
     def __init__(self, *args, **kwargs):
-        if isinstance(args[0], OuterProductElement):
+        if isinstance(args[0], TensorProductElement):
             self._from_sub_element(*args, **kwargs)
         else:
             self._from_product_parts(*args, **kwargs)
 
     def _from_product_parts(self, A, B, cell=None,
                             shape=None, symmetry=None, quad_scheme=None):
-        sub_element = OuterProductElement(A, B, cell=cell,
+        sub_element = TensorProductElement(A, B, cell=cell,
                                           quad_scheme=quad_scheme)
         self._from_sub_element(sub_element, shape=shape, symmetry=symmetry)
 
     def _from_sub_element(self, sub_element, shape=None, symmetry=None):
-        assert isinstance(sub_element, OuterProductElement)
+        assert isinstance(sub_element, TensorProductElement)
 
         shape, symmetry, sub_elements, sub_element_mapping, flattened_sub_element_mapping, \
           reference_value_shape, mapping = _tensor_sub_elements(sub_element, shape, symmetry)
@@ -180,7 +180,7 @@ class OuterProductTensorElement(MixedElement):
         self._mapping = mapping
 
         # Cache repr string
-        self._repr = "OuterProductTensorElement(%r, shape=%r, symmetry=%r)" % \
+        self._repr = "TensorProductTensorElement(%r, shape=%r, symmetry=%r)" % \
             (self._sub_element, self._shape, self._symmetry)
 
     @property
@@ -192,19 +192,19 @@ class OuterProductTensorElement(MixedElement):
         return self._sub_element._B
 
     def signature_data(self, renumbering):
-        data = ("OuterProductTensorElement", self._A, self._B,
+        data = ("TensorProductTensorElement", self._A, self._B,
                 self._shape, self._symmetry, self._quad_scheme,
                 ("no cell" if self._cell is None else
                     self._cell.signature_data(renumbering)))
         return data
 
     def reconstruct(self, **kwargs):
-        """Construct a new OuterProductTensorElement with some properties
+        """Construct a new TensorProductTensorElement with some properties
         replaced with new values."""
         cell = kwargs.get("cell", self.cell())
         shape = kwargs.get("shape", self._shape)
         symmetry = kwargs.get("symmetry", self._symmetry)
-        return OuterProductTensorElement(self._A, self._B, cell=cell,
+        return TensorProductTensorElement(self._A, self._B, cell=cell,
                                          shape=shape, symmetry=symmetry)
 
     def reconstruction_signature(self):
@@ -216,7 +216,7 @@ class OuterProductTensorElement(MixedElement):
         This differs from repr in that it does not include domain
         label and data, which must be reconstructed or supplied by other means.
         """
-        return "OuterProductTensorElement(%r, %r, %r, %r)" % (
+        return "TensorProductTensorElement(%r, %r, %r, %r)" % (
             self._sub_element, self._shape,
             self._symmetry, self._quad_scheme)
 

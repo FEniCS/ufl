@@ -32,7 +32,7 @@ from ufl.core.ufl_type import attach_operators_from_hash_data
 
 
 # Export list for ufl.classes
-__all_classes__ = ["AbstractCell", "Cell", "TensorProductCell", "OuterProductCell"]
+__all_classes__ = ["AbstractCell", "Cell", "TensorProductCell"]
 
 
 # --- The most abstract cell class, base class for other cell types
@@ -248,7 +248,7 @@ class TensorProductCell(AbstractCell):
 
 
 @attach_operators_from_hash_data
-class OuterProductCell(AbstractCell): # TODO: Remove this and use TensorProductCell instead
+class TensorProductCell(AbstractCell): # TODO: Remove this and use TensorProductCell instead
     """Representation of a cell formed as the Cartesian product of
     two existing cells"""
     __slots__ = ("_A", "_B", "facet_horiz", "facet_vert")
@@ -278,7 +278,7 @@ class OuterProductCell(AbstractCell): # TODO: Remove this and use TensorProductC
         if B.cellname() == "interval":
             self.facet_horiz = A
             if A.topological_dimension() == 2:
-                self.facet_vert = OuterProductCell(Cell("interval"), Cell("interval"))
+                self.facet_vert = TensorProductCell(Cell("interval"), Cell("interval"))
             elif A.topological_dimension() == 1:
                 # Terminate this recursion somewhere!
                 self.facet_vert = Cell("interval")
@@ -289,11 +289,11 @@ class OuterProductCell(AbstractCell): # TODO: Remove this and use TensorProductC
     def reconstruct(self, geometric_dimension=None):
         if geometric_dimension is None:
             geometric_dimension = self._geometric_dimension
-        return OuterProductCell(self._A, self._B, gdim=geometric_dimension)
+        return TensorProductCell(self._A, self._B, gdim=geometric_dimension)
 
     def cellname(self):
         "Return the cellname of the cell."
-        return "OuterProductCell"
+        return "TensorProductCell"
 
     def is_simplex(self):
         "Return True if this is a simplex cell."
@@ -310,7 +310,7 @@ class OuterProductCell(AbstractCell): # TODO: Remove this and use TensorProductC
 
     def num_edges(self):
         "The number of cell edges."
-        error("Not defined for OuterProductCell.")
+        error("Not defined for TensorProductCell.")
 
     def num_facets(self):
         "The number of cell facets."
@@ -328,9 +328,9 @@ class OuterProductCell(AbstractCell): # TODO: Remove this and use TensorProductC
 
     def __repr__(self):
         if self.geometric_dimension() == self.topological_dimension():
-            return "OuterProductCell(%r, %r)" % (self._A, self._B)
+            return "TensorProductCell(%r, %r)" % (self._A, self._B)
         else:
-            return "OuterProductCell(%r, %r, gdim=%d)" % (self._A, self._B, self._geometric_dimension)
+            return "TensorProductCell(%r, %r, gdim=%d)" % (self._A, self._B, self._geometric_dimension)
 
     def _ufl_hash_data_(self):
         return tuple(c._ufl_hash_data_() for c in (self._A, self._B)) + (self._geometric_dimension,)

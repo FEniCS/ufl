@@ -30,9 +30,9 @@ from ufl.finiteelement.mixedelement import VectorElement
 from ufl.finiteelement.mixedelement import TensorElement
 from ufl.finiteelement.enrichedelement import EnrichedElement
 from ufl.finiteelement.restrictedelement import RestrictedElement
-from ufl.finiteelement.outerproductelement import OuterProductElement
-from ufl.finiteelement.outerproductelement import OuterProductVectorElement
-from ufl.finiteelement.outerproductelement import OuterProductTensorElement
+from ufl.finiteelement.outerproductelement import TensorProductElement
+from ufl.finiteelement.outerproductelement import TensorProductVectorElement
+from ufl.finiteelement.outerproductelement import TensorProductTensorElement
 from ufl.finiteelement.hdivcurl import HDivElement, HCurlElement
 from ufl.finiteelement.brokenelement import BrokenElement
 from ufl.finiteelement.traceelement import TraceElement

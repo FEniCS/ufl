@@ -57,8 +57,8 @@ A very brief overview of the language contents follows:
     FiniteElement,
     MixedElement, VectorElement, TensorElement
     EnrichedElement, RestrictedElement,
-    OuterProductElement, OuterProductVectorElement, OuterProductTensorElement
-    HDivElement, HCurlElement
+    TensorProductElement, TensorProductVectorElement, TensorProductTensorElement,
+    HDiv, HCurl
     BrokenElement, TraceElement
     FacetElement, InteriorElement
 
@@ -198,7 +198,7 @@ from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile
 
 # Types for geometric quantities
 
-from ufl.cell import as_cell, AbstractCell, Cell, TensorProductCell, OuterProductCell
+from ufl.cell import as_cell, AbstractCell, Cell, TensorProductCell
 from ufl.domain import as_domain, AbstractDomain, Mesh, MeshView, TensorProductMesh
 from ufl.geometry import (
     SpatialCoordinate,
@@ -214,8 +214,8 @@ from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl
 # Finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
     MixedElement, VectorElement, TensorElement, EnrichedElement, \
-    RestrictedElement, OuterProductElement, \
-    OuterProductVectorElement, OuterProductTensorElement, \
+    RestrictedElement, TensorProductElement, \
+    TensorProductVectorElement, TensorProductTensorElement, \
     HDivElement, HCurlElement, BrokenElement, TraceElement, \
     FacetElement, InteriorElement
 
@@ -302,7 +302,7 @@ __all__ = [
     'product',
     'get_handler', 'get_logger', 'set_handler', 'set_level', 'add_logfile',
     'UFLException', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL',
-    'as_cell', 'AbstractCell', 'Cell', 'TensorProductCell', 'OuterProductCell',
+    'as_cell', 'AbstractCell', 'Cell', 'TensorProductCell',
     'as_domain', 'AbstractDomain', 'Mesh', 'MeshView', 'TensorProductMesh',
     'L2', 'H1', 'H2', 'HCurl', 'HDiv',
     'SpatialCoordinate',
@@ -312,8 +312,8 @@ __all__ = [
     'Jacobian', 'JacobianDeterminant', 'JacobianInverse',
     'FiniteElementBase', 'FiniteElement',
     'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
-    'RestrictedElement', 'OuterProductElement',
-    'OuterProductVectorElement', 'OuterProductTensorElement', 'HDivElement', 'HCurlElement',
+    'RestrictedElement', 'TensorProductElement',
+    'TensorProductVectorElement', 'TensorProductTensorElement', 'HDivElement', 'HCurlElement',
     'BrokenElement', 'TraceElement', 'FacetElement', 'InteriorElement',
     'register_element', 'show_elements',
     'FunctionSpace',
