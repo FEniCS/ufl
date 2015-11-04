@@ -57,7 +57,7 @@ A very brief overview of the language contents follows:
     FiniteElement,
     MixedElement, VectorElement, TensorElement
     EnrichedElement, RestrictedElement,
-    TensorProductElement, OuterProductElement, OuterProductVectorElement, OuterProductTensorElement
+    OuterProductElement, OuterProductVectorElement, OuterProductTensorElement
     HDivElement, HCurlElement
     BrokenElement, TraceElement
     FacetElement, InteriorElement
@@ -214,7 +214,7 @@ from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl
 # Finite elements classes
 from ufl.finiteelement import FiniteElementBase, FiniteElement, \
     MixedElement, VectorElement, TensorElement, EnrichedElement, \
-    RestrictedElement, TensorProductElement, OuterProductElement, \
+    RestrictedElement, OuterProductElement, \
     OuterProductVectorElement, OuterProductTensorElement, \
     HDivElement, HCurlElement, BrokenElement, TraceElement, \
     FacetElement, InteriorElement
@@ -312,7 +312,7 @@ __all__ = [
     'Jacobian', 'JacobianDeterminant', 'JacobianInverse',
     'FiniteElementBase', 'FiniteElement',
     'MixedElement', 'VectorElement', 'TensorElement', 'EnrichedElement',
-    'RestrictedElement', 'TensorProductElement', 'OuterProductElement',
+    'RestrictedElement', 'OuterProductElement',
     'OuterProductVectorElement', 'OuterProductTensorElement', 'HDivElement', 'HCurlElement',
     'BrokenElement', 'TraceElement', 'FacetElement', 'InteriorElement',
     'register_element', 'show_elements',

@@ -30,7 +30,6 @@ from ufl.finiteelement.mixedelement import VectorElement
 from ufl.finiteelement.mixedelement import TensorElement
 from ufl.finiteelement.enrichedelement import EnrichedElement
 from ufl.finiteelement.restrictedelement import RestrictedElement
-from ufl.finiteelement.tensorproductelement import TensorProductElement
 from ufl.finiteelement.outerproductelement import OuterProductElement
 from ufl.finiteelement.outerproductelement import OuterProductVectorElement
 from ufl.finiteelement.outerproductelement import OuterProductTensorElement
