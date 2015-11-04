@@ -25,7 +25,7 @@ UFL 1.6.0 was released on 2015-07-28
 - Remove ``Measure`` constants
 - Remove ``cell2D`` and ``cell3D``
 - Implement ``reference_value`` in ``apply_restrictions``
-- Rename point integral to vertex integral and kept ``*dP`` syntax
+- Rename point integral to vertex integral and kept ``\*dP`` syntax
 - Replace lambda functions in ``ufl_type`` with named functions for
-   nicer stack traces
+  nicer stack traces
 - Minor bugfixes, removal of unused code and cleanups
