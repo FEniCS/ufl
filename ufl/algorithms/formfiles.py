@@ -21,7 +21,8 @@
 # Modified by Anders Logg, 2008-2009.
 # Modified by Marie E. Rognes, 2011.
 
-import os, re
+import os
+import re
 from ufl.log import error, warning
 from ufl.utils.sorting import sorted_by_key
 from ufl.assertions import ufl_assert
@@ -42,7 +43,7 @@ class FileData(object):
         self.reserved_objects = {}
 
     def __bool__(self):
-        return bool(self.elements or self.coefficients or self.forms or self.expressions or\
+        return bool(self.elements or self.coefficients or self.forms or self.expressions or
                     self.object_names or self.object_by_name or self.reserved_objects)
     __nonzero__ = __bool__
 
@@ -90,7 +91,7 @@ def execute_ufl_code(uflcode, filename):
         basename = os.path.splitext(os.path.basename(filename))[0]
         basename = "%s_debug" % basename
         pyname = "%s.py" % basename
-        pycode = "#!/usr/bin/env python\nfrom ufl import *\nset_level(DEBUG)\n" + uflcode
+        pycode = "#!/usr/bin/env python\n# -*- coding: utf-8 -*-\nfrom ufl import *\nset_level(DEBUG)\n" + uflcode
         with open(pyname, "w") as f:
             f.write(pycode)
         warning(infostring % pyname)

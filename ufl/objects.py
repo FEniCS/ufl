@@ -35,7 +35,7 @@ for integral_type, measure_name in integral_type_to_measure_name.items():
     globals()[measure_name] = Measure(integral_type)
 ds_tb = ds_b + ds_t # TODO: Firedrake hack, remove later
 
-# Cell types
+# Create objects for builtin known cell types
 vertex        = Cell("vertex", 0)
 interval      = Cell("interval", 1)
 triangle      = Cell("triangle", 2)
@@ -45,3 +45,5 @@ hexahedron    = Cell("hexahedron", 3)
 
 # Facet is just a dummy declaration for RestrictedElement
 facet = "facet"
+
+#__all__ = [] # FIXME:

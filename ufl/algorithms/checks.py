@@ -78,8 +78,8 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
                 c = f.count()
                 if c in coefficients:
                     g = coefficients[c]
-                    if not f is g:
-                        errors.append("Found different Coefficients with " + \
+                    if f is not g:
+                        errors.append("Found different Coefficients with " +
                                    "same count: %s and %s." % (repr(f), repr(g)))
                 else:
                     coefficients[c] = f
@@ -89,10 +89,13 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
                 p = f.part()
                 if (n, p) in arguments:
                     g = arguments[(n, p)]
-                    if not f is g:
-                        if n == 0: msg = "TestFunctions"
-                        elif n == 1: msg = "TrialFunctions"
-                        else: msg = "Arguments with same number and part"
+                    if f is not g:
+                        if n == 0:
+                            msg = "TestFunctions"
+                        elif n == 1:
+                            msg = "TrialFunctions"
+                        else:
+                            msg = "Arguments with same number and part"
                         msg = "Found different %s: %s and %s." % (msg, repr(f), repr(g))
                         errors.append(msg)
                 else:
@@ -101,7 +104,7 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
     # Check that all integrands are scalar
     for expression in iter_expressions(form):
         if not is_true_ufl_scalar(expression):
-            errors.append("Found non-scalar integrand expression:\n%s\n%s" % \
+            errors.append("Found non-scalar integrand expression:\n%s\n%s" %
                               (str(expression), repr(expression)))
 
     # Check that restrictions are permissible

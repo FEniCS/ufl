@@ -413,6 +413,9 @@ Expr.__getitem__ = _getitem
 def _dx(self, *ii):
     "Return the partial derivative with respect to spatial variable number i."
     d = self
+    # Unwrap ii to allow .dx(i,j) and .dx((i,j))
+    if len(ii) == 1 and isinstance(ii[0], tuple):
+        ii = ii[0]
     # Apply all derivatives
     for i in ii:
         d = Grad(d)

@@ -18,6 +18,9 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
+# Export list for ufl.classes
+__all_classes__ = ["Equation"]
+
 class Equation:
     """This class is used to represent equations expressed by the "=="
     operator. Examples include a == L and F == 0 where a, L and F are

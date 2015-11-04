@@ -29,14 +29,20 @@
 
 from ufl.core.ufl_type import attach_operators_from_hash_data
 
+# Export list for ufl.classes
+__all_classes__ = [
+    "AbstractFunctionSpace",
+    "FunctionSpace",
+    "MixedFunctionSpace",
+    "TensorProductFunctionSpace",
+    ]
+
 class AbstractFunctionSpace(object):
     def ufl_sub_spaces(self):
         raise NotImplementedError("Missing implementation of IFunctionSpace.ufl_sub_spaces in %s." % self.__class__.__name__)
 
 @attach_operators_from_hash_data
 class FunctionSpace(AbstractFunctionSpace):
-    __slots__ = ("_ufl_domain", "_ufl_element")
-
     def __init__(self, domain, element):
         AbstractFunctionSpace.__init__(self)
         self._ufl_domain = domain
@@ -52,13 +58,13 @@ class FunctionSpace(AbstractFunctionSpace):
         return self._ufl_element
 
     def _ufl_hash_data_(self):
-        edata = self.ufl_element()._ufl_hash_data_()
+        edata = repr(self.ufl_element())
         domain = self.ufl_domain()
         ddata = None if domain is None else domain._ufl_hash_data_()
         return ("FunctionSpace", ddata, edata)
 
     def _ufl_signature_data_(self, renumbering):
-        edata = self.ufl_element()._ufl_signature_data_(renumbering)
+        edata = repr(self.ufl_element())
         domain = self.ufl_domain()
         ddata = None if domain is None else domain._ufl_signature_data_(renumbering)
         return ("FunctionSpace", ddata, edata)
@@ -68,7 +74,6 @@ class FunctionSpace(AbstractFunctionSpace):
 
 @attach_operators_from_hash_data
 class MixedFunctionSpace(AbstractFunctionSpace):
-    __slots__ = ("_ufl_function_spaces",)
     def __init__(self, *function_spaces):
         AbstractFunctionSpace.__init__(self)
         self._ufl_function_spaces = function_spaces
@@ -87,7 +92,6 @@ class MixedFunctionSpace(AbstractFunctionSpace):
 
 @attach_operators_from_hash_data
 class TensorProductFunctionSpace(AbstractFunctionSpace):
-    __slots__ = ("_ufl_function_spaces",)
     def __init__(self, *function_spaces):
         AbstractFunctionSpace.__init__(self)
         self._ufl_function_spaces = function_spaces

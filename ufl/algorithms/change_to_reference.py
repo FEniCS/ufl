@@ -146,7 +146,7 @@ class NEWChangeToReferenceGrad(MultiFunction):
         self._avg = ''
 
     def expr(self, o, *ops):
-        return o.reconstruct(*ops)
+        return o._ufl_expr_reconstruct_(*ops)
 
     def terminal(self, o):
         return o

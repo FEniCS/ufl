@@ -39,15 +39,14 @@ The development version can be found in the repository at
 
 A very brief overview of the language contents follows:
 
-* Domains::
-
-    Domain, ProductDomain
-
 * Cells::
 
-    Cell, ProductCell, OuterProductCell,
-    interval, triangle, tetrahedron,
-    quadrilateral, hexahedron
+    AbstractCell, Cell, TensorProductCell, OuterProductCell,
+    vertex, interval, triangle, tetrahedron, quadrilateral, hexahedron
+
+* Domains::
+
+    AbstractDomain, Mesh, MeshView, TensorProductMesh
 
 * Sobolev spaces::
 
@@ -69,7 +68,8 @@ A very brief overview of the language contents follows:
 
 * Arguments::
 
-    Argument, TestFunction, TrialFunction
+    Argument, TestFunction, TrialFunction,
+    Arguments, TestFunctions, TrialFunctions
 
 * Coefficients::
 
@@ -197,8 +197,9 @@ from ufl.log import get_handler, get_logger, set_handler, set_level, add_logfile
     UFLException, DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 # Types for geometric quantities
-from ufl.cell import as_cell, Cell, ProductCell, OuterProductCell
-from ufl.domain import as_domain, Domain, ProductDomain
+
+from ufl.cell import as_cell, AbstractCell, Cell, TensorProductCell, OuterProductCell
+from ufl.domain import as_domain, AbstractDomain, Mesh, MeshView, TensorProductMesh
 from ufl.geometry import (
     SpatialCoordinate,
     FacetNormal, CellNormal,
@@ -301,8 +302,8 @@ __all__ = [
     'product',
     'get_handler', 'get_logger', 'set_handler', 'set_level', 'add_logfile',
     'UFLException', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL',
-    'as_cell', 'Cell', 'ProductCell', 'OuterProductCell',
-    'as_domain', 'Domain', 'ProductDomain',
+    'as_cell', 'AbstractCell', 'Cell', 'TensorProductCell', 'OuterProductCell',
+    'as_domain', 'AbstractDomain', 'Mesh', 'MeshView', 'TensorProductMesh',
     'L2', 'H1', 'H2', 'HCurl', 'HDiv',
     'SpatialCoordinate',
     'CellVolume', 'Circumradius', 'MinCellEdgeLength', 'MaxCellEdgeLength',

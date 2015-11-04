@@ -36,7 +36,6 @@ from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.variable import Variable
 from ufl.core.multiindex import Index, MultiIndex
-from ufl.geometry import Domain
 from ufl.integral import Measure, Integral
 from ufl.form import Form
 from ufl.algorithms.traversal import iter_expressions
@@ -164,7 +163,8 @@ def extract_unique_elements(form):
 def extract_sub_elements(elements):
     "Build sorted tuple of all sub elements (including parent element)."
     sub_elements = tuple(chain(*[e.sub_elements() for e in elements]))
-    if not sub_elements: return tuple(elements)
+    if not sub_elements:
+        return tuple(elements)
     return tuple(elements) + extract_sub_elements(sub_elements)
 
 
@@ -194,7 +194,7 @@ def sort_elements(elements):
     """
 
     # Set nodes
-    nodes = elements
+    nodes = sorted(elements)
 
     # Set edges
     edges = dict((node, []) for node in nodes)

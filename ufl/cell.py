@@ -30,6 +30,11 @@ from ufl.utils.dicts import EmptyDict
 from ufl.core.terminal import Terminal
 from ufl.core.ufl_type import attach_operators_from_hash_data
 
+
+# Export list for ufl.classes
+__all_classes__ = ["AbstractCell", "Cell", "TensorProductCell", "OuterProductCell"]
+
+
 # --- The most abstract cell class, base class for other cell types
 
 class AbstractCell(object):
@@ -71,7 +76,8 @@ class AbstractCell(object):
         # Sort by gdim first, tdim next, then whatever's left depending on the subclass
         s = (self.geometric_dimension(), self.topological_dimension())
         o = (other.geometric_dimension(), other.topological_dimension())
-        if s != o: return s < o
+        if s != o:
+            return s < o
         return self._ufl_hash_data_() < other._ufl_hash_data_()
 
 
@@ -168,20 +174,27 @@ class Cell(AbstractCell):
         tdim = self.topological_dimension()
         s = self.cellname()
         if gdim > tdim:
-            s += " in %dD" % gdim
+            s += "%dD" % gdim
         return s
 
     def __repr__(self):
-        return "Cell(%r, %r)" % (self.cellname(), self.geometric_dimension())
+        # For standard cells, return name of builtin cell object if possible.
+        # This reduces the size of the repr strings for domains, elements, etc. as well
+        gdim = self.geometric_dimension()
+        tdim = self.topological_dimension()
+        name = self.cellname()
+        if gdim == tdim and name in cellname2dim:
+            return name
+        else:
+            return "Cell(%r, %r)" % (name, gdim)
 
     def _ufl_hash_data_(self):
         return (self._geometric_dimension, self._topological_dimension, self._cellname)
 
-
 @attach_operators_from_hash_data
-class ProductCell(AbstractCell):
+class TensorProductCell(AbstractCell):
     __slots__ = ("_cells",)
-    def __init__(self, *cells):
+    def __init__(self, cells):
         self._cells = tuple(as_cell(cell) for cell in cells)
 
         gdims = [cell.geometric_dimension() for cell in self._cells]
@@ -194,13 +207,13 @@ class ProductCell(AbstractCell):
     def is_simplex(self):
         "Return True if this is a simplex cell."
         if len(self._cells) == 1:
-            return self._cells.is_simplex()
+            return self._cells[0].is_simplex()
         return False
 
     def has_simplex_facets(self):
         "Return True if all the facets of this cell are simplex cells."
         if len(self._cells) == 1:
-            return self._cells.has_simplex_facets()
+            return self._cells[0].has_simplex_facets()
         return False
 
     def num_vertices(self):
@@ -209,7 +222,7 @@ class ProductCell(AbstractCell):
 
     def num_edges(self):
         "The number of cell edges."
-        error("Not defined for ProductCell.")
+        error("Not defined for TensorProductCell.")
 
     def num_facets(self):
         "The number of cell facets."
@@ -223,14 +236,14 @@ class ProductCell(AbstractCell):
         return repr(self)
 
     def __repr__(self):
-        return "ProductCell(%s)" % ", ".join(repr(c) for c in self._cells)
+        return "TensorProductCell(%s)" % ", ".join(repr(c) for c in self._cells)
 
     def _ufl_hash_data_(self):
         return tuple(c._ufl_hash_data_() for c in self._cells)
 
 
 @attach_operators_from_hash_data
-class OuterProductCell(AbstractCell): # TODO: Remove this and use ProductCell instead
+class OuterProductCell(AbstractCell): # TODO: Remove this and use TensorProductCell instead
     """Representation of a cell formed as the Cartesian product of
     two existing cells"""
     __slots__ = ("_A", "_B", "facet_horiz", "facet_vert")
@@ -332,8 +345,6 @@ def as_cell(cell):
     elif isinstance(cell, str):
         return Cell(cell)
     elif isinstance(cell, tuple):
-        return ProductCell(*map(as_cell, cell))
-    elif hasattr(cell, "ufl_cell"):
-        return cell.ufl_cell()
+        return TensorProductCell(cell)
     else:
         error("Invalid cell %s." % cell)

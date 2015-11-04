@@ -39,3 +39,23 @@ from ufl.finiteelement.brokenelement import BrokenElement
 from ufl.finiteelement.traceelement import TraceElement
 from ufl.finiteelement.facetelement import FacetElement
 from ufl.finiteelement.interiorelement import InteriorElement
+
+# Export list for ufl.classes
+__all_classes__ = [
+    "FiniteElementBase",
+    "FiniteElement",
+    "MixedElement",
+    "VectorElement",
+    "TensorElement",
+    "EnrichedElement",
+    "RestrictedElement",
+    "TensorProductElement",
+    "OuterProductElement",
+    "OuterProductVectorElement",
+    "HDivElement",
+    "HCurlElement",
+    "BrokenElement",
+    "TraceElement",
+    "FacetElement",
+    "InteriorElement",
+    ]

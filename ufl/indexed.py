@@ -49,8 +49,8 @@ class Indexed(Operator):
 
         # Error checking
         if len(shape) != len(multiindex):
-            error("Invalid number of indices (%d) for tensor "\
-                "expression of rank %d:\n\t%r\n"\
+            error("Invalid number of indices (%d) for tensor "
+                "expression of rank %d:\n\t%r\n"
                 % (len(multiindex), len(expression.ufl_shape), expression))
         if any(int(di) >= int(si) for si, di in zip(shape, multiindex) if isinstance(di, FixedIndex)):
             error("Fixed index out of range!")

@@ -10,7 +10,7 @@ notation close to mathematical notation.
 
 Authors:
   | Martin Sandve Alnæs   <martinal@simula.no>
-  | Anders Logg           <logg@simula.no>
+  | Anders Logg           <logg@chalmers.se>
 
 Contributors:
   | Kristian B. Ølgaard   <k.b.oelgaard@gmail.com>
@@ -18,11 +18,20 @@ Contributors:
   | Marie E. Rognes       <meg@simula.no>
   | Kent-Andre Mardal     <kent-and@simula.no>
   | Johan Hake            <hake@simula.no>
-  | David Ham             <David.Ham@imperial.ac.uk>
+  | David Ham             <david.ham@imperial.ac.uk>
   | Florian Rathgeber     <f.rathgeber10@imperial.ac.uk>
   | Andrew McRae          <a.mcrae12@imperial.ac.uk>
   | Lawrence Mitchell     <lawrence.mitchell@imperial.ac.uk>
   | Johannes Ring         <johannr@simula.no>
+
+UFL is described in the paper:
+
+Alnæs, M. S., Logg A., Ølgaard, K. B., Rognes, M. E. and Wells, G. N. (2014).
+Unified Form Language: A domain-specific language for weak formulations of
+partial differential equations.
+*ACM Transactions on Mathematical Software* 40(2), Article 9, 37 pages.
+<http://dx.doi.org/doi:10.1145/2566630>,
+<http://arxiv.org/abs/1211.4047>
 
 
 Installation

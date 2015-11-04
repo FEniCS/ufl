@@ -35,8 +35,7 @@ from ufl.utils.formatting import lstr
 
 # All classes:
 from ufl.core.terminal import Terminal
-from ufl.constantvalue import ConstantValue, Zero, IntValue, Identity,\
-    is_true_ufl_scalar, is_ufl_scalar
+from ufl.constantvalue import ConstantValue, Zero, IntValue, Identity, is_true_ufl_scalar, is_ufl_scalar
 from ufl.variable import Variable
 from ufl.coefficient import Coefficient, FormArgument
 from ufl.core.multiindex import MultiIndex, Index, FixedIndex, indices
@@ -44,18 +43,16 @@ from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
 from ufl.tensors import ListTensor, ComponentTensor, as_tensor, as_scalar, unit_indexed_tensor, unwrap_list_tensor
 from ufl.algebra import Sum, Product, Division, Power, Abs
-from ufl.tensoralgebra import Transposed, Outer, Inner, Dot, Cross, Trace, \
-    Determinant, Inverse, Deviatoric, Cofactor
+from ufl.tensoralgebra import Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
 from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin, Tan, Acos, Asin, Atan, Atan2, Erf, BesselJ, BesselY, BesselI, BesselK
 from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
-from ufl.differentiation import Derivative, CoefficientDerivative,\
-    VariableDerivative, Grad
+from ufl.differentiation import Derivative, CoefficientDerivative, VariableDerivative, Grad
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.exprcontainers import ExprList, ExprMapping
-from ufl.operators import dot, inner, outer, lt, eq, conditional, sign, \
-    sqrt, exp, ln, cos, sin, tan, cosh, sinh, tanh, acos, asin, atan, atan_2, \
-    erf, bessel_J, bessel_Y, bessel_I, bessel_K, \
-    cell_avg, facet_avg
+from ufl.operators import (dot, inner, outer, lt, eq, conditional, sign,
+    sqrt, exp, ln, cos, sin, tan, cosh, sinh, tanh, acos, asin, atan, atan_2,
+    erf, bessel_J, bessel_Y, bessel_I, bessel_K,
+    cell_avg, facet_avg)
 from ufl.algorithms.transformer import Transformer
 from ufl.domain import find_geometric_dimension
 from ufl.checks import is_cellwise_constant
@@ -71,7 +68,7 @@ class ForwardAD(Transformer):
         "Debugging hook, enable this by renaming to 'visit'."
         r = Transformer.visit(self, o)
         f, df = r
-        if not f is o:
+        if f is not o:
             debug("In ForwardAD.visit, didn't get back o:")
             debug("  o:  %s" % str(o))
             debug("  f:  %s" % str(f))
@@ -447,9 +444,9 @@ class ForwardAD(Transformer):
     def binary_condition(self, o, l, r):
         o = self.reuse_if_possible(o, l[0], r[0])
         #if any(not (isinstance(op[1], Zero) or op[1] is None) for op in (l, r)):
-        #    warning("Differentiating a conditional with a condition "\
-        #                "that depends on the differentiation variable."\
-        #                "Assuming continuity of conditional. The condition "\
+        #    warning("Differentiating a conditional with a condition "
+        #                "that depends on the differentiation variable."
+        #                "Assuming continuity of conditional. The condition "
         #                "will not be differentiated.")
         oprime = None # Shouldn't be used anywhere
         return (o, oprime)
@@ -457,9 +454,9 @@ class ForwardAD(Transformer):
     def not_condition(self, o, c):
         o = self.reuse_if_possible(o, c[0])
         #if not (isinstance(c[1], Zero) or c[1] is None):
-        #    warning("Differentiating a conditional with a condition "\
-        #                "that depends on the differentiation variable."\
-        #                "Assuming continuity of conditional. The condition "\
+        #    warning("Differentiating a conditional with a condition "
+        #                "that depends on the differentiation variable."
+        #                "Assuming continuity of conditional. The condition "
         #                "will not be differentiated.")
         oprime = None # Shouldn't be used anywhere
         return (o, oprime)
@@ -672,7 +669,7 @@ class CoefficientAD(ForwardAD):
             # Make sure we have a tuple to match the self._v tuple
             if not isinstance(oprimes, tuple):
                 oprimes = (oprimes,)
-                ufl_assert(len(oprimes) == len(self._v), "Got a tuple of arguments, "+\
+                ufl_assert(len(oprimes) == len(self._v), "Got a tuple of arguments, "+
                                "expecting a matching tuple of coefficient derivatives.")
 
             # Compute do/dw_j = do/dw_h : v.
@@ -767,7 +764,8 @@ class CoefficientAD(ForwardAD):
 
             # Analyse differentiation variable coefficient
             if isinstance(w, FormArgument):
-                if not w == o: continue
+                if not w == o:
+                    continue
                 wshape = w.ufl_shape
 
                 if isinstance(v, FormArgument):
@@ -793,7 +791,8 @@ class CoefficientAD(ForwardAD):
                 # Case: d/dt [w[...] + t v[...]]
                 # Case: d/dt [w[...] + t v]
                 wval, wcomp = w.ufl_operands
-                if not wval == o: continue
+                if not wval == o:
+                    continue
                 assert isinstance(wval, FormArgument)
                 ufl_assert(all(isinstance(k, FixedIndex) for k in wcomp),
                            "Expecting only fixed indices in differentiation variable.")
@@ -818,7 +817,7 @@ class CoefficientAD(ForwardAD):
                 # Make sure we have a tuple to match the self._v tuple
                 if not isinstance(oprimes, tuple):
                     oprimes = (oprimes,)
-                    ufl_assert(len(oprimes) == len(self._v), "Got a tuple of arguments, "+\
+                    ufl_assert(len(oprimes) == len(self._v), "Got a tuple of arguments, "+
                                    "expecting a matching tuple of coefficient derivatives.")
 
                 # Compute dg/dw_j = dg/dw_h : v.
@@ -884,7 +883,7 @@ def apply_nested_forward_ad(expr):
         # Reconstruct if necessary
         need_reconstruct = not (preops == postops) # FIXME: Is this efficient? O(n)?
         if need_reconstruct:
-            expr = expr.reconstruct(*postops)
+            expr = expr._ufl_expr_reconstruct_(*postops)
         return expr
     elif isinstance(expr, Grad):
         # Apply AD recursively to children
@@ -917,7 +916,7 @@ class UnusedADRules(object):
         v, vp = v
         ufl_assert(isinstance(vp, Zero), "TODO: What happens if vp != 0, i.e. v depends the differentiation variable?")
         # Are there any issues with indices here? Not sure, think through it...
-        oprime = o.reconstruct(fp, v)
+        oprime = o._ufl_expr_reconstruct_(fp, v)
         return (o, oprime)
 
     # --- Tensor algebra (compound types)
@@ -946,7 +945,7 @@ class UnusedADRules(object):
     def commute(self, o, a):
         "This should work for all single argument operators that commute with d/dw with w scalar."
         aprime = a[1]
-        return (o, o.reconstruct(aprime))
+        return (o, o._ufl_expr_reconstruct_(aprime))
 
     # FIXME: Not true for derivatives w.r.t. nonscalar variables...
     transposed = commute
@@ -963,7 +962,7 @@ class UnusedADRules(object):
         if is_cellwise_constant(aprime):
             oprime = self._make_zero_diff(o)
         else:
-            oprime = o.reconstruct(aprime)
+            oprime = o._ufl_expr_reconstruct_(aprime)
         return (o, oprime)
 
 class UnimplementedADRules(object):

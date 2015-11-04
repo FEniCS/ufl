@@ -122,7 +122,7 @@ class CompactLabeller(ReprLabeller):
         return "diff"
 
 # Make this class like the ones above to use fancy math symbol labels
-class2label = { \
+class2label = {
     "IndexSum":  "&sum;",
     "Sum":       "&sum;",
     "Product":   "&prod;",

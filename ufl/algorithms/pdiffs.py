@@ -33,8 +33,6 @@ class PartialDerivativeComputer(MultiFunction):
     """NB! The main reason for keeping this out of the Expr hierarchy is
     to avoid user mistakes in the form of mixups with total derivatives,
     and to allow both reverse and forward mode AD."""
-    #def __init__(self, spatial_dim):
-        #self._spatial_dim = spatial_dim
     def __init__(self):
         MultiFunction.__init__(self)
 
@@ -226,19 +224,19 @@ class PartialDerivativeComputer(MultiFunction):
     # --- Derivatives
 
     def spatial_derivative(self, f):
-        error("Partial derivative of spatial_derivative not implemented, "\
+        error("Partial derivative of spatial_derivative not implemented, "
               "when is this called? apply_ad should make sure it isn't called.")
         x, i = f.ufl_operands
         return (None, None)
 
     def variable_derivative(self, f):
-        error("Partial derivative of variable_derivative not implemented, "\
+        error("Partial derivative of variable_derivative not implemented, "
               "when is this called? apply_ad should make sure it isn't called.")
         x, v = f.ufl_operands
         return (None, None)
 
     def coefficient_derivative(self, f):
-        error("Partial derivative of coefficient_derivative not implemented, "\
+        error("Partial derivative of coefficient_derivative not implemented, "
               "when is this called? apply_ad should make sure it isn't called.")
         a, w, v = f.ufl_operands
         return (None, None, None)

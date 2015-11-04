@@ -27,34 +27,19 @@ class HDivElement(OuterProductElement):
 
     def __init__(self, element):
         self._element = element
-        self._repr = "HDivElement(%r)" % element
+        self._repr = "HDivElement(%r)" % (element,)
         self._mapping = "contravariant Piola"
 
         family = "OuterProductElement"
-        domain = element.ufl_domain()
+        cell = element.cell()
         degree = element.degree()
         quad_scheme = element.quadrature_scheme()
         value_shape = (element.cell().geometric_dimension(),)
-        reference_value_shape = (element.cell().topological_dimension(),) # TODO: Is this right?
+        reference_value_shape = (element.cell().topological_dimension(),)
+
         # Skipping OuterProductElement constructor! Bad code smell, refactor to avoid this non-inheritance somehow.
-        FiniteElementBase.__init__(self, family, domain, degree,
+        FiniteElementBase.__init__(self, family, cell, degree,
                                    quad_scheme, value_shape, reference_value_shape)
-
-    def reconstruct(self, **kwargs):
-        """Construct a new HDivElement object with some properties
-        replaced with new values."""
-        domain = kwargs.get("domain", self.ufl_domain())
-        ele = self._element.reconstruct(domain=domain)
-        return HDivElement(ele)
-
-    def reconstruction_signature(self):
-        return "HDivElement(%s)" % self._element.reconstruction_signature()
-
-    def _ufl_signature_data_(self, renumbering):
-        data = ("HDivElement", self._element._ufl_signature_data_(renumbering),
-                ("no domain" if self._domain is None else self._domain
-                    ._ufl_signature_data_(renumbering)))
-        return data
 
     def __str__(self):
         return "HDivElement(%s)" % str(self._element)
@@ -73,35 +58,19 @@ class HCurlElement(OuterProductElement):
 
     def __init__(self, element):
         self._element = element
-        self._repr = "HCurlElement(%r)" % element
+        self._repr = "HCurlElement(%r)" % (element,)
         self._mapping = "covariant Piola"
 
         family = "OuterProductElement"
-        domain = element.ufl_domain()
+        cell = element.cell()
         degree = element.degree()
         quad_scheme = element.quadrature_scheme()
         cell = element.cell()
         value_shape = (cell.geometric_dimension(),)
         reference_value_shape = (cell.topological_dimension(),) # TODO: Is this right?
         # Skipping OuterProductElement constructor! Bad code smell, refactor to avoid this non-inheritance somehow.
-        FiniteElementBase.__init__(self, family, domain, degree,
+        FiniteElementBase.__init__(self, family, cell, degree,
                                     quad_scheme, value_shape, reference_value_shape)
-
-    def reconstruct(self, **kwargs):
-        """Construct a new HCurlElement object with some properties
-        replaced with new values."""
-        domain = kwargs.get("domain", self.ufl_domain())
-        ele = self._element.reconstruct(domain=domain)
-        return HCurlElement(ele)
-
-    def reconstruction_signature(self):
-        return "HCurlElement(%s)" % self._element.reconstruction_signature()
-
-    def _ufl_signature_data_(self, renumbering):
-        data = ("HCurlElement", self._element._ufl_signature_data_(renumbering),
-                ("no domain" if self._domain is None else self._domain
-                    ._ufl_signature_data_(renumbering)))
-        return data
 
     def __str__(self):
         return "HCurlElement(%s)" % str(self._element)

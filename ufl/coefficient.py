@@ -26,6 +26,7 @@ from ufl.assertions import ufl_assert
 from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal, FormArgument
 from ufl.finiteelement import FiniteElementBase, FiniteElement, VectorElement, TensorElement
+from ufl.domain import as_domain, default_domain
 from ufl.functionspace import AbstractFunctionSpace, FunctionSpace
 from ufl.split_functions import split
 from ufl.utils.counted import counted_init
@@ -41,44 +42,25 @@ class Coefficient(FormArgument):
     _ufl_noslots_ = True
     _globalcount = 0
 
-    def __init__(self, element, count=None):
+    def __init__(self, function_space, count=None):
         FormArgument.__init__(self)
         counted_init(self, count, Coefficient)
 
-        if isinstance(element, FiniteElementBase):
-            # Temporary legacy support
-            fs = FunctionSpace(element.ufl_domain(), element)
-            # FIXME: Future legacy support for .ufl files when element.domain() has been removed:
-            #fs = FunctionSpace(as_domain(element.cell()), element)
-        elif isinstance(element, AbstractFunctionSpace):
-            fs = element
-        else:
+        if isinstance(function_space, FiniteElementBase):
+            # For legacy support for .ufl files using cells, we map the cell to The Default Mesh
+            element = function_space
+            domain = default_domain(element.cell())
+            function_space = FunctionSpace(domain, element)
+        elif not isinstance(function_space, AbstractFunctionSpace):
             error("Expecting a FunctionSpace or FiniteElement.")
 
-        self._ufl_function_space = fs
-
-        self._ufl_shape = fs.ufl_element().value_shape()
+        self._ufl_function_space = function_space
+        self._ufl_shape = function_space.ufl_element().value_shape()
 
         self._repr = "Coefficient(%r, %r)" % (self._ufl_function_space, self._count)
 
     def count(self):
         return self._count
-
-    def reconstruct(self, element=None, count=None):
-        # This code is shared with the FooConstant classes
-        if element is None or element == self.ufl_element():
-            element = self.ufl_element()
-        if count is None or count == self._count:
-            count = self._count
-        if count is self._count and element is self.ufl_element():
-            return self
-        ufl_assert(isinstance(element, FiniteElementBase),
-                   "Expecting an element, not %s" % element)
-        ufl_assert(isinstance(count, int),
-                   "Expecting an int, not %s" % count)
-        ufl_assert(element.value_shape() == self.ufl_element().value_shape(),
-                   "Cannot reconstruct a Coefficient with a different value shape.")
-        return Coefficient(element, count)
 
     @property
     def ufl_shape(self):
@@ -89,11 +71,11 @@ class Coefficient(FormArgument):
         return self._ufl_function_space
 
     def ufl_domain(self):
-        #TODO: deprecate("Coefficient.ufl_domain() is deprecated, please use .ufl_function_space().ufl_domain() instead.")
+        "Shortcut to get the domain of the function space of this coefficient."
         return self._ufl_function_space.ufl_domain()
 
     def ufl_element(self):
-        #TODO: deprecate("Coefficient.ufl_domain() is deprecated, please use .ufl_function_space().ufl_element() instead.")
+        "Shortcut to get the finite element of the function space of this coefficient."
         return self._ufl_function_space.ufl_element()
 
     def element(self):
@@ -140,22 +122,28 @@ class Coefficient(FormArgument):
 
 def Constant(domain, count=None):
     """UFL value: Represents a globally constant scalar valued coefficient."""
-    e = FiniteElement("Real", domain, 0)
-    return Coefficient(e, count=count)
+    domain = as_domain(domain)
+    element = FiniteElement("Real", domain.ufl_cell(), 0)
+    fs = FunctionSpace(domain, element)
+    return Coefficient(fs, count=count)
 
 def VectorConstant(domain, dim=None, count=None):
     """UFL value: Represents a globally constant vector valued coefficient."""
-    e = VectorElement("Real", domain, 0, dim)
-    return Coefficient(e, count=count)
+    domain = as_domain(domain)
+    element = VectorElement("Real", domain.ufl_cell(), 0, dim)
+    fs = FunctionSpace(domain, element)
+    return Coefficient(fs, count=count)
 
 def TensorConstant(domain, shape=None, symmetry=None, count=None):
     """UFL value: Represents a globally constant tensor valued coefficient."""
-    e = TensorElement("Real", domain, 0, shape=shape, symmetry=symmetry)
-    return Coefficient(e, count=count)
+    domain = as_domain(domain)
+    element = TensorElement("Real", domain.ufl_cell(), 0, shape=shape, symmetry=symmetry)
+    fs = FunctionSpace(domain, element)
+    return Coefficient(fs, count=count)
 
 # --- Helper functions for subfunctions on mixed elements ---
 
-def Coefficients(element):
+def Coefficients(function_space):
     """UFL value: Create a Coefficient in a mixed space, and return a
     tuple with the function components corresponding to the subelements."""
-    return split(Coefficient(element))
+    return split(Coefficient(function_space))

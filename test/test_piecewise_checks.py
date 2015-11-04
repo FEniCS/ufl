@@ -20,15 +20,14 @@ def get_domains():
         tetrahedron,
         hexahedron,
     ]
-    return [Domain(cell) for cell in all_cells]
+    return [Mesh(cell) for cell in all_cells]
 
 
 def get_nonlinear():
     domains_with_quadratic_coordinates = []
     for D in get_domains():
-        V = VectorElement("CG", D, 2)
-        x = Coefficient(V)
-        E = Domain(x)
+        V = VectorElement("CG", D.ufl_cell(), 2)
+        E = Mesh(V)
         domains_with_quadratic_coordinates.append(E)
 
     return domains_with_quadratic_coordinates
@@ -50,9 +49,8 @@ def domains(request):
     domains = get_domains()
     domains_with_linear_coordinates = []
     for D in domains:
-        V = VectorElement("CG", D, 1)
-        x = Coefficient(V)
-        E = Domain(x)
+        V = VectorElement("CG", D.ufl_cell(), 1)
+        E = Mesh(V)
         domains_with_linear_coordinates.append(E)
 
     all_domains = domains + domains_with_linear_coordinates + get_nonlinear()
@@ -66,13 +64,12 @@ def affine_domains(request):
         triangle,
         tetrahedron,
     ]
-    affine_domains = [Domain(cell) for cell in affine_cells]
+    affine_domains = [Mesh(cell) for cell in affine_cells]
 
     affine_domains_with_linear_coordinates = []
     for D in affine_domains:
-        V = VectorElement("CG", D, 1)
-        x = Coefficient(V)
-        E = Domain(x)
+        V = VectorElement("CG", D.ufl_cell(), 1)
+        E = Mesh(V)
         affine_domains_with_linear_coordinates.append(E)
 
     all_affine_domains = affine_domains + \
@@ -88,12 +85,11 @@ def affine_facet_domains(request):
         quadrilateral,
         tetrahedron,
     ]
-    affine_facet_domains = [Domain(cell) for cell in affine_facet_cells]
+    affine_facet_domains = [Mesh(cell) for cell in affine_facet_cells]
     affine_facet_domains_with_linear_coordinates = []
     for D in affine_facet_domains:
-        V = VectorElement("CG", D, 1)
-        x = Coefficient(V)
-        E = Domain(x)
+        V = VectorElement("CG", D.ufl_cell(), 1)
+        E = Mesh(V)
         affine_facet_domains_with_linear_coordinates.append(E)
 
     all_affine_facet_domains = affine_facet_domains + \
@@ -108,12 +104,11 @@ def nonaffine_domains(request):
         quadrilateral,
         hexahedron,
     ]
-    nonaffine_domains = [Domain(cell) for cell in nonaffine_cells]
+    nonaffine_domains = [Mesh(cell) for cell in nonaffine_cells]
     nonaffine_domains_with_linear_coordinates = []
     for D in nonaffine_domains:
-        V = VectorElement("CG", D, 1)
-        x = Coefficient(V)
-        E = Domain(x)
+        V = VectorElement("CG", D.ufl_cell(), 1)
+        E = Mesh(V)
         nonaffine_domains_with_linear_coordinates.append(E)
 
     all_nonaffine_domains = nonaffine_domains + \
@@ -127,12 +122,11 @@ def nonaffine_facet_domains(request):
     nonaffine_facet_cells = [
         hexahedron,
     ]
-    nonaffine_facet_domains = [Domain(cell) for cell in nonaffine_facet_cells]
+    nonaffine_facet_domains = [Mesh(cell) for cell in nonaffine_facet_cells]
     nonaffine_facet_domains_with_linear_coordinates = []
     for D in nonaffine_facet_domains:
-        V = VectorElement("CG", D, 1)
-        x = Coefficient(V)
-        E = Domain(x)
+        V = VectorElement("CG", D.ufl_cell(), 1)
+        E = Mesh(V)
         nonaffine_facet_domains_with_linear_coordinates.append(E)
 
     all_nonaffine_facet_domains = nonaffine_facet_domains + \
@@ -164,7 +158,7 @@ def test_coordinates_never_cellwise_constant(domains):
 
 def test_coordinates_never_cellwise_constant_vertex():
     # The only exception here:
-    domains = Domain(Cell("vertex", 3))
+    domains = Mesh(Cell("vertex", 3))
     assert domains.ufl_cell().cellname() == "vertex"
     e = SpatialCoordinate(domains)
     assert is_cellwise_constant(e)
@@ -221,23 +215,23 @@ def test_coefficient_sometimes_cellwise_constant(domains_not_linear):
     e = Constant(domains_not_linear)
     assert is_cellwise_constant(e)
 
-    V = FiniteElement("DG", domains_not_linear, 0)
+    V = FiniteElement("DG", domains_not_linear.ufl_cell(), 0)
     e = Coefficient(V)
     assert is_cellwise_constant(e)
-    V = FiniteElement("R", domains_not_linear, 0)
+    V = FiniteElement("R", domains_not_linear.ufl_cell(), 0)
     e = Coefficient(V)
     assert is_cellwise_constant(e)
 
     # This should be true, but that has to wait for a fix of issue #13
     # e = TestFunction(V)
     # assert is_cellwise_constant(e)
-    # V = FiniteElement("R", domains_not_linear, 0)
+    # V = FiniteElement("R", domains_not_linear.ufl_cell(), 0)
     # e = TestFunction(V)
     # assert is_cellwise_constant(e)
 
 
 def test_coefficient_mostly_not_cellwise_constant(domains_not_linear):
-    V = FiniteElement("DG", domains_not_linear, 1)
+    V = FiniteElement("DG", domains_not_linear.ufl_cell(), 1)
     e = Coefficient(V)
     assert not is_cellwise_constant(e)
     e = TestFunction(V)

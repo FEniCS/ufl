@@ -68,13 +68,11 @@ class GeometryLoweringApplier(MultiFunction):
     def jacobian(self, o):
         if self._preserve_types[o._ufl_typecode_]:
             return o
-
         domain = o.ufl_domain()
-        if domain.ufl_coordinates() is None:
-            # Affine case in FEniCS: preserve J if there's no coordinate function
-            # (the handling of coordinate functions will soon be refactored)
-            return o
-
+        if domain.ufl_coordinate_element().mapping() != "identity":
+            error("Piola mapped coordinates are not implemented.")
+        # Note: No longer supporting domain.coordinates(), always preserving SpatialCoordinate object.
+        # However if Jacobians are not preserved, using ReferenceGrad(SpatialCoordinate(domain)) to represent them.
         x = self.spatial_coordinate(SpatialCoordinate(domain))
         return ReferenceGrad(x)
 
@@ -156,19 +154,10 @@ class GeometryLoweringApplier(MultiFunction):
         "Fall through to coordinate field of domain if it exists."
         if self._preserve_types[o._ufl_typecode_]:
             return o
-
-        domain = o.ufl_domain()
-        x = domain.ufl_coordinates()
-        if x is None:
-            # Old affine domains
-            return o
-
-        # TODO: If we're not using Coefficient to represent the spatial coordinate,
-        # we can just as well always return o here too unless we add representation
-        # of basis functions and dofs to the ufl layer (which is nice to avoid).
-        if x.ufl_element().mapping() != "identity":
+        if o.ufl_domain().ufl_coordinate_element().mapping() != "identity":
             error("Piola mapped coordinates are not implemented.")
-        return ReferenceValue(x)
+        # No longer supporting domain.coordinates(), always preserving SpatialCoordinate object.
+        return o
 
     @memoized_handler
     def cell_coordinate(self, o):

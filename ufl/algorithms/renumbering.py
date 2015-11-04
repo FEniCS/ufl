@@ -49,8 +49,12 @@ class IndexRenumberingTransformer(VariableRenumberingTransformer):
         self.index_map = {}
 
     def zero(self, o):
-        new_indices = tuple(self.index(Index(count=i)) for i in o.ufl_free_indices)
-        return o.reconstruct(new_indices)
+        fi = o.ufl_free_indices
+        fid = o.ufl_index_dimensions
+        mapped_fi = tuple(self.index(Index(count=i)) for i in fi)
+        paired_fid = [(mapped_fi[pos], fid[pos]) for pos, a in enumerate(fi)]
+        new_fi, new_fid = zip(*tuple(sorted(paired_fid)))
+        return Zero(o.ufl_shape, new_fi, new_fid)
 
     def index(self, o):
         if isinstance(o, FixedIndex):

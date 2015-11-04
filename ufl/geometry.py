@@ -28,10 +28,6 @@ from ufl.core.ufl_type import ufl_type
 from ufl.core.terminal import Terminal
 from ufl.domain import as_domain
 
-from ufl.cell import as_cell, Cell, ProductCell
-from ufl.domain import Domain, ProductDomain, join_domains
-
-
 """
 
 Possible coordinate bootstrapping:

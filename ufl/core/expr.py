@@ -213,7 +213,7 @@ class Expr(object):
         "__eq__",
 
         # To reconstruct an object of the same type with operands or properties changed.
-        "reconstruct", # TODO: Rename to _ufl_reconstruct_, simplify implementations?
+        "_ufl_expr_reconstruct_", # Implemented in Operator and Terminal so this should never fail
 
         "ufl_domains",
         #"ufl_cell",
@@ -289,10 +289,9 @@ class Expr(object):
 
     #--- Functions for reconstructing expression ---
 
-    # All subclasses must implement reconstruct
-    def reconstruct(self, *operands):
+    def _ufl_expr_reconstruct_(self, *operands):
         "Return a new object of the same type with new operands."
-        raise NotImplementedError(self.__class__.reconstruct)
+        raise NotImplementedError(self.__class__._ufl_expr_reconstruct_)
 
     #--- Functions for geometric properties of expression ---
 
@@ -417,6 +416,11 @@ class Expr(object):
 
 
     #--- Deprecated functions
+
+    def reconstruct(self, *operands):
+        "Return a new object of the same type with new operands."
+        deprecate("Expr.reconstruct() is deprecated, please use Expr._ufl_expr_reconstruct_() instead.")
+        return self._ufl_expr_reconstruct_(*operands)
 
     def geometric_dimension(self):
         "Return the geometric dimension this expression lives in."

@@ -82,7 +82,8 @@ class IndexExpander(ReuseTransformer):
         ufl_assert(len(x.ufl_shape) == len(self.component()), "Component size mismatch.")
 
         s = set(x.ufl_free_indices) - set(i.count() for i in self._index2value.keys())
-        if s: error("Free index set mismatch, these indices have no value assigned: %s." % str(s))
+        if s:
+            error("Free index set mismatch, these indices have no value assigned: %s." % str(s))
 
         # There is no index/shape info in this zero because that is asserted above
         return Zero()
@@ -93,7 +94,8 @@ class IndexExpander(ReuseTransformer):
         ufl_assert(len(x.ufl_shape) == len(self.component()), "Component size mismatch.")
 
         s = set(x.ufl_free_indices) - set(i.count() for i in self._index2value.keys())
-        if s: error("Free index set mismatch, these indices have no value assigned: %s." % str(s))
+        if s:
+            error("Free index set mismatch, these indices have no value assigned: %s." % str(s))
 
         return x._ufl_class_(x.value())
 

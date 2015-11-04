@@ -46,7 +46,6 @@ from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.form import Form
 from ufl.integral import Measure
 from ufl.classes import terminal_classes
-from ufl.geometry import Domain
 
 # Other algorithms:
 from ufl.algorithms.compute_form_data import compute_form_data
@@ -71,7 +70,7 @@ def _extract_variables(a):
         for o in post_traversal(e):
             if isinstance(o, Variable):
                 expr, label = o.ufl_operands
-                if not label in handled:
+                if label not in handled:
                     variables.append(o)
                     handled.add(label)
     return variables
@@ -464,7 +463,7 @@ def form2latex(form, formdata):
         variables = _extract_variables(itg.integrand())
         for v in variables:
             l = v._label
-            if not l in handled_variables:
+            if l not in handled_variables:
                 handled_variables.add(l)
                 exprlatex = expression2latex(v._expression, formdata.argument_names, formdata.coefficient_names)
                 lines.append(("s_{%d}" % l._count, "= %s" % exprlatex))
@@ -489,8 +488,7 @@ def form2latex(form, formdata):
         dstr = domain_strings[integral_type]
 
         domain = itg.ufl_domain()
-        label = domain.ufl_label()
-        # TODO: Use domain label!
+        # TODO: Render domain description
 
         subdomain_id = itg.subdomain_id()
         if isinstance(subdomain_id, int):

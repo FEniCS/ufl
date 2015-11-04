@@ -24,7 +24,7 @@
 
 from ufl.assertions import ufl_assert
 from ufl.utils.formatting import istr
-from ufl.geometry import as_domain, as_cell
+from ufl.cell import as_cell
 from ufl.log import info_blue, warning, warning_blue, error
 
 from ufl.cell import OuterProductCell
@@ -126,7 +126,7 @@ class FiniteElement(FiniteElementBase):
 
     def __init__(self,
                  family,
-                 domain=None,
+                 cell=None,
                  degree=None,
                  form_degree=None,
                  quad_scheme=None):
@@ -135,8 +135,8 @@ class FiniteElement(FiniteElementBase):
         *Arguments*
             family (string)
                The finite element family
-            domain
-               The geometric domain
+            cell
+               The geometric cell
             degree (int)
                The polynomial degree (optional)
             form_degree (int)
@@ -145,12 +145,9 @@ class FiniteElement(FiniteElementBase):
             quad_scheme
                The quadrature scheme (optional)
         """
-        if domain is None:
-            cell = None
-        else:
-            domain = as_domain(domain)
-            cell = domain.ufl_cell()
-            ufl_assert(cell is not None, "Missing cell in given domain.")
+        # Note: Unfortunately, dolfin sometimes passes None for cell. Until this is fixed, allow it:
+        if cell is not None:
+            cell = as_cell(cell)
 
         family, short_name, degree, value_shape, reference_value_shape, sobolev_space, mapping = \
           canonical_element_description(family, cell, degree, form_degree)
@@ -167,12 +164,13 @@ class FiniteElement(FiniteElementBase):
                 degree = IrreducibleInt(degree)
 
         # Initialize element data
-        FiniteElementBase.__init__(self, family, domain, degree,
+        FiniteElementBase.__init__(self, family, cell, degree,
                                    quad_scheme, value_shape, reference_value_shape)
 
         # Cache repr string
-        self._repr = "FiniteElement(%r, %r, %r, quad_scheme=%r)" % (
-            self.family(), self.ufl_domain(), self.degree(), self.quadrature_scheme())
+        qs = self.quadrature_scheme()
+        quad_str = "" if qs is None else ", quad_scheme=%r" % (qs,)
+        self._repr = "FiniteElement(%r, %r, %r%s)" % (self.family(), self.cell(), self.degree(), quad_str)
         assert '"' not in self._repr
 
     def mapping(self):
@@ -181,40 +179,12 @@ class FiniteElement(FiniteElementBase):
     def sobolev_space(self):
         return self._sobolev_space
 
-    def reconstruction_signature(self):
-        """Format as string for evaluation as Python object.
-
-        For use with cross language frameworks, stored in generated code
-        and evaluated later in Python to reconstruct this object.
-
-        This differs from repr in that it does not include domain
-        label and data, which must be reconstructed or supplied by other means.
-        """
-        return "FiniteElement(%r, %s, %r, %r)" % (
-            self.family(), self.ufl_domain().reconstruction_signature(), self.degree(), self.quadrature_scheme())
-
-    def _ufl_signature_data_(self, renumbering):
-        data = ("FiniteElement", self._family, self._degree,
-                self._value_shape, self._reference_value_shape,
-                self._quad_scheme,
-                ("no domain" if self._domain is None else self._domain._ufl_signature_data_(renumbering)))
-        return data
-
-    def reconstruct(self, **kwargs):
-        """Construct a new FiniteElement object with some properties
-        replaced with new values."""
-        kwargs["family"] = kwargs.get("family", self.family())
-        kwargs["domain"] = kwargs.get("domain", self.ufl_domain())
-        kwargs["degree"] = kwargs.get("degree", self.degree())
-        kwargs["quad_scheme"] = kwargs.get("quad_scheme", self.quadrature_scheme())
-        return FiniteElement(**kwargs)
-
     def __str__(self):
         "Format as string for pretty printing."
         qs = self.quadrature_scheme()
         qs = "" if qs is None else "(%s)" % qs
-        return "<%s%s%s on a %s>" % (self._short_name, istr(self.degree()),\
-                                           qs, self.ufl_domain())
+        return "<%s%s%s on a %s>" % (self._short_name, istr(self.degree()),
+                                           qs, self.cell())
 
     def shortstr(self):
         "Format as string for pretty printing."

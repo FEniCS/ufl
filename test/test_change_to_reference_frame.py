@@ -44,14 +44,6 @@ from ufl.finiteelement import FiniteElement, EnrichedElement, VectorElement, Mix
 '''
 
 
-def change_form_to_reference_frame(form, context):
-    integrals = []
-    for integral in form.integrals():
-        # Change each integral to reference frame
-        integrals.append(change_integral_to_reference_frame(integral, context))
-    return form.reconstruct(integrals)
-
-
 def change_integral_to_reference_frame(form, context):
     if False: # TODO: integral.is_in_reference_frame():
         # TODO: Assume reference frame integral is written purely in

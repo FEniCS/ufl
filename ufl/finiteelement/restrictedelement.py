@@ -22,7 +22,7 @@
 # Modified by Marie E. Rognes 2010, 2012
 
 from ufl.assertions import ufl_assert
-from ufl.geometry import Cell, as_cell
+from ufl.cell import Cell, as_cell
 from ufl.log import info_blue, warning, warning_blue, error, deprecate
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
@@ -37,7 +37,7 @@ class RestrictedElement(FiniteElementBase):
         ufl_assert(restriction_domain in valid_restriction_domains,
                    "Expecting one of the strings %r." % (valid_restriction_domains,))
 
-        FiniteElementBase.__init__(self, "RestrictedElement", element.ufl_domain(),
+        FiniteElementBase.__init__(self, "RestrictedElement", element.cell(),
             element.degree(), element.quadrature_scheme(), element.value_shape(), element.reference_value_shape())
 
         self._element = element
@@ -45,24 +45,6 @@ class RestrictedElement(FiniteElementBase):
         self._restriction_domain = restriction_domain
 
         self._repr = "RestrictedElement(%r, %r)" % (self._element, self._restriction_domain)
-
-    def reconstruction_signature(self):
-        """Format as string for evaluation as Python object.
-
-        For use with cross language frameworks, stored in generated code
-        and evaluated later in Python to reconstruct this object.
-
-        This differs from repr in that it does not include domain
-        label and data, which must be reconstructed or supplied by other means.
-        """
-        return "RestrictedElement(%s, %r)" % (self._element.reconstruction_signature(), self._restriction_domain)
-
-    def reconstruct(self, **kwargs):
-        """Construct a new RestrictedElement object with
-        some properties replaced with new values."""
-        element = self._element.reconstruct(**kwargs)
-        restriction_domain = kwargs.get("restriction_domain", self.restriction_domain())
-        return RestrictedElement(element=element, restriction_domain=restriction_domain)
 
     def is_cellwise_constant(self):
         """Return whether the basis functions of this
@@ -118,7 +100,3 @@ class RestrictedElement(FiniteElementBase):
         #        w.r.t. different sub_elements meanings.
         "Return list of restricted sub elements."
         return (self._element,)
-
-    def _ufl_signature_data_(self, renumbering):
-        data = ("RestrictedElement", self._element._ufl_signature_data_(renumbering), self._restriction_domain)
-        return data

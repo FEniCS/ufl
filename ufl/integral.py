@@ -21,13 +21,16 @@
 # Modified by Anders Logg, 2008-2009
 
 import ufl
-from ufl.log import error, warning
+from ufl.log import error, warning, deprecate
 from ufl.assertions import ufl_assert
 from ufl.core.expr import Expr
 from ufl.checks import (is_true_ufl_scalar, is_python_scalar, is_globally_constant,
                         is_scalar_constant_expression)
 from ufl.measure import Measure
 from ufl.protocols import id_or_none
+
+# Export list for ufl.classes
+__all_classes__ = ["Integral"]
 
 class Integral(object):
     "An integral over a single domain."
