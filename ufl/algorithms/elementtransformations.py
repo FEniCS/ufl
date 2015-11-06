@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2012 Marie E. Rognes
+# Copyright (C) 2012 Marie E. Rognes, 2015 Jan Blechta
 #
 # This file is part of UFL.
 #
@@ -16,44 +16,21 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from six.moves import xrange as range
-from ufl.assertions import ufl_assert
-from ufl.finiteelement import FiniteElement, MixedElement
+from ufl.algorithms.compute_form_data import _increase_degree, _change_family
+
+__all__ = ['increase_order', 'tear']
+
+def increase_order(element):
+    "Return element of same family, but a polynomial degree higher."
+    return _increase_degree(element, +1)
 
 def change_regularity(element, family):
     """
     For a given finite element, return the corresponding space
     specified by 'family'.
     """
+    return _change_element(element, family)
 
-    n = element.num_sub_elements()
-    if n > 0:
-        subs = element.sub_elements()
-        return MixedElement([change_regularity(subs[i], family)
-                             for i in range(n)])
-    shape = element.value_shape()
-    if not shape:
-        return FiniteElement(family, element.cell(), element.degree())
-
-    ufl_assert(len(shape) == 1, "TODO: Update this code to handle tensor elements.")
-    return MixedElement([FiniteElement(family, element.cell(), element.degree(i))
-                         for i in range(shape[0])])
-
-def tear(V):
+def tear(element):
     "For a finite element, return the corresponding discontinuous element."
-    W = change_regularity(V, "DG")
-    return W
-
-def increase_order(element):
-    "Return element of same family, but a polynomial degree higher."
-    ufl_assert(len(element.value_shape()) <= 1, "TODO: Update this code to handle tensor elements.")
-
-    n = element.num_sub_elements()
-    if n > 0:
-        subs = element.sub_elements()
-        return MixedElement([increase_order(subs[i]) for i in range(n)])
-
-    if element.family() == "Real":
-        return element
-
-    return FiniteElement(element.family(), element.cell(), element.degree()+1)
+    return change_regularity(element, "DG")
