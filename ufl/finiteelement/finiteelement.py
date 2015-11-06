@@ -56,7 +56,7 @@ class FiniteElement(FiniteElementBase):
 
         if isinstance(cell, TensorProductCell):
             # Delay import to avoid circular dependency at module load time
-            from ufl.finiteelement.outerproductelement import TensorProductElement
+            from ufl.finiteelement.tensorproductelement import TensorProductElement
             from ufl.finiteelement.enrichedelement import EnrichedElement
             from ufl.finiteelement.hdivcurl import HDivElement as HDiv, HCurlElement as HCurl
 

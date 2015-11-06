@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from ufl.finiteelement.outerproductelement import TensorProductElement
+from ufl.finiteelement.tensorproductelement import TensorProductElement
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
 

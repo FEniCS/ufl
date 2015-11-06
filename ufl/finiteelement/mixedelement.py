@@ -259,8 +259,8 @@ class VectorElement(MixedElement):
                                     form_degree=form_degree,
                                     quad_scheme=quad_scheme)
 
-        from ufl.finiteelement.outerproductelement import TensorProductElement
-        from ufl.finiteelement.outerproductelement import TensorProductVectorElement
+        from ufl.finiteelement.tensorproductelement import TensorProductElement
+        from ufl.finiteelement.tensorproductelement import TensorProductVectorElement
         if isinstance(sub_element, TensorProductElement):
             return TensorProductVectorElement(sub_element, dim=dim)
 
@@ -349,8 +349,8 @@ class TensorElement(MixedElement):
         # Compute sub element
         sub_element = FiniteElement(family, cell, degree, quad_scheme)
 
-        from ufl.finiteelement.outerproductelement import TensorProductElement
-        from ufl.finiteelement.outerproductelement import TensorProductTensorElement
+        from ufl.finiteelement.tensorproductelement import TensorProductElement
+        from ufl.finiteelement.tensorproductelement import TensorProductTensorElement
         if isinstance(sub_element, TensorProductElement):
             return TensorProductTensorElement(sub_element, shape=shape, symmetry=symmetry)
 
