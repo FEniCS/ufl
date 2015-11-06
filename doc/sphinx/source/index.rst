@@ -60,6 +60,7 @@ Documentation
 .. toctree::
    :titlesonly:
 
+   user/user_manual
    api-doc/ufl
    releases
 
