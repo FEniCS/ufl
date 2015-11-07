@@ -1,8 +1,6 @@
 *************
 Example forms
 *************
-\label{chapter:examples}
-\index{examples}
 
 The following examples illustrate basic usage of the form language
 for the definition of a collection of standard multilinear forms. We
@@ -16,12 +14,11 @@ other examples.
 
 The mass matrix
 ===============
-\index{mass matrix}
 
 As a first example, consider the bilinear form corresponding to a
 mass matrix,
 
-.. math:
+.. math::
 
    a(v, u) = \int_{\Omega} v \, u \dx,
 
@@ -39,11 +36,10 @@ of demonstration forms included with the UFL source distribution.
 
 Poisson equation
 ================
-\index{Poisson's equation}
 
 The bilinear and linear forms form for Poisson's equation,
 
-.. math:
+.. math::
    a(v, u) &=& \int_{\Omega} \nabla v \cdot \nabla u \dx, \\
    L(v; f)  &=& \int_{\Omega} v \, f \dx,
 
@@ -73,12 +69,11 @@ of demonstration forms included with the UFL source distribution.
 
 Vector-valued Poisson
 =====================
-\index{vector-valued Poisson}
 
 The bilinear and linear forms for a system of (independent) Poisson
 equations,
 
-.. math:
+.. math::
 
    a(v, u) &=& \int_{\Omega} \nabla v : \nabla u \dx, \\
    L(v; f) &=& \int_{\Omega} v \cdot f \dx,
@@ -112,19 +107,16 @@ distribution.
 
 The strain-strain term of linear elasticity
 ===========================================
-\index{elasticity}
-\index{linear elasticity}
-\index{strain}
 
 The strain-strain term of linear elasticity,
 
-.. math:
+.. math::
 
    a(v, u) = \int_{\Omega} \epsilon(v) : \epsilon(u) \dx,
 
 where
 
-.. math:
+.. math::
 
    \epsilon(v) = \frac{1}{2}(\nabla v + (\nabla v)^{\top})
 
@@ -158,13 +150,11 @@ distribution.
 
 The nonlinear term of Navier--Stokes
 ====================================
-\index{Navier-Stokes}
-\index{fixed-point iteration}
 
 The bilinear form for fixed-point iteration on the nonlinear term of
 the incompressible Navier--Stokes equations,
 
-.. math:
+.. math::
 
    a(v, u; w) = \int_{\Omega} (w \cdot \nabla u) \cdot v \dx,
 
@@ -193,13 +183,10 @@ distribution.
 
 The heat equation
 =================
-\index{heat equation}
-\index{time-stepping}
-\index{backward Euler}
 
 Discretizing the heat equation,
 
-.. math:
+.. math::
 
    \dot{u} - \nabla \cdot (c \nabla u) = f,
 
@@ -208,7 +195,7 @@ obtain the following variational problem for the discrete solution :math:`u_h
 = u_h(x, t)`: Find :math:`u_h^n = u_h(\cdot, t_n)` with
 :math:`u_h^{n-1} = u_h(\cdot, t_{n-1})` given such that
 
-.. math:
+.. math::
 
    \frac{1}{k_n} \int_{\Omega} v \, (u_h^n - u_h^{n-1}) \dx +
    \int_{\Omega} c \, \nabla v \cdot \nabla u_h^n \dx =
@@ -223,7 +210,7 @@ Rewriting the variational problem in the standard form :math:`a(v, u_h)
 = L(v)` for all :math:`v`, we obtain the following pair of bilinear and
 linear forms:
 
-.. math: ..
+.. math::
 
   a(v, u_h^n; c, k) &=& \int_{\Omega} v \, u_h^n \dx +
   k_n \int_{\Omega} c \, \nabla v \cdot \nabla u_h^n \dx, \\
@@ -249,13 +236,11 @@ of demonstration forms included with the UFL source distribution.
 
 Mixed formulation of Stokes
 ===========================
-\index{Stokes' equations}
-\index{mixed formulation}
-\index{Taylor-Hood element}
 
 To solve Stokes' equations,
 
-.. math:
+.. math::
+
   - \Delta u + \nabla p &=& f, \\
   \nabla \cdot u &=& 0,
 
@@ -263,7 +248,7 @@ we write the variational problem in standard form :math:`a(v, u) =
 L(v)` for all :math:`v` to obtain the following pair of bilinear and
 linear forms:
 
-.. math:
+.. math::
 
    a((v, q), (u, p)) &=& \int_{\Omega} \nabla v : \nabla u - (\nabla \cdot v) \, p +
    q \, (\nabla \cdot u) \dx, \\
@@ -290,15 +275,12 @@ of demonstration forms included with the UFL source distribution.
 
 Mixed formulation of Poisson
 ============================
-\index{mixed Poisson}
-\index{BDM elements}
-\index{Brezzi--Douglas--Marini elements}
 
 We next consider the following formulation of Poisson's equation as a
 pair of first order equations for :math:`\sigma \in H(\mathrm{div})`
 and :math:`u \in L_2`:
 
-.. math:
+.. math::
    \sigma + \nabla u &= 0, \\
    \nabla \cdot \sigma &= f.
 
@@ -306,13 +288,13 @@ We multiply the two equations by a pair of test functions $\tau$ and
 $w$ and integrate by parts to obtain the following variational
 problem: Find $(\sigma, u) \in V = H(\mathrm{div}) \times L_2$ such that
 
-.. math:
+.. math::
 
    a((\tau, w), (\sigma, u)) = L((\tau, w)) \quad \forall \, (\tau, w) \in V,
 
 where
 
-.. math:
+.. math::
 
    a((\tau, w), (\sigma, u)) &=& \int_{\Omega} \tau \cdot \sigma - \nabla \cdot \tau \, u
    + w \nabla \cdot \sigma \dx,
@@ -320,8 +302,9 @@ where
    L((\tau, w); f) &=& \int_{\Omega} w \cdot f \dx.
 
 We may implement the corresponding forms in our form language using
-first order BDM :math:`H(\mathrm{div})`-conforming elements for $\sigma$
-and piecewise constant $L_2$-conforming elements for $u$ as follows::
+first order BDM H(div)-conforming elements for
+:math:\sigma and piecewise constant :math`L_2`-conforming elements for
+:math:u as follows::
 
   cell = triangle
   BDM1 = FiniteElement("Brezzi-Douglas-Marini", cell, 1)
@@ -343,18 +326,17 @@ distribution.
 
 Poisson equation with DG elements
 =================================
-\index{Discontinuous Galerkin}
 
 We consider again Poisson's equation, but now in an (interior penalty)
 discontinuous Galerkin formulation: Find :math:`u \in V = L_2` such that
 
-.. math ..
+.. math::
 
    a(v, u) = L(v) \quad \forall v \in V,
 
 where
 
-.. math ..
+.. math::
 
    a(v, u; h) &= \int_{\Omega} \nabla v \cdot \nabla u \dx \\
    &+ \sum_S \int_S
@@ -394,6 +376,7 @@ first order elements may be implemented as follows::
 This example is implemented in the file ``poisson\_dg.ufl`` in
 the collection of demonstration forms included with the UFL source
 distribution.
+
 
 Quadrature elements
 ===================

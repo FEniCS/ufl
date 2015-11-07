@@ -13,7 +13,7 @@ below) are useful in the definition of a form.  However, it is usually a
 good idea to avoid using advanced Python features in the form definition,
 to stay close to the mathematical notation.
 
-The entire form language can be imported in Python with the line
+The entire form language can be imported in Python with the line:
 
 .. code-block:: python
 
@@ -253,7 +253,11 @@ The notation is::
 
 Some examples::
 
+  # A quadratic "P2" vector element on a triangle
   element = VectorElement("CG", triangle, 2)
+  # A linear 3D vector element on a 1D interval
+  element = VectorElement("CG", interval, 1, size=3)
+  # A six-dimensional piecewise constant element on a tetrahedron
   element = VectorElement("DG", tetrahedron, 0, size=6)
 
 
@@ -285,7 +289,7 @@ Examples::
 Mixed elements
 --------------
 
-A ``MixedElement` represents an arbitrary combination of other elements.
+A ``MixedElement`` represents an arbitrary combination of other elements.
 ``VectorElement`` and ``TensorElement`` are special cases of a
 ``MixedElement`` where all sub-elements are equal.
 
@@ -301,7 +305,7 @@ Note: Multiplication is a binary operator, such that ::
 
   element = element1 * element2 * element3
 
-represents ``(e1 * e2) * e3}, i.e. this is a mixed element with two
+represents ``(e1 * e2) * e3``, i.e. this is a mixed element with two
 sub-elements ``(e1 * e2)`` and ``e3``.
 
 See `Form arguments`_ for details on how defining
@@ -344,7 +348,7 @@ arbitrary basis function in a given discrete finite element space,
 while a ``Coefficient`` represents a function in a discrete finite
 element space that will be provided by the user at a later stage. The
 number of ``Argument``\ s that occur in a ``Form`` equals
-the arity of the form.
+the "arity" of the form.
 
 Basis functions
 ---------------
@@ -411,14 +415,16 @@ functions with unknown coefficients, that is, UFL knows nothing about
 the concrete basis functions of the element and nothing about the value
 of the function.
 
-Note that more than one function can be declared for the same
-``FiniteElement``. The following example declares two ``Argument``_s
-and two ``Coefficient``\ s for the same ``FiniteElement``::
+.. note::
 
-  v = Argument(element)
-  u = Argument(element)
-  f = Coefficient(element)
-  g = Coefficient(element)
+    Note that more than one function can be declared for the same
+    ``FiniteElement``. The following example declares two ``Argument``_s
+    and two ``Coefficient``\ s for the same ``FiniteElement``::
+
+      v = Argument(element)
+      u = Argument(element)
+      f = Coefficient(element)
+      g = Coefficient(element)
 
 For a ``Coefficient` on a ``MixedElement`` (or ``VectorElement`` or
 ``TensorElement``), the function ``split`` can be used to extract function
@@ -482,7 +488,8 @@ function ``g`` over the boundary::
 
 Python scalars (int, float) can be used anywhere a scalar expression
 is allowed. Another literal constant type is ``Identity`` which
-represents an :math:`n\times n` unit matrix of given size :math:`n`, as in this example::
+represents an :math:`n\times n` unit matrix of given size :math:`n`,
+as in this example::
 
   # Geometric dimension
   d = cell.d
@@ -493,7 +500,7 @@ represents an :math:`n\times n` unit matrix of given size :math:`n`, as in this 
   # Kronecker delta
   delta_ij = I[i,j]
 
-.. note: Advanced usage
+.. note:: Advanced usage
 
   Note that there are some differences from FFC.
   In particular, using ``FacetNormal`` or ``cell.n``
@@ -620,7 +627,7 @@ of the finite element space.  As we shall see below, indices can be a
 powerful tool when used to define forms in tensor notation.
 
 
-.. note: Advanced usage
+.. note:: Advanced usage
 
   If using UFL inside PyDOLFIN or another larger programming environment,
   it is a good idea to define your indices explicitly just before your
@@ -630,7 +637,7 @@ powerful tool when used to define forms in tensor notation.
     i, j, k, l = indices(4)
     p, q, r, s = indices(4)
 
-.. note: Advanced usage
+.. note:: Advanced usage
 
   Note that in the old FFC notation, the definition ::
 
@@ -645,7 +652,6 @@ powerful tool when used to define forms in tensor notation.
 
 Taking components of tensors
 ----------------------------
-% TODO: Explain in more words
 
 Basic fixed indexing of a vector valued expression v or matrix valued
 expression A:
@@ -658,6 +664,7 @@ expression A:
 
 
 Basic indexing:
+
 * ``v[i]``: component access, representing the scalar value of some
   component of v
 * ``A[i,j]``: component access, representing the scalar value of some
