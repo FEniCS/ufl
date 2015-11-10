@@ -100,7 +100,7 @@ class Domain(object):
             gdim, = self._coordinates.ufl_shape
             if gdim != self._cell.geometric_dimension():
                 warning("Using geometric dimension from coordinates!")
-                self._cell = Cell(self._cell.cellname(), gdim)
+                self._cell = self._cell.reconstruct(geometric_dimension=gdim)
             #ufl_assert(self._coordinates.ufl_shape == (self._cell.geometric_dimension(),),
             #           "Shape of coordinates %s does not match geometric dimension %d of cell." %\
             #    (self._coordinates.ufl_shape, self._cell.geometric_dimension()))
