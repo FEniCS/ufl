@@ -122,6 +122,11 @@ class Cell(object):
         self._topological_dimension = tdim
         self._geometric_dimension = gdim
 
+    def reconstruct(self, geometric_dimension=None):
+        if geometric_dimension is None:
+            geometric_dimension = self._geometric_dimension
+        return Cell(self._cellname, geometric_dimension=geometric_dimension)
+
     # --- Fundamental dimensions ---
 
     def topological_dimension(self):
@@ -319,6 +324,11 @@ class OuterProductCell(Cell):
             else:
                 # Don't know how to extrude this
                 self.facet_vert = None
+
+    def reconstruct(self, geometric_dimension=None):
+        if geometric_dimension is None:
+            geometric_dimension = self._geometric_dimension
+        return OuterProductCell(self._A, self._B, gdim=geometric_dimension)
 
     def num_entities(self, dim):
         "The number of cell entities of given topological dimension."
