@@ -316,6 +316,16 @@ class OuterProductCell(AbstractCell): # TODO: Remove this and use TensorProductC
         "The number of cell facets."
         return self._A.num_facets() + self._B.num_facets()
 
+    def num_entities(self, dim):
+        "The number of cell entities of given topological dimension."
+        # Return None unless asked for...
+        result = [None] * (self.topological_dimension() + 1)
+        result[0] = self.num_vertices()
+        # result[1] = self.num_edges()
+        result[-2] = self.num_facets()
+        result[-1] = 1
+        return result[dim]
+
     def __repr__(self):
         return "OuterProductCell(*%r)" % list([self._A, self._B])
 
