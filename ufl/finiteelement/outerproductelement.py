@@ -94,11 +94,8 @@ class OuterProductVectorElement(MixedElement):
         else:
             self._from_product_parts(*args, **kwargs)
 
-    def _from_product_parts(self, A, B, cell=None, dim=None,
-                            form_degree=None, quad_scheme=None):
-        sub_element = OuterProductElement(A, B, cell=cell,
-                                          form_degree=form_degree,
-                                          quad_scheme=quad_scheme)
+    def _from_product_parts(self, A, B, cell=None, dim=None):
+        sub_element = OuterProductElement(A, B, cell=cell)
         self._from_sub_element(sub_element, dim=dim)
 
     def _from_sub_element(self, sub_element, dim=None):
