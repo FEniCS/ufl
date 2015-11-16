@@ -291,6 +291,10 @@ class OuterProductCell(AbstractCell): # TODO: Remove this and use TensorProductC
             geometric_dimension = self._geometric_dimension
         return OuterProductCell(self._A, self._B, gdim=geometric_dimension)
 
+    def cellname(self):
+        "Return the cellname of the cell."
+        return "OuterProductCell"
+
     def is_simplex(self):
         "Return True if this is a simplex cell."
         return False
