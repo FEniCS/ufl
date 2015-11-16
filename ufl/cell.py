@@ -327,10 +327,13 @@ class OuterProductCell(AbstractCell): # TODO: Remove this and use TensorProductC
         return result[dim]
 
     def __repr__(self):
-        return "OuterProductCell(*%r)" % list([self._A, self._B])
+        if self.geometric_dimension() == self.topological_dimension():
+            return "OuterProductCell(%r, %r)" % (self._A, self._B)
+        else:
+            return "OuterProductCell(%r, %r, gdim=%d)" % (self._A, self._B, self._geometric_dimension)
 
     def _ufl_hash_data_(self):
-        return tuple(c._ufl_hash_data_() for c in (self._A, self._B))
+        return tuple(c._ufl_hash_data_() for c in (self._A, self._B)) + (self._geometric_dimension,)
 
 
 # --- Utility conversion functions
