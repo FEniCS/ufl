@@ -94,7 +94,7 @@ class OuterProductVectorElement(MixedElement):
         else:
             self._from_product_parts(*args, **kwargs)
 
-    def _from_product_parts(self, A, B, domain=None, dim=None,
+    def _from_product_parts(self, A, B, cell=None, dim=None,
                             form_degree=None, quad_scheme=None):
         sub_element = OuterProductElement(A, B, cell=cell,
                                           form_degree=form_degree,
@@ -158,9 +158,9 @@ class OuterProductTensorElement(MixedElement):
         else:
             self._from_product_parts(*args, **kwargs)
 
-    def _from_product_parts(self, A, B, domain=None,
+    def _from_product_parts(self, A, B, cell=None,
                             shape=None, symmetry=None, quad_scheme=None):
-        sub_element = OuterProductElement(A, B, domain=domain,
+        sub_element = OuterProductElement(A, B, cell=cell,
                                           quad_scheme=quad_scheme)
         self._from_sub_element(sub_element, shape=shape, symmetry=symmetry)
 
@@ -197,17 +197,17 @@ class OuterProductTensorElement(MixedElement):
     def signature_data(self, renumbering):
         data = ("OuterProductTensorElement", self._A, self._B,
                 self._shape, self._symmetry, self._quad_scheme,
-                ("no domain" if self._domain is None else
-                    self._domain.signature_data(renumbering)))
+                ("no cell" if self._cell is None else
+                    self._cell.signature_data(renumbering)))
         return data
 
     def reconstruct(self, **kwargs):
         """Construct a new OuterProductTensorElement with some properties
         replaced with new values."""
-        domain = kwargs.get("domain", self.domain())
+        cell = kwargs.get("cell", self.cell())
         shape = kwargs.get("shape", self._shape)
         symmetry = kwargs.get("symmetry", self._symmetry)
-        return OuterProductTensorElement(self._A, self._B, domain=domain,
+        return OuterProductTensorElement(self._A, self._B, cell=cell,
                                          shape=shape, symmetry=symmetry)
 
     def reconstruction_signature(self):
