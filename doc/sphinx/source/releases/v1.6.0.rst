@@ -1,0 +1,31 @@
+Changes in UFL 1.6.0
+====================
+
+UFL 1.6.0 was released on 2015-07-28
+
+- Change approach to attaching ``__hash__`` implementation to accomodate
+  Python 3
+- Implement new non-recursive traversal based hash computation
+- Allow ``derivative(M, ListTensor(<scalars>), ...)`` just like list/tuple
+  works
+- Add traits ``is_in_reference_frame``, ``is_restriction``, ``is_evaluation``,
+  ``is_differential``
+- Add missing linear operators to ``ArgumentDependencyExtractor``
+- Add ``_ufl_is_literal_`` type trait
+- Add ``_ufl_is_terminal_modifier_ type`` trait and
+  ``Expr._ufl_terminal_modifiers_`` list
+- Add new types ``ReferenceDiv`` and ``ReferenceCurl``
+- Outer product element support in degree estimation
+- Add ``TraceElement``, ``InteriorElement``, ``FacetElement``,
+  ``BrokenElement``
+- Add ``OuterProductCell`` to valid ``Real`` elements
+- Add ``_cache`` member to form for use by external frameworks
+- Add Sobolev space ``HEin``
+- Add measures ``dI``, ``dO``, ``dC`` for interface, overlap, cutcell
+- Remove ``Measure`` constants
+- Remove ``cell2D`` and ``cell3D``
+- Implement ``reference_value`` in ``apply_restrictions``
+- Rename point integral to vertex integral and kept ``*dP`` syntax
+- Replace lambda functions in ``ufl_type`` with named functions for
+  nicer stack traces
+- Minor bugfixes, removal of unused code and cleanups
