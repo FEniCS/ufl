@@ -479,12 +479,12 @@ def _tensor_sub_elements(sub_element, shape, symmetry):
             continue
         sub_element_mapping[index] = len(sub_elements)
         sub_elements += [sub_element]
-    flattened_sub_element_mapping = [sub_element_mapping[index] for i, index in enumerate(indices)]
 
     # Update mapping for symmetry
     for index in indices:
         if index in symmetry:
             sub_element_mapping[index] = sub_element_mapping[symmetry[index]]
+    flattened_sub_element_mapping = [sub_element_mapping[index] for i, index in enumerate(indices)]
 
     # Compute reference value shape based on symmetries
     if symmetry:

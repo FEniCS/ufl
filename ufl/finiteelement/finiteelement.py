@@ -41,19 +41,15 @@ class FiniteElement(FiniteElementBase):
 
     def __new__(cls,
                 family,
-                domain=None,
+                cell=None,
                 degree=None,
                 form_degree=None,
                 quad_scheme=None):
         """Intercepts construction to expand CG, DG, RTCE and RTCF spaces
         on OuterProductCells.
         """
-        if domain is None:
-            cell = None
-        else:
-            domain = as_domain(domain)
-            cell = domain.cell()
-            ufl_assert(cell is not None, "Missing cell in given domain.")
+        if cell is not None:
+            cell = as_cell(cell)
 
         family, short_name, degree, value_shape, reference_value_shape, sobolev_space, mapping = \
           canonical_element_description(family, cell, degree, form_degree)
@@ -62,7 +58,7 @@ class FiniteElement(FiniteElementBase):
             # Delay import to avoid circular dependency at module load time
             from ufl.finiteelement.outerproductelement import OuterProductElement
             from ufl.finiteelement.enrichedelement import EnrichedElement
-            from ufl.finiteelement.hdivcurl import HDiv, HCurl
+            from ufl.finiteelement.hdivcurl import HDivElement as HDiv, HCurlElement as HCurl
 
             if family in ["RTCF", "RTCE"]:
                 ufl_assert(cell._A.cellname() == "interval", "%s is available on OuterProductCell(interval, interval) only." % family)
@@ -71,8 +67,8 @@ class FiniteElement(FiniteElementBase):
                 C_elt = FiniteElement("CG", "interval", degree, 0, quad_scheme)
                 D_elt = FiniteElement("DG", "interval", degree - 1, 1, quad_scheme)
 
-                CxD_elt = OuterProductElement(C_elt, D_elt, domain, form_degree, quad_scheme)
-                DxC_elt = OuterProductElement(D_elt, C_elt, domain, form_degree, quad_scheme)
+                CxD_elt = OuterProductElement(C_elt, D_elt, cell)
+                DxC_elt = OuterProductElement(D_elt, C_elt, cell)
 
                 if family == "RTCF":
                     return EnrichedElement(HDiv(CxD_elt), HDiv(DxC_elt))
@@ -89,8 +85,8 @@ class FiniteElement(FiniteElementBase):
                 Id_elt = FiniteElement("DG", "interval", degree - 1, 1, quad_scheme)
                 Ic_elt = FiniteElement("CG", "interval", degree, 0, quad_scheme)
 
-                return EnrichedElement(HDiv(OuterProductElement(Qc_elt, Id_elt, domain, form_degree, quad_scheme)),
-                                       HDiv(OuterProductElement(Qd_elt, Ic_elt, domain, form_degree, quad_scheme)))
+                return EnrichedElement(HDiv(OuterProductElement(Qc_elt, Id_elt, cell)),
+                                       HDiv(OuterProductElement(Qd_elt, Ic_elt, cell)))
 
             elif family == "NCE":
                 ufl_assert(cell._A.cellname() == "quadrilateral", "%s is available on OuterProductCell(quadrilateral, interval) only." % family)
@@ -102,24 +98,24 @@ class FiniteElement(FiniteElementBase):
                 Id_elt = FiniteElement("DG", "interval", degree - 1, 1, quad_scheme)
                 Ic_elt = FiniteElement("CG", "interval", degree, 0, quad_scheme)
 
-                return EnrichedElement(HCurl(OuterProductElement(Qc_elt, Id_elt, domain, form_degree, quad_scheme)),
-                                       HCurl(OuterProductElement(Qd_elt, Ic_elt, domain, form_degree, quad_scheme)))
+                return EnrichedElement(HCurl(OuterProductElement(Qc_elt, Id_elt, cell)),
+                                       HCurl(OuterProductElement(Qd_elt, Ic_elt, cell)))
 
             elif family == "Q":
                 return OuterProductElement(FiniteElement("CG", cell._A, degree, 0, quad_scheme),
                                            FiniteElement("CG", cell._B, degree, 0, quad_scheme),
-                                           domain, form_degree, quad_scheme)
+                                           cell)
 
             elif family == "DQ":
                 family_A = "DG" if cell._A.cellname() in simplices else "DQ"
                 family_B = "DG" if cell._B.cellname() in simplices else "DQ"
                 return OuterProductElement(FiniteElement(family_A, cell._A, degree, cell._A.topological_dimension(), quad_scheme),
                                            FiniteElement(family_B, cell._B, degree, cell._B.topological_dimension(), quad_scheme),
-                                           domain, form_degree, quad_scheme)
+                                           cell)
 
         return super(FiniteElement, cls).__new__(cls,
                                                  family,
-                                                 domain,
+                                                 cell,
                                                  degree,
                                                  form_degree,
                                                  quad_scheme)
@@ -158,7 +154,7 @@ class FiniteElement(FiniteElementBase):
         self._short_name = short_name
 
         # Finite elements on quadrilaterals have an IrreducibleInt as degree
-        if domain is not None:
+        if cell is not None:
             if cell.cellname() == "quadrilateral":
                 from ufl.algorithms.estimate_degrees import IrreducibleInt
                 degree = IrreducibleInt(degree)
