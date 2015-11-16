@@ -108,9 +108,6 @@ class MixedElement(FiniteElementBase):
         "Reconstruct a mixed element from new subelements."
         if all(a == b for (a, b) in zip(elements, self._sub_elements)):
             return self
-        ufl_assert(all(a.value_shape() == b.value_shape()
-                       for (a, b) in zip(elements, self._sub_elements)),
-            "Expecting new elements to have same value shape as old ones.")
         return MixedElement(*elements)
 
     def symmetry(self):

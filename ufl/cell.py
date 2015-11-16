@@ -134,6 +134,11 @@ class Cell(AbstractCell):
 
     # --- Overrides of AbstractCell methods ---
 
+    def reconstruct(self, geometric_dimension=None):
+        if geometric_dimension is None:
+            geometric_dimension = self._geometric_dimension
+        return Cell(self._cellname, geometric_dimension=geometric_dimension)
+
     def is_simplex(self):
         return self.num_vertices() == self.topological_dimension() + 1
 
@@ -280,6 +285,11 @@ class OuterProductCell(AbstractCell): # TODO: Remove this and use TensorProductC
             else:
                 # Don't know how to extrude this
                 self.facet_vert = None
+
+    def reconstruct(self, geometric_dimension=None):
+        if geometric_dimension is None:
+            geometric_dimension = self._geometric_dimension
+        return OuterProductCell(self._A, self._B, gdim=geometric_dimension)
 
     def is_simplex(self):
         "Return True if this is a simplex cell."
