@@ -1,11 +1,13 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 
 __authors__ = "David Ham"
 __date__ = "2014-03-04"
 
 import pytest
 from ufl import FiniteElement, triangle
-from ufl.sobolevspace import H2, H1, HDiv, HCurl, L2, SobolevSpace
+from ufl.sobolevspace import SobolevSpace
+from ufl import H2, H1, HDiv, HCurl, L2
 
 # TODO: Add construction of all elements with periodic table notation here.
 
@@ -97,4 +99,3 @@ def test_contains_hcurl():
         assert hcurl_element not in H1
         assert hcurl_element not in HDiv
         assert hcurl_element not in H2
-

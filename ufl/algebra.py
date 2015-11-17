@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 "Basic algebra operations."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -24,7 +25,6 @@ from six import iteritems
 
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
-from ufl.common import product, mergedicts2, subdict, EmptyDict
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
 from ufl.constantvalue import Zero, zero, ScalarValue, IntValue, as_ufl
@@ -333,7 +333,8 @@ class Abs(Operator):
     def __init__(self, a):
         Operator.__init__(self, (a,))
         ufl_assert(isinstance(a, Expr), "Expecting Expr instance.")
-        if not isinstance(a, Expr): error("Expecting Expr instances.")
+        if not isinstance(a, Expr):
+            error("Expecting Expr instances.")
 
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)

@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """Utility algorithms for inspection of and information extraction from UFL objects in various ways."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -26,8 +27,7 @@ from collections import namedtuple
 
 from ufl.log import error, warning, info
 from ufl.assertions import ufl_assert
-from ufl.sorting import topological_sorting
-from ufl.utils.sorting import sorted_by_count
+from ufl.utils.sorting import sorted_by_count, topological_sorting
 
 from ufl.core.expr import Expr
 from ufl.core.terminal import Terminal, FormArgument
@@ -36,7 +36,6 @@ from ufl.argument import Argument
 from ufl.coefficient import Coefficient
 from ufl.variable import Variable
 from ufl.core.multiindex import Index, MultiIndex
-from ufl.geometry import Domain
 from ufl.integral import Measure, Integral
 from ufl.form import Form
 from ufl.algorithms.traversal import iter_expressions
@@ -153,7 +152,7 @@ The arguments found are:\n%s""" % "\n".join("  %s" % f for f in coefficients)
 def extract_elements(form):
     "Build sorted tuple of all elements used in form."
     args = chain(*extract_arguments_and_coefficients(form))
-    return tuple(f.element() for f in args)
+    return tuple(f.ufl_element() for f in args)
 
 
 def extract_unique_elements(form):
@@ -164,7 +163,8 @@ def extract_unique_elements(form):
 def extract_sub_elements(elements):
     "Build sorted tuple of all sub elements (including parent element)."
     sub_elements = tuple(chain(*[e.sub_elements() for e in elements]))
-    if not sub_elements: return tuple(elements)
+    if not sub_elements:
+        return tuple(elements)
     return tuple(elements) + extract_sub_elements(sub_elements)
 
 
@@ -194,7 +194,7 @@ def sort_elements(elements):
     """
 
     # Set nodes
-    nodes = elements
+    nodes = sorted(elements)
 
     # Set edges
     edges = dict((node, []) for node in nodes)

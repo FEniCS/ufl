@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 """This file is useful for external code like tests and form compilers,
 since it enables the syntax "from ufl.classes import CellFacetooBar" for getting
 implementation details not exposed through the default ufl namespace.
 It also contains functionality used by algorithms for dealing with groups
 of classes, and for mapping types to different handler functions."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -96,50 +97,44 @@ def populate_namespace_with_expr_classes(namespace):
 
 __all__ += populate_namespace_with_expr_classes(locals())
 
-# Domain types
-from ufl.cell import Cell, ProductCell, OuterProductCell
-from ufl.domain import Domain, ProductDomain
 
-__all__ += [
-    "Cell", "ProductCell", "OuterProductCell",
-    "Domain", "ProductDomain",
-    ]
+#
+# Semi-automated imports of non-expr classes:
+#
 
-# Elements
-from ufl.finiteelement import (
-    FiniteElementBase,
-    FiniteElement,
-    MixedElement, VectorElement, TensorElement,
-    EnrichedElement, RestrictedElement,
-    TensorProductElement,
-    OuterProductElement, OuterProductVectorElement, OuterProductTensorElement)
+def populate_namespace_with_module_classes(mod, loc):
+    """Export the classes that submodules list in __all_classes__."""
+    names = mod.__all_classes__
+    for name in names:
+        loc[name] = getattr(mod, name)
+    return names
 
-__all__ += [
-    "FiniteElementBase",
-    "FiniteElement",
-    "MixedElement", "VectorElement", "TensorElement",
-    "EnrichedElement", "RestrictedElement",
-    "TensorProductElement", "OuterProductElement", "OuterProductVectorElement",
-    ]
+import ufl.cell
+__all__ += populate_namespace_with_module_classes(ufl.cell, locals())
 
-# Other non-Expr types
-from ufl.argument import TestFunction, TrialFunction, TestFunctions, TrialFunctions
-from ufl.core.multiindex import IndexBase, FixedIndex, Index
+import ufl.finiteelement
+__all__ += populate_namespace_with_module_classes(ufl.finiteelement, locals())
 
-__all__ += [
-    "TestFunction", "TrialFunction", "TestFunctions", "TrialFunctions",
-    "IndexBase", "FixedIndex", "Index",
-    ]
+import ufl.domain
+__all__ += populate_namespace_with_module_classes(ufl.domain, locals())
 
-# Higher level abstractions
-from ufl.measure import Measure, MeasureSum, MeasureProduct
-from ufl.integral import Integral
-from ufl.form import Form
-from ufl.equation import Equation
+import ufl.functionspace
+__all__ += populate_namespace_with_module_classes(ufl.functionspace, locals())
 
-__all__ += [
-    "Measure", "MeasureSum", "MeasureProduct",
-    "Integral",
-    "Form",
-    "Equation",
-    ]
+import ufl.core.multiindex
+__all__ += populate_namespace_with_module_classes(ufl.core.multiindex, locals())
+
+import ufl.argument
+__all__ += populate_namespace_with_module_classes(ufl.argument, locals())
+
+import ufl.measure
+__all__ += populate_namespace_with_module_classes(ufl.measure, locals())
+
+import ufl.integral
+__all__ += populate_namespace_with_module_classes(ufl.integral, locals())
+
+import ufl.form
+__all__ += populate_namespace_with_module_classes(ufl.form, locals())
+
+import ufl.equation
+__all__ += populate_namespace_with_module_classes(ufl.equation, locals())

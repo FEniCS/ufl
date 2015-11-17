@@ -1,8 +1,9 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 
 from __future__ import print_function
 
-__authors__ = "Martin Sandve Alnes"
+__authors__ = "Martin Sandve Alnæs"
 __date__ = "2008-09-06 -- 2009-02-10"
 
 import pytest
@@ -31,12 +32,12 @@ def _test_object(a, shape, free_indices):
     s = str(a)
 
     # Check that some properties are at least available
-    fi = a.free_indices()
+    fi = a.ufl_free_indices
     sh = a.ufl_shape
-    ce = a.cell()
 
     # Compare with provided properties
     if free_indices is not None:
+        free_indices = [i.count() for i in free_indices]
         if len(set(fi) ^ set(free_indices)) != 0:
             print(type(a))
             print(a)
@@ -63,9 +64,6 @@ def _test_object2(a):
 
     # Can't really test str more than that it exists
     s = str(a)
-
-    # Check that some properties are at least available
-    ce = a.cell()
 
 def _test_form(a):
     # Test reproduction via repr string

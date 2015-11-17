@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """Base class for multifunctions with UFL Expr type dispatch."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -25,6 +26,17 @@ from ufl.core.expr import Expr
 def get_num_args(function):
     insp = getargspec(function)
     return len(insp[0]) + int(insp[1] is not None)
+
+def memoized_handler(handler):
+    "Function decorator to memoize MultiFunction handlers."
+    def _memoized_handler(self, o):
+        c = getattr(self, "_memoized_handler_cache")
+        r = c.get(o)
+        if r is None:
+            r = handler(self, o)
+            c[o] = r
+        return r
+    return _memoized_handler
 
 class MultiFunction(object):
     """Base class for collections of nonrecursive expression node handlers.
@@ -67,6 +79,9 @@ class MultiFunction(object):
         self._handlers = [getattr(self, name) for name in cache_data]
         self._is_cutoff_type = [get_num_args(h) == 2 for h in self._handlers]
 
+        # Create cache for memoized_handler
+        self._memoized_handler_cache = {}
+
     def __call__(self, o, *args):
         "Delegate to handler function based on typecode of first argument."
         return self._handlers[o._ufl_typecode_](o, *args)
@@ -87,7 +102,7 @@ class MultiFunction(object):
         if all(a is b for a, b in zip(o.ufl_operands, ops)):
             return o
         else:
-            return o.reconstruct(*ops)
+            return o._ufl_expr_reconstruct_(*ops)
 
     # Set default behaviour for any Expr as undefined
     expr = undefined

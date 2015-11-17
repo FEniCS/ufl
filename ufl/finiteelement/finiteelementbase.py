@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 "This module defines the UFL finite element classes."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -23,15 +24,16 @@
 from six.moves import zip
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
-from ufl.common import product, istr, EmptyDict
-from ufl.geometry import Cell, as_cell, as_domain, Domain
+from ufl.utils.sequences import product
+from ufl.utils.formatting import istr
+from ufl.utils.dicts import EmptyDict
 from ufl.log import info_blue, warning, warning_blue, error
-
+from ufl.cell import AbstractCell, as_cell
 
 class FiniteElementBase(object):
     "Base class for all finite elements"
     __slots__ = ("_family",
-                 "_cell", "_domain",
+                 "_cell",
                  "_degree",
                  "_form_degree",
                  "_quad_scheme",
@@ -39,63 +41,45 @@ class FiniteElementBase(object):
                  "_reference_value_shape",
                  "_repr",
                  "__weakref__")
-
-    def __init__(self, family, domain, degree, quad_scheme, value_shape, reference_value_shape):
+    # TODO: Not all these should be in the base class! In particular family, degree, and quad_scheme do not belong here.
+    def __init__(self, family, cell, degree, quad_scheme, value_shape, reference_value_shape):
         "Initialize basic finite element data"
         ufl_assert(isinstance(family, str), "Invalid family type.")
         ufl_assert(isinstance(degree, (int, tuple)) or degree is None, "Invalid degree type.")
         ufl_assert(isinstance(value_shape, tuple), "Invalid value_shape type.")
         ufl_assert(isinstance(reference_value_shape, tuple), "Invalid reference_value_shape type.")
 
-        # TODO: Support multiple domains for composite mesh mixed elements
-        if domain is None:
-            self._domain = None
-            self._cell = None
-        else:
-            self._domain = as_domain(domain)
-            self._cell = self._domain.cell()
-            ufl_assert(isinstance(self._domain, Domain), "Invalid domain type.")
-            ufl_assert(isinstance(self._cell, Cell), "Invalid cell type.")
+        if cell is not None:
+            cell = as_cell(cell)
+            ufl_assert(isinstance(cell, AbstractCell), "Invalid cell type.")
 
         self._family = family
+        self._cell = cell
         self._degree = degree
         self._value_shape = value_shape
         self._reference_value_shape = reference_value_shape
         self._quad_scheme = quad_scheme
 
+
     def __repr__(self):
         "Format as string for evaluation as Python object."
         return self._repr
 
-    def reconstruction_signature(self):
-        """Format as string for evaluation as Python object.
-
-        For use with cross language frameworks, stored in generated code
-        and evaluated later in Python to reconstruct this object.
-
-        This differs from repr in that it does not include domain
-        label and data, which must be reconstructed or supplied by other means.
-        """
-        raise NotImplementedError("Class %s must implement FiniteElementBase.reconstruction_signature" % (type(self).__name__,))
-
-    def signature_data(self, renumbering):
-        data = ("FiniteElementBase", self._family, self._degree,
-                self._value_shape, self._reference_value_shape,
-                self._quad_scheme,
-                ("no domain" if self._domain is None else self._domain.signature_data(renumbering)))
-        return data
+    def _ufl_hash_data_(self):
+        return repr(self)
 
     def __hash__(self):
         "Compute hash code for insertion in hashmaps."
-        return hash(repr(self))
+        return hash(self._ufl_hash_data_())
 
     def __eq__(self, other):
         "Compute element equality for insertion in hashmaps."
-        return type(self) == type(other) and repr(self) == repr(other)
+        return type(self) == type(other) and self._ufl_hash_data_() == other._ufl_hash_data_()
 
     def __lt__(self, other):
         "Compare elements by repr, to give a natural stable sorting."
         return repr(self) < repr(other)
+
 
     def family(self): # FIXME: Undefined for base?
         "Return finite element family"
@@ -117,24 +101,6 @@ class FiniteElementBase(object):
         "Return cell of finite element"
         return self._cell
 
-    def domain(self, component=None): # TODO: Deprecate this
-        "Return the domain on which this element is defined."
-        domains = self.domains(component)
-        n = len(domains)
-        if n == 0:
-            return None
-        elif n == 1:
-            return domains[0]
-        else:
-            error("Cannot return the requested single domain, as this element has multiple domains.")
-
-    def domains(self, component=None):
-        "Return the domain on which this element is defined."
-        if self._domain is None:
-            return ()
-        else:
-            return (self._domain,)
-
     def is_cellwise_constant(self, component=None):
         """Return whether the basis functions of this
         element is spatially constant over each cell."""
@@ -148,6 +114,14 @@ class FiniteElementBase(object):
         "Return the shape of the value space on the reference cell."
         return self._reference_value_shape
 
+    def value_size(self):
+        "Return the integer product of the value shape."
+        return product(self.value_shape())
+
+    def reference_value_size(self):
+        "Return the integer product of the reference value shape."
+        return product(self.reference_value_shape())
+
     def symmetry(self): # FIXME: different approach
         """Return the symmetry dict, which is a mapping c0 -> c1
         meaning that component c0 is represented by component c1."""
@@ -158,7 +132,7 @@ class FiniteElementBase(object):
         sh = self.value_shape()
         r = len(sh)
         if not (len(i) == r and all(j < k for (j, k) in zip(i, sh))):
-            error(("Illegal component index '%r' (value rank %d)" + \
+            error(("Illegal component index '%r' (value rank %d)" +
                    "for element (value rank %d).") % (i, len(i), r))
 
     def extract_subelement_component(self, i):
@@ -182,7 +156,7 @@ class FiniteElementBase(object):
         sh = self.value_shape()
         r = len(sh)
         if not (len(i) == r and all(j < k for (j, k) in zip(i, sh))):
-            error(("Illegal component index '%r' (value rank %d)" + \
+            error(("Illegal component index '%r' (value rank %d)" +
                    "for element (value rank %d).") % (i, len(i), r))
 
     def extract_subelement_reference_component(self, i):
@@ -213,7 +187,7 @@ class FiniteElementBase(object):
         "Add two elements, creating an enriched element"
         ufl_assert(isinstance(other, FiniteElementBase),
                    "Can't add element and %s." % other.__class__)
-        warning_blue("WARNING: Creating an EnrichedElement,\n         " +\
+        warning_blue("WARNING: Creating an EnrichedElement,\n         " +
                      "if you intended to create a MixedElement use '*' instead of '+'.")
         from ufl.finiteelement import EnrichedElement
         return EnrichedElement(self, other)
@@ -227,13 +201,7 @@ class FiniteElementBase(object):
 
     def __getitem__(self, index):
         "Restrict finite element to a subdomain, subcomponent or topology (cell)."
-        # NOTE: RestrictedElement will not be used to represent restriction
-        #       to subdomains, as that is represented by the element having
-        #       a domain property that is a Region.
-        # NOTE: Implementing restriction to subdomains with [] should not be
-        #       done, as V[1] is ambiguously similar to both indexing expressions
-        #       and obtaining a subdomain, such as myexpr[1] and mydomain[1].
-        if isinstance(index, Cell) or index == "facet":
+        if index in ("facet", "interior"):
             from ufl.finiteelement import RestrictedElement
             return RestrictedElement(self, index)
         return NotImplemented

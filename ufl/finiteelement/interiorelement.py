@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (C) 2014 Andrew T. T. McRae
 #
 # This file is part of UFL.
@@ -23,32 +24,19 @@ class InteriorElement(FiniteElementBase):
     associated with the interior have been kept"""
     def __init__(self, element):
         self._element = element
-        self._repr = "InteriorElement(%r)" % element
+        self._repr = "InteriorElement(%r)" % (element,)
 
         family = "InteriorElement"
-        domain = element.domain()
+        cell = element.cell()
         degree = element.degree()
         quad_scheme = element.quadrature_scheme()
         value_shape = element.value_shape()
         reference_value_shape = element.reference_value_shape()
-        FiniteElementBase.__init__(self, family, domain, degree,
+        FiniteElementBase.__init__(self, family, cell, degree,
                                    quad_scheme, value_shape, reference_value_shape)
 
-    def reconstruct(self, **kwargs):
-        """Construct a new InteriorElement object with some properties
-        replaced with new values."""
-        domain = kwargs.get("domain", self.domain())
-        ele = self._element.reconstruct(domain=domain)
-        return InteriorElement(ele)
-
-    def reconstruction_signature(self):
-        return "InteriorElement(%s)" % self._element.reconstruction_signature()
-
-    def signature_data(self, renumbering):
-        data = ("InteriorElement", self._element.signature_data(renumbering),
-                ("no domain" if self._domain is None else self._domain
-                    .signature_data(renumbering)))
-        return data
+    def mapping(self):
+        return self._element.mapping()
 
     def __str__(self):
         return "InteriorElement(%s)" % str(self._element)

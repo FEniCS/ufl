@@ -1,4 +1,5 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 
 import pytest
 
@@ -82,10 +83,10 @@ def test_indexed_function2(self):
     bfun  = cos(f[0])
     left  = u[i] + f[i]
     right = v[i] * bfun
-    assert len(left.free_indices()) == 1
-    assert left.free_indices()[0] == i
-    assert len(right.free_indices()) == 1
-    assert right.free_indices()[0] == i
+    assert len(left.ufl_free_indices) == 1
+    assert left.ufl_free_indices[0] == i.count()
+    assert len(right.ufl_free_indices) == 1
+    assert right.ufl_free_indices[0] == i.count()
     b = left * right * dx
 
 def test_indexed_function3(self):
@@ -106,10 +107,10 @@ def test_vector_from_indices(self):
     uu = as_vector(v[j], j)
     w  = v + u
     ww = vv + uu
-    assert vv.rank() == 1
-    assert uu.rank() == 1
-    assert w.rank() == 1
-    assert ww.rank() == 1
+    assert len(vv.ufl_shape) == 1
+    assert len(uu.ufl_shape) == 1
+    assert len(w.ufl_shape) == 1
+    assert len(ww.ufl_shape) == 1
 
 def test_matrix_from_indices(self):
     element = VectorElement("CG", "triangle", 1)
@@ -121,10 +122,10 @@ def test_matrix_from_indices(self):
     C  = A + A
     C  = B + B
     D  = A + B
-    assert A.rank() == 2
-    assert B.rank() == 2
-    assert C.rank() == 2
-    assert D.rank() == 2
+    assert len(A.ufl_shape) == 2
+    assert len(B.ufl_shape) == 2
+    assert len(C.ufl_shape) == 2
+    assert len(D.ufl_shape) == 2
 
 def test_vector_from_list(self):
     element = VectorElement("CG", "triangle", 1)
@@ -134,8 +135,8 @@ def test_vector_from_list(self):
     # create vector from list
     vv = as_vector([u[0], v[0]])
     ww = vv + vv
-    assert vv.rank() == 1
-    assert ww.rank() == 1
+    assert len(vv.ufl_shape) == 1
+    assert len(ww.ufl_shape) == 1
 
 def test_matrix_from_list(self):
     element = VectorElement("CG", "triangle", 1)
@@ -150,10 +151,10 @@ def test_matrix_from_list(self):
     C  = A + A
     C  = B + B
     D  = A + B
-    assert A.rank() == 2
-    assert B.rank() == 2
-    assert C.rank() == 2
-    assert D.rank() == 2
+    assert len(A.ufl_shape) == 2
+    assert len(B.ufl_shape) == 2
+    assert len(C.ufl_shape) == 2
+    assert len(D.ufl_shape) == 2
 
 def test_tensor(self):
     element = VectorElement("CG", "triangle", 1)
@@ -164,21 +165,21 @@ def test_tensor(self):
 
     # define the components of a fourth order tensor
     Cijkl = u[i]*v[j]*f[k]*g[l]
-    assert Cijkl.rank() == 0
-    assert set(Cijkl.free_indices()) == {i, j, k, l}
+    assert len(Cijkl.ufl_shape) == 0
+    assert set(Cijkl.ufl_free_indices) == {i.count(), j.count(), k.count(), l.count()}
 
     # make it a tensor
     C = as_tensor(Cijkl, (i, j, k, l))
-    assert C.rank() == 4
+    assert len(C.ufl_shape) == 4
     self.assertSameIndices(C, ())
 
     # get sub-matrix
     A = C[:,:, 0, 0]
-    assert A.rank() == 2
+    assert len(A.ufl_shape) == 2
     self.assertSameIndices(A, ())
     A = C[:,:, i, j]
-    assert A.rank() == 2
-    assert set(A.free_indices()) == {i, j}
+    assert len(A.ufl_shape) == 2
+    assert set(A.ufl_free_indices) == {i.count(), j.count()}
 
     # legal?
     vv = as_vector([u[i], v[i]])
@@ -236,7 +237,7 @@ def test_spatial_derivative(self):
 
     a = v.dx(i, j)
     #self.assertSameIndices(a, (i,j))
-    assert set(a.free_indices()) == {j, i}
+    assert set(a.ufl_free_indices) == {j.count(), i.count()}
     self.assertNotIsInstance(a, IndexSum)
     assert a.ufl_shape == (d,)
 
@@ -246,8 +247,7 @@ def test_spatial_derivative(self):
     assert a.ufl_shape == ()
 
     a = (v[i]*u[j]).dx(0, 1)
-    # indices change place because of sorting, I guess this may be ok
-    assert set(a.free_indices()) == {i, j}
+    assert set(a.ufl_free_indices) == {i.count(), j.count()}
     self.assertNotIsInstance(a, IndexSum)
     assert a.ufl_shape == ()
 

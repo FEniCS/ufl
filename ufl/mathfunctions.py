@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """This module provides basic mathematical functions."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -25,7 +26,7 @@ from ufl.log import warning, error
 from ufl.assertions import ufl_assert
 from ufl.core.operator import Operator
 from ufl.constantvalue import is_true_ufl_scalar, ScalarValue, Zero, FloatValue, IntValue, as_ufl
-from ufl.common import EmptyDict
+from ufl.utils.dicts import EmptyDict
 from ufl.core.ufl_type import ufl_type
 
 """

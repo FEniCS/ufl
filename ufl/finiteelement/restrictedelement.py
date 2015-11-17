@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 "This module defines the UFL finite element classes."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -21,77 +22,57 @@
 # Modified by Marie E. Rognes 2010, 2012
 
 from ufl.assertions import ufl_assert
-from ufl.permutation import compute_indices
-from ufl.common import product, istr, EmptyDict
-from ufl.geometry import Cell, as_cell
-from ufl.log import info_blue, warning, warning_blue, error
+from ufl.cell import Cell, as_cell
+from ufl.log import info_blue, warning, warning_blue, error, deprecate
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
+valid_restriction_domains = ("interior", "facet", "face", "edge", "vertex")
+
 class RestrictedElement(FiniteElementBase):
     "Represents the restriction of a finite element to a type of cell entity."
-    def __init__(self, element, cell_restriction):
+    def __init__(self, element, restriction_domain):
         ufl_assert(isinstance(element, FiniteElementBase),
                    "Expecting a finite element instance.")
-        ufl_assert(isinstance(cell_restriction, Cell) or cell_restriction == "facet",
-                   "Expecting a Cell instance, or the string 'facet'.")
+        ufl_assert(restriction_domain in valid_restriction_domains,
+                   "Expecting one of the strings %r." % (valid_restriction_domains,))
 
-        FiniteElementBase.__init__(self, "RestrictedElement", element.domain(),
+        FiniteElementBase.__init__(self, "RestrictedElement", element.cell(),
             element.degree(), element.quadrature_scheme(), element.value_shape(), element.reference_value_shape())
+
         self._element = element
 
-        if isinstance(cell_restriction, Cell):
-            # Just attach cell_restriction if it is a Cell
-            self._cell_restriction = cell_restriction
-        elif cell_restriction == "facet":
-            # Create a cell
-            cell = element.cell()
-            self._cell_restriction = Cell(cell.facet_cellname(),
-                                          geometric_dimension=cell.geometric_dimension())
+        self._restriction_domain = restriction_domain
 
-        self._repr = "RestrictedElement(%r, %r)" % (self._element, self._cell_restriction)
-
-    def reconstruction_signature(self):
-        """Format as string for evaluation as Python object.
-
-        For use with cross language frameworks, stored in generated code
-        and evaluated later in Python to reconstruct this object.
-
-        This differs from repr in that it does not include domain
-        label and data, which must be reconstructed or supplied by other means.
-        """
-        return "RestrictedElement(%s, %r)" % (self._element.reconstruction_signature(), self._cell_restriction)
-
-    def reconstruct(self, **kwargs):
-        """Construct a new RestrictedElement object with
-        some properties replaced with new values."""
-        element = self._element.reconstruct(**kwargs)
-        cell_restriction = kwargs.get("cell_restriction", self.cell_restriction())
-        return RestrictedElement(element=element, cell_restriction=cell_restriction)
+        self._repr = "RestrictedElement(%r, %r)" % (self._element, self._restriction_domain)
 
     def is_cellwise_constant(self):
         """Return whether the basis functions of this
         element is spatially constant over each cell."""
         return self._element.is_cellwise_constant()
 
-    def element(self):
+    def sub_element(self):
         "Return the element which is restricted."
         return self._element
+
+    def element(self):
+        deprecate("RestrictedElement.element() is deprecated, please use .sub_element() instead.")
+        return self.sub_element()
 
     def mapping(self):
         return self._element.mapping()
 
-    def cell_restriction(self):
+    def restriction_domain(self):
         "Return the domain onto which the element is restricted."
-        return self._cell_restriction
+        return self._restriction_domain
 
     def __str__(self):
         "Format as string for pretty printing."
-        return "<%s>|_{%s}" % (self._element, self._cell_restriction)
+        return "<%s>|_{%s}" % (self._element, self._restriction_domain)
 
     def shortstr(self):
         "Format as string for pretty printing."
-        return "<%s>|_{%s}" % (self._element.shortstr(), self._cell_restriction)
+        return "<%s>|_{%s}" % (self._element.shortstr(), self._restriction_domain)
 
     def symmetry(self):
         """Return the symmetry dict, which is a mapping c0 -> c1
@@ -119,8 +100,3 @@ class RestrictedElement(FiniteElementBase):
         #        w.r.t. different sub_elements meanings.
         "Return list of restricted sub elements."
         return (self._element,)
-
-    def signature_data(self, renumbering):
-        data = ("RestrictedElement", self._element.signature_data(renumbering),
-                repr(self._cell_restriction)) # Note: I'm pretty sure repr is safe here but that may change
-        return data

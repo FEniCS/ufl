@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 "The Equation class, used to express equations like a == L."
 
-# Copyright (C) 2012-2014 Anders Logg and Martin Sandve Alnes
+# Copyright (C) 2012-2015 Anders Logg and Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -16,6 +17,9 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
+
+# Export list for ufl.classes
+__all_classes__ = ["Equation"]
 
 class Equation:
     """This class is used to represent equations expressed by the "=="

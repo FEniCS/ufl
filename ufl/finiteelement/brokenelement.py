@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (C) 2014 Andrew T. T. McRae
 #
 # This file is part of UFL.
@@ -22,32 +23,19 @@ class BrokenElement(FiniteElementBase):
     """The discontinuous version of an existing Finite Element space"""
     def __init__(self, element):
         self._element = element
-        self._repr = "BrokenElement(%s)" % str(element._repr)
+        self._repr = "BrokenElement(%r)" % (element,)
 
         family = "BrokenElement"
-        domain = element.domain()
+        cell = element.cell()
         degree = element.degree()
         quad_scheme = element.quadrature_scheme()
         value_shape = element.value_shape()
         reference_value_shape = element.reference_value_shape()
-        FiniteElementBase.__init__(self, family, domain, degree,
+        FiniteElementBase.__init__(self, family, cell, degree,
                                    quad_scheme, value_shape, reference_value_shape)
 
-    def reconstruct(self, **kwargs):
-        """Construct a new BrokenElement object with some properties
-        replaced with new values."""
-        domain = kwargs.get("domain", self.domain())
-        ele = self._element.reconstruct(domain=domain)
-        return BrokenElement(ele)
-
-    def reconstruction_signature(self):
-        return "BrokenElement(%s)" % self._element.reconstruction_signature()
-
-    def signature_data(self, renumbering):
-        data = ("BrokenElement", self._element.signature_data(renumbering),
-                ("no domain" if self._domain is None else self._domain
-                    .signature_data(renumbering)))
-        return data
+    def mapping(self):
+        return self._element.mapping()
 
     def __str__(self):
         return "BrokenElement(%s)" % str(self._element)

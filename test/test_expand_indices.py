@@ -1,6 +1,7 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 
-__authors__ = "Martin Sandve Alnes"
+__authors__ = "Martin Sandve Alnæs"
 __date__ = "2009-03-19 -- 2012-03-20"
 
 # Modified by Anders Logg, 2008
@@ -12,6 +13,7 @@ from pprint import *
 
 from ufl import *
 from ufl.algorithms import *
+from ufl.algorithms.renumbering import renumber_indices
 from ufl.classes import Sum, Product
 
 # TODO: Test expand_indices2 throuroughly for correctness, then efficiency:

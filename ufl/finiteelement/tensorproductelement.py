@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 "This module defines the UFL finite element classes."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -21,9 +22,7 @@
 # Modified by Marie E. Rognes 2010, 2012
 
 from ufl.assertions import ufl_assert
-from ufl.permutation import compute_indices
-from ufl.common import product, istr, EmptyDict
-from ufl.geometry import as_domain, as_cell, ProductCell, ProductDomain
+from ufl.cell import as_cell, TensorProductCell
 from ufl.log import info_blue, warning, warning_blue, error
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
@@ -39,8 +38,10 @@ class TensorProductElement(FiniteElementBase):
     """
     __slots__ = ("_sub_elements",)
 
-    def __init__(self, *elements):
+    def __init__(self, elements):
         "Create TensorProductElement from a given list of elements."
+
+        warning("The TensorProductElement is work in progress and the design may change at any moment without notice.")
 
         self._sub_elements = elements
         ufl_assert(len(self._sub_elements) > 0,
@@ -49,8 +50,8 @@ class TensorProductElement(FiniteElementBase):
 
         family = "TensorProductElement"
 
-        # Define domain as the product of each elements domain
-        domain = ProductDomain([e.domain() for e in self._sub_elements])
+        # Define cell as the product of each elements cell
+        cell = TensorProductCell([e.cell() for e in self._sub_elements])
 
         # Define polynomial degree as the maximal of each subelement
         degrees = { e.degree() for e in self._sub_elements } - { None }
@@ -68,22 +69,14 @@ class TensorProductElement(FiniteElementBase):
                        for e in self._sub_elements),
                    "All subelements in must have same value shape")
 
-        FiniteElementBase.__init__(self, family, domain, degree,
+        FiniteElementBase.__init__(self, family, cell, degree,
                                    quad_scheme, value_shape, reference_value_shape)
 
-    def reconstruction_signature(self):
-        """Format as string for evaluation as Python object.
-
-        For use with cross language frameworks, stored in generated code
-        and evaluated later in Python to reconstruct this object.
-
-        This differs from repr in that it does not include domain
-        label and data, which must be reconstructed or supplied by other means.
-        """
-        return "TensorProductElement(%s)" % (', '.join(e.reconstruction_signature() for e in self._sub_elements),)
-
     def mapping(self):
-        error("The mapping of a mixed element is not defined. Inspect subelements instead.")
+        if all(e.mapping() == "identity" for e in self._sub_elements):
+            return "identity"
+        else:
+            return "undefined"
 
     def num_sub_elements(self):
         "Return number of subelements."
@@ -102,8 +95,3 @@ class TensorProductElement(FiniteElementBase):
         "Short pretty-print."
         return "TensorProductElement(%s)" \
             % str([e.shortstr() for e in self.sub_elements()])
-
-    def signature_data(self, renumbering):
-        data = ("TensorProductElement",
-                tuple(e.signature_data(renumbering) for e in self._sub_elements))
-        return data

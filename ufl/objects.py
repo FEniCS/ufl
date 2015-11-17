@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 "Utility objects for pretty syntax in user code."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -34,7 +35,7 @@ for integral_type, measure_name in integral_type_to_measure_name.items():
     globals()[measure_name] = Measure(integral_type)
 ds_tb = ds_b + ds_t # TODO: Firedrake hack, remove later
 
-# Cell types
+# Create objects for builtin known cell types
 vertex        = Cell("vertex", 0)
 interval      = Cell("interval", 1)
 triangle      = Cell("triangle", 2)
@@ -44,3 +45,5 @@ hexahedron    = Cell("hexahedron", 3)
 
 # Facet is just a dummy declaration for RestrictedElement
 facet = "facet"
+
+#__all__ = [] # FIXME:

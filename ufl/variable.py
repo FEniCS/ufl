@@ -1,7 +1,8 @@
+# -*- coding: utf-8 -*-
 """Defines the Variable and Label classes, used to label
 expressions as variables for differentiation."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -18,7 +19,7 @@ expressions as variables for differentiation."""
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from ufl.common import counted_init
+from ufl.utils.counted import counted_init
 from ufl.log import error
 from ufl.assertions import ufl_assert
 from ufl.core.expr import Expr
@@ -60,10 +61,9 @@ class Label(Terminal):
         error("Label has no free indices (it is not a tensor expression).")
 
     def is_cellwise_constant(self):
-        error("Asking if a Label is cellwise constant makes no sense (it is not a tensor expression).")
-        #return True # Could also just return True, after all it doesn't change with the cell
+        return True
 
-    def domains(self):
+    def ufl_domains(self):
         "Return tuple of domains related to this terminal object."
         return ()
 
@@ -96,11 +96,8 @@ class Variable(Operator):
 
         Operator.__init__(self, (expression, label))
 
-    def domains(self):
-        return self.ufl_operands[0].domains()
-
-    def is_cellwise_constant(self):
-        return self.ufl_operands[0].is_cellwise_constant()
+    def ufl_domains(self):
+        return self.ufl_operands[0].ufl_domains()
 
     def evaluate(self, x, mapping, component, index_values):
         a = self.ufl_operands[0].evaluate(x, mapping, component, index_values)

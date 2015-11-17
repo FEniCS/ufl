@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """This module defines special types for representing mapping of expressions to expressions."""
 
-# Copyright (C) 2014 Martin Sandve Alnes
+# Copyright (C) 2014 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -19,7 +20,7 @@
 
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
-from ufl.common import EmptyDict
+from ufl.utils.dicts import EmptyDict
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
 from ufl.core.ufl_type import ufl_type
@@ -80,10 +81,10 @@ class ExprMapping(Operator):
         if not all(isinstance(e, Expr) for e in operands):
             error("Expecting Expr in ExprMapping.")
 
-    def domains(self):
+    def ufl_domains(self):
         # Because this type can act like a terminal if it has no operands, we need to override some recursive operations
         if self.ufl_operands:
-            return Operator.domains()
+            return Operator.ufl_domains()
         else:
             return []
 

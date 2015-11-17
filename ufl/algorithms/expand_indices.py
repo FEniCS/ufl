@@ -1,8 +1,9 @@
+# -*- coding: utf-8 -*-
 """This module defines expression transformation utilities,
 for expanding free indices in expressions to explicit fixed
 indices only."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -25,7 +26,7 @@ from six.moves import zip
 from six.moves import xrange as range
 
 from ufl.log import error
-from ufl.common import Stack, StackDict
+from ufl.utils.stacks import Stack, StackDict
 from ufl.assertions import ufl_assert
 from ufl.finiteelement import TensorElement
 from ufl.classes import Expr, Terminal, ListTensor, IndexSum, Indexed, FormArgument
@@ -63,7 +64,7 @@ class IndexExpander(ReuseTransformer):
         if sh == ():
             return x
         else:
-            e = x.element()
+            e = x.ufl_element()
             r = len(sh)
 
             # Get component
@@ -81,7 +82,8 @@ class IndexExpander(ReuseTransformer):
         ufl_assert(len(x.ufl_shape) == len(self.component()), "Component size mismatch.")
 
         s = set(x.ufl_free_indices) - set(i.count() for i in self._index2value.keys())
-        if s: error("Free index set mismatch, these indices have no value assigned: %s." % str(s))
+        if s:
+            error("Free index set mismatch, these indices have no value assigned: %s." % str(s))
 
         # There is no index/shape info in this zero because that is asserted above
         return Zero()
@@ -92,7 +94,8 @@ class IndexExpander(ReuseTransformer):
         ufl_assert(len(x.ufl_shape) == len(self.component()), "Component size mismatch.")
 
         s = set(x.ufl_free_indices) - set(i.count() for i in self._index2value.keys())
-        if s: error("Free index set mismatch, these indices have no value assigned: %s." % str(s))
+        if s:
+            error("Free index set mismatch, these indices have no value assigned: %s." % str(s))
 
         return x._ufl_class_(x.value())
 

@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """Functions to check the validity of forms."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -32,7 +33,7 @@ from ufl.integral import Measure
 # UFL algorithms
 from ufl.algorithms.traversal import iter_expressions
 from ufl.corealg.traversal import traverse_terminals
-from ufl.algorithms.propagate_restrictions import check_restrictions
+from ufl.algorithms.check_restrictions import check_restrictions
 from ufl.measure import integral_type_to_measure_name
 
 def validate_form(form): # TODO: Can we make this return a list of errors instead of raising exception?
@@ -54,14 +55,14 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
     #    errors.append("Form is not multilinear in arguments.")
 
     # FIXME DOMAIN: Add check for consistency between domains somehow
-    domains = set(t.domain()
+    domains = set(t.ufl_domain()
                   for e in iter_expressions(form)
                   for t in traverse_terminals(e)) - {None}
     if not domains:
         errors.append("Missing domain definition in form.")
 
     # Check that cell is the same everywhere
-    cells = set(dom.cell() for dom in domains) - {None}
+    cells = set(dom.ufl_cell() for dom in domains) - {None}
     if not cells:
         errors.append("Missing cell definition in form.")
     elif len(cells) > 1:
@@ -77,8 +78,8 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
                 c = f.count()
                 if c in coefficients:
                     g = coefficients[c]
-                    if not f is g:
-                        errors.append("Found different Coefficients with " + \
+                    if f is not g:
+                        errors.append("Found different Coefficients with " +
                                    "same count: %s and %s." % (repr(f), repr(g)))
                 else:
                     coefficients[c] = f
@@ -88,10 +89,13 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
                 p = f.part()
                 if (n, p) in arguments:
                     g = arguments[(n, p)]
-                    if not f is g:
-                        if n == 0: msg = "TestFunctions"
-                        elif n == 1: msg = "TrialFunctions"
-                        else: msg = "Arguments with same number and part"
+                    if f is not g:
+                        if n == 0:
+                            msg = "TestFunctions"
+                        elif n == 1:
+                            msg = "TrialFunctions"
+                        else:
+                            msg = "Arguments with same number and part"
                         msg = "Found different %s: %s and %s." % (msg, repr(f), repr(g))
                         errors.append(msg)
                 else:
@@ -100,7 +104,7 @@ def validate_form(form): # TODO: Can we make this return a list of errors instea
     # Check that all integrands are scalar
     for expression in iter_expressions(form):
         if not is_true_ufl_scalar(expression):
-            errors.append("Found non-scalar integrand expression:\n%s\n%s" % \
+            errors.append("Found non-scalar integrand expression:\n%s\n%s" %
                               (str(expression), repr(expression)))
 
     # Check that restrictions are permissible

@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """This module defines the Indexed class."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -24,7 +25,7 @@ from ufl.core.operator import Operator
 from ufl.core.multiindex import Index, FixedIndex, MultiIndex, as_multi_index
 from ufl.index_combination_utils import unique_sorted_indices, merge_unique_indices
 from ufl.precedence import parstr
-from ufl.common import EmptyDict
+from ufl.utils.dicts import EmptyDict
 from ufl.core.ufl_type import ufl_type
 
 #--- Indexed expression ---
@@ -48,9 +49,9 @@ class Indexed(Operator):
 
         # Error checking
         if len(shape) != len(multiindex):
-            error("Invalid number of indices (%d) for tensor "\
-                "expression of rank %d:\n\t%r\n"\
-                % (len(multiindex), expression.rank(), expression))
+            error("Invalid number of indices (%d) for tensor "
+                "expression of rank %d:\n\t%r\n"
+                % (len(multiindex), len(expression.ufl_shape), expression))
         if any(int(di) >= int(si) for si, di in zip(shape, multiindex) if isinstance(di, FixedIndex)):
             error("Fixed index out of range!")
 
@@ -79,10 +80,6 @@ class Indexed(Operator):
         self.ufl_index_dimensions = fid
 
     ufl_shape = ()
-
-    def is_cellwise_constant(self):
-        "Return whether this expression is spatially constant over each cell."
-        return self.ufl_operands[0].is_cellwise_constant()
 
     def evaluate(self, x, mapping, component, index_values, derivatives=()):
         A, ii = self.ufl_operands

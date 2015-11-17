@@ -1,4 +1,5 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 """
 Tests of the change to local representaiton algorithms.
 """
@@ -7,13 +8,15 @@ import pytest
 
 from ufl import *
 from ufl.classes import ReferenceGrad, JacobianInverse
-from ufl.algorithms import tree_format, change_to_reference_grad, renumber_indices
+from ufl.algorithms import tree_format, change_to_reference_grad
+from ufl.algorithms.renumbering import renumber_indices
 
 
 def test_change_to_reference_grad():
-    domain = Domain(triangle)
-    U = FiniteElement("CG", domain, 1)
-    V = VectorElement("CG", domain, 1)
+    cell = triangle
+    domain = Mesh(cell)
+    U = FunctionSpace(domain, FiniteElement("CG", cell, 1))
+    V = FunctionSpace(domain, VectorElement("CG", cell, 1))
     u = Coefficient(U)
     v = Coefficient(V)
     Jinv = JacobianInverse(domain)

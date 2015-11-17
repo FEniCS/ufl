@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 from collections import defaultdict
 from six.moves import zip
@@ -6,7 +7,7 @@ from ufl.core.expr import Expr
 from ufl.log import error
 from ufl.core.operator import Operator
 from ufl.core.terminal import Terminal
-from ufl.common import pre_traversal
+from ufl.corealg.traversal import pre_traversal
 
 
 hash_total = defaultdict(int)

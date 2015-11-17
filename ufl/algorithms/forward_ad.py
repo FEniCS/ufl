@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """Forward mode AD implementation."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -28,12 +29,13 @@ from six.moves import zip
 from math import pi
 from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert
-from ufl.common import unzip, subdict, lstr
+from ufl.utils.sequences import unzip
+from ufl.utils.dicts import subdict
+from ufl.utils.formatting import lstr
 
 # All classes:
 from ufl.core.terminal import Terminal
-from ufl.constantvalue import ConstantValue, Zero, IntValue, Identity,\
-    is_true_ufl_scalar, is_ufl_scalar
+from ufl.constantvalue import ConstantValue, Zero, IntValue, Identity, is_true_ufl_scalar, is_ufl_scalar
 from ufl.variable import Variable
 from ufl.coefficient import Coefficient, FormArgument
 from ufl.core.multiindex import MultiIndex, Index, FixedIndex, indices
@@ -41,19 +43,19 @@ from ufl.indexed import Indexed
 from ufl.indexsum import IndexSum
 from ufl.tensors import ListTensor, ComponentTensor, as_tensor, as_scalar, unit_indexed_tensor, unwrap_list_tensor
 from ufl.algebra import Sum, Product, Division, Power, Abs
-from ufl.tensoralgebra import Transposed, Outer, Inner, Dot, Cross, Trace, \
-    Determinant, Inverse, Deviatoric, Cofactor
+from ufl.tensoralgebra import Transposed, Outer, Inner, Dot, Cross, Trace, Determinant, Inverse, Deviatoric, Cofactor
 from ufl.mathfunctions import MathFunction, Sqrt, Exp, Ln, Cos, Sin, Tan, Acos, Asin, Atan, Atan2, Erf, BesselJ, BesselY, BesselI, BesselK
 from ufl.restriction import Restricted, PositiveRestricted, NegativeRestricted
-from ufl.differentiation import Derivative, CoefficientDerivative,\
-    VariableDerivative, Grad
+from ufl.differentiation import Derivative, CoefficientDerivative, VariableDerivative, Grad
 from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.exprcontainers import ExprList, ExprMapping
-from ufl.operators import dot, inner, outer, lt, eq, conditional, sign, \
-    sqrt, exp, ln, cos, sin, tan, cosh, sinh, tanh, acos, asin, atan, atan_2, \
-    erf, bessel_J, bessel_Y, bessel_I, bessel_K, \
-    cell_avg, facet_avg
+from ufl.operators import (dot, inner, outer, lt, eq, conditional, sign,
+    sqrt, exp, ln, cos, sin, tan, cosh, sinh, tanh, acos, asin, atan, atan_2,
+    erf, bessel_J, bessel_Y, bessel_I, bessel_K,
+    cell_avg, facet_avg)
 from ufl.algorithms.transformer import Transformer
+from ufl.domain import find_geometric_dimension
+from ufl.checks import is_cellwise_constant
 
 
 class ForwardAD(Transformer):
@@ -66,7 +68,7 @@ class ForwardAD(Transformer):
         "Debugging hook, enable this by renaming to 'visit'."
         r = Transformer.visit(self, o)
         f, df = r
-        if not f is o:
+        if f is not o:
             debug("In ForwardAD.visit, didn't get back o:")
             debug("  o:  %s" % str(o))
             debug("  f:  %s" % str(f))
@@ -132,7 +134,7 @@ class ForwardAD(Transformer):
         if isinstance(Ap, Zero):
             op = self._make_zero_diff(o)
         else:
-            r = Ap.rank() - len(jj)
+            r = len(Ap.ufl_shape) - len(jj)
             if r:
                 ii = indices(r)
                 op = Indexed(Ap, MultiIndex(jj.indices() + ii))
@@ -442,9 +444,9 @@ class ForwardAD(Transformer):
     def binary_condition(self, o, l, r):
         o = self.reuse_if_possible(o, l[0], r[0])
         #if any(not (isinstance(op[1], Zero) or op[1] is None) for op in (l, r)):
-        #    warning("Differentiating a conditional with a condition "\
-        #                "that depends on the differentiation variable."\
-        #                "Assuming continuity of conditional. The condition "\
+        #    warning("Differentiating a conditional with a condition "
+        #                "that depends on the differentiation variable."
+        #                "Assuming continuity of conditional. The condition "
         #                "will not be differentiated.")
         oprime = None # Shouldn't be used anywhere
         return (o, oprime)
@@ -452,9 +454,9 @@ class ForwardAD(Transformer):
     def not_condition(self, o, c):
         o = self.reuse_if_possible(o, c[0])
         #if not (isinstance(c[1], Zero) or c[1] is None):
-        #    warning("Differentiating a conditional with a condition "\
-        #                "that depends on the differentiation variable."\
-        #                "Assuming continuity of conditional. The condition "\
+        #    warning("Differentiating a conditional with a condition "
+        #                "that depends on the differentiation variable."
+        #                "Assuming continuity of conditional. The condition "
         #                "will not be differentiated.")
         oprime = None # Shouldn't be used anywhere
         return (o, oprime)
@@ -499,21 +501,21 @@ class GradAD(ForwardAD):
     def geometric_quantity(self, o):
         "Represent grad(g) as Grad(g)."
         # Collapse gradient of cellwise constant function to zero
-        if o.is_cellwise_constant():
+        if is_cellwise_constant(o):
             return self.terminal(o)
         return (o, Grad(o))
 
     def spatial_coordinate(self, o):
         "Gradient of x w.r.t. x is Id."
         if not hasattr(self, '_Id'):
-            gdim = o.geometric_dimension()
+            gdim = find_geometric_dimension(o)
             self._Id = Identity(gdim)
         return (o, self._Id)
 
     def cell_coordinate(self, o):
         "Gradient of X w.r.t. x is K. But I'm not sure if we want to allow this."
         error("This has not been validated. Does it make sense to do this here?")
-        K = JacobianInverse(o.domain())
+        K = JacobianInverse(o.ufl_domain())
         return (o, K)
 
     # TODO: Implement rules for some of these types?
@@ -543,14 +545,14 @@ class GradAD(ForwardAD):
         "Represent grad(f) as Grad(f)."
         # Collapse gradient of cellwise constant function to zero
         # FIXME: Enable this after fixing issue#13
-        #if o.is_cellwise_constant():
+        #if is_cellwise_constant(o):
         #    return zero(...) # TODO: zero annotated with argument
         return (o, Grad(o))
 
     def coefficient(self, o):
         "Represent grad(f) as Grad(f)."
         # Collapse gradient of cellwise constant function to zero
-        if o.is_cellwise_constant():
+        if is_cellwise_constant(o):
             return self.terminal(o)
         return (o, Grad(o))
 
@@ -559,7 +561,7 @@ class GradAD(ForwardAD):
 
         # TODO: Not sure how to detect that gradient of f is cellwise constant.
         #       Can we trust element degrees?
-        #if o.is_cellwise_constant():
+        #if is_cellwise_constant(o):
         #    return self.terminal(o)
         # TODO: Maybe we can ask "f.has_derivatives_of_order(n)" to check
         #       if we should make a zero here?
@@ -667,7 +669,7 @@ class CoefficientAD(ForwardAD):
             # Make sure we have a tuple to match the self._v tuple
             if not isinstance(oprimes, tuple):
                 oprimes = (oprimes,)
-                ufl_assert(len(oprimes) == len(self._v), "Got a tuple of arguments, "+\
+                ufl_assert(len(oprimes) == len(self._v), "Got a tuple of arguments, "+
                                "expecting a matching tuple of coefficient derivatives.")
 
             # Compute do/dw_j = do/dw_h : v.
@@ -762,7 +764,8 @@ class CoefficientAD(ForwardAD):
 
             # Analyse differentiation variable coefficient
             if isinstance(w, FormArgument):
-                if not w == o: continue
+                if not w == o:
+                    continue
                 wshape = w.ufl_shape
 
                 if isinstance(v, FormArgument):
@@ -788,7 +791,8 @@ class CoefficientAD(ForwardAD):
                 # Case: d/dt [w[...] + t v[...]]
                 # Case: d/dt [w[...] + t v]
                 wval, wcomp = w.ufl_operands
-                if not wval == o: continue
+                if not wval == o:
+                    continue
                 assert isinstance(wval, FormArgument)
                 ufl_assert(all(isinstance(k, FixedIndex) for k in wcomp),
                            "Expecting only fixed indices in differentiation variable.")
@@ -813,7 +817,7 @@ class CoefficientAD(ForwardAD):
                 # Make sure we have a tuple to match the self._v tuple
                 if not isinstance(oprimes, tuple):
                     oprimes = (oprimes,)
-                    ufl_assert(len(oprimes) == len(self._v), "Got a tuple of arguments, "+\
+                    ufl_assert(len(oprimes) == len(self._v), "Got a tuple of arguments, "+
                                    "expecting a matching tuple of coefficient derivatives.")
 
                 # Compute dg/dw_j = dg/dw_h : v.
@@ -879,7 +883,7 @@ def apply_nested_forward_ad(expr):
         # Reconstruct if necessary
         need_reconstruct = not (preops == postops) # FIXME: Is this efficient? O(n)?
         if need_reconstruct:
-            expr = expr.reconstruct(*postops)
+            expr = expr._ufl_expr_reconstruct_(*postops)
         return expr
     elif isinstance(expr, Grad):
         # Apply AD recursively to children
@@ -912,7 +916,7 @@ class UnusedADRules(object):
         v, vp = v
         ufl_assert(isinstance(vp, Zero), "TODO: What happens if vp != 0, i.e. v depends the differentiation variable?")
         # Are there any issues with indices here? Not sure, think through it...
-        oprime = o.reconstruct(fp, v)
+        oprime = o._ufl_expr_reconstruct_(fp, v)
         return (o, oprime)
 
     # --- Tensor algebra (compound types)
@@ -941,7 +945,7 @@ class UnusedADRules(object):
     def commute(self, o, a):
         "This should work for all single argument operators that commute with d/dw with w scalar."
         aprime = a[1]
-        return (o, o.reconstruct(aprime))
+        return (o, o._ufl_expr_reconstruct_(aprime))
 
     # FIXME: Not true for derivatives w.r.t. nonscalar variables...
     transposed = commute
@@ -955,10 +959,10 @@ class UnusedADRules(object):
     curl = commute
     def grad(self, o, a):
         a, aprime = a
-        if aprime.domains(): # TODO: Assuming this is equivalent to 'is_constant', which may not be the case...
-            oprime = o.reconstruct(aprime)
-        else:
+        if is_cellwise_constant(aprime):
             oprime = self._make_zero_diff(o)
+        else:
+            oprime = o._ufl_expr_reconstruct_(aprime)
         return (o, oprime)
 
 class UnimplementedADRules(object):

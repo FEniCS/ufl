@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """Functions to check properties of forms and integrals."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes and Anders Logg
+# Copyright (C) 2008-2015 Martin Sandve Alnæs and Anders Logg
 #
 # This file is part of UFL.
 #
@@ -38,8 +39,8 @@ def is_multilinear(form):
             if len(nargs) == 1:
                 debug("This form is linear in %d arguments." % nargs[0])
             if len(nargs) > 1:
-                warning("This form has more than one argument "\
-                    "'configuration', it has terms that are linear in %s "\
+                warning("This form has more than one argument "
+                    "'configuration', it has terms that are linear in %s "
                     "arguments respectively." % str(nargs))
 
     except NotMultiLinearException as msg:

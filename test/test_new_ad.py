@@ -1,4 +1,5 @@
-
+#!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 import pytest
 
 from ufl import *
@@ -6,7 +7,7 @@ from ufl import *
 from ufl.tensors import as_tensor
 from ufl.classes import Grad
 from ufl.algorithms import tree_format
-from ufl.algorithms import renumber_indices
+from ufl.algorithms.renumbering import renumber_indices
 from ufl.algorithms.apply_derivatives import apply_derivatives, GenericDerivativeRuleset, \
      GradRuleset, VariableRuleset, GateauxDerivativeRuleset
 

@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 "This module collects algorithms and utility functions operating on UFL objects."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -18,6 +19,10 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
 # Modified by Anders Logg, 2008-2009.
+
+
+# FIXME: Clean up this to become a more official set of supported algorithms.
+#        Currently contains too much stuff that's not recommended to use.
 
 
 # Utilities for traversing over expression trees in different ways
@@ -57,19 +62,14 @@ from ufl.algorithms.checks import validate_form
 from ufl.corealg.multifunction import MultiFunction
 from ufl.algorithms.transformer import Transformer, is_post_handler, \
                                        apply_transformer, \
-                                       ReuseTransformer, ufl2ufl, \
-                                       CopyTransformer, ufl2uflcopy, \
+                                       ReuseTransformer, \
                                        VariableStripper, strip_variables
 from ufl.algorithms.replace import Replacer, replace
 from ufl.algorithms.change_to_reference import change_to_reference_grad
-from ufl.algorithms.expand_compounds import CompoundExpander, expand_compounds, \
-                                            CompoundExpanderPreDiff, expand_compounds_prediff, \
-                                            CompoundExpanderPostDiff, expand_compounds_postdiff
+from ufl.algorithms.expand_compounds import expand_compounds
 from ufl.algorithms.estimate_degrees import SumDegreeEstimator, estimate_total_polynomial_degree
 from ufl.algorithms.argument_dependencies import ArgumentDependencyExtracter, extract_argument_dependencies, NotMultiLinearException
-from ufl.algorithms.renumbering import renumber_indices
 from ufl.algorithms.expand_indices import expand_indices, purge_list_tensors
-from ufl.algorithms.propagate_restrictions import propagate_restrictions
 
 # Utilities for transforming complete Forms into other Forms
 from ufl.algorithms.formtransformations import (
@@ -78,7 +78,7 @@ from ufl.algorithms.formtransformations import (
     compute_form_functional, compute_form_arities)
 
 # Utilities for Automatic Functional Differentiation
-from ufl.algorithms.ad import expand_derivatives #, compute_diff, propagate_spatial_derivatives, compute_form_derivative
+from ufl.algorithms.ad import expand_derivatives
 
 # Utilities for form file handling
 from ufl.algorithms.formfiles import read_ufl_file, load_ufl_file, load_forms

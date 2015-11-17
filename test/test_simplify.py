@@ -1,4 +1,5 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 
 import pytest
 from ufl.classes import Sum, Product
@@ -119,8 +120,4 @@ def test_indexing(self):
     Bij = u[i]*v[j]
     Bij2 = as_tensor(Bij, (i, j))[i, j]
     Bij3 = as_tensor(Bij, (i, j))
-    #print "BIJ:  ", Bij.free_indices()
-    #print "BIJ2: ", Bij2.free_indices()
-    #print "BIJ:  ", Bij
-    #print "BIJ2: ", Bij2
     assert Bij2 == Bij

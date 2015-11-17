@@ -1,4 +1,9 @@
-# Copyright (C) 2012 Marie E. Rognes
+# -*- coding: utf-8 -*-
+"""This module provides helper functions to
+  - FFC/DOLFIN adaptive chain,
+  - UFL algorithms taking care of underspecified DOLFIN expressions."""
+
+# Copyright (C) 2012 Marie E. Rognes, 2015 Jan Blechta
 #
 # This file is part of UFL.
 #
@@ -15,44 +20,62 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
-from six.moves import xrange as range
-from ufl.assertions import ufl_assert
-from ufl.finiteelement import FiniteElement, MixedElement
+from ufl.finiteelement import FiniteElement, VectorElement, TensorElement, \
+        MixedElement, EnrichedElement
+
+__all__ = ['increase_order', 'tear']
+
+def increase_order(element):
+    "Return element of same family, but a polynomial degree higher."
+    return _increase_degree(element, +1)
+
 
 def change_regularity(element, family):
     """
     For a given finite element, return the corresponding space
     specified by 'family'.
     """
+    return _change_family(element, family)
 
-    n = element.num_sub_elements()
-    if n > 0:
-        subs = element.sub_elements()
-        return MixedElement([change_regularity(subs[i], family)
-                             for i in range(n)])
-    shape = element.value_shape()
-    if not shape:
-        return FiniteElement(family, element.domain(), element.degree())
 
-    ufl_assert(len(shape) == 1, "TODO: Update this code to handle tensor elements.")
-    return MixedElement([FiniteElement(family, element.domain(i), element.degree(i))
-                               for i in range(shape[0])])
-
-def tear(V):
+def tear(element):
     "For a finite element, return the corresponding discontinuous element."
-    W = change_regularity(V, "DG")
-    return W
+    return change_regularity(element, "DG")
 
-def increase_order(element):
-    "Return element of same family, but a polynomial degree higher."
-    ufl_assert(len(element.value_shape()) <= 1, "TODO: Update this code to handle tensor elements.")
 
-    n = element.num_sub_elements()
-    if n > 0:
-        subs = element.sub_elements()
-        return MixedElement([increase_order(subs[i]) for i in range(n)])
+def reconstruct_element(element, family, cell, degree):
+    if isinstance(element, FiniteElement):
+        return FiniteElement(family, cell, degree)
+    elif isinstance(element, VectorElement):
+        return VectorElement(family, cell, degree, dim=element.value_shape()[0])
+    elif isinstance(element, TensorElement):
+        return TensorElement(family, cell, degree, shape=element.value_shape())
+    else:
+        error("Element reconstruction is only done to stay compatible with hacks in DOLFIN. Not expecting a %r" % (element,))
 
-    if element.family() == "Real":
-        return element
 
-    return FiniteElement(element.family(), element.domain(), element.degree()+1)
+def _increase_degree(element, degree_rise):
+    if isinstance(element, (FiniteElement, VectorElement, TensorElement)):
+        return reconstruct_element(element, element.family(), element.cell(),
+                                   element.degree() + degree_rise)
+    elif isinstance(element, MixedElement):
+        return MixedElement([_increase_degree(e, degree_rise)
+                             for e in element.sub_elements()])
+    elif isinstance(element, EnrichedElement):
+        return EnrichedElement([_increase_degree(e, degree_rise)
+                                for e in element.sub_elements()])
+    else:
+        error("Element reconstruction is only done to stay compatible with hacks in DOLFIN. Not expecting a %r" % (element,))
+
+
+def _change_family(element, family):
+    if isinstance(element, (FiniteElement, VectorElement, TensorElement)):
+        return reconstruct_element(element, family, element.cell(), element.degree())
+    elif isinstance(element, MixedElement):
+        return MixedElement([_change_family(e, family)
+                             for e in element.sub_elements()])
+    elif isinstance(element, EnrichedElement):
+        return EnrichedElement([_change_family(e, family)
+                                for e in element.sub_elements()])
+    else:
+        error("Element reconstruction is only done to stay compatible with hacks in DOLFIN. Not expecting a %r" % (element,))

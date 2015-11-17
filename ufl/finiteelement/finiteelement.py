@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 "This module defines the UFL finite element classes."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -22,9 +23,8 @@
 # Modified by Anders Logg 2014
 
 from ufl.assertions import ufl_assert
-from ufl.permutation import compute_indices
-from ufl.common import product, istr, EmptyDict
-from ufl.geometry import as_domain, as_cell
+from ufl.utils.formatting import istr
+from ufl.cell import as_cell
 from ufl.log import info_blue, warning, warning_blue, error
 
 from ufl.cell import OuterProductCell
@@ -41,19 +41,15 @@ class FiniteElement(FiniteElementBase):
 
     def __new__(cls,
                 family,
-                domain=None,
+                cell=None,
                 degree=None,
                 form_degree=None,
                 quad_scheme=None):
         """Intercepts construction to expand CG, DG, RTCE and RTCF spaces
         on OuterProductCells.
         """
-        if domain is None:
-            cell = None
-        else:
-            domain = as_domain(domain)
-            cell = domain.cell()
-            ufl_assert(cell is not None, "Missing cell in given domain.")
+        if cell is not None:
+            cell = as_cell(cell)
 
         family, short_name, degree, value_shape, reference_value_shape, sobolev_space, mapping = \
           canonical_element_description(family, cell, degree, form_degree)
@@ -62,7 +58,7 @@ class FiniteElement(FiniteElementBase):
             # Delay import to avoid circular dependency at module load time
             from ufl.finiteelement.outerproductelement import OuterProductElement
             from ufl.finiteelement.enrichedelement import EnrichedElement
-            from ufl.finiteelement.hdivcurl import HDiv, HCurl
+            from ufl.finiteelement.hdivcurl import HDivElement as HDiv, HCurlElement as HCurl
 
             if family in ["RTCF", "RTCE"]:
                 ufl_assert(cell._A.cellname() == "interval", "%s is available on OuterProductCell(interval, interval) only." % family)
@@ -71,8 +67,8 @@ class FiniteElement(FiniteElementBase):
                 C_elt = FiniteElement("CG", "interval", degree, 0, quad_scheme)
                 D_elt = FiniteElement("DG", "interval", degree - 1, 1, quad_scheme)
 
-                CxD_elt = OuterProductElement(C_elt, D_elt, domain, form_degree, quad_scheme)
-                DxC_elt = OuterProductElement(D_elt, C_elt, domain, form_degree, quad_scheme)
+                CxD_elt = OuterProductElement(C_elt, D_elt, cell)
+                DxC_elt = OuterProductElement(D_elt, C_elt, cell)
 
                 if family == "RTCF":
                     return EnrichedElement(HDiv(CxD_elt), HDiv(DxC_elt))
@@ -89,8 +85,8 @@ class FiniteElement(FiniteElementBase):
                 Id_elt = FiniteElement("DG", "interval", degree - 1, 1, quad_scheme)
                 Ic_elt = FiniteElement("CG", "interval", degree, 0, quad_scheme)
 
-                return EnrichedElement(HDiv(OuterProductElement(Qc_elt, Id_elt, domain, form_degree, quad_scheme)),
-                                       HDiv(OuterProductElement(Qd_elt, Ic_elt, domain, form_degree, quad_scheme)))
+                return EnrichedElement(HDiv(OuterProductElement(Qc_elt, Id_elt, cell)),
+                                       HDiv(OuterProductElement(Qd_elt, Ic_elt, cell)))
 
             elif family == "NCE":
                 ufl_assert(cell._A.cellname() == "quadrilateral", "%s is available on OuterProductCell(quadrilateral, interval) only." % family)
@@ -102,31 +98,31 @@ class FiniteElement(FiniteElementBase):
                 Id_elt = FiniteElement("DG", "interval", degree - 1, 1, quad_scheme)
                 Ic_elt = FiniteElement("CG", "interval", degree, 0, quad_scheme)
 
-                return EnrichedElement(HCurl(OuterProductElement(Qc_elt, Id_elt, domain, form_degree, quad_scheme)),
-                                       HCurl(OuterProductElement(Qd_elt, Ic_elt, domain, form_degree, quad_scheme)))
+                return EnrichedElement(HCurl(OuterProductElement(Qc_elt, Id_elt, cell)),
+                                       HCurl(OuterProductElement(Qd_elt, Ic_elt, cell)))
 
             elif family == "Q":
                 return OuterProductElement(FiniteElement("CG", cell._A, degree, 0, quad_scheme),
                                            FiniteElement("CG", cell._B, degree, 0, quad_scheme),
-                                           domain, form_degree, quad_scheme)
+                                           cell)
 
             elif family == "DQ":
                 family_A = "DG" if cell._A.cellname() in simplices else "DQ"
                 family_B = "DG" if cell._B.cellname() in simplices else "DQ"
                 return OuterProductElement(FiniteElement(family_A, cell._A, degree, cell._A.topological_dimension(), quad_scheme),
                                            FiniteElement(family_B, cell._B, degree, cell._B.topological_dimension(), quad_scheme),
-                                           domain, form_degree, quad_scheme)
+                                           cell)
 
         return super(FiniteElement, cls).__new__(cls,
                                                  family,
-                                                 domain,
+                                                 cell,
                                                  degree,
                                                  form_degree,
                                                  quad_scheme)
 
     def __init__(self,
                  family,
-                 domain=None,
+                 cell=None,
                  degree=None,
                  form_degree=None,
                  quad_scheme=None):
@@ -135,8 +131,8 @@ class FiniteElement(FiniteElementBase):
         *Arguments*
             family (string)
                The finite element family
-            domain
-               The geometric domain
+            cell
+               The geometric cell
             degree (int)
                The polynomial degree (optional)
             form_degree (int)
@@ -145,12 +141,9 @@ class FiniteElement(FiniteElementBase):
             quad_scheme
                The quadrature scheme (optional)
         """
-        if domain is None:
-            cell = None
-        else:
-            domain = as_domain(domain)
-            cell = domain.cell()
-            ufl_assert(cell is not None, "Missing cell in given domain.")
+        # Note: Unfortunately, dolfin sometimes passes None for cell. Until this is fixed, allow it:
+        if cell is not None:
+            cell = as_cell(cell)
 
         family, short_name, degree, value_shape, reference_value_shape, sobolev_space, mapping = \
           canonical_element_description(family, cell, degree, form_degree)
@@ -161,18 +154,19 @@ class FiniteElement(FiniteElementBase):
         self._short_name = short_name
 
         # Finite elements on quadrilaterals have an IrreducibleInt as degree
-        if domain is not None:
+        if cell is not None:
             if cell.cellname() == "quadrilateral":
                 from ufl.algorithms.estimate_degrees import IrreducibleInt
                 degree = IrreducibleInt(degree)
 
         # Initialize element data
-        FiniteElementBase.__init__(self, family, domain, degree,
+        FiniteElementBase.__init__(self, family, cell, degree,
                                    quad_scheme, value_shape, reference_value_shape)
 
         # Cache repr string
-        self._repr = "FiniteElement(%r, %r, %r, quad_scheme=%r)" % (
-            self.family(), self.domain(), self.degree(), self.quadrature_scheme())
+        qs = self.quadrature_scheme()
+        quad_str = "" if qs is None else ", quad_scheme=%r" % (qs,)
+        self._repr = "FiniteElement(%r, %r, %r%s)" % (self.family(), self.cell(), self.degree(), quad_str)
         assert '"' not in self._repr
 
     def mapping(self):
@@ -181,40 +175,12 @@ class FiniteElement(FiniteElementBase):
     def sobolev_space(self):
         return self._sobolev_space
 
-    def reconstruction_signature(self):
-        """Format as string for evaluation as Python object.
-
-        For use with cross language frameworks, stored in generated code
-        and evaluated later in Python to reconstruct this object.
-
-        This differs from repr in that it does not include domain
-        label and data, which must be reconstructed or supplied by other means.
-        """
-        return "FiniteElement(%r, %s, %r, %r)" % (
-            self.family(), self.domain().reconstruction_signature(), self.degree(), self.quadrature_scheme())
-
-    def signature_data(self, renumbering):
-        data = ("FiniteElement", self._family, self._degree,
-                self._value_shape, self._reference_value_shape,
-                self._quad_scheme,
-                ("no domain" if self._domain is None else self._domain.signature_data(renumbering)))
-        return data
-
-    def reconstruct(self, **kwargs):
-        """Construct a new FiniteElement object with some properties
-        replaced with new values."""
-        kwargs["family"] = kwargs.get("family", self.family())
-        kwargs["domain"] = kwargs.get("domain", self.domain())
-        kwargs["degree"] = kwargs.get("degree", self.degree())
-        kwargs["quad_scheme"] = kwargs.get("quad_scheme", self.quadrature_scheme())
-        return FiniteElement(**kwargs)
-
     def __str__(self):
         "Format as string for pretty printing."
         qs = self.quadrature_scheme()
         qs = "" if qs is None else "(%s)" % qs
-        return "<%s%s%s on a %s>" % (self._short_name, istr(self.degree()),\
-                                           qs, self.domain())
+        return "<%s%s%s on a %s>" % (self._short_name, istr(self.degree()),
+                                           qs, self.cell())
 
     def shortstr(self):
         "Format as string for pretty printing."

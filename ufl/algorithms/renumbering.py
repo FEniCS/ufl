@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 "Algorithms for renumbering of counted objects, currently variables and indices."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes and Anders Logg
+# Copyright (C) 2008-2015 Martin Sandve Alnæs and Anders Logg
 #
 # This file is part of UFL.
 #
@@ -18,7 +19,7 @@
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 
 from six.moves import zip
-from ufl.common import Stack, StackDict
+from ufl.utils.stacks import Stack, StackDict
 from ufl.log import error
 from ufl.core.expr import Expr
 from ufl.core.multiindex import Index, FixedIndex, MultiIndex
@@ -42,14 +43,18 @@ class VariableRenumberingTransformer(ReuseTransformer):
         return v
 
 class IndexRenumberingTransformer(VariableRenumberingTransformer):
-
+    "This is a poorly designed algorithm. It is used in some tests, please do not use for anything else."
     def __init__(self):
         VariableRenumberingTransformer.__init__(self)
         self.index_map = {}
 
     def zero(self, o):
-        new_indices = tuple(self.index(Index(count=i) for i in o.ufl_free_indices))
-        return o.reconstruct(new_indices)
+        fi = o.ufl_free_indices
+        fid = o.ufl_index_dimensions
+        mapped_fi = tuple(self.index(Index(count=i)) for i in fi)
+        paired_fid = [(mapped_fi[pos], fid[pos]) for pos, a in enumerate(fi)]
+        new_fi, new_fid = zip(*tuple(sorted(paired_fid)))
+        return Zero(o.ufl_shape, new_fi, new_fid)
 
     def index(self, o):
         if isinstance(o, FixedIndex):
@@ -63,7 +68,8 @@ class IndexRenumberingTransformer(VariableRenumberingTransformer):
             return i
 
     def multi_index(self, o):
-        return MultiIndex(tuple(self.index(i) for i in o.indices()))
+        new_indices = tuple(self.index(i) for i in o.indices())
+        return MultiIndex(new_indices)
 
 def renumber_indices(expr):
     if isinstance(expr, Expr):

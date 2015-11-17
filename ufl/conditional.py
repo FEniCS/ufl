@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """This module defines classes for conditional expressions."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -24,7 +25,7 @@ from ufl.constantvalue import as_ufl
 from ufl.precedence import parstr
 from ufl.exprequals import expr_equals
 from ufl.checks import is_true_ufl_scalar
-from ufl.common import EmptyDict
+from ufl.utils.dicts import EmptyDict
 from ufl.core.ufl_type import ufl_type
 
 #--- Condition classes ---

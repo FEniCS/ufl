@@ -1,9 +1,10 @@
+# -*- coding: utf-8 -*-
 """This module defines the Transformer base class and some
 basic specializations to further base other algorithms upon,
 as well as some utilities for easier application of such
 algorithms."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes and Anders Logg
+# Copyright (C) 2008-2015 Martin Sandve Alnæs and Anders Logg
 #
 # This file is part of UFL.
 #
@@ -129,14 +130,14 @@ class Transformer(object):
         if all(a is b for a, b in zip(o.ufl_operands, ops)):
             return o
         else:
-            return o.reconstruct(*ops)
+            return o._ufl_expr_reconstruct_(*ops)
 
     # It's just so slow to compare all operands, avoiding it now
     reuse_if_possible = reuse_if_untouched
 
     def always_reconstruct(self, o, *operands):
         "Always reconstruct expr."
-        return o.reconstruct(*operands)
+        return o._ufl_expr_reconstruct_(*operands)
 
     # Set default behaviour for any Expr
     expr = undefined

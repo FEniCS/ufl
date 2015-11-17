@@ -1,7 +1,8 @@
+# -*- coding: utf-8 -*-
 """This module defines utilities for transforming
 complete Forms into new related Forms."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -25,7 +26,7 @@ complete Forms into new related Forms."""
 from six import iteritems
 from six.moves import xrange as range
 
-from ufl.common import product
+from ufl.utils.sequences import product
 from ufl.log import error, warning, debug
 from ufl.assertions import ufl_assert
 
@@ -410,13 +411,11 @@ def compute_form_action(form, coefficient):
     # Pick last argument (will be replaced)
     u = arguments[-1]
 
-    e = u.element()
+    fs = u.ufl_function_space()
     if coefficient is None:
-        coefficient = Coefficient(e)
-    else:
-        #ufl_assert(coefficient.element() == e, \
-        if coefficient.element() != e:
-            debug("Computing action of form on a coefficient in a different element space.")
+        coefficient = Coefficient(fs)
+    elif coefficient.ufl_function_space() != fs:
+        debug("Computing action of form on a coefficient in a different function space.")
     return replace(form, { u: coefficient })
 
 def compute_energy_norm(form, coefficient):
@@ -436,14 +435,14 @@ def compute_energy_norm(form, coefficient):
 
     ufl_assert(len(arguments) == 2, "Expecting bilinear form.")
     v, u = arguments
-    e = u.element()
-    e2 = v.element()
+    e = u.ufl_function_space()
+    e2 = v.ufl_function_space()
     ufl_assert(e == e2, "Expecting equal finite elements for test and trial functions, got '%s' and '%s'." % (str(e), str(e2)))
     if coefficient is None:
         coefficient = Coefficient(e)
     else:
-        ufl_assert(coefficient.element() == e, \
-            "Trying to compute action of form on a "\
+        ufl_assert(coefficient.ufl_function_space() == e,
+            "Trying to compute action of form on a "
             "coefficient in an incompatible element space.")
     return replace(form, { u: coefficient, v: coefficient })
 
@@ -465,8 +464,8 @@ def compute_form_adjoint(form, reordered_arguments=None):
     ufl_assert(v.number() < u.number(), "Mistaken assumption in code!")
 
     if reordered_arguments is None:
-        reordered_u = u.reconstruct(number=v.number(), part=v.part())
-        reordered_v = v.reconstruct(number=u.number(), part=u.part())
+        reordered_u = Argument(u.ufl_function_space(), number=v.number(), part=v.part())
+        reordered_v = Argument(v.ufl_function_space(), number=u.number(), part=u.part())
     else:
         reordered_u, reordered_v = reordered_arguments
 
@@ -478,9 +477,9 @@ def compute_form_adjoint(form, reordered_arguments=None):
     ufl_assert(reordered_v.part() == u.part(),
                "Ordering of new arguments is the same as the old arguments!")
 
-    ufl_assert(reordered_u.element() == u.element(),
+    ufl_assert(reordered_u.ufl_function_space() == u.ufl_function_space(),
                "Element mismatch between new and old arguments (trial functions).")
-    ufl_assert(reordered_v.element() == v.element(),
+    ufl_assert(reordered_v.ufl_function_space() == v.ufl_function_space(),
                "Element mismatch between new and old arguments (test functions).")
 
     return replace(form, {v: reordered_v, u: reordered_u})

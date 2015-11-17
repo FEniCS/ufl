@@ -1,8 +1,9 @@
+# -*- coding: utf-8 -*-
 """This module provides an extensive list of predefined finite element
 families. Users or more likely, form compilers, may register new
 elements by calling the function register_element."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes and Anders Logg
+# Copyright (C) 2008-2015 Martin Sandve Alnæs and Anders Logg
 #
 # This file is part of UFL.
 #
@@ -27,7 +28,8 @@ from __future__ import print_function
 from ufl.log import warning as ufl_warning
 from ufl.assertions import ufl_assert
 from ufl.sobolevspace import L2, H1, H2, HDiv, HCurl, HEin
-from ufl.common import istr
+from ufl.utils.formatting import istr
+from ufl.cell import Cell
 
 # List of valid elements
 ufl_elements = {}
@@ -228,7 +230,10 @@ def canonical_element_description(family, cell, order, form_degree):
     if cell is not None:
         tdim = cell.topological_dimension()
         gdim = cell.geometric_dimension()
-        cellname = cell.cellname()
+        if isinstance(cell, Cell):
+            cellname = cell.cellname()
+        else:
+            cellname = None
     else:
         tdim = None
         gdim = None
@@ -268,14 +273,14 @@ def canonical_element_description(family, cell, order, form_degree):
     # Validate order if specified
     if order is not None:
         ufl_assert(krange is not None,
-                   'Order "%s" invalid for "%s" finite element, '\
+                   'Order "%s" invalid for "%s" finite element, '
                        'should be None.' % (order, family))
         kmin, kmax = krange
         ufl_assert(kmin is None or order >= kmin,
-                   'Order "%s" invalid for "%s" finite element.' %\
+                   'Order "%s" invalid for "%s" finite element.' %
                        (order, family))
         ufl_assert(kmax is None or order <= kmax,
-               'Order "%s" invalid for "%s" finite element.' %\
+               'Order "%s" invalid for "%s" finite element.' %
                        (istr(order), family))
 
     # Override sobolev_space for piecewise constants (TODO: necessary?)
@@ -289,7 +294,7 @@ def canonical_element_description(family, cell, order, form_degree):
         value_shape = (gdim, gdim)
     elif value_rank == 1:
         # Vector valued fundamental elements in HDiv and HCurl have a shape
-        ufl_assert(gdim != None and tdim != None,
+        ufl_assert(gdim is not None and tdim is not None,
                "Cannot infer shape of element without topological and geometric dimensions.")
         reference_value_shape = (tdim,)
         value_shape = (gdim,)

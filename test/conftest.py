@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 import pytest
 
@@ -33,11 +34,11 @@ class Tester:
 
     def assertEqualTotalShape(self, value, expected):
         self.assertEqual(value.ufl_shape, expected.ufl_shape)
-        self.assertEqual(set(value.free_indices()), set(expected.free_indices()))
-        self.assertEqual(value.index_dimensions(), expected.index_dimensions())
+        self.assertEqual(value.ufl_free_indices, expected.ufl_free_indices)
+        self.assertEqual(value.ufl_index_dimensions, expected.ufl_index_dimensions)
 
     def assertSameIndices(self, expr, free_indices):
-        self.assertEqual(expr.free_indices(), free_indices)
+        self.assertEqual(expr.ufl_free_indices, tuple(sorted(i.count() for i in free_indices)))
 
     def assertEqualAfterPreprocessing(self, a, b):
         a2 = compute_form_data(a*dx).preprocessed_form

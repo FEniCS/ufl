@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """This module provides assertion functions used by the UFL implementation."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -34,5 +35,5 @@ expecting_true_ufl_scalar = lambda v:    error("Expecting UFL scalar expression 
 
 def ufl_assert(condition, *message):
     "Assert that condition is true and otherwise issue an error with given message."
-    if not condition: error(*message)
-
+    if not condition:
+        error(*message)

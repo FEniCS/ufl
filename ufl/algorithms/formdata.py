@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """FormData class easy for collecting of various data about a form."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -19,7 +20,7 @@
 #
 # Modified by Anders Logg, 2008.
 
-from ufl.common import lstr, tstr, estr
+from ufl.utils.formatting import lstr, tstr, estr
 from ufl.assertions import ufl_assert
 
 class FormData(object):
@@ -33,23 +34,24 @@ class FormData(object):
 
     def __str__(self):
         "Return formatted summary of form data"
-        types = sorted(self.num_sub_domains.keys())
+        types = sorted(self.max_subdomain_ids.keys())
+        geometry = (
+                   ("Geometric dimension", self.geometric_dimension),
+                   )
         subdomains = tuple(("Number of %s subdomains" % integral_type,
-                            self.num_sub_domains[integral_type]) for integral_type in types)
-        return tstr(
-            (# Geometry
-             ("Geometric dimension",                self.geometric_dimension),
-             ) + subdomains + (
-             # Arguments
-             ("Rank",                               self.rank),
-             ("Arguments",                          lstr(self.original_form.arguments())),
-             # Coefficients
-             ("Number of coefficients",             self.num_coefficients),
-             ("Coefficients",                       lstr(self.reduced_coefficients)),
-             # Elements
-             ("Unique elements",                    estr(self.unique_elements)),
-             ("Unique sub elements",                estr(self.unique_sub_elements)),
-             ))
+                            self.max_subdomain_ids[integral_type]) for integral_type in types)
+        functions = (
+                # Arguments
+                ("Rank",                               self.rank),
+                ("Arguments",                          lstr(self.original_form.arguments())),
+                # Coefficients
+                ("Number of coefficients",             self.num_coefficients),
+                ("Coefficients",                       lstr(self.reduced_coefficients)),
+                # Elements
+                ("Unique elements",                    estr(self.unique_elements)),
+                ("Unique sub elements",                estr(self.unique_sub_elements)),
+                    )
+        return tstr(geometry + subdomains + functions)
 
 class ExprData(object):
     """

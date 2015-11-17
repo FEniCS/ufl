@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 "Types for representing symbolic expressions for geometric quantities."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -21,15 +22,11 @@
 # Modified by Kristian B. Oelgaard, 2009
 # Modified by Marie E. Rognes 2012
 
-from collections import defaultdict
 from ufl.log import warning, error, deprecate
 from ufl.assertions import ufl_assert
-from ufl.common import istr, EmptyDict
-from ufl.core.terminal import Terminal
-from ufl.protocols import id_or_none
-from ufl.cell import as_cell, affine_cells, Cell, ProductCell
-from ufl.domain import as_domain, Domain, extract_domains, join_domains, ProductDomain
 from ufl.core.ufl_type import ufl_type
+from ufl.core.terminal import Terminal
+from ufl.domain import as_domain
 
 """
 
@@ -83,7 +80,7 @@ x = Jxf Xf + x0f
 Inverse relations:
 
 X = K * (x - x0)
-    CellCoordinate = JacobianInverse * (SpatialCoordinate - CellOrigio)
+    CellCoordinate = JacobianInverse * (SpatialCoordinate - CellOrigin)
 
 Xf = FK * (x - x0f)
     FacetCoordinate = FacetJacobianInverse * (SpatialCoordinate - FacetOrigin)
@@ -103,7 +100,7 @@ class GeometricQuantity(Terminal):
         Terminal.__init__(self)
         self._domain = as_domain(domain)
 
-    def domains(self):
+    def ufl_domains(self):
         return (self._domain,)
 
     def is_cellwise_constant(self):
@@ -114,9 +111,9 @@ class GeometricQuantity(Terminal):
     # NB! Geometric quantities are scalar by default. Override if needed.
     ufl_shape = ()
 
-    def signature_data(self, renumbering):
+    def _ufl_signature_data_(self, renumbering):
         "Signature data of geometric quantities depend on the domain numbering."
-        return (self._ufl_class_.__name__,) + self._domain.signature_data(renumbering)
+        return (self._ufl_class_.__name__,) + self._domain._ufl_signature_data_(renumbering)
 
     def __str__(self):
         return self._ufl_class_.name
@@ -125,7 +122,7 @@ class GeometricQuantity(Terminal):
         return "%s(%r)" % (self._ufl_class_.__name__, self._domain)
 
     def _ufl_compute_hash_(self):
-        return hash((type(self).__name__,) + self._domain.hash_data())
+        return hash((type(self).__name__,) + self._domain._ufl_hash_data_())
 
     def __eq__(self, other):
         return isinstance(other, self._ufl_class_) and other._domain == self._domain
@@ -356,7 +353,7 @@ class CellEdgeVectors(GeometricCellQuantity):
 
     @property
     def ufl_shape(self):
-        cell = self.domain().cell()
+        cell = self.ufl_domain().ufl_cell()
         ne = cell.num_edges()
         t = cell.topological_dimension()
         return (ne, t)
@@ -379,7 +376,7 @@ class FacetEdgeVectors(GeometricFacetQuantity):
 
     @property
     def ufl_shape(self):
-        cell = self.domain().cell()
+        cell = self.ufl_domain().ufl_cell()
         nfe = cell.num_facet_edges()
         t = cell.topological_dimension()
         return (nfe, t)
@@ -510,13 +507,11 @@ class FacetNormal(GeometricFacetQuantity):
 
     def is_cellwise_constant(self):
         "Return whether this expression is spatially constant over each cell."
-        # TODO: For product cells, this depends on which facet. Seems like too much work to fix right now.
-        # Only true for a piecewise linear coordinate field with simplex _facets_
-        is_piecewise_linear = self._domain.coordinate_element().degree() == 1
-        has_simplex_facets = (self._domain.cell().facet_cellname() in affine_cells)
-        return is_piecewise_linear and has_simplex_facets
+        # For product cells, this is only true for some but not all facets. Seems like too much work to fix right now.
+        # Only true for a piecewise linear coordinate field with simplex _facets_.
+        is_piecewise_linear = self._domain.ufl_coordinate_element().degree() == 1
+        return is_piecewise_linear and self._domain.ufl_cell().has_simplex_facets()
 
-# TODO: Should it be CellNormals? For interval in 3D we have two!
 @ufl_type()
 class CellNormal(GeometricCellQuantity):
     """UFL geometry representation: The upwards pointing normal vector of the current manifold cell."""
@@ -526,9 +521,22 @@ class CellNormal(GeometricCellQuantity):
     @property
     def ufl_shape(self):
         g = self._domain.geometric_dimension()
+        #t = self._domain.topological_dimension()
+        #return (g-t,g) # TODO: Should it be CellNormals? For interval in 3D we have two!
         return (g,)
 
-# TODO: Implement in change_to_reference_geometry and enable
+@ufl_type()
+class ReferenceNormal(GeometricFacetQuantity):
+    """UFL geometry representation: The outwards pointing normal vector of the current facet on the reference cell"""
+    __slots__ = ()
+    name = "reference_normal"
+
+    @property
+    def ufl_shape(self):
+        t = self._domain.topological_dimension()
+        return (t,)
+
+# TODO: Implement in apply_geometry_lowering and enable
 #@ufl_type()
 #class FacetTangents(GeometricFacetQuantity):
 #    """UFL geometry representation: The tangent vectors of the current facet."""
@@ -548,13 +556,12 @@ class CellNormal(GeometricCellQuantity):
 #
 #    def is_cellwise_constant(self): # NB! Copied from FacetNormal
 #        "Return whether this expression is spatially constant over each cell."
-#        # TODO: For product cells, this depends on which facet. Seems like too much work to fix right now.
-#        # Only true for a piecewise linear coordinate field with simplex _facets_
-#        is_piecewise_linear = self._domain.coordinate_element().degree() == 1
-#        has_simplex_facets = (self._domain.cell().facet_cellname() in affine_cells)
-#        return is_piecewise_linear and has_simplex_facets
+#        # For product cells, this is only true for some but not all facets. Seems like too much work to fix right now.
+#        # Only true for a piecewise linear coordinate field with simplex _facets_.
+#        is_piecewise_linear = self._domain.ufl_coordinate_element().degree() == 1
+#        return is_piecewise_linear and self._domain.ufl_cell().has_simplex_facets()
 
-# TODO: Implement in change_to_reference_geometry and enable
+# TODO: Implement in apply_geometry_lowering and enable
 #@ufl_type()
 #class CellTangents(GeometricCellQuantity):
 #    """UFL geometry representation: The tangent vectors of the current manifold cell."""
@@ -598,6 +605,18 @@ class CellNormal(GeometricCellQuantity):
 # --- Types representing measures of the cell and entities of the cell, typically used for stabilisation terms
 
 # TODO: Clean up this set of types? Document!
+
+@ufl_type()
+class ReferenceCellVolume(GeometricCellQuantity):
+    """UFL geometry representation: The volume of the reference cell."""
+    __slots__ = ()
+    name = "reference_cell_volume"
+
+@ufl_type()
+class ReferenceFacetVolume(GeometricFacetQuantity):
+    """UFL geometry representation: The volume of the reference cell of the current facet."""
+    __slots__ = ()
+    name = "reference_facet_volume"
 
 @ufl_type()
 class CellVolume(GeometricCellQuantity):
@@ -684,32 +703,3 @@ class QuadratureWeight(GeometricQuantity):
         "Return whether this expression is spatially constant over each cell."
         # The weight usually varies with the quadrature points
         return False
-
-
-# --- Attach deprecated cell properties
-
-# TODO: Remove this deprecated part after a release or two.
-
-def _deprecated_dim(self):
-    """The dimension of the cell.
-
-    Only valid if the geometric and topological dimensions are the same.
-    """
-    deprecate("cell.d is deprecated, please use one of cell.topological_dimension(), cell.geometric_dimension(), domain.topological_dimension() or domain.geometric_dimension() instead.")
-    ufl_assert(self.topological_dimension() == self.geometric_dimension(),
-               "Cell.d is undefined when geometric and topological dimensions are not the same.")
-    return self.geometric_dimension()
-
-def _deprecated_geometric_quantity(name, cls):
-    def f(self):
-        "UFL geometry value. Deprecated, please use the constructor types instead."
-        deprecate("cell.%s is deprecated, please use %s(domain) instead" % (name, cls.__name__))
-        return cls(as_domain(self))
-    return f
-
-Cell.d = property(_deprecated_dim)
-Cell.x = property(_deprecated_geometric_quantity("x", SpatialCoordinate))
-Cell.n = property(_deprecated_geometric_quantity("n", FacetNormal))
-Cell.volume = property(_deprecated_geometric_quantity("volume", CellVolume))
-Cell.circumradius = property(_deprecated_geometric_quantity("circumradius", Circumradius))
-Cell.facet_area = property(_deprecated_geometric_quantity("facet_area", FacetArea))

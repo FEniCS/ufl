@@ -1,7 +1,8 @@
+# -*- coding: utf-8 -*-
 """This module provides utility functions for computing permutations
 and generating index lists."""
 
-# Copyright (C) 2008-2014 Anders Logg and Kent-Andre Mardal
+# Copyright (C) 2008-2015 Anders Logg and Kent-Andre Mardal
 #
 # This file is part of UFL.
 #
@@ -18,7 +19,7 @@ and generating index lists."""
 # You should have received a copy of the GNU Lesser General Public License
 # along with UFL. If not, see <http://www.gnu.org/licenses/>.
 #
-# Modified by Martin Alnes 2009-2014
+# Modified by Martin Alnæs 2009-2015
 
 from six.moves import xrange as range
 
@@ -69,7 +70,7 @@ def compute_permutations(k, n, skip = None):
     if skip is None:
         skip = []
     if k == 1:
-        return [(i,) for i in range(n) if not i in skip]
+        return [(i,) for i in range(n) if i not in skip]
     pp = compute_permutations(k - 1, n, skip)
     permutations = []
     for i in range(n):

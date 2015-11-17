@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """Algorithms for building canonical data structure for integrals over subdomains."""
 
-# Copyright (C) 2009-2014 Anders Logg and Martin Sandve Alnes
+# Copyright (C) 2009-2015 Anders Logg and Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -25,7 +26,6 @@ import ufl
 from ufl.utils.sorting import sorted_by_key
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.geometry import Domain
 from ufl.measure import Measure
 from ufl.integral import Integral
 from ufl.form import Form
@@ -45,12 +45,12 @@ class IntegralData(object):
     __slots__ = ('domain', 'integral_type', 'subdomain_id', 'integrals', 'metadata',
                  'integral_coefficients', 'enabled_coefficients')
     def __init__(self, domain, integral_type, subdomain_id, integrals, metadata):
-        ufl_assert(all(domain.label() == itg.domain().label() for itg in integrals),
-                   "Domain label mismatch in integral data.")
+        ufl_assert(len(set(itg.ufl_domain() for itg in integrals)) == 1,
+                   "Multiple domains mismatch in integral data.")
         ufl_assert(all(integral_type == itg.integral_type() for itg in integrals),
-                   "Domain type mismatch in integral data.")
+                   "Integral type mismatch in integral data.")
         ufl_assert(all(subdomain_id == itg.subdomain_id() for itg in integrals),
-                   "Domain id mismatch in integral data.")
+                   "Subdomain id mismatch in integral data.")
 
         self.domain = domain
         self.integral_type = integral_type
@@ -117,24 +117,20 @@ def group_integrals_by_domain_and_type(integrals, domains):
     """
     Input:
         integrals: list of Integral objects
-        domains: list of Domain objects from the parent Form
+        domains: list of AbstractDomain objects from the parent Form
 
     Output:
         integrals_by_domain_and_type: dict: (domain, integral_type) -> list(Integral)
     """
     integral_data = []
-    domains_by_label = dict((domain.label(), domain) for domain in domains)
-
     integrals_by_domain_and_type = defaultdict(list)
     for itg in integrals:
-        # Canonicalize domain
-        domain = itg.domain()
-        ufl_assert(domain is not None, "Integrals without a domain is now illegal.")
-        domain = domains_by_label.get(domain.label())
-        integral_type = itg.integral_type()
+        ufl_assert(itg.ufl_domain() is not None, "Integrals without a domain is now illegal.")
+        key = (itg.ufl_domain(), itg.integral_type())
 
         # Append integral to list of integrals with shared key
-        integrals_by_domain_and_type[(domain, integral_type)].append(itg)
+        integrals_by_domain_and_type[key].append(itg)
+
     return integrals_by_domain_and_type
 
 def integral_subdomain_ids(integral):

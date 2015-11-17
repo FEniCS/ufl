@@ -1,4 +1,5 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 """Pickle all the unit test forms from FFC 0.5.0"""
 
 __author__ = "Anders Logg (logg@simula.no) et al."
@@ -550,4 +551,3 @@ def testFormData():
     form_data_restore = pickle.loads(form_data_pickle)
 
     assert(str(form_data) == str(form_data_restore))
-

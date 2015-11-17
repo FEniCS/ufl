@@ -1,6 +1,7 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 
-__authors__ = "Martin Sandve Alnes"
+__authors__ = "Martin Sandve Alnæs"
 __date__ = "2008-03-12 -- 2009-01-28"
 
 # Modified by Anders Logg, 2008
@@ -124,17 +125,17 @@ def test_adjoint():
     assert u2.number() < v2.number()
 
     a = u * v * dx
-    a_arg_degrees = [arg.element().degree() for arg in extract_arguments(a)]
+    a_arg_degrees = [arg.ufl_element().degree() for arg in extract_arguments(a)]
     assert a_arg_degrees == [2, 1]
 
     b = adjoint(a)
-    b_arg_degrees = [arg.element().degree() for arg in extract_arguments(b)]
+    b_arg_degrees = [arg.ufl_element().degree() for arg in extract_arguments(b)]
     assert b_arg_degrees == [1, 2]
 
     c = adjoint(a, (u2, v2))
-    c_arg_degrees = [arg.element().degree() for arg in extract_arguments(c)]
+    c_arg_degrees = [arg.ufl_element().degree() for arg in extract_arguments(c)]
     assert c_arg_degrees == [1, 2]
 
     d = adjoint(b)
-    d_arg_degrees = [arg.element().degree() for arg in extract_arguments(d)]
+    d_arg_degrees = [arg.ufl_element().degree() for arg in extract_arguments(d)]
     assert d_arg_degrees == [2, 1]

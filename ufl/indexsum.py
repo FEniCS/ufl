@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """This module defines the IndexSum class."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -25,7 +26,7 @@ from ufl.core.expr import Expr
 from ufl.core.operator import Operator
 from ufl.core.multiindex import Index, MultiIndex, as_multi_index
 from ufl.precedence import parstr
-from ufl.common import EmptyDict
+from ufl.utils.dicts import EmptyDict
 from ufl.core.ufl_type import ufl_type
 from ufl.constantvalue import Zero
 
@@ -76,10 +77,6 @@ class IndexSum(Operator):
     @property
     def ufl_shape(self):
         return self.ufl_operands[0].ufl_shape
-
-    def is_cellwise_constant(self):
-        "Return whether this expression is spatially constant over each cell."
-        return self.ufl_operands[0].is_cellwise_constant()
 
     def evaluate(self, x, mapping, component, index_values):
         i, = self.ufl_operands[1]

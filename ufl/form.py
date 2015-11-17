@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 "The Form class."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -31,6 +32,10 @@ from ufl.equation import Equation
 from ufl.core.expr import Expr
 from ufl.constantvalue import Zero
 from ufl.protocols import id_or_none
+from ufl.coefficient import Coefficient
+
+# Export list for ufl.classes
+__all_classes__ = ["Form"]
 
 # --- The Form class, representing a complete variational form or functional ---
 
@@ -41,8 +46,9 @@ def _sorted_integrals(integrals):
     # Group integrals in multilevel dict by keys [domain][integral_type][subdomain_id]
     integrals_dict = defaultdict(lambda:defaultdict(lambda:defaultdict(list)))
     for integral in integrals:
-        d = integral.domain()
-        ufl_assert(d is not None, "An Integral without a Domain is now illegal.")
+        d = integral.ufl_domain()
+        if d is None:
+            error("Each integral in a form must have a uniquely defined integration domain.")
         it = integral.integral_type()
         si = integral.subdomain_id()
         integrals_dict[d][it][si] += [integral]
@@ -130,6 +136,10 @@ class Form(object):
         return self.integrals() == ()
 
     def domains(self):
+        deprecate("Form.domains() is deprecated, please use .ufl_domains() instead.")
+        return self.ufl_domains()
+
+    def ufl_domains(self):
         """Return the geometric integration domains occuring in the form.
 
         NB! This does not include domains of coefficients defined on other meshes.
@@ -141,15 +151,18 @@ class Form(object):
         return self._integration_domains
 
     def cell(self):
-        "Return the single cell this form is defined on, fails if multiple cells are found."
-        domains = self.domains()
-        ufl_assert(all(domain.cell() == domains[0].cell() for domain in domains),
-                   "Calling Form.domain() is only valid if all integrals share domain.")
-        # Need to support missing domain to allow
-        # assemble(Constant(1)*dx, mesh=mesh) in dolfin
-        return domains[0].cell() if domains else None
+        deprecate("Form.cell() is deprecated, please use .ufl_cell() instead.")
+        return self.ufl_cell()
 
     def domain(self):
+        deprecate("Form.domain() is deprecated, please use .ufl_domain() instead.")
+        return self.ufl_domain()
+
+    def ufl_cell(self):
+        "Return the single cell this form is defined on, fails if multiple cells are found."
+        return self.ufl_domain().ufl_cell()
+
+    def ufl_domain(self):
         """Return the single geometric integration domain occuring in the form.
 
         Fails if multiple domains are found.
@@ -157,12 +170,20 @@ class Form(object):
         NB! This does not include domains of coefficients defined on other
         meshes, look at form data for that additional information.
         """
-        domains = self.domains()
+        # Collect all domains
+        domains = self.ufl_domains()
+        # Check that all are equal TODO: don't return more than one if all are equal?
         ufl_assert(all(domain == domains[0] for domain in domains),
-                   "Calling Form.domain() is only valid if all integrals share domain.")
-        # Need to support missing domain to allow
-        # assemble(Constant(1)*dx, mesh=mesh) in dolfin
-        return domains[0] if domains else None
+                   "Calling Form.ufl_domain() is only valid if all integrals share domain.")
+        # Return the one and only domain
+        return domains[0]
+
+    def geometric_dimension(self):
+        "Return the geometric dimension shared by all domains and functions in this form."
+        gdims = tuple(set(domain.geometric_dimension() for domain in self.ufl_domains()))
+        ufl_assert(len(gdims) == 1,
+                  "Expecting all domains and functions in a form to share geometric dimension, got %s." % str(tuple(sorted(gdims))))
+        return gdims[0]
 
     def domain_numbering(self):
         "Return a contiguous numbering of domains in a mapping { domain: number }."
@@ -215,13 +236,17 @@ class Form(object):
         return self._hash
 
     def __eq__(self, other):
-        """Delayed evaluation of the __eq__ operator!
+        """Delayed evaluation of the == operator!
 
         Just 'lhs_form == rhs_form' gives an Equation,
         while 'bool(lhs_form == rhs_form)' delegates
         to lhs_form.equals(rhs_form).
         """
         return Equation(self, other)
+
+    def __ne__(self, other):
+        "Immediate evaluation of the != operator (as opposed to the == operator)."
+        return not self.equals(other)
 
     def equals(self, other):
         "Evaluate 'bool(lhs_form == rhs_form)'."
@@ -305,18 +330,19 @@ class Form(object):
     # --- Analysis functions, precomputation and caching of various quantities ---
 
     def _analyze_domains(self):
-        # TODO: join_domains function needs work, later when dolfin integration of a Domain or ufl.Mesh class is finished.
-        from ufl.geometry import join_domains
+        from ufl.domain import join_domains, sort_domains
 
-        # Collect integration domains and make canonical list of them
-        integration_domains = join_domains([itg.domain() for itg in self._integrals])
-        self._integration_domains = tuple(sorted(integration_domains, key=lambda x: x.label()))
+        # Collect unique integration domains
+        integration_domains = join_domains([itg.ufl_domain() for itg in self._integrals])
+
+        # Make canonically ordered list of the domains
+        self._integration_domains = sort_domains(integration_domains)
 
         # TODO: Not including domains from coefficients and arguments here, may need that later
         self._domain_numbering = dict((d, i) for i, d in enumerate(self._integration_domains))
 
     def _analyze_subdomain_data(self):
-        integration_domains = self.domains()
+        integration_domains = self.ufl_domains()
         integrals = self.integrals()
 
         # Make clear data structures to collect subdomain data in
@@ -326,7 +352,7 @@ class Form(object):
 
         for integral in integrals:
             # Get integral properties
-            domain = integral.domain()
+            domain = integral.ufl_domain()
             it = integral.integral_type()
             sd = integral.subdomain_data()
 
@@ -342,19 +368,6 @@ class Form(object):
         "Analyze which Argument and Coefficient objects can be found in the form."
         from ufl.algorithms.analysis import extract_arguments_and_coefficients
         arguments, coefficients = extract_arguments_and_coefficients(self)
-
-        # Include coordinate coefficients from integration domains
-        domains = self.domains()
-        coordinates = [c for c in (domain.coordinates() for domain in domains) if c is not None]
-        coefficients.extend(coordinates)
-
-        # TODO: Not including domains from coefficients and arguments here. Will we need that later?
-        #       I believe argument domains must be among integration domains in each integral, anything else is not well defined.
-        #       Furthermore if a coefficient domain differ from the integration domain, it will
-        #       currently be interpolated to the same element on the integration domain in dolfin.
-        #       Therefore their domain should not be included here.
-        #       In the future we may generate code for quadrature point evaluation of these instead,
-        #       and then the coefficient domains are still of no value in the code generation process.
 
         # Define canonical numbering of arguments and coefficients
         self._arguments = tuple(sorted(set(arguments), key=lambda x: x.number()))
@@ -372,7 +385,7 @@ class Form(object):
         # Add domains of coefficients, these may include domains not among integration domains
         k = len(dn)
         for c in cn:
-            d = c.domain()
+            d = c.ufl_domain()
             if d is not None and d not in renumbering:
                 renumbering[d] = k
                 k += 1
@@ -383,12 +396,12 @@ class Form(object):
         from ufl.algorithms.signature import compute_form_signature
         self._signature = compute_form_signature(self, self._compute_renumbering())
 
+
 def as_form(form):
     "Convert to form if not a form, otherwise return form."
     if not isinstance(form, Form):
         error("Unable to convert object to a UFL form: %s" % repr(form))
     return form
-
 
 
 def replace_integral_domains(form, common_domain): # TODO: Move elsewhere
@@ -398,7 +411,7 @@ def replace_integral_domains(form, common_domain): # TODO: Move elsewhere
     This is to support ill formed forms with no domain specified,
     some times occuring in pydolfin, e.g. assemble(1*dx, mesh=mesh).
     """
-    domains = form.domains()
+    domains = form.ufl_domains()
     if common_domain is not None:
         gdim = common_domain.geometric_dimension()
         tdim = common_domain.topological_dimension()
@@ -406,11 +419,12 @@ def replace_integral_domains(form, common_domain): # TODO: Move elsewhere
                         tdim == domain.topological_dimension())
                         for domain in domains),
             "Common domain does not share dimensions with form domains.")
+
     reconstruct = False
     integrals = []
     for itg in form.integrals():
-        domain = itg.domain()
-        if domain is None or domain.label() != common_domain.label():
+        domain = itg.ufl_domain()
+        if domain != common_domain:
             itg = itg.reconstruct(domain=common_domain)
             reconstruct = True
         integrals.append(itg)

@@ -1,6 +1,7 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 
-__authors__ = "Martin Sandve Alnes"
+__authors__ = "Martin Sandve Alnæs"
 __date__ = "2008-09-28 -- 2008-09-28"
 
 import os
@@ -73,4 +74,3 @@ def test_each_demo_with_validate_form():
             except:
                 excepted = 1
             assert excepted == 0, filename
-

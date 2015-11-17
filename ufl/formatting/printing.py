@@ -1,7 +1,8 @@
+# -*- coding: utf-8 -*-
 """A collection of utility algorithms for printing
 of UFL objects, mostly intended for debugging purposes."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -37,7 +38,7 @@ def integral_info(integral):
     s += "    Type:\n"
     s += "      %s\n" % integral.integral_type()
     s += "    Domain:\n"
-    s += "      %r\n" % integral.domain()
+    s += "      %r\n" % integral.ufl_domain()
     s += "    Domain id:\n"
     s += "      %r\n" % integral.subdomain_id()
     s += "    Domain data:\n"

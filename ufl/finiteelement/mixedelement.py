@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 "This module defines the UFL finite element classes."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -29,9 +30,11 @@ from six.moves import xrange as range
 
 from ufl.assertions import ufl_assert
 from ufl.permutation import compute_indices
-from ufl.common import product, istr, EmptyDict
+from ufl.utils.sequences import product
+from ufl.utils.formatting import istr
+from ufl.utils.dicts import EmptyDict
 from ufl.utils.indexflattening import flatten_multiindex, unflatten_index, shape_to_strides
-from ufl.geometry import as_domain
+from ufl.cell import as_cell
 from ufl.log import info_blue, warning, warning_blue, error
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
@@ -40,10 +43,13 @@ from ufl.finiteelement.finiteelement import FiniteElement
 
 class MixedElement(FiniteElementBase):
     "A finite element composed of a nested hierarchy of mixed or simple elements"
-    __slots__ = ("_sub_elements", "_domains")
+    __slots__ = ("_sub_elements", "_cells")
 
     def __init__(self, *elements, **kwargs):
         "Create mixed finite element from given list of elements"
+
+        if type(self) is MixedElement:
+            ufl_assert(not kwargs, "Not expecting keyword arguments to MixedElement constructor.")
 
         # Un-nest arguments if we get a single argument with a list of elements
         if len(elements) == 1 and isinstance(elements[0], (tuple, list)):
@@ -53,90 +59,56 @@ class MixedElement(FiniteElementBase):
                     for e in elements]
         self._sub_elements = elements
 
-        # Pick the first domain, for now all should be equal
-        domains = tuple(sorted(set(chain(*[element.domains() for element in elements]))))
-        self._domains = domains
-        if domains:
-            # Base class currently only handles one domain, this is work in progress
-            domain = domains[0]
-
-            # Check that domains have same geometric dimension
-            gdim = domain.geometric_dimension()
-            ufl_assert(all(dom.geometric_dimension() == gdim for dom in domains),
-                       "Sub elements must live in the same geometric dimension.")
-            # Require that all elements are defined on the same domain
-            # TODO: allow mixed elements on different domains,
-            #       or add a CompositeMixedElement class for that
-            ufl_assert(all(dom == domain for dom in domains),
-                       "Sub elements must live on the same domain (for now).")
+        # Pick the first cell, for now all should be equal
+        cells = tuple(sorted(set(element.cell() for element in elements) - set([None])))
+        self._cells = cells
+        if cells:
+            cell = cells[0]
+            # Require that all elements are defined on the same cell
+            ufl_assert(all(c == cell for c in cells[1:]),
+                       "Sub elements must live on the same cell.")
         else:
-            domain = None
+            cell = None
 
         # Check that all elements use the same quadrature scheme
         # TODO: We can allow the scheme not to be defined.
         quad_scheme = elements[0].quadrature_scheme()
-        ufl_assert(all(e.quadrature_scheme() == quad_scheme for e in elements),\
+        ufl_assert(all(e.quadrature_scheme() == quad_scheme for e in elements),
             "Quadrature scheme mismatch for sub elements of mixed element.")
 
-        # Compute value shape
+        # Compute value sizes in global and reference configurations
         value_size_sum = sum(product(s.value_shape()) for s in self._sub_elements)
-        # Default value dimension: Treated simply as all subelement
-        #                          values unpacked in a vector.
+        reference_value_size_sum = sum(product(s.reference_value_shape()) for s in self._sub_elements)
+
+        # Default value shape: Treated simply as all subelement values unpacked in a vector.
         value_shape = kwargs.get('value_shape', (value_size_sum,))
-        # Validate value_shape
+
+        # Default reference value shape: Treated simply as all subelement reference values unpacked in a vector.
+        reference_value_shape = kwargs.get('reference_value_shape', (reference_value_size_sum,))
+
+        # Validate value_shape (deliberately not for subclasses VectorElement and TensorElement)
         if type(self) is MixedElement:
             # This is not valid for tensor elements with symmetries,
             # assume subclasses deal with their own validation
             ufl_assert(product(value_shape) == value_size_sum,
-                "Provided value_shape doesn't match the total "\
+                "Provided value_shape doesn't match the total "
                 "value size of all subelements.")
-
-        # Always use a flat reference value shape
-        reference_value_shape = (sum(product(s.reference_value_shape()) for s in self._sub_elements),)
 
         # Initialize element data
         degrees = { e.degree() for e in self._sub_elements } - { None }
         degree = max(degrees) if degrees else None
-        FiniteElementBase.__init__(self, "Mixed", domain, degree, quad_scheme,
+        FiniteElementBase.__init__(self, "Mixed", cell, degree, quad_scheme,
                                    value_shape, reference_value_shape)
 
         # Cache repr string
-        self._repr = "MixedElement(*%r, **{'value_shape': %r })" %\
-            (self._sub_elements, self._value_shape)
-
-    def reconstruction_signature(self):
-        """Format as string for evaluation as Python object.
-
-        For use with cross language frameworks, stored in generated code
-        and evaluated later in Python to reconstruct this object.
-
-        This differs from repr in that it does not include domain
-        label and data, which must be reconstructed or supplied by other means.
-        """
-        return "MixedElement(%s, **{'value_shape': %r })" % \
-            (', '.join(e.reconstruction_signature() for e in self._sub_elements), self._value_shape)
-
-    def reconstruct(self, **kwargs):
-        """Construct a new MixedElement object with some
-        properties replaced with new values."""
-        elements = [e.reconstruct(**kwargs) for e in self._sub_elements]
-        # Value shape cannot be changed, or at
-        # least we have no valid use case for it.
-        # Reconstructing an expression with a reconstructed
-        # coefficient with a different value shape would
-        # be way into undefined behaviour territory...
-        ufl_assert("value_shape" not in kwargs,
-                   "Cannot change value_shape in reconstruct.")
-        return self.reconstruct_from_elements(*elements)
+        if type(self) is MixedElement:
+            self._repr = "MixedElement(%s)" % ", ".join(repr(e) for e in self._sub_elements)
 
     def reconstruct_from_elements(self, *elements):
         "Reconstruct a mixed element from new subelements."
         if all(a == b for (a, b) in zip(elements, self._sub_elements)):
             return self
-        ufl_assert(all(a.value_shape() == b.value_shape()
-                       for (a, b) in zip(elements, self._sub_elements)),
-            "Expecting new elements to have same value shape as old ones.")
-        return MixedElement(*elements, value_shape=self.value_shape())
+        return MixedElement(*elements)
 
     def symmetry(self):
         """Return the symmetry dict, which is a mapping c0 -> c1
@@ -161,7 +133,10 @@ class MixedElement(FiniteElementBase):
         return sm or EmptyDict
 
     def mapping(self):
-        error("The mapping of a mixed element is not defined. Inspect subelements instead.")
+        if all(e.mapping() == "identity" for e in self._sub_elements):
+            return "identity"
+        else:
+            return "undefined"
 
     def num_sub_elements(self):
         "Return number of sub elements."
@@ -251,16 +226,6 @@ class MixedElement(FiniteElementBase):
             i, e = self.extract_component(component)
             return e.is_cellwise_constant()
 
-    def domains(self, component=None):
-        "Return the domain(s) on which this element is defined."
-        if component is None:
-            # Return all unique domains
-            return self._domains
-        else:
-            # Return the domains of subelement
-            i, e = self.extract_component(component)
-            return e.domains()
-
     def degree(self, component=None):
         "Return polynomial degree of finite element"
         if component is None:
@@ -268,11 +233,6 @@ class MixedElement(FiniteElementBase):
         else:
             i, e = self.extract_component(component)
             return e.degree()
-
-    def signature_data(self, renumbering):
-        data = ("MixedElement", self._value_shape,
-                tuple(e.signature_data(renumbering) for e in self._sub_elements))
-        return data
 
     def __str__(self):
         "Format as string for pretty printing."
@@ -288,14 +248,14 @@ class MixedElement(FiniteElementBase):
 class VectorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal"
 
-    def __new__(cls, family, domain, degree, dim=None,
+    def __new__(cls, family, cell, degree, dim=None,
                 form_degree=None, quad_scheme=None):
         """Intercepts construction, such that it returns an
         OuterProductVectorElement when FiniteElement returns an
         OuterProductElement.
         """
         # Create mixed element from list of finite elements
-        sub_element = FiniteElement(family, domain, degree,
+        sub_element = FiniteElement(family, cell, degree,
                                     form_degree=form_degree,
                                     quad_scheme=quad_scheme)
 
@@ -306,7 +266,7 @@ class VectorElement(MixedElement):
 
         return super(VectorElement, cls).__new__(cls)
 
-    def __init__(self, family, domain, degree, dim=None,
+    def __init__(self, family, cell, degree, dim=None,
                  form_degree=None, quad_scheme=None):
         """
         Create vector element (repeated mixed element)
@@ -314,8 +274,8 @@ class VectorElement(MixedElement):
         *Arguments*
             family (string)
                The finite element family
-            domain
-               The geometric domain
+            cell
+               The geometric cell
             degree (int)
                The polynomial degree
             dim (int)
@@ -326,75 +286,47 @@ class VectorElement(MixedElement):
             quad_scheme
                The quadrature scheme (optional)
         """
-        if domain is not None:
-            domain = as_domain(domain)
+        if cell is not None:
+            cell = as_cell(cell)
 
         # Set default size if not specified
         if dim is None:
-            ufl_assert(domain is not None,
-                       "Cannot infer vector dimension without a domain.")
-            dim = domain.geometric_dimension()
+            ufl_assert(cell is not None,
+                       "Cannot infer vector dimension without a cell.")
+            dim = cell.geometric_dimension()
 
-        # Create mixed element from list of finite elements
-        sub_element = FiniteElement(family, domain, degree,
+        # Create sub element
+        sub_element = FiniteElement(family, cell, degree,
                                     form_degree=form_degree,
                                     quad_scheme=quad_scheme)
+
+        # Create list of sub elements for mixed element constructor
         sub_elements = [sub_element]*dim
 
-        # Get common family name (checked in FiniteElement.__init__)
-        family = sub_element.family()
-
-        # Compute value shape
-        shape = (dim,)
-        value_shape = shape + sub_element.value_shape()
+        # Compute value shapes
+        value_shape = (dim,) + sub_element.value_shape()
+        reference_value_shape = (dim,) + sub_element.reference_value_shape()
 
         # Initialize element data
-        MixedElement.__init__(self, sub_elements, value_shape=value_shape)
-        self._family = family
+        MixedElement.__init__(self, sub_elements, value_shape=value_shape, reference_value_shape=reference_value_shape)
+        # FIXME: Storing this here is strange, isn't that handled by subclass?
+        self._family = sub_element.family()
         self._degree = degree
         self._sub_element = sub_element
         self._form_degree = form_degree # Storing for signature_data, not sure if it's needed
 
         # Cache repr string
-        self._repr = "VectorElement(%r, %r, %r, dim=%d, quad_scheme=%r)" % \
-            (self._family, self.domain(), self._degree,
-             len(self._sub_elements), self._quad_scheme)
-
-    def mapping(self):
-        return self._sub_element.mapping()
-
-    def signature_data(self, renumbering):
-        data = ("VectorElement", self._family, self._degree, len(self._sub_elements), self._quad_scheme, self._form_degree,
-                ("no domain" if self._domain is None else self._domain.signature_data(renumbering)))
-        return data
-
-    def reconstruction_signature(self):
-        """Format as string for evaluation as Python object.
-
-        For use with cross language frameworks, stored in generated code
-        and evaluated later in Python to reconstruct this object.
-
-        This differs from repr in that it does not include domain
-        label and data, which must be reconstructed or supplied by other means.
-        """
-        return "VectorElement(%r, %s, %r, %d, %r)" % (
-                self._family, self.domain().reconstruction_signature(), self._degree,
-                len(self._sub_elements), self._quad_scheme)
-
-    def reconstruct(self, **kwargs):
-        kwargs["family"] = kwargs.get("family", self.family())
-        kwargs["domain"] = kwargs.get("domain", self.domain())
-        kwargs["degree"] = kwargs.get("degree", self.degree())
-        ufl_assert("dim" not in kwargs, "Cannot change dim in reconstruct.")
-        kwargs["dim"] = len(self._sub_elements)
-        kwargs["quad_scheme"] = kwargs.get("quad_scheme", self.quadrature_scheme())
-        return VectorElement(**kwargs)
+        qs = self.quadrature_scheme()
+        quad_str = "" if qs is None else ", quad_scheme=%r" % (qs,)
+        self._repr = ("VectorElement(%r, %r, %r, dim=%d%s)" %
+            (self._family, self.cell(), self._degree,
+             len(self._sub_elements), quad_str))
 
     def __str__(self):
         "Format as string for pretty printing."
-        return "<%s vector element of degree %s on a %s: %d x %s>" % \
-               (self.family(), istr(self.degree()), self.domain(),
-                len(self._sub_elements), self._sub_element)
+        return ("<%s vector element of degree %s on a %s: %d x %s>" %
+               (self.family(), istr(self.degree()), self.cell(),
+                len(self._sub_elements), self._sub_element))
 
     def shortstr(self):
         "Format as string for pretty printing."
@@ -404,16 +336,18 @@ class VectorElement(MixedElement):
 
 class TensorElement(MixedElement):
     "A special case of a mixed finite element where all elements are equal"
-    __slots__ = ("_sub_element", "_shape", "_symmetry", "_sub_element_mapping",)
+    __slots__ = ("_sub_element", "_shape", "_symmetry",
+                 "_sub_element_mapping", "_flattened_sub_element_mapping",
+                 "_mapping")
 
-    def __new__(cls, family, domain, degree, shape=None,
+    def __new__(cls, family, cell, degree, shape=None,
                 symmetry=None, quad_scheme=None):
         """Intercepts construction, such that it returns an
         OuterProductTensorElement when FiniteElement returns an
         OuterProductElement.
         """
         # Compute sub element
-        sub_element = FiniteElement(family, domain, degree, quad_scheme)
+        sub_element = FiniteElement(family, cell, degree, quad_scheme)
 
         from ufl.finiteelement.outerproductelement import OuterProductElement
         from ufl.finiteelement.outerproductelement import OuterProductTensorElement
@@ -422,69 +356,44 @@ class TensorElement(MixedElement):
 
         return super(TensorElement, cls).__new__(cls)
 
-    def __init__(self, family, domain, degree, shape=None,
+    def __init__(self, family, cell, degree, shape=None,
                  symmetry=None, quad_scheme=None):
         "Create tensor element (repeated mixed element with optional symmetries)"
-        sub_element = FiniteElement(family, domain, degree, quad_scheme)
+        # Create scalar sub element
+        sub_element = FiniteElement(family, cell, degree, quad_scheme)
+        ufl_assert(sub_element.value_shape() == (),
+                   "Expecting only scalar valued subelement for TensorElement.")
 
-        shape, symmetry, sub_elements, sub_element_mapping = \
-          _tensor_sub_elements(sub_element, shape, symmetry)
-
-        # Get common family name (checked in FiniteElement.__init__)
-        family = sub_element.family()
-
-        # Compute value shape
-        value_shape = shape + sub_element.value_shape()
+        shape, symmetry, sub_elements, sub_element_mapping, flattened_sub_element_mapping, \
+          reference_value_shape, mapping = _tensor_sub_elements(sub_element, shape, symmetry)
 
         # Initialize element data
-        MixedElement.__init__(self, sub_elements, value_shape=value_shape)
-        self._family = family
+        MixedElement.__init__(self, sub_elements, value_shape=shape,
+                              reference_value_shape=reference_value_shape)
+        self._family = sub_element.family()
         self._degree = degree
         self._sub_element = sub_element
         self._shape = shape
         self._symmetry = symmetry
         self._sub_element_mapping = sub_element_mapping
+        self._flattened_sub_element_mapping = flattened_sub_element_mapping
+        self._mapping = mapping
 
         # Cache repr string
-        self._repr = "TensorElement(%r, %r, %r, shape=%r, symmetry=%r, quad_scheme=%r)" % \
-            (self._family, self.domain(), self._degree, self._shape,
-             self._symmetry, self._quad_scheme)
+        qs = self.quadrature_scheme()
+        quad_str = "" if qs is None else ", quad_scheme=%r" % (qs,)
+        self._repr = ("TensorElement(%r, %r, %r, shape=%r, symmetry=%r%s)" %
+            (self._family, self.cell(), self._degree, self._shape,
+             self._symmetry, quad_str))
 
     def mapping(self):
-        return self._sub_element.mapping()
+        if self._symmetry:
+            return "symmetries"
+        else:
+            return "identity"
 
-    def signature_data(self, renumbering):
-        data = ("TensorElement", self._family, self._degree, self._shape, repr(self._symmetry), self._quad_scheme,
-                ("no domain" if self._domain is None else self._domain.signature_data(renumbering)))
-        return data
-
-    def reconstruction_signature(self):
-        """Format as string for evaluation as Python object.
-
-        For use with cross language frameworks, stored in generated code
-        and evaluated later in Python to reconstruct this object.
-
-        This differs from repr in that it does not include domain
-        label and data, which must be reconstructed or supplied by other means.
-        """
-        return "TensorElement(%r, %s, %r, %r, %r, %r)" % (
-            self._family, self.domain().reconstruction_signature(), self._degree,
-            self._shape, self._symmetry, self._quad_scheme)
-
-    def reconstruct(self, **kwargs):
-        kwargs["family"] = kwargs.get("family", self.family())
-        kwargs["domain"] = kwargs.get("domain", self.domain())
-        kwargs["degree"] = kwargs.get("degree", self.degree())
-
-        ufl_assert("shape" not in kwargs, "Cannot change shape in reconstruct.")
-        kwargs["shape"] = self.value_shape() # Must use same shape as self!
-
-        # Not sure about symmetry, but no use case I can see
-        ufl_assert("symmetry" not in kwargs, "Cannot change symmetry in reconstruct.")
-        kwargs["symmetry"] = self.symmetry()
-
-        kwargs["quad_scheme"] = kwargs.get("quad_scheme", self.quadrature_scheme())
-        return TensorElement(**kwargs)
+    def flattened_sub_element_mapping(self):
+        return self._flattened_sub_element_mapping
 
     def extract_subelement_component(self, i):
         """Extract direct subelement index and subelement relative
@@ -514,8 +423,8 @@ class TensorElement(MixedElement):
             sym = " with symmetries (%s)" % tmp
         else:
             sym = ""
-        return "<%s tensor element of degree %s and shape %s on a %s%s>" % \
-            (self.family(), istr(self.degree()), self.value_shape(), self.domain(), sym)
+        return ("<%s tensor element of degree %s and shape %s on a %s%s>" %
+            (self.family(), istr(self.degree()), self.value_shape(), self.cell(), sym))
 
     def shortstr(self):
         "Format as string for pretty printing."
@@ -531,36 +440,35 @@ class TensorElement(MixedElement):
 def _tensor_sub_elements(sub_element, shape, symmetry):
     # Set default shape if not specified
     if shape is None:
-        ufl_assert(sub_element.domain() is not None,
-                   "Cannot infer vector dimension without a domain.")
-        dim = sub_element.domain().geometric_dimension()
+        ufl_assert(sub_element.cell() is not None,
+                   "Cannot infer tensor shape without a cell.")
+        dim = sub_element.cell().geometric_dimension()
         shape = (dim, dim)
 
-    # Construct default symmetry for matrix elements
-    if symmetry == True:
+    if symmetry is None:
+        symmetry = EmptyDict
+    elif symmetry is True:
+        # Construct default symmetry dict for matrix elements
         ufl_assert(len(shape) == 2 and shape[0] == shape[1],
                    "Cannot set automatic symmetry for non-square tensor.")
         symmetry = dict( ((i, j), (j, i)) for i in range(shape[0])
                          for j in range(shape[1]) if i > j )
+    else:
+        ufl_assert(isinstance(symmetry, dict), "Expecting symmetry to be None (unset), True, or dict.")
 
     # Validate indices in symmetry dict
-    if isinstance(symmetry, dict):
-        for i, j in iteritems(symmetry):
-            ufl_assert(len(i) == len(j),
-                       "Non-matching length of symmetry index tuples.")
-            for k in range(len(i)):
-                ufl_assert(i[k] >= 0 and j[k] >= 0 and
-                           i[k] < shape[k] and j[k] < shape[k],
-                           "Symmetry dimensions out of bounds.")
-    else:
-        ufl_assert(symmetry is None, "Expecting symmetry to be None (unset), True, or dict.")
-        symmetry = EmptyDict
+    for i, j in iteritems(symmetry):
+        ufl_assert(len(i) == len(j),
+                   "Non-matching length of symmetry index tuples.")
+        for k in range(len(i)):
+            ufl_assert(i[k] >= 0 and j[k] >= 0 and
+                       i[k] < shape[k] and j[k] < shape[k],
+                       "Symmetry dimensions out of bounds.")
 
     # Compute all index combinations for given shape
     indices = compute_indices(shape)
 
-    # Compute sub elements and mapping from indices
-    # to sub elements, accounting for symmetry
+    # Compute mapping from indices to sub element number, accounting for symmetry
     sub_elements = []
     sub_element_mapping = {}
     for index in indices:
@@ -573,5 +481,18 @@ def _tensor_sub_elements(sub_element, shape, symmetry):
     for index in indices:
         if index in symmetry:
             sub_element_mapping[index] = sub_element_mapping[symmetry[index]]
+    flattened_sub_element_mapping = [sub_element_mapping[index] for i, index in enumerate(indices)]
 
-    return shape, symmetry, sub_elements, sub_element_mapping
+    # Compute reference value shape based on symmetries
+    if symmetry:
+        # Flatten and subtract symmetries
+        reference_value_shape = (product(shape)-len(symmetry),)
+        mapping = "symmetries"
+    else:
+        # Do not flatten if there are no symmetries
+        reference_value_shape = shape
+        mapping = "identity"
+
+
+    return shape, symmetry, sub_elements, sub_element_mapping, \
+      flattened_sub_element_mapping, reference_value_shape, mapping

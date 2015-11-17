@@ -1,8 +1,9 @@
+# -*- coding: utf-8 -*-
 """This module defines expression transformation utilities,
 either converting UFL expressions to new UFL expressions or
 converting UFL expressions to other representations."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -27,7 +28,7 @@ from itertools import chain
 import ufl
 from ufl.log import error, warning
 from ufl.assertions import ufl_assert
-from ufl.common import write_file, pdflatex, openpdf
+from ufl.utils.system import write_file, pdflatex, openpdf
 from ufl.permutation import compute_indices
 
 # All classes:
@@ -45,7 +46,6 @@ from ufl.conditional import EQ, NE, LE, GE, LT, GT, Conditional
 from ufl.form import Form
 from ufl.integral import Measure
 from ufl.classes import terminal_classes
-from ufl.geometry import Domain
 
 # Other algorithms:
 from ufl.algorithms.compute_form_data import compute_form_data
@@ -70,7 +70,7 @@ def _extract_variables(a):
         for o in post_traversal(e):
             if isinstance(o, Variable):
                 expr, label = o.ufl_operands
-                if not label in handled:
+                if label not in handled:
                     variables.append(o)
                     handled.add(label)
     return variables
@@ -427,9 +427,9 @@ def form2latex(form, formdata):
     # Define elements
     lines = []
     for i, f in enumerate(formdata.original_arguments):
-        lines.append(r"\mathcal{P}_{%d} = \{%s\} " % (i, element2latex(f.element())))
+        lines.append(r"\mathcal{P}_{%d} = \{%s\} " % (i, element2latex(f.ufl_element())))
     for i, f in enumerate(formdata.original_coefficients):
-        lines.append(r"\mathcal{Q}_{%d} = \{%s\} " % (i, element2latex(f.element())))
+        lines.append(r"\mathcal{Q}_{%d} = \{%s\} " % (i, element2latex(f.ufl_element())))
     if lines:
         sections.append(("Finite elements", align(lines)))
 
@@ -463,7 +463,7 @@ def form2latex(form, formdata):
         variables = _extract_variables(itg.integrand())
         for v in variables:
             l = v._label
-            if not l in handled_variables:
+            if l not in handled_variables:
                 handled_variables.add(l)
                 exprlatex = expression2latex(v._expression, formdata.argument_names, formdata.coefficient_names)
                 lines.append(("s_{%d}" % l._count, "= %s" % exprlatex))
@@ -487,9 +487,8 @@ def form2latex(form, formdata):
         integral_type = itg.integral_type()
         dstr = domain_strings[integral_type]
 
-        domain = itg.domain()
-        label = domain.label()
-        # TODO: Use domain label!
+        domain = itg.ufl_domain()
+        # TODO: Render domain description
 
         subdomain_id = itg.subdomain_id()
         if isinstance(subdomain_id, int):

@@ -1,8 +1,9 @@
+# -*- coding: utf-8 -*-
 """This module attaches special functions to Expr.
 This way we avoid circular dependencies between e.g.
 Sum and its superclass Expr."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -23,7 +24,8 @@ from itertools import chain
 
 from ufl.log import error
 from ufl.assertions import ufl_assert
-from ufl.common import mergedicts, subdict, StackDict
+from ufl.utils.dicts import mergedicts, subdict
+from ufl.utils.stacks import StackDict
 from ufl.core.expr import Expr
 from ufl.core.operator import Operator
 from ufl.constantvalue import Zero, as_ufl
@@ -119,7 +121,7 @@ def _mult(a, b):
         #v[i]*M[i,:]
 
         # Apply product to scalar components
-        ti = indices(b.rank())
+        ti = indices(len(b.ufl_shape))
         p = Product(a, b[ti])
 
     elif r1 == 2 and r2 in (1, 2): # Matrix-matrix or matrix-vector
@@ -131,8 +133,8 @@ def _mult(a, b):
             return Zero(shape, fi, fid)
 
         # Return dot product in index notation
-        ai = indices(a.rank() - 1)
-        bi = indices(b.rank() - 1)
+        ai = indices(len(a.ufl_shape) - 1)
+        bi = indices(len(b.ufl_shape) - 1)
         k = indices(1)
 
         p = a[ai + k] * b[k + bi]
@@ -411,6 +413,9 @@ Expr.__getitem__ = _getitem
 def _dx(self, *ii):
     "Return the partial derivative with respect to spatial variable number i."
     d = self
+    # Unwrap ii to allow .dx(i,j) and .dx((i,j))
+    if len(ii) == 1 and isinstance(ii[0], tuple):
+        ii = ii[0]
     # Apply all derivatives
     for i in ii:
         d = Grad(d)

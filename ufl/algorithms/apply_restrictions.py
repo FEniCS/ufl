@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """This module contains the apply_restrictions algorithm which propagates restrictions in a form towards the terminals."""
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -114,7 +115,7 @@ class RestrictionPropagator(MultiFunction):
 
     def coefficient(self, o):
         "Allow coefficients to be unrestricted (apply default if so) if the values are fully continuous across the facet."
-        e = o.element()
+        e = o.ufl_element()
         d = e.degree()
         f = e.family()
         # TODO: Move this choice to the element class?
@@ -125,8 +126,26 @@ class RestrictionPropagator(MultiFunction):
             return self._require_restriction(o)
 
     def facet_normal(self, o):
-        D = o.domain()
-        e = D.coordinate_element()
+        D = o.ufl_domain()
+        e = D.ufl_coordinate_element()
+        f = e.family()
+        d = e.degree()
+        gd = D.geometric_dimension()
+        td = D.topological_dimension()
+
+        if f == "Lagrange" and d == 1 and gd == td:
+            # For meshes with a continuous linear non-manifold coordinate field,
+            # the facet normal from side - points in the opposite direction of the one from side +.
+            # We must still require a side to be chosen by the user but rewrite n- -> n+.
+            # This is an optimization, possibly premature, however it's more difficult to do at a later stage.
+            return self._opposite(o)
+        else:
+            # For other meshes, we require a side to be chosen by the user and respect that
+            return self._require_restriction(o)
+
+    def reference_normal(self, o):
+        D = o.ufl_domain()
+        e = D.ufl_coordinate_element()
         f = e.family()
         d = e.degree()
         gd = D.geometric_dimension()
@@ -165,6 +184,7 @@ class RestrictionPropagator(MultiFunction):
     cell_facet_jacobian = _require_restriction             # Depends on cell
     cell_facet_jacobian_determinant = _require_restriction # ...
     cell_facet_jacobian_inverse = _require_restriction     # ...
+    cell_edge_vectors = _require_restriction               # ...
 
     cell_normal = _require_restriction  # Property of cell
 
@@ -189,6 +209,7 @@ class RestrictionPropagator(MultiFunction):
 
 def apply_restrictions(expression):
     "Propagate restriction nodes to wrap differential terminals directly."
-    integral_types = [k for k in integral_type_to_measure_name.keys() if k.startswith("interior_facet")]
+    integral_types = [k for k in integral_type_to_measure_name.keys()
+                      if k.startswith("interior_facet")]
     rules = RestrictionPropagator()
     return map_integrand_dags(rules, expression, only_integral_type=integral_types)

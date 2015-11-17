@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 "Algorithms related to restrictions."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -41,20 +42,20 @@ class RestrictionChecker(Transformer):
 
     def facet_normal(self, o):
         if self.require_restriction:
-            ufl_assert(self.current_restriction is not None, "Facet normal must be restricted in interior facet integrals.")
+            ufl_assert(self.current_restriction is not None,
+                       "Facet normal must be restricted in interior facet integrals.")
         else:
-            ufl_assert(self.current_restriction is None, "Restrictions are only allowed for interior facet integrals.")
+            ufl_assert(self.current_restriction is None,
+                       "Restrictions are only allowed for interior facet integrals.")
 
     def form_argument(self, o):
         if self.require_restriction:
-            ufl_assert(self.current_restriction is not None, "Form argument must be restricted in interior facet integrals.")
+            ufl_assert(self.current_restriction is not None,
+                       "Form argument must be restricted in interior facet integrals.")
         else:
-            ufl_assert(self.current_restriction is None, "Restrictions are only allowed for interior facet integrals.")
+            ufl_assert(self.current_restriction is None,
+                       "Restrictions are only allowed for interior facet integrals.")
 
 def check_restrictions(expression, require_restriction):
     ufl_assert(isinstance(expression, Expr), "Expecting Expr instance.")
     return RestrictionChecker(require_restriction).visit(expression)
-
-def propagate_restrictions(expression):
-    from ufl.algorithms.apply_restrictions import apply_restrictions
-    return apply_restrictions(expression)

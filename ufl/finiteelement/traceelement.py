@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (C) 2014 Andrew T. T. McRae
 #
 # This file is part of UFL.
@@ -17,39 +18,26 @@
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
 
-
 class TraceElement(FiniteElementBase):
     """A finite element space: the trace of a given hdiv element.
     This is effectively a scalar-valued restriction which is
     non-zero only on cell facets."""
+
     def __init__(self, element):
         self._element = element
-        self._repr = "TraceElement(%s)" % str(element._repr)
+        self._repr = "TraceElement(%s)" % repr(element)
 
         family = "TraceElement"
-        domain = element.domain()
+        cell = element.cell()
         degree = element.degree()
         quad_scheme = element.quadrature_scheme()
         value_shape = ()
         reference_value_shape = ()
-        FiniteElementBase.__init__(self, family, domain, degree,
+        FiniteElementBase.__init__(self, family, cell, degree,
                                    quad_scheme, value_shape, reference_value_shape)
 
-    def reconstruct(self, **kwargs):
-        """Construct a new TraceElement object with some properties
-        replaced with new values."""
-        domain = kwargs.get("domain", self.domain())
-        ele = self._element.reconstruct(domain=domain)
-        return TraceElement(ele)
-
-    def reconstruction_signature(self):
-        return "TraceElement(%s)" % self._element.reconstruction_signature()
-
-    def signature_data(self, renumbering):
-        data = ("TraceElement", self._element.signature_data(renumbering),
-                ("no domain" if self._domain is None else self._domain
-                    .signature_data(renumbering)))
-        return data
+    def mapping(self):
+        return "identity"
 
     def __str__(self):
         return "TraceElement(%s)" % str(self._element)

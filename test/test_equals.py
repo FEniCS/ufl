@@ -1,4 +1,5 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 
 """
 Test of expression comparison.
@@ -81,4 +82,3 @@ def test_comparison_of_deeply_nested_expression():
     assert a == b
     assert not a == c
     assert not b == c
-

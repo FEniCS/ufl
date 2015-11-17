@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 "This module defines the UFL finite element classes."
 
-# Copyright (C) 2008-2014 Martin Sandve Alnes
+# Copyright (C) 2008-2015 Martin Sandve Alnæs
 #
 # This file is part of UFL.
 #
@@ -22,8 +23,6 @@
 
 from six.moves import zip
 from ufl.assertions import ufl_assert
-from ufl.permutation import compute_indices
-from ufl.common import product, istr, EmptyDict
 from ufl.log import info_blue, warning, warning_blue, error
 
 from ufl.finiteelement.finiteelementbase import FiniteElementBase
@@ -36,9 +35,9 @@ class EnrichedElement(FiniteElementBase):
     def __init__(self, *elements):
         self._elements = elements
 
-        domain = elements[0].domain()
-        ufl_assert(all(e.domain() == domain for e in elements),
-                   "Domain mismatch for sub elements of enriched element.")
+        cell = elements[0].cell()
+        ufl_assert(all(e.cell() == cell for e in elements),
+                   "Cell mismatch for sub elements of enriched element.")
 
         if isinstance(elements[0].degree(), int):
             degrees = { e.degree() for e in elements } - { None }
@@ -50,7 +49,7 @@ class EnrichedElement(FiniteElementBase):
         quad_schemes = [e.quadrature_scheme() for e in elements]
         quad_schemes = [qs for qs in quad_schemes if qs is not None]
         quad_scheme = quad_schemes[0] if quad_schemes else None
-        ufl_assert(all(qs == quad_scheme for qs in quad_schemes),\
+        ufl_assert(all(qs == quad_scheme for qs in quad_schemes),
             "Quadrature scheme mismatch.")
 
         value_shape = elements[0].value_shape()
@@ -66,30 +65,11 @@ class EnrichedElement(FiniteElementBase):
         #           "Element mapping mismatch.")
 
         # Initialize element data
-        FiniteElementBase.__init__(self, "EnrichedElement", domain, degree,
+        FiniteElementBase.__init__(self, "EnrichedElement", cell, degree,
                                    quad_scheme, value_shape, reference_value_shape)
 
         # Cache repr string
-        self._repr = "EnrichedElement(*%r)" % ([repr(e) for e in self._elements],)
-
-    def reconstruction_signature(self):
-        """Format as string for evaluation as Python object.
-
-        For use with cross language frameworks, stored in generated code
-        and evaluated later in Python to reconstruct this object.
-
-        This differs from repr in that it does not include domain
-        label and data, which must be reconstructed or supplied by other means.
-        """
-        return "EnrichedElement(%s)" % (', '.join(e.reconstruction_signature() for e in self._elements),)
-
-    def reconstruct(self, **kwargs):
-        """Construct a new EnrichedElement object with some properties
-        replaced with new values."""
-        elements = [e.reconstruct(**kwargs) for e in self._elements]
-        if all(a == b for (a, b) in zip(elements, self._elements)):
-            return self
-        return EnrichedElement(*elements)
+        self._repr = "EnrichedElement(%s)" % ", ".join(repr(e) for e in self._elements)
 
     def is_cellwise_constant(self):
         """Return whether the basis functions of this
@@ -106,8 +86,3 @@ class EnrichedElement(FiniteElementBase):
     def shortstr(self):
         "Format as string for pretty printing."
         return "<%s>" % " + ".join(e.shortstr() for e in self._elements)
-
-    def signature_data(self, renumbering):
-        data = ("EnrichedElement",
-                tuple(e.signature_data(renumbering) for e in self._elements))
-        return data

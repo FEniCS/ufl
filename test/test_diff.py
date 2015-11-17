@@ -1,6 +1,7 @@
 #!/usr/bin/env py.test
+# -*- coding: utf-8 -*-
 
-__authors__ = "Martin Sandve Alnes"
+__authors__ = "Martin Sandve Alnæs"
 __date__ = "2009-02-17 -- 2014-10-14"
 
 import pytest
@@ -193,5 +194,3 @@ def testDiffX():
     assert round(df11 - 2 * 4 * 3, 7) == 0
 
 # TODO: More tests involving wrapper types and indices
-
-
