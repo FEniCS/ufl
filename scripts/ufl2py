@@ -33,6 +33,7 @@ if not args:
 filenames = args
 
 header = """#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from ufl import *
 set_level(DEBUG)
 """
@@ -54,4 +55,3 @@ for filename in filenames:
     pyname = "%s.py" % basename
     with file(pyname, "w") as f:
         f.write(code)
-

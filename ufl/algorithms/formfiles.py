@@ -84,7 +84,7 @@ def execute_ufl_code(uflcode, filename):
     # Execute code
     namespace = {}
     try:
-        pycode = "from ufl import *\n" + uflcode
+        pycode = "# -*- coding: utf-8 -*-\nfrom ufl import *\n" + uflcode
         exec(pycode, namespace)
     except:
         # Dump python code for debugging if this fails
