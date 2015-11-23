@@ -114,6 +114,14 @@ class FiniteElementBase(object):
         "Return the shape of the value space on the reference cell."
         return self._reference_value_shape
 
+    def value_size(self):
+        "Return the integer product of the value shape."
+        return product(self.value_shape())
+
+    def reference_value_size(self):
+        "Return the integer product of the reference value shape."
+        return product(self.reference_value_shape())
+
     def symmetry(self): # FIXME: different approach
         """Return the symmetry dict, which is a mapping c0 -> c1
         meaning that component c0 is represented by component c1."""

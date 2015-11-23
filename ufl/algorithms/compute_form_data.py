@@ -25,14 +25,13 @@ from itertools import chain
 from ufl.log import error, warning, info
 from ufl.assertions import ufl_assert
 
-from ufl.finiteelement import FiniteElement, VectorElement, TensorElement
-
 from ufl.classes import GeometricFacetQuantity, Coefficient
 from ufl.corealg.traversal import traverse_terminals
 from ufl.algorithms.analysis import extract_coefficients, extract_sub_elements, unique_tuple
 from ufl.algorithms.formdata import FormData#, ExprData
 from ufl.algorithms.formtransformations import compute_form_arities
 from ufl.algorithms.check_arities import check_form_arity
+from ufl.algorithms.elementtransformations import reconstruct_element
 
 # These are the main symbolic processing steps:
 from ufl.algorithms.apply_function_pullbacks import apply_function_pullbacks
@@ -57,15 +56,6 @@ def _auto_select_degree(elements):
     # Use max degree of all elements, at least 1 (to work with Lagrange elements)
     return max({ e.degree() for e in elements } - { None } | { 1 })
 
-def _reconstruct_element(element, cell, degree):
-    if isinstance(element, FiniteElement):
-        return FiniteElement(element.family(), cell, degree)
-    elif isinstance(element, VectorElement):
-        return VectorElement(element.family(), cell, degree, dim=element.value_shape()[0])
-    elif isinstance(element, TensorElement):
-        return TensorElement(element.family(), cell, degree, shape=element.value_shape())
-    else:
-        error("Element reconstruction is only done to stay compatible with hacks in DOLFIN. Not expecting a %r" % (element,))
 
 def _compute_element_mapping(form):
     "Compute element mapping for element replacement"
@@ -107,15 +97,16 @@ def _compute_element_mapping(form):
 
         # Reconstruct element and add to map
         if reconstruct:
-            element_mapping[element] = _reconstruct_element(element, cell, degree)
+            element_mapping[element] = reconstruct_element(element,
+                    element.family(), cell, degree)
         else:
             element_mapping[element] = element
 
     return element_mapping
 
 
-def _compute_num_sub_domains(integral_data):
-    num_sub_domains = {}
+def _compute_max_subdomain_ids(integral_data):
+    max_subdomain_ids = {}
     for itg_data in integral_data:
         it = itg_data.integral_type
         si = itg_data.subdomain_id
@@ -123,9 +114,9 @@ def _compute_num_sub_domains(integral_data):
             newmax = si + 1
         else:
             newmax = 0
-        prevmax = num_sub_domains.get(it, 0)
-        num_sub_domains[it] = max(prevmax, newmax)
-    return num_sub_domains
+        prevmax = max_subdomain_ids.get(it, 0)
+        max_subdomain_ids[it] = max(prevmax, newmax)
+    return max_subdomain_ids
 
 
 def _compute_form_data_elements(self, arguments, coefficients, domains):
@@ -327,7 +318,7 @@ def compute_form_data(form,
 
     # --- Store number of domains for integral types
     # TODO: Group this by domain first. For now keep a backwards compatible data structure.
-    self.num_sub_domains = _compute_num_sub_domains(self.integral_data)
+    self.max_subdomain_ids = _compute_max_subdomain_ids(self.integral_data)
 
 
     # --- Checks

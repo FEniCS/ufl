@@ -91,7 +91,7 @@ def execute_ufl_code(uflcode, filename):
         basename = os.path.splitext(os.path.basename(filename))[0]
         basename = "%s_debug" % basename
         pyname = "%s.py" % basename
-        pycode = "#!/usr/bin/env python\nfrom ufl import *\nset_level(DEBUG)\n" + uflcode
+        pycode = "#!/usr/bin/env python\n# -*- coding: utf-8 -*-\nfrom ufl import *\nset_level(DEBUG)\n" + uflcode
         with open(pyname, "w") as f:
             f.write(pycode)
         warning(infostring % pyname)
