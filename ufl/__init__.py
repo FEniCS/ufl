@@ -145,7 +145,7 @@ A very brief overview of the language contents follows:
 * Integral measures::
 
     dx, ds, dS, dP,
-    dc, dC, dO, dI,
+    dc, dC, dO, dI, dX
     ds_b, ds_t, ds_tb, ds_v, dS_h, dS_v
 
 * Form transformations::
@@ -268,7 +268,7 @@ from ufl.operators import rank, shape, \
                        elem_mult, elem_div, elem_pow, elem_op
 
 # Measure classes
-from ufl.measure import Measure, register_integral_type, integral_types
+from ufl.measure import Measure, register_integral_type, integral_types, custom_integral_types
 
 # Form class
 from ufl.form import Form, replace_integral_domains
@@ -290,7 +290,7 @@ from ufl.objects import (
     quadrilateral, hexahedron, facet,
     i, j, k, l, p, q, r, s,
     dx, ds, dS, dP,
-    dc, dC, dO, dI,
+    dc, dC, dO, dI, dX,
     ds_b, ds_t, ds_tb, ds_v, dS_h, dS_v
     )
 
@@ -341,11 +341,11 @@ __all__ = [
     'jump', 'avg', 'cell_avg', 'facet_avg',
     'elem_mult', 'elem_div', 'elem_pow', 'elem_op',
     'Form',
-    'Integral', 'Measure', 'register_integral_type', 'integral_types',
+    'Integral', 'Measure', 'register_integral_type', 'integral_types', 'custom_integral_types',
     'replace', 'replace_integral_domains', 'derivative', 'action', 'energy_norm', 'rhs', 'lhs',
     'system', 'functional', 'adjoint', 'sensitivity_rhs',
     'dx', 'ds', 'dS', 'dP',
-    'dc', 'dC', 'dO', 'dI',
+    'dc', 'dC', 'dO', 'dI', 'dX',
     'ds_b', 'ds_t', 'ds_tb', 'ds_v', 'dS_h', 'dS_v',
     'vertex', 'interval', 'triangle', 'tetrahedron',
     'quadrilateral', 'hexahedron', 'facet',
