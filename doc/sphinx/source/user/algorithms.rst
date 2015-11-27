@@ -73,7 +73,7 @@ developers.
 Traversing expressions
 ----------------------
 
-``iter\_expressions``
+``iter_expressions``
 ^^^^^^^^^^^^^^^^^^^^^
 
 Example usage::
@@ -85,12 +85,12 @@ Example usage::
   for e in iter_expressions(a):
       print str(e)
 
-``post\_traversal``
+``post_traversal``
 ^^^^^^^^^^^^^^^^^^^
 
 TODO: traversal.py
 
-``pre\_traversal``
+``pre_traversal``
 ^^^^^^^^^^^^^^^^^^
 
 TODO: traversal.py
@@ -102,7 +102,7 @@ TODO: traversal.py
 TODO: traversal.py
 
 
-``traverse\_terminals``
+``traverse_terminals``
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 TODO: traversal.py
@@ -156,7 +156,7 @@ operands of ``o``. The output is::
 Implementing ``expr`` above provides a default handler for any
 expression node type. For each subclass of ``Expr`` you can
 define a handler function to override the default by using the name
-of the type in underscore notation, e.g. ``vector\_constant``
+of the type in underscore notation, e.g. ``vector_constant``
 for ``VectorConstant``.  The constructor of ``Transformer``
 and implementation of ``Transformer.visit`` handles the mapping
 from type to handler function automatically.
@@ -184,10 +184,10 @@ Here is a simple example to show how to override default behaviour::
 
 The output of this code is the transformed expression ``b ==
 3.14*v``.  This code also demonstrates how to reuse existing handlers.
-The handler ``Transformer.reuse\_if\_possible`` will return the
+The handler ``Transformer.reuse_if_possible`` will return the
 input object if the operands have not changed, and otherwise reconstruct
 a new instance of the same type but with the new transformed operands.
-The handler ``Transformer.always\_reuse`` always reuses the instance
+The handler ``Transformer.always_reuse`` always reuses the instance
 without recursing into its children, usually applied to terminals.
 To set these defaults with less code, inherit ``ReuseTransformer``
 instead of ``Transformer``. This ensures that the parts of the
@@ -247,13 +247,13 @@ TODO: More details about AD algorithms for developers.
 Forward mode
 ------------
 
-TODO: forward\_ad.py
+TODO: forward_ad.py
 
 
 Reverse mode
 ------------
 
-TODO: reverse\_ad.py
+TODO: reverse_ad.py
 
 Mixed derivatives
 -----------------

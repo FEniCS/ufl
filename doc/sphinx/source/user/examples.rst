@@ -40,8 +40,9 @@ Poisson equation
 The bilinear and linear forms form for Poisson's equation,
 
 .. math::
-   a(v, u) &=& \int_{\Omega} \nabla v \cdot \nabla u \mathop{dx}, \\
-   L(v; f)  &=& \int_{\Omega} v \, f \mathop{dx},
+
+   a(v, u) &= \int_{\Omega} \nabla v \cdot \nabla u \mathop{dx}, \\
+   L(v; f) &= \int_{\Omega} v \, f \mathop{dx},
 
 can be implemented as follows::
 
@@ -75,8 +76,8 @@ equations,
 
 .. math::
 
-   a(v, u) &=& \int_{\Omega} \nabla v : \nabla u \mathop{dx}, \\
-   L(v; f) &=& \int_{\Omega} v \cdot f \mathop{dx},
+   a(v, u) &= \int_{\Omega} \nabla v : \nabla u \mathop{dx}, \\
+   L(v; f) &= \int_{\Omega} v \cdot f \mathop{dx},
 
 with :math:`v`, :math:`u` and :math:`f` vector-valued can be implemented
 as follows::
@@ -212,9 +213,9 @@ linear forms:
 
 .. math::
 
-  a(v, u_h^n; c, k) &=& \int_{\Omega} v \, u_h^n \mathop{dx} +
+  a(v, u_h^n; c, k) &= \int_{\Omega} v \, u_h^n \mathop{dx} +
   k_n \int_{\Omega} c \, \nabla v \cdot \nabla u_h^n \mathop{dx}, \\
-  L(v; u_h^{n-1}, f, k) &=& \int_{\Omega} v \, u_h^{n-1} \mathop{dx} + k_n \int_{\Omega} v \, f^n \mathop{dx},
+  L(v; u_h^{n-1}, f, k) &= \int_{\Omega} v \, u_h^{n-1} \mathop{dx} + k_n \int_{\Omega} v \, f^n \mathop{dx},
 
 which can be implemented as follows::
 
@@ -241,8 +242,8 @@ To solve Stokes' equations,
 
 .. math::
 
-  - \Delta u + \nabla p &=& f, \\
-  \nabla \cdot u &=& 0,
+  - \Delta u + \nabla p &= f, \\
+  \nabla \cdot u &= 0,
 
 we write the variational problem in standard form :math:`a(v, u) =
 L(v)` for all :math:`v` to obtain the following pair of bilinear and
@@ -250,9 +251,9 @@ linear forms:
 
 .. math::
 
-   a((v, q), (u, p)) &=& \int_{\Omega} \nabla v : \nabla u - (\nabla \cdot v) \, p +
+   a((v, q), (u, p)) &= \int_{\Omega} \nabla v : \nabla u - (\nabla \cdot v) \, p +
    q \, (\nabla \cdot u) \mathop{dx}, \\
-   L((v, q); f) &=& \int_{\Omega} v \cdot f \mathop{dx}.
+   L((v, q); f) &= \int_{\Omega} v \cdot f \mathop{dx}.
 
 Using a mixed formulation with Taylor-Hood elements, this can be
 implemented as follows::
@@ -296,10 +297,10 @@ where
 
 .. math::
 
-   a((\tau, w), (\sigma, u)) &=& \int_{\Omega} \tau \cdot \sigma - \nabla \cdot \tau \, u
+   a((\tau, w), (\sigma, u)) &= \int_{\Omega} \tau \cdot \sigma - \nabla \cdot \tau \, u
    + w \nabla \cdot \sigma \mathop{dx},
    \\
-   L((\tau, w); f) &=& \int_{\Omega} w \cdot f \mathop{dx}.
+   L((\tau, w); f) &= \int_{\Omega} w \cdot f \mathop{dx}.
 
 We may implement the corresponding forms in our form language using
 first order BDM H(div)-conforming elements for
@@ -400,10 +401,10 @@ The linearised bilinear and linear forms for this equation,
 
 .. math:
 
-   a(v, u; u_0) &=& \int_{\Omega} (1+u_{0}^2) \nabla v \cdot \nabla u \mathop{dx}
+   a(v, u; u_0) &= \int_{\Omega} (1+u_{0}^2) \nabla v \cdot \nabla u \mathop{dx}
    + \int_{\Omega} 2u_0 u \nabla v \cdot \nabla u_0 \mathop{dx},
    \\
-   L(v; u_0, f)    &=& \int_{\Omega} v \, f \mathop{dx}
+   L(v; u_0, f)    &= \int_{\Omega} v \, f \mathop{dx}
    - \int_{\Omega} (1+u_{0}^2) \nabla v \cdot \nabla u_0 \mathop{dx},
 
 can be implemented in a single form file as follows::
@@ -430,10 +431,10 @@ and :math:`\sigma_0 = (1+u_{0}^2) \nabla u_0` as given functions (to be
 computed elsewhere). Substituting into bilinear linear forms, we obtain
 
 .. math:
-   a(v, u) &=& \int_{\Omega} \text{C} \nabla v \cdot \nabla u \mathop{dx}
+   a(v, u) &= \int_{\Omega} \text{C} \nabla v \cdot \nabla u \mathop{dx}
    + \int_{\Omega} 2u_0 u \nabla v \cdot \nabla u_0 \mathop{dx},
    \\
-   L(v; \sigma_0, f)    &=& \int_{\Omega} v \, f \mathop{dx}
+   L(v; \sigma_0, f)    &= \int_{\Omega} v \, f \mathop{dx}
    - \int_{\Omega} \nabla v \cdot \sigma_0 \mathop{dx}.
 
 Then, two additional forms are created to compute the tangent C and

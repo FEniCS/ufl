@@ -1,7 +1,8 @@
 .. title:: Unified Form Language
 
+***************************
 Unified Form Language (UFL)
-===========================
+***************************
 
 This is the documentation for the Unified Form Language from the
 FEniCS Project (http://fenicsproject.org). The Unified Form Language
@@ -23,24 +24,36 @@ Compiler (FFC) and in combination with the problem solving environment
 DOLFIN.
 
 
+Preliminaries
+=============
+
 Installation
 ------------
 
+Ubuntu package
+^^^^^^^^^^^^^^
+
+UFL may be installed directly from source, but the Debian (Ubuntu)
+package ``python-ufl`` is also available for UFL, as for other FEniCS
+components.
 
 Manual from source
 ^^^^^^^^^^^^^^^^^^
+
+To retrieve the latest development version of UFL::
+
+    git clone https://bitbucket.org/fenics-project/ufl
 
 To install UFL::
 
     python setup.py install
 
-
 Help and support
 ----------------
 
-Send help requests and questions to fenics-support@fenicsproject.org.
+Send help requests and questions to fenics-support@googlegroups.com.
 
-Send feature requests and questions to fenics@fenicsproject.org
+Send feature requests and questions to fenics-dev@googlegroups.com
 
 
 Development and reporting bugs
@@ -48,21 +61,21 @@ Development and reporting bugs
 
 The git source repository for UFL is located at
 https://bitbucket.org/fenics-project/ufl. For general UFL development
-questions and to make feature requests, use fenics@fenicsproject.org.
+questions and to make feature requests, use fenics-dev@googlegroups.com
 
 Bugs can be registered at
 https://bitbucket.org/fenics-project/ufl/issues.
 
 
-Documentation
--------------
+Manual and API Reference
+========================
 
 .. toctree::
    :titlesonly:
 
-   user/user_manual
-   api-doc/ufl
-   releases
+   User Manual <user/user_manual>
+   API Reference <api-doc/ufl>
+   Releases <releases>
 
 
 * :ref:`modindex`

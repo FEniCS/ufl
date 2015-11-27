@@ -8,7 +8,7 @@ all these operators and atomic expressions in detail.
 
 UFL is built on top of the Python language, and any Python code is
 valid in the definition of a form.
-In particular, comments (lines starting with ``#`` and functions (keyword ``def``, see `user-defined`
+In particular, comments (lines starting with ``#`` and functions (keyword ``def``, see _user-defined
 below) are useful in the definition of a form.  However, it is usually a
 good idea to avoid using advanced Python features in the form definition,
 to stay close to the mathematical notation.
@@ -583,7 +583,7 @@ powerful tool when used to define forms in tensor notation.
 
 .. note:: Advanced usage
 
-  If using UFL inside PyDOLFIN or another larger programming environment,
+  If using UFL inside DOLFIN or another larger programming environment,
   it is a good idea to define your indices explicitly just before your
   form uses them, to avoid name collisions.  The definition of the
   predefined indices is simply::
@@ -747,43 +747,43 @@ obvious.
 
 * ``sign(f)``: the sign of f (+1 or -1).
 
-* ``pow(f, g)`` or ``f**g``
+* ``pow(f, g)`` or ``f**g``: f to the power g, :math:`f^g`
 
-* ``sqrt(f)``
+* ``sqrt(f)``: square root, :math:`\sqrt{f}`
 
-* ``exp(f)``
+* ``exp(f)``: exponential of f
 
-* ``ln(f)``
+* ``ln(f)``: natural logarithm of f
 
-* ``cos(f)``
+* ``cos(f)``: cosine of f
 
-* ``sin(f)``
+* ``sin(f)``: sine of f
 
-* ``tan(f)``
+* ``tan(f)``: tangent of f
 
-* ``cosh(f)``
+* ``cosh(f)``: hyperbolic cosine of f
 
-* ``sinh(f)``
+* ``sinh(f)``: hyperbolic sine of f
 
-* ``tanh(f)``
+* ``tanh(f)``: hyperbolic tangent of f
 
-* ``acos(f)``
+* ``acos(f)``: inverse cosine of f
 
-* ``asin(f)``
+* ``asin(f)``: inverse sine of f
 
-* ``atan(f)``
+* ``atan(f)``: inverse tangent of f
 
-* ``atan2(f1, f2)``
+* ``atan2(f1, f2)``: inverse tangent of (f1/f2)
 
-* ``erf(f)``
+* ``erf(f)``: error function of f, :math:`{2\over\sqrt{\pi}} \int_0^f \exp(-t^2) \mathop{dt}`
 
-* ``bessel_J(nu, f)``
+* ``bessel_J(nu, f)``: Bessel function of the first kind, :math:`J_\nu(f)`
 
-* ``bessel_Y(nu, f)``
+* ``bessel_Y(nu, f)``: Bessel function of the second kind, :math:`Y_\nu(f)`
 
-* ``bessel_I(nu, f)``
+* ``bessel_I(nu, f)``: Modified Bessel function of the first kind, :math:`I_\nu(f)`
 
-* ``bessel_K(nu, f)``
+* ``bessel_K(nu, f)``: Modified Bessel function of the second kind, :math:`K_\nu(f)`
 
 These functions do not accept non-scalar operands or operands with free
 indices or ``Argument`` dependencies.
@@ -1356,6 +1356,7 @@ Conditions
   the builtin comparison operators for this purpose, hence these named
   operators.
 
+.. _user-defined:
 
 User-defined operators
 ======================
@@ -1756,7 +1757,7 @@ integrals over subdomains and facets::
       notation. Thus, ``a = (grad(v), grad(u)) + inner(v, u)*dx`` is not
       valid.
 
-.. topic:: Advanced usage
+.. note:: Advanced usage
 
   Tuple notation is strictly speaking not a part of the form
   language, but tuples may be converted to UFL forms using

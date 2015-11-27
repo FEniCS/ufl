@@ -15,8 +15,3 @@ UFL user manual
    internal_representation
    algorithms
    command_line_utils
-   installation
-
-*****************
-About this manual
-*****************
