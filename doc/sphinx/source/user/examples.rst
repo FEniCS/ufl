@@ -31,7 +31,7 @@ which can be implemented in UFL as follows::
 
   a = v*u*dx
 
-This example is implemented in the file ``demo/Mass.ufl`` in the collection
+This example is implemented in the file ``Mass.ufl`` in the collection
 of demonstration forms included with the UFL source distribution.
 
 Poisson equation
@@ -63,7 +63,7 @@ or like this::
 
   a = v.dx(i)*u.dx(i)*dx
 
-This example is implemented in the file ``demo/Poisson.ufl`` in the collection
+This example is implemented in the file ``Poisson.ufl`` in the collection
 of demonstration forms included with the UFL source distribution.
 
 
@@ -100,7 +100,7 @@ or like this::
   a = v[i].dx(j)*u[i].dx(j)*dx
   L = v[i]*f[i]*dx
 
-This example is implemented in the file ``demo/PoissonSystem.ufl`` in
+This example is implemented in the file ``PoissonSystem.ufl`` in
 the collection of demonstration forms included with the UFL source
 distribution.
 
@@ -143,7 +143,7 @@ or like this::
   a = 0.25*(v[j].dx(i) + v[i].dx(j))* \
            (u[j].dx(i) + u[i].dx(j))*dx
 
-This example is implemented in the file ``demo/Elasticity.ufl`` in the
+This example is implemented in the file ``Elasticity.ufl`` in the
 collection of demonstration forms included with the UFL source
 distribution.
 
@@ -177,7 +177,7 @@ or like this::
 
   a = v[i]*w[j]*u[i].dx(j)*dx
 
-This example is implemented in the file ``demo/NavierStokes.ufl`` in
+This example is implemented in the file ``NavierStokes.ufl`` in
 the collection of demonstration forms included with the UFL source
 distribution.
 
@@ -230,7 +230,7 @@ which can be implemented as follows::
   a = v*u1*dx + k*c*dot(grad(v), grad(u1))*dx
   L = v*u0*dx + k*v*f*dx
 
-This example is implemented in the file ``demo/Heat.ufl`` in the collection
+This example is implemented in the file ``Heat.ufl`` in the collection
 of demonstration forms included with the UFL source distribution.
 
 
@@ -270,7 +270,7 @@ implemented as follows::
   a = (inner(grad(v), grad(u)) - div(v)*p + q*div(u))*dx
   L = dot(v, f)*dx
 
-This example is implemented in the file ``demo/Stokes.ufl`` in the collection
+This example is implemented in the file ``Stokes.ufl`` in the collection
 of demonstration forms included with the UFL source distribution.
 
 Mixed formulation of Poisson
@@ -320,7 +320,7 @@ first order BDM H(div)-conforming elements for
   a = (dot(tau, sigma) - div(tau)*u + w*div(sigma))*dx
   L = w*f*dx
 
-This example is implemented in the file ``demo/MixedPoisson.ufl`` in
+This example is implemented in the file ``MixedPoisson.ufl`` in
 the collection of demonstration forms included with the UFL source
 distribution.
 
@@ -340,13 +340,13 @@ where
 
    a(v, u; h) &= \int_{\Omega} \nabla v \cdot \nabla u \mathop{dx} \\
    &+ \sum_S \int_S
-   - \langle \nabla v \rangle \cdot \llbracket u \rrbracket_n
-   - \llbracket v \rrbracket_n \cdot \langle \nabla u \rangle
-   + (\alpha/h) \llbracket v \rrbracket_n \cdot \llbracket u \rrbracket_n \dS \\
+   - \langle \nabla v \rangle \cdot [[ u ]]_n
+   - [[ v ]]_n \cdot \langle \nabla u \rangle
+   + (\alpha/h) [[ v ]]_n \cdot [[ u ]]_n \mathop{dS} \\
    &+ \int_{\partial\Omega}
-   - \nabla v \cdot \llbracket u \rrbracket_n - \llbracket v \rrbracket_n \cdot \nabla u
+   - \nabla v \cdot [[ u ]]_n - [[ v ]]_n \cdot \nabla u
    + (\gamma/h) v u \ds \\
-   L(v; f, g) &= \int_{\Omega} v f \mathop{dx} + \int_{\partial\Omega} v g \ds.
+   L(v; f, g) &= \int_{\Omega} v f \mathop{dx} + \int_{\partial\Omega} v g \mathop{ds}.
 
 The corresponding finite element variational problem for discontinuous
 first order elements may be implemented as follows::
@@ -373,14 +373,13 @@ first order elements may be implemented as follows::
     + gamma/h*v*u*ds
   L = v*f*dx + v*g*ds
 
-This example is implemented in the file ``demo/PoissonDG.ufl`` in
+This example is implemented in the file ``PoissonDG.ufl`` in
 the collection of demonstration forms included with the UFL source
 distribution.
 
 
 Quadrature elements
 ===================
-\index{FE and QE}
 
 *FIXME: The code examples in this section have been mostly converted
 to UFL syntax, but the quadrature elements need some more updating, as
@@ -481,7 +480,7 @@ and::
   a = dot(v, u)*dx
   L = dot(v, grad(u0))*dx
 
-The three forms can be implemented using the \texttt{QuadratureElement}
+The three forms can be implemented using the ``QuadratureElement``
 in a similar fashion in which only the element declaration is different::
 
   # QE1NonlinearPoisson.ufl
@@ -511,7 +510,7 @@ Typical values of the relative residual for each Newton iteration for all
 three approaches are shown in Table~\ref{tab:convergence1}. It is noted
 that the convergence rate is quadratic as it should be for all 3 methods.
 
-Relative residuals for each approach for linear elements (label tab:convergence1):
+Relative residuals for each approach for linear elements::
 
   Iteration REF1      FE1      QE1
   ========= ====      ===      ===
@@ -520,15 +519,13 @@ Relative residuals for each approach for linear elements (label tab:convergence1
   3         3.7e-08   3.7e-08  3.7e-08
   4         2.9e-16   2.9e-16  2.5e-16
 
-
-
 However, if quadratic elements are used to interpolate the unknown field u,
 the order of all elements in the above forms is increased by 1. This influences
 the convergence rate as seen in Table (tab:convergence2). Clearly, using
 the standard ``FiniteElement`` leads to a poor convergence whereas
 the ``QuadratureElement`` still leads to quadratic convergence.
 
-Relative residuals for each approach for quadratic elements (label tab:convergence2):
+Relative residuals for each approach for quadratic elements::
 
   Iteration REF2      FE2      QE2
   ========= ====      ===      ===
