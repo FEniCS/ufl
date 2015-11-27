@@ -345,7 +345,7 @@ where
    + (\alpha/h) [[ v ]]_n \cdot [[ u ]]_n \mathop{dS} \\
    &+ \int_{\partial\Omega}
    - \nabla v \cdot [[ u ]]_n - [[ v ]]_n \cdot \nabla u
-   + (\gamma/h) v u \ds \\
+   + (\gamma/h) v u \mathop{ds} \\
    L(v; f, g) &= \int_{\Omega} v f \mathop{dx} + \int_{\partial\Omega} v g \mathop{ds}.
 
 The corresponding finite element variational problem for discontinuous

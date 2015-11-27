@@ -56,21 +56,9 @@ Tree formatting
 
 Ascii tree formatting, useful to inspect the tree structure of
 an expression in interactive Python sessions.  Example output of
-``tree\_format(a)``::
+``tree_format(a)``::
 
   TODO
-
-
-LaTeX formatting
-----------------
-
-See chapter about commandline utilities.
-
-
-Dot formatting
---------------
-
-See chapter about commandline utilities.
 
 
 Inspecting and manipulating the expression tree

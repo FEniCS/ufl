@@ -50,11 +50,11 @@ rest of this chapter.
 Integrals are expressed through multiplication with a measure,
 representing an integral over either of:
 
-    * the interior of the domain :math:`\Omega` (:code:`dx`, cell integral);
+    * the interior of the domain :math:`\Omega` (``dx``, cell integral);
 
-    * the boundary :math:`\partial\Omega` of :math:`\Omega` (:code:`ds`, exterior facet integral);
+    * the boundary :math:`\partial\Omega` of :math:`\Omega` (``ds``, exterior facet integral);
 
-    * the set of interior facets :math:`\Gamma` (:code:`dS`, interior facet integral).
+    * the set of interior facets :math:`\Gamma` (``dS``, interior facet integral).
 
 As a basic example, assume ``v`` is a scalar-valued expression and
 consider the integral of ``v`` over the interior of :math:`\Omega`. This
@@ -265,7 +265,7 @@ Shorthand notation for two subelements::
 
 .. note::
 
-    The ``\*`` operator is left-associative, such that::
+    The ``*`` operator is left-associative, such that::
 
       element = element1 * element2 * element3
 
@@ -1063,19 +1063,14 @@ and there are several ways to express those. The basic way is::
   g = v.dx(i)
 
 If ``v`` is a scalar expression, ``f`` here is the scalar derivative of
-``v`` w.r.t. spatial direction z.  If ``v`` has no free indices, ``g``
-is the scalar derivative w.r.t. spatial direction :math:`x_i`, and ``g``
-has the free index ``i``.  Written as formulas, this can be expressed
-compactly using the :math:`v_{,i}` notation:
+``v`` with respect to spatial direction z.  If ``v`` has no free indices, ``g``
+is the scalar derivative in spatial direction :math:`x_i`, and ``g``
+has the free index ``i``.  This can be expressed compactly as :math:`v_{,i}`:
 
 .. math::
 
    f = \frac{\partial v}{\partial x_2} = v_{,2}, \\
    g = \frac{\partial v}{\partial x_i} = v_{,i}.
-
-..note ::
-
-     :math:`v_{,i}` corresponds closely to  ``v.dx(i)``.
 
 If the expression to be differentiated w.r.t. :math:`x_i` has ``i``
 as a free-index, implicit summation is implied::
@@ -1575,7 +1570,7 @@ The stiffness matrix can be computed from the functional
   F = derivative(f, w, v)
   J = derivative(F, w, u)
 
-which is equivalent to:
+which is equivalent to::
 
   f = inner(grad(w), grad(w))/2 * dx
   F = inner(grad(w), grad(v)) * dx
@@ -1583,7 +1578,7 @@ which is equivalent to:
 
 Note that here the basis functions are provided explicitly, which is
 some times necessary, e.g., if part of the form is linearlized manually
-as in:
+as in::
 
   g = Coefficient(element)
   f = inner(grad(w), grad(w))*dx
@@ -1713,7 +1708,7 @@ Tuple notation
 ==============
 
 In addition to the standard integrand notation described above, UFL
-supports a simplified \emph{tuple notation} by which :math:`L^2` inner
+supports a simplified *tuple notation* by which :math:`L^2` inner
 products may be expressed as tuples. Consider for example the following
 bilinear form as part of a variational problem for a reaction--diffusion
 problem:
@@ -1721,7 +1716,7 @@ problem:
 .. math::
 
   a(v, u)
-  &= \int_{\Omega} \nabla v \cdot \nabla u + v u \dx \\
+  &= \int_{\Omega} \nabla v \cdot \nabla u + v u \mathop{dx} \\
   &= (\nabla v, \nabla u) + (v, u)
 
 In standard UFL notation, this bilinear form may be expressed as::

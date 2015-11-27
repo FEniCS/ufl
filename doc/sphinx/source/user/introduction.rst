@@ -13,14 +13,15 @@ end-user interface, producing implementations of the UFC interface as
 output. See DOLFIN for more details about using UFL in an integrated
 problem solving environment.
 
-.. note::
-    fix cross-references
-
 This manual is intended for different audiences.  If you are an end user
 and all you want to do is to solve your PDEs with the FEniCS framework,
-Chapters XX and XX are for you. These two chapters explain how to use
+you should read :doc:`form_language`, and also :doc:`examples`.
+
+. These two chapters explain how to use
 all operators available in the language and present a number of examples
-to illustrate the use of the form language in applications. The rest
+to illustrate the use of the form language in applications.
+
+The rest
 of the chapters contain more technical details intended for developers
 who need to understand what is happening behind the scenes and modify
 or extend UFL in the future.

@@ -7,10 +7,10 @@ a standard Python installation.  Questions, bug reports and patches
 concerning the installation should be directed to the FEniCS mailing list
 at the address:
 
-  fenics-support@fenicsproject.org
+  fenics-support@googlegroups.com
 
-UFL must currently be installed directly from source, but Debian (Ubuntu)
-packages will be available in the future, for UFL and other FEniCS
+UFL may be installed directly from source, but the Debian (Ubuntu)
+package ``python-ufl`` is also available for UFL, as for other FEniCS
 components.
 
 Installing from source
