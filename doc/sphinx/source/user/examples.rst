@@ -20,7 +20,7 @@ mass matrix,
 
 .. math::
 
-   a(v, u) = \int_{\Omega} v \, u \dx,
+   a(v, u) = \int_{\Omega} v \, u dx,
 
 which can be implemented in UFL as follows::
 
@@ -40,8 +40,8 @@ Poisson equation
 The bilinear and linear forms form for Poisson's equation,
 
 .. math::
-   a(v, u) &=& \int_{\Omega} \nabla v \cdot \nabla u \dx, \\
-   L(v; f)  &=& \int_{\Omega} v \, f \dx,
+   a(v, u) &=& \int_{\Omega} \nabla v \cdot \nabla u dx, \\
+   L(v; f)  &=& \int_{\Omega} v \, f dx,
 
 can be implemented as follows::
 
@@ -75,8 +75,8 @@ equations,
 
 .. math::
 
-   a(v, u) &=& \int_{\Omega} \nabla v : \nabla u \dx, \\
-   L(v; f) &=& \int_{\Omega} v \cdot f \dx,
+   a(v, u) &=& \int_{\Omega} \nabla v : \nabla u dx, \\
+   L(v; f) &=& \int_{\Omega} v \cdot f dx,
 
 with :math:`v`, :math:`u` and :math:`f` vector-valued can be implemented
 as follows::
@@ -112,7 +112,7 @@ The strain-strain term of linear elasticity,
 
 .. math::
 
-   a(v, u) = \int_{\Omega} \epsilon(v) : \epsilon(u) \dx,
+   a(v, u) = \int_{\Omega} \epsilon(v) : \epsilon(u) dx,
 
 where
 
@@ -156,7 +156,7 @@ the incompressible Navier--Stokes equations,
 
 .. math::
 
-   a(v, u; w) = \int_{\Omega} (w \cdot \nabla u) \cdot v \dx,
+   a(v, u; w) = \int_{\Omega} (w \cdot \nabla u) \cdot v dx,
 
 with :math:`w` the frozen velocity from a previous iteration, can be
 implemented as follows::
@@ -197,9 +197,9 @@ obtain the following variational problem for the discrete solution :math:`u_h
 
 .. math::
 
-   \frac{1}{k_n} \int_{\Omega} v \, (u_h^n - u_h^{n-1}) \dx +
-   \int_{\Omega} c \, \nabla v \cdot \nabla u_h^n \dx =
-   \int_{\Omega} v \, f^n \dx
+   \frac{1}{k_n} \int_{\Omega} v \, (u_h^n - u_h^{n-1}) dx +
+   \int_{\Omega} c \, \nabla v \cdot \nabla u_h^n dx =
+   \int_{\Omega} v \, f^n dx
 
 for all test functions :math:`v`, where :math:`k = t_n - t_{n-1}`
 denotes the time step . In the example below, we implement this
@@ -212,9 +212,9 @@ linear forms:
 
 .. math::
 
-  a(v, u_h^n; c, k) &=& \int_{\Omega} v \, u_h^n \dx +
-  k_n \int_{\Omega} c \, \nabla v \cdot \nabla u_h^n \dx, \\
-  L(v; u_h^{n-1}, f, k) &=& \int_{\Omega} v \, u_h^{n-1} \dx + k_n \int_{\Omega} v \, f^n \dx,
+  a(v, u_h^n; c, k) &=& \int_{\Omega} v \, u_h^n dx +
+  k_n \int_{\Omega} c \, \nabla v \cdot \nabla u_h^n dx, \\
+  L(v; u_h^{n-1}, f, k) &=& \int_{\Omega} v \, u_h^{n-1} dx + k_n \int_{\Omega} v \, f^n dx,
 
 which can be implemented as follows::
 
@@ -251,8 +251,8 @@ linear forms:
 .. math::
 
    a((v, q), (u, p)) &=& \int_{\Omega} \nabla v : \nabla u - (\nabla \cdot v) \, p +
-   q \, (\nabla \cdot u) \dx, \\
-   L((v, q); f) &=& \int_{\Omega} v \cdot f \dx.
+   q \, (\nabla \cdot u) dx, \\
+   L((v, q); f) &=& \int_{\Omega} v \cdot f dx.
 
 Using a mixed formulation with Taylor-Hood elements, this can be
 implemented as follows::
@@ -297,9 +297,9 @@ where
 .. math::
 
    a((\tau, w), (\sigma, u)) &=& \int_{\Omega} \tau \cdot \sigma - \nabla \cdot \tau \, u
-   + w \nabla \cdot \sigma \dx,
+   + w \nabla \cdot \sigma dx,
    \\
-   L((\tau, w); f) &=& \int_{\Omega} w \cdot f \dx.
+   L((\tau, w); f) &=& \int_{\Omega} w \cdot f dx.
 
 We may implement the corresponding forms in our form language using
 first order BDM H(div)-conforming elements for
@@ -338,7 +338,7 @@ where
 
 .. math::
 
-   a(v, u; h) &= \int_{\Omega} \nabla v \cdot \nabla u \dx \\
+   a(v, u; h) &= \int_{\Omega} \nabla v \cdot \nabla u dx \\
    &+ \sum_S \int_S
    - \langle \nabla v \rangle \cdot \llbracket u \rrbracket_n
    - \llbracket v \rrbracket_n \cdot \langle \nabla u \rangle
@@ -346,7 +346,7 @@ where
    &+ \int_{\partial\Omega}
    - \nabla v \cdot \llbracket u \rrbracket_n - \llbracket v \rrbracket_n \cdot \nabla u
    + (\gamma/h) v u \ds \\
-   L(v; f, g) &= \int_{\Omega} v f \dx + \int_{\partial\Omega} v g \ds.
+   L(v; f, g) &= \int_{\Omega} v f dx + \int_{\partial\Omega} v g \ds.
 
 The corresponding finite element variational problem for discontinuous
 first order elements may be implemented as follows::
@@ -401,11 +401,11 @@ The linearised bilinear and linear forms for this equation,
 
 .. math:
 
-   a(v, u; u_0) &=& \int_{\Omega} (1+u_{0}^2) \nabla v \cdot \nabla u \dx
-   + \int_{\Omega} 2u_0 u \nabla v \cdot \nabla u_0 \dx,
+   a(v, u; u_0) &=& \int_{\Omega} (1+u_{0}^2) \nabla v \cdot \nabla u dx
+   + \int_{\Omega} 2u_0 u \nabla v \cdot \nabla u_0 dx,
    \\
-   L(v; u_0, f)    &=& \int_{\Omega} v \, f \dx
-   - \int_{\Omega} (1+u_{0}^2) \nabla v \cdot \nabla u_0 \dx,
+   L(v; u_0, f)    &=& \int_{\Omega} v \, f dx
+   - \int_{\Omega} (1+u_{0}^2) \nabla v \cdot \nabla u_0 dx,
 
 can be implemented in a single form file as follows::
 
@@ -431,11 +431,11 @@ and :math:`\sigma_0 = (1+u_{0}^2) \nabla u_0` as given functions (to be
 computed elsewhere). Substituting into bilinear linear forms, we obtain
 
 .. math:
-   a(v, u) &=& \int_{\Omega} \text{C} \nabla v \cdot \nabla u \dx
-   + \int_{\Omega} 2u_0 u \nabla v \cdot \nabla u_0 \dx,
+   a(v, u) &=& \int_{\Omega} \text{C} \nabla v \cdot \nabla u dx
+   + \int_{\Omega} 2u_0 u \nabla v \cdot \nabla u_0 dx,
    \\
-   L(v; \sigma_0, f)    &=& \int_{\Omega} v \, f \dx
-   - \int_{\Omega} \nabla v \cdot \sigma_0 \dx.
+   L(v; \sigma_0, f)    &=& \int_{\Omega} v \, f dx
+   - \int_{\Omega} \nabla v \cdot \sigma_0 dx.
 
 Then, two additional forms are created to compute the tangent C and
 the gradient of :math:`u_0`. This situation shows up in plasticity and
@@ -545,4 +545,3 @@ Feel free to send additional demo form files for your favourite PDE to
 the UFL mailing list.
 
 %TODO: Modify rest of FFC example forms to UFL syntax and add here.
-
