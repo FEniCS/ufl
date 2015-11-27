@@ -182,7 +182,7 @@ possible values include:
   with degrees of freedom being function evaluation at quadrature points;
 
 * ``"Boundary Quadrature"`` or ``"BQ"``, representing artificial
-  ``finite elements'' with degrees of freedom being function evaluation
+  "finite elements" with degrees of freedom being function evaluation
   at quadrature points on the boundary;
 
 
@@ -390,7 +390,7 @@ of the function.
       f = Coefficient(element)
       g = Coefficient(element)
 
-For a ``Coefficient` on a ``MixedElement`` (or ``VectorElement`` or
+For a ``Coefficient`` on a ``MixedElement`` (or ``VectorElement`` or
 ``TensorElement``), the function ``split`` can be used to extract function
 values on subspaces, as illustrated here for a mixed Taylor--Hood element::
 
@@ -1518,9 +1518,10 @@ is equivalent to::
   L = v*w*dx - k*dot(grad(v), 0.5*grad(w))*dx
 
 
+.. _AD:
+
 Automatic functional differentiation
 ------------------------------------
-\label{subsec:AD}
 
 UFL can compute derivatives of functionals or forms w.r.t. to a
 ``Coefficient``.  This functionality can be used for example to linearize
